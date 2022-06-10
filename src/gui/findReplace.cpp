@@ -3,6 +3,7 @@
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "guiConst.h"
+#include "intConst.h"
 
 const char* queryModes[GUI_QUERY_MAX]={
   "ignore",
@@ -17,6 +18,7 @@ const char* queryModes[GUI_QUERY_MAX]={
 const char* queryReplaceModes[GUI_QUERY_REPLACE_MAX]={
   "set",
   "add",
+  "add (overflow)",
   "clear"
 };
 
@@ -289,7 +291,11 @@ void FurnaceGUI::drawFindReplace() {
       curQuery.push_back(FurnaceGUIFindQuery());
     }
 
-    if (ImGui::BeginTable("QueryLimits",2)) {
+    if (ImGui::BeginTable("QueryLimits",3)) {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.5f);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5f);
+
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
 
@@ -332,6 +338,7 @@ void FurnaceGUI::drawFindReplace() {
       }
       ImGui::EndDisabled();
 
+      ImGui::TableNextColumn();
       ImGui::Text("Match effect position:");
 
       if (ImGui::RadioButton("No",curQueryEffectPos==0)) {
@@ -355,36 +362,188 @@ void FurnaceGUI::drawFindReplace() {
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      ImGui::Checkbox("From start",&curQueryFromStart);
-      ImGui::TableNextColumn();
       ImGui::Checkbox("Backwards",&curQueryBackwards);
 
       ImGui::EndTable();
     }
 
     if (ImGui::TreeNode("Replace")) {
-      if (ImGui::BeginTable("QueryReplace",3)) {
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Note");
+      if (ImGui::BeginTable("QueryReplace",3,ImGuiTableFlags_BordersOuter)) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.5);
+        ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5);
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Ins");
+        ImGui::Checkbox("Note",&queryReplaceNoteDo);
+        ImGui::TableNextColumn();
+        ImGui::BeginDisabled(!queryReplaceNoteDo);
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::Combo("##NRMode",&queryReplaceNoteMode,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (queryReplaceNoteMode==GUI_QUERY_REPLACE_SET) {
+          if (queryReplaceNote==130) {
+            snprintf(tempID,1024,"REL");
+          } else if (queryReplaceNote==129) {
+            snprintf(tempID,1024,"===");
+          } else if (queryReplaceNote==128) {
+            snprintf(tempID,1024,"OFF");
+          } else if (queryReplaceNote>=-60 && queryReplaceNote<120) {
+            snprintf(tempID,1024,"%s",noteNames[queryReplaceNote+60]);
+          } else {
+            snprintf(tempID,1024,"???");
+            queryReplaceNote=0;
+          }
+          if (ImGui::BeginCombo("##NRValueC",tempID)) {
+            for (int j=0; j<180; j++) {
+              snprintf(tempID,1024,"%s",noteNames[j]);
+              if (ImGui::Selectable(tempID,queryReplaceNote==(j-60))) {
+                queryReplaceNote=j-60;
+              }
+            }
+            if (ImGui::Selectable("OFF",queryReplaceNote==128)) {
+              queryReplaceNote=128;
+            }
+            if (ImGui::Selectable("===",queryReplaceNote==129)) {
+              queryReplaceNote=129;
+            }
+            if (ImGui::Selectable("REL",queryReplaceNote==130)) {
+              queryReplaceNote=130;
+            }
+            ImGui::EndCombo();
+          }
+        } else if (queryReplaceNoteMode==GUI_QUERY_REPLACE_ADD || queryReplaceNoteMode==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
+          if (ImGui::InputInt("##NRValue",&queryReplaceNote,1,12)) {
+            if (queryReplaceNote<-180) queryReplaceNote=-180;
+            if (queryReplaceNote>180) queryReplaceNote=180;
+          }
+        }
+        ImGui::EndDisabled();
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Volume");
-
-        /*ImGui::TableNextRow();
+        ImGui::Checkbox("Ins",&queryReplaceInsDo);
         ImGui::TableNextColumn();
-        ImGui::Text("Effect");
+        ImGui::BeginDisabled(!queryReplaceInsDo);
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::Combo("##IRMode",&queryReplaceInsMode,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (queryReplaceInsMode==GUI_QUERY_REPLACE_SET) {
+          if (ImGui::InputScalar("##IRValueH",ImGuiDataType_S32,&queryReplaceIns,&_ONE,&_SIXTEEN,"%.2X",ImGuiInputTextFlags_CharsHexadecimal)) {
+            if (queryReplaceIns<0) queryReplaceIns=0;
+            if (queryReplaceIns>255) queryReplaceIns=255;
+          }
+        } else if (queryReplaceInsMode==GUI_QUERY_REPLACE_ADD || queryReplaceInsMode==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
+          if (ImGui::InputInt("##IRValue",&queryReplaceIns,1,12)) {
+            if (queryReplaceIns<-255) queryReplaceIns=-255;
+            if (queryReplaceIns>255) queryReplaceIns=255;
+          }
+        }
+        ImGui::EndDisabled();
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text("Value");*/
+        ImGui::Checkbox("Volume",&queryReplaceVolDo);
+        ImGui::TableNextColumn();
+        ImGui::BeginDisabled(!queryReplaceVolDo);
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::Combo("##VRMode",&queryReplaceVolMode,queryReplaceModes,GUI_QUERY_REPLACE_MAX);
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (queryReplaceVolMode==GUI_QUERY_REPLACE_SET) {
+          if (ImGui::InputScalar("##VRValueH",ImGuiDataType_S32,&queryReplaceVol,&_ONE,&_SIXTEEN,"%.2X",ImGuiInputTextFlags_CharsHexadecimal)) {
+            if (queryReplaceVol<0) queryReplaceVol=0;
+            if (queryReplaceVol>255) queryReplaceVol=255;
+          }
+        } else if (queryReplaceVolMode==GUI_QUERY_REPLACE_ADD || queryReplaceVolMode==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
+          if (ImGui::InputInt("##VRValue",&queryReplaceVol,1,12)) {
+            if (queryReplaceVol<-255) queryReplaceVol=-255;
+            if (queryReplaceVol>255) queryReplaceVol=255;
+          }
+        }
+        ImGui::EndDisabled();
+
+        for (int i=0; i<queryReplaceEffectCount; i++) {
+          ImGui::PushID(0x100+i);
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Checkbox("Effect",&queryReplaceEffectDo[i]);
+          ImGui::TableNextColumn();
+          ImGui::BeginDisabled(!queryReplaceEffectDo[i]);
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##ERMode",&queryReplaceEffectMode[i],queryReplaceModes,GUI_QUERY_REPLACE_MAX);
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (queryReplaceEffectMode[i]==GUI_QUERY_REPLACE_SET) {
+            if (ImGui::InputScalar("##ERValueH",ImGuiDataType_S32,&queryReplaceEffect[i],&_ONE,&_SIXTEEN,"%.2X",ImGuiInputTextFlags_CharsHexadecimal)) {
+              if (queryReplaceEffect[i]<0) queryReplaceEffect[i]=0;
+              if (queryReplaceEffect[i]>255) queryReplaceEffect[i]=255;
+            }
+          } else if (queryReplaceEffectMode[i]==GUI_QUERY_REPLACE_ADD || queryReplaceEffectMode[i]==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
+            if (ImGui::InputInt("##ERValue",&queryReplaceEffect[i],1,12)) {
+              if (queryReplaceEffect[i]<-255) queryReplaceEffect[i]=-255;
+              if (queryReplaceEffect[i]>255) queryReplaceEffect[i]=255;
+            }
+          }
+          ImGui::EndDisabled();
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Checkbox("Value",&queryReplaceEffectValDo[i]);
+          ImGui::TableNextColumn();
+          ImGui::BeginDisabled(!queryReplaceEffectValDo[i]);
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::Combo("##ERMode",&queryReplaceEffectValMode[i],queryReplaceModes,GUI_QUERY_REPLACE_MAX);
+          ImGui::TableNextColumn();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_SET) {
+            if (ImGui::InputScalar("##ERValueH",ImGuiDataType_S32,&queryReplaceEffectVal[i],&_ONE,&_SIXTEEN,"%.2X",ImGuiInputTextFlags_CharsHexadecimal)) {
+              if (queryReplaceEffectVal[i]<0) queryReplaceEffectVal[i]=0;
+              if (queryReplaceEffectVal[i]>255) queryReplaceEffectVal[i]=255;
+            }
+          } else if (queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_ADD || queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
+            if (ImGui::InputInt("##ERValue",&queryReplaceEffectVal[i],1,12)) {
+              if (queryReplaceEffectVal[i]<-255) queryReplaceEffectVal[i]=-255;
+              if (queryReplaceEffectVal[i]>255) queryReplaceEffectVal[i]=255;
+            }
+          }
+          ImGui::EndDisabled();
+
+
+          ImGui::PopID();
+        }
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableNextColumn();
+        if (queryReplaceEffectCount<8) {
+          if (ImGui::Button("Add effect")) {
+            queryReplaceEffectCount++;
+          }
+        }
+        ImGui::TableNextColumn();
+        if (queryReplaceEffectCount>0) {
+          if (ImGui::Button("Remove effect")) {
+            queryReplaceEffectCount--;
+          }
+        }
 
         ImGui::EndTable();
+      }
+      ImGui::Text("Effect replace mode:");
+      if (ImGui::RadioButton("Clear effects",queryReplaceEffectPos==0)) {
+        queryReplaceEffectPos=0;
+      }
+      if (ImGui::RadioButton("Replace matches only",queryReplaceEffectPos==1)) {
+        queryReplaceEffectPos=1;
+      }
+      if (ImGui::RadioButton("Replace matches, then free spaces",queryReplaceEffectPos==2)) {
+        queryReplaceEffectPos=2;
+      }
+      if (ImGui::RadioButton("Insert in free spaces",queryReplaceEffectPos==3)) {
+        queryReplaceEffectPos=3;
       }
       if (ImGui::Button("Replace##QueryReplace")) {
         // TODO
