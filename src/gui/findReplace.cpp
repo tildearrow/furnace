@@ -112,25 +112,36 @@ void FurnaceGUI::doFind() {
             bool notMatched=false;
             switch (curQueryEffectPos) {
               case 0: // no
-                // TODO
                 for (int m=0; m<l.effectCount; m++) {
+                  bool allGood=false;
                   for (int n=0; n<e->curPat[k].effectCols; n++) {
-                    if (!checkCondition(l.effectMode[m],l.effect[m],l.effectMax[m],p->data[j][4+m*2])) continue;
-                    if (!checkCondition(l.effectValMode[m],l.effectVal[m],l.effectValMax[m],p->data[j][5+m*2])) continue;
+                    if (!checkCondition(l.effectMode[m],l.effect[m],l.effectMax[m],p->data[j][4+n*2])) continue;
+                    if (!checkCondition(l.effectValMode[m],l.effectVal[m],l.effectValMax[m],p->data[j][5+n*2])) continue;
+                    allGood=true;
+                    break;
+                  }
+                  if (!allGood) {
+                    notMatched=true;
+                    break;
                   }
                 }
                 break;
               case 1: // lax
                 break;
               case 2: // strict
-                for (int m=0; m<l.effectCount; m++) {
-                  if (!checkCondition(l.effectMode[m],l.effect[m],l.effectMax[m],p->data[j][4+m*2])) {
-                    notMatched=true;
-                    break;
-                  }
-                  if (!checkCondition(l.effectValMode[m],l.effectVal[m],l.effectValMax[m],p->data[j][5+m*2])) {
-                    notMatched=true;
-                    break;
+                int effectMax=l.effectCount;
+                if (effectMax>e->curPat[k].effectCols) {
+                  notMatched=true;
+                } else {
+                  for (int m=0; m<effectMax; m++) {
+                    if (!checkCondition(l.effectMode[m],l.effect[m],l.effectMax[m],p->data[j][4+m*2])) {
+                      notMatched=true;
+                      break;
+                    }
+                    if (!checkCondition(l.effectValMode[m],l.effectVal[m],l.effectValMax[m],p->data[j][5+m*2])) {
+                      notMatched=true;
+                      break;
+                    }
                   }
                 }
                 break;
