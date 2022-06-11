@@ -4450,6 +4450,7 @@ FurnaceGUI::FurnaceGUI():
   queryReplaceNoteDo(false),
   queryReplaceInsDo(false),
   queryReplaceVolDo(false),
+  queryViewingResults(false),
   wavePreviewOn(false),
   wavePreviewKey((SDL_Scancode)0),
   wavePreviewNote(0),

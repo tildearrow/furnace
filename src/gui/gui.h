@@ -1208,6 +1208,7 @@ class FurnaceGUI {
   bool queryReplaceVolDo;
   bool queryReplaceEffectDo[8];
   bool queryReplaceEffectValDo[8];
+  bool queryViewingResults;
 
   struct ActiveNote {
     int chan;
