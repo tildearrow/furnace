@@ -31,13 +31,13 @@ int queryNote(int note, int octave) {
   } else if (note==102) { // envelope release only
     return 130;
   } else if (octave==0 && note==0) {
-    return -1;
+    return -61;
   } else if (note==0 && octave!=0) {
-    return -1; // bug note?
+    return -61; // bug note?
   }
   int seek=(note+(signed char)octave*12);
   if (seek<-60 || seek>=120) {
-    return -1; // out of range note
+    return -61; // out of range note
   }
   return seek;
 }
@@ -190,6 +190,201 @@ void FurnaceGUI::doFind() {
 }
 
 void FurnaceGUI::doReplace() {
+  doFind();
+  queryViewingResults=false;
+
+  for (FurnaceGUIQueryResult& i: curQueryResults) {
+    DivPattern* p=e->song.subsong[i.subsong]->pat[i.x].getPattern(e->song.subsong[i.subsong]->orders.ord[i.x][i.order],true);
+    if (queryReplaceNoteDo) {
+      switch (queryReplaceNoteMode) {
+        case GUI_QUERY_REPLACE_SET:
+          if (queryReplaceNote==130) { // macro release
+            p->data[i.y][0]=102;
+            p->data[i.y][1]=0;
+          } else if (queryReplaceNote==129) { // note release
+            p->data[i.y][0]=101;
+            p->data[i.y][1]=0;
+          } else if (queryReplaceNote==128) { // note off
+            p->data[i.y][0]=100;
+            p->data[i.y][1]=0;
+          } else if (queryReplaceNote>=-60 && queryReplaceNote<120) { // note
+            p->data[i.y][0]=(queryReplaceNote+60)%12;
+            if (p->data[i.y][0]==0) p->data[i.y][0]=12;
+            p->data[i.y][1]=(unsigned char)((queryReplaceNote-1)/12);
+          } else { // invalid
+            p->data[i.y][0]=0;
+            p->data[i.y][1]=0;
+          }
+          break;
+        case GUI_QUERY_REPLACE_ADD:
+          if (p->data[i.y][0]<100) {
+            int note=queryNote(p->data[i.y][0],p->data[i.y][1]);
+            if (note>=-60 && note<120) {
+              note+=queryReplaceNote;
+              if (note<-60) note=-60;
+              if (note>119) note=119;
+
+              p->data[i.y][0]=(note+60)%12;
+              if (p->data[i.y][0]==0) p->data[i.y][0]=12;
+              p->data[i.y][1]=(unsigned char)((note-1)/12);
+            }
+          }
+          break;
+        case GUI_QUERY_REPLACE_ADD_OVERFLOW:
+          if (p->data[i.y][0]<100) {
+            int note=queryNote(p->data[i.y][0],p->data[i.y][1]);
+            if (note>=-60 && note<120) {
+              note+=queryReplaceNote;
+              if (note<-60) {
+                while (note<-60) note+=180;
+              } else if (note>119) {
+                while (note>119) note-=180;
+              }
+
+              p->data[i.y][0]=(note+60)%12;
+              if (p->data[i.y][0]==0) p->data[i.y][0]=12;
+              p->data[i.y][1]=(unsigned char)((note-1)/12);
+            }
+          }
+          break;
+        case GUI_QUERY_REPLACE_CLEAR:
+          p->data[i.y][0]=0;
+          p->data[i.y][1]=0;
+          break;
+      }
+    }
+
+    if (queryReplaceInsDo) {
+      switch (queryReplaceInsMode) {
+        case GUI_QUERY_REPLACE_SET:
+          p->data[i.y][2]=queryReplaceIns;
+          break;
+        case GUI_QUERY_REPLACE_ADD:
+          if (p->data[i.y][2]>=0) {
+            p->data[i.y][2]+=queryReplaceIns;
+            if (p->data[i.y][2]<0) p->data[i.y][2]=0;
+            if (p->data[i.y][2]>255) p->data[i.y][2]=255;
+          }
+          break;
+        case GUI_QUERY_REPLACE_ADD_OVERFLOW:
+          if (p->data[i.y][2]>=0) p->data[i.y][2]=(p->data[i.y][2]+queryReplaceIns)&0xff;
+          break;
+        case GUI_QUERY_REPLACE_CLEAR:
+          p->data[i.y][2]=-1;
+          break;
+      }
+    }
+
+    if (queryReplaceVolDo) {
+      switch (queryReplaceVolMode) {
+        case GUI_QUERY_REPLACE_SET:
+          p->data[i.y][3]=queryReplaceVol;
+          break;
+        case GUI_QUERY_REPLACE_ADD:
+          if (p->data[i.y][3]>=0) {
+            p->data[i.y][3]+=queryReplaceVol;
+            if (p->data[i.y][3]<0) p->data[i.y][3]=0;
+            if (p->data[i.y][3]>255) p->data[i.y][3]=255;
+          }
+          break;
+        case GUI_QUERY_REPLACE_ADD_OVERFLOW:
+          if (p->data[i.y][3]>=0) p->data[i.y][3]=(p->data[i.y][3]+queryReplaceVol)&0xff;
+          break;
+        case GUI_QUERY_REPLACE_CLEAR:
+          p->data[i.y][3]=-1;
+          break;
+      }
+    }
+
+    signed char effectOrder[8];
+    memset(effectOrder,-1,8);
+
+    switch (queryReplaceEffectPos) {
+      case 0: // clear
+        for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols; j++) {
+          effectOrder[j]=j;
+        }
+        break;
+      case 1: { // replace matches
+        int placementIndex=0;
+        for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols; j++) {
+          if (p->data[i.y][4+j*2]!=-1 || p->data[i.y][5+j*2]!=-1) {
+            effectOrder[placementIndex++]=j;
+          }
+        }
+        break;
+      }
+      case 2: { // replace matches then free spaces
+        int placementIndex=0;
+        for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols; j++) {
+          if (p->data[i.y][4+j*2]!=-1 || p->data[i.y][5+j*2]!=-1) {
+            effectOrder[placementIndex++]=j;
+          }
+        }
+        for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols; j++) {
+          if (p->data[i.y][4+j*2]==-1 && p->data[i.y][5+j*2]==-1) {
+            effectOrder[placementIndex++]=j;
+          }
+        }
+        break;
+      }
+      case 3: { // insert in free spaces
+        int placementIndex=0;
+        for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols; j++) {
+          if (p->data[i.y][4+j*2]==-1 && p->data[i.y][5+j*2]==-1) {
+            effectOrder[placementIndex++]=j;
+          }
+        }
+        break;
+      }
+    }
+
+    for (int j=0; j<queryReplaceEffectCount; j++) {
+      signed char pos=effectOrder[j];
+      if (pos==-1) continue;
+      if (queryReplaceEffectDo[j]) {
+        switch (queryReplaceEffectMode[j]) {
+          case GUI_QUERY_REPLACE_SET:
+            p->data[i.y][4+pos*2]=queryReplaceEffect[j];
+            break;
+          case GUI_QUERY_REPLACE_ADD:
+            if (p->data[i.y][4+pos*2]>=0) {
+              p->data[i.y][4+pos*2]+=queryReplaceEffect[j];
+              if (p->data[i.y][4+pos*2]<0) p->data[i.y][4+pos*2]=0;
+              if (p->data[i.y][4+pos*2]>255) p->data[i.y][4+pos*2]=255;
+            }
+            break;
+          case GUI_QUERY_REPLACE_ADD_OVERFLOW:
+            if (p->data[i.y][4+pos*2]>=0) p->data[i.y][4+pos*2]=(p->data[i.y][4+pos*2]+queryReplaceEffect[j])&0xff;
+            break;
+          case GUI_QUERY_REPLACE_CLEAR:
+            p->data[i.y][4+pos*2]=-1;
+            break;
+        }
+      }
+
+      if (queryReplaceEffectValDo[j]) {
+        switch (queryReplaceEffectValMode[j]) {
+          case GUI_QUERY_REPLACE_SET:
+            p->data[i.y][5+pos*2]=queryReplaceEffectVal[j];
+            break;
+          case GUI_QUERY_REPLACE_ADD:
+            if (p->data[i.y][5+pos*2]>=0) {
+              p->data[i.y][5+pos*2]+=queryReplaceEffectVal[j];
+              if (p->data[i.y][5+pos*2]<0) p->data[i.y][5+pos*2]=0;
+              if (p->data[i.y][5+pos*2]>255) p->data[i.y][5+pos*2]=255;
+            }
+            break;
+          case GUI_QUERY_REPLACE_ADD_OVERFLOW:
+            if (p->data[i.y][5+pos*2]>=0) p->data[i.y][5+pos*2]=(p->data[i.y][5+pos*2]+queryReplaceEffectVal[j])&0xff;
+            break;
+          case GUI_QUERY_REPLACE_CLEAR:
+            p->data[i.y][5+pos*2]=-1;
+            break;
+        }
+      }
+    }
+  }
 }
 
 #define FIRST_VISIBLE(x) (x==GUI_QUERY_MATCH || x==GUI_QUERY_MATCH_NOT || x==GUI_QUERY_RANGE || x==GUI_QUERY_RANGE_NOT)
