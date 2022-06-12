@@ -1492,6 +1492,7 @@ class FurnaceGUI {
   void doUndo();
   void doRedo();
   void doFind();
+  void doReplace();
   void editOptions(bool topMenu);
   void noteInput(int num, int key, int vol=-1);
   void valueInput(int num, bool direct=false, int target=-1);

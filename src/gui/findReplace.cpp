@@ -126,8 +126,37 @@ void FurnaceGUI::doFind() {
                   }
                 }
                 break;
-              case 1: // lax
+              case 1: { // lax
+                // locate first effect
+                int posOfFirst=-1;
+                for (int m=0; m<e->curPat[k].effectCols; m++) {
+                  if (!checkCondition(l.effectMode[0],l.effect[0],l.effectMax[0],p->data[j][4+m*2])) continue;
+                  if (!checkCondition(l.effectValMode[0],l.effectVal[0],l.effectValMax[0],p->data[j][5+m*2])) continue;
+                  posOfFirst=m;
+                  break;
+                }
+                if (posOfFirst<0) {
+                  notMatched=true;
+                  break;
+                }
+                // make sure we aren't too far to the right
+                if ((posOfFirst+l.effectCount)>e->curPat[k].effectCols) {
+                  notMatched=true;
+                  break;
+                }
+                // search from first effect location
+                for (int m=0; m<l.effectCount; m++) {
+                  if (!checkCondition(l.effectMode[m],l.effect[m],l.effectMax[m],p->data[j][4+(m+posOfFirst)*2])) {
+                    notMatched=true;
+                    break;
+                  }
+                  if (!checkCondition(l.effectValMode[m],l.effectVal[m],l.effectValMax[m],p->data[j][5+(m+posOfFirst)*2])) {
+                    notMatched=true;
+                    break;
+                  }
+                }
                 break;
+              }
               case 2: // strict
                 int effectMax=l.effectCount;
                 if (effectMax>e->curPat[k].effectCols) {
@@ -158,6 +187,9 @@ void FurnaceGUI::doFind() {
     }
   }
   queryViewingResults=true;
+}
+
+void FurnaceGUI::doReplace() {
 }
 
 #define FIRST_VISIBLE(x) (x==GUI_QUERY_MATCH || x==GUI_QUERY_MATCH_NOT || x==GUI_QUERY_RANGE || x==GUI_QUERY_RANGE_NOT)
@@ -754,7 +786,7 @@ void FurnaceGUI::drawFindReplace() {
           queryReplaceEffectPos=3;
         }
         if (ImGui::Button("Replace##QueryReplace")) {
-          // TODO
+          doReplace();
         }
         ImGui::EndTabItem();
       }
