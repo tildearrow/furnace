@@ -87,7 +87,7 @@ void DivPlatformSNES::acquire(short* bufL, short* bufR, size_t start, size_t len
   }
 }
 
-void DivPlatformSNES::tick() {
+void DivPlatformSNES::tick(bool sysTick) {
   // KON/KOFF can't be written several times per one sample
   // so they have to be accumulated
   unsigned char kon=0;

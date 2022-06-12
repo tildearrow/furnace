@@ -8,6 +8,7 @@ winbuild/
 win32build/
 macbuild/
 linuxbuild/
+webbuild/
 *.swp
 .cache/
 .DS_Store
