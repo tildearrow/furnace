@@ -193,8 +193,18 @@ void FurnaceGUI::doReplace() {
   doFind();
   queryViewingResults=false;
 
+  bool* touched[DIV_MAX_CHANS];
+  memset(touched,0,DIV_MAX_CHANS*sizeof(bool*));
+
   for (FurnaceGUIQueryResult& i: curQueryResults) {
-    DivPattern* p=e->song.subsong[i.subsong]->pat[i.x].getPattern(e->song.subsong[i.subsong]->orders.ord[i.x][i.order],true);
+    int patIndex=e->song.subsong[i.subsong]->orders.ord[i.x][i.order];
+    DivPattern* p=e->song.subsong[i.subsong]->pat[i.x].getPattern(patIndex,true);
+    if (touched[i.x]==NULL) {
+      touched[i.x]=new bool[256*256];
+      memset(touched[i.x],0,256*256*sizeof(bool));
+    }
+    if (touched[i.x][(patIndex<<8)|i.y]) continue;
+    touched[i.x][(patIndex<<8)|i.y]=true;
     if (queryReplaceNoteDo) {
       switch (queryReplaceNoteMode) {
         case GUI_QUERY_REPLACE_SET:
@@ -384,6 +394,10 @@ void FurnaceGUI::doReplace() {
         }
       }
     }
+  }
+
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    if (touched[i]!=NULL) delete[] touched[i];
   }
 }
 
