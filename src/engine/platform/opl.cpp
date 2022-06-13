@@ -677,6 +677,9 @@ void DivPlatformOPL::muteChannel(int ch, bool mute) {
     fm.channel[outChanMap[ch]].muted=mute;
   }
   int ops=(slots[3][ch]!=255 && chan[ch].state.ops==4 && oplType==3)?4:2;
+  if (ch&1 && ch<12) {
+    if (chan[ch-1].fourOp) return;
+  }
   chan[ch].fourOp=(ops==4);
   update4OpMask=true;
   for (int i=0; i<ops; i++) {
