@@ -2036,7 +2036,7 @@ void FurnaceGUI::drawInsEdit() {
                 if (ImGui::BeginTable("KGE93BSIEO3NOWBDJZBA",columns,ImGuiTableFlags_SizingStretchSame)) {
                   for (int i=0; i<opCount; i++) {
                     DivInstrumentFM::Operator& op=ins->fm.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS)?opOrder[i]:i];
-                    if ((settings.fmLayout!=3 && ((i+1)&1)) || i==0 || settings.fmLayout==2) ImGui::TableNextRow();
+                    if ((settings.fmLayout!=6 && ((i+1)&1)) || i==0 || settings.fmLayout==5) ImGui::TableNextRow();
                     ImGui::TableNextColumn();
                     ImGui::Separator();
                     ImGui::PushID(fmt::sprintf("op%d",i).c_str());
