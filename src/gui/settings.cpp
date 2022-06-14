@@ -1117,6 +1117,15 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::RadioButton("Compact (4x1)##fml3",settings.fmLayout==3)) {
             settings.fmLayout=3;
           }
+          if (ImGui::RadioButton("Alternate (2x2)##fml4",settings.fmLayout==4)) {
+            settings.fmLayout=4;
+          }
+          if (ImGui::RadioButton("Alternate (1x4)##fml5",settings.fmLayout==5)) {
+            settings.fmLayout=5;
+          }
+          if (ImGui::RadioButton("Alternate (4x1)##fml5",settings.fmLayout==6)) {
+            settings.fmLayout=6;
+          }
 
           ImGui::Text("Position of Sustain in FM editor:");
           if (ImGui::RadioButton("Between Decay and Sustain Rate##susp0",settings.susPosition==0)) {
@@ -2077,7 +2086,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.roundedMenus,0,1);
   clampSetting(settings.loadJapanese,0,1);
   clampSetting(settings.loadChinese,0,1);
-  clampSetting(settings.fmLayout,0,3);
+  clampSetting(settings.fmLayout,0,6);
   clampSetting(settings.susPosition,0,1);
   clampSetting(settings.effectCursorDir,0,2);
   clampSetting(settings.cursorPastePos,0,1);

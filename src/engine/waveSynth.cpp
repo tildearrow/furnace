@@ -243,8 +243,13 @@ void DivWaveSynth::changeWave2(int num) {
   first=true;
 }
 
-void DivWaveSynth::setEngine(DivEngine* engine) {
+void DivWaveSynth::setEngine(DivEngine* engine, int waveFloor) {
   e=engine;
+  memset(wave1,waveFloor,256);
+  memset(wave2,waveFloor,256);
+  for (int i=0; i<256; i++) {
+    output[i]=waveFloor;
+  }
 }
 
 void DivWaveSynth::init(DivInstrument* which, int w, int h, bool insChanged) {

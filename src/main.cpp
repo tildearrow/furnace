@@ -30,6 +30,7 @@
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <combaseapi.h>
 #include <shellapi.h>
 #else
 #include <unistd.h>
@@ -243,6 +244,12 @@ void initParams() {
 // TODO: add crash log
 int main(int argc, char** argv) {
   initLog();
+#ifdef _WIN32
+  HRESULT coResult=CoInitializeEx(NULL,COINIT_MULTITHREADED);
+  if (coResult!=S_OK) {
+    logE("CoInitializeEx failed!");
+  }
+#endif
 #if !(defined(__APPLE__) || defined(_WIN32) || defined(ANDROID))
   // workaround for Wayland HiDPI issue
   if (getenv("SDL_VIDEODRIVER")==NULL) {
@@ -446,6 +453,12 @@ int main(int argc, char** argv) {
 
   logI("stopping engine.");
   e.quit();
+
+#ifdef _WIN32
+  if (coResult==S_OK || coResult==S_FALSE) {
+    CoUninitialize();
+  }
+#endif
   return 0;
 }
 

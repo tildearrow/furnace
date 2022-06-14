@@ -818,6 +818,7 @@ enum FurnaceGUIFindQueryModes {
 enum FurnaceGUIFindQueryReplaceModes {
   GUI_QUERY_REPLACE_SET=0,
   GUI_QUERY_REPLACE_ADD,
+  GUI_QUERY_REPLACE_ADD_OVERFLOW,
   GUI_QUERY_REPLACE_CLEAR,
 
   GUI_QUERY_REPLACE_MAX
@@ -853,6 +854,20 @@ struct FurnaceGUIFindQuery {
     memset(effectVal,0,8);
     memset(effectValMax,0,8);
   }
+};
+
+struct FurnaceGUIQueryResult {
+  int subsong, order, x, y;
+  FurnaceGUIQueryResult():
+    subsong(0),
+    order(0),
+    x(0),
+    y(0) {}
+  FurnaceGUIQueryResult(int ss, int o, int xPos, int yPos):
+    subsong(ss),
+    order(o),
+    x(xPos),
+    y(yPos) {}
 };
 
 class FurnaceGUI {
@@ -1170,10 +1185,30 @@ class FurnaceGUI {
   int pgSys, pgAddr, pgVal;
 
   std::vector<FurnaceGUIFindQuery> curQuery;
-  bool curQueryRangeX, curQueryFromStart, curQueryBackwards;
+  std::vector<FurnaceGUIQueryResult> curQueryResults;
+  bool curQueryRangeX, curQueryBackwards;
   int curQueryRangeXMin, curQueryRangeXMax;
   int curQueryRangeY;
   int curQueryEffectPos;
+
+  int queryReplaceEffectCount;
+  int queryReplaceEffectPos;
+  int queryReplaceNoteMode;
+  int queryReplaceInsMode;
+  int queryReplaceVolMode;
+  int queryReplaceEffectMode[8];
+  int queryReplaceEffectValMode[8];
+  int queryReplaceNote;
+  int queryReplaceIns;
+  int queryReplaceVol;
+  int queryReplaceEffect[8];
+  int queryReplaceEffectVal[8];
+  bool queryReplaceNoteDo;
+  bool queryReplaceInsDo;
+  bool queryReplaceVolDo;
+  bool queryReplaceEffectDo[8];
+  bool queryReplaceEffectValDo[8];
+  bool queryViewingResults;
 
   struct ActiveNote {
     int chan;
@@ -1456,6 +1491,8 @@ class FurnaceGUI {
   void doExpand(int multiplier);
   void doUndo();
   void doRedo();
+  void doFind();
+  void doReplace();
   void editOptions(bool topMenu);
   void noteInput(int num, int key, int vol=-1);
   void valueInput(int num, bool direct=false, int target=-1);
