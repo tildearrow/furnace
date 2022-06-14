@@ -1539,6 +1539,8 @@ class FurnaceGUI {
     void addScroll(int amount);
     void setFileName(String name);
     void runBackupThread();
+    void pushPartBlend();
+    void popPartBlend();
     int processEvent(SDL_Event* ev);
     bool loop();
     bool finish();
