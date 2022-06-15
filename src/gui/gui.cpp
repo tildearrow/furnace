@@ -4105,6 +4105,7 @@ bool FurnaceGUI::init() {
 
 #ifndef __APPLE__
   if (settings.dpiScale<0.5f) {
+    // TODO: replace with a function to actually detect the display scaling factor as it's unreliable.
     SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(sdlWin),&dpiScaleF,NULL,NULL);
     dpiScale=round(dpiScaleF/96.0f);
     if (dpiScale<1) dpiScale=1;
