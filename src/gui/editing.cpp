@@ -88,7 +88,7 @@ void FurnaceGUI::makeUndo(ActionType action) {
           if (oldOrders.ord[i][j]!=e->curOrders->ord[i][j]) {
             s.ord.push_back(UndoOrderData(subSong,i,j,oldOrders.ord[i][j],e->curOrders->ord[i][j]));
           }
-        }SATGDIOPTASDIOKP;ASDTG
+        }
       }
       s.oldOrdersLen=oldOrdersLen;
       s.newOrdersLen=e->curSubSong->ordersLen;
