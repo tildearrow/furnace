@@ -347,7 +347,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.vol.had) {
+        if (!chan[c.chan].std.vol.has) {
           calcAndWriteOutVol(c.chan,15);
         }
       }
