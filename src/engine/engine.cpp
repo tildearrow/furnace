@@ -2067,6 +2067,8 @@ int DivEngine::addSample() {
   sample->name=fmt::sprintf("Sample %d",sampleCount);
   song.sample.push_back(sample);
   song.sampleLen=sampleCount+1;
+  sPreview.sample=-1;
+  sPreview.pos=0;
   saveLock.unlock();
   renderSamples();
   BUSY_END;
@@ -2302,6 +2304,8 @@ int DivEngine::addSampleFromFile(const char* path) {
 
 void DivEngine::delSample(int index) {
   BUSY_BEGIN;
+  sPreview.sample=-1;
+  sPreview.pos=0;
   saveLock.lock();
   if (index>=0 && index<(int)song.sample.size()) {
     delete song.sample[index];
@@ -2516,6 +2520,8 @@ bool DivEngine::moveWaveUp(int which) {
 bool DivEngine::moveSampleUp(int which) {
   if (which<1 || which>=(int)song.sample.size()) return false;
   BUSY_BEGIN;
+  sPreview.sample=-1;
+  sPreview.pos=0;
   DivSample* prev=song.sample[which];
   saveLock.lock();
   song.sample[which]=song.sample[which-1];
@@ -2553,6 +2559,8 @@ bool DivEngine::moveWaveDown(int which) {
 bool DivEngine::moveSampleDown(int which) {
   if (which<0 || which>=((int)song.sample.size())-1) return false;
   BUSY_BEGIN;
+  sPreview.sample=-1;
+  sPreview.pos=0;
   DivSample* prev=song.sample[which];
   saveLock.lock();
   song.sample[which]=song.sample[which+1];
