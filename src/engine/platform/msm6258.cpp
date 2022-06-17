@@ -380,7 +380,7 @@ void DivPlatformMSM6258::setFlags(unsigned int flags) {
       chipClock=4000000;
       break;
   }
-  rate=chipClock/128;
+  rate=chipClock/256;
   for (int i=0; i<1; i++) {
     oscBuf[i]->rate=rate;
   }

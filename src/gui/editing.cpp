@@ -66,6 +66,8 @@ void FurnaceGUI::prepareUndo(ActionType action) {
         e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],false)->copyOn(oldPat[i]);
       }
       break;
+    case GUI_UNDO_REPLACE: // this is handled by doReplace()
+      break;
   }
 }
 
@@ -125,6 +127,8 @@ void FurnaceGUI::makeUndo(ActionType action) {
       if (!s.pat.empty()) {
         doPush=true;
       }
+      break;
+    case GUI_UNDO_REPLACE: // this is handled by doReplace()
       break;
   }
   if (doPush) {
@@ -943,6 +947,7 @@ void FurnaceGUI::doUndo() {
     case GUI_UNDO_PATTERN_FLIP:
     case GUI_UNDO_PATTERN_COLLAPSE:
     case GUI_UNDO_PATTERN_EXPAND:
+    case GUI_UNDO_REPLACE:
       for (UndoPatternData& i: us.pat) {
         e->changeSongP(i.subSong);
         DivPattern* p=e->curPat[i.chan].getPattern(i.pat,true);
@@ -991,6 +996,7 @@ void FurnaceGUI::doRedo() {
     case GUI_UNDO_PATTERN_FLIP:
     case GUI_UNDO_PATTERN_COLLAPSE:
     case GUI_UNDO_PATTERN_EXPAND:
+    case GUI_UNDO_REPLACE:
       for (UndoPatternData& i: us.pat) {
         e->changeSongP(i.subSong);
         DivPattern* p=e->curPat[i.chan].getPattern(i.pat,true);

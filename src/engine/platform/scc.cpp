@@ -332,7 +332,7 @@ void DivPlatformSCC::reset() {
   for (int i=0; i<5; i++) {
     chan[i]=DivPlatformSCC::Channel();
     chan[i].std.setEngine(parent);
-    chan[i].ws.setEngine(parent);
+    chan[i].ws.setEngine(parent,128);
     chan[i].ws.init(NULL,32,255,false);
     chan[i].vol=15;
     chan[i].outVol=15;

@@ -21,6 +21,26 @@
 #include "../ta-log.h"
 #include "taAudio.h"
 
+String sanitizePortName(const String& name) {
+#if defined(_WIN32)
+  // remove port number
+  size_t namePos=name.rfind(' ');
+  if (namePos!=String::npos) {
+    return name.substr(0,namePos);
+  }
+  return name;
+#elif defined(__linux__)
+  // remove port location
+  size_t namePos=name.rfind(' ');
+  if (namePos!=String::npos) {
+    return name.substr(0,namePos);
+  }
+  return name;
+#else
+  return name;
+#endif
+}
+
 // --- IN ---
 
 bool TAMidiInRtMidi::gather() {
@@ -56,7 +76,7 @@ std::vector<String> TAMidiInRtMidi::listDevices() {
     unsigned int count=port->getPortCount();
     logD("got port count.");
     for (unsigned int i=0; i<count; i++) {
-      String name=port->getPortName(i);
+      String name=sanitizePortName(port->getPortName(i));
       if (name!="") ret.push_back(name);
     }
   } catch (RtMidiError& e) {
@@ -75,8 +95,12 @@ bool TAMidiInRtMidi::openDevice(String name) {
   try {
     bool portOpen=false;
     unsigned int count=port->getPortCount();
+    logD("finding port %s...",name);
     for (unsigned int i=0; i<count; i++) {
-      if (port->getPortName(i)==name) {
+      String portName=sanitizePortName(port->getPortName(i));
+      logV("- %d: %s",i,portName);
+      if (portName==name) {
+        logD("opening port %d...",i);
         port->openPort(i);
         portOpen=true;
         break;
@@ -184,8 +208,12 @@ bool TAMidiOutRtMidi::openDevice(String name) {
   try {
     bool portOpen=false;
     unsigned int count=port->getPortCount();
+    logD("finding port %s...",name);
     for (unsigned int i=0; i<count; i++) {
-      if (port->getPortName(i)==name) {
+      String portName=sanitizePortName(port->getPortName(i));
+      logV("- %d: %s",i,portName);
+      if (portName==name) {
+        logD("opening port %d...",i);
         port->openPort(i);
         portOpen=true;
         break;
@@ -222,7 +250,7 @@ std::vector<String> TAMidiOutRtMidi::listDevices() {
   try {
     unsigned int count=port->getPortCount();
     for (unsigned int i=0; i<count; i++) {
-      String name=port->getPortName(i);
+      String name=sanitizePortName(port->getPortName(i));
       if (name!="") ret.push_back(name);
     }
   } catch (RtMidiError& e) {

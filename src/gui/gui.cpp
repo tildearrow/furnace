@@ -4105,6 +4105,7 @@ bool FurnaceGUI::init() {
 
 #ifndef __APPLE__
   if (settings.dpiScale<0.5f) {
+    // TODO: replace with a function to actually detect the display scaling factor as it's unreliable.
     SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(sdlWin),&dpiScaleF,NULL,NULL);
     dpiScale=round(dpiScaleF/96.0f);
     if (dpiScale<1) dpiScale=1;
@@ -4431,6 +4432,26 @@ FurnaceGUI::FurnaceGUI():
   wavePreviewLen(32),
   wavePreviewHeight(255),
   wavePreviewInit(true),
+  pgSys(0),
+  pgAddr(0),
+  pgVal(0),
+  curQueryRangeX(false),
+  curQueryBackwards(false),
+  curQueryRangeXMin(0), curQueryRangeXMax(0),
+  curQueryRangeY(0),
+  curQueryEffectPos(0),
+  queryReplaceEffectCount(0),
+  queryReplaceEffectPos(0),
+  queryReplaceNoteMode(0),
+  queryReplaceInsMode(0),
+  queryReplaceVolMode(0),
+  queryReplaceNote(0),
+  queryReplaceIns(0),
+  queryReplaceVol(0),
+  queryReplaceNoteDo(false),
+  queryReplaceInsDo(false),
+  queryReplaceVolDo(false),
+  queryViewingResults(false),
   wavePreviewOn(false),
   wavePreviewKey((SDL_Scancode)0),
   wavePreviewNote(0),
@@ -4624,4 +4645,11 @@ FurnaceGUI::FurnaceGUI():
 
   memset(pianoKeyHit,0,sizeof(float)*180);
   memset(pianoKeyPressed,0,sizeof(bool)*180);
+
+  memset(queryReplaceEffectMode,0,sizeof(int)*8);
+  memset(queryReplaceEffectValMode,0,sizeof(int)*8);
+  memset(queryReplaceEffect,0,sizeof(int)*8);
+  memset(queryReplaceEffectVal,0,sizeof(int)*8);
+  memset(queryReplaceEffectDo,0,sizeof(bool)*8);
+  memset(queryReplaceEffectValDo,0,sizeof(bool)*8);
 }
