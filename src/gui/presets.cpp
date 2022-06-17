@@ -260,13 +260,13 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "TI SN94624", {
-      DIV_SYSTEM_SMS, 64, 0, 0x80,
+      DIV_SYSTEM_SMS, 64, 0, 0x182,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "TI SN76494", {
-      DIV_SYSTEM_SMS, 64, 0, 0x84,
+      DIV_SYSTEM_SMS, 64, 0, 0x186,
       0
     }
   ));
