@@ -2234,7 +2234,7 @@ int DivEngine::addSampleFromFile(const char* path) {
     for (int i=0; i<si.frames*si.channels; i+=si.channels) {
       int averaged=0;
       for (int j=0; j<si.channels; j++) {
-        averaged+=((unsigned char*)buf)[i+j];
+        averaged+=((int)((unsigned char*)buf)[i+j])-128;
       }
       averaged/=si.channels;
       sample->data8[index++]=averaged;
