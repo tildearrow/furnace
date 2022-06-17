@@ -3025,6 +3025,8 @@ bool DivEngine::initAudioBackend() {
       if (!output->midiIn->openDevice(inName)) {
         logW("could not open MIDI input device!");
       }
+    } else {
+      logV("no MIDI input device selected.");
     }
   }
   if (output->midiOut) {
@@ -3035,6 +3037,8 @@ bool DivEngine::initAudioBackend() {
       if (!output->midiOut->openDevice(outName)) {
         logW("could not open MIDI output device!");
       }
+    } else {
+      logV("no MIDI output device selected.");
     }
   }
 
