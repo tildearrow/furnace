@@ -56,13 +56,13 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Yamaha YM2608 (OPNA)", {
-      DIV_SYSTEM_PC98, 64, 0, 3,
+      DIV_SYSTEM_PC98, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Yamaha YM2608 (extended channel 3)", {
-      DIV_SYSTEM_PC98_EXT, 64, 0, 3,
+      DIV_SYSTEM_PC98_EXT, 64, 0, 0,
       0
     }
   ));
@@ -255,6 +255,18 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega PSG (SN76489-like, Stereo)", {
       DIV_SYSTEM_SMS, 64, 0, 0xc,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "TI SN94624", {
+      DIV_SYSTEM_SMS, 64, 0, 0x80,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "TI SN76494", {
+      DIV_SYSTEM_SMS, 64, 0, 0x84,
       0
     }
   ));

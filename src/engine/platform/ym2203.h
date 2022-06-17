@@ -90,6 +90,7 @@ class DivPlatformYM2203: public DivPlatformOPN {
     unsigned char sampleBank;
 
     bool extMode;
+    unsigned char prescale;
   
     friend void putDispatchChan(void*,int,int);
   
@@ -118,7 +119,8 @@ class DivPlatformYM2203: public DivPlatformOPN {
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     DivPlatformYM2203():
-      DivPlatformOPN(4720270.0, 36, 16) {}
+      DivPlatformOPN(4720270.0, 36, 16),
+      prescale(0x2d) {}
     ~DivPlatformYM2203();
 };
 #endif

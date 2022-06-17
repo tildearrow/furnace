@@ -99,13 +99,6 @@ class DivPlatformGenesis: public DivPlatformOPN {
     Channel chan[10];
     DivDispatchOscBuffer* oscBuf[10];
     bool isMuted[10];
-    struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      bool addrOrVal;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
-    };
-    std::deque<QueuedWrite> writes;
     ym3438_t fm;
 
     ymfm::ym2612* fm_ymfm;

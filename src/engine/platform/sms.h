@@ -59,11 +59,10 @@ class DivPlatformSMS: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   unsigned char lastPan;
-  short* snBuf[2];
-  size_t snBufLen;
   unsigned char oldValue; 
   unsigned char snNoiseMode;
   int divider=16;
+  int toneDivider=64;
   int noiseDivider=64;
   bool updateSNMode;
   bool resetPhase;

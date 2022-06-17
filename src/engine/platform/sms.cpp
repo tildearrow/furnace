@@ -35,7 +35,7 @@ const char* regCheatSheetGG[]={
 };
 
 const char** DivPlatformSMS::getRegisterSheet() {
-  return isStereo()?regCheatSheetGG:regCheatSheetSN;
+  return stereo?regCheatSheetGG:regCheatSheetSN;
 }
 
 const char* DivPlatformSMS::getEffectName(unsigned char effect) {
@@ -74,7 +74,7 @@ void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     o=YMPSG_GetOutput(&sn_nuked);
     if (o<-32768) o=-32768;
     if (o>32767) o=32767;
-    bufL[h]=o;
+    bufL[h]=bufR[h]=o;
     for (int i=0; i<4; i++) {
       if (isMuted[i]) {
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
@@ -86,13 +86,6 @@ void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_
 }
 
 void DivPlatformSMS::acquire_mame(short* bufL, short* bufR, size_t start, size_t len) {
-  if (snBufLen<len) {
-    snBufLen=len;
-    for (int i=0; i<2; i++) {
-      delete[] snBuf[i];
-      snBuf[i]=new short[snBufLen];
-    }
-  }
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     if (stereo && (w.addr&1))
@@ -101,10 +94,10 @@ void DivPlatformSMS::acquire_mame(short* bufL, short* bufR, size_t start, size_t
       sn->write(w.val);
     writes.pop();
   }
-  for (size_t h=0; h<len; h++) {
+  for (size_t h=start; h<start+len; h++) {
     short* outs[2]={
-      &snBuf[0][h],
-      &snBuf[1][h],
+      &bufL[h],
+      &bufR[h]
     };
     sn->sound_stream_update(outs,1);
     for (int i=0; i<4; i++) {
@@ -113,17 +106,6 @@ void DivPlatformSMS::acquire_mame(short* bufL, short* bufR, size_t start, size_t
       } else {
         oscBuf[i]->data[oscBuf[i]->needle++]=sn->get_channel_output(i);
       }
-    }
-  }
-  if (stereo) {
-    for (size_t i=0; i<len; i++) {
-      bufL[i+start]=snBuf[0][i];
-      bufR[i+start]=snBuf[1][i];
-    }
-  } else {
-    for (size_t i=0; i<len; i++) {
-      bufL[i+start]=snBuf[0][i];
-      bufR[i+start]=bufL[i+start];
     }
   }
 }
@@ -138,7 +120,7 @@ void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len)
 
 void DivPlatformSMS::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
-    int CHIP_DIVIDER=64;
+    int CHIP_DIVIDER=toneDivider;
     if (i==3) CHIP_DIVIDER=noiseDivider;
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -185,10 +167,10 @@ void DivPlatformSMS::tick(bool sysTick) {
         }
       }
     }
-    if (isStereo()) {
+    if (stereo) {
       if (chan[i].std.panL.had) {
         lastPan&=~(0x11<<i);
-        lastPan|=((chan[i].std.panL.val&1)<<(i+4))|(((chan[i].std.panL.val>>1)&1)<<i);
+        lastPan|=((chan[i].std.panL.val&1)<<i)|(((chan[i].std.panL.val>>1)&1)<<(i+4));
         rWrite(1,lastPan);
       }
     }
@@ -204,7 +186,7 @@ void DivPlatformSMS::tick(bool sysTick) {
   }
   for (int i=0; i<3; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,64);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,toneDivider);
       if (chan[i].freq>1023) chan[i].freq=1023;
       if (chan[i].freq<8) chan[i].freq=1;
       //if (chan[i].actualNote>0x5d) chan[i].freq=0x01;
@@ -263,7 +245,7 @@ void DivPlatformSMS::tick(bool sysTick) {
 }
 
 int DivPlatformSMS::dispatch(DivCommand c) {
-  int CHIP_DIVIDER=64;
+  int CHIP_DIVIDER=toneDivider;
   if (c.chan==3) CHIP_DIVIDER=noiseDivider;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
@@ -340,11 +322,12 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       updateSNMode=true;
       break;
     case DIV_CMD_PANNING: {
-      if (isStereo()) {
+      if (stereo) {
+        if (c.chan>3) c.chan=3;
         lastPan&=~(0x11<<c.chan);
         int pan=0;
-        if (c.value>0) pan|=0x01;
-        if (c.value2>0) pan|=0x10;
+        if (c.value>0) pan|=0x10;
+        if (c.value2>0) pan|=0x01;
         if (pan==0) pan=0x11;
         lastPan|=pan<<c.chan;
         rWrite(1,lastPan);
@@ -420,13 +403,13 @@ void DivPlatformSMS::reset() {
   updateSNMode=false;
   oldValue=0xff;
   lastPan=0xff;
-  if (isStereo()) {
+  if (stereo) {
     rWrite(1,0xff);
   }
 }
 
 bool DivPlatformSMS::isStereo() {
-  return (!nuked) && stereo;
+  return stereo;
 }
 
 bool DivPlatformSMS::keyOffAffectsArp(int ch) {
@@ -482,6 +465,7 @@ void DivPlatformSMS::setFlags(unsigned int flags) {
   }
   resetPhase=!(flags&16);
   divider=16;
+  toneDivider=64;
   noiseDivider=64;
   if (sn!=NULL) delete sn;
   switch (flags&0xcc) {
@@ -494,13 +478,11 @@ void DivPlatformSMS::setFlags(unsigned int flags) {
     case 0x04: // TI SN76489
       sn=new sn76489_device();
       isRealSN=true;
-      noiseDivider=60;
       stereo=false;
       break;
     case 0x08: // TI+Atari
       sn=new sn76496_base_device(0x4000, 0x0f35, 0x01, 0x02, true, false, 8, false, true);
       isRealSN=true;
-      noiseDivider=60;
       stereo=false;
       break;
     case 0x0c: // Game Gear (not fully emulated yet!)
@@ -511,40 +493,38 @@ void DivPlatformSMS::setFlags(unsigned int flags) {
     case 0x40: // TI SN76489A
       sn=new sn76489a_device();
       isRealSN=false; // TODO
-      noiseDivider=68;
       stereo=false;
       break;
     case 0x44: // TI SN76496
       sn=new sn76496_device();
       isRealSN=false; // TODO
-      noiseDivider=68;
       stereo=false;
       break;
     case 0x48: // NCR 8496
       sn=new ncr8496_device();
       isRealSN=false;
-      noiseDivider=64;
       stereo=false;
       break;
     case 0x4c: // Tandy PSSJ 3-voice sound
       sn=new pssj3_device();
       isRealSN=false;
-      noiseDivider=64;
       stereo=false;
       break;
     case 0x80: // TI SN94624
       sn=new sn94624_device();
       isRealSN=true;
-      noiseDivider=60;
       stereo=false;
       divider=2;
+      toneDivider=8;
+      noiseDivider=8;
       break;
     case 0x84: // TI SN76494
       sn=new sn76494_device();
       isRealSN=false; // TODO
-      noiseDivider=68;
       stereo=false;
       divider=2;
+      toneDivider=8;
+      noiseDivider=8;
       break;
   }
   rate=chipClock/divider;
@@ -570,8 +550,6 @@ int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, unsigned int f
   }
   sn=NULL;
   setFlags(flags);
-  snBufLen=65536;
-  for (int i=0; i<2; i++) snBuf[i]=new short[snBufLen];
   reset();
   return 4;
 }
@@ -579,9 +557,6 @@ int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, unsigned int f
 void DivPlatformSMS::quit() {
   for (int i=0; i<4; i++) {
     delete oscBuf[i];
-  }
-  for (int i=0; i<2; i++) {
-    delete[] snBuf[i];
   }
   if (sn!=NULL) delete sn;
 }

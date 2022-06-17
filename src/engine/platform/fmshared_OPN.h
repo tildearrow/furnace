@@ -85,27 +85,27 @@
 
 class DivPlatformOPN: public DivPlatformFMBase {
   protected:
-    const unsigned char ADDR_MULT_DT=0x30;
-    const unsigned char ADDR_TL=0x40;
-    const unsigned char ADDR_RS_AR=0x50;
-    const unsigned char ADDR_AM_DR=0x60;
-    const unsigned char ADDR_DT2_D2R=0x70;
-    const unsigned char ADDR_SL_RR=0x80;
-    const unsigned char ADDR_SSG=0x90;
-    const unsigned char ADDR_FREQ=0xa0;
-    const unsigned char ADDR_FREQH=0xa4;
-    const unsigned char ADDR_FB_ALG=0xb0;
-    const unsigned char ADDR_LRAF=0xb4;
+    const unsigned short ADDR_MULT_DT=0x30;
+    const unsigned short ADDR_TL=0x40;
+    const unsigned short ADDR_RS_AR=0x50;
+    const unsigned short ADDR_AM_DR=0x60;
+    const unsigned short ADDR_DT2_D2R=0x70;
+    const unsigned short ADDR_SL_RR=0x80;
+    const unsigned short ADDR_SSG=0x90;
+    const unsigned short ADDR_FREQ=0xa0;
+    const unsigned short ADDR_FREQH=0xa4;
+    const unsigned short ADDR_FB_ALG=0xb0;
+    const unsigned short ADDR_LRAF=0xb4;
 
     const unsigned short opOffs[4]={
       0x00, 0x04, 0x08, 0x0c
     };
 
     double fmFreqBase;
-    double fmDivBase;
-    unsigned char ayDiv;
+    unsigned int fmDivBase;
+    unsigned int ayDiv;
 
-    DivPlatformOPN(double f=9440540.0, double d=72, unsigned char a=32):
+    DivPlatformOPN(double f=9440540.0, unsigned int d=72, unsigned int a=32):
       DivPlatformFMBase(),
       fmFreqBase(f),
       fmDivBase(d),

@@ -26,16 +26,16 @@
 
 class DivPlatformOPM: public DivPlatformFMBase {
   protected:
-    const unsigned char ADDR_MULT_DT=0x40;
-    const unsigned char ADDR_TL=0x60;
-    const unsigned char ADDR_RS_AR=0x80;
-    const unsigned char ADDR_AM_DR=0xa0;
-    const unsigned char ADDR_DT2_D2R=0xc0;
-    const unsigned char ADDR_SL_RR=0xe0;
-    const unsigned char ADDR_NOTE=0x28;
-    const unsigned char ADDR_KF=0x30;
-    const unsigned char ADDR_FMS_AMS=0x38;
-    const unsigned char ADDR_LR_FB_ALG=0x20;
+    const unsigned short ADDR_MULT_DT=0x40;
+    const unsigned short ADDR_TL=0x60;
+    const unsigned short ADDR_RS_AR=0x80;
+    const unsigned short ADDR_AM_DR=0xa0;
+    const unsigned short ADDR_DT2_D2R=0xc0;
+    const unsigned short ADDR_SL_RR=0xe0;
+    const unsigned short ADDR_NOTE=0x28;
+    const unsigned short ADDR_KF=0x30;
+    const unsigned short ADDR_FMS_AMS=0x38;
+    const unsigned short ADDR_LR_FB_ALG=0x20;
 
     const unsigned short opOffs[4]={
       0x00, 0x08, 0x10, 0x18

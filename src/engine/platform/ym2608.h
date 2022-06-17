@@ -101,8 +101,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     unsigned char writeRSSOff, writeRSSOn;
 
     bool extMode;
-    double fmFreqBase;
-    unsigned char ayDiv;
+    unsigned char prescale;
   
     double NOTE_OPNB(int ch, int note);
     double NOTE_ADPCMB(int note);
@@ -137,7 +136,8 @@ class DivPlatformYM2608: public DivPlatformOPN {
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     DivPlatformYM2608():
-      DivPlatformOPN(9440540.0, 72, 32) {}
+      DivPlatformOPN(9440540.0, 72, 32),
+      prescale(0x2d) {}
     ~DivPlatformYM2608();
 };
 #endif

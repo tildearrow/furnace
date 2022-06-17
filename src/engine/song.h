@@ -357,7 +357,7 @@ struct DivSong {
   //     - 3: 3MHz
   //     - 4: 3.9936MHz (PC-88, PC-98)
   //     - 5: 1.5MHz
-  //   - bit 5-6: output rate (TODO)
+  //   - bit 5-6: output rate
   //     - 0: FM: clock / 72, SSG: clock / 16
   //     - 1: FM: clock / 36, SSG: clock / 8
   //     - 2: FM: clock / 24, SSG: clock / 4
@@ -365,7 +365,7 @@ struct DivSong {
   //   - bit 0-4: clock rate
   //     - 0: 8MHz
   //     - 1: 7.987MHz (PC-88, PC-98)
-  //   - bit 5-6: output rate (TODO)
+  //   - bit 5-6: output rate
   //     - 0: FM: clock / 144, SSG: clock / 32
   //     - 1: FM: clock / 72, SSG: clock / 16
   //     - 2: FM: clock / 48, SSG: clock / 8

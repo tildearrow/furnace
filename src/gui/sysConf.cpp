@@ -397,8 +397,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("1.5MHz",(flags&31)==5)) {
         copyOfFlags=(flags&(~31))|5;
       }
-      /*
-      ImGui::Text("Output rate: (DOES NOT WORK YET!)");
+      ImGui::Text("Output rate:");
       if (ImGui::RadioButton("FM: clock / 72, SSG: clock / 16",(flags&96)==0)) {
         copyOfFlags=(flags&(~96))|0;
       }
@@ -408,7 +407,6 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("FM: clock / 24, SSG: clock / 4",(flags&96)==64)) {
         copyOfFlags=(flags&(~96))|64;
       }
-      */
       break;
     }
     case DIV_SYSTEM_PC98:
@@ -420,8 +418,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("7.987MHz (PC-88/PC-98)",(flags&31)==1)) {
         copyOfFlags=(flags&(~31))|1;
       }
-      /*
-      ImGui::Text("Output rate: (DOES NOT WORK YET!)");
+      ImGui::Text("Output rate:");
       if (ImGui::RadioButton("FM: clock / 144, SSG: clock / 32",(flags&96)==0)) {
         copyOfFlags=(flags&(~96))|0;
       }
@@ -431,7 +428,6 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("FM: clock / 48, SSG: clock / 8",(flags&96)==64)) {
         copyOfFlags=(flags&(~96))|64;
       }
-      */
       break;
     }
     case DIV_SYSTEM_RF5C68: {

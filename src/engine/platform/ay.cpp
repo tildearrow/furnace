@@ -593,6 +593,13 @@ void DivPlatformAY8910::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
+void DivPlatformAY8910::setExtClockDiv(unsigned int eclk, unsigned char ediv) {
+  if (extMode) {
+    extClock=eclk;
+    extDiv=ediv;
+  }
+}
+
 void DivPlatformAY8910::setFlags(unsigned int flags) {
   if (extMode) {
     chipClock=extClock;

@@ -1325,6 +1325,10 @@ void DivPlatformYM2608::reset() {
   // enable 6 channel mode
   immWrite(0x29,0x80);
 
+  // set prescaler
+  immWrite(0x2d,0xff);
+  immWrite(prescale,0xff);
+
   ay->reset();
   ay->getRegisterWrites().clear();
   ay->flushWrites();
@@ -1395,7 +1399,8 @@ void DivPlatformYM2608::renderSamples() {
 }
 
 void DivPlatformYM2608::setFlags(unsigned int flags) {
-  switch (flags&0x3f) {
+  // Clock flags
+  switch (flags&0x1f) {
     default:
     case 0x00:
       chipClock=8000000.0;
@@ -1404,10 +1409,36 @@ void DivPlatformYM2608::setFlags(unsigned int flags) {
       chipClock=38400*13*16; // 31948800/4
       break;
   }
+  // Prescaler flags
+  switch ((flags>>5)&0x3) {
+    default:
+    case 0x00: // /6
+      prescale=0x2d;
+      fmFreqBase=9440540.0,
+      fmDivBase=72,
+      ayDiv=32;
+      break;
+    case 0x01: // /3
+      prescale=0x2e;
+      fmFreqBase=9440540.0/2.0,
+      fmDivBase=36,
+      ayDiv=16;
+      break;
+    case 0x02: // /2
+      prescale=0x2f;
+      fmFreqBase=9440540.0/3.0,
+      fmDivBase=24,
+      ayDiv=8;
+      break;
+  }
   rate=fm->sample_rate(chipClock);
   for (int i=0; i<16; i++) {
     oscBuf[i]->rate=rate;
   }
+  immWrite(0x2d,0xff);
+  immWrite(prescale,0xff);
+  ay->setExtClockDiv(chipClock,ayDiv);
+  ay->setFlags(16);
 }
 
 int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -1423,11 +1454,12 @@ int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, unsigned in
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   fm=new ymfm::ym2608(iface);
-  setFlags(flags);
+  fm->set_fidelity(ymfm::OPN_FIDELITY_MIN);
   // YM2149, 2MHz
-  ay=new DivPlatformAY8910(true,chipClock,32);
+  ay=new DivPlatformAY8910(true,chipClock,ayDiv);
   ay->init(p,3,sugRate,16);
   ay->toggleRegisterDump(true);
+  setFlags(flags);
   reset();
   return 16;
 }
