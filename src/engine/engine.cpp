@@ -2183,6 +2183,7 @@ int DivEngine::addSampleFromFile(const char* path) {
   return -1;
 #else
   SF_INFO si;
+  memset(&si,0,sizeof(SF_INFO));
   SNDFILE* f=sf_open(path,SFM_READ,&si);
   if (f==NULL) {
     BUSY_END;
