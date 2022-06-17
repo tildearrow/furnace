@@ -2201,8 +2201,22 @@ int DivEngine::addSampleFromFile(const char* path) {
     BUSY_END;
     return -1;
   }
-  short* buf=new short[si.channels*si.frames];
-  if (sf_readf_short(f,buf,si.frames)!=si.frames) {
+  void* buf=NULL;
+  sf_count_t sampleLen=sizeof(short);
+  if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
+    logD("sample is 8-bit unsigned");
+    buf=new unsigned char[si.channels*si.frames];
+    sampleLen=sizeof(unsigned char);
+  } else if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_FLOAT)  {
+    logD("sample is 32-bit float");
+    buf=new float[si.channels*si.frames];
+    sampleLen=sizeof(float);
+  } else {
+    logD("sample is 16-bit signed");
+    buf=new short[si.channels*si.frames];
+    sampleLen=sizeof(short);
+  }
+  if (sf_read_raw(f,buf,si.frames*si.channels*sampleLen)!=(si.frames*si.channels*sampleLen)) {
     logW("sample read size mismatch!");
   }
   DivSample* sample=new DivSample;
@@ -2216,19 +2230,41 @@ int DivEngine::addSampleFromFile(const char* path) {
     sample->depth=16;
   }
   sample->init(si.frames);
-  for (int i=0; i<si.frames*si.channels; i+=si.channels) {
-    int averaged=0;
-    for (int j=0; j<si.channels; j++) {
-      averaged+=buf[i+j];
+  if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
+    for (int i=0; i<si.frames*si.channels; i+=si.channels) {
+      int averaged=0;
+      for (int j=0; j<si.channels; j++) {
+        averaged+=((unsigned char*)buf)[i+j];
+      }
+      averaged/=si.channels;
+      sample->data8[index++]=averaged;
     }
-    averaged/=si.channels;
-    if (((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8)) {
-      sample->data8[index++]=averaged>>8;
-    } else {
+    delete[] (unsigned char*)buf;
+  } else if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_FLOAT)  {
+    for (int i=0; i<si.frames*si.channels; i+=si.channels) {
+      float averaged=0.0f;
+      for (int j=0; j<si.channels; j++) {
+        averaged+=((float*)buf)[i+j];
+      }
+      averaged/=si.channels;
+      averaged*=32767.0;
+      if (averaged<-32768.0) averaged=-32768.0;
+      if (averaged>32767.0) averaged=32767.0;
       sample->data16[index++]=averaged;
     }
+    delete[] (float*)buf;
+  } else {
+    for (int i=0; i<si.frames*si.channels; i+=si.channels) {
+      int averaged=0;
+      for (int j=0; j<si.channels; j++) {
+        averaged+=((short*)buf)[i+j];
+      }
+      averaged/=si.channels;
+      sample->data16[index++]=averaged;
+    }
+    delete[] (short*)buf;
   }
-  delete[] buf;
+
   sample->rate=si.samplerate;
   if (sample->rate<4000) sample->rate=4000;
   if (sample->rate>96000) sample->rate=96000;
