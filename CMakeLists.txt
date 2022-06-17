@@ -520,8 +520,17 @@ src/gui/volMeter.cpp
 src/gui/gui.cpp
 )
 
+if (WIN32 OR APPLE)
+  list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.c)
+endif()
+
+if (WIN32)
+  list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_win.cpp)
+endif()
+
 if (APPLE)
   list(APPEND GUI_SOURCES src/gui/macstuff.m)
+  list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_cocoa.m)
 endif()
 
 if (NOT WIN32 AND NOT APPLE)
@@ -549,6 +558,11 @@ if (BUILD_GUI)
     extern/IconFontCppHeaders
     extern/igfd
   )
+  if (WIN32 OR APPLE)
+    list(APPEND DEPENDENCIES_INCLUDE_DIRS
+      extern/nfd-modified/src/include
+    )
+  endif()
   list(APPEND DEPENDENCIES_DEFINES HAVE_GUI)
   message(STATUS "Building GUI")
 else()
