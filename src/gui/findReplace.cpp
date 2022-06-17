@@ -190,7 +190,6 @@ void FurnaceGUI::doFind() {
 }
 
 /* issues with the find and replace function:
-   - doesn't mark the module as modified
    - can't undo
    - replace notes to anything starting from C-0 to lower notes will have an octave higher, so set it to replace to C-0 it will becom C-1, b_1 will become B-0 and so on
 */
@@ -202,6 +201,12 @@ void FurnaceGUI::doReplace() {
   bool* touched[DIV_MAX_CHANS];
   memset(touched,0,DIV_MAX_CHANS*sizeof(bool*));
 
+  UndoStep us;
+  us.type=GUI_UNDO_REPLACE;
+
+  short prevVal[32];
+  memset(prevVal,0,32*sizeof(short));
+
   for (FurnaceGUIQueryResult& i: curQueryResults) {
     int patIndex=e->song.subsong[i.subsong]->orders.ord[i.x][i.order];
     DivPattern* p=e->song.subsong[i.subsong]->pat[i.x].getPattern(patIndex,true);
@@ -211,6 +216,9 @@ void FurnaceGUI::doReplace() {
     }
     if (touched[i.x][(patIndex<<8)|i.y]) continue;
     touched[i.x][(patIndex<<8)|i.y]=true;
+
+    memcpy(prevVal,p->data[i.y],32*sizeof(short));
+
     if (queryReplaceNoteDo) {
       switch (queryReplaceNoteMode) {
         case GUI_QUERY_REPLACE_SET:
@@ -400,6 +408,13 @@ void FurnaceGUI::doReplace() {
         }
       }
     }
+
+    // issue undo step
+    for (int j=0; j<32; j++) {
+      if (p->data[i.y][j]!=prevVal[j]) {
+        us.pat.push_back(UndoPatternData(i.subsong,i.x,patIndex,i.y,j,prevVal[j],p->data[i.y][j]));
+      }
+    }
   }
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
@@ -408,6 +423,13 @@ void FurnaceGUI::doReplace() {
 
   if (!curQueryResults.empty()) {
     MARK_MODIFIED;
+  }
+
+  if (!us.pat.empty()) {
+    printf("pusher\n");
+    undoHist.push_back(us);
+    redoHist.clear();
+    if (undoHist.size()>settings.maxUndoSteps) undoHist.pop_front();
   }
 }
 
