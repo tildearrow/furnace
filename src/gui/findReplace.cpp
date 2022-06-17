@@ -43,6 +43,7 @@ int queryNote(int note, int octave) {
 }
 
 bool checkCondition(int mode, int arg, int argMax, int val, bool noteMode=false) {
+  const int emptyVal=noteMode?-61:-1;
   switch (mode) {
     case GUI_QUERY_IGNORE:
       return true;
@@ -51,19 +52,19 @@ bool checkCondition(int mode, int arg, int argMax, int val, bool noteMode=false)
       return (val==arg);
       break;
     case GUI_QUERY_MATCH_NOT:
-      return (val!=-1 && val!=arg);
+      return (val!=emptyVal && val!=arg);
       break;
     case GUI_QUERY_RANGE:
       return (val>=arg && val<=argMax);
       break;
     case GUI_QUERY_RANGE_NOT:
-      return (val!=-1 && (val<arg || val>argMax) && (!noteMode || val<120));
+      return (val!=emptyVal && (val<arg || val>argMax) && (!noteMode || val<120));
       break;
     case GUI_QUERY_ANY:
-      return (val!=-1);
+      return (val!=emptyVal);
       break;
     case GUI_QUERY_NONE:
-      return (val==-1);
+      return (val==emptyVal);
       break;
   }
   return false;
@@ -249,8 +250,11 @@ void FurnaceGUI::doReplace() {
               if (note>119) note=119;
 
               p->data[i.y][0]=(note+60)%12;
-              if (p->data[i.y][0]==0) p->data[i.y][0]=12;
-              p->data[i.y][1]=(unsigned char)((note-1)/12);
+              p->data[i.y][1]=(unsigned char)(((note+60)/12)-5);
+              if (p->data[i.y][0]==0) {
+                p->data[i.y][0]=12;
+                p->data[i.y][1]=(unsigned char)(p->data[i.y][1]-1);
+              }
             }
           }
           break;
@@ -266,8 +270,11 @@ void FurnaceGUI::doReplace() {
               }
 
               p->data[i.y][0]=(note+60)%12;
-              if (p->data[i.y][0]==0) p->data[i.y][0]=12;
-              p->data[i.y][1]=(unsigned char)((note-1)/12);
+              p->data[i.y][1]=(unsigned char)(((note+60)/12)-5);
+              if (p->data[i.y][0]==0) {
+                p->data[i.y][0]=12;
+                p->data[i.y][1]=(unsigned char)(p->data[i.y][1]-1);
+              }
             }
           }
           break;
