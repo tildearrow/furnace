@@ -190,11 +190,6 @@ void FurnaceGUI::doFind() {
   queryViewingResults=true;
 }
 
-/* issues with the find and replace function:
-   - can't undo
-   - replace notes to anything starting from C-0 to lower notes will have an octave higher, so set it to replace to C-0 it will becom C-1, b_1 will become B-0 and so on
-*/
-
 void FurnaceGUI::doReplace() {
   doFind();
   queryViewingResults=false;
