@@ -953,13 +953,15 @@ void FurnaceGUI::doUndo() {
         DivPattern* p=e->curPat[i.chan].getPattern(i.pat,true);
         p->data[i.row][i.col]=i.oldVal;
       }
-      if (!e->isPlaying() || !followPattern) {
-        cursor=us.cursor;
-        selStart=us.selStart;
-        selEnd=us.selEnd;
-        curNibble=us.nibble;
-        updateScroll(cursor.y);
-        setOrder(us.order);
+      if (us.type!=GUI_UNDO_REPLACE) {
+        if (!e->isPlaying() || !followPattern) {
+          cursor=us.cursor;
+          selStart=us.selStart;
+          selEnd=us.selEnd;
+          curNibble=us.nibble;
+          updateScroll(cursor.y);
+          setOrder(us.order);
+        }
       }
       break;
   }
@@ -1002,13 +1004,15 @@ void FurnaceGUI::doRedo() {
         DivPattern* p=e->curPat[i.chan].getPattern(i.pat,true);
         p->data[i.row][i.col]=i.newVal;
       }
-      if (!e->isPlaying()) {
-        cursor=us.cursor;
-        selStart=us.selStart;
-        selEnd=us.selEnd;
-        curNibble=us.nibble;
-        updateScroll(cursor.y);
-        setOrder(us.order);
+      if (us.type!=GUI_UNDO_REPLACE) {
+        if (!e->isPlaying() || !followPattern) {
+          cursor=us.cursor;
+          selStart=us.selStart;
+          selEnd=us.selEnd;
+          curNibble=us.nibble;
+          updateScroll(cursor.y);
+          setOrder(us.order);
+        }
       }
 
       break;

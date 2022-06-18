@@ -2067,6 +2067,8 @@ int DivEngine::addSample() {
   sample->name=fmt::sprintf("Sample %d",sampleCount);
   song.sample.push_back(sample);
   song.sampleLen=sampleCount+1;
+  sPreview.sample=-1;
+  sPreview.pos=0;
   saveLock.unlock();
   renderSamples();
   BUSY_END;
@@ -2183,6 +2185,7 @@ int DivEngine::addSampleFromFile(const char* path) {
   return -1;
 #else
   SF_INFO si;
+  memset(&si,0,sizeof(SF_INFO));
   SNDFILE* f=sf_open(path,SFM_READ,&si);
   if (f==NULL) {
     BUSY_END;
@@ -2200,8 +2203,22 @@ int DivEngine::addSampleFromFile(const char* path) {
     BUSY_END;
     return -1;
   }
-  short* buf=new short[si.channels*si.frames];
-  if (sf_readf_short(f,buf,si.frames)!=si.frames) {
+  void* buf=NULL;
+  sf_count_t sampleLen=sizeof(short);
+  if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
+    logD("sample is 8-bit unsigned");
+    buf=new unsigned char[si.channels*si.frames];
+    sampleLen=sizeof(unsigned char);
+  } else if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_FLOAT)  {
+    logD("sample is 32-bit float");
+    buf=new float[si.channels*si.frames];
+    sampleLen=sizeof(float);
+  } else {
+    logD("sample is 16-bit signed");
+    buf=new short[si.channels*si.frames];
+    sampleLen=sizeof(short);
+  }
+  if (sf_read_raw(f,buf,si.frames*si.channels*sampleLen)!=(si.frames*si.channels*sampleLen)) {
     logW("sample read size mismatch!");
   }
   DivSample* sample=new DivSample;
@@ -2215,19 +2232,41 @@ int DivEngine::addSampleFromFile(const char* path) {
     sample->depth=16;
   }
   sample->init(si.frames);
-  for (int i=0; i<si.frames*si.channels; i+=si.channels) {
-    int averaged=0;
-    for (int j=0; j<si.channels; j++) {
-      averaged+=buf[i+j];
+  if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
+    for (int i=0; i<si.frames*si.channels; i+=si.channels) {
+      int averaged=0;
+      for (int j=0; j<si.channels; j++) {
+        averaged+=((int)((unsigned char*)buf)[i+j])-128;
+      }
+      averaged/=si.channels;
+      sample->data8[index++]=averaged;
     }
-    averaged/=si.channels;
-    if (((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8)) {
-      sample->data8[index++]=averaged>>8;
-    } else {
+    delete[] (unsigned char*)buf;
+  } else if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_FLOAT)  {
+    for (int i=0; i<si.frames*si.channels; i+=si.channels) {
+      float averaged=0.0f;
+      for (int j=0; j<si.channels; j++) {
+        averaged+=((float*)buf)[i+j];
+      }
+      averaged/=si.channels;
+      averaged*=32767.0;
+      if (averaged<-32768.0) averaged=-32768.0;
+      if (averaged>32767.0) averaged=32767.0;
       sample->data16[index++]=averaged;
     }
+    delete[] (float*)buf;
+  } else {
+    for (int i=0; i<si.frames*si.channels; i+=si.channels) {
+      int averaged=0;
+      for (int j=0; j<si.channels; j++) {
+        averaged+=((short*)buf)[i+j];
+      }
+      averaged/=si.channels;
+      sample->data16[index++]=averaged;
+    }
+    delete[] (short*)buf;
   }
-  delete[] buf;
+
   sample->rate=si.samplerate;
   if (sample->rate<4000) sample->rate=4000;
   if (sample->rate>96000) sample->rate=96000;
@@ -2265,6 +2304,8 @@ int DivEngine::addSampleFromFile(const char* path) {
 
 void DivEngine::delSample(int index) {
   BUSY_BEGIN;
+  sPreview.sample=-1;
+  sPreview.pos=0;
   saveLock.lock();
   if (index>=0 && index<(int)song.sample.size()) {
     delete song.sample[index];
@@ -2479,6 +2520,8 @@ bool DivEngine::moveWaveUp(int which) {
 bool DivEngine::moveSampleUp(int which) {
   if (which<1 || which>=(int)song.sample.size()) return false;
   BUSY_BEGIN;
+  sPreview.sample=-1;
+  sPreview.pos=0;
   DivSample* prev=song.sample[which];
   saveLock.lock();
   song.sample[which]=song.sample[which-1];
@@ -2516,6 +2559,8 @@ bool DivEngine::moveWaveDown(int which) {
 bool DivEngine::moveSampleDown(int which) {
   if (which<0 || which>=((int)song.sample.size())-1) return false;
   BUSY_BEGIN;
+  sPreview.sample=-1;
+  sPreview.pos=0;
   DivSample* prev=song.sample[which];
   saveLock.lock();
   song.sample[which]=song.sample[which+1];
@@ -2980,6 +3025,8 @@ bool DivEngine::initAudioBackend() {
       if (!output->midiIn->openDevice(inName)) {
         logW("could not open MIDI input device!");
       }
+    } else {
+      logV("no MIDI input device selected.");
     }
   }
   if (output->midiOut) {
@@ -2990,6 +3037,8 @@ bool DivEngine::initAudioBackend() {
       if (!output->midiOut->openDevice(outName)) {
         logW("could not open MIDI output device!");
       }
+    } else {
+      logV("no MIDI output device selected.");
     }
   }
 
