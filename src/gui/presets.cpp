@@ -1859,7 +1859,7 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_AY8910, 64, 0, 13,
       0
     }
-  ));  
+  ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Namco (3-channel WSG)", { // Pac-Man, Galaga, Xevious, etc
       DIV_SYSTEM_NAMCO, 64, 0, 0,
@@ -1954,6 +1954,21 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Toaplan 1 (drums mode)", {
       DIV_SYSTEM_OPL2_DRUMS, 64, 0, 5, // 3.5MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Dynax/Nakanihon 3rd generation hardware", {
+      DIV_SYSTEM_AY8910, 64, 0, 0, // AY or YM, optional - 1.79MHz or 3.58MHz; various per game
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 6, // 1.023MHz mostly
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Dynax/Nakanihon Real Break", {
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      DIV_SYSTEM_YMZ280B, 64, 0, 0,
       0
     }
   ));
