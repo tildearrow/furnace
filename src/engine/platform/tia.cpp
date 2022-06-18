@@ -34,15 +34,6 @@ const char* regCheatSheetTIA[]={
   NULL
 };
 
-const char* DivPlatformTIA::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Select shape (0 to F)";
-      break;
-  }
-  return NULL;
-}
-
 const char** DivPlatformTIA::getRegisterSheet() {
   return regCheatSheetTIA;
 }

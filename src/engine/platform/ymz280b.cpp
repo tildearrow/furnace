@@ -60,10 +60,6 @@ const char** DivPlatformYMZ280B::getRegisterSheet() {
   return regCheatSheetYMZ280B;
 }
 
-const char* DivPlatformYMZ280B::getEffectName(unsigned char effect) {
-  return NULL;
-}
-
 void DivPlatformYMZ280B::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   short buf[16][256];
   short *bufPtrs[16]={

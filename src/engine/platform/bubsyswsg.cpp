@@ -39,15 +39,6 @@ const char** DivPlatformBubSysWSG::getRegisterSheet() {
   return regCheatSheetBubSysWSG;
 }
 
-const char* DivPlatformBubSysWSG::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformBubSysWSG::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   int chanOut=0;
   for (size_t h=start; h<start+len; h++) {

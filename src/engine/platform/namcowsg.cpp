@@ -151,18 +151,6 @@ const char** DivPlatformNamcoWSG::getRegisterSheet() {
   return regCheatSheetNamcoWSG;
 }
 
-const char* DivPlatformNamcoWSG::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-    case 0x11:
-      return "11xx: Toggle noise mode";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformNamcoWSG::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   short* buf[2]={
     bufL+start, bufR+start

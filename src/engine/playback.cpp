@@ -265,13 +265,25 @@ int DivEngine::dispatchCmd(DivCommand c) {
 }
 
 bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effectVal) {
-  if (sysDefs[sysOfChan[ch]]==NULL) return false;
-  return sysDefs[sysOfChan[ch]]->effectFunc(ch,effect,effectVal);
+  DivSysDef* sysDef=sysDefs[sysOfChan[ch]];
+  if (sysDef==NULL) return false;
+  auto iter=sysDef->effectHandlers.find(effect);
+  if (iter==sysDef->effectHandlers.end()) return false;
+  EffectHandler handler=iter->second;
+  int val=handler.val?handler.val(effect,effectVal):effectVal;
+  int val2=handler.val2?handler.val2(effect,effectVal):0;
+  return dispatchCmd(DivCommand(handler.dispatchCmd,ch,val,val2));
 }
 
 bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char effectVal) {
-  if (sysDefs[sysOfChan[ch]]==NULL) return false;
-  return sysDefs[sysOfChan[ch]]->postEffectFunc(ch,effect,effectVal);
+  DivSysDef* sysDef=sysDefs[sysOfChan[ch]];
+  if (sysDef==NULL) return false;
+  auto iter=sysDef->postEffectHandlers.find(effect);
+  if (iter==sysDef->postEffectHandlers.end()) return false;
+  EffectHandler handler=iter->second;
+  int val=handler.val?handler.val(effect,effectVal):effectVal;
+  int val2=handler.val2?handler.val2(effect,effectVal):0;
+  return dispatchCmd(DivCommand(handler.dispatchCmd,ch,val,val2));
 }
 
 void DivEngine::processRow(int i, bool afterDelay) {
@@ -557,9 +569,6 @@ void DivEngine::processRow(int i, bool afterDelay) {
         cycles=got.rate*pow(2,MASTER_CLOCK_PREC)/divider;
         clockDrift=0;
         subticks=0;
-        break;
-      case 0xdf: // set sample direction
-        dispatchCmd(DivCommand(DIV_CMD_SAMPLE_DIR,i,effectVal));
         break;
       case 0xe0: // arp speed
         if (effectVal>0) {

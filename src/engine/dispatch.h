@@ -398,14 +398,7 @@ class DivDispatch {
      * @return truth.
      */
     virtual bool getDCOffRequired();
-
-    /**
-     * get a description of a dispatch-specific effect.
-     * @param effect the effect.
-     * @return the description, or NULL if effect is invalid.
-     */
-     virtual const char* getEffectName(unsigned char effect);
-
+    
     /**
      * set the chip flags.
      * @param flags the flags. see song.h for possible values.
