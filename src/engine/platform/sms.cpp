@@ -52,7 +52,9 @@ void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_
   for (size_t h=start; h<start+len; h++) {
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
-      YMPSG_Write(&sn_nuked,w.val);
+      if (w.addr==0) {
+        YMPSG_Write(&sn_nuked,w.val);
+      }
       writes.pop();
     }
     YMPSG_Clock(&sn_nuked);
@@ -88,10 +90,11 @@ void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_
 void DivPlatformSMS::acquire_mame(short* bufL, short* bufR, size_t start, size_t len) {
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
-    if (stereo && (w.addr&1))
+    if (stereo && (w.addr==1))
       sn->stereo_w(w.val);
-    else
+    else if (w.addr==0) {
       sn->write(w.val);
+    }
     writes.pop();
   }
   for (size_t h=start; h<start+len; h++) {
