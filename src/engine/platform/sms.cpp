@@ -120,7 +120,7 @@ void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len)
 
 void DivPlatformSMS::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
-    int CHIP_DIVIDER=toneDivider;
+    double CHIP_DIVIDER=toneDivider;
     if (i==3) CHIP_DIVIDER=noiseDivider;
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -245,7 +245,7 @@ void DivPlatformSMS::tick(bool sysTick) {
 }
 
 int DivPlatformSMS::dispatch(DivCommand c) {
-  int CHIP_DIVIDER=toneDivider;
+  double CHIP_DIVIDER=toneDivider;
   if (c.chan==3) CHIP_DIVIDER=noiseDivider;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON:
@@ -465,8 +465,8 @@ void DivPlatformSMS::setFlags(unsigned int flags) {
   }
   resetPhase=!(flags&16);
   divider=16;
-  toneDivider=64;
-  noiseDivider=64;
+  toneDivider=64.0;
+  noiseDivider=64.0;
   if (sn!=NULL) delete sn;
   switch (flags&0xcc) {
     default: // Sega
@@ -479,11 +479,13 @@ void DivPlatformSMS::setFlags(unsigned int flags) {
       sn=new sn76489_device();
       isRealSN=true;
       stereo=false;
+      noiseDivider=60.0; // 64 for match to tone frequency on non-Sega PSG but compatibility
       break;
     case 0x08: // TI+Atari
-      sn=new sn76496_base_device(0x4000, 0x0f35, 0x01, 0x02, true, false, 8, false, true);
+      sn=new sn76496_base_device(0x4000, 0x0f35, 0x01, 0x02, true, false, 1/*8*/, false, true);
       isRealSN=true;
       stereo=false;
+      noiseDivider=60.0;
       break;
     case 0x0c: // Game Gear (not fully emulated yet!)
       sn=new gamegear_device();
@@ -494,37 +496,41 @@ void DivPlatformSMS::setFlags(unsigned int flags) {
       sn=new sn76489a_device();
       isRealSN=false; // TODO
       stereo=false;
+      noiseDivider=60.0;
       break;
     case 0x44: // TI SN76496
       sn=new sn76496_device();
       isRealSN=false; // TODO
       stereo=false;
+      noiseDivider=60.0;
       break;
     case 0x48: // NCR 8496
       sn=new ncr8496_device();
       isRealSN=false;
       stereo=false;
+      noiseDivider=60.0;
       break;
     case 0x4c: // Tandy PSSJ 3-voice sound
       sn=new pssj3_device();
       isRealSN=false;
       stereo=false;
+      noiseDivider=60.0;
       break;
     case 0x80: // TI SN94624
       sn=new sn94624_device();
       isRealSN=true;
       stereo=false;
       divider=2;
-      toneDivider=8;
-      noiseDivider=8;
+      toneDivider=8.0;
+      noiseDivider=7.5;
       break;
     case 0x84: // TI SN76494
       sn=new sn76494_device();
       isRealSN=false; // TODO
       stereo=false;
       divider=2;
-      toneDivider=8;
-      noiseDivider=8;
+      toneDivider=8.0;
+      noiseDivider=7.5;
       break;
   }
   rate=chipClock/divider;
