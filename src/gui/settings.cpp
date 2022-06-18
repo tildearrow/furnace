@@ -411,6 +411,11 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::Checkbox("Double click selects entire column",&doubleClickColumnB)) {
             settings.doubleClickColumn=doubleClickColumnB;
           }
+          
+          bool dragMovesSelectionB=settings.dragMovesSelection;
+          if (ImGui::Checkbox("Allow dragging selection",&dragMovesSelectionB)) {
+            settings.dragMovesSelection=dragMovesSelectionB;
+          }
 
           bool allowEditDockingB=settings.allowEditDocking;
           if (ImGui::Checkbox("Allow docking editors",&allowEditDockingB)) {
@@ -2037,6 +2042,8 @@ void FurnaceGUI::syncSettings() {
   settings.effectValCellSpacing=e->getConfInt("effectValCellSpacing",0);
   settings.doubleClickColumn=e->getConfInt("doubleClickColumn",1);
   settings.blankIns=e->getConfInt("blankIns",0);
+  // SET TO 1 AFTER YOU ARE DONE
+  settings.dragMovesSelection=e->getConfInt("dragMovesSelection",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2121,6 +2128,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.effectValCellSpacing,0,32);
   clampSetting(settings.doubleClickColumn,0,1);
   clampSetting(settings.blankIns,0,1);
+  clampSetting(settings.dragMovesSelection,0,1);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2254,6 +2262,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("effectValCellSpacing",settings.effectValCellSpacing);
   e->setConf("doubleClickColumn",settings.doubleClickColumn);
   e->setConf("blankIns",settings.blankIns);
+  e->setConf("dragMovesSelection",settings.dragMovesSelection);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

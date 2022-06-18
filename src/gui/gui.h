@@ -1024,6 +1024,7 @@ class FurnaceGUI {
     int effectValCellSpacing;
     int doubleClickColumn;
     int blankIns;
+    int dragMovesSelection;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1124,6 +1125,7 @@ class FurnaceGUI {
       effectValCellSpacing(0),
       doubleClickColumn(1),
       blankIns(0),
+      dragMovesSelection(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1138,7 +1140,7 @@ class FurnaceGUI {
 
   int curIns, curWave, curSample, curOctave, curOrder, prevIns, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory, latchTarget;
-  int wheelX, wheelY;
+  int wheelX, wheelY, dragSourceX, dragSourceY, dragDestinationX, dragDestinationY;
 
   double exportFadeOut;
 
@@ -1148,8 +1150,8 @@ class FurnaceGUI {
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen;
 
-  SelectionPoint selStart, selEnd, cursor;
-  bool selecting, selectingFull, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
+  SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
+  bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   float peak[2];
@@ -1465,6 +1467,7 @@ class FurnaceGUI {
   void startSelection(int xCoarse, int xFine, int y, bool fullRow=false);
   void updateSelection(int xCoarse, int xFine, int y, bool fullRow=false);
   void finishSelection();
+  void finishDrag();
 
   void moveCursor(int x, int y, bool select);
   void moveCursorPrevChannel(bool overflow);
@@ -1494,6 +1497,7 @@ class FurnaceGUI {
   void doRedo();
   void doFind();
   void doReplace();
+  void doDrag();
   void editOptions(bool topMenu);
   void noteInput(int num, int key, int vol=-1);
   void valueInput(int num, bool direct=false, int target=-1);

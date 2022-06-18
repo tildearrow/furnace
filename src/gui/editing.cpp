@@ -918,6 +918,32 @@ void FurnaceGUI::doExpand(int multiplier) {
   makeUndo(GUI_UNDO_PATTERN_EXPAND);
 }
 
+// 1. COPY
+// 2. CLEAR
+// 3. PASTE
+void FurnaceGUI::doDrag() {
+  int iCoarse=selStart.xCoarse;
+  int iFine=selStart.xFine;
+  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+    if (!e->curSubSong->chanShow[iCoarse]) continue;
+    DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][curOrder],true);
+    for (; iFine<3+e->curPat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+      for (int j=selStart.y; j<=selEnd.y; j++) {
+        if (iFine==0) {
+          pat->data[j][iFine]=0;
+          if (selStart.y==selEnd.y) pat->data[j][2]=-1;
+        }
+        pat->data[j][iFine+1]=(iFine<1)?0:-1;
+
+        if (selStart.y==selEnd.y && iFine>2 && iFine&1 && settings.effectDeletionAltersValue) {
+          pat->data[j][iFine+2]=-1;
+        }
+      }
+    }
+    iFine=0;
+  }
+}
+
 void FurnaceGUI::doUndo() {
   if (undoHist.empty()) return;
   UndoStep& us=undoHist.back();
