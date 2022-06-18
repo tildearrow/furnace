@@ -435,6 +435,42 @@ void DivPlatformYMZ280B::setChipModel(int type) {
   chipType=type;
 }
 
+void DivPlatformYMZ280B::setFlags(unsigned int flags) {
+  switch (chipType) {
+    default:
+    case 280:
+      switch (flags&0xff) {
+        case 0x00:
+          chipClock=16934400;
+          break;
+        case 0x01:
+          chipClock=COLOR_NTSC*4.0;
+          break;
+        case 0x02:
+          chipClock=COLOR_PAL*16.0/5.0;
+          break;
+        case 0x03:
+          chipClock=16000000;
+          break;
+        case 0x04:
+          chipClock=50000000.0/3.0;
+          break;
+        case 0x05:
+          chipClock=14000000;
+          break;
+      }
+      rate=chipClock/384;
+      break;
+    case 759:
+      rate=32000;
+      chipClock=rate*384;
+      break;
+  }
+  for (int i=0; i<8; i++) {
+    oscBuf[i]->rate=rate;
+  }
+}
+
 int DivPlatformYMZ280B::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
@@ -444,18 +480,12 @@ int DivPlatformYMZ280B::init(DivEngine* p, int channels, int sugRate, unsigned i
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  setFlags(flags);
-
-  rate=(chipType==759)?32000:44100;
-  chipClock=rate*384;
   sampleMem=new unsigned char[getSampleMemCapacity()];
   sampleMemLen=0;
   ymz280b.device_start(sampleMem);
+  setFlags(flags);
   reset();
 
-  for (int i=0; i<8; i++) {
-    oscBuf[i]->rate=rate;
-  }
   return 8;
 }
 

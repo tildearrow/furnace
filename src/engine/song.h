@@ -237,28 +237,45 @@ struct DivSong {
   //     - 1: PAL
   //     - 2: Dendy
   // - SMS/SN76489:
-  //   - bit 0-1: clock rate
-  //     - 0: NTSC (3.58MHz)
-  //     - 1: PAL (3.55MHz)
-  //     - 2: Other (4MHz)
-  //     - 3: half NTSC (1.79MHz)
-  //   - bit 2-3: noise type
-  //     - 0: Sega VDP (16-bit noise)
-  //     - 1: real SN76489 (15-bit noise)
-  //     - 2: real SN76489 with Atari-like short noise buzz (15-bit noise)
-  //     - 3: Game Gear (16-bit noise, stereo)
+  //   - bit 0-1, 8-15: clock rate
+  //     - 0000: 3.58MHz (NTSC)
+  //     - 0001: 3.55MHz (PAL)
+  //     - 0002: 4MHz (Other)
+  //     - 0003: 1.79MHz (half NTSC)
+  //     - 0100: 3MHz
+  //     - 0101: 2MHz
+  //     - 0102: 447KHz (NTSC / 8)
+  //   - bit 2-3, 6-7: chip type
+  //     - 00: Sega VDP (16-bit noise)
+  //     - 04: real SN76489 (15-bit noise)
+  //     - 08: real SN76489 with Atari-like short noise buzz (15-bit noise)
+  //     - 0c: Game Gear (16-bit noise, stereo)
+  //     - 40: real SN76489A (17-bit noise)
+  //     - 44: real SN76496 (17-bit noise)
+  //     - 48: NCR 8496 (16-bit noise)
+  //     - 4c: Tandy PSSJ-3 (16-bit noise)
+  //     - 80: real SN94624 (15-bit noise)
+  //     - 84: real SN76494 (17-bit noise)
   //   - bit 4: disable noise phase reset
-  // - YM2612:
-  //   - bit 0-1: clock rate
+  // - YM2612/YM3438:
+  //   - bit 0-30: clock rate
   //     - 0: Genesis NTSC (7.67MHz)
   //     - 1: Genesis PAL (7.61MHz)
-  //     - 2: 8MHz
+  //     - 2: FM Towns (8MHz)
   //     - 3: AtGames Genesis (6.13MHz)
+  //     - 4: Sega System 32 (8.06MHz)
+  //   - bit 31: DAC distortion
+  //     - 0: disable
+  //     - 1: enable
   // - YM2151:
-  //   - bit 0-1: clock rate
+  //   - bit 0-7: clock rate
   //     - 0: 3.58MHz (NTSC)
   //     - 1: 3.55MHz (PAL)
   //     - 2: 4MHz
+  // - YM2610(B):
+  //   - bit 0-7: clock rate
+  //     - 0: 8MHz (Neo Geo MVS)
+  //     - 1: 8.06MHz (Neo Geo AES)
   // - AY-3-8910/AY8930:
   //   - bit 0-3: clock rate
   //     - 0: 1.79MHz (MSX NTSC)
@@ -274,6 +291,8 @@ struct DivSong {
   //     - 10: 2.097152MHz (Game Boy)
   //     - 11: 3.58MHz (Darky)
   //     - 12: 3.6MHz (Darky)
+  //     - 13: 1.25MHz
+  //     - 14: 1.536MHz
   //   - bit 4-5: chip type (ignored on AY8930)
   //     - 0: AY-3-8910 or similar
   //     - 1: YM2149
@@ -287,9 +306,9 @@ struct DivSong {
   //     - 1: low (internally divided to half)
   // - SAA1099:
   //   - bit 0-1: clock rate
-  //     - 0: 8MHz (SAM Coupé, Game Blaster)
-  //     - 1: 7.15MHz
-  //     - 2: 7.09MHz
+  //     - 0: 8MHz (SAM Coupé)
+  //     - 1: 7.15MHz (Game Blaster, NTSC)
+  //     - 2: 7.09MHz (PAL)
   // - Amiga:
   //   - bit 0: clock rate
   //     - 0: 7.15MHz (NTSC)
@@ -330,6 +349,80 @@ struct DivSong {
   //   - bit 4: stereo
   //     - 0: mono
   //     - 1: stereo
+  // - YM2203:
+  //   - bit 0-4: clock rate
+  //     - 0: 3.58MHz (MTSC)
+  //     - 1: 3.55MHz (PAL)
+  //     - 2: 4MHz
+  //     - 3: 3MHz
+  //     - 4: 3.9936MHz (PC-88, PC-98)
+  //     - 5: 1.5MHz
+  //   - bit 5-6: output rate
+  //     - 0: FM: clock / 72, SSG: clock / 16
+  //     - 1: FM: clock / 36, SSG: clock / 8
+  //     - 2: FM: clock / 24, SSG: clock / 4
+  // - YM2608:
+  //   - bit 0-4: clock rate
+  //     - 0: 8MHz
+  //     - 1: 7.987MHz (PC-88, PC-98)
+  //   - bit 5-6: output rate
+  //     - 0: FM: clock / 144, SSG: clock / 32
+  //     - 1: FM: clock / 72, SSG: clock / 16
+  //     - 2: FM: clock / 48, SSG: clock / 8
+  // - YM3526, YM3812, Y8950:
+  //   - bit 0-7: clock rate
+  //     - 0: 3.58MHz (MTSC)
+  //     - 1: 3.55MHz (PAL)
+  //     - 2: 4MHz
+  //     - 3: 3MHz
+  //     - 4: 3.9936MHz (PC-88, PC-98)
+  //     - 5: 3.5MHz
+  // - YMF262:
+  //   - bit 0-7: clock rate
+  //     - 0: 14.32MHz (MTSC)
+  //     - 1: 14.19MHz (PAL)
+  //     - 2: 14MHz
+  //     - 3: 16MHz
+  //     - 4: 15MHz
+  // - YMF289B: (TODO)
+  //   - bit 0-7: clock rate
+  //     - 0: 33.8688MHz
+  //     - 1: 28.64MHz (MTSC)
+  //     - 2: 28.38MHz (PAL)
+  // - MSM6295:
+  //   - bit 0-6: clock rate
+  //     - 0: 1MHz
+  //     - 1: 1.056MHz
+  //     - 2: 4MHz
+  //     - 3: 4.224MHz
+  //     - 4: 3.58MHz (NTSC)
+  //     - 5: 1.79MHz (Half NTSC)
+  //     - 6: 1.023MHz
+  //     - 7: 0.895MHz (Quarter NTSC)
+  //     - 8: 2MHz
+  //     - 9: 2.112MHz
+  //     - 10: 0.875MHz
+  //     - 11: 0.9375MHz
+  //     - 12: 1.5MHz
+  //     - 13: 3MHz
+  //     - 14: 1.193MHz
+  //   - bit 7: Output rate
+  //     - 0: clock / 132
+  //     - 1: clock / 165
+  // - SCC/+:
+  //   - bit 0-6: clock rate
+  //     - 0: 1.79MHz (MSX NTSC)
+  //     - 1: 1.77MHz (PAL)
+  //     - 2: 1.5MHz
+  //     - 3: 2MHz
+  // - YMZ280B:
+  //   - bit 0-7: clock rate
+  //     - 0: 16.9344MHz
+  //     - 1: 14.32MHz (MTSC)
+  //     - 2: 14.19MHz (PAL)
+  //     - 3: 16MHz
+  //     - 4: 16.67MHz
+  //     - 5: 14MHz
   unsigned int systemFlags[32];
 
   // song information

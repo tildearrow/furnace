@@ -130,7 +130,7 @@ static void YMPSG_ClockInternal1(ympsg_t *chip)
     else if (noise_of && !chip->noise_of)
     {
         noise_bit1 = (chip->noise >> chip->noise_tap2) & 1;
-        noise_bit2 = (chip->noise >> 12) & 1;
+        noise_bit2 = (chip->noise >> chip->noise_tap1) & 1;
         noise_bit1 ^= noise_bit2;
         noise_next = ((noise_bit1 && ((chip->noise_data >> 2) & 1)) || ((chip->noise & chip->noise_size) == 0));
         chip->noise <<= 1;
@@ -257,13 +257,14 @@ uint16_t YMPSG_Read(ympsg_t *chip)
     return data;
 }
 
-void YMPSG_Init(ympsg_t *chip, uint8_t real_sn)
+void YMPSG_Init(ympsg_t *chip, uint8_t real_sn, uint8_t noise_tap1, uint8_t noise_tap2, uint32_t noise_size)
 {
     uint32_t i;
     memset(chip, 0, sizeof(ympsg_t));
     YMPSG_SetIC(chip, 1);
-    chip->noise_tap2 = real_sn ? 13 : 15;
-    chip->noise_size = real_sn ? 16383 : 32767;
+    chip->noise_tap1 = noise_tap1;
+    chip->noise_tap2 = noise_tap2;
+    chip->noise_size = noise_size;
     for (i = 0; i < 17; i++)
     {
       chip->vol_table[i]=(real_sn?tipsg_vol[i]:ympsg_vol[i]) * 8192.0f;

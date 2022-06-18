@@ -56,13 +56,13 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Yamaha YM2608 (OPNA)", {
-      DIV_SYSTEM_PC98, 64, 0, 3,
+      DIV_SYSTEM_PC98, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Yamaha YM2608 (extended channel 3)", {
-      DIV_SYSTEM_PC98_EXT, 64, 0, 3,
+      DIV_SYSTEM_PC98_EXT, 64, 0, 0,
       0
     }
   ));
@@ -222,14 +222,63 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "TI SN76489A", {
+      DIV_SYSTEM_SMS, 64, 0, 0x40,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "TI SN76496", {
+      DIV_SYSTEM_SMS, 64, 0, 0x44,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NCR 8496", {
+      DIV_SYSTEM_SMS, 64, 0, 0x48,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Tandy PSSJ 3-voice sound", {
+      DIV_SYSTEM_SMS, 64, 0, 0x4c,
+      // 8 bit DAC
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Sega PSG (SN76489-like)", {
       DIV_SYSTEM_SMS, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Sega PSG (SN76489-like, Stereo)", {
+      DIV_SYSTEM_SMS, 64, 0, 0xc,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "TI SN94624", {
+      DIV_SYSTEM_SMS, 64, 0, 0x182,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "TI SN76494", {
+      DIV_SYSTEM_SMS, 64, 0, 0x186,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "AY-3-8910", {
       DIV_SYSTEM_AY8910, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "AY-3-8914", {
+      DIV_SYSTEM_AY8910, 64, 0, 48,
       0
     }
   ));
@@ -516,6 +565,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Game Gear", {
+      DIV_SYSTEM_SMS, 64, 0, 0xc,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Game Boy", {
       DIV_SYSTEM_GB, 64, 0, 0,
       0
@@ -603,13 +658,13 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Neo Geo AES", {
-      DIV_SYSTEM_YM2610_FULL, 64, 0, 0,
+      DIV_SYSTEM_YM2610_FULL, 64, 0, 1,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Neo Geo AES (extended channel 2)", {
-      DIV_SYSTEM_YM2610_FULL_EXT, 64, 0, 0,
+      DIV_SYSTEM_YM2610_FULL_EXT, 64, 0, 1,
       0
     }
   ));
@@ -779,7 +834,7 @@ void FurnaceGUI::initSystemPresets() {
     cat.systems.push_back(FurnaceGUISysDef(
     "MSX + Playsoniq", {
       DIV_SYSTEM_AY8910, 64, 0, 16,
-      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_SMS, 64, 0, 0, // Sega VDP
       DIV_SYSTEM_C64_8580, 64, 0, 0,
       DIV_SYSTEM_SCC_PLUS, 64, 0, 0,
       0
@@ -800,26 +855,110 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NEC PC-98 (with PC-9801-26K)", {
-      DIV_SYSTEM_OPN, 64, 0, 3,
+    "NEC PC-98 (with PC-9801-26/K)", {
+      DIV_SYSTEM_OPN, 64, 0, 4, // 3.9936MHz but some compatible card has 4MHz
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NEC PC-98 (with PC-9801-26K; extended channel 3)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 3,
+    "NEC PC-98 (with PC-9801-26/K; extended channel 3)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 4, // 3.9936MHz but some compatible card has 4MHz
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NEC PC-98 (with PC-9801-86)", {
-      DIV_SYSTEM_PC98, 64, 0, 3,
+    "NEC PC-98 (with Sound Orchestra)", {
+      DIV_SYSTEM_OPN, 64, 0, 4,
+      DIV_SYSTEM_OPL2, 64, 0, 4,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NEC PC-98 (with PC-9801-86; extended channel 3)", {
-      DIV_SYSTEM_PC98_EXT, 64, 0, 3,
+    "NEC PC-98 (with Sound Orchestra; extended channel 3)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 4,
+      DIV_SYSTEM_OPL2, 64, 0, 4,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with Sound Orchestra in drums mode)", {
+      DIV_SYSTEM_OPN, 64, 0, 4,
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 4,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with Sound Orchestra in drums mode; extended channel 3)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 4,
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 4,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with Sound Orchestra V)", {
+      DIV_SYSTEM_OPN, 64, 0, 4,
+      DIV_SYSTEM_Y8950, 64, 0, 4,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with Sound Orchestra V; extended channel 3)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 4,
+      DIV_SYSTEM_Y8950, 64, 0, 4,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with Sound Orchestra V in drums mode)", {
+      DIV_SYSTEM_OPN, 64, 0, 4,
+      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 4,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with Sound Orchestra V in drums mode; extended channel 3)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 4,
+      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 4,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with PC-9801-86)", { // -73 also has OPNA
+      DIV_SYSTEM_PC98, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with PC-9801-86; extended channel 3)", { // -73 also has OPNA
+      DIV_SYSTEM_PC98_EXT, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible)", {
+      DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_OPL3, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible; extended channel 3)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_OPL3, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode)", {
+      DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_OPL3_DRUMS, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode; extended channel 3)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_OPL3_DRUMS, 64, 0, 2,
       0
     }
   ));
@@ -839,8 +978,76 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (128K) with TurboSound FM", {
       DIV_SYSTEM_AY8910, 64, 0, 1,
-      DIV_SYSTEM_OPN, 64, 0, 0,
-      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_OPN, 64, 0, 1,
+      DIV_SYSTEM_OPN, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on first OPN)", {
+      DIV_SYSTEM_AY8910, 64, 0, 1,
+      DIV_SYSTEM_OPN_EXT, 64, 0, 1,
+      DIV_SYSTEM_OPN, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on second OPN)", {
+      DIV_SYSTEM_AY8910, 64, 0, 1,
+      DIV_SYSTEM_OPN, 64, 0, 1,
+      DIV_SYSTEM_OPN_EXT, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on both OPNs)", {
+      DIV_SYSTEM_AY8910, 64, 0, 1,
+      DIV_SYSTEM_OPN_EXT, 64, 0, 1,
+      DIV_SYSTEM_OPN_EXT, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "ZX Spectrum (128K) with TurboSound FM + SAA", {
+      DIV_SYSTEM_AY8910, 64, 0, 1,
+      DIV_SYSTEM_OPN, 64, 0, 1,
+      DIV_SYSTEM_OPN, 64, 0, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "ZX Spectrum (128K) with TurboSound FM + SAA (extended channel 3 on first OPN)", {
+      DIV_SYSTEM_AY8910, 64, 0, 1,
+      DIV_SYSTEM_OPN_EXT, 64, 0, 1,
+      DIV_SYSTEM_OPN, 64, 0, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "ZX Spectrum (128K) with TurboSound FM + SAA (extended channel 3 on second OPN)", {
+      DIV_SYSTEM_AY8910, 64, 0, 1,
+      DIV_SYSTEM_OPN, 64, 0, 1,
+      DIV_SYSTEM_OPN_EXT, 64, 0, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "ZX Spectrum (128K) with TurboSound FM + SAA (extended channel 3 on both OPNs)", {
+      DIV_SYSTEM_AY8910, 64, 0, 1,
+      DIV_SYSTEM_OPN_EXT, 64, 0, 1,
+      DIV_SYSTEM_OPN_EXT, 64, 0, 1,
+      DIV_SYSTEM_SAA1099, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "ZX Spectrum (128K) with TurboSound", {
+      DIV_SYSTEM_AY8910, 64, 0, 1,
+      DIV_SYSTEM_AY8910, 64, 0, 1, // or YM2149
+      DIV_SYSTEM_AY8910, 64, 0, 1, // or YM2149
       0
     }
   ));
@@ -858,12 +1065,26 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "BBC Micro", {
-      DIV_SYSTEM_SMS, 64, 0, 6,
+      DIV_SYSTEM_SMS, 64, 0, 0x42, // SN76489A 4MHz
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "PC (barebones)", {
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "IBM PCjr", {
+      // it can be enable sound output at once
+      DIV_SYSTEM_SMS, 64, 0, 0x44, // SN76496
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Tandy 1000", {
+      DIV_SYSTEM_SMS, 64, 0, 0x44, // NCR 8496 or SN76496 or Tandy PSSJ(with 8 bit DAC)
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -990,7 +1211,7 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "FM Towns", {
-      DIV_SYSTEM_YM2612, 64, 0, 2,
+      DIV_SYSTEM_YM2612, 64, 0, 2, // YM3438
       DIV_SYSTEM_RF5C68, 64, 0, 0,
       0
     }
@@ -1002,37 +1223,183 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "TI-99/4A", {
+      DIV_SYSTEM_SMS, 64, 0, 0x182, // SN94624 447KHz
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Arcade systems","INSERT COIN");
   cat.systems.push_back(FurnaceGUISysDef(
     "Bally Midway MCR", {
-      DIV_SYSTEM_AY8910, 64, 0, 0,
-      DIV_SYSTEM_AY8910, 64, 0, 0,
+      // SSIO sound board
+      DIV_SYSTEM_AY8910, 64, 0, 3, // 2MHz
+      DIV_SYSTEM_AY8910, 64, 0, 3, // 2MHz
+      // additional sound boards, mostly software controlled DAC
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Gyruss", {
+    "Konami Gyruss", {
       DIV_SYSTEM_AY8910, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 0,
+      // additional discrete sound logics
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Konami Bubble System", {
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      DIV_SYSTEM_BUBSYS_WSG, 64, 0, 0,
+      // VLM5030 exists but not used for music at all
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Konami Hexion", {
+      DIV_SYSTEM_SCC, 64, 0, 2, // 1.5MHz (3MHz input)
+      DIV_SYSTEM_MSM6295, 64, 0, 1,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega Kyugo", {
-      DIV_SYSTEM_AY8910, 64, 0, 4,
-      DIV_SYSTEM_AY8910, 64, 0, 4,
+      DIV_SYSTEM_AY8910, 64, 0, 14,
+      DIV_SYSTEM_AY8910, 64, 0, 14,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 1", {
+      DIV_SYSTEM_SMS, 64, 0, 0x42, // SN76489A 4MHz
+      DIV_SYSTEM_SMS, 64, 0, 0x0141, // SN76489A 2MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Hang-On", {
+      DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_SEGAPCM, 64, 0, 0, // discrete logics, 62.5KHz output rate
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Hang-On (extended channel 3)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_SEGAPCM, 64, 0, 0, // discrete logics, 62.5KHz output rate
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega OutRun/X Board", {
-      DIV_SYSTEM_YM2151, 64, 0, 2,
-      DIV_SYSTEM_SEGAPCM, 64, 0, 0,
+      DIV_SYSTEM_YM2151, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_SEGAPCM, 64, 0, 0, // ASIC, 31.25KHz output rate
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 18", {
+      DIV_SYSTEM_YM2612, 64, 0, 2, // discrete 8MHz YM3438
+      DIV_SYSTEM_YM2612, 64, 0, 2, // ^^
+      DIV_SYSTEM_RF5C68, 64, 0, 1, // 10MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 18 (extended channel 3 on first OPN2C)", {
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 2, // discrete 8MHz YM3438
+      DIV_SYSTEM_YM2612, 64, 0, 2, // ^^
+      DIV_SYSTEM_RF5C68, 64, 0, 1, // 10MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 18 (extended channel 3 on second OPN2C)", {
+      DIV_SYSTEM_YM2612, 64, 0, 2, // discrete 8MHz YM3438
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 2, // ^^
+      DIV_SYSTEM_RF5C68, 64, 0, 1, // 10MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 18 (extended channel 3 on both OPN2Cs)", {
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 2, // discrete 8MHz YM3438
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 2, // ^^
+      DIV_SYSTEM_RF5C68, 64, 0, 1, // 10MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 32", {
+      DIV_SYSTEM_YM2612, 64, 0, 4, // discrete 8.05MHz YM3438
+      DIV_SYSTEM_YM2612, 64, 0, 4, // ^^
+      DIV_SYSTEM_RF5C68, 64, 0, 2, // 12.5MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 32 (extended channel 3 on first OPN2C)", {
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 4, // discrete 8.05MHz YM3438
+      DIV_SYSTEM_YM2612, 64, 0, 4, // ^^
+      DIV_SYSTEM_RF5C68, 64, 0, 2, // 12.5MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 32 (extended channel 3 on second OPN2C)", {
+      DIV_SYSTEM_YM2612, 64, 0, 4, // discrete 8.05MHz YM3438
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 4, // ^^
+      DIV_SYSTEM_RF5C68, 64, 0, 2, // 12.5MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 32 (extended channel 3 on both OPN2Cs)", {
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 4, // discrete 8.05MHz YM3438
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 4, // ^^
+      DIV_SYSTEM_RF5C68, 64, 0, 2, // 12.5MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Capcom Exed Eyes", {
+      DIV_SYSTEM_AY8910, 64, 0, 4, // 1.5MHz
+      DIV_SYSTEM_SMS, 64, 0, 0x0104, // SN76489 3MHz
+      DIV_SYSTEM_SMS, 64, 0, 0x0104, // SN76489 3MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Capcom Arcade", { // 1943, Side arms, etc
+      DIV_SYSTEM_OPN, 64, 0, 5, // 4 or 1.5MHz; various per games
+      DIV_SYSTEM_OPN, 64, 0, 5,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Capcom Arcade (extended channel 3 on first OPN)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 5,
+      DIV_SYSTEM_OPN, 64, 0, 5,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Capcom Arcade (extended channel 3 on second OPN)", {
+      DIV_SYSTEM_OPN, 64, 0, 5,
+      DIV_SYSTEM_OPN_EXT, 64, 0, 5,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Capcom Arcade (extended channel 3 on both OPNs)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 5,
+      DIV_SYSTEM_OPN_EXT, 64, 0, 5,
       0
     }
   ));
@@ -1044,144 +1411,432 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Capcom CPS-2 (QSound)", {
+      DIV_SYSTEM_QSOUND, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Jaleco Ginga NinkyouDen", {
+      DIV_SYSTEM_AY8910, 64, 0, 16, // 1.79MHz
+      DIV_SYSTEM_Y8950, 64, 0, 0, // 3.58MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Jaleco Ginga NinkyouDen (drums mode)", {
+      DIV_SYSTEM_AY8910, 64, 0, 16, // 1.79MHz
+      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 0, // 3.58MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Jaleco Mega System 1", {
-      DIV_SYSTEM_YM2151, 64, 0, 2,
-      DIV_SYSTEM_MSM6295, 64, 0, 0,
-      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      DIV_SYSTEM_YM2151, 64, 0, 1, // 3.5MHz (7MHz / 2)
+      DIV_SYSTEM_MSM6295, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 2, // 4MHz
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "NMK 16-bit Arcade", {
-      DIV_SYSTEM_OPN, 64, 0, 0,
-      DIV_SYSTEM_MSM6295, 64, 0, 2,
-      DIV_SYSTEM_MSM6295, 64, 0, 2,
+      DIV_SYSTEM_OPN, 64, 0, 5, // 1.5MHz; optional
+      DIV_SYSTEM_MSM6295, 64, 0, 130, // 4MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 130, // ^^
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Data East Arcade", {
-      DIV_SYSTEM_OPN, 64, 0, 0,
-      DIV_SYSTEM_OPL2, 64, 0, 0,
-      DIV_SYSTEM_MSM6295, 64, 0, 0,
+    "NMK 16-bit Arcade (extended channel 3)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 5, // 1.5MHz; optional
+      DIV_SYSTEM_MSM6295, 64, 0, 130, // 4MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 130, // ^^
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Kaneko DJ Boy", {
+      DIV_SYSTEM_OPN, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_MSM6295, 64, -127, 12, // 1.5MHz, Left output
+      DIV_SYSTEM_MSM6295, 64, 127, 12, // 1.5MHz, Right output
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Kaneko DJ Boy (extended channel 3)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_MSM6295, 64, -127, 12, // 1.5MHz, Left output
+      DIV_SYSTEM_MSM6295, 64, 127, 12, // 1.5MHz, Right output
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Kaneko Air Buster", {
+      DIV_SYSTEM_OPN, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 141, // 3MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Kaneko Air Buster (extended channel 3)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 141, // 3MHz
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Kaneko Toybox System", {
-      DIV_SYSTEM_AY8910, 64, 0, 1,
-      DIV_SYSTEM_AY8910, 64, 0, 1,
-      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 19, // YM2149 2MHz
+      DIV_SYSTEM_AY8910, 64, 0, 19, // ^^
+      DIV_SYSTEM_MSM6295, 64, 0, 8, // 2MHz
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Tecmo Arcade", {
-      DIV_SYSTEM_OPN, 64, 0, 0,
-      DIV_SYSTEM_OPN, 64, 0, 0,
-      DIV_SYSTEM_MSM6295, 64, 0, 0,
+    "Kaneko Jackie Chan", {
+      DIV_SYSTEM_YMZ280B, 64, 0, 3, // 16MHz
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Seibu Kaihatsu Arcade", {
-      DIV_SYSTEM_OPL2, 64, 0, 0,
-      DIV_SYSTEM_MSM6295, 64, 0, 0,
+    "Super Kaneko Nova System", {
+      DIV_SYSTEM_YMZ280B, 64, 0, 4, // 16.67MHz (33.33MHz / 2)
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Data East Arcade (Dark Seal)", {
-      DIV_SYSTEM_YM2151, 64, 0, 2,
-      DIV_SYSTEM_OPN, 64, 0, 0,
-      DIV_SYSTEM_MSM6295, 64, 0, 0,
-      DIV_SYSTEM_MSM6295, 64, 0, 8,
+    "Tecmo Ninja Gaiden", { // Ninja Gaiden, Raiga, etc
+      DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Tecmo Ninja Gaiden (extended channel 3 on first OPN)", { // Ninja Gaiden, Raiga, etc
+      DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Tecmo Ninja Gaiden (extended channel 3 on second OPN)", { // Ninja Gaiden, Raiga, etc
+      DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Tecmo Ninja Gaiden (extended channel 3 on both OPNs)", { // Ninja Gaiden, Raiga, etc
+      DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Tecmo System", {
+      DIV_SYSTEM_OPL3, 64, 0, 0,
+      DIV_SYSTEM_YMZ280B, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 8, // 2MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Tecmo System (drums mode)", {
+      DIV_SYSTEM_OPL3_DRUMS, 64, 0, 0,
+      DIV_SYSTEM_YMZ280B, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 8, // 2MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Seibu Kaihatsu Raiden", { // Raiden, Seibu cup soccer, Zero team, etc
+      DIV_SYSTEM_OPL2, 64, 0, 0, // YM3812 3.58MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1 or 1.023MHz (28.636363MHz / 28); various per games
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Seibu Kaihatsu Raiden (drums mode)", { // Raiden, Seibu cup soccer, Zero team, etc
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0, // YM3812 3.58MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1 or 1.023MHz (28.636363MHz / 28); various per games
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sunsoft Shanghai 3", {
+      DIV_SYSTEM_AY8910, 64, 0, 20, // YM2149 1.5MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 1, // 1.056MHz
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Sunsoft Arcade", {
-      DIV_SYSTEM_YM2612, 64, 0, 4,
-      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      DIV_SYSTEM_YM2612, 64, 0, 2, // discrete YM3438 8MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 1, // 1.056MHz
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Atari Arcade (Rampart)", { 
-      DIV_SYSTEM_OPLL, 64, 0, 0,
-      DIV_SYSTEM_MSM6295, 64, 0, 0,
+    "Sunsoft Arcade (extended channel 3)", {
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 2, // discrete YM3438 8MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 1, // 1.056MHz
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Data East Deco 156", {
-      DIV_SYSTEM_MSM6295, 64, 0, 0,
-      DIV_SYSTEM_MSM6295, 64, 0, 8,
+    "Atari Klax", { 
+      DIV_SYSTEM_MSM6295, 64, 0, 7, // 0.895MHz (3.579545MHz / 4)
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "SNK Triple Z80 (Chopper)", { //or Namco?
-      DIV_SYSTEM_Y8950, 64, 0, 0,
-      DIV_SYSTEM_OPL2, 64, 0, 0,
+    "Atari Rampart", { 
+      DIV_SYSTEM_OPLL, 64, 0, 0, // 3.579545MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 14, // 1.193MHz (3.579545MHz / 3)
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Sega System 18", {
-      DIV_SYSTEM_YM2612, 64, 0, 2,
-      DIV_SYSTEM_YM2612, 64, 0, 2,
-      DIV_SYSTEM_RF5C68, 64, 0, 1,
+    "Atari Rampart (drums mode)", { 
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0, // 3.579545MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 14, // 1.193MHz (3.579545MHz / 3)
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Sega System 1", {
-      DIV_SYSTEM_SMS, 64, 0, 2,
-      DIV_SYSTEM_SMS, 64, 0, 3,
-      0
-    }
-  ));
-  cat.systems.push_back(FurnaceGUISysDef(
-    "Sega System 32", {
-      DIV_SYSTEM_YM2612, 64, 0, 4,
-      DIV_SYSTEM_YM2612, 64, 0, 4,
-      DIV_SYSTEM_RF5C68, 64, 0, 2,
-      0
-    }
-  ));
-  cat.systems.push_back(FurnaceGUISysDef(
-    "Sega Hang-On", {
-      DIV_SYSTEM_OPN, 64, 0, 0,
-      DIV_SYSTEM_SEGAPCM, 64, 0, 0,
-      0
-    }
-  ));
-  cat.systems.push_back(FurnaceGUISysDef(
-    "SNK Alpha-68K", {
-      DIV_SYSTEM_OPN, 64, 0, 0,
-      DIV_SYSTEM_OPLL, 64, 0, 0,
+    "Atari JSA IIIs", { 
+      DIV_SYSTEM_YM2151, 64, 0, 0, // 3.579545MHz
+      DIV_SYSTEM_MSM6295, 64, -127, 14, // 1.193MHz (3.579545MHz / 3), Left output
+      DIV_SYSTEM_MSM6295, 64, 127, 14, // 1.193MHz (3.579545MHz / 3), Right output
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Data East Karnov", {
-      DIV_SYSTEM_OPN, 64, 0, 0,
-      DIV_SYSTEM_OPL, 64, 0, 0,
+      DIV_SYSTEM_OPN, 64, 0, 5, // 1.5MHz
+      DIV_SYSTEM_OPL, 64, 0, 3, // 3MHz
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Capcom Arcade", {
-      DIV_SYSTEM_OPN, 64, 0, 0,
-      DIV_SYSTEM_OPN, 64, 0, 0,
+    "Data East Karnov (extended channel 3)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 5, // 1.5MHz
+      DIV_SYSTEM_OPL, 64, 0, 3, // 3MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Karnov (drums mode)", {
+      DIV_SYSTEM_OPN, 64, 0, 5, // 1.5MHz
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 3, // 3MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Karnov (extended channel 3; drums mode)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 5, // 1.5MHz
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 3, // 3MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Arcade", { // Bad dudes, Robocop, etc
+      DIV_SYSTEM_OPN, 64, 0, 5, // 1.5MHz
+      DIV_SYSTEM_OPL2, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1 to 1.056MHz; various per games or optional
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Arcade (extended channel 3)", { // Bad dudes, Robocop, etc
+      DIV_SYSTEM_OPN_EXT, 64, 0, 5, // 1.5MHz
+      DIV_SYSTEM_OPL2, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1 to 1.056MHz; various per games or optional
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Arcade (drums mode)", { // Bad dudes, Robocop, etc
+      DIV_SYSTEM_OPN, 64, 0, 5, // 1.5MHz
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1 to 1.056MHz; various per games or optional
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Arcade (extended channel 3; drums mode)", { // Bad dudes, Robocop, etc
+      DIV_SYSTEM_OPN_EXT, 64, 0, 5, // 1.5MHz
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1 to 1.056MHz; various per games or optional
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Data East PCX", {
-      DIV_SYSTEM_OPN, 64, 0, 0,
-      DIV_SYSTEM_PCE, 64, 0, 2, 
+      DIV_SYSTEM_OPN, 64, 0, 5, // 1.5MHz
+      DIV_SYSTEM_PCE, 64, 0, 0,
+      // software controlled MSM5205
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Data East PCX (extended channel 3)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 5, // 1.5MHz
+      DIV_SYSTEM_PCE, 64, 0, 0,
+      // software controlled MSM5205
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Dark Seal", { // Dark Seal, Crude Buster, Vapor Trail, etc
+      DIV_SYSTEM_YM2151, 64, 0, 0, // 3.580MHz (32.22MHz / 9)
+      DIV_SYSTEM_OPN, 64, 0, 2, // 4.0275MHz (32.22MHz / 8); optional
+      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1.007MHz (32.22MHz / 32)
+      DIV_SYSTEM_MSM6295, 64, 0, 8, // 2.014MHz (32.22MHz / 16); optional
+      // HuC6280 is for control them, internal sound isn't used
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Dark Seal (extended channel 3)", { // Dark Seal, Crude Buster, Vapor Trail, etc
+      DIV_SYSTEM_YM2151, 64, 0, 0, // 3.580MHz (32.22MHz / 9)
+      DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4.0275MHz (32.22MHz / 8); optional
+      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1.007MHz (32.22MHz / 32)
+      DIV_SYSTEM_MSM6295, 64, 0, 8, // 2.014MHz (32.22MHz / 16); optional
+      // HuC6280 is for control them, internal sound isn't used
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Deco 156", {
+      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1 or 1.007MHz (32.22MHz / 32); various per games
+      DIV_SYSTEM_MSM6295, 64, 0, 8, // 1 or 2 or 2.014MHz (32.22MHz / 16); various per games
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Data East MLC", {
+      DIV_SYSTEM_YMZ280B, 64, 0, 5, // 14MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Ikari Warriors", {
+      DIV_SYSTEM_OPL, 64, 0, 2,
+      DIV_SYSTEM_OPL, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Ikari Warriors (drums mode on first OPL)", {
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 2,
+      DIV_SYSTEM_OPL, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Ikari Warriors (drums mode on second OPL)", {
+      DIV_SYSTEM_OPL, 64, 0, 2,
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Ikari Warriors (drums mode on both OPLs)", {
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 2,
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Triple Z80", {
+      DIV_SYSTEM_Y8950, 64, 0, 2,
+      DIV_SYSTEM_OPL, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Triple Z80 (drums mode on Y8950)", {
+      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 2,
+      DIV_SYSTEM_OPL, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Triple Z80 (drums mode on OPL)", {
+      DIV_SYSTEM_Y8950, 64, 0, 2,
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Triple Z80 (drums mode on Y8950 and OPL)", {
+      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 2,
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Chopper I", {
+      DIV_SYSTEM_Y8950, 64, 0, 2,
+      DIV_SYSTEM_OPL2, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Chopper I (drums mode on Y8950)", {
+      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 2,
+      DIV_SYSTEM_OPL2, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Chopper I (drums mode on OPL2)", {
+      DIV_SYSTEM_Y8950, 64, 0, 2,
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Chopper I (drums mode on Y8950 and OPL2)", {
+      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 2,
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Alpha denshi Alpha-68K", {
+      DIV_SYSTEM_OPN, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_OPLL, 64, 0, 0, // 3.58MHz
+      // software controlled 8 bit DAC
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Alpha denshi Alpha-68K (extended channel 3)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_OPLL, 64, 0, 0, // 3.58MHz
+      // software controlled 8 bit DAC
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Alpha denshi Alpha-68K (drums mode)", {
+      DIV_SYSTEM_OPN, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0, // 3.58MHz
+      // software controlled 8 bit DAC
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Alpha denshi Alpha-68K (extended channel 3; drums mode)", {
+      DIV_SYSTEM_OPN_EXT, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0, // 3.58MHz
+      // software controlled 8 bit DAC
       0
     }
   ));
@@ -1198,35 +1853,34 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Capcom Exed Eyes", {
-      DIV_SYSTEM_AY8910, 64, 0, 0,
-      DIV_SYSTEM_SMS, 64, 0, 0,
-      DIV_SYSTEM_SMS, 64, 0, 0,
+    "Nichibutsu Mag Max", {
+      DIV_SYSTEM_AY8910, 64, 0, 13,
+      DIV_SYSTEM_AY8910, 64, 0, 13,
+      DIV_SYSTEM_AY8910, 64, 0, 13,
       0
     }
-  ));  
+  ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Nichibutsu Arcade", {
-      DIV_SYSTEM_AY8910, 64, 0, 0,
-      DIV_SYSTEM_AY8910, 64, 0, 0,
-      DIV_SYSTEM_AY8910, 64, 0, 0,
-      0
-    }
-  ));  
-  cat.systems.push_back(FurnaceGUISysDef(
-    "Namco (3-channel WSG)", {
+    "Namco (3-channel WSG)", { // Pac-Man, Galaga, Xevious, etc
       DIV_SYSTEM_NAMCO, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Namco (8-channel WSG)", {
+    "Namco Mappy", { // Mappy, Super Pac-Man, Libble Rabble, etc
       DIV_SYSTEM_NAMCO_15XX, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Namco Pac-Land", { // Pac-Land, Baraduke, Sky kid, etc
+      DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Namco System 1", {
+      DIV_SYSTEM_YM2151, 64, 0, 0,
       DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0,
       0
     }
@@ -1240,12 +1894,6 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Taito Arcade (extended channel 3)", {
       DIV_SYSTEM_YM2610B_EXT, 64, 0, 0,
-      0
-    }
-  ));
-  cat.systems.push_back(FurnaceGUISysDef(
-    "Capcom CPS-2 (QSound)", {
-      DIV_SYSTEM_QSOUND, 64, 0, 0,
       0
     }
   ));
@@ -1275,18 +1923,52 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "SNK Triple Z80", {
-      DIV_SYSTEM_Y8950, 64, 0, 0,
-      DIV_SYSTEM_OPL, 64, 0, 0,
+    "Coreland Cyber Tank", {
+      DIV_SYSTEM_Y8950, 64, -127, 0, // 3.58MHz, Left output
+      DIV_SYSTEM_Y8950, 64, 127, 0, // 3.58MHz, Right output
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Konami Bubble System", {
-      DIV_SYSTEM_AY8910, 64, 0, 0,
-      DIV_SYSTEM_AY8910, 64, 0, 0,
-      DIV_SYSTEM_BUBSYS_WSG, 64, 0, 0,
-      // VLM5030 exists but not used for music at all
+    "Coreland Cyber Tank (drums mode)", {
+      DIV_SYSTEM_Y8950, 64, -127, 0, // 3.58MHz, Left output
+      DIV_SYSTEM_Y8950, 64, 127, 0, // 3.58MHz, Right output
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "ICE Skimaxx", {
+      DIV_SYSTEM_MSM6295, 64, -127, 130, // 4MHz, Left output
+      DIV_SYSTEM_MSM6295, 64, 127, 130, // 4MHz, Right output
+      DIV_SYSTEM_MSM6295, 64, -127, 8, // 2MHz, Left output
+      DIV_SYSTEM_MSM6295, 64, 127, 8, // 2MHz, Right output
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Toaplan 1", {
+      DIV_SYSTEM_OPL2, 64, 0, 5, // 3.5MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Toaplan 1 (drums mode)", {
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 5, // 3.5MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Dynax/Nakanihon 3rd generation hardware", {
+      DIV_SYSTEM_AY8910, 64, 0, 0, // AY or YM, optional - 1.79MHz or 3.58MHz; various per game
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 6, // 1.023MHz mostly
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Dynax/Nakanihon Real Break", {
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      DIV_SYSTEM_YMZ280B, 64, 0, 0,
       0
     }
   ));
