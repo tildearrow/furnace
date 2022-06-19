@@ -10,10 +10,6 @@
 #ifndef _NFD_H
 #define _NFD_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stddef.h>
 
 /* denotes UTF-8 char */
@@ -65,10 +61,5 @@ size_t      NFD_PathSet_GetCount( const nfdpathset_t *pathSet );
 nfdchar_t  *NFD_PathSet_GetPath( const nfdpathset_t *pathSet, size_t index );
 /* Free the pathSet */    
 void        NFD_PathSet_Free( nfdpathset_t *pathSet );
-
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

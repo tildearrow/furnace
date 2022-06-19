@@ -423,6 +423,7 @@ nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
     }    
 
     // Show the dialog.
+    // TODO: pass the Furnace window here
     result = fileOpenDialog->Show(NULL);
     if ( SUCCEEDED(result) )
     {

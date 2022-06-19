@@ -521,7 +521,7 @@ src/gui/gui.cpp
 )
 
 if (WIN32 OR APPLE)
-  list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.c)
+  list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.cpp)
 endif()
 
 if (WIN32)
@@ -530,7 +530,7 @@ endif()
 
 if (APPLE)
   list(APPEND GUI_SOURCES src/gui/macstuff.m)
-  list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_cocoa.m)
+  list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_cocoa.mm)
 endif()
 
 if (NOT WIN32 AND NOT APPLE)

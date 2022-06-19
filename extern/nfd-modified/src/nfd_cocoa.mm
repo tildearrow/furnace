@@ -8,6 +8,12 @@
 #include "nfd.h"
 #include "nfd_common.h"
 
+// this language is a mess!
+// who thought it was a good idea to combine Objective-C and C++ together
+// when you could just have used C++ and call it a day!!!
+//
+// might as well make Objective-Ruswift++...
+
 static NSArray *BuildAllowedFileTypes( const char *filterList )
 {
     // Commas and semicolons are the same thing on this platform
