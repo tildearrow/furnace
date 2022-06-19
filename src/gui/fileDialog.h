@@ -10,6 +10,11 @@
 #ifdef USE_NFD
 #include <atomic>
 #include <thread>
+
+#ifdef __APPLE__
+#define NFD_NON_THREADED
+#endif
+
 #else
 namespace pfd {
   class open_file;

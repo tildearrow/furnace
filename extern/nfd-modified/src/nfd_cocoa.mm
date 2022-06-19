@@ -18,6 +18,8 @@ static NSArray *BuildAllowedFileTypes( const char *filterList )
 {
     // Commas and semicolons are the same thing on this platform
 
+    // like what about THIS INSTEAD!
+    // NSMutableArray *buildFilterList = NSMutableArray::alloc()->init();
     NSMutableArray *buildFilterList = [[NSMutableArray alloc] init];
 
     char typebuf[NFD_MAX_STRLEN] = {0};
@@ -32,6 +34,9 @@ static NSArray *BuildAllowedFileTypes( const char *filterList )
                 ++p_typebuf;
             *p_typebuf = '\0';
 
+            // or this: NSString::stringWithUTF8String(typebuf);
+            // buildFilterList->addObject(thisType);
+            // really? did you have to make this mess?!
             NSString *thisType = [NSString stringWithUTF8String: typebuf];
             [buildFilterList addObject:thisType];
             p_typebuf = typebuf;

@@ -67,7 +67,11 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, c
   if (sysDialog) {
 #ifdef USE_NFD
     dialogOK=false;
+#ifdef NFD_NON_THREADED
+    _nfdThread(NFDState(false,header,filter,path,clickCallback),&dialogOK,&nfdResult);
+#else
     dialogO=new std::thread(_nfdThread,NFDState(false,header,filter,path,clickCallback),&dialogOK,&nfdResult);
+#endif
 #else
     dialogO=new pfd::open_file(header,path,filter);
 #endif
@@ -87,7 +91,11 @@ bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, c
   if (sysDialog) {
 #ifdef USE_NFD
     dialogOK=false;
+#ifdef NFD_NON_THREADED
+    _nfdThread(NFDState(true,header,filter,path,NULL),&dialogOK,&nfdResult);
+#else
     dialogS=new std::thread(_nfdThread,NFDState(true,header,filter,path,NULL),&dialogOK,&nfdResult);
+#endif
 #else
     dialogS=new pfd::save_file(header,path,filter);
 #endif

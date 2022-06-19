@@ -3138,6 +3138,7 @@ bool FurnaceGUI::loop() {
 #endif
     }
 
+#ifndef NFD_NON_THREADED
     if (fileDialog->isOpen() && settings.sysFileDialog) {
       ImGui::OpenPopup("System File Dialog Pending");
     }
@@ -3150,6 +3151,7 @@ bool FurnaceGUI::loop() {
       dl->AddRectFilled(ImVec2(0.0f,0.0f),ImVec2(scrW*dpiScale,scrH*dpiScale),ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_MODAL_BACKDROP]));
       ImGui::EndPopup();
     }
+#endif
 
     if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       bool openOpen=false;
