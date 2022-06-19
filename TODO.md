@@ -1,6 +1,5 @@
 # to-do for 0.6pre1
 
-- add ability to move selection by dragging
 - implement Defle slide bug when using E1xy/E2xy and repeating origin note (requires format change)
 
 # to-do for 0.6pre2 (as this requires new data structures)

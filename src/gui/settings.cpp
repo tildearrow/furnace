@@ -2042,8 +2042,7 @@ void FurnaceGUI::syncSettings() {
   settings.effectValCellSpacing=e->getConfInt("effectValCellSpacing",0);
   settings.doubleClickColumn=e->getConfInt("doubleClickColumn",1);
   settings.blankIns=e->getConfInt("blankIns",0);
-  // SET TO 1 AFTER YOU ARE DONE
-  settings.dragMovesSelection=e->getConfInt("dragMovesSelection",0);
+  settings.dragMovesSelection=e->getConfInt("dragMovesSelection",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
