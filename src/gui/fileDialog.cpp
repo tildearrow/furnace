@@ -30,9 +30,9 @@ void _nfdThread(const NFDState state, std::atomic<bool>* ok, String* result) {
   nfdresult_t ret=NFD_CANCEL;
   
   if (state.isSave) {
-    ret=NFD_SaveDialog(NULL,state.path.c_str(),&out);
+    ret=NFD_SaveDialog(NULL,state.path.c_str(),&out,state.clickCallback);
   } else {
-    ret=NFD_OpenDialog(NULL,state.path.c_str(),&out);
+    ret=NFD_OpenDialog(NULL,state.path.c_str(),&out,state.clickCallback);
   }
 
   switch (ret) {

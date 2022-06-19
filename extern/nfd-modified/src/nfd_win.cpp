@@ -27,6 +27,72 @@
 #include <shobjidl.h>
 #include "nfd_common.h"
 
+// hack I know
+#include "../../../src/utfutils.h"
+
+class NFDWinEvents: public IFileDialogEvents {
+  nfdselcallback_t selCallback;
+  size_t refCount;
+
+  virtual ~NFDWinEvents() {
+  }
+  public:
+    IFACEMETHODIMP QueryInterface(REFIID riid, void** ppv) {
+      printf("QueryInterface called DAMN IT\n");
+      *ppv=NULL;
+      return E_NOTIMPL;
+    }
+
+    IFACEMETHODIMP_(ULONG) AddRef() {
+      printf("AddRef() called\n");
+      return InterlockedIncrement(&refCount);
+    }
+
+    IFACEMETHODIMP_(ULONG) Release() {
+      printf("Release() called\n");
+      LONG ret=InterlockedDecrement(&refCount);
+      if (ret==0) {
+        printf("Destroying the final object.\n");
+        delete this;
+      }
+      return ret;
+    }
+
+    IFACEMETHODIMP OnFileOk(IFileDialog*) { return E_NOTIMPL; }
+    IFACEMETHODIMP OnFolderChange(IFileDialog*) { return E_NOTIMPL; }
+    IFACEMETHODIMP OnFolderChanging(IFileDialog*, IShellItem*) { return E_NOTIMPL; }
+    IFACEMETHODIMP OnOverwrite(IFileDialog*, IShellItem*, FDE_OVERWRITE_RESPONSE*) { return E_NOTIMPL; }
+    IFACEMETHODIMP OnShareViolation(IFileDialog*, IShellItem*, FDE_SHAREVIOLATION_RESPONSE*) { return E_NOTIMPL; }
+    IFACEMETHODIMP OnTypeChange(IFileDialog*) { return E_NOTIMPL; }
+
+    IFACEMETHODIMP OnSelectionChange(IFileDialog* dialog) {
+      // Get the file name
+      ::IShellItem *shellItem(NULL);
+      HRESULT result = dialog->GetCurrentSelection(&shellItem);
+      if ( !SUCCEEDED(result) )
+      {
+        printf("failure!\n");
+        return S_OK;
+      }
+      wchar_t *filePath(NULL);
+      result = shellItem->GetDisplayName(::SIGDN_FILESYSPATH, &filePath);
+      if ( !SUCCEEDED(result) )
+      {
+          printf("GDN failure!\n");
+          shellItem->Release();
+          return S_OK;
+      }
+      std::string utf8FilePath=utf16To8(filePath);
+      if (selCallback!=NULL) selCallback(utf8FilePath.c_str());
+      printf("I got you for a value of %s\n",utf8FilePath.c_str());
+      shellItem->Release();
+      return S_OK;
+    }
+    NFDWinEvents(nfdselcallback_t callback):
+      selCallback(callback),
+      refCount(1) {
+    }
+};
 
 #define COM_INITFLAGS ::COINIT_APARTMENTTHREADED | ::COINIT_DISABLE_OLE1DDE
 
@@ -386,10 +452,13 @@ static nfdresult_t SetDefaultPath( IFileDialog *dialog, const char *defaultPath 
 
 nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
                             const nfdchar_t *defaultPath,
-                            nfdchar_t **outPath )
+                            nfdchar_t **outPath,
+                            nfdselcallback_t selCallback )
 {
     nfdresult_t nfdResult = NFD_ERROR;
-
+    NFDWinEvents* winEvents;
+    bool hasEvents=true;
+    DWORD eventID=0;
     
     HRESULT coResult = COMInit();
     if (!COMIsInitialized(coResult))
@@ -420,7 +489,17 @@ nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
     if ( !SetDefaultPath( fileOpenDialog, defaultPath ) )
     {
         goto end;
-    }    
+    }
+
+    // Pass the callback
+    winEvents=new NFDWinEvents(selCallback);
+    if ( !SUCCEEDED(fileOpenDialog->Advise(winEvents,&eventID)) ) {
+      // error... ignore
+      hasEvents=false;
+      winEvents->Release();
+    } else {
+      winEvents->Release();
+    }
 
     // Show the dialog.
     // TODO: pass the Furnace window here
@@ -467,8 +546,12 @@ nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
     }
 
 end:
-    if (fileOpenDialog)
+    if (fileOpenDialog) {
+        if (hasEvents) {
+          fileOpenDialog->Unadvise(eventID);
+        }
         fileOpenDialog->Release();
+    }
 
     COMUninit(coResult);
     
@@ -477,7 +560,8 @@ end:
 
 nfdresult_t NFD_OpenDialogMultiple( const nfdchar_t *filterList,
                                     const nfdchar_t *defaultPath,
-                                    nfdpathset_t *outPaths )
+                                    nfdpathset_t *outPaths,
+                                    nfdselcallback_t selCallback )
 {
     nfdresult_t nfdResult = NFD_ERROR;
 
@@ -571,7 +655,8 @@ end:
 
 nfdresult_t NFD_SaveDialog( const nfdchar_t *filterList,
                             const nfdchar_t *defaultPath,
-                            nfdchar_t **outPath )
+                            nfdchar_t **outPath,
+                            nfdselcallback_t selCallback )
 {
     nfdresult_t nfdResult = NFD_ERROR;
 

@@ -11,9 +11,12 @@
 #define _NFD_H
 
 #include <stddef.h>
+#include <functional>
 
 /* denotes UTF-8 char */
 typedef char nfdchar_t;
+
+typedef std::function<void(const char*)> nfdselcallback_t;
 
 /* opaque data structure -- see NFD_PathSet_* */
 typedef struct {
@@ -34,17 +37,20 @@ typedef enum {
 /* single file open dialog */    
 nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
                             const nfdchar_t *defaultPath,
-                            nfdchar_t **outPath );
+                            nfdchar_t **outPath,
+                            nfdselcallback_t selCallback = NULL );
 
 /* multiple file open dialog */    
 nfdresult_t NFD_OpenDialogMultiple( const nfdchar_t *filterList,
                                     const nfdchar_t *defaultPath,
-                                    nfdpathset_t *outPaths );
+                                    nfdpathset_t *outPaths,
+                                    nfdselcallback_t selCallback = NULL );
 
 /* save dialog */
 nfdresult_t NFD_SaveDialog( const nfdchar_t *filterList,
                             const nfdchar_t *defaultPath,
-                            nfdchar_t **outPath );
+                            nfdchar_t **outPath,
+                            nfdselcallback_t selCallback = NULL );
 
 
 /* select folder dialog */

@@ -127,7 +127,8 @@ static nfdresult_t AllocPathSet( NSArray *urls, nfdpathset_t *pathset )
 
 nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
                             const nfdchar_t *defaultPath,
-                            nfdchar_t **outPath )
+                            nfdchar_t **outPath,
+                            nfdselcallback_t selCallback )
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
 
@@ -169,7 +170,8 @@ nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
 
 nfdresult_t NFD_OpenDialogMultiple( const nfdchar_t *filterList,
                                     const nfdchar_t *defaultPath,
-                                    nfdpathset_t *outPaths )
+                                    nfdpathset_t *outPaths,
+                                    nfdselcallback_t selCallback )
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSWindow *keyWindow = [[NSApplication sharedApplication] keyWindow];
@@ -213,7 +215,8 @@ nfdresult_t NFD_OpenDialogMultiple( const nfdchar_t *filterList,
 
 nfdresult_t NFD_SaveDialog( const nfdchar_t *filterList,
                             const nfdchar_t *defaultPath,
-                            nfdchar_t **outPath )
+                            nfdchar_t **outPath,
+                            nfdselcallback_t selCallback )
 {
     NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     NSWindow *keyWindow = [[NSApplication sharedApplication] keyWindow];
