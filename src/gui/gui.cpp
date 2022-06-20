@@ -3006,6 +3006,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
         if (ImGui::MenuItem("log viewer",BIND_FOR(GUI_ACTION_WINDOW_LOG),logOpen)) logOpen=!logOpen;
         if (ImGui::MenuItem("statistics",BIND_FOR(GUI_ACTION_WINDOW_STATS),statsOpen)) statsOpen=!statsOpen;
+        if (spoilerOpen) if (ImGui::MenuItem("spoiler",NULL,spoilerOpen)) spoilerOpen=!spoilerOpen;
       
         ImGui::EndMenu();
       }
@@ -4035,6 +4036,7 @@ bool FurnaceGUI::init() {
   effectListOpen=e->getConfBool("effectListOpen",false);
   subSongsOpen=e->getConfBool("subSongsOpen",true);
   findOpen=e->getConfBool("findOpen",false);
+  spoilerOpen=e->getConfBool("spoilerOpen",false);
 
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
@@ -4258,6 +4260,7 @@ bool FurnaceGUI::finish() {
   e->setConf("effectListOpen",effectListOpen);
   e->setConf("subSongsOpen",subSongsOpen);
   e->setConf("findOpen",findOpen);
+  e->setConf("spoilerOpen",spoilerOpen);
 
   // commit last window size
   e->setConf("lastWindowWidth",scrW);
@@ -4407,6 +4410,7 @@ FurnaceGUI::FurnaceGUI():
   chanOscOpen(false),
   subSongsOpen(true),
   findOpen(false),
+  spoilerOpen(false),
   selecting(false),
   selectingFull(false),
   dragging(false),

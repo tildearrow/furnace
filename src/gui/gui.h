@@ -246,7 +246,8 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_EFFECT_LIST,
   GUI_WINDOW_CHAN_OSC,
   GUI_WINDOW_SUBSONGS,
-  GUI_WINDOW_FIND
+  GUI_WINDOW_FIND,
+  GUI_WINDOW_SPOILER
 };
 
 enum FurnaceGUIFileDialogs {
@@ -1149,7 +1150,7 @@ class FurnaceGUI {
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
-  bool subSongsOpen, findOpen;
+  bool subSongsOpen, findOpen, spoilerOpen;
 
   SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
   bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
@@ -1445,6 +1446,7 @@ class FurnaceGUI {
   void drawEffectList();
   void drawSubSongs();
   void drawFindReplace();
+  void drawSpoiler();
 
   void parseKeybinds();
   void promptKey(int which);
