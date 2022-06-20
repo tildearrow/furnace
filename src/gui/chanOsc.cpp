@@ -135,6 +135,9 @@ void FurnaceGUI::drawChanOsc() {
                 waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f));
               }
             } else {
+              float minLevel=1.0f;
+              float maxLevel=-1.0f;
+              float dcOff=0.0f;
               unsigned short needlePos=buf->needle;
               if (chanOscWaveCorr) {
                 /*
@@ -195,20 +198,32 @@ void FurnaceGUI::drawChanOsc() {
 
                 needlePos-=displaySize;
                 for (unsigned short i=0; i<512; i++) {
-                  float x=(float)i/512.0f;
                   float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;
-                  if (y<-0.5f) y=-0.5f;
-                  if (y>0.5f) y=0.5f;
-                  waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+                  if (minLevel>y) minLevel=y;
+                  if (maxLevel<y) maxLevel=y;
                 }
-              } else {
-                needlePos-=displaySize;
+                dcOff=(minLevel+maxLevel)*0.5f;
                 for (unsigned short i=0; i<512; i++) {
                   float x=(float)i/512.0f;
                   float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;
                   if (y<-0.5f) y=-0.5f;
                   if (y>0.5f) y=0.5f;
-                  waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+                  waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-(y-dcOff)));
+                }
+              } else {
+                needlePos-=displaySize;
+                for (unsigned short i=0; i<512; i++) {
+                  float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;
+                  if (minLevel>y) minLevel=y;
+                  if (maxLevel<y) maxLevel=y;
+                }
+                dcOff=(minLevel+maxLevel)*0.5f;
+                for (unsigned short i=0; i<512; i++) {
+                  float x=(float)i/512.0f;
+                  float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;
+                  if (y<-0.5f) y=-0.5f;
+                  if (y>0.5f) y=0.5f;
+                  waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-(y-dcOff)));
                 }
               }
             }
