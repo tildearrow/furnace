@@ -100,8 +100,16 @@ void FurnaceGUI::updateSelection(int xCoarse, int xFine, int y, bool fullRow) {
       dragDestinationX=dragSourceX-dragStart.xCoarse;
     }
 
-    if (dragEnd.xCoarse+(dragDestinationX-dragSourceX)>lastChannel) {
-      
+    if (dragEnd.xCoarse+(dragDestinationX-dragSourceX)>=lastChannel) {
+      dragDestinationX=lastChannel-(dragEnd.xCoarse-dragSourceX)-1;
+    }
+
+    if (dragStart.y+(dragDestinationY-dragSourceY)<0) {
+      dragDestinationY=dragSourceY-dragStart.y;
+    }
+
+    if (dragEnd.y+(dragDestinationY-dragSourceY)>=e->curSubSong->patLen) {
+      dragDestinationY=e->curSubSong->patLen-(dragEnd.y-dragSourceY)-1;
     }
 
     selStart.xCoarse=dragStart.xCoarse+(dragDestinationX-dragSourceX);
