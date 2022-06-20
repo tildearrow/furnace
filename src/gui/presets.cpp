@@ -1405,7 +1405,7 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Capcom CPS-1", { 
-      DIV_SYSTEM_YM2151, 64, 0, 2,
+      DIV_SYSTEM_YM2151, 64, 0, 0, // 3.58MHz
       DIV_SYSTEM_MSM6295, 64, 0, 0,
       0
     }
