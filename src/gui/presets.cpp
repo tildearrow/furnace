@@ -1911,6 +1911,13 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Seta 1 + FM addon (extended channel 3)", {
+      DIV_SYSTEM_X1_010, 64, 0, 0,
+      DIV_SYSTEM_YM2612_EXT, 64, 0, 2, // Discrete YM3438
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Seta 2", {
       DIV_SYSTEM_X1_010, 64, 0, 1,
       0
