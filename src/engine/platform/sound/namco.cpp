@@ -172,10 +172,11 @@ void namco_audio_device::build_decoded_waveform(uint8_t *rgnbase)
 
 
 /* generate sound by oversampling */
-uint32_t namco_audio_device::namco_update_one(short* buffer, int size, const int16_t *wave, uint32_t counter, uint32_t freq)
+uint32_t namco_audio_device::namco_update_one(short* buffer, int size, const int16_t *wave, uint32_t counter, uint32_t freq, int16_t& last_out)
 {
 	for (int sampindex = 0; sampindex < size; sampindex++)
 	{
+    last_out=wave[WAVEFORM_POSITION(counter)];
 		buffer[sampindex]+=wave[WAVEFORM_POSITION(counter)];
 		counter += freq;
 	}
@@ -700,7 +701,7 @@ void namco_audio_device::sound_stream_update(short** outputs, int len)
 					const int16_t *lw = &m_waveform[lv][voice->waveform_select * 32];
 
 					/* generate sound into the buffer */
-					c = namco_update_one(lmix, len, lw, voice->counter, voice->frequency);
+					c = namco_update_one(lmix, len, lw, voice->counter, voice->frequency, voice->last_out);
 				}
 
 				/* only update if we have non-zero right volume */
@@ -709,7 +710,7 @@ void namco_audio_device::sound_stream_update(short** outputs, int len)
 					const int16_t *rw = &m_waveform[rv][voice->waveform_select * 32];
 
 					/* generate sound into the buffer */
-					c = namco_update_one(rmix, len, rw, voice->counter, voice->frequency);
+					c = namco_update_one(rmix, len, rw, voice->counter, voice->frequency, voice->last_out);
 				}
 
 				/* update the counter for this voice */
@@ -789,7 +790,7 @@ void namco_audio_device::sound_stream_update(short** outputs, int len)
 					const int16_t *w = &m_waveform[v][voice->waveform_select * 32];
 
 					/* generate sound into buffer and update the counter for this voice */
-					voice->counter = namco_update_one(buffer, len, w, voice->counter, voice->frequency);
+					voice->counter = namco_update_one(buffer, len, w, voice->counter, voice->frequency, voice->last_out);
 				}
 			}
 		}

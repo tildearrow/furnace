@@ -31,6 +31,7 @@ public:
 		uint32_t noise_counter;
 		int32_t noise_hold;
 		int32_t waveform_select;
+    int16_t last_out;
 	};
 
 	namco_audio_device(uint32_t clock);
@@ -43,7 +44,7 @@ public:
 
 	void build_decoded_waveform( uint8_t *rgnbase );
 	void update_namco_waveform(int offset, uint8_t data);
-	uint32_t namco_update_one(short* buffer, int size, const int16_t *wave, uint32_t counter, uint32_t freq);
+	uint32_t namco_update_one(short* buffer, int size, const int16_t *wave, uint32_t counter, uint32_t freq, int16_t& last_out);
 
 	/* waveform region */
 	uint8_t* m_wave_ptr;

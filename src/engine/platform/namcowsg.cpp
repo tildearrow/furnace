@@ -164,9 +164,6 @@ const char* DivPlatformNamcoWSG::getEffectName(unsigned char effect) {
 }
 
 void DivPlatformNamcoWSG::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  short* buf[2]={
-    bufL+start, bufR+start
-  };
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     switch (devType) {
@@ -186,7 +183,15 @@ void DivPlatformNamcoWSG::acquire(short* bufL, short* bufR, size_t start, size_t
     regPool[w.addr&0x3f]=w.val;
     writes.pop();
   }
-  namco->sound_stream_update(buf,len);
+  for (size_t h=start; h<start+len; h++) {
+    short* buf[2]={
+      bufL+h, bufR+h
+    };
+    namco->sound_stream_update(buf,1);
+    for (int i=0; i<chans; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=namco->m_channel_list[i].last_out*chans;
+    }
+  }
 }
 
 void DivPlatformNamcoWSG::updateWave(int ch) {
