@@ -59,6 +59,7 @@ void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t
       }
       o=sampleOut;
       bufL[h]=o?16384:0;
+      oscBuf[0]->data[oscBuf[0]->needle++]=o?16384:-16384;
       continue;
     }
 
@@ -76,6 +77,7 @@ void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t
     if (++curChan>=6) curChan=0;
     
     bufL[h]=o?16384:0;
+    oscBuf[0]->data[oscBuf[0]->needle++]=o?16384:-16384;
   }
 }
 
@@ -256,7 +258,7 @@ DivMacroInt* DivPlatformZXBeeper::getChanMacroInt(int ch) {
 }
 
 DivDispatchOscBuffer* DivPlatformZXBeeper::getOscBuffer(int ch) {
-  return oscBuf[ch];
+  return (ch<1)?oscBuf[ch]:NULL;
 }
 
 unsigned char* DivPlatformZXBeeper::getRegisterPool() {
