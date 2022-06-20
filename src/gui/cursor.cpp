@@ -43,7 +43,7 @@ void FurnaceGUI::startSelection(int xCoarse, int xFine, int y, bool fullRow) {
     }
   }
 
-  if (settings.dragMovesSelection && !fullRow) {
+  if ((settings.dragMovesSelection==1 || (settings.dragMovesSelection==2 && (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl)))) && !fullRow) {
     if (xCoarse>=selStart.xCoarse && (xFine>=selStart.xFine || xCoarse>selStart.xCoarse) && y>=selStart.y &&
         xCoarse<=selEnd.xCoarse && (xFine<=selEnd.xFine || xCoarse<selEnd.xCoarse) && y<=selEnd.y) {
       dragging=true;

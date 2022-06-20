@@ -412,11 +412,6 @@ void FurnaceGUI::drawSettings() {
             settings.doubleClickColumn=doubleClickColumnB;
           }
           
-          bool dragMovesSelectionB=settings.dragMovesSelection;
-          if (ImGui::Checkbox("Allow dragging selection",&dragMovesSelectionB)) {
-            settings.dragMovesSelection=dragMovesSelectionB;
-          }
-
           bool allowEditDockingB=settings.allowEditDocking;
           if (ImGui::Checkbox("Allow docking editors",&allowEditDockingB)) {
             settings.allowEditDocking=allowEditDockingB;
@@ -523,6 +518,17 @@ void FurnaceGUI::drawSettings() {
           }
           if (ImGui::RadioButton("Move to effect value/next effect and wrap around##eicb2",settings.effectCursorDir==2)) {
             settings.effectCursorDir=2;
+          }
+
+          ImGui::Text("Allow dragging selection:");
+          if (ImGui::RadioButton("No##dms0",settings.dragMovesSelection==0)) {
+            settings.dragMovesSelection=0;
+          }
+          if (ImGui::RadioButton("Yes##dms1",settings.dragMovesSelection==1)) {
+            settings.dragMovesSelection=1;
+          }
+          if (ImGui::RadioButton("Yes (while holding Ctrl only)##dms2",settings.dragMovesSelection==2)) {
+            settings.dragMovesSelection=2;
           }
         }
         ImGui::EndChild();
@@ -2042,7 +2048,7 @@ void FurnaceGUI::syncSettings() {
   settings.effectValCellSpacing=e->getConfInt("effectValCellSpacing",0);
   settings.doubleClickColumn=e->getConfInt("doubleClickColumn",1);
   settings.blankIns=e->getConfInt("blankIns",0);
-  settings.dragMovesSelection=e->getConfInt("dragMovesSelection",1);
+  settings.dragMovesSelection=e->getConfInt("dragMovesSelection",2);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2127,7 +2133,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.effectValCellSpacing,0,32);
   clampSetting(settings.doubleClickColumn,0,1);
   clampSetting(settings.blankIns,0,1);
-  clampSetting(settings.dragMovesSelection,0,1);
+  clampSetting(settings.dragMovesSelection,0,2);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
