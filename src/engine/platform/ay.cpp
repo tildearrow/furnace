@@ -489,9 +489,9 @@ void DivPlatformAY8910::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (isMuted[ch]) {
     rWrite(0x08+ch,0);
-  } else if (intellivision && (chan[ch].psgMode&4)) {
+  } else if (intellivision && (chan[ch].psgMode&4) && chan[ch].active) {
     rWrite(0x08+ch,(chan[ch].vol&0xc)<<2);
-  } else {
+  } else if (chan[ch].active) {
     rWrite(0x08+ch,(chan[ch].outVol&15)|((chan[ch].psgMode&4)<<2));
   }
 }
