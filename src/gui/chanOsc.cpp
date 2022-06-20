@@ -81,7 +81,7 @@ void FurnaceGUI::drawChanOsc() {
 
       for (int i=0; i<chans; i++) {
         DivDispatchOscBuffer* buf=e->getOscBuffer(i);
-        if (buf!=NULL) {
+        if (buf!=NULL && e->curSubSong->chanShow[i]) {
           oscBufs.push_back(buf);
           oscFFTs.push_back(&chanOscChan[i]);
           oscChans.push_back(i);
