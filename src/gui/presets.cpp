@@ -1973,8 +1973,23 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Dynax/Nakanihon 3rd generation hardware (drums mode)", {
+      DIV_SYSTEM_AY8910, 64, 0, 0, // AY or YM, optional - 1.79MHz or 3.58MHz; various per game
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 6, // 1.023MHz mostly
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Dynax/Nakanihon Real Break", {
       DIV_SYSTEM_OPLL, 64, 0, 0,
+      DIV_SYSTEM_YMZ280B, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Dynax/Nakanihon Real Break (drums mode)", {
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
       DIV_SYSTEM_YMZ280B, 64, 0, 0,
       0
     }
