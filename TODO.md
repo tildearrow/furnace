@@ -10,3 +10,4 @@
 - Game Boy envelope macro/sequence
 - volume commands should work on Game Boy
 - ability to customize `OFF`, `===` and `REL`
+- stereo separation control for AY
