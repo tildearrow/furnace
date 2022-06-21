@@ -1431,7 +1431,10 @@ void DivEngine::stop() {
   freelance=false;
   playing=false;
   extValuePresent=false;
+  endOfSong=false; // what?
   stepPlay=0;
+  curOrder=prevOrder;
+  curRow=prevRow;
   remainingLoops=-1;
   sPreview.sample=-1;
   sPreview.wave=-1;
