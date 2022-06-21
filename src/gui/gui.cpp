@@ -3100,6 +3100,7 @@ bool FurnaceGUI::loop() {
 
       drawSubSongs();
       drawFindReplace();
+      drawSpoiler();
       drawPattern();
       drawEditControls();
       drawSongInfo();
