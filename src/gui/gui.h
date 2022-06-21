@@ -31,6 +31,7 @@
 #include <initializer_list>
 #include <map>
 #include <future>
+#include <memory>
 #include <mutex>
 #include <tuple>
 #include <vector>
@@ -757,6 +758,45 @@ struct TouchPoint {
     z(pressure) {}
 };
 
+struct Gradient2DPoint {
+  ImVec4 color;
+  float x, y;
+  float spread, distance;
+  bool selected, grab;
+  Gradient2DPoint(float xPos, float yPos):
+    color(1,1,1,1),
+    x(xPos),
+    y(yPos),
+    spread(0.0f),
+    distance(0.5f),
+    selected(false),
+    grab(false) {}
+  Gradient2DPoint():
+    color(1,1,1,1),
+    x(0.0f),
+    y(0.0f),
+    spread(0.0f),
+    distance(0.5f),
+    selected(false),
+    grab(false) {}
+};
+
+struct Gradient2D {
+  ImVec4 bgColor;
+  std::vector<Gradient2DPoint> points;
+  std::unique_ptr<ImU32[]> grad;
+  size_t width, height;
+
+  void render();
+  ImU32 get(float x, float y);
+  Gradient2D(size_t w, size_t h):
+    bgColor(0.0f,0.0f,0.0f,0.0f),
+    width(w),
+    height(h) {
+    grad=std::make_unique<ImU32[]>(width*height);
+  }
+};
+
 struct FurnaceGUISysDef {
   const char* name;
   std::vector<int> definition;
@@ -1344,7 +1384,9 @@ class FurnaceGUI {
   // per-channel oscilloscope
   int chanOscCols;
   float chanOscWindowSize;
-  bool chanOscWaveCorr;
+  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex;
+  Gradient2D chanOscGrad;
+  SDL_Texture* chanOscGradTex;
   float chanOscLP0[DIV_MAX_CHANS];
   float chanOscLP1[DIV_MAX_CHANS];
   unsigned short lastNeedlePos[DIV_MAX_CHANS];

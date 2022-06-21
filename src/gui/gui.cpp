@@ -4575,6 +4575,10 @@ FurnaceGUI::FurnaceGUI():
   chanOscCols(3),
   chanOscWindowSize(20.0f),
   chanOscWaveCorr(true),
+  chanOscOptions(false),
+  updateChanOscGradTex(true),
+  chanOscGrad(64,64),
+  chanOscGradTex(NULL),
   followLog(true),
 #ifdef IS_MOBILE
   pianoOctaves(7),
@@ -4664,4 +4668,6 @@ FurnaceGUI::FurnaceGUI():
   memset(queryReplaceEffectVal,0,sizeof(int)*8);
   memset(queryReplaceEffectDo,0,sizeof(bool)*8);
   memset(queryReplaceEffectValDo,0,sizeof(bool)*8);
+
+  chanOscGrad.bgColor=ImVec4(0.0f,0.0f,0.0f,1.0f);
 }

@@ -495,6 +495,7 @@ src/gui/editing.cpp
 src/gui/editControls.cpp
 src/gui/effectList.cpp
 src/gui/findReplace.cpp
+src/gui/gradient.cpp
 src/gui/insEdit.cpp
 src/gui/log.cpp
 src/gui/mixer.cpp

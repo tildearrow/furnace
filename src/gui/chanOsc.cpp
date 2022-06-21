@@ -34,36 +34,93 @@ void FurnaceGUI::drawChanOsc() {
   }
   if (!chanOscOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
-  if (ImGui::Begin("Oscilloscope (per-channel)",&chanOscOpen,globalWinFlags)) {
+  if (ImGui::Begin("Oscilloscope (per-channel)",&chanOscOpen,globalWinFlags|((chanOscOptions)?0:ImGuiWindowFlags_NoTitleBar))) {
     bool centerSettingReset=false;
-    if (ImGui::BeginTable("ChanOscSettings",3)) {
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("Columns");
-      ImGui::SameLine();
-      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-      if (ImGui::InputInt("##COSColumns",&chanOscCols,1,1)) {
-        if (chanOscCols<1) chanOscCols=1;
-        if (chanOscCols>64) chanOscCols=64;
+    if (chanOscOptions) {
+      if (ImGui::BeginTable("ChanOscSettings",3)) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Columns");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::InputInt("##COSColumns",&chanOscCols,1,1)) {
+          if (chanOscCols<1) chanOscCols=1;
+          if (chanOscCols>64) chanOscCols=64;
+        }
+
+        ImGui::TableNextColumn();
+        ImGui::Text("Size (ms)");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        if (ImGui::InputFloat("##COSWinSize",&chanOscWindowSize,1.0f,1.0f)) {
+          if (chanOscWindowSize<1.0f) chanOscWindowSize=1.0f;
+          if (chanOscWindowSize>50.0f) chanOscWindowSize=50.0f;
+        }
+
+        ImGui::TableNextColumn();
+        if (ImGui::Checkbox("Center waveform",&chanOscWaveCorr)) {
+          centerSettingReset=true;
+        }
+
+        ImGui::EndTable();
       }
 
-      ImGui::TableNextColumn();
-      ImGui::Text("Size (ms)");
-      ImGui::SameLine();
-      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-      if (ImGui::InputFloat("##COSWinSize",&chanOscWindowSize,1.0f,1.0f)) {
-        if (chanOscWindowSize<1.0f) chanOscWindowSize=1.0f;
-        if (chanOscWindowSize>50.0f) chanOscWindowSize=50.0f;
+      ImGui::Text("Gradient");
+
+      if (chanOscGradTex==NULL) {
+        chanOscGradTex=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,SDL_TEXTUREACCESS_STREAMING,chanOscGrad.width,chanOscGrad.height);
+
+        if (chanOscGradTex==NULL) {
+          logE("error while creating gradient texture! %s",SDL_GetError());
+        } else {
+          updateChanOscGradTex=true;
+        }
       }
 
-      ImGui::TableNextColumn();
-      if (ImGui::Checkbox("Center waveform",&chanOscWaveCorr)) {
-        centerSettingReset=true;
-      }
+      if (ImGui::BeginTable("ChanOscGradSet",2)) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
 
-      ImGui::EndTable();
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if (chanOscGradTex!=NULL) {
+          if (updateChanOscGradTex) {
+            chanOscGrad.render();
+            if (SDL_UpdateTexture(chanOscGradTex,NULL,chanOscGrad.grad.get(),chanOscGrad.width*4)==0) {
+              updateChanOscGradTex=false;
+            } else {
+              logE("error while updating gradient texture! %s",SDL_GetError());
+            }
+          }
+
+          ImGui::ImageButton(chanOscGradTex,ImVec2(400.0f*dpiScale,400.0f*dpiScale));
+          ImVec2 gradLeft=ImGui::GetItemRectMin();
+          ImVec2 gradSize=ImGui::GetItemRectSize();
+          if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+            chanOscGrad.points.push_back(Gradient2DPoint(
+              (ImGui::GetMousePos().x-gradLeft.x)/gradSize.x,
+              (ImGui::GetMousePos().y-gradLeft.y)/gradSize.y
+            ));
+            updateChanOscGradTex=true;
+            logI("a point inserted");
+          }
+
+          ImVec2 oldCurPos=ImGui::GetCursorPos();
+          for (Gradient2DPoint& i: chanOscGrad.points) {
+            ImGui::SetCursorPos(ImVec2(gradLeft.x+i.x*gradSize.x,gradLeft.y+i.y*gradSize.y));
+            ImGui::Text("Here");
+          }
+          ImGui::SetCursorPos(oldCurPos);
+        }
+
+        ImGui::TableNextColumn();
+        if (ImGui::ColorEdit4("Background",(float*)&chanOscGrad.bgColor)) {
+          updateChanOscGradTex=true;
+        }
+
+        ImGui::EndTable();
+      }
     }
-    
 
     ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
     float availY=ImGui::GetContentRegionAvail().y;
@@ -232,6 +289,10 @@ void FurnaceGUI::drawChanOsc() {
         }
       }
       ImGui::EndTable();
+
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        chanOscOptions=!chanOscOptions;
+      }
     }
     ImGui::PopStyleVar();
   }
