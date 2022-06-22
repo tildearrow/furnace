@@ -4573,10 +4573,14 @@ FurnaceGUI::FurnaceGUI():
   oscWindowSize(20.0f),
   oscZoomSlider(false),
   chanOscCols(3),
+  chanOscColorX(GUI_OSCREF_CENTER),
+  chanOscColorY(GUI_OSCREF_CENTER),
   chanOscWindowSize(20.0f),
   chanOscWaveCorr(true),
   chanOscOptions(false),
   updateChanOscGradTex(true),
+  chanOscUseGrad(false),
+  chanOscColor(1.0f,1.0f,1.0f,1.0f),
   chanOscGrad(64,64),
   chanOscGradTex(NULL),
   followLog(true),
@@ -4655,6 +4659,9 @@ FurnaceGUI::FurnaceGUI():
 
   memset(chanOscLP0,0,sizeof(float)*DIV_MAX_CHANS);
   memset(chanOscLP1,0,sizeof(float)*DIV_MAX_CHANS);
+  memset(chanOscVol,0,sizeof(float)*DIV_MAX_CHANS);
+  memset(chanOscPitch,0,sizeof(float)*DIV_MAX_CHANS);
+  memset(chanOscBright,0,sizeof(float)*DIV_MAX_CHANS);
   memset(lastCorrPos,0,sizeof(short)*DIV_MAX_CHANS);
 
   memset(acedData,0,23);

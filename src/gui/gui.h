@@ -525,6 +525,21 @@ enum FurnaceGUIActions {
   GUI_ACTION_MAX
 };
 
+enum FurnaceGUIChanOscRef {
+  GUI_OSCREF_NONE=0,
+  GUI_OSCREF_CENTER,
+  GUI_OSCREF_FULL,
+
+  GUI_OSCREF_FREQUENCY,
+  GUI_OSCREF_VOLUME,
+  GUI_OSCREF_CHANNEL,
+  GUI_OSCREF_BRIGHT,
+
+  GUI_OSCREF_NOTE_TRIGGER,
+
+  GUI_OSCREF_MAX
+};
+
 enum PasteMode {
   GUI_PASTE_MODE_NORMAL=0,
   GUI_PASTE_MODE_MIX_FG,
@@ -760,13 +775,15 @@ struct TouchPoint {
 
 struct Gradient2DPoint {
   ImVec4 color;
-  float x, y;
+  float x, y, prevX, prevY;
   float spread, distance;
   bool selected, grab;
   Gradient2DPoint(float xPos, float yPos):
     color(1,1,1,1),
     x(xPos),
     y(yPos),
+    prevX(0.0f),
+    prevY(0.0f),
     spread(0.0f),
     distance(0.5f),
     selected(false),
@@ -1382,13 +1399,17 @@ class FurnaceGUI {
   bool oscZoomSlider;
 
   // per-channel oscilloscope
-  int chanOscCols;
+  int chanOscCols, chanOscColorX, chanOscColorY;
   float chanOscWindowSize;
-  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex;
+  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad;
+  ImVec4 chanOscColor;
   Gradient2D chanOscGrad;
   SDL_Texture* chanOscGradTex;
   float chanOscLP0[DIV_MAX_CHANS];
   float chanOscLP1[DIV_MAX_CHANS];
+  float chanOscVol[DIV_MAX_CHANS];
+  float chanOscPitch[DIV_MAX_CHANS];
+  float chanOscBright[DIV_MAX_CHANS];
   unsigned short lastNeedlePos[DIV_MAX_CHANS];
   unsigned short lastCorrPos[DIV_MAX_CHANS];
   struct ChanOscStatus {
@@ -1500,6 +1521,8 @@ class FurnaceGUI {
   bool exportKeybinds(String path);
   bool importLayout(String path);
   bool exportLayout(String path);
+
+  float computeGradPos(int type, int chan);
 
   void resetColors();
   void resetKeybinds();

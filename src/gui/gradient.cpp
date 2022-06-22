@@ -21,6 +21,16 @@
 #include "imgui.h"
 #include <math.h>
 
+ImU32 Gradient2D::get(float x, float y) {
+  int xi=round(x*width);
+  int yi=round(y*height);
+  if (xi<0) xi=0;
+  if (xi>=(int)width) xi=width-1;
+  if (yi<0) yi=0;
+  if (yi>=(int)height) yi=height-1;
+  return grad[yi*width+xi];
+}
+
 void Gradient2D::render() {
   ImU32* g=grad.get();
   ImU32 bgColorU=ImGui::ColorConvertFloat4ToU32(bgColor);
@@ -33,18 +43,18 @@ void Gradient2D::render() {
   // 2. insert points
   for (Gradient2DPoint& i: points) {
     float pDistSquared=i.distance*i.distance;
-    printf("shading this point %f %f\n",i.x,i.y);
     for (size_t j=0; j<height; j++) {
       float jFloat=(float)j/(float)height;
       float distY=jFloat-i.y;
       for (size_t k=0; k<width; k++) {
         float kFloat=(float)k/(float)width;
         float distX=kFloat-i.x;
-        float distSquared=(distX*distX)+(distY*distY);
+        float distSquared=(distX*distX)+(distY*distY)-(i.spread*i.spread);
+        if (distSquared<0) distSquared=0;
 
         if (distSquared>=pDistSquared) continue;
 
-        float dist=(1.0-(sqrt(distSquared)/i.distance))-i.spread;
+        float dist=(1.0-(sqrt(distSquared)/i.distance));
         if (dist<0) dist=0;
         if (dist>1) dist=1;
 
