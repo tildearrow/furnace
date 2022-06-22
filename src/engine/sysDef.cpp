@@ -349,390 +349,219 @@ int DivEngine::minVGMVersion(DivSystem which) {
 //   {chanTypes, ...},
 //   {chanPreferInsType, ...},
 //   {chanPreferInsType2, ...}, (optional)
-//   [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {}, (effect handler, optional)
-//   [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {} (post effect handler, optional)
+//   {{effect, {DIV_CMD_xx, "Description"}}, ...}, (effect handler, optional)
+//   {{effect, {DIV_CMD_xx, "Description"}}, ...} (post effect handler, optional)
 // );
+
+template<const int val>
+int constVal(unsigned char, unsigned char) {
+  return val;
+};
+
+int effectVal(unsigned char, unsigned char val) {
+  return val;
+};
+
+int negEffectVal(unsigned char, unsigned char val) {
+  return -(int)val;
+};
+
+template<const int mask>
+int effectValAnd(unsigned char, unsigned char val) {
+  return val&mask;
+};
+
+int effectOpVal(unsigned char, unsigned char val) {
+  return (val>>4)-1;
+};
+
+template<const int bits>
+int effectValLong(unsigned char cmd, unsigned char val) {
+  return ((cmd&((1<<(bits-8))-1))<<8)|val;
+};
 
 void DivEngine::registerSystems() {
   logD("registering systems...");
 
-  auto fmPostEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-    switch (effect) {
-      case 0x10: // LFO or noise mode
-        if (IS_OPM_LIKE) {
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
-        } else {
-          dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
-        }
-        break;
-      case 0x11: // FB
-        dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
-        break;
-      case 0x12: // TL op1
-        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x7f));
-        break;
-      case 0x13: // TL op2
-        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x7f));
-        break;
-      case 0x14: // TL op3
-        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,2,effectVal&0x7f));
-        break;
-      case 0x15: // TL op4
-        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,3,effectVal&0x7f));
-        break;
-      case 0x16: // MULT
-        if ((effectVal>>4)>0 && (effectVal>>4)<5) {
-          dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
-        }
-        break;
-      case 0x17: // arcade LFO
-        if (IS_OPM_LIKE) {
-          dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal));
-        }
-        break;
-      case 0x18: // EXT or LFO waveform
-        if (IS_OPM_LIKE) {
-          dispatchCmd(DivCommand(DIV_CMD_FM_LFO_WAVE,ch,effectVal));
-        } else {
-          dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
-        }
-        break;
-      case 0x19: // AR global
-        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&31));
-        break;
-      case 0x1a: // AR op1
-        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&31));
-        break;
-      case 0x1b: // AR op2
-        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&31));
-        break;
-      case 0x1c: // AR op3
-        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,2,effectVal&31));
-        break;
-      case 0x1d: // AR op4
-        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&31));
-        break;
-      case 0x1e: // UNOFFICIAL: Arcade AM depth
-        dispatchCmd(DivCommand(DIV_CMD_FM_AM_DEPTH,ch,effectVal&127));
-        break;
-      case 0x1f: // UNOFFICIAL: Arcade PM depth
-        dispatchCmd(DivCommand(DIV_CMD_FM_PM_DEPTH,ch,effectVal&127));
-        break;
-      case 0x20: // Neo Geo PSG mode
-        if (IS_YM2610) {
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-        }
-        break;
-      case 0x21: // Neo Geo PSG noise freq
-        if (IS_YM2610) {
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
-        }
-        break;
-      case 0x22: // UNOFFICIAL: Neo Geo PSG envelope enable
-        if (IS_YM2610) {
-          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SET,ch,effectVal));
-        }
-        break;
-      case 0x23: // UNOFFICIAL: Neo Geo PSG envelope period low
-        if (IS_YM2610) {
-          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_LOW,ch,effectVal));
-        }
-        break;
-      case 0x24: // UNOFFICIAL: Neo Geo PSG envelope period high
-        if (IS_YM2610) {
-          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_HIGH,ch,effectVal));
-        }
-        break;
-      case 0x25: // UNOFFICIAL: Neo Geo PSG envelope slide up
-        if (IS_YM2610) {
-          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,-effectVal));
-        }
-        break;
-      case 0x26: // UNOFFICIAL: Neo Geo PSG envelope slide down
-        if (IS_YM2610) {
-          dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,effectVal));
-        }
-        break;
-      case 0x29: // auto-envelope
-        if (IS_YM2610) {
-          dispatchCmd(DivCommand(DIV_CMD_AY_AUTO_ENVELOPE,ch,effectVal));
-        }
-        break;
-      // fixed frequency effects on OPZ
-      case 0x30: case 0x31: case 0x32: case 0x33:
-      case 0x34: case 0x35: case 0x36: case 0x37:
-        if (sysOfChan[ch]==DIV_SYSTEM_OPZ) {
-          dispatchCmd(DivCommand(DIV_CMD_FM_FIXFREQ,ch,0,((effect&7)<<8)|effectVal));
-        }
-        break;
-      case 0x38: case 0x39: case 0x3a: case 0x3b:
-      case 0x3c: case 0x3d: case 0x3e: case 0x3f:
-        if (sysOfChan[ch]==DIV_SYSTEM_OPZ) {
-          dispatchCmd(DivCommand(DIV_CMD_FM_FIXFREQ,ch,1,((effect&7)<<8)|effectVal));
-        }
-        break;
-      case 0x40: case 0x41: case 0x42: case 0x43:
-      case 0x44: case 0x45: case 0x46: case 0x47:
-        if (sysOfChan[ch]==DIV_SYSTEM_OPZ) {
-          dispatchCmd(DivCommand(DIV_CMD_FM_FIXFREQ,ch,2,((effect&7)<<8)|effectVal));
-        }
-        break;
-      case 0x48: case 0x49: case 0x4a: case 0x4b:
-      case 0x4c: case 0x4d: case 0x4e: case 0x4f:
-        if (sysOfChan[ch]==DIV_SYSTEM_OPZ) {
-          dispatchCmd(DivCommand(DIV_CMD_FM_FIXFREQ,ch,3,((effect&7)<<8)|effectVal));
-        }
-        break;
-      // extra FM effects here
-      OP_EFFECT_SINGLE(0x50,DIV_CMD_FM_AM,4,1);
-      OP_EFFECT_SINGLE(0x51,DIV_CMD_FM_SL,4,15);
-      OP_EFFECT_SINGLE(0x52,DIV_CMD_FM_RR,4,15);
-      OP_EFFECT_SINGLE(0x53,DIV_CMD_FM_DT,4,7);
-      OP_EFFECT_SINGLE(0x54,DIV_CMD_FM_RS,4,3);
-      OP_EFFECT_SINGLE(0x55,DIV_CMD_FM_SSG,4,(IS_OPM_LIKE?3:15));
+  // Common effect handler maps
 
-      OP_EFFECT_MULTI(0x56,DIV_CMD_FM_DR,-1,31);
-      OP_EFFECT_MULTI(0x57,DIV_CMD_FM_DR,0,31);
-      OP_EFFECT_MULTI(0x58,DIV_CMD_FM_DR,1,31);
-      OP_EFFECT_MULTI(0x59,DIV_CMD_FM_DR,2,31);
-      OP_EFFECT_MULTI(0x5a,DIV_CMD_FM_DR,3,31);
-
-      OP_EFFECT_MULTI(0x5b,DIV_CMD_FM_D2R,-1,31);
-      OP_EFFECT_MULTI(0x5c,DIV_CMD_FM_D2R,0,31);
-      OP_EFFECT_MULTI(0x5d,DIV_CMD_FM_D2R,1,31);
-      OP_EFFECT_MULTI(0x5e,DIV_CMD_FM_D2R,2,31);
-      OP_EFFECT_MULTI(0x5f,DIV_CMD_FM_D2R,3,31);
-
-      OP_EFFECT_SINGLE(0x28,DIV_CMD_FM_REV,4,7);
-      OP_EFFECT_SINGLE(0x2a,DIV_CMD_FM_WS,4,7);
-      OP_EFFECT_SINGLE(0x2b,DIV_CMD_FM_EG_SHIFT,4,3);
-      OP_EFFECT_SINGLE(0x2c,DIV_CMD_FM_FINE,4,15);
-      default:
-        return false;
-    }
-    return true;
+  EffectHandlerMap ayPostEffectHandlerMap={
+    {0x20, {DIV_CMD_STD_NOISE_MODE, "20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)"}},
+    {0x21, {DIV_CMD_STD_NOISE_FREQ, "21xx: Set noise frequency (0 to 1F)"}},
+    {0x22, {DIV_CMD_AY_ENVELOPE_SET, "22xy: Set envelope mode (x: shape, y: enable for this channel)"}},
+    {0x23, {DIV_CMD_AY_ENVELOPE_LOW, "23xx: Set envelope period low byte"}},
+    {0x24, {DIV_CMD_AY_ENVELOPE_HIGH, "24xx: Set envelope period high byte"}},
+    {0x25, {DIV_CMD_AY_ENVELOPE_SLIDE, "25xx: Envelope slide up", negEffectVal}},
+    {0x26, {DIV_CMD_AY_ENVELOPE_SLIDE, "26xx: Envelope slide down"}},
+    {0x29, {DIV_CMD_AY_AUTO_ENVELOPE, "29xy: Set auto-envelope (x: numerator; y: denominator)"}},
+    {0x2e, {DIV_CMD_AY_IO_WRITE, "2Exx: Write to I/O port A", constVal<0>, effectVal}},
+    {0x2f, {DIV_CMD_AY_IO_WRITE, "2Fxx: Write to I/O port B", constVal<1>, effectVal}},
   };
 
-  auto fmOPLLPostEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-    switch (effect) {
-      case 0x11: // FB
-        dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
-        break;
-      case 0x12: // TL op1
-        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x3f));
-        break;
-      case 0x13: // TL op2
-        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x0f));
-        break;
-      case 0x16: // MULT
-        if ((effectVal>>4)>0 && (effectVal>>4)<3) {
-          dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
-        }
-        break;
-      case 0x19: // AR global
-        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&31));
-        break;
-      case 0x1a: // AR op1
-        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&31));
-        break;
-      case 0x1b: // AR op2
-        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&31));
-        break;
+  EffectHandlerMap ay8930PostEffectHandlerMap(ayPostEffectHandlerMap);
+  ay8930PostEffectHandlerMap.insert({
+    {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set duty cycle (0 to 8)",
+      [](unsigned char, unsigned char val) -> int { return 0x10+(val&15); }}},
+    {0x27, {DIV_CMD_AY_NOISE_MASK_AND, "27xx: Set noise AND mask"}},
+    {0x28, {DIV_CMD_AY_NOISE_MASK_OR, "28xx: Set noise OR mask"}},
+    {0x2d, {DIV_CMD_AY_IO_WRITE, "2Dxx: NOT TO BE EMPLOYED BY THE COMPOSER", constVal<255>, effectVal}},
+  });
 
-      // extra FM effects here
-      OP_EFFECT_SINGLE(0x50,DIV_CMD_FM_AM,2,1);
-      OP_EFFECT_SINGLE(0x51,DIV_CMD_FM_SL,2,15);
-      OP_EFFECT_SINGLE(0x52,DIV_CMD_FM_RR,2,15);
-      OP_EFFECT_SINGLE(0x53,DIV_CMD_FM_VIB,2,1);
-      OP_EFFECT_SINGLE(0x54,DIV_CMD_FM_RS,2,3);
-      OP_EFFECT_SINGLE(0x55,DIV_CMD_FM_SUS,2,1);
-
-      OP_EFFECT_MULTI(0x56,DIV_CMD_FM_DR,-1,15);
-      OP_EFFECT_MULTI(0x57,DIV_CMD_FM_DR,0,15);
-      OP_EFFECT_MULTI(0x58,DIV_CMD_FM_DR,1,15);
-
-      OP_EFFECT_SINGLE(0x5b,DIV_CMD_FM_KSR,2,1);
-      default:
-        return false;
-    }
-    return true;
+  EffectHandlerMap fmEffectHandlerMap={
+    {0x30, {DIV_CMD_FM_HARD_RESET, "30xx: Toggle hard envelope reset on new notes"}},
   };
 
-  auto fmOPLPostEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-    switch (effect) {
-      case 0x10: // DAM
-        dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,effectVal&1));
-        break;
-      case 0x11: // FB
-        dispatchCmd(DivCommand(DIV_CMD_FM_FB,ch,effectVal&7));
-        break;
-      case 0x12: // TL op1
-        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,0,effectVal&0x3f));
-        break;
-      case 0x13: // TL op2
-        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,1,effectVal&0x3f));
-        break;
-      case 0x14: // TL op3
-        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,2,effectVal&0x3f));
-        break;
-      case 0x15: // TL op4
-        dispatchCmd(DivCommand(DIV_CMD_FM_TL,ch,3,effectVal&0x3f));
-        break;
-      case 0x16: // MULT
-        if ((effectVal>>4)>0 && (effectVal>>4)<5) {
-          dispatchCmd(DivCommand(DIV_CMD_FM_MULT,ch,(effectVal>>4)-1,effectVal&15));
-        }
-        break;
-      case 0x17: // DVB
-        dispatchCmd(DivCommand(DIV_CMD_FM_LFO,ch,2+(effectVal&1)));
-        break;
-      case 0x19: // AR global
-        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,-1,effectVal&15));
-        break;
-      case 0x1a: // AR op1
-        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,0,effectVal&15));
-        break;
-      case 0x1b: // AR op2
-        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,1,effectVal&15));
-        break;
-      case 0x1c: // AR op3
-        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,2,effectVal&15));
-        break;
-      case 0x1d: // AR op4
-        dispatchCmd(DivCommand(DIV_CMD_FM_AR,ch,3,effectVal&15));
-        break;
-      
-      // extra FM effects here
-      OP_EFFECT_SINGLE(0x50,DIV_CMD_FM_AM,4,1);
-      OP_EFFECT_SINGLE(0x51,DIV_CMD_FM_SL,4,15);
-      OP_EFFECT_SINGLE(0x52,DIV_CMD_FM_RR,4,15);
-      OP_EFFECT_SINGLE(0x53,DIV_CMD_FM_VIB,4,1);
-      OP_EFFECT_SINGLE(0x54,DIV_CMD_FM_RS,4,3);
-      OP_EFFECT_SINGLE(0x55,DIV_CMD_FM_SUS,4,1);
+  EffectHandlerMap fmOPN2EffectHandlerMap(fmEffectHandlerMap);
+  fmOPN2EffectHandlerMap.insert({
+    {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}},
+    {0xdf, {DIV_CMD_SAMPLE_DIR, "DFxx: Set sample playback direction (0: normal; 1: reverse)"}},
+  });
 
-      OP_EFFECT_MULTI(0x56,DIV_CMD_FM_DR,-1,15);
-      OP_EFFECT_MULTI(0x57,DIV_CMD_FM_DR,0,15);
-      OP_EFFECT_MULTI(0x58,DIV_CMD_FM_DR,1,15);
-      OP_EFFECT_MULTI(0x59,DIV_CMD_FM_DR,2,15);
-      OP_EFFECT_MULTI(0x5a,DIV_CMD_FM_DR,3,15);
+  EffectHandlerMap fmOPLDrumsEffectHandlerMap(fmEffectHandlerMap);
+  fmOPLDrumsEffectHandlerMap.insert({
+    {0x18, {DIV_CMD_FM_EXTCH, "18xx: Toggle drums mode (1: enabled; 0: disabled)"}},
+  });
 
-      OP_EFFECT_SINGLE(0x5b,DIV_CMD_FM_KSR,4,1);
-      OP_EFFECT_SINGLE(0x2a,DIV_CMD_FM_WS,4,7);
-
-      default:
-        return false;
-    }
-    return true;
+  EffectHandlerMap fmOPNPostEffectHandlerMap={
+    {0x11, {DIV_CMD_FM_FB, "11xx: Set feedback (0 to 7)"}},
+    {0x12, {DIV_CMD_FM_TL, "12xx: Set level of operator 1 (0 highest, 7F lowest)", constVal<0>, effectVal}},
+    {0x13, {DIV_CMD_FM_TL, "13xx: Set level of operator 2 (0 highest, 7F lowest)", constVal<1>, effectVal}},
+    {0x14, {DIV_CMD_FM_TL, "14xx: Set level of operator 3 (0 highest, 7F lowest)", constVal<2>, effectVal}},
+    {0x15, {DIV_CMD_FM_TL, "15xx: Set level of operator 4 (0 highest, 7F lowest)", constVal<3>, effectVal}},
+    {0x16, {DIV_CMD_FM_MULT, "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)", effectOpVal, effectValAnd<15>}},
+    {0x19, {DIV_CMD_FM_AR, "19xx: Set attack of all operators (0 to 1F)", constVal<-1>, effectValAnd<31>}},
+    {0x1a, {DIV_CMD_FM_AR, "1Axx: Set attack of operator 1 (0 to 1F)", constVal<0>, effectValAnd<31>}},
+    {0x1b, {DIV_CMD_FM_AR, "1Bxx: Set attack of operator 2 (0 to 1F)", constVal<1>, effectValAnd<31>}},
+    {0x1c, {DIV_CMD_FM_AR, "1Cxx: Set attack of operator 3 (0 to 1F)", constVal<2>, effectValAnd<31>}},
+    {0x1d, {DIV_CMD_FM_AR, "1Dxx: Set attack of operator 4 (0 to 1F)", constVal<3>, effectValAnd<31>}},
+    {0x50, {DIV_CMD_FM_AM, "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)", effectOpVal, effectValAnd<1>}},
+    {0x51, {DIV_CMD_FM_SL, "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)", effectOpVal, effectValAnd<15>}},
+    {0x52, {DIV_CMD_FM_RR, "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)", effectOpVal, effectValAnd<15>}},
+    {0x53, {DIV_CMD_FM_DT, "53xy: Set detune (x: operator from 1 to 4 (0 for all ops); y: detune where 3 is center)", effectOpVal, effectValAnd<7>}},
+    {0x54, {DIV_CMD_FM_RS, "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale from 0 to 3)", effectOpVal, effectValAnd<3>}},
+    {0x56, {DIV_CMD_FM_DR, "56xx: Set decay of all operators (0 to 1F)", constVal<-1>, effectValAnd<31>}},
+    {0x57, {DIV_CMD_FM_DR, "57xx: Set decay of operator 1 (0 to 1F)", constVal<0>, effectValAnd<31>}},
+    {0x58, {DIV_CMD_FM_DR, "58xx: Set decay of operator 2 (0 to 1F)", constVal<1>, effectValAnd<31>}},
+    {0x59, {DIV_CMD_FM_DR, "59xx: Set decay of operator 3 (0 to 1F)", constVal<2>, effectValAnd<31>}},
+    {0x5a, {DIV_CMD_FM_DR, "5Axx: Set decay of operator 4 (0 to 1F)", constVal<3>, effectValAnd<31>}},
+    {0x5b, {DIV_CMD_FM_D2R, "5Bxx: Set decay 2 of all operators (0 to 1F)", constVal<-1>, effectValAnd<31>}},
+    {0x5c, {DIV_CMD_FM_D2R, "5Cxx: Set decay 2 of operator 1 (0 to 1F)", constVal<0>, effectValAnd<31>}},
+    {0x5d, {DIV_CMD_FM_D2R, "5Dxx: Set decay 2 of operator 2 (0 to 1F)", constVal<1>, effectValAnd<31>}},
+    {0x5e, {DIV_CMD_FM_D2R, "5Exx: Set decay 2 of operator 3 (0 to 1F)", constVal<2>, effectValAnd<31>}},
+    {0x5f, {DIV_CMD_FM_D2R, "5Fxx: Set decay 2 of operator 4 (0 to 1F)", constVal<3>, effectValAnd<31>}},
   };
 
-  auto c64PostEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-    switch (effect) {
-      case 0x10: // select waveform
-        dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-        break;
-      case 0x11: // cutoff
-        dispatchCmd(DivCommand(DIV_CMD_C64_CUTOFF,ch,effectVal));
-        break;
-      case 0x12: // duty
-        dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-        break;
-      case 0x13: // resonance
-        dispatchCmd(DivCommand(DIV_CMD_C64_RESONANCE,ch,effectVal));
-        break;
-      case 0x14: // filter mode
-        dispatchCmd(DivCommand(DIV_CMD_C64_FILTER_MODE,ch,effectVal));
-        break;
-      case 0x15: // reset time
-        dispatchCmd(DivCommand(DIV_CMD_C64_RESET_TIME,ch,effectVal));
-        break;
-      case 0x1a: // reset mask
-        dispatchCmd(DivCommand(DIV_CMD_C64_RESET_MASK,ch,effectVal));
-        break;
-      case 0x1b: // cutoff reset
-        dispatchCmd(DivCommand(DIV_CMD_C64_FILTER_RESET,ch,effectVal));
-        break;
-      case 0x1c: // duty reset
-        dispatchCmd(DivCommand(DIV_CMD_C64_DUTY_RESET,ch,effectVal));
-        break;
-      case 0x1e: // extended
-        dispatchCmd(DivCommand(DIV_CMD_C64_EXTENDED,ch,effectVal));
-        break;
-      case 0x30: case 0x31: case 0x32: case 0x33:
-      case 0x34: case 0x35: case 0x36: case 0x37:
-      case 0x38: case 0x39: case 0x3a: case 0x3b:
-      case 0x3c: case 0x3d: case 0x3e: case 0x3f: // fine duty
-        dispatchCmd(DivCommand(DIV_CMD_C64_FINE_DUTY,ch,((effect&0x0f)<<8)|effectVal));
-        break;
-      case 0x40: case 0x41: case 0x42: case 0x43:
-      case 0x44: case 0x45: case 0x46: case 0x47: // fine cutoff
-        dispatchCmd(DivCommand(DIV_CMD_C64_FINE_CUTOFF,ch,((effect&0x07)<<8)|effectVal));
-        break;
-      default:
-        return false;
-    }
-    return true;
+  EffectHandlerMap fmOPMPostEffectHandlerMap(fmOPNPostEffectHandlerMap);
+  fmOPMPostEffectHandlerMap.insert({
+    {0x10, {DIV_CMD_STD_NOISE_FREQ, "10xx: Set noise frequency (xx: value; 0 disables noise)"}},
+    {0x17, {DIV_CMD_FM_LFO, "17xx: Set LFO speed"}},
+    {0x18, {DIV_CMD_FM_LFO_WAVE, "18xx: Set LFO waveform (0 saw, 1 square, 2 triangle, 3 noise)"}},
+    {0x1e, {DIV_CMD_FM_AM_DEPTH, "1Exx: Set AM depth (0 to 7F)", effectValAnd<127>}},
+    {0x1f, {DIV_CMD_FM_PM_DEPTH, "1Fxx: Set PM depth (0 to 7F)", effectValAnd<127>}},
+    {0x55, {DIV_CMD_FM_SSG, "55xy: Set detune 2 (x: operator from 1 to 4 (0 for all ops); y: detune from 0 to 3)", effectOpVal, effectValAnd<3>}},
+  });
+
+  EffectHandlerMap fmOPZPostEffectHandlerMap(fmOPMPostEffectHandlerMap);
+  fmOPZPostEffectHandlerMap.insert({
+    {0x28, {DIV_CMD_FM_REV, "28xy: Set reverb (x: operator from 1 to 4 (0 for all ops); y: reverb from 0 to 7)", effectOpVal, effectValAnd<7>}},
+    {0x2a, {DIV_CMD_FM_WS, "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 7)", effectOpVal, effectValAnd<7>}},
+    {0x2b, {DIV_CMD_FM_EG_SHIFT, "2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); y: shift from 0 to 3)", effectOpVal, effectValAnd<3>}},
+    {0x2c, {DIV_CMD_FM_FINE, "2Cxy: Set fine multiplier (x: operator from 1 to 4 (0 for all ops); y: fine)", effectOpVal, effectValAnd<15>}},
+  });
+  const EffectHandler fmOPZFixFreqHandler[4]={
+    {DIV_CMD_FM_FIXFREQ, "3xyy: Set fixed frequency of operator 1 (x: octave from 0 to 7; y: frequency)", constVal<0>, effectValLong<11>},
+    {DIV_CMD_FM_FIXFREQ, "3xyy: Set fixed frequency of operator 2 (x: octave from 8 to F; y: frequency)", constVal<1>, effectValLong<11>},
+    {DIV_CMD_FM_FIXFREQ, "4xyy: Set fixed frequency of operator 3 (x: octave from 0 to 7; y: frequency)", constVal<2>, effectValLong<11>},
+    {DIV_CMD_FM_FIXFREQ, "4xyy: Set fixed frequency of operator 4 (x: octave from 8 to F; y: frequency)", constVal<3>, effectValLong<11>},
+  };
+  for (int i=0; i<32; i++) {
+    fmOPZPostEffectHandlerMap.emplace(0x30+i,fmOPZFixFreqHandler[i/8]);
+  }
+
+  fmOPNPostEffectHandlerMap.insert({
+    {0x10, {DIV_CMD_FM_LFO, "10xy: Setup LFO (x: enable; y: speed)"}},
+    {0x18, {DIV_CMD_FM_EXTCH, "18xx: Toggle extended channel 3 mode"}},
+    {0x55, {DIV_CMD_FM_SSG, "55xy: Set SSG envelope (x: operator from 1 to 4 (0 for all ops); y: 0-7 on, 8 off)", effectOpVal, effectValAnd<15>}},
+  });
+  EffectHandlerMap fmOPN2PostEffectHandlerMap(fmOPNPostEffectHandlerMap);
+
+  fmOPNPostEffectHandlerMap.insert(ayPostEffectHandlerMap.begin(), ayPostEffectHandlerMap.end());
+
+  EffectHandlerMap fmOPLLPostEffectHandlerMap={
+    {0x11, {DIV_CMD_FM_FB, "11xx: Set feedback (0 to 7)"}},
+    {0x12, {DIV_CMD_FM_TL, "12xx: Set level of operator 1 (0 highest, 3F lowest)", constVal<0>, effectVal}},
+    {0x13, {DIV_CMD_FM_TL, "13xx: Set level of operator 2 (0 highest, 3F lowest)", constVal<1>, effectVal}},
+    {0x16, {DIV_CMD_FM_MULT, "16xy: Set operator multiplier (x: operator from 1 to 2; y: multiplier)", effectOpVal, effectValAnd<15>}},
+    {0x19, {DIV_CMD_FM_AR, "19xx: Set attack of all operators (0 to F)", constVal<-1>, effectValAnd<15>}},
+    {0x1a, {DIV_CMD_FM_AR, "1Axx: Set attack of operator 1 (0 to F)", constVal<0>, effectValAnd<15>}},
+    {0x1b, {DIV_CMD_FM_AR, "1Bxx: Set attack of operator 2 (0 to F)", constVal<1>, effectValAnd<15>}},
+    {0x50, {DIV_CMD_FM_AM, "50xy: Set AM (x: operator from 1 to 2 (0 for all ops); y: AM)", effectOpVal, effectValAnd<1>}},
+    {0x51, {DIV_CMD_FM_SL, "51xy: Set sustain level (x: operator from 1 to 2 (0 for all ops); y: sustain)", effectOpVal, effectValAnd<15>}},
+    {0x52, {DIV_CMD_FM_RR, "52xy: Set release (x: operator from 1 to 2 (0 for all ops); y: release)", effectOpVal, effectValAnd<15>}},
+    {0x53, {DIV_CMD_FM_VIB, "53xy: Set vibrato (x: operator from 1 to 2 (0 for all ops); y: enabled)", effectOpVal, effectValAnd<1>}},
+    {0x54, {DIV_CMD_FM_RS, "54xy: Set envelope scale (x: operator from 1 to 2 (0 for all ops); y: scale from 0 to 3)", effectOpVal, effectValAnd<3>}},
+    {0x55, {DIV_CMD_FM_SUS, "55xy: Set envelope sustain (x: operator from 1 to 2 (0 for all ops); y: enabled)", effectOpVal, effectValAnd<1>}},
+    {0x56, {DIV_CMD_FM_DR, "56xx: Set decay of all operators (0 to F)", constVal<-1>, effectValAnd<15>}},
+    {0x57, {DIV_CMD_FM_DR, "57xx: Set decay of operator 1 (0 to F)", constVal<0>, effectValAnd<15>}},
+    {0x58, {DIV_CMD_FM_DR, "58xx: Set decay of operator 2 (0 to F)", constVal<1>, effectValAnd<15>}},
+    {0x5b, {DIV_CMD_FM_KSR, "5Bxy: Set whether key will scale envelope (x: operator from 1 to 2 (0 for all ops); y: enabled)", effectOpVal, effectValAnd<1>}},
   };
 
-  auto ayPostEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-    switch (effect) {
-      case 0x12: // duty on 8930
-        dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,0x10+(effectVal&15)));
-        break;
-      case 0x20: // mode
-        dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal&15));
-        break;
-      case 0x21: // noise freq
-        dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
-        break;
-      case 0x22: // envelope enable
-        dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SET,ch,effectVal));
-        break;
-      case 0x23: // envelope period low
-        dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_LOW,ch,effectVal));
-        break;
-      case 0x24: // envelope period high
-        dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_HIGH,ch,effectVal));
-        break;
-      case 0x25: // envelope slide up
-        dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,-effectVal));
-        break;
-      case 0x26: // envelope slide down
-        dispatchCmd(DivCommand(DIV_CMD_AY_ENVELOPE_SLIDE,ch,effectVal));
-        break;
-      case 0x27: // noise and mask
-        dispatchCmd(DivCommand(DIV_CMD_AY_NOISE_MASK_AND,ch,effectVal));
-        break;
-      case 0x28: // noise or mask
-        dispatchCmd(DivCommand(DIV_CMD_AY_NOISE_MASK_OR,ch,effectVal));
-        break;
-      case 0x29: // auto-envelope
-        dispatchCmd(DivCommand(DIV_CMD_AY_AUTO_ENVELOPE,ch,effectVal));
-        break;
-      case 0x2d: // TEST
-        dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,255,effectVal));
-        break;
-      case 0x2e: // I/O port A
-        dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,0,effectVal));
-        break;
-      case 0x2f: // I/O port B
-        dispatchCmd(DivCommand(DIV_CMD_AY_IO_WRITE,ch,1,effectVal));
-        break;
-      default:
-        return false;
-    }
-    return true;
+  EffectHandlerMap fmOPLPostEffectHandlerMap={
+    {0x10, {DIV_CMD_FM_LFO, "10xx: Set global AM depth (0: 1dB, 1: 4.8dB)", effectValAnd<1>}},
+    {0x11, {DIV_CMD_FM_FB, "11xx: Set feedback (0 to 7)"}},
+    {0x12, {DIV_CMD_FM_TL, "12xx: Set level of operator 1 (0 highest, 3F lowest)", constVal<0>, effectVal}},
+    {0x13, {DIV_CMD_FM_TL, "13xx: Set level of operator 2 (0 highest, 3F lowest)", constVal<1>, effectVal}},
+    {0x14, {DIV_CMD_FM_TL, "14xx: Set level of operator 3 (0 highest, 3F lowest)", constVal<2>, effectVal}},
+    {0x15, {DIV_CMD_FM_TL, "15xx: Set level of operator 4 (0 highest, 3F lowest)", constVal<3>, effectVal}},
+    {0x16, {DIV_CMD_FM_MULT, "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)", effectOpVal, effectValAnd<15>}},
+    {0x17, {DIV_CMD_FM_LFO, "17xx: Set global vibrato depth (0: normal, 1: double)", [](unsigned char, unsigned char val) -> int { return (val&1)+2; }}},
+    {0x19, {DIV_CMD_FM_AR, "19xx: Set attack of all operators (0 to F)", constVal<-1>, effectValAnd<15>}},
+    {0x1a, {DIV_CMD_FM_AR, "1Axx: Set attack of operator 1 (0 to F)", constVal<0>, effectValAnd<15>}},
+    {0x1b, {DIV_CMD_FM_AR, "1Bxx: Set attack of operator 2 (0 to F)", constVal<1>, effectValAnd<15>}},
+    {0x1c, {DIV_CMD_FM_AR, "1Cxx: Set attack of operator 3 (0 to F)", constVal<2>, effectValAnd<15>}},
+    {0x1d, {DIV_CMD_FM_AR, "1Dxx: Set attack of operator 4 (0 to F)", constVal<3>, effectValAnd<15>}},
+    {0x2a, {DIV_CMD_FM_WS, "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 3 in OPL2 and 0 to 7 in OPL3)", effectOpVal, effectValAnd<7>}},
+    {0x50, {DIV_CMD_FM_AM, "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)", effectOpVal, effectValAnd<1>}},
+    {0x51, {DIV_CMD_FM_SL, "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)", effectOpVal, effectValAnd<15>}},
+    {0x52, {DIV_CMD_FM_RR, "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)", effectOpVal, effectValAnd<15>}},
+    {0x53, {DIV_CMD_FM_VIB, "53xy: Set vibrato (x: operator from 1 to 4 (0 for all ops); y: enabled)", effectOpVal, effectValAnd<1>}},
+    {0x54, {DIV_CMD_FM_RS, "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale from 0 to 3)", effectOpVal, effectValAnd<3>}},
+    {0x55, {DIV_CMD_FM_SUS, "55xy: Set envelope sustain (x: operator from 1 to 4 (0 for all ops); y: enabled)", effectOpVal, effectValAnd<1>}},
+    {0x56, {DIV_CMD_FM_DR, "56xx: Set decay of all operators (0 to F)", constVal<-1>, effectValAnd<15>}},
+    {0x57, {DIV_CMD_FM_DR, "57xx: Set decay of operator 1 (0 to F)", constVal<0>, effectValAnd<15>}},
+    {0x58, {DIV_CMD_FM_DR, "58xx: Set decay of operator 2 (0 to F)", constVal<1>, effectValAnd<15>}},
+    {0x59, {DIV_CMD_FM_DR, "59xx: Set decay of operator 3 (0 to F)", constVal<2>, effectValAnd<15>}},
+    {0x5a, {DIV_CMD_FM_DR, "5Axx: Set decay of operator 4 (0 to F)", constVal<3>, effectValAnd<15>}},
+    {0x5b, {DIV_CMD_FM_KSR, "5Bxy: Set whether key will scale envelope (x: operator from 1 to 4 (0 for all ops); y: enabled)", effectOpVal, effectValAnd<1>}},
   };
 
-  auto segaPCMPostEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-    switch (effect) {
-      case 0x20: // PCM frequency
-        dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
-        break;
-      default:
-        return false;
-    }
-    return true;
+  EffectHandlerMap c64PostEffectHandlerMap={
+    {0x10, {DIV_CMD_WAVE, "10xx: Set waveform (bit 0: triangle; bit 1: saw; bit 2: pulse; bit 3: noise)"}},
+    {0x11, {DIV_CMD_C64_CUTOFF, "11xx: Set coarse cutoff (not recommended; use 4xxx instead)"}},
+    {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set coarse pulse width (not recommended; use 3xxx instead)"}},
+    {0x13, {DIV_CMD_C64_RESONANCE, "13xx: Set resonance (0 to F)"}},
+    {0x14, {DIV_CMD_C64_FILTER_MODE, "14xx: Set filter mode (bit 0: low pass; bit 1: band pass; bit 2: high pass)"}},
+    {0x15, {DIV_CMD_C64_RESET_TIME, "15xx: Set envelope reset time"}},
+    {0x1a, {DIV_CMD_C64_RESET_MASK, "1Axx: Disable envelope reset for this channel (1 disables; 0 enables)"}},
+    {0x1b, {DIV_CMD_C64_FILTER_RESET, "1Bxy: Reset cutoff (x: on new note; y: now)"}},
+    {0x1c, {DIV_CMD_C64_DUTY_RESET, "1Cxy: Reset pulse width (x: on new note; y: now)"}},
+    {0x1e, {DIV_CMD_C64_EXTENDED, "1Exy: Change additional parameters"}},
   };
+  const EffectHandler c64FineDutyHandler(DIV_CMD_C64_FINE_DUTY, "3xxx: Set pulse width (0 to FFF)", effectValLong<12>);
+  const EffectHandler c64FineCutoffHandler(DIV_CMD_C64_FINE_DUTY, "4xxx: Set cutoff (0 to 7FF)", effectValLong<11>);
+  for (int i=0; i<16; i++) c64PostEffectHandlerMap.emplace(0x30+i,c64FineDutyHandler);
+  for (int i=0; i<8; i++) c64PostEffectHandlerMap.emplace(0x40+i,c64FineCutoffHandler);
+
+  EffectHandlerMap waveOnlyEffectHandlerMap={
+    {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+  };
+
+  EffectHandlerMap segaPCMPostEffectHandlerMap={
+    {0x20, {DIV_CMD_SAMPLE_FREQ, "20xx: Set PCM frequency"}}
+  };
+
+  // SysDefs
 
   sysDefs[DIV_SYSTEM_YMU759]=new DivSysDef(
     "Yamaha YMU759 (MA-2)", NULL, 0x01, 0x01, 17, true, false, 0, false,
@@ -763,15 +592,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE},
     {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD},
     {},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x20: // SN noise mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x20, {DIV_CMD_STD_NOISE_MODE, "20xy: Set noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)"}}
     }
   );
 
@@ -789,24 +611,12 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_WAVE, DIV_CH_NOISE},
     {DIV_INS_GB, DIV_INS_GB, DIV_INS_GB, DIV_INS_GB},
     {},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x10: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x11: case 0x12: // duty or noise mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x13: // sweep params
-          dispatchCmd(DivCommand(DIV_CMD_GB_SWEEP_TIME,ch,effectVal));
-          break;
-        case 0x14: // sweep direction
-          dispatchCmd(DivCommand(DIV_CMD_GB_SWEEP_DIR,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+      {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set noise length (0: long; 1: short)"}},
+      {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set duty cycle (0 to 3)"}},
+      {0x13, {DIV_CMD_GB_SWEEP_TIME, "13xy: Setup sweep (x: time; y: shift)"}},
+      {0x14, {DIV_CMD_GB_SWEEP_DIR, "14xx: Set sweep direction (0: up; 1: down)"}}
     }
   );
 
@@ -818,27 +628,12 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_PCE, DIV_INS_PCE, DIV_INS_PCE, DIV_INS_PCE, DIV_INS_PCE, DIV_INS_PCE},
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x10: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x11: // noise mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x12: // LFO mode
-          dispatchCmd(DivCommand(DIV_CMD_PCE_LFO_MODE,ch,effectVal));
-          break;
-        case 0x13: // LFO speed
-          dispatchCmd(DivCommand(DIV_CMD_PCE_LFO_SPEED,ch,effectVal));
-          break;
-        case 0x17: // PCM enable
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+      {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Toggle noise mode"}},
+      {0x12, {DIV_CMD_PCE_LFO_MODE, "12xx: Setup LFO (0: disabled; 1: 1x depth; 2: 16x depth; 3: 256x depth)"}},
+      {0x13, {DIV_CMD_PCE_LFO_SPEED, "13xx: Set LFO speed"}},
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}}
     }
   );
 
@@ -850,27 +645,12 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_WAVE, DIV_CH_NOISE, DIV_CH_PCM},
     {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_AMIGA},
     {},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x11: // DMC write
-          dispatchCmd(DivCommand(DIV_CMD_NES_DMC,ch,effectVal));
-          break;
-        case 0x12: // duty or noise mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x13: // sweep up
-          dispatchCmd(DivCommand(DIV_CMD_NES_SWEEP,ch,0,effectVal));
-          break;
-        case 0x14: // sweep down
-          dispatchCmd(DivCommand(DIV_CMD_NES_SWEEP,ch,1,effectVal));
-          break;
-        case 0x18: // DPCM mode
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x11, {DIV_CMD_NES_DMC, "11xx: Write to delta modulation counter (0 to 7F)"}},
+      {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)"}},
+      {0x13, {DIV_CMD_NES_SWEEP, "13xy: Sweep up (x: time; y: shift)",constVal<0>,effectVal}},
+      {0x14, {DIV_CMD_NES_SWEEP, "14xy: Sweep down (x: time; y: shift)",constVal<1>,effectVal}},
+      {0x18, {DIV_CMD_SAMPLE_MODE, "18xx: Select PCM/DPCM mode (0: PCM; 1: DPCM)"}}
     }
   );
 
@@ -894,8 +674,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
     {DIV_INS_C64, DIV_INS_C64, DIV_INS_C64},
     {},
-    [](int,unsigned char,unsigned char) -> bool {return false;},
-    c64PostEffectHandler
+    {},
+    c64PostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_C64_8580]=new DivSysDef(
@@ -906,8 +686,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
     {DIV_INS_C64, DIV_INS_C64, DIV_INS_C64},
     {},
-    [](int,unsigned char,unsigned char) -> bool {return false;},
-    c64PostEffectHandler
+    {},
+    c64PostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_ARCADE]=new DivSysDef(
@@ -915,17 +695,6 @@ void DivEngine::registerSystems() {
     "<COMPOUND SYSTEM!>",
     {}, {}, {}, {}
   );
-
-  auto fmHardResetEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-    switch (effect) {
-      case 0x30: // toggle hard-reset
-        dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
-        break;
-      default:
-        return false;
-    }
-    return true;
-  };
 
   sysDefs[DIV_SYSTEM_YM2610]=new DivSysDef(
     "Neo Geo CD", NULL, 0x09, 0x09, 13, true, true, 0x151, false,
@@ -935,8 +704,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
-    fmHardResetEffectHandler,
-    fmPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPNPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_YM2610_EXT]=new DivSysDef(
@@ -947,8 +716,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
-    fmHardResetEffectHandler,
-    fmPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPNPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_AY8910]=new DivSysDef(
@@ -959,8 +728,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
     {DIV_INS_AY, DIV_INS_AY, DIV_INS_AY},
     {},
-    [](int,unsigned char,unsigned char) -> bool {return false;},
-    ayPostEffectHandler
+    {},
+    ayPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_AMIGA]=new DivSysDef(
@@ -971,22 +740,11 @@ void DivEngine::registerSystems() {
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
-    [](int,unsigned char,unsigned char) -> bool {return false;},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x10: // toggle filter
-          dispatchCmd(DivCommand(DIV_CMD_AMIGA_FILTER,ch,effectVal));
-          break;
-        case 0x11: // toggle AM
-          dispatchCmd(DivCommand(DIV_CMD_AMIGA_AM,ch,effectVal));
-          break;
-        case 0x12: // toggle PM
-          dispatchCmd(DivCommand(DIV_CMD_AMIGA_PM,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {},
+    {
+      {0x10, {DIV_CMD_AMIGA_FILTER, "10xx: Toggle filter (0 disables; 1 enables)"}},
+      {0x11, {DIV_CMD_AMIGA_AM, "11xx: Toggle AM with next channel"}},
+      {0x12, {DIV_CMD_AMIGA_PM, "12xx: Toggle period modulation with next channel"}},
     }
   );
 
@@ -998,23 +756,9 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM},
     {},
-    fmHardResetEffectHandler,
-    fmPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPMPostEffectHandlerMap
   );
-
-  auto opn2EffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-    switch (effect) {
-      case 0x17: // DAC enable
-        dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
-        break;
-      case 0x30: // toggle hard-reset
-        dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
-        break;
-      default:
-        return false;
-    }
-    return true;
-  };
 
   sysDefs[DIV_SYSTEM_YM2612]=new DivSysDef(
     "Yamaha YM2612 (OPN2)", NULL, 0x83, 0, 6, true, false, 0x150, false,
@@ -1024,8 +768,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA},
-    opn2EffectHandler,
-    fmPostEffectHandler
+    fmOPN2EffectHandlerMap,
+    fmOPN2PostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_TIA]=new DivSysDef(
@@ -1036,17 +780,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_TIA, DIV_INS_TIA},
     {},
-    [](int,unsigned char,unsigned char) -> bool {return false;},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x10: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      return true;
-    }
+    {},
+    waveOnlyEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_SAA1099]=new DivSysDef(
@@ -1057,22 +792,11 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
     {DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099, DIV_INS_SAA1099},
     {},
-    [](int,unsigned char,unsigned char) -> bool {return false;},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x10: // select channel mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x11: // set noise freq
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_FREQ,ch,effectVal));
-          break;
-        case 0x12: // setup envelope
-          dispatchCmd(DivCommand(DIV_CMD_SAA_ENVELOPE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {},
+    {
+      {0x10, {DIV_CMD_STD_NOISE_MODE, "10xy: Set channel mode (x: noise; y: tone)"}},
+      {0x11, {DIV_CMD_STD_NOISE_FREQ, "11xx: Set noise frequency"}},
+      {0x12, {DIV_CMD_SAA_ENVELOPE, "12xx: Setup envelope (refer to docs for more information)"}},
     }
   );
 
@@ -1084,20 +808,9 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
     {DIV_INS_AY8930, DIV_INS_AY8930, DIV_INS_AY8930},
     {},
-    [](int,unsigned char,unsigned char) -> bool {return false;},
-    ayPostEffectHandler
+    {},
+    ay8930PostEffectHandlerMap
   );
-
-  auto waveOnlyEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-    switch (effect) {
-      case 0x10: // select waveform
-        dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-        break;
-      default:
-        return false;
-    }
-    return true;
-  };
 
   sysDefs[DIV_SYSTEM_VIC20]=new DivSysDef(
     "Commodore VIC-20", NULL, 0x85, 0, 4, false, true, 0, false,
@@ -1107,7 +820,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE},
     {DIV_INS_VIC, DIV_INS_VIC, DIV_INS_VIC, DIV_INS_VIC},
     {},
-    waveOnlyEffectHandler
+    waveOnlyEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_PET]=new DivSysDef(
@@ -1118,7 +831,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE},
     {DIV_INS_PET},
     {},
-    waveOnlyEffectHandler
+    waveOnlyEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_SNES]=new DivSysDef(
@@ -1138,31 +851,11 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_WAVE},
     {DIV_INS_VRC6, DIV_INS_VRC6, DIV_INS_VRC6_SAW},
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_NULL},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x12: // duty or noise mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x17: // PCM enable
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set duty cycle (pulse: 0 to 7)"}},
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (pulse channel)"}},
     }
   );
-
-  auto oplEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-    switch (effect) {
-      case 0x30: // toggle hard-reset
-        dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
-        break;
-      default:
-        return false;
-    }
-    return true;
-  };
 
   sysDefs[DIV_SYSTEM_OPLL]=new DivSysDef(
     "Yamaha YM2413 (OPLL)", NULL, 0x89, 0, 9, true, false, 0x150, false,
@@ -1172,8 +865,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
     {DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL},
     {},
-    oplEffectHandler,
-    fmOPLLPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPLLPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_FDS]=new DivSysDef(
@@ -1184,30 +877,13 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE},
     {DIV_INS_FDS},
     {},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x10: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x11: // modulation depth
-          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_DEPTH,ch,effectVal));
-          break;
-        case 0x12: // modulation enable/high
-          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_HIGH,ch,effectVal));
-          break;
-        case 0x13: // modulation low
-          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_LOW,ch,effectVal));
-          break;
-        case 0x14: // modulation pos
-          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_POS,ch,effectVal));
-          break;
-        case 0x15: // modulation wave
-          dispatchCmd(DivCommand(DIV_CMD_FDS_MOD_WAVE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+      {0x11, {DIV_CMD_FDS_MOD_DEPTH, "11xx: Set modulation depth"}},
+      {0x12, {DIV_CMD_FDS_MOD_HIGH, "12xy: Set modulation speed high byte (x: enable; y: value)"}},
+      {0x13, {DIV_CMD_FDS_MOD_LOW, "13xx: Set modulation speed low byte"}},
+      {0x14, {DIV_CMD_FDS_MOD_POS, "14xx: Set modulator position"}},
+      {0x15, {DIV_CMD_FDS_MOD_WAVE, "15xx: Set modulator table to waveform"}},
     }
   );
 
@@ -1219,18 +895,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM},
     {DIV_INS_STD, DIV_INS_STD, DIV_INS_AMIGA},
     {},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x11: // DMC write
-          dispatchCmd(DivCommand(DIV_CMD_NES_DMC,ch,effectVal));
-          break;
-        case 0x12: // duty or noise mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)"}},
     }
   );
 
@@ -1242,51 +908,20 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163},
     {},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x10: // select instrument waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x11: // select instrument waveform position in RAM
-          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_POSITION,ch,effectVal));
-          break;
-        case 0x12: // select instrument waveform length in RAM
-          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LENGTH,ch,effectVal));
-          break;
-        case 0x13: // change instrument waveform update mode
-          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_MODE,ch,effectVal));
-          break;
-        case 0x14: // select waveform for load to RAM
-          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOAD,ch,effectVal));
-          break;
-        case 0x15: // select waveform position for load to RAM
-          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOADPOS,ch,effectVal));
-          break;
-        case 0x16: // select waveform length for load to RAM
-          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOADLEN,ch,effectVal));
-          break;
-        case 0x17: // change waveform load mode
-          dispatchCmd(DivCommand(DIV_CMD_N163_WAVE_LOADMODE,ch,effectVal));
-          break;
-        case 0x18: // change channel limits
-          dispatchCmd(DivCommand(DIV_CMD_N163_CHANNEL_LIMIT,ch,effectVal));
-          break;
-        case 0x20: // (global) select waveform for load to RAM
-          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOAD,ch,effectVal));
-          break;
-        case 0x21: // (global) select waveform position for load to RAM
-          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOADPOS,ch,effectVal));
-          break;
-        case 0x22: // (global) select waveform length for load to RAM
-          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOADLEN,ch,effectVal));
-          break;
-        case 0x23: // (global) change waveform load mode
-          dispatchCmd(DivCommand(DIV_CMD_N163_GLOBAL_WAVE_LOADMODE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Select waveform"}},
+      {0x11, {DIV_CMD_N163_WAVE_POSITION, "11xx: Set waveform position in RAM (single nibble unit)"}},
+      {0x12, {DIV_CMD_N163_WAVE_LENGTH, "12xx: Set waveform length in RAM (04 to FC, 4 nibble unit)"}},
+      {0x13, {DIV_CMD_N163_WAVE_MODE, "130x: Change waveform update mode (0: off; bit 0: update now; bit 1: update when every waveform changes)"}},
+      {0x14, {DIV_CMD_N163_WAVE_LOAD, "14xx: Select waveform for load to RAM"}},
+      {0x15, {DIV_CMD_N163_WAVE_LOADPOS, "15xx: Set waveform position for load to RAM (single nibble unit)"}},
+      {0x16, {DIV_CMD_N163_WAVE_LOADLEN, "16xx: Set waveform length for load to RAM (04 to FC, 4 nibble unit)"}},
+      {0x17, {DIV_CMD_N163_WAVE_LOADMODE, "170x: Change waveform load mode (0: off; bit 0: load now; bit 1: load when every waveform changes)"}},
+      {0x18, {DIV_CMD_N163_CHANNEL_LIMIT, "180x: Change channel limits (0 to 7, x + 1)"}},
+      {0x20, {DIV_CMD_N163_GLOBAL_WAVE_LOAD, "20xx: (Global) Select waveform for load to RAM"}},
+      {0x21, {DIV_CMD_N163_GLOBAL_WAVE_LOADPOS, "21xx: (Global) Set waveform position for load to RAM (single nibble unit)"}},
+      {0x22, {DIV_CMD_N163_GLOBAL_WAVE_LOADLEN, "22xx: (Global) Set waveform length for load to RAM (04 to FC, 4 nibble unit)"}},
+      {0x23, {DIV_CMD_N163_GLOBAL_WAVE_LOADMODE, "230x: (Global) Change waveform load mode (0: off; bit 0: load now; bit 1: load when every waveform changes)"}},
     }
   );
 
@@ -1298,8 +933,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY},
     {},
-    fmHardResetEffectHandler,
-    fmPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPNPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_OPN_EXT]=new DivSysDef(
@@ -1310,8 +945,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY},
     {},
-    fmHardResetEffectHandler,
-    fmPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPNPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_PC98]=new DivSysDef(
@@ -1322,8 +957,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA},
     {},
-    fmHardResetEffectHandler,
-    fmPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPNPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_PC98_EXT]=new DivSysDef(
@@ -1334,8 +969,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA},
     {},
-    fmHardResetEffectHandler,
-    fmPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPNPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_OPL]=new DivSysDef(
@@ -1346,8 +981,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL},
     {},
-    oplEffectHandler,
-    fmOPLPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPLPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_OPL2]=new DivSysDef(
@@ -1358,8 +993,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL},
     {},
-    oplEffectHandler,
-    fmOPLPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPLPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_OPL3]=new DivSysDef(
@@ -1370,8 +1005,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL},
     {},
-    oplEffectHandler,
-    fmOPLPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPLPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_MULTIPCM]=new DivSysDef(
@@ -1418,27 +1053,12 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_PCM, DIV_CH_WAVE, DIV_CH_NOISE},
     {DIV_INS_SWAN, DIV_INS_SWAN, DIV_INS_SWAN, DIV_INS_SWAN},
     {DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_NULL, DIV_INS_NULL},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x10: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x11: // noise mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x12: // sweep period
-          dispatchCmd(DivCommand(DIV_CMD_WS_SWEEP_TIME,ch,effectVal));
-          break;
-        case 0x13: // sweep amount
-          dispatchCmd(DivCommand(DIV_CMD_WS_SWEEP_AMOUNT,ch,effectVal));
-          break;
-        case 0x17: // PCM enable
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+      {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Setup noise mode (0: disabled; 1-8: enabled/tap)"}},
+      {0x12, {DIV_CMD_WS_SWEEP_TIME, "12xx: Setup sweep period (0: disabled; 1-20: enabled/period)"}},
+      {0x13, {DIV_CMD_WS_SWEEP_AMOUNT, "13xx: Set sweep amount"}},
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}},
     }
   );
 
@@ -1450,17 +1070,10 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
     {DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ, DIV_INS_OPZ},
     {},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x2f: // toggle hard-reset
-          dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x2f, {DIV_CMD_FM_HARD_RESET, "2Fxx: Toggle hard envelope reset on new notes"}},
     },
-    fmPostEffectHandler
+    fmOPZPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_POKEMINI]=new DivSysDef(
@@ -1480,8 +1093,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
-    [](int,unsigned char,unsigned char) -> bool {return false;},
-    segaPCMPostEffectHandler
+    {},
+    segaPCMPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_VBOY]=new DivSysDef(
@@ -1501,8 +1114,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
     {DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL},
     {},
-    oplEffectHandler,
-    fmOPLLPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPLLPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_YM2610B]=new DivSysDef(
@@ -1513,8 +1126,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
-    fmHardResetEffectHandler,
-    fmPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPNPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_SFX_BEEPER]=new DivSysDef(
@@ -1525,18 +1138,9 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER},
     {},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x12: // pulse width
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x17: // overlay sample
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set pulse width"}},
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Trigger overlay drum"}},
     }
   );
 
@@ -1548,8 +1152,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA},
-    opn2EffectHandler,
-    fmPostEffectHandler
+    fmOPN2EffectHandlerMap,
+    fmOPN2PostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_SCC]=new DivSysDef(
@@ -1560,22 +1164,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC},
     {},
-    waveOnlyEffectHandler
+    waveOnlyEffectHandlerMap
   );
-
-  auto oplDrumsEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-    switch (effect) {
-      case 0x18: // drum mode toggle
-        dispatchCmd(DivCommand(DIV_CMD_FM_EXTCH,ch,effectVal));
-        break;
-      case 0x30: // toggle hard-reset
-        dispatchCmd(DivCommand(DIV_CMD_FM_HARD_RESET,ch,effectVal));
-        break;
-      default:
-        return false;
-    }
-    return true;
-  };
 
   sysDefs[DIV_SYSTEM_OPL_DRUMS]=new DivSysDef(
     "Yamaha YM3526 (OPL) with drums", NULL, 0xa2, 0, 11, true, false, 0x151, false,
@@ -1585,8 +1175,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL},
-    oplDrumsEffectHandler,
-    fmOPLPostEffectHandler
+    fmOPLDrumsEffectHandlerMap,
+    fmOPLPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_OPL2_DRUMS]=new DivSysDef(
@@ -1597,8 +1187,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL},
-    oplDrumsEffectHandler,
-    fmOPLPostEffectHandler
+    fmOPLDrumsEffectHandlerMap,
+    fmOPLPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_OPL3_DRUMS]=new DivSysDef(
@@ -1609,8 +1199,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL},
-    oplDrumsEffectHandler,
-    fmOPLPostEffectHandler
+    fmOPLDrumsEffectHandlerMap,
+    fmOPLPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_YM2610_FULL]=new DivSysDef(
@@ -1621,8 +1211,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
-    fmHardResetEffectHandler,
-    fmPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPNPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_YM2610_FULL_EXT]=new DivSysDef(
@@ -1633,8 +1223,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
-    fmHardResetEffectHandler,
-    fmPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPNPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_OPLL_DRUMS]=new DivSysDef(
@@ -1645,9 +1235,15 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
     {DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL, DIV_INS_OPLL},
     {},
-    oplDrumsEffectHandler,
-    fmOPLLPostEffectHandler
+    fmOPLDrumsEffectHandlerMap,
+    fmOPLLPostEffectHandlerMap
   );
+
+  EffectHandlerMap lynxEffectHandlerMap;
+  const EffectHandler lynxLFSRHandler(DIV_CMD_LYNX_LFSR_LOAD, "3xxx: Load LFSR (0 to FFF)", effectValLong<12>);
+  for (int i=0; i<16; i++) {
+    lynxEffectHandlerMap.emplace(0x30+i, lynxLFSRHandler);
+  }
 
   sysDefs[DIV_SYSTEM_LYNX]=new DivSysDef(
     "Atari Lynx", NULL, 0xa8, 0, 4, false, true, 0, false,
@@ -1657,16 +1253,19 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_MIKEY, DIV_INS_MIKEY, DIV_INS_MIKEY, DIV_INS_MIKEY},
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
-    [](int,unsigned char,unsigned char) -> bool {return false;},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      if (effect>=0x30 && effect<0x40) {
-        int value=((int)(effect&0x0f)<<8)|effectVal;
-        dispatchCmd(DivCommand(DIV_CMD_LYNX_LFSR_LOAD,ch,value));
-        return true;
-      }
-      return false;
-    }
+    {},
+    lynxEffectHandlerMap
   );
+
+  EffectHandlerMap qSoundEffectHandlerMap={
+      {0x10, {DIV_CMD_QSOUND_ECHO_FEEDBACK, "10xx: Set echo feedback level (00 to FF)"}},
+      {0x11, {DIV_CMD_QSOUND_ECHO_LEVEL, "11xx: Set channel echo level (00 to FF)"}},
+      {0x12, {DIV_CMD_QSOUND_SURROUND, "12xx: Toggle QSound algorithm (0: disabled; 1: enabled)"}},
+  };
+  const EffectHandler qSoundEchoDelayHandler(DIV_CMD_QSOUND_ECHO_DELAY, "3xxx: Set echo delay buffer length (000 to AA5)", effectValLong<12>);
+  for (int i=0; i<16; i++) {
+    qSoundEffectHandlerMap.emplace(0x30+i, qSoundEchoDelayHandler);
+  }
 
   sysDefs[DIV_SYSTEM_QSOUND]=new DivSysDef(
     "Capcom QSound", NULL, 0xe0, 0, 19, false, true, 0x161, false,
@@ -1676,27 +1275,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x10: // echo feedback
-          dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_FEEDBACK,ch,effectVal));
-          break;
-        case 0x11: // echo level
-          dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_LEVEL,ch,effectVal));
-          break;
-        case 0x12: // surround
-          dispatchCmd(DivCommand(DIV_CMD_QSOUND_SURROUND,ch,effectVal));
-          break;
-        default:
-          if ((effect&0xf0)==0x30) {
-            dispatchCmd(DivCommand(DIV_CMD_QSOUND_ECHO_DELAY,ch,((effect & 0x0f) << 8) | effectVal));
-          } else {
-            return false;
-          }
-          break;
-      }
-      return true;
-    }
+    qSoundEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_VERA]=new DivSysDef(
@@ -1707,18 +1286,9 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM},
     {DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_AMIGA},
     {},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x20: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x22: // duty
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x20, {DIV_CMD_WAVE, "20xx: Set waveform"}},
+      {0x22, {DIV_CMD_STD_NOISE_MODE, "22xx: Set duty cycle (0 to 3F)"}},
     }
   );
 
@@ -1730,8 +1300,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AY, DIV_INS_AY, DIV_INS_AY, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
-    fmHardResetEffectHandler,
-    fmPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPNPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_SEGAPCM_COMPAT]=new DivSysDef(
@@ -1742,8 +1312,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
-    [](int,unsigned char,unsigned char) -> bool {return false;},
-    segaPCMPostEffectHandler
+    {},
+    segaPCMPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_X1_010]=new DivSysDef(
@@ -1754,46 +1324,18 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010, DIV_INS_X1_010},
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x10: // select waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x11: // select envelope shape
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SHAPE,ch,effectVal));
-          break;
-        case 0x17: // PCM enable
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,(effectVal>0)));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+      {0x11, {DIV_CMD_X1_010_ENVELOPE_SHAPE, "11xx: Set envelope shape"}},
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}},
     },
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x20: // PCM frequency
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
-          break;
-        case 0x22: // envelope mode
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_MODE,ch,effectVal));
-          break;
-        case 0x23: // envelope period
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_PERIOD,ch,effectVal));
-          break;
-        case 0x25: // envelope slide up
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SLIDE,ch,effectVal));
-          break;
-        case 0x26: // envelope slide down
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_ENVELOPE_SLIDE,ch,-effectVal));
-          break;
-        case 0x29: // auto-envelope
-          dispatchCmd(DivCommand(DIV_CMD_X1_010_AUTO_ENVELOPE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x20, {DIV_CMD_SAMPLE_FREQ, "20xx: Set PCM frequency (1 to FF)"}},
+      {0x22, {DIV_CMD_X1_010_ENVELOPE_MODE, "22xx: Set envelope mode (bit 0: enable; bit 1: one-shot; bit 2: split shape to L/R; bit 3/5: H.invert right/left; bit 4/6: V.invert right/left)"}},
+      {0x23, {DIV_CMD_X1_010_ENVELOPE_PERIOD, "23xx: Set envelope period"}},
+      {0x25, {DIV_CMD_X1_010_ENVELOPE_SLIDE, "25xx: Envelope slide up"}},
+      {0x26, {DIV_CMD_X1_010_ENVELOPE_SLIDE, "26xx: Envelope slide down", negEffectVal}},
+      {0x29, {DIV_CMD_X1_010_AUTO_ENVELOPE, "29xy: Set auto-envelope (x: numerator; y: denominator)"}},
     }
   );
 
@@ -1805,7 +1347,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_SCC, DIV_INS_SCC},
     {},
-    waveOnlyEffectHandler
+    waveOnlyEffectHandlerMap
   );
 
   // to Grauw: feel free to change this to 24 during development of OPL4's PCM part.
@@ -1844,8 +1386,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PCM},
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_AMIGA},
     {},
-    oplEffectHandler,
-    fmOPLPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPLPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_Y8950_DRUMS]=new DivSysDef(
@@ -1856,8 +1398,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_AMIGA},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_NULL},
-    oplEffectHandler,
-    fmOPLPostEffectHandler
+    fmEffectHandlerMap,
+    fmOPLPostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_SCC_PLUS]=new DivSysDef(
@@ -1868,8 +1410,33 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC, DIV_INS_SCC},
     {},
-    waveOnlyEffectHandler
+    waveOnlyEffectHandlerMap
   );
+
+  EffectHandlerMap suEffectHandlerMap={
+    {0x10, {DIV_CMD_WAVE, "10xx: Set waveform (0 to 7)"}},
+    {0x12, {DIV_CMD_STD_NOISE_MODE, "22xx: Set envelope mode (bit 0: enable; bit 1: one-shot; bit 2: split shape to L/R; bit 3/5: H.invert right/left; bit 4/6: V.invert right/left)"}},
+    {0x13, {DIV_CMD_C64_RESONANCE, "23xx: Set envelope period"}},
+    {0x14, {DIV_CMD_C64_FILTER_MODE, "25xx: Envelope slide up"}},
+    {0x15, {DIV_CMD_SU_SWEEP_PERIOD_LOW, "15xx: Set frequency sweep period low byte", constVal<0>, effectVal}},
+    {0x16, {DIV_CMD_SU_SWEEP_PERIOD_HIGH, "16xx: Set frequency sweep period high byte", constVal<0>, effectVal}},
+    {0x17, {DIV_CMD_SU_SWEEP_PERIOD_LOW, "17xx: Set volume sweep period low byte", constVal<1>, effectVal}},
+    {0x18, {DIV_CMD_SU_SWEEP_PERIOD_HIGH, "18xx: Set volume sweep period high byte", constVal<1>, effectVal}},
+    {0x19, {DIV_CMD_SU_SWEEP_PERIOD_LOW, "19xx: Set cutoff sweep period low byte", constVal<2>, effectVal}},
+    {0x1a, {DIV_CMD_SU_SWEEP_PERIOD_HIGH, "1axx: Set cutoff sweep period high byte", constVal<2>, effectVal}},
+    {0x1b, {DIV_CMD_SU_SWEEP_BOUND, "1Bxx: Set frequency sweep boundary", constVal<0>, effectVal}},
+    {0x1c, {DIV_CMD_SU_SWEEP_BOUND, "1Cxx: Set volume sweep boundary", constVal<1>, effectVal}},
+    {0x1d, {DIV_CMD_SU_SWEEP_BOUND, "1Dxx: Set cutoff sweep boundary", constVal<2>, effectVal}},
+    {0x1e, {DIV_CMD_SU_SYNC_PERIOD_LOW, "1Exx: Set phase reset period low byte"}},
+    {0x1f, {DIV_CMD_SU_SYNC_PERIOD_HIGH, "1Fxx: Set phase reset period high byte"}},
+    {0x20, {DIV_CMD_SU_SWEEP_ENABLE, "20xx: Toggle frequency sweep (bit 0-6: speed; bit 7: direction is up)", constVal<0>, effectVal}},
+    {0x21, {DIV_CMD_SU_SWEEP_ENABLE, "21xx: Toggle volume sweep (bit 0-4: speed; bit 5: direciton is up; bit 6: loop; bit 7: alternate)", constVal<1>, effectVal}},
+    {0x22, {DIV_CMD_SU_SWEEP_ENABLE, "22xx: Toggle cutoff sweep (bit 0-6: speed; bit 7: direction is up)", constVal<2>, effectVal}},
+  };
+  const EffectHandler suCutoffHandler(DIV_CMD_C64_FINE_DUTY, "4xxx: Set cutoff (0 to FFF)", effectValLong<12>);
+  for (int i=0; i<16; i++) {
+    suEffectHandlerMap.emplace(0x40+i, suCutoffHandler);
+  }
 
   sysDefs[DIV_SYSTEM_SOUND_UNIT]=new DivSysDef(
     "tildearrow Sound Unit", NULL, 0xb5, 0, 8, false, true, 0, false,
@@ -1879,74 +1446,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
     {DIV_INS_SU, DIV_INS_SU, DIV_INS_SU, DIV_INS_SU, DIV_INS_SU, DIV_INS_SU, DIV_INS_SU, DIV_INS_SU},
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
-    [](int,unsigned char,unsigned char) -> bool {return false;},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x10: // waveform
-          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-          break;
-        case 0x12: // duty cycle
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        case 0x13: // resonance
-          dispatchCmd(DivCommand(DIV_CMD_C64_RESONANCE,ch,effectVal));
-          break;
-        case 0x14: // filter mode
-          dispatchCmd(DivCommand(DIV_CMD_C64_FILTER_MODE,ch,effectVal));
-          break;
-        case 0x15: // freq sweep
-          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_LOW,ch,0,effectVal));
-          break;
-        case 0x16: // freq sweep
-          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_HIGH,ch,0,effectVal));
-          break;
-        case 0x17: // vol sweep
-          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_LOW,ch,1,effectVal));
-          break;
-        case 0x18: // vol sweep
-          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_HIGH,ch,1,effectVal));
-          break;
-        case 0x19: // cut sweep
-          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_LOW,ch,2,effectVal));
-          break;
-        case 0x1a: // cut sweep
-          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_PERIOD_HIGH,ch,2,effectVal));
-          break;
-        case 0x1b: // freq sweep bound
-          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_BOUND,ch,0,effectVal));
-          break;
-        case 0x1c: // vol sweep bound
-          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_BOUND,ch,1,effectVal));
-          break;
-        case 0x1d: // cut sweep bound
-          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_BOUND,ch,2,effectVal));
-          break;
-        case 0x1e: // sync low
-          dispatchCmd(DivCommand(DIV_CMD_SU_SYNC_PERIOD_LOW,ch,effectVal));
-          break;
-        case 0x1f: // sync high
-          dispatchCmd(DivCommand(DIV_CMD_SU_SYNC_PERIOD_HIGH,ch,effectVal));
-          break;
-        case 0x20: // freq sweep enable
-          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_ENABLE,ch,0,effectVal));
-          break;
-        case 0x21: // vol sweep enable
-          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_ENABLE,ch,1,effectVal));
-          break;
-        case 0x22: // cut sweep enable
-          dispatchCmd(DivCommand(DIV_CMD_SU_SWEEP_ENABLE,ch,2,effectVal));
-          break;
-        case 0x40: case 0x41: case 0x42: case 0x43:
-        case 0x44: case 0x45: case 0x46: case 0x47:
-        case 0x48: case 0x49: case 0x4a: case 0x4b:
-        case 0x4c: case 0x4d: case 0x4e: case 0x4f: // cutoff
-          dispatchCmd(DivCommand(DIV_CMD_C64_FINE_CUTOFF,ch,(((effect&0x0f)<<8)|effectVal)*4));
-          break;
-        default:
-          return false;
-      }
-      return true;
-    }
+    {},
+    suEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_MSM6295]=new DivSysDef(
@@ -1957,15 +1458,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x20: // select rate
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x20, {DIV_CMD_SAMPLE_FREQ, "20xx: Set chip output rate (0: clock/132; 1: clock/165)"}},
     }
   );
 
@@ -1977,18 +1471,9 @@ void DivEngine::registerSystems() {
     {DIV_CH_PCM},
     {DIV_INS_AMIGA},
     {},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x20: // select rate
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_FREQ,ch,effectVal));
-          break;
-        case 0x21: // select clock
-          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_MODE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x20, {DIV_CMD_SAMPLE_FREQ, "20xx: Set frequency divider (0-2)"}},
+      {0x21, {DIV_CMD_SAMPLE_MODE, "21xx: Select clock rate (0: full; 1: half)"}},
     }
   );
 
@@ -2001,18 +1486,9 @@ void DivEngine::registerSystems() {
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
   );
 
-  auto namcoEffectHandler=[this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-    switch (effect) {
-      case 0x10: // select waveform
-        dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
-        break;
-      case 0x11: // noise mode
-        dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-        break;
-      default:
-        return false;
-    }
-    return true;
+  EffectHandlerMap namcoEffectHandlerMap={
+    {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+    {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Toggle noise mode"}},
   };
 
   sysDefs[DIV_SYSTEM_NAMCO]=new DivSysDef(
@@ -2023,7 +1499,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
     {},
-    namcoEffectHandler
+    namcoEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_NAMCO_15XX]=new DivSysDef(
@@ -2034,7 +1510,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
     {},
-    namcoEffectHandler
+    namcoEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_NAMCO_CUS30]=new DivSysDef(
@@ -2045,7 +1521,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
     {},
-    namcoEffectHandler
+    namcoEffectHandlerMap
   );
 
   // replace with an 8-channel chip in a future
@@ -2066,8 +1542,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AMIGA},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_NULL},
-    opn2EffectHandler,
-    fmPostEffectHandler
+    fmOPN2EffectHandlerMap,
+    fmOPN2PostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_YM2612_FRAC_EXT]=new DivSysDef(
@@ -2078,8 +1554,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_NOISE},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AMIGA, DIV_INS_FM},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_NULL, DIV_INS_NULL},
-    opn2EffectHandler,
-    fmPostEffectHandler
+    fmOPN2EffectHandlerMap,
+    fmOPN2PostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(

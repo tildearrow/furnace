@@ -127,7 +127,6 @@ class DivPlatformYM2608: public DivPlatformOPN {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);

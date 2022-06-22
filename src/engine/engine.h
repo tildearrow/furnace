@@ -32,6 +32,7 @@
 #include <thread>
 #include <mutex>
 #include <map>
+#include <unordered_map>
 #include <queue>
 
 #define addWarning(x) \
@@ -184,7 +185,26 @@ struct DivDispatchContainer {
     dcOffCompensation(false) {}
 };
 
-typedef std::function<bool(int,unsigned char,unsigned char)> EffectProcess;
+typedef int EffectValConversion(unsigned char,unsigned char);
+
+struct EffectHandler {
+  DivDispatchCmds dispatchCmd;
+  const char* description;
+  EffectValConversion* val;
+  EffectValConversion* val2;
+  EffectHandler(
+    DivDispatchCmds dispatchCmd_,
+    const char* description_,
+    EffectValConversion val_=NULL,
+    EffectValConversion val2_=NULL
+  ):
+  dispatchCmd(dispatchCmd_),
+  description(description_),
+  val(val_),
+  val2(val2_) {}
+};
+
+typedef std::unordered_map<unsigned char,const EffectHandler> EffectHandlerMap;
 
 struct DivSysDef {
   const char* name;
@@ -201,8 +221,8 @@ struct DivSysDef {
   // 0: primary
   // 1: alternate (usually PCM)
   DivInstrumentType chanInsType[DIV_MAX_CHANS][2];
-  EffectProcess effectFunc;
-  EffectProcess postEffectFunc;
+  const EffectHandlerMap effectHandlers;
+  const EffectHandlerMap postEffectHandlers;
   DivSysDef(
     const char* sysName, const char* sysNameJ, unsigned char fileID, unsigned char fileID_DMF, int chans,
     bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound, const char* desc,
@@ -211,8 +231,8 @@ struct DivSysDef {
     std::initializer_list<int> chTypes,
     std::initializer_list<DivInstrumentType> chInsType1,
     std::initializer_list<DivInstrumentType> chInsType2={},
-    EffectProcess fxHandler=[](int,unsigned char,unsigned char) -> bool {return false;},
-    EffectProcess postFxHandler=[](int,unsigned char,unsigned char) -> bool {return false;}):
+    const EffectHandlerMap fxHandlers_={},
+    const EffectHandlerMap postFxHandlers_={}):
     name(sysName),
     nameJ(sysNameJ),
     description(desc),
@@ -223,8 +243,8 @@ struct DivSysDef {
     isSTD(isSTDChip),
     isCompound(compound),
     vgmVersion(vgmVer),
-    effectFunc(fxHandler),
-    postEffectFunc(postFxHandler) {
+    effectHandlers(fxHandlers_),
+    postEffectHandlers(postFxHandlers_) {
     memset(chanNames,0,DIV_MAX_CHANS*sizeof(void*));
     memset(chanShortNames,0,DIV_MAX_CHANS*sizeof(void*));
     memset(chanTypes,0,DIV_MAX_CHANS*sizeof(int));

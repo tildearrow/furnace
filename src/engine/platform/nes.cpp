@@ -62,27 +62,6 @@ const char** DivPlatformNES::getRegisterSheet() {
   return regCheatSheetNES;
 }
 
-const char* DivPlatformNES::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x11:
-      return "11xx: Write to delta modulation counter (0 to 7F)";
-      break;
-    case 0x12:
-      return "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)";
-      break;
-    case 0x13:
-      return "13xy: Sweep up (x: time; y: shift)";
-      break;
-    case 0x14:
-      return "14xy: Sweep down (x: time; y: shift)";
-      break;
-    case 0x18:
-      return "18xx: Select PCM/DPCM mode (0: PCM; 1: DPCM)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformNES::doWrite(unsigned short addr, unsigned char data) {
   if (useNP) {
     nes1_NP->Write(addr,data);

@@ -61,27 +61,6 @@ const char** DivPlatformGB::getRegisterSheet() {
   return regCheatSheetGB;
 }
 
-const char* DivPlatformGB::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-    case 0x11:
-      return "11xx: Set noise length (0: long; 1: short)";
-      break;
-    case 0x12:
-      return "12xx: Set duty cycle (0 to 3)";
-      break;
-    case 0x13:
-      return "13xy: Setup sweep (x: time; y: shift)";
-      break;
-    case 0x14:
-      return "14xx: Set sweep direction (0: up; 1: down)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     GB_advance_cycles(gb,16);

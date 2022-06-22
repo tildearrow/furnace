@@ -56,21 +56,6 @@ const char** DivPlatformSAA1099::getRegisterSheet() {
   return regCheatSheetSAA;
 }
 
-const char* DivPlatformSAA1099::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xy: Set channel mode (x: noise; y: tone)";
-      break;
-    case 0x11:
-      return "11xx: Set noise frequency";
-      break;
-    case 0x12:
-      return "12xx: Setup envelope (refer to docs for more information)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformSAA1099::acquire_saaSound(short* bufL, short* bufR, size_t start, size_t len) {
   if (saaBufLen<len*2) {
     saaBufLen=len*2;

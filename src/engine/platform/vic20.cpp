@@ -39,15 +39,6 @@ const char** DivPlatformVIC20::getRegisterSheet() {
   return regCheatSheetVIC;
 }
 
-const char* DivPlatformVIC20::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformVIC20::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   const unsigned char loadFreq[3] = {0x7e, 0x7d, 0x7b};
   const unsigned char wavePatterns[16] = {

@@ -46,18 +46,6 @@ const char** DivPlatformVRC6::getRegisterSheet() {
   return regCheatSheetVRC6;
 }
 
-const char* DivPlatformVRC6::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x12:
-      return "12xx: Set duty cycle (pulse: 0 to 7)";
-      break;
-    case 0x17:
-      return "17xx: Toggle PCM mode (pulse channel)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     // PCM part

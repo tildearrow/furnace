@@ -37,15 +37,6 @@ const char** DivPlatformPET::getRegisterSheet() {
   return regCheatSheet6522;
 }
 
-const char* DivPlatformPET::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformPET::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   // high-level emulation of 6522 shift register for now
   int t2=regPool[8]*2+4;

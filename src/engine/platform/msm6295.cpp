@@ -30,15 +30,6 @@ const char** DivPlatformMSM6295::getRegisterSheet() {
   return NULL;
 }
 
-const char* DivPlatformMSM6295::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x20:
-      return "20xx: Set chip output rate (0: clock/132; 1: clock/165)";
-      break; 
-  }
-  return NULL;
-}
-
 u8 DivPlatformMSM6295::read_byte(u32 address) {
   if (adpcmMem==NULL || address>=getSampleMemCapacity(0)) {
     return 0;
