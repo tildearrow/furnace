@@ -19,6 +19,7 @@
 
 #include "gui.h"
 #include "imgui.h"
+#include <fmt/printf.h>
 #include <math.h>
 
 ImU32 Gradient2D::get(float x, float y) {
@@ -29,6 +30,19 @@ ImU32 Gradient2D::get(float x, float y) {
   if (yi<0) yi=0;
   if (yi>=(int)height) yi=height-1;
   return grad[yi*width+xi];
+}
+
+String Gradient2D::toString() {
+  String ret=fmt::sprintf("GRAD #%.2X%.2X%.2X%.2X",(unsigned char)(bgColor.x*255.0f),(unsigned char)(bgColor.y*255.0f),(unsigned char)(bgColor.z*255.0f),(unsigned char)(bgColor.w*255.0f));
+  for (Gradient2DPoint& i: points) {
+    ret+=fmt::sprintf(" %f,%f:%f,%f:#%.2X%.2X%.2X%.2X",i.x,i.y,i.distance,i.spread,(unsigned char)(i.color.x*255.0f),(unsigned char)(i.color.y*255.0f),(unsigned char)(i.color.z*255.0f),(unsigned char)(i.color.w*255.0f));
+  }
+  return ret;
+}
+
+// TODO: this one please
+bool Gradient2D::fromString(String val) {
+  return false;
 }
 
 void Gradient2D::render() {

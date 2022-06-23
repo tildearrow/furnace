@@ -4070,6 +4070,19 @@ bool FurnaceGUI::init() {
   pianoView=e->getConfInt("pianoView",pianoView);
   pianoInputPadMode=e->getConfInt("pianoInputPadMode",pianoInputPadMode);
 
+  chanOscCols=e->getConfInt("chanOscCols",3);
+  chanOscColorX=e->getConfInt("chanOscColorX",GUI_OSCREF_CENTER);
+  chanOscColorY=e->getConfInt("chanOscColorY",GUI_OSCREF_CENTER);
+  chanOscWindowSize=e->getConfFloat("chanOscWindowSize",20.0f);
+  chanOscWaveCorr=e->getConfBool("chanOscWaveCorr",true);
+  chanOscOptions=e->getConfBool("chanOscOptions",false);
+  chanOscColor.x=e->getConfFloat("chanOscColorR",1.0f);
+  chanOscColor.y=e->getConfFloat("chanOscColorG",1.0f);
+  chanOscColor.z=e->getConfFloat("chanOscColorB",1.0f);
+  chanOscColor.w=e->getConfFloat("chanOscColorA",1.0f);
+  chanOscUseGrad=e->getConfBool("chanOscUseGrad",false);
+  chanOscGrad.fromString(e->getConfString("chanOscGrad",""));
+
   syncSettings();
 
   if (settings.dpiScale>=0.5f) {
@@ -4293,6 +4306,20 @@ bool FurnaceGUI::finish() {
   e->setConf("pianoOffsetEdit",pianoOffsetEdit);
   e->setConf("pianoView",pianoView);
   e->setConf("pianoInputPadMode",pianoInputPadMode);
+
+  // commit per-chan osc state
+  e->setConf("chanOscCols",chanOscCols);
+  e->setConf("chanOscColorX",chanOscColorX);
+  e->setConf("chanOscColorY",chanOscColorY);
+  e->setConf("chanOscWindowSize",chanOscWindowSize);
+  e->setConf("chanOscWaveCorr",chanOscWaveCorr);
+  e->setConf("chanOscOptions",chanOscOptions);
+  e->setConf("chanOscColorR",chanOscColor.x);
+  e->setConf("chanOscColorG",chanOscColor.y);
+  e->setConf("chanOscColorB",chanOscColor.z);
+  e->setConf("chanOscColorA",chanOscColor.w);
+  e->setConf("chanOscUseGrad",chanOscUseGrad);
+  e->setConf("chanOscGrad",chanOscGrad.toString());
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];

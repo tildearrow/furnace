@@ -804,6 +804,8 @@ struct Gradient2D {
   std::unique_ptr<ImU32[]> grad;
   size_t width, height;
 
+  String toString();
+  bool fromString(String val);
   void render();
   ImU32 get(float x, float y);
   Gradient2D(size_t w, size_t h):

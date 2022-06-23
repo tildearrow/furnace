@@ -143,11 +143,13 @@ void FurnaceGUI::drawChanOsc() {
             ImGui::Image(chanOscGradTex,gradSize);
             ImVec2 gradLeftAbs=ImGui::GetItemRectMin();
             if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-              chanOscGrad.points.push_back(Gradient2DPoint(
-                (ImGui::GetMousePos().x-gradLeftAbs.x)/gradSize.x,
-                (ImGui::GetMousePos().y-gradLeftAbs.y)/gradSize.y
-              ));
-              updateChanOscGradTex=true;
+              if (chanOscGrad.points.size()<32) {
+                chanOscGrad.points.push_back(Gradient2DPoint(
+                  (ImGui::GetMousePos().x-gradLeftAbs.x)/gradSize.x,
+                  (ImGui::GetMousePos().y-gradLeftAbs.y)/gradSize.y
+                ));
+                updateChanOscGradTex=true;
+              }
             }
 
             ImVec2 oldCurPos=ImGui::GetCursorPos();
