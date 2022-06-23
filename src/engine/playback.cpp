@@ -988,6 +988,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         if (chan[i].vibratoDepth>0) {
           chan[i].vibratoPos+=chan[i].vibratoRate;
           if (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
+
+          chan[i].vibratoPosGiant+=chan[i].vibratoRate;
+          if (chan[i].vibratoPos>=512) chan[i].vibratoPos-=512;
+
           switch (chan[i].vibratoDir) {
             case 1: // up
               dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MAX(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));

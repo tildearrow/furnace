@@ -92,10 +92,12 @@ bool TAMidiOut::closeDevice() {
 }
 
 std::vector<String> TAMidiIn::listDevices() {
+  logW("attempting to list devices of abstract TAMidiIn!");
   return std::vector<String>();
 }
 
 std::vector<String> TAMidiOut::listDevices() {
+  logW("attempting to list devices of abstract TAMidiOut!");
   return std::vector<String>();
 }
 

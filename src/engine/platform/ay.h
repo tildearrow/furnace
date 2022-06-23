@@ -70,6 +70,9 @@ class DivPlatformAY8910: public DivDispatch {
     int delay;
 
     bool extMode;
+    unsigned int extClock;
+    unsigned char extDiv;
+
     bool stereo, sunsoft, intellivision, clockSel;
     bool ioPortA, ioPortB;
     unsigned char portAVal, portBVal;
@@ -88,6 +91,7 @@ class DivPlatformAY8910: public DivDispatch {
     friend void putDispatchChan(void*,int,int);
   
   public:
+    void setExtClockDiv(unsigned int eclk=COLOR_NTSC, unsigned char ediv=8);
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
@@ -111,5 +115,10 @@ class DivPlatformAY8910: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformAY8910(bool useExtMode=false, unsigned int eclk=COLOR_NTSC, unsigned char ediv=8):
+      DivDispatch(),
+      extMode(useExtMode),
+      extClock(eclk),
+      extDiv(ediv) {}
 };
 #endif

@@ -21,15 +21,15 @@
 #include "../engine.h"
 #include <math.h>
 
-#define rWrite(a,v) {regPool[(a)]=(v)&0xff; if((a)==10) {chan.sreg=(v); chan.cnt=2;}}
-
 #define CHIP_DIVIDER 16
 #define SAMP_DIVIDER 4
 
 const char* regCheatSheet6522[]={
   "T2L", "08",
+  "T2H", "09",
   "SR", "0A",
   "ACR", "0B",
+  "PCR", "0C",
   NULL
 };
 
@@ -46,26 +46,45 @@ const char* DivPlatformPET::getEffectName(unsigned char effect) {
   return NULL;
 }
 
+// high-level emulation of 6522 shift register and driver software for now
+void DivPlatformPET::rWrite(unsigned int addr, unsigned char val) {
+  bool hwSROutput=((regPool[11]>>2)&7)==4;
+  switch (addr) {
+    case 9:
+      // simulate phase reset from switching between hw/sw shift registers
+      if ((regPool[9]==0)^(val==0)) {
+        chan.sreg=chan.wave;
+      }
+      break;
+    case 10:
+      chan.sreg=val;
+      if (hwSROutput) chan.cnt=2;
+      break;
+  }
+  regPool[addr]=val;
+}
+
 void DivPlatformPET::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  // high-level emulation of 6522 shift register for now
-  int t2=regPool[8]*2+4;
-  if (((regPool[11]>>2)&7)==4) {
+  bool hwSROutput=((regPool[11]>>2)&7)==4;
+  if (chan.enable) {
+    int reload=regPool[8]*2+4;
+    if (!hwSROutput) {
+      reload+=regPool[9]*512;
+    }
     for (size_t h=start; h<start+len; h++) {
-      int cycs=SAMP_DIVIDER;
-      while (cycs>0) {
-        int adv=MIN(cycs,chan.cnt);
-        chan.cnt-=adv;
-        cycs-=adv;
-        if (chan.cnt==0) {
-          chan.out=(chan.sreg&1)*32767;
-          chan.sreg=(chan.sreg>>1)|((chan.sreg&1)<<7);
-          chan.cnt=t2;
-        }
+      if (SAMP_DIVIDER>chan.cnt) {
+        chan.out=(chan.sreg&1)*32767;
+        chan.sreg=(chan.sreg>>1)|((chan.sreg&1)<<7);
+        chan.cnt+=reload-SAMP_DIVIDER;
+      } else {
+        chan.cnt-=SAMP_DIVIDER;
       }
       bufL[h]=chan.out;
       bufR[h]=chan.out;
       oscBuf->data[oscBuf->needle++]=chan.out;
     }
+    // emulate driver writes to PCR
+    if (!hwSROutput) regPool[12]=chan.out?0xe0:0xc0;
   } else {
     chan.out=0;
     for (size_t h=start; h<start+len; h++) {
@@ -78,11 +97,10 @@ void DivPlatformPET::acquire(short* bufL, short* bufR, size_t start, size_t len)
 
 void DivPlatformPET::writeOutVol() {
   if (chan.active && !isMuted && chan.outVol>0) {
-    if (regPool[11]!=16) {
-      rWrite(11,16);
-      rWrite(10,chan.wave);
-    }
+    chan.enable=true;
+    rWrite(11,regPool[9]==0?16:0);
   } else {
+    chan.enable=false;
     rWrite(11,0);
   }
 }
@@ -118,21 +136,22 @@ void DivPlatformPET::tick(bool sysTick) {
       chan.freqChanged=true;
     }
   if (chan.freqChanged || chan.keyOn || chan.keyOff) {
-    chan.freq=parent->calcFreq(chan.baseFreq,chan.pitch,true,0,chan.pitch2,chipClock,CHIP_DIVIDER);
-    if (chan.freq>257) chan.freq=257;
-    if (chan.freq<2) chan.freq=2;
-    rWrite(8,chan.freq-2);
+    chan.freq=parent->calcFreq(chan.baseFreq,chan.pitch,true,0,chan.pitch2,chipClock,CHIP_DIVIDER)-2;
+    if (chan.freq>65535) chan.freq=65535;
+    if (chan.freq<0) chan.freq=0;
+    rWrite(8,chan.freq&0xff);
+    rWrite(9,chan.freq>>8);
     if (chan.keyOn) {
       if (!chan.std.vol.will) {
         chan.outVol=chan.vol;
-        writeOutVol();
       }
       chan.keyOn=false;
     }
     if (chan.keyOff) {
-      rWrite(11,0);
       chan.keyOff=false;
     }
+    // update mode setting and channel enable
+    writeOutVol();
     chan.freqChanged=false;
   }
 }

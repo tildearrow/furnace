@@ -95,8 +95,8 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned char** slots;
     const unsigned short* chanMap;
     const unsigned char* outChanMap;
-    double chipFreqBase;
-    int delay, oplType, chans, melodicChans, totalChans, adpcmChan, sampleBank;
+    double chipFreqBase, chipRateBase;
+    int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan, sampleBank;
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
@@ -107,7 +107,7 @@ class DivPlatformOPL: public DivDispatch {
 
     unsigned char lfoValue;
 
-    bool useYMFM, update4OpMask, pretendYMU;
+    bool useYMFM, update4OpMask, pretendYMU, downsample;
   
     short oldWrites[512];
     short pendingWrites[512];

@@ -70,7 +70,7 @@ class DivWaveSynth {
      * @param insChanged whether the instrument has changed.
      */
     void init(DivInstrument* which, int width, int height, bool insChanged=false);
-    void setEngine(DivEngine* engine);
+    void setEngine(DivEngine* engine, int waveFloor=0);
     DivWaveSynth():
       e(NULL),
       pos(0),

@@ -497,6 +497,7 @@ src/gui/editing.cpp
 src/gui/editControls.cpp
 src/gui/effectList.cpp
 src/gui/findReplace.cpp
+src/gui/gradient.cpp
 src/gui/insEdit.cpp
 src/gui/log.cpp
 src/gui/mixer.cpp
@@ -512,6 +513,7 @@ src/gui/sampleEdit.cpp
 src/gui/settings.cpp
 src/gui/songInfo.cpp
 src/gui/songNotes.cpp
+src/gui/spoiler.cpp
 src/gui/stats.cpp
 src/gui/subSongs.cpp
 src/gui/sysConf.cpp
@@ -522,8 +524,17 @@ src/gui/volMeter.cpp
 src/gui/gui.cpp
 )
 
+if (WIN32 OR APPLE)
+  list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.cpp)
+endif()
+
+if (WIN32)
+  list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_win.cpp)
+endif()
+
 if (APPLE)
   list(APPEND GUI_SOURCES src/gui/macstuff.m)
+  list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_cocoa.mm)
 endif()
 
 if (NOT WIN32 AND NOT APPLE)
@@ -551,6 +562,11 @@ if (BUILD_GUI)
     extern/IconFontCppHeaders
     extern/igfd
   )
+  if (WIN32 OR APPLE)
+    list(APPEND DEPENDENCIES_INCLUDE_DIRS
+      extern/nfd-modified/src/include
+    )
+  endif()
   list(APPEND DEPENDENCIES_DEFINES HAVE_GUI)
   message(STATUS "Building GUI")
 else()
@@ -572,7 +588,11 @@ endif()
 if (NOT MSVC)
   set(WARNING_FLAGS -Wall -Wextra -Wno-unused-parameter)
   if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    list(APPEND WARNING_FLAGS -Wno-cast-function-type)
+    if (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 8.0.0)
+      # nothing
+    else()
+      list(APPEND WARNING_FLAGS -Wno-cast-function-type)
+    endif()
   endif()
   if (WARNINGS_ARE_ERRORS)
     list(APPEND WARNING_FLAGS -Werror)

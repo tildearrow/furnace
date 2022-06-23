@@ -248,6 +248,7 @@ struct DivSample {
     offQSound(0),
     offX1_010(0),
     offSU(0),
+    offYMZ280B(0),
     offRF5C68(0),
     samples(0) {}
   ~DivSample();

@@ -3036,7 +3036,8 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
         if (ImGui::MenuItem("log viewer",BIND_FOR(GUI_ACTION_WINDOW_LOG),logOpen)) logOpen=!logOpen;
         if (ImGui::MenuItem("statistics",BIND_FOR(GUI_ACTION_WINDOW_STATS),statsOpen)) statsOpen=!statsOpen;
-
+        if (spoilerOpen) if (ImGui::MenuItem("spoiler",NULL,spoilerOpen)) spoilerOpen=!spoilerOpen;
+      
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("help")) {
@@ -3129,6 +3130,7 @@ bool FurnaceGUI::loop() {
 
       drawSubSongs();
       drawFindReplace();
+      drawSpoiler();
       drawPattern();
       drawEditControls();
       drawSongInfo();
@@ -3168,6 +3170,7 @@ bool FurnaceGUI::loop() {
 #endif
     }
 
+#ifndef NFD_NON_THREADED
     if (fileDialog->isOpen() && settings.sysFileDialog) {
       ImGui::OpenPopup("System File Dialog Pending");
     }
@@ -3180,6 +3183,7 @@ bool FurnaceGUI::loop() {
       dl->AddRectFilled(ImVec2(0.0f,0.0f),ImVec2(scrW*dpiScale,scrH*dpiScale),ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_MODAL_BACKDROP]));
       ImGui::EndPopup();
     }
+#endif
 
     if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       bool openOpen=false;
@@ -4090,6 +4094,7 @@ bool FurnaceGUI::init() {
   effectListOpen=e->getConfBool("effectListOpen",false);
   subSongsOpen=e->getConfBool("subSongsOpen",true);
   findOpen=e->getConfBool("findOpen",false);
+  spoilerOpen=e->getConfBool("spoilerOpen",false);
 
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
@@ -4121,6 +4126,19 @@ bool FurnaceGUI::init() {
   pianoOffsetEdit=e->getConfInt("pianoOffsetEdit",pianoOffsetEdit);
   pianoView=e->getConfInt("pianoView",pianoView);
   pianoInputPadMode=e->getConfInt("pianoInputPadMode",pianoInputPadMode);
+
+  chanOscCols=e->getConfInt("chanOscCols",3);
+  chanOscColorX=e->getConfInt("chanOscColorX",GUI_OSCREF_CENTER);
+  chanOscColorY=e->getConfInt("chanOscColorY",GUI_OSCREF_CENTER);
+  chanOscWindowSize=e->getConfFloat("chanOscWindowSize",20.0f);
+  chanOscWaveCorr=e->getConfBool("chanOscWaveCorr",true);
+  chanOscOptions=e->getConfBool("chanOscOptions",false);
+  chanOscColor.x=e->getConfFloat("chanOscColorR",1.0f);
+  chanOscColor.y=e->getConfFloat("chanOscColorG",1.0f);
+  chanOscColor.z=e->getConfFloat("chanOscColorB",1.0f);
+  chanOscColor.w=e->getConfFloat("chanOscColorA",1.0f);
+  chanOscUseGrad=e->getConfBool("chanOscUseGrad",false);
+  chanOscGrad.fromString(e->getConfString("chanOscGrad",""));
 
   syncSettings();
 
@@ -4162,6 +4180,7 @@ bool FurnaceGUI::init() {
 
 #ifndef __APPLE__
   if (settings.dpiScale<0.5f) {
+    // TODO: replace with a function to actually detect the display scaling factor as it's unreliable.
     SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(sdlWin),&dpiScaleF,NULL,NULL);
     dpiScale=round(dpiScaleF/96.0f);
     if (dpiScale<1) dpiScale=1;
@@ -4313,6 +4332,7 @@ bool FurnaceGUI::finish() {
   e->setConf("effectListOpen",effectListOpen);
   e->setConf("subSongsOpen",subSongsOpen);
   e->setConf("findOpen",findOpen);
+  e->setConf("spoilerOpen",spoilerOpen);
 
   // commit last window size
   e->setConf("lastWindowWidth",scrW);
@@ -4344,6 +4364,20 @@ bool FurnaceGUI::finish() {
   e->setConf("pianoOffsetEdit",pianoOffsetEdit);
   e->setConf("pianoView",pianoView);
   e->setConf("pianoInputPadMode",pianoInputPadMode);
+
+  // commit per-chan osc state
+  e->setConf("chanOscCols",chanOscCols);
+  e->setConf("chanOscColorX",chanOscColorX);
+  e->setConf("chanOscColorY",chanOscColorY);
+  e->setConf("chanOscWindowSize",chanOscWindowSize);
+  e->setConf("chanOscWaveCorr",chanOscWaveCorr);
+  e->setConf("chanOscOptions",chanOscOptions);
+  e->setConf("chanOscColorR",chanOscColor.x);
+  e->setConf("chanOscColorG",chanOscColor.y);
+  e->setConf("chanOscColorB",chanOscColor.z);
+  e->setConf("chanOscColorA",chanOscColor.w);
+  e->setConf("chanOscUseGrad",chanOscUseGrad);
+  e->setConf("chanOscGrad",chanOscGrad.toString());
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
@@ -4431,6 +4465,10 @@ FurnaceGUI::FurnaceGUI():
   latchTarget(0),
   wheelX(0),
   wheelY(0),
+  dragSourceX(0),
+  dragSourceY(0),
+  dragDestinationX(0),
+  dragDestinationY(0),
   exportFadeOut(5.0),
   editControlsOpen(true),
   ordersOpen(true),
@@ -4460,8 +4498,10 @@ FurnaceGUI::FurnaceGUI():
   chanOscOpen(false),
   subSongsOpen(true),
   findOpen(false),
+  spoilerOpen(false),
   selecting(false),
   selectingFull(false),
+  dragging(false),
   curNibble(false),
   orderNibble(false),
   followOrders(true),
@@ -4491,6 +4531,26 @@ FurnaceGUI::FurnaceGUI():
   wavePreviewLen(32),
   wavePreviewHeight(255),
   wavePreviewInit(true),
+  pgSys(0),
+  pgAddr(0),
+  pgVal(0),
+  curQueryRangeX(false),
+  curQueryBackwards(false),
+  curQueryRangeXMin(0), curQueryRangeXMax(0),
+  curQueryRangeY(0),
+  curQueryEffectPos(0),
+  queryReplaceEffectCount(0),
+  queryReplaceEffectPos(0),
+  queryReplaceNoteMode(0),
+  queryReplaceInsMode(0),
+  queryReplaceVolMode(0),
+  queryReplaceNote(0),
+  queryReplaceIns(0),
+  queryReplaceVol(0),
+  queryReplaceNoteDo(false),
+  queryReplaceInsDo(false),
+  queryReplaceVolDo(false),
+  queryViewingResults(false),
   wavePreviewOn(false),
   wavePreviewKey((SDL_Scancode)0),
   wavePreviewNote(0),
@@ -4600,8 +4660,16 @@ FurnaceGUI::FurnaceGUI():
   oscWindowSize(20.0f),
   oscZoomSlider(false),
   chanOscCols(3),
+  chanOscColorX(GUI_OSCREF_CENTER),
+  chanOscColorY(GUI_OSCREF_CENTER),
   chanOscWindowSize(20.0f),
   chanOscWaveCorr(true),
+  chanOscOptions(false),
+  updateChanOscGradTex(true),
+  chanOscUseGrad(false),
+  chanOscColor(1.0f,1.0f,1.0f,1.0f),
+  chanOscGrad(64,64),
+  chanOscGradTex(NULL),
   followLog(true),
 #ifdef IS_MOBILE
   pianoOctaves(7),
@@ -4678,10 +4746,22 @@ FurnaceGUI::FurnaceGUI():
 
   memset(chanOscLP0,0,sizeof(float)*DIV_MAX_CHANS);
   memset(chanOscLP1,0,sizeof(float)*DIV_MAX_CHANS);
+  memset(chanOscVol,0,sizeof(float)*DIV_MAX_CHANS);
+  memset(chanOscPitch,0,sizeof(float)*DIV_MAX_CHANS);
+  memset(chanOscBright,0,sizeof(float)*DIV_MAX_CHANS);
   memset(lastCorrPos,0,sizeof(short)*DIV_MAX_CHANS);
 
   memset(acedData,0,23);
 
   memset(pianoKeyHit,0,sizeof(float)*180);
   memset(pianoKeyPressed,0,sizeof(bool)*180);
+
+  memset(queryReplaceEffectMode,0,sizeof(int)*8);
+  memset(queryReplaceEffectValMode,0,sizeof(int)*8);
+  memset(queryReplaceEffect,0,sizeof(int)*8);
+  memset(queryReplaceEffectVal,0,sizeof(int)*8);
+  memset(queryReplaceEffectDo,0,sizeof(bool)*8);
+  memset(queryReplaceEffectValDo,0,sizeof(bool)*8);
+
+  chanOscGrad.bgColor=ImVec4(0.0f,0.0f,0.0f,1.0f);
 }

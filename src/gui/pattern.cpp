@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <imgui.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "../ta-log.h"
@@ -29,6 +28,30 @@
 
 inline float randRange(float min, float max) {
   return min+((float)rand()/(float)RAND_MAX)*(max-min);
+}
+
+void _pushPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
+  if (cmd!=NULL) {
+    if (cmd->UserCallbackData!=NULL) {
+      ((FurnaceGUI*)cmd->UserCallbackData)->pushPartBlend();
+    }
+  }
+}
+
+void _popPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
+  if (cmd!=NULL) {
+    if (cmd->UserCallbackData!=NULL) {
+      ((FurnaceGUI*)cmd->UserCallbackData)->popPartBlend();
+    }
+  }
+}
+
+void FurnaceGUI::pushPartBlend() {
+  SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_ADD);
+}
+
+void FurnaceGUI::popPartBlend() {
+  SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_BLEND);
 }
 
 // draw a pattern row
@@ -692,11 +715,14 @@ void FurnaceGUI::drawPattern() {
         ImU32* color=noteGrad;
 
         switch (i.cmd) {
-          case DIV_CMD_NOTE_ON:
+          case DIV_CMD_NOTE_ON: {
+            float strength=CLAMP(i.value,0,119);
             partIcon=ICON_FA_ASTERISK;
-            life=96.0f;
+            life=80.0f+((i.value==DIV_NOTE_NULL)?0.0f:(strength*0.3f));
             lifeSpeed=3.0f;
+            num=6+(strength/16);
             break;
+          }
           case DIV_CMD_LEGATO:
             partIcon=ICON_FA_COG;
             color=insGrad;
@@ -794,7 +820,7 @@ void FurnaceGUI::drawPattern() {
 
       float frameTime=ImGui::GetIO().DeltaTime*60.0f;
 
-      // note slides
+      // note slides and vibrato
       ImVec2 arrowPoints[7];
       if (e->isPlaying()) for (int i=0; i<chans; i++) {
         if (!e->curSubSong->chanShow[i]) continue;
@@ -849,11 +875,30 @@ void FurnaceGUI::drawPattern() {
             }
           }
         }
+        if (ch->vibratoDepth>0) {
+          ImVec4 col=uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH];
+          col.w*=0.2;
+          float width=patChanX[i+1]-patChanX[i];
+
+          particles.push_back(Particle(
+            pitchGrad,
+            ICON_FA_GLASS,
+            off.x+patChanX[i]+(width*0.5+0.5*sin(M_PI*(float)ch->vibratoPosGiant/64.0f)*width)-scrollX,
+            off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,patFont->FontSize),
+            randRange(-4.0f,4.0f),
+            2.0f*(3.0f+(rand()%5)+ch->vibratoRate),
+            0.4f,
+            1.0f,
+            128.0f,
+            4.0f
+          ));
+        }
       }
 
       // particle simulation
       ImDrawList* fdl=ImGui::GetForegroundDrawList();
       if (!particles.empty()) WAKE_UP;
+      fdl->AddCallback(_pushPartBlend,this);
       for (size_t i=0; i<particles.size(); i++) {
         Particle& part=particles[i];
         if (part.update(frameTime)) {
@@ -870,6 +915,7 @@ void FurnaceGUI::drawPattern() {
           i--;
         }
       }
+      fdl->AddCallback(_popPartBlend,this);
     }
 
     ImGui::PopStyleColor(3);

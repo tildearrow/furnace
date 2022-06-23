@@ -31,6 +31,7 @@
 #include <initializer_list>
 #include <map>
 #include <future>
+#include <memory>
 #include <mutex>
 #include <tuple>
 #include <vector>
@@ -247,7 +248,8 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_EFFECT_LIST,
   GUI_WINDOW_CHAN_OSC,
   GUI_WINDOW_SUBSONGS,
-  GUI_WINDOW_FIND
+  GUI_WINDOW_FIND,
+  GUI_WINDOW_SPOILER
 };
 
 enum FurnaceGUIFileDialogs {
@@ -525,6 +527,21 @@ enum FurnaceGUIActions {
   GUI_ACTION_MAX
 };
 
+enum FurnaceGUIChanOscRef {
+  GUI_OSCREF_NONE=0,
+  GUI_OSCREF_CENTER,
+  GUI_OSCREF_FULL,
+
+  GUI_OSCREF_FREQUENCY,
+  GUI_OSCREF_VOLUME,
+  GUI_OSCREF_CHANNEL,
+  GUI_OSCREF_BRIGHT,
+
+  GUI_OSCREF_NOTE_TRIGGER,
+
+  GUI_OSCREF_MAX
+};
+
 enum PasteMode {
   GUI_PASTE_MODE_NORMAL=0,
   GUI_PASTE_MODE_MIX_FG,
@@ -568,7 +585,9 @@ enum ActionType {
   GUI_UNDO_PATTERN_INVERT_VAL,
   GUI_UNDO_PATTERN_FLIP,
   GUI_UNDO_PATTERN_COLLAPSE,
-  GUI_UNDO_PATTERN_EXPAND
+  GUI_UNDO_PATTERN_EXPAND,
+  GUI_UNDO_PATTERN_DRAG,
+  GUI_UNDO_REPLACE
 };
 
 struct UndoPatternData {
@@ -756,6 +775,49 @@ struct TouchPoint {
     z(pressure) {}
 };
 
+struct Gradient2DPoint {
+  ImVec4 color;
+  float x, y, prevX, prevY;
+  float spread, distance;
+  bool selected, grab;
+  Gradient2DPoint(float xPos, float yPos):
+    color(1,1,1,1),
+    x(xPos),
+    y(yPos),
+    prevX(0.0f),
+    prevY(0.0f),
+    spread(0.0f),
+    distance(0.5f),
+    selected(false),
+    grab(false) {}
+  Gradient2DPoint():
+    color(1,1,1,1),
+    x(0.0f),
+    y(0.0f),
+    spread(0.0f),
+    distance(0.5f),
+    selected(false),
+    grab(false) {}
+};
+
+struct Gradient2D {
+  ImVec4 bgColor;
+  std::vector<Gradient2DPoint> points;
+  std::unique_ptr<ImU32[]> grad;
+  size_t width, height;
+
+  String toString();
+  bool fromString(String val);
+  void render();
+  ImU32 get(float x, float y);
+  Gradient2D(size_t w, size_t h):
+    bgColor(0.0f,0.0f,0.0f,0.0f),
+    width(w),
+    height(h) {
+    grad=std::make_unique<ImU32[]>(width*height);
+  }
+};
+
 struct FurnaceGUISysDef {
   const char* name;
   std::vector<int> definition;
@@ -820,6 +882,7 @@ enum FurnaceGUIFindQueryModes {
 enum FurnaceGUIFindQueryReplaceModes {
   GUI_QUERY_REPLACE_SET=0,
   GUI_QUERY_REPLACE_ADD,
+  GUI_QUERY_REPLACE_ADD_OVERFLOW,
   GUI_QUERY_REPLACE_CLEAR,
 
   GUI_QUERY_REPLACE_MAX
@@ -855,6 +918,20 @@ struct FurnaceGUIFindQuery {
     memset(effectVal,0,8);
     memset(effectValMax,0,8);
   }
+};
+
+struct FurnaceGUIQueryResult {
+  int subsong, order, x, y;
+  FurnaceGUIQueryResult():
+    subsong(0),
+    order(0),
+    x(0),
+    y(0) {}
+  FurnaceGUIQueryResult(int ss, int o, int xPos, int yPos):
+    subsong(ss),
+    order(o),
+    x(xPos),
+    y(yPos) {}
 };
 
 class FurnaceGUI {
@@ -1011,6 +1088,7 @@ class FurnaceGUI {
     int effectValCellSpacing;
     int doubleClickColumn;
     int blankIns;
+    int dragMovesSelection;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1111,6 +1189,7 @@ class FurnaceGUI {
       effectValCellSpacing(0),
       doubleClickColumn(1),
       blankIns(0),
+      dragMovesSelection(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1125,7 +1204,7 @@ class FurnaceGUI {
 
   int curIns, curWave, curSample, curOctave, curOrder, prevIns, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory, latchTarget;
-  int wheelX, wheelY;
+  int wheelX, wheelY, dragSourceX, dragSourceY, dragDestinationX, dragDestinationY;
 
   double exportFadeOut;
 
@@ -1133,10 +1212,10 @@ class FurnaceGUI {
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
-  bool subSongsOpen, findOpen;
+  bool subSongsOpen, findOpen, spoilerOpen;
 
-  SelectionPoint selStart, selEnd, cursor;
-  bool selecting, selectingFull, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
+  SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
+  bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   float peak[2];
@@ -1173,10 +1252,30 @@ class FurnaceGUI {
   int pgSys, pgAddr, pgVal;
 
   std::vector<FurnaceGUIFindQuery> curQuery;
-  bool curQueryRangeX, curQueryFromStart, curQueryBackwards;
+  std::vector<FurnaceGUIQueryResult> curQueryResults;
+  bool curQueryRangeX, curQueryBackwards;
   int curQueryRangeXMin, curQueryRangeXMax;
   int curQueryRangeY;
   int curQueryEffectPos;
+
+  int queryReplaceEffectCount;
+  int queryReplaceEffectPos;
+  int queryReplaceNoteMode;
+  int queryReplaceInsMode;
+  int queryReplaceVolMode;
+  int queryReplaceEffectMode[8];
+  int queryReplaceEffectValMode[8];
+  int queryReplaceNote;
+  int queryReplaceIns;
+  int queryReplaceVol;
+  int queryReplaceEffect[8];
+  int queryReplaceEffectVal[8];
+  bool queryReplaceNoteDo;
+  bool queryReplaceInsDo;
+  bool queryReplaceVolDo;
+  bool queryReplaceEffectDo[8];
+  bool queryReplaceEffectValDo[8];
+  bool queryViewingResults;
 
   struct ActiveNote {
     int chan;
@@ -1305,11 +1404,17 @@ class FurnaceGUI {
   bool oscZoomSlider;
 
   // per-channel oscilloscope
-  int chanOscCols;
+  int chanOscCols, chanOscColorX, chanOscColorY;
   float chanOscWindowSize;
-  bool chanOscWaveCorr;
+  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad;
+  ImVec4 chanOscColor;
+  Gradient2D chanOscGrad;
+  SDL_Texture* chanOscGradTex;
   float chanOscLP0[DIV_MAX_CHANS];
   float chanOscLP1[DIV_MAX_CHANS];
+  float chanOscVol[DIV_MAX_CHANS];
+  float chanOscPitch[DIV_MAX_CHANS];
+  float chanOscBright[DIV_MAX_CHANS];
   unsigned short lastNeedlePos[DIV_MAX_CHANS];
   unsigned short lastCorrPos[DIV_MAX_CHANS];
   struct ChanOscStatus {
@@ -1409,6 +1514,7 @@ class FurnaceGUI {
   void drawEffectList();
   void drawSubSongs();
   void drawFindReplace();
+  void drawSpoiler();
 
   void parseKeybinds();
   void promptKey(int which);
@@ -1421,6 +1527,8 @@ class FurnaceGUI {
   bool importLayout(String path);
   bool exportLayout(String path);
 
+  float computeGradPos(int type, int chan);
+
   void resetColors();
   void resetKeybinds();
 
@@ -1432,6 +1540,7 @@ class FurnaceGUI {
   void startSelection(int xCoarse, int xFine, int y, bool fullRow=false);
   void updateSelection(int xCoarse, int xFine, int y, bool fullRow=false);
   void finishSelection();
+  void finishDrag();
 
   void moveCursor(int x, int y, bool select);
   void moveCursorPrevChannel(bool overflow);
@@ -1459,6 +1568,9 @@ class FurnaceGUI {
   void doExpand(int multiplier);
   void doUndo();
   void doRedo();
+  void doFind();
+  void doReplace();
+  void doDrag();
   void editOptions(bool topMenu);
   void noteInput(int num, int key, int vol=-1);
   void valueInput(int num, bool direct=false, int target=-1);
@@ -1505,6 +1617,8 @@ class FurnaceGUI {
     void addScroll(int amount);
     void setFileName(String name);
     void runBackupThread();
+    void pushPartBlend();
+    void popPartBlend();
     int processEvent(SDL_Event* ev);
     bool loop();
     bool finish();
