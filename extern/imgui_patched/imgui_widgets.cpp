@@ -4545,27 +4545,52 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
         // We cannot test for 'backup_current_text_length != apply_new_text_length' here because we have no guarantee that the size
         // of our owned buffer matches the size of the string object held by the user, and by design we allow InputText() to be used
         // without any storage on user's side.
-        IM_ASSERT(apply_new_text_length >= 0);
-        if (is_resizable)
-        {
-            ImGuiInputTextCallbackData callback_data;
-            callback_data.EventFlag = ImGuiInputTextFlags_CallbackResize;
-            callback_data.Flags = flags;
-            callback_data.Buf = buf;
-            callback_data.BufTextLen = apply_new_text_length;
-            callback_data.BufSize = ImMax(buf_size, apply_new_text_length + 1);
-            callback_data.UserData = callback_user_data;
-            callback(&callback_data);
-            buf = callback_data.Buf;
-            buf_size = callback_data.BufSize;
-            apply_new_text_length = ImMin(callback_data.BufTextLen, buf_size - 1);
-            IM_ASSERT(apply_new_text_length <= buf_size);
-        }
-        //IMGUI_DEBUG_LOG("InputText(\"%s\"): apply_new_text length %d\n", label, apply_new_text_length);
 
-        // If the underlying buffer resize was denied or not carried to the next frame, apply_new_text_length+1 may be >= buf_size.
-        ImStrncpy(buf, apply_new_text, ImMin(apply_new_text_length + 1, buf_size));
-        value_changed = true;
+        // don't assert because maybe the user passes an invalid UTF-8 string...
+        if (apply_new_text_length >= 0) {
+          if (is_resizable)
+          {
+              ImGuiInputTextCallbackData callback_data;
+              callback_data.EventFlag = ImGuiInputTextFlags_CallbackResize;
+              callback_data.Flags = flags;
+              callback_data.Buf = buf;
+              callback_data.BufTextLen = apply_new_text_length;
+              callback_data.BufSize = ImMax(buf_size, apply_new_text_length + 1);
+              callback_data.UserData = callback_user_data;
+              callback(&callback_data);
+              buf = callback_data.Buf;
+              buf_size = callback_data.BufSize;
+              apply_new_text_length = ImMin(callback_data.BufTextLen, buf_size - 1);
+              IM_ASSERT(apply_new_text_length <= buf_size);
+          }
+          //IMGUI_DEBUG_LOG("InputText(\"%s\"): apply_new_text length %d\n", label, apply_new_text_length);
+
+          // If the underlying buffer resize was denied or not carried to the next frame, apply_new_text_length+1 may be >= buf_size.
+          ImStrncpy(buf, apply_new_text, ImMin(apply_new_text_length + 1, buf_size));
+          value_changed = true;
+        } else {
+          printf("invalid buffer!\n");
+          if (is_resizable)
+          {
+              ImGuiInputTextCallbackData callback_data;
+              callback_data.EventFlag = ImGuiInputTextFlags_CallbackResize;
+              callback_data.Flags = flags;
+              callback_data.Buf = buf;
+              callback_data.BufTextLen = 0;
+              callback_data.BufSize = ImMax(buf_size, 1);
+              callback_data.UserData = callback_user_data;
+              callback(&callback_data);
+              buf = callback_data.Buf;
+              buf_size = callback_data.BufSize;
+              apply_new_text_length = 0;
+              IM_ASSERT(apply_new_text_length <= buf_size);
+          }
+          //IMGUI_DEBUG_LOG("InputText(\"%s\"): apply_new_text length %d\n", label, apply_new_text_length);
+
+          // clear the buffer
+          ImStrncpy(buf, "", 1);
+          value_changed = true;
+        }
     }
 
     // Release active ID at the end of the function (so e.g. pressing Return still does a final application of the value)
