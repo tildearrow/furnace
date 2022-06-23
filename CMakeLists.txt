@@ -252,7 +252,7 @@ src/audio/midi.cpp
 )
 
 if (USE_SDL2)
-  list(APPEND AUDIO_SOURCES src/audio/sdl.cpp)
+  list(APPEND AUDIO_SOURCES src/audio/sdlAudio.cpp)
 endif()
 
 if (WITH_JACK)

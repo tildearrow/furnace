@@ -24,7 +24,7 @@
 #include "../ta-log.h"
 #include "../fileutils.h"
 #ifdef HAVE_SDL2
-#include "../audio/sdl.h"
+#include "../audio/sdlAudio.h"
 #endif
 #include <stdexcept>
 #ifndef _WIN32
