@@ -53,6 +53,9 @@ bool Gradient2D::fromString(String val) {
       cur+=i;
     }
   }
+  if (!cur.empty()) {
+    split.push_back(cur);
+  }
 
   if (split.size()<2) return false;
 
@@ -60,6 +63,7 @@ bool Gradient2D::fromString(String val) {
 
   ImU32 bgColorH=0;
   if (sscanf(split[1].c_str(),"#%X",&bgColorH)!=1) return false;
+  bgColorH=(bgColorH>>24)|((bgColorH>>8)&0xff00)|((bgColorH<<8)&0xff0000)|(bgColorH<<24);
 
   bgColor=ImGui::ColorConvertU32ToFloat4(bgColorH);
 
@@ -69,6 +73,8 @@ bool Gradient2D::fromString(String val) {
     if (sscanf(split[i].c_str(),"%f,%f:%f,%f:#%X",&point.x,&point.y,&point.distance,&point.spread,&colorH)!=5) {
       return false;
     }
+    colorH=(colorH>>24)|((colorH>>8)&0xff00)|((colorH<<8)&0xff0000)|(colorH<<24);
+
     point.color=ImGui::ColorConvertU32ToFloat4(colorH);
     points.push_back(point);
   }
