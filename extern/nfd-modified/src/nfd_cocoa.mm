@@ -14,7 +14,7 @@
 //
 // might as well make Objective-Ruswift++...
 
-static NSArray *BuildAllowedFileTypes( const char *filterList )
+static NSArray *BuildAllowedFileTypes( const std::vector<std::string>& filterList )
 {
     // Commas and semicolons are the same thing on this platform
 
@@ -56,7 +56,7 @@ static NSArray *BuildAllowedFileTypes( const char *filterList )
     return returnArray;
 }
 
-static void AddFilterListToDialog( NSSavePanel *dialog, const char *filterList )
+static void AddFilterListToDialog( NSSavePanel *dialog, const std::vector<std::string>& filterList )
 {
     if ( !filterList || strlen(filterList) == 0 )
         return;
@@ -130,7 +130,7 @@ static nfdresult_t AllocPathSet( NSArray *urls, nfdpathset_t *pathset )
 /* public */
 
 
-nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
+nfdresult_t NFD_OpenDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
                             nfdchar_t **outPath,
                             nfdselcallback_t selCallback )
@@ -173,7 +173,7 @@ nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
 }
 
 
-nfdresult_t NFD_OpenDialogMultiple( const nfdchar_t *filterList,
+nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
                                     const nfdchar_t *defaultPath,
                                     nfdpathset_t *outPaths,
                                     nfdselcallback_t selCallback )
@@ -218,7 +218,7 @@ nfdresult_t NFD_OpenDialogMultiple( const nfdchar_t *filterList,
 }
 
 
-nfdresult_t NFD_SaveDialog( const nfdchar_t *filterList,
+nfdresult_t NFD_SaveDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
                             nfdchar_t **outPath,
                             nfdselcallback_t selCallback )

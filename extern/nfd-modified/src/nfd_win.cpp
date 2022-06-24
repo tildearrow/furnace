@@ -197,44 +197,19 @@ static void CopyNFDCharToWChar( const nfdchar_t *inStr, wchar_t **outStr )
 #endif
 }
 
-
-/* ext is in format "jpg", no wildcards or separators */
-static int AppendExtensionToSpecBuf( const char *ext, char *specBuf, size_t specBufLen )
-{
-    const char SEP[] = ";";
-    assert( specBufLen > strlen(ext)+3 );
-    
-    if ( strlen(specBuf) > 0 )
-    {
-        strncat( specBuf, SEP, specBufLen - strlen(specBuf) - 1 );
-        specBufLen += strlen(SEP);
-    }
-
-    char extWildcard[NFD_MAX_STRLEN];
-    int bytesWritten = sprintf_s( extWildcard, NFD_MAX_STRLEN, "*.%s", ext );
-    assert( bytesWritten == (int)(strlen(ext)+2) );
-    _NFD_UNUSED(bytesWritten);
-    
-    strncat( specBuf, extWildcard, specBufLen - strlen(specBuf) - 1 );
-
-    return NFD_OKAY;
-}
-
-static nfdresult_t AddFiltersToDialog( ::IFileDialog *fileOpenDialog, const char *filterList )
+static nfdresult_t AddFiltersToDialog( ::IFileDialog *fileOpenDialog, const std::vector<std::string>& filterList )
 {
     const wchar_t WILDCARD[] = L"*.*";
 
-    if ( !filterList || strlen(filterList) == 0 )
+    if (filterList.empty())
         return NFD_OKAY;
 
+    // list size has to be an even number (name/filter)
+    if (filterList.size()&1)
+        return NFD_ERROR;
+
     // Count rows to alloc
-    UINT filterCount = 1; /* guaranteed to have one filter on a correct, non-empty parse */
-    const char *p_filterList;
-    for ( p_filterList = filterList; *p_filterList; ++p_filterList )
-    {
-        if ( *p_filterList == ';' )
-            ++filterCount;
-    }    
+    UINT filterCount = filterList.size()>>1; /* guaranteed to have one filter on a correct, non-empty parse */
 
     assert(filterCount);
     if ( !filterCount )
@@ -256,43 +231,17 @@ static nfdresult_t AddFiltersToDialog( ::IFileDialog *fileOpenDialog, const char
     }
 
     size_t specIdx = 0;
-    p_filterList = filterList;
-    char typebuf[NFD_MAX_STRLEN] = {0};  /* one per comma or semicolon */
-    char *p_typebuf = typebuf;
 
-    char specbuf[NFD_MAX_STRLEN] = {0}; /* one per semicolon */
+    for (size_t i=0; i<filterList.size(); i+=2) {
+      String name=filterList[i];
+      String spec=filterList[i+1];
+      for (char& i: spec) {
+        if (i==' ') i=',';
+      }
 
-    while ( 1 ) 
-    {
-        if ( NFDi_IsFilterSegmentChar(*p_filterList) )
-        {
-            /* append a type to the specbuf (pending filter) */
-            AppendExtensionToSpecBuf( typebuf, specbuf, NFD_MAX_STRLEN );            
-
-            p_typebuf = typebuf;
-            memset( typebuf, 0, sizeof(char)*NFD_MAX_STRLEN );
-        }
-
-        if ( *p_filterList == ';' || *p_filterList == '\0' )
-        {
-            /* end of filter -- add it to specList */
-                                
-            CopyNFDCharToWChar( specbuf, (wchar_t**)&specList[specIdx].pszName );
-            CopyNFDCharToWChar( specbuf, (wchar_t**)&specList[specIdx].pszSpec );
-                        
-            memset( specbuf, 0, sizeof(char)*NFD_MAX_STRLEN );
-            ++specIdx;
-            if ( specIdx == filterCount )
-                break;
-        }
-
-        if ( !NFDi_IsFilterSegmentChar( *p_filterList ))
-        {
-            *p_typebuf = *p_filterList;
-            ++p_typebuf;
-        }
-
-        ++p_filterList;
+      CopyNFDCharToWChar( name.c_str(), (wchar_t**)&specList[specIdx].pszName );
+      CopyNFDCharToWChar( spec.c_str(), (wchar_t**)&specList[specIdx].pszSpec );
+      ++specIdx;
     }
 
     /* Add wildcard */
@@ -450,7 +399,7 @@ static nfdresult_t SetDefaultPath( IFileDialog *dialog, const char *defaultPath 
 /* public */
 
 
-nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
+nfdresult_t NFD_OpenDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
                             nfdchar_t **outPath,
                             nfdselcallback_t selCallback )
@@ -558,7 +507,7 @@ end:
     return nfdResult;
 }
 
-nfdresult_t NFD_OpenDialogMultiple( const nfdchar_t *filterList,
+nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
                                     const nfdchar_t *defaultPath,
                                     nfdpathset_t *outPaths,
                                     nfdselcallback_t selCallback )
@@ -653,7 +602,7 @@ end:
     return nfdResult;
 }
 
-nfdresult_t NFD_SaveDialog( const nfdchar_t *filterList,
+nfdresult_t NFD_SaveDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
                             nfdchar_t **outPath,
                             nfdselcallback_t selCallback )
