@@ -2221,8 +2221,14 @@ int DivEngine::addSampleFromFile(const char* path) {
     buf=new short[si.channels*si.frames];
     sampleLen=sizeof(short);
   }
-  if (sf_read_raw(f,buf,si.frames*si.channels*sampleLen)!=(si.frames*si.channels*sampleLen)) {
-    logW("sample read size mismatch!");
+  if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8 || (si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_FLOAT) {
+    if (sf_read_raw(f,buf,si.frames*si.channels*sampleLen)!=(si.frames*si.channels*sampleLen)) {
+      logW("sample read size mismatch!");
+    }
+  } else {
+    if (sf_read_short(f,(short*)buf,si.frames*si.channels)!=(si.frames*si.channels)) {
+      logW("sample read size mismatch!");
+    }
   }
   DivSample* sample=new DivSample;
   int sampleCount=(int)song.sample.size();
