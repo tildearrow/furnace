@@ -22,32 +22,26 @@ static NSArray *BuildAllowedFileTypes( const std::vector<std::string>& filterLis
     // NSMutableArray *buildFilterList = NSMutableArray::alloc()->init();
     NSMutableArray *buildFilterList = [[NSMutableArray alloc] init];
 
-    char typebuf[NFD_MAX_STRLEN] = {0};
-    
-    size_t filterListLen = strlen(filterList);
-    char *p_typebuf = typebuf;
-    for ( size_t i = 0; i < filterListLen+1; ++i )
-    {
-        if ( filterList[i] == ',' || filterList[i] == ';' || filterList[i] == '\0' )
-        {
-            if (filterList[i] != '\0')
-                ++p_typebuf;
-            *p_typebuf = '\0';
-
-            // or this: NSString::stringWithUTF8String(typebuf);
-            // buildFilterList->addObject(thisType);
-            // really? did you have to make this mess?!
-            NSString *thisType = [NSString stringWithUTF8String: typebuf];
-            [buildFilterList addObject:thisType];
-            p_typebuf = typebuf;
-            *p_typebuf = '\0';
+    String typebuf;
+    for (std::string& i: filterList) {
+      typebuf="";
+      for (char& j: i) {
+        if (j==' ' || j==',' || j ==';') {
+          // or this: NSString::stringWithUTF8String(typebuf);
+          // buildFilterList->addObject(thisType);
+          // really? did you have to make this mess?!
+          NSString *thisType = [NSString stringWithUTF8String: [typebuf c_str]];
+          [buildFilterList addObject:thisType];
+          typebuf="";
+        } else if (j!='.' && j!='*') {
+          typebuf+=j;
         }
-        else
-        {
-            *p_typebuf = filterList[i];
-            ++p_typebuf;
-
-        }
+      }
+      if (!typebuf.empty()) {
+        // I don't think this will work, but come on...
+        NSString *thisType = [NSString stringWithUTF8String: [typebuf c_str]];
+        [buildFilterList addObject:thisType];
+      }
     }
 
     NSArray *returnArray = [NSArray arrayWithArray:buildFilterList];
@@ -58,7 +52,7 @@ static NSArray *BuildAllowedFileTypes( const std::vector<std::string>& filterLis
 
 static void AddFilterListToDialog( NSSavePanel *dialog, const std::vector<std::string>& filterList )
 {
-    if ( !filterList || strlen(filterList) == 0 )
+    if ( filterList.size()&1 )
         return;
 
     NSArray *allowedFileTypes = BuildAllowedFileTypes( filterList );
