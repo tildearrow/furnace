@@ -4082,6 +4082,7 @@ bool FurnaceGUI::init() {
   chanOscColor.w=e->getConfFloat("chanOscColorA",1.0f);
   chanOscUseGrad=e->getConfBool("chanOscUseGrad",false);
   chanOscGrad.fromString(e->getConfString("chanOscGrad",""));
+  chanOscGrad.render();
 
   syncSettings();
 
