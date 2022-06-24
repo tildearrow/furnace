@@ -22,7 +22,7 @@ static NSArray *BuildAllowedFileTypes( const std::vector<std::string>& filterLis
     // NSMutableArray *buildFilterList = NSMutableArray::alloc()->init();
     NSMutableArray *buildFilterList = [[NSMutableArray alloc] init];
 
-    String typebuf;
+    std::string typebuf;
     for (std::string& i: filterList) {
       typebuf="";
       for (char& j: i) {
@@ -30,7 +30,7 @@ static NSArray *BuildAllowedFileTypes( const std::vector<std::string>& filterLis
           // or this: NSString::stringWithUTF8String(typebuf);
           // buildFilterList->addObject(thisType);
           // really? did you have to make this mess?!
-          NSString *thisType = [NSString stringWithUTF8String: [typebuf c_str]];
+          NSString *thisType = NSString::stringWithUTF8String(typebuf.c_str());
           [buildFilterList addObject:thisType];
           typebuf="";
         } else if (j!='.' && j!='*') {
@@ -39,7 +39,7 @@ static NSArray *BuildAllowedFileTypes( const std::vector<std::string>& filterLis
       }
       if (!typebuf.empty()) {
         // I don't think this will work, but come on...
-        NSString *thisType = [NSString stringWithUTF8String: [typebuf c_str]];
+        NSString *thisType = NSString::stringWithUTF8String(typebuf.c_str());
         [buildFilterList addObject:thisType];
       }
     }
