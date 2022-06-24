@@ -80,7 +80,7 @@ bool DivSample::save(const char* path) {
     inst.loop_count = 1;
     inst.loops[0].mode = SF_LOOP_FORWARD;
     inst.loops[0].start = loopStart;
-    inst.loops[0].end = samples;
+    inst.loops[0].end = (loopEnd!=-1)?loopEnd:samples;
   }
   sf_command(f, SFC_SET_INSTRUMENT, &inst, sizeof(inst));
 
@@ -352,6 +352,7 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
 
 #define RESAMPLE_END \
   if (loopStart>=0) loopStart=(double)loopStart*(r/(double)rate); \
+  if (loopEnd>=0) loopEnd=(double)loopEnd*(r/(double)rate); \
   centerRate=(int)((double)centerRate*(r/(double)rate)); \
   rate=r; \
   samples=finalCount; \
@@ -830,9 +831,9 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       duplicate=new unsigned char[getCurBufLen()];
       memcpy(duplicate,getCurBuf(),getCurBufLen());
     }
-    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart);
+    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd);
   } else {
-    h=new DivSampleHistory(depth,rate,centerRate,loopStart);
+    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd);
   }
   if (!doNotPush) {
     while (!redoHist.empty()) {
@@ -862,7 +863,8 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
   } \
   rate=h->rate; \
   centerRate=h->centerRate; \
-  loopStart=h->loopStart;
+  loopStart=h->loopStart; \
+  loopEnd=h->loopEnd;
 
 
 int DivSample::undo() {

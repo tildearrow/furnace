@@ -709,6 +709,7 @@ void FurnaceGUI::doAction(int what) {
               sample->centerRate=prevSample->centerRate;
               sample->name=prevSample->name;
               sample->loopStart=prevSample->loopStart;
+              sample->loopEnd=prevSample->loopEnd;
               sample->depth=prevSample->depth;
               if (sample->init(prevSample->samples)) {
                 if (prevSample->getCurBuf()!=NULL) {
@@ -1261,8 +1262,8 @@ void FurnaceGUI::doAction(int what) {
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
-        sample->trim(0,end);
         sample->loopStart=start;
+        sample->loopEnd=end;
         updateSampleTex=true;
 
         e->renderSamples();

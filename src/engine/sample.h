@@ -33,9 +33,9 @@ struct DivSampleHistory {
   unsigned char* data;
   unsigned int length, samples;
   unsigned char depth;
-  int rate, centerRate, loopStart;
+  int rate, centerRate, loopStart, loopEnd;
   bool hasSample;
-  DivSampleHistory(void* d, unsigned int l, unsigned int s, unsigned char de, int r, int cr, int ls):
+  DivSampleHistory(void* d, unsigned int l, unsigned int s, unsigned char de, int r, int cr, int ls, int le):
     data((unsigned char*)d),
     length(l),
     samples(s),
@@ -43,8 +43,9 @@ struct DivSampleHistory {
     rate(r),
     centerRate(cr),
     loopStart(ls),
+    loopEnd(le),
     hasSample(true) {}
-  DivSampleHistory(unsigned char de, int r, int cr, int ls):
+  DivSampleHistory(unsigned char de, int r, int cr, int ls, int le):
     data(NULL),
     length(0),
     samples(0),
@@ -52,13 +53,14 @@ struct DivSampleHistory {
     rate(r),
     centerRate(cr),
     loopStart(ls),
+    loopEnd(le),
     hasSample(false) {}
   ~DivSampleHistory();
 };
 
 struct DivSample {
   String name;
-  int rate, centerRate, loopStart, loopOffP;
+  int rate, centerRate, loopStart, loopEnd, loopOffP;
   // valid values are:
   // - 0: ZX Spectrum overlay drum (1-bit)
   // - 1: 1-bit NES DPCM (1-bit)
@@ -212,6 +214,7 @@ struct DivSample {
     rate(32000),
     centerRate(8363),
     loopStart(-1),
+    loopEnd(-1),
     loopOffP(0),
     depth(16),
     data8(NULL),

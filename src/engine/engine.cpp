@@ -2293,6 +2293,7 @@ int DivEngine::addSampleFromFile(const char* path) {
     if(inst.loop_count && inst.loops[0].mode == SF_LOOP_FORWARD)
     {
       sample->loopStart=inst.loops[0].start;
+      sample->loopEnd=inst.loops[0].end;
       if(inst.loops[0].end < (unsigned int)sampleCount)
         sampleCount=inst.loops[0].end;
     }

@@ -1613,7 +1613,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       logD("reading sample %d at %x...",i,samplePtr[i]);
 
       sample->name=reader.readString();
-      sample->samples=reader.readI();
+      sample->samples=sample->loopEnd=reader.readI();
       sample->rate=reader.readI();
       if (ds.version<58) {
         vol=reader.readS();
@@ -1881,6 +1881,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       if (loopLen>=2) {
         if (loopEnd<slen) slen=loopEnd;
         sample->loopStart=loopStart;
+        sample->loopEnd=loopEnd;
       }
       sample->init(slen);
       ds.sample.push_back(sample);

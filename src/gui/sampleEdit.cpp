@@ -97,6 +97,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
             if (doLoop) {
               sample->loopStart=0;
+              sample->loopEnd=sample->samples;
             } else {
               sample->loopStart=-1;
             }
@@ -611,6 +612,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
             if (doLoop) {
               sample->loopStart=0;
+              sample->loopEnd=sample->samples;
             } else {
               sample->loopStart=-1;
             }
