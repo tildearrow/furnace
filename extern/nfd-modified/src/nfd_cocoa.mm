@@ -23,9 +23,9 @@ static NSArray *BuildAllowedFileTypes( const std::vector<std::string>& filterLis
     NSMutableArray *buildFilterList = [[NSMutableArray alloc] init];
 
     std::string typebuf;
-    for (std::string& i: filterList) {
+    for (const std::string& i: filterList) {
       typebuf="";
-      for (char& j: i) {
+      for (const char& j: i) {
         if (j==' ' || j==',' || j ==';') {
           // or this: NSString::stringWithUTF8String(typebuf);
           // buildFilterList->addObject(thisType);
