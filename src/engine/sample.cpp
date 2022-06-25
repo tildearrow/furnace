@@ -84,7 +84,7 @@ inline unsigned int DivSample::EndPosition(DivSampleDepth depth) {
 
 inline void DivSample::setSampleCount(unsigned int count) {
   samples=count;
-  if ((!isLoopable()) || loopEnd<0 || loopEnd>samples) loopEnd=samples;
+  if ((!isLoopable()) || loopEnd<0 || loopEnd>(int)samples) loopEnd=samples;
 }
 
 bool DivSample::save(const char* path) {
