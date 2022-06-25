@@ -1871,7 +1871,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         if (loopSample[nextToTouch]<song.sampleLen) {
           DivSample* sample=song.sample[loopSample[nextToTouch]];
           // insert loop
-          if (sample->loopStart<sample->EndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
+          if (sample->loopStart<(int)sample->EndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
             w->writeC(0x93);
             w->writeC(nextToTouch);
             w->writeI(sample->off8+sample->loopStart);
