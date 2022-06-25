@@ -14,7 +14,7 @@ As of Furnace dev99, the following sound chips have sample support:
  - Arcade/SEGA PCM (same as above)
  - Neo Geo/Neo Geo CD (on the last 7 channels (6 if you are using Neo Geo CD) only and can be resampled the same way as above)
  - Seta/Allumer X1-010 (same as YM2612)
- - Atari Lynx (though the option is a bit hidden)
+ - Atari Lynx
  - MSM6258 and MSM6295
  - YMU759/MA-2 (last channel only)
  - QSound
