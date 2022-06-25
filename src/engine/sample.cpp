@@ -38,11 +38,11 @@ DivSampleHistory::~DivSampleHistory() {
   if (data!=NULL) delete[] data;
 }
 
-inline bool DivSample::isLoopable() {
+bool DivSample::isLoopable() {
   return (loopStart>=0 && loopStart<loopEnd) && (loopEnd>loopStart && loopEnd<=(int)samples);
 }
 
-inline unsigned int DivSample::EndPosition(DivSampleDepth depth) {
+unsigned int DivSample::EndPosition(DivSampleDepth depth) {
   unsigned int len=samples;
   switch (depth) {
     case DIV_SAMPLE_DEPTH_1BIT:
@@ -82,7 +82,7 @@ inline unsigned int DivSample::EndPosition(DivSampleDepth depth) {
   return isLoopable()?loopEnd:len;
 }
 
-inline void DivSample::setSampleCount(unsigned int count) {
+void DivSample::setSampleCount(unsigned int count) {
   samples=count;
   if ((!isLoopable()) || loopEnd<0 || loopEnd>(int)samples) loopEnd=samples;
 }

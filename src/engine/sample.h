@@ -118,18 +118,18 @@ struct DivSample {
    * check if sample is loopable.
    * @return whether it is loopable.
    */
-  inline bool isLoopable();
+  bool isLoopable();
 
   /**
    * get sample end position
    * @return the samples end position.
    */
-  inline unsigned int EndPosition(DivSampleDepth depth=DIV_SAMPLE_DEPTH_MAX);
+  unsigned int EndPosition(DivSampleDepth depth=DIV_SAMPLE_DEPTH_MAX);
 
   /**
    * @warning DO NOT USE - internal functions
    */
-  inline void setSampleCount(unsigned int count);
+  void setSampleCount(unsigned int count);
 
   /**
    * @warning DO NOT USE - internal functions
