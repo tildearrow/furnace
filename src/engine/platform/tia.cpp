@@ -293,6 +293,10 @@ void* DivPlatformTIA::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformTIA::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformTIA::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

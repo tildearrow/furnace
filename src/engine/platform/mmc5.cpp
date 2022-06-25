@@ -354,6 +354,10 @@ void* DivPlatformMMC5::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformMMC5::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformMMC5::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

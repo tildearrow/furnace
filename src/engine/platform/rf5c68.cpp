@@ -300,6 +300,10 @@ void* DivPlatformRF5C68::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformRF5C68::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformRF5C68::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

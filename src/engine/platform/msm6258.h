@@ -26,10 +26,6 @@
 
 class DivPlatformMSM6258: public DivDispatch {
   protected:
-    const unsigned short chanOffs[6]={
-      0x00, 0x01, 0x02, 0x100, 0x101, 0x102
-    };
-
     struct Channel {
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, pitch2, portaPauseFreq, note, ins;
@@ -77,12 +73,10 @@ class DivPlatformMSM6258: public DivDispatch {
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
-      bool addrOrVal;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
+      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
     };
     std::queue<QueuedWrite> writes;
     okim6258_device* msm;
-    unsigned char regPool[512];
     unsigned char lastBusy;
 
     unsigned char* adpcmMem;
@@ -93,17 +87,13 @@ class DivPlatformMSM6258: public DivDispatch {
 
     int delay, updateOsc, sample, samplePos;
 
-    bool extMode;
-  
-    short oldWrites[512];
-    short pendingWrites[512];
-
     friend void putDispatchChan(void*,int,int);
   
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

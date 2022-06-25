@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "macroInt.h"
 #include <chrono>
 #define _USE_MATH_DEFINES
 #include "dispatch.h"
@@ -812,6 +813,9 @@ void DivEngine::nextRow() {
     printf("| %.2x:%s | \x1b[1;33m%3d%s\x1b[m\n",curOrder,pb1,curRow,pb3);
   }
 
+  prevOrder=curOrder;
+  prevRow=curRow;
+
   for (int i=0; i<chans; i++) {
     chan[i].rowDelay=0;
     processRow(i,false);
@@ -916,13 +920,26 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
 
   while (!pendingNotes.empty()) {
     DivNoteEvent& note=pendingNotes.front();
+    if (note.channel<0 || note.channel>=chans) {
+      pendingNotes.pop();
+      continue;
+    }
     if (note.on) {
       dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,note.channel,note.ins,1));
       dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,note.channel,note.note));
       keyHit[note.channel]=true;
       chan[note.channel].noteOnInhibit=true;
     } else {
-      dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
+      DivMacroInt* macroInt=disCont[dispatchOfChan[note.channel]].dispatch->getChanMacroInt(dispatchChanOfChan[note.channel]);
+      if (macroInt!=NULL) {
+        if (macroInt->hasRelease) {
+          dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,note.channel));
+        } else {
+          dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
+        }
+      } else {
+        dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
+      }
     }
     pendingNotes.pop();
   }
@@ -986,6 +1003,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         if (chan[i].vibratoDepth>0) {
           chan[i].vibratoPos+=chan[i].vibratoRate;
           if (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
+
+          chan[i].vibratoPosGiant+=chan[i].vibratoRate;
+          if (chan[i].vibratoPos>=512) chan[i].vibratoPos-=512;
+
           switch (chan[i].vibratoDir) {
             case 1: // up
               dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(MAX(0,(chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
@@ -1094,6 +1115,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
 }
 
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
+  lastLoopPos=-1;
+
   if (out!=NULL) {
     memset(out[0],0,size*sizeof(float));
     memset(out[1],0,size*sizeof(float));
@@ -1374,6 +1397,9 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         }
       }
       if (nextTick()) {
+        lastLoopPos=size-(runLeftG>>MASTER_CLOCK_PREC);
+        logD("last loop pos: %d for a size of %d and runLeftG of %d",lastLoopPos,size,runLeftG);
+        totalLoops++;
         if (remainingLoops>0) {
           remainingLoops--;
           if (!remainingLoops) {

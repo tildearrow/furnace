@@ -521,7 +521,7 @@ void DivPlatformAY8930::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (isMuted[ch]) {
     rWrite(0x08+ch,0);
-  } else {
+  } else if (chan[ch].active) {
     rWrite(0x08+ch,(chan[ch].outVol&31)|((chan[ch].psgMode&4)<<3));
   }
 }
@@ -537,6 +537,10 @@ void DivPlatformAY8930::forceIns() {
 
 void* DivPlatformAY8930::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformAY8930::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformAY8930::getOscBuffer(int ch) {

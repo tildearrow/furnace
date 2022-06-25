@@ -20,17 +20,7 @@
 #ifndef _FMSHARED_OPN_H
 #define _FMSHARED_OPN_H
 
-#define ADDR_MULT_DT 0x30
-#define ADDR_TL 0x40
-#define ADDR_RS_AR 0x50
-#define ADDR_AM_DR 0x60
-#define ADDR_DT2_D2R 0x70
-#define ADDR_SL_RR 0x80
-#define ADDR_SSG 0x90
-#define ADDR_FREQ 0xa0
-#define ADDR_FREQH 0xa4
-#define ADDR_FB_ALG 0xb0
-#define ADDR_LRAF 0xb4
+#include "fmsharedbase.h"
 
 #define PLEASE_HELP_ME(_targetChan) \
   int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false); \
@@ -92,5 +82,35 @@
     _targetChan.inPorta=false; \
     return 2; \
   }
+
+class DivPlatformOPN: public DivPlatformFMBase {
+  protected:
+    const unsigned short ADDR_MULT_DT=0x30;
+    const unsigned short ADDR_TL=0x40;
+    const unsigned short ADDR_RS_AR=0x50;
+    const unsigned short ADDR_AM_DR=0x60;
+    const unsigned short ADDR_DT2_D2R=0x70;
+    const unsigned short ADDR_SL_RR=0x80;
+    const unsigned short ADDR_SSG=0x90;
+    const unsigned short ADDR_FREQ=0xa0;
+    const unsigned short ADDR_FREQH=0xa4;
+    const unsigned short ADDR_FB_ALG=0xb0;
+    const unsigned short ADDR_LRAF=0xb4;
+
+    const unsigned short opOffs[4]={
+      0x00, 0x04, 0x08, 0x0c
+    };
+
+    double fmFreqBase;
+    unsigned int fmDivBase;
+    unsigned int ayDiv;
+
+    DivPlatformOPN(double f=9440540.0, unsigned int d=72, unsigned int a=32):
+      DivPlatformFMBase(),
+      fmFreqBase(f),
+      fmDivBase(d),
+      ayDiv(a) {}
+
+};
 
 #endif

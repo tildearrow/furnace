@@ -436,6 +436,10 @@ void* DivPlatformFDS::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformFDS::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformFDS::getOscBuffer(int ch) {
   return oscBuf;
 }

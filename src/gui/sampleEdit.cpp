@@ -830,16 +830,16 @@ void FurnaceGUI::drawSampleEdit() {
           float highP=sampleFilterH*100.0f;
           float resP=sampleFilterRes*100.0f;
           ImGui::Text("Cutoff:");
-          if (ImGui::SliderFloat("From",&sampleFilterCutStart,0.0f,sample->rate*0.5,"%.0fHz")) {
+          if (CWSliderFloat("From",&sampleFilterCutStart,0.0f,sample->rate*0.5,"%.0fHz")) {
             if (sampleFilterCutStart<0.0) sampleFilterCutStart=0.0;
             if (sampleFilterCutStart>sample->rate*0.5) sampleFilterCutStart=sample->rate*0.5;
           }
-          if (ImGui::SliderFloat("To",&sampleFilterCutEnd,0.0f,sample->rate*0.5,"%.0fHz")) {
+          if (CWSliderFloat("To",&sampleFilterCutEnd,0.0f,sample->rate*0.5,"%.0fHz")) {
             if (sampleFilterCutEnd<0.0) sampleFilterCutEnd=0.0;
             if (sampleFilterCutEnd>sample->rate*0.5) sampleFilterCutEnd=sample->rate*0.5;
           }
           ImGui::Separator();
-          if (ImGui::SliderFloat("Resonance",&resP,0.0f,99.0f,"%.1f%%")) {
+          if (CWSliderFloat("Resonance",&resP,0.0f,99.0f,"%.1f%%")) {
             sampleFilterRes=resP/100.0f;
             if (sampleFilterRes<0.0f) sampleFilterRes=0.0f;
             if (sampleFilterRes>0.99f) sampleFilterRes=0.99f;
@@ -858,17 +858,17 @@ void FurnaceGUI::drawSampleEdit() {
             sampleFilterPower=3;
           }
           ImGui::Separator();
-          if (ImGui::SliderFloat("Low-pass",&lowP,0.0f,100.0f,"%.1f%%")) {
+          if (CWSliderFloat("Low-pass",&lowP,0.0f,100.0f,"%.1f%%")) {
             sampleFilterL=lowP/100.0f;
             if (sampleFilterL<0.0f) sampleFilterL=0.0f;
             if (sampleFilterL>1.0f) sampleFilterL=1.0f;
           }
-          if (ImGui::SliderFloat("Band-pass",&bandP,0.0f,100.0f,"%.1f%%")) {
+          if (CWSliderFloat("Band-pass",&bandP,0.0f,100.0f,"%.1f%%")) {
             sampleFilterB=bandP/100.0f;
             if (sampleFilterB<0.0f) sampleFilterB=0.0f;
             if (sampleFilterB>1.0f) sampleFilterB=1.0f;
           }
-          if (ImGui::SliderFloat("High-pass",&highP,0.0f,100.0f,"%.1f%%")) {
+          if (CWSliderFloat("High-pass",&highP,0.0f,100.0f,"%.1f%%")) {
             sampleFilterH=highP/100.0f;
             if (sampleFilterH<0.0f) sampleFilterH=0.0f;
             if (sampleFilterH>1.0f) sampleFilterH=1.0f;

@@ -24,16 +24,8 @@
 #include <string.h>
 #include <math.h>
 
-#include "sound/ymfm/ymfm_opn.h"
-#include "ym2610shared.h"
-
-#include "fmshared_OPN.h"
-
-static unsigned char konOffs[6]={
-  0, 1, 2, 4, 5, 6
-};
-
-#define CHIP_DIVIDER 32
+#define CHIP_FREQBASE fmFreqBase
+#define CHIP_DIVIDER fmDivBase
 
 const char* regCheatSheetYM2608[]={
   // SSG
@@ -450,7 +442,7 @@ void DivPlatformYM2608::acquire(short* bufL, short* bufR, size_t start, size_t l
         fm->write(0x0+((w.addr>>8)<<1),w.addr);
         fm->write(0x1+((w.addr>>8)<<1),w.val);
         regPool[w.addr&0x1ff]=w.val;
-        writes.pop();
+        writes.pop_front();
         delay=4;
       }
     }
@@ -1257,6 +1249,11 @@ void* DivPlatformYM2608::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformYM2608::getChanMacroInt(int ch) {
+  if (ch>=6 && ch<9) return ay->getChanMacroInt(ch-6);
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformYM2608::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -1278,7 +1275,7 @@ void DivPlatformYM2608::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformYM2608::reset() {
-  while (!writes.empty()) writes.pop();
+  while (!writes.empty()) writes.pop_front();
   memset(regPool,0,512);
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -1327,6 +1324,10 @@ void DivPlatformYM2608::reset() {
 
   // enable 6 channel mode
   immWrite(0x29,0x80);
+
+  // set prescaler
+  immWrite(0x2d,0xff);
+  immWrite(prescale,0xff);
 
   ay->reset();
   ay->getRegisterWrites().clear();
@@ -1397,6 +1398,49 @@ void DivPlatformYM2608::renderSamples() {
   adpcmBMemLen=memPos+256;
 }
 
+void DivPlatformYM2608::setFlags(unsigned int flags) {
+  // Clock flags
+  switch (flags&0x1f) {
+    default:
+    case 0x00:
+      chipClock=8000000.0;
+      break;
+    case 0x01:
+      chipClock=38400*13*16; // 31948800/4
+      break;
+  }
+  // Prescaler flags
+  switch ((flags>>5)&0x3) {
+    default:
+    case 0x00: // /6
+      prescale=0x2d;
+      fmFreqBase=9440540.0,
+      fmDivBase=72,
+      ayDiv=32;
+      break;
+    case 0x01: // /3
+      prescale=0x2e;
+      fmFreqBase=9440540.0/2.0,
+      fmDivBase=36,
+      ayDiv=16;
+      break;
+    case 0x02: // /2
+      prescale=0x2f;
+      fmFreqBase=9440540.0/3.0,
+      fmDivBase=24,
+      ayDiv=8;
+      break;
+  }
+  rate=fm->sample_rate(chipClock);
+  for (int i=0; i<16; i++) {
+    oscBuf[i]->rate=rate;
+  }
+  immWrite(0x2d,0xff);
+  immWrite(prescale,0xff);
+  ay->setExtClockDiv(chipClock,ayDiv);
+  ay->setFlags(16);
+}
+
 int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   adpcmBMem=new unsigned char[getSampleMemCapacity(0)];
@@ -1409,17 +1453,13 @@ int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, unsigned in
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  chipClock=8000000;
   fm=new ymfm::ym2608(iface);
   fm->set_fidelity(ymfm::OPN_FIDELITY_MIN);
-  rate=fm->sample_rate(chipClock);
-  for (int i=0; i<16; i++) {
-    oscBuf[i]->rate=rate;
-  }
   // YM2149, 2MHz
-  ay=new DivPlatformAY8910;
-  ay->init(p,3,sugRate,19);
+  ay=new DivPlatformAY8910(true,chipClock,ayDiv);
+  ay->init(p,3,sugRate,16);
   ay->toggleRegisterDump(true);
+  setFlags(flags);
   reset();
   return 16;
 }

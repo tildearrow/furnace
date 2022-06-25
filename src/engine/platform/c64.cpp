@@ -109,14 +109,15 @@ const char* DivPlatformC64::getEffectName(unsigned char effect) {
 }
 
 void DivPlatformC64::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  int dcOff=sid.get_dc(0);
   for (size_t i=start; i<start+len; i++) {
     sid.clock();
     bufL[i]=sid.output();
     if (++writeOscBuf>=8) {
       writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=sid.last_chan_out[0]>>5;
-      oscBuf[1]->data[oscBuf[1]->needle++]=sid.last_chan_out[1]>>5;
-      oscBuf[2]->data[oscBuf[2]->needle++]=sid.last_chan_out[2]>>5;
+      oscBuf[0]->data[oscBuf[0]->needle++]=(sid.last_chan_out[0]-dcOff)>>5;
+      oscBuf[1]->data[oscBuf[1]->needle++]=(sid.last_chan_out[1]-dcOff)>>5;
+      oscBuf[2]->data[oscBuf[2]->needle++]=(sid.last_chan_out[2]-dcOff)>>5;
     }
   }
 }
@@ -489,6 +490,10 @@ void DivPlatformC64::notifyInsDeletion(void* ins) {
 
 void* DivPlatformC64::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformC64::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformC64::getOscBuffer(int ch) {

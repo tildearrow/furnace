@@ -17,11 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <SDL_audio.h>
 #include <string.h>
 #include <vector>
 #include "../ta-log.h"
-#include "sdl.h"
+#include "sdlAudio.h"
 
 void taSDLProcess(void* inst, unsigned char* buf, int nframes) {
   TAAudioSDL* in=(TAAudioSDL*)inst;

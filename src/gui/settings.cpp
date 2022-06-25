@@ -84,11 +84,6 @@ const char* snCores[]={
   "Nuked-PSG Mod"
 };
 
-const char* saaCores[]={
-  "MAME",
-  "SAASound"
-};
-
 const char* nesCores[]={
   "puNES",
   "NSFplay"
@@ -416,7 +411,7 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::Checkbox("Double click selects entire column",&doubleClickColumnB)) {
             settings.doubleClickColumn=doubleClickColumnB;
           }
-
+          
           bool allowEditDockingB=settings.allowEditDocking;
           if (ImGui::Checkbox("Allow docking editors",&allowEditDockingB)) {
             settings.allowEditDocking=allowEditDockingB;
@@ -523,6 +518,17 @@ void FurnaceGUI::drawSettings() {
           }
           if (ImGui::RadioButton("Move to effect value/next effect and wrap around##eicb2",settings.effectCursorDir==2)) {
             settings.effectCursorDir=2;
+          }
+
+          ImGui::Text("Allow dragging selection:");
+          if (ImGui::RadioButton("No##dms0",settings.dragMovesSelection==0)) {
+            settings.dragMovesSelection=0;
+          }
+          if (ImGui::RadioButton("Yes##dms1",settings.dragMovesSelection==1)) {
+            settings.dragMovesSelection=1;
+          }
+          if (ImGui::RadioButton("Yes (while holding Ctrl only)##dms2",settings.dragMovesSelection==2)) {
+            settings.dragMovesSelection=2;
           }
         }
         ImGui::EndChild();
@@ -899,10 +905,6 @@ void FurnaceGUI::drawSettings() {
           ImGui::SameLine();
           ImGui::Combo("##SNCore",&settings.snCore,snCores,2);
 
-          ImGui::Text("SAA1099 core");
-          ImGui::SameLine();
-          ImGui::Combo("##SAACore",&settings.saaCore,saaCores,2);
-
           ImGui::Text("NES core");
           ImGui::SameLine();
           ImGui::Combo("##NESCore",&settings.nesCore,nesCores,2);
@@ -1125,6 +1127,15 @@ void FurnaceGUI::drawSettings() {
           }
           if (ImGui::RadioButton("Compact (4x1)##fml3",settings.fmLayout==3)) {
             settings.fmLayout=3;
+          }
+          if (ImGui::RadioButton("Alternate (2x2)##fml4",settings.fmLayout==4)) {
+            settings.fmLayout=4;
+          }
+          if (ImGui::RadioButton("Alternate (1x4)##fml5",settings.fmLayout==5)) {
+            settings.fmLayout=5;
+          }
+          if (ImGui::RadioButton("Alternate (4x1)##fml5",settings.fmLayout==6)) {
+            settings.fmLayout=6;
           }
 
           ImGui::Text("Position of Sustain in FM editor:");
@@ -1545,6 +1556,7 @@ void FurnaceGUI::drawSettings() {
             UI_KEYBIND_CONFIG(GUI_ACTION_PLAY_TOGGLE);
             UI_KEYBIND_CONFIG(GUI_ACTION_PLAY);
             UI_KEYBIND_CONFIG(GUI_ACTION_STOP);
+            UI_KEYBIND_CONFIG(GUI_ACTION_PLAY_START);
             UI_KEYBIND_CONFIG(GUI_ACTION_PLAY_REPEAT);
             UI_KEYBIND_CONFIG(GUI_ACTION_PLAY_CURSOR);
             UI_KEYBIND_CONFIG(GUI_ACTION_STEP_ONE);
@@ -1953,7 +1965,6 @@ void FurnaceGUI::syncSettings() {
   settings.arcadeCore=e->getConfInt("arcadeCore",0);
   settings.ym2612Core=e->getConfInt("ym2612Core",0);
   settings.snCore=e->getConfInt("snCore",0);
-  settings.saaCore=e->getConfInt("saaCore",1);
   settings.nesCore=e->getConfInt("nesCore",0);
   settings.fdsCore=e->getConfInt("fdsCore",0);
   settings.pcSpeakerOutMethod=e->getConfInt("pcSpeakerOutMethod",0);
@@ -2034,8 +2045,10 @@ void FurnaceGUI::syncSettings() {
   settings.insCellSpacing=e->getConfInt("insCellSpacing",0);
   settings.volCellSpacing=e->getConfInt("volCellSpacing",0);
   settings.effectCellSpacing=e->getConfInt("effectCellSpacing",0);
+  settings.effectValCellSpacing=e->getConfInt("effectValCellSpacing",0);
   settings.doubleClickColumn=e->getConfInt("doubleClickColumn",1);
   settings.blankIns=e->getConfInt("blankIns",0);
+  settings.dragMovesSelection=e->getConfInt("dragMovesSelection",2);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2047,7 +2060,6 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.arcadeCore,0,1);
   clampSetting(settings.ym2612Core,0,1);
   clampSetting(settings.snCore,0,1);
-  clampSetting(settings.saaCore,0,1);
   clampSetting(settings.nesCore,0,1);
   clampSetting(settings.fdsCore,0,1);
   clampSetting(settings.pcSpeakerOutMethod,0,4);
@@ -2086,7 +2098,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.roundedMenus,0,1);
   clampSetting(settings.loadJapanese,0,1);
   clampSetting(settings.loadChinese,0,1);
-  clampSetting(settings.fmLayout,0,3);
+  clampSetting(settings.fmLayout,0,6);
   clampSetting(settings.susPosition,0,1);
   clampSetting(settings.effectCursorDir,0,2);
   clampSetting(settings.cursorPastePos,0,1);
@@ -2121,6 +2133,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.effectValCellSpacing,0,32);
   clampSetting(settings.doubleClickColumn,0,1);
   clampSetting(settings.blankIns,0,1);
+  clampSetting(settings.dragMovesSelection,0,2);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2170,7 +2183,6 @@ void FurnaceGUI::commitSettings() {
   e->setConf("arcadeCore",settings.arcadeCore);
   e->setConf("ym2612Core",settings.ym2612Core);
   e->setConf("snCore",settings.snCore);
-  e->setConf("saaCore",settings.saaCore);
   e->setConf("nesCore",settings.nesCore);
   e->setConf("fdsCore",settings.fdsCore);
   e->setConf("pcSpeakerOutMethod",settings.pcSpeakerOutMethod);
@@ -2255,6 +2267,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("effectValCellSpacing",settings.effectValCellSpacing);
   e->setConf("doubleClickColumn",settings.doubleClickColumn);
   e->setConf("blankIns",settings.blankIns);
+  e->setConf("dragMovesSelection",settings.dragMovesSelection);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

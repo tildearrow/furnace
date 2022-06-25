@@ -195,7 +195,7 @@ int DivPlatformVIC20::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.vol.had) {
+        if (!chan[c.chan].std.vol.has) {
           calcAndWriteOutVol(c.chan,15);
         }
       }
@@ -276,6 +276,10 @@ void DivPlatformVIC20::forceIns() {
 
 void* DivPlatformVIC20::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformVIC20::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformVIC20::getOscBuffer(int ch) {

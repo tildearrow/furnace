@@ -27,10 +27,16 @@
 #include <sys/select.h>
 #include <fcntl.h>
 #include <unistd.h>
+#ifdef HAVE_LINUX_INPUT
 #include <linux/input.h>
+#endif
+#ifdef HAVE_LINUX_KD
 #include <linux/kd.h>
+#endif
 #include <time.h>
+#ifdef HAVE_SYS_IO
 #include <sys/io.h>
+#endif
 #endif
 
 #define PCSPKR_DIVIDER 4
@@ -80,6 +86,7 @@ void DivPlatformPCSpeaker::pcSpeakerThread() {
     }
     if (beepFD>=0) {
       switch (realOutMethod) {
+#ifdef HAVE_LINUX_INPUT
         case 0: { // evdev
           static struct input_event ie;
           ie.time.tv_sec=r.tv_sec;
@@ -98,11 +105,14 @@ void DivPlatformPCSpeaker::pcSpeakerThread() {
           }
           break;
         }
+#endif
+#ifdef HAVE_LINUX_KD
         case 1: // KIOCSOUND (on tty)
           if (ioctl(beepFD,KIOCSOUND,r.val)<0) {
             logW("ioctl error! %s",strerror(errno));
           }
           break;
+#endif
         case 2: { // /dev/port
           unsigned char bOut;
           bOut=0;
@@ -144,11 +154,14 @@ void DivPlatformPCSpeaker::pcSpeakerThread() {
           }
           break;
         }
+#ifdef HAVE_LINUX_KD
         case 3: // KIOCSOUND (on stdout)
           if (ioctl(beepFD,KIOCSOUND,r.val)<0) {
             logW("ioctl error! %s",strerror(errno));
           }
           break;
+#endif
+#ifdef HAVE_SYS_IO
         case 4: // outb()
           if (r.val==0) {
             outb(inb(0x61)&(~3),0x61);
@@ -163,6 +176,7 @@ void DivPlatformPCSpeaker::pcSpeakerThread() {
             }
           }
           break;
+#endif
       }
     } else {
       //logV("not writing because fd is less than 0");
@@ -485,6 +499,10 @@ void* DivPlatformPCSpeaker::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformPCSpeaker::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformPCSpeaker::getOscBuffer(int ch) {
   return oscBuf;
 }
@@ -540,6 +558,7 @@ void DivPlatformPCSpeaker::reset() {
           break;
         case 4: // outb()
           beepFD=-1;
+#ifdef HAVE_SYS_IO
           if (ioperm(0x61,8,1)<0) {
             logW("ioperm 0x61: %s",strerror(errno));
             break;
@@ -553,6 +572,9 @@ void DivPlatformPCSpeaker::reset() {
             break;
           }
           beepFD=STDOUT_FILENO;
+#else
+          errno=ENOSYS;
+#endif
           break;
       }
       if (beepFD<0) {

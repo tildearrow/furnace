@@ -1657,6 +1657,8 @@ int FurnaceGUI::load(String path) {
   curNibble=false;
   orderNibble=false;
   orderCursor=-1;
+  curOrder=0;
+  oldRow=0;
   samplePos=0;
   updateSampleTex=true;
   selStart=SelectionPoint();
@@ -1666,6 +1668,7 @@ int FurnaceGUI::load(String path) {
   undoHist.clear();
   redoHist.clear();
   updateWindowTitle();
+  updateScroll(0);
   if (!e->getWarnings().empty()) {
     showWarning(e->getWarnings(),GUI_WARN_GENERIC);
   }
@@ -1673,7 +1676,7 @@ int FurnaceGUI::load(String path) {
 }
 
 void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
-  e->saveAudio(path.c_str(),exportLoops+1,mode);
+  e->saveAudio(path.c_str(),exportLoops+1,mode,exportFadeOut);
   displayExporting=true;
 }
 
@@ -1896,6 +1899,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
 void FurnaceGUI::editOptions(bool topMenu) {
   char id[4096];
   editOptsVisible=true;
+
   if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);
   if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false);
   if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
@@ -2196,6 +2200,17 @@ void FurnaceGUI::editOptions(bool topMenu) {
   if (ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION))) doFlip();
   if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(2);
   if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(2);
+
+  if (topMenu) {
+    ImGui::Separator();
+    if (ImGui::MenuItem("find/replace",BIND_FOR(GUI_ACTION_WINDOW_FIND),findOpen)) {
+      if (findOpen) {
+        findOpen=false;
+      } else {
+        nextWindow=GUI_WINDOW_FIND;
+      }
+    }
+  }
 
   /*if (topMenu) {
     ImGui::Separator();
@@ -2824,6 +2839,9 @@ bool FurnaceGUI::loop() {
           if (ImGui::InputInt("Loops",&exportLoops,1,2)) {
             if (exportLoops<0) exportLoops=0;
           }
+          if (ImGui::InputDouble("Fade out (seconds)",&exportFadeOut,1.0,2.0,"%.1f")) {
+            if (exportFadeOut<0.0) exportFadeOut=0.0;
+          }
           ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("export VGM...")) {
@@ -2923,6 +2941,8 @@ bool FurnaceGUI::loop() {
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("edit")) {
+        ImGui::Text("...");
+        ImGui::Separator();
         if (ImGui::MenuItem("undo",BIND_FOR(GUI_ACTION_UNDO))) doUndo();
         if (ImGui::MenuItem("redo",BIND_FOR(GUI_ACTION_REDO))) doRedo();
         ImGui::Separator();
@@ -2986,6 +3006,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
         if (ImGui::MenuItem("log viewer",BIND_FOR(GUI_ACTION_WINDOW_LOG),logOpen)) logOpen=!logOpen;
         if (ImGui::MenuItem("statistics",BIND_FOR(GUI_ACTION_WINDOW_STATS),statsOpen)) statsOpen=!statsOpen;
+        if (spoilerOpen) if (ImGui::MenuItem("spoiler",NULL,spoilerOpen)) spoilerOpen=!spoilerOpen;
       
         ImGui::EndMenu();
       }
@@ -3078,6 +3099,8 @@ bool FurnaceGUI::loop() {
       ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
 
       drawSubSongs();
+      drawFindReplace();
+      drawSpoiler();
       drawPattern();
       drawEditControls();
       drawSongInfo();
@@ -3117,6 +3140,7 @@ bool FurnaceGUI::loop() {
 #endif
     }
 
+#ifndef NFD_NON_THREADED
     if (fileDialog->isOpen() && settings.sysFileDialog) {
       ImGui::OpenPopup("System File Dialog Pending");
     }
@@ -3129,6 +3153,7 @@ bool FurnaceGUI::loop() {
       dl->AddRectFilled(ImVec2(0.0f,0.0f),ImVec2(scrW*dpiScale,scrH*dpiScale),ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_MODAL_BACKDROP]));
       ImGui::EndPopup();
     }
+#endif
 
     if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
       bool openOpen=false;
@@ -3330,8 +3355,16 @@ bool FurnaceGUI::loop() {
                 if (!e->getWarnings().empty()) {
                   showWarning(e->getWarnings(),GUI_WARN_GENERIC);
                 }
-                for (DivInstrument* i: instruments) {
-                  e->addInstrumentPtr(i);
+                if (instruments.size()>1) { // ask which instruments to load
+                  for (DivInstrument* i: instruments) {
+                    pendingIns.push_back(std::make_pair(i,false));
+                  }
+                  displayPendingIns=true;
+                  pendingInsSingle=false;
+                } else { // load the only instrument
+                  for (DivInstrument* i: instruments) {
+                    e->addInstrumentPtr(i);
+                  }
                 }
               } else {
                 showError("cannot load instrument! ("+e->getLastError()+")");
@@ -3344,13 +3377,21 @@ bool FurnaceGUI::loop() {
                 if (!e->getWarnings().empty()) {
                   showWarning(e->getWarnings(),GUI_WARN_GENERIC);
                 }
-                if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-                  *e->song.ins[curIns]=*instruments[0];
-                } else {
-                  showError("...but you haven't selected an instrument!");
-                }
-                for (DivInstrument* i: instruments) {
-                  delete i;
+                if (instruments.size()>1) { // ask which instrument
+                  for (DivInstrument* i: instruments) {
+                    pendingIns.push_back(std::make_pair(i,false));
+                  }
+                  displayPendingIns=true;
+                  pendingInsSingle=true;
+                } else { // replace with the only instrument
+                  if (curIns>=0 && curIns<(int)e->song.ins.size()) {
+                    *e->song.ins[curIns]=*instruments[0];
+                  } else {
+                    showError("...but you haven't selected an instrument!");
+                  }
+                  for (DivInstrument* i: instruments) {
+                    delete i;
+                  }
                 }
               } else {
                 showError("cannot load instrument! ("+e->getLastError()+")");
@@ -3440,6 +3481,11 @@ bool FurnaceGUI::loop() {
     if (displayError) {
       displayError=false;
       ImGui::OpenPopup("Error");
+    }
+
+    if (displayPendingIns) {
+      displayPendingIns=false;
+      ImGui::OpenPopup("Select Instrument");
     }
 
     if (displayExporting) {
@@ -3792,6 +3838,86 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    // TODO:
+    // - multiple selection
+    // - replace instrument
+    if (ImGui::BeginPopupModal("Select Instrument",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
+      bool quitPlease=false;
+      if (pendingInsSingle) {
+        ImGui::Text("this is an instrument bank! select which one to use:");
+      } else {
+        ImGui::Text("this is an instrument bank! select which ones to load:");
+        ImGui::SameLine();
+        if (ImGui::Button("All")) {
+          for (std::pair<DivInstrument*,bool>& i: pendingIns) {
+            i.second=true;
+          }
+        }
+        ImGui::SameLine();
+        if (ImGui::Button("None")) {
+          for (std::pair<DivInstrument*,bool>& i: pendingIns) {
+            i.second=false;
+          }
+        }
+      }
+      bool anySelected=false;
+      float sizeY=ImGui::GetFrameHeightWithSpacing()*pendingIns.size();
+      if (sizeY>(scrH-180.0)*dpiScale) {
+        sizeY=(scrH-180.0)*dpiScale;
+        if (sizeY<60.0*dpiScale) sizeY=60.0*dpiScale;
+      }
+      if (ImGui::BeginTable("PendingInsList",1,ImGuiTableFlags_ScrollY,ImVec2(0.0f,sizeY))) {
+        for (size_t i=0; i<pendingIns.size(); i++) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          String id=fmt::sprintf("%d: %s",(int)i,pendingIns[i].first->name);
+          if (pendingInsSingle) {
+            if (ImGui::Selectable(id.c_str())) {
+              pendingIns[i].second=true;
+              quitPlease=true;
+            }
+          } else {
+            ImGui::Checkbox(id.c_str(),&pendingIns[i].second);
+          }
+          if (pendingIns[i].second) anySelected=true;
+        }
+        ImGui::EndTable();
+      }
+      if (!pendingInsSingle) {
+        ImGui::BeginDisabled(!anySelected);
+        if (ImGui::Button("OK")) {
+          quitPlease=true;
+        }
+        ImGui::EndDisabled();
+        ImGui::SameLine();
+      }
+      if (ImGui::Button("Cancel")) {
+        for (std::pair<DivInstrument*,bool>& i: pendingIns) {
+          i.second=false;
+        }
+        quitPlease=true;
+      }
+      if (quitPlease) {
+        ImGui::CloseCurrentPopup();
+        for (std::pair<DivInstrument*,bool>& i: pendingIns) {
+          if (!i.second || pendingInsSingle) {
+            if (i.second) {
+              if (curIns>=0 && curIns<(int)e->song.ins.size()) {
+                *e->song.ins[curIns]=*i.first;
+              } else {
+                showError("...but you haven't selected an instrument!");
+              }
+            }
+            delete i.first;
+          } else {
+            e->addInstrumentPtr(i.first);
+          }
+        }
+        pendingIns.clear();
+      }
+      ImGui::EndPopup();
+    }
+
     layoutTimeEnd=SDL_GetPerformanceCounter();
 
     // backup trigger
@@ -3910,6 +4036,8 @@ bool FurnaceGUI::init() {
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",false);
   subSongsOpen=e->getConfBool("subSongsOpen",true);
+  findOpen=e->getConfBool("findOpen",false);
+  spoilerOpen=e->getConfBool("spoilerOpen",false);
 
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
@@ -3941,6 +4069,20 @@ bool FurnaceGUI::init() {
   pianoOffsetEdit=e->getConfInt("pianoOffsetEdit",pianoOffsetEdit);
   pianoView=e->getConfInt("pianoView",pianoView);
   pianoInputPadMode=e->getConfInt("pianoInputPadMode",pianoInputPadMode);
+
+  chanOscCols=e->getConfInt("chanOscCols",3);
+  chanOscColorX=e->getConfInt("chanOscColorX",GUI_OSCREF_CENTER);
+  chanOscColorY=e->getConfInt("chanOscColorY",GUI_OSCREF_CENTER);
+  chanOscWindowSize=e->getConfFloat("chanOscWindowSize",20.0f);
+  chanOscWaveCorr=e->getConfBool("chanOscWaveCorr",true);
+  chanOscOptions=e->getConfBool("chanOscOptions",false);
+  chanOscColor.x=e->getConfFloat("chanOscColorR",1.0f);
+  chanOscColor.y=e->getConfFloat("chanOscColorG",1.0f);
+  chanOscColor.z=e->getConfFloat("chanOscColorB",1.0f);
+  chanOscColor.w=e->getConfFloat("chanOscColorA",1.0f);
+  chanOscUseGrad=e->getConfBool("chanOscUseGrad",false);
+  chanOscGrad.fromString(e->getConfString("chanOscGrad",""));
+  chanOscGrad.render();
 
   syncSettings();
 
@@ -3982,6 +4124,7 @@ bool FurnaceGUI::init() {
 
 #ifndef __APPLE__
   if (settings.dpiScale<0.5f) {
+    // TODO: replace with a function to actually detect the display scaling factor as it's unreliable.
     SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(sdlWin),&dpiScaleF,NULL,NULL);
     dpiScale=round(dpiScaleF/96.0f);
     if (dpiScale<1) dpiScale=1;
@@ -4131,6 +4274,8 @@ bool FurnaceGUI::finish() {
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
   e->setConf("subSongsOpen",subSongsOpen);
+  e->setConf("findOpen",findOpen);
+  e->setConf("spoilerOpen",spoilerOpen);
 
   // commit last window size
   e->setConf("lastWindowWidth",scrW);
@@ -4162,6 +4307,20 @@ bool FurnaceGUI::finish() {
   e->setConf("pianoOffsetEdit",pianoOffsetEdit);
   e->setConf("pianoView",pianoView);
   e->setConf("pianoInputPadMode",pianoInputPadMode);
+
+  // commit per-chan osc state
+  e->setConf("chanOscCols",chanOscCols);
+  e->setConf("chanOscColorX",chanOscColorX);
+  e->setConf("chanOscColorY",chanOscColorY);
+  e->setConf("chanOscWindowSize",chanOscWindowSize);
+  e->setConf("chanOscWaveCorr",chanOscWaveCorr);
+  e->setConf("chanOscOptions",chanOscOptions);
+  e->setConf("chanOscColorR",chanOscColor.x);
+  e->setConf("chanOscColorG",chanOscColor.y);
+  e->setConf("chanOscColorB",chanOscColor.z);
+  e->setConf("chanOscColorA",chanOscColor.w);
+  e->setConf("chanOscUseGrad",chanOscUseGrad);
+  e->setConf("chanOscGrad",chanOscGrad.toString());
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
@@ -4198,6 +4357,8 @@ FurnaceGUI::FurnaceGUI():
   preserveChanPos(false),
   wantScrollList(false),
   noteInputPoly(true),
+  displayPendingIns(false),
+  pendingInsSingle(false),
   vgmExportVersion(0x171),
   drawHalt(10),
   macroPointSize(16),
@@ -4245,6 +4406,11 @@ FurnaceGUI::FurnaceGUI():
   latchTarget(0),
   wheelX(0),
   wheelY(0),
+  dragSourceX(0),
+  dragSourceY(0),
+  dragDestinationX(0),
+  dragDestinationY(0),
+  exportFadeOut(5.0),
   editControlsOpen(true),
   ordersOpen(true),
   insListOpen(true),
@@ -4272,37 +4438,11 @@ FurnaceGUI::FurnaceGUI():
   effectListOpen(false),
   chanOscOpen(false),
   subSongsOpen(true),
-  /*
-  editControlsDocked(false),
-  ordersDocked(false),
-  insListDocked(false),
-  songInfoDocked(false),
-  patternDocked(false),
-  insEditDocked(false),
-  waveListDocked(false),
-  waveEditDocked(false),
-  sampleListDocked(false),
-  sampleEditDocked(false),
-  aboutDocked(false),
-  settingsDocked(false),
-  mixerDocked(false),
-  debugDocked(false),
-  inspectorDocked(false),
-  oscDocked(false),
-  volMeterDocked(false),
-  statsDocked(false),
-  compatFlagsDocked(false),
-  pianoDocked(false),
-  notesDocked(false),
-  channelsDocked(false),
-  regViewDocked(false),
-  logDocked(false),
-  effectListDocked(false),
-  chanOscDocked(false),
-  subSongsDocked(false),
-  */
+  findOpen(false),
+  spoilerOpen(false),
   selecting(false),
   selectingFull(false),
+  dragging(false),
   curNibble(false),
   orderNibble(false),
   followOrders(true),
@@ -4332,6 +4472,26 @@ FurnaceGUI::FurnaceGUI():
   wavePreviewLen(32),
   wavePreviewHeight(255),
   wavePreviewInit(true),
+  pgSys(0),
+  pgAddr(0),
+  pgVal(0),
+  curQueryRangeX(false),
+  curQueryBackwards(false),
+  curQueryRangeXMin(0), curQueryRangeXMax(0),
+  curQueryRangeY(0),
+  curQueryEffectPos(0),
+  queryReplaceEffectCount(0),
+  queryReplaceEffectPos(0),
+  queryReplaceNoteMode(0),
+  queryReplaceInsMode(0),
+  queryReplaceVolMode(0),
+  queryReplaceNote(0),
+  queryReplaceIns(0),
+  queryReplaceVol(0),
+  queryReplaceNoteDo(false),
+  queryReplaceInsDo(false),
+  queryReplaceVolDo(false),
+  queryViewingResults(false),
   wavePreviewOn(false),
   wavePreviewKey((SDL_Scancode)0),
   wavePreviewNote(0),
@@ -4441,8 +4601,16 @@ FurnaceGUI::FurnaceGUI():
   oscWindowSize(20.0f),
   oscZoomSlider(false),
   chanOscCols(3),
+  chanOscColorX(GUI_OSCREF_CENTER),
+  chanOscColorY(GUI_OSCREF_CENTER),
   chanOscWindowSize(20.0f),
   chanOscWaveCorr(true),
+  chanOscOptions(false),
+  updateChanOscGradTex(true),
+  chanOscUseGrad(false),
+  chanOscColor(1.0f,1.0f,1.0f,1.0f),
+  chanOscGrad(64,64),
+  chanOscGradTex(NULL),
   followLog(true),
 #ifdef IS_MOBILE
   pianoOctaves(7),
@@ -4519,10 +4687,22 @@ FurnaceGUI::FurnaceGUI():
 
   memset(chanOscLP0,0,sizeof(float)*DIV_MAX_CHANS);
   memset(chanOscLP1,0,sizeof(float)*DIV_MAX_CHANS);
+  memset(chanOscVol,0,sizeof(float)*DIV_MAX_CHANS);
+  memset(chanOscPitch,0,sizeof(float)*DIV_MAX_CHANS);
+  memset(chanOscBright,0,sizeof(float)*DIV_MAX_CHANS);
   memset(lastCorrPos,0,sizeof(short)*DIV_MAX_CHANS);
 
   memset(acedData,0,23);
 
   memset(pianoKeyHit,0,sizeof(float)*180);
   memset(pianoKeyPressed,0,sizeof(bool)*180);
+
+  memset(queryReplaceEffectMode,0,sizeof(int)*8);
+  memset(queryReplaceEffectValMode,0,sizeof(int)*8);
+  memset(queryReplaceEffect,0,sizeof(int)*8);
+  memset(queryReplaceEffectVal,0,sizeof(int)*8);
+  memset(queryReplaceEffectDo,0,sizeof(bool)*8);
+  memset(queryReplaceEffectValDo,0,sizeof(bool)*8);
+
+  chanOscGrad.bgColor=ImVec4(0.0f,0.0f,0.0f,1.0f);
 }

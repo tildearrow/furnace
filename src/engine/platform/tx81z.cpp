@@ -22,42 +22,10 @@
 #include <string.h>
 #include <math.h>
 
-#include "fmshared_OPM.h"
-
 // actually 0x40 but the upper bit of data selects address
 #define ADDR_WS_FINE 0x100
 // actually 0xc0 but bit 5 of data selects address
 #define ADDR_EGS_REV 0x120
-
-static unsigned short chanOffs[8]={
-  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
-};
-static unsigned short opOffs[4]={
-  0x00, 0x08, 0x10, 0x18
-};
-static bool isOutput[8][4]={
-  // 1     3     2    4
-  {false,false,false,true},
-  {false,false,false,true},
-  {false,false,false,true},
-  {false,false,false,true},
-  {false,false,true ,true},
-  {false,true ,true ,true},
-  {false,true ,true ,true},
-  {true ,true ,true ,true},
-};
-static unsigned char dtTable[8]={
-  7,6,5,0,1,2,3,4
-};
-
-static int orderedOps[4]={
-  0,2,1,3
-};
-
-#define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
-#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
-
-#define NOTE_LINEAR(x) (((x)<<6)+baseFreqOff+log2(parent->song.tuning/440.0)*12.0*64.0)
 
 const char* regCheatSheetOPZ[]={
   "Test", "00",
@@ -233,7 +201,7 @@ void DivPlatformTX81Z::acquire(short* bufL, short* bufR, size_t start, size_t le
         fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
         fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
         regPool[w.addr&0xff]=w.val;
-        writes.pop();
+        writes.pop_front();
         delay=1;
       }
     }
@@ -1027,6 +995,10 @@ void* DivPlatformTX81Z::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformTX81Z::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformTX81Z::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -1048,7 +1020,7 @@ void DivPlatformTX81Z::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformTX81Z::reset() {
-  while (!writes.empty()) writes.pop();
+  while (!writes.empty()) writes.pop_front();
   memset(regPool,0,330);
   fm_ymfm->reset();
   if (dumpWrites) {

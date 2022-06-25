@@ -1707,13 +1707,34 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       w->write(writeX1010[i]->getSampleMem(),writeX1010[i]->getSampleMemUsage());
     }
     if (writeZ280[i]!=NULL && writeZ280[i]->getSampleMemUsage()>0) {
+      // In VGM, YMZ280B's 16-bit PCM has an endianness swapped
+      // which have been fixed in the upstream MAME since 2013
+      // in order to get Konami FireBeat working
+      // The reason given for VGM not applying this change was
+      // "It matches OPL4 and MAME probably did an endianness optimization"
+      size_t sampleMemLen=writeZ280[i]->getSampleMemUsage();
+      unsigned char* sampleMem=new unsigned char[sampleMemLen];
+      memcpy(sampleMem,writeZ280[i]->getSampleMem(),sampleMemLen);
+      for (int i=0; i<song.sampleLen; i++) {
+        DivSample* s=song.sample[i];
+        if (s->depth==16) {
+          unsigned int pos=s->offYMZ280B;
+          for (unsigned int j=0; j<s->samples; j++) {
+            unsigned char lo=sampleMem[pos+j*2];
+            unsigned char hi=sampleMem[pos+j*2+1];
+            sampleMem[pos+j*2]=hi;
+            sampleMem[pos+j*2+1]=lo;
+          }
+        }
+      }
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x86);
       w->writeI((writeZ280[i]->getSampleMemUsage()+8)|(i*0x80000000));
       w->writeI(writeZ280[i]->getSampleMemCapacity());
       w->writeI(0);
-      w->write(writeZ280[i]->getSampleMem(),writeZ280[i]->getSampleMemUsage());
+      w->write(sampleMem,sampleMemLen);
+      delete[] sampleMem;
     }
   }
 

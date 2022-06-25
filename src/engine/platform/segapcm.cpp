@@ -400,6 +400,10 @@ void* DivPlatformSegaPCM::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformSegaPCM::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformSegaPCM::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

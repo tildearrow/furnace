@@ -248,7 +248,7 @@ size | description
   4f | A-4 tuning
   1  | limit slides (>=36) or reserved
   1  | linear pitch (>=36) or reserved
-     | - 0: non-linaer
+     | - 0: non-linear
      | - 1: only pitch change (04xy/E5xx) linear
      | - 2: full linear (>=94)
   1  | loop modality (>=36) or reserved

@@ -21,8 +21,8 @@
 #include "../engine.h"
 #include <math.h>
 
-#include "ym2203shared.h"
-#include "fmshared_OPN.h"
+#define CHIP_FREQBASE fmFreqBase
+#define CHIP_DIVIDER fmDivBase
 
 int DivPlatformYM2203Ext::dispatch(DivCommand c) {
   if (c.chan<2) {
@@ -471,6 +471,12 @@ void* DivPlatformYM2203Ext::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformYM2203Ext::getChanMacroInt(int ch) {
+  if (ch>=6) return ay->getChanMacroInt(ch-6);
+  if (ch>=2) return NULL; // currently not implemented
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformYM2203Ext::getOscBuffer(int ch) {
   if (ch>=6) return oscBuf[ch-3];
   if (ch<3) return oscBuf[ch];
@@ -510,7 +516,7 @@ int DivPlatformYM2203Ext::init(DivEngine* parent, int channels, int sugRate, uns
   }
 
   reset();
-  return 19;
+  return 9;
 }
 
 void DivPlatformYM2203Ext::quit() {

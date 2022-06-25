@@ -55,7 +55,14 @@ bool DivSample::save(const char* path) {
 
   si.channels=1;
   si.samplerate=rate;
-  si.format=SF_FORMAT_PCM_16|SF_FORMAT_WAV;
+  switch (depth) {
+    case 8: // 8-bit
+      si.format=SF_FORMAT_PCM_U8|SF_FORMAT_WAV;
+      break;
+    default: // 16-bit
+      si.format=SF_FORMAT_PCM_16|SF_FORMAT_WAV;
+      break;
+  }
 
   f=sf_open(path,SFM_WRITE,&si);
 
@@ -81,7 +88,21 @@ bool DivSample::save(const char* path) {
   }
   sf_command(f, SFC_SET_INSTRUMENT, &inst, sizeof(inst));
 
-  sf_writef_short(f,data16,samples);
+  switch (depth) {
+    case 8: {
+      // convert from signed to unsigned
+      unsigned char* buf=new unsigned char[length8];
+      for (size_t i=0; i<length8; i++) {
+        buf[i]=data8[i]^0x80;
+      }
+      sf_write_raw(f,buf,length8);
+      delete[] buf;
+      break;
+    }
+    default:
+      sf_write_raw(f,data16,length16);
+      break;
+  }
 
   sf_close(f);
 

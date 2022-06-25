@@ -1,5 +1,6 @@
 .vscode/
 build/
+clangbuild/
 nosdl/
 release/
 t/

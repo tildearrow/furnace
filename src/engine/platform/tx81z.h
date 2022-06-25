@@ -19,18 +19,22 @@
 
 #ifndef _TX81Z_H
 #define _TX81Z_H
-#include "../dispatch.h"
+#include "fmshared_OPM.h"
+#include "../macroInt.h"
 #include "../instrument.h"
 #include <queue>
 #include "sound/ymfm/ymfm_opz.h"
-#include "../macroInt.h"
 
 class DivTXInterface: public ymfm::ymfm_interface {
 
 };
 
-class DivPlatformTX81Z: public DivDispatch {
+class DivPlatformTX81Z: public DivPlatformOPM {
   protected:
+    const unsigned short chanOffs[8]={
+      0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
+    };
+
     struct Channel {
       DivInstrumentFM state;
       DivMacroInt std;
@@ -69,31 +73,18 @@ class DivPlatformTX81Z: public DivDispatch {
     };
     Channel chan[8];
     DivDispatchOscBuffer* oscBuf[8];
-    struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      bool addrOrVal;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
-    };
-    std::queue<QueuedWrite> writes;
-    int delay, baseFreqOff;
+    int baseFreqOff;
     int pcmL, pcmR, pcmCycles;
-    unsigned char lastBusy;
     unsigned char amDepth, pmDepth;
 
     ymfm::ym2414* fm_ymfm;
     ymfm::ym2414::output_data out_ymfm;
     DivTXInterface iface;
 
-    unsigned char regPool[330];
-
     bool extMode;
 
     bool isMuted[8];
   
-    short oldWrites[330];
-    short pendingWrites[330];
-
     int octave(int freq);
     int toFreq(int freq);
   
@@ -103,6 +94,7 @@ class DivPlatformTX81Z: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

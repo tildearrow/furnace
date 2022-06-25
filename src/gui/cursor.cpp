@@ -42,6 +42,22 @@ void FurnaceGUI::startSelection(int xCoarse, int xFine, int y, bool fullRow) {
       return;
     }
   }
+
+  if ((settings.dragMovesSelection==1 || (settings.dragMovesSelection==2 && (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) || ImGui::IsKeyDown(ImGuiKey_RightCtrl)))) && !fullRow) {
+    if (xCoarse>=selStart.xCoarse && (xFine>=selStart.xFine || xCoarse>selStart.xCoarse) && y>=selStart.y &&
+        xCoarse<=selEnd.xCoarse && (xFine<=selEnd.xFine || xCoarse<selEnd.xCoarse) && y<=selEnd.y) {
+      dragging=true;
+      selecting=true;
+      selectingFull=false;
+      dragSourceX=xCoarse;
+      dragSourceY=y;
+      dragDestinationX=xCoarse;
+      dragDestinationY=y;
+      dragStart=selStart;
+      dragEnd=selEnd;
+      return;
+    }
+  }
   
   if (fullRow) {
     selStart.xCoarse=firstChannel;
@@ -68,15 +84,51 @@ void FurnaceGUI::startSelection(int xCoarse, int xFine, int y, bool fullRow) {
 
 void FurnaceGUI::updateSelection(int xCoarse, int xFine, int y, bool fullRow) {
   if (!selecting) return;
-  if (selectingFull) {
-    DETERMINE_LAST;
-    selEnd.xCoarse=lastChannel-1;
-    selEnd.xFine=2+e->curPat[selEnd.xCoarse].effectCols*2;
-    selEnd.y=y;
+  if (dragging) {
+    dragDestinationX=xCoarse;
+    dragDestinationY=y;
+    cursorDrag.xCoarse=xCoarse;
+    cursorDrag.xFine=xFine;
+    cursorDrag.y=y;
+
+    int len=dragEnd.xCoarse-dragStart.xCoarse+1;
+    if (len<0) len=0;
+
+    DETERMINE_FIRST_LAST;
+
+    if (dragStart.xCoarse+(dragDestinationX-dragSourceX)<firstChannel) {
+      dragDestinationX=dragSourceX-dragStart.xCoarse;
+    }
+
+    if (dragEnd.xCoarse+(dragDestinationX-dragSourceX)>=lastChannel) {
+      dragDestinationX=lastChannel-(dragEnd.xCoarse-dragSourceX)-1;
+    }
+
+    if (dragStart.y+(dragDestinationY-dragSourceY)<0) {
+      dragDestinationY=dragSourceY-dragStart.y;
+    }
+
+    if (dragEnd.y+(dragDestinationY-dragSourceY)>=e->curSubSong->patLen) {
+      dragDestinationY=e->curSubSong->patLen-(dragEnd.y-dragSourceY)-1;
+    }
+
+    selStart.xCoarse=dragStart.xCoarse+(dragDestinationX-dragSourceX);
+    selStart.xFine=dragStart.xFine;
+    selStart.y=dragStart.y+(dragDestinationY-dragSourceY);
+    selEnd.xCoarse=dragEnd.xCoarse+(dragDestinationX-dragSourceX);
+    selEnd.xFine=dragEnd.xFine;
+    selEnd.y=dragEnd.y+(dragDestinationY-dragSourceY);
   } else {
-    selEnd.xCoarse=xCoarse;
-    selEnd.xFine=xFine;
-    selEnd.y=y;
+    if (selectingFull) {
+      DETERMINE_LAST;
+      selEnd.xCoarse=lastChannel-1;
+      selEnd.xFine=2+e->curPat[selEnd.xCoarse].effectCols*2;
+      selEnd.y=y;
+    } else {
+      selEnd.xCoarse=xCoarse;
+      selEnd.xFine=xFine;
+      selEnd.y=y;
+    }
   }
 }
 
@@ -102,6 +154,18 @@ void FurnaceGUI::finishSelection() {
   }
   selecting=false;
   selectingFull=false;
+
+  if (dragging) {
+    if (dragSourceX==dragDestinationX && dragSourceY==dragDestinationY) {
+      cursor=cursorDrag;
+      selStart=cursorDrag;
+      selEnd=cursorDrag;
+    } else { // perform drag
+      doDrag();
+    }
+
+    dragging=false;
+  }
 
   // boundary check
   int chanCount=e->getTotalChannelCount();

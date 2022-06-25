@@ -22,14 +22,7 @@
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
-#include "sound/saa1099.h"
 #include "../../../extern/SAASound/src/SAASound.h"
-
-enum DivSAACores {
-  DIV_SAA_CORE_MAME=0,
-  DIV_SAA_CORE_SAASOUND,
-  DIV_SAA_CORE_E
-};
 
 class DivPlatformSAA1099: public DivDispatch {
   protected:
@@ -58,8 +51,6 @@ class DivPlatformSAA1099: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     std::queue<QueuedWrite> writes;
-    DivSAACores core;
-    saa1099_device saa;
     CSAASound* saa_saaSound;
     unsigned char regPool[32];
     unsigned char lastBusy;
@@ -83,14 +74,13 @@ class DivPlatformSAA1099: public DivDispatch {
     unsigned char saaNoise[2];
     friend void putDispatchChan(void*,int,int);
 
-    void acquire_e(short* bufL, short* bufR, size_t start, size_t len);
     void acquire_saaSound(short* bufL, short* bufR, size_t start, size_t len);
-    void acquire_mame(short* bufL, short* bufR, size_t start, size_t len);
   
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -98,7 +88,6 @@ class DivPlatformSAA1099: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    void setCore(DivSAACores core);
     void setFlags(unsigned int flags);
     bool isStereo();
     int getPortaFloor(int ch);

@@ -427,6 +427,10 @@ bool DivPlatformAmiga::keyOffAffectsArp(int ch) {
   return true;
 }
 
+DivMacroInt* DivPlatformAmiga::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 void DivPlatformAmiga::notifyInsChange(int ins) {
   for (int i=0; i<4; i++) {
     if (chan[i].ins==ins) {

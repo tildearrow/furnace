@@ -477,6 +477,10 @@ void* DivPlatformPCE::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformPCE::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformPCE::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

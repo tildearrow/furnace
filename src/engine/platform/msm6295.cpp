@@ -24,6 +24,7 @@
 #include <math.h>
 
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWriteDelay(a,v,d) if (!skipRegisterWrites) {writes.emplace(a,v,d); if (dumpWrites) {addWrite(a,v);} }
 
 const char** DivPlatformMSM6295::getRegisterSheet() {
   return NULL;
@@ -38,8 +39,11 @@ const char* DivPlatformMSM6295::getEffectName(unsigned char effect) {
   return NULL;
 }
 
-u8 DivMSM6295Interface::read_byte(u32 address) {
-  return adpcmMem[address&0xffff];
+u8 DivPlatformMSM6295::read_byte(u32 address) {
+  if (adpcmMem==NULL || address>=getSampleMemCapacity(0)) {
+    return 0;
+  }
+  return adpcmMem[address&0x3ffff];
 }
 
 void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t len) {
@@ -49,7 +53,7 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
         QueuedWrite& w=writes.front();
         switch (w.addr) {
           case 0: // command
-            msm->command_w(w.val);
+            msm.command_w(w.val);
             break;
           case 8: // chip clock select (VGM)
           case 9:
@@ -57,7 +61,7 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
           case 11:
             break;
           case 12: // rate select
-            msm->ss_w(!w.val);
+            msm.ss_w(!w.val);
             break;
           case 14: // enable bankswitch
             break;
@@ -70,21 +74,21 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
             break;
         }
         writes.pop();
-        delay=32;
+        delay=w.delay;
       }
     } else {
       delay--;
     }
     
-    msm->tick();
+    msm.tick();
   
-    bufL[h]=msm->out()<<4;
+    bufL[h]=msm.out()<<4;
 
     if (++updateOsc>=22) {
       updateOsc=0;
       // TODO: per-channel osc
       for (int i=0; i<4; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=msm->m_voice[i].m_muted?0:(msm->m_voice[i].m_out<<6);
+        oscBuf[i]->data[oscBuf[i]->needle++]=msm.m_voice[i].m_muted?0:(msm.m_voice[i].m_out<<6);
       }
     }
   }
@@ -118,7 +122,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
           }
           chan[c.chan].active=true;
           chan[c.chan].keyOn=true;
-          rWrite(0,(8<<c.chan)); // turn off
+          rWriteDelay(0,(8<<c.chan),60); // turn off
           rWrite(0,0x80|chan[c.chan].sample); // set phrase
           rWrite(0,(16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
         } else {
@@ -133,7 +137,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
         }
         //DivSample* s=parent->getSample(12*sampleBank+c.value%12);
         chan[c.chan].sample=12*sampleBank+c.value%12;
-        rWrite(0,(8<<c.chan)); // turn off
+        rWriteDelay(0,(8<<c.chan),60); // turn off
         rWrite(0,0x80|chan[c.chan].sample); // set phrase
         rWrite(0,(16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
       }
@@ -143,14 +147,14 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      rWrite(0,(8<<c.chan)); // turn off
+      rWriteDelay(0,(8<<c.chan),60); // turn off
       chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      rWrite(0,(8<<c.chan)); // turn off
+      rWriteDelay(0,(8<<c.chan),60); // turn off
       chan[c.chan].std.release();
       break;
     case DIV_CMD_ENV_RELEASE:
@@ -188,7 +192,6 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
       if (sampleBank>(parent->song.sample.size()/12)) {
         sampleBank=parent->song.sample.size()/12;
       }
-      iface.sampleBank=sampleBank;
       break;
     case DIV_CMD_LEGATO: {
       break;
@@ -212,7 +215,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
 
 void DivPlatformMSM6295::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  msm->m_voice[ch].m_muted=mute;
+  msm.m_voice[ch].m_muted=mute;
 }
 
 void DivPlatformMSM6295::forceIns() {
@@ -225,6 +228,10 @@ void DivPlatformMSM6295::forceIns() {
 
 void* DivPlatformMSM6295::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformMSM6295::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformMSM6295::getOscBuffer(int ch) {
@@ -249,8 +256,8 @@ void DivPlatformMSM6295::poke(std::vector<DivRegWrite>& wlist) {
 
 void DivPlatformMSM6295::reset() {
   while (!writes.empty()) writes.pop();
-  msm->reset();
-  msm->ss_w(false);
+  msm.reset();
+  msm.ss_w(rateSelInit);
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
@@ -264,7 +271,8 @@ void DivPlatformMSM6295::reset() {
   }
 
   sampleBank=0;
-  rateSel=false;
+  rateSel=rateSelInit;
+  rWrite(12,!rateSelInit);
 
   delay=0;
 }
@@ -339,7 +347,9 @@ void DivPlatformMSM6295::renderSamples() {
 }
 
 void DivPlatformMSM6295::setFlags(unsigned int flags) {
-  switch (flags) {
+  rateSelInit=(flags>>7)&1;
+  switch (flags&0x7f) {
+    default:
     case 0:
       chipClock=4000000/4;
       break;
@@ -379,13 +389,20 @@ void DivPlatformMSM6295::setFlags(unsigned int flags) {
     case 12:
       chipClock=1500000;
       break;
-    default:
-      chipClock=4000000/4;
+    case 13:
+      chipClock=3000000;
+      break;
+    case 14:
+      chipClock=COLOR_NTSC/3.0;
       break;
   }
   rate=chipClock/3;
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate/22;
+  }
+  if (rateSel!=rateSelInit) {
+    rWrite(12,!rateSelInit);
+    rateSel=rateSelInit;
   }
 }
 
@@ -393,8 +410,6 @@ int DivPlatformMSM6295::init(DivEngine* p, int channels, int sugRate, unsigned i
   parent=p;
   adpcmMem=new unsigned char[getSampleMemCapacity(0)];
   adpcmMemLen=0;
-  iface.adpcmMem=adpcmMem;
-  iface.sampleBank=0;
   dumpWrites=false;
   skipRegisterWrites=false;
   updateOsc=0;
@@ -402,7 +417,6 @@ int DivPlatformMSM6295::init(DivEngine* p, int channels, int sugRate, unsigned i
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  msm=new msm6295_core(iface);
   setFlags(flags);
   reset();
   return 4;
@@ -412,7 +426,6 @@ void DivPlatformMSM6295::quit() {
   for (int i=0; i<4; i++) {
     delete oscBuf[i];
   }
-  delete msm;
   delete[] adpcmMem;
 }
 

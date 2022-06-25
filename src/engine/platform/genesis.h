@@ -19,19 +19,26 @@
 
 #ifndef _GENESIS_H
 #define _GENESIS_H
-#include "../dispatch.h"
-#include <deque>
+#include "fmshared_OPN.h"
+#include "../macroInt.h"
 #include "../../../extern/Nuked-OPN2/ym3438.h"
 #include "sound/ymfm/ymfm_opn.h"
 
-#include "sms.h"
 
 class DivYM2612Interface: public ymfm::ymfm_interface {
 
 };
 
-class DivPlatformGenesis: public DivDispatch {
+class DivPlatformGenesis: public DivPlatformOPN {
   protected:
+    const unsigned short chanOffs[6]={
+      0x00, 0x01, 0x02, 0x100, 0x101, 0x102
+    };
+
+    const unsigned char konOffs[6]={
+      0, 1, 2, 4, 5, 6
+    };
+
     struct Channel {
       DivInstrumentFM state;
       DivMacroInt std;
@@ -97,21 +104,11 @@ class DivPlatformGenesis: public DivDispatch {
     Channel chan[10];
     DivDispatchOscBuffer* oscBuf[10];
     bool isMuted[10];
-    struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      bool addrOrVal;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
-    };
-    std::deque<QueuedWrite> writes;
     ym3438_t fm;
-    int delay;
-    unsigned char lastBusy;
 
     ymfm::ym2612* fm_ymfm;
     ymfm::ym2612::output_data out_ymfm;
     DivYM2612Interface iface;
-    unsigned char regPool[512];
   
     unsigned char lfoValue;
 
@@ -120,9 +117,6 @@ class DivPlatformGenesis: public DivDispatch {
     bool extMode, softPCM, useYMFM;
     bool ladder;
   
-    short oldWrites[512];
-    short pendingWrites[512];
-
     unsigned char dacVolTable[128];
 
     friend void putDispatchChan(void*,int,int);
@@ -135,6 +129,7 @@ class DivPlatformGenesis: public DivDispatch {
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
+    DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
@@ -157,6 +152,8 @@ class DivPlatformGenesis: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformGenesis():
+      DivPlatformOPN(9440540.0, 72, 32) {}
     ~DivPlatformGenesis();
 };
 #endif

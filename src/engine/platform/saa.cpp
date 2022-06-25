@@ -71,28 +71,6 @@ const char* DivPlatformSAA1099::getEffectName(unsigned char effect) {
   return NULL;
 }
 
-void DivPlatformSAA1099::acquire_mame(short* bufL, short* bufR, size_t start, size_t len) {
-  if (saaBufLen<len) {
-    saaBufLen=len;
-    for (int i=0; i<2; i++) {
-      delete[] saaBuf[i];
-      saaBuf[i]=new short[saaBufLen];
-    }
-  }
-  while (!writes.empty()) {
-    QueuedWrite w=writes.front();
-    saa.control_w(w.addr);
-    saa.data_w(w.val);
-    regPool[w.addr&0x1f]=w.val;
-    writes.pop();
-  }
-  saa.sound_stream_update(saaBuf,len,oscBuf);
-  for (size_t i=0; i<len; i++) {
-    bufL[i+start]=saaBuf[0][i];
-    bufR[i+start]=saaBuf[1][i];
-  }
-}
-
 void DivPlatformSAA1099::acquire_saaSound(short* bufL, short* bufR, size_t start, size_t len) {
   if (saaBufLen<len*2) {
     saaBufLen=len*2;
@@ -115,17 +93,7 @@ void DivPlatformSAA1099::acquire_saaSound(short* bufL, short* bufR, size_t start
 }
 
 void DivPlatformSAA1099::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  switch (core) {
-    case DIV_SAA_CORE_MAME:
-      acquire_mame(bufL,bufR,start,len);
-      break;
-    case DIV_SAA_CORE_SAASOUND:
-      acquire_saaSound(bufL,bufR,start,len);
-      break;
-    case DIV_SAA_CORE_E:
-      //acquire_e(bufL,bufR,start,len);
-      break;
-  }
+  acquire_saaSound(bufL,bufR,start,len);
 }
 
 inline unsigned char applyPan(unsigned char vol, unsigned char pan) {
@@ -401,6 +369,10 @@ void* DivPlatformSAA1099::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformSAA1099::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformSAA1099::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
@@ -416,16 +388,7 @@ int DivPlatformSAA1099::getRegisterPoolSize() {
 void DivPlatformSAA1099::reset() {
   while (!writes.empty()) writes.pop();
   memset(regPool,0,32);
-  switch (core) {
-    case DIV_SAA_CORE_MAME:
-      saa=saa1099_device();
-      break;
-    case DIV_SAA_CORE_SAASOUND:
-      saa_saaSound->Clear();
-      break;
-    case DIV_SAA_CORE_E:
-      break;
-  }
+  saa_saaSound->Clear();
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformSAA1099::Channel();
     chan[i].std.setEngine(parent);
@@ -496,16 +459,8 @@ void DivPlatformSAA1099::setFlags(unsigned int flags) {
     oscBuf[i]->rate=rate;
   }
 
-  switch (core) {
-    case DIV_SAA_CORE_MAME:
-      break;
-    case DIV_SAA_CORE_SAASOUND:
-      saa_saaSound->SetClockRate(chipClock);
-      saa_saaSound->SetSampleRate(rate);
-      break;
-    case DIV_SAA_CORE_E:
-      break;
-  }
+  saa_saaSound->SetClockRate(chipClock);
+  saa_saaSound->SetSampleRate(rate);
 }
 
 void DivPlatformSAA1099::poke(unsigned int addr, unsigned short val) {
@@ -514,10 +469,6 @@ void DivPlatformSAA1099::poke(unsigned int addr, unsigned short val) {
 
 void DivPlatformSAA1099::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
-}
-
-void DivPlatformSAA1099::setCore(DivSAACores c) {
-  core=c;
 }
 
 int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -529,11 +480,9 @@ int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, unsigned i
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  if (core==DIV_SAA_CORE_SAASOUND) {
-    saa_saaSound=CreateCSAASound();
-    saa_saaSound->SetOversample(1);
-    saa_saaSound->SetSoundParameters(SAAP_NOFILTER|SAAP_16BIT|SAAP_STEREO);
-  }
+  saa_saaSound=CreateCSAASound();
+  saa_saaSound->SetOversample(1);
+  saa_saaSound->SetSoundParameters(SAAP_NOFILTER|SAAP_16BIT|SAAP_STEREO);
   setFlags(flags);
   saaBufLen=65536;
   for (int i=0; i<2; i++) saaBuf[i]=new short[saaBufLen];

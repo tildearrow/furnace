@@ -842,6 +842,10 @@ void* DivPlatformX1_010::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformX1_010::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformX1_010::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

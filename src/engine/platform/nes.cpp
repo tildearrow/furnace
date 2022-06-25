@@ -65,7 +65,7 @@ const char** DivPlatformNES::getRegisterSheet() {
 const char* DivPlatformNES::getEffectName(unsigned char effect) {
   switch (effect) {
     case 0x11:
-      return "Write to delta modulation counter (0 to 7F)";
+      return "11xx: Write to delta modulation counter (0 to 7F)";
       break;
     case 0x12:
       return "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)";
@@ -609,6 +609,10 @@ void DivPlatformNES::forceIns() {
 
 void* DivPlatformNES::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformNES::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformNES::getOscBuffer(int ch) {

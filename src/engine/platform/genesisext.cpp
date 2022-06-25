@@ -21,10 +21,8 @@
 #include "../engine.h"
 #include <math.h>
 
-#include "genesisshared.h"
-
-#define CHIP_DIVIDER 72
-#define CHIP_FREQBASE 9440540
+#define CHIP_FREQBASE fmFreqBase
+#define CHIP_DIVIDER fmDivBase
 
 int DivPlatformGenesisExt::dispatch(DivCommand c) {
   if (c.chan<2) {
@@ -541,6 +539,12 @@ void* DivPlatformGenesisExt::getChanState(int ch) {
   if (ch>=6) return &chan[ch-3];
   if (ch>=2) return &opChan[ch-2];
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformGenesisExt::getChanMacroInt(int ch) {
+  if (ch>=6) return &chan[ch-3].std;
+  if (ch>=2) return NULL; // currently not implemented
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformGenesisExt::getOscBuffer(int ch) {

@@ -397,6 +397,10 @@ void* DivPlatformVERA::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformVERA::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformVERA::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

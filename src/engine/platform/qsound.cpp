@@ -530,6 +530,10 @@ void* DivPlatformQSound::getChanState(int ch) {
   return &chan[ch];
 }
 
+DivMacroInt* DivPlatformQSound::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
 DivDispatchOscBuffer* DivPlatformQSound::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

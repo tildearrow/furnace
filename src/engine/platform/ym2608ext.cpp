@@ -21,8 +21,8 @@
 #include "../engine.h"
 #include <math.h>
 
-#include "ym2610shared.h"
-#include "fmshared_OPN.h"
+#define CHIP_FREQBASE fmFreqBase
+#define CHIP_DIVIDER fmDivBase
 
 int DivPlatformYM2608Ext::dispatch(DivCommand c) {
   if (c.chan<2) {
@@ -482,6 +482,13 @@ void* DivPlatformYM2608Ext::getChanState(int ch) {
   if (ch>=6) return &chan[ch-3];
   if (ch>=2) return &opChan[ch-2];
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformYM2608Ext::getChanMacroInt(int ch) {
+  if (ch>=9 && ch<12) return ay->getChanMacroInt(ch-9);
+  if (ch>=6) return &chan[ch-3].std;
+  if (ch>=2) return NULL; // currently not implemented
+  return &chan[ch].std;
 }
 
 DivDispatchOscBuffer* DivPlatformYM2608Ext::getOscBuffer(int ch) {
