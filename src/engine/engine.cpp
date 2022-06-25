@@ -828,6 +828,44 @@ bool DivEngine::removeSubSong(int index) {
   return true;
 }
 
+void DivEngine::moveSubSongUp(size_t index) {
+  if (index<1 || index>=song.subsong.size()) return;
+  BUSY_BEGIN;
+  saveLock.lock();
+
+  if (index==curSubSongIndex) {
+    curSubSongIndex--;
+  } else if (index-1==curSubSongIndex) {
+    curSubSongIndex++;
+  }
+
+  DivSubSong* prev=song.subsong[index-1];
+  song.subsong[index-1]=song.subsong[index];
+  song.subsong[index]=prev;
+
+  saveLock.unlock();
+  BUSY_END;
+}
+
+void DivEngine::moveSubSongDown(size_t index) {
+  if (index>=song.subsong.size()-1) return;
+  BUSY_BEGIN;
+  saveLock.lock();
+
+  if (index==curSubSongIndex) {
+    curSubSongIndex++;
+  } else if (index+1==curSubSongIndex) {
+    curSubSongIndex--;
+  }
+
+  DivSubSong* prev=song.subsong[index+1];
+  song.subsong[index+1]=song.subsong[index];
+  song.subsong[index]=prev;
+
+  saveLock.unlock();
+  BUSY_END;
+}
+
 void DivEngine::clearSubSongs() {
   BUSY_BEGIN;
   saveLock.lock();
@@ -987,6 +1025,9 @@ DivInstrument* DivEngine::getIns(int index, DivInstrumentType fallbackType) {
         break;
       case DIV_INS_OPL:
         return &song.nullInsOPL;
+        break;
+      case DIV_INS_OPL_DRUMS:
+        return &song.nullInsOPLDrums;
         break;
       default:
         break;
@@ -1694,6 +1735,9 @@ int DivEngine::addInstrument(int refChan) {
       break;
     case DIV_INS_OPL:
       *ins=song.nullInsOPL;
+      break;
+    case DIV_INS_OPL_DRUMS:
+      *ins=song.nullInsOPLDrums;
       break;
     default:
       break;
@@ -2470,7 +2514,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
 
   // 2. find a free channel
   do {
-    if (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel)) {
+    if ((!midiPoly) || (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel))) {
       chan[finalChan].midiNote=note;
       chan[finalChan].midiAge=midiAgeCounter++;
       pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
@@ -2524,6 +2568,10 @@ void DivEngine::autoNoteOffAll() {
       chan[i].midiNote=-1;
     }
   }
+}
+
+void DivEngine::setAutoNotePoly(bool poly) {
+  midiPoly=poly;
 }
 
 void DivEngine::setOrder(unsigned char order) {

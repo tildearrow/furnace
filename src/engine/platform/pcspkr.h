@@ -22,6 +22,10 @@
 
 #include "../dispatch.h"
 #include "../macroInt.h"
+#include <queue>
+#include <thread>
+#include <mutex>
+#include <condition_variable>
 
 class DivPlatformPCSpeaker: public DivDispatch {
   struct Channel {
@@ -57,9 +61,23 @@ class DivPlatformPCSpeaker: public DivDispatch {
   };
   Channel chan[1];
   DivDispatchOscBuffer* oscBuf;
+  std::thread* realOutThread;
+  std::mutex realOutSelfLock;
+  std::condition_variable realOutCond;
+  bool realOutQuit;
+  struct RealQueueVal {
+    int tv_sec, tv_nsec;
+    unsigned short val;
+    RealQueueVal(int sec, int nsec, unsigned short v):
+      tv_sec(sec),
+      tv_nsec(nsec),
+      val(v) {}
+  };
+  std::queue<RealQueueVal> realQueue;
+  std::mutex realQueueLock;
   bool isMuted[1];
-  bool on, flip, lastOn;
-  int pos, speakerType, beepFD;
+  bool on, flip, lastOn, realOutEnabled;
+  int pos, speakerType, beepFD, realOutMethod;
   float low, band;
   float low2, high2, band2;
   float low3, band3;
@@ -68,7 +86,7 @@ class DivPlatformPCSpeaker: public DivDispatch {
 
   friend void putDispatchChan(void*,int,int);
 
-  void beepFreq(int freq);
+  void beepFreq(int freq, int delay=0);
 
   void acquire_unfilt(short* bufL, short* bufR, size_t start, size_t len);
   void acquire_cone(short* bufL, short* bufR, size_t start, size_t len);
@@ -76,6 +94,7 @@ class DivPlatformPCSpeaker: public DivDispatch {
   void acquire_real(short* bufL, short* bufR, size_t start, size_t len);
 
   public:
+    void pcSpeakerThread();
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);

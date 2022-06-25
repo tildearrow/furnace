@@ -104,13 +104,13 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Yamaha YM2612 (OPN2) with DualPCM", {
-      DIV_SYSTEM_YM2612, 64, 0, (int)0x80000000,
+      DIV_SYSTEM_YM2612_FRAC, 64, 0, (int)0x80000000,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Yamaha YM2612 (extended channel 3) with DualPCM", {
-      DIV_SYSTEM_YM2612_EXT, 64, 0, (int)0x80000000,
+      DIV_SYSTEM_YM2612_FRAC_EXT, 64, 0, (int)0x80000000,
       0
     }
   ));
@@ -301,7 +301,19 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_RF5C68, 64, 0, 0,
       0
     }
+  )); 
+  cat.systems.push_back(FurnaceGUISysDef(
+    "OKI MSM6258", {
+      DIV_SYSTEM_MSM6258, 64, 0, 0,
+      0
+    }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "OKI MSM6295", {
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));  
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Wavetable","chips which use user-specified waveforms to generate sound.");
@@ -666,7 +678,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Commodore 64 (6581 SID + Sound Expander with drums mode)", {
+    "Commodore 64 (6581 SID + Sound Expander in drums mode)", {
       DIV_SYSTEM_C64_6581, 64, 0, 1,
       DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
       0
@@ -680,9 +692,37 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Commodore 64 (8580 SID + Sound Expander with drums mode)", {
+    "Commodore 64 (8580 SID + Sound Expander in drums mode)", {
       DIV_SYSTEM_C64_8580, 64, 0, 1,
       DIV_SYSTEM_OPL_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (6581 SID + FM-YAM)", {
+      DIV_SYSTEM_C64_6581, 64, 0, 1,
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (6581 SID + FM-YAM in drums mode)", {
+      DIV_SYSTEM_C64_6581, 64, 0, 1,
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (8580 SID + FM-YAM)", {
+      DIV_SYSTEM_C64_8580, 64, 0, 1,
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Commodore 64 (8580 SID + FM-YAM in drums mode)", {
+      DIV_SYSTEM_C64_8580, 64, 0, 1,
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
       0
     }
   ));
@@ -742,6 +782,15 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Playsoniq", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_C64_8580, 64, 0, 0,
+      DIV_SYSTEM_SCC_PLUS, 64, 0, 0,
+      0
+    }
+  ));
   cat.systems.push_back(FurnaceGUISysDef(
     "MSX + SCC", {
       DIV_SYSTEM_AY8910, 64, 0, 16,
@@ -783,12 +832,21 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (48K)", {
       DIV_SYSTEM_AY8910, 64, 0, 2,
+      DIV_SYSTEM_SFX_BEEPER, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (128K)", {
       DIV_SYSTEM_AY8910, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "ZX Spectrum (128K) with TurboSound FM", {
+      DIV_SYSTEM_AY8910, 64, 0, 1,
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_OPN, 64, 0, 0,
       0
     }
   ));
@@ -929,14 +987,13 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
-  /*
   cat.systems.push_back(FurnaceGUISysDef(
     "Sharp X68000", {
       DIV_SYSTEM_YM2151, 64, 0, 2,
       DIV_SYSTEM_MSM6258, 64, 0, 0,
       0
     }
-  ));*/
+  ));
   cat.systems.push_back(FurnaceGUISysDef(
     "FM Towns", {
       DIV_SYSTEM_YM2612, 64, 0, 2,
@@ -962,6 +1019,16 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Gyruss", {
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Sega Kyugo", {
       DIV_SYSTEM_AY8910, 64, 0, 4,
       DIV_SYSTEM_AY8910, 64, 0, 4,
@@ -976,6 +1043,97 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Capcom CPS-1", { 
+      DIV_SYSTEM_YM2151, 64, 0, 2,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Jaleco Mega System 1", {
+      DIV_SYSTEM_YM2151, 64, 0, 2,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "NMK 16-bit Arcade", {
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 2,
+      DIV_SYSTEM_MSM6295, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Arcade", {
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Kaneko Toybox System", {
+      DIV_SYSTEM_AY8910, 64, 0, 1,
+      DIV_SYSTEM_AY8910, 64, 0, 1,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Tecmo Arcade", {
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Seibu Kaihatsu Arcade", {
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Arcade (Dark Seal)", {
+      DIV_SYSTEM_YM2151, 64, 0, 2,
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 8,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sunsoft Arcade", {
+      DIV_SYSTEM_YM2612, 64, 0, 4,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Atari Arcade (Rampart)", { 
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Deco 156", {
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      DIV_SYSTEM_MSM6295, 64, 0, 8,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Triple Z80 (Chopper)", { //or Namco?
+      DIV_SYSTEM_Y8950, 64, 0, 0,
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Sega System 18", {
       DIV_SYSTEM_YM2612, 64, 0, 2,
       DIV_SYSTEM_YM2612, 64, 0, 2,
@@ -984,10 +1142,52 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 1", {
+      DIV_SYSTEM_SMS, 64, 0, 2,
+      DIV_SYSTEM_SMS, 64, 0, 3,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Sega System 32", {
       DIV_SYSTEM_YM2612, 64, 0, 4,
       DIV_SYSTEM_YM2612, 64, 0, 4,
       DIV_SYSTEM_RF5C68, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega Hang-On", {
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_SEGAPCM, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Alpha-68K", {
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Data East Karnov", {
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_OPL, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Capcom Arcade", {
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Data East PCX", {
+      DIV_SYSTEM_OPN, 64, 0, 0,
+      DIV_SYSTEM_PCE, 64, 0, 2, 
       0
     }
   ));
@@ -1003,6 +1203,22 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Capcom Exed Eyes", {
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      0
+    }
+  ));  
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Nichibutsu Arcade", {
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      DIV_SYSTEM_AY8910, 64, 0, 0,
+      0
+    }
+  ));  
   cat.systems.push_back(FurnaceGUISysDef(
     "Namco (3-channel WSG)", {
       DIV_SYSTEM_NAMCO, 64, 0, 0,
@@ -1055,6 +1271,19 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Seta 2", {
       DIV_SYSTEM_X1_010, 64, 0, 1,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Cave 68000", {
+      DIV_SYSTEM_YMZ280B, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Triple Z80", {
+      DIV_SYSTEM_Y8950, 64, 0, 0,
+      DIV_SYSTEM_OPL, 64, 0, 0,
       0
     }
   ));

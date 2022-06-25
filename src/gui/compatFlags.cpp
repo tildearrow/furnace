@@ -123,6 +123,18 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, the pitch macro of an instrument is in linear space.");
     }
+    ImGui::Checkbox("Proper volume scaling strategy",&e->song.newVolumeScaling);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when disabled:\n- log scaling: multiply\n- linear scaling: subtract\nwhen enabled:\n- log scaling: subtract\n- linear scaling: multiply");
+    }
+    ImGui::Checkbox("Persist volume macro after it finishes",&e->song.volMacroLinger);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when disabled, a value in the volume column that happens after the volume macro is done will disregard the macro.");
+    }
+    ImGui::Checkbox("Broken output volume on instrument change",&e->song.brokenOutVol);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("if enabled, no checks for the presence of a volume macro will be made.\nthis will cause the last macro value to linger unless a value in the volume column is present.");
+    }
 
     ImGui::Text("Pitch linearity:");
     if (ImGui::RadioButton("None",e->song.linearPitch==0)) {

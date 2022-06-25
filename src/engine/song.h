@@ -511,6 +511,7 @@ struct DivSong {
     system[1]=DIV_SYSTEM_SMS;
 
     // OPLL default instrument contest winner - piano_guitar_idk by Weeppiko
+    nullInsOPLL.type=DIV_INS_OPLL;
     nullInsOPLL.fm.opllPreset=0;
     nullInsOPLL.fm.alg=0;
     nullInsOPLL.fm.fb=7;
@@ -540,6 +541,7 @@ struct DivSong {
     nullInsOPLL.fm.op[1].ssgEnv=8;
     nullInsOPLL.name="This is a bug! Report!";
 
+    nullInsOPL.type=DIV_INS_OPL;
     nullInsOPL.fm.alg=0;
     nullInsOPL.fm.fb=7;
     nullInsOPL.fm.op[0].dr=2;
@@ -552,9 +554,52 @@ struct DivSong {
     nullInsOPL.fm.op[1].rr=12;
     nullInsOPL.fm.op[1].mult=1;
     nullInsOPL.name="This is a bug! Report!";
-    nullInsOPL.fm.kickFreq=0x520;
-    nullInsOPL.fm.snareHatFreq=0x550;
-    nullInsOPL.fm.tomTopFreq=0x1c0;
+    nullInsOPL.fm.kickFreq=(1<<10)|576;
+    nullInsOPL.fm.snareHatFreq=(1<<10)|672;
+    nullInsOPL.fm.tomTopFreq=896;
+
+    nullInsOPLDrums=nullInsOPL;
+    nullInsOPLDrums.type=DIV_INS_OPL_DRUMS;
+    nullInsOPLDrums.fm.fixedDrums=true;
+
+    for (int i=0; i<4; i++) {
+      nullInsOPLDrums.fm.op[i].am=0;
+      nullInsOPLDrums.fm.op[i].vib=0;
+      nullInsOPLDrums.fm.op[i].ksr=0;
+      nullInsOPLDrums.fm.op[i].sus=0;
+      nullInsOPLDrums.fm.op[i].ws=0;
+      nullInsOPLDrums.fm.op[i].ksl=0;
+      nullInsOPLDrums.fm.op[i].tl=0;
+    }
+
+    // snare
+    nullInsOPLDrums.fm.op[0].ar=13;
+    nullInsOPLDrums.fm.op[0].dr=8;
+    nullInsOPLDrums.fm.op[0].sl=4;
+    nullInsOPLDrums.fm.op[0].rr=8;
+    nullInsOPLDrums.fm.op[0].mult=1;
+
+    // tom
+    nullInsOPLDrums.fm.op[1].ar=15;
+    nullInsOPLDrums.fm.op[1].dr=8;
+    nullInsOPLDrums.fm.op[1].sl=5;
+    nullInsOPLDrums.fm.op[1].rr=9;
+    nullInsOPLDrums.fm.op[1].mult=5;
+
+    // top
+    nullInsOPLDrums.fm.op[2].ar=10;
+    nullInsOPLDrums.fm.op[2].dr=10;
+    nullInsOPLDrums.fm.op[2].sl=5;
+    nullInsOPLDrums.fm.op[2].rr=5;
+    nullInsOPLDrums.fm.op[2].mult=1;
+    nullInsOPLDrums.fm.op[2].ksr=1;
+
+    // hi-hat
+    nullInsOPLDrums.fm.op[3].ar=12;
+    nullInsOPLDrums.fm.op[3].dr=8;
+    nullInsOPLDrums.fm.op[3].sl=10;
+    nullInsOPLDrums.fm.op[3].rr=7;
+    nullInsOPLDrums.fm.op[3].mult=2;
 
     nullInsQSound.std.panLMacro.mode=true;
   }

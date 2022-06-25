@@ -149,6 +149,9 @@ int DivPlatformPET::dispatch(DivCommand c) {
       chan.active=true;
       chan.keyOn=true;
       chan.macroInit(ins);
+      if (!parent->song.brokenOutVol && !chan.std.vol.will) {
+        chan.outVol=chan.vol;
+      }
       break;
     }
     case DIV_CMD_NOTE_OFF:

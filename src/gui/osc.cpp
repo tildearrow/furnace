@@ -96,10 +96,19 @@ void FurnaceGUI::drawOsc() {
         if (oscZoom<0.5) oscZoom=0.5;
         if (oscZoom>2.0) oscZoom=2.0;
       }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("zoom: %.2fx (%.1fdB)",oscZoom,20.0*log10(oscZoom*2.0));
+      }
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
+        oscZoom=0.5;
+      }
       ImGui::SameLine();
       if (ImGui::VSliderFloat("##OscWinSize",ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y),&oscWindowSize,5.0,100.0)) {
         if (oscWindowSize<5.0) oscWindowSize=5.0;
         if (oscWindowSize>100.0) oscWindowSize=100.0;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("window size: %.1fms",oscWindowSize);
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
         oscWindowSize=20.0;
@@ -214,6 +223,15 @@ void FurnaceGUI::drawOsc() {
       }
       if (settings.oscBorder) {
         dl->AddRect(inRect.Min,inRect.Max,borderColor,settings.oscRoundedCorners?(8.0f*dpiScale):0.0f,0,1.5f*dpiScale);
+      }
+    }
+    if (oscZoomSlider && ImGui::IsItemHovered()) {
+      float val=20.0*log10(2.0*fabs(0.5-((ImGui::GetMousePos().y-inRect.Min.y)/(inRect.Max.y-inRect.Min.y))));
+      if (val>0.0f) val=0.0f;
+      if (val<=-INFINITY) {
+        ImGui::SetTooltip("(-Infinity)dB");
+      } else {
+        ImGui::SetTooltip("%.1fdB",val);
       }
     }
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {

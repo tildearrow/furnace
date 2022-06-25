@@ -2197,7 +2197,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
   if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(2);
   if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(2);
 
-  if (topMenu) {
+  /*if (topMenu) {
     ImGui::Separator();
     ImGui::MenuItem("collapse pattern",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_PAT));
     ImGui::MenuItem("expand pattern",BIND_FOR(GUI_ACTION_PAT_EXPAND_PAT));
@@ -2205,7 +2205,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
     ImGui::Separator();
     ImGui::MenuItem("collapse song",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_SONG));
     ImGui::MenuItem("expand song",BIND_FOR(GUI_ACTION_PAT_EXPAND_SONG));
-  }
+  }*/
 }
 
 void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
@@ -3923,11 +3923,13 @@ bool FurnaceGUI::init() {
   edit=e->getConfBool("edit",false);
   followOrders=e->getConfBool("followOrders",true);
   followPattern=e->getConfBool("followPattern",true);
+  noteInputPoly=e->getConfBool("noteInputPoly",true);
   orderEditMode=e->getConfInt("orderEditMode",0);
   if (orderEditMode<0) orderEditMode=0;
   if (orderEditMode>3) orderEditMode=3;
 
   oscZoom=e->getConfFloat("oscZoom",0.5f);
+  oscZoomSlider=e->getConfBool("oscZoomSlider",false);
   oscWindowSize=e->getConfFloat("oscWindowSize",20.0f);
 
   pianoOctaves=e->getConfInt("pianoOctaves",pianoOctaves);
@@ -3948,6 +3950,8 @@ bool FurnaceGUI::init() {
 
   initSystemPresets();
 
+  e->setAutoNotePoly(noteInputPoly);
+
 #if !(defined(__APPLE__) || defined(_WIN32))
   unsigned char* furIcon=getFurnaceIcon();
   SDL_Surface* icon=SDL_CreateRGBSurfaceFrom(furIcon,256,256,32,256*4,0xff,0xff00,0xff0000,0xff000000);
@@ -3964,7 +3968,9 @@ bool FurnaceGUI::init() {
   SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS,"0");
   SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS,"0");
   // don't disable compositing on KWin
+#if SDL_VERSION_ATLEAST(2,0,22)
   SDL_SetHint(SDL_HINT_X11_WINDOW_TYPE,"_NET_WM_WINDOW_TYPE_NORMAL");
+#endif
 
   SDL_Init(SDL_INIT_VIDEO);
 
@@ -4139,9 +4145,11 @@ bool FurnaceGUI::finish() {
   e->setConf("followOrders",followOrders);
   e->setConf("followPattern",followPattern);
   e->setConf("orderEditMode",orderEditMode);
+  e->setConf("noteInputPoly",noteInputPoly);
 
   // commit oscilloscope state
   e->setConf("oscZoom",oscZoom);
+  e->setConf("oscZoomSlider",oscZoomSlider);
   e->setConf("oscWindowSize",oscWindowSize);
 
   // commit piano state
@@ -4189,6 +4197,7 @@ FurnaceGUI::FurnaceGUI():
   fullScreen(false),
   preserveChanPos(false),
   wantScrollList(false),
+  noteInputPoly(true),
   vgmExportVersion(0x171),
   drawHalt(10),
   macroPointSize(16),

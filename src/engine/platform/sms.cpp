@@ -69,14 +69,13 @@ void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     if (o<-32768) o=-32768;
     if (o>32767) o=32767;
     bufL[h]=o;
-    /*
     for (int i=0; i<4; i++) {
       if (isMuted[i]) {
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=sn->get_channel_output(i);
+        oscBuf[i]->data[oscBuf[i]->needle++]=sn_nuked.vol_table[sn_nuked.volume_out[i]];
       }
-    }*/
+    }
   }
 }
 
@@ -245,6 +244,9 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       rWrite(0x90|c.chan<<5|(isMuted[c.chan]?15:(15-(chan[c.chan].vol&15))));
       chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
@@ -316,6 +318,8 @@ int DivPlatformSMS::dispatch(DivCommand c) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       }
       chan[c.chan].inPorta=c.value;
+      // TODO: pre porta cancel arp compat flag
+      //if (chan[c.chan].inPorta) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;

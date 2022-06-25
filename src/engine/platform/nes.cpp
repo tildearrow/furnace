@@ -231,7 +231,7 @@ void DivPlatformNES::tick(bool sysTick) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       // ok, why are the volumes like that?
-      chan[i].outVol=MIN(15,chan[i].std.vol.val)-(15-(chan[i].vol&15));
+      chan[i].outVol=VOL_SCALE_LINEAR_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (i==2) { // triangle
         rWrite(0x4000+i*4,(chan[i].outVol==0)?0:255);
@@ -447,6 +447,9 @@ int DivPlatformNES::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
+      if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+        chan[c.chan].outVol=chan[c.chan].vol;
+      }
       if (c.chan==2) {
         rWrite(0x4000+c.chan*4,0xff);
       } else {

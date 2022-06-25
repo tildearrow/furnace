@@ -25,7 +25,9 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
   unsigned int copyOfFlags=flags;
   switch (type) {
     case DIV_SYSTEM_YM2612:
-    case DIV_SYSTEM_YM2612_EXT: {
+    case DIV_SYSTEM_YM2612_EXT: 
+    case DIV_SYSTEM_YM2612_FRAC:
+    case DIV_SYSTEM_YM2612_FRAC_EXT: {
       if (ImGui::RadioButton("NTSC (7.67MHz)",(flags&7)==0)) {
         copyOfFlags=(flags&0x80000000)|0;
       }
@@ -377,6 +379,22 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("RF5C164 (16-bit output)",((flags>>4)&15)==1)) {
         copyOfFlags=(flags&(~240))|16;
         
+      }
+      break;
+    }
+    case DIV_SYSTEM_MSM6258: {
+      ImGui::Text("Clock rate:");
+      if (ImGui::RadioButton("4MHz",flags==0)) {
+        copyOfFlags=0;
+      }
+      if (ImGui::RadioButton("4.096MHz",flags==1)) {
+        copyOfFlags=1;
+      }
+      if (ImGui::RadioButton("8MHz (X68000)",flags==2)) {
+        copyOfFlags=2;
+      }
+      if (ImGui::RadioButton("8.192MHz",flags==3)) {
+        copyOfFlags=3;
       }
       break;
     }

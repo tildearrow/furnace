@@ -21,6 +21,12 @@
 #include "instrument.h"
 #include "engine.h"
 
+void DivMacroStruct::prepare(DivInstrumentMacro& source, DivEngine* e) {
+  has=had=actualHad=will=true;
+  mode=source.mode;
+  linger=(source.name=="vol" && e->song.volMacroLinger);
+}
+
 void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tick) {
   if (!tick) {
     had=false;
@@ -46,6 +52,8 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
     if (pos>=source.len) {
       if (source.loop<source.len && source.loop>=0 && (source.loop>=source.rel || source.rel>=source.len)) {
         pos=source.loop;
+      } else if (linger) {
+        pos--;
       } else {
         has=false;
       }
@@ -228,7 +236,7 @@ void DivMacroInt::init(DivInstrument* which) {
   }
 
   for (size_t i=0; i<macroListLen; i++) {
-    macroList[i]->prepare(*macroSource[i]);
+    macroList[i]->prepare(*macroSource[i],e);
   }
 }
 

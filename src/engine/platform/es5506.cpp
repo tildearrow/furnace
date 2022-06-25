@@ -221,7 +221,7 @@ void DivPlatformES5506::e_pin(bool state)
     if (es5506.voice_update()) {
       chan[prevChanCycle].lOut=es5506.voice_lout(prevChanCycle);
       chan[prevChanCycle].rOut=es5506.voice_rout(prevChanCycle);
-      chan[prevChanCycle].oscOut=CLAMP_VAL((chan[prevChanCycle].lOut+chan[prevChanCycle].rOut)>>5,-32768,32767);
+      chan[prevChanCycle].oscOut=CLAMP((chan[prevChanCycle].lOut+chan[prevChanCycle].rOut)>>5,-32768,32767);
       if (es5506.voice_end()) {
         if (prevChanCycle<31) {
           for (int c=31; c>prevChanCycle; c--) {
@@ -471,7 +471,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           }
           break;
         case 2: { // delta
-          const signed int next_k1=CLAMP_VAL(chan[i].k1Offs+chan[i].std.ex1.val,-65535,65535);
+          const signed int next_k1=CLAMP(chan[i].k1Offs+chan[i].std.ex1.val,-65535,65535);
           if (chan[i].k1Offs!=next_k1) {
             chan[i].k1Offs=next_k1;
             chan[i].filterChanged.k1=1;
@@ -497,7 +497,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           }
           break;
         case 2: { // delta
-          const signed int next_k2=CLAMP_VAL(chan[i].k2Offs+chan[i].std.ex2.val,-65535,65535);
+          const signed int next_k2=CLAMP(chan[i].k2Offs+chan[i].std.ex2.val,-65535,65535);
           if (chan[i].k2Offs!=next_k2) {
             chan[i].k2Offs=next_k2;
             chan[i].filterChanged.k2=1;
@@ -552,14 +552,14 @@ void DivPlatformES5506::tick(bool sysTick) {
     // filter slide
     if (!chan[i].keyOn) {
       if (chan[i].k1Slide!=0 && chan[i].filter.k1>0 && chan[i].filter.k1<65535) {
-        signed int next=CLAMP_VAL(chan[i].filter.k1+chan[i].k1Slide,0,65535);
+        signed int next=CLAMP(chan[i].filter.k1+chan[i].k1Slide,0,65535);
         if (chan[i].filter.k1!=next) {
           chan[i].filter.k1=next;
           chan[i].filterChanged.k1=1;
         }
       }
       if (chan[i].k2Slide!=0 && chan[i].filter.k2>0 && chan[i].filter.k2<65535) {
-        signed int next=CLAMP_VAL(chan[i].filter.k2+chan[i].k2Slide,0,65535);
+        signed int next=CLAMP(chan[i].filter.k2+chan[i].k2Slide,0,65535);
         if (chan[i].filter.k2!=next) {
           chan[i].filter.k2=next;
           chan[i].filterChanged.k2=1;
@@ -845,14 +845,14 @@ void DivPlatformES5506::tick(bool sysTick) {
         }
         if (chan[i].filterChanged.k2) {
           if (chan[i].std.ex2.mode!=1) { // Relative
-            k2=CLAMP_VAL(chan[i].filter.k2+chan[i].k2Offs,0,65535);
+            k2=CLAMP(chan[i].filter.k2+chan[i].k2Offs,0,65535);
           } else {
             k2=chan[i].filter.k2;
           }
         }
         if (chan[i].filterChanged.k1) {
           if (chan[i].std.ex1.mode!=1) { // Relative
-            k1=CLAMP_VAL(chan[i].filter.k1+chan[i].k1Offs,0,65535);
+            k1=CLAMP(chan[i].filter.k1+chan[i].k1Offs,0,65535);
           } else {
             k1=chan[i].filter.k1;
           }
@@ -910,7 +910,7 @@ void DivPlatformES5506::tick(bool sysTick) {
       chan[i].noteChanged.changed=0;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=CLAMP_VAL(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs),0,0x1ffff);
+      chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs),0,0x1ffff);
       if (chan[i].keyOn) {
         if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
           chan[i].k1Prev=0xffff;
@@ -931,14 +931,14 @@ void DivPlatformES5506::tick(bool sysTick) {
           // initialize filter
           pageWriteMask(0x00|i,0x5f,0x00,(chan[i].pcm.bank<<14)|(chan[i].filter.mode<<8),0xc300);
           if ((chan[i].std.ex2.mode!=1) && (chan[i].std.ex2.had)) {
-            k2=CLAMP_VAL(chan[i].filter.k2+chan[i].k2Offs,0,65535);
+            k2=CLAMP(chan[i].filter.k2+chan[i].k2Offs,0,65535);
           } else {
             k2=chan[i].filter.k2;
           }
           pageWrite(0x00|i,0x07,k2);
           chan[i].k2Prev=k2;
           if ((chan[i].std.ex1.mode!=1) && (chan[i].std.ex1.had)) {
-            k1=CLAMP_VAL(chan[i].filter.k1+chan[i].k1Offs,0,65535);
+            k1=CLAMP(chan[i].filter.k1+chan[i].k1Offs,0,65535);
           } else {
             k1=chan[i].filter.k1;
           }
@@ -1327,6 +1327,10 @@ void DivPlatformES5506::forceIns() {
 
 void* DivPlatformES5506::getChanState(int ch) {
   return &chan[ch];
+}
+
+DivMacroInt* DivPlatformES5506::getChanMacroInt(int ch) {
+  return &chan[ch].std;
 }
 
 void DivPlatformES5506::reset() {

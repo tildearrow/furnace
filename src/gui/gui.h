@@ -26,6 +26,7 @@
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_sdlrenderer.h"
 #include <SDL.h>
+#include <fftw3.h>
 #include <deque>
 #include <initializer_list>
 #include <map>
@@ -815,7 +816,7 @@ class FurnaceGUI {
   String mmlStringW;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
-  bool displayNew, fullScreen, preserveChanPos, wantScrollList;
+  bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
   bool willExport[32];
   int vgmExportVersion;
   int drawHalt;
@@ -871,6 +872,7 @@ class FurnaceGUI {
     int saaCore;
     int nesCore;
     int fdsCore;
+    int pcSpeakerOutMethod;
     String yrw801Path;
     String tg100Path;
     String mu5Path;
@@ -905,10 +907,8 @@ class FurnaceGUI {
     int avoidRaisingPattern;
     int insFocusesPattern;
     int stepOnInsert;
-    // TODO flags
     int unifiedDataView;
     int sysFileDialog;
-    // end
     int roundedWindows;
     int roundedButtons;
     int roundedMenus;
@@ -952,6 +952,7 @@ class FurnaceGUI {
     int effectCellSpacing;
     int effectValCellSpacing;
     int doubleClickColumn;
+    int blankIns;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -972,6 +973,7 @@ class FurnaceGUI {
       saaCore(1),
       nesCore(0),
       fdsCore(0),
+      pcSpeakerOutMethod(0),
       yrw801Path(""),
       tg100Path(""),
       mu5Path(""),
@@ -1051,6 +1053,7 @@ class FurnaceGUI {
       effectCellSpacing(0),
       effectValCellSpacing(0),
       doubleClickColumn(1),
+      blankIns(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1252,6 +1255,21 @@ class FurnaceGUI {
   float chanOscLP1[DIV_MAX_CHANS];
   unsigned short lastNeedlePos[DIV_MAX_CHANS];
   unsigned short lastCorrPos[DIV_MAX_CHANS];
+  struct ChanOscStatus {
+    double* inBuf;
+    size_t inBufPos;
+    double inBufPosFrac;
+    unsigned short needle;
+    fftw_complex* outBuf;
+    fftw_plan plan;
+    ChanOscStatus():
+      inBuf(NULL),
+      inBufPos(0),
+      inBufPosFrac(0.0f),
+      needle(0),
+      outBuf(NULL),
+      plan(NULL) {}
+  } chanOscChan[DIV_MAX_CHANS];
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];

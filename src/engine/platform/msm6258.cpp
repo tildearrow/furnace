@@ -31,50 +31,73 @@ const char** DivPlatformMSM6258::getRegisterSheet() {
 }
 
 const char* DivPlatformMSM6258::getEffectName(unsigned char effect) {
+  switch (effect) {
+    case 0x20:
+      return "20xx: Set frequency divider (0-2)";
+      break;
+    case 0x21:
+      return "21xx: Select clock rate (0: full; 1: half)";
+      break;
+  }
   return NULL;
 }
 
 void DivPlatformMSM6258::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  short* outs[2]={
+    &msmOut,
+    NULL
+  };
   for (size_t h=start; h<start+len; h++) {
-    short* outs[2]={
-      &bufL[h],
-      NULL
-    };
-    if (!writes.empty()) {
-      QueuedWrite& w=writes.front();
-      switch (w.addr) {
-        case 0:
-          msm->ctrl_w(w.val);
-          break;
-      }
-      writes.pop();
-    }
-
-    if (sample>=0 && sample<parent->song.sampleLen) {
-      DivSample* s=parent->getSample(sample);
-      unsigned char nextData=(s->dataVOX[samplePos]>>4)|(s->dataVOX[samplePos]<<4);
-      if (msm->data_w(nextData)) {
-        samplePos++;
-        if (samplePos>=(int)s->lengthVOX) {
-          sample=-1;
-          samplePos=0;
-          msm->ctrl_w(1);
+    if (--msmClockCount<0) {
+      if (--msmDividerCount<=0) {
+        if (!writes.empty()) {
+          QueuedWrite& w=writes.front();
+          switch (w.addr) {
+            case 0:
+              msm->ctrl_w(w.val);
+              break;
+            case 2:
+              msmPan=w.val;
+              break;
+            case 8:
+              msmClock=w.val;
+              break;
+            case 12:
+              msmDivider=4-(w.val&3);
+              if (msmDivider<2) msmDivider=2;
+              break;
+          }
+          writes.pop();
         }
+
+        if (sample>=0 && sample<parent->song.sampleLen) {
+          DivSample* s=parent->getSample(sample);
+          unsigned char nextData=(s->dataVOX[samplePos]>>4)|(s->dataVOX[samplePos]<<4);
+          if (msm->data_w(nextData)) {
+            samplePos++;
+            if (samplePos>=(int)s->lengthVOX) {
+              sample=-1;
+              samplePos=0;
+              msm->ctrl_w(1);
+            }
+          }
+        }
+        
+        msm->sound_stream_update(outs,1);
+        msmDividerCount=msmDivider;
       }
+      msmClockCount=msmClock;
     }
     
-    msm->sound_stream_update(outs,1);
     if (isMuted[0]) {
       bufL[h]=0;
+      bufR[h]=0;
+      oscBuf[0]->data[oscBuf[0]->needle++]=0;
+    } else {
+      bufL[h]=(msmPan&2)?msmOut:0;
+      bufR[h]=(msmPan&1)?msmOut:0;
+      oscBuf[0]->data[oscBuf[0]->needle++]=msmPan?msmOut:0;
     }
-
-    /*if (++updateOsc>=22) {
-      updateOsc=0;
-      // TODO: per-channel osc
-      for (int i=0; i<1; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=msm->m_voice[i].m_muted?0:(msm->m_voice[i].m_out<<6);
-      }
-    }*/
   }
 }
 
@@ -176,6 +199,23 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
         sampleBank=parent->song.sample.size()/12;
       }
       break;
+    case DIV_CMD_SAMPLE_FREQ:
+      rateSel=c.value&3;
+      rWrite(12,rateSel);
+      break;
+    case DIV_CMD_SAMPLE_MODE:
+      clockSel=c.value&1;
+      rWrite(8,clockSel);
+      break;
+    case DIV_CMD_PANNING: {
+      if (c.value==0 && c.value2==0) {
+        chan[c.chan].pan=3;
+      } else {
+        chan[c.chan].pan=(c.value2>0)|((c.value>0)<<1);
+      }
+      rWrite(2,chan[c.chan].pan);
+      break;
+    }
     case DIV_CMD_LEGATO: {
       break;
     }
@@ -205,6 +245,9 @@ void DivPlatformMSM6258::forceIns() {
   for (int i=0; i<1; i++) {
     chan[i].insChanged=true;
   }
+  rWrite(12,rateSel);
+  rWrite(8,clockSel);
+  rWrite(2,chan[0].pan);
 }
 
 void* DivPlatformMSM6258::getChanState(int ch) {
@@ -234,6 +277,14 @@ void DivPlatformMSM6258::poke(std::vector<DivRegWrite>& wlist) {
 void DivPlatformMSM6258::reset() {
   while (!writes.empty()) writes.pop();
   msm->device_reset();
+  msmClock=chipClock;
+  msmDivider=2;
+  msmDividerCount=0;
+  msmClock=0;
+  msmClockCount=0;
+  msmPan=3;
+  rateSel=2;
+  clockSel=0;
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
@@ -251,6 +302,10 @@ void DivPlatformMSM6258::reset() {
   samplePos=0;
 
   delay=0;
+}
+
+bool DivPlatformMSM6258::isStereo() {
+  return true;
 }
 
 bool DivPlatformMSM6258::keyOffAffectsArp(int ch) {
@@ -307,15 +362,23 @@ void DivPlatformMSM6258::renderSamples() {
 }
 
 void DivPlatformMSM6258::setFlags(unsigned int flags) {
-  if (flags&1) {
-    chipClock=4096000;
-  } else {
-    chipClock=4000000;
+  switch (flags) {
+    case 3:
+      chipClock=8192000;
+      break;
+    case 2:
+      chipClock=8000000;
+      break;
+    case 1:
+      chipClock=4096000;
+      break;
+    default:
+      chipClock=4000000;
+      break;
   }
-  rate=chipClock/256;
+  rate=chipClock/128;
   for (int i=0; i<1; i++) {
-    isMuted[i]=false;
-    oscBuf[i]->rate=rate/256;
+    oscBuf[i]->rate=rate;
   }
 }
 

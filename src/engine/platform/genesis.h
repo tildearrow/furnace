@@ -52,6 +52,7 @@ class DivPlatformGenesis: public DivDispatch {
       bool dacDirection;
       bool dacReversed;
       unsigned char sampleBank;
+      signed char dacOutput;
       void macroInit(DivInstrument* which) {
         std.init(which);
         pitch2=0;
@@ -90,7 +91,8 @@ class DivPlatformGenesis: public DivDispatch {
         dacReady(true),
         dacDirection(false),
         dacReversed(false),
-        sampleBank(0) {}
+        sampleBank(0),
+        dacOutput(0) {}
     };
     Channel chan[10];
     DivDispatchOscBuffer* oscBuf[10];
