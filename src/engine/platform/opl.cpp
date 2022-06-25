@@ -749,7 +749,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             int end=s->offB+s->lengthB-1;
             immWrite(11,(end>>2)&0xff);
             immWrite(12,(end>>10)&0xff);
-            immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
+            immWrite(7,(s->isLoopable())?0xb0:0xa0); // start/repeat
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
               chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
@@ -785,7 +785,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           int end=s->offB+s->lengthB-1;
           immWrite(11,(end>>2)&0xff);
           immWrite(12,(end>>10)&0xff);
-          immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
+          immWrite(7,(s->isLoopable())?0xb0:0xa0); // start/repeat
           int freq=(65536.0*(double)s->rate)/(double)chipRateBase;
           immWrite(16,freq&0xff);
           immWrite(17,(freq>>8)&0xff);

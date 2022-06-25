@@ -2162,7 +2162,7 @@ int DivEngine::addSampleFromFile(const char* path) {
 
       sample->rate=33144;
       sample->centerRate=33144;
-      sample->depth=1;
+      sample->depth=DIV_SAMPLE_DEPTH_1BIT_DPCM;
       sample->init(len*8);
 
       if (fread(sample->dataDPCM,1,len,f)==0) {
@@ -2236,9 +2236,9 @@ int DivEngine::addSampleFromFile(const char* path) {
 
   int index=0;
   if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
-    sample->depth=8;
+    sample->depth=DIV_SAMPLE_DEPTH_8BIT;
   } else {
-    sample->depth=16;
+    sample->depth=DIV_SAMPLE_DEPTH_16BIT;
   }
   sample->init(si.frames);
   if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {

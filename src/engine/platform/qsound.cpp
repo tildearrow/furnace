@@ -301,7 +301,7 @@ void DivPlatformQSound::tick(bool sysTick) {
       qsound_bank = 0x8000 | (s->offQSound >> 16);
       qsound_addr = s->offQSound & 0xffff;
 
-      int length = s->samples;
+      int length = s->EndPosition();
       if (length > 65536 - 16) {
         length = 65536 - 16;
       }

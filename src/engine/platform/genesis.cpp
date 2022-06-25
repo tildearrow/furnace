@@ -153,14 +153,13 @@ void DivPlatformGenesis::processDAC() {
           if (chan[i].dacPeriod>=(chipClock/576)) {
             if (s->samples>0) {
               while (chan[i].dacPeriod>=(chipClock/576)) {
-                if (++chan[i].dacPos>=s->samples) {
-                  if (s->loopStart>=0 && s->loopStart<(int)s->samples && !chan[i].dacDirection) {
-                    chan[i].dacPos=s->loopStart;
-                  } else {
-                    chan[i].dacSample=-1;
-                    chan[i].dacPeriod=0;
-                    break;
-                  }
+                ++chan[i].dacPos;
+                if (!chan[i].dacDirection && (s->isLoopable() && chan[i].dacPos>=(unsigned int)s->EndPosition())) {
+                  chan[i].dacPos=s->loopStart;
+                } else if (chan[i].dacPos>=s->samples) {
+                  chan[i].dacSample=-1;
+                  chan[i].dacPeriod=0;
+                  break;
                 }
                 chan[i].dacPeriod-=(chipClock/576);
               }
@@ -200,14 +199,13 @@ void DivPlatformGenesis::processDAC() {
               chan[5].dacReady=false;
             }
           }
-          if (++chan[5].dacPos>=s->samples) {
-            if (s->loopStart>=0 && s->loopStart<(int)s->samples && !chan[5].dacDirection) {
-              chan[5].dacPos=s->loopStart;
-            } else {
-              chan[5].dacSample=-1;
-              if (parent->song.brokenDACMode) {
-                rWrite(0x2b,0);
-              }
+          chan[5].dacPos++;
+          if (!chan[5].dacDirection && (s->isLoopable() && chan[5].dacPos>=(unsigned int)s->EndPosition())) {
+            chan[5].dacPos=s->loopStart;
+          } else if (chan[5].dacPos>=s->samples) {
+            chan[5].dacSample=-1;
+            if (parent->song.brokenDACMode) {
+              rWrite(0x2b,0);
             }
           }
           while (chan[5].dacPeriod>=rate) chan[5].dacPeriod-=rate;
