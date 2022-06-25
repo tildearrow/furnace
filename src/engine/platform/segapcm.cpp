@@ -56,7 +56,7 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
           pcmR+=(s->data8[chan[i].pcm.pos>>8]*chan[i].chVolR);
         }
         chan[i].pcm.pos+=chan[i].pcm.freq;
-        if (s->isLoopable() && chan[i].pcm.pos>=(s->EndPosition()<<8)) {
+        if (s->isLoopable() && chan[i].pcm.pos>=(s->getEndPosition()<<8)) {
           chan[i].pcm.pos=s->loopStart<<8;
         } else if (chan[i].pcm.pos>=(s->samples<<8)) {
           chan[i].pcm.sample=-1;
@@ -200,7 +200,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
         chan[c.chan].macroInit(ins);
         if (dumpWrites) { // Sega PCM writes
           DivSample* s=parent->getSample(chan[c.chan].pcm.sample);
-          int actualLength=(int)(s->EndPosition(DIV_SAMPLE_DEPTH_8BIT));
+          int actualLength=(int)(s->getEndPosition(DIV_SAMPLE_DEPTH_8BIT));
           if (actualLength>0xfeff) actualLength=0xfeff;
           addWrite(0x10086+(c.chan<<3),3+((s->offSegaPCM>>16)<<3));
           addWrite(0x10084+(c.chan<<3),(s->offSegaPCM)&0xff);
@@ -233,7 +233,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
         chan[c.chan].furnacePCM=false;
         if (dumpWrites) { // Sega PCM writes
           DivSample* s=parent->getSample(chan[c.chan].pcm.sample);
-          int actualLength=(int)(s->EndPosition(DIV_SAMPLE_DEPTH_8BIT));
+          int actualLength=(int)(s->getEndPosition(DIV_SAMPLE_DEPTH_8BIT));
           if (actualLength>65536) actualLength=65536;
           addWrite(0x10086+(c.chan<<3),3+((s->offSegaPCM>>16)<<3));
           addWrite(0x10084+(c.chan<<3),(s->offSegaPCM)&0xff);

@@ -124,7 +124,7 @@ struct DivSample {
    * get sample end position
    * @return the samples end position.
    */
-  unsigned int EndPosition(DivSampleDepth depth=DIV_SAMPLE_DEPTH_MAX);
+  unsigned int getEndPosition(DivSampleDepth depth=DIV_SAMPLE_DEPTH_MAX);
 
   /**
    * @warning DO NOT USE - internal functions

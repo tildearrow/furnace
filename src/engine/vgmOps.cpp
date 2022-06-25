@@ -1549,7 +1549,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
     size_t memPos=0;
     for (int i=0; i<song.sampleLen; i++) {
       DivSample* sample=song.sample[i];
-      unsigned int alignedSize=(sample->EndPosition(DIV_SAMPLE_DEPTH_8BIT)+0xff)&(~0xff);
+      unsigned int alignedSize=(sample->getEndPosition(DIV_SAMPLE_DEPTH_8BIT)+0xff)&(~0xff);
       if (alignedSize>65536) alignedSize=65536;
       if ((memPos&0xff0000)!=((memPos+alignedSize)&0xff0000)) {
         memPos=(memPos+0xffff)&0xff0000;
@@ -1559,7 +1559,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       sample->offSegaPCM=memPos;
       unsigned int readPos=0;
       for (unsigned int j=0; j<alignedSize; j++) {
-        if (readPos>=sample->EndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
+        if (readPos>=sample->getEndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
           if (sample->isLoopable()) {
             readPos=sample->loopStart;
             pcmMem[memPos++]=((unsigned char)sample->data8[readPos]+0x80);
@@ -1871,12 +1871,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         if (loopSample[nextToTouch]<song.sampleLen) {
           DivSample* sample=song.sample[loopSample[nextToTouch]];
           // insert loop
-          if (sample->loopStart<(int)sample->EndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
+          if (sample->loopStart<(int)sample->getEndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
             w->writeC(0x93);
             w->writeC(nextToTouch);
             w->writeI(sample->off8+sample->loopStart);
             w->writeC(0x81);
-            w->writeI(sample->EndPosition(DIV_SAMPLE_DEPTH_8BIT)-sample->loopStart);
+            w->writeI(sample->getEndPosition(DIV_SAMPLE_DEPTH_8BIT)-sample->loopStart);
           }
         }
         loopSample[nextToTouch]=-1;

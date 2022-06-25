@@ -42,7 +42,7 @@ bool DivSample::isLoopable() {
   return (loopStart>=0 && loopStart<loopEnd) && (loopEnd>loopStart && loopEnd<=(int)samples);
 }
 
-unsigned int DivSample::EndPosition(DivSampleDepth depth) {
+unsigned int DivSample::getEndPosition(DivSampleDepth depth) {
   unsigned int len=samples;
   switch (depth) {
     case DIV_SAMPLE_DEPTH_1BIT:

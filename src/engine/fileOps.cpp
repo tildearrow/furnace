@@ -1639,12 +1639,13 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         reader.readI();
       }
 
+/*
       if (ds.version>=100) {
         sample->loopEnd=reader.readI();
       } else {
         reader.readI();
       }
-
+*/
       if (ds.version>=58) { // modern sample
         sample->init(sample->samples);
         reader.read(sample->getCurBuf(),sample->getCurBufLen());
@@ -3016,7 +3017,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeC(0);
     w->writeS(sample->centerRate);
     w->writeI(sample->loopStart);
-    w->writeI(sample->loopEnd);
+    //w->writeI(sample->loopEnd);
 
     w->write(sample->getCurBuf(),sample->getCurBufLen());
   }

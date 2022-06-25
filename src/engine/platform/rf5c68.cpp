@@ -392,7 +392,7 @@ void DivPlatformRF5C68::renderSamples() {
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
-    int length=s->EndPosition(DIV_SAMPLE_DEPTH_8BIT);
+    int length=s->getEndPosition(DIV_SAMPLE_DEPTH_8BIT);
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-31,length);
     if (actualLength>0) {
       s->offRF5C68=memPos;
