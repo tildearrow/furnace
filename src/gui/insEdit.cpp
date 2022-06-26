@@ -1192,7 +1192,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
         if (i.macroMode && i.modeName[0]!=NULL) {
           for (int m=0; i.modeName[m]!=NULL; m++) {
             String modeName=fmt::sprintf("%s##IMacroMode%d",i.modeName[m],m);
-            if (ImGui::RadioButton(modeName.c_str(),i.macro->mode==m)) {
+            if (ImGui::RadioButton(modeName.c_str(),(int)i.macro->mode==m)) {
               i.macro->mode=m;
             }
           }
