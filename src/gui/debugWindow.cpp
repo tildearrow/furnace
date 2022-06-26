@@ -157,7 +157,7 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("loopEnd: %d",sample->loopEnd);
           ImGui::Text("loopMode: %d",(int)(sample->loopMode));
           ImGui::Text("loopOffP: %d",sample->loopOffP);
-          ImGui::Text("depth: %d",sample->depth);
+          ImGui::Text("depth: %d",(unsigned char)sample->depth);
           ImGui::Text("length8: %d",sample->length8);
           ImGui::Text("length16: %d",sample->length16);
           ImGui::Text("length1: %d",sample->length1);

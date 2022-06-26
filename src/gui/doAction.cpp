@@ -840,7 +840,7 @@ void FurnaceGUI::doAction(int what) {
         if (!sample->insert(pos,sampleClipboardLen)) {
           showError("couldn't paste! make sure your sample is 8 or 16-bit.");
         } else {
-          if (sample->depth==8) {
+          if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
             for (size_t i=0; i<sampleClipboardLen; i++) {
               sample->data8[pos+i]=sampleClipboard[i]>>8;
             }
@@ -866,7 +866,7 @@ void FurnaceGUI::doAction(int what) {
       if (pos<0) pos=0;
 
       e->lockEngine([this,sample,pos]() {
-        if (sample->depth==8) {
+        if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
           for (size_t i=0; i<sampleClipboardLen; i++) {
             if (pos+i>=sample->samples) break;
             sample->data8[pos+i]=sampleClipboard[i]>>8;
@@ -896,7 +896,7 @@ void FurnaceGUI::doAction(int what) {
       if (pos<0) pos=0;
 
       e->lockEngine([this,sample,pos]() {
-        if (sample->depth==8) {
+        if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
           for (size_t i=0; i<sampleClipboardLen; i++) {
             if (pos+i>=sample->samples) break;
             int val=sample->data8[pos+i]+(sampleClipboard[i]>>8);
@@ -950,7 +950,7 @@ void FurnaceGUI::doAction(int what) {
         SAMPLE_OP_BEGIN;
         float maxVal=0.0f;
 
-        if (sample->depth==16) {
+        if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
           for (unsigned int i=start; i<end; i++) {
             float val=fabs((float)sample->data16[i]/32767.0f);
             if (val>maxVal) maxVal=val;
@@ -965,7 +965,7 @@ void FurnaceGUI::doAction(int what) {
               sample->data16[i]=val;
             }
           }
-        } else if (sample->depth==8) {
+        } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
           for (unsigned int i=start; i<end; i++) {
             float val=fabs((float)sample->data8[i]/127.0f);
             if (val>maxVal) maxVal=val;
@@ -996,14 +996,14 @@ void FurnaceGUI::doAction(int what) {
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
-        if (sample->depth==16) {
+        if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
           for (unsigned int i=start; i<end; i++) {
             float val=sample->data16[i]*float(i-start)/float(end-start);
             if (val<-32768) val=-32768;
             if (val>32767) val=32767;
             sample->data16[i]=val;
           }
-        } else if (sample->depth==8) {
+        } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
           for (unsigned int i=start; i<end; i++) {
             float val=sample->data8[i]*float(i-start)/float(end-start);
             if (val<-128) val=-128;
@@ -1026,14 +1026,14 @@ void FurnaceGUI::doAction(int what) {
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
-        if (sample->depth==16) {
+        if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
           for (unsigned int i=start; i<end; i++) {
             float val=sample->data16[i]*float(end-i)/float(end-start);
             if (val<-32768) val=-32768;
             if (val>32767) val=32767;
             sample->data16[i]=val;
           }
-        } else if (sample->depth==8) {
+        } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
           for (unsigned int i=start; i<end; i++) {
             float val=sample->data8[i]*float(end-i)/float(end-start);
             if (val<-128) val=-128;
@@ -1060,11 +1060,11 @@ void FurnaceGUI::doAction(int what) {
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
-        if (sample->depth==16) {
+        if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
           for (unsigned int i=start; i<end; i++) {
             sample->data16[i]=0;
           }
-        } else if (sample->depth==8) {
+        } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
           for (unsigned int i=start; i<end; i++) {
             sample->data8[i]=0;
           }
@@ -1118,7 +1118,7 @@ void FurnaceGUI::doAction(int what) {
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
-        if (sample->depth==16) {
+        if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
           for (unsigned int i=start; i<end; i++) {
             unsigned int ri=end-i-1+start;
             if (ri<=i) break;
@@ -1126,7 +1126,7 @@ void FurnaceGUI::doAction(int what) {
             sample->data16[ri]^=sample->data16[i];
             sample->data16[i]^=sample->data16[ri];
           }
-        } else if (sample->depth==8) {
+        } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
           for (unsigned int i=start; i<end; i++) {
             unsigned int ri=end-i-1+start;
             if (ri<=i) break;
@@ -1150,12 +1150,12 @@ void FurnaceGUI::doAction(int what) {
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
-        if (sample->depth==16) {
+        if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
           for (unsigned int i=start; i<end; i++) {
             sample->data16[i]=-sample->data16[i];
             if (sample->data16[i]==-32768) sample->data16[i]=32767;
           }
-        } else if (sample->depth==8) {
+        } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
           for (unsigned int i=start; i<end; i++) {
             sample->data8[i]=-sample->data8[i];
             if (sample->data16[i]==-128) sample->data16[i]=127;
@@ -1176,11 +1176,11 @@ void FurnaceGUI::doAction(int what) {
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
-        if (sample->depth==16) {
+        if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
           for (unsigned int i=start; i<end; i++) {
             sample->data16[i]^=0x8000;
           }
-        } else if (sample->depth==8) {
+        } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
           for (unsigned int i=start; i<end; i++) {
             sample->data8[i]^=0x80;
           }

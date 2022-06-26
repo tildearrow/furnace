@@ -287,7 +287,7 @@ void DivPlatformES5506::e_pin(bool state)
             DivInstrument* ins=parent->getIns(chan[ch].ins);
             if (!ins->amiga.useNoteMap && ins->amiga.transWave.enable) {
               const int next=chan[ch].pcm.next;
-              if (next>=0 && next<ins->amiga.transWaveMap.size()) {
+              if (next>=0 && next<(int)ins->amiga.transWaveMap.size()) {
                 DivInstrumentAmiga::TransWaveMap& transWaveInd=ins->amiga.transWaveMap[next];
                 int sample=transWaveInd.ind;
                 if (sample>=0 && sample<parent->song.sampleLen) {
@@ -578,7 +578,7 @@ void DivPlatformES5506::tick(bool sysTick) {
     // transwave macros
     if (chan[i].transWave.enable) {
       if (chan[i].std.wave.had) {
-        if (chan[i].std.wave.val>=0 && chan[i].std.wave.val<ins->amiga.transWaveMap.size()) {
+        if (chan[i].std.wave.val>=0 && chan[i].std.wave.val<(int)ins->amiga.transWaveMap.size()) {
           if (chan[i].pcm.next!=chan[i].std.wave.val) {
             chan[i].pcm.next=chan[i].std.wave.val;
             chan[i].pcmChanged.transwaveInd=1;
@@ -642,7 +642,7 @@ void DivPlatformES5506::tick(bool sysTick) {
       if (!chan[i].isTranswave) {
         if (chan[i].pcmChanged.transwaveInd && (!ins->amiga.useNoteMap && ins->amiga.transWave.enable)) {
           const int next=chan[i].pcm.next;
-          if (next>=0 && next<ins->amiga.transWaveMap.size()) {
+          if (next>=0 && next<(int)ins->amiga.transWaveMap.size()) {
             DivInstrumentAmiga::TransWaveMap& transWaveInd=ins->amiga.transWaveMap[next];
             int sample=transWaveInd.ind;
             if (sample>=0 && sample<parent->song.sampleLen) {
@@ -691,7 +691,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             const int next=chan[i].pcm.next;
             bool sampleVaild=false;
             if (((ins->amiga.useNoteMap && !ins->amiga.transWave.enable) && (next>=0 && next<120)) ||
-                ((!ins->amiga.useNoteMap && ins->amiga.transWave.enable) && (next>=0 && next<ins->amiga.transWaveMap.size())) ||
+                ((!ins->amiga.useNoteMap && ins->amiga.transWave.enable) && (next>=0 && next<(int)ins->amiga.transWaveMap.size())) ||
                 ((!ins->amiga.useNoteMap && !ins->amiga.transWave.enable) && (next>=0 && next<parent->song.sampleLen))) {
               DivInstrumentAmiga::NoteMap& noteMapind=ins->amiga.noteMap[next];
               DivInstrumentAmiga::TransWaveMap& transWaveInd=ins->amiga.transWaveMap[next];
@@ -999,7 +999,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins);
       bool sampleVaild=false;
       if (((ins->amiga.useNoteMap && !ins->amiga.transWave.enable) && (c.value>=0 && c.value<120)) ||
-          ((!ins->amiga.useNoteMap && ins->amiga.transWave.enable) && (ins->amiga.transWave.ind>=0 && ins->amiga.transWave.ind<ins->amiga.transWaveMap.size())) ||
+          ((!ins->amiga.useNoteMap && ins->amiga.transWave.enable) && (ins->amiga.transWave.ind>=0 && ins->amiga.transWave.ind<(int)ins->amiga.transWaveMap.size())) ||
           ((!ins->amiga.useNoteMap && !ins->amiga.transWave.enable) && (ins->amiga.initSample>=0 && ins->amiga.initSample<parent->song.sampleLen))) {
         DivInstrumentAmiga::NoteMap& noteMapind=ins->amiga.noteMap[c.value];
         DivInstrumentAmiga::TransWaveMap& transWaveInd=ins->amiga.transWaveMap[ins->amiga.transWave.ind];
@@ -1170,7 +1170,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         if (chan[c.chan].active) {
           DivInstrument* ins=parent->getIns(chan[c.chan].ins);
           if (((ins->amiga.useNoteMap && !ins->amiga.transWave.enable) && (c.value>=0 && c.value<120)) ||
-              ((!ins->amiga.useNoteMap && ins->amiga.transWave.enable) && (c.value>=0 && c.value<ins->amiga.transWaveMap.size())) ||
+              ((!ins->amiga.useNoteMap && ins->amiga.transWave.enable) && (c.value>=0 && c.value<(int)ins->amiga.transWaveMap.size())) ||
               ((!ins->amiga.useNoteMap && !ins->amiga.transWave.enable) && (c.value>=0 && c.value<parent->song.sampleLen))) {
             chan[c.chan].pcm.next=c.value;
             if (!ins->amiga.useNoteMap && ins->amiga.transWave.enable) {

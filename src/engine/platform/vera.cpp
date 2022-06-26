@@ -267,12 +267,12 @@ int DivPlatformVERA::dispatch(DivCommand c) {
         chan[16].pcm.pos=0;
         DivSample* s=parent->getSample(chan[16].pcm.sample);
         unsigned char ctrl=0x90|chan[16].vol; // always stereo
-        if (s->depth==16) {
+        if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
           chan[16].pcm.depth16=true;
           ctrl|=0x20;
         } else {
           chan[16].pcm.depth16=false;
-          if (s->depth!=8) chan[16].pcm.sample=-1;
+          if (s->depth!=DIV_SAMPLE_DEPTH_8BIT) chan[16].pcm.sample=-1;
         }
         rWritePCMCtrl(ctrl);
       }

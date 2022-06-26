@@ -136,9 +136,9 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
       DivSample* s=parent->getSample(chan[i].sample);
       unsigned char ctrl;
       switch (s->depth) {
-        case 3: ctrl=0x20; break;
-        case 8: ctrl=0x40; break;
-        case 16: ctrl=0x60; break;
+        case DIV_SAMPLE_DEPTH_YMZ_ADPCM: ctrl=0x20; break;
+        case DIV_SAMPLE_DEPTH_8BIT: ctrl=0x40; break;
+        case DIV_SAMPLE_DEPTH_16BIT: ctrl=0x60; break;
         default: ctrl=0;
       }
       double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
@@ -146,40 +146,44 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>511) chan[i].freq=511;
       // ADPCM has half the range
-      if (s->depth==3 && chan[i].freq>255) chan[i].freq=255;
-      ctrl|=(chan[i].active?0x80:0)|((s->loopStart>=0)?0x10:0)|(chan[i].freq>>8);
+      if (s->depth==DIV_SAMPLE_DEPTH_YMZ_ADPCM && chan[i].freq>255) chan[i].freq=255;
+      ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0)|(chan[i].freq>>8);
       if (chan[i].keyOn) {
         unsigned int start=s->offYMZ280B;
-        unsigned int loop=0;
+        unsigned int loopStart=0;
+        unsigned int loopEnd=0;
         unsigned int end=MIN(start+s->getCurBufLen(),getSampleMemCapacity()-1);
         if (chan[i].audPos>0) {
           switch (s->depth) {
-            case 3: start+=chan[i].audPos/2; break;
-            case 8: start+=chan[i].audPos; break;
-            case 16: start+=chan[i].audPos*2; break;
+            case DIV_SAMPLE_DEPTH_YMZ_ADPCM: start+=chan[i].audPos/2; break;
+            case DIV_SAMPLE_DEPTH_8BIT: start+=chan[i].audPos; break;
+            case DIV_SAMPLE_DEPTH_16BIT: start+=chan[i].audPos*2; break;
+            default: break;
           }
           start=MIN(start,end);
         }
-        if (s->loopStart>=0) {
+        if (s->isLoopable()) {
           switch (s->depth) {
-            case 3: loop=start+s->loopStart/2; break;
-            case 8: loop=start+s->loopStart; break;
-            case 16: loop=start+s->loopStart*2; break;
+            case DIV_SAMPLE_DEPTH_YMZ_ADPCM: loopStart=start+s->loopStart/2; loopEnd=start+s->loopEnd/2; break;
+            case DIV_SAMPLE_DEPTH_8BIT: loopStart=start+s->loopStart; loopEnd=start+s->loopEnd; break;
+            case DIV_SAMPLE_DEPTH_16BIT: loopStart=start+s->loopStart*2; loopEnd=start+s->loopEnd*2; break;
+            default: break;
           }
-          loop=MIN(loop,end);
+          loopEnd=MIN(loopEnd,end);
+          loopStart=MIN(loopStart,loopEnd);
         }
         rWrite(0x01+i*4,ctrl&~0x80); // force keyoff first
         rWrite(0x20+i*4,(start>>16)&0xff);
-        rWrite(0x21+i*4,(loop>>16)&0xff);
-        rWrite(0x22+i*4,(end>>16)&0xff);
+        rWrite(0x21+i*4,(loopStart>>16)&0xff);
+        rWrite(0x22+i*4,(loopEnd>>16)&0xff);
         rWrite(0x23+i*4,(end>>16)&0xff);
         rWrite(0x40+i*4,(start>>8)&0xff);
-        rWrite(0x41+i*4,(loop>>8)&0xff);
-        rWrite(0x42+i*4,(end>>8)&0xff);
+        rWrite(0x41+i*4,(loopStart>>8)&0xff);
+        rWrite(0x42+i*4,(loopEnd>>8)&0xff);
         rWrite(0x43+i*4,(end>>8)&0xff);
         rWrite(0x60+i*4,start&0xff);
-        rWrite(0x61+i*4,loop&0xff);
-        rWrite(0x62+i*4,end&0xff);
+        rWrite(0x61+i*4,loopStart&0xff);
+        rWrite(0x62+i*4,loopEnd&0xff);
         rWrite(0x63+i*4,end&0xff);
         if (!chan[i].std.vol.had) {
           chan[i].outVol=chan[i].vol;
