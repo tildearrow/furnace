@@ -3245,7 +3245,7 @@ void FurnaceGUI::drawInsEdit() {
                           transWaveMap.loopEnd=s->loopEnd;
                         }
                         transWaveMap.updateSize(s->samples,transWaveMap.loopStart,transWaveMap.loopEnd);
-                        if (ins->amiga.transWave.sliceEnable && i==ins->amiga.transWave.ind) {
+                        if (ins->amiga.transWave.sliceEnable && (int)i==ins->amiga.transWave.ind) {
                           ins->amiga.transWave.updateSize(s->samples,transWaveMap.loopStart,transWaveMap.loopEnd);
                           ins->amiga.transWave.slicePos((double)(ins->amiga.transWave.slice)/4095.0);
                         }
@@ -3262,7 +3262,7 @@ void FurnaceGUI::drawInsEdit() {
                       if (transWaveMap.loopStart<0) transWaveMap.loopStart=0;
                       if (transWaveMap.loopStart>transWaveMap.loopEnd) transWaveMap.loopStart=transWaveMap.loopEnd;
                       transWaveMap.updateSize(s->samples,transWaveMap.loopStart,transWaveMap.loopEnd);
-                      if (ins->amiga.transWave.sliceEnable && i==ins->amiga.transWave.ind) {
+                      if (ins->amiga.transWave.sliceEnable && (int)i==ins->amiga.transWave.ind) {
                         ins->amiga.transWave.updateSize(s->samples,transWaveMap.loopStart,transWaveMap.loopEnd);
                         ins->amiga.transWave.slicePos((double)(ins->amiga.transWave.slice)/4095.0);
                       }
