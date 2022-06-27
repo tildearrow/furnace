@@ -841,8 +841,9 @@ void DivEngine::loadY12(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       DivInstrumentFM::Operator& insOp = ins->fm.op[i];
       uint8_t tmp = reader.readC();
       insOp.mult = tmp & 0xF;
-      insOp.dt = ((tmp >> 4) & 0x7);
-      insOp.tl = (reader.readC() & 0x3F);
+      // ???
+      insOp.dt = ((3 + (tmp >> 4)) & 0x7);
+      insOp.tl = (reader.readC() & 0x7F);
       tmp = reader.readC();
       insOp.rs = ((tmp >> 6) & 0x3);
       insOp.ar = tmp & 0x1F;
