@@ -490,13 +490,13 @@ void FurnaceGUI::initSystemPresets() {
         0
       }
     ));
-    cat.systems.push_back(FurnaceGUISysDef(
-      "tildearrow Sound Unit", {
-        DIV_SYSTEM_SOUND_UNIT, 64, 0, 0,
-        0
-      }
-    ));
   }
+  cat.systems.push_back(FurnaceGUISysDef(
+    "tildearrow Sound Unit", {
+      DIV_SYSTEM_SOUND_UNIT, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Game consoles","let's play some chiptune making games!");
