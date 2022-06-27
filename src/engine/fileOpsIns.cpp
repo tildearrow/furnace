@@ -192,7 +192,13 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
             ins->fm.ops=reader.readC()?4:2;
           }
         } else {
-          ins->fm.ops=reader.readC()?2:4;
+          // HELP
+          if (reader.size()==49) {
+            ins->fm.ops=4;
+            reader.readC();
+          } else {
+            ins->fm.ops=reader.readC()?2:4;
+          }
         }
       } else {
         ins->fm.ops=4;
