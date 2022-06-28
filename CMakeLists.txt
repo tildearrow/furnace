@@ -451,6 +451,10 @@ src/engine/platform/rf5c68.cpp
 src/engine/platform/dummy.cpp
 )
 
+if (USE_SNDFILE)
+  list(APPEND ENGINE_SOURCES src/engine/sfWrapper.cpp)
+endif()
+
 if (WIN32)
   list(APPEND ENGINE_SOURCES src/utfutils.cpp)
   list(APPEND ENGINE_SOURCES src/engine/winStuff.cpp)

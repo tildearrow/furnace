@@ -22,7 +22,7 @@
 #include <math.h>
 #include <string.h>
 #ifdef HAVE_SNDFILE
-#include <sndfile.h>
+#include "sfWrapper.h"
 #endif
 #include "filter.h"
 
@@ -45,6 +45,7 @@ bool DivSample::save(const char* path) {
 #else
   SNDFILE* f;
   SF_INFO si;
+  SFWrapper sfWrap;
   memset(&si,0,sizeof(SF_INFO));
 
   if (length16<1) return false;
@@ -60,7 +61,7 @@ bool DivSample::save(const char* path) {
       break;
   }
 
-  f=sf_open(path,SFM_WRITE,&si);
+  f=sfWrap.doOpen(path,SFM_WRITE,&si);
 
   if (f==NULL) {
     logE("could not open wave file for saving! %s",sf_error_number(sf_error(f)));
@@ -100,7 +101,7 @@ bool DivSample::save(const char* path) {
       break;
   }
 
-  sf_close(f);
+  sfWrap.doClose();
 
   return true;
 #endif
