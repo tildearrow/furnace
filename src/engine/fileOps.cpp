@@ -2696,7 +2696,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   std::vector<int> wavePtr;
   std::vector<int> samplePtr;
   std::vector<int> patPtr;
-  size_t ptrSeek, subSongPtrSeek;
+  size_t ptrSeek, subSongPtrSeek, blockStartSeek, blockEndSeek;
   size_t subSongIndex=0;
   DivSubSong* subSong=song.subsong[subSongIndex];
   warnings="";
@@ -2775,6 +2775,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
 
   /// SONG INFO
   w->write("INFO",4);
+  blockStartSeek=w->tell();
   w->writeI(0);
 
   w->writeC(subSong->timeBase);
@@ -2932,11 +2933,17 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeI(0);
   }
 
+  blockEndSeek=w->tell();
+  w->seek(blockStartSeek,SEEK_SET);
+  w->writeI(blockEndSeek-blockStartSeek-4);
+  w->seek(0,SEEK_END);
+
   /// SUBSONGS
   for (subSongIndex=1; subSongIndex<song.subsong.size(); subSongIndex++) {
     subSong=song.subsong[subSongIndex];
     subSongPtr.push_back(w->tell());
     w->write("SONG",4);
+    blockStartSeek=w->tell();
     w->writeI(0);
 
     w->writeC(subSong->timeBase);
@@ -2979,6 +2986,11 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     for (int i=0; i<chans; i++) {
       w->writeString(subSong->chanShortName[i],false);
     }
+
+    blockEndSeek=w->tell();
+    w->seek(blockStartSeek,SEEK_SET);
+    w->writeI(blockEndSeek-blockStartSeek-4);
+    w->seek(0,SEEK_END);
   }
 
   /// INSTRUMENT
@@ -3000,6 +3012,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     DivSample* sample=song.sample[i];
     samplePtr.push_back(w->tell());
     w->write("SMPL",4);
+    blockStartSeek=w->tell();
     w->writeI(0);
 
     w->writeString(sample->name,false);
@@ -3012,6 +3025,11 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeI(sample->loopStart);
 
     w->write(sample->getCurBuf(),sample->getCurBufLen());
+
+    blockEndSeek=w->tell();
+    w->seek(blockStartSeek,SEEK_SET);
+    w->writeI(blockEndSeek-blockStartSeek-4);
+    w->seek(0,SEEK_END);
   }
 
   /// PATTERN
@@ -3019,6 +3037,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     DivPattern* pat=song.subsong[i.subsong]->pat[i.chan].getPattern(i.pat,false);
     patPtr.push_back(w->tell());
     w->write("PATR",4);
+    blockStartSeek=w->tell();
     w->writeI(0);
 
     w->writeS(i.chan);
@@ -3036,6 +3055,11 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     }
 
     w->writeString(pat->name,false);
+
+    blockEndSeek=w->tell();
+    w->seek(blockStartSeek,SEEK_SET);
+    w->writeI(blockEndSeek-blockStartSeek-4);
+    w->seek(0,SEEK_END);
   }
 
   /// POINTERS
