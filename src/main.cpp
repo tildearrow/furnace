@@ -241,6 +241,17 @@ void initParams() {
   params.push_back(TAParam("W","warranty",false,pWarranty,"","view warranty disclaimer."));
 }
 
+#ifdef _WIN32
+void reportError(String what) {
+  logE("%s",what);
+  MessageBox(NULL,what.c_str(),"Furnace",MB_OK|MB_ICONERROR);
+}
+#else
+void reportError(String what) {
+  logE("%s",what);
+}
+#endif
+
 // TODO: CoInitializeEx on Windows?
 // TODO: add crash log
 int main(int argc, char** argv) {
@@ -281,7 +292,7 @@ int main(int argc, char** argv) {
             val=argv[i+1];
             i++;
           } else {
-            logE("incomplete param %s.",arg.c_str());
+            reportError(fmt::sprintf("incomplete param %s.",arg.c_str()));
             return 1;
           }
         }
@@ -335,53 +346,54 @@ int main(int argc, char** argv) {
     logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
-      perror("error");
+      reportError(fmt::sprintf("couldn't open file! (%s)",strerror(errno)));
       return 1;
     }
     if (fseek(f,0,SEEK_END)<0) {
-      perror("size error");
+      reportError(fmt::sprintf("couldn't open file! (couldn't get file size: %s)",strerror(errno)));
       fclose(f);
       return 1;
     }
     ssize_t len=ftell(f);
     if (len==(SIZE_MAX>>1)) {
-      perror("could not get file length");
+      reportError(fmt::sprintf("couldn't open file! (couldn't get file length: %s)",strerror(errno)));
       fclose(f);
       return 1;
     }
     if (len<1) {
       if (len==0) {
-        printf("that file is empty!\n");
+        reportError("that file is empty!");
       } else {
-        perror("tell error");
+        reportError(fmt::sprintf("couldn't open file! (tell error: %s)",strerror(errno)));
       }
       fclose(f);
       return 1;
     }
     unsigned char* file=new unsigned char[len];
     if (fseek(f,0,SEEK_SET)<0) {
-      perror("size error");
+      reportError(fmt::sprintf("couldn't open file! (size error: %s)",strerror(errno)));
       fclose(f);
       delete[] file;
       return 1;
     }
     if (fread(file,1,(size_t)len,f)!=(size_t)len) {
-      perror("read error");
+      reportError(fmt::sprintf("couldn't open file! (read error: %s)",strerror(errno)));
       fclose(f);
       delete[] file;
       return 1;
     }
     fclose(f);
     if (!e.load(file,(size_t)len)) {
-      logE("could not open file!");
+      reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
       return 1;
     }
   }
   if (!e.init()) {
-    logE("could not initialize engine!");
     if (consoleMode) {
+      reportError("could not initialize engine!");
       return 1;
     } else {
+      logE("could not initialize engine!");
       displayEngineFailError=true;
     }
   }
@@ -394,12 +406,12 @@ int main(int argc, char** argv) {
           fwrite(w->getFinalBuf(),1,w->size(),f);
           fclose(f);
         } else {
-          logE("could not open file! %s",strerror(errno));
+          reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
         }
         w->finish();
         delete w;
       } else {
-        logE("could not write VGM!");
+        reportError("could not write VGM!");
       }
     }
     if (outName!="") {
@@ -434,7 +446,10 @@ int main(int argc, char** argv) {
 
 #ifdef HAVE_GUI
   g.bindEngine(&e);
-  if (!g.init()) return 1;
+  if (!g.init()) {
+    reportError("error while starting GUI!");
+    return 1;
+  }
 
   if (displayEngineFailError) {
     logE("displaying engine fail error.");
