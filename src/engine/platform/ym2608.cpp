@@ -988,6 +988,13 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     }
+    case DIV_CMD_FM_EXTCH: {
+      if (extSys) {
+        extMode=c.value;
+        immWrite(0x27,extMode?0x40:0);
+      }
+      break;
+    }
     case DIV_CMD_FM_LFO: {
       rWrite(0x22,(c.value&7)|((c.value>>4)<<3));
       break;

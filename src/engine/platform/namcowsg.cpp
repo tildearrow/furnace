@@ -322,7 +322,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
         }
         rWrite((i<<3)+0x04,chan[i].freq&0xff);
         rWrite((i<<3)+0x05,(chan[i].freq>>8)&0xff);
-        rWrite((i<<3)+0x06,((chan[i].freq>>15)&15)|(i<<4));
+        rWrite((i<<3)+0x06,((chan[i].freq>>16)&15)|(i<<4));
       }
       break;
     case 30:
@@ -336,7 +336,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
         }
         rWrite((i<<3)+0x103,chan[i].freq&0xff);
         rWrite((i<<3)+0x102,(chan[i].freq>>8)&0xff);
-        rWrite((i<<3)+0x101,((chan[i].freq>>15)&15)|(i<<4));
+        rWrite((i<<3)+0x101,((chan[i].freq>>16)&15)|(i<<4));
       }
       break;
   }

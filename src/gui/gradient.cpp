@@ -40,9 +40,45 @@ String Gradient2D::toString() {
   return ret;
 }
 
-// TODO: this one please
 bool Gradient2D::fromString(String val) {
-  return false;
+  std::vector<String> split;
+  String cur;
+  for (char i: val) {
+    if (i==' ') {
+      if (!cur.empty()) {
+        split.push_back(cur);
+        cur="";
+      }
+    } else {
+      cur+=i;
+    }
+  }
+  if (!cur.empty()) {
+    split.push_back(cur);
+  }
+
+  if (split.size()<2) return false;
+
+  if (split[0]!="GRAD") return false;
+
+  ImU32 bgColorH=0;
+  if (sscanf(split[1].c_str(),"#%X",&bgColorH)!=1) return false;
+  bgColorH=(bgColorH>>24)|((bgColorH>>8)&0xff00)|((bgColorH<<8)&0xff0000)|(bgColorH<<24);
+
+  bgColor=ImGui::ColorConvertU32ToFloat4(bgColorH);
+
+  for (size_t i=2; i<split.size(); i++) {
+    Gradient2DPoint point;
+    ImU32 colorH=0;
+    if (sscanf(split[i].c_str(),"%f,%f:%f,%f:#%X",&point.x,&point.y,&point.distance,&point.spread,&colorH)!=5) {
+      return false;
+    }
+    colorH=(colorH>>24)|((colorH>>8)&0xff00)|((colorH<<8)&0xff0000)|(colorH<<24);
+
+    point.color=ImGui::ColorConvertU32ToFloat4(colorH);
+    points.push_back(point);
+  }
+  return true;
 }
 
 void Gradient2D::render() {

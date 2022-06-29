@@ -14,7 +14,7 @@
 //
 // might as well make Objective-Ruswift++...
 
-static NSArray *BuildAllowedFileTypes( const char *filterList )
+static NSArray *BuildAllowedFileTypes( const std::vector<std::string>& filterList )
 {
     // Commas and semicolons are the same thing on this platform
 
@@ -22,32 +22,28 @@ static NSArray *BuildAllowedFileTypes( const char *filterList )
     // NSMutableArray *buildFilterList = NSMutableArray::alloc()->init();
     NSMutableArray *buildFilterList = [[NSMutableArray alloc] init];
 
-    char typebuf[NFD_MAX_STRLEN] = {0};
-    
-    size_t filterListLen = strlen(filterList);
-    char *p_typebuf = typebuf;
-    for ( size_t i = 0; i < filterListLen+1; ++i )
-    {
-        if ( filterList[i] == ',' || filterList[i] == ';' || filterList[i] == '\0' )
-        {
-            if (filterList[i] != '\0')
-                ++p_typebuf;
-            *p_typebuf = '\0';
-
-            // or this: NSString::stringWithUTF8String(typebuf);
-            // buildFilterList->addObject(thisType);
-            // really? did you have to make this mess?!
-            NSString *thisType = [NSString stringWithUTF8String: typebuf];
-            [buildFilterList addObject:thisType];
-            p_typebuf = typebuf;
-            *p_typebuf = '\0';
+    std::string typebuf;
+    for (const std::string& i: filterList) {
+      typebuf="";
+      for (const char& j: i) {
+        if (j==' ' || j==',' || j ==';') {
+          // or this: NSString::stringWithUTF8String(typebuf);
+          // buildFilterList->addObject(thisType);
+          // really? did you have to make this mess?!
+          const char* typebufC=typebuf.c_str();
+          NSString *thisType = [NSString stringWithUTF8String:typebufC];
+          [buildFilterList addObject:thisType];
+          typebuf="";
+        } else if (j!='.' && j!='*') {
+          typebuf+=j;
         }
-        else
-        {
-            *p_typebuf = filterList[i];
-            ++p_typebuf;
-
-        }
+      }
+      if (!typebuf.empty()) {
+        // I don't think this will work, but come on...
+        const char* typebufC=typebuf.c_str();
+        NSString *thisType = [NSString stringWithUTF8String:typebufC];
+        [buildFilterList addObject:thisType];
+      }
     }
 
     NSArray *returnArray = [NSArray arrayWithArray:buildFilterList];
@@ -56,9 +52,9 @@ static NSArray *BuildAllowedFileTypes( const char *filterList )
     return returnArray;
 }
 
-static void AddFilterListToDialog( NSSavePanel *dialog, const char *filterList )
+static void AddFilterListToDialog( NSSavePanel *dialog, const std::vector<std::string>& filterList )
 {
-    if ( !filterList || strlen(filterList) == 0 )
+    if ( filterList.size()&1 )
         return;
 
     NSArray *allowedFileTypes = BuildAllowedFileTypes( filterList );
@@ -130,7 +126,7 @@ static nfdresult_t AllocPathSet( NSArray *urls, nfdpathset_t *pathset )
 /* public */
 
 
-nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
+nfdresult_t NFD_OpenDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
                             nfdchar_t **outPath,
                             nfdselcallback_t selCallback )
@@ -173,7 +169,7 @@ nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
 }
 
 
-nfdresult_t NFD_OpenDialogMultiple( const nfdchar_t *filterList,
+nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
                                     const nfdchar_t *defaultPath,
                                     nfdpathset_t *outPaths,
                                     nfdselcallback_t selCallback )
@@ -218,7 +214,7 @@ nfdresult_t NFD_OpenDialogMultiple( const nfdchar_t *filterList,
 }
 
 
-nfdresult_t NFD_SaveDialog( const nfdchar_t *filterList,
+nfdresult_t NFD_SaveDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
                             nfdchar_t **outPath,
                             nfdselcallback_t selCallback )

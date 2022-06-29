@@ -12,6 +12,8 @@
 
 #include <stddef.h>
 #include <functional>
+#include <string>
+#include <vector>
 
 /* denotes UTF-8 char */
 typedef char nfdchar_t;
@@ -35,19 +37,19 @@ typedef enum {
 /* nfd_<targetplatform>.c */
 
 /* single file open dialog */    
-nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
+nfdresult_t NFD_OpenDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
                             nfdchar_t **outPath,
                             nfdselcallback_t selCallback = NULL );
 
 /* multiple file open dialog */    
-nfdresult_t NFD_OpenDialogMultiple( const nfdchar_t *filterList,
+nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
                                     const nfdchar_t *defaultPath,
                                     nfdpathset_t *outPaths,
                                     nfdselcallback_t selCallback = NULL );
 
 /* save dialog */
-nfdresult_t NFD_SaveDialog( const nfdchar_t *filterList,
+nfdresult_t NFD_SaveDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
                             nfdchar_t **outPath,
                             nfdselcallback_t selCallback = NULL );

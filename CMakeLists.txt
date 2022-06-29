@@ -95,6 +95,7 @@ else()
   if (WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(WITH_OUR_MALLOC ON CACHE BOOL "aaa" FORCE)
   endif()
+  set(BUILD_TESTS OFF CACHE BOOL "come on" FORCE)
   add_subdirectory(extern/fftw EXCLUDE_FROM_ALL)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/fftw/api)
   list(APPEND DEPENDENCIES_LIBRARIES fftw3)
@@ -252,7 +253,7 @@ src/audio/midi.cpp
 )
 
 if (USE_SDL2)
-  list(APPEND AUDIO_SOURCES src/audio/sdl.cpp)
+  list(APPEND AUDIO_SOURCES src/audio/sdlAudio.cpp)
 endif()
 
 if (WITH_JACK)
@@ -452,6 +453,10 @@ src/engine/platform/rf5c68.cpp
 src/engine/platform/dummy.cpp
 )
 
+if (USE_SNDFILE)
+  list(APPEND ENGINE_SOURCES src/engine/sfWrapper.cpp)
+endif()
+
 if (WIN32)
   list(APPEND ENGINE_SOURCES src/utfutils.cpp)
   list(APPEND ENGINE_SOURCES src/engine/winStuff.cpp)
@@ -539,6 +544,24 @@ endif()
 
 if (NOT WIN32 AND NOT APPLE)
   list(APPEND GUI_SOURCES src/gui/icon.c)
+
+  include(CheckIncludeFile)
+
+  CHECK_INCLUDE_FILE(sys/io.h SYS_IO_FOUND)
+  CHECK_INCLUDE_FILE(linux/input.h LINUX_INPUT_FOUND)
+  CHECK_INCLUDE_FILE(linux/kd.h LINUX_KD_FOUND)
+  if (SYS_IO_FOUND)
+    list(APPEND DEPENDENCIES_DEFINES HAVE_SYS_IO)
+    message(STATUS "PC speaker output: outb()")
+  endif()
+  if (LINUX_INPUT_FOUND)
+    list(APPEND DEPENDENCIES_DEFINES HAVE_LINUX_INPUT)
+    message(STATUS "PC speaker output: evdev")
+  endif()
+  if (LINUX_KD_FOUND)
+    list(APPEND DEPENDENCIES_DEFINES HAVE_LINUX_KD)
+    message(STATUS "PC speaker output: KIOCSOUND")
+  endif()
 endif()
 
 set(USED_SOURCES ${ENGINE_SOURCES} ${AUDIO_SOURCES} src/main.cpp)

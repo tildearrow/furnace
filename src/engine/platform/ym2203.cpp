@@ -659,6 +659,13 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     }
+    case DIV_CMD_FM_EXTCH: {
+      if (extSys) {
+        extMode=c.value;
+        immWrite(0x27,extMode?0x40:0);
+      }
+      break;
+    }
     case DIV_CMD_FM_FB: {
       if (c.chan>2) break;
       chan[c.chan].state.fb=c.value&7;

@@ -2918,7 +2918,7 @@ bool FurnaceGUI::loop() {
         ImGui::Separator();
         if (ImGui::BeginMenu("add system...")) {
           for (int j=0; availableSystems[j]; j++) {
-            if (!settings.hiddenSystems && (availableSystems[j]==DIV_SYSTEM_YMU759 || availableSystems[j]==DIV_SYSTEM_DUMMY || availableSystems[j]==DIV_SYSTEM_SOUND_UNIT)) continue;
+            if (!settings.hiddenSystems && (availableSystems[j]==DIV_SYSTEM_YMU759 || availableSystems[j]==DIV_SYSTEM_DUMMY)) continue;
             sysAddOption((DivSystem)availableSystems[j]);
           }
           ImGui::EndMenu();
@@ -2937,7 +2937,7 @@ bool FurnaceGUI::loop() {
           for (int i=0; i<e->song.systemLen; i++) {
             if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
               for (int j=0; availableSystems[j]; j++) {
-                if (!settings.hiddenSystems && (availableSystems[j]==DIV_SYSTEM_YMU759 || availableSystems[j]==DIV_SYSTEM_DUMMY || availableSystems[j]==DIV_SYSTEM_SOUND_UNIT)) continue;
+                if (!settings.hiddenSystems && (availableSystems[j]==DIV_SYSTEM_YMU759 || availableSystems[j]==DIV_SYSTEM_DUMMY)) continue;
                 sysChangeOption(i,(DivSystem)availableSystems[j]);
               }
               ImGui::EndMenu();
@@ -4139,6 +4139,7 @@ bool FurnaceGUI::init() {
   chanOscColor.w=e->getConfFloat("chanOscColorA",1.0f);
   chanOscUseGrad=e->getConfBool("chanOscUseGrad",false);
   chanOscGrad.fromString(e->getConfString("chanOscGrad",""));
+  chanOscGrad.render();
 
   syncSettings();
 
