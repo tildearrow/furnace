@@ -299,18 +299,39 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
       }
     }
 
-    for (int i=0; i<chans; i++) {
-      unsigned char ch=outChanMap[i];
-      if (ch==255) continue;
-      oscBuf[i]->data[oscBuf[i]->needle]=0;
-      if (fm.channel[i].out[0]!=NULL) {
-        oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
+    if (fm.rhy&0x20) {
+      for (int i=0; i<melodicChans+1; i++) {
+        unsigned char ch=outChanMap[i];
+        if (ch==255) continue;
+        oscBuf[i]->data[oscBuf[i]->needle]=0;
+        if (fm.channel[i].out[0]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
+        }
+        if (fm.channel[i].out[1]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
+        }
+        oscBuf[i]->data[oscBuf[i]->needle]<<=1;
+        oscBuf[i]->needle++;
       }
-      if (fm.channel[i].out[1]!=NULL) {
-        oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
+      // special
+      oscBuf[melodicChans+1]->data[oscBuf[melodicChans+1]->needle++]=fm.slot[16].out*6;
+      oscBuf[melodicChans+2]->data[oscBuf[melodicChans+2]->needle++]=fm.slot[14].out*6;
+      oscBuf[melodicChans+3]->data[oscBuf[melodicChans+3]->needle++]=fm.slot[17].out*6;
+      oscBuf[melodicChans+4]->data[oscBuf[melodicChans+4]->needle++]=fm.slot[13].out*6;
+    } else {
+      for (int i=0; i<chans; i++) {
+        unsigned char ch=outChanMap[i];
+        if (ch==255) continue;
+        oscBuf[i]->data[oscBuf[i]->needle]=0;
+        if (fm.channel[i].out[0]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
+        }
+        if (fm.channel[i].out[1]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
+        }
+        oscBuf[i]->data[oscBuf[i]->needle]<<=1;
+        oscBuf[i]->needle++;
       }
-      oscBuf[i]->data[oscBuf[i]->needle]<<=1;
-      oscBuf[i]->needle++;
     }
     
     if (os[0]<-32768) os[0]=-32768;
