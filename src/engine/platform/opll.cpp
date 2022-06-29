@@ -129,12 +129,12 @@ void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size
       unsigned char nextOut=cycleMapOPLL[fm.cycles];
       if ((nextOut>=6 && properDrums) || !isMuted[nextOut]) {
         os+=(o[0]+o[1]);
-        if (vrc7 || fm.rm_enable) oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=(o[0]+o[1])<<6;
+        if (vrc7 || (fm.rm_enable&0x20)) oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=(o[0]+o[1])<<6;
       } else {
-        if (vrc7 || fm.rm_enable) oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=0;
+        if (vrc7 || (fm.rm_enable&0x20)) oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=0;
       }
     }
-    if (!(vrc7 || fm.rm_enable)) for (int i=0; i<9; i++) {
+    if (!(vrc7 || (fm.rm_enable&0x20))) for (int i=0; i<9; i++) {
       unsigned char ch=visMapOPLL[i];
       if ((i>=6 && properDrums) || !isMuted[ch]) {
         oscBuf[ch]->data[oscBuf[ch]->needle++]=(fm.output_ch[i])<<6;
