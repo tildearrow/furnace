@@ -1800,7 +1800,7 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
       break;
   }
 
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<20; i++) {
     oscBuf[i]->rate=rate;
   }
 }
@@ -1851,7 +1851,7 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int f
   for (int i=0; i<20; i++) {
     isMuted[i]=false;
   }
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<20; i++) {
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
@@ -1869,7 +1869,7 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int f
 }
 
 void DivPlatformOPL::quit() {
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<20; i++) {
     delete oscBuf[i];
   }
   if (adpcmChan>=0) {
