@@ -1,0 +1,42 @@
+Middle column is recommended octave range or pitch.
+Octaves are counted from 1 (i.e. full range is 1~8)
+
+piano ...... 3~8 ... acoustic piano
+tackpian ... 3~8 ... tack piano
+sofpiano ... 3~8 ... soft synth piano
+toypiano ... 3~8 ... toy piano
+organ ...... 3~8 ... organ
+marimba .... 4~7 ... marimba
+harp ....... 5~8 ... harp
+lyre ....... 5~8 ... lyre
+harpsich ... 5~8 ... harpsichord
+bell ....... 6~8 ... bell
+synbell .... 6~8 ... synth bell
+flute ...... 5~8 ... flute (recorder)
+ocarina .... 5~8 ... ocarina
+trumpet .... 4~6 ... trumpet
+sax ........ 3~5 ... saxophone
+guitar ..... 3~6 ... acoustic guitar
+banjo ...... 3~6 ... banjo
+bass ....... 3~4 ... acoustic bass
+elecbass ... 3~4 ... electric bass
+slapbass ... 3~4 ... slap bass
+distguit ... 3~4 ... distortion guitar
+distbass ... 3~4 ... distortion bass
+distslap ... 3~4 ... distortion slap bass
+square ..... 1~8 ... square wave (sharp)
+softsqr .... 1~8 ... square wave (softer)
+sawtooth ... 1~8 ... sawtooth wave (sharp)
+softsaw .... 1~8 ... sawtooth wave (softer)
+triangle ... 1~8 ... triangle wave
+sine ....... 1~8 ... sine wave
+neslike .... 1~8 ... "NES"-ish sound (25.0% square-like)
+fifths ..... 1~8 ... perfect fifth synth
+snare ...... c-2 ... snare drum
+kick ....... c-2 ... kick drum
+cymbal ..... a-6 ... cymbals
+hithat ..... a-6 ... hit-hats
+timpani1 ... c-1 ... timpani
+timpani2 ... c-1 ... timpani (deeper)
+wooddrum ... c-2 ... wooden drum
+steldrum ... c-2 ... steel drum
