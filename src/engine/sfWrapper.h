@@ -35,6 +35,7 @@ class SFWrapper {
   size_t len;
   SF_VIRTUAL_IO vio;
   SNDFILE* sf;
+  int fileMode;
 
   public:
     sf_count_t ioGetSize();
@@ -48,7 +49,8 @@ class SFWrapper {
     SFWrapper():
       f(NULL),
       len(0),
-      sf(NULL) {}
+      sf(NULL),
+      fileMode(0) {}
 };
 
 #endif

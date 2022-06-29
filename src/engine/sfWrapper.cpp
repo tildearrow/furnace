@@ -19,6 +19,7 @@
 
 #include "sfWrapper.h"
 #include "../fileutils.h"
+#include "sndfile.h"
 
 sf_count_t _vioGetSize(void* user) {
   return ((SFWrapper*)user)->ioGetSize();
@@ -41,7 +42,14 @@ sf_count_t _vioTell(void* user) {
 }
 
 sf_count_t SFWrapper::ioGetSize() {
-  return (sf_count_t)len;
+  sf_count_t ret=(sf_count_t)len;
+  if (fileMode==SFM_WRITE || fileMode==SFM_RDWR) {
+    ssize_t lastTell=ftell(f);
+    fseek(f,0,SEEK_END);
+    ret=(sf_count_t)ftell(f);
+    fseek(f,lastTell,SEEK_SET);
+  }
+  return ret;
 }
 
 sf_count_t SFWrapper::ioSeek(sf_count_t offset, int whence) {
@@ -108,5 +116,6 @@ SNDFILE* SFWrapper::doOpen(const char* path, int mode, SF_INFO* sfinfo) {
   }
 
   sf=sf_open_virtual(&vio,mode,sfinfo,this);
+  if (sf!=NULL) fileMode=mode;
   return sf;
 }
