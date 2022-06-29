@@ -2853,6 +2853,28 @@ std::vector<String>& DivEngine::getMidiOuts() {
   return midiOuts;
 }
 
+smf::MidiFile* DivEngine::getMidiImportFile() {
+  return &midiImportFile;
+}
+
+const char* DivEngine::getMidiImportFilename() {
+  return midiImportFilename;
+}
+
+bool DivEngine::loadMidiImportFile(const char* filename) {
+  memset(midiImportFilename,0,255*sizeof(char));
+  std::copy(filename, filename + strlen(filename), std::begin(midiImportFilename));
+  midiImportFile.read(filename);
+  if (!midiImportFile.status())
+    return false;
+
+  logD("opened MIDI file %s with %d tracks", filename, midiImportFile.getNumTracks());
+  // midifile.absoluteTicks();  // done by default
+  midiImportFile.sortTracks();
+
+  return true;
+}
+
 void DivEngine::rescanAudioDevices() {
   audioDevs.clear();
   if (output!=NULL) {

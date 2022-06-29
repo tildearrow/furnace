@@ -442,6 +442,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("OPEN_BACKUP", "Restore backup", 0),
   D("SAVE", "Save file", FURKMOD_CMD|SDLK_s),
   D("SAVE_AS", "Save as", FURKMOD_CMD|FURKMOD_SHIFT|SDLK_s),
+  D("MIDI_IMPORT", "Import MIDI as pattern", FURKMOD_CMD|SDLK_p),
   D("UNDO", "Undo", FURKMOD_CMD|SDLK_z),
   D("REDO", "Redo", FURKMOD_CMD|SDLK_y),
   D("PLAY_TOGGLE", "Play/Stop (toggle)", SDLK_RETURN),

@@ -60,6 +60,13 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAVE_AS:
       openFileDialog(GUI_FILE_SAVE);
       break;
+    case GUI_ACTION_MIDI_IMPORT:
+      openFileDialog(GUI_FILE_MIDI_IMPORT);
+      if (midiDialogOpen) {
+        midiDialogOpen=false;
+      }
+      nextWindow=GUI_WINDOW_MIDI_DIALOG;
+      break;
     case GUI_ACTION_UNDO:
       if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
         doUndoSample();
@@ -336,6 +343,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_FIND:
           findOpen=false;
+          break;
+        case GUI_WINDOW_MIDI_DIALOG:
+          midiDialogOpen=false;
           break;
         default:
           break;

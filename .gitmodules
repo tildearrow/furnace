@@ -15,3 +15,6 @@
 [submodule "extern/adpcm"]
 	path = extern/adpcm
 	url = https://github.com/superctr/adpcm
+[submodule "extern/midifile"]
+	path = extern/midifile
+	url = https://github.com/craigsapp/midifile

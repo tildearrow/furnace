@@ -25,6 +25,7 @@
 #include "dataErrors.h"
 #include "safeWriter.h"
 #include "../audio/taAudio.h"
+#include <MidiFile.h>
 #include "blip_buf.h"
 #include <atomic>
 #include <functional>
@@ -353,6 +354,8 @@ class DivEngine {
   short vibTable[64];
   int reversePitchTable[4096];
   int pitchTable[4096];
+  smf::MidiFile midiImportFile;
+  char midiImportFilename[255];
   int midiBaseChan;
   bool midiPoly;
   size_t midiAgeCounter;
@@ -862,6 +865,15 @@ class DivEngine {
     // switch master
     bool switchMaster();
 
+    // given a filename, load the MIDI file for use in importing
+    bool loadMidiImportFile(const char* filename);
+
+    // get a pointer to the MIDI file to import from
+    smf::MidiFile* getMidiImportFile();
+
+    // get a pointer to the MIDI filename to import from
+    const char* getMidiImportFilename();
+
     // set MIDI base channel
     void setMidiBaseChan(int chan);
 
@@ -1003,6 +1015,7 @@ class DivEngine {
       memset(vibTable,0,64*sizeof(short));
       memset(reversePitchTable,0,4096*sizeof(int));
       memset(pitchTable,0,4096*sizeof(int));
+      memset(midiImportFilename,0,255*sizeof(char));
       memset(sysDefs,0,256*sizeof(void*));
 
       for (int i=0; i<256; i++) {
