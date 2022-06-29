@@ -234,7 +234,7 @@ yup, it's real.
 
 > where's the manual?
 
-see [papers/](papers/README.md). it's kind of incomplete, but at least the systems (sound chips) section is there.
+see [papers/](papers/doc/README.md). it's kind of incomplete, but at least the systems (sound chips) section is there.
 
 > it doesn't open under macOS!
 
