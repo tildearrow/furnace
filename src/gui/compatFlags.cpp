@@ -115,6 +115,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("does this make any sense by now?");
     }
+    ImGui::Checkbox("E1xy/E2xy stop when repeating the same note",&e->song.e1e2StopOnSameNote);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("ugh, if only this wasn't a thing...");
+    }
     ImGui::Checkbox("SN76489 duty macro always resets phase",&e->song.snDutyReset);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, duty macro will always reset phase, even if its value hasn't changed.");

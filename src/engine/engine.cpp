@@ -37,7 +37,7 @@
 #endif
 #include <math.h>
 #ifdef HAVE_SNDFILE
-#include <sndfile.h>
+#include "sfWrapper.h"
 #endif
 #include <fmt/printf.h>
 
@@ -200,11 +200,12 @@ void DivEngine::runExportThread() {
     case DIV_EXPORT_MODE_ONE: {
       SNDFILE* sf;
       SF_INFO si;
+      SFWrapper sfWrap;
       si.samplerate=got.rate;
       si.channels=2;
       si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
 
-      sf=sf_open(exportPath.c_str(),SFM_WRITE,&si);
+      sf=sfWrap.doOpen(exportPath.c_str(),SFM_WRITE,&si);
       if (sf==NULL) {
         logE("could not open file for writing! (%s)",sf_strerror(NULL));
         exporting=false;
@@ -259,7 +260,7 @@ void DivEngine::runExportThread() {
       delete[] outBuf[1];
       delete[] outBuf[2];
 
-      if (sf_close(sf)!=0) {
+      if (sfWrap.doClose()!=0) {
         logE("could not close audio file!");
       }
       exporting=false;
@@ -280,6 +281,7 @@ void DivEngine::runExportThread() {
       SNDFILE* sf[32];
       SF_INFO si[32];
       String fname[32];
+      SFWrapper sfWrap[32];
       for (int i=0; i<song.systemLen; i++) {
         sf[i]=NULL;
         si[i].samplerate=got.rate;
@@ -294,11 +296,11 @@ void DivEngine::runExportThread() {
       for (int i=0; i<song.systemLen; i++) {
         fname[i]=fmt::sprintf("%s_s%02d.wav",exportPath,i+1);
         logI("- %s",fname[i].c_str());
-        sf[i]=sf_open(fname[i].c_str(),SFM_WRITE,&si[i]);
+        sf[i]=sfWrap[i].doOpen(fname[i].c_str(),SFM_WRITE,&si[i]);
         if (sf[i]==NULL) {
           logE("could not open file for writing! (%s)",sf_strerror(NULL));
           for (int j=0; j<i; j++) {
-            sf_close(sf[i]);
+            sfWrap[i].doClose();
           }
           return;
         }
@@ -369,7 +371,7 @@ void DivEngine::runExportThread() {
 
       for (int i=0; i<song.systemLen; i++) {
         delete[] sysBuf[i];
-        if (sf_close(sf[i])!=0) {
+        if (sfWrap[i].doClose()!=0) {
           logE("could not close audio file!");
         }
       }
@@ -402,13 +404,14 @@ void DivEngine::runExportThread() {
       for (int i=0; i<chans; i++) {
         SNDFILE* sf;
         SF_INFO si;
+        SFWrapper sfWrap;
         String fname=fmt::sprintf("%s_c%02d.wav",exportPath,i+1);
         logI("- %s",fname.c_str());
         si.samplerate=got.rate;
         si.channels=2;
         si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
 
-        sf=sf_open(fname.c_str(),SFM_WRITE,&si);
+        sf=sfWrap.doOpen(fname.c_str(),SFM_WRITE,&si);
         if (sf==NULL) {
           logE("could not open file for writing! (%s)",sf_strerror(NULL));
           break;
@@ -473,7 +476,7 @@ void DivEngine::runExportThread() {
           }
         }
 
-        if (sf_close(sf)!=0) {
+        if (sfWrap.doClose()!=0) {
           logE("could not close audio file!");
         }
 
@@ -482,6 +485,7 @@ void DivEngine::runExportThread() {
           while (true) {
             if (i>=chans) break;
             if (getChannelType(i)!=5) break;
+            i++;
           }
           i--;
         }
@@ -1739,6 +1743,10 @@ bool DivEngine::isPlaying() {
   return (playing && !freelance);
 }
 
+bool DivEngine::isRunning() {
+  return playing;
+}
+
 bool DivEngine::isStepping() {
   return !(stepPlay==0);
 }
@@ -2188,8 +2196,9 @@ int DivEngine::addSampleFromFile(const char* path) {
   return -1;
 #else
   SF_INFO si;
+  SFWrapper sfWrap;
   memset(&si,0,sizeof(SF_INFO));
-  SNDFILE* f=sf_open(path,SFM_READ,&si);
+  SNDFILE* f=sfWrap.doOpen(path,SFM_READ,&si);
   if (f==NULL) {
     BUSY_END;
     int err=sf_error(NULL);
@@ -2202,7 +2211,7 @@ int DivEngine::addSampleFromFile(const char* path) {
   }
   if (si.frames>16777215) {
     lastError="this sample is too big! max sample size is 16777215.";
-    sf_close(f);
+    sfWrap.doClose();
     BUSY_END;
     return -1;
   }
@@ -2301,7 +2310,7 @@ int DivEngine::addSampleFromFile(const char* path) {
 
   if (sample->centerRate<4000) sample->centerRate=4000;
   if (sample->centerRate>64000) sample->centerRate=64000;
-  sf_close(f);
+  sfWrap.doClose();
   saveLock.lock();
   song.sample.push_back(sample);
   song.sampleLen=sampleCount+1;

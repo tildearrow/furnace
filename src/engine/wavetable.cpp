@@ -24,7 +24,10 @@
 #include "../fileutils.h"
 
 void DivWavetable::putWaveData(SafeWriter* w) {
+  size_t blockStartSeek, blockEndSeek;
+
   w->write("WAVE",4);
+  blockStartSeek=w->tell();
   w->writeI(0);
 
   w->writeC(0); // name
@@ -34,6 +37,11 @@ void DivWavetable::putWaveData(SafeWriter* w) {
   for (int j=0; j<len; j++) {
     w->writeI(data[j]);
   }
+
+  blockEndSeek=w->tell();
+  w->seek(blockStartSeek,SEEK_SET);
+  w->writeI(blockEndSeek-blockStartSeek-4);
+  w->seek(0,SEEK_END);
 }
 
 DivDataErrors DivWavetable::readWaveData(SafeReader& reader, short version) {

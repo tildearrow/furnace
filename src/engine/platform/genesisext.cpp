@@ -34,6 +34,10 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
   }
   int ch=c.chan-2;
   int ordch=orderedOps[ch];
+  if (!extMode) {
+    c.chan=2;
+    return DivPlatformGenesis::dispatch(c);
+  }
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
@@ -171,6 +175,11 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
     case DIV_CMD_LEGATO: {
       opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
       opChan[ch].freqChanged=true;
+      break;
+    }
+    case DIV_CMD_FM_EXTCH: {
+      extMode=c.value;
+      immWrite(0x27,extMode?0x40:0);
       break;
     }
     case DIV_CMD_FM_LFO: {
@@ -489,7 +498,7 @@ void DivPlatformGenesisExt::forceIns() {
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
-      if (i==2) { // extended channel
+      if (i==2 && extMode) { // extended channel
         if (isOpMuted[j]) {
           rWrite(baseAddr+0x40,127);
         } else if (isOutput[chan[i].state.alg][j]) {
@@ -592,6 +601,7 @@ int DivPlatformGenesisExt::init(DivEngine* parent, int channels, int sugRate, un
   for (int i=0; i<4; i++) {
     isOpMuted[i]=false;
   }
+  extSys=true;
 
   reset();
   return 13;

@@ -8,6 +8,37 @@ these are organized in the following categories:
 - **OPLL**: FM instruments for OPLL.
 - **other**: instruments for any other system.
 
+# contributors
+
+- Abstract 64
+- A M 4 N
+- Blast\_Brothers
+- brickblock369
+- Deepfreeze
+- dj.tuBIG/MaliceX
+- dotHayabusa
+- EpicTyphlosion
+- freq-mod
+- GENATARi
+- jvsTSX
+- Laggy
+- LovelyA72
+- nicco1690
+- PacorexTheTrex
+- paynspch
+- pedipanol
+- Sik
+- Sonic 🦔
+- System64
+- Teuthida
+- theloredev
+- TheRealHedgehogSonic
+- tildearrow
+- Weeppiko
+- Ygor G.
+- YohananDiamond
+- Yumetaro
+
 # submit instruments
 
 you may submit your own instruments by creating a pull request or contacting me! the only guidelines are:

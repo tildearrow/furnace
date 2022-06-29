@@ -148,6 +148,8 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
 #ifdef USE_NFD
     if (dialogOK) {
       fileName=nfdResult;
+      size_t dsPos=fileName.rfind(DIR_SEPARATOR);
+      if (dsPos!=String::npos) curPath=fileName.substr(0,dsPos);
       logD("returning %s",fileName.c_str());
       dialogOK=false;
       return true;

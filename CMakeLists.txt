@@ -95,6 +95,7 @@ else()
   if (WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     set(WITH_OUR_MALLOC ON CACHE BOOL "aaa" FORCE)
   endif()
+  set(BUILD_TESTS OFF CACHE BOOL "come on" FORCE)
   add_subdirectory(extern/fftw EXCLUDE_FROM_ALL)
   list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/fftw/api)
   list(APPEND DEPENDENCIES_LIBRARIES fftw3)
@@ -449,6 +450,10 @@ src/engine/platform/namcowsg.cpp
 src/engine/platform/rf5c68.cpp
 src/engine/platform/dummy.cpp
 )
+
+if (USE_SNDFILE)
+  list(APPEND ENGINE_SOURCES src/engine/sfWrapper.cpp)
+endif()
 
 if (WIN32)
   list(APPEND ENGINE_SOURCES src/utfutils.cpp)

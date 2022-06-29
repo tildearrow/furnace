@@ -1086,6 +1086,7 @@ class FurnaceGUI {
     int doubleClickColumn;
     int blankIns;
     int dragMovesSelection;
+    int unsignedDetune;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1187,6 +1188,7 @@ class FurnaceGUI {
       doubleClickColumn(1),
       blankIns(0),
       dragMovesSelection(1),
+      unsignedDetune(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

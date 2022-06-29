@@ -299,18 +299,39 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
       }
     }
 
-    for (int i=0; i<chans; i++) {
-      unsigned char ch=outChanMap[i];
-      if (ch==255) continue;
-      oscBuf[i]->data[oscBuf[i]->needle]=0;
-      if (fm.channel[i].out[0]!=NULL) {
-        oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
+    if (fm.rhy&0x20) {
+      for (int i=0; i<melodicChans+1; i++) {
+        unsigned char ch=outChanMap[i];
+        if (ch==255) continue;
+        oscBuf[i]->data[oscBuf[i]->needle]=0;
+        if (fm.channel[i].out[0]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
+        }
+        if (fm.channel[i].out[1]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
+        }
+        oscBuf[i]->data[oscBuf[i]->needle]<<=1;
+        oscBuf[i]->needle++;
       }
-      if (fm.channel[i].out[1]!=NULL) {
-        oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
+      // special
+      oscBuf[melodicChans+1]->data[oscBuf[melodicChans+1]->needle++]=fm.slot[16].out*6;
+      oscBuf[melodicChans+2]->data[oscBuf[melodicChans+2]->needle++]=fm.slot[14].out*6;
+      oscBuf[melodicChans+3]->data[oscBuf[melodicChans+3]->needle++]=fm.slot[17].out*6;
+      oscBuf[melodicChans+4]->data[oscBuf[melodicChans+4]->needle++]=fm.slot[13].out*6;
+    } else {
+      for (int i=0; i<chans; i++) {
+        unsigned char ch=outChanMap[i];
+        if (ch==255) continue;
+        oscBuf[i]->data[oscBuf[i]->needle]=0;
+        if (fm.channel[i].out[0]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
+        }
+        if (fm.channel[i].out[1]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
+        }
+        oscBuf[i]->data[oscBuf[i]->needle]<<=1;
+        oscBuf[i]->needle++;
       }
-      oscBuf[i]->data[oscBuf[i]->needle]<<=1;
-      oscBuf[i]->needle++;
     }
     
     if (os[0]<-32768) os[0]=-32768;
@@ -601,8 +622,9 @@ void DivPlatformOPL::tick(bool sysTick) {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq)*2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].fixedFreq>0) chan[i].freq=chan[i].fixedFreq;
+      if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>131071) chan[i].freq=131071;
-      int freqt=toFreq(chan[i].freq)+chan[i].pitch2;
+      int freqt=toFreq(chan[i].freq);
       chan[i].freqH=freqt>>8;
       chan[i].freqL=freqt&0xff;
       immWrite(chanMap[i]+ADDR_FREQ,chan[i].freqL);
@@ -1778,7 +1800,7 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
       break;
   }
 
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<20; i++) {
     oscBuf[i]->rate=rate;
   }
 }
@@ -1829,7 +1851,7 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int f
   for (int i=0; i<20; i++) {
     isMuted[i]=false;
   }
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<20; i++) {
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
@@ -1847,7 +1869,7 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int f
 }
 
 void DivPlatformOPL::quit() {
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<20; i++) {
     delete oscBuf[i];
   }
   if (adpcmChan>=0) {

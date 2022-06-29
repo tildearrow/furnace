@@ -171,6 +171,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.newVolumeScaling=false;
     ds.volMacroLinger=false;
     ds.brokenOutVol=true; // ???
+    ds.e1e2StopOnSameNote=true;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -1043,6 +1044,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.volMacroLinger=false;
       ds.brokenOutVol=true;
     }
+    if (ds.version<100) {
+      ds.e1e2StopOnSameNote=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1439,7 +1443,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         reader.readC();
         reader.readC();
       }
-      for (int i=0; i<9; i++) {
+      if (ds.version>=100) {
+        ds.e1e2StopOnSameNote=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<8; i++) {
         reader.readC();
       }
     }
@@ -2703,7 +2712,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   std::vector<int> wavePtr;
   std::vector<int> samplePtr;
   std::vector<int> patPtr;
-  size_t ptrSeek, subSongPtrSeek;
+  size_t ptrSeek, subSongPtrSeek, blockStartSeek, blockEndSeek;
   size_t subSongIndex=0;
   DivSubSong* subSong=song.subsong[subSongIndex];
   warnings="";
@@ -2782,6 +2791,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
 
   /// SONG INFO
   w->write("INFO",4);
+  blockStartSeek=w->tell();
   w->writeI(0);
 
   w->writeC(subSong->timeBase);
@@ -2918,7 +2928,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.newVolumeScaling);
   w->writeC(song.volMacroLinger);
   w->writeC(song.brokenOutVol);
-  for (int i=0; i<9; i++) {
+  w->writeC(song.e1e2StopOnSameNote);
+  for (int i=0; i<8; i++) {
     w->writeC(0);
   }
 
@@ -2939,11 +2950,17 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeI(0);
   }
 
+  blockEndSeek=w->tell();
+  w->seek(blockStartSeek,SEEK_SET);
+  w->writeI(blockEndSeek-blockStartSeek-4);
+  w->seek(0,SEEK_END);
+
   /// SUBSONGS
   for (subSongIndex=1; subSongIndex<song.subsong.size(); subSongIndex++) {
     subSong=song.subsong[subSongIndex];
     subSongPtr.push_back(w->tell());
     w->write("SONG",4);
+    blockStartSeek=w->tell();
     w->writeI(0);
 
     w->writeC(subSong->timeBase);
@@ -2986,6 +3003,11 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     for (int i=0; i<chans; i++) {
       w->writeString(subSong->chanShortName[i],false);
     }
+
+    blockEndSeek=w->tell();
+    w->seek(blockStartSeek,SEEK_SET);
+    w->writeI(blockEndSeek-blockStartSeek-4);
+    w->seek(0,SEEK_END);
   }
 
   /// INSTRUMENT
@@ -3007,6 +3029,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     DivSample* sample=song.sample[i];
     samplePtr.push_back(w->tell());
     w->write("SMPL",4);
+    blockStartSeek=w->tell();
     w->writeI(0);
 
     w->writeString(sample->name,false);
@@ -3020,6 +3043,11 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     //w->writeI(sample->loopEnd);
 
     w->write(sample->getCurBuf(),sample->getCurBufLen());
+
+    blockEndSeek=w->tell();
+    w->seek(blockStartSeek,SEEK_SET);
+    w->writeI(blockEndSeek-blockStartSeek-4);
+    w->seek(0,SEEK_END);
   }
 
   /// PATTERN
@@ -3027,6 +3055,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     DivPattern* pat=song.subsong[i.subsong]->pat[i.chan].getPattern(i.pat,false);
     patPtr.push_back(w->tell());
     w->write("PATR",4);
+    blockStartSeek=w->tell();
     w->writeI(0);
 
     w->writeS(i.chan);
@@ -3044,6 +3073,11 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     }
 
     w->writeString(pat->name,false);
+
+    blockEndSeek=w->tell();
+    w->seek(blockStartSeek,SEEK_SET);
+    w->writeI(blockEndSeek-blockStartSeek-4);
+    w->seek(0,SEEK_END);
   }
 
   /// POINTERS

@@ -312,7 +312,7 @@ void FurnaceGUI::drawChanOsc() {
           inRect.Max.y-=dpiScale;
           ImGui::ItemSize(size,style.FramePadding.y);
           if (ImGui::ItemAdd(rect,ImGui::GetID("chOscDisplay"))) {
-            if (!e->isPlaying()) {
+            if (!e->isRunning()) {
               for (unsigned short i=0; i<512; i++) {
                 float x=(float)i/512.0f;
                 waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f));
