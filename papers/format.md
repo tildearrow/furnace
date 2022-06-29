@@ -25,10 +25,14 @@ the format has changed several times across versions. a `(>=VER)` indicates this
 
 furthermore, an `or reserved` indicates this field is always present, but is reserved when the version condition is not met.
 
+the `size of this block` fields represent the size of a block excluding the ID and the aforementioned field.
+these fields are 0 in format versions prior to 100 (0.6pre1).
+
 # format versions
 
 the format versions are:
 
+- 100: Furnace 0.6pre1
 - 99: Furnace dev99
 - 98: Furnace dev98
 - 97: Furnace dev97
@@ -130,7 +134,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "INFO" block ID
-  4  | reserved
+  4  | size of this block
   1  | time base (of first song)
   1  | speed 1 (of first song)
   1  | speed 2 (of first song)
@@ -248,7 +252,7 @@ size | description
   4f | A-4 tuning
   1  | limit slides (>=36) or reserved
   1  | linear pitch (>=36) or reserved
-     | - 0: non-linaer
+     | - 0: non-linear
      | - 1: only pitch change (04xy/E5xx) linear
      | - 2: full linear (>=94)
   1  | loop modality (>=36) or reserved
@@ -300,7 +304,7 @@ size | description
   1  | new ins affects envelope (Game Boy) (>=72) or reserved
   1  | ExtCh channel state is shared (>=78) or reserved
   1  | ignore DAC mode change outside of intended channel (>=83) or reserved
-  1  | E1xx and E2xx also take priority over Slide00 (>=83) or reserved
+  1  | E1xy and E2xy also take priority over Slide00 (>=83) or reserved
   1  | new Sega PCM (with macros and proper vol/pan) (>=84) or reserved
   1  | weird f-num/block-based chip pitch slides (>=85) or reserved
   1  | SN duty macro always resets phase (>=86) or reserved
@@ -311,7 +315,8 @@ size | description
   1  | new volume scaling strategy (>=99) or reserved
   1  | volume macro still applies after end (>=99) or reserved
   1  | broken outVol (>=99) or reserved
-  9  | reserved
+  1  | E1xy and E2xy stop on same note (>=100) or reserved
+  8  | reserved
  --- | **virtual tempo data**
   2  | virtual tempo numerator of first song (>=96) or reserved
   2  | virtual tempo denominator of first song (>=96) or reserved
@@ -332,7 +337,7 @@ the way it's currently done is really weird, but it provides for some backwards 
 size | description
 -----|------------------------------------
   4  | "SONG" block ID
-  4  | reserved
+  4  | size of this block
   1  | time base
   1  | speed 1
   1  | speed 2
@@ -386,7 +391,7 @@ notes:
 size | description
 -----|------------------------------------
   4  | "INST" block ID
-  4  | reserved
+  4  | size of this block
   2  | format version (see header)
   1  | instrument type
      | - 0: standard
@@ -795,7 +800,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "WAVE" block ID
-  4  | reserved
+  4  | size of this block
  STR | wavetable name
   4  | wavetable size
   4  | wavetable min
@@ -809,7 +814,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "SMPL" block ID
-  4  | reserved
+  4  | size of this block
  STR | sample name
   4  | length
   4  | rate
@@ -841,7 +846,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "PATR" block ID
-  4  | reserved
+  4  | size of this block
   2  | channel
   2  | pattern index
   2  | subsong (>=95) or reserved

@@ -411,7 +411,7 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::Checkbox("Double click selects entire column",&doubleClickColumnB)) {
             settings.doubleClickColumn=doubleClickColumnB;
           }
-
+          
           bool allowEditDockingB=settings.allowEditDocking;
           if (ImGui::Checkbox("Allow docking editors",&allowEditDockingB)) {
             settings.allowEditDocking=allowEditDockingB;
@@ -518,6 +518,17 @@ void FurnaceGUI::drawSettings() {
           }
           if (ImGui::RadioButton("Move to effect value/next effect and wrap around##eicb2",settings.effectCursorDir==2)) {
             settings.effectCursorDir=2;
+          }
+
+          ImGui::Text("Allow dragging selection:");
+          if (ImGui::RadioButton("No##dms0",settings.dragMovesSelection==0)) {
+            settings.dragMovesSelection=0;
+          }
+          if (ImGui::RadioButton("Yes##dms1",settings.dragMovesSelection==1)) {
+            settings.dragMovesSelection=1;
+          }
+          if (ImGui::RadioButton("Yes (while holding Ctrl only)##dms2",settings.dragMovesSelection==2)) {
+            settings.dragMovesSelection=2;
           }
         }
         ImGui::EndChild();
@@ -1185,6 +1196,11 @@ void FurnaceGUI::drawSettings() {
           bool germanNotationB=settings.germanNotation;
           if (ImGui::Checkbox("Use German notation",&germanNotationB)) {
             settings.germanNotation=germanNotationB;
+          }
+
+          bool unsignedDetuneB=settings.unsignedDetune;
+          if (ImGui::Checkbox("Unsigned FM detune values",&unsignedDetuneB)) {
+            settings.unsignedDetune=unsignedDetuneB;
           }
           
           // sorry. temporarily disabled until ImGui has a way to add separators in tables arbitrarily.
@@ -2038,6 +2054,8 @@ void FurnaceGUI::syncSettings() {
   settings.effectValCellSpacing=e->getConfInt("effectValCellSpacing",0);
   settings.doubleClickColumn=e->getConfInt("doubleClickColumn",1);
   settings.blankIns=e->getConfInt("blankIns",0);
+  settings.dragMovesSelection=e->getConfInt("dragMovesSelection",2);
+  settings.unsignedDetune=e->getConfInt("unsignedDetune",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2122,6 +2140,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.effectValCellSpacing,0,32);
   clampSetting(settings.doubleClickColumn,0,1);
   clampSetting(settings.blankIns,0,1);
+  clampSetting(settings.dragMovesSelection,0,2);
+  clampSetting(settings.unsignedDetune,0,1);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2255,6 +2275,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("effectValCellSpacing",settings.effectValCellSpacing);
   e->setConf("doubleClickColumn",settings.doubleClickColumn);
   e->setConf("blankIns",settings.blankIns);
+  e->setConf("dragMovesSelection",settings.dragMovesSelection);
+  e->setConf("unsignedDetune",settings.unsignedDetune);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

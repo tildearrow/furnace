@@ -21,8 +21,8 @@
 #include "../engine.h"
 #include <math.h>
 
-#include "ym2610shared.h"
-#include "fmshared_OPN.h"
+#define CHIP_FREQBASE fmFreqBase
+#define CHIP_DIVIDER fmDivBase
 
 int DivPlatformYM2610Ext::dispatch(DivCommand c) {
   if (c.chan<1) {
@@ -34,6 +34,10 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
   }
   int ch=c.chan-1;
   int ordch=orderedOps[ch];
+  if (!extMode) {
+    c.chan=2;
+    return DivPlatformYM2610::dispatch(c);
+  }
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
@@ -149,6 +153,11 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
     case DIV_CMD_LEGATO: {
       opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
       opChan[ch].freqChanged=true;
+      break;
+    }
+    case DIV_CMD_FM_EXTCH: {
+      extMode=c.value;
+      immWrite(0x27,extMode?0x40:0);
       break;
     }
     case DIV_CMD_FM_LFO: {
@@ -427,7 +436,7 @@ void DivPlatformYM2610Ext::forceIns() {
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
-      if (i==1) { // extended channel
+      if (i==1 && extMode) { // extended channel
         if (isOpMuted[j]) {
           rWrite(baseAddr+0x40,127);
         } else if (isOutput[chan[i].state.alg][j]) {
@@ -528,6 +537,7 @@ int DivPlatformYM2610Ext::init(DivEngine* parent, int channels, int sugRate, uns
   for (int i=0; i<4; i++) {
     isOpMuted[i]=false;
   }
+  extSys=true;
 
   reset();
   return 17;

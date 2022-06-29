@@ -26,7 +26,7 @@
 class DivPlatformPET: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note, ins;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, enable;
     int vol, outVol, wave;
     unsigned char sreg;
     int cnt;
@@ -49,6 +49,7 @@ class DivPlatformPET: public DivDispatch {
       keyOn(false),
       keyOff(false),
       inPorta(false),
+      enable(false),
       vol(1),
       outVol(1),
       wave(0b00001111),
@@ -85,6 +86,7 @@ class DivPlatformPET: public DivDispatch {
     ~DivPlatformPET();
   private:
     void writeOutVol();
+    void rWrite(unsigned int addr, unsigned char val);
 };
 
 #endif

@@ -21,8 +21,8 @@
 #include "../engine.h"
 #include <math.h>
 
-#include "ym2203shared.h"
-#include "fmshared_OPN.h"
+#define CHIP_FREQBASE fmFreqBase
+#define CHIP_DIVIDER fmDivBase
 
 int DivPlatformYM2203Ext::dispatch(DivCommand c) {
   if (c.chan<2) {
@@ -34,6 +34,10 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
   }
   int ch=c.chan-2;
   int ordch=orderedOps[ch];
+  if (!extMode) {
+    c.chan=2;
+    return DivPlatformYM2203::dispatch(c);
+  }
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
@@ -149,6 +153,11 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
     case DIV_CMD_LEGATO: {
       opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
       opChan[ch].freqChanged=true;
+      break;
+    }
+    case DIV_CMD_FM_EXTCH: {
+      extMode=c.value;
+      immWrite(0x27,extMode?0x40:0);
       break;
     }
     case DIV_CMD_FM_LFO: {
@@ -514,9 +523,10 @@ int DivPlatformYM2203Ext::init(DivEngine* parent, int channels, int sugRate, uns
   for (int i=0; i<4; i++) {
     isOpMuted[i]=false;
   }
+  extSys=true;
 
   reset();
-  return 19;
+  return 9;
 }
 
 void DivPlatformYM2203Ext::quit() {

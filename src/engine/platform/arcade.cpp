@@ -22,38 +22,6 @@
 #include <string.h>
 #include <math.h>
 
-#include "fmshared_OPM.h"
-
-static unsigned short chanOffs[8]={
-  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
-};
-static unsigned short opOffs[4]={
-  0x00, 0x08, 0x10, 0x18
-};
-static bool isOutput[8][4]={
-  // 1     3     2    4
-  {false,false,false,true},
-  {false,false,false,true},
-  {false,false,false,true},
-  {false,false,false,true},
-  {false,false,true ,true},
-  {false,true ,true ,true},
-  {false,true ,true ,true},
-  {true ,true ,true ,true},
-};
-static unsigned char dtTable[8]={
-  7,6,5,0,1,2,3,4
-};
-
-static int orderedOps[4]={
-  0,2,1,3
-};
-
-#define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
-#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
-
-#define NOTE_LINEAR(x) (((x)<<6)+baseFreqOff+log2(parent->song.tuning/440.0)*12.0*64.0)
-
 const char* regCheatSheetOPM[]={
   "Test", "00",
   "NoteCtl", "08",
@@ -198,7 +166,7 @@ void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, si
           OPM_Write(&fm,1,w.val);
           regPool[w.addr&0xff]=w.val;
           //printf("write: %x = %.2x\n",w.addr,w.val);
-          writes.pop();
+          writes.pop_front();
         } else {
           OPM_Write(&fm,0,w.addr);
           w.addrOrVal=true;
@@ -239,7 +207,7 @@ void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
         fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
         fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
         regPool[w.addr&0xff]=w.val;
-        writes.pop();
+        writes.pop_front();
         delay=1;
       }
     }
@@ -938,7 +906,7 @@ void DivPlatformArcade::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformArcade::reset() {
-  while (!writes.empty()) writes.pop();
+  while (!writes.empty()) writes.pop_front();
   memset(regPool,0,256);
   if (useYMFM) {
     fm_ymfm->reset();
@@ -978,15 +946,20 @@ void DivPlatformArcade::reset() {
 }
 
 void DivPlatformArcade::setFlags(unsigned int flags) {
-  if (flags==2) {
-    chipClock=4000000.0;
-    baseFreqOff=-122;
-  } else if (flags==1) {
-    chipClock=COLOR_PAL*4.0/5.0;
-    baseFreqOff=12;
-  } else {
-    chipClock=COLOR_NTSC;
-    baseFreqOff=0;
+  switch (flags&0xff) {
+    default:
+    case 0:
+      chipClock=COLOR_NTSC;
+      baseFreqOff=0;
+      break;
+    case 1:
+      chipClock=COLOR_PAL*4.0/5.0;
+      baseFreqOff=12;
+      break;
+    case 2:
+      chipClock=4000000.0;
+      baseFreqOff=-122;
+      break;
   }
   rate=chipClock/64;
   for (int i=0; i<8; i++) {

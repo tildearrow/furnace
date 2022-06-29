@@ -34,6 +34,7 @@ public:
 
   sound_sample last_chan_out[3];
 
+  sound_sample get_dc(int ch);
   void set_is_muted(int ch, bool val);
   void set_chip_model(chip_model model);
   void enable_filter(bool enable);

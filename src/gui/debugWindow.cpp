@@ -369,6 +369,9 @@ void FurnaceGUI::drawDebug() {
       if (ImGui::Button("Inspect")) {
         inspectorOpen=!inspectorOpen;
       }
+      if (ImGui::Button("Spoiler")) {
+        spoilerOpen=!spoilerOpen;
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Performance")) {

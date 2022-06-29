@@ -191,6 +191,8 @@ typedef struct {
     int16_t output_m;
     int16_t output_r;
 
+    int16_t output_ch[9];
+
 } opll_t;
 
 const opll_patch_t* OPLL_GetPatchROM(uint32_t chip_type);

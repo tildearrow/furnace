@@ -10,10 +10,13 @@
   
   <description>
     <p>
-      this is a work-in-progress chiptune tracker which interacts with DefleMask module files (.dmf).
+      the biggest chiptune tracker ever made!
     </p>
     <p>
-      it supports creating songs for Sega Genesis, Master System, Game Boy, PC Engine, NES, C64, YM2151/PCM and Neo Geo. featuring a clean-room design (zero reverse-engineered code and zero decompilation; using official DMF specs, guesswork and ABX tests only), bug/quirk implementation for increased playback accuracy, and accurate emulation cores whether possible (Nuked, MAME, SameBoy, Mednafen PCE, puNES, reSID and ymfm).
+      it allows you to create songs using a music tracker interface for several computer/game console/arcade sound chips.
+    </p>
+    <p>
+      it also offers DefleMask compatibility, allowing you to import your songs and even export them back for interoperability.
     </p>
   </description>
   

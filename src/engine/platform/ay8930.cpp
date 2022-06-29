@@ -521,7 +521,7 @@ void DivPlatformAY8930::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (isMuted[ch]) {
     rWrite(0x08+ch,0);
-  } else {
+  } else if (chan[ch].active) {
     rWrite(0x08+ch,(chan[ch].outVol&31)|((chan[ch].psgMode&4)<<3));
   }
 }

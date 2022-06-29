@@ -1,3 +1,22 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2022 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
 #include "gui.h"
 #include "imgui.h"
 #include "IconsFontAwesome4.h"
@@ -43,6 +62,7 @@ int queryNote(int note, int octave) {
 }
 
 bool checkCondition(int mode, int arg, int argMax, int val, bool noteMode=false) {
+  const int emptyVal=noteMode?-61:-1;
   switch (mode) {
     case GUI_QUERY_IGNORE:
       return true;
@@ -51,19 +71,19 @@ bool checkCondition(int mode, int arg, int argMax, int val, bool noteMode=false)
       return (val==arg);
       break;
     case GUI_QUERY_MATCH_NOT:
-      return (val!=-1 && val!=arg);
+      return (val!=emptyVal && val!=arg);
       break;
     case GUI_QUERY_RANGE:
       return (val>=arg && val<=argMax);
       break;
     case GUI_QUERY_RANGE_NOT:
-      return (val!=-1 && (val<arg || val>argMax) && (!noteMode || val<120));
+      return (val!=emptyVal && (val<arg || val>argMax) && (!noteMode || val<120));
       break;
     case GUI_QUERY_ANY:
-      return (val!=-1);
+      return (val!=emptyVal);
       break;
     case GUI_QUERY_NONE:
-      return (val==-1);
+      return (val==emptyVal);
       break;
   }
   return false;
@@ -189,18 +209,18 @@ void FurnaceGUI::doFind() {
   queryViewingResults=true;
 }
 
-/* issues with the find and replace function:
-   - doesn't mark the module as modified
-   - can't undo
-   - replace notes to anything starting from C-0 to lower notes will have an octave higher, so set it to replace to C-0 it will becom C-1, b_1 will become B-0 and so on
-*/
-
 void FurnaceGUI::doReplace() {
   doFind();
   queryViewingResults=false;
 
   bool* touched[DIV_MAX_CHANS];
   memset(touched,0,DIV_MAX_CHANS*sizeof(bool*));
+
+  UndoStep us;
+  us.type=GUI_UNDO_REPLACE;
+
+  short prevVal[32];
+  memset(prevVal,0,32*sizeof(short));
 
   for (FurnaceGUIQueryResult& i: curQueryResults) {
     int patIndex=e->song.subsong[i.subsong]->orders.ord[i.x][i.order];
@@ -211,6 +231,9 @@ void FurnaceGUI::doReplace() {
     }
     if (touched[i.x][(patIndex<<8)|i.y]) continue;
     touched[i.x][(patIndex<<8)|i.y]=true;
+
+    memcpy(prevVal,p->data[i.y],32*sizeof(short));
+
     if (queryReplaceNoteDo) {
       switch (queryReplaceNoteMode) {
         case GUI_QUERY_REPLACE_SET:
@@ -241,8 +264,11 @@ void FurnaceGUI::doReplace() {
               if (note>119) note=119;
 
               p->data[i.y][0]=(note+60)%12;
-              if (p->data[i.y][0]==0) p->data[i.y][0]=12;
-              p->data[i.y][1]=(unsigned char)((note-1)/12);
+              p->data[i.y][1]=(unsigned char)(((note+60)/12)-5);
+              if (p->data[i.y][0]==0) {
+                p->data[i.y][0]=12;
+                p->data[i.y][1]=(unsigned char)(p->data[i.y][1]-1);
+              }
             }
           }
           break;
@@ -258,8 +284,11 @@ void FurnaceGUI::doReplace() {
               }
 
               p->data[i.y][0]=(note+60)%12;
-              if (p->data[i.y][0]==0) p->data[i.y][0]=12;
-              p->data[i.y][1]=(unsigned char)((note-1)/12);
+              p->data[i.y][1]=(unsigned char)(((note+60)/12)-5);
+              if (p->data[i.y][0]==0) {
+                p->data[i.y][0]=12;
+                p->data[i.y][1]=(unsigned char)(p->data[i.y][1]-1);
+              }
             }
           }
           break;
@@ -400,6 +429,13 @@ void FurnaceGUI::doReplace() {
         }
       }
     }
+
+    // issue undo step
+    for (int j=0; j<32; j++) {
+      if (p->data[i.y][j]!=prevVal[j]) {
+        us.pat.push_back(UndoPatternData(i.subsong,i.x,patIndex,i.y,j,prevVal[j],p->data[i.y][j]));
+      }
+    }
   }
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
@@ -408,6 +444,13 @@ void FurnaceGUI::doReplace() {
 
   if (!curQueryResults.empty()) {
     MARK_MODIFIED;
+  }
+
+  if (!us.pat.empty()) {
+    printf("pusher\n");
+    undoHist.push_back(us);
+    redoHist.clear();
+    if (undoHist.size()>settings.maxUndoSteps) undoHist.pop_front();
   }
 }
 

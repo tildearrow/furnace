@@ -20,8 +20,8 @@ void
 psg_reset(struct VERA_PSG* psg)
 {
 	memset(psg->channels, 0, sizeof(psg->channels));
-  psg->noiseState=1;
-  psg->noiseOut=0;
+	psg->noiseOut = 0;
+	psg->noiseState = 1;
 }
 
 void
@@ -54,10 +54,14 @@ render(struct VERA_PSG* psg, int16_t *left, int16_t *right)
 {
 	int l = 0;
 	int r = 0;
-	psg->noiseOut=((psg->noiseOut<<1)|(psg->noiseState&1))&63;
-	psg->noiseState=(psg->noiseState<<1)|(((psg->noiseState>>1)^(psg->noiseState>>2)^(psg->noiseState>>4)^(psg->noiseState>>15))&1);
 
 	for (int i = 0; i < 16; i++) {
+		// In FPGA implementation, noise values are generated every system clock and
+		// the channel update is run sequentially. So, even if both two channels are
+		// fetching a noise value in the same sample, they should have different values
+		psg->noiseOut = ((psg->noiseOut << 1) | (psg->noiseState & 1)) & 63;
+		psg->noiseState = (psg->noiseState << 1) | (((psg->noiseState >> 1) ^ (psg->noiseState >> 2) ^ (psg->noiseState >> 4) ^ (psg->noiseState >> 15)) & 1);
+
 		struct VERAChannel *ch = &psg->channels[i];
 
 		unsigned new_phase = (ch->phase + ch->freq) & 0x1FFFF;
@@ -87,11 +91,11 @@ render(struct VERA_PSG* psg, int16_t *left, int16_t *right)
 			r += val;
 		}
 
-    if (ch->left || ch->right) {
-      ch->lastOut=val;
-    } else {
-      ch->lastOut=0;
-    }
+		if (ch->left || ch->right) {
+			ch->lastOut = val;
+		} else {
+			ch->lastOut = 0;
+		}
 	}
 
 	*left  = l;
@@ -104,6 +108,6 @@ psg_render(struct VERA_PSG* psg, int16_t *bufL, int16_t *bufR, unsigned num_samp
 	while (num_samples--) {
 		render(psg, bufL, bufR);
 		bufL++;
-    bufR++;
+		bufR++;
 	}
 }
