@@ -654,6 +654,9 @@ class DivEngine {
 
     // is playing
     bool isPlaying();
+    
+    // is running
+    bool isRunning();
 
     // is stepping
     bool isStepping();

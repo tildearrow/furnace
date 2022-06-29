@@ -1743,6 +1743,10 @@ bool DivEngine::isPlaying() {
   return (playing && !freelance);
 }
 
+bool DivEngine::isRunning() {
+  return playing;
+}
+
 bool DivEngine::isStepping() {
   return !(stepPlay==0);
 }
