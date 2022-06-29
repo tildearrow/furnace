@@ -171,6 +171,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.newVolumeScaling=false;
     ds.volMacroLinger=false;
     ds.brokenOutVol=true; // ???
+    ds.e1e2StopOnSameNote=true;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -1043,6 +1044,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.volMacroLinger=false;
       ds.brokenOutVol=true;
     }
+    if (ds.version<100) {
+      ds.e1e2StopOnSameNote=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1439,7 +1443,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         reader.readC();
         reader.readC();
       }
-      for (int i=0; i<9; i++) {
+      if (ds.version>=100) {
+        ds.e1e2StopOnSameNote=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<8; i++) {
         reader.readC();
       }
     }
@@ -2912,7 +2921,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.newVolumeScaling);
   w->writeC(song.volMacroLinger);
   w->writeC(song.brokenOutVol);
-  for (int i=0; i<9; i++) {
+  w->writeC(song.e1e2StopOnSameNote);
+  for (int i=0; i<8; i++) {
     w->writeC(0);
   }
 

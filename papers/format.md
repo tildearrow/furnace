@@ -304,7 +304,7 @@ size | description
   1  | new ins affects envelope (Game Boy) (>=72) or reserved
   1  | ExtCh channel state is shared (>=78) or reserved
   1  | ignore DAC mode change outside of intended channel (>=83) or reserved
-  1  | E1xx and E2xx also take priority over Slide00 (>=83) or reserved
+  1  | E1xy and E2xy also take priority over Slide00 (>=83) or reserved
   1  | new Sega PCM (with macros and proper vol/pan) (>=84) or reserved
   1  | weird f-num/block-based chip pitch slides (>=85) or reserved
   1  | SN duty macro always resets phase (>=86) or reserved
@@ -315,7 +315,8 @@ size | description
   1  | new volume scaling strategy (>=99) or reserved
   1  | volume macro still applies after end (>=99) or reserved
   1  | broken outVol (>=99) or reserved
-  9  | reserved
+  1  | E1xy and E2xy stop on same note (>=100) or reserved
+  8  | reserved
  --- | **virtual tempo data**
   2  | virtual tempo numerator of first song (>=96) or reserved
   2  | virtual tempo denominator of first song (>=96) or reserved
