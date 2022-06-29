@@ -25,10 +25,14 @@ the format has changed several times across versions. a `(>=VER)` indicates this
 
 furthermore, an `or reserved` indicates this field is always present, but is reserved when the version condition is not met.
 
+the `size of this block` fields represent the size of a block excluding the ID and the aforementioned field.
+these fields are 0 in format versions prior to 100 (0.6pre1).
+
 # format versions
 
 the format versions are:
 
+- 100: Furnace 0.6pre1
 - 99: Furnace dev99
 - 98: Furnace dev98
 - 97: Furnace dev97
@@ -130,7 +134,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "INFO" block ID
-  4  | size of the block excluding the ID and this field
+  4  | size of this block
   1  | time base (of first song)
   1  | speed 1 (of first song)
   1  | speed 2 (of first song)
@@ -332,7 +336,7 @@ the way it's currently done is really weird, but it provides for some backwards 
 size | description
 -----|------------------------------------
   4  | "SONG" block ID
-  4  | size of the block excluding the ID and this field
+  4  | size of this block
   1  | time base
   1  | speed 1
   1  | speed 2
@@ -386,7 +390,7 @@ notes:
 size | description
 -----|------------------------------------
   4  | "INST" block ID
-  4  | size of the block excluding the ID and this field
+  4  | size of this block
   2  | format version (see header)
   1  | instrument type
      | - 0: standard
@@ -795,7 +799,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "WAVE" block ID
-  4  | size of the block excluding the ID and this field
+  4  | size of this block
  STR | wavetable name
   4  | wavetable size
   4  | wavetable min
@@ -809,7 +813,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "SMPL" block ID
-  4  | size of the block excluding the ID and this field
+  4  | size of this block
  STR | sample name
   4  | length
   4  | rate
@@ -841,7 +845,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "PATR" block ID
-  4  | size of the block excluding the ID and this field
+  4  | size of this block
   2  | channel
   2  | pattern index
   2  | subsong (>=95) or reserved
