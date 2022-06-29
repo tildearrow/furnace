@@ -342,7 +342,7 @@ void DivPlatformGenesis::acquire(short* bufL, short* bufR, size_t start, size_t 
 }
 
 void DivPlatformGenesis::tick(bool sysTick) {
-  for (int i=0; i<7; i++) {
+  for (int i=0; i<(softPCM?7:6); i++) {
     if (i==2 && extMode) continue;
     chan[i].std.next();
 
