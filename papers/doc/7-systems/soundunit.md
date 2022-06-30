@@ -1,5 +1,5 @@
-# TildeArrow Sound Unit
-This is a fantasy sound chip, used in the specs2 fantasy console designed by tildearrow. It includes native support for sample playback, but with only 20K of sample data. Since 0.6pre1, this sound chip is no longer hidden by default and can be accessed through the module creation screen and can be added or removed.
+# tildearrow Sound Unit
+This is a fantasy sound chip, used in the specs2 fantasy computer designed by tildearrow. It includes native support for sample playback, but with only 20K of sample data. Since 0.6pre1, this sound chip is no longer hidden by default and can be accessed through the module creation screen and can be added or removed.
 # Effects
 - `10xx`: set waveform
   - 0: pulse wave
@@ -8,8 +8,8 @@ This is a fantasy sound chip, used in the specs2 fantasy console designed by til
   - 3: triangle wave
   - 4: noise
   - 5: periodic noise
-  - 6: TODO find name for waves 6, 7
-  - 7: TODO find name for waves 6, 7
+  - 6: XOR sine
+  - 7: XOR triangle
 - `12xx`: set waveform (0 to 7F)
 - `13xx`: set resonance of filter (0 to FF)
   - despite what the internal effects list says (0 to F), you can use a resonance value from 0 to FF (255)
