@@ -187,6 +187,13 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
       chan[i].control=chan[i].std.ex3.val&15;
       writeControl(i);
     }
+    if (chan[i].std.ex4.had) {
+      chan[i].syncTimer=chan[i].std.ex4.val&65535;
+      chan[i].timerSync=(chan[i].syncTimer>0);
+      chWrite(i,0x1e,chan[i].syncTimer&0xff);
+      chWrite(i,0x1f,chan[i].syncTimer>>8);
+      writeControlUpper(i);
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
