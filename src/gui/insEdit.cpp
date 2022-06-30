@@ -3512,6 +3512,7 @@ void FurnaceGUI::drawInsEdit() {
 
           int ex1Max=(ins->type==DIV_INS_AY8930)?8:0;
           int ex2Max=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?4:0;
+          int ex4Max=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?4:0; // i am too lazy to figure out what this does so copy and paste ex2Max
           bool ex2Bit=true;
 
           if (ins->type==DIV_INS_C64) {
@@ -3677,6 +3678,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_SU) {
             macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex3Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,suControlBits));
+            macroList.push_back(FurnaceGUIMacroDesc("Phase Reset Timer",&ins->std.ex4Macro,0,ex4Max,160,uiColors[GUI_COLOR_MACRO_OTHER])); // again reuse code from resonance macro but use ex4 instead
           }
 
           drawMacros(macroList);
