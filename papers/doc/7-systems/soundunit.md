@@ -1,6 +1,8 @@
 # tildearrow Sound Unit
-This is a fantasy sound chip, used in the specs2 fantasy computer designed by tildearrow. It includes native support for sample playback, but with only 20K of sample data. Since 0.6pre1, this sound chip is no longer hidden by default and can be accessed through the module creation screen and can be added or removed.
-# Effects
+This is a fantasy sound chip, used in the specs2 fantasy computer designed by tildearrow. It includes native support for sample playback, but with only 8KB of sample data. Since 0.6pre1, this sound chip is no longer hidden by default and can be accessed through the module creation screen and can be added or removed.
+
+# effects
+
 - `10xx`: set waveform
   - 0: pulse wave
   - 1: sawtooth
