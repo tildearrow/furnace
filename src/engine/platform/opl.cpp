@@ -1539,7 +1539,7 @@ void DivPlatformOPL::reset() {
   }
   */
   if (downsample) {
-    const unsigned int downsampledRate=(unsigned int)(49716.0*(double(rate)/chipRateBase));
+    const unsigned int downsampledRate=(unsigned int)((double)rate*rate/chipRateBase);
     OPL3_Reset(&fm,downsampledRate);
   } else {
     OPL3_Reset(&fm,rate);
@@ -1755,7 +1755,7 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
           break;
       }
       rate=chipClock/72;
-      chipRateBase=double(rate);
+      chipRateBase=rate;
       break;
     case 3:
       switch (flags&0xff) {
