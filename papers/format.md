@@ -235,6 +235,7 @@ size | description
      |   - 0xbc: reserved - 8 channels
      |   - 0xbd: YM2612 extra features extended - 11 channels
      |   - 0xbe: YM2612 extra features - 7 channels
+     |   - 0xbf: T6W28 - 4 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfd: Dummy System - 8 channels
