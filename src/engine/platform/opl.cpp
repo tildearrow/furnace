@@ -1669,7 +1669,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=drums?chanMapOPL2Drums:chanMapOPL2;
       outChanMap=outChanMapOPL2;
-      chipFreqBase=9440540*0.25;
+      chipFreqBase=32768*72;
       chans=9;
       melodicChans=drums?6:9;
       totalChans=drums?11:9;
@@ -1683,7 +1683,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=drums?chanMapOPL3Drums:chanMapOPL3;
       outChanMap=outChanMapOPL3;
-      chipFreqBase=9440540;
+      chipFreqBase=32768*288;
       chans=18;
       melodicChans=drums?15:18;
       totalChans=drums?20:18;
@@ -1735,9 +1735,6 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
     default:
     case 1: case 2: case 8950:
       switch (flags&0xff) {
-        case 0x00:
-          chipClock=COLOR_NTSC;
-          break;
         case 0x01:
           chipClock=COLOR_PAL*4.0/5.0;
           break;
@@ -1753,15 +1750,15 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
         case 0x05:
           chipClock=3500000.0;
           break;
+        default:
+          chipClock=COLOR_NTSC;
+          break;
       }
       rate=chipClock/72;
       chipRateBase=double(rate);
       break;
     case 3:
       switch (flags&0xff) {
-        case 0x00:
-          chipClock=COLOR_NTSC*4.0;
-          break;
         case 0x01:
           chipClock=COLOR_PAL*16.0/5.0;
           break;
@@ -1774,28 +1771,31 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
         case 0x04:
           chipClock=15000000.0;
           break;
+        default:
+          chipClock=COLOR_NTSC*4.0;
+          break;
       }
       rate=chipClock/288;
-      chipRateBase=double(rate);
+      chipRateBase=rate;
       break;
     case 4:
       switch (flags&0xff) {
-        case 0x02:
-          chipClock=33868800.0;
-          break;
-        case 0x00:
-          chipClock=COLOR_NTSC*8.0;
-          break;
         case 0x01:
           chipClock=COLOR_PAL*32.0/5.0;
           break;
+        case 0x02:
+          chipClock=33868800.0;
+          break;
+        default:
+          chipClock=COLOR_NTSC*8.0;
+          break;
       }
-      chipRateBase=double(chipClock)/684.0;
       rate=chipClock/768;
+      chipRateBase=chipClock/684;
       break;
     case 759:
       rate=48000;
-      chipRateBase=double(rate);
+      chipRateBase=rate;
       chipClock=rate*288;
       break;
   }
