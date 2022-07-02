@@ -894,6 +894,7 @@ const int availableSystems[]={
   DIV_SYSTEM_MSM6258,
   DIV_SYSTEM_MSM6295,
   DIV_SYSTEM_RF5C68,
+  DIV_SYSTEM_PCM_DAC,
   0 // don't remove this last one!
 };
 
