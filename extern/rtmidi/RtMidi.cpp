@@ -40,6 +40,7 @@
 #include "RtMidi.h"
 #include <sstream>
 
+#ifdef TARGET_OS_IPHONE
 #if (TARGET_OS_IPHONE == 1)
 
     #define AudioGetCurrentHostTime CAHostTimeBase::GetCurrentTime
@@ -65,6 +66,7 @@
   #define AudioConvertHostTimeToNanos(t) t *CTime2nsFactor::Factor
   #define EndianS32_BtoN(n) n
 
+#endif
 #endif
 
 // Default for Windows is to add an identifier to the port names; this
@@ -814,7 +816,7 @@ MidiOutApi :: ~MidiOutApi( void )
 // time values.
 
 // These are not available on iOS.
-#if (TARGET_OS_IPHONE == 0)
+#ifdef TARGET_OS_IPHONE
   #include <CoreAudio/HostTime.h>
   #include <CoreServices/CoreServices.h>
 #endif

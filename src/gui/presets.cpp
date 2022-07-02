@@ -496,13 +496,13 @@ void FurnaceGUI::initSystemPresets() {
         0
       }
     ));
-    cat.systems.push_back(FurnaceGUISysDef(
-      "tildearrow Sound Unit", {
-        DIV_SYSTEM_SOUND_UNIT, 64, 0, 0,
-        0
-      }
-    ));
   }
+  cat.systems.push_back(FurnaceGUISysDef(
+    "tildearrow Sound Unit", {
+      DIV_SYSTEM_SOUND_UNIT, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Game consoles","let's play some chiptune making games!");
@@ -1289,6 +1289,29 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System E", {
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System E (with FM expansion)", {
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System E (with FM expansion in drums mode)", {
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Sega Hang-On", {
       DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
       DIV_SYSTEM_SEGAPCM, 64, 0, 0, // discrete logics, 62.5KHz output rate
@@ -1811,6 +1834,34 @@ void FurnaceGUI::initSystemPresets() {
     "SNK Chopper I (drums mode on Y8950 and OPL2)", {
       DIV_SYSTEM_Y8950_DRUMS, 64, 0, 2,
       DIV_SYSTEM_OPL2_DRUMS, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Touchdown Fever", {
+      DIV_SYSTEM_OPL, 64, 0, 2,
+      DIV_SYSTEM_Y8950, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Touchdown Fever (drums mode on OPL)", {
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 2,
+      DIV_SYSTEM_Y8950, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Touchdown Fever (drums mode on Y8950)", {
+      DIV_SYSTEM_OPL, 64, 0, 2,
+      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 2,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNK Touchdown Fever (drums mode on OPL and Y8950)", {
+      DIV_SYSTEM_OPL_DRUMS, 64, 0, 2,
+      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 2,
       0
     }
   ));

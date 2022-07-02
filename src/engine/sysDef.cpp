@@ -2160,6 +2160,35 @@ void DivEngine::registerSystems() {
     fmPostEffectHandler
   );
 
+  sysDefs[DIV_SYSTEM_T6W28]=new DivSysDef(
+    "T6W28", NULL, 0xbf, 0, 4, false, true, 0, false,
+    "an SN76489 derivative used in Neo Geo Pocket, has independent stereo volume and noise channel frequency.",
+    {"Square 1", "Square 2", "Square 3", "Noise"},
+    {"S1", "S2", "S3", "NO"},
+    {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE},
+    {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD},
+    {},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x20: // SN noise mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
+  );
+
+  sysDefs[DIV_SYSTEM_PCM_DAC]=new DivSysDef(
+    "Generic PCM DAC", NULL, 0xc0, 0, 1, false, true, 0, false,
+    "as generic sample playback as it gets.",
+    {"Sample"},
+    {"PCM"},
+    {DIV_CH_PCM},
+    {DIV_INS_AMIGA}
+  );
+
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
     "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false,
     "this is a system designed for testing purposes.",

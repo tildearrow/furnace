@@ -74,10 +74,10 @@ const char* DivPlatformSoundUnit::getEffectName(unsigned char effect) {
       return "1Dxx: Set cutoff sweep boundary";
       break;
     case 0x1e:
-      return "17xx: Set phase reset period low byte";
+      return "1Exx: Set phase reset period low byte";
       break;
     case 0x1f:
-      return "18xx: Set phase reset period high byte";
+      return "1Fxx: Set phase reset period high byte";
       break;
     case 0x20:
       return "20xx: Toggle frequency sweep (bit 0-6: speed; bit 7: direction is up)";

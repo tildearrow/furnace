@@ -24,9 +24,6 @@
 #include "engine.h"
 #include "../ta-log.h"
 #include <math.h>
-#ifdef HAVE_SNDFILE
-#include <sndfile.h>
-#endif
 
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 
@@ -473,6 +470,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].nowYouCanStop=false;
           chan[i].stopOnOff=false;
           chan[i].scheduledSlideReset=false;
+          chan[i].wasShorthandPorta=false;
           chan[i].inPorta=false;
           if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
         }
@@ -492,6 +490,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].nowYouCanStop=false;
           chan[i].stopOnOff=false;
           chan[i].scheduledSlideReset=false;
+          chan[i].wasShorthandPorta=false;
           chan[i].inPorta=false;
           if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
         }
@@ -511,6 +510,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
             chan[i].portaNote=chan[i].note;
             chan[i].portaSpeed=effectVal;
             chan[i].inPorta=true;
+            chan[i].wasShorthandPorta=false;
           }
           chan[i].portaStop=true;
           if (chan[i].keyOn) chan[i].doNote=false;
@@ -590,6 +590,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if ((effectVal&15)!=0) {
           chan[i].inPorta=true;
           chan[i].shorthandPorta=true;
+          chan[i].wasShorthandPorta=true;
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
           if (song.e1e2AlsoTakePriority) lastSlide=0x1337; // ...
         } else {
@@ -607,6 +608,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if ((effectVal&15)!=0) {
           chan[i].inPorta=true;
           chan[i].shorthandPorta=true;
+          chan[i].wasShorthandPorta=true;
           if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,0));
           if (song.e1e2AlsoTakePriority) lastSlide=0x1337; // ...
         } else {
@@ -733,7 +735,14 @@ void DivEngine::processRow(int i, bool afterDelay) {
       dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
     } else {
       if (chan[i].inPorta && chan[i].keyOn && !chan[i].shorthandPorta) {
-        chan[i].portaNote=chan[i].note;
+        if (song.e1e2StopOnSameNote && chan[i].wasShorthandPorta) {
+          chan[i].portaSpeed=-1;
+          if (!song.brokenShortcutSlides) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+          chan[i].wasShorthandPorta=false;
+          chan[i].inPorta=false;
+        } else {
+          chan[i].portaNote=chan[i].note;
+        }
       } else if (!chan[i].noteOnInhibit) {
         dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
         keyHit[i]=true;

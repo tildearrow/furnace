@@ -299,18 +299,39 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
       }
     }
 
-    for (int i=0; i<chans; i++) {
-      unsigned char ch=outChanMap[i];
-      if (ch==255) continue;
-      oscBuf[i]->data[oscBuf[i]->needle]=0;
-      if (fm.channel[i].out[0]!=NULL) {
-        oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
+    if (fm.rhy&0x20) {
+      for (int i=0; i<melodicChans+1; i++) {
+        unsigned char ch=outChanMap[i];
+        if (ch==255) continue;
+        oscBuf[i]->data[oscBuf[i]->needle]=0;
+        if (fm.channel[i].out[0]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
+        }
+        if (fm.channel[i].out[1]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
+        }
+        oscBuf[i]->data[oscBuf[i]->needle]<<=1;
+        oscBuf[i]->needle++;
       }
-      if (fm.channel[i].out[1]!=NULL) {
-        oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
+      // special
+      oscBuf[melodicChans+1]->data[oscBuf[melodicChans+1]->needle++]=fm.slot[16].out*6;
+      oscBuf[melodicChans+2]->data[oscBuf[melodicChans+2]->needle++]=fm.slot[14].out*6;
+      oscBuf[melodicChans+3]->data[oscBuf[melodicChans+3]->needle++]=fm.slot[17].out*6;
+      oscBuf[melodicChans+4]->data[oscBuf[melodicChans+4]->needle++]=fm.slot[13].out*6;
+    } else {
+      for (int i=0; i<chans; i++) {
+        unsigned char ch=outChanMap[i];
+        if (ch==255) continue;
+        oscBuf[i]->data[oscBuf[i]->needle]=0;
+        if (fm.channel[i].out[0]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
+        }
+        if (fm.channel[i].out[1]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
+        }
+        oscBuf[i]->data[oscBuf[i]->needle]<<=1;
+        oscBuf[i]->needle++;
       }
-      oscBuf[i]->data[oscBuf[i]->needle]<<=1;
-      oscBuf[i]->needle++;
     }
     
     if (os[0]<-32768) os[0]=-32768;
@@ -601,8 +622,9 @@ void DivPlatformOPL::tick(bool sysTick) {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq)*2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].fixedFreq>0) chan[i].freq=chan[i].fixedFreq;
+      if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>131071) chan[i].freq=131071;
-      int freqt=toFreq(chan[i].freq)+chan[i].pitch2;
+      int freqt=toFreq(chan[i].freq);
       chan[i].freqH=freqt>>8;
       chan[i].freqL=freqt&0xff;
       immWrite(chanMap[i]+ADDR_FREQ,chan[i].freqL);
@@ -1517,7 +1539,7 @@ void DivPlatformOPL::reset() {
   }
   */
   if (downsample) {
-    const unsigned int downsampledRate=(unsigned int)(49716.0*(double(rate)/chipRateBase));
+    const unsigned int downsampledRate=(unsigned int)((double)rate*rate/chipRateBase);
     OPL3_Reset(&fm,downsampledRate);
   } else {
     OPL3_Reset(&fm,rate);
@@ -1647,7 +1669,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=drums?chanMapOPL2Drums:chanMapOPL2;
       outChanMap=outChanMapOPL2;
-      chipFreqBase=9440540*0.25;
+      chipFreqBase=32768*72;
       chans=9;
       melodicChans=drums?6:9;
       totalChans=drums?11:9;
@@ -1661,7 +1683,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=drums?chanMapOPL3Drums:chanMapOPL3;
       outChanMap=outChanMapOPL3;
-      chipFreqBase=9440540;
+      chipFreqBase=32768*288;
       chans=18;
       melodicChans=drums?15:18;
       totalChans=drums?20:18;
@@ -1713,9 +1735,6 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
     default:
     case 1: case 2: case 8950:
       switch (flags&0xff) {
-        case 0x00:
-          chipClock=COLOR_NTSC;
-          break;
         case 0x01:
           chipClock=COLOR_PAL*4.0/5.0;
           break;
@@ -1731,15 +1750,15 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
         case 0x05:
           chipClock=3500000.0;
           break;
+        default:
+          chipClock=COLOR_NTSC;
+          break;
       }
       rate=chipClock/72;
-      chipRateBase=double(rate);
+      chipRateBase=rate;
       break;
     case 3:
       switch (flags&0xff) {
-        case 0x00:
-          chipClock=COLOR_NTSC*4.0;
-          break;
         case 0x01:
           chipClock=COLOR_PAL*16.0/5.0;
           break;
@@ -1752,33 +1771,36 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
         case 0x04:
           chipClock=15000000.0;
           break;
+        default:
+          chipClock=COLOR_NTSC*4.0;
+          break;
       }
       rate=chipClock/288;
-      chipRateBase=double(rate);
+      chipRateBase=rate;
       break;
     case 4:
       switch (flags&0xff) {
-        case 0x02:
-          chipClock=33868800.0;
-          break;
-        case 0x00:
-          chipClock=COLOR_NTSC*8.0;
-          break;
         case 0x01:
           chipClock=COLOR_PAL*32.0/5.0;
           break;
+        case 0x02:
+          chipClock=33868800.0;
+          break;
+        default:
+          chipClock=COLOR_NTSC*8.0;
+          break;
       }
-      chipRateBase=double(chipClock)/684.0;
       rate=chipClock/768;
+      chipRateBase=chipClock/684;
       break;
     case 759:
       rate=48000;
-      chipRateBase=double(rate);
+      chipRateBase=rate;
       chipClock=rate*288;
       break;
   }
 
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<20; i++) {
     oscBuf[i]->rate=rate;
   }
 }
@@ -1829,7 +1851,7 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int f
   for (int i=0; i<20; i++) {
     isMuted[i]=false;
   }
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<20; i++) {
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
@@ -1847,7 +1869,7 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int f
 }
 
 void DivPlatformOPL::quit() {
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<20; i++) {
     delete oscBuf[i];
   }
   if (adpcmChan>=0) {

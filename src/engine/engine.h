@@ -45,8 +45,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev99"
-#define DIV_ENGINE_VERSION 99
+#define DIV_VERSION "0.6pre1"
+#define DIV_ENGINE_VERSION 100
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -88,7 +88,7 @@ struct DivChannelState {
   int tremoloDepth, tremoloRate, tremoloPos;
   unsigned char arp, arpStage, arpTicks, panL, panR;
   bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff;
-  bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, noteOnInhibit, resetArp;
+  bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, wasShorthandPorta, noteOnInhibit, resetArp;
 
   int midiNote, curMidiNote, midiPitch;
   size_t midiAge;
@@ -136,6 +136,7 @@ struct DivChannelState {
     inPorta(false),
     scheduledSlideReset(false),
     shorthandPorta(false),
+    wasShorthandPorta(false),
     noteOnInhibit(false),
     resetArp(false),
     midiNote(-1),
@@ -656,6 +657,9 @@ class DivEngine {
 
     // is playing
     bool isPlaying();
+    
+    // is running
+    bool isRunning();
 
     // is stepping
     bool isStepping();

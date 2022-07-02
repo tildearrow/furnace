@@ -114,6 +114,8 @@ enum DivSystem {
   DIV_SYSTEM_YM2612_FRAC,
   DIV_SYSTEM_YM2612_FRAC_EXT,
   DIV_SYSTEM_RESERVED_8,
+  DIV_SYSTEM_T6W28,
+  DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_DUMMY,
   DIV_SYSTEM_MAX // boundary for max system number
 };
@@ -495,6 +497,7 @@ struct DivSong {
   bool newVolumeScaling;
   bool volMacroLinger;
   bool brokenOutVol;
+  bool e1e2StopOnSameNote;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -592,7 +595,8 @@ struct DivSong {
     noOPN2Vol(false),
     newVolumeScaling(true),
     volMacroLinger(true),
-    brokenOutVol(false) {
+    brokenOutVol(false),
+    e1e2StopOnSameNote(false) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;

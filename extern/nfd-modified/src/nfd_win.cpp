@@ -211,7 +211,8 @@ static nfdresult_t AddFiltersToDialog( ::IFileDialog *fileOpenDialog, const std:
     // Count rows to alloc
     UINT filterCount = filterList.size()>>1; /* guaranteed to have one filter on a correct, non-empty parse */
 
-    assert(filterCount);
+    if (filterCount==0) filterCount=1;
+
     if ( !filterCount )
     {
         NFDi_SetError("Error parsing filters.");
@@ -219,12 +220,12 @@ static nfdresult_t AddFiltersToDialog( ::IFileDialog *fileOpenDialog, const std:
     }
 
     /* filterCount plus 1 because we hardcode the *.* wildcard after the while loop */
-    COMDLG_FILTERSPEC *specList = (COMDLG_FILTERSPEC*)NFDi_Malloc( sizeof(COMDLG_FILTERSPEC) * ((size_t)filterCount + 1) );
+    COMDLG_FILTERSPEC *specList = (COMDLG_FILTERSPEC*)NFDi_Malloc( sizeof(COMDLG_FILTERSPEC) * ((size_t)filterCount) );
     if ( !specList )
     {
         return NFD_ERROR;
     }
-    for (UINT i = 0; i < filterCount+1; ++i )
+    for (UINT i = 0; i < filterCount; ++i )
     {
         specList[i].pszName = NULL;
         specList[i].pszSpec = NULL;
@@ -236,19 +237,22 @@ static nfdresult_t AddFiltersToDialog( ::IFileDialog *fileOpenDialog, const std:
       String name=filterList[i];
       String spec=filterList[i+1];
       for (char& i: spec) {
-        if (i==' ') i=',';
+        if (i==' ') i=';';
       }
+      if (spec==".*") spec="*.*";
 
       CopyNFDCharToWChar( name.c_str(), (wchar_t**)&specList[specIdx].pszName );
       CopyNFDCharToWChar( spec.c_str(), (wchar_t**)&specList[specIdx].pszSpec );
       ++specIdx;
     }
 
-    /* Add wildcard */
-    specList[specIdx].pszSpec = WILDCARD;
-    specList[specIdx].pszName = WILDCARD;
+    /* Add wildcard if specIdx is 0 */
+    if (specIdx==0) {
+      specList[specIdx].pszSpec = WILDCARD;
+      specList[specIdx].pszName = WILDCARD;
+    }
     
-    fileOpenDialog->SetFileTypes( filterCount+1, specList );
+    fileOpenDialog->SetFileTypes( filterCount, specList );
 
     /* free speclist */
     for ( size_t i = 0; i < filterCount; ++i )

@@ -23,7 +23,12 @@ static NSArray *BuildAllowedFileTypes( const std::vector<std::string>& filterLis
     NSMutableArray *buildFilterList = [[NSMutableArray alloc] init];
 
     std::string typebuf;
+    int index=-1;
     for (const std::string& i: filterList) {
+      index++;
+      if (!(index&1)) {
+        continue;
+      }
       typebuf="";
       for (const char& j: i) {
         if (j==' ' || j==',' || j ==';') {

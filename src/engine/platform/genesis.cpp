@@ -344,13 +344,17 @@ void DivPlatformGenesis::acquire(short* bufL, short* bufR, size_t start, size_t 
 }
 
 void DivPlatformGenesis::tick(bool sysTick) {
-  for (int i=0; i<6; i++) {
+  for (int i=0; i<(softPCM?7:6); i++) {
     if (i==2 && extMode) continue;
     chan[i].std.next();
 
     if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LOG(chan[i].vol,MIN(127,chan[i].std.vol.val),127);
-      for (int j=0; j<4; j++) {
+      int inVol=chan[i].std.vol.val;
+      if (chan[i].furnaceDac && inVol>0) {
+        inVol+=63;
+      }
+      chan[i].outVol=VOL_SCALE_LOG(chan[i].vol,MIN(127,inVol),127);
+      if (i<6) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
         if (isMuted[i]) {
@@ -383,7 +387,9 @@ void DivPlatformGenesis::tick(bool sysTick) {
 
     if (chan[i].std.panL.had) {
       chan[i].pan=chan[i].std.panL.val&3;
-      rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+      if (i<6) {
+        rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+      }
     }
 
     if (chan[i].std.pitch.had) {
@@ -395,6 +401,8 @@ void DivPlatformGenesis::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
+
+    if (i>=6) continue;
 
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1 && chan[i].active) {
@@ -640,9 +648,20 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           chan[c.chan].dacPeriod=0;
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
+            chan[c.chan].portaPause=false;
+            chan[c.chan].note=c.value;
             chan[c.chan].freqChanged=true;
           }
           chan[c.chan].furnaceDac=true;
+
+          chan[c.chan].macroInit(ins);
+          if (!chan[c.chan].std.vol.will) {
+            chan[c.chan].outVol=chan[c.chan].vol;
+          }
+
+          // ???
+          //chan[c.chan].keyOn=true;
+          chan[c.chan].active=true;
         } else { // compatible mode
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
@@ -891,6 +910,13 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
       chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
+      break;
+    }
+    case DIV_CMD_FM_EXTCH: {
+      if (extSys) {
+        extMode=c.value;
+        immWrite(0x27,extMode?0x40:0);
+      }
       break;
     }
     case DIV_CMD_FM_LFO: {

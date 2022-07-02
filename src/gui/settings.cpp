@@ -1197,6 +1197,11 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::Checkbox("Use German notation",&germanNotationB)) {
             settings.germanNotation=germanNotationB;
           }
+
+          bool unsignedDetuneB=settings.unsignedDetune;
+          if (ImGui::Checkbox("Unsigned FM detune values",&unsignedDetuneB)) {
+            settings.unsignedDetune=unsignedDetuneB;
+          }
           
           // sorry. temporarily disabled until ImGui has a way to add separators in tables arbitrarily.
           /*bool sysSeparatorsB=settings.sysSeparators;
@@ -2049,6 +2054,7 @@ void FurnaceGUI::syncSettings() {
   settings.doubleClickColumn=e->getConfInt("doubleClickColumn",1);
   settings.blankIns=e->getConfInt("blankIns",0);
   settings.dragMovesSelection=e->getConfInt("dragMovesSelection",2);
+  settings.unsignedDetune=e->getConfInt("unsignedDetune",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2134,6 +2140,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.doubleClickColumn,0,1);
   clampSetting(settings.blankIns,0,1);
   clampSetting(settings.dragMovesSelection,0,2);
+  clampSetting(settings.unsignedDetune,0,1);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2268,6 +2275,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("doubleClickColumn",settings.doubleClickColumn);
   e->setConf("blankIns",settings.blankIns);
   e->setConf("dragMovesSelection",settings.dragMovesSelection);
+  e->setConf("unsignedDetune",settings.unsignedDetune);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
