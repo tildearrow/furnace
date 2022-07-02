@@ -1283,6 +1283,29 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System E", {
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System E (with FM expansion)", {
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System E (with FM expansion in drums mode)", {
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Sega Hang-On", {
       DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
       DIV_SYSTEM_SEGAPCM, 64, 0, 0, // discrete logics, 62.5KHz output rate
