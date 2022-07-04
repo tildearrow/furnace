@@ -447,7 +447,6 @@ void FurnaceGUI::doReplace() {
   }
 
   if (!us.pat.empty()) {
-    printf("pusher\n");
     undoHist.push_back(us);
     redoHist.clear();
     if (undoHist.size()>settings.maxUndoSteps) undoHist.pop_front();
