@@ -334,6 +334,11 @@ void DivEngine::processRow(int i, bool afterDelay) {
     if (chan[i].lastIns!=pat->data[whatRow][2]) {
       chan[i].lastIns=pat->data[whatRow][2];
       insChanged=true;
+      if (song.legacyVolumeSlides && chan[i].volume==chan[i].volMax+1) {
+        logV("forcing volume");
+        chan[i].volume=chan[i].volMax;
+        dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+      }
     }
   }
   // note

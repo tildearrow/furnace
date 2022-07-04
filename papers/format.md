@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 101: Furnace 0.6pre1 (dev101)
 - 100: Furnace 0.6pre1
 - 99: Furnace dev99
 - 98: Furnace dev98
@@ -235,6 +236,8 @@ size | description
      |   - 0xbc: reserved - 8 channels
      |   - 0xbd: YM2612 extra features extended - 11 channels
      |   - 0xbe: YM2612 extra features - 7 channels
+     |   - 0xbf: T6W28 - 4 channels
+     |   - 0xc0: PCM DAC - 1 channel
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfd: Dummy System - 8 channels
@@ -316,7 +319,8 @@ size | description
   1  | volume macro still applies after end (>=99) or reserved
   1  | broken outVol (>=99) or reserved
   1  | E1xy and E2xy stop on same note (>=100) or reserved
-  8  | reserved
+  1  | broken initial position of porta after arp (>=101) or reserved
+  7  | reserved
  --- | **virtual tempo data**
   2  | virtual tempo numerator of first song (>=96) or reserved
   2  | virtual tempo denominator of first song (>=96) or reserved
