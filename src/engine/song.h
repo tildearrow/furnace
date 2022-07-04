@@ -497,6 +497,7 @@ struct DivSong {
   bool volMacroLinger;
   bool brokenOutVol;
   bool e1e2StopOnSameNote;
+  bool brokenPortaArp;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -595,7 +596,8 @@ struct DivSong {
     newVolumeScaling(true),
     volMacroLinger(true),
     brokenOutVol(false),
-    e1e2StopOnSameNote(false) {
+    e1e2StopOnSameNote(false),
+    brokenPortaArp(false) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;

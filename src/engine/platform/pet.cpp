@@ -239,6 +239,7 @@ int DivPlatformPET::dispatch(DivCommand c) {
       if (chan.active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan.macroInit(parent->getIns(chan.ins,DIV_INS_PET));
       }
+      if (!chan.inPorta && c.value && !parent->song.brokenPortaArp && chan.std.arp.will) chan.baseFreq=NOTE_PERIODIC(chan.note);
       chan.inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

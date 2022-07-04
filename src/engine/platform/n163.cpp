@@ -562,6 +562,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
           chan[c.chan].keyOn=true;
         }
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

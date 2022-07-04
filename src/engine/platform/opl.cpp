@@ -1434,6 +1434,9 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       return 63;
       break;
     case DIV_CMD_PRE_PORTA:
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) {
+        chan[c.chan].baseFreq=(c.chan==adpcmChan)?(NOTE_ADPCMB(chan[c.chan].note)):(NOTE_FREQUENCY(chan[c.chan].note));
+      }
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
