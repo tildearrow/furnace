@@ -353,7 +353,7 @@ struct DivSong {
   //     - 1: stereo
   // - YM2203:
   //   - bit 0-4: clock rate
-  //     - 0: 3.58MHz (MTSC)
+  //     - 0: 3.58MHz (NTSC)
   //     - 1: 3.55MHz (PAL)
   //     - 2: 4MHz
   //     - 3: 3MHz
@@ -373,7 +373,7 @@ struct DivSong {
   //     - 2: FM: clock / 48, SSG: clock / 8
   // - YM3526, YM3812, Y8950:
   //   - bit 0-7: clock rate
-  //     - 0: 3.58MHz (MTSC)
+  //     - 0: 3.58MHz (NTSC)
   //     - 1: 3.55MHz (PAL)
   //     - 2: 4MHz
   //     - 3: 3MHz
@@ -381,7 +381,7 @@ struct DivSong {
   //     - 5: 3.5MHz
   // - YMF262:
   //   - bit 0-7: clock rate
-  //     - 0: 14.32MHz (MTSC)
+  //     - 0: 14.32MHz (NTSC)
   //     - 1: 14.19MHz (PAL)
   //     - 2: 14MHz
   //     - 3: 16MHz
@@ -389,7 +389,7 @@ struct DivSong {
   // - YMF289B: (TODO)
   //   - bit 0-7: clock rate
   //     - 0: 33.8688MHz
-  //     - 1: 28.64MHz (MTSC)
+  //     - 1: 28.64MHz (NTSC)
   //     - 2: 28.38MHz (PAL)
   // - MSM6295:
   //   - bit 0-6: clock rate
@@ -420,7 +420,7 @@ struct DivSong {
   // - YMZ280B:
   //   - bit 0-7: clock rate
   //     - 0: 16.9344MHz
-  //     - 1: 14.32MHz (MTSC)
+  //     - 1: 14.32MHz (NTSC)
   //     - 2: 14.19MHz (PAL)
   //     - 3: 16MHz
   //     - 4: 16.67MHz
