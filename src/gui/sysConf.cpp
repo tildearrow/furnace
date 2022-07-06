@@ -569,7 +569,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
     case DIV_SYSTEM_OPL3:
     case DIV_SYSTEM_OPL3_DRUMS: {
       ImGui::Text("Clock rate:");
-      if (ImGui::RadioButton("14.32MHz (MTSC)",(flags&255)==0)) {
+      if (ImGui::RadioButton("14.32MHz (NTSC)",(flags&255)==0)) {
         copyOfFlags=(flags&(~255))|0;
       }
       if (ImGui::RadioButton("14.19MHz (PAL)",(flags&255)==1)) {
@@ -591,7 +591,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("16.9344MHz",(flags&255)==0)) {
         copyOfFlags=(flags&(~255))|0;
       }
-      if (ImGui::RadioButton("14.32MHz (MTSC)",(flags&255)==1)) {
+      if (ImGui::RadioButton("14.32MHz (NTSC)",(flags&255)==1)) {
         copyOfFlags=(flags&(~255))|1;
       }
       if (ImGui::RadioButton("14.19MHz (PAL)",(flags&255)==3)) {
