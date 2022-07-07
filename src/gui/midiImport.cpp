@@ -24,7 +24,7 @@
 
 using namespace smf;
 
-void FurnaceGUI::midiImport(int midiChannel, int midiTrack, int midiStartMeasure, int targetChannelIdx, int patternIdx, bool enableCC = false, bool enableVel = true, bool enableNoteOff = true) {
+void FurnaceGUI::midiImport(int midiChannel, int midiTrack, int midiStartMeasure, int targetChannelIdx, int patternIdx, int patternCount,  bool enableCC = false, bool enableVel = true, bool enableNoteOff = true) {
   logD("Importing MIDI channel %d in track %d starting from measure %d into channel %d, pattern %d",
     midiChannel, midiTrack, midiStartMeasure, targetChannelIdx, patternIdx
   );
@@ -55,71 +55,76 @@ void FurnaceGUI::midiImport(int midiChannel, int midiTrack, int midiStartMeasure
     return;
   }
 
-  // get pattern
-  DivChannelData& chan = e->curPat[targetChannelIdx];
-  DivPattern* pat = chan.getPattern(patternIdx, true);
+  int patternsProcessed = 0;
 
-  int patLen = e->curSubSong->patLen;
+  while (patternsProcessed < patternCount && eventOffset < eventCount) {
+    // get pattern
+    DivChannelData& chan = e->curPat[targetChannelIdx];
+    DivPattern* pat = chan.getPattern(patternIdx, true);
 
-  // clear pattern by setting note/octave to 0 and inst/vol/effects to -1
-  for (int i=0; i<patLen; i++) {
-    for (int j=0; j<=5; j++) {
-      pat->data[i][j] = (j < 2) ? 0 : -1;
+    int patLen = e->curSubSong->patLen;
+
+    // clear pattern by setting note/octave to 0 and inst/vol/effects to -1
+    for (int i=0; i<patLen; i++) {
+      for (int j=0; j<=5; j++) {
+        pat->data[i][j] = (j < 2) ? 0 : -1;
+      }
     }
-  }
-  
-  for (; eventOffset < eventCount; eventOffset++) {
-    if (events[eventOffset].tick >= tickOffset + ticksPerMeasure)
-      break;
-    MidiEvent event = events[eventOffset];
     
-    if (event.getChannelNibble() == midiChannel) {
-      int patternPos = (int)round((event.tick - tickOffset) / (float)ticksPerMeasure * patLen);
-      if (patternPos >= patLen) {
-        patternPos = patLen - 1;
-      }
-      if (enableNoteOff && event.isNoteOff()) {
-        // don't overwrite existing notes
-        if (pat->data[patternPos][0] == 0) {
-          pat->data[patternPos][0] = 100;
-          pat->data[patternPos][1] = 0;
+    for (; eventOffset < eventCount; eventOffset++) {
+      if (events[eventOffset].tick >= tickOffset + ticksPerMeasure)
+        break;
+      MidiEvent event = events[eventOffset];
+      
+      if (event.getChannelNibble() == midiChannel) {
+        int patternPos = (int)round((event.tick - tickOffset) / (float)ticksPerMeasure * patLen);
+        if (patternPos >= patLen) {
+          patternPos = patLen - 1;
         }
-      } else if (event.isNoteOn()) {
-        int pitch = event.getP1();
-        int velocity = event.getP2();
-
-        // pitch, octave
-        pat->data[patternPos][0] = pitch % 12;
-        pat->data[patternPos][1] = pitch / 12;
-        if (pat->data[patternPos][0]==0) {
-          pat->data[patternPos][0]=12;
-          pat->data[patternPos][1]--;
-        }
-
-        // velocity
-        if (enableVel) {
-          int maxVol=e->getMaxVolumeChan(targetChannelIdx);
-          if (latchVol!=-1) {
-            pat->data[patternPos][3]=MIN(maxVol,latchVol);
-          } else if (velocity!=-1) {
-            pat->data[patternPos][3]=(velocity*maxVol)/127;
+        if (enableNoteOff && event.isNoteOff()) {
+          // don't overwrite existing notes
+          if (pat->data[patternPos][0] == 0) {
+            pat->data[patternPos][0] = 100;
+            pat->data[patternPos][1] = 0;
           }
+        } else if (event.isNoteOn()) {
+          int pitch = event.getP1();
+          int velocity = event.getP2();
+
+          // pitch, octave
+          pat->data[patternPos][0] = pitch % 12;
+          pat->data[patternPos][1] = pitch / 12;
+          if (pat->data[patternPos][0]==0) {
+            pat->data[patternPos][0]=12;
+            pat->data[patternPos][1]--;
+          }
+
+          // velocity
+          if (enableVel) {
+            int maxVol=e->getMaxVolumeChan(targetChannelIdx);
+            if (latchVol!=-1) {
+              pat->data[patternPos][3]=MIN(maxVol,latchVol);
+            } else if (velocity!=-1) {
+              pat->data[patternPos][3]=(velocity*maxVol)/127;
+            }
+          }
+        } else if (enableCC && event.isController()) {
+          int ccNum = event.getP1();
+          int ccVal = event.getP2();
+          // effect, effect val
+          pat->data[patternPos][4] = ccNum;
+          pat->data[patternPos][5] = ccVal;
         }
-      } else if (enableCC && event.isController()) {
-        int ccNum = event.getP1();
-        int ccVal = event.getP2();
-        // effect, effect val
-        pat->data[patternPos][4] = ccNum;
-        pat->data[patternPos][5] = ccVal;
       }
     }
+    patternsProcessed++;
   }
 
   logD("MIDI import complete");
 }
 
 void FurnaceGUI::drawMidiDialog() {
-  if (nextWindow==GUI_WINDOW_SONG_INFO) {
+  if (nextWindow==GUI_WINDOW_MIDI_DIALOG) {
     midiDialogOpen=true;
     ImGui::SetNextWindowFocus();
     nextWindow=GUI_WINDOW_NOTHING;
