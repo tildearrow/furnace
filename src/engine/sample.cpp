@@ -47,27 +47,27 @@ unsigned int DivSample::getEndPosition(DivSampleDepth depth) {
   unsigned int len=samples;
   switch (depth) {
     case DIV_SAMPLE_DEPTH_1BIT:
-      end=loopEnd+7/8;
+      end=(loopEnd+7)/8;
       len=length1;
       break;
     case DIV_SAMPLE_DEPTH_1BIT_DPCM:
-      end=loopEnd+7/8;
+      end=(loopEnd+7)/8;
       len=lengthDPCM;
       break;
     case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
-      end=loopEnd+1/2;
+      end=(loopEnd+1)/2;
       len=lengthZ;
       break;
     case DIV_SAMPLE_DEPTH_QSOUND_ADPCM:
-      end=loopEnd+1/2;
+      end=(loopEnd+1)/2;
       len=lengthQSoundA;
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_A:
-      end=loopEnd+1/2;
+      end=(loopEnd+1)/2;
       len=lengthA;
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_B:
-      end=loopEnd+1/2;
+      end=(loopEnd+1)/2;
       len=lengthB;
       break;
     case DIV_SAMPLE_DEPTH_8BIT:
@@ -79,7 +79,7 @@ unsigned int DivSample::getEndPosition(DivSampleDepth depth) {
       len=lengthBRR;
       break;
     case DIV_SAMPLE_DEPTH_VOX:
-      end=loopEnd+1/2;
+      end=(loopEnd+1)/2;
       len=lengthVOX;
       break;
     case DIV_SAMPLE_DEPTH_16BIT:
