@@ -121,6 +121,7 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
           chan[c.chan].outVol=chan[c.chan].vol;
         }
         sample=ins->amiga.getSample(c.value);
+        samplePos=0;
         if (sample>=0 && sample<parent->song.sampleLen) {
           //DivSample* s=parent->getSample(chan[c.chan].sample);
           if (c.value!=DIV_NOTE_NULL) {
@@ -144,8 +145,8 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
         //DivSample* s=parent->getSample(12*sampleBank+c.value%12);
         sample=12*sampleBank+c.value%12;
         samplePos=0;
-        msm->ctrl_w(1);
-        msm->ctrl_w(2);
+        rWrite(0,1);
+        rWrite(0,2);
       }
       break;
     }
