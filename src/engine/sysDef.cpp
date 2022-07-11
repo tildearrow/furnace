@@ -165,25 +165,25 @@ String DivEngine::getSongSystemName(bool isMultiSystemAcceptable) {
       }
 
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC6) {
-        return "NES + Konami VRC6";
+        return "Famicom + Konami VRC6";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC7) {
-        return "NES + Konami VRC7";
+        return "Famicom + Konami VRC7";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_OPLL) {
-        return "NES + Yamaha OPLL";
+        return "Family Noraebang";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_FDS) {
         return "Famicom Disk System";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_N163) {
-        return "NES + Namco C163";
+        return "Famicom + Namco C163";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_MMC5) {
-        return "NES + MMC5";
+        return "Famicom + MMC5";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_AY8910) {
-        return "NES + Sunsoft 5B";
+        return "Famicom + Sunsoft 5B";
       }
 
       if (song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_AY8910) {
@@ -2080,6 +2080,35 @@ void DivEngine::registerSystems() {
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_NULL, DIV_INS_NULL},
     opn2EffectHandler,
     fmPostEffectHandler
+  );
+
+  sysDefs[DIV_SYSTEM_T6W28]=new DivSysDef(
+    "T6W28", NULL, 0xbf, 0, 4, false, true, 0, false,
+    "an SN76489 derivative used in Neo Geo Pocket, has independent stereo volume and noise channel frequency.",
+    {"Square 1", "Square 2", "Square 3", "Noise"},
+    {"S1", "S2", "S3", "NO"},
+    {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE},
+    {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD},
+    {},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x20: // SN noise mode
+          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
+          break;
+        default:
+          return false;
+      }
+      return true;
+    }
+  );
+
+  sysDefs[DIV_SYSTEM_PCM_DAC]=new DivSysDef(
+    "Generic PCM DAC", NULL, 0xc0, 0, 1, false, true, 0, false,
+    "as generic sample playback as it gets.",
+    {"Sample"},
+    {"PCM"},
+    {DIV_CH_PCM},
+    {DIV_INS_AMIGA}
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(

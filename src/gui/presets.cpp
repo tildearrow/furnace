@@ -589,49 +589,49 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with Konami VRC6", {
+    "Famicom with Konami VRC6", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_VRC6, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with Konami VRC7", {
+    "Famicom with Konami VRC7", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_VRC7, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with MMC5", {
+    "Famicom with MMC5", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_MMC5, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with Sunsoft 5B", {
+    "Famicom with Sunsoft 5B", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 32,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with Namco C163", {
+    "Famicom with Namco C163", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_N163, 64, 0, 112,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with Family Noraebang", {
+    "Comboy with Family Noraebang", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_OPLL, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with Family Noraebang (drums mode)", {
+    "Comboy with Family Noraebang (drums mode)", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
       0
@@ -1279,6 +1279,29 @@ void FurnaceGUI::initSystemPresets() {
     "Sega System 1", {
       DIV_SYSTEM_SMS, 64, 0, 0x42, // SN76489A 4MHz
       DIV_SYSTEM_SMS, 64, 0, 0x0141, // SN76489A 2MHz
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System E", {
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System E (with FM expansion)", {
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_OPLL, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System E (with FM expansion in drums mode)", {
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_SMS, 64, 0, 0,
+      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
       0
     }
   ));
@@ -2071,7 +2094,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with Konami VRC7", {
+    "Famicom with Konami VRC7", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_VRC7, 64, 0, 0,
       0

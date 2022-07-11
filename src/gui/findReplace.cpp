@@ -447,7 +447,6 @@ void FurnaceGUI::doReplace() {
   }
 
   if (!us.pat.empty()) {
-    printf("pusher\n");
     undoHist.push_back(us);
     redoHist.clear();
     if (undoHist.size()>settings.maxUndoSteps) undoHist.pop_front();
@@ -997,16 +996,16 @@ void FurnaceGUI::drawFindReplace() {
             ImGui::TableNextColumn();
             ImGui::BeginDisabled(!queryReplaceEffectValDo[i]);
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            ImGui::Combo("##ERMode",&queryReplaceEffectValMode[i],queryReplaceModes,GUI_QUERY_REPLACE_MAX);
+            ImGui::Combo("##ERModeV",&queryReplaceEffectValMode[i],queryReplaceModes,GUI_QUERY_REPLACE_MAX);
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
             if (queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_SET) {
-              if (ImGui::InputScalar("##ERValueH",ImGuiDataType_S32,&queryReplaceEffectVal[i],&_ONE,&_SIXTEEN,"%.2X",ImGuiInputTextFlags_CharsHexadecimal)) {
+              if (ImGui::InputScalar("##ERValueVH",ImGuiDataType_S32,&queryReplaceEffectVal[i],&_ONE,&_SIXTEEN,"%.2X",ImGuiInputTextFlags_CharsHexadecimal)) {
                 if (queryReplaceEffectVal[i]<0) queryReplaceEffectVal[i]=0;
                 if (queryReplaceEffectVal[i]>255) queryReplaceEffectVal[i]=255;
               }
             } else if (queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_ADD || queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_ADD_OVERFLOW) {
-              if (ImGui::InputInt("##ERValue",&queryReplaceEffectVal[i],1,12)) {
+              if (ImGui::InputInt("##ERValueV",&queryReplaceEffectVal[i],1,12)) {
                 if (queryReplaceEffectVal[i]<-255) queryReplaceEffectVal[i]=-255;
                 if (queryReplaceEffectVal[i]>255) queryReplaceEffectVal[i]=255;
               }

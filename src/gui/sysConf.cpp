@@ -569,7 +569,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
     case DIV_SYSTEM_OPL3:
     case DIV_SYSTEM_OPL3_DRUMS: {
       ImGui::Text("Clock rate:");
-      if (ImGui::RadioButton("14.32MHz (MTSC)",(flags&255)==0)) {
+      if (ImGui::RadioButton("14.32MHz (NTSC)",(flags&255)==0)) {
         copyOfFlags=(flags&(~255))|0;
       }
       if (ImGui::RadioButton("14.19MHz (PAL)",(flags&255)==1)) {
@@ -591,7 +591,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("16.9344MHz",(flags&255)==0)) {
         copyOfFlags=(flags&(~255))|0;
       }
-      if (ImGui::RadioButton("14.32MHz (MTSC)",(flags&255)==1)) {
+      if (ImGui::RadioButton("14.32MHz (NTSC)",(flags&255)==1)) {
         copyOfFlags=(flags&(~255))|1;
       }
       if (ImGui::RadioButton("14.19MHz (PAL)",(flags&255)==3)) {
@@ -608,12 +608,34 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       break;
     }
+    case DIV_SYSTEM_PCM_DAC: {
+      int sampRate=(flags&65535)+1;
+      int bitDepth=((flags>>16)&15)+1;
+      bool stereo=(flags>>20)&1;
+      ImGui::Text("Output rate:");
+      if (CWSliderInt("##SampRate",&sampRate,1,65536)) {
+        if (sampRate<1) sampRate=1;
+        if (sampRate>65536) sampRate=65536;
+        copyOfFlags=(flags&(~65535))|(sampRate-1);
+      } rightClickable
+      ImGui::Text("Output depth:");
+      if (CWSliderInt("##BitDepth",&bitDepth,1,16)) {
+        if (bitDepth<1) bitDepth=1;
+        if (bitDepth>16) bitDepth=16;
+        copyOfFlags=(flags&(~(15<<16)))|((bitDepth-1)<<16);
+      } rightClickable
+      if (ImGui::Checkbox("Stereo",&stereo)) {
+        copyOfFlags=(flags&(~(1<<20)))|(stereo<<20);
+      }
+      break;
+    }
     case DIV_SYSTEM_GB:
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_VERA:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_YMU759:
     case DIV_SYSTEM_PET:
+    case DIV_SYSTEM_T6W28:
       ImGui::Text("nothing to configure");
       break;
     default:
