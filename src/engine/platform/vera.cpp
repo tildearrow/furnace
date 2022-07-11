@@ -27,7 +27,9 @@ extern "C" {
   #include "sound/vera_pcm.h"
 }
 
-#define rWrite(c,a,d) {regPool[(c)*4+(a)]=(d); psg_writereg(psg,((c)*4+(a)),(d));}
+//if (dumpWrites) {addWrite(((c)*4+(a)),(d));}
+//#define rWrite(c,a,d) {regPool[(c)*4+(a)]=(d); psg_writereg(psg,((c)*4+(a)),(d));}
+#define rWrite(c,a,d) {regPool[(c)*4+(a)]=(d); psg_writereg(psg,((c)*4+(a)),(d));if (dumpWrites) {addWrite(((c)*4+(a)),(d));}}
 #define rWriteLo(c,a,d) rWrite(c,a,(regPool[(c)*4+(a)]&(~0x3f))|((d)&0x3f))
 #define rWriteHi(c,a,d) rWrite(c,a,(regPool[(c)*4+(a)]&(~0xc0))|(((d)<<6)&0xc0))
 #define rWritePCMCtrl(d) {regPool[64]=(d); pcm_write_ctrl(pcm,d);}

@@ -77,6 +77,10 @@ int SafeWriter::writeC(signed char val) {
   return write(&val,1);
 }
 
+int SafeWriter::writeUC(unsigned char val) {
+  return write(&val,1);
+}
+
 int SafeWriter::writeS(short val) {
   return write(&val,2);
 }
