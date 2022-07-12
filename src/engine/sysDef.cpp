@@ -165,25 +165,25 @@ String DivEngine::getSongSystemName(bool isMultiSystemAcceptable) {
       }
 
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC6) {
-        return "NES + Konami VRC6";
+        return "Famicom + Konami VRC6";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC7) {
-        return "NES + Konami VRC7";
+        return "Famicom + Konami VRC7";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_OPLL) {
-        return "NES + Yamaha OPLL";
+        return "Family Noraebang";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_FDS) {
         return "Famicom Disk System";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_N163) {
-        return "NES + Namco C163";
+        return "Famicom + Namco C163";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_MMC5) {
-        return "NES + MMC5";
+        return "Famicom + MMC5";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_AY8910) {
-        return "NES + Sunsoft 5B";
+        return "Famicom + Sunsoft 5B";
       }
 
       if (song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_AY8910) {
