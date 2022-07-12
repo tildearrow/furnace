@@ -158,7 +158,7 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("loopEnd: %d", sample->loopEnd);
           ImGui::Text("loopOffP: %d",sample->loopOffP);
           if (sampleDepths[sample->depth]!=NULL) {
-            ImGui::Text("depth: %d (%s)",(unsigned char)sample->depth, sampleDepths[sample->depth]);
+            ImGui::Text("depth: %d (%s)",(unsigned char)sample->depth,sampleDepths[sample->depth]);
           } else {
             ImGui::Text("depth: %d (<NULL!>)",(unsigned char)sample->depth);
           }
