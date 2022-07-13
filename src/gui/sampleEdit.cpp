@@ -356,7 +356,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (silenceSize<0) silenceSize=0;
             if (silenceSize>16777215) silenceSize=16777215;
           }
-          if (ImGui::Button("Resize")) {
+          if (ImGui::Button("Go")) {
             int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?sample->samples:sampleSelStart;
             sample->prepareUndo(true);
             e->lockEngine([this,sample,pos]() {
@@ -533,14 +533,14 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SameLine();
         ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
         ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSample")) {
+        if (ImGui::Button(ICON_FA_PLAY "##PreviewSample")) {
           e->previewSample(curSample);
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Preview sample");
         }
         ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_VOLUME_OFF "##StopSample")) {
+        if (ImGui::Button(ICON_FA_STOP "##StopSample")) {
           e->stopSamplePreview();
         }
         if (ImGui::IsItemHovered()) {
@@ -1033,7 +1033,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (silenceSize<0) silenceSize=0;
             if (silenceSize>16777215) silenceSize=16777215;
           }
-          if (ImGui::Button("Resize")) {
+          if (ImGui::Button("Go")) {
             int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?sample->samples:sampleSelStart;
             sample->prepareUndo(true);
             e->lockEngine([this,sample,pos]() {
