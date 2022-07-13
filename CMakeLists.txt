@@ -221,6 +221,11 @@ if (USE_SDL2)
       set(SDL_SHARED OFF CACHE BOOL "Force no dynamically-linked SDL" FORCE)
       set(SDL_STATIC ON CACHE BOOL "Force statically-linked SDL" FORCE)
     endif()
+    # https://github.com/libsdl-org/SDL/issues/5535
+    # disable PipeWire support due to an unfixable bug:
+    #   Looks like their headers have a C90 violation... I imagine they're probably on C99 so not the craziest bug in the world. Definitely file this at the PipeWire repository as well so they know this is out there.
+    set(SDL_PIPEWIRE OFF CACHE BOOL "Use Pipewire audio" FORCE)
+
     # https://github.com/libsdl-org/SDL/issues/1481
     # On 2014-06-22 17:15:50 +0000, Sam Lantinga wrote:
     #   If you link SDL statically, you also need to define HAVE_LIBC so it builds with the C runtime that your application uses.
