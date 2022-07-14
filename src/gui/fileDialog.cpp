@@ -28,7 +28,7 @@ struct NFDState {
 void _nfdThread(const NFDState state, std::atomic<bool>* ok, String* result, bool* errorOutput) {
   nfdchar_t* out=NULL;
   nfdresult_t ret=NFD_CANCEL;
-  errorOutput=false;
+  (*errorOutput)=false;
   
   if (state.isSave) {
     ret=NFD_SaveDialog(state.filter,state.path.c_str(),&out,state.clickCallback);
