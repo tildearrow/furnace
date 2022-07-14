@@ -3221,6 +3221,13 @@ bool FurnaceGUI::loop() {
           workingDirROM=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
       }
+      if (fileDialog->isError()) {
+#if defined(_WIN32) || defined(__APPLE__)
+        showError("there was an error in the file dialog! you may want to report this issue to:\nhttps://github.com/tildearrow/furnace/issues\ncheck the Log Viewer (window > log viewer) for more information.\n\nfor now please disable the system file picker in Settings > General.");
+#else
+        showError("Zenity/KDialog not available!\nplease install one of these, or disable the system file picker in Settings > General.");
+#endif
+      }
       if (fileDialog->accepted()) {
         fileName=fileDialog->getFileName();
         if (fileName!="") {

@@ -28,6 +28,7 @@ class FurnaceGUIFileDialog {
   bool sysDialog;
   bool opened;
   bool saving;
+  bool hasError;
   String curPath;
   String fileName;
 #ifdef USE_NFD
@@ -46,12 +47,14 @@ class FurnaceGUIFileDialog {
     void close();
     bool render(const ImVec2& min, const ImVec2& max);
     bool isOpen();
+    bool isError();
     String getPath();
     String getFileName();
     explicit FurnaceGUIFileDialog(bool system):
       sysDialog(system),
       opened(false),
       saving(false),
+      hasError(false),
       dialogO(NULL),
       dialogS(NULL) {}
 };

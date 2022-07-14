@@ -25,9 +25,10 @@ struct NFDState {
 };
 
 // TODO: filter
-void _nfdThread(const NFDState state, std::atomic<bool>* ok, String* result) {
+void _nfdThread(const NFDState state, std::atomic<bool>* ok, String* result, bool* errorOutput) {
   nfdchar_t* out=NULL;
   nfdresult_t ret=NFD_CANCEL;
+  errorOutput=false;
   
   if (state.isSave) {
     ret=NFD_SaveDialog(state.filter,state.path.c_str(),&out,state.clickCallback);
@@ -49,6 +50,7 @@ void _nfdThread(const NFDState state, std::atomic<bool>* ok, String* result) {
     case NFD_ERROR:
       (*result)="";
       logE("NFD error! %s\n",NFD_GetError());
+      (*errorOutput)=true;
       break;
     default:
       logE("NFD unknown return code %d!\n",ret);
@@ -68,14 +70,16 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, c
 #ifdef USE_NFD
     dialogOK=false;
 #ifdef NFD_NON_THREADED
-    _nfdThread(NFDState(false,header,filter,path,clickCallback),&dialogOK,&nfdResult);
+    _nfdThread(NFDState(false,header,filter,path,clickCallback),&dialogOK,&nfdResult,&hasError);
 #else
-    dialogO=new std::thread(_nfdThread,NFDState(false,header,filter,path,clickCallback),&dialogOK,&nfdResult);
+    dialogO=new std::thread(_nfdThread,NFDState(false,header,filter,path,clickCallback),&dialogOK,&nfdResult,&hasError);
 #endif
 #else
     dialogO=new pfd::open_file(header,path,filter);
+    hasError=!pfd::settings::available();
 #endif
   } else {
+    hasError=false;
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;
     ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path,1,nullptr,0,clickCallback);
   }
@@ -92,14 +96,16 @@ bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, c
 #ifdef USE_NFD
     dialogOK=false;
 #ifdef NFD_NON_THREADED
-    _nfdThread(NFDState(true,header,filter,path,NULL),&dialogOK,&nfdResult);
+    _nfdThread(NFDState(true,header,filter,path,NULL),&dialogOK,&nfdResult,&hasError);
 #else
-    dialogS=new std::thread(_nfdThread,NFDState(true,header,filter,path,NULL),&dialogOK,&nfdResult);
+    dialogS=new std::thread(_nfdThread,NFDState(true,header,filter,path,NULL),&dialogOK,&nfdResult,&hasError);
 #endif
 #else
     dialogS=new pfd::save_file(header,path,filter);
+    hasError=!pfd::settings::available();
 #endif
   } else {
+    hasError=false;
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;
     ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
   }
@@ -191,6 +197,10 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
 
 bool FurnaceGUIFileDialog::isOpen() {
   return opened;
+}
+
+bool FurnaceGUIFileDialog::isError() {
+  return hasError;
 }
 
 String FurnaceGUIFileDialog::getPath() {
