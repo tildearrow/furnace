@@ -10,13 +10,14 @@
 
 #ifdef USE_NFD
 struct NFDState {
-  bool isSave;
+  bool isSave, allowMultiple;
   String header;
   std::vector<String> filter;
   String path;
   FileDialogSelectCallback clickCallback;
-  NFDState(bool save, String h, std::vector<String> filt, String pa, FileDialogSelectCallback cc):
+  NFDState(bool save, String h, std::vector<String> filt, String pa, FileDialogSelectCallback cc, bool multi):
     isSave(save),
+    allowMultiple(multi),
     header(h),
     filter(filt),
     path(pa),
@@ -25,9 +26,10 @@ struct NFDState {
 };
 
 // TODO: filter
-void _nfdThread(const NFDState state, std::atomic<bool>* ok, String* result) {
+void _nfdThread(const NFDState state, std::atomic<bool>* ok, String* result, bool* errorOutput) {
   nfdchar_t* out=NULL;
   nfdresult_t ret=NFD_CANCEL;
+  (*errorOutput)=false;
   
   if (state.isSave) {
     ret=NFD_SaveDialog(state.filter,state.path.c_str(),&out,state.clickCallback);
@@ -49,6 +51,7 @@ void _nfdThread(const NFDState state, std::atomic<bool>* ok, String* result) {
     case NFD_ERROR:
       (*result)="";
       logE("NFD error! %s\n",NFD_GetError());
+      (*errorOutput)=true;
       break;
     default:
       logE("NFD unknown return code %d!\n",ret);
@@ -59,7 +62,7 @@ void _nfdThread(const NFDState state, std::atomic<bool>* ok, String* result) {
 }
 #endif
 
-bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, const char* noSysFilter, String path, double dpiScale, FileDialogSelectCallback clickCallback) {
+bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, const char* noSysFilter, String path, double dpiScale, FileDialogSelectCallback clickCallback, bool allowMultiple) {
   if (opened) return false;
   saving=false;
   curPath=path;
@@ -68,16 +71,18 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, c
 #ifdef USE_NFD
     dialogOK=false;
 #ifdef NFD_NON_THREADED
-    _nfdThread(NFDState(false,header,filter,path,clickCallback),&dialogOK,&nfdResult);
+    _nfdThread(NFDState(false,header,filter,path,clickCallback,allowMultiple),&dialogOK,&nfdResult,&hasError);
 #else
-    dialogO=new std::thread(_nfdThread,NFDState(false,header,filter,path,clickCallback),&dialogOK,&nfdResult);
+    dialogO=new std::thread(_nfdThread,NFDState(false,header,filter,path,clickCallback,allowMultiple),&dialogOK,&nfdResult,&hasError);
 #endif
 #else
-    dialogO=new pfd::open_file(header,path,filter);
+    dialogO=new pfd::open_file(header,path,filter,allowMultiple?(pfd::opt::multiselect):(pfd::opt::none));
+    hasError=!pfd::settings::available();
 #endif
   } else {
+    hasError=false;
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;
-    ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path,1,nullptr,0,clickCallback);
+    ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path,allowMultiple?999:1,nullptr,0,clickCallback);
   }
   opened=true;
   return true;
@@ -92,14 +97,16 @@ bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, c
 #ifdef USE_NFD
     dialogOK=false;
 #ifdef NFD_NON_THREADED
-    _nfdThread(NFDState(true,header,filter,path,NULL),&dialogOK,&nfdResult);
+    _nfdThread(NFDState(true,header,filter,path,NULL,false),&dialogOK,&nfdResult,&hasError);
 #else
-    dialogS=new std::thread(_nfdThread,NFDState(true,header,filter,path,NULL),&dialogOK,&nfdResult);
+    dialogS=new std::thread(_nfdThread,NFDState(true,header,filter,path,NULL,false),&dialogOK,&nfdResult,&hasError);
 #endif
 #else
     dialogS=new pfd::save_file(header,path,filter);
+    hasError=!pfd::settings::available();
 #endif
   } else {
+    hasError=false;
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;
     ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
   }
@@ -109,7 +116,7 @@ bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, c
 
 bool FurnaceGUIFileDialog::accepted() {
   if (sysDialog) {
-    return (fileName!="");
+    return (!fileName.empty());
   } else {
     return ImGuiFileDialog::Instance()->IsOk();
   }
@@ -147,10 +154,15 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
   if (sysDialog) {
 #ifdef USE_NFD
     if (dialogOK) {
-      fileName=nfdResult;
-      size_t dsPos=fileName.rfind(DIR_SEPARATOR);
-      if (dsPos!=String::npos) curPath=fileName.substr(0,dsPos);
-      logD("returning %s",fileName.c_str());
+      fileName.clear();
+      fileName.push_back(nfdResult);
+      if (!fileName.empty()) {
+        size_t dsPos=fileName[0].rfind(DIR_SEPARATOR);
+        if (dsPos!=String::npos) curPath=fileName[0].substr(0,dsPos);
+      }
+      for (String& i: fileName) {
+        logD("- returning %s",i);
+      }
       dialogOK=false;
       return true;
     }
@@ -159,10 +171,11 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
     if (saving) {
       if (dialogS!=NULL) {
         if (dialogS->ready(0)) {
-          fileName=dialogS->result();
-          size_t dsPos=fileName.rfind(DIR_SEPARATOR);
-          if (dsPos!=String::npos) curPath=fileName.substr(0,dsPos);
-          logD("returning %s",fileName.c_str());
+          fileName.clear();
+          fileName.push_back(dialogS->result());
+          size_t dsPos=fileName[0].rfind(DIR_SEPARATOR);
+          if (dsPos!=String::npos) curPath=fileName[0].substr(0,dsPos);
+          logD("returning %s",fileName[0]);
           return true;
         }
       }
@@ -170,13 +183,19 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
       if (dialogO!=NULL) {
         if (dialogO->ready(0)) {
           if (dialogO->result().empty()) {
-            fileName="";
+            fileName.clear();
             logD("returning nothing");
           } else {
-            fileName=dialogO->result()[0];
-            size_t dsPos=fileName.rfind(DIR_SEPARATOR);
-            if (dsPos!=String::npos) curPath=fileName.substr(0,dsPos);
-            logD("returning %s",fileName.c_str());
+            fileName=dialogO->result();
+            if (fileName.empty()) {
+              // don't touch
+            } else {
+              size_t dsPos=fileName[0].rfind(DIR_SEPARATOR);
+              if (dsPos!=String::npos) curPath=fileName[0].substr(0,dsPos);
+              for (String& i: fileName) {
+                logD("- returning %s",i);
+              }
+            }
           }
           return true;
         }
@@ -193,6 +212,10 @@ bool FurnaceGUIFileDialog::isOpen() {
   return opened;
 }
 
+bool FurnaceGUIFileDialog::isError() {
+  return hasError;
+}
+
 String FurnaceGUIFileDialog::getPath() {
   if (sysDialog) {
     if (curPath.size()>1) {
@@ -207,10 +230,12 @@ String FurnaceGUIFileDialog::getPath() {
   }
 }
 
-String FurnaceGUIFileDialog::getFileName() {
+std::vector<String>& FurnaceGUIFileDialog::getFileName() {
   if (sysDialog) {
     return fileName;
   } else {
-    return ImGuiFileDialog::Instance()->GetFilePathName();
+    fileName.clear();
+    fileName.push_back(ImGuiFileDialog::Instance()->GetFilePathName());
+    return fileName;
   }
 }

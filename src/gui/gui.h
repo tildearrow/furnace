@@ -277,7 +277,11 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_LAYOUT,
   GUI_FILE_YRW801_ROM_OPEN,
   GUI_FILE_TG100_ROM_OPEN,
-  GUI_FILE_MU5_ROM_OPEN
+  GUI_FILE_MU5_ROM_OPEN,
+
+  GUI_FILE_TEST_OPEN,
+  GUI_FILE_TEST_OPEN_MULTI,
+  GUI_FILE_TEST_SAVE
 };
 
 enum FurnaceGUIWarnings {
@@ -943,7 +947,7 @@ class FurnaceGUI {
   bool updateSampleTex;
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile;
-  String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout, workingDirROM;
+  String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout, workingDirROM, workingDirTest;
   String mmlString[32];
   String mmlStringW;
 
