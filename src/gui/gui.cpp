@@ -1319,6 +1319,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       );
       break;
     case GUI_FILE_MIDI_IMPORT:
+    case GUI_FILE_MIDI_IMPORT_BATCH:
       if (!dirExists(workingDirMidi)) workingDirMidi=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Import MIDI",
@@ -2897,8 +2898,12 @@ bool FurnaceGUI::loop() {
           ImGui::EndMenu();
         }
         ImGui::Separator();
-        if (ImGui::MenuItem("import midi to pattern...",BIND_FOR(GUI_ACTION_MIDI_IMPORT))) {
+        if (ImGui::MenuItem("import midi file...",BIND_FOR(GUI_ACTION_MIDI_IMPORT))) {
           openFileDialog(GUI_FILE_MIDI_IMPORT);
+          midiDialogOpen=true;
+        }
+        if (ImGui::MenuItem("import midi folder...",BIND_FOR(GUI_ACTION_MIDI_IMPORT_BATCH))) {
+          openFileDialog(GUI_FILE_MIDI_IMPORT_BATCH);
           midiDialogOpen=true;
         }
         ImGui::Separator();
@@ -3200,6 +3205,7 @@ bool FurnaceGUI::loop() {
           workingDirIns=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_MIDI_IMPORT:
+        case GUI_FILE_MIDI_IMPORT_BATCH:
           workingDirMidi=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_WAVE_OPEN:
@@ -3426,8 +3432,14 @@ bool FurnaceGUI::loop() {
               }
               break;
             case GUI_FILE_MIDI_IMPORT:
-              if (!(e->loadMidiImportFile(copyOfName.c_str())))
+              if (!(e->loadMidiImportFile(copyOfName))) {
                 showError("could not open MIDI file!");
+              }
+              break;
+            case GUI_FILE_MIDI_IMPORT_BATCH:
+              if (!(e->loadMidiImportBatchFiles(workingDirMidi))) {
+                showError("could not open MIDI files!");
+              }
               break;
             case GUI_FILE_EXPORT_VGM: {
               SafeWriter* w=e->saveVGM(willExport,vgmExportLoop,vgmExportVersion);
@@ -4663,7 +4675,17 @@ FurnaceGUI::FurnaceGUI():
   pianoView(0),
   pianoInputPadMode(0),
 #endif
-  hasACED(false) {
+  hasACED(false),
+  midiImportChannel(0),
+  midiImportTrack(0),
+  midiImportStartMeasure(0),
+  midiImportTargetChannel(0),
+  midiImportPattern(0),
+  midiImportSpeedMultiplier(0),
+  midiImportEnableNoteOff(true),
+  midiImportEnableVel(true),
+  midiImportEnableCC(false),
+  midiImportOmniChannel(true) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;

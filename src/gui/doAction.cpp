@@ -67,6 +67,13 @@ void FurnaceGUI::doAction(int what) {
       }
       nextWindow=GUI_WINDOW_MIDI_DIALOG;
       break;
+    case GUI_ACTION_MIDI_IMPORT_BATCH:
+      openFileDialog(GUI_FILE_MIDI_IMPORT_BATCH);
+      if (midiDialogOpen) {
+        midiDialogOpen=false;
+      }
+      nextWindow=GUI_WINDOW_MIDI_DIALOG;
+      break;
     case GUI_ACTION_UNDO:
       if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
         doUndoSample();

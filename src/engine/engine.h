@@ -357,7 +357,9 @@ class DivEngine {
   int reversePitchTable[4096];
   int pitchTable[4096];
   smf::MidiFile midiImportFile;
-  char midiImportFilename[255];
+  String midiImportFilename;
+  std::map<String, smf::MidiFile> midiImportBatchFiles;
+  String midiImportBatchDir;
   int midiBaseChan;
   bool midiPoly;
   size_t midiAgeCounter;
@@ -871,13 +873,22 @@ class DivEngine {
     bool switchMaster();
 
     // given a filename, load the MIDI file for use in importing
-    bool loadMidiImportFile(const char* filename);
+    bool loadMidiImportFile(String filename);
 
     // get a pointer to the MIDI file to import from
     smf::MidiFile* getMidiImportFile();
 
-    // get a pointer to the MIDI filename to import from
-    const char* getMidiImportFilename();
+    // get the MIDI filename to import from
+    String getMidiImportFilename();
+
+    // given a directory name, load the MIDIs into a vector for use in importing
+    bool loadMidiImportBatchFiles(String dirname);
+
+    // get a map of filenames -> MIDI files to import from the batch directory
+    std::map<String, smf::MidiFile> getMidiImportBatchFiles();
+
+    // get the name of the directory to import MIDIs from in batch mode
+    String getMidiImportBatchDir();
 
     // set MIDI base channel
     void setMidiBaseChan(int chan);
@@ -1020,7 +1031,6 @@ class DivEngine {
       memset(vibTable,0,64*sizeof(short));
       memset(reversePitchTable,0,4096*sizeof(int));
       memset(pitchTable,0,4096*sizeof(int));
-      memset(midiImportFilename,0,255*sizeof(char));
       memset(sysDefs,0,256*sizeof(void*));
 
       for (int i=0; i<256; i++) {

@@ -260,6 +260,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_INS_OPEN_REPLACE,
   GUI_FILE_INS_SAVE,
   GUI_FILE_MIDI_IMPORT,
+  GUI_FILE_MIDI_IMPORT_BATCH,
   GUI_FILE_WAVE_OPEN,
   GUI_FILE_WAVE_SAVE,
   GUI_FILE_SAMPLE_OPEN,
@@ -310,6 +311,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAVE,
   GUI_ACTION_SAVE_AS,
   GUI_ACTION_MIDI_IMPORT,
+  GUI_ACTION_MIDI_IMPORT_BATCH,
   GUI_ACTION_UNDO,
   GUI_ACTION_REDO,
   GUI_ACTION_PLAY_TOGGLE,
@@ -1455,15 +1457,16 @@ class FurnaceGUI {
   unsigned char acedData[23];
 
   // MIDI import dialog
-  int midiImportChannel = 0;
-  int midiImportTrack = 0;
-  int midiImportStartMeasure = 0;
-  int midiImportTargetChannel = 0;
-  int midiImportPattern = 0;
-  int midiImportSpeedMultiplier = 0;
-  bool midiImportEnableNoteOff = true;
-  bool midiImportEnableVel = true;
-  bool midiImportEnableCC = false;
+  int midiImportChannel;
+  int midiImportTrack;
+  int midiImportStartMeasure;
+  int midiImportTargetChannel;
+  int midiImportPattern;
+  int midiImportSpeedMultiplier;
+  bool midiImportEnableNoteOff;
+  bool midiImportEnableVel;
+  bool midiImportEnableCC;
+  bool midiImportOmniChannel;
   
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
@@ -1622,7 +1625,10 @@ class FurnaceGUI {
 
   const char* getSystemName(DivSystem which);
 
-  void midiImport(int midiChannel, int midiTrack, int midiStartMeasure, int targetChannelIdx, int patternIdx, bool enableCC, bool enableVel, bool enableNoteOff);
+  void midiImport(smf::MidiFile* midifile, int midiChannel, int midiTrack, int midiStartMeasure, int targetChannelIdx, int patternIdx, \
+                  int patternCount,  bool enableCC, bool enableVel, bool enableNoteOff);
+  void midiImportBatch(std::map<String, smf::MidiFile> midis);
+  void midiImportSong();
 
   public:
     void showWarning(String what, FurnaceGUIWarnings type);
