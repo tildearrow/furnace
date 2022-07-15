@@ -1495,6 +1495,43 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_TEST_OPEN:
+      if (!dirExists(workingDirTest)) workingDirTest=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        "Open Test",
+        {"compatible files", "*.fur *.dmf *.mod",
+         "another option", "*.wav *.ttf",
+         "all files", ".*"},
+        "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
+        workingDirTest,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_TEST_OPEN_MULTI:
+      if (!dirExists(workingDirTest)) workingDirTest=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        "Open Test (Multi)",
+        {"compatible files", "*.fur *.dmf *.mod",
+         "another option", "*.wav *.ttf",
+         "all files", ".*"},
+        "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
+        workingDirTest,
+        dpiScale,
+        NULL,
+        true
+      );
+      break;
+    case GUI_FILE_TEST_SAVE:
+      if (!dirExists(workingDirTest)) workingDirTest=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        "Save Test",
+        {"Furnace song", "*.fur",
+         "DefleMask module", "*.dmf"},
+        "Furnace song{.fur},DefleMask module{.dmf}",
+        workingDirTest,
+        dpiScale
+      );
+      break;
   }
   if (hasOpened) curFileDialog=type;
   //ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NavEnableKeyboard;
@@ -3220,6 +3257,11 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_MU5_ROM_OPEN:
           workingDirROM=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+        case GUI_FILE_TEST_OPEN:
+        case GUI_FILE_TEST_OPEN_MULTI:
+        case GUI_FILE_TEST_SAVE:
+          workingDirTest=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          break;
       }
       if (fileDialog->isError()) {
 #if defined(_WIN32) || defined(__APPLE__)
@@ -3229,7 +3271,11 @@ bool FurnaceGUI::loop() {
 #endif
       }
       if (fileDialog->accepted()) {
-        fileName=fileDialog->getFileName();
+        if (fileDialog->getFileName().empty()) {
+          fileName="";
+        } else {
+          fileName=fileDialog->getFileName()[0];
+        }
         if (fileName!="") {
           if (curFileDialog==GUI_FILE_SAVE) {
             // we can't tell whether the user chose .dmf or .fur in the system file picker
@@ -3467,6 +3513,20 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_MU5_ROM_OPEN:
               settings.mu5Path=copyOfName;
+              break;
+            case GUI_FILE_TEST_OPEN:
+              showWarning(fmt::sprintf("You opened: %s",copyOfName),GUI_WARN_GENERIC);
+              break;
+            case GUI_FILE_TEST_OPEN_MULTI: {
+              String msg="You opened:";
+              for (String i: fileDialog->getFileName()) {
+                msg+=fmt::sprintf("\n- %s",i);
+              }
+              showWarning(msg,GUI_WARN_GENERIC);
+              break;
+            }
+            case GUI_FILE_TEST_SAVE:
+              showWarning(fmt::sprintf("You saved: %s",copyOfName),GUI_WARN_GENERIC);
               break;
           }
           curFileDialog=GUI_FILE_OPEN;
@@ -4018,6 +4078,7 @@ bool FurnaceGUI::init() {
   workingDirColors=e->getConfString("lastDirColors",workingDir);
   workingDirKeybinds=e->getConfString("lastDirKeybinds",workingDir);
   workingDirLayout=e->getConfString("lastDirLayout",workingDir);
+  workingDirTest=e->getConfString("lastDirTest",workingDir);
 
   editControlsOpen=e->getConfBool("editControlsOpen",true);
   ordersOpen=e->getConfBool("ordersOpen",true);
@@ -4255,6 +4316,7 @@ bool FurnaceGUI::finish() {
   e->setConf("lastDirColors",workingDirColors);
   e->setConf("lastDirKeybinds",workingDirKeybinds);
   e->setConf("lastDirLayout",workingDirLayout);
+  e->setConf("lastDirTest",workingDirTest);
 
   // commit last open windows
   e->setConf("editControlsOpen",editControlsOpen);

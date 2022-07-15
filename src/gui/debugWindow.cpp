@@ -260,6 +260,20 @@ void FurnaceGUI::drawDebug() {
       ImGui::Unindent();
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("File Selection Test")) {
+      if (ImGui::Button("Test Open")) {
+        openFileDialog(GUI_FILE_TEST_OPEN);
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Test Open Multi")) {
+        openFileDialog(GUI_FILE_TEST_OPEN_MULTI);
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Test Save")) {
+        openFileDialog(GUI_FILE_TEST_SAVE);
+      }
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Playground")) {
       if (pgSys<0 || pgSys>=e->song.systemLen) pgSys=0;
       if (ImGui::BeginCombo("System",fmt::sprintf("%d. %s",pgSys+1,e->getSystemName(e->song.system[pgSys])).c_str())) {
