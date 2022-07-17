@@ -172,7 +172,7 @@ void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, si
           w.addrOrVal=true;
         }
       }
-      
+
       OPM_Clock(&fm,NULL,NULL,NULL,NULL);
       OPM_Clock(&fm,NULL,NULL,NULL,NULL);
       OPM_Clock(&fm,NULL,NULL,NULL,NULL);
@@ -182,13 +182,13 @@ void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, si
     for (int i=0; i<8; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i];
     }
-    
+
     if (o[0]<-32768) o[0]=-32768;
     if (o[0]>32767) o[0]=32767;
 
     if (o[1]<-32768) o[1]=-32768;
     if (o[1]>32767) o[1]=32767;
-  
+
     bufL[h]=o[0];
     bufR[h]=o[1];
   }
@@ -211,7 +211,7 @@ void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
         delay=1;
       }
     }
-    
+
     fm_ymfm->generate(&out_ymfm);
 
     for (int i=0; i<8; i++) {
@@ -225,7 +225,7 @@ void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
     os[1]=out_ymfm.data[1];
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
-  
+
     bufL[h]=os[0];
     bufR[h]=os[1];
   }
@@ -616,6 +616,12 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_LFO: {
+      if(c.value==0) {
+        rWrite(0x01,0x02);
+      }
+      else {
+        rWrite(0x01,0x00);
+      }
       rWrite(0x18,c.value);
       break;
     }
@@ -939,6 +945,8 @@ void DivPlatformArcade::reset() {
   pmDepth=0x7f;
 
   //rWrite(0x18,0x10);
+  immWrite(0x01,0x02); // LFO Off
+  immWrite(0x18,0x00); // LFO Freq Off
   immWrite(0x19,amDepth);
   immWrite(0x19,0x80|pmDepth);
   //rWrite(0x1b,0x00);
