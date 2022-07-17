@@ -35,7 +35,7 @@ class FurnaceGUIFileDialog {
   std::thread* dialogO;
   std::thread* dialogS;
   std::atomic<bool> dialogOK;
-  String nfdResult;
+  std::vector<String> nfdResult;
 #else
   pfd::open_file* dialogO;
   pfd::save_file* dialogS;

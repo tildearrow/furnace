@@ -26,36 +26,48 @@ struct NFDState {
 };
 
 // TODO: filter
-void _nfdThread(const NFDState state, std::atomic<bool>* ok, String* result, bool* errorOutput) {
+void _nfdThread(const NFDState state, std::atomic<bool>* ok, std::vector<String>* result, bool* errorOutput) {
   nfdchar_t* out=NULL;
   nfdresult_t ret=NFD_CANCEL;
   (*errorOutput)=false;
+  nfdpathset_t paths;
+
+  result->clear();
   
   if (state.isSave) {
     ret=NFD_SaveDialog(state.filter,state.path.c_str(),&out,state.clickCallback);
   } else {
-    ret=NFD_OpenDialog(state.filter,state.path.c_str(),&out,state.clickCallback);
+    if (state.allowMultiple) {
+      ret=NFD_OpenDialogMultiple(state.filter,state.path.c_str(),&paths,state.clickCallback);
+    } else {
+      ret=NFD_OpenDialog(state.filter,state.path.c_str(),&out,state.clickCallback);
+    }
   }
 
   switch (ret) {
     case NFD_OKAY:
-      if (out!=NULL) {
-        (*result)=out;
+      if (state.allowMultiple) {
+        logD("pushing multi path");
+        for (size_t i=0; i<NFD_PathSet_GetCount(&paths); i++) {
+          result->push_back(String(NFD_PathSet_GetPath(&paths,i)));
+        }
+        NFD_PathSet_Free(&paths);
       } else {
-        (*result)="";
+        logD("pushing single path");
+        if (out!=NULL) {
+          logD("we have it");
+          result->push_back(String(out));
+        }
       }
       break;
     case NFD_CANCEL:
-      (*result)="";
       break;
     case NFD_ERROR:
-      (*result)="";
       logE("NFD error! %s\n",NFD_GetError());
       (*errorOutput)=true;
       break;
     default:
       logE("NFD unknown return code %d!\n",ret);
-      (*result)="";
       break;
   }
   (*ok)=true;
@@ -155,7 +167,7 @@ bool FurnaceGUIFileDialog::render(const ImVec2& min, const ImVec2& max) {
 #ifdef USE_NFD
     if (dialogOK) {
       fileName.clear();
-      fileName.push_back(nfdResult);
+      fileName=nfdResult;
       if (!fileName.empty()) {
         size_t dsPos=fileName[0].rfind(DIR_SEPARATOR);
         if (dsPos!=String::npos) curPath=fileName[0].substr(0,dsPos);
@@ -235,7 +247,14 @@ std::vector<String>& FurnaceGUIFileDialog::getFileName() {
     return fileName;
   } else {
     fileName.clear();
-    fileName.push_back(ImGuiFileDialog::Instance()->GetFilePathName());
+    if (saving) {
+      fileName.push_back(ImGuiFileDialog::Instance()->GetFilePathName());
+    } else {
+      for (auto& i: ImGuiFileDialog::Instance()->GetSelection()) {
+        fileName.push_back(i.second);
+      }
+    }
+    //
     return fileName;
   }
 }
