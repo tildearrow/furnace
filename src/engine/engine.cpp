@@ -3081,7 +3081,7 @@ bool DivEngine::deinitAudioBackend() {
     output->quit();
     delete output;
     output=NULL;
-    audioEngine=DIV_AUDIO_NULL;
+    //audioEngine=DIV_AUDIO_NULL;
   }
   return true;
 }
