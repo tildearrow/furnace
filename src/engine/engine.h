@@ -477,6 +477,10 @@ class DivEngine {
     // notify wavetable change
     void notifyWaveChange(int wave);
 
+    // benchmark (returns time in seconds)
+    double benchmarkPlayback();
+    double benchmarkSeek();
+
     // returns the minimum VGM version which may carry the specified system, or 0 if none.
     int minVGMVersion(DivSystem which);
 

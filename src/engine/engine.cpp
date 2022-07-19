@@ -36,6 +36,7 @@
 #include "../audio/jack.h"
 #endif
 #include <math.h>
+#include <float.h>
 #ifdef HAVE_SNDFILE
 #include "sfWrapper.h"
 #endif
@@ -181,6 +182,63 @@ void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
   }
 }
 
+#define EXPORT_BUFSIZE 2048
+
+double DivEngine::benchmarkPlayback() {
+  float* outBuf[2];
+  outBuf[0]=new float[EXPORT_BUFSIZE];
+  outBuf[1]=new float[EXPORT_BUFSIZE];
+
+  curOrder=0;
+  prevOrder=0;
+  remainingLoops=1;
+  playSub(false);
+
+  std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
+
+  // benchmark
+  while (playing) {
+    nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
+  }
+
+  std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
+
+  delete[] outBuf[0];
+  delete[] outBuf[1];
+
+  double t=(double)(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count())/1000000.0;
+  printf("[RESULT] %fs\n",t);
+  return t;
+}
+
+double DivEngine::benchmarkSeek() {
+  double t[20];
+  curOrder=curSubSong->ordersLen-1;
+  prevOrder=curSubSong->ordersLen-1;
+
+  // benchmark
+  for (int i=0; i<20; i++) {
+    std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
+    playSub(false);     
+    std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
+    t[i]=(double)(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count())/1000000.0;
+    printf("[#%d] %fs\n",i+1,t[i]);
+  }
+
+  double tMin=DBL_MAX;
+  double tMax=0.0;
+  double tAvg=0.0;
+  for (int i=0; i<20; i++) {
+    if (t[i]<tMin) tMin=t[i];
+    if (t[i]>tMax) tMax=t[i];
+    tAvg+=t[i];
+  }
+  tAvg/=20.0;
+
+  printf("[RESULT] min %fs max %fs average %fs\n",tMin,tMax,tAvg);
+  return tAvg;
+}
+
 void _runExportThread(DivEngine* caller) {
   caller->runExportThread();
 }
@@ -188,8 +246,6 @@ void _runExportThread(DivEngine* caller) {
 bool DivEngine::isExporting() {
   return exporting;
 }
-
-#define EXPORT_BUFSIZE 2048
 
 #ifdef HAVE_SNDFILE
 void DivEngine::runExportThread() {
