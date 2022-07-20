@@ -1,3 +1,9 @@
+# to-do for ES5506
+
+- envelope shape
+- reversed playing flag in instrument/macro/commands
+- transwave synthesizer (like ensoniq synths - 12 bit command and macro)
+
 # to-do for 0.6pre1.5-0.6pre2
 
 - rewrite the system name detection function anyway

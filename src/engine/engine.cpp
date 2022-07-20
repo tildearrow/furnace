@@ -733,6 +733,7 @@ void DivEngine::renderSamplesP() {
 void DivEngine::renderSamples() {
   sPreview.sample=-1;
   sPreview.pos=0;
+  sPreview.dir=false;
 
   // step 1: render samples
   for (int i=0; i<song.sampleLen; i++) {
@@ -1440,6 +1441,7 @@ void DivEngine::play() {
   sPreview.sample=-1;
   sPreview.wave=-1;
   sPreview.pos=0;
+  sPreview.dir=false;
   if (stepPlay==0) {
     freelance=false;
     playSub(false);
@@ -1462,6 +1464,7 @@ void DivEngine::playToRow(int row) {
   sPreview.sample=-1;
   sPreview.wave=-1;
   sPreview.pos=0;
+  sPreview.dir=false;
   freelance=false;
   playSub(false,row);
   for (int i=0; i<DIV_MAX_CHANS; i++) {
@@ -1499,6 +1502,7 @@ void DivEngine::stop() {
   sPreview.sample=-1;
   sPreview.wave=-1;
   sPreview.pos=0;
+  sPreview.dir=false;
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->notifyPlaybackStop();
   }
@@ -1658,6 +1662,8 @@ int DivEngine::getEffectiveSampleRate(int rate) {
       return (48828*MIN(128,(rate*128/48828)))/128;
     case DIV_SYSTEM_X1_010:
       return (31250*MIN(255,(rate*16/31250)))/16; // TODO: support variable clock case
+    case DIV_SYSTEM_ES5506:
+      return (31250*MIN(131071,(rate*2048/31250)))/2048; // TODO: support variable clock, channel limit case
     default:
       break;
   }
@@ -1671,6 +1677,7 @@ void DivEngine::previewSample(int sample, int note, int pStart, int pEnd) {
   if (sample<0 || sample>=(int)song.sample.size()) {
     sPreview.sample=-1;
     sPreview.pos=0;
+    sPreview.dir=false;
     BUSY_END;
     return;
   }
@@ -1686,6 +1693,7 @@ void DivEngine::previewSample(int sample, int note, int pStart, int pEnd) {
   sPreview.pos=(sPreview.pBegin>=0)?sPreview.pBegin:0;
   sPreview.sample=sample;
   sPreview.wave=-1;
+  sPreview.dir=false;
   BUSY_END;
 }
 
@@ -1693,6 +1701,7 @@ void DivEngine::stopSamplePreview() {
   BUSY_BEGIN;
   sPreview.sample=-1;
   sPreview.pos=0;
+  sPreview.dir=false;
   BUSY_END;
 }
 
@@ -1701,6 +1710,7 @@ void DivEngine::previewWave(int wave, int note) {
   if (wave<0 || wave>=(int)song.wave.size()) {
     sPreview.wave=-1;
     sPreview.pos=0;
+    sPreview.dir=false;
     BUSY_END;
     return;
   }
@@ -1716,6 +1726,7 @@ void DivEngine::previewWave(int wave, int note) {
   sPreview.pos=0;
   sPreview.sample=-1;
   sPreview.wave=wave;
+  sPreview.dir=false;
   BUSY_END;
 }
 
@@ -1723,6 +1734,7 @@ void DivEngine::stopWavePreview() {
   BUSY_BEGIN;
   sPreview.wave=-1;
   sPreview.pos=0;
+  sPreview.dir=false;
   BUSY_END;
 }
 
@@ -2226,7 +2238,7 @@ int DivEngine::addSampleFromFile(const char* path) {
 
       sample->rate=33144;
       sample->centerRate=33144;
-      sample->depth=1;
+      sample->depth=DIV_SAMPLE_DEPTH_1BIT_DPCM;
       sample->init(len*8);
 
       if (fread(sample->dataDPCM,1,len,f)==0) {
@@ -2301,9 +2313,9 @@ int DivEngine::addSampleFromFile(const char* path) {
 
   int index=0;
   if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
-    sample->depth=8;
+    sample->depth=DIV_SAMPLE_DEPTH_8BIT;
   } else {
-    sample->depth=16;
+    sample->depth=DIV_SAMPLE_DEPTH_16BIT;
   }
   sample->init(si.frames);
   if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
@@ -2355,9 +2367,11 @@ int DivEngine::addSampleFromFile(const char* path) {
       inst.detune = inst.detune - 100;
     short pitch = ((0x3c-inst.basenote)*100) + inst.detune;
     sample->centerRate=si.samplerate*pow(2.0,pitch/(12.0 * 100.0));
-    if(inst.loop_count && inst.loops[0].mode == SF_LOOP_FORWARD)
+    if(inst.loop_count && inst.loops[0].mode >= SF_LOOP_FORWARD)
     {
       sample->loopStart=inst.loops[0].start;
+      sample->loopEnd=inst.loops[0].end;
+      sample->loopMode=DivSampleLoopMode(int(inst.loops[0].mode-SF_LOOP_NONE));
       if(inst.loops[0].end < (unsigned int)sampleCount)
         sampleCount=inst.loops[0].end;
     }

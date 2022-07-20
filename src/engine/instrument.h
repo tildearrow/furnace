@@ -19,6 +19,8 @@
 
 #ifndef _INSTRUMENT_H
 #define _INSTRUMENT_H
+#include <vector>
+#include "sample.h"
 #include "safeWriter.h"
 #include "dataErrors.h"
 #include "../ta-utils.h"
@@ -306,12 +308,84 @@ struct DivInstrumentC64 {
 };
 
 struct DivInstrumentAmiga {
+  struct NoteMap {
+    int freq;
+    short ind;
+    unsigned char reversed;
+
+    NoteMap():
+      freq(0),
+      ind(-1),
+      reversed(false) {}
+  };
+
+  struct TransWaveSlice {
+    // states
+    double sliceSize;
+    double sliceBound;
+    double sliceStart;
+    double sliceEnd;
+  
+    // inlines
+    inline void updateSize(double length, double loopStart, double loopEnd) {
+      sliceSize=loopEnd-loopStart;
+      sliceBound=(length-sliceSize);
+    }
+    inline double slicePos(double slice) {
+      double pos=sliceBound*slice;
+      if (sliceStart!=pos) {
+        sliceStart=pos;
+      }
+      if (sliceEnd!=(sliceSize+pos)) {
+        sliceEnd=(sliceSize+pos);
+      }
+      return pos;
+    }
+
+    TransWaveSlice():
+      sliceSize(0),
+      sliceBound(0),
+      sliceStart(0),
+      sliceEnd(0) {}
+  };
+
+  struct TransWave: TransWaveSlice {
+    bool enable;
+    bool sliceEnable;
+    int ind;
+    unsigned short slice;
+
+    TransWave():
+      TransWaveSlice(),
+      enable(false),
+      sliceEnable(false),
+      ind(0),
+      slice(0) {}
+  };
+
+  struct TransWaveMap: TransWaveSlice {
+    short ind;
+    unsigned char reversed;
+    int loopStart, loopEnd;
+    DivSampleLoopMode loopMode;
+
+    TransWaveMap():
+      TransWaveSlice(),
+      ind(-1),
+      reversed(0),
+      loopStart(-1),
+      loopEnd(-1),
+      loopMode(DIV_SAMPLE_LOOPMODE_ONESHOT) {}
+  };
+
   short initSample;
+  bool reversed;
   bool useNoteMap;
   bool useWave;
   unsigned char waveLen;
-  int noteFreq[120];
-  short noteMap[120];
+  NoteMap noteMap[120];
+  TransWave transWave;
+  std::vector<TransWaveMap> transWaveMap;
 
   /**
    * get the sample at specified note.
@@ -321,7 +395,7 @@ struct DivInstrumentAmiga {
     if (useNoteMap) {
       if (note<0) note=0;
       if (note>119) note=119;
-      return noteMap[note];
+      return noteMap[note].ind;
     }
     return initSample;
   }
@@ -334,19 +408,31 @@ struct DivInstrumentAmiga {
     if (useNoteMap) {
       if (note<0) note=0;
       if (note>119) note=119;
-      return noteFreq[note];
+      return noteMap[note].freq;
     }
     return -1;
   }
 
+  /**
+   * get the sample reversed flag at specified note.
+   * @return the reversed flag.
+   */
+  inline bool getReversed(int note) {
+    if (useNoteMap) {
+      if (note<0) note=0;
+      if (note>119) note=119;
+      return noteMap[note].reversed;
+    }
+    return reversed;
+  }
+
   DivInstrumentAmiga():
     initSample(0),
+    reversed(false),
     useNoteMap(false),
     useWave(false),
-    waveLen(31) {
-    memset(noteMap,-1,120*sizeof(short));
-    memset(noteFreq,0,120*sizeof(int));
-  }
+    waveLen(31),
+    transWaveMap(1) {}
 };
 
 struct DivInstrumentN163 {
@@ -371,6 +457,43 @@ struct DivInstrumentFDS {
     initModTableWithFirstWave(false) {
     memset(modTable,0,32);
   }
+};
+
+struct DivInstrumentES5506 {
+  struct Filter {
+    enum FilterMode: unsigned char { // filter mode for pole 4,3
+      FILTER_MODE_HPK2_HPK2,
+      FILTER_MODE_HPK2_LPK1,
+      FILTER_MODE_LPK2_LPK2,
+      FILTER_MODE_LPK2_LPK1,
+    };
+    FilterMode mode;
+    unsigned short k1, k2;
+    Filter():
+      mode(FILTER_MODE_LPK2_LPK1),
+      k1(0xffff),
+      k2(0xffff) {}
+  };
+  struct Envelope {
+    unsigned short ecount;
+    signed char lVRamp, rVRamp;
+    signed char k1Ramp, k2Ramp;
+    bool k1Slow, k2Slow;
+    Envelope():
+      ecount(0),
+      lVRamp(0),
+      rVRamp(0),
+      k1Ramp(0),
+      k2Ramp(0),
+      k1Slow(false),
+      k2Slow(false) {}
+  };
+  signed int lVol, rVol;
+  Filter filter;
+  Envelope envelope;
+  DivInstrumentES5506():
+    lVol(0xffff),
+    rVol(0xffff) {}
 };
 
 struct DivInstrumentMultiPCM {
@@ -441,6 +564,7 @@ struct DivInstrument {
   DivInstrumentAmiga amiga;
   DivInstrumentN163 n163;
   DivInstrumentFDS fds;
+  DivInstrumentES5506 es5506;
   DivInstrumentMultiPCM multipcm;
   DivInstrumentWaveSynth ws;
   

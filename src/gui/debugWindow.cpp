@@ -154,8 +154,10 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("rate: %d",sample->rate);
           ImGui::Text("centerRate: %d",sample->centerRate);
           ImGui::Text("loopStart: %d",sample->loopStart);
+          ImGui::Text("loopEnd: %d",sample->loopEnd);
+          ImGui::Text("loopMode: %d",(int)(sample->loopMode));
           ImGui::Text("loopOffP: %d",sample->loopOffP);
-          ImGui::Text("depth: %d",sample->depth);
+          ImGui::Text("depth: %d",(unsigned char)sample->depth);
           ImGui::Text("length8: %d",sample->length8);
           ImGui::Text("length16: %d",sample->length16);
           ImGui::Text("length1: %d",sample->length1);
@@ -178,6 +180,7 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("offSegaPCM: %x",sample->offSegaPCM);
           ImGui::Text("offQSound: %x",sample->offQSound);
           ImGui::Text("offX1_010: %x",sample->offX1_010);
+          ImGui::Text("offES5506: %x",sample->offES5506);
           ImGui::Text("offSU: %x",sample->offSU);
 
           ImGui::Text("samples: %d",sample->samples);

@@ -56,8 +56,8 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
           pcmR+=(s->data8[chan[i].pcm.pos>>8]*chan[i].chVolR);
         }
         chan[i].pcm.pos+=chan[i].pcm.freq;
-        if (chan[i].pcm.pos>=(s->samples<<8)) {
-          if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
+        if (((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && chan[i].pcm.pos>=(s->loopEnd<<8)) || (chan[i].pcm.pos>=(s->samples<<8))) {
+          if (s->isLoopable()) {
             chan[i].pcm.pos=s->loopStart<<8;
           } else {
             chan[i].pcm.sample=-1;
@@ -202,13 +202,13 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
         chan[c.chan].macroInit(ins);
         if (dumpWrites) { // Sega PCM writes
           DivSample* s=parent->getSample(chan[c.chan].pcm.sample);
-          int actualLength=(int)s->length8;
+          int actualLength=(int)(s->isLoopable()?s->loopEnd:s->length8);
           if (actualLength>0xfeff) actualLength=0xfeff;
           addWrite(0x10086+(c.chan<<3),3+((s->offSegaPCM>>16)<<3));
           addWrite(0x10084+(c.chan<<3),(s->offSegaPCM)&0xff);
           addWrite(0x10085+(c.chan<<3),(s->offSegaPCM>>8)&0xff);
           addWrite(0x10006+(c.chan<<3),MIN(255,((s->offSegaPCM&0xffff)+actualLength-1)>>8));
-          if (s->loopStart<0 || s->loopStart>=actualLength) {
+          if ((s->loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT) || (s->loopStart<0 || s->loopStart>=actualLength || s->loopEnd<=(unsigned int)s->loopStart || s->loopEnd>=(unsigned int)actualLength)) {
             addWrite(0x10086+(c.chan<<3),2+((s->offSegaPCM>>16)<<3));
           } else {
             int loopPos=(s->offSegaPCM&0xffff)+s->loopStart+s->loopOffP;
@@ -235,13 +235,13 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
         chan[c.chan].furnacePCM=false;
         if (dumpWrites) { // Sega PCM writes
           DivSample* s=parent->getSample(chan[c.chan].pcm.sample);
-          int actualLength=(int)s->length8;
+          int actualLength=(int)(s->isLoopable()?s->loopEnd:s->length8);
           if (actualLength>65536) actualLength=65536;
           addWrite(0x10086+(c.chan<<3),3+((s->offSegaPCM>>16)<<3));
           addWrite(0x10084+(c.chan<<3),(s->offSegaPCM)&0xff);
           addWrite(0x10085+(c.chan<<3),(s->offSegaPCM>>8)&0xff);
           addWrite(0x10006+(c.chan<<3),MIN(255,((s->offSegaPCM&0xffff)+actualLength-1)>>8));
-          if (s->loopStart<0 || s->loopStart>=actualLength) {
+          if ((s->loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT) || (s->loopStart<0 || s->loopStart>=actualLength || s->loopEnd<=(unsigned int)s->loopStart || s->loopEnd>=(unsigned int)actualLength)) {
             addWrite(0x10086+(c.chan<<3),2+((s->offSegaPCM>>16)<<3));
           } else {
             int loopPos=(s->offSegaPCM&0xffff)+s->loopStart+s->loopOffP;

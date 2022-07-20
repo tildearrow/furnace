@@ -141,9 +141,9 @@ void DivPlatformGenesis::processDAC() {
           DivSample* s=parent->getSample(chan[i].dacSample);
           if (!isMuted[i] && s->samples>0) {
             if (parent->song.noOPN2Vol) {
-              chan[i].dacOutput=s->data8[chan[i].dacDirection?(s->samples-chan[i].dacPos-1):chan[i].dacPos];
+              chan[i].dacOutput=s->data8[chan[i].getDacDirection()?(s->samples-chan[i].dacPos-1):chan[i].dacPos];
             } else {
-              chan[i].dacOutput=(s->data8[chan[i].dacDirection?(s->samples-chan[i].dacPos-1):chan[i].dacPos]*dacVolTable[chan[i].outVol])>>7;
+              chan[i].dacOutput=(s->data8[chan[i].getDacDirection()?(s->samples-chan[i].dacPos-1):chan[i].dacPos]*dacVolTable[chan[i].outVol])>>7;
             }
             sample+=chan[i].dacOutput;
           } else {
@@ -153,8 +153,9 @@ void DivPlatformGenesis::processDAC() {
           if (chan[i].dacPeriod>=(chipClock/576)) {
             if (s->samples>0) {
               while (chan[i].dacPeriod>=(chipClock/576)) {
-                if (++chan[i].dacPos>=s->samples) {
-                  if (s->loopStart>=0 && s->loopStart<(int)s->samples && !chan[i].dacDirection) {
+                chan[i].dacPos++;
+                if (((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && chan[i].dacPos>=s->loopEnd) || (chan[i].dacPos>=s->samples)) {
+                  if (s->isLoopable() && !chan[i].getDacDirection()) {
                     chan[i].dacPos=s->loopStart;
                   } else {
                     chan[i].dacSample=-1;
@@ -192,16 +193,17 @@ void DivPlatformGenesis::processDAC() {
             if (chan[5].dacReady && writes.size()<16) {
               int sample;
               if (parent->song.noOPN2Vol) {
-                sample=s->data8[chan[5].dacDirection?(s->samples-chan[5].dacPos-1):chan[5].dacPos];
+                sample=s->data8[chan[5].getDacDirection()?(s->samples-chan[5].dacPos-1):chan[5].dacPos];
               } else {
-                sample=(s->data8[chan[5].dacDirection?(s->samples-chan[5].dacPos-1):chan[5].dacPos]*dacVolTable[chan[5].outVol])>>7;
+                sample=(s->data8[chan[5].getDacDirection()?(s->samples-chan[5].dacPos-1):chan[5].dacPos]*dacVolTable[chan[5].outVol])>>7;
               }
               urgentWrite(0x2a,(unsigned char)sample+0x80);
               chan[5].dacReady=false;
             }
           }
-          if (++chan[5].dacPos>=s->samples) {
-            if (s->loopStart>=0 && s->loopStart<(int)s->samples && !chan[5].dacDirection) {
+          chan[5].dacPos++;
+          if (((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && chan[5].dacPos>=s->loopEnd) || (chan[5].dacPos>=s->samples)) {
+            if (s->isLoopable() && !chan[5].getDacDirection()) {
               chan[5].dacPos=s->loopStart;
             } else {
               chan[5].dacSample=-1;
@@ -635,8 +637,12 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
             if (dumpWrites) addWrite(0xffff0002,0);
             break;
           } else {
+            chan[c.chan].dacReversed=ins->amiga.getReversed(c.value);
             rWrite(0x2b,1<<7);
-            if (dumpWrites) addWrite(0xffff0000,chan[c.chan].dacSample);
+            if (dumpWrites) {
+              addWrite(0xffff0000,chan[c.chan].dacSample);
+              addWrite(0xffff0003,chan[c.chan].getDacDirection());
+            }
           }
           chan[c.chan].dacPos=0;
           chan[c.chan].dacPeriod=0;
@@ -674,6 +680,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           chan[c.chan].dacRate=MAX(1,parent->getSample(chan[c.chan].dacSample)->rate);
           if (dumpWrites) addWrite(0xffff0001,parent->getSample(chan[c.chan].dacSample)->rate);
           chan[c.chan].furnaceDac=false;
+          chan[c.chan].dacReversed=false;
         }
         break;
       }
@@ -890,7 +897,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_DIR: {
       if (c.chan<5) c.chan=5;
       chan[c.chan].dacDirection=c.value;
-      if (dumpWrites) addWrite(0xffff0003,chan[c.chan].dacDirection);
+      if (dumpWrites) addWrite(0xffff0003,chan[c.chan].getDacDirection());
       break;
     }
     case DIV_CMD_LEGATO: {

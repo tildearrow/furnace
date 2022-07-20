@@ -334,6 +334,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Ensoniq ES5506 (OTTO)", {
+      DIV_SYSTEM_ES5506, 64, 0, 31,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Yamaha YMZ280B (PCMD8)", {
       DIV_SYSTEM_YMZ280B, 64, 0, 0,
       0

@@ -116,7 +116,8 @@ enum DivSystem {
   DIV_SYSTEM_RESERVED_8,
   DIV_SYSTEM_T6W28,
   DIV_SYSTEM_PCM_DAC,
-  DIV_SYSTEM_DUMMY
+  DIV_SYSTEM_DUMMY,
+  DIV_SYSTEM_MAX // boundary for max system number
 };
 
 struct DivSubSong {

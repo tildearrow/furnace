@@ -62,6 +62,8 @@ const char* cmdName[]={
   "SAMPLE_BANK",
   "SAMPLE_POS",
   "SAMPLE_DIR",
+  "SAMPLE_TRANSWAVE_SLICE_MODE", // (enabled)
+  "SAMPLE_TRANSWAVE_SLICE_POS", // (slice)
 
   "FM_HARD_RESET",
   "FM_LFO",
@@ -171,6 +173,18 @@ const char* cmdName[]={
   "N163_GLOBAL_WAVE_LOADPOS",
   "N163_GLOBAL_WAVE_LOADLEN",
   "N163_GLOBAL_WAVE_LOADMODE",
+
+  "ES5506_FILTER_MODE",
+  "ES5506_FILTER_K1",
+  "ES5506_FILTER_K2",
+  "ES5506_FILTER_K1_SLIDE",
+  "ES5506_FILTER_K2_SLIDE",
+  "ES5506_ENVELOPE_COUNT",
+  "ES5506_ENVELOPE_LVRAMP",
+  "ES5506_ENVELOPE_RVRAMP",
+  "ES5506_ENVELOPE_K1RAMP",
+  "ES5506_ENVELOPE_K2RAMP",
+  "ES5506_PAUSE",
 
   "DIV_CMD_SU_SWEEP_PERIOD_LOW",
   "DIV_CMD_SU_SWEEP_PERIOD_HIGH",
@@ -704,6 +718,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         sPreview.sample=-1;
         sPreview.wave=-1;
         sPreview.pos=0;
+        sPreview.dir=false;
         break;
     }
   }
@@ -1195,26 +1210,115 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     if (sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) {
       DivSample* s=song.sample[sPreview.sample];
 
+      const bool pBeginVaild=sPreview.pBegin>=0 && sPreview.pBegin<(int)s->samples;
+      const bool pEndVaild=sPreview.pEnd>=0 && sPreview.pEnd<(int)s->samples;
+      const int loopStart=pBeginVaild?sPreview.pBegin:s->loopStart;
+      const int loopEnd=pEndVaild?sPreview.pEnd:(int)s->loopEnd;
       for (size_t i=0; i<prevtotal; i++) {
         if (sPreview.pos>=s->samples || (sPreview.pEnd>=0 && (int)sPreview.pos>=sPreview.pEnd)) {
           samp_temp=0;
         } else {
-          samp_temp=s->data16[sPreview.pos++];
+          samp_temp=s->data16[sPreview.pos];
+          if (sPreview.dir) {
+            sPreview.pos--;
+          } else {
+            sPreview.pos++;
+          }
         }
         blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
         samp_prevSample=samp_temp;
 
-        if (sPreview.pos>=s->samples || (sPreview.pEnd>=0 && (int)sPreview.pos>=sPreview.pEnd)) {
-          if (s->loopStart>=0 && s->loopStart<(int)s->samples && (int)sPreview.pos>=s->loopStart) {
-            sPreview.pos=s->loopStart;
+        if (sPreview.dir) {
+          if (s->isLoopable() && ((int)sPreview.pos)<loopStart) {
+            switch (s->loopMode) {
+              case DIV_SAMPLE_LOOPMODE_FORWARD:
+                sPreview.dir=false;
+                sPreview.pos=loopStart+1;
+                break;
+              case DIV_SAMPLE_LOOPMODE_BACKWARD:
+                sPreview.dir=true;
+                sPreview.pos=loopEnd-1;
+                break;
+              case DIV_SAMPLE_LOOPMODE_PINGPONG:
+                sPreview.dir=false;
+                sPreview.pos=loopStart+1;
+                break;
+              case DIV_SAMPLE_LOOPMODE_ONESHOT:
+              default:
+                break;
+            }
+          }
+        } else {
+          if (s->isLoopable() && ((int)sPreview.pos)>=loopEnd) {
+            switch (s->loopMode) {
+              case DIV_SAMPLE_LOOPMODE_FORWARD:
+                sPreview.dir=false;
+                sPreview.pos=loopStart;
+                break;
+              case DIV_SAMPLE_LOOPMODE_BACKWARD:
+                sPreview.dir=true;
+                sPreview.pos=loopEnd-1;
+                break;
+              case DIV_SAMPLE_LOOPMODE_PINGPONG:
+                sPreview.dir=true;
+                sPreview.pos=loopEnd-1;
+                break;
+              case DIV_SAMPLE_LOOPMODE_ONESHOT:
+              default:
+                break;
+            }
           }
         }
       }
 
-      if (sPreview.pos>=s->samples || (sPreview.pEnd>=0 && (int)sPreview.pos>=sPreview.pEnd)) {
-        if (s->loopStart>=0 && s->loopStart<(int)s->samples && (int)sPreview.pos>=s->loopStart) {
-          sPreview.pos=s->loopStart;
-        } else {
+      if (sPreview.dir) {
+        if ((s->isLoopable() && sPreview.pos<s->loopEnd) && ((int)sPreview.pos)<loopStart) {
+          switch (s->loopMode) {
+            case DIV_SAMPLE_LOOPMODE_FORWARD:
+              sPreview.dir=false;
+              sPreview.pos=loopStart+1;
+              break;
+            case DIV_SAMPLE_LOOPMODE_BACKWARD:
+              sPreview.dir=true;
+              sPreview.pos=loopEnd-1;
+              break;
+            case DIV_SAMPLE_LOOPMODE_PINGPONG:
+              sPreview.dir=false;
+              sPreview.pos=loopStart+1;
+              break;
+            case DIV_SAMPLE_LOOPMODE_ONESHOT:
+            default:
+              if (((int)sPreview.pos)<0) {
+                sPreview.sample=-1;
+              }
+            break;
+          }
+        } else if (((int)sPreview.pos)<0) {
+          sPreview.sample=-1;
+        }
+      } else {
+        if ((s->isLoopable() && (int)sPreview.pos>=s->loopStart) && ((int)sPreview.pos)>=loopEnd) {
+          switch (s->loopMode) {
+            case DIV_SAMPLE_LOOPMODE_FORWARD:
+              sPreview.dir=false;
+              sPreview.pos=loopStart;
+              break;
+            case DIV_SAMPLE_LOOPMODE_BACKWARD:
+              sPreview.dir=true;
+              sPreview.pos=loopEnd-1;
+              break;
+            case DIV_SAMPLE_LOOPMODE_PINGPONG:
+              sPreview.dir=true;
+              sPreview.pos=loopEnd-1;
+              break;
+            case DIV_SAMPLE_LOOPMODE_ONESHOT:
+            default:
+              if (sPreview.pos>=s->samples) {
+                sPreview.sample=-1;
+              }
+              break;
+          }
+        } else if (sPreview.pos>=s->samples) {
           sPreview.sample=-1;
         }
       }

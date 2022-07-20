@@ -90,8 +90,8 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
           chWrite(i,0x04,0xdf);
           chWrite(i,0x06,(((unsigned char)s->data8[chan[i].dacPos]+0x80)>>3));
           chan[i].dacPos++;
-          if (chan[i].dacPos>=s->samples) {
-            if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
+          if (((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && chan[i].dacPos>=s->loopEnd) || (chan[i].dacPos>=s->samples)) {
+            if (s->isLoopable()) {
               chan[i].dacPos=s->loopStart;
             } else {
               chan[i].dacSample=-1;

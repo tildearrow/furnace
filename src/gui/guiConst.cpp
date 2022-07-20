@@ -116,7 +116,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   NULL
 };
 
-const char* sampleDepths[17]={
+const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "1-bit PCM",
   "1-bit DPCM",
   NULL,
@@ -136,13 +136,20 @@ const char* sampleDepths[17]={
   "16-bit PCM"
 };
 
-const char* resampleStrats[]={
+const char* resampleStrats[DIV_RESAMPLE_MAX]={
   "none",
   "linear",
   "cubic spline",
   "blep synthesis",
   "sinc",
   "best possible"
+};
+
+const char* loopMode[DIV_SAMPLE_LOOPMODE_MAX]={
+  "Disable",
+  "Foward",
+  "Backward",
+  "Pingpong"
 };
 
 const FurnaceGUIColors fxColors[256]={
@@ -885,6 +892,7 @@ const int availableSystems[]={
   DIV_SYSTEM_VRC6,
   DIV_SYSTEM_FDS,
   DIV_SYSTEM_MMC5,
+  DIV_SYSTEM_ES5506,
   DIV_SYSTEM_SCC,
   DIV_SYSTEM_SCC_PLUS,
   DIV_SYSTEM_YMZ280B,
@@ -896,4 +904,3 @@ const int availableSystems[]={
   DIV_SYSTEM_RF5C68,
   0 // don't remove this last one!
 };
-

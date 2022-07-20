@@ -1828,12 +1828,90 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_ES5506]=new DivSysDef(
-    "Ensoniq ES5506", NULL, 0xb1, 0, 32, false, true, 0, false,
-    "a sample chip used in the Gravis Ultrasound, popular in the PC (DOS) demoscene.",
+    "Ensoniq ES5506", NULL, 0xb1, 0, 32, false, true, 0/*0x171*/, false,
+    "a sample chip used in the Ensoniq's unique transwave synthesizers, \nand SoundScape series PC ISA soundcards...\nthat's just yet another (partially)SB compatible one with emulated OPL3 and MIDI ROMpler.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "Channel 17", "Channel 18", "Channel 19", "Channel 20", "Channel 21", "Channel 22", "Channel 23", "Channel 24", "Channel 25", "Channel 26", "Channel 27", "Channel 28", "Channel 29", "Channel 30", "Channel 31", "Channel 32"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
-    {DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506}
+    {DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x10: // select waveform
+          dispatchCmd(DivCommand(DIV_CMD_WAVE,ch,effectVal));
+          break;
+        case 0x11: // filter mode
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_MODE,ch,effectVal&3));
+          break;
+        case 0x12: // pause
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_PAUSE,ch,effectVal&1));
+          break;
+        case 0x13: // slice enable
+          dispatchCmd(DivCommand(DIV_CMD_SAMPLE_TRANSWAVE_SLICE_MODE,ch,effectVal&1));
+          break;
+        case 0x14: // filter coefficient K1, 8 bit LSB
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K1,ch,effectVal&0xff,0x00ff));
+          break;
+        case 0x15: // filter coefficient K1, 8 bit MSB
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K1,ch,(effectVal&0xff)<<8,0xff00));
+          break;
+        case 0x16: // filter coefficient K2, 8 bit LSB
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K2,ch,effectVal&0xff,0x00ff));
+          break;
+        case 0x17: // filter coefficient K2, 8 bit MSB
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K2,ch,(effectVal&0xff)<<8,0xff00));
+          break;
+        case 0x20:
+        case 0x21: // envelope ECOUNT
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_ENVELOPE_COUNT,ch,((effect&0x01)<<8)|effectVal));
+          break;
+        case 0x22: // envelope LVRAMP
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_ENVELOPE_LVRAMP,ch,effectVal));
+          break;
+        case 0x23: // envelope RVRAMP
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_ENVELOPE_RVRAMP,ch,effectVal));
+          break;
+        case 0x24:
+        case 0x25: // envelope K1RAMP
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_ENVELOPE_K1RAMP,ch,effectVal,effect&0x01));
+          break;
+        case 0x26:
+        case 0x27: // envelope K2RAMP
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_ENVELOPE_K2RAMP,ch,effectVal,effect&0x01));
+          break;
+        default:
+          if ((effect&0xf0)==0x30) { // filter coefficient K1, 12 bit MSB
+            dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K1,ch,((effect&0x0f)<<12)|((effectVal&0xff)<<4),0xfff0));
+          } else if ((effect&0xf0)==0x40) { // filter coefficient K2, 12 bit MSB
+            dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K2,ch,((effect&0x0f)<<12)|((effectVal&0xff)<<4),0xfff0));
+          } else if ((effect&0xf0)==0x50) { // slice position
+            dispatchCmd(DivCommand(DIV_CMD_SAMPLE_TRANSWAVE_SLICE_POS,ch,((effect&0x0f)<<8)|(effectVal&0xff)));
+          } else {
+            return false;
+          }
+          break;
+      }
+      return true;
+    },
+    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
+      switch (effect) {
+        case 0x12: // pause
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_PAUSE,ch,effectVal&1));
+          break;
+        case 0x18: // filter coefficient K1 slide up
+        case 0x19: // filter coefficient K1 slide down
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K1_SLIDE,ch,effectVal,effect&0x01));
+          break;
+        case 0x1a: // filter coefficient K2 slide up
+        case 0x1b: // filter coefficient K2 slide down
+          dispatchCmd(DivCommand(DIV_CMD_ES5506_FILTER_K2_SLIDE,ch,effectVal,effect&0x01));
+          break;
+        default:
+          return false;
+          break;
+      }
+      return true;
+    }
   );
 
   sysDefs[DIV_SYSTEM_Y8950]=new DivSysDef(

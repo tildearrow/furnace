@@ -39,6 +39,7 @@
 #include "../engine/platform/x1_010.h"
 #include "../engine/platform/n163.h"
 #include "../engine/platform/vrc6.h"
+#include "../engine/platform/es5506.h"
 #include "../engine/platform/dummy.h"
 
 #define GENESIS_DEBUG \
@@ -331,6 +332,91 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
       ImGui::TextColored(ch->pcm?colorOn:colorOff,">> DAC");
       ImGui::TextColored(ch->furnaceDac?colorOn:colorOff,">> FurnaceDAC");
+      break;
+    }
+    case DIV_SYSTEM_ES5506: {
+      DivPlatformES5506::Channel* ch=(DivPlatformES5506::Channel*)data;
+      ImGui::Text("> ES5506");
+      ImGui::Text("* freq: %.5x",ch->freq);
+      ImGui::Text(" - base: %d",ch->baseFreq);
+      ImGui::Text(" - next: %d",ch->nextFreq);
+      ImGui::Text(" - pitch: %d",ch->pitch);
+      ImGui::Text(" - pitch2: %d",ch->pitch2);
+      ImGui::Text("* note: %d",ch->note);
+      ImGui::Text(" - next: %d",ch->nextNote);
+      ImGui::Text(" - curr: %d",ch->currNote);
+      ImGui::Text("- ins: %d",ch->ins);
+      ImGui::Text("- wave: %d",ch->wave);
+      ImGui::Text("- VolMacroMax: %d",ch->volMacroMax);
+      ImGui::Text("- PanMacroMax: %d",ch->panMacroMax);
+      ImGui::Text("* PCM:");
+      ImGui::Text(" * index: %d",ch->pcm.index);
+      ImGui::Text("  - next: %d",ch->pcm.next);
+      ImGui::Text(" - note: %d",ch->pcm.note);
+      ImGui::Text(" * freqOffs: %.6f",ch->pcm.freqOffs);
+      ImGui::Text("  - next: %.6f",ch->pcm.nextFreqOffs);
+      ImGui::Text(" - bank: %.2x",ch->pcm.bank);
+      ImGui::Text(" - start: %.8x",ch->pcm.start);
+      ImGui::Text(" - end: %.8x",ch->pcm.end);
+      ImGui::Text(" - length: %.8x",ch->pcm.length);
+      ImGui::Text(" - loopStart: %.8x",ch->pcm.loopStart);
+      ImGui::Text(" - loopEnd: %.8x",ch->pcm.loopEnd);
+      ImGui::Text(" - loopMode: %d",ch->pcm.loopMode);
+      ImGui::Text("* Filter:");
+      ImGui::Text(" - Mode: %d",ch->filter.mode);
+      ImGui::Text(" - K1: %.4x",ch->filter.k1);
+      ImGui::Text(" - K2: %.4x",ch->filter.k2);
+      ImGui::Text("* Envelope:");
+      ImGui::Text(" - EnvCount: %.3x",ch->envelope.ecount);
+      ImGui::Text(" - LVRamp: %d",ch->envelope.lVRamp);
+      ImGui::Text(" - RVRamp: %d",ch->envelope.rVRamp);
+      ImGui::Text(" - K1Ramp: %d",ch->envelope.k1Ramp);
+      ImGui::Text(" - K2Ramp: %d",ch->envelope.k2Ramp);
+      ImGui::Text(" - K1Offs: %d",ch->k1Offs);
+      ImGui::Text(" - K2Offs: %d",ch->k2Offs);
+      ImGui::Text(" - K1Slide: %d",ch->k1Slide);
+      ImGui::Text(" - K2Slide: %d",ch->k2Slide);
+      ImGui::Text(" - K1Prev: %.4x",ch->k1Prev);
+      ImGui::Text(" - K2Prev: %.4x",ch->k2Prev);
+      ImGui::Text("- vol: %.2x",ch->vol);
+      ImGui::Text("- LVol: %.2x",ch->lVol);
+      ImGui::Text("- RVol: %.2x",ch->rVol);
+      ImGui::Text("- outVol: %.2x",ch->outVol);
+      ImGui::Text("- outLVol: %.2x",ch->outLVol);
+      ImGui::Text("- outRVol: %.2x",ch->outRVol);
+      ImGui::Text("- ResLVol: %.2x",ch->resLVol);
+      ImGui::Text("- ResRVol: %.2x",ch->resRVol);
+      ImGui::Text("- LOut: %d",ch->lOut);
+      ImGui::Text("- ROut: %d",ch->rOut);
+      ImGui::Text("- oscOut: %d",ch->oscOut);
+      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
+      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
+      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
+      ImGui::TextColored(ch->volChanged.lVol?colorOn:colorOff,">> LVolChanged");
+      ImGui::TextColored(ch->volChanged.rVol?colorOn:colorOff,">> RVolChanged");
+      ImGui::TextColored(ch->filterChanged.mode?colorOn:colorOff,">> FilterModeChanged");
+      ImGui::TextColored(ch->filterChanged.k1?colorOn:colorOff,">> FilterK1Changed");
+      ImGui::TextColored(ch->filterChanged.k2?colorOn:colorOff,">> FilterK2Changed");
+      ImGui::TextColored(ch->envChanged.ecount?colorOn:colorOff,">> EnvECountChanged");
+      ImGui::TextColored(ch->envChanged.lVRamp?colorOn:colorOff,">> EnvLVRampChanged");
+      ImGui::TextColored(ch->envChanged.rVRamp?colorOn:colorOff,">> EnvRVRampChanged");
+      ImGui::TextColored(ch->envChanged.k1Ramp?colorOn:colorOff,">> EnvK1RampChanged");
+      ImGui::TextColored(ch->envChanged.k2Ramp?colorOn:colorOff,">> EnvK2RampChanged");
+      ImGui::TextColored(ch->pcmChanged.index?colorOn:colorOff,">> PCMIndexChanged");
+      ImGui::TextColored(ch->pcmChanged.slice?colorOn:colorOff,">> PCMSliceChanged");
+      ImGui::TextColored(ch->pcmChanged.position?colorOn:colorOff,">> PCMPositionChanged");
+      ImGui::TextColored(ch->pcmChanged.loopBank?colorOn:colorOff,">> PCMLoopBankChanged");
+      ImGui::TextColored(ch->pcmChanged.transwaveInd?colorOn:colorOff,">> PCMTranswaveIndexChanged");
+      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
+      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
+      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+      ImGui::TextColored(ch->useWave?colorOn:colorOff,">> UseWave");
+      ImGui::TextColored(ch->isReverseLoop?colorOn:colorOff,">> IsReverseLoop");
+      ImGui::TextColored(ch->isTranswave?colorOn:colorOff,">> IsTranswave");
+      ImGui::TextColored(ch->transwaveIRQ?colorOn:colorOff,">> TranswaveIRQ");
+      ImGui::TextColored(ch->pcm.reversed?colorOn:colorOff,">> PCMReversed");
+      ImGui::TextColored(ch->envelope.k1Slow?colorOn:colorOff,">> EnvK1Slow");
+      ImGui::TextColored(ch->envelope.k2Slow?colorOn:colorOff,">> EnvK2Slow");
       break;
     }
     default:

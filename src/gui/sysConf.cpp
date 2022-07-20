@@ -364,16 +364,25 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       ImGui::Text("Initial channel limit:");
       int initialChannelLimit=((flags>>4)&7)+1;
-      if (CWSliderInt("##InitialChannelLimit",&initialChannelLimit,1,8)) {
+      if (CWSliderInt("##N163_InitialChannelLimit",&initialChannelLimit,1,8)) {
         if (initialChannelLimit<1) initialChannelLimit=1;
         if (initialChannelLimit>8) initialChannelLimit=8;
         copyOfFlags=(flags & ~(7 << 4)) | (((initialChannelLimit-1) & 7) << 4);
-        
       } rightClickable
       bool n163Multiplex=flags&128;
       if (ImGui::Checkbox("Disable hissing",&n163Multiplex)) {
         copyOfFlags=(flags&(~128))|(n163Multiplex<<7);
       }
+      break;
+    }
+    case DIV_SYSTEM_ES5506: {
+      ImGui::Text("Initial channel limit:");
+      int initialChannelLimit=(flags&31)+1;
+      if (CWSliderInt("##OTTO_InitialChannelLimit",&initialChannelLimit,5,32)) {
+        if (initialChannelLimit<5) initialChannelLimit=5;
+        if (initialChannelLimit>32) initialChannelLimit=32;
+        copyOfFlags=(flags & ~31) | ((initialChannelLimit-1) & 31);
+      } rightClickable
       break;
     }
     case DIV_SYSTEM_OPN:

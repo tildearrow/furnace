@@ -301,11 +301,11 @@ void DivPlatformQSound::tick(bool sysTick) {
       qsound_bank = 0x8000 | (s->offQSound >> 16);
       qsound_addr = s->offQSound & 0xffff;
 
-      int length = s->samples;
+      int length = s->isLoopable()?s->loopEnd:s->samples;
       if (length > 65536 - 16) {
         length = 65536 - 16;
       }
-      if (s->loopStart == -1 || s->loopStart >= length) {
+      if ((!s->isLoopable()) || s->loopStart>=length) {
         qsound_end = s->offQSound + length + 15;
         qsound_loop = 15;
       } else {

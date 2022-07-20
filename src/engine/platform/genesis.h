@@ -57,11 +57,15 @@ class DivPlatformGenesis: public DivPlatformOPN {
       int dacDelay;
       bool dacReady;
       bool dacDirection;
+      bool dacReversed;
       unsigned char sampleBank;
       signed char dacOutput;
       void macroInit(DivInstrument* which) {
         std.init(which);
         pitch2=0;
+      }
+      bool getDacDirection() {
+        return dacReversed^dacDirection;
       }
       Channel():
         freqH(0),
@@ -93,6 +97,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
         dacDelay(0),
         dacReady(true),
         dacDirection(false),
+        dacReversed(false),
         sampleBank(0),
         dacOutput(0) {}
     };
