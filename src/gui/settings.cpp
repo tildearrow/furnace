@@ -460,6 +460,14 @@ void FurnaceGUI::drawSettings() {
             ImGui::SetTooltip("saves power by lowering the frame rate to 2fps when idle.\nmay cause issues under Mesa drivers!");
           }
 
+          bool noThreadedInputB=settings.noThreadedInput;
+          if (ImGui::Checkbox("Disable threaded input (restart after changing!)",&noThreadedInputB)) {
+            settings.noThreadedInput=noThreadedInputB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("threaded input processes key presses for note preview on a separate thread (on supported platforms), which reduces latency.\nhowever, crashes have been reported when threaded input is on. enable this option if that is the case.");
+          }
+
           bool blankInsB=settings.blankIns;
           if (ImGui::Checkbox("New instruments are blank",&blankInsB)) {
             settings.blankIns=blankInsB;
@@ -2055,6 +2063,7 @@ void FurnaceGUI::syncSettings() {
   settings.blankIns=e->getConfInt("blankIns",0);
   settings.dragMovesSelection=e->getConfInt("dragMovesSelection",2);
   settings.unsignedDetune=e->getConfInt("unsignedDetune",0);
+  settings.noThreadedInput=e->getConfInt("noThreadedInput",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2141,6 +2150,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.blankIns,0,1);
   clampSetting(settings.dragMovesSelection,0,2);
   clampSetting(settings.unsignedDetune,0,1);
+  clampSetting(settings.noThreadedInput,0,1);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2276,6 +2286,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("blankIns",settings.blankIns);
   e->setConf("dragMovesSelection",settings.dragMovesSelection);
   e->setConf("unsignedDetune",settings.unsignedDetune);
+  e->setConf("noThreadedInput",settings.noThreadedInput);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
