@@ -582,6 +582,13 @@ if (NOT WIN32 AND NOT APPLE)
   endif()
 endif()
 
+if (NOT WIN32)
+  try_compile(HAVE_DIRENT_TYPE ${CMAKE_BINARY_DIR}/check SOURCES ${CMAKE_SOURCE_DIR}/src/check/check_dirent_type.c)
+  if (HAVE_DIRENT_TYPE)
+    list(APPEND DEPENDENCIES_DEFINES HAVE_DIRENT_TYPE)
+  endif()
+endif()
+
 set(USED_SOURCES ${ENGINE_SOURCES} ${AUDIO_SOURCES} src/main.cpp)
 
 if (USE_BACKWARD)
