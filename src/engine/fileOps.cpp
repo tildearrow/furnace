@@ -2445,8 +2445,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
 
               const int dpcmNotes=(blockVersion>=2)?96:72;
               for (int j=0; j<dpcmNotes; j++) {
-                ins->amiga.noteMap[j]=(short)((unsigned char)reader.readC())-1;
-                ins->amiga.noteFreq[j]=(unsigned char)reader.readC();
+                ins->amiga.noteMap[j].map=(short)((unsigned char)reader.readC())-1;
+                ins->amiga.noteMap[j].freq=(unsigned char)reader.readC();
                 if (blockVersion>=6) {
                   reader.readC(); // DMC value
                 }

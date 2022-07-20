@@ -306,12 +306,18 @@ struct DivInstrumentC64 {
 };
 
 struct DivInstrumentAmiga {
+  struct SampleMap {
+    int freq;
+    short map;
+    SampleMap(int f=0, short m=-1):
+      freq(f),
+      map(m) {}
+  };
   short initSample;
   bool useNoteMap;
   bool useWave;
   unsigned char waveLen;
-  int noteFreq[120];
-  short noteMap[120];
+  SampleMap noteMap[120];
 
   /**
    * get the sample at specified note.
@@ -321,7 +327,7 @@ struct DivInstrumentAmiga {
     if (useNoteMap) {
       if (note<0) note=0;
       if (note>119) note=119;
-      return noteMap[note];
+      return noteMap[note].map;
     }
     return initSample;
   }
@@ -334,7 +340,7 @@ struct DivInstrumentAmiga {
     if (useNoteMap) {
       if (note<0) note=0;
       if (note>119) note=119;
-      return noteFreq[note];
+      return noteMap[note].freq;
     }
     return -1;
   }
@@ -344,8 +350,9 @@ struct DivInstrumentAmiga {
     useNoteMap(false),
     useWave(false),
     waveLen(31) {
-    memset(noteMap,-1,120*sizeof(short));
-    memset(noteFreq,0,120*sizeof(int));
+    for (SampleMap& elem: noteMap) {
+      elem=SampleMap();
+    }
   }
 };
 
