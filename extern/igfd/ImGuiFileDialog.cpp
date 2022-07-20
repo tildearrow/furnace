@@ -58,13 +58,17 @@ SOFTWARE.
 	#ifndef PATH_MAX
 		#define PATH_MAX 260
 	#endif // PATH_MAX
-#elif defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__) || defined (__EMSCRIPTEN__)
+#elif defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__) || defined (__EMSCRIPTEN__) || defined(__HAIKU__)
 	#define UNIX
 	#define stricmp strcasecmp
 	#include <sys/types.h>
 	// this option need c++17
 	#ifndef USE_STD_FILESYSTEM
-		#include <dirent.h> 
+		#include <dirent.h>
+		// dirent.d_type not implemented, workaround code
+		#ifdef __HAIKU__
+			#include <unistd.h>
+		#endif
 	#endif // USE_STD_FILESYSTEM
 	#define PATH_SEP '/'
 #endif // defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__)
@@ -1547,8 +1551,9 @@ namespace IGFD
 				for (i = 0; i < n; i++)
 				{
 					struct dirent* ent = files[i];
-
 					char fileType = 0;
+
+#  ifndef __HAIKU__
 					switch (ent->d_type)
 					{
 					case DT_REG:
@@ -1556,20 +1561,36 @@ namespace IGFD
 					case DT_DIR:
 						fileType = 'd'; break;
 					case DT_LNK:
-            std::string where = path+std::string("/")+std::string(ent->d_name);
-            DIR* dirTest = opendir(where.c_str());
-            if (dirTest==NULL) {
-              if (errno==ENOTDIR) {
-                fileType = 'f';
-              } else {
-                fileType = 'l';
-              }
-            } else {
-              fileType = 'd';
-              closedir(dirTest);
-            }
-            break;
+						std::string where = path+std::string("/")+std::string(ent->d_name);
+						DIR* dirTest = opendir(where.c_str());
+						if (dirTest==NULL) {
+							if (errno==ENOTDIR) {
+								fileType = 'f';
+							} else {
+								fileType = 'l';
+							}
+						} else {
+							fileType = 'd';
+							closedir(dirTest);
+						}
+						break;
 					}
+#  else
+					std::string where = path+std::string("/")+std::string(ent->d_name);
+					char readlinkBuffer[PATH_MAX] = {};
+					if (readlink(where.c_str(), readlinkBuffer, PATH_MAX) != -1) {
+						fileType = 'l';
+					}
+
+					DIR* dirTest = opendir(where.c_str());
+					if (dirTest!=NULL || errno!=ENOTDIR) {
+						fileType = 'd';
+						closedir (dirTest);
+					} else {
+						// best guess
+						fileType = 'f';
+					}
+#  endif // !__HAIKU__
 
 					auto fileNameExt = ent->d_name;
 
