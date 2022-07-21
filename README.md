@@ -61,6 +61,7 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
   - SID (6581/8580) used in Commodore 64
   - Mikey used in Atari Lynx
   - ZX Spectrum beeper (SFX-like engine)
+  - Commodore PET
   - TIA used in Atari 2600
   - Game Boy
   - modern/fantasy:
