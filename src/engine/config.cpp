@@ -66,11 +66,10 @@ void DivEngine::initConfDir() {
   size_t sepPos=configPath.find(pathSep,1);
   while (sepPos!=std::string::npos) {
     std::string subpath=configPath.substr(0,sepPos++);
-    logI("checking config path component %s ...",subpath.c_str());
     if (stat(subpath.c_str(),&st)!=0) {
-      logI("creating config path component %s ...",subpath.c_str());
+      logI("creating config path element %s ...",subpath.c_str());
       if (mkdir(subpath.c_str(),0755)!=0) {
-        logW("could not create config path component %s! (%s)",subpath.c_str(),strerror(errno));
+        logW("could not create config path element %s! (%s)",subpath.c_str(),strerror(errno));
         configPath=".";
         return;
       }
