@@ -23,10 +23,63 @@
 #include <fmt/printf.h>
 
 #ifdef _WIN32
+#include "winStuff.h"
 #define CONFIG_FILE "\\furnace.cfg"
 #else
+#include <unistd.h>
+#include <pwd.h>
+#include <sys/stat.h>
 #define CONFIG_FILE "/furnace.cfg"
 #endif
+
+void DivEngine::initConfDir() {
+#ifdef _WIN32
+  // maybe move this function in here instead?
+  configPath=getWinConfigPath();
+#elif defined (IS_MOBILE)
+  configPath=SDL_GetPrefPath();
+#else
+  // TODO this should check XDG_CONFIG_HOME first
+  char* home=getenv("HOME");
+  if (home==NULL) {
+    int uid=getuid();
+    struct passwd* entry=getpwuid(uid);
+    if (entry==NULL) {
+      logW("unable to determine home directory (%s)!",strerror(errno));
+      configPath=".";
+      return;
+    }
+  } else {
+    configPath=home;
+  }
+#  ifdef __APPLE__
+  configPath+="/Library/Application Support/Furnace";
+#  elif defined (__HAIKU__)
+  configPath+="/config/settings/furnace";
+#  else
+  // FIXME this doesn't honour XDG_CONFIG_HOME *at all*
+  configPath+="/.config/furnace";
+#  endif
+  struct stat st;
+  std::string pathSep="/";
+  configPath+=pathSep;
+  size_t sepPos=configPath.find(pathSep,1);
+  while (sepPos!=std::string::npos) {
+    std::string subpath=configPath.substr(0,sepPos++);
+    logI("checking config path component %s ...",subpath.c_str());
+    if (stat(subpath.c_str(),&st)!=0) {
+      logI("creating config path component %s ...",subpath.c_str());
+      if (mkdir(subpath.c_str(),0755)!=0) {
+        logW("could not create config path component %s! (%s)",subpath.c_str(),strerror(errno));
+        configPath=".";
+        return;
+      }
+    }
+    sepPos=configPath.find(pathSep,sepPos);
+  }
+  configPath.resize(configPath.length()-pathSep.length());
+#endif
+}
 
 bool DivEngine::saveConf() {
   configFile=configPath+String(CONFIG_FILE);

@@ -484,6 +484,9 @@ class DivEngine {
     // returns the minimum VGM version which may carry the specified system, or 0 if none.
     int minVGMVersion(DivSystem which);
 
+    // determine & setup config dir
+    void initConfDir();
+
     // save config
     bool saveConf();
 
