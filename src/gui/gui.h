@@ -1099,6 +1099,7 @@ class FurnaceGUI {
     String audioDevice;
     String midiInDevice;
     String midiOutDevice;
+    String c163Name;
     std::vector<int> initialSys;
 
     Settings():
@@ -1201,7 +1202,8 @@ class FurnaceGUI {
       patFontPath(""),
       audioDevice(""),
       midiInDevice(""),
-      midiOutDevice("") {}
+      midiOutDevice(""),
+      c163Name("") {}
   } settings;
 
   char finalLayoutPath[4096];

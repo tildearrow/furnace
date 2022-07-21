@@ -355,6 +355,7 @@ class DivEngine {
   short vibTable[64];
   int reversePitchTable[4096];
   int pitchTable[4096];
+  char c163NameCS[1024];
   int midiBaseChan;
   bool midiPoly;
   size_t midiAgeCounter;

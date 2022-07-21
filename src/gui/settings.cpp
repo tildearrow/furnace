@@ -1156,6 +1156,12 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::Separator();
 
+          ImGui::Text("N163/C163 chip name");
+          ImGui::SameLine();
+          ImGui::InputTextWithHint("##C163Name","Namco C163",&settings.c163Name);
+
+          ImGui::Separator();
+
           bool insEditColorizeB=settings.insEditColorize;
           if (ImGui::Checkbox("Colorize instrument editor using instrument type",&insEditColorizeB)) {
             settings.insEditColorize=insEditColorizeB;
@@ -1453,7 +1459,11 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPL,"FM (OPL)");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_FDS,"FDS");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_VBOY,"Virtual Boy");
-              UI_COLOR_CONFIG(GUI_COLOR_INSTR_N163,"Namco 163");
+              // special case
+              String c163Label=fmt::sprintf("%s##CC_GUI_COLOR_INSTR_N163",settings.c163Name);
+              if (ImGui::ColorEdit4(c163Label.c_str(),(float*)&uiColors[GUI_COLOR_INSTR_N163])) {
+                applyUISettings(false);
+              }
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_SCC,"Konami SCC");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPZ,"FM (OPZ)");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_POKEY,"POKEY");
@@ -1972,6 +1982,8 @@ void FurnaceGUI::syncSettings() {
   settings.audioDevice=e->getConfString("audioDevice","");
   settings.midiInDevice=e->getConfString("midiInDevice","");
   settings.midiOutDevice=e->getConfString("midiOutDevice","");
+  // I'm sorry, but the C163 education program has failed...
+  settings.c163Name=e->getConfString("c163Name","Namco C163");
   settings.audioQuality=e->getConfInt("audioQuality",0);
   settings.audioBufSize=e->getConfInt("audioBufSize",1024);
   settings.audioRate=e->getConfInt("audioRate",44100);
@@ -2194,6 +2206,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("audioDevice",settings.audioDevice);
   e->setConf("midiInDevice",settings.midiInDevice);
   e->setConf("midiOutDevice",settings.midiOutDevice);
+  e->setConf("c163Name",settings.c163Name);
   e->setConf("audioQuality",settings.audioQuality);
   e->setConf("audioBufSize",settings.audioBufSize);
   e->setConf("audioRate",settings.audioRate);

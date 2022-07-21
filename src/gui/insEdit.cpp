@@ -3063,7 +3063,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndDisabled();
           ImGui::EndTabItem();
         }
-        if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("Namco 163")) {
+        if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem(settings.c163Name.c_str())) {
           if (ImGui::InputInt("Waveform##WAVE",&ins->n163.wave,1,10)) { PARAMETER
             if (ins->n163.wave<0) ins->n163.wave=0;
             if (ins->n163.wave>=e->song.waveLen) ins->n163.wave=e->song.waveLen-1;

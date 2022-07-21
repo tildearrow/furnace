@@ -54,7 +54,7 @@ std::vector<DivInstrumentType>& DivEngine::getPossibleInsTypes() {
   return possibleInsTypes;
 }
 
-// TODO: rewrite this function (again). it's an unreliable mess.
+// TODO: deprecate when I add "system name" field in the file.
 String DivEngine::getSongSystemName(bool isMultiSystemAcceptable) {
   switch (song.systemLen) {
     case 0:
@@ -177,7 +177,9 @@ String DivEngine::getSongSystemName(bool isMultiSystemAcceptable) {
         return "Famicom Disk System";
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_N163) {
-        return "Famicom + Namco C163";
+        String ret="Famicom + ";
+        ret+=getConfString("c163Name","Namco C163");
+        return ret;
       }
       if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_MMC5) {
         return "Famicom + MMC5";
@@ -205,7 +207,11 @@ String DivEngine::getSongSystemName(bool isMultiSystemAcceptable) {
   String ret="";
   for (int i=0; i<song.systemLen; i++) {
     if (i>0) ret+=" + ";
-    ret+=getSystemName(song.system[i]);
+    if (song.system[i]==DIV_SYSTEM_N163) {
+      ret+=getConfString("c163Name","Namco C163");
+    } else {
+      ret+=getSystemName(song.system[i]);
+    }
   }
 
   return ret;
@@ -213,6 +219,11 @@ String DivEngine::getSongSystemName(bool isMultiSystemAcceptable) {
 
 const char* DivEngine::getSystemName(DivSystem sys) {
   if (sysDefs[sys]==NULL) return "Unknown";
+  if (sys==DIV_SYSTEM_N163) {
+    String c1=getConfString("c163Name","Namco C163");
+    strncpy(c163NameCS,c1.c_str(),1023);
+    return c163NameCS;
+  }
   return sysDefs[sys]->name;
 }
 

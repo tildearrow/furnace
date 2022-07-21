@@ -53,6 +53,11 @@ the coding style is described here:
 - don't use `auto` unless needed.
 - use `String` for `std::string` (this is typedef'd in ta-utils.h).
 - prefer using operator for String (std::string) comparisons (a=="").
+- if you have to work with C strings, only use safe C string operations:
+  - snprintf
+  - strncpy
+  - strncat
+  - any other operation which specifies a limit
 
 some files (particularly the ones in `src/engine/platform/sound` and `extern/`) don't follow this style.
 
