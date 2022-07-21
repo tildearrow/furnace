@@ -958,6 +958,7 @@ class FurnaceGUI {
   int vgmExportVersion;
   int drawHalt;
   int macroPointSize;
+  int waveEditStyle;
 
   ImGuiWindowFlags globalWinFlags;
 
