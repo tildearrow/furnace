@@ -3022,7 +3022,7 @@ void FurnaceGUI::drawInsEdit() {
               /*ImGui::TableNextColumn();
               ImGui::Text("Frequency");*/
               for (int i=0; i<120; i++) {
-                DivInstrumentAmiga::SampleMap sampleMap=ins->amiga.noteMap[i];
+                DivInstrumentAmiga::SampleMap& sampleMap=ins->amiga.noteMap[i];
                 ImGui::TableNextRow();
                 ImGui::PushID(fmt::sprintf("NM_%d",i).c_str());
                 ImGui::TableNextColumn();
