@@ -2479,7 +2479,13 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
 }
 
 bool FurnaceGUI::loop() {
-  SDL_SetEventFilter(_processEvent,this);
+  bool doThreadedInput=!settings.noThreadedInput;
+  if (doThreadedInput) {
+    logD("key input: event filter");
+    SDL_SetEventFilter(_processEvent,this);
+  } else {
+    logD("key input: main thread");
+  }
 
   while (!quit) {
     SDL_Event ev;
@@ -2495,6 +2501,7 @@ bool FurnaceGUI::loop() {
       WAKE_UP;
       ImGui_ImplSDL2_ProcessEvent(&ev);
       processPoint(ev);
+      if (!doThreadedInput) processEvent(&ev);
       switch (ev.type) {
         case SDL_MOUSEMOTION: {
           int motionX=ev.motion.x;
