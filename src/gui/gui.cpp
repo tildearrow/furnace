@@ -4116,6 +4116,7 @@ bool FurnaceGUI::init() {
 
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
+  waveGenVisible=e->getConfBool("waveGenVisible",false);
   waveEditStyle=e->getConfInt("waveEditStyle",0);
   lockLayout=e->getConfBool("lockLayout",false);
 #ifdef IS_MOBILE
@@ -4360,6 +4361,7 @@ bool FurnaceGUI::finish() {
 
   e->setConf("tempoView",tempoView);
   e->setConf("waveHex",waveHex);
+  e->setConf("waveGenVisible",waveGenVisible);
   e->setConf("waveEditStyle",waveEditStyle);
   e->setConf("lockLayout",lockLayout);
   e->setConf("fullScreen",fullScreen);
@@ -4535,6 +4537,7 @@ FurnaceGUI::FurnaceGUI():
   firstFrame(true),
   tempoView(true),
   waveHex(false),
+  waveGenVisible(false),
   lockLayout(false),
   editOptsVisible(false),
   latchNibble(false),

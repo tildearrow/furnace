@@ -96,6 +96,11 @@ void FurnaceGUI::drawWaveEdit() {
           MARK_MODIFIED;
         }
 
+        ImGui::SameLine();
+        if (ImGui::Button(waveGenVisible?(ICON_FA_CHEVRON_RIGHT "##WEWaveGen"):(ICON_FA_CHEVRON_LEFT "##WEWaveGen"))) {
+          waveGenVisible=!waveGenVisible;
+        }
+
         ImGui::EndTable();
       }
 
@@ -105,31 +110,54 @@ void FurnaceGUI::drawWaveEdit() {
       }
       if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
 
-      ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
+      if (ImGui::BeginTable("WEWaveSection",waveGenVisible?2:1)) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
+        if (waveGenVisible) ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,250.0f*dpiScale);
+        ImGui::TableNextRow();
 
-      ImVec2 contentRegion=ImGui::GetContentRegionAvail(); // wavetable graph size determined here
-      contentRegion.y-=ImGui::GetFrameHeightWithSpacing()+ImGui::GetStyle().WindowPadding.y;
-      /*if (ImGui::GetContentRegionAvail().y > (ImGui::GetContentRegionAvail().x / 2.0f)) {
-        contentRegion=ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().x / 2.0f);
-      }*/
-      if (waveEditStyle) {
-        PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,0,wave->max,contentRegion);
-      } else {
-        PlotCustom("##Waveform",wavePreview,wave->len+1,0,NULL,0,wave->max,contentRegion,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,true);
+        ImGui::TableNextColumn();
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
+
+        ImVec2 contentRegion=ImGui::GetContentRegionAvail(); // wavetable graph size determined here
+        contentRegion.y-=ImGui::GetFrameHeightWithSpacing()+ImGui::GetStyle().WindowPadding.y;
+        if (waveEditStyle) {
+          PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,0,wave->max,contentRegion);
+        } else {
+          PlotCustom("##Waveform",wavePreview,wave->len,0,NULL,0,wave->max,contentRegion,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,true);
+        }
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+          waveDragStart=ImGui::GetItemRectMin();
+          waveDragAreaSize=contentRegion;
+          waveDragMin=0;
+          waveDragMax=wave->max;
+          waveDragLen=wave->len;
+          waveDragActive=true;
+          waveDragTarget=wave->data;
+          processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+          e->notifyWaveChange(curWave);
+          modified=true;
+        }
+        ImGui::PopStyleVar();
+
+        if (waveGenVisible) {
+          ImGui::TableNextColumn();
+
+          if (ImGui::BeginTabBar("WaveGenOpt")) {
+            if (ImGui::BeginTabItem("Shapes")) {
+              ImGui::Button("Square");
+              ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("FM")) {
+              ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Mangle")) {
+              ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+          }
+        }
+        ImGui::EndTable();
       }
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-        waveDragStart=ImGui::GetItemRectMin();
-        waveDragAreaSize=contentRegion;
-        waveDragMin=0;
-        waveDragMax=wave->max;
-        waveDragLen=wave->len;
-        waveDragActive=true;
-        waveDragTarget=wave->data;
-        processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
-        e->notifyWaveChange(curWave);
-        modified=true;
-      }
-      ImGui::PopStyleVar();
 
       if (ImGui::RadioButton("Dec",!waveHex)) {
         waveHex=false;
