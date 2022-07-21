@@ -3011,7 +3011,7 @@ void FurnaceGUI::drawInsEdit() {
             if (ImGui::BeginTable("NoteMap",2,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
               ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
-              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+              //ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
 
               ImGui::TableSetupScrollFreeze(0,1);
 
@@ -3022,37 +3022,38 @@ void FurnaceGUI::drawInsEdit() {
               /*ImGui::TableNextColumn();
               ImGui::Text("Frequency");*/
               for (int i=0; i<120; i++) {
+                DivInstrumentAmiga::SampleMap& sampleMap=ins->amiga.noteMap[i];
                 ImGui::TableNextRow();
                 ImGui::PushID(fmt::sprintf("NM_%d",i).c_str());
                 ImGui::TableNextColumn();
                 ImGui::Text("%s",noteNames[60+i]);
                 ImGui::TableNextColumn();
-                if (ins->amiga.noteMap[i]<0 || ins->amiga.noteMap[i]>=e->song.sampleLen) {
+                if (sampleMap.map<0 || sampleMap.map>=e->song.sampleLen) {
                   sName="-- empty --";
-                  ins->amiga.noteMap[i]=-1;
+                  sampleMap.map=-1;
                 } else {
-                  sName=e->song.sample[ins->amiga.noteMap[i]]->name;
+                  sName=e->song.sample[sampleMap.map]->name;
                 }
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 if (ImGui::BeginCombo("##SM",sName.c_str())) {
                   String id;
-                  if (ImGui::Selectable("-- empty --",ins->amiga.noteMap[i]==-1)) { PARAMETER
-                    ins->amiga.noteMap[i]=-1;
+                  if (ImGui::Selectable("-- empty --",sampleMap.map==-1)) { PARAMETER
+                    sampleMap.map=-1;
                   }
                   for (int j=0; j<e->song.sampleLen; j++) {
                     id=fmt::sprintf("%d: %s",j,e->song.sample[j]->name);
-                    if (ImGui::Selectable(id.c_str(),ins->amiga.noteMap[i]==j)) { PARAMETER
-                      ins->amiga.noteMap[i]=j;
-                      if (ins->amiga.noteFreq[i]<=0) ins->amiga.noteFreq[i]=(int)((double)e->song.sample[j]->centerRate*pow(2.0,((double)i-48.0)/12.0));
+                    if (ImGui::Selectable(id.c_str(),sampleMap.map==j)) { PARAMETER
+                      sampleMap.map=j;
+                      if (sampleMap.freq<=0) sampleMap.freq=(int)((double)e->song.sample[j]->centerRate*pow(2.0,((double)i-48.0)/12.0));
                     }
                   }
                   ImGui::EndCombo();
                 }
                 /*ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::InputInt("##SF",&ins->amiga.noteFreq[i],50,500)) { PARAMETER
-                  if (ins->amiga.noteFreq[i]<0) ins->amiga.noteFreq[i]=0;
-                  if (ins->amiga.noteFreq[i]>262144) ins->amiga.noteFreq[i]=262144;
+                if (ImGui::InputInt("##SF",&sampleMap.freq,50,500)) { PARAMETER
+                  if (sampleMap.freq<0) sampleMap.freq=0;
+                  if (sampleMap.freq>262144) sampleMap.freq=262144;
                 }*/
                 ImGui::PopID();
               }
