@@ -238,6 +238,10 @@ size | description
      |   - 0xbe: YM2612 extra features - 7 channels
      |   - 0xbf: T6W28 - 4 channels
      |   - 0xc0: PCM DAC - 1 channel
+     |   - 0xc1: YM2612 CSM - 10 channels
+     |   - 0xc2: Neo Geo CSM (YM2610) - 18 channels
+     |   - 0xc3: OPN CSM - 10 channels
+     |   - 0xc4: PC-98 CSM - 20 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfd: Dummy System - 8 channels
