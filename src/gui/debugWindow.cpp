@@ -18,6 +18,7 @@
  */
 
 #include "gui.h"
+#include "guiConst.h"
 #include "debug.h"
 #include "IconsFontAwesome4.h"
 #include <SDL_timer.h>
@@ -154,12 +155,19 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("rate: %d",sample->rate);
           ImGui::Text("centerRate: %d",sample->centerRate);
           ImGui::Text("loopStart: %d",sample->loopStart);
+          ImGui::Text("loopEnd: %d", sample->loopEnd);
           ImGui::Text("loopOffP: %d",sample->loopOffP);
-          ImGui::Text("depth: %d",sample->depth);
+          if (sampleDepths[sample->depth]!=NULL) {
+            ImGui::Text("depth: %d (%s)",(unsigned char)sample->depth,sampleDepths[sample->depth]);
+          } else {
+            ImGui::Text("depth: %d (<NULL!>)",(unsigned char)sample->depth);
+          }
+
           ImGui::Text("length8: %d",sample->length8);
           ImGui::Text("length16: %d",sample->length16);
           ImGui::Text("length1: %d",sample->length1);
           ImGui::Text("lengthDPCM: %d",sample->lengthDPCM);
+          ImGui::Text("lengthZ: %d",sample->lengthZ);
           ImGui::Text("lengthQSoundA: %d",sample->lengthQSoundA);
           ImGui::Text("lengthA: %d",sample->lengthA);
           ImGui::Text("lengthB: %d",sample->lengthB);
@@ -170,6 +178,7 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("off16: %x",sample->off16);
           ImGui::Text("off1: %x",sample->off1);
           ImGui::Text("offDPCM: %x",sample->offDPCM);
+          ImGui::Text("offZ: %x",sample->offZ);
           ImGui::Text("offQSoundA: %x",sample->offQSoundA);
           ImGui::Text("offA: %x",sample->offA);
           ImGui::Text("offB: %x",sample->offB);
@@ -179,6 +188,8 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("offQSound: %x",sample->offQSound);
           ImGui::Text("offX1_010: %x",sample->offX1_010);
           ImGui::Text("offSU: %x",sample->offSU);
+          ImGui::Text("offYMZ280B: %x",sample->offYMZ280B);
+          ImGui::Text("offRF5C68: %x",sample->offRF5C68);
 
           ImGui::Text("samples: %d",sample->samples);
           ImGui::TreePop();

@@ -116,7 +116,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   NULL
 };
 
-const char* sampleDepths[17]={
+const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "1-bit PCM",
   "1-bit DPCM",
   NULL,
