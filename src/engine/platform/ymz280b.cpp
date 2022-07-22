@@ -23,7 +23,7 @@
 #include <math.h>
 #include <map>
 
-#define CHIP_FREQBASE 98304
+#define CHIP_FREQBASE 25165824
 
 #define rWrite(a,v) {if(!skipRegisterWrites) {ymz280b.write(0,a); ymz280b.write(1,v); regPool[a]=v; if(dumpWrites) addWrite(a,v); }}
 
@@ -142,7 +142,7 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
         default: ctrl=0;
       }
       double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
-      chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE))-1;
+      chan[i].freq=(int)round(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE)/256.0)-1;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>511) chan[i].freq=511;
       // ADPCM has half the range
@@ -267,14 +267,15 @@ int DivPlatformYMZ280B::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_FREQUENCY(c.value2);
       bool return2=false;
+      int multiplier=(parent->song.linearPitch==2)?1:256;
       if (destFreq>chan[c.chan].baseFreq) {
-        chan[c.chan].baseFreq+=c.value;
+        chan[c.chan].baseFreq+=c.value*multiplier;
         if (chan[c.chan].baseFreq>=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
         }
       } else {
-        chan[c.chan].baseFreq-=c.value;
+        chan[c.chan].baseFreq-=c.value*multiplier;
         if (chan[c.chan].baseFreq<=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
