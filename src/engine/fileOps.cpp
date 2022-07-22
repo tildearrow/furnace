@@ -1619,51 +1619,67 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
 
       reader.read(magic,4);
-      if (strcmp(magic,"SMPL")!=0) {
+      if (strcmp(magic,"SMPL")!=0 && strcmp(magic,"SMP2")!=0) {
         logE("%d: invalid sample header!",i);
         lastError="invalid sample header!";
         ds.unload();
         delete[] file;
         return false;
       }
+      bool isNewSample=(strcmp(magic,"SMP2")==0);
       reader.readI();
       DivSample* sample=new DivSample;
       logD("reading sample %d at %x...",i,samplePtr[i]);
+      if (!isNewSample) logV("(old sample)");
 
       sample->name=reader.readString();
-      sample->samples=sample->loopEnd=reader.readI();
+      sample->samples=reader.readI();
+      if (!isNewSample) {
+        sample->loopEnd=sample->samples;
+      }
       sample->rate=reader.readI();
-      if (ds.version<58) {
-        vol=reader.readS();
-        pitch=reader.readS();
-      } else {
-        reader.readI();
-      }
-      sample->depth=(DivSampleDepth)reader.readC();
 
-      // reserved
-      reader.readC();
+      if (isNewSample) {
+        sample->centerRate=reader.readI();
+        sample->depth=(DivSampleDepth)reader.readC();
 
-      // while version 32 stored this value, it was unused.
-      if (ds.version>=38) {
-        sample->centerRate=(unsigned short) reader.readS();
-      } else {
-        reader.readS();
-      }
+        // reserved
+        reader.readC();
+        reader.readC();
+        reader.readC();
 
-      if (ds.version>=19) {
         sample->loopStart=reader.readI();
+        sample->loopEnd=reader.readI();
+
+        for (int i=0; i<4; i++) {
+          reader.readI();
+        }
       } else {
-        reader.readI();
+        if (ds.version<58) {
+          vol=reader.readS();
+          pitch=reader.readS();
+        } else {
+          reader.readI();
+        }
+        sample->depth=(DivSampleDepth)reader.readC();
+
+        // reserved
+        reader.readC();
+
+        // while version 32 stored this value, it was unused.
+        if (ds.version>=38) {
+          sample->centerRate=(unsigned short)reader.readS();
+        } else {
+          reader.readS();
+        }
+
+        if (ds.version>=19) {
+          sample->loopStart=reader.readI();
+        } else {
+          reader.readI();
+        }
       }
 
-/*
-      if (ds.version>=100) {
-        sample->loopEnd=reader.readI();
-      } else {
-        reader.readI();
-      }
-*/
       if (ds.version>=58) { // modern sample
         sample->init(sample->samples);
         reader.read(sample->getCurBuf(),sample->getCurBufLen());
@@ -3038,19 +3054,24 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* sample=song.sample[i];
     samplePtr.push_back(w->tell());
-    w->write("SMPL",4);
+    w->write("SMP2",4);
     blockStartSeek=w->tell();
     w->writeI(0);
 
     w->writeString(sample->name,false);
     w->writeI(sample->samples);
     w->writeI(sample->rate);
-    w->writeI(0); // reserved (for now)
+    w->writeI(sample->centerRate);
     w->writeC(sample->depth);
+    w->writeC(0); // reserved
     w->writeC(0);
-    w->writeS(sample->centerRate);
+    w->writeC(0);
     w->writeI(sample->loopStart);
-    //w->writeI(sample->loopEnd);
+    w->writeI(sample->loopEnd);
+
+    for (int i=0; i<4; i++) {
+      w->writeI(0xffffffff);
+    }
 
     w->write(sample->getCurBuf(),sample->getCurBufLen());
 

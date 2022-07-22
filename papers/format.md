@@ -816,7 +816,47 @@ size | description
  4?? | wavetable data
 ```
 
-# sample
+# sample (>=102)
+
+this is the new sample storage format used in Furnace dev102 and higher.
+
+```
+size | description
+-----|------------------------------------
+  4  | "SMP2" block ID
+  4  | size of this block
+ STR | sample name
+  4  | length
+  4  | compatibility rate
+  4  | C-4 rate
+  1  | depth
+     | - 0: ZX Spectrum overlay drum (1-bit)
+     | - 1: 1-bit NES DPCM (1-bit)
+     | - 3: YMZ ADPCM
+     | - 4: QSound ADPCM
+     | - 5: ADPCM-A
+     | - 6: ADPCM-B
+     | - 8: 8-bit PCM
+     | - 9: BRR (SNES)
+     | - 10: VOX
+     | - 16: 16-bit PCM
+  3  | reserved
+  4  | loop start
+     | - -1 means no loop
+  4  | loop end
+     | - -1 means no loop
+ 16  | sample presence bitfields
+     | - for future use.
+     | - indicates whether the sample should be present in the memory of a system.
+     | - read 4 32-bit numbers (for 4 memory banks per system, e.g. YM2610
+     |   does ADPCM-A and ADPCM-B on separate memory banks).
+ ??? | sample data
+     | - size is length
+```
+
+# old sample (<102)
+
+this format is present when saving using previous Furnace versions.
 
 ```
 size | description
@@ -825,7 +865,7 @@ size | description
   4  | size of this block
  STR | sample name
   4  | length
-  4  | rate
+  4  | compatibility rate
   2  | volume (<58) or reserved
   2  | pitch (<58) or reserved
   1  | depth
