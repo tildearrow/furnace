@@ -26,6 +26,10 @@
 #include "winStuff.h"
 #define CONFIG_FILE "\\furnace.cfg"
 #else
+#ifdef __HAIKU__
+#include <support/SupportDefs.h>
+#include <storage/FindDirectory.h>
+#endif
 #include <unistd.h>
 #include <pwd.h>
 #include <sys/stat.h>
@@ -39,6 +43,17 @@ void DivEngine::initConfDir() {
 #elif defined (IS_MOBILE)
   configPath=SDL_GetPrefPath();
 #else
+#  ifdef __HAIKU__
+  char userSettingsDir[PATH_MAX];
+  status_t findUserDir = find_directory(B_USER_SETTINGS_DIRECTORY,0,true,userSettingsDir,PATH_MAX);
+  if (findUserDir==B_OK) {
+    configPath=userSettingsDir;
+  } else {
+    logW("unable to find/create user settings directory (%s)!",strerror(findUserDir));
+    configPath=".";
+    return;
+  }
+#  else
   // TODO this should check XDG_CONFIG_HOME first
   char* home=getenv("HOME");
   if (home==NULL) {
@@ -48,17 +63,23 @@ void DivEngine::initConfDir() {
       logW("unable to determine home directory (%s)!",strerror(errno));
       configPath=".";
       return;
+    } else {
+      configPath=entry->pw_dir;
     }
   } else {
     configPath=home;
   }
-#  ifdef __APPLE__
-  configPath+="/Library/Application Support/Furnace";
-#  elif defined (__HAIKU__)
-  configPath+="/config/settings/furnace";
-#  else
+#    ifdef __APPLE__
+  configPath+="/Library/Application Support";
+#    else
   // FIXME this doesn't honour XDG_CONFIG_HOME *at all*
-  configPath+="/.config/furnace";
+  configPath+="/.config";
+#    endif
+#  endif
+#  ifdef __APPLE__
+  configPath+="/Furnace";
+#  else
+  configPath+="/furnace";
 #  endif
   struct stat st;
   std::string pathSep="/";
