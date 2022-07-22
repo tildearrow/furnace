@@ -698,10 +698,9 @@ if (PKG_CONFIG_FOUND AND (SYSTEM_FMT OR SYSTEM_LIBSNDFILE OR SYSTEM_ZLIB OR SYST
 endif()
 
 if (NOT ANDROID OR TERMUX)
-  install(TARGETS furnace RUNTIME DESTINATION bin)
-  
   if (NOT WIN32 AND NOT APPLE)
     include(GNUInstallDirs)
+    install(TARGETS furnace RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
     install(FILES res/furnace.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
     install(FILES res/furnace.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
     install(DIRECTORY papers DESTINATION ${CMAKE_INSTALL_DOCDIR})
@@ -714,8 +713,10 @@ if (NOT ANDROID OR TERMUX)
       install(FILES res/icon.iconset/icon_${res}@2x.png RENAME furnace.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/${res}@2/apps)
     endforeach()
     install(FILES res/logo.png RENAME furnace.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/1024x1024/apps)
+  else()
+    install(TARGETS furnace RUNTIME DESTINATION bin)
   endif()
-  
+
   set(CPACK_PACKAGE_NAME "Furnace")
   set(CPACK_PACKAGE_VENDOR "tildearrow")
   set(CPACK_PACKAGE_DESCRIPTION "free and open-source chiptune tracker")
