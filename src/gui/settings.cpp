@@ -252,9 +252,9 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::Separator();
           
-          ImGui::Text("Initial system/chips:");
+          ImGui::Text("Initial system:");
           ImGui::SameLine();
-          if (ImGui::Button("Current systems")) {
+          if (ImGui::Button("Current system")) {
             settings.initialSys.clear();
             for (int i=0; i<e->song.systemLen; i++) {
               settings.initialSys.push_back(e->song.system[i]);
@@ -262,6 +262,7 @@ void FurnaceGUI::drawSettings() {
               settings.initialSys.push_back(e->song.systemPan[i]);
               settings.initialSys.push_back(e->song.systemFlags[i]);
             }
+            settings.initialSysName=e->song.systemName;
           }
           ImGui::SameLine();
           if (ImGui::Button("Randomize")) {
@@ -282,6 +283,31 @@ void FurnaceGUI::drawSettings() {
               settings.initialSys.push_back(0);
               settings.initialSys.push_back(0);
             }
+            // randomize system name
+            std::vector<String> wordPool[6];
+            for (size_t i=0; i<settings.initialSys.size()/4; i++) {
+              int wpPos=0;
+              String sName=e->getSystemName((DivSystem)settings.initialSys[i*4]);
+              String nameWord;
+              sName+=" ";
+              for (char& i: sName) {
+                if (i==' ') {
+                  if (nameWord!="") {
+                    wordPool[wpPos++].push_back(nameWord);
+                    if (wpPos>=6) break;
+                    nameWord="";
+                  }
+                } else {
+                  nameWord+=i;
+                }
+              }
+            }
+            settings.initialSysName="";
+            for (int i=0; i<6; i++) {
+              if (wordPool[i].empty()) continue;
+              settings.initialSysName+=wordPool[i][rand()%wordPool[i].size()];
+              settings.initialSysName+=" ";
+            }
           }
           ImGui::SameLine();
           if (ImGui::Button("Reset to defaults")) {
@@ -294,7 +320,14 @@ void FurnaceGUI::drawSettings() {
             settings.initialSys.push_back(32);
             settings.initialSys.push_back(0);
             settings.initialSys.push_back(0);
+            settings.initialSysName="Sega Genesis/Mega Drive";
           }
+
+          ImGui::Text("Name");
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          ImGui::InputText("##InitSysName",&settings.initialSysName);
+
           for (size_t i=0; i<settings.initialSys.size(); i+=4) {
             bool doRemove=false;
             bool doInvert=settings.initialSys[i+1]&128;
@@ -2076,6 +2109,7 @@ void FurnaceGUI::syncSettings() {
   settings.dragMovesSelection=e->getConfInt("dragMovesSelection",2);
   settings.unsignedDetune=e->getConfInt("unsignedDetune",0);
   settings.noThreadedInput=e->getConfInt("noThreadedInput",0);
+  settings.initialSysName=e->getConfString("initialSysName","");
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2286,6 +2320,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("moveWindowTitle",settings.moveWindowTitle);
   e->setConf("hiddenSystems",settings.hiddenSystems);
   e->setConf("initialSys",e->encodeSysDesc(settings.initialSys));
+  e->setConf("initialSysName",settings.initialSysName);
   e->setConf("horizontalDataView",settings.horizontalDataView);
   e->setConf("noMultiSystem",settings.noMultiSystem);
   e->setConf("oldMacroVSlider",settings.oldMacroVSlider);

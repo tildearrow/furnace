@@ -1100,6 +1100,7 @@ class FurnaceGUI {
     String midiInDevice;
     String midiOutDevice;
     String c163Name;
+    String initialSysName;
     std::vector<int> initialSys;
 
     Settings():
@@ -1203,7 +1204,8 @@ class FurnaceGUI {
       audioDevice(""),
       midiInDevice(""),
       midiOutDevice(""),
-      c163Name("") {}
+      c163Name(""),
+      initialSysName("Sega Genesis/Mega Drive") {}
   } settings;
 
   char finalLayoutPath[4096];
