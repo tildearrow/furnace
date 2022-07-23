@@ -229,6 +229,8 @@ void FurnaceGUI::drawSongInfo() {
       }
       ImGui::EndTable();
     }
+
+    ImGui::TextWrapped("if this feels incomplete, go to Subsongs.\nthe outcome of this Song Information window will be determined by a poll on the Furnace Discord.");
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SONG_INFO;
   ImGui::End();
