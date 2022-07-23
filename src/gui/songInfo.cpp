@@ -64,6 +64,25 @@ void FurnaceGUI::drawSongInfo() {
       if (ImGui::InputText("##Author",&e->song.author)) {
         MARK_MODIFIED;
       }
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Album");
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      if (ImGui::InputText("##Category",&e->song.category)) {
+        MARK_MODIFIED;
+      }
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("System");
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      if (ImGui::InputText("##SystemName",&e->song.systemName)) {
+        MARK_MODIFIED;
+        updateWindowTitle();
+      }
+
       ImGui::EndTable();
     }
 
@@ -72,6 +91,7 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
       ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
 
+      /*
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("TimeBase");
@@ -193,12 +213,14 @@ void FurnaceGUI::drawSongInfo() {
           ImGui::Text("NTSC");
         }
       }
+      */
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Tuning (A-4)");
       ImGui::TableNextColumn();
       float tune=e->song.tuning;
+      float avail=ImGui::GetContentRegionAvail().x;
       ImGui::SetNextItemWidth(avail);
       if (ImGui::InputFloat("##Tuning",&tune,1.0f,3.0f,"%g")) { MARK_MODIFIED
         if (tune<220.0f) tune=220.0f;
@@ -206,33 +228,6 @@ void FurnaceGUI::drawSongInfo() {
         e->song.tuning=tune;
       }
       ImGui::EndTable();
-    }
-
-    if (ImGui::TreeNode("Additional Information")) {
-      if (ImGui::BeginTable("ExtraData",2,ImGuiTableFlags_SizingStretchProp)) {
-        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
-        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Album");
-        ImGui::TableNextColumn();
-        float avail=ImGui::GetContentRegionAvail().x;
-        ImGui::SetNextItemWidth(avail);
-        if (ImGui::InputText("##Category",&e->song.category)) {
-          MARK_MODIFIED;
-        }
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("System");
-        ImGui::TableNextColumn();
-        ImGui::SetNextItemWidth(avail);
-        if (ImGui::InputText("##SystemName",&e->song.systemName)) {
-          MARK_MODIFIED;
-          updateWindowTitle();
-        }
-        ImGui::EndTable();
-      }
-      ImGui::TreePop();
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SONG_INFO;
