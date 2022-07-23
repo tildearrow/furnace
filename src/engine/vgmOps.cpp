@@ -1920,24 +1920,20 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   WString ws;
   ws=utf8To16(song.name.c_str());
   w->writeWString(ws,false); // name
-  w->writeS(0); // japanese name
-  w->writeS(0); // game name
-  w->writeS(0); // japanese game name
-  if (song.systemLen>1) {
-    ws=L"Multiple Systems";
-  } else {
-    ws=utf8To16(getSystemName(song.system[0]));
-  }
+  ws=utf8To16(song.nameJ.c_str());
+  w->writeWString(ws,false); // japanese name
+  ws=utf8To16(song.category.c_str());
+  w->writeWString(ws,false); // game name
+  ws=utf8To16(song.categoryJ.c_str());
+  w->writeWString(ws,false); // japanese game name
+  ws=utf8To16(song.systemName.c_str());
   w->writeWString(ws,false); // system name
-  if (song.systemLen>1) {
-    ws=L"複数システム";
-  } else {
-    ws=utf8To16(getSystemNameJ(song.system[0]));
-  }
+  ws=utf8To16(song.systemNameJ.c_str());
   w->writeWString(ws,false); // japanese system name
   ws=utf8To16(song.author.c_str());
   w->writeWString(ws,false); // author name
-  w->writeS(0); // japanese author name
+  ws=utf8To16(song.authorJ.c_str());
+  w->writeWString(ws,false); // japanese author name
   w->writeS(0); // date
   w->writeWString(L"Furnace Tracker",false); // ripper
   w->writeS(0); // notes

@@ -428,7 +428,7 @@ struct DivSong {
   unsigned int systemFlags[32];
 
   // song information
-  String name, author;
+  String name, author, systemName;
 
   // legacy song information
   // those will be stored in .fur and mapped to VGM as:
@@ -438,7 +438,7 @@ struct DivSong {
   String carrier, composer, vendor, category, writer, arranger, copyright, manGroup, manInfo, createdDate, revisionDate;
 
   // more VGM specific stuff
-  String nameJ, authorJ, categoryJ;
+  String nameJ, authorJ, categoryJ, systemNameJ;
 
   // other things
   String notes;
@@ -541,6 +541,7 @@ struct DivSong {
     systemLen(2),
     name(""),
     author(""),
+    systemName(""),
     carrier(""),
     composer(""),
     vendor(""),

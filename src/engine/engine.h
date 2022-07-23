@@ -45,8 +45,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "0.6pre1 (dev102)"
-#define DIV_ENGINE_VERSION 102
+#define DIV_VERSION "dev103"
+#define DIV_ENGINE_VERSION 103
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -454,7 +454,7 @@ class DivEngine {
     String encodeSysDesc(std::vector<int>& desc);
     std::vector<int> decodeSysDesc(String desc);
     // start fresh
-    void createNew(const int* description);
+    void createNew(const int* description, String sysName);
     // load a file.
     bool load(unsigned char* f, size_t length);
     // save as .dmf.
@@ -576,7 +576,7 @@ class DivEngine {
     DivInstrumentType getPreferInsSecondType(int ch);
 
     // get song system name
-    String getSongSystemName(bool isMultiSystemAcceptable=true);
+    String getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAcceptable=true);
 
     // get sys name
     const char* getSystemName(DivSystem sys);

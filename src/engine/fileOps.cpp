@@ -907,6 +907,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.system[1]=DIV_SYSTEM_FDS;
     }
 
+    ds.systemName=getSongSystemLegacyName(ds,getConfInt("noMultiSystem",0));
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
@@ -1482,7 +1484,22 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       for (int i=0; i<numberOfSubSongs; i++) {
         subSongPtr[i]=reader.readI();
       }
+    }
 
+    // additional metadata
+    if (ds.version>=103) {
+      ds.systemName=reader.readString();
+      ds.category=reader.readString();
+      ds.nameJ=reader.readString();
+      ds.authorJ=reader.readString();
+      ds.systemNameJ=reader.readString();
+      ds.categoryJ=reader.readString();
+    } else {
+      ds.systemName=getSongSystemLegacyName(ds,getConfInt("noMultiSystem",0));
+    }
+
+    // read subsongs
+    if (ds.version>=95) {
       for (int i=0; i<numberOfSubSongs; i++) {
         ds.subsong.push_back(new DivSubSong);
         if (!reader.seek(subSongPtr[i],SEEK_SET)) {
@@ -1865,26 +1882,33 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     }
     if (memcmp(magic,"M.K.",4)==0 || memcmp(magic,"M!K!",4)==0 || memcmp(magic,"M&K!",4)==0) {
       logD("detected a ProTracker module");
+      ds.systemName="Amiga";
       chCount=4;
     } else if (memcmp(magic,"CD81",4)==0 || memcmp(magic,"OKTA",4)==0 || memcmp(magic,"OCTA",4)==0) {
       logD("detected an Oktalyzer/Octalyzer/OctaMED module");
+      ds.systemName="Amiga (8-channel)";
       chCount=8;
     } else if (memcmp(magic+1,"CHN",3)==0 && magic[0]>='1' && magic[0]<='9') {
       logD("detected a FastTracker module");
+      ds.systemName="PC";
       chCount=magic[0]-'0';
     } else if (memcmp(magic,"FLT",3)==0 && magic[3]>='1' && magic[3]<='9') {
       logD("detected a Fairlight module");
+      ds.systemName="Amiga";
       chCount=magic[3]-'0';
     } else if (memcmp(magic,"TDZ",3)==0 && magic[3]>='1' && magic[3]<='9') {
       logD("detected a TakeTracker module");
+      ds.systemName="PC";
       chCount=magic[3]-'0';
     } else if ((memcmp(magic+2,"CH",2)==0 || memcmp(magic+2,"CN",2)==0)  &&
                (magic[0]>='1' && magic[0]<='9' && magic[1]>='0' && magic[1]<='9')) {
       logD("detected a Fast/TakeTracker module");
+      ds.systemName="PC";
       chCount=((magic[0]-'0')*10)+(magic[1]-'0');
     } else {
       insCount=15;
       logD("possibly a Soundtracker module");
+      ds.systemName="Amiga";
       chCount=4;
     }
 
@@ -2975,6 +2999,14 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   for (size_t i=0; i<(song.subsong.size()-1); i++) {
     w->writeI(0);
   }
+
+  // additional metadata
+  w->writeString(song.systemName,false);
+  w->writeString(song.category,false);
+  w->writeString(song.nameJ,false);
+  w->writeString(song.authorJ,false);
+  w->writeString(song.systemNameJ,false);
+  w->writeString(song.categoryJ,false);
 
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);

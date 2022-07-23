@@ -842,7 +842,7 @@ void DivEngine::initSongWithDesc(const int* description) {
   }
 }
 
-void DivEngine::createNew(const int* description) {
+void DivEngine::createNew(const int* description, String sysName) {
   quitDispatch();
   BUSY_BEGIN;
   saveLock.lock();
@@ -851,6 +851,11 @@ void DivEngine::createNew(const int* description) {
   changeSong(0);
   if (description!=NULL) {
     initSongWithDesc(description);
+  }
+  if (sysName=="") {
+    song.systemName=getSongSystemLegacyName(song,getConfInt("noMultiSystem",0));
+  } else {
+    song.systemName=sysName;
   }
   recalcChans();
   saveLock.unlock();
@@ -3196,6 +3201,12 @@ bool DivEngine::init() {
     if (preset.size()>0 && (preset.size()&3)==0) {
       preset.push_back(0);
       initSongWithDesc(preset.data());
+    }
+    String sysName=getConfString("initialSysName","");
+    if (sysName=="") {
+      song.systemName=getSongSystemLegacyName(song,getConfInt("noMultiSystem",0));
+    } else {
+      song.systemName=sysName;
     }
     hasLoadedSomething=true;
   }

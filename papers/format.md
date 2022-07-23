@@ -32,6 +32,8 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 103: Furnace dev103
+- 102: Furnace 0.6pre1 (dev102)
 - 101: Furnace 0.6pre1 (dev101)
 - 100: Furnace 0.6pre1
 - 99: Furnace dev99
@@ -334,6 +336,13 @@ size | description
   1  | number of additional subsongs
   3  | reserved
  4?? | pointers to subsong data
+ --- | **additional metadata** (>=103)
+ STR | system name
+ STR | album/category/game name
+ STR | song name (Japanese)
+ STR | song author (Japanese)
+ STR | system name (Japanese)
+ STR | album/category/game name (Japanese)
 ```
 
 # subsong

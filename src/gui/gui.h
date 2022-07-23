@@ -1230,6 +1230,7 @@ class FurnaceGUI {
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
   const int* nextDesc;
+  String nextDescName;
 
   OperationMask opMaskDelete, opMaskPullDelete, opMaskInsert, opMaskPaste, opMaskTransposeNote, opMaskTransposeValue;
   OperationMask opMaskInterpolate, opMaskFade, opMaskInvertVal, opMaskScale;

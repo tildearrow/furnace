@@ -207,6 +207,33 @@ void FurnaceGUI::drawSongInfo() {
       }
       ImGui::EndTable();
     }
+
+    if (ImGui::TreeNode("Additional Information")) {
+      if (ImGui::BeginTable("ExtraData",2,ImGuiTableFlags_SizingStretchProp)) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Album");
+        ImGui::TableNextColumn();
+        float avail=ImGui::GetContentRegionAvail().x;
+        ImGui::SetNextItemWidth(avail);
+        if (ImGui::InputText("##Category",&e->song.category)) {
+          MARK_MODIFIED;
+        }
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("System");
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(avail);
+        if (ImGui::InputText("##SystemName",&e->song.systemName)) {
+          MARK_MODIFIED;
+          updateWindowTitle();
+        }
+        ImGui::EndTable();
+      }
+      ImGui::TreePop();
+    }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SONG_INFO;
   ImGui::End();
