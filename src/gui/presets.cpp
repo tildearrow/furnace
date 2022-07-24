@@ -1976,7 +1976,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Namco System 86", { // without expansion board case; Hopping Mappy, etc
       DIV_SYSTEM_YM2151, 64, 0, 0,
-      DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0
+      DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0,
       0
     }
   ));
