@@ -280,7 +280,11 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_LAYOUT,
   GUI_FILE_YRW801_ROM_OPEN,
   GUI_FILE_TG100_ROM_OPEN,
-  GUI_FILE_MU5_ROM_OPEN
+  GUI_FILE_MU5_ROM_OPEN,
+
+  GUI_FILE_TEST_OPEN,
+  GUI_FILE_TEST_OPEN_MULTI,
+  GUI_FILE_TEST_SAVE
 };
 
 enum FurnaceGUIWarnings {
@@ -948,7 +952,7 @@ class FurnaceGUI {
   bool updateSampleTex;
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile;
-  String workingDirSong, workingDirIns, workingDirMidi, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout, workingDirROM;
+  String workingDirSong, workingDirIns, workingDirMidi, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout, workingDirROM, workingDirTest;
   String mmlString[32];
   String mmlStringW;
 
@@ -959,6 +963,7 @@ class FurnaceGUI {
   int vgmExportVersion;
   int drawHalt;
   int macroPointSize;
+  int waveEditStyle;
 
   ImGuiWindowFlags globalWinFlags;
 
@@ -1092,12 +1097,15 @@ class FurnaceGUI {
     int blankIns;
     int dragMovesSelection;
     int unsignedDetune;
+    int noThreadedInput;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
     String audioDevice;
     String midiInDevice;
     String midiOutDevice;
+    String c163Name;
+    String initialSysName;
     std::vector<int> initialSys;
 
     Settings():
@@ -1194,12 +1202,15 @@ class FurnaceGUI {
       blankIns(0),
       dragMovesSelection(1),
       unsignedDetune(0),
+      noThreadedInput(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
       audioDevice(""),
       midiInDevice(""),
-      midiOutDevice("") {}
+      midiOutDevice(""),
+      c163Name(""),
+      initialSysName("Sega Genesis/Mega Drive") {}
   } settings;
 
   char finalLayoutPath[4096];
@@ -1220,12 +1231,13 @@ class FurnaceGUI {
 
   SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
   bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
-  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
+  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
   const int* nextDesc;
+  String nextDescName;
 
   OperationMask opMaskDelete, opMaskPullDelete, opMaskInsert, opMaskPaste, opMaskTransposeNote, opMaskTransposeValue;
   OperationMask opMaskInterpolate, opMaskFade, opMaskInvertVal, opMaskScale;

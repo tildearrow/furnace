@@ -41,7 +41,7 @@ void FurnaceGUI::drawSampleEdit() {
     } else {
       DivSample* sample=e->song.sample[curSample];
       String sampleType="Invalid";
-      if (sample->depth<17) {
+      if (sample->depth<DIV_SAMPLE_DEPTH_MAX) {
         if (sampleDepths[sample->depth]!=NULL) {
           sampleType=sampleDepths[sample->depth];
         }
@@ -61,11 +61,11 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::BeginCombo("##SampleType",sampleType.c_str())) {
-            for (int i=0; i<17; i++) {
+            for (int i=0; i<DIV_SAMPLE_DEPTH_MAX; i++) {
               if (sampleDepths[i]==NULL) continue;
               if (ImGui::Selectable(sampleDepths[i])) {
                 sample->prepareUndo(true);
-                sample->depth=i;
+                sample->depth=(DivSampleDepth)i;
                 e->renderSamplesP();
                 updateSampleTex=true;
                 MARK_MODIFIED;
@@ -93,21 +93,42 @@ void FurnaceGUI::drawSampleEdit() {
           }
 
           ImGui::TableNextColumn();
-          bool doLoop=(sample->loopStart>=0);
+          bool doLoop=(sample->isLoopable());
           if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
             if (doLoop) {
               sample->loopStart=0;
+              sample->loopEnd=sample->samples;
             } else {
               sample->loopStart=-1;
+              sample->loopEnd=sample->samples;
             }
             updateSampleTex=true;
           }
           if (doLoop) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("Loop Start");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::InputInt("##LoopPosition",&sample->loopStart,1,10)) { MARK_MODIFIED
-              if (sample->loopStart<0 || sample->loopStart>=(int)sample->samples) {
+            if (ImGui::InputInt("##LoopStartPosition",&sample->loopStart,1,10)) { MARK_MODIFIED
+              if (sample->loopStart<0) {
                 sample->loopStart=0;
+              }
+              if (sample->loopStart>sample->loopEnd) {
+                sample->loopStart=sample->loopEnd;
+              }
+              updateSampleTex=true;
+            }
+            ImGui::TableNextColumn();
+            ImGui::Text("Loop End");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::InputInt("##LoopEndPosition",&sample->loopEnd,1,10)) { MARK_MODIFIED
+              if (sample->loopEnd<sample->loopStart) {
+                sample->loopEnd=sample->loopStart;
+              }
+              if (sample->loopEnd>=(int)sample->samples) {
+                sample->loopEnd=sample->samples;
               }
               updateSampleTex=true;
             }
@@ -123,7 +144,7 @@ void FurnaceGUI::drawSampleEdit() {
         */
         ImGui::Separator();
 
-        ImGui::BeginDisabled(sample->depth!=8 && sample->depth!=16);
+        ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
 
         ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(!sampleDragMode));
         if (ImGui::Button(ICON_FA_I_CURSOR "##SSelect")) {
@@ -275,14 +296,14 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_OP_BEGIN;
               float vol=amplifyVol/100.0f;
 
-              if (sample->depth==16) {
+              if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
                 for (unsigned int i=start; i<end; i++) {
                   float val=sample->data16[i]*vol;
                   if (val<-32768) val=-32768;
                   if (val>32767) val=32767;
                   sample->data16[i]=val;
                 }
-              } else if (sample->depth==8) {
+              } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
                 for (unsigned int i=start; i<end; i++) {
                   float val=sample->data8[i]*vol;
                   if (val<-128) val=-128;
@@ -335,7 +356,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (silenceSize<0) silenceSize=0;
             if (silenceSize>16777215) silenceSize=16777215;
           }
-          if (ImGui::Button("Resize")) {
+          if (ImGui::Button("Go")) {
             int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?sample->samples:sampleSelStart;
             sample->prepareUndo(true);
             e->lockEngine([this,sample,pos]() {
@@ -466,7 +487,7 @@ void FurnaceGUI::drawSampleEdit() {
 
               double power=(sampleFilterCutStart>sampleFilterCutEnd)?0.5:2.0;
 
-              if (sample->depth==16) {
+              if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
                 for (unsigned int i=start; i<end; i++) {
                   double freq=sampleFilterCutStart+(sampleFilterCutEnd-sampleFilterCutStart)*pow(double(i-start)/double(end-start),power);
                   double cut=sin((freq/double(sample->rate))*M_PI);
@@ -482,7 +503,7 @@ void FurnaceGUI::drawSampleEdit() {
                   if (val>32767) val=32767;
                   sample->data16[i]=val;
                 }
-              } else if (sample->depth==8) {
+              } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
                 for (unsigned int i=start; i<end; i++) {
                   double freq=sampleFilterCutStart+(sampleFilterCutEnd-sampleFilterCutStart)*pow(double(i-start)/double(end-start),power);
                   double cut=sin((freq/double(sample->rate))*M_PI);
@@ -512,14 +533,14 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SameLine();
         ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
         ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSample")) {
+        if (ImGui::Button(ICON_FA_PLAY "##PreviewSample")) {
           e->previewSample(curSample);
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Preview sample");
         }
         ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_VOLUME_OFF "##StopSample")) {
+        if (ImGui::Button(ICON_FA_STOP "##StopSample")) {
           e->stopSamplePreview();
         }
         if (ImGui::IsItemHovered()) {
@@ -574,11 +595,11 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::BeginCombo("##SampleType",sampleType.c_str())) {
-            for (int i=0; i<17; i++) {
+            for (int i=0; i<DIV_SAMPLE_DEPTH_MAX; i++) {
               if (sampleDepths[i]==NULL) continue;
               if (ImGui::Selectable(sampleDepths[i])) {
                 sample->prepareUndo(true);
-                sample->depth=i;
+                sample->depth=(DivSampleDepth)i;
                 e->renderSamplesP();
                 updateSampleTex=true;
                 MARK_MODIFIED;
@@ -607,21 +628,42 @@ void FurnaceGUI::drawSampleEdit() {
           }
 
           ImGui::TableNextColumn();
-          bool doLoop=(sample->loopStart>=0);
+          bool doLoop=(sample->isLoopable());
           if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
             if (doLoop) {
               sample->loopStart=0;
+              sample->loopEnd=sample->samples;
             } else {
               sample->loopStart=-1;
+              sample->loopEnd=sample->samples;
             }
             updateSampleTex=true;
           }
           if (doLoop) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("Loop Start");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::InputInt("##LoopPosition",&sample->loopStart,1,10)) { MARK_MODIFIED
-              if (sample->loopStart<0 || sample->loopStart>=(int)sample->samples) {
+            if (ImGui::InputInt("##LoopStartPosition",&sample->loopStart,1,10)) { MARK_MODIFIED
+              if (sample->loopStart<0) {
                 sample->loopStart=0;
+              }
+              if (sample->loopStart>sample->loopEnd) {
+                sample->loopStart=sample->loopEnd;
+              }
+              updateSampleTex=true;
+            }
+            ImGui::TableNextColumn();
+            ImGui::Text("Loop End");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::InputInt("##LoopEndPosition",&sample->loopEnd,1,10)) { MARK_MODIFIED
+              if (sample->loopEnd<sample->loopStart) {
+                sample->loopEnd=sample->loopStart;
+              }
+              if (sample->loopEnd>=(int)sample->samples) {
+                sample->loopEnd=sample->samples;
               }
               updateSampleTex=true;
             }
@@ -637,7 +679,7 @@ void FurnaceGUI::drawSampleEdit() {
         */
         ImGui::Separator();
 
-        ImGui::BeginDisabled(sample->depth!=8 && sample->depth!=16);
+        ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
 
         ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(!sampleDragMode));
         if (ImGui::Button(ICON_FA_I_CURSOR "##SSelect")) {
@@ -820,7 +862,7 @@ void FurnaceGUI::drawSampleEdit() {
 
               double power=(sampleFilterCutStart>sampleFilterCutEnd)?0.5:2.0;
 
-              if (sample->depth==16) {
+              if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
                 for (unsigned int i=start; i<end; i++) {
                   double freq=sampleFilterCutStart+(sampleFilterCutEnd-sampleFilterCutStart)*pow(double(i-start)/double(end-start),power);
                   double cut=sin((freq/double(sample->rate))*M_PI);
@@ -836,7 +878,7 @@ void FurnaceGUI::drawSampleEdit() {
                   if (val>32767) val=32767;
                   sample->data16[i]=val;
                 }
-              } else if (sample->depth==8) {
+              } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
                 for (unsigned int i=start; i<end; i++) {
                   double freq=sampleFilterCutStart+(sampleFilterCutEnd-sampleFilterCutStart)*pow(double(i-start)/double(end-start),power);
                   double cut=sin((freq/double(sample->rate))*M_PI);
@@ -890,14 +932,14 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_OP_BEGIN;
               float vol=amplifyVol/100.0f;
 
-              if (sample->depth==16) {
+              if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
                 for (unsigned int i=start; i<end; i++) {
                   float val=sample->data16[i]*vol;
                   if (val<-32768) val=-32768;
                   if (val>32767) val=32767;
                   sample->data16[i]=val;
                 }
-              } else if (sample->depth==8) {
+              } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
                 for (unsigned int i=start; i<end; i++) {
                   float val=sample->data8[i]*vol;
                   if (val<-128) val=-128;
@@ -991,7 +1033,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (silenceSize<0) silenceSize=0;
             if (silenceSize>16777215) silenceSize=16777215;
           }
-          if (ImGui::Button("Resize")) {
+          if (ImGui::Button("Go")) {
             int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?sample->samples:sampleSelStart;
             sample->prepareUndo(true);
             e->lockEngine([this,sample,pos]() {
@@ -1138,7 +1180,7 @@ void FurnaceGUI::drawSampleEdit() {
             for (int i=0; i<availY; i++) {
               for (int j=0; j<availX; j++) {
                 int scaledPos=samplePos+(j*sampleZoom);
-                if (sample->loopStart>=0 && sample->loopStart<(int)sample->samples && scaledPos>=sample->loopStart) {
+                if (sample->isLoopable() && (scaledPos>=sample->loopStart && scaledPos<=sample->loopEnd)) {
                   data[i*availX+j]=bgColorLoop;
                 } else {
                   data[i*availX+j]=bgColor;
@@ -1158,7 +1200,7 @@ void FurnaceGUI::drawSampleEdit() {
               if (xCoarse>=sample->samples) break;
               int y1, y2;
               int totalAdvance=0;
-              if (sample->depth==8) {
+              if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
                 y1=((unsigned char)sample->data8[xCoarse]^0x80)*availY/256;
               } else {
                 y1=((unsigned short)sample->data16[xCoarse]^0x8000)*availY/65536;
@@ -1171,7 +1213,7 @@ void FurnaceGUI::drawSampleEdit() {
               totalAdvance+=xAdvanceCoarse;
               if (xCoarse>=sample->samples) break;
               do {
-                if (sample->depth==8) {
+                if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
                   y2=((unsigned char)sample->data8[xCoarse]^0x80)*availY/256;
                 } else {
                   y2=((unsigned short)sample->data16[xCoarse]^0x8000)*availY/65536;
@@ -1209,11 +1251,11 @@ void FurnaceGUI::drawSampleEdit() {
             sampleSelStart=0;
             sampleSelEnd=sample->samples;
           } else {
-            if (sample->samples>0 && (sample->depth==16 || sample->depth==8)) {
+            if (sample->samples>0 && (sample->depth==DIV_SAMPLE_DEPTH_16BIT || sample->depth==DIV_SAMPLE_DEPTH_8BIT)) {
               sampleDragStart=rectMin;
               sampleDragAreaSize=rectSize;
-              sampleDrag16=(sample->depth==16);
-              sampleDragTarget=(sample->depth==16)?((void*)sample->data16):((void*)sample->data8);
+              sampleDrag16=(sample->depth==DIV_SAMPLE_DEPTH_16BIT);
+              sampleDragTarget=(sample->depth==DIV_SAMPLE_DEPTH_16BIT)?((void*)sample->data16):((void*)sample->data8);
               sampleDragLen=sample->samples;
               sampleDragActive=true;
               sampleSelStart=-1;
@@ -1312,7 +1354,7 @@ void FurnaceGUI::drawSampleEdit() {
             posX=samplePos+pos.x*sampleZoom;
             if (posX>(int)sample->samples) posX=-1;
           }
-          posY=(0.5-pos.y/rectSize.y)*((sample->depth==8)?255:32767);
+          posY=(0.5-pos.y/rectSize.y)*((sample->depth==DIV_SAMPLE_DEPTH_8BIT)?255:32767);
           if (posX>=0) {
             statusBar+=fmt::sprintf(" | (%d, %d)",posX,posY);
           }
@@ -1362,7 +1404,7 @@ void FurnaceGUI::drawSampleEdit() {
           }
         }
 
-        if (sample->depth!=8 && sample->depth!=16) {
+        if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) {
           statusBar="Non-8/16-bit samples cannot be edited without prior conversion.";
         }
 

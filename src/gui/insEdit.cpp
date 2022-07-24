@@ -1416,7 +1416,7 @@ void FurnaceGUI::drawInsEdit() {
           ins->type=(DivInstrumentType)insType;
         }
         */
-        if (ImGui::BeginCombo("##Type",insTypes[insType])) {
+        if (ImGui::BeginCombo("##Type",insType==DIV_INS_N163?settings.c163Name.c_str():insTypes[insType])) {
           std::vector<DivInstrumentType> insTypeList;
           if (settings.displayAllInsTypes) {
             for (int i=0; insTypes[i]; i++) {
@@ -1426,7 +1426,7 @@ void FurnaceGUI::drawInsEdit() {
             insTypeList=e->getPossibleInsTypes();
           }
           for (DivInstrumentType i: insTypeList) {
-            if (ImGui::Selectable(insTypes[i],insType==i)) {
+            if (ImGui::Selectable(i==DIV_INS_N163?settings.c163Name.c_str():insTypes[i],insType==i)) {
               ins->type=i;
 
               // reset macro zoom
@@ -3011,7 +3011,7 @@ void FurnaceGUI::drawInsEdit() {
             if (ImGui::BeginTable("NoteMap",2,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
               ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
-              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+              //ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
 
               ImGui::TableSetupScrollFreeze(0,1);
 
@@ -3022,37 +3022,38 @@ void FurnaceGUI::drawInsEdit() {
               /*ImGui::TableNextColumn();
               ImGui::Text("Frequency");*/
               for (int i=0; i<120; i++) {
+                DivInstrumentAmiga::SampleMap& sampleMap=ins->amiga.noteMap[i];
                 ImGui::TableNextRow();
                 ImGui::PushID(fmt::sprintf("NM_%d",i).c_str());
                 ImGui::TableNextColumn();
                 ImGui::Text("%s",noteNames[60+i]);
                 ImGui::TableNextColumn();
-                if (ins->amiga.noteMap[i]<0 || ins->amiga.noteMap[i]>=e->song.sampleLen) {
+                if (sampleMap.map<0 || sampleMap.map>=e->song.sampleLen) {
                   sName="-- empty --";
-                  ins->amiga.noteMap[i]=-1;
+                  sampleMap.map=-1;
                 } else {
-                  sName=e->song.sample[ins->amiga.noteMap[i]]->name;
+                  sName=e->song.sample[sampleMap.map]->name;
                 }
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                 if (ImGui::BeginCombo("##SM",sName.c_str())) {
                   String id;
-                  if (ImGui::Selectable("-- empty --",ins->amiga.noteMap[i]==-1)) { PARAMETER
-                    ins->amiga.noteMap[i]=-1;
+                  if (ImGui::Selectable("-- empty --",sampleMap.map==-1)) { PARAMETER
+                    sampleMap.map=-1;
                   }
                   for (int j=0; j<e->song.sampleLen; j++) {
                     id=fmt::sprintf("%d: %s",j,e->song.sample[j]->name);
-                    if (ImGui::Selectable(id.c_str(),ins->amiga.noteMap[i]==j)) { PARAMETER
-                      ins->amiga.noteMap[i]=j;
-                      if (ins->amiga.noteFreq[i]<=0) ins->amiga.noteFreq[i]=(int)((double)e->song.sample[j]->centerRate*pow(2.0,((double)i-48.0)/12.0));
+                    if (ImGui::Selectable(id.c_str(),sampleMap.map==j)) { PARAMETER
+                      sampleMap.map=j;
+                      if (sampleMap.freq<=0) sampleMap.freq=(int)((double)e->song.sample[j]->centerRate*pow(2.0,((double)i-48.0)/12.0));
                     }
                   }
                   ImGui::EndCombo();
                 }
                 /*ImGui::TableNextColumn();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::InputInt("##SF",&ins->amiga.noteFreq[i],50,500)) { PARAMETER
-                  if (ins->amiga.noteFreq[i]<0) ins->amiga.noteFreq[i]=0;
-                  if (ins->amiga.noteFreq[i]>262144) ins->amiga.noteFreq[i]=262144;
+                if (ImGui::InputInt("##SF",&sampleMap.freq,50,500)) { PARAMETER
+                  if (sampleMap.freq<0) sampleMap.freq=0;
+                  if (sampleMap.freq>262144) sampleMap.freq=262144;
                 }*/
                 ImGui::PopID();
               }
@@ -3062,7 +3063,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndDisabled();
           ImGui::EndTabItem();
         }
-        if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("Namco 163")) {
+        if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem(settings.c163Name.c_str())) {
           if (ImGui::InputInt("Waveform##WAVE",&ins->n163.wave,1,10)) { PARAMETER
             if (ins->n163.wave<0) ins->n163.wave=0;
             if (ins->n163.wave>=e->song.waveLen) ins->n163.wave=e->song.waveLen-1;
@@ -3677,6 +3678,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_SU) {
             macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex3Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,suControlBits));
+            macroList.push_back(FurnaceGUIMacroDesc("Phase Reset Timer",&ins->std.ex4Macro,0,65535,160,uiColors[GUI_COLOR_MACRO_OTHER])); // again reuse code from resonance macro but use ex4 instead
           }
 
           drawMacros(macroList);

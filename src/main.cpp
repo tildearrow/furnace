@@ -49,6 +49,7 @@ FurnaceGUI g;
 String outName;
 String vgmOutName;
 int loops=1;
+int benchMode=0;
 DivAudioExportModes outMode=DIV_EXPORT_MODE_ONE;
 
 #ifdef HAVE_GUI
@@ -221,6 +222,19 @@ TAParamResult pOutMode(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pBenchmark(String val) {
+  if (val=="render") {
+    benchMode=1;
+  } else if (val=="seek") {
+    benchMode=2;
+  } else {
+    logE("invalid value for benchmark! valid values are: render and seek.");
+    return TA_PARAM_ERROR;
+  }
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return TA_PARAM_SUCCESS;
+}
+
 TAParamResult pOutput(String val) {
   outName=val;
   e.setAudio(DIV_AUDIO_DUMMY);
@@ -255,6 +269,8 @@ void initParams() {
   params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops (-1 means loop forever)"));
   params.push_back(TAParam("o","outmode",true,pOutMode,"one|persys|perchan","set file output mode"));
 
+  params.push_back(TAParam("B","benchmark",true,pBenchmark,"render|seek","run performance test"));
+
   params.push_back(TAParam("V","version",false,pVersion,"","view information about Furnace."));
   params.push_back(TAParam("W","warranty",false,pWarranty,"","view warranty disclaimer."));
 }
@@ -280,7 +296,7 @@ int main(int argc, char** argv) {
     logE("CoInitializeEx failed!");
   }
 #endif
-#if !(defined(__APPLE__) || defined(_WIN32) || defined(ANDROID))
+#if !(defined(__APPLE__) || defined(_WIN32) || defined(ANDROID) || defined(__HAIKU__))
   // workaround for Wayland HiDPI issue
   if (getenv("SDL_VIDEODRIVER")==NULL) {
     setenv("SDL_VIDEODRIVER","x11",1);
@@ -414,6 +430,15 @@ int main(int argc, char** argv) {
       logE("could not initialize engine!");
       displayEngineFailError=true;
     }
+  }
+  if (benchMode) {
+    logI("starting benchmark!");
+    if (benchMode==2) {
+      e.benchmarkSeek();
+    } else {
+      e.benchmarkPlayback();
+    }
+    return 0;
   }
   if (outName!="" || vgmOutName!="") {
     if (vgmOutName!="") {

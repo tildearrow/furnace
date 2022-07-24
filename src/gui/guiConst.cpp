@@ -116,7 +116,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   NULL
 };
 
-const char* sampleDepths[17]={
+const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "1-bit PCM",
   "1-bit DPCM",
   NULL,
@@ -491,9 +491,9 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_CHANNELS", "Channels", 0),
   D("WINDOW_REGISTER_VIEW", "Register View", 0),
   D("WINDOW_LOG", "Log Viewer", 0),
-  D("WINDOW_SUBSONGS", "Subsongs", 0),
   D("EFFECT_LIST", "Effect List", 0),
   D("WINDOW_CHAN_OSC", "Oscilloscope (per-channel)", 0),
+  D("WINDOW_SUBSONGS", "Subsongs", 0),
   D("WINDOW_FIND", "Find/Replace", FURKMOD_CMD|SDLK_f),
 
   D("COLLAPSE_WINDOW", "Collapse/expand current window", 0),
@@ -896,6 +896,7 @@ const int availableSystems[]={
   DIV_SYSTEM_MSM6258,
   DIV_SYSTEM_MSM6295,
   DIV_SYSTEM_RF5C68,
+  DIV_SYSTEM_PCM_DAC,
   0 // don't remove this last one!
 };
 

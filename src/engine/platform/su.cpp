@@ -187,6 +187,13 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
       chan[i].control=chan[i].std.ex3.val&15;
       writeControl(i);
     }
+    if (chan[i].std.ex4.had) {
+      chan[i].syncTimer=chan[i].std.ex4.val&65535;
+      chan[i].timerSync=(chan[i].syncTimer>0);
+      chWrite(i,0x1e,chan[i].syncTimer&0xff);
+      chWrite(i,0x1f,chan[i].syncTimer>>8);
+      writeControlUpper(i);
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
@@ -213,7 +220,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
           DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
           DivSample* sample=parent->getSample(ins->amiga.getSample(chan[i].note));
           if (sample!=NULL) {
-            unsigned int sampleEnd=sample->offSU+sample->samples;
+            unsigned int sampleEnd=sample->offSU+(sample->getEndPosition());
             unsigned int off=sample->offSU+chan[i].hasOffset;
             chan[i].hasOffset=0;
             if (sampleEnd>=getSampleMemCapacity(0)) sampleEnd=getSampleMemCapacity(0)-1;
@@ -221,7 +228,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
             chWrite(i,0x0b,off>>8);
             chWrite(i,0x0c,sampleEnd&0xff);
             chWrite(i,0x0d,sampleEnd>>8);
-            if (sample->loopStart>=0 && sample->loopStart<(int)sample->samples) {
+            if (sample->isLoopable()) {
               unsigned int sampleLoop=sample->offSU+sample->loopStart;
               if (sampleLoop>=getSampleMemCapacity(0)) sampleLoop=getSampleMemCapacity(0)-1;
               chWrite(i,0x0e,sampleLoop&0xff);
@@ -454,6 +461,7 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SU));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

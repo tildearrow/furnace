@@ -158,12 +158,10 @@ void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len
               WRITE_OUTPUT(i,(s->data8[chan[i].samplePos++]*chan[i].outVol)>>7);
             }
 
-            if (chan[i].samplePos>=(int)s->samples) {
-              if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
-                chan[i].samplePos=s->loopStart;
-              } else {
-                chan[i].sample=-1;
-              }
+            if (s->isLoopable() && chan[i].samplePos>=(int)s->getEndPosition()) {
+              chan[i].samplePos=s->loopStart;
+            } else if (chan[i].samplePos>=(int)s->samples) {
+              chan[i].sample=-1;
             }
           }
         }
@@ -387,6 +385,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

@@ -90,12 +90,10 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
           chWrite(i,0x04,0xdf);
           chWrite(i,0x06,(((unsigned char)s->data8[chan[i].dacPos]+0x80)>>3));
           chan[i].dacPos++;
-          if (chan[i].dacPos>=s->samples) {
-            if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
-              chan[i].dacPos=s->loopStart;
-            } else {
-              chan[i].dacSample=-1;
-            }
+          if (s->isLoopable() && chan[i].dacPos>=s->getEndPosition()) {
+            chan[i].dacPos=s->loopStart;
+          } else if (chan[i].dacPos>=s->samples) {
+            chan[i].dacSample=-1;
           }
           chan[i].dacPeriod-=rate;
         }
@@ -445,6 +443,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

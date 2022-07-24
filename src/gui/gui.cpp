@@ -552,7 +552,9 @@ void FurnaceGUI::updateWindowTitle() {
   }
 
   if (settings.titleBarSys) {
-    title+=fmt::sprintf(" (%s)",e->getSongSystemName(!settings.noMultiSystem));
+    if (e->song.systemName!="") {
+      title+=fmt::sprintf(" (%s)",e->song.systemName);
+    }
   }
 
   if (sdlWin!=NULL) SDL_SetWindowTitle(sdlWin,title.c_str());
@@ -1225,9 +1227,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Open File",
-        {"compatible files", "*.fur *.dmf *.mod",
+        {"compatible files", "*.fur *.dmf *.mod *.fc13 *.fc14 *.smod",
          "all files", ".*"},
-        "compatible files{.fur,.dmf,.mod},.*",
+        "compatible files{.fur,.dmf,.mod,.fc13,.fc14,.smod},.*",
         workingDirSong,
         dpiScale
       );
@@ -1504,6 +1506,43 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
          "all files", ".*"},
         "compatible files{.rom,.bin},.*",
         workingDirROM,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_TEST_OPEN:
+      if (!dirExists(workingDirTest)) workingDirTest=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        "Open Test",
+        {"compatible files", "*.fur *.dmf *.mod",
+         "another option", "*.wav *.ttf",
+         "all files", ".*"},
+        "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
+        workingDirTest,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_TEST_OPEN_MULTI:
+      if (!dirExists(workingDirTest)) workingDirTest=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        "Open Test (Multi)",
+        {"compatible files", "*.fur *.dmf *.mod",
+         "another option", "*.wav *.ttf",
+         "all files", ".*"},
+        "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
+        workingDirTest,
+        dpiScale,
+        NULL,
+        true
+      );
+      break;
+    case GUI_FILE_TEST_SAVE:
+      if (!dirExists(workingDirTest)) workingDirTest=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        "Save Test",
+        {"Furnace song", "*.fur",
+         "DefleMask module", "*.dmf"},
+        "Furnace song{.fur},DefleMask module{.dmf}",
+        workingDirTest,
         dpiScale
       );
       break;
@@ -2454,7 +2493,13 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
 }
 
 bool FurnaceGUI::loop() {
-  SDL_SetEventFilter(_processEvent,this);
+  bool doThreadedInput=!settings.noThreadedInput;
+  if (doThreadedInput) {
+    logD("key input: event filter");
+    SDL_SetEventFilter(_processEvent,this);
+  } else {
+    logD("key input: main thread");
+  }
 
   while (!quit) {
     SDL_Event ev;
@@ -2470,6 +2515,7 @@ bool FurnaceGUI::loop() {
       WAKE_UP;
       ImGui_ImplSDL2_ProcessEvent(&ev);
       processPoint(ev);
+      if (!doThreadedInput) processEvent(&ev);
       switch (ev.type) {
         case SDL_MOUSEMOTION: {
           int motionX=ev.motion.x;
@@ -3246,9 +3292,25 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_MU5_ROM_OPEN:
           workingDirROM=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+        case GUI_FILE_TEST_OPEN:
+        case GUI_FILE_TEST_OPEN_MULTI:
+        case GUI_FILE_TEST_SAVE:
+          workingDirTest=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          break;
+      }
+      if (fileDialog->isError()) {
+#if defined(_WIN32) || defined(__APPLE__)
+        showError("there was an error in the file dialog! you may want to report this issue to:\nhttps://github.com/tildearrow/furnace/issues\ncheck the Log Viewer (window > log viewer) for more information.\n\nfor now please disable the system file picker in Settings > General.");
+#else
+        showError("Zenity/KDialog not available!\nplease install one of these, or disable the system file picker in Settings > General.");
+#endif
       }
       if (fileDialog->accepted()) {
-        fileName=fileDialog->getFileName();
+        if (fileDialog->getFileName().empty()) {
+          fileName="";
+        } else {
+          fileName=fileDialog->getFileName()[0];
+        }
         if (fileName!="") {
           if (curFileDialog==GUI_FILE_SAVE) {
             // we can't tell whether the user chose .dmf or .fur in the system file picker
@@ -3496,6 +3558,20 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_MU5_ROM_OPEN:
               settings.mu5Path=copyOfName;
+              break;
+            case GUI_FILE_TEST_OPEN:
+              showWarning(fmt::sprintf("You opened: %s",copyOfName),GUI_WARN_GENERIC);
+              break;
+            case GUI_FILE_TEST_OPEN_MULTI: {
+              String msg="You opened:";
+              for (String i: fileDialog->getFileName()) {
+                msg+=fmt::sprintf("\n- %s",i);
+              }
+              showWarning(msg,GUI_WARN_GENERIC);
+              break;
+            }
+            case GUI_FILE_TEST_SAVE:
+              showWarning(fmt::sprintf("You saved: %s",copyOfName),GUI_WARN_GENERIC);
               break;
           }
           curFileDialog=GUI_FILE_OPEN;
@@ -4048,6 +4124,7 @@ bool FurnaceGUI::init() {
   workingDirColors=e->getConfString("lastDirColors",workingDir);
   workingDirKeybinds=e->getConfString("lastDirKeybinds",workingDir);
   workingDirLayout=e->getConfString("lastDirLayout",workingDir);
+  workingDirTest=e->getConfString("lastDirTest",workingDir);
 
   editControlsOpen=e->getConfBool("editControlsOpen",true);
   ordersOpen=e->getConfBool("ordersOpen",true);
@@ -4080,6 +4157,8 @@ bool FurnaceGUI::init() {
 
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
+  waveGenVisible=e->getConfBool("waveGenVisible",false);
+  waveEditStyle=e->getConfInt("waveEditStyle",0);
   lockLayout=e->getConfBool("lockLayout",false);
 #ifdef IS_MOBILE
   fullScreen=true;
@@ -4288,6 +4367,7 @@ bool FurnaceGUI::finish() {
   e->setConf("lastDirColors",workingDirColors);
   e->setConf("lastDirKeybinds",workingDirKeybinds);
   e->setConf("lastDirLayout",workingDirLayout);
+  e->setConf("lastDirTest",workingDirTest);
 
   // commit last open windows
   e->setConf("editControlsOpen",editControlsOpen);
@@ -4325,6 +4405,8 @@ bool FurnaceGUI::finish() {
 
   e->setConf("tempoView",tempoView);
   e->setConf("waveHex",waveHex);
+  e->setConf("waveGenVisible",waveGenVisible);
+  e->setConf("waveEditStyle",waveEditStyle);
   e->setConf("lockLayout",lockLayout);
   e->setConf("fullScreen",fullScreen);
   e->setConf("mobileUI",mobileUI);
@@ -4404,6 +4486,7 @@ FurnaceGUI::FurnaceGUI():
   vgmExportVersion(0x171),
   drawHalt(10),
   macroPointSize(16),
+  waveEditStyle(0),
   globalWinFlags(0),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
@@ -4499,6 +4582,7 @@ FurnaceGUI::FurnaceGUI():
   firstFrame(true),
   tempoView(true),
   waveHex(false),
+  waveGenVisible(false),
   lockLayout(false),
   editOptsVisible(false),
   latchNibble(false),

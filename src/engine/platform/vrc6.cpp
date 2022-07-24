@@ -77,13 +77,11 @@ void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len
             chWrite(i,0,0x80|chan[i].dacOut);
           }
           chan[i].dacPos++;
-          if (chan[i].dacPos>=s->samples) {
-            if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
-              chan[i].dacPos=s->loopStart;
-            } else {
-              chan[i].dacSample=-1;
-              chWrite(i,0,0);
-            }
+          if (s->isLoopable() && chan[i].dacPos>=s->getEndPosition()) {
+            chan[i].dacPos=s->loopStart;
+          } else if (chan[i].dacPos>=s->samples) {
+            chan[i].dacSample=-1;
+            chWrite(i,0,0);
           }
           chan[i].dacPeriod-=rate;
         }
@@ -399,6 +397,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VRC6));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

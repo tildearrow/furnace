@@ -27,15 +27,11 @@
 #include "../audio/sdlAudio.h"
 #endif
 #include <stdexcept>
-#ifndef _WIN32
-#include <unistd.h>
-#include <pwd.h>
-#include <sys/stat.h>
-#endif
 #ifdef HAVE_JACK
 #include "../audio/jack.h"
 #endif
 #include <math.h>
+#include <float.h>
 #ifdef HAVE_SNDFILE
 #include "sfWrapper.h"
 #endif
@@ -190,6 +186,63 @@ void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
   }
 }
 
+#define EXPORT_BUFSIZE 2048
+
+double DivEngine::benchmarkPlayback() {
+  float* outBuf[2];
+  outBuf[0]=new float[EXPORT_BUFSIZE];
+  outBuf[1]=new float[EXPORT_BUFSIZE];
+
+  curOrder=0;
+  prevOrder=0;
+  remainingLoops=1;
+  playSub(false);
+
+  std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
+
+  // benchmark
+  while (playing) {
+    nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
+  }
+
+  std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
+
+  delete[] outBuf[0];
+  delete[] outBuf[1];
+
+  double t=(double)(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count())/1000000.0;
+  printf("[RESULT] %fs\n",t);
+  return t;
+}
+
+double DivEngine::benchmarkSeek() {
+  double t[20];
+  curOrder=curSubSong->ordersLen-1;
+  prevOrder=curSubSong->ordersLen-1;
+
+  // benchmark
+  for (int i=0; i<20; i++) {
+    std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
+    playSub(false);     
+    std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
+    t[i]=(double)(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count())/1000000.0;
+    printf("[#%d] %fs\n",i+1,t[i]);
+  }
+
+  double tMin=DBL_MAX;
+  double tMax=0.0;
+  double tAvg=0.0;
+  for (int i=0; i<20; i++) {
+    if (t[i]<tMin) tMin=t[i];
+    if (t[i]>tMax) tMax=t[i];
+    tAvg+=t[i];
+  }
+  tAvg/=20.0;
+
+  printf("[RESULT] min %fs max %fs average %fs\n",tMin,tMax,tAvg);
+  return tAvg;
+}
+
 void _runExportThread(DivEngine* caller) {
   caller->runExportThread();
 }
@@ -197,8 +250,6 @@ void _runExportThread(DivEngine* caller) {
 bool DivEngine::isExporting() {
   return exporting;
 }
-
-#define EXPORT_BUFSIZE 2048
 
 #ifdef HAVE_SNDFILE
 void DivEngine::runExportThread() {
@@ -795,7 +846,7 @@ void DivEngine::initSongWithDesc(const int* description) {
   }
 }
 
-void DivEngine::createNew(const int* description) {
+void DivEngine::createNew(const int* description, String sysName) {
   quitDispatch();
   BUSY_BEGIN;
   saveLock.lock();
@@ -804,6 +855,11 @@ void DivEngine::createNew(const int* description) {
   changeSong(0);
   if (description!=NULL) {
     initSongWithDesc(description);
+  }
+  if (sysName=="") {
+    song.systemName=getSongSystemLegacyName(song,getConfInt("noMultiSystem",0));
+  } else {
+    song.systemName=sysName;
   }
   recalcChans();
   saveLock.unlock();
@@ -2179,7 +2235,7 @@ int DivEngine::addSampleFromFile(const char* path) {
 
       sample->rate=33144;
       sample->centerRate=33144;
-      sample->depth=1;
+      sample->depth=DIV_SAMPLE_DEPTH_1BIT_DPCM;
       sample->init(len*8);
 
       if (fread(sample->dataDPCM,1,len,f)==0) {
@@ -2254,9 +2310,9 @@ int DivEngine::addSampleFromFile(const char* path) {
 
   int index=0;
   if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
-    sample->depth=8;
+    sample->depth=DIV_SAMPLE_DEPTH_8BIT;
   } else {
-    sample->depth=16;
+    sample->depth=DIV_SAMPLE_DEPTH_16BIT;
   }
   sample->init(si.frames);
   if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
@@ -2311,6 +2367,7 @@ int DivEngine::addSampleFromFile(const char* path) {
     if(inst.loop_count && inst.loops[0].mode == SF_LOOP_FORWARD)
     {
       sample->loopStart=inst.loops[0].start;
+      sample->loopEnd=inst.loops[0].end;
       if(inst.loops[0].end < (unsigned int)sampleCount)
         sampleCount=inst.loops[0].end;
     }
@@ -2999,36 +3056,6 @@ void DivEngine::quitDispatch() {
   BUSY_END;
 }
 
-#define CHECK_CONFIG_DIR_MAC() \
-  configPath+="/Library/Application Support/Furnace"; \
-  if (stat(configPath.c_str(),&st)<0) { \
-    logI("creating config dir..."); \
-    if (mkdir(configPath.c_str(),0755)<0) { \
-      logW("could not make config dir! (%s)",strerror(errno)); \
-      configPath="."; \
-    } \
-  }
-
-#define CHECK_CONFIG_DIR() \
-  configPath+="/.config"; \
-  if (stat(configPath.c_str(),&st)<0) { \
-    logI("creating user config dir..."); \
-    if (mkdir(configPath.c_str(),0755)<0) { \
-      logW("could not make user config dir! (%s)",strerror(errno)); \
-      configPath="."; \
-    } \
-  } \
-  if (configPath!=".") { \
-    configPath+="/furnace"; \
-    if (stat(configPath.c_str(),&st)<0) { \
-      logI("creating config dir..."); \
-      if (mkdir(configPath.c_str(),0755)<0) { \
-        logW("could not make config dir! (%s)",strerror(errno)); \
-        configPath="."; \
-      } \
-    } \
-  }
-
 bool DivEngine::initAudioBackend() {
   // load values
   if (audioEngine==DIV_AUDIO_NULL) {
@@ -3153,50 +3180,17 @@ bool DivEngine::deinitAudioBackend() {
     output->quit();
     delete output;
     output=NULL;
-    audioEngine=DIV_AUDIO_NULL;
+    //audioEngine=DIV_AUDIO_NULL;
   }
   return true;
 }
 
-#ifdef _WIN32
-#include "winStuff.h"
-#endif
-
 bool DivEngine::init() {
   // register systems
   if (!systemsRegistered) registerSystems();
-  
+
   // init config
-#ifdef _WIN32
-  configPath=getWinConfigPath();
-#elif defined(IS_MOBILE)
-  configPath=SDL_GetPrefPath("tildearrow","furnace");
-#else
-  struct stat st;
-  char* home=getenv("HOME");
-  if (home==NULL) {
-    int uid=getuid();
-    struct passwd* entry=getpwuid(uid);
-    if (entry==NULL) {
-      logW("unable to determine config directory! (%s)",strerror(errno));
-      configPath=".";
-    } else {
-      configPath=entry->pw_dir;
-#ifdef __APPLE__
-      CHECK_CONFIG_DIR_MAC();
-#else
-      CHECK_CONFIG_DIR();
-#endif
-    }
-  } else {
-    configPath=home;
-#ifdef __APPLE__
-    CHECK_CONFIG_DIR_MAC();
-#else
-    CHECK_CONFIG_DIR();
-#endif
-  }
-#endif
+  initConfDir();
   logD("config path: %s",configPath.c_str());
 
   loadConf();
@@ -3211,6 +3205,12 @@ bool DivEngine::init() {
     if (preset.size()>0 && (preset.size()&3)==0) {
       preset.push_back(0);
       initSongWithDesc(preset.data());
+    }
+    String sysName=getConfString("initialSysName","");
+    if (sysName=="") {
+      song.systemName=getSongSystemLegacyName(song,getConfInt("noMultiSystem",0));
+    } else {
+      song.systemName=sysName;
     }
     hasLoadedSomething=true;
   }

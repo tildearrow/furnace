@@ -46,11 +46,12 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "0.6pre1"
-#define DIV_ENGINE_VERSION 100
+#define DIV_VERSION "dev103"
+#define DIV_ENGINE_VERSION 103
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
+#define DIV_VERSION_FC 0xff02
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -356,10 +357,14 @@ class DivEngine {
   short vibTable[64];
   int reversePitchTable[4096];
   int pitchTable[4096];
+<<<<<<< HEAD
   smf::MidiFile midiImportFile;
   String midiImportFilename;
   std::map<String, smf::MidiFile> midiImportBatchFiles;
   String midiImportBatchDir;
+=======
+  char c163NameCS[1024];
+>>>>>>> 542a46e89b4a90fe73fb1b8e9870e5347c92f3bf
   int midiBaseChan;
   bool midiPoly;
   size_t midiAgeCounter;
@@ -401,6 +406,7 @@ class DivEngine {
   bool loadFur(unsigned char* file, size_t len);
   bool loadMod(unsigned char* file, size_t len);
   bool loadFTM(unsigned char* file, size_t len);
+  bool loadFC(unsigned char* file, size_t len);
 
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
@@ -458,7 +464,7 @@ class DivEngine {
     String encodeSysDesc(std::vector<int>& desc);
     std::vector<int> decodeSysDesc(String desc);
     // start fresh
-    void createNew(const int* description);
+    void createNew(const int* description, String sysName);
     // load a file.
     bool load(unsigned char* f, size_t length);
     // save as .dmf.
@@ -482,8 +488,15 @@ class DivEngine {
     // notify wavetable change
     void notifyWaveChange(int wave);
 
+    // benchmark (returns time in seconds)
+    double benchmarkPlayback();
+    double benchmarkSeek();
+
     // returns the minimum VGM version which may carry the specified system, or 0 if none.
     int minVGMVersion(DivSystem which);
+
+    // determine and setup config dir
+    void initConfDir();
 
     // save config
     bool saveConf();
@@ -576,7 +589,7 @@ class DivEngine {
     DivInstrumentType getPreferInsSecondType(int ch);
 
     // get song system name
-    String getSongSystemName(bool isMultiSystemAcceptable=true);
+    String getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAcceptable=true);
 
     // get sys name
     const char* getSystemName(DivSystem sys);

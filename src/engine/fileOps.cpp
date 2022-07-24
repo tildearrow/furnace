@@ -28,6 +28,8 @@
 #define DIV_DMF_MAGIC ".DelekDefleMask."
 #define DIV_FUR_MAGIC "-Furnace module-"
 #define DIV_FTM_MAGIC "FamiTracker Module"
+#define DIV_FC13_MAGIC "SMOD"
+#define DIV_FC14_MAGIC "FC14"
 
 struct InflateBlock {
   unsigned char* buf;
@@ -172,6 +174,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.volMacroLinger=false;
     ds.brokenOutVol=true; // ???
     ds.e1e2StopOnSameNote=true;
+    ds.brokenPortaArp=false;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -798,17 +801,17 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         sample->rate=ymuSampleRate*400;
       }
       if (ds.version>0x15) {
-        sample->depth=reader.readC();
-        if (sample->depth!=8 && sample->depth!=16) {
+        sample->depth=(DivSampleDepth)reader.readC();
+        if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) {
           logW("%d: sample depth is wrong! (%d)",i,sample->depth);
-          sample->depth=16;
+          sample->depth=DIV_SAMPLE_DEPTH_16BIT;
         }
       } else {
         if (ds.version>0x08) {
-          sample->depth=16;
+          sample->depth=DIV_SAMPLE_DEPTH_16BIT;
         } else {
           // it appears samples were stored as ADPCM back then
-          sample->depth=3;
+          sample->depth=DIV_SAMPLE_DEPTH_YMZ_ADPCM;
         }
       }
       if (length>0) {
@@ -837,7 +840,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             if (k>=sample->samples) {
               break;
             }
-            if (sample->depth==8) {
+            if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
               float next=(float)(data[(unsigned int)j]-0x80)*mult;
               sample->data8[k++]=fmin(fmax(next,-128),127);
             } else {
@@ -905,6 +908,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.system[0]=DIV_SYSTEM_NES;
       ds.system[1]=DIV_SYSTEM_FDS;
     }
+
+    ds.systemName=getSongSystemLegacyName(ds,getConfInt("noMultiSystem",0));
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
@@ -1046,6 +1051,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
     if (ds.version<100) {
       ds.e1e2StopOnSameNote=false;
+    }
+    if (ds.version<101) {
+      ds.brokenPortaArp=true;
     }
     ds.isDMF=false;
 
@@ -1448,7 +1456,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<8; i++) {
+      if (ds.version>=101) {
+        ds.brokenPortaArp=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<7; i++) {
         reader.readC();
       }
     }
@@ -1473,7 +1486,22 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       for (int i=0; i<numberOfSubSongs; i++) {
         subSongPtr[i]=reader.readI();
       }
+    }
 
+    // additional metadata
+    if (ds.version>=103) {
+      ds.systemName=reader.readString();
+      ds.category=reader.readString();
+      ds.nameJ=reader.readString();
+      ds.authorJ=reader.readString();
+      ds.systemNameJ=reader.readString();
+      ds.categoryJ=reader.readString();
+    } else {
+      ds.systemName=getSongSystemLegacyName(ds,getConfInt("noMultiSystem",0));
+    }
+
+    // read subsongs
+    if (ds.version>=95) {
       for (int i=0; i<numberOfSubSongs; i++) {
         ds.subsong.push_back(new DivSubSong);
         if (!reader.seek(subSongPtr[i],SEEK_SET)) {
@@ -1610,42 +1638,65 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
 
       reader.read(magic,4);
-      if (strcmp(magic,"SMPL")!=0) {
+      if (strcmp(magic,"SMPL")!=0 && strcmp(magic,"SMP2")!=0) {
         logE("%d: invalid sample header!",i);
         lastError="invalid sample header!";
         ds.unload();
         delete[] file;
         return false;
       }
+      bool isNewSample=(strcmp(magic,"SMP2")==0);
       reader.readI();
       DivSample* sample=new DivSample;
       logD("reading sample %d at %x...",i,samplePtr[i]);
+      if (!isNewSample) logV("(old sample)");
 
       sample->name=reader.readString();
       sample->samples=reader.readI();
+      if (!isNewSample) {
+        sample->loopEnd=sample->samples;
+      }
       sample->rate=reader.readI();
-      if (ds.version<58) {
-        vol=reader.readS();
-        pitch=reader.readS();
-      } else {
-        reader.readI();
-      }
-      sample->depth=reader.readC();
 
-      // reserved
-      reader.readC();
+      if (isNewSample) {
+        sample->centerRate=reader.readI();
+        sample->depth=(DivSampleDepth)reader.readC();
 
-      // while version 32 stored this value, it was unused.
-      if (ds.version>=38) {
-        sample->centerRate=(unsigned short) reader.readS();
-      } else {
-        reader.readS();
-      }
+        // reserved
+        reader.readC();
+        reader.readC();
+        reader.readC();
 
-      if (ds.version>=19) {
         sample->loopStart=reader.readI();
+        sample->loopEnd=reader.readI();
+
+        for (int i=0; i<4; i++) {
+          reader.readI();
+        }
       } else {
-        reader.readI();
+        if (ds.version<58) {
+          vol=reader.readS();
+          pitch=reader.readS();
+        } else {
+          reader.readI();
+        }
+        sample->depth=(DivSampleDepth)reader.readC();
+
+        // reserved
+        reader.readC();
+
+        // while version 32 stored this value, it was unused.
+        if (ds.version>=38) {
+          sample->centerRate=(unsigned short)reader.readS();
+        } else {
+          reader.readS();
+        }
+
+        if (ds.version>=19) {
+          sample->loopStart=reader.readI();
+        } else {
+          reader.readI();
+        }
       }
 
       if (ds.version>=58) { // modern sample
@@ -1661,9 +1712,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         }
 
         // render data
-        if (sample->depth!=8 && sample->depth!=16) {
+        if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) {
           logW("%d: sample depth is wrong! (%d)",i,sample->depth);
-          sample->depth=16;
+          sample->depth=DIV_SAMPLE_DEPTH_16BIT;
         }
         sample->samples=(double)sample->samples/samplePitches[pitch];
         sample->init(sample->samples);
@@ -1674,7 +1725,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
           if (k>=sample->samples) {
             break;
           }
-          if (sample->depth==8) {
+          if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
             float next=(float)(data[(unsigned int)j]-0x80)*mult;
             sample->data8[k++]=fmin(fmax(next,-128),127);
           } else {
@@ -1833,26 +1884,33 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     }
     if (memcmp(magic,"M.K.",4)==0 || memcmp(magic,"M!K!",4)==0 || memcmp(magic,"M&K!",4)==0) {
       logD("detected a ProTracker module");
+      ds.systemName="Amiga";
       chCount=4;
     } else if (memcmp(magic,"CD81",4)==0 || memcmp(magic,"OKTA",4)==0 || memcmp(magic,"OCTA",4)==0) {
       logD("detected an Oktalyzer/Octalyzer/OctaMED module");
+      ds.systemName="Amiga (8-channel)";
       chCount=8;
     } else if (memcmp(magic+1,"CHN",3)==0 && magic[0]>='1' && magic[0]<='9') {
       logD("detected a FastTracker module");
+      ds.systemName="PC";
       chCount=magic[0]-'0';
     } else if (memcmp(magic,"FLT",3)==0 && magic[3]>='1' && magic[3]<='9') {
       logD("detected a Fairlight module");
+      ds.systemName="Amiga";
       chCount=magic[3]-'0';
     } else if (memcmp(magic,"TDZ",3)==0 && magic[3]>='1' && magic[3]<='9') {
       logD("detected a TakeTracker module");
+      ds.systemName="PC";
       chCount=magic[3]-'0';
     } else if ((memcmp(magic+2,"CH",2)==0 || memcmp(magic+2,"CN",2)==0)  &&
                (magic[0]>='1' && magic[0]<='9' && magic[1]>='0' && magic[1]<='9')) {
       logD("detected a Fast/TakeTracker module");
+      ds.systemName="PC";
       chCount=((magic[0]-'0')*10)+(magic[1]-'0');
     } else {
       insCount=15;
       logD("possibly a Soundtracker module");
+      ds.systemName="Amiga";
       chCount=4;
     }
 
@@ -1868,7 +1926,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     logD("reading samples... (%d)",insCount);
     for (int i=0; i<insCount; i++) {
       DivSample* sample=new DivSample;
-      sample->depth=8;
+      sample->depth=DIV_SAMPLE_DEPTH_8BIT;
       sample->name=reader.readString(22);
       logD("%d: %s",i+1,sample->name);
       int slen=((unsigned short)reader.readS_BE())*2;
@@ -1888,8 +1946,8 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
         loopLen=0;
       }
       if (loopLen>=2) {
-        if (loopEnd<slen) slen=loopEnd;
         sample->loopStart=loopStart;
+        sample->loopEnd=loopEnd;
       }
       sample->init(slen);
       ds.sample.push_back(sample);
@@ -2203,6 +2261,233 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
   return success;
 }
 
+bool DivEngine::loadFC(unsigned char* file, size_t len) {
+  struct InvalidHeaderException {};
+  bool success=false;
+  char magic[4]={0,0,0,0};
+  SafeReader reader=SafeReader(file,len);
+  warnings="";
+  bool isFC14=false;
+  unsigned int patPtr, freqMacroPtr, volMacroPtr, samplePtr;
+  unsigned int seqLen, patLen, freqMacroLen, volMacroLen, sampleLen;
+
+  struct FCSequence {
+    unsigned char pat[4];
+    signed char transpose[4];
+    signed char offsetIns[4];
+    unsigned char speed;
+  };
+  std::vector<FCSequence> seq;
+  struct FCPattern {
+    unsigned char note[32];
+    unsigned char val[32];
+  };
+  std::vector<FCPattern> pat;
+
+  struct FCSample {
+    unsigned short loopLen, len, loopStart;
+  } sample[10];
+
+  try {
+    DivSong ds;
+    ds.tuning=436.0;
+    ds.version=DIV_VERSION_FC;
+    ds.linearPitch=0;
+    ds.noSlidesOnFirstTick=true;
+    ds.rowResetsArpPos=true;
+    ds.ignoreJumpAtEnd=false;
+
+    // load here
+    if (!reader.seek(0,SEEK_SET)) {
+      logE("premature end of file!");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+    reader.read(magic,4);
+
+    if (memcmp(magic,DIV_FC13_MAGIC,4)==0) {
+      isFC14=false;
+    } else if (memcmp(magic,DIV_FC14_MAGIC,4)==0) {
+      isFC14=true;
+    } else {
+      logW("the magic isn't complete");
+      throw EndOfFileException(&reader,reader.tell());
+    }
+
+    ds.systemLen=1;
+    ds.system[0]=DIV_SYSTEM_DUMMY;
+    ds.systemVol[0]=64;
+    ds.systemPan[0]=0;
+    ds.systemFlags[0]=1|(80<<8); // PAL
+    ds.systemName="Amiga";
+
+    seqLen=reader.readI_BE();
+    if (seqLen%13) {
+      logW("sequence length is not multiple of 13 (%d)",seqLen);
+      //throw EndOfFileException(&reader,reader.tell());
+    }
+    patPtr=reader.readI_BE();
+    patLen=reader.readI_BE();
+    if (patLen%64) {
+      logW("pattern length is not multiple of 64 (%d)",patLen);
+      throw EndOfFileException(&reader,reader.tell());
+    }
+    freqMacroPtr=reader.readI_BE();
+    freqMacroLen=reader.readI_BE();
+    volMacroPtr=reader.readI_BE();
+    volMacroLen=reader.readI_BE();
+    samplePtr=reader.readI_BE();
+    if (isFC14) {
+      reader.readI_BE(); // wave len
+      sampleLen=0;
+    } else {
+      sampleLen=reader.readI_BE();
+    }
+
+    logD("patPtr: %d",patPtr);
+    logD("patLen: %d",patLen);
+    logD("freqMacroPtr: %d",freqMacroPtr);
+    logD("freqMacroLen: %d",freqMacroLen);
+    logD("volMacroPtr: %d",volMacroPtr);
+    logD("volMacroLen: %d",volMacroLen);
+    logD("samplePtr: %d",samplePtr);
+    logD("sampleLen: %d",sampleLen);
+
+    // sample info
+    logD("samples:");
+    for (int i=0; i<10; i++) {
+      sample[i].loopLen=reader.readS_BE();
+      sample[i].len=reader.readS_BE();
+      sample[i].loopStart=reader.readS_BE();
+
+      logD("- %d: %d (%d, %d)",i,sample[i].len,sample[i].loopStart,sample[i].loopLen);
+    }
+
+    // wavetable lengths
+    if (isFC14) for (int i=0; i<20; i++) {
+      reader.readS_BE();
+      reader.readS_BE();
+    }
+
+    // sequences
+    seqLen/=13;
+    logD("reading sequences... (%d)",seqLen);
+    for (unsigned int i=0; i<seqLen; i++) {
+      FCSequence s;
+      for (int j=0; j<4; j++) {
+        s.pat[j]=reader.readC();
+        s.transpose[j]=reader.readC();
+        s.offsetIns[j]=reader.readC();
+      }
+      s.speed=reader.readC();
+      seq.push_back(s);
+      logV(
+        "%.2x | %.2x%.2x%.2x %.2x%.2x%.2x %.2x%.2x%.2x %.2x%.2x%.2x | %.2x",
+        i,
+        s.pat[0],s.transpose[0],s.offsetIns[0],
+        s.pat[1],s.transpose[1],s.offsetIns[1],
+        s.pat[2],s.transpose[2],s.offsetIns[2],
+        s.pat[3],s.transpose[3],s.offsetIns[3],
+        s.speed
+      );
+    }
+
+    // patterns
+    if (!reader.seek(patPtr,SEEK_SET)) {
+      logE("premature end of file!");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+    patLen/=64;
+    logD("reading patterns... (%d)",patLen);
+    for (unsigned int i=0; i<patLen; i++) {
+      FCPattern p;
+      logV("- pattern %d",i);
+      for (int j=0; j<32; j++) {
+        p.note[j]=reader.readC();
+        p.val[j]=reader.readC();
+        //logV("%.2x | %.2x %.2x",j,p.note[j],p.val[j]);
+      }
+      pat.push_back(p);
+    }
+
+    // TODO: read the rest
+
+    // convert
+    ds.subsong[0]->ordersLen=seqLen;
+    ds.subsong[0]->patLen=32;
+    ds.subsong[0]->hz=50;
+    ds.subsong[0]->pal=true;
+    ds.subsong[0]->customTempo=true;
+    ds.subsong[0]->pat[3].effectCols=3;
+    ds.subsong[0]->speed1=3;
+    ds.subsong[0]->speed2=3;
+
+    for (unsigned int i=0; i<seqLen; i++) {
+      for (int j=0; j<4; j++) {
+        ds.subsong[0]->orders.ord[j][i]=i;
+        DivPattern* p=ds.subsong[0]->pat[j].getPattern(i,true);
+        if (j==3 && seq[i].speed) {
+          p->data[0][6]=0x09;
+          p->data[0][7]=seq[i].speed;
+          p->data[0][8]=0x0f;
+          p->data[0][9]=seq[i].speed;
+        }
+
+        for (int k=0; k<32; k++) {
+          FCPattern& fp=pat[seq[i].pat[j]];
+          if (fp.note[k]>0 && fp.note[k]<0x49) {
+            short note=(fp.note[k]+seq[i].transpose[j])%12;
+            short octave=2+((fp.note[k]+seq[i].transpose[j])/12);
+            if (fp.note[k]>=0x3d) octave-=6;
+            if (note==0) {
+              note=12;
+              octave--;
+            }
+            octave&=0xff;
+            p->data[k][0]=note;
+            p->data[k][1]=octave;
+            if (fp.val[k]) {
+              if (fp.val[k]&0xe0) {
+
+              } else {
+                p->data[k][2]=fp.val[k]-1;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (active) quitDispatch();
+    BUSY_BEGIN_SOFT;
+    saveLock.lock();
+    song.unload();
+    song=ds;
+    changeSong(0);
+    recalcChans();
+    saveLock.unlock();
+    BUSY_END;
+    if (active) {
+      initDispatch();
+      BUSY_BEGIN;
+      renderSamples();
+      reset();
+      BUSY_END;
+    }
+    success=true;
+  } catch (EndOfFileException& e) {
+    //logE("premature end of file!");
+    lastError="incomplete file";
+  } catch (InvalidHeaderException& e) {
+    //logE("invalid header!");
+    lastError="invalid header!";
+  }
+  return success;
+}
+
 #define CHECK_BLOCK_VERSION(x) \
   if (blockVersion>x) { \
     logE("incompatible block version %d for %s!",blockVersion,blockName); \
@@ -2436,8 +2721,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
 
               const int dpcmNotes=(blockVersion>=2)?96:72;
               for (int j=0; j<dpcmNotes; j++) {
-                ins->amiga.noteMap[j]=(short)((unsigned char)reader.readC())-1;
-                ins->amiga.noteFreq[j]=(unsigned char)reader.readC();
+                ins->amiga.noteMap[j].map=(short)((unsigned char)reader.readC())-1;
+                ins->amiga.noteMap[j].freq=(unsigned char)reader.readC();
                 if (blockVersion>=6) {
                   reader.readC(); // DMC value
                 }
@@ -2675,6 +2960,8 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     return loadFTM(file,len);
   } else if (memcmp(file,DIV_FUR_MAGIC,16)==0) {
     return loadFur(file,len);
+  } else if (memcmp(file,DIV_FC13_MAGIC,4)==0 || memcmp(file,DIV_FC14_MAGIC,4)==0) {
+    return loadFC(file,len);
   }
 
   // step 3: try loading as .mod
@@ -2922,7 +3209,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.volMacroLinger);
   w->writeC(song.brokenOutVol);
   w->writeC(song.e1e2StopOnSameNote);
-  for (int i=0; i<8; i++) {
+  w->writeC(song.brokenPortaArp);
+  for (int i=0; i<7; i++) {
     w->writeC(0);
   }
 
@@ -2942,6 +3230,14 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   for (size_t i=0; i<(song.subsong.size()-1); i++) {
     w->writeI(0);
   }
+
+  // additional metadata
+  w->writeString(song.systemName,false);
+  w->writeString(song.category,false);
+  w->writeString(song.nameJ,false);
+  w->writeString(song.authorJ,false);
+  w->writeString(song.systemNameJ,false);
+  w->writeString(song.categoryJ,false);
 
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);
@@ -3021,18 +3317,24 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* sample=song.sample[i];
     samplePtr.push_back(w->tell());
-    w->write("SMPL",4);
+    w->write("SMP2",4);
     blockStartSeek=w->tell();
     w->writeI(0);
 
     w->writeString(sample->name,false);
     w->writeI(sample->samples);
     w->writeI(sample->rate);
-    w->writeI(0); // reserved (for now)
+    w->writeI(sample->centerRate);
     w->writeC(sample->depth);
+    w->writeC(0); // reserved
     w->writeC(0);
-    w->writeS(sample->centerRate);
+    w->writeC(0);
     w->writeI(sample->loopStart);
+    w->writeI(sample->loopEnd);
+
+    for (int i=0; i<4; i++) {
+      w->writeI(0xffffffff);
+    }
 
     w->write(sample->getCurBuf(),sample->getCurBufLen());
 

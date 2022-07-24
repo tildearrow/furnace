@@ -771,7 +771,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             int end=s->offB+s->lengthB-1;
             immWrite(11,(end>>2)&0xff);
             immWrite(12,(end>>10)&0xff);
-            immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
+            immWrite(7,(s->isLoopable())?0xb0:0xa0); // start/repeat
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
               chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
@@ -807,7 +807,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           int end=s->offB+s->lengthB-1;
           immWrite(11,(end>>2)&0xff);
           immWrite(12,(end>>10)&0xff);
-          immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
+          immWrite(7,(s->isLoopable())?0xb0:0xa0); // start/repeat
           int freq=(65536.0*(double)s->rate)/(double)chipRateBase;
           immWrite(16,freq&0xff);
           immWrite(17,(freq>>8)&0xff);
@@ -1434,6 +1434,9 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       return 63;
       break;
     case DIV_CMD_PRE_PORTA:
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) {
+        chan[c.chan].baseFreq=(c.chan==adpcmChan)?(NOTE_ADPCMB(chan[c.chan].note)):(NOTE_FREQUENCY(chan[c.chan].note));
+      }
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
@@ -1539,7 +1542,7 @@ void DivPlatformOPL::reset() {
   }
   */
   if (downsample) {
-    const unsigned int downsampledRate=(unsigned int)(49716.0*(double(rate)/chipRateBase));
+    const unsigned int downsampledRate=(unsigned int)((double)rate*rate/chipRateBase);
     OPL3_Reset(&fm,downsampledRate);
   } else {
     OPL3_Reset(&fm,rate);
@@ -1669,7 +1672,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=drums?chanMapOPL2Drums:chanMapOPL2;
       outChanMap=outChanMapOPL2;
-      chipFreqBase=9440540*0.25;
+      chipFreqBase=32768*72;
       chans=9;
       melodicChans=drums?6:9;
       totalChans=drums?11:9;
@@ -1683,7 +1686,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=drums?chanMapOPL3Drums:chanMapOPL3;
       outChanMap=outChanMapOPL3;
-      chipFreqBase=9440540;
+      chipFreqBase=32768*288;
       chans=18;
       melodicChans=drums?15:18;
       totalChans=drums?20:18;
@@ -1735,9 +1738,6 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
     default:
     case 1: case 2: case 8950:
       switch (flags&0xff) {
-        case 0x00:
-          chipClock=COLOR_NTSC;
-          break;
         case 0x01:
           chipClock=COLOR_PAL*4.0/5.0;
           break;
@@ -1753,15 +1753,15 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
         case 0x05:
           chipClock=3500000.0;
           break;
+        default:
+          chipClock=COLOR_NTSC;
+          break;
       }
       rate=chipClock/72;
-      chipRateBase=double(rate);
+      chipRateBase=rate;
       break;
     case 3:
       switch (flags&0xff) {
-        case 0x00:
-          chipClock=COLOR_NTSC*4.0;
-          break;
         case 0x01:
           chipClock=COLOR_PAL*16.0/5.0;
           break;
@@ -1774,28 +1774,31 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
         case 0x04:
           chipClock=15000000.0;
           break;
+        default:
+          chipClock=COLOR_NTSC*4.0;
+          break;
       }
       rate=chipClock/288;
-      chipRateBase=double(rate);
+      chipRateBase=rate;
       break;
     case 4:
       switch (flags&0xff) {
-        case 0x02:
-          chipClock=33868800.0;
-          break;
-        case 0x00:
-          chipClock=COLOR_NTSC*8.0;
-          break;
         case 0x01:
           chipClock=COLOR_PAL*32.0/5.0;
           break;
+        case 0x02:
+          chipClock=33868800.0;
+          break;
+        default:
+          chipClock=COLOR_NTSC*8.0;
+          break;
       }
-      chipRateBase=double(chipClock)/684.0;
       rate=chipClock/768;
+      chipRateBase=chipClock/684;
       break;
     case 759:
       rate=48000;
-      chipRateBase=double(rate);
+      chipRateBase=rate;
       chipClock=rate*288;
       break;
   }

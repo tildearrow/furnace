@@ -334,6 +334,11 @@ void DivEngine::processRow(int i, bool afterDelay) {
     if (chan[i].lastIns!=pat->data[whatRow][2]) {
       chan[i].lastIns=pat->data[whatRow][2];
       insChanged=true;
+      if (song.legacyVolumeSlides && chan[i].volume==chan[i].volMax+1) {
+        logV("forcing volume");
+        chan[i].volume=chan[i].volMax;
+        dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+      }
     }
   }
   // note
@@ -1199,17 +1204,17 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
         samp_prevSample=samp_temp;
 
-        if (sPreview.pos>=s->samples || (sPreview.pEnd>=0 && (int)sPreview.pos>=sPreview.pEnd)) {
-          if (s->loopStart>=0 && s->loopStart<(int)s->samples && (int)sPreview.pos>=s->loopStart) {
+        if (sPreview.pos>=s->getEndPosition() || (sPreview.pEnd>=0 && (int)sPreview.pos>=sPreview.pEnd)) {
+          if (s->isLoopable() && (int)sPreview.pos>=s->loopStart) {
             sPreview.pos=s->loopStart;
           }
         }
       }
 
-      if (sPreview.pos>=s->samples || (sPreview.pEnd>=0 && (int)sPreview.pos>=sPreview.pEnd)) {
-        if (s->loopStart>=0 && s->loopStart<(int)s->samples && (int)sPreview.pos>=s->loopStart) {
+      if (sPreview.pos>=s->getEndPosition() || (sPreview.pEnd>=0 && (int)sPreview.pos>=sPreview.pEnd)) {
+        if (s->isLoopable() && (int)sPreview.pos>=s->loopStart) {
           sPreview.pos=s->loopStart;
-        } else {
+        } else if (sPreview.pos>=s->samples) {
           sPreview.sample=-1;
         }
       }

@@ -61,6 +61,7 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
   - SID (6581/8580) used in Commodore 64
   - Mikey used in Atari Lynx
   - ZX Spectrum beeper (SFX-like engine)
+  - Commodore PET
   - TIA used in Atari 2600
   - Game Boy
   - modern/fantasy:
@@ -234,7 +235,7 @@ yup, it's real.
 
 > where's the manual?
 
-see [papers/](papers/README.md). it's kind of incomplete, but at least the systems (sound chips) section is there.
+see [papers/](papers/doc/README.md). it's kind of incomplete, but at least the systems (sound chips) section is there.
 
 > it doesn't open under macOS!
 

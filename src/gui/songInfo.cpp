@@ -64,6 +64,25 @@ void FurnaceGUI::drawSongInfo() {
       if (ImGui::InputText("##Author",&e->song.author)) {
         MARK_MODIFIED;
       }
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Album");
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      if (ImGui::InputText("##Category",&e->song.category)) {
+        MARK_MODIFIED;
+      }
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("System");
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      if (ImGui::InputText("##SystemName",&e->song.systemName)) {
+        MARK_MODIFIED;
+        updateWindowTitle();
+      }
+
       ImGui::EndTable();
     }
 
@@ -207,6 +226,8 @@ void FurnaceGUI::drawSongInfo() {
       }
       ImGui::EndTable();
     }
+
+    ImGui::TextWrapped("if this feels incomplete, go to Subsongs.\nthe outcome of this Song Information window will be determined by a poll on the Furnace Discord.");
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SONG_INFO;
   ImGui::End();
