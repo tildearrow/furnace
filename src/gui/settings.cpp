@@ -39,6 +39,13 @@
 #define POWER_SAVE_DEFAULT 0
 #endif
 
+#ifdef __HAIKU__
+// NFD doesn't support Haiku
+#define SYS_FILE_DIALOG_DEFAULT 0
+#else
+#define SYS_FILE_DIALOG_DEFAULT 1
+#endif
+
 const char* mainFonts[]={
   "IBM Plex Sans",
   "Liberation Sans",
@@ -2062,7 +2069,7 @@ void FurnaceGUI::syncSettings() {
   settings.insFocusesPattern=e->getConfInt("insFocusesPattern",1);
   settings.stepOnInsert=e->getConfInt("stepOnInsert",0);
   settings.unifiedDataView=e->getConfInt("unifiedDataView",0);
-  settings.sysFileDialog=e->getConfInt("sysFileDialog",1);
+  settings.sysFileDialog=e->getConfInt("sysFileDialog",SYS_FILE_DIALOG_DEFAULT);
   settings.roundedWindows=e->getConfInt("roundedWindows",1);
   settings.roundedButtons=e->getConfInt("roundedButtons",1);
   settings.roundedMenus=e->getConfInt("roundedMenus",0);

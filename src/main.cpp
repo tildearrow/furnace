@@ -295,7 +295,7 @@ int main(int argc, char** argv) {
     logE("CoInitializeEx failed!");
   }
 #endif
-#if !(defined(__APPLE__) || defined(_WIN32) || defined(ANDROID))
+#if !(defined(__APPLE__) || defined(_WIN32) || defined(ANDROID) || defined(__HAIKU__))
   // workaround for Wayland HiDPI issue
   if (getenv("SDL_VIDEODRIVER")==NULL) {
     setenv("SDL_VIDEODRIVER","x11",1);
