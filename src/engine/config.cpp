@@ -43,7 +43,7 @@ void DivEngine::initConfDir() {
 #elif defined (IS_MOBILE)
   configPath=SDL_GetPrefPath();
 #else
-#  ifdef __HAIKU__
+#ifdef __HAIKU__
   char userSettingsDir[PATH_MAX];
   status_t findUserDir = find_directory(B_USER_SETTINGS_DIRECTORY,0,true,userSettingsDir,PATH_MAX);
   if (findUserDir==B_OK) {
@@ -53,7 +53,7 @@ void DivEngine::initConfDir() {
     configPath=".";
     return;
   }
-#  else
+#else
   // TODO this should check XDG_CONFIG_HOME first
   char* home=getenv("HOME");
   if (home==NULL) {
@@ -69,18 +69,18 @@ void DivEngine::initConfDir() {
   } else {
     configPath=home;
   }
-#    ifdef __APPLE__
+#ifdef __APPLE__
   configPath+="/Library/Application Support";
-#    else
+#else
   // FIXME this doesn't honour XDG_CONFIG_HOME *at all*
   configPath+="/.config";
-#    endif
-#  endif
-#  ifdef __APPLE__
+#endif // __APPLE__
+#endif // __HAIKU__
+#ifdef __APPLE__
   configPath+="/Furnace";
-#  else
+#else
   configPath+="/furnace";
-#  endif
+#endif // __APPLE__
   struct stat st;
   std::string pathSep="/";
   configPath+=pathSep;
@@ -98,7 +98,7 @@ void DivEngine::initConfDir() {
     sepPos=configPath.find(pathSep,sepPos);
   }
   configPath.resize(configPath.length()-pathSep.length());
-#endif
+#endif // _WIN32
 }
 
 bool DivEngine::saveConf() {

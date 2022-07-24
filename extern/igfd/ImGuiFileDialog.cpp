@@ -1549,7 +1549,7 @@ namespace IGFD
 					struct dirent* ent = files[i];
 					std::string where = path + std::string("/") + std::string(ent->d_name);
 					char fileType = 0;
-#  ifdef HAVE_DIRENT_TYPE
+#ifdef HAVE_DIRENT_TYPE
 					if (ent->d_type != DT_UNKNOWN)
 					{
 						switch (ent->d_type)
@@ -1580,7 +1580,7 @@ namespace IGFD
 						}
 					}
 					else
-#  endif // HAVE_DIRENT_TYPE
+#endif // HAVE_DIRENT_TYPE
 					{
 						struct stat filestat;
 						if (stat(where.c_str(), &filestat) == 0)
