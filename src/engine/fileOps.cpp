@@ -2340,6 +2340,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     samplePtr=reader.readI_BE();
     if (isFC14) {
       reader.readI_BE(); // wave len
+      sampleLen=0;
     } else {
       sampleLen=reader.readI_BE();
     }
