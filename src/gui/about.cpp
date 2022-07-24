@@ -96,6 +96,7 @@ const char* aboutLine[]={
   "-- additional feedback/fixes --",
   "fd",
   "GENATARi",
+  "host12prog",
   "plane",
   "TheEssem",
   "",
