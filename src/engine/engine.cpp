@@ -27,11 +27,6 @@
 #include "../audio/sdlAudio.h"
 #endif
 #include <stdexcept>
-#ifndef _WIN32
-#include <unistd.h>
-#include <pwd.h>
-#include <sys/stat.h>
-#endif
 #ifdef HAVE_JACK
 #include "../audio/jack.h"
 #endif
@@ -2989,36 +2984,6 @@ void DivEngine::quitDispatch() {
   BUSY_END;
 }
 
-#define CHECK_CONFIG_DIR_MAC() \
-  configPath+="/Library/Application Support/Furnace"; \
-  if (stat(configPath.c_str(),&st)<0) { \
-    logI("creating config dir..."); \
-    if (mkdir(configPath.c_str(),0755)<0) { \
-      logW("could not make config dir! (%s)",strerror(errno)); \
-      configPath="."; \
-    } \
-  }
-
-#define CHECK_CONFIG_DIR() \
-  configPath+="/.config"; \
-  if (stat(configPath.c_str(),&st)<0) { \
-    logI("creating user config dir..."); \
-    if (mkdir(configPath.c_str(),0755)<0) { \
-      logW("could not make user config dir! (%s)",strerror(errno)); \
-      configPath="."; \
-    } \
-  } \
-  if (configPath!=".") { \
-    configPath+="/furnace"; \
-    if (stat(configPath.c_str(),&st)<0) { \
-      logI("creating config dir..."); \
-      if (mkdir(configPath.c_str(),0755)<0) { \
-        logW("could not make config dir! (%s)",strerror(errno)); \
-        configPath="."; \
-      } \
-    } \
-  }
-
 bool DivEngine::initAudioBackend() {
   // load values
   if (audioEngine==DIV_AUDIO_NULL) {
@@ -3148,45 +3113,12 @@ bool DivEngine::deinitAudioBackend() {
   return true;
 }
 
-#ifdef _WIN32
-#include "winStuff.h"
-#endif
-
 bool DivEngine::init() {
   // register systems
   if (!systemsRegistered) registerSystems();
-  
+
   // init config
-#ifdef _WIN32
-  configPath=getWinConfigPath();
-#elif defined(IS_MOBILE)
-  configPath=SDL_GetPrefPath("tildearrow","furnace");
-#else
-  struct stat st;
-  char* home=getenv("HOME");
-  if (home==NULL) {
-    int uid=getuid();
-    struct passwd* entry=getpwuid(uid);
-    if (entry==NULL) {
-      logW("unable to determine config directory! (%s)",strerror(errno));
-      configPath=".";
-    } else {
-      configPath=entry->pw_dir;
-#ifdef __APPLE__
-      CHECK_CONFIG_DIR_MAC();
-#else
-      CHECK_CONFIG_DIR();
-#endif
-    }
-  } else {
-    configPath=home;
-#ifdef __APPLE__
-    CHECK_CONFIG_DIR_MAC();
-#else
-    CHECK_CONFIG_DIR();
-#endif
-  }
-#endif
+  initConfDir();
   logD("config path: %s",configPath.c_str());
 
   loadConf();
