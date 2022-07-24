@@ -465,6 +465,7 @@ src/engine/platform/scc.cpp
 src/engine/platform/ymz280b.cpp
 src/engine/platform/namcowsg.cpp
 src/engine/platform/rf5c68.cpp
+src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 )
 
