@@ -244,6 +244,7 @@ size | description
      |   - 0xc2: Neo Geo CSM (YM2610) - 18 channels
      |   - 0xc3: OPN CSM - 10 channels
      |   - 0xc4: PC-98 CSM - 20 channels
+     |   - 0xc5: YM2610B CSM - 20 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfd: Dummy System - 8 channels
