@@ -220,24 +220,34 @@ void FurnaceGUI::drawDebug() {
               ImGui::Text("Data");
 
               for (int j=0; j<e->getChannelCount(system); j++, c++) {
+                DivDispatchOscBuffer* oscBuf=e->getOscBuffer(c);
+                if (oscBuf==NULL) {
+                  ImGui::TableNextRow();
+                  // channel
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%d",j);
+                  ImGui::TableNextColumn();
+                  ImGui::Text("<NULL!>");
+                  continue;
+                }
                 ImGui::TableNextRow();
                 // channel
                 ImGui::TableNextColumn();
                 ImGui::Text("%d",j);
                 // follow
                 ImGui::TableNextColumn();
-                ImGui::Checkbox(fmt::sprintf("##%d_OSCFollow_%d",i,c).c_str(),&e->getOscBuffer(c)->follow);
+                ImGui::Checkbox(fmt::sprintf("##%d_OSCFollow_%d",i,c).c_str(),&oscBuf->follow);
                 // address
                 ImGui::TableNextColumn();
-                int needle=e->getOscBuffer(c)->follow?e->getOscBuffer(c)->needle:e->getOscBuffer(c)->followNeedle;
-                ImGui::BeginDisabled(e->getOscBuffer(c)->follow);
+                int needle=oscBuf->follow?oscBuf->needle:oscBuf->followNeedle;
+                ImGui::BeginDisabled(oscBuf->follow);
                 if (ImGui::InputInt(fmt::sprintf("##%d_OSCFollowNeedle_%d",i,c).c_str(),&needle,1,100)) {
-                  e->getOscBuffer(c)->followNeedle=MIN(MAX(needle,0),65535);
+                  oscBuf->followNeedle=MIN(MAX(needle,0),65535);
                 }
                 ImGui::EndDisabled();
                 // data
                 ImGui::TableNextColumn();
-                ImGui::Text("%d",e->getOscBuffer(c)->data[needle]);
+                ImGui::Text("%d",oscBuf->data[needle]);
               }
               ImGui::EndTable();
             }
