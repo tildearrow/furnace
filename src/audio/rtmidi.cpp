@@ -67,6 +67,7 @@ bool TAMidiInRtMidi::gather() {
     }
   } catch (RtMidiError& e) {
     logE("MIDI input error! %s",e.what());
+    closeDevice();
     return false;
   }
   return true;
