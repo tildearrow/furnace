@@ -28,6 +28,8 @@
 #define DIV_DMF_MAGIC ".DelekDefleMask."
 #define DIV_FUR_MAGIC "-Furnace module-"
 #define DIV_FTM_MAGIC "FamiTracker Module"
+#define DIV_FC13_MAGIC "SMOD"
+#define DIV_FC14_MAGIC "FC14"
 
 struct InflateBlock {
   unsigned char* buf;
@@ -2259,6 +2261,232 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
   return success;
 }
 
+bool DivEngine::loadFC(unsigned char* file, size_t len) {
+  struct InvalidHeaderException {};
+  bool success=false;
+  char magic[4]={0,0,0,0};
+  SafeReader reader=SafeReader(file,len);
+  warnings="";
+  bool isFC14=false;
+  unsigned int patPtr, freqMacroPtr, volMacroPtr, samplePtr;
+  unsigned int seqLen, patLen, freqMacroLen, volMacroLen, sampleLen;
+
+  struct FCSequence {
+    unsigned char pat[4];
+    signed char transpose[4];
+    signed char offsetIns[4];
+    unsigned char speed;
+  };
+  std::vector<FCSequence> seq;
+  struct FCPattern {
+    unsigned char note[32];
+    unsigned char val[32];
+  };
+  std::vector<FCPattern> pat;
+
+  struct FCSample {
+    unsigned short loopLen, len, loopStart;
+  } sample[10];
+
+  try {
+    DivSong ds;
+    ds.tuning=436.0;
+    ds.version=DIV_VERSION_FC;
+    ds.linearPitch=0;
+    ds.noSlidesOnFirstTick=true;
+    ds.rowResetsArpPos=true;
+    ds.ignoreJumpAtEnd=false;
+
+    // load here
+    if (!reader.seek(0,SEEK_SET)) {
+      logE("premature end of file!");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+    reader.read(magic,4);
+
+    if (memcmp(magic,DIV_FC13_MAGIC,4)==0) {
+      isFC14=false;
+    } else if (memcmp(magic,DIV_FC14_MAGIC,4)==0) {
+      isFC14=true;
+    } else {
+      logW("the magic isn't complete");
+      throw EndOfFileException(&reader,reader.tell());
+    }
+
+    ds.systemLen=1;
+    ds.system[0]=DIV_SYSTEM_DUMMY;
+    ds.systemVol[0]=64;
+    ds.systemPan[0]=0;
+    ds.systemFlags[0]=1|(80<<8); // PAL
+    ds.systemName="Amiga";
+
+    seqLen=reader.readI_BE();
+    if (seqLen%13) {
+      logW("sequence length is not multiple of 13 (%d)",seqLen);
+      //throw EndOfFileException(&reader,reader.tell());
+    }
+    patPtr=reader.readI_BE();
+    patLen=reader.readI_BE();
+    if (patLen%64) {
+      logW("pattern length is not multiple of 64 (%d)",patLen);
+      throw EndOfFileException(&reader,reader.tell());
+    }
+    freqMacroPtr=reader.readI_BE();
+    freqMacroLen=reader.readI_BE();
+    volMacroPtr=reader.readI_BE();
+    volMacroLen=reader.readI_BE();
+    samplePtr=reader.readI_BE();
+    if (isFC14) {
+      reader.readI_BE(); // wave len
+    } else {
+      sampleLen=reader.readI_BE();
+    }
+
+    logD("patPtr: %d",patPtr);
+    logD("patLen: %d",patLen);
+    logD("freqMacroPtr: %d",freqMacroPtr);
+    logD("freqMacroLen: %d",freqMacroLen);
+    logD("volMacroPtr: %d",volMacroPtr);
+    logD("volMacroLen: %d",volMacroLen);
+    logD("samplePtr: %d",samplePtr);
+    logD("sampleLen: %d",sampleLen);
+
+    // sample info
+    logD("samples:");
+    for (int i=0; i<10; i++) {
+      sample[i].loopLen=reader.readS_BE();
+      sample[i].len=reader.readS_BE();
+      sample[i].loopStart=reader.readS_BE();
+
+      logD("- %d: %d (%d, %d)",i,sample[i].len,sample[i].loopStart,sample[i].loopLen);
+    }
+
+    // wavetable lengths
+    if (isFC14) for (int i=0; i<20; i++) {
+      reader.readS_BE();
+      reader.readS_BE();
+    }
+
+    // sequences
+    seqLen/=13;
+    logD("reading sequences... (%d)",seqLen);
+    for (unsigned int i=0; i<seqLen; i++) {
+      FCSequence s;
+      for (int j=0; j<4; j++) {
+        s.pat[j]=reader.readC();
+        s.transpose[j]=reader.readC();
+        s.offsetIns[j]=reader.readC();
+      }
+      s.speed=reader.readC();
+      seq.push_back(s);
+      logV(
+        "%.2x | %.2x%.2x%.2x %.2x%.2x%.2x %.2x%.2x%.2x %.2x%.2x%.2x | %.2x",
+        i,
+        s.pat[0],s.transpose[0],s.offsetIns[0],
+        s.pat[1],s.transpose[1],s.offsetIns[1],
+        s.pat[2],s.transpose[2],s.offsetIns[2],
+        s.pat[3],s.transpose[3],s.offsetIns[3],
+        s.speed
+      );
+    }
+
+    // patterns
+    if (!reader.seek(patPtr,SEEK_SET)) {
+      logE("premature end of file!");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+    patLen/=64;
+    logD("reading patterns... (%d)",patLen);
+    for (unsigned int i=0; i<patLen; i++) {
+      FCPattern p;
+      logV("- pattern %d",i);
+      for (int j=0; j<32; j++) {
+        p.note[j]=reader.readC();
+        p.val[j]=reader.readC();
+        //logV("%.2x | %.2x %.2x",j,p.note[j],p.val[j]);
+      }
+      pat.push_back(p);
+    }
+
+    // TODO: read the rest
+
+    // convert
+    ds.subsong[0]->ordersLen=seqLen;
+    ds.subsong[0]->patLen=32;
+    ds.subsong[0]->hz=50;
+    ds.subsong[0]->pal=true;
+    ds.subsong[0]->customTempo=true;
+    ds.subsong[0]->pat[3].effectCols=3;
+    ds.subsong[0]->speed1=3;
+    ds.subsong[0]->speed2=3;
+
+    for (unsigned int i=0; i<seqLen; i++) {
+      for (int j=0; j<4; j++) {
+        ds.subsong[0]->orders.ord[j][i]=i;
+        DivPattern* p=ds.subsong[0]->pat[j].getPattern(i,true);
+        if (j==3 && seq[i].speed) {
+          p->data[0][6]=0x09;
+          p->data[0][7]=seq[i].speed;
+          p->data[0][8]=0x0f;
+          p->data[0][9]=seq[i].speed;
+        }
+
+        for (int k=0; k<32; k++) {
+          FCPattern& fp=pat[seq[i].pat[j]];
+          if (fp.note[k]>0 && fp.note[k]<0x49) {
+            short note=(fp.note[k]+seq[i].transpose[j])%12;
+            short octave=2+((fp.note[k]+seq[i].transpose[j])/12);
+            if (fp.note[k]>=0x3d) octave-=6;
+            if (note==0) {
+              note=12;
+              octave--;
+            }
+            octave&=0xff;
+            p->data[k][0]=note;
+            p->data[k][1]=octave;
+            if (fp.val[k]) {
+              if (fp.val[k]&0xe0) {
+
+              } else {
+                p->data[k][2]=fp.val[k]-1;
+              }
+            }
+          }
+        }
+      }
+    }
+
+    if (active) quitDispatch();
+    BUSY_BEGIN_SOFT;
+    saveLock.lock();
+    song.unload();
+    song=ds;
+    changeSong(0);
+    recalcChans();
+    saveLock.unlock();
+    BUSY_END;
+    if (active) {
+      initDispatch();
+      BUSY_BEGIN;
+      renderSamples();
+      reset();
+      BUSY_END;
+    }
+    success=true;
+  } catch (EndOfFileException& e) {
+    //logE("premature end of file!");
+    lastError="incomplete file";
+  } catch (InvalidHeaderException& e) {
+    //logE("invalid header!");
+    lastError="invalid header!";
+  }
+  return success;
+}
+
 #define CHECK_BLOCK_VERSION(x) \
   if (blockVersion>x) { \
     logE("incompatible block version %d for %s!",blockVersion,blockName); \
@@ -2731,6 +2959,8 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     return loadFTM(file,len);
   } else if (memcmp(file,DIV_FUR_MAGIC,16)==0) {
     return loadFur(file,len);
+  } else if (memcmp(file,DIV_FC13_MAGIC,4)==0 || memcmp(file,DIV_FC14_MAGIC,4)==0) {
+    return loadFC(file,len);
   }
 
   // step 3: try loading as .mod

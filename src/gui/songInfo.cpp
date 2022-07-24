@@ -91,7 +91,6 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
       ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
 
-      /*
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("TimeBase");
@@ -213,14 +212,12 @@ void FurnaceGUI::drawSongInfo() {
           ImGui::Text("NTSC");
         }
       }
-      */
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Tuning (A-4)");
       ImGui::TableNextColumn();
       float tune=e->song.tuning;
-      float avail=ImGui::GetContentRegionAvail().x;
       ImGui::SetNextItemWidth(avail);
       if (ImGui::InputFloat("##Tuning",&tune,1.0f,3.0f,"%g")) { MARK_MODIFIED
         if (tune<220.0f) tune=220.0f;

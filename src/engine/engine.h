@@ -50,6 +50,7 @@
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
+#define DIV_VERSION_FC 0xff02
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -397,6 +398,7 @@ class DivEngine {
   bool loadFur(unsigned char* file, size_t len);
   bool loadMod(unsigned char* file, size_t len);
   bool loadFTM(unsigned char* file, size_t len);
+  bool loadFC(unsigned char* file, size_t len);
 
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
