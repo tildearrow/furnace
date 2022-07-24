@@ -25,6 +25,7 @@
 #include "dataErrors.h"
 #include "safeWriter.h"
 #include "../audio/taAudio.h"
+#include <MidiFile.h>
 #include "blip_buf.h"
 #include <atomic>
 #include <functional>
@@ -356,7 +357,14 @@ class DivEngine {
   short vibTable[64];
   int reversePitchTable[4096];
   int pitchTable[4096];
+<<<<<<< HEAD
+  smf::MidiFile midiImportFile;
+  String midiImportFilename;
+  std::map<String, smf::MidiFile> midiImportBatchFiles;
+  String midiImportBatchDir;
+=======
   char c163NameCS[1024];
+>>>>>>> 542a46e89b4a90fe73fb1b8e9870e5347c92f3bf
   int midiBaseChan;
   bool midiPoly;
   size_t midiAgeCounter;
@@ -876,6 +884,24 @@ class DivEngine {
     
     // switch master
     bool switchMaster();
+
+    // given a filename, load the MIDI file for use in importing
+    bool loadMidiImportFile(String filename);
+
+    // get a pointer to the MIDI file to import from
+    smf::MidiFile* getMidiImportFile();
+
+    // get the MIDI filename to import from
+    String getMidiImportFilename();
+
+    // given a directory name, load the MIDIs into a vector for use in importing
+    bool loadMidiImportBatchFiles(String dirname);
+
+    // get a map of filenames -> MIDI files to import from the batch directory
+    std::map<String, smf::MidiFile> getMidiImportBatchFiles();
+
+    // get the name of the directory to import MIDIs from in batch mode
+    String getMidiImportBatchDir();
 
     // set MIDI base channel
     void setMidiBaseChan(int chan);

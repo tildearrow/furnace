@@ -248,6 +248,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_CHAN_OSC,
   GUI_WINDOW_SUBSONGS,
   GUI_WINDOW_FIND,
+  GUI_WINDOW_MIDI_DIALOG,
   GUI_WINDOW_SPOILER
 };
 
@@ -258,6 +259,8 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_INS_OPEN,
   GUI_FILE_INS_OPEN_REPLACE,
   GUI_FILE_INS_SAVE,
+  GUI_FILE_MIDI_IMPORT,
+  GUI_FILE_MIDI_IMPORT_BATCH,
   GUI_FILE_WAVE_OPEN,
   GUI_FILE_WAVE_SAVE,
   GUI_FILE_SAMPLE_OPEN,
@@ -311,6 +314,8 @@ enum FurnaceGUIActions {
   GUI_ACTION_OPEN_BACKUP,
   GUI_ACTION_SAVE,
   GUI_ACTION_SAVE_AS,
+  GUI_ACTION_MIDI_IMPORT,
+  GUI_ACTION_MIDI_IMPORT_BATCH,
   GUI_ACTION_UNDO,
   GUI_ACTION_REDO,
   GUI_ACTION_PLAY_TOGGLE,
@@ -947,7 +952,7 @@ class FurnaceGUI {
   bool updateSampleTex;
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile;
-  String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout, workingDirROM, workingDirTest;
+  String workingDirSong, workingDirIns, workingDirMidi, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout, workingDirROM, workingDirTest;
   String mmlString[32];
   String mmlStringW;
 
@@ -1222,7 +1227,7 @@ class FurnaceGUI {
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
-  bool subSongsOpen, findOpen, spoilerOpen;
+  bool subSongsOpen, findOpen, spoilerOpen, midiDialogOpen;
 
   SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
   bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
@@ -1463,6 +1468,19 @@ class FurnaceGUI {
   bool hasACED;
   unsigned char acedData[23];
 
+  // MIDI import dialog
+  int midiImportChannel;
+  int midiImportTrack;
+  int midiImportStartMeasure;
+  int midiImportTargetChannel;
+  int midiImportPattern;
+  int midiImportSpeedMultiplier;
+  bool midiImportEnableNoteOff;
+  bool midiImportEnableVel;
+  bool midiImportEnableCC;
+  bool midiImportOmniChannel;
+  
+
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
@@ -1525,6 +1543,7 @@ class FurnaceGUI {
   void drawEffectList();
   void drawSubSongs();
   void drawFindReplace();
+  void drawMidiDialog();
   void drawSpoiler();
 
   void parseKeybinds();
@@ -1617,6 +1636,11 @@ class FurnaceGUI {
   void decodeKeyMap(std::map<int,int>& map, String source);
 
   const char* getSystemName(DivSystem which);
+
+  void midiImport(smf::MidiFile* midifile, int midiChannel, int midiTrack, int midiStartMeasure, int targetChannelIdx, int patternIdx, \
+                  int patternCount,  bool enableCC, bool enableVel, bool enableNoteOff);
+  void midiImportBatch(std::map<String, smf::MidiFile> midis);
+  void midiImportSong();
 
   public:
     void showWarning(String what, FurnaceGUIWarnings type);
