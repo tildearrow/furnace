@@ -594,7 +594,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("14.32MHz (NTSC)",(flags&255)==1)) {
         copyOfFlags=(flags&(~255))|1;
       }
-      if (ImGui::RadioButton("14.19MHz (PAL)",(flags&255)==3)) {
+      if (ImGui::RadioButton("14.19MHz (PAL)",(flags&255)==2)) {
         copyOfFlags=(flags&(~255))|2;
       }
       if (ImGui::RadioButton("16MHz",(flags&255)==3)) {
