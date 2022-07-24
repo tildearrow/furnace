@@ -46,23 +46,28 @@ String sanitizePortName(const String& name) {
 bool TAMidiInRtMidi::gather() {
   std::vector<unsigned char> msg;
   if (port==NULL) return false;
-  while (true) {
-    TAMidiMessage m;
-    double t=port->getMessage(&msg);
-    if (msg.empty()) break;
+  try {
+    while (true) {
+      TAMidiMessage m;
+      double t=port->getMessage(&msg);
+      if (msg.empty()) break;
 
-    // parse message
-    m.time=t;
-    m.type=msg[0];
-    if (m.type!=TA_MIDI_SYSEX && msg.size()>1) {
-      memcpy(m.data,msg.data()+1,MIN(msg.size()-1,7));
-    } else if (m.type==TA_MIDI_SYSEX) {
-      m.sysExData.reset(new unsigned char[msg.size()]);
-      m.sysExLen=msg.size();
-      logD("got a SysEx of length %ld!",msg.size());
-      memcpy(m.sysExData.get(),msg.data(),msg.size());
+      // parse message
+      m.time=t;
+      m.type=msg[0];
+      if (m.type!=TA_MIDI_SYSEX && msg.size()>1) {
+        memcpy(m.data,msg.data()+1,MIN(msg.size()-1,7));
+      } else if (m.type==TA_MIDI_SYSEX) {
+        m.sysExData.reset(new unsigned char[msg.size()]);
+        m.sysExLen=msg.size();
+        logD("got a SysEx of length %ld!",msg.size());
+        memcpy(m.sysExData.get(),msg.data(),msg.size());
+      }
+      queue.push(m);
     }
-    queue.push(m);
+  } catch (RtMidiError& e) {
+    logE("MIDI input error! %s",e.what());
+    return false;
   }
   return true;
 }
@@ -180,7 +185,12 @@ bool TAMidiOutRtMidi::send(const TAMidiMessage& what) {
         return false;
       }
       len=what.sysExLen;
-      port->sendMessage(what.sysExData.get(),len);
+      try {
+        port->sendMessage(what.sysExData.get(),len);
+      } catch (RtMidiError& e) {
+        logE("MIDI output error! %s",e.what());
+        return false;
+      }
       return true;
       break;
     case TA_MIDI_MTC_FRAME:
@@ -194,7 +204,12 @@ bool TAMidiOutRtMidi::send(const TAMidiMessage& what) {
       len=1;
       break;
   }
-  port->sendMessage((const unsigned char*)&what.type,len);
+  try {
+    port->sendMessage((const unsigned char*)&what.type,len);
+  } catch (RtMidiError& e) {
+    logE("MIDI output error! %s",e.what());
+    return false;
+  }
   return true;
 }
 
