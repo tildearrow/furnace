@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string>
-#ifdef HAVE_GUI
+#ifdef HAVE_SDL2
 #include "SDL_events.h"
 #endif
 #include "ta-log.h"
@@ -467,7 +467,7 @@ int main(int argc, char** argv) {
   if (consoleMode) {
     logI("playing...");
     e.play();
-#ifdef HAVE_GUI
+#ifdef HAVE_SDL2
     SDL_Event ev;
     while (true) {
       SDL_WaitEvent(&ev);
