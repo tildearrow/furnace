@@ -659,6 +659,11 @@ void FurnaceGUI::drawSettings() {
             settings.forceMono=forceMonoB;
           }
 
+          bool clampSamplesB=settings.clampSamples;
+          if (ImGui::Checkbox("Software clipping",&clampSamplesB)) {
+            settings.clampSamples=clampSamplesB;
+          }
+
           TAAudioDesc& audioWant=e->getAudioDescWant();
           TAAudioDesc& audioGot=e->getAudioDescGot();
 
@@ -2118,6 +2123,7 @@ void FurnaceGUI::syncSettings() {
   settings.unsignedDetune=e->getConfInt("unsignedDetune",0);
   settings.noThreadedInput=e->getConfInt("noThreadedInput",0);
   settings.initialSysName=e->getConfString("initialSysName","");
+  settings.clampSamples=e->getConfInt("clampSamples",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2205,6 +2211,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.dragMovesSelection,0,2);
   clampSetting(settings.unsignedDetune,0,1);
   clampSetting(settings.noThreadedInput,0,1);
+  clampSetting(settings.clampSamples,0,1);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2343,6 +2350,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("dragMovesSelection",settings.dragMovesSelection);
   e->setConf("unsignedDetune",settings.unsignedDetune);
   e->setConf("noThreadedInput",settings.noThreadedInput);
+  e->setConf("clampSamples",settings.clampSamples);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

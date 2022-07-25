@@ -2996,6 +2996,7 @@ bool DivEngine::initAudioBackend() {
 
   lowQuality=getConfInt("audioQuality",0);
   forceMono=getConfInt("forceMono",0);
+  clampSamples=getConfInt("clampSamples",0);
   lowLatency=getConfInt("lowLatency",0);
   metroVol=(float)(getConfInt("metroVol",100))/100.0f;
   if (metroVol<0.0f) metroVol=0.0f;

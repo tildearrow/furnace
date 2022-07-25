@@ -298,6 +298,7 @@ class DivEngine {
   bool stopExport;
   bool halted;
   bool forceMono;
+  bool clampSamples;
   bool cmdStreamEnabled;
   bool softLocked;
   bool firstTick;

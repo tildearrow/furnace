@@ -1094,6 +1094,7 @@ class FurnaceGUI {
     int dragMovesSelection;
     int unsignedDetune;
     int noThreadedInput;
+    int clampSamples;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1199,6 +1200,7 @@ class FurnaceGUI {
       dragMovesSelection(1),
       unsignedDetune(0),
       noThreadedInput(0),
+      clampSamples(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

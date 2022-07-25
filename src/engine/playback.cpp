@@ -1413,6 +1413,14 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       out[1][i]=out[0][i];
     }
   }
+  if (clampSamples) {
+    for (size_t i=0; i<size; i++) {
+      if (out[0][i]<-1.0) out[0][i]=-1.0;
+      if (out[0][i]>1.0) out[0][i]=1.0;
+      if (out[1][i]<-1.0) out[1][i]=-1.0;
+      if (out[1][i]>1.0) out[1][i]=1.0;
+    }
+  }
   isBusy.unlock();
 
   std::chrono::steady_clock::time_point ts_processEnd=std::chrono::steady_clock::now();
