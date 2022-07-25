@@ -39,6 +39,7 @@ const char* queryReplaceModes[GUI_QUERY_REPLACE_MAX]={
   "set",
   "add",
   "add (overflow)",
+  "scale",
   "clear"
 };
 
@@ -292,6 +293,8 @@ void FurnaceGUI::doReplace() {
             }
           }
           break;
+        case GUI_QUERY_REPLACE_SCALE:
+          break;
         case GUI_QUERY_REPLACE_CLEAR:
           p->data[i.y][0]=0;
           p->data[i.y][1]=0;
@@ -314,6 +317,13 @@ void FurnaceGUI::doReplace() {
         case GUI_QUERY_REPLACE_ADD_OVERFLOW:
           if (p->data[i.y][2]>=0) p->data[i.y][2]=(p->data[i.y][2]+queryReplaceIns)&0xff;
           break;
+        case GUI_QUERY_REPLACE_SCALE:
+          if (p->data[i.y][2]>=0) {
+            p->data[i.y][2]=(p->data[i.y][2]*queryReplaceIns)/100;
+            if (p->data[i.y][2]<0) p->data[i.y][2]=0;
+            if (p->data[i.y][2]>255) p->data[i.y][2]=255;
+          }
+          break;
         case GUI_QUERY_REPLACE_CLEAR:
           p->data[i.y][2]=-1;
           break;
@@ -334,6 +344,13 @@ void FurnaceGUI::doReplace() {
           break;
         case GUI_QUERY_REPLACE_ADD_OVERFLOW:
           if (p->data[i.y][3]>=0) p->data[i.y][3]=(p->data[i.y][3]+queryReplaceVol)&0xff;
+          break;
+        case GUI_QUERY_REPLACE_SCALE:
+          if (p->data[i.y][3]>=0) {
+            p->data[i.y][3]=(p->data[i.y][3]*queryReplaceVol)/100;
+            if (p->data[i.y][3]<0) p->data[i.y][3]=0;
+            if (p->data[i.y][3]>255) p->data[i.y][3]=255;
+          }
           break;
         case GUI_QUERY_REPLACE_CLEAR:
           p->data[i.y][3]=-1;
@@ -402,6 +419,13 @@ void FurnaceGUI::doReplace() {
           case GUI_QUERY_REPLACE_ADD_OVERFLOW:
             if (p->data[i.y][4+pos*2]>=0) p->data[i.y][4+pos*2]=(p->data[i.y][4+pos*2]+queryReplaceEffect[j])&0xff;
             break;
+          case GUI_QUERY_REPLACE_SCALE:
+            if (p->data[i.y][4+pos*2]>=0) {
+              p->data[i.y][4+pos*2]=(p->data[i.y][4+pos*2]*queryReplaceEffect[j])/100;
+              if (p->data[i.y][4+pos*2]<0) p->data[i.y][4+pos*2]=0;
+              if (p->data[i.y][4+pos*2]>255) p->data[i.y][4+pos*2]=255;
+            }
+            break;
           case GUI_QUERY_REPLACE_CLEAR:
             p->data[i.y][4+pos*2]=-1;
             break;
@@ -422,6 +446,13 @@ void FurnaceGUI::doReplace() {
             break;
           case GUI_QUERY_REPLACE_ADD_OVERFLOW:
             if (p->data[i.y][5+pos*2]>=0) p->data[i.y][5+pos*2]=(p->data[i.y][5+pos*2]+queryReplaceEffectVal[j])&0xff;
+            break;
+          case GUI_QUERY_REPLACE_SCALE:
+            if (p->data[i.y][5+pos*2]>=0) {
+              p->data[i.y][5+pos*2]=(p->data[i.y][5+pos*2]*queryReplaceEffectVal[j])/100;
+              if (p->data[i.y][5+pos*2]<0) p->data[i.y][5+pos*2]=0;
+              if (p->data[i.y][5+pos*2]>255) p->data[i.y][5+pos*2]=255;
+            }
             break;
           case GUI_QUERY_REPLACE_CLEAR:
             p->data[i.y][5+pos*2]=-1;
@@ -919,6 +950,8 @@ void FurnaceGUI::drawFindReplace() {
               if (queryReplaceNote<-180) queryReplaceNote=-180;
               if (queryReplaceNote>180) queryReplaceNote=180;
             }
+          } else if (queryReplaceNoteMode==GUI_QUERY_REPLACE_SCALE) {
+            ImGui::Text("INVALID");
           }
           ImGui::EndDisabled();
 
@@ -941,6 +974,13 @@ void FurnaceGUI::drawFindReplace() {
               if (queryReplaceIns<-255) queryReplaceIns=-255;
               if (queryReplaceIns>255) queryReplaceIns=255;
             }
+          } else if (queryReplaceInsMode==GUI_QUERY_REPLACE_SCALE) {
+            if (queryReplaceIns<0) queryReplaceIns=0;
+            if (queryReplaceIns>400) queryReplaceIns=400;
+            if (ImGui::InputInt("##IRValue",&queryReplaceIns,1,12)) {
+              if (queryReplaceIns<0) queryReplaceIns=0;
+              if (queryReplaceIns>400) queryReplaceIns=400;
+            }
           }
           ImGui::EndDisabled();
 
@@ -962,6 +1002,13 @@ void FurnaceGUI::drawFindReplace() {
             if (ImGui::InputInt("##VRValue",&queryReplaceVol,1,12)) {
               if (queryReplaceVol<-255) queryReplaceVol=-255;
               if (queryReplaceVol>255) queryReplaceVol=255;
+            }
+          } else if (queryReplaceVolMode==GUI_QUERY_REPLACE_SCALE) {
+            if (queryReplaceVol<0) queryReplaceVol=0;
+            if (queryReplaceVol>400) queryReplaceVol=400;
+            if (ImGui::InputInt("##VRValue",&queryReplaceVol,1,12)) {
+              if (queryReplaceVol<0) queryReplaceVol=0;
+              if (queryReplaceVol>400) queryReplaceVol=400;
             }
           }
           ImGui::EndDisabled();
@@ -987,6 +1034,13 @@ void FurnaceGUI::drawFindReplace() {
                 if (queryReplaceEffect[i]<-255) queryReplaceEffect[i]=-255;
                 if (queryReplaceEffect[i]>255) queryReplaceEffect[i]=255;
               }
+            } else if (queryReplaceEffectMode[i]==GUI_QUERY_REPLACE_SCALE) {
+              if (queryReplaceEffect[i]<0) queryReplaceEffect[i]=0;
+              if (queryReplaceEffect[i]>400) queryReplaceEffect[i]=400;
+              if (ImGui::InputInt("##ERValue",&queryReplaceEffect[i],1,12)) {
+                if (queryReplaceEffect[i]<0) queryReplaceEffect[i]=0;
+                if (queryReplaceEffect[i]>400) queryReplaceEffect[i]=400;
+              }
             }
             ImGui::EndDisabled();
 
@@ -1009,9 +1063,15 @@ void FurnaceGUI::drawFindReplace() {
                 if (queryReplaceEffectVal[i]<-255) queryReplaceEffectVal[i]=-255;
                 if (queryReplaceEffectVal[i]>255) queryReplaceEffectVal[i]=255;
               }
+            } else if (queryReplaceEffectValMode[i]==GUI_QUERY_REPLACE_SCALE) {
+              if (queryReplaceEffectVal[i]<0) queryReplaceEffectVal[i]=0;
+              if (queryReplaceEffectVal[i]>400) queryReplaceEffectVal[i]=400;
+              if (ImGui::InputInt("##ERValueV",&queryReplaceEffectVal[i],1,12)) {
+                if (queryReplaceEffectVal[i]<0) queryReplaceEffectVal[i]=0;
+                if (queryReplaceEffectVal[i]>400) queryReplaceEffectVal[i]=400;
+              }
             }
             ImGui::EndDisabled();
-
 
             ImGui::PopID();
           }
