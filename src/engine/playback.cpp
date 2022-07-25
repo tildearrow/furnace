@@ -201,7 +201,7 @@ const char* formatNote(unsigned char note, unsigned char octave) {
 
 int DivEngine::dispatchCmd(DivCommand c) {
   if (view==DIV_STATUS_COMMANDS) {
-    printf("%8d | %d: %s(%d, %d)\n",totalTicksR,c.chan,cmdName[c.cmd],c.value,c.value2);
+    if (!skipping) printf("%8d | %d: %s(%d, %d)\n",totalTicksR,c.chan,cmdName[c.cmd],c.value,c.value2);
   }
   totalCmds++;
   if (cmdStreamEnabled && cmdStream.size()<2000) {
@@ -771,7 +771,7 @@ void DivEngine::nextRow() {
   static char pb1[4096];
   static char pb2[4096];
   static char pb3[4096];
-  if (view==DIV_STATUS_PATTERN) {
+  if (view==DIV_STATUS_PATTERN && !skipping) {
     strcpy(pb1,"");
     strcpy(pb3,"");
     for (int i=0; i<chans; i++) {
@@ -1105,7 +1105,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       }
     }
 
-    if (consoleMode && subticks<=1) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,curSubSong->ordersLen,curRow,curSubSong->patLen,cmdsPerSecond);
+    if (consoleMode && subticks<=1 && !skipping) fprintf(stderr,"\x1b[2K> %d:%.2d:%.2d.%.2d  %.2x/%.2x:%.3d/%.3d  %4dcmd/s\x1b[G",totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000,curOrder,curSubSong->ordersLen,curRow,curSubSong->patLen,cmdsPerSecond);
   }
 
   if (haltOn==DIV_HALT_TICK) halted=true;

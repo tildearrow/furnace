@@ -478,6 +478,10 @@ if (WIN32)
   list(APPEND ENGINE_SOURCES res/furnace.rc)
 endif()
 
+set(CLI_SOURCES
+src/cli/cli.cpp
+)
+
 set(GUI_SOURCES
 extern/imgui_patched/imgui.cpp
 extern/imgui_patched/imgui_draw.cpp
@@ -589,7 +593,7 @@ if (NOT WIN32)
   endif()
 endif()
 
-set(USED_SOURCES ${ENGINE_SOURCES} ${AUDIO_SOURCES} src/main.cpp)
+set(USED_SOURCES ${ENGINE_SOURCES} ${AUDIO_SOURCES} ${CLI_SOURCES} src/main.cpp)
 
 if (USE_BACKWARD)
   list(APPEND USED_SOURCES src/backtrace.cpp)

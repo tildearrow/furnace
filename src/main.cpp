@@ -36,6 +36,8 @@
 #include <unistd.h>
 #endif
 
+#include "cli/cli.h"
+
 #ifdef HAVE_GUI
 #include "gui/gui.h"
 #endif
@@ -45,6 +47,8 @@ DivEngine e;
 #ifdef HAVE_GUI
 FurnaceGUI g;
 #endif
+
+FurnaceCLI cli;
 
 String outName;
 String vgmOutName;
@@ -465,25 +469,39 @@ int main(int argc, char** argv) {
   }
 
   if (consoleMode) {
+    bool cliSuccess=false;
+    cli.bindEngine(&e);
+    if (!cli.init()) {
+      reportError("error while starting CLI!");
+    } else {
+      cliSuccess=true;
+    }
     logI("playing...");
     e.play();
+    if (cliSuccess) {
+      cli.loop();
+      cli.finish();
+      e.quit();
+      return 0;
+    } else {
 #ifdef HAVE_SDL2
-    SDL_Event ev;
-    while (true) {
-      SDL_WaitEvent(&ev);
-      if (ev.type==SDL_QUIT) break;
-    }
-    e.quit();
-    return 0;
+      SDL_Event ev;
+      while (true) {
+        SDL_WaitEvent(&ev);
+        if (ev.type==SDL_QUIT) break;
+      }
+      e.quit();
+      return 0;
 #else
-    while (true) {
+      while (true) {
 #ifdef _WIN32
-      Sleep(500);
+        Sleep(500);
 #else
-      usleep(500000);
+        usleep(500000);
+#endif
+      }
 #endif
     }
-#endif
   }
 
 #ifdef HAVE_GUI
