@@ -34,8 +34,14 @@ bool FurnaceCLI::loop() {
   bool escape=false;
   bool escapeSecondStage=false;
   while (!cliQuit) {
+#ifdef _WIN32
+    int c;
+    c=fgetc(stdin);
+    if (c==EOF) break;
+#else
     unsigned char c;
     if (read(STDIN_FILENO,&c,1)<=0) continue;
+#endif
     if (escape) {
       if (escapeSecondStage) {
         switch (c) {
