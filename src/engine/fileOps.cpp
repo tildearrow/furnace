@@ -2268,8 +2268,11 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
   SafeReader reader=SafeReader(file,len);
   warnings="";
   bool isFC14=false;
-  unsigned int patPtr, freqMacroPtr, volMacroPtr, samplePtr;
+  unsigned int patPtr, freqMacroPtr, volMacroPtr, samplePtr, wavePtr;
   unsigned int seqLen, patLen, freqMacroLen, volMacroLen, sampleLen;
+
+  unsigned char waveLen[40];
+  unsigned char waveLoopLen[40];
 
   struct FCSequence {
     unsigned char pat[4];
@@ -2283,6 +2286,11 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     unsigned char val[32];
   };
   std::vector<FCPattern> pat;
+  struct FCMacro {
+    unsigned char val[64];
+  };
+  std::vector<FCMacro> freqMacros;
+  std::vector<FCMacro> volMacros;
 
   struct FCSample {
     unsigned short loopLen, len, loopStart;
@@ -2335,14 +2343,23 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     }
     freqMacroPtr=reader.readI_BE();
     freqMacroLen=reader.readI_BE();
+    if (freqMacroLen%64) {
+      logW("freq sequence length is not multiple of 64 (%d)",freqMacroLen);
+      //throw EndOfFileException(&reader,reader.tell());
+    }
     volMacroPtr=reader.readI_BE();
     volMacroLen=reader.readI_BE();
+    if (volMacroLen%64) {
+      logW("vol sequence length is not multiple of 64 (%d)",volMacroLen);
+      //throw EndOfFileException(&reader,reader.tell());
+    }
     samplePtr=reader.readI_BE();
     if (isFC14) {
-      reader.readI_BE(); // wave len
+      wavePtr=reader.readI_BE(); // wave len
       sampleLen=0;
     } else {
       sampleLen=reader.readI_BE();
+      wavePtr=0;
     }
 
     logD("patPtr: %d",patPtr);
@@ -2352,7 +2369,11 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     logD("volMacroPtr: %d",volMacroPtr);
     logD("volMacroLen: %d",volMacroLen);
     logD("samplePtr: %d",samplePtr);
-    logD("sampleLen: %d",sampleLen);
+    if (isFC14) {
+      logD("wavePtr: %d",wavePtr);
+    } else {
+      logD("sampleLen: %d",sampleLen);
+    }
 
     // sample info
     logD("samples:");
@@ -2365,9 +2386,14 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     }
 
     // wavetable lengths
-    if (isFC14) for (int i=0; i<20; i++) {
-      reader.readS_BE();
-      reader.readS_BE();
+    if (isFC14) {
+      logD("wavetables:");
+      for (int i=0; i<40; i++) {
+        waveLen[i]=reader.readC();
+        waveLoopLen[i]=reader.readC();
+
+        logD("- %d: %.4x (%.4x)",i,waveLen[i],waveLoopLen[i]);
+      }
     }
 
     // sequences
@@ -2413,7 +2439,96 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
       pat.push_back(p);
     }
 
-    // TODO: read the rest
+    // freq sequences
+    if (!reader.seek(freqMacroPtr,SEEK_SET)) {
+      logE("premature end of file!");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+    freqMacroLen/=64;
+    logD("reading freq sequences... (%d)",freqMacroLen);
+    for (unsigned int i=0; i<freqMacroLen; i++) {
+      FCMacro m;
+      reader.read(m.val,64);
+      freqMacros.push_back(m);
+    }
+
+    // vol sequences
+    if (!reader.seek(volMacroPtr,SEEK_SET)) {
+      logE("premature end of file!");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+    volMacroLen/=64;
+    logD("reading volume sequences... (%d)",volMacroLen);
+    for (unsigned int i=0; i<volMacroLen; i++) {
+      FCMacro m;
+      reader.read(m.val,64);
+      volMacros.push_back(m);
+    }
+
+    // samples
+    if (!reader.seek(samplePtr,SEEK_SET)) {
+      logE("premature end of file!");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+    logD("reading samples...");
+    for (int i=0; i<10; i++) {
+      DivSample* s=new DivSample;
+      s->depth=DIV_SAMPLE_DEPTH_8BIT;
+      if (sample[i].len>0) {
+        s->init(sample[i].len);
+      }
+      s->loopStart=sample[i].loopStart*2;
+      s->loopEnd=(sample[i].loopStart+sample[i].loopLen)*2;
+      reader.read(s->data8,sample[i].len);
+      ds.sample.push_back(s);
+    }
+    ds.sampleLen=(int)ds.sample.size();
+
+    // wavetables
+    if (isFC14) {
+      if (!reader.seek(wavePtr,SEEK_SET)) {
+        logE("premature end of file!");
+        lastError="incomplete file";
+        delete[] file;
+        return false;
+      }
+      logD("reading wavetables...");
+      for (int i=0; i<40; i++) {
+        DivWavetable* w=new DivWavetable;
+        w->min=0;
+        w->max=255;
+        w->len=MIN(256,waveLoopLen[i]*2);
+
+        for (int i=0; i<256; i++) {
+          w->data[i]=128;
+        }
+        
+        if (waveLen[i]>0) {
+          signed char* waveArray=new signed char[waveLen[i]*2];
+          reader.read(waveArray,waveLen[i]*2);
+          int howMany=MIN(waveLen[i]*2,waveLoopLen[i]*2);
+          if (howMany>256) howMany=256;
+          for (int i=0; i<howMany; i++) {
+            w->data[i]=waveArray[i];
+          }
+          delete[] waveArray;
+        } else {
+          w->len=32;
+          for (int i=0; i<32; i++) {
+            w->data[i]=(i*255)/31;
+          }
+        }
+
+        ds.wave.push_back(w);
+      }
+    }
+    ds.waveLen=(int)ds.wave.size();
 
     // convert
     ds.subsong[0]->ordersLen=seqLen;
@@ -2491,6 +2606,41 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
         }
       }
     }
+
+    // convert instruments
+    for (unsigned int i=0; i<volMacroLen; i++) {
+      DivInstrument* ins=new DivInstrument;
+      FCMacro& m=volMacros[i];
+      
+      ins->type=DIV_INS_AMIGA;
+      ins->name=fmt::sprintf("Instrument %d",i);
+      unsigned char seqSpeed=m.val[0];
+      unsigned char freqMacro=m.val[1];
+      unsigned char vibSpeed=m.val[2];
+      unsigned char vibDepth=m.val[3];
+      unsigned char vibDelay=m.val[4];
+
+      ins->std.volMacro.len=0;
+      for (int j=5; j<64; j++) {
+        unsigned char pos=ins->std.volMacro.len;
+        if (++ins->std.volMacro.len>=128) break;
+        if (m.val[j]==0xe1) {
+
+        } else if (m.val[j]==0xe0) {
+
+        } else if (m.val[j]==0xe8) {
+
+        } else if (m.val[j]==0xe9) {
+
+        } else {
+          ins->std.volMacro.val[ins->std.volMacro.len]=m.val[j];
+        }
+        
+      }
+
+      ds.ins.push_back(ins);
+    }
+    ds.insLen=(int)ds.ins.size();
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
