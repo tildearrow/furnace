@@ -96,11 +96,14 @@ bool FurnaceCLI::loop() {
 }
 
 bool FurnaceCLI::finish() {
+#ifdef _WIN32
+#else
   if (tcsetattr(0,TCSAFLUSH,&termpropold)!=0) {
     logE("could not set console attributes!");
     logE("you may have to run `reset` on your terminal.");
     return false;
   }
+#endif
   return true;
 }
 
