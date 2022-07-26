@@ -2324,7 +2324,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     }
 
     ds.systemLen=1;
-    ds.system[0]=DIV_SYSTEM_DUMMY;
+    ds.system[0]=DIV_SYSTEM_AMIGA;
     ds.systemVol[0]=64;
     ds.systemPan[0]=0;
     ds.systemFlags[0]=1|(80<<8); // PAL
@@ -2515,7 +2515,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
           int howMany=MIN(waveLen[i]*2,waveLoopLen[i]*2);
           if (howMany>256) howMany=256;
           for (int i=0; i<howMany; i++) {
-            w->data[i]=waveArray[i];
+            w->data[i]=waveArray[i]+128;
           }
           delete[] waveArray;
         } else {
@@ -2599,7 +2599,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
                   }
                 }
               } else {
-                p->data[k][2]=fp.val[k]-1;
+                p->data[k][2]=fp.val[k]&0x3f;
               }
             }
           }
@@ -2614,28 +2614,104 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
       
       ins->type=DIV_INS_AMIGA;
       ins->name=fmt::sprintf("Instrument %d",i);
-      unsigned char seqSpeed=m.val[0];
+      ins->amiga.useWave=true;
+      //unsigned char seqSpeed=m.val[0];
       unsigned char freqMacro=m.val[1];
-      unsigned char vibSpeed=m.val[2];
-      unsigned char vibDepth=m.val[3];
-      unsigned char vibDelay=m.val[4];
+      //unsigned char vibSpeed=m.val[2];
+      //unsigned char vibDepth=m.val[3];
+      //unsigned char vibDelay=m.val[4];
 
+      unsigned char lastVal=m.val[5];
+
+      signed char loopMap[64];
+      memset(loopMap,-1,64);
+
+      // volume sequence
       ins->std.volMacro.len=0;
       for (int j=5; j<64; j++) {
-        unsigned char pos=ins->std.volMacro.len;
-        if (++ins->std.volMacro.len>=128) break;
-        if (m.val[j]==0xe1) {
-
-        } else if (m.val[j]==0xe0) {
-
-        } else if (m.val[j]==0xe8) {
-
-        } else if (m.val[j]==0xe9) {
-
+        loopMap[j]=ins->std.volMacro.len;
+        if (m.val[j]==0xe1) { // end
+          break;
+        } else if (m.val[j]==0xe0) { // loop
+          if (++j>=64) break;
+          ins->std.volMacro.loop=loopMap[m.val[j]&63];
+          break;
+        } else if (m.val[j]==0xe8) { // sustain
+          if (++j>=64) break;
+          unsigned char susTime=m.val[j];
+          // TODO: <= or <?
+          for (int k=0; k<=susTime; k++) {
+            ins->std.volMacro.val[ins->std.volMacro.len]=lastVal;
+            if (++ins->std.volMacro.len>=128) break;
+          }
+        } else if (m.val[j]==0xe9 || m.val[j]==0xea) { // volume slide
+          if (++j>=64) break;
+          signed char slideStep=m.val[j];
+          if (++j>=64) break;
+          unsigned char slideTime=m.val[j];
+          // TODO: <= or <?
+          for (int k=0; k<=slideTime; k++) {
+            if (slideStep>0) {
+              lastVal+=slideStep;
+              if (lastVal>63) lastVal=63;
+            } else {
+              if (-slideStep>lastVal) {
+                lastVal=0;
+              } else {
+                lastVal-=slideStep;
+              }
+            }
+            ins->std.volMacro.val[ins->std.volMacro.len]=lastVal;
+            if (++ins->std.volMacro.len>=128) break;
+          }
         } else {
           ins->std.volMacro.val[ins->std.volMacro.len]=m.val[j];
+          lastVal=m.val[j];
+          if (++ins->std.volMacro.len>=128) break;
         }
-        
+      }
+
+      // frequency sequence
+      lastVal=0;
+      ins->amiga.initSample=-1;
+      if (freqMacro<freqMacros.size()) {
+        FCMacro& fm=freqMacros[freqMacro];
+        for (int j=0; j<64; j++) {
+          if (fm.val[j]==0xe1) {
+            break;
+          } else if (fm.val[j]==0xe2 || fm.val[j]==0xe4) {
+            if (++j>=64) break;
+            unsigned char wave=fm.val[j];
+            if (wave<10) { // sample
+              if (ins->amiga.initSample==-1) {
+                ins->amiga.initSample=wave;
+                ins->amiga.useWave=false;
+              }
+            } else { // waveform
+              ins->std.waveMacro.val[ins->std.waveMacro.len]=wave-10;
+              ins->std.waveMacro.open=true;
+              lastVal=wave;
+              if (++ins->std.waveMacro.len>=128) break;
+              if (++ins->std.arpMacro.len>=128) break;
+            }
+          } else if (fm.val[j]==0xe0) {
+            logV("unhandled loop!");
+          } else if (fm.val[j]==0xe3) {
+            logV("unhandled vibrato!");
+          } else if (fm.val[j]==0xe8) {
+            logV("unhandled sustain!");
+          } else if (fm.val[j]==0xe7) {
+            logV("unhandled newseq!");
+          } else if (fm.val[j]==0xe9) {
+            logV("unhandled pack!");
+          } else if (fm.val[j]==0xea) {
+            logV("unhandled pitch!");
+          } else {
+            ins->std.arpMacro.val[ins->std.arpMacro.len]=(signed char)fm.val[j];
+            ins->std.arpMacro.open=true;
+            if (++ins->std.arpMacro.len>=128) break;
+          }
+        }
       }
 
       ds.ins.push_back(ins);
