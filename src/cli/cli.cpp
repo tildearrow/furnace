@@ -22,9 +22,11 @@
 
 bool cliQuit=false;
 
+#ifndef _WIN32
 static void handleTerm(int) {
   cliQuit=true;
 }
+#endif
 
 void FurnaceCLI::bindEngine(DivEngine* eng) {
   e=eng;
