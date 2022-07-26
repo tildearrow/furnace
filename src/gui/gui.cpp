@@ -4716,7 +4716,11 @@ FurnaceGUI::FurnaceGUI():
   pianoView(0),
   pianoInputPadMode(0),
 #endif
-  hasACED(false) {
+  hasACED(false),
+  waveGenBaseShape(0),
+  waveGenDuty(0.0f),
+  waveGenPower(0.0f),
+  waveGenInvertPoint(0.0f) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;

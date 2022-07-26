@@ -52,6 +52,9 @@
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
 
+// "Namco C163"
+#define DIV_C163_DEFAULT_NAME "Namco 163"
+
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
   DIV_STATUS_PATTERN,

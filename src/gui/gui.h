@@ -1466,6 +1466,17 @@ class FurnaceGUI {
   bool hasACED;
   unsigned char acedData[23];
 
+  // wave generator
+  int waveGenBaseShape;
+  float waveGenDuty, waveGenPower, waveGenInvertPoint;
+  float waveGenAmp[16];
+  float waveGenPhase[16];
+  float waveGenTL[4];
+  float waveGenFB[4];
+  bool waveGenFMCon1[4];
+  bool waveGenFMCon2[3];
+  bool waveGenFMCon3[2];
+
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
