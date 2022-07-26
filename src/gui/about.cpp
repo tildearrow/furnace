@@ -136,6 +136,7 @@ const char* aboutLine[]={
   "Namco C163 emulator by cam900",
   "Seta X1-010 emulator by cam900",
   "Konami VRC6 emulator by cam900",
+  "Midifile by Craig Sapp",
   "Konami SCC emulator by cam900",
   "MSM6295 emulator by cam900",
   "",

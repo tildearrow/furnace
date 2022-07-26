@@ -175,6 +175,7 @@ TAParamResult pVersion(String) {
   printf("- NSFPlay by Brad Smith and Brezza (unknown open-source license)\n");
   printf("- reSID by Dag Lem (GPLv2)\n");
   printf("- Stella by Stella Team (GPLv2)\n");
+  printf("- Midifile by Craig Sapp (BSD 2-clause)\n");
   printf("- vgsound_emu (first version) by cam900 (BSD 3-clause)\n");
   return TA_PARAM_QUIT;
 }

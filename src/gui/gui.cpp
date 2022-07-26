@@ -36,6 +36,7 @@
 #include <stdint.h>
 #include <zlib.h>
 #include <fmt/printf.h>
+#include <MidiFile.h>
 #include <stdexcept>
 
 #ifdef __APPLE__
@@ -1316,6 +1317,17 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         {"Furnace instrument", "*.fui"},
         "Furnace instrument{.fui}",
         workingDirIns,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_MIDI_IMPORT:
+    case GUI_FILE_MIDI_IMPORT_BATCH:
+      if (!dirExists(workingDirMidi)) workingDirMidi=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        "Import MIDI",
+        {"MIDI sequence", "*.mid *.midi *.smf"},
+        "MIDI sequence{.mid,.midi,.smf}",
+        workingDirMidi,
         dpiScale
       );
       break;
@@ -2932,6 +2944,15 @@ bool FurnaceGUI::loop() {
           ImGui::EndMenu();
         }
         ImGui::Separator();
+        if (ImGui::MenuItem("import midi file...",BIND_FOR(GUI_ACTION_MIDI_IMPORT))) {
+          openFileDialog(GUI_FILE_MIDI_IMPORT);
+          midiDialogOpen=true;
+        }
+        if (ImGui::MenuItem("import midi folder...",BIND_FOR(GUI_ACTION_MIDI_IMPORT_BATCH))) {
+          openFileDialog(GUI_FILE_MIDI_IMPORT_BATCH);
+          midiDialogOpen=true;
+        }
+        ImGui::Separator();
         if (ImGui::BeginMenu("add system...")) {
           for (int j=0; availableSystems[j]; j++) {
             if (!settings.hiddenSystems && (availableSystems[j]==DIV_SYSTEM_YMU759 || availableSystems[j]==DIV_SYSTEM_DUMMY)) continue;
@@ -3146,6 +3167,7 @@ bool FurnaceGUI::loop() {
 
       drawSubSongs();
       drawFindReplace();
+      drawMidiDialog();
       drawSpoiler();
       drawPattern();
       drawEditControls();
@@ -3227,6 +3249,10 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_INS_OPEN_REPLACE:
         case GUI_FILE_INS_SAVE:
           workingDirIns=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          break;
+        case GUI_FILE_MIDI_IMPORT:
+        case GUI_FILE_MIDI_IMPORT_BATCH:
+          workingDirMidi=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_WAVE_OPEN:
         case GUI_FILE_WAVE_SAVE:
@@ -3465,6 +3491,16 @@ bool FurnaceGUI::loop() {
                 showError("cannot load wavetable! ("+e->getLastError()+")");
               } else {
                 MARK_MODIFIED;
+              }
+              break;
+            case GUI_FILE_MIDI_IMPORT:
+              if (!(e->loadMidiImportFile(copyOfName))) {
+                showError("could not open MIDI file!");
+              }
+              break;
+            case GUI_FILE_MIDI_IMPORT_BATCH:
+              if (!(e->loadMidiImportBatchFiles(workingDirMidi))) {
+                showError("could not open MIDI files!");
               }
               break;
             case GUI_FILE_EXPORT_VGM: {
@@ -4079,6 +4115,7 @@ bool FurnaceGUI::init() {
   workingDir=e->getConfString("lastDir",homeDir);
   workingDirSong=e->getConfString("lastDirSong",workingDir);
   workingDirIns=e->getConfString("lastDirIns",workingDir);
+  workingDirMidi=e->getConfString("lastDirMidi",workingDir);
   workingDirWave=e->getConfString("lastDirWave",workingDir);
   workingDirSample=e->getConfString("lastDirSample",workingDir);
   workingDirAudioExport=e->getConfString("lastDirAudioExport",workingDir);
@@ -4115,6 +4152,8 @@ bool FurnaceGUI::init() {
   subSongsOpen=e->getConfBool("subSongsOpen",true);
   findOpen=e->getConfBool("findOpen",false);
   spoilerOpen=e->getConfBool("spoilerOpen",false);
+
+  midiDialogOpen=false;
 
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
@@ -4319,6 +4358,7 @@ bool FurnaceGUI::finish() {
   e->setConf("lastDir",workingDir);
   e->setConf("lastDirSong",workingDirSong);
   e->setConf("lastDirIns",workingDirIns);
+  e->setConf("lastDirMidi",workingDirMidi);
   e->setConf("lastDirWave",workingDirWave);
   e->setConf("lastDirSample",workingDirSample);
   e->setConf("lastDirAudioExport",workingDirAudioExport);
@@ -4356,6 +4396,8 @@ bool FurnaceGUI::finish() {
   e->setConf("subSongsOpen",subSongsOpen);
   e->setConf("findOpen",findOpen);
   e->setConf("spoilerOpen",spoilerOpen);
+
+  e->setConf("midiDialogOpen",midiDialogOpen);
 
   // commit last window size
   e->setConf("lastWindowWidth",scrW);
@@ -4522,6 +4564,7 @@ FurnaceGUI::FurnaceGUI():
   chanOscOpen(false),
   subSongsOpen(true),
   findOpen(false),
+  midiDialogOpen(false),
   spoilerOpen(false),
   selecting(false),
   selectingFull(false),
@@ -4716,7 +4759,17 @@ FurnaceGUI::FurnaceGUI():
   pianoView(0),
   pianoInputPadMode(0),
 #endif
-  hasACED(false) {
+  hasACED(false),
+  midiImportChannel(0),
+  midiImportTrack(0),
+  midiImportStartMeasure(0),
+  midiImportTargetChannel(0),
+  midiImportPattern(0),
+  midiImportSpeedMultiplier(0),
+  midiImportEnableNoteOff(true),
+  midiImportEnableVel(true),
+  midiImportEnableCC(false),
+  midiImportOmniChannel(true) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
