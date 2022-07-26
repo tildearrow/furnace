@@ -20,6 +20,9 @@
 #ifndef _FUR_CLI_H
 #define _FUR_CLI_H
 
+
+#include "../engine/engine.h"
+
 #include <stdio.h>
 #ifdef _WIN32
 #include <windows.h>
@@ -29,8 +32,6 @@
 #include <termios.h>
 #include <sys/ioctl.h>
 #endif
-
-#include "../engine/engine.h"
 
 class FurnaceCLI {
   DivEngine* e;
