@@ -2292,10 +2292,10 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     DivSong ds;
     ds.tuning=436.0;
     ds.version=DIV_VERSION_FC;
-    ds.linearPitch=0;
-    ds.noSlidesOnFirstTick=true;
-    ds.rowResetsArpPos=true;
-    ds.ignoreJumpAtEnd=false;
+    //ds.linearPitch=0;
+    //ds.noSlidesOnFirstTick=true;
+    //ds.rowResetsArpPos=true;
+    //ds.ignoreJumpAtEnd=false;
 
     // load here
     if (!reader.seek(0,SEEK_SET)) {
@@ -2436,6 +2436,9 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
           p->data[0][9]=seq[i].speed;
         }
 
+        bool ignoreNext=false;
+        bool isSliding=false;
+
         for (int k=0; k<32; k++) {
           FCPattern& fp=pat[seq[i].pat[j]];
           if (fp.note[k]>0 && fp.note[k]<0x49) {
@@ -2449,9 +2452,37 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
             octave&=0xff;
             p->data[k][0]=note;
             p->data[k][1]=octave;
-            if (fp.val[k]) {
+            if (isSliding) {
+              isSliding=false;
+              p->data[k][4]=2;
+              p->data[k][5]=0;
+            }
+          }
+          if (fp.val[k]) {
+            if (ignoreNext) {
+              ignoreNext=false;
+            } else {
               if (fp.val[k]&0xe0) {
-
+                if (fp.val[k]&0x40) {
+                  p->data[k][4]=2;
+                  p->data[k][5]=0;
+                  isSliding=false;
+                } else if (fp.val[k]&0x80) {
+                  isSliding=true;
+                  if (k<31) {
+                    if (fp.val[k+1]&0x20) {
+                      p->data[k][4]=2;
+                      p->data[k][5]=fp.val[k+1]&0x1f;
+                    } else {
+                      p->data[k][4]=1;
+                      p->data[k][5]=fp.val[k+1]&0x1f;
+                    }
+                    ignoreNext=true;
+                  } else {
+                    p->data[k][4]=2;
+                    p->data[k][5]=0;
+                  }
+                }
               } else {
                 p->data[k][2]=fp.val[k]-1;
               }
