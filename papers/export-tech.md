@@ -4,6 +4,13 @@
 
 TODO
 
+## macro data
+
+read length, loop and then release (1 byte).
+if it is a 2-byte macro, read a dummy byte.
+
+then read data.
+
 ## pattern data
 
 read sequentially.
