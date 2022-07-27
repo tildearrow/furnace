@@ -39,34 +39,67 @@ void FurnaceGUI::doGenerateWave() {
   DivWavetable* wave=e->song.wave[curWave];
   memset(finalResult,0,sizeof(float)*256);
 
+  if (wave->len<2) return;
+
   if (waveGenFM) {
 
   } else {
     switch (waveGenBaseShape) {
       case 0: // sine
         for (int i=0; i<wave->len; i++) {
-          finalResult[i]=0.5*(1.0+sin(i*2.0*M_PI/(double)wave->len));
+          for (int j=0; j<16; j++) {
+            float pos=fmod((waveGenPhase[j]*wave->len)+(i*(j+1)),wave->len);
+            float partial=sin((0.5+pos)*2.0*M_PI/(double)wave->len);
+            partial=pow(partial,waveGenPower);
+            partial*=waveGenAmp[j];
+            finalResult[i]+=partial;
+          }
         }
         break;
       case 1: // triangle
         for (int i=0; i<wave->len; i++) {
-          finalResult[i]=2.0*(0.5-fabs(0.5-(i/(double)(wave->len-1))));
+          for (int j=0; j<16; j++) {
+            float pos=fmod((waveGenPhase[j]*wave->len)+(i*(j+1)),wave->len);
+            float partial=4.0*(0.5-fabs(0.5-(pos/(double)(wave->len-1))))-1.0;
+            partial=pow(partial,waveGenPower);
+            partial*=waveGenAmp[j];
+            finalResult[i]+=partial;
+          }
         }
         break;
       case 2: // saw
         for (int i=0; i<wave->len; i++) {
-          finalResult[i]=i/(double)(wave->len-1);
+          for (int j=0; j<16; j++) {
+            float pos=fmod((waveGenPhase[j]*wave->len)+(i*(j+1)),wave->len);
+            float partial=((2*pos)/(double)(wave->len-1))-1.0;
+            partial=pow(partial,waveGenPower);
+            partial*=waveGenAmp[j];
+            finalResult[i]+=partial;
+          }
         }
         break;
       case 3: // pulse
         for (int i=0; i<wave->len; i++) {
-          finalResult[i]=(i>=(wave->len/2))?1:0;
+          for (int j=0; j<16; j++) {
+            float pos=fmod((waveGenPhase[j]*wave->len)+(i*(j+1)),wave->len);
+            float partial=(pos>=(waveGenDuty*wave->len))?1:-1;
+            partial=pow(partial,waveGenPower);
+            partial*=waveGenAmp[j];
+            finalResult[i]+=partial;
+          }
         }
         break;
     }
   }
 
+  for (int i=waveGenInvertPoint*wave->len; i<wave->len; i++) {
+    finalResult[i]=-finalResult[i];
+  }
+
   for (int i=0; i<wave->len; i++) {
+    finalResult[i]=(1.0+finalResult[i])*0.5;
+    if (finalResult[i]<0.0f) finalResult[i]=0.0f;
+    if (finalResult[i]>1.0f) finalResult[i]=1.0f;
     wave->data[i]=round(finalResult[i]*wave->max);
   }
 }
@@ -201,6 +234,79 @@ void FurnaceGUI::drawWaveEdit() {
                 if (waveGenBaseShape<0) waveGenBaseShape=0;
                 if (waveGenBaseShape>3) waveGenBaseShape=3;
                 doGenerateWave();
+              }
+
+              if (ImGui::BeginTable("WGShapeProps",2)) {
+                ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("Duty");
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (CWSliderFloat("##WGDuty",&waveGenDuty,0.0f,1.0f)) {
+                  doGenerateWave();
+                }
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("Exponent");
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (CWSliderInt("##WGExp",&waveGenPower,1,8)) {
+                  doGenerateWave();
+                }
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("XOR Point");
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (CWSliderFloat("##WGXOR",&waveGenInvertPoint,0.0f,1.0f)) {
+                  doGenerateWave();
+                }
+
+                ImGui::EndTable();
+              }
+
+              if (ImGui::TreeNode("Amplitude/Phase")) {
+                if (ImGui::BeginTable("WGShapeProps",3)) {
+                  ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+                  ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.6f);
+                  ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.4f);
+
+                  for (int i=0; i<16; i++) {
+                    ImGui::TableNextRow();
+                    ImGui::TableNextColumn();
+                    ImGui::Text("%d",i+1);
+                    ImGui::TableNextColumn();
+                    ImGui::PushID(140+i);
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                    if (CWSliderFloat("##WGAmp",&waveGenAmp[i],-1.0f,1.0f)) {
+                      doGenerateWave();
+                    }
+                    if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
+                      waveGenAmp[i]=0.0f;
+                      doGenerateWave();
+                    }
+                    ImGui::PopID();
+                    ImGui::TableNextColumn();
+                    ImGui::PushID(140+i);
+                    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                    if (CWSliderFloat("##WGPhase",&waveGenPhase[i],0.0f,1.0f)) {
+                      doGenerateWave();
+                    }
+                    if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
+                      waveGenPhase[i]=0.0f;
+                      doGenerateWave();
+                    }
+                    ImGui::PopID();
+                  }
+
+                  ImGui::EndTable();
+                }
+                ImGui::TreePop();
               }
               ImGui::EndTabItem();
             }

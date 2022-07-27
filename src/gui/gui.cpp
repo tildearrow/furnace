@@ -4718,9 +4718,9 @@ FurnaceGUI::FurnaceGUI():
 #endif
   hasACED(false),
   waveGenBaseShape(0),
-  waveGenDuty(0.0f),
-  waveGenPower(0.0f),
-  waveGenInvertPoint(0.0f),
+  waveGenDuty(0.5f),
+  waveGenPower(1),
+  waveGenInvertPoint(1.0f),
   waveGenFM(false) {
   // value keys
   valueKeys[SDLK_0]=0;

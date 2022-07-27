@@ -1468,7 +1468,9 @@ class FurnaceGUI {
 
   // wave generator
   int waveGenBaseShape;
-  float waveGenDuty, waveGenPower, waveGenInvertPoint;
+  float waveGenDuty;
+  int waveGenPower;
+  float waveGenInvertPoint;
   float waveGenAmp[16];
   float waveGenPhase[16];
   float waveGenTL[4];
