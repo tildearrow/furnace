@@ -313,6 +313,7 @@ void FurnaceGUI::drawWaveEdit() {
             if (ImGui::BeginTabItem("FM")) {
               waveGenFM=true;
 
+              ImGui::Text("FM stuff here");
               ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Mangle")) {
