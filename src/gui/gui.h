@@ -1472,10 +1472,12 @@ class FurnaceGUI {
   float waveGenAmp[16];
   float waveGenPhase[16];
   float waveGenTL[4];
+  int waveGenMult[4];
   float waveGenFB[4];
   bool waveGenFMCon1[4];
   bool waveGenFMCon2[3];
   bool waveGenFMCon3[2];
+  bool waveGenFM;
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
@@ -1599,6 +1601,8 @@ class FurnaceGUI {
   void editOptions(bool topMenu);
   void noteInput(int num, int key, int vol=-1);
   void valueInput(int num, bool direct=false, int target=-1);
+
+  void doGenerateWave();
 
   void doUndoSample();
   void doRedoSample();

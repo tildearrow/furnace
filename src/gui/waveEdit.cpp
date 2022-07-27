@@ -17,11 +17,59 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#define _USE_MATH_DEFINES
 #include "gui.h"
 #include "plot_nolerp.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include <math.h>
 #include <imgui.h>
+
+const char* waveGenBaseShapes[4]={
+  "Sine",
+  "Triangle",
+  "Saw",
+  "Pulse"
+};
+
+void FurnaceGUI::doGenerateWave() {
+  float finalResult[256];
+  if (curWave<0 || curWave>=(int)e->song.wave.size()) return;
+
+  DivWavetable* wave=e->song.wave[curWave];
+  memset(finalResult,0,sizeof(float)*256);
+
+  if (waveGenFM) {
+
+  } else {
+    switch (waveGenBaseShape) {
+      case 0: // sine
+        for (int i=0; i<wave->len; i++) {
+          finalResult[i]=0.5*(1.0+sin(i*2.0*M_PI/(double)wave->len));
+        }
+        break;
+      case 1: // triangle
+        for (int i=0; i<wave->len; i++) {
+          finalResult[i]=2.0*(0.5-fabs(0.5-(i/(double)(wave->len-1))));
+        }
+        break;
+      case 2: // saw
+        for (int i=0; i<wave->len; i++) {
+          finalResult[i]=i/(double)(wave->len-1);
+        }
+        break;
+      case 3: // pulse
+        for (int i=0; i<wave->len; i++) {
+          finalResult[i]=(i>=(wave->len/2))?1:0;
+        }
+        break;
+    }
+  }
+
+  for (int i=0; i<wave->len; i++) {
+    wave->data[i]=round(finalResult[i]*wave->max);
+  }
+}
 
 void FurnaceGUI::drawWaveEdit() {
   if (nextWindow==GUI_WINDOW_WAVE_EDIT) {
@@ -144,10 +192,21 @@ void FurnaceGUI::drawWaveEdit() {
 
           if (ImGui::BeginTabBar("WaveGenOpt")) {
             if (ImGui::BeginTabItem("Shapes")) {
-              ImGui::Button("Square");
+              waveGenFM=false;
+
+              if (waveGenBaseShape<0) waveGenBaseShape=0;
+              if (waveGenBaseShape>3) waveGenBaseShape=3;
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              if (CWSliderInt("##WGShape",&waveGenBaseShape,0,3,waveGenBaseShapes[waveGenBaseShape])) {
+                if (waveGenBaseShape<0) waveGenBaseShape=0;
+                if (waveGenBaseShape>3) waveGenBaseShape=3;
+                doGenerateWave();
+              }
               ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("FM")) {
+              waveGenFM=true;
+
               ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Mangle")) {

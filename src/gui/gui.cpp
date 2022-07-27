@@ -4720,7 +4720,8 @@ FurnaceGUI::FurnaceGUI():
   waveGenBaseShape(0),
   waveGenDuty(0.0f),
   waveGenPower(0.0f),
-  waveGenInvertPoint(0.0f) {
+  waveGenInvertPoint(0.0f),
+  waveGenFM(false) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
@@ -4781,6 +4782,20 @@ FurnaceGUI::FurnaceGUI():
   memset(lastCorrPos,0,sizeof(short)*DIV_MAX_CHANS);
 
   memset(acedData,0,23);
+
+  memset(waveGenAmp,0,sizeof(float)*16);
+  memset(waveGenPhase,0,sizeof(float)*16);
+  memset(waveGenTL,0,sizeof(float)*4);
+  memset(waveGenMult,0,sizeof(int)*4);
+  memset(waveGenFB,0,sizeof(float)*4);
+  memset(waveGenFMCon1,0,sizeof(bool)*4);
+  memset(waveGenFMCon2,0,sizeof(bool)*3);
+  memset(waveGenFMCon3,0,sizeof(bool)*2);
+
+  waveGenAmp[0]=1.0f;
+  waveGenFMCon1[0]=true;
+  waveGenFMCon2[0]=true;
+  waveGenFMCon3[0]=true;
 
   memset(pianoKeyHit,0,sizeof(float)*180);
   memset(pianoKeyPressed,0,sizeof(bool)*180);
