@@ -848,7 +848,7 @@ void DivEngine::createNew(const int* description, String sysName) {
     initSongWithDesc(description);
   }
   if (sysName=="") {
-    song.systemName=getSongSystemLegacyName(song,getConfInt("noMultiSystem",0));
+    song.systemName=getSongSystemLegacyName(song,!getConfInt("noMultiSystem",0));
   } else {
     song.systemName=sysName;
   }
@@ -3137,7 +3137,7 @@ bool DivEngine::init() {
     }
     String sysName=getConfString("initialSysName","");
     if (sysName=="") {
-      song.systemName=getSongSystemLegacyName(song,getConfInt("noMultiSystem",0));
+      song.systemName=getSongSystemLegacyName(song,!getConfInt("noMultiSystem",0));
     } else {
       song.systemName=sysName;
     }

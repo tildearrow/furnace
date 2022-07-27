@@ -909,7 +909,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.system[1]=DIV_SYSTEM_FDS;
     }
 
-    ds.systemName=getSongSystemLegacyName(ds,getConfInt("noMultiSystem",0));
+    ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
@@ -1497,7 +1497,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.systemNameJ=reader.readString();
       ds.categoryJ=reader.readString();
     } else {
-      ds.systemName=getSongSystemLegacyName(ds,getConfInt("noMultiSystem",0));
+      ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
     }
 
     // read subsongs
