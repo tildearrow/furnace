@@ -110,6 +110,7 @@ class DivPlatformAmiga: public DivDispatch, public DivPlatformSample {
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     DivPlatformAmiga():
+      DivDispatch(),
       DivPlatformSample() {}
 };
 
