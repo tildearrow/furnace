@@ -353,10 +353,10 @@ void DivPlatformOPL::acquire(short* bufL, short* bufR, size_t start, size_t len)
   //}
 }
 
-double DivPlatformOPL::NOTE_ADPCMB(int note) {
+double DivPlatformOPL::NOTE_ADPCM(int note) {
   if (adpcmChan<0) return 0;
-  if (chan[adpcmChan].sample>=0 && chan[adpcmChan].sample<parent->song.sampleLen) {
-    double off=65535.0*(double)(parent->getSample(chan[adpcmChan].sample)->centerRate)/8363.0;
+  if (getSampleVaild(parent,chan[adpcmChan].sample)) {
+    double off=65535.0*getCenterRate(parent->getIns(chan[adpcmChan].ins,DIV_INS_OPL),parent->getSample(chan[adpcmChan].sample),chan[adpcmChan].note,false);
     return parent->calcBaseFreq((double)chipClock/144,off,note,false);
   }
   return 0;
@@ -584,22 +584,39 @@ void DivPlatformOPL::tick(bool sysTick) {
       if (chan[adpcmChan].std.arp.had) {
         if (!chan[adpcmChan].inPorta) {
           if (chan[adpcmChan].std.arp.mode) {
-            chan[adpcmChan].baseFreq=NOTE_ADPCMB(chan[adpcmChan].std.arp.val);
+            chan[adpcmChan].baseFreq=NOTE_ADPCM(chan[adpcmChan].std.arp.val);
           } else {
-            chan[adpcmChan].baseFreq=NOTE_ADPCMB(chan[adpcmChan].note+(signed char)chan[adpcmChan].std.arp.val);
+            chan[adpcmChan].baseFreq=NOTE_ADPCM(chan[adpcmChan].note+(signed char)chan[adpcmChan].std.arp.val);
           }
         }
         chan[adpcmChan].freqChanged=true;
       } else {
         if (chan[adpcmChan].std.arp.mode && chan[adpcmChan].std.arp.finished) {
-          chan[adpcmChan].baseFreq=NOTE_ADPCMB(chan[adpcmChan].note);
+          chan[adpcmChan].baseFreq=NOTE_ADPCM(chan[adpcmChan].note);
           chan[adpcmChan].freqChanged=true;
         }
       }
+
+      if (chan[adpcmChan].std.phaseReset.had) {
+        if ((chan[adpcmChan].std.phaseReset.val==1) && chan[adpcmChan].active) {
+          chan[adpcmChan].keyOn=true;
+        }
+      }
     }
-    if (chan[adpcmChan].freqChanged) {
-      if (chan[adpcmChan].sample>=0 && chan[adpcmChan].sample<parent->song.sampleLen) {
-        double off=65535.0*(double)(parent->getSample(chan[adpcmChan].sample)->centerRate)/8363.0;
+    if (chan[adpcmChan].freqChanged || chan[adpcmChan].keyOn || chan[adpcmChan].keyOff) {
+      if (chan[adpcmChan].keyOn || chan[adpcmChan].keyOff) {
+        immWrite(7,0x01); // reset
+        if (chan[adpcmChan].active && chan[adpcmChan].keyOn && !chan[adpcmChan].keyOff) {
+          if (getSampleVaild(parent,chan[adpcmChan].sample)) {
+            DivSample* s=parent->getSample(chan[adpcmChan].sample);
+            immWrite(7,(s->isLoopable())?0xb0:0xa0); // start/repeat
+          }
+        }
+        chan[adpcmChan].keyOn=false;
+        chan[adpcmChan].keyOff=false;
+      }
+      if (getSampleVaild(parent,chan[adpcmChan].sample)) {
+        double off=65535.0*getCenterRate(parent->getIns(chan[adpcmChan].ins,DIV_INS_OPL),parent->getSample(chan[adpcmChan].sample),chan[adpcmChan].note,false);
         chan[adpcmChan].freq=parent->calcFreq(chan[adpcmChan].baseFreq,chan[adpcmChan].pitch,false,4,chan[adpcmChan].pitch2,(double)chipClock/144,off);
       } else {
         chan[adpcmChan].freq=0;
@@ -762,7 +779,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             immWrite(18,chan[c.chan].outVol);
           }
           chan[c.chan].sample=ins->amiga.getSample(c.value);
-          if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+          if (getSampleVaild(parent,chan[c.chan].sample)) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(8,0);
             immWrite(7,0x01); // reset
@@ -774,7 +791,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             immWrite(7,(s->isLoopable())?0xb0:0xa0); // start/repeat
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
-              chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
+              chan[c.chan].baseFreq=NOTE_ADPCM(chan[c.chan].note);
               chan[c.chan].freqChanged=true;
             }
             chan[c.chan].active=true;
@@ -788,10 +805,25 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             break;
           }
         } else {
-          chan[c.chan].sample=-1;
           chan[c.chan].macroInit(NULL);
           chan[c.chan].outVol=chan[c.chan].vol;
-          if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
+          chan[c.chan].sample=getCompatibleSample(c.value);
+          if (getSampleVaild(parent,chan[c.chan].sample)) {
+            DivSample* s=parent->getSample(chan[c.chan].sample);
+            immWrite(8,0);
+            immWrite(7,0x01); // reset
+            immWrite(9,(s->offB>>2)&0xff);
+            immWrite(10,(s->offB>>10)&0xff);
+            int end=s->offB+s->lengthB-1;
+            immWrite(11,(end>>2)&0xff);
+            immWrite(12,(end>>10)&0xff);
+            int freq=(65536.0*(double)s->rate)/(double)chipRateBase;
+            immWrite(16,freq&0xff);
+            immWrite(17,(freq>>8)&0xff);
+            immWrite(18,chan[c.chan].outVol);
+            chan[c.chan].active=true;
+            chan[c.chan].keyOn=true;
+          } else {
             immWrite(7,0x01); // reset
             immWrite(9,0);
             immWrite(10,0);
@@ -799,18 +831,6 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             immWrite(12,0);
             break;
           }
-          DivSample* s=parent->getSample(12*sampleBank+c.value%12);
-          immWrite(8,0);
-          immWrite(7,0x01); // reset
-          immWrite(9,(s->offB>>2)&0xff);
-          immWrite(10,(s->offB>>10)&0xff);
-          int end=s->offB+s->lengthB-1;
-          immWrite(11,(end>>2)&0xff);
-          immWrite(12,(end>>10)&0xff);
-          immWrite(7,(s->isLoopable())?0xb0:0xa0); // start/repeat
-          int freq=(65536.0*(double)s->rate)/(double)chipRateBase;
-          immWrite(16,freq&0xff);
-          immWrite(17,(freq>>8)&0xff);
         }
         break;
       }
@@ -956,8 +976,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
     }
     case DIV_CMD_NOTE_OFF:
       if (c.chan==adpcmChan) {
-        immWrite(7,0x01); // reset
-        break;
+        chan[c.chan].sample=-1;
       }
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
@@ -965,8 +984,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       if (c.chan==adpcmChan) {
-        immWrite(7,0x01); // reset
-        break;
+        chan[c.chan].sample=-1;
       }
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
@@ -1053,7 +1071,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=(c.chan==adpcmChan)?(NOTE_ADPCMB(c.value2)):(NOTE_FREQUENCY(c.value2));
+      int destFreq=(c.chan==adpcmChan)?(NOTE_ADPCM(c.value2)):(NOTE_FREQUENCY(c.value2));
       int newFreq;
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
@@ -1093,7 +1111,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       iface.sampleBank=sampleBank;
       break;
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=(c.chan==adpcmChan)?(NOTE_ADPCMB(c.value)):(NOTE_FREQUENCY(c.value));
+      chan[c.chan].baseFreq=(c.chan==adpcmChan)?(NOTE_ADPCM(c.value)):(NOTE_FREQUENCY(c.value));
       chan[c.chan].note=c.value;
       chan[c.chan].freqChanged=true;
       break;
@@ -1435,7 +1453,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) {
-        chan[c.chan].baseFreq=(c.chan==adpcmChan)?(NOTE_ADPCMB(chan[c.chan].note)):(NOTE_FREQUENCY(chan[c.chan].note));
+        chan[c.chan].baseFreq=(c.chan==adpcmChan)?(NOTE_ADPCM(chan[c.chan].note)):(NOTE_FREQUENCY(chan[c.chan].note));
       }
       chan[c.chan].inPorta=c.value;
       break;

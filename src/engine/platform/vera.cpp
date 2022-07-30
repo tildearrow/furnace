@@ -150,13 +150,8 @@ int DivPlatformVERA::calcNoteFreq(int ch, int note) {
     return parent->calcBaseFreq(chipClock,2097152,note,false);
   } else {
     double off=65536.0;
-    if (chan[ch].pcm.sample>=0 && chan[ch].pcm.sample<parent->song.sampleLen) {
-      DivSample* s=parent->getSample(chan[ch].pcm.sample);
-      if (s->centerRate<1) {
-        off=65536.0;
-      } else {
-        off=65536.0*(s->centerRate/8363.0);
-      }
+    if (getSampleVaild(parent,chan[ch].pcm.sample)) {
+      off=65536.0*getCenterRate(parent->getIns(chan[ch].ins,DIV_INS_VERA),parent->getSample(chan[ch].pcm.sample),chan[ch].note,false);
     }
     return (int)(parent->calcBaseFreq(chipClock,off,note,false));
   }
@@ -236,13 +231,8 @@ void DivPlatformVERA::tick(bool sysTick) {
   }
   if (chan[16].freqChanged) {
     double off=65536.0;
-    if (chan[16].pcm.sample>=0 && chan[16].pcm.sample<parent->song.sampleLen) {
-      DivSample* s=parent->getSample(chan[16].pcm.sample);
-      if (s->centerRate<1) {
-        off=65536.0;
-      } else {
-        off=65536.0*(s->centerRate/8363.0);
-      }
+    if (getSampleVaild(parent,chan[16].pcm.sample)) {
+      off=65536.0*getCenterRate(parent->getIns(chan[16].ins,DIV_INS_VERA),parent->getSample(chan[16].pcm.sample),chan[16].note,false);
     }
     chan[16].freq=parent->calcFreq(chan[16].baseFreq,chan[16].pitch,false,8,chan[16].pitch2,chipClock,off);
     if (chan[16].freq>128) chan[16].freq=128;
@@ -259,7 +249,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
         rWriteLo(c.chan,2,chan[c.chan].vol);
       } else {
         chan[16].pcm.sample=parent->getIns(chan[16].ins,DIV_INS_VERA)->amiga.getSample(c.value);
-        if (chan[16].pcm.sample<0 || chan[16].pcm.sample>=parent->song.sampleLen) {
+        if (!getSampleVaild(parent,chan[16].pcm.sample)) {
           chan[16].pcm.sample=-1;
         }
         chan[16].pcm.pos=0;

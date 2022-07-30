@@ -20,12 +20,13 @@
 #ifndef _QSOUND_H
 #define _QSOUND_H
 
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
 #include "sound/qsound.h"
 
-class DivPlatformQSound: public DivDispatch {
+class DivPlatformQSound: public DivDispatch, public DivPlatformSample {
   struct Channel {
     int freq, baseFreq, pitch, pitch2;
     unsigned short audLen;
@@ -103,6 +104,11 @@ class DivPlatformQSound: public DivDispatch {
     void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformQSound():
+      DivDispatch(),
+      DivPlatformSample() {}
+    private:
+      double NoteQSound(int ch, int note);
 };
 
 #endif

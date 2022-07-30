@@ -21,12 +21,13 @@
 #define _VRC6_H
 
 #include <queue>
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include "sound/vrcvi/vrcvi.hpp"
 
 
-class DivPlatformVRC6: public DivDispatch {
+class DivPlatformVRC6: public DivDispatch, public DivPlatformSample, public vrcvi_intf {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note;
     int dacPeriod, dacRate, dacOut;
@@ -73,9 +74,7 @@ class DivPlatformVRC6: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
   std::queue<QueuedWrite> writes;
-  unsigned char sampleBank;
   unsigned char writeOscBuf;
-  vrcvi_intf intf;
   vrcvi_core vrc6;
   unsigned char regPool[13];
 
@@ -102,7 +101,10 @@ class DivPlatformVRC6: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
-    DivPlatformVRC6() : vrc6(intf) {};
+    DivPlatformVRC6():
+      DivDispatch(),
+      DivPlatformSample(),
+      vrc6(*this) {};
     ~DivPlatformVRC6();
 };
 

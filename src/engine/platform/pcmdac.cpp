@@ -35,7 +35,7 @@ void DivPlatformPCMDAC::acquire(short* bufL, short* bufR, size_t start, size_t l
       oscBuf->data[oscBuf->needle++]=0;
       continue;
     }
-    if (chan.useWave || (chan.sample>=0 && chan.sample<parent->song.sampleLen)) {
+    if (chan.useWave || getSampleVaild(parent,chan.sample)) {
       chan.audPos+=chan.freq>>16;
       chan.audSub+=(chan.freq&0xffff);
       if (chan.audSub>=0x10000) {
@@ -131,9 +131,8 @@ void DivPlatformPCMDAC::tick(bool sysTick) {
   if (chan.freqChanged || chan.keyOn || chan.keyOff) {
     //DivInstrument* ins=parent->getIns(chan.ins,DIV_INS_AMIGA);
     double off=1.0;
-    if (!chan.useWave && chan.sample>=0 && chan.sample<parent->song.sampleLen) {
-      DivSample* s=parent->getSample(chan.sample);
-      off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+    if (!chan.useWave && getSampleVaild(parent,chan.sample)) {
+      off=getCenterRate(parent->getIns(chan.ins,DIV_INS_AMIGA),parent->getSample(chan.sample),chan.note,false);
     }
     chan.freq=off*parent->calcFreq(chan.baseFreq,chan.pitch,false,2,chan.pitch2,chipClock,CHIP_FREQBASE);
     if (chan.freq>16777215) chan.freq=16777215;
@@ -171,7 +170,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       if (c.value!=DIV_NOTE_NULL) {
         chan.baseFreq=round(NOTE_FREQUENCY(c.value));
       }
-      if (chan.useWave || chan.sample<0 || chan.sample>=parent->song.sampleLen) {
+      if (chan.useWave || !getSampleVaild(parent,chan.sample)) {
         chan.sample=-1;
       }
       if (chan.setPos) {

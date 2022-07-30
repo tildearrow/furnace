@@ -344,13 +344,12 @@ void DivPlatformNES::tick(bool sysTick) {
     chan[4].freq=parent->calcFreq(chan[4].baseFreq,chan[4].pitch,false);
     if (chan[4].furnaceDac) {
       double off=1.0;
-      if (dacSample>=0 && dacSample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(dacSample);
-        off=(double)s->centerRate/8363.0;
+      if (getSampleVaild(parent,dacSample)) {
+        off=getCenterRate(parent->getIns(chan[4].ins,DIV_INS_STD),parent->getSample(dacSample),chan[4].note,false);
       }
       dacRate=MIN(chan[4].freq*off,32000);
       if (chan[4].keyOn) {
-        if (dpcmMode && !skipRegisterWrites && dacSample>=0 && dacSample<parent->song.sampleLen) {
+        if (dpcmMode && !skipRegisterWrites && getSampleVaild(parent,dacSample)) {
           unsigned int dpcmAddr=parent->getSample(dacSample)->offDPCM;
           unsigned int dpcmLen=(parent->getSample(dacSample)->lengthDPCM+15)>>4;
           if (dpcmLen>255) dpcmLen=255;
@@ -381,7 +380,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_STD);
         if (ins->type==DIV_INS_AMIGA) {
           dacSample=ins->amiga.getSample(c.value);
-          if (dacSample<0 || dacSample>=parent->song.sampleLen) {
+          if (!getSampleVaild(parent,dacSample)) {
             dacSample=-1;
             if (dumpWrites && !dpcmMode) addWrite(0xffff0002,0);
             break;
@@ -402,8 +401,8 @@ int DivPlatformNES::dispatch(DivCommand c) {
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
           }
-          dacSample=12*sampleBank+chan[c.chan].note%12;
-          if (dacSample>=parent->song.sampleLen) {
+          dacSample=getCompatibleSample(chan[c.chan].note);
+          if (!getSampleVaild(parent,dacSample)) {
             dacSample=-1;
             if (dumpWrites && !dpcmMode) addWrite(0xffff0002,0);
             break;

@@ -19,12 +19,13 @@
 
 #ifndef _MSM6295_H
 #define _MSM6295_H
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
 #include "sound/oki/msm6295.hpp"
 
-class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
+class DivPlatformMSM6295: public DivDispatch, public DivPlatformSample, public vgsound_emu_mem_intf {
   protected:
     struct Channel {
       int note, ins;
@@ -68,7 +69,6 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
 
     unsigned char* adpcmMem;
     size_t adpcmMemLen;
-    unsigned char sampleBank;
 
     int delay, updateOsc;
 
@@ -107,6 +107,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual void quit() override;
     DivPlatformMSM6295():
       DivDispatch(),
+      DivPlatformSample(),
       vgsound_emu_mem_intf(),
       msm(*this) {}
     ~DivPlatformMSM6295();

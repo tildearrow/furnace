@@ -204,13 +204,8 @@ void DivPlatformSwan::tick(bool sysTick) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (i==1 && pcm && furnaceDac) {
         double off=1.0;
-        if (dacSample>=0 && dacSample<parent->song.sampleLen) {
-          DivSample* s=parent->getSample(dacSample);
-          if (s->centerRate<1) {
-            off=1.0;
-          } else {
-            off=8363.0/(double)s->centerRate;
-          }
+        if (getSampleVaild(parent,dacSample)) {
+          off=getCenterRate(parent->getIns(chan[i].ins,DIV_INS_SWAN),parent->getSample(dacSample),chan[i].note,true);
         }
         dacRate=((double)chipClock/2)/MAX(1,off*chan[i].freq);
         if (dumpWrites) addWrite(0xffff0001,dacRate);
@@ -262,7 +257,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
           dacPeriod=0;
           if (ins->type==DIV_INS_AMIGA) {
             dacSample=ins->amiga.getSample(c.value);
-            if (dacSample<0 || dacSample>=parent->song.sampleLen) {
+            if (!getSampleVaild(parent,dacSample)) {
               dacSample=-1;
               if (dumpWrites) addWrite(0xffff0002,0);
               break;
@@ -284,8 +279,8 @@ int DivPlatformSwan::dispatch(DivCommand c) {
             if (c.value!=DIV_NOTE_NULL) {
               chan[1].note=c.value;
             }
-            dacSample=12*sampleBank+chan[1].note%12;
-            if (dacSample>=parent->song.sampleLen) {
+            dacSample=getCompatibleSample(chan[1].note);
+            if (!getSampleVaild(parent,dacSample)) {
               dacSample=-1;
               if (dumpWrites) addWrite(0xffff0002,0);
               break;

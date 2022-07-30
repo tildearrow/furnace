@@ -19,6 +19,8 @@
 
 #ifndef _YM2610_H
 #define _YM2610_H
+
+#include "sampleshared.h"
 #include "fmshared_OPN.h"
 #include "../macroInt.h"
 #include "ay.h"
@@ -34,13 +36,14 @@ class DivYM2610Interface: public ymfm::ymfm_interface {
     DivYM2610Interface(): adpcmAMem(NULL), adpcmBMem(NULL), sampleBank(0) {}
 };
 
-class DivPlatformYM2610Base: public DivPlatformOPN {
+class DivPlatformYM2610Base: public DivPlatformOPN, public DivPlatformSample {
   protected:
     unsigned char* adpcmAMem;
     size_t adpcmAMemLen;
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
     DivYM2610Interface iface;
+    unsigned char writeADPCMAOff, writeADPCMAOn;
 
   public:
     const void* getSampleMem(int index);
@@ -50,7 +53,8 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     DivPlatformYM2610Base():
-      DivPlatformOPN(9440540.0, 72, 32) {}
+      DivPlatformOPN(9440540.0, 72, 32),
+      DivPlatformSample() {}
 };
 
 class DivPlatformYM2610: public DivPlatformYM2610Base {
@@ -116,8 +120,6 @@ class DivPlatformYM2610: public DivPlatformYM2610Base {
     ymfm::ym2610::output_data fmout;
 
     DivPlatformAY8910* ay;
-  
-    unsigned char sampleBank;
 
     bool extMode;
   
@@ -149,6 +151,8 @@ class DivPlatformYM2610: public DivPlatformYM2610Base {
     void setFlags(unsigned int flags);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformYM2610():
+      DivPlatformYM2610Base() {}
     ~DivPlatformYM2610();
 };
 #endif

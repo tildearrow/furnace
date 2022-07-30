@@ -20,12 +20,13 @@
 #ifndef _YMZ280B_H
 #define _YMZ280B_H
 
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
 #include "sound/ymz280b.h"
 
-class DivPlatformYMZ280B: public DivDispatch {
+class DivPlatformYMZ280B: public DivDispatch, public DivPlatformSample {
   struct Channel {
     int freq, baseFreq, pitch, pitch2;
     unsigned int audPos;
@@ -99,6 +100,9 @@ class DivPlatformYMZ280B: public DivDispatch {
     void setFlags(unsigned int flags);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformYMZ280B():
+      DivDispatch(),
+      DivPlatformSample() {}
   private:
     void writeOutVol(int ch);
 };

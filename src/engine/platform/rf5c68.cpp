@@ -133,7 +133,7 @@ void DivPlatformRF5C68::tick(bool sysTick) {
       unsigned char keyon=regPool[8]&~(1<<i);
       unsigned char keyoff=keyon|(1<<i);
       DivSample* s=parent->getSample(chan[i].sample);
-      double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+      double off=getCenterRate(parent->getIns(chan[i].ins),s,chan[i].note,false);
       chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {
@@ -179,7 +179,7 @@ int DivPlatformRF5C68::dispatch(DivCommand c) {
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
       }
-      if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
+      if (!getSampleVaild(parent,chan[c.chan].sample)) {
         chan[c.chan].sample=-1;
       }
       if (c.value!=DIV_NOTE_NULL) {

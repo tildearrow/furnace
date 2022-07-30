@@ -174,9 +174,8 @@ void DivPlatformMMC5::tick(bool sysTick) {
     chan[2].freq=parent->calcFreq(chan[2].baseFreq,chan[2].pitch,false);
     if (chan[2].furnaceDac) {
       double off=1.0;
-      if (dacSample>=0 && dacSample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(dacSample);
-        off=(double)s->centerRate/8363.0;
+      if (getSampleVaild(parent,dacSample)) {
+        off=getCenterRate(parent->getIns(chan[2].ins,DIV_INS_STD),parent->getSample(dacSample),chan[2].note,false);
       }
       dacRate=MIN(chan[2].freq*off,32000);
       if (dumpWrites) addWrite(0xffff0001,dacRate);
@@ -192,7 +191,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_STD);
         if (ins->type==DIV_INS_AMIGA) {
           dacSample=ins->amiga.getSample(c.value);
-          if (dacSample<0 || dacSample>=parent->song.sampleLen) {
+          if (!getSampleVaild(parent,dacSample)) {
             dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);
             break;
@@ -213,8 +212,8 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
           }
-          dacSample=12*sampleBank+chan[c.chan].note%12;
-          if (dacSample>=parent->song.sampleLen) {
+          dacSample=getCompatibleSample(chan[c.chan].note);
+          if (!getSampleVaild(parent,dacSample)) {
             dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);
             break;

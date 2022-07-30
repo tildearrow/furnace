@@ -95,7 +95,32 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
 }
 
 void DivPlatformMSM6295::tick(bool sysTick) {
-  // nothing
+  for (int i=0; i<4; i++) {
+    if (chan[i].furnacePCM) {
+      chan[i].std.next();
+      if (chan[i].std.vol.had) {
+        chan[i].outVol=MIN(8,chan[i].std.vol.val)-(8-(chan[i].vol&15));
+        if (chan[i].outVol>8) chan[i].outVol=8;
+        if (chan[i].outVol<0) chan[i].outVol=0;
+      }
+      if (chan[i].std.phaseReset.had) {
+        if ((chan[i].std.phaseReset.val==1) && chan[i].active) {
+          chan[i].keyOn=true;
+        }
+      }
+      if (chan[i].keyOn || chan[i].keyOff) {
+        rWriteDelay(0,(8<<i),60); // turn off
+        if (chan[i].active && chan[i].keyOn && !chan[i].keyOff) {
+          rWrite(0,0x80|chan[i].sample); // set phrase
+          rWrite(0,(16<<i)|(8-chan[i].outVol)); // turn on
+        } else if (chan[i].keyOff) {
+          chan[i].sample=-1;
+        }
+        chan[i].keyOn=false;
+        chan[i].keyOff=false;
+      }
+    }
+  }
 }
 
 int DivPlatformMSM6295::dispatch(DivCommand c) {
@@ -114,7 +139,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
           chan[c.chan].outVol=chan[c.chan].vol;
         }
         chan[c.chan].sample=ins->amiga.getSample(c.value);
-        if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+        if (getSampleVaild(parent,chan[c.chan].sample)) {
           //DivSample* s=parent->getSample(chan[c.chan].sample);
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
@@ -122,24 +147,20 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
           }
           chan[c.chan].active=true;
           chan[c.chan].keyOn=true;
-          rWriteDelay(0,(8<<c.chan),60); // turn off
-          rWrite(0,0x80|chan[c.chan].sample); // set phrase
-          rWrite(0,(16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
         } else {
           break;
         }
       } else {
-        chan[c.chan].sample=-1;
         chan[c.chan].macroInit(NULL);
         chan[c.chan].outVol=chan[c.chan].vol;
-        if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
-          break;
+        chan[c.chan].sample=getCompatibleSample(c.value);
+        if (getSampleVaild(parent,chan[c.chan].sample)) {
+          //DivSample* s=parent->getSample(chan[c.chan].sample);
+          chan[c.chan].active=true;
+          chan[c.chan].keyOn=true;
+        } else {
+          chan[c.chan].sample=-1;
         }
-        //DivSample* s=parent->getSample(12*sampleBank+c.value%12);
-        chan[c.chan].sample=12*sampleBank+c.value%12;
-        rWriteDelay(0,(8<<c.chan),60); // turn off
-        rWrite(0,0x80|chan[c.chan].sample); // set phrase
-        rWrite(0,(16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
       }
       break;
     }
@@ -147,14 +168,12 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      rWriteDelay(0,(8<<c.chan),60); // turn off
       chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      rWriteDelay(0,(8<<c.chan),60); // turn off
       chan[c.chan].std.release();
       break;
     case DIV_CMD_ENV_RELEASE:

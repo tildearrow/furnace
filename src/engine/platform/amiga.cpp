@@ -100,7 +100,7 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
         continue;
       }
-      if (chan[i].useWave || (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen)) {
+      if (chan[i].useWave || getSampleVaild(parent,chan[i].sample)) {
         chan[i].audSub-=AMIGA_DIVIDER;
         if (chan[i].audSub<0) {
           if (chan[i].useWave) {
@@ -169,13 +169,8 @@ void DivPlatformAmiga::tick(bool sysTick) {
       chan[i].outVol=((chan[i].vol%65)*MIN(64,chan[i].std.vol.val))>>6;
     }
     double off=1.0;
-    if (!chan[i].useWave && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
-      DivSample* s=parent->getSample(chan[i].sample);
-      if (s->centerRate<1) {
-        off=1.0;
-      } else {
-        off=8363.0/(double)s->centerRate;
-      }
+    if (!chan[i].useWave && getSampleVaild(parent,chan[i].sample)) {
+      off=getCenterRate(parent->getIns(chan[i].ins,DIV_INS_AMIGA),parent->getSample(chan[i].sample),chan[i].note,true);
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
@@ -253,7 +248,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=round(NOTE_PERIODIC_NOROUND(c.value));
       }
-      if (chan[c.chan].useWave || chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
+      if (chan[c.chan].useWave || !getSampleVaild(parent,chan[c.chan].sample)) {
         chan[c.chan].sample=-1;
       }
       if (chan[c.chan].setPos) {

@@ -43,7 +43,7 @@ void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t
   bool o=false;
   for (size_t h=start; h<start+len; h++) {
     // clock here
-    if (curSample>=0 && curSample<parent->song.sampleLen) {
+    if (getSampleVaild(parent,curSample)) {
       if (--curSamplePeriod<0) {
         DivSample* s=parent->getSample(curSample);
         if (s->samples>0) {

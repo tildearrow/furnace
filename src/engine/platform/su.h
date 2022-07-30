@@ -20,12 +20,13 @@
 #ifndef _SU_H
 #define _SU_H
 
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
 #include "sound/su.h"
 
-class DivPlatformSoundUnit: public DivDispatch {
+class DivPlatformSoundUnit: public DivDispatch, public DivPlatformSample {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note;
     int ins, cutoff, baseCutoff, res, control, hasOffset;
@@ -134,6 +135,9 @@ class DivPlatformSoundUnit: public DivDispatch {
     void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformSoundUnit():
+      DivDispatch(),
+      DivPlatformSample() {}
     ~DivPlatformSoundUnit();
 };
 

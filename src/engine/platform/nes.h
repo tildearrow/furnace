@@ -20,12 +20,13 @@
 #ifndef _NES_H
 #define _NES_H
 
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include "../macroInt.h"
 
 #include "sound/nes_nsfplay/nes_apu.h"
 
-class DivPlatformNES: public DivDispatch {
+class DivPlatformNES: public DivDispatch, public DivPlatformSample {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, prevFreq, note, ins;
     unsigned char duty, sweep;
@@ -67,7 +68,6 @@ class DivPlatformNES: public DivDispatch {
   unsigned char* dpcmMem;
   size_t dpcmMemLen;
   unsigned char dpcmBank;
-  unsigned char sampleBank;
   unsigned char writeOscBuf;
   unsigned char apuType;
   bool dpcmMode;
@@ -113,6 +113,9 @@ class DivPlatformNES: public DivDispatch {
     void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformNES():
+      DivDispatch(),
+      DivPlatformSample() {}
     ~DivPlatformNES();
 };
 

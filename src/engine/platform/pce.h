@@ -20,13 +20,14 @@
 #ifndef _PCE_H
 #define _PCE_H
 
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
 #include "../waveSynth.h"
 #include "sound/pce_psg.h"
 
-class DivPlatformPCE: public DivDispatch {
+class DivPlatformPCE: public DivDispatch, public DivPlatformSample {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note;
     int dacPeriod, dacRate;
@@ -80,7 +81,7 @@ class DivPlatformPCE: public DivDispatch {
   int cycles, curChan, delay;
   int tempL[32];
   int tempR[32];
-  unsigned char sampleBank, lfoMode, lfoSpeed;
+  unsigned char lfoMode, lfoSpeed;
   PCE_PSG* pce;
   unsigned char regPool[128];
   void updateWave(int ch);
@@ -108,6 +109,9 @@ class DivPlatformPCE: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformPCE():
+      DivDispatch(),
+      DivPlatformSample() {}
     ~DivPlatformPCE();
 };
 

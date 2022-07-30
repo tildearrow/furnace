@@ -200,13 +200,8 @@ void DivPlatformVRC6::tick(bool sysTick) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,16)-1;
         if (chan[i].furnaceDac) {
           double off=1.0;
-          if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
-            DivSample* s=parent->getSample(chan[i].dacSample);
-            if (s->centerRate<1) {
-              off=1.0;
-            } else {
-              off=8363.0/(double)s->centerRate;
-            }
+          if (getSampleVaild(parent,chan[i].dacSample)) {
+            off=getCenterRate(parent->getIns(chan[i].ins,DIV_INS_VRC6),parent->getSample(chan[i].dacSample),chan[i].note,true);
           }
           chan[i].dacRate=((double)chipClock)/MAX(1,off*chan[i].freq);
           if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
@@ -242,7 +237,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
           if (skipRegisterWrites) break;
           if (ins->type==DIV_INS_AMIGA) {
             chan[c.chan].dacSample=ins->amiga.getSample(c.value);
-            if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
+            if (!getSampleVaild(parent,chan[c.chan].dacSample)) {
               chan[c.chan].dacSample=-1;
               if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
               break;
@@ -271,8 +266,8 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
             }
-            chan[c.chan].dacSample=12*sampleBank+chan[c.chan].note%12;
-            if (chan[c.chan].dacSample>=parent->song.sampleLen) {
+            chan[c.chan].dacSample=getCompatibleSample(chan[c.chan].note);
+            if (!getSampleVaild(parent,chan[c.chan].dacSample)) {
               chan[c.chan].dacSample=-1;
               if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
               break;

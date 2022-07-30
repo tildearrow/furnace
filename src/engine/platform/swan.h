@@ -20,13 +20,14 @@
 #ifndef _SWAN_H
 #define _SWAN_H
 
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include "../waveSynth.h"
 #include "sound/swan.h"
 #include <queue>
 
-class DivPlatformSwan: public DivDispatch {
+class DivPlatformSwan: public DivDispatch, public DivPlatformSample {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note, ins;
     unsigned char pan;
@@ -60,7 +61,7 @@ class DivPlatformSwan: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   bool pcm, sweep, furnaceDac;
-  unsigned char sampleBank, noise;
+  unsigned char noise;
   int dacPeriod, dacRate;
   unsigned int dacPos;
   int dacSample;
@@ -96,6 +97,9 @@ class DivPlatformSwan: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformSwan():
+      DivDispatch(),
+      DivPlatformSample() {}
     ~DivPlatformSwan();
   private:
     void calcAndWriteOutVol(int ch, int env);

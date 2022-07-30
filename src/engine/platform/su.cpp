@@ -202,12 +202,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
         // TODO: sample map?
         DivSample* sample=parent->getSample(ins->amiga.getSample(chan[i].note));
         if (sample!=NULL) {
-          double off=0.25;
-          if (sample->centerRate<1) {
-            off=0.25;
-          } else {
-            off=(double)sample->centerRate/(8363.0*4.0);
-          }
+          double off=getCenterRate(ins,sample,chan[i].note,false)/4.0;
           chan[i].freq=(double)chan[i].freq*off;
         }
       }

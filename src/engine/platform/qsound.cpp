@@ -23,8 +23,7 @@
 #include <math.h>
 #include <map>
 
-#define CHIP_DIVIDER (1248*2)
-#define QS_NOTE_FREQUENCY(x) parent->calcBaseFreq(440,4096,(x)-3,false)
+#define CHIP_FREQBASE (1248*2*4096)
 
 #define rWrite(a,v) {if(!skipRegisterWrites) {qsound_write_data(&chip,a,v); if(dumpWrites) addWrite(a,v); }}
 #define immWrite(a,v) {qsound_write_data(&chip,a,v); if(dumpWrites) addWrite(a,v);}
@@ -267,6 +266,7 @@ const char* DivPlatformQSound::getEffectName(unsigned char effect) {
   }
   return NULL;
 }
+
 void DivPlatformQSound::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     qsound_update(&chip);
@@ -280,6 +280,15 @@ void DivPlatformQSound::acquire(short* bufL, short* bufR, size_t start, size_t l
       oscBuf[i]->data[oscBuf[i]->needle++]=data;
     }
   }
+}
+
+double DivPlatformQSound::NoteQSound(int ch, int note) {
+  double off=10223616.0;
+  const int sample=chan[ch].sample;
+  if (getSampleVaild(parent,sample)) {
+    off=10223616.0*getCenterRate(parent->getIns(chan[ch].ins,DIV_INS_AMIGA),parent->getSample(sample),chan[ch].note,false);
+  }
+  return parent->calcBaseFreq(chipClock,off,note,false);
 }
 
 void DivPlatformQSound::tick(bool sysTick) {
@@ -296,7 +305,7 @@ void DivPlatformQSound::tick(bool sysTick) {
     uint16_t qsound_addr = 0;
     uint16_t qsound_loop = 0;
     uint16_t qsound_end = 0;
-    if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+    if (getSampleVaild(parent,chan[i].sample)) {
       DivSample* s=parent->getSample(chan[i].sample);
       qsound_bank = 0x8000 | (s->offQSound >> 16);
       qsound_addr = s->offQSound & 0xffff;
@@ -316,15 +325,15 @@ void DivPlatformQSound::tick(bool sysTick) {
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=QS_NOTE_FREQUENCY(chan[i].std.arp.val);
+          chan[i].baseFreq=NoteQSound(i,chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=QS_NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
+          chan[i].baseFreq=NoteQSound(i,chan[i].note+chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=QS_NOTE_FREQUENCY(chan[i].note);
+        chan[i].baseFreq=NoteQSound(i,chan[i].note);
         chan[i].freqChanged=true;
       }
     }
@@ -348,16 +357,11 @@ void DivPlatformQSound::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AMIGA);
-      double off=1.0;
-      if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
-        DivSample* s=parent->getSample(chan[i].sample);
-        if (s->centerRate<1) {
-          off=1.0;
-        } else {
-          off=(double)s->centerRate/24038.0/16.0;
-        }
+      double off=10223616.0;
+      if (getSampleVaild(parent,chan[i].sample)) {
+        off=10223616.0*getCenterRate(parent->getIns(chan[i].ins,DIV_INS_AMIGA),parent->getSample(chan[i].sample),chan[i].note,false);
       }
-      chan[i].freq=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,440.0,4096.0);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,off);
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
       if (chan[i].keyOn) {
         rWrite(q1_reg_map[Q1V_BANK][i], qsound_bank);
@@ -376,7 +380,7 @@ void DivPlatformQSound::tick(bool sysTick) {
         rWrite(q1_reg_map[Q1V_VOL][i], 0);
         rWrite(q1_reg_map[Q1V_FREQ][i], 0);
       } else if (chan[i].active) {
-        //logV("ch %d frequency set to %04x, off=%f, note=%d, %04x!",i,chan[i].freq,off,chan[i].note,QS_NOTE_FREQUENCY(chan[i].note));
+        //logV("ch %d frequency set to %04x, off=%f, note=%d, %04x!",i,chan[i].freq,off,chan[i].note,NoteQSound(i,chan[i].note));
         rWrite(q1_reg_map[Q1V_FREQ][i], chan[i].freq);
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
@@ -392,9 +396,9 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       chan[c.chan].sample=ins->amiga.getSample(c.value);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(c.value);
+        chan[c.chan].baseFreq=NoteQSound(c.chan,c.value);
       }
-      if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
+      if (!getSampleVaild(parent,chan[c.chan].sample)) {
         chan[c.chan].sample=-1;
       }
       if (c.value!=DIV_NOTE_NULL) {
@@ -464,7 +468,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=QS_NOTE_FREQUENCY(c.value2);
+      int destFreq=NoteQSound(c.chan,c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -487,7 +491,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=NoteQSound(c.chan,c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val-12):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -496,7 +500,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NoteQSound(c.chan,chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -590,7 +594,7 @@ void DivPlatformQSound::setFlags(unsigned int flags) {
   if(echoDelay > 2725) {
     echoDelay = 2725;
   }
-  //rate=chipClock/CHIP_DIVIDER;
+  //rate=chipClock/1248*2;
 }
 
 void DivPlatformQSound::poke(unsigned int addr, unsigned short val) {

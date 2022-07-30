@@ -19,17 +19,16 @@
 
 #ifndef _MSM6258_H
 #define _MSM6258_H
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
 #include "sound/oki/okim6258.h"
 
-class DivPlatformMSM6258: public DivDispatch {
+class DivPlatformMSM6258: public DivDispatch, public DivPlatformSample {
   protected:
     struct Channel {
-      unsigned char freqH, freqL;
       int freq, baseFreq, pitch, pitch2, portaPauseFreq, note, ins;
-      unsigned char psgMode, autoEnvNum, autoEnvDen;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset;
       int vol, outVol;
@@ -41,8 +40,6 @@ class DivPlatformMSM6258: public DivDispatch {
         pitch2=0;
       }
       Channel():
-        freqH(0),
-        freqL(0),
         freq(0),
         baseFreq(0),
         pitch(0),
@@ -50,9 +47,6 @@ class DivPlatformMSM6258: public DivDispatch {
         portaPauseFreq(0),
         note(0),
         ins(-1),
-        psgMode(1),
-        autoEnvNum(0),
-        autoEnvDen(0),
         active(false),
         insChanged(true),
         freqChanged(false),
@@ -77,11 +71,8 @@ class DivPlatformMSM6258: public DivDispatch {
     };
     std::queue<QueuedWrite> writes;
     okim6258_device* msm;
-    unsigned char lastBusy;
 
-    unsigned char* adpcmMem;
-    size_t adpcmMemLen;
-    unsigned char sampleBank, msmPan, msmDivider, rateSel, msmClock, clockSel;
+    unsigned char msmPan, msmDivider, rateSel, msmClock, clockSel;
     signed char msmDividerCount, msmClockCount;
     short msmOut;
 
@@ -110,13 +101,12 @@ class DivPlatformMSM6258: public DivDispatch {
     void setFlags(unsigned int flags);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
-    const void* getSampleMem(int index);
-    size_t getSampleMemCapacity(int index);
-    size_t getSampleMemUsage(int index);
-    void renderSamples();
     
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformMSM6258():
+      DivDispatch(),
+      DivPlatformSample() {}
     ~DivPlatformMSM6258();
 };
 #endif

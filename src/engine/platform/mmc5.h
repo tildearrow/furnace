@@ -20,10 +20,11 @@
 #ifndef _MMC5_H
 #define _MMC5_H
 
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include "../macroInt.h"
 
-class DivPlatformMMC5: public DivDispatch {
+class DivPlatformMMC5: public DivDispatch, public DivPlatformSample {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, prevFreq, note, ins;
     unsigned char duty, sweep;
@@ -62,7 +63,6 @@ class DivPlatformMMC5: public DivDispatch {
   int dacPeriod, dacRate;
   unsigned int dacPos;
   int dacSample;
-  unsigned char sampleBank;
   unsigned char apuType;
   unsigned char writeOscBuf;
   struct _mmc5* mmc5;
@@ -92,6 +92,9 @@ class DivPlatformMMC5: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformMMC5():
+      DivDispatch(),
+      DivPlatformSample() {}
     ~DivPlatformMMC5();
 };
 

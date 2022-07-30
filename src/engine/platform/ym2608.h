@@ -19,6 +19,7 @@
 
 #ifndef _YM2608_H
 #define _YM2608_H
+#include "sampleshared.h"
 #include "fmshared_OPN.h"
 #include "../macroInt.h"
 #include "sound/ymfm/ymfm_opn.h"
@@ -34,7 +35,7 @@ class DivYM2608Interface: public ymfm::ymfm_interface {
     DivYM2608Interface(): adpcmBMem(NULL), sampleBank(0) {}
 };
 
-class DivPlatformYM2608: public DivPlatformOPN {
+class DivPlatformYM2608: public DivPlatformOPN, public DivPlatformSample {
   protected:
     const unsigned short chanOffs[6]={
       0x00, 0x01, 0x02, 0x100, 0x101, 0x102
@@ -97,13 +98,12 @@ class DivPlatformYM2608: public DivPlatformOPN {
     DivYM2608Interface iface;
   
     DivPlatformAY8910* ay;
-    unsigned char sampleBank;
     unsigned char writeRSSOff, writeRSSOn;
 
     bool extMode;
     unsigned char prescale;
   
-    double NOTE_OPNB(int ch, int note);
+    double NOTE_OPNA(int ch, int note);
     double NOTE_ADPCMB(int note);
     friend void putDispatchChan(void*,int,int);
   
@@ -137,6 +137,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     void quit();
     DivPlatformYM2608():
       DivPlatformOPN(9440540.0, 72, 32),
+      DivPlatformSample(),
       prescale(0x2d) {}
     ~DivPlatformYM2608();
 };

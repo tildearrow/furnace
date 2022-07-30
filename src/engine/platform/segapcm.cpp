@@ -43,7 +43,7 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
     // do a PCM cycle
     pcmL=0; pcmR=0;
     for (int i=0; i<16; i++) {
-      if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
+      if (getSampleVaild(parent,chan[i].pcm.sample)) {
         DivSample* s=parent->getSample(chan[i].pcm.sample);
         if (s->samples<=0) {
           chan[i].pcm.sample=-1;
@@ -154,9 +154,8 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
       chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64;
       if (chan[i].furnacePCM) {
         double off=1.0;
-        if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
-          DivSample* s=parent->getSample(chan[i].pcm.sample);
-          off=(double)s->centerRate/8363.0;
+        if (getSampleVaild(parent,chan[i].pcm.sample)) {
+          off=getCenterRate(parent->getIns(chan[i].ins),parent->getSample(chan[i].pcm.sample),chan[i].note,false);
         }
         chan[i].pcm.freq=MIN(255,(15625+(off*parent->song.tuning*pow(2.0,double(chan[i].freq+256)/(64.0*12.0)))*255)/31250)+chan[i].pitch2;
         if (dumpWrites) {
@@ -179,7 +178,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       if (skipRegisterWrites) break;
       if (ins->type==DIV_INS_AMIGA) {
         chan[c.chan].pcm.sample=ins->amiga.getSample(c.value);
-        if (chan[c.chan].pcm.sample<0 || chan[c.chan].pcm.sample>=parent->song.sampleLen) {
+        if (!getSampleVaild(parent,chan[c.chan].pcm.sample)) {
           chan[c.chan].pcm.sample=-1;
           if (dumpWrites) {
             addWrite(0x10086+(c.chan<<3),3);
@@ -221,7 +220,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
           chan[c.chan].note=c.value;
         }
         chan[c.chan].pcm.sample=12*sampleBank+chan[c.chan].note%12;
-        if (chan[c.chan].pcm.sample>=parent->song.sampleLen) {
+        if (!getSampleVaild(parent,chan[c.chan].pcm.sample)) {
           chan[c.chan].pcm.sample=-1;
           if (dumpWrites) {
             addWrite(0x10086+(c.chan<<3),3);
@@ -433,14 +432,11 @@ void DivPlatformSegaPCM::reset() {
     chan[i].outVol=0x7f;
   }
 
-  lastBusy=60;
   pcmCycles=0;
   pcmL=0;
   pcmR=0;
   sampleBank=0;
   delay=0;
-  amDepth=0x7f;
-  pmDepth=0x7f;
 
   if (dumpWrites) {
     for (int i=0; i<16; i++) {
@@ -449,8 +445,6 @@ void DivPlatformSegaPCM::reset() {
       addWrite(0x10003+(i<<3),0x7f);
     }
   }
-
-  extMode=false;
 }
 
 void DivPlatformSegaPCM::setFlags(unsigned int flags) {

@@ -19,6 +19,7 @@
 
 #ifndef _VERA_H
 #define _VERA_H
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include "../instrument.h"
 #include "../macroInt.h"
@@ -26,7 +27,7 @@
 struct VERA_PSG;
 struct VERA_PCM;
 
-class DivPlatformVERA: public DivDispatch {
+class DivPlatformVERA: public DivDispatch, public DivPlatformSample {
   protected:
     struct Channel {
       int freq, baseFreq, pitch, pitch2, note, ins;
@@ -82,6 +83,9 @@ class DivPlatformVERA: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformVERA():
+      DivDispatch(),
+      DivPlatformSample() {}
     ~DivPlatformVERA();
 };
 #endif

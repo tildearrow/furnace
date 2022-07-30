@@ -20,11 +20,12 @@
 #ifndef _LYNX_H
 #define _LYNX_H
 
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include "sound/lynx/Mikey.hpp"
 
-class DivPlatformLynx: public DivDispatch {
+class DivPlatformLynx: public DivDispatch, public DivPlatformSample {
 
   struct MikeyFreqDiv {
     uint8_t clockDivider;
@@ -107,6 +108,9 @@ class DivPlatformLynx: public DivDispatch {
     const char* getEffectName( unsigned char effect );
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformLynx():
+      DivDispatch(),
+      DivPlatformSample() {}
     ~DivPlatformLynx();
 };
 

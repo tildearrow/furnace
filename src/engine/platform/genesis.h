@@ -20,6 +20,7 @@
 #ifndef _GENESIS_H
 #define _GENESIS_H
 #include "fmshared_OPN.h"
+#include "sampleshared.h"
 #include "../macroInt.h"
 #include "../../../extern/Nuked-OPN2/ym3438.h"
 #include "sound/ymfm/ymfm_opn.h"
@@ -29,7 +30,7 @@ class DivYM2612Interface: public ymfm::ymfm_interface {
 
 };
 
-class DivPlatformGenesis: public DivPlatformOPN {
+class DivPlatformGenesis: public DivPlatformOPN, public DivPlatformSample {
   protected:
     const unsigned short chanOffs[6]={
       0x00, 0x01, 0x02, 0x100, 0x101, 0x102
@@ -148,7 +149,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     DivPlatformGenesis():
-      DivPlatformOPN(9440540.0, 72, 32) {}
+      DivPlatformOPN(9440540.0, 72, 32),
+      DivPlatformSample() {}
     ~DivPlatformGenesis();
 };
 #endif

@@ -20,12 +20,13 @@
 #ifndef _AMIGA_H
 #define _AMIGA_H
 
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
 #include "../waveSynth.h"
 
-class DivPlatformAmiga: public DivDispatch {
+class DivPlatformAmiga: public DivDispatch, public DivPlatformSample {
   struct Channel {
     int freq, baseFreq, pitch, pitch2;
     unsigned int audLoc;
@@ -108,6 +109,8 @@ class DivPlatformAmiga: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformAmiga():
+      DivPlatformSample() {}
 };
 
 #endif

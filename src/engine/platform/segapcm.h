@@ -19,12 +19,14 @@
 
 #ifndef _SEGAPCM_H
 #define _SEGAPCM_H
+
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include "../instrument.h"
 #include <queue>
 #include "../macroInt.h"
 
-class DivPlatformSegaPCM: public DivDispatch {
+class DivPlatformSegaPCM: public DivDispatch, public DivPlatformSample {
   protected:
     struct Channel {
       DivMacroInt std;
@@ -80,15 +82,10 @@ class DivPlatformSegaPCM: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     std::queue<QueuedWrite> writes;
-    int delay, baseFreqOff;
+    int delay;
     int pcmL, pcmR, pcmCycles;
-    unsigned char sampleBank;
-    unsigned char lastBusy;
-    unsigned char amDepth, pmDepth;
 
     unsigned char regPool[256];
-
-    bool extMode, useYMFM;
 
     bool isMuted[16];
   
@@ -117,6 +114,9 @@ class DivPlatformSegaPCM: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformSegaPCM():
+      DivDispatch(),
+      DivPlatformSample() {}
     ~DivPlatformSegaPCM();
 };
 #endif

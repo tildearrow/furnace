@@ -552,13 +552,8 @@ void DivPlatformGenesis::tick(bool sysTick) {
       }
       if (chan[i].furnaceDac && chan[i].dacMode) {
         double off=1.0;
-        if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
-          DivSample* s=parent->getSample(chan[i].dacSample);
-          if (s->centerRate<1) {
-            off=1.0;
-          } else {
-            off=(double)s->centerRate/8363.0;
-          }
+        if (getSampleVaild(parent,chan[i].dacSample)) {
+          off=getCenterRate(parent->getIns(chan[i].ins,DIV_INS_FM),parent->getSample(chan[i].dacSample),chan[i].note,false);
         }
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,1,1);
         chan[i].dacRate=chan[i].freq*off;
@@ -628,7 +623,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         if (skipRegisterWrites) break;
         if (ins->type==DIV_INS_AMIGA) { // Furnace mode
           chan[c.chan].dacSample=ins->amiga.getSample(c.value);
-          if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
+          if (!getSampleVaild(parent,chan[c.chan].dacSample)) {
             chan[c.chan].dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);
             break;
@@ -658,8 +653,8 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
           }
-          chan[c.chan].dacSample=12*chan[c.chan].sampleBank+chan[c.chan].note%12;
-          if (chan[c.chan].dacSample>=parent->song.sampleLen) {
+          chan[c.chan].dacSample=getCompatibleSample(chan[c.chan].sampleBank,chan[c.chan].note);
+          if (!getSampleVaild(parent,chan[c.chan].dacSample)) {
             chan[c.chan].dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);
             break;

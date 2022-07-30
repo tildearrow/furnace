@@ -83,7 +83,6 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
     ymfm::ym2610b::output_data fmout;
   
     DivPlatformAY8910* ay;
-    unsigned char sampleBank;
 
     bool extMode;
     double fmFreqBase=9440540;
@@ -117,6 +116,8 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
     void setFlags(unsigned int flags);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformYM2610B():
+      DivPlatformYM2610Base() {}
     ~DivPlatformYM2610B();
 };
 #endif

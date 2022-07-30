@@ -20,12 +20,13 @@
 #ifndef _RF5C68_H
 #define _RF5C68_H
 
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
 #include "sound/rf5c68.h"
 
-class DivPlatformRF5C68: public DivDispatch {
+class DivPlatformRF5C68: public DivDispatch, public DivPlatformSample {
   struct Channel {
     int freq, baseFreq, pitch, pitch2;
     unsigned int audPos;
@@ -99,6 +100,9 @@ class DivPlatformRF5C68: public DivDispatch {
     void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformRF5C68():
+      DivDispatch(),
+      DivPlatformSample() {}
   private:
     void chWrite(unsigned char ch, unsigned int addr, unsigned char val);
 };

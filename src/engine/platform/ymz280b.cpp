@@ -141,7 +141,7 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
         case DIV_SAMPLE_DEPTH_16BIT: ctrl=0x60; break;
         default: ctrl=0;
       }
-      double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
+      double off=getCenterRate(parent->getIns(chan[i].ins,DIV_INS_AMIGA),s,chan[i].note,false);
       chan[i].freq=(int)round(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE)/256.0)-1;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>511) chan[i].freq=511;
@@ -211,7 +211,7 @@ int DivPlatformYMZ280B::dispatch(DivCommand c) {
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
       }
-      if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
+      if (!getSampleVaild(parent,chan[c.chan].sample)) {
         chan[c.chan].sample=-1;
       }
       if (c.value!=DIV_NOTE_NULL) {

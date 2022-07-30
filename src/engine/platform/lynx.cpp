@@ -145,7 +145,7 @@ const char* DivPlatformLynx::getEffectName(unsigned char effect) {
 void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     for (int i=0; i<4; i++) {
-      if (chan[i].pcm && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+      if (chan[i].pcm && getSampleVaild(parent,chan[i].sample)) {
         chan[i].sampleAccum-=chan[i].sampleFreq;
         if (chan[i].sampleAccum<0) {
           chan[i].sampleAccum+=rate;
@@ -239,13 +239,8 @@ void DivPlatformLynx::tick(bool sysTick) {
     if (chan[i].freqChanged) {
       if (chan[i].pcm) {
         double off=1.0;
-        if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
-          DivSample* s=parent->getSample(chan[i].sample);
-          if (s->centerRate<1) {
-            off=1.0;
-          } else {
-            off=(double)s->centerRate/8363.0;
-          }
+        if (getSampleVaild(parent,chan[i].sample)) {
+          off=getCenterRate(parent->getIns(chan[i].ins,DIV_INS_MIKEY),parent->getSample(chan[i].sample),chan[i].note,false);
         }
         chan[i].sampleFreq=off*parent->calcFreq(chan[i].sampleBaseFreq,chan[i].pitch,false,2,chan[i].pitch2,1,1);
       } else {
@@ -285,6 +280,10 @@ int DivPlatformLynx::dispatch(DivCommand c) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
           chan[c.chan].sampleAccum=0;
           chan[c.chan].samplePos=0;
+          if (!getSampleVaild(parent,chan[c.chan].sample)) {
+            chan[c.chan].sample=-1;
+            break;
+          }
         }
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
@@ -307,6 +306,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       chan[c.chan].macroInit(NULL);
       if (chan[c.chan].pcm) {
         chan[c.chan].pcm=false;
+        chan[c.chan].sample=-1;
       }
       break;
     case DIV_CMD_LYNX_LFSR_LOAD:

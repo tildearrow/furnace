@@ -19,6 +19,7 @@
 
 #ifndef _OPL_H
 #define _OPL_H
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
@@ -34,7 +35,7 @@ class DivOPLAInterface: public ymfm::ymfm_interface {
     DivOPLAInterface(): adpcmBMem(NULL), sampleBank(0) {}
 };
 
-class DivPlatformOPL: public DivDispatch {
+class DivPlatformOPL: public DivDispatch, public DivPlatformSample {
   protected:
     struct Channel {
       DivInstrumentFM state;
@@ -96,7 +97,7 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned short* chanMap;
     const unsigned char* outChanMap;
     int chipFreqBase, chipRateBase;
-    int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan, sampleBank;
+    int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan;
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
@@ -114,7 +115,7 @@ class DivPlatformOPL: public DivDispatch {
 
     int octave(int freq);
     int toFreq(int freq);
-    double NOTE_ADPCMB(int note);
+    double NOTE_ADPCM(int note);
 
     friend void putDispatchChan(void*,int,int);
 

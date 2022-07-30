@@ -20,12 +20,13 @@
 #ifndef _PCM_DAC_H
 #define _PCM_DAC_H
 
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
 #include "../waveSynth.h"
 
-class DivPlatformPCMDAC: public DivDispatch {
+class DivPlatformPCMDAC: public DivDispatch, public DivPlatformSample {
   struct Channel {
     int freq, baseFreq, pitch, pitch2;
     unsigned int audLoc;
@@ -94,6 +95,9 @@ class DivPlatformPCMDAC: public DivDispatch {
     void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformPCMDAC():
+      DivDispatch(),
+      DivPlatformSample() {}
 };
 
 #endif

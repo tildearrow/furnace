@@ -20,24 +20,14 @@
 #ifndef _X1_010_H
 #define _X1_010_H
 
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include "../engine.h"
 #include "../macroInt.h"
 #include "../waveSynth.h"
 #include "sound/x1_010/x1_010.hpp"
 
-class DivX1_010Interface: public x1_010_mem_intf {
-  public:
-    unsigned char* memory;
-    int sampleBank;
-    virtual u8 read_byte(u32 address) override {
-      if (memory==NULL) return 0;
-      return memory[address & 0xfffff];
-    }
-    DivX1_010Interface(): memory(NULL), sampleBank(0) {}
-};
-
-class DivPlatformX1_010: public DivDispatch {
+class DivPlatformX1_010: public DivDispatch, public DivPlatformSample, public x1_010_mem_intf {
   struct Channel {
     struct Envelope {
       struct EnvFlag {
@@ -117,41 +107,45 @@ class DivPlatformX1_010: public DivDispatch {
   bool stereo=false;
   unsigned char* sampleMem;
   size_t sampleMemLen;
-  unsigned char sampleBank;
-  DivX1_010Interface intf;
-  x1_010_core* x1_010;
+  x1_010_core x1_010;
   unsigned char regPool[0x2000];
   double NoteX1_010(int ch, int note);
   void updateWave(int ch);
   void updateEnvelope(int ch);
   friend void putDispatchChan(void*,int,int);
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
-    int dispatch(DivCommand c);
-    void* getChanState(int chan);
-    DivMacroInt* getChanMacroInt(int ch);
-    DivDispatchOscBuffer* getOscBuffer(int chan);
-    unsigned char* getRegisterPool();
-    int getRegisterPoolSize();
-    void reset();
-    void forceIns();
-    void tick(bool sysTick=true);
-    void muteChannel(int ch, bool mute);
-    bool isStereo();
-    bool keyOffAffectsArp(int ch);
-    void setFlags(unsigned int flags);
-    void notifyWaveChange(int wave);
-    void notifyInsDeletion(void* ins);
-    void poke(unsigned int addr, unsigned short val);
-    void poke(std::vector<DivRegWrite>& wlist);
-    const void* getSampleMem(int index = 0);
-    size_t getSampleMemCapacity(int index = 0);
-    size_t getSampleMemUsage(int index = 0);
-    void renderSamples();
-    const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
-    void quit();
+    virtual u8 read_byte(u32 address) override;
+    virtual void acquire(short* bufL, short* bufR, size_t start, size_t len) override;
+    virtual int dispatch(DivCommand c) override;
+    virtual void* getChanState(int chan) override;
+    virtual DivMacroInt* getChanMacroInt(int ch) override;
+    virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;
+    virtual unsigned char* getRegisterPool() override;
+    virtual int getRegisterPoolSize() override;
+    virtual void reset() override;
+    virtual void forceIns() override;
+    virtual void tick(bool sysTick=true) override;
+    virtual void muteChannel(int ch, bool mute) override;
+    virtual bool isStereo() override;
+    virtual bool keyOffAffectsArp(int ch) override;
+    virtual void setFlags(unsigned int flags) override;
+    virtual void notifyWaveChange(int wave) override;
+    virtual void notifyInsDeletion(void* ins) override;
+    virtual void poke(unsigned int addr, unsigned short val) override;
+    virtual void poke(std::vector<DivRegWrite>& wlist) override;
+    virtual const void* getSampleMem(int index = 0) override;
+    virtual size_t getSampleMemCapacity(int index = 0) override;
+    virtual size_t getSampleMemUsage(int index = 0) override;
+    virtual void renderSamples() override;
+    virtual const char** getRegisterSheet() override;
+    virtual const char* getEffectName(unsigned char effect) override;
+    virtual int init(DivEngine* parent, int channels, int sugRate, unsigned int flags) override;
+    virtual void quit() override;
+    DivPlatformX1_010():
+      DivDispatch(),
+      DivPlatformSample(),
+      x1_010_mem_intf(),
+      x1_010(*this) {}
     ~DivPlatformX1_010();
 };
 

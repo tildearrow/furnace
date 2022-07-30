@@ -20,11 +20,12 @@
 #ifndef _ZXBEEPER_H
 #define _ZXBEEPER_H
 
+#include "sampleshared.h"
 #include "../dispatch.h"
 #include <queue>
 #include "../macroInt.h"
 
-class DivPlatformZXBeeper: public DivDispatch {
+class DivPlatformZXBeeper: public DivDispatch, public DivPlatformSample {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note;
     int ins;
@@ -95,6 +96,9 @@ class DivPlatformZXBeeper: public DivDispatch {
     const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformZXBeeper():
+      DivDispatch(),
+      DivPlatformSample() {}
     ~DivPlatformZXBeeper();
 };
 
