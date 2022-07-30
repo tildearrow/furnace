@@ -378,10 +378,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
+      setSampleBank(parent,c.value);
       break;
     case DIV_CMD_LEGATO:
       chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));

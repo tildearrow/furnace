@@ -419,10 +419,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       chan[c.chan].pcm=c.value;
       break;
     case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
+      setSampleBank(parent,c.value);
       break;
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);

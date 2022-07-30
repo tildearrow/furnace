@@ -552,10 +552,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       rWrite(0x4015,31);
       break;
     case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
+      setSampleBank(parent,c.value);
       break;
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;

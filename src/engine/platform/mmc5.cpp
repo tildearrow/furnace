@@ -308,10 +308,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
       rWrite(0x5000+c.chan*4,0x30|chan[c.chan].outVol|((chan[c.chan].duty&3)<<6));
       break;
     case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
+      setSampleBank(parent,c.value);
       break;
     case DIV_CMD_LEGATO:
       chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));

@@ -1115,10 +1115,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
+      setSampleBank(parent,c.value);
       iface.sampleBank=sampleBank;
       break;
     case DIV_CMD_LEGATO: {

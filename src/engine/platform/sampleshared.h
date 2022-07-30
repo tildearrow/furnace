@@ -25,10 +25,15 @@
 #include "../engine.h"
 #include "../instrument.h"
 #include "../sample.h"
+#include "../../ta-utils.h"
 
 class DivPlatformSample {
   protected:
     int sampleBank;
+
+    inline void setSampleBank(DivEngine* parent, int bank) {
+      sampleBank=CLAMP(bank,0,parent->song.sample.size()/12);
+    }
 
     inline int getCompatibleSample(int note) {
       return 12*sampleBank+note%12;
