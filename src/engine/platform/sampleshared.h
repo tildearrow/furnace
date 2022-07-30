@@ -32,7 +32,7 @@ class DivPlatformSample {
     int sampleBank;
 
     inline void setSampleBank(DivEngine* parent, int bank) {
-      sampleBank=CLAMP(bank,0,parent->song.sample.size()/12);
+      sampleBank=CLAMP(bank,0,(int)parent->song.sample.size()/12);
     }
 
     inline int getCompatibleSample(int note) {
