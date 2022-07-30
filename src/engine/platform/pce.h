@@ -29,7 +29,7 @@
 
 class DivPlatformPCE: public DivDispatch, public DivPlatformSample {
   struct Channel {
-    int freq, baseFreq, pitch, pitch2, note;
+    int freq, baseFreq, pitch, pitch2, note, antiClickPeriodCount, antiClickWavePos;
     int dacPeriod, dacRate;
     unsigned int dacPos;
     int dacSample, ins;
@@ -48,6 +48,8 @@ class DivPlatformPCE: public DivDispatch, public DivPlatformSample {
       pitch(0),
       pitch2(0),
       note(0),
+      antiClickPeriodCount(0),
+      antiClickWavePos(0),
       dacPeriod(0),
       dacRate(0),
       dacPos(0),
@@ -70,6 +72,7 @@ class DivPlatformPCE: public DivDispatch, public DivPlatformSample {
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];
   bool isMuted[6];
+  bool antiClickEnabled;
   struct QueuedWrite {
       unsigned char addr;
       unsigned char val;

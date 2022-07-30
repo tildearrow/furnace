@@ -109,6 +109,24 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       break;
     }
+    case DIV_SYSTEM_PCE: {
+      sysPal=flags&1;
+      if (ImGui::Checkbox("Pseudo-PAL",&sysPal)) {
+        copyOfFlags=(flags&(~1))|(unsigned int)sysPal;
+      }
+      bool antiClick=flags&8;
+      if (ImGui::Checkbox("Disable anti-click",&antiClick)) {
+        copyOfFlags=(flags&(~8))|(antiClick<<3);
+      }
+      break;
+    }
+    case DIV_SYSTEM_GB: {
+      bool antiClick=flags&8;
+      if (ImGui::Checkbox("Disable anti-click",&antiClick)) {
+        copyOfFlags=(flags&(~8))|(antiClick<<3);
+      }
+      break;
+    }
     case DIV_SYSTEM_OPLL:
     case DIV_SYSTEM_OPLL_DRUMS:
     case DIV_SYSTEM_VRC7: {
@@ -631,7 +649,6 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       break;
     }
-    case DIV_SYSTEM_GB:
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_VERA:
     case DIV_SYSTEM_BUBSYS_WSG:
