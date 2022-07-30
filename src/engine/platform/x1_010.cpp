@@ -570,7 +570,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
           } else {
             chan[c.chan].macroInit(NULL);
             chan[c.chan].outVol=chan[c.chan].vol;
-            if (getSampleVaild(parent,(12*sampleBank+c.value%12))) {
+            if (getSampleVaild(parent,getCompatibleSample(parent,c.value))) {
               chWrite(c.chan,0,0); // reset
               chWrite(c.chan,1,0);
               chWrite(c.chan,2,0);
@@ -582,7 +582,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
         } else {
           chan[c.chan].macroInit(NULL);
           chan[c.chan].outVol=chan[c.chan].vol;
-          if (getSampleVaild(parent,(12*sampleBank+c.value%12))) {
+          if (getSampleVaild(parent,getCompatibleSample(parent,c.value))) {
             chWrite(c.chan,0,0); // reset
             chWrite(c.chan,1,0);
             chWrite(c.chan,2,0);
@@ -590,7 +590,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
             chWrite(c.chan,5,0);
             break;
           }
-          DivSample* s=parent->getSample(12*sampleBank+c.value%12);
+          DivSample* s=parent->getSample(getCompatibleSample(parent,c.value));
           chWrite(c.chan,4,(s->offX1_010>>12)&0xff);
           int end=(s->offX1_010+s->length8+0xfff)&~0xfff; // padded
           chWrite(c.chan,5,(0x100-(end>>12))&0xff);

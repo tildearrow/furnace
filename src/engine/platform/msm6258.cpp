@@ -161,7 +161,7 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
       } else {
         chan[c.chan].macroInit(NULL);
         chan[c.chan].outVol=chan[c.chan].vol;
-        sample=getCompatibleSample(sampleBank,c.value);
+        sample=getCompatibleSample(parent,sampleBank,c.value);
         samplePos=0;
         if (getSampleVaild(parent,sample)) {
           //DivSample* s=parent->getSample(sample);
@@ -323,8 +323,6 @@ void DivPlatformMSM6258::reset() {
   sampleBank=0;
   sample=-1;
   samplePos=0;
-
-  delay=0;
 }
 
 bool DivPlatformMSM6258::isStereo() {
@@ -371,7 +369,6 @@ int DivPlatformMSM6258::init(DivEngine* p, int channels, int sugRate, unsigned i
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
-  updateOsc=0;
   for (int i=0; i<1; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;

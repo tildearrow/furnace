@@ -62,10 +62,6 @@ class DivPlatformSAA1099: public DivDispatch {
     int dacSample;
     unsigned char sampleBank;
 
-    int delay;
-
-    bool extMode;
-  
     short oldWrites[16];
     short pendingWrites[16];
     short* saaBuf[2];

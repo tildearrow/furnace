@@ -279,7 +279,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
             if (c.value!=DIV_NOTE_NULL) {
               chan[1].note=c.value;
             }
-            dacSample=getCompatibleSample(chan[1].note);
+            dacSample=getCompatibleSample(parent,chan[1].note);
             if (!getSampleVaild(parent,dacSample)) {
               dacSample=-1;
               if (dumpWrites) addWrite(0xffff0002,0);

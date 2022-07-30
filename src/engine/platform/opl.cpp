@@ -807,7 +807,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         } else {
           chan[c.chan].macroInit(NULL);
           chan[c.chan].outVol=chan[c.chan].vol;
-          chan[c.chan].sample=getCompatibleSample(c.value);
+          chan[c.chan].sample=getCompatibleSample(parent,c.value);
           if (getSampleVaild(parent,chan[c.chan].sample)) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(8,0);
@@ -1104,10 +1104,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
     }
     case DIV_CMD_SAMPLE_BANK:
       if (adpcmChan<0) break;
-      sampleBank=c.value;
-      if (sampleBank>(int)(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
+      setSampleBank(parent,c.value);
       iface.sampleBank=sampleBank;
       break;
     case DIV_CMD_LEGATO: {

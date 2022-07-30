@@ -219,7 +219,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].note=c.value;
         }
-        chan[c.chan].pcm.sample=12*sampleBank+chan[c.chan].note%12;
+        chan[c.chan].pcm.sample=getCompatibleSample(parent,chan[c.chan].note);
         if (!getSampleVaild(parent,chan[c.chan].pcm.sample)) {
           chan[c.chan].pcm.sample=-1;
           if (dumpWrites) {

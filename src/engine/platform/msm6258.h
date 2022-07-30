@@ -76,7 +76,7 @@ class DivPlatformMSM6258: public DivDispatch, public DivPlatformSample {
     signed char msmDividerCount, msmClockCount;
     short msmOut;
 
-    int delay, updateOsc, sample, samplePos;
+    int sample, samplePos;
 
     friend void putDispatchChan(void*,int,int);
   
@@ -106,7 +106,19 @@ class DivPlatformMSM6258: public DivDispatch, public DivPlatformSample {
     void quit();
     DivPlatformMSM6258():
       DivDispatch(),
-      DivPlatformSample() {}
+      DivPlatformSample(),
+      chan{Channel()},
+      isMuted{false},
+      msmPan(3),
+      msmDivider(2),
+      rateSel(2),
+      msmClock(4000000),
+      clockSel(0),
+      msmDividerCount(0),
+      msmClockCount(0),
+      msmOut(0),
+      sample(-1),
+      samplePos(0) {}
     ~DivPlatformMSM6258();
 };
 #endif

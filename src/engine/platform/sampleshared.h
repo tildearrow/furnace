@@ -20,8 +20,6 @@
 #ifndef _SAMPLESHARED_H
 #define _SAMPLESHARED_H
 
-#define _USE_MATH_DEFINES
-#include <cmath>
 #include "../engine.h"
 #include "../instrument.h"
 #include "../sample.h"
@@ -32,37 +30,27 @@ class DivPlatformSample {
     int sampleBank;
 
     inline void setSampleBank(DivEngine* parent, int bank) {
-      sampleBank=CLAMP(bank,0,(int)parent->song.sample.size()/12);
+      sampleBank=parent->setSampleBank(bank);
     }
 
-    inline int getCompatibleSample(int note) {
-      return 12*sampleBank+note%12;
+    inline void setSampleBank(DivEngine* parent, int& prev, int bank) {
+      prev=parent->setSampleBank(bank);
     }
 
-    inline int getCompatibleSample(int bank, int note) {
-      return 12*bank+note%12;
+    inline int getCompatibleSample(DivEngine* parent, int note) {
+      return parent->getCompatibleSample(sampleBank,note);
+    }
+
+    inline int getCompatibleSample(DivEngine* parent, int bank, int note) {
+      return parent->getCompatibleSample(bank,note);
     }
 
     inline bool getSampleVaild(DivEngine* parent, int index) {
-      return (index>=0 && index<parent->song.sampleLen);
+      return parent->getSampleVaild(index);
     }
 
     inline double getCenterRate(DivInstrument* ins, DivSample* s, int note, bool period) {
-      double off=1.0;
-      double center=(double)s->centerRate;
-      if (center<1) {
-        off=1.0;
-      } else {
-        off=period?(8363.0/(double)center):((double)center/8363.0);
-      }
-      if (ins->amiga.useNoteMap) {
-        if (period) {
-          off/=(double)ins->amiga.getFreq(note)/((double)MAX(1,center)*pow(2.0,((double)note-48.0)/12.0));
-        } else {
-          off*=(double)ins->amiga.getFreq(note)/((double)MAX(1,center)*pow(2.0,((double)note-48.0)/12.0));
-        }
-      }
-      return off;
+      return ins->amiga.getCenterRate(s,note,period);
     }
 
     DivPlatformSample():

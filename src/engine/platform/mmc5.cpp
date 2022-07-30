@@ -212,7 +212,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
           }
-          dacSample=getCompatibleSample(chan[c.chan].note);
+          dacSample=getCompatibleSample(parent,chan[c.chan].note);
           if (!getSampleVaild(parent,dacSample)) {
             dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);

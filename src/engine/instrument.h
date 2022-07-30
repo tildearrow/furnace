@@ -19,7 +19,11 @@
 
 #ifndef _INSTRUMENT_H
 #define _INSTRUMENT_H
+
+#define _USE_MATH_DEFINES
+#include <cmath>
 #include "safeWriter.h"
+#include "sample.h"
 #include "dataErrors.h"
 #include "../ta-utils.h"
 
@@ -343,6 +347,24 @@ struct DivInstrumentAmiga {
       return noteMap[note].freq;
     }
     return -1;
+  }
+
+  inline double getCenterRate(DivSample* s, int note, bool period) {
+    double off=1.0;
+    double center=(double)s->centerRate;
+    if (center<1) {
+      off=1.0;
+    } else {
+      off=period?(8363.0/(double)center):((double)center/8363.0);
+    }
+    if (useNoteMap) {
+      if (period) {
+        off/=(double)getFreq(note)/((double)MAX(1,center)*pow(2.0,((double)note-48.0)/12.0));
+      } else {
+        off*=(double)getFreq(note)/((double)MAX(1,center)*pow(2.0,((double)note-48.0)/12.0));
+      }
+    }
+    return off;
   }
 
   DivInstrumentAmiga():

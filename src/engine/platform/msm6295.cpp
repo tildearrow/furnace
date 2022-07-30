@@ -153,7 +153,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
       } else {
         chan[c.chan].macroInit(NULL);
         chan[c.chan].outVol=chan[c.chan].vol;
-        chan[c.chan].sample=getCompatibleSample(c.value);
+        chan[c.chan].sample=getCompatibleSample(parent,c.value);
         if (getSampleVaild(parent,chan[c.chan].sample)) {
           //DivSample* s=parent->getSample(chan[c.chan].sample);
           chan[c.chan].active=true;

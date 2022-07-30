@@ -266,7 +266,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
             }
-            chan[c.chan].dacSample=getCompatibleSample(chan[c.chan].note);
+            chan[c.chan].dacSample=getCompatibleSample(parent,chan[c.chan].note);
             if (!getSampleVaild(parent,chan[c.chan].dacSample)) {
               chan[c.chan].dacSample=-1;
               if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);

@@ -851,7 +851,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
         } else {
           chan[c.chan].macroInit(NULL);
           chan[c.chan].outVol=chan[c.chan].vol;
-          chan[c.chan].sample=getCompatibleSample(c.value);
+          chan[c.chan].sample=getCompatibleSample(parent,c.value);
           if (getSampleVaild(parent,chan[c.chan].sample)) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(0x12,(s->offB>>8)&0xff);
@@ -919,7 +919,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
         } else {
           chan[c.chan].macroInit(NULL);
           chan[c.chan].outVol=chan[c.chan].vol;
-          chan[c.chan].sample=getCompatibleSample(c.value);
+          chan[c.chan].sample=getCompatibleSample(parent,c.value);
           if (getSampleVaild(parent,chan[c.chan].sample)) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(0x110+c.chan-9,(s->offA>>8)&0xff);

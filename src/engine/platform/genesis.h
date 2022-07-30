@@ -58,7 +58,7 @@ class DivPlatformGenesis: public DivPlatformOPN, public DivPlatformSample {
       int dacDelay;
       bool dacReady;
       bool dacDirection;
-      unsigned char sampleBank;
+      int sampleBank;
       signed char dacOutput;
       void macroInit(DivInstrument* which) {
         std.init(which);

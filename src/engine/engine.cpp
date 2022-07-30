@@ -699,6 +699,18 @@ int DivEngine::loadSampleROM(String path, ssize_t expectedSize, unsigned char*& 
   return 0;
 }
 
+bool DivEngine::getSampleVaild(int index) {
+  return (index>=0) && (index<=song.sampleLen);
+}
+
+int DivEngine::getCompatibleSample(int bank, int note) {
+  return 12*bank+note%12;
+}
+
+int DivEngine::setSampleBank(int bank) {
+  return CLAMP(bank,0,(int)song.sample.size()/12);
+}
+
 int DivEngine::loadSampleROMs() {
   if (yrw801ROM!=NULL) {
     delete[] yrw801ROM;

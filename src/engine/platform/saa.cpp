@@ -411,10 +411,6 @@ void DivPlatformSAA1099::reset() {
   saaNoise[0]=0;
   saaNoise[1]=0;
 
-  delay=0;
-
-  extMode=false;
-
   rWrite(8,255);
   rWrite(9,255);
   rWrite(10,255);

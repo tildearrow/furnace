@@ -829,6 +829,15 @@ class DivEngine {
     // get register cheatsheet
     const char** getRegisterSheet(int sys);
 
+    // get sample is vaild
+    bool getSampleVaild(int index);
+
+    // get compatible mode sample
+    int getCompatibleSample(int bank, int note);
+
+    // set sample bank
+    int setSampleBank(int bank);
+
     // load sample ROMs
     int loadSampleROMs();
 

@@ -402,8 +402,8 @@ int DivPlatformQSound::dispatch(DivCommand c) {
         chan[c.chan].sample=-1;
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
+        chan[c.chan].freqChanged=true;
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
@@ -524,7 +524,7 @@ void DivPlatformQSound::muteChannel(int ch, bool mute) {
 }
 
 void DivPlatformQSound::forceIns() {
-  for (int i=0; i<4; i++) {
+  for (int i=0; i<16; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
     chan[i].sample=-1;
@@ -566,7 +566,7 @@ bool DivPlatformQSound::keyOffAffectsArp(int ch) {
 }
 
 void DivPlatformQSound::notifyInsChange(int ins) {
-  for (int i=0; i<4; i++) {
+  for (int i=0; i<16; i++) {
     if (chan[i].ins==ins) {
       chan[i].insChanged=true;
     }
@@ -579,7 +579,7 @@ void DivPlatformQSound::notifyWaveChange(int wave) {
 }
 
 void DivPlatformQSound::notifyInsDeletion(void* ins) {
-  for (int i=0; i<4; i++) {
+  for (int i=0; i<16; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }

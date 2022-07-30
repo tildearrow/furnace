@@ -166,10 +166,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
     }
     case DIV_CMD_SAMPLE_BANK:
       if (!parent->song.ignoreDACModeOutsideIntendedChannel) {
-        chan[5].sampleBank=c.value;
-        if (chan[5].sampleBank>(parent->song.sample.size()/12)) {
-          chan[5].sampleBank=parent->song.sample.size()/12;
-        }
+        setSampleBank(parent,chan[5].sampleBank,c.value);
       }
       break;
     case DIV_CMD_LEGATO: {

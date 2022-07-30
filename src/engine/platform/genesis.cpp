@@ -653,7 +653,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
           }
-          chan[c.chan].dacSample=getCompatibleSample(chan[c.chan].sampleBank,chan[c.chan].note);
+          chan[c.chan].dacSample=getCompatibleSample(parent,chan[c.chan].sampleBank,chan[c.chan].note);
           if (!getSampleVaild(parent,chan[c.chan].dacSample)) {
             chan[c.chan].dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);
@@ -875,10 +875,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     }
     case DIV_CMD_SAMPLE_BANK:
       if (c.chan<5) c.chan=5;
-      chan[c.chan].sampleBank=c.value;
-      if (chan[c.chan].sampleBank>(parent->song.sample.size()/12)) {
-        chan[c.chan].sampleBank=parent->song.sample.size()/12;
-      }
+      setSampleBank(parent,chan[c.chan].sampleBank,c.value);
       break;
     case DIV_CMD_SAMPLE_DIR: {
       if (c.chan<5) c.chan=5;
