@@ -21,6 +21,7 @@
 #define _SAMPLESHARED_H
 
 #define _USE_MATH_DEFINES
+#include <cmath>
 #include "../engine.h"
 #include "../instrument.h"
 #include "../sample.h"
