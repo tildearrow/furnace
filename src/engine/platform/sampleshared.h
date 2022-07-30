@@ -20,6 +20,7 @@
 #ifndef _SAMPLESHARED_H
 #define _SAMPLESHARED_H
 
+#define _USE_MATH_DEFINES
 #include "../engine.h"
 #include "../instrument.h"
 #include "../sample.h"
