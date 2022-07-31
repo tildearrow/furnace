@@ -112,7 +112,7 @@ class DivPlatformMSM6258: public DivDispatch, public DivPlatformSample {
       msmPan(3),
       msmDivider(2),
       rateSel(2),
-      msmClock(4000000),
+      msmClock(0),
       clockSel(0),
       msmDividerCount(0),
       msmClockCount(0),
