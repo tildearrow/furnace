@@ -26,6 +26,24 @@
 #include <algorithm>
 #include <limits>
 
+#if defined ( _MSC_VER )
+#include <intrin.h>
+
+static void cpuid( int info[4], int infoType )
+{
+  __cpuidex( info, infoType, 0 );
+}
+
+#else
+#include <cpuid.h>
+
+static void cpuid( int info[4], int infoType )
+{
+  __cpuid_count( infoType, 0, info[0], info[1], info[2], info[3] );
+}
+
+#endif
+
 namespace Lynx
 {
 
@@ -34,29 +52,7 @@ namespace
 
 static constexpr int64_t CNT_MAX = std::numeric_limits<int64_t>::max() & ~15;
 
-#if defined ( __cpp_lib_bitops )
-
-#define popcnt(X) std::popcount(X)
-
-#elif defined( _MSC_VER )
-
-# include <intrin.h>
-
-uint32_t popcnt( uint32_t x )
-{
-  return __popcnt( x );
-}
-
-#elif defined( __GNUC__ )
-
-uint32_t popcnt( uint32_t x )
-{
-  return __builtin_popcount( x );
-}
-
-#else
-
-uint32_t popcnt( uint32_t x )
+uint32_t popcnt_generic( uint32_t x )
 {
   int v = 0;
   while ( x != 0 )
@@ -67,7 +63,16 @@ uint32_t popcnt( uint32_t x )
   return v;
 }
 
+uint32_t popcnt_intrinsic( uint32_t x )
+{
+#if defined ( _MSC_VER )
+  return __popcnt( x );
+#else
+  return __builtin_popcount( x );
 #endif
+}
+
+static uint32_t( *popcnt )( uint32_t x );
 
 int32_t clamp( int32_t v, int32_t lo, int32_t hi )
 {
@@ -514,6 +519,18 @@ private:
 Mikey::Mikey( uint32_t sampleRate ) : mMikey{ std::make_unique<MikeyPimpl>() }, mQueue{ std::make_unique<ActionQueue>() }, mTick{}, mNextTick{}, mSampleRate{ sampleRate }, mSamplesRemainder{}, mTicksPerSample{ 16000000 / mSampleRate, 16000000 % mSampleRate }
 {
   enqueueSampling();
+
+  //detecting popcnt availability
+  int info[4];
+  cpuid( info, 1 );
+  if ( ( info[2] & ( (int)1 << 23 ) ) != 0 )
+  {
+    popcnt = &popcnt_intrinsic;
+  }
+  else
+  {
+    popcnt = &popcnt_generic;
+  }
 }
 
 Mikey::~Mikey()
