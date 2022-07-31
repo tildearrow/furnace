@@ -20,6 +20,7 @@
 #ifndef _SAMPLESHARED_H
 #define _SAMPLESHARED_H
 
+#include <cmath>
 #include "../engine.h"
 #include "../instrument.h"
 #include "../sample.h"
@@ -50,7 +51,21 @@ class DivPlatformSample {
     }
 
     inline double getCenterRate(DivInstrument* ins, DivSample* s, int note, bool period) {
-      return ins->amiga.getCenterRate(s,note,period);
+      double off=1.0;
+      double center=(double)s->centerRate;
+      if (center<1) {
+        off=1.0;
+      } else {
+        off=period?(8363.0/(double)center):((double)center/8363.0);
+      }
+      if (ins->amiga.useNoteMap) {
+        if (period) {
+          off/=(double)ins->amiga.getFreq(note)/((double)MAX(1,center)*pow(2.0,((double)note-48.0)/12.0));
+        } else {
+          off*=(double)ins->amiga.getFreq(note)/((double)MAX(1,center)*pow(2.0,((double)note-48.0)/12.0));
+        }
+      }
+      return off;
     }
 
     DivPlatformSample():
