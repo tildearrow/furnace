@@ -20,7 +20,6 @@
 #ifndef _INSTRUMENT_H
 #define _INSTRUMENT_H
 
-#define _USE_MATH_DEFINES
 #include <cmath>
 #include "safeWriter.h"
 #include "sample.h"
