@@ -26,6 +26,11 @@
 #include <algorithm>
 #include <limits>
 
+#if defined(i386) || defined(__i386__) || defined(__i386) || defined(__x86_64__) || defined(_M_IX86) || defined(_M_X64)
+#define IS_INTEL
+#endif
+
+#ifdef IS_INTEL
 #if defined ( _MSC_VER )
 #include <intrin.h>
 
@@ -42,6 +47,7 @@ static void cpuid( int info[4], int infoType )
   __cpuid_count( infoType, 0, info[0], info[1], info[2], info[3] );
 }
 
+#endif
 #endif
 
 namespace Lynx
@@ -63,6 +69,7 @@ uint32_t popcnt_generic( uint32_t x )
   return v;
 }
 
+#ifdef IS_INTEL
 uint32_t popcnt_intrinsic( uint32_t x )
 {
 #if defined ( _MSC_VER )
@@ -71,6 +78,7 @@ uint32_t popcnt_intrinsic( uint32_t x )
   return __builtin_popcount( x );
 #endif
 }
+#endif
 
 static uint32_t( *popcnt )( uint32_t x );
 
@@ -521,6 +529,7 @@ Mikey::Mikey( uint32_t sampleRate ) : mMikey{ std::make_unique<MikeyPimpl>() }, 
   enqueueSampling();
 
   //detecting popcnt availability
+#ifdef IS_INTEL
   int info[4];
   cpuid( info, 1 );
   if ( ( info[2] & ( (int)1 << 23 ) ) != 0 )
@@ -531,6 +540,9 @@ Mikey::Mikey( uint32_t sampleRate ) : mMikey{ std::make_unique<MikeyPimpl>() }, 
   {
     popcnt = &popcnt_generic;
   }
+#else
+  popcnt = &popcnt_generic;
+#endif
 }
 
 Mikey::~Mikey()
