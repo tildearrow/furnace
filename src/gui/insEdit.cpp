@@ -43,24 +43,93 @@ const char* fmParamShortNames[3][32]={
   {"ALG", "FB", "FMS", "AMS", "A", "D", "D2", "R", "S", "TL", "RS", "ML", "DT", "DT2", "SSG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2"}
 };
 
-const char* opllInsNames[17]={
-  "User",
-  "Violin",
-  "Guitar",
-  "Piano",
-  "Flute",
-  "Clarinet",
-  "Oboe",
-  "Trumpet",
-  "Organ",
-  "Horn",
-  "Synth",
-  "Harpsichord",
-  "Vibraphone",
-  "Synth Bass",
-  "Acoustic Bass",
-  "Electric Guitar",
-  "Drums"
+const char* opllVariants[4]={
+  "OPLL",
+  "YMF281",
+  "YM2423",
+  "VRC7"
+};
+
+const char* opllInsNames[4][17]={
+  /* YM2413 */ {
+    "User",
+    "Violin",
+    "Guitar",
+    "Piano",
+    "Flute",
+    "Clarinet",
+    "Oboe",
+    "Trumpet",
+    "Organ",
+    "Horn",
+    "Synth",
+    "Harpsichord",
+    "Vibraphone",
+    "Synth Bass",
+    "Acoustic Bass",
+    "Electric Guitar",
+    "Drums"
+  },
+  // help me get the names!
+  /* YMF281 */ {
+    "User",
+    "Name under Register-Wall #1",
+    "Name under Register-Wall #2",
+    "Piano",
+    "Flute",
+    "Clarinet",
+    "Name under Register-Wall #6",
+    "Trumpet",
+    "Name under Register-Wall #8",
+    "Name under Register-Wall #9",
+    "Name under Register-Wall #10",
+    "Name under Register-Wall #11",
+    "Name under Register-Wall #12",
+    "Name under Register-Wall #13",
+    "Name under Register-Wall #14",
+    "Name under Register-Wall #15",
+    "Drums"
+  },
+  // help me get the names!
+  /* YM2423 */ {
+    "User",
+    "Violin",
+    "What is this",
+    "Some kind of space sound",
+    "Voice maybe",
+    "Clarinet",
+    "Slap something",
+    "Trumpet",
+    "AAAAAA",
+    "Wow!",
+    "Synth",
+    "Synth Key",
+    "Vibraphone",
+    "Space Bass",
+    "Synth Bass",
+    "Sound like the default Defle patch",
+    "Drums"
+  },
+  // stolen from FamiTracker
+  /* VRC7 */ {
+    "User",
+    "Bell",
+    "Guitar",
+    "Piano",
+    "Flute",
+    "Clarinet",
+    "Rattling Bell",
+    "Trumpet",
+    "Reed Organ",
+    "Soft Bell",
+    "Xylophone",
+    "Vibraphone",
+    "Brass",
+    "Bass Guitar",
+    "Synth",
+    "Chorus",
+    "Drums"
+  }
 };
 
 const char* oplWaveforms[8]={
@@ -1572,10 +1641,59 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextColumn();
                   drawAlgorithm(0,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::BeginCombo("##LLPreset",opllInsNames[ins->fm.opllPreset])) {
-                    for (int i=0; i<17; i++) {
-                      if (ImGui::Selectable(opllInsNames[i])) {
-                        ins->fm.opllPreset=i;
+
+                  bool isPresent[4];
+                  int isPresentCount=0;
+                  memset(isPresent,0,4*sizeof(bool));
+                  for (int i=0; i<e->song.systemLen; i++) {
+                    if (e->song.system[i]==DIV_SYSTEM_VRC7) {
+                      isPresent[3]=true;
+                    } else if (e->song.system[i]==DIV_SYSTEM_OPLL || e->song.system[i]==DIV_SYSTEM_OPLL_DRUMS) {
+                      isPresent[(e->song.systemFlags[i]>>4)&3]=true;
+                    }
+                  }
+                  if (!isPresent[0] && !isPresent[1] && !isPresent[2] && !isPresent[3]) {
+                    isPresent[0]=true;
+                  }
+                  for (int i=0; i<4; i++) {
+                    if (isPresent[i]) isPresentCount++;
+                  }
+                  int presentWhich=0;
+                  for (int i=0; i<4; i++) {
+                    if (isPresent[i]) {
+                      presentWhich=i;
+                      break;
+                    }
+                  }
+
+                  if (ImGui::BeginCombo("##LLPreset",opllInsNames[presentWhich][ins->fm.opllPreset])) {
+                    if (isPresentCount>1) {
+                      if (ImGui::BeginTable("LLPresetList",isPresentCount)) {
+                        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+                        for (int i=0; i<4; i++) {
+                          if (!isPresent[i]) continue;
+                          ImGui::TableNextColumn();
+                          ImGui::Text("%s name",opllVariants[i]);
+                        }
+                        for (int i=0; i<17; i++) {
+                          ImGui::TableNextRow();
+                          for (int j=0; j<4; j++) {
+                            if (!isPresent[j]) continue;
+                            ImGui::TableNextColumn();
+                            ImGui::PushID(j*17+i);
+                            if (ImGui::Selectable(opllInsNames[j][i])) {
+                              ins->fm.opllPreset=i;
+                            }
+                            ImGui::PopID();
+                          }
+                        }
+                        ImGui::EndTable();
+                      }
+                    } else {
+                      for (int i=0; i<17; i++) {
+                        if (ImGui::Selectable(opllInsNames[presentWhich][i])) {
+                          ins->fm.opllPreset=i;
+                        }
                       }
                     }
                     ImGui::EndCombo();
