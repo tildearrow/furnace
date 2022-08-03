@@ -70,24 +70,24 @@ const char* opllInsNames[4][17]={
     "Electric Guitar",
     "Drums"
   },
-  // help me get the names!
+
   /* YMF281 */ {
     "User",
-    "Name under Register-Wall #1",
-    "Name under Register-Wall #2",
-    "Piano",
-    "Flute",
+    "Electric String",
+    "Bow wow",
+    "Electric Guitar",
+    "Organ",
     "Clarinet",
-    "Name under Register-Wall #6",
+    "Saxophone",
     "Trumpet",
-    "Name under Register-Wall #8",
-    "Name under Register-Wall #9",
-    "Name under Register-Wall #10",
-    "Name under Register-Wall #11",
-    "Name under Register-Wall #12",
-    "Name under Register-Wall #13",
-    "Name under Register-Wall #14",
-    "Name under Register-Wall #15",
+    "Street Organ",
+    "Synth Brass",
+    "Electric Piano",
+    "Bass",
+    "Vibraphone",
+    "Chime",
+    "Tom Tom II",
+    "Noise",
     "Drums"
   },
   // help me get the names!
