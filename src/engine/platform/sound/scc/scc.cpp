@@ -1,6 +1,6 @@
 /*
 	License: BSD-3-Clause
-	see https://github.com/cam900/vgsound_emu/blob/vgsound_emu_v1/LICENSE for more details
+	see https://gitlab.com/cam900/vgsound_emu/-/blob/V1/LICENSE for more details
 
 	Copyright holder(s): cam900
 	Contributor(s): Natt Akuma, James Alan Nguyen, Laurens Holst
