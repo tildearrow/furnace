@@ -70,7 +70,6 @@ const char* opllInsNames[4][17]={
     "Electric Guitar",
     "Drums"
   },
-
   /* YMF281 */ {
     "User",
     "Electric String",
