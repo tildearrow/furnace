@@ -120,6 +120,23 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       break;
     }
+    case DIV_SYSTEM_SOUND_UNIT: {
+      ImGui::Text("CPU rate:");
+      if (ImGui::RadioButton("6.18MHz (NTSC)",(flags&15)==0)) {
+        copyOfFlags=(flags&(~15))|0;
+      }
+      if (ImGui::RadioButton("5.95MHz (PAL)",(flags&15)==1)) {
+        copyOfFlags=(flags&(~15))|1;
+      }
+      ImGui::Text("Chip revision (sample memory):");
+      if (ImGui::RadioButton("A/B/E (8K)",(flags&16)==0)) {
+        copyOfFlags=(flags&(~16))|0;
+      }
+      if (ImGui::RadioButton("D/F (64K)",(flags&16)==16)) {
+        copyOfFlags=(flags&(~16))|16;
+      }
+      break;
+    }
     case DIV_SYSTEM_GB: {
       bool antiClick=flags&8;
       if (ImGui::Checkbox("Disable anti-click",&antiClick)) {

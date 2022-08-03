@@ -96,6 +96,7 @@ class DivPlatformSoundUnit: public DivDispatch {
   };
   std::queue<QueuedWrite> writes;
   unsigned char lastPan;
+  bool sampleMemSize;
 
   int cycles, curChan, delay;
   short tempL;

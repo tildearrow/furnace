@@ -555,6 +555,11 @@ void DivPlatformSoundUnit::setFlags(unsigned int flags) {
   for (int i=0; i<8; i++) {
     oscBuf[i]->rate=rate;
   }
+
+  sampleMemSize=flags&16;
+
+  su->Init(sampleMemSize?65536:8192);
+  renderSamples();
 }
 
 void DivPlatformSoundUnit::poke(unsigned int addr, unsigned short val) {
@@ -570,7 +575,7 @@ const void* DivPlatformSoundUnit::getSampleMem(int index) {
 }
 
 size_t DivPlatformSoundUnit::getSampleMemCapacity(int index) {
-  return (index==0)?8192:0;
+  return (index==0)?(sampleMemSize?65536:8192):0;
 }
 
 size_t DivPlatformSoundUnit::getSampleMemUsage(int index) {
@@ -583,6 +588,7 @@ void DivPlatformSoundUnit::renderSamples() {
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
+    if (s->data8==NULL) continue;
     int paddedLen=s->samples;
     if (memPos>=getSampleMemCapacity(0)) {
       logW("out of PCM memory for sample %d!",i);
@@ -609,9 +615,8 @@ int DivPlatformSoundUnit::init(DivEngine* p, int channels, int sugRate, unsigned
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  setFlags(flags);
   su=new SoundUnit();
-  su->Init();
+  setFlags(flags);
   reset();
   return 6;
 }
