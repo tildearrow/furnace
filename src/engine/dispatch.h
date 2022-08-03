@@ -400,6 +400,12 @@ class DivDispatch {
     virtual bool getDCOffRequired();
 
     /**
+     * check whether PRE_NOTE command is desired.
+     * @return truth.
+     */
+    virtual bool getWantPreNote();
+
+    /**
      * get a description of a dispatch-specific effect.
      * @param effect the effect.
      * @return the description, or NULL if effect is invalid.
