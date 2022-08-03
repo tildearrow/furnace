@@ -914,7 +914,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
 
   // MIDI clock
   if (output) if (!skipping && output->midiOut!=NULL) {
-    output->midiOut->send(TAMidiMessage(TA_MIDI_CLOCK,0,0));
+    //output->midiOut->send(TAMidiMessage(TA_MIDI_CLOCK,0,0));
   }
 
   while (!pendingNotes.empty()) {
