@@ -57,6 +57,12 @@ const char* cmdName[]={
   "PRE_PORTA",
   "PRE_NOTE",
 
+  "HINT_VIBRATO",
+  "HINT_VIBRATO_SHAPE",
+  "HINT_PITCH",
+  "HINT_ARPEGGIO",
+  "HINT_VOL_SLIDE",
+
   "SAMPLE_MODE",
   "SAMPLE_FREQ",
   "SAMPLE_BANK",
