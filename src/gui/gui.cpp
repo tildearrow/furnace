@@ -2901,6 +2901,22 @@ bool FurnaceGUI::loop() {
             ImGui::EndCombo();
           }
           ImGui::Checkbox("loop",&vgmExportLoop);
+          ImGui::Checkbox("add pattern change hints",&vgmExportPatternHints);
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(
+              "inserts data blocks on pattern changes.\n"
+              "useful if you are writing a playback routine.\n\n"
+
+              "the format of a pattern change data block is:\n"
+              "67 66 FE ll ll ll ll 01 oo rr pp pp pp ...\n"
+              "- ll: length, a 32-bit little-endian number\n"
+              "- oo: order\n"
+              "- rr: initial row (a 0Dxx effect is able to select a different row)\n"
+              "- pp: pattern index (one per channel)\n\n"
+
+              "pattern indexes are ordered as they appear in the song."
+            );
+          }
           ImGui::Text("systems to export:");
           bool hasOneAtLeast=false;
           for (int i=0; i<e->song.systemLen; i++) {
@@ -3468,7 +3484,7 @@ bool FurnaceGUI::loop() {
               }
               break;
             case GUI_FILE_EXPORT_VGM: {
-              SafeWriter* w=e->saveVGM(willExport,vgmExportLoop,vgmExportVersion);
+              SafeWriter* w=e->saveVGM(willExport,vgmExportLoop,vgmExportVersion,vgmExportPatternHints);
               if (w!=NULL) {
                 FILE* f=ps_fopen(copyOfName.c_str(),"wb");
                 if (f!=NULL) {
@@ -4431,6 +4447,7 @@ FurnaceGUI::FurnaceGUI():
   displayError(false),
   displayExporting(false),
   vgmExportLoop(true),
+  vgmExportPatternHints(false),
   wantCaptureKeyboard(false),
   oldWantCaptureKeyboard(false),
   displayMacroMenu(false),
