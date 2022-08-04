@@ -52,6 +52,7 @@ FurnaceCLI cli;
 
 String outName;
 String vgmOutName;
+String cmdOutName;
 int loops=1;
 int benchMode=0;
 DivAudioExportModes outMode=DIV_EXPORT_MODE_ONE;
@@ -250,6 +251,12 @@ TAParamResult pVGMOut(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pCmdOut(String val) {
+  cmdOutName=val;
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return TA_PARAM_SUCCESS;
+}
+
 bool needsValue(String param) {
   for (size_t i=0; i<params.size(); i++) {
     if (params[i].name==param) {
@@ -265,6 +272,7 @@ void initParams() {
   params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl","set audio engine (SDL by default)"));
   params.push_back(TAParam("o","output",true,pOutput,"<filename>","output audio to file"));
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
+  params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (pattern by default)"));
   params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
@@ -307,6 +315,7 @@ int main(int argc, char** argv) {
 #endif
   outName="";
   vgmOutName="";
+  cmdOutName="";
 
   initParams();
 
@@ -443,7 +452,23 @@ int main(int argc, char** argv) {
     }
     return 0;
   }
-  if (outName!="" || vgmOutName!="") {
+  if (outName!="" || vgmOutName!="" || cmdOutName!="") {
+    if (cmdOutName!="") {
+      SafeWriter* w=e.saveCommand(false);
+      if (w!=NULL) {
+        FILE* f=fopen(cmdOutName.c_str(),"wb");
+        if (f!=NULL) {
+          fwrite(w->getFinalBuf(),1,w->size(),f);
+          fclose(f);
+        } else {
+          reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
+        }
+        w->finish();
+        delete w;
+      } else {
+        reportError("could not write command stream!");
+      }
+    }
     if (vgmOutName!="") {
       SafeWriter* w=e.saveVGM();
       if (w!=NULL) {
