@@ -311,6 +311,8 @@ SafeWriter* DivEngine::saveCommand(bool binary) {
           break;
         case DIV_CMD_PITCH:
           break;
+        case DIV_CMD_PRE_NOTE:
+          break;
         default:
           if (!wroteTick) {
             wroteTick=true;

@@ -62,8 +62,8 @@ const char* cmdName[]={
   "HINT_VIBRATO_SHAPE",
   "HINT_PITCH",
   "HINT_ARPEGGIO",
-  "HINT_VOL_SLIDE",
   "HINT_VOLUME",
+  "HINT_VOL_SLIDE",
   "HINT_PORTA",
   "HINT_LEGATO",
 
@@ -340,8 +340,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
   // instrument
   bool insChanged=false;
   if (pat->data[whatRow][2]!=-1) {
-    dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[whatRow][2]));
     if (chan[i].lastIns!=pat->data[whatRow][2]) {
+      dispatchCmd(DivCommand(DIV_CMD_INSTRUMENT,i,pat->data[whatRow][2]));
       chan[i].lastIns=pat->data[whatRow][2];
       insChanged=true;
       if (song.legacyVolumeSlides && chan[i].volume==chan[i].volMax+1) {
