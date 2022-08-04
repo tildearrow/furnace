@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "dispatch.h"
 #define _USE_MATH_DEFINES
 #include "engine.h"
 #include "instrument.h"
@@ -232,6 +233,111 @@ double DivEngine::benchmarkSeek() {
 
   printf("[RESULT] min %fs max %fs average %fs\n",tMin,tMax,tAvg);
   return tAvg;
+}
+
+SafeWriter* DivEngine::saveCommand(bool binary) {
+  logI("implement! %d",binary);
+  stop();
+  repeatPattern=false;
+  setOrder(0);
+  BUSY_BEGIN_SOFT;
+  // determine loop point
+  int loopOrder=0;
+  int loopRow=0;
+  int loopEnd=0;
+  walkSong(loopOrder,loopRow,loopEnd);
+  logI("loop point: %d %d",loopOrder,loopRow);
+
+  SafeWriter* w=new SafeWriter;
+  w->init();
+
+  // write header
+  w->writeText("# Furnace Command Stream\n\n");
+
+  w->writeText("[Information]\n");
+  w->writeText(fmt::sprintf("name: %s\n",song.name));
+  w->writeText(fmt::sprintf("author: %s\n",song.author));
+  w->writeText(fmt::sprintf("category: %s\n",song.category));
+  w->writeText(fmt::sprintf("system: %s\n",song.systemName));
+
+  w->writeText("\n");
+
+  w->writeText("[SubSongInformation]\n");
+  w->writeText(fmt::sprintf("name: %s\n",curSubSong->name));
+  w->writeText(fmt::sprintf("tickRate: %f\n",curSubSong->hz));
+
+  w->writeText("\n");
+
+  w->writeText("[SysDefinition]\n");
+  // TODO
+
+  w->writeText("\n");
+
+  // play the song ourselves
+  bool done=false;
+  playSub(false);
+  
+  w->writeText("[Stream]\n");
+  int tick=0;
+  bool oldCmdStreamEnabled=cmdStreamEnabled;
+  cmdStreamEnabled=true;
+  double curDivider=divider;
+  while (!done) {
+    if (nextTick(false,true) || !playing) {
+      done=true;
+    }
+    // get command stream
+    bool wroteTick=false;
+    if (curDivider!=divider) {
+      curDivider=divider;
+      if (!wroteTick) {
+        wroteTick=true;
+        w->writeText(fmt::sprintf(">> TICK %d\n",tick));
+      }
+      w->writeText(fmt::sprintf(">> SET_RATE %f\n",curDivider));
+    }
+    for (DivCommand& i: cmdStream) {
+      switch (i.cmd) {
+        // strip away hinted/useless commands
+        case DIV_ALWAYS_SET_VOLUME:
+          break;
+        case DIV_CMD_GET_VOLUME:
+          break;
+        case DIV_CMD_VOLUME:
+          break;
+        case DIV_CMD_NOTE_PORTA:
+          break;
+        case DIV_CMD_LEGATO:
+          break;
+        case DIV_CMD_PITCH:
+          break;
+        default:
+          if (!wroteTick) {
+            wroteTick=true;
+            w->writeText(fmt::sprintf(">> TICK %d\n",tick));
+          }
+          w->writeText(fmt::sprintf("  %d: %s %d %d\n",i.chan,cmdName[i.cmd],i.value,i.value2));
+          break;
+      }
+    }
+    cmdStream.clear();
+    tick++;
+  }
+  cmdStreamEnabled=oldCmdStreamEnabled;
+
+  if (!playing) {
+    w->writeText(">> END\n");
+  } else {
+    w->writeText(">> LOOP 0\n");
+  }
+
+  remainingLoops=-1;
+  playing=false;
+  freelance=false;
+  extValuePresent=false;
+  BUSY_END;
+
+  return w;
 }
 
 void _runExportThread(DivEngine* caller) {

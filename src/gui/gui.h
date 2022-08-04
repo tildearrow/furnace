@@ -266,6 +266,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_AUDIO_PER_SYS,
   GUI_FILE_EXPORT_AUDIO_PER_CHANNEL,
   GUI_FILE_EXPORT_VGM,
+  GUI_FILE_EXPORT_CMDSTREAM,
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_LOAD_MAIN_FONT,
   GUI_FILE_LOAD_PAT_FONT,
@@ -948,11 +949,14 @@ class FurnaceGUI {
   bool updateSampleTex;
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile;
-  String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport, workingDirVGMExport, workingDirFont, workingDirColors, workingDirKeybinds, workingDirLayout, workingDirROM, workingDirTest;
+  String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
+  String workingDirVGMExport, workingDirROMExport, workingDirFont, workingDirColors, workingDirKeybinds;
+  String workingDirLayout, workingDirROM, workingDirTest;
   String mmlString[32];
   String mmlStringW;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, vgmExportPatternHints, wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
+  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, vgmExportPatternHints;
+  bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
   bool displayPendingIns, pendingInsSingle;
   bool willExport[32];

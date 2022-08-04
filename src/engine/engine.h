@@ -280,6 +280,8 @@ enum DivChanTypes {
   DIV_CH_OP=5
 };
 
+extern const char* cmdName[];
+
 class DivEngine {
   DivDispatchContainer disCont[32];
   TAAudio* output;

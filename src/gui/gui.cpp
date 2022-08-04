@@ -1401,6 +1401,17 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_EXPORT_CMDSTREAM:
+      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        "Export Command Stream",
+        {"text file", "*.txt",
+         "binary file", "*.bin"},
+        "text file{.txt},binary file{.bin}",
+        workingDirROMExport,
+        dpiScale
+      );
+      break;
     case GUI_FILE_EXPORT_ROM:
       showError("Coming soon!");
       break;
@@ -2947,6 +2958,19 @@ bool FurnaceGUI::loop() {
           }
           ImGui::EndMenu();
         }
+        if (ImGui::BeginMenu("export command stream...")) {
+          ImGui::Text(
+            "this option exports a text or binary file which\n"
+            "contains a dump of the internal command stream\n"
+            "produced when playing the song.\n\n"
+
+            "technical/development use only!"
+          );
+          if (ImGui::Button("export")) {
+            openFileDialog(GUI_FILE_EXPORT_CMDSTREAM);
+          }
+          ImGui::EndMenu();
+        }
         ImGui::Separator();
         if (ImGui::BeginMenu("add system...")) {
           for (int j=0; availableSystems[j]; j++) {
@@ -3258,8 +3282,11 @@ bool FurnaceGUI::loop() {
           workingDirAudioExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_VGM:
-        case GUI_FILE_EXPORT_ROM:
           workingDirVGMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          break;
+        case GUI_FILE_EXPORT_ROM:
+        case GUI_FILE_EXPORT_CMDSTREAM:
+          workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_LOAD_MAIN_FONT:
         case GUI_FILE_LOAD_PAT_FONT:
@@ -3324,6 +3351,11 @@ bool FurnaceGUI::loop() {
           }
           if (curFileDialog==GUI_FILE_EXPORT_VGM) {
             checkExtension(".vgm");
+          }
+          if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM) {
+            // we can't tell whether the user chose .txt or .bin in the system file picker
+            const char* fallbackExt=(settings.sysFileDialog || ImGuiFileDialog::Instance()->GetCurrentFilter()=="text file")?".txt":".bin";
+            checkExtensionDual(".txt",".bin",fallbackExt);
           }
           if (curFileDialog==GUI_FILE_EXPORT_COLORS) {
             checkExtension(".cfgc");
@@ -3506,6 +3538,35 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_EXPORT_ROM:
               showError("Coming soon!");
               break;
+            case GUI_FILE_EXPORT_CMDSTREAM: {
+              String lowerCase=fileName;
+              for (char& i: lowerCase) {
+                if (i>='A' && i<='Z') i+='a'-'A';
+              }
+              bool isBinary=true;
+              if ((lowerCase.size()<4 || lowerCase.rfind(".txt")!=lowerCase.size()-4)) {
+                isBinary=false;
+              }
+
+              SafeWriter* w=e->saveCommand(isBinary);
+              if (w!=NULL) {
+                FILE* f=ps_fopen(copyOfName.c_str(),"wb");
+                if (f!=NULL) {
+                  fwrite(w->getFinalBuf(),1,w->size(),f);
+                  fclose(f);
+                } else {
+                  showError("could not open file!");
+                }
+                w->finish();
+                delete w;
+                if (!e->getWarnings().empty()) {
+                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+                }
+              } else {
+                showError(fmt::sprintf("could not write command stream! (%s)",e->getLastError()));
+              }
+              break;
+            }
             case GUI_FILE_LOAD_MAIN_FONT:
               settings.mainFontPath=copyOfName;
               break;
@@ -4099,6 +4160,7 @@ bool FurnaceGUI::init() {
   workingDirSample=e->getConfString("lastDirSample",workingDir);
   workingDirAudioExport=e->getConfString("lastDirAudioExport",workingDir);
   workingDirVGMExport=e->getConfString("lastDirVGMExport",workingDir);
+  workingDirROMExport=e->getConfString("lastDirROMExport",workingDir);
   workingDirFont=e->getConfString("lastDirFont",workingDir);
   workingDirColors=e->getConfString("lastDirColors",workingDir);
   workingDirKeybinds=e->getConfString("lastDirKeybinds",workingDir);
@@ -4339,6 +4401,7 @@ bool FurnaceGUI::finish() {
   e->setConf("lastDirSample",workingDirSample);
   e->setConf("lastDirAudioExport",workingDirAudioExport);
   e->setConf("lastDirVGMExport",workingDirVGMExport);
+  e->setConf("lastDirROMExport",workingDirROMExport);
   e->setConf("lastDirFont",workingDirFont);
   e->setConf("lastDirColors",workingDirColors);
   e->setConf("lastDirKeybinds",workingDirKeybinds);
