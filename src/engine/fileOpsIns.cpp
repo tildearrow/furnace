@@ -21,7 +21,7 @@
 #include "../ta-log.h"
 #include "../fileutils.h"
 #include <fmt/printf.h>
-#include <stdint.h>
+#include <limits.h>
 
 enum DivInsFormats {
   DIV_INSFORMAT_DMP,
