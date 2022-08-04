@@ -97,10 +97,11 @@ void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) 
 void DivPlatformGB::updateWave() {
   rWrite(0x1a,0);
   for (int i=0; i<16; i++) {
-    int nibble1=15-ws.output[i<<1];
-    int nibble2=15-ws.output[1+(i<<1)];
+    int nibble1=15-ws.output[((i<<1)+antiClickWavePos)&31];
+    int nibble2=15-ws.output[((1+(i<<1))+antiClickWavePos)&31];
     rWrite(0x30+i,(nibble1<<4)|nibble2);
   }
+  antiClickWavePos&=31;
 }
 
 static unsigned char chanMuteMask[4]={
@@ -151,6 +152,12 @@ static unsigned char noiseTable[256]={
 };
 
 void DivPlatformGB::tick(bool sysTick) {
+  if (antiClickEnabled && sysTick && chan[2].freq>0) {
+    antiClickPeriodCount+=((chipClock>>1)/MAX(parent->getCurHz(),1.0f));
+    antiClickWavePos+=antiClickPeriodCount/chan[2].freq;
+    antiClickPeriodCount%=chan[2].freq;
+  }
+
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.arp.had) {
@@ -471,6 +478,9 @@ void DivPlatformGB::reset() {
   lastPan=0xff;
   immWrite(0x25,procMute());
   immWrite(0x24,0x77);
+
+  antiClickPeriodCount=0;
+  antiClickWavePos=0;
 }
 
 bool DivPlatformGB::isStereo() {
@@ -507,6 +517,10 @@ void DivPlatformGB::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
+void DivPlatformGB::setFlags(unsigned int flags) {
+  antiClickEnabled=!(flags&8);
+}
+
 int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   chipClock=4194304;
   rate=chipClock/16;
@@ -519,6 +533,7 @@ int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, unsigned int fl
   dumpWrites=false;
   skipRegisterWrites=false;
   gb=new GB_gameboy_t;
+  setFlags(flags);
   reset();
   return 4;
 }

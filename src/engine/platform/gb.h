@@ -59,8 +59,11 @@ class DivPlatformGB: public DivDispatch {
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
+  bool antiClickEnabled;
   unsigned char lastPan;
   DivWaveSynth ws;
+
+  int antiClickPeriodCount, antiClickWavePos;
 
   GB_gameboy_t* gb;
   unsigned char regPool[128];
@@ -88,6 +91,7 @@ class DivPlatformGB: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const char* getEffectName(unsigned char effect);
+    void setFlags(unsigned int flags);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformGB();
