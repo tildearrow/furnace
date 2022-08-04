@@ -235,8 +235,131 @@ double DivEngine::benchmarkSeek() {
   return tAvg;
 }
 
+#define WRITE_TICK \
+  if (!wroteTick) { \
+    wroteTick=true; \
+    if (binary) { \
+      if (tick-lastTick>255) { \
+        w->writeC(0xfc); \
+        w->writeS(tick-lastTick); \
+      } else if (tick-lastTick>1) { \
+        w->writeC(0xfd); \
+        w->writeC(tick-lastTick); \
+      } else { \
+        w->writeC(0xfe); \
+      } \
+    } else { \
+      w->writeText(fmt::sprintf(">> TICK %d\n",tick)); \
+    } \
+    lastTick=tick; \
+  }
+
+void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
+  w->writeC(c.cmd);
+  switch (c.cmd) {
+    case DIV_CMD_NOTE_ON:
+    case DIV_CMD_HINT_LEGATO:
+      if (c.value==DIV_NOTE_NULL) {
+        w->writeC(0xff);
+      } else {
+        w->writeC(c.value+60);
+      }
+      break;
+    case DIV_CMD_NOTE_OFF:
+    case DIV_CMD_NOTE_OFF_ENV:
+    case DIV_CMD_ENV_RELEASE:
+      break;
+    case DIV_CMD_INSTRUMENT:
+    case DIV_CMD_HINT_VIBRATO_RANGE:
+    case DIV_CMD_HINT_VIBRATO_SHAPE:
+    case DIV_CMD_HINT_PITCH:
+    case DIV_CMD_HINT_VOLUME:
+    case DIV_CMD_SAMPLE_MODE:
+    case DIV_CMD_SAMPLE_FREQ:
+    case DIV_CMD_SAMPLE_BANK:
+    case DIV_CMD_SAMPLE_POS:
+    case DIV_CMD_SAMPLE_DIR:
+    case DIV_CMD_FM_HARD_RESET:
+    case DIV_CMD_FM_LFO:
+    case DIV_CMD_FM_LFO_WAVE:
+    case DIV_CMD_FM_FB:
+    case DIV_CMD_FM_EXTCH:
+    case DIV_CMD_FM_AM_DEPTH:
+    case DIV_CMD_FM_PM_DEPTH:
+    case DIV_CMD_STD_NOISE_FREQ:
+    case DIV_CMD_STD_NOISE_MODE:
+    case DIV_CMD_WAVE:
+    case DIV_CMD_GB_SWEEP_TIME:
+    case DIV_CMD_GB_SWEEP_DIR:
+    case DIV_CMD_PCE_LFO_MODE:
+    case DIV_CMD_PCE_LFO_SPEED:
+    case DIV_CMD_NES_DMC:
+    case DIV_CMD_C64_CUTOFF:
+    case DIV_CMD_C64_RESONANCE:
+    case DIV_CMD_C64_FILTER_MODE:
+    case DIV_CMD_C64_RESET_TIME:
+    case DIV_CMD_C64_RESET_MASK:
+    case DIV_CMD_C64_FILTER_RESET:
+    case DIV_CMD_C64_DUTY_RESET:
+    case DIV_CMD_C64_EXTENDED:
+    case DIV_CMD_AY_ENVELOPE_SET:
+    case DIV_CMD_AY_ENVELOPE_LOW:
+    case DIV_CMD_AY_ENVELOPE_HIGH:
+    case DIV_CMD_AY_ENVELOPE_SLIDE:
+    case DIV_CMD_AY_NOISE_MASK_AND:
+    case DIV_CMD_AY_NOISE_MASK_OR:
+    case DIV_CMD_AY_AUTO_ENVELOPE:
+      w->writeC(c.value);
+      break;
+    case DIV_CMD_PANNING:
+    case DIV_CMD_HINT_VIBRATO:
+    case DIV_CMD_HINT_ARPEGGIO:
+    case DIV_CMD_HINT_PORTA:
+    case DIV_CMD_FM_TL:
+    case DIV_CMD_FM_AM:
+    case DIV_CMD_FM_AR:
+    case DIV_CMD_FM_DR:
+    case DIV_CMD_FM_SL:
+    case DIV_CMD_FM_D2R:
+    case DIV_CMD_FM_RR:
+    case DIV_CMD_FM_DT:
+    case DIV_CMD_FM_DT2:
+    case DIV_CMD_FM_RS:
+    case DIV_CMD_FM_KSR:
+    case DIV_CMD_FM_VIB:
+    case DIV_CMD_FM_SUS:
+    case DIV_CMD_FM_WS:
+    case DIV_CMD_FM_SSG:
+    case DIV_CMD_FM_REV:
+    case DIV_CMD_FM_EG_SHIFT:
+    case DIV_CMD_FM_MULT:
+    case DIV_CMD_FM_FINE:
+    case DIV_CMD_AY_IO_WRITE:
+    case DIV_CMD_AY_AUTO_PWM:
+      w->writeC(c.value);
+      w->writeC(c.value2);
+      break;
+    case DIV_CMD_PRE_PORTA:
+      w->writeC((c.value?0x80:0)|(c.value2?0x40:0));
+      break;
+    case DIV_CMD_HINT_VOL_SLIDE:
+    case DIV_CMD_C64_FINE_DUTY:
+    case DIV_CMD_C64_FINE_CUTOFF:
+      w->writeS(c.value);
+      break;
+    case DIV_CMD_FM_FIXFREQ:
+      w->writeS((c.value<<12)|(c.value2&0x7ff));
+      break;
+    case DIV_CMD_NES_SWEEP:
+      w->writeC((c.value?8:0)|(c.value2&0x77));
+      break;
+    default:
+      logW("unimplemented command %s!",cmdName[c.cmd]);
+      break;
+  }
+}
+
 SafeWriter* DivEngine::saveCommand(bool binary) {
-  logI("implement! %d",binary);
   stop();
   repeatPattern=false;
   setOrder(0);
@@ -252,36 +375,43 @@ SafeWriter* DivEngine::saveCommand(bool binary) {
   w->init();
 
   // write header
-  w->writeText("# Furnace Command Stream\n\n");
+  if (binary) {
+    w->write("FCS",4);
+  } else {
+    w->writeText("# Furnace Command Stream\n\n");
 
-  w->writeText("[Information]\n");
-  w->writeText(fmt::sprintf("name: %s\n",song.name));
-  w->writeText(fmt::sprintf("author: %s\n",song.author));
-  w->writeText(fmt::sprintf("category: %s\n",song.category));
-  w->writeText(fmt::sprintf("system: %s\n",song.systemName));
+    w->writeText("[Information]\n");
+    w->writeText(fmt::sprintf("name: %s\n",song.name));
+    w->writeText(fmt::sprintf("author: %s\n",song.author));
+    w->writeText(fmt::sprintf("category: %s\n",song.category));
+    w->writeText(fmt::sprintf("system: %s\n",song.systemName));
 
-  w->writeText("\n");
+    w->writeText("\n");
 
-  w->writeText("[SubSongInformation]\n");
-  w->writeText(fmt::sprintf("name: %s\n",curSubSong->name));
-  w->writeText(fmt::sprintf("tickRate: %f\n",curSubSong->hz));
+    w->writeText("[SubSongInformation]\n");
+    w->writeText(fmt::sprintf("name: %s\n",curSubSong->name));
+    w->writeText(fmt::sprintf("tickRate: %f\n",curSubSong->hz));
 
-  w->writeText("\n");
+    w->writeText("\n");
 
-  w->writeText("[SysDefinition]\n");
-  // TODO
+    w->writeText("[SysDefinition]\n");
+    // TODO
 
-  w->writeText("\n");
+    w->writeText("\n");
+  }
 
   // play the song ourselves
   bool done=false;
   playSub(false);
   
-  w->writeText("[Stream]\n");
+  if (!binary) {
+    w->writeText("[Stream]\n");
+  }
   int tick=0;
   bool oldCmdStreamEnabled=cmdStreamEnabled;
   cmdStreamEnabled=true;
   double curDivider=divider;
+  int lastTick=0;
   while (!done) {
     if (nextTick(false,true) || !playing) {
       done=true;
@@ -290,11 +420,13 @@ SafeWriter* DivEngine::saveCommand(bool binary) {
     bool wroteTick=false;
     if (curDivider!=divider) {
       curDivider=divider;
-      if (!wroteTick) {
-        wroteTick=true;
-        w->writeText(fmt::sprintf(">> TICK %d\n",tick));
+      WRITE_TICK;
+      if (binary) {
+        w->writeC(0xfb);
+        w->writeI((int)(curDivider*65536));
+      } else {
+        w->writeText(fmt::sprintf(">> SET_RATE %f\n",curDivider));
       }
-      w->writeText(fmt::sprintf(">> SET_RATE %f\n",curDivider));
     }
     for (DivCommand& i: cmdStream) {
       switch (i.cmd) {
@@ -314,11 +446,13 @@ SafeWriter* DivEngine::saveCommand(bool binary) {
         case DIV_CMD_PRE_NOTE:
           break;
         default:
-          if (!wroteTick) {
-            wroteTick=true;
-            w->writeText(fmt::sprintf(">> TICK %d\n",tick));
+          WRITE_TICK;
+          if (binary) {
+            w->writeC(i.chan);
+            writePackedCommandValues(w,i);
+          } else {
+            w->writeText(fmt::sprintf("  %d: %s %d %d\n",i.chan,cmdName[i.cmd],i.value,i.value2));
           }
-          w->writeText(fmt::sprintf("  %d: %s %d %d\n",i.chan,cmdName[i.cmd],i.value,i.value2));
           break;
       }
     }
@@ -327,10 +461,14 @@ SafeWriter* DivEngine::saveCommand(bool binary) {
   }
   cmdStreamEnabled=oldCmdStreamEnabled;
 
-  if (!playing) {
-    w->writeText(">> END\n");
+  if (binary) {
+    w->writeC(0xff);
   } else {
-    w->writeText(">> LOOP 0\n");
+    if (!playing) {
+      w->writeText(">> END\n");
+    } else {
+      w->writeText(">> LOOP 0\n");
+    }
   }
 
   remainingLoops=-1;

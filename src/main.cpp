@@ -64,6 +64,7 @@ bool consoleMode=true;
 #endif
 
 bool displayEngineFailError=false;
+bool cmdOutBinary=false;
 
 std::vector<TAParam> params;
 
@@ -112,6 +113,11 @@ TAParamResult pView(String val) {
 
 TAParamResult pConsole(String val) {
   consoleMode=true;
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pBinary(String val) {
+  cmdOutBinary=true;
   return TA_PARAM_SUCCESS;
 }
 
@@ -273,6 +279,7 @@ void initParams() {
   params.push_back(TAParam("o","output",true,pOutput,"<filename>","output audio to file"));
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
   params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
+  params.push_back(TAParam("b","binary",false,pBinary,"","set command stream output format to binary"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (pattern by default)"));
   params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
@@ -454,7 +461,7 @@ int main(int argc, char** argv) {
   }
   if (outName!="" || vgmOutName!="" || cmdOutName!="") {
     if (cmdOutName!="") {
-      SafeWriter* w=e.saveCommand(false);
+      SafeWriter* w=e.saveCommand(cmdOutBinary);
       if (w!=NULL) {
         FILE* f=fopen(cmdOutName.c_str(),"wb");
         if (f!=NULL) {
