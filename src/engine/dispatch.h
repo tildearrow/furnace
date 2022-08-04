@@ -58,10 +58,14 @@ enum DivDispatchCmds {
   // these will be used in ROM export.
   // do NOT implement!
   DIV_CMD_HINT_VIBRATO, // (speed, depth)
+  DIV_CMD_HINT_VIBRATO_RANGE, // (range)
   DIV_CMD_HINT_VIBRATO_SHAPE, // (shape)
   DIV_CMD_HINT_PITCH, // (pitch)
   DIV_CMD_HINT_ARPEGGIO, // (note1, note2)
+  DIV_CMD_HINT_VOLUME, // (vol)
   DIV_CMD_HINT_VOL_SLIDE, // (amount, oneTick)
+  DIV_CMD_HINT_PORTA, // (target, speed)
+  DIV_CMD_HINT_LEGATO, // (note)
 
   DIV_CMD_SAMPLE_MODE, // (enabled)
   DIV_CMD_SAMPLE_FREQ, // (frequency)
