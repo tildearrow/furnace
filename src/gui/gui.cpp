@@ -3544,7 +3544,7 @@ bool FurnaceGUI::loop() {
                 if (i>='A' && i<='Z') i+='a'-'A';
               }
               bool isBinary=true;
-              if ((lowerCase.size()<4 || lowerCase.rfind(".txt")!=lowerCase.size()-4)) {
+              if ((lowerCase.size()<4 || lowerCase.rfind(".bin")!=lowerCase.size()-4)) {
                 isBinary=false;
               }
 
