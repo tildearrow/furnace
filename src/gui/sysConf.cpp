@@ -118,6 +118,13 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::Checkbox("Disable anti-click",&antiClick)) {
         copyOfFlags=(flags&(~8))|(antiClick<<3);
       }
+      ImGui::Text("Chip revision:");
+      if (ImGui::RadioButton("HuC6280 (original)",(flags&4)==0)) {
+        copyOfFlags=(flags&(~4))|0;
+      }
+      if (ImGui::RadioButton("HuC6280A (SuperGrafx)",(flags&4)==4)) {
+        copyOfFlags=(flags&(~4))|4;
+      }
       break;
     }
     case DIV_SYSTEM_SOUND_UNIT: {
