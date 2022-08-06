@@ -529,6 +529,16 @@ void DivPlatformSoundUnit::reset() {
   lfoMode=0;
   lfoSpeed=255;
   delay=500;
+
+  // set initial IL status
+  ilCtrl=initIlCtrl;
+  ilSize=initIlSize;
+  fil1=initFil1;
+  echoVol=initEchoVol;
+  rWrite(0x9c,echoVol);
+  rWrite(0x9d,ilCtrl);
+  rWrite(0xbc,ilSize);
+  rWrite(0xbd,fil1);
 }
 
 bool DivPlatformSoundUnit::isStereo() {
@@ -555,6 +565,10 @@ void DivPlatformSoundUnit::setFlags(unsigned int flags) {
   for (int i=0; i<8; i++) {
     oscBuf[i]->rate=rate;
   }
+  initIlCtrl=3|(flags&4);
+  initIlSize=((flags>>8)&63)|((flags&4)?0x40:0)|((flags&8)?0x80:0);
+  initFil1=flags>>16;
+  initEchoVol=flags>>24;
 
   sampleMemSize=flags&16;
 
@@ -575,7 +589,7 @@ const void* DivPlatformSoundUnit::getSampleMem(int index) {
 }
 
 size_t DivPlatformSoundUnit::getSampleMemCapacity(int index) {
-  return (index==0)?(sampleMemSize?65536:8192):0;
+  return (index==0)?((sampleMemSize?65536:8192)-((initIlSize&64)?((1+(initIlSize&63))<<7):0)):0;
 }
 
 size_t DivPlatformSoundUnit::getSampleMemUsage(int index) {
