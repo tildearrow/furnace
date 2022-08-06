@@ -1712,7 +1712,7 @@ void FurnaceGUI::drawSettings() {
                 ImGui::Text("%s",SDL_GetScancodeName((SDL_Scancode)i.scan));
                 ImGui::TableNextColumn();
                 if (i.val==102) {
-                  snprintf(id,4095,"Envelope release##SNType_%d",i.scan);
+                  snprintf(id,4095,"Macro release##SNType_%d",i.scan);
                   if (ImGui::Button(id)) {
                     noteKeys[i.scan]=0;
                   }

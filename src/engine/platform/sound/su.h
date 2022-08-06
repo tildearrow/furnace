@@ -3,8 +3,6 @@
 #include <math.h>
 #include <assert.h>
 
-#define SOUNDCHIP_PCM_SIZE 8192
-
 class SoundUnit {
   signed char SCsine[256];
   signed char SCtriangle[256];
@@ -24,6 +22,7 @@ class SoundUnit {
   int tnsL, tnsR;
   unsigned short oldfreq[8];
   unsigned short oldflags[8];
+  unsigned int pcmSize;
   public:
     unsigned short resetfreq[8];
     unsigned short voldcycles[8];
@@ -84,7 +83,7 @@ class SoundUnit {
       unsigned short wc;
       unsigned short restimer;
     } chan[8];
-    signed char pcm[SOUNDCHIP_PCM_SIZE];
+    signed char pcm[65536];
     bool muted[8];
     void Write(unsigned char addr, unsigned char data);
     void NextSample(short* l, short* r);
@@ -94,7 +93,7 @@ class SoundUnit {
       if (ret>32767) ret=32767;
       return ret;
     }
-    void Init();
+    void Init(int sampleMemSize=8192);
     void Reset();
     SoundUnit();
 };

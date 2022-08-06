@@ -43,24 +43,91 @@ const char* fmParamShortNames[3][32]={
   {"ALG", "FB", "FMS", "AMS", "A", "D", "D2", "R", "S", "TL", "RS", "ML", "DT", "DT2", "SSG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2"}
 };
 
-const char* opllInsNames[17]={
-  "User",
-  "Violin",
-  "Guitar",
-  "Piano",
-  "Flute",
-  "Clarinet",
-  "Oboe",
-  "Trumpet",
-  "Organ",
-  "Horn",
-  "Synth",
-  "Harpsichord",
-  "Vibraphone",
-  "Synth Bass",
-  "Acoustic Bass",
-  "Electric Guitar",
-  "Drums"
+const char* opllVariants[4]={
+  "OPLL",
+  "YMF281",
+  "YM2423",
+  "VRC7"
+};
+
+const char* opllInsNames[4][17]={
+  /* YM2413 */ {
+    "User",
+    "Violin",
+    "Guitar",
+    "Piano",
+    "Flute",
+    "Clarinet",
+    "Oboe",
+    "Trumpet",
+    "Organ",
+    "Horn",
+    "Synth",
+    "Harpsichord",
+    "Vibraphone",
+    "Synth Bass",
+    "Acoustic Bass",
+    "Electric Guitar",
+    "Drums"
+  },
+  /* YMF281 */ {
+    "User",
+    "Electric String",
+    "Bow wow",
+    "Electric Guitar",
+    "Organ",
+    "Clarinet",
+    "Saxophone",
+    "Trumpet",
+    "Street Organ",
+    "Synth Brass",
+    "Electric Piano",
+    "Bass",
+    "Vibraphone",
+    "Chime",
+    "Tom Tom II",
+    "Noise",
+    "Drums"
+  },
+  /* YM2423 */ {
+    "User",
+    "Strings",
+    "Guitar",
+    "Electric Guitar",
+    "Electric Piano",
+    "Flute",
+    "Marimba",
+    "Trumpet",
+    "Harmonica",
+    "Tuba",
+    "Synth Brass",
+    "Short Saw",
+    "Vibraphone",
+    "Electric Guitar 2",
+    "Synth Bass",
+    "Sitar",
+    "Drums"
+  },
+  // stolen from FamiTracker
+  /* VRC7 */ {
+    "User",
+    "Bell",
+    "Guitar",
+    "Piano",
+    "Flute",
+    "Clarinet",
+    "Rattling Bell",
+    "Trumpet",
+    "Reed Organ",
+    "Soft Bell",
+    "Xylophone",
+    "Vibraphone",
+    "Brass",
+    "Bass Guitar",
+    "Synth",
+    "Chorus",
+    "Drums"
+  }
 };
 
 const char* oplWaveforms[8]={
@@ -1572,10 +1639,59 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextColumn();
                   drawAlgorithm(0,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::BeginCombo("##LLPreset",opllInsNames[ins->fm.opllPreset])) {
-                    for (int i=0; i<17; i++) {
-                      if (ImGui::Selectable(opllInsNames[i])) {
-                        ins->fm.opllPreset=i;
+
+                  bool isPresent[4];
+                  int isPresentCount=0;
+                  memset(isPresent,0,4*sizeof(bool));
+                  for (int i=0; i<e->song.systemLen; i++) {
+                    if (e->song.system[i]==DIV_SYSTEM_VRC7) {
+                      isPresent[3]=true;
+                    } else if (e->song.system[i]==DIV_SYSTEM_OPLL || e->song.system[i]==DIV_SYSTEM_OPLL_DRUMS) {
+                      isPresent[(e->song.systemFlags[i]>>4)&3]=true;
+                    }
+                  }
+                  if (!isPresent[0] && !isPresent[1] && !isPresent[2] && !isPresent[3]) {
+                    isPresent[0]=true;
+                  }
+                  for (int i=0; i<4; i++) {
+                    if (isPresent[i]) isPresentCount++;
+                  }
+                  int presentWhich=0;
+                  for (int i=0; i<4; i++) {
+                    if (isPresent[i]) {
+                      presentWhich=i;
+                      break;
+                    }
+                  }
+
+                  if (ImGui::BeginCombo("##LLPreset",opllInsNames[presentWhich][ins->fm.opllPreset])) {
+                    if (isPresentCount>1) {
+                      if (ImGui::BeginTable("LLPresetList",isPresentCount)) {
+                        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+                        for (int i=0; i<4; i++) {
+                          if (!isPresent[i]) continue;
+                          ImGui::TableNextColumn();
+                          ImGui::Text("%s name",opllVariants[i]);
+                        }
+                        for (int i=0; i<17; i++) {
+                          ImGui::TableNextRow();
+                          for (int j=0; j<4; j++) {
+                            if (!isPresent[j]) continue;
+                            ImGui::TableNextColumn();
+                            ImGui::PushID(j*17+i);
+                            if (ImGui::Selectable(opllInsNames[j][i])) {
+                              ins->fm.opllPreset=i;
+                            }
+                            ImGui::PopID();
+                          }
+                        }
+                        ImGui::EndTable();
+                      }
+                    } else {
+                      for (int i=0; i<17; i++) {
+                        if (ImGui::Selectable(opllInsNames[presentWhich][i])) {
+                          ins->fm.opllPreset=i;
+                        }
                       }
                     }
                     ImGui::EndCombo();
@@ -2977,12 +3093,16 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Don't test/gate before new note",&ins->c64.noTest));
           ImGui::EndTabItem();
         }
-        if (ins->type==DIV_INS_AMIGA) if (ImGui::BeginTabItem("Sample")) {
+        if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SU) if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
           String sName;
           if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
             sName="none selected";
           } else {
             sName=e->song.sample[ins->amiga.initSample]->name;
+          }
+          if (ins->type==DIV_INS_SU) {
+            P(ImGui::Checkbox("Use sample",&ins->su.useSample));
+            P(ImGui::Checkbox("Switch roles of frequency and phase reset timer",&ins->su.switchRoles));
           }
           if (ImGui::BeginCombo("Initial Sample",sName.c_str())) {
             String id;
@@ -2994,14 +3114,16 @@ void FurnaceGUI::drawInsEdit() {
             }
             ImGui::EndCombo();
           }
-          P(ImGui::Checkbox("Use wavetable (Amiga only)",&ins->amiga.useWave));
-          if (ins->amiga.useWave) {
-            int len=ins->amiga.waveLen+1;
-            if (ImGui::InputInt("Width",&len,2,16)) {
-              if (len<2) len=2;
-              if (len>256) len=256;
-              ins->amiga.waveLen=(len&(~1))-1;
-              PARAMETER
+          if (ins->type==DIV_INS_AMIGA) {
+            P(ImGui::Checkbox("Use wavetable (Amiga only)",&ins->amiga.useWave));
+            if (ins->amiga.useWave) {
+              int len=ins->amiga.waveLen+1;
+              if (ImGui::InputInt("Width",&len,2,16)) {
+                if (len<2) len=2;
+                if (len>256) len=256;
+                ins->amiga.waveLen=(len&(~1))-1;
+                PARAMETER
+              }
             }
           }
           ImGui::BeginDisabled(ins->amiga.useWave);

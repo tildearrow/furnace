@@ -25,7 +25,7 @@ This is a fantasy sound chip, used in the specs2 fantasy computer designed by ti
 - `17xx`: set volume sweep period low byte
 - `18xx`: set volume sweep period high byte
 - `19xx`: set cutoff sweep period low byte
-- `1Axx`: set cutoff sweep period low byte
+- `1Axx`: set cutoff sweep period high byte
 - `1Bxx`: set frequency sweep boundary
 - `1Cxx`: set volume sweep boundary
 - `1Dxx`: set cutoff sweep boundary

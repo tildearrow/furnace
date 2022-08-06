@@ -802,7 +802,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   }
 }
 
-SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
+SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool patternHints) {
   if (version<0x150) {
     lastError="VGM version is too low";
     return NULL;
@@ -1795,6 +1795,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   playSub(false);
   size_t tickCount=0;
   bool writeLoop=false;
+  int ord=-1;
+  int exportChans=0;
+  for (int i=0; i<chans; i++) {
+    if (!willExport[dispatchOfChan[i]]) continue;
+    exportChans++;
+  }
   while (!done) {
     if (loopPos==-1) {
       if (loopOrder==curOrder && loopRow==curRow && ticks==1) {
@@ -1819,6 +1825,26 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       if (!playing) {
         writeLoop=false;
         loopPos=-1;
+      }
+    } else {
+      // check for pattern change
+      if (prevOrder!=ord) {
+        logI("registering order change %d on %d",prevOrder, prevRow);
+        ord=prevOrder;
+
+        if (patternHints) {
+          w->writeC(0x67);
+          w->writeC(0x66);
+          w->writeC(0xfe);
+          w->writeI(3+exportChans);
+          w->writeC(0x01);
+          w->writeC(prevOrder);
+          w->writeC(prevRow);
+          for (int i=0; i<chans; i++) {
+            if (!willExport[dispatchOfChan[i]]) continue;
+            w->writeC(curSubSong->orders.ord[i][prevOrder]);
+          }
+        }
       }
     }
     // get register dumps

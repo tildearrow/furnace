@@ -54,7 +54,7 @@ void SoundUnit::NextSample(short* l, short* r) {
               chan[i].pcmpos=chan[i].pcmrst;
             }
           }
-          chan[i].pcmpos&=(SOUNDCHIP_PCM_SIZE-1);
+          chan[i].pcmpos&=(pcmSize-1);
         } else if (chan[i].flags.pcmloop) {
           chan[i].pcmpos=chan[i].pcmrst;
         }
@@ -228,9 +228,10 @@ void SoundUnit::NextSample(short* l, short* r) {
   *r=minval(32767,maxval(-32767,tnsR));
 }
 
-void SoundUnit::Init() {
+void SoundUnit::Init(int sampleMemSize) {
+  pcmSize=sampleMemSize;
   Reset();
-  memset(pcm,0,SOUNDCHIP_PCM_SIZE);
+  memset(pcm,0,pcmSize);
   for (int i=0; i<256; i++) {
     SCsine[i]=sin((i/128.0f)*M_PI)*127;
     SCtriangle[i]=(i>127)?(255-i):(i);
@@ -242,9 +243,6 @@ void SoundUnit::Init() {
     SCpantabR[128+i]=i-1;
   }
   SCpantabR[128]=0;
-  for (int i=0; i<8; i++) {
-    muted[i]=false;
-  }
 }
 
 void SoundUnit::Reset() {
@@ -282,6 +280,8 @@ void SoundUnit::Write(unsigned char addr, unsigned char data) {
 }
 
 SoundUnit::SoundUnit() {
-  Init();
-  memset(pcm,0,SOUNDCHIP_PCM_SIZE);
+  Init(65536); // default
+  for (int i=0; i<8; i++) {
+    muted[i]=false;
+  }
 }

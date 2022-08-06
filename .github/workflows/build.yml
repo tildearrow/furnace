@@ -22,7 +22,8 @@ jobs:
           - { name: 'Windows MSVC x86_64', os: windows-latest, compiler: msvc, arch: x86_64 }
           - { name: 'Windows MinGW x86', os: ubuntu-20.04, compiler: mingw, arch: x86 }
           - { name: 'Windows MinGW x86_64', os: ubuntu-20.04, compiler: mingw, arch: x86_64 }
-          - { name: 'macOS', os: macos-latest }
+          - { name: 'macOS x86_64', os: macos-latest, arch: x86_64 }
+          - { name: 'macOS ARM', os: macos-latest, arch: arm64 }
           - { name: 'Ubuntu', os: ubuntu-18.04 }
       fail-fast: false
 
@@ -76,7 +77,7 @@ jobs:
           package_name="${package_name}-${{ matrix.config.arch }}"
           package_ext="" # Directory, uploading will automatically zip it
         elif [ '${{ runner.os }}' == 'macOS' ]; then
-          package_name="${package_name}-macOS"
+          package_name="${package_name}-macOS-${{ matrix.config.arch }}"
           package_ext=".dmg"
         else
           package_name="${package_name}-Linux"
@@ -201,7 +202,11 @@ jobs:
         elif [ '${{ matrix.config.compiler }}' == 'mingw' ]; then
           CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-MinGW-${{ steps.windows-identify.outputs.mingw-target }}.cmake')
         elif [ '${{ runner.os }}' == 'macOS' ]; then
-          CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="10.9"')
+          if [ '${{ matrix.config.arch }}' == 'arm64' ]; then
+            CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="11.0"' '-DCMAKE_OSX_ARCHITECTURES=arm64')
+          else
+            CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="10.9"')
+          fi
         fi
 
         cmake \

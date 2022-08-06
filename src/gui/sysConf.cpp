@@ -109,6 +109,48 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       break;
     }
+    case DIV_SYSTEM_PCE: {
+      sysPal=flags&1;
+      if (ImGui::Checkbox("Pseudo-PAL",&sysPal)) {
+        copyOfFlags=(flags&(~1))|(unsigned int)sysPal;
+      }
+      bool antiClick=flags&8;
+      if (ImGui::Checkbox("Disable anti-click",&antiClick)) {
+        copyOfFlags=(flags&(~8))|(antiClick<<3);
+      }
+      ImGui::Text("Chip revision:");
+      if (ImGui::RadioButton("HuC6280 (original)",(flags&4)==0)) {
+        copyOfFlags=(flags&(~4))|0;
+      }
+      if (ImGui::RadioButton("HuC6280A (SuperGrafx)",(flags&4)==4)) {
+        copyOfFlags=(flags&(~4))|4;
+      }
+      break;
+    }
+    case DIV_SYSTEM_SOUND_UNIT: {
+      ImGui::Text("CPU rate:");
+      if (ImGui::RadioButton("6.18MHz (NTSC)",(flags&15)==0)) {
+        copyOfFlags=(flags&(~15))|0;
+      }
+      if (ImGui::RadioButton("5.95MHz (PAL)",(flags&15)==1)) {
+        copyOfFlags=(flags&(~15))|1;
+      }
+      ImGui::Text("Chip revision (sample memory):");
+      if (ImGui::RadioButton("A/B/E (8K)",(flags&16)==0)) {
+        copyOfFlags=(flags&(~16))|0;
+      }
+      if (ImGui::RadioButton("D/F (64K)",(flags&16)==16)) {
+        copyOfFlags=(flags&(~16))|16;
+      }
+      break;
+    }
+    case DIV_SYSTEM_GB: {
+      bool antiClick=flags&8;
+      if (ImGui::Checkbox("Disable anti-click",&antiClick)) {
+        copyOfFlags=(flags&(~8))|(antiClick<<3);
+      }
+      break;
+    }
     case DIV_SYSTEM_OPLL:
     case DIV_SYSTEM_OPLL_DRUMS:
     case DIV_SYSTEM_VRC7: {
@@ -631,7 +673,6 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       break;
     }
-    case DIV_SYSTEM_GB:
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_VERA:
     case DIV_SYSTEM_BUBSYS_WSG:

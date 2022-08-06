@@ -45,8 +45,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev103"
-#define DIV_ENGINE_VERSION 103
+#define DIV_VERSION "dev104"
+#define DIV_ENGINE_VERSION 104
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -280,6 +280,8 @@ enum DivChanTypes {
   DIV_CH_OP=5
 };
 
+extern const char* cmdName[];
+
 class DivEngine {
   DivDispatchContainer disCont[32];
   TAAudio* output;
@@ -472,7 +474,9 @@ class DivEngine {
     // specify system to build ROM for.
     SafeWriter* buildROM(int sys);
     // dump to VGM.
-    SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171);
+    SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false);
+    // dump command stream.
+    SafeWriter* saveCommand(bool binary=false);
     // export to an audio file
     bool saveAudio(const char* path, int loops, DivAudioExportModes mode, double fadeOutTime=0.0);
     // wait for audio export to finish
