@@ -220,6 +220,10 @@ void DivPlatformGB::tick(bool sysTick) {
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
         chan[i].keyOn=true;
+        if (i==2) {
+          antiClickWavePos=0;
+          antiClickPeriodCount=0;
+        }
       }
     }
     if (i==2) {
