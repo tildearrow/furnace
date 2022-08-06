@@ -5,9 +5,22 @@
 #define minval(a,b) (((a)<(b))?(a):(b))
 #define maxval(a,b) (((a)>(b))?(a):(b))
 
+#define FILVOL chan[4].special1C
+#define ILCTRL chan[4].special1D
+#define ILSIZE chan[5].special1C
+#define FIL1 chan[5].special1D
+#define IL1 chan[6].special1C
+#define IL2 chan[6].special1D
+#define IL0 chan[7].special1C
+#define MVOL chan[7].special1D
+
 void SoundUnit::NextSample(short* l, short* r) {
+  // run channels
   for (int i=0; i<8; i++) {
-    if (chan[i].vol==0 && !chan[i].flags.swvol) {fns[i]=0; continue;}
+    if (chan[i].vol==0 && !chan[i].flags.swvol) {
+      fns[i]=0;
+      continue;
+    }
     if (chan[i].flags.pcm) {
       ns[i]=pcm[chan[i].pcmpos];
     } else switch (chan[i].flags.shape) {
@@ -48,7 +61,6 @@ void SoundUnit::NextSample(short* l, short* r) {
         pcmdec[i]-=32768;
         if (chan[i].pcmpos<chan[i].pcmbnd) {
           chan[i].pcmpos++;
-          chan[i].wc++;
           if (chan[i].pcmpos==chan[i].pcmbnd) {
             if (chan[i].flags.pcmloop) {
               chan[i].pcmpos=chan[i].pcmrst;
@@ -221,9 +233,52 @@ void SoundUnit::NextSample(short* l, short* r) {
       nsR[i]=0;
     }
   }
+
+  // mix
   tnsL=(nsL[0]+nsL[1]+nsL[2]+nsL[3]+nsL[4]+nsL[5]+nsL[6]+nsL[7])>>2;
   tnsR=(nsR[0]+nsR[1]+nsR[2]+nsR[3]+nsR[4]+nsR[5]+nsR[6]+nsR[7])>>2;
-  
+
+  // write input lines to sample memory
+  if (ILSIZE&64) {
+    if (++ilBufPeriod>=((1+(FIL1>>4))<<2)) {
+      ilBufPeriod=0;
+      unsigned short ilLowerBound=pcmSize-((1+(ILSIZE&63))<<7);
+      if (ilBufPos<ilLowerBound) ilBufPos=ilLowerBound;
+      switch (ILCTRL&3) {
+        case 0:
+          ilFeedback0=ilFeedback1=pcm[ilBufPos];
+          pcm[ilBufPos]=IL0+((pcm[ilBufPos]*(FIL1&15))>>4);
+          if (++ilBufPos>=pcmSize) ilBufPos=ilLowerBound;
+          break;
+        case 1:
+          ilFeedback0=ilFeedback1=pcm[ilBufPos];
+          pcm[ilBufPos]=IL1+((pcm[ilBufPos]*(FIL1&15))>>4);
+          if (++ilBufPos>=pcmSize) ilBufPos=ilLowerBound;
+          break;
+        case 2:
+          ilFeedback0=ilFeedback1=pcm[ilBufPos];
+          pcm[ilBufPos]=IL2+((pcm[ilBufPos]*(FIL1&15))>>4);
+          if (++ilBufPos>=pcmSize) ilBufPos=ilLowerBound;
+          break;
+        case 3:
+          ilFeedback0=pcm[ilBufPos];
+          pcm[ilBufPos]=IL1+((pcm[ilBufPos]*(FIL1&15))>>4);
+          if (++ilBufPos>=pcmSize) ilBufPos=ilLowerBound;
+          ilFeedback1=pcm[ilBufPos];
+          pcm[ilBufPos]=IL2+((pcm[ilBufPos]*(FIL1&15))>>4);
+          if (++ilBufPos>=pcmSize) ilBufPos=ilLowerBound;
+          break;
+      }
+    }
+    if (ILSIZE&128) {
+      tnsL+=ilFeedback1*(signed char)FILVOL;
+      tnsR+=ilFeedback0*(signed char)FILVOL;
+    } else {
+      tnsL+=ilFeedback0*(signed char)FILVOL;
+      tnsR+=ilFeedback1*(signed char)FILVOL;
+    }
+  }
+
   *l=minval(32767,maxval(-32767,tnsL));
   *r=minval(32767,maxval(-32767,tnsR));
 }
@@ -272,6 +327,10 @@ void SoundUnit::Reset() {
   }
   tnsL=0;
   tnsR=0;
+  ilBufPos=0;
+  ilBufPeriod=0;
+  ilFeedback0=0;
+  ilFeedback1=0;
   memset(chan,0,sizeof(SUChannel)*8);
 }
 

@@ -20,6 +20,10 @@ class SoundUnit {
   int nshigh[8];
   int nsband[8];
   int tnsL, tnsR;
+  unsigned char ilBufPeriod;
+  unsigned short ilBufPos;
+  signed char ilFeedback0;
+  signed char ilFeedback1;
   unsigned short oldfreq[8];
   unsigned short oldflags[8];
   unsigned int pcmSize;
@@ -80,11 +84,13 @@ class SoundUnit {
         unsigned char dir: 1;
         unsigned char bound;
       } swcut;
-      unsigned short wc;
+      unsigned char special1C;
+      unsigned char special1D;
       unsigned short restimer;
     } chan[8];
     signed char pcm[65536];
     bool muted[8];
+    void SetIL0(unsigned char addr);
     void Write(unsigned char addr, unsigned char data);
     void NextSample(short* l, short* r);
     inline int GetSample(int ch) {
