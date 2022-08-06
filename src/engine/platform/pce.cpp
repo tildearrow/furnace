@@ -233,6 +233,10 @@ void DivPlatformPCE::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
+    if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
+      chan[i].antiClickWavePos=0;
+      chan[i].antiClickPeriodCount=0;
+    }
     if (chan[i].active) {
       if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) || chan[i].deferredWaveUpdate) {
         updateWave(i);
