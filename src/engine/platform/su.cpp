@@ -256,12 +256,12 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SU);
-      if (chan[c.chan].pcm && ins->type!=DIV_INS_AMIGA) {
-        chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA);
+      if (chan[c.chan].pcm && !(ins->type==DIV_INS_AMIGA || ins->su.useSample)) {
+        chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA || ins->su.useSample);
         writeControl(c.chan);
         writeControlUpper(c.chan);
       }
-      chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA);
+      chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA || ins->su.useSample);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
         chan[c.chan].freqChanged=true;

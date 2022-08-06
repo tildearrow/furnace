@@ -810,6 +810,9 @@ size | description
   1  | vib depth
   1  | am depth
  23  | reserved
+ --- | **Sound Unit data** (>=104)
+  1  | use sample
+  1  | switch roles of phase reset timer and frequency
 ```
 
 # wavetable

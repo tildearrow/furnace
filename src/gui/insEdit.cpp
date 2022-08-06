@@ -3093,12 +3093,16 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Don't test/gate before new note",&ins->c64.noTest));
           ImGui::EndTabItem();
         }
-        if (ins->type==DIV_INS_AMIGA) if (ImGui::BeginTabItem("Sample")) {
+        if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SU) if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
           String sName;
           if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
             sName="none selected";
           } else {
             sName=e->song.sample[ins->amiga.initSample]->name;
+          }
+          if (ins->type==DIV_INS_SU) {
+            P(ImGui::Checkbox("Use sample",&ins->su.useSample));
+            P(ImGui::Checkbox("Switch roles of frequency and phase reset timer",&ins->su.switchRoles));
           }
           if (ImGui::BeginCombo("Initial Sample",sName.c_str())) {
             String id;
@@ -3110,14 +3114,16 @@ void FurnaceGUI::drawInsEdit() {
             }
             ImGui::EndCombo();
           }
-          P(ImGui::Checkbox("Use wavetable (Amiga only)",&ins->amiga.useWave));
-          if (ins->amiga.useWave) {
-            int len=ins->amiga.waveLen+1;
-            if (ImGui::InputInt("Width",&len,2,16)) {
-              if (len<2) len=2;
-              if (len>256) len=256;
-              ins->amiga.waveLen=(len&(~1))-1;
-              PARAMETER
+          if (ins->type==DIV_INS_AMIGA) {
+            P(ImGui::Checkbox("Use wavetable (Amiga only)",&ins->amiga.useWave));
+            if (ins->amiga.useWave) {
+              int len=ins->amiga.waveLen+1;
+              if (ImGui::InputInt("Width",&len,2,16)) {
+                if (len<2) len=2;
+                if (len>256) len=256;
+                ins->amiga.waveLen=(len&(~1))-1;
+                PARAMETER
+              }
             }
           }
           ImGui::BeginDisabled(ins->amiga.useWave);

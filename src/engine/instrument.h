@@ -437,6 +437,14 @@ struct DivInstrumentWaveSynth {
     param4(0) {}
 };
 
+struct DivInstrumentSoundUnit {
+  bool useSample;
+  bool switchRoles;
+  DivInstrumentSoundUnit():
+    useSample(false),
+    switchRoles(false) {}
+};
+
 struct DivInstrument {
   String name;
   bool mode;
@@ -450,6 +458,7 @@ struct DivInstrument {
   DivInstrumentFDS fds;
   DivInstrumentMultiPCM multipcm;
   DivInstrumentWaveSynth ws;
+  DivInstrumentSoundUnit su;
   
   /**
    * save the instrument to a SafeWriter.

@@ -528,6 +528,10 @@ void DivInstrument::putInsData(SafeWriter* w) {
     w->writeC(0);
   }
 
+  // Sound Unit
+  w->writeC(su.useSample);
+  w->writeC(su.switchRoles);
+
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);
   w->writeI(blockEndSeek-blockStartSeek-4);
@@ -1073,6 +1077,12 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     multipcm.am=reader.readC();
     // reserved
     for (int k=0; k<23; k++) reader.readC();
+  }
+
+  // Sound Unit
+  if (version>=104) {
+    su.useSample=reader.readC();
+    su.switchRoles=reader.readC();
   }
 
   return DIV_DATA_SUCCESS;
