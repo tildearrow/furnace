@@ -43,24 +43,91 @@ const char* fmParamShortNames[3][32]={
   {"ALG", "FB", "FMS", "AMS", "A", "D", "D2", "R", "S", "TL", "RS", "ML", "DT", "DT2", "SSG", "AM", "DAM", "DVB", "EGT", "EGS", "KSL", "SUS", "VIB", "WS", "KSR", "DC", "DM", "EGS", "REV", "Fine", "FMS2", "AMS2"}
 };
 
-const char* opllInsNames[17]={
-  "User",
-  "Violin",
-  "Guitar",
-  "Piano",
-  "Flute",
-  "Clarinet",
-  "Oboe",
-  "Trumpet",
-  "Organ",
-  "Horn",
-  "Synth",
-  "Harpsichord",
-  "Vibraphone",
-  "Synth Bass",
-  "Acoustic Bass",
-  "Electric Guitar",
-  "Drums"
+const char* opllVariants[4]={
+  "OPLL",
+  "YMF281",
+  "YM2423",
+  "VRC7"
+};
+
+const char* opllInsNames[4][17]={
+  /* YM2413 */ {
+    "User",
+    "Violin",
+    "Guitar",
+    "Piano",
+    "Flute",
+    "Clarinet",
+    "Oboe",
+    "Trumpet",
+    "Organ",
+    "Horn",
+    "Synth",
+    "Harpsichord",
+    "Vibraphone",
+    "Synth Bass",
+    "Acoustic Bass",
+    "Electric Guitar",
+    "Drums"
+  },
+  /* YMF281 */ {
+    "User",
+    "Electric String",
+    "Bow wow",
+    "Electric Guitar",
+    "Organ",
+    "Clarinet",
+    "Saxophone",
+    "Trumpet",
+    "Street Organ",
+    "Synth Brass",
+    "Electric Piano",
+    "Bass",
+    "Vibraphone",
+    "Chime",
+    "Tom Tom II",
+    "Noise",
+    "Drums"
+  },
+  /* YM2423 */ {
+    "User",
+    "Strings",
+    "Guitar",
+    "Electric Guitar",
+    "Electric Piano",
+    "Flute",
+    "Marimba",
+    "Trumpet",
+    "Harmonica",
+    "Tuba",
+    "Synth Brass",
+    "Short Saw",
+    "Vibraphone",
+    "Electric Guitar 2",
+    "Synth Bass",
+    "Sitar",
+    "Drums"
+  },
+  // stolen from FamiTracker
+  /* VRC7 */ {
+    "User",
+    "Bell",
+    "Guitar",
+    "Piano",
+    "Flute",
+    "Clarinet",
+    "Rattling Bell",
+    "Trumpet",
+    "Reed Organ",
+    "Soft Bell",
+    "Xylophone",
+    "Vibraphone",
+    "Brass",
+    "Bass Guitar",
+    "Synth",
+    "Chorus",
+    "Drums"
+  }
 };
 
 const char* oplWaveforms[8]={
@@ -215,6 +282,15 @@ const char* dualWSEffects[9]={
   "Slide",
   "Mix Chorus",
   "Phase Modulation"
+};
+
+const char* gbHWSeqCmdTypes[6]={
+  "Envelope",
+  "Sweep",
+  "Wait",
+  "Wait for Release",
+  "Loop",
+  "Loop until Release"
 };
 
 const char* macroAbsoluteMode="Fixed";
@@ -1572,10 +1648,59 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextColumn();
                   drawAlgorithm(0,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::BeginCombo("##LLPreset",opllInsNames[ins->fm.opllPreset])) {
-                    for (int i=0; i<17; i++) {
-                      if (ImGui::Selectable(opllInsNames[i])) {
-                        ins->fm.opllPreset=i;
+
+                  bool isPresent[4];
+                  int isPresentCount=0;
+                  memset(isPresent,0,4*sizeof(bool));
+                  for (int i=0; i<e->song.systemLen; i++) {
+                    if (e->song.system[i]==DIV_SYSTEM_VRC7) {
+                      isPresent[3]=true;
+                    } else if (e->song.system[i]==DIV_SYSTEM_OPLL || e->song.system[i]==DIV_SYSTEM_OPLL_DRUMS) {
+                      isPresent[(e->song.systemFlags[i]>>4)&3]=true;
+                    }
+                  }
+                  if (!isPresent[0] && !isPresent[1] && !isPresent[2] && !isPresent[3]) {
+                    isPresent[0]=true;
+                  }
+                  for (int i=0; i<4; i++) {
+                    if (isPresent[i]) isPresentCount++;
+                  }
+                  int presentWhich=0;
+                  for (int i=0; i<4; i++) {
+                    if (isPresent[i]) {
+                      presentWhich=i;
+                      break;
+                    }
+                  }
+
+                  if (ImGui::BeginCombo("##LLPreset",opllInsNames[presentWhich][ins->fm.opllPreset])) {
+                    if (isPresentCount>1) {
+                      if (ImGui::BeginTable("LLPresetList",isPresentCount)) {
+                        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+                        for (int i=0; i<4; i++) {
+                          if (!isPresent[i]) continue;
+                          ImGui::TableNextColumn();
+                          ImGui::Text("%s name",opllVariants[i]);
+                        }
+                        for (int i=0; i<17; i++) {
+                          ImGui::TableNextRow();
+                          for (int j=0; j<4; j++) {
+                            if (!isPresent[j]) continue;
+                            ImGui::TableNextColumn();
+                            ImGui::PushID(j*17+i);
+                            if (ImGui::Selectable(opllInsNames[j][i])) {
+                              ins->fm.opllPreset=i;
+                            }
+                            ImGui::PopID();
+                          }
+                        }
+                        ImGui::EndTable();
+                      }
+                    } else {
+                      for (int i=0; i<17; i++) {
+                        if (ImGui::Selectable(opllInsNames[presentWhich][i])) {
+                          ins->fm.opllPreset=i;
+                        }
                       }
                     }
                     ImGui::EndCombo();
@@ -2858,6 +2983,152 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           drawGBEnv(ins->gb.envVol,ins->gb.envLen,ins->gb.soundLen,ins->gb.envDir,ImVec2(ImGui::GetContentRegionAvail().x,100.0f*dpiScale));
+
+          if (ImGui::BeginChild("HWSeq",ImGui::GetContentRegionAvail(),true,ImGuiWindowFlags_MenuBar)) {
+            ImGui::BeginMenuBar();
+            ImGui::Text("Hardware Sequence");
+            ImGui::EndMenuBar();
+
+            if (ins->gb.hwSeqLen>0) if (ImGui::BeginTable("HWSeqList",2)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+              int curFrame=0;
+              ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+              ImGui::TableNextColumn();
+              ImGui::Text("Tick");
+              ImGui::TableNextColumn();
+              ImGui::Text("Command");
+              for (int i=0; i<ins->gb.hwSeqLen; i++) {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("%d (#%d)",curFrame,i);
+                ImGui::TableNextColumn();
+                ImGui::PushID(i);
+                if (ins->gb.hwSeq[i].cmd>=DivInstrumentGB::DIV_GB_HWCMD_MAX) {
+                  ins->gb.hwSeq[i].cmd=0;
+                }
+                int cmd=ins->gb.hwSeq[i].cmd;
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::Combo("##HWSeqCmd",&cmd,gbHWSeqCmdTypes,DivInstrumentGB::DIV_GB_HWCMD_MAX)) {
+                  if (ins->gb.hwSeq[i].cmd!=cmd) {
+                    ins->gb.hwSeq[i].cmd=cmd;
+                    ins->gb.hwSeq[i].data=0;
+                  }
+                }
+                bool somethingChanged=false;
+                switch (ins->gb.hwSeq[i].cmd) {
+                  case DivInstrumentGB::DIV_GB_HWCMD_ENVELOPE: {
+                    int hwsVol=(ins->gb.hwSeq[i].data&0xf0)>>4;
+                    bool hwsDir=ins->gb.hwSeq[i].data&8;
+                    int hwsLen=ins->gb.hwSeq[i].data&7;
+                    int hwsSoundLen=ins->gb.hwSeq[i].data>>8;
+
+                    if (CWSliderInt("Volume",&hwsVol,0,15)) {
+                      somethingChanged=true;
+                    }
+                    if (CWSliderInt("Env Length",&hwsLen,0,7)) {
+                      somethingChanged=true;
+                    }
+                    if (CWSliderInt("Sound Length",&hwsSoundLen,0,64,hwsSoundLen>63?"Infinity":"%d")) {
+                      somethingChanged=true;
+                    }
+                    if (ImGui::RadioButton("Up",hwsDir)) { PARAMETER
+                      hwsDir=true;
+                      somethingChanged=true;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::RadioButton("Down",!hwsDir)) { PARAMETER
+                      hwsDir=false;
+                      somethingChanged=true;
+                    }
+
+                    if (somethingChanged) {
+                      ins->gb.hwSeq[i].data=(hwsLen&7)|(hwsDir?8:0)|(hwsVol<<4)|(hwsSoundLen<<8);
+                      PARAMETER;
+                    }
+                    break;
+                  }
+                  case DivInstrumentGB::DIV_GB_HWCMD_SWEEP: {
+                    int hwsShift=ins->gb.hwSeq[i].data&7;
+                    int hwsSpeed=(ins->gb.hwSeq[i].data&0x70)>>4;
+                    bool hwsDir=ins->gb.hwSeq[i].data&8;
+
+                    if (CWSliderInt("Shift",&hwsShift,0,7)) {
+                      somethingChanged=true;
+                    }
+                    if (CWSliderInt("Speed",&hwsSpeed,0,7)) {
+                      somethingChanged=true;
+                    }
+
+                    if (ImGui::RadioButton("Up",hwsDir)) { PARAMETER
+                      hwsDir=true;
+                      somethingChanged=true;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::RadioButton("Down",!hwsDir)) { PARAMETER
+                      hwsDir=false;
+                      somethingChanged=true;
+                    }
+
+                    if (somethingChanged) {
+                      ins->gb.hwSeq[i].data=(hwsShift&7)|(hwsDir?8:0)|(hwsSpeed<<4);
+                      PARAMETER;
+                    }
+                    break;
+                  }
+                  case DivInstrumentGB::DIV_GB_HWCMD_WAIT: {
+                    int len=ins->gb.hwSeq[i].data+1;
+                    curFrame+=ins->gb.hwSeq[i].data+1;
+
+                    if (ImGui::InputInt("Ticks",&len)) {
+                      if (len<1) len=1;
+                      if (len>255) len=256;
+                      somethingChanged=true;
+                    }
+
+                    if (somethingChanged) {
+                      ins->gb.hwSeq[i].data=len-1;
+                      PARAMETER;
+                    }
+                    break;
+                  }
+                  case DivInstrumentGB::DIV_GB_HWCMD_WAIT_REL:
+                    curFrame++;
+                    break;
+                  case DivInstrumentGB::DIV_GB_HWCMD_LOOP:
+                  case DivInstrumentGB::DIV_GB_HWCMD_LOOP_REL: {
+                    int pos=ins->gb.hwSeq[i].data;
+
+                    if (ImGui::InputInt("Position",&pos)) {
+                      if (pos<0) pos=0;
+                      if (pos>(ins->gb.hwSeqLen-1)) pos=(ins->gb.hwSeqLen-1);
+                      somethingChanged=true;
+                    }
+
+                    if (somethingChanged) {
+                      ins->gb.hwSeq[i].data=pos;
+                      PARAMETER;
+                    }
+                    break;
+                  }
+                  default:
+                    break;
+                }
+                ImGui::PopID();
+              }
+              ImGui::EndTable();
+            }
+
+            if (ImGui::Button(ICON_FA_PLUS "##HWCmdAdd")) {
+              if (ins->gb.hwSeqLen<255) {
+                ins->gb.hwSeq[ins->gb.hwSeqLen].cmd=0;
+                ins->gb.hwSeq[ins->gb.hwSeqLen].data=0;
+                ins->gb.hwSeqLen++;
+              }
+            }
+
+            ImGui::EndChild();
+          }
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_C64) if (ImGui::BeginTabItem("C64")) {
@@ -2977,12 +3248,16 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Don't test/gate before new note",&ins->c64.noTest));
           ImGui::EndTabItem();
         }
-        if (ins->type==DIV_INS_AMIGA) if (ImGui::BeginTabItem("Sample")) {
+        if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SU) if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
           String sName;
           if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
             sName="none selected";
           } else {
             sName=e->song.sample[ins->amiga.initSample]->name;
+          }
+          if (ins->type==DIV_INS_SU) {
+            P(ImGui::Checkbox("Use sample",&ins->su.useSample));
+            P(ImGui::Checkbox("Switch roles of frequency and phase reset timer",&ins->su.switchRoles));
           }
           if (ImGui::BeginCombo("Initial Sample",sName.c_str())) {
             String id;
@@ -2994,14 +3269,16 @@ void FurnaceGUI::drawInsEdit() {
             }
             ImGui::EndCombo();
           }
-          P(ImGui::Checkbox("Use wavetable (Amiga only)",&ins->amiga.useWave));
-          if (ins->amiga.useWave) {
-            int len=ins->amiga.waveLen+1;
-            if (ImGui::InputInt("Width",&len,2,16)) {
-              if (len<2) len=2;
-              if (len>256) len=256;
-              ins->amiga.waveLen=(len&(~1))-1;
-              PARAMETER
+          if (ins->type==DIV_INS_AMIGA) {
+            P(ImGui::Checkbox("Use wavetable (Amiga only)",&ins->amiga.useWave));
+            if (ins->amiga.useWave) {
+              int len=ins->amiga.waveLen+1;
+              if (ImGui::InputInt("Width",&len,2,16)) {
+                if (len<2) len=2;
+                if (len>256) len=256;
+                ins->amiga.waveLen=(len&(~1))-1;
+                PARAMETER
+              }
             }
           }
           ImGui::BeginDisabled(ins->amiga.useWave);

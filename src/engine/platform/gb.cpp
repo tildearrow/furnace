@@ -97,10 +97,11 @@ void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) 
 void DivPlatformGB::updateWave() {
   rWrite(0x1a,0);
   for (int i=0; i<16; i++) {
-    int nibble1=15-ws.output[i<<1];
-    int nibble2=15-ws.output[1+(i<<1)];
+    int nibble1=15-ws.output[((i<<1)+antiClickWavePos)&31];
+    int nibble2=15-ws.output[((1+(i<<1))+antiClickWavePos)&31];
     rWrite(0x30+i,(nibble1<<4)|nibble2);
   }
+  antiClickWavePos&=31;
 }
 
 static unsigned char chanMuteMask[4]={
@@ -151,6 +152,12 @@ static unsigned char noiseTable[256]={
 };
 
 void DivPlatformGB::tick(bool sysTick) {
+  if (antiClickEnabled && sysTick && chan[2].freq>0) {
+    antiClickPeriodCount+=((chipClock>>1)/MAX(parent->getCurHz(),1.0f));
+    antiClickWavePos+=antiClickPeriodCount/chan[2].freq;
+    antiClickPeriodCount%=chan[2].freq;
+  }
+
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.arp.had) {
@@ -180,9 +187,8 @@ void DivPlatformGB::tick(bool sysTick) {
     }
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;
-      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_GB);
       if (i!=2) {
-        rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
+        rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
       } else {
         if (parent->song.waveDutyIsVol) {
           rWrite(16+i*5+2,gbVolMap[(chan[i].std.duty.val&3)<<2]);
@@ -213,6 +219,10 @@ void DivPlatformGB::tick(bool sysTick) {
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
         chan[i].keyOn=true;
+        if (i==2) {
+          antiClickWavePos=0;
+          antiClickPeriodCount=0;
+        }
       }
     }
     if (i==2) {
@@ -230,7 +240,6 @@ void DivPlatformGB::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_GB);
       if (i==3) { // noise
         int ntPos=chan[i].baseFreq;
         if (ntPos<0) ntPos=0;
@@ -246,8 +255,8 @@ void DivPlatformGB::tick(bool sysTick) {
           rWrite(16+i*5,0x80);
           rWrite(16+i*5+2,gbVolMap[chan[i].vol]);
         } else {
-          rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
-          rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
+          rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
+          rWrite(16+i*5+2,((chan[i].vol<<4))|(chan[i].envLen&7)|((chan[i].envDir&1)<<3));
         }
       }
       if (chan[i].keyOff) {
@@ -259,10 +268,10 @@ void DivPlatformGB::tick(bool sysTick) {
       }
       if (i==3) { // noise
         rWrite(16+i*5+3,(chan[i].freq&0xff)|(chan[i].duty?8:0));
-        rWrite(16+i*5+4,((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((ins->gb.soundLen<64)<<6));
+        rWrite(16+i*5+4,((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((chan[i].soundLen<64)<<6));
       } else {
         rWrite(16+i*5+3,(2048-chan[i].freq)&0xff);
-        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((ins->gb.soundLen<63)<<6));
+        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((chan[i].soundLen<63)<<6));
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
@@ -299,6 +308,12 @@ int DivPlatformGB::dispatch(DivCommand c) {
         }
         ws.init(ins,32,15,chan[c.chan].insChanged);
       }
+      if (chan[c.chan].insChanged) {
+        chan[c.chan].envVol=ins->gb.envVol;
+        chan[c.chan].envLen=ins->gb.envLen;
+        chan[c.chan].envDir=ins->gb.envDir;
+        chan[c.chan].soundLen=ins->gb.soundLen;
+      }
       chan[c.chan].insChanged=false;
       break;
     }
@@ -317,9 +332,13 @@ int DivPlatformGB::dispatch(DivCommand c) {
         chan[c.chan].insChanged=true;
         if (c.chan!=2) {
           DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_GB);
-          chan[c.chan].vol=ins->gb.envVol;
+          chan[c.chan].envVol=ins->gb.envVol;
+          chan[c.chan].envLen=ins->gb.envLen;
+          chan[c.chan].envDir=ins->gb.envDir;
+          chan[c.chan].soundLen=ins->gb.soundLen;
+          chan[c.chan].vol=chan[c.chan].envVol;
           if (parent->song.gbInsAffectsEnvelope) {
-            rWrite(16+c.chan*5+2,((chan[c.chan].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
+            rWrite(16+c.chan*5+2,((chan[c.chan].vol<<4))|(chan[c.chan].envLen&7)|((chan[c.chan].envDir&1)<<3));
           }
         }
       }
@@ -471,6 +490,9 @@ void DivPlatformGB::reset() {
   lastPan=0xff;
   immWrite(0x25,procMute());
   immWrite(0x24,0x77);
+
+  antiClickPeriodCount=0;
+  antiClickWavePos=0;
 }
 
 bool DivPlatformGB::isStereo() {
@@ -507,6 +529,10 @@ void DivPlatformGB::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
+void DivPlatformGB::setFlags(unsigned int flags) {
+  antiClickEnabled=!(flags&8);
+}
+
 int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   chipClock=4194304;
   rate=chipClock/16;
@@ -519,6 +545,7 @@ int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, unsigned int fl
   dumpWrites=false;
   skipRegisterWrites=false;
   gb=new GB_gameboy_t;
+  setFlags(flags);
   reset();
   return 4;
 }

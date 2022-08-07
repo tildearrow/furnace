@@ -34,7 +34,7 @@ class DivPlatformPCE: public DivDispatch, public DivPlatformSample {
     unsigned int dacPos;
     int dacSample, ins;
     unsigned char pan;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, furnaceDac;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, furnaceDac, deferredWaveUpdate;
     signed char vol, outVol, wave;
     DivMacroInt std;
     DivWaveSynth ws;
@@ -65,6 +65,7 @@ class DivPlatformPCE: public DivDispatch, public DivPlatformSample {
       noise(false),
       pcm(false),
       furnaceDac(false),
+      deferredWaveUpdate(false),
       vol(31),
       outVol(31),
       wave(-1) {}

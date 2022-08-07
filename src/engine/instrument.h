@@ -263,12 +263,29 @@ struct DivInstrumentSTD {
 };
 
 struct DivInstrumentGB {
-  unsigned char envVol, envDir, envLen, soundLen;
+  unsigned char envVol, envDir, envLen, soundLen, hwSeqLen;
+  enum HWSeqCommands: unsigned char {
+    DIV_GB_HWCMD_ENVELOPE=0,
+    DIV_GB_HWCMD_SWEEP,
+    DIV_GB_HWCMD_WAIT,
+    DIV_GB_HWCMD_WAIT_REL,
+    DIV_GB_HWCMD_LOOP,
+    DIV_GB_HWCMD_LOOP_REL,
+
+    DIV_GB_HWCMD_MAX
+  };
+  struct HWSeqCommand {
+    unsigned char cmd;
+    unsigned short data;
+  } hwSeq[256];
   DivInstrumentGB():
     envVol(15),
     envDir(0),
     envLen(2),
-    soundLen(64) {}
+    soundLen(64),
+    hwSeqLen(0) {
+    memset(hwSeq,0,256*sizeof(int));
+  }
 };
 
 struct DivInstrumentC64 {
@@ -439,6 +456,14 @@ struct DivInstrumentWaveSynth {
     param4(0) {}
 };
 
+struct DivInstrumentSoundUnit {
+  bool useSample;
+  bool switchRoles;
+  DivInstrumentSoundUnit():
+    useSample(false),
+    switchRoles(false) {}
+};
+
 struct DivInstrument {
   String name;
   bool mode;
@@ -452,6 +477,7 @@ struct DivInstrument {
   DivInstrumentFDS fds;
   DivInstrumentMultiPCM multipcm;
   DivInstrumentWaveSynth ws;
+  DivInstrumentSoundUnit su;
   
   /**
    * save the instrument to a SafeWriter.

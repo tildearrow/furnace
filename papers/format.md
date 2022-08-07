@@ -32,6 +32,8 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 105: Furance dev105
+- 104: Furnace dev104
 - 103: Furnace dev103
 - 102: Furnace 0.6pre1 (dev102)
 - 101: Furnace 0.6pre1 (dev101)
@@ -810,6 +812,40 @@ size | description
   1  | vib depth
   1  | am depth
  23  | reserved
+ --- | **Sound Unit data** (>=104)
+  1  | use sample
+  1  | switch roles of phase reset timer and frequency
+ --- | **Game Boy envelope sequence** (>=105)
+  1  | length
+ ??? | hardware sequence data
+     | size is length*3:
+     | 1 byte: command
+     | - 0: set envelope
+     | - 1: set sweep
+     | - 2: wait
+     | - 3: wait for release
+     | - 4: loop
+     | - 5: loop until release
+     | 2 bytes: data
+     | - for set envelope:
+     |   - 1 byte: parameter
+     |     - bit 4-7: volume
+     |     - bit 3: direction
+     |     - bit 0-2: length
+     |   - 1 byte: sound length
+     | - for set sweep:
+     |   - 1 byte: parameter
+     |     - bit 4-6: length
+     |     - bit 3: direction
+     |     - bit 0-2: shift
+     |   - 1 byte: nothing
+     | - for wait:
+     |   - 1 byte: length (in ticks)
+     |   - 1 byte: nothing
+     | - for wait for release:
+     |   - 2 bytes: nothing
+     | - for loop/loop until release:
+     |   - 2 bytes: position
 ```
 
 # wavetable

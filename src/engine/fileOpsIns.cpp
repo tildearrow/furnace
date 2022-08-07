@@ -21,6 +21,7 @@
 #include "../ta-log.h"
 #include "../fileutils.h"
 #include <fmt/printf.h>
+#include <limits.h>
 
 enum DivInsFormats {
   DIV_INSFORMAT_DMP,
@@ -1262,7 +1263,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     patchNameRead = lfoRead = characteristicRead = m1Read = c1Read = m2Read = c2Read = false;
     newPatch = NULL;
   };
-  auto readIntStrWithinRange = [](String&& input, int limitLow, int limitHigh) -> int {
+  auto readIntStrWithinRange = [](String&& input, int limitLow = INT_MIN, int limitHigh = INT_MAX) -> int {
     int x = std::stoi(input.c_str());
     if (x > limitHigh || x < limitLow) {
       throw std::invalid_argument(fmt::sprintf("%s is out of bounds of range [%d..%d]", input, limitLow, limitHigh));
@@ -1280,7 +1281,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     op.mult = readIntStrWithinRange(reader.readStringToken(), 0, 15);
     op.dt = fmDtRegisterToFurnace(readIntStrWithinRange(reader.readStringToken(), 0, 7));
     op.dt2 = readIntStrWithinRange(reader.readStringToken(), 0, 3);
-    op.am = readIntStrWithinRange(reader.readStringToken(), 0, 1);
+    op.am = readIntStrWithinRange(reader.readStringToken(), 0) > 0 ? 1 : 0;
   };
   auto seekGroupValStart = [](SafeReader& reader, int pos) {
     // Seek to position then move to next ':' character

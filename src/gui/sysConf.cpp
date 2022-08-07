@@ -118,6 +118,66 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::Checkbox("Disable anti-click",&antiClick)) {
         copyOfFlags=(flags&(~8))|(antiClick<<3);
       }
+      ImGui::Text("Chip revision:");
+      if (ImGui::RadioButton("HuC6280 (original)",(flags&4)==0)) {
+        copyOfFlags=(flags&(~4))|0;
+      }
+      if (ImGui::RadioButton("HuC6280A (SuperGrafx)",(flags&4)==4)) {
+        copyOfFlags=(flags&(~4))|4;
+      }
+      break;
+    }
+    case DIV_SYSTEM_SOUND_UNIT: {
+      ImGui::Text("CPU rate:");
+      if (ImGui::RadioButton("6.18MHz (NTSC)",(flags&3)==0)) {
+        copyOfFlags=(flags&(~3))|0;
+      }
+      if (ImGui::RadioButton("5.95MHz (PAL)",(flags&3)==1)) {
+        copyOfFlags=(flags&(~3))|1;
+      }
+      ImGui::Text("Chip revision (sample memory):");
+      if (ImGui::RadioButton("A/B/E (8K)",(flags&16)==0)) {
+        copyOfFlags=(flags&(~16))|0;
+      }
+      if (ImGui::RadioButton("D/F (64K)",(flags&16)==16)) {
+        copyOfFlags=(flags&(~16))|16;
+      }
+      bool echo=flags&4;
+      if (ImGui::Checkbox("Enable echo",&echo)) {
+        copyOfFlags=(flags&(~4))|(echo<<2);
+      }
+      bool flipEcho=flags&8;
+      if (ImGui::Checkbox("Swap echo channels",&flipEcho)) {
+        copyOfFlags=(flags&(~8))|(flipEcho<<3);
+      }
+      ImGui::Text("Echo delay:");
+      int echoBufSize=(flags&0x3f00)>>8;
+      if (CWSliderInt("##EchoBufSize",&echoBufSize,0,63)) {
+        if (echoBufSize<0) echoBufSize=0;
+        if (echoBufSize>63) echoBufSize=63;
+        copyOfFlags=(flags&~0x3f00)|(echoBufSize<<8);
+      } rightClickable
+      ImGui::Text("Echo resolution:");
+      int echoResolution=(flags&0xf00000)>>20;
+      if (CWSliderInt("##EchoResolution",&echoResolution,0,15)) {
+        if (echoResolution<0) echoResolution=0;
+        if (echoResolution>15) echoResolution=15;
+        copyOfFlags=(flags&(~0xf00000))|(echoResolution<<20);
+      } rightClickable
+      ImGui::Text("Echo feedback:");
+      int echoFeedback=(flags&0xf0000)>>16;
+      if (CWSliderInt("##EchoFeedback",&echoFeedback,0,15)) {
+        if (echoFeedback<0) echoFeedback=0;
+        if (echoFeedback>15) echoFeedback=15;
+        copyOfFlags=(flags&(~0xf0000))|(echoFeedback<<16);
+      } rightClickable
+      ImGui::Text("Echo volume:");
+      int echoVolume=(signed char)((flags&0xff000000)>>24);
+      if (CWSliderInt("##EchoVolume",&echoVolume,-128,127)) {
+        if (echoVolume<-128) echoVolume=-128;
+        if (echoVolume>127) echoVolume=127;
+        copyOfFlags=(flags&(~0xff000000))|(((unsigned char)echoVolume)<<24);
+      } rightClickable
       break;
     }
     case DIV_SYSTEM_GB: {

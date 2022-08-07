@@ -11,28 +11,16 @@ if it is a 2-byte macro, read a dummy byte.
 
 then read data.
 
-## pattern data
+## binary command stream
 
-read sequentially.
+read channel, command and values.
 
-first byte determines what to read next:
+if channel is 80 or higher, then it is a special command:
 
 ```
-NVI..EEE
-
-N: note
-V: volume
-I: instrument
-
-EEE: effect count (0-7)
+fb xx xx xx xx: set tick rate
+fc xx xx: wait xxxx ticks
+fd xx: wait xx ticks
+fe: wait one tick
+ff: stop
 ```
-
-if you read 0, end of pattern.
-otherwise read in following order:
-
-1. note
-2. volume
-3. instrument
-4. effect and effect value
-
-then read number of rows until next value, minus 1.

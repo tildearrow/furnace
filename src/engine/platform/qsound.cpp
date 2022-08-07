@@ -362,7 +362,7 @@ void DivPlatformQSound::tick(bool sysTick) {
         off=10223616.0*getCenterRate(parent->getIns(chan[i].ins,DIV_INS_AMIGA),parent->getSample(chan[i].sample),chan[i].note,false);
       }
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,off);
-      if (chan[i].freq>0xffff) chan[i].freq=0xffff;
+      if (chan[i].freq>0xefff) chan[i].freq=0xefff;
       if (chan[i].keyOn) {
         rWrite(q1_reg_map[Q1V_BANK][i], qsound_bank);
         rWrite(q1_reg_map[Q1V_END][i], qsound_end);

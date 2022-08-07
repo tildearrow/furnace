@@ -528,6 +528,17 @@ void DivInstrument::putInsData(SafeWriter* w) {
     w->writeC(0);
   }
 
+  // Sound Unit
+  w->writeC(su.useSample);
+  w->writeC(su.switchRoles);
+
+  // GB hardware sequence
+  w->writeC(gb.hwSeqLen);
+  for (int i=0; i<gb.hwSeqLen; i++) {
+    w->writeC(gb.hwSeq[i].cmd);
+    w->writeS(gb.hwSeq[i].data);
+  }
+
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);
   w->writeI(blockEndSeek-blockStartSeek-4);
@@ -1073,6 +1084,21 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     multipcm.am=reader.readC();
     // reserved
     for (int k=0; k<23; k++) reader.readC();
+  }
+
+  // Sound Unit
+  if (version>=104) {
+    su.useSample=reader.readC();
+    su.switchRoles=reader.readC();
+  }
+
+  // GB hardware sequence
+  if (version>=105) {
+    gb.hwSeqLen=reader.readC();
+    for (int i=0; i<gb.hwSeqLen; i++) {
+      gb.hwSeq[i].cmd=reader.readC();
+      gb.hwSeq[i].data=reader.readS();
+    }
   }
 
   return DIV_DATA_SUCCESS;

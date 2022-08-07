@@ -1850,8 +1850,8 @@ void DivEngine::registerSystems() {
   sysDefs[DIV_SYSTEM_Y8950]=new DivSysDef(
     "Yamaha Y8950", NULL, 0xb2, 0, 10, true, false, 0x151, false,
     "like OPL but with an ADPCM channel.",
-    {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9", "PCM"},
-    {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "PCM"},
+    {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9", "ADPCM"},
+    {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "P"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PCM},
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_AMIGA},
     {},
@@ -1862,8 +1862,8 @@ void DivEngine::registerSystems() {
   sysDefs[DIV_SYSTEM_Y8950_DRUMS]=new DivSysDef(
     "Yamaha Y8950 with drums", NULL, 0xb3, 0, 12, true, false, 0x151, false,
     "the Y8950 chip, in drums mode.",
-    {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Kick/FM 7", "Snare", "Tom", "Top", "HiHat", "PCM"},
-    {"F1", "F2", "F3", "F4", "F5", "F6", "BD", "SD", "TM", "TP", "HH", "PCM"},
+    {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Kick/FM 7", "Snare", "Tom", "Top", "HiHat", "ADPCM"},
+    {"F1", "F2", "F3", "F4", "F5", "F6", "BD", "SD", "TM", "TP", "HH", "P"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_AMIGA},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_NULL},
