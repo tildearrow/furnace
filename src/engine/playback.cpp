@@ -211,7 +211,27 @@ const char* formatNote(unsigned char note, unsigned char octave) {
 
 int DivEngine::dispatchCmd(DivCommand c) {
   if (view==DIV_STATUS_COMMANDS) {
-    if (!skipping) printf("%8d | %d: %s(%d, %d)\n",totalTicksR,c.chan,cmdName[c.cmd],c.value,c.value2);
+    if (!skipping) {
+      switch (c.cmd) {
+        // strip away hinted/useless commands
+        case DIV_ALWAYS_SET_VOLUME:
+          break;
+        case DIV_CMD_GET_VOLUME:
+          break;
+        case DIV_CMD_VOLUME:
+          break;
+        case DIV_CMD_NOTE_PORTA:
+          break;
+        case DIV_CMD_LEGATO:
+          break;
+        case DIV_CMD_PITCH:
+          break;
+        case DIV_CMD_PRE_NOTE:
+          break;
+        default:
+          printf("%8d | %d: %s(%d, %d)\n",totalTicksR,c.chan,cmdName[c.cmd],c.value,c.value2);
+      }
+    }
   }
   totalCmds++;
   if (cmdStreamEnabled && cmdStream.size()<2000) {
