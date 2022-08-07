@@ -261,12 +261,19 @@ struct DivInstrumentSTD {
 };
 
 struct DivInstrumentGB {
-  unsigned char envVol, envDir, envLen, soundLen;
+  unsigned char envVol, envDir, envLen, soundLen, hwSeqLen;
+  struct HWSeqCommand {
+    unsigned char cmd;
+    unsigned short data;
+  } hwSeq[256];
   DivInstrumentGB():
     envVol(15),
     envDir(0),
     envLen(2),
-    soundLen(64) {}
+    soundLen(64),
+    hwSeqLen(0) {
+    memset(hwSeq,0,256*sizeof(int));
+  }
 };
 
 struct DivInstrumentC64 {
