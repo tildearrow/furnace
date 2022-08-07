@@ -307,7 +307,8 @@ int DivPlatformGB::dispatch(DivCommand c) {
           ws.changeWave1(chan[c.chan].wave);
         }
         ws.init(ins,32,15,chan[c.chan].insChanged);
-      } else if (chan[c.chan].insChanged) {
+      }
+      if (chan[c.chan].insChanged) {
         chan[c.chan].envVol=ins->gb.envVol;
         chan[c.chan].envLen=ins->gb.envLen;
         chan[c.chan].envDir=ins->gb.envDir;
