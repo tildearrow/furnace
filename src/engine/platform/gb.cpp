@@ -187,9 +187,8 @@ void DivPlatformGB::tick(bool sysTick) {
     }
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;
-      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_GB);
       if (i!=2) {
-        rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
+        rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
       } else {
         if (parent->song.waveDutyIsVol) {
           rWrite(16+i*5+2,gbVolMap[(chan[i].std.duty.val&3)<<2]);
@@ -241,7 +240,6 @@ void DivPlatformGB::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_GB);
       if (i==3) { // noise
         int ntPos=chan[i].baseFreq;
         if (ntPos<0) ntPos=0;
@@ -257,8 +255,8 @@ void DivPlatformGB::tick(bool sysTick) {
           rWrite(16+i*5,0x80);
           rWrite(16+i*5+2,gbVolMap[chan[i].vol]);
         } else {
-          rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
-          rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
+          rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
+          rWrite(16+i*5+2,((chan[i].vol<<4))|(chan[i].envLen&7)|((chan[i].envDir&1)<<3));
         }
       }
       if (chan[i].keyOff) {
@@ -270,10 +268,10 @@ void DivPlatformGB::tick(bool sysTick) {
       }
       if (i==3) { // noise
         rWrite(16+i*5+3,(chan[i].freq&0xff)|(chan[i].duty?8:0));
-        rWrite(16+i*5+4,((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((ins->gb.soundLen<64)<<6));
+        rWrite(16+i*5+4,((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((chan[i].soundLen<64)<<6));
       } else {
         rWrite(16+i*5+3,(2048-chan[i].freq)&0xff);
-        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((ins->gb.soundLen<63)<<6));
+        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((chan[i].soundLen<63)<<6));
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
@@ -309,6 +307,11 @@ int DivPlatformGB::dispatch(DivCommand c) {
           ws.changeWave1(chan[c.chan].wave);
         }
         ws.init(ins,32,15,chan[c.chan].insChanged);
+      } else if (chan[c.chan].insChanged) {
+        chan[c.chan].envVol=ins->gb.envVol;
+        chan[c.chan].envLen=ins->gb.envLen;
+        chan[c.chan].envDir=ins->gb.envDir;
+        chan[c.chan].soundLen=ins->gb.soundLen;
       }
       chan[c.chan].insChanged=false;
       break;
@@ -328,9 +331,13 @@ int DivPlatformGB::dispatch(DivCommand c) {
         chan[c.chan].insChanged=true;
         if (c.chan!=2) {
           DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_GB);
-          chan[c.chan].vol=ins->gb.envVol;
+          chan[c.chan].envVol=ins->gb.envVol;
+          chan[c.chan].envLen=ins->gb.envLen;
+          chan[c.chan].envDir=ins->gb.envDir;
+          chan[c.chan].soundLen=ins->gb.soundLen;
+          chan[c.chan].vol=chan[c.chan].envVol;
           if (parent->song.gbInsAffectsEnvelope) {
-            rWrite(16+c.chan*5+2,((chan[c.chan].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
+            rWrite(16+c.chan*5+2,((chan[c.chan].vol<<4))|(chan[c.chan].envLen&7)|((chan[c.chan].envDir&1)<<3));
           }
         }
       }
