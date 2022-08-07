@@ -139,17 +139,18 @@ jobs:
         sudo sed -ri "s/^deb /deb [arch=amd64] /" /etc/apt/sources.list
         echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ bionic main universe" | sudo tee -a /etc/apt/sources.list
         echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ bionic-updates main universe" | sudo tee -a /etc/apt/sources.list
-        sudo apt update
         sudo dpkg --add-architecture armhf
+        sudo apt update
         sudo apt install \
           crossbuild-essential-armhf \
+          appstream
+        sudo apt install \
           libsdl2-dev:armhf \
           libfmt-dev:armhf \
           librtmidi-dev:armhf \
           libsndfile1-dev:armhf \
           zlib1g-dev:armhf \
-          libjack-jackd2-dev:armhf \
-          appstream
+          libjack-jackd2-dev:armhf
         wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
         wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-armhf"
         chmod +x appimagetool-x86_64.AppImage
