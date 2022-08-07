@@ -3339,6 +3339,7 @@ bool DivEngine::initAudioBackend() {
 
 bool DivEngine::deinitAudioBackend() {
   if (output!=NULL) {
+    output->quit();
     if (output->midiIn) {
       if (output->midiIn->isDeviceOpen()) {
         logI("closing MIDI input.");
@@ -3352,7 +3353,6 @@ bool DivEngine::deinitAudioBackend() {
       }
     }
     output->quitMidi();
-    output->quit();
     delete output;
     output=NULL;
     //audioEngine=DIV_AUDIO_NULL;
