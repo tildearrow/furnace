@@ -358,7 +358,7 @@ void DivPlatformQSound::tick(bool sysTick) {
         }
       }
       chan[i].freq=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,440.0,4096.0);
-      if (chan[i].freq>0xffff) chan[i].freq=0xffff;
+      if (chan[i].freq>0xefff) chan[i].freq=0xefff;
       if (chan[i].keyOn) {
         rWrite(q1_reg_map[Q1V_BANK][i], qsound_bank);
         rWrite(q1_reg_map[Q1V_END][i], qsound_end);
