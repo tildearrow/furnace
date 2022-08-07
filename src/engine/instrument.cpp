@@ -534,7 +534,7 @@ void DivInstrument::putInsData(SafeWriter* w) {
 
   // GB hardware sequence
   w->writeC(gb.hwSeqLen);
-  for (int i=0; gb.hwSeqLen; i++) {
+  for (int i=0; i<gb.hwSeqLen; i++) {
     w->writeC(gb.hwSeq[i].cmd);
     w->writeS(gb.hwSeq[i].data);
   }

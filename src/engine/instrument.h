@@ -262,6 +262,16 @@ struct DivInstrumentSTD {
 
 struct DivInstrumentGB {
   unsigned char envVol, envDir, envLen, soundLen, hwSeqLen;
+  enum HWSeqCommands: unsigned char {
+    DIV_GB_HWCMD_ENVELOPE=0,
+    DIV_GB_HWCMD_SWEEP,
+    DIV_GB_HWCMD_WAIT,
+    DIV_GB_HWCMD_WAIT_REL,
+    DIV_GB_HWCMD_LOOP,
+    DIV_GB_HWCMD_LOOP_REL,
+
+    DIV_GB_HWCMD_MAX
+  };
   struct HWSeqCommand {
     unsigned char cmd;
     unsigned short data;
