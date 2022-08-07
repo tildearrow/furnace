@@ -24,7 +24,8 @@ jobs:
           - { name: 'Windows MinGW x86_64', os: ubuntu-20.04, compiler: mingw, arch: x86_64 }
           - { name: 'macOS x86_64', os: macos-latest, arch: x86_64 }
           - { name: 'macOS ARM', os: macos-latest, arch: arm64 }
-          - { name: 'Ubuntu', os: ubuntu-18.04 }
+          - { name: 'Linux x86_64', os: ubuntu-18.04, arch: x86_64 }
+          - { name: 'Linux ARM', os: ubuntu-18.04, arch: armhf }
       fail-fast: false
 
     name: ${{ matrix.config.name }}
@@ -80,7 +81,7 @@ jobs:
           package_name="${package_name}-macOS-${{ matrix.config.arch }}"
           package_ext=".dmg"
         else
-          package_name="${package_name}-Linux"
+          package_name="${package_name}-Linux-${{ matrix.config.arch }}"
           package_ext=".AppImage"
         fi
 
@@ -117,8 +118,8 @@ jobs:
           mingw-w64 \
           mingw-w64-tools
 
-    - name: Install Dependencies [Ubuntu]
-      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
+    - name: Install Dependencies [Linux x86_64]
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'x86_64' }}
       run: |
         sudo apt update
         sudo apt install \
@@ -132,8 +133,29 @@ jobs:
         wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
         chmod +x appimagetool-x86_64.AppImage
 
+    - name: Install Dependencies [Linux armhf]
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'armhf' }}
+      run: |
+        sudo sed -ri "s/^deb /deb [arch=amd64] /" /etc/apt/sources.list
+        echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ bionic main universe" | sudo tee -a /etc/apt/sources.list
+        echo "deb [arch=armhf] http://ports.ubuntu.com/ubuntu-ports/ bionic-updates main universe" | sudo tee -a /etc/apt/sources.list
+        sudo apt update
+        sudo dpkg --add-architecture armhf
+        sudo apt install \
+          crossbuild-essential-armhf \
+          libsdl2-dev:armhf \
+          libfmt-dev:armhf \
+          librtmidi-dev:armhf \
+          libsndfile1-dev:armhf \
+          zlib1g-dev:armhf \
+          libjack-jackd2-dev:armhf \
+          appstream
+        wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+        wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-armhf"
+        chmod +x appimagetool-x86_64.AppImage
+
     - name: Configure (System Libraries)
-      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'x86_64' }}
       run: |
         export USE_WAE=ON
         export CMAKE_EXTRA_ARGS=()
@@ -164,7 +186,7 @@ jobs:
           "${CMAKE_EXTRA_ARGS[@]}"
 
     - name: Build (System Libraries)
-      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'x86_64' }}
       run: |
         cmake \
           --build ${PWD}/build \
@@ -172,14 +194,14 @@ jobs:
           --parallel ${{ steps.build-cores.outputs.amount }}
 
     - name: Install (System Libraries)
-      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'x86_64' }}
       run: |
         cmake \
           --install ${PWD}/build \
           --config ${{ env.BUILD_TYPE }}
 
     - name: Cleanup (System Libraries)
-      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
+      if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'x86_64' }}
       run: |
         rm -rf build/ target/
 
@@ -207,6 +229,8 @@ jobs:
           else
             CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="10.9"')
           fi
+        elif [ '${{ runner.os }}' == 'Linux' && '${{ matrix.config.arch }}' == 'armhf' ]; then
+          CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-Linux-armhf.cmake')
         fi
 
         cmake \
@@ -260,7 +284,7 @@ jobs:
         mv Furnace-*-Darwin.dmg ../${{ steps.package-identify.outputs.filename }}
         popd
 
-    - name: Package [Ubuntu]
+    - name: Package [Linux]
       if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' }}
       run: |
         #if [ '${{ env.BUILD_TYPE }}' == 'Release' ]; then
@@ -278,7 +302,11 @@ jobs:
         cp -v ../../res/AppRun ./
         popd
 
-        ../appimagetool-x86_64.AppImage furnace.AppDir
+        if [ '${{ matrix.config.arch }}' == 'armhf' ]; then
+          ../appimagetool-x86_64.AppImage --runtime-file=../runtime-armhf furnace.AppDir
+        else
+          ../appimagetool-x86_64.AppImage furnace.AppDir
+        fi
         mv Furnace-*.AppImage ../${{ steps.package-identify.outputs.filename }}
         popd
 
