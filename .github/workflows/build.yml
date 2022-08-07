@@ -230,7 +230,7 @@ jobs:
           else
             CMAKE_EXTRA_ARGS+=('-DCMAKE_OSX_DEPLOYMENT_TARGET="10.9"')
           fi
-        elif [ '${{ runner.os }}' == 'Linux' && '${{ matrix.config.arch }}' == 'armhf' ]; then
+        elif [ '${{ runner.os }}' == 'Linux' ] && [ '${{ matrix.config.arch }}' == 'armhf' ]; then
           CMAKE_EXTRA_ARGS+=('-DCMAKE_TOOLCHAIN_FILE=scripts/Cross-Linux-armhf.cmake')
         fi
 
