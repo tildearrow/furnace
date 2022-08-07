@@ -1308,25 +1308,22 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
 
   // logic starts here
-  size_t runtotal[32];
-  size_t runLeft[32];
-  size_t runPos[32];
-  size_t lastAvail[32];
   for (int i=0; i<song.systemLen; i++) {
-    lastAvail[i]=blip_samples_avail(disCont[i].bb[0]);
-    if (lastAvail[i]>0) {
-      disCont[i].flush(lastAvail[i]);
+    disCont[i].lastAvail=blip_samples_avail(disCont[i].bb[0]);
+    if (disCont[i].lastAvail>0) {
+      disCont[i].flush(disCont[i].lastAvail);
     }
-    runtotal[i]=blip_clocks_needed(disCont[i].bb[0],size-lastAvail[i]);
-    if (runtotal[i]>disCont[i].bbInLen) {
+    disCont[i].runtotal=blip_clocks_needed(disCont[i].bb[0],size-disCont[i].lastAvail);
+    if (disCont[i].runtotal>disCont[i].bbInLen) {
+      logV("growing dispatch %d bbIn to %d",i,disCont[i].runtotal+256);
       delete[] disCont[i].bbIn[0];
       delete[] disCont[i].bbIn[1];
-      disCont[i].bbIn[0]=new short[runtotal[i]+256];
-      disCont[i].bbIn[1]=new short[runtotal[i]+256];
-      disCont[i].bbInLen=runtotal[i]+256;
+      disCont[i].bbIn[0]=new short[disCont[i].runtotal+256];
+      disCont[i].bbIn[1]=new short[disCont[i].runtotal+256];
+      disCont[i].bbInLen=disCont[i].runtotal+256;
     }
-    runLeft[i]=runtotal[i];
-    runPos[i]=0;
+    disCont[i].runLeft=disCont[i].runtotal;
+    disCont[i].runPos=0;
   }
 
   if (metroTickLen<size) {
@@ -1378,10 +1375,10 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       // 3. tick the clock and fill buffers as needed
       if (cycles<runLeftG) {
         for (int i=0; i<song.systemLen; i++) {
-          int total=(cycles*runtotal[i])/(size<<MASTER_CLOCK_PREC);
-          disCont[i].acquire(runPos[i],total);
-          runLeft[i]-=total;
-          runPos[i]+=total;
+          int total=(cycles*disCont[i].runtotal)/(size<<MASTER_CLOCK_PREC);
+          disCont[i].acquire(disCont[i].runPos,total);
+          disCont[i].runLeft-=total;
+          disCont[i].runPos+=total;
         }
         runLeftG-=cycles;
         cycles=0;
@@ -1389,8 +1386,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         cycles-=runLeftG;
         runLeftG=0;
         for (int i=0; i<song.systemLen; i++) {
-          disCont[i].acquire(runPos[i],runLeft[i]);
-          runLeft[i]=0;
+          disCont[i].acquire(disCont[i].runPos,disCont[i].runLeft);
+          disCont[i].runLeft=0;
         }
       }
     }
@@ -1411,7 +1408,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   totalProcessed=size-(runLeftG>>MASTER_CLOCK_PREC);
 
   for (int i=0; i<song.systemLen; i++) {
-    disCont[i].fillBuf(runtotal[i],lastAvail[i],size-lastAvail[i]);
+    disCont[i].fillBuf(disCont[i].runtotal,disCont[i].lastAvail,size-disCont[i].lastAvail);
   }
 
   for (int i=0; i<song.systemLen; i++) {

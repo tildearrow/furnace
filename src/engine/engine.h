@@ -164,7 +164,7 @@ struct DivNoteEvent {
 struct DivDispatchContainer {
   DivDispatch* dispatch;
   blip_buffer_t* bb[2];
-  size_t bbInLen;
+  size_t bbInLen, runtotal, runLeft, runPos, lastAvail;
   int temp[2], prevSample[2];
   short* bbIn[2];
   short* bbOut[2];
@@ -182,6 +182,10 @@ struct DivDispatchContainer {
     dispatch(NULL),
     bb{NULL,NULL},
     bbInLen(0),
+    runtotal(0),
+    runLeft(0),
+    runPos(0),
+    lastAvail(0),
     temp{0,0},
     prevSample{0,0},
     bbIn{NULL,NULL},
