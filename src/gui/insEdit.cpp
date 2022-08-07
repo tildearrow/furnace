@@ -284,6 +284,15 @@ const char* dualWSEffects[9]={
   "Phase Modulation"
 };
 
+const char* gbHWSeqCmdTypes[6]={
+  "Envelope",
+  "Sweep",
+  "Wait",
+  "Wait for Release",
+  "Loop",
+  "Loop until Release"
+};
+
 const char* macroAbsoluteMode="Fixed";
 const char* macroRelativeMode="Relative";
 const char* macroQSoundMode="QSound";
@@ -2974,6 +2983,152 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           drawGBEnv(ins->gb.envVol,ins->gb.envLen,ins->gb.soundLen,ins->gb.envDir,ImVec2(ImGui::GetContentRegionAvail().x,100.0f*dpiScale));
+
+          if (ImGui::BeginChild("HWSeq",ImGui::GetContentRegionAvail(),true,ImGuiWindowFlags_MenuBar)) {
+            ImGui::BeginMenuBar();
+            ImGui::Text("Hardware Sequence");
+            ImGui::EndMenuBar();
+
+            if (ins->gb.hwSeqLen>0) if (ImGui::BeginTable("HWSeqList",2)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+              int curFrame=0;
+              ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+              ImGui::TableNextColumn();
+              ImGui::Text("Tick");
+              ImGui::TableNextColumn();
+              ImGui::Text("Command");
+              for (int i=0; i<ins->gb.hwSeqLen; i++) {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("%d (#%d)",curFrame,i);
+                ImGui::TableNextColumn();
+                ImGui::PushID(i);
+                if (ins->gb.hwSeq[i].cmd>=DivInstrumentGB::DIV_GB_HWCMD_MAX) {
+                  ins->gb.hwSeq[i].cmd=0;
+                }
+                int cmd=ins->gb.hwSeq[i].cmd;
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::Combo("##HWSeqCmd",&cmd,gbHWSeqCmdTypes,DivInstrumentGB::DIV_GB_HWCMD_MAX)) {
+                  if (ins->gb.hwSeq[i].cmd!=cmd) {
+                    ins->gb.hwSeq[i].cmd=cmd;
+                    ins->gb.hwSeq[i].data=0;
+                  }
+                }
+                bool somethingChanged=false;
+                switch (ins->gb.hwSeq[i].cmd) {
+                  case DivInstrumentGB::DIV_GB_HWCMD_ENVELOPE: {
+                    int hwsVol=(ins->gb.hwSeq[i].data&0xf0)>>4;
+                    bool hwsDir=ins->gb.hwSeq[i].data&8;
+                    int hwsLen=ins->gb.hwSeq[i].data&7;
+                    int hwsSoundLen=ins->gb.hwSeq[i].data>>8;
+
+                    if (CWSliderInt("Volume",&hwsVol,0,15)) {
+                      somethingChanged=true;
+                    }
+                    if (CWSliderInt("Env Length",&hwsLen,0,7)) {
+                      somethingChanged=true;
+                    }
+                    if (CWSliderInt("Sound Length",&hwsSoundLen,0,64,hwsSoundLen>63?"Infinity":"%d")) {
+                      somethingChanged=true;
+                    }
+                    if (ImGui::RadioButton("Up",hwsDir)) { PARAMETER
+                      hwsDir=true;
+                      somethingChanged=true;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::RadioButton("Down",!hwsDir)) { PARAMETER
+                      hwsDir=false;
+                      somethingChanged=true;
+                    }
+
+                    if (somethingChanged) {
+                      ins->gb.hwSeq[i].data=(hwsLen&7)|(hwsDir?8:0)|(hwsVol<<4)|(hwsSoundLen<<8);
+                      PARAMETER;
+                    }
+                    break;
+                  }
+                  case DivInstrumentGB::DIV_GB_HWCMD_SWEEP: {
+                    int hwsShift=ins->gb.hwSeq[i].data&7;
+                    int hwsSpeed=(ins->gb.hwSeq[i].data&0x70)>>4;
+                    bool hwsDir=ins->gb.hwSeq[i].data&8;
+
+                    if (CWSliderInt("Shift",&hwsShift,0,7)) {
+                      somethingChanged=true;
+                    }
+                    if (CWSliderInt("Speed",&hwsSpeed,0,7)) {
+                      somethingChanged=true;
+                    }
+
+                    if (ImGui::RadioButton("Up",hwsDir)) { PARAMETER
+                      hwsDir=true;
+                      somethingChanged=true;
+                    }
+                    ImGui::SameLine();
+                    if (ImGui::RadioButton("Down",!hwsDir)) { PARAMETER
+                      hwsDir=false;
+                      somethingChanged=true;
+                    }
+
+                    if (somethingChanged) {
+                      ins->gb.hwSeq[i].data=(hwsShift&7)|(hwsDir?8:0)|(hwsSpeed<<4);
+                      PARAMETER;
+                    }
+                    break;
+                  }
+                  case DivInstrumentGB::DIV_GB_HWCMD_WAIT: {
+                    int len=ins->gb.hwSeq[i].data+1;
+                    curFrame+=ins->gb.hwSeq[i].data+1;
+
+                    if (ImGui::InputInt("Ticks",&len)) {
+                      if (len<1) len=1;
+                      if (len>255) len=256;
+                      somethingChanged=true;
+                    }
+
+                    if (somethingChanged) {
+                      ins->gb.hwSeq[i].data=len-1;
+                      PARAMETER;
+                    }
+                    break;
+                  }
+                  case DivInstrumentGB::DIV_GB_HWCMD_WAIT_REL:
+                    curFrame++;
+                    break;
+                  case DivInstrumentGB::DIV_GB_HWCMD_LOOP:
+                  case DivInstrumentGB::DIV_GB_HWCMD_LOOP_REL: {
+                    int pos=ins->gb.hwSeq[i].data;
+
+                    if (ImGui::InputInt("Position",&pos)) {
+                      if (pos<0) pos=0;
+                      if (pos>(ins->gb.hwSeqLen-1)) pos=(ins->gb.hwSeqLen-1);
+                      somethingChanged=true;
+                    }
+
+                    if (somethingChanged) {
+                      ins->gb.hwSeq[i].data=pos;
+                      PARAMETER;
+                    }
+                    break;
+                  }
+                  default:
+                    break;
+                }
+                ImGui::PopID();
+              }
+              ImGui::EndTable();
+            }
+
+            if (ImGui::Button(ICON_FA_PLUS "##HWCmdAdd")) {
+              if (ins->gb.hwSeqLen<255) {
+                ins->gb.hwSeq[ins->gb.hwSeqLen].cmd=0;
+                ins->gb.hwSeq[ins->gb.hwSeqLen].data=0;
+                ins->gb.hwSeqLen++;
+              }
+            }
+
+            ImGui::EndChild();
+          }
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_C64) if (ImGui::BeginTabItem("C64")) {
