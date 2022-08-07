@@ -293,7 +293,7 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
       if (!isMuted[adpcmChan]) {
         os[0]-=aOut.data[0]>>3;
         os[1]-=aOut.data[0]>>3;
-        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]+=aOut.data[0];
+        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=aOut.data[0];
       } else {
         oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=0;
       }
