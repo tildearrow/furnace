@@ -150,7 +150,6 @@ jobs:
           librtmidi-dev:armhf \
           libsndfile1-dev:armhf \
           zlib1g-dev:armhf \
-          cmake:armhf \
           libjack-jackd2-dev:armhf
         wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
         wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-armhf"
