@@ -32,6 +32,7 @@ class DivPlatformGB: public DivDispatch {
     bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta;
     signed char vol, outVol, wave;
     unsigned char envVol, envDir, envLen, soundLen;
+    unsigned short hwSeqPos, hwSeqDelay;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
       std.init(which);
@@ -59,7 +60,9 @@ class DivPlatformGB: public DivDispatch {
       envVol(0),
       envDir(0),
       envLen(0),
-      soundLen(0) {}
+      soundLen(0),
+      hwSeqPos(0),
+      hwSeqDelay(0) {}
   };
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];

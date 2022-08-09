@@ -409,7 +409,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Namco C163", {
+    "Namco 163", {
       DIV_SYSTEM_N163, 64, 0, 0,
       0
     }
@@ -617,7 +617,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Famicom with Namco C163", {
+    "Famicom with Namco 163", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_N163, 64, 0, 112,
       0

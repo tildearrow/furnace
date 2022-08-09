@@ -135,7 +135,7 @@ const char* aboutLine[]={
   "VICE VIC-20 sound core by Rami Rasanen and viznut",
   "VERA sound core by Frank van den Hoef",
   "K005289 emulator by cam900",
-  "Namco C163 emulator by cam900",
+  "Namco 163 emulator by cam900",
   "Seta X1-010 emulator by cam900",
   "Konami VRC6 emulator by cam900",
   "Konami SCC emulator by cam900",

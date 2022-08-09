@@ -1201,7 +1201,7 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::Separator();
 
-          ImGui::Text("N163/C163 chip name");
+          ImGui::Text("Namco 163 chip name");
           ImGui::SameLine();
           ImGui::InputTextWithHint("##C163Name",DIV_C163_DEFAULT_NAME,&settings.c163Name);
 
@@ -2028,7 +2028,6 @@ void FurnaceGUI::syncSettings() {
   settings.audioDevice=e->getConfString("audioDevice","");
   settings.midiInDevice=e->getConfString("midiInDevice","");
   settings.midiOutDevice=e->getConfString("midiOutDevice","");
-  // I'm sorry, but the C163 education program has failed...
   settings.c163Name=e->getConfString("c163Name",DIV_C163_DEFAULT_NAME);
   settings.audioQuality=e->getConfInt("audioQuality",0);
   settings.audioBufSize=e->getConfInt("audioBufSize",1024);

@@ -26,7 +26,7 @@ this is a list of systems that Furnace supports, including each system's effects
 - [Seta/Allumer X1-010](x1-010.md)
 - [WonderSwan](wonderswan.md)
 - [Bubble System WSG](bubblesystem.md)
-- [Namco C163](n163.md)
+- [Namco 163](n163.md)
 - [Namco WSG](namco.md)
 - [Yamaha OPL](opl.md)
 - [PC Speaker](pcspkr.md)

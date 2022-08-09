@@ -97,7 +97,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   "FM (OPL)",
   "FDS",
   "Virtual Boy",
-  "Namco C163",
+  "Namco 163",
   "Konami SCC/Bubble System WSG",
   "FM (OPZ)",
   "POKEY",
