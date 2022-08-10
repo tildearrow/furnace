@@ -166,7 +166,10 @@ void DivPlatformGB::tick(bool sysTick) {
         if (chan[i].outVol<0) chan[i].outVol=0;
 
         // temporary until zombie mode is implemented
-        chan[i].vol=chan[i].outVol;
+        chan[i].envLen=0;
+        chan[i].envDir=0;
+        chan[i].envVol=chan[i].outVol;
+        chan[i].soundLen=64;
         chan[i].keyOn=true;
       }
     }
@@ -314,10 +317,10 @@ void DivPlatformGB::tick(bool sysTick) {
       if (chan[i].keyOn) {
         if (i==2) { // wave
           rWrite(16+i*5,0x80);
-          rWrite(16+i*5+2,gbVolMap[chan[i].vol]);
+          rWrite(16+i*5+2,gbVolMap[chan[i].outVol]);
         } else {
           rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
-          rWrite(16+i*5+2,((chan[i].vol<<4))|(chan[i].envLen&7)|((chan[i].envDir&1)<<3));
+          rWrite(16+i*5+2,((chan[i].envVol<<4))|(chan[i].envLen&7)|((chan[i].envDir&1)<<3));
         }
       }
       if (chan[i].keyOff) {
@@ -406,6 +409,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
             chan[c.chan].envDir=ins->gb.envDir;
             chan[c.chan].soundLen=ins->gb.soundLen;
             chan[c.chan].vol=chan[c.chan].envVol;
+            chan[c.chan].outVol=chan[c.chan].vol;
             if (parent->song.gbInsAffectsEnvelope) {
               rWrite(16+c.chan*5+2,((chan[c.chan].vol<<4))|(chan[c.chan].envLen&7)|((chan[c.chan].envDir&1)<<3));
             }
@@ -415,8 +419,9 @@ int DivPlatformGB::dispatch(DivCommand c) {
       break;
     case DIV_CMD_VOLUME:
       chan[c.chan].vol=c.value;
+      chan[c.chan].outVol=c.value;
       if (c.chan==2) {
-        rWrite(16+c.chan*5+2,gbVolMap[chan[c.chan].vol]);
+        rWrite(16+c.chan*5+2,gbVolMap[chan[c.chan].outVol]);
       }
       break;
     case DIV_CMD_GET_VOLUME:
