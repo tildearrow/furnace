@@ -2965,6 +2965,10 @@ void FurnaceGUI::drawInsEdit() {
           }
         }
         if (ins->type==DIV_INS_GB) if (ImGui::BeginTabItem("Game Boy")) {
+          P(ImGui::Checkbox("Use software envelope",&ins->gb.softEnv));
+          P(ImGui::Checkbox("Initialize envelope on every note",&ins->gb.alwaysInit));
+
+          ImGui::BeginDisabled(ins->gb.softEnv);
           P(CWSliderScalar("Volume",ImGuiDataType_U8,&ins->gb.envVol,&_ZERO,&_FIFTEEN)); rightClickable
           P(CWSliderScalar("Envelope Length",ImGuiDataType_U8,&ins->gb.envLen,&_ZERO,&_SEVEN)); rightClickable
           P(CWSliderScalar("Sound Length",ImGuiDataType_U8,&ins->gb.soundLen,&_ZERO,&_SIXTY_FOUR,ins->gb.soundLen>63?"Infinity":"%d")); rightClickable
@@ -3060,13 +3064,13 @@ void FurnaceGUI::drawInsEdit() {
                       somethingChanged=true;
                     }
 
-                    if (ImGui::RadioButton("Up",hwsDir)) { PARAMETER
-                      hwsDir=true;
+                    if (ImGui::RadioButton("Up",!hwsDir)) { PARAMETER
+                      hwsDir=false;
                       somethingChanged=true;
                     }
                     ImGui::SameLine();
-                    if (ImGui::RadioButton("Down",!hwsDir)) { PARAMETER
-                      hwsDir=false;
+                    if (ImGui::RadioButton("Down",hwsDir)) { PARAMETER
+                      hwsDir=true;
                       somethingChanged=true;
                     }
 
@@ -3128,6 +3132,7 @@ void FurnaceGUI::drawInsEdit() {
             }
 
             ImGui::EndChild();
+            ImGui::EndDisabled();
           }
           ImGui::EndTabItem();
         }
@@ -3689,8 +3694,10 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_SU) {
             volMax=127;
           }
-          if (ins->type==DIV_INS_GB) {
+          if (ins->type==DIV_INS_GB && !ins->gb.softEnv) {
             volMax=0;
+          } else {
+            volMax=15;
           }
           if (ins->type==DIV_INS_PET || ins->type==DIV_INS_BEEPER) {
             volMax=1;

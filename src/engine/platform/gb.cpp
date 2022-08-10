@@ -233,12 +233,61 @@ void DivPlatformGB::tick(bool sysTick) {
         }
       }
     }
+    // run hardware sequence
+    if (chan[i].active) {
+      if (--chan[i].hwSeqDelay<=0) {
+        chan[i].hwSeqDelay=0;
+        DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_GB);
+        int hwSeqCount=0;
+        while (chan[i].hwSeqPos<ins->gb.hwSeqLen && hwSeqCount<4) {
+          bool leave=false;
+          unsigned short data=ins->gb.hwSeq[chan[i].hwSeqPos].data;
+          switch (ins->gb.hwSeq[chan[i].hwSeqPos].cmd) {
+            case DivInstrumentGB::DIV_GB_HWCMD_ENVELOPE:
+              chan[i].envLen=data&7;
+              chan[i].envDir=(data&8)?1:0;
+              chan[i].envVol=(data>>4)&15;
+              chan[i].soundLen=data>>8;
+              chan[i].keyOn=true;
+              break;
+            case DivInstrumentGB::DIV_GB_HWCMD_SWEEP:
+              chan[i].sweep=data;
+              chan[i].sweepChanged=true;
+              break;
+            case DivInstrumentGB::DIV_GB_HWCMD_WAIT:
+              chan[i].hwSeqDelay=data+1;
+              leave=true;
+              break;
+            case DivInstrumentGB::DIV_GB_HWCMD_WAIT_REL:
+              if (!chan[i].released) {
+                chan[i].hwSeqPos--;
+                leave=true;
+              }
+              break;
+            case DivInstrumentGB::DIV_GB_HWCMD_LOOP:
+              chan[i].hwSeqPos=data-1;
+              break;
+            case DivInstrumentGB::DIV_GB_HWCMD_LOOP_REL:
+              if (!chan[i].released) {
+                chan[i].hwSeqPos=data-1;
+              }
+              break;
+          }
+
+          chan[i].hwSeqPos++;
+          if (leave) break;
+          hwSeqCount++;
+        }
+      }
+    }
+
     if (chan[i].sweepChanged) {
       chan[i].sweepChanged=false;
       if (i==0) {
         rWrite(16+i*5,chan[i].sweep);
       }
     }
+
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
         int ntPos=chan[i].baseFreq;
@@ -300,6 +349,9 @@ int DivPlatformGB::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
+      chan[c.chan].hwSeqPos=0;
+      chan[c.chan].hwSeqDelay=0;
+      chan[c.chan].released=false;
       chan[c.chan].macroInit(ins);
       if (c.chan==2) {
         if (chan[c.chan].wave<0) {
@@ -308,7 +360,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
         }
         ws.init(ins,32,15,chan[c.chan].insChanged);
       }
-      if (chan[c.chan].insChanged) {
+      if (chan[c.chan].insChanged || ins->gb.alwaysInit) {
         chan[c.chan].envVol=ins->gb.envVol;
         chan[c.chan].envLen=ins->gb.envLen;
         chan[c.chan].envDir=ins->gb.envDir;
@@ -320,11 +372,14 @@ int DivPlatformGB::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
+      chan[c.chan].hwSeqPos=0;
+      chan[c.chan].hwSeqDelay=0;
       chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
       chan[c.chan].std.release();
+      chan[c.chan].released=true;
       break;
     case DIV_CMD_INSTRUMENT:
       if (chan[c.chan].ins!=c.value || c.value2==1) {

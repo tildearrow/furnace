@@ -32,7 +32,8 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
-- 105: Furance dev105
+- 106: Furnace dev106
+- 105: Furnace dev105
 - 104: Furnace dev104
 - 103: Furnace dev103
 - 102: Furnace 0.6pre1 (dev102)
@@ -846,6 +847,9 @@ size | description
      |   - 2 bytes: nothing
      | - for loop/loop until release:
      |   - 2 bytes: position
+ --- | **Game Boy extra flags** (>=106)
+  1  | use software envelope
+  1  | always init hard env on new note
 ```
 
 # wavetable
