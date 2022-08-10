@@ -29,7 +29,7 @@ class DivPlatformGB: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note, ins;
     unsigned char duty, sweep;
-    bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, released;
+    bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, released, softEnv;
     signed char vol, outVol, wave;
     unsigned char envVol, envDir, envLen, soundLen;
     unsigned short hwSeqPos;
@@ -56,6 +56,7 @@ class DivPlatformGB: public DivDispatch {
       keyOff(false),
       inPorta(false),
       released(false),
+      softEnv(false),
       vol(15),
       outVol(15),
       wave(-1),

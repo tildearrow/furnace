@@ -160,6 +160,16 @@ void DivPlatformGB::tick(bool sysTick) {
 
   for (int i=0; i<4; i++) {
     chan[i].std.next();
+    if (chan[i].softEnv) {
+      if (chan[i].std.vol.had) {
+        chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
+        if (chan[i].outVol<0) chan[i].outVol=0;
+
+        // temporary until zombie mode is implemented
+        chan[i].vol=chan[i].outVol;
+        chan[i].keyOn=true;
+      }
+    }
     if (chan[i].std.arp.had) {
       if (i==3) { // noise
         if (chan[i].std.arp.mode) {
@@ -189,7 +199,7 @@ void DivPlatformGB::tick(bool sysTick) {
       chan[i].duty=chan[i].std.duty.val;
       if (i!=2) {
         rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
-      } else {
+      } else if (!chan[i].softEnv) {
         if (parent->song.waveDutyIsVol) {
           rWrite(16+i*5+2,gbVolMap[(chan[i].std.duty.val&3)<<2]);
         }
@@ -244,11 +254,13 @@ void DivPlatformGB::tick(bool sysTick) {
           unsigned short data=ins->gb.hwSeq[chan[i].hwSeqPos].data;
           switch (ins->gb.hwSeq[chan[i].hwSeqPos].cmd) {
             case DivInstrumentGB::DIV_GB_HWCMD_ENVELOPE:
-              chan[i].envLen=data&7;
-              chan[i].envDir=(data&8)?1:0;
-              chan[i].envVol=(data>>4)&15;
-              chan[i].soundLen=data>>8;
-              chan[i].keyOn=true;
+              if (!chan[i].softEnv) {
+                chan[i].envLen=data&7;
+                chan[i].envDir=(data&8)?1:0;
+                chan[i].envVol=(data>>4)&15;
+                chan[i].soundLen=data>>8;
+                chan[i].keyOn=true;
+              }
               break;
             case DivInstrumentGB::DIV_GB_HWCMD_SWEEP:
               chan[i].sweep=data;
@@ -352,6 +364,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       chan[c.chan].hwSeqPos=0;
       chan[c.chan].hwSeqDelay=0;
       chan[c.chan].released=false;
+      chan[c.chan].softEnv=ins->gb.softEnv;
       chan[c.chan].macroInit(ins);
       if (c.chan==2) {
         if (chan[c.chan].wave<0) {
@@ -387,13 +400,15 @@ int DivPlatformGB::dispatch(DivCommand c) {
         chan[c.chan].insChanged=true;
         if (c.chan!=2) {
           DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_GB);
-          chan[c.chan].envVol=ins->gb.envVol;
-          chan[c.chan].envLen=ins->gb.envLen;
-          chan[c.chan].envDir=ins->gb.envDir;
-          chan[c.chan].soundLen=ins->gb.soundLen;
-          chan[c.chan].vol=chan[c.chan].envVol;
-          if (parent->song.gbInsAffectsEnvelope) {
-            rWrite(16+c.chan*5+2,((chan[c.chan].vol<<4))|(chan[c.chan].envLen&7)|((chan[c.chan].envDir&1)<<3));
+          if (!ins->gb.softEnv) {
+            chan[c.chan].envVol=ins->gb.envVol;
+            chan[c.chan].envLen=ins->gb.envLen;
+            chan[c.chan].envDir=ins->gb.envDir;
+            chan[c.chan].soundLen=ins->gb.soundLen;
+            chan[c.chan].vol=chan[c.chan].envVol;
+            if (parent->song.gbInsAffectsEnvelope) {
+              rWrite(16+c.chan*5+2,((chan[c.chan].vol<<4))|(chan[c.chan].envLen&7)|((chan[c.chan].envDir&1)<<3));
+            }
           }
         }
       }

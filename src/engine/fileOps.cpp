@@ -590,7 +590,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
           logD("GB data: vol %d dir %d len %d sl %d",ins->gb.envVol,ins->gb.envDir,ins->gb.envLen,ins->gb.soundLen);
         } else if (ds.system[0]==DIV_SYSTEM_GB) {
-          // try to convert macro to envelope
+          // set software envelope flag
+          ins->gb.softEnv=true;
+          // try to convert macro to envelope in case the user decides to switch to them
           if (ins->std.volMacro.len>0) {
             ins->gb.envVol=ins->std.volMacro.val[0];
             if (ins->std.volMacro.val[0]<ins->std.volMacro.val[1]) {
@@ -600,7 +602,6 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
               ins->gb.soundLen=ins->std.volMacro.len*2;
             }
           }
-          addWarning("Game Boy volume macros converted to envelopes. may not be perfect!");
         }
       }
 
