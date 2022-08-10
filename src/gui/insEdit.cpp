@@ -2993,15 +2993,18 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::Text("Hardware Sequence");
             ImGui::EndMenuBar();
 
-            if (ins->gb.hwSeqLen>0) if (ImGui::BeginTable("HWSeqList",2)) {
+            if (ins->gb.hwSeqLen>0) if (ImGui::BeginTable("HWSeqList",3)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
               ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
               int curFrame=0;
               ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
               ImGui::TableNextColumn();
               ImGui::Text("Tick");
               ImGui::TableNextColumn();
               ImGui::Text("Command");
+              ImGui::TableNextColumn();
+              ImGui::Text("Move/Remove");
               for (int i=0; i<ins->gb.hwSeqLen; i++) {
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -3117,6 +3120,46 @@ void FurnaceGUI::drawInsEdit() {
                   }
                   default:
                     break;
+                }
+                ImGui::PopID();
+                ImGui::TableNextColumn();
+                ImGui::PushID(i+512);
+                if (ImGui::Button(ICON_FA_CHEVRON_UP "##HWCmdUp")) {
+                  if (i>0) {
+                    e->lockEngine([ins,i]() {
+                      ins->gb.hwSeq[i-1].cmd^=ins->gb.hwSeq[i].cmd;
+                      ins->gb.hwSeq[i].cmd^=ins->gb.hwSeq[i-1].cmd;
+                      ins->gb.hwSeq[i-1].cmd^=ins->gb.hwSeq[i].cmd;
+
+                      ins->gb.hwSeq[i-1].data^=ins->gb.hwSeq[i].data;
+                      ins->gb.hwSeq[i].data^=ins->gb.hwSeq[i-1].data;
+                      ins->gb.hwSeq[i-1].data^=ins->gb.hwSeq[i].data;
+                    });
+                  }
+                  MARK_MODIFIED;
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(ICON_FA_CHEVRON_DOWN "##HWCmdDown")) {
+                  if (i<ins->gb.hwSeqLen-1) {
+                    e->lockEngine([ins,i]() {
+                      ins->gb.hwSeq[i-1].cmd^=ins->gb.hwSeq[i].cmd;
+                      ins->gb.hwSeq[i].cmd^=ins->gb.hwSeq[i-1].cmd;
+                      ins->gb.hwSeq[i-1].cmd^=ins->gb.hwSeq[i].cmd;
+
+                      ins->gb.hwSeq[i-1].data^=ins->gb.hwSeq[i].data;
+                      ins->gb.hwSeq[i].data^=ins->gb.hwSeq[i-1].data;
+                      ins->gb.hwSeq[i-1].data^=ins->gb.hwSeq[i].data;
+                    });
+                  }
+                  MARK_MODIFIED;
+                }
+                ImGui::SameLine();
+                if (ImGui::Button(ICON_FA_TIMES "##HWCmdDel")) {
+                  for (int j=i; j<ins->gb.hwSeqLen-1; j++) {
+                    ins->gb.hwSeq[j].cmd=ins->gb.hwSeq[j+1].cmd;
+                    ins->gb.hwSeq[j].data=ins->gb.hwSeq[j+1].data;
+                  }
+                  ins->gb.hwSeqLen--;
                 }
                 ImGui::PopID();
               }
