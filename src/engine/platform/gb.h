@@ -30,8 +30,8 @@ class DivPlatformGB: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note, ins;
     unsigned char duty, sweep;
-    bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, released, softEnv;
-    signed char vol, outVol, wave;
+    bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, released, softEnv, killIt;
+    signed char vol, outVol, wave, lastKill;
     unsigned char envVol, envDir, envLen, soundLen;
     unsigned short hwSeqPos;
     short hwSeqDelay;
@@ -58,9 +58,11 @@ class DivPlatformGB: public DivDispatch {
       inPorta(false),
       released(false),
       softEnv(false),
+      killIt(false),
       vol(15),
       outVol(15),
       wave(-1),
+      lastKill(0),
       envVol(0),
       envDir(0),
       envLen(0),

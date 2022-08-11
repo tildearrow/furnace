@@ -171,12 +171,13 @@ void DivPlatformGB::tick(bool sysTick) {
         chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
         if (chan[i].outVol<0) chan[i].outVol=0;
 
-        // temporary until zombie mode is implemented
         chan[i].envLen=0;
-        chan[i].envDir=0;
+        chan[i].envDir=1;
         chan[i].envVol=chan[i].outVol;
         chan[i].soundLen=64;
-        chan[i].keyOn=true;
+
+        if (!chan[i].keyOn) chan[i].killIt=true;
+        chan[i].freqChanged=true;
       }
     }
     if (chan[i].std.arp.had) {
@@ -327,6 +328,7 @@ void DivPlatformGB::tick(bool sysTick) {
         } else {
           rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
           rWrite(16+i*5+2,((chan[i].envVol<<4))|(chan[i].envLen&7)|((chan[i].envDir&1)<<3));
+          chan[i].lastKill=chan[i].envVol;
         }
       }
       if (chan[i].keyOff) {
@@ -346,6 +348,25 @@ void DivPlatformGB::tick(bool sysTick) {
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
+
+      if (chan[i].killIt) {
+        if (i!=2) {
+          //rWrite(16+i*5+2,8);
+          int killDelta=chan[i].lastKill-chan[i].outVol+1;
+          if (killDelta<0) killDelta+=16;
+          chan[i].lastKill=chan[i].outVol;
+
+          if (killDelta!=1) {
+            rWrite(16+i*5+2,((chan[i].envVol<<4))|8);
+            for (int j=0; j<killDelta; j++) {
+              rWrite(16+i*5+2,0x09);
+              rWrite(16+i*5+2,0x11);
+              rWrite(16+i*5+2,0x08);
+            }
+          }
+        }
+        chan[i].killIt=false;
+      }
     }
   }
 }
@@ -382,7 +403,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
         }
         ws.init(ins,32,15,chan[c.chan].insChanged);
       }
-      if (chan[c.chan].insChanged || ins->gb.alwaysInit) {
+      if ((chan[c.chan].insChanged || ins->gb.alwaysInit) && !chan[c.chan].softEnv) {
         chan[c.chan].envVol=ins->gb.envVol;
         chan[c.chan].envLen=ins->gb.envLen;
         chan[c.chan].envDir=ins->gb.envDir;
