@@ -115,7 +115,7 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
     pce->ResetTS(0);
 
     for (int i=0; i<6; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1])<<1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP((pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1])<<1,-32768,32767);
     }
 
     tempL[0]=(tempL[0]>>1)+(tempL[0]>>2);

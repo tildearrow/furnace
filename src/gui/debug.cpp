@@ -334,7 +334,7 @@ void putDispatchChan(void* data, int chanNum, int type) {
       break;
     }
     default:
-      ImGui::Text("Unknown system! Help!");
+      ImGui::Text("Unimplemented chip! Help!");
       break;
   }
 }

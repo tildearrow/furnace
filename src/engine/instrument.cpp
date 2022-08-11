@@ -539,6 +539,10 @@ void DivInstrument::putInsData(SafeWriter* w) {
     w->writeS(gb.hwSeq[i].data);
   }
 
+  // GB additional flags
+  w->writeC(gb.softEnv);
+  w->writeC(gb.alwaysInit);
+
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);
   w->writeI(blockEndSeek-blockStartSeek-4);
@@ -1099,6 +1103,12 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
       gb.hwSeq[i].cmd=reader.readC();
       gb.hwSeq[i].data=reader.readS();
     }
+  }
+
+  // GB additional flags
+  if (version>=106) {
+    gb.softEnv=reader.readC();
+    gb.alwaysInit=reader.readC();
   }
 
   return DIV_DATA_SUCCESS;

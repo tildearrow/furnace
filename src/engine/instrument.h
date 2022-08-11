@@ -262,6 +262,7 @@ struct DivInstrumentSTD {
 
 struct DivInstrumentGB {
   unsigned char envVol, envDir, envLen, soundLen, hwSeqLen;
+  bool softEnv, alwaysInit;
   enum HWSeqCommands: unsigned char {
     DIV_GB_HWCMD_ENVELOPE=0,
     DIV_GB_HWCMD_SWEEP,
@@ -281,7 +282,9 @@ struct DivInstrumentGB {
     envDir(0),
     envLen(2),
     soundLen(64),
-    hwSeqLen(0) {
+    hwSeqLen(0),
+    softEnv(false),
+    alwaysInit(false) {
     memset(hwSeq,0,256*sizeof(int));
   }
 };
