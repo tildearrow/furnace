@@ -24,6 +24,7 @@
 #include "../macroInt.h"
 #include "../waveSynth.h"
 #include "sound/gb/gb.h"
+#include <queue>
 
 class DivPlatformGB: public DivDispatch {
   struct Channel {
@@ -73,10 +74,17 @@ class DivPlatformGB: public DivDispatch {
   bool antiClickEnabled;
   unsigned char lastPan;
   DivWaveSynth ws;
+  struct QueuedWrite {
+      unsigned char addr;
+      unsigned char val;
+      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+  };
+  std::queue<QueuedWrite> writes;
 
   int antiClickPeriodCount, antiClickWavePos;
 
   GB_gameboy_t* gb;
+  GB_model_t model;
   unsigned char regPool[128];
   
   unsigned char procMute();
@@ -96,6 +104,7 @@ class DivPlatformGB: public DivDispatch {
     void muteChannel(int ch, bool mute);
     int getPortaFloor(int ch);
     bool isStereo();
+    bool getDCOffRequired();
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);

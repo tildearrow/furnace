@@ -21,8 +21,8 @@
 #include "../engine.h"
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {GB_apu_write(gb,a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
-#define immWrite(a,v) {GB_apu_write(gb,a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define immWrite(a,v) {writes.emplace(a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_DIVIDER 16
 
@@ -84,6 +84,12 @@ const char* DivPlatformGB::getEffectName(unsigned char effect) {
 
 void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
+    if (!writes.empty()) {
+      QueuedWrite& w=writes.front();
+      GB_apu_write(gb,w.addr,w.val);
+      writes.pop();
+    }
+
     GB_advance_cycles(gb,16);
     bufL[i]=gb->apu_output.final_sample.left;
     bufR[i]=gb->apu_output.final_sample.right;
@@ -97,8 +103,8 @@ void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) 
 void DivPlatformGB::updateWave() {
   rWrite(0x1a,0);
   for (int i=0; i<16; i++) {
-    int nibble1=15-ws.output[((i<<1)+antiClickWavePos)&31];
-    int nibble2=15-ws.output[((1+(i<<1))+antiClickWavePos)&31];
+    int nibble1=15-ws.output[((i<<1)+antiClickWavePos-1)&31];
+    int nibble2=15-ws.output[((1+(i<<1))+antiClickWavePos-1)&31];
     rWrite(0x30+i,(nibble1<<4)|nibble2);
   }
   antiClickWavePos&=31;
@@ -559,7 +565,7 @@ void DivPlatformGB::reset() {
   }
   memset(gb,0,sizeof(GB_gameboy_t));
   memset(regPool,0,128);
-  gb->model=GB_MODEL_DMG_B;
+  gb->model=model;
   GB_apu_init(gb);
   GB_set_sample_rate(gb,rate);
   // enable all channels
@@ -579,6 +585,10 @@ int DivPlatformGB::getPortaFloor(int ch) {
 
 bool DivPlatformGB::isStereo() {
   return true;
+}
+
+bool DivPlatformGB::getDCOffRequired() {
+  return (model==GB_MODEL_AGB);
 }
 
 void DivPlatformGB::notifyInsChange(int ins) {
@@ -613,6 +623,20 @@ void DivPlatformGB::poke(std::vector<DivRegWrite>& wlist) {
 
 void DivPlatformGB::setFlags(unsigned int flags) {
   antiClickEnabled=!(flags&8);
+  switch (flags&3) {
+    case 0:
+      model=GB_MODEL_DMG_B;
+      break;
+    case 1:
+      model=GB_MODEL_CGB_C;
+      break;
+    case 2:
+      model=GB_MODEL_CGB_E;
+      break;
+    case 3:
+      model=GB_MODEL_AGB;
+      break;
+  }
 }
 
 int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -626,6 +650,7 @@ int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, unsigned int fl
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  model=GB_MODEL_DMG_B;
   gb=new GB_gameboy_t;
   setFlags(flags);
   reset();

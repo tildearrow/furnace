@@ -185,6 +185,19 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::Checkbox("Disable anti-click",&antiClick)) {
         copyOfFlags=(flags&(~8))|(antiClick<<3);
       }
+      ImGui::Text("Chip revision:");
+      if (ImGui::RadioButton("Original (DMG)",(flags&7)==0)) {
+        copyOfFlags=(flags&(~7))|0;
+      }
+      if (ImGui::RadioButton("Game Boy Color (rev C)",(flags&7)==1)) {
+        copyOfFlags=(flags&(~7))|1;
+      }
+      if (ImGui::RadioButton("Game Boy Color (rev E)",(flags&7)==2)) {
+        copyOfFlags=(flags&(~7))|2;
+      }
+      if (ImGui::RadioButton("Game Boy Advance",(flags&7)==3)) {
+        copyOfFlags=(flags&(~7))|3;
+      }
       break;
     }
     case DIV_SYSTEM_OPLL:
