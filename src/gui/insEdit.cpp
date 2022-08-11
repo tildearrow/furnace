@@ -3737,10 +3737,12 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_SU) {
             volMax=127;
           }
-          if (ins->type==DIV_INS_GB && !ins->gb.softEnv) {
-            volMax=0;
-          } else {
-            volMax=15;
+          if (ins->type==DIV_INS_GB) {
+            if (ins->gb.softEnv) {
+              volMax=15;
+            } else {
+              volMax=0;
+            }
           }
           if (ins->type==DIV_INS_PET || ins->type==DIV_INS_BEEPER) {
             volMax=1;
