@@ -173,6 +173,7 @@ void DivPlatformGB::tick(bool sysTick) {
 
         if (i==2) {
           rWrite(16+i*5+2,gbVolMap[chan[i].outVol]);
+          chan[i].soundLen=64;
         } else {
           chan[i].envLen=0;
           chan[i].envDir=1;
@@ -412,6 +413,9 @@ int DivPlatformGB::dispatch(DivCommand c) {
         chan[c.chan].envLen=ins->gb.envLen;
         chan[c.chan].envDir=ins->gb.envDir;
         chan[c.chan].soundLen=ins->gb.soundLen;
+      }
+      if (c.chan==2 && chan[c.chan].softEnv) {
+        chan[c.chan].soundLen=64;
       }
       chan[c.chan].insChanged=false;
       break;
