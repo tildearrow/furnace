@@ -423,6 +423,9 @@ int DivPlatformGB::dispatch(DivCommand c) {
       if (c.chan==2) {
         rWrite(16+c.chan*5+2,gbVolMap[chan[c.chan].outVol]);
       }
+      if (!chan[c.chan].softEnv) {
+        chan[c.chan].envVol=chan[c.chan].vol;
+      }
       break;
     case DIV_CMD_GET_VOLUME:
       return chan[c.chan].vol;
