@@ -70,7 +70,7 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
   size_t pos=start;
   DivSample* s=parent->getSample(chan[16].pcm.sample);
   while (len>0) {
-    if (s->samples>0) {
+    if (s->getEndPosition()>0) {
       while (pcm_is_fifo_almost_empty(pcm)) {
         short tmp_l=0;
         short tmp_r=0;
@@ -96,9 +96,9 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
           rWritePCMData(tmp_r&0xff);
         }
         chan[16].pcm.pos++;
-        if (s->isLoopable() && chan[16].pcm.pos>=s->getEndPosition()) {
-          chan[16].pcm.pos=s->loopStart;
-        } else if (chan[16].pcm.pos>=s->samples) {
+        if (s->isLoopable() && chan[16].pcm.pos>=(unsigned int)s->getLoopEndPosition()) {
+          chan[16].pcm.pos=s->getLoopStartPosition();
+        } else if (chan[16].pcm.pos>=(unsigned int)s->getEndPosition()) {
           chan[16].pcm.sample=-1;
           break;
         }

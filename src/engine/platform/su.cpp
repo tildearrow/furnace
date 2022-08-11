@@ -220,7 +220,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
           DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
           DivSample* sample=parent->getSample(ins->amiga.getSample(chan[i].note));
           if (sample!=NULL) {
-            unsigned int sampleEnd=sample->offSU+(sample->getEndPosition());
+            unsigned int sampleEnd=sample->offSU+(sample->getLoopEndPosition());
             unsigned int off=sample->offSU+chan[i].hasOffset;
             chan[i].hasOffset=0;
             if (sampleEnd>=getSampleMemCapacity(0)) sampleEnd=getSampleMemCapacity(0)-1;
@@ -229,7 +229,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
             chWrite(i,0x0c,sampleEnd&0xff);
             chWrite(i,0x0d,sampleEnd>>8);
             if (sample->isLoopable()) {
-              unsigned int sampleLoop=sample->offSU+sample->loopStart;
+              unsigned int sampleLoop=sample->offSU+sample->getLoopStartPosition();
               if (sampleLoop>=getSampleMemCapacity(0)) sampleLoop=getSampleMemCapacity(0)-1;
               chWrite(i,0x0e,sampleLoop&0xff);
               chWrite(i,0x0f,sampleLoop>>8);
@@ -603,7 +603,7 @@ void DivPlatformSoundUnit::renderSamples() {
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (s->data8==NULL) continue;
-    int paddedLen=s->samples;
+    int paddedLen=s->getEndPosition();
     if (memPos>=getSampleMemCapacity(0)) {
       logW("out of PCM memory for sample %d!",i);
       break;

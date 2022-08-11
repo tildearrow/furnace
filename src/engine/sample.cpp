@@ -39,57 +39,143 @@ DivSampleHistory::~DivSampleHistory() {
 }
 
 bool DivSample::isLoopable() {
-  return (loopStart>=0 && loopStart<loopEnd) && (loopEnd>loopStart && loopEnd<=(int)samples);
+  return loop && ((loopStart>=0 && loopStart<loopEnd) && (loopEnd>loopStart && loopEnd<=(int)samples));
 }
 
-unsigned int DivSample::getEndPosition(DivSampleDepth depth) {
-  int end=loopEnd;
-  unsigned int len=samples;
+int DivSample::getSampleOffset(int offset, int length, DivSampleDepth depth) {
+  if ((length==0) || (offset==length)) {
+    int off=offset;
+    switch (depth) {
+      case DIV_SAMPLE_DEPTH_1BIT:
+        off=(offset+7)/8;
+        break;
+      case DIV_SAMPLE_DEPTH_1BIT_DPCM:
+        off=(offset+7)/8;
+        break;
+      case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
+        off=(offset+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_QSOUND_ADPCM:
+        off=(offset+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_ADPCM_A:
+        off=(offset+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_ADPCM_B:
+        off=(offset+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_8BIT:
+        off=offset;
+        break;
+      case DIV_SAMPLE_DEPTH_BRR:
+        off=9*((offset+15)/16);
+        break;
+      case DIV_SAMPLE_DEPTH_VOX:
+        off=(offset+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_16BIT:
+        off=offset*2;
+        break;
+      default:
+        break;
+    }
+    return off;
+  } else {
+    int off=offset;
+    int len=length;
+    switch (depth) {
+      case DIV_SAMPLE_DEPTH_1BIT:
+        off=(offset+7)/8;
+        len=(length+7)/8;
+        break;
+      case DIV_SAMPLE_DEPTH_1BIT_DPCM:
+        off=(offset+7)/8;
+        len=(length+7)/8;
+        break;
+      case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
+        off=(offset+1)/2;
+        len=(length+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_QSOUND_ADPCM:
+        off=(offset+1)/2;
+        len=(length+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_ADPCM_A:
+        off=(offset+1)/2;
+        len=(length+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_ADPCM_B:
+        off=(offset+1)/2;
+        len=(length+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_8BIT:
+        off=offset;
+        len=length;
+        break;
+      case DIV_SAMPLE_DEPTH_BRR:
+        off=9*((offset+15)/16);
+        len=9*((length+15)/16);
+        break;
+      case DIV_SAMPLE_DEPTH_VOX:
+        off=(offset+1)/2;
+        len=(length+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_16BIT:
+        off=offset*2;
+        len=length*2;
+        break;
+      default:
+        break;
+    }
+    return isLoopable()?off:len;
+  }
+}
+
+int DivSample::getLoopStartPosition(DivSampleDepth depth) {
+  return getSampleOffset(loopStart,0,depth);
+}
+
+int DivSample::getLoopEndPosition(DivSampleDepth depth) {
+  return getSampleOffset(loopEnd,samples,depth);
+}
+
+int DivSample::getEndPosition(DivSampleDepth depth) {
+  int off=samples;
   switch (depth) {
     case DIV_SAMPLE_DEPTH_1BIT:
-      end=(loopEnd+7)/8;
-      len=length1;
+      off=length1;
       break;
     case DIV_SAMPLE_DEPTH_1BIT_DPCM:
-      end=(loopEnd+7)/8;
-      len=lengthDPCM;
+      off=lengthDPCM;
       break;
     case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
-      end=(loopEnd+1)/2;
-      len=lengthZ;
+      off=lengthZ;
       break;
     case DIV_SAMPLE_DEPTH_QSOUND_ADPCM:
-      end=(loopEnd+1)/2;
-      len=lengthQSoundA;
+      off=lengthQSoundA;
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_A:
-      end=(loopEnd+1)/2;
-      len=lengthA;
+      off=lengthA;
       break;
     case DIV_SAMPLE_DEPTH_ADPCM_B:
-      end=(loopEnd+1)/2;
-      len=lengthB;
+      off=lengthB;
       break;
     case DIV_SAMPLE_DEPTH_8BIT:
-      end=loopEnd;
-      len=length8;
+      off=length8;
       break;
     case DIV_SAMPLE_DEPTH_BRR:
-      end=9*((loopEnd+15)/16);
-      len=lengthBRR;
+      off=lengthBRR;
       break;
     case DIV_SAMPLE_DEPTH_VOX:
-      end=(loopEnd+1)/2;
-      len=lengthVOX;
+      off=lengthVOX;
       break;
     case DIV_SAMPLE_DEPTH_16BIT:
-      end=loopEnd*2;
-      len=length16;
+      off=length16;
       break;
     default:
       break;
   }
-  return isLoopable()?end:len;
+  return off;
 }
 
 void DivSample::setSampleCount(unsigned int count) {
@@ -138,7 +224,7 @@ bool DivSample::save(const char* path) {
   if(isLoopable())
   {
     inst.loop_count = 1;
-    inst.loops[0].mode = SF_LOOP_FORWARD;
+    inst.loops[0].mode = (int)loopMode+SF_LOOP_FORWARD;
     inst.loops[0].start = loopStart;
     inst.loops[0].end = loopEnd;
   }
@@ -895,9 +981,9 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       duplicate=new unsigned char[getCurBufLen()];
       memcpy(duplicate,getCurBuf(),getCurBufLen());
     }
-    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd);
+    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,loopMode);
   } else {
-    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd);
+    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,loopMode);
   }
   if (!doNotPush) {
     while (!redoHist.empty()) {
@@ -928,7 +1014,9 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
   rate=h->rate; \
   centerRate=h->centerRate; \
   loopStart=h->loopStart; \
-  loopEnd=h->loopEnd;
+  loopEnd=h->loopEnd; \
+  loop=h->loop; \
+  loopMode=h->loopMode;
 
 
 int DivSample::undo() {

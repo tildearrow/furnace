@@ -157,10 +157,11 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("loopStart: %d",sample->loopStart);
           ImGui::Text("loopEnd: %d", sample->loopEnd);
           ImGui::Text("loopOffP: %d",sample->loopOffP);
-          if (sampleDepths[sample->depth]!=NULL) {
-            ImGui::Text("depth: %d (%s)",(unsigned char)sample->depth,sampleDepths[sample->depth]);
+          ImGui::Text(sample->loop?"loop: Enabled":"loop: Disabled");
+          if (sampleLoopModes[sample->loopMode]!=NULL) {
+            ImGui::Text("loopMode: %d (%s)",(unsigned char)sample->loopMode,sampleLoopModes[sample->loopMode]);
           } else {
-            ImGui::Text("depth: %d (<NULL!>)",(unsigned char)sample->depth);
+            ImGui::Text("loopMode: %d (<NULL!>)",(unsigned char)sample->loopMode);
           }
 
           ImGui::Text("length8: %d",sample->length8);

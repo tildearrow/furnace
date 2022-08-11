@@ -301,16 +301,17 @@ void DivPlatformQSound::tick(bool sysTick) {
       qsound_bank = 0x8000 | (s->offQSound >> 16);
       qsound_addr = s->offQSound & 0xffff;
 
-      int length = s->getEndPosition();
+      int loopStart=s->getLoopStartPosition();
+      int length = s->getLoopEndPosition();
       if (length > 65536 - 16) {
         length = 65536 - 16;
       }
-      if (s->loopStart == -1 || s->loopStart >= length) {
+      if (loopStart == -1 || loopStart >= length) {
         qsound_end = s->offQSound + length + 15;
         qsound_loop = 15;
       } else {
         qsound_end = s->offQSound + length;
-        qsound_loop = length - s->loopStart;
+        qsound_loop = length - loopStart;
       }
     }
     if (chan[i].std.arp.had) {

@@ -353,14 +353,16 @@ class DivEngine {
   struct SamplePreview {
     int sample;
     int wave;
-    unsigned int pos;
+    int pos;
     int pBegin, pEnd;
+    bool dir;
     SamplePreview():
       sample(-1),
       wave(-1),
       pos(0),
       pBegin(-1),
-      pEnd(-1) {}
+      pEnd(-1),
+      dir(false) {}
   } sPreview;
 
   short vibTable[64];

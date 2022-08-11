@@ -116,6 +116,12 @@ const char* insTypes[DIV_INS_MAX+1]={
   NULL
 };
 
+const char* sampleLoopModes[DIV_SAMPLE_LOOP_MAX]={
+  "Forward",
+  "Backward",
+  "Ping pong"
+};
+
 const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "1-bit PCM",
   "1-bit DPCM",

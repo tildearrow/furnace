@@ -58,14 +58,14 @@ void DivPlatformMMC5::acquire(short* bufL, short* bufR, size_t start, size_t len
       dacPeriod+=dacRate;
       if (dacPeriod>=rate) {
         DivSample* s=parent->getSample(dacSample);
-        if (s->samples>0) {
+        if (s->getEndPosition()>0) {
           if (!isMuted[2]) {
             rWrite(0x5011,((unsigned char)s->data8[dacPos]+0x80));
           }
           dacPos++;
-          if (s->isLoopable() && dacPos>=s->getEndPosition()) {
-            dacPos=s->loopStart;
-          } else if (dacPos>=s->samples) {
+          if (s->isLoopable() && dacPos>=(unsigned int)s->getLoopEndPosition()) {
+            dacPos=s->getLoopStartPosition();
+          } else if (dacPos>=(unsigned int)s->getEndPosition()) {
             dacSample=-1;
           }
           dacPeriod-=rate;

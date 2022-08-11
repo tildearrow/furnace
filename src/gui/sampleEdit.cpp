@@ -46,6 +46,12 @@ void FurnaceGUI::drawSampleEdit() {
           sampleType=sampleDepths[sample->depth];
         }
       }
+      String loopType="Invalid";
+      if (sample->loopMode<DIV_SAMPLE_LOOP_MAX) {
+        if (sampleLoopModes[sample->loopMode]!=NULL) {
+          loopType=sampleLoopModes[sample->loopMode];
+        }
+      }
       if (!settings.sampleLayout) {
         ImGui::Text("Name");
         ImGui::SameLine();
@@ -96,9 +102,11 @@ void FurnaceGUI::drawSampleEdit() {
           bool doLoop=(sample->isLoopable());
           if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
             if (doLoop) {
+              sample->loop=true;
               sample->loopStart=0;
               sample->loopEnd=sample->samples;
             } else {
+              sample->loop=false;
               sample->loopStart=-1;
               sample->loopEnd=sample->samples;
             }
@@ -106,6 +114,23 @@ void FurnaceGUI::drawSampleEdit() {
           }
           if (doLoop) {
             ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("Loop Mode");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::BeginCombo("##SampleLoopMode",loopType.c_str())) {
+              for (int i=0; i<DIV_SAMPLE_LOOP_MAX; i++) {
+                if (sampleLoopModes[i]==NULL) continue;
+                if (ImGui::Selectable(sampleLoopModes[i])) {
+                  sample->prepareUndo(true);
+                  sample->loopMode=(DivSampleLoopMode)i;
+                  e->renderSamplesP();
+                  updateSampleTex=true;
+                  MARK_MODIFIED;
+                }
+              }
+              ImGui::EndCombo();
+            }
             ImGui::TableNextColumn();
             ImGui::Text("Loop Start");
             ImGui::SameLine();
@@ -631,15 +656,35 @@ void FurnaceGUI::drawSampleEdit() {
           bool doLoop=(sample->isLoopable());
           if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
             if (doLoop) {
+              sample->loop=true;
               sample->loopStart=0;
               sample->loopEnd=sample->samples;
             } else {
+              sample->loop=false;
               sample->loopStart=-1;
               sample->loopEnd=sample->samples;
             }
             updateSampleTex=true;
           }
           if (doLoop) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("Loop Mode");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::BeginCombo("##SampleLoopMode",loopType.c_str())) {
+              for (int i=0; i<DIV_SAMPLE_LOOP_MAX; i++) {
+                if (sampleLoopModes[i]==NULL) continue;
+                if (ImGui::Selectable(sampleLoopModes[i])) {
+                  sample->prepareUndo(true);
+                  sample->loopMode=(DivSampleLoopMode)i;
+                  e->renderSamplesP();
+                  updateSampleTex=true;
+                  MARK_MODIFIED;
+                }
+              }
+              ImGui::EndCombo();
+            }
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::Text("Loop Start");

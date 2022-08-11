@@ -143,7 +143,7 @@ void DivPlatformRF5C68::tick(bool sysTick) {
           start=start+MIN(chan[i].audPos,s->length8);
         }
         if (s->isLoopable()) {
-          loop=start+s->loopStart;
+          loop=start+s->getLoopStartPosition();
         }
         start=MIN(start,getSampleMemCapacity()-31);
         loop=MIN(loop,getSampleMemCapacity()-31);
@@ -393,7 +393,7 @@ void DivPlatformRF5C68::renderSamples() {
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
-    int length=s->getEndPosition(DIV_SAMPLE_DEPTH_8BIT);
+    int length=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-31,length);
     if (actualLength>0) {
       s->offRF5C68=memPos;

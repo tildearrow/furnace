@@ -110,13 +110,13 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
             }
           } else {
             DivSample* s=parent->getSample(chan[i].sample);
-            if (s->samples>0) {
-              if (chan[i].audPos<s->samples) {
+            if (s->getEndPosition()>0) {
+              if (chan[i].audPos<(unsigned int)s->getEndPosition()) {
                 writeAudDat(s->data8[chan[i].audPos++]);
               }
-              if (s->isLoopable() && chan[i].audPos>=MIN(131071,s->getEndPosition())) {
-                chan[i].audPos=s->loopStart;
-              } else if (chan[i].audPos>=MIN(131071,s->samples)) {
+              if (s->isLoopable() && chan[i].audPos>=MIN(131071,(unsigned int)s->getLoopEndPosition())) {
+                chan[i].audPos=s->getLoopStartPosition();
+              } else if (chan[i].audPos>=MIN(131071,(unsigned int)s->getEndPosition())) {
                 chan[i].sample=-1;
               }
             } else {

@@ -710,6 +710,8 @@ void FurnaceGUI::doAction(int what) {
               sample->name=prevSample->name;
               sample->loopStart=prevSample->loopStart;
               sample->loopEnd=prevSample->loopEnd;
+              sample->loop=prevSample->loop;
+              sample->loopMode=prevSample->loopMode;
               sample->depth=prevSample->depth;
               if (sample->init(prevSample->samples)) {
                 if (prevSample->getCurBuf()!=NULL) {
@@ -1264,6 +1266,7 @@ void FurnaceGUI::doAction(int what) {
 
         sample->loopStart=start;
         sample->loopEnd=end;
+        sample->loop=true;
         updateSampleTex=true;
 
         e->renderSamples();

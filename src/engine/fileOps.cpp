@@ -1669,6 +1669,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
         sample->loopStart=reader.readI();
         sample->loopEnd=reader.readI();
+        sample->loop=(sample->loopStart>=0)&&(sample->loopEnd>=0);
 
         for (int i=0; i<4; i++) {
           reader.readI();
@@ -1694,6 +1695,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
         if (ds.version>=19) {
           sample->loopStart=reader.readI();
+          sample->loop=(sample->loopStart>=0)&&(sample->loopEnd>=0);
         } else {
           reader.readI();
         }
@@ -1948,6 +1950,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       if (loopLen>=2) {
         sample->loopStart=loopStart;
         sample->loopEnd=loopEnd;
+        sample->loop=(sample->loopStart>=0)&&(sample->loopEnd>=0);
       }
       sample->init(slen);
       ds.sample.push_back(sample);
@@ -2485,6 +2488,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
       }
       s->loopStart=sample[i].loopStart*2;
       s->loopEnd=(sample[i].loopStart+sample[i].loopLen)*2;
+      s->loop=(s->loopStart>=0)&&(s->loopEnd>=0);
       reader.read(s->data8,sample[i].len);
       ds.sample.push_back(s);
     }
@@ -3586,8 +3590,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeC(0); // reserved
     w->writeC(0);
     w->writeC(0);
-    w->writeI(sample->loopStart);
-    w->writeI(sample->loopEnd);
+    w->writeI(sample->loop?sample->loopStart:-1);
+    w->writeI(sample->loop?sample->loopEnd:-1);
 
     for (int i=0; i<4; i++) {
       w->writeI(0xffffffff);

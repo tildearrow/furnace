@@ -49,13 +49,13 @@ void DivPlatformPCMDAC::acquire(short* bufL, short* bufR, size_t start, size_t l
         output=(chan.ws.output[chan.audPos]^0x80)<<8;
       } else {
         DivSample* s=parent->getSample(chan.sample);
-        if (s->samples>0) {
-          if (s->isLoopable() && chan.audPos>=s->getEndPosition()) {
-            chan.audPos=s->loopStart;
-          } else if (chan.audPos>=s->samples) {
+        if (s->getEndPosition()>0) {
+          if (s->isLoopable() && chan.audPos>=(unsigned int)s->getLoopEndPosition()) {
+            chan.audPos=s->getLoopStartPosition();
+          } else if (chan.audPos>=(unsigned int)s->getEndPosition()) {
             chan.sample=-1;
           }
-          if (chan.audPos<s->samples) {
+          if (chan.audPos<(unsigned int)s->getEndPosition()) {
             output=s->data16[chan.audPos];
           }
         } else {
