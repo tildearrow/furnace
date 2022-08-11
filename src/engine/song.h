@@ -562,7 +562,7 @@ struct DivSong {
     linearPitch(2),
     pitchSlideSpeed(4),
     loopModality(0),
-    properNoiseLayout(false),
+    properNoiseLayout(true),
     waveDutyIsVol(false),
     resetMacroOnPorta(false),
     legacyVolumeSlides(false),
