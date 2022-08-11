@@ -3173,10 +3173,9 @@ void FurnaceGUI::drawInsEdit() {
                 ins->gb.hwSeqLen++;
               }
             }
-
-            ImGui::EndChild();
-            ImGui::EndDisabled();
           }
+          ImGui::EndChild();
+          ImGui::EndDisabled();
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_C64) if (ImGui::BeginTabItem("C64")) {
