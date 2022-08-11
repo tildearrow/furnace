@@ -297,7 +297,7 @@ void FurnaceGUI::drawDebug() {
     }
     if (ImGui::TreeNode("Playground")) {
       if (pgSys<0 || pgSys>=e->song.systemLen) pgSys=0;
-      if (ImGui::BeginCombo("System",fmt::sprintf("%d. %s",pgSys+1,e->getSystemName(e->song.system[pgSys])).c_str())) {
+      if (ImGui::BeginCombo("Chip",fmt::sprintf("%d. %s",pgSys+1,e->getSystemName(e->song.system[pgSys])).c_str())) {
         for (int i=0; i<e->song.systemLen; i++) {
           if (ImGui::Selectable(fmt::sprintf("%d. %s",i+1,e->getSystemName(e->song.system[i])).c_str())) {
             pgSys=i;
@@ -358,7 +358,7 @@ void FurnaceGUI::drawDebug() {
       if (ImGui::TreeNode("Register Cheatsheet")) {
         const char** sheet=e->getRegisterSheet(pgSys);
         if (sheet==NULL) {
-          ImGui::Text("no cheatsheet available for this system.");
+          ImGui::Text("no cheatsheet available for this chip.");
         } else {
           if (ImGui::BeginTable("RegisterSheet",2,ImGuiTableFlags_SizingFixedSame)) {
             ImGui::TableNextRow();

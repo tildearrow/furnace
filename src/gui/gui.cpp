@@ -1879,7 +1879,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
 #define sysAddOption(x) \
   if (ImGui::MenuItem(getSystemName(x))) { \
     if (!e->addSystem(x)) { \
-      showError("cannot add system! ("+e->getLastError()+")"); \
+      showError("cannot add chip! ("+e->getLastError()+")"); \
     } \
     updateWindowTitle(); \
   }
@@ -2887,7 +2887,7 @@ bool FurnaceGUI::loop() {
           if (ImGui::MenuItem("one file")) {
             openFileDialog(GUI_FILE_EXPORT_AUDIO_ONE);
           }
-          if (ImGui::MenuItem("multiple files (one per system)")) {
+          if (ImGui::MenuItem("multiple files (one per chip)")) {
             openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_SYS);
           }
           if (ImGui::MenuItem("multiple files (one per channel)")) {
@@ -2928,7 +2928,7 @@ bool FurnaceGUI::loop() {
               "pattern indexes are ordered as they appear in the song."
             );
           }
-          ImGui::Text("systems to export:");
+          ImGui::Text("chips to export:");
           bool hasOneAtLeast=false;
           for (int i=0; i<e->song.systemLen; i++) {
             int minVersion=e->minVGMVersion(e->song.system[i]);
@@ -2937,17 +2937,17 @@ bool FurnaceGUI::loop() {
             ImGui::EndDisabled();
             if (minVersion>vgmExportVersion) {
               if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-                ImGui::SetTooltip("this system is only available in VGM %d.%.2x and higher!",minVersion>>8,minVersion&0xff);
+                ImGui::SetTooltip("this chip is only available in VGM %d.%.2x and higher!",minVersion>>8,minVersion&0xff);
               }
             } else if (minVersion==0) {
               if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-                ImGui::SetTooltip("this system is not supported by the VGM format!");
+                ImGui::SetTooltip("this chip is not supported by the VGM format!");
               }
             } else {
               if (willExport[i]) hasOneAtLeast=true;
             }
           }
-          ImGui::Text("select the systems you wish to export,");
+          ImGui::Text("select the chip you wish to export,");
           ImGui::Text("but only up to %d of each type.",(vgmExportVersion>=0x151)?2:1);
           if (hasOneAtLeast) {
             if (ImGui::MenuItem("click to export")) {
@@ -2972,14 +2972,14 @@ bool FurnaceGUI::loop() {
           ImGui::EndMenu();
         }
         ImGui::Separator();
-        if (ImGui::BeginMenu("add system...")) {
+        if (ImGui::BeginMenu("add chip...")) {
           for (int j=0; availableSystems[j]; j++) {
             if (!settings.hiddenSystems && (availableSystems[j]==DIV_SYSTEM_YMU759 || availableSystems[j]==DIV_SYSTEM_DUMMY)) continue;
             sysAddOption((DivSystem)availableSystems[j]);
           }
           ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("configure system...")) {
+        if (ImGui::BeginMenu("configure chip...")) {
           for (int i=0; i<e->song.systemLen; i++) {
             if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSP%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
               drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true);
@@ -2988,7 +2988,7 @@ bool FurnaceGUI::loop() {
           }
           ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("change system...")) {
+        if (ImGui::BeginMenu("change chip...")) {
           ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
           for (int i=0; i<e->song.systemLen; i++) {
             if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
@@ -3001,12 +3001,12 @@ bool FurnaceGUI::loop() {
           }
           ImGui::EndMenu();
         }
-        if (ImGui::BeginMenu("remove system...")) {
+        if (ImGui::BeginMenu("remove chip...")) {
           ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
           for (int i=0; i<e->song.systemLen; i++) {
             if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
               if (!e->removeSystem(i,preserveChanPos)) {
-                showError("cannot remove system! ("+e->getLastError()+")");
+                showError("cannot remove chip! ("+e->getLastError()+")");
               }
             }
           }

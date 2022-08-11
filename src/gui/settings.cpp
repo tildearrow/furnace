@@ -468,7 +468,7 @@ void FurnaceGUI::drawSettings() {
           }
 
           bool restartOnFlagChangeB=settings.restartOnFlagChange;
-          if (ImGui::Checkbox("Restart song when changing system properties",&restartOnFlagChangeB)) {
+          if (ImGui::Checkbox("Restart song when changing chip properties",&restartOnFlagChangeB)) {
             settings.restartOnFlagChange=restartOnFlagChangeB;
           }
 
@@ -1232,11 +1232,6 @@ void FurnaceGUI::drawSettings() {
           }
           ImGui::EndDisabled();
 
-          bool chipNamesB=settings.chipNames;
-          if (ImGui::Checkbox("Use chip names instead of system names",&chipNamesB)) {
-            settings.chipNames=chipNamesB;
-          }
-
           bool oplStandardWaveNamesB=settings.oplStandardWaveNames;
           if (ImGui::Checkbox("Use standard OPL waveform names",&oplStandardWaveNamesB)) {
             settings.oplStandardWaveNames=oplStandardWaveNamesB;
@@ -1567,8 +1562,8 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SONG,"Song effect");
               UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_TIME,"Time effect");
               UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SPEED,"Speed effect");
-              UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,"Primary system effect");
-              UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,"Secondary system effect");
+              UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,"Primary specific effect");
+              UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,"Secondary specific effect");
               UI_COLOR_CONFIG(GUI_COLOR_PATTERN_EFFECT_MISC,"Miscellaneous");
               UI_COLOR_CONFIG(GUI_COLOR_EE_VALUE,"External command output");
               ImGui::TreePop();
