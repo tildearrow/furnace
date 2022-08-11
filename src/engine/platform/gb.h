@@ -94,6 +94,7 @@ class DivPlatformGB: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
+    int getPortaFloor(int ch);
     bool isStereo();
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);

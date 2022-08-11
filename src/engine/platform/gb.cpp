@@ -573,6 +573,10 @@ void DivPlatformGB::reset() {
   antiClickWavePos=0;
 }
 
+int DivPlatformGB::getPortaFloor(int ch) {
+  return 24;
+}
+
 bool DivPlatformGB::isStereo() {
   return true;
 }
