@@ -171,13 +171,17 @@ void DivPlatformGB::tick(bool sysTick) {
         chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
         if (chan[i].outVol<0) chan[i].outVol=0;
 
-        chan[i].envLen=0;
-        chan[i].envDir=1;
-        chan[i].envVol=chan[i].outVol;
-        chan[i].soundLen=64;
+        if (i==2) {
+          rWrite(16+i*5+2,gbVolMap[chan[i].outVol]);
+        } else {
+          chan[i].envLen=0;
+          chan[i].envDir=1;
+          chan[i].envVol=chan[i].outVol;
+          chan[i].soundLen=64;
 
-        if (!chan[i].keyOn) chan[i].killIt=true;
-        chan[i].freqChanged=true;
+          if (!chan[i].keyOn) chan[i].killIt=true;
+          chan[i].freqChanged=true;
+        }
       }
     }
     if (chan[i].std.arp.had) {
@@ -452,6 +456,10 @@ int DivPlatformGB::dispatch(DivCommand c) {
       }
       if (!chan[c.chan].softEnv) {
         chan[c.chan].envVol=chan[c.chan].vol;
+      } else if (c.chan!=2) {
+        chan[c.chan].envVol=chan[c.chan].vol;
+        if (!chan[c.chan].keyOn) chan[c.chan].killIt=true;
+        chan[c.chan].freqChanged=true;
       }
       break;
     case DIV_CMD_GET_VOLUME:
