@@ -3733,7 +3733,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AMIGA) {
             volMax=64;
           }
-          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_SU) {
+          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_SU || ins->type==DIV_INS_OPZ) {
             volMax=127;
           }
           if (ins->type==DIV_INS_GB) {
