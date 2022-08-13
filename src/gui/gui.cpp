@@ -1267,6 +1267,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Load Instrument",
         // TODO supply loadable formats in a dynamic, scalable, "DRY" way.
+        // thank the author of IGFD for making things impossible
         {"all compatible files", "*.fui *.dmp *.tfi *.vgi *.s3i *.sbi *.opli *.opni *.y12 *.bnk *.ff *.gyb *.opm *.wopl *.wopn",
          "Furnace instrument", "*.fui",
          "DefleMask preset", "*.dmp",
