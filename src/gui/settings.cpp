@@ -2781,7 +2781,7 @@ void setupLabel(const char* lStr, char* label, int len) {
   memset(label,0,32);
   for (int i=0, p=0; i<len; i++) {
     signed char cl;
-    if (lStr[p]!=0) {
+    if (lStr[p]==0) {
       strncat(label," ",32);
     } else {
       decodeUTF8((const unsigned char*)&lStr[p],cl);

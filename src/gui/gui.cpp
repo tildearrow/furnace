@@ -5074,9 +5074,9 @@ FurnaceGUI::FurnaceGUI():
   memset(emptyLabel,0,32);
   memset(emptyLabel2,0,32);
 
-  strncat(noteOffLabel,"OFF",32);
-  strncat(noteRelLabel,"===",32);
-  strncat(macroRelLabel,"REL",32);
-  strncat(emptyLabel,"...",32);
-  strncat(emptyLabel2,"..",32);
+  strncpy(noteOffLabel,"OFF",32);
+  strncpy(noteRelLabel,"===",32);
+  strncpy(macroRelLabel,"REL",32);
+  strncpy(emptyLabel,"...",32);
+  strncpy(emptyLabel2,"..",32);
 }
