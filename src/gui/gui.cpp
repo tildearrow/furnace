@@ -1313,8 +1313,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openSave(
         "Save Instrument",
-        {"Furnace instrument", "*.fui"},
-        "Furnace instrument{.fui}",
+        {"Furnace instrument", "*.fui",
+         "DefleMask preset", "*.dmp"},
+        "Furnace instrument{.fui},DefleMask preset{.dmp}",
         workingDirIns,
         dpiScale
       );
@@ -1335,8 +1336,10 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirWave)) workingDirWave=getHomeDir();
       hasOpened=fileDialog->openSave(
         "Save Wavetable",
-        {"Furnace wavetable", ".fuw"},
-        "Furnace wavetable{.fuw}",
+        {"Furnace wavetable", ".fuw",
+         "DefleMask wavetable", ".dmw",
+         "raw data", ".raw"},
+        "Furnace wavetable{.fuw},DefleMask wavetable{.dmw},raw data{.raw}",
         workingDirWave,
         dpiScale
       );
@@ -1918,6 +1921,15 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     if (i>='A' && i<='Z') i+='a'-'A'; \
   } \
   if (lowerCase.size()<4 || (lowerCase.rfind(x)!=lowerCase.size()-4 && lowerCase.rfind(y)!=lowerCase.size()-4)) { \
+    fileName+=fallback; \
+  }
+
+#define checkExtensionTriple(x,y,z,fallback) \
+  String lowerCase=fileName; \
+  for (char& i: lowerCase) { \
+    if (i>='A' && i<='Z') i+='a'-'A'; \
+  } \
+  if (lowerCase.size()<4 || (lowerCase.rfind(x)!=lowerCase.size()-4 && lowerCase.rfind(y)!=lowerCase.size()-4 && lowerCase.rfind(z)!=lowerCase.size()-4)) { \
     fileName+=fallback; \
   }
 
@@ -3365,10 +3377,21 @@ bool FurnaceGUI::loop() {
             checkExtension(".wav");
           }
           if (curFileDialog==GUI_FILE_INS_SAVE) {
-            checkExtension(".fui");
+            // we can't tell whether the user chose .fui or .dmp in the system file picker
+            const char* fallbackExt=(settings.sysFileDialog || ImGuiFileDialog::Instance()->GetCurrentFilter()=="Furnace instrument")?".fui":".dmp";
+            checkExtensionDual(".fui",".dmp",fallbackExt);
           }
           if (curFileDialog==GUI_FILE_WAVE_SAVE) {
-            checkExtension(".fuw");
+            // same thing here
+            const char* fallbackExt=".fuw";
+            if (!settings.sysFileDialog) {
+              if (ImGuiFileDialog::Instance()->GetCurrentFilter()=="raw data") {
+                fallbackExt=".raw";
+              } else if (ImGuiFileDialog::Instance()->GetCurrentFilter()=="DefleMask wavetable") {
+                fallbackExt=".dmw";
+              }
+            }
+            checkExtensionTriple(".fuw",".dmw",".raw",fallbackExt);
           }
           if (curFileDialog==GUI_FILE_EXPORT_VGM) {
             checkExtension(".vgm");
@@ -3451,12 +3474,34 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_INS_SAVE:
               if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-                e->song.ins[curIns]->save(copyOfName.c_str());
+                String lowerCase=fileName;
+                for (char& i: lowerCase) {
+                  if (i>='A' && i<='Z') i+='a'-'A';
+                }
+                if ((lowerCase.size()<4 || lowerCase.rfind(".dmp")!=lowerCase.size()-4)) {
+                  e->song.ins[curIns]->save(copyOfName.c_str());
+                } else {
+                  if (!e->song.ins[curIns]->saveDMP(copyOfName.c_str())) {
+                    showError("error while saving instrument! make sure your instrument is compatible.");
+                  }
+                }
               }
               break;
             case GUI_FILE_WAVE_SAVE:
               if (curWave>=0 && curWave<(int)e->song.wave.size()) {
-                e->song.wave[curWave]->save(copyOfName.c_str());
+                String lowerCase=fileName;
+                for (char& i: lowerCase) {
+                  if (i>='A' && i<='Z') i+='a'-'A';
+                }
+                if (lowerCase.size()<4) {
+                  e->song.wave[curWave]->save(copyOfName.c_str());
+                } else if (lowerCase.rfind(".dmw")==lowerCase.size()-4) {
+                  e->song.wave[curWave]->saveDMW(copyOfName.c_str());
+                } else if (lowerCase.rfind(".raw")==lowerCase.size()-4) {
+                  e->song.wave[curWave]->saveRaw(copyOfName.c_str());
+                } else {
+                  e->song.wave[curWave]->save(copyOfName.c_str());
+                }
               }
               break;
             case GUI_FILE_SAMPLE_OPEN: {

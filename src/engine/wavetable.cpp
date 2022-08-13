@@ -92,3 +92,65 @@ bool DivWavetable::save(const char* path) {
   w->finish();
   return true;
 }
+
+bool DivWavetable::saveDMW(const char* path) {
+  SafeWriter* w=new SafeWriter();
+  w->init();
+
+  // write width
+  w->writeI(len);
+
+  // check height
+  w->writeC(max);
+  if (max==255) {
+    // write as new format (because 0xff means that)
+    w->writeC(1); // format version
+    w->writeC(max); // actual height
+
+    // waveform data
+    for (int i=0; i<len; i++) {
+      w->writeI(data[i]&0xff);
+    }
+  } else {
+    // write as old format
+    for (int i=0; i<len; i++) {
+      w->writeC(data[i]);
+    }
+  }
+
+  FILE* outFile=ps_fopen(path,"wb");
+  if (outFile==NULL) {
+    logE("could not save wavetable: %s!",strerror(errno));
+    w->finish();
+    return false;
+  }
+  if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
+    logW("did not write entire wavetable!");
+  }
+  fclose(outFile);
+  w->finish();
+  return true;
+}
+
+bool DivWavetable::saveRaw(const char* path) {
+  SafeWriter* w=new SafeWriter();
+  w->init();
+
+  // waveform data
+  for (int i=0; i<len; i++) {
+    w->writeC(data[i]);
+  }
+
+  FILE* outFile=ps_fopen(path,"wb");
+  if (outFile==NULL) {
+    logE("could not save wavetable: %s!",strerror(errno));
+    w->finish();
+    return false;
+  }
+  if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
+    logW("did not write entire wavetable!");
+  }
+  fclose(outFile);
+  w->finish();
+  return true;
+}

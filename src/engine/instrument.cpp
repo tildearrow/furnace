@@ -1150,3 +1150,148 @@ bool DivInstrument::save(const char* path) {
   w->finish();
   return true;
 }
+
+bool DivInstrument::saveDMP(const char* path) {
+  SafeWriter* w=new SafeWriter();
+  w->init();
+
+  // write version
+  w->writeC(11);
+
+  // guess the system
+  switch (type) {
+    case DIV_INS_FM:
+      // we can't tell between Genesis, Neo Geo and Arcade ins type yet
+      w->writeC(0x02);
+      w->writeC(1);
+      break;
+    case DIV_INS_STD:
+      // we can't tell between SMS and NES ins type yet
+      w->writeC(0x03);
+      w->writeC(0);
+      break;
+    case DIV_INS_GB:
+      w->writeC(0x04);
+      w->writeC(0);
+      break;
+    case DIV_INS_C64:
+      w->writeC(0x07);
+      w->writeC(0);
+      break;
+    case DIV_INS_PCE:
+      w->writeC(0x06);
+      w->writeC(0);
+      break;
+    case DIV_INS_OPLL:
+      // ???
+      w->writeC(0x13);
+      w->writeC(1);
+      break;
+    case DIV_INS_OPZ:
+      // data will be lost
+      w->writeC(0x08);
+      w->writeC(1);
+      break;
+    case DIV_INS_FDS:
+      // ???
+      w->writeC(0x06);
+      w->writeC(0);
+      break;
+    default:
+      // not supported by .dmp
+      w->finish();
+      return false;
+  }
+
+  if (type==DIV_INS_FM || type==DIV_INS_OPLL || type==DIV_INS_OPZ) {
+    w->writeC(fm.fms);
+    w->writeC(fm.fb);
+    w->writeC(fm.alg);
+    w->writeC(fm.ams);
+
+    // TODO: OPLL params
+    for (int i=0; i<4; i++) {
+      DivInstrumentFM::Operator& op=fm.op[i];
+      w->writeC(op.mult);
+      w->writeC(op.tl);
+      w->writeC(op.ar);
+      w->writeC(op.dr);
+      w->writeC(op.sl);
+      w->writeC(op.rr);
+      w->writeC(op.am);
+      w->writeC(op.rs);
+      w->writeC(op.dt|(op.dt2<<4));
+      w->writeC(op.d2r);
+      w->writeC(op.ssgEnv);
+    }
+  } else {
+    if (type!=DIV_INS_GB) {
+      w->writeC(std.volMacro.len);
+      for (int i=0; i<std.volMacro.len; i++) {
+        w->writeI(std.volMacro.val[i]);
+      }
+      if (std.volMacro.len>0) w->writeC(std.volMacro.loop);
+    }
+
+    w->writeC(std.arpMacro.len);
+    for (int i=0; i<std.arpMacro.len; i++) {
+      w->writeI(std.arpMacro.val[i]+12);
+    }
+    if (std.arpMacro.len>0) w->writeC(std.arpMacro.loop);
+    w->writeC(std.arpMacro.mode);
+
+    w->writeC(std.dutyMacro.len);
+    for (int i=0; i<std.dutyMacro.len; i++) {
+      w->writeI(std.dutyMacro.val[i]+12);
+    }
+    if (std.dutyMacro.len>0) w->writeC(std.dutyMacro.loop);
+
+    w->writeC(std.waveMacro.len);
+    for (int i=0; i<std.waveMacro.len; i++) {
+      w->writeI(std.waveMacro.val[i]+12);
+    }
+    if (std.waveMacro.len>0) w->writeC(std.waveMacro.loop);
+
+    if (type==DIV_INS_C64) {
+      w->writeC(c64.triOn);
+      w->writeC(c64.sawOn);
+      w->writeC(c64.pulseOn);
+      w->writeC(c64.noiseOn);
+      w->writeC(c64.a);
+      w->writeC(c64.d);
+      w->writeC(c64.s);
+      w->writeC(c64.r);
+      w->writeC((c64.duty*100)/4095);
+      w->writeC(c64.ringMod);
+      w->writeC(c64.oscSync);
+      w->writeC(c64.toFilter);
+      w->writeC(c64.volIsCutoff);
+      w->writeC(c64.initFilter);
+      w->writeC(c64.res);
+      w->writeC((c64.cut*100)/2047);
+      w->writeC(c64.hp);
+      w->writeC(c64.lp);
+      w->writeC(c64.bp);
+      w->writeC(c64.ch3off);
+    }
+    if (type==DIV_INS_GB) {
+      w->writeC(gb.envVol);
+      w->writeC(gb.envDir);
+      w->writeC(gb.envLen);
+      w->writeC(gb.soundLen);
+    }
+  }
+
+  FILE* outFile=ps_fopen(path,"wb");
+  if (outFile==NULL) {
+    logE("could not save instrument: %s!",strerror(errno));
+    w->finish();
+    return false;
+  }
+  if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
+    logW("did not write entire instrument!");
+  }
+  fclose(outFile);
+  w->finish();
+  return true;
+}

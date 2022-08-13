@@ -500,6 +500,13 @@ struct DivInstrument {
    * @return whether it was successful.
    */
   bool save(const char* path);
+
+  /**
+   * save this instrument to a file in .dmp format.
+   * @param path file path.
+   * @return whether it was successful.
+   */
+  bool saveDMP(const char* path);
   DivInstrument():
     name(""),
     type(DIV_INS_FM) {
