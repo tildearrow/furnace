@@ -636,7 +636,7 @@ void DivPlatformGB::notifyWaveChange(int wave) {
   if (chan[2].wave==wave) {
     ws.changeWave1(wave);
     updateWave();
-    if (!chan[2].keyOff) chan[2].keyOn=true;
+    if (!chan[2].keyOff && chan[2].active) chan[2].keyOn=true;
   }
 }
 
