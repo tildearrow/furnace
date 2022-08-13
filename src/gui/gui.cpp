@@ -4152,29 +4152,47 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    bool doRespond=false;
     if (ImGui::BeginPopupModal("Import Raw Sample",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
-      ImGui::Text("Work In Progress - sorry");
-      if (ImGui::Button("Oh... really?")) {
+      ImGui::Text("Data type:");
+      for (int i=0; i<DIV_SAMPLE_DEPTH_MAX; i++) {
+        if (sampleDepths[i]==NULL) continue;
+       if (ImGui::RadioButton(sampleDepths[i],pendingRawSampleDepth==i)) pendingRawSampleDepth=i;
+      }
+
+      if (pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_8BIT && pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT) {
+        pendingRawSampleChannels=1;
+      }
+      if (pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT) {
+        pendingRawSampleBigEndian=false;
+      }
+
+      ImGui::BeginDisabled(pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_8BIT && pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT);
+      ImGui::Text("Channels");
+      ImGui::SameLine();
+      if (ImGui::InputInt("##RSChans",&pendingRawSampleChannels)) {
+      }
+      ImGui::Text("(will be mixed down to mono)");
+      ImGui::EndDisabled();
+
+      ImGui::BeginDisabled(pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT);
+      ImGui::Checkbox("Big endian",&pendingRawSampleBigEndian);
+      ImGui::EndDisabled();
+
+      if (ImGui::Button("OK")) {
+        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian);
+        if (s==NULL) {
+          showError(e->getLastError());
+        } else {
+          if (e->addSamplePtr(s)==-1) {
+            showError(e->getLastError());
+          } else {
+            MARK_MODIFIED;
+          }
+        }
         ImGui::CloseCurrentPopup();
       }
       ImGui::SameLine();
-      if (ImGui::Button("Why are you so hostile? I'm just trying to import a raw sample.")) {
-        doRespond=true;
-        ImGui::CloseCurrentPopup();
-      }
-      ImGui::EndPopup();
-    }
-
-    if (doRespond) {
-      doRespond=false;
-      ImGui::OpenPopup("Fatal Alert");
-    }
-
-    if (ImGui::BeginPopupModal("Fatal Alert",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
-      ImGui::Text("Well, I'd rather you didn't. So, good night.");
-      if (ImGui::Button("Fine")) {
-        abort();
+      if (ImGui::Button("Cancel")) {
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();

@@ -2639,6 +2639,172 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
 #endif
 }
 
+DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian) {
+  if (song.sample.size()>=256) {
+    lastError="too many samples!";
+    return NULL;
+  }
+  if (channels<1) {
+    lastError="invalid channel count";
+    return NULL;
+  }
+  if (depth!=DIV_SAMPLE_DEPTH_8BIT && depth!=DIV_SAMPLE_DEPTH_16BIT) {
+    if (channels!=1) {
+      lastError="channel count has to be 1 for non-8/16-bit format";
+      return NULL;
+    }
+  }
+  BUSY_BEGIN;
+  warnings="";
+
+  const char* pathRedux=strrchr(path,DIR_SEPARATOR);
+  if (pathRedux==NULL) {
+    pathRedux=path;
+  } else {
+    pathRedux++;
+  }
+  String stripPath;
+  const char* pathReduxEnd=strrchr(pathRedux,'.');
+  if (pathReduxEnd==NULL) {
+    stripPath=pathRedux;
+  } else {
+    for (const char* i=pathRedux; i!=pathReduxEnd && (*i); i++) {
+      stripPath+=*i;
+    }
+  }
+
+  size_t len=0;
+  size_t lenDivided=0;
+  DivSample* sample=new DivSample;
+  sample->name=stripPath;
+
+  FILE* f=ps_fopen(path,"rb");
+  if (f==NULL) {
+    BUSY_END;
+    lastError=fmt::sprintf("could not open file! (%s)",strerror(errno));
+    delete sample;
+    return NULL;
+  }
+
+  if (fseek(f,0,SEEK_END)<0) {
+    fclose(f);
+    BUSY_END;
+    lastError=fmt::sprintf("could not get file length! (%s)",strerror(errno));
+    delete sample;
+    return NULL;
+  }
+
+  len=ftell(f);
+
+  if (len==0) {
+    fclose(f);
+    BUSY_END;
+    lastError="file is empty!";
+    delete sample;
+    return NULL;
+  }
+
+  if (len==(SIZE_MAX>>1)) {
+    fclose(f);
+    BUSY_END;
+    lastError="file is invalid!";
+    delete sample;
+    return NULL;
+  }
+
+  if (fseek(f,0,SEEK_SET)<0) {
+    fclose(f);
+    BUSY_END;
+    lastError=fmt::sprintf("could not seek to beginning of file! (%s)",strerror(errno));
+    delete sample;
+    return NULL;
+  }
+
+  lenDivided=len/channels;
+
+  unsigned int samples=lenDivided;
+  switch (depth) {
+    case DIV_SAMPLE_DEPTH_1BIT:
+    case DIV_SAMPLE_DEPTH_1BIT_DPCM:
+      samples=lenDivided*8;
+      break;
+    case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
+    case DIV_SAMPLE_DEPTH_QSOUND_ADPCM:
+    case DIV_SAMPLE_DEPTH_ADPCM_A:
+    case DIV_SAMPLE_DEPTH_ADPCM_B:
+    case DIV_SAMPLE_DEPTH_VOX:
+      samples=lenDivided*2;
+      break;
+    case DIV_SAMPLE_DEPTH_8BIT:
+      samples=lenDivided;
+      break;
+    case DIV_SAMPLE_DEPTH_BRR:
+      samples=16*((lenDivided+8)/9);
+      break;
+    case DIV_SAMPLE_DEPTH_16BIT:
+      samples=(lenDivided+1)/2;
+      break;
+    default:
+      break;
+  }
+
+  if (samples>16777215) {
+    fclose(f);
+    BUSY_END;
+    lastError="this sample is too big! max sample size is 16777215.";
+    delete sample;
+    return NULL;
+  }
+
+  sample->rate=32000;
+  sample->centerRate=32000;
+  sample->depth=depth;
+  sample->init(samples);
+
+  unsigned char* buf=new unsigned char[len];
+  if (fread(buf,1,len,f)==0) {
+    fclose(f);
+    BUSY_END;
+    lastError=fmt::sprintf("could not read file! (%s)",strerror(errno));
+    delete[] buf;
+    delete sample;
+    return NULL;
+  }
+
+  fclose(f);
+
+  // import sample
+  size_t pos=0;
+  if (depth==DIV_SAMPLE_DEPTH_16BIT) {
+    for (unsigned int i=0; i<samples; i++) {
+      int accum=0;
+      for (int j=0; j<channels; j++) {
+        if (pos+1>=len) break;
+        accum+=((short*)buf)[pos>>1];
+        pos+=2;
+      }
+      accum/=channels;
+      sample->data16[i]=accum;
+    }
+  } else if (depth==DIV_SAMPLE_DEPTH_8BIT) {
+    for (unsigned int i=0; i<samples; i++) {
+      int accum=0;
+      for (int j=0; j<channels; j++) {
+        if (pos>=len) break;
+        accum+=(signed char)buf[pos++];
+      }
+      accum/=channels;
+      sample->data8[i]=accum;
+    }
+  } else {
+    memcpy(sample->getCurBuf(),buf,len);
+  }
+  delete[] buf;
+
+  BUSY_END;
+  return sample;
+}
+
 void DivEngine::delSample(int index) {
   BUSY_BEGIN;
   sPreview.sample=-1;

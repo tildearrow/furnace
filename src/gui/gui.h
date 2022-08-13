@@ -974,6 +974,8 @@ class FurnaceGUI {
   int waveEditStyle;
 
   String pendingRawSample;
+  int pendingRawSampleDepth, pendingRawSampleChannels;
+  bool pendingRawSampleBigEndian;
 
   ImGuiWindowFlags globalWinFlags;
 
