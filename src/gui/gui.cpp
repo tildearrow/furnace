@@ -84,13 +84,13 @@ void FurnaceGUI::bindEngine(DivEngine* eng) {
 
 const char* FurnaceGUI::noteName(short note, short octave) {
   if (note==100) {
-    return "OFF";
+    return noteOffLabel;
   } else if (note==101) { // note off and envelope release
-    return "===";
+    return noteRelLabel;
   } else if (note==102) { // envelope release only
-    return "REL";
+    return macroRelLabel;
   } else if (octave==0 && note==0) {
-    return "...";
+    return emptyLabel;
   } else if (note==0 && octave!=0) {
     return "BUG";
   }
@@ -5067,4 +5067,16 @@ FurnaceGUI::FurnaceGUI():
   memset(queryReplaceEffectValDo,0,sizeof(bool)*8);
 
   chanOscGrad.bgColor=ImVec4(0.0f,0.0f,0.0f,1.0f);
+
+  memset(noteOffLabel,0,32);
+  memset(noteRelLabel,0,32);
+  memset(macroRelLabel,0,32);
+  memset(emptyLabel,0,32);
+  memset(emptyLabel2,0,32);
+
+  strncat(noteOffLabel,"OFF",32);
+  strncat(noteRelLabel,"===",32);
+  strncat(macroRelLabel,"REL",32);
+  strncat(emptyLabel,"...",32);
+  strncat(emptyLabel2,"..",32);
 }

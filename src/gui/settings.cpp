@@ -21,6 +21,7 @@
 #include "fonts.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
+#include "../utfutils.h"
 #include "util.h"
 #include "guiConst.h"
 #include "intConst.h"
@@ -1081,6 +1082,15 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::Separator();
 
+          ImGui::Text("Pattern view labels:");
+          ImGui::InputTextWithHint("Note off (3-char)","OFF",&settings.noteOffLabel);
+          ImGui::InputTextWithHint("Note release (3-char)","===",&settings.noteRelLabel);
+          ImGui::InputTextWithHint("Macro release (3-char)","REL",&settings.macroRelLabel);
+          ImGui::InputTextWithHint("Empty field (3-char)","...",&settings.emptyLabel);
+          ImGui::InputTextWithHint("Empty field (2-char)","..",&settings.emptyLabel2);
+
+          ImGui::Separator();
+
           ImGui::Text("Orders row number format:");
           if (ImGui::RadioButton("Decimal##orbD",settings.orderRowsBase==0)) {
             settings.orderRowsBase=0;
@@ -2118,6 +2128,11 @@ void FurnaceGUI::syncSettings() {
   settings.noThreadedInput=e->getConfInt("noThreadedInput",0);
   settings.initialSysName=e->getConfString("initialSysName","");
   settings.clampSamples=e->getConfInt("clampSamples",0);
+  settings.noteOffLabel=e->getConfString("noteOffLabel","OFF");
+  settings.noteRelLabel=e->getConfString("noteRelLabel","===");
+  settings.macroRelLabel=e->getConfString("macroRelLabel","REL");
+  settings.emptyLabel=e->getConfString("emptyLabel","...");
+  settings.emptyLabel2=e->getConfString("emptyLabel2","..");
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2345,6 +2360,11 @@ void FurnaceGUI::commitSettings() {
   e->setConf("unsignedDetune",settings.unsignedDetune);
   e->setConf("noThreadedInput",settings.noThreadedInput);
   e->setConf("clampSamples",settings.clampSamples);
+  e->setConf("noteOffLabel",settings.noteOffLabel);
+  e->setConf("noteRelLabel",settings.noteRelLabel);
+  e->setConf("macroRelLabel",settings.macroRelLabel);
+  e->setConf("emptyLabel",settings.emptyLabel);
+  e->setConf("emptyLabel2",settings.emptyLabel2);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -2757,6 +2777,20 @@ void FurnaceGUI::popAccentColors() {
 #define SYSTEM_PAT_FONT_PATH_3 "/usr/share/fonts/ubuntu/UbuntuMono-R.ttf"
 #endif
 
+void setupLabel(const char* lStr, char* label, int len) {
+  memset(label,0,32);
+  for (int i=0, p=0; i<len; i++) {
+    signed char cl;
+    if (lStr[p]!=0) {
+      strncat(label," ",32);
+    } else {
+      decodeUTF8((const unsigned char*)&lStr[p],cl);
+      memcpy(label+p,lStr+p,cl);
+      p+=cl;
+    }
+  }
+}
+
 void FurnaceGUI::applyUISettings(bool updateFonts) {
   ImGuiStyle sty;
   if (settings.guiColorsBase) {
@@ -2764,6 +2798,12 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   } else {
     ImGui::StyleColorsDark(&sty);
   }
+
+  setupLabel(settings.noteOffLabel.c_str(),noteOffLabel,3);
+  setupLabel(settings.noteRelLabel.c_str(),noteRelLabel,3);
+  setupLabel(settings.macroRelLabel.c_str(),macroRelLabel,3);
+  setupLabel(settings.emptyLabel.c_str(),emptyLabel,3);
+  setupLabel(settings.emptyLabel2.c_str(),emptyLabel2,2);
 
   if (settings.dpiScale>=0.5f) dpiScale=settings.dpiScale;
 

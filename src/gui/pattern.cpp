@@ -56,7 +56,7 @@ void FurnaceGUI::popPartBlend() {
 
 // draw a pattern row
 inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel) {
-  static char id[32];
+  static char id[64];
   bool selectedRow=(i>=sel1.y && i<=sel2.y && !inhibitSel);
   ImGui::TableNextRow(0,lineHeight);
   ImGui::TableNextColumn();
@@ -114,9 +114,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   ImGui::PushStyleColor(ImGuiCol_Text,rowIndexColor);
   
   if (settings.patRowsBase==1) {
-    snprintf(id,31," %.2X ##PR_%d",i,i);
+    snprintf(id,63," %.2X ##PR_%d",i,i);
   } else {
-    snprintf(id,31,"%3d ##PR_%d",i,i);
+    snprintf(id,63,"%3d ##PR_%d",i,i);
   }
   ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,fourChars);
   if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
@@ -151,7 +151,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     bool cursorVol=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==2 && curWindowLast==GUI_WINDOW_PATTERN);
 
     // note
-    sprintf(id,"%s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
+    snprintf(id,63,"%.31s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
     if (pat->data[i][0]==0 && pat->data[i][1]==0) {
       ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
     } else {
@@ -182,7 +182,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       // instrument
       if (pat->data[i][2]==-1) {
         ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
-        sprintf(id,"..##PI_%d_%d",i,j);
+        snprintf(id,63,"%.31s##PI_%d_%d",emptyLabel2,i,j);
       } else {
         if (pat->data[i][2]<0 || pat->data[i][2]>=e->song.insLen) {
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS_ERROR]);
@@ -194,7 +194,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
           }
         }
-        sprintf(id,"%.2X##PI_%d_%d",pat->data[i][2],i,j);
+        snprintf(id,63,"%.2X##PI_%d_%d",pat->data[i][2],i,j);
       }
       ImGui::SameLine(0.0f,0.0f);
       if (cursorIns) {
@@ -221,13 +221,13 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     if (e->curSubSong->chanCollapse[j]<2) {
       // volume
       if (pat->data[i][3]==-1) {
-        sprintf(id,"..##PV_%d_%d",i,j);
+        snprintf(id,63,"%.31s##PV_%d_%d",emptyLabel2,i,j);
         ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
       } else {
         int volColor=(pat->data[i][3]*127)/chanVolMax;
         if (volColor>127) volColor=127;
         if (volColor<0) volColor=0;
-        sprintf(id,"%.2X##PV_%d_%d",pat->data[i][3],i,j);
+        snprintf(id,63,"%.2X##PV_%d_%d",pat->data[i][3],i,j);
         ImGui::PushStyleColor(ImGuiCol_Text,volColors[volColor]);
       }
       ImGui::SameLine(0.0f,0.0f);
@@ -263,15 +263,15 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         
         // effect
         if (pat->data[i][index]==-1) {
-          sprintf(id,"..##PE%d_%d_%d",k,i,j);
+          snprintf(id,63,"%.31s##PE%d_%d_%d",emptyLabel2,k,i,j);
           ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
         } else {
           if (pat->data[i][index]>0xff) {
-            sprintf(id,"??##PE%d_%d_%d",k,i,j);
+            snprintf(id,63,"??##PE%d_%d_%d",k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
           } else {
             const unsigned char data=pat->data[i][index];
-            sprintf(id,"%.2X##PE%d_%d_%d",data,k,i,j);
+            snprintf(id,63,"%.2X##PE%d_%d_%d",data,k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
           }
         }
@@ -297,9 +297,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
 
         // effect value
         if (pat->data[i][index+1]==-1) {
-          sprintf(id,"..##PF%d_%d_%d",k,i,j);
+          snprintf(id,63,"%.31s##PF%d_%d_%d",emptyLabel2,k,i,j);
         } else {
-          sprintf(id,"%.2X##PF%d_%d_%d",pat->data[i][index+1],k,i,j);
+          snprintf(id,63,"%.2X##PF%d_%d_%d",pat->data[i][index+1],k,i,j);
         }
         ImGui::SameLine(0.0f,0.0f);
         if (cursorEffectVal) {

@@ -1017,6 +1017,12 @@ class FurnaceGUI {
   ImU32 sysCmd1Grad[256];
   ImU32 sysCmd2Grad[256];
 
+  char noteOffLabel[32];
+  char noteRelLabel[32];
+  char macroRelLabel[32];
+  char emptyLabel[32];
+  char emptyLabel2[32];
+
   struct Settings {
     int mainFontSize, patFontSize, iconSize;
     int audioEngine;
@@ -1119,6 +1125,11 @@ class FurnaceGUI {
     String midiOutDevice;
     String c163Name;
     String initialSysName;
+    String noteOffLabel;
+    String noteRelLabel;
+    String macroRelLabel;
+    String emptyLabel;
+    String emptyLabel2;
     std::vector<int> initialSys;
 
     Settings():
@@ -1224,7 +1235,12 @@ class FurnaceGUI {
       midiInDevice(""),
       midiOutDevice(""),
       c163Name(""),
-      initialSysName("Sega Genesis/Mega Drive") {}
+      initialSysName("Sega Genesis/Mega Drive"),
+      noteOffLabel("OFF"),
+      noteRelLabel("==="),
+      macroRelLabel("REL"),
+      emptyLabel("..."),
+      emptyLabel2("..") {}
   } settings;
 
   char finalLayoutPath[4096];
@@ -1657,6 +1673,7 @@ class FurnaceGUI {
   public:
     void showWarning(String what, FurnaceGUIWarnings type);
     void showError(String what);
+    const char* noteNameNormal(short note, short octave);
     const char* noteName(short note, short octave);
     bool decodeNote(const char* what, short& note, short& octave);
     void bindEngine(DivEngine* eng);

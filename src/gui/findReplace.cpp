@@ -593,11 +593,11 @@ void FurnaceGUI::drawFindReplace() {
                   i.note=0;
                 }
                 if (i.note==130) {
-                  snprintf(tempID,1024,"REL");
+                  snprintf(tempID,1024,"%s##MREL",macroRelLabel);
                 } else if (i.note==129) {
-                  snprintf(tempID,1024,"===");
+                  snprintf(tempID,1024,"%s##NREL",noteRelLabel);
                 } else if (i.note==128) {
-                  snprintf(tempID,1024,"OFF");
+                  snprintf(tempID,1024,"%s##NOFF",noteOffLabel);
                 } else if (i.note>=-60 && i.note<120) {
                   snprintf(tempID,1024,"%s",noteNames[i.note+60]);
                 } else {
@@ -613,13 +613,13 @@ void FurnaceGUI::drawFindReplace() {
                     }
                   }
                   if (i.noteMode!=GUI_QUERY_RANGE && i.noteMode!=GUI_QUERY_RANGE_NOT) {
-                    if (ImGui::Selectable("OFF",i.note==128)) {
+                    if (ImGui::Selectable(noteOffLabel,i.note==128)) {
                       i.note=128;
                     }
-                    if (ImGui::Selectable("===",i.note==129)) {
+                    if (ImGui::Selectable(noteRelLabel,i.note==129)) {
                       i.note=129;
                     }
-                    if (ImGui::Selectable("REL",i.note==130)) {
+                    if (ImGui::Selectable(macroRelLabel,i.note==130)) {
                       i.note=130;
                     }
                   }
@@ -916,11 +916,11 @@ void FurnaceGUI::drawFindReplace() {
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (queryReplaceNoteMode==GUI_QUERY_REPLACE_SET) {
             if (queryReplaceNote==130) {
-              snprintf(tempID,1024,"REL");
+              snprintf(tempID,1024,"%s##MREL",macroRelLabel);
             } else if (queryReplaceNote==129) {
-              snprintf(tempID,1024,"===");
+              snprintf(tempID,1024,"%s##NREL",noteRelLabel);
             } else if (queryReplaceNote==128) {
-              snprintf(tempID,1024,"OFF");
+              snprintf(tempID,1024,"%s##NOFF",noteOffLabel);
             } else if (queryReplaceNote>=-60 && queryReplaceNote<120) {
               snprintf(tempID,1024,"%s",noteNames[queryReplaceNote+60]);
             } else {
@@ -934,13 +934,13 @@ void FurnaceGUI::drawFindReplace() {
                   queryReplaceNote=j-60;
                 }
               }
-              if (ImGui::Selectable("OFF",queryReplaceNote==128)) {
+              if (ImGui::Selectable(noteOffLabel,queryReplaceNote==128)) {
                 queryReplaceNote=128;
               }
-              if (ImGui::Selectable("===",queryReplaceNote==129)) {
+              if (ImGui::Selectable(noteRelLabel,queryReplaceNote==129)) {
                 queryReplaceNote=129;
               }
-              if (ImGui::Selectable("REL",queryReplaceNote==130)) {
+              if (ImGui::Selectable(macroRelLabel,queryReplaceNote==130)) {
                 queryReplaceNote=130;
               }
               ImGui::EndCombo();

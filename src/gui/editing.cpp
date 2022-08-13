@@ -24,7 +24,7 @@
 
 #include "actionUtil.h"
 
-const char* noteNameNormal(short note, short octave) {
+const char* FurnaceGUI::noteNameNormal(short note, short octave) {
   if (note==100) { // note cut
     return "OFF";
   } else if (note==101) { // note off and envelope release
