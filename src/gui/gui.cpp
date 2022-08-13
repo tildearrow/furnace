@@ -1320,6 +1320,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       );
       break;
     case GUI_FILE_WAVE_OPEN:
+    case GUI_FILE_WAVE_OPEN_REPLACE:
       if (!dirExists(workingDirWave)) workingDirWave=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Wavetable",
@@ -1341,12 +1342,24 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       );
       break;
     case GUI_FILE_SAMPLE_OPEN:
+    case GUI_FILE_SAMPLE_OPEN_REPLACE:
       if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Sample",
         {"compatible files", "*.wav *.dmc",
          "all files", ".*"},
         "compatible files{.wav,.dmc},.*",
+        workingDirSample,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_SAMPLE_OPEN_RAW:
+    case GUI_FILE_SAMPLE_OPEN_REPLACE_RAW:
+      if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        "Load Raw Sample",
+        {"all files", ".*"},
+        ".*",
         workingDirSample,
         dpiScale
       );
@@ -2630,6 +2643,8 @@ bool FurnaceGUI::loop() {
         case SDL_DROPFILE:
           if (ev.drop.file!=NULL) {
             std::vector<DivInstrument*> instruments=e->instrumentFromFile(ev.drop.file);
+            DivWavetable* droppedWave=NULL;
+            DivSample* droppedSample=NULL;;
             if (!instruments.empty()) {
               if (!e->getWarnings().empty()) {
                 showWarning(e->getWarnings(),GUI_WARN_GENERIC);
@@ -2639,10 +2654,12 @@ bool FurnaceGUI::loop() {
               }
               nextWindow=GUI_WINDOW_INS_LIST;
               MARK_MODIFIED;
-            } else if (e->addWaveFromFile(ev.drop.file,false)) {
+            } else if ((droppedWave=e->waveFromFile(ev.drop.file,false))!=NULL) {
+              e->addWavePtr(droppedWave);
               nextWindow=GUI_WINDOW_WAVE_LIST;
               MARK_MODIFIED;
-            } else if (e->addSampleFromFile(ev.drop.file)!=-1) {
+            } else if ((droppedSample=e->sampleFromFile(ev.drop.file))!=NULL) {
+              e->addSamplePtr(droppedSample);
               nextWindow=GUI_WINDOW_SAMPLE_LIST;
               MARK_MODIFIED;
             } else if (modified) {
@@ -3269,10 +3286,14 @@ bool FurnaceGUI::loop() {
           workingDirIns=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_WAVE_OPEN:
+        case GUI_FILE_WAVE_OPEN_REPLACE:
         case GUI_FILE_WAVE_SAVE:
           workingDirWave=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_SAMPLE_OPEN:
+        case GUI_FILE_SAMPLE_OPEN_RAW:
+        case GUI_FILE_SAMPLE_OPEN_REPLACE:
+        case GUI_FILE_SAMPLE_OPEN_REPLACE_RAW:
         case GUI_FILE_SAMPLE_SAVE:
           workingDirSample=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
@@ -3438,12 +3459,44 @@ bool FurnaceGUI::loop() {
                 e->song.wave[curWave]->save(copyOfName.c_str());
               }
               break;
-            case GUI_FILE_SAMPLE_OPEN:
-              if (e->addSampleFromFile(copyOfName.c_str())==-1) {
+            case GUI_FILE_SAMPLE_OPEN: {
+              DivSample* s=e->sampleFromFile(copyOfName.c_str());
+              if (s==NULL) {
                 showError(e->getLastError());
               } else {
-                MARK_MODIFIED;
+                if (e->addSamplePtr(s)==-1) {
+                  showError(e->getLastError());
+                } else {
+                  MARK_MODIFIED;
+                }
               }
+              break;
+            }
+            case GUI_FILE_SAMPLE_OPEN_REPLACE: {
+              DivSample* s=e->sampleFromFile(copyOfName.c_str());
+              if (s==NULL) {
+                showError(e->getLastError());
+              } else {
+                if (curSample>=0 && curSample<(int)e->song.sample.size()) {
+                  e->lockEngine([this,s]() {
+                    // if it crashes here please tell me...
+                    DivSample* oldSample=e->song.sample[curSample];
+                    e->song.sample[curSample]=s;
+                    delete oldSample;
+                    e->renderSamples();
+                    MARK_MODIFIED;
+                  });
+                } else {
+                  showError("...but you haven't selected a sample!");
+                  delete s;
+                }
+              }
+              break;
+            }
+            case GUI_FILE_SAMPLE_OPEN_RAW:
+            case GUI_FILE_SAMPLE_OPEN_REPLACE_RAW:
+              pendingRawSample=copyOfName;
+              displayPendingRawSample=true;
               break;
             case GUI_FILE_SAMPLE_SAVE:
               if (curSample>=0 && curSample<(int)e->song.sample.size()) {
@@ -3508,13 +3561,36 @@ bool FurnaceGUI::loop() {
               }
               break;
             }
-            case GUI_FILE_WAVE_OPEN:
-              if (!e->addWaveFromFile(copyOfName.c_str())) {
+            case GUI_FILE_WAVE_OPEN: {
+              DivWavetable* wave=e->waveFromFile(copyOfName.c_str());
+              if (wave==NULL) {
                 showError("cannot load wavetable! ("+e->getLastError()+")");
               } else {
-                MARK_MODIFIED;
+                if (e->addWavePtr(wave)==-1) {
+                  showError("cannot load wavetable! ("+e->getLastError()+")");
+                } else {
+                  MARK_MODIFIED;
+                }
               }
               break;
+            }
+            case GUI_FILE_WAVE_OPEN_REPLACE: {
+              DivWavetable* wave=e->waveFromFile(copyOfName.c_str());
+              if (wave==NULL) {
+                showError("cannot load wavetable! ("+e->getLastError()+")");
+              } else {
+                if (curWave>=0 && curWave<(int)e->song.wave.size()) {
+                  e->lockEngine([this,wave]() {
+                    *e->song.wave[curWave]=*wave;
+                    MARK_MODIFIED;
+                  });
+                } else {
+                  showError("...but you haven't selected a wavetable!");
+                }
+                delete wave;
+              }
+              break;
+            }
             case GUI_FILE_EXPORT_VGM: {
               SafeWriter* w=e->saveVGM(willExport,vgmExportLoop,vgmExportVersion,vgmExportPatternHints);
               if (w!=NULL) {
@@ -3639,6 +3715,11 @@ bool FurnaceGUI::loop() {
     if (displayPendingIns) {
       displayPendingIns=false;
       ImGui::OpenPopup("Select Instrument");
+    }
+
+    if (displayPendingRawSample) {
+      displayPendingRawSample=false;
+      ImGui::OpenPopup("Import Raw Sample");
     }
 
     if (displayExporting) {
@@ -4067,6 +4148,34 @@ bool FurnaceGUI::loop() {
           }
         }
         pendingIns.clear();
+      }
+      ImGui::EndPopup();
+    }
+
+    bool doRespond=false;
+    if (ImGui::BeginPopupModal("Import Raw Sample",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::Text("Work In Progress - sorry");
+      if (ImGui::Button("Oh... really?")) {
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Why are you so hostile? I'm just trying to import a raw sample.")) {
+        doRespond=true;
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    }
+
+    if (doRespond) {
+      doRespond=false;
+      ImGui::OpenPopup("Fatal Alert");
+    }
+
+    if (ImGui::BeginPopupModal("Fatal Alert",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
+      ImGui::Text("Well, I'd rather you didn't. So, good night.");
+      if (ImGui::Button("Fine")) {
+        abort();
+        ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
     }
@@ -4521,6 +4630,7 @@ FurnaceGUI::FurnaceGUI():
   noteInputPoly(true),
   displayPendingIns(false),
   pendingInsSingle(false),
+  displayPendingRawSample(false),
   vgmExportVersion(0x171),
   drawHalt(10),
   macroPointSize(16),

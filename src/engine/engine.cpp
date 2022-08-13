@@ -2196,7 +2196,10 @@ void DivEngine::delInstrument(int index) {
 }
 
 int DivEngine::addWave() {
-  if (song.wave.size()>=256) return -1;
+  if (song.wave.size()>=256) {
+    lastError="too many wavetables!";
+    return -1;
+  }
   BUSY_BEGIN;
   saveLock.lock();
   DivWavetable* wave=new DivWavetable;
@@ -2208,50 +2211,62 @@ int DivEngine::addWave() {
   return waveCount;
 }
 
-bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
+int DivEngine::addWavePtr(DivWavetable* which) {
   if (song.wave.size()>=256) {
     lastError="too many wavetables!";
-    return false;
+    delete which;
+    return -1;
   }
+  BUSY_BEGIN;
+  saveLock.lock();
+  int waveCount=(int)song.wave.size();
+  song.wave.push_back(which);
+  song.waveLen=waveCount+1;
+  saveLock.unlock();
+  BUSY_END;
+  return song.waveLen;
+}
+
+DivWavetable* DivEngine::waveFromFile(const char* path, bool addRaw) {
   FILE* f=ps_fopen(path,"rb");
   if (f==NULL) {
     lastError=fmt::sprintf("%s",strerror(errno));
-    return false;
+    return NULL;
   }
   unsigned char* buf;
   ssize_t len;
   if (fseek(f,0,SEEK_END)!=0) {
     fclose(f);
     lastError=fmt::sprintf("could not seek to end: %s",strerror(errno));
-    return false;
+    return NULL;
   }
   len=ftell(f);
   if (len<0) {
     fclose(f);
     lastError=fmt::sprintf("could not determine file size: %s",strerror(errno));
-    return false;
+    return NULL;
   }
   if (len==(SIZE_MAX>>1)) {
     fclose(f);
     lastError="file size is invalid!";
-    return false;
+    return NULL;
   }
   if (len==0) {
     fclose(f);
     lastError="file is empty";
-    return false;
+    return NULL;
   }
   if (fseek(f,0,SEEK_SET)!=0) {
     fclose(f);
     lastError=fmt::sprintf("could not seek to beginning: %s",strerror(errno));
-    return false;
+    return NULL;
   }
   buf=new unsigned char[len];
   if (fread(buf,1,len,f)!=(size_t)len) {
     logW("did not read entire wavetable file buffer!");
     delete[] buf;
     lastError=fmt::sprintf("could not read entire file: %s",strerror(errno));
-    return false;
+    return NULL;
   }
   fclose(f);
 
@@ -2279,7 +2294,7 @@ bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
         lastError="invalid wavetable header/data!";
         delete wave;
         delete[] buf;
-        return false;
+        return NULL;
       }
     } else {
       try {
@@ -2320,7 +2335,7 @@ bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
           } else {
             delete wave;
             delete[] buf;
-            return false;
+            return NULL;
           }
         }
       } catch (EndOfFileException& e) {
@@ -2338,7 +2353,7 @@ bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
         } else {
           delete wave;
           delete[] buf;
-          return false;
+          return NULL;
         }
       }
     }
@@ -2346,17 +2361,10 @@ bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
     delete wave;
     delete[] buf;
     lastError="premature end of file";
-    return false;
+    return NULL;
   }
   
-  BUSY_BEGIN;
-  saveLock.lock();
-  int waveCount=(int)song.wave.size();
-  song.wave.push_back(wave);
-  song.waveLen=waveCount+1;
-  saveLock.unlock();
-  BUSY_END;
-  return true;
+  return wave;
 }
 
 void DivEngine::delWave(int index) {
@@ -2372,7 +2380,10 @@ void DivEngine::delWave(int index) {
 }
 
 int DivEngine::addSample() {
-  if (song.sample.size()>=256) return -1;
+  if (song.sample.size()>=256) {
+    lastError="too many samples!";
+    return -1;
+  }
   BUSY_BEGIN;
   saveLock.lock();
   DivSample* sample=new DivSample;
@@ -2388,10 +2399,27 @@ int DivEngine::addSample() {
   return sampleCount;
 }
 
-int DivEngine::addSampleFromFile(const char* path) {
+int DivEngine::addSamplePtr(DivSample* which) {
   if (song.sample.size()>=256) {
     lastError="too many samples!";
+    delete which;
     return -1;
+  }
+  int sampleCount=(int)song.sample.size();
+  BUSY_BEGIN;
+  saveLock.lock();
+  song.sample.push_back(which);
+  song.sampleLen=sampleCount+1;
+  saveLock.unlock();
+  renderSamples();
+  BUSY_END;
+  return sampleCount;
+}
+
+DivSample* DivEngine::sampleFromFile(const char* path) {
+  if (song.sample.size()>=256) {
+    lastError="too many samples!";
+    return NULL;
   }
   BUSY_BEGIN;
   warnings="";
@@ -2425,7 +2453,6 @@ int DivEngine::addSampleFromFile(const char* path) {
     if (extS==".dmc") { // read as .dmc
       size_t len=0;
       DivSample* sample=new DivSample;
-      int sampleCount=(int)song.sample.size();
       sample->name=stripPath;
 
       FILE* f=ps_fopen(path,"rb");
@@ -2433,7 +2460,7 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError=fmt::sprintf("could not open file! (%s)",strerror(errno));
         delete sample;
-        return -1;
+        return NULL;
       }
 
       if (fseek(f,0,SEEK_END)<0) {
@@ -2441,7 +2468,7 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError=fmt::sprintf("could not get file length! (%s)",strerror(errno));
         delete sample;
-        return -1;
+        return NULL;
       }
 
       len=ftell(f);
@@ -2451,7 +2478,7 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError="file is empty!";
         delete sample;
-        return -1;
+        return NULL;
       }
 
       if (len==(SIZE_MAX>>1)) {
@@ -2459,7 +2486,7 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError="file is invalid!";
         delete sample;
-        return -1;
+        return NULL;
       }
 
       if (fseek(f,0,SEEK_SET)<0) {
@@ -2467,7 +2494,7 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError=fmt::sprintf("could not seek to beginning of file! (%s)",strerror(errno));
         delete sample;
-        return -1;
+        return NULL;
       }
 
       sample->rate=33144;
@@ -2480,22 +2507,16 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError=fmt::sprintf("could not read file! (%s)",strerror(errno));
         delete sample;
-        return -1;
+        return NULL;
       }
-
-      saveLock.lock();
-      song.sample.push_back(sample);
-      song.sampleLen=sampleCount+1;
-      saveLock.unlock();
-      renderSamples();
       BUSY_END;
-      return sampleCount;
+      return sample;
     }
   }
 
 #ifndef HAVE_SNDFILE
   lastError="Furnace was not compiled with libsndfile!";
-  return -1;
+  return NULL;
 #else
   SF_INFO si;
   SFWrapper sfWrap;
@@ -2507,15 +2528,15 @@ int DivEngine::addSampleFromFile(const char* path) {
     if (err==SF_ERR_SYSTEM) {
       lastError=fmt::sprintf("could not open file! (%s %s)",sf_error_number(err),strerror(errno));
     } else {
-      lastError=fmt::sprintf("could not open file! (%s)",sf_error_number(err));
+      lastError=fmt::sprintf("could not open file! (%s)\nif this is raw sample data, you may import it by right-clicking the Load Sample icon and selecting \"import raw\".",sf_error_number(err));
     }
-    return -1;
+    return NULL;
   }
   if (si.frames>16777215) {
     lastError="this sample is too big! max sample size is 16777215.";
     sfWrap.doClose();
     BUSY_END;
-    return -1;
+    return NULL;
   }
   void* buf=NULL;
   sf_count_t sampleLen=sizeof(short);
@@ -2613,13 +2634,8 @@ int DivEngine::addSampleFromFile(const char* path) {
   if (sample->centerRate<4000) sample->centerRate=4000;
   if (sample->centerRate>64000) sample->centerRate=64000;
   sfWrap.doClose();
-  saveLock.lock();
-  song.sample.push_back(sample);
-  song.sampleLen=sampleCount+1;
-  saveLock.unlock();
-  renderSamples();
   BUSY_END;
-  return sampleCount;
+  return sample;
 #endif
 }
 

@@ -706,8 +706,11 @@ class DivEngine {
     // add wavetable
     int addWave();
 
-    // add wavetable from file
-    bool addWaveFromFile(const char* path, bool loadRaw=true);
+    // add wavetable from pointer
+    int addWavePtr(DivWavetable* which);
+
+    // get wavetable from file
+    DivWavetable* waveFromFile(const char* path, bool loadRaw=true);
 
     // delete wavetable
     void delWave(int index);
@@ -715,8 +718,14 @@ class DivEngine {
     // add sample
     int addSample();
 
-    // add sample from file
-    int addSampleFromFile(const char* path);
+    // add sample from pointer
+    int addSamplePtr(DivSample* which);
+
+    // get sample from file
+    DivSample* sampleFromFile(const char* path);
+
+    // get raw sample
+    DivSample* sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian);
 
     // delete sample
     void delSample(int index);
