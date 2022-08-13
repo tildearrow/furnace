@@ -2639,7 +2639,7 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
 #endif
 }
 
-DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian) {
+DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign) {
   if (song.sample.size()>=256) {
     lastError="too many samples!";
     return NULL;
@@ -2780,7 +2780,11 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
       int accum=0;
       for (int j=0; j<channels; j++) {
         if (pos+1>=len) break;
-        accum+=((short*)buf)[pos>>1];
+        if (bigEndian) {
+          accum+=(short)(((short)((buf[pos]<<8)|buf[pos+1]))^(unsign?0x8000:0));
+        } else {
+          accum+=(short)(((short)(buf[pos]|(buf[pos+1]<<8)))^(unsign?0x8000:0));
+        }
         pos+=2;
       }
       accum/=channels;
@@ -2791,7 +2795,7 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
       int accum=0;
       for (int j=0; j<channels; j++) {
         if (pos>=len) break;
-        accum+=(signed char)buf[pos++];
+        accum+=(signed char)(buf[pos++]^(unsign?0x80:0));
       }
       accum/=channels;
       sample->data8[i]=accum;

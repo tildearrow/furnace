@@ -4172,6 +4172,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::InputInt("##RSChans",&pendingRawSampleChannels)) {
       }
       ImGui::Text("(will be mixed down to mono)");
+      ImGui::Checkbox("Unsigned",&pendingRawSampleUnsigned);
       ImGui::EndDisabled();
 
       ImGui::BeginDisabled(pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT);
@@ -4179,7 +4180,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndDisabled();
 
       if (ImGui::Button("OK")) {
-        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian);
+        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned);
         if (s==NULL) {
           showError(e->getLastError());
         } else {
@@ -4653,6 +4654,10 @@ FurnaceGUI::FurnaceGUI():
   drawHalt(10),
   macroPointSize(16),
   waveEditStyle(0),
+  pendingRawSampleDepth(8),
+  pendingRawSampleChannels(1),
+  pendingRawSampleUnsigned(false),
+  pendingRawSampleBigEndian(false),
   globalWinFlags(0),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
