@@ -26,6 +26,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) rWrite(((c)<<5)|(a),v);
 
+#define CHIP_DIVIDER 8
 #define CHIP_FREQBASE 524288
 
 const char** DivPlatformSoundUnit::getRegisterSheet() {
@@ -98,6 +99,13 @@ const char* DivPlatformSoundUnit::getEffectName(unsigned char effect) {
   return NULL;
 }
 
+double DivPlatformSoundUnit::NOTE_SU(int ch, int note) {
+  if (chan[ch].switchRoles) {
+    return NOTE_PERIODIC(note);
+  }
+  return NOTE_FREQUENCY(note);
+}
+
 void DivPlatformSoundUnit::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     while (!writes.empty()) {
@@ -137,15 +145,15 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
+          chan[i].baseFreq=NOTE_SU(i,chan[i].std.arp.val);
         } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
+          chan[i].baseFreq=NOTE_SU(i,chan[i].note+chan[i].std.arp.val);
         }
       }
       chan[i].freqChanged=true;
     } else {
       if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
+        chan[i].baseFreq=NOTE_SU(i,chan[i].note);
         chan[i].freqChanged=true;
       }
     }
@@ -190,13 +198,18 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
     if (chan[i].std.ex4.had) {
       chan[i].syncTimer=chan[i].std.ex4.val&65535;
       chan[i].timerSync=(chan[i].syncTimer>0);
-      chWrite(i,0x1e,chan[i].syncTimer&0xff);
-      chWrite(i,0x1f,chan[i].syncTimer>>8);
+      if (chan[i].switchRoles) {
+        chWrite(i,0x00,chan[i].syncTimer&0xff);
+        chWrite(i,0x01,chan[i].syncTimer>>8);
+      } else {
+        chWrite(i,0x1e,chan[i].syncTimer&0xff);
+        chWrite(i,0x1f,chan[i].syncTimer>>8);
+      }
       writeControlUpper(i);
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].switchRoles,2,chan[i].pitch2,chipClock,chan[i].switchRoles?CHIP_DIVIDER:CHIP_FREQBASE);
       if (chan[i].pcm) {
         DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
         // TODO: sample map?
@@ -213,8 +226,13 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
       }
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
-      chWrite(i,0x00,chan[i].freq&0xff);
-      chWrite(i,0x01,chan[i].freq>>8);
+      if (chan[i].switchRoles) {
+        chWrite(i,0x1e,chan[i].freq&0xff);
+        chWrite(i,0x1f,chan[i].freq>>8);
+      } else {
+        chWrite(i,0x00,chan[i].freq&0xff);
+        chWrite(i,0x01,chan[i].freq>>8);
+      }
       if (chan[i].keyOn) {
         if (chan[i].pcm) {
           DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
@@ -256,6 +274,7 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SU);
+      chan[c.chan].switchRoles=ins->su.switchRoles;
       if (chan[c.chan].pcm && !(ins->type==DIV_INS_AMIGA || ins->su.useSample)) {
         chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA || ins->su.useSample);
         writeControl(c.chan);
@@ -263,7 +282,7 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       }
       chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA || ins->su.useSample);
       if (c.value!=DIV_NOTE_NULL) {
-        chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
+        chan[c.chan].baseFreq=NOTE_SU(c.chan,c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
@@ -421,7 +440,7 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_FREQUENCY(c.value2);
+      int destFreq=NOTE_SU(c.chan,c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value*((parent->song.linearPitch==2)?1:(1+(chan[c.chan].baseFreq>>9)));
@@ -453,7 +472,7 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_SU(c.chan,c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -461,7 +480,7 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SU));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_SU(c.chan,chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -485,6 +504,11 @@ void DivPlatformSoundUnit::forceIns() {
   for (int i=0; i<8; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
+
+    // restore channel attributes
+    chWrite(i,0x03,chan[i].pan);
+    writeControl(i);
+    writeControlUpper(i);
   }
 }
 
