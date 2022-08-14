@@ -332,6 +332,8 @@ void DivPlatformYMZ280B::forceIns() {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
     chan[i].sample=-1;
+
+    rWrite(0x03+i*4,chan[i].panning);
   }
 }
 
