@@ -733,6 +733,8 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
           ins = new DivInstrument;
           ins->type = DIV_INS_OPL;
           ins->name = fmt::sprintf("%s (2)", insName);
+          ins->fm.alg = (feedConnect2nd & 0x1);
+          ins->fm.fb = ((feedConnect2nd >> 1) & 0xF);
           for (int i : {1,0}) {
             readOpliOp(reader, ins->fm.op[i]);
           }
@@ -1498,6 +1500,8 @@ void DivEngine::loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, S
           ins = new DivInstrument;
           ins->type = DIV_INS_OPL;
           ins->name = fmt::sprintf("%s (2)", insName);
+          ins->fm.alg = (feedConnect2nd & 0x1);
+          ins->fm.fb = ((feedConnect2nd >> 1) & 0xF);
           for (int i : {1,0}) {
             patchSum += readWoplOp(reader, ins->fm.op[i]);
           }
