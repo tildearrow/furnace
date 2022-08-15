@@ -2272,8 +2272,8 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
   unsigned int patPtr, freqMacroPtr, volMacroPtr, samplePtr, wavePtr;
   unsigned int seqLen, patLen, freqMacroLen, volMacroLen, sampleLen;
 
-  unsigned char waveLen[40];
-  unsigned char waveLoopLen[40];
+  unsigned char waveLen[80];
+  //unsigned char waveLoopLen[40];
 
   struct FCSequence {
     unsigned char pat[4];
@@ -2363,24 +2363,24 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
       wavePtr=0;
     }
 
-    logD("patPtr: %d",patPtr);
+    logD("patPtr: %x",patPtr);
     logD("patLen: %d",patLen);
-    logD("freqMacroPtr: %d",freqMacroPtr);
+    logD("freqMacroPtr: %x",freqMacroPtr);
     logD("freqMacroLen: %d",freqMacroLen);
-    logD("volMacroPtr: %d",volMacroPtr);
+    logD("volMacroPtr: %x",volMacroPtr);
     logD("volMacroLen: %d",volMacroLen);
-    logD("samplePtr: %d",samplePtr);
+    logD("samplePtr: %x",samplePtr);
     if (isFC14) {
-      logD("wavePtr: %d",wavePtr);
+      logD("wavePtr: %x",wavePtr);
     } else {
       logD("sampleLen: %d",sampleLen);
     }
 
     // sample info
-    logD("samples:");
+    logD("samples: (%x)",reader.tell());
     for (int i=0; i<10; i++) {
-      sample[i].loopLen=reader.readS_BE();
       sample[i].len=reader.readS_BE();
+      sample[i].loopLen=reader.readS_BE();
       sample[i].loopStart=reader.readS_BE();
 
       logD("- %d: %d (%d, %d)",i,sample[i].len,sample[i].loopStart,sample[i].loopLen);
@@ -2389,11 +2389,10 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     // wavetable lengths
     if (isFC14) {
       logD("wavetables:");
-      for (int i=0; i<40; i++) {
-        waveLen[i]=reader.readC();
-        waveLoopLen[i]=reader.readC();
+      for (int i=0; i<80; i++) {
+        waveLen[i]=(unsigned char)reader.readC();
 
-        logD("- %d: %.4x (%.4x)",i,waveLen[i],waveLoopLen[i]);
+        logD("- %d: %.4x",i,waveLen[i]);
       }
     }
 
@@ -2482,11 +2481,12 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
       DivSample* s=new DivSample;
       s->depth=DIV_SAMPLE_DEPTH_8BIT;
       if (sample[i].len>0) {
-        s->init(sample[i].len);
+        s->init(sample[i].len*2);
       }
+      s->name=fmt::sprintf("Sample %d",i+1);
       s->loopStart=sample[i].loopStart*2;
       s->loopEnd=(sample[i].loopStart+sample[i].loopLen)*2;
-      reader.read(s->data8,sample[i].len);
+      reader.read(s->data8,sample[i].len*2);
       ds.sample.push_back(s);
     }
     ds.sampleLen=(int)ds.sample.size();
@@ -2500,11 +2500,11 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
         return false;
       }
       logD("reading wavetables...");
-      for (int i=0; i<40; i++) {
+      for (int i=0; i<80; i++) {
         DivWavetable* w=new DivWavetable;
         w->min=0;
         w->max=255;
-        w->len=MIN(256,waveLoopLen[i]*2);
+        w->len=MIN(256,waveLen[i]*2);
 
         for (int i=0; i<256; i++) {
           w->data[i]=128;
@@ -2513,13 +2513,14 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
         if (waveLen[i]>0) {
           signed char* waveArray=new signed char[waveLen[i]*2];
           reader.read(waveArray,waveLen[i]*2);
-          int howMany=MIN(waveLen[i]*2,waveLoopLen[i]*2);
+          int howMany=waveLen[i]*2;
           if (howMany>256) howMany=256;
           for (int i=0; i<howMany; i++) {
             w->data[i]=waveArray[i]+128;
           }
           delete[] waveArray;
         } else {
+          logV("empty wave %d",i);
           w->len=32;
           for (int i=0; i<32; i++) {
             w->data[i]=(i*255)/31;
@@ -2600,9 +2601,11 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
                   }
                 }
               } else {
-                p->data[k][2]=fp.val[k]&0x3f;
+                p->data[k][2]=(fp.val[k]+seq[i].offsetIns[j])&0x3f;
               }
             }
+          } else if (fp.note[k]>0) {
+            p->data[k][2]=seq[i].offsetIns[j];
           }
         }
       }
@@ -2626,6 +2629,9 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
 
       signed char loopMap[64];
       memset(loopMap,-1,64);
+
+      signed char loopMapFreq[64];
+      memset(loopMapFreq,-1,64);
 
       // volume sequence
       ins->std.volMacro.len=0;
@@ -2678,7 +2684,11 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
       if (freqMacro<freqMacros.size()) {
         FCMacro& fm=freqMacros[freqMacro];
         for (int j=0; j<64; j++) {
+          loopMapFreq[j]=ins->std.arpMacro.len;
           if (fm.val[j]==0xe1) {
+            if (ins->std.arpMacro.mode) {
+              ins->std.arpMacro.loop=(signed int)ins->std.arpMacro.len-1;
+            }
             break;
           } else if (fm.val[j]==0xe2 || fm.val[j]==0xe4) {
             if (++j>=64) break;
@@ -2692,11 +2702,12 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
               ins->std.waveMacro.val[ins->std.waveMacro.len]=wave-10;
               ins->std.waveMacro.open=true;
               lastVal=wave;
-              if (++ins->std.waveMacro.len>=128) break;
               if (++ins->std.arpMacro.len>=128) break;
             }
           } else if (fm.val[j]==0xe0) {
-            logV("unhandled loop!");
+            if (++j>=64) break;
+            ins->std.arpMacro.loop=loopMapFreq[fm.val[j]&63];
+            break;
           } else if (fm.val[j]==0xe3) {
             logV("unhandled vibrato!");
           } else if (fm.val[j]==0xe8) {
@@ -2708,9 +2719,18 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
           } else if (fm.val[j]==0xea) {
             logV("unhandled pitch!");
           } else {
-            ins->std.arpMacro.val[ins->std.arpMacro.len]=(signed char)fm.val[j];
+            if (fm.val[j]>0x80) {
+              ins->std.arpMacro.val[ins->std.arpMacro.len]=fm.val[j]-0x80+24;
+              ins->std.arpMacro.mode=1; // TODO: variable fixed/relative mode
+            } else {
+              ins->std.arpMacro.val[ins->std.arpMacro.len]=fm.val[j];
+            }
+            if (lastVal>=10) {
+              ins->std.waveMacro.val[ins->std.waveMacro.len]=lastVal-10;
+            }
             ins->std.arpMacro.open=true;
             if (++ins->std.arpMacro.len>=128) break;
+            if (++ins->std.waveMacro.len>=128) break;
           }
         }
       }
