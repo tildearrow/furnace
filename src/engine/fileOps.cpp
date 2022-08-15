@@ -2390,10 +2390,11 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     DivSong ds;
     ds.tuning=436.0;
     ds.version=DIV_VERSION_FC;
-    ds.linearPitch=0;
-    ds.pitchMacroIsLinear=false;
+    //ds.linearPitch=0;
+    //ds.pitchMacroIsLinear=false;
     //ds.noSlidesOnFirstTick=true;
     //ds.rowResetsArpPos=true;
+    ds.pitchSlideSpeed=8;
     ds.ignoreJumpAtEnd=false;
 
     // load here
@@ -2843,7 +2844,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
               ins->std.waveMacro.val[ins->std.waveMacro.len]=wave-10;
               ins->std.waveMacro.open=true;
               lastVal=wave;
-              if (++ins->std.arpMacro.len>=128) break;
+              //if (++ins->std.arpMacro.len>=128) break;
             }
           } else if (fm.val[j]==0xe0) {
             if (++j>=64) break;
@@ -2892,19 +2893,19 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
       do {
         vibPos+=vibSpeed;
         if (vibPos>vibDepth) vibPos=vibDepth;
-        ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*4;
+        ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*32;
         if (++ins->std.pitchMacro.len>=128) break;
       } while (vibPos<vibDepth);
       do {
         vibPos-=vibSpeed;
         if (vibPos<-vibDepth) vibPos=-vibDepth;
-        ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*4;
+        ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*32;
         if (++ins->std.pitchMacro.len>=128) break;
       } while (vibPos>-vibDepth);
       do {
         vibPos+=vibSpeed;
         if (vibPos>0) vibPos=0;
-        ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*4;
+        ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*32;
         if (++ins->std.pitchMacro.len>=128) break;
       } while (vibPos<0);
 
