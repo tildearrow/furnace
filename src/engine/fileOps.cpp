@@ -2262,6 +2262,95 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
   return success;
 }
 
+unsigned char fcXORTriangle[32]={
+  0xc0, 0xc0, 0xd0, 0xd8, 0xe0, 0xe8, 0xf0, 0xf8, 0x00, 0xf8, 0xf0, 0xe8, 0xe0, 0xd8, 0xd0, 0xc8,
+  0xc0, 0xb8, 0xb0, 0xa8, 0xa0, 0x98, 0x90, 0x88, 0x80, 0x88, 0x90, 0x98, 0xa0, 0xa8, 0xb0, 0xb8
+};
+
+unsigned char fcCustom1[32]={
+  0x45, 0x45, 0x79, 0x7d, 0x7a, 0x77, 0x70, 0x66, 0x61, 0x58, 0x53, 0x4d, 0x2c, 0x20, 0x18, 0x12,
+  0x04, 0xdb, 0xd3, 0xcd, 0xc6, 0xbc, 0xb5, 0xae, 0xa8, 0xa3, 0x9d, 0x99, 0x93, 0x8e, 0x8b, 0x8a
+};
+
+unsigned char fcCustom2[32]={
+  0x45, 0x45, 0x79, 0x7d, 0x7a, 0x77, 0x70, 0x66, 0x5b, 0x4b, 0x43, 0x37, 0x2c, 0x20, 0x18, 0x12,
+  0x04, 0xf8, 0xe8, 0xdb, 0xcf, 0xc6, 0xbe, 0xb0, 0xa8, 0xa4, 0x9e, 0x9a, 0x95, 0x94, 0x8d, 0x83
+};
+
+unsigned char fcTinyTriangle[16]={
+  0x00, 0x00, 0x40, 0x60, 0x7f, 0x60, 0x40, 0x20, 0x00, 0xe0, 0xc0, 0xa0, 0x80, 0xa0, 0xc0, 0xe0
+};
+
+void generateFCPresetWave(int index, DivWavetable* wave) {
+  wave->max=255;
+  wave->len=32;
+
+  switch (index) {
+    case 0x00: case 0x01: case 0x02: case 0x03:
+    case 0x04: case 0x05: case 0x06: case 0x07:
+    case 0x08: case 0x09: case 0x0a: case 0x0b:
+    case 0x0c: case 0x0d: case 0x0e: case 0x0f:
+      // XOR triangle
+      for (int i=0; i<32; i++) {
+        wave->data[i]=(unsigned char)((fcXORTriangle[i]^0x80)^(((index+15)<i)?0x87:0x00));
+      }
+      break;
+    case 0x10: case 0x11: case 0x12: case 0x13:
+    case 0x14: case 0x15: case 0x16: case 0x17:
+    case 0x18: case 0x19: case 0x1a: case 0x1b:
+    case 0x1c: case 0x1d: case 0x1e: case 0x1f:
+      // pulse
+      for (int i=0; i<32; i++) {
+        wave->data[i]=(index>i)?0x01:0xff;
+      }
+      break;
+    case 0x20: case 0x21: case 0x22: case 0x23:
+    case 0x24: case 0x25: case 0x26: case 0x27:
+      // tiny pulse
+      for (int i=0; i<32; i++) {
+        wave->data[i]=((index-0x18)>(i&15))?0x01:0xff;
+      }
+      break;
+    case 0x28:
+    case 0x2e:
+      // saw
+      for (int i=0; i<32; i++) {
+        wave->data[i]=i<<3;
+      }
+      break;
+    case 0x29:
+    case 0x2f:
+      // tiny saw
+      for (int i=0; i<32; i++) {
+        wave->data[i]=(i<<4)&0xff;
+      }
+      break;
+    case 0x2a:
+      // custom 1
+      for (int i=0; i<32; i++) {
+        wave->data[i]=fcCustom1[i]^0x80;
+      }
+      break;
+    case 0x2b:
+      // custom 2
+      for (int i=0; i<32; i++) {
+        wave->data[i]=fcCustom2[i]^0x80;
+      }
+      break;
+    case 0x2c: case 0x2d:
+      // tiny triangle
+      for (int i=0; i<32; i++) {
+        wave->data[i]=fcTinyTriangle[i&15]^0x80;
+      }
+      break;
+    default:
+      for (int i=0; i<32; i++) {
+        wave->data[i]=i;
+      }
+      break;
+  }
+}
+
 bool DivEngine::loadFC(unsigned char* file, size_t len) {
   struct InvalidHeaderException {};
   bool success=false;
@@ -2301,10 +2390,11 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     DivSong ds;
     ds.tuning=436.0;
     ds.version=DIV_VERSION_FC;
-    //ds.linearPitch=0;
+    ds.linearPitch=0;
+    ds.pitchMacroIsLinear=false;
     //ds.noSlidesOnFirstTick=true;
     //ds.rowResetsArpPos=true;
-    //ds.ignoreJumpAtEnd=false;
+    ds.ignoreJumpAtEnd=false;
 
     // load here
     if (!reader.seek(0,SEEK_SET)) {
@@ -2521,12 +2611,16 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
           delete[] waveArray;
         } else {
           logV("empty wave %d",i);
-          w->len=32;
-          for (int i=0; i<32; i++) {
-            w->data[i]=(i*255)/31;
-          }
+          generateFCPresetWave(i,w);
         }
 
+        ds.wave.push_back(w);
+      }
+    } else {
+      // generate preset waves
+      for (int i=0; i<48; i++) {
+        DivWavetable* w=new DivWavetable;
+        generateFCPresetWave(i,w);
         ds.wave.push_back(w);
       }
     }
@@ -2541,6 +2635,14 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     ds.subsong[0]->pat[3].effectCols=3;
     ds.subsong[0]->speed1=3;
     ds.subsong[0]->speed2=3;
+
+    int lastIns[4];
+    int lastNote[4];
+    signed char lastTranspose[4];
+
+    memset(lastIns,-1,4*sizeof(int));
+    memset(lastNote,-1,4*sizeof(int));
+    memset(lastTranspose,0,4);
 
     for (unsigned int i=0; i<seqLen; i++) {
       for (int j=0; j<4; j++) {
@@ -2559,6 +2661,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
         for (int k=0; k<32; k++) {
           FCPattern& fp=pat[seq[i].pat[j]];
           if (fp.note[k]>0 && fp.note[k]<0x49) {
+            lastNote[j]=fp.note[k];
             short note=(fp.note[k]+seq[i].transpose[j])%12;
             short octave=2+((fp.note[k]+seq[i].transpose[j])/12);
             if (fp.note[k]>=0x3d) octave-=6;
@@ -2574,6 +2677,27 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
               p->data[k][4]=2;
               p->data[k][5]=0;
             }
+          } else if (fp.note[k]==0x49) {
+            if (k>0) {
+              p->data[k-1][4]=0x0d;
+              p->data[k-1][5]=0;
+            }
+          } else if (k==0 && lastTranspose[j]!=seq[i].transpose[j]) {
+            p->data[0][2]=lastIns[j];
+            p->data[0][4]=0x03;
+            p->data[0][5]=0xff;
+            lastTranspose[j]=seq[i].transpose[j];
+
+            short note=(lastNote[j]+seq[i].transpose[j])%12;
+            short octave=2+((lastNote[j]+seq[i].transpose[j])/12);
+            if (lastNote[j]>=0x3d) octave-=6;
+            if (note==0) {
+              note=12;
+              octave--;
+            }
+            octave&=0xff;
+            p->data[k][0]=note;
+            p->data[k][1]=octave;
           }
           if (fp.val[k]) {
             if (ignoreNext) {
@@ -2602,10 +2726,12 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
                 }
               } else {
                 p->data[k][2]=(fp.val[k]+seq[i].offsetIns[j])&0x3f;
+                lastIns[j]=p->data[k][2];
               }
             }
-          } else if (fp.note[k]>0) {
+          } else if (fp.note[k]>0 && fp.note[k]<0x49) {
             p->data[k][2]=seq[i].offsetIns[j];
+            lastIns[j]=p->data[k][2];
           }
         }
       }
@@ -2619,11 +2745,11 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
       ins->type=DIV_INS_AMIGA;
       ins->name=fmt::sprintf("Instrument %d",i);
       ins->amiga.useWave=true;
-      //unsigned char seqSpeed=m.val[0];
+      unsigned char seqSpeed=m.val[0];
       unsigned char freqMacro=m.val[1];
-      //unsigned char vibSpeed=m.val[2];
-      //unsigned char vibDepth=m.val[3];
-      //unsigned char vibDelay=m.val[4];
+      unsigned char vibSpeed=m.val[2];
+      unsigned char vibDepth=m.val[3];
+      unsigned char vibDelay=m.val[4];
 
       unsigned char lastVal=m.val[5];
 
@@ -2632,6 +2758,9 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
 
       signed char loopMapFreq[64];
       memset(loopMapFreq,-1,64);
+
+      signed char loopMapWave[64];
+      memset(loopMapWave,-1,64);
 
       // volume sequence
       ins->std.volMacro.len=0;
@@ -2672,9 +2801,13 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
             if (++ins->std.volMacro.len>=128) break;
           }
         } else {
-          ins->std.volMacro.val[ins->std.volMacro.len]=m.val[j];
-          lastVal=m.val[j];
-          if (++ins->std.volMacro.len>=128) break;
+          // TODO: replace with upcoming macro speed
+          for (int k=0; k<MAX(1,seqSpeed); k++) {
+            ins->std.volMacro.val[ins->std.volMacro.len]=m.val[j];
+            lastVal=m.val[j];
+            if (++ins->std.volMacro.len>=128) break;
+          }
+          if (ins->std.volMacro.len>=128) break;
         }
       }
 
@@ -2685,6 +2818,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
         FCMacro& fm=freqMacros[freqMacro];
         for (int j=0; j<64; j++) {
           loopMapFreq[j]=ins->std.arpMacro.len;
+          loopMapWave[j]=ins->std.waveMacro.len;
           if (fm.val[j]==0xe1) {
             if (ins->std.arpMacro.mode) {
               ins->std.arpMacro.loop=(signed int)ins->std.arpMacro.len-1;
@@ -2707,6 +2841,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
           } else if (fm.val[j]==0xe0) {
             if (++j>=64) break;
             ins->std.arpMacro.loop=loopMapFreq[fm.val[j]&63];
+            ins->std.waveMacro.loop=loopMapWave[fm.val[j]&63];
             break;
           } else if (fm.val[j]==0xe3) {
             logV("unhandled vibrato!");
@@ -2734,6 +2869,32 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
           }
         }
       }
+
+      // vibrato
+      for (int j=0; j<=vibDelay; j++) {
+        ins->std.pitchMacro.val[ins->std.pitchMacro.len]=0;
+        if (++ins->std.pitchMacro.len>=128) break;
+      }
+      int vibPos=0;
+      ins->std.pitchMacro.loop=ins->std.pitchMacro.len;
+      do {
+        vibPos+=vibSpeed;
+        if (vibPos>vibDepth) vibPos=vibDepth;
+        ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*4;
+        if (++ins->std.pitchMacro.len>=128) break;
+      } while (vibPos<vibDepth);
+      do {
+        vibPos-=vibSpeed;
+        if (vibPos<-vibDepth) vibPos=-vibDepth;
+        ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*4;
+        if (++ins->std.pitchMacro.len>=128) break;
+      } while (vibPos>-vibDepth);
+      do {
+        vibPos+=vibSpeed;
+        if (vibPos>0) vibPos=0;
+        ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*4;
+        if (++ins->std.pitchMacro.len>=128) break;
+      } while (vibPos<0);
 
       ds.ins.push_back(ins);
     }
