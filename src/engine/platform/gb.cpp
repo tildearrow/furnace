@@ -84,7 +84,7 @@ const char* DivPlatformGB::getEffectName(unsigned char effect) {
 
 void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
-    while (!writes.empty()) {
+    if (!writes.empty()) {
       QueuedWrite& w=writes.front();
       GB_apu_write(gb,w.addr,w.val);
       writes.pop();
