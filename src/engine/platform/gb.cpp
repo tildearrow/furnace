@@ -84,7 +84,7 @@ const char* DivPlatformGB::getEffectName(unsigned char effect) {
 
 void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
-    if (!writes.empty()) {
+    while (!writes.empty()) {
       QueuedWrite& w=writes.front();
       GB_apu_write(gb,w.addr,w.val);
       writes.pop();
@@ -411,13 +411,13 @@ int DivPlatformGB::dispatch(DivCommand c) {
         ws.init(ins,32,15,chan[c.chan].insChanged);
       }
       if ((chan[c.chan].insChanged || ins->gb.alwaysInit) && !chan[c.chan].softEnv) {
-        if (!chan[c.chan].soManyHacksToMakeItDefleCompatible) {
+        if (!chan[c.chan].soManyHacksToMakeItDefleCompatible && c.chan!=2) {
           chan[c.chan].envVol=ins->gb.envVol;
         }
         chan[c.chan].envLen=ins->gb.envLen;
         chan[c.chan].envDir=ins->gb.envDir;
         chan[c.chan].soundLen=ins->gb.soundLen;
-        if (!chan[c.chan].soManyHacksToMakeItDefleCompatible) {
+        if (!chan[c.chan].soManyHacksToMakeItDefleCompatible && c.chan!=2) {
           chan[c.chan].vol=chan[c.chan].envVol;
           chan[c.chan].outVol=chan[c.chan].envVol;
         }
