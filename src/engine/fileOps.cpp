@@ -2642,10 +2642,12 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     int lastIns[4];
     int lastNote[4];
     signed char lastTranspose[4];
+    bool isSliding[4];
 
     memset(lastIns,-1,4*sizeof(int));
     memset(lastNote,-1,4*sizeof(int));
     memset(lastTranspose,0,4);
+    memset(isSliding,0,4*sizeof(bool));
 
     for (unsigned int i=0; i<seqLen; i++) {
       for (int j=0; j<4; j++) {
@@ -2659,7 +2661,6 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
         }
 
         bool ignoreNext=false;
-        bool isSliding=false;
 
         for (int k=0; k<32; k++) {
           FCPattern& fp=pat[seq[i].pat[j]];
@@ -2675,8 +2676,8 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
             octave&=0xff;
             p->data[k][0]=note;
             p->data[k][1]=octave;
-            if (isSliding) {
-              isSliding=false;
+            if (isSliding[j]) {
+              isSliding[j]=false;
               p->data[k][4]=2;
               p->data[k][5]=0;
             }
@@ -2714,9 +2715,9 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
                 if (fp.val[k]&0x40) {
                   p->data[k][4]=2;
                   p->data[k][5]=0;
-                  isSliding=false;
+                  isSliding[j]=false;
                 } else if (fp.val[k]&0x80) {
-                  isSliding=true;
+                  isSliding[j]=true;
                   if (k<31) {
                     if (fp.val[k+1]&0x20) {
                       p->data[k][4]=2;
@@ -2856,7 +2857,9 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
           } else if (fm.val[j]==0xe8) {
             logV("unhandled sustain!");
           } else if (fm.val[j]==0xe7) {
-            logV("unhandled newseq!");
+            if (++j>=64) break;
+            fm=freqMacros[MIN(fm.val[j],freqMacros.size()-1)];
+            j=0;
           } else if (fm.val[j]==0xe9) {
             logV("unhandled pack!");
           } else if (fm.val[j]==0xea) {
