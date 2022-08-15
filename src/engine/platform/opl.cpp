@@ -872,6 +872,13 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
           chan[c.chan].fourOp=(ops==4);
           if (chan[c.chan].fourOp) {
+            /*
+            if (chan[c.chan+1].active) {
+              chan[c.chan+1].keyOff=true;
+              chan[c.chan+1].keyOn=false;
+              chan[c.chan+1].active=false;
+            }*/
+            chan[c.chan+1].insChanged=true;
             chan[c.chan+1].macroInit(NULL);
           }
           update4OpMask=true;
