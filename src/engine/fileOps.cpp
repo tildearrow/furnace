@@ -2470,8 +2470,8 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     logD("samples: (%x)",reader.tell());
     for (int i=0; i<10; i++) {
       sample[i].len=reader.readS_BE();
-      sample[i].loopLen=reader.readS_BE();
       sample[i].loopStart=reader.readS_BE();
+      sample[i].loopLen=reader.readS_BE();
 
       logD("- %d: %d (%d, %d)",i,sample[i].len,sample[i].loopStart,sample[i].loopLen);
     }
@@ -2574,8 +2574,10 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
         s->init(sample[i].len*2);
       }
       s->name=fmt::sprintf("Sample %d",i+1);
-      s->loopStart=sample[i].loopStart*2;
-      s->loopEnd=(sample[i].loopStart+sample[i].loopLen)*2;
+      if (sample[i].loopLen>1) {
+        s->loopStart=sample[i].loopStart;
+        s->loopEnd=sample[i].loopStart+(sample[i].loopLen*2);
+      }
       reader.read(s->data8,sample[i].len*2);
       ds.sample.push_back(s);
     }
@@ -2703,7 +2705,11 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
             if (ignoreNext) {
               ignoreNext=false;
             } else {
-              if (fp.val[k]&0xe0) {
+              if (fp.val[k]==0xf0) {
+                p->data[k][0]=100;
+                p->data[k][1]=0;
+                p->data[k][2]=-1;
+              } else if (fp.val[k]&0xe0) {
                 if (fp.val[k]&0x40) {
                   p->data[k][4]=2;
                   p->data[k][5]=0;
@@ -2780,6 +2786,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
             ins->std.volMacro.val[ins->std.volMacro.len]=lastVal;
             if (++ins->std.volMacro.len>=128) break;
           }
+          if (ins->std.volMacro.len>=128) break;
         } else if (m.val[j]==0xe9 || m.val[j]==0xea) { // volume slide
           if (++j>=64) break;
           signed char slideStep=m.val[j];
@@ -2868,6 +2875,11 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
             if (++ins->std.waveMacro.len>=128) break;
           }
         }
+      }
+
+      // waveform width
+      if (lastVal>=10 && (unsigned int)(lastVal-10)<ds.wave.size()) {
+        ins->amiga.waveLen=ds.wave[lastVal-10]->len-1;
       }
 
       // vibrato
