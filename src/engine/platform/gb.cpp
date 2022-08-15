@@ -373,6 +373,8 @@ void DivPlatformGB::tick(bool sysTick) {
         chan[i].killIt=false;
       }
     }
+
+    chan[i].soManyHacksToMakeItDefleCompatible=false;
   }
 }
 
@@ -409,10 +411,16 @@ int DivPlatformGB::dispatch(DivCommand c) {
         ws.init(ins,32,15,chan[c.chan].insChanged);
       }
       if ((chan[c.chan].insChanged || ins->gb.alwaysInit) && !chan[c.chan].softEnv) {
-        chan[c.chan].envVol=ins->gb.envVol;
+        if (!chan[c.chan].soManyHacksToMakeItDefleCompatible) {
+          chan[c.chan].envVol=ins->gb.envVol;
+        }
         chan[c.chan].envLen=ins->gb.envLen;
         chan[c.chan].envDir=ins->gb.envDir;
         chan[c.chan].soundLen=ins->gb.soundLen;
+        if (!chan[c.chan].soManyHacksToMakeItDefleCompatible) {
+          chan[c.chan].vol=chan[c.chan].envVol;
+          chan[c.chan].outVol=chan[c.chan].envVol;
+        }
       }
       if (c.chan==2 && chan[c.chan].softEnv) {
         chan[c.chan].soundLen=64;
@@ -460,6 +468,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       }
       if (!chan[c.chan].softEnv) {
         chan[c.chan].envVol=chan[c.chan].vol;
+        chan[c.chan].soManyHacksToMakeItDefleCompatible=true;
       } else if (c.chan!=2) {
         chan[c.chan].envVol=chan[c.chan].vol;
         if (!chan[c.chan].keyOn) chan[c.chan].killIt=true;

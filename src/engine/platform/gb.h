@@ -31,6 +31,7 @@ class DivPlatformGB: public DivDispatch {
     int freq, baseFreq, pitch, pitch2, note, ins;
     unsigned char duty, sweep;
     bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, released, softEnv, killIt;
+    bool soManyHacksToMakeItDefleCompatible;
     signed char vol, outVol, wave, lastKill;
     unsigned char envVol, envDir, envLen, soundLen;
     unsigned short hwSeqPos;
@@ -59,6 +60,7 @@ class DivPlatformGB: public DivDispatch {
       released(false),
       softEnv(false),
       killIt(false),
+      soManyHacksToMakeItDefleCompatible(false),
       vol(15),
       outVol(15),
       wave(-1),
