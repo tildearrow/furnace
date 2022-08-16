@@ -130,7 +130,7 @@ jobs:
           zlib1g-dev \
           libjack-jackd2-dev \
           appstream
-        wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+        wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" || wget "https://tildearrow.org/storage/furnace/ci/appimagetool-x86_64.AppImage"
         chmod +x appimagetool-x86_64.AppImage
 
     - name: Install Dependencies [Linux armhf]
@@ -151,8 +151,8 @@ jobs:
           libsndfile1-dev:armhf \
           zlib1g-dev:armhf \
           libjack-jackd2-dev:armhf
-        wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
-        wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-armhf"
+        wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" || wget "https://tildearrow.org/storage/furnace/ci/appimagetool-x86_64.AppImage"
+        wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-armhf" || wget "https://tildearrow.org/storage/furnace/ci/runtime-armhf"
         chmod +x appimagetool-x86_64.AppImage
         ls /usr/arm-linux-gnueabihf/lib
 
