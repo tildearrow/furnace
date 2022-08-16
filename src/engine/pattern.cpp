@@ -18,6 +18,7 @@
  */
 
 #include "engine.h"
+#include "../ta-log.h"
 
 static DivPattern emptyPat;
 
@@ -40,6 +41,44 @@ DivPattern* DivChannelData::getPattern(int index, bool create) {
   return data[index];
 }
 
+std::vector<std::pair<int,int>> DivChannelData::optimize() {
+  std::vector<std::pair<int,int>> ret;
+  for (int i=0; i<256; i++) {
+    if (data[i]!=NULL) {
+      // compare
+      for (int j=0; j<256; j++) {
+        if (j==i) continue;
+        if (data[j]==NULL) continue;
+        if (memcmp(data[i]->data,data[j]->data,256*32*sizeof(short))==0) {
+          delete data[j];
+          data[j]=NULL;
+          logV("%d == %d",i,j);
+          ret.push_back(std::pair<int,int>(j,i));
+        }
+      }
+    }
+  }
+  return ret;
+}
+
+std::vector<std::pair<int,int>> DivChannelData::rearrange() {
+  std::vector<std::pair<int,int>> ret;
+  for (int i=0; i<256; i++) {
+    if (data[i]==NULL) {
+      for (int j=i; j<256; j++) {
+        if (data[j]!=NULL) {
+          data[i]=data[j];
+          data[j]=NULL;
+          logV("%d -> %d",j,i);
+          ret.push_back(std::pair<int,int>(j,i));
+          if (++i>=256) break;
+        }
+      }
+    }
+  }
+  return ret;
+}
+
 void DivChannelData::wipePatterns() {
   for (int i=0; i<256; i++) {
     if (data[i]!=NULL) {
@@ -52,81 +91,6 @@ void DivChannelData::wipePatterns() {
 void DivPattern::copyOn(DivPattern* dest) {
   dest->name=name;
   memcpy(dest->data,data,sizeof(data));
-}
-
-SafeReader* DivPattern::compile(int len, int fxRows) {
-  SafeWriter w;
-  w.init();
-  short lastNote, lastOctave, lastInstr, lastVolume, lastEffect[8], lastEffectVal[8];
-  unsigned char rows=0;
-
-  lastNote=0;
-  lastOctave=0;
-  lastInstr=-1;
-  lastVolume=-1;
-  memset(lastEffect,-1,8*sizeof(short));
-  memset(lastEffectVal,-1,8*sizeof(short));
-
-  for (int i=0; i<len; i++) {
-    unsigned char mask=0;
-    if (data[i][0]!=-1) {
-      lastNote=data[i][0];
-      lastOctave=data[i][1];
-      mask|=128;
-    }
-    if (data[i][2]!=-1 && data[i][2]!=lastInstr) {
-      lastInstr=data[i][2];
-      mask|=32;
-    }
-    if (data[i][3]!=-1 && data[i][3]!=lastVolume) {
-      lastVolume=data[i][3];
-      mask|=64;
-    }
-    for (int j=0; j<fxRows; j++) {
-      if (data[i][4+(j<<1)]!=-1) {
-        lastEffect[j]=data[i][4+(j<<1)];
-        lastEffectVal[j]=data[i][5+(j<<1)];
-        mask=(mask&0xf8)|j;
-      }
-    }
-
-    if (!mask) {
-      rows++;
-      continue;
-    }
-
-    if (rows!=0) {
-      w.writeC(rows);
-    }
-    rows=1;
-
-    w.writeC(mask);
-    if (mask&128) {
-      if (lastNote==100) {
-        w.writeC(-128);
-      } else {
-        w.writeC(lastNote+(lastOctave*12));
-      }
-    }
-    if (mask&64) {
-      w.writeC(lastVolume);
-    }
-    if (mask&32) {
-      w.writeC(lastInstr);
-    }
-    for (int j=0; j<(mask&7); j++) {
-      w.writeC(lastEffect[j]);
-      if (lastEffectVal[j]==-1) {
-        w.writeC(0);
-      } else {
-        w.writeC(lastEffectVal[j]);
-      }
-    }
-  }
-  w.writeC(rows);
-  w.writeC(0);
-
-  return w.toReader();
 }
 
 DivChannelData::DivChannelData():

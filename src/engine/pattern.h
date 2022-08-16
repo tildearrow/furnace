@@ -18,6 +18,7 @@
  */
 
 #include "safeReader.h"
+#include <vector>
 
 struct DivPattern {
   String name;
@@ -28,14 +29,6 @@ struct DivPattern {
    * @param dest the destination pattern.
    */
   void copyOn(DivPattern* dest);
-
-  /**
-   * don't use yet!
-   * @param len the pattern length
-   * @param fxRows number of effect ...columns
-   * @return a SafeReader.
-   */
-  SafeReader* compile(int len=256, int fxRows=1);
   DivPattern();
 };
 
@@ -58,6 +51,20 @@ struct DivChannelData {
    * @return a DivPattern.
    */
   DivPattern* getPattern(int index, bool create);
+
+  /**
+   * optimize pattern data.
+   * not thread-safe! use a mutex!
+   * @return a list of From -> To pairs
+   */
+  std::vector<std::pair<int,int>> optimize();
+
+  /**
+   * re-arrange NULLs.
+   * not thread-safe! use a mutex!
+   * @return a list of From -> To pairs
+   */
+  std::vector<std::pair<int,int>> rearrange();
 
   /**
    * destroy all patterns on this DivChannelData.

@@ -138,6 +138,8 @@ struct DivSubSong {
   String chanShortName[DIV_MAX_CHANS];
 
   void clearData();
+  void optimizePatterns();
+  void rearrangePatterns();
 
   DivSubSong(): 
     hilightA(4),
