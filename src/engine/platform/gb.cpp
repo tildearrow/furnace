@@ -181,7 +181,6 @@ void DivPlatformGB::tick(bool sysTick) {
           chan[i].soundLen=64;
 
           if (!chan[i].keyOn) chan[i].killIt=true;
-          chan[i].freqChanged=true;
         }
       }
     }
@@ -353,25 +352,24 @@ void DivPlatformGB::tick(bool sysTick) {
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
+    }
+    if (chan[i].killIt) {
+      if (i!=2) {
+        //rWrite(16+i*5+2,8);
+        int killDelta=chan[i].lastKill-chan[i].outVol+1;
+        if (killDelta<0) killDelta+=16;
+        chan[i].lastKill=chan[i].outVol;
 
-      if (chan[i].killIt) {
-        if (i!=2) {
-          //rWrite(16+i*5+2,8);
-          int killDelta=chan[i].lastKill-chan[i].outVol+1;
-          if (killDelta<0) killDelta+=16;
-          chan[i].lastKill=chan[i].outVol;
-
-          if (killDelta!=1) {
-            rWrite(16+i*5+2,((chan[i].envVol<<4))|8);
-            for (int j=0; j<killDelta; j++) {
-              rWrite(16+i*5+2,0x09);
-              rWrite(16+i*5+2,0x11);
-              rWrite(16+i*5+2,0x08);
-            }
+        if (killDelta!=1) {
+          rWrite(16+i*5+2,((chan[i].envVol<<4))|8);
+          for (int j=0; j<killDelta; j++) {
+            rWrite(16+i*5+2,0x09);
+            rWrite(16+i*5+2,0x11);
+            rWrite(16+i*5+2,0x08);
           }
         }
-        chan[i].killIt=false;
       }
+      chan[i].killIt=false;
     }
 
     chan[i].soManyHacksToMakeItDefleCompatible=false;
