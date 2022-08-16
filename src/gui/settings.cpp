@@ -1222,6 +1222,79 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::Separator();
 
+          ImGui::Text("Channel colors:");
+          if (ImGui::RadioButton("Single##CHC0",settings.channelColors==0)) {
+            settings.channelColors=0;
+          }
+          if (ImGui::RadioButton("Channel type##CHC1",settings.channelColors==1)) {
+            settings.channelColors=1;
+          }
+          if (ImGui::RadioButton("Instrument type##CHC2",settings.channelColors==2)) {
+            settings.channelColors=2;
+          }
+
+          ImGui::Text("Channel name colors:");
+          if (ImGui::RadioButton("Single##CTC0",settings.channelColors==0)) {
+            settings.channelColors=0;
+          }
+          if (ImGui::RadioButton("Channel type##CTC1",settings.channelColors==1)) {
+            settings.channelColors=1;
+          }
+          if (ImGui::RadioButton("Instrument type##CTC2",settings.channelColors==2)) {
+            settings.channelColors=2;
+          }
+
+          ImGui::Text("Channel style:");
+          if (ImGui::RadioButton("Classic##CHS0",settings.channelStyle==0)) {
+            settings.channelStyle=0;
+          }
+          if (ImGui::RadioButton("Line##CHS1",settings.channelStyle==1)) {
+            settings.channelStyle=1;
+          }
+          if (ImGui::RadioButton("Round##CHS2",settings.channelStyle==2)) {
+            settings.channelStyle=2;
+          }
+          if (ImGui::RadioButton("Split button##CHS3",settings.channelStyle==3)) {
+            settings.channelStyle=3;
+          }
+          if (ImGui::RadioButton("Square border##CH42",settings.channelStyle==4)) {
+            settings.channelStyle=4;
+          }
+          if (ImGui::RadioButton("Round border##CHS5",settings.channelStyle==5)) {
+            settings.channelStyle=5;
+          }
+
+          ImGui::Text("Channel volume bar:");
+          if (ImGui::RadioButton("None##CHV0",settings.channelVolStyle==0)) {
+            settings.channelVolStyle=0;
+          }
+          if (ImGui::RadioButton("Simple##CHV1",settings.channelVolStyle==1)) {
+            settings.channelVolStyle=1;
+          }
+          if (ImGui::RadioButton("Stereo##CHV2",settings.channelVolStyle==2)) {
+            settings.channelVolStyle=2;
+          }
+          if (ImGui::RadioButton("Real##CHV3",settings.channelVolStyle==3)) {
+            settings.channelVolStyle=3;
+          }
+
+          ImGui::Text("Channel feedback style:");
+
+          if (ImGui::RadioButton("Off##CHF0",settings.channelFeedbackStyle==0)) {
+            settings.channelFeedbackStyle=0;
+          }
+          if (ImGui::RadioButton("Note##CHF1",settings.channelFeedbackStyle==1)) {
+            settings.channelFeedbackStyle=1;
+          }
+          if (ImGui::RadioButton("Volume##CHF2",settings.channelFeedbackStyle==2)) {
+            settings.channelFeedbackStyle=2;
+          }
+          if (ImGui::RadioButton("Active##CHF3",settings.channelFeedbackStyle==3)) {
+            settings.channelFeedbackStyle=3;
+          }
+
+          ImGui::Separator();
+
           bool insEditColorizeB=settings.insEditColorize;
           if (ImGui::Checkbox("Colorize instrument editor using instrument type",&insEditColorizeB)) {
             settings.insEditColorize=insEditColorizeB;
@@ -2148,6 +2221,11 @@ void FurnaceGUI::syncSettings() {
   settings.emptyLabel=e->getConfString("emptyLabel","...");
   settings.emptyLabel2=e->getConfString("emptyLabel2","..");
   settings.saveUnusedPatterns=e->getConfInt("saveUnusedPatterns",0);
+  settings.channelColors=e->getConfInt("channelColors",1);
+  settings.channelTextColors=e->getConfInt("channelTextColors",0);
+  settings.channelStyle=e->getConfInt("channelStyle",0);
+  settings.channelVolStyle=e->getConfInt("channelVolStyle",0);
+  settings.channelFeedbackStyle=e->getConfInt("channelFeedbackStyle",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2237,6 +2315,11 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.noThreadedInput,0,1);
   clampSetting(settings.clampSamples,0,1);
   clampSetting(settings.saveUnusedPatterns,0,1);
+  clampSetting(settings.channelColors,0,2);
+  clampSetting(settings.channelTextColors,0,2);
+  clampSetting(settings.channelStyle,0,5);
+  clampSetting(settings.channelVolStyle,0,3);
+  clampSetting(settings.channelFeedbackStyle,0,3);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2382,6 +2465,11 @@ void FurnaceGUI::commitSettings() {
   e->setConf("emptyLabel",settings.emptyLabel);
   e->setConf("emptyLabel2",settings.emptyLabel2);
   e->setConf("saveUnusedPatterns",settings.saveUnusedPatterns);
+  e->setConf("channelColors",settings.channelColors);
+  e->setConf("channelTextColors",settings.channelTextColors);
+  e->setConf("channelStyle",settings.channelStyle);
+  e->setConf("channelVolStyle",settings.channelVolStyle);
+  e->setConf("channelFeedbackStyle",settings.channelFeedbackStyle);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

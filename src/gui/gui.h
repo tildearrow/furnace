@@ -1127,6 +1127,11 @@ class FurnaceGUI {
     int noThreadedInput;
     int clampSamples;
     int saveUnusedPatterns;
+    int channelColors;
+    int channelTextColors;
+    int channelStyle;
+    int channelVolStyle;
+    int channelFeedbackStyle;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1239,6 +1244,11 @@ class FurnaceGUI {
       noThreadedInput(0),
       clampSamples(0),
       saveUnusedPatterns(0),
+      channelColors(1),
+      channelTextColors(0),
+      channelStyle(0),
+      channelVolStyle(0),
+      channelFeedbackStyle(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
