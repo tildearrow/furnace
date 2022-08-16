@@ -293,7 +293,7 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
       if (!isMuted[adpcmChan]) {
         os[0]-=aOut.data[0]>>3;
         os[1]-=aOut.data[0]>>3;
-        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]+=aOut.data[0];
+        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=aOut.data[0];
       } else {
         oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=0;
       }
@@ -771,7 +771,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             int end=s->offB+s->lengthB-1;
             immWrite(11,(end>>2)&0xff);
             immWrite(12,(end>>10)&0xff);
-            immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
+            immWrite(7,(s->isLoopable())?0xb0:0xa0); // start/repeat
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
               chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
@@ -807,7 +807,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           int end=s->offB+s->lengthB-1;
           immWrite(11,(end>>2)&0xff);
           immWrite(12,(end>>10)&0xff);
-          immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
+          immWrite(7,(s->isLoopable())?0xb0:0xa0); // start/repeat
           int freq=(65536.0*(double)s->rate)/(double)chipRateBase;
           immWrite(16,freq&0xff);
           immWrite(17,(freq>>8)&0xff);
@@ -872,6 +872,13 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
           chan[c.chan].fourOp=(ops==4);
           if (chan[c.chan].fourOp) {
+            /*
+            if (chan[c.chan+1].active) {
+              chan[c.chan+1].keyOff=true;
+              chan[c.chan+1].keyOn=false;
+              chan[c.chan+1].active=false;
+            }*/
+            chan[c.chan+1].insChanged=true;
             chan[c.chan+1].macroInit(NULL);
           }
           update4OpMask=true;

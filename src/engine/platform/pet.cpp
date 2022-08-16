@@ -133,8 +133,14 @@ void DivPlatformPET::tick(bool sysTick) {
     }
   }
   if (chan.std.pitch.had) {
-      chan.freqChanged=true;
+    if (chan.std.pitch.mode) {
+      chan.pitch2+=chan.std.pitch.val;
+      CLAMP_VAR(chan.pitch2,-32768,32767);
+    } else {
+      chan.pitch2=chan.std.pitch.val;
     }
+    chan.freqChanged=true;
+  }
   if (chan.freqChanged || chan.keyOn || chan.keyOff) {
     chan.freq=parent->calcFreq(chan.baseFreq,chan.pitch,true,0,chan.pitch2,chipClock,CHIP_DIVIDER)-2;
     if (chan.freq>65535) chan.freq=65535;

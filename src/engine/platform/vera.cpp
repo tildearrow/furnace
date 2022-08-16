@@ -98,13 +98,11 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
           rWritePCMData(tmp_r&0xff);
         }
         chan[16].pcm.pos++;
-        if (chan[16].pcm.pos>=s->samples) {
-          if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
-            chan[16].pcm.pos=s->loopStart;
-          } else {
-            chan[16].pcm.sample=-1;
-            break;
-          }
+        if (s->isLoopable() && chan[16].pcm.pos>=s->getEndPosition()) {
+          chan[16].pcm.pos=s->loopStart;
+        } else if (chan[16].pcm.pos>=s->samples) {
+          chan[16].pcm.sample=-1;
+          break;
         }
       }
     } else {
@@ -269,12 +267,12 @@ int DivPlatformVERA::dispatch(DivCommand c) {
         chan[16].pcm.pos=0;
         DivSample* s=parent->getSample(chan[16].pcm.sample);
         unsigned char ctrl=0x90|chan[16].vol; // always stereo
-        if (s->depth==16) {
+        if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
           chan[16].pcm.depth16=true;
           ctrl|=0x20;
         } else {
           chan[16].pcm.depth16=false;
-          if (s->depth!=8) chan[16].pcm.sample=-1;
+          if (s->depth!=DIV_SAMPLE_DEPTH_8BIT) chan[16].pcm.sample=-1;
         }
         rWritePCMCtrl(ctrl);
       }

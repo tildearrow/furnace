@@ -54,14 +54,14 @@ std::vector<DivInstrumentType>& DivEngine::getPossibleInsTypes() {
   return possibleInsTypes;
 }
 
-// TODO: rewrite this function (again). it's an unreliable mess.
-String DivEngine::getSongSystemName(bool isMultiSystemAcceptable) {
-  switch (song.systemLen) {
+// for pre-dev103 modules
+String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAcceptable) {
+  switch (ds.systemLen) {
     case 0:
       return "help! what's going on!";
     case 1:
-      if (song.system[0]==DIV_SYSTEM_AY8910) {
-        switch (song.systemFlags[0]&0x3f) {
+      if (ds.system[0]==DIV_SYSTEM_AY8910) {
+        switch (ds.systemFlags[0]&0x3f) {
           case 0: // AY-3-8910, 1.79MHz
           case 1: // AY-3-8910, 1.77MHz
           case 2: // AY-3-8910, 1.75MHz
@@ -88,114 +88,116 @@ String DivEngine::getSongSystemName(bool isMultiSystemAcceptable) {
             return "Intellivision (PAL)";
 
           default:
-            if ((song.systemFlags[0]&0x30)==0x00) {
+            if ((ds.systemFlags[0]&0x30)==0x00) {
               return "AY-3-8910";
-            } else if ((song.systemFlags[0]&0x30)==0x10) {
+            } else if ((ds.systemFlags[0]&0x30)==0x10) {
               return "Yamaha YM2149";
-            } else if ((song.systemFlags[0]&0x30)==0x20) {
+            } else if ((ds.systemFlags[0]&0x30)==0x20) {
               return "Overclocked Sunsoft 5B";
-            } else if ((song.systemFlags[0]&0x30)==0x30) {
+            } else if ((ds.systemFlags[0]&0x30)==0x30) {
               return "Intellivision";
             }
         }
-      } else if (song.system[0]==DIV_SYSTEM_SMS) {
-        switch (song.systemFlags[0]&0x0f) {
+      } else if (ds.system[0]==DIV_SYSTEM_SMS) {
+        switch (ds.systemFlags[0]&0x0f) {
           case 0: case 1:
             return "Sega Master System";
           case 6:
             return "BBC Micro";
         }
-      } else if (song.system[0]==DIV_SYSTEM_YM2612) {
-        switch (song.systemFlags[0]&3) {
+      } else if (ds.system[0]==DIV_SYSTEM_YM2612) {
+        switch (ds.systemFlags[0]&3) {
           case 2:
             return "FM Towns";
         }
-      } else if (song.system[0]==DIV_SYSTEM_YM2151) {
-        switch (song.systemFlags[0]&3) {
+      } else if (ds.system[0]==DIV_SYSTEM_YM2151) {
+        switch (ds.systemFlags[0]&3) {
           case 2:
             return "Sharp X68000";
         }
-      } else if (song.system[0]==DIV_SYSTEM_SAA1099) {
-        switch (song.systemFlags[0]&3) {
+      } else if (ds.system[0]==DIV_SYSTEM_SAA1099) {
+        switch (ds.systemFlags[0]&3) {
           case 0:
             return "SAM Coupé";
         }
       }
-      return getSystemName(song.system[0]);
+      return getSystemName(ds.system[0]);
     case 2:
-      if (song.system[0]==DIV_SYSTEM_YM2612 && song.system[1]==DIV_SYSTEM_SMS) {
+      if (ds.system[0]==DIV_SYSTEM_YM2612 && ds.system[1]==DIV_SYSTEM_SMS) {
         return "Sega Genesis/Mega Drive";
       }
-      if (song.system[0]==DIV_SYSTEM_YM2612_EXT && song.system[1]==DIV_SYSTEM_SMS) {
+      if (ds.system[0]==DIV_SYSTEM_YM2612_EXT && ds.system[1]==DIV_SYSTEM_SMS) {
         return "Sega Genesis Extended Channel 3";
       }
 
-      if (song.system[0]==DIV_SYSTEM_OPLL && song.system[1]==DIV_SYSTEM_SMS) {
+      if (ds.system[0]==DIV_SYSTEM_OPLL && ds.system[1]==DIV_SYSTEM_SMS) {
         return "NTSC-J Sega Master System";
       }
-      if (song.system[0]==DIV_SYSTEM_OPLL_DRUMS && song.system[1]==DIV_SYSTEM_SMS) {
+      if (ds.system[0]==DIV_SYSTEM_OPLL_DRUMS && ds.system[1]==DIV_SYSTEM_SMS) {
         return "NTSC-J Sega Master System + drums";
       }
-      if (song.system[0]==DIV_SYSTEM_OPLL && song.system[1]==DIV_SYSTEM_AY8910) {
+      if (ds.system[0]==DIV_SYSTEM_OPLL && ds.system[1]==DIV_SYSTEM_AY8910) {
         return "MSX-MUSIC";
       }
-      if (song.system[0]==DIV_SYSTEM_OPLL_DRUMS && song.system[1]==DIV_SYSTEM_AY8910) {
+      if (ds.system[0]==DIV_SYSTEM_OPLL_DRUMS && ds.system[1]==DIV_SYSTEM_AY8910) {
         return "MSX-MUSIC + drums";
       }
-      if (song.system[0]==DIV_SYSTEM_C64_6581 && song.system[1]==DIV_SYSTEM_C64_6581) {
+      if (ds.system[0]==DIV_SYSTEM_C64_6581 && ds.system[1]==DIV_SYSTEM_C64_6581) {
         return "Commodore 64 with dual 6581";
       }
-      if (song.system[0]==DIV_SYSTEM_C64_8580 && song.system[1]==DIV_SYSTEM_C64_8580) {
+      if (ds.system[0]==DIV_SYSTEM_C64_8580 && ds.system[1]==DIV_SYSTEM_C64_8580) {
         return "Commodore 64 with dual 8580";
       }
 
-      if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM_COMPAT) {
+      if (ds.system[0]==DIV_SYSTEM_YM2151 && ds.system[1]==DIV_SYSTEM_SEGAPCM_COMPAT) {
         return "YM2151 + SegaPCM Arcade (compatibility)";
       }
-      if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM) {
+      if (ds.system[0]==DIV_SYSTEM_YM2151 && ds.system[1]==DIV_SYSTEM_SEGAPCM) {
         return "YM2151 + SegaPCM Arcade";
       }
 
-      if (song.system[0]==DIV_SYSTEM_SAA1099 && song.system[1]==DIV_SYSTEM_SAA1099) {
+      if (ds.system[0]==DIV_SYSTEM_SAA1099 && ds.system[1]==DIV_SYSTEM_SAA1099) {
         return "Creative Music System";
       }
 
-      if (song.system[0]==DIV_SYSTEM_GB && song.system[1]==DIV_SYSTEM_AY8910) {
+      if (ds.system[0]==DIV_SYSTEM_GB && ds.system[1]==DIV_SYSTEM_AY8910) {
         return "Game Boy with AY expansion";
       }
 
-      if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC6) {
+      if (ds.system[0]==DIV_SYSTEM_NES && ds.system[1]==DIV_SYSTEM_VRC6) {
         return "Famicom + Konami VRC6";
       }
-      if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_VRC7) {
+      if (ds.system[0]==DIV_SYSTEM_NES && ds.system[1]==DIV_SYSTEM_VRC7) {
         return "Famicom + Konami VRC7";
       }
-      if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_OPLL) {
+      if (ds.system[0]==DIV_SYSTEM_NES && ds.system[1]==DIV_SYSTEM_OPLL) {
         return "Family Noraebang";
       }
-      if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_FDS) {
+      if (ds.system[0]==DIV_SYSTEM_NES && ds.system[1]==DIV_SYSTEM_FDS) {
         return "Famicom Disk System";
       }
-      if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_N163) {
-        return "Famicom + Namco C163";
+      if (ds.system[0]==DIV_SYSTEM_NES && ds.system[1]==DIV_SYSTEM_N163) {
+        String ret="Famicom + ";
+        ret+=getConfString("c163Name",DIV_C163_DEFAULT_NAME);
+        return ret;
       }
-      if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_MMC5) {
+      if (ds.system[0]==DIV_SYSTEM_NES && ds.system[1]==DIV_SYSTEM_MMC5) {
         return "Famicom + MMC5";
       }
-      if (song.system[0]==DIV_SYSTEM_NES && song.system[1]==DIV_SYSTEM_AY8910) {
+      if (ds.system[0]==DIV_SYSTEM_NES && ds.system[1]==DIV_SYSTEM_AY8910) {
         return "Famicom + Sunsoft 5B";
       }
 
-      if (song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_AY8910) {
+      if (ds.system[0]==DIV_SYSTEM_AY8910 && ds.system[1]==DIV_SYSTEM_AY8910) {
         return "Bally Midway MCR";
       }
 
-      if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_VERA) {
+      if (ds.system[0]==DIV_SYSTEM_YM2151 && ds.system[1]==DIV_SYSTEM_VERA) {
         return "Commander X16";
       }
       break;
     case 3:
-      if (song.system[0]==DIV_SYSTEM_AY8910 && song.system[1]==DIV_SYSTEM_AY8910 && song.system[2]==DIV_SYSTEM_BUBSYS_WSG) {
+      if (ds.system[0]==DIV_SYSTEM_AY8910 && ds.system[1]==DIV_SYSTEM_AY8910 && ds.system[2]==DIV_SYSTEM_BUBSYS_WSG) {
         return "Konami Bubble System";
       }
       break;
@@ -203,9 +205,13 @@ String DivEngine::getSongSystemName(bool isMultiSystemAcceptable) {
   if (isMultiSystemAcceptable) return "multi-system";
 
   String ret="";
-  for (int i=0; i<song.systemLen; i++) {
+  for (int i=0; i<ds.systemLen; i++) {
     if (i>0) ret+=" + ";
-    ret+=getSystemName(song.system[i]);
+    if (ds.system[i]==DIV_SYSTEM_N163) {
+      ret+=getConfString("c163Name",DIV_C163_DEFAULT_NAME);
+    } else {
+      ret+=getSystemName(ds.system[i]);
+    }
   }
 
   return ret;
@@ -213,6 +219,11 @@ String DivEngine::getSongSystemName(bool isMultiSystemAcceptable) {
 
 const char* DivEngine::getSystemName(DivSystem sys) {
   if (sysDefs[sys]==NULL) return "Unknown";
+  if (sys==DIV_SYSTEM_N163) {
+    String c1=getConfString("c163Name",DIV_C163_DEFAULT_NAME);
+    strncpy(c163NameCS,c1.c_str(),1023);
+    return c163NameCS;
+  }
   return sysDefs[sys]->name;
 }
 
@@ -1235,7 +1246,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_N163]=new DivSysDef(
-    "Namco C163", NULL, 0x8c, 0, 8, false, true, 0, false,
+    "Namco 163/C163/129/160/106/whatever", NULL, 0x8c, 0, 8, false, true, 0, false,
     "an expansion chip for the Famicom, with full wavetable.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
@@ -1829,7 +1840,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_ES5506]=new DivSysDef(
     "Ensoniq ES5506", NULL, 0xb1, 0, 32, false, true, 0, false,
-    "a sample chip used in the Gravis Ultrasound, popular in the PC (DOS) demoscene.",
+    "a sample chip used in the Ensoniq's unique TransWave synthesizers, and SoundScape series PC ISA soundcards (which are yet another (partially) Sound Blaster compatible ones with emulated OPL3 and MIDI ROMpler).",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "Channel 17", "Channel 18", "Channel 19", "Channel 20", "Channel 21", "Channel 22", "Channel 23", "Channel 24", "Channel 25", "Channel 26", "Channel 27", "Channel 28", "Channel 29", "Channel 30", "Channel 31", "Channel 32"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
@@ -1839,8 +1850,8 @@ void DivEngine::registerSystems() {
   sysDefs[DIV_SYSTEM_Y8950]=new DivSysDef(
     "Yamaha Y8950", NULL, 0xb2, 0, 10, true, false, 0x151, false,
     "like OPL but with an ADPCM channel.",
-    {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9", "PCM"},
-    {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "PCM"},
+    {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8", "FM 9", "ADPCM"},
+    {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "P"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PCM},
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_AMIGA},
     {},
@@ -1851,8 +1862,8 @@ void DivEngine::registerSystems() {
   sysDefs[DIV_SYSTEM_Y8950_DRUMS]=new DivSysDef(
     "Yamaha Y8950 with drums", NULL, 0xb3, 0, 12, true, false, 0x151, false,
     "the Y8950 chip, in drums mode.",
-    {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Kick/FM 7", "Snare", "Tom", "Top", "HiHat", "PCM"},
-    {"F1", "F2", "F3", "F4", "F5", "F6", "BD", "SD", "TM", "TP", "HH", "PCM"},
+    {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Kick/FM 7", "Snare", "Tom", "Top", "HiHat", "ADPCM"},
+    {"F1", "F2", "F3", "F4", "F5", "F6", "BD", "SD", "TM", "TP", "HH", "P"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_OPL_DRUMS, DIV_INS_AMIGA},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_NULL},

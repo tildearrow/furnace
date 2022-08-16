@@ -138,6 +138,8 @@ struct DivSubSong {
   String chanShortName[DIV_MAX_CHANS];
 
   void clearData();
+  void optimizePatterns();
+  void rearrangePatterns();
 
   DivSubSong(): 
     hilightA(4),
@@ -428,7 +430,7 @@ struct DivSong {
   unsigned int systemFlags[32];
 
   // song information
-  String name, author;
+  String name, author, systemName;
 
   // legacy song information
   // those will be stored in .fur and mapped to VGM as:
@@ -438,7 +440,7 @@ struct DivSong {
   String carrier, composer, vendor, category, writer, arranger, copyright, manGroup, manInfo, createdDate, revisionDate;
 
   // more VGM specific stuff
-  String nameJ, authorJ, categoryJ;
+  String nameJ, authorJ, categoryJ, systemNameJ;
 
   // other things
   String notes;
@@ -541,6 +543,7 @@ struct DivSong {
     systemLen(2),
     name(""),
     author(""),
+    systemName(""),
     carrier(""),
     composer(""),
     vendor(""),
@@ -561,7 +564,7 @@ struct DivSong {
     linearPitch(2),
     pitchSlideSpeed(4),
     loopModality(0),
-    properNoiseLayout(false),
+    properNoiseLayout(true),
     waveDutyIsVol(false),
     resetMacroOnPorta(false),
     legacyVolumeSlides(false),

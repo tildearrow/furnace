@@ -97,7 +97,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   "FM (OPL)",
   "FDS",
   "Virtual Boy",
-  "Namco C163",
+  "Namco 163",
   "Konami SCC/Bubble System WSG",
   "FM (OPZ)",
   "POKEY",
@@ -116,7 +116,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   NULL
 };
 
-const char* sampleDepths[17]={
+const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "1-bit PCM",
   "1-bit DPCM",
   NULL,
@@ -487,11 +487,12 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_PIANO", "Piano", 0),
   D("WINDOW_NOTES", "Song Comments", 0),
   D("WINDOW_CHANNELS", "Channels", 0),
+  D("WINDOW_PAT_MANAGER", "Pattern Manager", 0),
   D("WINDOW_REGISTER_VIEW", "Register View", 0),
   D("WINDOW_LOG", "Log Viewer", 0),
-  D("WINDOW_SUBSONGS", "Subsongs", 0),
   D("EFFECT_LIST", "Effect List", 0),
   D("WINDOW_CHAN_OSC", "Oscilloscope (per-channel)", 0),
+  D("WINDOW_SUBSONGS", "Subsongs", 0),
   D("WINDOW_FIND", "Find/Replace", FURKMOD_CMD|SDLK_f),
 
   D("COLLAPSE_WINDOW", "Collapse/expand current window", 0),
@@ -581,6 +582,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WAVE_LIST_ADD", "Add", SDLK_INSERT),
   D("WAVE_LIST_DUPLICATE", "Duplicate", FURKMOD_CMD|SDLK_d),
   D("WAVE_LIST_OPEN", "Open", 0),
+  D("WAVE_LIST_OPEN_REPLACE", "Open (replace current)", 0),
   D("WAVE_LIST_SAVE", "Save", 0),
   D("WAVE_LIST_MOVE_UP", "Move up", FURKMOD_SHIFT|SDLK_UP),
   D("WAVE_LIST_MOVE_DOWN", "Move down", FURKMOD_SHIFT|SDLK_DOWN),
@@ -594,6 +596,9 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_LIST_ADD", "Add", SDLK_INSERT),
   D("SAMPLE_LIST_DUPLICATE", "Duplicate", FURKMOD_CMD|SDLK_d),
   D("SAMPLE_LIST_OPEN", "Open", 0),
+  D("SAMPLE_LIST_OPEN_REPLACE", "Open (replace current)", 0),
+  D("SAMPLE_LIST_OPEN_RAW", "Import raw data", 0),
+  D("SAMPLE_LIST_OPEN_REPLACE_RAW", "Import raw data (replace current)", 0),
   D("SAMPLE_LIST_SAVE", "Save", 0),
   D("SAMPLE_LIST_MOVE_UP", "Move up", FURKMOD_SHIFT|SDLK_UP),
   D("SAMPLE_LIST_MOVE_DOWN", "Move down", FURKMOD_SHIFT|SDLK_DOWN),
@@ -808,6 +813,13 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,"",ImVec4(0.0f,1.0f,0.5f,1.0f)),
   D(GUI_COLOR_PATTERN_EFFECT_MISC,"",ImVec4(0.3f,0.3f,1.0f,1.0f)),
 
+  D(GUI_COLOR_PAT_MANAGER_NULL,"",ImVec4(0.15f,0.15f,0.15f,1.0f)),
+  D(GUI_COLOR_PAT_MANAGER_USED,"",ImVec4(0.15f,1.0f,0.15f,1.0f)),
+  D(GUI_COLOR_PAT_MANAGER_OVERUSED,"",ImVec4(1.0f,1.0f,0.15f,1.0f)),
+  D(GUI_COLOR_PAT_MANAGER_EXTREMELY_OVERUSED,"",ImVec4(1.0f,0.5f,0.15f,1.0f)),
+  D(GUI_COLOR_PAT_MANAGER_COMBO_BREAKER,"",ImVec4(1.0f,0.15f,1.0f,1.0f)),
+  D(GUI_COLOR_PAT_MANAGER_UNUSED,"",ImVec4(1.0f,0.15f,0.15f,1.0f)),
+
   D(GUI_COLOR_PIANO_BACKGROUND,"",ImVec4(0.0f,0.0f,0.0f,1.0f)),
   D(GUI_COLOR_PIANO_KEY_BOTTOM,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
   D(GUI_COLOR_PIANO_KEY_TOP,"",ImVec4(0.0f,0.0f,0.0f,1.0f)),
@@ -895,6 +907,7 @@ const int availableSystems[]={
   DIV_SYSTEM_MSM6258,
   DIV_SYSTEM_MSM6295,
   DIV_SYSTEM_RF5C68,
+  DIV_SYSTEM_PCM_DAC,
   0 // don't remove this last one!
 };
 

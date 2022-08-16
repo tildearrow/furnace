@@ -124,6 +124,9 @@ int SafeWriter::writeWString(WString val, bool pascal) {
     return 2+val.size()*2;
   }
 }
+int SafeWriter::writeText(String val) {
+  return write(val.c_str(),val.size());
+}
 
 void SafeWriter::init() {
   if (operative) return;

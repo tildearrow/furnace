@@ -24,6 +24,8 @@
 #define CHIP_FREQBASE fmFreqBase
 #define CHIP_DIVIDER fmDivBase
 
+#define IS_REALLY_MUTED(x) (isMuted[x] && (x<5 || !softPCM || (isMuted[5] && isMuted[6])))
+
 int DivPlatformGenesisExt::dispatch(DivCommand c) {
   if (c.chan<2) {
     return DivPlatformGenesis::dispatch(c);
@@ -418,6 +420,16 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
       }
     }
     if (writeSomething) {
+      if (chan[7].active) { // CSM
+        writeMask^=0xf0;
+      }
+      /*printf(
+        "Mask: %c %c %c %c\n",
+        (writeMask&0x10)?'1':'-',
+        (writeMask&0x20)?'2':'-',
+        (writeMask&0x40)?'3':'-',
+        (writeMask&0x80)?'4':'-'
+      );*/
       immWrite(0x28,writeMask);
     }
   }
@@ -478,6 +490,13 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
     if (chan[7].active) { // CSM
       writeMask^=0xf0;
     }
+    /*printf(
+        "Mask: %c %c %c %c\n",
+        (writeMask&0x10)?'1':'-',
+        (writeMask&0x20)?'2':'-',
+        (writeMask&0x40)?'3':'-',
+        (writeMask&0x80)?'4':'-'
+      );*/
     immWrite(0x28,writeMask);
   }
 
@@ -525,7 +544,7 @@ void DivPlatformGenesisExt::forceIns() {
       rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
     }
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
-    rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     if (chan[i].active) {
       chan[i].keyOn=true;
       chan[i].freqChanged=true;

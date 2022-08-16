@@ -45,11 +45,15 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "0.6pre1 (dev101)"
-#define DIV_ENGINE_VERSION 101
+#define DIV_VERSION "dev106"
+#define DIV_ENGINE_VERSION 106
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
+#define DIV_VERSION_FC 0xff02
+
+// "Namco C163"
+#define DIV_C163_DEFAULT_NAME "Namco 163"
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -60,7 +64,7 @@ enum DivStatusView {
 enum DivAudioEngines {
   DIV_AUDIO_JACK=0,
   DIV_AUDIO_SDL=1,
-  
+
   DIV_AUDIO_NULL=126,
   DIV_AUDIO_DUMMY=127
 };
@@ -160,7 +164,7 @@ struct DivNoteEvent {
 struct DivDispatchContainer {
   DivDispatch* dispatch;
   blip_buffer_t* bb[2];
-  size_t bbInLen;
+  size_t bbInLen, runtotal, runLeft, runPos, lastAvail;
   int temp[2], prevSample[2];
   short* bbIn[2];
   short* bbOut[2];
@@ -178,6 +182,10 @@ struct DivDispatchContainer {
     dispatch(NULL),
     bb{NULL,NULL},
     bbInLen(0),
+    runtotal(0),
+    runLeft(0),
+    runPos(0),
+    lastAvail(0),
     temp{0,0},
     prevSample{0,0},
     bbIn{NULL,NULL},
@@ -276,6 +284,8 @@ enum DivChanTypes {
   DIV_CH_OP=5
 };
 
+extern const char* cmdName[];
+
 class DivEngine {
   DivDispatchContainer disCont[32];
   TAAudio* output;
@@ -297,6 +307,7 @@ class DivEngine {
   bool stopExport;
   bool halted;
   bool forceMono;
+  bool clampSamples;
   bool cmdStreamEnabled;
   bool softLocked;
   bool firstTick;
@@ -355,6 +366,7 @@ class DivEngine {
   short vibTable[64];
   int reversePitchTable[4096];
   int pitchTable[4096];
+  char c163NameCS[1024];
   int midiBaseChan;
   bool midiPoly;
   size_t midiAgeCounter;
@@ -396,6 +408,7 @@ class DivEngine {
   bool loadFur(unsigned char* file, size_t len);
   bool loadMod(unsigned char* file, size_t len);
   bool loadFTM(unsigned char* file, size_t len);
+  bool loadFC(unsigned char* file, size_t len);
 
   void loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
   void loadTFI(SafeReader& reader, std::vector<DivInstrument*>& ret, String& stripPath);
@@ -453,7 +466,7 @@ class DivEngine {
     String encodeSysDesc(std::vector<int>& desc);
     std::vector<int> decodeSysDesc(String desc);
     // start fresh
-    void createNew(const int* description);
+    void createNew(const int* description, String sysName);
     // load a file.
     bool load(unsigned char* f, size_t length);
     // save as .dmf.
@@ -465,9 +478,11 @@ class DivEngine {
     // specify system to build ROM for.
     SafeWriter* buildROM(int sys);
     // dump to VGM.
-    SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171);
+    SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false);
     // dump to ZSM.
     SafeWriter* saveZSM(unsigned int zsmrate=60, bool loop=true);
+    // dump command stream.
+    SafeWriter* saveCommand(bool binary=false);
     // export to an audio file
     bool saveAudio(const char* path, int loops, DivAudioExportModes mode, double fadeOutTime=0.0);
     // wait for audio export to finish
@@ -479,8 +494,15 @@ class DivEngine {
     // notify wavetable change
     void notifyWaveChange(int wave);
 
+    // benchmark (returns time in seconds)
+    double benchmarkPlayback();
+    double benchmarkSeek();
+
     // returns the minimum VGM version which may carry the specified system, or 0 if none.
     int minVGMVersion(DivSystem which);
+
+    // determine and setup config dir
+    void initConfDir();
 
     // save config
     bool saveConf();
@@ -573,14 +595,14 @@ class DivEngine {
     DivInstrumentType getPreferInsSecondType(int ch);
 
     // get song system name
-    String getSongSystemName(bool isMultiSystemAcceptable=true);
+    String getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAcceptable=true);
 
     // get sys name
     const char* getSystemName(DivSystem sys);
 
     // get japanese system name
     const char* getSystemNameJ(DivSystem sys);
-    
+
     // convert sample rate format
     int fileToDivRate(int frate);
     int divToFileRate(int drate);
@@ -657,7 +679,7 @@ class DivEngine {
 
     // is playing
     bool isPlaying();
-    
+
     // is running
     bool isRunning();
 
@@ -686,8 +708,11 @@ class DivEngine {
     // add wavetable
     int addWave();
 
-    // add wavetable from file
-    bool addWaveFromFile(const char* path, bool loadRaw=true);
+    // add wavetable from pointer
+    int addWavePtr(DivWavetable* which);
+
+    // get wavetable from file
+    DivWavetable* waveFromFile(const char* path, bool loadRaw=true);
 
     // delete wavetable
     void delWave(int index);
@@ -695,8 +720,14 @@ class DivEngine {
     // add sample
     int addSample();
 
-    // add sample from file
-    int addSampleFromFile(const char* path);
+    // add sample from pointer
+    int addSamplePtr(DivSample* which);
+
+    // get sample from file
+    DivSample* sampleFromFile(const char* path);
+
+    // get raw sample
+    DivSample* sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign);
 
     // delete sample
     void delSample(int index);
@@ -735,7 +766,7 @@ class DivEngine {
     void autoNoteOn(int chan, int ins, int note, int vol=-1);
     void autoNoteOff(int chan, int note, int vol=-1);
     void autoNoteOffAll();
-    
+
     // set whether autoNoteIn is mono or poly
     void setAutoNotePoly(bool poly);
 
@@ -756,7 +787,7 @@ class DivEngine {
 
     // get dispatch channel state
     void* getDispatchChanState(int chan);
-    
+
     // get register pool
     unsigned char* getRegisterPool(int sys, int& size, int& depth);
 
@@ -792,7 +823,7 @@ class DivEngine {
 
     // set the console mode.
     void setConsoleMode(bool enable);
-    
+
     // get metronome
     bool getMetronome();
 
@@ -853,7 +884,7 @@ class DivEngine {
 
     // remove system
     bool removeSystem(int index, bool preserveOrder=true);
-    
+
     // write to register on system
     void poke(int sys, unsigned int addr, unsigned short val);
 
@@ -865,7 +896,7 @@ class DivEngine {
 
     // get warnings
     String getWarnings();
-    
+
     // switch master
     bool switchMaster();
 

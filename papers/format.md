@@ -32,6 +32,11 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 106: Furnace dev106
+- 105: Furnace dev105
+- 104: Furnace dev104
+- 103: Furnace dev103
+- 102: Furnace 0.6pre1 (dev102)
 - 101: Furnace 0.6pre1 (dev101)
 - 100: Furnace 0.6pre1
 - 99: Furnace dev99
@@ -238,6 +243,11 @@ size | description
      |   - 0xbe: YM2612 extra features - 7 channels
      |   - 0xbf: T6W28 - 4 channels
      |   - 0xc0: PCM DAC - 1 channel
+     |   - 0xc1: YM2612 CSM - 10 channels
+     |   - 0xc2: Neo Geo CSM (YM2610) - 18 channels
+     |   - 0xc3: OPN CSM - 10 channels
+     |   - 0xc4: PC-98 CSM - 20 channels
+     |   - 0xc5: YM2610B CSM - 20 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfd: Dummy System - 8 channels
@@ -330,6 +340,13 @@ size | description
   1  | number of additional subsongs
   3  | reserved
  4?? | pointers to subsong data
+ --- | **additional metadata** (>=103)
+ STR | system name
+ STR | album/category/game name
+ STR | song name (Japanese)
+ STR | song author (Japanese)
+ STR | system name (Japanese)
+ STR | album/category/game name (Japanese)
 ```
 
 # subsong
@@ -796,6 +813,43 @@ size | description
   1  | vib depth
   1  | am depth
  23  | reserved
+ --- | **Sound Unit data** (>=104)
+  1  | use sample
+  1  | switch roles of phase reset timer and frequency
+ --- | **Game Boy envelope sequence** (>=105)
+  1  | length
+ ??? | hardware sequence data
+     | size is length*3:
+     | 1 byte: command
+     | - 0: set envelope
+     | - 1: set sweep
+     | - 2: wait
+     | - 3: wait for release
+     | - 4: loop
+     | - 5: loop until release
+     | 2 bytes: data
+     | - for set envelope:
+     |   - 1 byte: parameter
+     |     - bit 4-7: volume
+     |     - bit 3: direction
+     |     - bit 0-2: length
+     |   - 1 byte: sound length
+     | - for set sweep:
+     |   - 1 byte: parameter
+     |     - bit 4-6: length
+     |     - bit 3: direction
+     |     - bit 0-2: shift
+     |   - 1 byte: nothing
+     | - for wait:
+     |   - 1 byte: length (in ticks)
+     |   - 1 byte: nothing
+     | - for wait for release:
+     |   - 2 bytes: nothing
+     | - for loop/loop until release:
+     |   - 2 bytes: position
+ --- | **Game Boy extra flags** (>=106)
+  1  | use software envelope
+  1  | always init hard env on new note
 ```
 
 # wavetable
@@ -812,7 +866,47 @@ size | description
  4?? | wavetable data
 ```
 
-# sample
+# sample (>=102)
+
+this is the new sample storage format used in Furnace dev102 and higher.
+
+```
+size | description
+-----|------------------------------------
+  4  | "SMP2" block ID
+  4  | size of this block
+ STR | sample name
+  4  | length
+  4  | compatibility rate
+  4  | C-4 rate
+  1  | depth
+     | - 0: ZX Spectrum overlay drum (1-bit)
+     | - 1: 1-bit NES DPCM (1-bit)
+     | - 3: YMZ ADPCM
+     | - 4: QSound ADPCM
+     | - 5: ADPCM-A
+     | - 6: ADPCM-B
+     | - 8: 8-bit PCM
+     | - 9: BRR (SNES)
+     | - 10: VOX
+     | - 16: 16-bit PCM
+  3  | reserved
+  4  | loop start
+     | - -1 means no loop
+  4  | loop end
+     | - -1 means no loop
+ 16  | sample presence bitfields
+     | - for future use.
+     | - indicates whether the sample should be present in the memory of a system.
+     | - read 4 32-bit numbers (for 4 memory banks per system, e.g. YM2610
+     |   does ADPCM-A and ADPCM-B on separate memory banks).
+ ??? | sample data
+     | - size is length
+```
+
+# old sample (<102)
+
+this format is present when saving using previous Furnace versions.
 
 ```
 size | description
@@ -821,7 +915,7 @@ size | description
   4  | size of this block
  STR | sample name
   4  | length
-  4  | rate
+  4  | compatibility rate
   2  | volume (<58) or reserved
   2  | pitch (<58) or reserved
   1  | depth

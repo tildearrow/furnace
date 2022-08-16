@@ -368,7 +368,7 @@ static nfdresult_t AllocPathSet( IShellItemArray *shellItems, nfdpathset_t *path
 
 static nfdresult_t SetDefaultPath( IFileDialog *dialog, const char *defaultPath )
 {
-    if ( !defaultPath || strlen(defaultPath) == 0 )
+    if ( !defaultPath || strlen(defaultPath) == 0 || strcmp(defaultPath,"\\")==0 )
         return NFD_OKAY;
 
     wchar_t *defaultPathW = {0};

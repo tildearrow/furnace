@@ -409,7 +409,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Namco C163", {
+    "Namco 163", {
       DIV_SYSTEM_N163, 64, 0, 0,
       0
     }
@@ -617,7 +617,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Famicom with Namco C163", {
+    "Famicom with Namco 163", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_N163, 64, 0, 112,
       0
@@ -1242,6 +1242,15 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Williams/Midway Y/T unit w/ADPCM sound board", {
+      // ADPCM sound board
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 15624|(7<<16), // variable via OPM timer?
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Konami Gyruss", {
       DIV_SYSTEM_AY8910, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 0,
@@ -1258,6 +1267,34 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_AY8910, 64, 0, 0,
       DIV_SYSTEM_BUBSYS_WSG, 64, 0, 0,
       // VLM5030 exists but not used for music at all
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Konami Battlantis", {
+      DIV_SYSTEM_OPL2, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_OPL2, 64, 0, 3, // ""
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Konami Battlantis (drums mode on first OPL2)", {
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_OPL2, 64, 0, 3, // ""
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Konami Battlantis (drums mode on second OPL2)", {
+      DIV_SYSTEM_OPL2, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 3, // ""
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Konami Battlantis (drums mode on both OPL2s)", {
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 3, // ""
       0
     }
   ));
@@ -1323,6 +1360,13 @@ void FurnaceGUI::initSystemPresets() {
     "Sega OutRun/X Board", {
       DIV_SYSTEM_YM2151, 64, 0, 2, // 4MHz
       DIV_SYSTEM_SEGAPCM, 64, 0, 0, // ASIC, 31.25KHz output rate
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 24", {
+      DIV_SYSTEM_YM2151, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_PCM_DAC, 64, 0, 61499|(7<<16), // software controlled, variable rate via configurable timers
       0
     }
   ));
@@ -1863,7 +1907,7 @@ void FurnaceGUI::initSystemPresets() {
     "Alpha denshi Alpha-68K", {
       DIV_SYSTEM_OPN, 64, 0, 3, // 3MHz
       DIV_SYSTEM_OPLL, 64, 0, 0, // 3.58MHz
-      // software controlled 8 bit DAC
+      DIV_SYSTEM_PCM_DAC, 64, 0, 7613|(7<<16), // software controlled 8 bit DAC
       0
     }
   ));
@@ -1871,7 +1915,7 @@ void FurnaceGUI::initSystemPresets() {
     "Alpha denshi Alpha-68K (extended channel 3)", {
       DIV_SYSTEM_OPN_EXT, 64, 0, 3, // 3MHz
       DIV_SYSTEM_OPLL, 64, 0, 0, // 3.58MHz
-      // software controlled 8 bit DAC
+      DIV_SYSTEM_PCM_DAC, 64, 0, 7613|(7<<16), // software controlled 8 bit DAC
       0
     }
   ));
@@ -1879,7 +1923,7 @@ void FurnaceGUI::initSystemPresets() {
     "Alpha denshi Alpha-68K (drums mode)", {
       DIV_SYSTEM_OPN, 64, 0, 3, // 3MHz
       DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0, // 3.58MHz
-      // software controlled 8 bit DAC
+      DIV_SYSTEM_PCM_DAC, 64, 0, 7613|(7<<16), // software controlled 8 bit DAC
       0
     }
   ));
@@ -1887,7 +1931,7 @@ void FurnaceGUI::initSystemPresets() {
     "Alpha denshi Alpha-68K (extended channel 3; drums mode)", {
       DIV_SYSTEM_OPN_EXT, 64, 0, 3, // 3MHz
       DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0, // 3.58MHz
-      // software controlled 8 bit DAC
+      DIV_SYSTEM_PCM_DAC, 64, 0, 7613|(7<<16), // software controlled 8 bit DAC
       0
     }
   ));
@@ -1930,9 +1974,26 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Namco System 86", { // without expansion board case; Hopping Mappy, etc
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco Thunder Ceptor", {
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 7999|(7<<16), // M65C02 software driven, correct sample rate?
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Namco System 1", {
       DIV_SYSTEM_YM2151, 64, 0, 0,
       DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 5999|(7<<16), // sample rate verified from https://github.com/mamedev/mame/blob/master/src/devices/sound/n63701x.cpp
+      DIV_SYSTEM_PCM_DAC, 64, 0, 5999|(7<<16), // ""
       0
     }
   ));
@@ -2042,6 +2103,13 @@ void FurnaceGUI::initSystemPresets() {
     "Dynax/Nakanihon Real Break (drums mode)", {
       DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
       DIV_SYSTEM_YMZ280B, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Irem M72", {
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 7811|(7<<16),
       0
     }
   ));

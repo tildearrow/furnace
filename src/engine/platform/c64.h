@@ -97,6 +97,7 @@ class DivPlatformC64: public DivDispatch {
     void setFlags(unsigned int flags);
     void notifyInsChange(int ins);
     bool getDCOffRequired();
+    bool getWantPreNote();
     DivMacroInt* getChanMacroInt(int ch);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);

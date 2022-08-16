@@ -27,6 +27,7 @@ this is a list of systems that Furnace supports, including each system's effects
 - [WonderSwan](wonderswan.md)
 - [Bubble System WSG](bubblesystem.md)
 - [Namco 163](n163.md)
+- [Namco WSG](namco.md)
 - [Yamaha OPL](opl.md)
 - [PC Speaker](pcspkr.md)
 - [Commodore PET](pet.md)

@@ -61,6 +61,7 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
   - SID (6581/8580) used in Commodore 64
   - Mikey used in Atari Lynx
   - ZX Spectrum beeper (SFX-like engine)
+  - Commodore PET
   - TIA used in Atari 2600
   - Game Boy
   - modern/fantasy:
@@ -202,6 +203,8 @@ Available options:
 | `SYSTEM_ZLIB` | `OFF` | Use a system-installed version of zlib instead of the vendored one |
 | `SYSTEM_SDL2` | `OFF` | Use a system-installed version of SDL2 instead of the vendored one |
 | `WARNINGS_ARE_ERRORS` | `OFF` (but consider enabling this & reporting any errors that arise from it!) | Whether warnings in furnace's C++ code should be treated as errors |
+| `WITH_DEMOS` | `ON` | Install demo songs on `make install` |
+| `WITH_INSTRUMENTS` | `ON` | Install demo instruments on `make install` |
 
 ## console usage
 
