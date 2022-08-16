@@ -514,6 +514,11 @@ void FurnaceGUI::drawSettings() {
             settings.blankIns=blankInsB;
           }
 
+          bool saveUnusedPatternsB=settings.saveUnusedPatterns;
+          if (ImGui::Checkbox("Save unused patterns",&saveUnusedPatternsB)) {
+            settings.saveUnusedPatterns=saveUnusedPatternsB;
+          }
+
           ImGui::Text("Note preview behavior:");
           if (ImGui::RadioButton("Never##npb0",settings.notePreviewBehavior==0)) {
             settings.notePreviewBehavior=0;
@@ -2133,6 +2138,7 @@ void FurnaceGUI::syncSettings() {
   settings.macroRelLabel=e->getConfString("macroRelLabel","REL");
   settings.emptyLabel=e->getConfString("emptyLabel","...");
   settings.emptyLabel2=e->getConfString("emptyLabel2","..");
+  settings.saveUnusedPatterns=e->getConfInt("saveUnusedPatterns",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2221,6 +2227,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.unsignedDetune,0,1);
   clampSetting(settings.noThreadedInput,0,1);
   clampSetting(settings.clampSamples,0,1);
+  clampSetting(settings.saveUnusedPatterns,0,1);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2365,6 +2372,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("macroRelLabel",settings.macroRelLabel);
   e->setConf("emptyLabel",settings.emptyLabel);
   e->setConf("emptyLabel2",settings.emptyLabel2);
+  e->setConf("saveUnusedPatterns",settings.saveUnusedPatterns);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

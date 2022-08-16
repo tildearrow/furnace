@@ -238,6 +238,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_CHANNELS:
       nextWindow=GUI_WINDOW_CHANNELS;
       break;
+    case GUI_ACTION_WINDOW_PAT_MANAGER:
+      nextWindow=GUI_WINDOW_PAT_MANAGER;
+      break;
     case GUI_ACTION_WINDOW_REGISTER_VIEW:
       nextWindow=GUI_WINDOW_REGISTER_VIEW;
       break;
@@ -321,6 +324,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_CHANNELS:
           channelsOpen=false;
+          break;
+        case GUI_WINDOW_PAT_MANAGER:
+          patManagerOpen=false;
           break;
         case GUI_WINDOW_REGISTER_VIEW:
           regViewOpen=false;

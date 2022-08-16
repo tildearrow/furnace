@@ -3515,15 +3515,27 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   // high short is channel
   // low short is pattern number
   std::vector<PatToWrite> patsToWrite;
-  bool alreadyAdded[256];
-  for (int i=0; i<chans; i++) {
-    for (size_t j=0; j<song.subsong.size(); j++) {
-      DivSubSong* subs=song.subsong[j];
-      memset(alreadyAdded,0,256*sizeof(bool));
-      for (int k=0; k<subs->ordersLen; k++) {
-        if (alreadyAdded[subs->orders.ord[i][k]]) continue;
-        patsToWrite.push_back(PatToWrite(j,i,subs->orders.ord[i][k]));
-        alreadyAdded[subs->orders.ord[i][k]]=true;
+  if (getConfInt("saveUnusedPatterns",0)==1) {
+    for (int i=0; i<chans; i++) {
+      for (size_t j=0; j<song.subsong.size(); j++) {
+        DivSubSong* subs=song.subsong[j];
+        for (int k=0; k<256; k++) {
+          if (subs->pat[i].data[k]==NULL) continue;
+          patsToWrite.push_back(PatToWrite(j,i,k));
+        }
+      }
+    }
+  } else {
+    bool alreadyAdded[256];
+    for (int i=0; i<chans; i++) {
+      for (size_t j=0; j<song.subsong.size(); j++) {
+        DivSubSong* subs=song.subsong[j];
+        memset(alreadyAdded,0,256*sizeof(bool));
+        for (int k=0; k<subs->ordersLen; k++) {
+          if (alreadyAdded[subs->orders.ord[i][k]]) continue;
+          patsToWrite.push_back(PatToWrite(j,i,subs->orders.ord[i][k]));
+          alreadyAdded[subs->orders.ord[i][k]]=true;
+        }
       }
     }
   }

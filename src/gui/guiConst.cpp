@@ -487,6 +487,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_PIANO", "Piano", 0),
   D("WINDOW_NOTES", "Song Comments", 0),
   D("WINDOW_CHANNELS", "Channels", 0),
+  D("WINDOW_PAT_MANAGER", "Pattern Manager", 0),
   D("WINDOW_REGISTER_VIEW", "Register View", 0),
   D("WINDOW_LOG", "Log Viewer", 0),
   D("EFFECT_LIST", "Effect List", 0),
