@@ -48,7 +48,7 @@ due to limitations in some of those sound chips, some restrictions exist:
 - Neo Geo (ADPCM-B): no loop position supported (only entire sample), and the maximum frequency is ~55KHz.
 - YM2608: the maximum frequency is ~55KHz.
 - MSM6258/MSM6295: no arbitrary frequency.
-- ZX Spectrum Beeper: your sample can't be longer than 2048.
+- ZX Spectrum Beeper: your sample can't be longer than 2048, and it always plays at ~55KHz.
 - Seta/Allumer X1-010: frequency resolution is terrible in the lower end. your sample can't be longer than 131072.
 
 furthermore, many of these chips have a limited amount of sample memory. check memory usage in window > statistics.
