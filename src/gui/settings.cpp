@@ -1583,6 +1583,15 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_EE_VALUE,"External command output");
               ImGui::TreePop();
             }
+            if (ImGui::TreeNode("Pattern Manager")) {
+              UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_NULL,"Unallocated");
+              UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_UNUSED,"Unused");
+              UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_USED,"Used");
+              UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_OVERUSED,"Overused");
+              UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_EXTREMELY_OVERUSED,"Really overused");
+              UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_COMBO_BREAKER,"Combo Breaker");
+              ImGui::TreePop();
+            }
             if (ImGui::TreeNode("Piano")) {
               UI_COLOR_CONFIG(GUI_COLOR_PIANO_BACKGROUND,"Background");
               UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_TOP,"Upper key");
