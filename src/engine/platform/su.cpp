@@ -26,7 +26,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) rWrite(((c)<<5)|(a),v);
 
-#define CHIP_DIVIDER 8
+#define CHIP_DIVIDER 2
 #define CHIP_FREQBASE 524288
 
 const char** DivPlatformSoundUnit::getRegisterSheet() {
