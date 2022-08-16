@@ -2181,11 +2181,13 @@ void DivEngine::delInstrument(int index) {
     song.ins.erase(song.ins.begin()+index);
     song.insLen=song.ins.size();
     for (int i=0; i<chans; i++) {
-      for (int j=0; j<256; j++) {
-        if (curPat[i].data[j]==NULL) continue;
-        for (int k=0; k<curSubSong->patLen; k++) {
-          if (curPat[i].data[j]->data[k][2]>index) {
-            curPat[i].data[j]->data[k][2]--;
+      for (size_t j=0; j<song.subsong.size(); j++) {
+        for (int k=0; k<256; k++) {
+          if (song.subsong[j]->pat[i].data[k]==NULL) continue;
+          for (int l=0; l<song.subsong[j]->patLen; l++) {
+            if (song.subsong[j]->pat[i].data[k]->data[l][2]>index) {
+              song.subsong[j]->pat[i].data[k]->data[l][2]--;
+            }
           }
         }
       }
@@ -2986,13 +2988,15 @@ void DivEngine::moveOrderDown() {
 
 void DivEngine::exchangeIns(int one, int two) {
   for (int i=0; i<chans; i++) {
-    for (int j=0; j<256; j++) {
-      if (curPat[i].data[j]==NULL) continue;
-      for (int k=0; k<curSubSong->patLen; k++) {
-        if (curPat[i].data[j]->data[k][2]==one) {
-          curPat[i].data[j]->data[k][2]=two;
-        } else if (curPat[i].data[j]->data[k][2]==two) {
-          curPat[i].data[j]->data[k][2]=one;
+    for (size_t j=0; j<song.subsong.size(); j++) {
+      for (int k=0; k<256; k++) {
+        if (song.subsong[j]->pat[i].data[k]==NULL) continue;
+        for (int l=0; l<curSubSong->patLen; l++) {
+          if (song.subsong[j]->pat[i].data[k]->data[l][2]==one) {
+            song.subsong[j]->pat[i].data[k]->data[l][2]=two;
+          } else if (song.subsong[j]->pat[i].data[k]->data[l][2]==two) {
+            song.subsong[j]->pat[i].data[k]->data[l][2]=one;
+          }
         }
       }
     }
