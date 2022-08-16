@@ -596,7 +596,7 @@ void DivPlatformSoundUnit::setFlags(unsigned int flags) {
 
   sampleMemSize=flags&16;
 
-  su->Init(sampleMemSize?65536:8192);
+  su->Init(sampleMemSize?65536:8192,flags&32);
   renderSamples();
 }
 

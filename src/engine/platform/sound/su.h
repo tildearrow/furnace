@@ -27,6 +27,8 @@ class SoundUnit {
   unsigned short oldfreq[8];
   unsigned short oldflags[8];
   unsigned int pcmSize;
+  bool dsOut;
+  short dsCounterL, dsCounterR;
   public:
     unsigned short resetfreq[8];
     unsigned short voldcycles[8];
@@ -99,7 +101,7 @@ class SoundUnit {
       if (ret>32767) ret=32767;
       return ret;
     }
-    void Init(int sampleMemSize=8192);
+    void Init(int sampleMemSize=8192, bool dsOutMode=false);
     void Reset();
     SoundUnit();
 };

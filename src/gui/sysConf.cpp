@@ -135,12 +135,19 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("5.95MHz (PAL)",(flags&3)==1)) {
         copyOfFlags=(flags&(~3))|1;
       }
-      ImGui::Text("Chip revision (sample memory):");
-      if (ImGui::RadioButton("A/B/E (8K)",(flags&16)==0)) {
+      ImGui::Text("Sample memory:");
+      if (ImGui::RadioButton("8K (rev A/B/E)",(flags&16)==0)) {
         copyOfFlags=(flags&(~16))|0;
       }
-      if (ImGui::RadioButton("D/F (64K)",(flags&16)==16)) {
+      if (ImGui::RadioButton("64K (rev D/F)",(flags&16)==16)) {
         copyOfFlags=(flags&(~16))|16;
+      }
+      ImGui::Text("DAC resolution");
+      if (ImGui::RadioButton("16-bit (rev A/B/D/F)",(flags&32)==0)) {
+        copyOfFlags=(flags&(~32))|0;
+      }
+      if (ImGui::RadioButton("1-bit PDM (rev C/E)",(flags&32)==32)) {
+        copyOfFlags=(flags&(~32))|32;
       }
       bool echo=flags&4;
       if (ImGui::Checkbox("Enable echo",&echo)) {
