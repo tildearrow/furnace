@@ -701,6 +701,15 @@ void FurnaceGUI::drawPattern() {
         if (i.cmd==DIV_CMD_SAMPLE_BANK) continue;
         if (i.cmd==DIV_CMD_GET_VOLUME) continue;
         if (i.cmd==DIV_ALWAYS_SET_VOLUME) continue;
+        if (i.cmd==DIV_CMD_HINT_VOLUME ||
+            i.cmd==DIV_CMD_HINT_PORTA ||
+            i.cmd==DIV_CMD_HINT_LEGATO ||
+            i.cmd==DIV_CMD_HINT_VOL_SLIDE ||
+            i.cmd==DIV_CMD_HINT_ARPEGGIO ||
+            i.cmd==DIV_CMD_HINT_PITCH ||
+            i.cmd==DIV_CMD_HINT_VIBRATO ||
+            i.cmd==DIV_CMD_HINT_VIBRATO_RANGE ||
+            i.cmd==DIV_CMD_HINT_VIBRATO_SHAPE) continue;
 
         float width=patChanX[i.chan+1]-patChanX[i.chan];
         float speedX=0.0f;
