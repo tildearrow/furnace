@@ -3178,13 +3178,13 @@ void FurnaceGUI::drawInsEdit() {
                 if (ImGui::Button(ICON_FA_CHEVRON_DOWN "##HWCmdDown")) {
                   if (i<ins->gb.hwSeqLen-1) {
                     e->lockEngine([ins,i]() {
-                      ins->gb.hwSeq[i-1].cmd^=ins->gb.hwSeq[i].cmd;
-                      ins->gb.hwSeq[i].cmd^=ins->gb.hwSeq[i-1].cmd;
-                      ins->gb.hwSeq[i-1].cmd^=ins->gb.hwSeq[i].cmd;
+                      ins->gb.hwSeq[i+1].cmd^=ins->gb.hwSeq[i].cmd;
+                      ins->gb.hwSeq[i].cmd^=ins->gb.hwSeq[i+1].cmd;
+                      ins->gb.hwSeq[i+1].cmd^=ins->gb.hwSeq[i].cmd;
 
-                      ins->gb.hwSeq[i-1].data^=ins->gb.hwSeq[i].data;
-                      ins->gb.hwSeq[i].data^=ins->gb.hwSeq[i-1].data;
-                      ins->gb.hwSeq[i-1].data^=ins->gb.hwSeq[i].data;
+                      ins->gb.hwSeq[i+1].data^=ins->gb.hwSeq[i].data;
+                      ins->gb.hwSeq[i].data^=ins->gb.hwSeq[i+1].data;
+                      ins->gb.hwSeq[i+1].data^=ins->gb.hwSeq[i].data;
                     });
                   }
                   MARK_MODIFIED;
