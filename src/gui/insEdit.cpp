@@ -2969,24 +2969,60 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Initialize envelope on every note",&ins->gb.alwaysInit));
 
           ImGui::BeginDisabled(ins->gb.softEnv);
-          P(CWSliderScalar("Volume",ImGuiDataType_U8,&ins->gb.envVol,&_ZERO,&_FIFTEEN)); rightClickable
-          P(CWSliderScalar("Envelope Length",ImGuiDataType_U8,&ins->gb.envLen,&_ZERO,&_SEVEN)); rightClickable
-          P(CWSliderScalar("Sound Length",ImGuiDataType_U8,&ins->gb.soundLen,&_ZERO,&_SIXTY_FOUR,ins->gb.soundLen>63?"Infinity":"%d")); rightClickable
-          ImGui::Text("Envelope Direction:");
+          if (ImGui::BeginTable("GBParams",2)) {
+            ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.6f);
+            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.4f);
 
-          bool goesUp=ins->gb.envDir;
-          ImGui::SameLine();
-          if (ImGui::RadioButton("Up",goesUp)) { PARAMETER
-            goesUp=true;
-            ins->gb.envDir=goesUp;
-          }
-          ImGui::SameLine();
-          if (ImGui::RadioButton("Down",!goesUp)) { PARAMETER
-            goesUp=false;
-            ins->gb.envDir=goesUp;
-          }
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            if (ImGui::BeginTable("GBParamsI",2)) {
+              ImGui::TableSetupColumn("ci0",ImGuiTableColumnFlags_WidthFixed);
+              ImGui::TableSetupColumn("ci1",ImGuiTableColumnFlags_WidthStretch);
 
-          drawGBEnv(ins->gb.envVol,ins->gb.envLen,ins->gb.soundLen,ins->gb.envDir,ImVec2(ImGui::GetContentRegionAvail().x,100.0f*dpiScale));
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::Text("Volume");
+              ImGui::TableNextColumn();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              P(CWSliderScalar("##GBVolume",ImGuiDataType_U8,&ins->gb.envVol,&_ZERO,&_FIFTEEN)); rightClickable
+
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::Text("Length");
+              ImGui::TableNextColumn();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              P(CWSliderScalar("##GBEnvLen",ImGuiDataType_U8,&ins->gb.envLen,&_ZERO,&_SEVEN)); rightClickable
+
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::Text("Sound Length");
+              ImGui::TableNextColumn();
+              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+              P(CWSliderScalar("##GBSoundLen",ImGuiDataType_U8,&ins->gb.soundLen,&_ZERO,&_SIXTY_FOUR,ins->gb.soundLen>63?"Infinity":"%d")); rightClickable
+
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              ImGui::Text("Direction");
+              ImGui::TableNextColumn();
+              bool goesUp=ins->gb.envDir;
+              if (ImGui::RadioButton("Up",goesUp)) { PARAMETER
+                goesUp=true;
+                ins->gb.envDir=goesUp;
+              }
+              ImGui::SameLine();
+              if (ImGui::RadioButton("Down",!goesUp)) { PARAMETER
+                goesUp=false;
+                ins->gb.envDir=goesUp;
+              }
+
+              ImGui::EndTable();
+            }
+
+            ImGui::TableNextColumn();
+            drawGBEnv(ins->gb.envVol,ins->gb.envLen,ins->gb.soundLen,ins->gb.envDir,ImVec2(ImGui::GetContentRegionAvail().x,100.0f*dpiScale));
+
+            ImGui::EndTable();
+          }
 
           if (ImGui::BeginChild("HWSeq",ImGui::GetContentRegionAvail(),true,ImGuiWindowFlags_MenuBar)) {
             ImGui::BeginMenuBar();
