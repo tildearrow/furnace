@@ -19,7 +19,7 @@
 
 #include "utfutils.h"
 
-int decodeUTF8(const unsigned char* data, char& len) {
+int decodeUTF8(const unsigned char* data, signed char& len) {
   int ret=0xfffd;
   if (data[0]<0x80) {
     ret=data[0];
@@ -66,7 +66,7 @@ int decodeUTF8(const unsigned char* data, char& len) {
 size_t utf8len(const char* s) {
   size_t p=0;
   size_t r=0;
-  char cl;
+  signed char cl;
   while (s[p]!=0) {
     r++;
     decodeUTF8((const unsigned char*)&s[p],cl);
@@ -76,7 +76,7 @@ size_t utf8len(const char* s) {
 }
 
 char utf8csize(const unsigned char* c) {
-  char ret;
+  signed char ret;
   decodeUTF8(c,ret);
   return ret;
 }
@@ -84,7 +84,7 @@ char utf8csize(const unsigned char* c) {
 WString utf8To16(const char* s) {
   WString ret;
   int ch, p;
-  char chs;
+  signed char chs;
   p=0;
   while (s[p]!=0) {
     ch=decodeUTF8((const unsigned char*)&s[p],chs);

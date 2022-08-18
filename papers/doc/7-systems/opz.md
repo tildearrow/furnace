@@ -1,5 +1,7 @@
 # Yamaha OPZ (YM2414)
 
+**disclaimer: despite the name, this has nothing to do with teenage engineering's OP-Z synth!**
+
 this is the YM2151's little-known successor, used in the Yamaha TX81Z and a few other Yamaha synthesizers. oh, and the Korg Z3 too.
 
 it adds these features on top of the YM2151:

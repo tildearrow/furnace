@@ -114,6 +114,8 @@ enum DivSystem {
   DIV_SYSTEM_YM2612_FRAC,
   DIV_SYSTEM_YM2612_FRAC_EXT,
   DIV_SYSTEM_RESERVED_8,
+  DIV_SYSTEM_T6W28,
+  DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_DUMMY
 };
 
@@ -136,6 +138,8 @@ struct DivSubSong {
   String chanShortName[DIV_MAX_CHANS];
 
   void clearData();
+  void optimizePatterns();
+  void rearrangePatterns();
 
   DivSubSong(): 
     hilightA(4),
@@ -351,7 +355,7 @@ struct DivSong {
   //     - 1: stereo
   // - YM2203:
   //   - bit 0-4: clock rate
-  //     - 0: 3.58MHz (MTSC)
+  //     - 0: 3.58MHz (NTSC)
   //     - 1: 3.55MHz (PAL)
   //     - 2: 4MHz
   //     - 3: 3MHz
@@ -371,7 +375,7 @@ struct DivSong {
   //     - 2: FM: clock / 48, SSG: clock / 8
   // - YM3526, YM3812, Y8950:
   //   - bit 0-7: clock rate
-  //     - 0: 3.58MHz (MTSC)
+  //     - 0: 3.58MHz (NTSC)
   //     - 1: 3.55MHz (PAL)
   //     - 2: 4MHz
   //     - 3: 3MHz
@@ -379,7 +383,7 @@ struct DivSong {
   //     - 5: 3.5MHz
   // - YMF262:
   //   - bit 0-7: clock rate
-  //     - 0: 14.32MHz (MTSC)
+  //     - 0: 14.32MHz (NTSC)
   //     - 1: 14.19MHz (PAL)
   //     - 2: 14MHz
   //     - 3: 16MHz
@@ -387,7 +391,7 @@ struct DivSong {
   // - YMF289B: (TODO)
   //   - bit 0-7: clock rate
   //     - 0: 33.8688MHz
-  //     - 1: 28.64MHz (MTSC)
+  //     - 1: 28.64MHz (NTSC)
   //     - 2: 28.38MHz (PAL)
   // - MSM6295:
   //   - bit 0-6: clock rate
@@ -418,7 +422,7 @@ struct DivSong {
   // - YMZ280B:
   //   - bit 0-7: clock rate
   //     - 0: 16.9344MHz
-  //     - 1: 14.32MHz (MTSC)
+  //     - 1: 14.32MHz (NTSC)
   //     - 2: 14.19MHz (PAL)
   //     - 3: 16MHz
   //     - 4: 16.67MHz
@@ -426,7 +430,7 @@ struct DivSong {
   unsigned int systemFlags[32];
 
   // song information
-  String name, author;
+  String name, author, systemName;
 
   // legacy song information
   // those will be stored in .fur and mapped to VGM as:
@@ -436,7 +440,7 @@ struct DivSong {
   String carrier, composer, vendor, category, writer, arranger, copyright, manGroup, manInfo, createdDate, revisionDate;
 
   // more VGM specific stuff
-  String nameJ, authorJ, categoryJ;
+  String nameJ, authorJ, categoryJ, systemNameJ;
 
   // other things
   String notes;
@@ -494,6 +498,8 @@ struct DivSong {
   bool newVolumeScaling;
   bool volMacroLinger;
   bool brokenOutVol;
+  bool e1e2StopOnSameNote;
+  bool brokenPortaArp;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -537,6 +543,7 @@ struct DivSong {
     systemLen(2),
     name(""),
     author(""),
+    systemName(""),
     carrier(""),
     composer(""),
     vendor(""),
@@ -557,7 +564,7 @@ struct DivSong {
     linearPitch(2),
     pitchSlideSpeed(4),
     loopModality(0),
-    properNoiseLayout(false),
+    properNoiseLayout(true),
     waveDutyIsVol(false),
     resetMacroOnPorta(false),
     legacyVolumeSlides(false),
@@ -591,7 +598,9 @@ struct DivSong {
     noOPN2Vol(false),
     newVolumeScaling(true),
     volMacroLinger(true),
-    brokenOutVol(false) {
+    brokenOutVol(false),
+    e1e2StopOnSameNote(false),
+    brokenPortaArp(false) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;

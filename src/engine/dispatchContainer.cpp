@@ -54,6 +54,7 @@
 #include "platform/su.h"
 #include "platform/swan.h"
 #include "platform/lynx.h"
+#include "platform/zxbeeper.h"
 #include "platform/bubsyswsg.h"
 #include "platform/n163.h"
 #include "platform/pet.h"
@@ -64,9 +65,9 @@
 #include "platform/scc.h"
 #include "platform/ymz280b.h"
 #include "platform/rf5c68.h"
+#include "platform/pcmdac.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
-#include "platform/zxbeeper.h"
 #include "song.h"
 
 void DivDispatchContainer::setRates(double gotRate) {
@@ -394,6 +395,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_NAMCO_CUS30:
       dispatch=new DivPlatformNamcoWSG;
       ((DivPlatformNamcoWSG*)dispatch)->setDeviceType(30);
+      break;
+    case DIV_SYSTEM_PCM_DAC:
+      dispatch=new DivPlatformPCMDAC;
       break;
     case DIV_SYSTEM_DUMMY:
       dispatch=new DivPlatformDummy;

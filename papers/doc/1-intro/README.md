@@ -13,10 +13,10 @@ Furnace generates sound from 3 different main types of sound sources.
  - Instruments are the most standard and most used type of sound source in Furnace.
 The instrument format is how you can specify parameters and macros for certain channels on certain soundchips, as well as binding samples and wavetables to a format that you can sequence on the note grid.
 See [4-instrument](https://github.com/tildearrow/furnace/tree/master/papers/doc/4-instrument) for more details.
- - Wavetables are the way that you create custom waveform shapes for the HuC6280 sound chip.
+ - Wavetables are the way that you create custom waveform shapes for the HuC6280, Seta X1-010, WonderSwan, any PCM chip with wavetable synthesizer support, etc.
 Wavetables only work in the sequencer if you bind them to an instrument. See [4-instrument](https://github.com/tildearrow/furnace/tree/master/papers/doc/4-instrument) and [5-wave](https://github.com/tildearrow/furnace/tree/master/papers/doc/5-wave) for more details.
  - Samples are how you play back raw audio streams (samples) on certain channels, on certain soundchips, and in some cases, in certain modes.
-To sequence a sample, you do not need to assign it to an instrument, however, to resample samples (change the speed of a sample), you need to bind it to an Amiga/Sample instrument.
+To sequence a sample, you do not need to assign it to an instrument, however, to resample samples (change the speed of a sample), you need to bind it to a Sample instrument.
 See [6-sample](https://github.com/tildearrow/furnace/tree/master/papers/doc/6-sample) and [4-instrument](https://github.com/tildearrow/furnace/tree/master/papers/doc/4-instrument) for more details.
 
 ## Interface/other

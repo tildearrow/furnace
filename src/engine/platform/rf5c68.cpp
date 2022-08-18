@@ -138,7 +138,7 @@ void DivPlatformRF5C68::tick(bool sysTick) {
         if (chan[i].audPos>0) {
           start=start+MIN(chan[i].audPos,s->length8);
         }
-        if (s->loopStart>=0) {
+        if (s->isLoopable()) {
           loop=start+s->loopStart;
         }
         start=MIN(start,getSampleMemCapacity()-31);
@@ -261,6 +261,7 @@ int DivPlatformRF5C68::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS:
@@ -388,7 +389,7 @@ void DivPlatformRF5C68::renderSamples() {
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
-    int length=s->length8;
+    int length=s->getEndPosition(DIV_SAMPLE_DEPTH_8BIT);
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-31,length);
     if (actualLength>0) {
       s->offRF5C68=memPos;

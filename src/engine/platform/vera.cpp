@@ -84,13 +84,11 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
           rWritePCMData(tmp_r&0xff);
         }
         chan[16].pcm.pos++;
-        if (chan[16].pcm.pos>=s->samples) {
-          if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
-            chan[16].pcm.pos=s->loopStart;
-          } else {
-            chan[16].pcm.sample=-1;
-            break;
-          }
+        if (s->isLoopable() && chan[16].pcm.pos>=s->getEndPosition()) {
+          chan[16].pcm.pos=s->loopStart;
+        } else if (chan[16].pcm.pos>=s->samples) {
+          chan[16].pcm.sample=-1;
+          break;
         }
       }
     } else {
@@ -255,12 +253,12 @@ int DivPlatformVERA::dispatch(DivCommand c) {
         chan[16].pcm.pos=0;
         DivSample* s=parent->getSample(chan[16].pcm.sample);
         unsigned char ctrl=0x90|chan[16].vol; // always stereo
-        if (s->depth==16) {
+        if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
           chan[16].pcm.depth16=true;
           ctrl|=0x20;
         } else {
           chan[16].pcm.depth16=false;
-          if (s->depth!=8) chan[16].pcm.sample=-1;
+          if (s->depth!=DIV_SAMPLE_DEPTH_8BIT) chan[16].pcm.sample=-1;
         }
         rWritePCMCtrl(ctrl);
       }
@@ -347,6 +345,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VERA));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=calcNoteFreq(c.chan,chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_STD_NOISE_MODE:

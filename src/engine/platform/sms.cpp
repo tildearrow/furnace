@@ -39,12 +39,15 @@ const char** DivPlatformSMS::getRegisterSheet() {
 }
 
 void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
-  int o=0;
+  int oL=0;
+  int oR=0;
   for (size_t h=start; h<start+len; h++) {
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
       if (w.addr==0) {
         YMPSG_Write(&sn_nuked,w.val);
+      } else if (w.addr==1) {
+        YMPSG_WriteStereo(&sn_nuked,w.val);
       }
       writes.pop();
     }
@@ -64,10 +67,13 @@ void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     YMPSG_Clock(&sn_nuked);
     YMPSG_Clock(&sn_nuked);
     YMPSG_Clock(&sn_nuked);
-    o=YMPSG_GetOutput(&sn_nuked);
-    if (o<-32768) o=-32768;
-    if (o>32767) o=32767;
-    bufL[h]=bufR[h]=o;
+    YMPSG_GetOutput(&sn_nuked,&oL,&oR);
+    if (oL<-32768) oL=-32768;
+    if (oL>32767) oL=32767;
+    if (oR<-32768) oR=-32768;
+    if (oR>32767) oR=32767;
+    bufL[h]=oL;
+    bufR[h]=oR;
     for (int i=0; i<4; i++) {
       if (isMuted[i]) {
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
@@ -118,7 +124,7 @@ void DivPlatformSMS::tick(bool sysTick) {
     if (i==3) CHIP_DIVIDER=noiseDivider;
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=MIN(15,chan[i].std.vol.val)-(15-(chan[i].vol&15));
+      chan[i].outVol=VOL_SCALE_LOG(chan[i].std.vol.val,chan[i].vol,15);
       if (chan[i].outVol<0) chan[i].outVol=0;
       // old formula
       // ((chan[i].vol&15)*MIN(15,chan[i].std.vol.val))>>4;
@@ -338,9 +344,8 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
-      // TODO: pre porta cancel arp compat flag
-      //if (chan[c.chan].inPorta) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;

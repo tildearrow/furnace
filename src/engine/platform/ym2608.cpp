@@ -641,7 +641,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
             immWrite(0x104,(end>>5)&0xff);
             immWrite(0x105,(end>>13)&0xff);
             immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|2);
-            immWrite(0x100,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
+            immWrite(0x100,(s->isLoopable())?0xb0:0xa0); // start/repeat
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
               chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
@@ -676,7 +676,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
           immWrite(0x104,(end>>5)&0xff);
           immWrite(0x105,(end>>13)&0xff);
           immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|2);
-          immWrite(0x100,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
+          immWrite(0x100,(s->isLoopable())?0xb0:0xa0); // start/repeat
           int freq=(65536.0*(double)s->rate)/((double)chipClock/144.0);
           immWrite(0x109,freq&0xff);
           immWrite(0x10a,(freq>>8)&0xff);
@@ -866,6 +866,13 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
       if (c.chan==15 && !chan[c.chan].furnacePCM) break;
       chan[c.chan].baseFreq=NOTE_OPNB(c.chan,c.value);
       chan[c.chan].freqChanged=true;
+      break;
+    }
+    case DIV_CMD_FM_EXTCH: {
+      if (extSys) {
+        extMode=c.value;
+        immWrite(0x27,extMode?0x40:0);
+      }
       break;
     }
     case DIV_CMD_FM_LFO: {

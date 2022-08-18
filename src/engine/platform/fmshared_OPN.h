@@ -104,12 +104,14 @@ class DivPlatformOPN: public DivPlatformFMBase {
     double fmFreqBase;
     unsigned int fmDivBase;
     unsigned int ayDiv;
+    bool extSys;
 
-    DivPlatformOPN(double f=9440540.0, unsigned int d=72, unsigned int a=32):
+    DivPlatformOPN(double f=9440540.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false):
       DivPlatformFMBase(),
       fmFreqBase(f),
       fmDivBase(d),
-      ayDiv(a) {}
+      ayDiv(a),
+      extSys(isExtSys) {}
 
 };
 

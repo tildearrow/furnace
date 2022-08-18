@@ -65,6 +65,7 @@ void FurnaceGUI::drawNewSong() {
           ImGui::TableNextColumn();
           if (ImGui::Selectable(i.name,false,ImGuiSelectableFlags_DontClosePopups)) {
             nextDesc=i.definition.data();
+            nextDescName=i.name;
             accepted=true;
           }
         }
@@ -97,7 +98,7 @@ void FurnaceGUI::drawNewSong() {
   }
 
   if (accepted) {
-    e->createNew(nextDesc);
+    e->createNew(nextDesc,nextDescName);
     undoHist.clear();
     redoHist.clear();
     curFileName="";

@@ -69,12 +69,10 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
           chWrite(i,0x04,0xdf);
           chWrite(i,0x06,(((unsigned char)s->data8[chan[i].dacPos]+0x80)>>3));
           chan[i].dacPos++;
-          if (chan[i].dacPos>=s->samples) {
-            if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
-              chan[i].dacPos=s->loopStart;
-            } else {
-              chan[i].dacSample=-1;
-            }
+          if (s->isLoopable() && chan[i].dacPos>=s->getEndPosition()) {
+            chan[i].dacPos=s->loopStart;
+          } else if (chan[i].dacPos>=s->samples) {
+            chan[i].dacSample=-1;
           }
           chan[i].dacPeriod-=rate;
         }
@@ -96,7 +94,7 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
     pce->ResetTS(0);
 
     for (int i=0; i<6; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1])<<1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP((pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1])<<1,-32768,32767);
     }
 
     tempL[0]=(tempL[0]>>1)+(tempL[0]>>2);
@@ -114,13 +112,21 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
 }
 
 void DivPlatformPCE::updateWave(int ch) {
+  if (chan[ch].pcm) {
+    chan[ch].deferredWaveUpdate=true;
+    return;
+  }
   chWrite(ch,0x04,0x5f);
   chWrite(ch,0x04,0x1f);
   for (int i=0; i<32; i++) {
-    chWrite(ch,0x06,chan[ch].ws.output[i]);
+    chWrite(ch,0x06,chan[ch].ws.output[(i+chan[ch].antiClickWavePos)&31]);
   }
+  chan[ch].antiClickWavePos&=31;
   if (chan[ch].active) {
     chWrite(ch,0x04,0x80|chan[ch].outVol);
+  }
+  if (chan[ch].deferredWaveUpdate) {
+    chan[ch].deferredWaveUpdate=false;
   }
 }
 
@@ -131,6 +137,13 @@ static unsigned char noiseFreq[12]={
 
 void DivPlatformPCE::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
+    // anti-click
+    if (antiClickEnabled && sysTick && chan[i].freq>0) {
+      chan[i].antiClickPeriodCount+=(chipClock/MAX(parent->getCurHz(),1.0f));
+      chan[i].antiClickWavePos+=chan[i].antiClickPeriodCount/chan[i].freq;
+      chan[i].antiClickPeriodCount%=chan[i].freq;
+    }
+
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LOG(chan[i].vol&31,MIN(31,chan[i].std.vol.val),31);
@@ -199,8 +212,12 @@ void DivPlatformPCE::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
+    if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
+      chan[i].antiClickWavePos=0;
+      chan[i].antiClickPeriodCount=0;
+    }
     if (chan[i].active) {
-      if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1)) {
+      if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) || chan[i].deferredWaveUpdate) {
         updateWave(i);
       }
     }
@@ -424,6 +441,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -535,10 +553,18 @@ void DivPlatformPCE::setFlags(unsigned int flags) {
   } else {
     chipClock=COLOR_NTSC;
   }
+  // flags&4 will be chip revision
+  antiClickEnabled=!(flags&8);
   rate=chipClock/12;
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;
   }
+
+  if (pce!=NULL) {
+    delete pce;
+    pce=NULL;
+  }
+  pce=new PCE_PSG(tempL,tempR,(flags&4)?PCE_PSG::REVISION_HUC6280A:PCE_PSG::REVISION_HUC6280);
 }
 
 void DivPlatformPCE::poke(unsigned int addr, unsigned short val) {
@@ -557,8 +583,8 @@ int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, unsigned int f
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
+  pce=NULL;
   setFlags(flags);
-  pce=new PCE_PSG(tempL,tempR,PCE_PSG::REVISION_HUC6280A);
   reset();
   return 6;
 }
@@ -567,7 +593,10 @@ void DivPlatformPCE::quit() {
   for (int i=0; i<6; i++) {
     delete oscBuf[i];
   }
-  delete pce;
+  if (pce!=NULL) {
+    delete pce;
+    pce=NULL;
+  }
 }
 
 DivPlatformPCE::~DivPlatformPCE() {

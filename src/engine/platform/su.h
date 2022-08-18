@@ -31,7 +31,7 @@ class DivPlatformSoundUnit: public DivDispatch {
     int ins, cutoff, baseCutoff, res, control, hasOffset;
     signed char pan;
     unsigned char duty;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, phaseReset, filterPhaseReset;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, phaseReset, filterPhaseReset, switchRoles;
     bool pcmLoop, timerSync, freqSweep, volSweep, cutSweep;
     unsigned short freqSweepP, volSweepP, cutSweepP;
     unsigned char freqSweepB, volSweepB, cutSweepB;
@@ -67,6 +67,7 @@ class DivPlatformSoundUnit: public DivDispatch {
       pcm(false),
       phaseReset(false),
       filterPhaseReset(false),
+      switchRoles(false),
       pcmLoop(false),
       timerSync(false),
       freqSweep(false),
@@ -96,6 +97,10 @@ class DivPlatformSoundUnit: public DivDispatch {
   };
   std::queue<QueuedWrite> writes;
   unsigned char lastPan;
+  bool sampleMemSize;
+  unsigned char ilCtrl, ilSize, fil1;
+  unsigned char initIlCtrl, initIlSize, initFil1;
+  signed char echoVol, initEchoVol;
 
   int cycles, curChan, delay;
   short tempL;
@@ -104,6 +109,7 @@ class DivPlatformSoundUnit: public DivDispatch {
   SoundUnit* su;
   size_t sampleMemLen;
   unsigned char regPool[128];
+  double NOTE_SU(int ch, int note);
   void writeControl(int ch);
   void writeControlUpper(int ch);
 

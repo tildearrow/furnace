@@ -21,6 +21,8 @@
 #define _UTFUTILS_H
 #include "ta-utils.h"
 
+int decodeUTF8(const unsigned char* data, signed char& len);
+
 size_t utf8len(const char* s);
 size_t utf8clen(const char* s);
 size_t utf8pos(const char* s, size_t inpos);

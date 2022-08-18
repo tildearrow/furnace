@@ -435,9 +435,12 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       return 15;
       break;
     case DIV_CMD_PRE_PORTA:
+      // TODO: FIX wtr_envelope.dmf
+      // the brokenPortaArp update broke it
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AY));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
@@ -453,9 +456,9 @@ void DivPlatformAY8910::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (isMuted[ch]) {
     rWrite(0x08+ch,0);
-  } else if (intellivision && (chan[ch].psgMode&4)) {
+  } else if (intellivision && (chan[ch].psgMode&4) && chan[ch].active) {
     rWrite(0x08+ch,(chan[ch].vol&0xc)<<2);
-  } else {
+  } else if (chan[ch].active) {
     rWrite(0x08+ch,(chan[ch].outVol&15)|((chan[ch].psgMode&4)<<2));
   }
 }

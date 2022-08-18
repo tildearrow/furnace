@@ -90,6 +90,10 @@ bool DivDispatch::getDCOffRequired() {
   return false;
 }
 
+bool DivDispatch::getWantPreNote() {
+  return false;
+}
+
 void DivDispatch::setFlags(unsigned int flags) {
 }
 

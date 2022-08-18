@@ -24,7 +24,7 @@
 
 #include "actionUtil.h"
 
-const char* noteNameNormal(short note, short octave) {
+const char* FurnaceGUI::noteNameNormal(short note, short octave) {
   if (note==100) { // note cut
     return "OFF";
   } else if (note==101) { // note off and envelope release
@@ -62,6 +62,7 @@ void FurnaceGUI::prepareUndo(ActionType action) {
     case GUI_UNDO_PATTERN_FLIP:
     case GUI_UNDO_PATTERN_COLLAPSE:
     case GUI_UNDO_PATTERN_EXPAND:
+    case GUI_UNDO_PATTERN_DRAG:
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],false)->copyOn(oldPat[i]);
       }
@@ -114,6 +115,7 @@ void FurnaceGUI::makeUndo(ActionType action) {
     case GUI_UNDO_PATTERN_FLIP:
     case GUI_UNDO_PATTERN_COLLAPSE:
     case GUI_UNDO_PATTERN_EXPAND:
+    case GUI_UNDO_PATTERN_DRAG:
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         DivPattern* p=e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],false);
         for (int j=0; j<e->curSubSong->patLen; j++) {
@@ -918,6 +920,76 @@ void FurnaceGUI::doExpand(int multiplier) {
   makeUndo(GUI_UNDO_PATTERN_EXPAND);
 }
 
+void FurnaceGUI::doDrag() {
+  DivPattern* patBuffer=NULL;
+  int len=dragEnd.xCoarse-dragStart.xCoarse+1;
+
+  DETERMINE_FIRST_LAST;
+
+  if (len<1) return;
+  
+  patBuffer=new DivPattern[len];
+  prepareUndo(GUI_UNDO_PATTERN_DRAG);
+
+  // copy and clear
+  {
+    int iCoarse=dragStart.xCoarse;
+    int iFine=dragStart.xFine;
+    int iCoarseP=0;
+    for (; iCoarse<=dragEnd.xCoarse; iCoarse++) {
+      if (!e->curSubSong->chanShow[iCoarse]) continue;
+      DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][curOrder],true);
+      for (; iFine<3+e->curPat[iCoarse].effectCols*2 && (iCoarse<dragEnd.xCoarse || iFine<=dragEnd.xFine); iFine++) {
+        int row=0;
+        for (int j=dragStart.y; j<=dragEnd.y; j++) {
+          if (iFine==0) {
+            patBuffer[iCoarseP].data[row][iFine]=pat->data[j][iFine];
+            pat->data[j][iFine]=0;
+            if (dragStart.y==dragEnd.y) pat->data[j][2]=-1;
+          }
+          patBuffer[iCoarseP].data[row][iFine+1]=pat->data[j][iFine+1];
+          pat->data[j][iFine+1]=(iFine<1)?0:-1;
+
+          if (dragStart.y==dragEnd.y && iFine>2 && iFine&1 && settings.effectDeletionAltersValue) {
+            pat->data[j][iFine+2]=-1;
+          }
+          row++;
+        }
+      }
+      iFine=0;
+      iCoarseP++;
+    }
+  }
+
+  // replace
+  {
+    int iCoarse=selStart.xCoarse;
+    int iFine=selStart.xFine;
+    int iCoarseP=0;
+    for (; iCoarse<=selEnd.xCoarse && iCoarseP<len; iCoarse++) {
+      if (iCoarse<firstChannel || iCoarse>lastChannel) continue;
+      if (!e->curSubSong->chanShow[iCoarse]) continue;
+      DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][curOrder],true);
+      for (; iFine<3+e->curPat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+        int row=-1;
+        for (int j=selStart.y; j<=selEnd.y; j++) {
+          row++;
+          if (j<0 || j>=e->curSubSong->patLen) continue;
+          if (iFine==0) {
+            pat->data[j][iFine]=patBuffer[iCoarseP].data[row][iFine];
+          }
+          pat->data[j][iFine+1]=patBuffer[iCoarseP].data[row][iFine+1];
+        }
+      }
+      iFine=0;
+      iCoarseP++;
+    }
+  }
+
+  delete[] patBuffer;
+  makeUndo(GUI_UNDO_PATTERN_DRAG);
+}
+
 void FurnaceGUI::doUndo() {
   if (undoHist.empty()) return;
   UndoStep& us=undoHist.back();
@@ -947,6 +1019,7 @@ void FurnaceGUI::doUndo() {
     case GUI_UNDO_PATTERN_FLIP:
     case GUI_UNDO_PATTERN_COLLAPSE:
     case GUI_UNDO_PATTERN_EXPAND:
+    case GUI_UNDO_PATTERN_DRAG:
     case GUI_UNDO_REPLACE:
       for (UndoPatternData& i: us.pat) {
         e->changeSongP(i.subSong);
@@ -998,6 +1071,7 @@ void FurnaceGUI::doRedo() {
     case GUI_UNDO_PATTERN_FLIP:
     case GUI_UNDO_PATTERN_COLLAPSE:
     case GUI_UNDO_PATTERN_EXPAND:
+    case GUI_UNDO_PATTERN_DRAG:
     case GUI_UNDO_REPLACE:
       for (UndoPatternData& i: us.pat) {
         e->changeSongP(i.subSong);

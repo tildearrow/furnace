@@ -24,7 +24,10 @@
 #include "../fileutils.h"
 
 void DivWavetable::putWaveData(SafeWriter* w) {
+  size_t blockStartSeek, blockEndSeek;
+
   w->write("WAVE",4);
+  blockStartSeek=w->tell();
   w->writeI(0);
 
   w->writeC(0); // name
@@ -34,6 +37,11 @@ void DivWavetable::putWaveData(SafeWriter* w) {
   for (int j=0; j<len; j++) {
     w->writeI(data[j]);
   }
+
+  blockEndSeek=w->tell();
+  w->seek(blockStartSeek,SEEK_SET);
+  w->writeI(blockEndSeek-blockStartSeek-4);
+  w->seek(0,SEEK_END);
 }
 
 DivDataErrors DivWavetable::readWaveData(SafeReader& reader, short version) {
@@ -70,6 +78,68 @@ bool DivWavetable::save(const char* path) {
   w->writeS(0);
 
   putWaveData(w);
+
+  FILE* outFile=ps_fopen(path,"wb");
+  if (outFile==NULL) {
+    logE("could not save wavetable: %s!",strerror(errno));
+    w->finish();
+    return false;
+  }
+  if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
+    logW("did not write entire wavetable!");
+  }
+  fclose(outFile);
+  w->finish();
+  return true;
+}
+
+bool DivWavetable::saveDMW(const char* path) {
+  SafeWriter* w=new SafeWriter();
+  w->init();
+
+  // write width
+  w->writeI(len);
+
+  // check height
+  w->writeC(max);
+  if (max==255) {
+    // write as new format (because 0xff means that)
+    w->writeC(1); // format version
+    w->writeC(max); // actual height
+
+    // waveform data
+    for (int i=0; i<len; i++) {
+      w->writeI(data[i]&0xff);
+    }
+  } else {
+    // write as old format
+    for (int i=0; i<len; i++) {
+      w->writeC(data[i]);
+    }
+  }
+
+  FILE* outFile=ps_fopen(path,"wb");
+  if (outFile==NULL) {
+    logE("could not save wavetable: %s!",strerror(errno));
+    w->finish();
+    return false;
+  }
+  if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
+    logW("did not write entire wavetable!");
+  }
+  fclose(outFile);
+  w->finish();
+  return true;
+}
+
+bool DivWavetable::saveRaw(const char* path) {
+  SafeWriter* w=new SafeWriter();
+  w->init();
+
+  // waveform data
+  for (int i=0; i<len; i++) {
+    w->writeC(data[i]);
+  }
 
   FILE* outFile=ps_fopen(path,"wb");
   if (outFile==NULL) {

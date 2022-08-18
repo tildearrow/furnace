@@ -63,14 +63,15 @@ const char** DivPlatformC64::getRegisterSheet() {
 }
 
 void DivPlatformC64::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  int dcOff=sid.get_dc(0);
   for (size_t i=start; i<start+len; i++) {
     sid.clock();
     bufL[i]=sid.output();
     if (++writeOscBuf>=8) {
       writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=sid.last_chan_out[0]>>5;
-      oscBuf[1]->data[oscBuf[1]->needle++]=sid.last_chan_out[1]>>5;
-      oscBuf[2]->data[oscBuf[2]->needle++]=sid.last_chan_out[2]>>5;
+      oscBuf[0]->data[oscBuf[0]->needle++]=(sid.last_chan_out[0]-dcOff)>>5;
+      oscBuf[1]->data[oscBuf[1]->needle++]=(sid.last_chan_out[1]-dcOff)>>5;
+      oscBuf[2]->data[oscBuf[2]->needle++]=(sid.last_chan_out[2]-dcOff)>>5;
     }
   }
 }
@@ -322,6 +323,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
           chan[c.chan].keyOn=true;
         }
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
@@ -462,6 +464,10 @@ int DivPlatformC64::getRegisterPoolSize() {
 }
 
 bool DivPlatformC64::getDCOffRequired() {
+  return true;
+}
+
+bool DivPlatformC64::getWantPreNote() {
   return true;
 }
 

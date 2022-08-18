@@ -261,12 +261,32 @@ struct DivInstrumentSTD {
 };
 
 struct DivInstrumentGB {
-  unsigned char envVol, envDir, envLen, soundLen;
+  unsigned char envVol, envDir, envLen, soundLen, hwSeqLen;
+  bool softEnv, alwaysInit;
+  enum HWSeqCommands: unsigned char {
+    DIV_GB_HWCMD_ENVELOPE=0,
+    DIV_GB_HWCMD_SWEEP,
+    DIV_GB_HWCMD_WAIT,
+    DIV_GB_HWCMD_WAIT_REL,
+    DIV_GB_HWCMD_LOOP,
+    DIV_GB_HWCMD_LOOP_REL,
+
+    DIV_GB_HWCMD_MAX
+  };
+  struct HWSeqCommand {
+    unsigned char cmd;
+    unsigned short data;
+  } hwSeq[256];
   DivInstrumentGB():
     envVol(15),
     envDir(0),
     envLen(2),
-    soundLen(64) {}
+    soundLen(64),
+    hwSeqLen(0),
+    softEnv(false),
+    alwaysInit(false) {
+    memset(hwSeq,0,256*sizeof(int));
+  }
 };
 
 struct DivInstrumentC64 {
@@ -306,12 +326,18 @@ struct DivInstrumentC64 {
 };
 
 struct DivInstrumentAmiga {
+  struct SampleMap {
+    int freq;
+    short map;
+    SampleMap(int f=0, short m=-1):
+      freq(f),
+      map(m) {}
+  };
   short initSample;
   bool useNoteMap;
   bool useWave;
   unsigned char waveLen;
-  int noteFreq[120];
-  short noteMap[120];
+  SampleMap noteMap[120];
 
   /**
    * get the sample at specified note.
@@ -321,7 +347,7 @@ struct DivInstrumentAmiga {
     if (useNoteMap) {
       if (note<0) note=0;
       if (note>119) note=119;
-      return noteMap[note];
+      return noteMap[note].map;
     }
     return initSample;
   }
@@ -334,7 +360,7 @@ struct DivInstrumentAmiga {
     if (useNoteMap) {
       if (note<0) note=0;
       if (note>119) note=119;
-      return noteFreq[note];
+      return noteMap[note].freq;
     }
     return -1;
   }
@@ -344,8 +370,9 @@ struct DivInstrumentAmiga {
     useNoteMap(false),
     useWave(false),
     waveLen(31) {
-    memset(noteMap,-1,120*sizeof(short));
-    memset(noteFreq,0,120*sizeof(int));
+    for (SampleMap& elem: noteMap) {
+      elem=SampleMap();
+    }
   }
 };
 
@@ -430,6 +457,14 @@ struct DivInstrumentWaveSynth {
     param4(0) {}
 };
 
+struct DivInstrumentSoundUnit {
+  bool useSample;
+  bool switchRoles;
+  DivInstrumentSoundUnit():
+    useSample(false),
+    switchRoles(false) {}
+};
+
 struct DivInstrument {
   String name;
   bool mode;
@@ -443,6 +478,7 @@ struct DivInstrument {
   DivInstrumentFDS fds;
   DivInstrumentMultiPCM multipcm;
   DivInstrumentWaveSynth ws;
+  DivInstrumentSoundUnit su;
   
   /**
    * save the instrument to a SafeWriter.
@@ -464,6 +500,13 @@ struct DivInstrument {
    * @return whether it was successful.
    */
   bool save(const char* path);
+
+  /**
+   * save this instrument to a file in .dmp format.
+   * @param path file path.
+   * @return whether it was successful.
+   */
+  bool saveDMP(const char* path);
   DivInstrument():
     name(""),
     type(DIV_INS_FM) {

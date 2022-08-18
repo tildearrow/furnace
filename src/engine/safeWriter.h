@@ -57,6 +57,7 @@ class SafeWriter {
     int writeD_BE(double val);
     int writeWString(WString val, bool pascal);
     int writeString(String val, bool pascal);
+    int writeText(String val);
 
     void init();
     SafeReader* toReader();

@@ -35,6 +35,10 @@ const unsigned char drumSlot[11]={
   0, 0, 0, 0, 0, 0, 6, 7, 8, 8, 7
 };
 
+const unsigned char visMapOPLL[9]={
+  6, 7, 8, 3, 4, 5, 0, 1, 2
+};
+
 void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   static int o[2];
   static int os;
@@ -62,10 +66,18 @@ void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size
       OPLL_Clock(&fm,o);
       unsigned char nextOut=cycleMapOPLL[fm.cycles];
       if ((nextOut>=6 && properDrums) || !isMuted[nextOut]) {
-        oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=(o[0]+o[1])<<6;
         os+=(o[0]+o[1]);
+        if (vrc7 || (fm.rm_enable&0x20)) oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=(o[0]+o[1])<<6;
       } else {
-        oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=0;
+        if (vrc7 || (fm.rm_enable&0x20)) oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=0;
+      }
+    }
+    if (!(vrc7 || (fm.rm_enable&0x20))) for (int i=0; i<9; i++) {
+      unsigned char ch=visMapOPLL[i];
+      if ((i>=6 && properDrums) || !isMuted[ch]) {
+        oscBuf[ch]->data[oscBuf[ch]->needle++]=(fm.output_ch[i])<<6;
+      } else {
+        oscBuf[ch]->data[oscBuf[ch]->needle++]=0;
       }
     }
     os*=50;
@@ -757,6 +769,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (c.chan>=9 && !properDrums) return 0;
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:

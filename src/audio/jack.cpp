@@ -52,17 +52,30 @@ void TAAudioJACK::onBufferSize(jack_nframes_t bufsize) {
 }
 
 void TAAudioJACK::onProcess(jack_nframes_t nframes) {
-  if (audioProcCallback!=NULL) {
-    if (midiIn!=NULL) midiIn->gather();
-    audioProcCallback(audioProcCallbackUser,inBufs,outBufs,desc.inChans,desc.outChans,desc.bufsize);
-  }
   for (int i=0; i<desc.inChans; i++) {
     iInBufs[i]=(float*)jack_port_get_buffer(ai[i],nframes);
-    memcpy(iInBufs[i],inBufs[i],desc.bufsize*sizeof(float));
+    if (nframes>desc.bufsize) {
+      delete[] inBufs[i];
+      inBufs[i]=new float[nframes];
+    }
+    memcpy(iInBufs[i],inBufs[i],nframes*sizeof(float));
+  }
+  for (int i=0; i<desc.outChans; i++) {
+    if (nframes>desc.bufsize) {
+      delete[] outBufs[i];
+      outBufs[i]=new float[nframes];
+    }
+  }
+  if (audioProcCallback!=NULL) {
+    if (midiIn!=NULL) midiIn->gather();
+    audioProcCallback(audioProcCallbackUser,inBufs,outBufs,desc.inChans,desc.outChans,nframes);
   }
   for (int i=0; i<desc.outChans; i++) {
     iOutBufs[i]=(float*)jack_port_get_buffer(ao[i],nframes);
-    memcpy(iOutBufs[i],outBufs[i],desc.bufsize*sizeof(float));
+    memcpy(iOutBufs[i],outBufs[i],nframes*sizeof(float));
+  }
+  if (nframes!=desc.bufsize) {
+    desc.bufsize=nframes;
   }
 }
 

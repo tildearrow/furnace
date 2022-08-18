@@ -27,6 +27,72 @@
 #include <shobjidl.h>
 #include "nfd_common.h"
 
+// hack I know
+#include "../../../src/utfutils.h"
+
+class NFDWinEvents: public IFileDialogEvents {
+  nfdselcallback_t selCallback;
+  size_t refCount;
+
+  virtual ~NFDWinEvents() {
+  }
+  public:
+    IFACEMETHODIMP QueryInterface(REFIID riid, void** ppv) {
+      printf("QueryInterface called DAMN IT\n");
+      *ppv=NULL;
+      return E_NOTIMPL;
+    }
+
+    IFACEMETHODIMP_(ULONG) AddRef() {
+      printf("AddRef() called\n");
+      return InterlockedIncrement(&refCount);
+    }
+
+    IFACEMETHODIMP_(ULONG) Release() {
+      printf("Release() called\n");
+      LONG ret=InterlockedDecrement(&refCount);
+      if (ret==0) {
+        printf("Destroying the final object.\n");
+        delete this;
+      }
+      return ret;
+    }
+
+    IFACEMETHODIMP OnFileOk(IFileDialog*) { return E_NOTIMPL; }
+    IFACEMETHODIMP OnFolderChange(IFileDialog*) { return E_NOTIMPL; }
+    IFACEMETHODIMP OnFolderChanging(IFileDialog*, IShellItem*) { return E_NOTIMPL; }
+    IFACEMETHODIMP OnOverwrite(IFileDialog*, IShellItem*, FDE_OVERWRITE_RESPONSE*) { return E_NOTIMPL; }
+    IFACEMETHODIMP OnShareViolation(IFileDialog*, IShellItem*, FDE_SHAREVIOLATION_RESPONSE*) { return E_NOTIMPL; }
+    IFACEMETHODIMP OnTypeChange(IFileDialog*) { return E_NOTIMPL; }
+
+    IFACEMETHODIMP OnSelectionChange(IFileDialog* dialog) {
+      // Get the file name
+      ::IShellItem *shellItem(NULL);
+      HRESULT result = dialog->GetCurrentSelection(&shellItem);
+      if ( !SUCCEEDED(result) )
+      {
+        printf("failure!\n");
+        return S_OK;
+      }
+      wchar_t *filePath(NULL);
+      result = shellItem->GetDisplayName(::SIGDN_FILESYSPATH, &filePath);
+      if ( !SUCCEEDED(result) )
+      {
+          printf("GDN failure!\n");
+          shellItem->Release();
+          return S_OK;
+      }
+      std::string utf8FilePath=utf16To8(filePath);
+      if (selCallback!=NULL) selCallback(utf8FilePath.c_str());
+      printf("I got you for a value of %s\n",utf8FilePath.c_str());
+      shellItem->Release();
+      return S_OK;
+    }
+    NFDWinEvents(nfdselcallback_t callback):
+      selCallback(callback),
+      refCount(1) {
+    }
+};
 
 #define COM_INITFLAGS ::COINIT_APARTMENTTHREADED | ::COINIT_DISABLE_OLE1DDE
 
@@ -131,46 +197,22 @@ static void CopyNFDCharToWChar( const nfdchar_t *inStr, wchar_t **outStr )
 #endif
 }
 
-
-/* ext is in format "jpg", no wildcards or separators */
-static int AppendExtensionToSpecBuf( const char *ext, char *specBuf, size_t specBufLen )
-{
-    const char SEP[] = ";";
-    assert( specBufLen > strlen(ext)+3 );
-    
-    if ( strlen(specBuf) > 0 )
-    {
-        strncat( specBuf, SEP, specBufLen - strlen(specBuf) - 1 );
-        specBufLen += strlen(SEP);
-    }
-
-    char extWildcard[NFD_MAX_STRLEN];
-    int bytesWritten = sprintf_s( extWildcard, NFD_MAX_STRLEN, "*.%s", ext );
-    assert( bytesWritten == (int)(strlen(ext)+2) );
-    _NFD_UNUSED(bytesWritten);
-    
-    strncat( specBuf, extWildcard, specBufLen - strlen(specBuf) - 1 );
-
-    return NFD_OKAY;
-}
-
-static nfdresult_t AddFiltersToDialog( ::IFileDialog *fileOpenDialog, const char *filterList )
+static nfdresult_t AddFiltersToDialog( ::IFileDialog *fileOpenDialog, const std::vector<std::string>& filterList )
 {
     const wchar_t WILDCARD[] = L"*.*";
 
-    if ( !filterList || strlen(filterList) == 0 )
+    if (filterList.empty())
         return NFD_OKAY;
 
-    // Count rows to alloc
-    UINT filterCount = 1; /* guaranteed to have one filter on a correct, non-empty parse */
-    const char *p_filterList;
-    for ( p_filterList = filterList; *p_filterList; ++p_filterList )
-    {
-        if ( *p_filterList == ';' )
-            ++filterCount;
-    }    
+    // list size has to be an even number (name/filter)
+    if (filterList.size()&1)
+        return NFD_ERROR;
 
-    assert(filterCount);
+    // Count rows to alloc
+    UINT filterCount = filterList.size()>>1; /* guaranteed to have one filter on a correct, non-empty parse */
+
+    if (filterCount==0) filterCount=1;
+
     if ( !filterCount )
     {
         NFDi_SetError("Error parsing filters.");
@@ -178,62 +220,39 @@ static nfdresult_t AddFiltersToDialog( ::IFileDialog *fileOpenDialog, const char
     }
 
     /* filterCount plus 1 because we hardcode the *.* wildcard after the while loop */
-    COMDLG_FILTERSPEC *specList = (COMDLG_FILTERSPEC*)NFDi_Malloc( sizeof(COMDLG_FILTERSPEC) * ((size_t)filterCount + 1) );
+    COMDLG_FILTERSPEC *specList = (COMDLG_FILTERSPEC*)NFDi_Malloc( sizeof(COMDLG_FILTERSPEC) * ((size_t)filterCount) );
     if ( !specList )
     {
         return NFD_ERROR;
     }
-    for (UINT i = 0; i < filterCount+1; ++i )
+    for (UINT i = 0; i < filterCount; ++i )
     {
         specList[i].pszName = NULL;
         specList[i].pszSpec = NULL;
     }
 
     size_t specIdx = 0;
-    p_filterList = filterList;
-    char typebuf[NFD_MAX_STRLEN] = {0};  /* one per comma or semicolon */
-    char *p_typebuf = typebuf;
 
-    char specbuf[NFD_MAX_STRLEN] = {0}; /* one per semicolon */
+    for (size_t i=0; i<filterList.size(); i+=2) {
+      String name=filterList[i];
+      String spec=filterList[i+1];
+      for (char& i: spec) {
+        if (i==' ') i=';';
+      }
+      if (spec==".*") spec="*.*";
 
-    while ( 1 ) 
-    {
-        if ( NFDi_IsFilterSegmentChar(*p_filterList) )
-        {
-            /* append a type to the specbuf (pending filter) */
-            AppendExtensionToSpecBuf( typebuf, specbuf, NFD_MAX_STRLEN );            
-
-            p_typebuf = typebuf;
-            memset( typebuf, 0, sizeof(char)*NFD_MAX_STRLEN );
-        }
-
-        if ( *p_filterList == ';' || *p_filterList == '\0' )
-        {
-            /* end of filter -- add it to specList */
-                                
-            CopyNFDCharToWChar( specbuf, (wchar_t**)&specList[specIdx].pszName );
-            CopyNFDCharToWChar( specbuf, (wchar_t**)&specList[specIdx].pszSpec );
-                        
-            memset( specbuf, 0, sizeof(char)*NFD_MAX_STRLEN );
-            ++specIdx;
-            if ( specIdx == filterCount )
-                break;
-        }
-
-        if ( !NFDi_IsFilterSegmentChar( *p_filterList ))
-        {
-            *p_typebuf = *p_filterList;
-            ++p_typebuf;
-        }
-
-        ++p_filterList;
+      CopyNFDCharToWChar( name.c_str(), (wchar_t**)&specList[specIdx].pszName );
+      CopyNFDCharToWChar( spec.c_str(), (wchar_t**)&specList[specIdx].pszSpec );
+      ++specIdx;
     }
 
-    /* Add wildcard */
-    specList[specIdx].pszSpec = WILDCARD;
-    specList[specIdx].pszName = WILDCARD;
+    /* Add wildcard if specIdx is 0 */
+    if (specIdx==0) {
+      specList[specIdx].pszSpec = WILDCARD;
+      specList[specIdx].pszName = WILDCARD;
+    }
     
-    fileOpenDialog->SetFileTypes( filterCount+1, specList );
+    fileOpenDialog->SetFileTypes( filterCount, specList );
 
     /* free speclist */
     for ( size_t i = 0; i < filterCount; ++i )
@@ -349,7 +368,7 @@ static nfdresult_t AllocPathSet( IShellItemArray *shellItems, nfdpathset_t *path
 
 static nfdresult_t SetDefaultPath( IFileDialog *dialog, const char *defaultPath )
 {
-    if ( !defaultPath || strlen(defaultPath) == 0 )
+    if ( !defaultPath || strlen(defaultPath) == 0 || strcmp(defaultPath,"\\")==0 )
         return NFD_OKAY;
 
     wchar_t *defaultPathW = {0};
@@ -384,12 +403,15 @@ static nfdresult_t SetDefaultPath( IFileDialog *dialog, const char *defaultPath 
 /* public */
 
 
-nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
+nfdresult_t NFD_OpenDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
-                            nfdchar_t **outPath )
+                            nfdchar_t **outPath,
+                            nfdselcallback_t selCallback )
 {
     nfdresult_t nfdResult = NFD_ERROR;
-
+    NFDWinEvents* winEvents;
+    bool hasEvents=true;
+    DWORD eventID=0;
     
     HRESULT coResult = COMInit();
     if (!COMIsInitialized(coResult))
@@ -420,9 +442,20 @@ nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
     if ( !SetDefaultPath( fileOpenDialog, defaultPath ) )
     {
         goto end;
-    }    
+    }
+
+    // Pass the callback
+    winEvents=new NFDWinEvents(selCallback);
+    if ( !SUCCEEDED(fileOpenDialog->Advise(winEvents,&eventID)) ) {
+      // error... ignore
+      hasEvents=false;
+      winEvents->Release();
+    } else {
+      winEvents->Release();
+    }
 
     // Show the dialog.
+    // TODO: pass the Furnace window here
     result = fileOpenDialog->Show(NULL);
     if ( SUCCEEDED(result) )
     {
@@ -466,17 +499,22 @@ nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
     }
 
 end:
-    if (fileOpenDialog)
+    if (fileOpenDialog) {
+        if (hasEvents) {
+          fileOpenDialog->Unadvise(eventID);
+        }
         fileOpenDialog->Release();
+    }
 
     COMUninit(coResult);
     
     return nfdResult;
 }
 
-nfdresult_t NFD_OpenDialogMultiple( const nfdchar_t *filterList,
+nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
                                     const nfdchar_t *defaultPath,
-                                    nfdpathset_t *outPaths )
+                                    nfdpathset_t *outPaths,
+                                    nfdselcallback_t selCallback )
 {
     nfdresult_t nfdResult = NFD_ERROR;
 
@@ -568,9 +606,10 @@ end:
     return nfdResult;
 }
 
-nfdresult_t NFD_SaveDialog( const nfdchar_t *filterList,
+nfdresult_t NFD_SaveDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
-                            nfdchar_t **outPath )
+                            nfdchar_t **outPath,
+                            nfdselcallback_t selCallback )
 {
     nfdresult_t nfdResult = NFD_ERROR;
 

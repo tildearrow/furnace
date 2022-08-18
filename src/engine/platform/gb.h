@@ -24,13 +24,18 @@
 #include "../macroInt.h"
 #include "../waveSynth.h"
 #include "sound/gb/gb.h"
+#include <queue>
 
 class DivPlatformGB: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note, ins;
     unsigned char duty, sweep;
-    bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta;
-    signed char vol, outVol, wave;
+    bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, released, softEnv, killIt;
+    bool soManyHacksToMakeItDefleCompatible;
+    signed char vol, outVol, wave, lastKill;
+    unsigned char envVol, envDir, envLen, soundLen;
+    unsigned short hwSeqPos;
+    short hwSeqDelay;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
       std.init(which);
@@ -52,17 +57,38 @@ class DivPlatformGB: public DivDispatch {
       keyOn(false),
       keyOff(false),
       inPorta(false),
+      released(false),
+      softEnv(false),
+      killIt(false),
+      soManyHacksToMakeItDefleCompatible(false),
       vol(15),
       outVol(15),
-      wave(-1) {}
+      wave(-1),
+      lastKill(0),
+      envVol(0),
+      envDir(0),
+      envLen(0),
+      soundLen(0),
+      hwSeqPos(0),
+      hwSeqDelay(0) {}
   };
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
+  bool antiClickEnabled;
   unsigned char lastPan;
   DivWaveSynth ws;
+  struct QueuedWrite {
+      unsigned char addr;
+      unsigned char val;
+      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+  };
+  std::queue<QueuedWrite> writes;
+
+  int antiClickPeriodCount, antiClickWavePos;
 
   GB_gameboy_t* gb;
+  GB_model_t model;
   unsigned char regPool[128];
   
   unsigned char procMute();
@@ -80,13 +106,16 @@ class DivPlatformGB: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
+    int getPortaFloor(int ch);
     bool isStereo();
+    bool getDCOffRequired();
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
+    void setFlags(unsigned int flags);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformGB();

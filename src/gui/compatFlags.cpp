@@ -115,6 +115,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("does this make any sense by now?");
     }
+    ImGui::Checkbox("E1xy/E2xy stop when repeating the same note",&e->song.e1e2StopOnSameNote);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("ugh, if only this wasn't a thing...");
+    }
     ImGui::Checkbox("SN76489 duty macro always resets phase",&e->song.snDutyReset);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, duty macro will always reset phase, even if its value hasn't changed.");
@@ -203,31 +207,35 @@ void FurnaceGUI::drawCompatFlags() {
     }
     ImGui::Checkbox("Stop portamento on note off",&e->song.stopPortaOnNoteOff);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("behavior changed in 0.6");
+      ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
     ImGui::Checkbox("Allow instrument change during slides",&e->song.newInsTriggersInPorta);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("behavior changed in 0.6");
+      ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
     ImGui::Checkbox("Reset note to base on arpeggio stop",&e->song.arp0Reset);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("behavior changed in 0.6");
+      ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
     ImGui::Checkbox("ExtCh channel status is shared among operators",&e->song.sharedExtStat);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("behavior changed in 0.6");
+      ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
     ImGui::Checkbox("New SegaPCM features (macros and better panning)",&e->song.newSegaPCM);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("behavior changed in 0.6");
+      ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
     ImGui::Checkbox("Old FM octave boundary behavior",&e->song.oldOctaveBoundary);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("behavior changed in 0.6");
+      ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
     ImGui::Checkbox("No OPN2 DAC volume control",&e->song.noOPN2Vol);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("behavior changed in 0.6");
+      ImGui::SetTooltip("behavior changed in 0.6pre1");
+    }
+    ImGui::Checkbox("Broken initial position of portamento after arpeggio",&e->song.brokenPortaArp);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("behavior changed in 0.6pre1.5");
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_COMPAT_FLAGS;

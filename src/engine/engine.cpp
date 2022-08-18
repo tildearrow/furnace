@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "dispatch.h"
 #define _USE_MATH_DEFINES
 #include "engine.h"
 #include "instrument.h"
@@ -24,20 +25,16 @@
 #include "../ta-log.h"
 #include "../fileutils.h"
 #ifdef HAVE_SDL2
-#include "../audio/sdl.h"
+#include "../audio/sdlAudio.h"
 #endif
 #include <stdexcept>
-#ifndef _WIN32
-#include <unistd.h>
-#include <pwd.h>
-#include <sys/stat.h>
-#endif
 #ifdef HAVE_JACK
 #include "../audio/jack.h"
 #endif
 #include <math.h>
+#include <float.h>
 #ifdef HAVE_SNDFILE
-#include <sndfile.h>
+#include "sfWrapper.h"
 #endif
 #include <fmt/printf.h>
 
@@ -188,6 +185,308 @@ void DivEngine::walkSong(int& loopOrder, int& loopRow, int& loopEnd) {
   }
 }
 
+#define EXPORT_BUFSIZE 2048
+
+double DivEngine::benchmarkPlayback() {
+  float* outBuf[2];
+  outBuf[0]=new float[EXPORT_BUFSIZE];
+  outBuf[1]=new float[EXPORT_BUFSIZE];
+
+  curOrder=0;
+  prevOrder=0;
+  remainingLoops=1;
+  playSub(false);
+
+  std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
+
+  // benchmark
+  while (playing) {
+    nextBuf(NULL,outBuf,0,2,EXPORT_BUFSIZE);
+  }
+
+  std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
+
+  delete[] outBuf[0];
+  delete[] outBuf[1];
+
+  double t=(double)(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count())/1000000.0;
+  printf("[RESULT] %fs\n",t);
+  return t;
+}
+
+double DivEngine::benchmarkSeek() {
+  double t[20];
+  curOrder=curSubSong->ordersLen-1;
+  prevOrder=curSubSong->ordersLen-1;
+
+  // benchmark
+  for (int i=0; i<20; i++) {
+    std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
+    playSub(false);     
+    std::chrono::high_resolution_clock::time_point timeEnd=std::chrono::high_resolution_clock::now();
+    t[i]=(double)(std::chrono::duration_cast<std::chrono::microseconds>(timeEnd-timeStart).count())/1000000.0;
+    printf("[#%d] %fs\n",i+1,t[i]);
+  }
+
+  double tMin=DBL_MAX;
+  double tMax=0.0;
+  double tAvg=0.0;
+  for (int i=0; i<20; i++) {
+    if (t[i]<tMin) tMin=t[i];
+    if (t[i]>tMax) tMax=t[i];
+    tAvg+=t[i];
+  }
+  tAvg/=20.0;
+
+  printf("[RESULT] min %fs max %fs average %fs\n",tMin,tMax,tAvg);
+  return tAvg;
+}
+
+#define WRITE_TICK \
+  if (!wroteTick) { \
+    wroteTick=true; \
+    if (binary) { \
+      if (tick-lastTick>255) { \
+        w->writeC(0xfc); \
+        w->writeS(tick-lastTick); \
+      } else if (tick-lastTick>1) { \
+        w->writeC(0xfd); \
+        w->writeC(tick-lastTick); \
+      } else { \
+        w->writeC(0xfe); \
+      } \
+    } else { \
+      w->writeText(fmt::sprintf(">> TICK %d\n",tick)); \
+    } \
+    lastTick=tick; \
+  }
+
+void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
+  w->writeC(c.cmd);
+  switch (c.cmd) {
+    case DIV_CMD_NOTE_ON:
+    case DIV_CMD_HINT_LEGATO:
+      if (c.value==DIV_NOTE_NULL) {
+        w->writeC(0xff);
+      } else {
+        w->writeC(c.value+60);
+      }
+      break;
+    case DIV_CMD_NOTE_OFF:
+    case DIV_CMD_NOTE_OFF_ENV:
+    case DIV_CMD_ENV_RELEASE:
+      break;
+    case DIV_CMD_INSTRUMENT:
+    case DIV_CMD_HINT_VIBRATO_RANGE:
+    case DIV_CMD_HINT_VIBRATO_SHAPE:
+    case DIV_CMD_HINT_PITCH:
+    case DIV_CMD_HINT_VOLUME:
+    case DIV_CMD_SAMPLE_MODE:
+    case DIV_CMD_SAMPLE_FREQ:
+    case DIV_CMD_SAMPLE_BANK:
+    case DIV_CMD_SAMPLE_POS:
+    case DIV_CMD_SAMPLE_DIR:
+    case DIV_CMD_FM_HARD_RESET:
+    case DIV_CMD_FM_LFO:
+    case DIV_CMD_FM_LFO_WAVE:
+    case DIV_CMD_FM_FB:
+    case DIV_CMD_FM_EXTCH:
+    case DIV_CMD_FM_AM_DEPTH:
+    case DIV_CMD_FM_PM_DEPTH:
+    case DIV_CMD_STD_NOISE_FREQ:
+    case DIV_CMD_STD_NOISE_MODE:
+    case DIV_CMD_WAVE:
+    case DIV_CMD_GB_SWEEP_TIME:
+    case DIV_CMD_GB_SWEEP_DIR:
+    case DIV_CMD_PCE_LFO_MODE:
+    case DIV_CMD_PCE_LFO_SPEED:
+    case DIV_CMD_NES_DMC:
+    case DIV_CMD_C64_CUTOFF:
+    case DIV_CMD_C64_RESONANCE:
+    case DIV_CMD_C64_FILTER_MODE:
+    case DIV_CMD_C64_RESET_TIME:
+    case DIV_CMD_C64_RESET_MASK:
+    case DIV_CMD_C64_FILTER_RESET:
+    case DIV_CMD_C64_DUTY_RESET:
+    case DIV_CMD_C64_EXTENDED:
+    case DIV_CMD_AY_ENVELOPE_SET:
+    case DIV_CMD_AY_ENVELOPE_LOW:
+    case DIV_CMD_AY_ENVELOPE_HIGH:
+    case DIV_CMD_AY_ENVELOPE_SLIDE:
+    case DIV_CMD_AY_NOISE_MASK_AND:
+    case DIV_CMD_AY_NOISE_MASK_OR:
+    case DIV_CMD_AY_AUTO_ENVELOPE:
+      w->writeC(c.value);
+      break;
+    case DIV_CMD_PANNING:
+    case DIV_CMD_HINT_VIBRATO:
+    case DIV_CMD_HINT_ARPEGGIO:
+    case DIV_CMD_HINT_PORTA:
+    case DIV_CMD_FM_TL:
+    case DIV_CMD_FM_AM:
+    case DIV_CMD_FM_AR:
+    case DIV_CMD_FM_DR:
+    case DIV_CMD_FM_SL:
+    case DIV_CMD_FM_D2R:
+    case DIV_CMD_FM_RR:
+    case DIV_CMD_FM_DT:
+    case DIV_CMD_FM_DT2:
+    case DIV_CMD_FM_RS:
+    case DIV_CMD_FM_KSR:
+    case DIV_CMD_FM_VIB:
+    case DIV_CMD_FM_SUS:
+    case DIV_CMD_FM_WS:
+    case DIV_CMD_FM_SSG:
+    case DIV_CMD_FM_REV:
+    case DIV_CMD_FM_EG_SHIFT:
+    case DIV_CMD_FM_MULT:
+    case DIV_CMD_FM_FINE:
+    case DIV_CMD_AY_IO_WRITE:
+    case DIV_CMD_AY_AUTO_PWM:
+      w->writeC(c.value);
+      w->writeC(c.value2);
+      break;
+    case DIV_CMD_PRE_PORTA:
+      w->writeC((c.value?0x80:0)|(c.value2?0x40:0));
+      break;
+    case DIV_CMD_HINT_VOL_SLIDE:
+    case DIV_CMD_C64_FINE_DUTY:
+    case DIV_CMD_C64_FINE_CUTOFF:
+      w->writeS(c.value);
+      break;
+    case DIV_CMD_FM_FIXFREQ:
+      w->writeS((c.value<<12)|(c.value2&0x7ff));
+      break;
+    case DIV_CMD_NES_SWEEP:
+      w->writeC((c.value?8:0)|(c.value2&0x77));
+      break;
+    default:
+      logW("unimplemented command %s!",cmdName[c.cmd]);
+      break;
+  }
+}
+
+SafeWriter* DivEngine::saveCommand(bool binary) {
+  stop();
+  repeatPattern=false;
+  setOrder(0);
+  BUSY_BEGIN_SOFT;
+  // determine loop point
+  int loopOrder=0;
+  int loopRow=0;
+  int loopEnd=0;
+  walkSong(loopOrder,loopRow,loopEnd);
+  logI("loop point: %d %d",loopOrder,loopRow);
+
+  SafeWriter* w=new SafeWriter;
+  w->init();
+
+  // write header
+  if (binary) {
+    w->write("FCS",4);
+  } else {
+    w->writeText("# Furnace Command Stream\n\n");
+
+    w->writeText("[Information]\n");
+    w->writeText(fmt::sprintf("name: %s\n",song.name));
+    w->writeText(fmt::sprintf("author: %s\n",song.author));
+    w->writeText(fmt::sprintf("category: %s\n",song.category));
+    w->writeText(fmt::sprintf("system: %s\n",song.systemName));
+
+    w->writeText("\n");
+
+    w->writeText("[SubSongInformation]\n");
+    w->writeText(fmt::sprintf("name: %s\n",curSubSong->name));
+    w->writeText(fmt::sprintf("tickRate: %f\n",curSubSong->hz));
+
+    w->writeText("\n");
+
+    w->writeText("[SysDefinition]\n");
+    // TODO
+
+    w->writeText("\n");
+  }
+
+  // play the song ourselves
+  bool done=false;
+  playSub(false);
+  
+  if (!binary) {
+    w->writeText("[Stream]\n");
+  }
+  int tick=0;
+  bool oldCmdStreamEnabled=cmdStreamEnabled;
+  cmdStreamEnabled=true;
+  double curDivider=divider;
+  int lastTick=0;
+  while (!done) {
+    if (nextTick(false,true) || !playing) {
+      done=true;
+    }
+    // get command stream
+    bool wroteTick=false;
+    if (curDivider!=divider) {
+      curDivider=divider;
+      WRITE_TICK;
+      if (binary) {
+        w->writeC(0xfb);
+        w->writeI((int)(curDivider*65536));
+      } else {
+        w->writeText(fmt::sprintf(">> SET_RATE %f\n",curDivider));
+      }
+    }
+    for (DivCommand& i: cmdStream) {
+      switch (i.cmd) {
+        // strip away hinted/useless commands
+        case DIV_ALWAYS_SET_VOLUME:
+          break;
+        case DIV_CMD_GET_VOLUME:
+          break;
+        case DIV_CMD_VOLUME:
+          break;
+        case DIV_CMD_NOTE_PORTA:
+          break;
+        case DIV_CMD_LEGATO:
+          break;
+        case DIV_CMD_PITCH:
+          break;
+        case DIV_CMD_PRE_NOTE:
+          break;
+        default:
+          WRITE_TICK;
+          if (binary) {
+            w->writeC(i.chan);
+            writePackedCommandValues(w,i);
+          } else {
+            w->writeText(fmt::sprintf("  %d: %s %d %d\n",i.chan,cmdName[i.cmd],i.value,i.value2));
+          }
+          break;
+      }
+    }
+    cmdStream.clear();
+    tick++;
+  }
+  cmdStreamEnabled=oldCmdStreamEnabled;
+
+  if (binary) {
+    w->writeC(0xff);
+  } else {
+    if (!playing) {
+      w->writeText(">> END\n");
+    } else {
+      w->writeText(">> LOOP 0\n");
+    }
+  }
+
+  remainingLoops=-1;
+  playing=false;
+  freelance=false;
+  extValuePresent=false;
+  BUSY_END;
+
+  return w;
+}
+
 void _runExportThread(DivEngine* caller) {
   caller->runExportThread();
 }
@@ -195,8 +494,6 @@ void _runExportThread(DivEngine* caller) {
 bool DivEngine::isExporting() {
   return exporting;
 }
-
-#define EXPORT_BUFSIZE 2048
 
 #ifdef HAVE_SNDFILE
 void DivEngine::runExportThread() {
@@ -207,11 +504,12 @@ void DivEngine::runExportThread() {
     case DIV_EXPORT_MODE_ONE: {
       SNDFILE* sf;
       SF_INFO si;
+      SFWrapper sfWrap;
       si.samplerate=got.rate;
       si.channels=2;
       si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
 
-      sf=sf_open(exportPath.c_str(),SFM_WRITE,&si);
+      sf=sfWrap.doOpen(exportPath.c_str(),SFM_WRITE,&si);
       if (sf==NULL) {
         logE("could not open file for writing! (%s)",sf_strerror(NULL));
         exporting=false;
@@ -266,7 +564,7 @@ void DivEngine::runExportThread() {
       delete[] outBuf[1];
       delete[] outBuf[2];
 
-      if (sf_close(sf)!=0) {
+      if (sfWrap.doClose()!=0) {
         logE("could not close audio file!");
       }
       exporting=false;
@@ -287,6 +585,7 @@ void DivEngine::runExportThread() {
       SNDFILE* sf[32];
       SF_INFO si[32];
       String fname[32];
+      SFWrapper sfWrap[32];
       for (int i=0; i<song.systemLen; i++) {
         sf[i]=NULL;
         si[i].samplerate=got.rate;
@@ -301,11 +600,11 @@ void DivEngine::runExportThread() {
       for (int i=0; i<song.systemLen; i++) {
         fname[i]=fmt::sprintf("%s_s%02d.wav",exportPath,i+1);
         logI("- %s",fname[i].c_str());
-        sf[i]=sf_open(fname[i].c_str(),SFM_WRITE,&si[i]);
+        sf[i]=sfWrap[i].doOpen(fname[i].c_str(),SFM_WRITE,&si[i]);
         if (sf[i]==NULL) {
           logE("could not open file for writing! (%s)",sf_strerror(NULL));
           for (int j=0; j<i; j++) {
-            sf_close(sf[i]);
+            sfWrap[i].doClose();
           }
           return;
         }
@@ -376,7 +675,7 @@ void DivEngine::runExportThread() {
 
       for (int i=0; i<song.systemLen; i++) {
         delete[] sysBuf[i];
-        if (sf_close(sf[i])!=0) {
+        if (sfWrap[i].doClose()!=0) {
           logE("could not close audio file!");
         }
       }
@@ -409,13 +708,14 @@ void DivEngine::runExportThread() {
       for (int i=0; i<chans; i++) {
         SNDFILE* sf;
         SF_INFO si;
+        SFWrapper sfWrap;
         String fname=fmt::sprintf("%s_c%02d.wav",exportPath,i+1);
         logI("- %s",fname.c_str());
         si.samplerate=got.rate;
         si.channels=2;
         si.format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
 
-        sf=sf_open(fname.c_str(),SFM_WRITE,&si);
+        sf=sfWrap.doOpen(fname.c_str(),SFM_WRITE,&si);
         if (sf==NULL) {
           logE("could not open file for writing! (%s)",sf_strerror(NULL));
           break;
@@ -480,7 +780,7 @@ void DivEngine::runExportThread() {
           }
         }
 
-        if (sf_close(sf)!=0) {
+        if (sfWrap.doClose()!=0) {
           logE("could not close audio file!");
         }
 
@@ -489,6 +789,7 @@ void DivEngine::runExportThread() {
           while (true) {
             if (i>=chans) break;
             if (getChannelType(i)!=5) break;
+            i++;
           }
           i--;
         }
@@ -789,7 +1090,7 @@ void DivEngine::initSongWithDesc(const int* description) {
   }
 }
 
-void DivEngine::createNew(const int* description) {
+void DivEngine::createNew(const int* description, String sysName) {
   quitDispatch();
   BUSY_BEGIN;
   saveLock.lock();
@@ -798,6 +1099,11 @@ void DivEngine::createNew(const int* description) {
   changeSong(0);
   if (description!=NULL) {
     initSongWithDesc(description);
+  }
+  if (sysName=="") {
+    song.systemName=getSongSystemLegacyName(song,!getConfInt("noMultiSystem",0));
+  } else {
+    song.systemName=sysName;
   }
   recalcChans();
   saveLock.unlock();
@@ -1438,7 +1744,10 @@ void DivEngine::stop() {
   freelance=false;
   playing=false;
   extValuePresent=false;
+  endOfSong=false; // what?
   stepPlay=0;
+  curOrder=prevOrder;
+  curRow=prevRow;
   remainingLoops=-1;
   sPreview.sample=-1;
   sPreview.wave=-1;
@@ -1743,6 +2052,10 @@ bool DivEngine::isPlaying() {
   return (playing && !freelance);
 }
 
+bool DivEngine::isRunning() {
+  return playing;
+}
+
 bool DivEngine::isStepping() {
   return !(stepPlay==0);
 }
@@ -1875,11 +2188,13 @@ void DivEngine::delInstrument(int index) {
     song.ins.erase(song.ins.begin()+index);
     song.insLen=song.ins.size();
     for (int i=0; i<chans; i++) {
-      for (int j=0; j<256; j++) {
-        if (curPat[i].data[j]==NULL) continue;
-        for (int k=0; k<curSubSong->patLen; k++) {
-          if (curPat[i].data[j]->data[k][2]>index) {
-            curPat[i].data[j]->data[k][2]--;
+      for (size_t j=0; j<song.subsong.size(); j++) {
+        for (int k=0; k<256; k++) {
+          if (song.subsong[j]->pat[i].data[k]==NULL) continue;
+          for (int l=0; l<song.subsong[j]->patLen; l++) {
+            if (song.subsong[j]->pat[i].data[k]->data[l][2]>index) {
+              song.subsong[j]->pat[i].data[k]->data[l][2]--;
+            }
           }
         }
       }
@@ -1890,7 +2205,10 @@ void DivEngine::delInstrument(int index) {
 }
 
 int DivEngine::addWave() {
-  if (song.wave.size()>=256) return -1;
+  if (song.wave.size()>=256) {
+    lastError="too many wavetables!";
+    return -1;
+  }
   BUSY_BEGIN;
   saveLock.lock();
   DivWavetable* wave=new DivWavetable;
@@ -1902,50 +2220,62 @@ int DivEngine::addWave() {
   return waveCount;
 }
 
-bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
+int DivEngine::addWavePtr(DivWavetable* which) {
   if (song.wave.size()>=256) {
     lastError="too many wavetables!";
-    return false;
+    delete which;
+    return -1;
   }
+  BUSY_BEGIN;
+  saveLock.lock();
+  int waveCount=(int)song.wave.size();
+  song.wave.push_back(which);
+  song.waveLen=waveCount+1;
+  saveLock.unlock();
+  BUSY_END;
+  return song.waveLen;
+}
+
+DivWavetable* DivEngine::waveFromFile(const char* path, bool addRaw) {
   FILE* f=ps_fopen(path,"rb");
   if (f==NULL) {
     lastError=fmt::sprintf("%s",strerror(errno));
-    return false;
+    return NULL;
   }
   unsigned char* buf;
   ssize_t len;
   if (fseek(f,0,SEEK_END)!=0) {
     fclose(f);
     lastError=fmt::sprintf("could not seek to end: %s",strerror(errno));
-    return false;
+    return NULL;
   }
   len=ftell(f);
   if (len<0) {
     fclose(f);
     lastError=fmt::sprintf("could not determine file size: %s",strerror(errno));
-    return false;
+    return NULL;
   }
   if (len==(SIZE_MAX>>1)) {
     fclose(f);
     lastError="file size is invalid!";
-    return false;
+    return NULL;
   }
   if (len==0) {
     fclose(f);
     lastError="file is empty";
-    return false;
+    return NULL;
   }
   if (fseek(f,0,SEEK_SET)!=0) {
     fclose(f);
     lastError=fmt::sprintf("could not seek to beginning: %s",strerror(errno));
-    return false;
+    return NULL;
   }
   buf=new unsigned char[len];
   if (fread(buf,1,len,f)!=(size_t)len) {
     logW("did not read entire wavetable file buffer!");
     delete[] buf;
     lastError=fmt::sprintf("could not read entire file: %s",strerror(errno));
-    return false;
+    return NULL;
   }
   fclose(f);
 
@@ -1973,7 +2303,7 @@ bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
         lastError="invalid wavetable header/data!";
         delete wave;
         delete[] buf;
-        return false;
+        return NULL;
       }
     } else {
       try {
@@ -2014,7 +2344,7 @@ bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
           } else {
             delete wave;
             delete[] buf;
-            return false;
+            return NULL;
           }
         }
       } catch (EndOfFileException& e) {
@@ -2032,7 +2362,7 @@ bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
         } else {
           delete wave;
           delete[] buf;
-          return false;
+          return NULL;
         }
       }
     }
@@ -2040,17 +2370,10 @@ bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
     delete wave;
     delete[] buf;
     lastError="premature end of file";
-    return false;
+    return NULL;
   }
   
-  BUSY_BEGIN;
-  saveLock.lock();
-  int waveCount=(int)song.wave.size();
-  song.wave.push_back(wave);
-  song.waveLen=waveCount+1;
-  saveLock.unlock();
-  BUSY_END;
-  return true;
+  return wave;
 }
 
 void DivEngine::delWave(int index) {
@@ -2066,7 +2389,10 @@ void DivEngine::delWave(int index) {
 }
 
 int DivEngine::addSample() {
-  if (song.sample.size()>=256) return -1;
+  if (song.sample.size()>=256) {
+    lastError="too many samples!";
+    return -1;
+  }
   BUSY_BEGIN;
   saveLock.lock();
   DivSample* sample=new DivSample;
@@ -2082,10 +2408,27 @@ int DivEngine::addSample() {
   return sampleCount;
 }
 
-int DivEngine::addSampleFromFile(const char* path) {
+int DivEngine::addSamplePtr(DivSample* which) {
   if (song.sample.size()>=256) {
     lastError="too many samples!";
+    delete which;
     return -1;
+  }
+  int sampleCount=(int)song.sample.size();
+  BUSY_BEGIN;
+  saveLock.lock();
+  song.sample.push_back(which);
+  song.sampleLen=sampleCount+1;
+  saveLock.unlock();
+  renderSamples();
+  BUSY_END;
+  return sampleCount;
+}
+
+DivSample* DivEngine::sampleFromFile(const char* path) {
+  if (song.sample.size()>=256) {
+    lastError="too many samples!";
+    return NULL;
   }
   BUSY_BEGIN;
   warnings="";
@@ -2119,7 +2462,6 @@ int DivEngine::addSampleFromFile(const char* path) {
     if (extS==".dmc") { // read as .dmc
       size_t len=0;
       DivSample* sample=new DivSample;
-      int sampleCount=(int)song.sample.size();
       sample->name=stripPath;
 
       FILE* f=ps_fopen(path,"rb");
@@ -2127,7 +2469,7 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError=fmt::sprintf("could not open file! (%s)",strerror(errno));
         delete sample;
-        return -1;
+        return NULL;
       }
 
       if (fseek(f,0,SEEK_END)<0) {
@@ -2135,7 +2477,7 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError=fmt::sprintf("could not get file length! (%s)",strerror(errno));
         delete sample;
-        return -1;
+        return NULL;
       }
 
       len=ftell(f);
@@ -2145,7 +2487,7 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError="file is empty!";
         delete sample;
-        return -1;
+        return NULL;
       }
 
       if (len==(SIZE_MAX>>1)) {
@@ -2153,7 +2495,7 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError="file is invalid!";
         delete sample;
-        return -1;
+        return NULL;
       }
 
       if (fseek(f,0,SEEK_SET)<0) {
@@ -2161,12 +2503,12 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError=fmt::sprintf("could not seek to beginning of file! (%s)",strerror(errno));
         delete sample;
-        return -1;
+        return NULL;
       }
 
       sample->rate=33144;
       sample->centerRate=33144;
-      sample->depth=1;
+      sample->depth=DIV_SAMPLE_DEPTH_1BIT_DPCM;
       sample->init(len*8);
 
       if (fread(sample->dataDPCM,1,len,f)==0) {
@@ -2174,41 +2516,36 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError=fmt::sprintf("could not read file! (%s)",strerror(errno));
         delete sample;
-        return -1;
+        return NULL;
       }
-
-      saveLock.lock();
-      song.sample.push_back(sample);
-      song.sampleLen=sampleCount+1;
-      saveLock.unlock();
-      renderSamples();
       BUSY_END;
-      return sampleCount;
+      return sample;
     }
   }
 
 #ifndef HAVE_SNDFILE
   lastError="Furnace was not compiled with libsndfile!";
-  return -1;
+  return NULL;
 #else
   SF_INFO si;
+  SFWrapper sfWrap;
   memset(&si,0,sizeof(SF_INFO));
-  SNDFILE* f=sf_open(path,SFM_READ,&si);
+  SNDFILE* f=sfWrap.doOpen(path,SFM_READ,&si);
   if (f==NULL) {
     BUSY_END;
     int err=sf_error(NULL);
     if (err==SF_ERR_SYSTEM) {
       lastError=fmt::sprintf("could not open file! (%s %s)",sf_error_number(err),strerror(errno));
     } else {
-      lastError=fmt::sprintf("could not open file! (%s)",sf_error_number(err));
+      lastError=fmt::sprintf("could not open file! (%s)\nif this is raw sample data, you may import it by right-clicking the Load Sample icon and selecting \"import raw\".",sf_error_number(err));
     }
-    return -1;
+    return NULL;
   }
   if (si.frames>16777215) {
     lastError="this sample is too big! max sample size is 16777215.";
-    sf_close(f);
+    sfWrap.doClose();
     BUSY_END;
-    return -1;
+    return NULL;
   }
   void* buf=NULL;
   sf_count_t sampleLen=sizeof(short);
@@ -2225,8 +2562,14 @@ int DivEngine::addSampleFromFile(const char* path) {
     buf=new short[si.channels*si.frames];
     sampleLen=sizeof(short);
   }
-  if (sf_read_raw(f,buf,si.frames*si.channels*sampleLen)!=(si.frames*si.channels*sampleLen)) {
-    logW("sample read size mismatch!");
+  if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8 || (si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_FLOAT) {
+    if (sf_read_raw(f,buf,si.frames*si.channels*sampleLen)!=(si.frames*si.channels*sampleLen)) {
+      logW("sample read size mismatch!");
+    }
+  } else {
+    if (sf_read_short(f,(short*)buf,si.frames*si.channels)!=(si.frames*si.channels)) {
+      logW("sample read size mismatch!");
+    }
   }
   DivSample* sample=new DivSample;
   int sampleCount=(int)song.sample.size();
@@ -2234,9 +2577,9 @@ int DivEngine::addSampleFromFile(const char* path) {
 
   int index=0;
   if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
-    sample->depth=8;
+    sample->depth=DIV_SAMPLE_DEPTH_8BIT;
   } else {
-    sample->depth=16;
+    sample->depth=DIV_SAMPLE_DEPTH_16BIT;
   }
   sample->init(si.frames);
   if ((si.format&SF_FORMAT_SUBMASK)==SF_FORMAT_PCM_U8) {
@@ -2291,6 +2634,7 @@ int DivEngine::addSampleFromFile(const char* path) {
     if(inst.loop_count && inst.loops[0].mode == SF_LOOP_FORWARD)
     {
       sample->loopStart=inst.loops[0].start;
+      sample->loopEnd=inst.loops[0].end;
       if(inst.loops[0].end < (unsigned int)sampleCount)
         sampleCount=inst.loops[0].end;
     }
@@ -2298,15 +2642,180 @@ int DivEngine::addSampleFromFile(const char* path) {
 
   if (sample->centerRate<4000) sample->centerRate=4000;
   if (sample->centerRate>64000) sample->centerRate=64000;
-  sf_close(f);
-  saveLock.lock();
-  song.sample.push_back(sample);
-  song.sampleLen=sampleCount+1;
-  saveLock.unlock();
-  renderSamples();
+  sfWrap.doClose();
   BUSY_END;
-  return sampleCount;
+  return sample;
 #endif
+}
+
+DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign) {
+  if (song.sample.size()>=256) {
+    lastError="too many samples!";
+    return NULL;
+  }
+  if (channels<1) {
+    lastError="invalid channel count";
+    return NULL;
+  }
+  if (depth!=DIV_SAMPLE_DEPTH_8BIT && depth!=DIV_SAMPLE_DEPTH_16BIT) {
+    if (channels!=1) {
+      lastError="channel count has to be 1 for non-8/16-bit format";
+      return NULL;
+    }
+  }
+  BUSY_BEGIN;
+  warnings="";
+
+  const char* pathRedux=strrchr(path,DIR_SEPARATOR);
+  if (pathRedux==NULL) {
+    pathRedux=path;
+  } else {
+    pathRedux++;
+  }
+  String stripPath;
+  const char* pathReduxEnd=strrchr(pathRedux,'.');
+  if (pathReduxEnd==NULL) {
+    stripPath=pathRedux;
+  } else {
+    for (const char* i=pathRedux; i!=pathReduxEnd && (*i); i++) {
+      stripPath+=*i;
+    }
+  }
+
+  size_t len=0;
+  size_t lenDivided=0;
+  DivSample* sample=new DivSample;
+  sample->name=stripPath;
+
+  FILE* f=ps_fopen(path,"rb");
+  if (f==NULL) {
+    BUSY_END;
+    lastError=fmt::sprintf("could not open file! (%s)",strerror(errno));
+    delete sample;
+    return NULL;
+  }
+
+  if (fseek(f,0,SEEK_END)<0) {
+    fclose(f);
+    BUSY_END;
+    lastError=fmt::sprintf("could not get file length! (%s)",strerror(errno));
+    delete sample;
+    return NULL;
+  }
+
+  len=ftell(f);
+
+  if (len==0) {
+    fclose(f);
+    BUSY_END;
+    lastError="file is empty!";
+    delete sample;
+    return NULL;
+  }
+
+  if (len==(SIZE_MAX>>1)) {
+    fclose(f);
+    BUSY_END;
+    lastError="file is invalid!";
+    delete sample;
+    return NULL;
+  }
+
+  if (fseek(f,0,SEEK_SET)<0) {
+    fclose(f);
+    BUSY_END;
+    lastError=fmt::sprintf("could not seek to beginning of file! (%s)",strerror(errno));
+    delete sample;
+    return NULL;
+  }
+
+  lenDivided=len/channels;
+
+  unsigned int samples=lenDivided;
+  switch (depth) {
+    case DIV_SAMPLE_DEPTH_1BIT:
+    case DIV_SAMPLE_DEPTH_1BIT_DPCM:
+      samples=lenDivided*8;
+      break;
+    case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
+    case DIV_SAMPLE_DEPTH_QSOUND_ADPCM:
+    case DIV_SAMPLE_DEPTH_ADPCM_A:
+    case DIV_SAMPLE_DEPTH_ADPCM_B:
+    case DIV_SAMPLE_DEPTH_VOX:
+      samples=lenDivided*2;
+      break;
+    case DIV_SAMPLE_DEPTH_8BIT:
+      samples=lenDivided;
+      break;
+    case DIV_SAMPLE_DEPTH_BRR:
+      samples=16*((lenDivided+8)/9);
+      break;
+    case DIV_SAMPLE_DEPTH_16BIT:
+      samples=(lenDivided+1)/2;
+      break;
+    default:
+      break;
+  }
+
+  if (samples>16777215) {
+    fclose(f);
+    BUSY_END;
+    lastError="this sample is too big! max sample size is 16777215.";
+    delete sample;
+    return NULL;
+  }
+
+  sample->rate=32000;
+  sample->centerRate=32000;
+  sample->depth=depth;
+  sample->init(samples);
+
+  unsigned char* buf=new unsigned char[len];
+  if (fread(buf,1,len,f)==0) {
+    fclose(f);
+    BUSY_END;
+    lastError=fmt::sprintf("could not read file! (%s)",strerror(errno));
+    delete[] buf;
+    delete sample;
+    return NULL;
+  }
+
+  fclose(f);
+
+  // import sample
+  size_t pos=0;
+  if (depth==DIV_SAMPLE_DEPTH_16BIT) {
+    for (unsigned int i=0; i<samples; i++) {
+      int accum=0;
+      for (int j=0; j<channels; j++) {
+        if (pos+1>=len) break;
+        if (bigEndian) {
+          accum+=(short)(((short)((buf[pos]<<8)|buf[pos+1]))^(unsign?0x8000:0));
+        } else {
+          accum+=(short)(((short)(buf[pos]|(buf[pos+1]<<8)))^(unsign?0x8000:0));
+        }
+        pos+=2;
+      }
+      accum/=channels;
+      sample->data16[i]=accum;
+    }
+  } else if (depth==DIV_SAMPLE_DEPTH_8BIT) {
+    for (unsigned int i=0; i<samples; i++) {
+      int accum=0;
+      for (int j=0; j<channels; j++) {
+        if (pos>=len) break;
+        accum+=(signed char)(buf[pos++]^(unsign?0x80:0));
+      }
+      accum/=channels;
+      sample->data8[i]=accum;
+    }
+  } else {
+    memcpy(sample->getCurBuf(),buf,len);
+  }
+  delete[] buf;
+
+  BUSY_END;
+  return sample;
 }
 
 void DivEngine::delSample(int index) {
@@ -2486,13 +2995,15 @@ void DivEngine::moveOrderDown() {
 
 void DivEngine::exchangeIns(int one, int two) {
   for (int i=0; i<chans; i++) {
-    for (int j=0; j<256; j++) {
-      if (curPat[i].data[j]==NULL) continue;
-      for (int k=0; k<curSubSong->patLen; k++) {
-        if (curPat[i].data[j]->data[k][2]==one) {
-          curPat[i].data[j]->data[k][2]=two;
-        } else if (curPat[i].data[j]->data[k][2]==two) {
-          curPat[i].data[j]->data[k][2]=one;
+    for (size_t j=0; j<song.subsong.size(); j++) {
+      for (int k=0; k<256; k++) {
+        if (song.subsong[j]->pat[i].data[k]==NULL) continue;
+        for (int l=0; l<curSubSong->patLen; l++) {
+          if (song.subsong[j]->pat[i].data[k]->data[l][2]==one) {
+            song.subsong[j]->pat[i].data[k]->data[l][2]=two;
+          } else if (song.subsong[j]->pat[i].data[k]->data[l][2]==two) {
+            song.subsong[j]->pat[i].data[k]->data[l][2]=one;
+          }
         }
       }
     }
@@ -2916,36 +3427,6 @@ void DivEngine::quitDispatch() {
   BUSY_END;
 }
 
-#define CHECK_CONFIG_DIR_MAC() \
-  configPath+="/Library/Application Support/Furnace"; \
-  if (stat(configPath.c_str(),&st)<0) { \
-    logI("creating config dir..."); \
-    if (mkdir(configPath.c_str(),0755)<0) { \
-      logW("could not make config dir! (%s)",strerror(errno)); \
-      configPath="."; \
-    } \
-  }
-
-#define CHECK_CONFIG_DIR() \
-  configPath+="/.config"; \
-  if (stat(configPath.c_str(),&st)<0) { \
-    logI("creating user config dir..."); \
-    if (mkdir(configPath.c_str(),0755)<0) { \
-      logW("could not make user config dir! (%s)",strerror(errno)); \
-      configPath="."; \
-    } \
-  } \
-  if (configPath!=".") { \
-    configPath+="/furnace"; \
-    if (stat(configPath.c_str(),&st)<0) { \
-      logI("creating config dir..."); \
-      if (mkdir(configPath.c_str(),0755)<0) { \
-        logW("could not make config dir! (%s)",strerror(errno)); \
-        configPath="."; \
-      } \
-    } \
-  }
-
 bool DivEngine::initAudioBackend() {
   // load values
   if (audioEngine==DIV_AUDIO_NULL) {
@@ -2958,6 +3439,7 @@ bool DivEngine::initAudioBackend() {
 
   lowQuality=getConfInt("audioQuality",0);
   forceMono=getConfInt("forceMono",0);
+  clampSamples=getConfInt("clampSamples",0);
   lowLatency=getConfInt("lowLatency",0);
   metroVol=(float)(getConfInt("metroVol",100))/100.0f;
   if (metroVol<0.0f) metroVol=0.0f;
@@ -3054,6 +3536,7 @@ bool DivEngine::initAudioBackend() {
 
 bool DivEngine::deinitAudioBackend() {
   if (output!=NULL) {
+    output->quit();
     if (output->midiIn) {
       if (output->midiIn->isDeviceOpen()) {
         logI("closing MIDI input.");
@@ -3067,53 +3550,19 @@ bool DivEngine::deinitAudioBackend() {
       }
     }
     output->quitMidi();
-    output->quit();
     delete output;
     output=NULL;
-    audioEngine=DIV_AUDIO_NULL;
+    //audioEngine=DIV_AUDIO_NULL;
   }
   return true;
 }
 
-#ifdef _WIN32
-#include "winStuff.h"
-#endif
-
 bool DivEngine::init() {
   // register systems
   if (!systemsRegistered) registerSystems();
-  
+
   // init config
-#ifdef _WIN32
-  configPath=getWinConfigPath();
-#elif defined(IS_MOBILE)
-  configPath=SDL_GetPrefPath("tildearrow","furnace");
-#else
-  struct stat st;
-  char* home=getenv("HOME");
-  if (home==NULL) {
-    int uid=getuid();
-    struct passwd* entry=getpwuid(uid);
-    if (entry==NULL) {
-      logW("unable to determine config directory! (%s)",strerror(errno));
-      configPath=".";
-    } else {
-      configPath=entry->pw_dir;
-#ifdef __APPLE__
-      CHECK_CONFIG_DIR_MAC();
-#else
-      CHECK_CONFIG_DIR();
-#endif
-    }
-  } else {
-    configPath=home;
-#ifdef __APPLE__
-    CHECK_CONFIG_DIR_MAC();
-#else
-    CHECK_CONFIG_DIR();
-#endif
-  }
-#endif
+  initConfDir();
   logD("config path: %s",configPath.c_str());
 
   loadConf();
@@ -3128,6 +3577,12 @@ bool DivEngine::init() {
     if (preset.size()>0 && (preset.size()&3)==0) {
       preset.push_back(0);
       initSongWithDesc(preset.data());
+    }
+    String sysName=getConfString("initialSysName","");
+    if (sysName=="") {
+      song.systemName=getSongSystemLegacyName(song,!getConfInt("noMultiSystem",0));
+    } else {
+      song.systemName=sysName;
     }
     hasLoadedSomething=true;
   }

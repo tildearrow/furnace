@@ -152,9 +152,6 @@ const char** DivPlatformNamcoWSG::getRegisterSheet() {
 }
 
 void DivPlatformNamcoWSG::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  short* buf[2]={
-    bufL+start, bufR+start
-  };
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     switch (devType) {
@@ -174,7 +171,15 @@ void DivPlatformNamcoWSG::acquire(short* bufL, short* bufR, size_t start, size_t
     regPool[w.addr&0x3f]=w.val;
     writes.pop();
   }
-  namco->sound_stream_update(buf,len);
+  for (size_t h=start; h<start+len; h++) {
+    short* buf[2]={
+      bufL+h, bufR+h
+    };
+    namco->sound_stream_update(buf,1);
+    for (int i=0; i<chans; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=namco->m_channel_list[i].last_out*chans;
+    }
+  }
 }
 
 void DivPlatformNamcoWSG::updateWave(int ch) {
@@ -305,7 +310,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
         }
         rWrite((i<<3)+0x04,chan[i].freq&0xff);
         rWrite((i<<3)+0x05,(chan[i].freq>>8)&0xff);
-        rWrite((i<<3)+0x06,((chan[i].freq>>15)&15)|(i<<4));
+        rWrite((i<<3)+0x06,((chan[i].freq>>16)&15)|(i<<4));
       }
       break;
     case 30:
@@ -319,7 +324,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
         }
         rWrite((i<<3)+0x103,chan[i].freq&0xff);
         rWrite((i<<3)+0x102,(chan[i].freq>>8)&0xff);
-        rWrite((i<<3)+0x101,((chan[i].freq>>15)&15)|(i<<4));
+        rWrite((i<<3)+0x101,((chan[i].freq>>16)&15)|(i<<4));
       }
       break;
   }
@@ -425,6 +430,7 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

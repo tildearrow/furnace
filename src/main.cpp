@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string>
-#ifdef HAVE_GUI
+#ifdef HAVE_SDL2
 #include "SDL_events.h"
 #endif
 #include "ta-log.h"
@@ -36,6 +36,8 @@
 #include <unistd.h>
 #endif
 
+#include "cli/cli.h"
+
 #ifdef HAVE_GUI
 #include "gui/gui.h"
 #endif
@@ -46,9 +48,13 @@ DivEngine e;
 FurnaceGUI g;
 #endif
 
+FurnaceCLI cli;
+
 String outName;
 String vgmOutName;
+String cmdOutName;
 int loops=1;
+int benchMode=0;
 DivAudioExportModes outMode=DIV_EXPORT_MODE_ONE;
 
 #ifdef HAVE_GUI
@@ -58,6 +64,7 @@ bool consoleMode=true;
 #endif
 
 bool displayEngineFailError=false;
+bool cmdOutBinary=false;
 
 std::vector<TAParam> params;
 
@@ -109,6 +116,11 @@ TAParamResult pConsole(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pBinary(String val) {
+  cmdOutBinary=true;
+  return TA_PARAM_SUCCESS;
+}
+
 TAParamResult pLogLevel(String val) {
   if (val=="trace") {
     logLevel=LOGLEVEL_TRACE;
@@ -140,20 +152,37 @@ TAParamResult pVersion(String) {
   printf("- libsndfile by Erik de Castro Lopo and rest of libsndfile team (LGPLv2.1)\n");
   printf("- SDL2 by Sam Lantinga (zlib license)\n");
   printf("- zlib by Jean-loup Gailly and Mark Adler (zlib license)\n");
+  printf("- RtMidi by Gary P. Scavone (RtMidi license)\n");
+  printf("- backward-cpp by Google (MIT)\n");
   printf("- Dear ImGui by Omar Cornut (MIT)\n");
+  printf("- Portable File Dialogs by Sam Hocevar (WTFPL)\n");
+  printf("- Native File Dialog (modified version) by Frogtoss Games (zlib license)\n");
+  printf("- FFTW by Matteo Frigo and Steven G. Johnson (GPLv2)\n");
   printf("- Nuked-OPM by Nuke.YKT (LGPLv2.1)\n");
   printf("- Nuked-OPN2 by Nuke.YKT (LGPLv2.1)\n");
+  printf("- Nuked-OPL3 by Nuke.YKT (LGPLv2.1)\n");
+  printf("- Nuked-OPLL by Nuke.YKT (GPLv2)\n");
+  printf("- Nuked-PSG (modified version) by Nuke.YKT (GPLv2)\n");
   printf("- ymfm by Aaron Giles (BSD 3-clause)\n");
+  printf("- adpcm by superctr (public domain)\n");
   printf("- MAME SN76496 emulation core by Nicola Salmoria (BSD 3-clause)\n");
   printf("- MAME AY-3-8910 emulation core by Couriersud (BSD 3-clause)\n");
   printf("- MAME SAA1099 emulation core by Juergen Buchmueller and Manuel Abadia (BSD 3-clause)\n");
-  printf("- SAASound (BSD 3-clause)\n");
+  printf("- MAME Namco WSG by Nicola Salmoria and Aaron Giles (BSD 3-clause)\n");
+  printf("- MAME RF5C68 core by Olivier Galibert and Aaron Giles (BSD 3-clause)\n");
+  printf("- MAME MSM6258 core by Barry Rodewald (BSD 3-clause)\n");
+  printf("- MAME YMZ280B core by Aaron Giles (BSD 3-clause)\n");
+  printf("- QSound core by superctr (BSD 3-clause)\n");
+  printf("- VICE VIC-20 by Rami Rasanen and viznut (GPLv2)\n");
+  printf("- VERA core by Frank van den Hoef (BSD 2-clause)\n");
+  printf("- SAASound by Dave Hooper and Simon Owen (BSD 3-clause)\n");
   printf("- SameBoy by Lior Halphon (MIT)\n");
-  printf("- Mednafen PCE by Mednafen Team (GPLv2)\n");
+  printf("- Mednafen PCE and WonderSwan by Mednafen Team (GPLv2)\n");
   printf("- puNES by FHorse (GPLv2)\n");
+  printf("- NSFPlay by Brad Smith and Brezza (unknown open-source license)\n");
   printf("- reSID by Dag Lem (GPLv2)\n");
   printf("- Stella by Stella Team (GPLv2)\n");
-  printf("- vgsound_emu by cam900 (BSD 3-clause)\n");
+  printf("- vgsound_emu (first version) by cam900 (BSD 3-clause)\n");
   return TA_PARAM_QUIT;
 }
 
@@ -203,6 +232,19 @@ TAParamResult pOutMode(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pBenchmark(String val) {
+  if (val=="render") {
+    benchMode=1;
+  } else if (val=="seek") {
+    benchMode=2;
+  } else {
+    logE("invalid value for benchmark! valid values are: render and seek.");
+    return TA_PARAM_ERROR;
+  }
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return TA_PARAM_SUCCESS;
+}
+
 TAParamResult pOutput(String val) {
   outName=val;
   e.setAudio(DIV_AUDIO_DUMMY);
@@ -211,6 +253,12 @@ TAParamResult pOutput(String val) {
 
 TAParamResult pVGMOut(String val) {
   vgmOutName=val;
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pCmdOut(String val) {
+  cmdOutName=val;
   e.setAudio(DIV_AUDIO_DUMMY);
   return TA_PARAM_SUCCESS;
 }
@@ -230,6 +278,8 @@ void initParams() {
   params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl","set audio engine (SDL by default)"));
   params.push_back(TAParam("o","output",true,pOutput,"<filename>","output audio to file"));
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
+  params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
+  params.push_back(TAParam("b","binary",false,pBinary,"","set command stream output format to binary"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (pattern by default)"));
   params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
@@ -237,9 +287,22 @@ void initParams() {
   params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops (-1 means loop forever)"));
   params.push_back(TAParam("o","outmode",true,pOutMode,"one|persys|perchan","set file output mode"));
 
+  params.push_back(TAParam("B","benchmark",true,pBenchmark,"render|seek","run performance test"));
+
   params.push_back(TAParam("V","version",false,pVersion,"","view information about Furnace."));
   params.push_back(TAParam("W","warranty",false,pWarranty,"","view warranty disclaimer."));
 }
+
+#ifdef _WIN32
+void reportError(String what) {
+  logE("%s",what);
+  MessageBox(NULL,what.c_str(),"Furnace",MB_OK|MB_ICONERROR);
+}
+#else
+void reportError(String what) {
+  logE("%s",what);
+}
+#endif
 
 // TODO: CoInitializeEx on Windows?
 // TODO: add crash log
@@ -251,7 +314,7 @@ int main(int argc, char** argv) {
     logE("CoInitializeEx failed!");
   }
 #endif
-#if !(defined(__APPLE__) || defined(_WIN32) || defined(ANDROID))
+#if !(defined(__APPLE__) || defined(_WIN32) || defined(ANDROID) || defined(__HAIKU__))
   // workaround for Wayland HiDPI issue
   if (getenv("SDL_VIDEODRIVER")==NULL) {
     setenv("SDL_VIDEODRIVER","x11",1);
@@ -259,6 +322,7 @@ int main(int argc, char** argv) {
 #endif
   outName="";
   vgmOutName="";
+  cmdOutName="";
 
   initParams();
 
@@ -281,7 +345,7 @@ int main(int argc, char** argv) {
             val=argv[i+1];
             i++;
           } else {
-            logE("incomplete param %s.",arg.c_str());
+            reportError(fmt::sprintf("incomplete param %s.",arg.c_str()));
             return 1;
           }
         }
@@ -335,57 +399,83 @@ int main(int argc, char** argv) {
     logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
-      perror("error");
+      reportError(fmt::sprintf("couldn't open file! (%s)",strerror(errno)));
       return 1;
     }
     if (fseek(f,0,SEEK_END)<0) {
-      perror("size error");
+      reportError(fmt::sprintf("couldn't open file! (couldn't get file size: %s)",strerror(errno)));
       fclose(f);
       return 1;
     }
     ssize_t len=ftell(f);
     if (len==(SIZE_MAX>>1)) {
-      perror("could not get file length");
+      reportError(fmt::sprintf("couldn't open file! (couldn't get file length: %s)",strerror(errno)));
       fclose(f);
       return 1;
     }
     if (len<1) {
       if (len==0) {
-        printf("that file is empty!\n");
+        reportError("that file is empty!");
       } else {
-        perror("tell error");
+        reportError(fmt::sprintf("couldn't open file! (tell error: %s)",strerror(errno)));
       }
       fclose(f);
       return 1;
     }
     unsigned char* file=new unsigned char[len];
     if (fseek(f,0,SEEK_SET)<0) {
-      perror("size error");
+      reportError(fmt::sprintf("couldn't open file! (size error: %s)",strerror(errno)));
       fclose(f);
       delete[] file;
       return 1;
     }
     if (fread(file,1,(size_t)len,f)!=(size_t)len) {
-      perror("read error");
+      reportError(fmt::sprintf("couldn't open file! (read error: %s)",strerror(errno)));
       fclose(f);
       delete[] file;
       return 1;
     }
     fclose(f);
     if (!e.load(file,(size_t)len)) {
-      logE("could not open file!");
+      reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
       return 1;
     }
   }
   if (!e.init()) {
-    logE("could not initialize engine!");
     if (consoleMode) {
+      reportError("could not initialize engine!");
       return 1;
     } else {
+      logE("could not initialize engine!");
       displayEngineFailError=true;
     }
   }
-  if (outName!="" || vgmOutName!="") {
+  if (benchMode) {
+    logI("starting benchmark!");
+    if (benchMode==2) {
+      e.benchmarkSeek();
+    } else {
+      e.benchmarkPlayback();
+    }
+    return 0;
+  }
+  if (outName!="" || vgmOutName!="" || cmdOutName!="") {
+    if (cmdOutName!="") {
+      SafeWriter* w=e.saveCommand(cmdOutBinary);
+      if (w!=NULL) {
+        FILE* f=fopen(cmdOutName.c_str(),"wb");
+        if (f!=NULL) {
+          fwrite(w->getFinalBuf(),1,w->size(),f);
+          fclose(f);
+        } else {
+          reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
+        }
+        w->finish();
+        delete w;
+      } else {
+        reportError("could not write command stream!");
+      }
+    }
     if (vgmOutName!="") {
       SafeWriter* w=e.saveVGM();
       if (w!=NULL) {
@@ -394,12 +484,12 @@ int main(int argc, char** argv) {
           fwrite(w->getFinalBuf(),1,w->size(),f);
           fclose(f);
         } else {
-          logE("could not open file! %s",strerror(errno));
+          reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
         }
         w->finish();
         delete w;
       } else {
-        logE("could not write VGM!");
+        reportError("could not write VGM!");
       }
     }
     if (outName!="") {
@@ -411,30 +501,47 @@ int main(int argc, char** argv) {
   }
 
   if (consoleMode) {
+    bool cliSuccess=false;
+    cli.bindEngine(&e);
+    if (!cli.init()) {
+      reportError("error while starting CLI!");
+    } else {
+      cliSuccess=true;
+    }
     logI("playing...");
     e.play();
-#ifdef HAVE_GUI
-    SDL_Event ev;
-    while (true) {
-      SDL_WaitEvent(&ev);
-      if (ev.type==SDL_QUIT) break;
-    }
-    e.quit();
-    return 0;
+    if (cliSuccess) {
+      cli.loop();
+      cli.finish();
+      e.quit();
+      return 0;
+    } else {
+#ifdef HAVE_SDL2
+      SDL_Event ev;
+      while (true) {
+        SDL_WaitEvent(&ev);
+        if (ev.type==SDL_QUIT) break;
+      }
+      e.quit();
+      return 0;
 #else
-    while (true) {
+      while (true) {
 #ifdef _WIN32
-      Sleep(500);
+        Sleep(500);
 #else
-      usleep(500000);
+        usleep(500000);
+#endif
+      }
 #endif
     }
-#endif
   }
 
 #ifdef HAVE_GUI
   g.bindEngine(&e);
-  if (!g.init()) return 1;
+  if (!g.init()) {
+    reportError("error while starting GUI!");
+    return 1;
+  }
 
   if (displayEngineFailError) {
     logE("displaying engine fail error.");

@@ -10,14 +10,15 @@
 #ifndef _NFD_H
 #define _NFD_H
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stddef.h>
+#include <functional>
+#include <string>
+#include <vector>
 
 /* denotes UTF-8 char */
 typedef char nfdchar_t;
+
+typedef std::function<void(const char*)> nfdselcallback_t;
 
 /* opaque data structure -- see NFD_PathSet_* */
 typedef struct {
@@ -36,19 +37,22 @@ typedef enum {
 /* nfd_<targetplatform>.c */
 
 /* single file open dialog */    
-nfdresult_t NFD_OpenDialog( const nfdchar_t *filterList,
+nfdresult_t NFD_OpenDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
-                            nfdchar_t **outPath );
+                            nfdchar_t **outPath,
+                            nfdselcallback_t selCallback = NULL );
 
 /* multiple file open dialog */    
-nfdresult_t NFD_OpenDialogMultiple( const nfdchar_t *filterList,
+nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
                                     const nfdchar_t *defaultPath,
-                                    nfdpathset_t *outPaths );
+                                    nfdpathset_t *outPaths,
+                                    nfdselcallback_t selCallback = NULL );
 
 /* save dialog */
-nfdresult_t NFD_SaveDialog( const nfdchar_t *filterList,
+nfdresult_t NFD_SaveDialog( const std::vector<std::string>& filterList,
                             const nfdchar_t *defaultPath,
-                            nfdchar_t **outPath );
+                            nfdchar_t **outPath,
+                            nfdselcallback_t selCallback = NULL );
 
 
 /* select folder dialog */
@@ -65,10 +69,5 @@ size_t      NFD_PathSet_GetCount( const nfdpathset_t *pathSet );
 nfdchar_t  *NFD_PathSet_GetPath( const nfdpathset_t *pathSet, size_t index );
 /* Free the pathSet */    
 void        NFD_PathSet_Free( nfdpathset_t *pathSet );
-
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
