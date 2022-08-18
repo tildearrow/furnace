@@ -858,7 +858,7 @@ struct FurnaceGUISysCategory {
     description(NULL) {}
 };
 
-static const char* macroDummyMode[1]={
+static const char* dummyMode[1]={
   NULL
 };
 
