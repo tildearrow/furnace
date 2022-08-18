@@ -51,18 +51,6 @@ const char** DivPlatformVERA::getRegisterSheet() {
   return regCheatSheetVERA;
 }
 
-const char* DivPlatformVERA::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x20:
-      return "20xx: Change waveform";
-      break;
-    case 0x22:
-      return "22xx: Set duty cycle (0 to 3F)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   // both PSG part and PCM part output a full 16-bit range, putting bufL/R
   // argument right into both could cause an overflow

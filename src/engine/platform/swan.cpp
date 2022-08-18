@@ -50,27 +50,6 @@ const char** DivPlatformSwan::getRegisterSheet() {
   return regCheatSheetWS;
 }
 
-const char* DivPlatformSwan::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-    case 0x11:
-      return "11xx: Setup noise mode (0: disabled; 1-8: enabled/tap)";
-      break;
-    case 0x12:
-      return "12xx: Setup sweep period (0: disabled; 1-20: enabled/period)";
-      break;
-    case 0x13:
-      return "13xx: Set sweep amount";
-      break;
-    case 0x17:
-      return "17xx: Toggle PCM mode";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformSwan::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     // PCM part

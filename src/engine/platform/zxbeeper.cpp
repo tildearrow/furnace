@@ -27,18 +27,6 @@ const char** DivPlatformZXBeeper::getRegisterSheet() {
   return NULL;
 }
 
-const char* DivPlatformZXBeeper::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x12:
-      return "12xx: Set pulse width";
-      break;
-    case 0x17:
-      return "17xx: Trigger overlay drum";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   bool o=false;
   for (size_t h=start; h<start+len; h++) {

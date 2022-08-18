@@ -190,10 +190,6 @@ const char** DivPlatformPCSpeaker::getRegisterSheet() {
   return regCheatSheetPCSpeaker;
 }
 
-const char* DivPlatformPCSpeaker::getEffectName(unsigned char effect) {
-  return NULL;
-}
-
 const float cut=0.05;
 const float reso=0.06;
 

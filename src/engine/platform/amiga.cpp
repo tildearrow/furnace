@@ -64,21 +64,6 @@ const char** DivPlatformAmiga::getRegisterSheet() {
   return regCheatSheetAmiga;
 }
 
-const char* DivPlatformAmiga::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Toggle filter (0 disables; 1 enables)";
-      break;
-    case 0x11:
-      return "11xx: Toggle AM with next channel";
-      break;
-    case 0x12:
-      return "12xx: Toggle period modulation with next channel";
-      break;
-  }
-  return NULL;
-}
-
 #define writeAudDat(x) \
   chan[i].audDat=x; \
   if (i<3 && chan[i].useV) { \

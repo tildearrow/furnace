@@ -38,15 +38,6 @@ const char** DivPlatformSMS::getRegisterSheet() {
   return stereo?regCheatSheetGG:regCheatSheetSN;
 }
 
-const char* DivPlatformSMS::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x20:
-      return "20xy: Set noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)";
-      break; 
-  }
-  return NULL;
-}
-
 void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   int oL=0;
   int oR=0;

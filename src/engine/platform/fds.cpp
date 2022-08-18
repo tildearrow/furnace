@@ -55,30 +55,6 @@ const char** DivPlatformFDS::getRegisterSheet() {
   return regCheatSheetFDS;
 }
 
-const char* DivPlatformFDS::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-    case 0x11:
-      return "11xx: Set modulation depth";
-      break;
-    case 0x12:
-      return "12xy: Set modulation speed high byte (x: enable; y: value)";
-      break;
-    case 0x13:
-      return "13xx: Set modulation speed low byte";
-      break;
-    case 0x14:
-      return "14xx: Set modulator position";
-      break;
-    case 0x15:
-      return "15xx: Set modulator table to waveform";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformFDS::acquire_puNES(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     extcl_apu_tick_FDS(fds);

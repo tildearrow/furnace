@@ -94,10 +94,6 @@ bool DivDispatch::getWantPreNote() {
   return false;
 }
 
-const char* DivDispatch::getEffectName(unsigned char effect) {
-  return NULL;
-}
-
 void DivDispatch::setFlags(unsigned int flags) {
 }
 

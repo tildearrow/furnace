@@ -124,8 +124,15 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       if ((effect&0xf0)==0x90) {
         return "9xxx: Set sample offset*256";
       } else if (chan>=0 && chan<chans) {
-        const char* ret=disCont[dispatchOfChan[chan]].dispatch->getEffectName(effect);
-        if (ret!=NULL) return ret;
+        DivSysDef* sysDef=sysDefs[sysOfChan[chan]];
+        auto iter=sysDef->effectHandlers.find(effect);
+        if (iter!=sysDef->effectHandlers.end()) {
+          return iter->second.description;
+        }
+        iter=sysDef->postEffectHandlers.find(effect);
+        if (iter!=sysDef->postEffectHandlers.end()) {
+          return iter->second.description;
+        }
       }
       break;
   }

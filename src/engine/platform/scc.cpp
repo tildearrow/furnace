@@ -80,15 +80,6 @@ const char** DivPlatformSCC::getRegisterSheet() {
   return isPlus ? regCheatSheetSCCPlus : regCheatSheetSCC;
 }
 
-const char* DivPlatformSCC::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformSCC::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     for (int i=0; i<16; i++) {

@@ -43,10 +43,6 @@ const char** DivPlatformRF5C68::getRegisterSheet() {
   return regCheatSheetRF5C68;
 }
 
-const char* DivPlatformRF5C68::getEffectName(unsigned char effect) {
-  return NULL;
-}
-
 void DivPlatformRF5C68::chWrite(unsigned char ch, unsigned int addr, unsigned char val) {
   if (!skipRegisterWrites) {
     if (curChan!=ch) {
