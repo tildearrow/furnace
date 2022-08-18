@@ -858,6 +858,10 @@ struct FurnaceGUISysCategory {
     description(NULL) {}
 };
 
+static const char* dummyMode[1]={
+  NULL
+};
+
 struct FurnaceGUIMacroDesc {
   DivInstrumentMacro* macro;
   int min, max;
@@ -870,7 +874,7 @@ struct FurnaceGUIMacroDesc {
   bool isBitfield, blockMode, useMacroMode;
   String (*hoverFunc)(int,float);
 
-  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, bool mMode=false, const char** mName={NULL}, String (*hf)(int,float)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0):
+  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, bool mMode=false, const char** mName=dummyMode, String (*hf)(int,float)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0):
     macro(m),
     height(macroHeight),
     displayName(name),
