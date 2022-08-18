@@ -305,34 +305,15 @@ const char* gbHWSeqCmdTypes[6]={
   "Loop until Release"
 };
 
-const char* macroAbsoluteMode[3]={
-  "Relative",
-  "Absolute",
-  NULL
-};
-
-const char* macroRelativeMode[3]={
-  "Absolute",
-  "Relative",
-  NULL
-};
-
-const char* macroQSoundMode[3]={
-  "Independent",
-  "QSound",
-  NULL
-};
-
-const char* macroDummyMode[1]={
-  NULL
-};
-
-const char* macroFilterMode[4]={
-  "Relative",
-  "Absolute",
-  "Delta",
-  NULL
-};
+// do not change these!
+// anything other than a checkbox will look ugly!
+//
+// if you really need to, and have a good rationale (and by good I mean a VERY
+// good one), please tell me and we'll sort it out.
+const char* macroAbsoluteMode="Fixed";
+const char* macroRelativeMode="Relative";
+const char* macroQSoundMode="QSound";
+const char* macroDummyMode="Bug";
 
 String macroHoverNote(int id, float val) {
   if (val<-60 || val>=120) return "???";
@@ -1259,12 +1240,14 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
         if (ImGui::InputScalar("##IMacroLen",ImGuiDataType_U8,&i.macro->len,&_ONE,&_THREE)) { MARK_MODIFIED
           if (i.macro->len>128) i.macro->len=128;
         }
-        if (i.useMacroMode && i.modeName[0]!=NULL) {
-          for (int m=0; i.modeName[m]!=NULL; m++) {
-            String modeName=fmt::sprintf("%s##IMacroMode%d",i.modeName[m],m);
-            if (ImGui::RadioButton(modeName.c_str(),(int)i.macro->mode==m)) {
-              i.macro->mode=m;
-            }
+        // do not change this!
+        // anything other than a checkbox will look ugly!
+        // if you really need more than two macro modes please tell me.
+        if (i.modeName!=NULL) {
+          bool modeVal=i.macro->mode;
+          String modeName=fmt::sprintf("%s##IMacroMode",i.modeName);
+          if (ImGui::Checkbox(modeName.c_str(),&modeVal)) {
+            i.macro->mode=modeVal;
           }
         }
       }

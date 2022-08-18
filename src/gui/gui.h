@@ -864,13 +864,13 @@ struct FurnaceGUIMacroDesc {
   float height;
   const char* displayName;
   const char** bitfieldBits;
-  const char** modeName;
+  const char* modeName;
   ImVec4 color;
   unsigned int bitOffset;
-  bool isBitfield, blockMode, useMacroMode;
+  bool isBitfield, blockMode;
   String (*hoverFunc)(int,float);
 
-  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, bool mMode=false, const char** mName={NULL}, String (*hf)(int,float)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0):
+  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0):
     macro(m),
     height(macroHeight),
     displayName(name),
@@ -880,7 +880,6 @@ struct FurnaceGUIMacroDesc {
     bitOffset(bitOff),
     isBitfield(bitfield),
     blockMode(block),
-    useMacroMode(mMode),
     hoverFunc(hf) {
     // MSVC -> hell
     this->min=macroMin;
