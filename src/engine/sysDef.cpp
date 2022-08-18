@@ -1577,15 +1577,8 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE},
     {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD},
     {},
-    [this](int ch, unsigned char effect, unsigned char effectVal) -> bool {
-      switch (effect) {
-        case 0x20: // SN noise mode
-          dispatchCmd(DivCommand(DIV_CMD_STD_NOISE_MODE,ch,effectVal));
-          break;
-        default:
-          return false;
-      }
-      return true;
+    {
+      {0x20, {DIV_CMD_STD_NOISE_MODE, "20xy: Set noise mode (x: preset/variable; y: thin pulse/noise)"}}
     }
   );
 
