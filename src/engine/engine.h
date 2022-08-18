@@ -214,6 +214,9 @@ struct EffectHandler {
   val2(val2_) {}
 };
 
+struct DivDoNotHandleEffect {
+};
+
 typedef std::unordered_map<unsigned char,const EffectHandler> EffectHandlerMap;
 
 struct DivSysDef {

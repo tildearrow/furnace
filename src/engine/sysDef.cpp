@@ -380,7 +380,13 @@ template<const int mask> int effectValAnd(unsigned char, unsigned char val) {
   return val&mask;
 };
 
-int effectOpVal(unsigned char, unsigned char val) {
+template<const int maxOp> int effectOpVal(unsigned char, unsigned char val) {
+  if ((val>>4)>maxOp) throw DivDoNotHandleEffect();
+  return (val>>4)-1;
+};
+
+template<const int maxOp> int effectOpValNoZero(unsigned char, unsigned char val) {
+  if ((val>>4)<1 || (val>>4)>maxOp) throw DivDoNotHandleEffect();
   return (val>>4)-1;
 };
 
@@ -436,17 +442,17 @@ void DivEngine::registerSystems() {
     {0x13, {DIV_CMD_FM_TL, "13xx: Set level of operator 2 (0 highest, 7F lowest)", constVal<1>, effectVal}},
     {0x14, {DIV_CMD_FM_TL, "14xx: Set level of operator 3 (0 highest, 7F lowest)", constVal<2>, effectVal}},
     {0x15, {DIV_CMD_FM_TL, "15xx: Set level of operator 4 (0 highest, 7F lowest)", constVal<3>, effectVal}},
-    {0x16, {DIV_CMD_FM_MULT, "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)", effectOpVal, effectValAnd<15>}},
+    {0x16, {DIV_CMD_FM_MULT, "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)", effectOpValNoZero<4>, effectValAnd<15>}},
     {0x19, {DIV_CMD_FM_AR, "19xx: Set attack of all operators (0 to 1F)", constVal<-1>, effectValAnd<31>}},
     {0x1a, {DIV_CMD_FM_AR, "1Axx: Set attack of operator 1 (0 to 1F)", constVal<0>, effectValAnd<31>}},
     {0x1b, {DIV_CMD_FM_AR, "1Bxx: Set attack of operator 2 (0 to 1F)", constVal<1>, effectValAnd<31>}},
     {0x1c, {DIV_CMD_FM_AR, "1Cxx: Set attack of operator 3 (0 to 1F)", constVal<2>, effectValAnd<31>}},
     {0x1d, {DIV_CMD_FM_AR, "1Dxx: Set attack of operator 4 (0 to 1F)", constVal<3>, effectValAnd<31>}},
-    {0x50, {DIV_CMD_FM_AM, "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)", effectOpVal, effectValAnd<1>}},
-    {0x51, {DIV_CMD_FM_SL, "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)", effectOpVal, effectValAnd<15>}},
-    {0x52, {DIV_CMD_FM_RR, "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)", effectOpVal, effectValAnd<15>}},
-    {0x53, {DIV_CMD_FM_DT, "53xy: Set detune (x: operator from 1 to 4 (0 for all ops); y: detune where 3 is center)", effectOpVal, effectValAnd<7>}},
-    {0x54, {DIV_CMD_FM_RS, "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale from 0 to 3)", effectOpVal, effectValAnd<3>}},
+    {0x50, {DIV_CMD_FM_AM, "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)", effectOpVal<4>, effectValAnd<1>}},
+    {0x51, {DIV_CMD_FM_SL, "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)", effectOpVal<4>, effectValAnd<15>}},
+    {0x52, {DIV_CMD_FM_RR, "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)", effectOpVal<4>, effectValAnd<15>}},
+    {0x53, {DIV_CMD_FM_DT, "53xy: Set detune (x: operator from 1 to 4 (0 for all ops); y: detune where 3 is center)", effectOpVal<4>, effectValAnd<7>}},
+    {0x54, {DIV_CMD_FM_RS, "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale from 0 to 3)", effectOpVal<4>, effectValAnd<3>}},
     {0x56, {DIV_CMD_FM_DR, "56xx: Set decay of all operators (0 to 1F)", constVal<-1>, effectValAnd<31>}},
     {0x57, {DIV_CMD_FM_DR, "57xx: Set decay of operator 1 (0 to 1F)", constVal<0>, effectValAnd<31>}},
     {0x58, {DIV_CMD_FM_DR, "58xx: Set decay of operator 2 (0 to 1F)", constVal<1>, effectValAnd<31>}},
@@ -466,15 +472,15 @@ void DivEngine::registerSystems() {
     {0x18, {DIV_CMD_FM_LFO_WAVE, "18xx: Set LFO waveform (0 saw, 1 square, 2 triangle, 3 noise)"}},
     {0x1e, {DIV_CMD_FM_AM_DEPTH, "1Exx: Set AM depth (0 to 7F)", effectValAnd<127>}},
     {0x1f, {DIV_CMD_FM_PM_DEPTH, "1Fxx: Set PM depth (0 to 7F)", effectValAnd<127>}},
-    {0x55, {DIV_CMD_FM_SSG, "55xy: Set detune 2 (x: operator from 1 to 4 (0 for all ops); y: detune from 0 to 3)", effectOpVal, effectValAnd<3>}},
+    {0x55, {DIV_CMD_FM_SSG, "55xy: Set detune 2 (x: operator from 1 to 4 (0 for all ops); y: detune from 0 to 3)", effectOpVal<4>, effectValAnd<3>}},
   });
 
   EffectHandlerMap fmOPZPostEffectHandlerMap(fmOPMPostEffectHandlerMap);
   fmOPZPostEffectHandlerMap.insert({
-    {0x28, {DIV_CMD_FM_REV, "28xy: Set reverb (x: operator from 1 to 4 (0 for all ops); y: reverb from 0 to 7)", effectOpVal, effectValAnd<7>}},
-    {0x2a, {DIV_CMD_FM_WS, "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 7)", effectOpVal, effectValAnd<7>}},
-    {0x2b, {DIV_CMD_FM_EG_SHIFT, "2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); y: shift from 0 to 3)", effectOpVal, effectValAnd<3>}},
-    {0x2c, {DIV_CMD_FM_FINE, "2Cxy: Set fine multiplier (x: operator from 1 to 4 (0 for all ops); y: fine)", effectOpVal, effectValAnd<15>}},
+    {0x28, {DIV_CMD_FM_REV, "28xy: Set reverb (x: operator from 1 to 4 (0 for all ops); y: reverb from 0 to 7)", effectOpVal<4>, effectValAnd<7>}},
+    {0x2a, {DIV_CMD_FM_WS, "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 7)", effectOpVal<4>, effectValAnd<7>}},
+    {0x2b, {DIV_CMD_FM_EG_SHIFT, "2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); y: shift from 0 to 3)", effectOpVal<4>, effectValAnd<3>}},
+    {0x2c, {DIV_CMD_FM_FINE, "2Cxy: Set fine multiplier (x: operator from 1 to 4 (0 for all ops); y: fine)", effectOpVal<4>, effectValAnd<15>}},
   });
   const EffectHandler fmOPZFixFreqHandler[4]={
     {DIV_CMD_FM_FIXFREQ, "3xyy: Set fixed frequency of operator 1 (x: octave from 0 to 7; y: frequency)", constVal<0>, effectValLong<11>},
@@ -489,7 +495,7 @@ void DivEngine::registerSystems() {
   fmOPNPostEffectHandlerMap.insert({
     {0x10, {DIV_CMD_FM_LFO, "10xy: Setup LFO (x: enable; y: speed)"}},
     {0x18, {DIV_CMD_FM_EXTCH, "18xx: Toggle extended channel 3 mode"}},
-    {0x55, {DIV_CMD_FM_SSG, "55xy: Set SSG envelope (x: operator from 1 to 4 (0 for all ops); y: 0-7 on, 8 off)", effectOpVal, effectValAnd<15>}},
+    {0x55, {DIV_CMD_FM_SSG, "55xy: Set SSG envelope (x: operator from 1 to 4 (0 for all ops); y: 0-7 on, 8 off)", effectOpVal<4>, effectValAnd<15>}},
   });
   EffectHandlerMap fmOPN2PostEffectHandlerMap(fmOPNPostEffectHandlerMap);
 
@@ -499,20 +505,20 @@ void DivEngine::registerSystems() {
     {0x11, {DIV_CMD_FM_FB, "11xx: Set feedback (0 to 7)"}},
     {0x12, {DIV_CMD_FM_TL, "12xx: Set level of operator 1 (0 highest, 3F lowest)", constVal<0>, effectVal}},
     {0x13, {DIV_CMD_FM_TL, "13xx: Set level of operator 2 (0 highest, 3F lowest)", constVal<1>, effectVal}},
-    {0x16, {DIV_CMD_FM_MULT, "16xy: Set operator multiplier (x: operator from 1 to 2; y: multiplier)", effectOpVal, effectValAnd<15>}},
+    {0x16, {DIV_CMD_FM_MULT, "16xy: Set operator multiplier (x: operator from 1 to 2; y: multiplier)", effectOpValNoZero<2>, effectValAnd<15>}},
     {0x19, {DIV_CMD_FM_AR, "19xx: Set attack of all operators (0 to F)", constVal<-1>, effectValAnd<15>}},
     {0x1a, {DIV_CMD_FM_AR, "1Axx: Set attack of operator 1 (0 to F)", constVal<0>, effectValAnd<15>}},
     {0x1b, {DIV_CMD_FM_AR, "1Bxx: Set attack of operator 2 (0 to F)", constVal<1>, effectValAnd<15>}},
-    {0x50, {DIV_CMD_FM_AM, "50xy: Set AM (x: operator from 1 to 2 (0 for all ops); y: AM)", effectOpVal, effectValAnd<1>}},
-    {0x51, {DIV_CMD_FM_SL, "51xy: Set sustain level (x: operator from 1 to 2 (0 for all ops); y: sustain)", effectOpVal, effectValAnd<15>}},
-    {0x52, {DIV_CMD_FM_RR, "52xy: Set release (x: operator from 1 to 2 (0 for all ops); y: release)", effectOpVal, effectValAnd<15>}},
-    {0x53, {DIV_CMD_FM_VIB, "53xy: Set vibrato (x: operator from 1 to 2 (0 for all ops); y: enabled)", effectOpVal, effectValAnd<1>}},
-    {0x54, {DIV_CMD_FM_RS, "54xy: Set envelope scale (x: operator from 1 to 2 (0 for all ops); y: scale from 0 to 3)", effectOpVal, effectValAnd<3>}},
-    {0x55, {DIV_CMD_FM_SUS, "55xy: Set envelope sustain (x: operator from 1 to 2 (0 for all ops); y: enabled)", effectOpVal, effectValAnd<1>}},
+    {0x50, {DIV_CMD_FM_AM, "50xy: Set AM (x: operator from 1 to 2 (0 for all ops); y: AM)", effectOpVal<2>, effectValAnd<1>}},
+    {0x51, {DIV_CMD_FM_SL, "51xy: Set sustain level (x: operator from 1 to 2 (0 for all ops); y: sustain)", effectOpVal<2>, effectValAnd<15>}},
+    {0x52, {DIV_CMD_FM_RR, "52xy: Set release (x: operator from 1 to 2 (0 for all ops); y: release)", effectOpVal<2>, effectValAnd<15>}},
+    {0x53, {DIV_CMD_FM_VIB, "53xy: Set vibrato (x: operator from 1 to 2 (0 for all ops); y: enabled)", effectOpVal<2>, effectValAnd<1>}},
+    {0x54, {DIV_CMD_FM_RS, "54xy: Set envelope scale (x: operator from 1 to 2 (0 for all ops); y: scale from 0 to 3)", effectOpVal<2>, effectValAnd<3>}},
+    {0x55, {DIV_CMD_FM_SUS, "55xy: Set envelope sustain (x: operator from 1 to 2 (0 for all ops); y: enabled)", effectOpVal<2>, effectValAnd<1>}},
     {0x56, {DIV_CMD_FM_DR, "56xx: Set decay of all operators (0 to F)", constVal<-1>, effectValAnd<15>}},
     {0x57, {DIV_CMD_FM_DR, "57xx: Set decay of operator 1 (0 to F)", constVal<0>, effectValAnd<15>}},
     {0x58, {DIV_CMD_FM_DR, "58xx: Set decay of operator 2 (0 to F)", constVal<1>, effectValAnd<15>}},
-    {0x5b, {DIV_CMD_FM_KSR, "5Bxy: Set whether key will scale envelope (x: operator from 1 to 2 (0 for all ops); y: enabled)", effectOpVal, effectValAnd<1>}},
+    {0x5b, {DIV_CMD_FM_KSR, "5Bxy: Set whether key will scale envelope (x: operator from 1 to 2 (0 for all ops); y: enabled)", effectOpVal<2>, effectValAnd<1>}},
   };
 
   EffectHandlerMap fmOPLPostEffectHandlerMap={
@@ -522,26 +528,26 @@ void DivEngine::registerSystems() {
     {0x13, {DIV_CMD_FM_TL, "13xx: Set level of operator 2 (0 highest, 3F lowest)", constVal<1>, effectVal}},
     {0x14, {DIV_CMD_FM_TL, "14xx: Set level of operator 3 (0 highest, 3F lowest)", constVal<2>, effectVal}},
     {0x15, {DIV_CMD_FM_TL, "15xx: Set level of operator 4 (0 highest, 3F lowest)", constVal<3>, effectVal}},
-    {0x16, {DIV_CMD_FM_MULT, "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)", effectOpVal, effectValAnd<15>}},
+    {0x16, {DIV_CMD_FM_MULT, "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)", effectOpValNoZero<4>, effectValAnd<15>}},
     {0x17, {DIV_CMD_FM_LFO, "17xx: Set global vibrato depth (0: normal, 1: double)", [](unsigned char, unsigned char val) -> int { return (val&1)+2; }}},
     {0x19, {DIV_CMD_FM_AR, "19xx: Set attack of all operators (0 to F)", constVal<-1>, effectValAnd<15>}},
     {0x1a, {DIV_CMD_FM_AR, "1Axx: Set attack of operator 1 (0 to F)", constVal<0>, effectValAnd<15>}},
     {0x1b, {DIV_CMD_FM_AR, "1Bxx: Set attack of operator 2 (0 to F)", constVal<1>, effectValAnd<15>}},
     {0x1c, {DIV_CMD_FM_AR, "1Cxx: Set attack of operator 3 (0 to F)", constVal<2>, effectValAnd<15>}},
     {0x1d, {DIV_CMD_FM_AR, "1Dxx: Set attack of operator 4 (0 to F)", constVal<3>, effectValAnd<15>}},
-    {0x2a, {DIV_CMD_FM_WS, "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 3 in OPL2 and 0 to 7 in OPL3)", effectOpVal, effectValAnd<7>}},
-    {0x50, {DIV_CMD_FM_AM, "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)", effectOpVal, effectValAnd<1>}},
-    {0x51, {DIV_CMD_FM_SL, "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)", effectOpVal, effectValAnd<15>}},
-    {0x52, {DIV_CMD_FM_RR, "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)", effectOpVal, effectValAnd<15>}},
-    {0x53, {DIV_CMD_FM_VIB, "53xy: Set vibrato (x: operator from 1 to 4 (0 for all ops); y: enabled)", effectOpVal, effectValAnd<1>}},
-    {0x54, {DIV_CMD_FM_RS, "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale from 0 to 3)", effectOpVal, effectValAnd<3>}},
-    {0x55, {DIV_CMD_FM_SUS, "55xy: Set envelope sustain (x: operator from 1 to 4 (0 for all ops); y: enabled)", effectOpVal, effectValAnd<1>}},
+    {0x2a, {DIV_CMD_FM_WS, "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 3 in OPL2 and 0 to 7 in OPL3)", effectOpVal<4>, effectValAnd<7>}},
+    {0x50, {DIV_CMD_FM_AM, "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)", effectOpVal<4>, effectValAnd<1>}},
+    {0x51, {DIV_CMD_FM_SL, "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)", effectOpVal<4>, effectValAnd<15>}},
+    {0x52, {DIV_CMD_FM_RR, "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)", effectOpVal<4>, effectValAnd<15>}},
+    {0x53, {DIV_CMD_FM_VIB, "53xy: Set vibrato (x: operator from 1 to 4 (0 for all ops); y: enabled)", effectOpVal<4>, effectValAnd<1>}},
+    {0x54, {DIV_CMD_FM_RS, "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale from 0 to 3)", effectOpVal<4>, effectValAnd<3>}},
+    {0x55, {DIV_CMD_FM_SUS, "55xy: Set envelope sustain (x: operator from 1 to 4 (0 for all ops); y: enabled)", effectOpVal<4>, effectValAnd<1>}},
     {0x56, {DIV_CMD_FM_DR, "56xx: Set decay of all operators (0 to F)", constVal<-1>, effectValAnd<15>}},
     {0x57, {DIV_CMD_FM_DR, "57xx: Set decay of operator 1 (0 to F)", constVal<0>, effectValAnd<15>}},
     {0x58, {DIV_CMD_FM_DR, "58xx: Set decay of operator 2 (0 to F)", constVal<1>, effectValAnd<15>}},
     {0x59, {DIV_CMD_FM_DR, "59xx: Set decay of operator 3 (0 to F)", constVal<2>, effectValAnd<15>}},
     {0x5a, {DIV_CMD_FM_DR, "5Axx: Set decay of operator 4 (0 to F)", constVal<3>, effectValAnd<15>}},
-    {0x5b, {DIV_CMD_FM_KSR, "5Bxy: Set whether key will scale envelope (x: operator from 1 to 4 (0 for all ops); y: enabled)", effectOpVal, effectValAnd<1>}},
+    {0x5b, {DIV_CMD_FM_KSR, "5Bxy: Set whether key will scale envelope (x: operator from 1 to 4 (0 for all ops); y: enabled)", effectOpVal<4>, effectValAnd<1>}},
   };
 
   EffectHandlerMap c64PostEffectHandlerMap={

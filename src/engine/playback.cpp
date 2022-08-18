@@ -297,8 +297,15 @@ bool DivEngine::perSystemEffect(int ch, unsigned char effect, unsigned char effe
   auto iter=sysDef->effectHandlers.find(effect);
   if (iter==sysDef->effectHandlers.end()) return false;
   EffectHandler handler=iter->second;
-  int val=handler.val?handler.val(effect,effectVal):effectVal;
-  int val2=handler.val2?handler.val2(effect,effectVal):0;
+  int val=0;
+  int val2=0;
+  try {
+    val=handler.val?handler.val(effect,effectVal):effectVal;
+    val2=handler.val2?handler.val2(effect,effectVal):0;
+  } catch (DivDoNotHandleEffect& e) {
+    return false;
+  }
+  // wouldn't this cause problems if it were to return 0?
   return dispatchCmd(DivCommand(handler.dispatchCmd,ch,val,val2));
 }
 
@@ -308,8 +315,15 @@ bool DivEngine::perSystemPostEffect(int ch, unsigned char effect, unsigned char 
   auto iter=sysDef->postEffectHandlers.find(effect);
   if (iter==sysDef->postEffectHandlers.end()) return false;
   EffectHandler handler=iter->second;
-  int val=handler.val?handler.val(effect,effectVal):effectVal;
-  int val2=handler.val2?handler.val2(effect,effectVal):0;
+  int val=0;
+  int val2=0;
+  try {
+    val=handler.val?handler.val(effect,effectVal):effectVal;
+    val2=handler.val2?handler.val2(effect,effectVal):0;
+  } catch (DivDoNotHandleEffect& e) {
+    return true;
+  }
+  // wouldn't this cause problems if it were to return 0?
   return dispatchCmd(DivCommand(handler.dispatchCmd,ch,val,val2));
 }
 
