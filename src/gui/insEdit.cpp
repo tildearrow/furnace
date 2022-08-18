@@ -323,10 +323,6 @@ const char* macroQSoundMode[3]={
   NULL
 };
 
-const char* macroDummyMode[1]={
-  NULL
-};
-
 const char* macroFilterMode[4]={
   "Relative",
   "Absolute",
