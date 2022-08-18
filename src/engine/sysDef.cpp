@@ -364,8 +364,7 @@ int DivEngine::minVGMVersion(DivSystem which) {
 //   {{effect, {DIV_CMD_xx, "Description"}}, ...} (post effect handler, optional)
 // );
 
-template<const int val>
-int constVal(unsigned char, unsigned char) {
+template<const int val> int constVal(unsigned char, unsigned char) {
   return val;
 };
 
@@ -377,8 +376,7 @@ int negEffectVal(unsigned char, unsigned char val) {
   return -(int)val;
 };
 
-template<const int mask>
-int effectValAnd(unsigned char, unsigned char val) {
+template<const int mask> int effectValAnd(unsigned char, unsigned char val) {
   return val&mask;
 };
 
@@ -386,9 +384,8 @@ int effectOpVal(unsigned char, unsigned char val) {
   return (val>>4)-1;
 };
 
-template<const int bits>
-int effectValLong(unsigned char cmd, unsigned char val) {
-  return ((cmd&((1<<(bits-8))-1))<<8)|val;
+template<const int bits> int effectValLong(unsigned char cmd, unsigned char val) {
+  return ((((unsigned int)cmd)&((1<<(bits-8))-1))<<8)|((unsigned int)val);
 };
 
 void DivEngine::registerSystems() {
@@ -560,7 +557,7 @@ void DivEngine::registerSystems() {
     {0x1e, {DIV_CMD_C64_EXTENDED, "1Exy: Change additional parameters"}},
   };
   const EffectHandler c64FineDutyHandler(DIV_CMD_C64_FINE_DUTY, "3xxx: Set pulse width (0 to FFF)", effectValLong<12>);
-  const EffectHandler c64FineCutoffHandler(DIV_CMD_C64_FINE_DUTY, "4xxx: Set cutoff (0 to 7FF)", effectValLong<11>);
+  const EffectHandler c64FineCutoffHandler(DIV_CMD_C64_FINE_CUTOFF, "4xxx: Set cutoff (0 to 7FF)", effectValLong<11>);
   for (int i=0; i<16; i++) c64PostEffectHandlerMap.emplace(0x30+i,c64FineDutyHandler);
   for (int i=0; i<8; i++) c64PostEffectHandlerMap.emplace(0x40+i,c64FineCutoffHandler);
 
