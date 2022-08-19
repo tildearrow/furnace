@@ -905,6 +905,9 @@ class DivEngine {
 
     // remove system
     bool removeSystem(int index, bool preserveOrder=true);
+
+    // move system
+    bool swapSystem(int src, int dest, bool preserveOrder=true);
     
     // write to register on system
     void poke(int sys, unsigned int addr, unsigned short val);

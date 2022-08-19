@@ -1386,6 +1386,57 @@ bool DivEngine::removeSystem(int index, bool preserveOrder) {
   return true;
 }
 
+bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
+  if (src==dest) {
+    lastError="source and destination are equal";
+    return false;
+  }
+  if (src<0 || src>=song.systemLen) {
+    lastError="invalid source index";
+    return false;
+  }
+  if (dest<0 || dest>=song.systemLen) {
+    lastError="invalid destination index";
+    return false;
+  }
+  //int chanCount=chans;
+  quitDispatch();
+  BUSY_BEGIN;
+  saveLock.lock();
+
+  if (!preserveOrder) {
+    // move channels
+    // TODO: a lot of work!
+  }
+
+  DivSystem srcSystem=song.system[src];
+
+  song.system[src]=song.system[dest];
+  song.system[dest]=srcSystem;
+
+  song.systemVol[src]^=song.systemVol[dest];
+  song.systemVol[dest]^=song.systemVol[src];
+  song.systemVol[src]^=song.systemVol[dest];
+
+  song.systemPan[src]^=song.systemPan[dest];
+  song.systemPan[dest]^=song.systemPan[src];
+  song.systemPan[src]^=song.systemPan[dest];
+
+  song.systemFlags[src]^=song.systemFlags[dest];
+  song.systemFlags[dest]^=song.systemFlags[src];
+  song.systemFlags[src]^=song.systemFlags[dest];
+
+  recalcChans();
+  saveLock.unlock();
+  BUSY_END;
+  initDispatch();
+  BUSY_BEGIN;
+  renderSamples();
+  reset();
+  BUSY_END;
+  return true;
+}
+
 void DivEngine::poke(int sys, unsigned int addr, unsigned short val) {
   if (sys<0 || sys>=song.systemLen) return;
   BUSY_BEGIN;
