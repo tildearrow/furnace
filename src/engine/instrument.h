@@ -496,7 +496,9 @@ struct DivInstrumentES5506 {
   };
   Filter filter;
   Envelope envelope;
-  DivInstrumentES5506() {}
+  DivInstrumentES5506():
+  filter(Filter()),
+  envelope(Envelope()) {}
 };
 
 struct DivInstrument {
