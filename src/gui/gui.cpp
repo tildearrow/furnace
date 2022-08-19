@@ -3108,6 +3108,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("mixer",BIND_FOR(GUI_ACTION_WINDOW_MIXER),mixerOpen)) mixerOpen=!mixerOpen;
         if (ImGui::MenuItem("channels",BIND_FOR(GUI_ACTION_WINDOW_CHANNELS),channelsOpen)) channelsOpen=!channelsOpen;
         if (ImGui::MenuItem("pattern manager",BIND_FOR(GUI_ACTION_WINDOW_PAT_MANAGER),patManagerOpen)) patManagerOpen=!patManagerOpen;
+        if (ImGui::MenuItem("chip manager",BIND_FOR(GUI_ACTION_WINDOW_SYS_MANAGER),sysManagerOpen)) sysManagerOpen=!sysManagerOpen;
         if (ImGui::MenuItem("compatibility flags",BIND_FOR(GUI_ACTION_WINDOW_COMPAT_FLAGS),compatFlagsOpen)) compatFlagsOpen=!compatFlagsOpen;
         if (ImGui::MenuItem("song comments",BIND_FOR(GUI_ACTION_WINDOW_NOTES),notesOpen)) notesOpen=!notesOpen;
         ImGui::Separator();
@@ -3243,6 +3244,7 @@ bool FurnaceGUI::loop() {
       drawNotes();
       drawChannels();
       drawPatManager();
+      drawSysManager();
       drawRegView();
       drawLog();
       drawEffectList();
@@ -4364,6 +4366,7 @@ bool FurnaceGUI::init() {
   notesOpen=e->getConfBool("notesOpen",false);
   channelsOpen=e->getConfBool("channelsOpen",false);
   patManagerOpen=e->getConfBool("patManagerOpen",false);
+  sysManagerOpen=e->getConfBool("sysManagerOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",false);
@@ -4607,6 +4610,7 @@ bool FurnaceGUI::finish() {
   e->setConf("notesOpen",notesOpen);
   e->setConf("channelsOpen",channelsOpen);
   e->setConf("patManagerOpen",patManagerOpen);
+  e->setConf("sysManagerOpen",sysManagerOpen);
   e->setConf("regViewOpen",regViewOpen);
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
@@ -4787,6 +4791,7 @@ FurnaceGUI::FurnaceGUI():
   findOpen(false),
   spoilerOpen(false),
   patManagerOpen(false),
+  sysManagerOpen(false),
   selecting(false),
   selectingFull(false),
   dragging(false),

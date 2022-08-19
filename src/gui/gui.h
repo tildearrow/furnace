@@ -250,6 +250,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_NOTES,
   GUI_WINDOW_CHANNELS,
   GUI_WINDOW_PAT_MANAGER,
+  GUI_WINDOW_SYS_MANAGER,
   GUI_WINDOW_REGISTER_VIEW,
   GUI_WINDOW_LOG,
   GUI_WINDOW_EFFECT_LIST,
@@ -370,6 +371,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_NOTES,
   GUI_ACTION_WINDOW_CHANNELS,
   GUI_ACTION_WINDOW_PAT_MANAGER,
+  GUI_ACTION_WINDOW_SYS_MANAGER,
   GUI_ACTION_WINDOW_REGISTER_VIEW,
   GUI_ACTION_WINDOW_LOG,
   GUI_ACTION_WINDOW_EFFECT_LIST,
@@ -1278,7 +1280,7 @@ class FurnaceGUI {
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
-  bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen;
+  bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen;
 
   SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
   bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
@@ -1588,6 +1590,7 @@ class FurnaceGUI {
   void drawNotes();
   void drawChannels();
   void drawPatManager();
+  void drawSysManager();
   void drawRegView();
   void drawAbout();
   void drawSettings();
