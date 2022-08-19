@@ -175,6 +175,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.brokenOutVol=true; // ???
     ds.e1e2StopOnSameNote=true;
     ds.brokenPortaArp=false;
+    ds.snNoLowPeriods=true;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -1063,6 +1064,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<101) {
       ds.brokenPortaArp=true;
     }
+    if (ds.version<108) {
+      ds.snNoLowPeriods=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1475,7 +1479,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<7; i++) {
+      if (ds.version>=108) {
+        ds.snNoLowPeriods=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<6; i++) {
         reader.readC();
       }
     }
@@ -3719,7 +3728,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.brokenOutVol);
   w->writeC(song.e1e2StopOnSameNote);
   w->writeC(song.brokenPortaArp);
-  for (int i=0; i<7; i++) {
+  w->writeC(song.snNoLowPeriods);
+  for (int i=0; i<6; i++) {
     w->writeC(0);
   }
 

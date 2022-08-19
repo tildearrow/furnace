@@ -188,7 +188,11 @@ void DivPlatformSMS::tick(bool sysTick) {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,toneDivider);
       if (chan[i].freq>1023) chan[i].freq=1023;
-      if (chan[i].freq<8) chan[i].freq=1;
+      if (parent->song.snNoLowPeriods) {
+        if (chan[i].freq<8) chan[i].freq=1;
+      } else {
+        if (chan[i].freq<0) chan[i].freq=0;
+      }
       //if (chan[i].actualNote>0x5d) chan[i].freq=0x01;
       rWrite(0,0x80|i<<5|(chan[i].freq&15));
       rWrite(0,chan[i].freq>>4);
@@ -203,7 +207,9 @@ void DivPlatformSMS::tick(bool sysTick) {
   if (chan[3].freqChanged || updateSNMode) {
     chan[3].freq=parent->calcFreq(chan[3].baseFreq,chan[3].pitch,true,0,chan[3].pitch2,chipClock,noiseDivider);
     if (chan[3].freq>1023) chan[3].freq=1023;
-    if (chan[3].actualNote>0x5d) chan[3].freq=0x01;
+    if (parent->song.snNoLowPeriods) {
+      if (chan[3].actualNote>0x5d) chan[3].freq=0x01;
+    }
     if (snNoiseMode&2) { // take period from channel 3
       if (updateSNMode || resetPhase) {
         if (snNoiseMode&1) {

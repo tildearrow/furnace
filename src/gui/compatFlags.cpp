@@ -139,6 +139,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("if enabled, no checks for the presence of a volume macro will be made.\nthis will cause the last macro value to linger unless a value in the volume column is present.");
     }
+    ImGui::Checkbox("Treat SN76489 periods under 8 as 1",&e->song.snNoLowPeriods);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, any SN period under 8 will be written as 1 instead.\nthis replicates DefleMask behavior, but reduces available period range.");
+    }
 
     ImGui::Text("Pitch linearity:");
     if (ImGui::RadioButton("None",e->song.linearPitch==0)) {

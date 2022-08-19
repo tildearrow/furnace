@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 108: Furnace dev108
 - 107: Furnace dev107
 - 106: Furnace dev106
 - 105: Furnace dev105
@@ -331,7 +332,8 @@ size | description
   1  | broken outVol (>=99) or reserved
   1  | E1xy and E2xy stop on same note (>=100) or reserved
   1  | broken initial position of porta after arp (>=101) or reserved
-  7  | reserved
+  1  | SN periods under 8 are treated as 1 (>=108) or reserved
+  6  | reserved
  --- | **virtual tempo data**
   2  | virtual tempo numerator of first song (>=96) or reserved
   2  | virtual tempo denominator of first song (>=96) or reserved
