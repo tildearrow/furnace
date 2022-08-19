@@ -127,7 +127,7 @@ int64_t SafeReader::readL() {
   unsigned char ret[8];
   memcpy(ret,&buf[curSeek],8);
   curSeek+=8;
-  return (int64_t)(ret[0]|(ret[1]<<8)|(ret[2]<<16)|(ret[3]<<24)|(ret[4]<<32)|(ret[5]<<40)|(ret[6]<<48)|(ret[7]<<56));
+  return (int64_t)(ret[0]|(ret[1]<<8)|(ret[2]<<16)|(ret[3]<<24)|((uint64_t)ret[4]<<32)|((uint64_t)ret[5]<<40)|((uint64_t)ret[6]<<48)|((uint64_t)ret[7]<<56));
 }
 
 float SafeReader::readF() {
