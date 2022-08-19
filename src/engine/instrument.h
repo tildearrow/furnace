@@ -468,7 +468,7 @@ struct DivInstrumentSoundUnit {
 struct DivInstrumentES5506 {
   struct Filter {
     enum FilterMode: unsigned char { // filter mode for pole 4,3
-      FILTER_MODE_HPK2_HPK2,
+      FILTER_MODE_HPK2_HPK2=0,
       FILTER_MODE_HPK2_LPK1,
       FILTER_MODE_LPK2_LPK2,
       FILTER_MODE_LPK2_LPK1,
@@ -494,12 +494,9 @@ struct DivInstrumentES5506 {
       k1Slow(false),
       k2Slow(false) {}
   };
-  signed int lVol, rVol;
   Filter filter;
   Envelope envelope;
-  DivInstrumentES5506():
-    lVol(0xffff),
-    rVol(0xffff) {}
+  DivInstrumentES5506() {}
 };
 
 struct DivInstrument {

@@ -543,6 +543,18 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(gb.softEnv);
   w->writeC(gb.alwaysInit);
 
+  // ES5506
+  w->writeC(es5506.filter.mode);
+  w->writeS(es5506.filter.k1);
+  w->writeS(es5506.filter.k2);
+  w->writeS(es5506.envelope.ecount);
+  w->writeC(es5506.envelope.lVRamp);
+  w->writeC(es5506.envelope.rVRamp);
+  w->writeC(es5506.envelope.k1Ramp);
+  w->writeC(es5506.envelope.k2Ramp);
+  w->writeC(es5506.envelope.k1Slow);
+  w->writeC(es5506.envelope.k2Slow);
+
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);
   w->writeI(blockEndSeek-blockStartSeek-4);
@@ -1109,6 +1121,20 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   if (version>=106) {
     gb.softEnv=reader.readC();
     gb.alwaysInit=reader.readC();
+  }
+
+  // ES5506
+  if (version>=107) {
+    es5506.filter.mode=(DivInstrumentES5506::Filter::FilterMode)reader.readC();
+    es5506.filter.k1=reader.readS();
+    es5506.filter.k2=reader.readS();
+    es5506.envelope.ecount=reader.readS();
+    es5506.envelope.lVRamp=reader.readC();
+    es5506.envelope.rVRamp=reader.readC();
+    es5506.envelope.k1Ramp=reader.readC();
+    es5506.envelope.k2Ramp=reader.readC();
+    es5506.envelope.k1Slow=reader.readC();
+    es5506.envelope.k2Slow=reader.readC();
   }
 
   return DIV_DATA_SUCCESS;
