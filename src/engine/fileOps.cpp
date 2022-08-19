@@ -825,6 +825,13 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             data=new short[length];
             reader.read(data,length*2);
           }
+          
+#ifdef TA_BIG_ENDIAN
+          // convert to big-endian
+          for (size_t pos=0; pos<length; pos++) {
+            data[pos]=(short)((((unsigned short)data[pos])<<8)|(((unsigned short)data[pos])>>8));
+          }
+#endif
 
           if (pitch!=5) {
             logD("%d: scaling from %d...",i,pitch);
@@ -1323,9 +1330,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
 
     // pointers
-    reader.read(insPtr,ds.insLen*4);
-    reader.read(wavePtr,ds.waveLen*4);
-    reader.read(samplePtr,ds.sampleLen*4);
+    for (int i=0; i<ds.insLen; i++) {
+      insPtr[i]=reader.readI();
+    }
+    for (int i=0; i<ds.waveLen; i++) {
+      wavePtr[i]=reader.readI();
+    }
+    for (int i=0; i<ds.sampleLen; i++) {
+      samplePtr[i]=reader.readI();
+    }
     for (int i=0; i<numberOfPats; i++) patPtr.push_back(reader.readI());
 
     logD("reading orders (%d)...",subSong->ordersLen);
@@ -1703,10 +1716,35 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       if (ds.version>=58) { // modern sample
         sample->init(sample->samples);
         reader.read(sample->getCurBuf(),sample->getCurBufLen());
+#ifdef TA_BIG_ENDIAN
+        // convert 16-bit samples to big-endian
+        if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
+          unsigned char* sampleBuf=sample->getCurBuf();
+          size_t sampleBufLen=sample->getCurBufLen();
+          for (size_t pos=0; pos<sampleBufLen; pos+=2) {
+            sampleBuf[pos]^=sampleBuf[pos+1];
+            sampleBuf[pos+1]^=sampleBuf[pos];
+            sampleBuf[pos]^=sampleBuf[pos+1];
+          }
+        }
+#endif
       } else { // legacy sample
         int length=sample->samples;
         short* data=new short[length];
         reader.read(data,2*length);
+
+#ifdef TA_BIG_ENDIAN
+        // convert 16-bit samples to big-endian
+        if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
+          unsigned char* sampleBuf=sample->getCurBuf();
+          size_t sampleBufLen=sample->getCurBufLen();
+          for (size_t pos=0; pos<sampleBufLen; pos+=2) {
+            sampleBuf[pos]^=sampleBuf[pos+1];
+            sampleBuf[pos+1]^=sampleBuf[pos];
+            sampleBuf[pos]^=sampleBuf[pos+1];
+          }
+        }
+#endif
 
         if (pitch!=5) {
           logD("%d: scaling from %d...",i,pitch);
@@ -3807,7 +3845,21 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
       w->writeI(0xffffffff);
     }
 
+#ifdef TA_BIG_ENDIAN
+    // store 16-bit samples as little-endian
+    if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
+      unsigned char* sampleBuf=(unsigned char*)sample->getCurBuf();
+      size_t bufLen=sample->getCurBufLen();
+      for (size_t i=0; i<bufLen; i+=2) {
+        w->writeC(sampleBuf[i+1]);
+        w->writeC(sampleBuf[i]);
+      }
+    } else {
+      w->write(sample->getCurBuf(),sample->getCurBufLen());
+    }
+#else
     w->write(sample->getCurBuf(),sample->getCurBufLen());
+#endif
 
     blockEndSeek=w->tell();
     w->seek(blockStartSeek,SEEK_SET);
@@ -3834,7 +3886,13 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
       w->writeS(pat->data[j][1]); // octave
       w->writeS(pat->data[j][2]); // instrument
       w->writeS(pat->data[j][3]); // volume
+#ifdef TA_BIG_ENDIAN
+      for (int k=0; k<song.subsong[i.subsong]->pat[i.chan].effectCols*2; k++) {
+        w->writeS(pat->data[j][4+k]);
+      }
+#else
       w->write(&pat->data[j][4],2*song.subsong[i.subsong]->pat[i.chan].effectCols*2); // effects
+#endif
     }
 
     w->writeString(pat->name,false);
@@ -4116,7 +4174,9 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
             w->writeI(i->std.volMacro.val[j]+18);
           }
         } else {
-          w->write(i->std.volMacro.val,4*i->std.volMacro.len);
+          for (int j=0; j<i->std.volMacro.len; j++) {
+            w->writeI(i->std.volMacro.val[j]);
+          }
         }
         if (i->std.volMacro.len>0) {
           w->writeC(i->std.volMacro.loop);
@@ -4125,7 +4185,9 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
 
       w->writeC(i->std.arpMacro.len);
       if (i->std.arpMacro.mode) {
-        w->write(i->std.arpMacro.val,4*i->std.arpMacro.len);
+        for (int j=0; j<i->std.arpMacro.len; j++) {
+          w->writeI(i->std.arpMacro.val[j]);
+        }
       } else {
         for (int j=0; j<i->std.arpMacro.len; j++) {
           w->writeI(i->std.arpMacro.val[j]+12);
@@ -4142,14 +4204,18 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
           w->writeI(i->std.dutyMacro.val[j]+12);
         }
       } else {
-        w->write(i->std.dutyMacro.val,4*i->std.dutyMacro.len);
+        for (int j=0; j<i->std.dutyMacro.len; j++) {
+          w->writeI(i->std.dutyMacro.val[j]);
+        }
       }
       if (i->std.dutyMacro.len>0) {
         w->writeC(i->std.dutyMacro.loop);
       }
 
       w->writeC(i->std.waveMacro.len);
-      w->write(i->std.waveMacro.val,4*i->std.waveMacro.len);
+      for (int j=0; j<i->std.waveMacro.len; j++) {
+        w->writeI(i->std.waveMacro.val[j]);
+      }
       if (i->std.waveMacro.len>0) {
         w->writeC(i->std.waveMacro.loop);
       }
@@ -4200,7 +4266,9 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         w->writeI(i->data[j]>>2);
       }
     } else {
-      w->write(i->data,4*i->len);
+      for (int j=0; j<i->len; j++) {
+        w->writeI(i->data[j]);
+      }
     }
   }
 
@@ -4213,7 +4281,13 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         w->writeS(pat->data[k][0]); // note
         w->writeS(pat->data[k][1]); // octave
         w->writeS(pat->data[k][3]); // volume
+#ifdef TA_BIG_ENDIAN
+        for (int l=0; l<curPat[i].effectCols*2; l++) {
+          w->writeS(pat->data[k][4+l]);
+        }
+#else
         w->write(&pat->data[k][4],2*curPat[i].effectCols*2); // effects
+#endif
         w->writeS(pat->data[k][2]); // instrument
       }
     }
@@ -4232,7 +4306,15 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     w->writeC(50);
     // i'm too lazy to deal with .dmf's weird way of storing 8-bit samples
     w->writeC(16);
+    // well I can't be lazy if it's on a big-endian system
+#ifdef TA_BIG_ENDIAN
+    for (unsigned int j=0; j<i->length16; j++) {
+      w->writeC(((unsigned short)i->data16[j])&0xff);
+      w->writeC(((unsigned short)i->data16[j])>>8);
+    }
+#else
     w->write(i->data16,i->length16);
+#endif
   }
   
   saveLock.unlock();

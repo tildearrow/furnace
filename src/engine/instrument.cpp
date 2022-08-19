@@ -549,6 +549,9 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->seek(0,SEEK_END);
 }
 
+#define READ_MACRO_VALS(x,y) \
+  for (int macroValPos=0; macroValPos<y; macroValPos++) x[macroValPos]=reader.readI();
+
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   char magic[4];
   reader.read(magic,4);
@@ -674,10 +677,10 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   int oldVolHeight=reader.readC();
   int oldDutyHeight=reader.readC();
   reader.readC(); // oldWaveHeight
-  reader.read(std.volMacro.val,4*std.volMacro.len);
-  reader.read(std.arpMacro.val,4*std.arpMacro.len);
-  reader.read(std.dutyMacro.val,4*std.dutyMacro.len);
-  reader.read(std.waveMacro.val,4*std.waveMacro.len);
+  READ_MACRO_VALS(std.volMacro.val,std.volMacro.len);
+  READ_MACRO_VALS(std.arpMacro.val,std.arpMacro.len);
+  READ_MACRO_VALS(std.dutyMacro.val,std.dutyMacro.len);
+  READ_MACRO_VALS(std.waveMacro.val,std.waveMacro.len);
   if (version<31) {
     if (!std.arpMacro.mode) for (int j=0; j<std.arpMacro.len; j++) {
       std.arpMacro.val[j]-=12;
@@ -692,10 +695,10 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     }
   }
   if (version>=17) {
-    reader.read(std.pitchMacro.val,4*std.pitchMacro.len);
-    reader.read(std.ex1Macro.val,4*std.ex1Macro.len);
-    reader.read(std.ex2Macro.val,4*std.ex2Macro.len);
-    reader.read(std.ex3Macro.val,4*std.ex3Macro.len);
+    READ_MACRO_VALS(std.pitchMacro.val,std.pitchMacro.len);
+    READ_MACRO_VALS(std.ex1Macro.val,std.ex1Macro.len);
+    READ_MACRO_VALS(std.ex2Macro.val,std.ex2Macro.len);
+    READ_MACRO_VALS(std.ex3Macro.val,std.ex3Macro.len);
   } else {
     if (type==DIV_INS_STD) {
       if (oldVolHeight==31) {
@@ -730,10 +733,10 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     std.fmsMacro.open=reader.readC();
     std.amsMacro.open=reader.readC();
 
-    reader.read(std.algMacro.val,4*std.algMacro.len);
-    reader.read(std.fbMacro.val,4*std.fbMacro.len);
-    reader.read(std.fmsMacro.val,4*std.fmsMacro.len);
-    reader.read(std.amsMacro.val,4*std.amsMacro.len);
+    READ_MACRO_VALS(std.algMacro.val,std.algMacro.len);
+    READ_MACRO_VALS(std.fbMacro.val,std.fbMacro.len);
+    READ_MACRO_VALS(std.fmsMacro.val,std.fmsMacro.len);
+    READ_MACRO_VALS(std.amsMacro.val,std.amsMacro.len);
 
     for (int i=0; i<4; i++) {
       DivInstrumentSTD::OpMacro& op=std.opMacros[i];
@@ -1007,14 +1010,14 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     std.ex7Macro.open=reader.readC();
     std.ex8Macro.open=reader.readC();
 
-    reader.read(std.panLMacro.val,4*std.panLMacro.len);
-    reader.read(std.panRMacro.val,4*std.panRMacro.len);
-    reader.read(std.phaseResetMacro.val,4*std.phaseResetMacro.len);
-    reader.read(std.ex4Macro.val,4*std.ex4Macro.len);
-    reader.read(std.ex5Macro.val,4*std.ex5Macro.len);
-    reader.read(std.ex6Macro.val,4*std.ex6Macro.len);
-    reader.read(std.ex7Macro.val,4*std.ex7Macro.len);
-    reader.read(std.ex8Macro.val,4*std.ex8Macro.len);
+    READ_MACRO_VALS(std.panLMacro.val,std.panLMacro.len);
+    READ_MACRO_VALS(std.panRMacro.val,std.panRMacro.len);
+    READ_MACRO_VALS(std.phaseResetMacro.val,std.phaseResetMacro.len);
+    READ_MACRO_VALS(std.ex4Macro.val,std.ex4Macro.len);
+    READ_MACRO_VALS(std.ex5Macro.val,std.ex5Macro.len);
+    READ_MACRO_VALS(std.ex6Macro.val,std.ex6Macro.len);
+    READ_MACRO_VALS(std.ex7Macro.val,std.ex7Macro.len);
+    READ_MACRO_VALS(std.ex8Macro.val,std.ex8Macro.len);
 
     // FDS
     fds.modSpeed=reader.readI();
