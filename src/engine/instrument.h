@@ -465,6 +465,42 @@ struct DivInstrumentSoundUnit {
     switchRoles(false) {}
 };
 
+struct DivInstrumentES5506 {
+  struct Filter {
+    enum FilterMode: unsigned char { // filter mode for pole 4,3
+      FILTER_MODE_HPK2_HPK2=0,
+      FILTER_MODE_HPK2_LPK1,
+      FILTER_MODE_LPK2_LPK2,
+      FILTER_MODE_LPK2_LPK1,
+    };
+    FilterMode mode;
+    unsigned short k1, k2;
+    Filter():
+      mode(FILTER_MODE_LPK2_LPK1),
+      k1(0xffff),
+      k2(0xffff) {}
+  };
+  struct Envelope {
+    unsigned short ecount;
+    signed char lVRamp, rVRamp;
+    signed char k1Ramp, k2Ramp;
+    bool k1Slow, k2Slow;
+    Envelope():
+      ecount(0),
+      lVRamp(0),
+      rVRamp(0),
+      k1Ramp(0),
+      k2Ramp(0),
+      k1Slow(false),
+      k2Slow(false) {}
+  };
+  Filter filter;
+  Envelope envelope;
+  DivInstrumentES5506():
+    filter(Filter()),
+    envelope(Envelope()) {}
+};
+
 struct DivInstrument {
   String name;
   bool mode;
@@ -479,6 +515,7 @@ struct DivInstrument {
   DivInstrumentMultiPCM multipcm;
   DivInstrumentWaveSynth ws;
   DivInstrumentSoundUnit su;
+  DivInstrumentES5506 es5506;
   
   /**
    * save the instrument to a SafeWriter.

@@ -250,12 +250,24 @@ const char* suControlBits[5]={
   "ring mod", "low pass", "high pass", "band pass", NULL
 };
 
+const char* es5506FilterModes[4]={
+  "HP/K2, HP/K2", "HP/K2, LP/K1", "LP/K2, LP/K2", "LP/K2, LP/K1",
+};
+
 const char* panBits[3]={
   "right", "left", NULL
 };
 
 const char* oneBit[2]={
   "on", NULL
+};
+
+const char* es5506EnvelopeModes[3]={
+  "k1 slowdown", "k2 slowdown", NULL
+};
+
+const char* es5506ControlModes[2]={
+  "pause", NULL
 };
 
 const int orderedOps[4]={
@@ -293,10 +305,14 @@ const char* gbHWSeqCmdTypes[6]={
   "Loop until Release"
 };
 
+// do not change these!
+// anything other than a checkbox will look ugly!
+//
+// if you really need to, and have a good rationale (and by good I mean a VERY
+// good one), please tell me and we'll sort it out.
 const char* macroAbsoluteMode="Fixed";
 const char* macroRelativeMode="Relative";
 const char* macroQSoundMode="QSound";
-
 const char* macroDummyMode="Bug";
 
 String macroHoverNote(int id, float val) {
@@ -312,6 +328,27 @@ String macroHoverLoop(int id, float val) {
   if (val>1) return "Release";
   if (val>0) return "Loop";
   return "";
+}
+
+String macroHoverES5506FilterMode(int id, float val) {
+  String mode="???";
+  switch (((int)val)&3) {
+    case 0:
+      mode="HP/K2, HP/K2";
+      break;
+    case 1:
+      mode="HP/K2, LP/K1";
+      break;
+    case 2:
+      mode="LP/K2, LP/K2";
+      break;
+    case 3:
+      mode="LP/K2, LP/K1";
+      break;
+    default:
+      break;
+  }
+  return fmt::sprintf("%d: %s",id,mode);
 }
 
 String macroLFOWaves(int id, float val) {
@@ -1203,6 +1240,9 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
         if (ImGui::InputScalar("##IMacroLen",ImGuiDataType_U8,&i.macro->len,&_ONE,&_THREE)) { MARK_MODIFIED
           if (i.macro->len>128) i.macro->len=128;
         }
+        // do not change this!
+        // anything other than a checkbox will look ugly!
+        // if you really need more than two macro modes please tell me.
         if (i.modeName!=NULL) {
           bool modeVal=i.macro->mode;
           String modeName=fmt::sprintf("%s##IMacroMode",i.modeName);
@@ -3331,7 +3371,9 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Don't test/gate before new note",&ins->c64.noTest));
           ImGui::EndTabItem();
         }
-        if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SU) if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
+        if (ins->type==DIV_INS_AMIGA ||
+            ins->type==DIV_INS_SU ||
+            ins->type==DIV_INS_ES5506) if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
           String sName;
           if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
             sName="none selected";
@@ -3485,6 +3527,42 @@ void FurnaceGUI::drawInsEdit() {
             macroDragLineMode=false;
             macroDragLineInitial=ImVec2(0,0);
             processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+          }
+          ImGui::EndTabItem();
+        }
+        if (ins->type==DIV_INS_ES5506) if (ImGui::BeginTabItem("ES5506")) {
+          if (ImGui::BeginTable("ESParams",2,ImGuiTableFlags_SizingStretchSame)) {
+            ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
+            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
+            // filter
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Filter 4,3 Mode",ImGuiDataType_U8,&ins->es5506.filter.mode,&_ZERO,&_THREE,es5506FilterModes[ins->es5506.filter.mode&3])); rightClickable
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Filter K1",ImGuiDataType_U16,&ins->es5506.filter.k1,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Filter K2",ImGuiDataType_U16,&ins->es5506.filter.k2,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
+            // envelope
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Envelope count",ImGuiDataType_U16,&ins->es5506.envelope.ecount,&_ZERO,&_FIVE_HUNDRED_ELEVEN)); rightClickable
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Left Volume Ramp",ImGuiDataType_S8,&ins->es5506.envelope.lVRamp,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Right Volume Ramp",ImGuiDataType_S8,&ins->es5506.envelope.rVRamp,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Filter K1 Ramp",ImGuiDataType_S8,&ins->es5506.envelope.k1Ramp,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+            ImGui::TableNextColumn();
+            P(CWSliderScalar("Filter K2 Ramp",ImGuiDataType_S8,&ins->es5506.envelope.k2Ramp,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Checkbox("K1 Ramp Slowdown",&ins->es5506.envelope.k1Slow);
+            ImGui::TableNextColumn();
+            ImGui::Checkbox("K2 Ramp Slowdown",&ins->es5506.envelope.k2Slow);
+            ImGui::EndTable();
           }
           ImGui::EndTabItem();
         }
@@ -3785,6 +3863,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_FDS) {
             volMax=32;
           }
+          if (ins->type==DIV_INS_ES5506) {
+            volMax=65535;
+          }
 
           const char* dutyLabel="Duty/Noise";
           int dutyMin=0;
@@ -3847,6 +3928,10 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_SU) {
             dutyMax=127;
           }
+          if (ins->type==DIV_INS_ES5506) {
+            dutyLabel="Filter Mode";
+            dutyMax=3;
+          }
 
           const char* waveLabel="Waveform";
           int waveMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_VERA)?3:255;
@@ -3902,6 +3987,10 @@ void FurnaceGUI::drawInsEdit() {
             ex2Max=255;
           }
           if (ins->type==DIV_INS_SAA1099) ex1Max=8;
+          if (ins->type==DIV_INS_ES5506) {
+            ex1Max=65535;
+            ex2Max=65535;
+          }
 
           int panMin=0;
           int panMax=0;
@@ -3937,6 +4026,9 @@ void FurnaceGUI::drawInsEdit() {
             panMax=127;
             panSingleNoBit=true;
           }
+          if (ins->type==DIV_INS_ES5506) {
+            panMax=65535;
+          }
 
           if (volMax>0) {
             macroList.push_back(FurnaceGUIMacroDesc(volumeLabel,&ins->std.volMacro,volMin,volMax,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
@@ -3945,6 +4037,8 @@ void FurnaceGUI::drawInsEdit() {
           if (dutyMax>0) {
             if (ins->type==DIV_INS_MIKEY) {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,mikeyFeedbackBits));
+            } else if (ins->type==DIV_INS_ES5506) {
+              macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,dutyMin,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,&macroHoverES5506FilterMode));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,dutyMin,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             }
@@ -3957,15 +4051,15 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
             } else {
               if (panSingleNoBit || (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode)) {
-                macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,panMin,panMax,(31+panMax-panMin),uiColors[GUI_COLOR_MACRO_OTHER],false,(ins->type==DIV_INS_AMIGA)?macroQSoundMode:NULL));
+                macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,panMin,panMax,CLAMP(31+panMax-panMin,32,160),uiColors[GUI_COLOR_MACRO_OTHER],false,(ins->type==DIV_INS_AMIGA)?macroQSoundMode:NULL));
               } else {
-                macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,panMin,panMax,(31+panMax-panMin),uiColors[GUI_COLOR_MACRO_OTHER],false,(ins->type==DIV_INS_AMIGA)?macroQSoundMode:NULL));
+                macroList.push_back(FurnaceGUIMacroDesc("Panning (left)",&ins->std.panLMacro,panMin,panMax,CLAMP(31+panMax-panMin,32,160),uiColors[GUI_COLOR_MACRO_OTHER],false,(ins->type==DIV_INS_AMIGA)?macroQSoundMode:NULL));
               }
               if (!panSingleNoBit) {
                 if (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode) {
                   macroList.push_back(FurnaceGUIMacroDesc("Surround",&ins->std.panRMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
                 } else {
-                  macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,panMin,panMax,(31+panMax-panMin),uiColors[GUI_COLOR_MACRO_OTHER]));
+                  macroList.push_back(FurnaceGUIMacroDesc("Panning (right)",&ins->std.panRMacro,panMin,panMax,CLAMP(31+panMax-panMin,32,160),uiColors[GUI_COLOR_MACRO_OTHER]));
                 }
               }
             }
@@ -3985,7 +4079,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_SWAN ||
               ins->type==DIV_INS_MULTIPCM ||
               ins->type==DIV_INS_SU ||
-              ins->type==DIV_INS_MIKEY) {
+              ins->type==DIV_INS_MIKEY ||
+              ins->type==DIV_INS_ES5506) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {
@@ -4001,6 +4096,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Mod Depth",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_SU) {
               macroList.push_back(FurnaceGUIMacroDesc("Cutoff",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+            } else if (ins->type==DIV_INS_ES5506) {
+              macroList.push_back(FurnaceGUIMacroDesc("Filter K1",&ins->std.ex1Macro,((ins->std.ex1Macro.mode==1)?(-ex1Max):0),ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,macroRelativeMode));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             }
@@ -4014,6 +4111,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Mod Speed",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_SU) {
               macroList.push_back(FurnaceGUIMacroDesc("Resonance",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+            } else if (ins->type==DIV_INS_ES5506) {
+              macroList.push_back(FurnaceGUIMacroDesc("Filter K2",&ins->std.ex2Macro,((ins->std.ex2Macro.mode==1)?(-ex2Max):0),ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,macroRelativeMode));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex2Macro,0,ex2Max,ex2Bit?64:160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,ex2Bit,ayEnvBits));
             }
@@ -4043,6 +4142,15 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_SU) {
             macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.ex3Macro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,suControlBits));
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset Timer",&ins->std.ex4Macro,0,65535,160,uiColors[GUI_COLOR_MACRO_OTHER])); // again reuse code from resonance macro but use ex4 instead
+          }
+          if (ins->type==DIV_INS_ES5506) {
+            macroList.push_back(FurnaceGUIMacroDesc("Envelope counter",&ins->std.ex3Macro,0,511,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Envelope left volume ramp",&ins->std.ex4Macro,-128,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Envelope right volume ramp",&ins->std.ex5Macro,-128,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Envelope K1 ramp",&ins->std.ex6Macro,-128,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Envelope K2 ramp",&ins->std.ex7Macro,-128,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+            macroList.push_back(FurnaceGUIMacroDesc("Envelope mode",&ins->std.ex8Macro,0,2,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,es5506EnvelopeModes));
+            macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.algMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,es5506ControlModes));
           }
 
           drawMacros(macroList);

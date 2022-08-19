@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 107: Furnace dev107
 - 106: Furnace dev106
 - 105: Furnace dev105
 - 104: Furnace dev104
@@ -850,6 +851,21 @@ size | description
  --- | **Game Boy extra flags** (>=106)
   1  | use software envelope
   1  | always init hard env on new note
+ --- | **ES5506 data** (>=107)
+  1  | filter mode
+     | - 0: HPK2_HPK2
+     | - 1: HPK2_LPK1
+     | - 2: LPK2_LPK2
+     | - 3: LPK2_LPK1
+  2  | K1
+  2  | K2
+  2  | envelope count
+  1  | left volume ramp
+  1  | right volume ramp
+  1  | K1 ramp
+  1  | K2 ramp
+  1  | K1 slow
+  1  | K2 slow
 ```
 
 # wavetable
