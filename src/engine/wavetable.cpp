@@ -59,7 +59,9 @@ DivDataErrors DivWavetable::readWaveData(SafeReader& reader, short version) {
 
   if (len>256 || min!=0 || max>255) return DIV_DATA_INVALID_DATA;
 
-  reader.read(data,4*len);
+  for (int i=0; i<len; i++) {
+    data[i]=reader.readI();
+  }
 
   return DIV_DATA_SUCCESS;
 }
