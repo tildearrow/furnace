@@ -577,7 +577,7 @@ void FurnaceGUI::doChangeIns(int ins) {
     if (!e->curSubSong->chanShow[iCoarse]) continue;
     DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][curOrder],true);
     for (int j=selStart.y; j<=selEnd.y; j++) {
-      if (pat->data[j][2]!=-1 || !(pat->data[j][0]==0 && pat->data[j][1]==0)) {
+      if (pat->data[j][2]!=-1 || !((pat->data[j][0]==0 || pat->data[j][0]==100 || pat->data[j][0]==101 || pat->data[j][0]==102) && pat->data[j][1]==0)) {
         pat->data[j][2]=ins;
       }
     }
