@@ -25,13 +25,13 @@
 class DivEngine;
 
 struct DivMacroStruct {
-  int pos;
+  int pos, lastPos;
   int val;
   bool has, had, actualHad, finished, will, linger;
   unsigned int mode;
   void doMacro(DivInstrumentMacro& source, bool released, bool tick);
   void init() {
-    pos=mode=0;
+    pos=lastPos=mode=0;
     has=had=actualHad=will=false;
     linger=false;
     // TODO: test whether this breaks anything?
@@ -126,6 +126,13 @@ class DivMacroInt {
      * @param which the instrument in question.
      */
     void notifyInsDeletion(DivInstrument* which);
+
+    /**
+     * get DivMacroStruct by macro name.
+     * @param which the macro name.
+     * @return a DivMacroStruct, or NULL if none found.
+     */
+    DivMacroStruct* structByName(const String& name);
 
     DivMacroInt():
       e(NULL),

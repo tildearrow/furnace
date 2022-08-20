@@ -19,6 +19,7 @@
 
 #include "gui.h"
 #include "imgui_internal.h"
+#include "../engine/macroInt.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "guiConst.h"
@@ -1195,6 +1196,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
   float asFloat[256];
   int asInt[256];
   float loopIndicator[256];
+  bool doHighlight[256];
   int index=0;
 
   float reservedSpace=(settings.oldMacroVSlider)?(20.0f*dpiScale+ImGui::GetStyle().ItemSpacing.x):ImGui::GetStyle().ScrollbarSize;
@@ -1285,11 +1287,33 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
       if (i.macro->vZoom>(i.max-i.min)) {
         i.macro->vZoom=i.max-i.min;
       }
-           
+
+      memset(doHighlight,0,256*sizeof(bool));
+      if (e->isRunning()) for (int j=0; j<e->getTotalChannelCount(); j++) {
+        DivChannelState* chanState=e->getChanState(j);
+        if (chanState==NULL) continue;
+
+        if (chanState->keyOff) continue;
+        if (chanState->lastIns!=curIns) continue;
+
+        DivMacroInt* macroInt=e->getMacroInt(j);
+        if (macroInt==NULL) continue;
+
+        DivMacroStruct* macroStruct=macroInt->structByName(i.macro->name);
+        if (macroStruct==NULL) continue;
+
+        if (macroStruct->lastPos>i.macro->len) continue;
+        if (macroStruct->lastPos<macroDragScroll) continue;
+        if (macroStruct->lastPos>255) continue;
+        if (!macroStruct->actualHad) continue;
+
+        doHighlight[macroStruct->lastPos-macroDragScroll]=true;
+      }
+
       if (i.isBitfield) {
-        PlotBitfield("##IMacro",asInt,totalFit,0,i.bitfieldBits,i.max,ImVec2(availableWidth,(i.macro->open)?(i.height*dpiScale):(32.0f*dpiScale)));
+        PlotBitfield("##IMacro",asInt,totalFit,0,i.bitfieldBits,i.max,ImVec2(availableWidth,(i.macro->open)?(i.height*dpiScale):(32.0f*dpiScale)),sizeof(float),doHighlight);
       } else {
-        PlotCustom("##IMacro",asFloat,totalFit,macroDragScroll,NULL,i.min+i.macro->vScroll,i.min+i.macro->vScroll+i.macro->vZoom,ImVec2(availableWidth,(i.macro->open)?(i.height*dpiScale):(32.0f*dpiScale)),sizeof(float),i.color,i.macro->len-macroDragScroll,i.hoverFunc,i.blockMode,i.macro->open?genericGuide:NULL);
+        PlotCustom("##IMacro",asFloat,totalFit,macroDragScroll,NULL,i.min+i.macro->vScroll,i.min+i.macro->vScroll+i.macro->vZoom,ImVec2(availableWidth,(i.macro->open)?(i.height*dpiScale):(32.0f*dpiScale)),sizeof(float),i.color,i.macro->len-macroDragScroll,i.hoverFunc,i.blockMode,i.macro->open?genericGuide:NULL,doHighlight);
       }
       if (i.macro->open && (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))) {
         macroDragStart=ImGui::GetItemRectMin();
