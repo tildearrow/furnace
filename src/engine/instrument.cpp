@@ -554,6 +554,15 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(es5506.envelope.k2Ramp);
   w->writeC(es5506.envelope.k1Slow);
   w->writeC(es5506.envelope.k2Slow);
+  
+  // SNES
+  w->writeC(snes.useEnv);
+  w->writeC(snes.gainMode);
+  w->writeC(snes.gain);
+  w->writeC(snes.a);
+  w->writeC(snes.d);
+  w->writeC(snes.s);
+  w->writeC(snes.r);
 
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);
@@ -1138,6 +1147,17 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     es5506.envelope.k2Ramp=reader.readC();
     es5506.envelope.k1Slow=reader.readC();
     es5506.envelope.k2Slow=reader.readC();
+  }
+
+  // SNES
+  if (version>=109) {
+    snes.useEnv=reader.readC();
+    snes.gainMode=(DivInstrumentSNES::GainMode)reader.readC();
+    snes.gain=reader.readC();
+    snes.a=reader.readC();
+    snes.d=reader.readC();
+    snes.s=reader.readC();
+    snes.r=reader.readC();
   }
 
   return DIV_DATA_SUCCESS;

@@ -501,6 +501,28 @@ struct DivInstrumentES5506 {
     envelope(Envelope()) {}
 };
 
+struct DivInstrumentSNES {
+  enum GainMode: unsigned char {
+    GAIN_MODE_DIRECT=0,
+    GAIN_MODE_DEC_LINEAR=4,
+    GAIN_MODE_DEC_LOG=5,
+    GAIN_MODE_INC_LINEAR=6,
+    GAIN_MODE_INC_INVLOG=7
+  };
+  bool useEnv;
+  GainMode gainMode;
+  unsigned char gain;
+  unsigned char a, d, s, r;
+  DivInstrumentSNES():
+    useEnv(true),
+    gainMode(GAIN_MODE_DIRECT),
+    gain(127),
+    a(15),
+    d(7),
+    s(7),
+    r(0) {}
+};
+
 struct DivInstrument {
   String name;
   bool mode;
@@ -516,6 +538,7 @@ struct DivInstrument {
   DivInstrumentWaveSynth ws;
   DivInstrumentSoundUnit su;
   DivInstrumentES5506 es5506;
+  DivInstrumentSNES snes;
   
   /**
    * save the instrument to a SafeWriter.
