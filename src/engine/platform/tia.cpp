@@ -118,6 +118,7 @@ void DivPlatformTIA::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].insChanged) {
+        // TODO: fix 10xx bug here
         if (!chan[i].std.wave.will) {
           chan[i].shape=4;
           rWrite(0x15+i,chan[i].shape);
