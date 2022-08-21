@@ -885,7 +885,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "MSX + SIMPL", {
       DIV_SYSTEM_AY8910, 64, 0, 16,
-      DIV_SYSTEM_PCM_DAC, 64, 0, 55929|(7<<16), // variable rate, DAC
+      DIV_SYSTEM_PCM_DAC, 64, 0, 55929|(7<<16), // variable rate, Mono DAC
       0
     }
   ));
