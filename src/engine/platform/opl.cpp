@@ -1580,14 +1580,6 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
   pretendYMU=false;
   downsample=false;
   adpcmChan=-1;
-  // Vaild type value:
-  // 1 (YM3526)
-  // 2 (YM3812)
-  // 3 (YMF262)
-  // 4 (YMF278; Not implemented)
-  // 289 (YMF289; Not implemented)
-  // 759 (YMU759)
-  // 8950 (Y8950)
   switch (type) {
     case 1: case 2: case 8950:
       slotsNonDrums=slotsOPL2;
@@ -1603,7 +1595,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
         adpcmChan=drums?11:9;
       }
       break;
-    case 3: case 4: case 289: case 759:
+    case 3: case 4: case 759:
       slotsNonDrums=slotsOPL3;
       slotsDrums=slotsOPL3Drums;
       slots=drums?slotsDrums:slotsNonDrums;
@@ -1616,14 +1608,14 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       if (type==759) {
         pretendYMU=true;
         adpcmChan=16;
-      } else if (type==4 || type==289) {
+      } else if (type==4) {
         chipFreqBase=32768*684;
         downsample=true;
       }
       break;
   }
   chipType=type;
-  if (type==759 || type==289 || type==4) {
+  if (type==759 || type==4) {
     oplType=3;
   } else if (type==8950) {
     oplType=1;
@@ -1706,7 +1698,6 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
       chipRateBase=rate;
       break;
     case 4:
-    case 289:
       switch (flags&0xff) {
         case 0x01:
           chipClock=COLOR_PAL*32.0/5.0;
