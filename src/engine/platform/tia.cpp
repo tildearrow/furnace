@@ -117,14 +117,6 @@ void DivPlatformTIA::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      if (chan[i].insChanged) {
-        // TODO: fix 10xx bug here
-        if (!chan[i].std.wave.will) {
-          chan[i].shape=4;
-          rWrite(0x15+i,chan[i].shape);
-        }
-        chan[i].insChanged=false;
-      }
       chan[i].freq=dealWithFreq(chan[i].shape,chan[i].baseFreq,chan[i].pitch)+chan[i].pitch2;
       if ((chan[i].shape==4 || chan[i].shape==5) && !(chan[i].baseFreq&0x80000000 && ((chan[i].baseFreq&0x7fffffff)<32))) {
         if (chan[i].baseFreq<39*256) {
@@ -164,6 +156,13 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
+      }
+      if (chan[c.chan].insChanged) {
+        if (!chan[c.chan].std.wave.will) {
+          chan[c.chan].shape=4;
+          rWrite(0x15+c.chan,chan[c.chan].shape);
+        }
+        chan[c.chan].insChanged=false;
       }
       if (isMuted[c.chan]) {
         rWrite(0x19+c.chan,0);
