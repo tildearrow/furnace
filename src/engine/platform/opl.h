@@ -151,6 +151,10 @@ class DivPlatformOPL: public DivDispatch {
     void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformOPL(int type, bool drums):
+      DivDispatch() {
+        setOPLType(type,drums);
+      }
     ~DivPlatformOPL();
 };
 #endif

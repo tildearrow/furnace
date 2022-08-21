@@ -179,8 +179,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
 
   switch (sys) {
     case DIV_SYSTEM_YMU759:
-      dispatch=new DivPlatformOPL;
-      ((DivPlatformOPL*)dispatch)->setOPLType(759,false);
+      dispatch=new DivPlatformOPL(759,false);
       break;
     case DIV_SYSTEM_YM2612:
       dispatch=new DivPlatformGenesis;
@@ -278,36 +277,20 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       ((DivPlatformOPLL*)dispatch)->setProperDrums(sys==DIV_SYSTEM_OPLL_DRUMS);
       break;
     case DIV_SYSTEM_OPL:
-      dispatch=new DivPlatformOPL;
-      ((DivPlatformOPL*)dispatch)->setOPLType(1,false);
-      break;
     case DIV_SYSTEM_OPL_DRUMS:
-      dispatch=new DivPlatformOPL;
-      ((DivPlatformOPL*)dispatch)->setOPLType(1,true);
+      dispatch=new DivPlatformOPL(1,sys==DIV_SYSTEM_OPL_DRUMS);
       break;
     case DIV_SYSTEM_OPL2:
-      dispatch=new DivPlatformOPL;
-      ((DivPlatformOPL*)dispatch)->setOPLType(2,false);
-      break;
     case DIV_SYSTEM_OPL2_DRUMS:
-      dispatch=new DivPlatformOPL;
-      ((DivPlatformOPL*)dispatch)->setOPLType(2,true);
+      dispatch=new DivPlatformOPL(2,sys==DIV_SYSTEM_OPL2_DRUMS);
       break;
     case DIV_SYSTEM_OPL3:
-      dispatch=new DivPlatformOPL;
-      ((DivPlatformOPL*)dispatch)->setOPLType(3,false);
-      break;
     case DIV_SYSTEM_OPL3_DRUMS:
-      dispatch=new DivPlatformOPL;
-      ((DivPlatformOPL*)dispatch)->setOPLType(3,true);
+      dispatch=new DivPlatformOPL(3,sys==DIV_SYSTEM_OPL3_DRUMS);
       break;
     case DIV_SYSTEM_Y8950:
-      dispatch=new DivPlatformOPL;
-      ((DivPlatformOPL*)dispatch)->setOPLType(8950,false);
-      break;
     case DIV_SYSTEM_Y8950_DRUMS:
-      dispatch=new DivPlatformOPL;
-      ((DivPlatformOPL*)dispatch)->setOPLType(8950,true);
+      dispatch=new DivPlatformOPL(8950,sys==DIV_SYSTEM_Y8950_DRUMS);
       break;
     case DIV_SYSTEM_OPZ:
       dispatch=new DivPlatformTX81Z;
