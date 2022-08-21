@@ -1609,6 +1609,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
         pretendYMU=true;
         adpcmChan=16;
       } else if (type==4) {
+        chipFreqBase=32768*684;
         downsample=true;
       }
       break;
