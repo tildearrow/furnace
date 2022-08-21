@@ -1595,7 +1595,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
         adpcmChan=drums?11:9;
       }
       break;
-    case 3: case 759:
+    case 3: case 4: case 759:
       slotsNonDrums=slotsOPL3;
       slotsDrums=slotsOPL3Drums;
       slots=drums?slotsDrums:slotsNonDrums;
