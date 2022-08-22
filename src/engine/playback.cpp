@@ -707,7 +707,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_SAMPLE_BANK,i,effectVal));
         break;
       case 0xec: // delayed note cut
-        if (effectVal>0 && effectVal<nextSpeed) {
+        if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
           chan[i].cut=effectVal+1;
         }
         break;
