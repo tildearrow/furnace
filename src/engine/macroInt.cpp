@@ -43,15 +43,15 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
   if (has) {
     lastPos=pos;
     val=source.val[pos++];
-    if (source.rel>=0 && pos>source.rel && !released) {
-      if (source.loop<source.len && source.loop>=0 && source.loop<source.rel) {
+    if (pos>source.rel && !released) {
+      if (source.loop<source.len && source.loop<source.rel) {
         pos=source.loop;
       } else {
         pos--;
       }
     }
     if (pos>=source.len) {
-      if (source.loop<source.len && source.loop>=0 && (source.loop>=source.rel || source.rel>=source.len)) {
+      if (source.loop<source.len && (source.loop>=source.rel || source.rel>=source.len)) {
         pos=source.loop;
       } else if (linger) {
         pos--;
@@ -240,7 +240,7 @@ void DivMacroInt::init(DivInstrument* which) {
   for (size_t i=0; i<macroListLen; i++) {
     if (macroSource[i]!=NULL) {
       macroList[i]->prepare(*macroSource[i],e);
-      hasRelease=(macroSource[i]->rel>=0 && macroSource[i]->rel<macroSource[i]->len);
+      hasRelease=(macroSource[i]->rel<macroSource[i]->len);
     } else {
       hasRelease=false;
     }

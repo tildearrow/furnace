@@ -1215,14 +1215,14 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
     }
     ImGui::TableNextColumn();
     float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace;
-    int totalFit=MIN(128,availableWidth/MAX(1,macroPointSize*dpiScale));
-    if (macroDragScroll>128-totalFit) {
-      macroDragScroll=128-totalFit;
+    int totalFit=MIN(255,availableWidth/MAX(1,macroPointSize*dpiScale));
+    if (macroDragScroll>255-totalFit) {
+      macroDragScroll=255-totalFit;
     }
     ImGui::SetNextItemWidth(availableWidth);
-    if (CWSliderInt("##MacroScroll",&macroDragScroll,0,128-totalFit,"")) {
+    if (CWSliderInt("##MacroScroll",&macroDragScroll,0,255-totalFit,"")) {
       if (macroDragScroll<0) macroDragScroll=0;
-      if (macroDragScroll>128-totalFit) macroDragScroll=128-totalFit;
+      if (macroDragScroll>255-totalFit) macroDragScroll=255-totalFit;
     }
 
     // draw macros
@@ -1239,8 +1239,11 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
       }
       if (i.macro->open) {
         ImGui::SetNextItemWidth(lenAvail);
-        if (ImGui::InputScalar("##IMacroLen",ImGuiDataType_U8,&i.macro->len,&_ONE,&_THREE)) { MARK_MODIFIED
-          if (i.macro->len>128) i.macro->len=128;
+        int macroLen=i.macro->len;
+        if (ImGui::InputScalar("##IMacroLen",ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { MARK_MODIFIED
+          if (macroLen<0) macroLen=0;
+          if (macroLen>255) macroLen=255;
+          i.macro->len=macroLen;
         }
         // do not change this!
         // anything other than a checkbox will look ugly!
@@ -1267,7 +1270,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
         if (j+macroDragScroll>=i.macro->len || (j+macroDragScroll>i.macro->rel && i.macro->loop<i.macro->rel)) {
           loopIndicator[j]=0;
         } else {
-          loopIndicator[j]=((i.macro->loop!=-1 && (j+macroDragScroll)>=i.macro->loop))|((i.macro->rel!=-1 && (j+macroDragScroll)==i.macro->rel)<<1);
+          loopIndicator[j]=((i.macro->loop!=255 && (j+macroDragScroll)>=i.macro->loop))|((i.macro->rel!=255 && (j+macroDragScroll)==i.macro->rel)<<1);
         }
       }
       ImGui::PushStyleVar(ImGuiStyleVar_FramePadding,ImVec2(0.0f,0.0f));
@@ -1414,9 +1417,9 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
         }
         if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) {
-            i.macro->rel=-1;
+            i.macro->rel=255;
           } else {
-            i.macro->loop=-1;
+            i.macro->loop=255;
           }
         }
         ImGui::SetNextItemWidth(availableWidth);
@@ -1437,9 +1440,9 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
     ImGui::TableNextColumn();
     ImGui::TableNextColumn();
     ImGui::SetNextItemWidth(availableWidth);
-    if (CWSliderInt("##MacroScroll",&macroDragScroll,0,128-totalFit,"")) {
+    if (CWSliderInt("##MacroScroll",&macroDragScroll,0,255-totalFit,"")) {
       if (macroDragScroll<0) macroDragScroll=0;
-      if (macroDragScroll>128-totalFit) macroDragScroll=128-totalFit;
+      if (macroDragScroll>255-totalFit) macroDragScroll=255-totalFit;
     }
     ImGui::EndTable();
   }
@@ -4311,8 +4314,8 @@ void FurnaceGUI::drawInsEdit() {
       ImGui::Separator();
       if (ImGui::MenuItem("clear")) {
         lastMacroDesc.macro->len=0;
-        lastMacroDesc.macro->loop=-1;
-        lastMacroDesc.macro->rel=-1;
+        lastMacroDesc.macro->loop=255;
+        lastMacroDesc.macro->rel=255;
         for (int i=0; i<256; i++) {
           lastMacroDesc.macro->val[i]=0;
         }
@@ -4341,15 +4344,15 @@ void FurnaceGUI::drawInsEdit() {
             lastMacroDesc.macro->val[i]=val;
           }
 
-          if (lastMacroDesc.macro->loop>=0 && lastMacroDesc.macro->loop<lastMacroDesc.macro->len) {
+          if (lastMacroDesc.macro->loop<lastMacroDesc.macro->len) {
             lastMacroDesc.macro->loop+=macroOffX;
           } else {
-            lastMacroDesc.macro->loop=-1;
+            lastMacroDesc.macro->loop=255;
           }
           if ((lastMacroDesc.macro->rel+macroOffX)>=0 && (lastMacroDesc.macro->rel+macroOffX)<lastMacroDesc.macro->len) {
             lastMacroDesc.macro->rel+=macroOffX;
           } else {
-            lastMacroDesc.macro->rel=-1;
+            lastMacroDesc.macro->rel=255;
           }
 
           ImGui::CloseCurrentPopup();

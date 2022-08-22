@@ -1406,7 +1406,7 @@ class FurnaceGUI {
 
   ImVec2 macroLoopDragStart;
   ImVec2 macroLoopDragAreaSize;
-  signed char* macroLoopDragTarget;
+  unsigned char* macroLoopDragTarget;
   int macroLoopDragLen;
   bool macroLoopDragActive;
 
@@ -1687,7 +1687,7 @@ class FurnaceGUI {
   void initSystemPresets();
 
   void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex=false);
-  void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax, signed char& macroRel);
+  void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, unsigned char& macroLoop, int macroMin, int macroMax, unsigned char& macroRel);
   void decodeMMLStrW(String& source, int* macro, int& macroLen, int macroMax, bool hex=false);
 
   String encodeKeyMap(std::map<int,int>& map);
