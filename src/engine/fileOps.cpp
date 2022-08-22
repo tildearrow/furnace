@@ -507,6 +507,14 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           for (int j=0; j<ins->std.arpMacro.len; j++) {
             ins->std.arpMacro.val[j]-=12;
           }
+        } else {
+          ins->std.arpMacro.mode=0;
+          for (int j=0; j<ins->std.arpMacro.len; j++) {
+            ins->std.arpMacro.val[i]|=0x40000000;
+          }
+          if (ins->std.arpMacro.loop<ins->std.arpMacro.len && ins->std.arpMacro.len<255) {
+            ins->std.arpMacro.val[ins->std.arpMacro.len++]=0;
+          }
         }
 
         ins->std.dutyMacro.len=reader.readC();
@@ -2886,9 +2894,6 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
           loopMapFreq[j]=ins->std.arpMacro.len;
           loopMapWave[j]=ins->std.waveMacro.len;
           if (fm.val[j]==0xe1) {
-            if (ins->std.arpMacro.mode) {
-              ins->std.arpMacro.loop=(signed int)ins->std.arpMacro.len-1;
-            }
             break;
           } else if (fm.val[j]==0xe2 || fm.val[j]==0xe4) {
             if (++j>=64) break;
@@ -2923,8 +2928,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
             logV("unhandled pitch!");
           } else {
             if (fm.val[j]>0x80) {
-              ins->std.arpMacro.val[ins->std.arpMacro.len]=fm.val[j]-0x80+24;
-              ins->std.arpMacro.mode=1; // TODO: variable fixed/relative mode
+              ins->std.arpMacro.val[ins->std.arpMacro.len]=(fm.val[j]-0x80+24)|0x40000000;
             } else {
               ins->std.arpMacro.val[ins->std.arpMacro.len]=fm.val[j];
             }
@@ -3293,6 +3297,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
               ins->std.arpMacro.len=reader.readC();
               ins->std.arpMacro.loop=reader.readI();
               ins->std.arpMacro.rel=reader.readI();
+              // TODO: get rid
               ins->std.arpMacro.mode=reader.readI();
               for (int j=0; j<ins->std.arpMacro.len; j++) {
                 ins->std.arpMacro.val[j]=reader.readC();
@@ -4204,6 +4209,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         }
       }
 
+      // TODO: take care of new arp macro format
       w->writeC(i->std.arpMacro.len);
       if (i->std.arpMacro.mode) {
         for (int j=0; j<i->std.arpMacro.len; j++) {

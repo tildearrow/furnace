@@ -321,18 +321,9 @@ void DivPlatformX1_010::tick(bool sysTick) {
     if ((!chan[i].pcm) || chan[i].furnacePCM) {
       if (chan[i].std.arp.had) {
         if (!chan[i].inPorta) {
-          if (chan[i].std.arp.mode) {
-            chan[i].baseFreq=NoteX1_010(i,chan[i].std.arp.val);
-          } else {
-            chan[i].baseFreq=NoteX1_010(i,chan[i].note+chan[i].std.arp.val);
-          }
+          chan[i].baseFreq=NoteX1_010(i,parent->calcArp(chan[i].note,chan[i].std.arp.val));
         }
         chan[i].freqChanged=true;
-      } else {
-        if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-          chan[i].baseFreq=NoteX1_010(i,chan[i].note);
-          chan[i].freqChanged=true;
-        }
       }
     }
     if (chan[i].std.wave.had && !chan[i].pcm) {

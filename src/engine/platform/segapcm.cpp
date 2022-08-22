@@ -88,18 +88,9 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
 
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=(chan[i].std.arp.val<<6);
-        } else {
-          chan[i].baseFreq=((chan[i].note+(signed char)chan[i].std.arp.val)<<6);
-        }
+        chan[i].baseFreq=(parent->calcArp(chan[i].note,chan[i].std.arp.val)<<6);
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=(chan[i].note<<6);
-        chan[i].freqChanged=true;
-      }
     }
 
     if (chan[i].std.panL.had) {

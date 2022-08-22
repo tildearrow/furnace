@@ -132,7 +132,7 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeI(std.ex1Macro.loop);
   w->writeI(std.ex2Macro.loop);
   w->writeI(std.ex3Macro.loop);
-  w->writeC(std.arpMacro.mode);
+  w->writeC(0); // this was arp macro mode
   w->writeC(0); // reserved
   w->writeC(0);
   w->writeC(0);
@@ -1339,6 +1339,19 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
       op.vibMacro.delay=reader.readC();
       op.wsMacro.delay=reader.readC();
       op.ksrMacro.delay=reader.readC();
+    }
+  }
+
+  // old arp macro format
+  if (version<112) {
+    if (std.arpMacro.mode) {
+      std.arpMacro.mode=0;
+      for (int i=0; i<std.arpMacro.len; i++) {
+        std.arpMacro.val[i]|=0x40000000;
+      }
+      if (std.arpMacro.loop<std.arpMacro.len && std.arpMacro.rel>std.arpMacro.loop && std.arpMacro.len<255) {
+        std.arpMacro.val[std.arpMacro.len++]=0;
+      }
     }
   }
 

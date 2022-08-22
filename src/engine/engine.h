@@ -46,8 +46,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev111"
-#define DIV_ENGINE_VERSION 111
+#define DIV_VERSION "dev112"
+#define DIV_ENGINE_VERSION 112
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -553,6 +553,9 @@ class DivEngine {
 
     // calculate frequency/period
     int calcFreq(int base, int pitch, bool period=false, int octave=0, int pitch2=0, double clock=1.0, double divider=1.0, int blockBits=0);
+
+    // calculate arpeggio
+    int calcArp(int note, int arp, int offset=0);
 
     // convert panning formats
     int convertPanSplitToLinear(unsigned int val, unsigned char bits, int range);

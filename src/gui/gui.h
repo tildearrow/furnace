@@ -869,10 +869,10 @@ struct FurnaceGUIMacroDesc {
   const char* modeName;
   ImVec4 color;
   unsigned int bitOffset;
-  bool isBitfield, blockMode;
+  bool isBitfield, blockMode, bit30;
   String (*hoverFunc)(int,float);
 
-  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0):
+  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0, bool bit30Special=false):
     macro(m),
     height(macroHeight),
     displayName(name),
@@ -882,6 +882,7 @@ struct FurnaceGUIMacroDesc {
     bitOffset(bitOff),
     isBitfield(bitfield),
     blockMode(block),
+    bit30(bit30Special),
     hoverFunc(hf) {
     // MSVC -> hell
     this->min=macroMin;
@@ -1395,6 +1396,7 @@ class FurnaceGUI {
   bool macroDragInitialValueSet;
   bool macroDragInitialValue;
   bool macroDragChar;
+  bool macroDragBit30;
   bool macroDragLineMode;
   bool macroDragMouseMoved;
   ImVec2 macroDragLineInitial;
@@ -1686,8 +1688,8 @@ class FurnaceGUI {
   void applyUISettings(bool updateFonts=true);
   void initSystemPresets();
 
-  void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex=false);
-  void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, unsigned char& macroLoop, int macroMin, int macroMax, unsigned char& macroRel);
+  void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex=false, bool bit30=false);
+  void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, unsigned char& macroLoop, int macroMin, int macroMax, unsigned char& macroRel, bool bit30=false);
   void decodeMMLStrW(String& source, int* macro, int& macroLen, int macroMax, bool hex=false);
 
   String encodeKeyMap(std::map<int,int>& map);

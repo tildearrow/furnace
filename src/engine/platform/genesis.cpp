@@ -266,34 +266,16 @@ void DivPlatformGenesis::tick(bool sysTick) {
     if (i>=5 && chan[i].furnaceDac) {
       if (chan[i].std.arp.had) {
         if (!chan[i].inPorta) {
-          if (chan[i].std.arp.mode) {
-            chan[i].baseFreq=parent->calcBaseFreq(1,1,chan[i].std.arp.val,false);
-          } else {
-            chan[i].baseFreq=parent->calcBaseFreq(1,1,chan[i].note+(signed char)chan[i].std.arp.val,false);
-          }
+          chan[i].baseFreq=parent->calcBaseFreq(1,1,parent->calcArp(chan[i].note,chan[i].std.arp.val),false);
         }
         chan[i].freqChanged=true;
-      } else {
-        if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-          chan[i].baseFreq=parent->calcBaseFreq(1,1,chan[i].note,false);
-          chan[i].freqChanged=true;
-        }
       }
     } else {
        if (chan[i].std.arp.had) {
         if (!chan[i].inPorta) {
-          if (chan[i].std.arp.mode) {
-            chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].std.arp.val,11);
-          } else {
-            chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].note+(signed char)chan[i].std.arp.val,11);
-          }
+          chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11);
         }
         chan[i].freqChanged=true;
-      } else {
-        if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-          chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].note,11);
-          chan[i].freqChanged=true;
-        }
       }
     }
 

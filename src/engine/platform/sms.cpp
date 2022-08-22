@@ -132,22 +132,12 @@ void DivPlatformSMS::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-          chan[i].actualNote=chan[i].std.arp.val;
-        } else {
-          // TODO: check whether this weird octave boundary thing applies to other systems as well
-          int areYouSerious=chan[i].note+chan[i].std.arp.val;
-          while (areYouSerious>0x60) areYouSerious-=12;
-          chan[i].baseFreq=NOTE_PERIODIC(areYouSerious);
-          chan[i].actualNote=areYouSerious;
-        }
-        chan[i].freqChanged=true;
-      }
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].actualNote=chan[i].note;
+        // TODO: check whether this weird octave boundary thing applies to other systems as well
+        // TODO: add compatibility flag. this is horrible.
+        int areYouSerious=parent->calcArp(chan[i].note,chan[i].std.arp.val);
+        while (areYouSerious>0x60) areYouSerious-=12;
+        chan[i].baseFreq=NOTE_PERIODIC(areYouSerious);
+        chan[i].actualNote=areYouSerious;
         chan[i].freqChanged=true;
       }
     }

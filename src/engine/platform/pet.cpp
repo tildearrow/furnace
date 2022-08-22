@@ -104,18 +104,9 @@ void DivPlatformPET::tick(bool sysTick) {
   }
   if (chan.std.arp.had) {
     if (!chan.inPorta) {
-      if (chan.std.arp.mode) {
-        chan.baseFreq=NOTE_PERIODIC(chan.std.arp.val);
-      } else {
-        chan.baseFreq=NOTE_PERIODIC(chan.note+chan.std.arp.val);
-      }
+      chan.baseFreq=NOTE_PERIODIC(parent->calcArp(chan.note,chan.std.arp.val));
     }
     chan.freqChanged=true;
-  } else {
-    if (chan.std.arp.mode && chan.std.arp.finished) {
-      chan.baseFreq=NOTE_PERIODIC(chan.note);
-      chan.freqChanged=true;
-    }
   }
   if (chan.std.wave.had) {
     if (chan.wave!=chan.std.wave.val) {
