@@ -2517,6 +2517,35 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
   }
 }
 
+// how many pixels should be visible at least at x/y dir
+#define OOB_PIXELS_SAFETY 25
+
+bool FurnaceGUI::detectOutOfBoundsWindow() {
+  int count = SDL_GetNumVideoDisplays();
+  if(count < 1) {
+    logW("bounds check: error %s", SDL_GetError());
+    return false;
+  }
+
+  SDL_Rect rect;
+  for(int i = 0;i < count;i ++) {
+    if(SDL_GetDisplayUsableBounds(i, &rect) != 0) {
+      logW("bounds check: error %s", SDL_GetError());
+      return false;
+    }
+
+    bool xbound = (rect.x + OOB_PIXELS_SAFETY) <= (scrX + scrW) && (rect.x + rect.w - OOB_PIXELS_SAFETY) >= scrX;
+    bool ybound = (rect.y + OOB_PIXELS_SAFETY) <= (scrY + scrH) && (rect.y + rect.h - OOB_PIXELS_SAFETY) >= scrY;
+    logD("bounds check: display %d is at %dx%dx%dx%d: %s%s", i, rect.x + OOB_PIXELS_SAFETY, rect.y + OOB_PIXELS_SAFETY, rect.x + rect.w - OOB_PIXELS_SAFETY, rect.y + rect.h - OOB_PIXELS_SAFETY, xbound ? "x" : "", ybound ? "y" : "");
+
+    if(xbound && ybound) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 bool FurnaceGUI::loop() {
   bool doThreadedInput=!settings.noThreadedInput;
   if (doThreadedInput) {
@@ -2714,9 +2743,7 @@ bool FurnaceGUI::loop() {
 
     // update config x/y/w/h values based on scrMax state
     if(updateWindow) {
-      if(scrMax) {
-        scrConfY=scrConfX = SDL_WINDOWPOS_CENTERED_DISPLAY(SDL_GetWindowDisplayIndex(sdlWin));
-      } else {
+      if(!scrMax) {
         scrConfX=scrX;
         scrConfY=scrY;
         scrConfW=scrW;
@@ -4482,6 +4509,13 @@ bool FurnaceGUI::init() {
 #endif
 
   SDL_Init(SDL_INIT_VIDEO);
+
+  // if window would spawn out of bounds, force it to be get default position
+  if(!detectOutOfBoundsWindow()) {
+    scrMax = false;
+    scrX=scrConfX=SDL_WINDOWPOS_CENTERED;
+    scrY=scrConfY=SDL_WINDOWPOS_CENTERED;
+  }
 
   sdlWin=SDL_CreateWindow("Furnace",scrX,scrY,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(scrMax?SDL_WINDOW_MAXIMIZED:0)|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
   if (sdlWin==NULL) {

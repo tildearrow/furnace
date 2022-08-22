@@ -1710,6 +1710,7 @@ class FurnaceGUI {
     void runBackupThread();
     void pushPartBlend();
     void popPartBlend();
+    bool detectOutOfBoundsWindow();
     int processEvent(SDL_Event* ev);
     bool loop();
     bool finish();
