@@ -382,6 +382,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
       }
     }
     if (returnAfterPre) return;
+  } else {
+    logV("honoring delay at position %d",whatRow);
   }
 
   if (chan[i].delayLocked) return;
@@ -903,7 +905,9 @@ void DivEngine::nextRow() {
   prevRow=curRow;
 
   for (int i=0; i<chans; i++) {
-    chan[i].rowDelay=0;
+    if (song.delayBehavior!=2) {
+      chan[i].rowDelay=0;
+    }
     processRow(i,false);
   }
 
