@@ -862,7 +862,7 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
 
 void FurnaceGUI::noteInput(int num, int key, int vol) {
   DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
-  
+
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
 
   if (key==100) { // note off
@@ -2103,7 +2103,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
       snprintf(id,63,"%.2x##LatchFX",data);
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
     }
-    
+
     if (ImGui::Selectable(id,latchTarget==3,ImGuiSelectableFlags_DontClosePopups)) {
       latchTarget=3;
       latchNibble=false;
@@ -2176,7 +2176,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
     doTranspose(transposeAmount,opMaskTransposeValue);
     ImGui::CloseCurrentPopup();
   }
-  
+
   ImGui::Separator();
   if (ImGui::MenuItem("interpolate",BIND_FOR(GUI_ACTION_PAT_INTERPOLATE))) doInterpolate();
   if (ImGui::BeginMenu("change instrument...")) {
@@ -2303,7 +2303,7 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
   if (mobileUI!=enable || force) {
     if (!mobileUI && enable) {
       ImGui::SaveIniSettingsToDisk(finalLayoutPath);
-    } 
+    }
     mobileUI=enable;
     if (mobileUI) {
       ImGui::GetIO().IniFilename=NULL;
@@ -2311,7 +2311,7 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
       ImGui::GetIO().IniFilename=finalLayoutPath;
       ImGui::LoadIniSettingsFromDisk(finalLayoutPath);
     }
-  }  
+  }
 }
 
 int _processEvent(void* instance, SDL_Event* event) {
@@ -2536,6 +2536,7 @@ bool FurnaceGUI::loop() {
       if (settings.powerSave) SDL_WaitEventTimeout(NULL,500);
     }
     eventTimeBegin=SDL_GetPerformanceCounter();
+	  bool updateWindow = false;
     while (SDL_PollEvent(&ev)) {
       WAKE_UP;
       ImGui_ImplSDL2_ProcessEvent(&ev);
@@ -2642,6 +2643,20 @@ bool FurnaceGUI::loop() {
               scrW=ev.window.data1/dpiScale;
               scrH=ev.window.data2/dpiScale;
 #endif
+              updateWindow=true;
+              break;
+            case SDL_WINDOWEVENT_MOVED:
+              scrX=ev.window.data1;
+              scrY=ev.window.data2;
+              updateWindow=true;
+              break;
+            case SDL_WINDOWEVENT_MAXIMIZED:
+              scrMax=true;
+              updateWindow=true;
+              break;
+            case SDL_WINDOWEVENT_RESTORED:
+              scrMax=false;
+              updateWindow=true;
               break;
           }
           break;
@@ -2697,6 +2712,18 @@ bool FurnaceGUI::loop() {
       }
     }
 
+    // update config x/y/w/h values based on scrMax state
+    if(updateWindow) {
+      if(scrMax) {
+        scrConfY=scrConfX = SDL_WINDOWPOS_CENTERED_DISPLAY(SDL_GetWindowDisplayIndex(sdlWin));
+      } else {
+        scrConfX=scrX;
+        scrConfY=scrY;
+        scrConfW=scrW;
+        scrConfH=scrH;
+      }
+    }
+
     wantCaptureKeyboard=ImGui::GetIO().WantTextInput;
 
     if (wantCaptureKeyboard!=oldWantCaptureKeyboard) {
@@ -2714,7 +2741,7 @@ bool FurnaceGUI::loop() {
     if (ImGui::GetIO().MouseDown[0] || ImGui::GetIO().MouseDown[1] || ImGui::GetIO().MouseDown[2] || ImGui::GetIO().MouseDown[3] || ImGui::GetIO().MouseDown[4]) {
       WAKE_UP;
     }
-    
+
     while (true) {
       midiLock.lock();
       if (midiQueue.empty()) {
@@ -2870,7 +2897,7 @@ bool FurnaceGUI::loop() {
     eventTimeEnd=SDL_GetPerformanceCounter();
 
     layoutTimeBegin=SDL_GetPerformanceCounter();
-    
+
     ImGui_ImplSDLRenderer_NewFrame();
     ImGui_ImplSDL2_NewFrame(sdlWin);
     ImGui::NewFrame();
@@ -3125,7 +3152,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("log viewer",BIND_FOR(GUI_ACTION_WINDOW_LOG),logOpen)) logOpen=!logOpen;
         if (ImGui::MenuItem("statistics",BIND_FOR(GUI_ACTION_WINDOW_STATS),statsOpen)) statsOpen=!statsOpen;
         if (spoilerOpen) if (ImGui::MenuItem("spoiler",NULL,spoilerOpen)) spoilerOpen=!spoilerOpen;
-      
+
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("help")) {
@@ -4263,7 +4290,7 @@ bool FurnaceGUI::loop() {
             }
             logD("saving backup...");
             SafeWriter* w=e->saveFur(true);
-          
+
             if (w!=NULL) {
               FILE* outFile=ps_fopen(backupPath.c_str(),"wb");
               if (outFile!=NULL) {
@@ -4436,8 +4463,11 @@ bool FurnaceGUI::init() {
   SDL_Surface* icon=SDL_CreateRGBSurfaceFrom(furIcon,256,256,32,256*4,0xff,0xff00,0xff0000,0xff000000);
 #endif
 
-  scrW=e->getConfInt("lastWindowWidth",1280);
-  scrH=e->getConfInt("lastWindowHeight",800);
+  scrW=scrConfW=e->getConfInt("lastWindowWidth",1280);
+  scrH=scrConfH=e->getConfInt("lastWindowHeight",800);
+  scrX=scrConfX=e->getConfInt("lastWindowX",SDL_WINDOWPOS_CENTERED);
+  scrY=scrConfY=e->getConfInt("lastWindowY",SDL_WINDOWPOS_CENTERED);
+  scrMax=e->getConfBool("lastWindowMax",false);
 
 #ifndef __APPLE__
   SDL_Rect displaySize;
@@ -4453,7 +4483,7 @@ bool FurnaceGUI::init() {
 
   SDL_Init(SDL_INIT_VIDEO);
 
-  sdlWin=SDL_CreateWindow("Furnace",SDL_WINDOWPOS_CENTERED,SDL_WINDOWPOS_CENTERED,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
+  sdlWin=SDL_CreateWindow("Furnace",scrX,scrY,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(scrMax?SDL_WINDOW_MAXIMIZED:0)|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
   if (sdlWin==NULL) {
     logE("could not open window! %s",SDL_GetError());
     return false;
@@ -4619,8 +4649,11 @@ bool FurnaceGUI::finish() {
   e->setConf("spoilerOpen",spoilerOpen);
 
   // commit last window size
-  e->setConf("lastWindowWidth",scrW);
-  e->setConf("lastWindowHeight",scrH);
+  e->setConf("lastWindowWidth",scrConfW);
+  e->setConf("lastWindowHeight",scrConfH);
+  e->setConf("lastWindowX",scrConfX);
+  e->setConf("lastWindowY",scrConfY);
+  e->setConf("lastWindowMax",scrMax);
 
   e->setConf("tempoView",tempoView);
   e->setConf("waveHex",waveHex);

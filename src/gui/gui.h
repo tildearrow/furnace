@@ -996,7 +996,9 @@ class FurnaceGUI {
 
   FurnaceGUIFileDialog* fileDialog;
 
-  int scrW, scrH;
+  int scrW, scrH, scrConfW, scrConfH;
+  int scrX, scrY, scrConfX, scrConfY;
+  bool scrMax;
 
   double dpiScale;
 
@@ -1429,7 +1431,7 @@ class FurnaceGUI {
   int chanToMove;
 
   ImVec2 patWindowPos, patWindowSize;
-  
+
   // pattern view specific
   ImVec2 fourChars, threeChars, twoChars;
   ImVec2 noteCellSize, insCellSize, volCellSize, effectCellSize, effectValCellSize;
@@ -1505,7 +1507,7 @@ class FurnaceGUI {
   // visualizer
   float keyHit[DIV_MAX_CHANS];
   int lastIns[DIV_MAX_CHANS];
-  
+
   // log window
   bool followLog;
 
