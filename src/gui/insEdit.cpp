@@ -1245,6 +1245,27 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
           if (macroLen>255) macroLen=255;
           i.macro->len=macroLen;
         }
+        if (ImGui::Button(ICON_FA_BAR_CHART "##IMacroType")) {
+          
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Coming soon!");
+        }
+        ImGui::SameLine();
+        ImGui::Button(ICON_FA_ELLIPSIS_H "##IMacroSet");
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Delay/Step Length");
+        }
+        if (ImGui::BeginPopupContextItem("IMacroSetP",ImGuiPopupFlags_MouseButtonLeft)) {
+          if (ImGui::InputScalar("Step Length (ticks)##IMacroSpeed",ImGuiDataType_U8,&i.macro->speed,&_ONE,&_THREE)) {
+            if (i.macro->speed<1) i.macro->speed=1;
+            MARK_MODIFIED;
+          }
+          if (ImGui::InputScalar("Delay##IMacroDelay",ImGuiDataType_U8,&i.macro->delay,&_ONE,&_THREE)) {
+            MARK_MODIFIED;
+          }
+          ImGui::EndPopup();
+        }
         // do not change this!
         // anything other than a checkbox will look ugly!
         // if you really need more than two macro modes please tell me.

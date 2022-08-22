@@ -32,6 +32,18 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
     had=false;
     return;
   }
+  if (delay>0) {
+    delay--;
+    return;
+  }
+  if (began && source.delay>0) {
+    delay=source.delay;
+  } else {
+    delay=source.speed-1;
+  }
+  if (began) {
+    began=false;
+  }
   if (finished) {
     finished=false;
   }
