@@ -361,7 +361,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
           break;
         case 0xed: // delay
           if (effectVal!=0) {
-            if (effectVal<=nextSpeed) {
+            bool comparison=(song.delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<nextSpeed);
+            if (song.delayBehavior==2) comparison=true;
+            if (comparison) {
               chan[i].rowDelay=effectVal+1;
               chan[i].delayOrder=whatOrder;
               chan[i].delayRow=whatRow;
@@ -372,6 +374,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
               }
               returnAfterPre=true;
             } else {
+              logV("higher than nextSpeed! %d>%d",effectVal,nextSpeed);
               chan[i].delayLocked=false;
             }
           }
