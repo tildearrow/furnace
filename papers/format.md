@@ -972,9 +972,9 @@ size | description
   4  | "WAVE" block ID
   4  | size of this block
  STR | wavetable name
-  4  | wavetable size
-  4  | wavetable min
-  4  | wavetable max
+  4  | wavetable width
+  4  | reserved
+  4  | wavetable height
  4?? | wavetable data
 ```
 
