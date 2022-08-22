@@ -193,6 +193,26 @@ void FurnaceGUI::drawCompatFlags() {
       ImGui::SetTooltip("select to not reset channels on loop.");
     }
 
+    ImGui::Text("Cut/delay effect policy:");
+    if (ImGui::RadioButton("Strict",e->song.delayBehavior==0)) {
+      e->song.delayBehavior=0;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("only when time is less than speed (like DefleMask/ProTracker)");
+    }
+    if (ImGui::RadioButton("Strict (old)",e->song.delayBehavior==1)) {
+      e->song.delayBehavior=1;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("only when time is less than or equal to speed (original buggy behavior)");
+    }
+    if (ImGui::RadioButton("Lax",e->song.delayBehavior==2)) {
+      e->song.delayBehavior=2;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("no checks (like FamiTracker)");
+    }
+
     ImGui::Separator();
 
     ImGui::TextWrapped("the following flags are for compatibility with older Furnace versions.");
