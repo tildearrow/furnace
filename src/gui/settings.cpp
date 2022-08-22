@@ -259,7 +259,7 @@ void FurnaceGUI::drawSettings() {
           }
 
           ImGui::Separator();
-          
+
           ImGui::Text("Initial system:");
           ImGui::SameLine();
           if (ImGui::Button("Current system")) {
@@ -369,7 +369,7 @@ void FurnaceGUI::drawSettings() {
             } rightClickable
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
             CWSliderScalar("Panning",ImGuiDataType_S8,&settings.initialSys[i+2],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN); rightClickable
-            
+
             // oh please MSVC don't cry
             if (ImGui::TreeNode("Configure")) {
               drawSysConf(-1,(DivSystem)settings.initialSys[i],(unsigned int&)settings.initialSys[i+3],false);
@@ -452,7 +452,7 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::Checkbox("Double click selects entire column",&doubleClickColumnB)) {
             settings.doubleClickColumn=doubleClickColumnB;
           }
-          
+
           bool allowEditDockingB=settings.allowEditDocking;
           if (ImGui::Checkbox("Allow docking editors",&allowEditDockingB)) {
             settings.allowEditDocking=allowEditDockingB;
@@ -507,6 +507,14 @@ void FurnaceGUI::drawSettings() {
           }
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("threaded input processes key presses for note preview on a separate thread (on supported platforms), which reduces latency.\nhowever, crashes have been reported when threaded input is on. enable this option if that is the case.");
+          }
+
+          bool saveWindowPosB=settings.saveWindowPos;
+          if (ImGui::Checkbox("Remember window location",&saveWindowPosB)) {
+            settings.saveWindowPos=saveWindowPosB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("remembers where window was last located on start-up. When disabled, window will start in a defaul location.");
           }
 
           bool blankInsB=settings.blankIns;
@@ -639,7 +647,7 @@ void FurnaceGUI::drawSettings() {
             BUFFER_SIZE_SELECTABLE(2048);
             ImGui::EndCombo();
           }
-          
+
           ImGui::Text("Quality");
           ImGui::SameLine();
           ImGui::Combo("##Quality",&settings.audioQuality,audioQualities,2);
@@ -697,7 +705,7 @@ void FurnaceGUI::drawSettings() {
           }
 
           if (hasToReloadMidi) {
-            midiMap.read(e->getConfigPath()+DIR_SEPARATOR_STR+"midiIn_"+stripName(settings.midiInDevice)+".cfg"); 
+            midiMap.read(e->getConfigPath()+DIR_SEPARATOR_STR+"midiIn_"+stripName(settings.midiInDevice)+".cfg");
             midiMap.compile();
           }
 
@@ -1344,7 +1352,7 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::Checkbox("Unsigned FM detune values",&unsignedDetuneB)) {
             settings.unsignedDetune=unsignedDetuneB;
           }
-          
+
           // sorry. temporarily disabled until ImGui has a way to add separators in tables arbitrarily.
           /*bool sysSeparatorsB=settings.sysSeparators;
           if (ImGui::Checkbox("Add separators between systems in Orders",&sysSeparatorsB)) {
@@ -1553,12 +1561,12 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_FM_SECONDARY_MOD,"Mod. accent (secondary)");
               UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_MOD,"Mod. border");
               UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_SHADOW_MOD,"Mod. border shadow");
-              
+
               UI_COLOR_CONFIG(GUI_COLOR_FM_PRIMARY_CAR,"Car. accent (primary");
               UI_COLOR_CONFIG(GUI_COLOR_FM_SECONDARY_CAR,"Car. accent (secondary)");
               UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_CAR,"Car. border");
               UI_COLOR_CONFIG(GUI_COLOR_FM_BORDER_SHADOW_CAR,"Car. border shadow");
-              
+
               ImGui::TreePop();
             }
             if (ImGui::TreeNode("Macro Editor")) {
@@ -1917,7 +1925,7 @@ void FurnaceGUI::drawSettings() {
             UI_KEYBIND_CONFIG(GUI_ACTION_PAT_COLLAPSE_ROWS);
             UI_KEYBIND_CONFIG(GUI_ACTION_PAT_EXPAND_ROWS);
             UI_KEYBIND_CONFIG(GUI_ACTION_PAT_LATCH);
-            
+
             // TODO: collapse/expand pattern and song
 
             KEYBIND_CONFIG_END;
@@ -2213,6 +2221,7 @@ void FurnaceGUI::syncSettings() {
   settings.dragMovesSelection=e->getConfInt("dragMovesSelection",2);
   settings.unsignedDetune=e->getConfInt("unsignedDetune",0);
   settings.noThreadedInput=e->getConfInt("noThreadedInput",0);
+  settings.saveWindowPos=e->getConfInt("saveWindowPos",1);
   settings.initialSysName=e->getConfString("initialSysName","");
   settings.clampSamples=e->getConfInt("clampSamples",0);
   settings.noteOffLabel=e->getConfString("noteOffLabel","OFF");
@@ -2313,6 +2322,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.dragMovesSelection,0,2);
   clampSetting(settings.unsignedDetune,0,1);
   clampSetting(settings.noThreadedInput,0,1);
+  clampSetting(settings.saveWindowPos,0,1);
   clampSetting(settings.clampSamples,0,1);
   clampSetting(settings.saveUnusedPatterns,0,1);
   clampSetting(settings.channelColors,0,2);
@@ -2344,7 +2354,7 @@ void FurnaceGUI::syncSettings() {
 
   parseKeybinds();
 
-  midiMap.read(e->getConfigPath()+DIR_SEPARATOR_STR+"midiIn_"+stripName(settings.midiInDevice)+".cfg"); 
+  midiMap.read(e->getConfigPath()+DIR_SEPARATOR_STR+"midiIn_"+stripName(settings.midiInDevice)+".cfg");
   midiMap.compile();
 
   e->setMidiDirect(midiMap.directChannel);
@@ -2458,6 +2468,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("dragMovesSelection",settings.dragMovesSelection);
   e->setConf("unsignedDetune",settings.unsignedDetune);
   e->setConf("noThreadedInput",settings.noThreadedInput);
+  e->setConf("saveWindowPos",settings.saveWindowPos);
   e->setConf("clampSamples",settings.clampSamples);
   e->setConf("noteOffLabel",settings.noteOffLabel);
   e->setConf("noteRelLabel",settings.noteRelLabel);
@@ -3130,7 +3141,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,e->getConfInt("iconSize",16)*dpiScale,&fc,fontRangeIcon))==NULL) {
       logE("could not load icon font!");
     }
-    
+
     if (settings.mainFontSize==settings.patFontSize && settings.patFont<5 && builtinFontM[settings.patFont]==builtinFont[settings.mainFont]) {
       logD("using main font for pat font.");
       patFont=mainFont;
@@ -3164,7 +3175,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
         }
       }
     }
-    
+
     if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
       logE("could not load big UI font!");
     }

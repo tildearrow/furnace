@@ -1129,6 +1129,7 @@ class FurnaceGUI {
     int dragMovesSelection;
     int unsignedDetune;
     int noThreadedInput;
+    int saveWindowPos;
     int clampSamples;
     int saveUnusedPatterns;
     int channelColors;

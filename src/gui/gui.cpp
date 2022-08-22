@@ -4685,8 +4685,8 @@ bool FurnaceGUI::finish() {
   // commit last window size
   e->setConf("lastWindowWidth",scrConfW);
   e->setConf("lastWindowHeight",scrConfH);
-  e->setConf("lastWindowX",scrConfX);
-  e->setConf("lastWindowY",scrConfY);
+  e->setConf("lastWindowX",settings.saveWindowPos?scrConfX:(int)SDL_WINDOWPOS_CENTERED);
+  e->setConf("lastWindowY",settings.saveWindowPos?scrConfY:(int)SDL_WINDOWPOS_CENTERED);
   e->setConf("lastWindowMax",scrMax);
 
   e->setConf("tempoView",tempoView);
