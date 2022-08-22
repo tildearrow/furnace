@@ -279,10 +279,24 @@ void DivPlatformGenesis::tick(bool sysTick) {
       }
     }
 
-    if (chan[i].std.panL.had) {
-      chan[i].pan=chan[i].std.panL.val&3;
-      if (i<6) {
-        rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    if (i>=5 && chan[i].furnaceDac) {
+      if (chan[i].std.panL.had) {
+        chan[5].pan&=1;
+        chan[5].pan|=chan[i].std.panL.val?2:0;
+      }
+      if (chan[i].std.panR.had) {
+        chan[5].pan&=2;
+        chan[5].pan|=chan[i].std.panR.val?1:0;
+      }
+      if (chan[i].std.panL.had || chan[i].std.panR.had) {
+        rWrite(chanOffs[5]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[5].pan<<6))|(chan[5].state.fms&7)|((chan[5].state.ams&3)<<4));
+      }
+    } else {
+      if (chan[i].std.panL.had) {
+        chan[i].pan=chan[i].std.panL.val&3;
+        if (i<6) {
+          rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+        }
       }
     }
 
