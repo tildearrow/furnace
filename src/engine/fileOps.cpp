@@ -2843,9 +2843,9 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
           // TODO: <= or <?
           for (int k=0; k<=susTime; k++) {
             ins->std.volMacro.val[ins->std.volMacro.len]=lastVal;
-            if (++ins->std.volMacro.len>=128) break;
+            if (++ins->std.volMacro.len>=255) break;
           }
-          if (ins->std.volMacro.len>=128) break;
+          if (ins->std.volMacro.len>=255) break;
         } else if (m.val[j]==0xe9 || m.val[j]==0xea) { // volume slide
           if (++j>=64) break;
           signed char slideStep=m.val[j];
@@ -2864,16 +2864,16 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
               }
             }
             ins->std.volMacro.val[ins->std.volMacro.len]=lastVal;
-            if (++ins->std.volMacro.len>=128) break;
+            if (++ins->std.volMacro.len>=255) break;
           }
         } else {
           // TODO: replace with upcoming macro speed
           for (int k=0; k<MAX(1,seqSpeed); k++) {
             ins->std.volMacro.val[ins->std.volMacro.len]=m.val[j];
             lastVal=m.val[j];
-            if (++ins->std.volMacro.len>=128) break;
+            if (++ins->std.volMacro.len>=255) break;
           }
-          if (ins->std.volMacro.len>=128) break;
+          if (ins->std.volMacro.len>=255) break;
         }
       }
 
@@ -2902,7 +2902,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
               ins->std.waveMacro.val[ins->std.waveMacro.len]=wave-10;
               ins->std.waveMacro.open=true;
               lastVal=wave;
-              //if (++ins->std.arpMacro.len>=128) break;
+              //if (++ins->std.arpMacro.len>=255) break;
             }
           } else if (fm.val[j]==0xe0) {
             if (++j>=64) break;
@@ -2932,8 +2932,8 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
               ins->std.waveMacro.val[ins->std.waveMacro.len]=lastVal-10;
             }
             ins->std.arpMacro.open=true;
-            if (++ins->std.arpMacro.len>=128) break;
-            if (++ins->std.waveMacro.len>=128) break;
+            if (++ins->std.arpMacro.len>=255) break;
+            if (++ins->std.waveMacro.len>=255) break;
           }
         }
       }
@@ -2946,7 +2946,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
       // vibrato
       for (int j=0; j<=vibDelay; j++) {
         ins->std.pitchMacro.val[ins->std.pitchMacro.len]=0;
-        if (++ins->std.pitchMacro.len>=128) break;
+        if (++ins->std.pitchMacro.len>=255) break;
       }
       int vibPos=0;
       ins->std.pitchMacro.loop=ins->std.pitchMacro.len;
@@ -2954,19 +2954,19 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
         vibPos+=vibSpeed;
         if (vibPos>vibDepth) vibPos=vibDepth;
         ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*32;
-        if (++ins->std.pitchMacro.len>=128) break;
+        if (++ins->std.pitchMacro.len>=255) break;
       } while (vibPos<vibDepth);
       do {
         vibPos-=vibSpeed;
         if (vibPos<-vibDepth) vibPos=-vibDepth;
         ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*32;
-        if (++ins->std.pitchMacro.len>=128) break;
+        if (++ins->std.pitchMacro.len>=255) break;
       } while (vibPos>-vibDepth);
       do {
         vibPos+=vibSpeed;
         if (vibPos>0) vibPos=0;
         ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*32;
-        if (++ins->std.pitchMacro.len>=128) break;
+        if (++ins->std.pitchMacro.len>=255) break;
       } while (vibPos<0);
 
       ds.ins.push_back(ins);
