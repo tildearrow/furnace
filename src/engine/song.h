@@ -463,6 +463,11 @@ struct DivSong {
   // 1: fake reset on loop
   // 2: don't do anything on loop
   unsigned char loopModality;
+  // cut/delay effect behavior
+  // 0: strict (don't allow value higher than or equal to speed)
+  // 1: broken (don't allow value higher than speed)
+  // 2: lax (allow value higher than speed)
+  unsigned char delayBehavior;
   bool properNoiseLayout;
   bool waveDutyIsVol;
   bool resetMacroOnPorta;
@@ -565,6 +570,7 @@ struct DivSong {
     linearPitch(2),
     pitchSlideSpeed(4),
     loopModality(0),
+    delayBehavior(2),
     properNoiseLayout(true),
     waveDutyIsVol(false),
     resetMacroOnPorta(false),

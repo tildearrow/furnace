@@ -361,7 +361,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
           break;
         case 0xed: // delay
           if (effectVal!=0) {
-            if (effectVal<=nextSpeed) {
+            bool comparison=(song.delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<nextSpeed);
+            if (song.delayBehavior==2) comparison=true;
+            if (comparison) {
               chan[i].rowDelay=effectVal+1;
               chan[i].delayOrder=whatOrder;
               chan[i].delayRow=whatRow;
@@ -372,6 +374,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
               }
               returnAfterPre=true;
             } else {
+              logV("higher than nextSpeed! %d>%d",effectVal,nextSpeed);
               chan[i].delayLocked=false;
             }
           }
@@ -379,6 +382,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
       }
     }
     if (returnAfterPre) return;
+  } else {
+    logV("honoring delay at position %d",whatRow);
   }
 
   if (chan[i].delayLocked) return;
@@ -704,7 +709,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_SAMPLE_BANK,i,effectVal));
         break;
       case 0xec: // delayed note cut
-        if (effectVal>0 && effectVal<nextSpeed) {
+        if (effectVal>0 && (song.delayBehavior==2 || effectVal<nextSpeed)) {
           chan[i].cut=effectVal+1;
         }
         break;
@@ -900,7 +905,9 @@ void DivEngine::nextRow() {
   prevRow=curRow;
 
   for (int i=0; i<chans; i++) {
-    chan[i].rowDelay=0;
+    if (song.delayBehavior!=2) {
+      chan[i].rowDelay=0;
+    }
     processRow(i,false);
   }
 

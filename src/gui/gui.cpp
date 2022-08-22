@@ -276,13 +276,13 @@ void FurnaceGUI::decodeMMLStrW(String& source, int* macro, int& macroLen, int ma
   }
 }
 
-void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax, signed char& macroRel) {
+void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLen, unsigned char& macroLoop, int macroMin, int macroMax, unsigned char& macroRel) {
   int buf=0;
   bool negaBuf=false;
   bool hasVal=false;
   macroLen=0;
-  macroLoop=-1;
-  macroRel=-1;
+  macroLoop=255;
+  macroRel=255;
   for (char& i: source) {
     switch (i) {
       case '0': case '1': case '2': case '3': case '4':
@@ -318,7 +318,7 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
           macroLen++;
           buf=0;
         }
-        if (macroLoop==-1) {
+        if (macroLoop==255) {
           macroLoop=macroLen;
         }
         break;
@@ -332,14 +332,14 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
           macroLen++;
           buf=0;
         }
-        if (macroRel==-1) {
+        if (macroRel==255) {
           macroRel=macroLen;
         }
         break;
     }
-    if (macroLen>=128) break;
+    if (macroLen>=255) break;
   }
-  if (hasVal && macroLen<128) {
+  if (hasVal && macroLen<255) {
     hasVal=false;
     macro[macroLen]=negaBuf?-buf:buf;
     negaBuf=false;

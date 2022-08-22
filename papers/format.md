@@ -32,6 +32,9 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 111: Furnace dev111
+- 110: Furnace dev110
+- 109: Furnace dev109
 - 108: Furnace dev108
 - 107: Furnace dev107
 - 106: Furnace dev106
@@ -333,7 +336,8 @@ size | description
   1  | E1xy and E2xy stop on same note (>=100) or reserved
   1  | broken initial position of porta after arp (>=101) or reserved
   1  | SN periods under 8 are treated as 1 (>=108) or reserved
-  6  | reserved
+  1  | cut/delay effect policy (>=110) or reserved
+  5  | reserved
  --- | **virtual tempo data**
   2  | virtual tempo numerator of first song (>=96) or reserved
   2  | virtual tempo denominator of first song (>=96) or reserved
@@ -868,6 +872,96 @@ size | description
   1  | K2 ramp
   1  | K1 slow
   1  | K2 slow
+ --- | **SNES data** (>=109)
+  1  | use envelope
+  1  | gain mode
+  1  | gain
+  1  | attack
+  1  | decay
+  1  | sustain
+  1  | release
+ --- | **macro speeds/delays** (>=111)
+  1  | volume macro speed
+  1  | arp macro speed
+  1  | duty macro speed
+  1  | wave macro speed
+  1  | pitch macro speed
+  1  | extra 1 macro speed
+  1  | extra 2 macro speed
+  1  | extra 3 macro speed
+  1  | alg macro speed
+  1  | fb macro speed
+  1  | fms macro speed
+  1  | ams macro speed
+  1  | left panning macro speed
+  1  | right panning macro speed
+  1  | phase reset macro speed
+  1  | extra 4 macro speed
+  1  | extra 5 macro speed
+  1  | extra 6 macro speed
+  1  | extra 7 macro speed
+  1  | extra 8 macro speed
+  1  | volume macro delay
+  1  | arp macro delay
+  1  | duty macro delay
+  1  | wave macro delay
+  1  | pitch macro delay
+  1  | extra 1 macro delay
+  1  | extra 2 macro delay
+  1  | extra 3 macro delay
+  1  | alg macro delay
+  1  | fb macro delay
+  1  | fms macro delay
+  1  | ams macro delay
+  1  | left panning macro delay
+  1  | right panning macro delay
+  1  | phase reset macro delay
+  1  | extra 4 macro delay
+  1  | extra 5 macro delay
+  1  | extra 6 macro delay
+  1  | extra 7 macro delay
+  1  | extra 8 macro delay
+ --- | **operator macro speeds/delay** × 4 (>=111)
+  1  | AM macro speed
+  1  | AR macro speed
+  1  | DR macro speed
+  1  | MULT macro speed
+  1  | RR macro speed
+  1  | SL macro speed
+  1  | TL macro speed
+  1  | DT2 macro speed
+  1  | RS macro speed
+  1  | DT macro speed
+  1  | D2R macro speed
+  1  | SSG-EG macro speed
+  1  | DAM macro speed
+  1  | DVB macro speed
+  1  | EGT macro speed
+  1  | KSL macro speed
+  1  | SUS macro speed
+  1  | VIB macro speed
+  1  | WS macro speed
+  1  | KSR macro speed
+  1  | AM macro delay
+  1  | AR macro delay
+  1  | DR macro delay
+  1  | MULT macro delay
+  1  | RR macro delay
+  1  | SL macro delay
+  1  | TL macro delay
+  1  | DT2 macro delay
+  1  | RS macro delay
+  1  | DT macro delay
+  1  | D2R macro delay
+  1  | SSG-EG macro delay
+  1  | DAM macro delay
+  1  | DVB macro delay
+  1  | EGT macro delay
+  1  | KSL macro delay
+  1  | SUS macro delay
+  1  | VIB macro delay
+  1  | WS macro delay
+  1  | KSR macro delay
 ```
 
 # wavetable
@@ -878,9 +972,9 @@ size | description
   4  | "WAVE" block ID
   4  | size of this block
  STR | wavetable name
-  4  | wavetable size
-  4  | wavetable min
-  4  | wavetable max
+  4  | wavetable width
+  4  | reserved
+  4  | wavetable height
  4?? | wavetable data
 ```
 
