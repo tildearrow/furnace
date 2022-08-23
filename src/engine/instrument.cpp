@@ -1347,9 +1347,9 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     if (std.arpMacro.mode) {
       std.arpMacro.mode=0;
       for (int i=0; i<std.arpMacro.len; i++) {
-        std.arpMacro.val[i]|=0x40000000;
+        std.arpMacro.val[i]^=0x40000000;
       }
-      if (std.arpMacro.loop<std.arpMacro.len && std.arpMacro.rel>std.arpMacro.loop && std.arpMacro.len<255) {
+      if ((std.arpMacro.loop>=std.arpMacro.len || std.arpMacro.rel>std.arpMacro.loop) && std.arpMacro.len<255) {
         std.arpMacro.val[std.arpMacro.len++]=0;
       }
     }

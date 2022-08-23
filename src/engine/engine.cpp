@@ -1713,7 +1713,11 @@ int DivEngine::calcFreq(int base, int pitch, bool period, int octave, int pitch2
 }
 
 int DivEngine::calcArp(int note, int arp, int offset) {
-  if (arp&0x40000000) return (arp&(~0x40000000))+offset;
+  if (arp<0) {
+    if (!(arp&0x40000000)) return (arp|0x40000000)+offset;
+  } else {
+    if (arp&0x40000000) return (arp&(~0x40000000))+offset;
+  }
   return note+arp;
 }
 

@@ -510,9 +510,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         } else {
           ins->std.arpMacro.mode=0;
           for (int j=0; j<ins->std.arpMacro.len; j++) {
-            ins->std.arpMacro.val[i]|=0x40000000;
+            ins->std.arpMacro.val[j]^=0x40000000;
           }
-          if (ins->std.arpMacro.loop<ins->std.arpMacro.len && ins->std.arpMacro.len<255) {
+          if (ins->std.arpMacro.loop>=ins->std.arpMacro.len && ins->std.arpMacro.len<255) {
             ins->std.arpMacro.val[ins->std.arpMacro.len++]=0;
           }
         }
@@ -2928,7 +2928,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
             logV("unhandled pitch!");
           } else {
             if (fm.val[j]>0x80) {
-              ins->std.arpMacro.val[ins->std.arpMacro.len]=(fm.val[j]-0x80+24)|0x40000000;
+              ins->std.arpMacro.val[ins->std.arpMacro.len]=(fm.val[j]-0x80+24)^0x40000000;
             } else {
               ins->std.arpMacro.val[ins->std.arpMacro.len]=fm.val[j];
             }

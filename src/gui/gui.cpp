@@ -201,8 +201,13 @@ void FurnaceGUI::encodeMMLStr(String& target, int* macro, int macroLen, int macr
   for (int i=0; i<macroLen; i++) {
     if (i==macroLoop) target+="| ";
     if (i==macroRel) target+="/ ";
-    if (bit30 && macro[i]&0x40000000) target+="@";
-    int macroVal=macro[i]&(bit30?(~0x40000000):0xffffffff);
+    if (bit30 && ((macro[i]&0xc0000000)==0x40000000 || (macro[i]&0xc0000000)==0x80000000)) target+="@";
+    int macroVal=macro[i];
+    if (macro[i]<0) {
+      if (!(macroVal&0x40000000)) macroVal|=0x40000000;
+    } else {
+      if (macroVal&0x40000000) macroVal&=~0x40000000;
+    }
     if (hex) {
       if (i==macroLen-1) {
         snprintf(buf,31,"%.2X",macroVal);
@@ -312,7 +317,7 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
           negaBuf=false;
           if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
           if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
-          if (setBit30) macro[macroLen]|=0x40000000;
+          if (setBit30) macro[macroLen]^=0x40000000;
           setBit30=false;
           macroLen++;
           buf=0;
@@ -325,7 +330,7 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
           negaBuf=false;
           if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
           if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
-          if (setBit30) macro[macroLen]|=0x40000000;
+          if (setBit30) macro[macroLen]^=0x40000000;
           setBit30=false;
           macroLen++;
           buf=0;
@@ -341,7 +346,7 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
           negaBuf=false;
           if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
           if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
-          if (setBit30) macro[macroLen]|=0x40000000;
+          if (setBit30) macro[macroLen]^=0x40000000;
           setBit30=false;
           macroLen++;
           buf=0;
@@ -359,7 +364,7 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
     negaBuf=false;
     if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
     if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
-    if (setBit30) macro[macroLen]|=0x40000000;
+    if (setBit30) macro[macroLen]^=0x40000000;
     setBit30=false;
     macroLen++;
     buf=0;
@@ -1774,7 +1779,8 @@ void FurnaceGUI::showError(String what) {
   displayError=true;
 }
 
-#define B30(tt) (macroDragBit30?((tt)&0x40000000):0)
+// what monster did I just create here?
+#define B30(tt) (macroDragBit30?((((tt)&0xc0000000)==0x40000000 || ((tt)&0xc0000000)==0x80000000)?0x40000000:0):0)
 
 #define MACRO_DRAG(t) \
   if (macroDragBitMode) { \
@@ -1808,25 +1814,25 @@ void FurnaceGUI::showError(String what) {
       } \
       if (macroDragMouseMoved) { \
         if ((int)round(x-macroDragLineInitial.x)==0) { \
-          t[x]=B30(t[x])|(int)(macroDragLineInitial.y); \
+          t[x]=B30(t[x])^(int)(macroDragLineInitial.y); \
         } else { \
           if ((int)round(x-macroDragLineInitial.x)<0) { \
             for (int i=0; i<=(int)round(macroDragLineInitial.x-x); i++) { \
               int index=(int)round(x+i); \
               if (index<0) continue; \
-              t[index]=B30(t[index])|(int)(y+(macroDragLineInitial.y-y)*((float)i/(float)(macroDragLineInitial.x-x))); \
+              t[index]=B30(t[index])^(int)(y+(macroDragLineInitial.y-y)*((float)i/(float)(macroDragLineInitial.x-x))); \
             } \
           } else { \
             for (int i=0; i<=(int)round(x-macroDragLineInitial.x); i++) { \
               int index=(int)round(i+macroDragLineInitial.x); \
               if (index<0) continue; \
-              t[index]=B30(t[index])|(int)(macroDragLineInitial.y+(y-macroDragLineInitial.y)*((float)i/(x-macroDragLineInitial.x))); \
+              t[index]=B30(t[index])^(int)(macroDragLineInitial.y+(y-macroDragLineInitial.y)*((float)i/(x-macroDragLineInitial.x))); \
             } \
           } \
         } \
       } \
     } else { \
-      t[x]=B30(t[x])|(y); \
+      t[x]=B30(t[x])^(y); \
     } \
   }
 

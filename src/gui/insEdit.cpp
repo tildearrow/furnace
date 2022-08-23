@@ -1197,6 +1197,16 @@ String genericGuide(float value) {
   return fmt::sprintf("%d",(int)value);
 }
 
+inline int deBit30(const int val) {
+  if ((val&0xc0000000)==0x40000000 || (val&0xc0000000)==0x80000000) return val^0x40000000;
+  return val;
+}
+
+inline bool enBit30(const int val) {
+  if ((val&0xc0000000)==0x40000000 || (val&0xc0000000)==0x80000000) return true;
+  return false;
+}
+
 void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
   float asFloat[256];
   int asInt[256];
@@ -1292,9 +1302,9 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
           asFloat[j]=0;
           asInt[j]=0;
         } else {
-          asFloat[j]=i.macro->val[j+macroDragScroll]&(i.bit30?(~0x40000000):0xffffffff);
-          asInt[j]=(i.macro->val[j+macroDragScroll]&(i.bit30?(~0x40000000):0xffffffff))+i.bitOffset;
-          if (i.bit30) bit30Indicator[j]=(i.macro->val[j+macroDragScroll]&0x40000000)?1:0;
+          asFloat[j]=deBit30(i.macro->val[j+macroDragScroll]);
+          asInt[j]=deBit30(i.macro->val[j+macroDragScroll])+i.bitOffset;
+          if (i.bit30) bit30Indicator[j]=enBit30(i.macro->val[j+macroDragScroll]);
         }
         if (j+macroDragScroll>=i.macro->len || (j+macroDragScroll>i.macro->rel && i.macro->loop<i.macro->rel)) {
           loopIndicator[j]=0;
@@ -1461,10 +1471,10 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
         ImGui::SetNextItemWidth(availableWidth);
         String& mmlStr=mmlString[index];
         if (ImGui::InputText("##IMacroMML",&mmlStr)) {
-          decodeMMLStr(mmlStr,i.macro->val,i.macro->len,i.macro->loop,i.min,(i.isBitfield)?((1<<(i.isBitfield?i.max:0))-1):i.max,i.macro->rel);
+          decodeMMLStr(mmlStr,i.macro->val,i.macro->len,i.macro->loop,i.min,(i.isBitfield)?((1<<(i.isBitfield?i.max:0))-1):i.max,i.macro->rel,i.bit30);
         }
         if (!ImGui::IsItemActive()) {
-          encodeMMLStr(mmlStr,i.macro->val,i.macro->len,i.macro->loop,i.macro->rel);
+          encodeMMLStr(mmlStr,i.macro->val,i.macro->len,i.macro->loop,i.macro->rel,false,i.bit30);
         }
       }
       ImGui::PopStyleVar();
