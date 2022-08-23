@@ -219,12 +219,8 @@ void DivPlatformSMS::tick(bool sysTick) {
     } else { // 3 fixed values
       unsigned char value;
       if (chan[3].std.arp.had) {
-        if (chan[3].std.arp.mode) {
-          value=chan[3].std.arp.val%12;
-        } else {
-          value=(chan[3].note+chan[3].std.arp.val)%12;
-        }
-      } else {
+        value=parent->calcArp(chan[3].note,chan[3].std.arp.val)%12;
+      } else { // pardon?
         value=chan[3].note%12;
       }
       if (value<3) {

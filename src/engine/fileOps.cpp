@@ -145,7 +145,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.loopModality=0;
     ds.properNoiseLayout=false;
     ds.waveDutyIsVol=false;
-    ds.resetMacroOnPorta=true;
+    // TODO: WHAT?! geodude.dmf fails when this is true
+    // but isn't that how Defle behaves???
+    ds.resetMacroOnPorta=false;
     ds.legacyVolumeSlides=true;
     ds.compatibleArpeggio=true;
     ds.noteOffResetsSlides=true;
@@ -512,7 +514,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           for (int j=0; j<ins->std.arpMacro.len; j++) {
             ins->std.arpMacro.val[j]^=0x40000000;
           }
-          if (ins->std.arpMacro.loop>=ins->std.arpMacro.len && ins->std.arpMacro.len<255) {
+          if (ins->std.arpMacro.loop==255 && ins->std.arpMacro.len<255) {
             ins->std.arpMacro.val[ins->std.arpMacro.len++]=0;
           }
         }
