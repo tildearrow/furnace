@@ -1374,6 +1374,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
         macroDragLen=totalFit;
         macroDragActive=true;
         macroDragBit30=i.bit30;
+        macroDragSettingBit30=false;
         macroDragTarget=i.macro->val;
         macroDragChar=false;
         macroDragLineMode=(i.isBitfield)?false:ImGui::IsItemClicked(ImGuiMouseButton_Right);
@@ -1442,9 +1443,24 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
         }
 
         // bit 30 area
-        // TODO: ability to set it
         if (i.bit30) {
           PlotCustom("##IMacroBit30",bit30Indicator,totalFit,macroDragScroll,NULL,0,1,ImVec2(availableWidth,12.0f*dpiScale),sizeof(float),i.color,i.macro->len-macroDragScroll,&macroHoverBit30);
+          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+            macroDragStart=ImGui::GetItemRectMin();
+            macroDragAreaSize=ImVec2(availableWidth,12.0f*dpiScale);
+            macroDragInitialValueSet=false;
+            macroDragInitialValue=false;
+            macroDragLen=totalFit;
+            macroDragActive=true;
+            macroDragBit30=i.bit30;
+            macroDragSettingBit30=true;
+            macroDragTarget=i.macro->val;
+            macroDragChar=false;
+            macroDragLineMode=false;
+            macroDragLineInitial=ImVec2(0,0);
+            lastMacroDesc=i;
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+          }
         }
 
         // loop area

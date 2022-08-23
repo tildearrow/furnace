@@ -1783,7 +1783,31 @@ void FurnaceGUI::showError(String what) {
 #define B30(tt) (macroDragBit30?((((tt)&0xc0000000)==0x40000000 || ((tt)&0xc0000000)==0x80000000)?0x40000000:0):0)
 
 #define MACRO_DRAG(t) \
-  if (macroDragBitMode) { \
+  if (macroDragSettingBit30) { \
+    if (macroDragLastX!=x || macroDragLastY!=y) { \
+      macroDragLastX=x; \
+      macroDragLastY=y; \
+      if (macroDragInitialValueSet) { \
+        if (!macroDragInitialValue) { \
+          if (t[x]&0x80000000) { \
+            t[x]&=~0x40000000; \
+          } else { \
+            t[x]|=0x40000000; \
+          } \
+        } else { \
+          if (t[x]&0x80000000) { \
+            t[x]|=0x40000000; \
+          } else { \
+            t[x]&=~0x40000000; \
+          } \
+        } \
+      } else { \
+        macroDragInitialValue=(((t[x])&0xc0000000)==0x40000000 || ((t[x])&0xc0000000)==0x80000000); \
+        macroDragInitialValueSet=true; \
+        t[x]^=0x40000000; \
+      } \
+    } \
+  } else if (macroDragBitMode) { \
     if (macroDragLastX!=x || macroDragLastY!=y) { \
       macroDragLastX=x; \
       macroDragLastY=y; \
@@ -4893,6 +4917,7 @@ FurnaceGUI::FurnaceGUI():
   macroDragInitialValue(false),
   macroDragChar(false),
   macroDragBit30(false),
+  macroDragSettingBit30(false),
   macroDragLineMode(false),
   macroDragMouseMoved(false),
   macroDragLineInitial(0,0),
