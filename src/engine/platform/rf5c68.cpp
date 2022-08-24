@@ -107,7 +107,7 @@ void DivPlatformRF5C68::tick(bool sysTick) {
       chan[i].panning|=(chan[i].std.panR.val&15)<<4;
     }
     if (chan[i].std.panL.had || chan[i].std.panR.had) {
-      chWrite(i,0x05,isMuted[i]?0:chan[i].panning);
+      chWrite(i,1,isMuted[i]?0:chan[i].panning);
     }
     if (chan[i].setPos) {
       // force keyon
