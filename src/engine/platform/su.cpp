@@ -357,7 +357,7 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       writeControlUpper(c.chan);
       break;
     case DIV_CMD_C64_FINE_CUTOFF:
-      chan[c.chan].baseCutoff=c.value;
+      chan[c.chan].baseCutoff=c.value*4;
       if (!chan[c.chan].std.ex1.has) {
         chan[c.chan].cutoff=chan[c.chan].baseCutoff;
         chWrite(c.chan,0x06,chan[c.chan].cutoff&0xff);

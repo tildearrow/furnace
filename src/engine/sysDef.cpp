@@ -1447,7 +1447,7 @@ void DivEngine::registerSystems() {
     {0x21, {DIV_CMD_SU_SWEEP_ENABLE, "21xx: Toggle volume sweep (bit 0-4: speed; bit 5: direciton is up; bit 6: loop; bit 7: alternate)", constVal<1>, effectVal}},
     {0x22, {DIV_CMD_SU_SWEEP_ENABLE, "22xx: Toggle cutoff sweep (bit 0-6: speed; bit 7: direction is up)", constVal<2>, effectVal}},
   };
-  const EffectHandler suCutoffHandler(DIV_CMD_C64_FINE_DUTY, "4xxx: Set cutoff (0 to FFF)", effectValLong<12>);
+  const EffectHandler suCutoffHandler(DIV_CMD_C64_FINE_CUTOFF, "4xxx: Set cutoff (0 to FFF)", effectValLong<12>);
   for (int i=0; i<16; i++) {
     suEffectHandlerMap.emplace(0x40+i, suCutoffHandler);
   }
