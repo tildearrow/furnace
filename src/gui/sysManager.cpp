@@ -22,6 +22,9 @@
 #include "IconsFontAwesome4.h"
 #include <imgui.h>
 
+static int _src, _dest;
+static bool _preserveOrder;
+
 void FurnaceGUI::drawSysManager() {
   if (nextWindow==GUI_WINDOW_SYS_MANAGER) {
     sysManagerOpen=true;
@@ -30,7 +33,15 @@ void FurnaceGUI::drawSysManager() {
   }
   if (!sysManagerOpen) return;
   if (ImGui::Begin("Chip Manager",&sysManagerOpen,globalWinFlags)) {
-    ImGui::Text("Stuff here...");
+    ImGui::Text("Call swapSystem() with arguments:");
+    ImGui::InputInt("src",&_src);
+    ImGui::InputInt("dest",&_dest);
+    ImGui::Checkbox("preserveOrder",&_preserveOrder);
+    if (ImGui::Button("Call")) {
+      if (!e->swapSystem(_src,_dest,_preserveOrder)) {
+        showError(e->getLastError());
+      }
+    }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SYS_MANAGER;
   ImGui::End();

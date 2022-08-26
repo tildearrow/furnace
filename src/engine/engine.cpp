@@ -18,6 +18,7 @@
  */
 
 #include "dispatch.h"
+#include "song.h"
 #define _USE_MATH_DEFINES
 #include "engine.h"
 #include "instrument.h"
@@ -1406,7 +1407,65 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
 
   if (!preserveOrder) {
     // move channels
-    // TODO: a lot of work!
+    unsigned char unswappedChannels[DIV_MAX_CHANS];
+    unsigned char swappedChannels[DIV_MAX_CHANS];
+    std::vector<std::vector<int>> swapList;
+    std::vector<int> chanList;
+
+    int tchans=0;
+
+    for (int i=0; i<song.systemLen; i++) {
+      tchans+=getChannelCount(song.system[i]);
+    }
+
+    memset(unswappedChannels,0,DIV_MAX_CHANS);
+    memset(swappedChannels,0,DIV_MAX_CHANS);
+    
+    for (int i=0; i<tchans; i++) {
+      unswappedChannels[i]=i;
+    }
+
+    // prepare swap list
+    int index=0;
+    for (int i=0; i<song.systemLen; i++) {
+      chanList.clear();
+      for (int j=0; j<getChannelCount(song.system[i]); j++) {
+        chanList.push_back(index);
+        index++;
+      }
+      swapList.push_back(chanList);
+    }
+    swapList[src].swap(swapList[dest]);
+
+    // unfold it
+    index=0;
+    for (std::vector<int>& i: swapList) {
+      for (int& j: i) {
+        swappedChannels[index++]=j;
+      }
+    }
+
+    logV("swap list:");
+    for (int i=0; i<tchans; i++) {
+      logV("- %d -> %d",unswappedChannels[i],swappedChannels[i]);
+    }
+
+    // swap channels
+    bool allComplete=false;
+    while (!allComplete) {
+      logD("doing swap...");
+      allComplete=true;
+      for (int i=0; i<tchans; i++) {
+        if (unswappedChannels[i]!=swappedChannels[i]) {
+          swapChannels(i,swappedChannels[i]);
+          allComplete=false;
+          logD("> %d -> %d",unswappedChannels[i],unswappedChannels[swappedChannels[i]]);
+          unswappedChannels[i]^=unswappedChannels[swappedChannels[i]];
+          unswappedChannels[swappedChannels[i]]^=unswappedChannels[i];
+          unswappedChannels[i]^=unswappedChannels[swappedChannels[i]];
+        }
+      }
+    }
   }
 
   DivSystem srcSystem=song.system[src];
