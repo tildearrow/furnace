@@ -1085,7 +1085,7 @@ class FurnaceGUI {
     int roundedButtons;
     int roundedMenus;
     int loadJapanese;
-    int loadChineseSimplified;
+    int loadChinese;
     int loadChineseTraditional;
     int loadKorean;
     int fmLayout;
@@ -1204,7 +1204,7 @@ class FurnaceGUI {
       roundedButtons(1),
       roundedMenus(0),
       loadJapanese(0),
-      loadChineseSimplified(0),
+      loadChinese(0),
       loadChineseTraditional(0),
       loadKorean(0),
       fmLayout(0),

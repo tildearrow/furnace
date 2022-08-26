@@ -1072,9 +1072,9 @@ void FurnaceGUI::drawSettings() {
             );
           }
 
-          bool loadChineseSimplifiedB=settings.loadChineseSimplified;
-          if (ImGui::Checkbox("Display Chinese (Simplified) characters",&loadChineseSimplifiedB)) {
-            settings.loadChineseSimplified=loadChineseSimplifiedB;
+          bool loadChineseB=settings.loadChinese;
+          if (ImGui::Checkbox("Display Chinese (Simplified) characters",&loadChineseB)) {
+            settings.loadChinese=loadChineseB;
           }
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip(
@@ -2196,7 +2196,7 @@ void FurnaceGUI::syncSettings() {
   settings.roundedButtons=e->getConfInt("roundedButtons",1);
   settings.roundedMenus=e->getConfInt("roundedMenus",0);
   settings.loadJapanese=e->getConfInt("loadJapanese",0);
-  settings.loadChineseSimplified=e->getConfInt("loadChineseSimplified",0);
+  settings.loadChinese=e->getConfInt("loadChinese",0);
   settings.loadChineseTraditional=e->getConfInt("loadChineseTraditional",0);
   settings.loadKorean=e->getConfInt("loadKorean",0);
   settings.fmLayout=e->getConfInt("fmLayout",0);
@@ -2302,7 +2302,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.roundedButtons,0,1);
   clampSetting(settings.roundedMenus,0,1);
   clampSetting(settings.loadJapanese,0,1);
-  clampSetting(settings.loadChineseSimplified,0,1);
+  clampSetting(settings.loadChinese,0,1);
   clampSetting(settings.loadChineseTraditional,0,1);
   clampSetting(settings.loadKorean,0,1);
   clampSetting(settings.fmLayout,0,6);
@@ -2443,7 +2443,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("roundedButtons",settings.roundedButtons);
   e->setConf("roundedMenus",settings.roundedMenus);
   e->setConf("loadJapanese",settings.loadJapanese);
-  e->setConf("loadChineseSimplified",settings.loadChineseSimplified);
+  e->setConf("loadChinese",settings.loadChinese);
   e->setConf("loadChineseTraditional",settings.loadChineseTraditional);
   e->setConf("loadKorean",settings.loadKorean);
   e->setConf("fmLayout",settings.fmLayout);
@@ -3093,7 +3093,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     if (settings.loadJapanese) {
       range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesJapanese());
     }
-    if (settings.loadChineseSimplified) {
+    if (settings.loadChinese) {
       range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon());
     }
     if (settings.loadChineseTraditional) {
