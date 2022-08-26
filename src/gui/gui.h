@@ -310,6 +310,7 @@ enum FurnaceGUIWarnings {
   GUI_WARN_CLOSE_SETTINGS,
   GUI_WARN_CLEAR,
   GUI_WARN_SUBSONG_DEL,
+  GUI_WARN_SYSTEM_DEL,
   GUI_WARN_GENERIC
 };
 
@@ -1433,7 +1434,7 @@ class FurnaceGUI {
   int renderTimeBegin, renderTimeEnd, renderTimeDelta;
   int eventTimeBegin, eventTimeEnd, eventTimeDelta;
 
-  int chanToMove;
+  int chanToMove, sysToMove, sysToDelete;
 
   ImVec2 patWindowPos, patWindowSize;
   

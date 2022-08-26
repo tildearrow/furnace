@@ -4161,6 +4161,16 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
           }
           break;
+        case GUI_WARN_SYSTEM_DEL:
+          if (ImGui::Button("Yes")) {
+            e->removeSystem(sysToDelete,preserveChanPos);
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
         case GUI_WARN_GENERIC:
           if (ImGui::Button("OK")) {
             ImGui::CloseCurrentPopup();
@@ -4956,6 +4966,8 @@ FurnaceGUI::FurnaceGUI():
   eventTimeEnd(0),
   eventTimeDelta(0),
   chanToMove(-1),
+  sysToMove(-1),
+  sysToDelete(-1),
   transposeAmount(0),
   randomizeMin(0),
   randomizeMax(255),

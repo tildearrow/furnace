@@ -20,10 +20,8 @@
 #include "gui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "IconsFontAwesome4.h"
+#include <fmt/printf.h>
 #include <imgui.h>
-
-static int _src, _dest;
-static bool _preserveOrder;
 
 void FurnaceGUI::drawSysManager() {
   if (nextWindow==GUI_WINDOW_SYS_MANAGER) {
@@ -33,60 +31,70 @@ void FurnaceGUI::drawSysManager() {
   }
   if (!sysManagerOpen) return;
   if (ImGui::Begin("Chip Manager",&sysManagerOpen,globalWinFlags)) {
-    ImGui::Text("Call swapSystem() with arguments:");
-    ImGui::InputInt("src",&_src);
-    ImGui::InputInt("dest",&_dest);
-    ImGui::Checkbox("preserveOrder",&_preserveOrder);
-    if (ImGui::Button("Call")) {
-      if (!e->swapSystem(_src,_dest,_preserveOrder)) {
-        showError(e->getLastError());
-      }
-    }
-
+    ImGui::Checkbox("Preserve channel order",&preserveChanPos);
     if (ImGui::BeginTable("SystemList",3)) {
-      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,0.0);
-      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
-      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,48.0f*dpiScale);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed);
       ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
       ImGui::TableNextColumn();
-      ImGui::Text("Visible");
       ImGui::TableNextColumn();
       ImGui::Text("Name");
-      for (int i=0; i<e->getTotalChannelCount(); i++) {
+      ImGui::TableNextColumn();
+      ImGui::Text("Actions");
+      for (unsigned char i=0; i<e->song.systemLen; i++) {
         ImGui::PushID(i);
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Checkbox("##Visible",&e->curSubSong->chanShow[i]);
-        ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROWS)) {
         }
         if (ImGui::BeginDragDropSource()) {
-          chanToMove=i;
-          ImGui::SetDragDropPayload("FUR_CHAN",NULL,0,ImGuiCond_Once);
-          ImGui::Button(ICON_FA_ARROWS "##ChanDrag");
+          sysToMove=i;
+          ImGui::SetDragDropPayload("FUR_SYS",NULL,0,ImGuiCond_Once);
+          ImGui::Button(ICON_FA_ARROWS "##SysDrag");
           ImGui::EndDragDropSource();
         } else if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("%s #%d\n(drag to swap channels)",e->getSystemName(e->sysOfChan[i]),e->dispatchChanOfChan[i]);
+          ImGui::SetTooltip("(drag to swap chips)");
         }
         if (ImGui::BeginDragDropTarget()) {
-          const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_CHAN");
+          const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_SYS");
           if (dragItem!=NULL) {
-            if (dragItem->IsDataType("FUR_CHAN")) {
-              if (chanToMove!=i && chanToMove>=0) {
-                e->swapChannelsP(chanToMove,i);
+            if (dragItem->IsDataType("FUR_SYS")) {
+              if (sysToMove!=i && sysToMove>=0) {
+                e->swapSystem(sysToMove,i,preserveChanPos);
               }
-              chanToMove=-1;
+              sysToMove=-1;
             }
           }
           ImGui::EndDragDropTarget();
         }
         ImGui::TableNextColumn();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        ImGui::InputTextWithHint("##ChanName",e->getChannelName(i),&e->curSubSong->chanName[i]);
+        if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSM%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
+          drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true);
+          ImGui::TreePop();
+        }
         ImGui::TableNextColumn();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        ImGui::InputTextWithHint("##ChanShortName",e->getChannelShortName(i),&e->curSubSong->chanShortName[i]);
+        ImGui::Button(ICON_FA_CHEVRON_DOWN "##SysChange");
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Change");
+        }
+        ImGui::SameLine();
+        ImGui::BeginDisabled(e->song.systemLen<=1);
+        if (ImGui::Button(ICON_FA_TIMES "##SysRemove")) {
+          sysToDelete=i;
+          showWarning("Are you sure you want to remove this chip?",GUI_WARN_SYSTEM_DEL);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Remove");
+        }
+        ImGui::EndDisabled();
         ImGui::PopID();
+      }
+      if (e->song.systemLen<32) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableNextColumn();
+        ImGui::Button(ICON_FA_PLUS "##SysAdd");
       }
       ImGui::EndTable();
     }
