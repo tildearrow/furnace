@@ -66,6 +66,7 @@ void DivPlatformPCMDAC::acquire(short* bufL, short* bufR, size_t start, size_t l
                     chan.audPos=s->getLoopEndPosition()-1-(s->getLoopStartPosition()-chan.audPos);
                     chan.audDir=true;
                   }
+                  break;
                 default:
                   if (chan.audPos<0) {
                     chan.sample=-1;
@@ -90,6 +91,7 @@ void DivPlatformPCMDAC::acquire(short* bufL, short* bufR, size_t start, size_t l
                     chan.audPos=s->getLoopEndPosition()-1-(s->getLoopEndPosition()-1-chan.audPos);
                     chan.audDir=true;
                   }
+                  break;
                 default:
                   if (chan.audPos>=s->getEndPosition()) {
                     chan.sample=-1;
