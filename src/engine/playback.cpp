@@ -1010,10 +1010,27 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     //output->midiOut->send(TAMidiMessage(TA_MIDI_CLOCK,0,0));
   }
 
+  if (!pendingNotes.empty()) {
+    bool isOn[DIV_MAX_CHANS];
+    memset(isOn,0,DIV_MAX_CHANS*sizeof(bool));
+    
+    for (int i=pendingNotes.size()-1; i>=0; i--) {
+      if (pendingNotes[i].channel<0 || pendingNotes[i].channel>=chans) continue;
+      if (pendingNotes[i].on) {
+        isOn[pendingNotes[i].channel]=true;
+      } else {
+        if (isOn[pendingNotes[i].channel]) {
+          logV("erasing off -> on sequence in %d",pendingNotes[i].channel);
+          pendingNotes.erase(pendingNotes.begin()+i);
+        }
+      }
+    }
+  }
+
   while (!pendingNotes.empty()) {
     DivNoteEvent& note=pendingNotes.front();
     if (note.channel<0 || note.channel>=chans) {
-      pendingNotes.pop();
+      pendingNotes.pop_front();
       continue;
     }
     if (note.on) {
@@ -1033,7 +1050,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
       }
     }
-    pendingNotes.pop();
+    pendingNotes.pop_front();
   }
 
   if (!freelance) {
@@ -1245,7 +1262,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         case TA_MIDI_NOTE_OFF: {
           if (chan<0 || chan>=chans) break;
           if (midiIsDirect) {
-            pendingNotes.push(DivNoteEvent(chan,-1,-1,-1,false));
+            pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false));
           } else {
             autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
           }
@@ -1260,13 +1277,13 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           if (chan<0 || chan>=chans) break;
           if (msg.data[1]==0) {
             if (midiIsDirect) {
-              pendingNotes.push(DivNoteEvent(chan,-1,-1,-1,false));
+              pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false));
             } else {
               autoNoteOff(msg.type&15,msg.data[0]-12,msg.data[1]);
             }
           } else {
             if (midiIsDirect) {
-              pendingNotes.push(DivNoteEvent(chan,ins,msg.data[0]-12,msg.data[1],true));
+              pendingNotes.push_back(DivNoteEvent(chan,ins,msg.data[0]-12,msg.data[1],true));
             } else {
               autoNoteOn(msg.type&15,ins,msg.data[0]-12,msg.data[1]);
             }

@@ -33,7 +33,7 @@
 #include <mutex>
 #include <map>
 #include <unordered_map>
-#include <queue>
+#include <deque>
 
 #define addWarning(x) \
   if (warnings.empty()) { \
@@ -357,7 +357,7 @@ class DivEngine {
   DivAudioExportModes exportMode;
   double exportFadeOut;
   std::map<String,String> conf;
-  std::queue<DivNoteEvent> pendingNotes;
+  std::deque<DivNoteEvent> pendingNotes;
   bool isMuted[DIV_MAX_CHANS];
   std::mutex isBusy, saveLock;
   String configPath;
