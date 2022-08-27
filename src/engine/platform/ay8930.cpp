@@ -400,7 +400,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
           }
           chan[c.chan].dac.pos=0;
           chan[c.chan].dac.period=0;
-          chan[c.chan].dac.rate=parent->getSample(chan[c.chan].dac.sample)->rate;
+          chan[c.chan].dac.rate=parent->getSample(chan[c.chan].dac.sample)->rate*4096;
           if (dumpWrites) {
             rWrite(0x08+c.chan,0);
             addWrite(0xffff0001+(c.chan<<8),chan[c.chan].dac.rate);
