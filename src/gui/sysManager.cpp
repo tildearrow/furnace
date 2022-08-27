@@ -78,6 +78,14 @@ void FurnaceGUI::drawSysManager() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Change");
         }
+        if (ImGui::BeginPopupContextItem("SysPickerC",ImGuiPopupFlags_MouseButtonLeft)) {
+          DivSystem picked=systemPicker();
+          if (picked!=DIV_SYSTEM_NULL) {
+            e->changeSystem(i,picked,preserveChanPos);
+            updateWindowTitle();
+          }
+          ImGui::EndPopup();
+        }
         ImGui::SameLine();
         ImGui::BeginDisabled(e->song.systemLen<=1);
         if (ImGui::Button(ICON_FA_TIMES "##SysRemove")) {
@@ -95,6 +103,16 @@ void FurnaceGUI::drawSysManager() {
         ImGui::TableNextColumn();
         ImGui::TableNextColumn();
         ImGui::Button(ICON_FA_PLUS "##SysAdd");
+        if (ImGui::BeginPopupContextItem("SysPickerA",ImGuiPopupFlags_MouseButtonLeft)) {
+          DivSystem picked=systemPicker();
+          if (picked!=DIV_SYSTEM_NULL) {
+            if (!e->addSystem(picked)) {
+              showError("cannot add chip! ("+e->getLastError()+")");
+            }
+            updateWindowTitle();
+          }
+          ImGui::EndPopup();
+        }
       }
       ImGui::EndTable();
     }

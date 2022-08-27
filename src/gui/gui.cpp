@@ -1941,20 +1941,6 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
   }
 }
 
-#define sysAddOption(x) \
-  if (ImGui::MenuItem(getSystemName(x))) { \
-    if (!e->addSystem(x)) { \
-      showError("cannot add chip! ("+e->getLastError()+")"); \
-    } \
-    updateWindowTitle(); \
-  }
-
-#define sysChangeOption(x,y) \
-  if (ImGui::MenuItem(getSystemName(y),NULL,e->song.system[x]==y)) { \
-    e->changeSystem(x,y,preserveChanPos); \
-    updateWindowTitle(); \
-  }
-
 #define checkExtension(x) \
   String lowerCase=fileName; \
   for (char& i: lowerCase) { \
@@ -3051,9 +3037,12 @@ bool FurnaceGUI::loop() {
         }
         ImGui::Separator();
         if (ImGui::BeginMenu("add chip...")) {
-          for (int j=0; availableSystems[j]; j++) {
-            if (!settings.hiddenSystems && (availableSystems[j]==DIV_SYSTEM_YMU759 || availableSystems[j]==DIV_SYSTEM_DUMMY)) continue;
-            sysAddOption((DivSystem)availableSystems[j]);
+          DivSystem picked=systemPicker();
+          if (picked!=DIV_SYSTEM_NULL) {
+            if (!e->addSystem(picked)) {
+              showError("cannot add chip! ("+e->getLastError()+")");
+            }
+            updateWindowTitle();
           }
           ImGui::EndMenu();
         }
@@ -3070,9 +3059,10 @@ bool FurnaceGUI::loop() {
           ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
           for (int i=0; i<e->song.systemLen; i++) {
             if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-              for (int j=0; availableSystems[j]; j++) {
-                if (!settings.hiddenSystems && (availableSystems[j]==DIV_SYSTEM_YMU759 || availableSystems[j]==DIV_SYSTEM_DUMMY)) continue;
-                sysChangeOption(i,(DivSystem)availableSystems[j]);
+              DivSystem picked=systemPicker();
+              if (picked!=DIV_SYSTEM_NULL) {
+                e->changeSystem(i,picked,preserveChanPos);
+                updateWindowTitle();
               }
               ImGui::EndMenu();
             }

@@ -627,6 +627,9 @@ class DivEngine {
     // get japanese system name
     const char* getSystemNameJ(DivSystem sys);
     
+    // get sys definition
+    const DivSysDef* getSystemDef(DivSystem sys);
+    
     // convert sample rate format
     int fileToDivRate(int frate);
     int divToFileRate(int drate);

@@ -284,6 +284,10 @@ const char* DivEngine::getSystemNameJ(DivSystem sys) {
   */
 }
 
+const DivSysDef* DivEngine::getSystemDef(DivSystem sys) {
+  return sysDefs[sys];
+}
+
 bool DivEngine::isFMSystem(DivSystem sys) {
   if (sysDefs[sys]==NULL) return false;
   return sysDefs[sys]->isFM;
