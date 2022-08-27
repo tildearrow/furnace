@@ -115,11 +115,24 @@ void DivPlatformNES::acquire_puNES(short* bufL, short* bufR, size_t start, size_
     bufL[i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=nes->S1.output<<11;
-      oscBuf[1]->data[oscBuf[1]->needle++]=nes->S2.output<<11;
-      oscBuf[2]->data[oscBuf[2]->needle++]=nes->TR.output<<11;
-      oscBuf[3]->data[oscBuf[3]->needle++]=nes->NS.output<<11;
-      oscBuf[4]->data[oscBuf[4]->needle++]=nes->DMC.output<<8;
+      for (int i=0; i<4; i++) {
+      	// the per-channel oscilloscope is stuck on the last waveform if muted
+      	// so this is a little hack to ensure it isn't
+      	if (nes->muted[i])
+      		oscBuf[i]->data[oscBuf[i]->needle++]=0;
+      }
+      
+      // this is really ugly
+      if (!nes->muted[0])
+        oscBuf[0]->data[oscBuf[0]->needle++]=nes->S1.output<<11;
+      if (!nes->muted[1])
+        oscBuf[1]->data[oscBuf[1]->needle++]=nes->S2.output<<11;
+      if (!nes->muted[2])
+        oscBuf[2]->data[oscBuf[2]->needle++]=nes->TR.output<<11;
+      if (!nes->muted[3])
+        oscBuf[3]->data[oscBuf[3]->needle++]=nes->NS.output<<11;
+      if (!nes->muted[4])
+        oscBuf[4]->data[oscBuf[4]->needle++]=nes->DMC.output<<8;
     }
   }
 }
