@@ -242,7 +242,7 @@ void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t l
 
   ymfm::ssg_engine::output_data ssgOut;
 
-  ymfm::fm_channel<ymfm::opn_registers_base<true>>* fmChan[6];
+  ymfm::fm_channel<ymfm::opn_registers_base<true>>* fmChan[4];
   ymfm::adpcm_a_channel* adpcmAChan[6];
   for (int i=0; i<4; i++) {
     fmChan[i]=fme->debug_channel(bchOffs[i]);
