@@ -2644,10 +2644,6 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
       if (sample[i].len>0) {
         s->init(sample[i].len*2);
       }
-      s->loopStart=sample[i].loopStart*2;
-      s->loopEnd=(sample[i].loopStart+sample[i].loopLen)*2;
-      s->loop=(s->loopStart>=0)&&(s->loopEnd>=0);
-      reader.read(s->data8,sample[i].len);
       s->name=fmt::sprintf("Sample %d",i+1);
       if (sample[i].loopLen>1) {
         s->loopStart=sample[i].loopStart;
