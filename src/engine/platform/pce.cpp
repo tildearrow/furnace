@@ -87,8 +87,15 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
             continue;
           }
           chWrite(i,0x07,0);
-          chWrite(i,0x04,0xdf);
-          chWrite(i,0x06,(((unsigned char)s->data8[chan[i].dacPos]+0x80)>>3));
+          signed char dacData=((signed char)((unsigned char)s->data8[chan[i].dacPos]^0x80))>>3;
+          chan[i].dacOut=CLAMP(dacData,-16,15);
+          if (!isMuted[i]) {
+            chWrite(i,0x04,0xc0|chan[i].outVol);
+            chWrite(i,0x06,chan[i].dacOut&0x1f);
+          } else {
+            chWrite(i,0x04,0xc0);
+            chWrite(i,0x06,0x10);
+          }
           chan[i].dacPos++;
           if (s->isLoopable() && chan[i].dacPos>=(unsigned int)s->getLoopEndPosition()) {
             chan[i].dacPos=s->getLoopStartPosition();
@@ -234,6 +241,15 @@ void DivPlatformPCE::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
+      if (chan[i].furnaceDac && chan[i].pcm) {
+        if (chan[i].active && chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
+          chan[i].dacPos=0;
+          chan[i].dacPeriod=0;
+          chWrite(i,0x04,0xc0|chan[i].vol);
+          addWrite(0xffff0000+(i<<8),chan[i].dacSample);
+          chan[i].keyOn=true;
+        }
+      }
       chan[i].antiClickWavePos=0;
       chan[i].antiClickPeriodCount=0;
     }
@@ -279,13 +295,14 @@ int DivPlatformPCE::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
-      if (ins->type==DIV_INS_AMIGA) {
+      chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:31;
+      if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
         chan[c.chan].pcm=true;
       } else if (chan[c.chan].furnaceDac) {
         chan[c.chan].pcm=false;
       }
       if (chan[c.chan].pcm) {
-        if (ins->type==DIV_INS_AMIGA) {
+        if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           chan[c.chan].furnaceDac=true;
           if (skipRegisterWrites) break;
           chan[c.chan].dacSample=ins->amiga.getSample(c.value);
@@ -295,7 +312,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
             break;
           } else {
              if (dumpWrites) {
-               chWrite(c.chan,0x04,0xdf);
+               chWrite(c.chan,0x04,0xc0|chan[c.chan].vol);
                addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
              }
           }
@@ -308,6 +325,9 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           }
           chan[c.chan].active=true;
           chan[c.chan].macroInit(ins);
+          if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+            chan[c.chan].outVol=chan[c.chan].vol;
+          }
           //chan[c.chan].keyOn=true;
         } else {
           chan[c.chan].furnaceDac=false;
@@ -327,7 +347,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           chan[c.chan].dacPeriod=0;
           chan[c.chan].dacRate=parent->getSample(chan[c.chan].dacSample)->rate;
           if (dumpWrites) {
-            chWrite(c.chan,0x04,0xdf);
+            chWrite(c.chan,0x04,0xc0|chan[c.chan].vol);
             addWrite(0xffff0001+(c.chan<<8),chan[c.chan].dacRate);
           }
         }
@@ -480,6 +500,10 @@ int DivPlatformPCE::dispatch(DivCommand c) {
 void DivPlatformPCE::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   chWrite(ch,0x05,isMuted[ch]?0:chan[ch].pan);
+  if (!isMuted[ch] && (chan[ch].pcm && chan[ch].dacSample!=-1)) {
+    chWrite(ch,0x04,0xc0|chan[ch].outVol);
+    chWrite(ch,0x06,chan[ch].dacOut&0x1f);
+  }
 }
 
 void DivPlatformPCE::forceIns() {

@@ -32,8 +32,9 @@ class DivPlatformYMZ280B: public DivDispatch {
     int sample, wave, ins;
     int note;
     int panning;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, setPos;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, setPos, isNewYMZ;
     int vol, outVol;
+    int macroVolMul;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
       std.init(which);
@@ -56,8 +57,10 @@ class DivPlatformYMZ280B: public DivDispatch {
       keyOff(false),
       inPorta(false),
       setPos(false),
+      isNewYMZ(false),
       vol(255),
-      outVol(255) {}
+      outVol(255),
+      macroVolMul(64) {}
   };
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];

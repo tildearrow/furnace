@@ -46,8 +46,8 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
         keyOff(false),
         furnacePCM(false),
         hardReset(false),
-        vol(0),
-        outVol(15),
+        vol(8),
+        outVol(8),
         sample(-1) {}
     };
     Channel chan[4];

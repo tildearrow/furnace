@@ -28,9 +28,10 @@
 class DivPlatformPCMDAC: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2;
+    bool audDir;
     unsigned int audLoc;
     unsigned short audLen;
-    unsigned int audPos;
+    int audPos;
     int audSub;
     int sample, wave, ins;
     int note;
@@ -48,6 +49,7 @@ class DivPlatformPCMDAC: public DivDispatch {
       baseFreq(0),
       pitch(0),
       pitch2(0),
+      audDir(false),
       audLoc(0),
       audLen(0),
       audPos(0),

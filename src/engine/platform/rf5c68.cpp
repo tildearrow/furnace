@@ -83,7 +83,7 @@ void DivPlatformRF5C68::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=((chan[i].vol&0xff)*chan[i].std.vol.val)>>6;
+      chan[i].outVol=((chan[i].vol&0xff)*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/chan[i].macroVolMul;
       chWrite(i,0,chan[i].outVol);
     }
     if (chan[i].std.arp.had) {
@@ -120,7 +120,13 @@ void DivPlatformRF5C68::tick(bool sysTick) {
       chan[i].panning|=(chan[i].std.panR.val&15)<<4;
     }
     if (chan[i].std.panL.had || chan[i].std.panR.had) {
-      chWrite(i,0x05,isMuted[i]?0:chan[i].panning);
+      chWrite(i,1,isMuted[i]?0:chan[i].panning);
+    }
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1 && chan[i].active) {
+        chan[i].audPos=0;
+        chan[i].setPos=true;
+      }
     }
     if (chan[i].setPos) {
       // force keyon
@@ -175,6 +181,7 @@ int DivPlatformRF5C68::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
+      chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
       chan[c.chan].sample=ins->amiga.getSample(c.value);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);

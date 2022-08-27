@@ -17,9 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "sound/ymfm/ymfm.h"
-#include "ym2610.h"
-#include "../engine.h"
+#include "ym2610shared.h"
 
 uint8_t DivYM2610Interface::ymfm_external_read(ymfm::access_class type, uint32_t address) {
   switch (type) {

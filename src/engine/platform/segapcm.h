@@ -28,13 +28,12 @@ class DivPlatformSegaPCM: public DivDispatch {
   protected:
     struct Channel {
       DivMacroInt std;
-      unsigned char freqH, freqL;
       int freq, baseFreq, pitch, pitch2, note, ins;
-      signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM;
+      bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM, isNewSegaPCM;
       int vol, outVol;
       unsigned char chVolL, chVolR;
       unsigned char chPanL, chPanR;
+      int macroVolMul;
 
       struct PCMChannel {
         int sample;
@@ -48,8 +47,6 @@ class DivPlatformSegaPCM: public DivDispatch {
         pitch2=0;
       }
       Channel():
-        freqH(0),
-        freqL(0),
         freq(0),
         baseFreq(0),
         pitch(0),
@@ -64,12 +61,15 @@ class DivPlatformSegaPCM: public DivDispatch {
         inPorta(false),
         portaPause(false),
         furnacePCM(false),
+        isNewSegaPCM(false),
         vol(0),
         outVol(0),
         chVolL(127),
         chVolR(127),
         chPanL(127),
-        chPanR(127) {}
+        chPanR(127),
+        macroVolMul(64),
+        pcm(PCMChannel()) {}
     };
     Channel chan[16];
     DivDispatchOscBuffer* oscBuf[16];

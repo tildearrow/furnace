@@ -34,6 +34,7 @@ class DivPlatformRF5C68: public DivDispatch {
     int panning;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, setPos;
     int vol, outVol;
+    int macroVolMul;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
       std.init(which);
@@ -57,7 +58,8 @@ class DivPlatformRF5C68: public DivDispatch {
       inPorta(false),
       setPos(false),
       vol(255),
-      outVol(255) {}
+      outVol(255),
+      macroVolMul(64) {}
   };
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];

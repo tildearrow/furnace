@@ -251,7 +251,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SWAN);
       if (c.chan==1) {
-        if (ins->type==DIV_INS_AMIGA) {
+        if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           pcm=true;
         } else if (furnaceDac) {
           pcm=false;
@@ -260,7 +260,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
           if (skipRegisterWrites) break;
           dacPos=0;
           dacPeriod=0;
-          if (ins->type==DIV_INS_AMIGA) {
+          if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
             dacSample=ins->amiga.getSample(c.value);
             if (dacSample<0 || dacSample>=parent->song.sampleLen) {
               dacSample=-1;

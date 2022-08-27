@@ -60,6 +60,14 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_SU=30,
   DIV_INS_NAMCO=31,
   DIV_INS_OPL_DRUMS=32,
+  DIV_INS_MSM6258=33,
+  DIV_INS_MSM6295=34,
+  DIV_INS_ADPCMA=35,
+  DIV_INS_ADPCMB=36,
+  DIV_INS_SEGAPCM=37,
+  DIV_INS_QSOUND=38,
+  DIV_INS_YMZ280B=39,
+  DIV_INS_RF5C68=40,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -335,6 +343,7 @@ struct DivInstrumentAmiga {
   };
   short initSample;
   bool useNoteMap;
+  bool useSample;
   bool useWave;
   unsigned char waveLen;
   SampleMap noteMap[120];
@@ -368,12 +377,20 @@ struct DivInstrumentAmiga {
   DivInstrumentAmiga():
     initSample(0),
     useNoteMap(false),
+    useSample(false),
     useWave(false),
     waveLen(31) {
     for (SampleMap& elem: noteMap) {
       elem=SampleMap();
     }
   }
+};
+
+struct DivInstrumentX1_010 {
+  int bankSlot;
+
+  DivInstrumentX1_010():
+    bankSlot(0) {}
 };
 
 struct DivInstrumentN163 {
@@ -458,11 +475,67 @@ struct DivInstrumentWaveSynth {
 };
 
 struct DivInstrumentSoundUnit {
-  bool useSample;
   bool switchRoles;
   DivInstrumentSoundUnit():
-    useSample(false),
     switchRoles(false) {}
+};
+
+struct DivInstrumentES5506 {
+  struct Filter {
+    enum FilterMode: unsigned char { // filter mode for pole 4,3
+      FILTER_MODE_HPK2_HPK2=0,
+      FILTER_MODE_HPK2_LPK1,
+      FILTER_MODE_LPK2_LPK2,
+      FILTER_MODE_LPK2_LPK1,
+    };
+    FilterMode mode;
+    unsigned short k1, k2;
+    Filter():
+      mode(FILTER_MODE_LPK2_LPK1),
+      k1(0xffff),
+      k2(0xffff) {}
+  };
+  struct Envelope {
+    unsigned short ecount;
+    signed char lVRamp, rVRamp;
+    signed char k1Ramp, k2Ramp;
+    bool k1Slow, k2Slow;
+    Envelope():
+      ecount(0),
+      lVRamp(0),
+      rVRamp(0),
+      k1Ramp(0),
+      k2Ramp(0),
+      k1Slow(false),
+      k2Slow(false) {}
+  };
+  Filter filter;
+  Envelope envelope;
+  DivInstrumentES5506():
+    filter(Filter()),
+    envelope(Envelope()) {}
+};
+
+struct DivInstrumentSNES {
+  enum GainMode: unsigned char {
+    GAIN_MODE_DIRECT=0,
+    GAIN_MODE_DEC_LINEAR=4,
+    GAIN_MODE_DEC_LOG=5,
+    GAIN_MODE_INC_LINEAR=6,
+    GAIN_MODE_INC_INVLOG=7
+  };
+  bool useEnv;
+  GainMode gainMode;
+  unsigned char gain;
+  unsigned char a, d, s, r;
+  DivInstrumentSNES():
+    useEnv(true),
+    gainMode(GAIN_MODE_DIRECT),
+    gain(127),
+    a(15),
+    d(7),
+    s(7),
+    r(0) {}
 };
 
 struct DivInstrument {
@@ -474,11 +547,14 @@ struct DivInstrument {
   DivInstrumentGB gb;
   DivInstrumentC64 c64;
   DivInstrumentAmiga amiga;
+  DivInstrumentX1_010 x1_010;
   DivInstrumentN163 n163;
   DivInstrumentFDS fds;
   DivInstrumentMultiPCM multipcm;
   DivInstrumentWaveSynth ws;
   DivInstrumentSoundUnit su;
+  DivInstrumentES5506 es5506;
+  DivInstrumentSNES snes;
   
   /**
    * save the instrument to a SafeWriter.

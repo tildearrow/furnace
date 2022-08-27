@@ -28,13 +28,12 @@
 class DivPlatformQSound: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2;
-    unsigned short audLen;
-    unsigned int audPos;
     int sample, wave, ins;
     int note;
     int panning;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, surround;
-    int vol, outVol;
+    int echo;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, surround, isNewQSound;
+    int vol, outVol, resVol;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
       std.init(which);
@@ -45,12 +44,11 @@ class DivPlatformQSound: public DivDispatch {
       baseFreq(0),
       pitch(0),
       pitch2(0),
-      audLen(0),
-      audPos(0),
       sample(-1),
       ins(-1),
       note(0),
       panning(0x10),
+      echo(0),
       active(false),
       insChanged(true),
       freqChanged(false),
@@ -59,8 +57,10 @@ class DivPlatformQSound: public DivDispatch {
       inPorta(false),
       useWave(false),
       surround(true),
+      isNewQSound(false),
       vol(255),
-      outVol(255) {}
+      outVol(255),
+      resVol(4096) {}
   };
   Channel chan[19];
   DivDispatchOscBuffer* oscBuf[19];

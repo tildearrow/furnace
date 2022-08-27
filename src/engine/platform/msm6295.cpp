@@ -95,7 +95,38 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
 }
 
 void DivPlatformMSM6295::tick(bool sysTick) {
-  // nothing
+  for (int i=0; i<4; i++) {
+    chan[i].std.next();
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=VOL_SCALE_LOG(chan[i].std.vol.val,chan[i].vol,8);
+    }
+    if (chan[i].std.duty.had) {
+      if (rateSel!=(chan[i].std.duty.val&1)) {
+        rateSel=chan[i].std.duty.val&1;
+        rWrite(12,!rateSel);
+      }
+    }
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val && chan[i].active) {
+        chan[i].keyOn=true;
+      }
+    }
+    if (chan[i].keyOn || chan[i].keyOff) {
+      rWriteDelay(0,(8<<i),60); // turn off
+      if (chan[i].active && !chan[i].keyOff) {
+        if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+          rWrite(0,0x80|chan[i].sample); // set phrase
+          rWrite(0,(16<<i)|(8-chan[i].outVol)); // turn on
+        } else {
+          chan[i].sample=-1;
+        }
+      } else {
+        chan[i].sample=-1;
+      }
+      chan[i].keyOn=false;
+      chan[i].keyOff=false;
+    }
+  }
 }
 
 int DivPlatformMSM6295::dispatch(DivCommand c) {

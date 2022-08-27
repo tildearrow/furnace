@@ -48,6 +48,7 @@ class DivPlatformLynx: public DivDispatch {
     unsigned char pan;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, pcm;
     signed char vol, outVol;
+    int macroVolMul;
     void macroInit(DivInstrument* which) {
       std.init(which);
       pitch2=0;
@@ -77,7 +78,8 @@ class DivPlatformLynx: public DivDispatch {
       inPorta(false),
       pcm(false),
       vol(127),
-      outVol(127) {}
+      outVol(127),
+      macroVolMul(127) {}
   };
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];

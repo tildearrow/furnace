@@ -529,7 +529,7 @@ void DivInstrument::putInsData(SafeWriter* w) {
   }
 
   // Sound Unit
-  w->writeC(su.useSample);
+  w->writeC(amiga.useSample);
   w->writeC(su.switchRoles);
 
   // GB hardware sequence
@@ -1092,7 +1092,7 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
 
   // Sound Unit
   if (version>=104) {
-    su.useSample=reader.readC();
+    amiga.useSample=reader.readC();
     su.switchRoles=reader.readC();
   }
 

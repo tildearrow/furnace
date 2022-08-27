@@ -44,6 +44,7 @@ class DivPlatformOPL: public DivDispatch {
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnacePCM, inPorta, fourOp, hardReset;
       int vol, outVol;
       unsigned char pan;
+      int macroVolMul;
       void macroInit(DivInstrument* which) {
         std.init(which);
         pitch2=0;
@@ -70,7 +71,8 @@ class DivPlatformOPL: public DivDispatch {
         fourOp(false),
         hardReset(false),
         vol(0),
-        pan(3) {
+        pan(3),
+        macroVolMul(64) {
         state.ops=2;
       }
     };

@@ -23,9 +23,9 @@
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
-#define rWrite(a,v) if (!skipRegisterWrites) { x1_010->ram_w(a,v); if (dumpWrites) { addWrite(a,v); } }
+#define rWrite(a,v) if (!skipRegisterWrites) { x1_010.ram_w(a,v); if (dumpWrites) { addWrite(a,v); } }
 
-#define chRead(c,a) x1_010->ram_r((c<<3)|(a&7))
+#define chRead(c,a) x1_010.ram_r((c<<3)|(a&7))
 #define chWrite(c,a,v) rWrite((c<<3)|(a&7),v)
 #define waveWrite(c,a,v) rWrite(0x1000|(chan[c].waveBank<<11)|(c<<7)|(a&0x7f),(v-128)&0xff)
 #define envFill(c,a) rWrite(0x800|(c<<7)|(a&0x7f),(chan[c].lvol<<4)|chan[c].rvol)
@@ -240,10 +240,10 @@ const char* DivPlatformX1_010::getEffectName(unsigned char effect) {
 
 void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
-    x1_010->tick();
+    x1_010.tick();
 
-    signed int tempL=x1_010->output(0);
-    signed int tempR=x1_010->output(1);
+    signed int tempL=x1_010.output(0);
+    signed int tempR=x1_010.output(1);
 
     if (tempL<-32768) tempL=-32768;
     if (tempL>32767) tempL=32767;
@@ -255,9 +255,21 @@ void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t l
     bufR[h]=stereo?tempR:bufL[h];
 
     for (int i=0; i<16; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=x1_010->chan_out(i);
+      oscBuf[i]->data[oscBuf[i]->needle++]=x1_010.chan_out(i);
     }
   }
+}
+
+u8 DivPlatformX1_010::read_byte(u32 address) {
+  if ((sampleMem!=NULL) && (address<getSampleMemCapacity())) {
+    if (isBanked) {
+      address=((bankSlot[(address>>17)&7]<<17)|(address&0x1ffff))&0xffffff;
+    } else {
+      address&=0xfffff;
+    }
+    return sampleMem[address];
+  }
+  return 0;
 }
 
 double DivPlatformX1_010::NoteX1_010(int ch, int note) {
@@ -345,7 +357,7 @@ void DivPlatformX1_010::tick(bool sysTick) {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      signed char macroVol=((chan[i].vol&15)*MIN(chan[i].furnacePCM?64:15,chan[i].std.vol.val))/(chan[i].furnacePCM?64:15);
+      signed char macroVol=((chan[i].vol&15)*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/(chan[i].macroVolMul);
       if ((!isMuted[i]) && (macroVol!=chan[i].outVol)) {
         chan[i].outVol=macroVol;
         chan[i].envChanged=true;
@@ -475,6 +487,12 @@ void DivPlatformX1_010::tick(bool sysTick) {
         if (!chan[i].std.ex3.will) chan[i].autoEnvNum=1;
       }
     }
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val && chan[i].active && chan[i].pcm) {
+        chWrite(i,0,0);
+        refreshControl(i);
+      }
+    }
     if (chan[i].active) {
       if (chan[i].ws.tick()) {
         updateWave(i);
@@ -549,8 +567,9 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       chWrite(c.chan,0,0); // reset previous note
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_X1_010);
-      if ((ins->type==DIV_INS_AMIGA) || chan[c.chan].pcm) {
-        if (ins->type==DIV_INS_AMIGA) {
+      chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:15;
+      if ((ins->type==DIV_INS_AMIGA || ins->amiga.useSample) || chan[c.chan].pcm) {
+        if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           chan[c.chan].furnacePCM=true;
         } else {
           chan[c.chan].furnacePCM=false;
@@ -562,9 +581,18 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
-            chWrite(c.chan,4,(s->offX1_010>>12)&0xff);
-            int end=(s->offX1_010+s->length8+0xfff)&~0xfff; // padded
-            chWrite(c.chan,5,(0x100-(end>>12))&0xff);
+            if (isBanked) {
+              chan[c.chan].bankSlot=ins->x1_010.bankSlot;
+              bankSlot[chan[c.chan].bankSlot]=s->offX1_010>>17;
+              unsigned int bankedOffs=(chan[c.chan].bankSlot<<17)|(s->offX1_010&0x1ffff);
+              chWrite(c.chan,4,(bankedOffs>>12)&0xff);
+              int end=(bankedOffs+MIN(s->length8,0x1ffff)+0xfff)&~0xfff; // padded
+              chWrite(c.chan,5,(0x100-(end>>12))&0xff);
+            } else {
+              chWrite(c.chan,4,(s->offX1_010>>12)&0xff);
+              int end=(s->offX1_010+s->length8+0xfff)&~0xfff; // padded
+              chWrite(c.chan,5,(0x100-(end>>12))&0xff);
+            }
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
               chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note);
@@ -594,9 +622,17 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
             break;
           }
           DivSample* s=parent->getSample(12*sampleBank+c.value%12);
-          chWrite(c.chan,4,(s->offX1_010>>12)&0xff);
-          int end=(s->offX1_010+s->length8+0xfff)&~0xfff; // padded
-          chWrite(c.chan,5,(0x100-(end>>12))&0xff);
+          if (isBanked) {
+            bankSlot[chan[c.chan].bankSlot]=s->offX1_010>>17;
+            unsigned int bankedOffs=(chan[c.chan].bankSlot<<17)|(s->offX1_010&0x1ffff);
+            chWrite(c.chan,4,(bankedOffs>>12)&0xff);
+            int end=(bankedOffs+MIN(s->length8,0x1ffff)+0xfff)&~0xfff; // padded
+            chWrite(c.chan,5,(0x100-(end>>12))&0xff);
+          } else {
+            chWrite(c.chan,4,(s->offX1_010>>12)&0xff);
+            int end=(s->offX1_010+s->length8+0xfff)&~0xfff; // padded
+            chWrite(c.chan,5,(0x100-(end>>12))&0xff);
+          }
           chan[c.chan].baseFreq=(((unsigned int)s->rate)<<4)/(chipClock/512);
           chan[c.chan].freqChanged=true;
         }
@@ -813,6 +849,9 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
       chan[c.chan].autoEnvDen=c.value&15;
       chan[c.chan].freqChanged=true;
       break;
+    case DIV_CMD_X1_010_SAMPLE_BANK_SLOT:
+      chan[c.chan].bankSlot=c.value&7;
+      break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
       break;
@@ -853,7 +892,7 @@ DivDispatchOscBuffer* DivPlatformX1_010::getOscBuffer(int ch) {
 
 unsigned char* DivPlatformX1_010::getRegisterPool() {
   for (int i=0; i<0x2000; i++) {
-    regPool[i]=x1_010->ram_r(i);
+    regPool[i]=x1_010.ram_r(i);
   }
   return regPool;
 }
@@ -871,11 +910,15 @@ void DivPlatformX1_010::reset() {
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,128,255,false);
   }
-  x1_010->reset();
+  x1_010.reset();
   sampleBank=0;
   // set per-channel initial panning
   for (int i=0; i<16; i++) {
     chWrite(i,0,0);
+  }
+  // set initial bank
+  for (int b=0; b<8; b++) {
+    bankSlot[b]=b;
   }
 }
 
@@ -931,15 +974,15 @@ void DivPlatformX1_010::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 const void* DivPlatformX1_010::getSampleMem(int index) {
-  return index == 0 ? sampleMem : 0;
+  return index >= 0 ? sampleMem : 0;
 }
 
 size_t DivPlatformX1_010::getSampleMemCapacity(int index) {
-  return index == 0 ? 1048576 : 0;
+  return index == 0 ? (isBanked?16777216:1048576):0;
 }
 
 size_t DivPlatformX1_010::getSampleMemUsage(int index) {
-  return index == 0 ? sampleMemLen : 0;
+  return index >= 0 ? sampleMemLen : 0;
 }
 
 void DivPlatformX1_010::renderSamples() {
@@ -949,12 +992,14 @@ void DivPlatformX1_010::renderSamples() {
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     int paddedLen=(s->length8+4095)&(~0xfff);
+    if (isBanked) {
     // fit sample bank size to 128KB for Seta 2 external bankswitching logic (not emulated yet!)
-    if (paddedLen>131072) {
-      paddedLen=131072;
-    }
-    if ((memPos&0xfe0000)!=((memPos+paddedLen)&0xfe0000)) {
-      memPos=(memPos+0x1ffff)&0xfe0000;
+      if (paddedLen>131072) {
+        paddedLen=131072;
+      }
+      if ((memPos&0xfe0000)!=((memPos+paddedLen)&0xfe0000)) {
+        memPos=(memPos+0x1ffff)&0xfe0000;
+      }
     }
     if (memPos>=getSampleMemCapacity()) {
       logW("out of X1-010 memory for sample %d!",i);
@@ -972,6 +1017,10 @@ void DivPlatformX1_010::renderSamples() {
   sampleMemLen=memPos+256;
 }
 
+void DivPlatformX1_010::setBanked(bool banked) {
+  isBanked=banked;
+}
+
 int DivPlatformX1_010::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
@@ -984,9 +1033,7 @@ int DivPlatformX1_010::init(DivEngine* p, int channels, int sugRate, unsigned in
   setFlags(flags);
   sampleMem=new unsigned char[getSampleMemCapacity()];
   sampleMemLen=0;
-  intf.memory=sampleMem;
-  x1_010=new x1_010_core(intf);
-  x1_010->reset();
+  x1_010.reset();
   reset();
   return 16;
 }
@@ -995,7 +1042,6 @@ void DivPlatformX1_010::quit() {
   for (int i=0; i<16; i++) {
     delete oscBuf[i];
   }
-  delete x1_010;
   delete[] sampleMem;
 }
 

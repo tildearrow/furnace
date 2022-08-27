@@ -1485,7 +1485,7 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_STD,"Standard");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_GB,"Game Boy");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_C64,"C64");
-              UI_COLOR_CONFIG(GUI_COLOR_INSTR_AMIGA,"Amiga/Sample");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_AMIGA,"Amiga/Generic Sample");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_PCE,"PC Engine");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_AY,"AY-3-8910/SSG");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_AY8930,"AY8930");
@@ -1517,6 +1517,15 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_SNES,"SNES");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_SU,"Sound Unit");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_NAMCO,"Namco WSG");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPL_DRUMS,"FM (OPL Drums)");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_MSM6258,"MSM6258");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_MSM6295,"MSM6295");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_ADPCMA,"ADPCM-A");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_ADPCMB,"ADPCM-B");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_SEGAPCM,"Sega PCM");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_QSOUND,"QSound");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_YMZ280B,"YMZ280B");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_RF5C68,"RF5C68");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
               ImGui::TreePop();
             }
