@@ -969,7 +969,7 @@ class FurnaceGUI {
   int sampleTexW, sampleTexH;
   bool updateSampleTex;
 
-  String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile, sysSearchQuery;
+  String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile, sysSearchQuery, newSongQuery;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
   String workingDirVGMExport, workingDirROMExport, workingDirFont, workingDirColors, workingDirKeybinds;
   String workingDirLayout, workingDirROM, workingDirTest;
@@ -977,6 +977,7 @@ class FurnaceGUI {
   String mmlStringW;
 
   std::vector<DivSystem> sysSearchResults;
+  std::vector<FurnaceGUISysDef> newSongSearchResults;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, vgmExportPatternHints;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
