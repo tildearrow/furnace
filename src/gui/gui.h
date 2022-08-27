@@ -987,6 +987,7 @@ class FurnaceGUI {
   int drawHalt;
   int macroPointSize;
   int waveEditStyle;
+  const int* curSysSection;
 
   String pendingRawSample;
   int pendingRawSampleDepth, pendingRawSampleChannels;
@@ -1669,7 +1670,6 @@ class FurnaceGUI {
   void doDrag();
   void editOptions(bool topMenu);
   DivSystem systemPicker();
-  bool systemPickerOption(DivSystem sys);
   void noteInput(int num, int key, int vol=-1);
   void valueInput(int num, bool direct=false, int target=-1);
 

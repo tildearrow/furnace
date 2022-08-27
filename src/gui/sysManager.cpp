@@ -83,6 +83,7 @@ void FurnaceGUI::drawSysManager() {
           if (picked!=DIV_SYSTEM_NULL) {
             e->changeSystem(i,picked,preserveChanPos);
             updateWindowTitle();
+            ImGui::CloseCurrentPopup();
           }
           ImGui::EndPopup();
         }
@@ -110,6 +111,7 @@ void FurnaceGUI::drawSysManager() {
               showError("cannot add chip! ("+e->getLastError()+")");
             }
             updateWindowTitle();
+            ImGui::CloseCurrentPopup();
           }
           ImGui::EndPopup();
         }

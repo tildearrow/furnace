@@ -23,52 +23,75 @@
 #include "guiConst.h"
 #include <imgui.h>
 
-bool FurnaceGUI::systemPickerOption(DivSystem sys) {
-  const DivSysDef* sysDef=e->getSystemDef(sys);
-  if (sysDef==NULL) return false;
-  bool ret=ImGui::Selectable(sysDef->name);
-  if (ImGui::IsItemHovered()) {
-    ImGui::BeginTooltip();
-    ImGui::TextUnformatted(sysDef->description);
-    ImGui::EndTooltip();
-  }
-  return ret;
-}
-
 DivSystem FurnaceGUI::systemPicker() {
   DivSystem ret=DIV_SYSTEM_NULL;
-  /*
-            for (int j=0; availableSystems[j]; j++) {
-            if (!settings.hiddenSystems && (availableSystems[j]==DIV_SYSTEM_YMU759 || availableSystems[j]==DIV_SYSTEM_DUMMY)) continue;
-            sysAddOption((DivSystem)availableSystems[j]);
-          }
-  */
-  if (ImGui::InputTextWithHint("##SysSearch","Search...",&sysSearchQuery)) {
+  DivSystem hoveredSys=DIV_SYSTEM_NULL;
+  bool reissueSearch=false;
+  if (curSysSection==NULL) {
+    curSysSection=availableSystems;
+  }
+
+  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  if (ImGui::InputTextWithHint("##SysSearch","Search...",&sysSearchQuery)) reissueSearch=true;
+  if (ImGui::BeginTabBar("SysCats")) {
+    for (int i=0; chipCategories[i]; i++) {
+      if (ImGui::BeginTabItem(chipCategoryNames[i])) {
+        if (ImGui::IsItemActive()) {
+          reissueSearch=true;
+        }
+        curSysSection=chipCategories[i];
+        ImGui::EndTabItem();
+      }
+    }
+    ImGui::EndTabBar();
+  }
+  if (reissueSearch) {
     String lowerCase=sysSearchQuery;
     for (char& i: lowerCase) {
       if (i>='A' && i<='Z') i+='a'-'A';
     }
     sysSearchResults.clear();
-    for (int j=0; availableSystems[j]; j++) {
-      String lowerCase1=e->getSystemName((DivSystem)availableSystems[j]);
+    for (int j=0; curSysSection[j]; j++) {
+      String lowerCase1=e->getSystemName((DivSystem)curSysSection[j]);
       for (char& i: lowerCase1) {
         if (i>='A' && i<='Z') i+='a'-'A';
       }
       if (lowerCase1.find(lowerCase)!=String::npos) {
-        sysSearchResults.push_back((DivSystem)availableSystems[j]);
+        sysSearchResults.push_back((DivSystem)curSysSection[j]);
       }
     }
   }
-  if (sysSearchQuery.empty()) {
-    // display chip list
-    for (int j=0; availableSystems[j]; j++) {
-      if (systemPickerOption((DivSystem)availableSystems[j])) ret=(DivSystem)availableSystems[j];
+  if (ImGui::BeginTable("SysList",1,ImGuiTableFlags_ScrollY,ImVec2(500.0f*dpiScale,200.0*dpiScale))) {
+    if (sysSearchQuery.empty()) {
+      // display chip list
+      for (int j=0; curSysSection[j]; j++) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if (ImGui::Selectable(e->getSystemName((DivSystem)curSysSection[j]),false,0,ImVec2(500.0f*dpiScale,0.0f))) ret=(DivSystem)curSysSection[j];
+        if (ImGui::IsItemHovered()) {
+          hoveredSys=(DivSystem)curSysSection[j];
+        }
+      }
+    } else {
+      // display search results
+      for (DivSystem i: sysSearchResults) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        if (ImGui::Selectable(e->getSystemName(i),false,0,ImVec2(500.0f*dpiScale,0.0f))) ret=i;
+        if (ImGui::IsItemHovered()) {
+          hoveredSys=i;
+        }
+      }
     }
-  } else {
-    // display search results
-    for (DivSystem i: sysSearchResults) {
-      if (systemPickerOption(i)) ret=i;
+    ImGui::EndTable();
+  }
+  ImGui::Separator();
+  if (ImGui::BeginChild("SysDesc",ImVec2(0.0f,150.0f*dpiScale),false,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse)) {
+    if (hoveredSys!=DIV_SYSTEM_NULL) {
+      const DivSysDef* sysDef=e->getSystemDef(hoveredSys);
+      ImGui::TextWrapped("%s",sysDef->description);
     }
   }
+  ImGui::EndChild();
   return ret;
 }

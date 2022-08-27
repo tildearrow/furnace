@@ -3042,6 +3042,7 @@ bool FurnaceGUI::loop() {
             if (!e->addSystem(picked)) {
               showError("cannot add chip! ("+e->getLastError()+")");
             }
+            ImGui::CloseCurrentPopup();
             updateWindowTitle();
           }
           ImGui::EndMenu();
@@ -3063,6 +3064,7 @@ bool FurnaceGUI::loop() {
               if (picked!=DIV_SYSTEM_NULL) {
                 e->changeSystem(i,picked,preserveChanPos);
                 updateWindowTitle();
+                ImGui::CloseCurrentPopup();
               }
               ImGui::EndMenu();
             }
@@ -4756,6 +4758,7 @@ FurnaceGUI::FurnaceGUI():
   drawHalt(10),
   macroPointSize(16),
   waveEditStyle(0),
+  curSysSection(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),
   pendingRawSampleUnsigned(false),
