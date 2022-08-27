@@ -1559,7 +1559,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       sample->offSegaPCM=memPos;
       unsigned int readPos=0;
       for (unsigned int j=0; j<alignedSize; j++) {
-        if (readPos>=sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
+        if (readPos>=(unsigned int)sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
           if (sample->isLoopable()) {
             readPos=sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT);
             pcmMem[memPos++]=((unsigned char)sample->data8[readPos]+0x80);
