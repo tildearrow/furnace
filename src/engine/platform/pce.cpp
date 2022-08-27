@@ -53,27 +53,6 @@ const char** DivPlatformPCE::getRegisterSheet() {
   return regCheatSheetPCE;
 }
 
-const char* DivPlatformPCE::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-    case 0x11:
-      return "11xx: Toggle noise mode";
-      break;
-    case 0x12:
-      return "12xx: Setup LFO (0: disabled; 1: 1x depth; 2: 16x depth; 3: 256x depth)";
-      break;
-    case 0x13:
-      return "13xx: Set LFO speed";
-      break;
-    case 0x17:
-      return "17xx: Toggle PCM mode";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     // PCM part
@@ -190,28 +169,12 @@ void DivPlatformPCE::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-          // noise
-          int noiseSeek=chan[i].std.arp.val;
-          if (noiseSeek<0) noiseSeek=0;
-          chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-          int noiseSeek=chan[i].note+chan[i].std.arp.val;
-          if (noiseSeek<0) noiseSeek=0;
-          chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
-        }
-      }
-      chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        int noiseSeek=chan[i].note;
+        int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.arp.val);
+        chan[i].baseFreq=NOTE_PERIODIC(noiseSeek);
         if (noiseSeek<0) noiseSeek=0;
         chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
-        chan[i].freqChanged=true;
       }
+      chan[i].freqChanged=true;
     }
     if (chan[i].std.wave.had && !chan[i].pcm) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {

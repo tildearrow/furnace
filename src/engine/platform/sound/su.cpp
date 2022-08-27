@@ -300,12 +300,46 @@ void SoundUnit::NextSample(short* l, short* r) {
     }
   }
 
-  *l=minval(32767,maxval(-32767,tnsL));
-  *r=minval(32767,maxval(-32767,tnsR));
+  if (dsOut) {
+    tnsL=minval(32767,maxval(-32767,tnsL<<1));
+    tnsR=minval(32767,maxval(-32767,tnsR<<1));
+
+    short accumL=0;
+    short accumR=0;
+
+    for (int i=0; i<4; i++) {
+      if ((tnsL>>8)==0 && dsCounterL>0) dsCounterL=0;
+      dsCounterL+=tnsL>>8;
+      if (dsCounterL>=0) {
+        accumL+=4095;
+        dsCounterL-=127;
+      } else {
+        accumL+=-4095;
+        dsCounterL+=127;
+      }
+
+      if ((tnsR>>8)==0 && dsCounterR>0) dsCounterR=0;
+      dsCounterR+=tnsR>>8;
+      if (dsCounterR>=0) {
+        accumR+=4095;
+        dsCounterR-=127;
+      } else {
+        accumR+=-4095;
+        dsCounterR+=127;
+      }
+    }
+
+    *l=accumL;
+    *r=accumR;
+  } else {
+    *l=minval(32767,maxval(-32767,tnsL));
+    *r=minval(32767,maxval(-32767,tnsR));
+  }
 }
 
-void SoundUnit::Init(int sampleMemSize) {
+void SoundUnit::Init(int sampleMemSize, bool dsOutMode) {
   pcmSize=sampleMemSize;
+  dsOut=dsOutMode;
   Reset();
   memset(pcm,0,pcmSize);
   for (int i=0; i<256; i++) {
@@ -346,6 +380,8 @@ void SoundUnit::Reset() {
     oldflags[i]=0;
     pcmdec[i]=0;
   }
+  dsCounterL=0;
+  dsCounterR=0;
   tnsL=0;
   tnsR=0;
   ilBufPos=0;

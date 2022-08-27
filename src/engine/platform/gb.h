@@ -31,6 +31,7 @@ class DivPlatformGB: public DivDispatch {
     int freq, baseFreq, pitch, pitch2, note, ins;
     unsigned char duty, sweep;
     bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, released, softEnv, killIt;
+    bool soManyHacksToMakeItDefleCompatible;
     signed char vol, outVol, wave, lastKill;
     unsigned char envVol, envDir, envLen, soundLen;
     unsigned short hwSeqPos;
@@ -59,6 +60,7 @@ class DivPlatformGB: public DivDispatch {
       released(false),
       softEnv(false),
       killIt(false),
+      soManyHacksToMakeItDefleCompatible(false),
       vol(15),
       outVol(15),
       wave(-1),
@@ -113,7 +115,6 @@ class DivPlatformGB: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     void setFlags(unsigned int flags);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();

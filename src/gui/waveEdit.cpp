@@ -131,9 +131,8 @@ void FurnaceGUI::drawWaveEdit() {
           if (curWave>=(int)e->song.wave.size()) curWave=e->song.wave.size()-1;
         }
         ImGui::SameLine();
-        // TODO: load replace
         if (ImGui::Button(ICON_FA_FOLDER_OPEN "##WELoad")) {
-          doAction(GUI_ACTION_WAVE_LIST_OPEN);
+          doAction(GUI_ACTION_WAVE_LIST_OPEN_REPLACE);
         }
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_FLOPPY_O "##WESave")) {

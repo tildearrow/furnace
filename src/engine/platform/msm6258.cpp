@@ -30,18 +30,6 @@ const char** DivPlatformMSM6258::getRegisterSheet() {
   return NULL;
 }
 
-const char* DivPlatformMSM6258::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x20:
-      return "20xx: Set frequency divider (0-2)";
-      break;
-    case 0x21:
-      return "21xx: Select clock rate (0: full; 1: half)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformMSM6258::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   short* outs[2]={
     &msmOut,

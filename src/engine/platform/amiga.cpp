@@ -64,21 +64,6 @@ const char** DivPlatformAmiga::getRegisterSheet() {
   return regCheatSheetAmiga;
 }
 
-const char* DivPlatformAmiga::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Toggle filter (0 disables; 1 enables)";
-      break;
-    case 0x11:
-      return "11xx: Toggle AM with next channel";
-      break;
-    case 0x12:
-      return "12xx: Toggle period modulation with next channel";
-      break;
-  }
-  return NULL;
-}
-
 #define writeAudDat(x) \
   chan[i].audDat=x; \
   if (i<3 && chan[i].useV) { \
@@ -178,19 +163,9 @@ void DivPlatformAmiga::tick(bool sysTick) {
       }
     }
     if (chan[i].std.arp.had) {
-      if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=round(off*NOTE_PERIODIC_NOROUND(chan[i].std.arp.val));
-        } else {
-          chan[i].baseFreq=round(off*NOTE_PERIODIC_NOROUND(chan[i].note+chan[i].std.arp.val));
-        }
-      }
+      // TODO: why the off mult? this may be a bug!
+      chan[i].baseFreq=round(off*NOTE_PERIODIC_NOROUND(parent->calcArp(chan[i].note,chan[i].std.arp.val)));
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=round(off*NOTE_PERIODIC_NOROUND(chan[i].note));
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].useWave && chan[i].std.wave.had) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {

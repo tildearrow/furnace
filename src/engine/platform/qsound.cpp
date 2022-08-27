@@ -249,24 +249,6 @@ const char** DivPlatformQSound::getRegisterSheet() {
   return regCheatSheetQSound;
 }
 
-const char* DivPlatformQSound::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Set echo feedback level (00 to FF)";
-      break;
-    case 0x11:
-      return "11xx: Set channel echo level (00 to FF)";
-      break;
-    case 0x12:
-      return "12xx: Toggle QSound algorithm (0: disabled; 1: enabled)";
-      break;
-    default:
-      if ((effect & 0xf0) == 0x30) {
-        return "3xxx: Set echo delay buffer length (000 to AA5)";
-      }
-  }
-  return NULL;
-}
 void DivPlatformQSound::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     qsound_update(&chip);
@@ -322,18 +304,9 @@ void DivPlatformQSound::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=QS_NOTE_FREQUENCY(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=QS_NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=QS_NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=QS_NOTE_FREQUENCY(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       chan[i].echo=CLAMP(chan[i].std.duty.val,0,32767);

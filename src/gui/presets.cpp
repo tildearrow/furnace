@@ -855,6 +855,41 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Neotron", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2610_FULL, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Neotron (extended channel 2)", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2610_FULL_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Neotron (with YM2610B)", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2610B, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Neotron (with YM2610B; extended channel 3)", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2610B_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + SIMPL", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 55929|(7<<16), // variable rate, Mono DAC
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with PC-9801-26/K)", {
       DIV_SYSTEM_OPN, 64, 0, 4, // 3.9936MHz but some compatible card has 4MHz
       0

@@ -146,7 +146,6 @@ class DivPlatformX1_010: public DivDispatch, public x1_010_mem_intf {
     size_t getSampleMemUsage(int index = 0);
     void renderSamples();
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     void setBanked(bool banked);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();

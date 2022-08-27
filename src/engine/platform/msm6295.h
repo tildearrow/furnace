@@ -97,7 +97,6 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual void poke(std::vector<DivRegWrite>& wlist) override;
     virtual void setFlags(unsigned int flags) override;
     virtual const char** getRegisterSheet() override;
-    virtual const char* getEffectName(unsigned char effect) override;
     virtual const void* getSampleMem(int index) override;
     virtual size_t getSampleMemCapacity(int index) override;
     virtual size_t getSampleMemUsage(int index) override;

@@ -110,7 +110,11 @@ bool TAAudioSDL::init(TAAudioDesc& request, TAAudioDesc& response) {
   desc.outFormat=TA_AUDIO_FORMAT_F32;
 
   ac.freq=desc.rate;
+#ifdef TA_BIG_ENDIAN
+  ac.format=AUDIO_F32MSB;
+#else
   ac.format=AUDIO_F32;
+#endif
   ac.channels=desc.outChans;
   ac.samples=desc.bufsize;
   ac.callback=taSDLProcess;

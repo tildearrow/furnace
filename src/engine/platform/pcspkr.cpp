@@ -190,10 +190,6 @@ const char** DivPlatformPCSpeaker::getRegisterSheet() {
   return regCheatSheetPCSpeaker;
 }
 
-const char* DivPlatformPCSpeaker::getEffectName(unsigned char effect) {
-  return NULL;
-}
-
 const float cut=0.05;
 const float reso=0.06;
 
@@ -351,18 +347,9 @@ void DivPlatformPCSpeaker::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {

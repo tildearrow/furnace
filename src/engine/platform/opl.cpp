@@ -152,98 +152,6 @@ const int orderedOpsL[4]={
 #define ADDR_FREQH 0xb0
 #define ADDR_LR_FB_ALG 0xc0
 
-const char* DivPlatformOPL::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Set global AM depth (0: 1dB, 1: 4.8dB)";
-      break;
-    case 0x11:
-      return "11xx: Set feedback (0 to 7)";
-      break;
-    case 0x12:
-      return "12xx: Set level of operator 1 (0 highest, 3F lowest)";
-      break;
-    case 0x13:
-      return "13xx: Set level of operator 2 (0 highest, 3F lowest)";
-      break;
-    case 0x14:
-      return "14xx: Set level of operator 3 (0 highest, 3F lowest; 4-op only)";
-      break;
-    case 0x15:
-      return "15xx: Set level of operator 4 (0 highest, 3F lowest; 4-op only)";
-      break;
-    case 0x16:
-      return "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)";
-      break;
-    case 0x17:
-      return "17xx: Set global vibrato depth (0: normal, 1: double)";
-      break;
-    case 0x18:
-      if (properDrumsSys) {
-        return "18xx: Toggle drums mode (1: enabled; 0: disabled)";
-      }
-      break;
-    case 0x19:
-      return "19xx: Set attack of all operators (0 to F)";
-      break;
-    case 0x1a:
-      return "1Axx: Set attack of operator 1 (0 to F)";
-      break;
-    case 0x1b:
-      return "1Bxx: Set attack of operator 2 (0 to F)";
-      break;
-    case 0x1c:
-      return "1Cxx: Set attack of operator 3 (0 to F; 4-op only)";
-      break;
-    case 0x1d:
-      return "1Dxx: Set attack of operator 4 (0 to F; 4-op only)";
-      break;
-    case 0x2a:
-      return "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 3 in OPL2 and 0 to 7 in OPL3)";
-      break;
-    case 0x30:
-      return "30xx: Toggle hard envelope reset on new notes";
-      break;
-    case 0x50:
-      return "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)";
-      break;
-    case 0x51:
-      return "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)";
-      break;
-    case 0x52:
-      return "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)";
-      break;
-    case 0x53:
-      return "53xy: Set vibrato (x: operator from 1 to 4 (0 for all ops); y: enabled)";
-      break;
-    case 0x54:
-      return "54xy: Set key scale level (x: operator from 1 to 4 (0 for all ops); y: level from 0 to 3)";
-      break;
-    case 0x55:
-      return "55xy: Set envelope sustain (x: operator from 1 to 4 (0 for all ops); y: enabled)";
-      break;
-    case 0x56:
-      return "56xx: Set decay of all operators (0 to F)";
-      break;
-    case 0x57:
-      return "57xx: Set decay of operator 1 (0 to F)";
-      break;
-    case 0x58:
-      return "58xx: Set decay of operator 2 (0 to F)";
-      break;
-    case 0x59:
-      return "59xx: Set decay of operator 3 (0 to F; 4-op only)";
-      break;
-    case 0x5a:
-      return "5Axx: Set decay of operator 4 (0 to F; 4-op only)";
-      break;
-    case 0x5b:
-      return "5Bxy: Set whether key will scale envelope (x: operator from 1 to 4 (0 for all ops); y: enabled)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   static short o[2];
   static int os[2];
@@ -389,18 +297,9 @@ void DivPlatformOPL::tick(bool sysTick) {
 
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+(signed char)chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
 
     if (oplType==3 && chan[i].std.panL.had) {
@@ -583,18 +482,9 @@ void DivPlatformOPL::tick(bool sysTick) {
 
       if (chan[adpcmChan].std.arp.had) {
         if (!chan[adpcmChan].inPorta) {
-          if (chan[adpcmChan].std.arp.mode) {
-            chan[adpcmChan].baseFreq=NOTE_ADPCMB(chan[adpcmChan].std.arp.val);
-          } else {
-            chan[adpcmChan].baseFreq=NOTE_ADPCMB(chan[adpcmChan].note+(signed char)chan[adpcmChan].std.arp.val);
-          }
+          chan[adpcmChan].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[adpcmChan].note,chan[adpcmChan].std.arp.val));
         }
         chan[adpcmChan].freqChanged=true;
-      } else {
-        if (chan[adpcmChan].std.arp.mode && chan[adpcmChan].std.arp.finished) {
-          chan[adpcmChan].baseFreq=NOTE_ADPCMB(chan[adpcmChan].note);
-          chan[adpcmChan].freqChanged=true;
-        }
       }
       if (chan[adpcmChan].std.phaseReset.had) {
         if ((chan[adpcmChan].std.phaseReset.val==1) && chan[adpcmChan].active) {
@@ -891,6 +781,13 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
           chan[c.chan].fourOp=(ops==4);
           if (chan[c.chan].fourOp) {
+            /*
+            if (chan[c.chan+1].active) {
+              chan[c.chan+1].keyOff=true;
+              chan[c.chan+1].keyOn=false;
+              chan[c.chan+1].active=false;
+            }*/
+            chan[c.chan+1].insChanged=true;
             chan[c.chan+1].macroInit(NULL);
           }
           update4OpMask=true;
@@ -1691,7 +1588,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
         adpcmChan=drums?11:9;
       }
       break;
-    case 3: case 759:
+    case 3: case 4: case 759:
       slotsNonDrums=slotsOPL3;
       slotsDrums=slotsOPL3Drums;
       slots=drums?slotsDrums:slotsNonDrums;
@@ -1705,6 +1602,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
         pretendYMU=true;
         adpcmChan=16;
       } else if (type==4) {
+        chipFreqBase=32768*684;
         downsample=true;
       }
       break;

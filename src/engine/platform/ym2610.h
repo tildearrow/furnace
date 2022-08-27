@@ -57,7 +57,6 @@ class DivPlatformYM2610: public DivPlatformYM2610Base<14> {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     DivPlatformYM2610():

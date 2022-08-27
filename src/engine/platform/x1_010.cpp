@@ -205,39 +205,6 @@ const char** DivPlatformX1_010::getRegisterSheet() {
   return regCheatSheetX1_010;
 }
 
-const char* DivPlatformX1_010::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-    case 0x11:
-      return "11xx: Change envelope shape";
-      break;
-    case 0x17:
-      return "17xx: Toggle PCM mode";
-      break;
-    case 0x20:
-      return "20xx: Set PCM frequency (1 to FF)";
-      break;
-    case 0x22:
-      return "22xx: Set envelope mode (bit 0: enable, bit 1: one-shot, bit 2: split shape to L/R, bit 3/5: H.invert right/left, bit 4/6: V.invert right/left)";
-      break;
-    case 0x23:
-      return "23xx: Set envelope period";
-      break;
-    case 0x25:
-      return "25xx: Envelope slide up";
-      break;
-    case 0x26:
-      return "26xx: Envelope slide down";
-      break;
-    case 0x29:
-      return "29xy: Set auto-envelope (x: numerator; y: denominator)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     x1_010.tick();
@@ -366,18 +333,9 @@ void DivPlatformX1_010::tick(bool sysTick) {
     if ((!chan[i].pcm) || chan[i].furnacePCM) {
       if (chan[i].std.arp.had) {
         if (!chan[i].inPorta) {
-          if (chan[i].std.arp.mode) {
-            chan[i].baseFreq=NoteX1_010(i,chan[i].std.arp.val);
-          } else {
-            chan[i].baseFreq=NoteX1_010(i,chan[i].note+chan[i].std.arp.val);
-          }
+          chan[i].baseFreq=NoteX1_010(i,parent->calcArp(chan[i].note,chan[i].std.arp.val));
         }
         chan[i].freqChanged=true;
-      } else {
-        if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-          chan[i].baseFreq=NoteX1_010(i,chan[i].note);
-          chan[i].freqChanged=true;
-        }
       }
     }
     if (chan[i].std.wave.had && !chan[i].pcm) {

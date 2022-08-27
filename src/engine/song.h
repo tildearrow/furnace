@@ -138,6 +138,8 @@ struct DivSubSong {
   String chanShortName[DIV_MAX_CHANS];
 
   void clearData();
+  void optimizePatterns();
+  void rearrangePatterns();
 
   DivSubSong(): 
     hilightA(4),
@@ -461,6 +463,11 @@ struct DivSong {
   // 1: fake reset on loop
   // 2: don't do anything on loop
   unsigned char loopModality;
+  // cut/delay effect behavior
+  // 0: strict (don't allow value higher than or equal to speed)
+  // 1: broken (don't allow value higher than speed)
+  // 2: lax (allow value higher than speed)
+  unsigned char delayBehavior;
   bool properNoiseLayout;
   bool waveDutyIsVol;
   bool resetMacroOnPorta;
@@ -498,6 +505,7 @@ struct DivSong {
   bool brokenOutVol;
   bool e1e2StopOnSameNote;
   bool brokenPortaArp;
+  bool snNoLowPeriods;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -561,7 +569,8 @@ struct DivSong {
     limitSlides(false),
     linearPitch(2),
     pitchSlideSpeed(4),
-    loopModality(0),
+    loopModality(2),
+    delayBehavior(2),
     properNoiseLayout(true),
     waveDutyIsVol(false),
     resetMacroOnPorta(false),
@@ -598,7 +607,8 @@ struct DivSong {
     volMacroLinger(true),
     brokenOutVol(false),
     e1e2StopOnSameNote(false),
-    brokenPortaArp(false) {
+    brokenPortaArp(false),
+    snNoLowPeriods(false) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;

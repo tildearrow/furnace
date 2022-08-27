@@ -27,108 +27,6 @@
 
 #define IS_REALLY_MUTED(x) (isMuted[x] && (x<5 || !softPCM || (isMuted[5] && isMuted[6])))
 
-const char* DivPlatformGenesis::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xy: Setup LFO (x: enable; y: speed)";
-      break;
-    case 0x11:
-      return "11xx: Set feedback (0 to 7)";
-      break;
-    case 0x12:
-      return "12xx: Set level of operator 1 (0 highest, 7F lowest)";
-      break;
-    case 0x13:
-      return "13xx: Set level of operator 2 (0 highest, 7F lowest)";
-      break;
-    case 0x14:
-      return "14xx: Set level of operator 3 (0 highest, 7F lowest)";
-      break;
-    case 0x15:
-      return "15xx: Set level of operator 4 (0 highest, 7F lowest)";
-      break;
-    case 0x16:
-      return "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)";
-      break;
-    case 0x17:
-      return "17xx: Enable channel 6 DAC";
-      break;
-    case 0x18:
-      return "18xx: Toggle extended channel 3 mode";
-      break;
-    case 0x19:
-      return "19xx: Set attack of all operators (0 to 1F)";
-      break;
-    case 0x1a:
-      return "1Axx: Set attack of operator 1 (0 to 1F)";
-      break;
-    case 0x1b:
-      return "1Bxx: Set attack of operator 2 (0 to 1F)";
-      break;
-    case 0x1c:
-      return "1Cxx: Set attack of operator 3 (0 to 1F)";
-      break;
-    case 0x1d:
-      return "1Dxx: Set attack of operator 4 (0 to 1F)";
-      break;
-    case 0x30:
-      return "30xx: Toggle hard envelope reset on new notes";
-      break;
-    case 0x50:
-      return "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)";
-      break;
-    case 0x51:
-      return "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)";
-      break;
-    case 0x52:
-      return "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)";
-      break;
-    case 0x53:
-      return "53xy: Set detune (x: operator from 1 to 4 (0 for all ops); y: detune where 3 is center)";
-      break;
-    case 0x54:
-      return "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale from 0 to 3)";
-      break;
-    case 0x55:
-      return "55xy: Set SSG envelope (x: operator from 1 to 4 (0 for all ops); y: 0-7 on, 8 off)";
-      break;
-    case 0x56:
-      return "56xx: Set decay of all operators (0 to 1F)";
-      break;
-    case 0x57:
-      return "57xx: Set decay of operator 1 (0 to 1F)";
-      break;
-    case 0x58:
-      return "58xx: Set decay of operator 2 (0 to 1F)";
-      break;
-    case 0x59:
-      return "59xx: Set decay of operator 3 (0 to 1F)";
-      break;
-    case 0x5a:
-      return "5Axx: Set decay of operator 4 (0 to 1F)";
-      break;
-    case 0x5b:
-      return "5Bxx: Set decay 2 of all operators (0 to 1F)";
-      break;
-    case 0x5c:
-      return "5Cxx: Set decay 2 of operator 1 (0 to 1F)";
-      break;
-    case 0x5d:
-      return "5Dxx: Set decay 2 of operator 2 (0 to 1F)";
-      break;
-    case 0x5e:
-      return "5Exx: Set decay 2 of operator 3 (0 to 1F)";
-      break;
-    case 0x5f:
-      return "5Fxx: Set decay 2 of operator 4 (0 to 1F)";
-      break;
-    case 0xdf:
-      return "DFxx: Set sample playback direction (0: normal; 1: reverse)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformGenesis::processDAC() {
   if (softPCM) {
     softPCMTimer+=chipClock/576;
@@ -365,26 +263,40 @@ void DivPlatformGenesis::tick(bool sysTick) {
       }
     }
 
-    if (chan[i].std.arp.had) {
-      if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].std.arp.val,11);
-        } else {
-          chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].note+(signed char)chan[i].std.arp.val,11);
+    if (i>=5 && chan[i].furnaceDac) {
+      if (chan[i].std.arp.had) {
+        if (!chan[i].inPorta) {
+          chan[i].baseFreq=parent->calcBaseFreq(1,1,parent->calcArp(chan[i].note,chan[i].std.arp.val),false);
         }
+        chan[i].freqChanged=true;
       }
-      chan[i].freqChanged=true;
     } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].note,11);
+       if (chan[i].std.arp.had) {
+        if (!chan[i].inPorta) {
+          chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11);
+        }
         chan[i].freqChanged=true;
       }
     }
 
-    if (chan[i].std.panL.had) {
-      chan[i].pan=chan[i].std.panL.val&3;
-      if (i<6) {
-        rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    if (i>=5 && chan[i].furnaceDac) {
+      if (chan[i].std.panL.had) {
+        chan[5].pan&=1;
+        chan[5].pan|=chan[i].std.panL.val?2:0;
+      }
+      if (chan[i].std.panR.had) {
+        chan[5].pan&=2;
+        chan[5].pan|=chan[i].std.panR.val?1:0;
+      }
+      if (chan[i].std.panL.had || chan[i].std.panR.had) {
+        rWrite(chanOffs[5]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[5].pan<<6))|(chan[5].state.fms&7)|((chan[5].state.ams&3)<<4));
+      }
+    } else {
+      if (chan[i].std.panL.had) {
+        chan[i].pan=chan[i].std.panL.val&3;
+        if (i<6) {
+          rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+        }
       }
     }
 

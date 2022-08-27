@@ -33,6 +33,7 @@ the coding style is described here:
   - indent switch cases
   - preprocessor directives not intended
   - if macro comprises more than one line, indent
+  - no new line after `template<>`
 - prefer built-in types:
   - `bool`
   - `signed char` or `unsigned char` are 8-bit
@@ -81,6 +82,7 @@ just put your demo song in `demos/`! be noted there are some guidelines:
 
 - avoid Nintendo song covers.
 - avoid big label song covers.
+- avoid poor quality songs.
 
 # Finishing
 

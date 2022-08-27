@@ -18,6 +18,7 @@
  */
 
 #include "song.h"
+#include "../ta-log.h"
 
 void DivSubSong::clearData() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
@@ -26,6 +27,34 @@ void DivSubSong::clearData() {
 
   memset(orders.ord,0,DIV_MAX_CHANS*256);
   ordersLen=1;
+}
+
+void DivSubSong::optimizePatterns() {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    logD("optimizing channel %d...",i);
+    std::vector<std::pair<int,int>> clearOuts=pat[i].optimize();
+    for (auto& j: clearOuts) {
+      for (int k=0; k<256; k++) {
+        if (orders.ord[i][k]==j.first) {
+          orders.ord[i][k]=j.second;
+        }
+      }
+    }
+  }
+}
+
+void DivSubSong::rearrangePatterns() {
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    logD("re-arranging channel %d...",i);
+    std::vector<std::pair<int,int>> clearOuts=pat[i].rearrange();
+    for (auto& j: clearOuts) {
+      for (int k=0; k<256; k++) {
+        if (orders.ord[i][k]==j.first) {
+          orders.ord[i][k]=j.second;
+        }
+      }
+    }
+  }
 }
 
 void DivSong::clearSongData() {

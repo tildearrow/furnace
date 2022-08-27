@@ -59,7 +59,9 @@ DivDataErrors DivWavetable::readWaveData(SafeReader& reader, short version) {
 
   if (len>256 || min!=0 || max>255) return DIV_DATA_INVALID_DATA;
 
-  reader.read(data,4*len);
+  for (int i=0; i<len; i++) {
+    data[i]=reader.readI();
+  }
 
   return DIV_DATA_SUCCESS;
 }
@@ -78,6 +80,68 @@ bool DivWavetable::save(const char* path) {
   w->writeS(0);
 
   putWaveData(w);
+
+  FILE* outFile=ps_fopen(path,"wb");
+  if (outFile==NULL) {
+    logE("could not save wavetable: %s!",strerror(errno));
+    w->finish();
+    return false;
+  }
+  if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
+    logW("did not write entire wavetable!");
+  }
+  fclose(outFile);
+  w->finish();
+  return true;
+}
+
+bool DivWavetable::saveDMW(const char* path) {
+  SafeWriter* w=new SafeWriter();
+  w->init();
+
+  // write width
+  w->writeI(len);
+
+  // check height
+  w->writeC(max);
+  if (max==255) {
+    // write as new format (because 0xff means that)
+    w->writeC(1); // format version
+    w->writeC(max); // actual height
+
+    // waveform data
+    for (int i=0; i<len; i++) {
+      w->writeI(data[i]&0xff);
+    }
+  } else {
+    // write as old format
+    for (int i=0; i<len; i++) {
+      w->writeC(data[i]);
+    }
+  }
+
+  FILE* outFile=ps_fopen(path,"wb");
+  if (outFile==NULL) {
+    logE("could not save wavetable: %s!",strerror(errno));
+    w->finish();
+    return false;
+  }
+  if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
+    logW("did not write entire wavetable!");
+  }
+  fclose(outFile);
+  w->finish();
+  return true;
+}
+
+bool DivWavetable::saveRaw(const char* path) {
+  SafeWriter* w=new SafeWriter();
+  w->init();
+
+  // waveform data
+  for (int i=0; i<len; i++) {
+    w->writeC(data[i]);
+  }
 
   FILE* outFile=ps_fopen(path,"wb");
   if (outFile==NULL) {

@@ -18,6 +18,7 @@
  */
 
 #include "dispatch.h"
+#include "song.h"
 #define _USE_MATH_DEFINES
 #include "engine.h"
 #include "instrument.h"
@@ -124,8 +125,15 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       if ((effect&0xf0)==0x90) {
         return "9xxx: Set sample offset*256";
       } else if (chan>=0 && chan<chans) {
-        const char* ret=disCont[dispatchOfChan[chan]].dispatch->getEffectName(effect);
-        if (ret!=NULL) return ret;
+        DivSysDef* sysDef=sysDefs[sysOfChan[chan]];
+        auto iter=sysDef->effectHandlers.find(effect);
+        if (iter!=sysDef->effectHandlers.end()) {
+          return iter->second.description;
+        }
+        iter=sysDef->postEffectHandlers.find(effect);
+        if (iter!=sysDef->postEffectHandlers.end()) {
+          return iter->second.description;
+        }
       }
       break;
   }
@@ -1380,6 +1388,115 @@ bool DivEngine::removeSystem(int index, bool preserveOrder) {
   return true;
 }
 
+bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
+  if (src==dest) {
+    lastError="source and destination are equal";
+    return false;
+  }
+  if (src<0 || src>=song.systemLen) {
+    lastError="invalid source index";
+    return false;
+  }
+  if (dest<0 || dest>=song.systemLen) {
+    lastError="invalid destination index";
+    return false;
+  }
+  //int chanCount=chans;
+  quitDispatch();
+  BUSY_BEGIN;
+  saveLock.lock();
+
+  if (!preserveOrder) {
+    // move channels
+    unsigned char unswappedChannels[DIV_MAX_CHANS];
+    unsigned char swappedChannels[DIV_MAX_CHANS];
+    std::vector<std::vector<int>> swapList;
+    std::vector<int> chanList;
+
+    int tchans=0;
+
+    for (int i=0; i<song.systemLen; i++) {
+      tchans+=getChannelCount(song.system[i]);
+    }
+
+    memset(unswappedChannels,0,DIV_MAX_CHANS);
+    memset(swappedChannels,0,DIV_MAX_CHANS);
+    
+    for (int i=0; i<tchans; i++) {
+      unswappedChannels[i]=i;
+    }
+
+    // prepare swap list
+    int index=0;
+    for (int i=0; i<song.systemLen; i++) {
+      chanList.clear();
+      for (int j=0; j<getChannelCount(song.system[i]); j++) {
+        chanList.push_back(index);
+        index++;
+      }
+      swapList.push_back(chanList);
+    }
+    swapList[src].swap(swapList[dest]);
+
+    // unfold it
+    index=0;
+    for (std::vector<int>& i: swapList) {
+      for (int& j: i) {
+        swappedChannels[index++]=j;
+      }
+    }
+
+    logV("swap list:");
+    for (int i=0; i<tchans; i++) {
+      logV("- %d -> %d",unswappedChannels[i],swappedChannels[i]);
+    }
+
+    // swap channels
+    bool allComplete=false;
+    while (!allComplete) {
+      logD("doing swap...");
+      allComplete=true;
+      for (int i=0; i<tchans; i++) {
+        if (unswappedChannels[i]!=swappedChannels[i]) {
+          swapChannels(i,swappedChannels[i]);
+          allComplete=false;
+          logD("> %d -> %d",unswappedChannels[i],unswappedChannels[swappedChannels[i]]);
+          unswappedChannels[i]^=unswappedChannels[swappedChannels[i]];
+          unswappedChannels[swappedChannels[i]]^=unswappedChannels[i];
+          unswappedChannels[i]^=unswappedChannels[swappedChannels[i]];
+        }
+      }
+    }
+  }
+
+  DivSystem srcSystem=song.system[src];
+
+  song.system[src]=song.system[dest];
+  song.system[dest]=srcSystem;
+
+  song.systemVol[src]^=song.systemVol[dest];
+  song.systemVol[dest]^=song.systemVol[src];
+  song.systemVol[src]^=song.systemVol[dest];
+
+  song.systemPan[src]^=song.systemPan[dest];
+  song.systemPan[dest]^=song.systemPan[src];
+  song.systemPan[src]^=song.systemPan[dest];
+
+  song.systemFlags[src]^=song.systemFlags[dest];
+  song.systemFlags[dest]^=song.systemFlags[src];
+  song.systemFlags[src]^=song.systemFlags[dest];
+
+  recalcChans();
+  saveLock.unlock();
+  BUSY_END;
+  initDispatch();
+  BUSY_BEGIN;
+  renderSamples();
+  reset();
+  BUSY_END;
+  return true;
+}
+
 void DivEngine::poke(int sys, unsigned int addr, unsigned short val) {
   if (sys<0 || sys>=song.systemLen) return;
   BUSY_BEGIN;
@@ -1653,6 +1770,15 @@ int DivEngine::calcFreq(int base, int pitch, bool period, int octave, int pitch2
   return period?
            base-pitch-pitch2:
            base+((pitch*octave)>>1)+pitch2;
+}
+
+int DivEngine::calcArp(int note, int arp, int offset) {
+  if (arp<0) {
+    if (!(arp&0x40000000)) return (arp|0x40000000)+offset;
+  } else {
+    if (arp&0x40000000) return (arp&(~0x40000000))+offset;
+  }
+  return note+arp;
 }
 
 int DivEngine::convertPanSplitToLinear(unsigned int val, unsigned char bits, int range) {
@@ -2192,11 +2318,13 @@ void DivEngine::delInstrument(int index) {
     song.ins.erase(song.ins.begin()+index);
     song.insLen=song.ins.size();
     for (int i=0; i<chans; i++) {
-      for (int j=0; j<256; j++) {
-        if (curPat[i].data[j]==NULL) continue;
-        for (int k=0; k<curSubSong->patLen; k++) {
-          if (curPat[i].data[j]->data[k][2]>index) {
-            curPat[i].data[j]->data[k][2]--;
+      for (size_t j=0; j<song.subsong.size(); j++) {
+        for (int k=0; k<256; k++) {
+          if (song.subsong[j]->pat[i].data[k]==NULL) continue;
+          for (int l=0; l<song.subsong[j]->patLen; l++) {
+            if (song.subsong[j]->pat[i].data[k]->data[l][2]>index) {
+              song.subsong[j]->pat[i].data[k]->data[l][2]--;
+            }
           }
         }
       }
@@ -2207,7 +2335,10 @@ void DivEngine::delInstrument(int index) {
 }
 
 int DivEngine::addWave() {
-  if (song.wave.size()>=256) return -1;
+  if (song.wave.size()>=256) {
+    lastError="too many wavetables!";
+    return -1;
+  }
   BUSY_BEGIN;
   saveLock.lock();
   DivWavetable* wave=new DivWavetable;
@@ -2219,50 +2350,62 @@ int DivEngine::addWave() {
   return waveCount;
 }
 
-bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
+int DivEngine::addWavePtr(DivWavetable* which) {
   if (song.wave.size()>=256) {
     lastError="too many wavetables!";
-    return false;
+    delete which;
+    return -1;
   }
+  BUSY_BEGIN;
+  saveLock.lock();
+  int waveCount=(int)song.wave.size();
+  song.wave.push_back(which);
+  song.waveLen=waveCount+1;
+  saveLock.unlock();
+  BUSY_END;
+  return song.waveLen;
+}
+
+DivWavetable* DivEngine::waveFromFile(const char* path, bool addRaw) {
   FILE* f=ps_fopen(path,"rb");
   if (f==NULL) {
     lastError=fmt::sprintf("%s",strerror(errno));
-    return false;
+    return NULL;
   }
   unsigned char* buf;
   ssize_t len;
   if (fseek(f,0,SEEK_END)!=0) {
     fclose(f);
     lastError=fmt::sprintf("could not seek to end: %s",strerror(errno));
-    return false;
+    return NULL;
   }
   len=ftell(f);
   if (len<0) {
     fclose(f);
     lastError=fmt::sprintf("could not determine file size: %s",strerror(errno));
-    return false;
+    return NULL;
   }
   if (len==(SIZE_MAX>>1)) {
     fclose(f);
     lastError="file size is invalid!";
-    return false;
+    return NULL;
   }
   if (len==0) {
     fclose(f);
     lastError="file is empty";
-    return false;
+    return NULL;
   }
   if (fseek(f,0,SEEK_SET)!=0) {
     fclose(f);
     lastError=fmt::sprintf("could not seek to beginning: %s",strerror(errno));
-    return false;
+    return NULL;
   }
   buf=new unsigned char[len];
   if (fread(buf,1,len,f)!=(size_t)len) {
     logW("did not read entire wavetable file buffer!");
     delete[] buf;
     lastError=fmt::sprintf("could not read entire file: %s",strerror(errno));
-    return false;
+    return NULL;
   }
   fclose(f);
 
@@ -2290,7 +2433,7 @@ bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
         lastError="invalid wavetable header/data!";
         delete wave;
         delete[] buf;
-        return false;
+        return NULL;
       }
     } else {
       try {
@@ -2331,7 +2474,7 @@ bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
           } else {
             delete wave;
             delete[] buf;
-            return false;
+            return NULL;
           }
         }
       } catch (EndOfFileException& e) {
@@ -2349,7 +2492,7 @@ bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
         } else {
           delete wave;
           delete[] buf;
-          return false;
+          return NULL;
         }
       }
     }
@@ -2357,17 +2500,10 @@ bool DivEngine::addWaveFromFile(const char* path, bool addRaw) {
     delete wave;
     delete[] buf;
     lastError="premature end of file";
-    return false;
+    return NULL;
   }
   
-  BUSY_BEGIN;
-  saveLock.lock();
-  int waveCount=(int)song.wave.size();
-  song.wave.push_back(wave);
-  song.waveLen=waveCount+1;
-  saveLock.unlock();
-  BUSY_END;
-  return true;
+  return wave;
 }
 
 void DivEngine::delWave(int index) {
@@ -2383,7 +2519,10 @@ void DivEngine::delWave(int index) {
 }
 
 int DivEngine::addSample() {
-  if (song.sample.size()>=256) return -1;
+  if (song.sample.size()>=256) {
+    lastError="too many samples!";
+    return -1;
+  }
   BUSY_BEGIN;
   saveLock.lock();
   DivSample* sample=new DivSample;
@@ -2400,10 +2539,27 @@ int DivEngine::addSample() {
   return sampleCount;
 }
 
-int DivEngine::addSampleFromFile(const char* path) {
+int DivEngine::addSamplePtr(DivSample* which) {
   if (song.sample.size()>=256) {
     lastError="too many samples!";
+    delete which;
     return -1;
+  }
+  int sampleCount=(int)song.sample.size();
+  BUSY_BEGIN;
+  saveLock.lock();
+  song.sample.push_back(which);
+  song.sampleLen=sampleCount+1;
+  saveLock.unlock();
+  renderSamples();
+  BUSY_END;
+  return sampleCount;
+}
+
+DivSample* DivEngine::sampleFromFile(const char* path) {
+  if (song.sample.size()>=256) {
+    lastError="too many samples!";
+    return NULL;
   }
   BUSY_BEGIN;
   warnings="";
@@ -2437,7 +2593,6 @@ int DivEngine::addSampleFromFile(const char* path) {
     if (extS==".dmc") { // read as .dmc
       size_t len=0;
       DivSample* sample=new DivSample;
-      int sampleCount=(int)song.sample.size();
       sample->name=stripPath;
 
       FILE* f=ps_fopen(path,"rb");
@@ -2445,7 +2600,7 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError=fmt::sprintf("could not open file! (%s)",strerror(errno));
         delete sample;
-        return -1;
+        return NULL;
       }
 
       if (fseek(f,0,SEEK_END)<0) {
@@ -2453,7 +2608,7 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError=fmt::sprintf("could not get file length! (%s)",strerror(errno));
         delete sample;
-        return -1;
+        return NULL;
       }
 
       len=ftell(f);
@@ -2463,7 +2618,7 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError="file is empty!";
         delete sample;
-        return -1;
+        return NULL;
       }
 
       if (len==(SIZE_MAX>>1)) {
@@ -2471,7 +2626,7 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError="file is invalid!";
         delete sample;
-        return -1;
+        return NULL;
       }
 
       if (fseek(f,0,SEEK_SET)<0) {
@@ -2479,7 +2634,7 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError=fmt::sprintf("could not seek to beginning of file! (%s)",strerror(errno));
         delete sample;
-        return -1;
+        return NULL;
       }
 
       sample->rate=33144;
@@ -2492,22 +2647,16 @@ int DivEngine::addSampleFromFile(const char* path) {
         BUSY_END;
         lastError=fmt::sprintf("could not read file! (%s)",strerror(errno));
         delete sample;
-        return -1;
+        return NULL;
       }
-
-      saveLock.lock();
-      song.sample.push_back(sample);
-      song.sampleLen=sampleCount+1;
-      saveLock.unlock();
-      renderSamples();
       BUSY_END;
-      return sampleCount;
+      return sample;
     }
   }
 
 #ifndef HAVE_SNDFILE
   lastError="Furnace was not compiled with libsndfile!";
-  return -1;
+  return NULL;
 #else
   SF_INFO si;
   SFWrapper sfWrap;
@@ -2519,15 +2668,15 @@ int DivEngine::addSampleFromFile(const char* path) {
     if (err==SF_ERR_SYSTEM) {
       lastError=fmt::sprintf("could not open file! (%s %s)",sf_error_number(err),strerror(errno));
     } else {
-      lastError=fmt::sprintf("could not open file! (%s)",sf_error_number(err));
+      lastError=fmt::sprintf("could not open file! (%s)\nif this is raw sample data, you may import it by right-clicking the Load Sample icon and selecting \"import raw\".",sf_error_number(err));
     }
-    return -1;
+    return NULL;
   }
   if (si.frames>16777215) {
     lastError="this sample is too big! max sample size is 16777215.";
     sfWrap.doClose();
     BUSY_END;
-    return -1;
+    return NULL;
   }
   void* buf=NULL;
   sf_count_t sampleLen=sizeof(short);
@@ -2628,14 +2777,179 @@ int DivEngine::addSampleFromFile(const char* path) {
   if (sample->centerRate<4000) sample->centerRate=4000;
   if (sample->centerRate>64000) sample->centerRate=64000;
   sfWrap.doClose();
-  saveLock.lock();
-  song.sample.push_back(sample);
-  song.sampleLen=sampleCount+1;
-  saveLock.unlock();
-  renderSamples();
   BUSY_END;
-  return sampleCount;
+  return sample;
 #endif
+}
+
+DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign) {
+  if (song.sample.size()>=256) {
+    lastError="too many samples!";
+    return NULL;
+  }
+  if (channels<1) {
+    lastError="invalid channel count";
+    return NULL;
+  }
+  if (depth!=DIV_SAMPLE_DEPTH_8BIT && depth!=DIV_SAMPLE_DEPTH_16BIT) {
+    if (channels!=1) {
+      lastError="channel count has to be 1 for non-8/16-bit format";
+      return NULL;
+    }
+  }
+  BUSY_BEGIN;
+  warnings="";
+
+  const char* pathRedux=strrchr(path,DIR_SEPARATOR);
+  if (pathRedux==NULL) {
+    pathRedux=path;
+  } else {
+    pathRedux++;
+  }
+  String stripPath;
+  const char* pathReduxEnd=strrchr(pathRedux,'.');
+  if (pathReduxEnd==NULL) {
+    stripPath=pathRedux;
+  } else {
+    for (const char* i=pathRedux; i!=pathReduxEnd && (*i); i++) {
+      stripPath+=*i;
+    }
+  }
+
+  size_t len=0;
+  size_t lenDivided=0;
+  DivSample* sample=new DivSample;
+  sample->name=stripPath;
+
+  FILE* f=ps_fopen(path,"rb");
+  if (f==NULL) {
+    BUSY_END;
+    lastError=fmt::sprintf("could not open file! (%s)",strerror(errno));
+    delete sample;
+    return NULL;
+  }
+
+  if (fseek(f,0,SEEK_END)<0) {
+    fclose(f);
+    BUSY_END;
+    lastError=fmt::sprintf("could not get file length! (%s)",strerror(errno));
+    delete sample;
+    return NULL;
+  }
+
+  len=ftell(f);
+
+  if (len==0) {
+    fclose(f);
+    BUSY_END;
+    lastError="file is empty!";
+    delete sample;
+    return NULL;
+  }
+
+  if (len==(SIZE_MAX>>1)) {
+    fclose(f);
+    BUSY_END;
+    lastError="file is invalid!";
+    delete sample;
+    return NULL;
+  }
+
+  if (fseek(f,0,SEEK_SET)<0) {
+    fclose(f);
+    BUSY_END;
+    lastError=fmt::sprintf("could not seek to beginning of file! (%s)",strerror(errno));
+    delete sample;
+    return NULL;
+  }
+
+  lenDivided=len/channels;
+
+  unsigned int samples=lenDivided;
+  switch (depth) {
+    case DIV_SAMPLE_DEPTH_1BIT:
+    case DIV_SAMPLE_DEPTH_1BIT_DPCM:
+      samples=lenDivided*8;
+      break;
+    case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
+    case DIV_SAMPLE_DEPTH_QSOUND_ADPCM:
+    case DIV_SAMPLE_DEPTH_ADPCM_A:
+    case DIV_SAMPLE_DEPTH_ADPCM_B:
+    case DIV_SAMPLE_DEPTH_VOX:
+      samples=lenDivided*2;
+      break;
+    case DIV_SAMPLE_DEPTH_8BIT:
+      samples=lenDivided;
+      break;
+    case DIV_SAMPLE_DEPTH_BRR:
+      samples=16*((lenDivided+8)/9);
+      break;
+    case DIV_SAMPLE_DEPTH_16BIT:
+      samples=(lenDivided+1)/2;
+      break;
+    default:
+      break;
+  }
+
+  if (samples>16777215) {
+    fclose(f);
+    BUSY_END;
+    lastError="this sample is too big! max sample size is 16777215.";
+    delete sample;
+    return NULL;
+  }
+
+  sample->rate=32000;
+  sample->centerRate=32000;
+  sample->depth=depth;
+  sample->init(samples);
+
+  unsigned char* buf=new unsigned char[len];
+  if (fread(buf,1,len,f)==0) {
+    fclose(f);
+    BUSY_END;
+    lastError=fmt::sprintf("could not read file! (%s)",strerror(errno));
+    delete[] buf;
+    delete sample;
+    return NULL;
+  }
+
+  fclose(f);
+
+  // import sample
+  size_t pos=0;
+  if (depth==DIV_SAMPLE_DEPTH_16BIT) {
+    for (unsigned int i=0; i<samples; i++) {
+      int accum=0;
+      for (int j=0; j<channels; j++) {
+        if (pos+1>=len) break;
+        if (bigEndian) {
+          accum+=(short)(((short)((buf[pos]<<8)|buf[pos+1]))^(unsign?0x8000:0));
+        } else {
+          accum+=(short)(((short)(buf[pos]|(buf[pos+1]<<8)))^(unsign?0x8000:0));
+        }
+        pos+=2;
+      }
+      accum/=channels;
+      sample->data16[i]=accum;
+    }
+  } else if (depth==DIV_SAMPLE_DEPTH_8BIT) {
+    for (unsigned int i=0; i<samples; i++) {
+      int accum=0;
+      for (int j=0; j<channels; j++) {
+        if (pos>=len) break;
+        accum+=(signed char)(buf[pos++]^(unsign?0x80:0));
+      }
+      accum/=channels;
+      sample->data8[i]=accum;
+    }
+  } else {
+    memcpy(sample->getCurBuf(),buf,len);
+  }
+  delete[] buf;
+
+  BUSY_END;
+  return sample;
 }
 
 void DivEngine::delSample(int index) {
@@ -2816,13 +3130,15 @@ void DivEngine::moveOrderDown() {
 
 void DivEngine::exchangeIns(int one, int two) {
   for (int i=0; i<chans; i++) {
-    for (int j=0; j<256; j++) {
-      if (curPat[i].data[j]==NULL) continue;
-      for (int k=0; k<curSubSong->patLen; k++) {
-        if (curPat[i].data[j]->data[k][2]==one) {
-          curPat[i].data[j]->data[k][2]=two;
-        } else if (curPat[i].data[j]->data[k][2]==two) {
-          curPat[i].data[j]->data[k][2]=one;
+    for (size_t j=0; j<song.subsong.size(); j++) {
+      for (int k=0; k<256; k++) {
+        if (song.subsong[j]->pat[i].data[k]==NULL) continue;
+        for (int l=0; l<curSubSong->patLen; l++) {
+          if (song.subsong[j]->pat[i].data[k]->data[l][2]==one) {
+            song.subsong[j]->pat[i].data[k]->data[l][2]=two;
+          } else if (song.subsong[j]->pat[i].data[k]->data[l][2]==two) {
+            song.subsong[j]->pat[i].data[k]->data[l][2]=one;
+          }
         }
       }
     }
@@ -2912,7 +3228,7 @@ bool DivEngine::moveSampleDown(int which) {
 void DivEngine::noteOn(int chan, int ins, int note, int vol) {
   if (chan<0 || chan>=chans) return;
   BUSY_BEGIN;
-  pendingNotes.push(DivNoteEvent(chan,ins,note,vol,true));
+  pendingNotes.push_back(DivNoteEvent(chan,ins,note,vol,true));
   if (!playing) {
     reset();
     freelance=true;
@@ -2924,7 +3240,7 @@ void DivEngine::noteOn(int chan, int ins, int note, int vol) {
 void DivEngine::noteOff(int chan) {
   if (chan<0 || chan>=chans) return;
   BUSY_BEGIN;
-  pendingNotes.push(DivNoteEvent(chan,-1,-1,-1,false));
+  pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false));
   if (!playing) {
     reset();
     freelance=true;
@@ -2976,7 +3292,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
     if ((!midiPoly) || (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel))) {
       chan[finalChan].midiNote=note;
       chan[finalChan].midiAge=midiAgeCounter++;
-      pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
+      pendingNotes.push_back(DivNoteEvent(finalChan,ins,note,vol,true));
       return;
     }
     if (++finalChan>=chans) {
@@ -2997,7 +3313,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
 
   chan[candidate].midiNote=note;
   chan[candidate].midiAge=midiAgeCounter++;
-  pendingNotes.push(DivNoteEvent(candidate,ins,note,vol,true));
+  pendingNotes.push_back(DivNoteEvent(candidate,ins,note,vol,true));
 }
 
 void DivEngine::autoNoteOff(int ch, int note, int vol) {
@@ -3009,7 +3325,7 @@ void DivEngine::autoNoteOff(int ch, int note, int vol) {
   //if (ch<0 || ch>=chans) return;
   for (int i=0; i<chans; i++) {
     if (chan[i].midiNote==note) {
-      pendingNotes.push(DivNoteEvent(i,-1,-1,-1,false));
+      pendingNotes.push_back(DivNoteEvent(i,-1,-1,-1,false));
       chan[i].midiNote=-1;
     }
   }
@@ -3023,7 +3339,7 @@ void DivEngine::autoNoteOffAll() {
   }
   for (int i=0; i<chans; i++) {
     if (chan[i].midiNote!=-1) {
-      pendingNotes.push(DivNoteEvent(i,-1,-1,-1,false));
+      pendingNotes.push_back(DivNoteEvent(i,-1,-1,-1,false));
       chan[i].midiNote=-1;
     }
   }

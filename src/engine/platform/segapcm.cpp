@@ -26,15 +26,6 @@
 //#define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 //#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-const char* DivPlatformSegaPCM::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x20:
-      return "20xx: Set PCM frequency";
-      break; 
-  }
-  return NULL;
-}
-
 void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
 
@@ -97,18 +88,9 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
 
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=(chan[i].std.arp.val<<6);
-        } else {
-          chan[i].baseFreq=((chan[i].note+(signed char)chan[i].std.arp.val)<<6);
-        }
+        chan[i].baseFreq=(parent->calcArp(chan[i].note,chan[i].std.arp.val)<<6);
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=(chan[i].note<<6);
-        chan[i].freqChanged=true;
-      }
     }
 
     if (chan[i].std.panL.had) {

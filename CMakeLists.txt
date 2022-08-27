@@ -23,6 +23,7 @@ set(USE_SNDFILE_DEFAULT ON)
 set(SYSTEM_SDL2_DEFAULT OFF)
 
 include(CheckIncludeFile)
+include(TestBigEndian)
 
 if (ANDROID)
   set(USE_RTMIDI_DEFAULT OFF)
@@ -72,9 +73,15 @@ option(WITH_INSTRUMENTS "Install instruments" ON)
 set(DEPENDENCIES_INCLUDE_DIRS "")
 
 if (ANDROID AND NOT TERMUX)
-set(DEPENDENCIES_DEFINES "IS_MOBILE")
+  set(DEPENDENCIES_DEFINES "IS_MOBILE")
 else()
-set(DEPENDENCIES_DEFINES "")
+  set(DEPENDENCIES_DEFINES "")
+endif()
+
+TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
+
+if (IS_BIG_ENDIAN)
+  list(APPEND DEPENDENCIES_DEFINES "TA_BIG_ENDIAN")
 endif()
 
 set(DEPENDENCIES_COMPILE_OPTIONS "")
@@ -531,6 +538,7 @@ src/gui/midiMap.cpp
 src/gui/newSong.cpp
 src/gui/orders.cpp
 src/gui/osc.cpp
+src/gui/patManager.cpp
 src/gui/pattern.cpp
 src/gui/piano.cpp
 src/gui/presets.cpp
@@ -544,6 +552,8 @@ src/gui/stats.cpp
 src/gui/subSongs.cpp
 src/gui/sysConf.cpp
 src/gui/sysEx.cpp
+src/gui/sysManager.cpp
+src/gui/sysPicker.cpp
 src/gui/util.cpp
 src/gui/waveEdit.cpp
 src/gui/volMeter.cpp

@@ -50,27 +50,6 @@ const char** DivPlatformSwan::getRegisterSheet() {
   return regCheatSheetWS;
 }
 
-const char* DivPlatformSwan::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-    case 0x11:
-      return "11xx: Setup noise mode (0: disabled; 1-8: enabled/tap)";
-      break;
-    case 0x12:
-      return "12xx: Setup sweep period (0: disabled; 1-20: enabled/period)";
-      break;
-    case 0x13:
-      return "13xx: Set sweep amount";
-      break;
-    case 0x17:
-      return "17xx: Toggle PCM mode";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformSwan::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     // PCM part
@@ -155,18 +134,9 @@ void DivPlatformSwan::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.wave.had && !(i==1 && pcm)) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {

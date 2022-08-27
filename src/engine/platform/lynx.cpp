@@ -130,19 +130,6 @@ const char** DivPlatformLynx::getRegisterSheet() {
   return regCheatSheetLynx;
 }
 
-const char* DivPlatformLynx::getEffectName(unsigned char effect) {
-  switch (effect)
-  {
-  case 0x30: case 0x31: case 0x32: case 0x33:
-  case 0x34: case 0x35: case 0x36: case 0x37:
-  case 0x38: case 0x39: case 0x3a: case 0x3b:
-  case 0x3c: case 0x3d: case 0x3e: case 0x3f:
-    return "3xxx: Load LFSR (0 to FFF)";
-    break;
-  }
-  return NULL;
-}
-
 void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     for (int i=0; i<4; i++) {
@@ -186,22 +173,9 @@ void DivPlatformLynx::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-          if (chan[i].pcm) chan[i].sampleBaseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-          chan[i].actualNote=chan[i].std.arp.val;
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-          if (chan[i].pcm) chan[i].sampleBaseFreq=NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
-          chan[i].actualNote=chan[i].note+chan[i].std.arp.val;
-        }
-        chan[i].freqChanged=true;
-      }
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        if (chan[i].pcm) chan[i].sampleBaseFreq=NOTE_FREQUENCY(chan[i].note);
-        chan[i].actualNote=chan[i].note;
+        chan[i].actualNote=parent->calcArp(chan[i].note,chan[i].std.arp.val);
+        chan[i].baseFreq=NOTE_PERIODIC(chan[i].actualNote);
+        if (chan[i].pcm) chan[i].sampleBaseFreq=NOTE_FREQUENCY(chan[i].actualNote);
         chan[i].freqChanged=true;
       }
     }

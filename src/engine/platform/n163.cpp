@@ -108,51 +108,6 @@ const char** DivPlatformN163::getRegisterSheet() {
   return regCheatSheetN163;
 }
 
-const char* DivPlatformN163::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Select waveform";
-      break;
-    case 0x11:
-      return "11xx: Set waveform position in RAM (single nibble unit)";
-      break;
-    case 0x12:
-      return "12xx: Set waveform length in RAM (04 to FC, 4 nibble unit)";
-      break;
-    case 0x13:
-      return "130x: Change waveform update mode (0: off, bit 0: update now, bit 1: update when every waveform changes)";
-      break;
-    case 0x14:
-      return "14xx: Select waveform for load to RAM";
-      break;
-    case 0x15:
-      return "15xx: Set waveform position for load to RAM (single nibble unit)";
-      break;
-    case 0x16:
-      return "16xx: Set waveform length for load to RAM (04 to FC, 4 nibble unit)";
-      break;
-    case 0x17:
-      return "170x: Change waveform load mode (0: off, bit 0: load now, bit 1: load when every waveform changes)";
-      break;
-    case 0x18:
-      return "180x: Change channel limits (0 to 7, x + 1)";
-      break;
-    case 0x20:
-      return "20xx: (Global) Select waveform for load to RAM";
-      break;
-    case 0x21:
-      return "21xx: (Global) Set waveform position for load to RAM (single nibble unit)";
-      break;
-    case 0x22:
-      return "22xx: (Global) Set waveform length for load to RAM (04 to FC, 4 nibble unit)";
-      break;
-    case 0x23:
-      return "230x: (Global) Change waveform load mode (0: off, bit 0: load now, bit 1: load when every waveform changes)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformN163::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     n163.tick();
@@ -234,18 +189,9 @@ void DivPlatformN163::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+(signed char)chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       if (chan[i].wavePos!=chan[i].std.duty.val) {

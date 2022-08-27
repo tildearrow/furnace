@@ -62,52 +62,6 @@ const char** DivPlatformC64::getRegisterSheet() {
   return regCheatSheetSID;
 }
 
-const char* DivPlatformC64::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Set waveform (bit 0: triangle; bit 1: saw; bit 2: pulse; bit 3: noise)";
-      break;
-    case 0x11:
-      return "11xx: Set coarse cutoff (not recommended; use 4xxx instead)";
-      break;
-    case 0x12:
-      return "12xx: Set coarse pulse width (not recommended; use 3xxx instead)";
-      break;
-    case 0x13:
-      return "13xx: Set resonance (0 to F)";
-      break;
-    case 0x14:
-      return "14xx: Set filter mode (bit 0: low pass; bit 1: band pass; bit 2: high pass)";
-      break;
-    case 0x15:
-      return "15xx: Set envelope reset time";
-      break;
-    case 0x1a:
-      return "1Axx: Disable envelope reset for this channel (1 disables; 0 enables)";
-      break;
-    case 0x1b:
-      return "1Bxy: Reset cutoff (x: on new note; y: now)";
-      break;
-    case 0x1c:
-      return "1Cxy: Reset pulse width (x: on new note; y: now)";
-      break;
-    case 0x1e:
-      return "1Exy: Change additional parameters";
-      break;
-    case 0x30: case 0x31: case 0x32: case 0x33:
-    case 0x34: case 0x35: case 0x36: case 0x37:
-    case 0x38: case 0x39: case 0x3a: case 0x3b:
-    case 0x3c: case 0x3d: case 0x3e: case 0x3f:
-      return "3xxx: Set pulse width (0 to FFF)";
-      break;
-    case 0x40: case 0x41: case 0x42: case 0x43:
-    case 0x44: case 0x45: case 0x46: case 0x47:
-      return "4xxx: Set cutoff (0 to 7FF)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformC64::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   int dcOff=sid.get_dc(0);
   for (size_t i=start; i<start+len; i++) {
@@ -150,18 +104,9 @@ void DivPlatformC64::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+(signed char)chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);

@@ -27,18 +27,6 @@ const char** DivPlatformZXBeeper::getRegisterSheet() {
   return NULL;
 }
 
-const char* DivPlatformZXBeeper::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x12:
-      return "12xx: Set pulse width";
-      break;
-    case 0x17:
-      return "17xx: Trigger overlay drum";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   bool o=false;
   for (size_t h=start; h<start+len; h++) {
@@ -93,18 +81,9 @@ void DivPlatformZXBeeper::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {

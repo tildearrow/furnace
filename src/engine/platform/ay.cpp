@@ -73,42 +73,6 @@ const char** DivPlatformAY8910::getRegisterSheet() {
   return intellivision?regCheatSheetAY8914:regCheatSheetAY;
 }
 
-const char* DivPlatformAY8910::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x20:
-      return "20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)";
-      break;
-    case 0x21:
-      return "21xx: Set noise frequency (0 to 1F)";
-      break;
-    case 0x22:
-      return "22xy: Set envelope mode (x: shape, y: enable for this channel)";
-      break;
-    case 0x23:
-      return "23xx: Set envelope period low byte";
-      break;
-    case 0x24:
-      return "24xx: Set envelope period high byte";
-      break;
-    case 0x25:
-      return "25xx: Envelope slide up";
-      break;
-    case 0x26:
-      return "26xx: Envelope slide down";
-      break;
-    case 0x29:
-      return "29xy: Set auto-envelope (x: numerator; y: denominator)";
-      break;
-    case 0x2e:
-      return "2Exx: Write to I/O port A";
-      break;
-    case 0x2f:
-      return "2Fxx: Write to I/O port B";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   if (ayBufLen<len) {
     ayBufLen=len;
@@ -132,6 +96,7 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
           end=true;
           break;
         }
+        // Partially
         unsigned char dacData=(((unsigned char)s->data8[chan[i].dac.pos]^0x80)>>4);
         chan[i].dac.out=MAX(0,MIN(15,(dacData*chan[i].outVol)/15));
         if (prev_out!=chan[i].dac.out) {
@@ -237,18 +202,9 @@ void DivPlatformAY8910::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       rWrite(0x06,31-chan[i].std.duty.val);
