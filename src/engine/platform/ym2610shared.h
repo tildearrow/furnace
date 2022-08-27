@@ -44,8 +44,7 @@ class DivYM2610Interface: public ymfm::ymfm_interface {
       sampleBank(0) {}
 };
 
-template<int ChanNum>
-class DivPlatformYM2610Base: public DivPlatformOPN {
+template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
   protected:
     struct Channel {
       DivInstrumentFM state;
