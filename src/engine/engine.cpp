@@ -2764,6 +2764,7 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
     sample->centerRate=si.samplerate*pow(2.0,pitch/(12.0 * 100.0));
     if(inst.loop_count && inst.loops[0].mode >= SF_LOOP_FORWARD)
     {
+      sample->loop=true;
       sample->loopMode=(DivSampleLoopMode)(inst.loops[0].mode-SF_LOOP_FORWARD);
       sample->loopStart=inst.loops[0].start;
       sample->loopEnd=inst.loops[0].end;
