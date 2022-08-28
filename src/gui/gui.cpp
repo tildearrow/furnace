@@ -1593,6 +1593,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
 int FurnaceGUI::save(String path, int dmfVersion) {
   SafeWriter* w;
   if (dmfVersion) {
+    if (dmfVersion<24) dmfVersion=24;
     w=e->saveDMF(dmfVersion);
   } else {
     w=e->saveFur();
