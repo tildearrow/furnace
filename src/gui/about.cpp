@@ -133,6 +133,8 @@ const char* aboutLine[]={
   "puNES (NES, MMC5 and FDS) by FHorse",
   "NSFPlay (NES and FDS) by Brad Smith and Brezza",
   "reSID by Dag Lem",
+  "reSIDfp by Dag Lem, Antti Lankila",
+  "and Leandro Nini",
   "Stella by Stella Team",
   "QSound emulator by superctr and Valley Bell",
   "VICE VIC-20 sound core by Rami Rasanen and viznut",
