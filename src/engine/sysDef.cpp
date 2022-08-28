@@ -597,7 +597,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_GENESIS_EXT]=new DivSysDef(
-    "Sega Genesis Special Mode", NULL, 0x42, 0x42, 13, true, true, 0, true,
+    "Sega Genesis Extended Channel 3", NULL, 0x42, 0x42, 13, true, true, 0, true,
     "<COMPOUND SYSTEM!>",
     {}, {}, {}, {}
   );
@@ -727,8 +727,8 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2610_EXT]=new DivSysDef(
-    "Neo Geo CD Special Mode", NULL, 0x49, 0x49, 16, true, true, 0x151, false,
-    "like Neo Geo, but lacking the ADPCM-B channel since they couldn't connect the pins.\nthis one is in Special mode, which turns the second FM channel into four operators with independent notes/frequencies.",
+    "Neo Geo CD Extended Channel 2", NULL, 0x49, 0x49, 16, true, true, 0x151, false,
+    "like Neo Geo, but lacking the ADPCM-B channel since they couldn't connect the pins.\nthis one is in Extended Channel mode, which turns the second FM channel into four operators with independent notes/frequencies.",
     {"FM 1", "FM 2 OP1", "FM 2 OP2", "FM 2 OP3", "FM 2 OP4", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6"},
     {"F1", "O1", "O2", "O3", "O4", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6"},
     {DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
@@ -956,8 +956,8 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPN_EXT]=new DivSysDef(
-    "Yamaha YM2203 (OPN) Special Mode", NULL, 0xb6, 0, 9, true, true, 0x151, false,
-    "cost-reduced version of the OPM with a different register layout and no stereo...\n...but it has a built-in AY-3-8910! (actually an YM2149)\nthis one is in Special mode, which turns the third FM channel into four operators with independent notes/frequencies",
+    "Yamaha YM2203 (OPN) Extended Channel 3", NULL, 0xb6, 0, 9, true, true, 0x151, false,
+    "cost-reduced version of the OPM with a different register layout and no stereo...\n...but it has a built-in AY-3-8910! (actually an YM2149)\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "PSG 1", "PSG 2", "PSG 3"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "S1", "S2", "S3"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
@@ -980,8 +980,8 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_PC98_EXT]=new DivSysDef(
-    "Yamaha YM2608 (OPNA) Special Mode", NULL, 0xb7, 0, 19, true, true, 0x151, false,
-    "OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.\nthis one is in Special mode, which turns the third FM channel into four operators with independent notes/frequencies",
+    "Yamaha YM2608 (OPNA) Extended Channel 3", NULL, 0xb7, 0, 19, true, true, 0x151, false,
+    "OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "ADPCM"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "S1", "S2", "S3", "BD", "SD", "TP", "HH", "TM", "RM", "P"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_PCM},
@@ -1163,8 +1163,8 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2612_EXT]=new DivSysDef(
-    "Yamaha YM2612 (OPN2) Special Mode", NULL, 0xa0, 0, 9, true, false, 0x150, false,
-    "this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).\nthis one is in Special mode, which turns the third FM channel into four operators with independent notes/frequencies.",
+    "Yamaha YM2612 (OPN2) Extended Channel 3", NULL, 0xa0, 0, 9, true, false, 0x150, false,
+    "this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies.",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
@@ -1234,8 +1234,8 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2610_FULL_EXT]=new DivSysDef(
-    "Yamaha YM2610 (OPNB) Special Mode", NULL, 0xa6, 0, 17, true, false, 0x151, false,
-    "this chip was used in SNK's Neo Geo arcade board and video game console.\nit's like OPNA but the rhythm channels are ADPCM channels and two FM channels went missing.\nthis one is in Special mode, which turns the second FM channel into four operators with independent notes/frequencies.",
+    "Yamaha YM2610 (OPNB) Extended Channel 2", NULL, 0xa6, 0, 17, true, false, 0x151, false,
+    "this chip was used in SNK's Neo Geo arcade board and video game console.\nit's like OPNA but the rhythm channels are ADPCM channels and two FM channels went missing.\nthis one is in Extended Channel mode, which turns the second FM channel into four operators with independent notes/frequencies.",
     {"FM 1", "FM 2 OP1", "FM 2 OP2", "FM 2 OP3", "FM 2 OP4", "FM 3", "FM 4", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
     {"F1", "O1", "O2", "O3", "O4", "F3", "F4", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
     {DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
@@ -1370,7 +1370,7 @@ void DivEngine::registerSystems() {
 
   // to Grauw: feel free to change this to 24 during development of OPL4's PCM part.
   sysDefs[DIV_SYSTEM_OPL4]=new DivSysDef(
-    "Yamaha YMF278 (OPL4)", NULL, 0xae, 0, 42, true, true, 0, false,
+    "Yamaha YMF278B (OPL4)", NULL, 0xae, 0, 42, true, true, 0, false,
     "like OPL3, but this time it also has a 24-channel version of MultiPCM.",
     {"4OP 1", "FM 2", "4OP 3", "FM 4", "4OP 5", "FM 6", "4OP 7", "FM 8", "4OP 9", "FM 10", "4OP 11", "FM 12", "FM 13", "FM 14", "FM 15", "FM 16", "FM 17", "FM 18", "PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5", "PCM 6", "PCM 7", "PCM 8", "PCM 9", "PCM 10", "PCM 11", "PCM 12", "PCM 13", "PCM 14", "PCM 15", "PCM 16", "PCM 17", "PCM 18", "PCM 19", "PCM 20", "PCM 21", "PCM 22", "PCM 23", "PCM 24"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15", "F16", "F17", "F18", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P8", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18", "P19", "P20", "P21", "P22", "P23", "P24"},
@@ -1379,7 +1379,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPL4_DRUMS]=new DivSysDef(
-    "Yamaha YMF278 (OPL4) with drums", NULL, 0xaf, 0, 44, true, true, 0, false,
+    "Yamaha YMF278B (OPL4) with drums", NULL, 0xaf, 0, 44, true, true, 0, false,
     "the OPL4 but with drums mode turned on.",
     {"4OP 1", "FM 2", "4OP 3", "FM 4", "4OP 5", "FM 6", "4OP 7", "FM 8", "4OP 9", "FM 10", "4OP 11", "FM 12", "FM 13", "FM 14", "FM 15", "Kick/FM 16", "Snare", "Tom", "Top", "HiHat", "PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5", "PCM 6", "PCM 7", "PCM 8", "PCM 9", "PCM 10", "PCM 11", "PCM 12", "PCM 13", "PCM 14", "PCM 15", "PCM 16", "PCM 17", "PCM 18", "PCM 19", "PCM 20", "PCM 21", "PCM 22", "PCM 23", "PCM 24"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15", "BD", "SD", "TM", "TP", "HH", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P8", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18", "P19", "P20", "P21", "P22", "P23", "P24"},
