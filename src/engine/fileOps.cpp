@@ -4155,7 +4155,25 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
 
     // safety check
     if (!isFMSystem(sys) && i->type!=DIV_INS_STD && i->type!=DIV_INS_FDS) {
-      i->type=DIV_INS_STD;
+      switch (song.system[0]) {
+        case DIV_SYSTEM_GB:
+          i->type=DIV_INS_GB;
+          break;
+        case DIV_SYSTEM_C64_6581:
+        case DIV_SYSTEM_C64_8580:
+          i->type=DIV_INS_C64;
+          break;
+        case DIV_SYSTEM_PCE:
+          i->type=DIV_INS_PCE;
+          break;
+        case DIV_SYSTEM_YM2610:
+        case DIV_SYSTEM_YM2610_EXT:
+          i->type=DIV_INS_AY;
+          break;
+        default:
+          i->type=DIV_INS_STD;
+          break;
+      }
     }
     if (!isSTDSystem(sys) && i->type!=DIV_INS_FM) {
       i->type=DIV_INS_FM;
