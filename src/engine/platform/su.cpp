@@ -552,7 +552,7 @@ void DivPlatformSoundUnit::renderSamples() {
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (s->data8==NULL) continue;
-    int paddedLen=s->getEndPosition();
+    int paddedLen=s->length8;
     if (memPos>=getSampleMemCapacity(0)) {
       logW("out of PCM memory for sample %d!",i);
       break;

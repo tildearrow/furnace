@@ -84,9 +84,9 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
           rWritePCMData(tmp_r&0xff);
         }
         chan[16].pcm.pos++;
-        if (s->isLoopable() && chan[16].pcm.pos>=(unsigned int)s->getLoopEndPosition()) {
-          chan[16].pcm.pos=s->getLoopStartPosition();
-        } else if (chan[16].pcm.pos>=(unsigned int)s->getEndPosition()) {
+        if (s->isLoopable() && chan[16].pcm.pos>=(unsigned int)s->loopEnd) {
+          chan[16].pcm.pos=s->loopStart;
+        } else if (chan[16].pcm.pos>=s->samples) {
           chan[16].pcm.sample=-1;
           break;
         }

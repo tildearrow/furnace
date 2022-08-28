@@ -1334,19 +1334,19 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         samp_prevSample=samp_temp;
 
         if (sPreview.dir) { // backward
-          if (sPreview.pos<s->getLoopStartPosition() || (sPreview.pBegin>=0 && sPreview.pos<sPreview.pBegin)) {
-            if (s->isLoopable() && sPreview.pos<s->getLoopEndPosition()) {
+          if (sPreview.pos<s->loopStart || (sPreview.pBegin>=0 && sPreview.pos<sPreview.pBegin)) {
+            if (s->isLoopable() && sPreview.pos<s->loopEnd) {
               switch (s->loopMode) {
                 case DivSampleLoopMode::DIV_SAMPLE_LOOP_FORWARD:
-                  sPreview.pos=s->getLoopStartPosition();
+                  sPreview.pos=s->loopStart;
                   sPreview.dir=false;
                   break;
                 case DivSampleLoopMode::DIV_SAMPLE_LOOP_BACKWARD:
-                  sPreview.pos=s->getLoopEndPosition()-1;
+                  sPreview.pos=s->loopEnd-1;
                   sPreview.dir=true;
                   break;
                 case DivSampleLoopMode::DIV_SAMPLE_LOOP_PINGPONG:
-                  sPreview.pos=s->getLoopStartPosition();
+                  sPreview.pos=s->loopStart;
                   sPreview.dir=false;
                   break;
                 default:
@@ -1355,19 +1355,19 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
             }
           }
         } else { // forward
-          if (sPreview.pos>=s->getLoopEndPosition() || (sPreview.pEnd>=0 && sPreview.pos>=sPreview.pEnd)) {
-            if (s->isLoopable() && sPreview.pos>=s->getLoopStartPosition()) {
+          if (sPreview.pos>=s->loopEnd || (sPreview.pEnd>=0 && sPreview.pos>=sPreview.pEnd)) {
+            if (s->isLoopable() && sPreview.pos>=s->loopStart) {
               switch (s->loopMode) {
                 case DivSampleLoopMode::DIV_SAMPLE_LOOP_FORWARD:
-                  sPreview.pos=s->getLoopStartPosition();
+                  sPreview.pos=s->loopStart;
                   sPreview.dir=false;
                   break;
                 case DivSampleLoopMode::DIV_SAMPLE_LOOP_BACKWARD:
-                  sPreview.pos=s->getLoopEndPosition()-1;
+                  sPreview.pos=s->loopEnd-1;
                   sPreview.dir=true;
                   break;
                 case DivSampleLoopMode::DIV_SAMPLE_LOOP_PINGPONG:
-                  sPreview.pos=s->getLoopEndPosition()-1;
+                  sPreview.pos=s->loopEnd-1;
                   sPreview.dir=true;
                   break;
                 default:
@@ -1378,19 +1378,19 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         }
       }
       if (sPreview.dir) { // backward
-        if (sPreview.pos<=s->getLoopStartPosition() || (sPreview.pBegin>=0 && sPreview.pos<=sPreview.pBegin)) {
-          if (s->isLoopable() && sPreview.pos>=s->getLoopStartPosition()) {
+        if (sPreview.pos<=s->loopStart || (sPreview.pBegin>=0 && sPreview.pos<=sPreview.pBegin)) {
+          if (s->isLoopable() && sPreview.pos>=s->loopStart) {
             switch (s->loopMode) {
               case DivSampleLoopMode::DIV_SAMPLE_LOOP_FORWARD:
-                sPreview.pos=s->getLoopStartPosition();
+                sPreview.pos=s->loopStart;
                 sPreview.dir=false;
                 break;
               case DivSampleLoopMode::DIV_SAMPLE_LOOP_BACKWARD:
-                sPreview.pos=s->getLoopEndPosition()-1;
+                sPreview.pos=s->loopEnd-1;
                 sPreview.dir=true;
                 break;
               case DivSampleLoopMode::DIV_SAMPLE_LOOP_PINGPONG:
-                sPreview.pos=s->getLoopStartPosition();
+                sPreview.pos=s->loopStart;
                 sPreview.dir=false;
                 break;
               default:
@@ -1401,25 +1401,25 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           }
         }
       } else { // forward
-        if (sPreview.pos>=s->getLoopEndPosition() || (sPreview.pEnd>=0 && sPreview.pos>=sPreview.pEnd)) {
-          if (s->isLoopable() && sPreview.pos>=s->getLoopStartPosition()) {
+        if (sPreview.pos>=s->loopEnd || (sPreview.pEnd>=0 && sPreview.pos>=sPreview.pEnd)) {
+          if (s->isLoopable() && sPreview.pos>=s->loopStart) {
             switch (s->loopMode) {
               case DivSampleLoopMode::DIV_SAMPLE_LOOP_FORWARD:
-                sPreview.pos=s->getLoopStartPosition();
+                sPreview.pos=s->loopStart;
                 sPreview.dir=false;
                 break;
               case DivSampleLoopMode::DIV_SAMPLE_LOOP_BACKWARD:
-                sPreview.pos=s->getLoopEndPosition()-1;
+                sPreview.pos=s->loopEnd-1;
                 sPreview.dir=true;
                 break;
               case DivSampleLoopMode::DIV_SAMPLE_LOOP_PINGPONG:
-                sPreview.pos=s->getLoopEndPosition()-1;
+                sPreview.pos=s->loopEnd-1;
                 sPreview.dir=true;
                 break;
               default:
                 break;
             }
-          } else if (sPreview.pos>=s->getEndPosition()) {
+          } else if (sPreview.pos>=(int)s->samples) {
             sPreview.sample=-1;
           }
         }

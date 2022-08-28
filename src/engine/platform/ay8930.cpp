@@ -108,9 +108,9 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
           changed=true;
         }
         chan[i].dac.pos++;
-        if (s->isLoopable() && chan[i].dac.pos>=s->getLoopEndPosition()) {
-          chan[i].dac.pos=s->getLoopStartPosition();
-        } else if (chan[i].dac.pos>=s->getEndPosition()) {
+        if (s->isLoopable() && chan[i].dac.pos>=s->loopEnd) {
+          chan[i].dac.pos=s->loopStart;
+        } else if (chan[i].dac.pos>=(int)s->samples) {
           chan[i].dac.sample=-1;
           rWrite(0x08+i,0);
           end=true;

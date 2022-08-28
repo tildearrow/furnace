@@ -136,7 +136,7 @@ void DivPlatformRF5C68::tick(bool sysTick) {
           start=start+MIN(chan[i].audPos,s->length8);
         }
         if (s->isLoopable()) {
-          loop=start+s->getLoopStartPosition();
+          loop=start+s->loopStart;
         }
         start=MIN(start,getSampleMemCapacity()-31);
         loop=MIN(loop,getSampleMemCapacity()-31);

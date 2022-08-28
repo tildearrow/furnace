@@ -56,14 +56,14 @@ void DivPlatformPCMDAC::acquire(short* bufL, short* bufR, size_t start, size_t l
               switch (s->loopMode) {
                 case DIV_SAMPLE_LOOP_FORWARD:
                 case DIV_SAMPLE_LOOP_PINGPONG:
-                  if (chan.audPos<s->getLoopStartPosition()) {
-                    chan.audPos=s->getLoopStartPosition()+(s->getLoopStartPosition()-chan.audPos);
+                  if (chan.audPos<s->loopStart) {
+                    chan.audPos=s->loopStart+(s->loopStart-chan.audPos);
                     chan.audDir=false;
                   }
                   break;
                 case DIV_SAMPLE_LOOP_BACKWARD:
-                  if (chan.audPos<s->getLoopStartPosition()) {
-                    chan.audPos=s->getLoopEndPosition()-1-(s->getLoopStartPosition()-chan.audPos);
+                  if (chan.audPos<s->loopStart) {
+                    chan.audPos=s->loopEnd-1-(s->loopStart-chan.audPos);
                     chan.audDir=true;
                   }
                   break;
@@ -73,36 +73,36 @@ void DivPlatformPCMDAC::acquire(short* bufL, short* bufR, size_t start, size_t l
                   }
                   break;
               }
-            } else if (chan.audPos>=s->getEndPosition()) {
+            } else if (chan.audPos>=(int)s->samples) {
               chan.sample=-1;
             }
           } else {
             if (s->isLoopable()) {
               switch (s->loopMode) {
                 case DIV_SAMPLE_LOOP_FORWARD:
-                  if (chan.audPos>=s->getLoopEndPosition()) {
-                    chan.audPos=(chan.audPos+s->getLoopStartPosition())-s->getLoopEndPosition();
+                  if (chan.audPos>=s->loopEnd) {
+                    chan.audPos=(chan.audPos+s->loopStart)-s->loopEnd;
                     chan.audDir=false;
                   }
                   break;
                 case DIV_SAMPLE_LOOP_BACKWARD:
                 case DIV_SAMPLE_LOOP_PINGPONG:
-                  if (chan.audPos>=s->getLoopEndPosition()) {
-                    chan.audPos=s->getLoopEndPosition()-1-(s->getLoopEndPosition()-1-chan.audPos);
+                  if (chan.audPos>=s->loopEnd) {
+                    chan.audPos=s->loopEnd-1-(s->loopEnd-1-chan.audPos);
                     chan.audDir=true;
                   }
                   break;
                 default:
-                  if (chan.audPos>=s->getEndPosition()) {
+                  if (chan.audPos>=(int)s->samples) {
                     chan.sample=-1;
                   }
                   break;
               }
-            } else if (chan.audPos>=s->getEndPosition()) {
+            } else if (chan.audPos>=(int)s->samples) {
               chan.sample=-1;
             }
           }
-          if (chan.audPos>=0 && chan.audPos<s->getEndPosition()) {
+          if (chan.audPos>=0 && chan.audPos<(int)s->samples) {
             output=s->data16[chan.audPos];
           }
         } else {

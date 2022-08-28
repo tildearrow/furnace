@@ -146,9 +146,9 @@ void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len
               WRITE_OUTPUT(i,CLAMP((s->data8[chan[i].samplePos++]*chan[i].outVol)>>7,-128,127));
             }
 
-            if (s->isLoopable() && chan[i].samplePos>=s->getLoopEndPosition()) {
-              chan[i].samplePos=s->getLoopStartPosition();
-            } else if (chan[i].samplePos>=s->getEndPosition()) {
+            if (s->isLoopable() && chan[i].samplePos>=s->loopEnd) {
+              chan[i].samplePos=s->loopStart;
+            } else if (chan[i].samplePos>=(int)s->samples) {
               chan[i].sample=-1;
             }
           }

@@ -47,9 +47,9 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
           pcmR+=(s->data8[chan[i].pcm.pos>>8]*chan[i].chVolR);
         }
         chan[i].pcm.pos+=chan[i].pcm.freq;
-        if (s->isLoopable() && chan[i].pcm.pos>=((unsigned int)s->getLoopEndPosition()<<8)) {
-          chan[i].pcm.pos=s->getLoopStartPosition()<<8;
-        } else if (chan[i].pcm.pos>=((unsigned int)s->getEndPosition()<<8)) {
+        if (s->isLoopable() && chan[i].pcm.pos>=((unsigned int)s->loopEnd<<8)) {
+          chan[i].pcm.pos=s->loopStart<<8;
+        } else if (chan[i].pcm.pos>=(s->samples<<8)) {
           chan[i].pcm.sample=-1;
         }
       } else {
