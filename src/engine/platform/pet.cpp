@@ -37,15 +37,6 @@ const char** DivPlatformPET::getRegisterSheet() {
   return regCheatSheet6522;
 }
 
-const char* DivPlatformPET::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-  }
-  return NULL;
-}
-
 // high-level emulation of 6522 shift register and driver software for now
 void DivPlatformPET::rWrite(unsigned int addr, unsigned char val) {
   bool hwSROutput=((regPool[11]>>2)&7)==4;
@@ -113,18 +104,9 @@ void DivPlatformPET::tick(bool sysTick) {
   }
   if (chan.std.arp.had) {
     if (!chan.inPorta) {
-      if (chan.std.arp.mode) {
-        chan.baseFreq=NOTE_PERIODIC(chan.std.arp.val);
-      } else {
-        chan.baseFreq=NOTE_PERIODIC(chan.note+chan.std.arp.val);
-      }
+      chan.baseFreq=NOTE_PERIODIC(parent->calcArp(chan.note,chan.std.arp.val));
     }
     chan.freqChanged=true;
-  } else {
-    if (chan.std.arp.mode && chan.std.arp.finished) {
-      chan.baseFreq=NOTE_PERIODIC(chan.note);
-      chan.freqChanged=true;
-    }
   }
   if (chan.std.wave.had) {
     if (chan.wave!=chan.std.wave.val) {

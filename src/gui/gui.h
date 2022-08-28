@@ -251,6 +251,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_NOTES,
   GUI_WINDOW_CHANNELS,
   GUI_WINDOW_PAT_MANAGER,
+  GUI_WINDOW_SYS_MANAGER,
   GUI_WINDOW_REGISTER_VIEW,
   GUI_WINDOW_LOG,
   GUI_WINDOW_EFFECT_LIST,
@@ -311,6 +312,7 @@ enum FurnaceGUIWarnings {
   GUI_WARN_CLOSE_SETTINGS,
   GUI_WARN_CLEAR,
   GUI_WARN_SUBSONG_DEL,
+  GUI_WARN_SYSTEM_DEL,
   GUI_WARN_GENERIC
 };
 
@@ -372,6 +374,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_NOTES,
   GUI_ACTION_WINDOW_CHANNELS,
   GUI_ACTION_WINDOW_PAT_MANAGER,
+  GUI_ACTION_WINDOW_SYS_MANAGER,
   GUI_ACTION_WINDOW_REGISTER_VIEW,
   GUI_ACTION_WINDOW_LOG,
   GUI_ACTION_WINDOW_EFFECT_LIST,
@@ -869,10 +872,10 @@ struct FurnaceGUIMacroDesc {
   const char* modeName;
   ImVec4 color;
   unsigned int bitOffset;
-  bool isBitfield, blockMode;
+  bool isBitfield, blockMode, bit30;
   String (*hoverFunc)(int,float);
 
-  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0):
+  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0, bool bit30Special=false):
     macro(m),
     height(macroHeight),
     displayName(name),
@@ -882,6 +885,7 @@ struct FurnaceGUIMacroDesc {
     bitOffset(bitOff),
     isBitfield(bitfield),
     blockMode(block),
+    bit30(bit30Special),
     hoverFunc(hf) {
     // MSVC -> hell
     this->min=macroMin;
@@ -967,12 +971,15 @@ class FurnaceGUI {
   int sampleTexW, sampleTexH;
   bool updateSampleTex;
 
-  String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile;
+  String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile, sysSearchQuery, newSongQuery;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
   String workingDirVGMExport, workingDirZSMExport, workingDirROMExport, workingDirFont, workingDirColors, workingDirKeybinds;
   String workingDirLayout, workingDirROM, workingDirTest;
   String mmlString[32];
   String mmlStringW;
+
+  std::vector<DivSystem> sysSearchResults;
+  std::vector<FurnaceGUISysDef> newSongSearchResults;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
@@ -984,6 +991,7 @@ class FurnaceGUI {
   int zsmExportTickRate;
   int macroPointSize;
   int waveEditStyle;
+  const int* curSysSection;
 
   String pendingRawSample;
   int pendingRawSampleDepth, pendingRawSampleChannels;
@@ -1086,6 +1094,8 @@ class FurnaceGUI {
     int roundedMenus;
     int loadJapanese;
     int loadChinese;
+    int loadChineseTraditional;
+    int loadKorean;
     int fmLayout;
     int sampleLayout;
     int waveLayout;
@@ -1130,6 +1140,11 @@ class FurnaceGUI {
     int noThreadedInput;
     int clampSamples;
     int saveUnusedPatterns;
+    int channelColors;
+    int channelTextColors;
+    int channelStyle;
+    int channelVolStyle;
+    int channelFeedbackStyle;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1198,6 +1213,8 @@ class FurnaceGUI {
       roundedMenus(0),
       loadJapanese(0),
       loadChinese(0),
+      loadChineseTraditional(0),
+      loadKorean(0),
       fmLayout(0),
       sampleLayout(0),
       waveLayout(0),
@@ -1242,6 +1259,11 @@ class FurnaceGUI {
       noThreadedInput(0),
       clampSamples(0),
       saveUnusedPatterns(0),
+      channelColors(1),
+      channelTextColors(0),
+      channelStyle(0),
+      channelVolStyle(0),
+      channelFeedbackStyle(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1271,7 +1293,7 @@ class FurnaceGUI {
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
-  bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen;
+  bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen;
 
   SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
   bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
@@ -1386,6 +1408,8 @@ class FurnaceGUI {
   bool macroDragInitialValueSet;
   bool macroDragInitialValue;
   bool macroDragChar;
+  bool macroDragBit30;
+  bool macroDragSettingBit30;
   bool macroDragLineMode;
   bool macroDragMouseMoved;
   ImVec2 macroDragLineInitial;
@@ -1397,7 +1421,7 @@ class FurnaceGUI {
 
   ImVec2 macroLoopDragStart;
   ImVec2 macroLoopDragAreaSize;
-  signed char* macroLoopDragTarget;
+  unsigned char* macroLoopDragTarget;
   int macroLoopDragLen;
   bool macroLoopDragActive;
 
@@ -1417,7 +1441,7 @@ class FurnaceGUI {
   int renderTimeBegin, renderTimeEnd, renderTimeDelta;
   int eventTimeBegin, eventTimeEnd, eventTimeDelta;
 
-  int chanToMove;
+  int chanToMove, sysToMove, sysToDelete;
 
   ImVec2 patWindowPos, patWindowSize;
 
@@ -1581,6 +1605,7 @@ class FurnaceGUI {
   void drawNotes();
   void drawChannels();
   void drawPatManager();
+  void drawSysManager();
   void drawRegView();
   void drawAbout();
   void drawSettings();
@@ -1648,6 +1673,7 @@ class FurnaceGUI {
   void doReplace();
   void doDrag();
   void editOptions(bool topMenu);
+  DivSystem systemPicker();
   void noteInput(int num, int key, int vol=-1);
   void valueInput(int num, bool direct=false, int target=-1);
 
@@ -1676,8 +1702,8 @@ class FurnaceGUI {
   void applyUISettings(bool updateFonts=true);
   void initSystemPresets();
 
-  void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex=false);
-  void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax, signed char& macroRel);
+  void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex=false, bool bit30=false);
+  void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, unsigned char& macroLoop, int macroMin, int macroMax, unsigned char& macroRel, bool bit30=false);
   void decodeMMLStrW(String& source, int* macro, int& macroLen, int macroMax, bool hex=false);
 
   String encodeKeyMap(std::map<int,int>& map);

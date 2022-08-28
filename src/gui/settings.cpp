@@ -1085,6 +1085,32 @@ void FurnaceGUI::drawSettings() {
             );
           }
 
+          bool loadChineseTraditionalB=settings.loadChineseTraditional;
+          if (ImGui::Checkbox("Display Chinese (Traditional) characters",&loadChineseTraditionalB)) {
+            settings.loadChineseTraditional=loadChineseTraditionalB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(
+              "Only toggle this option if you have enough graphics memory.\n"
+              "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+              "請在確保你有足夠的顯存后再啟動此設定\n"
+              "這是一個在ImGui實現動態字體加載之前的臨時解決方案"
+            );
+          }
+
+          bool loadKoreanB=settings.loadKorean;
+          if (ImGui::Checkbox("Display Korean characters",&loadKoreanB)) {
+            settings.loadKorean=loadKoreanB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(
+              "Only toggle this option if you have enough graphics memory.\n"
+              "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+              "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
+              "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다."
+            );
+          }
+
           ImGui::Separator();
 
           ImGui::Text("Pattern view labels:");
@@ -1219,6 +1245,79 @@ void FurnaceGUI::drawSettings() {
           ImGui::Text("Namco 163 chip name");
           ImGui::SameLine();
           ImGui::InputTextWithHint("##C163Name",DIV_C163_DEFAULT_NAME,&settings.c163Name);
+
+          ImGui::Separator();
+
+          ImGui::Text("Channel colors:");
+          if (ImGui::RadioButton("Single##CHC0",settings.channelColors==0)) {
+            settings.channelColors=0;
+          }
+          if (ImGui::RadioButton("Channel type##CHC1",settings.channelColors==1)) {
+            settings.channelColors=1;
+          }
+          if (ImGui::RadioButton("Instrument type##CHC2",settings.channelColors==2)) {
+            settings.channelColors=2;
+          }
+
+          ImGui::Text("Channel name colors:");
+          if (ImGui::RadioButton("Single##CTC0",settings.channelColors==0)) {
+            settings.channelColors=0;
+          }
+          if (ImGui::RadioButton("Channel type##CTC1",settings.channelColors==1)) {
+            settings.channelColors=1;
+          }
+          if (ImGui::RadioButton("Instrument type##CTC2",settings.channelColors==2)) {
+            settings.channelColors=2;
+          }
+
+          ImGui::Text("Channel style:");
+          if (ImGui::RadioButton("Classic##CHS0",settings.channelStyle==0)) {
+            settings.channelStyle=0;
+          }
+          if (ImGui::RadioButton("Line##CHS1",settings.channelStyle==1)) {
+            settings.channelStyle=1;
+          }
+          if (ImGui::RadioButton("Round##CHS2",settings.channelStyle==2)) {
+            settings.channelStyle=2;
+          }
+          if (ImGui::RadioButton("Split button##CHS3",settings.channelStyle==3)) {
+            settings.channelStyle=3;
+          }
+          if (ImGui::RadioButton("Square border##CH42",settings.channelStyle==4)) {
+            settings.channelStyle=4;
+          }
+          if (ImGui::RadioButton("Round border##CHS5",settings.channelStyle==5)) {
+            settings.channelStyle=5;
+          }
+
+          ImGui::Text("Channel volume bar:");
+          if (ImGui::RadioButton("None##CHV0",settings.channelVolStyle==0)) {
+            settings.channelVolStyle=0;
+          }
+          if (ImGui::RadioButton("Simple##CHV1",settings.channelVolStyle==1)) {
+            settings.channelVolStyle=1;
+          }
+          if (ImGui::RadioButton("Stereo##CHV2",settings.channelVolStyle==2)) {
+            settings.channelVolStyle=2;
+          }
+          if (ImGui::RadioButton("Real##CHV3",settings.channelVolStyle==3)) {
+            settings.channelVolStyle=3;
+          }
+
+          ImGui::Text("Channel feedback style:");
+
+          if (ImGui::RadioButton("Off##CHF0",settings.channelFeedbackStyle==0)) {
+            settings.channelFeedbackStyle=0;
+          }
+          if (ImGui::RadioButton("Note##CHF1",settings.channelFeedbackStyle==1)) {
+            settings.channelFeedbackStyle=1;
+          }
+          if (ImGui::RadioButton("Volume##CHF2",settings.channelFeedbackStyle==2)) {
+            settings.channelFeedbackStyle=2;
+          }
+          if (ImGui::RadioButton("Active##CHF3",settings.channelFeedbackStyle==3)) {
+            settings.channelFeedbackStyle=3;
+          }
 
           ImGui::Separator();
 
@@ -2099,6 +2198,8 @@ void FurnaceGUI::syncSettings() {
   settings.roundedMenus=e->getConfInt("roundedMenus",0);
   settings.loadJapanese=e->getConfInt("loadJapanese",0);
   settings.loadChinese=e->getConfInt("loadChinese",0);
+  settings.loadChineseTraditional=e->getConfInt("loadChineseTraditional",0);
+  settings.loadKorean=e->getConfInt("loadKorean",0);
   settings.fmLayout=e->getConfInt("fmLayout",0);
   settings.sampleLayout=e->getConfInt("sampleLayout",0);
   settings.waveLayout=e->getConfInt("waveLayout",0);
@@ -2149,6 +2250,11 @@ void FurnaceGUI::syncSettings() {
   settings.emptyLabel=e->getConfString("emptyLabel","...");
   settings.emptyLabel2=e->getConfString("emptyLabel2","..");
   settings.saveUnusedPatterns=e->getConfInt("saveUnusedPatterns",0);
+  settings.channelColors=e->getConfInt("channelColors",1);
+  settings.channelTextColors=e->getConfInt("channelTextColors",0);
+  settings.channelStyle=e->getConfInt("channelStyle",0);
+  settings.channelVolStyle=e->getConfInt("channelVolStyle",0);
+  settings.channelFeedbackStyle=e->getConfInt("channelFeedbackStyle",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2198,6 +2304,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.roundedMenus,0,1);
   clampSetting(settings.loadJapanese,0,1);
   clampSetting(settings.loadChinese,0,1);
+  clampSetting(settings.loadChineseTraditional,0,1);
+  clampSetting(settings.loadKorean,0,1);
   clampSetting(settings.fmLayout,0,6);
   clampSetting(settings.susPosition,0,1);
   clampSetting(settings.effectCursorDir,0,2);
@@ -2238,6 +2346,11 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.noThreadedInput,0,1);
   clampSetting(settings.clampSamples,0,1);
   clampSetting(settings.saveUnusedPatterns,0,1);
+  clampSetting(settings.channelColors,0,2);
+  clampSetting(settings.channelTextColors,0,2);
+  clampSetting(settings.channelStyle,0,5);
+  clampSetting(settings.channelVolStyle,0,3);
+  clampSetting(settings.channelFeedbackStyle,0,3);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2332,6 +2445,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("roundedMenus",settings.roundedMenus);
   e->setConf("loadJapanese",settings.loadJapanese);
   e->setConf("loadChinese",settings.loadChinese);
+  e->setConf("loadChineseTraditional",settings.loadChineseTraditional);
+  e->setConf("loadKorean",settings.loadKorean);
   e->setConf("fmLayout",settings.fmLayout);
   e->setConf("sampleLayout",settings.sampleLayout);
   e->setConf("waveLayout",settings.waveLayout);
@@ -2383,6 +2498,11 @@ void FurnaceGUI::commitSettings() {
   e->setConf("emptyLabel",settings.emptyLabel);
   e->setConf("emptyLabel2",settings.emptyLabel2);
   e->setConf("saveUnusedPatterns",settings.saveUnusedPatterns);
+  e->setConf("channelColors",settings.channelColors);
+  e->setConf("channelTextColors",settings.channelTextColors);
+  e->setConf("channelStyle",settings.channelStyle);
+  e->setConf("channelVolStyle",settings.channelVolStyle);
+  e->setConf("channelFeedbackStyle",settings.channelFeedbackStyle);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -2976,6 +3096,12 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     }
     if (settings.loadChinese) {
       range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon());
+    }
+    if (settings.loadChineseTraditional) {
+      range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+    }
+    if (settings.loadKorean) {
+      range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesKorean());
     }
     // I'm terribly sorry
     range.UsedChars[0x80>>5]=0;

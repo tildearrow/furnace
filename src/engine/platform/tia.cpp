@@ -34,15 +34,6 @@ const char* regCheatSheetTIA[]={
   NULL
 };
 
-const char* DivPlatformTIA::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Select shape (0 to F)";
-      break;
-  }
-  return NULL;
-}
-
 const char** DivPlatformTIA::getRegisterSheet() {
   return regCheatSheetTIA;
 }
@@ -96,20 +87,18 @@ void DivPlatformTIA::tick(bool sysTick) {
         rWrite(0x19+i,chan[i].outVol&15);
       }
     }
+    // TODO: the way arps work on TIA is really weird
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=0x80000000|chan[i].std.arp.val;
+        if (chan[i].std.arp.val<0 && (!(chan[i].std.arp.val&0x40000000))) {
+          chan[i].baseFreq=0x80000000|(chan[i].std.arp.val|0x40000000);
+        } else if (chan[i].std.arp.val>=0 && chan[i].std.arp.val&0x40000000) {
+          chan[i].baseFreq=0x80000000|(chan[i].std.arp.val&(~0x40000000));
         } else {
           chan[i].baseFreq=(chan[i].note+chan[i].std.arp.val)<<8;
         }
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=chan[i].note<<8;
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.wave.had) {
       chan[i].shape=chan[i].std.wave.val&15;
@@ -126,13 +115,6 @@ void DivPlatformTIA::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      if (chan[i].insChanged) {
-        if (!chan[i].std.wave.will) {
-          chan[i].shape=4;
-          rWrite(0x15+i,chan[i].shape);
-        }
-        chan[i].insChanged=false;
-      }
       chan[i].freq=dealWithFreq(chan[i].shape,chan[i].baseFreq,chan[i].pitch)+chan[i].pitch2;
       if ((chan[i].shape==4 || chan[i].shape==5) && !(chan[i].baseFreq&0x80000000 && ((chan[i].baseFreq&0x7fffffff)<32))) {
         if (chan[i].baseFreq<39*256) {
@@ -172,6 +154,13 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
+      }
+      if (chan[c.chan].insChanged) {
+        if (!chan[c.chan].std.wave.will) {
+          chan[c.chan].shape=4;
+          rWrite(0x15+c.chan,chan[c.chan].shape);
+        }
+        chan[c.chan].insChanged=false;
       }
       if (isMuted[c.chan]) {
         rWrite(0x19+c.chan,0);

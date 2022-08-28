@@ -145,7 +145,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.loopModality=0;
     ds.properNoiseLayout=false;
     ds.waveDutyIsVol=false;
-    ds.resetMacroOnPorta=true;
+    // TODO: WHAT?! geodude.dmf fails when this is true
+    // but isn't that how Defle behaves???
+    ds.resetMacroOnPorta=false;
     ds.legacyVolumeSlides=true;
     ds.compatibleArpeggio=true;
     ds.noteOffResetsSlides=true;
@@ -175,6 +177,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.brokenOutVol=true; // ???
     ds.e1e2StopOnSameNote=true;
     ds.brokenPortaArp=false;
+    ds.snNoLowPeriods=true;
+    ds.delayBehavior=0;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -505,6 +509,14 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           for (int j=0; j<ins->std.arpMacro.len; j++) {
             ins->std.arpMacro.val[j]-=12;
           }
+        } else {
+          ins->std.arpMacro.mode=0;
+          for (int j=0; j<ins->std.arpMacro.len; j++) {
+            ins->std.arpMacro.val[j]^=0x40000000;
+          }
+          if (ins->std.arpMacro.loop==255 && ins->std.arpMacro.len<255) {
+            ins->std.arpMacro.val[ins->std.arpMacro.len++]=0;
+          }
         }
 
         ins->std.dutyMacro.len=reader.readC();
@@ -825,6 +837,13 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             data=new short[length];
             reader.read(data,length*2);
           }
+          
+#ifdef TA_BIG_ENDIAN
+          // convert to big-endian
+          for (int pos=0; pos<length; pos++) {
+            data[pos]=(short)((((unsigned short)data[pos])<<8)|(((unsigned short)data[pos])>>8));
+          }
+#endif
 
           if (pitch!=5) {
             logD("%d: scaling from %d...",i,pitch);
@@ -1055,6 +1074,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
     if (ds.version<101) {
       ds.brokenPortaArp=true;
+    }
+    if (ds.version<108) {
+      ds.snNoLowPeriods=true;
+    }
+    if (ds.version<110) {
+      ds.delayBehavior=1;
     }
     ds.isDMF=false;
 
@@ -1323,9 +1348,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
 
     // pointers
-    reader.read(insPtr,ds.insLen*4);
-    reader.read(wavePtr,ds.waveLen*4);
-    reader.read(samplePtr,ds.sampleLen*4);
+    for (int i=0; i<ds.insLen; i++) {
+      insPtr[i]=reader.readI();
+    }
+    for (int i=0; i<ds.waveLen; i++) {
+      wavePtr[i]=reader.readI();
+    }
+    for (int i=0; i<ds.sampleLen; i++) {
+      samplePtr[i]=reader.readI();
+    }
     for (int i=0; i<numberOfPats; i++) patPtr.push_back(reader.readI());
 
     logD("reading orders (%d)...",subSong->ordersLen);
@@ -1462,7 +1493,17 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<7; i++) {
+      if (ds.version>=108) {
+        ds.snNoLowPeriods=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=110) {
+        ds.delayBehavior=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<5; i++) {
         reader.readC();
       }
     }
@@ -1703,10 +1744,35 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       if (ds.version>=58) { // modern sample
         sample->init(sample->samples);
         reader.read(sample->getCurBuf(),sample->getCurBufLen());
+#ifdef TA_BIG_ENDIAN
+        // convert 16-bit samples to big-endian
+        if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
+          unsigned char* sampleBuf=(unsigned char*)sample->getCurBuf();
+          size_t sampleBufLen=sample->getCurBufLen();
+          for (size_t pos=0; pos<sampleBufLen; pos+=2) {
+            sampleBuf[pos]^=sampleBuf[pos+1];
+            sampleBuf[pos+1]^=sampleBuf[pos];
+            sampleBuf[pos]^=sampleBuf[pos+1];
+          }
+        }
+#endif
       } else { // legacy sample
         int length=sample->samples;
         short* data=new short[length];
         reader.read(data,2*length);
+
+#ifdef TA_BIG_ENDIAN
+        // convert 16-bit samples to big-endian
+        if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
+          unsigned char* sampleBuf=(unsigned char*)sample->getCurBuf();
+          size_t sampleBufLen=sample->getCurBufLen();
+          for (size_t pos=0; pos<sampleBufLen; pos+=2) {
+            sampleBuf[pos]^=sampleBuf[pos+1];
+            sampleBuf[pos+1]^=sampleBuf[pos];
+            sampleBuf[pos]^=sampleBuf[pos+1];
+          }
+        }
+#endif
 
         if (pitch!=5) {
           logD("%d: scaling from %d...",i,pitch);
@@ -1870,6 +1936,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.noSlidesOnFirstTick=true;
     ds.rowResetsArpPos=true;
     ds.ignoreJumpAtEnd=false;
+    ds.delayBehavior=0;
 
     int insCount=31;
     bool bypassLimits=false;
@@ -2786,9 +2853,9 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
           // TODO: <= or <?
           for (int k=0; k<=susTime; k++) {
             ins->std.volMacro.val[ins->std.volMacro.len]=lastVal;
-            if (++ins->std.volMacro.len>=128) break;
+            if (++ins->std.volMacro.len>=255) break;
           }
-          if (ins->std.volMacro.len>=128) break;
+          if (ins->std.volMacro.len>=255) break;
         } else if (m.val[j]==0xe9 || m.val[j]==0xea) { // volume slide
           if (++j>=64) break;
           signed char slideStep=m.val[j];
@@ -2807,16 +2874,16 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
               }
             }
             ins->std.volMacro.val[ins->std.volMacro.len]=lastVal;
-            if (++ins->std.volMacro.len>=128) break;
+            if (++ins->std.volMacro.len>=255) break;
           }
         } else {
           // TODO: replace with upcoming macro speed
           for (int k=0; k<MAX(1,seqSpeed); k++) {
             ins->std.volMacro.val[ins->std.volMacro.len]=m.val[j];
             lastVal=m.val[j];
-            if (++ins->std.volMacro.len>=128) break;
+            if (++ins->std.volMacro.len>=255) break;
           }
-          if (ins->std.volMacro.len>=128) break;
+          if (ins->std.volMacro.len>=255) break;
         }
       }
 
@@ -2829,9 +2896,6 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
           loopMapFreq[j]=ins->std.arpMacro.len;
           loopMapWave[j]=ins->std.waveMacro.len;
           if (fm.val[j]==0xe1) {
-            if (ins->std.arpMacro.mode) {
-              ins->std.arpMacro.loop=(signed int)ins->std.arpMacro.len-1;
-            }
             break;
           } else if (fm.val[j]==0xe2 || fm.val[j]==0xe4) {
             if (++j>=64) break;
@@ -2845,7 +2909,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
               ins->std.waveMacro.val[ins->std.waveMacro.len]=wave-10;
               ins->std.waveMacro.open=true;
               lastVal=wave;
-              //if (++ins->std.arpMacro.len>=128) break;
+              //if (++ins->std.arpMacro.len>=255) break;
             }
           } else if (fm.val[j]==0xe0) {
             if (++j>=64) break;
@@ -2866,8 +2930,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
             logV("unhandled pitch!");
           } else {
             if (fm.val[j]>0x80) {
-              ins->std.arpMacro.val[ins->std.arpMacro.len]=fm.val[j]-0x80+24;
-              ins->std.arpMacro.mode=1; // TODO: variable fixed/relative mode
+              ins->std.arpMacro.val[ins->std.arpMacro.len]=(fm.val[j]-0x80+24)^0x40000000;
             } else {
               ins->std.arpMacro.val[ins->std.arpMacro.len]=fm.val[j];
             }
@@ -2875,8 +2938,8 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
               ins->std.waveMacro.val[ins->std.waveMacro.len]=lastVal-10;
             }
             ins->std.arpMacro.open=true;
-            if (++ins->std.arpMacro.len>=128) break;
-            if (++ins->std.waveMacro.len>=128) break;
+            if (++ins->std.arpMacro.len>=255) break;
+            if (++ins->std.waveMacro.len>=255) break;
           }
         }
       }
@@ -2889,7 +2952,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
       // vibrato
       for (int j=0; j<=vibDelay; j++) {
         ins->std.pitchMacro.val[ins->std.pitchMacro.len]=0;
-        if (++ins->std.pitchMacro.len>=128) break;
+        if (++ins->std.pitchMacro.len>=255) break;
       }
       int vibPos=0;
       ins->std.pitchMacro.loop=ins->std.pitchMacro.len;
@@ -2897,19 +2960,19 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
         vibPos+=vibSpeed;
         if (vibPos>vibDepth) vibPos=vibDepth;
         ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*32;
-        if (++ins->std.pitchMacro.len>=128) break;
+        if (++ins->std.pitchMacro.len>=255) break;
       } while (vibPos<vibDepth);
       do {
         vibPos-=vibSpeed;
         if (vibPos<-vibDepth) vibPos=-vibDepth;
         ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*32;
-        if (++ins->std.pitchMacro.len>=128) break;
+        if (++ins->std.pitchMacro.len>=255) break;
       } while (vibPos>-vibDepth);
       do {
         vibPos+=vibSpeed;
         if (vibPos>0) vibPos=0;
         ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*32;
-        if (++ins->std.pitchMacro.len>=128) break;
+        if (++ins->std.pitchMacro.len>=255) break;
       } while (vibPos<0);
 
       ds.ins.push_back(ins);
@@ -3236,6 +3299,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
               ins->std.arpMacro.len=reader.readC();
               ins->std.arpMacro.loop=reader.readI();
               ins->std.arpMacro.rel=reader.readI();
+              // TODO: get rid
               ins->std.arpMacro.mode=reader.readI();
               for (int j=0; j<ins->std.arpMacro.len; j++) {
                 ins->std.arpMacro.val[j]=reader.readC();
@@ -3681,7 +3745,9 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.brokenOutVol);
   w->writeC(song.e1e2StopOnSameNote);
   w->writeC(song.brokenPortaArp);
-  for (int i=0; i<7; i++) {
+  w->writeC(song.snNoLowPeriods);
+  w->writeC(song.delayBehavior);
+  for (int i=0; i<5; i++) {
     w->writeC(0);
   }
 
@@ -3807,7 +3873,21 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
       w->writeI(0xffffffff);
     }
 
+#ifdef TA_BIG_ENDIAN
+    // store 16-bit samples as little-endian
+    if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
+      unsigned char* sampleBuf=(unsigned char*)sample->getCurBuf();
+      size_t bufLen=sample->getCurBufLen();
+      for (size_t i=0; i<bufLen; i+=2) {
+        w->writeC(sampleBuf[i+1]);
+        w->writeC(sampleBuf[i]);
+      }
+    } else {
+      w->write(sample->getCurBuf(),sample->getCurBufLen());
+    }
+#else
     w->write(sample->getCurBuf(),sample->getCurBufLen());
+#endif
 
     blockEndSeek=w->tell();
     w->seek(blockStartSeek,SEEK_SET);
@@ -3834,7 +3914,13 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
       w->writeS(pat->data[j][1]); // octave
       w->writeS(pat->data[j][2]); // instrument
       w->writeS(pat->data[j][3]); // volume
+#ifdef TA_BIG_ENDIAN
+      for (int k=0; k<song.subsong[i.subsong]->pat[i.chan].effectCols*2; k++) {
+        w->writeS(pat->data[j][4+k]);
+      }
+#else
       w->write(&pat->data[j][4],2*song.subsong[i.subsong]->pat[i.chan].effectCols*2); // effects
+#endif
     }
 
     w->writeString(pat->name,false);
@@ -4069,7 +4155,25 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
 
     // safety check
     if (!isFMSystem(sys) && i->type!=DIV_INS_STD && i->type!=DIV_INS_FDS) {
-      i->type=DIV_INS_STD;
+      switch (song.system[0]) {
+        case DIV_SYSTEM_GB:
+          i->type=DIV_INS_GB;
+          break;
+        case DIV_SYSTEM_C64_6581:
+        case DIV_SYSTEM_C64_8580:
+          i->type=DIV_INS_C64;
+          break;
+        case DIV_SYSTEM_PCE:
+          i->type=DIV_INS_PCE;
+          break;
+        case DIV_SYSTEM_YM2610:
+        case DIV_SYSTEM_YM2610_EXT:
+          i->type=DIV_INS_AY;
+          break;
+        default:
+          i->type=DIV_INS_STD;
+          break;
+      }
     }
     if (!isSTDSystem(sys) && i->type!=DIV_INS_FM) {
       i->type=DIV_INS_FM;
@@ -4110,47 +4214,79 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
       }
     } else { // STD
       if (sys!=DIV_SYSTEM_GB) {
-        w->writeC(i->std.volMacro.len);
+        int realVolMacroLen=i->std.volMacro.len;
+        if (realVolMacroLen>127) realVolMacroLen=127;
+        w->writeC(realVolMacroLen);
         if ((sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) && i->c64.volIsCutoff) {
-          for (int j=0; j<i->std.volMacro.len; j++) {
+          for (int j=0; j<realVolMacroLen; j++) {
             w->writeI(i->std.volMacro.val[j]+18);
           }
         } else {
-          w->write(i->std.volMacro.val,4*i->std.volMacro.len);
+          for (int j=0; j<realVolMacroLen; j++) {
+            w->writeI(i->std.volMacro.val[j]);
+          }
         }
-        if (i->std.volMacro.len>0) {
+        if (realVolMacroLen>0) {
           w->writeC(i->std.volMacro.loop);
         }
       }
 
+      // TODO: take care of new arp macro format
       w->writeC(i->std.arpMacro.len);
-      if (i->std.arpMacro.mode) {
-        w->write(i->std.arpMacro.val,4*i->std.arpMacro.len);
+      bool arpMacroMode=false;
+      int arpMacroHowManyFixed=0;
+      int realArpMacroLen=i->std.arpMacro.len;
+      for (int j=0; j<i->std.arpMacro.len; j++) {
+        if ((i->std.arpMacro.val[j]&0xc0000000)==0x40000000 || (i->std.arpMacro.val[j]&0xc0000000)==0x80000000) {
+          arpMacroHowManyFixed++;
+        }
+      }
+      if (arpMacroHowManyFixed>=i->std.arpMacro.len-1) {
+        arpMacroMode=true;
+      }
+      if (i->std.arpMacro.len>0) {
+        if (arpMacroMode && i->std.arpMacro.val[i->std.arpMacro.len-1]==0 && i->std.arpMacro.loop>=i->std.arpMacro.len) {
+          realArpMacroLen--;
+        }
+      }
+
+      if (arpMacroMode) {
+        for (int j=0; j<realArpMacroLen; j++) {
+          w->writeI(i->std.arpMacro.val[j]);
+        }
       } else {
-        for (int j=0; j<i->std.arpMacro.len; j++) {
+        for (int j=0; j<realArpMacroLen; j++) {
           w->writeI(i->std.arpMacro.val[j]+12);
         }
       }
-      if (i->std.arpMacro.len>0) {
+      if (realArpMacroLen>0) {
         w->writeC(i->std.arpMacro.loop);
       }
-      w->writeC(i->std.arpMacro.mode);
+      w->writeC(arpMacroMode);
 
-      w->writeC(i->std.dutyMacro.len);
+      int realDutyMacroLen=i->std.dutyMacro.len;
+      if (realDutyMacroLen>127) realDutyMacroLen=127;
+      w->writeC(realDutyMacroLen);
       if (sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) {
-        for (int j=0; j<i->std.dutyMacro.len; j++) {
+        for (int j=0; j<realDutyMacroLen; j++) {
           w->writeI(i->std.dutyMacro.val[j]+12);
         }
       } else {
-        w->write(i->std.dutyMacro.val,4*i->std.dutyMacro.len);
+        for (int j=0; j<realDutyMacroLen; j++) {
+          w->writeI(i->std.dutyMacro.val[j]);
+        }
       }
-      if (i->std.dutyMacro.len>0) {
+      if (realDutyMacroLen>0) {
         w->writeC(i->std.dutyMacro.loop);
       }
 
-      w->writeC(i->std.waveMacro.len);
-      w->write(i->std.waveMacro.val,4*i->std.waveMacro.len);
-      if (i->std.waveMacro.len>0) {
+      int realWaveMacroLen=i->std.waveMacro.len;
+      if (realWaveMacroLen>127) realWaveMacroLen=127;
+      w->writeC(realWaveMacroLen);
+      for (int j=0; j<realWaveMacroLen; j++) {
+        w->writeI(i->std.waveMacro.val[j]);
+      }
+      if (realWaveMacroLen>0) {
         w->writeC(i->std.waveMacro.loop);
       }
 
@@ -4200,7 +4336,9 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         w->writeI(i->data[j]>>2);
       }
     } else {
-      w->write(i->data,4*i->len);
+      for (int j=0; j<i->len; j++) {
+        w->writeI(i->data[j]);
+      }
     }
   }
 
@@ -4213,7 +4351,13 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         w->writeS(pat->data[k][0]); // note
         w->writeS(pat->data[k][1]); // octave
         w->writeS(pat->data[k][3]); // volume
+#ifdef TA_BIG_ENDIAN
+        for (int l=0; l<curPat[i].effectCols*2; l++) {
+          w->writeS(pat->data[k][4+l]);
+        }
+#else
         w->write(&pat->data[k][4],2*curPat[i].effectCols*2); // effects
+#endif
         w->writeS(pat->data[k][2]); // instrument
       }
     }
@@ -4232,7 +4376,15 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     w->writeC(50);
     // i'm too lazy to deal with .dmf's weird way of storing 8-bit samples
     w->writeC(16);
+    // well I can't be lazy if it's on a big-endian system
+#ifdef TA_BIG_ENDIAN
+    for (unsigned int j=0; j<i->length16; j++) {
+      w->writeC(((unsigned short)i->data16[j])&0xff);
+      w->writeC(((unsigned short)i->data16[j])>>8);
+    }
+#else
     w->write(i->data16,i->length16);
+#endif
   }
   
   saveLock.unlock();

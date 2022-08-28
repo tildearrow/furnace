@@ -47,21 +47,24 @@ void FurnaceGUI::drawPatManager() {
       });
     }
 
-    for (int i=0; i<e->getTotalChannelCount(); i++) {
-      memset(isUsed,0,256);
-      memset(isNull,0,256*sizeof(bool));
-      for (int j=0; j<e->curSubSong->ordersLen; j++) {
-        isUsed[e->curSubSong->orders.ord[i][j]]++;
-      }
-      for (int j=0; j<256; j++) {
-        isNull[j]=(e->curSubSong->pat[i].data[j]==NULL);
-      }
-      ImGui::Text("%d. %s",i+1,e->getChannelName(i));
-      ImGui::PushID(1000+i);
+    if (ImGui::BeginTable("PatManTable",257,ImGuiTableFlags_ScrollX|ImGuiTableFlags_SizingFixedFit)) {
       ImGui::PushFont(patFont);
-      if (ImGui::BeginTable("PatManTable",32)) {
+
+      for (int i=0; i<e->getTotalChannelCount(); i++) {
+        ImGui::TableNextRow();
+        memset(isUsed,0,256);
+        memset(isNull,0,256*sizeof(bool));
+        for (int j=0; j<e->curSubSong->ordersLen; j++) {
+          isUsed[e->curSubSong->orders.ord[i][j]]++;
+        }
+        for (int j=0; j<256; j++) {
+          isNull[j]=(e->curSubSong->pat[i].data[j]==NULL);
+        }
+        ImGui::TableNextColumn();
+        ImGui::Text("%s",e->getChannelShortName(i));
+
+        ImGui::PushID(1000+i);
         for (int k=0; k<256; k++) {
-          if ((k&31)==0) ImGui::TableNextRow();
           ImGui::TableNextColumn();
 
           snprintf(id,1023,"%.2X",k);
@@ -98,10 +101,11 @@ void FurnaceGUI::drawPatManager() {
           }
           ImGui::PopStyleColor();
         }
-        ImGui::EndTable();
+        ImGui::PopID();
       }
       ImGui::PopFont();
-      ImGui::PopID();
+
+      ImGui::EndTable();
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PAT_MANAGER;

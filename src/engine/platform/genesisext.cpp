@@ -561,6 +561,11 @@ void DivPlatformGenesisExt::forceIns() {
       opChan[i].freqChanged=true;
     }
   }
+  if (extMode && softPCM && chan[7].active) { // CSM
+    chan[7].insChanged=true;
+    chan[7].freqChanged=true;
+    chan[7].keyOn=true;
+  }
 }
 
 void* DivPlatformGenesisExt::getChanState(int ch) {

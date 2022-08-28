@@ -79,7 +79,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2610B (OPNB-B)", {
+    "Yamaha YM2610B (OPNB2)", {
       DIV_SYSTEM_YM2610B, 64, 0, 0,
       0
     }
@@ -851,6 +851,41 @@ void FurnaceGUI::initSystemPresets() {
     "MSX + SCC+", {
       DIV_SYSTEM_AY8910, 64, 0, 16,
       DIV_SYSTEM_SCC_PLUS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Neotron", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2610_FULL, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Neotron (extended channel 2)", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2610_FULL_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Neotron (with YM2610B)", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2610B, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Neotron (with YM2610B; extended channel 3)", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2610B_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + SIMPL", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 55929|(7<<16), // variable rate, Mono DAC
       0
     }
   ));

@@ -132,7 +132,7 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeI(std.ex1Macro.loop);
   w->writeI(std.ex2Macro.loop);
   w->writeI(std.ex3Macro.loop);
-  w->writeC(std.arpMacro.mode);
+  w->writeC(0); // this was arp macro mode
   w->writeC(0); // reserved
   w->writeC(0);
   w->writeC(0);
@@ -543,11 +543,125 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(gb.softEnv);
   w->writeC(gb.alwaysInit);
 
+  // ES5506
+  w->writeC(es5506.filter.mode);
+  w->writeS(es5506.filter.k1);
+  w->writeS(es5506.filter.k2);
+  w->writeS(es5506.envelope.ecount);
+  w->writeC(es5506.envelope.lVRamp);
+  w->writeC(es5506.envelope.rVRamp);
+  w->writeC(es5506.envelope.k1Ramp);
+  w->writeC(es5506.envelope.k2Ramp);
+  w->writeC(es5506.envelope.k1Slow);
+  w->writeC(es5506.envelope.k2Slow);
+  
+  // SNES
+  w->writeC(snes.useEnv);
+  w->writeC(snes.gainMode);
+  w->writeC(snes.gain);
+  w->writeC(snes.a);
+  w->writeC(snes.d);
+  w->writeC(snes.s);
+  w->writeC(snes.r);
+
+  // macro speed/delay
+  w->writeC(std.volMacro.speed);
+  w->writeC(std.arpMacro.speed);
+  w->writeC(std.dutyMacro.speed);
+  w->writeC(std.waveMacro.speed);
+  w->writeC(std.pitchMacro.speed);
+  w->writeC(std.ex1Macro.speed);
+  w->writeC(std.ex2Macro.speed);
+  w->writeC(std.ex3Macro.speed);
+  w->writeC(std.algMacro.speed);
+  w->writeC(std.fbMacro.speed);
+  w->writeC(std.fmsMacro.speed);
+  w->writeC(std.amsMacro.speed);
+  w->writeC(std.panLMacro.speed);
+  w->writeC(std.panRMacro.speed);
+  w->writeC(std.phaseResetMacro.speed);
+  w->writeC(std.ex4Macro.speed);
+  w->writeC(std.ex5Macro.speed);
+  w->writeC(std.ex6Macro.speed);
+  w->writeC(std.ex7Macro.speed);
+  w->writeC(std.ex8Macro.speed);
+
+  w->writeC(std.volMacro.delay);
+  w->writeC(std.arpMacro.delay);
+  w->writeC(std.dutyMacro.delay);
+  w->writeC(std.waveMacro.delay);
+  w->writeC(std.pitchMacro.delay);
+  w->writeC(std.ex1Macro.delay);
+  w->writeC(std.ex2Macro.delay);
+  w->writeC(std.ex3Macro.delay);
+  w->writeC(std.algMacro.delay);
+  w->writeC(std.fbMacro.delay);
+  w->writeC(std.fmsMacro.delay);
+  w->writeC(std.amsMacro.delay);
+  w->writeC(std.panLMacro.delay);
+  w->writeC(std.panRMacro.delay);
+  w->writeC(std.phaseResetMacro.delay);
+  w->writeC(std.ex4Macro.delay);
+  w->writeC(std.ex5Macro.delay);
+  w->writeC(std.ex6Macro.delay);
+  w->writeC(std.ex7Macro.delay);
+  w->writeC(std.ex8Macro.delay);
+
+  // op macro speed/delay
+  for (int i=0; i<4; i++) {
+    DivInstrumentSTD::OpMacro& op=std.opMacros[i];
+
+    w->writeC(op.amMacro.speed);
+    w->writeC(op.arMacro.speed);
+    w->writeC(op.drMacro.speed);
+    w->writeC(op.multMacro.speed);
+    w->writeC(op.rrMacro.speed);
+    w->writeC(op.slMacro.speed);
+    w->writeC(op.tlMacro.speed);
+    w->writeC(op.dt2Macro.speed);
+    w->writeC(op.rsMacro.speed);
+    w->writeC(op.dtMacro.speed);
+    w->writeC(op.d2rMacro.speed);
+    w->writeC(op.ssgMacro.speed);
+    w->writeC(op.damMacro.speed);
+    w->writeC(op.dvbMacro.speed);
+    w->writeC(op.egtMacro.speed);
+    w->writeC(op.kslMacro.speed);
+    w->writeC(op.susMacro.speed);
+    w->writeC(op.vibMacro.speed);
+    w->writeC(op.wsMacro.speed);
+    w->writeC(op.ksrMacro.speed);
+
+    w->writeC(op.amMacro.delay);
+    w->writeC(op.arMacro.delay);
+    w->writeC(op.drMacro.delay);
+    w->writeC(op.multMacro.delay);
+    w->writeC(op.rrMacro.delay);
+    w->writeC(op.slMacro.delay);
+    w->writeC(op.tlMacro.delay);
+    w->writeC(op.dt2Macro.delay);
+    w->writeC(op.rsMacro.delay);
+    w->writeC(op.dtMacro.delay);
+    w->writeC(op.d2rMacro.delay);
+    w->writeC(op.ssgMacro.delay);
+    w->writeC(op.damMacro.delay);
+    w->writeC(op.dvbMacro.delay);
+    w->writeC(op.egtMacro.delay);
+    w->writeC(op.kslMacro.delay);
+    w->writeC(op.susMacro.delay);
+    w->writeC(op.vibMacro.delay);
+    w->writeC(op.wsMacro.delay);
+    w->writeC(op.ksrMacro.delay);
+  }
+
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);
   w->writeI(blockEndSeek-blockStartSeek-4);
   w->seek(0,SEEK_END);
 }
+
+#define READ_MACRO_VALS(x,y) \
+  for (int macroValPos=0; macroValPos<y; macroValPos++) x[macroValPos]=reader.readI();
 
 DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   char magic[4];
@@ -674,10 +788,10 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   int oldVolHeight=reader.readC();
   int oldDutyHeight=reader.readC();
   reader.readC(); // oldWaveHeight
-  reader.read(std.volMacro.val,4*std.volMacro.len);
-  reader.read(std.arpMacro.val,4*std.arpMacro.len);
-  reader.read(std.dutyMacro.val,4*std.dutyMacro.len);
-  reader.read(std.waveMacro.val,4*std.waveMacro.len);
+  READ_MACRO_VALS(std.volMacro.val,std.volMacro.len);
+  READ_MACRO_VALS(std.arpMacro.val,std.arpMacro.len);
+  READ_MACRO_VALS(std.dutyMacro.val,std.dutyMacro.len);
+  READ_MACRO_VALS(std.waveMacro.val,std.waveMacro.len);
   if (version<31) {
     if (!std.arpMacro.mode) for (int j=0; j<std.arpMacro.len; j++) {
       std.arpMacro.val[j]-=12;
@@ -692,10 +806,10 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     }
   }
   if (version>=17) {
-    reader.read(std.pitchMacro.val,4*std.pitchMacro.len);
-    reader.read(std.ex1Macro.val,4*std.ex1Macro.len);
-    reader.read(std.ex2Macro.val,4*std.ex2Macro.len);
-    reader.read(std.ex3Macro.val,4*std.ex3Macro.len);
+    READ_MACRO_VALS(std.pitchMacro.val,std.pitchMacro.len);
+    READ_MACRO_VALS(std.ex1Macro.val,std.ex1Macro.len);
+    READ_MACRO_VALS(std.ex2Macro.val,std.ex2Macro.len);
+    READ_MACRO_VALS(std.ex3Macro.val,std.ex3Macro.len);
   } else {
     if (type==DIV_INS_STD) {
       if (oldVolHeight==31) {
@@ -730,10 +844,10 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     std.fmsMacro.open=reader.readC();
     std.amsMacro.open=reader.readC();
 
-    reader.read(std.algMacro.val,4*std.algMacro.len);
-    reader.read(std.fbMacro.val,4*std.fbMacro.len);
-    reader.read(std.fmsMacro.val,4*std.fmsMacro.len);
-    reader.read(std.amsMacro.val,4*std.amsMacro.len);
+    READ_MACRO_VALS(std.algMacro.val,std.algMacro.len);
+    READ_MACRO_VALS(std.fbMacro.val,std.fbMacro.len);
+    READ_MACRO_VALS(std.fmsMacro.val,std.fmsMacro.len);
+    READ_MACRO_VALS(std.amsMacro.val,std.amsMacro.len);
 
     for (int i=0; i<4; i++) {
       DivInstrumentSTD::OpMacro& op=std.opMacros[i];
@@ -936,15 +1050,15 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   // clear noise macro if PCE instrument and version<63
   if (version<63 && type==DIV_INS_PCE) {
     std.dutyMacro.len=0;
-    std.dutyMacro.loop=-1;
-    std.dutyMacro.rel=-1;
+    std.dutyMacro.loop=255;
+    std.dutyMacro.rel=255;
   }
 
   // clear wave macro if OPLL instrument and version<70
   if (version<70 && type==DIV_INS_OPLL) {
     std.waveMacro.len=0;
-    std.waveMacro.loop=-1;
-    std.waveMacro.rel=-1;
+    std.waveMacro.loop=255;
+    std.waveMacro.rel=255;
   }
 
   // sample map
@@ -1007,14 +1121,14 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
     std.ex7Macro.open=reader.readC();
     std.ex8Macro.open=reader.readC();
 
-    reader.read(std.panLMacro.val,4*std.panLMacro.len);
-    reader.read(std.panRMacro.val,4*std.panRMacro.len);
-    reader.read(std.phaseResetMacro.val,4*std.phaseResetMacro.len);
-    reader.read(std.ex4Macro.val,4*std.ex4Macro.len);
-    reader.read(std.ex5Macro.val,4*std.ex5Macro.len);
-    reader.read(std.ex6Macro.val,4*std.ex6Macro.len);
-    reader.read(std.ex7Macro.val,4*std.ex7Macro.len);
-    reader.read(std.ex8Macro.val,4*std.ex8Macro.len);
+    READ_MACRO_VALS(std.panLMacro.val,std.panLMacro.len);
+    READ_MACRO_VALS(std.panRMacro.val,std.panRMacro.len);
+    READ_MACRO_VALS(std.phaseResetMacro.val,std.phaseResetMacro.len);
+    READ_MACRO_VALS(std.ex4Macro.val,std.ex4Macro.len);
+    READ_MACRO_VALS(std.ex5Macro.val,std.ex5Macro.len);
+    READ_MACRO_VALS(std.ex6Macro.val,std.ex6Macro.len);
+    READ_MACRO_VALS(std.ex7Macro.val,std.ex7Macro.len);
+    READ_MACRO_VALS(std.ex8Macro.val,std.ex8Macro.len);
 
     // FDS
     fds.modSpeed=reader.readI();
@@ -1109,6 +1223,136 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   if (version>=106) {
     gb.softEnv=reader.readC();
     gb.alwaysInit=reader.readC();
+  }
+
+  // ES5506
+  if (version>=107) {
+    es5506.filter.mode=(DivInstrumentES5506::Filter::FilterMode)reader.readC();
+    es5506.filter.k1=reader.readS();
+    es5506.filter.k2=reader.readS();
+    es5506.envelope.ecount=reader.readS();
+    es5506.envelope.lVRamp=reader.readC();
+    es5506.envelope.rVRamp=reader.readC();
+    es5506.envelope.k1Ramp=reader.readC();
+    es5506.envelope.k2Ramp=reader.readC();
+    es5506.envelope.k1Slow=reader.readC();
+    es5506.envelope.k2Slow=reader.readC();
+  }
+
+  // SNES
+  if (version>=109) {
+    snes.useEnv=reader.readC();
+    snes.gainMode=(DivInstrumentSNES::GainMode)reader.readC();
+    snes.gain=reader.readC();
+    snes.a=reader.readC();
+    snes.d=reader.readC();
+    snes.s=reader.readC();
+    snes.r=reader.readC();
+  }
+
+  // macro speed/delay
+  if (version>=111) {
+    std.volMacro.speed=reader.readC();
+    std.arpMacro.speed=reader.readC();
+    std.dutyMacro.speed=reader.readC();
+    std.waveMacro.speed=reader.readC();
+    std.pitchMacro.speed=reader.readC();
+    std.ex1Macro.speed=reader.readC();
+    std.ex2Macro.speed=reader.readC();
+    std.ex3Macro.speed=reader.readC();
+    std.algMacro.speed=reader.readC();
+    std.fbMacro.speed=reader.readC();
+    std.fmsMacro.speed=reader.readC();
+    std.amsMacro.speed=reader.readC();
+    std.panLMacro.speed=reader.readC();
+    std.panRMacro.speed=reader.readC();
+    std.phaseResetMacro.speed=reader.readC();
+    std.ex4Macro.speed=reader.readC();
+    std.ex5Macro.speed=reader.readC();
+    std.ex6Macro.speed=reader.readC();
+    std.ex7Macro.speed=reader.readC();
+    std.ex8Macro.speed=reader.readC();
+
+    std.volMacro.delay=reader.readC();
+    std.arpMacro.delay=reader.readC();
+    std.dutyMacro.delay=reader.readC();
+    std.waveMacro.delay=reader.readC();
+    std.pitchMacro.delay=reader.readC();
+    std.ex1Macro.delay=reader.readC();
+    std.ex2Macro.delay=reader.readC();
+    std.ex3Macro.delay=reader.readC();
+    std.algMacro.delay=reader.readC();
+    std.fbMacro.delay=reader.readC();
+    std.fmsMacro.delay=reader.readC();
+    std.amsMacro.delay=reader.readC();
+    std.panLMacro.delay=reader.readC();
+    std.panRMacro.delay=reader.readC();
+    std.phaseResetMacro.delay=reader.readC();
+    std.ex4Macro.delay=reader.readC();
+    std.ex5Macro.delay=reader.readC();
+    std.ex6Macro.delay=reader.readC();
+    std.ex7Macro.delay=reader.readC();
+    std.ex8Macro.delay=reader.readC();
+
+    // op macro speed/delay
+    for (int i=0; i<4; i++) {
+      DivInstrumentSTD::OpMacro& op=std.opMacros[i];
+
+      op.amMacro.speed=reader.readC();
+      op.arMacro.speed=reader.readC();
+      op.drMacro.speed=reader.readC();
+      op.multMacro.speed=reader.readC();
+      op.rrMacro.speed=reader.readC();
+      op.slMacro.speed=reader.readC();
+      op.tlMacro.speed=reader.readC();
+      op.dt2Macro.speed=reader.readC();
+      op.rsMacro.speed=reader.readC();
+      op.dtMacro.speed=reader.readC();
+      op.d2rMacro.speed=reader.readC();
+      op.ssgMacro.speed=reader.readC();
+      op.damMacro.speed=reader.readC();
+      op.dvbMacro.speed=reader.readC();
+      op.egtMacro.speed=reader.readC();
+      op.kslMacro.speed=reader.readC();
+      op.susMacro.speed=reader.readC();
+      op.vibMacro.speed=reader.readC();
+      op.wsMacro.speed=reader.readC();
+      op.ksrMacro.speed=reader.readC();
+
+      op.amMacro.delay=reader.readC();
+      op.arMacro.delay=reader.readC();
+      op.drMacro.delay=reader.readC();
+      op.multMacro.delay=reader.readC();
+      op.rrMacro.delay=reader.readC();
+      op.slMacro.delay=reader.readC();
+      op.tlMacro.delay=reader.readC();
+      op.dt2Macro.delay=reader.readC();
+      op.rsMacro.delay=reader.readC();
+      op.dtMacro.delay=reader.readC();
+      op.d2rMacro.delay=reader.readC();
+      op.ssgMacro.delay=reader.readC();
+      op.damMacro.delay=reader.readC();
+      op.dvbMacro.delay=reader.readC();
+      op.egtMacro.delay=reader.readC();
+      op.kslMacro.delay=reader.readC();
+      op.susMacro.delay=reader.readC();
+      op.vibMacro.delay=reader.readC();
+      op.wsMacro.delay=reader.readC();
+      op.ksrMacro.delay=reader.readC();
+    }
+  }
+
+  // old arp macro format
+  if (version<112) {
+    if (std.arpMacro.mode) {
+      std.arpMacro.mode=0;
+      for (int i=0; i<std.arpMacro.len; i++) {
+        std.arpMacro.val[i]^=0x40000000;
+      }
+      if ((std.arpMacro.loop>=std.arpMacro.len || (std.arpMacro.rel>std.arpMacro.loop && std.arpMacro.rel<std.arpMacro.len)) && std.arpMacro.len<255) {
+        std.arpMacro.val[std.arpMacro.len++]=0;
+      }
+    }
   }
 
   return DIV_DATA_SUCCESS;

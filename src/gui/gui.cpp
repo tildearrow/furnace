@@ -195,23 +195,30 @@ void FurnaceGUI::decodeKeyMap(std::map<int,int>& map, String source) {
   }
 }
 
-void FurnaceGUI::encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex) {
+void FurnaceGUI::encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex, bool bit30) {
   target="";
   char buf[32];
   for (int i=0; i<macroLen; i++) {
     if (i==macroLoop) target+="| ";
     if (i==macroRel) target+="/ ";
+    if (bit30 && ((macro[i]&0xc0000000)==0x40000000 || (macro[i]&0xc0000000)==0x80000000)) target+="@";
+    int macroVal=macro[i];
+    if (macro[i]<0) {
+      if (!(macroVal&0x40000000)) macroVal|=0x40000000;
+    } else {
+      if (macroVal&0x40000000) macroVal&=~0x40000000;
+    }
     if (hex) {
       if (i==macroLen-1) {
-        snprintf(buf,31,"%.2X",macro[i]);
+        snprintf(buf,31,"%.2X",macroVal);
       } else {
-        snprintf(buf,31,"%.2X ",macro[i]);
+        snprintf(buf,31,"%.2X ",macroVal);
       }
     } else {
       if (i==macroLen-1) {
-        snprintf(buf,31,"%d",macro[i]);
+        snprintf(buf,31,"%d",macroVal);
       } else {
-        snprintf(buf,31,"%d ",macro[i]);
+        snprintf(buf,31,"%d ",macroVal);
       }
     }
     target+=buf;
@@ -276,13 +283,14 @@ void FurnaceGUI::decodeMMLStrW(String& source, int* macro, int& macroLen, int ma
   }
 }
 
-void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLen, signed char& macroLoop, int macroMin, int macroMax, signed char& macroRel) {
+void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLen, unsigned char& macroLoop, int macroMin, int macroMax, unsigned char& macroRel, bool bit30) {
   int buf=0;
   bool negaBuf=false;
+  bool setBit30=false;
   bool hasVal=false;
   macroLen=0;
-  macroLoop=-1;
-  macroRel=-1;
+  macroLoop=255;
+  macroRel=255;
   for (char& i: source) {
     switch (i) {
       case '0': case '1': case '2': case '3': case '4':
@@ -297,6 +305,11 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
           negaBuf=true;
         }
         break;
+      case '@':
+        if (bit30) {
+          setBit30=true;
+        }
+        break;
       case ' ':
         if (hasVal) {
           hasVal=false;
@@ -304,6 +317,8 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
           negaBuf=false;
           if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
           if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
+          if (setBit30) macro[macroLen]^=0x40000000;
+          setBit30=false;
           macroLen++;
           buf=0;
         }
@@ -315,10 +330,12 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
           negaBuf=false;
           if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
           if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
+          if (setBit30) macro[macroLen]^=0x40000000;
+          setBit30=false;
           macroLen++;
           buf=0;
         }
-        if (macroLoop==-1) {
+        if (macroLoop==255) {
           macroLoop=macroLen;
         }
         break;
@@ -329,22 +346,26 @@ void FurnaceGUI::decodeMMLStr(String& source, int* macro, unsigned char& macroLe
           negaBuf=false;
           if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
           if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
+          if (setBit30) macro[macroLen]^=0x40000000;
+          setBit30=false;
           macroLen++;
           buf=0;
         }
-        if (macroRel==-1) {
+        if (macroRel==255) {
           macroRel=macroLen;
         }
         break;
     }
-    if (macroLen>=128) break;
+    if (macroLen>=255) break;
   }
-  if (hasVal && macroLen<128) {
+  if (hasVal && macroLen<255) {
     hasVal=false;
     macro[macroLen]=negaBuf?-buf:buf;
     negaBuf=false;
     if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
     if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
+    if (setBit30) macro[macroLen]^=0x40000000;
+    setBit30=false;
     macroLen++;
     buf=0;
   }
@@ -1582,6 +1603,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
 int FurnaceGUI::save(String path, int dmfVersion) {
   SafeWriter* w;
   if (dmfVersion) {
+    if (dmfVersion<24) dmfVersion=24;
     w=e->saveDMF(dmfVersion);
   } else {
     w=e->saveFur();
@@ -1768,8 +1790,35 @@ void FurnaceGUI::showError(String what) {
   displayError=true;
 }
 
+// what monster did I just create here?
+#define B30(tt) (macroDragBit30?((((tt)&0xc0000000)==0x40000000 || ((tt)&0xc0000000)==0x80000000)?0x40000000:0):0)
+
 #define MACRO_DRAG(t) \
-  if (macroDragBitMode) { \
+  if (macroDragSettingBit30) { \
+    if (macroDragLastX!=x || macroDragLastY!=y) { \
+      macroDragLastX=x; \
+      macroDragLastY=y; \
+      if (macroDragInitialValueSet) { \
+        if (!macroDragInitialValue) { \
+          if (t[x]&0x80000000) { \
+            t[x]&=~0x40000000; \
+          } else { \
+            t[x]|=0x40000000; \
+          } \
+        } else { \
+          if (t[x]&0x80000000) { \
+            t[x]|=0x40000000; \
+          } else { \
+            t[x]&=~0x40000000; \
+          } \
+        } \
+      } else { \
+        macroDragInitialValue=(((t[x])&0xc0000000)==0x40000000 || ((t[x])&0xc0000000)==0x80000000); \
+        macroDragInitialValueSet=true; \
+        t[x]^=0x40000000; \
+      } \
+    } \
+  } else if (macroDragBitMode) { \
     if (macroDragLastX!=x || macroDragLastY!=y) { \
       macroDragLastX=x; \
       macroDragLastY=y; \
@@ -1800,25 +1849,25 @@ void FurnaceGUI::showError(String what) {
       } \
       if (macroDragMouseMoved) { \
         if ((int)round(x-macroDragLineInitial.x)==0) { \
-          t[x]=macroDragLineInitial.y; \
+          t[x]=B30(t[x])^(int)(macroDragLineInitial.y); \
         } else { \
           if ((int)round(x-macroDragLineInitial.x)<0) { \
             for (int i=0; i<=(int)round(macroDragLineInitial.x-x); i++) { \
               int index=(int)round(x+i); \
               if (index<0) continue; \
-              t[index]=y+(macroDragLineInitial.y-y)*((float)i/(float)(macroDragLineInitial.x-x)); \
+              t[index]=B30(t[index])^(int)(y+(macroDragLineInitial.y-y)*((float)i/(float)(macroDragLineInitial.x-x))); \
             } \
           } else { \
             for (int i=0; i<=(int)round(x-macroDragLineInitial.x); i++) { \
               int index=(int)round(i+macroDragLineInitial.x); \
               if (index<0) continue; \
-              t[index]=macroDragLineInitial.y+(y-macroDragLineInitial.y)*((float)i/(x-macroDragLineInitial.x)); \
+              t[index]=B30(t[index])^(int)(macroDragLineInitial.y+(y-macroDragLineInitial.y)*((float)i/(x-macroDragLineInitial.x))); \
             } \
           } \
         } \
       } \
     } else { \
-      t[x]=y; \
+      t[x]=B30(t[x])^(y); \
     } \
   }
 
@@ -1902,20 +1951,6 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     }
   }
 }
-
-#define sysAddOption(x) \
-  if (ImGui::MenuItem(getSystemName(x))) { \
-    if (!e->addSystem(x)) { \
-      showError("cannot add chip! ("+e->getLastError()+")"); \
-    } \
-    updateWindowTitle(); \
-  }
-
-#define sysChangeOption(x,y) \
-  if (ImGui::MenuItem(getSystemName(y),NULL,e->song.system[x]==y)) { \
-    e->changeSystem(x,y,preserveChanPos); \
-    updateWindowTitle(); \
-  }
 
 #define checkExtension(x) \
   String lowerCase=fileName; \
@@ -3033,9 +3068,13 @@ bool FurnaceGUI::loop() {
         }
         ImGui::Separator();
         if (ImGui::BeginMenu("add chip...")) {
-          for (int j=0; availableSystems[j]; j++) {
-            if (!settings.hiddenSystems && (availableSystems[j]==DIV_SYSTEM_YMU759 || availableSystems[j]==DIV_SYSTEM_DUMMY)) continue;
-            sysAddOption((DivSystem)availableSystems[j]);
+          DivSystem picked=systemPicker();
+          if (picked!=DIV_SYSTEM_NULL) {
+            if (!e->addSystem(picked)) {
+              showError("cannot add chip! ("+e->getLastError()+")");
+            }
+            ImGui::CloseCurrentPopup();
+            updateWindowTitle();
           }
           ImGui::EndMenu();
         }
@@ -3052,9 +3091,11 @@ bool FurnaceGUI::loop() {
           ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
           for (int i=0; i<e->song.systemLen; i++) {
             if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-              for (int j=0; availableSystems[j]; j++) {
-                if (!settings.hiddenSystems && (availableSystems[j]==DIV_SYSTEM_YMU759 || availableSystems[j]==DIV_SYSTEM_DUMMY)) continue;
-                sysChangeOption(i,(DivSystem)availableSystems[j]);
+              DivSystem picked=systemPicker();
+              if (picked!=DIV_SYSTEM_NULL) {
+                e->changeSystem(i,picked,preserveChanPos);
+                updateWindowTitle();
+                ImGui::CloseCurrentPopup();
               }
               ImGui::EndMenu();
             }
@@ -3138,6 +3179,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("mixer",BIND_FOR(GUI_ACTION_WINDOW_MIXER),mixerOpen)) mixerOpen=!mixerOpen;
         if (ImGui::MenuItem("channels",BIND_FOR(GUI_ACTION_WINDOW_CHANNELS),channelsOpen)) channelsOpen=!channelsOpen;
         if (ImGui::MenuItem("pattern manager",BIND_FOR(GUI_ACTION_WINDOW_PAT_MANAGER),patManagerOpen)) patManagerOpen=!patManagerOpen;
+        if (ImGui::MenuItem("chip manager",BIND_FOR(GUI_ACTION_WINDOW_SYS_MANAGER),sysManagerOpen)) sysManagerOpen=!sysManagerOpen;
         if (ImGui::MenuItem("compatibility flags",BIND_FOR(GUI_ACTION_WINDOW_COMPAT_FLAGS),compatFlagsOpen)) compatFlagsOpen=!compatFlagsOpen;
         if (ImGui::MenuItem("song comments",BIND_FOR(GUI_ACTION_WINDOW_NOTES),notesOpen)) notesOpen=!notesOpen;
         ImGui::Separator();
@@ -3273,6 +3315,7 @@ bool FurnaceGUI::loop() {
       drawNotes();
       drawChannels();
       drawPatManager();
+      drawSysManager();
       drawRegView();
       drawLog();
       drawEffectList();
@@ -4167,6 +4210,16 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
           }
           break;
+        case GUI_WARN_SYSTEM_DEL:
+          if (ImGui::Button("Yes")) {
+            e->removeSystem(sysToDelete,preserveChanPos);
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
         case GUI_WARN_GENERIC:
           if (ImGui::Button("OK")) {
             ImGui::CloseCurrentPopup();
@@ -4421,6 +4474,7 @@ bool FurnaceGUI::init() {
   notesOpen=e->getConfBool("notesOpen",false);
   channelsOpen=e->getConfBool("channelsOpen",false);
   patManagerOpen=e->getConfBool("patManagerOpen",false);
+  sysManagerOpen=e->getConfBool("sysManagerOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",false);
@@ -4665,6 +4719,7 @@ bool FurnaceGUI::finish() {
   e->setConf("notesOpen",notesOpen);
   e->setConf("channelsOpen",channelsOpen);
   e->setConf("patManagerOpen",patManagerOpen);
+  e->setConf("sysManagerOpen",sysManagerOpen);
   e->setConf("regViewOpen",regViewOpen);
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
@@ -4764,6 +4819,7 @@ FurnaceGUI::FurnaceGUI():
   zsmExportTickRate(60),
   macroPointSize(16),
   waveEditStyle(0),
+  curSysSection(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),
   pendingRawSampleUnsigned(false),
@@ -4847,6 +4903,7 @@ FurnaceGUI::FurnaceGUI():
   findOpen(false),
   spoilerOpen(false),
   patManagerOpen(false),
+  sysManagerOpen(false),
   selecting(false),
   selectingFull(false),
   dragging(false),
@@ -4923,6 +4980,8 @@ FurnaceGUI::FurnaceGUI():
   macroDragInitialValueSet(false),
   macroDragInitialValue(false),
   macroDragChar(false),
+  macroDragBit30(false),
+  macroDragSettingBit30(false),
   macroDragLineMode(false),
   macroDragMouseMoved(false),
   macroDragLineInitial(0,0),
@@ -4961,6 +5020,8 @@ FurnaceGUI::FurnaceGUI():
   eventTimeEnd(0),
   eventTimeDelta(0),
   chanToMove(-1),
+  sysToMove(-1),
+  sysToDelete(-1),
   transposeAmount(0),
   randomizeMin(0),
   randomizeMax(255),

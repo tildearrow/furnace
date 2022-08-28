@@ -60,10 +60,6 @@ const char** DivPlatformYMZ280B::getRegisterSheet() {
   return regCheatSheetYMZ280B;
 }
 
-const char* DivPlatformYMZ280B::getEffectName(unsigned char effect) {
-  return NULL;
-}
-
 void DivPlatformYMZ280B::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   short buf[16][256];
   short *bufPtrs[16]={
@@ -99,18 +95,9 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {

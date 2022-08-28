@@ -53,18 +53,6 @@ const char** DivPlatformVERA::getRegisterSheet() {
   return regCheatSheetVERA;
 }
 
-const char* DivPlatformVERA::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x20:
-      return "20xx: Change waveform";
-      break;
-    case 0x22:
-      return "22xx: Set duty cycle (0 to 3F)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   // both PSG part and PCM part output a full 16-bit range, putting bufL/R
   // argument right into both could cause an overflow
@@ -173,18 +161,9 @@ void DivPlatformVERA::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=calcNoteFreq(0,chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=calcNoteFreq(0,chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=calcNoteFreq(0,parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=calcNoteFreq(0,chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       rWriteLo(i,3,chan[i].std.duty.val);
@@ -223,18 +202,9 @@ void DivPlatformVERA::tick(bool sysTick) {
   }
   if (chan[16].std.arp.had) {
     if (!chan[16].inPorta) {
-      if (chan[16].std.arp.mode) {
-        chan[16].baseFreq=calcNoteFreq(16,chan[16].std.arp.val);
-      } else {
-        chan[16].baseFreq=calcNoteFreq(16,chan[16].note+chan[16].std.arp.val);
-      }
+      chan[16].baseFreq=calcNoteFreq(16,parent->calcArp(chan[16].note,chan[16].std.arp.val));
     }
     chan[16].freqChanged=true;
-  } else {
-    if (chan[16].std.arp.mode && chan[16].std.arp.finished) {
-      chan[16].baseFreq=calcNoteFreq(16,chan[16].note);
-      chan[16].freqChanged=true;
-    }
   }
   if (chan[16].freqChanged) {
     double off=65536.0;

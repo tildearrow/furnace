@@ -61,27 +61,6 @@ const char** DivPlatformGB::getRegisterSheet() {
   return regCheatSheetGB;
 }
 
-const char* DivPlatformGB::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-    case 0x11:
-      return "11xx: Set noise length (0: long; 1: short)";
-      break;
-    case 0x12:
-      return "12xx: Set duty cycle (0 to 3)";
-      break;
-    case 0x13:
-      return "13xy: Setup sweep (x: time; y: shift)";
-      break;
-    case 0x14:
-      return "14xx: Set sweep direction (0: up; 1: down)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     if (!writes.empty()) {
@@ -186,28 +165,13 @@ void DivPlatformGB::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (i==3) { // noise
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=chan[i].std.arp.val+24;
-        } else {
-          chan[i].baseFreq=chan[i].note+chan[i].std.arp.val;
-        }
+        chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.arp.val,24);
         if (chan[i].baseFreq>255) chan[i].baseFreq=255;
         if (chan[i].baseFreq<0) chan[i].baseFreq=0;
       } else {
-        if (!chan[i].inPorta) {
-          if (chan[i].std.arp.mode) {
-            chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val+24);
-          } else {
-            chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-          }
-        }
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val,24));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;

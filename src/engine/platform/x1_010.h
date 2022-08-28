@@ -149,7 +149,6 @@ class DivPlatformX1_010: public DivDispatch {
     size_t getSampleMemUsage(int index = 0);
     void renderSamples();
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformX1_010();

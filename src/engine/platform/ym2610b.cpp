@@ -302,126 +302,6 @@ const char** DivPlatformYM2610B::getRegisterSheet() {
   return regCheatSheetYM2610B;
 }
 
-const char* DivPlatformYM2610B::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xy: Setup LFO (x: enable; y: speed)";
-      break;
-    case 0x11:
-      return "11xx: Set feedback (0 to 7)";
-      break;
-    case 0x12:
-      return "12xx: Set level of operator 1 (0 highest, 7F lowest)";
-      break;
-    case 0x13:
-      return "13xx: Set level of operator 2 (0 highest, 7F lowest)";
-      break;
-    case 0x14:
-      return "14xx: Set level of operator 3 (0 highest, 7F lowest)";
-      break;
-    case 0x15:
-      return "15xx: Set level of operator 4 (0 highest, 7F lowest)";
-      break;
-    case 0x16:
-      return "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)";
-      break;
-    case 0x18:
-      return "18xx: Toggle extended channel 3 mode";
-      break;
-    case 0x19:
-      return "19xx: Set attack of all operators (0 to 1F)";
-      break;
-    case 0x1a:
-      return "1Axx: Set attack of operator 1 (0 to 1F)";
-      break;
-    case 0x1b:
-      return "1Bxx: Set attack of operator 2 (0 to 1F)";
-      break;
-    case 0x1c:
-      return "1Cxx: Set attack of operator 3 (0 to 1F)";
-      break;
-    case 0x1d:
-      return "1Dxx: Set attack of operator 4 (0 to 1F)";
-      break;
-    case 0x20:
-      return "20xx: Set SSG channel mode (bit 0: square; bit 1: noise; bit 2: envelope)";
-      break;
-    case 0x21:
-      return "21xx: Set SSG noise frequency (0 to 1F)";
-      break;
-    case 0x22:
-      return "22xy: Set SSG envelope mode (x: shape, y: enable for this channel)";
-      break;
-    case 0x23:
-      return "23xx: Set SSG envelope period low byte";
-      break;
-    case 0x24:
-      return "24xx: Set SSG envelope period high byte";
-      break;
-    case 0x25:
-      return "25xx: SSG envelope slide up";
-      break;
-    case 0x26:
-      return "26xx: SSG envelope slide down";
-      break;
-    case 0x29:
-      return "29xy: Set SSG auto-envelope (x: numerator; y: denominator)";
-      break;
-    case 0x30:
-      return "30xx: Toggle hard envelope reset on new notes";
-      break;
-    case 0x50:
-      return "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)";
-      break;
-    case 0x51:
-      return "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)";
-      break;
-    case 0x52:
-      return "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)";
-      break;
-    case 0x53:
-      return "53xy: Set detune (x: operator from 1 to 4 (0 for all ops); y: detune where 3 is center)";
-      break;
-    case 0x54:
-      return "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale from 0 to 3)";
-      break;
-    case 0x55:
-      return "55xy: Set SSG envelope (x: operator from 1 to 4 (0 for all ops); y: 0-7 on, 8 off)";
-      break;
-    case 0x56:
-      return "56xx: Set decay of all operators (0 to 1F)";
-      break;
-    case 0x57:
-      return "57xx: Set decay of operator 1 (0 to 1F)";
-      break;
-    case 0x58:
-      return "58xx: Set decay of operator 2 (0 to 1F)";
-      break;
-    case 0x59:
-      return "59xx: Set decay of operator 3 (0 to 1F)";
-      break;
-    case 0x5a:
-      return "5Axx: Set decay of operator 4 (0 to 1F)";
-      break;
-    case 0x5b:
-      return "5Bxx: Set decay 2 of all operators (0 to 1F)";
-      break;
-    case 0x5c:
-      return "5Cxx: Set decay 2 of operator 1 (0 to 1F)";
-      break;
-    case 0x5d:
-      return "5Dxx: Set decay 2 of operator 2 (0 to 1F)";
-      break;
-    case 0x5e:
-      return "5Exx: Set decay 2 of operator 3 (0 to 1F)";
-      break;
-    case 0x5f:
-      return "5Fxx: Set decay 2 of operator 4 (0 to 1F)";
-      break;
-  }
-  return NULL;
-}
-
 double DivPlatformYM2610B::NOTE_OPNB(int ch, int note) {
   if (ch>8) { // ADPCM-B
     return NOTE_ADPCMB(note);
@@ -530,18 +410,9 @@ void DivPlatformYM2610B::tick(bool sysTick) {
 
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].std.arp.val,11);
-        } else {
-          chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].note+(signed char)chan[i].std.arp.val,11);
-        }
+        chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11);
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].note,11);
-        chan[i].freqChanged=true;
-      }
     }
 
     if (chan[i].std.panL.had) {
@@ -682,18 +553,9 @@ void DivPlatformYM2610B::tick(bool sysTick) {
 
     if (chan[15].std.arp.had) {
       if (!chan[15].inPorta) {
-        if (chan[15].std.arp.mode) {
-          chan[15].baseFreq=NOTE_ADPCMB(chan[15].std.arp.val);
-        } else {
-          chan[15].baseFreq=NOTE_ADPCMB(chan[15].note+(signed char)chan[15].std.arp.val);
-        }
+        chan[15].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[15].note,chan[15].std.arp.val));
       }
       chan[15].freqChanged=true;
-    } else {
-      if (chan[15].std.arp.mode && chan[15].std.arp.finished) {
-        chan[15].baseFreq=NOTE_ADPCMB(chan[15].note);
-        chan[15].freqChanged=true;
-      }
     }
   }
   if (chan[15].freqChanged) {

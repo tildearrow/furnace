@@ -43,15 +43,6 @@ const char** DivPlatformMMC5::getRegisterSheet() {
   return regCheatSheetMMC5;
 }
 
-const char* DivPlatformMMC5::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x12:
-      return "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformMMC5::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     if (dacSample!=-1) {
@@ -110,20 +101,12 @@ void DivPlatformMMC5::tick(bool sysTick) {
       if (chan[i].outVol<0) chan[i].outVol=0;
       rWrite(0x5000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
     }
+    // TODO: arp macros on NES PCM?
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;

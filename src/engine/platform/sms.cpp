@@ -38,15 +38,6 @@ const char** DivPlatformSMS::getRegisterSheet() {
   return stereo?regCheatSheetGG:regCheatSheetSN;
 }
 
-const char* DivPlatformSMS::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x20:
-      return "20xy: Set noise mode (x: preset freq/ch3 freq; y: thin pulse/noise)";
-      break; 
-  }
-  return NULL;
-}
-
 void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   int oL=0;
   int oR=0;
@@ -141,22 +132,12 @@ void DivPlatformSMS::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-          chan[i].actualNote=chan[i].std.arp.val;
-        } else {
-          // TODO: check whether this weird octave boundary thing applies to other systems as well
-          int areYouSerious=chan[i].note+chan[i].std.arp.val;
-          while (areYouSerious>0x60) areYouSerious-=12;
-          chan[i].baseFreq=NOTE_PERIODIC(areYouSerious);
-          chan[i].actualNote=areYouSerious;
-        }
-        chan[i].freqChanged=true;
-      }
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].actualNote=chan[i].note;
+        // TODO: check whether this weird octave boundary thing applies to other systems as well
+        // TODO: add compatibility flag. this is horrible.
+        int areYouSerious=parent->calcArp(chan[i].note,chan[i].std.arp.val);
+        while (areYouSerious>0x60) areYouSerious-=12;
+        chan[i].baseFreq=NOTE_PERIODIC(areYouSerious);
+        chan[i].actualNote=areYouSerious;
         chan[i].freqChanged=true;
       }
     }
@@ -197,7 +178,11 @@ void DivPlatformSMS::tick(bool sysTick) {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,toneDivider);
       if (chan[i].freq>1023) chan[i].freq=1023;
-      if (chan[i].freq<8) chan[i].freq=1;
+      if (parent->song.snNoLowPeriods) {
+        if (chan[i].freq<8) chan[i].freq=1;
+      } else {
+        if (chan[i].freq<0) chan[i].freq=0;
+      }
       //if (chan[i].actualNote>0x5d) chan[i].freq=0x01;
       rWrite(0,0x80|i<<5|(chan[i].freq&15));
       rWrite(0,chan[i].freq>>4);
@@ -212,7 +197,9 @@ void DivPlatformSMS::tick(bool sysTick) {
   if (chan[3].freqChanged || updateSNMode) {
     chan[3].freq=parent->calcFreq(chan[3].baseFreq,chan[3].pitch,true,0,chan[3].pitch2,chipClock,noiseDivider);
     if (chan[3].freq>1023) chan[3].freq=1023;
-    if (chan[3].actualNote>0x5d) chan[3].freq=0x01;
+    if (parent->song.snNoLowPeriods) {
+      if (chan[3].actualNote>0x5d) chan[3].freq=0x01;
+    }
     if (snNoiseMode&2) { // take period from channel 3
       if (updateSNMode || resetPhase) {
         if (snNoiseMode&1) {
@@ -232,12 +219,8 @@ void DivPlatformSMS::tick(bool sysTick) {
     } else { // 3 fixed values
       unsigned char value;
       if (chan[3].std.arp.had) {
-        if (chan[3].std.arp.mode) {
-          value=chan[3].std.arp.val%12;
-        } else {
-          value=(chan[3].note+chan[3].std.arp.val)%12;
-        }
-      } else {
+        value=parent->calcArp(chan[3].note,chan[3].std.arp.val)%12;
+      } else { // pardon?
         value=chan[3].note%12;
       }
       if (value<3) {
