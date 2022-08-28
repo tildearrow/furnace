@@ -1143,7 +1143,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2610B]=new DivSysDef(
-    "Yamaha YM2610B (OPNB-B)", NULL, 0x9e, 0, 16, true, false, 0x151, false,
+    "Yamaha YM2610B (OPNB2)", NULL, 0x9e, 0, 16, true, false, 0x151, false,
     "so Taito asked Yamaha if they could get the two missing FM channels back, and Yamaha gladly provided them with this chip.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
@@ -1317,7 +1317,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2610B_EXT]=new DivSysDef(
-    "Yamaha YM2610B (OPNB-B) Extended Channel 3", NULL, 0xde, 0, 19, true, false, 0x151, false,
+    "Yamaha YM2610B (OPNB2) Extended Channel 3", NULL, 0xde, 0, 19, true, false, 0x151, false,
     "so Taito asked Yamaha if they could get the two missing FM channels back, and Yamaha gladly provided them with this chip.\nthis one is in Extended Channel mode, which turns the second FM channel into four operators with independent notes/frequencies.",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "PSG 1", "PSG 2", "PSG 3", "ADPCM-A 1", "ADPCM-A 2", "ADPCM-A 3", "ADPCM-A 4", "ADPCM-A 5", "ADPCM-A 6", "ADPCM-B"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6", "S1", "S2", "S3", "P1", "P2", "P3", "P4", "P5", "P6", "B"},
