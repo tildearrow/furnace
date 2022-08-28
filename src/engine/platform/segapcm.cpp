@@ -36,7 +36,7 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
     for (int i=0; i<16; i++) {
       if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
         DivSample* s=parent->getSample(chan[i].pcm.sample);
-        if (s->getEndPosition()<=0) {
+        if (s->samples<=0) {
           chan[i].pcm.sample=-1;
           oscBuf[i]->data[oscBuf[i]->needle++]=0;
           continue;

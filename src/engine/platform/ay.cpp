@@ -90,7 +90,7 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
       int prev_out = chan[i].dac.out;
       while (chan[i].dac.period>rate && !end) {
         DivSample* s=parent->getSample(chan[i].dac.sample);
-        if (s->getEndPosition()<=0) {
+        if (s->samples<=0) {
           chan[i].dac.sample=-1;
           rWrite(0x08+i,0);
           end=true;

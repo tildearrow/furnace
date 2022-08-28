@@ -57,7 +57,7 @@ void DivPlatformSwan::acquire(short* bufL, short* bufR, size_t start, size_t len
       dacPeriod+=dacRate;
       while (dacPeriod>rate) {
         DivSample* s=parent->getSample(dacSample);
-        if (s->getEndPosition()<=0) {
+        if (s->samples<=0) {
           dacSample=-1;
           continue;
         }

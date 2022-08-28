@@ -58,7 +58,7 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
   size_t pos=start;
   DivSample* s=parent->getSample(chan[16].pcm.sample);
   while (len>0) {
-    if (s->getEndPosition()>0) {
+    if (s->samples>0) {
       while (pcm_is_fifo_almost_empty(pcm)) {
         short tmp_l=0;
         short tmp_r=0;

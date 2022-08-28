@@ -76,7 +76,7 @@ void DivPlatformNES::doWrite(unsigned short addr, unsigned char data) {
     dacPeriod+=dacRate; \
     if (dacPeriod>=rate) { \
       DivSample* s=parent->getSample(dacSample); \
-      if (s->getEndPosition()>0) { \
+      if (s->samples>0) { \
         if (!isMuted[4]) { \
           unsigned char next=((unsigned char)s->data8[dacPos]+0x80)>>1; \
           if (dacAntiClickOn && dacAntiClick<next) { \

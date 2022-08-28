@@ -54,7 +54,7 @@ void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len
         chan[i].dacPeriod+=chan[i].dacRate;
         if (chan[i].dacPeriod>rate) {
           DivSample* s=parent->getSample(chan[i].dacSample);
-          if (s->getEndPosition()<=0) {
+          if (s->samples<=0) {
             chan[i].dacSample=-1;
             chWrite(i,0,0);
             continue;

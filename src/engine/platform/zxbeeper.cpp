@@ -34,9 +34,9 @@ void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t
     if (curSample>=0 && curSample<parent->song.sampleLen) {
       if (--curSamplePeriod<0) {
         DivSample* s=parent->getSample(curSample);
-        if (s->getEndPosition()>0) {
+        if (s->samples>0) {
           sampleOut=(s->data8[curSamplePos++]>0);
-          if (curSamplePos>=(unsigned int)s->getEndPosition()) curSample=-1;
+          if (curSamplePos>=s->samples) curSample=-1;
           // 256 bits
           if (curSamplePos>2047) curSample=-1;
           

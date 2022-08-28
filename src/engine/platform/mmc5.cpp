@@ -49,7 +49,7 @@ void DivPlatformMMC5::acquire(short* bufL, short* bufR, size_t start, size_t len
       dacPeriod+=dacRate;
       if (dacPeriod>=rate) {
         DivSample* s=parent->getSample(dacSample);
-        if (s->getEndPosition()>0) {
+        if (s->samples>0) {
           if (!isMuted[2]) {
             rWrite(0x5011,((unsigned char)s->data8[dacPos]+0x80));
           }
