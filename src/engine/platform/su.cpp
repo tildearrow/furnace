@@ -581,7 +581,7 @@ int DivPlatformSoundUnit::init(DivEngine* p, int channels, int sugRate, unsigned
   su=new SoundUnit();
   setFlags(flags);
   reset();
-  return 6;
+  return 8;
 }
 
 void DivPlatformSoundUnit::quit() {
