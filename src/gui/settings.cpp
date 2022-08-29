@@ -97,6 +97,11 @@ const char* nesCores[]={
   "NSFplay"
 };
 
+const char* c64Cores[]={
+  "reSID",
+  "reSIDfp"
+};
+
 const char* pcspkrOutMethods[]={
   "evdev SND_TONE",
   "KIOCSOUND on /dev/tty1",
@@ -971,6 +976,10 @@ void FurnaceGUI::drawSettings() {
           ImGui::Text("FDS core");
           ImGui::SameLine();
           ImGui::Combo("##FDSCore",&settings.fdsCore,nesCores,2);
+
+          ImGui::Text("SID core");
+          ImGui::SameLine();
+          ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,2);
 
           ImGui::Separator();
 
@@ -2164,6 +2173,7 @@ void FurnaceGUI::syncSettings() {
   settings.snCore=e->getConfInt("snCore",0);
   settings.nesCore=e->getConfInt("nesCore",0);
   settings.fdsCore=e->getConfInt("fdsCore",0);
+  settings.c64Core=e->getConfInt("c64Core",1);
   settings.pcSpeakerOutMethod=e->getConfInt("pcSpeakerOutMethod",0);
   settings.yrw801Path=e->getConfString("yrw801Path","");
   settings.tg100Path=e->getConfString("tg100Path","");
@@ -2276,6 +2286,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.snCore,0,1);
   clampSetting(settings.nesCore,0,1);
   clampSetting(settings.fdsCore,0,1);
+  clampSetting(settings.c64Core,0,1);
   clampSetting(settings.pcSpeakerOutMethod,0,4);
   clampSetting(settings.mainFont,0,6);
   clampSetting(settings.patFont,0,6);
@@ -2411,6 +2422,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("snCore",settings.snCore);
   e->setConf("nesCore",settings.nesCore);
   e->setConf("fdsCore",settings.fdsCore);
+  e->setConf("c64Core",settings.c64Core);
   e->setConf("pcSpeakerOutMethod",settings.pcSpeakerOutMethod);
   e->setConf("yrw801Path",settings.yrw801Path);
   e->setConf("tg100Path",settings.tg100Path);
