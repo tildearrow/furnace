@@ -69,6 +69,14 @@ const char* regCheatSheetAY8914[]={
   NULL
 };
 
+// taken from ay8910.cpp
+const int sunsoftVolTable[32]={
+  103350, 73770, 52657, 37586, 32125, 27458, 24269, 21451,
+  18447, 15864, 14009, 12371, 10506,  8922,  7787,  6796,
+  5689,  4763,  4095,  3521,  2909,  2403,  2043,  1737,
+  1397,  1123,   925,   762,   578,   438,   332,   251
+};
+
 const char** DivPlatformAY8910::getRegisterSheet() {
   return intellivision?regCheatSheetAY8914:regCheatSheetAY;
 }
@@ -93,27 +101,33 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
     regPool[w.addr&0x0f]=w.val;
     writes.pop();
   }
-  ay->sound_stream_update(ayBuf,len);
   if (sunsoft) {
     for (size_t i=0; i<len; i++) {
-      bufL[i+start]=ayBuf[0][i];
+      ay->sound_stream_update(ayBuf,1);
+      bufL[i+start]=ayBuf[0][0];
       bufR[i+start]=bufL[i+start];
-    }
-  } else if (stereo) {
-    for (size_t i=0; i<len; i++) {
-      bufL[i+start]=ayBuf[0][i]+ayBuf[1][i];
-      bufR[i+start]=ayBuf[1][i]+ayBuf[2][i];
+
+      oscBuf[0]->data[oscBuf[0]->needle++]=sunsoftVolTable[31-(ay->lastIndx&31)]>>3;
+      oscBuf[1]->data[oscBuf[1]->needle++]=sunsoftVolTable[31-((ay->lastIndx>>5)&31)]>>3;
+      oscBuf[2]->data[oscBuf[2]->needle++]=sunsoftVolTable[31-((ay->lastIndx>>10)&31)]>>3;
     }
   } else {
-    for (size_t i=0; i<len; i++) {
-      bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
-      bufR[i+start]=bufL[i+start];
+    ay->sound_stream_update(ayBuf,len);
+    if (stereo) {
+      for (size_t i=0; i<len; i++) {
+        bufL[i+start]=ayBuf[0][i]+ayBuf[1][i];
+        bufR[i+start]=ayBuf[1][i]+ayBuf[2][i];
+      }
+    } else {
+      for (size_t i=0; i<len; i++) {
+        bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
+        bufR[i+start]=bufL[i+start];
+      }
     }
-  }
-
-  for (int ch=0; ch<3; ch++) {
-    for (size_t i=0; i<len; i++) {
-      oscBuf[ch]->data[oscBuf[ch]->needle++]=ayBuf[ch][i];
+    for (int ch=0; ch<3; ch++) {
+      for (size_t i=0; i<len; i++) {
+        oscBuf[ch]->data[oscBuf[ch]->needle++]=ayBuf[ch][i];
+      }
     }
   }
 }

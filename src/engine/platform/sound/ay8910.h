@@ -146,6 +146,8 @@ public:
 		double m_Kn[32];
 	};
 
+  int lastIndx;
+
 	// internal interface for PSG component of YM device
 	// FIXME: these should be private, but vector06 accesses them directly
 
