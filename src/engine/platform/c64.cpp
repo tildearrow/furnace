@@ -68,10 +68,16 @@ void DivPlatformC64::acquire(short* bufL, short* bufR, size_t start, size_t len)
   for (size_t i=start; i<start+len; i++) {
     if (isFP) {
       sid_fp.clock(4,&bufL[i]);
+      if (++writeOscBuf>=4) {
+        writeOscBuf=0;
+        oscBuf[0]->data[oscBuf[0]->needle++]=(sid_fp.lastChanOut[0]-dcOff)>>5;
+        oscBuf[1]->data[oscBuf[1]->needle++]=(sid_fp.lastChanOut[1]-dcOff)>>5;
+        oscBuf[2]->data[oscBuf[2]->needle++]=(sid_fp.lastChanOut[2]-dcOff)>>5;
+      }
     } else {
       sid.clock();
       bufL[i]=sid.output();
-      if (++writeOscBuf>=8) {
+      if (++writeOscBuf>=16) {
         writeOscBuf=0;
         oscBuf[0]->data[oscBuf[0]->needle++]=(sid.last_chan_out[0]-dcOff)>>5;
         oscBuf[1]->data[oscBuf[1]->needle++]=(sid.last_chan_out[1]-dcOff)>>5;

@@ -132,7 +132,7 @@ private:
      *
      * @return the output sample
      */
-    int output() const;
+    int output();
 
     /**
      * Calculate the numebr of cycles according to current parameters
@@ -145,6 +145,8 @@ private:
 public:
     SID();
     ~SID();
+
+    int lastChanOut[3];
 
     /**
      * Set chip model.
@@ -312,11 +314,15 @@ void SID::ageBusValue(unsigned int n)
 }
 
 RESID_INLINE
-int SID::output() const
+int SID::output()
 {
     const int v1 = voice[0]->output(voice[2]->wave());
     const int v2 = voice[1]->output(voice[0]->wave());
     const int v3 = voice[2]->output(voice[1]->wave());
+
+    lastChanOut[0]=v1;
+    lastChanOut[1]=v2;
+    lastChanOut[2]=v3;
 
     return externalFilter->clock(filter->clock(v1, v2, v3));
 }
