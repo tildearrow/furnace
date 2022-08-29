@@ -19,9 +19,10 @@
 
 #include "c64.h"
 #include "../engine.h"
+#include "sound/c64_fp/siddefs-fp.h"
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {sid.write(a,v); regPool[(a)&0x1f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {if (isFP) {sid_fp.write(a,v);} else {sid.write(a,v);}; regPool[(a)&0x1f]=v; if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_FREQBASE 524288
 
@@ -63,15 +64,19 @@ const char** DivPlatformC64::getRegisterSheet() {
 }
 
 void DivPlatformC64::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  int dcOff=sid.get_dc(0);
+  int dcOff=isFP?0:sid.get_dc(0);
   for (size_t i=start; i<start+len; i++) {
-    sid.clock();
-    bufL[i]=sid.output();
-    if (++writeOscBuf>=8) {
-      writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=(sid.last_chan_out[0]-dcOff)>>5;
-      oscBuf[1]->data[oscBuf[1]->needle++]=(sid.last_chan_out[1]-dcOff)>>5;
-      oscBuf[2]->data[oscBuf[2]->needle++]=(sid.last_chan_out[2]-dcOff)>>5;
+    if (isFP) {
+      sid_fp.clock(4,&bufL[i]);
+    } else {
+      sid.clock();
+      bufL[i]=sid.output();
+      if (++writeOscBuf>=8) {
+        writeOscBuf=0;
+        oscBuf[0]->data[oscBuf[0]->needle++]=(sid.last_chan_out[0]-dcOff)>>5;
+        oscBuf[1]->data[oscBuf[1]->needle++]=(sid.last_chan_out[1]-dcOff)>>5;
+        oscBuf[2]->data[oscBuf[2]->needle++]=(sid.last_chan_out[2]-dcOff)>>5;
+      }
     }
   }
 }
@@ -405,7 +410,11 @@ int DivPlatformC64::dispatch(DivCommand c) {
 
 void DivPlatformC64::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  sid.set_is_muted(ch,mute);
+  if (isFP) {
+    sid_fp.mute(ch,mute);
+  } else {
+    sid.set_is_muted(ch,mute);
+  }
 }
 
 void DivPlatformC64::forceIns() {
@@ -462,13 +471,21 @@ bool DivPlatformC64::getWantPreNote() {
   return true;
 }
 
+float DivPlatformC64::getPostAmp() {
+  return isFP?3.0f:1.0f;
+}
+
 void DivPlatformC64::reset() {
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformC64::Channel();
     chan[i].std.setEngine(parent);
   }
 
-  sid.reset();
+  if (isFP) {
+    sid_fp.reset();
+  } else {
+    sid.reset();
+  }
   memset(regPool,0,32);
 
   rWrite(0x18,0x0f);
@@ -490,10 +507,22 @@ void DivPlatformC64::poke(std::vector<DivRegWrite>& wlist) {
 
 void DivPlatformC64::setChipModel(bool is6581) {
   if (is6581) {
-    sid.set_chip_model(MOS6581);
+    if (isFP) {
+      sid_fp.setChipModel(reSIDfp::MOS6581);
+    } else {
+      sid.set_chip_model(MOS6581);
+    }
   } else {
-    sid.set_chip_model(MOS8580);
+    if (isFP) {
+      sid_fp.setChipModel(reSIDfp::MOS8580);
+    } else {
+      sid.set_chip_model(MOS8580);
+    }
   }
+}
+
+void DivPlatformC64::setFP(bool fp) {
+  isFP=fp;
 }
 
 void DivPlatformC64::setFlags(unsigned int flags) {
@@ -512,6 +541,10 @@ void DivPlatformC64::setFlags(unsigned int flags) {
   chipClock=rate;
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate/16;
+  }
+  if (isFP) {
+    rate/=4;
+    sid_fp.setSamplingParameters(chipClock,reSIDfp::DECIMATE,rate,0);
   }
 }
 
