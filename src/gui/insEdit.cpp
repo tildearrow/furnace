@@ -331,6 +331,11 @@ String macroHoverLoop(int id, float val) {
   return "";
 }
 
+String macroHoverBit30(int id, float val) {
+  if (val>0) return "Fixed";
+  return "Relative";
+}
+
 String macroHoverES5506FilterMode(int id, float val) {
   String mode="???";
   switch (((int)val)&3) {
@@ -1192,10 +1197,21 @@ String genericGuide(float value) {
   return fmt::sprintf("%d",(int)value);
 }
 
+inline int deBit30(const int val) {
+  if ((val&0xc0000000)==0x40000000 || (val&0xc0000000)==0x80000000) return val^0x40000000;
+  return val;
+}
+
+inline bool enBit30(const int val) {
+  if ((val&0xc0000000)==0x40000000 || (val&0xc0000000)==0x80000000) return true;
+  return false;
+}
+
 void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
   float asFloat[256];
   int asInt[256];
   float loopIndicator[256];
+  float bit30Indicator[256];
   bool doHighlight[256];
   int index=0;
 
@@ -1281,12 +1297,14 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
       // macro area
       ImGui::TableNextColumn();
       for (int j=0; j<256; j++) {
+        bit30Indicator[j]=0;
         if (j+macroDragScroll>=i.macro->len) {
           asFloat[j]=0;
           asInt[j]=0;
         } else {
-          asFloat[j]=i.macro->val[j+macroDragScroll];
-          asInt[j]=i.macro->val[j+macroDragScroll]+i.bitOffset;
+          asFloat[j]=deBit30(i.macro->val[j+macroDragScroll]);
+          asInt[j]=deBit30(i.macro->val[j+macroDragScroll])+i.bitOffset;
+          if (i.bit30) bit30Indicator[j]=enBit30(i.macro->val[j+macroDragScroll]);
         }
         if (j+macroDragScroll>=i.macro->len || (j+macroDragScroll>i.macro->rel && i.macro->loop<i.macro->rel)) {
           loopIndicator[j]=0;
@@ -1355,6 +1373,8 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
         macroDragInitialValue=false;
         macroDragLen=totalFit;
         macroDragActive=true;
+        macroDragBit30=i.bit30;
+        macroDragSettingBit30=false;
         macroDragTarget=i.macro->val;
         macroDragChar=false;
         macroDragLineMode=(i.isBitfield)?false:ImGui::IsItemClicked(ImGuiMouseButton_Right);
@@ -1422,6 +1442,27 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
           }
         }
 
+        // bit 30 area
+        if (i.bit30) {
+          PlotCustom("##IMacroBit30",bit30Indicator,totalFit,macroDragScroll,NULL,0,1,ImVec2(availableWidth,12.0f*dpiScale),sizeof(float),i.color,i.macro->len-macroDragScroll,&macroHoverBit30);
+          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+            macroDragStart=ImGui::GetItemRectMin();
+            macroDragAreaSize=ImVec2(availableWidth,12.0f*dpiScale);
+            macroDragInitialValueSet=false;
+            macroDragInitialValue=false;
+            macroDragLen=totalFit;
+            macroDragActive=true;
+            macroDragBit30=i.bit30;
+            macroDragSettingBit30=true;
+            macroDragTarget=i.macro->val;
+            macroDragChar=false;
+            macroDragLineMode=false;
+            macroDragLineInitial=ImVec2(0,0);
+            lastMacroDesc=i;
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+          }
+        }
+
         // loop area
         PlotCustom("##IMacroLoop",loopIndicator,totalFit,macroDragScroll,NULL,0,2,ImVec2(availableWidth,12.0f*dpiScale),sizeof(float),i.color,i.macro->len-macroDragScroll,&macroHoverLoop);
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
@@ -1446,10 +1487,10 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
         ImGui::SetNextItemWidth(availableWidth);
         String& mmlStr=mmlString[index];
         if (ImGui::InputText("##IMacroMML",&mmlStr)) {
-          decodeMMLStr(mmlStr,i.macro->val,i.macro->len,i.macro->loop,i.min,(i.isBitfield)?((1<<(i.isBitfield?i.max:0))-1):i.max,i.macro->rel);
+          decodeMMLStr(mmlStr,i.macro->val,i.macro->len,i.macro->loop,i.min,(i.isBitfield)?((1<<(i.isBitfield?i.max:0))-1):i.max,i.macro->rel,i.bit30);
         }
         if (!ImGui::IsItemActive()) {
-          encodeMMLStr(mmlStr,i.macro->val,i.macro->len,i.macro->loop,i.macro->rel);
+          encodeMMLStr(mmlStr,i.macro->val,i.macro->len,i.macro->loop,i.macro->rel,false,i.bit30);
         }
       }
       ImGui::PopStyleVar();
@@ -4178,7 +4219,7 @@ void FurnaceGUI::drawInsEdit() {
           if (volMax>0) {
             macroList.push_back(FurnaceGUIMacroDesc(volumeLabel,&ins->std.volMacro,volMin,volMax,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
           }
-          macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroAbsoluteMode,ins->std.arpMacro.mode?(&macroHoverNote):NULL));
+          macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,NULL,false,NULL,0,true));
           if (dutyMax>0) {
             if (ins->type==DIV_INS_MIKEY) {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,mikeyFeedbackBits));

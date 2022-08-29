@@ -297,18 +297,9 @@ void DivPlatformQSound::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=QS_NOTE_FREQUENCY(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=QS_NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=QS_NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=QS_NOTE_FREQUENCY(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -347,7 +338,7 @@ void DivPlatformQSound::tick(bool sysTick) {
         rWrite(q1_reg_map[Q1V_LOOP][i], qsound_loop);
         rWrite(q1_reg_map[Q1V_START][i], qsound_addr);
         rWrite(q1_reg_map[Q1V_PHASE][i], 0x8000);
-        logV("ch %d bank=%04x, addr=%04x, end=%04x, loop=%04x!",i,qsound_bank,qsound_addr,qsound_end,qsound_loop);
+        //logV("ch %d bank=%04x, addr=%04x, end=%04x, loop=%04x!",i,qsound_bank,qsound_addr,qsound_end,qsound_loop);
         // Write sample address. Enable volume
         if (!chan[i].std.vol.had) {
           rWrite(q1_reg_map[Q1V_VOL][i], chan[i].vol << 4);

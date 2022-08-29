@@ -410,18 +410,9 @@ void DivPlatformYM2610B::tick(bool sysTick) {
 
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].std.arp.val,11);
-        } else {
-          chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].note+(signed char)chan[i].std.arp.val,11);
-        }
+        chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11);
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].note,11);
-        chan[i].freqChanged=true;
-      }
     }
 
     if (chan[i].std.panL.had) {
@@ -562,18 +553,9 @@ void DivPlatformYM2610B::tick(bool sysTick) {
 
     if (chan[15].std.arp.had) {
       if (!chan[15].inPorta) {
-        if (chan[15].std.arp.mode) {
-          chan[15].baseFreq=NOTE_ADPCMB(chan[15].std.arp.val);
-        } else {
-          chan[15].baseFreq=NOTE_ADPCMB(chan[15].note+(signed char)chan[15].std.arp.val);
-        }
+        chan[15].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[15].note,chan[15].std.arp.val));
       }
       chan[15].freqChanged=true;
-    } else {
-      if (chan[15].std.arp.mode && chan[15].std.arp.finished) {
-        chan[15].baseFreq=NOTE_ADPCMB(chan[15].note);
-        chan[15].freqChanged=true;
-      }
     }
   }
   if (chan[15].freqChanged) {

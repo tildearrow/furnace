@@ -297,18 +297,9 @@ void DivPlatformOPL::tick(bool sysTick) {
 
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+(signed char)chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
 
     if (oplType==3 && chan[i].std.panL.had) {
@@ -491,18 +482,9 @@ void DivPlatformOPL::tick(bool sysTick) {
 
       if (chan[adpcmChan].std.arp.had) {
         if (!chan[adpcmChan].inPorta) {
-          if (chan[adpcmChan].std.arp.mode) {
-            chan[adpcmChan].baseFreq=NOTE_ADPCMB(chan[adpcmChan].std.arp.val);
-          } else {
-            chan[adpcmChan].baseFreq=NOTE_ADPCMB(chan[adpcmChan].note+(signed char)chan[adpcmChan].std.arp.val);
-          }
+          chan[adpcmChan].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[adpcmChan].note,chan[adpcmChan].std.arp.val));
         }
         chan[adpcmChan].freqChanged=true;
-      } else {
-        if (chan[adpcmChan].std.arp.mode && chan[adpcmChan].std.arp.finished) {
-          chan[adpcmChan].baseFreq=NOTE_ADPCMB(chan[adpcmChan].note);
-          chan[adpcmChan].freqChanged=true;
-        }
       }
     }
     if (chan[adpcmChan].freqChanged) {

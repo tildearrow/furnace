@@ -616,9 +616,9 @@ void FurnaceGUI::doInterpolate() {
         }
       } else {
         for (int j=selStart.y; j<=selEnd.y; j++) {
-          if (pat->data[j][0]!=0 && pat->data[j][1]!=0) {
+          if (pat->data[j][0]!=0 || pat->data[j][1]!=0) {
             if (pat->data[j][0]!=100 && pat->data[j][0]!=101 && pat->data[j][0]!=102) {
-              points.emplace(points.end(),j,pat->data[j][0]+pat->data[j][1]*12);
+              points.emplace(points.end(),j,pat->data[j][0]+(signed char)pat->data[j][1]*12);
             }
           }
         }

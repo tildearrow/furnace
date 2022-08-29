@@ -84,18 +84,9 @@ void DivPlatformRF5C68::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -116,7 +107,7 @@ void DivPlatformRF5C68::tick(bool sysTick) {
       chan[i].panning|=(chan[i].std.panR.val&15)<<4;
     }
     if (chan[i].std.panL.had || chan[i].std.panR.had) {
-      chWrite(i,0x05,isMuted[i]?0:chan[i].panning);
+      chWrite(i,1,isMuted[i]?0:chan[i].panning);
     }
     if (chan[i].setPos) {
       // force keyon

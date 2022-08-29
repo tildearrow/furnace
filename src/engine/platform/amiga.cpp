@@ -163,19 +163,9 @@ void DivPlatformAmiga::tick(bool sysTick) {
       }
     }
     if (chan[i].std.arp.had) {
-      if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=round(off*NOTE_PERIODIC_NOROUND(chan[i].std.arp.val));
-        } else {
-          chan[i].baseFreq=round(off*NOTE_PERIODIC_NOROUND(chan[i].note+chan[i].std.arp.val));
-        }
-      }
+      // TODO: why the off mult? this may be a bug!
+      chan[i].baseFreq=round(off*NOTE_PERIODIC_NOROUND(parent->calcArp(chan[i].note,chan[i].std.arp.val)));
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=round(off*NOTE_PERIODIC_NOROUND(chan[i].note));
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].useWave && chan[i].std.wave.had) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {

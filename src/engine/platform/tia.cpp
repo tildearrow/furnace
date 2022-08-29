@@ -87,20 +87,18 @@ void DivPlatformTIA::tick(bool sysTick) {
         rWrite(0x19+i,chan[i].outVol&15);
       }
     }
+    // TODO: the way arps work on TIA is really weird
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=0x80000000|chan[i].std.arp.val;
+        if (chan[i].std.arp.val<0 && (!(chan[i].std.arp.val&0x40000000))) {
+          chan[i].baseFreq=0x80000000|(chan[i].std.arp.val|0x40000000);
+        } else if (chan[i].std.arp.val>=0 && chan[i].std.arp.val&0x40000000) {
+          chan[i].baseFreq=0x80000000|(chan[i].std.arp.val&(~0x40000000));
         } else {
           chan[i].baseFreq=(chan[i].note+chan[i].std.arp.val)<<8;
         }
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=chan[i].note<<8;
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.wave.had) {
       chan[i].shape=chan[i].std.wave.val&15;

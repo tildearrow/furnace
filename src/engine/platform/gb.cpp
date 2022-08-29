@@ -165,28 +165,13 @@ void DivPlatformGB::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (i==3) { // noise
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=chan[i].std.arp.val+24;
-        } else {
-          chan[i].baseFreq=chan[i].note+chan[i].std.arp.val;
-        }
+        chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.arp.val,24);
         if (chan[i].baseFreq>255) chan[i].baseFreq=255;
         if (chan[i].baseFreq<0) chan[i].baseFreq=0;
       } else {
-        if (!chan[i].inPorta) {
-          if (chan[i].std.arp.mode) {
-            chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val+24);
-          } else {
-            chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-          }
-        }
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val,24));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;

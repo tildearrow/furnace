@@ -145,7 +145,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.loopModality=0;
     ds.properNoiseLayout=false;
     ds.waveDutyIsVol=false;
-    ds.resetMacroOnPorta=true;
+    // TODO: WHAT?! geodude.dmf fails when this is true
+    // but isn't that how Defle behaves???
+    ds.resetMacroOnPorta=false;
     ds.legacyVolumeSlides=true;
     ds.compatibleArpeggio=true;
     ds.noteOffResetsSlides=true;
@@ -506,6 +508,14 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         if (!ins->std.arpMacro.mode) {
           for (int j=0; j<ins->std.arpMacro.len; j++) {
             ins->std.arpMacro.val[j]-=12;
+          }
+        } else {
+          ins->std.arpMacro.mode=0;
+          for (int j=0; j<ins->std.arpMacro.len; j++) {
+            ins->std.arpMacro.val[j]^=0x40000000;
+          }
+          if (ins->std.arpMacro.loop==255 && ins->std.arpMacro.len<255) {
+            ins->std.arpMacro.val[ins->std.arpMacro.len++]=0;
           }
         }
 
@@ -2886,9 +2896,6 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
           loopMapFreq[j]=ins->std.arpMacro.len;
           loopMapWave[j]=ins->std.waveMacro.len;
           if (fm.val[j]==0xe1) {
-            if (ins->std.arpMacro.mode) {
-              ins->std.arpMacro.loop=(signed int)ins->std.arpMacro.len-1;
-            }
             break;
           } else if (fm.val[j]==0xe2 || fm.val[j]==0xe4) {
             if (++j>=64) break;
@@ -2923,8 +2930,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
             logV("unhandled pitch!");
           } else {
             if (fm.val[j]>0x80) {
-              ins->std.arpMacro.val[ins->std.arpMacro.len]=fm.val[j]-0x80+24;
-              ins->std.arpMacro.mode=1; // TODO: variable fixed/relative mode
+              ins->std.arpMacro.val[ins->std.arpMacro.len]=(fm.val[j]-0x80+24)^0x40000000;
             } else {
               ins->std.arpMacro.val[ins->std.arpMacro.len]=fm.val[j];
             }
@@ -3293,6 +3299,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
               ins->std.arpMacro.len=reader.readC();
               ins->std.arpMacro.loop=reader.readI();
               ins->std.arpMacro.rel=reader.readI();
+              // TODO: get rid
               ins->std.arpMacro.mode=reader.readI();
               for (int j=0; j<ins->std.arpMacro.len; j++) {
                 ins->std.arpMacro.val[j]=reader.readC();
@@ -4148,7 +4155,25 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
 
     // safety check
     if (!isFMSystem(sys) && i->type!=DIV_INS_STD && i->type!=DIV_INS_FDS) {
-      i->type=DIV_INS_STD;
+      switch (song.system[0]) {
+        case DIV_SYSTEM_GB:
+          i->type=DIV_INS_GB;
+          break;
+        case DIV_SYSTEM_C64_6581:
+        case DIV_SYSTEM_C64_8580:
+          i->type=DIV_INS_C64;
+          break;
+        case DIV_SYSTEM_PCE:
+          i->type=DIV_INS_PCE;
+          break;
+        case DIV_SYSTEM_YM2610:
+        case DIV_SYSTEM_YM2610_EXT:
+          i->type=DIV_INS_AY;
+          break;
+        default:
+          i->type=DIV_INS_STD;
+          break;
+      }
     }
     if (!isSTDSystem(sys) && i->type!=DIV_INS_FM) {
       i->type=DIV_INS_FM;
@@ -4189,55 +4214,79 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
       }
     } else { // STD
       if (sys!=DIV_SYSTEM_GB) {
-        w->writeC(i->std.volMacro.len);
+        int realVolMacroLen=i->std.volMacro.len;
+        if (realVolMacroLen>127) realVolMacroLen=127;
+        w->writeC(realVolMacroLen);
         if ((sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) && i->c64.volIsCutoff) {
-          for (int j=0; j<i->std.volMacro.len; j++) {
+          for (int j=0; j<realVolMacroLen; j++) {
             w->writeI(i->std.volMacro.val[j]+18);
           }
         } else {
-          for (int j=0; j<i->std.volMacro.len; j++) {
+          for (int j=0; j<realVolMacroLen; j++) {
             w->writeI(i->std.volMacro.val[j]);
           }
         }
-        if (i->std.volMacro.len>0) {
+        if (realVolMacroLen>0) {
           w->writeC(i->std.volMacro.loop);
         }
       }
 
+      // TODO: take care of new arp macro format
       w->writeC(i->std.arpMacro.len);
-      if (i->std.arpMacro.mode) {
-        for (int j=0; j<i->std.arpMacro.len; j++) {
+      bool arpMacroMode=false;
+      int arpMacroHowManyFixed=0;
+      int realArpMacroLen=i->std.arpMacro.len;
+      for (int j=0; j<i->std.arpMacro.len; j++) {
+        if ((i->std.arpMacro.val[j]&0xc0000000)==0x40000000 || (i->std.arpMacro.val[j]&0xc0000000)==0x80000000) {
+          arpMacroHowManyFixed++;
+        }
+      }
+      if (arpMacroHowManyFixed>=i->std.arpMacro.len-1) {
+        arpMacroMode=true;
+      }
+      if (i->std.arpMacro.len>0) {
+        if (arpMacroMode && i->std.arpMacro.val[i->std.arpMacro.len-1]==0 && i->std.arpMacro.loop>=i->std.arpMacro.len) {
+          realArpMacroLen--;
+        }
+      }
+
+      if (arpMacroMode) {
+        for (int j=0; j<realArpMacroLen; j++) {
           w->writeI(i->std.arpMacro.val[j]);
         }
       } else {
-        for (int j=0; j<i->std.arpMacro.len; j++) {
+        for (int j=0; j<realArpMacroLen; j++) {
           w->writeI(i->std.arpMacro.val[j]+12);
         }
       }
-      if (i->std.arpMacro.len>0) {
+      if (realArpMacroLen>0) {
         w->writeC(i->std.arpMacro.loop);
       }
-      w->writeC(i->std.arpMacro.mode);
+      w->writeC(arpMacroMode);
 
-      w->writeC(i->std.dutyMacro.len);
+      int realDutyMacroLen=i->std.dutyMacro.len;
+      if (realDutyMacroLen>127) realDutyMacroLen=127;
+      w->writeC(realDutyMacroLen);
       if (sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) {
-        for (int j=0; j<i->std.dutyMacro.len; j++) {
+        for (int j=0; j<realDutyMacroLen; j++) {
           w->writeI(i->std.dutyMacro.val[j]+12);
         }
       } else {
-        for (int j=0; j<i->std.dutyMacro.len; j++) {
+        for (int j=0; j<realDutyMacroLen; j++) {
           w->writeI(i->std.dutyMacro.val[j]);
         }
       }
-      if (i->std.dutyMacro.len>0) {
+      if (realDutyMacroLen>0) {
         w->writeC(i->std.dutyMacro.loop);
       }
 
-      w->writeC(i->std.waveMacro.len);
-      for (int j=0; j<i->std.waveMacro.len; j++) {
+      int realWaveMacroLen=i->std.waveMacro.len;
+      if (realWaveMacroLen>127) realWaveMacroLen=127;
+      w->writeC(realWaveMacroLen);
+      for (int j=0; j<realWaveMacroLen; j++) {
         w->writeI(i->std.waveMacro.val[j]);
       }
-      if (i->std.waveMacro.len>0) {
+      if (realWaveMacroLen>0) {
         w->writeC(i->std.waveMacro.loop);
       }
 

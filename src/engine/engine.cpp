@@ -18,6 +18,7 @@
  */
 
 #include "dispatch.h"
+#include "song.h"
 #define _USE_MATH_DEFINES
 #include "engine.h"
 #include "instrument.h"
@@ -1406,7 +1407,65 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
 
   if (!preserveOrder) {
     // move channels
-    // TODO: a lot of work!
+    unsigned char unswappedChannels[DIV_MAX_CHANS];
+    unsigned char swappedChannels[DIV_MAX_CHANS];
+    std::vector<std::vector<int>> swapList;
+    std::vector<int> chanList;
+
+    int tchans=0;
+
+    for (int i=0; i<song.systemLen; i++) {
+      tchans+=getChannelCount(song.system[i]);
+    }
+
+    memset(unswappedChannels,0,DIV_MAX_CHANS);
+    memset(swappedChannels,0,DIV_MAX_CHANS);
+    
+    for (int i=0; i<tchans; i++) {
+      unswappedChannels[i]=i;
+    }
+
+    // prepare swap list
+    int index=0;
+    for (int i=0; i<song.systemLen; i++) {
+      chanList.clear();
+      for (int j=0; j<getChannelCount(song.system[i]); j++) {
+        chanList.push_back(index);
+        index++;
+      }
+      swapList.push_back(chanList);
+    }
+    swapList[src].swap(swapList[dest]);
+
+    // unfold it
+    index=0;
+    for (std::vector<int>& i: swapList) {
+      for (int& j: i) {
+        swappedChannels[index++]=j;
+      }
+    }
+
+    logV("swap list:");
+    for (int i=0; i<tchans; i++) {
+      logV("- %d -> %d",unswappedChannels[i],swappedChannels[i]);
+    }
+
+    // swap channels
+    bool allComplete=false;
+    while (!allComplete) {
+      logD("doing swap...");
+      allComplete=true;
+      for (int i=0; i<tchans; i++) {
+        if (unswappedChannels[i]!=swappedChannels[i]) {
+          swapChannels(i,swappedChannels[i]);
+          allComplete=false;
+          logD("> %d -> %d",unswappedChannels[i],unswappedChannels[swappedChannels[i]]);
+          unswappedChannels[i]^=unswappedChannels[swappedChannels[i]];
+          unswappedChannels[swappedChannels[i]]^=unswappedChannels[i];
+          unswappedChannels[i]^=unswappedChannels[swappedChannels[i]];
+        }
+      }
+    }
   }
 
   DivSystem srcSystem=song.system[src];
@@ -1710,6 +1769,15 @@ int DivEngine::calcFreq(int base, int pitch, bool period, int octave, int pitch2
   return period?
            base-pitch-pitch2:
            base+((pitch*octave)>>1)+pitch2;
+}
+
+int DivEngine::calcArp(int note, int arp, int offset) {
+  if (arp<0) {
+    if (!(arp&0x40000000)) return (arp|0x40000000)+offset;
+  } else {
+    if (arp&0x40000000) return (arp&(~0x40000000))+offset;
+  }
+  return note+arp;
 }
 
 int DivEngine::convertPanSplitToLinear(unsigned int val, unsigned char bits, int range) {
@@ -3142,7 +3210,7 @@ bool DivEngine::moveSampleDown(int which) {
 void DivEngine::noteOn(int chan, int ins, int note, int vol) {
   if (chan<0 || chan>=chans) return;
   BUSY_BEGIN;
-  pendingNotes.push(DivNoteEvent(chan,ins,note,vol,true));
+  pendingNotes.push_back(DivNoteEvent(chan,ins,note,vol,true));
   if (!playing) {
     reset();
     freelance=true;
@@ -3154,7 +3222,7 @@ void DivEngine::noteOn(int chan, int ins, int note, int vol) {
 void DivEngine::noteOff(int chan) {
   if (chan<0 || chan>=chans) return;
   BUSY_BEGIN;
-  pendingNotes.push(DivNoteEvent(chan,-1,-1,-1,false));
+  pendingNotes.push_back(DivNoteEvent(chan,-1,-1,-1,false));
   if (!playing) {
     reset();
     freelance=true;
@@ -3206,7 +3274,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
     if ((!midiPoly) || (isViable[finalChan] && chan[finalChan].midiNote==-1 && (insInst->type==DIV_INS_OPL || getChannelType(finalChan)==finalChanType || notInViableChannel))) {
       chan[finalChan].midiNote=note;
       chan[finalChan].midiAge=midiAgeCounter++;
-      pendingNotes.push(DivNoteEvent(finalChan,ins,note,vol,true));
+      pendingNotes.push_back(DivNoteEvent(finalChan,ins,note,vol,true));
       return;
     }
     if (++finalChan>=chans) {
@@ -3227,7 +3295,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
 
   chan[candidate].midiNote=note;
   chan[candidate].midiAge=midiAgeCounter++;
-  pendingNotes.push(DivNoteEvent(candidate,ins,note,vol,true));
+  pendingNotes.push_back(DivNoteEvent(candidate,ins,note,vol,true));
 }
 
 void DivEngine::autoNoteOff(int ch, int note, int vol) {
@@ -3239,7 +3307,7 @@ void DivEngine::autoNoteOff(int ch, int note, int vol) {
   //if (ch<0 || ch>=chans) return;
   for (int i=0; i<chans; i++) {
     if (chan[i].midiNote==note) {
-      pendingNotes.push(DivNoteEvent(i,-1,-1,-1,false));
+      pendingNotes.push_back(DivNoteEvent(i,-1,-1,-1,false));
       chan[i].midiNote=-1;
     }
   }
@@ -3253,7 +3321,7 @@ void DivEngine::autoNoteOffAll() {
   }
   for (int i=0; i<chans; i++) {
     if (chan[i].midiNote!=-1) {
-      pendingNotes.push(DivNoteEvent(i,-1,-1,-1,false));
+      pendingNotes.push_back(DivNoteEvent(i,-1,-1,-1,false));
       chan[i].midiNote=-1;
     }
   }

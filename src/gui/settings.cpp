@@ -97,6 +97,11 @@ const char* nesCores[]={
   "NSFplay"
 };
 
+const char* c64Cores[]={
+  "reSID",
+  "reSIDfp"
+};
+
 const char* pcspkrOutMethods[]={
   "evdev SND_TONE",
   "KIOCSOUND on /dev/tty1",
@@ -980,6 +985,10 @@ void FurnaceGUI::drawSettings() {
           ImGui::SameLine();
           ImGui::Combo("##FDSCore",&settings.fdsCore,nesCores,2);
 
+          ImGui::Text("SID core");
+          ImGui::SameLine();
+          ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,2);
+
           ImGui::Separator();
 
           ImGui::Text("PC Speaker strategy");
@@ -1090,6 +1099,32 @@ void FurnaceGUI::drawSettings() {
               "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
               "请在确保你有足够的显存后再启动此设定\n"
               "这是一个在ImGui实现动态字体加载之前的临时解决方案"
+            );
+          }
+
+          bool loadChineseTraditionalB=settings.loadChineseTraditional;
+          if (ImGui::Checkbox("Display Chinese (Traditional) characters",&loadChineseTraditionalB)) {
+            settings.loadChineseTraditional=loadChineseTraditionalB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(
+              "Only toggle this option if you have enough graphics memory.\n"
+              "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+              "請在確保你有足夠的顯存后再啟動此設定\n"
+              "這是一個在ImGui實現動態字體加載之前的臨時解決方案"
+            );
+          }
+
+          bool loadKoreanB=settings.loadKorean;
+          if (ImGui::Checkbox("Display Korean characters",&loadKoreanB)) {
+            settings.loadKorean=loadKoreanB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(
+              "Only toggle this option if you have enough graphics memory.\n"
+              "This is a temporary solution until dynamic font atlas is implemented in Dear ImGui.\n\n"
+              "그래픽 메모리가 충분한 경우에만 이 옵션을 선택하십시오.\n"
+              "이 옵션은 Dear ImGui에 동적 글꼴 아틀라스가 구현될 때까지 임시 솔루션입니다."
             );
           }
 
@@ -2137,6 +2172,7 @@ void FurnaceGUI::syncSettings() {
   settings.snCore=e->getConfInt("snCore",0);
   settings.nesCore=e->getConfInt("nesCore",0);
   settings.fdsCore=e->getConfInt("fdsCore",0);
+  settings.c64Core=e->getConfInt("c64Core",1);
   settings.pcSpeakerOutMethod=e->getConfInt("pcSpeakerOutMethod",0);
   settings.yrw801Path=e->getConfString("yrw801Path","");
   settings.tg100Path=e->getConfString("tg100Path","");
@@ -2179,6 +2215,8 @@ void FurnaceGUI::syncSettings() {
   settings.roundedMenus=e->getConfInt("roundedMenus",0);
   settings.loadJapanese=e->getConfInt("loadJapanese",0);
   settings.loadChinese=e->getConfInt("loadChinese",0);
+  settings.loadChineseTraditional=e->getConfInt("loadChineseTraditional",0);
+  settings.loadKorean=e->getConfInt("loadKorean",0);
   settings.fmLayout=e->getConfInt("fmLayout",0);
   settings.sampleLayout=e->getConfInt("sampleLayout",0);
   settings.waveLayout=e->getConfInt("waveLayout",0);
@@ -2248,6 +2286,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.snCore,0,1);
   clampSetting(settings.nesCore,0,1);
   clampSetting(settings.fdsCore,0,1);
+  clampSetting(settings.c64Core,0,1);
   clampSetting(settings.pcSpeakerOutMethod,0,4);
   clampSetting(settings.mainFont,0,6);
   clampSetting(settings.patFont,0,6);
@@ -2284,6 +2323,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.roundedMenus,0,1);
   clampSetting(settings.loadJapanese,0,1);
   clampSetting(settings.loadChinese,0,1);
+  clampSetting(settings.loadChineseTraditional,0,1);
+  clampSetting(settings.loadKorean,0,1);
   clampSetting(settings.fmLayout,0,6);
   clampSetting(settings.susPosition,0,1);
   clampSetting(settings.effectCursorDir,0,2);
@@ -2382,6 +2423,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("snCore",settings.snCore);
   e->setConf("nesCore",settings.nesCore);
   e->setConf("fdsCore",settings.fdsCore);
+  e->setConf("c64Core",settings.c64Core);
   e->setConf("pcSpeakerOutMethod",settings.pcSpeakerOutMethod);
   e->setConf("yrw801Path",settings.yrw801Path);
   e->setConf("tg100Path",settings.tg100Path);
@@ -2424,6 +2466,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("roundedMenus",settings.roundedMenus);
   e->setConf("loadJapanese",settings.loadJapanese);
   e->setConf("loadChinese",settings.loadChinese);
+  e->setConf("loadChineseTraditional",settings.loadChineseTraditional);
+  e->setConf("loadKorean",settings.loadKorean);
   e->setConf("fmLayout",settings.fmLayout);
   e->setConf("sampleLayout",settings.sampleLayout);
   e->setConf("waveLayout",settings.waveLayout);
@@ -3074,6 +3118,12 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     }
     if (settings.loadChinese) {
       range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseSimplifiedCommon());
+    }
+    if (settings.loadChineseTraditional) {
+      range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesChineseFull());
+    }
+    if (settings.loadKorean) {
+      range.AddRanges(ImGui::GetIO().Fonts->GetGlyphRangesKorean());
     }
     // I'm terribly sorry
     range.UsedChars[0x80>>5]=0;

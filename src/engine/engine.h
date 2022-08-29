@@ -33,7 +33,7 @@
 #include <mutex>
 #include <map>
 #include <unordered_map>
-#include <queue>
+#include <deque>
 
 #define addWarning(x) \
   if (warnings.empty()) { \
@@ -46,8 +46,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev111"
-#define DIV_ENGINE_VERSION 111
+#define DIV_VERSION "dev112"
+#define DIV_ENGINE_VERSION 112
 
 // for imports
 #define DIV_VERSION_MOD 0xff01
@@ -357,7 +357,7 @@ class DivEngine {
   DivAudioExportModes exportMode;
   double exportFadeOut;
   std::map<String,String> conf;
-  std::queue<DivNoteEvent> pendingNotes;
+  std::deque<DivNoteEvent> pendingNotes;
   bool isMuted[DIV_MAX_CHANS];
   std::mutex isBusy, saveLock;
   String configPath;
@@ -554,6 +554,9 @@ class DivEngine {
     // calculate frequency/period
     int calcFreq(int base, int pitch, bool period=false, int octave=0, int pitch2=0, double clock=1.0, double divider=1.0, int blockBits=0);
 
+    // calculate arpeggio
+    int calcArp(int note, int arp, int offset=0);
+
     // convert panning formats
     int convertPanSplitToLinear(unsigned int val, unsigned char bits, int range);
     int convertPanSplitToLinearLR(unsigned char left, unsigned char right, int range);
@@ -623,6 +626,9 @@ class DivEngine {
 
     // get japanese system name
     const char* getSystemNameJ(DivSystem sys);
+    
+    // get sys definition
+    const DivSysDef* getSystemDef(DivSystem sys);
     
     // convert sample rate format
     int fileToDivRate(int frate);

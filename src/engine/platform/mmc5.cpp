@@ -101,20 +101,12 @@ void DivPlatformMMC5::tick(bool sysTick) {
       if (chan[i].outVol<0) chan[i].outVol=0;
       rWrite(0x5000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
     }
+    // TODO: arp macros on NES PCM?
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;

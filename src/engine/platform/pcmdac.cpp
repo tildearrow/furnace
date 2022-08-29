@@ -83,18 +83,9 @@ void DivPlatformPCMDAC::tick(bool sysTick) {
   }
   if (chan.std.arp.had) {
     if (!chan.inPorta) {
-      if (chan.std.arp.mode) {
-        chan.baseFreq=NOTE_FREQUENCY(chan.std.arp.val);
-      } else {
-        chan.baseFreq=NOTE_FREQUENCY(chan.note+chan.std.arp.val);
-      }
+      chan.baseFreq=NOTE_FREQUENCY(parent->calcArp(chan.note,chan.std.arp.val));
     }
     chan.freqChanged=true;
-  } else {
-    if (chan.std.arp.mode && chan.std.arp.finished) {
-      chan.baseFreq=NOTE_FREQUENCY(chan.note);
-      chan.freqChanged=true;
-    }
   }
   if (chan.useWave && chan.std.wave.had) {
     if (chan.wave!=chan.std.wave.val || chan.ws.activeChanged()) {

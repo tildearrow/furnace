@@ -162,28 +162,12 @@ void DivPlatformPCE::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-          // noise
-          int noiseSeek=chan[i].std.arp.val;
-          if (noiseSeek<0) noiseSeek=0;
-          chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-          int noiseSeek=chan[i].note+chan[i].std.arp.val;
-          if (noiseSeek<0) noiseSeek=0;
-          chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
-        }
-      }
-      chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        int noiseSeek=chan[i].note;
+        int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.arp.val);
+        chan[i].baseFreq=NOTE_PERIODIC(noiseSeek);
         if (noiseSeek<0) noiseSeek=0;
         chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
-        chan[i].freqChanged=true;
       }
+      chan[i].freqChanged=true;
     }
     if (chan[i].std.wave.had && !chan[i].pcm) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {

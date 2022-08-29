@@ -172,22 +172,9 @@ void DivPlatformLynx::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-          if (chan[i].pcm) chan[i].sampleBaseFreq=parent->calcBaseFreq(1.0,1.0,chan[i].std.arp.val,false);
-          chan[i].actualNote=chan[i].std.arp.val;
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-          if (chan[i].pcm) chan[i].sampleBaseFreq=parent->calcBaseFreq(1.0,1.0,chan[i].note+chan[i].std.arp.val,false);
-          chan[i].actualNote=chan[i].note+chan[i].std.arp.val;
-        }
-        chan[i].freqChanged=true;
-      }
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        if (chan[i].pcm) chan[i].sampleBaseFreq=parent->calcBaseFreq(1.0,1.0,chan[i].note,false);
-        chan[i].actualNote=chan[i].note;
+        chan[i].actualNote=parent->calcArp(chan[i].note,chan[i].std.arp.val);
+        chan[i].baseFreq=NOTE_PERIODIC(chan[i].actualNote);
+        if (chan[i].pcm) chan[i].sampleBaseFreq=parent->calcBaseFreq(1.0,1.0,chan[i].actualNote,false);
         chan[i].freqChanged=true;
       }
     }

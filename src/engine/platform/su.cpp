@@ -78,18 +78,9 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_SU(i,chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_SU(i,chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_SU(i,parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_SU(i,chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;
@@ -366,7 +357,7 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
       writeControlUpper(c.chan);
       break;
     case DIV_CMD_C64_FINE_CUTOFF:
-      chan[c.chan].baseCutoff=c.value;
+      chan[c.chan].baseCutoff=c.value*4;
       if (!chan[c.chan].std.ex1.has) {
         chan[c.chan].cutoff=chan[c.chan].baseCutoff;
         chWrite(c.chan,0x06,chan[c.chan].cutoff&0xff);

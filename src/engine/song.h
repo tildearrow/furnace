@@ -569,7 +569,7 @@ struct DivSong {
     limitSlides(false),
     linearPitch(2),
     pitchSlideSpeed(4),
-    loopModality(0),
+    loopModality(2),
     delayBehavior(2),
     properNoiseLayout(true),
     waveDutyIsVol(false),

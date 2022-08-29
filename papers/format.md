@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 112: Furnace dev112
 - 111: Furnace dev111
 - 110: Furnace dev110
 - 109: Furnace dev109
@@ -454,6 +455,7 @@ size | description
      | - 29: SNES
      | - 30: Sound Unit
      | - 31: Namco WSG
+     | - 32: OPL (drums)
   1  | reserved
  STR | instrument name
  --- | **FM instrument data**
@@ -545,7 +547,18 @@ size | description
   4  | extra 1 macro loop (>=17)
   4  | extra 2 macro loop (>=17)
   4  | extra 3 macro loop (>=17)
-  1  | arp macro mode
+  1  | arp macro mode (<112) or reserved
+     | - treat this value in a special way.
+     | - before version 112, this byte indicates whether the arp macro mode is fixed or not.
+     | - from that version onwards, the fixed mode is part of the macro values.
+     | - to convert a <112 macro mode to a modern one, do the following:
+     |   - is the macro mode set to fixed?
+     |     - if yes, then:
+     |       - set bit 30 of all arp macro values (this is the fixed mode bit)
+     |       - does the macro loop?
+     |         - if yes, then do nothing else
+     |         - if no, then add one to the macro length, and set the last macro value to 0
+     |     - if no, then do nothing
   1  | reserved (>=17) or volume macro height (>=15) or reserved
   1  | reserved (>=17) or duty macro height (>=15) or reserved
   1  | reserved (>=17) or wave macro height (>=15) or reserved
@@ -553,6 +566,7 @@ size | description
      | - before version 87, if this is the C64 relative cutoff macro, its values were stored offset by 18.
  4?? | arp macro
      | - before version 31, this macro's values were stored offset by 12.
+     | - from version 112 onward, bit 30 of a value indicates fixed mode.
  4?? | duty macro
      | - before version 87, if this is the C64 relative duty macro, its values were stored offset by 12.
  4?? | wave macro
