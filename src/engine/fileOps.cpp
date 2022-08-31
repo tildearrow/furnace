@@ -4342,14 +4342,25 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     }
   }
 
+  bool relWarning=false;
+
   for (int i=0; i<getChannelCount(sys); i++) {
     w->writeC(curPat[i].effectCols);
 
     for (int j=0; j<curSubSong->ordersLen; j++) {
       DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][j],false);
       for (int k=0; k<curSubSong->patLen; k++) {
-        w->writeS(pat->data[k][0]); // note
-        w->writeS(pat->data[k][1]); // octave
+        if ((pat->data[k][0]==101 || pat->data[k][0]==102) && pat->data[k][1]==0) {
+          w->writeS(100);
+          w->writeS(0);
+          if (!relWarning) {
+            relWarning=true;
+            addWarning("note/macro release will be converted to note off!");
+          }
+        } else {
+          w->writeS(pat->data[k][0]); // note
+          w->writeS(pat->data[k][1]); // octave
+        }
         w->writeS(pat->data[k][3]); // volume
 #ifdef TA_BIG_ENDIAN
         for (int l=0; l<curPat[i].effectCols*2; l++) {
