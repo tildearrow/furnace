@@ -1338,6 +1338,9 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::MenuItem("set loop to selection",BIND_FOR(GUI_ACTION_SAMPLE_SET_LOOP))) {
             doAction(GUI_ACTION_SAMPLE_SET_LOOP);
           }
+          if (ImGui::MenuItem("create wavetable from selection",BIND_FOR(GUI_ACTION_SAMPLE_CREATE_WAVE))) {
+            doAction(GUI_ACTION_SAMPLE_CREATE_WAVE);
+          }
           ImGui::EndPopup();
         }
 

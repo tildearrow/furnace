@@ -218,10 +218,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_C64_6581:
       dispatch=new DivPlatformC64;
+      ((DivPlatformC64*)dispatch)->setFP(eng->getConfInt("c64Core",1)==1);
       ((DivPlatformC64*)dispatch)->setChipModel(true);
       break;
     case DIV_SYSTEM_C64_8580:
       dispatch=new DivPlatformC64;
+      ((DivPlatformC64*)dispatch)->setFP(eng->getConfInt("c64Core",1)==1);
       ((DivPlatformC64*)dispatch)->setChipModel(false);
       break;
     case DIV_SYSTEM_YM2151:

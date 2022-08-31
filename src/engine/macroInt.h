@@ -50,7 +50,7 @@ struct DivMacroStruct {
     finished(false),
     will(false),
     linger(false),
-    began(false),
+    began(true),
     mode(0) {}
 };
 

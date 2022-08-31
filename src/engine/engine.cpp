@@ -1141,7 +1141,7 @@ void DivEngine::swapChannels(int src, int dest) {
   String prevChanName=curSubSong->chanName[src];
   String prevChanShortName=curSubSong->chanShortName[src];
   bool prevChanShow=curSubSong->chanShow[src];
-  bool prevChanCollapse=curSubSong->chanCollapse[src];
+  unsigned char prevChanCollapse=curSubSong->chanCollapse[src];
 
   curSubSong->chanName[src]=curSubSong->chanName[dest];
   curSubSong->chanShortName[src]=curSubSong->chanShortName[dest];
@@ -1446,25 +1446,44 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
       }
     }
 
+    // swap channels
     logV("swap list:");
     for (int i=0; i<tchans; i++) {
       logV("- %d -> %d",unswappedChannels[i],swappedChannels[i]);
     }
 
-    // swap channels
-    bool allComplete=false;
-    while (!allComplete) {
-      logD("doing swap...");
-      allComplete=true;
-      for (int i=0; i<tchans; i++) {
-        if (unswappedChannels[i]!=swappedChannels[i]) {
-          swapChannels(i,swappedChannels[i]);
-          allComplete=false;
-          logD("> %d -> %d",unswappedChannels[i],unswappedChannels[swappedChannels[i]]);
-          unswappedChannels[i]^=unswappedChannels[swappedChannels[i]];
-          unswappedChannels[swappedChannels[i]]^=unswappedChannels[i];
-          unswappedChannels[i]^=unswappedChannels[swappedChannels[i]];
+    for (size_t i=0; i<song.subsong.size(); i++) {
+      DivOrders prevOrders=song.subsong[i]->orders;
+      DivPattern* prevPat[DIV_MAX_CHANS][256];
+      unsigned char prevEffectCols[DIV_MAX_CHANS];
+      String prevChanName[DIV_MAX_CHANS];
+      String prevChanShortName[DIV_MAX_CHANS];
+      bool prevChanShow[DIV_MAX_CHANS];
+      unsigned char prevChanCollapse[DIV_MAX_CHANS];
+
+      for (int j=0; j<tchans; j++) {
+        for (int k=0; k<256; k++) {
+          prevPat[j][k]=song.subsong[i]->pat[j].data[k];
         }
+        prevEffectCols[j]=song.subsong[i]->pat[j].effectCols;
+
+        prevChanName[j]=song.subsong[i]->chanName[j];
+        prevChanShortName[j]=song.subsong[i]->chanShortName[j];
+        prevChanShow[j]=song.subsong[i]->chanShow[j];
+        prevChanCollapse[j]=song.subsong[i]->chanCollapse[j];
+      }
+
+      for (int j=0; j<tchans; j++) {
+        for (int k=0; k<256; k++) {
+          song.subsong[i]->orders.ord[j][k]=prevOrders.ord[swappedChannels[j]][k];
+          song.subsong[i]->pat[j].data[k]=prevPat[swappedChannels[j]][k];
+        }
+
+        song.subsong[i]->pat[j].effectCols=prevEffectCols[swappedChannels[j]];
+        song.subsong[i]->chanName[j]=prevChanName[swappedChannels[j]];
+        song.subsong[i]->chanShortName[j]=prevChanShortName[swappedChannels[j]];
+        song.subsong[i]->chanShow[j]=prevChanShow[swappedChannels[j]];
+        song.subsong[i]->chanCollapse[j]=prevChanCollapse[swappedChannels[j]];
       }
     }
   }
@@ -1648,7 +1667,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
     }
   }
   int oldOrder=curOrder;
-  while (playing && curRow<goalRow) {
+  while (playing && (curRow<goalRow || ticks>1)) {
     if (nextTick(preserveDrift)) {
       skipping=false;
       return;

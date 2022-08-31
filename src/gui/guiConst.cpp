@@ -655,6 +655,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_ZOOM_AUTO", "Toggle auto-zoom", FURKMOD_CMD|SDLK_0),
   D("SAMPLE_MAKE_INS", "Create instrument from sample", 0),
   D("SAMPLE_SET_LOOP", "Set loop to selection", FURKMOD_CMD|SDLK_l),
+  D("SAMPLE_CREATE_WAVE", "Create wavetable from selection", FURKMOD_CMD|SDLK_w),
   D("SAMPLE_MAX", "", NOT_AN_ACTION),
 
   D("ORDERS_MIN", "---Orders", NOT_AN_ACTION),

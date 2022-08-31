@@ -115,11 +115,11 @@ void DivPlatformNES::acquire_puNES(short* bufL, short* bufR, size_t start, size_
     bufL[i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=nes->S1.output<<11;
-      oscBuf[1]->data[oscBuf[1]->needle++]=nes->S2.output<<11;
-      oscBuf[2]->data[oscBuf[2]->needle++]=nes->TR.output<<11;
-      oscBuf[3]->data[oscBuf[3]->needle++]=nes->NS.output<<11;
-      oscBuf[4]->data[oscBuf[4]->needle++]=nes->DMC.output<<8;
+      oscBuf[0]->data[oscBuf[0]->needle++]=isMuted[0]?0:(nes->S1.output<<11);
+      oscBuf[1]->data[oscBuf[1]->needle++]=isMuted[1]?0:(nes->S2.output<<11);
+      oscBuf[2]->data[oscBuf[2]->needle++]=isMuted[2]?0:(nes->TR.output<<11);
+      oscBuf[3]->data[oscBuf[3]->needle++]=isMuted[3]?0:(nes->NS.output<<11);
+      oscBuf[4]->data[oscBuf[4]->needle++]=isMuted[4]?0:(nes->DMC.output<<8);
     }
   }
 }
