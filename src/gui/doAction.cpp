@@ -1295,6 +1295,32 @@ void FurnaceGUI::doAction(int what) {
       MARK_MODIFIED;
       break;
     }
+    case GUI_ACTION_SAMPLE_CREATE_WAVE: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      SAMPLE_OP_BEGIN;
+      if (end-start<1) {
+        showError("select at least one sample!");
+      } else if (end-start>256) {
+        showError("maximum size is 256 samples!");
+      } else {
+        curWave=e->addWave();
+        if (curWave==-1) {
+          showError("too many wavetables!");
+        } else {
+          DivWavetable* wave=e->song.wave[curWave];
+          wave->min=0;
+          wave->max=255;
+          wave->len=end-start;
+          for (unsigned int i=start; i<end; i++) {
+            wave->data[i-start]=(sample->data8[i]&0xff)^0x80;
+          }
+          nextWindow=GUI_WINDOW_WAVE_EDIT;
+          MARK_MODIFIED;
+        }
+      }
+      break;
+    }
 
     case GUI_ACTION_ORDERS_UP:
       if (curOrder>0) {
