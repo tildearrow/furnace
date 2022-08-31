@@ -1666,7 +1666,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
     }
   }
   int oldOrder=curOrder;
-  while (playing && curRow<goalRow) {
+  while (playing && (curRow<goalRow || ticks>1)) {
     if (nextTick(preserveDrift)) {
       skipping=false;
       return;
