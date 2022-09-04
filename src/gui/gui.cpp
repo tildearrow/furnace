@@ -2980,10 +2980,10 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("save as...",BIND_FOR(GUI_ACTION_SAVE_AS))) {
           openFileDialog(GUI_FILE_SAVE);
         }
-        if (ImGui::MenuItem("save as .dmf (1.1.3+)...",BIND_FOR(GUI_ACTION_SAVE_AS))) {
+        if (ImGui::MenuItem("save as .dmf (1.1.3+)...")) {
           openFileDialog(GUI_FILE_SAVE_DMF);
         }
-        if (ImGui::MenuItem("save as .dmf (1.0/legacy)...",BIND_FOR(GUI_ACTION_SAVE_AS))) {
+        if (ImGui::MenuItem("save as .dmf (1.0/legacy)...")) {
           openFileDialog(GUI_FILE_SAVE_DMF_LEGACY);
         }
         ImGui::Separator();
