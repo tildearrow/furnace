@@ -121,16 +121,30 @@ void FurnaceGUI::drawInsList() {
         if (ImGui::MenuItem("instrument")) {
           doAction(GUI_ACTION_INS_LIST_SAVE);
         }
+        if (ImGui::MenuItem("instrument (.dmp)")) {
+          doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
+        }
         if (ImGui::MenuItem("wavetable")) {
           doAction(GUI_ACTION_WAVE_LIST_SAVE);
+        }
+        if (ImGui::MenuItem("wavetable (.dmw)")) {
+          doAction(GUI_ACTION_WAVE_LIST_SAVE_DMW);
+        }
+        if (ImGui::MenuItem("wavetable (raw)")) {
+          doAction(GUI_ACTION_WAVE_LIST_SAVE_RAW);
         }
         if (ImGui::MenuItem("sample")) {
           doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
         }
         ImGui::EndPopup();
       }
-    }
-    if (!settings.unifiedDataView) {
+    } else {
+      if (ImGui::BeginPopupContextItem("InsSaveFormats",ImGuiMouseButton_Right)) {
+        if (ImGui::MenuItem("save as .dmp...")) {
+          doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
+        }
+        ImGui::EndPopup();
+      }
       ImGui::SameLine();
       if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
         doAction(GUI_ACTION_INS_LIST_MOVE_UP);
@@ -359,6 +373,9 @@ void FurnaceGUI::drawInsList() {
             if (ImGui::MenuItem("save")) {
               doAction(GUI_ACTION_INS_LIST_SAVE);
             }
+            if (ImGui::MenuItem("save (.dmp)")) {
+              doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
+            }
             if (ImGui::MenuItem("delete")) {
               doAction(GUI_ACTION_INS_LIST_DELETE);
             }
@@ -429,6 +446,17 @@ void FurnaceGUI::drawWaveList() {
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FLOPPY_O "##WaveSave")) {
       doAction(GUI_ACTION_WAVE_LIST_SAVE);
+    }
+    if (!settings.unifiedDataView) {
+      if (ImGui::BeginPopupContextItem("WaveSaveFormats",ImGuiMouseButton_Right)) {
+        if (ImGui::MenuItem("save as .dmw...")) {
+          doAction(GUI_ACTION_WAVE_LIST_SAVE_DMW);
+        }
+        if (ImGui::MenuItem("save raw...")) {
+          doAction(GUI_ACTION_WAVE_LIST_SAVE_RAW);
+        }
+        ImGui::EndPopup();
+      }
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("WaveUp",ImGuiDir_Up)) {

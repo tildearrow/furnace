@@ -599,6 +599,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_INS_LIST_SAVE:
       if (curIns>=0 && curIns<(int)e->song.ins.size()) openFileDialog(GUI_FILE_INS_SAVE);
       break;
+    case GUI_ACTION_INS_LIST_SAVE_DMP:
+      if (curIns>=0 && curIns<(int)e->song.ins.size()) openFileDialog(GUI_FILE_INS_SAVE_DMP);
+      break;
     case GUI_ACTION_INS_LIST_MOVE_UP:
       if (e->moveInsUp(curIns)) {
         curIns--;
@@ -665,6 +668,12 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_WAVE_LIST_SAVE:
       if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE);
+      break;
+    case GUI_ACTION_WAVE_LIST_SAVE_DMW:
+      if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE_DMW);
+      break;
+    case GUI_ACTION_WAVE_LIST_SAVE_RAW:
+      if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE_RAW);
       break;
     case GUI_ACTION_WAVE_LIST_MOVE_UP:
       if (e->moveWaveUp(curWave)) {
