@@ -1608,6 +1608,12 @@ void FurnaceGUI::drawInsEdit() {
         if (ImGui::Button(ICON_FA_FLOPPY_O "##IESave")) {
           doAction(GUI_ACTION_INS_LIST_SAVE);
         }
+        if (ImGui::BeginPopupContextItem("InsSaveFormats",ImGuiMouseButton_Right)) {
+          if (ImGui::MenuItem("save as .dmp...")) {
+            doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
+          }
+          ImGui::EndPopup();
+        }
 
         ImGui::TableNextColumn();
         ImGui::Text("Type");

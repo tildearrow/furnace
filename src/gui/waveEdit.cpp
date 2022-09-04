@@ -138,6 +138,15 @@ void FurnaceGUI::drawWaveEdit() {
         if (ImGui::Button(ICON_FA_FLOPPY_O "##WESave")) {
           doAction(GUI_ACTION_WAVE_LIST_SAVE);
         }
+        if (ImGui::BeginPopupContextItem("WaveSaveFormats",ImGuiMouseButton_Right)) {
+          if (ImGui::MenuItem("save as .dmw...")) {
+            doAction(GUI_ACTION_WAVE_LIST_SAVE_DMW);
+          }
+          if (ImGui::MenuItem("save raw...")) {
+            doAction(GUI_ACTION_WAVE_LIST_SAVE_RAW);
+          }
+          ImGui::EndPopup();
+        }
         ImGui::SameLine();
 
         if (ImGui::RadioButton("Steps",waveEditStyle==0)) {
