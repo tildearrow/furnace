@@ -32,6 +32,25 @@ const char* waveGenBaseShapes[4]={
   "Pulse"
 };
 
+const float multFactors[16]={
+  M_PI,
+  2*M_PI,
+  4*M_PI,
+  6*M_PI,
+  8*M_PI,
+  10*M_PI,
+  12*M_PI,
+  14*M_PI,
+  16*M_PI,
+  18*M_PI,
+  20*M_PI,
+  22*M_PI,
+  24*M_PI,
+  26*M_PI,
+  28*M_PI,
+  30*M_PI,
+};
+
 void FurnaceGUI::doGenerateWave() {
   float finalResult[256];
   if (curWave<0 || curWave>=(int)e->song.wave.size()) return;
@@ -42,7 +61,18 @@ void FurnaceGUI::doGenerateWave() {
   if (wave->len<2) return;
 
   if (waveGenFM) {
+    for (int i=0; i<wave->len; i++) {
+      float pos=(float)i/(float)wave->len;
+      float s0=sin(pos*multFactors[waveGenMult[0]])*waveGenTL[0];
+      float s1=sin((pos+(waveGenFMCon1[0]?s0:0.0f))*multFactors[waveGenMult[1]])*waveGenTL[1];
+      float s2=sin((pos+(waveGenFMCon1[1]?s0:0.0f)+(waveGenFMCon2[0]?s1:0.0f))*multFactors[waveGenMult[2]])*waveGenTL[2];
+      float s3=sin((pos+(waveGenFMCon1[2]?s0:0.0f)+(waveGenFMCon2[1]?s1:0.0f)+(waveGenFMCon3[0]?s2:0.0f))*multFactors[waveGenMult[3]])*waveGenTL[3];
 
+      if (waveGenFMCon1[3]) finalResult[i]+=s0;
+      if (waveGenFMCon2[2]) finalResult[i]+=s1;
+      if (waveGenFMCon3[1]) finalResult[i]+=s2;
+      finalResult[i]+=s3;
+    }
   } else {
     switch (waveGenBaseShape) {
       case 0: // sine
