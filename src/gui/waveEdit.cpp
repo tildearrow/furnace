@@ -423,13 +423,21 @@ void FurnaceGUI::drawWaveEdit() {
                 ImGui::TableNextColumn();
                 ImGui::Text("1");
                 ImGui::TableNextColumn();
-                ImGui::Checkbox("##Con12",&waveGenFMCon1[0]);
+                if (ImGui::Checkbox("##Con12",&waveGenFMCon1[0])) {
+                  doGenerateWave();
+                }
                 ImGui::TableNextColumn();
-                ImGui::Checkbox("##Con13",&waveGenFMCon1[1]);
+                if (ImGui::Checkbox("##Con13",&waveGenFMCon1[1])) {
+                  doGenerateWave();
+                }
                 ImGui::TableNextColumn();
-                ImGui::Checkbox("##Con14",&waveGenFMCon1[2]);
+                if (ImGui::Checkbox("##Con14",&waveGenFMCon1[2])) {
+                  doGenerateWave();
+                }
                 ImGui::TableNextColumn();
-                ImGui::Checkbox("##Con1O",&waveGenFMCon1[3]);
+                if (ImGui::Checkbox("##Con1O",&waveGenFMCon1[3])) {
+                  doGenerateWave();
+                }
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -437,11 +445,17 @@ void FurnaceGUI::drawWaveEdit() {
                 ImGui::TableNextColumn();
                 // blank
                 ImGui::TableNextColumn();
-                ImGui::Checkbox("##Con23",&waveGenFMCon2[0]);
+                if (ImGui::Checkbox("##Con23",&waveGenFMCon2[0])) {
+                  doGenerateWave();
+                }
                 ImGui::TableNextColumn();
-                ImGui::Checkbox("##Con24",&waveGenFMCon2[1]);
+                if (ImGui::Checkbox("##Con24",&waveGenFMCon2[1])) {
+                  doGenerateWave();
+                }
                 ImGui::TableNextColumn();
-                ImGui::Checkbox("##Con2O",&waveGenFMCon2[2]);
+                if (ImGui::Checkbox("##Con2O",&waveGenFMCon2[2])) {
+                  doGenerateWave();
+                }
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -451,9 +465,13 @@ void FurnaceGUI::drawWaveEdit() {
                 ImGui::TableNextColumn();
                 // blank
                 ImGui::TableNextColumn();
-                ImGui::Checkbox("##Con34",&waveGenFMCon3[0]);
+                if (ImGui::Checkbox("##Con34",&waveGenFMCon3[0])) {
+                  doGenerateWave();
+                }
                 ImGui::TableNextColumn();
-                ImGui::Checkbox("##Con3O",&waveGenFMCon3[1]);
+                if (ImGui::Checkbox("##Con3O",&waveGenFMCon3[1])) {
+                  doGenerateWave();
+                }
 
                 ImGui::EndTable();
               }
