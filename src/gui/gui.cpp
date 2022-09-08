@@ -2382,7 +2382,7 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
     if (mobileUI) {
       ImGui::GetIO().IniFilename=NULL;
     } else {
-      ImGui::GetIO().IniFilename=finalLayoutPath;
+      ImGui::GetIO().IniFilename=NULL;
       ImGui::LoadIniSettingsFromDisk(finalLayoutPath);
     }
   }
