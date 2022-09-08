@@ -1010,7 +1010,9 @@ class FurnaceGUI {
 
   FurnaceGUIFileDialog* fileDialog;
 
-  int scrW, scrH;
+  int scrW, scrH, scrConfW, scrConfH;
+  int scrX, scrY, scrConfX, scrConfY;
+  bool scrMax;
 
   double dpiScale;
 
@@ -1144,6 +1146,7 @@ class FurnaceGUI {
     int dragMovesSelection;
     int unsignedDetune;
     int noThreadedInput;
+    int saveWindowPos;
     int clampSamples;
     int saveUnusedPatterns;
     int channelColors;
@@ -1451,7 +1454,7 @@ class FurnaceGUI {
   int chanToMove, sysToMove, sysToDelete;
 
   ImVec2 patWindowPos, patWindowSize;
-  
+
   // pattern view specific
   ImVec2 fourChars, threeChars, twoChars;
   ImVec2 noteCellSize, insCellSize, volCellSize, effectCellSize, effectValCellSize;
@@ -1527,7 +1530,7 @@ class FurnaceGUI {
   // visualizer
   float keyHit[DIV_MAX_CHANS];
   int lastIns[DIV_MAX_CHANS];
-  
+
   // log window
   bool followLog;
 
@@ -1731,6 +1734,7 @@ class FurnaceGUI {
     void runBackupThread();
     void pushPartBlend();
     void popPartBlend();
+    bool detectOutOfBoundsWindow();
     int processEvent(SDL_Event* ev);
     bool loop();
     bool finish();
