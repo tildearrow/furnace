@@ -515,11 +515,11 @@ void FurnaceGUI::drawSettings() {
           }
 
           bool saveWindowPosB=settings.saveWindowPos;
-          if (ImGui::Checkbox("Remember window location",&saveWindowPosB)) {
+          if (ImGui::Checkbox("Remember window position",&saveWindowPosB)) {
             settings.saveWindowPos=saveWindowPosB;
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("remembers where window was last located on start-up. When disabled, window will start in a defaul location.");
+            ImGui::SetTooltip("remembers the window's last position on startup.");
           }
 
           bool blankInsB=settings.blankIns;
