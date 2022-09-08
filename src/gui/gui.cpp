@@ -17,7 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include <SDL_video.h>
+// I hate you clangd extension!
+// how about you DON'T insert random headers before this freaking important
+// define!!!!!!
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "util.h"
