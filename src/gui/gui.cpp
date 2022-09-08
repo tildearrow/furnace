@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <SDL_video.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "util.h"
@@ -4870,6 +4871,13 @@ FurnaceGUI::FurnaceGUI():
   fileDialog(NULL),
   scrW(1280),
   scrH(800),
+  scrConfW(1280),
+  scrConfH(800),
+  scrX(SDL_WINDOWPOS_CENTERED),
+  scrY(SDL_WINDOWPOS_CENTERED),
+  scrConfX(SDL_WINDOWPOS_CENTERED),
+  scrConfY(SDL_WINDOWPOS_CENTERED),
+  scrMax(false),
   dpiScale(1),
   aboutScroll(0),
   aboutSin(0),
