@@ -23,11 +23,15 @@
 
 void FurnaceGUI::drawMobileControls() {
   if (ImGui::Begin("Mobile Controls",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
+    ImGui::SetWindowPos(ImVec2(0.0f,0.0f));
+    ImGui::SetWindowSize(portrait?ImVec2(scrW*dpiScale,0.1*scrW*dpiScale):ImVec2(0.1*scrH*dpiScale,scrH*dpiScale));
     float availX=ImGui::GetContentRegionAvail().x;
     ImVec2 buttonSize=ImVec2(availX,availX);
 
     if (ImGui::Button(ICON_FA_CHEVRON_RIGHT "##MobileMenu",buttonSize)) {
     }
+
+    ImGui::Text("I put here");
 
     ImGui::Separator();
 

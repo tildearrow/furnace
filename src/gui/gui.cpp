@@ -2595,24 +2595,24 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
 #define OOB_PIXELS_SAFETY 25
 
 bool FurnaceGUI::detectOutOfBoundsWindow() {
-  int count = SDL_GetNumVideoDisplays();
-  if(count < 1) {
-    logW("bounds check: error %s", SDL_GetError());
+  int count=SDL_GetNumVideoDisplays();
+  if (count<1) {
+    logW("bounds check: error %s",SDL_GetError());
     return false;
   }
 
   SDL_Rect rect;
-  for(int i = 0;i < count;i ++) {
-    if(SDL_GetDisplayUsableBounds(i, &rect) != 0) {
-      logW("bounds check: error %s", SDL_GetError());
+  for (int i=0; i<count; i++) {
+    if (SDL_GetDisplayUsableBounds(i,&rect)!=0) {
+      logW("bounds check: error %s",SDL_GetError());
       return false;
     }
 
-    bool xbound = (rect.x + OOB_PIXELS_SAFETY) <= (scrX + scrW) && (rect.x + rect.w - OOB_PIXELS_SAFETY) >= scrX;
-    bool ybound = (rect.y + OOB_PIXELS_SAFETY) <= (scrY + scrH) && (rect.y + rect.h - OOB_PIXELS_SAFETY) >= scrY;
-    logD("bounds check: display %d is at %dx%dx%dx%d: %s%s", i, rect.x + OOB_PIXELS_SAFETY, rect.y + OOB_PIXELS_SAFETY, rect.x + rect.w - OOB_PIXELS_SAFETY, rect.y + rect.h - OOB_PIXELS_SAFETY, xbound ? "x" : "", ybound ? "y" : "");
+    bool xbound=((rect.x+OOB_PIXELS_SAFETY)<=(scrX+scrW)) && ((rect.x+rect.w-OOB_PIXELS_SAFETY)>=scrX);
+    bool ybound=((rect.y+OOB_PIXELS_SAFETY)<=(scrY+scrH)) && ((rect.y+rect.h-OOB_PIXELS_SAFETY)>=scrY);
+    logD("bounds check: display %d is at %dx%dx%dx%d: %s%s",i,rect.x+OOB_PIXELS_SAFETY,rect.y+OOB_PIXELS_SAFETY,rect.x+rect.w-OOB_PIXELS_SAFETY,rect.y+rect.h-OOB_PIXELS_SAFETY,xbound?"x":"",ybound?"y":"");
 
-    if(xbound && ybound) {
+    if (xbound && ybound) {
       return true;
     }
   }
@@ -2746,6 +2746,7 @@ bool FurnaceGUI::loop() {
               scrW=ev.window.data1/dpiScale;
               scrH=ev.window.data2/dpiScale;
 #endif
+              portrait=(scrW<scrH);
               updateWindow=true;
               break;
             case SDL_WINDOWEVENT_MOVED:
@@ -2816,8 +2817,8 @@ bool FurnaceGUI::loop() {
     }
 
     // update config x/y/w/h values based on scrMax state
-    if(updateWindow) {
-      if(!scrMax) {
+    if (updateWindow) {
+      if (!scrMax) {
         scrConfX=scrX;
         scrConfY=scrY;
         scrConfW=scrW;
@@ -4581,6 +4582,7 @@ bool FurnaceGUI::init() {
   scrX=scrConfX=e->getConfInt("lastWindowX",SDL_WINDOWPOS_CENTERED);
   scrY=scrConfY=e->getConfInt("lastWindowY",SDL_WINDOWPOS_CENTERED);
   scrMax=e->getConfBool("lastWindowMax",false);
+  portrait=(scrW<scrH);
 
 #ifndef __APPLE__
   SDL_Rect displaySize;
@@ -4597,8 +4599,8 @@ bool FurnaceGUI::init() {
   SDL_Init(SDL_INIT_VIDEO);
 
   // if window would spawn out of bounds, force it to be get default position
-  if(!detectOutOfBoundsWindow()) {
-    scrMax = false;
+  if (!detectOutOfBoundsWindow()) {
+    scrMax=false;
     scrX=scrConfX=SDL_WINDOWPOS_CENTERED;
     scrY=scrConfY=SDL_WINDOWPOS_CENTERED;
   }
@@ -4628,6 +4630,7 @@ bool FurnaceGUI::init() {
       }
       if (scrW>displaySize.w/dpiScale) scrW=(displaySize.w/dpiScale)-32;
       if (scrH>displaySize.h/dpiScale) scrH=(displaySize.h/dpiScale)-32;
+      portrait=(scrW<scrH);
       if (!fullScreen) {
         SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
       }
@@ -4846,6 +4849,7 @@ FurnaceGUI::FurnaceGUI():
   displayExporting(false),
   vgmExportLoop(true),
   vgmExportPatternHints(false),
+  portrait(false),
   wantCaptureKeyboard(false),
   oldWantCaptureKeyboard(false),
   displayMacroMenu(false),
