@@ -805,7 +805,7 @@ void DivEngine::loadOPNI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
 
         op.mult = dtMul & 0xF;
         op.dt = ((dtMul >> 4) & 0x7);
-        op.tl = totalLevel & 0x3F;
+        op.tl = totalLevel & 0x7F;
         op.rs = ((arRateScale >> 6) & 0x3);
         op.ar = arRateScale & 0x1F;
         op.dr = drAmpEnable & 0x1F;
@@ -1643,7 +1643,7 @@ void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, S
 
     total += (op.mult = dtMul & 0xF);
     total += (op.dt = ((dtMul >> 4) & 0x7));
-    total += (op.tl = totalLevel & 0x3F);
+    total += (op.tl = totalLevel & 0x7F);
     total += (op.rs = ((arRateScale >> 6) & 0x3));
     total += (op.ar = arRateScale & 0x1F);
     total += (op.dr = drAmpEnable & 0x1F);
