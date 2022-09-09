@@ -52,6 +52,10 @@ void FurnaceGUI::drawPiano() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!pianoOpen) return;
+  if (mobileUI) {
+    ImGui::SetNextWindowPos(ImVec2(patWindowPos.x,patWindowPos.y+patWindowSize.y));
+    ImGui::SetNextWindowSize(portrait?ImVec2(scrW*dpiScale,0.5*scrW*dpiScale):ImVec2(scrW*dpiScale-(0.16*scrH*dpiScale),0.3*scrH*dpiScale));
+  }
   if (ImGui::Begin("Piano",&pianoOpen,((pianoOptions)?0:ImGuiWindowFlags_NoTitleBar)|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
     bool oldPianoKeyPressed[180];
     memcpy(oldPianoKeyPressed,pianoKeyPressed,180*sizeof(bool));

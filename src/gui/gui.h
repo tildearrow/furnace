@@ -260,6 +260,14 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_SPOILER
 };
 
+enum FurnaceGUIMobileScenes {
+  GUI_SCENE_PATTERN,
+  GUI_SCENE_ORDERS,
+  GUI_SCENE_INSTRUMENT,
+  GUI_SCENE_WAVETABLE,
+  GUI_SCENE_SAMPLE
+};
+
 enum FurnaceGUIFileDialogs {
   GUI_FILE_OPEN,
   GUI_FILE_SAVE,
@@ -1009,6 +1017,7 @@ class FurnaceGUI {
   FurnaceGUIFileDialogs curFileDialog;
   FurnaceGUIWarnings warnAction;
   FurnaceGUIWarnings postWarnAction;
+  FurnaceGUIMobileScenes mobScene;
 
   FurnaceGUIFileDialog* fileDialog;
 

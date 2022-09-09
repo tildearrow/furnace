@@ -3349,6 +3349,8 @@ bool FurnaceGUI::loop() {
     if (mobileUI) {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
       //globalWinFlags=ImGuiWindowFlags_NoTitleBar;
+      // scene handling goes here!
+      pianoOpen=true;
       drawMobileControls();
       drawPattern();
       drawPiano();
@@ -4882,6 +4884,7 @@ FurnaceGUI::FurnaceGUI():
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
   postWarnAction(GUI_WARN_GENERIC),
+  mobScene(GUI_SCENE_PATTERN),
   fileDialog(NULL),
   scrW(1280),
   scrH(800),
