@@ -263,13 +263,17 @@ enum FurnaceGUIWindows {
 enum FurnaceGUIFileDialogs {
   GUI_FILE_OPEN,
   GUI_FILE_SAVE,
+  GUI_FILE_SAVE_DMF,
   GUI_FILE_SAVE_DMF_LEGACY,
   GUI_FILE_INS_OPEN,
   GUI_FILE_INS_OPEN_REPLACE,
   GUI_FILE_INS_SAVE,
+  GUI_FILE_INS_SAVE_DMP,
   GUI_FILE_WAVE_OPEN,
   GUI_FILE_WAVE_OPEN_REPLACE,
   GUI_FILE_WAVE_SAVE,
+  GUI_FILE_WAVE_SAVE_DMW,
+  GUI_FILE_WAVE_SAVE_RAW,
   GUI_FILE_SAMPLE_OPEN,
   GUI_FILE_SAMPLE_OPEN_RAW,
   GUI_FILE_SAMPLE_OPEN_REPLACE,
@@ -455,6 +459,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_INS_LIST_OPEN,
   GUI_ACTION_INS_LIST_OPEN_REPLACE,
   GUI_ACTION_INS_LIST_SAVE,
+  GUI_ACTION_INS_LIST_SAVE_DMP,
   GUI_ACTION_INS_LIST_MOVE_UP,
   GUI_ACTION_INS_LIST_MOVE_DOWN,
   GUI_ACTION_INS_LIST_DELETE,
@@ -469,6 +474,8 @@ enum FurnaceGUIActions {
   GUI_ACTION_WAVE_LIST_OPEN,
   GUI_ACTION_WAVE_LIST_OPEN_REPLACE,
   GUI_ACTION_WAVE_LIST_SAVE,
+  GUI_ACTION_WAVE_LIST_SAVE_DMW,
+  GUI_ACTION_WAVE_LIST_SAVE_RAW,
   GUI_ACTION_WAVE_LIST_MOVE_UP,
   GUI_ACTION_WAVE_LIST_MOVE_DOWN,
   GUI_ACTION_WAVE_LIST_DELETE,
@@ -525,6 +532,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_ZOOM_AUTO,
   GUI_ACTION_SAMPLE_MAKE_INS,
   GUI_ACTION_SAMPLE_SET_LOOP,
+  GUI_ACTION_SAMPLE_CREATE_WAVE,
   GUI_ACTION_SAMPLE_MAX,
 
   GUI_ACTION_ORDERS_MIN,
@@ -980,6 +988,7 @@ class FurnaceGUI {
   std::vector<FurnaceGUISysDef> newSongSearchResults;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, vgmExportPatternHints;
+  bool portrait, mobileMenuOpen;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample;
@@ -988,6 +997,7 @@ class FurnaceGUI {
   int drawHalt;
   int macroPointSize;
   int waveEditStyle;
+  float mobileMenuPos;
   const int* curSysSection;
 
   String pendingRawSample;
@@ -1002,7 +1012,9 @@ class FurnaceGUI {
 
   FurnaceGUIFileDialog* fileDialog;
 
-  int scrW, scrH;
+  int scrW, scrH, scrConfW, scrConfH;
+  int scrX, scrY, scrConfX, scrConfY;
+  bool scrMax;
 
   double dpiScale;
 
@@ -1136,6 +1148,7 @@ class FurnaceGUI {
     int dragMovesSelection;
     int unsignedDetune;
     int noThreadedInput;
+    int saveWindowPos;
     int clampSamples;
     int saveUnusedPatterns;
     int channelColors;
@@ -1443,7 +1456,7 @@ class FurnaceGUI {
   int chanToMove, sysToMove, sysToDelete;
 
   ImVec2 patWindowPos, patWindowSize;
-  
+
   // pattern view specific
   ImVec2 fourChars, threeChars, twoChars;
   ImVec2 noteCellSize, insCellSize, volCellSize, effectCellSize, effectValCellSize;
@@ -1519,7 +1532,7 @@ class FurnaceGUI {
   // visualizer
   float keyHit[DIV_MAX_CHANS];
   int lastIns[DIV_MAX_CHANS];
-  
+
   // log window
   bool followLog;
 
@@ -1723,6 +1736,7 @@ class FurnaceGUI {
     void runBackupThread();
     void pushPartBlend();
     void popPartBlend();
+    bool detectOutOfBoundsWindow();
     int processEvent(SDL_Event* ev);
     bool loop();
     bool finish();

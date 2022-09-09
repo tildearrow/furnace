@@ -642,6 +642,9 @@ void DivPlatformN163::setFlags(unsigned int flags) {
   for (int i=0; i<8; i++) {
     oscBuf[i]->rate=rate/(initChanMax+1);
   }
+
+  // needed to make sure changing channel count won't trigger glitches
+  reset();
 }
 
 int DivPlatformN163::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {

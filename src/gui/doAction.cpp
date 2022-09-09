@@ -599,6 +599,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_INS_LIST_SAVE:
       if (curIns>=0 && curIns<(int)e->song.ins.size()) openFileDialog(GUI_FILE_INS_SAVE);
       break;
+    case GUI_ACTION_INS_LIST_SAVE_DMP:
+      if (curIns>=0 && curIns<(int)e->song.ins.size()) openFileDialog(GUI_FILE_INS_SAVE_DMP);
+      break;
     case GUI_ACTION_INS_LIST_MOVE_UP:
       if (e->moveInsUp(curIns)) {
         curIns--;
@@ -665,6 +668,12 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_WAVE_LIST_SAVE:
       if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE);
+      break;
+    case GUI_ACTION_WAVE_LIST_SAVE_DMW:
+      if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE_DMW);
+      break;
+    case GUI_ACTION_WAVE_LIST_SAVE_RAW:
+      if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE_RAW);
       break;
     case GUI_ACTION_WAVE_LIST_MOVE_UP:
       if (e->moveWaveUp(curWave)) {
@@ -1293,6 +1302,32 @@ void FurnaceGUI::doAction(int what) {
         e->renderSamples();
       });
       MARK_MODIFIED;
+      break;
+    }
+    case GUI_ACTION_SAMPLE_CREATE_WAVE: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      SAMPLE_OP_BEGIN;
+      if (end-start<1) {
+        showError("select at least one sample!");
+      } else if (end-start>256) {
+        showError("maximum size is 256 samples!");
+      } else {
+        curWave=e->addWave();
+        if (curWave==-1) {
+          showError("too many wavetables!");
+        } else {
+          DivWavetable* wave=e->song.wave[curWave];
+          wave->min=0;
+          wave->max=255;
+          wave->len=end-start;
+          for (unsigned int i=start; i<end; i++) {
+            wave->data[i-start]=(sample->data8[i]&0xff)^0x80;
+          }
+          nextWindow=GUI_WINDOW_WAVE_EDIT;
+          MARK_MODIFIED;
+        }
+      }
       break;
     }
 

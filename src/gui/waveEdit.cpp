@@ -32,6 +32,25 @@ const char* waveGenBaseShapes[4]={
   "Pulse"
 };
 
+const float multFactors[16]={
+  M_PI,
+  2*M_PI,
+  4*M_PI,
+  6*M_PI,
+  8*M_PI,
+  10*M_PI,
+  12*M_PI,
+  14*M_PI,
+  16*M_PI,
+  18*M_PI,
+  20*M_PI,
+  22*M_PI,
+  24*M_PI,
+  26*M_PI,
+  28*M_PI,
+  30*M_PI,
+};
+
 void FurnaceGUI::doGenerateWave() {
   float finalResult[256];
   if (curWave<0 || curWave>=(int)e->song.wave.size()) return;
@@ -42,7 +61,18 @@ void FurnaceGUI::doGenerateWave() {
   if (wave->len<2) return;
 
   if (waveGenFM) {
+    for (int i=0; i<wave->len; i++) {
+      float pos=(float)i/(float)wave->len;
+      float s0=sin(pos*multFactors[waveGenMult[0]])*waveGenTL[0];
+      float s1=sin((pos+(waveGenFMCon1[0]?s0:0.0f))*multFactors[waveGenMult[1]])*waveGenTL[1];
+      float s2=sin((pos+(waveGenFMCon1[1]?s0:0.0f)+(waveGenFMCon2[0]?s1:0.0f))*multFactors[waveGenMult[2]])*waveGenTL[2];
+      float s3=sin((pos+(waveGenFMCon1[2]?s0:0.0f)+(waveGenFMCon2[1]?s1:0.0f)+(waveGenFMCon3[0]?s2:0.0f))*multFactors[waveGenMult[3]])*waveGenTL[3];
 
+      if (waveGenFMCon1[3]) finalResult[i]+=s0;
+      if (waveGenFMCon2[2]) finalResult[i]+=s1;
+      if (waveGenFMCon3[1]) finalResult[i]+=s2;
+      finalResult[i]+=s3;
+    }
   } else {
     switch (waveGenBaseShape) {
       case 0: // sine
@@ -104,6 +134,9 @@ void FurnaceGUI::doGenerateWave() {
   }
 }
 
+#define CENTER_TEXT(text) \
+  ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
+
 void FurnaceGUI::drawWaveEdit() {
   if (nextWindow==GUI_WINDOW_WAVE_EDIT) {
     waveEditOpen=true;
@@ -137,6 +170,15 @@ void FurnaceGUI::drawWaveEdit() {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_FLOPPY_O "##WESave")) {
           doAction(GUI_ACTION_WAVE_LIST_SAVE);
+        }
+        if (ImGui::BeginPopupContextItem("WaveSaveFormats",ImGuiMouseButton_Right)) {
+          if (ImGui::MenuItem("save as .dmw...")) {
+            doAction(GUI_ACTION_WAVE_LIST_SAVE_DMW);
+          }
+          if (ImGui::MenuItem("save raw...")) {
+            doAction(GUI_ACTION_WAVE_LIST_SAVE_RAW);
+          }
+          ImGui::EndPopup();
         }
         ImGui::SameLine();
 
@@ -312,7 +354,127 @@ void FurnaceGUI::drawWaveEdit() {
             if (ImGui::BeginTabItem("FM")) {
               waveGenFM=true;
 
-              ImGui::Text("FM stuff here");
+              if (ImGui::BeginTable("WGFMProps",4)) {
+                ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize("Op").x);
+                ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.5);
+                ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.25);
+                ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.25);
+
+                ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+                ImGui::TableNextColumn();
+                ImGui::Text("Op");
+                ImGui::TableNextColumn();
+                ImGui::Text("Level");
+                ImGui::TableNextColumn();
+                ImGui::Text("Mult");
+                ImGui::TableNextColumn();
+                ImGui::Text("FB");
+
+                for (int i=0; i<4; i++) {
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%d",i+1);
+
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  ImGui::PushID(i);
+                  if (CWSliderFloat("##WGTL",&waveGenTL[i],0.0f,1.0f)) {
+                    doGenerateWave();
+                  }
+                  ImGui::PopID();
+
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  ImGui::PushID(i);
+                  if (CWSliderInt("##WGMULT",&waveGenMult[i],0,15)) {
+                    doGenerateWave();
+                  }
+                  ImGui::PopID();
+
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  ImGui::PushID(i);
+                  if (CWSliderFloat("##WGFB",&waveGenFB[i],0.0f,7.0f)) {
+                    doGenerateWave();
+                  }
+                  ImGui::PopID();
+                }
+
+                ImGui::EndTable();
+              }
+
+              CENTER_TEXT("Connection Diagram");
+              ImGui::Text("Connection Diagram");
+
+              if (ImGui::BeginTable("WGFMCon",5)) {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text(">>");
+                ImGui::TableNextColumn();
+                ImGui::Text("2");
+                ImGui::TableNextColumn();
+                ImGui::Text("3");
+                ImGui::TableNextColumn();
+                ImGui::Text("4");
+                ImGui::TableNextColumn();
+                ImGui::Text("Out");
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("1");
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con12",&waveGenFMCon1[0])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con13",&waveGenFMCon1[1])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con14",&waveGenFMCon1[2])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con1O",&waveGenFMCon1[3])) {
+                  doGenerateWave();
+                }
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("2");
+                ImGui::TableNextColumn();
+                // blank
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con23",&waveGenFMCon2[0])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con24",&waveGenFMCon2[1])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con2O",&waveGenFMCon2[2])) {
+                  doGenerateWave();
+                }
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("3");
+                ImGui::TableNextColumn();
+                // blank
+                ImGui::TableNextColumn();
+                // blank
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con34",&waveGenFMCon3[0])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con3O",&waveGenFMCon3[1])) {
+                  doGenerateWave();
+                }
+
+                ImGui::EndTable();
+              }
               ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("Mangle")) {

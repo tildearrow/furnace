@@ -59,7 +59,8 @@ void DivPlatformSwan::acquire(short* bufL, short* bufR, size_t start, size_t len
         DivSample* s=parent->getSample(dacSample);
         if (s->samples<=0) {
           dacSample=-1;
-          continue;
+          dacPeriod=0;
+          break;
         }
         rWrite(0x09,(unsigned char)s->data8[dacPos++]+0x80);
         if (s->isLoopable() && dacPos>=s->getEndPosition()) {
