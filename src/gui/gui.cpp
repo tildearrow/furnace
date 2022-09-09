@@ -4669,7 +4669,6 @@ bool FurnaceGUI::init() {
         SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
       }
     }
-#endif
 
     if (SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(sdlWin),&displaySize)==0) {
       if (scrW>((displaySize.w/dpiScale)-48) && scrH>((displaySize.h/dpiScale)-64)) {
@@ -4684,6 +4683,7 @@ bool FurnaceGUI::init() {
         SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
       }
     }
+#endif
   }
 #endif
 

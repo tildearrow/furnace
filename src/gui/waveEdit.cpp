@@ -271,7 +271,7 @@ void FurnaceGUI::drawWaveEdit() {
         if (waveEditStyle) {
           PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,0,wave->max,contentRegion);
         } else {
-          PlotCustom("##Waveform",wavePreview,wave->len,0,NULL,0,wave->max,contentRegion,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,true);
+          PlotCustom("##Waveform",wavePreview,wave->len,0,NULL,0,wave->max,contentRegion,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,NULL,true);
         }
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
           waveDragStart=ImGui::GetItemRectMin();
@@ -412,7 +412,7 @@ void FurnaceGUI::drawWaveEdit() {
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                   ImGui::PushID(i);
-                  if (CWSliderInt("##WGMULT",&waveGenMult[i],0,15)) {
+                  if (CWSliderInt("##WGMULT",&waveGenMult[i],1,16)) {
                     doGenerateWave();
                   }
                   ImGui::PopID();

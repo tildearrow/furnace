@@ -316,27 +316,31 @@ const char* macroRelativeMode="Relative";
 const char* macroQSoundMode="QSound";
 const char* macroDummyMode="Bug";
 
-String macroHoverNote(int id, float val) {
-  if (val<-60 || val>=120) return "???";
-  return fmt::sprintf("%d: %s",id,noteNames[(int)val+60]);
+String macroHoverNote(int id, float val, void* u) {
+  int* macroVal=(int*)u;
+  if ((macroVal[id]&0xc0000000)==0x40000000 || (macroVal[id]&0xc0000000)==0x80000000) {
+    if (val<-60 || val>=120) return "???";
+    return fmt::sprintf("%d: %s",id,noteNames[(int)val+60]);
+  }
+  return fmt::sprintf("%d: %d",id,(int)val);
 }
 
-String macroHover(int id, float val) {
+String macroHover(int id, float val, void* u) {
   return fmt::sprintf("%d: %d",id,val);
 }
 
-String macroHoverLoop(int id, float val) {
+String macroHoverLoop(int id, float val, void* u) {
   if (val>1) return "Release";
   if (val>0) return "Loop";
   return "";
 }
 
-String macroHoverBit30(int id, float val) {
+String macroHoverBit30(int id, float val, void* u) {
   if (val>0) return "Fixed";
   return "Relative";
 }
 
-String macroHoverES5506FilterMode(int id, float val) {
+String macroHoverES5506FilterMode(int id, float val, void* u) {
   String mode="???";
   switch (((int)val)&3) {
     case 0:
@@ -357,7 +361,7 @@ String macroHoverES5506FilterMode(int id, float val) {
   return fmt::sprintf("%d: %s",id,mode);
 }
 
-String macroLFOWaves(int id, float val) {
+String macroLFOWaves(int id, float val, void* u) {
   switch (((int)val)&3) {
     case 0:
       return "Saw";
@@ -1355,7 +1359,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
       if (i.isBitfield) {
         PlotBitfield("##IMacro",asInt,totalFit,0,i.bitfieldBits,i.max,ImVec2(availableWidth,(i.macro->open)?(i.height*dpiScale):(32.0f*dpiScale)),sizeof(float),doHighlight);
       } else {
-        PlotCustom("##IMacro",asFloat,totalFit,macroDragScroll,NULL,i.min+i.macro->vScroll,i.min+i.macro->vScroll+i.macro->vZoom,ImVec2(availableWidth,(i.macro->open)?(i.height*dpiScale):(32.0f*dpiScale)),sizeof(float),i.color,i.macro->len-macroDragScroll,i.hoverFunc,i.blockMode,i.macro->open?genericGuide:NULL,doHighlight);
+        PlotCustom("##IMacro",asFloat,totalFit,macroDragScroll,NULL,i.min+i.macro->vScroll,i.min+i.macro->vScroll+i.macro->vZoom,ImVec2(availableWidth,(i.macro->open)?(i.height*dpiScale):(32.0f*dpiScale)),sizeof(float),i.color,i.macro->len-macroDragScroll,i.hoverFunc,i.hoverFuncUser,i.blockMode,i.macro->open?genericGuide:NULL,doHighlight);
       }
       if (i.macro->open && (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))) {
         macroDragStart=ImGui::GetItemRectMin();
@@ -3613,7 +3617,7 @@ void FurnaceGUI::drawInsEdit() {
             modTable[i]=ins->fds.modTable[i];
           }
           ImVec2 modTableSize=ImVec2(ImGui::GetContentRegionAvail().x,96.0f*dpiScale);
-          PlotCustom("ModTable",modTable,32,0,NULL,-4,3,modTableSize,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,true);
+          PlotCustom("ModTable",modTable,32,0,NULL,-4,3,modTableSize,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,NULL,true);
           if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
             macroDragStart=ImGui::GetItemRectMin();
             macroDragAreaSize=modTableSize;
@@ -4232,7 +4236,7 @@ void FurnaceGUI::drawInsEdit() {
           if (volMax>0) {
             macroList.push_back(FurnaceGUIMacroDesc(volumeLabel,&ins->std.volMacro,volMin,volMax,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
           }
-          macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,NULL,false,NULL,0,true));
+          macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.arpMacro.val));
           if (dutyMax>0) {
             if (ins->type==DIV_INS_MIKEY) {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,mikeyFeedbackBits));

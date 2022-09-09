@@ -138,6 +138,10 @@ void FurnaceGUI::drawMobileControls() {
       ImGui::EndTable();
     }
 
+    if (ImGui::Button("Create Ins")) {
+      doAction(GUI_ACTION_INS_LIST_ADD);
+    }
+
     ImGui::Text("Data list goes here...");
 
     if (ImGui::Button("New")) {
