@@ -104,13 +104,39 @@ void FurnaceGUI::drawMobileControls() {
   ImGui::SetNextWindowPos(portrait?ImVec2(0.0f,((1.0-mobileMenuPos*0.65)*scrH*dpiScale)):ImVec2(0.5*scrW*dpiScale*(mobileMenuPos-1.0),0.0f));
   ImGui::SetNextWindowSize(portrait?ImVec2(scrW*dpiScale,0.65*scrH*dpiScale):ImVec2(0.5*scrW*dpiScale,scrH*dpiScale));
   if (ImGui::Begin("Mobile Menu",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
-    ImGui::Button("Pattern");
-    ImGui::SameLine();
-    ImGui::Button("Ins");
-    ImGui::SameLine();
-    ImGui::Button("Wave");
-    ImGui::SameLine();
-    ImGui::Button("Sample");
+    if (ImGui::BeginTable("SceneSel",5)) {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,1.0f);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,1.0f);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,1.0f);
+      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,1.0f);
+      ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch,1.0f);
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImVec2 buttonSize=ImGui::GetContentRegionAvail();
+      buttonSize.y=30.0f*dpiScale;
+
+      if (ImGui::Button("Pattern",buttonSize)) {
+        mobScene=GUI_SCENE_PATTERN;
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Orders",buttonSize)) {
+        mobScene=GUI_SCENE_ORDERS;
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Ins",buttonSize)) {
+        mobScene=GUI_SCENE_INSTRUMENT;
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Wave",buttonSize)) {
+        mobScene=GUI_SCENE_WAVETABLE;
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Sample",buttonSize)) {
+        mobScene=GUI_SCENE_SAMPLE;
+      }
+      ImGui::EndTable();
+    }
 
     ImGui::Text("Data list goes here...");
 

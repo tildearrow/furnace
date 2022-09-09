@@ -3353,8 +3353,32 @@ bool FurnaceGUI::loop() {
       // scene handling goes here!
       pianoOpen=true;
       drawMobileControls();
-      drawPattern();
-      drawPiano();
+      switch (mobScene) {
+        case GUI_SCENE_PATTERN:
+          patternOpen=true;
+          drawPattern();
+          drawPiano();
+          break;
+        case GUI_SCENE_ORDERS:
+          ordersOpen=true;
+          drawOrders();
+          break;
+        case GUI_SCENE_INSTRUMENT:
+          insEditOpen=true;
+          drawInsEdit();
+          drawPiano();
+          break;
+        case GUI_SCENE_WAVETABLE:
+          waveEditOpen=true;
+          drawWaveEdit();
+          drawPiano();
+          break;
+        case GUI_SCENE_SAMPLE:
+          sampleEditOpen=true;
+          drawSampleEdit();
+          drawPiano();
+          break;
+      }
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -3397,6 +3421,13 @@ bool FurnaceGUI::loop() {
 
     if (firstFrame) {
       firstFrame=false;
+#ifdef IS_MOBILE
+      SDL_GetWindowSize(sdlWin,&scrW,&scrH);
+      scrW/=dpiScale;
+      scrH/=dpiScale;
+      portrait=(scrW<scrH);
+      logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
+#endif
       if (patternOpen) nextWindow=GUI_WINDOW_PATTERN;
 #ifdef __APPLE__
       SDL_RaiseWindow(sdlWin);
@@ -4582,11 +4613,18 @@ bool FurnaceGUI::init() {
   SDL_Surface* icon=SDL_CreateRGBSurfaceFrom(furIcon,256,256,32,256*4,0xff,0xff00,0xff0000,0xff000000);
 #endif
 
+#ifdef IS_MOBILE
+  scrW=960;
+  scrH=540;
+  scrX=0;
+  scrY=0;
+#else
   scrW=scrConfW=e->getConfInt("lastWindowWidth",1280);
   scrH=scrConfH=e->getConfInt("lastWindowHeight",800);
   scrX=scrConfX=e->getConfInt("lastWindowX",SDL_WINDOWPOS_CENTERED);
   scrY=scrConfY=e->getConfInt("lastWindowY",SDL_WINDOWPOS_CENTERED);
   scrMax=e->getConfBool("lastWindowMax",false);
+#endif
   portrait=(scrW<scrH);
   logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
 
@@ -4604,12 +4642,14 @@ bool FurnaceGUI::init() {
 
   SDL_Init(SDL_INIT_VIDEO);
 
+#ifndef IS_MOBILE
   // if window would spawn out of bounds, force it to be get default position
   if (!detectOutOfBoundsWindow()) {
     scrMax=false;
     scrX=scrConfX=SDL_WINDOWPOS_CENTERED;
     scrY=scrConfY=SDL_WINDOWPOS_CENTERED;
   }
+#endif
 
   sdlWin=SDL_CreateWindow("Furnace",scrX,scrY,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(scrMax?SDL_WINDOW_MAXIMIZED:0)|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
   if (sdlWin==NULL) {
@@ -4623,11 +4663,13 @@ bool FurnaceGUI::init() {
     SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(sdlWin),&dpiScaleF,NULL,NULL);
     dpiScale=round(dpiScaleF/96.0f);
     if (dpiScale<1) dpiScale=1;
+#ifndef IS_MOBILE
     if (dpiScale!=1) {
       if (!fullScreen) {
         SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
       }
     }
+#endif
 
     if (SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(sdlWin),&displaySize)==0) {
       if (scrW>((displaySize.w/dpiScale)-48) && scrH>((displaySize.h/dpiScale)-64)) {
