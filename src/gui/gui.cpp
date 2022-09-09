@@ -2581,7 +2581,7 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
 
           if (point.id==0) {
             ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left,false);
-            ImGui::GetIO().AddMousePosEvent(-FLT_MAX,-FLT_MAX);
+            //ImGui::GetIO().AddMousePosEvent(-FLT_MAX,-FLT_MAX);
           }
           break;
         }
@@ -2747,6 +2747,7 @@ bool FurnaceGUI::loop() {
               scrH=ev.window.data2/dpiScale;
 #endif
               portrait=(scrW<scrH);
+              logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
               updateWindow=true;
               break;
             case SDL_WINDOWEVENT_MOVED:
@@ -3347,6 +3348,7 @@ bool FurnaceGUI::loop() {
 
     if (mobileUI) {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
+      //globalWinFlags=ImGuiWindowFlags_NoTitleBar;
       drawMobileControls();
       drawPattern();
       drawPiano();
@@ -4583,6 +4585,7 @@ bool FurnaceGUI::init() {
   scrY=scrConfY=e->getConfInt("lastWindowY",SDL_WINDOWPOS_CENTERED);
   scrMax=e->getConfBool("lastWindowMax",false);
   portrait=(scrW<scrH);
+  logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
 
 #ifndef __APPLE__
   SDL_Rect displaySize;
@@ -4631,6 +4634,7 @@ bool FurnaceGUI::init() {
       if (scrW>displaySize.w/dpiScale) scrW=(displaySize.w/dpiScale)-32;
       if (scrH>displaySize.h/dpiScale) scrH=(displaySize.h/dpiScale)-32;
       portrait=(scrW<scrH);
+      logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
       if (!fullScreen) {
         SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
       }
@@ -4642,6 +4646,8 @@ bool FurnaceGUI::init() {
   SDL_GetWindowSize(sdlWin,&scrW,&scrH);
   scrW/=dpiScale;
   scrH/=dpiScale;
+  portrait=(scrW<scrH);
+  logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
 #endif
 
 #if !(defined(__APPLE__) || defined(_WIN32))
@@ -4850,6 +4856,7 @@ FurnaceGUI::FurnaceGUI():
   vgmExportLoop(true),
   vgmExportPatternHints(false),
   portrait(false),
+  mobileMenuOpen(false),
   wantCaptureKeyboard(false),
   oldWantCaptureKeyboard(false),
   displayMacroMenu(false),
@@ -4865,6 +4872,7 @@ FurnaceGUI::FurnaceGUI():
   drawHalt(10),
   macroPointSize(16),
   waveEditStyle(0),
+  mobileMenuPos(0.0f),
   curSysSection(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),
