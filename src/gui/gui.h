@@ -1566,7 +1566,7 @@ class FurnaceGUI {
   float waveGenPhase[16];
   float waveGenTL[4];
   int waveGenMult[4];
-  float waveGenFB[4];
+  int waveGenFB[4];
   bool waveGenFMCon1[4];
   bool waveGenFMCon2[3];
   bool waveGenFMCon3[2];

@@ -5235,9 +5235,15 @@ FurnaceGUI::FurnaceGUI():
 
   memset(waveGenAmp,0,sizeof(float)*16);
   memset(waveGenPhase,0,sizeof(float)*16);
-  memset(waveGenTL,0,sizeof(float)*4);
-  memset(waveGenMult,0,sizeof(int)*4);
-  memset(waveGenFB,0,sizeof(float)*4);
+  waveGenTL[0]=0.0f;
+  waveGenTL[1]=0.0f;
+  waveGenTL[2]=0.0f;
+  waveGenTL[3]=1.0f;
+  waveGenMult[0]=1;
+  waveGenMult[1]=1;
+  waveGenMult[2]=1;
+  waveGenMult[3]=1;
+  memset(waveGenFB,0,sizeof(int)*4);
   memset(waveGenFMCon1,0,sizeof(bool)*4);
   memset(waveGenFMCon2,0,sizeof(bool)*3);
   memset(waveGenFMCon3,0,sizeof(bool)*2);

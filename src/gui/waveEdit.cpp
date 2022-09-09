@@ -61,12 +61,31 @@ void FurnaceGUI::doGenerateWave() {
   if (wave->len<2) return;
 
   if (waveGenFM) {
+    float s0fb0=0;
+    float s0fb1=0;
+    float s1fb0=0;
+    float s1fb1=0;
+    float s2fb0=0;
+    float s2fb1=0;
+    float s3fb0=0;
+    float s3fb1=0;
     for (int i=0; i<wave->len; i++) {
       float pos=(float)i/(float)wave->len;
-      float s0=sin(pos*multFactors[waveGenMult[0]])*waveGenTL[0];
-      float s1=sin((pos+(waveGenFMCon1[0]?s0:0.0f))*multFactors[waveGenMult[1]])*waveGenTL[1];
-      float s2=sin((pos+(waveGenFMCon1[1]?s0:0.0f)+(waveGenFMCon2[0]?s1:0.0f))*multFactors[waveGenMult[2]])*waveGenTL[2];
-      float s3=sin((pos+(waveGenFMCon1[2]?s0:0.0f)+(waveGenFMCon2[1]?s1:0.0f)+(waveGenFMCon3[0]?s2:0.0f))*multFactors[waveGenMult[3]])*waveGenTL[3];
+      float s0=sin((pos+(waveGenFB[0]?((s0fb0+s0fb1)*pow(2.0f,waveGenFB[0]-8)):0.0f))*multFactors[waveGenMult[0]])*waveGenTL[0];
+      s0fb0=s0fb1;
+      s0fb1=s0;
+      
+      float s1=sin((pos+(waveGenFB[1]?((s1fb0+s1fb1)*pow(2.0f,waveGenFB[1]-8)):0.0f)+(waveGenFMCon1[0]?s0:0.0f))*multFactors[waveGenMult[1]])*waveGenTL[1];
+      s1fb0=s1fb1;
+      s1fb1=s1;
+
+      float s2=sin((pos+(waveGenFB[2]?((s2fb0+s2fb1)*pow(2.0f,waveGenFB[2]-8)):0.0f)+(waveGenFMCon1[1]?s0:0.0f)+(waveGenFMCon2[0]?s1:0.0f))*multFactors[waveGenMult[2]])*waveGenTL[2];
+      s2fb0=s2fb1;
+      s2fb1=s2;
+
+      float s3=sin((pos+(waveGenFB[3]?((s3fb0+s3fb1)*pow(2.0f,waveGenFB[3]-8)):0.0f)+(waveGenFMCon1[2]?s0:0.0f)+(waveGenFMCon2[1]?s1:0.0f)+(waveGenFMCon3[0]?s2:0.0f))*multFactors[waveGenMult[3]])*waveGenTL[3];
+      s3fb0=s3fb1;
+      s3fb1=s3;
 
       if (waveGenFMCon1[3]) finalResult[i]+=s0;
       if (waveGenFMCon2[2]) finalResult[i]+=s1;
@@ -394,7 +413,7 @@ void FurnaceGUI::drawWaveEdit() {
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                   ImGui::PushID(i);
-                  if (CWSliderFloat("##WGFB",&waveGenFB[i],0.0f,7.0f)) {
+                  if (CWSliderInt("##WGFB",&waveGenFB[i],0,7)) {
                     doGenerateWave();
                   }
                   ImGui::PopID();
