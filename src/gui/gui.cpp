@@ -2544,12 +2544,15 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
       TouchPoint* point=NULL;
       FIND_POINT(point,ev.tfinger.fingerId);
       if (point!=NULL) {
+        float prevX=point->x;
+        float prevY=point->y;
         point->x=ev.tfinger.x*scrW*dpiScale;
         point->y=ev.tfinger.y*scrH*dpiScale;
         point->z=ev.tfinger.pressure;
 
         if (point->id==0) {
           ImGui::GetIO().AddMousePosEvent(point->x,point->y);
+          pointMotion(point->x,point->y,point->x-prevX,point->y-prevY);
         }
       }
       break;
@@ -2570,6 +2573,7 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
       if (newPoint.id==0) {
         ImGui::GetIO().AddMousePosEvent(newPoint.x,newPoint.y);
         ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left,true);
+        pointDown(newPoint.x,newPoint.y,0);
       }
       break;
     }
@@ -2577,17 +2581,97 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
       for (size_t i=0; i<activePoints.size(); i++) {
         TouchPoint& point=activePoints[i];
         if (point.id==ev.tfinger.fingerId) {
-          releasedPoints.push_back(point);
-          activePoints.erase(activePoints.begin()+i);
-
           if (point.id==0) {
             ImGui::GetIO().AddMouseButtonEvent(ImGuiMouseButton_Left,false);
             //ImGui::GetIO().AddMousePosEvent(-FLT_MAX,-FLT_MAX);
+            pointUp(point.x,point.y,0);
           }
+
+          releasedPoints.push_back(point);
+          activePoints.erase(activePoints.begin()+i);
+
           break;
         }
       }
       break;
+    }
+  }
+}
+
+void FurnaceGUI::pointDown(int x, int y, int button) {
+  aboutOpen=false;
+  if (bindSetActive) {
+    bindSetActive=false;
+    bindSetPending=false;
+    actionKeys[bindSetTarget]=bindSetPrevValue;
+    bindSetTarget=0;
+    bindSetPrevValue=0;
+  }
+}
+
+void FurnaceGUI::pointUp(int x, int y, int button) {
+  if (macroDragActive || macroLoopDragActive || waveDragActive || (sampleDragActive && sampleDragMode)) {
+    MARK_MODIFIED;
+  }
+  if (macroDragActive && macroDragLineMode && !macroDragMouseMoved) {
+    displayMacroMenu=true;
+  }
+  macroDragActive=false;
+  macroDragBitMode=false;
+  macroDragInitialValue=false;
+  macroDragInitialValueSet=false;
+  macroDragLastX=-1;
+  macroDragLastY=-1;
+  macroLoopDragActive=false;
+  waveDragActive=false;
+  if (sampleDragActive) {
+    logD("stopping sample drag");
+    if (sampleDragMode) {
+      e->renderSamplesP();
+    } else {
+      if (sampleSelStart>sampleSelEnd) {
+        sampleSelStart^=sampleSelEnd;
+        sampleSelEnd^=sampleSelStart;
+        sampleSelStart^=sampleSelEnd;
+      }
+    }
+  }
+  sampleDragActive=false;
+  if (selecting) {
+    if (!selectingFull) cursor=selEnd;
+    finishSelection();
+    demandScrollX=true;
+    if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
+        cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
+      if (!settings.cursorMoveNoScroll) {
+        updateScroll(cursor.y);
+      }
+    }
+  }
+}
+
+void FurnaceGUI::pointMotion(int x, int y, int xrel, int yrel) {
+  if (selecting) {
+    // detect whether we have to scroll
+    if (y<patWindowPos.y+2.0f*dpiScale) {
+      addScroll(-1);
+    }
+    if (y>patWindowPos.y+patWindowSize.y-2.0f*dpiScale) {
+      addScroll(1);
+    }
+  }
+  if (macroDragActive || macroLoopDragActive || waveDragActive || sampleDragActive) {
+    int distance=fabs((double)xrel);
+    if (distance<1) distance=1;
+    float start=x-xrel;
+    float end=x;
+    float startY=y-yrel;
+    float endY=y;
+    for (int i=0; i<=distance; i++) {
+      float fraction=(float)i/(float)distance;
+      float x=start+(end-start)*fraction;
+      float y=startY+(endY-startY)*fraction;
+      processDrags(x,y);
     }
   }
 }
@@ -2640,7 +2724,7 @@ bool FurnaceGUI::loop() {
       if (settings.powerSave) SDL_WaitEventTimeout(NULL,500);
     }
     eventTimeBegin=SDL_GetPerformanceCounter();
-	  bool updateWindow = false;
+    bool updateWindow=false;
     while (SDL_PollEvent(&ev)) {
       WAKE_UP;
       ImGui_ImplSDL2_ProcessEvent(&ev);
@@ -2658,80 +2742,14 @@ bool FurnaceGUI::loop() {
           motionXrel*=dpiScale;
           motionYrel*=dpiScale;
 #endif
-          if (selecting) {
-            // detect whether we have to scroll
-            if (motionY<patWindowPos.y+2.0f*dpiScale) {
-              addScroll(-1);
-            }
-            if (motionY>patWindowPos.y+patWindowSize.y-2.0f*dpiScale) {
-              addScroll(1);
-            }
-          }
-          if (macroDragActive || macroLoopDragActive || waveDragActive || sampleDragActive) {
-            int distance=fabs((double)motionXrel);
-            if (distance<1) distance=1;
-            float start=motionX-motionXrel;
-            float end=motionX;
-            float startY=motionY-motionYrel;
-            float endY=motionY;
-            for (int i=0; i<=distance; i++) {
-              float fraction=(float)i/(float)distance;
-              float x=start+(end-start)*fraction;
-              float y=startY+(endY-startY)*fraction;
-              processDrags(x,y);
-            }
-          }
+          pointMotion(motionX,motionY,motionXrel,motionYrel);
           break;
         }
         case SDL_MOUSEBUTTONUP:
-          if (macroDragActive || macroLoopDragActive || waveDragActive || (sampleDragActive && sampleDragMode)) {
-            MARK_MODIFIED;
-          }
-          if (macroDragActive && macroDragLineMode && !macroDragMouseMoved) {
-            displayMacroMenu=true;
-          }
-          macroDragActive=false;
-          macroDragBitMode=false;
-          macroDragInitialValue=false;
-          macroDragInitialValueSet=false;
-          macroDragLastX=-1;
-          macroDragLastY=-1;
-          macroLoopDragActive=false;
-          waveDragActive=false;
-          if (sampleDragActive) {
-            logD("stopping sample drag");
-            if (sampleDragMode) {
-              e->renderSamplesP();
-            } else {
-              if (sampleSelStart>sampleSelEnd) {
-                sampleSelStart^=sampleSelEnd;
-                sampleSelEnd^=sampleSelStart;
-                sampleSelStart^=sampleSelEnd;
-              }
-            }
-          }
-          sampleDragActive=false;
-          if (selecting) {
-            if (!selectingFull) cursor=selEnd;
-            finishSelection();
-            demandScrollX=true;
-            if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
-                cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
-              if (!settings.cursorMoveNoScroll) {
-                updateScroll(cursor.y);
-              }
-            }
-          }
+          pointUp(ev.button.x,ev.button.y,ev.button.button);
           break;
         case SDL_MOUSEBUTTONDOWN:
-          aboutOpen=false;
-          if (bindSetActive) {
-            bindSetActive=false;
-            bindSetPending=false;
-            actionKeys[bindSetTarget]=bindSetPrevValue;
-            bindSetTarget=0;
-            bindSetPrevValue=0;
-          }
+          pointDown(ev.button.x,ev.button.y,ev.button.button);
           break;
         case SDL_MOUSEWHEEL:
           wheelX+=ev.wheel.x;
@@ -3356,25 +3374,30 @@ bool FurnaceGUI::loop() {
       switch (mobScene) {
         case GUI_SCENE_PATTERN:
           patternOpen=true;
+          curWindow=GUI_WINDOW_PATTERN;
           drawPattern();
           drawPiano();
           break;
         case GUI_SCENE_ORDERS:
           ordersOpen=true;
+          curWindow=GUI_WINDOW_ORDERS;
           drawOrders();
           break;
         case GUI_SCENE_INSTRUMENT:
           insEditOpen=true;
+          curWindow=GUI_WINDOW_INS_EDIT;
           drawInsEdit();
           drawPiano();
           break;
         case GUI_SCENE_WAVETABLE:
           waveEditOpen=true;
+          curWindow=GUI_WINDOW_WAVE_EDIT;
           drawWaveEdit();
           drawPiano();
           break;
         case GUI_SCENE_SAMPLE:
           sampleEditOpen=true;
+          curWindow=GUI_WINDOW_SAMPLE_EDIT;
           drawSampleEdit();
           drawPiano();
           break;
@@ -4628,7 +4651,7 @@ bool FurnaceGUI::init() {
   portrait=(scrW<scrH);
   logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
 
-#ifndef __APPLE__
+#if !defined(__APPLE__) && !defined(IS_MOBILE)
   SDL_Rect displaySize;
 #endif
 

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.tildearrow.furnace"
-    android:versionCode="93"
-    android:versionName="0.6pre1"
+    android:versionCode="112"
+    android:versionName="dev112"
     android:installLocation="auto">
 
     <!-- OpenGL ES 2.0 -->
@@ -83,13 +83,17 @@
                 <action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" />
             </intent-filter>
             <!-- Drop file event -->
-            <!--
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
-                <data android:mimeType="*/*" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data android:scheme="file"/>
+                <data android:scheme="content"/>
+                <data android:host="*"/>
+                <data android:mimeType="*/*"/>
+                <data android:pathPattern=".*\\.fur"/>
             </intent-filter>
-            -->
         </activity>
     </application>
 

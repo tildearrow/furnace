@@ -138,11 +138,21 @@ void FurnaceGUI::drawMobileControls() {
       ImGui::EndTable();
     }
 
-    if (ImGui::Button("Create Ins")) {
-      doAction(GUI_ACTION_INS_LIST_ADD);
+    if (settings.unifiedDataView) {
+      drawInsList(true);
+    } else {
+      switch (mobScene) {
+        case GUI_SCENE_WAVETABLE:
+          drawWaveList(true);
+          break;
+        case GUI_SCENE_SAMPLE:
+          drawSampleList(true);
+          break;
+        default:
+          drawInsList(true);
+          break;
+      }
     }
-
-    ImGui::Text("Data list goes here...");
 
     if (ImGui::Button("New")) {
       mobileMenuOpen=false;

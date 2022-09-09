@@ -1612,11 +1612,11 @@ class FurnaceGUI {
   void drawSongInfo();
   void drawOrders();
   void drawPattern();
-  void drawInsList();
+  void drawInsList(bool asChild=false);
   void drawInsEdit();
-  void drawWaveList();
+  void drawWaveList(bool asChild=false);
   void drawWaveEdit();
-  void drawSampleList();
+  void drawSampleList(bool asChild=false);
   void drawSampleEdit();
   void drawMixer();
   void drawOsc();
@@ -1714,6 +1714,10 @@ class FurnaceGUI {
 
   void keyDown(SDL_Event& ev);
   void keyUp(SDL_Event& ev);
+
+  void pointDown(int x, int y, int button);
+  void pointUp(int x, int y, int button);
+  void pointMotion(int x, int y, int xrel, int yrel);
 
   void openFileDialog(FurnaceGUIFileDialogs type);
   int save(String path, int dmfVersion);
