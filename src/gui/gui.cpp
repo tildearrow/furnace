@@ -1154,6 +1154,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             e->lockSave([this,num]() {
               e->curOrders->ord[orderCursor][curOrder]=((e->curOrders->ord[orderCursor][curOrder]<<4)|num);
             });
+            MARK_MODIFIED;
             if (orderEditMode==2 || orderEditMode==3) {
               curNibble=!curNibble;
               if (!curNibble) {
