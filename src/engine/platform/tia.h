@@ -63,6 +63,7 @@ class DivPlatformTIA: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void setFlags(unsigned int flags);
+    float getPostAmp();
     bool isStereo();
     bool keyOffAffectsArp(int ch);
     void notifyInsDeletion(void* ins);

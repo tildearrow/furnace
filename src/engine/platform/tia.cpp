@@ -324,6 +324,10 @@ void DivPlatformTIA::reset() {
   }
 }
 
+float DivPlatformTIA::getPostAmp() {
+  return 0.5f;
+}
+
 bool DivPlatformTIA::isStereo() {
   return (mixingType==2);
 }
