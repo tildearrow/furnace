@@ -22,7 +22,7 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {tia.set(a,v); regPool[((a)-0x15)&0x0f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {tia.write(a,v); regPool[((a)-0x15)&0x0f]=v; if (dumpWrites) {addWrite(a,v);} }
 
 const char* regCheatSheetTIA[]={
   "AUDC0", "15",
@@ -39,7 +39,10 @@ const char** DivPlatformTIA::getRegisterSheet() {
 }
 
 void DivPlatformTIA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  tia.process(bufL+start,len,oscBuf);
+  for (size_t h=start; h<start+len; h++) {
+    tia.tick();
+    bufL[h]=tia.myCurrentSample[0];
+  }
 }
 
 unsigned char DivPlatformTIA::dealWithFreq(unsigned char shape, int base, int pitch) {
@@ -300,7 +303,7 @@ int DivPlatformTIA::getRegisterPoolSize() {
 }
 
 void DivPlatformTIA::reset() {
-  tia.reset();
+  tia.reset(false);
   memset(regPool,0,16);
   for (int i=0; i<2; i++) {
     chan[i]=DivPlatformTIA::Channel();
@@ -333,9 +336,9 @@ void DivPlatformTIA::poke(std::vector<DivRegWrite>& wlist) {
 
 void DivPlatformTIA::setFlags(unsigned int flags) {
   if (flags&1) {
-    rate=31250;
+    rate=COLOR_PAL*4.0/5.0;
   } else {
-    rate=31468;
+    rate=COLOR_NTSC;
   }
   chipClock=rate;
   for (int i=0; i<2; i++) {
@@ -351,7 +354,6 @@ int DivPlatformTIA::init(DivEngine* p, int channels, int sugRate, unsigned int f
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  tia.channels(1,false);
   setFlags(flags);
   reset();
   return 2;

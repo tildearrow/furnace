@@ -22,7 +22,7 @@
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
-#include "sound/tia/TIASnd.h"
+#include "sound/tia/Audio.h"
 
 class DivPlatformTIA: public DivDispatch {
   protected:
@@ -42,7 +42,7 @@ class DivPlatformTIA: public DivDispatch {
     Channel chan[2];
     DivDispatchOscBuffer* oscBuf[2];
     bool isMuted[2];
-    TIASound tia;
+    TIA::Audio tia;
     unsigned char regPool[16];
     friend void putDispatchChan(void*,int,int);
 
