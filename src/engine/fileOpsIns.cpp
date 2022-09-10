@@ -190,7 +190,6 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         } else {
           ins->type=DIV_INS_FM;
         }
-        
       }
     } else {
       ins->type=DIV_INS_FM;
@@ -273,6 +272,9 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         if (version>5) {
           for (int i=0; i<ins->std.volMacro.len; i++) {
             ins->std.volMacro.val[i]=reader.readI();
+            if (ins->std.volMacro.val[i]>15 && sys==6) { // FDS
+              ins->type=DIV_INS_FDS;
+            }
           }
         } else {
           for (int i=0; i<ins->std.volMacro.len; i++) {
