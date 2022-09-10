@@ -171,9 +171,7 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       mode=reader.readC();
       logD("instrument mode is %d",mode);
       if (mode==0) {
-        if (version<11) {
-          ins->type=DIV_INS_STD;
-        }
+        if (ins->type==DIV_INS_FM) ins->type=DIV_INS_STD;
       } else {
         ins->type=DIV_INS_FM;
       }
