@@ -38,6 +38,7 @@ namespace TIA {
       AudioChannel& channel1();
 
       short myCurrentSample[2];
+      short myChannelOut[2];
 
     private:
       void phase1();

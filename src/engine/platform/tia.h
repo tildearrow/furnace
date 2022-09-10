@@ -42,6 +42,8 @@ class DivPlatformTIA: public DivDispatch {
     Channel chan[2];
     DivDispatchOscBuffer* oscBuf[2];
     bool isMuted[2];
+    unsigned char mixingType;
+    unsigned char chanOscCounter;
     TIA::Audio tia;
     unsigned char regPool[16];
     friend void putDispatchChan(void*,int,int);

@@ -41,7 +41,19 @@ const char** DivPlatformTIA::getRegisterSheet() {
 void DivPlatformTIA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     tia.tick();
-    bufL[h]=tia.myCurrentSample[0];
+    if (mixingType==2) {
+      bufL[h]=tia.myCurrentSample[0];
+      bufR[h]=tia.myCurrentSample[1];
+    } else if (mixingType==1) {
+      bufL[h]=(tia.myCurrentSample[0]+tia.myCurrentSample[1])>>1;
+    } else {
+      bufL[h]=tia.myCurrentSample[0];
+    }
+    if (++chanOscCounter>=114) {
+      chanOscCounter=0;
+      oscBuf[0]->data[oscBuf[0]->needle++]=tia.myChannelOut[0];
+      oscBuf[1]->data[oscBuf[1]->needle++]=tia.myChannelOut[1];
+    }
   }
 }
 
@@ -303,7 +315,7 @@ int DivPlatformTIA::getRegisterPoolSize() {
 }
 
 void DivPlatformTIA::reset() {
-  tia.reset(false);
+  tia.reset(mixingType);
   memset(regPool,0,16);
   for (int i=0; i<2; i++) {
     chan[i]=DivPlatformTIA::Channel();
@@ -313,7 +325,7 @@ void DivPlatformTIA::reset() {
 }
 
 bool DivPlatformTIA::isStereo() {
-  return false;
+  return (mixingType==2);
 }
 
 bool DivPlatformTIA::keyOffAffectsArp(int ch) {
@@ -341,15 +353,19 @@ void DivPlatformTIA::setFlags(unsigned int flags) {
     rate=COLOR_NTSC;
   }
   chipClock=rate;
+  mixingType=(flags>>1)&3;
   for (int i=0; i<2; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->rate=rate/114;
   }
+  tia.reset(mixingType);
 }
 
 int DivPlatformTIA::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  mixingType=0;
+  chanOscCounter=0;
   for (int i=0; i<2; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;

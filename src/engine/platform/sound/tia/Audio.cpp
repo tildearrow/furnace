@@ -53,6 +53,9 @@ void Audio::reset(bool st)
   myCurrentSample[0]=0;
   myCurrentSample[1]=0;
 
+  myChannelOut[0]=0;
+  myChannelOut[1]=0;
+
   myChannel0.reset();
   myChannel1.reset();
 }
@@ -120,6 +123,9 @@ void Audio::addSample(unsigned char sample0, unsigned char sample1)
   else {
     myCurrentSample[0] = myMixingTableSum[sample0 + sample1];
   }
+
+  myChannelOut[0] = myMixingTableIndividual[sample0];
+  myChannelOut[1] = myMixingTableIndividual[sample1];
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
