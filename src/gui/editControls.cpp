@@ -135,88 +135,126 @@ void FurnaceGUI::drawMobileControls() {
       if (ImGui::Button("Sample",buttonSize)) {
         mobScene=GUI_SCENE_SAMPLE;
       }
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Song",buttonSize)) {
+        mobScene=GUI_SCENE_SONG;
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Channels",buttonSize)) {
+        mobScene=GUI_SCENE_CHANNELS;
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Chips",buttonSize)) {
+        mobScene=GUI_SCENE_CHIPS;
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Other",buttonSize)) {
+        mobScene=GUI_SCENE_OTHER;
+      }
       ImGui::EndTable();
     }
+
+    ImGui::Separator();
 
     if (settings.unifiedDataView) {
       drawInsList(true);
     } else {
       switch (mobScene) {
+        case GUI_SCENE_PATTERN:
+        case GUI_SCENE_ORDERS:
+        case GUI_SCENE_INSTRUMENT:
+          drawInsList(true);
+          break;
         case GUI_SCENE_WAVETABLE:
           drawWaveList(true);
           break;
         case GUI_SCENE_SAMPLE:
           drawSampleList(true);
           break;
-        default:
-          drawInsList(true);
+        case GUI_SCENE_SONG: {
+          if (ImGui::Button("New")) {
+            mobileMenuOpen=false;
+            //doAction(GUI_ACTION_NEW);
+            if (modified) {
+              showWarning("Unsaved changes! Save changes before creating a new song?",GUI_WARN_NEW);
+            } else {
+              displayNew=true;
+            }
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Open")) {
+            mobileMenuOpen=false;
+            doAction(GUI_ACTION_OPEN);
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Save")) {
+            mobileMenuOpen=false;
+            doAction(GUI_ACTION_SAVE);
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Save as...")) {
+            mobileMenuOpen=false;
+            doAction(GUI_ACTION_SAVE_AS);
+          }
+
+          ImGui::Button("1.1+ .dmf");
+          ImGui::SameLine();
+          ImGui::Button("Legacy .dmf");
+          ImGui::SameLine();
+          ImGui::Button("Export Audio");
+          ImGui::SameLine();
+          ImGui::Button("Export VGM");
+
+          ImGui::Button("CmdStream");
+
+          ImGui::Separator();
+
+          ImGui::Text("Song info here...");
           break;
+        }
+        case GUI_SCENE_CHANNELS:
+          ImGui::Text("Channels here...");
+          break;
+        case GUI_SCENE_CHIPS:
+          ImGui::Text("Chips here...");
+          break;
+        case GUI_SCENE_OTHER: {
+          if (ImGui::Button("Osc")) {
+            oscOpen=!oscOpen;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("ChanOsc")) {
+            chanOscOpen=!chanOscOpen;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("RegView")) {
+            regViewOpen=!regViewOpen;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Stats")) {
+            statsOpen=!statsOpen;
+          }
+
+          ImGui::Separator();
+
+          ImGui::Button("Panic");
+          ImGui::SameLine();
+          if (ImGui::Button("Settings")) {
+            mobileMenuOpen=false;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("About")) {
+            mobileMenuOpen=false;
+            mobileMenuPos=0.0f;
+            aboutOpen=true;
+          }
+          if (ImGui::Button("Switch to Desktop Mode")) {
+            toggleMobileUI(!mobileUI);
+          }
+          break;
+        }
       }
-    }
-
-    if (ImGui::Button("New")) {
-      mobileMenuOpen=false;
-      //doAction(GUI_ACTION_NEW);
-      if (modified) {
-        showWarning("Unsaved changes! Save changes before creating a new song?",GUI_WARN_NEW);
-      } else {
-        displayNew=true;
-      }
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Open")) {
-      mobileMenuOpen=false;
-      doAction(GUI_ACTION_OPEN);
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Save")) {
-      mobileMenuOpen=false;
-      doAction(GUI_ACTION_SAVE);
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Save as...")) {
-      mobileMenuOpen=false;
-      doAction(GUI_ACTION_SAVE_AS);
-    }
-
-    ImGui::Button("1.1+ .dmf");
-    ImGui::SameLine();
-    ImGui::Button("Legacy .dmf");
-    ImGui::SameLine();
-    ImGui::Button("Export Audio");
-    ImGui::SameLine();
-    ImGui::Button("Export VGM");
-
-    ImGui::Button("CmdStream");
-    ImGui::SameLine();
-    ImGui::Button("Panic");
-    ImGui::SameLine();
-    if (ImGui::Button("Settings")) {
-      mobileMenuOpen=false;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("About")) {
-      mobileMenuOpen=false;
-      mobileMenuPos=0.0f;
-      aboutOpen=true;
-    }
-
-    ImGui::Separator();
-
-    if (ImGui::Button("Osc")) {
-      oscOpen=!oscOpen;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("ChanOsc")) {
-      chanOscOpen=!chanOscOpen;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("RegView")) {
-      regViewOpen=!regViewOpen;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Stats")) {
-      statsOpen=!statsOpen;
     }
   }
   ImGui::End();

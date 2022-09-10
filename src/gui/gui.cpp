@@ -3245,6 +3245,11 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("reset layout")) {
           showWarning("Are you sure you want to reset the workspace layout?",GUI_WARN_RESET_LAYOUT);
         }
+#ifdef IS_MOBILE
+        if (ImGui::MenuItem("switch to mobile view")) {
+          toggleMobileUI(!mobileUI);
+        }
+#endif
         if (ImGui::MenuItem("settings...",BIND_FOR(GUI_ACTION_WINDOW_SETTINGS))) {
           syncSettings();
           settingsOpen=true;
@@ -3372,12 +3377,6 @@ bool FurnaceGUI::loop() {
       pianoOpen=true;
       drawMobileControls();
       switch (mobScene) {
-        case GUI_SCENE_PATTERN:
-          patternOpen=true;
-          curWindow=GUI_WINDOW_PATTERN;
-          drawPattern();
-          drawPiano();
-          break;
         case GUI_SCENE_ORDERS:
           ordersOpen=true;
           curWindow=GUI_WINDOW_ORDERS;
@@ -3399,6 +3398,12 @@ bool FurnaceGUI::loop() {
           sampleEditOpen=true;
           curWindow=GUI_WINDOW_SAMPLE_EDIT;
           drawSampleEdit();
+          drawPiano();
+          break;
+        default:
+          patternOpen=true;
+          curWindow=GUI_WINDOW_PATTERN;
+          drawPattern();
           drawPiano();
           break;
       }
