@@ -503,7 +503,91 @@ void FurnaceGUI::drawWaveEdit() {
               }
               ImGui::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Mangle")) {
+            if (ImGui::BeginTabItem("WaveTools")) {
+              if (ImGui::BeginTable("WGParamItems",2)) {
+                ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##WGScaleX",&waveGenScaleX,1,16)) {
+                  if (waveGenScaleX<2) waveGenScaleX=2;
+                  if (waveGenScaleX>256) waveGenScaleX=256;
+                }
+                ImGui::TableNextColumn();
+                ImGui::Button("Scale X");
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##WGScaleY",&waveGenScaleY,1,16)) {
+                  if (waveGenScaleY<2) waveGenScaleY=2;
+                  if (waveGenScaleY>256) waveGenScaleY=256;
+                }
+                ImGui::TableNextColumn();
+                ImGui::Button("Scale Y");
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##WGOffsetX",&waveGenOffsetX,1,16)) {
+                  if (waveGenOffsetX<-wave->len+1) waveGenOffsetX=-wave->len+1;
+                  if (waveGenOffsetX>wave->len-1) waveGenOffsetX=wave->len-1;
+                }
+                ImGui::TableNextColumn();
+                ImGui::Button("Offset X");
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##WGOffsetY",&waveGenOffsetY,1,16)) {
+                  if (waveGenOffsetY<-wave->max) waveGenOffsetY=-wave->max;
+                  if (waveGenOffsetY>wave->max) waveGenOffsetY=wave->max;
+                }
+                ImGui::TableNextColumn();
+                ImGui::Button("Offset Y");
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##WGSmooth",&waveGenSmooth,1,4)) {
+                  if (waveGenSmooth>wave->len) waveGenSmooth=wave->len;
+                  if (waveGenSmooth<1) waveGenSmooth=1;
+                }
+                ImGui::TableNextColumn();
+                ImGui::Button("Smooth");
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                float amp=waveGenAmplify*100.0f;
+                if (ImGui::InputFloat("##WGAmplify",&amp,1.0f,10.0f)) {
+                  waveGenAmplify=amp/100.0f;
+                  if (waveGenAmplify<0.0f) waveGenAmplify=0.0f;
+                  if (waveGenAmplify>100.0f) waveGenAmplify=100.0f;
+                }
+                ImGui::TableNextColumn();
+                ImGui::Button("Amplify");
+
+                ImGui::EndTable();
+              }
+
+              ImVec2 buttonSize=ImGui::GetContentRegionAvail();
+              buttonSize.y=0.0f;
+              ImVec2 buttonSizeHalf=buttonSize;
+              buttonSizeHalf.x-=ImGui::GetStyle().ItemSpacing.x;
+              buttonSizeHalf.x*=0.5;
+
+              ImGui::Button("Normalize",buttonSize);
+              ImGui::Button("Invert",buttonSize);
+
+              ImGui::Button("/2",buttonSizeHalf);
+              ImGui::SameLine();
+              ImGui::Button("×2",buttonSizeHalf);
+
+              ImGui::Button("Convert Signed/Unsigned",buttonSize);
+              ImGui::Button("Randomize",buttonSize);
               ImGui::EndTabItem();
             }
             ImGui::EndTabBar();

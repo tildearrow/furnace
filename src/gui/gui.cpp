@@ -5241,6 +5241,12 @@ FurnaceGUI::FurnaceGUI():
   waveGenDuty(0.5f),
   waveGenPower(1),
   waveGenInvertPoint(1.0f),
+  waveGenScaleX(32),
+  waveGenScaleY(31),
+  waveGenOffsetX(0),
+  waveGenOffsetY(0),
+  waveGenSmooth(1),
+  waveGenAmplify(1.0f),
   waveGenFM(false) {
   // value keys
   valueKeys[SDLK_0]=0;
