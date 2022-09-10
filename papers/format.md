@@ -255,6 +255,7 @@ size | description
      |   - 0xc3: OPN CSM - 10 channels
      |   - 0xc4: PC-98 CSM - 20 channels
      |   - 0xc5: YM2610B CSM - 20 channels
+     |   - 0xc6: MSM5232 - 8 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfd: Dummy System - 8 channels
