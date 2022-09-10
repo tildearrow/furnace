@@ -150,6 +150,10 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           ins->type=DIV_INS_FM;
           logD("instrument type is Arcade");
           break;
+        case 9: // Neo Geo
+          ins->type=DIV_INS_FM;
+          logD("instrument type is Neo Geo");
+          break;
         default:
           logD("instrument type is unknown");
           lastError="unknown instrument type!";
@@ -171,7 +175,13 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       mode=reader.readC();
       logD("instrument mode is %d",mode);
       if (mode==0) {
-        if (ins->type==DIV_INS_FM) ins->type=DIV_INS_STD;
+        if (ins->type==DIV_INS_FM) {
+          if (sys==9) {
+            ins->type=DIV_INS_AY;
+          } else {
+            ins->type=DIV_INS_STD;
+          }
+        }
       } else {
         ins->type=DIV_INS_FM;
       }
