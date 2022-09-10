@@ -536,6 +536,7 @@ void FurnaceGUI::setFileName(String name) {
   }
 #endif
   updateWindowTitle();
+  pushRecentFile(curFileName);
 }
 
 void FurnaceGUI::updateWindowTitle() {
@@ -1724,6 +1725,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
   if (!e->getWarnings().empty()) {
     showWarning(e->getWarnings(),GUI_WARN_GENERIC);
   }
+  pushRecentFile(path);
   return 0;
 }
 
@@ -1801,7 +1803,24 @@ int FurnaceGUI::load(String path) {
   if (!e->getWarnings().empty()) {
     showWarning(e->getWarnings(),GUI_WARN_GENERIC);
   }
+  pushRecentFile(path);
   return 0;
+}
+
+void FurnaceGUI::pushRecentFile(String path) {
+  if (path.empty()) return;
+  if (path==backupPath) return;
+  for (int i=0; i<(int)recentFile.size(); i++) {
+    if (recentFile[i]==path) {
+      recentFile.erase(recentFile.begin()+i);
+      i--;
+    }
+  }
+  recentFile.push_front(path);
+
+  while (!recentFile.empty() && (int)recentFile.size()>settings.maxRecentFile) {
+    recentFile.pop_back();
+  }
 }
 
 void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
@@ -3044,6 +3063,27 @@ bool FurnaceGUI::loop() {
           } else {
             openFileDialog(GUI_FILE_OPEN);
           }
+        }
+        if (ImGui::BeginMenu("open recent")) {
+          for (int i=0; i<(int)recentFile.size(); i++) {
+            String item=recentFile[i];
+            if (ImGui::MenuItem(item.c_str())) {
+              if (modified) {
+                nextFile=item;
+                showWarning("Unsaved changes! Save changes before opening file?",GUI_WARN_OPEN_DROP);
+              } else {
+                recentFile.erase(recentFile.begin()+i);
+                i--;
+                if (load(item)>0) {
+                  showError(fmt::sprintf("Error while loading file! (%s)",lastError));
+                }
+              }
+            }
+          }
+          if (recentFile.empty()) {
+            ImGui::Text("nothing here yet");
+          }
+          ImGui::EndMenu();
         }
         ImGui::Separator();
         if (ImGui::MenuItem("save",BIND_FOR(GUI_ACTION_SAVE))) {
@@ -4628,6 +4668,13 @@ bool FurnaceGUI::init() {
 
   syncSettings();
 
+  for (int i=0; i<settings.maxRecentFile; i++) {
+    String r=e->getConfString(fmt::sprintf("recentFile%d",i),"");
+    if (!r.empty()) {
+      recentFile.push_back(r);
+    }
+  }
+
   if (settings.dpiScale>=0.5f) {
     dpiScale=settings.dpiScale;
   }
@@ -4899,6 +4946,16 @@ bool FurnaceGUI::finish() {
   e->setConf("chanOscColorA",chanOscColor.w);
   e->setConf("chanOscUseGrad",chanOscUseGrad);
   e->setConf("chanOscGrad",chanOscGrad.toString());
+
+  // commit recent files
+  for (int i=0; i<30; i++) {
+    String key=fmt::sprintf("recentFile%d",i);
+    if (i>=settings.maxRecentFile || i>=(int)recentFile.size()) {
+      e->setConf(key,"");
+    } else {
+      e->setConf(key,recentFile[i]);
+    }
+  }
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];

@@ -1130,6 +1130,13 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::Separator();
 
+          if (ImGui::InputInt("Number of recent files",&settings.maxRecentFile)) {
+            if (settings.maxRecentFile<0) settings.maxRecentFile=0;
+            if (settings.maxRecentFile>30) settings.maxRecentFile=30;
+          }
+
+          ImGui::Separator();
+
           ImGui::Text("Pattern view labels:");
           ImGui::InputTextWithHint("Note off (3-char)","OFF",&settings.noteOffLabel);
           ImGui::InputTextWithHint("Note release (3-char)","===",&settings.noteRelLabel);
@@ -2273,6 +2280,7 @@ void FurnaceGUI::syncSettings() {
   settings.channelStyle=e->getConfInt("channelStyle",0);
   settings.channelVolStyle=e->getConfInt("channelVolStyle",0);
   settings.channelFeedbackStyle=e->getConfInt("channelFeedbackStyle",1);
+  settings.maxRecentFile=e->getConfInt("maxRecentFile",10);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2371,6 +2379,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.channelStyle,0,5);
   clampSetting(settings.channelVolStyle,0,3);
   clampSetting(settings.channelFeedbackStyle,0,3);
+  clampSetting(settings.maxRecentFile,0,30);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
   if (settings.initialSys.size()<4) {
@@ -2403,7 +2412,7 @@ void FurnaceGUI::syncSettings() {
 }
 
 void FurnaceGUI::commitSettings() {
-  bool sampleROMsChanged = settings.yrw801Path!=e->getConfString("yrw801Path","") ||
+  bool sampleROMsChanged=settings.yrw801Path!=e->getConfString("yrw801Path","") ||
     settings.tg100Path!=e->getConfString("tg100Path","") ||
     settings.mu5Path!=e->getConfString("mu5Path","");
 
@@ -2525,6 +2534,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("channelStyle",settings.channelStyle);
   e->setConf("channelVolStyle",settings.channelVolStyle);
   e->setConf("channelFeedbackStyle",settings.channelFeedbackStyle);
+  e->setConf("maxRecentFile",settings.maxRecentFile);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -2545,6 +2555,10 @@ void FurnaceGUI::commitSettings() {
   midiMap.write(e->getConfigPath()+DIR_SEPARATOR_STR+"midiIn_"+stripName(settings.midiInDevice)+".cfg");
 
   e->saveConf();
+
+  while (!recentFile.empty() && (int)recentFile.size()>settings.maxRecentFile) {
+    recentFile.pop_back();
+  }
 
   if (sampleROMsChanged) {
     if (e->loadSampleROMs()) {

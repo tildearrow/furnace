@@ -239,6 +239,10 @@ void DivEngine::setConf(String key, double value) {
   conf[key]=fmt::sprintf("%f",value);
 }
 
+void DivEngine::setConf(String key, const char* value) {
+  conf[key]=String(value);
+}
+
 void DivEngine::setConf(String key, String value) {
   conf[key]=value;
 }

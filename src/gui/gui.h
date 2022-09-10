@@ -1000,6 +1000,7 @@ class FurnaceGUI {
 
   std::vector<DivSystem> sysSearchResults;
   std::vector<FurnaceGUISysDef> newSongSearchResults;
+  std::deque<String> recentFile;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, vgmExportPatternHints;
   bool portrait, mobileMenuOpen;
@@ -1171,6 +1172,7 @@ class FurnaceGUI {
     int channelStyle;
     int channelVolStyle;
     int channelFeedbackStyle;
+    int maxRecentFile;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1291,6 +1293,7 @@ class FurnaceGUI {
       channelStyle(0),
       channelVolStyle(0),
       channelFeedbackStyle(1),
+      maxRecentFile(10),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1728,6 +1731,7 @@ class FurnaceGUI {
   void openFileDialog(FurnaceGUIFileDialogs type);
   int save(String path, int dmfVersion);
   int load(String path);
+  void pushRecentFile(String path);
   void exportAudio(String path, DivAudioExportModes mode);
 
   bool parseSysEx(unsigned char* data, size_t len);

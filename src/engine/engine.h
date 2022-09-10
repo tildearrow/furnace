@@ -544,6 +544,7 @@ class DivEngine {
     void setConf(String key, int value);
     void setConf(String key, float value);
     void setConf(String key, double value);
+    void setConf(String key, const char* value);
     void setConf(String key, String value);
 
     // calculate base frequency/period
