@@ -29,7 +29,7 @@ if [ -z $lastTest ]; then
   echo "skipping since this apparently is your first run."
 else
   mkdir -p "test/delta/$testDir" || exit 1
-  ls "test/result/$testDir/" | parallel --verbose -j4 ffmpeg -i "test/result/$lastTest/{0}" -i "test/result/$testDir/{0}" -filter_complex stereotools=phasel=1:phaser=1,amix=inputs=2:duration=longest -c:a pcm_s16le -y "test/delta/$testDir/{0}"
+  ls "test/result/$testDir/" | parallel --verbose -j4 ffmpeg -loglevel fatal -i "test/result/$lastTest/{0}" -i "test/result/$testDir/{0}" -filter_complex stereotools=phasel=1:phaser=1,amix=inputs=2:duration=longest -c:a pcm_s16le -y "test/delta/$testDir/{0}"
 fi
 echo "--- STEP 3: check deltas"
 if [ -z $lastTest ]; then
