@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 113: Furnace dev113
 - 112: Furnace dev112
 - 111: Furnace dev111
 - 110: Furnace dev110
@@ -338,7 +339,8 @@ size | description
   1  | broken initial position of porta after arp (>=101) or reserved
   1  | SN periods under 8 are treated as 1 (>=108) or reserved
   1  | cut/delay effect policy (>=110) or reserved
-  5  | reserved
+  1  | 0B/0D effect treatment (>=113) or reserved
+  4  | reserved
  --- | **virtual tempo data**
   2  | virtual tempo numerator of first song (>=96) or reserved
   2  | virtual tempo denominator of first song (>=96) or reserved

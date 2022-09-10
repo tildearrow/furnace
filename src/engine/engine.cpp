@@ -1658,6 +1658,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   speedAB=false;
   playing=true;
   skipping=true;
+  memset(walked,0,8192);
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(true);
   while (playing && curOrder<goal) {
     if (nextTick(preserveDrift)) {

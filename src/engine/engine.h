@@ -46,9 +46,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev112"
-#define DIV_ENGINE_VERSION 112
-
+#define DIV_VERSION "dev113"
+#define DIV_ENGINE_VERSION 113
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -358,6 +357,8 @@ class DivEngine {
   double exportFadeOut;
   std::map<String,String> conf;
   std::deque<DivNoteEvent> pendingNotes;
+  // bitfield
+  unsigned char walked[8192];
   bool isMuted[DIV_MAX_CHANS];
   std::mutex isBusy, saveLock;
   String configPath;
@@ -1072,6 +1073,7 @@ class DivEngine {
       memset(reversePitchTable,0,4096*sizeof(int));
       memset(pitchTable,0,4096*sizeof(int));
       memset(sysDefs,0,256*sizeof(void*));
+      memset(walked,0,8192);
 
       for (int i=0; i<256; i++) {
         sysFileMapFur[i]=DIV_SYSTEM_NULL;
