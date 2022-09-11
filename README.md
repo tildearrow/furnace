@@ -6,7 +6,7 @@ the biggest multi-system chiptune tracker ever made!
 
 [downloads](#downloads) | [discussion/help](#quick-references) | [developer info](#developer-info) | [unofficial packages](#unofficial-packages) | [FAQ](#frequently-asked-questions)
 
-***
+---
 ## downloads
 
 check out the [Releases](https://github.com/tildearrow/furnace/releases) page. available for Windows, macOS and Linux (AppImage).
@@ -74,7 +74,7 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
   - loads .dmf modules from all versions (beta 1 to 1.1.3)
   - saves .dmf modules - both modern and legacy
     - Furnace doubles as a module downgrader
-  - loads .dmp instruments and .dmw wavetables as well
+  - loads/saves .dmp instruments and .dmw wavetables as well
   - clean-room design (guesswork and ABX tests only, no decompilation involved)
   - bug/quirk implementation for increased playback accuracy through compatibility flags
 - VGM export
@@ -103,7 +103,7 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
   - built-in visualizer in pattern view
 - open-source under GPLv2 or later.
 
-***
+---
 # quick references
 
  - **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, or (preferably) the [official Discord server](https://discord.gg/EfrwT2wq7z).
@@ -119,7 +119,7 @@ some people have provided packages for Unix/Unix-like distributions. here's a li
  - **Nix**: [package](https://search.nixos.org/packages?channel=unstable&show=furnace&from=0&size=50&sort=relevance&type=packages&query=furnace) thanks to OPNA2608.
  - **openSUSE**: [a package](https://software.opensuse.org/package/furnace) is available, courtesy of fpesari.
 
-***
+---
 # developer info
 
 [![Build furnace](https://github.com/tildearrow/furnace/actions/workflows/build.yml/badge.svg)](https://github.com/tildearrow/furnace/actions/workflows/build.yml)
@@ -228,7 +228,7 @@ this will play a compatible file and enable the commands view.
 
 **note that these commands only actually work in Linux environments. on other command lines, such as Windows' Command Prompt, or MacOS Terminal, it may not work correctly.**
 
-***
+---
 # frequently asked questions
 
 > woah! 50 sound chips?! I can't believe it!
@@ -274,7 +274,7 @@ the DefleMask format has several limitations. save in Furnace song format instea
 
 right click on the channel name.
 
-***
+---
 # footnotes
 
 copyright (C) 2021-2022 tildearrow and contributors.
