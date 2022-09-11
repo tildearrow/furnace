@@ -104,7 +104,7 @@ const char* aboutLine[]={
   "fd",
   "GENATARi",
   "host12prog",
-  "lunathir",
+  "Lunathir",
   "plane",
   "TheEssem",
   "",
