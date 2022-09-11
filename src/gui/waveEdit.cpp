@@ -593,7 +593,23 @@ void FurnaceGUI::drawWaveEdit() {
                   if (waveGenSmooth<1) waveGenSmooth=1;
                 }
                 ImGui::TableNextColumn();
-                ImGui::Button("Smooth");
+                if (ImGui::Button("Smooth")) {
+                  if (waveGenSmooth>0) e->lockEngine([this,wave]() {
+                    int origData[256];
+                    memcpy(origData,wave->data,wave->len*sizeof(int));
+                    for (int i=0; i<wave->len; i++) { 
+                      int dataSum=0;
+                      for (int j=i; j<i+waveGenSmooth+1; j++) {
+                        int pos=(j-((waveGenSmooth+1)/2));
+                        while (pos<0) pos+=wave->len;
+                        dataSum+=origData[pos%wave->len];
+                      }
+                      dataSum/=waveGenSmooth+1;
+                      wave->data[i]=dataSum;
+                    }
+                    MARK_MODIFIED;
+                  });
+                }
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -623,7 +639,39 @@ void FurnaceGUI::drawWaveEdit() {
               buttonSizeHalf.x-=ImGui::GetStyle().ItemSpacing.x;
               buttonSizeHalf.x*=0.5;
 
-              ImGui::Button("Normalize",buttonSize);
+              if (ImGui::Button("Normalize",buttonSize)) {
+                e->lockEngine([this,wave]() {
+                  // find lowest point
+                  int lowest=wave->max;
+                  for (int i=0; i<wave->len; i++) {
+                    if (wave->data[i]<lowest) lowest=wave->data[i];
+                  }
+
+                  // find highest point
+                  int highest=0;
+                  for (int i=0; i<wave->len; i++) {
+                    if (wave->data[i]>highest) highest=wave->data[i];
+                  }
+
+                  // abort if lowest and highest points are equal
+                  if (lowest==highest) return;
+
+                  // abort if lowest and highest points already span the entire height
+                  if (lowest==wave->max && highest==0) return;
+
+                  // apply offset
+                  for (int i=0; i<wave->len; i++) {
+                    wave->data[i]-=lowest;
+                  }
+                  highest-=lowest;
+
+                  // scale
+                  for (int i=0; i<wave->len; i++) {
+                    wave->data[i]=(wave->data[i]*wave->max)/highest;
+                  }
+                  MARK_MODIFIED;
+                });
+              }
               if (ImGui::Button("Invert",buttonSize)) {
                 e->lockEngine([this,wave]() {
                   for (int i=0; i<wave->len; i++) {
@@ -633,9 +681,25 @@ void FurnaceGUI::drawWaveEdit() {
                 });
               }
 
-              ImGui::Button("/2",buttonSizeHalf);
+              if (ImGui::Button("Half",buttonSizeHalf)) {
+                int origData[256];
+                memcpy(origData,wave->data,wave->len*sizeof(int));
+
+                for (int i=0; i<wave->len; i++) {
+                  wave->data[i]=origData[i>>1];
+                }
+                MARK_MODIFIED;
+              }
               ImGui::SameLine();
-              ImGui::Button("×2",buttonSizeHalf);
+              if (ImGui::Button("Double",buttonSizeHalf)) {
+                int origData[256];
+                memcpy(origData,wave->data,wave->len*sizeof(int));
+
+                for (int i=0; i<wave->len; i++) {
+                  wave->data[i]=origData[(i*2)%wave->len];
+                }
+                MARK_MODIFIED;
+              }
 
               if (ImGui::Button("Convert Signed/Unsigned",buttonSize)) {
                 if (wave->max>0) e->lockEngine([this,wave]() {
@@ -643,7 +707,7 @@ void FurnaceGUI::drawWaveEdit() {
                     if (wave->data[i]>(wave->max/2)) {
                       wave->data[i]-=(wave->max+1)/2;
                     } else {
-                      wave->data[i]+=wave->max/2;
+                      wave->data[i]+=(wave->max+1)/2;
                     }
                   }
                   MARK_MODIFIED;
