@@ -516,7 +516,17 @@ void FurnaceGUI::drawWaveEdit() {
                   if (waveGenScaleX>256) waveGenScaleX=256;
                 }
                 ImGui::TableNextColumn();
-                ImGui::Button("Scale X");
+                if (ImGui::Button("Scale X")) {
+                  if (waveGenScaleX>0 && wave->len!=waveGenScaleX) e->lockEngine([this,wave]() {
+                    int origData[256];
+                    memcpy(origData,wave->data,wave->len*sizeof(int));
+                    for (int i=0; i<waveGenScaleX; i++) {
+                      wave->data[i]=origData[i*wave->len/waveGenScaleX];
+                    }
+                    wave->len=waveGenScaleX;
+                    MARK_MODIFIED;
+                  });
+                }
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -526,7 +536,15 @@ void FurnaceGUI::drawWaveEdit() {
                   if (waveGenScaleY>256) waveGenScaleY=256;
                 }
                 ImGui::TableNextColumn();
-                ImGui::Button("Scale Y");
+                if (ImGui::Button("Scale Y")) {
+                  if (waveGenScaleY>0 && wave->max!=waveGenScaleY) e->lockEngine([this,wave]() {
+                    for (int i=0; i<wave->len; i++) {
+                      wave->data[i]=(wave->data[i]*(waveGenScaleY+1))/(wave->max+1);
+                    }
+                    wave->max=waveGenScaleY;
+                    MARK_MODIFIED;
+                  });
+                }
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -536,7 +554,19 @@ void FurnaceGUI::drawWaveEdit() {
                   if (waveGenOffsetX>wave->len-1) waveGenOffsetX=wave->len-1;
                 }
                 ImGui::TableNextColumn();
-                ImGui::Button("Offset X");
+                if (ImGui::Button("Offset X")) {
+                  if (waveGenOffsetX!=0 && wave->len>0) e->lockEngine([this,wave]() {
+                    int origData[256];
+                    memcpy(origData,wave->data,wave->len*sizeof(int));
+                    int realOff=-waveGenOffsetX;
+                    while (realOff<0) realOff+=wave->len;
+
+                    for (int i=0; i<wave->len; i++) {
+                      wave->data[i]=origData[(i+realOff)%wave->len];
+                    }
+                    MARK_MODIFIED;
+                  });
+                }
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -546,7 +576,14 @@ void FurnaceGUI::drawWaveEdit() {
                   if (waveGenOffsetY>wave->max) waveGenOffsetY=wave->max;
                 }
                 ImGui::TableNextColumn();
-                ImGui::Button("Offset Y");
+                if (ImGui::Button("Offset Y")) {
+                  if (waveGenOffsetY!=0) e->lockEngine([this,wave]() {
+                    for (int i=0; i<wave->len; i++) {
+                      wave->data[i]=CLAMP(wave->data[i]+waveGenOffsetY,0,wave->max);
+                    }
+                    MARK_MODIFIED;
+                  });
+                }
 
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
@@ -568,7 +605,14 @@ void FurnaceGUI::drawWaveEdit() {
                   if (waveGenAmplify>100.0f) waveGenAmplify=100.0f;
                 }
                 ImGui::TableNextColumn();
-                ImGui::Button("Amplify");
+                if (ImGui::Button("Amplify")) {
+                  if (waveGenAmplify!=1.0f) e->lockEngine([this,wave]() {
+                    for (int i=0; i<wave->len; i++) {
+                      wave->data[i]=CLAMP(round((float)(wave->data[i]-((wave->max+1)/2))*waveGenAmplify),(int)(-((wave->max+1)/2)),(int)(wave->max/2))+((wave->max+1)/2);
+                    }
+                    MARK_MODIFIED;
+                  });
+                }
 
                 ImGui::EndTable();
               }
@@ -580,14 +624,39 @@ void FurnaceGUI::drawWaveEdit() {
               buttonSizeHalf.x*=0.5;
 
               ImGui::Button("Normalize",buttonSize);
-              ImGui::Button("Invert",buttonSize);
+              if (ImGui::Button("Invert",buttonSize)) {
+                e->lockEngine([this,wave]() {
+                  for (int i=0; i<wave->len; i++) {
+                    wave->data[i]=wave->max-wave->data[i];
+                  }
+                  MARK_MODIFIED;
+                });
+              }
 
               ImGui::Button("/2",buttonSizeHalf);
               ImGui::SameLine();
               ImGui::Button("×2",buttonSizeHalf);
 
-              ImGui::Button("Convert Signed/Unsigned",buttonSize);
-              ImGui::Button("Randomize",buttonSize);
+              if (ImGui::Button("Convert Signed/Unsigned",buttonSize)) {
+                if (wave->max>0) e->lockEngine([this,wave]() {
+                  for (int i=0; i<wave->len; i++) {
+                    if (wave->data[i]>(wave->max/2)) {
+                      wave->data[i]-=(wave->max+1)/2;
+                    } else {
+                      wave->data[i]+=wave->max/2;
+                    }
+                  }
+                  MARK_MODIFIED;
+                });
+              }
+              if (ImGui::Button("Randomize",buttonSize)) {
+                if (wave->max>0) e->lockEngine([this,wave]() {
+                  for (int i=0; i<wave->len; i++) {
+                    wave->data[i]=rand()%wave->max;
+                  }
+                  MARK_MODIFIED;
+                });
+              }
               ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
