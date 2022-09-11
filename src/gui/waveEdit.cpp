@@ -255,6 +255,9 @@ void FurnaceGUI::drawWaveEdit() {
       for (int i=0; i<wave->len; i++) {
         if (wave->data[i]>wave->max) wave->data[i]=wave->max;
         wavePreview[i]=wave->data[i];
+        if (waveSigned && !waveHex) {
+          wavePreview[i]-=(int)((wave->max+1)/2);
+        }
       }
       if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
 
@@ -269,9 +272,9 @@ void FurnaceGUI::drawWaveEdit() {
         ImVec2 contentRegion=ImGui::GetContentRegionAvail(); // wavetable graph size determined here
         contentRegion.y-=ImGui::GetFrameHeightWithSpacing()+ImGui::GetStyle().WindowPadding.y;
         if (waveEditStyle) {
-          PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,0,wave->max,contentRegion);
+          PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,(waveSigned && !waveHex)?(-(int)((wave->max+1)/2)):0,(waveSigned && !waveHex)?((int)(wave->max/2)):wave->max,contentRegion);
         } else {
-          PlotCustom("##Waveform",wavePreview,wave->len,0,NULL,0,wave->max,contentRegion,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,NULL,true);
+          PlotCustom("##Waveform",wavePreview,wave->len,0,NULL,(waveSigned && !waveHex)?(-(int)((wave->max+1)/2)):0,(waveSigned && !waveHex)?((int)(wave->max/2)):wave->max,contentRegion,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,NULL,true);
         }
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
           waveDragStart=ImGui::GetItemRectMin();
@@ -737,12 +740,33 @@ void FurnaceGUI::drawWaveEdit() {
         waveHex=true;
       }
       ImGui::SameLine();
+      if (!waveHex) if (ImGui::Button(waveSigned?"±##WaveSign":"+##WaveSign",ImVec2(ImGui::GetFrameHeight(),ImGui::GetFrameHeight()))) {
+        waveSigned=!waveSigned;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Signed/Unsigned");
+      }
+      ImGui::SameLine();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); // wavetable text input size found here
       if (ImGui::InputText("##MMLWave",&mmlStringW)) {
-        decodeMMLStrW(mmlStringW,wave->data,wave->len,wave->max,waveHex);
+        int actualData[256];
+        decodeMMLStrW(mmlStringW,actualData,wave->len,(waveSigned && !waveHex)?(-((wave->max+1)/2)):0,(waveSigned && !waveHex)?(wave->max/2):wave->max,waveHex);
+        if (waveSigned && !waveHex) {
+          for (int i=0; i<wave->len; i++) {
+            actualData[i]+=(wave->max+1)/2;
+          }
+        }
+        memcpy(wave->data,actualData,wave->len*sizeof(int));
       }
       if (!ImGui::IsItemActive()) {
-        encodeMMLStr(mmlStringW,wave->data,wave->len,-1,-1,waveHex);
+        int actualData[256];
+        memcpy(actualData,wave->data,256*sizeof(int));
+        if (waveSigned && !waveHex) {
+          for (int i=0; i<wave->len; i++) {
+            actualData[i]-=(wave->max+1)/2;
+          }
+        }
+        encodeMMLStr(mmlStringW,actualData,wave->len,-1,-1,waveHex);
       }
     }
   }

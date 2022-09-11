@@ -228,7 +228,7 @@ void FurnaceGUI::encodeMMLStr(String& target, int* macro, int macroLen, int macr
   }
 }
 
-void FurnaceGUI::decodeMMLStrW(String& source, int* macro, int& macroLen, int macroMax, bool hex) {
+void FurnaceGUI::decodeMMLStrW(String& source, int* macro, int& macroLen, int macroMin, int macroMax, bool hex) {
   int buf=0;
   bool negaBuf=false;
   bool hasVal=false;
@@ -264,9 +264,9 @@ void FurnaceGUI::decodeMMLStrW(String& source, int* macro, int& macroLen, int ma
       case ' ':
         if (hasVal) {
           hasVal=false;
-          negaBuf=false;
           macro[macroLen]=negaBuf?-buf:buf;
-          if (macro[macroLen]<0) macro[macroLen]=0;
+          negaBuf=false;
+          if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
           if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
           macroLen++;
           buf=0;
@@ -277,9 +277,9 @@ void FurnaceGUI::decodeMMLStrW(String& source, int* macro, int& macroLen, int ma
   }
   if (hasVal && macroLen<256) {
     hasVal=false;
-    negaBuf=false;
     macro[macroLen]=negaBuf?-buf:buf;
-    if (macro[macroLen]<0) macro[macroLen]=0;
+    negaBuf=false;
+    if (macro[macroLen]<macroMin) macro[macroLen]=macroMin;
     if (macro[macroLen]>macroMax) macro[macroLen]=macroMax;
     macroLen++;
     buf=0;
@@ -4621,6 +4621,7 @@ bool FurnaceGUI::init() {
 
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
+  waveSigned=e->getConfBool("waveSigned",false);
   waveGenVisible=e->getConfBool("waveGenVisible",false);
   waveEditStyle=e->getConfInt("waveEditStyle",0);
   lockLayout=e->getConfBool("lockLayout",false);
@@ -4906,6 +4907,7 @@ bool FurnaceGUI::finish() {
 
   e->setConf("tempoView",tempoView);
   e->setConf("waveHex",waveHex);
+  e->setConf("waveSigned",waveSigned);
   e->setConf("waveGenVisible",waveGenVisible);
   e->setConf("waveEditStyle",waveEditStyle);
   e->setConf("lockLayout",lockLayout);
@@ -5112,6 +5114,7 @@ FurnaceGUI::FurnaceGUI():
   firstFrame(true),
   tempoView(true),
   waveHex(false),
+  waveSigned(false),
   waveGenVisible(false),
   lockLayout(false),
   editOptsVisible(false),
