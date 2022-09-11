@@ -47,8 +47,6 @@
 #define MARK_MODIFIED modified=true;
 #define WAKE_UP drawHalt=16;
 
-#define TOGGLE_COLOR(x) ((x)?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF])
-
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
 
 // TODO:
@@ -1615,6 +1613,9 @@ class FurnaceGUI {
   void actualSampleList();
 
   void toggleMobileUI(bool enable, bool force=false);
+
+  void pushToggleColors(bool status);
+  void popToggleColors();
 
   void drawMobileControls();
   void drawEditControls();

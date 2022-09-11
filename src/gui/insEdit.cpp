@@ -3400,29 +3400,29 @@ void FurnaceGUI::drawInsEdit() {
         if (ins->type==DIV_INS_C64) if (ImGui::BeginTabItem("C64")) {
           ImGui::Text("Waveform");
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.triOn));
+          pushToggleColors(ins->c64.triOn);
           if (ImGui::Button("tri")) { PARAMETER
             ins->c64.triOn=!ins->c64.triOn;
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.sawOn));
+          pushToggleColors(ins->c64.sawOn);
           if (ImGui::Button("saw")) { PARAMETER
             ins->c64.sawOn=!ins->c64.sawOn;
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.pulseOn));
+          pushToggleColors(ins->c64.pulseOn);
           if (ImGui::Button("pulse")) { PARAMETER
             ins->c64.pulseOn=!ins->c64.pulseOn;
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.noiseOn));
+          pushToggleColors(ins->c64.noiseOn);
           if (ImGui::Button("noise")) { PARAMETER
             ins->c64.noiseOn=!ins->c64.noiseOn;
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
 
           ImVec2 sliderSize=ImVec2(20.0f*dpiScale,128.0*dpiScale);
 
@@ -3484,29 +3484,29 @@ void FurnaceGUI::drawInsEdit() {
 
           ImGui::Text("Filter Mode");
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.lp));
+          pushToggleColors(ins->c64.lp);
           if (ImGui::Button("low")) { PARAMETER
             ins->c64.lp=!ins->c64.lp;
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.bp));
+          pushToggleColors(ins->c64.bp);
           if (ImGui::Button("band")) { PARAMETER
             ins->c64.bp=!ins->c64.bp;
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.hp));
+          pushToggleColors(ins->c64.hp);
           if (ImGui::Button("high")) { PARAMETER
             ins->c64.hp=!ins->c64.hp;
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.ch3off));
+          pushToggleColors(ins->c64.ch3off);
           if (ImGui::Button("ch3off")) { PARAMETER
             ins->c64.ch3off=!ins->c64.ch3off;
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
 
           P(ImGui::Checkbox("Volume Macro is Cutoff Macro",&ins->c64.volIsCutoff));
           P(ImGui::Checkbox("Absolute Cutoff Macro",&ins->c64.filterIsAbs));

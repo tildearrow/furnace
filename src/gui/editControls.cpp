@@ -59,12 +59,12 @@ void FurnaceGUI::drawMobileControls() {
 
     if (!portrait) ImGui::Separator();
 
-    ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(e->isPlaying()));
+    pushToggleColors(e->isPlaying());
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_PLAY "##Play",buttonSize)) {
       play();
     }
-    ImGui::PopStyleColor();
+    popToggleColors();
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_STOP "##Stop",buttonSize)) {
       stop();
@@ -76,27 +76,27 @@ void FurnaceGUI::drawMobileControls() {
     }
 
     bool repeatPattern=e->getRepeatPattern();
-    ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(repeatPattern));
+    pushToggleColors(repeatPattern);
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern",buttonSize)) {
       e->setRepeatPattern(!repeatPattern);
     }
-    ImGui::PopStyleColor();
+    popToggleColors();
 
-    ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(edit));
+    pushToggleColors(edit);
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_CIRCLE "##Edit",buttonSize)) {
       edit=!edit;
     }
-    ImGui::PopStyleColor();
+    popToggleColors();
 
     bool metro=e->getMetronome();
-    ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(metro));
+    pushToggleColors(metro);
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_BELL_O "##Metronome",buttonSize)) {
       e->setMetronome(!metro);
     }
-    ImGui::PopStyleColor();
+    popToggleColors();
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
   ImGui::End();
@@ -306,11 +306,11 @@ void FurnaceGUI::drawEditControls() {
           ImGui::EndTable();
         }
 
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(e->isPlaying()));
+        pushToggleColors(e->isPlaying());
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
           play();
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_STOP "##Stop")) {
           stop();
@@ -340,12 +340,12 @@ void FurnaceGUI::drawEditControls() {
         }
 
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(noteInputPoly));
+        pushToggleColors(noteInputPoly);
         if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
           noteInputPoly=!noteInputPoly;
           e->setAutoNotePoly(noteInputPoly);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -356,11 +356,11 @@ void FurnaceGUI::drawEditControls() {
           stop();
         }
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(e->isPlaying()));
+        pushToggleColors(e->isPlaying());
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
           play();
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
@@ -369,26 +369,26 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::SameLine();
         bool repeatPattern=e->getRepeatPattern();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(repeatPattern));
+        pushToggleColors(repeatPattern);
         if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern")) {
           e->setRepeatPattern(!repeatPattern);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(edit));
+        pushToggleColors(edit);
         if (ImGui::Button(ICON_FA_CIRCLE "##Edit")) {
           edit=!edit;
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
         ImGui::SameLine();
         bool metro=e->getMetronome();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(metro));
+        pushToggleColors(metro);
         if (ImGui::Button(ICON_FA_BELL_O "##Metronome")) {
           e->setMetronome(!metro);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
         ImGui::SameLine();
         ImGui::Text("Octave");
@@ -425,12 +425,12 @@ void FurnaceGUI::drawEditControls() {
         unimportant(ImGui::Checkbox("Pattern",&followPattern));
 
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(noteInputPoly));
+        pushToggleColors(noteInputPoly);
         if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
           noteInputPoly=!noteInputPoly;
           e->setAutoNotePoly(noteInputPoly);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -438,11 +438,11 @@ void FurnaceGUI::drawEditControls() {
     case 2: // compact vertical
       if (ImGui::Begin("Play/Edit Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
         ImVec2 buttonSize=ImVec2(ImGui::GetContentRegionAvail().x,0.0f);
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(e->isPlaying()));
+        pushToggleColors(e->isPlaying());
         if (ImGui::Button(ICON_FA_PLAY "##Play",buttonSize)) {
           play();
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
         if (ImGui::Button(ICON_FA_STOP "##Stop",buttonSize)) {
           stop();
         }
@@ -452,24 +452,24 @@ void FurnaceGUI::drawEditControls() {
         }
 
         bool repeatPattern=e->getRepeatPattern();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(repeatPattern));
+        pushToggleColors(repeatPattern);
         if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern",buttonSize)) {
           e->setRepeatPattern(!repeatPattern);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(edit));
+        pushToggleColors(edit);
         if (ImGui::Button(ICON_FA_CIRCLE "##Edit",buttonSize)) {
           edit=!edit;
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
         bool metro=e->getMetronome();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(metro));
+        pushToggleColors(metro);
         if (ImGui::Button(ICON_FA_BELL_O "##Metronome",buttonSize)) {
           e->setMetronome(!metro);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
         ImGui::Text("Oct.");
         float avail=ImGui::GetContentRegionAvail().x;
@@ -496,23 +496,23 @@ void FurnaceGUI::drawEditControls() {
         }
 
         ImGui::Text("Foll.");
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(followOrders));
+        pushToggleColors(followOrders);
         if (ImGui::Button("Ord##FollowOrders",buttonSize)) { handleUnimportant
           followOrders=!followOrders;
         }
-        ImGui::PopStyleColor();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(followPattern));
+        popToggleColors();
+        pushToggleColors(followPattern);
         if (ImGui::Button("Pat##FollowPattern",buttonSize)) { handleUnimportant
           followPattern=!followPattern;
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(noteInputPoly));
+        pushToggleColors(noteInputPoly);
         if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
           noteInputPoly=!noteInputPoly;
           e->setAutoNotePoly(noteInputPoly);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -520,11 +520,11 @@ void FurnaceGUI::drawEditControls() {
     case 3: // split
       if (ImGui::Begin("Play Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
         if (e->isPlaying()) {
-          ImGui::PushStyleColor(ImGuiCol_Button,uiColors[GUI_COLOR_TOGGLE_ON]);
+          pushToggleColors(true);
           if (ImGui::Button(ICON_FA_STOP "##Stop")) {
             stop();
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
         } else {
           if (ImGui::Button(ICON_FA_PLAY "##Play")) {
             play(oldRow);
@@ -547,35 +547,35 @@ void FurnaceGUI::drawEditControls() {
         }
 
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(edit));
+        pushToggleColors(edit);
         if (ImGui::Button(ICON_FA_CIRCLE "##Edit")) {
           edit=!edit;
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
         bool metro=e->getMetronome();
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(metro));
+        pushToggleColors(metro);
         if (ImGui::Button(ICON_FA_BELL_O "##Metronome")) {
           e->setMetronome(!metro);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
         ImGui::SameLine();
         bool repeatPattern=e->getRepeatPattern();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(repeatPattern));
+        pushToggleColors(repeatPattern);
         if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern")) {
           e->setRepeatPattern(!repeatPattern);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(noteInputPoly));
+        pushToggleColors(noteInputPoly);
         if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
           noteInputPoly=!noteInputPoly;
           e->setAutoNotePoly(noteInputPoly);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();

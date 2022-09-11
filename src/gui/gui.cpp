@@ -2408,6 +2408,35 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
   }
 }
 
+void FurnaceGUI::pushToggleColors(bool status) {
+  ImVec4 toggleColor=status?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF];
+  ImGui::PushStyleColor(ImGuiCol_Button,toggleColor);
+  if (settings.guiColorsBase) {
+    toggleColor.x*=0.8f;
+    toggleColor.y*=0.8f;
+    toggleColor.z*=0.8f;
+  } else {
+    toggleColor.x=CLAMP(toggleColor.x*1.3f,0.0f,1.0f);
+    toggleColor.y=CLAMP(toggleColor.y*1.3f,0.0f,1.0f);
+    toggleColor.z=CLAMP(toggleColor.z*1.3f,0.0f,1.0f);
+  }
+  ImGui::PushStyleColor(ImGuiCol_ButtonHovered,toggleColor);
+  if (settings.guiColorsBase) {
+    toggleColor.x*=0.8f;
+    toggleColor.y*=0.8f;
+    toggleColor.z*=0.8f;
+  } else {
+    toggleColor.x=CLAMP(toggleColor.x*1.5f,0.0f,1.0f);
+    toggleColor.y=CLAMP(toggleColor.y*1.5f,0.0f,1.0f);
+    toggleColor.z=CLAMP(toggleColor.z*1.5f,0.0f,1.0f);
+  }
+  ImGui::PushStyleColor(ImGuiCol_ButtonActive,toggleColor);
+}
+
+void FurnaceGUI::popToggleColors() {
+  ImGui::PopStyleColor(3);
+}
+
 int _processEvent(void* instance, SDL_Event* event) {
   return ((FurnaceGUI*)instance)->processEvent(event);
 }

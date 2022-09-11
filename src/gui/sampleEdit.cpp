@@ -152,20 +152,20 @@ void FurnaceGUI::drawSampleEdit() {
 
         ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
 
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(!sampleDragMode));
+        pushToggleColors(!sampleDragMode);
         if (ImGui::Button(ICON_FA_I_CURSOR "##SSelect")) {
           sampleDragMode=false;
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Edit mode: Select");
         }
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(sampleDragMode));
+        pushToggleColors(sampleDragMode);
         if (ImGui::Button(ICON_FA_PENCIL "##SDraw")) {
           sampleDragMode=true;
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Edit mode: Draw");
         }
@@ -687,20 +687,20 @@ void FurnaceGUI::drawSampleEdit() {
 
         ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
 
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(!sampleDragMode));
+        pushToggleColors(!sampleDragMode);
         if (ImGui::Button(ICON_FA_I_CURSOR "##SSelect")) {
           sampleDragMode=false;
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Edit mode: Select");
         }
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(sampleDragMode));
+        pushToggleColors(sampleDragMode);
         if (ImGui::Button(ICON_FA_PENCIL "##SDraw")) {
           sampleDragMode=true;
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Edit mode: Draw");
         }
