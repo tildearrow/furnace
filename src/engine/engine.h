@@ -452,7 +452,7 @@ class DivEngine {
   int loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret);
 
   bool initAudioBackend();
-  bool deinitAudioBackend();
+  bool deinitAudioBackend(bool dueToSwitchMaster=false);
 
   void registerSystems();
   void initSongWithDesc(const int* description);

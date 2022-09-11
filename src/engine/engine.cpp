@@ -3453,7 +3453,8 @@ void DivEngine::setConsoleMode(bool enable) {
 }
 
 bool DivEngine::switchMaster() {
-  deinitAudioBackend();
+  logI("switching output...");
+  deinitAudioBackend(true);
   quitDispatch();
   initDispatch();
   if (initAudioBackend()) {
@@ -3599,6 +3600,7 @@ void DivEngine::quitDispatch() {
 
 bool DivEngine::initAudioBackend() {
   // load values
+  logI("initializing audio.");
   if (audioEngine==DIV_AUDIO_NULL) {
     if (getConfString("audioEngine","SDL")=="JACK") {
       audioEngine=DIV_AUDIO_JACK;
@@ -3704,8 +3706,9 @@ bool DivEngine::initAudioBackend() {
   return true;
 }
 
-bool DivEngine::deinitAudioBackend() {
+bool DivEngine::deinitAudioBackend(bool dueToSwitchMaster) {
   if (output!=NULL) {
+    logI("closing audio output.");
     output->quit();
     if (output->midiIn) {
       if (output->midiIn->isDeviceOpen()) {
@@ -3722,7 +3725,9 @@ bool DivEngine::deinitAudioBackend() {
     output->quitMidi();
     delete output;
     output=NULL;
-    //audioEngine=DIV_AUDIO_NULL;
+    if (dueToSwitchMaster) {
+      audioEngine=DIV_AUDIO_NULL;
+    }
   }
   return true;
 }
