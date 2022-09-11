@@ -1557,6 +1557,35 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
 #define CENTER_TEXT_20(text) \
   ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(20.0f*dpiScale-ImGui::CalcTextSize(text).x));
 
+#define OP_DRAG_POINT \
+  if (ImGui::Button(ICON_FA_ARROWS)) { \
+  } \
+  if (ImGui::BeginDragDropSource()) { \
+    opToMove=i; \
+    ImGui::SetDragDropPayload("FUR_OP",NULL,0,ImGuiCond_Once); \
+    ImGui::Button(ICON_FA_ARROWS "##SysDrag"); \
+    ImGui::EndDragDropSource(); \
+  } else if (ImGui::IsItemHovered()) { \
+    ImGui::SetTooltip("(drag to swap operators)"); \
+  } \
+  if (ImGui::BeginDragDropTarget()) { \
+    const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_OP"); \
+    if (dragItem!=NULL) { \
+      if (dragItem->IsDataType("FUR_OP")) { \
+        if (opToMove!=i && opToMove>=0) { \
+          e->lockEngine([this,ins,i]() { \
+            DivInstrumentFM::Operator origOp=ins->fm.op[orderedOps[opToMove]]; \
+            ins->fm.op[orderedOps[opToMove]]=ins->fm.op[orderedOps[i]]; \
+            ins->fm.op[orderedOps[i]]=origOp; \
+          }); \
+          PARAMETER; \
+        } \
+        opToMove=-1; \
+      } \
+    } \
+    ImGui::EndDragDropTarget(); \
+  }
+
 void FurnaceGUI::drawInsEdit() {
   if (nextWindow==GUI_WINDOW_INS_EDIT) {
     insEditOpen=true;
@@ -2073,6 +2102,9 @@ void FurnaceGUI::drawInsEdit() {
                     } else {
                       ImGui::Text("OP%d",i+1);
                     }
+                    
+                    // drag point
+                    OP_DRAG_POINT;
 
                     int maxTl=127;
                     if (ins->type==DIV_INS_OPLL) {
@@ -2356,7 +2388,10 @@ void FurnaceGUI::drawInsEdit() {
                     } else {
                       snprintf(tempID,1024,"Operator %d",i+1);
                     }
-                    CENTER_TEXT(tempID);
+                    float nextCursorPosX=ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(tempID).x);
+                    OP_DRAG_POINT;
+                    ImGui::SameLine();
+                    ImGui::SetCursorPosX(nextCursorPosX);
                     ImGui::TextUnformatted(tempID);
 
                     float sliderHeight=200.0f*dpiScale;
@@ -2789,6 +2824,8 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     ImGui::Dummy(ImVec2(dpiScale,dpiScale));
+                    OP_DRAG_POINT;
+                    ImGui::SameLine();
                     if (ins->type==DIV_INS_OPL_DRUMS) {
                       ImGui::Text("%s",oplDrumNames[i]);
                     } else if (ins->type==DIV_INS_OPL && ins->fm.opllPreset==16) {

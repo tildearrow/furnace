@@ -1471,7 +1471,7 @@ class FurnaceGUI {
   int renderTimeBegin, renderTimeEnd, renderTimeDelta;
   int eventTimeBegin, eventTimeEnd, eventTimeDelta;
 
-  int chanToMove, sysToMove, sysToDelete;
+  int chanToMove, sysToMove, sysToDelete, opToMove;
 
   ImVec2 patWindowPos, patWindowSize;
 

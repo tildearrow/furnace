@@ -5217,6 +5217,7 @@ FurnaceGUI::FurnaceGUI():
   chanToMove(-1),
   sysToMove(-1),
   sysToDelete(-1),
+  opToMove(-1),
   transposeAmount(0),
   randomizeMin(0),
   randomizeMax(255),
