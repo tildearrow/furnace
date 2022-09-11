@@ -608,7 +608,7 @@ void FurnaceGUI::drawWaveEdit() {
                 if (ImGui::Button("Amplify")) {
                   if (waveGenAmplify!=1.0f) e->lockEngine([this,wave]() {
                     for (int i=0; i<wave->len; i++) {
-                      wave->data[i]=CLAMP(round((float)(wave->data[i]-((wave->max+1)/2))*waveGenAmplify),(int)(-((wave->max+1)/2)),(int)(wave->max/2))+((wave->max+1)/2);
+                      wave->data[i]=CLAMP(round((float)(wave->data[i]-(int)( /* Clang can you stop complaining */ (int)(wave->max+1)/(int)2))*waveGenAmplify),(int)(-((wave->max+1)/2)),(int)(wave->max/2))+(int)((wave->max+1)/2);
                     }
                     MARK_MODIFIED;
                   });
