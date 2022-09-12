@@ -50,7 +50,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
       int freq, baseFreq, pitch, pitch2, portaPauseFreq, note, ins;
       unsigned char psgMode, autoEnvNum, autoEnvDen, opMask;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset, opMaskChanged;
       int vol, outVol;
       int sample;
       unsigned char pan;
@@ -82,6 +82,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
         inPorta(false),
         furnacePCM(false),
         hardReset(false),
+        opMaskChanged(false),
         vol(0),
         outVol(15),
         sample(-1),

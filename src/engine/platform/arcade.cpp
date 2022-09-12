@@ -255,6 +255,10 @@ void DivPlatformArcade::tick(bool sysTick) {
       chan[i].state.ams=chan[i].std.ams.val;
       rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
     }
+    if (chan[i].std.ex4.had && chan[i].active) {
+      chan[i].opMask=chan[i].std.ex4.val&15;
+      chan[i].opMaskChanged=true;
+    }
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
@@ -347,8 +351,9 @@ void DivPlatformArcade::tick(bool sysTick) {
       immWrite(i+0x30,chan[i].freq<<2);
       chan[i].freqChanged=false;
     }
-    if (chan[i].keyOn) {
+    if (chan[i].keyOn || chan[i].opMaskChanged) {
       immWrite(0x08,(chan[i].opMask<<3)|i);
+      chan[i].opMaskChanged=false;
       chan[i].keyOn=false;
     }
   }

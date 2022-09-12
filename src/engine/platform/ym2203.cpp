@@ -273,6 +273,10 @@ void DivPlatformYM2203::tick(bool sysTick) {
       chan[i].state.fb=chan[i].std.fb.val;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     }
+    if (chan[i].std.ex4.had && chan[i].active) {
+      chan[i].opMask=chan[i].std.ex4.val&15;
+      chan[i].opMaskChanged=true;
+    }
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
@@ -385,8 +389,9 @@ void DivPlatformYM2203::tick(bool sysTick) {
       immWrite(chanOffs[i]+ADDR_FREQ,chan[i].freq&0xff);
       chan[i].freqChanged=false;
     }
-    if (chan[i].keyOn) {
+    if (chan[i].keyOn || chan[i].opMaskChanged) {
       immWrite(0x28,(chan[i].opMask<<4)|konOffs[i]);
+      chan[i].opMaskChanged=false;
       chan[i].keyOn=false;
     }
   }
