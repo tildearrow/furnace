@@ -348,7 +348,7 @@ void DivPlatformArcade::tick(bool sysTick) {
       chan[i].freqChanged=false;
     }
     if (chan[i].keyOn) {
-      immWrite(0x08,0x78|i);
+      immWrite(0x08,(chan[i].opMask<<3)|i);
       chan[i].keyOn=false;
     }
   }
@@ -370,6 +370,11 @@ int DivPlatformArcade::dispatch(DivCommand c) {
 
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->fm;
+        chan[c.chan].opMask=
+          (chan[c.chan].state.op[0].enable?1:0)|
+          (chan[c.chan].state.op[2].enable?2:0)|
+          (chan[c.chan].state.op[1].enable?4:0)|
+          (chan[c.chan].state.op[3].enable?8:0);
       }
 
       chan[c.chan].macroInit(ins);

@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 114: Furnace dev114
 - 113: Furnace dev113
 - 112: Furnace dev112
 - 111: Furnace dev111
@@ -497,7 +498,8 @@ size | description
   1  | vib
   1  | ws
   1  | ksr
- 12  | reserved
+  1  | operator enabled (>=114) or reserved
+ 11  | reserved
  --- | **Game Boy instrument data**
   1  | volume
   1  | direction

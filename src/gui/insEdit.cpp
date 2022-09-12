@@ -1737,6 +1737,7 @@ void FurnaceGUI::drawInsEdit() {
           int opCount=4;
           if (ins->type==DIV_INS_OPLL) opCount=2;
           if (ins->type==DIV_INS_OPL) opCount=(ins->fm.ops==4)?4:2;
+          bool opsAreMutable=(ins->type==DIV_INS_FM);
 
           if (ImGui::BeginTabItem("FM")) {
             if (ImGui::BeginTable("fmDetails",3,ImGuiTableFlags_SizingStretchSame)) {
@@ -2091,16 +2092,27 @@ void FurnaceGUI::drawInsEdit() {
                     if (i==0) sliderHeight=(ImGui::GetContentRegionAvail().y/opCount)-ImGui::GetStyle().ItemSpacing.y;
 
                     ImGui::PushID(fmt::sprintf("op%d",i).c_str());
+                    String opNameLabel;
                     if (ins->type==DIV_INS_OPL_DRUMS) {
-                      ImGui::Text("%s",oplDrumNames[i]);
+                      opNameLabel=fmt::sprintf("%s",oplDrumNames[i]);
                     } else if (ins->type==DIV_INS_OPL && ins->fm.opllPreset==16) {
                       if (i==1) {
-                        ImGui::Text("Kick");
+                        opNameLabel="Kick";
                       } else {
-                        ImGui::Text("Env");
+                        opNameLabel="Env";
                       }
                     } else {
-                      ImGui::Text("OP%d",i+1);
+                      opNameLabel=fmt::sprintf("OP%d",i+1);
+                    }
+                    if (opsAreMutable) {
+                      pushToggleColors(op.enable);
+                      if (ImGui::Button(opNameLabel.c_str())) {
+                        op.enable=!op.enable;
+                        PARAMETER;
+                      }
+                      popToggleColors();
+                    } else {
+                      ImGui::TextUnformatted(opNameLabel.c_str());
                     }
                     
                     // drag point
@@ -2388,11 +2400,20 @@ void FurnaceGUI::drawInsEdit() {
                     } else {
                       snprintf(tempID,1024,"Operator %d",i+1);
                     }
-                    float nextCursorPosX=ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(tempID).x);
+                    float nextCursorPosX=ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(tempID).x-(opsAreMutable?(ImGui::GetStyle().FramePadding.x*2.0f):0.0f));
                     OP_DRAG_POINT;
                     ImGui::SameLine();
                     ImGui::SetCursorPosX(nextCursorPosX);
-                    ImGui::TextUnformatted(tempID);
+                    if (opsAreMutable) {
+                      pushToggleColors(op.enable);
+                      if (ImGui::Button(tempID)) {
+                        op.enable=!op.enable;
+                        PARAMETER;
+                      }
+                      popToggleColors();
+                    } else {
+                      ImGui::TextUnformatted(tempID);
+                    }
 
                     float sliderHeight=200.0f*dpiScale;
                     float waveWidth=140.0*dpiScale;
@@ -2824,18 +2845,29 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     ImGui::Dummy(ImVec2(dpiScale,dpiScale));
+                    String opNameLabel;
                     OP_DRAG_POINT;
                     ImGui::SameLine();
                     if (ins->type==DIV_INS_OPL_DRUMS) {
-                      ImGui::Text("%s",oplDrumNames[i]);
+                      opNameLabel=fmt::sprintf("%s",oplDrumNames[i]);
                     } else if (ins->type==DIV_INS_OPL && ins->fm.opllPreset==16) {
                       if (i==1) {
-                        ImGui::Text("Envelope 2 (kick only)");
+                        opNameLabel="Envelope 2 (kick only)";
                       } else {
-                        ImGui::Text("Envelope");
+                        opNameLabel="Envelope";
                       }
                     } else {
-                      ImGui::Text("OP%d",i+1);
+                      opNameLabel=fmt::sprintf("OP%d",i+1);
+                    }
+                    if (opsAreMutable) {
+                      pushToggleColors(op.enable);
+                      if (ImGui::Button(opNameLabel.c_str())) {
+                        op.enable=!op.enable;
+                        PARAMETER;
+                      }
+                      popToggleColors();
+                    } else {
+                      ImGui::TextUnformatted(opNameLabel.c_str());
                     }
 
                     ImGui::SameLine();

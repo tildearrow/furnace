@@ -47,7 +47,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
       int ins;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, hardReset;
       int vol, outVol;
-      unsigned char pan;
+      unsigned char pan, opMask;
 
       bool dacMode;
       int dacPeriod;
@@ -85,6 +85,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
         vol(0),
         outVol(0),
         pan(3),
+        opMask(15),
         dacMode(false),
         dacPeriod(0),
         dacRate(0),

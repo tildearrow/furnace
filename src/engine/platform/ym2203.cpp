@@ -386,7 +386,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
       chan[i].freqChanged=false;
     }
     if (chan[i].keyOn) {
-      immWrite(0x28,0xf0|konOffs[i]);
+      immWrite(0x28,(chan[i].opMask<<4)|konOffs[i]);
       chan[i].keyOn=false;
     }
   }
@@ -409,6 +409,11 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
 
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->fm;
+        chan[c.chan].opMask=
+          (chan[c.chan].state.op[0].enable?1:0)|
+          (chan[c.chan].state.op[2].enable?2:0)|
+          (chan[c.chan].state.op[1].enable?4:0)|
+          (chan[c.chan].state.op[3].enable?8:0);
       }
       
       for (int i=0; i<4; i++) {
