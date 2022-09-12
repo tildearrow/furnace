@@ -45,7 +45,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, pitch2, portaPauseFreq, note;
       int ins;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, hardReset;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, hardReset, opMaskChanged;
       int vol, outVol;
       unsigned char pan, opMask;
 
@@ -82,6 +82,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
         furnaceDac(false),
         inPorta(false),
         hardReset(false),
+        opMaskChanged(false),
         vol(0),
         outVol(0),
         pan(3),
