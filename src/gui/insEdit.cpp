@@ -1564,20 +1564,32 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
     opToMove=i; \
     ImGui::SetDragDropPayload("FUR_OP",NULL,0,ImGuiCond_Once); \
     ImGui::Button(ICON_FA_ARROWS "##SysDrag"); \
+    ImGui::SameLine(); \
+    if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) { \
+      ImGui::Text("(copying)"); \
+    } else { \
+      ImGui::Text("(swapping)"); \
+    } \
     ImGui::EndDragDropSource(); \
   } else if (ImGui::IsItemHovered()) { \
-    ImGui::SetTooltip("(drag to swap operators)"); \
+    ImGui::SetTooltip("- drag to swap operator\n- shift-drag to copy operator"); \
   } \
   if (ImGui::BeginDragDropTarget()) { \
     const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_OP"); \
     if (dragItem!=NULL) { \
       if (dragItem->IsDataType("FUR_OP")) { \
         if (opToMove!=i && opToMove>=0) { \
-          e->lockEngine([this,ins,i]() { \
-            DivInstrumentFM::Operator origOp=ins->fm.op[orderedOps[opToMove]]; \
-            ins->fm.op[orderedOps[opToMove]]=ins->fm.op[orderedOps[i]]; \
-            ins->fm.op[orderedOps[i]]=origOp; \
-          }); \
+          if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) { \
+            e->lockEngine([this,ins,i]() { \
+              ins->fm.op[orderedOps[i]]=ins->fm.op[orderedOps[opToMove]]; \
+            }); \
+          } else { \
+            e->lockEngine([this,ins,i]() { \
+              DivInstrumentFM::Operator origOp=ins->fm.op[orderedOps[opToMove]]; \
+              ins->fm.op[orderedOps[opToMove]]=ins->fm.op[orderedOps[i]]; \
+              ins->fm.op[orderedOps[i]]=origOp; \
+            }); \
+          } \
           PARAMETER; \
         } \
         opToMove=-1; \
