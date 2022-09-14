@@ -25,6 +25,7 @@
 #define CHIP_DIVIDER fmDivBase
 
 #define IS_REALLY_MUTED(x) (isMuted[x] && (x<5 || !softPCM || (isMuted[5] && isMuted[6])))
+#define IS_EXTCH_MUTED (isOpMuted[0] && isOpMuted[1] && isOpMuted[2] && isOpMuted[3])
 
 int DivPlatformGenesisExt::dispatch(DivCommand c) {
   if (c.chan<2) {
@@ -73,7 +74,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       }
       if (opChan[ch].insChanged) { // TODO how does this work?
         rWrite(chanOffs[2]+0xb0,(chan[2].state.alg&7)|(chan[2].state.fb<<3));
-        rWrite(chanOffs[2]+0xb4,(opChan[ch].pan<<6)|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
+        rWrite(chanOffs[2]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
       }
       opChan[ch].insChanged=false;
 
@@ -124,7 +125,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
           opChan[i].pan=opChan[ch].pan;
         }
       }
-      rWrite(chanOffs[2]+0xb4,(opChan[ch].pan<<6)|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
+      rWrite(chanOffs[2]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
       break;
     }
     case DIV_CMD_PITCH: {
@@ -398,6 +399,8 @@ void DivPlatformGenesisExt::muteChannel(int ch, bool mute) {
     rWrite(baseAddr+0x40,op.tl);
     immWrite(baseAddr+0x40,op.tl);
   }
+
+  rWrite(chanOffs[2]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch-2].pan<<6))|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
 }
 
 static int opChanOffsL[4]={
@@ -547,7 +550,11 @@ void DivPlatformGenesisExt::forceIns() {
       rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
     }
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
-    rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    if (i==2) {
+      rWrite(chanOffs[i]+ADDR_LRAF,(IS_EXTCH_MUTED?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    } else {
+      rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    }
     if (chan[i].active) {
       chan[i].keyOn=true;
       chan[i].freqChanged=true;
