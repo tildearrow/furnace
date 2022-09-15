@@ -36,12 +36,20 @@
 #define CONFIG_FILE "/furnace.cfg"
 #endif
 
+#ifdef IS_MOBILE
+#ifdef HAVE_SDL2
+#include <SDL.h>
+#else
+#error "Furnace mobile requires SDL2!"
+#endif
+#endif
+
 void DivEngine::initConfDir() {
 #ifdef _WIN32
   // maybe move this function in here instead?
   configPath=getWinConfigPath();
-#elif defined (IS_MOBILE)
-  configPath=SDL_GetPrefPath();
+#elif defined(IS_MOBILE)
+  configPath=SDL_GetPrefPath("tildearrow","furnace");
 #else
 #ifdef __HAIKU__
   char userSettingsDir[PATH_MAX];
@@ -229,6 +237,10 @@ void DivEngine::setConf(String key, float value) {
 
 void DivEngine::setConf(String key, double value) {
   conf[key]=fmt::sprintf("%f",value);
+}
+
+void DivEngine::setConf(String key, const char* value) {
+  conf[key]=String(value);
 }
 
 void DivEngine::setConf(String key, String value) {

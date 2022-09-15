@@ -179,6 +179,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.brokenPortaArp=false;
     ds.snNoLowPeriods=true;
     ds.delayBehavior=0;
+    ds.jumpTreatment=2;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -1081,6 +1082,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<110) {
       ds.delayBehavior=1;
     }
+    if (ds.version<113) {
+      ds.jumpTreatment=1;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1503,7 +1507,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<5; i++) {
+      if (ds.version>=113) {
+        ds.jumpTreatment=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<4; i++) {
         reader.readC();
       }
     }
@@ -3747,7 +3756,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.brokenPortaArp);
   w->writeC(song.snNoLowPeriods);
   w->writeC(song.delayBehavior);
-  for (int i=0; i<5; i++) {
+  w->writeC(song.jumpTreatment);
+  for (int i=0; i<4; i++) {
     w->writeC(0);
   }
 
@@ -4342,14 +4352,25 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     }
   }
 
+  bool relWarning=false;
+
   for (int i=0; i<getChannelCount(sys); i++) {
     w->writeC(curPat[i].effectCols);
 
     for (int j=0; j<curSubSong->ordersLen; j++) {
       DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][j],false);
       for (int k=0; k<curSubSong->patLen; k++) {
-        w->writeS(pat->data[k][0]); // note
-        w->writeS(pat->data[k][1]); // octave
+        if ((pat->data[k][0]==101 || pat->data[k][0]==102) && pat->data[k][1]==0) {
+          w->writeS(100);
+          w->writeS(0);
+          if (!relWarning) {
+            relWarning=true;
+            addWarning("note/macro release will be converted to note off!");
+          }
+        } else {
+          w->writeS(pat->data[k][0]); // note
+          w->writeS(pat->data[k][1]); // octave
+        }
         w->writeS(pat->data[k][3]); // volume
 #ifdef TA_BIG_ENDIAN
         for (int l=0; l<curPat[i].effectCols*2; l++) {

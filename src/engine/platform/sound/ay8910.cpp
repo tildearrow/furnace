@@ -924,6 +924,7 @@ float ay8910_device::mix_3D()
 			indx |= tone_mask | (m_vol_enabled[chan] ? tone_volume(tone) << (chan*5) : 0);
 		}
 	}
+  lastIndx=indx;
 	return m_vol3d_table[indx];
 }
 
@@ -1359,6 +1360,7 @@ unsigned char ay8910_device::ay8910_read_ym()
 
 void ay8910_device::device_reset()
 {
+  lastIndx=0;
 	ay8910_reset_ym();
 }
 

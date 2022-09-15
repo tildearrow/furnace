@@ -1370,7 +1370,7 @@ void DivEngine::registerSystems() {
 
   // to Grauw: feel free to change this to 24 during development of OPL4's PCM part.
   sysDefs[DIV_SYSTEM_OPL4]=new DivSysDef(
-    "Yamaha OPL4", NULL, 0xae, 0, 42, true, true, 0, false,
+    "Yamaha YMF278B (OPL4)", NULL, 0xae, 0, 42, true, true, 0, false,
     "like OPL3, but this time it also has a 24-channel version of MultiPCM.",
     {"4OP 1", "FM 2", "4OP 3", "FM 4", "4OP 5", "FM 6", "4OP 7", "FM 8", "4OP 9", "FM 10", "4OP 11", "FM 12", "FM 13", "FM 14", "FM 15", "FM 16", "FM 17", "FM 18", "PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5", "PCM 6", "PCM 7", "PCM 8", "PCM 9", "PCM 10", "PCM 11", "PCM 12", "PCM 13", "PCM 14", "PCM 15", "PCM 16", "PCM 17", "PCM 18", "PCM 19", "PCM 20", "PCM 21", "PCM 22", "PCM 23", "PCM 24"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15", "F16", "F17", "F18", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P8", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18", "P19", "P20", "P21", "P22", "P23", "P24"},
@@ -1379,7 +1379,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_OPL4_DRUMS]=new DivSysDef(
-    "Yamaha OPL4 with drums", NULL, 0xaf, 0, 44, true, true, 0, false,
+    "Yamaha YMF278B (OPL4) with drums", NULL, 0xaf, 0, 44, true, true, 0, false,
     "the OPL4 but with drums mode turned on.",
     {"4OP 1", "FM 2", "4OP 3", "FM 4", "4OP 5", "FM 6", "4OP 7", "FM 8", "4OP 9", "FM 10", "4OP 11", "FM 12", "FM 13", "FM 14", "FM 15", "Kick/FM 16", "Snare", "Tom", "Top", "HiHat", "PCM 1", "PCM 2", "PCM 3", "PCM 4", "PCM 5", "PCM 6", "PCM 7", "PCM 8", "PCM 9", "PCM 10", "PCM 11", "PCM 12", "PCM 13", "PCM 14", "PCM 15", "PCM 16", "PCM 17", "PCM 18", "PCM 19", "PCM 20", "PCM 21", "PCM 22", "PCM 23", "PCM 24"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15", "BD", "SD", "TM", "TP", "HH", "P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P8", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18", "P19", "P20", "P21", "P22", "P23", "P24"},

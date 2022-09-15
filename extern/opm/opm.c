@@ -1,5 +1,5 @@
 /* Nuked OPM
- * Copyright (C) 2020 Nuke.YKT
+ * Copyright (C) 2022 Nuke.YKT
  *
  * This file is part of Nuked OPM.
  *
@@ -21,7 +21,7 @@
  *      siliconpr0n.org(digshadow, John McMaster):
  *          YM2151 and other FM chip decaps and die shots.
  *
- * version: 0.9.2 beta
+ * version: 0.9.3 beta
  */
 #include <string.h>
 #include <stdint.h>
@@ -651,7 +651,7 @@ static inline void OPM_EnvelopePhase4(opm_t *chip)
     chip->eg_instantattack = chip->eg_ratemax[1] && (kon || !chip->eg_ratemax[1]);
 
     eg_off = (chip->eg_level[slot] & 0x3f0) == 0x3f0;
-    slreach = (chip->eg_level[slot] >> 5) == chip->eg_sl[1];
+    slreach = (chip->eg_level[slot] >> 4) == (chip->eg_sl[1] << 1);
     eg_zero = chip->eg_level[slot] == 0;
 
     chip->eg_mute = eg_off && chip->eg_state[slot] != eg_num_attack && !kon;

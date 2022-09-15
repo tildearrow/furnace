@@ -40,10 +40,10 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
       int freq, baseFreq, pitch, pitch2, portaPauseFreq, note, ins;
       unsigned char psgMode, autoEnvNum, autoEnvDen;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset, opMaskChanged;
       int vol, outVol;
       int sample;
-      unsigned char pan;
+      unsigned char pan, opMask;
       DivMacroInt std;
       void macroInit(DivInstrument* which) {
         std.init(which);
@@ -71,10 +71,12 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
         inPorta(false),
         furnacePCM(false),
         hardReset(false),
+        opMaskChanged(false),
         vol(0),
         outVol(15),
         sample(-1),
-        pan(3) {}
+        pan(3),
+        opMask(15) {}
     };
     Channel chan[16];
     DivDispatchOscBuffer* oscBuf[16];

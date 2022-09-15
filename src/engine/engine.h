@@ -46,9 +46,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev112"
-#define DIV_ENGINE_VERSION 112
-
+#define DIV_VERSION "dev114"
+#define DIV_ENGINE_VERSION 114
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -358,6 +357,8 @@ class DivEngine {
   double exportFadeOut;
   std::map<String,String> conf;
   std::deque<DivNoteEvent> pendingNotes;
+  // bitfield
+  unsigned char walked[8192];
   bool isMuted[DIV_MAX_CHANS];
   std::mutex isBusy, saveLock;
   String configPath;
@@ -451,7 +452,7 @@ class DivEngine {
   int loadSampleROM(String path, ssize_t expectedSize, unsigned char*& ret);
 
   bool initAudioBackend();
-  bool deinitAudioBackend();
+  bool deinitAudioBackend(bool dueToSwitchMaster=false);
 
   void registerSystems();
   void initSongWithDesc(const int* description);
@@ -545,6 +546,7 @@ class DivEngine {
     void setConf(String key, int value);
     void setConf(String key, float value);
     void setConf(String key, double value);
+    void setConf(String key, const char* value);
     void setConf(String key, String value);
 
     // calculate base frequency/period
@@ -1074,6 +1076,7 @@ class DivEngine {
       memset(reversePitchTable,0,4096*sizeof(int));
       memset(pitchTable,0,4096*sizeof(int));
       memset(sysDefs,0,256*sizeof(void*));
+      memset(walked,0,8192);
 
       for (int i=0; i<256; i++) {
         sysFileMapFur[i]=DIV_SYSTEM_NULL;

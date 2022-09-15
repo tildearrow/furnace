@@ -347,6 +347,10 @@ void DivPlatformGenesis::tick(bool sysTick) {
       chan[i].state.ams=chan[i].std.ams.val;
       rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     }
+    if (chan[i].std.ex4.had && chan[i].active) {
+      chan[i].opMask=chan[i].std.ex4.val&15;
+      chan[i].opMaskChanged=true;
+    }
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
@@ -479,8 +483,9 @@ void DivPlatformGenesis::tick(bool sysTick) {
       }
       chan[i].freqChanged=false;
     }
-    if (chan[i].keyOn) {
-      if (i<6) immWrite(0x28,0xf0|konOffs[i]);
+    if (chan[i].keyOn || chan[i].opMaskChanged) {
+      if (i<6) immWrite(0x28,(chan[i].opMask<<4)|konOffs[i]);
+      chan[i].opMaskChanged=false;
       chan[i].keyOn=false;
     }
   }
@@ -591,6 +596,11 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
 
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->fm;
+        chan[c.chan].opMask=
+          (chan[c.chan].state.op[0].enable?1:0)|
+          (chan[c.chan].state.op[2].enable?2:0)|
+          (chan[c.chan].state.op[1].enable?4:0)|
+          (chan[c.chan].state.op[3].enable?8:0);
       }
 
       chan[c.chan].macroInit(ins);

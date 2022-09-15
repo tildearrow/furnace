@@ -368,7 +368,26 @@ src/engine/platform/sound/c64/wave8580_PST.cc
 src/engine/platform/sound/c64/wave8580_P_T.cc
 src/engine/platform/sound/c64/wave8580__ST.cc
 
-src/engine/platform/sound/tia/TIASnd.cpp
+src/engine/platform/sound/c64_fp/Dac.cpp
+src/engine/platform/sound/c64_fp/EnvelopeGenerator.cpp
+src/engine/platform/sound/c64_fp/ExternalFilter.cpp
+src/engine/platform/sound/c64_fp/Filter6581.cpp
+src/engine/platform/sound/c64_fp/Filter8580.cpp
+src/engine/platform/sound/c64_fp/Filter.cpp
+src/engine/platform/sound/c64_fp/FilterModelConfig6581.cpp
+src/engine/platform/sound/c64_fp/FilterModelConfig8580.cpp
+src/engine/platform/sound/c64_fp/FilterModelConfig.cpp
+src/engine/platform/sound/c64_fp/Integrator6581.cpp
+src/engine/platform/sound/c64_fp/Integrator8580.cpp
+src/engine/platform/sound/c64_fp/OpAmp.cpp
+src/engine/platform/sound/c64_fp/SID.cpp
+src/engine/platform/sound/c64_fp/Spline.cpp
+src/engine/platform/sound/c64_fp/WaveformCalculator.cpp
+src/engine/platform/sound/c64_fp/WaveformGenerator.cpp
+src/engine/platform/sound/c64_fp/resample/SincResampler.cpp
+
+src/engine/platform/sound/tia/AudioChannel.cpp
+src/engine/platform/sound/tia/Audio.cpp
 
 src/engine/platform/sound/ymfm/ymfm_adpcm.cpp
 src/engine/platform/sound/ymfm/ymfm_opm.cpp

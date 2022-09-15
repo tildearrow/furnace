@@ -64,7 +64,3 @@ In there, you can modify certain data pertaining to your sample, such as the:
  - and many more.
 
 The changes you make will be applied as soon as you've committed them to your sample, but they can be undoed and redoed, just like text.
-
-# tips
-
-if you have a sample you wanna use that is about 44100 or anything over 32000Hz, downsample the sample to 32000Hz so that the pitch of the sample in Furnace stays like the original audio file,
