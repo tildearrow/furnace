@@ -1579,15 +1579,17 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
     if (dragItem!=NULL) { \
       if (dragItem->IsDataType("FUR_OP")) { \
         if (opToMove!=i && opToMove>=0) { \
+          int destOp=(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS)?opOrder[i]:i; \
+          int sourceOp=(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS)?opOrder[opToMove]:opToMove; \
           if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) { \
-            e->lockEngine([this,ins,i]() { \
-              ins->fm.op[orderedOps[i]]=ins->fm.op[orderedOps[opToMove]]; \
+            e->lockEngine([ins,destOp,sourceOp]() { \
+              ins->fm.op[destOp]=ins->fm.op[sourceOp]; \
             }); \
           } else { \
-            e->lockEngine([this,ins,i]() { \
-              DivInstrumentFM::Operator origOp=ins->fm.op[orderedOps[opToMove]]; \
-              ins->fm.op[orderedOps[opToMove]]=ins->fm.op[orderedOps[i]]; \
-              ins->fm.op[orderedOps[i]]=origOp; \
+            e->lockEngine([ins,destOp,sourceOp]() { \
+              DivInstrumentFM::Operator origOp=ins->fm.op[sourceOp]; \
+              ins->fm.op[sourceOp]=ins->fm.op[destOp]; \
+              ins->fm.op[destOp]=origOp; \
             }); \
           } \
           PARAMETER; \
