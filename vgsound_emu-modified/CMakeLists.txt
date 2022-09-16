@@ -1,0 +1,161 @@
+#
+# License: Zlib
+# see https://gitlab.com/cam900/vgsound_emu/-/blob/main/LICENSE for more details
+#
+# Copyright holder(s): cam900
+# CMake for vgsound_emu
+#
+
+cmake_minimum_required(VERSION 3.0)
+project(vgsound_emu
+	VERSION 2.1.0
+	LANGUAGES CXX)
+
+option(VGSOUND_EMU_ES5504 "Use ES5504 core" ON)
+option(VGSOUND_EMU_ES5505 "Use ES5505 core" ON)
+option(VGSOUND_EMU_ES5506 "Use ES5506 core" ON)
+option(VGSOUND_EMU_K005289 "Use K005289 core" ON)
+option(VGSOUND_EMU_K007232 "Use K007232 core" ON)
+option(VGSOUND_EMU_K053260 "Use K053260 core" ON)
+option(VGSOUND_EMU_MSM6295 "Use MSM6295 core" ON)
+option(VGSOUND_EMU_NAMCO_163 "Use Namco 163 core" ON)
+option(VGSOUND_EMU_SCC "Use SCC core" ON)
+option(VGSOUND_EMU_VRCVI "Use VRC VI core" ON)
+option(VGSOUND_EMU_X1_010 "Use X1-010 core" ON)
+
+message(STATUS "Host: ${CMAKE_HOST_SYSTEM_NAME}, ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+message(STATUS "Target: ${CMAKE_SYSTEM_NAME}, ${CMAKE_SYSTEM_PROCESSOR}")
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID}")
+message(STATUS "CMake version: ${CMAKE_VERSION}")
+message(STATUS "Generator: ${CMAKE_GENERATOR}")
+message(STATUS "Extra generator: ${CMAKE_EXTRA_GENERATOR}")
+message(STATUS "Make program: ${CMAKE_MAKE_PROGRAM}")
+
+set(CORE_SOURCE "")
+set(EMU_SOURCE "")
+
+# Core functions
+list(APPEND CORE_SOURCE
+	vgsound_emu/src/core/util.hpp
+)
+
+# Dialogic ADPCM
+if(VGSOUND_EMU_MSM6295)
+	list(APPEND CORE_SOURCE
+		vgsound_emu/src/core/vox/vox.cpp
+		vgsound_emu/src/core/vox/vox.hpp
+	)
+	message(STATUS "Using Dialogic ADPCM core")
+endif()
+
+# ES5504, ES5505, ES5506
+if(VGSOUND_EMU_ES5504 OR VGSOUND_EMU_ES5505 OR VGSOUND_EMU_ES5506)
+	list(APPEND EMU_SOURCE
+		vgsound_emu/src/es550x/es550x.hpp
+
+		vgsound_emu/src/es550x/es550x.cpp
+		vgsound_emu/src/es550x/es550x_alu.cpp
+		vgsound_emu/src/es550x/es550x_filter.cpp
+	)
+
+	if(VGSOUND_EMU_ES5504)
+		list(APPEND EMU_SOURCE
+			vgsound_emu/src/es550x/es5504.hpp
+			vgsound_emu/src/es550x/es5504.cpp
+		)
+		message(STATUS "Using ES5504 core")
+	endif()
+
+	if(VGSOUND_EMU_ES5505)
+		list(APPEND EMU_SOURCE
+			vgsound_emu/src/es550x/es5505.hpp
+			vgsound_emu/src/es550x/es5505.cpp
+		)
+		message(STATUS "Using ES5505 core")
+	endif()
+
+	if(VGSOUND_EMU_ES5506)
+		list(APPEND EMU_SOURCE
+			vgsound_emu/src/es550x/es5506.hpp
+			vgsound_emu/src/es550x/es5506.cpp
+		)
+		message(STATUS "Using ES5506 core")
+	endif()
+endif()
+
+# K005289
+if(VGSOUND_EMU_K005289)
+	list(APPEND EMU_SOURCE
+		vgsound_emu/src/k005289/k005289.hpp
+		vgsound_emu/src/k005289/k005289.cpp
+	)
+	message(STATUS "Using K005289 core")
+endif()
+
+# K007232
+if(VGSOUND_EMU_K007232)
+	list(APPEND EMU_SOURCE
+		vgsound_emu/src/k007232/k007232.hpp
+		vgsound_emu/src/k007232/k007232.cpp
+	)
+	message(STATUS "Using K007232 core")
+endif()
+
+# K053260
+if(VGSOUND_EMU_K053260)
+	list(APPEND EMU_SOURCE
+		vgsound_emu/src/k053260/k053260.hpp
+		vgsound_emu/src/k053260/k053260.cpp
+	)
+	message(STATUS "Using K053260 core")
+endif()
+
+# MSM6295
+if(VGSOUND_EMU_MSM6295)
+	list(APPEND EMU_SOURCE
+		vgsound_emu/src/msm6295/msm6295.hpp
+		vgsound_emu/src/msm6295/msm6295.cpp
+	)
+	message(STATUS "Using MSM6295 core")
+endif()
+
+# Namco 163
+if(VGSOUND_EMU_NAMCO_163)
+	list(APPEND EMU_SOURCE
+		vgsound_emu/src/n163/n163.hpp
+		vgsound_emu/src/n163/n163.cpp
+	)
+	message(STATUS "Using Namco 163 core")
+endif()
+
+# SCC
+if(VGSOUND_EMU_SCC)
+	list(APPEND EMU_SOURCE
+		vgsound_emu/src/scc/scc.hpp
+		vgsound_emu/src/scc/scc.cpp
+	)
+	message(STATUS "Using SCC core")
+endif()
+
+# VRC VI
+if(VGSOUND_EMU_VRCVI)
+	list(APPEND EMU_SOURCE
+		vgsound_emu/src/vrcvi/vrcvi.hpp
+		vgsound_emu/src/vrcvi/vrcvi.cpp
+	)
+	message(STATUS "Using VRC VI core")
+endif()
+
+# X1-010
+if(VGSOUND_EMU_X1_010)
+	list(APPEND EMU_SOURCE
+		vgsound_emu/src/x1_010/x1_010.hpp
+		vgsound_emu/src/x1_010/x1_010.cpp
+	)
+	message(STATUS "Using X1-010 core")
+endif()
+
+add_library(vgsound_emu STATIC ${CORE_SOURCE} ${EMU_SOURCE})
+target_include_directories(${PROJECT_NAME} INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
+
+# target_compile_options(vgsound_emu PRIVATE -Wall -Werror)
