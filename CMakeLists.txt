@@ -97,6 +97,7 @@ else()
 endif()
 
 list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/SAASound/include")
+list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/vgsound_emu-modified")
 
 find_package(Threads REQUIRED)
 list(APPEND DEPENDENCIES_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
@@ -319,6 +320,31 @@ extern/SAASound/src/SAANoise.cpp
 extern/SAASound/src/SAASndC.cpp
 extern/SAASound/src/SAASound.cpp
 
+extern/vgsound_emu-modified/vgsound_emu/src/core/vox/vox.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/es550x/es550x.cpp
+extern/vgsound_emu-modified/vgsound_emu/src/es550x/es550x_alu.cpp
+extern/vgsound_emu-modified/vgsound_emu/src/es550x/es550x_filter.cpp
+extern/vgsound_emu-modified/vgsound_emu/src/es550x/es5504.cpp
+extern/vgsound_emu-modified/vgsound_emu/src/es550x/es5505.cpp
+extern/vgsound_emu-modified/vgsound_emu/src/es550x/es5506.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/k005289/k005289.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/k007232/k007232.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/k053260/k053260.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/msm6295/msm6295.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/n163/n163.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/scc/scc.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/vrcvi/vrcvi.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/x1_010/x1_010.cpp
+
 extern/adpcm/bs_codec.c
 extern/adpcm/oki_codec.c
 extern/adpcm/yma_codec.c
@@ -398,28 +424,17 @@ src/engine/platform/sound/lynx/Mikey.cpp
 
 src/engine/platform/sound/qsound.c
 
-src/engine/platform/sound/x1_010/x1_010.cpp
-
 src/engine/platform/sound/swan.cpp
 
 src/engine/platform/sound/su.cpp
 
-src/engine/platform/sound/k005289/k005289.cpp
-
-src/engine/platform/sound/n163/n163.cpp
-
 src/engine/platform/sound/vic20sound.c
-
-src/engine/platform/sound/vrcvi/vrcvi.cpp
-
-src/engine/platform/sound/scc/scc.cpp
 
 src/engine/platform/sound/ymz280b.cpp
 
 src/engine/platform/sound/rf5c68.cpp
 
 src/engine/platform/sound/oki/okim6258.cpp
-src/engine/platform/sound/oki/msm6295.cpp
 
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp

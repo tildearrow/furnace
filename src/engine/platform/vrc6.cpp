@@ -86,9 +86,10 @@ void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len
     // Oscilloscope buffer part
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
-      for (int i=0; i<3; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=vrc6.chan_out(i)<<10;
+      for (int i=0; i<2; i++) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=vrc6.pulse_out(i)<<10;
       }
+      oscBuf[2]->data[oscBuf[2]->needle++]=vrc6.sawtooth_out()<<10;
     }
 
     // Command part
@@ -195,7 +196,7 @@ void DivPlatformVRC6::tick(bool sysTick) {
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOff) {
         chWrite(i,2,0);
-      } else {
+      } else if (chan[i].active) {
         chWrite(i,1,chan[i].freq&0xff);
         chWrite(i,2,0x80|((chan[i].freq>>8)&0xf));
       }

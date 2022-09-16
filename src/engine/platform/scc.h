@@ -24,7 +24,7 @@
 #include <queue>
 #include "../macroInt.h"
 #include "../waveSynth.h"
-#include "sound/scc/scc.hpp"
+#include "vgsound_emu/src/scc/scc.hpp"
 
 class DivPlatformSCC: public DivDispatch {
   struct Channel {
