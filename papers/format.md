@@ -32,6 +32,8 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 114: Furnace dev114
+- 113: Furnace dev113
 - 112: Furnace dev112
 - 111: Furnace dev111
 - 110: Furnace dev110
@@ -254,6 +256,7 @@ size | description
      |   - 0xc3: OPN CSM - 10 channels
      |   - 0xc4: PC-98 CSM - 20 channels
      |   - 0xc5: YM2610B CSM - 20 channels
+     |   - 0xc6: MSM5232 - 8 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfd: Dummy System - 8 channels
@@ -338,7 +341,8 @@ size | description
   1  | broken initial position of porta after arp (>=101) or reserved
   1  | SN periods under 8 are treated as 1 (>=108) or reserved
   1  | cut/delay effect policy (>=110) or reserved
-  5  | reserved
+  1  | 0B/0D effect treatment (>=113) or reserved
+  4  | reserved
  --- | **virtual tempo data**
   2  | virtual tempo numerator of first song (>=96) or reserved
   2  | virtual tempo denominator of first song (>=96) or reserved
@@ -494,7 +498,8 @@ size | description
   1  | vib
   1  | ws
   1  | ksr
- 12  | reserved
+  1  | operator enabled (>=114) or reserved
+ 11  | reserved
  --- | **Game Boy instrument data**
   1  | volume
   1  | direction

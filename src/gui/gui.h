@@ -47,8 +47,6 @@
 #define MARK_MODIFIED modified=true;
 #define WAKE_UP drawHalt=16;
 
-#define TOGGLE_COLOR(x) ((x)?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF])
-
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
 
 // TODO:
@@ -265,7 +263,11 @@ enum FurnaceGUIMobileScenes {
   GUI_SCENE_ORDERS,
   GUI_SCENE_INSTRUMENT,
   GUI_SCENE_WAVETABLE,
-  GUI_SCENE_SAMPLE
+  GUI_SCENE_SAMPLE,
+  GUI_SCENE_SONG,
+  GUI_SCENE_CHANNELS,
+  GUI_SCENE_CHIPS,
+  GUI_SCENE_OTHER,
 };
 
 enum FurnaceGUIFileDialogs {
@@ -887,9 +889,10 @@ struct FurnaceGUIMacroDesc {
   ImVec4 color;
   unsigned int bitOffset;
   bool isBitfield, blockMode, bit30;
-  String (*hoverFunc)(int,float);
+  String (*hoverFunc)(int,float,void*);
+  void* hoverFuncUser;
 
-  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0, bool bit30Special=false):
+  FurnaceGUIMacroDesc(const char* name, DivInstrumentMacro* m, int macroMin, int macroMax, float macroHeight, ImVec4 col=ImVec4(1.0f,1.0f,1.0f,1.0f), bool block=false, const char* mName=NULL, String (*hf)(int,float,void*)=NULL, bool bitfield=false, const char** bfVal=NULL, unsigned int bitOff=0, bool bit30Special=false, void* hfu=NULL):
     macro(m),
     height(macroHeight),
     displayName(name),
@@ -900,7 +903,8 @@ struct FurnaceGUIMacroDesc {
     isBitfield(bitfield),
     blockMode(block),
     bit30(bit30Special),
-    hoverFunc(hf) {
+    hoverFunc(hf),
+    hoverFuncUser(hfu) {
     // MSVC -> hell
     this->min=macroMin;
     this->max=macroMax;
@@ -994,6 +998,7 @@ class FurnaceGUI {
 
   std::vector<DivSystem> sysSearchResults;
   std::vector<FurnaceGUISysDef> newSongSearchResults;
+  std::deque<String> recentFile;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, vgmExportPatternHints;
   bool portrait, mobileMenuOpen;
@@ -1165,6 +1170,7 @@ class FurnaceGUI {
     int channelStyle;
     int channelVolStyle;
     int channelFeedbackStyle;
+    int maxRecentFile;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1285,6 +1291,7 @@ class FurnaceGUI {
       channelStyle(0),
       channelVolStyle(0),
       channelFeedbackStyle(1),
+      maxRecentFile(10),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1318,7 +1325,7 @@ class FurnaceGUI {
 
   SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
   bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
-  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
+  bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
@@ -1439,6 +1446,7 @@ class FurnaceGUI {
   FurnaceGUIMacroDesc lastMacroDesc;
   int macroOffX, macroOffY;
   float macroScaleX, macroScaleY;
+  int macroRandMin, macroRandMax;
 
   ImVec2 macroLoopDragStart;
   ImVec2 macroLoopDragAreaSize;
@@ -1462,7 +1470,7 @@ class FurnaceGUI {
   int renderTimeBegin, renderTimeEnd, renderTimeDelta;
   int eventTimeBegin, eventTimeEnd, eventTimeDelta;
 
-  int chanToMove, sysToMove, sysToDelete;
+  int chanToMove, sysToMove, sysToDelete, opToMove;
 
   ImVec2 patWindowPos, patWindowSize;
 
@@ -1567,6 +1575,8 @@ class FurnaceGUI {
   float waveGenTL[4];
   int waveGenMult[4];
   int waveGenFB[4];
+  int waveGenScaleX, waveGenScaleY, waveGenOffsetX, waveGenOffsetY, waveGenSmooth;
+  float waveGenAmplify;
   bool waveGenFMCon1[4];
   bool waveGenFMCon2[3];
   bool waveGenFMCon3[2];
@@ -1605,16 +1615,19 @@ class FurnaceGUI {
 
   void toggleMobileUI(bool enable, bool force=false);
 
+  void pushToggleColors(bool status);
+  void popToggleColors();
+
   void drawMobileControls();
   void drawEditControls();
   void drawSongInfo();
   void drawOrders();
   void drawPattern();
-  void drawInsList();
+  void drawInsList(bool asChild=false);
   void drawInsEdit();
-  void drawWaveList();
+  void drawWaveList(bool asChild=false);
   void drawWaveEdit();
-  void drawSampleList();
+  void drawSampleList(bool asChild=false);
   void drawSampleEdit();
   void drawMixer();
   void drawOsc();
@@ -1713,9 +1726,14 @@ class FurnaceGUI {
   void keyDown(SDL_Event& ev);
   void keyUp(SDL_Event& ev);
 
+  void pointDown(int x, int y, int button);
+  void pointUp(int x, int y, int button);
+  void pointMotion(int x, int y, int xrel, int yrel);
+
   void openFileDialog(FurnaceGUIFileDialogs type);
   int save(String path, int dmfVersion);
   int load(String path);
+  void pushRecentFile(String path);
   void exportAudio(String path, DivAudioExportModes mode);
 
   bool parseSysEx(unsigned char* data, size_t len);
@@ -1725,7 +1743,7 @@ class FurnaceGUI {
 
   void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex=false, bool bit30=false);
   void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, unsigned char& macroLoop, int macroMin, int macroMax, unsigned char& macroRel, bool bit30=false);
-  void decodeMMLStrW(String& source, int* macro, int& macroLen, int macroMax, bool hex=false);
+  void decodeMMLStrW(String& source, int* macro, int& macroLen, int macroMin, int macroMax, bool hex=false);
 
   String encodeKeyMap(std::map<int,int>& map);
   void decodeKeyMap(std::map<int,int>& map, String source);

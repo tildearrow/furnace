@@ -32,7 +32,7 @@ const char* waveGenBaseShapes[4]={
   "Pulse"
 };
 
-const float multFactors[16]={
+const float multFactors[17]={
   M_PI,
   2*M_PI,
   4*M_PI,
@@ -49,6 +49,7 @@ const float multFactors[16]={
   26*M_PI,
   28*M_PI,
   30*M_PI,
+  32*M_PI,
 };
 
 void FurnaceGUI::doGenerateWave() {
@@ -164,7 +165,14 @@ void FurnaceGUI::drawWaveEdit() {
   }
   if (!waveEditOpen) return;
   float wavePreview[257];
-  ImGui::SetNextWindowSizeConstraints(ImVec2(300.0f*dpiScale,300.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
+  if (mobileUI) {
+    patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*scrH*dpiScale)):ImVec2((0.16*scrH*dpiScale)+0.5*scrW*dpiScale*mobileMenuPos,0.0f));
+    patWindowSize=(portrait?ImVec2(scrW*dpiScale,scrH*dpiScale-(0.16*scrW*dpiScale)-(pianoOpen?(0.4*scrW*dpiScale):0.0f)):ImVec2(scrW*dpiScale-(0.16*scrH*dpiScale),scrH*dpiScale-(pianoOpen?(0.3*scrH*dpiScale):0.0f)));
+    ImGui::SetNextWindowPos(patWindowPos);
+    ImGui::SetNextWindowSize(patWindowSize);
+  } else {
+    ImGui::SetNextWindowSizeConstraints(ImVec2(300.0f*dpiScale,300.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
+  }
   if (ImGui::Begin("Wavetable Editor",&waveEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curWave<0 || curWave>=(int)e->song.wave.size()) {
       ImGui::Text("no wavetable selected");
@@ -248,6 +256,9 @@ void FurnaceGUI::drawWaveEdit() {
       for (int i=0; i<wave->len; i++) {
         if (wave->data[i]>wave->max) wave->data[i]=wave->max;
         wavePreview[i]=wave->data[i];
+        if (waveSigned && !waveHex) {
+          wavePreview[i]-=(int)((wave->max+1)/2);
+        }
       }
       if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
 
@@ -262,9 +273,9 @@ void FurnaceGUI::drawWaveEdit() {
         ImVec2 contentRegion=ImGui::GetContentRegionAvail(); // wavetable graph size determined here
         contentRegion.y-=ImGui::GetFrameHeightWithSpacing()+ImGui::GetStyle().WindowPadding.y;
         if (waveEditStyle) {
-          PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,0,wave->max,contentRegion);
+          PlotNoLerp("##Waveform",wavePreview,wave->len+1,0,NULL,(waveSigned && !waveHex)?(-(int)((wave->max+1)/2)):0,(waveSigned && !waveHex)?((int)(wave->max/2)):wave->max,contentRegion);
         } else {
-          PlotCustom("##Waveform",wavePreview,wave->len,0,NULL,0,wave->max,contentRegion,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,true);
+          PlotCustom("##Waveform",wavePreview,wave->len,0,NULL,(waveSigned && !waveHex)?(-(int)((wave->max+1)/2)):0,(waveSigned && !waveHex)?((int)(wave->max/2)):wave->max,contentRegion,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,NULL,true);
         }
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
           waveDragStart=ImGui::GetItemRectMin();
@@ -405,7 +416,7 @@ void FurnaceGUI::drawWaveEdit() {
                   ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                   ImGui::PushID(i);
-                  if (CWSliderInt("##WGMULT",&waveGenMult[i],0,15)) {
+                  if (CWSliderInt("##WGMULT",&waveGenMult[i],1,16)) {
                     doGenerateWave();
                   }
                   ImGui::PopID();
@@ -496,7 +507,224 @@ void FurnaceGUI::drawWaveEdit() {
               }
               ImGui::EndTabItem();
             }
-            if (ImGui::BeginTabItem("Mangle")) {
+            if (ImGui::BeginTabItem("WaveTools")) {
+              if (ImGui::BeginTable("WGParamItems",2)) {
+                ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##WGScaleX",&waveGenScaleX,1,16)) {
+                  if (waveGenScaleX<2) waveGenScaleX=2;
+                  if (waveGenScaleX>256) waveGenScaleX=256;
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Button("Scale X")) {
+                  if (waveGenScaleX>0 && wave->len!=waveGenScaleX) e->lockEngine([this,wave]() {
+                    int origData[256];
+                    memcpy(origData,wave->data,wave->len*sizeof(int));
+                    for (int i=0; i<waveGenScaleX; i++) {
+                      wave->data[i]=origData[i*wave->len/waveGenScaleX];
+                    }
+                    wave->len=waveGenScaleX;
+                    MARK_MODIFIED;
+                  });
+                }
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##WGScaleY",&waveGenScaleY,1,16)) {
+                  if (waveGenScaleY<2) waveGenScaleY=2;
+                  if (waveGenScaleY>256) waveGenScaleY=256;
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Button("Scale Y")) {
+                  if (waveGenScaleY>0 && wave->max!=waveGenScaleY) e->lockEngine([this,wave]() {
+                    for (int i=0; i<wave->len; i++) {
+                      wave->data[i]=(wave->data[i]*(waveGenScaleY+1))/(wave->max+1);
+                    }
+                    wave->max=waveGenScaleY;
+                    MARK_MODIFIED;
+                  });
+                }
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##WGOffsetX",&waveGenOffsetX,1,16)) {
+                  if (waveGenOffsetX<-wave->len+1) waveGenOffsetX=-wave->len+1;
+                  if (waveGenOffsetX>wave->len-1) waveGenOffsetX=wave->len-1;
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Button("Offset X")) {
+                  if (waveGenOffsetX!=0 && wave->len>0) e->lockEngine([this,wave]() {
+                    int origData[256];
+                    memcpy(origData,wave->data,wave->len*sizeof(int));
+                    int realOff=-waveGenOffsetX;
+                    while (realOff<0) realOff+=wave->len;
+
+                    for (int i=0; i<wave->len; i++) {
+                      wave->data[i]=origData[(i+realOff)%wave->len];
+                    }
+                    MARK_MODIFIED;
+                  });
+                }
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##WGOffsetY",&waveGenOffsetY,1,16)) {
+                  if (waveGenOffsetY<-wave->max) waveGenOffsetY=-wave->max;
+                  if (waveGenOffsetY>wave->max) waveGenOffsetY=wave->max;
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Button("Offset Y")) {
+                  if (waveGenOffsetY!=0) e->lockEngine([this,wave]() {
+                    for (int i=0; i<wave->len; i++) {
+                      wave->data[i]=CLAMP(wave->data[i]+waveGenOffsetY,0,wave->max);
+                    }
+                    MARK_MODIFIED;
+                  });
+                }
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##WGSmooth",&waveGenSmooth,1,4)) {
+                  if (waveGenSmooth>wave->len) waveGenSmooth=wave->len;
+                  if (waveGenSmooth<1) waveGenSmooth=1;
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Button("Smooth")) {
+                  if (waveGenSmooth>0) e->lockEngine([this,wave]() {
+                    int origData[256];
+                    memcpy(origData,wave->data,wave->len*sizeof(int));
+                    for (int i=0; i<wave->len; i++) { 
+                      int dataSum=0;
+                      for (int j=i; j<i+waveGenSmooth+1; j++) {
+                        int pos=(j-((waveGenSmooth+1)/2));
+                        while (pos<0) pos+=wave->len;
+                        dataSum+=origData[pos%wave->len];
+                      }
+                      dataSum/=waveGenSmooth+1;
+                      wave->data[i]=dataSum;
+                    }
+                    MARK_MODIFIED;
+                  });
+                }
+
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                float amp=waveGenAmplify*100.0f;
+                if (ImGui::InputFloat("##WGAmplify",&amp,1.0f,10.0f)) {
+                  waveGenAmplify=amp/100.0f;
+                  if (waveGenAmplify<0.0f) waveGenAmplify=0.0f;
+                  if (waveGenAmplify>100.0f) waveGenAmplify=100.0f;
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Button("Amplify")) {
+                  if (waveGenAmplify!=1.0f) e->lockEngine([this,wave]() {
+                    for (int i=0; i<wave->len; i++) {
+                      wave->data[i]=CLAMP(round((float)(wave->data[i]-(int)( /* Clang can you stop complaining */ (int)(wave->max+1)/(int)2))*waveGenAmplify),(int)(-((wave->max+1)/2)),(int)(wave->max/2))+(int)((wave->max+1)/2);
+                    }
+                    MARK_MODIFIED;
+                  });
+                }
+
+                ImGui::EndTable();
+              }
+
+              ImVec2 buttonSize=ImGui::GetContentRegionAvail();
+              buttonSize.y=0.0f;
+              ImVec2 buttonSizeHalf=buttonSize;
+              buttonSizeHalf.x-=ImGui::GetStyle().ItemSpacing.x;
+              buttonSizeHalf.x*=0.5;
+
+              if (ImGui::Button("Normalize",buttonSize)) {
+                e->lockEngine([this,wave]() {
+                  // find lowest point
+                  int lowest=wave->max;
+                  for (int i=0; i<wave->len; i++) {
+                    if (wave->data[i]<lowest) lowest=wave->data[i];
+                  }
+
+                  // find highest point
+                  int highest=0;
+                  for (int i=0; i<wave->len; i++) {
+                    if (wave->data[i]>highest) highest=wave->data[i];
+                  }
+
+                  // abort if lowest and highest points are equal
+                  if (lowest==highest) return;
+
+                  // abort if lowest and highest points already span the entire height
+                  if (lowest==wave->max && highest==0) return;
+
+                  // apply offset
+                  for (int i=0; i<wave->len; i++) {
+                    wave->data[i]-=lowest;
+                  }
+                  highest-=lowest;
+
+                  // scale
+                  for (int i=0; i<wave->len; i++) {
+                    wave->data[i]=(wave->data[i]*wave->max)/highest;
+                  }
+                  MARK_MODIFIED;
+                });
+              }
+              if (ImGui::Button("Invert",buttonSize)) {
+                e->lockEngine([this,wave]() {
+                  for (int i=0; i<wave->len; i++) {
+                    wave->data[i]=wave->max-wave->data[i];
+                  }
+                  MARK_MODIFIED;
+                });
+              }
+
+              if (ImGui::Button("Half",buttonSizeHalf)) {
+                int origData[256];
+                memcpy(origData,wave->data,wave->len*sizeof(int));
+
+                for (int i=0; i<wave->len; i++) {
+                  wave->data[i]=origData[i>>1];
+                }
+                MARK_MODIFIED;
+              }
+              ImGui::SameLine();
+              if (ImGui::Button("Double",buttonSizeHalf)) {
+                int origData[256];
+                memcpy(origData,wave->data,wave->len*sizeof(int));
+
+                for (int i=0; i<wave->len; i++) {
+                  wave->data[i]=origData[(i*2)%wave->len];
+                }
+                MARK_MODIFIED;
+              }
+
+              if (ImGui::Button("Convert Signed/Unsigned",buttonSize)) {
+                if (wave->max>0) e->lockEngine([this,wave]() {
+                  for (int i=0; i<wave->len; i++) {
+                    if (wave->data[i]>(wave->max/2)) {
+                      wave->data[i]-=(wave->max+1)/2;
+                    } else {
+                      wave->data[i]+=(wave->max+1)/2;
+                    }
+                  }
+                  MARK_MODIFIED;
+                });
+              }
+              if (ImGui::Button("Randomize",buttonSize)) {
+                if (wave->max>0) e->lockEngine([this,wave]() {
+                  for (int i=0; i<wave->len; i++) {
+                    wave->data[i]=rand()%wave->max;
+                  }
+                  MARK_MODIFIED;
+                });
+              }
               ImGui::EndTabItem();
             }
             ImGui::EndTabBar();
@@ -513,12 +741,33 @@ void FurnaceGUI::drawWaveEdit() {
         waveHex=true;
       }
       ImGui::SameLine();
+      if (!waveHex) if (ImGui::Button(waveSigned?"±##WaveSign":"+##WaveSign",ImVec2(ImGui::GetFrameHeight(),ImGui::GetFrameHeight()))) {
+        waveSigned=!waveSigned;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Signed/Unsigned");
+      }
+      ImGui::SameLine();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); // wavetable text input size found here
       if (ImGui::InputText("##MMLWave",&mmlStringW)) {
-        decodeMMLStrW(mmlStringW,wave->data,wave->len,wave->max,waveHex);
+        int actualData[256];
+        decodeMMLStrW(mmlStringW,actualData,wave->len,(waveSigned && !waveHex)?(-((wave->max+1)/2)):0,(waveSigned && !waveHex)?(wave->max/2):wave->max,waveHex);
+        if (waveSigned && !waveHex) {
+          for (int i=0; i<wave->len; i++) {
+            actualData[i]+=(wave->max+1)/2;
+          }
+        }
+        memcpy(wave->data,actualData,wave->len*sizeof(int));
       }
       if (!ImGui::IsItemActive()) {
-        encodeMMLStr(mmlStringW,wave->data,wave->len,-1,-1,waveHex);
+        int actualData[256];
+        memcpy(actualData,wave->data,256*sizeof(int));
+        if (waveSigned && !waveHex) {
+          for (int i=0; i<wave->len; i++) {
+            actualData[i]-=(wave->max+1)/2;
+          }
+        }
+        encodeMMLStr(mmlStringW,actualData,wave->len,-1,-1,waveHex);
       }
     }
   }

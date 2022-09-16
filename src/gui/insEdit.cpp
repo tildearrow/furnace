@@ -316,27 +316,31 @@ const char* macroRelativeMode="Relative";
 const char* macroQSoundMode="QSound";
 const char* macroDummyMode="Bug";
 
-String macroHoverNote(int id, float val) {
-  if (val<-60 || val>=120) return "???";
-  return fmt::sprintf("%d: %s",id,noteNames[(int)val+60]);
+String macroHoverNote(int id, float val, void* u) {
+  int* macroVal=(int*)u;
+  if ((macroVal[id]&0xc0000000)==0x40000000 || (macroVal[id]&0xc0000000)==0x80000000) {
+    if (val<-60 || val>=120) return "???";
+    return fmt::sprintf("%d: %s",id,noteNames[(int)val+60]);
+  }
+  return fmt::sprintf("%d: %d",id,(int)val);
 }
 
-String macroHover(int id, float val) {
+String macroHover(int id, float val, void* u) {
   return fmt::sprintf("%d: %d",id,val);
 }
 
-String macroHoverLoop(int id, float val) {
+String macroHoverLoop(int id, float val, void* u) {
   if (val>1) return "Release";
   if (val>0) return "Loop";
   return "";
 }
 
-String macroHoverBit30(int id, float val) {
+String macroHoverBit30(int id, float val, void* u) {
   if (val>0) return "Fixed";
   return "Relative";
 }
 
-String macroHoverES5506FilterMode(int id, float val) {
+String macroHoverES5506FilterMode(int id, float val, void* u) {
   String mode="???";
   switch (((int)val)&3) {
     case 0:
@@ -357,7 +361,7 @@ String macroHoverES5506FilterMode(int id, float val) {
   return fmt::sprintf("%d: %s",id,mode);
 }
 
-String macroLFOWaves(int id, float val) {
+String macroLFOWaves(int id, float val, void* u) {
   switch (((int)val)&3) {
     case 0:
       return "Saw";
@@ -1355,7 +1359,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
       if (i.isBitfield) {
         PlotBitfield("##IMacro",asInt,totalFit,0,i.bitfieldBits,i.max,ImVec2(availableWidth,(i.macro->open)?(i.height*dpiScale):(32.0f*dpiScale)),sizeof(float),doHighlight);
       } else {
-        PlotCustom("##IMacro",asFloat,totalFit,macroDragScroll,NULL,i.min+i.macro->vScroll,i.min+i.macro->vScroll+i.macro->vZoom,ImVec2(availableWidth,(i.macro->open)?(i.height*dpiScale):(32.0f*dpiScale)),sizeof(float),i.color,i.macro->len-macroDragScroll,i.hoverFunc,i.blockMode,i.macro->open?genericGuide:NULL,doHighlight);
+        PlotCustom("##IMacro",asFloat,totalFit,macroDragScroll,NULL,i.min+i.macro->vScroll,i.min+i.macro->vScroll+i.macro->vZoom,ImVec2(availableWidth,(i.macro->open)?(i.height*dpiScale):(32.0f*dpiScale)),sizeof(float),i.color,i.macro->len-macroDragScroll,i.hoverFunc,i.hoverFuncUser,i.blockMode,i.macro->open?genericGuide:NULL,doHighlight);
       }
       if (i.macro->open && (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))) {
         macroDragStart=ImGui::GetItemRectMin();
@@ -1553,6 +1557,49 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
 #define CENTER_TEXT_20(text) \
   ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(20.0f*dpiScale-ImGui::CalcTextSize(text).x));
 
+#define OP_DRAG_POINT \
+  if (ImGui::Button(ICON_FA_ARROWS)) { \
+  } \
+  if (ImGui::BeginDragDropSource()) { \
+    opToMove=i; \
+    ImGui::SetDragDropPayload("FUR_OP",NULL,0,ImGuiCond_Once); \
+    ImGui::Button(ICON_FA_ARROWS "##SysDrag"); \
+    ImGui::SameLine(); \
+    if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) { \
+      ImGui::Text("(copying)"); \
+    } else { \
+      ImGui::Text("(swapping)"); \
+    } \
+    ImGui::EndDragDropSource(); \
+  } else if (ImGui::IsItemHovered()) { \
+    ImGui::SetTooltip("- drag to swap operator\n- shift-drag to copy operator"); \
+  } \
+  if (ImGui::BeginDragDropTarget()) { \
+    const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_OP"); \
+    if (dragItem!=NULL) { \
+      if (dragItem->IsDataType("FUR_OP")) { \
+        if (opToMove!=i && opToMove>=0) { \
+          int destOp=(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS)?opOrder[i]:i; \
+          int sourceOp=(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS)?opOrder[opToMove]:opToMove; \
+          if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) { \
+            e->lockEngine([ins,destOp,sourceOp]() { \
+              ins->fm.op[destOp]=ins->fm.op[sourceOp]; \
+            }); \
+          } else { \
+            e->lockEngine([ins,destOp,sourceOp]() { \
+              DivInstrumentFM::Operator origOp=ins->fm.op[sourceOp]; \
+              ins->fm.op[sourceOp]=ins->fm.op[destOp]; \
+              ins->fm.op[destOp]=origOp; \
+            }); \
+          } \
+          PARAMETER; \
+        } \
+        opToMove=-1; \
+      } \
+    } \
+    ImGui::EndDragDropTarget(); \
+  }
+
 void FurnaceGUI::drawInsEdit() {
   if (nextWindow==GUI_WINDOW_INS_EDIT) {
     insEditOpen=true;
@@ -1560,7 +1607,14 @@ void FurnaceGUI::drawInsEdit() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!insEditOpen) return;
-  ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
+  if (mobileUI) {
+    patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*scrH*dpiScale)):ImVec2((0.16*scrH*dpiScale)+0.5*scrW*dpiScale*mobileMenuPos,0.0f));
+    patWindowSize=(portrait?ImVec2(scrW*dpiScale,scrH*dpiScale-(0.16*scrW*dpiScale)-(pianoOpen?(0.4*scrW*dpiScale):0.0f)):ImVec2(scrW*dpiScale-(0.16*scrH*dpiScale),scrH*dpiScale-(pianoOpen?(0.3*scrH*dpiScale):0.0f)));
+    ImGui::SetNextWindowPos(patWindowPos);
+    ImGui::SetNextWindowSize(patWindowSize);
+  } else {
+    ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
+  }
   if (ImGui::Begin("Instrument Editor",&insEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curIns<0 || curIns>=(int)e->song.ins.size()) {
       ImGui::Text("no instrument selected");
@@ -1697,6 +1751,7 @@ void FurnaceGUI::drawInsEdit() {
           int opCount=4;
           if (ins->type==DIV_INS_OPLL) opCount=2;
           if (ins->type==DIV_INS_OPL) opCount=(ins->fm.ops==4)?4:2;
+          bool opsAreMutable=(ins->type==DIV_INS_FM);
 
           if (ImGui::BeginTabItem("FM")) {
             if (ImGui::BeginTable("fmDetails",3,ImGuiTableFlags_SizingStretchSame)) {
@@ -2051,17 +2106,31 @@ void FurnaceGUI::drawInsEdit() {
                     if (i==0) sliderHeight=(ImGui::GetContentRegionAvail().y/opCount)-ImGui::GetStyle().ItemSpacing.y;
 
                     ImGui::PushID(fmt::sprintf("op%d",i).c_str());
+                    String opNameLabel;
                     if (ins->type==DIV_INS_OPL_DRUMS) {
-                      ImGui::Text("%s",oplDrumNames[i]);
+                      opNameLabel=fmt::sprintf("%s",oplDrumNames[i]);
                     } else if (ins->type==DIV_INS_OPL && ins->fm.opllPreset==16) {
                       if (i==1) {
-                        ImGui::Text("Kick");
+                        opNameLabel="Kick";
                       } else {
-                        ImGui::Text("Env");
+                        opNameLabel="Env";
                       }
                     } else {
-                      ImGui::Text("OP%d",i+1);
+                      opNameLabel=fmt::sprintf("OP%d",i+1);
                     }
+                    if (opsAreMutable) {
+                      pushToggleColors(op.enable);
+                      if (ImGui::Button(opNameLabel.c_str())) {
+                        op.enable=!op.enable;
+                        PARAMETER;
+                      }
+                      popToggleColors();
+                    } else {
+                      ImGui::TextUnformatted(opNameLabel.c_str());
+                    }
+                    
+                    // drag point
+                    OP_DRAG_POINT;
 
                     int maxTl=127;
                     if (ins->type==DIV_INS_OPLL) {
@@ -2345,8 +2414,20 @@ void FurnaceGUI::drawInsEdit() {
                     } else {
                       snprintf(tempID,1024,"Operator %d",i+1);
                     }
-                    CENTER_TEXT(tempID);
-                    ImGui::TextUnformatted(tempID);
+                    float nextCursorPosX=ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(tempID).x-(opsAreMutable?(ImGui::GetStyle().FramePadding.x*2.0f):0.0f));
+                    OP_DRAG_POINT;
+                    ImGui::SameLine();
+                    ImGui::SetCursorPosX(nextCursorPosX);
+                    if (opsAreMutable) {
+                      pushToggleColors(op.enable);
+                      if (ImGui::Button(tempID)) {
+                        op.enable=!op.enable;
+                        PARAMETER;
+                      }
+                      popToggleColors();
+                    } else {
+                      ImGui::TextUnformatted(tempID);
+                    }
 
                     float sliderHeight=200.0f*dpiScale;
                     float waveWidth=140.0*dpiScale;
@@ -2778,16 +2859,29 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     ImGui::Dummy(ImVec2(dpiScale,dpiScale));
+                    String opNameLabel;
+                    OP_DRAG_POINT;
+                    ImGui::SameLine();
                     if (ins->type==DIV_INS_OPL_DRUMS) {
-                      ImGui::Text("%s",oplDrumNames[i]);
+                      opNameLabel=fmt::sprintf("%s",oplDrumNames[i]);
                     } else if (ins->type==DIV_INS_OPL && ins->fm.opllPreset==16) {
                       if (i==1) {
-                        ImGui::Text("Envelope 2 (kick only)");
+                        opNameLabel="Envelope 2 (kick only)";
                       } else {
-                        ImGui::Text("Envelope");
+                        opNameLabel="Envelope";
                       }
                     } else {
-                      ImGui::Text("OP%d",i+1);
+                      opNameLabel=fmt::sprintf("OP%d",i+1);
+                    }
+                    if (opsAreMutable) {
+                      pushToggleColors(op.enable);
+                      if (ImGui::Button(opNameLabel.c_str())) {
+                        op.enable=!op.enable;
+                        PARAMETER;
+                      }
+                      popToggleColors();
+                    } else {
+                      ImGui::TextUnformatted(opNameLabel.c_str());
                     }
 
                     ImGui::SameLine();
@@ -3021,7 +3115,14 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("PM Depth",&ins->std.ex2Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc("LFO Speed",&ins->std.ex3Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc("LFO Shape",&ins->std.waveMacro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
+            }
+            if (ins->type==DIV_INS_FM) {
               macroList.push_back(FurnaceGUIMacroDesc("OpMask",&ins->std.ex4Macro,0,4,128,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,fmOperatorBits));
+            } else if (ins->type==DIV_INS_OPZ) {
+              macroList.push_back(FurnaceGUIMacroDesc("AM Depth 2",&ins->std.ex5Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("PM Depth 2",&ins->std.ex6Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("LFO2 Speed",&ins->std.ex7Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("LFO2 Shape",&ins->std.ex8Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
             }
             drawMacros(macroList);
             ImGui::EndTabItem();
@@ -3352,29 +3453,29 @@ void FurnaceGUI::drawInsEdit() {
         if (ins->type==DIV_INS_C64) if (ImGui::BeginTabItem("C64")) {
           ImGui::Text("Waveform");
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.triOn));
+          pushToggleColors(ins->c64.triOn);
           if (ImGui::Button("tri")) { PARAMETER
             ins->c64.triOn=!ins->c64.triOn;
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.sawOn));
+          pushToggleColors(ins->c64.sawOn);
           if (ImGui::Button("saw")) { PARAMETER
             ins->c64.sawOn=!ins->c64.sawOn;
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.pulseOn));
+          pushToggleColors(ins->c64.pulseOn);
           if (ImGui::Button("pulse")) { PARAMETER
             ins->c64.pulseOn=!ins->c64.pulseOn;
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.noiseOn));
+          pushToggleColors(ins->c64.noiseOn);
           if (ImGui::Button("noise")) { PARAMETER
             ins->c64.noiseOn=!ins->c64.noiseOn;
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
 
           ImVec2 sliderSize=ImVec2(20.0f*dpiScale,128.0*dpiScale);
 
@@ -3436,29 +3537,29 @@ void FurnaceGUI::drawInsEdit() {
 
           ImGui::Text("Filter Mode");
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.lp));
+          pushToggleColors(ins->c64.lp);
           if (ImGui::Button("low")) { PARAMETER
             ins->c64.lp=!ins->c64.lp;
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.bp));
+          pushToggleColors(ins->c64.bp);
           if (ImGui::Button("band")) { PARAMETER
             ins->c64.bp=!ins->c64.bp;
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.hp));
+          pushToggleColors(ins->c64.hp);
           if (ImGui::Button("high")) { PARAMETER
             ins->c64.hp=!ins->c64.hp;
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
           ImGui::SameLine();
-          ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(ins->c64.ch3off));
+          pushToggleColors(ins->c64.ch3off);
           if (ImGui::Button("ch3off")) { PARAMETER
             ins->c64.ch3off=!ins->c64.ch3off;
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
 
           P(ImGui::Checkbox("Volume Macro is Cutoff Macro",&ins->c64.volIsCutoff));
           P(ImGui::Checkbox("Absolute Cutoff Macro",&ins->c64.filterIsAbs));
@@ -3606,7 +3707,7 @@ void FurnaceGUI::drawInsEdit() {
             modTable[i]=ins->fds.modTable[i];
           }
           ImVec2 modTableSize=ImVec2(ImGui::GetContentRegionAvail().x,96.0f*dpiScale);
-          PlotCustom("ModTable",modTable,32,0,NULL,-4,3,modTableSize,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,true);
+          PlotCustom("ModTable",modTable,32,0,NULL,-4,3,modTableSize,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,NULL,true);
           if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
             macroDragStart=ImGui::GetItemRectMin();
             macroDragAreaSize=modTableSize;
@@ -4225,7 +4326,7 @@ void FurnaceGUI::drawInsEdit() {
           if (volMax>0) {
             macroList.push_back(FurnaceGUIMacroDesc(volumeLabel,&ins->std.volMacro,volMin,volMax,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
           }
-          macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,NULL,false,NULL,0,true));
+          macroList.push_back(FurnaceGUIMacroDesc("Arpeggio",&ins->std.arpMacro,-120,120,160,uiColors[GUI_COLOR_MACRO_PITCH],true,NULL,macroHoverNote,false,NULL,0,true,ins->std.arpMacro.val));
           if (dutyMax>0) {
             if (ins->type==DIV_INS_MIKEY) {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,mikeyFeedbackBits));
@@ -4447,6 +4548,28 @@ void FurnaceGUI::drawInsEdit() {
               val=round((double)oldData[(int)posX]*(macroScaleY/100.0));
               if (val<lastMacroDesc.min) val=lastMacroDesc.min;
               if (val>lastMacroDesc.max) val=lastMacroDesc.max;
+            }
+            lastMacroDesc.macro->val[i]=val;
+          }
+
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndMenu();
+      }
+      if (ImGui::BeginMenu("randomize...")) {
+        if (macroRandMin<lastMacroDesc.min) macroRandMin=lastMacroDesc.min;
+        if (macroRandMin>lastMacroDesc.max) macroRandMin=lastMacroDesc.max;
+        if (macroRandMax<lastMacroDesc.min) macroRandMax=lastMacroDesc.min;
+        if (macroRandMax>lastMacroDesc.max) macroRandMax=lastMacroDesc.max;
+        ImGui::InputInt("Min",&macroRandMin,1,10);
+        ImGui::InputInt("Max",&macroRandMax,1,10);
+        if (ImGui::Button("randomize")) {
+          for (int i=0; i<lastMacroDesc.macro->len; i++) {
+            int val=0;
+            if (macroRandMax<=macroRandMin) {
+              val=macroRandMin;
+            } else {
+              val=macroRandMin+(rand()%(macroRandMax-macroRandMin+1));
             }
             lastMacroDesc.macro->val[i]=val;
           }

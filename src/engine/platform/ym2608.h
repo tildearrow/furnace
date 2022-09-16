@@ -48,9 +48,9 @@ class DivPlatformYM2608: public DivPlatformOPN {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, pitch2, portaPauseFreq, note, ins;
-      unsigned char psgMode, autoEnvNum, autoEnvDen;
+      unsigned char psgMode, autoEnvNum, autoEnvDen, opMask;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset, opMaskChanged;
       int vol, outVol;
       int sample;
       unsigned char pan;
@@ -72,6 +72,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
         psgMode(1),
         autoEnvNum(0),
         autoEnvDen(0),
+        opMask(15),
         active(false),
         insChanged(true),
         freqChanged(false),
@@ -81,6 +82,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
         inPorta(false),
         furnacePCM(false),
         hardReset(false),
+        opMaskChanged(false),
         vol(0),
         outVol(15),
         sample(-1),

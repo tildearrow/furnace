@@ -12,6 +12,14 @@ fi
 
 echo "lastTest is $lastTest"
 
+if [ -e "test/assert_delta" ]; then
+  echo "assert_delta present."
+else
+  echo "compiling assert_delta..."
+  gcc -Wall -Wextra -Werror -o "test/assert_delta" "test/assert_delta.c" -lsndfile || exit 1
+fi
+  
+
 echo "furnace test suite begin..."
 echo "--- STEP 1: render test files"
 mkdir -p "test/result/$testDir" || exit 1
@@ -21,11 +29,19 @@ if [ -z $lastTest ]; then
   echo "skipping since this apparently is your first run."
 else
   mkdir -p "test/delta/$testDir" || exit 1
-  ls "test/result/$testDir/" | parallel --verbose -j4 ffmpeg -i "test/result/$lastTest/{0}" -i "test/result/$testDir/{0}" -filter_complex stereotools=phasel=1:phaser=1,amix=inputs=2:duration=longest -c:a pcm_s16le -y "test/delta/$testDir/{0}"
+  ls "test/result/$testDir/" | parallel --verbose -j4 ffmpeg -loglevel fatal -i "test/result/$lastTest/{0}" -i "test/result/$testDir/{0}" -filter_complex stereotools=phasel=1:phaser=1,amix=inputs=2:duration=longest -c:a pcm_s16le -y "test/delta/$testDir/{0}"
 fi
-echo "--- STEP 3: make delta images"
+echo "--- STEP 3: check deltas"
 if [ -z $lastTest ]; then
   echo "skipping since this apparently is your first run."
 else
-  ls "test/result/$testDir/" | parallel --verbose -j4 ffmpeg -i "test/delta/$testDir/{0}" -lavfi showspectrumpic "test/delta/$testDir/{0}.png"
+  for i in `ls "test/result/$testDir"`; do
+    echo -n "$i... "
+    if ./test/assert_delta "test/delta/$testDir/$i"; then
+      echo "[1;32mOK[m"
+    else
+      echo "[1;31mFAIL FAIL FAIL[m"
+      ffmpeg -loglevel quiet -i "test/delta/$testDir/$i" -lavfi showspectrumpic "test/delta/$testDir/$i.png"
+    fi
+  done
 fi

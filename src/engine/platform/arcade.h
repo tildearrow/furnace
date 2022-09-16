@@ -43,9 +43,9 @@ class DivPlatformArcade: public DivPlatformOPM {
       int freq, baseFreq, pitch, pitch2, note;
       int ins;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM, hardReset;
+      bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM, hardReset, opMaskChanged;
       int vol, outVol;
-      unsigned char chVolL, chVolR;
+      unsigned char chVolL, chVolR, opMask;
       void macroInit(DivInstrument* which) {
         std.init(which);
         pitch2=0;
@@ -68,10 +68,12 @@ class DivPlatformArcade: public DivPlatformOPM {
         portaPause(false),
         furnacePCM(false),
         hardReset(false),
+        opMaskChanged(false),
         vol(0),
         outVol(0),
         chVolL(127),
-        chVolR(127) {}
+        chVolR(127),
+        opMask(15) {}
     };
     Channel chan[8];
     DivDispatchOscBuffer* oscBuf[8];

@@ -22,7 +22,7 @@ bug fixes, improvements and several other things accepted.
 
 the coding style is described here:
 
-- indentation: two spaces
+- indentation: two spaces. **strictly** spaces. do NOT use tabs.
 - modified 1TBS style:
   - no spaces in function calls
   - spaces between arguments in function declarations

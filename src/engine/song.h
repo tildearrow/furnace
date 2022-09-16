@@ -468,6 +468,11 @@ struct DivSong {
   // 1: broken (don't allow value higher than speed)
   // 2: lax (allow value higher than speed)
   unsigned char delayBehavior;
+  // 0B/0D treatment
+  // 0: normal (0B/0D accepted)
+  // 1: old Furnace (first one accepted)
+  // 2: DefleMask (0D takes priority over 0B)
+  unsigned char jumpTreatment;
   bool properNoiseLayout;
   bool waveDutyIsVol;
   bool resetMacroOnPorta;
@@ -571,6 +576,7 @@ struct DivSong {
     pitchSlideSpeed(4),
     loopModality(2),
     delayBehavior(2),
+    jumpTreatment(0),
     properNoiseLayout(true),
     waveDutyIsVol(false),
     resetMacroOnPorta(false),

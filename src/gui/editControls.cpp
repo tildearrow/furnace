@@ -59,12 +59,12 @@ void FurnaceGUI::drawMobileControls() {
 
     if (!portrait) ImGui::Separator();
 
-    ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(e->isPlaying()));
+    pushToggleColors(e->isPlaying());
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_PLAY "##Play",buttonSize)) {
       play();
     }
-    ImGui::PopStyleColor();
+    popToggleColors();
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_STOP "##Stop",buttonSize)) {
       stop();
@@ -76,27 +76,27 @@ void FurnaceGUI::drawMobileControls() {
     }
 
     bool repeatPattern=e->getRepeatPattern();
-    ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(repeatPattern));
+    pushToggleColors(repeatPattern);
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern",buttonSize)) {
       e->setRepeatPattern(!repeatPattern);
     }
-    ImGui::PopStyleColor();
+    popToggleColors();
 
-    ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(edit));
+    pushToggleColors(edit);
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_CIRCLE "##Edit",buttonSize)) {
       edit=!edit;
     }
-    ImGui::PopStyleColor();
+    popToggleColors();
 
     bool metro=e->getMetronome();
-    ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(metro));
+    pushToggleColors(metro);
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_BELL_O "##Metronome",buttonSize)) {
       e->setMetronome(!metro);
     }
-    ImGui::PopStyleColor();
+    popToggleColors();
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
   ImGui::End();
@@ -104,79 +104,157 @@ void FurnaceGUI::drawMobileControls() {
   ImGui::SetNextWindowPos(portrait?ImVec2(0.0f,((1.0-mobileMenuPos*0.65)*scrH*dpiScale)):ImVec2(0.5*scrW*dpiScale*(mobileMenuPos-1.0),0.0f));
   ImGui::SetNextWindowSize(portrait?ImVec2(scrW*dpiScale,0.65*scrH*dpiScale):ImVec2(0.5*scrW*dpiScale,scrH*dpiScale));
   if (ImGui::Begin("Mobile Menu",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
-    ImGui::Button("Pattern");
-    ImGui::SameLine();
-    ImGui::Button("Ins");
-    ImGui::SameLine();
-    ImGui::Button("Wave");
-    ImGui::SameLine();
-    ImGui::Button("Sample");
+    if (ImGui::BeginTable("SceneSel",5)) {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,1.0f);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,1.0f);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,1.0f);
+      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,1.0f);
+      ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch,1.0f);
 
-    ImGui::Text("Data list goes here...");
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImVec2 buttonSize=ImGui::GetContentRegionAvail();
+      buttonSize.y=30.0f*dpiScale;
 
-    if (ImGui::Button("New")) {
-      mobileMenuOpen=false;
-      //doAction(GUI_ACTION_NEW);
-      if (modified) {
-        showWarning("Unsaved changes! Save changes before creating a new song?",GUI_WARN_NEW);
-      } else {
-        displayNew=true;
+      if (ImGui::Button("Pattern",buttonSize)) {
+        mobScene=GUI_SCENE_PATTERN;
       }
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Open")) {
-      mobileMenuOpen=false;
-      doAction(GUI_ACTION_OPEN);
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Save")) {
-      mobileMenuOpen=false;
-      doAction(GUI_ACTION_SAVE);
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Save as...")) {
-      mobileMenuOpen=false;
-      doAction(GUI_ACTION_SAVE_AS);
-    }
-
-    ImGui::Button("1.1+ .dmf");
-    ImGui::SameLine();
-    ImGui::Button("Legacy .dmf");
-    ImGui::SameLine();
-    ImGui::Button("Export Audio");
-    ImGui::SameLine();
-    ImGui::Button("Export VGM");
-
-    ImGui::Button("CmdStream");
-    ImGui::SameLine();
-    ImGui::Button("Panic");
-    ImGui::SameLine();
-    if (ImGui::Button("Settings")) {
-      mobileMenuOpen=false;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("About")) {
-      mobileMenuOpen=false;
-      mobileMenuPos=0.0f;
-      aboutOpen=true;
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Orders",buttonSize)) {
+        mobScene=GUI_SCENE_ORDERS;
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Ins",buttonSize)) {
+        mobScene=GUI_SCENE_INSTRUMENT;
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Wave",buttonSize)) {
+        mobScene=GUI_SCENE_WAVETABLE;
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Sample",buttonSize)) {
+        mobScene=GUI_SCENE_SAMPLE;
+      }
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Song",buttonSize)) {
+        mobScene=GUI_SCENE_SONG;
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Channels",buttonSize)) {
+        mobScene=GUI_SCENE_CHANNELS;
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Chips",buttonSize)) {
+        mobScene=GUI_SCENE_CHIPS;
+      }
+      ImGui::TableNextColumn();
+      if (ImGui::Button("Other",buttonSize)) {
+        mobScene=GUI_SCENE_OTHER;
+      }
+      ImGui::EndTable();
     }
 
     ImGui::Separator();
 
-    if (ImGui::Button("Osc")) {
-      oscOpen=!oscOpen;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("ChanOsc")) {
-      chanOscOpen=!chanOscOpen;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("RegView")) {
-      regViewOpen=!regViewOpen;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Stats")) {
-      statsOpen=!statsOpen;
+    if (settings.unifiedDataView) {
+      drawInsList(true);
+    } else {
+      switch (mobScene) {
+        case GUI_SCENE_PATTERN:
+        case GUI_SCENE_ORDERS:
+        case GUI_SCENE_INSTRUMENT:
+          drawInsList(true);
+          break;
+        case GUI_SCENE_WAVETABLE:
+          drawWaveList(true);
+          break;
+        case GUI_SCENE_SAMPLE:
+          drawSampleList(true);
+          break;
+        case GUI_SCENE_SONG: {
+          if (ImGui::Button("New")) {
+            mobileMenuOpen=false;
+            //doAction(GUI_ACTION_NEW);
+            if (modified) {
+              showWarning("Unsaved changes! Save changes before creating a new song?",GUI_WARN_NEW);
+            } else {
+              displayNew=true;
+            }
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Open")) {
+            mobileMenuOpen=false;
+            doAction(GUI_ACTION_OPEN);
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Save")) {
+            mobileMenuOpen=false;
+            doAction(GUI_ACTION_SAVE);
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Save as...")) {
+            mobileMenuOpen=false;
+            doAction(GUI_ACTION_SAVE_AS);
+          }
+
+          ImGui::Button("1.1+ .dmf");
+          ImGui::SameLine();
+          ImGui::Button("Legacy .dmf");
+          ImGui::SameLine();
+          ImGui::Button("Export Audio");
+          ImGui::SameLine();
+          ImGui::Button("Export VGM");
+
+          ImGui::Button("CmdStream");
+
+          ImGui::Separator();
+
+          ImGui::Text("Song info here...");
+          break;
+        }
+        case GUI_SCENE_CHANNELS:
+          ImGui::Text("Channels here...");
+          break;
+        case GUI_SCENE_CHIPS:
+          ImGui::Text("Chips here...");
+          break;
+        case GUI_SCENE_OTHER: {
+          if (ImGui::Button("Osc")) {
+            oscOpen=!oscOpen;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("ChanOsc")) {
+            chanOscOpen=!chanOscOpen;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("RegView")) {
+            regViewOpen=!regViewOpen;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Stats")) {
+            statsOpen=!statsOpen;
+          }
+
+          ImGui::Separator();
+
+          ImGui::Button("Panic");
+          ImGui::SameLine();
+          if (ImGui::Button("Settings")) {
+            mobileMenuOpen=false;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("About")) {
+            mobileMenuOpen=false;
+            mobileMenuPos=0.0f;
+            aboutOpen=true;
+          }
+          if (ImGui::Button("Switch to Desktop Mode")) {
+            toggleMobileUI(!mobileUI);
+          }
+          break;
+        }
+      }
     }
   }
   ImGui::End();
@@ -228,11 +306,11 @@ void FurnaceGUI::drawEditControls() {
           ImGui::EndTable();
         }
 
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(e->isPlaying()));
+        pushToggleColors(e->isPlaying());
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
           play();
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_STOP "##Stop")) {
           stop();
@@ -262,12 +340,12 @@ void FurnaceGUI::drawEditControls() {
         }
 
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(noteInputPoly));
+        pushToggleColors(noteInputPoly);
         if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
           noteInputPoly=!noteInputPoly;
           e->setAutoNotePoly(noteInputPoly);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -278,11 +356,11 @@ void FurnaceGUI::drawEditControls() {
           stop();
         }
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(e->isPlaying()));
+        pushToggleColors(e->isPlaying());
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
           play();
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
@@ -291,26 +369,26 @@ void FurnaceGUI::drawEditControls() {
 
         ImGui::SameLine();
         bool repeatPattern=e->getRepeatPattern();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(repeatPattern));
+        pushToggleColors(repeatPattern);
         if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern")) {
           e->setRepeatPattern(!repeatPattern);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(edit));
+        pushToggleColors(edit);
         if (ImGui::Button(ICON_FA_CIRCLE "##Edit")) {
           edit=!edit;
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
         ImGui::SameLine();
         bool metro=e->getMetronome();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(metro));
+        pushToggleColors(metro);
         if (ImGui::Button(ICON_FA_BELL_O "##Metronome")) {
           e->setMetronome(!metro);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
         ImGui::SameLine();
         ImGui::Text("Octave");
@@ -347,12 +425,12 @@ void FurnaceGUI::drawEditControls() {
         unimportant(ImGui::Checkbox("Pattern",&followPattern));
 
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(noteInputPoly));
+        pushToggleColors(noteInputPoly);
         if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
           noteInputPoly=!noteInputPoly;
           e->setAutoNotePoly(noteInputPoly);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -360,11 +438,11 @@ void FurnaceGUI::drawEditControls() {
     case 2: // compact vertical
       if (ImGui::Begin("Play/Edit Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
         ImVec2 buttonSize=ImVec2(ImGui::GetContentRegionAvail().x,0.0f);
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(e->isPlaying()));
+        pushToggleColors(e->isPlaying());
         if (ImGui::Button(ICON_FA_PLAY "##Play",buttonSize)) {
           play();
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
         if (ImGui::Button(ICON_FA_STOP "##Stop",buttonSize)) {
           stop();
         }
@@ -374,24 +452,24 @@ void FurnaceGUI::drawEditControls() {
         }
 
         bool repeatPattern=e->getRepeatPattern();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(repeatPattern));
+        pushToggleColors(repeatPattern);
         if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern",buttonSize)) {
           e->setRepeatPattern(!repeatPattern);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(edit));
+        pushToggleColors(edit);
         if (ImGui::Button(ICON_FA_CIRCLE "##Edit",buttonSize)) {
           edit=!edit;
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
         bool metro=e->getMetronome();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(metro));
+        pushToggleColors(metro);
         if (ImGui::Button(ICON_FA_BELL_O "##Metronome",buttonSize)) {
           e->setMetronome(!metro);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
         ImGui::Text("Oct.");
         float avail=ImGui::GetContentRegionAvail().x;
@@ -418,23 +496,23 @@ void FurnaceGUI::drawEditControls() {
         }
 
         ImGui::Text("Foll.");
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(followOrders));
+        pushToggleColors(followOrders);
         if (ImGui::Button("Ord##FollowOrders",buttonSize)) { handleUnimportant
           followOrders=!followOrders;
         }
-        ImGui::PopStyleColor();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(followPattern));
+        popToggleColors();
+        pushToggleColors(followPattern);
         if (ImGui::Button("Pat##FollowPattern",buttonSize)) { handleUnimportant
           followPattern=!followPattern;
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(noteInputPoly));
+        pushToggleColors(noteInputPoly);
         if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
           noteInputPoly=!noteInputPoly;
           e->setAutoNotePoly(noteInputPoly);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
@@ -442,11 +520,11 @@ void FurnaceGUI::drawEditControls() {
     case 3: // split
       if (ImGui::Begin("Play Controls",&editControlsOpen,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
         if (e->isPlaying()) {
-          ImGui::PushStyleColor(ImGuiCol_Button,uiColors[GUI_COLOR_TOGGLE_ON]);
+          pushToggleColors(true);
           if (ImGui::Button(ICON_FA_STOP "##Stop")) {
             stop();
           }
-          ImGui::PopStyleColor();
+          popToggleColors();
         } else {
           if (ImGui::Button(ICON_FA_PLAY "##Play")) {
             play(oldRow);
@@ -469,35 +547,35 @@ void FurnaceGUI::drawEditControls() {
         }
 
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(edit));
+        pushToggleColors(edit);
         if (ImGui::Button(ICON_FA_CIRCLE "##Edit")) {
           edit=!edit;
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
         bool metro=e->getMetronome();
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(metro));
+        pushToggleColors(metro);
         if (ImGui::Button(ICON_FA_BELL_O "##Metronome")) {
           e->setMetronome(!metro);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
         ImGui::SameLine();
         bool repeatPattern=e->getRepeatPattern();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(repeatPattern));
+        pushToggleColors(repeatPattern);
         if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern")) {
           e->setRepeatPattern(!repeatPattern);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
 
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(noteInputPoly));
+        pushToggleColors(noteInputPoly);
         if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
           noteInputPoly=!noteInputPoly;
           e->setAutoNotePoly(noteInputPoly);
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
       ImGui::End();
