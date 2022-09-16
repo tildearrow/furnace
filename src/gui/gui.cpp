@@ -5216,6 +5216,8 @@ FurnaceGUI::FurnaceGUI():
   macroOffY(0),
   macroScaleX(100.0f),
   macroScaleY(100.0f),
+  macroRandMin(0),
+  macroRandMax(0),
   macroLoopDragStart(0,0),
   macroLoopDragAreaSize(0,0),
   macroLoopDragTarget(NULL),

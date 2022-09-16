@@ -4556,6 +4556,28 @@ void FurnaceGUI::drawInsEdit() {
         }
         ImGui::EndMenu();
       }
+      if (ImGui::BeginMenu("randomize...")) {
+        if (macroRandMin<lastMacroDesc.min) macroRandMin=lastMacroDesc.min;
+        if (macroRandMin>lastMacroDesc.max) macroRandMin=lastMacroDesc.max;
+        if (macroRandMax<lastMacroDesc.min) macroRandMax=lastMacroDesc.min;
+        if (macroRandMax>lastMacroDesc.max) macroRandMax=lastMacroDesc.max;
+        ImGui::InputInt("Min",&macroRandMin,1,10);
+        ImGui::InputInt("Max",&macroRandMax,1,10);
+        if (ImGui::Button("randomize")) {
+          for (int i=0; i<lastMacroDesc.macro->len; i++) {
+            int val=0;
+            if (macroRandMax<=macroRandMin) {
+              val=macroRandMin;
+            } else {
+              val=macroRandMin+(rand()%(macroRandMax-macroRandMin+1));
+            }
+            lastMacroDesc.macro->val[i]=val;
+          }
+
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndMenu();
+      }
       
       ImGui::EndPopup();
     }
