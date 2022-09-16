@@ -32,7 +32,7 @@ const char* waveGenBaseShapes[4]={
   "Pulse"
 };
 
-const float multFactors[16]={
+const float multFactors[17]={
   M_PI,
   2*M_PI,
   4*M_PI,
@@ -49,6 +49,7 @@ const float multFactors[16]={
   26*M_PI,
   28*M_PI,
   30*M_PI,
+  32*M_PI,
 };
 
 void FurnaceGUI::doGenerateWave() {
