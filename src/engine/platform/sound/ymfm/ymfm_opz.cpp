@@ -292,6 +292,10 @@ bool opz_registers::write(uint16_t index, uint8_t data, uint32_t &channel, uint3
 
   // note from tildearrow:
   // - are you kidding? I have to write to this "load preset" register before keying on?
+  // another note from tildearrow:
+  // - see https://github.com/110-kenichi/ymfm/blob/main/src/ymfm_opz.cpp
+  // - is 0x08 the actual key on register just like OPM?
+  // - if so then what's bit 5?
 	if ((index & 0xf8) == 0x20 /*&& bitfield(index, 0, 3) == bitfield(m_regdata[0x08], 0, 3)*/)
 	{
 		channel = bitfield(index, 0, 3);

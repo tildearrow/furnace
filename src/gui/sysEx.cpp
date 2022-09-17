@@ -1,6 +1,17 @@
 #include "gui.h"
 #include "../ta-log.h"
 
+// table taken from https://nornand.hatenablog.com/entry/2020/11/21/201911
+// Yamaha why didn't you just use 0-127 as it should be?
+const unsigned char tlTable[100]={
+  127, 122, 118, 114, 110, 107, 104, 102, 100, 98, 96, 94, 92, 90, 88, 86, 85, 84, 82, 81,
+  // desde aquí la tabla consiste de valores que bajan de 1 en 1
+  79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58,
+  57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36,
+  35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14,
+  13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+};
+
 bool FurnaceGUI::parseSysEx(unsigned char* data, size_t len) {
   SafeReader reader(data,len);
 
@@ -137,7 +148,7 @@ bool FurnaceGUI::parseSysEx(unsigned char* data, size_t len) {
             op.sl=15-reader.readC();
             reader.readC(); // LS - ignore
             op.am=(reader.readC()&0x40)?1:0;
-            op.tl=3+((99-reader.readC())*124)/99;
+            op.tl=tlTable[reader.readC()%100];
             unsigned char freq=reader.readC();
             logV("OP%d freq: %d",i,freq);
             op.mult=freq>>2;

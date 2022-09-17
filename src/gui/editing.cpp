@@ -431,7 +431,7 @@ void FurnaceGUI::doPaste(PasteMode mode) {
   int startOff=-1;
   bool invalidData=false;
   if (data.size()<2) return;
-  if (data[0]!=fmt::sprintf("org.tildearrow.furnace - Pattern Data (%d)",DIV_ENGINE_VERSION)) return;
+  if (data[0].find("org.tildearrow.furnace - Pattern Data")!=0) return;
   if (sscanf(data[1].c_str(),"%d",&startOff)!=1) return;
   if (startOff<0) return;
 

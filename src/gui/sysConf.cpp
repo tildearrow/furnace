@@ -402,6 +402,24 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       break;
     }
+    case DIV_SYSTEM_TIA: {
+      ImGui::Text("Mixing mode:");
+      if (ImGui::RadioButton("Mono",(flags&6)==0)) {
+        copyOfFlags=(flags&(~6));
+      }
+      if (ImGui::RadioButton("Mono (no distortion)",(flags&6)==2)) {
+        copyOfFlags=(flags&(~6))|2;
+      }
+      if (ImGui::RadioButton("Stereo",(flags&6)==4)) {
+        copyOfFlags=(flags&(~6))|4;
+      }
+
+      sysPal=flags&1;
+      if (ImGui::Checkbox("PAL",&sysPal)) {
+        copyOfFlags=(flags&(~1))|(unsigned int)sysPal;
+      }
+      break;
+    }
     case DIV_SYSTEM_PCSPKR: {
       ImGui::Text("Speaker type:");
       if (ImGui::RadioButton("Unfiltered",(flags&3)==0)) {

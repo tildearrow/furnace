@@ -31,7 +31,9 @@ void DivEngine::nextOrder() {
   curRow=0;
   if (repeatPattern) return;
   if (++curOrder>=curSubSong->ordersLen) {
+    logV("end of orders reached");
     endOfSong=true;
+    memset(walked,0,8192);
     curOrder=0;
   }
 }
@@ -351,15 +353,31 @@ void DivEngine::processRow(int i, bool afterDelay) {
           if (effectVal>0) speed2=effectVal;
           break;
         case 0x0b: // change order
-          if (changeOrd==-1) {
+          if (changeOrd==-1 || song.jumpTreatment==0) {
             changeOrd=effectVal;
-            changePos=0;
+            if (song.jumpTreatment==1 || song.jumpTreatment==2) {
+              changePos=0;
+            }
           }
           break;
         case 0x0d: // next order
-          if (changeOrd<0 && (curOrder<(curSubSong->ordersLen-1) || !song.ignoreJumpAtEnd)) {
-            changeOrd=-2;
-            changePos=effectVal;
+          if (song.jumpTreatment==2) {
+            if ((curOrder<(curSubSong->ordersLen-1) || !song.ignoreJumpAtEnd)) {
+              changeOrd=-2;
+              changePos=effectVal;
+            }
+          } else if (song.jumpTreatment==1) {
+            if (changeOrd<0 && (curOrder<(curSubSong->ordersLen-1) || !song.ignoreJumpAtEnd)) {
+              changeOrd=-2;
+              changePos=effectVal;
+            }
+          } else {
+            if (curOrder<(curSubSong->ordersLen-1) || !song.ignoreJumpAtEnd) {
+              if (changeOrd<0) {
+                changeOrd=-2;
+              }
+              changePos=effectVal;
+            }
           }
           break;
         case 0xed: // delay
@@ -915,18 +933,23 @@ void DivEngine::nextRow() {
     processRow(i,false);
   }
 
+  walked[((curOrder<<5)+(curRow>>3))&8191]|=1<<(curRow&7);
+
   if (changeOrd!=-1) {
     if (repeatPattern) {
       curRow=0;
       changeOrd=-1;
     } else {
       curRow=changePos;
+      changePos=0;
       if (changeOrd==-2) changeOrd=curOrder+1;
-      if (changeOrd<=curOrder) endOfSong=true;
+      // old loop detection routine
+      //if (changeOrd<=curOrder) endOfSong=true;
       curOrder=changeOrd;
       if (curOrder>=curSubSong->ordersLen) {
         curOrder=0;
         endOfSong=true;
+        memset(walked,0,8192);
       }
       changeOrd=-1;
     }
@@ -934,6 +957,13 @@ void DivEngine::nextRow() {
   } else if (playing) if (++curRow>=curSubSong->patLen) {
     nextOrder();
     if (haltOn==DIV_HALT_PATTERN) halted=true;
+  }
+
+  // new loop detection routine
+  if (!endOfSong && walked[((curOrder<<5)+(curRow>>3))&8191]&(1<<(curRow&7))) {
+    logV("loop reached");
+    endOfSong=true;
+    memset(walked,0,8192);
   }
 
   if (song.brokenSpeedSel) {

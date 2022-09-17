@@ -249,7 +249,9 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     if (os[1]>32767) os[1]=32767;
   
     bufL[h]=os[0];
-    bufR[h]=os[1];
+    if (oplType==3 || oplType==759) {
+      bufR[h]=os[1];
+    }
   }
 }
 
@@ -1531,7 +1533,7 @@ void DivPlatformOPL::reset() {
 }
 
 bool DivPlatformOPL::isStereo() {
-  return true;
+  return (oplType==3 || oplType==759);
 }
 
 bool DivPlatformOPL::keyOffAffectsArp(int ch) {

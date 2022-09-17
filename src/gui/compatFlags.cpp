@@ -213,6 +213,26 @@ void FurnaceGUI::drawCompatFlags() {
       ImGui::SetTooltip("no checks (like FamiTracker)");
     }
 
+    ImGui::Text("Simultaneous jump (0B+0D) treatment:");
+    if (ImGui::RadioButton("Normal",e->song.jumpTreatment==0)) {
+      e->song.jumpTreatment=0;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("accept 0B+0D to jump to a specific row of an order");
+    }
+    if (ImGui::RadioButton("Old Furnace",e->song.jumpTreatment==1)) {
+      e->song.jumpTreatment=1;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("only accept the first jump effect");
+    }
+    if (ImGui::RadioButton("DefleMask",e->song.jumpTreatment==2)) {
+      e->song.jumpTreatment=2;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("only accept 0Dxx");
+    }
+
     ImGui::Separator();
 
     ImGui::TextWrapped("the following flags are for compatibility with older Furnace versions.");

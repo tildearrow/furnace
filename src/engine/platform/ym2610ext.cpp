@@ -55,6 +55,7 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
         rWrite(baseAddr+0x70,op.d2r&31);
         rWrite(baseAddr+0x80,(op.rr&15)|(op.sl<<4));
         rWrite(baseAddr+0x90,op.ssgEnv&15);
+        opChan[ch].mask=op.enable;
       }
       if (opChan[ch].insChanged) { // TODO how does this work?
         rWrite(chanOffs[extChanOffs]+0xb0,(ins->fm.alg&7)|(ins->fm.fb<<3));
@@ -354,7 +355,7 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
     bool writeSomething=false;
     unsigned char writeMask=2;
     for (int i=0; i<4; i++) {
-      writeMask|=opChan[i].active<<(4+i);
+      writeMask|=(unsigned char)(opChan[i].mask && opChan[i].active)<<(4+i);
       if (opChan[i].keyOn || opChan[i].keyOff) {
         writeSomething=true;
         writeMask&=~(1<<(4+i));
@@ -391,10 +392,12 @@ void DivPlatformYM2610Ext::tick(bool sysTick) {
       immWrite(opChanOffsH[i],opChan[i].freq>>8);
       immWrite(opChanOffsL[i],opChan[i].freq&0xff);
     }
-    writeMask|=opChan[i].active<<(4+i);
+    writeMask|=(unsigned char)(opChan[i].mask && opChan[i].active)<<(4+i);
     if (opChan[i].keyOn) {
       writeNoteOn=true;
-      writeMask|=1<<(4+i);
+      if (opChan[i].mask) {
+        writeMask|=1<<(4+i);
+      }
       opChan[i].keyOn=false;
     }
   }

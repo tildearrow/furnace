@@ -214,7 +214,7 @@ void DivPlatformVRC6::tick(bool sysTick) {
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOff) {
         chWrite(i,2,0);
-      } else {
+      } else if (chan[i].active) {
         chWrite(i,1,chan[i].freq&0xff);
         chWrite(i,2,0x80|((chan[i].freq>>8)&0xf));
       }

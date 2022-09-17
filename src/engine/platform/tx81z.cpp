@@ -906,6 +906,7 @@ void DivPlatformTX81Z::reset() {
   pmDepth=0x7f;
 
   //rWrite(0x18,0x10);
+  immWrite(0x18,0x00); // LFO Freq Off
   immWrite(0x19,amDepth);
   immWrite(0x19,0x80|pmDepth);
   //rWrite(0x1b,0x00);

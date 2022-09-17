@@ -52,10 +52,10 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       int freq, baseFreq, pitch, pitch2, portaPauseFreq, note, ins;
       unsigned char psgMode, autoEnvNum, autoEnvDen;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset, opMaskChanged;
       int vol, outVol;
       int sample;
-      unsigned char pan;
+      unsigned char pan, opMask;
       int macroVolMul;
       DivMacroInt std;
       void macroInit(DivInstrument* which) {
@@ -84,10 +84,12 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
         inPorta(false),
         furnacePCM(false),
         hardReset(false),
+        opMaskChanged(false),
         vol(0),
         outVol(15),
         sample(-1),
         pan(3),
+        opMask(15),
         macroVolMul(255) {}
     };
 
@@ -96,7 +98,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, pitch2, portaPauseFreq, ins;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, mask;
       int vol;
       unsigned char pan;
       // UGLY
@@ -116,6 +118,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
         keyOff(false),
         portaPause(false),
         inPorta(false),
+        mask(true),
         vol(0),
         pan(3) {}
     };
