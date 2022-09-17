@@ -42,14 +42,14 @@ class vox_core : public vgsound_emu_core
 
 						decoder_state_t &operator=(decoder_state_t src)
 						{
-							copy(src);
+							copy_state(src);
 							return *this;
 						}
 
 					private:
 						const bool m_wraparound = false;  // wraparound or clamp?
 
-						void copy(decoder_state_t src);
+						void copy_state(decoder_state_t src);
 
 						vox_core &m_vox;
 						s8 m_index = 0;
