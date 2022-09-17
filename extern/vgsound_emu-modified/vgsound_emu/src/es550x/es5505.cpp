@@ -45,12 +45,11 @@ void es5505_core::tick()
 							for (int i = 0; i < 4; i++)
 							{
 								// copy output
-								m_output[i]		  = m_output_temp[i];
-								m_output_latch[i] = m_ch[i];
-								m_output_temp[i].reset();
+								m_output[i].copy_output(m_output_temp[i]);
 								// clamp to 16 bit (upper 5 bits are overflow
 								// guard bits)
-								m_output_latch[i].clamp16();
+								m_output_latch[i].clamp16(m_ch[i]);
+								m_output_temp[i].reset();
 								// set signed
 								if (m_output_latch[i].left() < 0)
 								{
@@ -155,7 +154,7 @@ void es5505_core::tick_perf()
 	// output
 	for (int c = 0; c < 4; c++)
 	{
-		m_output[c] = m_ch[c];
+		m_output[c].clamp16(m_ch[c]);
 	}
 
 	// update
