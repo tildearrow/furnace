@@ -16,7 +16,7 @@ void vox_core::vox_decoder_t::decoder_state_t::reset()
 }
 
 // copy from source
-void vox_core::vox_decoder_t::decoder_state_t::copy_state(decoder_state_t src)
+void vox_core::vox_decoder_t::decoder_state_t::copy_state(decoder_state_t &src)
 {
 	m_index = src.index();
 	m_step	= src.step();
