@@ -65,9 +65,9 @@ class es5505_core : public es550x_shared_core
 				}
 
 				// getters
-				inline u32 left() { return m_left; }
+				inline s32 left() { return m_left; }
 
-				inline u32 right() { return m_right; }
+				inline s32 right() { return m_right; }
 
 				output_t &operator+=(output_t &src)
 				{
