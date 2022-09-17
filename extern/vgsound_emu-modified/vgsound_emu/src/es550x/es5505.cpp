@@ -319,7 +319,7 @@ void es5505_core::host_w(u8 address, u16 data)
 		m_hd = data;
 		if (m_e.rising_edge())
 		{  // update directly
-			write(m_ha, m_hd, true);
+			write(m_ha, m_hd);
 		}
 		else
 		{
@@ -330,9 +330,9 @@ void es5505_core::host_w(u8 address, u16 data)
 
 u16 es5505_core::read(u8 address, bool cpu_access) { return regs_r(m_page, address, cpu_access); }
 
-void es5505_core::write(u8 address, u16 data, bool cpu_access)
+void es5505_core::write(u8 address, u16 data)
 {
-	regs_w(m_page, address, data, cpu_access);
+	regs_w(m_page, address, data);
 }
 
 u16 es5505_core::regs_r(u8 page, u8 address, bool cpu_access)
@@ -488,7 +488,7 @@ u16 es5505_core::regs_r(u8 page, u8 address, bool cpu_access)
 	return ret;
 }
 
-void es5505_core::regs_w(u8 page, u8 address, u16 data, bool cpu_access)
+void es5505_core::regs_w(u8 page, u8 address, u16 data)
 {
 	address = bitfield(address, 0, 4);	// 4 bit address for CPU access
 

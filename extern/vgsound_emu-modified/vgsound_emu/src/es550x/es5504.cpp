@@ -357,7 +357,10 @@ void es5504_core::regs_w(u8 page, u8 address, u16 data, bool cpu_access)
 				if (bitfield(m_adc, 0))	 // Writam_ble ADC
 				{
 					m_adc = (m_adc & 7) | (data & ~7);
-					m_intf.adc_w(m_adc & ~7);
+					if (cpu_access)
+					{
+						m_intf.adc_w(m_adc & ~7);
+					}
 				}
 				m_adc = (m_adc & ~3) | (data & 3);
 				break;

@@ -329,10 +329,10 @@ class es5506_core : public es550x_shared_core
 
 		// bypass chips host interface for debug purpose only
 		u8 read(u8 address, bool cpu_access = false);
-		void write(u8 address, u8 data, bool cpu_access = false);
+		void write(u8 address, u8 data);
 
 		u32 regs_r(u8 page, u8 address, bool cpu_access = false);
-		void regs_w(u8 page, u8 address, u32 data, bool cpu_access = false);
+		void regs_w(u8 page, u8 address, u32 data);
 
 		u8 regs8_r(u8 page, u8 address)
 		{

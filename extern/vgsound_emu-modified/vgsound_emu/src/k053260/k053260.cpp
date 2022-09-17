@@ -15,7 +15,7 @@ void k053260_core::tick()
 	{
 		for (int i = 0; i < 4; i++)
 		{
-			m_voice[i].tick(i);
+			m_voice[i].tick();
 			m_out[0] += m_voice[i].out(0);
 			m_out[1] += m_voice[i].out(1);
 		}
@@ -36,7 +36,7 @@ void k053260_core::tick()
 	m_dac.set_clock(bitfield(dac_clock, 0, 4));
 }
 
-void k053260_core::voice_t::tick(u8 ne)
+void k053260_core::voice_t::tick()
 {
 	if (m_enable && m_busy)
 	{

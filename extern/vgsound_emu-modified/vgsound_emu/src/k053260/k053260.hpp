@@ -61,7 +61,7 @@ class k053260_core : public vgsound_emu_core
 
 				// internal state
 				void reset();
-				void tick(u8 ne);
+				void tick();
 
 				// accessors
 				void write(u8 address, u8 data);
