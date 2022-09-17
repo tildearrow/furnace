@@ -35,7 +35,7 @@ class es5505_core : public es550x_shared_core
 
 				inline s32 clamp16(s32 in) { return clamp(in, -0x8000, 0x7fff); }
 
-				inline void clamp16(output_t src)
+				inline void clamp16(output_t &src)
 				{
 					m_left	= clamp16(src.left());
 					m_right = clamp16(src.right());
@@ -76,7 +76,7 @@ class es5505_core : public es550x_shared_core
 					return *this;
 				}
 
-				output_t &operator=(output_t src)
+				output_t &operator=(output_t &src)
 				{
 					clamp16(src);
 					return *this;
