@@ -1343,6 +1343,15 @@ void FurnaceGUI::drawSettings() {
             settings.channelFeedbackStyle=3;
           }
 
+          ImGui::Text("Channel font:");
+
+          if (ImGui::RadioButton("Regular##CHFont0",settings.channelFont==0)) {
+            settings.channelFont=0;
+          }
+          if (ImGui::RadioButton("Monospace##CHFont1",settings.channelFont==1)) {
+            settings.channelFont=1;
+          }
+
           ImGui::Separator();
 
           bool insEditColorizeB=settings.insEditColorize;
@@ -2282,6 +2291,7 @@ void FurnaceGUI::syncSettings() {
   settings.channelStyle=e->getConfInt("channelStyle",0);
   settings.channelVolStyle=e->getConfInt("channelVolStyle",0);
   settings.channelFeedbackStyle=e->getConfInt("channelFeedbackStyle",1);
+  settings.channelFont=e->getConfInt("channelFont",1);
   settings.maxRecentFile=e->getConfInt("maxRecentFile",10);
 
   clampSetting(settings.mainFontSize,2,96);
@@ -2381,6 +2391,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.channelStyle,0,5);
   clampSetting(settings.channelVolStyle,0,3);
   clampSetting(settings.channelFeedbackStyle,0,3);
+  clampSetting(settings.channelFont,0,1);
   clampSetting(settings.maxRecentFile,0,30);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
@@ -2536,6 +2547,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("channelStyle",settings.channelStyle);
   e->setConf("channelVolStyle",settings.channelVolStyle);
   e->setConf("channelFeedbackStyle",settings.channelFeedbackStyle);
+  e->setConf("channelFont",settings.channelFont);
   e->setConf("maxRecentFile",settings.maxRecentFile);
 
   // colors

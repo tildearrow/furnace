@@ -1178,6 +1178,7 @@ class FurnaceGUI {
     int channelStyle;
     int channelVolStyle;
     int channelFeedbackStyle;
+    int channelFont;
     int maxRecentFile;
     unsigned int maxUndoSteps;
     String mainFontPath;
@@ -1299,6 +1300,7 @@ class FurnaceGUI {
       channelStyle(0),
       channelVolStyle(0),
       channelFeedbackStyle(1),
+      channelFont(1),
       maxRecentFile(10),
       maxUndoSteps(100),
       mainFontPath(""),

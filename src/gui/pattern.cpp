@@ -523,10 +523,15 @@ void FurnaceGUI::drawPattern() {
         ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(channelTextColor(i)));
         ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(chanHead));
         if (muted) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_CHANNEL_MUTED]);
+        if (settings.channelFont==0) ImGui::PushFont(mainFont);
+
+        // TODO: appearance
         ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale));
+
         if (displayTooltip && ImGui::IsItemHovered()) {
           ImGui::SetTooltip("%s",e->getChannelName(i));
         }
+        if (settings.channelFont==0) ImGui::PopFont();
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
           if (settings.soloAction!=1 && soloTimeout>0 && soloChan==i) {
             e->toggleSolo(i);
