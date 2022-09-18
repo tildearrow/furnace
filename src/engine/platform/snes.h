@@ -22,19 +22,22 @@
 
 #include "../dispatch.h"
 #include "../macroInt.h"
+#include "../waveSynth.h"
 #include <queue>
 #include "sound/snes/SPC_DSP.h"
 
 class DivPlatformSNES: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2;
-    unsigned int audPos;
-    int sample, ins;
+    unsigned int audPos, wtLen;
+    int sample, wave, ins;
     int note;
     int panL, panR;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos;
     signed char vol;
+    bool useEnv;
     DivMacroInt std;
+    DivWaveSynth ws;
     void macroInit(DivInstrument* which) {
       std.init(which);
       pitch2=0;
@@ -45,7 +48,9 @@ class DivPlatformSNES: public DivDispatch {
       pitch(0),
       pitch2(0),
       audPos(0),
+      wtLen(16),
       sample(-1),
+      wave(-1),
       ins(-1),
       note(0),
       panL(255),
@@ -58,7 +63,8 @@ class DivPlatformSNES: public DivDispatch {
       inPorta(false),
       useWave(false),
       setPos(false),
-      vol(127) {}
+      vol(127),
+      useEnv(false) {} 
   };
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];
@@ -86,11 +92,11 @@ class DivPlatformSNES: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool isStereo();
     void notifyInsChange(int ins);
+    void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     const void* getSampleMem(int index = 0);
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
@@ -98,6 +104,7 @@ class DivPlatformSNES: public DivDispatch {
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
   private:
+    void updateWave(int ch);
     void writeOutVol(int ch);
 };
 

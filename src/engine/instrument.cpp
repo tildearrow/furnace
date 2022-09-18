@@ -558,9 +558,10 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(es5506.envelope.k2Slow);
   
   // SNES
+  // @tildearrow please update this
   w->writeC(snes.useEnv);
-  w->writeC(snes.gainMode);
-  w->writeC(snes.gain);
+  w->writeC(0);
+  w->writeC(0);
   w->writeC(snes.a);
   w->writeC(snes.d);
   w->writeC(snes.s);
@@ -1250,8 +1251,8 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   // SNES
   if (version>=109) {
     snes.useEnv=reader.readC();
-    snes.gainMode=(DivInstrumentSNES::GainMode)reader.readC();
-    snes.gain=reader.readC();
+    reader.readC();
+    reader.readC();
     snes.a=reader.readC();
     snes.d=reader.readC();
     snes.s=reader.readC();

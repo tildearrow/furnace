@@ -306,6 +306,14 @@ const char* gbHWSeqCmdTypes[6]={
   "Loop until Release"
 };
 
+const char* snesGainModes[5]={
+  "Direct",
+  "Decrease (linear)",
+  "Decrease (logarithmic)",
+  "Increase (linear)",
+  "Increase (bent line)"
+};
+
 // do not change these!
 // anything other than a checkbox will look ugly!
 //
@@ -3603,6 +3611,18 @@ void FurnaceGUI::drawInsEdit() {
               }
             }
           }
+          if (ins->type==DIV_INS_SNES) {
+            P(ImGui::Checkbox("Use wavetable",&ins->amiga.useWave));
+            if (ins->amiga.useWave) {
+              int len=ins->amiga.waveLen+1;
+              if (ImGui::InputInt("Width",&len,16,64)) {
+                if (len<16) len=16;
+                if (len>256) len=256;
+                ins->amiga.waveLen=(len&(~15))-1;
+                PARAMETER
+              }
+            }
+          }
           ImGui::BeginDisabled(ins->amiga.useWave);
           P(ImGui::Checkbox("Use sample map (does not work yet!)",&ins->amiga.useNoteMap));
           if (ins->amiga.useNoteMap) {
@@ -3868,95 +3888,62 @@ void FurnaceGUI::drawInsEdit() {
         if (ins->type==DIV_INS_SNES) if (ImGui::BeginTabItem("SNES")) {
           P(ImGui::Checkbox("Use envelope",&ins->snes.useEnv));
           ImVec2 sliderSize=ImVec2(20.0f*dpiScale,128.0*dpiScale);
-          if (ins->snes.useEnv) {
-            if (ImGui::BeginTable("SNESEnvParams",5,ImGuiTableFlags_NoHostExtendX)) {
-              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-              ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-              ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch);
+          if (ImGui::BeginTable("SNESEnvParams",5,ImGuiTableFlags_NoHostExtendX)) {
+            ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+            ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+            ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+            ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch);
 
-              ImGui::TableNextRow();
-              ImGui::TableNextColumn();
-              CENTER_TEXT("A");
-              ImGui::TextUnformatted("A");
-              ImGui::TableNextColumn();
-              CENTER_TEXT("D");
-              ImGui::TextUnformatted("D");
-              ImGui::TableNextColumn();
-              CENTER_TEXT("S");
-              ImGui::TextUnformatted("S");
-              ImGui::TableNextColumn();
-              CENTER_TEXT("R");
-              ImGui::TextUnformatted("R");
-              ImGui::TableNextColumn();
-              CENTER_TEXT("Envelope");
-              ImGui::TextUnformatted("Envelope");
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            CENTER_TEXT("A");
+            ImGui::TextUnformatted("A");
+            ImGui::TableNextColumn();
+            CENTER_TEXT("D");
+            ImGui::TextUnformatted("D");
+            ImGui::TableNextColumn();
+            CENTER_TEXT("S");
+            ImGui::TextUnformatted("S");
+            ImGui::TableNextColumn();
+            CENTER_TEXT("R");
+            ImGui::TextUnformatted("R");
+            ImGui::TableNextColumn();
+            CENTER_TEXT("Envelope");
+            ImGui::TextUnformatted("Envelope");
 
-              ImGui::TableNextRow();
-              ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Attack",sliderSize,ImGuiDataType_U8,&ins->snes.a,&_ZERO,&_FIFTEEN));
-              ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Decay",sliderSize,ImGuiDataType_U8,&ins->snes.d,&_ZERO,&_SEVEN));
-              ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Sustain",sliderSize,ImGuiDataType_U8,&ins->snes.s,&_ZERO,&_SEVEN));
-              ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Release",sliderSize,ImGuiDataType_U8,&ins->snes.r,&_ZERO,&_THIRTY_ONE));
-              ImGui::TableNextColumn();
-              drawFMEnv(0,ins->snes.a+1,1+ins->snes.d*2,ins->snes.r,ins->snes.r,(14-ins->snes.s*2),(ins->snes.r==0),0,0,7,16,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            P(CWVSliderScalar("##Attack",sliderSize,ImGuiDataType_U8,&ins->snes.a,&_ZERO,&_FIFTEEN));
+            ImGui::TableNextColumn();
+            P(CWVSliderScalar("##Decay",sliderSize,ImGuiDataType_U8,&ins->snes.d,&_ZERO,&_SEVEN));
+            ImGui::TableNextColumn();
+            P(CWVSliderScalar("##Sustain",sliderSize,ImGuiDataType_U8,&ins->snes.s,&_ZERO,&_SEVEN));
+            ImGui::TableNextColumn();
+            P(CWVSliderScalar("##Release",sliderSize,ImGuiDataType_U8,&ins->snes.r,&_ZERO,&_THIRTY_ONE));
+            ImGui::TableNextColumn();
+            drawFMEnv(0,ins->snes.a+1,1+ins->snes.d*2,ins->snes.r,ins->snes.r,(14-ins->snes.s*2),(ins->snes.r==0),0,0,7,16,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
 
-              ImGui::EndTable();
+            ImGui::EndTable();
+          }
+          P(ImGui::Checkbox("Apply echo filter",&ins->snes.applyFIR));
+          if (ins->snes.applyFIR) {
+            double inBuf[8];
+            fftw_complex outBuf[8];
+            float curve[5];
+            fftw_plan plan=fftw_plan_dft_r2c_1d(8,inBuf,outBuf,FFTW_ESTIMATE);
+
+            ImGui::Text("Coefficients");
+            ImGui::SameLine();
+            P(ImGui::DragScalarN("##FIRCoeff",ImGuiDataType_S8,ins->snes.fir,8,1,&_MINUS_ONE_HUNDRED_TWENTY_EIGHT,&_ONE_HUNDRED_TWENTY_SEVEN)); rightClickable
+            for (int i=0; i<8; i++) {
+              inBuf[i] = ins->snes.fir[i];
             }
-          } else {
-            if (ImGui::BeginTable("SNESGainParams",3,ImGuiTableFlags_NoHostExtendX)) {
-              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
-              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
-              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
-
-              ImGui::TableNextRow();
-              ImGui::TableNextColumn();
-              CENTER_TEXT("Gain Mode");
-              ImGui::TextUnformatted("Gain Mode");
-              ImGui::TableNextColumn();
-              CENTER_TEXT("Gain");
-              ImGui::TextUnformatted("Gain");
-              ImGui::TableNextColumn();
-              CENTER_TEXT("Envelope");
-              ImGui::TextUnformatted("Envelope");
-
-              ImGui::TableNextRow();
-              ImGui::TableNextColumn();
-              if (ImGui::RadioButton("Direct",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DIRECT)) {
-                ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_DIRECT;
-                PARAMETER;
-              }
-              if (ImGui::RadioButton("Decrease (linear)",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DEC_LINEAR)) {
-                ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_DEC_LINEAR;
-                PARAMETER;
-              }
-              if (ImGui::RadioButton("Decrease (logarithmic)",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DEC_LOG)) {
-                ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_DEC_LOG;
-                PARAMETER;
-              }
-              if (ImGui::RadioButton("Increase (linear)",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_INC_LINEAR)) {
-                ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_INC_LINEAR;
-                PARAMETER;
-              }
-              if (ImGui::RadioButton("Increase (bent line)",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_INC_INVLOG)) {
-                ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_INC_INVLOG;
-                PARAMETER;
-              }
-
-              ImGui::TableNextColumn();
-              unsigned char gainMax=(ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DIRECT)?127:31;
-              if (ins->snes.gain>gainMax) ins->snes.gain=gainMax;
-              P(CWVSliderScalar("##Gain",sliderSize,ImGuiDataType_U8,&ins->snes.gain,&_ZERO,&gainMax));
-
-              ImGui::TableNextColumn();
-              ImGui::Text("Envelope goes here...");
-
-              ImGui::EndTable();
+            fftw_execute(plan);
+            for (int i=0; i<5; i++) {
+              curve[i] = sqrtf(powf(outBuf[i][0],2)+powf(outBuf[i][1],2))/128.f;
             }
+            ImGui::PlotLines("##FIRResponse",curve,5,0,"Frequency response",0.0,8.0,ImVec2(ImGui::GetContentRegionAvail().x,100.0f*dpiScale));
           }
           ImGui::EndTabItem();
         }
@@ -4159,6 +4146,14 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ES5506) {
             volMax=65535;
           }
+          if (ins->type==DIV_INS_SNES) {
+            if (ins->snes.useEnv) {
+              volMax=0;
+            } else {
+              volumeLabel="Gain Level";
+              volMax=127;
+            }
+          }
 
           const char* dutyLabel="Duty/Noise";
           int dutyMin=0;
@@ -4203,7 +4198,7 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Noise";
             dutyMax=8;
           }
-          if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_FDS || ins->type==DIV_INS_MULTIPCM) {
+          if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_FDS || ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_SNES) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VERA) {
@@ -4244,7 +4239,7 @@ void FurnaceGUI::drawInsEdit() {
             waveMax=8;
             bitMode=true;
           }
-
+          
           if (ins->type==DIV_INS_OPLL) {
             waveLabel="Patch";
           }
@@ -4283,6 +4278,10 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ES5506) {
             ex1Max=65535;
             ex2Max=65535;
+          }
+          if (ins->type==DIV_INS_SNES && !ins->snes.useEnv) {
+            ex1Max=4;
+            ex2Max=31;
           }
 
           int panMin=0;
@@ -4373,7 +4372,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_MULTIPCM ||
               ins->type==DIV_INS_SU ||
               ins->type==DIV_INS_MIKEY ||
-              ins->type==DIV_INS_ES5506) {
+              ins->type==DIV_INS_ES5506 ||
+              ins->type==DIV_INS_SNES) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {
@@ -4391,6 +4391,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Cutoff",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_ES5506) {
               macroList.push_back(FurnaceGUIMacroDesc("Filter K1",&ins->std.ex1Macro,((ins->std.ex1Macro.mode==1)?(-ex1Max):0),ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,macroRelativeMode));
+            } else if (ins->type==DIV_INS_SNES) {
+              macroList.push_back(FurnaceGUIMacroDesc("Gain Mode",&ins->std.ex1Macro,0,ex1Max,64,uiColors[GUI_COLOR_MACRO_VOLUME],false,NULL,NULL,false,snesGainModes));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             }
@@ -4406,6 +4408,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Resonance",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_ES5506) {
               macroList.push_back(FurnaceGUIMacroDesc("Filter K2",&ins->std.ex2Macro,((ins->std.ex2Macro.mode==1)?(-ex2Max):0),ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,macroRelativeMode));
+            } else if (ins->type==DIV_INS_SNES) {
+              macroList.push_back(FurnaceGUIMacroDesc("Gain Rate",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex2Macro,0,ex2Max,ex2Bit?64:160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,ex2Bit,ayEnvBits));
             }

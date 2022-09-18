@@ -501,25 +501,17 @@ struct DivInstrumentES5506 {
 };
 
 struct DivInstrumentSNES {
-  enum GainMode: unsigned char {
-    GAIN_MODE_DIRECT=0,
-    GAIN_MODE_DEC_LINEAR=4,
-    GAIN_MODE_DEC_LOG=5,
-    GAIN_MODE_INC_LINEAR=6,
-    GAIN_MODE_INC_INVLOG=7
-  };
-  bool useEnv;
-  GainMode gainMode;
-  unsigned char gain;
+  bool useEnv, applyFIR;
   unsigned char a, d, s, r;
+  signed char fir[8];
   DivInstrumentSNES():
     useEnv(true),
-    gainMode(GAIN_MODE_DIRECT),
-    gain(127),
+    applyFIR(false),
     a(15),
     d(7),
     s(7),
-    r(0) {}
+    r(0),
+    fir{127, 0, 0, 0, 0, 0, 0, 0} {}
 };
 
 struct DivInstrument {
