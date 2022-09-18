@@ -47,6 +47,12 @@
 #define MARK_MODIFIED modified=true;
 #define WAKE_UP drawHalt=16;
 
+#define RESET_WAVE_MACRO_ZOOM \
+  for (DivInstrument* _wi: e->song.ins) { \
+    _wi->std.waveMacro.vZoom=-1; \
+    _wi->std.waveMacro.vScroll=-1; \
+  }
+
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
 
 // TODO:

@@ -4227,7 +4227,7 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           const char* waveLabel="Waveform";
-          int waveMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_VERA)?3:255;
+          int waveMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
           bool bitMode=false;
           if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) {
             bitMode=true;

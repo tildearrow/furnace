@@ -3884,6 +3884,7 @@ bool FurnaceGUI::loop() {
                   showError("cannot load wavetable! ("+e->getLastError()+")");
                 } else {
                   MARK_MODIFIED;
+                  RESET_WAVE_MACRO_ZOOM;
                 }
               }
               break;
