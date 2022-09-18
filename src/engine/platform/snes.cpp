@@ -83,7 +83,6 @@ void DivPlatformSNES::acquire(short* bufL, short* bufR, size_t start, size_t len
 void DivPlatformSNES::tick(bool sysTick) {
   // KON/KOFF can't be written several times per one sample
   // so they have to be accumulated
-  // TODO due to pipelining, KON/KOFF writes need to be delayed to accomodate sample address changes in the table
   unsigned char kon=0;
   unsigned char koff=0;
   for (int i=0; i<8; i++) {
@@ -203,7 +202,10 @@ void DivPlatformSNES::tick(bool sysTick) {
       }
     }
   }
-  rWrite(0x4c,kon);
+  if (kon!=0) {
+    rWrite(0x4c,kon);
+  }
+  // always write KOFF as it's constantly polled
   rWrite(0x5c,koff);
 }
 
@@ -213,7 +215,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       if (ins->amiga.useWave) {
         chan[c.chan].useWave=true;
-        chan[c.chan].wtLen=(unsigned int)(ins->amiga.waveLen)+1;
+        chan[c.chan].wtLen=ins->amiga.waveLen+1;
         if (chan[c.chan].insChanged) {
           if (chan[c.chan].wave<0) {
             chan[c.chan].wave=0;
@@ -221,6 +223,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
             chan[c.chan].ws.changeWave1(chan[c.chan].wave);
           }
         }
+        chan[c.chan].ws.init(ins,chan[c.chan].wtLen,15,chan[c.chan].insChanged);
       } else {
         chan[c.chan].sample=ins->amiga.getSample(c.value);
         chan[c.chan].useWave=false;
@@ -404,7 +407,7 @@ void DivPlatformSNES::reset() {
   dsp.set_output(NULL,0);
   memset(regPool,0,128);
   // TODO more initial values
-  sampleTableBase=0;
+  sampleTableBase=0x100; // hack: this can't be 0 or channel 1 won't play??
   rWrite(0x5d,sampleTableBase>>8);
   rWrite(0x0c,127); // global volume left
   rWrite(0x1c,127); // global volume right

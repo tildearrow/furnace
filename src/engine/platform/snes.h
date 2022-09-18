@@ -29,12 +29,13 @@
 class DivPlatformSNES: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2;
-    unsigned int audPos, wtLen;
+    unsigned int audPos;
     int sample, wave, ins;
     int note;
     int panL, panR;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos;
     signed char vol;
+    int wtLen;
     bool useEnv;
     DivMacroInt std;
     DivWaveSynth ws;
@@ -48,7 +49,6 @@ class DivPlatformSNES: public DivDispatch {
       pitch(0),
       pitch2(0),
       audPos(0),
-      wtLen(16),
       sample(-1),
       wave(-1),
       ins(-1),
@@ -64,6 +64,7 @@ class DivPlatformSNES: public DivDispatch {
       useWave(false),
       setPos(false),
       vol(127),
+      wtLen(16),
       useEnv(false) {} 
   };
   Channel chan[8];
