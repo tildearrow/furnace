@@ -1284,14 +1284,14 @@ void FurnaceGUI::drawSettings() {
           }
 
           ImGui::Text("Channel name colors:");
-          if (ImGui::RadioButton("Single##CTC0",settings.channelColors==0)) {
-            settings.channelColors=0;
+          if (ImGui::RadioButton("Single##CTC0",settings.channelTextColors==0)) {
+            settings.channelTextColors=0;
           }
-          if (ImGui::RadioButton("Channel type##CTC1",settings.channelColors==1)) {
-            settings.channelColors=1;
+          if (ImGui::RadioButton("Channel type##CTC1",settings.channelTextColors==1)) {
+            settings.channelTextColors=1;
           }
-          if (ImGui::RadioButton("Instrument type##CTC2",settings.channelColors==2)) {
-            settings.channelColors=2;
+          if (ImGui::RadioButton("Instrument type##CTC2",settings.channelTextColors==2)) {
+            settings.channelTextColors=2;
           }
 
           ImGui::Text("Channel style:");
@@ -1659,6 +1659,8 @@ void FurnaceGUI::drawSettings() {
               ImGui::TreePop();
             }
             if (ImGui::TreeNode("Channel")) {
+              UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_BG,"Single color (background)");
+              UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_FG,"Single color (text)");
               UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_FM,"FM");
               UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_PULSE,"Pulse");
               UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_NOISE,"Noise");

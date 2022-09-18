@@ -2,6 +2,6 @@
 
 - stereo separation control for AY
 - "paste with instrument"
-- FM operator muting
-- FM operator swap
+- channel appearance settings
+- auto-detect system
 - bug fixes

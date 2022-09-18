@@ -161,6 +161,8 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_OPL_DRUMS,
   GUI_COLOR_INSTR_UNKNOWN,
 
+  GUI_COLOR_CHANNEL_BG,
+  GUI_COLOR_CHANNEL_FG,
   GUI_COLOR_CHANNEL_FM,
   GUI_COLOR_CHANNEL_PULSE,
   GUI_COLOR_CHANNEL_NOISE,
@@ -1604,6 +1606,8 @@ class FurnaceGUI {
 
   void updateWindowTitle();
   void prepareLayout();
+  ImVec4 channelColor(int ch);
+  ImVec4 channelTextColor(int ch);
 
   void readOsc();
 

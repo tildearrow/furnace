@@ -468,19 +468,43 @@ void FurnaceGUI::drawPattern() {
             snprintf(chanID,2048," %s##_CH%d",chName,i);
           }
         }
+
         bool muted=e->isChannelMuted(i);
-        ImVec4 chanHead=muted?uiColors[GUI_COLOR_CHANNEL_MUTED]:uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(i)];
+        ImVec4 chanHead=muted?uiColors[GUI_COLOR_CHANNEL_MUTED]:channelColor(i);
         ImVec4 chanHeadActive=chanHead;
         ImVec4 chanHeadHover=chanHead;
+
         if (e->keyHit[i]) {
-          keyHit[i]=0.2;
-          if (!muted) {
-            int note=e->getChanState(i)->note+60;
-            if (note>=0 && note<180) {
-              pianoKeyHit[note]=1.0;
+          if (settings.channelFeedbackStyle==1) {
+            keyHit[i]=0.2;
+            if (!muted) {
+              int note=e->getChanState(i)->note+60;
+              if (note>=0 && note<180) {
+                pianoKeyHit[note]=1.0;
+              }
             }
           }
           e->keyHit[i]=false;
+        }
+        if (settings.channelFeedbackStyle==2 && e->isRunning()) {
+          float amount=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i));
+          if (!e->getChanState(i)->keyOn) amount=0.0f;
+          keyHit[i]=amount*0.2f;
+          if (!muted) {
+            int note=e->getChanState(i)->note+60;
+            if (note>=0 && note<180) {
+              pianoKeyHit[note]=amount;
+            }
+          }
+        } else if (settings.channelFeedbackStyle==3 && e->isRunning()) {
+          bool active=e->getChanState(i)->keyOn;
+          keyHit[i]=active?0.2f:0.0f;
+          if (!muted) {
+            int note=e->getChanState(i)->note+60;
+            if (note>=0 && note<180) {
+              pianoKeyHit[note]=active?1.0f:0.0f;
+            }
+          }
         }
         if (settings.guiColorsBase) {
           chanHead.x*=1.0-keyHit[i]; chanHead.y*=1.0-keyHit[i]; chanHead.z*=1.0-keyHit[i];
@@ -496,6 +520,7 @@ void FurnaceGUI::drawPattern() {
         ImGui::PushStyleColor(ImGuiCol_Header,chanHead);
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,chanHeadActive);
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered,chanHeadHover);
+        ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(channelTextColor(i)));
         ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(chanHead));
         if (muted) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_CHANNEL_MUTED]);
         ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale));
@@ -513,7 +538,7 @@ void FurnaceGUI::drawPattern() {
           }
         }
         if (muted) ImGui::PopStyleColor();
-        ImGui::PopStyleColor(3);
+        ImGui::PopStyleColor(4);
         if (settings.soloAction!=2) if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           inhibitMenu=true;
           e->toggleSolo(i);

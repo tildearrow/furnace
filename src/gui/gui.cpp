@@ -584,6 +584,38 @@ void FurnaceGUI::updateWindowTitle() {
   if (sdlWin!=NULL) SDL_SetWindowTitle(sdlWin,title.c_str());
 }
 
+ImVec4 FurnaceGUI::channelColor(int ch) {
+  switch (settings.channelColors) {
+    case 0:
+      return uiColors[GUI_COLOR_CHANNEL_BG];
+      break;
+    case 1:
+      return uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(ch)];
+      break;
+    case 2:
+      return uiColors[GUI_COLOR_INSTR_STD+e->getPreferInsType(ch)];
+      break;
+  }
+  // invalid
+  return uiColors[GUI_COLOR_TEXT];
+}
+
+ImVec4 FurnaceGUI::channelTextColor(int ch) {
+  switch (settings.channelTextColors) {
+    case 0:
+      return uiColors[GUI_COLOR_CHANNEL_FG];
+      break;
+    case 1:
+      return uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(ch)];
+      break;
+    case 2:
+      return uiColors[GUI_COLOR_INSTR_STD+e->getPreferInsType(ch)];
+      break;
+  }
+  // invalid
+  return uiColors[GUI_COLOR_TEXT];
+}
+
 const char* defaultLayout="[Window][DockSpaceViewport_11111111]\n\
 Pos=0,24\n\
 Size=1280,731\n\
