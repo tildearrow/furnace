@@ -24,19 +24,8 @@
 #include <string.h>
 #include <math.h>
 
-#include "ym2610shared.h"
-
-#include "fmshared_OPN.h"
-
-static unsigned char konOffs[4]={
-  1, 2, 5, 6
-};
-
-static unsigned char bchOffs[4]={
-  1, 2, 4, 5
-};
-
-#define CHIP_DIVIDER 32
+#define CHIP_FREQBASE fmFreqBase
+#define CHIP_DIVIDER fmDivBase
 
 const char* regCheatSheetYM2610[]={
   // SSG
@@ -329,126 +318,6 @@ const char** DivPlatformYM2610::getRegisterSheet() {
   return regCheatSheetYM2610;
 }
 
-const char* DivPlatformYM2610::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xy: Setup LFO (x: enable; y: speed)";
-      break;
-    case 0x11:
-      return "11xx: Set feedback (0 to 7)";
-      break;
-    case 0x12:
-      return "12xx: Set level of operator 1 (0 highest, 7F lowest)";
-      break;
-    case 0x13:
-      return "13xx: Set level of operator 2 (0 highest, 7F lowest)";
-      break;
-    case 0x14:
-      return "14xx: Set level of operator 3 (0 highest, 7F lowest)";
-      break;
-    case 0x15:
-      return "15xx: Set level of operator 4 (0 highest, 7F lowest)";
-      break;
-    case 0x16:
-      return "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)";
-      break;
-    case 0x18:
-      return "18xx: Toggle extended channel 3 mode";
-      break;
-    case 0x19:
-      return "19xx: Set attack of all operators (0 to 1F)";
-      break;
-    case 0x1a:
-      return "1Axx: Set attack of operator 1 (0 to 1F)";
-      break;
-    case 0x1b:
-      return "1Bxx: Set attack of operator 2 (0 to 1F)";
-      break;
-    case 0x1c:
-      return "1Cxx: Set attack of operator 3 (0 to 1F)";
-      break;
-    case 0x1d:
-      return "1Dxx: Set attack of operator 4 (0 to 1F)";
-      break;
-    case 0x20:
-      return "20xx: Set SSG channel mode (bit 0: square; bit 1: noise; bit 2: envelope)";
-      break;
-    case 0x21:
-      return "21xx: Set SSG noise frequency (0 to 1F)";
-      break;
-    case 0x22:
-      return "22xy: Set SSG envelope mode (x: shape, y: enable for this channel)";
-      break;
-    case 0x23:
-      return "23xx: Set SSG envelope period low byte";
-      break;
-    case 0x24:
-      return "24xx: Set SSG envelope period high byte";
-      break;
-    case 0x25:
-      return "25xx: SSG envelope slide up";
-      break;
-    case 0x26:
-      return "26xx: SSG envelope slide down";
-      break;
-    case 0x29:
-      return "29xy: Set SSG auto-envelope (x: numerator; y: denominator)";
-      break;
-    case 0x30:
-      return "30xx: Toggle hard envelope reset on new notes";
-      break;
-    case 0x50:
-      return "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)";
-      break;
-    case 0x51:
-      return "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)";
-      break;
-    case 0x52:
-      return "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)";
-      break;
-    case 0x53:
-      return "53xy: Set detune (x: operator from 1 to 4 (0 for all ops); y: detune where 3 is center)";
-      break;
-    case 0x54:
-      return "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale from 0 to 3)";
-      break;
-    case 0x55:
-      return "55xy: Set SSG envelope (x: operator from 1 to 4 (0 for all ops); y: 0-7 on, 8 off)";
-      break;
-    case 0x56:
-      return "56xx: Set decay of all operators (0 to 1F)";
-      break;
-    case 0x57:
-      return "57xx: Set decay of operator 1 (0 to 1F)";
-      break;
-    case 0x58:
-      return "58xx: Set decay of operator 2 (0 to 1F)";
-      break;
-    case 0x59:
-      return "59xx: Set decay of operator 3 (0 to 1F)";
-      break;
-    case 0x5a:
-      return "5Axx: Set decay of operator 4 (0 to 1F)";
-      break;
-    case 0x5b:
-      return "5Bxx: Set decay 2 of all operators (0 to 1F)";
-      break;
-    case 0x5c:
-      return "5Cxx: Set decay 2 of operator 1 (0 to 1F)";
-      break;
-    case 0x5d:
-      return "5Dxx: Set decay 2 of operator 2 (0 to 1F)";
-      break;
-    case 0x5e:
-      return "5Exx: Set decay 2 of operator 3 (0 to 1F)";
-      break;
-    case 0x5f:
-      return "5Fxx: Set decay 2 of operator 4 (0 to 1F)";
-      break;
-  }
-  return NULL;
-}
-
 double DivPlatformYM2610::NOTE_OPNB(int ch, int note) {
   if (ch>6) { // ADPCM
     return NOTE_ADPCMB(note);
@@ -494,7 +363,7 @@ void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t l
         fm->write(0x0+((w.addr>>8)<<1),w.addr);
         fm->write(0x1+((w.addr>>8)<<1),w.val);
         regPool[w.addr&0x1ff]=w.val;
-        writes.pop();
+        writes.pop_front();
         delay=4;
       }
     }
@@ -558,18 +427,9 @@ void DivPlatformYM2610::tick(bool sysTick) {
 
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].std.arp.val,11);
-        } else {
-          chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].note+(signed char)chan[i].std.arp.val,11);
-        }
+        chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11);
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].note,11);
-        chan[i].freqChanged=true;
-      }
     }
 
     if (chan[i].std.panL.had) {
@@ -621,6 +481,10 @@ void DivPlatformYM2610::tick(bool sysTick) {
     if (chan[i].std.ams.had) {
       chan[i].state.ams=chan[i].std.ams.val;
       rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
+    }
+    if (chan[i].std.ex4.had && chan[i].active) {
+      chan[i].opMask=chan[i].std.ex4.val&15;
+      chan[i].opMaskChanged=true;
     }
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
@@ -711,18 +575,9 @@ void DivPlatformYM2610::tick(bool sysTick) {
 
     if (chan[13].std.arp.had) {
       if (!chan[13].inPorta) {
-        if (chan[13].std.arp.mode) {
-          chan[13].baseFreq=NOTE_ADPCMB(chan[13].std.arp.val);
-        } else {
-          chan[13].baseFreq=NOTE_ADPCMB(chan[13].note+(signed char)chan[13].std.arp.val);
-        }
+        chan[13].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[13].note,chan[13].std.arp.val));
       }
       chan[13].freqChanged=true;
-    } else {
-      if (chan[13].std.arp.mode && chan[13].std.arp.finished) {
-        chan[13].baseFreq=NOTE_ADPCMB(chan[13].note);
-        chan[13].freqChanged=true;
-      }
     }
   }
   if (chan[13].freqChanged) {
@@ -767,8 +622,9 @@ void DivPlatformYM2610::tick(bool sysTick) {
       immWrite(chanOffs[i]+ADDR_FREQ,chan[i].freq&0xff);
       chan[i].freqChanged=false;
     }
-    if (chan[i].keyOn) {
-      immWrite(0x28,0xf0|konOffs[i]);
+    if (chan[i].keyOn || chan[i].opMaskChanged) {
+      immWrite(0x28,(chan[i].opMask<<4)|konOffs[i]);
+      chan[i].opMaskChanged=false;
       chan[i].keyOn=false;
     }
   }
@@ -804,7 +660,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
             immWrite(0x14,(end>>8)&0xff);
             immWrite(0x15,end>>16);
             immWrite(0x11,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
-            immWrite(0x10,(s->loopStart>=0)?0x90:0x80); // start/repeat
+            immWrite(0x10,(s->isLoopable())?0x90:0x80); // start/repeat
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
               chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
@@ -839,7 +695,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
           immWrite(0x14,(end>>8)&0xff);
           immWrite(0x15,end>>16);
           immWrite(0x11,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
-          immWrite(0x10,(s->loopStart>=0)?0x90:0x80); // start/repeat
+          immWrite(0x10,(s->isLoopable())?0x90:0x80); // start/repeat
           int freq=(65536.0*(double)s->rate)/((double)chipClock/144.0);
           immWrite(0x19,freq&0xff);
           immWrite(0x1a,(freq>>8)&0xff);
@@ -876,6 +732,11 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
 
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->fm;
+        chan[c.chan].opMask=
+          (chan[c.chan].state.op[0].enable?1:0)|
+          (chan[c.chan].state.op[2].enable?2:0)|
+          (chan[c.chan].state.op[1].enable?4:0)|
+          (chan[c.chan].state.op[3].enable?8:0);
       }
       
       for (int i=0; i<4; i++) {
@@ -1041,6 +902,13 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       if (c.chan==13 && !chan[c.chan].furnacePCM) break;
       chan[c.chan].baseFreq=NOTE_OPNB(c.chan,c.value);
       chan[c.chan].freqChanged=true;
+      break;
+    }
+    case DIV_CMD_FM_EXTCH: {
+      if (extSys) {
+        extMode=c.value;
+        immWrite(0x27,extMode?0x40:0);
+      }
       break;
     }
     case DIV_CMD_FM_LFO: {
@@ -1330,7 +1198,7 @@ void DivPlatformYM2610::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformYM2610::reset() {
-  while (!writes.empty()) writes.pop();
+  while (!writes.empty()) writes.pop_front();
   memset(regPool,0,512);
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -1402,6 +1270,22 @@ void DivPlatformYM2610::setSkipRegisterWrites(bool value) {
   ay->setSkipRegisterWrites(value);
 }
 
+void DivPlatformYM2610::setFlags(unsigned int flags) {
+  switch (flags&0xff) {
+    default:
+    case 0x00:
+      chipClock=8000000.0;
+      break;
+    case 0x01:
+      chipClock=24167829/3;
+      break;
+  }
+  rate=chipClock/16;
+  for (int i=0; i<14; i++) {
+    oscBuf[i]->rate=rate;
+  }
+}
+
 int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   DivPlatformYM2610Base::init(p, channels, sugRate, flags);
   dumpWrites=false;
@@ -1410,15 +1294,11 @@ int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, unsigned in
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  chipClock=8000000;
-  rate=chipClock/16;
-  for (int i=0; i<14; i++) {
-    oscBuf[i]->rate=rate;
-  }
   fm=new ymfm::ym2610(iface);
+  setFlags(flags);
   // YM2149, 2MHz
-  ay=new DivPlatformAY8910;
-  ay->init(p,3,sugRate,19);
+  ay=new DivPlatformAY8910(true,chipClock,32);
+  ay->init(p,3,sugRate,16);
   ay->toggleRegisterDump(true);
   reset();
   return 14;

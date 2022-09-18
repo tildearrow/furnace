@@ -43,10 +43,6 @@ const char** DivPlatformRF5C68::getRegisterSheet() {
   return regCheatSheetRF5C68;
 }
 
-const char* DivPlatformRF5C68::getEffectName(unsigned char effect) {
-  return NULL;
-}
-
 void DivPlatformRF5C68::chWrite(unsigned char ch, unsigned int addr, unsigned char val) {
   if (!skipRegisterWrites) {
     if (curChan!=ch) {
@@ -88,18 +84,9 @@ void DivPlatformRF5C68::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -120,7 +107,7 @@ void DivPlatformRF5C68::tick(bool sysTick) {
       chan[i].panning|=(chan[i].std.panR.val&15)<<4;
     }
     if (chan[i].std.panL.had || chan[i].std.panR.had) {
-      chWrite(i,0x05,isMuted[i]?0:chan[i].panning);
+      chWrite(i,1,isMuted[i]?0:chan[i].panning);
     }
     if (chan[i].setPos) {
       // force keyon
@@ -142,7 +129,7 @@ void DivPlatformRF5C68::tick(bool sysTick) {
         if (chan[i].audPos>0) {
           start=start+MIN(chan[i].audPos,s->length8);
         }
-        if (s->loopStart>=0) {
+        if (s->isLoopable()) {
           loop=start+s->loopStart;
         }
         start=MIN(start,getSampleMemCapacity()-31);
@@ -265,6 +252,7 @@ int DivPlatformRF5C68::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS:
@@ -392,7 +380,7 @@ void DivPlatformRF5C68::renderSamples() {
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
-    int length=s->length8;
+    int length=s->getEndPosition(DIV_SAMPLE_DEPTH_8BIT);
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-31,length);
     if (actualLength>0) {
       s->offRF5C68=memPos;

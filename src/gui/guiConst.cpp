@@ -97,7 +97,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   "FM (OPL)",
   "FDS",
   "Virtual Boy",
-  "Namco C163",
+  "Namco 163",
   "Konami SCC/Bubble System WSG",
   "FM (OPZ)",
   "POKEY",
@@ -116,7 +116,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   NULL
 };
 
-const char* sampleDepths[17]={
+const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "1-bit PCM",
   "1-bit DPCM",
   NULL,
@@ -487,11 +487,13 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_PIANO", "Piano", 0),
   D("WINDOW_NOTES", "Song Comments", 0),
   D("WINDOW_CHANNELS", "Channels", 0),
+  D("WINDOW_PAT_MANAGER", "Pattern Manager", 0),
+  D("WINDOW_SYS_MANAGER", "Chip Manager", 0),
   D("WINDOW_REGISTER_VIEW", "Register View", 0),
   D("WINDOW_LOG", "Log Viewer", 0),
-  D("WINDOW_SUBSONGS", "Subsongs", 0),
   D("EFFECT_LIST", "Effect List", 0),
   D("WINDOW_CHAN_OSC", "Oscilloscope (per-channel)", 0),
+  D("WINDOW_SUBSONGS", "Subsongs", 0),
   D("WINDOW_FIND", "Find/Replace", FURKMOD_CMD|SDLK_f),
 
   D("COLLAPSE_WINDOW", "Collapse/expand current window", 0),
@@ -569,6 +571,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("INS_LIST_OPEN", "Open", 0),
   D("INS_LIST_OPEN_REPLACE", "Open (replace current)", 0),
   D("INS_LIST_SAVE", "Save", 0),
+  D("INS_LIST_SAVE_DMP", "Save (.dmp)", 0),
   D("INS_LIST_MOVE_UP", "Move up", FURKMOD_SHIFT|SDLK_UP),
   D("INS_LIST_MOVE_DOWN", "Move down", FURKMOD_SHIFT|SDLK_DOWN),
   D("INS_LIST_DELETE", "Delete", 0),
@@ -581,7 +584,10 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WAVE_LIST_ADD", "Add", SDLK_INSERT),
   D("WAVE_LIST_DUPLICATE", "Duplicate", FURKMOD_CMD|SDLK_d),
   D("WAVE_LIST_OPEN", "Open", 0),
+  D("WAVE_LIST_OPEN_REPLACE", "Open (replace current)", 0),
   D("WAVE_LIST_SAVE", "Save", 0),
+  D("WAVE_LIST_SAVE_DMW", "Save (.dmw)", 0),
+  D("WAVE_LIST_SAVE_RAW", "Save (raw)", 0),
   D("WAVE_LIST_MOVE_UP", "Move up", FURKMOD_SHIFT|SDLK_UP),
   D("WAVE_LIST_MOVE_DOWN", "Move down", FURKMOD_SHIFT|SDLK_DOWN),
   D("WAVE_LIST_DELETE", "Delete", 0),
@@ -594,6 +600,9 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_LIST_ADD", "Add", SDLK_INSERT),
   D("SAMPLE_LIST_DUPLICATE", "Duplicate", FURKMOD_CMD|SDLK_d),
   D("SAMPLE_LIST_OPEN", "Open", 0),
+  D("SAMPLE_LIST_OPEN_REPLACE", "Open (replace current)", 0),
+  D("SAMPLE_LIST_OPEN_RAW", "Import raw data", 0),
+  D("SAMPLE_LIST_OPEN_REPLACE_RAW", "Import raw data (replace current)", 0),
   D("SAMPLE_LIST_SAVE", "Save", 0),
   D("SAMPLE_LIST_MOVE_UP", "Move up", FURKMOD_SHIFT|SDLK_UP),
   D("SAMPLE_LIST_MOVE_DOWN", "Move down", FURKMOD_SHIFT|SDLK_DOWN),
@@ -635,6 +644,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_ZOOM_AUTO", "Toggle auto-zoom", FURKMOD_CMD|SDLK_0),
   D("SAMPLE_MAKE_INS", "Create instrument from sample", 0),
   D("SAMPLE_SET_LOOP", "Set loop to selection", FURKMOD_CMD|SDLK_l),
+  D("SAMPLE_CREATE_WAVE", "Create wavetable from selection", FURKMOD_CMD|SDLK_w),
   D("SAMPLE_MAX", "", NOT_AN_ACTION),
 
   D("ORDERS_MIN", "---Orders", NOT_AN_ACTION),
@@ -764,6 +774,8 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_OPL_DRUMS,"",ImVec4(0.3f,1.0f,0.9f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
+  D(GUI_COLOR_CHANNEL_BG,"",ImVec4(0.4f,0.6f,0.8f,1.0f)),
+  D(GUI_COLOR_CHANNEL_FG,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
   D(GUI_COLOR_CHANNEL_FM,"",ImVec4(0.2f,0.8f,1.0f,1.0f)),
   D(GUI_COLOR_CHANNEL_PULSE,"",ImVec4(0.4f,1.0f,0.2f,1.0f)),
   D(GUI_COLOR_CHANNEL_NOISE,"",ImVec4(0.8f,0.8f,0.8f,1.0f)),
@@ -807,6 +819,13 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,"",ImVec4(0.0f,1.0f,0.5f,1.0f)),
   D(GUI_COLOR_PATTERN_EFFECT_MISC,"",ImVec4(0.3f,0.3f,1.0f,1.0f)),
 
+  D(GUI_COLOR_PAT_MANAGER_NULL,"",ImVec4(0.15f,0.15f,0.15f,1.0f)),
+  D(GUI_COLOR_PAT_MANAGER_USED,"",ImVec4(0.15f,1.0f,0.15f,1.0f)),
+  D(GUI_COLOR_PAT_MANAGER_OVERUSED,"",ImVec4(1.0f,1.0f,0.15f,1.0f)),
+  D(GUI_COLOR_PAT_MANAGER_EXTREMELY_OVERUSED,"",ImVec4(1.0f,0.5f,0.15f,1.0f)),
+  D(GUI_COLOR_PAT_MANAGER_COMBO_BREAKER,"",ImVec4(1.0f,0.15f,1.0f,1.0f)),
+  D(GUI_COLOR_PAT_MANAGER_UNUSED,"",ImVec4(1.0f,0.15f,0.15f,1.0f)),
+
   D(GUI_COLOR_PIANO_BACKGROUND,"",ImVec4(0.0f,0.0f,0.0f,1.0f)),
   D(GUI_COLOR_PIANO_KEY_BOTTOM,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
   D(GUI_COLOR_PIANO_KEY_TOP,"",ImVec4(0.0f,0.0f,0.0f,1.0f)),
@@ -826,7 +845,9 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
 };
 #undef D
 
-// define systems.
+// define chips here
+
+// all chips
 const int availableSystems[]={
   DIV_SYSTEM_YM2612,
   DIV_SYSTEM_YM2612_EXT,
@@ -895,6 +916,119 @@ const int availableSystems[]={
   DIV_SYSTEM_MSM6295,
   DIV_SYSTEM_RF5C68,
   DIV_SYSTEM_SNES,
+  DIV_SYSTEM_PCM_DAC,
   0 // don't remove this last one!
 };
 
+// FM
+const int chipsFM[]={
+  DIV_SYSTEM_YM2612,
+  DIV_SYSTEM_YM2612_EXT,
+  DIV_SYSTEM_YM2612_FRAC,
+  DIV_SYSTEM_YM2612_FRAC_EXT,
+  DIV_SYSTEM_YM2151,
+  DIV_SYSTEM_YM2610,
+  DIV_SYSTEM_YM2610_EXT,
+  DIV_SYSTEM_YM2610_FULL,
+  DIV_SYSTEM_YM2610_FULL_EXT,
+  DIV_SYSTEM_YM2610B,
+  DIV_SYSTEM_YM2610B_EXT,
+  DIV_SYSTEM_YMU759,
+  DIV_SYSTEM_OPN,
+  DIV_SYSTEM_OPN_EXT,
+  DIV_SYSTEM_PC98,
+  DIV_SYSTEM_PC98_EXT,
+  DIV_SYSTEM_OPLL,
+  DIV_SYSTEM_OPLL_DRUMS,
+  DIV_SYSTEM_VRC7,
+  DIV_SYSTEM_OPL,
+  DIV_SYSTEM_OPL_DRUMS,
+  DIV_SYSTEM_Y8950,
+  DIV_SYSTEM_Y8950_DRUMS,
+  DIV_SYSTEM_OPL2,
+  DIV_SYSTEM_OPL2_DRUMS,
+  DIV_SYSTEM_OPL3,
+  DIV_SYSTEM_OPL3_DRUMS,
+  DIV_SYSTEM_OPZ,
+  0 // don't remove this last one!
+};
+
+// square
+const int chipsSquare[]={
+  DIV_SYSTEM_SMS,
+  DIV_SYSTEM_AY8910,
+  DIV_SYSTEM_PCSPKR,
+  DIV_SYSTEM_SAA1099,
+  DIV_SYSTEM_VIC20,
+  0 // don't remove this last one!
+};
+
+// wavetable
+const int chipsWave[]={
+  DIV_SYSTEM_PCE,
+  DIV_SYSTEM_X1_010,
+  DIV_SYSTEM_SWAN,
+  DIV_SYSTEM_BUBSYS_WSG,
+  DIV_SYSTEM_N163,
+  DIV_SYSTEM_FDS,
+  DIV_SYSTEM_SCC,
+  DIV_SYSTEM_SCC_PLUS,
+  DIV_SYSTEM_NAMCO,
+  DIV_SYSTEM_NAMCO_15XX,
+  DIV_SYSTEM_NAMCO_CUS30,
+  0 // don't remove this last one!
+};
+
+// specialized
+const int chipsSpecial[]={
+  DIV_SYSTEM_GB,
+  DIV_SYSTEM_NES,
+  DIV_SYSTEM_C64_8580,
+  DIV_SYSTEM_C64_6581,
+  DIV_SYSTEM_SFX_BEEPER,
+  DIV_SYSTEM_DUMMY,
+  DIV_SYSTEM_SOUND_UNIT,
+  DIV_SYSTEM_TIA,
+  DIV_SYSTEM_AY8930,
+  DIV_SYSTEM_LYNX,
+  DIV_SYSTEM_VERA,
+  DIV_SYSTEM_PET,
+  DIV_SYSTEM_VRC6,
+  DIV_SYSTEM_MMC5,
+  0 // don't remove this last one!
+};
+
+// sample
+const int chipsSample[]={
+  DIV_SYSTEM_SEGAPCM,
+  DIV_SYSTEM_SEGAPCM_COMPAT,
+  DIV_SYSTEM_AMIGA,
+  DIV_SYSTEM_QSOUND,
+  DIV_SYSTEM_X1_010,
+  DIV_SYSTEM_YMZ280B,
+  DIV_SYSTEM_MSM6258,
+  DIV_SYSTEM_MSM6295,
+  DIV_SYSTEM_RF5C68,
+  DIV_SYSTEM_PCM_DAC,
+  0 // don't remove this last one!
+};
+
+const int* chipCategories[]={
+  availableSystems,
+  chipsFM,
+  chipsSquare,
+  chipsWave,
+  chipsSpecial,
+  chipsSample,
+  NULL
+};
+
+const char* chipCategoryNames[]={
+  "All chips",
+  "FM",
+  "Square",
+  "Wavetable",
+  "Special",
+  "Sample",
+  NULL
+};

@@ -39,15 +39,6 @@ const char** DivPlatformVIC20::getRegisterSheet() {
   return regCheatSheetVIC;
 }
 
-const char* DivPlatformVIC20::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformVIC20::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   const unsigned char loadFreq[3] = {0x7e, 0x7d, 0x7b};
   const unsigned char wavePatterns[16] = {
@@ -103,18 +94,9 @@ void DivPlatformVIC20::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.wave.had) {
       if (chan[i].wave!=chan[i].std.wave.val) {
@@ -195,7 +177,7 @@ int DivPlatformVIC20::dispatch(DivCommand c) {
     case DIV_CMD_VOLUME:
       if (chan[c.chan].vol!=c.value) {
         chan[c.chan].vol=c.value;
-        if (!chan[c.chan].std.vol.had) {
+        if (!chan[c.chan].std.vol.has) {
           calcAndWriteOutVol(c.chan,15);
         }
       }
@@ -243,6 +225,7 @@ int DivPlatformVIC20::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VIC));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

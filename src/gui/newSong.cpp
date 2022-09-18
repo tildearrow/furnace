@@ -18,7 +18,8 @@
  */
 
 #include "gui.h"
-#include <imgui.h>
+#include "misc/cpp/imgui_stdlib.h"
+#include <algorithm>
 
 void FurnaceGUI::drawNewSong() {
   bool accepted=false;
@@ -32,39 +33,81 @@ void FurnaceGUI::drawNewSong() {
   avail.y-=ImGui::GetFrameHeightWithSpacing();
 
   if (ImGui::BeginChild("sysPickerC",avail,false,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
-    if (ImGui::BeginTable("sysPicker",2,ImGuiTableFlags_BordersInnerV)) {
-      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0f);
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+    if (ImGui::InputTextWithHint("##SysSearch","Search...",&newSongQuery)) {
+      String lowerCase=newSongQuery;
+      for (char& i: lowerCase) {
+        if (i>='A' && i<='Z') i+='a'-'A';
+      }
+      auto lastItem=std::remove_if(lowerCase.begin(),lowerCase.end(),[](char c) {
+        return (c==' ' || c=='_' || c=='-');
+      });
+      lowerCase.erase(lastItem,lowerCase.end());
+      newSongSearchResults.clear();
+      for (FurnaceGUISysCategory& i: sysCategories) {
+        for (FurnaceGUISysDef& j: i.systems) {
+          String lowerCase1=j.name;
+          for (char& i: lowerCase1) {
+            if (i>='A' && i<='Z') i+='a'-'A';
+          }
+          auto lastItem=std::remove_if(lowerCase1.begin(),lowerCase1.end(),[](char c) {
+            return (c==' ' || c=='_' || c=='-');
+          });
+          lowerCase1.erase(lastItem,lowerCase1.end());
+          if (lowerCase1.find(lowerCase)!=String::npos) {
+            newSongSearchResults.push_back(j);
+          }
+        }
+        std::sort(newSongSearchResults.begin(),newSongSearchResults.end(),[](const FurnaceGUISysDef& a, const FurnaceGUISysDef& b) {
+          return strcmp(a.name,b.name)<0;
+        });
+        auto lastItem=std::unique(newSongSearchResults.begin(),newSongSearchResults.end(),[](const FurnaceGUISysDef& a, const FurnaceGUISysDef& b) {
+          return strcmp(a.name,b.name)==0;
+        });
+        newSongSearchResults.erase(lastItem,newSongSearchResults.end());
+      }
+    }
+    if (ImGui::BeginTable("sysPicker",newSongQuery.empty()?2:1,ImGuiTableFlags_BordersInnerV)) {
+      if (newSongQuery.empty()) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0f);
+      }
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0f);
 
-      ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-      ImGui::TableNextColumn();
-      ImGui::Text("Categories");
-      ImGui::TableNextColumn();
-      ImGui::Text("Systems");
+      if (newSongQuery.empty()) {
+        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+        ImGui::TableNextColumn();
+        ImGui::Text("Categories");
+        ImGui::TableNextColumn();
+        ImGui::Text("Systems");
+      }
 
       ImGui::TableNextRow();
 
       // CATEGORIES
-      ImGui::TableNextColumn();
-      int index=0;
-      for (FurnaceGUISysCategory& i: sysCategories) {
-        if (ImGui::Selectable(i.name,newSongCategory==index,ImGuiSelectableFlags_DontClosePopups)) { \
-          newSongCategory=index;
+      if (newSongQuery.empty()) {
+        ImGui::TableNextColumn();
+        int index=0;
+        for (FurnaceGUISysCategory& i: sysCategories) {
+          if (ImGui::Selectable(i.name,newSongCategory==index,ImGuiSelectableFlags_DontClosePopups)) { \
+            newSongCategory=index;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("%s",i.description);
+          }
+          index++;
         }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("%s",i.description);
-        }
-        index++;
       }
 
       // SYSTEMS
       ImGui::TableNextColumn();
       if (ImGui::BeginTable("Systems",1,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollY)) {
-        for (FurnaceGUISysDef& i: sysCategories[newSongCategory].systems) {
+        std::vector<FurnaceGUISysDef>& category=(newSongQuery.empty())?(sysCategories[newSongCategory].systems):(newSongSearchResults);
+        for (FurnaceGUISysDef& i: category) {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           if (ImGui::Selectable(i.name,false,ImGuiSelectableFlags_DontClosePopups)) {
             nextDesc=i.definition.data();
+            nextDescName=i.name;
             accepted=true;
           }
         }
@@ -97,7 +140,7 @@ void FurnaceGUI::drawNewSong() {
   }
 
   if (accepted) {
-    e->createNew(nextDesc);
+    e->createNew(nextDesc,nextDescName);
     undoHist.clear();
     redoHist.clear();
     curFileName="";

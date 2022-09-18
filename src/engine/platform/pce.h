@@ -28,12 +28,12 @@
 
 class DivPlatformPCE: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, pitch2, note;
+    int freq, baseFreq, pitch, pitch2, note, antiClickPeriodCount, antiClickWavePos;
     int dacPeriod, dacRate;
     unsigned int dacPos;
     int dacSample, ins;
     unsigned char pan;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, furnaceDac;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, furnaceDac, deferredWaveUpdate;
     signed char vol, outVol, wave;
     DivMacroInt std;
     DivWaveSynth ws;
@@ -47,6 +47,8 @@ class DivPlatformPCE: public DivDispatch {
       pitch(0),
       pitch2(0),
       note(0),
+      antiClickPeriodCount(0),
+      antiClickWavePos(0),
       dacPeriod(0),
       dacRate(0),
       dacPos(0),
@@ -62,6 +64,7 @@ class DivPlatformPCE: public DivDispatch {
       noise(false),
       pcm(false),
       furnaceDac(false),
+      deferredWaveUpdate(false),
       vol(31),
       outVol(31),
       wave(-1) {}
@@ -69,6 +72,7 @@ class DivPlatformPCE: public DivDispatch {
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];
   bool isMuted[6];
+  bool antiClickEnabled;
   struct QueuedWrite {
       unsigned char addr;
       unsigned char val;
@@ -105,7 +109,6 @@ class DivPlatformPCE: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformPCE();

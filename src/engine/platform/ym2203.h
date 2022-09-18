@@ -19,9 +19,8 @@
 
 #ifndef _YM2203_H
 #define _YM2203_H
-#include "../dispatch.h"
+#include "fmshared_OPN.h"
 #include "../macroInt.h"
-#include <queue>
 #include "sound/ymfm/ymfm_opn.h"
 
 #include "ay.h"
@@ -30,19 +29,23 @@ class DivYM2203Interface: public ymfm::ymfm_interface {
 
 };
 
-class DivPlatformYM2203: public DivDispatch {
+class DivPlatformYM2203: public DivPlatformOPN {
   protected:
     const unsigned short chanOffs[3]={
       0x00, 0x01, 0x02
+    };
+
+    const unsigned char konOffs[3]={
+      0, 1, 2
     };
 
     struct Channel {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, pitch2, portaPauseFreq, note, ins;
-      unsigned char psgMode, autoEnvNum, autoEnvDen;
+      unsigned char psgMode, autoEnvNum, autoEnvDen, opMask;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset, opMaskChanged;
       int vol, outVol;
       int sample;
       DivMacroInt std;
@@ -63,6 +66,7 @@ class DivPlatformYM2203: public DivDispatch {
         psgMode(1),
         autoEnvNum(0),
         autoEnvDen(0),
+        opMask(15),
         active(false),
         insChanged(true),
         freqChanged(false),
@@ -72,6 +76,7 @@ class DivPlatformYM2203: public DivDispatch {
         inPorta(false),
         furnacePCM(false),
         hardReset(false),
+        opMaskChanged(false),
         vol(0),
         outVol(15),
         sample(-1) {}
@@ -79,29 +84,16 @@ class DivPlatformYM2203: public DivDispatch {
     Channel chan[6];
     DivDispatchOscBuffer* oscBuf[6];
     bool isMuted[6];
-    struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      bool addrOrVal;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
-    };
-    std::queue<QueuedWrite> writes;
     ymfm::ym2203* fm;
     ymfm::ym2203::output_data fmout;
     DivYM2203Interface iface;
-    unsigned char regPool[512];
-    unsigned char lastBusy;
   
     DivPlatformAY8910* ay;
     unsigned char sampleBank;
 
-    int delay;
-
     bool extMode;
+    unsigned char prescale;
   
-    short oldWrites[256];
-    short pendingWrites[256];
-
     friend void putDispatchChan(void*,int,int);
   
   public:
@@ -124,10 +116,12 @@ class DivPlatformYM2203: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     void setFlags(unsigned int flags);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformYM2203():
+      DivPlatformOPN(4720270.0, 36, 16),
+      prescale(0x2d) {}
     ~DivPlatformYM2203();
 };
 #endif

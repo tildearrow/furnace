@@ -130,7 +130,7 @@ static void YMPSG_ClockInternal1(ympsg_t *chip)
     else if (noise_of && !chip->noise_of)
     {
         noise_bit1 = (chip->noise >> chip->noise_tap2) & 1;
-        noise_bit2 = (chip->noise >> 12) & 1;
+        noise_bit2 = (chip->noise >> chip->noise_tap1) & 1;
         noise_bit1 ^= noise_bit2;
         noise_next = ((noise_bit1 && ((chip->noise_data >> 2) & 1)) || ((chip->noise & chip->noise_size) == 0));
         chip->noise <<= 1;
@@ -245,6 +245,11 @@ void YMPSG_Write(ympsg_t *chip, uint8_t data)
     chip->write_flag = 1;
 }
 
+void YMPSG_WriteStereo(ympsg_t *chip, uint8_t data)
+{
+    chip->stereo = data;
+}
+
 uint16_t YMPSG_Read(ympsg_t *chip)
 {
     uint16_t data = 0;
@@ -257,13 +262,15 @@ uint16_t YMPSG_Read(ympsg_t *chip)
     return data;
 }
 
-void YMPSG_Init(ympsg_t *chip, uint8_t real_sn)
+void YMPSG_Init(ympsg_t *chip, uint8_t real_sn, uint8_t noise_tap1, uint8_t noise_tap2, uint32_t noise_size)
 {
     uint32_t i;
     memset(chip, 0, sizeof(ympsg_t));
     YMPSG_SetIC(chip, 1);
-    chip->noise_tap2 = real_sn ? 13 : 15;
-    chip->noise_size = real_sn ? 16383 : 32767;
+    chip->noise_tap1 = noise_tap1;
+    chip->noise_tap2 = noise_tap2;
+    chip->noise_size = noise_size;
+    chip->stereo = 0xff;
     for (i = 0; i < 17; i++)
     {
       chip->vol_table[i]=(real_sn?tipsg_vol[i]:ympsg_vol[i]) * 8192.0f;
@@ -315,32 +322,62 @@ void YMPSG_Clock(ympsg_t *chip)
     }
 }
 
-int YMPSG_GetOutput(ympsg_t *chip)
+void YMPSG_GetOutput(ympsg_t *chip, int* left, int* right)
 {
-    int sample = 0;
+    int sample_left = 0;
+    int sample_right = 0;
     uint32_t i;
     YMPSG_UpdateSample(chip);
     if (chip->test & 1)
     {
-        sample += chip->vol_table[chip->volume_out[chip->test >> 1]];
-        sample += chip->vol_table[16] * 3;
+        sample_left += chip->vol_table[chip->volume_out[chip->test >> 1]];
+        sample_left += chip->vol_table[16] * 3;
+        sample_right += chip->vol_table[chip->volume_out[chip->test >> 1]];
+        sample_right += chip->vol_table[16] * 3;
     }
     else if (!chip->mute)
     {
-        sample += chip->vol_table[chip->volume_out[0]];
-        sample += chip->vol_table[chip->volume_out[1]];
-        sample += chip->vol_table[chip->volume_out[2]];
-        sample += chip->vol_table[chip->volume_out[3]];
+      if (chip->stereo&(0x10)) {
+        sample_left += chip->vol_table[chip->volume_out[0]];
+      }
+      if (chip->stereo&(0x01)) {
+        sample_right += chip->vol_table[chip->volume_out[0]];
+      }
+      if (chip->stereo&(0x20)) {
+        sample_left += chip->vol_table[chip->volume_out[1]];
+      }
+      if (chip->stereo&(0x02)) {
+        sample_right += chip->vol_table[chip->volume_out[1]];
+      }
+      if (chip->stereo&(0x40)) {
+        sample_left += chip->vol_table[chip->volume_out[2]];
+      }
+      if (chip->stereo&(0x04)) {
+        sample_right += chip->vol_table[chip->volume_out[2]];
+      }
+      if (chip->stereo&(0x80)) {
+        sample_left += chip->vol_table[chip->volume_out[3]];
+      }
+      if (chip->stereo&(0x08)) {
+        sample_right += chip->vol_table[chip->volume_out[3]];
+      }
     }
     else
     {
         for (i = 0; i < 4; i++)
         {
-            if (!((chip->mute>>i) & 1))
-                sample += chip->vol_table[chip->volume_out[i]];
+            if (!((chip->mute>>i) & 1)) {
+              if (chip->stereo&(0x10<<i)) {
+                sample_left += chip->vol_table[chip->volume_out[i]];
+              }
+              if (chip->stereo&(0x01<<i)) {
+                sample_right += chip->vol_table[chip->volume_out[i]];
+              }
+            }
         }
     }
-    return sample;
+  *left=sample_left;
+  *right=sample_right;
 }
 
 void YMPSG_Test(ympsg_t *chip, uint16_t test)
@@ -348,7 +385,7 @@ void YMPSG_Test(ympsg_t *chip, uint16_t test)
     chip->test = (test >> 9) & 7;
 }
 
-
+/*
 void YMPSG_Generate(ympsg_t *chip, int32_t *buf)
 {
     uint32_t i;
@@ -372,7 +409,7 @@ void YMPSG_Generate(ympsg_t *chip, int32_t *buf)
     }
     out = YMPSG_GetOutput(chip);
     *buf = (int32_t)(out * 8192.f);
-}
+}*/
 
 void YMPSG_WriteBuffered(ympsg_t *chip, uint8_t data)
 {

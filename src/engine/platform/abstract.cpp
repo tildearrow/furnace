@@ -90,8 +90,8 @@ bool DivDispatch::getDCOffRequired() {
   return false;
 }
 
-const char* DivDispatch::getEffectName(unsigned char effect) {
-  return NULL;
+bool DivDispatch::getWantPreNote() {
+  return false;
 }
 
 void DivDispatch::setFlags(unsigned int flags) {

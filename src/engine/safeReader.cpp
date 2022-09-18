@@ -77,12 +77,92 @@ signed char SafeReader::readC() {
   return (signed char)buf[curSeek++];
 }
 
+#ifdef TA_BIG_ENDIAN
+short SafeReader::readS_BE() {
+#ifdef READ_DEBUG
+  logD("SR: reading short %x:",curSeek);
+#endif
+  if (curSeek+2>len) throw EndOfFileException(this,len);
+  short ret;
+  memcpy(&ret,&buf[curSeek],2);
+#ifdef READ_DEBUG
+  logD("SR: %.4x",ret);
+#endif
+  curSeek+=2;
+  return ret;
+}
+
+short SafeReader::readS() {
+  if (curSeek+2>len) throw EndOfFileException(this,len);
+  short ret;
+  memcpy(&ret,&buf[curSeek],2);
+  curSeek+=2;
+  return ((ret>>8)&0xff)|(ret<<8);
+}
+
+int SafeReader::readI_BE() {
+#ifdef READ_DEBUG
+  logD("SR: reading int %x:",curSeek);
+#endif
+  if (curSeek+4>len) throw EndOfFileException(this,len);
+  int ret;
+  memcpy(&ret,&buf[curSeek],4);
+  curSeek+=4;
+#ifdef READ_DEBUG
+  logD("SR: %.8x",ret);
+#endif
+  return ret;
+}
+
+int SafeReader::readI() {
+  if (curSeek+4>len) throw EndOfFileException(this,len);
+  unsigned int ret;
+  memcpy(&ret,&buf[curSeek],4);
+  curSeek+=4;
+  return (int)((ret>>24)|((ret&0xff0000)>>8)|((ret&0xff00)<<8)|((ret&0xff)<<24));
+}
+
+int64_t SafeReader::readL() {
+  if (curSeek+8>len) throw EndOfFileException(this,len);
+  unsigned char ret[8];
+  memcpy(ret,&buf[curSeek],8);
+  curSeek+=8;
+  return (int64_t)(ret[0]|(ret[1]<<8)|(ret[2]<<16)|(ret[3]<<24)|((uint64_t)ret[4]<<32)|((uint64_t)ret[5]<<40)|((uint64_t)ret[6]<<48)|((uint64_t)ret[7]<<56));
+}
+
+float SafeReader::readF() {
+  if (curSeek+4>len) throw EndOfFileException(this,len);
+  unsigned int ret;
+  memcpy(&ret,&buf[curSeek],4);
+  curSeek+=4;
+  ret=((ret>>24)|((ret&0xff0000)>>8)|((ret&0xff00)<<8)|((ret&0xff)<<24));
+  return *((float*)(&ret));
+}
+
+double SafeReader::readD() {
+  if (curSeek+8>len) throw EndOfFileException(this,len);
+  unsigned char ret[8];
+  unsigned char retB[8];
+  memcpy(ret,&buf[curSeek],8);
+  curSeek+=8;
+  retB[0]=ret[7];
+  retB[1]=ret[6];
+  retB[2]=ret[5];
+  retB[3]=ret[4];
+  retB[4]=ret[3];
+  retB[5]=ret[2];
+  retB[6]=ret[1];
+  retB[7]=ret[0];
+  return *((double*)retB);
+}
+#else
 short SafeReader::readS() {
 #ifdef READ_DEBUG
   logD("SR: reading short %x:",curSeek);
 #endif
   if (curSeek+2>len) throw EndOfFileException(this,len);
-  short ret=*(short*)(&buf[curSeek]);
+  short ret;
+  memcpy(&ret,&buf[curSeek],2);
 #ifdef READ_DEBUG
   logD("SR: %.4x",ret);
 #endif
@@ -92,7 +172,8 @@ short SafeReader::readS() {
 
 short SafeReader::readS_BE() {
   if (curSeek+2>len) throw EndOfFileException(this,len);
-  short ret=*(short*)(&buf[curSeek]);
+  short ret;
+  memcpy(&ret,&buf[curSeek],2);
   curSeek+=2;
   return ((ret>>8)&0xff)|(ret<<8);
 }
@@ -102,7 +183,8 @@ int SafeReader::readI() {
   logD("SR: reading int %x:",curSeek);
 #endif
   if (curSeek+4>len) throw EndOfFileException(this,len);
-  int ret=*(int*)(&buf[curSeek]);
+  int ret;
+  memcpy(&ret,&buf[curSeek],4);
   curSeek+=4;
 #ifdef READ_DEBUG
   logD("SR: %.8x",ret);
@@ -112,31 +194,36 @@ int SafeReader::readI() {
 
 int SafeReader::readI_BE() {
   if (curSeek+4>len) throw EndOfFileException(this,len);
-  unsigned int ret=*(unsigned int*)(&buf[curSeek]);
+  unsigned int ret;
+  memcpy(&ret,&buf[curSeek],4);
   curSeek+=4;
   return (int)((ret>>24)|((ret&0xff0000)>>8)|((ret&0xff00)<<8)|((ret&0xff)<<24));
 }
 
 int64_t SafeReader::readL() {
   if (curSeek+8>len) throw EndOfFileException(this,len);
-  int64_t ret=*(int64_t*)(&buf[curSeek]);
+  int64_t ret;
+  memcpy(&ret,&buf[curSeek],8);
   curSeek+=8;
   return ret;
 }
 
 float SafeReader::readF() {
   if (curSeek+4>len) throw EndOfFileException(this,len);
-  float ret=*(float*)(&buf[curSeek]);
+  float ret;
+  memcpy(&ret,&buf[curSeek],4);
   curSeek+=4;
   return ret;
 }
 
 double SafeReader::readD() {
   if (curSeek+8>len) throw EndOfFileException(this,len);
-  double ret=*(double*)(&buf[curSeek]);
+  double ret;
+  memcpy(&ret,&buf[curSeek],8);
   curSeek+=8;
   return ret;
 }
+#endif
 
 String SafeReader::readString(size_t stlen) {
   String ret;

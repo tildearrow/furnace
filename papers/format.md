@@ -25,10 +25,28 @@ the format has changed several times across versions. a `(>=VER)` indicates this
 
 furthermore, an `or reserved` indicates this field is always present, but is reserved when the version condition is not met.
 
+the `size of this block` fields represent the size of a block excluding the ID and the aforementioned field.
+these fields are 0 in format versions prior to 100 (0.6pre1).
+
 # format versions
 
 the format versions are:
 
+- 114: Furnace dev114
+- 113: Furnace dev113
+- 112: Furnace dev112
+- 111: Furnace dev111
+- 110: Furnace dev110
+- 109: Furnace dev109
+- 108: Furnace dev108
+- 107: Furnace dev107
+- 106: Furnace dev106
+- 105: Furnace dev105
+- 104: Furnace dev104
+- 103: Furnace dev103
+- 102: Furnace 0.6pre1 (dev102)
+- 101: Furnace 0.6pre1 (dev101)
+- 100: Furnace 0.6pre1
 - 99: Furnace dev99
 - 98: Furnace dev98
 - 97: Furnace dev97
@@ -130,7 +148,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "INFO" block ID
-  4  | reserved
+  4  | size of this block
   1  | time base (of first song)
   1  | speed 1 (of first song)
   1  | speed 2 (of first song)
@@ -231,6 +249,14 @@ size | description
      |   - 0xbc: reserved - 8 channels
      |   - 0xbd: YM2612 extra features extended - 11 channels
      |   - 0xbe: YM2612 extra features - 7 channels
+     |   - 0xbf: T6W28 - 4 channels
+     |   - 0xc0: PCM DAC - 1 channel
+     |   - 0xc1: YM2612 CSM - 10 channels
+     |   - 0xc2: Neo Geo CSM (YM2610) - 18 channels
+     |   - 0xc3: OPN CSM - 10 channels
+     |   - 0xc4: PC-98 CSM - 20 channels
+     |   - 0xc5: YM2610B CSM - 20 channels
+     |   - 0xc6: MSM5232 - 8 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfd: Dummy System - 8 channels
@@ -248,7 +274,7 @@ size | description
   4f | A-4 tuning
   1  | limit slides (>=36) or reserved
   1  | linear pitch (>=36) or reserved
-     | - 0: non-linaer
+     | - 0: non-linear
      | - 1: only pitch change (04xy/E5xx) linear
      | - 2: full linear (>=94)
   1  | loop modality (>=36) or reserved
@@ -300,7 +326,7 @@ size | description
   1  | new ins affects envelope (Game Boy) (>=72) or reserved
   1  | ExtCh channel state is shared (>=78) or reserved
   1  | ignore DAC mode change outside of intended channel (>=83) or reserved
-  1  | E1xx and E2xx also take priority over Slide00 (>=83) or reserved
+  1  | E1xy and E2xy also take priority over Slide00 (>=83) or reserved
   1  | new Sega PCM (with macros and proper vol/pan) (>=84) or reserved
   1  | weird f-num/block-based chip pitch slides (>=85) or reserved
   1  | SN duty macro always resets phase (>=86) or reserved
@@ -311,7 +337,12 @@ size | description
   1  | new volume scaling strategy (>=99) or reserved
   1  | volume macro still applies after end (>=99) or reserved
   1  | broken outVol (>=99) or reserved
-  9  | reserved
+  1  | E1xy and E2xy stop on same note (>=100) or reserved
+  1  | broken initial position of porta after arp (>=101) or reserved
+  1  | SN periods under 8 are treated as 1 (>=108) or reserved
+  1  | cut/delay effect policy (>=110) or reserved
+  1  | 0B/0D effect treatment (>=113) or reserved
+  4  | reserved
  --- | **virtual tempo data**
   2  | virtual tempo numerator of first song (>=96) or reserved
   2  | virtual tempo denominator of first song (>=96) or reserved
@@ -321,6 +352,13 @@ size | description
   1  | number of additional subsongs
   3  | reserved
  4?? | pointers to subsong data
+ --- | **additional metadata** (>=103)
+ STR | system name
+ STR | album/category/game name
+ STR | song name (Japanese)
+ STR | song author (Japanese)
+ STR | system name (Japanese)
+ STR | album/category/game name (Japanese)
 ```
 
 # subsong
@@ -332,7 +370,7 @@ the way it's currently done is really weird, but it provides for some backwards 
 size | description
 -----|------------------------------------
   4  | "SONG" block ID
-  4  | reserved
+  4  | size of this block
   1  | time base
   1  | speed 1
   1  | speed 2
@@ -386,7 +424,7 @@ notes:
 size | description
 -----|------------------------------------
   4  | "INST" block ID
-  4  | reserved
+  4  | size of this block
   2  | format version (see header)
   1  | instrument type
      | - 0: standard
@@ -421,6 +459,7 @@ size | description
      | - 29: SNES
      | - 30: Sound Unit
      | - 31: Namco WSG
+     | - 32: OPL (drums)
   1  | reserved
  STR | instrument name
  --- | **FM instrument data**
@@ -459,7 +498,8 @@ size | description
   1  | vib
   1  | ws
   1  | ksr
- 12  | reserved
+  1  | operator enabled (>=114) or reserved
+ 11  | reserved
  --- | **Game Boy instrument data**
   1  | volume
   1  | direction
@@ -512,7 +552,18 @@ size | description
   4  | extra 1 macro loop (>=17)
   4  | extra 2 macro loop (>=17)
   4  | extra 3 macro loop (>=17)
-  1  | arp macro mode
+  1  | arp macro mode (<112) or reserved
+     | - treat this value in a special way.
+     | - before version 112, this byte indicates whether the arp macro mode is fixed or not.
+     | - from that version onwards, the fixed mode is part of the macro values.
+     | - to convert a <112 macro mode to a modern one, do the following:
+     |   - is the macro mode set to fixed?
+     |     - if yes, then:
+     |       - set bit 30 of all arp macro values (this is the fixed mode bit)
+     |       - does the macro loop?
+     |         - if yes, then do nothing else
+     |         - if no, then add one to the macro length, and set the last macro value to 0
+     |     - if no, then do nothing
   1  | reserved (>=17) or volume macro height (>=15) or reserved
   1  | reserved (>=17) or duty macro height (>=15) or reserved
   1  | reserved (>=17) or wave macro height (>=15) or reserved
@@ -520,6 +571,7 @@ size | description
      | - before version 87, if this is the C64 relative cutoff macro, its values were stored offset by 18.
  4?? | arp macro
      | - before version 31, this macro's values were stored offset by 12.
+     | - from version 112 onward, bit 30 of a value indicates fixed mode.
  4?? | duty macro
      | - before version 87, if this is the C64 relative duty macro, its values were stored offset by 12.
  4?? | wave macro
@@ -787,6 +839,148 @@ size | description
   1  | vib depth
   1  | am depth
  23  | reserved
+ --- | **Sound Unit data** (>=104)
+  1  | use sample
+  1  | switch roles of phase reset timer and frequency
+ --- | **Game Boy envelope sequence** (>=105)
+  1  | length
+ ??? | hardware sequence data
+     | size is length*3:
+     | 1 byte: command
+     | - 0: set envelope
+     | - 1: set sweep
+     | - 2: wait
+     | - 3: wait for release
+     | - 4: loop
+     | - 5: loop until release
+     | 2 bytes: data
+     | - for set envelope:
+     |   - 1 byte: parameter
+     |     - bit 4-7: volume
+     |     - bit 3: direction
+     |     - bit 0-2: length
+     |   - 1 byte: sound length
+     | - for set sweep:
+     |   - 1 byte: parameter
+     |     - bit 4-6: length
+     |     - bit 3: direction
+     |     - bit 0-2: shift
+     |   - 1 byte: nothing
+     | - for wait:
+     |   - 1 byte: length (in ticks)
+     |   - 1 byte: nothing
+     | - for wait for release:
+     |   - 2 bytes: nothing
+     | - for loop/loop until release:
+     |   - 2 bytes: position
+ --- | **Game Boy extra flags** (>=106)
+  1  | use software envelope
+  1  | always init hard env on new note
+ --- | **ES5506 data** (>=107)
+  1  | filter mode
+     | - 0: HPK2_HPK2
+     | - 1: HPK2_LPK1
+     | - 2: LPK2_LPK2
+     | - 3: LPK2_LPK1
+  2  | K1
+  2  | K2
+  2  | envelope count
+  1  | left volume ramp
+  1  | right volume ramp
+  1  | K1 ramp
+  1  | K2 ramp
+  1  | K1 slow
+  1  | K2 slow
+ --- | **SNES data** (>=109)
+  1  | use envelope
+  1  | gain mode
+  1  | gain
+  1  | attack
+  1  | decay
+  1  | sustain
+  1  | release
+ --- | **macro speeds/delays** (>=111)
+  1  | volume macro speed
+  1  | arp macro speed
+  1  | duty macro speed
+  1  | wave macro speed
+  1  | pitch macro speed
+  1  | extra 1 macro speed
+  1  | extra 2 macro speed
+  1  | extra 3 macro speed
+  1  | alg macro speed
+  1  | fb macro speed
+  1  | fms macro speed
+  1  | ams macro speed
+  1  | left panning macro speed
+  1  | right panning macro speed
+  1  | phase reset macro speed
+  1  | extra 4 macro speed
+  1  | extra 5 macro speed
+  1  | extra 6 macro speed
+  1  | extra 7 macro speed
+  1  | extra 8 macro speed
+  1  | volume macro delay
+  1  | arp macro delay
+  1  | duty macro delay
+  1  | wave macro delay
+  1  | pitch macro delay
+  1  | extra 1 macro delay
+  1  | extra 2 macro delay
+  1  | extra 3 macro delay
+  1  | alg macro delay
+  1  | fb macro delay
+  1  | fms macro delay
+  1  | ams macro delay
+  1  | left panning macro delay
+  1  | right panning macro delay
+  1  | phase reset macro delay
+  1  | extra 4 macro delay
+  1  | extra 5 macro delay
+  1  | extra 6 macro delay
+  1  | extra 7 macro delay
+  1  | extra 8 macro delay
+ --- | **operator macro speeds/delay** × 4 (>=111)
+  1  | AM macro speed
+  1  | AR macro speed
+  1  | DR macro speed
+  1  | MULT macro speed
+  1  | RR macro speed
+  1  | SL macro speed
+  1  | TL macro speed
+  1  | DT2 macro speed
+  1  | RS macro speed
+  1  | DT macro speed
+  1  | D2R macro speed
+  1  | SSG-EG macro speed
+  1  | DAM macro speed
+  1  | DVB macro speed
+  1  | EGT macro speed
+  1  | KSL macro speed
+  1  | SUS macro speed
+  1  | VIB macro speed
+  1  | WS macro speed
+  1  | KSR macro speed
+  1  | AM macro delay
+  1  | AR macro delay
+  1  | DR macro delay
+  1  | MULT macro delay
+  1  | RR macro delay
+  1  | SL macro delay
+  1  | TL macro delay
+  1  | DT2 macro delay
+  1  | RS macro delay
+  1  | DT macro delay
+  1  | D2R macro delay
+  1  | SSG-EG macro delay
+  1  | DAM macro delay
+  1  | DVB macro delay
+  1  | EGT macro delay
+  1  | KSL macro delay
+  1  | SUS macro delay
+  1  | VIB macro delay
+  1  | WS macro delay
+  1  | KSR macro delay
 ```
 
 # wavetable
@@ -795,24 +989,64 @@ size | description
 size | description
 -----|------------------------------------
   4  | "WAVE" block ID
-  4  | reserved
+  4  | size of this block
  STR | wavetable name
-  4  | wavetable size
-  4  | wavetable min
-  4  | wavetable max
+  4  | wavetable width
+  4  | reserved
+  4  | wavetable height
  4?? | wavetable data
 ```
 
-# sample
+# sample (>=102)
+
+this is the new sample storage format used in Furnace dev102 and higher.
+
+```
+size | description
+-----|------------------------------------
+  4  | "SMP2" block ID
+  4  | size of this block
+ STR | sample name
+  4  | length
+  4  | compatibility rate
+  4  | C-4 rate
+  1  | depth
+     | - 0: ZX Spectrum overlay drum (1-bit)
+     | - 1: 1-bit NES DPCM (1-bit)
+     | - 3: YMZ ADPCM
+     | - 4: QSound ADPCM
+     | - 5: ADPCM-A
+     | - 6: ADPCM-B
+     | - 8: 8-bit PCM
+     | - 9: BRR (SNES)
+     | - 10: VOX
+     | - 16: 16-bit PCM
+  3  | reserved
+  4  | loop start
+     | - -1 means no loop
+  4  | loop end
+     | - -1 means no loop
+ 16  | sample presence bitfields
+     | - for future use.
+     | - indicates whether the sample should be present in the memory of a system.
+     | - read 4 32-bit numbers (for 4 memory banks per system, e.g. YM2610
+     |   does ADPCM-A and ADPCM-B on separate memory banks).
+ ??? | sample data
+     | - size is length
+```
+
+# old sample (<102)
+
+this format is present when saving using previous Furnace versions.
 
 ```
 size | description
 -----|------------------------------------
   4  | "SMPL" block ID
-  4  | reserved
+  4  | size of this block
  STR | sample name
   4  | length
-  4  | rate
+  4  | compatibility rate
   2  | volume (<58) or reserved
   2  | pitch (<58) or reserved
   1  | depth
@@ -841,7 +1075,7 @@ size | description
 size | description
 -----|------------------------------------
   4  | "PATR" block ID
-  4  | reserved
+  4  | size of this block
   2  | channel
   2  | pattern index
   2  | subsong (>=95) or reserved

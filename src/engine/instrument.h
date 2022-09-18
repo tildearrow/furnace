@@ -165,21 +165,20 @@ struct DivInstrumentMacro {
   int val[256];
   unsigned int mode;
   bool open;
-  unsigned char len;
-  signed char loop;
-  signed char rel;
+  unsigned char len, delay, speed, loop, rel;
   
   // the following variables are used by the GUI and not saved in the file
   int vScroll, vZoom;
-
 
   explicit DivInstrumentMacro(const String& n, bool initOpen=false):
     name(n),
     mode(0),
     open(initOpen),
     len(0),
-    loop(-1),
-    rel(-1),
+    delay(0),
+    speed(1),
+    loop(255),
+    rel(255),
     vScroll(0),
     vZoom(-1) {
     memset(val,0,256*sizeof(int));
@@ -261,12 +260,32 @@ struct DivInstrumentSTD {
 };
 
 struct DivInstrumentGB {
-  unsigned char envVol, envDir, envLen, soundLen;
+  unsigned char envVol, envDir, envLen, soundLen, hwSeqLen;
+  bool softEnv, alwaysInit;
+  enum HWSeqCommands: unsigned char {
+    DIV_GB_HWCMD_ENVELOPE=0,
+    DIV_GB_HWCMD_SWEEP,
+    DIV_GB_HWCMD_WAIT,
+    DIV_GB_HWCMD_WAIT_REL,
+    DIV_GB_HWCMD_LOOP,
+    DIV_GB_HWCMD_LOOP_REL,
+
+    DIV_GB_HWCMD_MAX
+  };
+  struct HWSeqCommand {
+    unsigned char cmd;
+    unsigned short data;
+  } hwSeq[256];
   DivInstrumentGB():
     envVol(15),
     envDir(0),
     envLen(2),
-    soundLen(64) {}
+    soundLen(64),
+    hwSeqLen(0),
+    softEnv(false),
+    alwaysInit(false) {
+    memset(hwSeq,0,256*sizeof(int));
+  }
 };
 
 struct DivInstrumentC64 {
@@ -306,12 +325,18 @@ struct DivInstrumentC64 {
 };
 
 struct DivInstrumentAmiga {
+  struct SampleMap {
+    int freq;
+    short map;
+    SampleMap(int f=0, short m=-1):
+      freq(f),
+      map(m) {}
+  };
   short initSample;
   bool useNoteMap;
   bool useWave;
   unsigned char waveLen;
-  int noteFreq[120];
-  short noteMap[120];
+  SampleMap noteMap[120];
 
   /**
    * get the sample at specified note.
@@ -321,7 +346,7 @@ struct DivInstrumentAmiga {
     if (useNoteMap) {
       if (note<0) note=0;
       if (note>119) note=119;
-      return noteMap[note];
+      return noteMap[note].map;
     }
     return initSample;
   }
@@ -334,7 +359,7 @@ struct DivInstrumentAmiga {
     if (useNoteMap) {
       if (note<0) note=0;
       if (note>119) note=119;
-      return noteFreq[note];
+      return noteMap[note].freq;
     }
     return -1;
   }
@@ -344,8 +369,9 @@ struct DivInstrumentAmiga {
     useNoteMap(false),
     useWave(false),
     waveLen(31) {
-    memset(noteMap,-1,120*sizeof(short));
-    memset(noteFreq,0,120*sizeof(int));
+    for (SampleMap& elem: noteMap) {
+      elem=SampleMap();
+    }
   }
 };
 
@@ -430,6 +456,72 @@ struct DivInstrumentWaveSynth {
     param4(0) {}
 };
 
+struct DivInstrumentSoundUnit {
+  bool useSample;
+  bool switchRoles;
+  DivInstrumentSoundUnit():
+    useSample(false),
+    switchRoles(false) {}
+};
+
+struct DivInstrumentES5506 {
+  struct Filter {
+    enum FilterMode: unsigned char { // filter mode for pole 4,3
+      FILTER_MODE_HPK2_HPK2=0,
+      FILTER_MODE_HPK2_LPK1,
+      FILTER_MODE_LPK2_LPK2,
+      FILTER_MODE_LPK2_LPK1,
+    };
+    FilterMode mode;
+    unsigned short k1, k2;
+    Filter():
+      mode(FILTER_MODE_LPK2_LPK1),
+      k1(0xffff),
+      k2(0xffff) {}
+  };
+  struct Envelope {
+    unsigned short ecount;
+    signed char lVRamp, rVRamp;
+    signed char k1Ramp, k2Ramp;
+    bool k1Slow, k2Slow;
+    Envelope():
+      ecount(0),
+      lVRamp(0),
+      rVRamp(0),
+      k1Ramp(0),
+      k2Ramp(0),
+      k1Slow(false),
+      k2Slow(false) {}
+  };
+  Filter filter;
+  Envelope envelope;
+  DivInstrumentES5506():
+    filter(Filter()),
+    envelope(Envelope()) {}
+};
+
+struct DivInstrumentSNES {
+  enum GainMode: unsigned char {
+    GAIN_MODE_DIRECT=0,
+    GAIN_MODE_DEC_LINEAR=4,
+    GAIN_MODE_DEC_LOG=5,
+    GAIN_MODE_INC_LINEAR=6,
+    GAIN_MODE_INC_INVLOG=7
+  };
+  bool useEnv;
+  GainMode gainMode;
+  unsigned char gain;
+  unsigned char a, d, s, r;
+  DivInstrumentSNES():
+    useEnv(true),
+    gainMode(GAIN_MODE_DIRECT),
+    gain(127),
+    a(15),
+    d(7),
+    s(7),
+    r(0) {}
+};
+
 struct DivInstrument {
   String name;
   bool mode;
@@ -443,6 +535,9 @@ struct DivInstrument {
   DivInstrumentFDS fds;
   DivInstrumentMultiPCM multipcm;
   DivInstrumentWaveSynth ws;
+  DivInstrumentSoundUnit su;
+  DivInstrumentES5506 es5506;
+  DivInstrumentSNES snes;
   
   /**
    * save the instrument to a SafeWriter.
@@ -464,6 +559,13 @@ struct DivInstrument {
    * @return whether it was successful.
    */
   bool save(const char* path);
+
+  /**
+   * save this instrument to a file in .dmp format.
+   * @param path file path.
+   * @return whether it was successful.
+   */
+  bool saveDMP(const char* path);
   DivInstrument():
     name(""),
     type(DIV_INS_FM) {

@@ -17,13 +17,32 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#define ADDR_MULT_DT 0x40
-#define ADDR_TL 0x60
-#define ADDR_RS_AR 0x80
-#define ADDR_AM_DR 0xa0
-#define ADDR_DT2_D2R 0xc0
-#define ADDR_SL_RR 0xe0
-#define ADDR_NOTE 0x28
-#define ADDR_KF 0x30
-#define ADDR_FMS_AMS 0x38
-#define ADDR_LR_FB_ALG 0x20
+#ifndef _FMSHARED_OPM_H
+#define _FMSHARED_OPM_H
+
+#include "fmsharedbase.h"
+
+#define NOTE_LINEAR(x) (((x)<<6)+baseFreqOff+log2(parent->song.tuning/440.0)*12.0*64.0)
+
+class DivPlatformOPM: public DivPlatformFMBase {
+  protected:
+    const unsigned short ADDR_MULT_DT=0x40;
+    const unsigned short ADDR_TL=0x60;
+    const unsigned short ADDR_RS_AR=0x80;
+    const unsigned short ADDR_AM_DR=0xa0;
+    const unsigned short ADDR_DT2_D2R=0xc0;
+    const unsigned short ADDR_SL_RR=0xe0;
+    const unsigned short ADDR_NOTE=0x28;
+    const unsigned short ADDR_KF=0x30;
+    const unsigned short ADDR_FMS_AMS=0x38;
+    const unsigned short ADDR_LR_FB_ALG=0x20;
+
+    const unsigned short opOffs[4]={
+      0x00, 0x08, 0x10, 0x18
+    };
+
+    DivPlatformOPM():
+      DivPlatformFMBase() {}
+};
+
+#endif

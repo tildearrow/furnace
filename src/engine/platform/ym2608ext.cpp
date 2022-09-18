@@ -21,8 +21,8 @@
 #include "../engine.h"
 #include <math.h>
 
-#include "ym2610shared.h"
-#include "fmshared_OPN.h"
+#define CHIP_FREQBASE fmFreqBase
+#define CHIP_DIVIDER fmDivBase
 
 int DivPlatformYM2608Ext::dispatch(DivCommand c) {
   if (c.chan<2) {
@@ -34,6 +34,10 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
   }
   int ch=c.chan-2;
   int ordch=orderedOps[ch];
+  if (!extMode) {
+    c.chan=2;
+    return DivPlatformYM2608::dispatch(c);
+  }
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
@@ -55,6 +59,7 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
         rWrite(baseAddr+0x70,op.d2r&31);
         rWrite(baseAddr+0x80,(op.rr&15)|(op.sl<<4));
         rWrite(baseAddr+0x90,op.ssgEnv&15);
+        opChan[ch].mask=op.enable;
       }
       if (opChan[ch].insChanged) { // TODO how does this work?
         rWrite(chanOffs[2]+0xb0,(ins->fm.alg&7)|(ins->fm.fb<<3));
@@ -149,6 +154,11 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
     case DIV_CMD_LEGATO: {
       opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
       opChan[ch].freqChanged=true;
+      break;
+    }
+    case DIV_CMD_FM_EXTCH: {
+      extMode=c.value;
+      immWrite(0x27,extMode?0x40:0);
       break;
     }
     case DIV_CMD_FM_LFO: {
@@ -349,7 +359,7 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
     bool writeSomething=false;
     unsigned char writeMask=2;
     for (int i=0; i<4; i++) {
-      writeMask|=opChan[i].active<<(4+i);
+      writeMask|=(unsigned char)(opChan[i].mask && opChan[i].active)<<(4+i);
       if (opChan[i].keyOn || opChan[i].keyOff) {
         writeSomething=true;
         writeMask&=~(1<<(4+i));
@@ -386,10 +396,12 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
       immWrite(opChanOffsH[i],opChan[i].freq>>8);
       immWrite(opChanOffsL[i],opChan[i].freq&0xff);
     }
-    writeMask|=opChan[i].active<<(4+i);
+    writeMask|=(unsigned char)(opChan[i].mask && opChan[i].active)<<(4+i);
     if (opChan[i].keyOn) {
       writeNoteOn=true;
-      writeMask|=1<<(4+i);
+      if (opChan[i].mask) {
+        writeMask|=1<<(4+i);
+      }
       opChan[i].keyOn=false;
     }
   }
@@ -528,6 +540,7 @@ int DivPlatformYM2608Ext::init(DivEngine* parent, int channels, int sugRate, uns
   for (int i=0; i<4; i++) {
     isOpMuted[i]=false;
   }
+  extSys=true;
 
   reset();
   return 19;

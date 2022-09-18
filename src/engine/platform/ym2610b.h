@@ -19,17 +19,19 @@
 
 #ifndef _YM2610B_H
 #define _YM2610B_H
-#include "../dispatch.h"
+#include "ym2610.h"
 #include "../macroInt.h"
-#include <queue>
 #include "sound/ymfm/ymfm_opn.h"
 
-#include "ym2610.h"
 
 class DivPlatformYM2610B: public DivPlatformYM2610Base {
   protected:
     const unsigned short chanOffs[6]={
       0x00, 0x01, 0x02, 0x100, 0x101, 0x102
+    };
+
+    const unsigned char konOffs[6]={
+      0, 1, 2, 4, 5, 6
     };
 
     struct Channel {
@@ -38,10 +40,10 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
       int freq, baseFreq, pitch, pitch2, portaPauseFreq, note, ins;
       unsigned char psgMode, autoEnvNum, autoEnvDen;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset, opMaskChanged;
       int vol, outVol;
       int sample;
-      unsigned char pan;
+      unsigned char pan, opMask;
       DivMacroInt std;
       void macroInit(DivInstrument* which) {
         std.init(which);
@@ -69,35 +71,25 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
         inPorta(false),
         furnacePCM(false),
         hardReset(false),
+        opMaskChanged(false),
         vol(0),
         outVol(15),
         sample(-1),
-        pan(3) {}
+        pan(3),
+        opMask(15) {}
     };
     Channel chan[16];
     DivDispatchOscBuffer* oscBuf[16];
     bool isMuted[16];
-    struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      bool addrOrVal;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
-    };
-    std::queue<QueuedWrite> writes;
     ymfm::ym2610b* fm;
     ymfm::ym2610b::output_data fmout;
-    unsigned char regPool[512];
-    unsigned char lastBusy;
   
     DivPlatformAY8910* ay;
     unsigned char sampleBank;
 
-    int delay;
-
     bool extMode;
-  
-    short oldWrites[512];
-    short pendingWrites[512];
+    double fmFreqBase=9440540;
+    unsigned char ayDiv=32;
 
     double NOTE_OPNB(int ch, int note);
     double NOTE_ADPCMB(int note);
@@ -123,7 +115,7 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
+    void setFlags(unsigned int flags);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformYM2610B();

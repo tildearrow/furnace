@@ -38,6 +38,7 @@ public:
   // Amplitude modulated waveform output.
   // Range [-2048*255, 2047*255].
   RESID_INLINE sound_sample output();
+  RESID_INLINE sound_sample getDC();
 
 protected:
   WaveformGenerator wave;
@@ -70,6 +71,12 @@ sound_sample Voice::output()
 {
   // Multiply oscillator output with envelope output.
   return (wave.output() - wave_zero)*envelope.output() + voice_DC;
+}
+
+RESID_INLINE
+sound_sample Voice::getDC()
+{
+  return voice_DC;
 }
 
 #endif // RESID_INLINING || defined(__VOICE_CC__)

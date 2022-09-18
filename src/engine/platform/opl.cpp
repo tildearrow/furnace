@@ -152,98 +152,6 @@ const int orderedOpsL[4]={
 #define ADDR_FREQH 0xb0
 #define ADDR_LR_FB_ALG 0xc0
 
-const char* DivPlatformOPL::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Set global AM depth (0: 1dB, 1: 4.8dB)";
-      break;
-    case 0x11:
-      return "11xx: Set feedback (0 to 7)";
-      break;
-    case 0x12:
-      return "12xx: Set level of operator 1 (0 highest, 3F lowest)";
-      break;
-    case 0x13:
-      return "13xx: Set level of operator 2 (0 highest, 3F lowest)";
-      break;
-    case 0x14:
-      return "14xx: Set level of operator 3 (0 highest, 3F lowest; 4-op only)";
-      break;
-    case 0x15:
-      return "15xx: Set level of operator 4 (0 highest, 3F lowest; 4-op only)";
-      break;
-    case 0x16:
-      return "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)";
-      break;
-    case 0x17:
-      return "17xx: Set global vibrato depth (0: normal, 1: double)";
-      break;
-    case 0x18:
-      if (properDrumsSys) {
-        return "18xx: Toggle drums mode (1: enabled; 0: disabled)";
-      }
-      break;
-    case 0x19:
-      return "19xx: Set attack of all operators (0 to F)";
-      break;
-    case 0x1a:
-      return "1Axx: Set attack of operator 1 (0 to F)";
-      break;
-    case 0x1b:
-      return "1Bxx: Set attack of operator 2 (0 to F)";
-      break;
-    case 0x1c:
-      return "1Cxx: Set attack of operator 3 (0 to F; 4-op only)";
-      break;
-    case 0x1d:
-      return "1Dxx: Set attack of operator 4 (0 to F; 4-op only)";
-      break;
-    case 0x2a:
-      return "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 3 in OPL2 and 0 to 7 in OPL3)";
-      break;
-    case 0x30:
-      return "30xx: Toggle hard envelope reset on new notes";
-      break;
-    case 0x50:
-      return "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)";
-      break;
-    case 0x51:
-      return "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)";
-      break;
-    case 0x52:
-      return "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)";
-      break;
-    case 0x53:
-      return "53xy: Set vibrato (x: operator from 1 to 4 (0 for all ops); y: enabled)";
-      break;
-    case 0x54:
-      return "54xy: Set key scale level (x: operator from 1 to 4 (0 for all ops); y: level from 0 to 3)";
-      break;
-    case 0x55:
-      return "55xy: Set envelope sustain (x: operator from 1 to 4 (0 for all ops); y: enabled)";
-      break;
-    case 0x56:
-      return "56xx: Set decay of all operators (0 to F)";
-      break;
-    case 0x57:
-      return "57xx: Set decay of operator 1 (0 to F)";
-      break;
-    case 0x58:
-      return "58xx: Set decay of operator 2 (0 to F)";
-      break;
-    case 0x59:
-      return "59xx: Set decay of operator 3 (0 to F; 4-op only)";
-      break;
-    case 0x5a:
-      return "5Axx: Set decay of operator 4 (0 to F; 4-op only)";
-      break;
-    case 0x5b:
-      return "5Bxy: Set whether key will scale envelope (x: operator from 1 to 4 (0 for all ops); y: enabled)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   static short o[2];
   static int os[2];
@@ -277,8 +185,13 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
       regPool[w.addr&511]=w.val;
       writes.pop();
     }
-    
-    OPL3_Generate(&fm,o); os[0]+=o[0]; os[1]+=o[1];
+
+    if (downsample) {
+      OPL3_GenerateResampled(&fm,o);
+    } else {
+      OPL3_Generate(&fm,o);
+    }
+    os[0]+=o[0]; os[1]+=o[1];
 
     if (adpcmChan>=0) {
       adpcmB->clock();
@@ -288,24 +201,45 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
       if (!isMuted[adpcmChan]) {
         os[0]-=aOut.data[0]>>3;
         os[1]-=aOut.data[0]>>3;
-        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]+=aOut.data[0];
+        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=aOut.data[0];
       } else {
         oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=0;
       }
     }
 
-    for (int i=0; i<chans; i++) {
-      unsigned char ch=outChanMap[i];
-      if (ch==255) continue;
-      oscBuf[i]->data[oscBuf[i]->needle]=0;
-      if (fm.channel[i].out[0]!=NULL) {
-        oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
+    if (fm.rhy&0x20) {
+      for (int i=0; i<melodicChans+1; i++) {
+        unsigned char ch=outChanMap[i];
+        if (ch==255) continue;
+        oscBuf[i]->data[oscBuf[i]->needle]=0;
+        if (fm.channel[i].out[0]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
+        }
+        if (fm.channel[i].out[1]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
+        }
+        oscBuf[i]->data[oscBuf[i]->needle]<<=1;
+        oscBuf[i]->needle++;
       }
-      if (fm.channel[i].out[1]!=NULL) {
-        oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
+      // special
+      oscBuf[melodicChans+1]->data[oscBuf[melodicChans+1]->needle++]=fm.slot[16].out*6;
+      oscBuf[melodicChans+2]->data[oscBuf[melodicChans+2]->needle++]=fm.slot[14].out*6;
+      oscBuf[melodicChans+3]->data[oscBuf[melodicChans+3]->needle++]=fm.slot[17].out*6;
+      oscBuf[melodicChans+4]->data[oscBuf[melodicChans+4]->needle++]=fm.slot[13].out*6;
+    } else {
+      for (int i=0; i<chans; i++) {
+        unsigned char ch=outChanMap[i];
+        if (ch==255) continue;
+        oscBuf[i]->data[oscBuf[i]->needle]=0;
+        if (fm.channel[i].out[0]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
+        }
+        if (fm.channel[i].out[1]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
+        }
+        oscBuf[i]->data[oscBuf[i]->needle]<<=1;
+        oscBuf[i]->needle++;
       }
-      oscBuf[i]->data[oscBuf[i]->needle]<<=1;
-      oscBuf[i]->needle++;
     }
     
     if (os[0]<-32768) os[0]=-32768;
@@ -315,7 +249,9 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     if (os[1]>32767) os[1]=32767;
   
     bufL[h]=os[0];
-    bufR[h]=os[1];
+    if (oplType==3 || oplType==759) {
+      bufR[h]=os[1];
+    }
   }
 }
 
@@ -363,18 +299,9 @@ void DivPlatformOPL::tick(bool sysTick) {
 
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+(signed char)chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
 
     if (oplType==3 && chan[i].std.panL.had) {
@@ -557,18 +484,9 @@ void DivPlatformOPL::tick(bool sysTick) {
 
       if (chan[adpcmChan].std.arp.had) {
         if (!chan[adpcmChan].inPorta) {
-          if (chan[adpcmChan].std.arp.mode) {
-            chan[adpcmChan].baseFreq=NOTE_ADPCMB(chan[adpcmChan].std.arp.val);
-          } else {
-            chan[adpcmChan].baseFreq=NOTE_ADPCMB(chan[adpcmChan].note+(signed char)chan[adpcmChan].std.arp.val);
-          }
+          chan[adpcmChan].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[adpcmChan].note,chan[adpcmChan].std.arp.val));
         }
         chan[adpcmChan].freqChanged=true;
-      } else {
-        if (chan[adpcmChan].std.arp.mode && chan[adpcmChan].std.arp.finished) {
-          chan[adpcmChan].baseFreq=NOTE_ADPCMB(chan[adpcmChan].note);
-          chan[adpcmChan].freqChanged=true;
-        }
       }
     }
     if (chan[adpcmChan].freqChanged) {
@@ -596,8 +514,9 @@ void DivPlatformOPL::tick(bool sysTick) {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq)*2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].fixedFreq>0) chan[i].freq=chan[i].fixedFreq;
+      if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>131071) chan[i].freq=131071;
-      int freqt=toFreq(chan[i].freq)+chan[i].pitch2;
+      int freqt=toFreq(chan[i].freq);
       chan[i].freqH=freqt>>8;
       chan[i].freqL=freqt&0xff;
       immWrite(chanMap[i]+ADDR_FREQ,chan[i].freqL);
@@ -677,6 +596,9 @@ void DivPlatformOPL::muteChannel(int ch, bool mute) {
     fm.channel[outChanMap[ch]].muted=mute;
   }
   int ops=(slots[3][ch]!=255 && chan[ch].state.ops==4 && oplType==3)?4:2;
+  if (ch&1 && ch<12) {
+    if (chan[ch-1].fourOp) return;
+  }
   chan[ch].fourOp=(ops==4);
   update4OpMask=true;
   for (int i=0; i<ops; i++) {
@@ -741,7 +663,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             int end=s->offB+s->lengthB-1;
             immWrite(11,(end>>2)&0xff);
             immWrite(12,(end>>10)&0xff);
-            immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
+            immWrite(7,(s->isLoopable())?0xb0:0xa0); // start/repeat
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
               chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
@@ -777,8 +699,8 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           int end=s->offB+s->lengthB-1;
           immWrite(11,(end>>2)&0xff);
           immWrite(12,(end>>10)&0xff);
-          immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
-          int freq=(65536.0*(double)s->rate)/(double)rate;
+          immWrite(7,(s->isLoopable())?0xb0:0xa0); // start/repeat
+          int freq=(65536.0*(double)s->rate)/(double)chipRateBase;
           immWrite(16,freq&0xff);
           immWrite(17,(freq>>8)&0xff);
         }
@@ -842,6 +764,13 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
           chan[c.chan].fourOp=(ops==4);
           if (chan[c.chan].fourOp) {
+            /*
+            if (chan[c.chan+1].active) {
+              chan[c.chan+1].keyOff=true;
+              chan[c.chan+1].keyOn=false;
+              chan[c.chan+1].active=false;
+            }*/
+            chan[c.chan+1].insChanged=true;
             chan[c.chan+1].macroInit(NULL);
           }
           update4OpMask=true;
@@ -1404,6 +1333,9 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       return 63;
       break;
     case DIV_CMD_PRE_PORTA:
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) {
+        chan[c.chan].baseFreq=(c.chan==adpcmChan)?(NOTE_ADPCMB(chan[c.chan].note)):(NOTE_FREQUENCY(chan[c.chan].note));
+      }
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
@@ -1508,7 +1440,12 @@ void DivPlatformOPL::reset() {
     fm_ymfm->reset();
   }
   */
-  OPL3_Reset(&fm,rate);
+  if (downsample) {
+    const unsigned int downsampledRate=(unsigned int)((double)rate*rate/chipRateBase);
+    OPL3_Reset(&fm,downsampledRate);
+  } else {
+    OPL3_Reset(&fm,rate);
+  }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
@@ -1585,7 +1522,7 @@ void DivPlatformOPL::reset() {
 }
 
 bool DivPlatformOPL::isStereo() {
-  return true;
+  return (oplType==3 || oplType==759);
 }
 
 bool DivPlatformOPL::keyOffAffectsArp(int ch) {
@@ -1625,6 +1562,7 @@ void DivPlatformOPL::setYMFM(bool use) {
 
 void DivPlatformOPL::setOPLType(int type, bool drums) {
   pretendYMU=false;
+  downsample=false;
   adpcmChan=-1;
   switch (type) {
     case 1: case 2: case 8950:
@@ -1633,7 +1571,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=drums?chanMapOPL2Drums:chanMapOPL2;
       outChanMap=outChanMapOPL2;
-      chipFreqBase=9440540*0.25;
+      chipFreqBase=32768*72;
       chans=9;
       melodicChans=drums?6:9;
       totalChans=drums?11:9;
@@ -1641,23 +1579,27 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
         adpcmChan=drums?11:9;
       }
       break;
-    case 3: case 759:
+    case 3: case 4: case 759:
       slotsNonDrums=slotsOPL3;
       slotsDrums=slotsOPL3Drums;
       slots=drums?slotsDrums:slotsNonDrums;
       chanMap=drums?chanMapOPL3Drums:chanMapOPL3;
       outChanMap=outChanMapOPL3;
-      chipFreqBase=9440540;
+      chipFreqBase=32768*288;
       chans=18;
       melodicChans=drums?15:18;
       totalChans=drums?20:18;
       if (type==759) {
         pretendYMU=true;
         adpcmChan=16;
+      } else if (type==4) {
+        chipFreqBase=32768*684;
+        downsample=true;
       }
       break;
   }
-  if (type==759) {
+  chipType=type;
+  if (type==759 || type==4) {
     oplType=3;
   } else if (type==8950) {
     oplType=1;
@@ -1692,20 +1634,76 @@ void DivPlatformOPL::setFlags(unsigned int flags) {
     rate=chipClock/36;
   }*/
 
-  if (oplType==3) {
-    chipClock=COLOR_NTSC*4.0;
-    rate=chipClock/288;
-  } else {
-    chipClock=COLOR_NTSC;
-    rate=chipClock/72;
+  switch (chipType) {
+    default:
+    case 1: case 2: case 8950:
+      switch (flags&0xff) {
+        case 0x01:
+          chipClock=COLOR_PAL*4.0/5.0;
+          break;
+        case 0x02:
+          chipClock=4000000.0;
+          break;
+        case 0x03:
+          chipClock=3000000.0;
+          break;
+        case 0x04:
+          chipClock=38400*13*8; // 31948800/8
+          break;
+        case 0x05:
+          chipClock=3500000.0;
+          break;
+        default:
+          chipClock=COLOR_NTSC;
+          break;
+      }
+      rate=chipClock/72;
+      chipRateBase=rate;
+      break;
+    case 3:
+      switch (flags&0xff) {
+        case 0x01:
+          chipClock=COLOR_PAL*16.0/5.0;
+          break;
+        case 0x02:
+          chipClock=14000000.0;
+          break;
+        case 0x03:
+          chipClock=16000000.0;
+          break;
+        case 0x04:
+          chipClock=15000000.0;
+          break;
+        default:
+          chipClock=COLOR_NTSC*4.0;
+          break;
+      }
+      rate=chipClock/288;
+      chipRateBase=rate;
+      break;
+    case 4:
+      switch (flags&0xff) {
+        case 0x01:
+          chipClock=COLOR_PAL*32.0/5.0;
+          break;
+        case 0x02:
+          chipClock=33868800.0;
+          break;
+        default:
+          chipClock=COLOR_NTSC*8.0;
+          break;
+      }
+      rate=chipClock/768;
+      chipRateBase=chipClock/684;
+      break;
+    case 759:
+      rate=48000;
+      chipRateBase=rate;
+      chipClock=rate*288;
+      break;
   }
 
-  if (pretendYMU) {
-    rate=48000;
-    chipClock=rate*288;
-  }
-
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<20; i++) {
     oscBuf[i]->rate=rate;
   }
 }
@@ -1756,7 +1754,7 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int f
   for (int i=0; i<20; i++) {
     isMuted[i]=false;
   }
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<20; i++) {
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
@@ -1774,7 +1772,7 @@ int DivPlatformOPL::init(DivEngine* p, int channels, int sugRate, unsigned int f
 }
 
 void DivPlatformOPL::quit() {
-  for (int i=0; i<18; i++) {
+  for (int i=0; i<20; i++) {
     delete oscBuf[i];
   }
   if (adpcmChan>=0) {

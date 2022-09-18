@@ -27,74 +27,16 @@
 
 #define CHIP_FREQBASE 1180068
 
-const char* DivPlatformOPLL::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x11:
-      return "11xx: Set feedback (0 to 7)";
-      break;
-    case 0x12:
-      return "12xx: Set level of operator 1 (0 highest, 3F lowest)";
-      break;
-    case 0x13:
-      return "13xx: Set level of operator 2 (0 highest, F lowest)";
-      break;
-    case 0x16:
-      return "16xy: Set operator multiplier (x: operator from 1 to 2; y: multiplier)";
-      break;
-    case 0x18:
-      if (properDrumsSys) {
-        return "18xx: Toggle drums mode (1: enabled; 0: disabled)";
-      }
-      break;
-    case 0x19:
-      return "19xx: Set attack of all operators (0 to F)";
-      break;
-    case 0x1a:
-      return "1Axx: Set attack of operator 1 (0 to F)";
-      break;
-    case 0x1b:
-      return "1Bxx: Set attack of operator 2 (0 to F)";
-      break;
-    case 0x50:
-      return "50xy: Set AM (x: operator from 1 to 2 (0 for all ops); y: AM)";
-      break;
-    case 0x51:
-      return "51xy: Set sustain level (x: operator from 1 to 2 (0 for all ops); y: sustain)";
-      break;
-    case 0x52:
-      return "52xy: Set release (x: operator from 1 to 2 (0 for all ops); y: release)";
-      break;
-    case 0x53:
-      return "53xy: Set vibrato (x: operator from 1 to 2 (0 for all ops); y: enabled)";
-      break;
-    case 0x54:
-      return "54xy: Set key scale level (x: operator from 1 to 2 (0 for all ops); y: level from 0 to 3)";
-      break;
-    case 0x55:
-      return "55xy: Set envelope sustain (x: operator from 1 to 2 (0 for all ops); y: enabled)";
-      break;
-    case 0x56:
-      return "56xx: Set decay of all operators (0 to F)";
-      break;
-    case 0x57:
-      return "57xx: Set decay of operator 1 (0 to F)";
-      break;
-    case 0x58:
-      return "58xx: Set decay of operator 2 (0 to F)";
-      break;
-    case 0x5b:
-      return "5Bxy: Set whether key will scale envelope (x: operator from 1 to 2 (0 for all ops); y: enabled)";
-      break;
-  }
-  return NULL;
-}
-
 const unsigned char cycleMapOPLL[18]={
   8, 7, 6, 7, 8, 7, 8, 6, 0, 1, 2, 7, 8, 9, 3, 4, 5, 9
 };
 
 const unsigned char drumSlot[11]={
   0, 0, 0, 0, 0, 0, 6, 7, 8, 8, 7
+};
+
+const unsigned char visMapOPLL[9]={
+  6, 7, 8, 3, 4, 5, 0, 1, 2
 };
 
 void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
@@ -124,10 +66,18 @@ void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size
       OPLL_Clock(&fm,o);
       unsigned char nextOut=cycleMapOPLL[fm.cycles];
       if ((nextOut>=6 && properDrums) || !isMuted[nextOut]) {
-        oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=(o[0]+o[1])<<6;
         os+=(o[0]+o[1]);
+        if (vrc7 || (fm.rm_enable&0x20)) oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=(o[0]+o[1])<<6;
       } else {
-        oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=0;
+        if (vrc7 || (fm.rm_enable&0x20)) oscBuf[nextOut]->data[oscBuf[nextOut]->needle++]=0;
+      }
+    }
+    if (!(vrc7 || (fm.rm_enable&0x20))) for (int i=0; i<9; i++) {
+      unsigned char ch=visMapOPLL[i];
+      if ((i>=6 && properDrums) || !isMuted[ch]) {
+        oscBuf[ch]->data[oscBuf[ch]->needle++]=(fm.output_ch[i])<<6;
+      } else {
+        oscBuf[ch]->data[oscBuf[ch]->needle++]=0;
       }
     }
     os*=50;
@@ -157,18 +107,9 @@ void DivPlatformOPLL::tick(bool sysTick) {
 
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+(signed char)chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
 
     if (chan[i].std.wave.had && chan[i].state.opllPreset!=16) {
@@ -819,6 +760,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (c.chan>=9 && !properDrums) return 0;
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:

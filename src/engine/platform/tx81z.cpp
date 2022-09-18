@@ -22,42 +22,10 @@
 #include <string.h>
 #include <math.h>
 
-#include "fmshared_OPM.h"
-
 // actually 0x40 but the upper bit of data selects address
 #define ADDR_WS_FINE 0x100
 // actually 0xc0 but bit 5 of data selects address
 #define ADDR_EGS_REV 0x120
-
-static unsigned short chanOffs[8]={
-  0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
-};
-static unsigned short opOffs[4]={
-  0x00, 0x08, 0x10, 0x18
-};
-static bool isOutput[8][4]={
-  // 1     3     2    4
-  {false,false,false,true},
-  {false,false,false,true},
-  {false,false,false,true},
-  {false,false,false,true},
-  {false,false,true ,true},
-  {false,true ,true ,true},
-  {false,true ,true ,true},
-  {true ,true ,true ,true},
-};
-static unsigned char dtTable[8]={
-  7,6,5,0,1,2,3,4
-};
-
-static int orderedOps[4]={
-  0,2,1,3
-};
-
-#define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
-#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
-
-#define NOTE_LINEAR(x) (((x)<<6)+baseFreqOff+log2(parent->song.tuning/440.0)*12.0*64.0)
 
 const char* regCheatSheetOPZ[]={
   "Test", "00",
@@ -87,139 +55,6 @@ const char** DivPlatformTX81Z::getRegisterSheet() {
   return regCheatSheetOPZ;
 }
 
-const char* DivPlatformTX81Z::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Set noise frequency (xx: value; 0 disables noise)";
-      break;
-    case 0x11:
-      return "11xx: Set feedback (0 to 7)";
-      break;
-    case 0x12:
-      return "12xx: Set level of operator 1 (0 highest, 7F lowest)";
-      break;
-    case 0x13:
-      return "13xx: Set level of operator 2 (0 highest, 7F lowest)";
-      break;
-    case 0x14:
-      return "14xx: Set level of operator 3 (0 highest, 7F lowest)";
-      break;
-    case 0x15:
-      return "15xx: Set level of operator 4 (0 highest, 7F lowest)";
-      break;
-    case 0x16:
-      return "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)";
-      break;
-    case 0x17:
-      return "17xx: Set LFO speed";
-      break;
-    case 0x18:
-      return "18xx: Set LFO waveform (0 saw, 1 square, 2 triangle, 3 noise)";
-      break;
-    case 0x19:
-      return "19xx: Set attack of all operators (0 to 1F)";
-      break;
-    case 0x1a:
-      return "1Axx: Set attack of operator 1 (0 to 1F)";
-      break;
-    case 0x1b:
-      return "1Bxx: Set attack of operator 2 (0 to 1F)";
-      break;
-    case 0x1c:
-      return "1Cxx: Set attack of operator 3 (0 to 1F)";
-      break;
-    case 0x1d:
-      return "1Dxx: Set attack of operator 4 (0 to 1F)";
-      break;
-    case 0x1e:
-      return "1Exx: Set AM depth (0 to 7F)";
-      break;
-    case 0x1f:
-      return "1Fxx: Set PM depth (0 to 7F)";
-      break;
-    case 0x28:
-      return "28xy: Set reverb (x: operator from 1 to 4 (0 for all ops); y: reverb from 0 to 7)";
-      break;
-    case 0x2a:
-      return "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 7)";
-      break;
-    case 0x2b:
-      return "2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); y: shift from 0 to 3)";
-      break;
-    case 0x2c:
-      return "2Cxy: Set fine multiplier (x: operator from 1 to 4 (0 for all ops); y: fine)";
-      break;
-    case 0x2f:
-      return "2Fxx: Toggle hard envelope reset on new notes";
-      break;
-    case 0x30: case 0x31: case 0x32: case 0x33:
-    case 0x34: case 0x35: case 0x36: case 0x37:
-      return "3xyy: Set fixed frequency of operator 1 (x: octave from 0 to 7; y: frequency)";
-      break;
-    case 0x38: case 0x39: case 0x3a: case 0x3b:
-    case 0x3c: case 0x3d: case 0x3e: case 0x3f:
-      return "3xyy: Set fixed frequency of operator 2 (x: octave from 8 to F; y: frequency)";
-      break;
-    case 0x40: case 0x41: case 0x42: case 0x43:
-    case 0x44: case 0x45: case 0x46: case 0x47:
-      return "4xyy: Set fixed frequency of operator 3 (x: octave from 0 to 7; y: frequency)";
-      break;
-    case 0x48: case 0x49: case 0x4a: case 0x4b:
-    case 0x4c: case 0x4d: case 0x4e: case 0x4f:
-      return "4xyy: Set fixed frequency of operator 4 (x: octave from 8 to F; y: frequency)";
-      break;
-    case 0x50:
-      return "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)";
-      break;
-    case 0x51:
-      return "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)";
-      break;
-    case 0x52:
-      return "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)";
-      break;
-    case 0x53:
-      return "53xy: Set detune (x: operator from 1 to 4 (0 for all ops); y: detune where 3 is center)";
-      break;
-    case 0x54:
-      return "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale from 0 to 3)";
-      break;
-    case 0x55:
-      return "55xy: Set detune 2 (x: operator from 1 to 4 (0 for all ops); y: detune from 0 to 3)";
-      break;
-    case 0x56:
-      return "56xx: Set decay of all operators (0 to 1F)";
-      break;
-    case 0x57:
-      return "57xx: Set decay of operator 1 (0 to 1F)";
-      break;
-    case 0x58:
-      return "58xx: Set decay of operator 2 (0 to 1F)";
-      break;
-    case 0x59:
-      return "59xx: Set decay of operator 3 (0 to 1F)";
-      break;
-    case 0x5a:
-      return "5Axx: Set decay of operator 4 (0 to 1F)";
-      break;
-    case 0x5b:
-      return "5Bxx: Set decay 2 of all operators (0 to 1F)";
-      break;
-    case 0x5c:
-      return "5Cxx: Set decay 2 of operator 1 (0 to 1F)";
-      break;
-    case 0x5d:
-      return "5Dxx: Set decay 2 of operator 2 (0 to 1F)";
-      break;
-    case 0x5e:
-      return "5Exx: Set decay 2 of operator 3 (0 to 1F)";
-      break;
-    case 0x5f:
-      return "5Fxx: Set decay 2 of operator 4 (0 to 1F)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformTX81Z::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
 
@@ -233,7 +68,7 @@ void DivPlatformTX81Z::acquire(short* bufL, short* bufR, size_t start, size_t le
         fm_ymfm->write(0x0+((w.addr>>8)<<1),w.addr);
         fm_ymfm->write(0x1+((w.addr>>8)<<1),w.val);
         regPool[w.addr&0xff]=w.val;
-        writes.pop();
+        writes.pop_front();
         delay=1;
       }
     }
@@ -288,18 +123,9 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_LINEAR(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_LINEAR(chan[i].note+(signed char)chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_LINEAR(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_LINEAR(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
 
     if (chan[i].std.duty.had) {
@@ -965,6 +791,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       return 127;
       break;
     case DIV_CMD_PRE_PORTA:
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_LINEAR(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
@@ -1052,7 +879,7 @@ void DivPlatformTX81Z::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformTX81Z::reset() {
-  while (!writes.empty()) writes.pop();
+  while (!writes.empty()) writes.pop_front();
   memset(regPool,0,330);
   fm_ymfm->reset();
   if (dumpWrites) {
@@ -1079,6 +906,7 @@ void DivPlatformTX81Z::reset() {
   pmDepth=0x7f;
 
   //rWrite(0x18,0x10);
+  immWrite(0x18,0x00); // LFO Freq Off
   immWrite(0x19,amDepth);
   immWrite(0x19,0x80|pmDepth);
   //rWrite(0x1b,0x00);

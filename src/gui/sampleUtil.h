@@ -20,6 +20,10 @@
 #define SAMPLE_OP_BEGIN \
   unsigned int start=0; \
   unsigned int end=sample->samples; \
+  if (sampleSelStart<0) sampleSelStart=0; \
+  if (sampleSelStart>(int)sample->samples) sampleSelStart=sample->samples; \
+  if (sampleSelEnd<0) sampleSelEnd=0; \
+  if (sampleSelEnd>(int)sample->samples) sampleSelEnd=sample->samples; \
   if (sampleSelStart!=-1 && sampleSelEnd!=-1 && sampleSelStart!=sampleSelEnd) { \
     start=sampleSelStart; \
     end=sampleSelEnd; \

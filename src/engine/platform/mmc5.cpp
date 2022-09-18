@@ -43,15 +43,6 @@ const char** DivPlatformMMC5::getRegisterSheet() {
   return regCheatSheetMMC5;
 }
 
-const char* DivPlatformMMC5::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x12:
-      return "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformMMC5::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     if (dacSample!=-1) {
@@ -62,12 +53,11 @@ void DivPlatformMMC5::acquire(short* bufL, short* bufR, size_t start, size_t len
           if (!isMuted[2]) {
             rWrite(0x5011,((unsigned char)s->data8[dacPos]+0x80));
           }
-          if (++dacPos>=s->samples) {
-            if (s->loopStart>=0 && s->loopStart<(int)s->samples) {
-              dacPos=s->loopStart;
-            } else {
-              dacSample=-1;
-            }
+          dacPos++;
+          if (s->isLoopable() && dacPos>=s->getEndPosition()) {
+            dacPos=s->loopStart;
+          } else if (dacPos>=s->samples) {
+            dacSample=-1;
           }
           dacPeriod-=rate;
         } else {
@@ -111,20 +101,12 @@ void DivPlatformMMC5::tick(bool sysTick) {
       if (chan[i].outVol<0) chan[i].outVol=0;
       rWrite(0x5000+i*4,0x30|chan[i].outVol|((chan[i].duty&3)<<6));
     }
+    // TODO: arp macros on NES PCM?
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;
@@ -172,7 +154,7 @@ void DivPlatformMMC5::tick(bool sysTick) {
 
   // PCM
   if (chan[2].freqChanged) {
-    chan[2].freq=parent->calcFreq(chan[2].baseFreq,chan[2].pitch,false);
+    chan[2].freq=parent->calcFreq(chan[2].baseFreq,chan[2].pitch,false,0,chan[2].pitch2,1,1);
     if (chan[2].furnaceDac) {
       double off=1.0;
       if (dacSample>=0 && dacSample<parent->song.sampleLen) {
@@ -202,7 +184,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
           }
           dacPos=0;
           dacPeriod=0;
-          chan[c.chan].baseFreq=parent->song.tuning*pow(2.0f,((float)(c.value+3)/12.0f));
+          chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].freqChanged=true;
             chan[c.chan].note=c.value;
@@ -283,7 +265,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      int destFreq=(c.chan==2)?(parent->calcBaseFreq(1,1,c.value2,false)):(NOTE_PERIODIC(c.value2));
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -316,7 +298,11 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      if (c.chan==2) {
+        chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)),false);
+      } else {
+        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      }
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -324,6 +310,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

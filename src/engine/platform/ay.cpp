@@ -27,7 +27,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(regRemap(a),v); if (dumpWrites) {addWrite(regRemap(a),v);} }
 
-#define CHIP_DIVIDER ((sunsoft||clockSel)?16:8)
+#define CHIP_DIVIDER (extMode?extDiv:((sunsoft||clockSel)?16:8))
 
 const char* regCheatSheetAY[]={
   "FreqL_A", "0",
@@ -69,44 +69,16 @@ const char* regCheatSheetAY8914[]={
   NULL
 };
 
+// taken from ay8910.cpp
+const int sunsoftVolTable[32]={
+  103350, 73770, 52657, 37586, 32125, 27458, 24269, 21451,
+  18447, 15864, 14009, 12371, 10506,  8922,  7787,  6796,
+  5689,  4763,  4095,  3521,  2909,  2403,  2043,  1737,
+  1397,  1123,   925,   762,   578,   438,   332,   251
+};
+
 const char** DivPlatformAY8910::getRegisterSheet() {
   return intellivision?regCheatSheetAY8914:regCheatSheetAY;
-}
-
-const char* DivPlatformAY8910::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x20:
-      return "20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)";
-      break;
-    case 0x21:
-      return "21xx: Set noise frequency (0 to 1F)";
-      break;
-    case 0x22:
-      return "22xy: Set envelope mode (x: shape, y: enable for this channel)";
-      break;
-    case 0x23:
-      return "23xx: Set envelope period low byte";
-      break;
-    case 0x24:
-      return "24xx: Set envelope period high byte";
-      break;
-    case 0x25:
-      return "25xx: Envelope slide up";
-      break;
-    case 0x26:
-      return "26xx: Envelope slide down";
-      break;
-    case 0x29:
-      return "29xy: Set auto-envelope (x: numerator; y: denominator)";
-      break;
-    case 0x2e:
-      return "2Exx: Write to I/O port A";
-      break;
-    case 0x2f:
-      return "2Fxx: Write to I/O port B";
-      break;
-  }
-  return NULL;
 }
 
 void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t len) {
@@ -129,27 +101,33 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
     regPool[w.addr&0x0f]=w.val;
     writes.pop();
   }
-  ay->sound_stream_update(ayBuf,len);
   if (sunsoft) {
     for (size_t i=0; i<len; i++) {
-      bufL[i+start]=ayBuf[0][i];
+      ay->sound_stream_update(ayBuf,1);
+      bufL[i+start]=ayBuf[0][0];
       bufR[i+start]=bufL[i+start];
-    }
-  } else if (stereo) {
-    for (size_t i=0; i<len; i++) {
-      bufL[i+start]=ayBuf[0][i]+ayBuf[1][i];
-      bufR[i+start]=ayBuf[1][i]+ayBuf[2][i];
+
+      oscBuf[0]->data[oscBuf[0]->needle++]=sunsoftVolTable[31-(ay->lastIndx&31)]>>3;
+      oscBuf[1]->data[oscBuf[1]->needle++]=sunsoftVolTable[31-((ay->lastIndx>>5)&31)]>>3;
+      oscBuf[2]->data[oscBuf[2]->needle++]=sunsoftVolTable[31-((ay->lastIndx>>10)&31)]>>3;
     }
   } else {
-    for (size_t i=0; i<len; i++) {
-      bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
-      bufR[i+start]=bufL[i+start];
+    ay->sound_stream_update(ayBuf,len);
+    if (stereo) {
+      for (size_t i=0; i<len; i++) {
+        bufL[i+start]=ayBuf[0][i]+ayBuf[1][i];
+        bufR[i+start]=ayBuf[1][i]+ayBuf[2][i];
+      }
+    } else {
+      for (size_t i=0; i<len; i++) {
+        bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
+        bufR[i+start]=bufL[i+start];
+      }
     }
-  }
-
-  for (int ch=0; ch<3; ch++) {
-    for (size_t i=0; i<len; i++) {
-      oscBuf[ch]->data[oscBuf[ch]->needle++]=ayBuf[ch][i];
+    for (int ch=0; ch<3; ch++) {
+      for (size_t i=0; i<len; i++) {
+        oscBuf[ch]->data[oscBuf[ch]->needle++]=ayBuf[ch][i];
+      }
     }
   }
 }
@@ -195,18 +173,9 @@ void DivPlatformAY8910::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       rWrite(0x06,31-chan[i].std.duty.val);
@@ -471,9 +440,12 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       return 15;
       break;
     case DIV_CMD_PRE_PORTA:
+      // TODO: FIX wtr_envelope.dmf
+      // the brokenPortaArp update broke it
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AY));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
@@ -489,9 +461,9 @@ void DivPlatformAY8910::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (isMuted[ch]) {
     rWrite(0x08+ch,0);
-  } else if (intellivision && (chan[ch].psgMode&4)) {
+  } else if (intellivision && (chan[ch].psgMode&4) && chan[ch].active) {
     rWrite(0x08+ch,(chan[ch].vol&0xc)<<2);
-  } else {
+  } else if (chan[ch].active) {
     rWrite(0x08+ch,(chan[ch].outVol&15)|((chan[ch].psgMode&4)<<2));
   }
 }
@@ -565,8 +537,6 @@ void DivPlatformAY8910::reset() {
 
   delay=0;
 
-  extMode=false;
-
   ioPortA=false;
   ioPortB=false;
   portAVal=0;
@@ -595,50 +565,69 @@ void DivPlatformAY8910::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
-void DivPlatformAY8910::setFlags(unsigned int flags) {
-  clockSel=(flags>>7)&1;
-  switch (flags&15) {
-    case 1:
-      chipClock=COLOR_PAL*2.0/5.0;
-      break;
-    case 2:
-      chipClock=1750000;
-      break;
-    case 3:
-      chipClock=2000000;
-      break;
-    case 4:
-      chipClock=1500000;
-      break;
-    case 5:
-      chipClock=1000000;
-      break;
-    case 6:
-      chipClock=COLOR_NTSC/4.0;
-      break;
-    case 7:
-      chipClock=COLOR_PAL*3.0/8.0;
-      break;
-    case 8:
-      chipClock=COLOR_PAL*3.0/16.0;
-      break;
-    case 9:
-      chipClock=COLOR_PAL/4.0;
-      break;
-    case 10:
-      chipClock=2097152;
-      break;
-    case 11:
-      chipClock=COLOR_NTSC;
-      break;
-    case 12:
-      chipClock=3600000;
-      break;
-    default:
-      chipClock=COLOR_NTSC/2.0;
-      break;
+void DivPlatformAY8910::setExtClockDiv(unsigned int eclk, unsigned char ediv) {
+  if (extMode) {
+    extClock=eclk;
+    extDiv=ediv;
   }
-  rate=chipClock/8;
+}
+
+void DivPlatformAY8910::setFlags(unsigned int flags) {
+  if (extMode) {
+    chipClock=extClock;
+    rate=chipClock/extDiv;
+  } else {
+    clockSel=(flags>>7)&1;
+    switch (flags&15) {
+      default:
+      case 0:
+        chipClock=COLOR_NTSC/2.0;
+        break;
+      case 1:
+        chipClock=COLOR_PAL*2.0/5.0;
+        break;
+      case 2:
+        chipClock=1750000;
+        break;
+      case 3:
+        chipClock=2000000;
+        break;
+      case 4:
+        chipClock=1500000;
+        break;
+      case 5:
+        chipClock=1000000;
+        break;
+      case 6:
+        chipClock=COLOR_NTSC/4.0;
+        break;
+      case 7:
+        chipClock=COLOR_PAL*3.0/8.0;
+        break;
+      case 8:
+        chipClock=COLOR_PAL*3.0/16.0;
+        break;
+      case 9:
+        chipClock=COLOR_PAL/4.0;
+        break;
+      case 10:
+        chipClock=2097152;
+        break;
+      case 11:
+        chipClock=COLOR_NTSC;
+        break;
+      case 12:
+        chipClock=3600000;
+        break;
+      case 13:
+        chipClock=20000000/16;
+        break;
+      case 14:
+        chipClock=1536000;
+        break;
+    }
+    rate=chipClock/8;
+  }
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate;
   }

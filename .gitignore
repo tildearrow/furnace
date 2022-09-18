@@ -1,5 +1,6 @@
 .vscode/
 build/
+clangbuild/
 nosdl/
 release/
 t/
@@ -13,6 +14,7 @@ linuxbuild/
 test/songs/
 test/delta/
 test/result/
+test/assert_delta
 android/.gradle/
 android/app/build/
 android/app/.cxx/

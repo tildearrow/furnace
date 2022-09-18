@@ -19,28 +19,35 @@
 
 #ifndef _GENESIS_H
 #define _GENESIS_H
-#include "../dispatch.h"
-#include <deque>
+#include "fmshared_OPN.h"
+#include "../macroInt.h"
 #include "../../../extern/Nuked-OPN2/ym3438.h"
 #include "sound/ymfm/ymfm_opn.h"
 
-#include "sms.h"
 
 class DivYM2612Interface: public ymfm::ymfm_interface {
 
 };
 
-class DivPlatformGenesis: public DivDispatch {
+class DivPlatformGenesis: public DivPlatformOPN {
   protected:
+    const unsigned short chanOffs[6]={
+      0x00, 0x01, 0x02, 0x100, 0x101, 0x102
+    };
+
+    const unsigned char konOffs[6]={
+      0, 1, 2, 4, 5, 6
+    };
+
     struct Channel {
       DivInstrumentFM state;
       DivMacroInt std;
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, pitch2, portaPauseFreq, note;
       int ins;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, hardReset;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, hardReset, opMaskChanged;
       int vol, outVol;
-      unsigned char pan;
+      unsigned char pan, opMask;
 
       bool dacMode;
       int dacPeriod;
@@ -75,9 +82,11 @@ class DivPlatformGenesis: public DivDispatch {
         furnaceDac(false),
         inPorta(false),
         hardReset(false),
+        opMaskChanged(false),
         vol(0),
         outVol(0),
         pan(3),
+        opMask(15),
         dacMode(false),
         dacPeriod(0),
         dacRate(0),
@@ -92,21 +101,11 @@ class DivPlatformGenesis: public DivDispatch {
     Channel chan[10];
     DivDispatchOscBuffer* oscBuf[10];
     bool isMuted[10];
-    struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      bool addrOrVal;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
-    };
-    std::deque<QueuedWrite> writes;
     ym3438_t fm;
-    int delay;
-    unsigned char lastBusy;
 
     ymfm::ym2612* fm_ymfm;
     ymfm::ym2612::output_data out_ymfm;
     DivYM2612Interface iface;
-    unsigned char regPool[512];
   
     unsigned char lfoValue;
 
@@ -115,9 +114,6 @@ class DivPlatformGenesis: public DivDispatch {
     bool extMode, softPCM, useYMFM;
     bool ladder;
   
-    short oldWrites[512];
-    short pendingWrites[512];
-
     unsigned char dacVolTable[128];
 
     friend void putDispatchChan(void*,int,int);
@@ -150,9 +146,10 @@ class DivPlatformGenesis: public DivDispatch {
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformGenesis():
+      DivPlatformOPN(9440540.0, 72, 32) {}
     ~DivPlatformGenesis();
 };
 #endif

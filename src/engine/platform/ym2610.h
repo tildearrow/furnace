@@ -19,9 +19,8 @@
 
 #ifndef _YM2610_H
 #define _YM2610_H
-#include "../dispatch.h"
+#include "fmshared_OPN.h"
 #include "../macroInt.h"
-#include <queue>
 #include "ay.h"
 #include "sound/ymfm/ymfm_opn.h"
 
@@ -35,7 +34,7 @@ class DivYM2610Interface: public ymfm::ymfm_interface {
     DivYM2610Interface(): adpcmAMem(NULL), adpcmBMem(NULL), sampleBank(0) {}
 };
 
-class DivPlatformYM2610Base: public DivDispatch {
+class DivPlatformYM2610Base: public DivPlatformOPN {
   protected:
     unsigned char* adpcmAMem;
     size_t adpcmAMemLen;
@@ -50,6 +49,8 @@ class DivPlatformYM2610Base: public DivDispatch {
     void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformYM2610Base():
+      DivPlatformOPN(9440540.0, 72, 32) {}
 };
 
 class DivPlatformYM2610: public DivPlatformYM2610Base {
@@ -58,16 +59,24 @@ class DivPlatformYM2610: public DivPlatformYM2610Base {
       0x01, 0x02, 0x101, 0x102
     };
 
+    const unsigned char konOffs[4]={
+      1, 2, 5, 6
+    };
+
+    const unsigned char bchOffs[4]={
+      1, 2, 4, 5
+    };
+
     struct Channel {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, pitch2, portaPauseFreq, note, ins;
       unsigned char psgMode, autoEnvNum, autoEnvDen;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset, opMaskChanged;
       int vol, outVol;
       int sample;
-      unsigned char pan;
+      unsigned char pan, opMask;
       DivMacroInt std;
       void macroInit(DivInstrument* which) {
         std.init(which);
@@ -95,37 +104,25 @@ class DivPlatformYM2610: public DivPlatformYM2610Base {
         inPorta(false),
         furnacePCM(false),
         hardReset(false),
+        opMaskChanged(false),
         vol(0),
         outVol(15),
         sample(-1),
-        pan(3) {}
+        pan(3),
+        opMask(15) {}
     };
     Channel chan[14];
     DivDispatchOscBuffer* oscBuf[14];
     bool isMuted[14];
-    struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      bool addrOrVal;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
-    };
-    std::queue<QueuedWrite> writes;
     ymfm::ym2610* fm;
     ymfm::ym2610::output_data fmout;
 
     DivPlatformAY8910* ay;
-    unsigned char regPool[512];
-    unsigned char lastBusy;
   
     unsigned char sampleBank;
 
-    int delay;
-
     bool extMode;
   
-    short oldWrites[512];
-    short pendingWrites[512];
-
     double NOTE_OPNB(int ch, int note);
     double NOTE_ADPCMB(int note);
     friend void putDispatchChan(void*,int,int);
@@ -150,7 +147,7 @@ class DivPlatformYM2610: public DivPlatformYM2610Base {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
+    void setFlags(unsigned int flags);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformYM2610();

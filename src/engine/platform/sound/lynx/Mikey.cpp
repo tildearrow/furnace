@@ -26,37 +26,11 @@
 #include <algorithm>
 #include <limits>
 
-namespace Lynx
-{
+#if defined( _MSC_VER )
 
-namespace
-{
+#include <intrin.h>
 
-static constexpr int64_t CNT_MAX = std::numeric_limits<int64_t>::max() & ~15;
-
-#if defined ( __cpp_lib_bitops )
-
-#define popcnt(X) std::popcount(X)
-
-#elif defined( _MSC_VER )
-
-# include <intrin.h>
-
-uint32_t popcnt( uint32_t x )
-{
-  return __popcnt( x );
-}
-
-#elif defined( __GNUC__ )
-
-uint32_t popcnt( uint32_t x )
-{
-  return __builtin_popcount( x );
-}
-
-#else
-
-uint32_t popcnt( uint32_t x )
+static uint32_t popcnt_generic( uint32_t x )
 {
   int v = 0;
   while ( x != 0 )
@@ -67,7 +41,60 @@ uint32_t popcnt( uint32_t x )
   return v;
 }
 
+#if defined( _M_IX86 ) || defined( _M_X64 )
+
+static uint32_t popcnt_intrinsic( uint32_t x )
+{
+  return __popcnt( x );
+}
+
+static uint32_t( *popcnt )( uint32_t );
+
+//detecting popcnt availability on msvc intel
+static void selectPOPCNT()
+{
+  int info[4];
+  __cpuid( info, 1 );
+  if ( ( info[2] & ( (int)1 << 23 ) ) != 0 )
+  {
+    popcnt = &popcnt_intrinsic;
+  }
+  else
+  {
+    popcnt = &popcnt_generic;
+  }
+}
+
+#else //defined( _M_IX86 ) || defined( _M_X64 )
+
+//MSVC non INTEL should use generic implementation
+inline void selectPOPCNT()
+{
+}
+
+#define popcnt popcnt_generic
+
 #endif
+
+#else //defined( _MSC_VER )
+
+//non MVSC should use builtin implementation
+
+inline void selectPOPCNT()
+{
+}
+
+#define popcnt __builtin_popcount
+
+#endif
+
+namespace Lynx
+{
+
+namespace
+{
+
+static constexpr int64_t CNT_MAX = std::numeric_limits<int64_t>::max() & ~15;
 
 int32_t clamp( int32_t v, int32_t lo, int32_t hi )
 {
@@ -513,6 +540,7 @@ private:
 
 Mikey::Mikey( uint32_t sampleRate ) : mMikey{ std::make_unique<MikeyPimpl>() }, mQueue{ std::make_unique<ActionQueue>() }, mTick{}, mNextTick{}, mSampleRate{ sampleRate }, mSamplesRemainder{}, mTicksPerSample{ 16000000 / mSampleRate, 16000000 % mSampleRate }
 {
+  selectPOPCNT();
   enqueueSampling();
 }
 

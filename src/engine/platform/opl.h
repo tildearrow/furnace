@@ -75,7 +75,7 @@ class DivPlatformOPL: public DivDispatch {
       }
     };
     Channel chan[20];
-    DivDispatchOscBuffer* oscBuf[18];
+    DivDispatchOscBuffer* oscBuf[20];
     bool isMuted[20];
     struct QueuedWrite {
       unsigned short addr;
@@ -95,8 +95,8 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned char** slots;
     const unsigned short* chanMap;
     const unsigned char* outChanMap;
-    double chipFreqBase;
-    int delay, oplType, chans, melodicChans, totalChans, adpcmChan, sampleBank;
+    int chipFreqBase, chipRateBase;
+    int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan, sampleBank;
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
@@ -107,7 +107,7 @@ class DivPlatformOPL: public DivDispatch {
 
     unsigned char lfoValue;
 
-    bool useYMFM, update4OpMask, pretendYMU;
+    bool useYMFM, update4OpMask, pretendYMU, downsample;
   
     short oldWrites[512];
     short pendingWrites[512];
@@ -145,7 +145,6 @@ class DivPlatformOPL: public DivDispatch {
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
-    const char* getEffectName(unsigned char effect);
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);

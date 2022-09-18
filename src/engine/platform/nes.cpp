@@ -62,27 +62,6 @@ const char** DivPlatformNES::getRegisterSheet() {
   return regCheatSheetNES;
 }
 
-const char* DivPlatformNES::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x11:
-      return "Write to delta modulation counter (0 to 7F)";
-      break;
-    case 0x12:
-      return "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)";
-      break;
-    case 0x13:
-      return "13xy: Sweep up (x: time; y: shift)";
-      break;
-    case 0x14:
-      return "14xy: Sweep down (x: time; y: shift)";
-      break;
-    case 0x18:
-      return "18xx: Select PCM/DPCM mode (0: PCM; 1: DPCM)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformNES::doWrite(unsigned short addr, unsigned char data) {
   if (useNP) {
     nes1_NP->Write(addr,data);
@@ -108,12 +87,11 @@ void DivPlatformNES::doWrite(unsigned short addr, unsigned char data) {
             rWrite(0x4011,next); \
           } \
         } \
-        if (++dacPos>=s->samples) { \
-          if (s->loopStart>=0 && s->loopStart<(int)s->samples) { \
-            dacPos=s->loopStart; \
-          } else { \
-            dacSample=-1; \
-          } \
+        dacPos++; \
+        if (s->isLoopable() && dacPos>=s->getEndPosition()) { \
+          dacPos=s->loopStart; \
+        } else if (dacPos>=s->samples) { \
+          dacSample=-1; \
         } \
         dacPeriod-=rate; \
       } else { \
@@ -137,11 +115,11 @@ void DivPlatformNES::acquire_puNES(short* bufL, short* bufR, size_t start, size_
     bufL[i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=nes->S1.output<<11;
-      oscBuf[1]->data[oscBuf[1]->needle++]=nes->S2.output<<11;
-      oscBuf[2]->data[oscBuf[2]->needle++]=nes->TR.output<<11;
-      oscBuf[3]->data[oscBuf[3]->needle++]=nes->NS.output<<11;
-      oscBuf[4]->data[oscBuf[4]->needle++]=nes->DMC.output<<8;
+      oscBuf[0]->data[oscBuf[0]->needle++]=isMuted[0]?0:(nes->S1.output<<11);
+      oscBuf[1]->data[oscBuf[1]->needle++]=isMuted[1]?0:(nes->S2.output<<11);
+      oscBuf[2]->data[oscBuf[2]->needle++]=isMuted[2]?0:(nes->TR.output<<11);
+      oscBuf[3]->data[oscBuf[3]->needle++]=isMuted[3]?0:(nes->NS.output<<11);
+      oscBuf[4]->data[oscBuf[4]->needle++]=isMuted[4]?0:(nes->DMC.output<<8);
     }
   }
 }
@@ -241,28 +219,15 @@ void DivPlatformNES::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (i==3) { // noise
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=chan[i].std.arp.val;
-        } else {
-          chan[i].baseFreq=chan[i].note+chan[i].std.arp.val;
-        }
+        chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         if (chan[i].baseFreq>255) chan[i].baseFreq=255;
         if (chan[i].baseFreq<0) chan[i].baseFreq=0;
       } else {
         if (!chan[i].inPorta) {
-          if (chan[i].std.arp.mode) {
-            chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-          } else {
-            chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-          }
+          chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
         }
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;
@@ -573,6 +538,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

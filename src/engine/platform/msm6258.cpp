@@ -30,18 +30,6 @@ const char** DivPlatformMSM6258::getRegisterSheet() {
   return NULL;
 }
 
-const char* DivPlatformMSM6258::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x20:
-      return "20xx: Set frequency divider (0-2)";
-      break;
-    case 0x21:
-      return "21xx: Select clock rate (0: full; 1: half)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformMSM6258::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   short* outs[2]={
     &msmOut,
@@ -121,6 +109,7 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
           chan[c.chan].outVol=chan[c.chan].vol;
         }
         sample=ins->amiga.getSample(c.value);
+        samplePos=0;
         if (sample>=0 && sample<parent->song.sampleLen) {
           //DivSample* s=parent->getSample(chan[c.chan].sample);
           if (c.value!=DIV_NOTE_NULL) {
@@ -144,8 +133,8 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
         //DivSample* s=parent->getSample(12*sampleBank+c.value%12);
         sample=12*sampleBank+c.value%12;
         samplePos=0;
-        msm->ctrl_w(1);
-        msm->ctrl_w(2);
+        rWrite(0,1);
+        rWrite(0,2);
       }
       break;
     }
@@ -380,7 +369,7 @@ void DivPlatformMSM6258::setFlags(unsigned int flags) {
       chipClock=4000000;
       break;
   }
-  rate=chipClock/128;
+  rate=chipClock/256;
   for (int i=0; i<1; i++) {
     oscBuf[i]->rate=rate;
   }

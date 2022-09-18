@@ -1019,6 +1019,10 @@ static void OPLL_Operator(opll_t *chip) {
     }
 
     chip->ch_out = ismod1 ? routput : (output>>3);
+
+    if (!ismod1) {
+      chip->output_ch[(chip->cycles+1)%9] = chip->ch_out;
+    }
 }
 
 static void OPLL_DoRhythm(opll_t *chip) {

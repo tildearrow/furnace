@@ -27,18 +27,6 @@ const char** DivPlatformZXBeeper::getRegisterSheet() {
   return NULL;
 }
 
-const char* DivPlatformZXBeeper::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x12:
-      return "12xx: Set pulse width";
-      break;
-    case 0x17:
-      return "17xx: Trigger overlay drum";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   bool o=false;
   for (size_t h=start; h<start+len; h++) {
@@ -59,6 +47,7 @@ void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t
       }
       o=sampleOut;
       bufL[h]=o?16384:0;
+      oscBuf[0]->data[oscBuf[0]->needle++]=o?16384:-16384;
       continue;
     }
 
@@ -76,6 +65,7 @@ void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t
     if (++curChan>=6) curChan=0;
     
     bufL[h]=o?16384:0;
+    oscBuf[0]->data[oscBuf[0]->needle++]=o?16384:-16384;
   }
 }
 
@@ -91,18 +81,9 @@ void DivPlatformZXBeeper::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -222,6 +203,7 @@ int DivPlatformZXBeeper::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_BEEPER));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -256,7 +238,7 @@ DivMacroInt* DivPlatformZXBeeper::getChanMacroInt(int ch) {
 }
 
 DivDispatchOscBuffer* DivPlatformZXBeeper::getOscBuffer(int ch) {
-  return oscBuf[ch];
+  return (ch<1)?oscBuf[ch]:NULL;
 }
 
 unsigned char* DivPlatformZXBeeper::getRegisterPool() {

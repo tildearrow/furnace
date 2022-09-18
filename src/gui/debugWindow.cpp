@@ -18,6 +18,7 @@
  */
 
 #include "gui.h"
+#include "guiConst.h"
 #include "debug.h"
 #include "IconsFontAwesome4.h"
 #include <SDL_timer.h>
@@ -154,12 +155,19 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("rate: %d",sample->rate);
           ImGui::Text("centerRate: %d",sample->centerRate);
           ImGui::Text("loopStart: %d",sample->loopStart);
+          ImGui::Text("loopEnd: %d", sample->loopEnd);
           ImGui::Text("loopOffP: %d",sample->loopOffP);
-          ImGui::Text("depth: %d",sample->depth);
+          if (sampleDepths[sample->depth]!=NULL) {
+            ImGui::Text("depth: %d (%s)",(unsigned char)sample->depth,sampleDepths[sample->depth]);
+          } else {
+            ImGui::Text("depth: %d (<NULL!>)",(unsigned char)sample->depth);
+          }
+
           ImGui::Text("length8: %d",sample->length8);
           ImGui::Text("length16: %d",sample->length16);
           ImGui::Text("length1: %d",sample->length1);
           ImGui::Text("lengthDPCM: %d",sample->lengthDPCM);
+          ImGui::Text("lengthZ: %d",sample->lengthZ);
           ImGui::Text("lengthQSoundA: %d",sample->lengthQSoundA);
           ImGui::Text("lengthA: %d",sample->lengthA);
           ImGui::Text("lengthB: %d",sample->lengthB);
@@ -170,6 +178,7 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("off16: %x",sample->off16);
           ImGui::Text("off1: %x",sample->off1);
           ImGui::Text("offDPCM: %x",sample->offDPCM);
+          ImGui::Text("offZ: %x",sample->offZ);
           ImGui::Text("offQSoundA: %x",sample->offQSoundA);
           ImGui::Text("offA: %x",sample->offA);
           ImGui::Text("offB: %x",sample->offB);
@@ -179,6 +188,8 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("offQSound: %x",sample->offQSound);
           ImGui::Text("offX1_010: %x",sample->offX1_010);
           ImGui::Text("offSU: %x",sample->offSU);
+          ImGui::Text("offYMZ280B: %x",sample->offYMZ280B);
+          ImGui::Text("offRF5C68: %x",sample->offRF5C68);
 
           ImGui::Text("samples: %d",sample->samples);
           ImGui::TreePop();
@@ -209,24 +220,34 @@ void FurnaceGUI::drawDebug() {
               ImGui::Text("Data");
 
               for (int j=0; j<e->getChannelCount(system); j++, c++) {
+                DivDispatchOscBuffer* oscBuf=e->getOscBuffer(c);
+                if (oscBuf==NULL) {
+                  ImGui::TableNextRow();
+                  // channel
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%d",j);
+                  ImGui::TableNextColumn();
+                  ImGui::Text("<NULL!>");
+                  continue;
+                }
                 ImGui::TableNextRow();
                 // channel
                 ImGui::TableNextColumn();
                 ImGui::Text("%d",j);
                 // follow
                 ImGui::TableNextColumn();
-                ImGui::Checkbox(fmt::sprintf("##%d_OSCFollow_%d",i,c).c_str(),&e->getOscBuffer(c)->follow);
+                ImGui::Checkbox(fmt::sprintf("##%d_OSCFollow_%d",i,c).c_str(),&oscBuf->follow);
                 // address
                 ImGui::TableNextColumn();
-                int needle=e->getOscBuffer(c)->follow?e->getOscBuffer(c)->needle:e->getOscBuffer(c)->followNeedle;
-                ImGui::BeginDisabled(e->getOscBuffer(c)->follow);
+                int needle=oscBuf->follow?oscBuf->needle:oscBuf->followNeedle;
+                ImGui::BeginDisabled(oscBuf->follow);
                 if (ImGui::InputInt(fmt::sprintf("##%d_OSCFollowNeedle_%d",i,c).c_str(),&needle,1,100)) {
-                  e->getOscBuffer(c)->followNeedle=MIN(MAX(needle,0),65535);
+                  oscBuf->followNeedle=MIN(MAX(needle,0),65535);
                 }
                 ImGui::EndDisabled();
                 // data
                 ImGui::TableNextColumn();
-                ImGui::Text("%d",e->getOscBuffer(c)->data[needle]);
+                ImGui::Text("%d",oscBuf->data[needle]);
               }
               ImGui::EndTable();
             }
@@ -260,9 +281,23 @@ void FurnaceGUI::drawDebug() {
       ImGui::Unindent();
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("File Selection Test")) {
+      if (ImGui::Button("Test Open")) {
+        openFileDialog(GUI_FILE_TEST_OPEN);
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Test Open Multi")) {
+        openFileDialog(GUI_FILE_TEST_OPEN_MULTI);
+      }
+      ImGui::SameLine();
+      if (ImGui::Button("Test Save")) {
+        openFileDialog(GUI_FILE_TEST_SAVE);
+      }
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Playground")) {
       if (pgSys<0 || pgSys>=e->song.systemLen) pgSys=0;
-      if (ImGui::BeginCombo("System",fmt::sprintf("%d. %s",pgSys+1,e->getSystemName(e->song.system[pgSys])).c_str())) {
+      if (ImGui::BeginCombo("Chip",fmt::sprintf("%d. %s",pgSys+1,e->getSystemName(e->song.system[pgSys])).c_str())) {
         for (int i=0; i<e->song.systemLen; i++) {
           if (ImGui::Selectable(fmt::sprintf("%d. %s",i+1,e->getSystemName(e->song.system[i])).c_str())) {
             pgSys=i;
@@ -323,7 +358,7 @@ void FurnaceGUI::drawDebug() {
       if (ImGui::TreeNode("Register Cheatsheet")) {
         const char** sheet=e->getRegisterSheet(pgSys);
         if (sheet==NULL) {
-          ImGui::Text("no cheatsheet available for this system.");
+          ImGui::Text("no cheatsheet available for this chip.");
         } else {
           if (ImGui::BeginTable("RegisterSheet",2,ImGuiTableFlags_SizingFixedSame)) {
             ImGui::TableNextRow();
@@ -368,6 +403,9 @@ void FurnaceGUI::drawDebug() {
     if (ImGui::TreeNode("User Interface")) {
       if (ImGui::Button("Inspect")) {
         inspectorOpen=!inspectorOpen;
+      }
+      if (ImGui::Button("Spoiler")) {
+        spoilerOpen=!spoilerOpen;
       }
       ImGui::TreePop();
     }

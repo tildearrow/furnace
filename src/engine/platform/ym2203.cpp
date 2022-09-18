@@ -23,16 +23,8 @@
 #include <string.h>
 #include <math.h>
 
-#include "sound/ymfm/ymfm_opn.h"
-#include "ym2203shared.h"
-
-#include "fmshared_OPN.h"
-
-static unsigned char konOffs[3]={
-  0, 1, 2
-};
-
-#define CHIP_DIVIDER 32
+#define CHIP_FREQBASE fmFreqBase
+#define CHIP_DIVIDER fmDivBase
 
 const char* regCheatSheetYM2203[]={
   // SSG
@@ -164,123 +156,6 @@ const char** DivPlatformYM2203::getRegisterSheet() {
   return regCheatSheetYM2203;
 }
 
-const char* DivPlatformYM2203::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x11:
-      return "11xx: Set feedback (0 to 7)";
-      break;
-    case 0x12:
-      return "12xx: Set level of operator 1 (0 highest, 7F lowest)";
-      break;
-    case 0x13:
-      return "13xx: Set level of operator 2 (0 highest, 7F lowest)";
-      break;
-    case 0x14:
-      return "14xx: Set level of operator 3 (0 highest, 7F lowest)";
-      break;
-    case 0x15:
-      return "15xx: Set level of operator 4 (0 highest, 7F lowest)";
-      break;
-    case 0x16:
-      return "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)";
-      break;
-    case 0x18:
-      return "18xx: Toggle extended channel 3 mode";
-      break;
-    case 0x19:
-      return "19xx: Set attack of all operators (0 to 1F)";
-      break;
-    case 0x1a:
-      return "1Axx: Set attack of operator 1 (0 to 1F)";
-      break;
-    case 0x1b:
-      return "1Bxx: Set attack of operator 2 (0 to 1F)";
-      break;
-    case 0x1c:
-      return "1Cxx: Set attack of operator 3 (0 to 1F)";
-      break;
-    case 0x1d:
-      return "1Dxx: Set attack of operator 4 (0 to 1F)";
-      break;
-    case 0x20:
-      return "20xx: Set SSG channel mode (bit 0: square; bit 1: noise; bit 2: envelope)";
-      break;
-    case 0x21:
-      return "21xx: Set SSG noise frequency (0 to 1F)";
-      break;
-    case 0x22:
-      return "22xy: Set SSG envelope mode (x: shape, y: enable for this channel)";
-      break;
-    case 0x23:
-      return "23xx: Set SSG envelope period low byte";
-      break;
-    case 0x24:
-      return "24xx: Set SSG envelope period high byte";
-      break;
-    case 0x25:
-      return "25xx: SSG envelope slide up";
-      break;
-    case 0x26:
-      return "26xx: SSG envelope slide down";
-      break;
-    case 0x29:
-      return "29xy: Set SSG auto-envelope (x: numerator; y: denominator)";
-      break;
-    case 0x30:
-      return "30xx: Toggle hard envelope reset on new notes";
-      break;
-    case 0x50:
-      return "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)";
-      break;
-    case 0x51:
-      return "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)";
-      break;
-    case 0x52:
-      return "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)";
-      break;
-    case 0x53:
-      return "53xy: Set detune (x: operator from 1 to 4 (0 for all ops); y: detune where 3 is center)";
-      break;
-    case 0x54:
-      return "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale from 0 to 3)";
-      break;
-    case 0x55:
-      return "55xy: Set SSG envelope (x: operator from 1 to 4 (0 for all ops); y: 0-7 on, 8 off)";
-      break;
-    case 0x56:
-      return "56xx: Set decay of all operators (0 to 1F)";
-      break;
-    case 0x57:
-      return "57xx: Set decay of operator 1 (0 to 1F)";
-      break;
-    case 0x58:
-      return "58xx: Set decay of operator 2 (0 to 1F)";
-      break;
-    case 0x59:
-      return "59xx: Set decay of operator 3 (0 to 1F)";
-      break;
-    case 0x5a:
-      return "5Axx: Set decay of operator 4 (0 to 1F)";
-      break;
-    case 0x5b:
-      return "5Bxx: Set decay 2 of all operators (0 to 1F)";
-      break;
-    case 0x5c:
-      return "5Cxx: Set decay 2 of operator 1 (0 to 1F)";
-      break;
-    case 0x5d:
-      return "5Dxx: Set decay 2 of operator 2 (0 to 1F)";
-      break;
-    case 0x5e:
-      return "5Exx: Set decay 2 of operator 3 (0 to 1F)";
-      break;
-    case 0x5f:
-      return "5Fxx: Set decay 2 of operator 4 (0 to 1F)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformYM2203::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static int os;
 
@@ -299,7 +174,7 @@ void DivPlatformYM2203::acquire(short* bufL, short* bufR, size_t start, size_t l
         fm->write(0x0,w.addr);
         fm->write(0x1,w.val);
         regPool[w.addr&0xff]=w.val;
-        writes.pop();
+        writes.pop_front();
         delay=6;
       }
     }
@@ -356,18 +231,9 @@ void DivPlatformYM2203::tick(bool sysTick) {
 
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].std.arp.val,11);
-        } else {
-          chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].note+(signed char)chan[i].std.arp.val,11);
-        }
+        chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11);
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FNUM_BLOCK(chan[i].note,11);
-        chan[i].freqChanged=true;
-      }
     }
 
     if (chan[i].std.pitch.had) {
@@ -406,6 +272,10 @@ void DivPlatformYM2203::tick(bool sysTick) {
     if (chan[i].std.fb.had) {
       chan[i].state.fb=chan[i].std.fb.val;
       rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
+    }
+    if (chan[i].std.ex4.had && chan[i].active) {
+      chan[i].opMask=chan[i].std.ex4.val&15;
+      chan[i].opMaskChanged=true;
     }
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
@@ -519,8 +389,9 @@ void DivPlatformYM2203::tick(bool sysTick) {
       immWrite(chanOffs[i]+ADDR_FREQ,chan[i].freq&0xff);
       chan[i].freqChanged=false;
     }
-    if (chan[i].keyOn) {
-      immWrite(0x28,0xf0|konOffs[i]);
+    if (chan[i].keyOn || chan[i].opMaskChanged) {
+      immWrite(0x28,(chan[i].opMask<<4)|konOffs[i]);
+      chan[i].opMaskChanged=false;
       chan[i].keyOn=false;
     }
   }
@@ -543,6 +414,11 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
 
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->fm;
+        chan[c.chan].opMask=
+          (chan[c.chan].state.op[0].enable?1:0)|
+          (chan[c.chan].state.op[2].enable?2:0)|
+          (chan[c.chan].state.op[1].enable?4:0)|
+          (chan[c.chan].state.op[3].enable?8:0);
       }
       
       for (int i=0; i<4; i++) {
@@ -665,6 +541,13 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
     case DIV_CMD_LEGATO: {
       chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
       chan[c.chan].freqChanged=true;
+      break;
+    }
+    case DIV_CMD_FM_EXTCH: {
+      if (extSys) {
+        extMode=c.value;
+        immWrite(0x27,extMode?0x40:0);
+      }
       break;
     }
     case DIV_CMD_FM_FB: {
@@ -959,7 +842,7 @@ void DivPlatformYM2203::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformYM2203::reset() {
-  while (!writes.empty()) writes.pop();
+  while (!writes.empty()) writes.pop_front();
   memset(regPool,0,256);
   if (dumpWrites) {
     addWrite(0xffffffff,0);
@@ -988,6 +871,10 @@ void DivPlatformYM2203::reset() {
   delay=0;
 
   extMode=false;
+
+  // set prescaler
+  immWrite(0x2d,0xff);
+  immWrite(prescale,0xff);
 
   ay->reset();
   ay->getRegisterWrites().clear();
@@ -1021,25 +908,58 @@ void DivPlatformYM2203::setSkipRegisterWrites(bool value) {
 }
 
 void DivPlatformYM2203::setFlags(unsigned int flags) {
-  unsigned char ayFlags=16;
-  if (flags==3) {
-    chipClock=3000000.0;
-    ayFlags=20;
-  } else if (flags==2) {
-    chipClock=4000000.0;
-    ayFlags=19;
-  } else if (flags==1) {
-    chipClock=COLOR_PAL*4.0/5.0;
-    ayFlags=17;
-  } else {
-    chipClock=COLOR_NTSC;
-    ayFlags=16;
+  // Clock flags
+  switch (flags&0x1f) {
+    default:
+    case 0x00:
+      chipClock=COLOR_NTSC;
+      break;
+    case 0x01:
+      chipClock=COLOR_PAL*4.0/5.0;
+      break;
+    case 0x02:
+      chipClock=4000000.0;
+      break;
+    case 0x03:
+      chipClock=3000000.0;
+      break;
+    case 0x04:
+      chipClock=38400*13*8; // 31948800/8
+      break;
+    case 0x05:
+      chipClock=3000000.0/2.0;
+      break;
   }
-  ay->setFlags(ayFlags);
+  // Prescaler flags
+  switch ((flags>>5)&0x3) {
+    default:
+    case 0x00: // /6
+      prescale=0x2d;
+      fmFreqBase=4720270.0,
+      fmDivBase=36,
+      ayDiv=16;
+      break;
+    case 0x01: // /3
+      prescale=0x2e;
+      fmFreqBase=4720270.0/2.0,
+      fmDivBase=18,
+      ayDiv=8;
+      break;
+    case 0x02: // /2
+      prescale=0x2f;
+      fmFreqBase=4720270.0/3.0,
+      fmDivBase=12,
+      ayDiv=4;
+      break;
+  }
   rate=fm->sample_rate(chipClock);
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;
   }
+  immWrite(0x2d,0xff);
+  immWrite(prescale,0xff);
+  ay->setExtClockDiv(chipClock,ayDiv);
+  ay->setFlags(16);
 }
 
 int DivPlatformYM2203::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
@@ -1053,13 +973,13 @@ int DivPlatformYM2203::init(DivEngine* p, int channels, int sugRate, unsigned in
   fm=new ymfm::ym2203(iface);
   fm->set_fidelity(ymfm::OPN_FIDELITY_MIN);
   // YM2149, 2MHz
-  ay=new DivPlatformAY8910;
-  ay->init(p,3,sugRate,19);
+  ay=new DivPlatformAY8910(true,chipClock,ayDiv);
+  ay->init(p,3,sugRate,16);
   ay->toggleRegisterDump(true);
   setFlags(flags);
 
   reset();
-  return 16;
+  return 6;
 }
 
 void DivPlatformYM2203::quit() {

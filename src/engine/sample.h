@@ -17,8 +17,27 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#ifndef _SAMPLE_H
+#define _SAMPLE_H
+
+#pragma once
+
 #include "../ta-utils.h"
 #include <deque>
+
+enum DivSampleDepth: unsigned char {
+  DIV_SAMPLE_DEPTH_1BIT=0,
+  DIV_SAMPLE_DEPTH_1BIT_DPCM=1,
+  DIV_SAMPLE_DEPTH_YMZ_ADPCM=3,
+  DIV_SAMPLE_DEPTH_QSOUND_ADPCM=4,
+  DIV_SAMPLE_DEPTH_ADPCM_A=5,
+  DIV_SAMPLE_DEPTH_ADPCM_B=6,
+  DIV_SAMPLE_DEPTH_8BIT=8,
+  DIV_SAMPLE_DEPTH_BRR=9,
+  DIV_SAMPLE_DEPTH_VOX=10,
+  DIV_SAMPLE_DEPTH_16BIT=16,
+  DIV_SAMPLE_DEPTH_MAX // boundary for sample depth
+};
 
 enum DivResampleFilters {
   DIV_RESAMPLE_NONE=0,
@@ -32,10 +51,10 @@ enum DivResampleFilters {
 struct DivSampleHistory {
   unsigned char* data;
   unsigned int length, samples;
-  unsigned char depth;
-  int rate, centerRate, loopStart;
+  DivSampleDepth depth;
+  int rate, centerRate, loopStart, loopEnd;
   bool hasSample;
-  DivSampleHistory(void* d, unsigned int l, unsigned int s, unsigned char de, int r, int cr, int ls):
+  DivSampleHistory(void* d, unsigned int l, unsigned int s, DivSampleDepth de, int r, int cr, int ls, int le):
     data((unsigned char*)d),
     length(l),
     samples(s),
@@ -43,8 +62,9 @@ struct DivSampleHistory {
     rate(r),
     centerRate(cr),
     loopStart(ls),
+    loopEnd(le),
     hasSample(true) {}
-  DivSampleHistory(unsigned char de, int r, int cr, int ls):
+  DivSampleHistory(DivSampleDepth de, int r, int cr, int ls, int le):
     data(NULL),
     length(0),
     samples(0),
@@ -52,13 +72,14 @@ struct DivSampleHistory {
     rate(r),
     centerRate(cr),
     loopStart(ls),
+    loopEnd(le),
     hasSample(false) {}
   ~DivSampleHistory();
 };
 
 struct DivSample {
   String name;
-  int rate, centerRate, loopStart, loopOffP;
+  int rate, centerRate, loopStart, loopEnd, loopOffP;
   // valid values are:
   // - 0: ZX Spectrum overlay drum (1-bit)
   // - 1: 1-bit NES DPCM (1-bit)
@@ -70,7 +91,7 @@ struct DivSample {
   // - 9: BRR (SNES)
   // - 10: VOX ADPCM
   // - 16: 16-bit PCM
-  unsigned char depth;
+  DivSampleDepth depth;
 
   // these are the new data structures.
   signed char* data8; // 8
@@ -92,6 +113,23 @@ struct DivSample {
 
   std::deque<DivSampleHistory*> undoHist;
   std::deque<DivSampleHistory*> redoHist;
+
+  /**
+   * check if sample is loopable.
+   * @return whether it is loopable.
+   */
+  bool isLoopable();
+
+  /**
+   * get sample end position
+   * @return the samples end position.
+   */
+  unsigned int getEndPosition(DivSampleDepth depth=DIV_SAMPLE_DEPTH_MAX);
+
+  /**
+   * @warning DO NOT USE - internal functions
+   */
+  void setSampleCount(unsigned int count);
 
   /**
    * @warning DO NOT USE - internal functions
@@ -116,7 +154,7 @@ struct DivSample {
    * @param count number of samples.
    * @return whether it was successful.
    */
-  bool initInternal(unsigned char d, int count);
+  bool initInternal(DivSampleDepth d, int count);
 
   /**
    * initialize sample data. make sure you have set `depth` before doing so.
@@ -212,8 +250,9 @@ struct DivSample {
     rate(32000),
     centerRate(8363),
     loopStart(-1),
+    loopEnd(-1),
     loopOffP(0),
-    depth(16),
+    depth(DIV_SAMPLE_DEPTH_16BIT),
     data8(NULL),
     data16(NULL),
     data1(NULL),
@@ -248,8 +287,11 @@ struct DivSample {
     offQSound(0),
     offX1_010(0),
     offSU(0),
+    offYMZ280B(0),
     offRF5C68(0),
     offSNES(0),
     samples(0) {}
   ~DivSample();
 };
+
+#endif
