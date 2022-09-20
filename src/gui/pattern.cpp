@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+// for suck's fake Clang extension!
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "../ta-log.h"
@@ -400,7 +401,7 @@ void FurnaceGUI::drawPattern() {
     ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_SELECTION_HOVER]);
     ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_SELECTION_ACTIVE]);
-    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX)) {
+    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea)) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[2048];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
@@ -473,6 +474,7 @@ void FurnaceGUI::drawPattern() {
         ImVec4 chanHead=muted?uiColors[GUI_COLOR_CHANNEL_MUTED]:channelColor(i);
         ImVec4 chanHeadActive=chanHead;
         ImVec4 chanHeadHover=chanHead;
+        ImVec4 chanHeadBase=chanHead;
 
         if (e->keyHit[i]) {
           if (settings.channelFeedbackStyle==1) {
@@ -515,18 +517,140 @@ void FurnaceGUI::drawPattern() {
           chanHeadActive.x*=0.8; chanHeadActive.y*=0.8; chanHeadActive.z*=0.8;
           chanHeadHover.x*=0.4+keyHit[i]; chanHeadHover.y*=0.4+keyHit[i]; chanHeadHover.z*=0.4+keyHit[i];
         }
-        keyHit[i]-=0.02*60.0*ImGui::GetIO().DeltaTime;
+        keyHit[i]-=((settings.channelStyle==0)?0.02:0.01)*60.0*ImGui::GetIO().DeltaTime;
         if (keyHit[i]<0) keyHit[i]=0;
         ImGui::PushStyleColor(ImGuiCol_Header,chanHead);
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,chanHeadActive);
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered,chanHeadHover);
         ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(channelTextColor(i)));
-        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(chanHead));
+        if (settings.channelStyle==0) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(chanHead));
         if (muted) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_CHANNEL_MUTED]);
         if (settings.channelFont==0) ImGui::PushFont(mainFont);
 
         // TODO: appearance
-        ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale));
+        ImGuiWindow* window=ImGui::GetCurrentWindow();
+        ImVec2 size=ImVec2(
+          1.0f,
+          lineHeight+1.0f*dpiScale+6.0*dpiScale
+        );
+        ImDrawList* dl=ImGui::GetWindowDrawList();
+
+        if (settings.channelStyle==2) {
+          size.y+=6.0f*dpiScale;
+        }
+        
+        ImVec2 minArea=window->DC.CursorPos;
+        ImVec2 maxArea=ImVec2(
+          minArea.x+window->WorkRect.Max.x-window->WorkRect.Min.x,
+          minArea.y+size.y
+        );
+        ImRect rect=ImRect(minArea,maxArea);
+        switch (settings.channelStyle) {
+          case 0: // classic
+            ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale));
+            break;
+          case 1: { // line
+            ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
+            if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              ImU32 fadeCol0=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                hovered?0.25f:0.0f
+              ));
+              ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                hovered?0.5f:MIN(1.0f,chanHeadBase.w*keyHit[i]*4.0f)
+              ));
+              dl->AddRectFilledMultiColor(rect.Min,rect.Max,fadeCol0,fadeCol0,fadeCol,fadeCol);
+              dl->AddLine(ImVec2(rect.Min.x,rect.Max.y),ImVec2(rect.Max.x,rect.Max.y),ImGui::GetColorU32(chanHeadBase),2.0f*dpiScale);
+              dl->AddText(ImVec2(rect.Min.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID,strstr(chanID,"##"));
+            }
+            break;
+          }
+          case 2: { // round
+            ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
+            if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              ImU32 fadeCol0=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                hovered?0.5f:MIN(1.0f,0.3f+chanHeadBase.w*keyHit[i]*1.5f)
+              ));
+              ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                hovered?0.3f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*1.2f)
+              ));
+              ImVec2 rMin=rect.Min;
+              ImVec2 rMax=rect.Max;
+              rMin.x+=3.0f*dpiScale;
+              rMin.y+=6.0f*dpiScale;
+              rMax.x-=3.0f*dpiScale;
+              rMax.y-=6.0f*dpiScale;
+              dl->AddRectFilledMultiColor(rMin,rMax,fadeCol0,fadeCol0,fadeCol,fadeCol,4.0f*dpiScale);
+              dl->AddText(ImVec2(rect.Min.x,rect.Min.y+6.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID,strstr(chanID,"##"));
+            }
+            break;
+          }
+          case 3: // split button
+            ImGui::Dummy(ImVec2(1.0f,2.0f*dpiScale));
+            ImGui::TextUnformatted(chanID,strstr(chanID,"##"));
+            ImGui::SameLine();
+            ImGui::PushFont(mainFont);
+            ImGui::PushID(chanID);
+            ImGui::SmallButton(muted?ICON_FA_VOLUME_OFF:ICON_FA_VOLUME_UP);
+            ImGui::PopID();
+            ImGui::PopFont();
+            break;
+          case 4: { // square border
+            ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
+            if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                hovered?1.0f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*4.0f)
+              ));
+              ImVec2 rMin=rect.Min;
+              ImVec2 rMax=rect.Max;
+              rMin.x+=2.0f*dpiScale;
+              rMin.y+=3.0f*dpiScale;
+              rMax.x-=3.0f*dpiScale;
+              rMax.y-=3.0f*dpiScale;
+              dl->AddRect(rMin,rMax,fadeCol,0.0f,2.0*dpiScale);
+              dl->AddText(ImVec2(rect.Min.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID,strstr(chanID,"##"));
+            }
+            break;
+          }
+          case 5: { // round border
+            ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
+            if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                hovered?1.0f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*4.0f)
+              ));
+              ImVec2 rMin=rect.Min;
+              ImVec2 rMax=rect.Max;
+              rMin.x+=2.0f*dpiScale;
+              rMin.y+=3.0f*dpiScale;
+              rMax.x-=3.0f*dpiScale;
+              rMax.y-=3.0f*dpiScale;
+              dl->AddRect(rMin,rMax,fadeCol,4.0f*dpiScale,ImDrawFlags_RoundCornersAll,2.0*dpiScale);
+              dl->AddText(ImVec2(rect.Min.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID,strstr(chanID,"##"));
+            }
+            break;
+          }
+        }
 
         if (displayTooltip && ImGui::IsItemHovered()) {
           ImGui::SetTooltip("%s",e->getChannelName(i));
@@ -547,6 +671,9 @@ void FurnaceGUI::drawPattern() {
         if (settings.soloAction!=2) if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           inhibitMenu=true;
           e->toggleSolo(i);
+        }
+        if (settings.channelStyle==3) {
+          ImGui::Dummy(ImVec2(1.0f,2.0f*dpiScale));
         }
         if (extraChannelButtons==2) {
           DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][ord],true);
