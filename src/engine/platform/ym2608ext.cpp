@@ -472,8 +472,13 @@ void DivPlatformYM2608Ext::forceIns() {
       chan[i].freqChanged=true;
     }
   }
-  for (int i=6; i<16; i++) {
+  for (int i=9; i<16; i++) {
     chan[i].insChanged=true;
+    if (i>14) { // ADPCM-B
+      immWrite(0x10b,chan[i].outVol);
+    } else {
+      immWrite(0x18+(i-9),isMuted[i]?0:((chan[i].pan<<6)|chan[i].vol));
+    }
   }
   ay->forceIns();
   ay->flushWrites();
