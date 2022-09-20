@@ -217,7 +217,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::RadioButton("PAL (3.55MHz)",(flags&15)==1)) {
         copyOfFlags=(flags&(~15))|1;
       }
-      if (ImGui::RadioButton("BBC Micro (4MHz)",(flags&15)==2)) {
+      if (ImGui::RadioButton("Arcade (4MHz)",(flags&15)==2)) {
         copyOfFlags=(flags&(~15))|2;
       }
       if (ImGui::RadioButton("Half NTSC (1.79MHz)",(flags&15)==3)) {

@@ -960,11 +960,27 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with PC-9801-86)", { // -73 also has OPNA
       DIV_SYSTEM_PC98, 64, 0, 1,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16), // 2x 16-bit Burr Brown DAC
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16),
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with PC-9801-86; extended channel 3)", { // -73 also has OPNA
+      DIV_SYSTEM_PC98_EXT, 64, 0, 1,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16),
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16),
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with PC-9801-73)", {
+      DIV_SYSTEM_PC98, 64, 0, 1,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with PC-9801-73; extended channel 3)", {
       DIV_SYSTEM_PC98_EXT, 64, 0, 1,
       0
     }
@@ -972,6 +988,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible)", {
       DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
       DIV_SYSTEM_OPL3, 64, 0, 0,
       0
     }
@@ -979,6 +996,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible; extended channel 3)", {
       DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
       DIV_SYSTEM_OPL3, 64, 0, 0,
       0
     }
@@ -986,6 +1004,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode)", {
       DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
       DIV_SYSTEM_OPL3_DRUMS, 64, 0, 2,
       0
     }
@@ -993,6 +1012,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode; extended channel 3)", {
       DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
       DIV_SYSTEM_OPL3_DRUMS, 64, 0, 2,
       0
     }
@@ -1093,6 +1113,20 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Atari ST", {
+      DIV_SYSTEM_AY8910, 64, 0, 3,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Atari STE", {
+      DIV_SYSTEM_AY8910, 64, 0, 3,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 50667|(7<<16),
+      DIV_SYSTEM_PCM_DAC, 64, 0, 50667|(7<<16),
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "SAM Coupé", {
       DIV_SYSTEM_SAA1099, 64, 0, 0,
       0
@@ -1146,10 +1180,25 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
-  cat.systems.push_back(FurnaceGUISysDef(
-    "PC + AdLib/Sound Blaster", {
+    cat.systems.push_back(FurnaceGUISysDef(
+    "PC + AdLib", {
       DIV_SYSTEM_OPL2, 64, 0, 0,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+      cat.systems.push_back(FurnaceGUISysDef(
+    "PC + AdLib (drums mode)", {
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + Sound Blaster", {
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16),
       0
     }
   ));
@@ -1157,6 +1206,7 @@ void FurnaceGUI::initSystemPresets() {
     "PC + AdLib/Sound Blaster (drums mode)", {
       DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16),
       0
     }
   ));
@@ -1165,6 +1215,7 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_OPL2, 64, 0, 0,
       DIV_SYSTEM_SAA1099, 64, 0, 1,
       DIV_SYSTEM_SAA1099, 64, 0, 1,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16),
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -1174,6 +1225,7 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
       DIV_SYSTEM_SAA1099, 64, 0, 1,
       DIV_SYSTEM_SAA1099, 64, 0, 1,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16),
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -1182,6 +1234,7 @@ void FurnaceGUI::initSystemPresets() {
     "PC + Sound Blaster Pro", {
       DIV_SYSTEM_OPL2, 64, -127, 0,
       DIV_SYSTEM_OPL2, 64, 127, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16)|(1<<20), //alternatively 44.1 khz mono
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -1190,6 +1243,7 @@ void FurnaceGUI::initSystemPresets() {
     "PC + Sound Blaster Pro (drums mode)", {
       DIV_SYSTEM_OPL2_DRUMS, 64, -127, 0,
       DIV_SYSTEM_OPL2_DRUMS, 64, 127, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16)|(1<<20), //alternatively 44.1 khz mono
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -1197,6 +1251,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster Pro 2", {
       DIV_SYSTEM_OPL3, 64, 0, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -1204,6 +1259,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster Pro 2 (drums mode)", {
       DIV_SYSTEM_OPL3_DRUMS, 64, 0, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
