@@ -63,7 +63,7 @@ float FurnaceGUI::computeGradPos(int type, int chan) {
       return chanOscBright[chan];
       break;
     case GUI_OSCREF_NOTE_TRIGGER:
-      return keyHit[chan]*5.0f;
+      return keyHit1[chan];
       break;
   }
   return 0.0f;

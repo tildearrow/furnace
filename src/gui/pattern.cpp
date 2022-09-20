@@ -477,6 +477,7 @@ void FurnaceGUI::drawPattern() {
         ImVec4 chanHeadBase=chanHead;
 
         if (e->keyHit[i]) {
+          keyHit1[i]=1.0f;
           if (settings.channelFeedbackStyle==1) {
             keyHit[i]=0.2;
             if (!muted) {
@@ -486,6 +487,7 @@ void FurnaceGUI::drawPattern() {
               }
             }
           }
+          e->keyHit[i]=false;
         }
         if (settings.channelFeedbackStyle==2 && e->isRunning()) {
           float amount=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i));
@@ -699,6 +701,7 @@ void FurnaceGUI::drawPattern() {
 
             if (e->keyHit[i]) {
               keyHit1[i]=1.0f;
+              e->keyHit[i]=false;
             }
 
             if (e->isRunning()) {

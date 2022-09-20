@@ -3548,12 +3548,6 @@ bool FurnaceGUI::loop() {
       drawEffectList();
     }
 
-    for (int i=0; i<e->getTotalChannelCount(); i++) {
-      if (e->keyHit[i]) {
-        e->keyHit[i]=false;
-      }
-    }
-
     if (inspectorOpen) ImGui::ShowMetricsWindow(&inspectorOpen);
 
     if (firstFrame) {
@@ -5461,6 +5455,9 @@ FurnaceGUI::FurnaceGUI():
   waveGenFMCon1[0]=true;
   waveGenFMCon2[0]=true;
   waveGenFMCon3[0]=true;
+
+  memset(keyHit,0,sizeof(float)*DIV_MAX_CHANS);
+  memset(keyHit1,0,sizeof(float)*DIV_MAX_CHANS);
 
   memset(pianoKeyHit,0,sizeof(float)*180);
   memset(pianoKeyPressed,0,sizeof(bool)*180);
