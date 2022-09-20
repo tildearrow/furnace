@@ -111,7 +111,7 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
 
   for (int ch=0; ch<3; ch++) {
     for (size_t i=0; i<len; i++) {
-      oscBuf[ch]->data[oscBuf[ch]->needle++]=ayBuf[ch][i];
+      oscBuf[ch]->data[oscBuf[ch]->needle++]=ayBuf[ch][i]<<2;
     }
   }
 }

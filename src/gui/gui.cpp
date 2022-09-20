@@ -3471,6 +3471,8 @@ bool FurnaceGUI::loop() {
       ImGui::EndMainMenuBar();
     }
 
+    calcChanOsc();
+
     if (mobileUI) {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
       //globalWinFlags=ImGuiWindowFlags_NoTitleBar;
@@ -3544,6 +3546,12 @@ bool FurnaceGUI::loop() {
       drawRegView();
       drawLog();
       drawEffectList();
+    }
+
+    for (int i=0; i<e->getTotalChannelCount(); i++) {
+      if (e->keyHit[i]) {
+        e->keyHit[i]=false;
+      }
     }
 
     if (inspectorOpen) ImGui::ShowMetricsWindow(&inspectorOpen);

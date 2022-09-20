@@ -1558,6 +1558,7 @@ class FurnaceGUI {
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];
+  float keyHit1[DIV_MAX_CHANS];
   int lastIns[DIV_MAX_CHANS];
 
   // log window
@@ -1612,6 +1613,7 @@ class FurnaceGUI {
   ImVec4 channelTextColor(int ch);
 
   void readOsc();
+  void calcChanOsc();
 
   void pushAccentColors(const ImVec4& one, const ImVec4& two, const ImVec4& border, const ImVec4& borderShadow);
   void popAccentColors();

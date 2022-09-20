@@ -1327,6 +1327,9 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::RadioButton("Real##CHV3",settings.channelVolStyle==3)) {
             settings.channelVolStyle=3;
           }
+          if (ImGui::RadioButton("Real (stereo)##CHV4",settings.channelVolStyle==4)) {
+            settings.channelVolStyle=4;
+          }
 
           ImGui::Text("Channel feedback style:");
 
@@ -2389,7 +2392,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.channelColors,0,2);
   clampSetting(settings.channelTextColors,0,2);
   clampSetting(settings.channelStyle,0,5);
-  clampSetting(settings.channelVolStyle,0,3);
+  clampSetting(settings.channelVolStyle,0,4);
   clampSetting(settings.channelFeedbackStyle,0,3);
   clampSetting(settings.channelFont,0,1);
   clampSetting(settings.maxRecentFile,0,30);

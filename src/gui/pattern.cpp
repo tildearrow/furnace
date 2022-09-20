@@ -486,7 +486,6 @@ void FurnaceGUI::drawPattern() {
               }
             }
           }
-          e->keyHit[i]=false;
         }
         if (settings.channelFeedbackStyle==2 && e->isRunning()) {
           float amount=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i));
@@ -547,6 +546,10 @@ void FurnaceGUI::drawPattern() {
         ImRect rect=ImRect(minArea,maxArea);
         switch (settings.channelStyle) {
           case 0: // classic
+            if (settings.channelVolStyle!=0) {
+              // sorry...
+              ImGui::Dummy(ImVec2(dpiScale,dpiScale));
+            }
             ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale));
             break;
           case 1: { // line
@@ -672,9 +675,62 @@ void FurnaceGUI::drawPattern() {
           inhibitMenu=true;
           e->toggleSolo(i);
         }
+
         if (settings.channelStyle==3) {
           ImGui::Dummy(ImVec2(1.0f,2.0f*dpiScale));
         }
+
+        // volume bar
+        if (settings.channelVolStyle!=0) {
+          ImVec2 sizeV=ImVec2(
+            1.0f,
+            6.0*dpiScale
+          );
+          ImVec2 minAreaV=window->DC.CursorPos;
+          ImVec2 maxAreaV=ImVec2(
+            minAreaV.x+window->WorkRect.Max.x-window->WorkRect.Min.x,
+            minAreaV.y+sizeV.y
+          );
+          ImRect rectV=ImRect(minAreaV,maxAreaV);
+          ImGui::ItemSize(sizeV,ImGui::GetStyle().FramePadding.y);
+          if (ImGui::ItemAdd(rectV,ImGui::GetID(chanID))) {
+            float xLeft=0.0f;
+            float xRight=1.0f;
+
+            if (e->keyHit[i]) {
+              keyHit1[i]=1.0f;
+            }
+
+            if (e->isRunning()) {
+              switch (settings.channelVolStyle) {
+                case 1: // simple
+                  xRight=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i))*0.9+(keyHit1[i]*0.1f);
+                  break;
+                case 2: // stereo
+                  xRight=0.5+((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i))*0.4+(keyHit1[i]*0.1f);
+                  xLeft=1.0-xRight;
+                  break;
+                case 3: // real
+                  xRight=chanOscVol[i];
+                  break;
+                case 4: // real (stereo)
+                  xRight=0.5+chanOscVol[i]*0.5;
+                  xLeft=1.0-xRight;
+                  break;
+              }
+
+              dl->AddRectFilled(
+                ImLerp(rectV.Min,rectV.Max,ImVec2(xLeft,0.0f)),
+                ImLerp(rectV.Min,rectV.Max,ImVec2(xRight,1.0f)),
+                ImGui::GetColorU32(chanHeadBase)
+              );
+            }
+            keyHit1[i]-=0.2f;
+            if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
+          }
+        }
+        
+        // extra buttons
         if (extraChannelButtons==2) {
           DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][ord],true);
           ImGui::PushFont(mainFont);

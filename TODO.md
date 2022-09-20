@@ -2,6 +2,5 @@
 
 - stereo separation control for AY
 - "paste with instrument"
-- channel appearance settings
 - auto-detect system
 - bug fixes
