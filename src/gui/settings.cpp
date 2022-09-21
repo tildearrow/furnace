@@ -1355,6 +1355,11 @@ void FurnaceGUI::drawSettings() {
             settings.channelFont=1;
           }
 
+          bool channelTextCenterB=settings.channelTextCenter;
+          if (ImGui::Checkbox("Center channel name",&channelTextCenterB)) {
+            settings.channelTextCenter=channelTextCenterB;
+          }
+
           ImGui::Separator();
 
           bool insEditColorizeB=settings.insEditColorize;
@@ -2291,10 +2296,11 @@ void FurnaceGUI::syncSettings() {
   settings.saveUnusedPatterns=e->getConfInt("saveUnusedPatterns",0);
   settings.channelColors=e->getConfInt("channelColors",1);
   settings.channelTextColors=e->getConfInt("channelTextColors",0);
-  settings.channelStyle=e->getConfInt("channelStyle",0);
+  settings.channelStyle=e->getConfInt("channelStyle",1);
   settings.channelVolStyle=e->getConfInt("channelVolStyle",0);
   settings.channelFeedbackStyle=e->getConfInt("channelFeedbackStyle",1);
   settings.channelFont=e->getConfInt("channelFont",1);
+  settings.channelTextCenter=e->getConfInt("channelTextCenter",1);
   settings.maxRecentFile=e->getConfInt("maxRecentFile",10);
 
   clampSetting(settings.mainFontSize,2,96);
@@ -2395,6 +2401,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.channelVolStyle,0,4);
   clampSetting(settings.channelFeedbackStyle,0,3);
   clampSetting(settings.channelFont,0,1);
+  clampSetting(settings.channelTextCenter,0,1);
   clampSetting(settings.maxRecentFile,0,30);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
@@ -2551,6 +2558,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("channelVolStyle",settings.channelVolStyle);
   e->setConf("channelFeedbackStyle",settings.channelFeedbackStyle);
   e->setConf("channelFont",settings.channelFont);
+  e->setConf("channelTextCenter",settings.channelTextCenter);
   e->setConf("maxRecentFile",settings.maxRecentFile);
 
   // colors
