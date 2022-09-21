@@ -1772,14 +1772,8 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
 #ifdef TA_BIG_ENDIAN
         // convert 16-bit samples to big-endian
-        if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
-          unsigned char* sampleBuf=(unsigned char*)sample->getCurBuf();
-          size_t sampleBufLen=sample->getCurBufLen();
-          for (size_t pos=0; pos<sampleBufLen; pos+=2) {
-            sampleBuf[pos]^=sampleBuf[pos+1];
-            sampleBuf[pos+1]^=sampleBuf[pos];
-            sampleBuf[pos]^=sampleBuf[pos+1];
-          }
+        for (size_t pos=0; pos<length; pos++) {
+          data[pos]=((unsigned short)data[pos]>>8)|((unsigned short)data[pos]<<8);
         }
 #endif
 
