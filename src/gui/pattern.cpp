@@ -547,6 +547,9 @@ void FurnaceGUI::drawPattern() {
         } else {
           minLabelArea.x+=padding;
           maxLabelArea.x-=padding;
+          if (settings.channelStyle==3) { // split button
+            maxLabelArea.x-=ImGui::GetFrameHeightWithSpacing();
+          }
           const char* chName=e->getChannelName(i);
           float chNameLimit=maxLabelArea.x-minLabelArea.x;
           if (ImGui::CalcTextSize(chName).x>chNameLimit) {
@@ -577,6 +580,8 @@ void FurnaceGUI::drawPattern() {
         if (settings.channelTextCenter) {
           minLabelArea.x+=0.5f*(maxLabelArea.x-minLabelArea.x-ImGui::CalcTextSize(chanID).x);
         }
+
+        if (extraChannelButtons==0 || settings.channelVolStyle!=0) ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0.0f,0.0f));
 
         ImGui::PushID(2048+i);
         switch (settings.channelStyle) {
@@ -640,6 +645,7 @@ void FurnaceGUI::drawPattern() {
           }
           case 3: // split button
             ImGui::Dummy(ImVec2(1.0f,2.0f*dpiScale));
+            ImGui::SetCursorPosX(minLabelArea.x);
             ImGui::TextUnformatted(chanID);
             ImGui::SameLine();
             ImGui::PushFont(mainFont);
@@ -691,6 +697,8 @@ void FurnaceGUI::drawPattern() {
         }
         ImGui::PopID();
 
+        if (extraChannelButtons==0 || settings.channelVolStyle!=0) ImGui::PopStyleVar();
+
         if (displayTooltip && ImGui::IsItemHovered()) {
           ImGui::SetTooltip("%s",e->getChannelName(i));
         }
@@ -739,20 +747,24 @@ void FurnaceGUI::drawPattern() {
             }
 
             if (e->isRunning()) {
+              DivChannelState* cs=e->getChanState(i);
+              float stereoPan=(float)(e->convertPanSplitToLinearLR(cs->panL,cs->panR,256)-128)/128.0;
               switch (settings.channelVolStyle) {
                 case 1: // simple
                   xRight=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i))*0.9+(keyHit1[i]*0.1f);
                   break;
-                case 2: // stereo
-                  xRight=0.5+((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i))*0.4+(keyHit1[i]*0.1f);
-                  xLeft=1.0-xRight;
+                case 2: { // stereo
+                  float amount=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i))*0.4+(keyHit1[i]*0.1f);
+                  xRight=0.5+amount*(1.0+MIN(0.0,stereoPan));
+                  xLeft=0.5-amount*(1.0-MAX(0.0,stereoPan));
                   break;
+                }
                 case 3: // real
                   xRight=chanOscVol[i];
                   break;
                 case 4: // real (stereo)
-                  xRight=0.5+chanOscVol[i]*0.5;
-                  xLeft=1.0-xRight;
+                  xRight=0.5+chanOscVol[i]*0.5*(1.0+MIN(0.0,stereoPan));
+                  xLeft=0.5-chanOscVol[i]*0.5*(1.0-MAX(0.0,stereoPan));
                   break;
               }
 
