@@ -1114,13 +1114,13 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Atari ST", {
-      DIV_SYSTEM_AY8910, 64, 0, 3,
+      DIV_SYSTEM_AY8910, 64, 0, 19,
       0
     }
   ));
     cat.systems.push_back(FurnaceGUISysDef(
     "Atari STE", {
-      DIV_SYSTEM_AY8910, 64, 0, 3,
+      DIV_SYSTEM_AY8910, 64, 0, 19,
       DIV_SYSTEM_PCM_DAC, 64, 0, 50667|(7<<16),
       DIV_SYSTEM_PCM_DAC, 64, 0, 50667|(7<<16),
       0
