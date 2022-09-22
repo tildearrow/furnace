@@ -1881,7 +1881,6 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::EndDisabled();
                   ImGui::TableNextColumn();
                   drawAlgorithm(0,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
-                  kvsConfig(ins);
 
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 

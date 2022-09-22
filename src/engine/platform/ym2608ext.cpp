@@ -442,7 +442,7 @@ void DivPlatformYM2608Ext::forceIns() {
       if (i==2) { // extended channel
         if (isOpMuted[j]) {
           rWrite(baseAddr+0x40,127);
-        } else if (isOutput[chan[i].state.alg][j]) {
+        } else if (KVS(i,j)) {
           rWrite(baseAddr+0x40,127-VOL_SCALE_LOG(127-op.tl,opChan[j].vol&0x7f,127));
         } else {
           rWrite(baseAddr+0x40,op.tl);
@@ -451,7 +451,7 @@ void DivPlatformYM2608Ext::forceIns() {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
-          if (isOutput[chan[i].state.alg][j]) {
+          if (KVS(i,j)) {
             rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
           } else {
             rWrite(baseAddr+ADDR_TL,op.tl);
