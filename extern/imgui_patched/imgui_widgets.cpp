@@ -3713,7 +3713,12 @@ static bool STB_TEXTEDIT_INSERTCHARS(ImGuiInputTextState* obj, int pos, const Im
 {
     const bool is_resizable = (obj->Flags & ImGuiInputTextFlags_CallbackResize) != 0;
     const int text_len = obj->CurLenW;
-    IM_ASSERT(pos <= text_len);
+    if (pos > text_len) {
+      printf("failing STB_TEXTEDIT_INSERTCHARS assertion! oh man...\n");
+      obj->Edited = true; // ???
+      obj->ClearText();
+      return false;
+    }
 
     const int new_text_len_utf8 = ImTextCountUtf8BytesFromStr(new_text, new_text + new_text_len);
     if (!is_resizable && (new_text_len_utf8 + obj->CurLenA + 1 > obj->BufCapacityA))
@@ -3776,8 +3781,11 @@ static void stb_textedit_replace(ImGuiInputTextState* str, STB_TexteditState* st
         state->cursor = text_len;
         state->has_preferred_x = 0;
         return;
+    } else {
+      state->cursor = 0;
+      printf("STB_TEXTEDIT_INSERTCHARS fail!\n");
     }
-    IM_ASSERT(0); // Failed to insert character, normally shouldn't happen because of how we currently use stb_textedit_replace()
+    //IM_ASSERT(0); // Failed to insert character, normally shouldn't happen because of how we currently use stb_textedit_replace()
 }
 
 } // namespace ImStb
@@ -3962,7 +3970,8 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
     const bool is_multiline = (flags & ImGuiInputTextFlags_Multiline) != 0;
     const bool is_readonly = (flags & ImGuiInputTextFlags_ReadOnly) != 0;
     const bool is_password = (flags & ImGuiInputTextFlags_Password) != 0;
-    const bool is_undoable = (flags & ImGuiInputTextFlags_NoUndoRedo) == 0;
+    // https://github.com/tildearrow/furnace/issues/624
+    const bool is_undoable = 0; //(flags & ImGuiInputTextFlags_NoUndoRedo) == 0;
     const bool is_resizable = (flags & ImGuiInputTextFlags_CallbackResize) != 0;
     if (is_resizable)
         IM_ASSERT(callback != NULL); // Must provide a callback if you set the ImGuiInputTextFlags_CallbackResize flag!
