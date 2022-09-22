@@ -73,6 +73,7 @@ class DivPlatformNES: public DivDispatch {
   bool dpcmMode;
   bool dacAntiClickOn;
   bool useNP;
+  bool goingToLoop;
   struct NESAPU* nes;
   xgm::NES_APU* nes1_NP;
   xgm::NES_DMC* nes2_NP;

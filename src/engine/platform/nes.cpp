@@ -320,9 +320,10 @@ void DivPlatformNES::tick(bool sysTick) {
           unsigned int dpcmAddr=parent->getSample(dacSample)->offDPCM;
           unsigned int dpcmLen=(parent->getSample(dacSample)->lengthDPCM+15)>>4;
           if (dpcmLen>255) dpcmLen=255;
+          goingToLoop=parent->getSample(dacSample)->isLoopable();
           // write DPCM
           rWrite(0x4015,15);
-          rWrite(0x4010,calcDPCMRate(dacRate));
+          rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
           rWrite(0x4012,(dpcmAddr>>6)&0xff);
           rWrite(0x4013,dpcmLen&0xff);
           rWrite(0x4015,31);
@@ -330,7 +331,7 @@ void DivPlatformNES::tick(bool sysTick) {
         }
       } else {
         if (dpcmMode) {
-          rWrite(0x4010,calcDPCMRate(dacRate));
+          rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
         }
       }
       if (dumpWrites && !dpcmMode) addWrite(0xffff0001,dacRate);
@@ -385,9 +386,10 @@ int DivPlatformNES::dispatch(DivCommand c) {
             unsigned int dpcmAddr=parent->getSample(dacSample)->offDPCM;
             unsigned int dpcmLen=(parent->getSample(dacSample)->lengthDPCM+15)>>4;
             if (dpcmLen>255) dpcmLen=255;
+            goingToLoop=parent->getSample(dacSample)->isLoopable();
             // write DPCM
             rWrite(0x4015,15);
-            rWrite(0x4010,calcDPCMRate(dacRate));
+            rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
             rWrite(0x4012,(dpcmAddr>>6)&0xff);
             rWrite(0x4013,dpcmLen&0xff);
             rWrite(0x4015,31);
@@ -612,6 +614,7 @@ void DivPlatformNES::reset() {
   sampleBank=0;
   dpcmBank=0;
   dpcmMode=false;
+  goingToLoop=false;
 
   if (useNP) {
     nes1_NP->Reset();
