@@ -645,6 +645,7 @@ void FurnaceGUI::doAction(int what) {
       } else {
         wantScrollList=true;
         MARK_MODIFIED;
+        RESET_WAVE_MACRO_ZOOM;
       }
       break;
     case GUI_ACTION_WAVE_LIST_DUPLICATE:
@@ -657,6 +658,7 @@ void FurnaceGUI::doAction(int what) {
           (*e->song.wave[curWave])=(*e->song.wave[prevWave]);
           wantScrollList=true;
           MARK_MODIFIED;
+          RESET_WAVE_MACRO_ZOOM;
         }
       }
       break;
@@ -1329,6 +1331,7 @@ void FurnaceGUI::doAction(int what) {
           }
           nextWindow=GUI_WINDOW_WAVE_EDIT;
           MARK_MODIFIED;
+          RESET_WAVE_MACRO_ZOOM;
         }
       }
       break;

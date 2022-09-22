@@ -60,6 +60,7 @@ bool FurnaceGUI::parseSysEx(unsigned char* data, size_t len) {
           op.rs=reader.readC();
           reader.readC(); // EBS - ignore
           op.am=reader.readC();
+          // TODO: don't ignore after I add KVS to Furnace
           reader.readC(); // KVS - ignore
           op.tl=3+((99-reader.readC())*124)/99;
           unsigned char freq=reader.readC();

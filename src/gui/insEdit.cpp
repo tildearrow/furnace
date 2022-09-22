@@ -1211,6 +1211,46 @@ inline bool enBit30(const int val) {
   return false;
 }
 
+
+void FurnaceGUI::kvsConfig(DivInstrument* ins) {
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("(click to configure KVS)");
+  }
+  int opCount=4;
+  if (ins->type==DIV_INS_OPLL) opCount=2;
+  if (ins->type==DIV_INS_OPL) opCount=(ins->fm.ops==4)?4:2;
+  if (ImGui::BeginPopupContextItem("IKVSOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+    ImGui::Text("operator level changes with volume?");
+    if (ImGui::BeginTable("KVSTable",4,ImGuiTableFlags_BordersInner)) {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
+      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
+      for (int i=0; i<4; i++) {
+        int o=(opCount==4)?orderedOps[i]:i;
+        if (!(i&1)) ImGui::TableNextRow();
+        const char* label="AUTO##OPKVS";
+        if (ins->fm.op[o].kvs==0) {
+          label="NO##OPKVS";
+        } else if (ins->fm.op[o].kvs==1) {
+          label="YES##OPKVS";
+        }
+        ImGui::TableNextColumn();
+        ImGui::Text("%d",i+1);
+        ImGui::TableNextColumn();
+        ImGui::PushID(o);
+        if (ImGui::Button(label,ImVec2(ImGui::GetContentRegionAvail().x,0.0f))) {
+          if (++ins->fm.op[o].kvs>2) ins->fm.op[o].kvs=0;
+          PARAMETER;
+        }
+        ImGui::PopID();
+      }
+      ImGui::EndTable();
+    }
+    ImGui::EndPopup();
+  }
+}
+
 void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
   float asFloat[256];
   int asInt[256];
@@ -1769,6 +1809,7 @@ void FurnaceGUI::drawInsEdit() {
                   P(CWSliderScalar(FM_NAME(FM_AMS),ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE)); rightClickable
                   ImGui::TableNextColumn();
                   drawAlgorithm(ins->fm.alg,FM_ALGS_4OP,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  kvsConfig(ins);
                   break;
                 case DIV_INS_OPZ:
                   ImGui::TableNextColumn();
@@ -1781,6 +1822,8 @@ void FurnaceGUI::drawInsEdit() {
                   P(CWSliderScalar(FM_NAME(FM_AMS2),ImGuiDataType_U8,&ins->fm.ams2,&_ZERO,&_THREE)); rightClickable
                   ImGui::TableNextColumn();
                   drawAlgorithm(ins->fm.alg,FM_ALGS_4OP,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  kvsConfig(ins);
+
                   if (ImGui::Button("Request from TX81Z")) {
                     doAction(GUI_ACTION_TX81Z_REQUEST);
                   }
@@ -1813,6 +1856,7 @@ void FurnaceGUI::drawInsEdit() {
                   }
                   ImGui::TableNextColumn();
                   drawAlgorithm(ins->fm.alg&algMax,fourOp?FM_ALGS_4OP_OPL:FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  kvsConfig(ins);
                   break;
                 }
                 case DIV_INS_OPLL: {
@@ -1837,6 +1881,7 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::EndDisabled();
                   ImGui::TableNextColumn();
                   drawAlgorithm(0,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
+
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 
                   bool isPresent[4];
@@ -2928,6 +2973,14 @@ void FurnaceGUI::drawInsEdit() {
                       }
                     }
 
+                    if (ins->type==DIV_INS_OPZ) {
+                      ImGui::SameLine();
+                      bool fixedOn=op.egt;
+                      if (ImGui::Checkbox("Fixed",&fixedOn)) { PARAMETER
+                        op.egt=fixedOn;
+                      }
+                    }
+
                     //52.0 controls vert scaling; default 96
                     drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,ins->fm.alg,maxTl,maxArDr,ImVec2(ImGui::GetContentRegionAvail().x,52.0*dpiScale),ins->type);
                     //P(CWSliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE)); rightClickable
@@ -3012,23 +3065,85 @@ void FurnaceGUI::drawInsEdit() {
                         ImGui::Text("%s",FM_NAME(FM_KSL));
                       }
 
-                      ImGui::TableNextRow();
-                      ImGui::TableNextColumn();
-                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                      P(CWSliderScalar(FM_NAME(FM_MULT),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN)); rightClickable
-                      ImGui::TableNextColumn();
-                      ImGui::Text("%s",FM_NAME(FM_MULT));
-                      
-                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
-                        int detune=(op.dt&7)-(settings.unsignedDetune?0:3);
+                      if (ins->type==DIV_INS_OPZ) {
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                        if (CWSliderInt("##DT",&detune,-3,4)) { PARAMETER
-                          op.dt=detune+(settings.unsignedDetune?0:3);
-                        } rightClickable
+                        P(CWSliderScalar(FM_NAME(FM_EGSHIFT),ImGuiDataType_U8,&op.ksl,&_ZERO,&_THREE)); rightClickable
                         ImGui::TableNextColumn();
-                        ImGui::Text("%s",FM_NAME(FM_DT));
+                        ImGui::Text("%s",FM_NAME(FM_EGSHIFT));
+
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        P(CWSliderScalar(FM_NAME(FM_REV),ImGuiDataType_U8,&op.dam,&_ZERO,&_SEVEN)); rightClickable
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%s",FM_NAME(FM_REV));
+                      }
+
+                      if (ins->type==DIV_INS_OPZ) {
+                        if (op.egt) {
+                          int block=op.dt;
+                          int freqNum=(op.mult<<4)|(op.dvb&15);
+
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          if (CWSliderInt(FM_NAME(FM_MULT),&block,0,7)) { PARAMETER
+                            if (block<0) block=0;
+                            if (block>7) block=7;
+                            op.dt=block;
+                          } rightClickable
+                          ImGui::TableNextColumn();
+                          ImGui::Text("Block");
+
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          if (CWSliderInt(FM_NAME(FM_FINE),&freqNum,0,255)) { PARAMETER
+                            if (freqNum<0) freqNum=0;
+                            if (freqNum>255) freqNum=255;
+                            op.mult=freqNum>>4;
+                            op.dvb=freqNum&15;
+                          } rightClickable
+                          ImGui::TableNextColumn();
+                          ImGui::Text("FreqNum");
+                        } else {
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          P(CWSliderScalar(FM_NAME(FM_MULT),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN)); rightClickable
+                          ImGui::TableNextColumn();
+                          ImGui::Text("%s",FM_NAME(FM_MULT));
+
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          P(CWSliderScalar(FM_NAME(FM_FINE),ImGuiDataType_U8,&op.dvb,&_ZERO,&_FIFTEEN)); rightClickable
+                          ImGui::TableNextColumn();
+                          ImGui::Text("%s",FM_NAME(FM_FINE));
+                        }
+                      } else {
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        P(CWSliderScalar(FM_NAME(FM_MULT),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN)); rightClickable
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%s",FM_NAME(FM_MULT));
+                      }
+                      
+                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                        if (!(ins->type==DIV_INS_OPZ && op.egt)) {
+                          int detune=(op.dt&7)-(settings.unsignedDetune?0:3);
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          if (CWSliderInt("##DT",&detune,-3,4)) { PARAMETER
+                            op.dt=detune+(settings.unsignedDetune?0:3);
+                          } rightClickable
+                          ImGui::TableNextColumn();
+                          ImGui::Text("%s",FM_NAME(FM_DT));
+                        }
 
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
@@ -4277,7 +4392,7 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           const char* waveLabel="Waveform";
-          int waveMax=(ins->type==DIV_INS_VERA)?3:255;
+          int waveMax=(ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
           bool waveBitMode=false;
           if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SAA1099) {
             waveBitMode=true;
@@ -4295,7 +4410,7 @@ void FurnaceGUI::drawInsEdit() {
             waveBitMode=true;
           }
           if (ins->type==DIV_INS_VRC6) {
-            waveMax=ins->amiga.useSample?255:0;
+            waveMax=ins->amiga.useSample?(MAX(1,e->song.waveLen-1)):0;
           }
 
           if (ins->type==DIV_INS_OPLL) {
@@ -4303,7 +4418,7 @@ void FurnaceGUI::drawInsEdit() {
           }
 
           if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930) {
-            waveMax=ins->amiga.useSample?255:3;
+            waveMax=ins->amiga.useSample?(MAX(1,e->song.waveLen-1)):3;
             waveBitMode=ins->amiga.useSample?false:true;
           }
 

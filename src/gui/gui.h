@@ -47,6 +47,12 @@
 #define MARK_MODIFIED modified=true;
 #define WAKE_UP drawHalt=16;
 
+#define RESET_WAVE_MACRO_ZOOM \
+  for (DivInstrument* _wi: e->song.ins) { \
+    _wi->std.waveMacro.vZoom=-1; \
+    _wi->std.waveMacro.vScroll=-1; \
+  }
+
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
 
 // TODO:
@@ -163,6 +169,8 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_RF5C68,
   GUI_COLOR_INSTR_UNKNOWN,
 
+  GUI_COLOR_CHANNEL_BG,
+  GUI_COLOR_CHANNEL_FG,
   GUI_COLOR_CHANNEL_FM,
   GUI_COLOR_CHANNEL_PULSE,
   GUI_COLOR_CHANNEL_NOISE,
@@ -596,7 +604,9 @@ enum PasteMode {
   GUI_PASTE_MODE_MIX_FG,
   GUI_PASTE_MODE_MIX_BG,
   GUI_PASTE_MODE_FLOOD,
-  GUI_PASTE_MODE_OVERFLOW
+  GUI_PASTE_MODE_OVERFLOW,
+  GUI_PASTE_MODE_INS_FG,
+  GUI_PASTE_MODE_INS_BG
 };
 
 #define FURKMOD_CTRL (1U<<31)
@@ -1018,7 +1028,7 @@ class FurnaceGUI {
   int drawHalt;
   int macroPointSize;
   int waveEditStyle;
-  float mobileMenuPos;
+  float mobileMenuPos, autoButtonSize;
   const int* curSysSection;
 
   String pendingRawSample;
@@ -1178,6 +1188,8 @@ class FurnaceGUI {
     int channelStyle;
     int channelVolStyle;
     int channelFeedbackStyle;
+    int channelFont;
+    int channelTextCenter;
     int maxRecentFile;
     unsigned int maxUndoSteps;
     String mainFontPath;
@@ -1296,9 +1308,11 @@ class FurnaceGUI {
       saveUnusedPatterns(0),
       channelColors(1),
       channelTextColors(0),
-      channelStyle(0),
+      channelStyle(1),
       channelVolStyle(0),
       channelFeedbackStyle(1),
+      channelFont(1),
+      channelTextCenter(1),
       maxRecentFile(10),
       maxUndoSteps(100),
       mainFontPath(""),
@@ -1556,6 +1570,7 @@ class FurnaceGUI {
 
   // visualizer
   float keyHit[DIV_MAX_CHANS];
+  float keyHit1[DIV_MAX_CHANS];
   int lastIns[DIV_MAX_CHANS];
 
   // log window
@@ -1596,6 +1611,7 @@ class FurnaceGUI {
   void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, const ImVec2& size, unsigned short instType);
   void drawGBEnv(unsigned char vol, unsigned char len, unsigned char sLen, bool dir, const ImVec2& size);
   void drawSysConf(int chan, DivSystem type, unsigned int& flags, bool modifyOnChange);
+  void kvsConfig(DivInstrument* ins);
 
   // these ones offer ctrl-wheel fine value changes.
   bool CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format=NULL, ImGuiSliderFlags flags=0);
@@ -1605,9 +1621,13 @@ class FurnaceGUI {
   bool CWVSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format="%d", ImGuiSliderFlags flags=0);
 
   void updateWindowTitle();
+  void autoDetectSystem();
   void prepareLayout();
+  ImVec4 channelColor(int ch);
+  ImVec4 channelTextColor(int ch);
 
   void readOsc();
+  void calcChanOsc();
 
   void pushAccentColors(const ImVec4& one, const ImVec4& two, const ImVec4& border, const ImVec4& borderShadow);
   void popAccentColors();
@@ -1699,7 +1719,7 @@ class FurnaceGUI {
   void doInsert();
   void doTranspose(int amount, OperationMask& mask);
   void doCopy(bool cut);
-  void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL);
+  void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL, int arg=0);
   void doChangeIns(int ins);
   void doInterpolate();
   void doFade(int p0, int p1, bool mode);

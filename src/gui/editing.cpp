@@ -405,7 +405,7 @@ void FurnaceGUI::doCopy(bool cut) {
   }
 }
 
-void FurnaceGUI::doPaste(PasteMode mode) {
+void FurnaceGUI::doPaste(PasteMode mode, int arg) {
   finishSelection();
   prepareUndo(GUI_UNDO_PATTERN_PASTE);
   char* clipText=SDL_GetClipboardText();
@@ -481,14 +481,16 @@ void FurnaceGUI::doPaste(PasteMode mode) {
           continue;
         }
 
-        if ((mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_MIX_FG) && strcmp(note,"...")==0) {
+        if ((mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_MIX_FG ||
+             mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG) && strcmp(note,"...")==0) {
           // do nothing.
         } else {
-          if (mode!=GUI_PASTE_MODE_MIX_BG || (pat->data[j][0]==0 && pat->data[j][1]==0)) {
+          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || (pat->data[j][0]==0 && pat->data[j][1]==0)) {
             if (!decodeNote(note,pat->data[j][0],pat->data[j][1])) {
               invalidData=true;
               break;
             }
+            if (mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG) pat->data[j][2]=arg;
           }
         }
       } else {
@@ -505,7 +507,7 @@ void FurnaceGUI::doPaste(PasteMode mode) {
         note[2]=0;
 
         if (iFine==1) {
-          if (!opMaskPaste.ins) {
+          if (!opMaskPaste.ins || mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG) {
             iFine++;
             continue;
           }
@@ -527,7 +529,8 @@ void FurnaceGUI::doPaste(PasteMode mode) {
         }
 
         if (strcmp(note,"..")==0) {
-          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_MIX_FG)) {
+          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_MIX_FG ||
+                mode==GUI_PASTE_MODE_INS_BG || mode==GUI_PASTE_MODE_INS_FG)) {
             pat->data[j][iFine+1]=-1;
           }
         } else {
@@ -536,7 +539,7 @@ void FurnaceGUI::doPaste(PasteMode mode) {
             invalidData=true;
             break;
           }
-          if (mode!=GUI_PASTE_MODE_MIX_BG || pat->data[j][iFine+1]==-1) {
+          if (!(mode==GUI_PASTE_MODE_MIX_BG || mode==GUI_PASTE_MODE_INS_BG) || pat->data[j][iFine+1]==-1) {
             if (iFine<(3+e->curPat[iCoarse].effectCols*2)) pat->data[j][iFine+1]=val;
           }
         }

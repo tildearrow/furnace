@@ -63,10 +63,43 @@ float FurnaceGUI::computeGradPos(int type, int chan) {
       return chanOscBright[chan];
       break;
     case GUI_OSCREF_NOTE_TRIGGER:
-      return keyHit[chan]*5.0f;
+      return keyHit1[chan];
       break;
   }
   return 0.0f;
+}
+
+void FurnaceGUI::calcChanOsc() {
+  std::vector<DivDispatchOscBuffer*> oscBufs;
+  std::vector<ChanOscStatus*> oscFFTs;
+  std::vector<int> oscChans;
+
+  int chans=e->getTotalChannelCount();
+  
+  for (int i=0; i<chans; i++) {
+    DivDispatchOscBuffer* buf=e->getOscBuffer(i);
+    if (buf!=NULL && e->curSubSong->chanShow[i]) {
+      // 30ms should be enough
+      int displaySize=(float)(buf->rate)*0.03f;
+      if (e->isRunning()) {
+        float minLevel=1.0f;
+        float maxLevel=-1.0f;
+        unsigned short needlePos=buf->needle;
+        needlePos-=displaySize;
+        for (unsigned short i=0; i<512; i++) {
+          float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;
+          if (minLevel>y) minLevel=y;
+          if (maxLevel<y) maxLevel=y;
+        }
+        float estimate=pow(maxLevel-minLevel,0.5f);
+        if (estimate>1.0f) estimate=1.0f;
+        chanOscVol[i]=MAX(chanOscVol[i]*0.87f,estimate);
+      }
+    } else {
+      chanOscVol[i]=MAX(chanOscVol[i]*0.87f,0.0f);
+    }
+    if (chanOscVol[i]<0.00001f) chanOscVol[i]=0.0f;
+  }
 }
 
 void FurnaceGUI::drawChanOsc() {
@@ -361,7 +394,6 @@ void FurnaceGUI::drawChanOsc() {
                 if (maxLevel<y) maxLevel=y;
               }
               dcOff=(minLevel+maxLevel)*0.5f;
-              chanOscVol[ch]=MAX(chanOscVol[ch]*0.87f,maxLevel-minLevel);
               for (unsigned short i=0; i<512; i++) {
                 float x=(float)i/512.0f;
                 float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;

@@ -32,6 +32,8 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 116: Furnace 0.6pre1.5
+- 115: Furnace dev115
 - 114: Furnace dev114
 - 113: Furnace dev113
 - 112: Furnace dev112
@@ -342,7 +344,9 @@ size | description
   1  | SN periods under 8 are treated as 1 (>=108) or reserved
   1  | cut/delay effect policy (>=110) or reserved
   1  | 0B/0D effect treatment (>=113) or reserved
-  4  | reserved
+  1  | automatic system name detection (>=115) or reserved
+     | - this one isn't a compatibility flag, but it's here for convenience...
+  3  | reserved
  --- | **virtual tempo data**
   2  | virtual tempo numerator of first song (>=96) or reserved
   2  | virtual tempo denominator of first song (>=96) or reserved
@@ -499,7 +503,11 @@ size | description
   1  | ws
   1  | ksr
   1  | operator enabled (>=114) or reserved
- 11  | reserved
+  1  | KVS mode (>=115) or reserved
+     | - 0: off
+     | - 1: on
+     | - 2: auto (depending on alg)
+ 10  | reserved
  --- | **Game Boy instrument data**
   1  | volume
   1  | direction

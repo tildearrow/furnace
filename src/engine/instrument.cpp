@@ -72,9 +72,10 @@ void DivInstrument::putInsData(SafeWriter* w) {
     w->writeC(op.ksr);
 
     w->writeC(op.enable);
+    w->writeC(op.kvs);
 
     // reserved
-    for (int k=0; k<11; k++) {
+    for (int k=0; k<10; k++) {
       w->writeC(0);
     }
   }
@@ -724,8 +725,15 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
       reader.readC();
     }
 
+    if (version>=115) {
+      op.kvs=reader.readC();
+    } else {
+      op.kvs=2;
+      reader.readC();
+    }
+
     // reserved
-    for (int k=0; k<11; k++) reader.readC();
+    for (int k=0; k<10; k++) reader.readC();
   }
 
   // GB

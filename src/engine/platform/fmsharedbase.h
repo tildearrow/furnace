@@ -23,6 +23,8 @@
 #include "../dispatch.h"
 #include <deque>
 
+#define KVS(x,y) ((chan[x].state.op[y].kvs==2 && isOutput[chan[x].state.alg][y]) || chan[x].state.op[y].kvs==1)
+
 class DivPlatformFMBase: public DivDispatch {
   protected:
     const bool isOutput[8][4]={

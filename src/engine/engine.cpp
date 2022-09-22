@@ -2004,6 +2004,14 @@ void DivEngine::recalcChans() {
 }
 
 void DivEngine::reset() {
+  if (output) if (output->midiOut!=NULL) {
+    output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_STOP,0,0));
+    for (int i=0; i<chans; i++) {
+      if (chan[i].curMidiNote>=0) {
+        output->midiOut->send(TAMidiMessage(0x80|(i&15),chan[i].curMidiNote,0));
+      }
+    }
+  }
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     chan[i]=DivChannelState();
     if (i<chans) chan[i].volMax=(disCont[dispatchOfChan[i]].dispatch->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,dispatchChanOfChan[i]))<<8)|0xff;

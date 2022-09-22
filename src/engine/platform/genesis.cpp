@@ -254,7 +254,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
-          if (isOutput[chan[i].state.alg][j]) {
+          if (KVS(i,j)) {
             rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
           } else {
             rWrite(baseAddr+ADDR_TL,op.tl);
@@ -327,7 +327,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
-          if (isOutput[chan[i].state.alg][j]) {
+          if (KVS(i,j)) {
             rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
           } else {
             rWrite(baseAddr+ADDR_TL,op.tl);
@@ -384,7 +384,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
-          if (isOutput[chan[i].state.alg][j]) {
+          if (KVS(i,j)) {
             rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
           } else {
             rWrite(baseAddr+ADDR_TL,op.tl);
@@ -501,7 +501,7 @@ void DivPlatformGenesis::muteChannel(int ch, bool mute) {
       if (isMuted[ch]) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
-        if (isOutput[chan[ch].state.alg][j]) {
+        if (KVS(ch,j)) {
           rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[ch].outVol&0x7f,127));
         } else {
           rWrite(baseAddr+ADDR_TL,op.tl);
@@ -614,7 +614,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         if (isMuted[c.chan]) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
-          if (isOutput[chan[c.chan].state.alg][i]) {
+          if (KVS(c.chan,i)) {
             if (!chan[c.chan].active || chan[c.chan].insChanged) {
               rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[c.chan].outVol&0x7f,127));
             }
@@ -687,7 +687,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         if (isMuted[c.chan]) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
-          if (isOutput[chan[c.chan].state.alg][i]) {
+          if (KVS(c.chan,i)) {
             rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[c.chan].outVol&0x7f,127));
           } else {
             rWrite(baseAddr+ADDR_TL,op.tl);
@@ -860,7 +860,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       if (isMuted[c.chan]) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
-        if (isOutput[chan[c.chan].state.alg][c.value]) {
+        if (KVS(c.chan,c.value)) {
           rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[c.chan].outVol&0x7f,127));
         } else {
           rWrite(baseAddr+ADDR_TL,op.tl);
@@ -1051,7 +1051,7 @@ void DivPlatformGenesis::forceIns() {
       if (isMuted[i]) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
-        if (isOutput[chan[i].state.alg][j]) {
+        if (KVS(i,j)) {
           rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
         } else {
           rWrite(baseAddr+ADDR_TL,op.tl);
