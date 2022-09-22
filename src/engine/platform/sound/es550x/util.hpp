@@ -12,6 +12,7 @@
 
 #pragma once
 
+#include <iterator>
 #include <algorithm>
 #include <memory>
 
