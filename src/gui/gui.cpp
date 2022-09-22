@@ -2180,6 +2180,30 @@ void FurnaceGUI::editOptions(bool topMenu) {
   if (ImGui::BeginMenu("paste special...")) {
     if (ImGui::MenuItem("paste mix",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX))) doPaste(GUI_PASTE_MODE_MIX_FG);
     if (ImGui::MenuItem("paste mix (background)",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX_BG))) doPaste(GUI_PASTE_MODE_MIX_BG);
+    if (ImGui::BeginMenu("paste with ins (foreground)")) {
+      if (e->song.ins.empty()) {
+        ImGui::Text("no instruments available");
+      }
+      for (size_t i=0; i<e->song.ins.size(); i++) {
+        snprintf(id,4095,"%.2X: %s",(int)i,e->song.ins[i]->name.c_str());
+        if (ImGui::MenuItem(id)) {
+          doPaste(GUI_PASTE_MODE_INS_FG,i);
+        }
+      }
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("paste with ins (background)")) {
+      if (e->song.ins.empty()) {
+        ImGui::Text("no instruments available");
+      }
+      for (size_t i=0; i<e->song.ins.size(); i++) {
+        snprintf(id,4095,"%.2X: %s",(int)i,e->song.ins[i]->name.c_str());
+        if (ImGui::MenuItem(id)) {
+          doPaste(GUI_PASTE_MODE_INS_BG,i);
+        }
+      }
+      ImGui::EndMenu();
+    }
     if (ImGui::MenuItem("paste flood",BIND_FOR(GUI_ACTION_PAT_PASTE_FLOOD))) doPaste(GUI_PASTE_MODE_FLOOD);
     if (ImGui::MenuItem("paste overflow",BIND_FOR(GUI_ACTION_PAT_PASTE_OVERFLOW))) doPaste(GUI_PASTE_MODE_OVERFLOW);
     ImGui::EndMenu();

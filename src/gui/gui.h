@@ -596,7 +596,9 @@ enum PasteMode {
   GUI_PASTE_MODE_MIX_FG,
   GUI_PASTE_MODE_MIX_BG,
   GUI_PASTE_MODE_FLOOD,
-  GUI_PASTE_MODE_OVERFLOW
+  GUI_PASTE_MODE_OVERFLOW,
+  GUI_PASTE_MODE_INS_FG,
+  GUI_PASTE_MODE_INS_BG
 };
 
 #define FURKMOD_CTRL (1U<<31)
@@ -1708,7 +1710,7 @@ class FurnaceGUI {
   void doInsert();
   void doTranspose(int amount, OperationMask& mask);
   void doCopy(bool cut);
-  void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL);
+  void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL, int arg=0);
   void doChangeIns(int ins);
   void doInterpolate();
   void doFade(int p0, int p1, bool mode);
