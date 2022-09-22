@@ -690,11 +690,11 @@ ImVec4 FurnaceGUI::channelTextColor(int ch) {
 
 const char* defaultLayout="[Window][DockSpaceViewport_11111111]\n\
 Pos=0,24\n\
-Size=1280,731\n\
+Size=1280,776\n\
 Collapsed=0\n\
 \n\
 [Window][Debug##Default]\n\
-Pos=54,0\n\
+Pos=54,19\n\
 Size=400,400\n\
 Collapsed=0\n\
 \n\
@@ -705,9 +705,9 @@ Collapsed=0\n\
 \n\
 [Window][Song Information]\n\
 Pos=978,24\n\
-Size=302,217\n\
+Size=302,179\n\
 Collapsed=0\n\
-DockId=0x00000004,0\n\
+DockId=0x0000000F,0\n\
 \n\
 [Window][Orders]\n\
 Pos=0,24\n\
@@ -719,7 +719,7 @@ DockId=0x00000007,0\n\
 Pos=653,24\n\
 Size=323,217\n\
 Collapsed=0\n\
-DockId=0x00000006,2\n\
+DockId=0x00000006,0\n\
 \n\
 [Window][Wavetables]\n\
 Pos=653,24\n\
@@ -731,13 +731,13 @@ DockId=0x00000006,1\n\
 Pos=653,24\n\
 Size=323,217\n\
 Collapsed=0\n\
-DockId=0x00000006,0\n\
+DockId=0x00000006,2\n\
 \n\
 [Window][Pattern]\n\
 Pos=0,243\n\
-Size=1246,512\n\
+Size=1246,557\n\
 Collapsed=0\n\
-DockId=0x0000000B,0\n\
+DockId=0x00000013,0\n\
 \n\
 [Window][Instrument Editor]\n\
 Pos=372,102\n\
@@ -746,7 +746,7 @@ Collapsed=0\n\
 \n\
 [Window][Warning]\n\
 Pos=481,338\n\
-Size=346,71\n\
+Size=264,86\n\
 Collapsed=0\n\
 \n\
 [Window][Sample Editor]\n\
@@ -779,8 +779,8 @@ Size=514,71\n\
 Collapsed=0\n\
 \n\
 [Window][Mixer]\n\
-Pos=63,55\n\
-Size=450,215\n\
+Pos=429,198\n\
+Size=453,355\n\
 Collapsed=0\n\
 \n\
 [Window][Oscilloscope]\n\
@@ -791,7 +791,7 @@ DockId=0x0000000E,0\n\
 \n\
 [Window][Volume Meter]\n\
 Pos=1248,243\n\
-Size=32,512\n\
+Size=32,557\n\
 Collapsed=0\n\
 DockId=0x0000000C,0\n\
 \n\
@@ -866,9 +866,10 @@ Size=368,449\n\
 Collapsed=0\n\
 \n\
 [Window][Register View]\n\
-Pos=847,180\n\
-Size=417,393\n\
+Pos=829,243\n\
+Size=417,557\n\
 Collapsed=0\n\
+DockId=0x00000014,0\n\
 \n\
 [Window][New Song]\n\
 Pos=267,110\n\
@@ -887,8 +888,40 @@ Size=304,40\n\
 Collapsed=0\n\
 DockId=0x0000000A,0\n\
 \n\
+[Window][Subsongs]\n\
+Pos=978,205\n\
+Size=302,36\n\
+Collapsed=0\n\
+DockId=0x00000010,0\n\
+\n\
+[Window][Oscilloscope (per-channel)]\n\
+Pos=1095,243\n\
+Size=151,557\n\
+Collapsed=0\n\
+DockId=0x00000012,0\n\
+\n\
+[Window][Piano]\n\
+Pos=177,669\n\
+Size=922,118\n\
+Collapsed=0\n\
+\n\
+[Window][Log Viewer]\n\
+Pos=60,60\n\
+Size=541,637\n\
+Collapsed=0\n\
+\n\
+[Window][Pattern Manager]\n\
+Pos=60,60\n\
+Size=1099,366\n\
+Collapsed=0\n\
+\n\
+[Window][Chip Manager]\n\
+Pos=60,60\n\
+Size=490,407\n\
+Collapsed=0\n\
+\n\
 [Docking][Data]\n\
-DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,731 Split=Y Selected=0x6C01C512\n\
+DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,776 Split=Y Selected=0x6C01C512\n\
   DockNode            ID=0x00000001 Parent=0x8B93E3BD SizeRef=1280,217 Split=X Selected=0xF3094A52\n\
     DockNode          ID=0x00000003 Parent=0x00000001 SizeRef=976,231 Split=X Selected=0x65CC51DC\n\
       DockNode        ID=0x00000007 Parent=0x00000003 SizeRef=345,231 HiddenTabBar=1 Selected=0x8F5BFC9A\n\
@@ -899,10 +932,17 @@ DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,731 Spl
             DockNode  ID=0x0000000E Parent=0x00000009 SizeRef=292,105 HiddenTabBar=1 Selected=0x6D682373\n\
           DockNode    ID=0x0000000A Parent=0x00000005 SizeRef=292,40 HiddenTabBar=1 Selected=0x0DE44CFF\n\
         DockNode      ID=0x00000006 Parent=0x00000008 SizeRef=323,406 Selected=0xD2AD486B\n\
-    DockNode          ID=0x00000004 Parent=0x00000001 SizeRef=302,231 Selected=0x60B9D088\n\
+    DockNode          ID=0x00000004 Parent=0x00000001 SizeRef=302,231 Split=Y Selected=0x60B9D088\n\
+      DockNode        ID=0x0000000F Parent=0x00000004 SizeRef=302,179 Selected=0x60B9D088\n\
+      DockNode        ID=0x00000010 Parent=0x00000004 SizeRef=302,36 HiddenTabBar=1 Selected=0x723A6369\n\
   DockNode            ID=0x00000002 Parent=0x8B93E3BD SizeRef=1280,512 Split=X Selected=0x6C01C512\n\
-    DockNode          ID=0x0000000B Parent=0x00000002 SizeRef=1246,503 CentralNode=1 HiddenTabBar=1 Selected=0xB9ADD0D5\n\
-    DockNode          ID=0x0000000C Parent=0x00000002 SizeRef=32,503 HiddenTabBar=1 Selected=0x644DA2C1\n\n";
+    DockNode          ID=0x0000000B Parent=0x00000002 SizeRef=1246,503 Split=X Selected=0xB9ADD0D5\n\
+      DockNode        ID=0x00000011 Parent=0x0000000B SizeRef=1093,557 Split=X Selected=0xB9ADD0D5\n\
+        DockNode      ID=0x00000013 Parent=0x00000011 SizeRef=827,557 CentralNode=1 HiddenTabBar=1 Selected=0xB9ADD0D5\n\
+        DockNode      ID=0x00000014 Parent=0x00000011 SizeRef=417,557 Selected=0x425428FB\n\
+      DockNode        ID=0x00000012 Parent=0x0000000B SizeRef=151,557 HiddenTabBar=1 Selected=0x4C07BC58\n\
+    DockNode          ID=0x0000000C Parent=0x00000002 SizeRef=32,503 HiddenTabBar=1 Selected=0x644DA2C1\n";
+
 
 void FurnaceGUI::prepareLayout() {
   FILE* check;
