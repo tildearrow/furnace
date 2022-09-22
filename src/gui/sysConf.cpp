@@ -358,6 +358,14 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       if (ImGui::Checkbox("Stereo##_AY_STEREO",&stereo)) {
         copyOfFlags=(flags&(~0x40))|(stereo?0x40:0);
       }
+      if (stereo) {
+        int sep=256-((flags>>8)&255);
+        if (CWSliderInt("Separation",&sep,1,256)) {
+          if (sep<1) sep=1;
+          if (sep>256) sep=256;
+          copyOfFlags=(flags&(~0xff00))|((256-sep)<<8);
+        }
+      }
       ImGui::EndDisabled();
       bool clockSel=flags&0x80;
       ImGui::BeginDisabled((type==DIV_SYSTEM_AY8910) && ((flags&0x30)!=16));

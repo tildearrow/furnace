@@ -99,8 +99,8 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
   ay->sound_stream_update(ayBuf,len);
   if (stereo) {
     for (size_t i=0; i<len; i++) {
-      bufL[i+start]=ayBuf[0][i]+ayBuf[1][i];
-      bufR[i+start]=ayBuf[1][i]+ayBuf[2][i];
+      bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+((ayBuf[2][i]*stereoSep)>>8);
+      bufR[i+start]=((ayBuf[0][i]*stereoSep)>>8)+ayBuf[1][i]+ayBuf[2][i];
     }
   } else {
     for (size_t i=0; i<len; i++) {
@@ -609,6 +609,7 @@ void DivPlatformAY8930::setFlags(unsigned int flags) {
   }
 
   stereo=(flags>>6)&1;
+  stereoSep=(flags>>8)&255;
 }
 
 int DivPlatformAY8930::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
