@@ -2928,6 +2928,14 @@ void FurnaceGUI::drawInsEdit() {
                       }
                     }
 
+                    if (ins->type==DIV_INS_OPZ) {
+                      ImGui::SameLine();
+                      bool fixedOn=op.egt;
+                      if (ImGui::Checkbox("Fixed",&fixedOn)) { PARAMETER
+                        op.egt=fixedOn;
+                      }
+                    }
+
                     //52.0 controls vert scaling; default 96
                     drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,ins->fm.alg,maxTl,maxArDr,ImVec2(ImGui::GetContentRegionAvail().x,52.0*dpiScale),ins->type);
                     //P(CWSliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE)); rightClickable
@@ -3012,23 +3020,85 @@ void FurnaceGUI::drawInsEdit() {
                         ImGui::Text("%s",FM_NAME(FM_KSL));
                       }
 
-                      ImGui::TableNextRow();
-                      ImGui::TableNextColumn();
-                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                      P(CWSliderScalar(FM_NAME(FM_MULT),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN)); rightClickable
-                      ImGui::TableNextColumn();
-                      ImGui::Text("%s",FM_NAME(FM_MULT));
-                      
-                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
-                        int detune=(op.dt&7)-(settings.unsignedDetune?0:3);
+                      if (ins->type==DIV_INS_OPZ) {
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                        if (CWSliderInt("##DT",&detune,-3,4)) { PARAMETER
-                          op.dt=detune+(settings.unsignedDetune?0:3);
-                        } rightClickable
+                        P(CWSliderScalar(FM_NAME(FM_EGSHIFT),ImGuiDataType_U8,&op.ksl,&_ZERO,&_THREE)); rightClickable
                         ImGui::TableNextColumn();
-                        ImGui::Text("%s",FM_NAME(FM_DT));
+                        ImGui::Text("%s",FM_NAME(FM_EGSHIFT));
+
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        P(CWSliderScalar(FM_NAME(FM_REV),ImGuiDataType_U8,&op.dam,&_ZERO,&_SEVEN)); rightClickable
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%s",FM_NAME(FM_REV));
+                      }
+
+                      if (ins->type==DIV_INS_OPZ) {
+                        if (op.egt) {
+                          int block=op.dt;
+                          int freqNum=(op.mult<<4)|(op.dvb&15);
+
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          if (CWSliderInt(FM_NAME(FM_MULT),&block,0,7)) { PARAMETER
+                            if (block<0) block=0;
+                            if (block>7) block=7;
+                            op.dt=block;
+                          } rightClickable
+                          ImGui::TableNextColumn();
+                          ImGui::Text("Block");
+
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          if (CWSliderInt(FM_NAME(FM_FINE),&freqNum,0,255)) { PARAMETER
+                            if (freqNum<0) freqNum=0;
+                            if (freqNum>255) freqNum=255;
+                            op.mult=freqNum>>4;
+                            op.dvb=freqNum&15;
+                          } rightClickable
+                          ImGui::TableNextColumn();
+                          ImGui::Text("FreqNum");
+                        } else {
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          P(CWSliderScalar(FM_NAME(FM_MULT),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN)); rightClickable
+                          ImGui::TableNextColumn();
+                          ImGui::Text("%s",FM_NAME(FM_MULT));
+
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          P(CWSliderScalar(FM_NAME(FM_FINE),ImGuiDataType_U8,&op.dvb,&_ZERO,&_FIFTEEN)); rightClickable
+                          ImGui::TableNextColumn();
+                          ImGui::Text("%s",FM_NAME(FM_FINE));
+                        }
+                      } else {
+                        ImGui::TableNextRow();
+                        ImGui::TableNextColumn();
+                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                        P(CWSliderScalar(FM_NAME(FM_MULT),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN)); rightClickable
+                        ImGui::TableNextColumn();
+                        ImGui::Text("%s",FM_NAME(FM_MULT));
+                      }
+                      
+                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                        if (!(ins->type==DIV_INS_OPZ && op.egt)) {
+                          int detune=(op.dt&7)-(settings.unsignedDetune?0:3);
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          if (CWSliderInt("##DT",&detune,-3,4)) { PARAMETER
+                            op.dt=detune+(settings.unsignedDetune?0:3);
+                          } rightClickable
+                          ImGui::TableNextColumn();
+                          ImGui::Text("%s",FM_NAME(FM_DT));
+                        }
 
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
