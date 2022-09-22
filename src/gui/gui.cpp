@@ -584,6 +584,78 @@ void FurnaceGUI::updateWindowTitle() {
   if (sdlWin!=NULL) SDL_SetWindowTitle(sdlWin,title.c_str());
 }
 
+void FurnaceGUI::autoDetectSystem() {
+  std::map<DivSystem,int> sysCountMap;
+  for (int i=0; i<e->song.systemLen; i++) {
+    try {
+      sysCountMap.at(e->song.system[i])++;
+    } catch (std::exception& ex) {
+      sysCountMap[e->song.system[i]]=1;
+    }
+  }
+
+  logV("sysCountMap:");
+  for (std::pair<DivSystem,int> k: sysCountMap) {
+    logV("%s: %d",e->getSystemName(k.first),k.second);
+  }
+
+  bool isMatch=false;
+  std::map<DivSystem,int> defCountMap;
+  for (FurnaceGUISysCategory& i: sysCategories) {
+    for (FurnaceGUISysDef& j: i.systems) {
+      defCountMap.clear();
+      for (size_t k=0; k<j.definition.size(); k+=4) {
+        if (j.definition[k]==0) break;
+        try {
+          defCountMap.at((DivSystem)j.definition[k])++;
+        } catch (std::exception& ex) {
+          defCountMap[(DivSystem)j.definition[k]]=1;
+        }
+      }
+      if (defCountMap.size()!=sysCountMap.size()) continue;
+      isMatch=true;
+      logV("trying on defCountMap: %s",j.name);
+      for (std::pair<DivSystem,int> k: defCountMap) {
+        logV("- %s: %d",e->getSystemName(k.first),k.second);
+      }
+      for (std::pair<DivSystem,int> k: defCountMap) {
+        try {
+          if (sysCountMap.at(k.first)!=k.second) {
+            isMatch=false;
+            break;
+          }
+        } catch (std::exception& ex) {
+          isMatch=false;
+          break;
+        }
+      }
+      if (isMatch) {
+        logV("match found!");
+        e->song.systemName=j.name;
+        break;
+      }
+    }
+    if (isMatch) break;
+  }
+
+  if (!isMatch) {
+    bool isFirst=true;
+    e->song.systemName="";
+    for (std::pair<DivSystem,int> k: sysCountMap) {
+      if (!isFirst) e->song.systemName+=" + ";
+      if (k.second>1) {
+        e->song.systemName+=fmt::sprintf("%d×",k.second);
+      }
+      if (k.first==DIV_SYSTEM_N163) {
+        e->song.systemName+=settings.c163Name;
+      } else {
+        e->song.systemName+=e->getSystemName(k.first);
+      }
+      isFirst=false;
+    }
+  }
+}
+
 ImVec4 FurnaceGUI::channelColor(int ch) {
   switch (settings.channelColors) {
     case 0:
@@ -3262,6 +3334,9 @@ bool FurnaceGUI::loop() {
               showError("cannot add chip! ("+e->getLastError()+")");
             }
             ImGui::CloseCurrentPopup();
+            if (e->song.autoSystem) {
+              autoDetectSystem();
+            }
             updateWindowTitle();
           }
           ImGui::EndMenu();
@@ -3282,6 +3357,9 @@ bool FurnaceGUI::loop() {
               DivSystem picked=systemPicker();
               if (picked!=DIV_SYSTEM_NULL) {
                 e->changeSystem(i,picked,preserveChanPos);
+                if (e->song.autoSystem) {
+                  autoDetectSystem();
+                }
                 updateWindowTitle();
                 ImGui::CloseCurrentPopup();
               }
@@ -3296,6 +3374,10 @@ bool FurnaceGUI::loop() {
             if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
               if (!e->removeSystem(i,preserveChanPos)) {
                 showError("cannot remove chip! ("+e->getLastError()+")");
+              }
+              if (e->song.autoSystem) {
+                autoDetectSystem();
+                updateWindowTitle();
               }
             }
           }
@@ -4415,6 +4497,10 @@ bool FurnaceGUI::loop() {
         case GUI_WARN_SYSTEM_DEL:
           if (ImGui::Button("Yes")) {
             e->removeSystem(sysToDelete,preserveChanPos);
+            if (e->song.autoSystem) {
+              autoDetectSystem();
+              updateWindowTitle();
+            }
             ImGui::CloseCurrentPopup();
           }
           ImGui::SameLine();
@@ -5069,6 +5155,7 @@ FurnaceGUI::FurnaceGUI():
   macroPointSize(16),
   waveEditStyle(0),
   mobileMenuPos(0.0f),
+  autoButtonSize(0.0f),
   curSysSection(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),

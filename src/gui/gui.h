@@ -1018,7 +1018,7 @@ class FurnaceGUI {
   int drawHalt;
   int macroPointSize;
   int waveEditStyle;
-  float mobileMenuPos;
+  float mobileMenuPos, autoButtonSize;
   const int* curSysSection;
 
   String pendingRawSample;
@@ -1610,6 +1610,7 @@ class FurnaceGUI {
   bool CWVSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format="%d", ImGuiSliderFlags flags=0);
 
   void updateWindowTitle();
+  void autoDetectSystem();
   void prepareLayout();
   ImVec4 channelColor(int ch);
   ImVec4 channelTextColor(int ch);

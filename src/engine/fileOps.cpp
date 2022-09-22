@@ -1085,6 +1085,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<113) {
       ds.jumpTreatment=1;
     }
+    if (ds.version<115) {
+      ds.autoSystem=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1512,7 +1515,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<4; i++) {
+      if (ds.version>=115) {
+        ds.autoSystem=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<3; i++) {
         reader.readC();
       }
     }
@@ -1549,6 +1557,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.categoryJ=reader.readString();
     } else {
       ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
+      ds.autoSystem=true;
     }
 
     // read subsongs
@@ -3751,7 +3760,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.snNoLowPeriods);
   w->writeC(song.delayBehavior);
   w->writeC(song.jumpTreatment);
-  for (int i=0; i<4; i++) {
+  w->writeC(song.autoSystem);
+  for (int i=0; i<3; i++) {
     w->writeC(0);
   }
 

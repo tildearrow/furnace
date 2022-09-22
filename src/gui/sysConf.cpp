@@ -765,6 +765,9 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
   if (copyOfFlags!=flags) {
     if (chan>=0) {
       e->setSysFlags(chan,copyOfFlags,restart);
+      if (e->song.autoSystem) {
+        autoDetectSystem();
+      }
       updateWindowTitle();
     } else {
       flags=copyOfFlags;

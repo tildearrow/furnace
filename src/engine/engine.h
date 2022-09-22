@@ -46,8 +46,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev114"
-#define DIV_ENGINE_VERSION 114
+#define DIV_VERSION "dev115"
+#define DIV_ENGINE_VERSION 115
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02

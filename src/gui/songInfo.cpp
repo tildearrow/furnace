@@ -77,11 +77,23 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::TableNextColumn();
       ImGui::Text("System");
       ImGui::TableNextColumn();
-      ImGui::SetNextItemWidth(avail);
+      ImGui::SetNextItemWidth(MAX(16.0f*dpiScale,avail-autoButtonSize-ImGui::GetStyle().ItemSpacing.x));
       if (ImGui::InputText("##SystemName",&e->song.systemName)) {
         MARK_MODIFIED;
         updateWindowTitle();
+        e->song.autoSystem=false;
       }
+      ImGui::SameLine();
+      pushToggleColors(e->song.autoSystem);
+      if (ImGui::Button("Auto")) {
+        e->song.autoSystem=!e->song.autoSystem;
+        if (e->song.autoSystem) {
+          autoDetectSystem();
+          updateWindowTitle();
+        }
+      }
+      popToggleColors();
+      autoButtonSize=ImGui::GetItemRectSize().x;
 
       ImGui::EndTable();
     }
