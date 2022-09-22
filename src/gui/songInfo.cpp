@@ -39,7 +39,7 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::TableNextColumn();
       float avail=ImGui::GetContentRegionAvail().x;
       ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputText("##Name",&e->song.name)) { MARK_MODIFIED
+      if (ImGui::InputText("##Name",&e->song.name,ImGuiInputTextFlags_UndoRedo)) { MARK_MODIFIED
         updateWindowTitle();
       }
       if (e->song.insLen==2) {
@@ -61,7 +61,7 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::Text("Author");
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputText("##Author",&e->song.author)) {
+      if (ImGui::InputText("##Author",&e->song.author,ImGuiInputTextFlags_UndoRedo)) {
         MARK_MODIFIED;
       }
 
@@ -70,7 +70,7 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::Text("Album");
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputText("##Category",&e->song.category)) {
+      if (ImGui::InputText("##Category",&e->song.category,ImGuiInputTextFlags_UndoRedo)) {
         MARK_MODIFIED;
       }
       ImGui::TableNextRow();
@@ -78,7 +78,7 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::Text("System");
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(MAX(16.0f*dpiScale,avail-autoButtonSize-ImGui::GetStyle().ItemSpacing.x));
-      if (ImGui::InputText("##SystemName",&e->song.systemName)) {
+      if (ImGui::InputText("##SystemName",&e->song.systemName,ImGuiInputTextFlags_UndoRedo)) {
         MARK_MODIFIED;
         updateWindowTitle();
         e->song.autoSystem=false;

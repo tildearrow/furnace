@@ -3970,8 +3970,7 @@ bool ImGui::InputTextEx(const char* label, const char* hint, char* buf, int buf_
     const bool is_multiline = (flags & ImGuiInputTextFlags_Multiline) != 0;
     const bool is_readonly = (flags & ImGuiInputTextFlags_ReadOnly) != 0;
     const bool is_password = (flags & ImGuiInputTextFlags_Password) != 0;
-    // https://github.com/tildearrow/furnace/issues/624
-    const bool is_undoable = 0; //(flags & ImGuiInputTextFlags_NoUndoRedo) == 0;
+    const bool is_undoable = (flags & ImGuiInputTextFlags_UndoRedo) != 0;
     const bool is_resizable = (flags & ImGuiInputTextFlags_CallbackResize) != 0;
     if (is_resizable)
         IM_ASSERT(callback != NULL); // Must provide a callback if you set the ImGuiInputTextFlags_CallbackResize flag!
