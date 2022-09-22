@@ -1211,6 +1211,46 @@ inline bool enBit30(const int val) {
   return false;
 }
 
+
+void FurnaceGUI::kvsConfig(DivInstrument* ins) {
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("(click to configure KVS)");
+  }
+  int opCount=4;
+  if (ins->type==DIV_INS_OPLL) opCount=2;
+  if (ins->type==DIV_INS_OPL) opCount=(ins->fm.ops==4)?4:2;
+  if (ImGui::BeginPopupContextItem("IKVSOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+    ImGui::Text("operator level changes with volume?");
+    if (ImGui::BeginTable("KVSTable",4,ImGuiTableFlags_BordersInner)) {
+      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
+      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
+      for (int i=0; i<4; i++) {
+        int o=(opCount==4)?orderedOps[i]:i;
+        if (!(i&1)) ImGui::TableNextRow();
+        const char* label="AUTO##OPKVS";
+        if (ins->fm.op[o].kvs==0) {
+          label="NO##OPKVS";
+        } else if (ins->fm.op[o].kvs==1) {
+          label="YES##OPKVS";
+        }
+        ImGui::TableNextColumn();
+        ImGui::Text("%d",i+1);
+        ImGui::TableNextColumn();
+        ImGui::PushID(o);
+        if (ImGui::Button(label,ImVec2(ImGui::GetContentRegionAvail().x,0.0f))) {
+          if (++ins->fm.op[o].kvs>2) ins->fm.op[o].kvs=0;
+          PARAMETER;
+        }
+        ImGui::PopID();
+      }
+      ImGui::EndTable();
+    }
+    ImGui::EndPopup();
+  }
+}
+
 void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
   float asFloat[256];
   int asInt[256];
@@ -1769,6 +1809,7 @@ void FurnaceGUI::drawInsEdit() {
                   P(CWSliderScalar(FM_NAME(FM_AMS),ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE)); rightClickable
                   ImGui::TableNextColumn();
                   drawAlgorithm(ins->fm.alg,FM_ALGS_4OP,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  kvsConfig(ins);
                   break;
                 case DIV_INS_OPZ:
                   ImGui::TableNextColumn();
@@ -1781,6 +1822,8 @@ void FurnaceGUI::drawInsEdit() {
                   P(CWSliderScalar(FM_NAME(FM_AMS2),ImGuiDataType_U8,&ins->fm.ams2,&_ZERO,&_THREE)); rightClickable
                   ImGui::TableNextColumn();
                   drawAlgorithm(ins->fm.alg,FM_ALGS_4OP,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  kvsConfig(ins);
+
                   if (ImGui::Button("Request from TX81Z")) {
                     doAction(GUI_ACTION_TX81Z_REQUEST);
                   }
@@ -1813,6 +1856,7 @@ void FurnaceGUI::drawInsEdit() {
                   }
                   ImGui::TableNextColumn();
                   drawAlgorithm(ins->fm.alg&algMax,fourOp?FM_ALGS_4OP_OPL:FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  kvsConfig(ins);
                   break;
                 }
                 case DIV_INS_OPLL: {
@@ -1837,6 +1881,8 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::EndDisabled();
                   ImGui::TableNextColumn();
                   drawAlgorithm(0,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
+                  kvsConfig(ins);
+
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 
                   bool isPresent[4];

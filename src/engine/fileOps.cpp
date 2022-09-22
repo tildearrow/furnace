@@ -196,6 +196,15 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }
     */
 
+    // Genesis detuned on Defle v10 and earlier
+    /*if (ds.version<19 && ds.system[0]==DIV_SYSTEM_GENESIS) {
+      ds.tuning=443.23;
+    }*/
+    // C64 detuned on Defle v11 and earlier
+    /*if (ds.version<21 && (ds.system[0]==DIV_SYSTEM_C64_6581 || ds.system[0]==DIV_SYSTEM_C64_8580)) {
+      ds.tuning=433.2;
+    }*/
+
     logI("reading module data...");
     if (ds.version>0x0c) {
       ds.subsong[0]->hilightA=reader.readC();
@@ -448,6 +457,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
               ins->fm.op[j].d2r=reader.readC();
               ins->fm.op[j].ssgEnv=reader.readC();
             }
+          }
+          if (ds.version<0x12) { // before version 10 all ops were responsive to volume
+            ins->fm.op[j].kvs=1;
           }
 
           logD("OP%d: AM %d AR %d DAM %d DR %d DVB %d EGT %d KSL %d MULT %d RR %d SL %d SUS %d TL %d VIB %d WS %d RS %d DT %d D2R %d SSG-EG %d",j,
