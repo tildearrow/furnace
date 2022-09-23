@@ -255,6 +255,7 @@ void DivPlatformMSM6295::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformMSM6295::Channel();
     chan[i].std.setEngine(parent);
+    msm.voice_mute(i,isMuted[i]);
   }
   for (int i=0; i<4; i++) {
     chan[i].vol=8;
