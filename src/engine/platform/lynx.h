@@ -84,7 +84,8 @@ class DivPlatformLynx: public DivDispatch {
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
-  std::unique_ptr<Lynx::Mikey> mikey;
+  std::unique_ptr<Lynx::Mikey> mikey;  
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);

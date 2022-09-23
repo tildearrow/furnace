@@ -441,8 +441,6 @@ void DivPlatformSegaPCM::reset() {
   pcmR=0;
   sampleBank=0;
   delay=0;
-  amDepth=0x7f;
-  pmDepth=0x7f;
 
   if (dumpWrites) {
     for (int i=0; i<16; i++) {
@@ -451,8 +449,6 @@ void DivPlatformSegaPCM::reset() {
       addWrite(0x10003+(i<<3),0x7f);
     }
   }
-
-  extMode=false;
 }
 
 void DivPlatformSegaPCM::setFlags(unsigned int flags) {

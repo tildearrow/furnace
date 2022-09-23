@@ -21,5 +21,6 @@
 #define _GUI_DEBUG_H
 #include "../engine/song.h"
 
+void putDispatchChip(void* data, int type);
 void putDispatchChan(void* data, int chanNum, int type);
 #endif

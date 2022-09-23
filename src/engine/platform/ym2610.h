@@ -35,6 +35,7 @@ class DivPlatformYM2610: public DivPlatformYM2610Base<14> {
       1, 2, 4, 5
     };
 
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
   public:

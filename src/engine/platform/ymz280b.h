@@ -71,6 +71,7 @@ class DivPlatformYMZ280B: public DivDispatch {
   size_t sampleMemLen;
   ymz280b_device ymz280b;
   unsigned char regPool[256];
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   public:

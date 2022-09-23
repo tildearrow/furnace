@@ -833,9 +833,6 @@ void DivPlatformArcade::reset() {
   }
 
   lastBusy=60;
-  pcmCycles=0;
-  pcmL=0;
-  pcmR=0;
   delay=0;
   amDepth=0x7f;
   pmDepth=0x7f;
@@ -846,8 +843,6 @@ void DivPlatformArcade::reset() {
   immWrite(0x19,amDepth);
   immWrite(0x19,0x80|pmDepth);
   //rWrite(0x1b,0x00);
-
-  extMode=false;
 }
 
 void DivPlatformArcade::setFlags(unsigned int flags) {

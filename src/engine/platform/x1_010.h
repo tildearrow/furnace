@@ -120,6 +120,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
   double NoteX1_010(int ch, int note);
   void updateWave(int ch);
   void updateEnvelope(int ch);
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     u8 read_byte(u32 address);

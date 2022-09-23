@@ -60,6 +60,7 @@ class DivPlatformVERA: public DivDispatch {
     struct VERA_PCM* pcm;
   
     int calcNoteFreq(int ch, int note);
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:

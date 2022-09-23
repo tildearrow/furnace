@@ -66,6 +66,22 @@ void FurnaceGUI::drawDebug() {
       ImGui::Checkbox("Enable",&bpOn);
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Chip Status")) {
+      ImGui::Text("for best results set latency to minimum or use the Frame Advance button.");
+      ImGui::Columns(e->song.systemLen);
+      for (int i=0; i<e->song.systemLen; i++) {
+        void* ch=e->getDispatch(i);
+        ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Chip %d: %s",i,getSystemName(e->song.system[i]));
+        if (e->song.system[i]==NULL) {
+          ImGui::Text("NULL");
+        } else {
+          putDispatchChip(ch,e->song.system[i]);
+        }
+        ImGui::NextColumn();
+      }
+      ImGui::Columns();
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Dispatch Status")) {
       ImGui::Text("for best results set latency to minimum or use the Frame Advance button.");
       ImGui::Columns(e->getTotalChannelCount());

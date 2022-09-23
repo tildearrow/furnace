@@ -146,7 +146,8 @@ class DivPlatformAY8910: public DivDispatch {
     size_t ayBufLen;
 
     void updateOutSel(bool immediate=false);
-
+  
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:

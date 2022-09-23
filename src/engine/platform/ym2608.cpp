@@ -546,14 +546,14 @@ void DivPlatformYM2608::tick(bool sysTick) {
       if (!isMuted[i] && (chan[i].std.vol.had || chan[i].std.panL.had)) {
         immWrite(0x18+(i-9),isMuted[i]?0:((chan[i].pan<<6)|chan[i].outVol));
       }
-      if (chan[i].keyOff) {
-        writeRSSOff|=(1<<(i-9));
-        chan[i].keyOff=false;
-      }
-      if (chan[i].keyOn) {
-        writeRSSOn|=(1<<(i-9));
-        chan[i].keyOn=false;
-      }
+    }
+    if (chan[i].keyOff) {
+      writeRSSOff|=(1<<(i-9));
+      chan[i].keyOff=false;
+    }
+    if (chan[i].keyOn) {
+      writeRSSOn|=(1<<(i-9));
+      chan[i].keyOn=false;
     }
   }
   // ADPCM-B
@@ -851,6 +851,13 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
         } else {
           rWrite(baseAddr+ADDR_TL,op.tl);
         }
+      }
+      break;
+    }
+    case DIV_CMD_ADPCMA_GLOBAL_VOLUME: {
+      if (globalRSSVolume!=(c.value&0x3f)) {
+        globalRSSVolume=c.value&0x3f;
+        immWrite(0x11,globalRSSVolume&0x3f);
       }
       break;
     }
@@ -1184,7 +1191,7 @@ void DivPlatformYM2608::forceIns() {
     if (i>14) { // ADPCM-B
       immWrite(0x10b,chan[i].outVol);
     } else {
-      immWrite(0x18+(i-9),isMuted[i]?0:((chan[i].pan<<6)|chan[i].vol));
+      immWrite(0x18+(i-9),isMuted[i]?0:((chan[i].pan<<6)|chan[i].outVol));
     }
   }
 
@@ -1267,7 +1274,7 @@ void DivPlatformYM2608::reset() {
   immWrite(0x22,0x08);
 
   // PCM volume
-  immWrite(0x11,0x3f); // A
+  immWrite(0x11,globalRSSVolume); // A
   immWrite(0x10b,0xff); // B
 
   // ADPCM limit

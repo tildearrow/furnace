@@ -72,6 +72,7 @@ class DivPlatformZXBeeper: public DivDispatch {
   int tempR[32];
   unsigned char regPool[128];
   bool sampleOut;
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);

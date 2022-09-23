@@ -150,7 +150,8 @@ class DivPlatformAY8930: public DivDispatch {
 
     void updateOutSel(bool immediate=false);
     void immWrite(unsigned char a, unsigned char v);
-
+  
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:

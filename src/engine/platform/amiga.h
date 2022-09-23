@@ -86,6 +86,7 @@ class DivPlatformAmiga: public DivDispatch {
 
   int sep1, sep2;
 
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   public:

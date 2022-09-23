@@ -546,16 +546,16 @@ void DivPlatformYM2610B::tick(bool sysTick) {
       if (!isMuted[i] && (chan[i].std.vol.had || chan[i].std.panL.had)) {
         immWrite(0x108+(i-adpcmAChanOffs),isMuted[i]?0:((chan[i].pan<<6)|chan[i].outVol));
       }
-      if (chan[i].keyOff) {
-        writeADPCMAOff|=(1<<(i-adpcmAChanOffs));
-        chan[i].keyOff=false;
+    }
+    if (chan[i].keyOff) {
+      writeADPCMAOff|=(1<<(i-adpcmAChanOffs));
+      chan[i].keyOff=false;
+    }
+    if (chan[i].keyOn) {
+      if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+        writeADPCMAOn|=(1<<(i-adpcmAChanOffs));
       }
-      if (chan[i].keyOn) {
-        if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
-          writeADPCMAOn|=(1<<(i-adpcmAChanOffs));
-        }
-        chan[i].keyOn=false;
-      }
+      chan[i].keyOn=false;
     }
   }
   // ADPCM-B
@@ -1325,7 +1325,7 @@ bool DivPlatformYM2610B::keyOffAffectsArp(int ch) {
 }
 
 void DivPlatformYM2610B::notifyInsChange(int ins) {
-  for (int i=0; i<16; i++) {
+  for (int i=0; i<chanNum; i++) {
     if (chan[i].ins==ins) {
       chan[i].insChanged=true;
     }

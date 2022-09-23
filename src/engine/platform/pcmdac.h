@@ -77,6 +77,7 @@ class DivPlatformPCMDAC: public DivDispatch {
   int outDepth;
   bool outStereo;
 
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   public:

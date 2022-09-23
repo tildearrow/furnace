@@ -484,16 +484,16 @@ void DivPlatformYM2610::tick(bool sysTick) {
       if (!isMuted[i] && (chan[i].std.vol.had || chan[i].std.panL.had)) {
         immWrite(0x108+(i-adpcmAChanOffs),isMuted[i]?0:((chan[i].pan<<6)|chan[i].outVol));
       }
-      if (chan[i].keyOff) {
-        writeADPCMAOff|=(1<<(i-adpcmAChanOffs));
-        chan[i].keyOff=false;
+    }
+    if (chan[i].keyOff) {
+      writeADPCMAOff|=(1<<(i-adpcmAChanOffs));
+      chan[i].keyOff=false;
+    }
+    if (chan[i].keyOn) {
+      if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+        writeADPCMAOn|=(1<<(i-adpcmAChanOffs));
       }
-      if (chan[i].keyOn) {
-        if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
-          writeADPCMAOn|=(1<<(i-adpcmAChanOffs));
-        }
-        chan[i].keyOn=false;
-      }
+      chan[i].keyOn=false;
     }
   }
   // ADPCM-B
@@ -1246,7 +1246,7 @@ void DivPlatformYM2610::reset() {
   immWrite(0x22,0x08);
 
   // PCM volume
-  immWrite(0x101,0x3f); // A
+  immWrite(0x101,globalADPCMAVolume); // A
   immWrite(0x1b,0xff); // B
 }
 
@@ -1259,7 +1259,7 @@ bool DivPlatformYM2610::keyOffAffectsArp(int ch) {
 }
 
 void DivPlatformYM2610::notifyInsChange(int ins) {
-  for (int i=0; i<14; i++) {
+  for (int i=0; i<chanNum; i++) {
     if (chan[i].ins==ins) {
       chan[i].insChanged=true;
     }

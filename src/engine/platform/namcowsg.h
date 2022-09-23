@@ -74,6 +74,7 @@ class DivPlatformNamcoWSG: public DivDispatch {
   int devType, chans;
   unsigned char regPool[512];
   void updateWave(int ch);
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);

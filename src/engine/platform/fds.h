@@ -77,7 +77,8 @@ class DivPlatformFDS: public DivDispatch {
   unsigned char regPool[128];
 
   void updateWave();
-
+  
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   void doWrite(unsigned short addr, unsigned char data);

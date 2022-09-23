@@ -78,6 +78,7 @@ class DivPlatformSMS: public DivDispatch {
     QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
   };
   std::queue<QueuedWrite> writes;
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);

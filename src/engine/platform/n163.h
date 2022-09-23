@@ -89,6 +89,7 @@ class DivPlatformN163: public DivDispatch {
   unsigned char regPool[128];
   void updateWave(int ch, int wave, int pos, int len);
   void updateWaveCh(int ch);
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   public:

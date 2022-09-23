@@ -80,21 +80,19 @@ class DivPlatformSegaPCM: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     std::queue<QueuedWrite> writes;
-    int delay, baseFreqOff;
+    int delay;
     int pcmL, pcmR, pcmCycles;
     unsigned char sampleBank;
     unsigned char lastBusy;
-    unsigned char amDepth, pmDepth;
 
     unsigned char regPool[256];
-
-    bool extMode, useYMFM;
 
     bool isMuted[16];
   
     short oldWrites[256];
     short pendingWrites[256];
   
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:

@@ -84,6 +84,7 @@ class DivPlatformPCSpeaker: public DivDispatch {
   unsigned short freq, lastFreq;
   unsigned char regPool[2];
 
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   void beepFreq(int freq, int delay=0);

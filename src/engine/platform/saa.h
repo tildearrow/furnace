@@ -72,6 +72,7 @@ class DivPlatformSAA1099: public DivDispatch {
     size_t saaBufLen;
     unsigned char saaEnv[2];
     unsigned char saaNoise[2];
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
     void acquire_saaSound(short* bufL, short* bufR, size_t start, size_t len);

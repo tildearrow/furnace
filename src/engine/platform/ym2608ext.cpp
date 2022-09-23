@@ -477,7 +477,7 @@ void DivPlatformYM2608Ext::forceIns() {
     if (i>14) { // ADPCM-B
       immWrite(0x10b,chan[i].outVol);
     } else {
-      immWrite(0x18+(i-9),isMuted[i]?0:((chan[i].pan<<6)|chan[i].vol));
+      immWrite(0x18+(i-9),isMuted[i]?0:((chan[i].pan<<6)|chan[i].outVol));
     }
   }
   ay->forceIns();

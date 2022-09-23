@@ -93,6 +93,7 @@ class DivPlatformOPLL: public DivDispatch {
     int octave(int freq);
     int toFreq(int freq);
 
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
     void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);

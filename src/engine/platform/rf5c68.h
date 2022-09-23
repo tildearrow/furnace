@@ -71,6 +71,7 @@ class DivPlatformRF5C68: public DivDispatch {
   size_t sampleMemLen;
   rf5c68_device rf5c68;
   unsigned char regPool[144];
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   public:

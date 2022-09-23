@@ -74,6 +74,7 @@ class DivPlatformSwan: public DivDispatch {
   std::queue<QueuedWrite> writes;
   WSwan* ws;
   void updateWave(int ch);
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);

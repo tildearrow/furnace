@@ -88,6 +88,7 @@ class DivPlatformTX81Z: public DivPlatformOPM {
     int octave(int freq);
     int toFreq(int freq);
   
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:

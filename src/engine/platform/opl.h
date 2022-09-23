@@ -118,6 +118,7 @@ class DivPlatformOPL: public DivDispatch {
     int toFreq(int freq);
     double NOTE_ADPCMB(int note);
 
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
     void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
