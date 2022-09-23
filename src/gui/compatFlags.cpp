@@ -143,10 +143,6 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, any SN period under 8 will be written as 1 instead.\nthis replicates DefleMask behavior, but reduces available period range.");
     }
-    ImGui::Checkbox("Ignore PC Engine DAC Volume",&e->song.ignorePCEDACVolume);
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("when enabled, PC Engine DAC Volume is ignored.");
-    }
 
     ImGui::Text("Pitch linearity:");
     if (ImGui::RadioButton("None",e->song.linearPitch==0)) {
@@ -284,6 +280,10 @@ void FurnaceGUI::drawCompatFlags() {
     ImGui::Checkbox("Broken initial position of portamento after arpeggio",&e->song.brokenPortaArp);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6pre1.5");
+    }
+    ImGui::Checkbox("Ignore PC Engine DAC volume",&e->song.ignorePCEDACVolume);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("behavior changed in 0.6pre2");
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_COMPAT_FLAGS;

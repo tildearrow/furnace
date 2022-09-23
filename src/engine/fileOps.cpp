@@ -1101,7 +1101,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<115) {
       ds.autoSystem=false;
     }
-    ds.ignorePCEDACVolume=true;
+    if (ds.version<117) {
+      ds.ignorePCEDACVolume=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1534,7 +1536,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<3; i++) {
+      if (ds.version>=117) {
+        ds.ignorePCEDACVolume=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<2; i++) {
         reader.readC();
       }
     }
@@ -3779,7 +3786,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.delayBehavior);
   w->writeC(song.jumpTreatment);
   w->writeC(song.autoSystem);
-  for (int i=0; i<3; i++) {
+  w->writeC(song.ignorePCEDACVolume);
+  for (int i=0; i<2; i++) {
     w->writeC(0);
   }
 
