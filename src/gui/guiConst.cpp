@@ -113,6 +113,8 @@ const char* insTypes[DIV_INS_MAX+1]={
   "Sound Unit",
   "Namco WSG",
   "OPL (drums)",
+  "", // 33
+  "", // 34
   "MSM6258",
   "MSM6295",
   "ADPCM-A",
