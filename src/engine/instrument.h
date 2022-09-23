@@ -60,8 +60,8 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_SU=30,
   DIV_INS_NAMCO=31,
   DIV_INS_OPL_DRUMS=32,
-  //33
-  //34
+  DIV_INS_OPM=33,
+  DIV_INS_NES=34,
   DIV_INS_MSM6258=35,
   DIV_INS_MSM6295=36,
   DIV_INS_ADPCMA=37,

@@ -1636,8 +1636,8 @@ void FurnaceGUI::drawSettings() {
               ImGui::TreePop();
             }
             if (ImGui::TreeNode("Instrument Types")) {
-              UI_COLOR_CONFIG(GUI_COLOR_INSTR_FM,"FM (4-operator)");
-              UI_COLOR_CONFIG(GUI_COLOR_INSTR_STD,"Standard");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_FM,"FM (OPN)");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_STD,"SN76489/Sega PSG");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_GB,"Game Boy");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_C64,"C64");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_AMIGA,"Amiga/Generic Sample");
@@ -1673,6 +1673,8 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_SU,"Sound Unit");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_NAMCO,"Namco WSG");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPL_DRUMS,"FM (OPL Drums)");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPM,"FM (OPM)");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_NES,"NES");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_MSM6258,"MSM6258");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_MSM6295,"MSM6295");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_ADPCMA,"ADPCM-A");

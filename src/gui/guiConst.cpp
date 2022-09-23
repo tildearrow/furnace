@@ -80,8 +80,8 @@ const int vgmVersions[6]={
 };
 
 const char* insTypes[DIV_INS_MAX+1]={
-  "Standard (SMS/NES)",
-  "FM (4-operator)",
+  "SN76489/Sega PSG",
+  "FM (OPN)",
   "Game Boy",
   "C64",
   "Generic Sample",
@@ -113,8 +113,8 @@ const char* insTypes[DIV_INS_MAX+1]={
   "Sound Unit",
   "Namco WSG",
   "OPL (drums)",
-  "Reserved", // 33
-  "Reserved", // 34
+  "FM (OPM)", // 33
+  "NES", // 34
   "MSM6258",
   "MSM6295",
   "ADPCM-A",
@@ -788,6 +788,8 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_SU,"",ImVec4(0.95f,0.98f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_NAMCO,"",ImVec4(1.0f,1.0f,0.0f,1.0f)),
   D(GUI_COLOR_INSTR_OPL_DRUMS,"",ImVec4(0.3f,1.0f,0.9f,1.0f)),
+  D(GUI_COLOR_INSTR_OPM,"",ImVec4(0.2f,0.6f,1.0f,1.0f)),
+  D(GUI_COLOR_INSTR_NES,"",ImVec4(0.4f,1.0f,0.3f,1.0f)),
   D(GUI_COLOR_INSTR_MSM6258,"",ImVec4(1.0f,0.5f,0.5f,1.0f)),
   D(GUI_COLOR_INSTR_MSM6295,"",ImVec4(1.0f,0.5f,0.5f,1.0f)),
   D(GUI_COLOR_INSTR_ADPCMA,"",ImVec4(1.0f,0.5f,0.5f,1.0f)),
