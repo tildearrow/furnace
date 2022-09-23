@@ -23,7 +23,7 @@ fi
 echo "furnace test suite begin..."
 echo "--- STEP 1: render test files"
 mkdir -p "test/result/$testDir" || exit 1
-ls "test/songs/" | parallel --verbose -j4 ./build/furnace -output "test/result/$testDir/{0}.wav" "test/songs/{0}"
+ls "test/songs/" | parallel --verbose -j8 ./build/furnace -output "test/result/$testDir/{0}.wav" "test/songs/{0}"
 echo "--- STEP 2: calculate deltas"
 if [ -z $lastTest ]; then
   echo "skipping since this apparently is your first run."
