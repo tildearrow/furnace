@@ -122,7 +122,7 @@ void x1_010_core::voice_t::reg_w(u8 offset, u8 data)
 				m_flag.write(data);
 				if (!prev_keyon && m_flag.keyon())	// Key on
 				{
-					m_acc	  = m_flag.wavetable() ? 0 : (u32(m_start_envfreq) << 16);
+					m_acc	  = m_flag.wavetable() ? 0 : (u32(m_start_envfreq) << 17);
 					m_env_acc = 0;
 				}
 				break;
