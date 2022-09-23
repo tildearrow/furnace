@@ -72,7 +72,7 @@ void FurnaceGUI::drawDebug() {
       for (int i=0; i<e->song.systemLen; i++) {
         void* ch=e->getDispatch(i);
         ImGui::TextColored(uiColors[GUI_COLOR_ACCENT_PRIMARY],"Chip %d: %s",i,getSystemName(e->song.system[i]));
-        if (e->song.system[i]==NULL) {
+        if (e->song.system[i]==DIV_SYSTEM_NULL) {
           ImGui::Text("NULL");
         } else {
           putDispatchChip(ch,e->song.system[i]);
