@@ -11,6 +11,6 @@ contact me or send a pull request if you want your song to be added to this coll
 - Nintendo covers are frowned upon
 - big label music covers also are discouraged
 
-tildearrow also accepts demo songs in the .DMF format as well as the .FUR format.
+tildearrow also accepts demo songs in the .dmf format as well as the .fur format.
 
 thank you for contributing!
