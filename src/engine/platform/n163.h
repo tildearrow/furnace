@@ -24,7 +24,7 @@
 #include <queue>
 #include "../macroInt.h"
 #include "../waveSynth.h"
-#include "sound/n163/n163.hpp"
+#include "vgsound_emu/src/n163/n163.hpp"
 
 class DivPlatformN163: public DivDispatch {
   struct Channel {

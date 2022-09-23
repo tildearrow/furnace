@@ -243,8 +243,9 @@ void DivPlatformOPLL::tick(bool sysTick) {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq)*2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].fixedFreq>0) chan[i].freq=chan[i].fixedFreq;
-      if (chan[i].freq>262143) chan[i].freq=262143;
-      int freqt=toFreq(chan[i].freq)+chan[i].pitch2;
+      if (chan[i].freq<0) chan[i].freq=0;
+      if (chan[i].freq>65535) chan[i].freq=65535;
+      int freqt=toFreq(chan[i].freq);
       chan[i].freqL=freqt&0xff;
       if (i>=6 && properDrums) {
         immWrite(0x10+drumSlot[i],freqt&0xff);

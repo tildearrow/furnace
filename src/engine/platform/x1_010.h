@@ -24,9 +24,9 @@
 #include "../engine.h"
 #include "../macroInt.h"
 #include "../waveSynth.h"
-#include "sound/x1_010/x1_010.hpp"
+#include "vgsound_emu/src/x1_010/x1_010.hpp"
 
-class DivPlatformX1_010: public DivDispatch, public x1_010_mem_intf {
+class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
   struct Channel {
     struct Envelope {
       struct EnvFlag {
@@ -151,7 +151,7 @@ class DivPlatformX1_010: public DivDispatch, public x1_010_mem_intf {
     void quit();
     DivPlatformX1_010():
       DivDispatch(),
-      x1_010_mem_intf(),
+      vgsound_emu_mem_intf(),
       x1_010(*this) {}
     ~DivPlatformX1_010();
 };

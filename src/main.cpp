@@ -183,7 +183,7 @@ TAParamResult pVersion(String) {
   printf("- reSID by Dag Lem (GPLv2)\n");
   printf("- reSIDfp by Dag Lem, Antti Lankila and Leandro Nini (GPLv2)\n");
   printf("- Stella by Stella Team (GPLv2)\n");
-  printf("- vgsound_emu (first version) by cam900 (BSD 3-clause)\n");
+  printf("- vgsound_emu (second version, modified version) by cam900 (zlib license)\n");
   return TA_PARAM_QUIT;
 }
 
