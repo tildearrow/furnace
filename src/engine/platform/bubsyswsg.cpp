@@ -44,7 +44,7 @@ void DivPlatformBubSysWSG::acquire(short* bufL, short* bufR, size_t start, size_
   for (size_t h=start; h<start+len; h++) {
     signed int out=0;
     // K005289 part
-    k005289->tick();
+    k005289.tick();
 
     // Wavetable part
     for (int i=0; i<2; i++) {
@@ -52,7 +52,7 @@ void DivPlatformBubSysWSG::acquire(short* bufL, short* bufR, size_t start, size_
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
         continue;
       } else {
-        chanOut=chan[i].waveROM[k005289->addr(i)]*(regPool[2+i]&0xf);
+        chanOut=chan[i].waveROM[k005289.addr(i)]*(regPool[2+i]&0xf);
         out+=chanOut;
         if (writeOscBuf==0) {
           oscBuf[i]->data[oscBuf[i]->needle++]=chanOut<<7;
@@ -122,9 +122,9 @@ void DivPlatformBubSysWSG::tick(bool sysTick) {
       chan[i].freq=0x1000-parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>4095) chan[i].freq=4095;
-      k005289->load(i,chan[i].freq);
+      k005289.load(i,chan[i].freq);
       rWrite(i,chan[i].freq);
-      k005289->update(i);
+      k005289.update(i);
       if (chan[i].keyOn) {
         // ???
       }
@@ -295,7 +295,7 @@ void DivPlatformBubSysWSG::reset() {
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
-  k005289->reset();
+  k005289.reset();
 }
 
 bool DivPlatformBubSysWSG::isStereo() {
@@ -347,7 +347,6 @@ int DivPlatformBubSysWSG::init(DivEngine* p, int channels, int sugRate, unsigned
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
-  k005289=new k005289_core();
   reset();
   return 2;
 }
@@ -356,7 +355,6 @@ void DivPlatformBubSysWSG::quit() {
   for (int i=0; i<2; i++) {
     delete oscBuf[i];
   }
-  delete k005289;
 }
 
 DivPlatformBubSysWSG::~DivPlatformBubSysWSG() {
