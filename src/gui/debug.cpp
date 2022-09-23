@@ -51,7 +51,7 @@
 
 #define COMMON_CHIP_DEBUG \
   ImGui::Text("- rate: %d",ch->rate); \
-  ImGui::Text("- chipClock: %.f",ch->chipClock);
+  ImGui::Text("- chipClock: %d",ch->chipClock);
 
 #define FM_CHIP_DEBUG \
   COMMON_CHIP_DEBUG; \
