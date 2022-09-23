@@ -68,9 +68,11 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
         delay=w.delay;
       }
     } else {
-      delay--;
+      delay-=3;
     }
     
+    msm.tick();
+    msm.tick();
     msm.tick();
   
     bufL[h]=msm.out()<<4;
@@ -388,7 +390,7 @@ void DivPlatformMSM6295::setFlags(unsigned int flags) {
       chipClock=COLOR_NTSC/3.0;
       break;
   }
-  rate=chipClock;
+  rate=chipClock/3;
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate/22;
   }
