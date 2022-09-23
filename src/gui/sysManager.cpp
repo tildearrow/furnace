@@ -82,6 +82,9 @@ void FurnaceGUI::drawSysManager() {
           DivSystem picked=systemPicker();
           if (picked!=DIV_SYSTEM_NULL) {
             e->changeSystem(i,picked,preserveChanPos);
+            if (e->song.autoSystem) {
+              autoDetectSystem();
+            }
             updateWindowTitle();
             ImGui::CloseCurrentPopup();
           }
@@ -109,6 +112,9 @@ void FurnaceGUI::drawSysManager() {
           if (picked!=DIV_SYSTEM_NULL) {
             if (!e->addSystem(picked)) {
               showError("cannot add chip! ("+e->getLastError()+")");
+            }
+            if (e->song.autoSystem) {
+              autoDetectSystem();
             }
             updateWindowTitle();
             ImGui::CloseCurrentPopup();

@@ -584,13 +584,117 @@ void FurnaceGUI::updateWindowTitle() {
   if (sdlWin!=NULL) SDL_SetWindowTitle(sdlWin,title.c_str());
 }
 
+void FurnaceGUI::autoDetectSystem() {
+  std::map<DivSystem,int> sysCountMap;
+  for (int i=0; i<e->song.systemLen; i++) {
+    try {
+      sysCountMap.at(e->song.system[i])++;
+    } catch (std::exception& ex) {
+      sysCountMap[e->song.system[i]]=1;
+    }
+  }
+
+  logV("sysCountMap:");
+  for (std::pair<DivSystem,int> k: sysCountMap) {
+    logV("%s: %d",e->getSystemName(k.first),k.second);
+  }
+
+  bool isMatch=false;
+  std::map<DivSystem,int> defCountMap;
+  for (FurnaceGUISysCategory& i: sysCategories) {
+    for (FurnaceGUISysDef& j: i.systems) {
+      defCountMap.clear();
+      for (size_t k=0; k<j.definition.size(); k+=4) {
+        if (j.definition[k]==0) break;
+        try {
+          defCountMap.at((DivSystem)j.definition[k])++;
+        } catch (std::exception& ex) {
+          defCountMap[(DivSystem)j.definition[k]]=1;
+        }
+      }
+      if (defCountMap.size()!=sysCountMap.size()) continue;
+      isMatch=true;
+      logV("trying on defCountMap: %s",j.name);
+      for (std::pair<DivSystem,int> k: defCountMap) {
+        logV("- %s: %d",e->getSystemName(k.first),k.second);
+      }
+      for (std::pair<DivSystem,int> k: defCountMap) {
+        try {
+          if (sysCountMap.at(k.first)!=k.second) {
+            isMatch=false;
+            break;
+          }
+        } catch (std::exception& ex) {
+          isMatch=false;
+          break;
+        }
+      }
+      if (isMatch) {
+        logV("match found!");
+        e->song.systemName=j.name;
+        break;
+      }
+    }
+    if (isMatch) break;
+  }
+
+  if (!isMatch) {
+    bool isFirst=true;
+    e->song.systemName="";
+    for (std::pair<DivSystem,int> k: sysCountMap) {
+      if (!isFirst) e->song.systemName+=" + ";
+      if (k.second>1) {
+        e->song.systemName+=fmt::sprintf("%d×",k.second);
+      }
+      if (k.first==DIV_SYSTEM_N163) {
+        e->song.systemName+=settings.c163Name;
+      } else {
+        e->song.systemName+=e->getSystemName(k.first);
+      }
+      isFirst=false;
+    }
+  }
+}
+
+ImVec4 FurnaceGUI::channelColor(int ch) {
+  switch (settings.channelColors) {
+    case 0:
+      return uiColors[GUI_COLOR_CHANNEL_BG];
+      break;
+    case 1:
+      return uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(ch)];
+      break;
+    case 2:
+      return uiColors[GUI_COLOR_INSTR_STD+e->getPreferInsType(ch)];
+      break;
+  }
+  // invalid
+  return uiColors[GUI_COLOR_TEXT];
+}
+
+ImVec4 FurnaceGUI::channelTextColor(int ch) {
+  switch (settings.channelTextColors) {
+    case 0:
+      return uiColors[GUI_COLOR_CHANNEL_FG];
+      break;
+    case 1:
+      return uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(ch)];
+      break;
+    case 2:
+      return uiColors[GUI_COLOR_INSTR_STD+e->getPreferInsType(ch)];
+      break;
+  }
+  // invalid
+  return uiColors[GUI_COLOR_TEXT];
+}
+
 const char* defaultLayout="[Window][DockSpaceViewport_11111111]\n\
 Pos=0,24\n\
-Size=1280,731\n\
+Size=1280,776\n\
 Collapsed=0\n\
 \n\
 [Window][Debug##Default]\n\
-Pos=54,0\n\
+Pos=54,19\n\
 Size=400,400\n\
 Collapsed=0\n\
 \n\
@@ -601,9 +705,9 @@ Collapsed=0\n\
 \n\
 [Window][Song Information]\n\
 Pos=978,24\n\
-Size=302,217\n\
+Size=302,179\n\
 Collapsed=0\n\
-DockId=0x00000004,0\n\
+DockId=0x0000000F,0\n\
 \n\
 [Window][Orders]\n\
 Pos=0,24\n\
@@ -615,7 +719,7 @@ DockId=0x00000007,0\n\
 Pos=653,24\n\
 Size=323,217\n\
 Collapsed=0\n\
-DockId=0x00000006,2\n\
+DockId=0x00000006,0\n\
 \n\
 [Window][Wavetables]\n\
 Pos=653,24\n\
@@ -627,13 +731,13 @@ DockId=0x00000006,1\n\
 Pos=653,24\n\
 Size=323,217\n\
 Collapsed=0\n\
-DockId=0x00000006,0\n\
+DockId=0x00000006,2\n\
 \n\
 [Window][Pattern]\n\
 Pos=0,243\n\
-Size=1246,512\n\
+Size=1246,557\n\
 Collapsed=0\n\
-DockId=0x0000000B,0\n\
+DockId=0x00000013,0\n\
 \n\
 [Window][Instrument Editor]\n\
 Pos=372,102\n\
@@ -642,7 +746,7 @@ Collapsed=0\n\
 \n\
 [Window][Warning]\n\
 Pos=481,338\n\
-Size=346,71\n\
+Size=264,86\n\
 Collapsed=0\n\
 \n\
 [Window][Sample Editor]\n\
@@ -675,8 +779,8 @@ Size=514,71\n\
 Collapsed=0\n\
 \n\
 [Window][Mixer]\n\
-Pos=63,55\n\
-Size=450,215\n\
+Pos=429,198\n\
+Size=453,355\n\
 Collapsed=0\n\
 \n\
 [Window][Oscilloscope]\n\
@@ -687,7 +791,7 @@ DockId=0x0000000E,0\n\
 \n\
 [Window][Volume Meter]\n\
 Pos=1248,243\n\
-Size=32,512\n\
+Size=32,557\n\
 Collapsed=0\n\
 DockId=0x0000000C,0\n\
 \n\
@@ -762,9 +866,10 @@ Size=368,449\n\
 Collapsed=0\n\
 \n\
 [Window][Register View]\n\
-Pos=847,180\n\
-Size=417,393\n\
+Pos=829,243\n\
+Size=417,557\n\
 Collapsed=0\n\
+DockId=0x00000014,0\n\
 \n\
 [Window][New Song]\n\
 Pos=267,110\n\
@@ -783,8 +888,40 @@ Size=304,40\n\
 Collapsed=0\n\
 DockId=0x0000000A,0\n\
 \n\
+[Window][Subsongs]\n\
+Pos=978,205\n\
+Size=302,36\n\
+Collapsed=0\n\
+DockId=0x00000010,0\n\
+\n\
+[Window][Oscilloscope (per-channel)]\n\
+Pos=1095,243\n\
+Size=151,557\n\
+Collapsed=0\n\
+DockId=0x00000012,0\n\
+\n\
+[Window][Piano]\n\
+Pos=177,669\n\
+Size=922,118\n\
+Collapsed=0\n\
+\n\
+[Window][Log Viewer]\n\
+Pos=60,60\n\
+Size=541,637\n\
+Collapsed=0\n\
+\n\
+[Window][Pattern Manager]\n\
+Pos=60,60\n\
+Size=1099,366\n\
+Collapsed=0\n\
+\n\
+[Window][Chip Manager]\n\
+Pos=60,60\n\
+Size=490,407\n\
+Collapsed=0\n\
+\n\
 [Docking][Data]\n\
-DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,731 Split=Y Selected=0x6C01C512\n\
+DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,776 Split=Y Selected=0x6C01C512\n\
   DockNode            ID=0x00000001 Parent=0x8B93E3BD SizeRef=1280,217 Split=X Selected=0xF3094A52\n\
     DockNode          ID=0x00000003 Parent=0x00000001 SizeRef=976,231 Split=X Selected=0x65CC51DC\n\
       DockNode        ID=0x00000007 Parent=0x00000003 SizeRef=345,231 HiddenTabBar=1 Selected=0x8F5BFC9A\n\
@@ -795,10 +932,17 @@ DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,731 Spl
             DockNode  ID=0x0000000E Parent=0x00000009 SizeRef=292,105 HiddenTabBar=1 Selected=0x6D682373\n\
           DockNode    ID=0x0000000A Parent=0x00000005 SizeRef=292,40 HiddenTabBar=1 Selected=0x0DE44CFF\n\
         DockNode      ID=0x00000006 Parent=0x00000008 SizeRef=323,406 Selected=0xD2AD486B\n\
-    DockNode          ID=0x00000004 Parent=0x00000001 SizeRef=302,231 Selected=0x60B9D088\n\
+    DockNode          ID=0x00000004 Parent=0x00000001 SizeRef=302,231 Split=Y Selected=0x60B9D088\n\
+      DockNode        ID=0x0000000F Parent=0x00000004 SizeRef=302,179 Selected=0x60B9D088\n\
+      DockNode        ID=0x00000010 Parent=0x00000004 SizeRef=302,36 HiddenTabBar=1 Selected=0x723A6369\n\
   DockNode            ID=0x00000002 Parent=0x8B93E3BD SizeRef=1280,512 Split=X Selected=0x6C01C512\n\
-    DockNode          ID=0x0000000B Parent=0x00000002 SizeRef=1246,503 CentralNode=1 HiddenTabBar=1 Selected=0xB9ADD0D5\n\
-    DockNode          ID=0x0000000C Parent=0x00000002 SizeRef=32,503 HiddenTabBar=1 Selected=0x644DA2C1\n\n";
+    DockNode          ID=0x0000000B Parent=0x00000002 SizeRef=1246,503 Split=X Selected=0xB9ADD0D5\n\
+      DockNode        ID=0x00000011 Parent=0x0000000B SizeRef=1093,557 Split=X Selected=0xB9ADD0D5\n\
+        DockNode      ID=0x00000013 Parent=0x00000011 SizeRef=827,557 CentralNode=1 HiddenTabBar=1 Selected=0xB9ADD0D5\n\
+        DockNode      ID=0x00000014 Parent=0x00000011 SizeRef=417,557 Selected=0x425428FB\n\
+      DockNode        ID=0x00000012 Parent=0x0000000B SizeRef=151,557 HiddenTabBar=1 Selected=0x4C07BC58\n\
+    DockNode          ID=0x0000000C Parent=0x00000002 SizeRef=32,503 HiddenTabBar=1 Selected=0x644DA2C1\n";
+
 
 void FurnaceGUI::prepareLayout() {
   FILE* check;
@@ -2076,6 +2220,30 @@ void FurnaceGUI::editOptions(bool topMenu) {
   if (ImGui::BeginMenu("paste special...")) {
     if (ImGui::MenuItem("paste mix",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX))) doPaste(GUI_PASTE_MODE_MIX_FG);
     if (ImGui::MenuItem("paste mix (background)",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX_BG))) doPaste(GUI_PASTE_MODE_MIX_BG);
+    if (ImGui::BeginMenu("paste with ins (foreground)")) {
+      if (e->song.ins.empty()) {
+        ImGui::Text("no instruments available");
+      }
+      for (size_t i=0; i<e->song.ins.size(); i++) {
+        snprintf(id,4095,"%.2X: %s",(int)i,e->song.ins[i]->name.c_str());
+        if (ImGui::MenuItem(id)) {
+          doPaste(GUI_PASTE_MODE_INS_FG,i);
+        }
+      }
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("paste with ins (background)")) {
+      if (e->song.ins.empty()) {
+        ImGui::Text("no instruments available");
+      }
+      for (size_t i=0; i<e->song.ins.size(); i++) {
+        snprintf(id,4095,"%.2X: %s",(int)i,e->song.ins[i]->name.c_str());
+        if (ImGui::MenuItem(id)) {
+          doPaste(GUI_PASTE_MODE_INS_BG,i);
+        }
+      }
+      ImGui::EndMenu();
+    }
     if (ImGui::MenuItem("paste flood",BIND_FOR(GUI_ACTION_PAT_PASTE_FLOOD))) doPaste(GUI_PASTE_MODE_FLOOD);
     if (ImGui::MenuItem("paste overflow",BIND_FOR(GUI_ACTION_PAT_PASTE_OVERFLOW))) doPaste(GUI_PASTE_MODE_OVERFLOW);
     ImGui::EndMenu();
@@ -3230,6 +3398,9 @@ bool FurnaceGUI::loop() {
               showError("cannot add chip! ("+e->getLastError()+")");
             }
             ImGui::CloseCurrentPopup();
+            if (e->song.autoSystem) {
+              autoDetectSystem();
+            }
             updateWindowTitle();
           }
           ImGui::EndMenu();
@@ -3250,6 +3421,9 @@ bool FurnaceGUI::loop() {
               DivSystem picked=systemPicker();
               if (picked!=DIV_SYSTEM_NULL) {
                 e->changeSystem(i,picked,preserveChanPos);
+                if (e->song.autoSystem) {
+                  autoDetectSystem();
+                }
                 updateWindowTitle();
                 ImGui::CloseCurrentPopup();
               }
@@ -3264,6 +3438,10 @@ bool FurnaceGUI::loop() {
             if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
               if (!e->removeSystem(i,preserveChanPos)) {
                 showError("cannot remove chip! ("+e->getLastError()+")");
+              }
+              if (e->song.autoSystem) {
+                autoDetectSystem();
+                updateWindowTitle();
               }
             }
           }
@@ -3438,6 +3616,8 @@ bool FurnaceGUI::loop() {
       }
       ImGui::EndMainMenuBar();
     }
+
+    calcChanOsc();
 
     if (mobileUI) {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
@@ -3884,6 +4064,7 @@ bool FurnaceGUI::loop() {
                   showError("cannot load wavetable! ("+e->getLastError()+")");
                 } else {
                   MARK_MODIFIED;
+                  RESET_WAVE_MACRO_ZOOM;
                 }
               }
               break;
@@ -4380,6 +4561,10 @@ bool FurnaceGUI::loop() {
         case GUI_WARN_SYSTEM_DEL:
           if (ImGui::Button("Yes")) {
             e->removeSystem(sysToDelete,preserveChanPos);
+            if (e->song.autoSystem) {
+              autoDetectSystem();
+              updateWindowTitle();
+            }
             ImGui::CloseCurrentPopup();
           }
           ImGui::SameLine();
@@ -5034,6 +5219,7 @@ FurnaceGUI::FurnaceGUI():
   macroPointSize(16),
   waveEditStyle(0),
   mobileMenuPos(0.0f),
+  autoButtonSize(0.0f),
   curSysSection(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),
@@ -5420,6 +5606,9 @@ FurnaceGUI::FurnaceGUI():
   waveGenFMCon1[0]=true;
   waveGenFMCon2[0]=true;
   waveGenFMCon3[0]=true;
+
+  memset(keyHit,0,sizeof(float)*DIV_MAX_CHANS);
+  memset(keyHit1,0,sizeof(float)*DIV_MAX_CHANS);
 
   memset(pianoKeyHit,0,sizeof(float)*180);
   memset(pianoKeyPressed,0,sizeof(bool)*180);

@@ -379,7 +379,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           break;
         case 0xed: // delay
           if (effectVal!=0) {
-            bool comparison=(song.delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<nextSpeed);
+            bool comparison=(song.delayBehavior==1)?(effectVal<=nextSpeed):(effectVal<(nextSpeed*(curSubSong->timeBase+1)));
             if (song.delayBehavior==2) comparison=true;
             if (comparison) {
               chan[i].rowDelay=effectVal+1;

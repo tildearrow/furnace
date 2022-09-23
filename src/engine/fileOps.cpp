@@ -196,6 +196,15 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }
     */
 
+    // Genesis detuned on Defle v10 and earlier
+    /*if (ds.version<19 && ds.system[0]==DIV_SYSTEM_GENESIS) {
+      ds.tuning=443.23;
+    }*/
+    // C64 detuned on Defle v11 and earlier
+    /*if (ds.version<21 && (ds.system[0]==DIV_SYSTEM_C64_6581 || ds.system[0]==DIV_SYSTEM_C64_8580)) {
+      ds.tuning=433.2;
+    }*/
+
     logI("reading module data...");
     if (ds.version>0x0c) {
       ds.subsong[0]->hilightA=reader.readC();
@@ -448,6 +457,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
               ins->fm.op[j].d2r=reader.readC();
               ins->fm.op[j].ssgEnv=reader.readC();
             }
+          }
+          if (ds.version<0x12) { // before version 10 all ops were responsive to volume
+            ins->fm.op[j].kvs=1;
           }
 
           logD("OP%d: AM %d AR %d DAM %d DR %d DVB %d EGT %d KSL %d MULT %d RR %d SL %d SUS %d TL %d VIB %d WS %d RS %d DT %d D2R %d SSG-EG %d",j,
@@ -1085,6 +1097,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<113) {
       ds.jumpTreatment=1;
     }
+    if (ds.version<115) {
+      ds.autoSystem=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1512,7 +1527,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<4; i++) {
+      if (ds.version>=115) {
+        ds.autoSystem=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<3; i++) {
         reader.readC();
       }
     }
@@ -1549,6 +1569,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.categoryJ=reader.readString();
     } else {
       ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
+      ds.autoSystem=true;
     }
 
     // read subsongs
@@ -1772,14 +1793,8 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
 #ifdef TA_BIG_ENDIAN
         // convert 16-bit samples to big-endian
-        if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
-          unsigned char* sampleBuf=(unsigned char*)sample->getCurBuf();
-          size_t sampleBufLen=sample->getCurBufLen();
-          for (size_t pos=0; pos<sampleBufLen; pos+=2) {
-            sampleBuf[pos]^=sampleBuf[pos+1];
-            sampleBuf[pos+1]^=sampleBuf[pos];
-            sampleBuf[pos]^=sampleBuf[pos+1];
-          }
+        for (int pos=0; pos<length; pos++) {
+          data[pos]=((unsigned short)data[pos]>>8)|((unsigned short)data[pos]<<8);
         }
 #endif
 
@@ -3757,7 +3772,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.snNoLowPeriods);
   w->writeC(song.delayBehavior);
   w->writeC(song.jumpTreatment);
-  for (int i=0; i<4; i++) {
+  w->writeC(song.autoSystem);
+  for (int i=0; i<3; i++) {
     w->writeC(0);
   }
 

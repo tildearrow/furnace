@@ -66,6 +66,7 @@ class DivPlatformAY8910: public DivDispatch {
     int dacPos;
     int dacSample;
     unsigned char sampleBank;
+    unsigned char stereoSep;
 
     int delay;
 

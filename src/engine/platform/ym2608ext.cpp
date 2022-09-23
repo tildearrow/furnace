@@ -442,7 +442,7 @@ void DivPlatformYM2608Ext::forceIns() {
       if (i==2) { // extended channel
         if (isOpMuted[j]) {
           rWrite(baseAddr+0x40,127);
-        } else if (isOutput[chan[i].state.alg][j]) {
+        } else if (KVS(i,j)) {
           rWrite(baseAddr+0x40,127-VOL_SCALE_LOG(127-op.tl,opChan[j].vol&0x7f,127));
         } else {
           rWrite(baseAddr+0x40,op.tl);
@@ -451,7 +451,7 @@ void DivPlatformYM2608Ext::forceIns() {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
-          if (isOutput[chan[i].state.alg][j]) {
+          if (KVS(i,j)) {
             rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
           } else {
             rWrite(baseAddr+ADDR_TL,op.tl);
@@ -472,8 +472,13 @@ void DivPlatformYM2608Ext::forceIns() {
       chan[i].freqChanged=true;
     }
   }
-  for (int i=6; i<16; i++) {
+  for (int i=9; i<16; i++) {
     chan[i].insChanged=true;
+    if (i>14) { // ADPCM-B
+      immWrite(0x10b,chan[i].outVol);
+    } else {
+      immWrite(0x18+(i-9),isMuted[i]?0:((chan[i].pan<<6)|chan[i].vol));
+    }
   }
   ay->forceIns();
   ay->flushWrites();

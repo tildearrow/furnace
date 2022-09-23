@@ -91,7 +91,7 @@ void FurnaceGUI::drawSubSongs() {
     ImGui::Text("Name");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-    if (ImGui::InputText("##SubSongName",&e->curSubSong->name)) {
+    if (ImGui::InputText("##SubSongName",&e->curSubSong->name,ImGuiInputTextFlags_UndoRedo)) {
       MARK_MODIFIED;
     }
   }
