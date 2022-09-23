@@ -34,7 +34,7 @@
 #define WRITE_STEREO(v) rWrite(0x50,(v))
 
 #define CHIP_DIVIDER 64
-#define CHIP_FREQBASE 4000000
+#define CHIP_FREQBASE 16000000
 
 #if defined( _MSC_VER )
 
@@ -141,10 +141,10 @@ void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len
           if (s!=NULL) {
             if (isMuted[i]) {
               WRITE_OUTPUT(i,0);
-              chan[i].samplePos++;
             } else {
-              WRITE_OUTPUT(i,CLAMP((s->data8[chan[i].samplePos++]*chan[i].outVol)>>7,-128,127));
+              WRITE_OUTPUT(i,CLAMP((s->data8[chan[i].samplePos]*chan[i].outVol)>>7,-128,127));
             }
+            chan[i].samplePos++;
 
             if (s->isLoopable() && chan[i].samplePos>=s->loopEnd) {
               chan[i].samplePos=s->loopStart;
