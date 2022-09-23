@@ -512,7 +512,6 @@ struct DivSong {
   bool brokenPortaArp;
   bool snNoLowPeriods;
   bool ignorePCEDACVolume;
-  bool newY8950PCMFreq;
   bool autoSystem;
 
   std::vector<DivInstrument*> ins;
@@ -619,7 +618,6 @@ struct DivSong {
     brokenPortaArp(false),
     snNoLowPeriods(false),
     ignorePCEDACVolume(true),
-    newY8950PCMFreq(false),
     autoSystem(true) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;

@@ -179,7 +179,6 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.brokenPortaArp=false;
     ds.snNoLowPeriods=true;
     ds.ignorePCEDACVolume=true;
-    ds.newY8950PCMFreq=false;
     ds.delayBehavior=0;
     ds.jumpTreatment=2;
 
@@ -1103,7 +1102,6 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.autoSystem=false;
     }
     ds.ignorePCEDACVolume=true;
-    ds.newY8950PCMFreq=false;
     ds.isDMF=false;
 
     reader.readS(); // reserved

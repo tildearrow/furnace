@@ -28,8 +28,6 @@
 
 #define KVSL(x,y) ((chan[x].state.op[orderedOpsL1[ops==4][y]].kvs==2 && isOutputL[ops==4][chan[x].state.alg][y]) || chan[x].state.op[orderedOpsL1[ops==4][y]].kvs==1)
 
-#define OPLPCMDiv (parent->song.newY8950PCMFreq?((oplType==3)?288:72):144)
-
 #define CHIP_FREQBASE chipFreqBase
 
 // N = invalid
@@ -276,7 +274,7 @@ double DivPlatformOPL::NOTE_ADPCMB(int note) {
   if (adpcmChan<0) return 0;
   if (chan[adpcmChan].sample>=0 && chan[adpcmChan].sample<parent->song.sampleLen) {
     double off=65535.0*(double)(parent->getSample(chan[adpcmChan].sample)->centerRate)/8363.0;
-    return parent->calcBaseFreq((double)chipClock/OPLPCMDiv,off,note,false);
+    return parent->calcBaseFreq((double)chipClock/144,off,note,false);
   }
   return 0;
 }
@@ -506,7 +504,7 @@ void DivPlatformOPL::tick(bool sysTick) {
     if (chan[adpcmChan].freqChanged || chan[adpcmChan].keyOn || chan[adpcmChan].keyOff) {
       if (chan[adpcmChan].sample>=0 && chan[adpcmChan].sample<parent->song.sampleLen) {
         double off=65535.0*(double)(parent->getSample(chan[adpcmChan].sample)->centerRate)/8363.0;
-        chan[adpcmChan].freq=parent->calcFreq(chan[adpcmChan].baseFreq,chan[adpcmChan].pitch,false,4,chan[adpcmChan].pitch2,(double)chipClock/OPLPCMDiv,off);
+        chan[adpcmChan].freq=parent->calcFreq(chan[adpcmChan].baseFreq,chan[adpcmChan].pitch,false,4,chan[adpcmChan].pitch2,(double)chipClock/144,off);
       } else {
         chan[adpcmChan].freq=0;
       }

@@ -147,10 +147,6 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, PC Engine DAC Volume is ignored.");
     }
-    ImGui::Checkbox("New Y8950 Frequency calculation",&e->song.newY8950PCMFreq);
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("when enabled, use corrected Y8950 frequency calculation");
-    }
 
     ImGui::Text("Pitch linearity:");
     if (ImGui::RadioButton("None",e->song.linearPitch==0)) {
