@@ -90,8 +90,8 @@
 
 #define OPNB_CHIP_DEBUG \
   FM_OPN_CHIP_DEBUG; \
-  ImGui::Text("- adpcmAMemLen: %lld",ch->adpcmAMemLen); \
-  ImGui::Text("- adpcmBMemLen: %lld",ch->adpcmBMemLen); \
+  ImGui::Text("- adpcmAMemLen: %llu",ch->adpcmAMemLen); \
+  ImGui::Text("- adpcmBMemLen: %llu",ch->adpcmBMemLen); \
   ImGui::Text("- sampleBank: %d",ch->sampleBank); \
   ImGui::Text("- writeADPCMAOff: %d",ch->writeADPCMAOff); \
   ImGui::Text("- writeADPCMAOn: %d",ch->writeADPCMAOn); \
@@ -335,7 +335,7 @@ void putDispatchChip(void* data, int type) {
       DivPlatformYM2608* ch=(DivPlatformYM2608*)data;
       ImGui::Text("> YM2608");
       FM_OPN_CHIP_DEBUG;
-      ImGui::Text("- adpcmBMemLen: %lld",ch->adpcmBMemLen);
+      ImGui::Text("- adpcmBMemLen: %llu",ch->adpcmBMemLen);
       ImGui::Text("- sampleBank: %d",ch->sampleBank);
       ImGui::Text("- writeRSSOff: %d",ch->writeRSSOff);
       ImGui::Text("- writeRSSOn: %d",ch->writeRSSOn);
@@ -397,7 +397,7 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text(" - Pos: %d",ch->dacPos);
       ImGui::Text(" - AntiClick: %d",ch->dacAntiClick);
       ImGui::Text(" - Sample: %d",ch->dacSample);
-      ImGui::Text("- dpcmMemLen: %lld",ch->dpcmMemLen);
+      ImGui::Text("- dpcmMemLen: %llu",ch->dpcmMemLen);
       ImGui::Text("- dpcmBank: %d",ch->dpcmBank);
       ImGui::Text("- sampleBank: %d",ch->sampleBank);
       ImGui::Text("- writeOscBuf: %d",ch->writeOscBuf);
@@ -504,7 +504,7 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text("* echo:");
       ImGui::Text(" - delay: %d",ch->echoDelay);
       ImGui::Text(" - feedback: %d",ch->echoFeedback);
-      ImGui::Text("- sampleMemLen: %lld",ch->sampleMemLen);
+      ImGui::Text("- sampleMemLen: %llu",ch->sampleMemLen);
       COMMON_CHIP_DEBUG_BOOL;
       break;
     }
@@ -512,7 +512,7 @@ void putDispatchChip(void* data, int type) {
       DivPlatformX1_010* ch=(DivPlatformX1_010*)data;
       ImGui::Text("> X1-010");
       COMMON_CHIP_DEBUG;
-      ImGui::Text("- sampleMemLen: %lld",ch->sampleMemLen);
+      ImGui::Text("- sampleMemLen: %llu",ch->sampleMemLen);
       ImGui::Text("- sampleBank: %d",ch->sampleBank);
       ImGui::Text("- bankSlot: [%d,%d,%d,%d,%d,%d,%d,%d]",ch->bankSlot[0],ch->bankSlot[1],ch->bankSlot[2],ch->bankSlot[3],ch->bankSlot[4],ch->bankSlot[5],ch->bankSlot[6],ch->bankSlot[7]);
       COMMON_CHIP_DEBUG_BOOL;
