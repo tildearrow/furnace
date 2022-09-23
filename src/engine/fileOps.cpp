@@ -178,6 +178,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.e1e2StopOnSameNote=true;
     ds.brokenPortaArp=false;
     ds.snNoLowPeriods=true;
+    ds.ignorePCEDACVolume=true;
     ds.delayBehavior=0;
     ds.jumpTreatment=2;
 
@@ -1100,6 +1101,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<115) {
       ds.autoSystem=false;
     }
+    ds.ignorePCEDACVolume=true;
     ds.isDMF=false;
 
     reader.readS(); // reserved

@@ -126,7 +126,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
-      if (ins->type==DIV_INS_AMIGA) {
+      if (ins->type==DIV_INS_MSM6295 || ins->type==DIV_INS_AMIGA) {
         chan[c.chan].furnacePCM=true;
       } else {
         chan[c.chan].furnacePCM=false;

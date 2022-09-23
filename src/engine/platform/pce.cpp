@@ -69,7 +69,7 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
           signed char dacData=((signed char)((unsigned char)s->data8[chan[i].dacPos]^0x80))>>3;
           chan[i].dacOut=CLAMP(dacData,-16,15);
           if (!isMuted[i]) {
-            chWrite(i,0x04,0xc0|chan[i].outVol);
+            chWrite(i,0x04,parent->song.ignorePCEDACVolume?0xdf:(0xc0|chan[i].outVol));
             chWrite(i,0x06,chan[i].dacOut&0x1f);
           } else {
             chWrite(i,0x04,0xc0);
@@ -208,7 +208,7 @@ void DivPlatformPCE::tick(bool sysTick) {
         if (chan[i].active && chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
           chan[i].dacPos=0;
           chan[i].dacPeriod=0;
-          chWrite(i,0x04,0xc0|chan[i].vol);
+          chWrite(i,0x04,parent->song.ignorePCEDACVolume?0xdf:(0xc0|chan[i].vol));
           addWrite(0xffff0000+(i<<8),chan[i].dacSample);
           chan[i].keyOn=true;
         }
@@ -275,7 +275,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
             break;
           } else {
              if (dumpWrites) {
-               chWrite(c.chan,0x04,0xc0|chan[c.chan].vol);
+               chWrite(c.chan,0x04,parent->song.ignorePCEDACVolume?0xdf:(0xc0|chan[c.chan].vol));
                addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
              }
           }
@@ -310,7 +310,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           chan[c.chan].dacPeriod=0;
           chan[c.chan].dacRate=parent->getSample(chan[c.chan].dacSample)->rate;
           if (dumpWrites) {
-            chWrite(c.chan,0x04,0xc0|chan[c.chan].vol);
+            chWrite(c.chan,0x04,parent->song.ignorePCEDACVolume?0xdf:(0xc0|chan[c.chan].vol));
             addWrite(0xffff0001+(c.chan<<8),chan[c.chan].dacRate);
           }
         }
@@ -362,7 +362,9 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
-          if (chan[c.chan].active) chWrite(c.chan,0x04,0x80|chan[c.chan].outVol);
+          if (chan[c.chan].active && !chan[c.chan].pcm) {
+            chWrite(c.chan,0x04,0x80|chan[c.chan].outVol);
+          }
         }
       }
       break;
@@ -464,7 +466,7 @@ void DivPlatformPCE::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   chWrite(ch,0x05,isMuted[ch]?0:chan[ch].pan);
   if (!isMuted[ch] && (chan[ch].pcm && chan[ch].dacSample!=-1)) {
-    chWrite(ch,0x04,0xc0|chan[ch].outVol);
+    chWrite(ch,0x04,parent->song.ignorePCEDACVolume?0xdf:(0xc0|chan[ch].outVol));
     chWrite(ch,0x06,chan[ch].dacOut&0x1f);
   }
 }

@@ -143,6 +143,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, any SN period under 8 will be written as 1 instead.\nthis replicates DefleMask behavior, but reduces available period range.");
     }
+    ImGui::Checkbox("Ignore PC Engine DAC Volume",&e->song.ignorePCEDACVolume);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, PC Engine DAC Volume is ignored.");
+    }
 
     ImGui::Text("Pitch linearity:");
     if (ImGui::RadioButton("None",e->song.linearPitch==0)) {
