@@ -22,13 +22,14 @@
 
 #include "brrUtils.h"
 
-void brrEncode(short* buf, unsigned char* out, long len) {
-  if (len==0) return;
+long brrEncode(short* buf, unsigned char* out, long len) {
+  if (len==0) return 0;
   // TODO
+  return 0;
 }
 
 #define DO_ONE_SAMPLE \
-  if (next&8) next|=0xfff8; \
+  if (next&8) next|=0xfffffff8; \
 \
   next<<=(buf[0]>>4); /* range */ \
 \
@@ -39,10 +40,10 @@ void brrEncode(short* buf, unsigned char* out, long len) {
       next+=(last1*15)/16; \
       break; \
     case 8: \
-      next+=(last1*61)/32-(last2*15)/16; \
+      next+=((last1*61)/32)-((last2*15)/16); \
       break; \
     case 12: \
-      next+=(last1*115)/64-(last2*13)/16; \
+      next+=((last1*115)/64)-((last2*13)/16); \
       break; \
   } \
 \
@@ -54,8 +55,10 @@ void brrEncode(short* buf, unsigned char* out, long len) {
   *out=next; \
   out++;
 
-void brrDecode(unsigned char* buf, short* out, long len) {
-  if (len==0) return;
+long brrDecode(unsigned char* buf, short* out, long len) {
+  if (len==0) return 0;
+
+  long total=0;
 
   int last1=0;
   int last2=0;
@@ -68,15 +71,18 @@ void brrDecode(unsigned char* buf, short* out, long len) {
     unsigned char control=buf[0];
 
     for (unsigned char j=1; j<9; j++) {
-      next=buf[j]&15;
+      next=buf[j]>>4;
       DO_ONE_SAMPLE;
 
-      next=buf[j]>>4;
+      next=buf[j]&15;
       DO_ONE_SAMPLE;
     }
 
     // end bit
+    total+=16;
     if (control&1) break;
     buf+=9;
   }
+
+  return total;
 }

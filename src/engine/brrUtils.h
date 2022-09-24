@@ -32,16 +32,18 @@ extern "C" {
  * @param buf input data.
  * @param out output buffer. shall be at least 9*(len/16) shorts in size.
  * @param len input length (should be a multiple of 16. if it isn't, the output will be padded).
+ * @return number of written samples.
  */
-void brrEncode(short* buf, unsigned char* out, long len);
+long brrEncode(short* buf, unsigned char* out, long len);
 
 /**
  * read len bytes from buf, decode BRR and output to out.
  * @param buf input data.
  * @param out output buffer. shall be at least 16*(len/9) shorts in size.
  * @param len input length (shall be a multiple of 9).
+ * @return number of written bytes.
  */
-void brrDecode(unsigned char* buf, short* out, long len);
+long brrDecode(unsigned char* buf, short* out, long len);
 
 #ifdef __cplusplus
 }
