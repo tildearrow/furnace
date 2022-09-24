@@ -24,7 +24,7 @@
 
 #define CHIP_FREQBASE 131072
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.push_back(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) {rWrite((a)+(c)*16,v)}
 #define sampleTableAddr(c) (sampleTableBase+(c)*4)
 #define waveTableAddr(c) (sampleTableBase+8*4+(c)*9*16)
