@@ -337,7 +337,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
       logD("%d name: %s",i,ins->name.c_str());
       if (ds.version<0x0b) {
-        // instruments in ancient versions were all FM or STD.
+        // instruments in ancient versions were all FM.
         mode=1;
       } else {
         mode=reader.readC();
@@ -365,6 +365,12 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
       if (ds.system[0]==DIV_SYSTEM_YMU759) {
         ins->type=DIV_INS_OPL;
+      }
+      if (ds.system[0]==DIV_SYSTEM_ARCADE) {
+        ins->type=DIV_INS_OPM;
+      }
+      if ((ds.system[0]==DIV_SYSTEM_NES || ds.system[0]==DIV_SYSTEM_NES_VRC7 || ds.system[0]==DIV_SYSTEM_NES_FDS) && ins->type==DIV_INS_STD) {
+        ins->type=DIV_INS_NES;
       }
 
       if (mode) { // FM
@@ -1919,6 +1925,57 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
+    // convert OPM/NES instrument types
+    if (ds.version<117) {
+      int opnCount=0;
+      int opmCount=0;
+      int snCount=0;
+      int nesCount=0;
+      for (int i=0; i<ds.systemLen; i++) {
+        switch (ds.system[i]) {
+          case DIV_SYSTEM_NES:
+          case DIV_SYSTEM_MMC5:
+            nesCount++;
+            break;
+          case DIV_SYSTEM_SMS:
+            snCount++;
+            break;
+          case DIV_SYSTEM_YM2151:
+          case DIV_SYSTEM_OPZ:
+            opmCount++;
+            break;
+          case DIV_SYSTEM_YM2610:
+          case DIV_SYSTEM_YM2610_EXT:
+          case DIV_SYSTEM_YM2610_FULL:
+          case DIV_SYSTEM_YM2610_FULL_EXT:
+          case DIV_SYSTEM_YM2610B:
+          case DIV_SYSTEM_YM2610B_EXT:
+          case DIV_SYSTEM_OPN:
+          case DIV_SYSTEM_OPN_EXT:
+          case DIV_SYSTEM_PC98:
+          case DIV_SYSTEM_PC98_EXT:
+          case DIV_SYSTEM_YM2612:
+          case DIV_SYSTEM_YM2612_EXT:
+          case DIV_SYSTEM_YM2612_FRAC:
+          case DIV_SYSTEM_YM2612_FRAC_EXT:
+            opnCount++;
+            break;
+          default:
+            break;
+        }
+      }
+      if (opmCount>opnCount) {
+        for (DivInstrument* i: ds.ins) {
+          if (i->type==DIV_INS_FM) i->type=DIV_INS_OPM;
+        }
+      }
+      if (nesCount>snCount) {
+        for (DivInstrument* i: ds.ins) {
+          if (i->type==DIV_INS_STD) i->type=DIV_INS_NES;
+        }
+      }
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
@@ -3237,7 +3294,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
           unsigned char insType=reader.readC();
           switch (insType) {
             case 1:
-              ins->type=DIV_INS_STD;
+              ins->type=DIV_INS_NES;
               break;
             case 2: // TODO: tell VRC6 and VRC6 saw instruments apart
               ins->type=DIV_INS_VRC6;
@@ -3264,7 +3321,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
 
           // instrument data
           switch (ins->type) {
-            case DIV_INS_STD: {
+            case DIV_INS_NES: {
               unsigned int totalSeqs=reader.readI();
               if (totalSeqs>5) {
                 logE("%d: too many sequences!",insIndex);
@@ -4183,7 +4240,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   }
 
   for (DivInstrument* i: song.ins) {
-    if (i->type==DIV_INS_FM) {
+    if (i->type==DIV_INS_FM || i->type==DIV_INS_OPM) {
       addWarning("no FM macros in .dmf format");
       break;
     }
@@ -4194,10 +4251,13 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     w->writeString(i->name,true);
 
     // safety check
-    if (!isFMSystem(sys) && i->type!=DIV_INS_STD && i->type!=DIV_INS_FDS) {
+    if (!isFMSystem(sys) && i->type!=DIV_INS_STD && i->type!=DIV_INS_NES && i->type!=DIV_INS_FDS) {
       switch (song.system[0]) {
         case DIV_SYSTEM_GB:
           i->type=DIV_INS_GB;
+          break;
+        case DIV_SYSTEM_NES:
+          i->type=DIV_INS_NES;
           break;
         case DIV_SYSTEM_C64_6581:
         case DIV_SYSTEM_C64_8580:
@@ -4215,12 +4275,16 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
           break;
       }
     }
-    if (!isSTDSystem(sys) && i->type!=DIV_INS_FM) {
-      i->type=DIV_INS_FM;
+    if (!isSTDSystem(sys) && i->type!=DIV_INS_FM && i->type!=DIV_INS_OPM) {
+      if (sys==DIV_SYSTEM_ARCADE) {
+        i->type=DIV_INS_OPM;
+      } else {
+        i->type=DIV_INS_FM;
+      }
     }
 
-    w->writeC((i->type==DIV_INS_FM || i->type==DIV_INS_OPLL)?1:0);
-    if (i->type==DIV_INS_FM || i->type==DIV_INS_OPLL) { // FM
+    w->writeC((i->type==DIV_INS_FM || i->type==DIV_INS_OPM || i->type==DIV_INS_OPLL)?1:0);
+    if (i->type==DIV_INS_FM || i->type==DIV_INS_OPM || i->type==DIV_INS_OPLL) { // FM
       w->writeC(i->fm.alg);
       w->writeC(i->fm.fb);
       w->writeC(i->fm.fms);
