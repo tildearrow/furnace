@@ -64,7 +64,7 @@ enum DivStatusView {
 enum DivAudioEngines {
   DIV_AUDIO_JACK=0,
   DIV_AUDIO_SDL=1,
-  
+
   DIV_AUDIO_NULL=126,
   DIV_AUDIO_DUMMY=127
 };
@@ -505,6 +505,8 @@ class DivEngine {
     SafeWriter* buildROM(int sys);
     // dump to VGM.
     SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false);
+    // dump to ZSM.
+    SafeWriter* saveZSM(unsigned int zsmrate=60, bool loop=true);
     // dump command stream.
     SafeWriter* saveCommand(bool binary=false);
     // export to an audio file
@@ -630,10 +632,10 @@ class DivEngine {
 
     // get japanese system name
     const char* getSystemNameJ(DivSystem sys);
-    
+
     // get sys definition
     const DivSysDef* getSystemDef(DivSystem sys);
-    
+
     // convert sample rate format
     int fileToDivRate(int frate);
     int divToFileRate(int drate);
@@ -710,7 +712,7 @@ class DivEngine {
 
     // is playing
     bool isPlaying();
-    
+
     // is running
     bool isRunning();
 
@@ -797,7 +799,7 @@ class DivEngine {
     void autoNoteOn(int chan, int ins, int note, int vol=-1);
     void autoNoteOff(int chan, int note, int vol=-1);
     void autoNoteOffAll();
-    
+
     // set whether autoNoteIn is mono or poly
     void setAutoNotePoly(bool poly);
 
@@ -818,7 +820,7 @@ class DivEngine {
 
     // get dispatch channel state
     void* getDispatchChanState(int chan);
-    
+
     // get register pool
     unsigned char* getRegisterPool(int sys, int& size, int& depth);
 
@@ -854,7 +856,7 @@ class DivEngine {
 
     // set the console mode.
     void setConsoleMode(bool enable);
-    
+
     // get metronome
     bool getMetronome();
 
@@ -918,7 +920,7 @@ class DivEngine {
 
     // move system
     bool swapSystem(int src, int dest, bool preserveOrder=true);
-    
+
     // write to register on system
     void poke(int sys, unsigned int addr, unsigned short val);
 
@@ -930,7 +932,7 @@ class DivEngine {
 
     // get warnings
     String getWarnings();
-    
+
     // switch master
     bool switchMaster();
 

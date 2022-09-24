@@ -80,6 +80,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_FILE_AUDIO,
   GUI_COLOR_FILE_WAVE,
   GUI_COLOR_FILE_VGM,
+  GUI_COLOR_FILE_ZSM,
   GUI_COLOR_FILE_FONT,
   GUI_COLOR_FILE_OTHER,
 
@@ -311,6 +312,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_AUDIO_PER_SYS,
   GUI_FILE_EXPORT_AUDIO_PER_CHANNEL,
   GUI_FILE_EXPORT_VGM,
+  GUI_FILE_EXPORT_ZSM,
   GUI_FILE_EXPORT_CMDSTREAM,
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_LOAD_MAIN_FONT,
@@ -1011,7 +1013,7 @@ class FurnaceGUI {
 
   String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile, sysSearchQuery, newSongQuery;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
-  String workingDirVGMExport, workingDirROMExport, workingDirFont, workingDirColors, workingDirKeybinds;
+  String workingDirVGMExport, workingDirZSMExport, workingDirROMExport, workingDirFont, workingDirColors, workingDirKeybinds;
   String workingDirLayout, workingDirROM, workingDirTest;
   String mmlString[32];
   String mmlStringW;
@@ -1020,7 +1022,7 @@ class FurnaceGUI {
   std::vector<FurnaceGUISysDef> newSongSearchResults;
   std::deque<String> recentFile;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, vgmExportPatternHints;
+  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
   bool portrait, mobileMenuOpen;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
@@ -1028,6 +1030,7 @@ class FurnaceGUI {
   bool willExport[32];
   int vgmExportVersion;
   int drawHalt;
+  int zsmExportTickRate;
   int macroPointSize;
   int waveEditStyle;
   float mobileMenuPos, autoButtonSize;

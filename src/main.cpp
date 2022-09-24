@@ -52,6 +52,7 @@ FurnaceCLI cli;
 
 String outName;
 String vgmOutName;
+String zsmOutName;
 String cmdOutName;
 int loops=1;
 int benchMode=0;
@@ -258,6 +259,12 @@ TAParamResult pVGMOut(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pZSMOut(String val) {
+  zsmOutName=val;
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return TA_PARAM_SUCCESS;
+}
+
 TAParamResult pCmdOut(String val) {
   cmdOutName=val;
   e.setAudio(DIV_AUDIO_DUMMY);
@@ -279,6 +286,7 @@ void initParams() {
   params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl","set audio engine (SDL by default)"));
   params.push_back(TAParam("o","output",true,pOutput,"<filename>","output audio to file"));
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
+  params.push_back(TAParam("Z","zsmout",true,pZSMOut,"<filename>","output .zsm data for Commander X16 Zsound"));
   params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
   params.push_back(TAParam("b","binary",false,pBinary,"","set command stream output format to binary"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
@@ -323,6 +331,7 @@ int main(int argc, char** argv) {
 #endif
   outName="";
   vgmOutName="";
+  zsmOutName="";
   cmdOutName="";
 
   initParams();
