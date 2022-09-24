@@ -73,6 +73,13 @@ class DivPlatformSNES: public DivDispatch {
   signed char gblVolL, gblVolR;
   size_t sampleTableBase;
 
+  struct QueuedWrite {
+    unsigned char addr;
+    unsigned char val;
+    QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+  };
+  std::queue<QueuedWrite> writes;
+
   signed char sampleMem[65536];
   size_t sampleMemLen;
   unsigned char regPool[0x80];

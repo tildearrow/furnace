@@ -33,6 +33,7 @@ extern "C" {
 #include "../../extern/adpcm/ymb_codec.h"
 #include "../../extern/adpcm/ymz_codec.h"
 }
+#include "brrUtils.h"
 
 DivSampleHistory::~DivSampleHistory() {
   if (data!=NULL) delete[] data;
@@ -851,7 +852,7 @@ void DivSample::render() {
         }
         break;
       case DIV_SAMPLE_DEPTH_BRR: // BRR
-        // TODO!
+        brrDecode(dataBRR,data16,samples);
         break;
       case DIV_SAMPLE_DEPTH_VOX: // VOX
         oki_decode(dataVOX,data16,samples);
@@ -908,7 +909,10 @@ void DivSample::render() {
       data8[i]=data16[i]>>8;
     }
   }
-  // TODO: BRR!
+  if (depth!=DIV_SAMPLE_DEPTH_VOX) { // BRR
+    if (!initInternal(DIV_SAMPLE_DEPTH_BRR,samples)) return;
+    brrEncode(data16,dataBRR,samples);
+  }
   if (depth!=DIV_SAMPLE_DEPTH_VOX) { // VOX
     if (!initInternal(DIV_SAMPLE_DEPTH_VOX,samples)) return;
     oki_encode(data16,dataVOX,samples);

@@ -24,7 +24,7 @@
 
 #define CHIP_FREQBASE 131072
 
-#define rWrite(a,v) {dsp.write(a,v); regPool[(a)&0x7f]=v; }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) {rWrite((a)+(c)*16,v)}
 #define sampleTableAddr(c) (sampleTableBase+(c)*4)
 #define waveTableAddr(c) (sampleTableBase+8*4+(c)*9*16)
@@ -69,6 +69,14 @@ void DivPlatformSNES::acquire(short* bufL, short* bufR, size_t start, size_t len
   short out[2];
   short chOut[16];
   for (size_t h=start; h<start+len; h++) {
+    // TODO: delay
+    if (!writes.empty()) {
+      QueuedWrite w=writes.front();
+      dsp.write(w.addr,w.val);
+      regPool[w.addr&0x7f]=w.val;
+      writes.pop();
+    }
+
     dsp.set_output(out,1);
     dsp.run(32);
     dsp.get_voice_outputs(chOut);
@@ -407,7 +415,9 @@ void DivPlatformSNES::reset() {
   dsp.set_output(NULL,0);
   memset(regPool,0,128);
   // TODO more initial values
-  sampleTableBase=0x100; // hack: this can't be 0 or channel 1 won't play??
+  // this can't be 0 or channel 1 won't play
+  // this can't be 0x100 either as that's used by SPC700 page 1 and the stack
+  sampleTableBase=0x200;
   rWrite(0x5d,sampleTableBase>>8);
   rWrite(0x0c,127); // global volume left
   rWrite(0x1c,127); // global volume right
