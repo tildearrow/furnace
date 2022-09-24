@@ -77,34 +77,57 @@ const char** DivPlatformAY8930::getRegisterSheet() {
   return regCheatSheetAY8930;
 }
 
-void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  if (ayBufLen<len) {
-    ayBufLen=len;
-    for (int i=0; i<3; i++) {
-      delete[] ayBuf[i];
-      ayBuf[i]=new short[ayBufLen];
-    }
+/* C program to generate this table:
+
+#include <stdio.h>
+#include <math.h>
+
+int main(int argc, char** argv) {
+  for (int i=0; i<256; i++) {
+    if ((i&15)==0) printf("\n ");
+    printf(" %d,",(int)round(pow((double)i/255.0,0.3)*31.0));
   }
-  // PCM part
-  for (int i=0; i<3; i++) {
+}
+*/
+
+const unsigned char dacLogTableAY8930[256]={
+  0, 6, 7, 8, 9, 10, 10, 11, 11, 11, 12, 12, 12, 13, 13, 13,
+  14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16,
+  17, 17, 17, 17, 17, 17, 18, 18, 18, 18, 18, 18, 18, 18, 19, 19,
+  19, 19, 19, 19, 19, 19, 19, 20, 20, 20, 20, 20, 20, 20, 20, 20,
+  20, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 21, 22, 22, 22, 22,
+  22, 22, 22, 22, 22, 22, 22, 22, 23, 23, 23, 23, 23, 23, 23, 23,
+  23, 23, 23, 23, 23, 23, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24,
+  24, 24, 24, 24, 24, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25,
+  25, 25, 25, 25, 25, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26, 26,
+  26, 26, 26, 26, 26, 26, 26, 26, 27, 27, 27, 27, 27, 27, 27, 27,
+  27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 27, 28, 28, 28, 28,
+  28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28, 28,
+  28, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29, 29,
+  29, 29, 29, 29, 29, 29, 29, 29, 29, 30, 30, 30, 30, 30, 30, 30,
+  30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+  30, 30, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31, 31
+};
+
+void DivPlatformAY8930::runDAC() {
+    for (int i=0; i<3; i++) {
     if (chan[i].psgMode.dac && chan[i].dac.sample!=-1) {
       chan[i].dac.period+=chan[i].dac.rate;
       bool end=false;
       bool changed=false;
-      int prev_out = chan[i].dac.out;
+      int prevOut=chan[i].dac.out;
       while (chan[i].dac.period>rate && !end) {
         DivSample* s=parent->getSample(chan[i].dac.sample);
         if (s->samples<=0) {
           chan[i].dac.sample=-1;
-          rWrite(0x08+i,0);
+          immWrite(0x08+i,0);
           end=true;
           break;
         }
-        // Partially
-        unsigned char dacData=(((unsigned char)s->data8[chan[i].dac.pos]^0x80)>>3);
-        chan[i].dac.out=MAX(0,MIN(31,(dacData*chan[i].outVol)/31));
-        if (prev_out!=chan[i].dac.out) {
-          prev_out=chan[i].dac.out;
+        unsigned char dacData=dacLogTableAY8930[(unsigned char)s->data8[chan[i].dac.pos]^0x80];
+        chan[i].dac.out=MAX(0,dacData-(31-chan[i].outVol));
+        if (prevOut!=chan[i].dac.out) {
+          prevOut=chan[i].dac.out;
           changed=true;
         }
         chan[i].dac.pos++;
@@ -112,7 +135,7 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
           chan[i].dac.pos=s->loopStart;
         } else if (chan[i].dac.pos>=(int)s->samples) {
           chan[i].dac.sample=-1;
-          rWrite(0x08+i,0);
+          immWrite(0x08+i,0);
           end=true;
           break;
         }
@@ -120,12 +143,14 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
       }
       if (changed && !end) {
         if (!isMuted[i]) {
-          rWrite(0x08+i,chan[i].dac.out);
+          immWrite(0x08+i,chan[i].dac.out);
         }
       }
     }
   }
+}
 
+void DivPlatformAY8930::checkWrites() {
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     ay->address_w(w.addr);
@@ -137,23 +162,33 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
     }
     writes.pop();
   }
-  ay->sound_stream_update(ayBuf,len);
-  if (stereo) {
-    for (size_t i=0; i<len; i++) {
-      bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+((ayBuf[2][i]*stereoSep)>>8);
-      bufR[i+start]=((ayBuf[0][i]*stereoSep)>>8)+ayBuf[1][i]+ayBuf[2][i];
-    }
-  } else {
-    for (size_t i=0; i<len; i++) {
-      bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
-      bufR[i+start]=bufL[i+start];
+}
+
+void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  if (ayBufLen<len) {
+    ayBufLen=len;
+    for (int i=0; i<3; i++) {
+      delete[] ayBuf[i];
+      ayBuf[i]=new short[ayBufLen];
     }
   }
 
-  for (int ch=0; ch<3; ch++) {
-    for (size_t i=0; i<len; i++) {
-      oscBuf[ch]->data[oscBuf[ch]->needle++]=ayBuf[ch][i]<<2;
+  for (size_t i=0; i<len; i++) {
+    runDAC();
+    checkWrites();
+
+    ay->sound_stream_update(ayBuf,1);
+    if (stereo) {
+      bufL[i+start]=ayBuf[0][0]+ayBuf[1][0]+((ayBuf[2][0]*stereoSep)>>8);
+      bufR[i+start]=((ayBuf[0][0]*stereoSep)>>8)+ayBuf[1][0]+ayBuf[2][0];
+    } else {
+      bufL[i+start]=ayBuf[0][0]+ayBuf[1][0]+ayBuf[2][0];
+      bufR[i+start]=bufL[i+start];
     }
+
+    oscBuf[0]->data[oscBuf[0]->needle++]=ayBuf[0][0]<<2;
+    oscBuf[1]->data[oscBuf[1]->needle++]=ayBuf[1][0]<<2;
+    oscBuf[2]->data[oscBuf[2]->needle++]=ayBuf[2][0]<<2;
   }
 }
 
@@ -293,7 +328,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
             off=8363.0/(double)s->centerRate;
           }
         }
-        chan[i].dac.rate=((double)chipClock*16384.0)/(double)(MAX(1,off*chan[i].freq));
+        chan[i].dac.rate=((double)chipClock*4.0)/(double)(MAX(1,off*chan[i].freq));
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dac.rate);
       }
       if (chan[i].freq>65535) chan[i].freq=65535;
