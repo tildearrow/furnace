@@ -666,7 +666,7 @@ void DivEngine::registerSystems() {
     {"Pulse 1", "Pulse 2", "Triangle", "Noise", "PCM"},
     {"S1", "S2", "TR", "NO", "PCM"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_WAVE, DIV_CH_NOISE, DIV_CH_PCM},
-    {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_AMIGA},
+    {DIV_INS_NES, DIV_INS_NES, DIV_INS_NES, DIV_INS_NES, DIV_INS_AMIGA},
     {},
     {
       {0x11, {DIV_CMD_NES_DMC, "11xx: Write to delta modulation counter (0 to 7F)"}},
@@ -777,7 +777,7 @@ void DivEngine::registerSystems() {
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "FM 7", "FM 8"},
     {"F1", "F2", "F3", "F4", "F5", "F6", "F7", "F8"},
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
-    {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM},
+    {DIV_INS_OPM, DIV_INS_OPM, DIV_INS_OPM, DIV_INS_OPM, DIV_INS_OPM, DIV_INS_OPM, DIV_INS_OPM, DIV_INS_OPM},
     {},
     fmEffectHandlerMap,
     fmOPMPostEffectHandlerMap
@@ -916,7 +916,7 @@ void DivEngine::registerSystems() {
     {"Pulse 1", "Pulse 2", "PCM"},
     {"S1", "S2", "PCM"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM},
-    {DIV_INS_STD, DIV_INS_STD, DIV_INS_AMIGA},
+    {DIV_INS_NES, DIV_INS_NES, DIV_INS_AMIGA},
     {},
     {
       {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)"}},
@@ -1106,7 +1106,7 @@ void DivEngine::registerSystems() {
     {"Square"},
     {"SQ"},
     {DIV_CH_PULSE},
-    {DIV_INS_STD}
+    {DIV_INS_BEEPER}
   );
 
   sysDefs[DIV_SYSTEM_SEGAPCM]=new DivSysDef(
