@@ -358,14 +358,6 @@ void DivPlatformYM2610B::acquire(short* bufL, short* bufR, size_t start, size_t 
 }
 
 void DivPlatformYM2610B::tick(bool sysTick) {
-  // PSG
-  ay->tick(sysTick);
-  ay->flushWrites();
-  for (DivRegWrite& i: ay->getRegisterWrites()) {
-    immWrite(i.addr&15,i.val);
-  }
-  ay->getRegisterWrites().clear();
-  
   // FM
   for (int i=0; i<psgChanOffs; i++) {
     if (i==2 && extMode) continue;
@@ -522,6 +514,44 @@ void DivPlatformYM2610B::tick(bool sysTick) {
       chan[i].keyOff=false;
     }
   }
+
+  for (int i=16; i<512; i++) {
+    if (pendingWrites[i]!=oldWrites[i]) {
+      immWrite(i,pendingWrites[i]&0xff);
+      oldWrites[i]=pendingWrites[i];
+    }
+  }
+
+  for (int i=0; i<psgChanOffs; i++) {
+    if (i==2 && extMode) continue;
+    if (chan[i].freqChanged) {
+      if (parent->song.linearPitch==2) {
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+      } else {
+        int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,4,chan[i].pitch2);
+        int block=(chan[i].baseFreq&0xf800)>>11;
+        if (fNum<0) fNum=0;
+        if (fNum>2047) {
+          while (block<7) {
+            fNum>>=1;
+            block++;
+          }
+          if (fNum>2047) fNum=2047;
+        }
+        chan[i].freq=(block<<11)|fNum;
+      }
+      if (chan[i].freq>0x3fff) chan[i].freq=0x3fff;
+      immWrite(chanOffs[i]+ADDR_FREQH,chan[i].freq>>8);
+      immWrite(chanOffs[i]+ADDR_FREQ,chan[i].freq&0xff);
+      chan[i].freqChanged=false;
+    }
+    if (chan[i].keyOn || chan[i].opMaskChanged) {
+      immWrite(0x28,(chan[i].opMask<<4)|konOffs[i]);
+      chan[i].opMaskChanged=false;
+      chan[i].keyOn=false;
+    }
+  }
+
   // ADPCM-A
   for (int i=adpcmAChanOffs; i<adpcmBChanOffs; i++) {
     if (chan[i].furnacePCM) {
@@ -617,47 +647,18 @@ void DivPlatformYM2610B::tick(bool sysTick) {
     writeADPCMAOff=0;
   }
 
-  for (int i=16; i<512; i++) {
-    if (pendingWrites[i]!=oldWrites[i]) {
-      immWrite(i,pendingWrites[i]&0xff);
-      oldWrites[i]=pendingWrites[i];
-    }
-  }
-
-  for (int i=0; i<psgChanOffs; i++) {
-    if (i==2 && extMode) continue;
-    if (chan[i].freqChanged) {
-      if (parent->song.linearPitch==2) {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
-      } else {
-        int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,4,chan[i].pitch2);
-        int block=(chan[i].baseFreq&0xf800)>>11;
-        if (fNum<0) fNum=0;
-        if (fNum>2047) {
-          while (block<7) {
-            fNum>>=1;
-            block++;
-          }
-          if (fNum>2047) fNum=2047;
-        }
-        chan[i].freq=(block<<11)|fNum;
-      }
-      if (chan[i].freq>0x3fff) chan[i].freq=0x3fff;
-      immWrite(chanOffs[i]+ADDR_FREQH,chan[i].freq>>8);
-      immWrite(chanOffs[i]+ADDR_FREQ,chan[i].freq&0xff);
-      chan[i].freqChanged=false;
-    }
-    if (chan[i].keyOn || chan[i].opMaskChanged) {
-      immWrite(0x28,(chan[i].opMask<<4)|konOffs[i]);
-      chan[i].opMaskChanged=false;
-      chan[i].keyOn=false;
-    }
-  }
-
   if (writeADPCMAOn) {
     immWrite(0x100,writeADPCMAOn);
     writeADPCMAOn=0;
   }
+
+  // PSG
+  ay->tick(sysTick);
+  ay->flushWrites();
+  for (DivRegWrite& i: ay->getRegisterWrites()) {
+    immWrite(i.addr&15,i.val);
+  }
+  ay->getRegisterWrites().clear();
 }
 
 int DivPlatformYM2610B::dispatch(DivCommand c) {

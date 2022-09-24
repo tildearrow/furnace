@@ -265,7 +265,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
           chipClock=24167829/3;
           break;
       }
-      rate=fm->sample_rate(chipClock);
+      rate=chipClock/16;
       for (int i=0; i<ChanNum; i++) {
         oscBuf[i]->rate=rate;
       }
@@ -287,7 +287,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       iface.adpcmBMem=adpcmBMem;
       iface.sampleBank=0;
       fm=new ymfm::ym2610b(iface);
-      fm->set_fidelity(ymfm::OPN_FIDELITY_MIN);
+      fm->set_fidelity(ymfm::OPN_FIDELITY_MAX);
       setFlags(flags);
       // YM2149, 2MHz
       ay=new DivPlatformAY8910(true,chipClock,32);
