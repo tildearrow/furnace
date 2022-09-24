@@ -45,7 +45,6 @@ class SafeWriter {
     int write(const void* what, size_t count);
 
     int writeC(signed char val);
-    //int writeUC(unsigned char val);
     int writeS(short val);
     int writeS_BE(short val);
     int writeI(int val);
