@@ -142,7 +142,7 @@ const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "ADPCM-B",
   NULL,
   "8-bit PCM",
-  NULL, // "BRR",
+  "BRR",
   "VOX",
   NULL,
   NULL,
@@ -942,6 +942,7 @@ const int availableSystems[]={
   DIV_SYSTEM_MSM6258,
   DIV_SYSTEM_MSM6295,
   DIV_SYSTEM_RF5C68,
+  DIV_SYSTEM_SNES,
   DIV_SYSTEM_PCM_DAC,
   0 // don't remove this last one!
 };

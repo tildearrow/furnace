@@ -760,6 +760,7 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_YMU759:
     case DIV_SYSTEM_PET:
+    case DIV_SYSTEM_SNES:
     case DIV_SYSTEM_T6W28:
       ImGui::Text("nothing to configure");
       break;
