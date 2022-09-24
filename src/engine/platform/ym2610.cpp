@@ -680,7 +680,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       if (c.chan>=adpcmAChanOffs) { // ADPCM-A
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
         chan[c.chan].macroVolMul=(ins->type==DIV_INS_AMIGA)?64:31;
-        if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_ADPCMA) {
+        if (!parent->song.disableSampleMacro && (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_ADPCMA)) {
           chan[c.chan].furnacePCM=true;
         } else {
           chan[c.chan].furnacePCM=false;
