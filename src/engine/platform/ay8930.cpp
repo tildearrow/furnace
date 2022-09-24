@@ -135,7 +135,7 @@ void DivPlatformAY8930::runDAC() {
           chan[i].dac.pos=s->loopStart;
         } else if (chan[i].dac.pos>=(int)s->samples) {
           chan[i].dac.sample=-1;
-          immWrite(0x08+i,0);
+          //immWrite(0x08+i,0);
           end=true;
           break;
         }
