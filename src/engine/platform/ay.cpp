@@ -329,7 +329,7 @@ void DivPlatformAY8910::tick(bool sysTick) {
             off=8363.0/(double)s->centerRate;
           }
         }
-        chan[i].dac.rate=((double)rate*16.0)/(double)(MAX(1,off*chan[i].freq));
+        chan[i].dac.rate=((double)rate*((sunsoft||clockSel)?8.0:16.0))/(double)(MAX(1,off*chan[i].freq));
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dac.rate);
       }
       if (chan[i].freq>4095) chan[i].freq=4095;
