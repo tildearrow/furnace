@@ -3400,7 +3400,7 @@ bool FurnaceGUI::loop() {
               }
               ImGui::Checkbox("loop",&zsmExportLoop);
               ImGui::SameLine();
-              if (ImGui::Button("  Go  ")) {
+              if (ImGui::Button("Begin Export")) {
                   openFileDialog(GUI_FILE_EXPORT_ZSM);
                   ImGui::CloseCurrentPopup();
               }

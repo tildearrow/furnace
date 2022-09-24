@@ -22,21 +22,21 @@
 #include "../utfutils.h"
 #include "song.h"
 
-ZSM::ZSM() {
+DivZSM::DivZSM() {
   w = NULL;
   init();
 }
 
-ZSM::~ZSM() {
+DivZSM::~DivZSM() {
 }
 
-void ZSM::init(unsigned int rate) {
+void DivZSM::init(unsigned int rate) {
   if (w != NULL) delete w;
   w = new SafeWriter;
   w->init();
   // write default ZSM data header
   w->write("zm",2); // magic header
-  w->writeUC(ZSM_VERSION);
+  w->writeC(ZSM_VERSION);
   // no loop offset
   w->writeS(0);
   w->writeC(0);
@@ -58,11 +58,11 @@ void ZSM::init(unsigned int rate) {
   ticks=0;
 }
 
-int ZSM::getoffset() {
+int DivZSM::getoffset() {
   return w->tell();
 }
 
-void ZSM::writeYM(unsigned char a, unsigned char v) {
+void DivZSM::writeYM(unsigned char a, unsigned char v) {
   int lastMask = ymMask;
   if (a==0x19 && v>=0x80) a=0x1a; // AMD/PSD use same reg addr. store PMD as 0x1a
   if (a==0x08 && (v&0xf8)) ymMask |= (1 << (v & 0x07)); // mark chan as in-use if keyDN
@@ -107,7 +107,7 @@ void ZSM::writeYM(unsigned char a, unsigned char v) {
   }
 }
 
-void ZSM::writePSG(unsigned char a, unsigned char v) {
+void DivZSM::writePSG(unsigned char a, unsigned char v) {
   // TODO: suppress writes to PSG voice that is not audible (volume=0)
   if (a  >= 64) {
 	  logD ("ZSM: ignoring VERA PSG write a=%02x v=%02x",a,v);
@@ -129,16 +129,16 @@ void ZSM::writePSG(unsigned char a, unsigned char v) {
   if ((a % 4 == 2) && (v & 0x3f)) psgMask |= (1 << (a>>2));
 }
 
-void ZSM::writePCM(unsigned char a, unsigned char v) {
+void DivZSM::writePCM(unsigned char a, unsigned char v) {
   // ZSM standard for PCM playback has not been established yet.
 }
 
-void ZSM::tick(int numticks) {
+void DivZSM::tick(int numticks) {
   flushWrites();
   ticks += numticks;
 }
 
-void ZSM::setLoopPoint() {
+void DivZSM::setLoopPoint() {
   tick(0); // flush any ticks+writes
   flushTicks(); // flush ticks incase no writes were pending
   logI("ZSM: loop at file offset %d bytes",w->tell());
@@ -146,7 +146,7 @@ void ZSM::setLoopPoint() {
   //update the ZSM header's loop offset value
   w->seek(0x03,SEEK_SET);
   w->writeS((short)(loopOffset&0xffff));
-  w->writeUC((short)((loopOffset>>16)&0xff));
+  w->writeC((unsigned char)((loopOffset>>16)&0xff));
   w->seek(loopOffset,SEEK_SET);
   // reset the PSG shadow and write cache
   memset(&psgState,-1,sizeof(psgState));
@@ -163,56 +163,56 @@ void ZSM::setLoopPoint() {
   }
 }
 
-SafeWriter* ZSM::finish() {
+SafeWriter* DivZSM::finish() {
   tick(0); // flush any pending writes / ticks
   flushTicks(); // flush ticks in case there were no writes pending
-  w->writeUC(ZSM_EOF);
+  w->writeC(ZSM_EOF);
   // update channel use masks.
   w->seek(0x09,SEEK_SET);
-  w->writeUC((unsigned char)(ymMask & 0xff));
+  w->writeC((unsigned char)(ymMask & 0xff));
   w->writeS((short)(psgMask & 0xffff));
   // todo: put PCM offset/data writes here once defined in ZSM standard.
   return w;
 }
 
-void ZSM::flushWrites() {
+void DivZSM::flushWrites() {
   logD("ZSM: flushWrites.... numwrites=%d ticks=%d ymwrites=%d",numWrites,ticks,ymwrites.size());
   if (numWrites==0) return;
   flushTicks(); // only flush ticks if there are writes pending.
   for (unsigned char i=0;i<64;i++) {
     if (psgState[psg_NEW][i] == psgState[psg_PREV][i]) continue;
     psgState[psg_PREV][i]=psgState[psg_NEW][i];
-    w->writeUC(i);
-    w->writeUC(psgState[psg_NEW][i]);
+    w->writeC(i);
+    w->writeC(psgState[psg_NEW][i]);
   }
   int n=0; // n = completed YM writes. used to determine when to write the CMD byte...
   for (DivRegWrite& write: ymwrites) {
     if (n%ZSM_YM_MAX_WRITES == 0) {
       if(ymwrites.size()-n > ZSM_YM_MAX_WRITES) {
-		    w->writeUC((unsigned char)(ZSM_YM_CMD+ZSM_YM_MAX_WRITES));
+		    w->writeC((unsigned char)(ZSM_YM_CMD+ZSM_YM_MAX_WRITES));
 		    logD("ZSM: YM-write: %d (%02x) [max]",ZSM_YM_MAX_WRITES,ZSM_YM_MAX_WRITES+ZSM_YM_CMD);
       } else {
-		    w->writeUC((unsigned char)(ZSM_YM_CMD+ymwrites.size()-n));
+		    w->writeC((unsigned char)(ZSM_YM_CMD+ymwrites.size()-n));
 		    logD("ZSM: YM-write: %d (%02x)",ymwrites.size()-n,ZSM_YM_CMD+ymwrites.size()-n);
       }
     }
     n++;
-    w->writeUC(write.addr);
-    w->writeUC(write.val);
+    w->writeC(write.addr);
+    w->writeC(write.val);
   }
   ymwrites.clear();
   numWrites=0;
 }
 
-void ZSM::flushTicks() {
+void DivZSM::flushTicks() {
   while (ticks > ZSM_DELAY_MAX) {
 	logD("ZSM: write delay %d (max)",ZSM_DELAY_MAX);
-	w->writeUC((unsigned char)(ZSM_DELAY_CMD+ZSM_DELAY_MAX));
+	w->writeC((unsigned char)(ZSM_DELAY_CMD+ZSM_DELAY_MAX));
 	ticks -= ZSM_DELAY_MAX;
   }
   if (ticks>0) {
 	logD("ZSM: write delay %d",ticks);
-	w->writeUC(ZSM_DELAY_CMD+ticks);
+	w->writeC(ZSM_DELAY_CMD+ticks);
   }
   ticks=0;
 }

@@ -77,9 +77,11 @@ int SafeWriter::writeC(signed char val) {
   return write(&val,1);
 }
 
+/*
 int SafeWriter::writeUC(unsigned char val) {
   return write(&val,1);
 }
+*/
 
 #ifdef TA_BIG_ENDIAN
 int SafeWriter::writeS_BE(short val) {

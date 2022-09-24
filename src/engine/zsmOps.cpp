@@ -74,7 +74,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   logI("loop point: %d %d",loopOrder,loopRow);
   warnings="";
 
-  ZSM zsm;
+  DivZSM zsm;
   zsm.init(zsmrate);
 
   // reset the playback state

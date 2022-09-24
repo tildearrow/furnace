@@ -36,7 +36,7 @@
 enum YM_STATE { ym_PREV, ym_NEW, ym_STATES };
 enum PSG_STATE { psg_PREV, psg_NEW, psg_STATES };
 
-class ZSM {
+class DivZSM {
   private:
 	SafeWriter* w;
 	int ymState[ym_STATES][256];
@@ -49,8 +49,8 @@ class ZSM {
   int ymMask = 0;
   int psgMask = 0;
   public:
-	ZSM();
-	~ZSM();
+	DivZSM();
+	~DivZSM();
 	void init(unsigned int rate = 60);
 	int getoffset();
 	void writeYM(unsigned char a, unsigned char v);
