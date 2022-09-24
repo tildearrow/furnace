@@ -508,6 +508,14 @@ void DivPlatformOPL::tick(bool sysTick) {
       } else {
         chan[adpcmChan].freq=0;
       }
+      if (chan[adpcmChan].fixedFreq>0) chan[adpcmChan].freq=chan[adpcmChan].fixedFreq;
+      if (pretendYMU) { // YMU759 only does 4KHz or 8KHz
+        if (chan[adpcmChan].freq>7500) {
+          chan[adpcmChan].freq=10922; // 8KHz
+        } else {
+          chan[adpcmChan].freq=5461; // 4KHz
+        }
+      }
       immWrite(16,chan[adpcmChan].freq&0xff);
       immWrite(17,(chan[adpcmChan].freq>>8)&0xff);
       if (chan[adpcmChan].keyOn || chan[adpcmChan].keyOff) {
@@ -673,6 +681,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         if (skipRegisterWrites) break;
         if (chan[c.chan].furnacePCM) {
           chan[c.chan].macroInit(ins);
+          chan[c.chan].fixedFreq=0;
           if (!chan[c.chan].std.vol.will) {
             chan[c.chan].outVol=chan[c.chan].vol;
             immWrite(18,chan[c.chan].outVol);
@@ -718,6 +727,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             immWrite(11,(end>>2)&0xff);
             immWrite(12,(end>>10)&0xff);
             int freq=(65536.0*(double)s->rate)/(double)chipRateBase;
+            chan[c.chan].fixedFreq=freq;
             immWrite(16,freq&0xff);
             immWrite(17,(freq>>8)&0xff);
             chan[c.chan].active=true;
