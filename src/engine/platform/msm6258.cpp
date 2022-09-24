@@ -91,28 +91,30 @@ void DivPlatformMSM6258::acquire(short* bufL, short* bufR, size_t start, size_t 
 
 void DivPlatformMSM6258::tick(bool sysTick) {
   for (int i=0; i<1; i++) {
-    chan[i].std.next();
-    if (chan[i].std.duty.had) {
-      if (rateSel!=(chan[i].std.duty.val&3)) {
-        rateSel=chan[i].std.duty.val&3;
-        rWrite(12,rateSel);
+    if (!parent->song.disableSampleMacro) {
+      chan[i].std.next();
+      if (chan[i].std.duty.had) {
+        if (rateSel!=(chan[i].std.duty.val&3)) {
+          rateSel=chan[i].std.duty.val&3;
+          rWrite(12,rateSel);
+        }
       }
-    }
-    if (chan[i].std.panL.had) {
-      if (chan[i].pan!=(chan[i].std.panL.val&3)) {
-        chan[i].pan=chan[i].std.panL.val&3;
-        rWrite(2,chan[i].pan);
+      if (chan[i].std.panL.had) {
+        if (chan[i].pan!=(chan[i].std.panL.val&3)) {
+          chan[i].pan=chan[i].std.panL.val&3;
+          rWrite(2,chan[i].pan);
+        }
       }
-    }
-    if (chan[i].std.ex1.had) {
-      if (clockSel!=(chan[i].std.ex1.val&1)) {
-        clockSel=chan[i].std.ex1.val&1;
-        rWrite(8,clockSel);
+      if (chan[i].std.ex1.had) {
+        if (clockSel!=(chan[i].std.ex1.val&1)) {
+          clockSel=chan[i].std.ex1.val&1;
+          rWrite(8,clockSel);
+        }
       }
-    }
-    if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val && chan[i].active) {
-        chan[i].keyOn=true;
+      if (chan[i].std.phaseReset.had) {
+        if (chan[i].std.phaseReset.val && chan[i].active) {
+          chan[i].keyOn=true;
+        }
       }
     }
     if (chan[i].keyOn || chan[i].keyOff) {
