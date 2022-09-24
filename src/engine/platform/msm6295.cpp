@@ -89,7 +89,7 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
 
 void DivPlatformMSM6295::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
-    if (parent->song.disableSampleMacro) {
+    if (!parent->song.disableSampleMacro) {
       chan[i].std.next();
       if (chan[i].std.vol.had) {
         chan[i].outVol=VOL_SCALE_LOG(chan[i].std.vol.val,chan[i].vol,8);
