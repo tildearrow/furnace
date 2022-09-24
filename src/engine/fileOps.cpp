@@ -178,7 +178,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.e1e2StopOnSameNote=true;
     ds.brokenPortaArp=false;
     ds.snNoLowPeriods=true;
-    ds.ignorePCEDACVolume=true;
+    ds.disableSampleMacro=true;
     ds.delayBehavior=0;
     ds.jumpTreatment=2;
 
@@ -1102,7 +1102,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.autoSystem=false;
     }
     if (ds.version<117) {
-      ds.ignorePCEDACVolume=true;
+      ds.disableSampleMacro=true;
     }
     ds.isDMF=false;
 
@@ -1537,7 +1537,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         reader.readC();
       }
       if (ds.version>=117) {
-        ds.ignorePCEDACVolume=reader.readC();
+        ds.disableSampleMacro=reader.readC();
       } else {
         reader.readC();
       }
@@ -3786,7 +3786,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.delayBehavior);
   w->writeC(song.jumpTreatment);
   w->writeC(song.autoSystem);
-  w->writeC(song.ignorePCEDACVolume);
+  w->writeC(song.disableSampleMacro);
   for (int i=0; i<2; i++) {
     w->writeC(0);
   }

@@ -511,7 +511,7 @@ struct DivSong {
   bool e1e2StopOnSameNote;
   bool brokenPortaArp;
   bool snNoLowPeriods;
-  bool ignorePCEDACVolume;
+  bool disableSampleMacro;
   bool autoSystem;
 
   std::vector<DivInstrument*> ins;
@@ -617,7 +617,7 @@ struct DivSong {
     e1e2StopOnSameNote(false),
     brokenPortaArp(false),
     snNoLowPeriods(false),
-    ignorePCEDACVolume(true),
+    disableSampleMacro(true),
     autoSystem(true) {
     for (int i=0; i<32; i++) {
       system[i]=DIV_SYSTEM_NULL;

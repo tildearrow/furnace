@@ -281,7 +281,7 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6pre1.5");
     }
-    ImGui::Checkbox("Ignore PC Engine DAC volume",&e->song.ignorePCEDACVolume);
+    ImGui::Checkbox("Disable new sample features",&e->song.disableSampleMacro);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6pre2");
     }

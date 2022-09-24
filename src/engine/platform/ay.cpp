@@ -348,14 +348,14 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AY);
-      if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
+      if (!parent->song.disableSampleMacro && (ins->type==DIV_INS_AMIGA || ins->amiga.useSample)) {
         chan[c.chan].psgMode.dac=true;
       } else if (chan[c.chan].dac.furnaceDAC) {
         chan[c.chan].psgMode.dac=false;
       }
       if (chan[c.chan].psgMode.dac) {
         if (skipRegisterWrites) break;
-        if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
+        if (!parent->song.disableSampleMacro && (ins->type==DIV_INS_AMIGA || ins->amiga.useSample)) {
           chan[c.chan].dac.sample=ins->amiga.getSample(c.value);
           if (chan[c.chan].dac.sample<0 || chan[c.chan].dac.sample>=parent->song.sampleLen) {
             chan[c.chan].dac.sample=-1;
