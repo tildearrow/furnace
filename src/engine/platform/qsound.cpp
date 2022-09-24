@@ -308,14 +308,14 @@ void DivPlatformQSound::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.duty.had) {
+    if (chan[i].isNewQSound && chan[i].std.duty.had) {
       chan[i].echo=CLAMP(chan[i].std.duty.val,0,32767);
       immWrite(Q1_ECHO+i,chan[i].echo&0x7fff);
     }
-    if (chan[i].std.ex1.had) {
+    if (chan[i].isNewQSound && chan[i].std.ex1.had) {
       immWrite(Q1_ECHO_FEEDBACK,chan[i].std.ex1.val&0x3fff);
     }
-    if (chan[i].std.ex2.had) {
+    if (chan[i].isNewQSound && chan[i].std.ex2.had) {
       immWrite(Q1_ECHO_LENGTH,0xfff-(2725-CLAMP(chan[i].std.ex2.val&0xfff,0,2725)));
     }
     if (chan[i].std.pitch.had) {
