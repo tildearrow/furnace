@@ -85,6 +85,7 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
       ayBuf[i]=new short[ayBufLen];
     }
   }
+  // TODO: try to fit this into the actual loop
   // PCM part
   for (int i=0; i<3; i++) {
     if (chan[i].psgMode.dac && chan[i].dac.sample!=-1) {
@@ -96,7 +97,7 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
         DivSample* s=parent->getSample(chan[i].dac.sample);
         if (s->samples<=0) {
           chan[i].dac.sample=-1;
-          rWrite(0x08+i,0);
+          immWrite(0x08+i,0);
           end=true;
           break;
         }
@@ -112,7 +113,7 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
           chan[i].dac.pos=s->loopStart;
         } else if (chan[i].dac.pos>=(int)s->samples) {
           chan[i].dac.sample=-1;
-          rWrite(0x08+i,0);
+          immWrite(0x08+i,0);
           end=true;
           break;
         }
@@ -120,7 +121,7 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
       }
       if (changed && !end) {
         if (!isMuted[i]) {
-          rWrite(0x08+i,chan[i].dac.out);
+          immWrite(0x08+i,chan[i].dac.out);
         }
       }
     }
