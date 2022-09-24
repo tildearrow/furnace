@@ -493,7 +493,7 @@ void DivPlatformSNES::renderSamples() {
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos)/9*9,length);
     if (actualLength>0) {
       s->offSNES=memPos;
-      memcpy(&sampleMem[memPos],s->data8,actualLength);
+      memcpy(&sampleMem[memPos],s->dataBRR,actualLength);
       memPos+=actualLength;
     }
     if (actualLength<length) {
