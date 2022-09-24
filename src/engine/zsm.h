@@ -38,27 +38,27 @@ enum PSG_STATE { psg_PREV, psg_NEW, psg_STATES };
 
 class DivZSM {
   private:
-	SafeWriter* w;
-	int ymState[ym_STATES][256];
-	int psgState[psg_STATES][64];
-	std::vector<DivRegWrite> ymwrites;
-	int loopOffset;
-	int numWrites;
-	int ticks;
-	int tickRate;
+    SafeWriter* w;
+    int ymState[ym_STATES][256];
+    int psgState[psg_STATES][64];
+    std::vector<DivRegWrite> ymwrites;
+    int loopOffset;
+    int numWrites;
+    int ticks;
+    int tickRate;
   int ymMask = 0;
   int psgMask = 0;
   public:
-	DivZSM();
-	~DivZSM();
-	void init(unsigned int rate = 60);
-	int getoffset();
-	void writeYM(unsigned char a, unsigned char v);
-	void writePSG(unsigned char a, unsigned char v);
-	void writePCM(unsigned char a, unsigned char v);
-	void tick(int numticks = 1);
-	void setLoopPoint();
-	SafeWriter* finish();
+    DivZSM();
+    ~DivZSM();
+    void init(unsigned int rate = 60);
+    int getoffset();
+    void writeYM(unsigned char a, unsigned char v);
+    void writePSG(unsigned char a, unsigned char v);
+    void writePCM(unsigned char a, unsigned char v);
+    void tick(int numticks = 1);
+    void setLoopPoint();
+    SafeWriter* finish();
   private:
     void flushWrites();
     void flushTicks();

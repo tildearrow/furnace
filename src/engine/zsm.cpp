@@ -110,14 +110,14 @@ void DivZSM::writeYM(unsigned char a, unsigned char v) {
 void DivZSM::writePSG(unsigned char a, unsigned char v) {
   // TODO: suppress writes to PSG voice that is not audible (volume=0)
   if (a  >= 64) {
-	  logD ("ZSM: ignoring VERA PSG write a=%02x v=%02x",a,v);
-	  return;
+    logD ("ZSM: ignoring VERA PSG write a=%02x v=%02x",a,v);
+    return;
   }
   if(psgState[psg_PREV][a] == v) {
     if (psgState[psg_NEW][a] != v)
       // NEW value is being reset to the same as PREV value
       // so it is no longer a new write.
-	    numWrites--;
+      numWrites--;
   } else {
     if (psgState[psg_PREV][a] == psgState[psg_NEW][a])
       // if this write changes the NEW cached value to something other
@@ -143,7 +143,7 @@ void DivZSM::setLoopPoint() {
   flushTicks(); // flush ticks incase no writes were pending
   logI("ZSM: loop at file offset %d bytes",w->tell());
   loopOffset=w->tell();
-  //update the ZSM header's loop offset value
+  // update the ZSM header's loop offset value
   w->seek(0x03,SEEK_SET);
   w->writeS((short)(loopOffset&0xffff));
   w->writeC((unsigned char)((loopOffset>>16)&0xff));
@@ -155,7 +155,7 @@ void DivZSM::setLoopPoint() {
   // ... and cache (except for unused channels)
   memset(&ymState[ym_NEW],-1,0x20);
   for (int chan=0; chan<8 ; chan++) {
-    //do not clear state for as-yet-unused channels
+    // do not clear state for as-yet-unused channels
     if (!(ymMask & (1<<chan))) continue;
     // clear the state for channels in use so they match the unknown state
     // of the YM shadow.
@@ -189,11 +189,11 @@ void DivZSM::flushWrites() {
   for (DivRegWrite& write: ymwrites) {
     if (n%ZSM_YM_MAX_WRITES == 0) {
       if(ymwrites.size()-n > ZSM_YM_MAX_WRITES) {
-		    w->writeC((unsigned char)(ZSM_YM_CMD+ZSM_YM_MAX_WRITES));
-		    logD("ZSM: YM-write: %d (%02x) [max]",ZSM_YM_MAX_WRITES,ZSM_YM_MAX_WRITES+ZSM_YM_CMD);
+        w->writeC((unsigned char)(ZSM_YM_CMD+ZSM_YM_MAX_WRITES));
+        logD("ZSM: YM-write: %d (%02x) [max]",ZSM_YM_MAX_WRITES,ZSM_YM_MAX_WRITES+ZSM_YM_CMD);
       } else {
-		    w->writeC((unsigned char)(ZSM_YM_CMD+ymwrites.size()-n));
-		    logD("ZSM: YM-write: %d (%02x)",ymwrites.size()-n,ZSM_YM_CMD+ymwrites.size()-n);
+        w->writeC((unsigned char)(ZSM_YM_CMD+ymwrites.size()-n));
+        logD("ZSM: YM-write: %d (%02x)",ymwrites.size()-n,ZSM_YM_CMD+ymwrites.size()-n);
       }
     }
     n++;
@@ -206,13 +206,13 @@ void DivZSM::flushWrites() {
 
 void DivZSM::flushTicks() {
   while (ticks > ZSM_DELAY_MAX) {
-	logD("ZSM: write delay %d (max)",ZSM_DELAY_MAX);
-	w->writeC((unsigned char)(ZSM_DELAY_CMD+ZSM_DELAY_MAX));
-	ticks -= ZSM_DELAY_MAX;
+    logD("ZSM: write delay %d (max)",ZSM_DELAY_MAX);
+    w->writeC((unsigned char)(ZSM_DELAY_CMD+ZSM_DELAY_MAX));
+    ticks -= ZSM_DELAY_MAX;
   }
   if (ticks>0) {
-	logD("ZSM: write delay %d",ticks);
-	w->writeC(ZSM_DELAY_CMD+ticks);
+    logD("ZSM: write delay %d",ticks);
+    w->writeC(ZSM_DELAY_CMD+ticks);
   }
   ticks=0;
 }

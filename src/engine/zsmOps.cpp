@@ -35,25 +35,25 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   //loop = false;
   // find indexes for YM and VERA. Ignore other systems.
   for (int i=0; i<song.systemLen; i++) {
-  	switch (song.system[i]) {
-  	  case DIV_SYSTEM_VERA:
-  	    if (VERA >= 0) { IGNORED++;break; }
-  	    VERA = i;
-  	    logD("VERA detected as chip id %d",i);
-  	    break;
-  	  case DIV_SYSTEM_YM2151:
-  	    if (YM >= 0) { IGNORED++;break; }
-  	    YM = i;
-  	    logD("YM detected as chip id %d",i);
-  	    break;
-  	  default:
-  	    IGNORED++;
-  	    logD("Ignoring chip %d systemID %d",i,song.system[i]);
-  	}
+    switch (song.system[i]) {
+      case DIV_SYSTEM_VERA:
+        if (VERA >= 0) { IGNORED++;break; }
+        VERA = i;
+        logD("VERA detected as chip id %d",i);
+        break;
+      case DIV_SYSTEM_YM2151:
+        if (YM >= 0) { IGNORED++;break; }
+        YM = i;
+        logD("YM detected as chip id %d",i);
+        break;
+      default:
+        IGNORED++;
+        logD("Ignoring chip %d systemID %d",i,song.system[i]);
+    }
   }
   if (VERA < 0 && YM < 0) {
-	logE("No supported systems for ZSM");
-	return NULL;
+  logE("No supported systems for ZSM");
+  return NULL;
   }
   if (IGNORED > 0)
     logW("ZSM export ignoring %d unsupported system%c",IGNORED,IGNORED>1?'s':' ');
@@ -121,22 +121,22 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
     }
     // get register dumps
     for (int j=0; j<2; j++) {
-  	  int i=0;
+      int i=0;
       // dump YM writes first
-  	  if (j==0) {
-  	    if (YM < 0)
-  	      continue;
-  	    else
-  	      i=YM;
-  	  }
+      if (j==0) {
+        if (YM < 0)
+          continue;
+        else
+          i=YM;
+      }
       // dump VERA writes second
-  	  if (j==1) {
-  	    if (VERA < 0)
-  	      continue;
-  	    else {
+      if (j==1) {
+        if (VERA < 0)
+          continue;
+        else {
           i=VERA;
-  	    }
-  	  }
+        }
+      }
       std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
       if (writes.size() > 0)
         logD("zsmOps: Writing %d messages to chip %d",writes.size(), i);
