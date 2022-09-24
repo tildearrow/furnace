@@ -306,6 +306,14 @@ const char* gbHWSeqCmdTypes[6]={
   "Loop until Release"
 };
 
+const char* snesGainModes[5]={
+  "Direct",
+  "Decrease (linear)",
+  "Decrease (logarithmic)",
+  "Increase (linear)",
+  "Increase (bent line)"
+};
+
 // do not change these!
 // anything other than a checkbox will look ugly!
 //
@@ -3748,14 +3756,20 @@ void FurnaceGUI::drawInsEdit() {
               }
               ImGui::EndCombo();
             }
-            if (ins->type==DIV_INS_AMIGA) {
-              P(ImGui::Checkbox("Use wavetable (Amiga only)",&ins->amiga.useWave));
+            if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SNES) {
+              P(ImGui::Checkbox("Use wavetable (Amiga/SNES only)",&ins->amiga.useWave));
               if (ins->amiga.useWave) {
                 int len=ins->amiga.waveLen+1;
                 if (ImGui::InputInt("Width",&len,2,16)) {
-                  if (len<2) len=2;
-                  if (len>256) len=256;
-                  ins->amiga.waveLen=(len&(~1))-1;
+                  if (ins->type==DIV_INS_SNES) {
+                    if (len<16) len=16;
+                    if (len>256) len=256;
+                    ins->amiga.waveLen=(len&(~15))-1;
+                  } else {
+                    if (len<2) len=2;
+                    if (len>256) len=256;
+                    ins->amiga.waveLen=(len&(~1))-1;
+                  }
                   PARAMETER
                 }
               }
@@ -4006,9 +4020,9 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::EndTabItem();
           }
         }
-        if (ins->type==DIV_INS_SNES) if (ImGui::BeginTabItem("SNES")) { // Purposeful Conflict
-          P(ImGui::Checkbox("Use envelope",&ins->snes.useEnv)); // Purposeful Conflict
-          ImVec2 sliderSize=ImVec2(20.0f*dpiScale,128.0*dpiScale); // Purposeful Conflict
+        if (ins->type==DIV_INS_SNES) if (ImGui::BeginTabItem("SNES")) {
+          P(ImGui::Checkbox("Use envelope",&ins->snes.useEnv));
+          ImVec2 sliderSize=ImVec2(20.0f*dpiScale,128.0*dpiScale);
           if (ins->snes.useEnv) {
             if (ImGui::BeginTable("SNESEnvParams",5,ImGuiTableFlags_NoHostExtendX)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
@@ -4049,52 +4063,52 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::EndTable();
             }
           } else {
-            if (ImGui::BeginTable("SNESGainParams",3,ImGuiTableFlags_NoHostExtendX)) { // Purposeful Conflict
-              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed); // Purposeful Conflict
-              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x); // Purposeful Conflict
-              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch); // Purposeful Conflict
+            if (ImGui::BeginTable("SNESGainParams",3,ImGuiTableFlags_NoHostExtendX)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
 
-              ImGui::TableNextRow(); // Purposeful Conflict
-              ImGui::TableNextColumn(); // Purposeful Conflict
-              CENTER_TEXT("Gain Mode"); // Purposeful Conflict
-              ImGui::TextUnformatted("Gain Mode"); // Purposeful Conflict
-              ImGui::TableNextColumn(); // Purposeful Conflict
-              CENTER_TEXT("Gain"); // Purposeful Conflict
-              ImGui::TextUnformatted("Gain"); // Purposeful Conflict
-              ImGui::TableNextColumn(); // Purposeful Conflict
-              CENTER_TEXT("Envelope"); // Purposeful Conflict
-              ImGui::TextUnformatted("Envelope"); // Purposeful Conflict
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              CENTER_TEXT("Gain Mode");
+              ImGui::TextUnformatted("Gain Mode");
+              ImGui::TableNextColumn();
+              CENTER_TEXT("Gain");
+              ImGui::TextUnformatted("Gain");
+              ImGui::TableNextColumn();
+              CENTER_TEXT("Envelope");
+              ImGui::TextUnformatted("Envelope");
 
-              ImGui::TableNextRow(); // Purposeful Conflict
-              ImGui::TableNextColumn(); // Purposeful Conflict
-              if (ImGui::RadioButton("Direct",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DIRECT)) { // Purposeful Conflict
-                ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_DIRECT; // Purposeful Conflict
-                PARAMETER; // Purposeful Conflict
-              } // Purposeful Conflict
-              if (ImGui::RadioButton("Decrease (linear)",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DEC_LINEAR)) { // Purposeful Conflict
-                ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_DEC_LINEAR; // Purposeful Conflict
-                PARAMETER; // Purposeful Conflict
-              } // Purposeful Conflict
-              if (ImGui::RadioButton("Decrease (logarithmic)",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DEC_LOG)) { // Purposeful Conflict
-                ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_DEC_LOG; // Purposeful Conflict
-                PARAMETER; // Purposeful Conflict
-              } // Purposeful Conflict
-              if (ImGui::RadioButton("Increase (linear)",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_INC_LINEAR)) { // Purposeful Conflict
-                ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_INC_LINEAR; // Purposeful Conflict
-                PARAMETER; // Purposeful Conflict
-              } // Purposeful Conflict
-              if (ImGui::RadioButton("Increase (bent line)",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_INC_INVLOG)) { // Purposeful Conflict
-                ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_INC_INVLOG; // Purposeful Conflict
-                PARAMETER; // Purposeful Conflict
-              } // Purposeful Conflict
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              if (ImGui::RadioButton("Direct",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DIRECT)) {
+                ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_DIRECT;
+                PARAMETER;
+              }
+              if (ImGui::RadioButton("Decrease (linear)",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DEC_LINEAR)) {
+                ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_DEC_LINEAR;
+                PARAMETER;
+              }
+              if (ImGui::RadioButton("Decrease (logarithmic)",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DEC_LOG)) {
+                ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_DEC_LOG;
+                PARAMETER;
+              }
+              if (ImGui::RadioButton("Increase (linear)",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_INC_LINEAR)) {
+                ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_INC_LINEAR;
+                PARAMETER;
+              }
+              if (ImGui::RadioButton("Increase (bent line)",ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_INC_INVLOG)) {
+                ins->snes.gainMode=DivInstrumentSNES::GAIN_MODE_INC_INVLOG;
+                PARAMETER;
+              }
 
-              ImGui::TableNextColumn(); // Purposeful Conflict
-              unsigned char gainMax=(ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DIRECT)?127:31; // Purposeful Conflict
-              if (ins->snes.gain>gainMax) ins->snes.gain=gainMax; // Purposeful Conflict
-              P(CWVSliderScalar("##Gain",sliderSize,ImGuiDataType_U8,&ins->snes.gain,&_ZERO,&gainMax)); // Purposeful Conflict
+              ImGui::TableNextColumn();
+              unsigned char gainMax=(ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DIRECT)?127:31;
+              if (ins->snes.gain>gainMax) ins->snes.gain=gainMax;
+              P(CWVSliderScalar("##Gain",sliderSize,ImGuiDataType_U8,&ins->snes.gain,&_ZERO,&gainMax));
 
-              ImGui::TableNextColumn(); // Purposeful Conflict
-              ImGui::Text("Envelope goes here..."); // Purposeful Conflict
+              ImGui::TableNextColumn();
+              ImGui::Text("Envelope goes here...");
 
               ImGui::EndTable();
             }
@@ -4365,7 +4379,8 @@ void FurnaceGUI::drawInsEdit() {
             dutyMax=ins->amiga.useSample?0:8;
           }
           if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS ||
-              ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_FDS || ins->type==DIV_INS_MULTIPCM) {
+              ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_FDS || ins->type==DIV_INS_MULTIPCM ||
+              ins->type==DIV_INS_SNES) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VERA) {
@@ -4435,7 +4450,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_VRC6) {
             waveMax=ins->amiga.useSample?(MAX(1,e->song.waveLen-1)):0;
           }
-
+          
           if (ins->type==DIV_INS_OPLL) {
             waveLabel="Patch";
           }
@@ -4486,6 +4501,10 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ES5506) {
             ex1Max=65535;
             ex2Max=65535;
+          }
+          if (ins->type==DIV_INS_SNES && !ins->snes.useEnv) {
+            ex1Max=4;
+            ex2Max=31;
           }
 
           int panMin=0;
@@ -4627,6 +4646,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Clock Divider",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_QSOUND) {
               macroList.push_back(FurnaceGUIMacroDesc("Echo Feedback",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+            } else if (ins->type==DIV_INS_SNES) {
+              macroList.push_back(FurnaceGUIMacroDesc("Gain Mode",&ins->std.ex1Macro,0,ex1Max,64,uiColors[GUI_COLOR_MACRO_VOLUME],false,NULL,NULL,false,snesGainModes));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             }
@@ -4643,7 +4664,9 @@ void FurnaceGUI::drawInsEdit() {
             } else if (ins->type==DIV_INS_ES5506) {
               macroList.push_back(FurnaceGUIMacroDesc("Filter K2",&ins->std.ex2Macro,((ins->std.ex2Macro.mode==1)?(-ex2Max):0),ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,macroRelativeMode));
             } else if (ins->type==DIV_INS_QSOUND) {
-              macroList.push_back(FurnaceGUIMacroDesc("Echo Buffer Len",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Echo Length",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+            } else if (ins->type==DIV_INS_SNES) {
+              macroList.push_back(FurnaceGUIMacroDesc("Gain Rate",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex2Macro,0,ex2Max,ex2Bit?64:160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,ex2Bit,ayEnvBits));
             }

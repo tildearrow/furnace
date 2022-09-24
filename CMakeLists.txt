@@ -437,6 +437,8 @@ src/engine/platform/sound/rf5c68.cpp
 
 src/engine/platform/sound/oki/okim6258.cpp
 
+src/engine/platform/sound/snes/SPC_DSP.cpp
+
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
@@ -509,6 +511,7 @@ src/engine/platform/scc.cpp
 src/engine/platform/ymz280b.cpp
 src/engine/platform/namcowsg.cpp
 src/engine/platform/rf5c68.cpp
+src/engine/platform/snes.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 )

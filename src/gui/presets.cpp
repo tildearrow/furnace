@@ -356,7 +356,13 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_MSM6295, 64, 0, 0,
       0
     }
-  ));  
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNES", {
+      DIV_SYSTEM_SNES, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Wavetable","chips which use user-specified waveforms to generate sound.");
@@ -641,6 +647,12 @@ void FurnaceGUI::initSystemPresets() {
     "Famicom Disk System", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_FDS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNES", {
+      DIV_SYSTEM_SNES, 64, 0, 0,
       0
     }
   ));
