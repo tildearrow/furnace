@@ -1214,7 +1214,7 @@ inline bool enBit30(const int val) {
 
 void FurnaceGUI::kvsConfig(DivInstrument* ins) {
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("(click to configure KVS)");
+    ImGui::SetTooltip("(click to configure TL scaling)");
   }
   int opCount=4;
   if (ins->type==DIV_INS_OPLL) opCount=2;
@@ -1986,7 +1986,7 @@ void FurnaceGUI::drawInsEdit() {
             }
             if (willDisplayOps) {
               if (settings.fmLayout==0) {
-                int numCols=16;
+                int numCols=15;
                 if (ins->type==DIV_INS_OPL ||ins->type==DIV_INS_OPL_DRUMS) numCols=13;
                 if (ins->type==DIV_INS_OPLL) numCols=12;
                 if (ins->type==DIV_INS_OPZ) numCols=19;
@@ -2015,12 +2015,14 @@ void FurnaceGUI::drawInsEdit() {
 
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     ImGui::TableSetupColumn("c10",ImGuiTableColumnFlags_WidthStretch,0.05f); // dt
+                  }
+                  if (ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     ImGui::TableSetupColumn("c11",ImGuiTableColumnFlags_WidthStretch,0.05f); // dt2
                   }
                   ImGui::TableSetupColumn("c15",ImGuiTableColumnFlags_WidthFixed); // am
 
                   ImGui::TableSetupColumn("c12",ImGuiTableColumnFlags_WidthFixed); // -separator-
-                  if (ins->type!=DIV_INS_OPLL) {
+                  if (ins->type!=DIV_INS_OPLL && ins->type!=DIV_INS_OPM) {
                     ImGui::TableSetupColumn("c13",ImGuiTableColumnFlags_WidthStretch,0.2f); // ssg/waveform
                   }
                   ImGui::TableSetupColumn("c14",ImGuiTableColumnFlags_WidthStretch,0.3f); // env
@@ -2086,6 +2088,8 @@ void FurnaceGUI::drawInsEdit() {
                     CENTER_TEXT(FM_SHORT_NAME(FM_DT));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_DT));
                     ImGui::TableNextColumn();
+                  }
+                  if (ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     CENTER_TEXT(FM_SHORT_NAME(FM_DT2));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_DT2));
                     ImGui::TableNextColumn();
@@ -2102,7 +2106,7 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextColumn();
                     CENTER_TEXT(FM_NAME(FM_WS));
                     ImGui::TextUnformatted(FM_NAME(FM_WS));
-                  } else if (ins->type!=DIV_INS_OPLL) {
+                  } else if (ins->type!=DIV_INS_OPLL && ins->type!=DIV_INS_OPM) {
                     ImGui::TableNextColumn();
                     CENTER_TEXT(FM_NAME(FM_SSG));
                     ImGui::TextUnformatted(FM_NAME(FM_SSG));
@@ -2276,10 +2280,11 @@ void FurnaceGUI::drawInsEdit() {
                         op.dt=detune+(settings.unsignedDetune?0:3);
                       }
 
-                      // TODO: separate OPN/OPM
-                      ImGui::TableNextColumn();
-                      CENTER_VSLIDER;
-                      P(CWVSliderScalar("##DT2",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE)); rightClickable
+                      if (ins->type!=DIV_INS_FM) {
+                        ImGui::TableNextColumn();
+                        CENTER_VSLIDER;
+                        P(CWVSliderScalar("##DT2",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE)); rightClickable
+                      }
 
                       ImGui::TableNextColumn();
                       bool amOn=op.am;
@@ -2318,7 +2323,7 @@ void FurnaceGUI::drawInsEdit() {
                         }
                       }
 
-                      if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_OPZ) {
+                      if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_OPZ && ins->type!=DIV_INS_OPM) {
                         ImGui::TableNextColumn();
                         ImGui::Dummy(ImVec2(4.0f*dpiScale,2.0f*dpiScale));
                         ImGui::TableNextColumn();
@@ -2335,7 +2340,7 @@ void FurnaceGUI::drawInsEdit() {
                           op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
                         }
                       }
-                    } else {
+                    } else if (ins->type!=DIV_INS_OPM) {
                       ImGui::TableNextColumn();
                       bool amOn=op.am;
                       ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()*4.0-ImGui::GetStyle().ItemSpacing.y*3.0));
@@ -2370,7 +2375,7 @@ void FurnaceGUI::drawInsEdit() {
                       if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) && ImGui::IsItemHovered()) {
                         ImGui::SetTooltip("OPL2/3 only (last 4 waveforms are OPL3 only)");
                       }
-                    } else if (ins->type==DIV_INS_OPLL) {
+                    } else if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPM) {
                       ImGui::TableNextColumn();
                       ImGui::Dummy(ImVec2(4.0f*dpiScale,2.0f*dpiScale));
                     }
@@ -2470,7 +2475,7 @@ void FurnaceGUI::drawInsEdit() {
 
                     float sliderHeight=200.0f*dpiScale;
                     float waveWidth=140.0*dpiScale;
-                    float waveHeight=sliderHeight-ImGui::GetFrameHeightWithSpacing()*(ins->type==DIV_INS_OPLL?4.5f:5.5f);
+                    float waveHeight=sliderHeight-ImGui::GetFrameHeightWithSpacing()*((ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL)?5.0f:4.5f);
 
                     int maxTl=127;
                     if (ins->type==DIV_INS_OPLL) {
@@ -2505,7 +2510,7 @@ void FurnaceGUI::drawInsEdit() {
                       CENTER_TEXT_20(FM_SHORT_NAME(FM_AR));
                       ImGui::TextUnformatted(FM_SHORT_NAME(FM_AR));
                       ImGui::TableNextColumn();
-                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
+                      if (ins->type==DIV_INS_FM) {
                         ImGui::Text("SSG-EG");
                       } else {
                         ImGui::Text("Waveform");
@@ -2580,17 +2585,13 @@ void FurnaceGUI::drawInsEdit() {
                       
                       ImGui::TableNextColumn();
                       switch (ins->type) {
-                        case DIV_INS_FM:
-                        case DIV_INS_OPM: {
+                        case DIV_INS_FM: {
                           // SSG
                           ImGui::BeginDisabled(!ssgOn);
                           drawSSGEnv(op.ssgEnv&7,ImVec2(waveWidth,waveHeight));
                           ImGui::EndDisabled();
                           if (ImGui::Checkbox("##SSGOn",&ssgOn)) { PARAMETER
                             op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
-                          }
-                          if (ImGui::IsItemHovered()) {
-                            ImGui::SetTooltip("Only for OPN family chips");
                           }
 
                           ImGui::SameLine();
@@ -2613,16 +2614,34 @@ void FurnaceGUI::drawInsEdit() {
                           } rightClickable
 
                           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_RS));
+                          P(CWSliderScalar("##RS",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE,tempID)); rightClickable
+
+                          break;
+                        }
+                        case DIV_INS_OPM: {
+                          drawWaveform(0,true,ImVec2(waveWidth,waveHeight));
+                          
+                          // params
+                          ImGui::Separator();
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_MULT));
+                          P(CWSliderScalar("##MULT",ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN,tempID)); rightClickable
+
+                          int detune=(op.dt&7)-(settings.unsignedDetune?0:3);
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_DT));
+                          if (CWSliderInt("##DT",&detune,-3,4,tempID)) { PARAMETER
+                            op.dt=detune+(settings.unsignedDetune?0:3);
+                          } rightClickable
+
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                           snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_DT2));
                           P(CWSliderScalar("##DT2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE,tempID)); rightClickable
-                          if (ImGui::IsItemHovered()) {
-                            ImGui::SetTooltip("Only on YM2151 (OPM)");
-                          }
 
                           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                           snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_RS));
                           P(CWSliderScalar("##RS",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE,tempID)); rightClickable
-
                           break;
                         }
                         case DIV_INS_OPLL:
@@ -2949,15 +2968,10 @@ void FurnaceGUI::drawInsEdit() {
                     bool vibOn=op.vib;
                     bool susOn=op.sus; // don't you make fun of this one
                     unsigned char ssgEnv=op.ssgEnv&7;
-                    if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_OPZ) {
+                    if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_OPZ && ins->type!=DIV_INS_OPM) {
                       ImGui::SameLine();
                       if (ImGui::Checkbox((ins->type==DIV_INS_OPLL)?FM_NAME(FM_EGS):"SSG On",&ssgOn)) { PARAMETER
                         op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
-                      }
-                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
-                        if (ImGui::IsItemHovered()) {
-                          ImGui::SetTooltip("Only for OPN family chips");
-                        }
                       }
                     }
 
@@ -3140,14 +3154,16 @@ void FurnaceGUI::drawInsEdit() {
                           ImGui::Text("%s",FM_NAME(FM_DT));
                         }
 
-                        ImGui::TableNextRow();
-                        ImGui::TableNextColumn();
-                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                        P(CWSliderScalar("##DT2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE)); rightClickable
-                        ImGui::TableNextColumn();
-                        ImGui::Text("%s",FM_NAME(FM_DT2));
+                        if (ins->type!=DIV_INS_FM) {
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          P(CWSliderScalar("##DT2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE)); rightClickable
+                          ImGui::TableNextColumn();
+                          ImGui::Text("%s",FM_NAME(FM_DT2));
+                        }
 
-                        if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) { // OPN only
+                        if (ins->type==DIV_INS_FM) { // OPN only
                           ImGui::TableNextRow();
                           ImGui::TableNextColumn();
                           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -3217,7 +3233,7 @@ void FurnaceGUI::drawInsEdit() {
               }
             }
             
-            if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
+            if (ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
               macroList.push_back(FurnaceGUIMacroDesc("AM Depth",&ins->std.ex1Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc("PM Depth",&ins->std.ex2Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc("LFO Speed",&ins->std.ex3Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
@@ -3294,10 +3310,12 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_RS),&ins->std.opMacros[ordi].rsMacro,0,3,32,uiColors[GUI_COLOR_MACRO_OTHER]));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_MULT),&ins->std.opMacros[ordi].multMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DT),&ins->std.opMacros[ordi].dtMacro,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER]));
-                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DT2),&ins->std.opMacros[ordi].dt2Macro,0,3,32,uiColors[GUI_COLOR_MACRO_OTHER]));
+                if (ins->type==DIV_INS_OPM || ins->type==DIV_INS_OPZ) {
+                  macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DT2),&ins->std.opMacros[ordi].dt2Macro,0,3,32,uiColors[GUI_COLOR_MACRO_OTHER]));
+                }
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AM),&ins->std.opMacros[ordi].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
 
-                if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
+                if (ins->type==DIV_INS_FM) {
                   macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SSG),&ins->std.opMacros[ordi].ssgMacro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,ssgEnvBits));
                 }
               }
@@ -4310,7 +4328,7 @@ void FurnaceGUI::drawInsEdit() {
               dutyMax=96;
             }
           }
-          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
+          if (ins->type==DIV_INS_OPM || ins->type==DIV_INS_OPZ) {
             dutyMax=32;
           }
           if (ins->type==DIV_INS_AY) {
@@ -4331,7 +4349,8 @@ void FurnaceGUI::drawInsEdit() {
             dutyMax=ins->amiga.useSample?0:255;
           }
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC ||
-              ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC || ins->type==DIV_INS_SEGAPCM) {
+              ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC || ins->type==DIV_INS_SEGAPCM ||
+              ins->type==DIV_INS_FM) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_NAMCO) {
