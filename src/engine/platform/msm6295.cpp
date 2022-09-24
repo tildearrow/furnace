@@ -88,21 +88,22 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
 }
 
 void DivPlatformMSM6295::tick(bool sysTick) {
-  if (parent->song.disableSampleMacro) return;
   for (int i=0; i<4; i++) {
-    chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LOG(chan[i].std.vol.val,chan[i].vol,8);
-    }
-    if (chan[i].std.duty.had) {
-      if (rateSel!=(chan[i].std.duty.val&1)) {
-        rateSel=chan[i].std.duty.val&1;
-        rWrite(12,!rateSel);
+    if (!parent->song.disableSampleMacro) {
+      chan[i].std.next();
+      if (chan[i].std.vol.had) {
+        chan[i].outVol=VOL_SCALE_LOG(chan[i].std.vol.val,chan[i].vol,8);
       }
-    }
-    if (chan[i].std.phaseReset.had) {
-      if (chan[i].std.phaseReset.val && chan[i].active) {
-        chan[i].keyOn=true;
+      if (chan[i].std.duty.had) {
+        if (rateSel!=(chan[i].std.duty.val&1)) {
+          rateSel=chan[i].std.duty.val&1;
+          rWrite(12,!rateSel);
+        }
+      }
+      if (chan[i].std.phaseReset.had) {
+        if (chan[i].std.phaseReset.val && chan[i].active) {
+          chan[i].keyOn=true;
+        }
       }
     }
     if (chan[i].keyOn || chan[i].keyOff) {
