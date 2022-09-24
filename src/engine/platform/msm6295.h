@@ -22,7 +22,7 @@
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
-#include "sound/oki/msm6295.hpp"
+#include "vgsound_emu/src/msm6295/msm6295.hpp"
 
 class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
   protected:
@@ -57,7 +57,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
       unsigned short addr;
       unsigned char val;
       unsigned short delay;
-      QueuedWrite(unsigned short a, unsigned char v, unsigned short d=32):
+      QueuedWrite(unsigned short a, unsigned char v, unsigned short d=96):
         addr(a),
         val(v),
         delay(d) {}

@@ -1284,14 +1284,14 @@ void FurnaceGUI::drawSettings() {
           }
 
           ImGui::Text("Channel name colors:");
-          if (ImGui::RadioButton("Single##CTC0",settings.channelColors==0)) {
-            settings.channelColors=0;
+          if (ImGui::RadioButton("Single##CTC0",settings.channelTextColors==0)) {
+            settings.channelTextColors=0;
           }
-          if (ImGui::RadioButton("Channel type##CTC1",settings.channelColors==1)) {
-            settings.channelColors=1;
+          if (ImGui::RadioButton("Channel type##CTC1",settings.channelTextColors==1)) {
+            settings.channelTextColors=1;
           }
-          if (ImGui::RadioButton("Instrument type##CTC2",settings.channelColors==2)) {
-            settings.channelColors=2;
+          if (ImGui::RadioButton("Instrument type##CTC2",settings.channelTextColors==2)) {
+            settings.channelTextColors=2;
           }
 
           ImGui::Text("Channel style:");
@@ -1327,6 +1327,9 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::RadioButton("Real##CHV3",settings.channelVolStyle==3)) {
             settings.channelVolStyle=3;
           }
+          if (ImGui::RadioButton("Real (stereo)##CHV4",settings.channelVolStyle==4)) {
+            settings.channelVolStyle=4;
+          }
 
           ImGui::Text("Channel feedback style:");
 
@@ -1341,6 +1344,20 @@ void FurnaceGUI::drawSettings() {
           }
           if (ImGui::RadioButton("Active##CHF3",settings.channelFeedbackStyle==3)) {
             settings.channelFeedbackStyle=3;
+          }
+
+          ImGui::Text("Channel font:");
+
+          if (ImGui::RadioButton("Regular##CHFont0",settings.channelFont==0)) {
+            settings.channelFont=0;
+          }
+          if (ImGui::RadioButton("Monospace##CHFont1",settings.channelFont==1)) {
+            settings.channelFont=1;
+          }
+
+          bool channelTextCenterB=settings.channelTextCenter;
+          if (ImGui::Checkbox("Center channel name",&channelTextCenterB)) {
+            settings.channelTextCenter=channelTextCenterB;
           }
 
           ImGui::Separator();
@@ -1660,6 +1677,8 @@ void FurnaceGUI::drawSettings() {
               ImGui::TreePop();
             }
             if (ImGui::TreeNode("Channel")) {
+              UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_BG,"Single color (background)");
+              UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_FG,"Single color (text)");
               UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_FM,"FM");
               UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_PULSE,"Pulse");
               UI_COLOR_CONFIG(GUI_COLOR_CHANNEL_NOISE,"Noise");
@@ -2278,9 +2297,11 @@ void FurnaceGUI::syncSettings() {
   settings.saveUnusedPatterns=e->getConfInt("saveUnusedPatterns",0);
   settings.channelColors=e->getConfInt("channelColors",1);
   settings.channelTextColors=e->getConfInt("channelTextColors",0);
-  settings.channelStyle=e->getConfInt("channelStyle",0);
+  settings.channelStyle=e->getConfInt("channelStyle",1);
   settings.channelVolStyle=e->getConfInt("channelVolStyle",0);
   settings.channelFeedbackStyle=e->getConfInt("channelFeedbackStyle",1);
+  settings.channelFont=e->getConfInt("channelFont",1);
+  settings.channelTextCenter=e->getConfInt("channelTextCenter",1);
   settings.maxRecentFile=e->getConfInt("maxRecentFile",10);
 
   clampSetting(settings.mainFontSize,2,96);
@@ -2378,8 +2399,10 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.channelColors,0,2);
   clampSetting(settings.channelTextColors,0,2);
   clampSetting(settings.channelStyle,0,5);
-  clampSetting(settings.channelVolStyle,0,3);
+  clampSetting(settings.channelVolStyle,0,4);
   clampSetting(settings.channelFeedbackStyle,0,3);
+  clampSetting(settings.channelFont,0,1);
+  clampSetting(settings.channelTextCenter,0,1);
   clampSetting(settings.maxRecentFile,0,30);
 
   settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
@@ -2535,6 +2558,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("channelStyle",settings.channelStyle);
   e->setConf("channelVolStyle",settings.channelVolStyle);
   e->setConf("channelFeedbackStyle",settings.channelFeedbackStyle);
+  e->setConf("channelFont",settings.channelFont);
+  e->setConf("channelTextCenter",settings.channelTextCenter);
   e->setConf("maxRecentFile",settings.maxRecentFile);
 
   // colors

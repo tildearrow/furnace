@@ -23,9 +23,9 @@
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
-#define rWrite(a,v) if (!skipRegisterWrites) { x1_010->ram_w(a,v); if (dumpWrites) { addWrite(a,v); } }
+#define rWrite(a,v) if (!skipRegisterWrites) { x1_010.ram_w(a,v); if (dumpWrites) { addWrite(a,v); } }
 
-#define chRead(c,a) x1_010->ram_r((c<<3)|(a&7))
+#define chRead(c,a) x1_010.ram_r((c<<3)|(a&7))
 #define chWrite(c,a,v) rWrite((c<<3)|(a&7),v)
 #define waveWrite(c,a,v) rWrite(0x1000|(chan[c].waveBank<<11)|(c<<7)|(a&0x7f),(v-128)&0xff)
 #define envFill(c,a) rWrite(0x800|(c<<7)|(a&0x7f),(chan[c].lvol<<4)|chan[c].rvol)
@@ -207,10 +207,10 @@ const char** DivPlatformX1_010::getRegisterSheet() {
 
 void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
-    x1_010->tick();
+    x1_010.tick();
 
-    signed int tempL=x1_010->output(0);
-    signed int tempR=x1_010->output(1);
+    signed int tempL=x1_010.output(0);
+    signed int tempR=x1_010.output(1);
 
     if (tempL<-32768) tempL=-32768;
     if (tempL>32767) tempL=32767;
@@ -222,9 +222,16 @@ void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t l
     bufR[h]=stereo?tempR:bufL[h];
 
     for (int i=0; i<16; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=x1_010->chan_out(i);
+      oscBuf[i]->data[oscBuf[i]->needle++]=(x1_010.voice_out(i,0)+x1_010.voice_out(i,1))>>1;
     }
   }
+}
+
+u8 DivPlatformX1_010::read_byte(u32 address) {
+  if ((sampleMem!=NULL) && (address<getSampleMemCapacity())) {
+    return sampleMem[address];
+  }
+  return 0;
 }
 
 double DivPlatformX1_010::NoteX1_010(int ch, int note) {
@@ -811,7 +818,7 @@ DivDispatchOscBuffer* DivPlatformX1_010::getOscBuffer(int ch) {
 
 unsigned char* DivPlatformX1_010::getRegisterPool() {
   for (int i=0; i<0x2000; i++) {
-    regPool[i]=x1_010->ram_r(i);
+    regPool[i]=x1_010.ram_r(i);
   }
   return regPool;
 }
@@ -829,7 +836,7 @@ void DivPlatformX1_010::reset() {
     chan[i].ws.setEngine(parent);
     chan[i].ws.init(NULL,128,255,false);
   }
-  x1_010->reset();
+  x1_010.reset();
   sampleBank=0;
   // set per-channel initial panning
   for (int i=0; i<16; i++) {
@@ -942,9 +949,7 @@ int DivPlatformX1_010::init(DivEngine* p, int channels, int sugRate, unsigned in
   setFlags(flags);
   sampleMem=new unsigned char[getSampleMemCapacity()];
   sampleMemLen=0;
-  intf.memory=sampleMem;
-  x1_010=new x1_010_core(intf);
-  x1_010->reset();
+  x1_010.reset();
   reset();
   return 16;
 }
@@ -953,7 +958,6 @@ void DivPlatformX1_010::quit() {
   for (int i=0; i<16; i++) {
     delete oscBuf[i];
   }
-  delete x1_010;
   delete[] sampleMem;
 }
 

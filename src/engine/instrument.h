@@ -87,6 +87,7 @@ struct DivInstrumentFM {
     bool enable;
     unsigned char am, ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
     unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759/OPL/OPZ
+    unsigned char kvs;
     Operator():
       enable(true),
       am(0),
@@ -108,7 +109,8 @@ struct DivInstrumentFM {
       sus(0),
       vib(0),
       ws(0),
-      ksr(0) {}
+      ksr(0),
+      kvs(2) {}
   } op[4];
   DivInstrumentFM():
     alg(0),

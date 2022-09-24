@@ -26,6 +26,8 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
+#define KVSL(x,y) ((chan[x].state.op[orderedOpsL1[ops==4][y]].kvs==2 && isOutputL[ops==4][chan[x].state.alg][y]) || chan[x].state.op[orderedOpsL1[ops==4][y]].kvs==1)
+
 #define CHIP_FREQBASE chipFreqBase
 
 // N = invalid
@@ -138,6 +140,11 @@ const bool isOutputL[2][4][4]={
 
 #undef N
 
+const int orderedOpsL1[2][4]={
+  {0, 1, 0, 1}, // 2-op
+  {0, 2, 1, 3}  // 4-op
+};
+
 const int orderedOpsL[4]={
   0,2,1,3
 };
@@ -249,7 +256,9 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     if (os[1]>32767) os[1]=32767;
   
     bufL[h]=os[0];
-    bufR[h]=os[1];
+    if (oplType==3 || oplType==759) {
+      bufR[h]=os[1];
+    }
   }
 }
 
@@ -286,7 +295,7 @@ void DivPlatformOPL::tick(bool sysTick) {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
-          if (isOutputL[ops==4][chan[i].state.alg][j] || i>melodicChans) {
+          if (KVSL(i,j) || i>melodicChans) {
             rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[i].outVol&0x3f,63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -404,7 +413,7 @@ void DivPlatformOPL::tick(bool sysTick) {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
-          if (isOutputL[ops==4][chan[i].state.alg][j] || i>melodicChans) {
+          if (KVSL(i,j) || i>melodicChans) {
             rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[i].outVol&0x3f,63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -608,7 +617,7 @@ void DivPlatformOPL::muteChannel(int ch, bool mute) {
     if (isMuted[ch]) {
       rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
     } else {
-      if (isOutputL[ops==4][chan[ch].state.alg][i] || ch>melodicChans) {
+      if (KVSL(ch,i) || ch>melodicChans) {
         rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[ch].outVol&0x3f,63))|(op.ksl<<6));
       } else {
         rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -781,7 +790,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             if (isMuted[c.chan]) {
               rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
             } else {
-              if (isOutputL[ops==4][chan[c.chan].state.alg][i] || c.chan>melodicChans) {
+              if (KVSL(c.chan,i) || c.chan>melodicChans) {
                 rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
               } else {
                 rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -897,7 +906,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         if (isMuted[c.chan]) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
-          if (isOutputL[ops==4][chan[c.chan].state.alg][i] || c.chan>melodicChans) {
+          if (KVSL(c.chan,i) || c.chan>melodicChans) {
             rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -1046,7 +1055,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       if (isMuted[c.chan]) {
         rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
       } else {
-        if (isOutputL[ops==4][chan[c.chan].state.alg][c.value] || c.chan>melodicChans) {
+        if (KVSL(c.chan,c.value) || c.chan>melodicChans) {
           rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -1276,7 +1285,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           if (isMuted[c.chan]) {
             rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
           } else {
-            if (isOutputL[ops==4][chan[c.chan].state.alg][i] || c.chan>melodicChans) {
+            if (KVSL(c.chan,i) || c.chan>melodicChans) {
               rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
             } else {
               rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -1293,7 +1302,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         if (isMuted[c.chan]) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
-          if (isOutputL[ops==4][chan[c.chan].state.alg][c.value] || c.chan>melodicChans) {
+          if (KVSL(c.chan,c.value) || c.chan>melodicChans) {
             rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -1370,7 +1379,7 @@ void DivPlatformOPL::forceIns() {
       if (isMuted[i]) {
         rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
       } else {
-        if (isOutputL[ops==4][chan[i].state.alg][j] || i>melodicChans) {
+        if (KVSL(i,j) || i>melodicChans) {
           rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[i].outVol&0x3f,63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -1419,6 +1428,15 @@ DivMacroInt* DivPlatformOPL::getChanMacroInt(int ch) {
 
 DivDispatchOscBuffer* DivPlatformOPL::getOscBuffer(int ch) {
   if (ch>=18) return NULL;
+  if (oplType==3 && ch<12) {
+    if (chan[ch&(~1)].fourOp) {
+      if (ch&1) {
+        return oscBuf[ch-1];
+      } else {
+        return oscBuf[ch+1];
+      }
+    }
+  }
   return oscBuf[ch];
 }
 
@@ -1520,7 +1538,7 @@ void DivPlatformOPL::reset() {
 }
 
 bool DivPlatformOPL::isStereo() {
-  return true;
+  return (oplType==3 || oplType==759);
 }
 
 bool DivPlatformOPL::keyOffAffectsArp(int ch) {

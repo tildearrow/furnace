@@ -34,7 +34,7 @@ int main(int argc, char** argv) {
   while ((totalRead=sf_readf_float(sf,buf,BUF_SIZE))!=0) {
     for (int i=0; i<totalRead*si.channels; i++) {
       if (buf[i]!=0.0f) {
-        printf("%ld\n",seekPos+(i/si.channels));
+        //printf("%ld\n",seekPos+(i/si.channels));
         sf_close(sf);
         free(buf);
         return 1;

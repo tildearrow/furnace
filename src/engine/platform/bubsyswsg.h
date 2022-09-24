@@ -24,7 +24,7 @@
 #include <queue>
 #include "../macroInt.h"
 #include "../waveSynth.h"
-#include "sound/k005289/k005289.hpp"
+#include "vgsound_emu/src/k005289/k005289.hpp"
 
 class DivPlatformBubSysWSG: public DivDispatch {
   struct Channel {
@@ -60,7 +60,7 @@ class DivPlatformBubSysWSG: public DivDispatch {
   bool isMuted[2];
   unsigned char writeOscBuf;
 
-  k005289_core* k005289;
+  k005289_core k005289;
   unsigned short regPool[4];
   void updateWave(int ch);
   friend void putDispatchChan(void*,int,int);

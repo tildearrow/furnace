@@ -400,7 +400,7 @@ void DivPlatformYM2610B::tick(bool sysTick) {
       for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
-        if (isOutput[chan[i].state.alg][j]) {
+        if (KVS(i,j)) {
           rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
         } else {
           rWrite(baseAddr+ADDR_TL,op.tl);
@@ -445,7 +445,7 @@ void DivPlatformYM2610B::tick(bool sysTick) {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
-          if (isOutput[chan[i].state.alg][j]) {
+          if (KVS(i,j)) {
             rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
           } else {
             rWrite(baseAddr+ADDR_TL,op.tl);
@@ -499,7 +499,7 @@ void DivPlatformYM2610B::tick(bool sysTick) {
       }
       if (m.tl.had) {
         op.tl=127-m.tl.val;
-        if (isOutput[chan[i].state.alg][j]) {
+        if (KVS(i,j)) {
           rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
         } else {
           rWrite(baseAddr+ADDR_TL,op.tl);
@@ -724,7 +724,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
-        if (isOutput[chan[c.chan].state.alg][i]) {
+        if (KVS(c.chan,i)) {
           if (!chan[c.chan].active || chan[c.chan].insChanged) {
             rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[c.chan].outVol&0x7f,127));
           }
@@ -805,7 +805,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
-        if (isOutput[chan[c.chan].state.alg][i]) {
+        if (KVS(c.chan,i)) {
           rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[c.chan].outVol&0x7f,127));
         } else {
           rWrite(baseAddr+ADDR_TL,op.tl);
@@ -916,7 +916,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.tl=c.value2;
-      if (isOutput[chan[c.chan].state.alg][c.value]) {
+      if (KVS(c.chan,c.value)) {
         rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[c.chan].outVol&0x7f,127));
       } else {
         rWrite(baseAddr+ADDR_TL,op.tl);
@@ -1119,7 +1119,7 @@ void DivPlatformYM2610B::forceIns() {
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
-      if (isOutput[chan[i].state.alg][j]) {
+      if (KVS(i,j)) {
         rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
       } else {
         rWrite(baseAddr+ADDR_TL,op.tl);

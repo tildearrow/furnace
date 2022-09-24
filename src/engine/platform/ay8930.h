@@ -66,6 +66,7 @@ class DivPlatformAY8930: public DivDispatch {
     DivDispatchOscBuffer* oscBuf[3];
     unsigned char regPool[32];
     unsigned char ayNoiseAnd, ayNoiseOr;
+    unsigned char stereoSep;
     bool bank;
 
     int delay;

@@ -78,7 +78,7 @@ void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_
       if (isMuted[i]) {
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=sn_nuked.vol_table[sn_nuked.volume_out[i]];
+        oscBuf[i]->data[oscBuf[i]->needle++]=sn_nuked.vol_table[sn_nuked.volume_out[i]]*3;
       }
     }
   }
@@ -104,7 +104,7 @@ void DivPlatformSMS::acquire_mame(short* bufL, short* bufR, size_t start, size_t
       if (isMuted[i]) {
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=sn->get_channel_output(i);
+        oscBuf[i]->data[oscBuf[i]->needle++]=sn->get_channel_output(i)*3;
       }
     }
   }
