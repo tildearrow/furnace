@@ -1214,7 +1214,7 @@ inline bool enBit30(const int val) {
 
 void FurnaceGUI::kvsConfig(DivInstrument* ins) {
   if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("(click to configure KVS)");
+    ImGui::SetTooltip("(click to configure TL scaling)");
   }
   int opCount=4;
   if (ins->type==DIV_INS_OPLL) opCount=2;
@@ -1786,12 +1786,12 @@ void FurnaceGUI::drawInsEdit() {
 
       if (ImGui::BeginTabBar("insEditTab")) {
         std::vector<FurnaceGUIMacroDesc> macroList;
-        if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS) {
+        if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPM) {
           char label[32];
           int opCount=4;
           if (ins->type==DIV_INS_OPLL) opCount=2;
           if (ins->type==DIV_INS_OPL) opCount=(ins->fm.ops==4)?4:2;
-          bool opsAreMutable=(ins->type==DIV_INS_FM);
+          bool opsAreMutable=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM);
 
           if (ImGui::BeginTabItem("FM")) {
             if (ImGui::BeginTable("fmDetails",3,ImGuiTableFlags_SizingStretchSame)) {
@@ -1801,6 +1801,7 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::TableNextRow();
               switch (ins->type) {
                 case DIV_INS_FM:
+                case DIV_INS_OPM:
                   ImGui::TableNextColumn();
                   P(CWSliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN)); rightClickable
                   P(CWSliderScalar(FM_NAME(FM_FMS),ImGuiDataType_U8,&ins->fm.fms,&_ZERO,&_SEVEN)); rightClickable
@@ -1985,7 +1986,7 @@ void FurnaceGUI::drawInsEdit() {
             }
             if (willDisplayOps) {
               if (settings.fmLayout==0) {
-                int numCols=16;
+                int numCols=15;
                 if (ins->type==DIV_INS_OPL ||ins->type==DIV_INS_OPL_DRUMS) numCols=13;
                 if (ins->type==DIV_INS_OPLL) numCols=12;
                 if (ins->type==DIV_INS_OPZ) numCols=19;
@@ -1995,7 +1996,7 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.05f); // ar
                   ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.05f); // dr
                   ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.05f); // sl
-                  if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                  if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch,0.05f); // d2r
                   }
                   ImGui::TableSetupColumn("c5",ImGuiTableColumnFlags_WidthStretch,0.05f); // rr
@@ -2012,14 +2013,16 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableSetupColumn("c9z",ImGuiTableColumnFlags_WidthStretch,0.05f); // fine
                   }
 
-                  if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                  if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     ImGui::TableSetupColumn("c10",ImGuiTableColumnFlags_WidthStretch,0.05f); // dt
+                  }
+                  if (ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     ImGui::TableSetupColumn("c11",ImGuiTableColumnFlags_WidthStretch,0.05f); // dt2
                   }
                   ImGui::TableSetupColumn("c15",ImGuiTableColumnFlags_WidthFixed); // am
 
                   ImGui::TableSetupColumn("c12",ImGuiTableColumnFlags_WidthFixed); // -separator-
-                  if (ins->type!=DIV_INS_OPLL) {
+                  if (ins->type!=DIV_INS_OPLL && ins->type!=DIV_INS_OPM) {
                     ImGui::TableSetupColumn("c13",ImGuiTableColumnFlags_WidthStretch,0.2f); // ssg/waveform
                   }
                   ImGui::TableSetupColumn("c14",ImGuiTableColumnFlags_WidthStretch,0.3f); // env
@@ -2039,7 +2042,7 @@ void FurnaceGUI::drawInsEdit() {
                     CENTER_TEXT(FM_SHORT_NAME(FM_SL));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_SL));
                   }
-                  if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                  if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     ImGui::TableNextColumn();
                     CENTER_TEXT(FM_SHORT_NAME(FM_D2R));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_D2R));
@@ -2057,7 +2060,7 @@ void FurnaceGUI::drawInsEdit() {
                   CENTER_TEXT(FM_SHORT_NAME(FM_TL));
                   ImGui::TextUnformatted(FM_SHORT_NAME(FM_TL));
                   ImGui::TableNextColumn();
-                  if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                  if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     CENTER_TEXT(FM_SHORT_NAME(FM_RS));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_RS));
                   } else {
@@ -2081,15 +2084,17 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_FINE));
                   }
                   ImGui::TableNextColumn();
-                  if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                  if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     CENTER_TEXT(FM_SHORT_NAME(FM_DT));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_DT));
                     ImGui::TableNextColumn();
+                  }
+                  if (ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     CENTER_TEXT(FM_SHORT_NAME(FM_DT2));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_DT2));
                     ImGui::TableNextColumn();
                   }
-                  if (ins->type==DIV_INS_FM) {
+                  if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
                     CENTER_TEXT(FM_SHORT_NAME(FM_AM));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_AM));
                   } else {
@@ -2101,7 +2106,7 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextColumn();
                     CENTER_TEXT(FM_NAME(FM_WS));
                     ImGui::TextUnformatted(FM_NAME(FM_WS));
-                  } else if (ins->type!=DIV_INS_OPLL) {
+                  } else if (ins->type!=DIV_INS_OPLL && ins->type!=DIV_INS_OPM) {
                     ImGui::TableNextColumn();
                     CENTER_TEXT(FM_NAME(FM_SSG));
                     ImGui::TextUnformatted(FM_NAME(FM_SSG));
@@ -2188,7 +2193,7 @@ void FurnaceGUI::drawInsEdit() {
                     if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) {
                       maxTl=63;
                     }
-                    int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ)?31:15;
+                    int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM)?31:15;
                     bool ssgOn=op.ssgEnv&8;
                     bool ksrOn=op.ksr;
                     bool vibOn=op.vib;
@@ -2212,7 +2217,7 @@ void FurnaceGUI::drawInsEdit() {
                       P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO));
                     }
 
-                    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                       ImGui::TableNextColumn();
                       op.d2r&=31;
                       CENTER_VSLIDER;
@@ -2241,7 +2246,7 @@ void FurnaceGUI::drawInsEdit() {
 
                     ImGui::TableNextColumn();
                     CENTER_VSLIDER;
-                    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                       P(CWVSliderScalar("##RS",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE));
                     } else {
                       P(CWVSliderScalar("##KSL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ksl,&_ZERO,&_THREE));
@@ -2267,7 +2272,7 @@ void FurnaceGUI::drawInsEdit() {
                       P(CWVSliderScalar("##FINE",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dvb,&_ZERO,&_FIFTEEN));
                     }
 
-                    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                    if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                       int detune=(op.dt&7)-(settings.unsignedDetune?0:3);
                       ImGui::TableNextColumn();
                       CENTER_VSLIDER;
@@ -2275,11 +2280,10 @@ void FurnaceGUI::drawInsEdit() {
                         op.dt=detune+(settings.unsignedDetune?0:3);
                       }
 
-                      ImGui::TableNextColumn();
-                      CENTER_VSLIDER;
-                      P(CWVSliderScalar("##DT2",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE)); rightClickable
-                      if (ImGui::IsItemHovered() && ins->type==DIV_INS_FM) {
-                        ImGui::SetTooltip("Only on YM2151 (OPM)");
+                      if (ins->type!=DIV_INS_FM) {
+                        ImGui::TableNextColumn();
+                        CENTER_VSLIDER;
+                        P(CWVSliderScalar("##DT2",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE)); rightClickable
                       }
 
                       ImGui::TableNextColumn();
@@ -2319,7 +2323,7 @@ void FurnaceGUI::drawInsEdit() {
                         }
                       }
 
-                      if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_OPZ) {
+                      if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_OPZ && ins->type!=DIV_INS_OPM) {
                         ImGui::TableNextColumn();
                         ImGui::Dummy(ImVec2(4.0f*dpiScale,2.0f*dpiScale));
                         ImGui::TableNextColumn();
@@ -2329,11 +2333,6 @@ void FurnaceGUI::drawInsEdit() {
                         if (ImGui::Checkbox("##SSGOn",&ssgOn)) { PARAMETER
                           op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
                         }
-                        if (ins->type==DIV_INS_FM) {
-                          if (ImGui::IsItemHovered()) {
-                            ImGui::SetTooltip("Only for OPN family chips");
-                          }
-                        }
 
                         ImGui::SameLine();
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -2341,7 +2340,7 @@ void FurnaceGUI::drawInsEdit() {
                           op.ssgEnv=(op.ssgEnv&8)|(ssgEnv&7);
                         }
                       }
-                    } else {
+                    } else if (ins->type!=DIV_INS_OPM) {
                       ImGui::TableNextColumn();
                       bool amOn=op.am;
                       ImGui::SetCursorPosY(ImGui::GetCursorPosY()+0.5*(sliderHeight-ImGui::GetFrameHeight()*4.0-ImGui::GetStyle().ItemSpacing.y*3.0));
@@ -2376,7 +2375,7 @@ void FurnaceGUI::drawInsEdit() {
                       if ((ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) && ImGui::IsItemHovered()) {
                         ImGui::SetTooltip("OPL2/3 only (last 4 waveforms are OPL3 only)");
                       }
-                    } else if (ins->type==DIV_INS_OPLL) {
+                    } else if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPM) {
                       ImGui::TableNextColumn();
                       ImGui::Dummy(ImVec2(4.0f*dpiScale,2.0f*dpiScale));
                     }
@@ -2476,7 +2475,7 @@ void FurnaceGUI::drawInsEdit() {
 
                     float sliderHeight=200.0f*dpiScale;
                     float waveWidth=140.0*dpiScale;
-                    float waveHeight=sliderHeight-ImGui::GetFrameHeightWithSpacing()*(ins->type==DIV_INS_OPLL?4.5f:5.5f);
+                    float waveHeight=sliderHeight-ImGui::GetFrameHeightWithSpacing()*((ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPL)?5.0f:4.5f);
 
                     int maxTl=127;
                     if (ins->type==DIV_INS_OPLL) {
@@ -2489,7 +2488,7 @@ void FurnaceGUI::drawInsEdit() {
                     if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) {
                       maxTl=63;
                     }
-                    int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ)?31:15;
+                    int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM)?31:15;
 
                     bool ssgOn=op.ssgEnv&8;
                     bool ksrOn=op.ksr;
@@ -2542,7 +2541,7 @@ void FurnaceGUI::drawInsEdit() {
                       }
 
                       float textX_D2R=0.0f;
-                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                         ImGui::SameLine();
                         op.d2r&=31;
                         textX_D2R=ImGui::GetCursorPosX();
@@ -2576,7 +2575,7 @@ void FurnaceGUI::drawInsEdit() {
                       CENTER_TEXT_20(FM_SHORT_NAME(FM_RR));
                       ImGui::TextUnformatted(FM_SHORT_NAME(FM_RR));
 
-                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                         ImGui::SetCursorPos(ImVec2(textX_D2R,textY));
                         CENTER_TEXT_20(FM_SHORT_NAME(FM_D2R));
                         ImGui::TextUnformatted(FM_SHORT_NAME(FM_D2R));
@@ -2593,9 +2592,6 @@ void FurnaceGUI::drawInsEdit() {
                           ImGui::EndDisabled();
                           if (ImGui::Checkbox("##SSGOn",&ssgOn)) { PARAMETER
                             op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
-                          }
-                          if (ImGui::IsItemHovered()) {
-                            ImGui::SetTooltip("Only for OPN family chips");
                           }
 
                           ImGui::SameLine();
@@ -2618,16 +2614,34 @@ void FurnaceGUI::drawInsEdit() {
                           } rightClickable
 
                           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_RS));
+                          P(CWSliderScalar("##RS",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE,tempID)); rightClickable
+
+                          break;
+                        }
+                        case DIV_INS_OPM: {
+                          drawWaveform(0,true,ImVec2(waveWidth,waveHeight));
+                          
+                          // params
+                          ImGui::Separator();
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_MULT));
+                          P(CWSliderScalar("##MULT",ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN,tempID)); rightClickable
+
+                          int detune=(op.dt&7)-(settings.unsignedDetune?0:3);
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_DT));
+                          if (CWSliderInt("##DT",&detune,-3,4,tempID)) { PARAMETER
+                            op.dt=detune+(settings.unsignedDetune?0:3);
+                          } rightClickable
+
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                           snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_DT2));
                           P(CWSliderScalar("##DT2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE,tempID)); rightClickable
-                          if (ImGui::IsItemHovered()) {
-                            ImGui::SetTooltip("Only on YM2151 (OPM)");
-                          }
 
                           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                           snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_RS));
                           P(CWSliderScalar("##RS",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE,tempID)); rightClickable
-
                           break;
                         }
                         case DIV_INS_OPLL:
@@ -2827,9 +2841,9 @@ void FurnaceGUI::drawInsEdit() {
 
                       ImGui::TableNextColumn();
                       op.tl&=maxTl;
-                      P(CWVSliderScalar("##TL",ImVec2(ImGui::GetFrameHeight(),sliderHeight-(ins->type==DIV_INS_FM?(ImGui::GetFrameHeightWithSpacing()+ImGui::CalcTextSize(FM_SHORT_NAME(FM_AM)).y+ImGui::GetStyle().ItemSpacing.y):0.0f)),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO));
+                      P(CWVSliderScalar("##TL",ImVec2(ImGui::GetFrameHeight(),sliderHeight-((ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM)?(ImGui::GetFrameHeightWithSpacing()+ImGui::CalcTextSize(FM_SHORT_NAME(FM_AM)).y+ImGui::GetStyle().ItemSpacing.y):0.0f)),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO));
 
-                      if (ins->type==DIV_INS_FM) {
+                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
                         CENTER_TEXT(FM_SHORT_NAME(FM_AM));
                         ImGui::TextUnformatted(FM_SHORT_NAME(FM_AM));
                         bool amOn=op.am;
@@ -2947,22 +2961,17 @@ void FurnaceGUI::drawInsEdit() {
                     if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) {
                       maxTl=63;
                     }
-                    int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ)?31:15;
+                    int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM)?31:15;
 
                     bool ssgOn=op.ssgEnv&8;
                     bool ksrOn=op.ksr;
                     bool vibOn=op.vib;
                     bool susOn=op.sus; // don't you make fun of this one
                     unsigned char ssgEnv=op.ssgEnv&7;
-                    if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_OPZ) {
+                    if (ins->type!=DIV_INS_OPL && ins->type!=DIV_INS_OPL_DRUMS && ins->type!=DIV_INS_OPZ && ins->type!=DIV_INS_OPM) {
                       ImGui::SameLine();
                       if (ImGui::Checkbox((ins->type==DIV_INS_OPLL)?FM_NAME(FM_EGS):"SSG On",&ssgOn)) { PARAMETER
                         op.ssgEnv=(op.ssgEnv&7)|(ssgOn<<3);
-                      }
-                      if (ins->type==DIV_INS_FM) {
-                        if (ImGui::IsItemHovered()) {
-                          ImGui::SetTooltip("Only for OPN family chips");
-                        }
                       }
                     }
 
@@ -3013,7 +3022,7 @@ void FurnaceGUI::drawInsEdit() {
                         ImGui::Text("%s",FM_NAME(FM_SL));
                       }
 
-                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                         ImGui::TableNextRow();
                         ImGui::TableNextColumn();
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -3055,7 +3064,7 @@ void FurnaceGUI::drawInsEdit() {
                       ImGui::TableNextRow();
                       ImGui::TableNextColumn();
                       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                         P(CWSliderScalar("##RS",ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE)); rightClickable
                         ImGui::TableNextColumn();
                         ImGui::Text("%s",FM_NAME(FM_RS));
@@ -3132,7 +3141,7 @@ void FurnaceGUI::drawInsEdit() {
                         ImGui::Text("%s",FM_NAME(FM_MULT));
                       }
                       
-                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+                      if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                         if (!(ins->type==DIV_INS_OPZ && op.egt)) {
                           int detune=(op.dt&7)-(settings.unsignedDetune?0:3);
                           ImGui::TableNextRow();
@@ -3145,15 +3154,14 @@ void FurnaceGUI::drawInsEdit() {
                           ImGui::Text("%s",FM_NAME(FM_DT));
                         }
 
-                        ImGui::TableNextRow();
-                        ImGui::TableNextColumn();
-                        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                        P(CWSliderScalar("##DT2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE)); rightClickable
-                        if (ImGui::IsItemHovered() && ins->type==DIV_INS_FM) {
-                          ImGui::SetTooltip("Only on YM2151 (OPM)");
+                        if (ins->type!=DIV_INS_FM) {
+                          ImGui::TableNextRow();
+                          ImGui::TableNextColumn();
+                          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                          P(CWSliderScalar("##DT2",ImGuiDataType_U8,&op.dt2,&_ZERO,&_THREE)); rightClickable
+                          ImGui::TableNextColumn();
+                          ImGui::Text("%s",FM_NAME(FM_DT2));
                         }
-                        ImGui::TableNextColumn();
-                        ImGui::Text("%s",FM_NAME(FM_DT2));
 
                         if (ins->type==DIV_INS_FM) { // OPN only
                           ImGui::TableNextRow();
@@ -3225,13 +3233,13 @@ void FurnaceGUI::drawInsEdit() {
               }
             }
             
-            if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ) {
+            if (ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
               macroList.push_back(FurnaceGUIMacroDesc("AM Depth",&ins->std.ex1Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc("PM Depth",&ins->std.ex2Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc("LFO Speed",&ins->std.ex3Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc("LFO Shape",&ins->std.waveMacro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
             }
-            if (ins->type==DIV_INS_FM) {
+            if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
               macroList.push_back(FurnaceGUIMacroDesc("OpMask",&ins->std.ex4Macro,0,4,128,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,fmOperatorBits));
             } else if (ins->type==DIV_INS_OPZ) {
               macroList.push_back(FurnaceGUIMacroDesc("AM Depth 2",&ins->std.ex5Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
@@ -3263,7 +3271,7 @@ void FurnaceGUI::drawInsEdit() {
               if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) {
                 maxTl=63;
               }
-              int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ)?31:15;
+              int maxArDr=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM)?31:15;
 
               if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS) {
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_TL),&ins->std.opMacros[ordi].tlMacro,0,maxTl,128,uiColors[GUI_COLOR_MACRO_OTHER]));
@@ -3302,7 +3310,9 @@ void FurnaceGUI::drawInsEdit() {
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_RS),&ins->std.opMacros[ordi].rsMacro,0,3,32,uiColors[GUI_COLOR_MACRO_OTHER]));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_MULT),&ins->std.opMacros[ordi].multMacro,0,15,64,uiColors[GUI_COLOR_MACRO_OTHER]));
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DT),&ins->std.opMacros[ordi].dtMacro,0,7,64,uiColors[GUI_COLOR_MACRO_OTHER]));
-                macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DT2),&ins->std.opMacros[ordi].dt2Macro,0,3,32,uiColors[GUI_COLOR_MACRO_OTHER]));
+                if (ins->type==DIV_INS_OPM || ins->type==DIV_INS_OPZ) {
+                  macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_DT2),&ins->std.opMacros[ordi].dt2Macro,0,3,32,uiColors[GUI_COLOR_MACRO_OTHER]));
+                }
                 macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_AM),&ins->std.opMacros[ordi].amMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
 
                 if (ins->type==DIV_INS_FM) {
@@ -3682,100 +3692,133 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Don't test/gate before new note",&ins->c64.noTest));
           ImGui::EndTabItem();
         }
-        if (ins->type==DIV_INS_AMIGA ||
+        if (ins->type==DIV_INS_PCE ||
+            ins->type==DIV_INS_MSM6258 ||
+            ins->type==DIV_INS_MSM6295 ||
+            ins->type==DIV_INS_ADPCMA ||
+            ins->type==DIV_INS_ADPCMB ||
+            ins->type==DIV_INS_SEGAPCM ||
+            ins->type==DIV_INS_QSOUND ||
+            ins->type==DIV_INS_YMZ280B ||
+            ins->type==DIV_INS_RF5C68 ||
+            ins->type==DIV_INS_AMIGA ||
+            ins->type==DIV_INS_MULTIPCM ||
+            ins->type==DIV_INS_MIKEY ||
+            ins->type==DIV_INS_X1_010 ||
+            ins->type==DIV_INS_SWAN ||
+            ins->type==DIV_INS_AY ||
+            ins->type==DIV_INS_AY8930 ||
+            ins->type==DIV_INS_VRC6 ||
             ins->type==DIV_INS_SU ||
             ins->type==DIV_INS_SNES ||
-            ins->type==DIV_INS_ES5506) if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
-          String sName;
-          if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
-            sName="none selected";
-          } else {
-            sName=e->song.sample[ins->amiga.initSample]->name;
-          }
-          if (ins->type==DIV_INS_SU) {
-            P(ImGui::Checkbox("Use sample",&ins->su.useSample));
-            P(ImGui::Checkbox("Switch roles of frequency and phase reset timer",&ins->su.switchRoles));
-          }
-          if (ImGui::BeginCombo("Initial Sample",sName.c_str())) {
-            String id;
-            for (int i=0; i<e->song.sampleLen; i++) {
-              id=fmt::sprintf("%d: %s",i,e->song.sample[i]->name);
-              if (ImGui::Selectable(id.c_str(),ins->amiga.initSample==i)) { PARAMETER
-                ins->amiga.initSample=i;
+            ins->type==DIV_INS_ES5506) {
+          if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
+            String sName;
+            if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
+              sName="none selected";
+            } else {
+              sName=e->song.sample[ins->amiga.initSample]->name;
+            }
+            if (ins->type==DIV_INS_PCE ||
+                ins->type==DIV_INS_MIKEY ||
+                ins->type==DIV_INS_X1_010 ||
+                ins->type==DIV_INS_SWAN ||
+                ins->type==DIV_INS_AY ||
+                ins->type==DIV_INS_AY8930 ||
+                ins->type==DIV_INS_VRC6 ||
+                ins->type==DIV_INS_SU) {
+              P(ImGui::Checkbox("Use sample",&ins->amiga.useSample));
+              if (ins->type==DIV_INS_SU) {
+                P(ImGui::Checkbox("Switch roles of frequency and phase reset timer",&ins->su.switchRoles));
+              }
+              if (ins->type==DIV_INS_X1_010) {
+                if (ImGui::InputInt("Sample bank slot##BANKSLOT",&ins->x1_010.bankSlot,1,4)) { PARAMETER
+                  if (ins->x1_010.bankSlot<0) ins->x1_010.bankSlot=0;
+                  if (ins->x1_010.bankSlot>=7) ins->x1_010.bankSlot=7;
+                }
               }
             }
-            ImGui::EndCombo();
-          }
-          if (ins->type==DIV_INS_AMIGA) {
-            P(ImGui::Checkbox("Use wavetable (Amiga only)",&ins->amiga.useWave));
-            if (ins->amiga.useWave) {
-              int len=ins->amiga.waveLen+1;
-              if (ImGui::InputInt("Width",&len,2,16)) {
-                if (len<2) len=2;
-                if (len>256) len=256;
-                ins->amiga.waveLen=(len&(~1))-1;
-                PARAMETER
+            if (ImGui::BeginCombo("Initial Sample",sName.c_str())) {
+              String id;
+              for (int i=0; i<e->song.sampleLen; i++) {
+                id=fmt::sprintf("%d: %s",i,e->song.sample[i]->name);
+                if (ImGui::Selectable(id.c_str(),ins->amiga.initSample==i)) { PARAMETER
+                  ins->amiga.initSample=i;
+                }
+              }
+              ImGui::EndCombo();
+            }
+            if (ins->type==DIV_INS_AMIGA) {
+              P(ImGui::Checkbox("Use wavetable (Amiga only)",&ins->amiga.useWave));
+              if (ins->amiga.useWave) {
+                int len=ins->amiga.waveLen+1;
+                if (ImGui::InputInt("Width",&len,2,16)) {
+                  if (len<2) len=2;
+                  if (len>256) len=256;
+                  ins->amiga.waveLen=(len&(~1))-1;
+                  PARAMETER
+                }
               }
             }
-          }
-          ImGui::BeginDisabled(ins->amiga.useWave);
-          P(ImGui::Checkbox("Use sample map (does not work yet!)",&ins->amiga.useNoteMap));
-          if (ins->amiga.useNoteMap) {
-            // TODO: frequency map?
-            if (ImGui::BeginTable("NoteMap",2,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
-              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
-              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
-              //ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+            ImGui::BeginDisabled(ins->amiga.useWave);
+            P(ImGui::Checkbox("Use sample map (does not work yet!)",&ins->amiga.useNoteMap));
+            if (ins->amiga.useNoteMap) {
+              // TODO: frequency map?
+              if (ImGui::BeginTable("NoteMap",2,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
+                ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+                //ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
 
-              ImGui::TableSetupScrollFreeze(0,1);
+                ImGui::TableSetupScrollFreeze(0,1);
 
-              ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
-              ImGui::TableNextColumn();
-              ImGui::TableNextColumn();
-              ImGui::Text("Sample");
-              /*ImGui::TableNextColumn();
-              ImGui::Text("Frequency");*/
-              for (int i=0; i<120; i++) {
-                DivInstrumentAmiga::SampleMap& sampleMap=ins->amiga.noteMap[i];
-                ImGui::TableNextRow();
-                ImGui::PushID(fmt::sprintf("NM_%d",i).c_str());
+                ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
                 ImGui::TableNextColumn();
-                ImGui::Text("%s",noteNames[60+i]);
                 ImGui::TableNextColumn();
-                if (sampleMap.map<0 || sampleMap.map>=e->song.sampleLen) {
-                  sName="-- empty --";
-                  sampleMap.map=-1;
-                } else {
-                  sName=e->song.sample[sampleMap.map]->name;
-                }
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::BeginCombo("##SM",sName.c_str())) {
-                  String id;
-                  if (ImGui::Selectable("-- empty --",sampleMap.map==-1)) { PARAMETER
-                    sampleMap.map=-1;
-                  }
-                  for (int j=0; j<e->song.sampleLen; j++) {
-                    id=fmt::sprintf("%d: %s",j,e->song.sample[j]->name);
-                    if (ImGui::Selectable(id.c_str(),sampleMap.map==j)) { PARAMETER
-                      sampleMap.map=j;
-                      if (sampleMap.freq<=0) sampleMap.freq=(int)((double)e->song.sample[j]->centerRate*pow(2.0,((double)i-48.0)/12.0));
-                    }
-                  }
-                  ImGui::EndCombo();
-                }
+                ImGui::Text("Sample");
                 /*ImGui::TableNextColumn();
-                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                if (ImGui::InputInt("##SF",&sampleMap.freq,50,500)) { PARAMETER
-                  if (sampleMap.freq<0) sampleMap.freq=0;
-                  if (sampleMap.freq>262144) sampleMap.freq=262144;
-                }*/
-                ImGui::PopID();
+                ImGui::Text("Frequency");*/
+                for (int i=0; i<120; i++) {
+                  DivInstrumentAmiga::SampleMap& sampleMap=ins->amiga.noteMap[i];
+                  ImGui::TableNextRow();
+                  ImGui::PushID(fmt::sprintf("NM_%d",i).c_str());
+                  ImGui::TableNextColumn();
+                  ImGui::Text("%s",noteNames[60+i]);
+                  ImGui::TableNextColumn();
+                  if (sampleMap.map<0 || sampleMap.map>=e->song.sampleLen) {
+                    sName="-- empty --";
+                    sampleMap.map=-1;
+                  } else {
+                    sName=e->song.sample[sampleMap.map]->name;
+                  }
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (ImGui::BeginCombo("##SM",sName.c_str())) {
+                    String id;
+                    if (ImGui::Selectable("-- empty --",sampleMap.map==-1)) { PARAMETER
+                      sampleMap.map=-1;
+                    }
+                    for (int j=0; j<e->song.sampleLen; j++) {
+                      id=fmt::sprintf("%d: %s",j,e->song.sample[j]->name);
+                      if (ImGui::Selectable(id.c_str(),sampleMap.map==j)) { PARAMETER
+                        sampleMap.map=j;
+                        if (sampleMap.freq<=0) sampleMap.freq=(int)((double)e->song.sample[j]->centerRate*pow(2.0,((double)i-48.0)/12.0));
+                      }
+                    }
+                    ImGui::EndCombo();
+                  }
+                  /*ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (ImGui::InputInt("##SF",&sampleMap.freq,50,500)) { PARAMETER
+                    if (sampleMap.freq<0) sampleMap.freq=0;
+                    if (sampleMap.freq>262144) sampleMap.freq=262144;
+                  }*/
+                  ImGui::PopID();
+                }
+                ImGui::EndTable();
               }
-              ImGui::EndTable();
             }
+            ImGui::EndDisabled();
+            ImGui::EndTabItem();
           }
-          ImGui::EndDisabled();
-          ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem(settings.c163Name.c_str())) {
           if (ImGui::InputInt("Waveform##WAVE",&ins->n163.wave,1,10)) { PARAMETER
@@ -3880,23 +3923,6 @@ void FurnaceGUI::drawInsEdit() {
         }
         if (ins->type==DIV_INS_MULTIPCM) {
           if (ImGui::BeginTabItem("MultiPCM")) {
-            String sName;
-            if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
-              sName="none selected";
-            } else {
-              sName=e->song.sample[ins->amiga.initSample]->name;
-            }
-            if (ImGui::BeginCombo("Initial Sample",sName.c_str())) {
-              String id;
-              for (int i=0; i<e->song.sampleLen; i++) {
-                id=fmt::sprintf("%d: %s",i,e->song.sample[i]->name);
-                if (ImGui::Selectable(id.c_str(),ins->amiga.initSample==i)) {
-                  ins->amiga.initSample=i;
-                  PARAMETER
-                }
-              }
-              ImGui::EndCombo();
-            }
             ImVec2 sliderSize=ImVec2(20.0f*dpiScale,128.0*dpiScale);
             if (ImGui::BeginTable("MultiPCMADSRParams",7,ImGuiTableFlags_NoHostExtendX)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
@@ -4077,11 +4103,11 @@ void FurnaceGUI::drawInsEdit() {
         }
         if (ins->type==DIV_INS_GB ||
             (ins->type==DIV_INS_AMIGA && ins->amiga.useWave) ||
-            ins->type==DIV_INS_X1_010 ||
+            (ins->type==DIV_INS_X1_010 && !ins->amiga.useSample) ||
             ins->type==DIV_INS_N163 ||
             ins->type==DIV_INS_FDS ||
-            ins->type==DIV_INS_SWAN ||
-            ins->type==DIV_INS_PCE ||
+            (ins->type==DIV_INS_SWAN && !ins->amiga.useSample) ||
+            (ins->type==DIV_INS_PCE && !ins->amiga.useSample) ||
             ins->type==DIV_INS_SCC ||
             ins->type==DIV_INS_SNES ||
             ins->type==DIV_INS_NAMCO) {
@@ -4246,7 +4272,7 @@ void FurnaceGUI::drawInsEdit() {
               }
             }
           }
-          if ((ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930)) {
+          if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930) {
             volMax=31;
           }
           if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_VERA || ins->type==DIV_INS_VRC6_SAW) {
@@ -4255,7 +4281,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_AMIGA) {
             volMax=64;
           }
-          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_SU || ins->type==DIV_INS_OPZ) {
+          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_SEGAPCM || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_SU || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
             volMax=127;
           }
           if (ins->type==DIV_INS_GB) {
@@ -4274,6 +4300,21 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ES5506) {
             volMax=65535;
           }
+          if (ins->type==DIV_INS_MSM6258) {
+            volMax=0;
+          }
+          if (ins->type==DIV_INS_MSM6295) {
+            volMax=8;
+          }
+          if (ins->type==DIV_INS_ADPCMA) {
+            volMax=31;
+          }
+          if (ins->type==DIV_INS_ADPCMB || ins->type==DIV_INS_YMZ280B || ins->type==DIV_INS_RF5C68) {
+            volMax=255;
+          }
+          if (ins->type==DIV_INS_QSOUND) {
+            volMax=16383;
+          }
 
           const char* dutyLabel="Duty/Noise";
           int dutyMin=0;
@@ -4287,38 +4328,44 @@ void FurnaceGUI::drawInsEdit() {
               dutyMax=96;
             }
           }
-          if (ins->type==DIV_INS_FM) {
+          if (ins->type==DIV_INS_STD) {
+            dutyLabel="Duty";
+          }
+          if (ins->type==DIV_INS_OPM || ins->type==DIV_INS_OPZ) {
             dutyMax=32;
           }
-          if ((ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)) {
-            dutyMax=31;
+          if (ins->type==DIV_INS_AY) {
+            dutyMax=ins->amiga.useSample?0:31;
           }
-          if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_FM) {
+          if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
             dutyLabel="Noise Freq";
           }
           if (ins->type==DIV_INS_MIKEY) {
             dutyLabel="Duty/Int";
-            dutyMax=10;
+            dutyMax=ins->amiga.useSample?0:10;
           }
           if (ins->type==DIV_INS_BEEPER) {
             dutyLabel="Pulse Width";
             dutyMax=255;
           }
           if (ins->type==DIV_INS_AY8930) {
-            dutyMax=255;
+            dutyMax=ins->amiga.useSample?0:255;
           }
-          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC || ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC) {
+          if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC ||
+              ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC || ins->type==DIV_INS_SEGAPCM ||
+              ins->type==DIV_INS_FM) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_NAMCO) {
             dutyLabel="Noise";
-            dutyMax=1;
+            dutyMax=(ins->type==DIV_INS_PCE && !ins->amiga.useSample)?1:0;
           }
           if (ins->type==DIV_INS_SWAN) {
             dutyLabel="Noise";
-            dutyMax=8;
+            dutyMax=ins->amiga.useSample?0:8;
           }
-          if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_FDS || ins->type==DIV_INS_MULTIPCM) {
+          if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS ||
+              ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_FDS || ins->type==DIV_INS_MULTIPCM) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VERA) {
@@ -4331,7 +4378,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_VRC6) {
             dutyLabel="Duty";
-            dutyMax=7;
+            dutyMax=ins->amiga.useSample?0:7;
           }
           if (ins->type==DIV_INS_SU) {
             dutyMax=127;
@@ -4340,28 +4387,62 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Filter Mode";
             dutyMax=3;
           }
+          if (ins->type==DIV_INS_MSM6258) {
+            dutyLabel="Frequency Divider";
+            dutyMax=2;
+          }
+          if (ins->type==DIV_INS_MSM6295) {
+            dutyLabel="Frequency Divider";
+            dutyMax=1;
+          }
+          if (ins->type==DIV_INS_ADPCMA) {
+            dutyLabel="Global Volume";
+            dutyMax=63;
+          }
+          if (ins->type==DIV_INS_ADPCMB || ins->type==DIV_INS_YMZ280B || ins->type==DIV_INS_RF5C68) {
+            dutyMax=0;
+          }
+          if (ins->type==DIV_INS_QSOUND) {
+            dutyLabel="Echo Level";
+            dutyMax=32767;
+          }
 
           const char* waveLabel="Waveform";
-          int waveMax=(ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
-          bool bitMode=false;
-          if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SAA1099) {
-            bitMode=true;
+          int waveMax=(ins->type==DIV_INS_VERA)?3:(MAX(1,e->song.waveLen-1));
+          bool waveBitMode=false;
+          if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SAA1099) {
+            waveBitMode=true;
           }
-          if (ins->type==DIV_INS_STD || ins->type==DIV_INS_VRC6 || ins->type==DIV_INS_VRC6_SAW) waveMax=0;
+          if (ins->type==DIV_INS_STD || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_NES) waveMax=0;
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_VIC || ins->type==DIV_INS_OPLL) waveMax=15;
           if (ins->type==DIV_INS_C64) waveMax=4;
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
-          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ) waveMax=0;
+          if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) waveMax=0;
           if (ins->type==DIV_INS_MIKEY) waveMax=0;
           if (ins->type==DIV_INS_MULTIPCM) waveMax=0;
+          if (ins->type==DIV_INS_ADPCMA) waveMax=0;
+          if (ins->type==DIV_INS_ADPCMB) waveMax=0;
+          if (ins->type==DIV_INS_QSOUND) waveMax=0;
+          if (ins->type==DIV_INS_YMZ280B) waveMax=0;
+          if (ins->type==DIV_INS_MSM6258) waveMax=0;
+          if (ins->type==DIV_INS_MSM6295) waveMax=0;
+          if (ins->type==DIV_INS_SEGAPCM) waveMax=0;
           if (ins->type==DIV_INS_SU) waveMax=7;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
-            bitMode=true;
+            waveBitMode=true;
+          }
+          if (ins->type==DIV_INS_VRC6) {
+            waveMax=ins->amiga.useSample?(MAX(1,e->song.waveLen-1)):0;
           }
 
           if (ins->type==DIV_INS_OPLL) {
             waveLabel="Patch";
+          }
+
+          if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930) {
+            waveMax=ins->amiga.useSample?0:3;
+            waveBitMode=ins->amiga.useSample?false:true;
           }
 
           const char** waveNames=NULL;
@@ -4378,8 +4459,8 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_X1_010) {
             dutyMax=0;
-            ex1Max=7;
-            ex2Max=255;
+            ex1Max=ins->amiga.useSample?0:7;
+            ex2Max=ins->amiga.useSample?0:255;
             ex2Bit=false;
           }
           if (ins->type==DIV_INS_N163) {
@@ -4394,6 +4475,13 @@ void FurnaceGUI::drawInsEdit() {
             ex1Max=16383;
             ex2Max=255;
           }
+          if (ins->type==DIV_INS_MSM6258) {
+            ex1Max=1;
+          }
+          if (ins->type==DIV_INS_QSOUND) {
+            ex1Max=16383;
+            ex2Max=2725;
+          }
           if (ins->type==DIV_INS_SAA1099) ex1Max=8;
           if (ins->type==DIV_INS_ES5506) {
             ex1Max=65535;
@@ -4406,25 +4494,39 @@ void FurnaceGUI::drawInsEdit() {
           bool panSingleNoBit=false;
           if (ins->type==DIV_INS_STD ||//Game Gear
               ins->type==DIV_INS_FM ||
+              ins->type==DIV_INS_OPM ||
               ins->type==DIV_INS_OPL ||
               ins->type==DIV_INS_OPL_DRUMS ||
               ins->type==DIV_INS_GB ||
               ins->type==DIV_INS_OPZ ||
-              ins->type==DIV_INS_VERA) {
+              ins->type==DIV_INS_MSM6258 ||
+              ins->type==DIV_INS_VERA ||
+              ins->type==DIV_INS_ADPCMA ||
+              ins->type==DIV_INS_ADPCMB) {
             panMax=1;
             panSingle=true;
           }
-          if (ins->type==DIV_INS_AMIGA) {
-            panMax=127;
-          }
-          if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_SAA1099 || ins->type==DIV_INS_NAMCO) {
+          if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_SAA1099 || ins->type==DIV_INS_NAMCO || ins->type==DIV_INS_RF5C68) {
             panMax=15;
           }
-          if (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode) {
+          if (ins->type==DIV_INS_SEGAPCM) {
+            panMax=127;
+          }
+          if (ins->type==DIV_INS_AMIGA) {
+            if (ins->std.panLMacro.mode) {
+              panMin=-16;
+              panMax=16;
+            } else {
+              panMin=0;
+              panMax=127;
+            }
+          }
+          if (ins->type==DIV_INS_QSOUND) {
             panMin=-16;
             panMax=16;
+            panSingleNoBit=true;
           }
-          if (ins->type==DIV_INS_MULTIPCM) {
+          if (ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_YMZ280B) {
             panMin=-7;
             panMax=7;
             panSingleNoBit=true;
@@ -4452,11 +4554,14 @@ void FurnaceGUI::drawInsEdit() {
             }
           }
           if (waveMax>0) {
-            macroList.push_back(FurnaceGUIMacroDesc(waveLabel,&ins->std.waveMacro,0,waveMax,(bitMode && ins->type!=DIV_INS_PET)?64:160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,bitMode,waveNames,((ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?1:0)));
+            macroList.push_back(FurnaceGUIMacroDesc(waveLabel,&ins->std.waveMacro,0,waveMax,(waveBitMode && ins->type!=DIV_INS_PET)?64:160,uiColors[GUI_COLOR_MACRO_WAVE],false,NULL,NULL,waveBitMode,waveNames,((ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930)?1:0)));
           }
           if (panMax>0) {
             if (panSingle) {
               macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+            } else if (ins->type==DIV_INS_QSOUND) {
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,panMin,panMax,CLAMP(31+panMax-panMin,32,160),uiColors[GUI_COLOR_MACRO_OTHER]));
+              macroList.push_back(FurnaceGUIMacroDesc("Surround",&ins->std.panRMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
             } else {
               if (panSingleNoBit || (ins->type==DIV_INS_AMIGA && ins->std.panLMacro.mode)) {
                 macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,panMin,panMax,CLAMP(31+panMax-panMin,32,160),uiColors[GUI_COLOR_MACRO_OTHER],false,(ins->type==DIV_INS_AMIGA)?macroQSoundMode:NULL));
@@ -4474,21 +4579,33 @@ void FurnaceGUI::drawInsEdit() {
           }
           macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
           if (ins->type==DIV_INS_FM ||
+              ins->type==DIV_INS_OPM ||
               ins->type==DIV_INS_STD ||
+              ins->type==DIV_INS_NES ||
               ins->type==DIV_INS_OPL ||
               ins->type==DIV_INS_OPL_DRUMS ||
               ins->type==DIV_INS_OPZ ||
               ins->type==DIV_INS_PCE ||
               ins->type==DIV_INS_GB ||
+              ins->type==DIV_INS_MSM6258 ||
+              ins->type==DIV_INS_MSM6295 ||
+              ins->type==DIV_INS_ADPCMA ||
+              ins->type==DIV_INS_ADPCMB ||
+              ins->type==DIV_INS_SEGAPCM ||
+              ins->type==DIV_INS_QSOUND ||
+              ins->type==DIV_INS_YMZ280B ||
+              ins->type==DIV_INS_RF5C68 ||
               ins->type==DIV_INS_AMIGA ||
               ins->type==DIV_INS_OPLL ||
               ins->type==DIV_INS_AY ||
               ins->type==DIV_INS_AY8930 ||
               ins->type==DIV_INS_SWAN ||
               ins->type==DIV_INS_MULTIPCM ||
+              (ins->type==DIV_INS_VRC6 && ins->amiga.useSample) ||
               ins->type==DIV_INS_SU ||
               ins->type==DIV_INS_MIKEY ||
-              ins->type==DIV_INS_ES5506) {
+              ins->type==DIV_INS_ES5506 ||
+              (ins->type==DIV_INS_X1_010 && ins->amiga.useSample)) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {
@@ -4496,7 +4613,7 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Filter Mode",&ins->std.ex1Macro,0,ex1Max,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,filtModeBits));
             } else if (ins->type==DIV_INS_SAA1099) {
               macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,saaEnvBits));
-            } else if (ins->type==DIV_INS_X1_010) {
+            } else if (ins->type==DIV_INS_X1_010 && !ins->amiga.useSample) {
               macroList.push_back(FurnaceGUIMacroDesc("Envelope Mode",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,x1_010EnvBits));
             } else if (ins->type==DIV_INS_N163) {
               macroList.push_back(FurnaceGUIMacroDesc("Wave Length",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
@@ -4506,6 +4623,10 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Cutoff",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_ES5506) {
               macroList.push_back(FurnaceGUIMacroDesc("Filter K1",&ins->std.ex1Macro,((ins->std.ex1Macro.mode==1)?(-ex1Max):0),ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,macroRelativeMode));
+            } else if (ins->type==DIV_INS_MSM6258) {
+              macroList.push_back(FurnaceGUIMacroDesc("Clock Divider",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+            } else if (ins->type==DIV_INS_QSOUND) {
+              macroList.push_back(FurnaceGUIMacroDesc("Echo Feedback",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             }
@@ -4521,6 +4642,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Resonance",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_ES5506) {
               macroList.push_back(FurnaceGUIMacroDesc("Filter K2",&ins->std.ex2Macro,((ins->std.ex2Macro.mode==1)?(-ex2Max):0),ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,macroRelativeMode));
+            } else if (ins->type==DIV_INS_QSOUND) {
+              macroList.push_back(FurnaceGUIMacroDesc("Echo Buffer Len",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex2Macro,0,ex2Max,ex2Bit?64:160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,ex2Bit,ayEnvBits));
             }
@@ -4529,7 +4652,7 @@ void FurnaceGUI::drawInsEdit() {
             macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex3Macro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,c64SpecialBits));
             macroList.push_back(FurnaceGUIMacroDesc("Test/Gate",&ins->std.ex4Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
-          if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_X1_010) {
+          if (ins->type==DIV_INS_AY || ins->type==DIV_INS_AY8930 || (ins->type==DIV_INS_X1_010 && !ins->amiga.useSample)) {
             macroList.push_back(FurnaceGUIMacroDesc("AutoEnv Num",&ins->std.ex3Macro,0,15,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("AutoEnv Den",&ins->std.algMacro,0,15,160,uiColors[GUI_COLOR_MACRO_OTHER]));
           }

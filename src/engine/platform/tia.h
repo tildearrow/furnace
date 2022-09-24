@@ -46,6 +46,7 @@ class DivPlatformTIA: public DivDispatch {
     unsigned char chanOscCounter;
     TIA::Audio tia;
     unsigned char regPool[16];
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
     unsigned char dealWithFreq(unsigned char shape, int base, int pitch);

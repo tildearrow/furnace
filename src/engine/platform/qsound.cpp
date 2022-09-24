@@ -268,10 +268,16 @@ void DivPlatformQSound::tick(bool sysTick) {
   for (int i=0; i<16; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=((chan[i].vol&0xff)*chan[i].std.vol.val)>>6;
+      if (chan[i].isNewQSound) {
+        chan[i].outVol=((chan[i].vol&0xff)*MIN(16383,chan[i].std.vol.val))/16383;
+        chan[i].resVol=((chan[i].vol&0xff)*MIN(16383,chan[i].std.vol.val))/255;
+      } else {
+        chan[i].outVol=((chan[i].vol&0xff)*chan[i].std.vol.val)>>6;
+        chan[i].resVol=chan[i].outVol<<4;
+      }
       // Check if enabled and write volume
       if (chan[i].active) {
-        rWrite(q1_reg_map[Q1V_VOL][i], chan[i].outVol << 4);
+        rWrite(q1_reg_map[Q1V_VOL][i],chan[i].resVol);
       }
     }
     uint16_t qsound_bank = 0;
@@ -283,16 +289,17 @@ void DivPlatformQSound::tick(bool sysTick) {
       qsound_bank = 0x8000 | (s->offQSound >> 16);
       qsound_addr = s->offQSound & 0xffff;
 
-      int length = s->getEndPosition();
+      int loopStart=s->loopStart;
+      int length = s->loopEnd;
       if (length > 65536 - 16) {
         length = 65536 - 16;
       }
-      if (s->loopStart == -1 || s->loopStart >= length) {
+      if (loopStart == -1 || loopStart >= length) {
         qsound_end = s->offQSound + length + 15;
         qsound_loop = 15;
       } else {
         qsound_end = s->offQSound + length;
-        qsound_loop = length - s->loopStart;
+        qsound_loop = length - loopStart;
       }
     }
     if (chan[i].std.arp.had) {
@@ -300,6 +307,16 @@ void DivPlatformQSound::tick(bool sysTick) {
         chan[i].baseFreq=QS_NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
+    }
+    if (chan[i].isNewQSound && chan[i].std.duty.had) {
+      chan[i].echo=CLAMP(chan[i].std.duty.val,0,32767);
+      immWrite(Q1_ECHO+i,chan[i].echo&0x7fff);
+    }
+    if (chan[i].isNewQSound && chan[i].std.ex1.had) {
+      immWrite(Q1_ECHO_FEEDBACK,chan[i].std.ex1.val&0x3fff);
+    }
+    if (chan[i].isNewQSound && chan[i].std.ex2.had) {
+      immWrite(Q1_ECHO_LENGTH,0xfff-(2725-CLAMP(chan[i].std.ex2.val&0xfff,0,2725)));
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -318,6 +335,11 @@ void DivPlatformQSound::tick(bool sysTick) {
     }
     if (chan[i].std.panL.had || chan[i].std.panR.had) {
       immWrite(Q1_PAN+i,chan[i].panning+0x110+(chan[i].surround?0:0x30));
+    }
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1 && chan[i].active && (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen)) {
+        chan[i].keyOn=true;
+      }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AMIGA);
@@ -341,16 +363,21 @@ void DivPlatformQSound::tick(bool sysTick) {
         //logV("ch %d bank=%04x, addr=%04x, end=%04x, loop=%04x!",i,qsound_bank,qsound_addr,qsound_end,qsound_loop);
         // Write sample address. Enable volume
         if (!chan[i].std.vol.had) {
-          rWrite(q1_reg_map[Q1V_VOL][i], chan[i].vol << 4);
+          if (chan[i].isNewQSound) {
+            chan[i].resVol=(chan[i].vol*16383)/255;
+          } else {
+            chan[i].resVol=chan[i].vol<<4;
+          }
+          rWrite(q1_reg_map[Q1V_VOL][i],chan[i].resVol);
         }
       }
       if (chan[i].keyOff) {
         // Disable volume
-        rWrite(q1_reg_map[Q1V_VOL][i], 0);
-        rWrite(q1_reg_map[Q1V_FREQ][i], 0);
+        rWrite(q1_reg_map[Q1V_VOL][i],0);
+        rWrite(q1_reg_map[Q1V_FREQ][i],0);
       } else if (chan[i].active) {
         //logV("ch %d frequency set to %04x, off=%f, note=%d, %04x!",i,chan[i].freq,off,chan[i].note,QS_NOTE_FREQUENCY(chan[i].note));
-        rWrite(q1_reg_map[Q1V_FREQ][i], chan[i].freq);
+        rWrite(q1_reg_map[Q1V_FREQ][i],chan[i].freq);
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
@@ -363,6 +390,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
+      chan[c.chan].isNewQSound=(ins->type==DIV_INS_QSOUND);
       chan[c.chan].sample=ins->amiga.getSample(c.value);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(c.value);
@@ -379,6 +407,11 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
+        if (chan[c.chan].isNewQSound) {
+          chan[c.chan].resVol=(chan[c.chan].outVol*16383)/255;
+        } else {
+          chan[c.chan].resVol=chan[c.chan].outVol<<4;
+        }
       }
       break;
     }
@@ -403,8 +436,13 @@ int DivPlatformQSound::dispatch(DivCommand c) {
         if (!chan[c.chan].std.vol.has) {
           // Check if enabled and write volume
           chan[c.chan].outVol=c.value;
-          if (chan[c.chan].active && c.chan < 16) {
-            rWrite(q1_reg_map[Q1V_VOL][c.chan], chan[c.chan].outVol << 4);
+          if (chan[c.chan].isNewQSound) {
+            chan[c.chan].resVol=(chan[c.chan].outVol*16383)/255;
+          } else {
+            chan[c.chan].resVol=chan[c.chan].outVol<<4;
+          }
+          if (chan[c.chan].active && c.chan<16) {
+            rWrite(q1_reg_map[Q1V_VOL][c.chan],chan[c.chan].resVol);
           }
         }
       }
@@ -420,7 +458,8 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       immWrite(Q1_PAN+c.chan,chan[c.chan].panning+0x110+(chan[c.chan].surround?0:0x30));
       break;
     case DIV_CMD_QSOUND_ECHO_LEVEL:
-      immWrite(Q1_ECHO+c.chan, c.value << 7);
+      chan[c.chan].echo=c.value<<7;
+      immWrite(Q1_ECHO+c.chan,chan[c.chan].echo&0x7fff);
       break;
     case DIV_CMD_QSOUND_ECHO_FEEDBACK:
       immWrite(Q1_ECHO_FEEDBACK, c.value << 6);

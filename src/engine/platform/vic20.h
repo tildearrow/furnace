@@ -63,6 +63,7 @@ class DivPlatformVIC20: public DivDispatch {
   unsigned char regPool[16];
   sound_vic20_t* vic;
   void updateWave(int ch);
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);

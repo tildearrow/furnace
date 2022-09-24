@@ -29,12 +29,13 @@
 class DivPlatformPCE: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note, antiClickPeriodCount, antiClickWavePos;
-    int dacPeriod, dacRate;
+    int dacPeriod, dacRate, dacOut;
     unsigned int dacPos;
     int dacSample, ins;
     unsigned char pan;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, furnaceDac, deferredWaveUpdate;
     signed char vol, outVol, wave;
+    int macroVolMul;
     DivMacroInt std;
     DivWaveSynth ws;
     void macroInit(DivInstrument* which) {
@@ -51,6 +52,7 @@ class DivPlatformPCE: public DivDispatch {
       antiClickWavePos(0),
       dacPeriod(0),
       dacRate(0),
+      dacOut(0),
       dacPos(0),
       dacSample(-1),
       ins(-1),
@@ -67,7 +69,8 @@ class DivPlatformPCE: public DivDispatch {
       deferredWaveUpdate(false),
       vol(31),
       outVol(31),
-      wave(-1) {}
+      wave(-1),
+      macroVolMul(31) {}
   };
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];
@@ -88,6 +91,7 @@ class DivPlatformPCE: public DivDispatch {
   PCE_PSG* pce;
   unsigned char regPool[128];
   void updateWave(int ch);
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);

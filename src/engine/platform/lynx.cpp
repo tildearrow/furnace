@@ -34,6 +34,7 @@
 #define WRITE_STEREO(v) rWrite(0x50,(v))
 
 #define CHIP_DIVIDER 64
+#define CHIP_FREQBASE 16000000
 
 #if defined( _MSC_VER )
 
@@ -140,12 +141,12 @@ void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len
           if (s!=NULL) {
             if (isMuted[i]) {
               WRITE_OUTPUT(i,0);
-              chan[i].samplePos++;
             } else {
-              WRITE_OUTPUT(i,(s->data8[chan[i].samplePos++]*chan[i].outVol)>>7);
+              WRITE_OUTPUT(i,CLAMP((s->data8[chan[i].samplePos]*chan[i].outVol)>>7,-128,127));
             }
+            chan[i].samplePos++;
 
-            if (s->isLoopable() && chan[i].samplePos>=(int)s->getEndPosition()) {
+            if (s->isLoopable() && chan[i].samplePos>=s->loopEnd) {
               chan[i].samplePos=s->loopStart;
             } else if (chan[i].samplePos>=(int)s->samples) {
               chan[i].sample=-1;
@@ -164,7 +165,7 @@ void DivPlatformLynx::tick(bool sysTick) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       if (chan[i].pcm) {
-        chan[i].outVol=((chan[i].vol&127)*MIN(64,chan[i].std.vol.val))>>6;
+        chan[i].outVol=((chan[i].vol&127)*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/chan[i].macroVolMul;
       } else {
         chan[i].outVol=((chan[i].vol&127)*MIN(127,chan[i].std.vol.val))>>7;
       }
@@ -174,7 +175,7 @@ void DivPlatformLynx::tick(bool sysTick) {
       if (!chan[i].inPorta) {
         chan[i].actualNote=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].actualNote);
-        if (chan[i].pcm) chan[i].sampleBaseFreq=parent->calcBaseFreq(1.0,1.0,chan[i].actualNote,false);
+        if (chan[i].pcm) chan[i].sampleBaseFreq=NOTE_FREQUENCY(chan[i].actualNote);
         chan[i].freqChanged=true;
       }
     }
@@ -205,6 +206,10 @@ void DivPlatformLynx::tick(bool sysTick) {
 
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
+        if (chan[i].pcm && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+          chan[i].sampleAccum=0;
+          chan[i].samplePos=0;
+        }
         WRITE_LFSR(i, 0);
         WRITE_OTHER(i, 0);
       }
@@ -221,7 +226,7 @@ void DivPlatformLynx::tick(bool sysTick) {
             off=(double)s->centerRate/8363.0;
           }
         }
-        chan[i].sampleFreq=off*parent->calcFreq(chan[i].sampleBaseFreq,chan[i].pitch,false,2,chan[i].pitch2,1,1);
+        chan[i].sampleFreq=off*parent->calcFreq(chan[i].sampleBaseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       } else {
         if (chan[i].lfsr >= 0) {
           WRITE_LFSR(i, (chan[i].lfsr&0xff));
@@ -251,11 +256,12 @@ int DivPlatformLynx::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY);
-      chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA);
+      chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:127;
+      chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA || ins->amiga.useSample);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         if (chan[c.chan].pcm) {
-          chan[c.chan].sampleBaseFreq=parent->calcBaseFreq(1.0,1.0,c.value,false);
+          chan[c.chan].sampleBaseFreq=NOTE_FREQUENCY(c.value);
           chan[c.chan].sample=ins->amiga.getSample(c.value);
           chan[c.chan].sampleAccum=0;
           chan[c.chan].samplePos=0;
@@ -268,7 +274,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       WRITE_VOLUME(c.chan,(isMuted[c.chan]?0:(chan[c.chan].vol&127)));
-      chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY));
+      chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
@@ -348,7 +354,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       int whatAMess=c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0));
       chan[c.chan].baseFreq=NOTE_PERIODIC(whatAMess);
       if (chan[c.chan].pcm) {
-        chan[c.chan].sampleBaseFreq=parent->calcBaseFreq(1.0,1.0,whatAMess,false);
+        chan[c.chan].sampleBaseFreq=NOTE_FREQUENCY(whatAMess);
       }
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;

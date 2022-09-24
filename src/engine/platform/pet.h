@@ -62,6 +62,7 @@ class DivPlatformPET: public DivDispatch {
   bool isMuted;
 
   unsigned char regPool[16];
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);

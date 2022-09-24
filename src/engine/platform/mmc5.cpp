@@ -54,7 +54,7 @@ void DivPlatformMMC5::acquire(short* bufL, short* bufR, size_t start, size_t len
             rWrite(0x5011,((unsigned char)s->data8[dacPos]+0x80));
           }
           dacPos++;
-          if (s->isLoopable() && dacPos>=s->getEndPosition()) {
+          if (s->isLoopable() && dacPos>=(unsigned int)s->loopEnd) {
             dacPos=s->loopStart;
           } else if (dacPos>=s->samples) {
             dacSample=-1;

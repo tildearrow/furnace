@@ -87,6 +87,7 @@ class DivPlatformMSM6258: public DivDispatch {
 
     int delay, updateOsc, sample, samplePos;
 
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:

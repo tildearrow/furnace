@@ -80,11 +80,11 @@ const int vgmVersions[6]={
 };
 
 const char* insTypes[DIV_INS_MAX+1]={
-  "Standard (SMS/NES)",
-  "FM (4-operator)",
+  "SN76489/Sega PSG",
+  "FM (OPN)",
   "Game Boy",
   "C64",
-  "Sample",
+  "Generic Sample",
   "PC Engine",
   "AY-3-8910/SSG",
   "AY8930",
@@ -113,7 +113,23 @@ const char* insTypes[DIV_INS_MAX+1]={
   "Sound Unit",
   "Namco WSG",
   "OPL (drums)",
+  "FM (OPM)", // 33
+  "NES", // 34
+  "MSM6258",
+  "MSM6295",
+  "ADPCM-A",
+  "ADPCM-B",
+  "SegaPCM",
+  "QSound",
+  "YMZ280B",
+  "RF5C68",
   NULL
+};
+
+const char* sampleLoopModes[DIV_SAMPLE_LOOP_MAX]={
+  "Forward",
+  "Backward",
+  "Ping pong"
 };
 
 const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
@@ -772,6 +788,16 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_SU,"",ImVec4(0.95f,0.98f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_NAMCO,"",ImVec4(1.0f,1.0f,0.0f,1.0f)),
   D(GUI_COLOR_INSTR_OPL_DRUMS,"",ImVec4(0.3f,1.0f,0.9f,1.0f)),
+  D(GUI_COLOR_INSTR_OPM,"",ImVec4(0.2f,0.6f,1.0f,1.0f)),
+  D(GUI_COLOR_INSTR_NES,"",ImVec4(0.4f,1.0f,0.3f,1.0f)),
+  D(GUI_COLOR_INSTR_MSM6258,"",ImVec4(1.0f,0.5f,0.7f,1.0f)),
+  D(GUI_COLOR_INSTR_MSM6295,"",ImVec4(1.0f,0.6f,0.9f,1.0f)),
+  D(GUI_COLOR_INSTR_ADPCMA,"",ImVec4(1.0f,1.0f,0.5f,1.0f)),
+  D(GUI_COLOR_INSTR_ADPCMB,"",ImVec4(1.0f,0.75f,0.5f,1.0f)),
+  D(GUI_COLOR_INSTR_SEGAPCM,"",ImVec4(1.0f,0.9f,0.6f,1.0f)),
+  D(GUI_COLOR_INSTR_QSOUND,"",ImVec4(1.0f,0.8f,0.3f,1.0f)),
+  D(GUI_COLOR_INSTR_YMZ280B,"",ImVec4(0.4f,0.5f,1.0f,1.0f)),
+  D(GUI_COLOR_INSTR_RF5C68,"",ImVec4(1.0f,0.3f,0.3f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_BG,"",ImVec4(0.4f,0.6f,0.8f,1.0f)),

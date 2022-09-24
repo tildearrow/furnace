@@ -36,26 +36,73 @@ void DivPlatformPCMDAC::acquire(short* bufL, short* bufR, size_t start, size_t l
       continue;
     }
     if (chan.useWave || (chan.sample>=0 && chan.sample<parent->song.sampleLen)) {
-      chan.audPos+=chan.freq>>16;
+      chan.audPos+=((!chan.useWave) && chan.audDir)?-(chan.freq>>16):(chan.freq>>16);
       chan.audSub+=(chan.freq&0xffff);
       if (chan.audSub>=0x10000) {
         chan.audSub-=0x10000;
-        chan.audPos+=1;
+        chan.audPos+=((!chan.useWave) && chan.audDir)?-1:1;
       }
       if (chan.useWave) {
-        if (chan.audPos>=(unsigned int)(chan.audLen<<1)) {
-          chan.audPos=0;
+        if (chan.audPos>=(int)chan.audLen) {
+          chan.audPos%=chan.audLen;
+          chan.audDir=false;
         }
         output=(chan.ws.output[chan.audPos]^0x80)<<8;
       } else {
         DivSample* s=parent->getSample(chan.sample);
         if (s->samples>0) {
-          if (s->isLoopable() && chan.audPos>=s->getEndPosition()) {
-            chan.audPos=s->loopStart;
-          } else if (chan.audPos>=s->samples) {
-            chan.sample=-1;
+          if (chan.audDir) {
+            if (s->isLoopable()) {
+              switch (s->loopMode) {
+                case DIV_SAMPLE_LOOP_FORWARD:
+                case DIV_SAMPLE_LOOP_PINGPONG:
+                  if (chan.audPos<s->loopStart) {
+                    chan.audPos=s->loopStart+(s->loopStart-chan.audPos);
+                    chan.audDir=false;
+                  }
+                  break;
+                case DIV_SAMPLE_LOOP_BACKWARD:
+                  if (chan.audPos<s->loopStart) {
+                    chan.audPos=s->loopEnd-1-(s->loopStart-chan.audPos);
+                    chan.audDir=true;
+                  }
+                  break;
+                default:
+                  if (chan.audPos<0) {
+                    chan.sample=-1;
+                  }
+                  break;
+              }
+            } else if (chan.audPos>=(int)s->samples) {
+              chan.sample=-1;
+            }
+          } else {
+            if (s->isLoopable()) {
+              switch (s->loopMode) {
+                case DIV_SAMPLE_LOOP_FORWARD:
+                  if (chan.audPos>=s->loopEnd) {
+                    chan.audPos=(chan.audPos+s->loopStart)-s->loopEnd;
+                    chan.audDir=false;
+                  }
+                  break;
+                case DIV_SAMPLE_LOOP_BACKWARD:
+                case DIV_SAMPLE_LOOP_PINGPONG:
+                  if (chan.audPos>=s->loopEnd) {
+                    chan.audPos=s->loopEnd-1-(s->loopEnd-1-chan.audPos);
+                    chan.audDir=true;
+                  }
+                  break;
+                default:
+                  if (chan.audPos>=(int)s->samples) {
+                    chan.sample=-1;
+                  }
+                  break;
+              }
+            } else if (chan.audPos>=(int)s->samples) {
+              chan.sample=-1;
+            }
           }
-          if (chan.audPos<s->samples) {
+          if (chan.audPos>=0 && chan.audPos<(int)s->samples) {
             output=s->data16[chan.audPos];
           }
         } else {
@@ -116,6 +163,7 @@ void DivPlatformPCMDAC::tick(bool sysTick) {
   }
   if (chan.std.phaseReset.had) {
     if (chan.std.phaseReset.val==1) {
+      chan.audDir=false;
       chan.audPos=0;
     }
   }
@@ -147,11 +195,11 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan.ins,DIV_INS_AMIGA);
       if (ins->amiga.useWave) {
         chan.useWave=true;
-        chan.audLen=(ins->amiga.waveLen+1)>>1;
+        chan.audLen=ins->amiga.waveLen;
         if (chan.insChanged) {
           if (chan.wave<0) {
             chan.wave=0;
-            chan.ws.setWidth(chan.audLen<<1);
+            chan.ws.setWidth(chan.audLen);
             chan.ws.changeWave1(chan.wave);
           }
         }
@@ -168,6 +216,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       if (chan.setPos) {
         chan.setPos=false;
       } else {
+        chan.audDir=false;
         chan.audPos=0;
       }
       chan.audSub=0;
@@ -182,7 +231,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
         chan.envVol=64;
       }
       if (chan.useWave) {
-        chan.ws.init(ins,chan.audLen<<1,255,chan.insChanged);
+        chan.ws.init(ins,chan.audLen,255,chan.insChanged);
       }
       chan.insChanged=false;
       break;
@@ -289,6 +338,7 @@ void DivPlatformPCMDAC::muteChannel(int ch, bool mute) {
 void DivPlatformPCMDAC::forceIns() {
   chan.insChanged=true;
   chan.freqChanged=true;
+  chan.audDir=false;
   chan.audPos=0;
   chan.sample=-1;
 }

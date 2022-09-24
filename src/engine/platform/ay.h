@@ -31,20 +31,83 @@ class DivPlatformAY8910: public DivDispatch {
     };
     inline unsigned char regRemap(unsigned char reg) { return intellivision?AY8914RegRemap[reg&0x0f]:reg&0x0f; }
     struct Channel {
-      unsigned char freqH, freqL;
+      struct PSGMode {
+        unsigned char tone: 1;
+        unsigned char noise: 1;
+        unsigned char envelope: 1;
+        unsigned char dac: 1;
+
+        unsigned char getTone() {
+          return dac?0:(tone<<0);
+        }
+
+        unsigned char getNoise() {
+          return dac?0:(noise<<1);
+        }
+
+        unsigned char getEnvelope() {
+          return dac?0:(envelope<<2);
+        }
+
+        PSGMode& operator=(unsigned char s) {
+          tone=(s>>0)&1;
+          noise=(s>>1)&1;
+          envelope=(s>>2)&1;
+          dac=(s>>3)&1;
+          return *this;
+        }
+
+        PSGMode():
+          tone(1),
+          noise(0),
+          envelope(0),
+          dac(0) {}
+      } psgMode;
+
+      struct DAC {
+        int sample, rate, period, pos, out;
+        unsigned char furnaceDAC: 1;
+
+        DAC():
+          sample(-1),
+          rate(0),
+          period(0),
+          pos(0),
+          out(0),
+          furnaceDAC(0) {}
+      } dac;
+
       int freq, baseFreq, note, pitch, pitch2;
       int ins;
-      unsigned char psgMode, autoEnvNum, autoEnvDen;
+      unsigned char autoEnvNum, autoEnvDen;
       signed char konCycles;
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
       int vol, outVol;
-      unsigned char pan;
       DivMacroInt std;
       void macroInit(DivInstrument* which) {
         std.init(which);
         pitch2=0;
       }
-      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), note(0), pitch(0), pitch2(0), ins(-1), psgMode(1), autoEnvNum(0), autoEnvDen(0), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15), pan(3) {}
+      Channel():
+        psgMode(PSGMode()),
+        dac(DAC()),
+        freq(0),
+        baseFreq(0),
+        note(0),
+        pitch(0),
+        pitch2(0),
+        ins(-1),
+        autoEnvNum(0),
+        autoEnvDen(0),
+        active(false),
+        insChanged(true),
+        freqChanged(false),
+        keyOn(false),
+        keyOff(false),
+        portaPause(false),
+        inPorta(false),
+        vol(0),
+        outVol(15) {}
     };
     Channel chan[3];
     bool isMuted[3];
@@ -60,11 +123,6 @@ class DivPlatformAY8910: public DivDispatch {
     unsigned char regPool[16];
     unsigned char lastBusy;
   
-    bool dacMode;
-    int dacPeriod;
-    int dacRate;
-    int dacPos;
-    int dacSample;
     unsigned char sampleBank;
     unsigned char stereoSep;
 
@@ -87,8 +145,11 @@ class DivPlatformAY8910: public DivDispatch {
     short* ayBuf[3];
     size_t ayBufLen;
 
+    void runDAC();
+    void checkWrites();
     void updateOutSel(bool immediate=false);
-
+  
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:

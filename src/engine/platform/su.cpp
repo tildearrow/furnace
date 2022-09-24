@@ -163,7 +163,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
           DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
           DivSample* sample=parent->getSample(ins->amiga.getSample(chan[i].note));
           if (sample!=NULL) {
-            unsigned int sampleEnd=sample->offSU+(sample->getEndPosition());
+            unsigned int sampleEnd=sample->offSU+(sample->getLoopEndPosition());
             unsigned int off=sample->offSU+chan[i].hasOffset;
             chan[i].hasOffset=0;
             if (sampleEnd>=getSampleMemCapacity(0)) sampleEnd=getSampleMemCapacity(0)-1;
@@ -172,7 +172,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
             chWrite(i,0x0c,sampleEnd&0xff);
             chWrite(i,0x0d,sampleEnd>>8);
             if (sample->isLoopable()) {
-              unsigned int sampleLoop=sample->offSU+sample->loopStart;
+              unsigned int sampleLoop=sample->offSU+sample->getLoopStartPosition();
               if (sampleLoop>=getSampleMemCapacity(0)) sampleLoop=getSampleMemCapacity(0)-1;
               chWrite(i,0x0e,sampleLoop&0xff);
               chWrite(i,0x0f,sampleLoop>>8);
@@ -200,12 +200,12 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SU);
       chan[c.chan].switchRoles=ins->su.switchRoles;
-      if (chan[c.chan].pcm && !(ins->type==DIV_INS_AMIGA || ins->su.useSample)) {
-        chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA || ins->su.useSample);
+      if (chan[c.chan].pcm && !(ins->type==DIV_INS_AMIGA || ins->amiga.useSample)) {
+        chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA || ins->amiga.useSample);
         writeControl(c.chan);
         writeControlUpper(c.chan);
       }
-      chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA || ins->su.useSample);
+      chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA || ins->amiga.useSample);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_SU(c.chan,c.value);
         chan[c.chan].freqChanged=true;
@@ -552,7 +552,7 @@ void DivPlatformSoundUnit::renderSamples() {
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (s->data8==NULL) continue;
-    int paddedLen=s->samples;
+    int paddedLen=s->length8;
     if (memPos>=getSampleMemCapacity(0)) {
       logW("out of PCM memory for sample %d!",i);
       break;

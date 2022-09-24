@@ -113,6 +113,7 @@ class DivPlatformSoundUnit: public DivDispatch {
   void writeControl(int ch);
   void writeControlUpper(int ch);
 
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);

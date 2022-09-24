@@ -338,6 +338,46 @@ void FurnaceGUI::drawInsList(bool asChild) {
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPL_DRUMS]);
               name=fmt::sprintf(ICON_FA_COFFEE " %.2X: %s##_INS%d",i,ins->name,i);
               break;
+            case DIV_INS_OPM:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPM]);
+              name=fmt::sprintf(ICON_FA_AREA_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_NES:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_NES]);
+              name=fmt::sprintf(ICON_FA_GAMEPAD " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_MSM6258:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MSM6258]);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_MSM6295:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MSM6295]);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_ADPCMA:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_ADPCMA]);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_ADPCMB:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_ADPCMB]);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_SEGAPCM:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SEGAPCM]);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_QSOUND:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_QSOUND]);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_YMZ280B:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_YMZ280B]);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_RF5C68:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_RF5C68]);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
             default:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
               name=fmt::sprintf(ICON_FA_QUESTION " %.2X: %s##_INS%d",i,ins->name,i);

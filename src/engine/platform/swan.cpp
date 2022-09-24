@@ -63,7 +63,7 @@ void DivPlatformSwan::acquire(short* bufL, short* bufR, size_t start, size_t len
           break;
         }
         rWrite(0x09,(unsigned char)s->data8[dacPos++]+0x80);
-        if (s->isLoopable() && dacPos>=s->getEndPosition()) {
+        if (s->isLoopable() && dacPos>=(unsigned int)s->loopEnd) {
           dacPos=s->loopStart;
         } else if (dacPos>=s->samples) {
           dacSample=-1;
@@ -222,7 +222,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SWAN);
       if (c.chan==1) {
-        if (ins->type==DIV_INS_AMIGA) {
+        if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           pcm=true;
         } else if (furnaceDac) {
           pcm=false;
@@ -231,7 +231,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
           if (skipRegisterWrites) break;
           dacPos=0;
           dacPeriod=0;
-          if (ins->type==DIV_INS_AMIGA) {
+          if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
             dacSample=ins->amiga.getSample(c.value);
             if (dacSample<0 || dacSample>=parent->song.sampleLen) {
               dacSample=-1;

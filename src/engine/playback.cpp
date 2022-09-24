@@ -167,6 +167,7 @@ const char* cmdName[]={
   "X1_010_ENVELOPE_PERIOD",
   "X1_010_ENVELOPE_SLIDE",
   "X1_010_AUTO_ENVELOPE",
+  "X1_010_SAMPLE_BANK_SLOT",
 
   "WS_SWEEP_TIME",
   "WS_SWEEP_AMOUNT",
@@ -190,6 +191,8 @@ const char* cmdName[]={
   "DIV_CMD_SU_SWEEP_ENABLE",
   "DIV_CMD_SU_SYNC_PERIOD_LOW",
   "DIV_CMD_SU_SYNC_PERIOD_HIGH",
+
+  "ADPCMA_GLOBAL_VOLUME",
 
   "ALWAYS_SET_VOLUME"
 };
@@ -806,6 +809,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         sPreview.sample=-1;
         sPreview.wave=-1;
         sPreview.pos=0;
+        sPreview.dir=false;
         break;
     }
   }
@@ -1345,26 +1349,109 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       DivSample* s=song.sample[sPreview.sample];
 
       for (size_t i=0; i<prevtotal; i++) {
-        if (sPreview.pos>=s->samples || (sPreview.pEnd>=0 && (int)sPreview.pos>=sPreview.pEnd)) {
+        if (sPreview.pos>=(int)s->samples || (sPreview.pEnd>=0 && sPreview.pos>=sPreview.pEnd)) {
           samp_temp=0;
         } else {
-          samp_temp=s->data16[sPreview.pos++];
+          samp_temp=s->data16[sPreview.pos];
+          if (sPreview.dir) {
+            sPreview.pos--;
+          }
+          else {
+            sPreview.pos++;
+          }
         }
         blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
         samp_prevSample=samp_temp;
 
-        if (sPreview.pos>=s->getEndPosition() || (sPreview.pEnd>=0 && (int)sPreview.pos>=sPreview.pEnd)) {
-          if (s->isLoopable() && (int)sPreview.pos>=s->loopStart) {
-            sPreview.pos=s->loopStart;
+        if (sPreview.dir) { // backward
+          if (sPreview.pos<s->loopStart || (sPreview.pBegin>=0 && sPreview.pos<sPreview.pBegin)) {
+            if (s->isLoopable() && sPreview.pos<s->loopEnd) {
+              switch (s->loopMode) {
+                case DivSampleLoopMode::DIV_SAMPLE_LOOP_FORWARD:
+                  sPreview.pos=s->loopStart;
+                  sPreview.dir=false;
+                  break;
+                case DivSampleLoopMode::DIV_SAMPLE_LOOP_BACKWARD:
+                  sPreview.pos=s->loopEnd-1;
+                  sPreview.dir=true;
+                  break;
+                case DivSampleLoopMode::DIV_SAMPLE_LOOP_PINGPONG:
+                  sPreview.pos=s->loopStart;
+                  sPreview.dir=false;
+                  break;
+                default:
+                  break;
+              }
+            }
+          }
+        } else { // forward
+          if (sPreview.pos>=s->loopEnd || (sPreview.pEnd>=0 && sPreview.pos>=sPreview.pEnd)) {
+            if (s->isLoopable() && sPreview.pos>=s->loopStart) {
+              switch (s->loopMode) {
+                case DivSampleLoopMode::DIV_SAMPLE_LOOP_FORWARD:
+                  sPreview.pos=s->loopStart;
+                  sPreview.dir=false;
+                  break;
+                case DivSampleLoopMode::DIV_SAMPLE_LOOP_BACKWARD:
+                  sPreview.pos=s->loopEnd-1;
+                  sPreview.dir=true;
+                  break;
+                case DivSampleLoopMode::DIV_SAMPLE_LOOP_PINGPONG:
+                  sPreview.pos=s->loopEnd-1;
+                  sPreview.dir=true;
+                  break;
+                default:
+                  break;
+              }
+            }
           }
         }
       }
-
-      if (sPreview.pos>=s->getEndPosition() || (sPreview.pEnd>=0 && (int)sPreview.pos>=sPreview.pEnd)) {
-        if (s->isLoopable() && (int)sPreview.pos>=s->loopStart) {
-          sPreview.pos=s->loopStart;
-        } else if (sPreview.pos>=s->samples) {
-          sPreview.sample=-1;
+      if (sPreview.dir) { // backward
+        if (sPreview.pos<=s->loopStart || (sPreview.pBegin>=0 && sPreview.pos<=sPreview.pBegin)) {
+          if (s->isLoopable() && sPreview.pos>=s->loopStart) {
+            switch (s->loopMode) {
+              case DivSampleLoopMode::DIV_SAMPLE_LOOP_FORWARD:
+                sPreview.pos=s->loopStart;
+                sPreview.dir=false;
+                break;
+              case DivSampleLoopMode::DIV_SAMPLE_LOOP_BACKWARD:
+                sPreview.pos=s->loopEnd-1;
+                sPreview.dir=true;
+                break;
+              case DivSampleLoopMode::DIV_SAMPLE_LOOP_PINGPONG:
+                sPreview.pos=s->loopStart;
+                sPreview.dir=false;
+                break;
+              default:
+                break;
+            }
+          } else if (sPreview.pos<0) {
+            sPreview.sample=-1;
+          }
+        }
+      } else { // forward
+        if (sPreview.pos>=s->loopEnd || (sPreview.pEnd>=0 && sPreview.pos>=sPreview.pEnd)) {
+          if (s->isLoopable() && sPreview.pos>=s->loopStart) {
+            switch (s->loopMode) {
+              case DivSampleLoopMode::DIV_SAMPLE_LOOP_FORWARD:
+                sPreview.pos=s->loopStart;
+                sPreview.dir=false;
+                break;
+              case DivSampleLoopMode::DIV_SAMPLE_LOOP_BACKWARD:
+                sPreview.pos=s->loopEnd-1;
+                sPreview.dir=true;
+                break;
+              case DivSampleLoopMode::DIV_SAMPLE_LOOP_PINGPONG:
+                sPreview.pos=s->loopEnd-1;
+                sPreview.dir=true;
+                break;
+              default:
+                break;
+            }
+          } else if (sPreview.pos>=(int)s->samples) {
+            sPreview.sample=-1;
+          }
         }
       }
     } else if (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size()) {
@@ -1375,7 +1462,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         } else {
           samp_temp=((MIN(wave->data[sPreview.pos],wave->max)<<14)/wave->max)-8192;
         }
-        if (++sPreview.pos>=(unsigned int)wave->len) {
+        if (++sPreview.pos>=wave->len) {
           sPreview.pos=0;
         }
         blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);

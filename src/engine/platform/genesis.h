@@ -115,7 +115,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
     bool ladder;
   
     unsigned char dacVolTable[128];
-
+  
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
     inline void processDAC();

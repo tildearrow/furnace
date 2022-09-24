@@ -88,7 +88,7 @@ void DivPlatformNES::doWrite(unsigned short addr, unsigned char data) {
           } \
         } \
         dacPos++; \
-        if (s->isLoopable() && dacPos>=s->getEndPosition()) { \
+        if (s->isLoopable() && dacPos>=(unsigned int)s->loopEnd) { \
           dacPos=s->loopStart; \
         } else if (dacPos>=s->samples) { \
           dacSample=-1; \

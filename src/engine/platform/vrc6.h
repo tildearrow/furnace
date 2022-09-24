@@ -78,6 +78,7 @@ class DivPlatformVRC6: public DivDispatch, public vrcvi_intf {
   vrcvi_core vrc6;
   unsigned char regPool[13];
 
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   public:

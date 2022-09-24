@@ -65,7 +65,7 @@ void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len
             chWrite(i,0,0x80|chan[i].dacOut);
           }
           chan[i].dacPos++;
-          if (s->isLoopable() && chan[i].dacPos>=s->getEndPosition()) {
+          if (s->isLoopable() && chan[i].dacPos>=(unsigned int)s->loopEnd) {
             chan[i].dacPos=s->loopStart;
           } else if (chan[i].dacPos>=s->samples) {
             chan[i].dacSample=-1;
@@ -173,6 +173,25 @@ void DivPlatformVRC6::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val && chan[i].active) {
+        if ((i!=2) && (!chan[i].pcm)) {
+          if (dumpWrites) addWrite(0xffff0002+(i<<8),0);
+          DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_VRC6);
+          chan[i].dacSample=ins->amiga.getSample(chan[i].note);
+          if (chan[i].dacSample<0 || chan[i].dacSample>=parent->song.sampleLen) {
+            if (dumpWrites) {
+              chWrite(i,2,0x80);
+              chWrite(i,0,isMuted[i]?0:0x80);
+              addWrite(0xffff0000+(i<<8),chan[i].dacSample);
+            }
+            chan[i].dacPos=0;
+            chan[i].dacPeriod=0;
+            chan[i].keyOn=true;
+          }
+        }
+      }
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==2) { // sawtooth
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,14)-1;
@@ -213,14 +232,14 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON:
       if (c.chan!=2) { // pulse wave
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_VRC6);
-        if (ins->type==DIV_INS_AMIGA) {
+        if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           chan[c.chan].pcm=true;
         } else if (chan[c.chan].furnaceDac) {
           chan[c.chan].pcm=false;
         }
         if (chan[c.chan].pcm) {
           if (skipRegisterWrites) break;
-          if (ins->type==DIV_INS_AMIGA) {
+          if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
             chan[c.chan].dacSample=ins->amiga.getSample(c.value);
             if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
               chan[c.chan].dacSample=-1;

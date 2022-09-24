@@ -82,7 +82,8 @@ class DivPlatformC64: public DivDispatch {
   SID sid;
   reSIDfp::SID sid_fp;
   unsigned char regPool[32];
-
+  
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   void acquire_classic(short* bufL, short* bufR, size_t start, size_t len);

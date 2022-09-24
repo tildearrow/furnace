@@ -81,14 +81,80 @@ const char** DivPlatformAY8910::getRegisterSheet() {
   return intellivision?regCheatSheetAY8914:regCheatSheetAY;
 }
 
-void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  if (ayBufLen<len) {
-    ayBufLen=len;
-    for (int i=0; i<3; i++) {
-      delete[] ayBuf[i];
-      ayBuf[i]=new short[ayBufLen];
+/* C program to generate this table:
+
+#include <stdio.h>
+#include <math.h>
+
+int main(int argc, char** argv) {
+  for (int i=0; i<256; i++) {
+    if ((i&15)==0) printf("\n ");
+    printf(" %d,",(int)round(pow((double)i/255.0,0.36)*15.0));
+  }
+}
+*/
+
+const unsigned char dacLogTableAY[256]={
+  0, 2, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5,
+  6, 6, 6, 6, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 7,
+  7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+  8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 9,
+  9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10,
+  10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11,
+  11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 11,
+  11, 11, 11, 11, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12,
+  12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 12,
+  12, 12, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13,
+  13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13,
+  13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 13, 14,
+  14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
+  14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14, 14,
+  14, 14, 14, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 15, 15,
+  15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15
+};
+
+void DivPlatformAY8910::runDAC() {
+  for (int i=0; i<3; i++) {
+    if (chan[i].psgMode.dac && chan[i].dac.sample!=-1) {
+      chan[i].dac.period+=chan[i].dac.rate;
+      bool end=false;
+      bool changed=false;
+      int prevOut=chan[i].dac.out;
+      while (chan[i].dac.period>rate && !end) {
+        DivSample* s=parent->getSample(chan[i].dac.sample);
+        if (s->samples<=0) {
+          chan[i].dac.sample=-1;
+          immWrite(0x08+i,0);
+          end=true;
+          break;
+        }
+        unsigned char dacData=dacLogTableAY[(unsigned char)s->data8[chan[i].dac.pos]^0x80];
+        chan[i].dac.out=MAX(0,dacData-(15-chan[i].outVol));
+        if (prevOut!=chan[i].dac.out) {
+          prevOut=chan[i].dac.out;
+          changed=true;
+        }
+        chan[i].dac.pos++;
+        if (s->isLoopable() && chan[i].dac.pos>=s->loopEnd) {
+          chan[i].dac.pos=s->loopStart;
+        } else if (chan[i].dac.pos>=(int)s->samples) {
+          chan[i].dac.sample=-1;
+          //immWrite(0x08+i,0);
+          end=true;
+          break;
+        }
+        chan[i].dac.period-=rate;
+      }
+      if (changed && !end) {
+        if (!isMuted[i]) {
+          immWrite(0x08+i,chan[i].dac.out);
+        }
+      }
     }
   }
+}
+
+void DivPlatformAY8910::checkWrites() {
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     if (intellivision) {
@@ -101,8 +167,22 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
     regPool[w.addr&0x0f]=w.val;
     writes.pop();
   }
+}
+
+void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  if (ayBufLen<len) {
+    ayBufLen=len;
+    for (int i=0; i<3; i++) {
+      delete[] ayBuf[i];
+      ayBuf[i]=new short[ayBufLen];
+    }
+  }
+
   if (sunsoft) {
     for (size_t i=0; i<len; i++) {
+      runDAC();
+      checkWrites();
+
       ay->sound_stream_update(ayBuf,1);
       bufL[i+start]=ayBuf[0][0];
       bufR[i+start]=bufL[i+start];
@@ -112,22 +192,22 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
       oscBuf[2]->data[oscBuf[2]->needle++]=sunsoftVolTable[31-((ay->lastIndx>>10)&31)]>>3;
     }
   } else {
-    ay->sound_stream_update(ayBuf,len);
-    if (stereo) {
-      for (size_t i=0; i<len; i++) {
-        bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+((ayBuf[2][i]*stereoSep)>>8);
-        bufR[i+start]=((ayBuf[0][i]*stereoSep)>>8)+ayBuf[1][i]+ayBuf[2][i];
-      }
-    } else {
-      for (size_t i=0; i<len; i++) {
-        bufL[i+start]=ayBuf[0][i]+ayBuf[1][i]+ayBuf[2][i];
+    for (size_t i=0; i<len; i++) {
+      runDAC();
+      checkWrites();
+
+      ay->sound_stream_update(ayBuf,1);
+      if (stereo) {
+        bufL[i+start]=ayBuf[0][0]+ayBuf[1][0]+((ayBuf[2][0]*stereoSep)>>8);
+        bufR[i+start]=((ayBuf[0][0]*stereoSep)>>8)+ayBuf[1][0]+ayBuf[2][0];
+      } else {
+        bufL[i+start]=ayBuf[0][0]+ayBuf[1][0]+ayBuf[2][0];
         bufR[i+start]=bufL[i+start];
       }
-    }
-    for (int ch=0; ch<3; ch++) {
-      for (size_t i=0; i<len; i++) {
-        oscBuf[ch]->data[oscBuf[ch]->needle++]=ayBuf[ch][i]<<2;
-      }
+
+      oscBuf[0]->data[oscBuf[0]->needle++]=ayBuf[0][0]<<2;
+      oscBuf[1]->data[oscBuf[1]->needle++]=ayBuf[1][0]<<2;
+      oscBuf[2]->data[oscBuf[2]->needle++]=ayBuf[2][0]<<2;
     }
   }
 }
@@ -135,22 +215,22 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
 void DivPlatformAY8910::updateOutSel(bool immediate) {
   if (immediate) {
     immWrite(0x07,
-          ~((chan[0].psgMode&1)|
-           ((chan[1].psgMode&1)<<1)|
-           ((chan[2].psgMode&1)<<2)|
-           ((chan[0].psgMode&2)<<2)|
-           ((chan[1].psgMode&2)<<3)|
-           ((chan[2].psgMode&2)<<4)|
+          ~((chan[0].psgMode.getTone())|
+           ((chan[1].psgMode.getTone())<<1)|
+           ((chan[2].psgMode.getTone())<<2)|
+           ((chan[0].psgMode.getNoise())<<2)|
+           ((chan[1].psgMode.getNoise())<<3)|
+           ((chan[2].psgMode.getNoise())<<4)|
            ((!ioPortA)<<6)|
            ((!ioPortB)<<7)));
   } else {
     rWrite(0x07,
-          ~((chan[0].psgMode&1)|
-           ((chan[1].psgMode&1)<<1)|
-           ((chan[2].psgMode&1)<<2)|
-           ((chan[0].psgMode&2)<<2)|
-           ((chan[1].psgMode&2)<<3)|
-           ((chan[2].psgMode&2)<<4)|
+          ~((chan[0].psgMode.getTone())|
+           ((chan[1].psgMode.getTone())<<1)|
+           ((chan[2].psgMode.getTone())<<2)|
+           ((chan[0].psgMode.getNoise())<<2)|
+           ((chan[1].psgMode.getNoise())<<3)|
+           ((chan[2].psgMode.getNoise())<<4)|
            ((!ioPortA)<<6)|
            ((!ioPortB)<<7)));
   }
@@ -163,12 +243,14 @@ void DivPlatformAY8910::tick(bool sysTick) {
     if (chan[i].std.vol.had) {
       chan[i].outVol=MIN(15,chan[i].std.vol.val)-(15-(chan[i].vol&15));
       if (chan[i].outVol<0) chan[i].outVol=0;
-      if (isMuted[i]) {
-        rWrite(0x08+i,0);
-      } else if (intellivision && (chan[i].psgMode&4)) {
-        rWrite(0x08+i,(chan[i].outVol&0xc)<<2);
-      } else {
-        rWrite(0x08+i,(chan[i].outVol&15)|((chan[i].psgMode&4)<<2));
+      if (!chan[i].psgMode.dac) {
+        if (isMuted[i]) {
+          rWrite(0x08+i,0);
+        } else if (intellivision && (chan[i].psgMode.getEnvelope())) {
+          rWrite(0x08+i,(chan[i].outVol&0xc)<<2);
+        } else {
+          rWrite(0x08+i,(chan[i].outVol&15)|((chan[i].psgMode.getEnvelope())<<2));
+        }
       }
     }
     if (chan[i].std.arp.had) {
@@ -181,13 +263,15 @@ void DivPlatformAY8910::tick(bool sysTick) {
       rWrite(0x06,31-chan[i].std.duty.val);
     }
     if (chan[i].std.wave.had) {
-      chan[i].psgMode=(chan[i].std.wave.val+1)&7;
-      if (isMuted[i]) {
-        rWrite(0x08+i,0);
-      } else if (intellivision && (chan[i].psgMode&4)) {
-        rWrite(0x08+i,(chan[i].outVol&0xc)<<2);
-      } else {
-        rWrite(0x08+i,(chan[i].outVol&15)|((chan[i].psgMode&4)<<2));
+      if (!chan[i].psgMode.dac) {
+        chan[i].psgMode=(chan[i].std.wave.val+1)&7;
+        if (isMuted[i]) {
+          rWrite(0x08+i,0);
+        } else if (intellivision && (chan[i].psgMode.getEnvelope())) {
+          rWrite(0x08+i,(chan[i].outVol&0xc)<<2);
+        } else {
+          rWrite(0x08+i,(chan[i].outVol&15)|((chan[i].psgMode.getEnvelope())<<2));
+        }
       }
     }
     if (chan[i].std.pitch.had) {
@@ -201,6 +285,20 @@ void DivPlatformAY8910::tick(bool sysTick) {
     }
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
+        if (chan[i].psgMode.dac) {
+          if (dumpWrites) addWrite(0xffff0002+(i<<8),0);
+          DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AY);
+          chan[i].dac.sample=ins->amiga.getSample(chan[i].note);
+          if (chan[i].dac.sample<0 || chan[i].dac.sample>=parent->song.sampleLen) {
+            if (dumpWrites) {
+              rWrite(0x08+i,0);
+              addWrite(0xffff0000+(i<<8),chan[i].dac.sample);
+            }
+            chan[i].dac.pos=0;
+            chan[i].dac.period=0;
+            chan[i].keyOn=true;
+          }
+        }
         oldWrites[0x08+i]=-1;
         oldWrites[0x0d]=-1;
       }
@@ -221,6 +319,19 @@ void DivPlatformAY8910::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+      if (chan[i].dac.furnaceDAC) {
+        double off=1.0;
+        if (chan[i].dac.sample>=0 && chan[i].dac.sample<parent->song.sampleLen) {
+          DivSample* s=parent->getSample(chan[i].dac.sample);
+          if (s->centerRate<1) {
+            off=1.0;
+          } else {
+            off=8363.0/(double)s->centerRate;
+          }
+        }
+        chan[i].dac.rate=((double)rate*((sunsoft||clockSel)?8.0:16.0))/(double)(MAX(1,off*chan[i].freq));
+        if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dac.rate);
+      }
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].keyOn) {
         //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
@@ -276,6 +387,62 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AY);
+      if (!parent->song.disableSampleMacro && (ins->type==DIV_INS_AMIGA || ins->amiga.useSample)) {
+        chan[c.chan].psgMode.dac=true;
+      } else if (chan[c.chan].dac.furnaceDAC) {
+        chan[c.chan].psgMode.dac=false;
+      }
+      if (chan[c.chan].psgMode.dac) {
+        if (skipRegisterWrites) break;
+        if (!parent->song.disableSampleMacro && (ins->type==DIV_INS_AMIGA || ins->amiga.useSample)) {
+          chan[c.chan].dac.sample=ins->amiga.getSample(c.value);
+          if (chan[c.chan].dac.sample<0 || chan[c.chan].dac.sample>=parent->song.sampleLen) {
+            chan[c.chan].dac.sample=-1;
+            if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
+            break;
+          } else {
+            if (dumpWrites) {
+              rWrite(0x08+c.chan,0);
+              addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dac.sample);
+            }
+          }
+          chan[c.chan].dac.pos=0;
+          chan[c.chan].dac.period=0;
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+            chan[c.chan].freqChanged=true;
+            chan[c.chan].note=c.value;
+          }
+          chan[c.chan].active=true;
+          chan[c.chan].macroInit(ins);
+          if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+            chan[c.chan].outVol=chan[c.chan].vol;
+          }
+          //chan[c.chan].keyOn=true;
+          chan[c.chan].dac.furnaceDAC=true;
+        } else {
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].note=c.value;
+          }
+          chan[c.chan].dac.sample=12*sampleBank+chan[c.chan].note%12;
+          if (chan[c.chan].dac.sample>=parent->song.sampleLen) {
+            chan[c.chan].dac.sample=-1;
+            if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
+            break;
+          } else {
+            if (dumpWrites) addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dac.sample);
+          }
+          chan[c.chan].dac.pos=0;
+          chan[c.chan].dac.period=0;
+          chan[c.chan].dac.rate=parent->getSample(chan[c.chan].dac.sample)->rate*2048;
+          if (dumpWrites) {
+            rWrite(0x08+c.chan,0);
+            addWrite(0xffff0001+(c.chan<<8),chan[c.chan].dac.rate);
+          }
+          chan[c.chan].dac.furnaceDAC=false;
+        }
+        break;
+      }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
@@ -287,16 +454,21 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
-      if (isMuted[c.chan]) {
-        rWrite(0x08+c.chan,0);
-      } else if (intellivision && (chan[c.chan].psgMode&4)) {
-        rWrite(0x08+c.chan,(chan[c.chan].vol&0xc)<<2);
-      } else {
-        rWrite(0x08+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
+      if (!chan[c.chan].psgMode.dac) {
+        if (isMuted[c.chan]) {
+          rWrite(0x08+c.chan,0);
+        } else if (intellivision && (chan[c.chan].psgMode.getEnvelope())) {
+          rWrite(0x08+c.chan,(chan[c.chan].vol&0xc)<<2);
+        } else {
+          rWrite(0x08+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode.getEnvelope())<<2));
+        }
       }
       break;
     }
     case DIV_CMD_NOTE_OFF:
+      chan[c.chan].dac.sample=-1;
+      if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
+      chan[c.chan].psgMode.dac=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].active=false;
       chan[c.chan].macroInit(NULL);
@@ -310,14 +482,16 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
-      if (isMuted[c.chan]) {
-        rWrite(0x08+c.chan,0);
-      } else {
-        if (chan[c.chan].active) {
-          if (intellivision && (chan[c.chan].psgMode&4)) {
-            rWrite(0x08+c.chan,(chan[c.chan].vol&0xc)<<2);
-          } else {
-            rWrite(0x08+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
+      if (!chan[c.chan].psgMode.dac) {
+        if (isMuted[c.chan]) {
+          rWrite(0x08+c.chan,0);
+        } else {
+          if (chan[c.chan].active) {
+            if (intellivision && (chan[c.chan].psgMode.getEnvelope())) {
+              rWrite(0x08+c.chan,(chan[c.chan].vol&0xc)<<2);
+            } else {
+              rWrite(0x08+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode.getEnvelope())<<2));
+            }
           }
         }
       }
@@ -367,15 +541,17 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_STD_NOISE_MODE:
-      if (c.value<16) {
-        chan[c.chan].psgMode=(c.value+1)&7;
-        if (isMuted[c.chan]) {
-          rWrite(0x08+c.chan,0);
-        } else if (chan[c.chan].active) {
-          if (intellivision && (chan[c.chan].psgMode&4)) {
-            rWrite(0x08+c.chan,(chan[c.chan].outVol&0xc)<<2);
-          } else {
-            rWrite(0x08+c.chan,(chan[c.chan].outVol&15)|((chan[c.chan].psgMode&4)<<2));
+      if (!chan[c.chan].psgMode.dac) {
+        if (c.value<16) {
+          chan[c.chan].psgMode=(c.value+1)&7;
+          if (isMuted[c.chan]) {
+            rWrite(0x08+c.chan,0);
+          } else if (chan[c.chan].active) {
+            if (intellivision && (chan[c.chan].psgMode.getEnvelope())) {
+              rWrite(0x08+c.chan,(chan[c.chan].outVol&0xc)<<2);
+            } else {
+              rWrite(0x08+c.chan,(chan[c.chan].outVol&15)|((chan[c.chan].psgMode.getEnvelope())<<2));
+            }
           }
         }
       }
@@ -387,16 +563,16 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       ayEnvMode=c.value>>4;
       rWrite(0x0d,ayEnvMode);
       if (c.value&15) {
-        chan[c.chan].psgMode|=4;
+        chan[c.chan].psgMode.envelope|=1;
       } else {
-        chan[c.chan].psgMode&=~4;
+        chan[c.chan].psgMode.envelope&=~1;
       }
       if (isMuted[c.chan]) {
         rWrite(0x08+c.chan,0);
-      } else if (intellivision && (chan[c.chan].psgMode&4)) {
+      } else if (intellivision && (chan[c.chan].psgMode.getEnvelope())) {
         rWrite(0x08+c.chan,(chan[c.chan].vol&0xc)<<2);
       } else {
-        rWrite(0x08+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode&4)<<2));
+        rWrite(0x08+c.chan,(chan[c.chan].vol&15)|((chan[c.chan].psgMode.getEnvelope())<<2));
       }
       break;
     case DIV_CMD_AY_ENVELOPE_LOW:
@@ -433,6 +609,15 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       updateOutSel(true);
       immWrite(14+(c.value?1:0),(c.value?portBVal:portAVal));
       break;
+    case DIV_CMD_SAMPLE_MODE:
+      chan[c.chan].psgMode.dac=(c.value>0)?1:0;
+      break;
+    case DIV_CMD_SAMPLE_BANK:
+      sampleBank=c.value;
+      if (sampleBank>(parent->song.sample.size()/12)) {
+        sampleBank=parent->song.sample.size()/12;
+      }
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -461,10 +646,14 @@ void DivPlatformAY8910::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (isMuted[ch]) {
     rWrite(0x08+ch,0);
-  } else if (intellivision && (chan[ch].psgMode&4) && chan[ch].active) {
-    rWrite(0x08+ch,(chan[ch].vol&0xc)<<2);
-  } else if (chan[ch].active) {
-    rWrite(0x08+ch,(chan[ch].outVol&15)|((chan[ch].psgMode&4)<<2));
+  } else if (chan[ch].active && chan[ch].psgMode.dac) {
+    rWrite(0x08+ch,chan[ch].dac.out);
+  } else {
+    if (intellivision && (chan[ch].psgMode.getEnvelope()) && chan[ch].active) {
+      rWrite(0x08+ch,(chan[ch].vol&0xc)<<2);
+    } else if (chan[ch].active) {
+      rWrite(0x08+ch,(chan[ch].outVol&15)|((chan[ch].psgMode.getEnvelope())<<2));
+    }
   }
 }
 
@@ -523,12 +712,6 @@ void DivPlatformAY8910::reset() {
     pendingWrites[i]=-1;
   }
 
-  lastBusy=60;
-  dacMode=0;
-  dacPeriod=0;
-  dacPos=0;
-  dacRate=0;
-  dacSample=-1;
   sampleBank=0;
   ayEnvPeriod=0;
   ayEnvMode=0;

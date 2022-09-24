@@ -46,8 +46,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "0.6pre1.5"
-#define DIV_ENGINE_VERSION 116
+#define DIV_VERSION "dev117"
+#define DIV_ENGINE_VERSION 117
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -377,14 +377,16 @@ class DivEngine {
   struct SamplePreview {
     int sample;
     int wave;
-    unsigned int pos;
+    int pos;
     int pBegin, pEnd;
+    bool dir;
     SamplePreview():
       sample(-1),
       wave(-1),
       pos(0),
       pBegin(-1),
-      pEnd(-1) {}
+      pEnd(-1),
+      dir(false) {}
   } sPreview;
 
   short vibTable[64];

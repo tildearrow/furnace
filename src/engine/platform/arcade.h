@@ -79,14 +79,13 @@ class DivPlatformArcade: public DivPlatformOPM {
     DivDispatchOscBuffer* oscBuf[8];
     opm_t fm;
     int baseFreqOff;
-    int pcmL, pcmR, pcmCycles;
     unsigned char amDepth, pmDepth;
 
     ymfm::ym2151* fm_ymfm;
     ymfm::ym2151::output_data out_ymfm;
     DivArcadeInterface iface;
 
-    bool extMode, useYMFM;
+    bool useYMFM;
 
     bool isMuted[8];
 
@@ -96,6 +95,7 @@ class DivPlatformArcade: public DivPlatformOPM {
     void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
     void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
   
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:

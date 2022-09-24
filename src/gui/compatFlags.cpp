@@ -281,6 +281,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6pre1.5");
     }
+    ImGui::Checkbox("Disable new sample features",&e->song.disableSampleMacro);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("behavior changed in 0.6pre2");
+    }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_COMPAT_FLAGS;
   ImGui::End();

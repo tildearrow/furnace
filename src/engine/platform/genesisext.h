@@ -52,6 +52,7 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
   };
   OpChannel opChan[4];
   bool isOpMuted[4];
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     int dispatch(DivCommand c);

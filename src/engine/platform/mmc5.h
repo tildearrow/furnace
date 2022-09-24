@@ -67,7 +67,8 @@ class DivPlatformMMC5: public DivDispatch {
   unsigned char writeOscBuf;
   struct _mmc5* mmc5;
   unsigned char regPool[128];
-
+  
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   public:

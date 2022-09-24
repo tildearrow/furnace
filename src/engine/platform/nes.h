@@ -79,6 +79,7 @@ class DivPlatformNES: public DivDispatch {
   xgm::NES_DMC* nes2_NP;
   unsigned char regPool[128];
 
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   void doWrite(unsigned short addr, unsigned char data);

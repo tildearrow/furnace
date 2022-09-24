@@ -54,6 +54,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
       int vol, outVol;
       int sample;
       unsigned char pan;
+      int macroVolMul;
       DivMacroInt std;
       void macroInit(DivInstrument* which) {
         std.init(which);
@@ -86,7 +87,8 @@ class DivPlatformYM2608: public DivPlatformOPN {
         vol(0),
         outVol(15),
         sample(-1),
-        pan(3) {}
+        pan(3),
+        macroVolMul(255) {}
     };
     Channel chan[16];
     DivDispatchOscBuffer* oscBuf[16];
@@ -101,12 +103,14 @@ class DivPlatformYM2608: public DivPlatformOPN {
     DivPlatformAY8910* ay;
     unsigned char sampleBank;
     unsigned char writeRSSOff, writeRSSOn;
+    int globalRSSVolume;
 
     bool extMode;
     unsigned char prescale;
   
     double NOTE_OPNB(int ch, int note);
     double NOTE_ADPCMB(int note);
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:

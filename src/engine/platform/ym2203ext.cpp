@@ -63,7 +63,6 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       }
       if (opChan[ch].insChanged) { // TODO how does this work?
         rWrite(chanOffs[2]+0xb0,(ins->fm.alg&7)|(ins->fm.fb<<3));
-        rWrite(chanOffs[2]+0xb4,(opChan[ch].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
       }
       opChan[ch].insChanged=false;
 
@@ -103,22 +102,6 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       }
       opChan[ch].ins=c.value;
       break;
-    case DIV_CMD_PANNING: {
-      if (c.value==0 && c.value2==0) {
-        opChan[ch].pan=3;
-      } else {
-        opChan[ch].pan=(c.value2>0)|((c.value>0)<<1);
-      }
-      DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
-      if (parent->song.sharedExtStat) {
-        for (int i=0; i<4; i++) {
-          if (ch==i) continue;
-          opChan[i].pan=opChan[ch].pan;
-        }
-      }
-      rWrite(chanOffs[2]+0xb4,(opChan[ch].pan<<6)|(ins->fm.fms&7)|((ins->fm.ams&3)<<4));
-      break;
-    }
     case DIV_CMD_PITCH: {
       opChan[ch].pitch=c.value;
       opChan[ch].freqChanged=true;

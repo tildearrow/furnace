@@ -52,7 +52,7 @@ void DivPlatformGenesis::processDAC() {
             if (s->samples>0) {
               while (chan[i].dacPeriod>=(chipClock/576)) {
                 ++chan[i].dacPos;
-                if (!chan[i].dacDirection && (s->isLoopable() && chan[i].dacPos>=s->getEndPosition())) {
+                if (!chan[i].dacDirection && (s->isLoopable() && chan[i].dacPos>=(unsigned int)s->loopEnd)) {
                   chan[i].dacPos=s->loopStart;
                 } else if (chan[i].dacPos>=s->samples) {
                   chan[i].dacSample=-1;
@@ -98,7 +98,7 @@ void DivPlatformGenesis::processDAC() {
             }
           }
           chan[5].dacPos++;
-          if (!chan[5].dacDirection && (s->isLoopable() && chan[5].dacPos>=s->getEndPosition())) {
+          if (!chan[5].dacDirection && (s->isLoopable() && chan[5].dacPos>=(unsigned int)s->loopEnd)) {
             chan[5].dacPos=s->loopStart;
           } else if (chan[5].dacPos>=s->samples) {
             chan[5].dacSample=-1;

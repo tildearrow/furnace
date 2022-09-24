@@ -60,6 +60,16 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_SU=30,
   DIV_INS_NAMCO=31,
   DIV_INS_OPL_DRUMS=32,
+  DIV_INS_OPM=33,
+  DIV_INS_NES=34,
+  DIV_INS_MSM6258=35,
+  DIV_INS_MSM6295=36,
+  DIV_INS_ADPCMA=37,
+  DIV_INS_ADPCMB=38,
+  DIV_INS_SEGAPCM=39,
+  DIV_INS_QSOUND=40,
+  DIV_INS_YMZ280B=41,
+  DIV_INS_RF5C68=42,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -336,6 +346,7 @@ struct DivInstrumentAmiga {
   };
   short initSample;
   bool useNoteMap;
+  bool useSample;
   bool useWave;
   unsigned char waveLen;
   SampleMap noteMap[120];
@@ -369,12 +380,20 @@ struct DivInstrumentAmiga {
   DivInstrumentAmiga():
     initSample(0),
     useNoteMap(false),
+    useSample(false),
     useWave(false),
     waveLen(31) {
     for (SampleMap& elem: noteMap) {
       elem=SampleMap();
     }
   }
+};
+
+struct DivInstrumentX1_010 {
+  int bankSlot;
+
+  DivInstrumentX1_010():
+    bankSlot(0) {}
 };
 
 struct DivInstrumentN163 {
@@ -459,10 +478,8 @@ struct DivInstrumentWaveSynth {
 };
 
 struct DivInstrumentSoundUnit {
-  bool useSample;
   bool switchRoles;
   DivInstrumentSoundUnit():
-    useSample(false),
     switchRoles(false) {}
 };
 
@@ -533,6 +550,7 @@ struct DivInstrument {
   DivInstrumentGB gb;
   DivInstrumentC64 c64;
   DivInstrumentAmiga amiga;
+  DivInstrumentX1_010 x1_010;
   DivInstrumentN163 n163;
   DivInstrumentFDS fds;
   DivInstrumentMultiPCM multipcm;

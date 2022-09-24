@@ -62,7 +62,8 @@ class DivPlatformBubSysWSG: public DivDispatch {
 
   k005289_core k005289;
   unsigned short regPool[4];
-  void updateWave(int ch);
+  void updateWave(int ch);  
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
