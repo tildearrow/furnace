@@ -279,6 +279,12 @@ struct EffectHandler {
   val2(val2_) {}
 };
 
+class SystemROMBuilder {
+public:
+  virtual ~SystemROMBuilder() {}
+  virtual SafeWriter* buildROM(DivEngine &e, int sysIndex)=0;
+};
+
 struct DivDoNotHandleEffect {
 };
 

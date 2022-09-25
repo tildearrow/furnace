@@ -59,7 +59,9 @@ FurnaceCLI cli;
 String outName;
 String vgmOutName;
 String zsmOutName;
+String romOutName;
 String cmdOutName;
+
 int loops=1;
 int benchMode=0;
 int subsong=-1;
@@ -296,6 +298,13 @@ TAParamResult pOutput(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pROMOut(String val) {
+  romOutName=val;
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return TA_PARAM_SUCCESS;
+}
+
+
 TAParamResult pVGMOut(String val) {
   vgmOutName=val;
   e.setAudio(DIV_AUDIO_DUMMY);
@@ -332,6 +341,7 @@ void initParams() {
   params.push_back(TAParam("D","direct",false,pDirect,"","set VGM export direct stream mode"));
   params.push_back(TAParam("Z","zsmout",true,pZSMOut,"<filename>","output .zsm data for Commander X16 Zsound"));
   params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
+  params.push_back(TAParam("r","romout",true,pROMOut,"<filename>","output rom"));
   params.push_back(TAParam("b","binary",false,pBinary,"","set command stream output format to binary"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (pattern by default)"));
@@ -421,6 +431,7 @@ int main(int argc, char** argv) {
   outName="";
   vgmOutName="";
   zsmOutName="";
+  romOutName="";
   cmdOutName="";
 
   initParams();
@@ -569,7 +580,7 @@ int main(int argc, char** argv) {
     finishLogFile();
     return 0;
   }
-  if (outName!="" || vgmOutName!="" || cmdOutName!="") {
+  if (outName!="" || vgmOutName!="" || romOutName!="" || cmdOutName!="") {
     if (cmdOutName!="") {
       SafeWriter* w=e.saveCommand(cmdOutBinary);
       if (w!=NULL) {
@@ -600,6 +611,28 @@ int main(int argc, char** argv) {
         delete w;
       } else {
         reportError("could not write VGM!");
+      }
+    }
+    if (romOutName!="") {
+      // infer which system is going to be built
+      DivSystem whichSystem;
+      if (e.song.systemLen!=1) {
+          reportError(fmt::sprintf("no system! (%s)",e.getLastError()));
+      }
+      whichSystem=e.song.system[0];
+      SafeWriter* w=e.buildROM(0);
+      if (w!=NULL) {
+        FILE* f=fopen(romOutName.c_str(),"wb");
+        if (f!=NULL) {
+          fwrite(w->getFinalBuf(),1,w->size(),f);
+          fclose(f);
+        } else {
+          reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
+        }
+        w->finish();
+        delete w;
+      } else {
+        reportError(fmt::sprintf("could not write ROM for system (%s) - no ROM builder found!",e.getSystemName(whichSystem)));
       }
     }
     if (outName!="") {
