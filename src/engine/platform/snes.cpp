@@ -93,10 +93,6 @@ void DivPlatformSNES::tick(bool sysTick) {
   // so they have to be accumulated
   unsigned char kon=0;
   unsigned char koff=0;
-  bool writeControl=false;
-  bool writeNoise=false;
-  bool writePitchMod=false;
-  bool writeEcho=false;
   for (int i=0; i<8; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -146,23 +142,23 @@ void DivPlatformSNES::tick(bool sysTick) {
     }
     bool hasInverted=false;
     if (chan[i].std.ex1.had) {
-      if (chan[i].invertL!=(chan[i].std.ex1.val&16)) {
+      if (chan[i].invertL!=(bool)(chan[i].std.ex1.val&16)) {
         chan[i].invertL=chan[i].std.ex1.val&16;
         hasInverted=true;
       }
-      if (chan[i].invertR!=(chan[i].std.ex1.val&8)) {
+      if (chan[i].invertR!=(bool)(chan[i].std.ex1.val&8)) {
         chan[i].invertR=chan[i].std.ex1.val&8;
         hasInverted=true;
       }
-      if (chan[i].pitchMod!=(chan[i].std.ex1.val&4)) {
+      if (chan[i].pitchMod!=(bool)(chan[i].std.ex1.val&4)) {
         chan[i].pitchMod=chan[i].std.ex1.val&4;
         writePitchMod=true;
       }
-      if (chan[i].echo!=(chan[i].std.ex1.val&2)) {
+      if (chan[i].echo!=(bool)(chan[i].std.ex1.val&2)) {
         chan[i].echo=chan[i].std.ex1.val&2;
         writeEcho=true;
       }
-      if (chan[i].noise!=(chan[i].std.ex1.val&1)) {
+      if (chan[i].noise!=(bool)(chan[i].std.ex1.val&1)) {
         chan[i].noise=chan[i].std.ex1.val&1;
         writeNoise=true;
       }
@@ -226,6 +222,7 @@ void DivPlatformSNES::tick(bool sysTick) {
   if (writeControl) {
     unsigned char control=noiseFreq&0x1f;
     rWrite(0x6c,control);
+    writeControl=false;
   }
   if (writeNoise) {
     unsigned char noiseBits=(
@@ -239,6 +236,7 @@ void DivPlatformSNES::tick(bool sysTick) {
       (chan[7].noise?0x80:0)
     );
     rWrite(0x3d,noiseBits);
+    writeNoise=false;
   }
   if (writePitchMod) {
     unsigned char pitchModBits=(
@@ -252,6 +250,7 @@ void DivPlatformSNES::tick(bool sysTick) {
       (chan[7].pitchMod?0x80:0)
     );
     rWrite(0x2d,pitchModBits);
+    writePitchMod=false;
   }
   if (writeEcho) {
     unsigned char echoBits=(
@@ -265,6 +264,7 @@ void DivPlatformSNES::tick(bool sysTick) {
       (chan[7].echo?0x80:0)
     );
     rWrite(0x4d,echoBits);
+    writeEcho=false;
   }
   if (kon!=0) {
     rWrite(0x4c,kon);
@@ -457,6 +457,10 @@ void DivPlatformSNES::forceIns() {
     }
     writeOutVol(i);
   }
+  writeControl=true;
+  writeNoise=true;
+  writePitchMod=true;
+  writeEcho=true;
 }
 
 void* DivPlatformSNES::getChanState(int ch) {
@@ -489,7 +493,6 @@ void DivPlatformSNES::reset() {
   dsp.init(sampleMem);
   dsp.set_output(NULL,0);
   memset(regPool,0,128);
-  // TODO more initial values
   // this can't be 0 or channel 1 won't play
   // this can't be 0x100 either as that's used by SPC700 page 1 and the stack
   // this may not even be 0x200 as some space will be taken by the playback routine and variables
@@ -506,6 +509,10 @@ void DivPlatformSNES::reset() {
     writeOutVol(i);
     chWrite(i,4,i); // source number
   }
+  writeControl=false;
+  writeNoise=false;
+  writePitchMod=false;
+  writeEcho=false;
 }
 
 bool DivPlatformSNES::isStereo() {

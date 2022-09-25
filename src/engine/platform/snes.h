@@ -64,6 +64,10 @@ class DivPlatformSNES: public DivDispatch {
       useWave(false),
       setPos(false),
       noise(false),
+      echo(false),
+      pitchMod(false),
+      invertL(false),
+      invertR(false),
       vol(127),
       outVol(127),
       wtLen(16) {} 
@@ -74,6 +78,10 @@ class DivPlatformSNES: public DivDispatch {
   signed char globalVolL, globalVolR;
   unsigned char noiseFreq;
   size_t sampleTableBase;
+  bool writeControl;
+  bool writeNoise;
+  bool writePitchMod;
+  bool writeEcho;
 
   struct QueuedWrite {
     unsigned char addr;
