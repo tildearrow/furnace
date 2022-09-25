@@ -210,6 +210,7 @@ const char* cmdName[]={
 
   "SNES_ECHO",
   "SNES_PITCH_MOD",
+  "SNES_INVERT",
   "SNES_GAIN_MODE",
   "SNES_GAIN",
   "SNES_ECHO_ENABLE",
