@@ -27,7 +27,7 @@
 #include <queue>
 #include "../macroInt.h"
 #include "../sample.h"
-#include "sound/es550x/es5506.hpp"
+#include "vgsound_emu/src/es550x/es5506.hpp"
 
 class DivPlatformES5506: public DivDispatch, public es550x_intf {
   struct Channel {
@@ -60,7 +60,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         length(0),
         loopStart(0),
         loopEnd(0),
-        loopMode(DIV_SAMPLE_LOOPMODE_ONESHOT) {}
+        loopMode(DIV_SAMPLE_LOOP_MAX) {}
     } pcm;
     int freq, baseFreq, nextFreq, pitch, pitch2, note, nextNote, currNote, ins, wave;
     unsigned int volMacroMax, panMacroMax;
@@ -213,6 +213,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   signed short* sampleMem; // ES5506 uses 16 bit data bus for samples
   size_t sampleMemLen;
   struct QueuedHostIntf {
+      unsigned char state;
       unsigned char step;
       unsigned char addr;
       unsigned int val;
@@ -221,6 +222,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       unsigned short delay;
       bool isRead;
       QueuedHostIntf(unsigned char s, unsigned char a, unsigned int v, unsigned int m=(unsigned int)(~0), unsigned short d=0):
+        state(0),
         step(s),
         addr(a),
         val(v),
@@ -228,7 +230,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         read(NULL),
         delay(0),
         isRead(false) {}
-      QueuedHostIntf(unsigned char s, unsigned char a, unsigned int* r, unsigned int m=(unsigned int)(~0), unsigned short d=0):
+      QueuedHostIntf(unsigned char st, unsigned char s, unsigned char a, unsigned int* r, unsigned int m=(unsigned int)(~0), unsigned short d=0):
+        state(st),
         step(s),
         addr(a),
         val(0),
@@ -237,8 +240,17 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         delay(d),
         isRead(true) {}
   };
+  struct QueuedReadState {
+      unsigned int* read;
+      unsigned char state;
+      QueuedReadState(unsigned int* r, unsigned char s):
+        read(r),
+        state(s) {}
+  };
   std::queue<QueuedHostIntf> hostIntf32;
   std::queue<QueuedHostIntf> hostIntf8;
+  std::queue<unsigned char> queuedRead;
+  std::queue<QueuedReadState> queuedReadState;
   int cycle, curPage;
   unsigned char maskedVal;
   unsigned int irqv;
@@ -288,7 +300,6 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     virtual size_t getSampleMemUsage(int index = 0) override;
     virtual void renderSamples() override;
     virtual const char** getRegisterSheet() override;
-    virtual const char* getEffectName(unsigned char effect) override;
     virtual int init(DivEngine* parent, int channels, int sugRate, unsigned int flags) override;
     virtual void quit() override;
     DivPlatformES5506():

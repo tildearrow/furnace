@@ -116,16 +116,11 @@ void FurnaceGUI::drawSampleEdit() {
               sample->loopStart=-1;
               sample->loopEnd=sample->samples;
             }
-            if (sample->loopEnd>sample->samples) {
-              sample->loopEnd=sample->samples;
-            }
-            sample->loopMode=DivSampleLoopMode(mode);
             updateSampleTex=true;
           }
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::Text("Length: %d",sample->samples);
-          bool doLoop=(sample->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT);
           if (doLoop) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
@@ -678,16 +673,11 @@ void FurnaceGUI::drawSampleEdit() {
               sample->loopStart=-1;
               sample->loopEnd=sample->samples;
             }
-            if (sample->loopEnd>sample->samples) {
-              sample->loopEnd=sample->samples;
-            }
-            sample->loopMode=DivSampleLoopMode(mode);
             updateSampleTex=true;
           }
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::Text("Length: %d",sample->samples);
-          bool doLoop=(sample->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT);
           if (doLoop) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();

@@ -405,7 +405,7 @@ struct DivInstrumentAmiga {
       reversed(0),
       loopStart(-1),
       loopEnd(-1),
-      loopMode(DIV_SAMPLE_LOOPMODE_ONESHOT) {}
+      loopMode(DIV_SAMPLE_LOOP_MAX) {}
   };
 
   short initSample;

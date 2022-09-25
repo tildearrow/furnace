@@ -907,7 +907,7 @@ struct FurnaceGUIMacroDesc {
   float height;
   const char* displayName;
   const char** bitfieldBits;
-  const char** modeName;
+  const char* modeName;
   ImVec4 color;
   unsigned int bitOffset;
   bool isBitfield, blockMode, bit30;

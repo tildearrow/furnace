@@ -161,9 +161,8 @@ const char* resampleStrats[DIV_RESAMPLE_MAX]={
   "best possible"
 };
 
-const char* loopMode[DIV_SAMPLE_LOOPMODE_MAX]={
-  "Disable",
-  "Foward",
+const char* loopMode[DIV_SAMPLE_LOOP_MAX]={
+  "Forward",
   "Backward",
   "Pingpong"
 };

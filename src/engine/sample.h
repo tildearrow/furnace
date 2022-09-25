@@ -179,12 +179,6 @@ struct DivSample {
   bool resampleSinc(double rate);
 
   /**
-   * check if sample is loopable.
-   * @return whether it was loopable.
-   */
-  bool isLoopable();
-
-  /**
    * save this sample to a file.
    * @param path a path.
    * @return whether saving succeeded or not.

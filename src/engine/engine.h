@@ -384,7 +384,6 @@ class DivEngine {
       sample(-1),
       wave(-1),
       pos(0),
-      dir(false),
       pBegin(-1),
       pEnd(-1),
       dir(false) {}
