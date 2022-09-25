@@ -86,7 +86,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
 
   // Prepare to write song data
   playSub(false);
-  size_t tickCount=0;
+  //size_t tickCount=0;
   bool done=false;
   int loopPos=-1;
   int writeCount=0;
@@ -155,7 +155,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
     fracWait &= MASTER_CLOCK_MASK;
     if (totalWait>0) {
       zsm.tick(totalWait);
-      tickCount+=totalWait;
+      //tickCount+=totalWait;
     }
   }
   // end of song
