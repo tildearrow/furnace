@@ -814,7 +814,9 @@ bool DivSample::resample(double r, int filter) {
   return false;
 }
 
-void DivSample::render() {
+#define NOT_IN_FORMAT(x) (depth!=x && formatMask&(1U<<(unsigned int)x))
+
+void DivSample::render(unsigned int formatMask) {
   // step 1: convert to 16-bit if needed
   if (depth!=DIV_SAMPLE_DEPTH_16BIT) {
     if (!initInternal(DIV_SAMPLE_DEPTH_16BIT,samples)) return;
@@ -863,7 +865,7 @@ void DivSample::render() {
   }
 
   // step 2: render to other formats
-  if (depth!=DIV_SAMPLE_DEPTH_1BIT) { // 1-bit
+  if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_1BIT)) { // 1-bit
     if (!initInternal(DIV_SAMPLE_DEPTH_1BIT,samples)) return;
     for (unsigned int i=0; i<samples; i++) {
       if (data16[i]>0) {
@@ -871,7 +873,7 @@ void DivSample::render() {
       }
     }
   }
-  if (depth!=DIV_SAMPLE_DEPTH_1BIT_DPCM) { // DPCM
+  if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_1BIT_DPCM)) { // DPCM
     if (!initInternal(DIV_SAMPLE_DEPTH_1BIT_DPCM,samples)) return;
     int accum=63;
     for (unsigned int i=0; i<samples; i++) {
@@ -886,34 +888,34 @@ void DivSample::render() {
       if (accum>127) accum=127;
     }
   }
-  if (depth!=DIV_SAMPLE_DEPTH_YMZ_ADPCM) { // YMZ ADPCM
+  if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_YMZ_ADPCM)) { // YMZ ADPCM
     if (!initInternal(DIV_SAMPLE_DEPTH_YMZ_ADPCM,samples)) return;
     ymz_encode(data16,dataZ,(samples+7)&(~0x7));
   }
-  if (depth!=DIV_SAMPLE_DEPTH_QSOUND_ADPCM) { // QSound ADPCM
+  if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_QSOUND_ADPCM)) { // QSound ADPCM
     if (!initInternal(DIV_SAMPLE_DEPTH_QSOUND_ADPCM,samples)) return;
     bs_encode(data16,dataQSoundA,samples);
   }
   // TODO: pad to 256.
-  if (depth!=DIV_SAMPLE_DEPTH_ADPCM_A) { // ADPCM-A
+  if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_ADPCM_A)) { // ADPCM-A
     if (!initInternal(DIV_SAMPLE_DEPTH_ADPCM_A,samples)) return;
     yma_encode(data16,dataA,(samples+511)&(~0x1ff));
   }
-  if (depth!=DIV_SAMPLE_DEPTH_ADPCM_B) { // ADPCM-B
+  if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_ADPCM_B)) { // ADPCM-B
     if (!initInternal(DIV_SAMPLE_DEPTH_ADPCM_B,samples)) return;
     ymb_encode(data16,dataB,(samples+511)&(~0x1ff));
   }
-  if (depth!=DIV_SAMPLE_DEPTH_8BIT) { // 8-bit PCM
+  if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_8BIT)) { // 8-bit PCM
     if (!initInternal(DIV_SAMPLE_DEPTH_8BIT,samples)) return;
     for (unsigned int i=0; i<samples; i++) {
       data8[i]=data16[i]>>8;
     }
   }
-  if (depth!=DIV_SAMPLE_DEPTH_BRR) { // BRR
+  if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_BRR)) { // BRR
     if (!initInternal(DIV_SAMPLE_DEPTH_BRR,samples)) return;
     brrEncode(data16,dataBRR,(samples+15)&(~15),loop?loopStart:-1);
   }
-  if (depth!=DIV_SAMPLE_DEPTH_VOX) { // VOX
+  if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_VOX)) { // VOX
     if (!initInternal(DIV_SAMPLE_DEPTH_VOX,samples)) return;
     oki_encode(data16,dataVOX,samples);
   }
