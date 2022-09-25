@@ -33,10 +33,10 @@ class DivPlatformSNES: public DivDispatch {
     int sample, wave, ins;
     int note;
     int panL, panR;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos;
-    signed char vol;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos, noise, echo, pitchMod, invertL, invertR;
+    int vol, outVol;
     int wtLen;
-    bool useEnv;
+    DivInstrumentSNES state;
     DivMacroInt std;
     DivWaveSynth ws;
     void macroInit(DivInstrument* which) {
@@ -53,8 +53,8 @@ class DivPlatformSNES: public DivDispatch {
       wave(-1),
       ins(-1),
       note(0),
-      panL(255),
-      panR(255),
+      panL(127),
+      panR(127),
       active(false),
       insChanged(true),
       freqChanged(false),
@@ -63,15 +63,25 @@ class DivPlatformSNES: public DivDispatch {
       inPorta(false),
       useWave(false),
       setPos(false),
+      noise(false),
+      echo(false),
+      pitchMod(false),
+      invertL(false),
+      invertR(false),
       vol(127),
-      wtLen(16),
-      useEnv(false) {} 
+      outVol(127),
+      wtLen(16) {} 
   };
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
-  signed char gblVolL, gblVolR;
+  signed char globalVolL, globalVolR;
+  unsigned char noiseFreq;
   size_t sampleTableBase;
+  bool writeControl;
+  bool writeNoise;
+  bool writePitchMod;
+  bool writeEcho;
 
   struct QueuedWrite {
     unsigned char addr;
@@ -101,6 +111,7 @@ class DivPlatformSNES: public DivDispatch {
     bool isStereo();
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
+    void setFlags(unsigned int flags);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

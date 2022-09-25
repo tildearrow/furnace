@@ -1043,6 +1043,7 @@ const int chipsSample[]={
   DIV_SYSTEM_MSM6258,
   DIV_SYSTEM_MSM6295,
   DIV_SYSTEM_RF5C68,
+  DIV_SYSTEM_SNES,
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_ES5506,
   0 // don't remove this last one!

@@ -764,12 +764,27 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       }
       break;
     }
+    case DIV_SYSTEM_SNES: {
+      ImGui::Text("Volume scale:");
+      int vsL=127-(flags&127);
+      int vsR=127-((flags>>8)&127);
+      if (CWSliderInt("Left##VolScaleL",&vsL,0,127)) {
+        if (vsL<0) vsL=0;
+        if (vsL>127) vsL=127;
+        copyOfFlags=(flags&(~0x7f))|(127-vsL);
+      } rightClickable
+      if (CWSliderInt("Right##VolScaleL",&vsR,0,127)) {
+        if (vsR<0) vsR=0;
+        if (vsR>127) vsR=127;
+        copyOfFlags=(flags&(~0x7f00))|((127-vsR)<<8);
+      } rightClickable
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_VERA:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_YMU759:
     case DIV_SYSTEM_PET:
-    case DIV_SYSTEM_SNES:
     case DIV_SYSTEM_T6W28:
       ImGui::Text("nothing to configure");
       break;

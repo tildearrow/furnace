@@ -2651,7 +2651,7 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
       }
       extS+=i;
     }
-    if (extS==".dmc") { // read as .dmc
+    if (extS==".dmc" || extS==".brr") { // read as .dmc or .brr
       size_t len=0;
       DivSample* sample=new DivSample;
       sample->name=stripPath;
@@ -2698,12 +2698,48 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
         return NULL;
       }
 
-      sample->rate=33144;
-      sample->centerRate=33144;
-      sample->depth=DIV_SAMPLE_DEPTH_1BIT_DPCM;
-      sample->init(len*8);
+      if (extS==".dmc") {
+        sample->rate=33144;
+        sample->centerRate=33144;
+        sample->depth=DIV_SAMPLE_DEPTH_1BIT_DPCM;
+        sample->init(len*8);
+      } else if (extS==".brr") {
+        sample->rate=32000;
+        sample->centerRate=32000;
+        sample->depth=DIV_SAMPLE_DEPTH_BRR;
+        sample->init(16*(len/9));
+      } else {
+        fclose(f);
+        BUSY_END;
+        lastError="wait... is that right? no I don't think so...";
+        delete sample;
+        return NULL;
+      }
 
-      if (fread(sample->dataDPCM,1,len,f)==0) {
+      unsigned char* dataBuf=sample->dataDPCM;
+      if (extS==".brr") {
+        dataBuf=sample->dataBRR;
+        if ((len%9)==2) {
+          // ignore loop position
+          fseek(f,2,SEEK_SET);
+          len-=2;
+          if (len==0) {
+            fclose(f);
+            BUSY_END;
+            lastError="BRR sample is empty!";
+            delete sample;
+            return NULL;
+          }
+        } else if ((len%9)!=0) {
+          fclose(f);
+          BUSY_END;
+          lastError="possibly corrupt BRR sample!";
+          delete sample;
+          return NULL;
+        }
+      }
+
+      if (fread(dataBuf,1,len,f)==0) {
         fclose(f);
         BUSY_END;
         lastError=fmt::sprintf("could not read file! (%s)",strerror(errno));

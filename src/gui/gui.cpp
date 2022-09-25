@@ -1556,9 +1556,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Sample",
-        {"compatible files", "*.wav *.dmc",
+        {"compatible files", "*.wav *.dmc *.brr",
          "all files", ".*"},
-        "compatible files{.wav,.dmc},.*",
+        "compatible files{.wav,.dmc,.brr},.*",
         workingDirSample,
         dpiScale
       );

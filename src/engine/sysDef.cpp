@@ -871,7 +871,35 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
-    {DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES}
+    {DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES},
+    {},
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+      {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Toggle noise mode"}},
+      {0x12, {DIV_CMD_SNES_ECHO, "12xx: Toggle echo on this channel"}},
+      {0x13, {DIV_CMD_SNES_PITCH_MOD, "13xx: Toggle pitch modulation"}},
+      {0x14, {DIV_CMD_SNES_INVERT, "14xy: Toggle invert (x: left; y: right)"}},
+      {0x15, {DIV_CMD_SNES_GAIN_MODE, "15xx: Set gain mode"}},
+      {0x16, {DIV_CMD_SNES_GAIN, "16xx: Set gain"}},
+      {0x18, {DIV_CMD_SNES_ECHO_ENABLE, "18xx: Enable echo buffer"}},
+      {0x19, {DIV_CMD_SNES_ECHO_DELAY, "19xx: Set echo delay"}},
+      {0x1a, {DIV_CMD_SNES_ECHO_VOL_LEFT, "1Axx: Set left echo volume"}},
+      {0x1b, {DIV_CMD_SNES_ECHO_VOL_RIGHT, "1Bxx: Set right echo volume"}},
+      {0x1c, {DIV_CMD_SNES_ECHO_FEEDBACK, "1Cxx: Set echo feedback"}},
+      {0x1d, {DIV_CMD_STD_NOISE_FREQ, "1Dxx: Set noise frequency"}},
+      {0x20, {DIV_CMD_FM_AR, "20xx: Set attack"}},
+      {0x21, {DIV_CMD_FM_DR, "21xx: Set decay"}},
+      {0x22, {DIV_CMD_FM_SL, "22xx: Set sustain"}},
+      {0x23, {DIV_CMD_FM_RR, "23xx: Set release"}},
+      {0x30, {DIV_CMD_SNES_ECHO_FIR, "30xx: Set echo filter coefficient 0",constVal<0>,effectVal}},
+      {0x31, {DIV_CMD_SNES_ECHO_FIR, "31xx: Set echo filter coefficient 1",constVal<1>,effectVal}},
+      {0x32, {DIV_CMD_SNES_ECHO_FIR, "32xx: Set echo filter coefficient 2",constVal<2>,effectVal}},
+      {0x33, {DIV_CMD_SNES_ECHO_FIR, "33xx: Set echo filter coefficient 3",constVal<3>,effectVal}},
+      {0x34, {DIV_CMD_SNES_ECHO_FIR, "34xx: Set echo filter coefficient 4",constVal<4>,effectVal}},
+      {0x35, {DIV_CMD_SNES_ECHO_FIR, "35xx: Set echo filter coefficient 5",constVal<5>,effectVal}},
+      {0x36, {DIV_CMD_SNES_ECHO_FIR, "36xx: Set echo filter coefficient 6",constVal<6>,effectVal}},
+      {0x37, {DIV_CMD_SNES_ECHO_FIR, "37xx: Set echo filter coefficient 7",constVal<7>,effectVal}},
+    }
   );
 
   sysDefs[DIV_SYSTEM_VRC6]=new DivSysDef(
