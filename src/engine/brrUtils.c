@@ -100,30 +100,33 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
 }
 
 #define DO_ONE_SAMPLE \
-  if (next&8) next|=0xfffffff8; \
+  if (next&8) next|=0xfffffff0; \
 \
   next<<=(buf[0]>>4); /* range */ \
+  next>>=1; \
 \
   switch (control&0xc) { /* filter */ \
     case 0: \
       break; \
     case 4: \
-      next+=(last1*15)/16; \
+      next+=last1+((-last1)>>4); \
       break; \
     case 8: \
-      next+=((last2*61)/32)-((last1*15)/16); \
+      next+=last1*2+((-last1*3)>>5)-last2+(last2>>4); \
       break; \
     case 12: \
-      next+=((last2*115)/64)-((last1*13)/16); \
+      next+=last1*2+((-last1*13)>>6)-last2+((last2*3)>>4); \
       break; \
   } \
 \
   if (next>32767) next=32767; \
   if (next<-32768) next=-32768; \
+  next&=0x7fff; \
+  if (next&0x4000) next|=0xffff8000; \
 \
   last2=last1; \
   last1=next; \
-  *out=next; \
+  *out=next<<1; \
   out++;
 
 // TODO:
