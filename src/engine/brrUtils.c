@@ -111,10 +111,10 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
       next+=(last1*15)/16; \
       break; \
     case 8: \
-      next+=((last1*61)/32)-((last2*15)/16); \
+      next+=((last2*61)/32)-((last1*15)/16); \
       break; \
     case 12: \
-      next+=((last1*115)/64)-((last2*13)/16); \
+      next+=((last2*115)/64)-((last1*13)/16); \
       break; \
   } \
 \

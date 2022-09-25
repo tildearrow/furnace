@@ -852,7 +852,7 @@ void DivSample::render() {
         }
         break;
       case DIV_SAMPLE_DEPTH_BRR: // BRR
-        brrDecode(dataBRR,data16,samples);
+        brrDecode(dataBRR,data16,lengthBRR);
         break;
       case DIV_SAMPLE_DEPTH_VOX: // VOX
         oki_decode(dataVOX,data16,samples);
