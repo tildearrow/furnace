@@ -390,7 +390,10 @@ void DivPlatformSNES::forceIns() {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
     chan[i].sample=-1;
-    updateWave(i);
+    if (chan[i].active && chan[i].useWave) {
+      updateWave(i);
+    }
+    writeOutVol(i);
   }
 }
 
