@@ -248,7 +248,7 @@ struct DivSample {
   /**
    * initialize the rest of sample formats for this sample.
    */
-  void render();
+  void render(unsigned int formatMask=0xffffffff);
 
   /**
    * get the sample data for the current depth.

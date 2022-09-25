@@ -111,7 +111,7 @@ const unsigned char dacLogTableAY8930[256]={
 
 void DivPlatformAY8930::runDAC() {
   for (int i=0; i<3; i++) {
-    if (chan[i].active && chan[i].psgMode.dac && chan[i].dac.sample!=-1) {
+    if (chan[i].active && chan[i].currPSGMode.dac && chan[i].dac.sample!=-1) {
       chan[i].dac.period+=chan[i].dac.rate;
       bool end=false;
       bool changed=false;
@@ -195,22 +195,22 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
 void DivPlatformAY8930::updateOutSel(bool immediate) {
   if (immediate) {
     immWrite(0x07,
-          ~((chan[0].psgMode.getTone())|
-           ((chan[1].psgMode.getTone())<<1)|
-           ((chan[2].psgMode.getTone())<<2)|
-           ((chan[0].psgMode.getNoise())<<2)|
-           ((chan[1].psgMode.getNoise())<<3)|
-           ((chan[2].psgMode.getNoise())<<4)|
+          ~((chan[0].currPSGMode.getTone())|
+           ((chan[1].currPSGMode.getTone())<<1)|
+           ((chan[2].currPSGMode.getTone())<<2)|
+           ((chan[0].currPSGMode.getNoise())<<2)|
+           ((chan[1].currPSGMode.getNoise())<<3)|
+           ((chan[2].currPSGMode.getNoise())<<4)|
            ((!ioPortA)<<6)|
            ((!ioPortB)<<7)));
   } else {
     rWrite(0x07,
-          ~((chan[0].psgMode.getTone())|
-           ((chan[1].psgMode.getTone())<<1)|
-           ((chan[2].psgMode.getTone())<<2)|
-           ((chan[0].psgMode.getNoise())<<2)|
-           ((chan[1].psgMode.getNoise())<<3)|
-           ((chan[2].psgMode.getNoise())<<4)|
+          ~((chan[0].currPSGMode.getTone())|
+           ((chan[1].currPSGMode.getTone())<<1)|
+           ((chan[2].currPSGMode.getTone())<<2)|
+           ((chan[0].currPSGMode.getNoise())<<2)|
+           ((chan[1].currPSGMode.getNoise())<<3)|
+           ((chan[2].currPSGMode.getNoise())<<4)|
            ((!ioPortA)<<6)|
            ((!ioPortB)<<7)));
   }
@@ -235,11 +235,11 @@ void DivPlatformAY8930::tick(bool sysTick) {
     if (chan[i].std.vol.had) {
       chan[i].outVol=MIN(31,chan[i].std.vol.val)-(31-(chan[i].vol&31));
       if (chan[i].outVol<0) chan[i].outVol=0;
-      if (!chan[i].psgMode.dac) {
+      if (!chan[i].nextPSGMode.dac) {
         if (isMuted[i]) {
           rWrite(0x08+i,0);
         } else {
-          rWrite(0x08+i,(chan[i].outVol&31)|((chan[i].psgMode.getEnvelope())<<3));
+          rWrite(0x08+i,(chan[i].outVol&31)|((chan[i].nextPSGMode.getEnvelope())<<3));
         }
       }
     }
@@ -253,13 +253,16 @@ void DivPlatformAY8930::tick(bool sysTick) {
       rWrite(0x06,chan[i].std.duty.val);
     }
     if (chan[i].std.wave.had) {
-      if (!chan[i].psgMode.dac) {
-      chan[i].psgMode.val=(chan[i].std.wave.val+1)&7;
-      if (isMuted[i]) {
-        rWrite(0x08+i,0);
-      } else {
-        rWrite(0x08+i,(chan[i].outVol&31)|((chan[i].psgMode.getEnvelope())<<3));
-      }
+      if (!chan[i].nextPSGMode.dac) {
+        chan[i].nextPSGMode.val=(chan[i].std.wave.val+1)&7;
+        if (chan[i].active) {
+          chan[i].currPSGMode.val=chan[i].nextPSGMode.val;
+        }
+        if (isMuted[i]) {
+          rWrite(0x08+i,0);
+        } else {
+          rWrite(0x08+i,(chan[i].outVol&31)|((chan[i].nextPSGMode.getEnvelope())<<3));
+        }
       }
     }
     if (chan[i].std.pitch.had) {
@@ -273,7 +276,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
     }
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
-        if (chan[i].psgMode.dac) {
+        if (chan[i].nextPSGMode.dac) {
           if (dumpWrites) addWrite(0xffff0002+(i<<8),0);
           DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AY8930);
           chan[i].dac.sample=ins->amiga.getSample(chan[i].note);
@@ -333,8 +336,8 @@ void DivPlatformAY8930::tick(bool sysTick) {
       }
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {
-        if (chan[i].psgMode.val==0) {
-          chan[i].psgMode.val=1;
+        if (!chan[i].nextPSGMode.dac) {
+          chan[i].currPSGMode.val=chan[i].nextPSGMode.val;
         }
         if (chan[i].insChanged) {
           if (!chan[i].std.ex1.will) immWrite(0x16+i,chan[i].duty);
@@ -342,7 +345,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
         }
       }
       if (chan[i].keyOff) {
-        chan[i].psgMode.val=0;
+        chan[i].currPSGMode.val=0;
         rWrite(0x08+i,0);
       }
       rWrite((i)<<1,chan[i].freq&0xff);
@@ -393,11 +396,11 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AY8930);
       if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
-        chan[c.chan].psgMode.dac=true;
+        chan[c.chan].nextPSGMode.dac=true;
       } else if (chan[c.chan].dac.furnaceDAC) {
-        chan[c.chan].psgMode.dac=false;
+        chan[c.chan].nextPSGMode.dac=false;
       }
-      if (chan[c.chan].psgMode.dac) {
+      if (chan[c.chan].nextPSGMode.dac) {
         if (skipRegisterWrites) break;
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           chan[c.chan].dac.sample=ins->amiga.getSample(c.value);
@@ -446,6 +449,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
           }
           chan[c.chan].dac.furnaceDAC=false;
         }
+        chan[c.chan].currPSGMode.dac=chan[c.chan].nextPSGMode.dac;
         break;
       }
       if (c.value!=DIV_NOTE_NULL) {
@@ -459,11 +463,11 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
-      if (!chan[c.chan].psgMode.dac) {
+      if (!chan[c.chan].nextPSGMode.dac) {
         if (isMuted[c.chan]) {
           rWrite(0x08+c.chan,0);
         } else {
-          rWrite(0x08+c.chan,(chan[c.chan].vol&31)|((chan[c.chan].psgMode.getEnvelope())<<3));
+          rWrite(0x08+c.chan,(chan[c.chan].vol&31)|((chan[c.chan].nextPSGMode.getEnvelope())<<3));
         }
       }
       break;
@@ -471,7 +475,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].dac.sample=-1;
       if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
-      chan[c.chan].psgMode.dac=false;
+      chan[c.chan].nextPSGMode.dac=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].active=false;
       chan[c.chan].macroInit(NULL);
@@ -485,11 +489,11 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
-      if (!chan[c.chan].psgMode.dac) {
+      if (!chan[c.chan].nextPSGMode.dac) {
         if (isMuted[c.chan]) {
           rWrite(0x08+c.chan,0);
         } else {
-          if (chan[c.chan].active) rWrite(0x08+c.chan,(chan[c.chan].vol&31)|((chan[c.chan].psgMode.getEnvelope())<<3));
+          if (chan[c.chan].active) rWrite(0x08+c.chan,(chan[c.chan].vol&31)|((chan[c.chan].nextPSGMode.getEnvelope())<<3));
         }
         break;
       }
@@ -540,12 +544,15 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
     }
     case DIV_CMD_STD_NOISE_MODE:
       if (c.value<0x10) {
-        if (!chan[c.chan].psgMode.dac) {
-          chan[c.chan].psgMode.val=(c.value+1)&7;
+        if (!chan[c.chan].nextPSGMode.dac) {
+          chan[c.chan].nextPSGMode.val=(c.value+1)&7;
+          if (chan[c.chan].active) {
+            chan[c.chan].currPSGMode.val=chan[c.chan].nextPSGMode.val;
+          }
           if (isMuted[c.chan]) {
             rWrite(0x08+c.chan,0);
           } else if (chan[c.chan].active) {
-            rWrite(0x08+c.chan,(chan[c.chan].outVol&31)|((chan[c.chan].psgMode.getEnvelope())<<3));
+            rWrite(0x08+c.chan,(chan[c.chan].outVol&31)|((chan[c.chan].nextPSGMode.getEnvelope())<<3));
           }
         }
       } else {
@@ -560,14 +567,17 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       chan[c.chan].envelope.mode=c.value>>4;
       rWrite(regMode[c.chan],chan[c.chan].envelope.mode);
       if (c.value&15) {
-        chan[c.chan].psgMode.envelope|=1;
+        chan[c.chan].nextPSGMode.envelope|=1;
       } else {
-        chan[c.chan].psgMode.envelope&=~1;
+        chan[c.chan].nextPSGMode.envelope&=~1;
+      }
+      if (!chan[c.chan].nextPSGMode.dac && chan[c.chan].active) {
+        chan[c.chan].currPSGMode.val=chan[c.chan].nextPSGMode.val;
       }
       if (isMuted[c.chan]) {
         rWrite(0x08+c.chan,0);
       } else {
-        rWrite(0x08+c.chan,(chan[c.chan].vol&31)|((chan[c.chan].psgMode.getEnvelope())<<3));
+        rWrite(0x08+c.chan,(chan[c.chan].vol&31)|((chan[c.chan].nextPSGMode.getEnvelope())<<3));
       }
       break;
     case DIV_CMD_AY_ENVELOPE_LOW:
@@ -616,7 +626,8 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       immWrite(14+(c.value?1:0),(c.value?portBVal:portAVal));
       break;
     case DIV_CMD_SAMPLE_MODE:
-      chan[c.chan].psgMode.dac=(c.value>0)?1:0;
+      chan[c.chan].nextPSGMode.dac=(c.value>0)?1:0;
+      chan[c.chan].currPSGMode.dac=chan[c.chan].nextPSGMode.dac;
       break;
     case DIV_CMD_SAMPLE_BANK:
       sampleBank=c.value;
@@ -651,10 +662,10 @@ void DivPlatformAY8930::muteChannel(int ch, bool mute) {
   if (isMuted[ch]) {
     rWrite(0x08+ch,0);
   } else if (chan[ch].active) {
-    if (chan[ch].psgMode.dac) {
+    if (chan[ch].nextPSGMode.dac) {
       rWrite(0x08+ch,chan[ch].dac.out&31);
     } else {
-      rWrite(0x08+ch,(chan[ch].outVol&31)|((chan[ch].psgMode.getEnvelope())<<3));
+      rWrite(0x08+ch,(chan[ch].outVol&31)|((chan[ch].nextPSGMode.getEnvelope())<<3));
     }
   }
 }
