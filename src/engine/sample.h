@@ -20,8 +20,6 @@
 #ifndef _SAMPLE_H
 #define _SAMPLE_H
 
-#pragma once
-
 #include "../ta-utils.h"
 #include <deque>
 
