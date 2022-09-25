@@ -430,7 +430,6 @@ void DivPlatformSNES::updateWave(int ch) {
 }
 
 void DivPlatformSNES::writeOutVol(int ch) {
-  // TODO negative (inverted) panning support
   int outL=0;
   int outR=0;
   if (!isMuted[ch]) {
