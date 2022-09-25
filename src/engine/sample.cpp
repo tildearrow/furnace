@@ -911,8 +911,7 @@ void DivSample::render() {
   }
   if (depth!=DIV_SAMPLE_DEPTH_BRR) { // BRR
     if (!initInternal(DIV_SAMPLE_DEPTH_BRR,samples)) return;
-    // TODO: loop point
-    brrEncode(data16,dataBRR,(samples+15)&(~15),0);
+    brrEncode(data16,dataBRR,(samples+15)&(~15),loop?loopStart:-1);
   }
   if (depth!=DIV_SAMPLE_DEPTH_VOX) { // VOX
     if (!initInternal(DIV_SAMPLE_DEPTH_VOX,samples)) return;

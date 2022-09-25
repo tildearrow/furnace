@@ -56,15 +56,16 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
 
     range=0;
     for (int j=0; j<16; j++) {
-      short s=buf[j];
+      short s=buf[j]-(buf[j]>>13);
       if (s<0) s=-s;
       while (range<12 && s>((8<<range)-1)) range++;
     }
-    next[0]=(range<<4)|(filter<<2)|((i+16>=len)?1:0);
+    next[0]=(range<<4)|(filter<<2)|((i+16>=len)?((loopStart>=0)?3:1):0);
     switch (filter) {
       case 0:
         for (int j=0; j<16; j++) {
-          o0=buf[j]>>range;
+          short s=buf[j]-(buf[j]>>13);
+          o0=s>>range;
           if (o0>7) o0=7;
           if (o0<-8) o0=-8;
           if (range>=12) if (o0<-7) o0=-7;
