@@ -115,7 +115,7 @@ const unsigned char dacLogTableAY[256]={
 
 void DivPlatformAY8910::runDAC() {
   for (int i=0; i<3; i++) {
-    if (chan[i].psgMode.dac && chan[i].dac.sample!=-1) {
+    if (chan[i].active && chan[i].psgMode.dac && chan[i].dac.sample!=-1) {
       chan[i].dac.period+=chan[i].dac.rate;
       bool end=false;
       bool changed=false;
@@ -129,7 +129,7 @@ void DivPlatformAY8910::runDAC() {
           break;
         }
         unsigned char dacData=dacLogTableAY[(unsigned char)s->data8[chan[i].dac.pos]^0x80];
-        chan[i].dac.out=MAX(0,dacData-(15-chan[i].outVol));
+        chan[i].dac.out=(chan[i].active && !isMuted[i])?MAX(0,dacData-(15-chan[i].outVol)):0;
         if (prevOut!=chan[i].dac.out) {
           prevOut=chan[i].dac.out;
           changed=true;
@@ -264,7 +264,7 @@ void DivPlatformAY8910::tick(bool sysTick) {
     }
     if (chan[i].std.wave.had) {
       if (!chan[i].psgMode.dac) {
-        chan[i].psgMode=(chan[i].std.wave.val+1)&7;
+        chan[i].psgMode.val=(chan[i].std.wave.val+1)&7;
         if (isMuted[i]) {
           rWrite(0x08+i,0);
         } else if (intellivision && (chan[i].psgMode.getEnvelope())) {
@@ -336,8 +336,12 @@ void DivPlatformAY8910::tick(bool sysTick) {
       if (chan[i].keyOn) {
         //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
         //rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
+        if (chan[i].psgMode.val==0) {
+          chan[i].psgMode.val=1;
+        }
       }
       if (chan[i].keyOff) {
+        chan[i].psgMode.val=0;
         rWrite(0x08+i,0);
       }
       rWrite((i)<<1,chan[i].freq&0xff);
@@ -543,7 +547,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
     case DIV_CMD_STD_NOISE_MODE:
       if (!chan[c.chan].psgMode.dac) {
         if (c.value<16) {
-          chan[c.chan].psgMode=(c.value+1)&7;
+          chan[c.chan].psgMode.val=(c.value+1)&7;
           if (isMuted[c.chan]) {
             rWrite(0x08+c.chan,0);
           } else if (chan[c.chan].active) {

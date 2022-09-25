@@ -32,10 +32,15 @@ class DivPlatformAY8910: public DivDispatch {
     inline unsigned char regRemap(unsigned char reg) { return intellivision?AY8914RegRemap[reg&0x0f]:reg&0x0f; }
     struct Channel {
       struct PSGMode {
-        unsigned char tone: 1;
-        unsigned char noise: 1;
-        unsigned char envelope: 1;
-        unsigned char dac: 1;
+        union {
+          struct {
+            unsigned char tone: 1;
+            unsigned char noise: 1;
+            unsigned char envelope: 1;
+            unsigned char dac: 1;
+          };
+          unsigned char val=1;
+        };
 
         unsigned char getTone() {
           return dac?0:(tone<<0);
@@ -49,19 +54,8 @@ class DivPlatformAY8910: public DivDispatch {
           return dac?0:(envelope<<2);
         }
 
-        PSGMode& operator=(unsigned char s) {
-          tone=(s>>0)&1;
-          noise=(s>>1)&1;
-          envelope=(s>>2)&1;
-          dac=(s>>3)&1;
-          return *this;
-        }
-
         PSGMode():
-          tone(1),
-          noise(0),
-          envelope(0),
-          dac(0) {}
+          val(1) {}
       } psgMode;
 
       struct DAC {

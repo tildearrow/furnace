@@ -110,8 +110,8 @@ const unsigned char dacLogTableAY8930[256]={
 };
 
 void DivPlatformAY8930::runDAC() {
-    for (int i=0; i<3; i++) {
-    if (chan[i].psgMode.dac && chan[i].dac.sample!=-1) {
+  for (int i=0; i<3; i++) {
+    if (chan[i].active && chan[i].psgMode.dac && chan[i].dac.sample!=-1) {
       chan[i].dac.period+=chan[i].dac.rate;
       bool end=false;
       bool changed=false;
@@ -125,7 +125,7 @@ void DivPlatformAY8930::runDAC() {
           break;
         }
         unsigned char dacData=dacLogTableAY8930[(unsigned char)s->data8[chan[i].dac.pos]^0x80];
-        chan[i].dac.out=MAX(0,dacData-(31-chan[i].outVol));
+        chan[i].dac.out=(chan[i].active && !isMuted[i])?MAX(0,dacData-(31-chan[i].outVol)):0;
         if (prevOut!=chan[i].dac.out) {
           prevOut=chan[i].dac.out;
           changed=true;
@@ -254,7 +254,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
     }
     if (chan[i].std.wave.had) {
       if (!chan[i].psgMode.dac) {
-      chan[i].psgMode=(chan[i].std.wave.val+1)&7;
+      chan[i].psgMode.val=(chan[i].std.wave.val+1)&7;
       if (isMuted[i]) {
         rWrite(0x08+i,0);
       } else {
@@ -333,12 +333,16 @@ void DivPlatformAY8930::tick(bool sysTick) {
       }
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {
+        if (chan[i].psgMode.val==0) {
+          chan[i].psgMode.val=1;
+        }
         if (chan[i].insChanged) {
           if (!chan[i].std.ex1.will) immWrite(0x16+i,chan[i].duty);
           chan[i].insChanged=false;
         }
       }
       if (chan[i].keyOff) {
+        chan[i].psgMode.val=0;
         rWrite(0x08+i,0);
       }
       rWrite((i)<<1,chan[i].freq&0xff);
@@ -537,7 +541,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
     case DIV_CMD_STD_NOISE_MODE:
       if (c.value<0x10) {
         if (!chan[c.chan].psgMode.dac) {
-          chan[c.chan].psgMode=(c.value+1)&7;
+          chan[c.chan].psgMode.val=(c.value+1)&7;
           if (isMuted[c.chan]) {
             rWrite(0x08+c.chan,0);
           } else if (chan[c.chan].active) {
