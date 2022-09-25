@@ -35,6 +35,12 @@ void FurnaceGUI::drawSampleEdit() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!sampleEditOpen) return;
+  if (mobileUI) {
+    patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*scrH*dpiScale)):ImVec2((0.16*scrH*dpiScale)+0.5*scrW*dpiScale*mobileMenuPos,0.0f));
+    patWindowSize=(portrait?ImVec2(scrW*dpiScale,scrH*dpiScale-(0.16*scrW*dpiScale)-(pianoOpen?(0.4*scrW*dpiScale):0.0f)):ImVec2(scrW*dpiScale-(0.16*scrH*dpiScale),scrH*dpiScale-(pianoOpen?(0.3*scrH*dpiScale):0.0f)));
+    ImGui::SetNextWindowPos(patWindowPos);
+    ImGui::SetNextWindowSize(patWindowSize);
+  }
   if (ImGui::Begin("Sample Editor",&sampleEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curSample<0 || curSample>=(int)e->song.sample.size()) {
       ImGui::Text("no sample selected");
@@ -44,6 +50,12 @@ void FurnaceGUI::drawSampleEdit() {
       if (sample->depth<DIV_SAMPLE_DEPTH_MAX) {
         if (sampleDepths[sample->depth]!=NULL) {
           sampleType=sampleDepths[sample->depth];
+        }
+      }
+      String loopType="Invalid";
+      if (sample->loopMode<DIV_SAMPLE_LOOP_MAX) {
+        if (sampleLoopModes[sample->loopMode]!=NULL) {
+          loopType=sampleLoopModes[sample->loopMode];
         }
       }
       if (!settings.sampleLayout) {
@@ -65,7 +77,7 @@ void FurnaceGUI::drawSampleEdit() {
               if (sampleDepths[i]==NULL) continue;
               if (ImGui::Selectable(sampleDepths[i])) {
                 sample->prepareUndo(true);
-                sample->depth=DivSampleDepth(i);
+                sample->depth=(DivSampleDepth)i;
                 e->renderSamplesP();
                 updateSampleTex=true;
                 MARK_MODIFIED;
@@ -93,13 +105,16 @@ void FurnaceGUI::drawSampleEdit() {
           }
 
           ImGui::TableNextColumn();
-          ImGui::Text("Loop Mode");
-          ImGui::SameLine();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          int mode=(int)sample->loopMode;
-          if (ImGui::Combo("##LoopMode",&mode,loopMode,DIV_SAMPLE_LOOPMODE_MAX,DIV_SAMPLE_LOOPMODE_MAX)) { MARK_MODIFIED
-            if (sample->loopStart<0 || sample->loopStart>=(int)sample->samples) {
+          bool doLoop=(sample->isLoopable());
+          if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
+            if (doLoop) {
+              sample->loop=true;
               sample->loopStart=0;
+              sample->loopEnd=sample->samples;
+            } else {
+              sample->loop=false;
+              sample->loopStart=-1;
+              sample->loopEnd=sample->samples;
             }
             if (sample->loopEnd>sample->samples) {
               sample->loopEnd=sample->samples;
@@ -112,15 +127,33 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::Text("Length: %d",sample->samples);
           bool doLoop=(sample->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT);
           if (doLoop) {
+            ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::Text("Loop start");
+            ImGui::Text("Loop Mode");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::InputInt("##LoopStart",&sample->loopStart,1,10)) { MARK_MODIFIED
-              if (sample->loopStart<0 || sample->loopStart>=(int)sample->samples) {
+            if (ImGui::BeginCombo("##SampleLoopMode",loopType.c_str())) {
+              for (int i=0; i<DIV_SAMPLE_LOOP_MAX; i++) {
+                if (sampleLoopModes[i]==NULL) continue;
+                if (ImGui::Selectable(sampleLoopModes[i])) {
+                  sample->prepareUndo(true);
+                  sample->loopMode=(DivSampleLoopMode)i;
+                  e->renderSamplesP();
+                  updateSampleTex=true;
+                  MARK_MODIFIED;
+                }
+              }
+              ImGui::EndCombo();
+            }
+            ImGui::TableNextColumn();
+            ImGui::Text("Loop Start");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::InputInt("##LoopStartPosition",&sample->loopStart,1,10)) { MARK_MODIFIED
+              if (sample->loopStart<0) {
                 sample->loopStart=0;
               }
-              if (sample->loopStart>=(int)sample->loopEnd) {
+              if (sample->loopStart>sample->loopEnd) {
                 sample->loopStart=sample->loopEnd;
               }
               updateSampleTex=true;
@@ -129,18 +162,13 @@ void FurnaceGUI::drawSampleEdit() {
             ImGui::Text("Loop End");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            int end=(int)sample->loopEnd;
-            if (ImGui::InputInt("##LoopEnd",&end,1,10)) { MARK_MODIFIED
-              if (end<0) {
-                end=0;
+            if (ImGui::InputInt("##LoopEndPosition",&sample->loopEnd,1,10)) { MARK_MODIFIED
+              if (sample->loopEnd<sample->loopStart) {
+                sample->loopEnd=sample->loopStart;
               }
-              if (end<sample->loopStart) {
-                end=sample->loopStart;
+              if (sample->loopEnd>=(int)sample->samples) {
+                sample->loopEnd=sample->samples;
               }
-              if (end>(int)sample->samples) {
-                end=(int)sample->samples;
-              }
-              sample->loopEnd=end;
               updateSampleTex=true;
             }
           }
@@ -157,20 +185,20 @@ void FurnaceGUI::drawSampleEdit() {
 
         ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
 
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(!sampleDragMode));
+        pushToggleColors(!sampleDragMode);
         if (ImGui::Button(ICON_FA_I_CURSOR "##SSelect")) {
           sampleDragMode=false;
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Edit mode: Select");
         }
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(sampleDragMode));
+        pushToggleColors(sampleDragMode);
         if (ImGui::Button(ICON_FA_PENCIL "##SDraw")) {
           sampleDragMode=true;
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Edit mode: Draw");
         }
@@ -367,7 +395,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (silenceSize<0) silenceSize=0;
             if (silenceSize>16777215) silenceSize=16777215;
           }
-          if (ImGui::Button("Resize")) {
+          if (ImGui::Button("Go")) {
             int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?sample->samples:sampleSelStart;
             sample->prepareUndo(true);
             e->lockEngine([this,sample,pos]() {
@@ -544,14 +572,14 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SameLine();
         ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
         ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSample")) {
+        if (ImGui::Button(ICON_FA_PLAY "##PreviewSample")) {
           e->previewSample(curSample);
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Preview sample");
         }
         ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_VOLUME_OFF "##StopSample")) {
+        if (ImGui::Button(ICON_FA_STOP "##StopSample")) {
           e->stopSamplePreview();
         }
         if (ImGui::IsItemHovered()) {
@@ -610,7 +638,7 @@ void FurnaceGUI::drawSampleEdit() {
               if (sampleDepths[i]==NULL) continue;
               if (ImGui::Selectable(sampleDepths[i])) {
                 sample->prepareUndo(true);
-                sample->depth=DivSampleDepth(i);
+                sample->depth=(DivSampleDepth)i;
                 e->renderSamplesP();
                 updateSampleTex=true;
                 MARK_MODIFIED;
@@ -639,13 +667,16 @@ void FurnaceGUI::drawSampleEdit() {
           }
 
           ImGui::TableNextColumn();
-          ImGui::Text("Loop Mode");
-          ImGui::SameLine();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          int mode=(int)sample->loopMode;
-          if (ImGui::Combo("##LoopMode",&mode,loopMode,DIV_SAMPLE_LOOPMODE_MAX,DIV_SAMPLE_LOOPMODE_MAX)) { MARK_MODIFIED
-            if (sample->loopStart<0 || sample->loopStart>=(int)sample->samples) {
+          bool doLoop=(sample->isLoopable());
+          if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
+            if (doLoop) {
+              sample->loop=true;
               sample->loopStart=0;
+              sample->loopEnd=sample->samples;
+            } else {
+              sample->loop=false;
+              sample->loopStart=-1;
+              sample->loopEnd=sample->samples;
             }
             if (sample->loopEnd>sample->samples) {
               sample->loopEnd=sample->samples;
@@ -660,15 +691,33 @@ void FurnaceGUI::drawSampleEdit() {
           if (doLoop) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            ImGui::Text("Loop start");
+            ImGui::Text("Loop Mode");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::InputInt("##LoopStart",&sample->loopStart,1,10)) { MARK_MODIFIED
-              if (sample->loopStart<0 || sample->loopStart>=(int)sample->samples) {
+            if (ImGui::BeginCombo("##SampleLoopMode",loopType.c_str())) {
+              for (int i=0; i<DIV_SAMPLE_LOOP_MAX; i++) {
+                if (sampleLoopModes[i]==NULL) continue;
+                if (ImGui::Selectable(sampleLoopModes[i])) {
+                  sample->prepareUndo(true);
+                  sample->loopMode=(DivSampleLoopMode)i;
+                  e->renderSamplesP();
+                  updateSampleTex=true;
+                  MARK_MODIFIED;
+                }
+              }
+              ImGui::EndCombo();
+            }
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("Loop Start");
+            ImGui::SameLine();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::InputInt("##LoopStartPosition",&sample->loopStart,1,10)) { MARK_MODIFIED
+              if (sample->loopStart<0) {
                 sample->loopStart=0;
               }
-              if (sample->loopStart>=(int)sample->loopEnd) {
-                sample->loopStart=loopEnd;
+              if (sample->loopStart>sample->loopEnd) {
+                sample->loopStart=sample->loopEnd;
               }
               updateSampleTex=true;
             }
@@ -676,18 +725,13 @@ void FurnaceGUI::drawSampleEdit() {
             ImGui::Text("Loop End");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            int end=(int)sample->loopEnd;
-            if (ImGui::InputInt("##LoopEnd",&end,1,10)) { MARK_MODIFIED
-              if (end<0) {
-                end=0;
+            if (ImGui::InputInt("##LoopEndPosition",&sample->loopEnd,1,10)) { MARK_MODIFIED
+              if (sample->loopEnd<sample->loopStart) {
+                sample->loopEnd=sample->loopStart;
               }
-              if (end<sample->loopStart) {
-                end=sample->loopStart;
+              if (sample->loopEnd>=(int)sample->samples) {
+                sample->loopEnd=sample->samples;
               }
-              if (end>(int)(sample->samples)) {
-                end=sample->samples;
-              }
-              sample->loopEnd=end;
               updateSampleTex=true;
             }
           }
@@ -704,20 +748,20 @@ void FurnaceGUI::drawSampleEdit() {
 
         ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
 
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(!sampleDragMode));
+        pushToggleColors(!sampleDragMode);
         if (ImGui::Button(ICON_FA_I_CURSOR "##SSelect")) {
           sampleDragMode=false;
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Edit mode: Select");
         }
         ImGui::SameLine();
-        ImGui::PushStyleColor(ImGuiCol_Button,TOGGLE_COLOR(sampleDragMode));
+        pushToggleColors(sampleDragMode);
         if (ImGui::Button(ICON_FA_PENCIL "##SDraw")) {
           sampleDragMode=true;
         }
-        ImGui::PopStyleColor();
+        popToggleColors();
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Edit mode: Draw");
         }
@@ -1056,7 +1100,7 @@ void FurnaceGUI::drawSampleEdit() {
             if (silenceSize<0) silenceSize=0;
             if (silenceSize>16777215) silenceSize=16777215;
           }
-          if (ImGui::Button("Resize")) {
+          if (ImGui::Button("Go")) {
             int pos=(sampleSelStart==-1 || sampleSelStart==sampleSelEnd)?sample->samples:sampleSelStart;
             sample->prepareUndo(true);
             e->lockEngine([this,sample,pos]() {
@@ -1203,7 +1247,7 @@ void FurnaceGUI::drawSampleEdit() {
             for (int i=0; i<availY; i++) {
               for (int j=0; j<availX; j++) {
                 int scaledPos=samplePos+(j*sampleZoom);
-                if (sample->isLoopable() && ((scaledPos>=sample->loopStart) && (scaledPos<(int)(sample->loopEnd)))) {
+                if (sample->isLoopable() && (scaledPos>=sample->loopStart && scaledPos<=sample->loopEnd)) {
                   data[i*availX+j]=bgColorLoop;
                 } else {
                   data[i*availX+j]=bgColor;
@@ -1315,6 +1359,9 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::Separator();
           if (ImGui::MenuItem("set loop to selection",BIND_FOR(GUI_ACTION_SAMPLE_SET_LOOP))) {
             doAction(GUI_ACTION_SAMPLE_SET_LOOP);
+          }
+          if (ImGui::MenuItem("create wavetable from selection",BIND_FOR(GUI_ACTION_SAMPLE_CREATE_WAVE))) {
+            doAction(GUI_ACTION_SAMPLE_CREATE_WAVE);
           }
           ImGui::EndPopup();
         }

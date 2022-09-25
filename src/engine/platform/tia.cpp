@@ -22,7 +22,7 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {tia.set(a,v); regPool[((a)-0x15)&0x0f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {tia.write(a,v); regPool[((a)-0x15)&0x0f]=v; if (dumpWrites) {addWrite(a,v);} }
 
 const char* regCheatSheetTIA[]={
   "AUDC0", "15",
@@ -34,21 +34,27 @@ const char* regCheatSheetTIA[]={
   NULL
 };
 
-const char* DivPlatformTIA::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Select shape (0 to F)";
-      break;
-  }
-  return NULL;
-}
-
 const char** DivPlatformTIA::getRegisterSheet() {
   return regCheatSheetTIA;
 }
 
 void DivPlatformTIA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  tia.process(bufL+start,len,oscBuf);
+  for (size_t h=start; h<start+len; h++) {
+    tia.tick();
+    if (mixingType==2) {
+      bufL[h]=tia.myCurrentSample[0];
+      bufR[h]=tia.myCurrentSample[1];
+    } else if (mixingType==1) {
+      bufL[h]=(tia.myCurrentSample[0]+tia.myCurrentSample[1])>>1;
+    } else {
+      bufL[h]=tia.myCurrentSample[0];
+    }
+    if (++chanOscCounter>=114) {
+      chanOscCounter=0;
+      oscBuf[0]->data[oscBuf[0]->needle++]=tia.myChannelOut[0];
+      oscBuf[1]->data[oscBuf[1]->needle++]=tia.myChannelOut[1];
+    }
+  }
 }
 
 unsigned char DivPlatformTIA::dealWithFreq(unsigned char shape, int base, int pitch) {
@@ -96,20 +102,18 @@ void DivPlatformTIA::tick(bool sysTick) {
         rWrite(0x19+i,chan[i].outVol&15);
       }
     }
+    // TODO: the way arps work on TIA is really weird
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=0x80000000|chan[i].std.arp.val;
+        if (chan[i].std.arp.val<0 && (!(chan[i].std.arp.val&0x40000000))) {
+          chan[i].baseFreq=0x80000000|(chan[i].std.arp.val|0x40000000);
+        } else if (chan[i].std.arp.val>=0 && chan[i].std.arp.val&0x40000000) {
+          chan[i].baseFreq=0x80000000|(chan[i].std.arp.val&(~0x40000000));
         } else {
           chan[i].baseFreq=(chan[i].note+chan[i].std.arp.val)<<8;
         }
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=chan[i].note<<8;
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.wave.had) {
       chan[i].shape=chan[i].std.wave.val&15;
@@ -126,13 +130,6 @@ void DivPlatformTIA::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      if (chan[i].insChanged) {
-        if (!chan[i].std.wave.will) {
-          chan[i].shape=4;
-          rWrite(0x15+i,chan[i].shape);
-        }
-        chan[i].insChanged=false;
-      }
       chan[i].freq=dealWithFreq(chan[i].shape,chan[i].baseFreq,chan[i].pitch)+chan[i].pitch2;
       if ((chan[i].shape==4 || chan[i].shape==5) && !(chan[i].baseFreq&0x80000000 && ((chan[i].baseFreq&0x7fffffff)<32))) {
         if (chan[i].baseFreq<39*256) {
@@ -172,6 +169,13 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
+      }
+      if (chan[c.chan].insChanged) {
+        if (!chan[c.chan].std.wave.will) {
+          chan[c.chan].shape=4;
+          rWrite(0x15+c.chan,chan[c.chan].shape);
+        }
+        chan[c.chan].insChanged=false;
       }
       if (isMuted[c.chan]) {
         rWrite(0x19+c.chan,0);
@@ -259,6 +263,7 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_TIA));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=(chan[c.chan].note<<8);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
@@ -310,7 +315,7 @@ int DivPlatformTIA::getRegisterPoolSize() {
 }
 
 void DivPlatformTIA::reset() {
-  tia.reset();
+  tia.reset(mixingType);
   memset(regPool,0,16);
   for (int i=0; i<2; i++) {
     chan[i]=DivPlatformTIA::Channel();
@@ -319,8 +324,12 @@ void DivPlatformTIA::reset() {
   }
 }
 
+float DivPlatformTIA::getPostAmp() {
+  return 0.5f;
+}
+
 bool DivPlatformTIA::isStereo() {
-  return false;
+  return (mixingType==2);
 }
 
 bool DivPlatformTIA::keyOffAffectsArp(int ch) {
@@ -343,25 +352,28 @@ void DivPlatformTIA::poke(std::vector<DivRegWrite>& wlist) {
 
 void DivPlatformTIA::setFlags(unsigned int flags) {
   if (flags&1) {
-    rate=31250;
+    rate=COLOR_PAL*4.0/5.0;
   } else {
-    rate=31468;
+    rate=COLOR_NTSC;
   }
   chipClock=rate;
+  mixingType=(flags>>1)&3;
   for (int i=0; i<2; i++) {
-    oscBuf[i]->rate=rate;
+    oscBuf[i]->rate=rate/114;
   }
+  tia.reset(mixingType);
 }
 
 int DivPlatformTIA::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  mixingType=0;
+  chanOscCounter=0;
   for (int i=0; i<2; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  tia.channels(1,false);
   setFlags(flags);
   reset();
   return 2;

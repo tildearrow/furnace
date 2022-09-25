@@ -37,15 +37,6 @@ const char** DivPlatformPET::getRegisterSheet() {
   return regCheatSheet6522;
 }
 
-const char* DivPlatformPET::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-  }
-  return NULL;
-}
-
 // high-level emulation of 6522 shift register and driver software for now
 void DivPlatformPET::rWrite(unsigned int addr, unsigned char val) {
   bool hwSROutput=((regPool[11]>>2)&7)==4;
@@ -113,18 +104,9 @@ void DivPlatformPET::tick(bool sysTick) {
   }
   if (chan.std.arp.had) {
     if (!chan.inPorta) {
-      if (chan.std.arp.mode) {
-        chan.baseFreq=NOTE_PERIODIC(chan.std.arp.val);
-      } else {
-        chan.baseFreq=NOTE_PERIODIC(chan.note+chan.std.arp.val);
-      }
+      chan.baseFreq=NOTE_PERIODIC(parent->calcArp(chan.note,chan.std.arp.val));
     }
     chan.freqChanged=true;
-  } else {
-    if (chan.std.arp.mode && chan.std.arp.finished) {
-      chan.baseFreq=NOTE_PERIODIC(chan.note);
-      chan.freqChanged=true;
-    }
   }
   if (chan.std.wave.had) {
     if (chan.wave!=chan.std.wave.val) {
@@ -133,8 +115,14 @@ void DivPlatformPET::tick(bool sysTick) {
     }
   }
   if (chan.std.pitch.had) {
-      chan.freqChanged=true;
+    if (chan.std.pitch.mode) {
+      chan.pitch2+=chan.std.pitch.val;
+      CLAMP_VAR(chan.pitch2,-32768,32767);
+    } else {
+      chan.pitch2=chan.std.pitch.val;
     }
+    chan.freqChanged=true;
+  }
   if (chan.freqChanged || chan.keyOn || chan.keyOff) {
     chan.freq=parent->calcFreq(chan.baseFreq,chan.pitch,true,0,chan.pitch2,chipClock,CHIP_DIVIDER)-2;
     if (chan.freq>65535) chan.freq=65535;
@@ -239,6 +227,7 @@ int DivPlatformPET::dispatch(DivCommand c) {
       if (chan.active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan.macroInit(parent->getIns(chan.ins,DIV_INS_PET));
       }
+      if (!chan.inPorta && c.value && !parent->song.brokenPortaArp && chan.std.arp.will) chan.baseFreq=NOTE_PERIODIC(chan.note);
       chan.inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

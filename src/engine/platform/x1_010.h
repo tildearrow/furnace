@@ -24,20 +24,9 @@
 #include "../engine.h"
 #include "../macroInt.h"
 #include "../waveSynth.h"
-#include "sound/x1_010/x1_010.hpp"
+#include "vgsound_emu/src/x1_010/x1_010.hpp"
 
-class DivX1_010Interface: public x1_010_mem_intf {
-  public:
-    unsigned char* memory;
-    int sampleBank;
-    virtual u8 read_byte(u32 address) override {
-      if (memory==NULL) return 0;
-      return memory[address & 0xfffff];
-    }
-    DivX1_010Interface(): memory(NULL), sampleBank(0) {}
-};
-
-class DivPlatformX1_010: public DivDispatch {
+class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
   struct Channel {
     struct Envelope {
       struct EnvFlag {
@@ -84,7 +73,9 @@ class DivPlatformX1_010: public DivDispatch {
     unsigned char pan, autoEnvNum, autoEnvDen;
     bool active, insChanged, envChanged, freqChanged, keyOn, keyOff, inPorta, furnacePCM, pcm;
     int vol, outVol, lvol, rvol;
+    int macroVolMul;
     unsigned char waveBank;
+    unsigned int bankSlot;
     Envelope env;
     DivMacroInt std;
     DivWaveSynth ws;
@@ -109,7 +100,9 @@ class DivPlatformX1_010: public DivDispatch {
       pan(255), autoEnvNum(0), autoEnvDen(0),
       active(false), insChanged(true), envChanged(true), freqChanged(false), keyOn(false), keyOff(false), inPorta(false), furnacePCM(false), pcm(false),
       vol(15), outVol(15), lvol(15), rvol(15),
-      waveBank(0) {}
+      macroVolMul(15),
+      waveBank(0),
+      bankSlot(0) {}
   };
   Channel chan[16];
   DivDispatchOscBuffer* oscBuf[16];
@@ -118,14 +111,19 @@ class DivPlatformX1_010: public DivDispatch {
   unsigned char* sampleMem;
   size_t sampleMemLen;
   unsigned char sampleBank;
-  DivX1_010Interface intf;
-  x1_010_core* x1_010;
+  x1_010_core x1_010;
+
+  bool isBanked=false;
+  unsigned int bankSlot[8];
+
   unsigned char regPool[0x2000];
   double NoteX1_010(int ch, int note);
   void updateWave(int ch);
   void updateEnvelope(int ch);
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
+    u8 read_byte(u32 address);
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
@@ -149,9 +147,13 @@ class DivPlatformX1_010: public DivDispatch {
     size_t getSampleMemUsage(int index = 0);
     void renderSamples();
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
+    void setBanked(bool banked);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
+    DivPlatformX1_010():
+      DivDispatch(),
+      vgsound_emu_mem_intf(),
+      x1_010(*this) {}
     ~DivPlatformX1_010();
 };
 

@@ -24,7 +24,7 @@
 #include <queue>
 #include "../macroInt.h"
 #include "../waveSynth.h"
-#include "sound/n163/n163.hpp"
+#include "vgsound_emu/src/n163/n163.hpp"
 
 class DivPlatformN163: public DivDispatch {
   struct Channel {
@@ -89,6 +89,7 @@ class DivPlatformN163: public DivDispatch {
   unsigned char regPool[128];
   void updateWave(int ch, int wave, int pos, int len);
   void updateWaveCh(int ch);
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   public:
@@ -110,7 +111,6 @@ class DivPlatformN163: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformN163();

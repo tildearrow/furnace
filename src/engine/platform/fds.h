@@ -77,7 +77,8 @@ class DivPlatformFDS: public DivDispatch {
   unsigned char regPool[128];
 
   void updateWave();
-
+  
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   void doWrite(unsigned short addr, unsigned char data);
@@ -104,7 +105,6 @@ class DivPlatformFDS: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformFDS();

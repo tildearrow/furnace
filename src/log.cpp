@@ -19,7 +19,11 @@
 
 #include "ta-log.h"
 
+#ifdef IS_MOBILE
+int logLevel=LOGLEVEL_TRACE;
+#else
 int logLevel=LOGLEVEL_INFO;
+#endif
 
 std::atomic<unsigned short> logPosition;
 

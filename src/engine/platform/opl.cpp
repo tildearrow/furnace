@@ -26,6 +26,8 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 #define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
+#define KVSL(x,y) ((chan[x].state.op[orderedOpsL1[ops==4][y]].kvs==2 && isOutputL[ops==4][chan[x].state.alg][y]) || chan[x].state.op[orderedOpsL1[ops==4][y]].kvs==1)
+
 #define CHIP_FREQBASE chipFreqBase
 
 // N = invalid
@@ -138,6 +140,11 @@ const bool isOutputL[2][4][4]={
 
 #undef N
 
+const int orderedOpsL1[2][4]={
+  {0, 1, 0, 1}, // 2-op
+  {0, 2, 1, 3}  // 4-op
+};
+
 const int orderedOpsL[4]={
   0,2,1,3
 };
@@ -151,98 +158,6 @@ const int orderedOpsL[4]={
 #define ADDR_FREQ 0xa0
 #define ADDR_FREQH 0xb0
 #define ADDR_LR_FB_ALG 0xc0
-
-const char* DivPlatformOPL::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Set global AM depth (0: 1dB, 1: 4.8dB)";
-      break;
-    case 0x11:
-      return "11xx: Set feedback (0 to 7)";
-      break;
-    case 0x12:
-      return "12xx: Set level of operator 1 (0 highest, 3F lowest)";
-      break;
-    case 0x13:
-      return "13xx: Set level of operator 2 (0 highest, 3F lowest)";
-      break;
-    case 0x14:
-      return "14xx: Set level of operator 3 (0 highest, 3F lowest; 4-op only)";
-      break;
-    case 0x15:
-      return "15xx: Set level of operator 4 (0 highest, 3F lowest; 4-op only)";
-      break;
-    case 0x16:
-      return "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)";
-      break;
-    case 0x17:
-      return "17xx: Set global vibrato depth (0: normal, 1: double)";
-      break;
-    case 0x18:
-      if (properDrumsSys) {
-        return "18xx: Toggle drums mode (1: enabled; 0: disabled)";
-      }
-      break;
-    case 0x19:
-      return "19xx: Set attack of all operators (0 to F)";
-      break;
-    case 0x1a:
-      return "1Axx: Set attack of operator 1 (0 to F)";
-      break;
-    case 0x1b:
-      return "1Bxx: Set attack of operator 2 (0 to F)";
-      break;
-    case 0x1c:
-      return "1Cxx: Set attack of operator 3 (0 to F; 4-op only)";
-      break;
-    case 0x1d:
-      return "1Dxx: Set attack of operator 4 (0 to F; 4-op only)";
-      break;
-    case 0x2a:
-      return "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 3 in OPL2 and 0 to 7 in OPL3)";
-      break;
-    case 0x30:
-      return "30xx: Toggle hard envelope reset on new notes";
-      break;
-    case 0x50:
-      return "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)";
-      break;
-    case 0x51:
-      return "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)";
-      break;
-    case 0x52:
-      return "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)";
-      break;
-    case 0x53:
-      return "53xy: Set vibrato (x: operator from 1 to 4 (0 for all ops); y: enabled)";
-      break;
-    case 0x54:
-      return "54xy: Set key scale level (x: operator from 1 to 4 (0 for all ops); y: level from 0 to 3)";
-      break;
-    case 0x55:
-      return "55xy: Set envelope sustain (x: operator from 1 to 4 (0 for all ops); y: enabled)";
-      break;
-    case 0x56:
-      return "56xx: Set decay of all operators (0 to F)";
-      break;
-    case 0x57:
-      return "57xx: Set decay of operator 1 (0 to F)";
-      break;
-    case 0x58:
-      return "58xx: Set decay of operator 2 (0 to F)";
-      break;
-    case 0x59:
-      return "59xx: Set decay of operator 3 (0 to F; 4-op only)";
-      break;
-    case 0x5a:
-      return "5Axx: Set decay of operator 4 (0 to F; 4-op only)";
-      break;
-    case 0x5b:
-      return "5Bxy: Set whether key will scale envelope (x: operator from 1 to 4 (0 for all ops); y: enabled)";
-      break;
-  }
-  return NULL;
-}
 
 void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
   static short o[2];
@@ -293,7 +208,7 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
       if (!isMuted[adpcmChan]) {
         os[0]-=aOut.data[0]>>3;
         os[1]-=aOut.data[0]>>3;
-        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]+=aOut.data[0];
+        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=aOut.data[0];
       } else {
         oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=0;
       }
@@ -341,7 +256,9 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     if (os[1]>32767) os[1]=32767;
   
     bufL[h]=os[0];
-    bufR[h]=os[1];
+    if (oplType==3 || oplType==759) {
+      bufR[h]=os[1];
+    }
   }
 }
 
@@ -378,7 +295,7 @@ void DivPlatformOPL::tick(bool sysTick) {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
-          if (isOutputL[ops==4][chan[i].state.alg][j] || i>melodicChans) {
+          if (KVSL(i,j) || i>melodicChans) {
             rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[i].outVol&0x3f,63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -389,18 +306,9 @@ void DivPlatformOPL::tick(bool sysTick) {
 
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+(signed char)chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
 
     if (oplType==3 && chan[i].std.panL.had) {
@@ -505,7 +413,7 @@ void DivPlatformOPL::tick(bool sysTick) {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
-          if (isOutputL[ops==4][chan[i].state.alg][j] || i>melodicChans) {
+          if (KVSL(i,j) || i>melodicChans) {
             rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[i].outVol&0x3f,63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -577,35 +485,50 @@ void DivPlatformOPL::tick(bool sysTick) {
       chan[adpcmChan].std.next();
 
       if (chan[adpcmChan].std.vol.had) {
-        chan[adpcmChan].outVol=(chan[adpcmChan].vol*MIN(64,chan[adpcmChan].std.vol.val))/64;
+        chan[adpcmChan].outVol=(chan[adpcmChan].vol*MIN(chan[adpcmChan].macroVolMul,chan[adpcmChan].std.vol.val))/chan[adpcmChan].macroVolMul;
         immWrite(18,chan[adpcmChan].outVol);
       }
 
       if (chan[adpcmChan].std.arp.had) {
         if (!chan[adpcmChan].inPorta) {
-          if (chan[adpcmChan].std.arp.mode) {
-            chan[adpcmChan].baseFreq=NOTE_ADPCMB(chan[adpcmChan].std.arp.val);
-          } else {
-            chan[adpcmChan].baseFreq=NOTE_ADPCMB(chan[adpcmChan].note+(signed char)chan[adpcmChan].std.arp.val);
-          }
+          chan[adpcmChan].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[adpcmChan].note,chan[adpcmChan].std.arp.val));
         }
         chan[adpcmChan].freqChanged=true;
-      } else {
-        if (chan[adpcmChan].std.arp.mode && chan[adpcmChan].std.arp.finished) {
-          chan[adpcmChan].baseFreq=NOTE_ADPCMB(chan[adpcmChan].note);
-          chan[adpcmChan].freqChanged=true;
+      }
+      if (chan[adpcmChan].std.phaseReset.had) {
+        if ((chan[adpcmChan].std.phaseReset.val==1) && chan[adpcmChan].active) {
+          chan[adpcmChan].keyOn=true;
         }
       }
     }
-    if (chan[adpcmChan].freqChanged) {
+    if (chan[adpcmChan].freqChanged || chan[adpcmChan].keyOn || chan[adpcmChan].keyOff) {
       if (chan[adpcmChan].sample>=0 && chan[adpcmChan].sample<parent->song.sampleLen) {
         double off=65535.0*(double)(parent->getSample(chan[adpcmChan].sample)->centerRate)/8363.0;
         chan[adpcmChan].freq=parent->calcFreq(chan[adpcmChan].baseFreq,chan[adpcmChan].pitch,false,4,chan[adpcmChan].pitch2,(double)chipClock/144,off);
       } else {
         chan[adpcmChan].freq=0;
       }
+      if (chan[adpcmChan].fixedFreq>0) chan[adpcmChan].freq=chan[adpcmChan].fixedFreq;
+      if (pretendYMU) { // YMU759 only does 4KHz or 8KHz
+        if (chan[adpcmChan].freq>7500) {
+          chan[adpcmChan].freq=10922; // 8KHz
+        } else {
+          chan[adpcmChan].freq=5461; // 4KHz
+        }
+      }
       immWrite(16,chan[adpcmChan].freq&0xff);
       immWrite(17,(chan[adpcmChan].freq>>8)&0xff);
+      if (chan[adpcmChan].keyOn || chan[adpcmChan].keyOff) {
+        immWrite(7,0x01); // reset
+        if (chan[adpcmChan].active && chan[adpcmChan].keyOn && !chan[adpcmChan].keyOff) {
+          if (chan[adpcmChan].sample>=0 && chan[adpcmChan].sample<parent->song.sampleLen) {
+            DivSample* s=parent->getSample(chan[adpcmChan].sample);
+            immWrite(7,(s->isLoopable())?0xb0:0xa0); // start/repeat
+          }
+        }
+        chan[adpcmChan].keyOn=false;
+        chan[adpcmChan].keyOff=false;
+      }
       chan[adpcmChan].freqChanged=false;
     }
   }
@@ -718,7 +641,7 @@ void DivPlatformOPL::muteChannel(int ch, bool mute) {
     if (isMuted[ch]) {
       rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
     } else {
-      if (isOutputL[ops==4][chan[ch].state.alg][i] || ch>melodicChans) {
+      if (KVSL(ch,i) || ch>melodicChans) {
         rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[ch].outVol&0x3f,63))|(op.ksl<<6));
       } else {
         rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -749,7 +672,8 @@ int DivPlatformOPL::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan==adpcmChan) { // ADPCM
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
-        if (ins->type==DIV_INS_AMIGA) {
+        chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
+        if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_ADPCMB) {
           chan[c.chan].furnacePCM=true;
         } else {
           chan[c.chan].furnacePCM=false;
@@ -757,6 +681,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         if (skipRegisterWrites) break;
         if (chan[c.chan].furnacePCM) {
           chan[c.chan].macroInit(ins);
+          chan[c.chan].fixedFreq=0;
           if (!chan[c.chan].std.vol.will) {
             chan[c.chan].outVol=chan[c.chan].vol;
             immWrite(18,chan[c.chan].outVol);
@@ -765,13 +690,11 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(8,0);
-            immWrite(7,0x01); // reset
             immWrite(9,(s->offB>>2)&0xff);
             immWrite(10,(s->offB>>10)&0xff);
             int end=s->offB+s->lengthB-1;
             immWrite(11,(end>>2)&0xff);
             immWrite(12,(end>>10)&0xff);
-            immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
               chan[c.chan].baseFreq=NOTE_ADPCMB(chan[c.chan].note);
@@ -792,25 +715,30 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           chan[c.chan].macroInit(NULL);
           chan[c.chan].outVol=chan[c.chan].vol;
           if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
+            break;
+          }
+          chan[c.chan].sample=12*sampleBank+c.value%12;
+          if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
+            DivSample* s=parent->getSample(12*sampleBank+c.value%12);
+            immWrite(8,0);
+            immWrite(9,(s->offB>>2)&0xff);
+            immWrite(10,(s->offB>>10)&0xff);
+            int end=s->offB+s->lengthB-1;
+            immWrite(11,(end>>2)&0xff);
+            immWrite(12,(end>>10)&0xff);
+            int freq=(65536.0*(double)s->rate)/(double)chipRateBase;
+            chan[c.chan].fixedFreq=freq;
+            immWrite(16,freq&0xff);
+            immWrite(17,(freq>>8)&0xff);
+            chan[c.chan].active=true;
+            chan[c.chan].keyOn=true;
+          } else {
             immWrite(7,0x01); // reset
             immWrite(9,0);
             immWrite(10,0);
             immWrite(11,0);
             immWrite(12,0);
-            break;
           }
-          DivSample* s=parent->getSample(12*sampleBank+c.value%12);
-          immWrite(8,0);
-          immWrite(7,0x01); // reset
-          immWrite(9,(s->offB>>2)&0xff);
-          immWrite(10,(s->offB>>10)&0xff);
-          int end=s->offB+s->lengthB-1;
-          immWrite(11,(end>>2)&0xff);
-          immWrite(12,(end>>10)&0xff);
-          immWrite(7,(s->loopStart>=0)?0xb0:0xa0); // start/repeat
-          int freq=(65536.0*(double)s->rate)/(double)chipRateBase;
-          immWrite(16,freq&0xff);
-          immWrite(17,(freq>>8)&0xff);
         }
         break;
       }
@@ -872,6 +800,13 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
           chan[c.chan].fourOp=(ops==4);
           if (chan[c.chan].fourOp) {
+            /*
+            if (chan[c.chan+1].active) {
+              chan[c.chan+1].keyOff=true;
+              chan[c.chan+1].keyOn=false;
+              chan[c.chan+1].active=false;
+            }*/
+            chan[c.chan+1].insChanged=true;
             chan[c.chan+1].macroInit(NULL);
           }
           update4OpMask=true;
@@ -884,7 +819,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             if (isMuted[c.chan]) {
               rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
             } else {
-              if (isOutputL[ops==4][chan[c.chan].state.alg][i] || c.chan>melodicChans) {
+              if (KVSL(c.chan,i) || c.chan>melodicChans) {
                 rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
               } else {
                 rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -955,19 +890,11 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_OFF:
-      if (c.chan==adpcmChan) {
-        immWrite(7,0x01); // reset
-        break;
-      }
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
       break;
     case DIV_CMD_NOTE_OFF_ENV:
-      if (c.chan==adpcmChan) {
-        immWrite(7,0x01); // reset
-        break;
-      }
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
@@ -1000,7 +927,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         if (isMuted[c.chan]) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
-          if (isOutputL[ops==4][chan[c.chan].state.alg][i] || c.chan>melodicChans) {
+          if (KVSL(c.chan,i) || c.chan>melodicChans) {
             rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -1149,7 +1076,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       if (isMuted[c.chan]) {
         rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
       } else {
-        if (isOutputL[ops==4][chan[c.chan].state.alg][c.value] || c.chan>melodicChans) {
+        if (KVSL(c.chan,c.value) || c.chan>melodicChans) {
           rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -1379,7 +1306,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           if (isMuted[c.chan]) {
             rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
           } else {
-            if (isOutputL[ops==4][chan[c.chan].state.alg][i] || c.chan>melodicChans) {
+            if (KVSL(c.chan,i) || c.chan>melodicChans) {
               rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
             } else {
               rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -1396,7 +1323,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
         if (isMuted[c.chan]) {
           rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
         } else {
-          if (isOutputL[ops==4][chan[c.chan].state.alg][c.value] || c.chan>melodicChans) {
+          if (KVSL(c.chan,c.value) || c.chan>melodicChans) {
             rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[c.chan].outVol&0x3f,63))|(op.ksl<<6));
           } else {
             rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -1434,6 +1361,9 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       return 63;
       break;
     case DIV_CMD_PRE_PORTA:
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) {
+        chan[c.chan].baseFreq=(c.chan==adpcmChan)?(NOTE_ADPCMB(chan[c.chan].note)):(NOTE_FREQUENCY(chan[c.chan].note));
+      }
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
@@ -1470,7 +1400,7 @@ void DivPlatformOPL::forceIns() {
       if (isMuted[i]) {
         rWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
       } else {
-        if (isOutputL[ops==4][chan[i].state.alg][j] || i>melodicChans) {
+        if (KVSL(i,j) || i>melodicChans) {
           rWrite(baseAddr+ADDR_KSL_TL,(63-VOL_SCALE_LOG(63-op.tl,chan[i].outVol&0x3f,63))|(op.ksl<<6));
         } else {
           rWrite(baseAddr+ADDR_KSL_TL,op.tl|(op.ksl<<6));
@@ -1519,6 +1449,15 @@ DivMacroInt* DivPlatformOPL::getChanMacroInt(int ch) {
 
 DivDispatchOscBuffer* DivPlatformOPL::getOscBuffer(int ch) {
   if (ch>=18) return NULL;
+  if (oplType==3 && ch<12) {
+    if (chan[ch&(~1)].fourOp) {
+      if (ch&1) {
+        return oscBuf[ch-1];
+      } else {
+        return oscBuf[ch+1];
+      }
+    }
+  }
   return oscBuf[ch];
 }
 
@@ -1620,7 +1559,7 @@ void DivPlatformOPL::reset() {
 }
 
 bool DivPlatformOPL::isStereo() {
-  return true;
+  return (oplType==3 || oplType==759);
 }
 
 bool DivPlatformOPL::keyOffAffectsArp(int ch) {
@@ -1677,7 +1616,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
         adpcmChan=drums?11:9;
       }
       break;
-    case 3: case 759:
+    case 3: case 4: case 759:
       slotsNonDrums=slotsOPL3;
       slotsDrums=slotsOPL3Drums;
       slots=drums?slotsDrums:slotsNonDrums;
@@ -1691,6 +1630,7 @@ void DivPlatformOPL::setOPLType(int type, bool drums) {
         pretendYMU=true;
         adpcmChan=16;
       } else if (type==4) {
+        chipFreqBase=32768*684;
         downsample=true;
       }
       break;

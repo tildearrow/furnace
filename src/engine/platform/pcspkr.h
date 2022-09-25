@@ -84,6 +84,7 @@ class DivPlatformPCSpeaker: public DivDispatch {
   unsigned short freq, lastFreq;
   unsigned char regPool[2];
 
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   void beepFreq(int freq, int delay=0);
@@ -113,7 +114,6 @@ class DivPlatformPCSpeaker: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformPCSpeaker();

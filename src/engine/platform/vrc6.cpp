@@ -46,18 +46,6 @@ const char** DivPlatformVRC6::getRegisterSheet() {
   return regCheatSheetVRC6;
 }
 
-const char* DivPlatformVRC6::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x12:
-      return "12xx: Set duty cycle (pulse: 0 to 7)";
-      break;
-    case 0x17:
-      return "17xx: Toggle PCM mode (pulse channel)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     // PCM part
@@ -77,13 +65,11 @@ void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len
             chWrite(i,0,0x80|chan[i].dacOut);
           }
           chan[i].dacPos++;
-          if (((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && chan[i].dacPos>=s->loopEnd) || (chan[i].dacPos>=s->samples)) {
-            if (s->isLoopable()) {
-              chan[i].dacPos=s->loopStart;
-            } else {
-              chan[i].dacSample=-1;
-              chWrite(i,0,0);
-            }
+          if (s->isLoopable() && chan[i].dacPos>=(unsigned int)s->loopEnd) {
+            chan[i].dacPos=s->loopStart;
+          } else if (chan[i].dacPos>=s->samples) {
+            chan[i].dacSample=-1;
+            chWrite(i,0,0);
           }
           chan[i].dacPeriod-=rate;
         }
@@ -100,9 +86,10 @@ void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len
     // Oscilloscope buffer part
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
-      for (int i=0; i<3; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=vrc6.chan_out(i)<<10;
+      for (int i=0; i<2; i++) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=vrc6.pulse_out(i)<<10;
       }
+      oscBuf[2]->data[oscBuf[2]->needle++]=vrc6.sawtooth_out()<<10;
     }
 
     // Command part
@@ -167,18 +154,9 @@ void DivPlatformVRC6::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;
@@ -194,6 +172,25 @@ void DivPlatformVRC6::tick(bool sysTick) {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
       chan[i].freqChanged=true;
+    }
+    if (chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val && chan[i].active) {
+        if ((i!=2) && (!chan[i].pcm)) {
+          if (dumpWrites) addWrite(0xffff0002+(i<<8),0);
+          DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_VRC6);
+          chan[i].dacSample=ins->amiga.getSample(chan[i].note);
+          if (chan[i].dacSample<0 || chan[i].dacSample>=parent->song.sampleLen) {
+            if (dumpWrites) {
+              chWrite(i,2,0x80);
+              chWrite(i,0,isMuted[i]?0:0x80);
+              addWrite(0xffff0000+(i<<8),chan[i].dacSample);
+            }
+            chan[i].dacPos=0;
+            chan[i].dacPeriod=0;
+            chan[i].keyOn=true;
+          }
+        }
+      }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==2) { // sawtooth
@@ -218,7 +215,7 @@ void DivPlatformVRC6::tick(bool sysTick) {
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOff) {
         chWrite(i,2,0);
-      } else {
+      } else if (chan[i].active) {
         chWrite(i,1,chan[i].freq&0xff);
         chWrite(i,2,0x80|((chan[i].freq>>8)&0xf));
       }
@@ -235,14 +232,14 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON:
       if (c.chan!=2) { // pulse wave
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_VRC6);
-        if (ins->type==DIV_INS_AMIGA) {
+        if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           chan[c.chan].pcm=true;
         } else if (chan[c.chan].furnaceDac) {
           chan[c.chan].pcm=false;
         }
         if (chan[c.chan].pcm) {
           if (skipRegisterWrites) break;
-          if (ins->type==DIV_INS_AMIGA) {
+          if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
             chan[c.chan].dacSample=ins->amiga.getSample(c.value);
             if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
               chan[c.chan].dacSample=-1;
@@ -399,6 +396,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VRC6));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

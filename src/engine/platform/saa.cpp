@@ -56,21 +56,6 @@ const char** DivPlatformSAA1099::getRegisterSheet() {
   return regCheatSheetSAA;
 }
 
-const char* DivPlatformSAA1099::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xy: Set channel mode (x: noise; y: tone)";
-      break;
-    case 0x11:
-      return "11xx: Set noise frequency";
-      break;
-    case 0x12:
-      return "12xx: Setup envelope (refer to docs for more information)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformSAA1099::acquire_saaSound(short* bufL, short* bufR, size_t start, size_t len) {
   if (saaBufLen<len*2) {
     saaBufLen=len*2;
@@ -114,18 +99,9 @@ void DivPlatformSAA1099::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       saaNoise[i/3]=chan[i].std.duty.val&3;
@@ -335,6 +311,7 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SAA1099));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:

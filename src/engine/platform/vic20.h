@@ -63,6 +63,7 @@ class DivPlatformVIC20: public DivDispatch {
   unsigned char regPool[16];
   sound_vic20_t* vic;
   void updateWave(int ch);
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -82,7 +83,6 @@ class DivPlatformVIC20: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformVIC20();

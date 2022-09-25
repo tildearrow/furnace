@@ -43,9 +43,9 @@ class DivPlatformYM2203: public DivPlatformOPN {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, pitch2, portaPauseFreq, note, ins;
-      unsigned char psgMode, autoEnvNum, autoEnvDen;
+      unsigned char psgMode, autoEnvNum, autoEnvDen, opMask;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset, opMaskChanged;
       int vol, outVol;
       int sample;
       DivMacroInt std;
@@ -66,6 +66,7 @@ class DivPlatformYM2203: public DivPlatformOPN {
         psgMode(1),
         autoEnvNum(0),
         autoEnvDen(0),
+        opMask(15),
         active(false),
         insChanged(true),
         freqChanged(false),
@@ -75,6 +76,7 @@ class DivPlatformYM2203: public DivPlatformOPN {
         inPorta(false),
         furnacePCM(false),
         hardReset(false),
+        opMaskChanged(false),
         vol(0),
         outVol(15),
         sample(-1) {}
@@ -92,6 +94,7 @@ class DivPlatformYM2203: public DivPlatformOPN {
     bool extMode;
     unsigned char prescale;
   
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:
@@ -114,7 +117,6 @@ class DivPlatformYM2203: public DivPlatformOPN {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     void setFlags(unsigned int flags);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();

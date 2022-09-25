@@ -46,6 +46,20 @@ struct DivWavetable {
    * @return whether it was successful.
    */
   bool save(const char* path);
+
+  /**
+   * save this wavetable to a file in .dmw format.
+   * @param path file path.
+   * @return whether it was successful.
+   */
+  bool saveDMW(const char* path);
+
+  /**
+   * save this wavetable to a file in raw format.
+   * @param path file path.
+   * @return whether it was successful.
+   */
+  bool saveRaw(const char* path);
   DivWavetable():
     len(32),
     min(0),

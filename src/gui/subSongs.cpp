@@ -2,6 +2,7 @@
 #include "imgui.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include "intConst.h"
 
 void FurnaceGUI::drawSubSongs() {
   if (nextWindow==GUI_WINDOW_SUBSONGS) {
@@ -11,7 +12,7 @@ void FurnaceGUI::drawSubSongs() {
   }
   if (!subSongsOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
-  if (ImGui::Begin("Subsongs",&subSongsOpen,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar|globalWinFlags)) {
+  if (ImGui::Begin("Subsongs",&subSongsOpen,globalWinFlags)) {
     char id[1024];
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0f-ImGui::GetStyle().ItemSpacing.x);
     if (e->curSubSong->name.empty()) {
@@ -90,7 +91,7 @@ void FurnaceGUI::drawSubSongs() {
     ImGui::Text("Name");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-    if (ImGui::InputText("##SubSongName",&e->curSubSong->name)) {
+    if (ImGui::InputText("##SubSongName",&e->curSubSong->name,ImGuiInputTextFlags_UndoRedo)) {
       MARK_MODIFIED;
     }
   }

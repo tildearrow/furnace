@@ -39,21 +39,12 @@ const char** DivPlatformBubSysWSG::getRegisterSheet() {
   return regCheatSheetBubSysWSG;
 }
 
-const char* DivPlatformBubSysWSG::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformBubSysWSG::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   int chanOut=0;
   for (size_t h=start; h<start+len; h++) {
     signed int out=0;
     // K005289 part
-    k005289->tick();
+    k005289.tick();
 
     // Wavetable part
     for (int i=0; i<2; i++) {
@@ -61,7 +52,7 @@ void DivPlatformBubSysWSG::acquire(short* bufL, short* bufR, size_t start, size_
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
         continue;
       } else {
-        chanOut=chan[i].waveROM[k005289->addr(i)]*(regPool[2+i]&0xf);
+        chanOut=chan[i].waveROM[k005289.addr(i)]*(regPool[2+i]&0xf);
         out+=chanOut;
         if (writeOscBuf==0) {
           oscBuf[i]->data[oscBuf[i]->needle++]=chanOut<<7;
@@ -101,18 +92,9 @@ void DivPlatformBubSysWSG::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.wave.had) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
@@ -140,9 +122,9 @@ void DivPlatformBubSysWSG::tick(bool sysTick) {
       chan[i].freq=0x1000-parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>4095) chan[i].freq=4095;
-      k005289->load(i,chan[i].freq);
+      k005289.load(i,chan[i].freq);
       rWrite(i,chan[i].freq);
-      k005289->update(i);
+      k005289.update(i);
       if (chan[i].keyOn) {
         // ???
       }
@@ -250,6 +232,7 @@ int DivPlatformBubSysWSG::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SCC));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -312,7 +295,7 @@ void DivPlatformBubSysWSG::reset() {
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
-  k005289->reset();
+  k005289.reset();
 }
 
 bool DivPlatformBubSysWSG::isStereo() {
@@ -364,7 +347,6 @@ int DivPlatformBubSysWSG::init(DivEngine* p, int channels, int sugRate, unsigned
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
-  k005289=new k005289_core();
   reset();
   return 2;
 }
@@ -373,7 +355,6 @@ void DivPlatformBubSysWSG::quit() {
   for (int i=0; i<2; i++) {
     delete oscBuf[i];
   }
-  delete k005289;
 }
 
 DivPlatformBubSysWSG::~DivPlatformBubSysWSG() {

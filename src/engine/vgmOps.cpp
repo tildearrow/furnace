@@ -545,9 +545,9 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0x95);
           w->writeC(streamID);
           w->writeS(write.val); // sample number
-          w->writeC((sample->loopStart==0)|(sampleDir[streamID]?0x10:0)); // flags
-          if (sample->loopStart>0 && !sampleDir[streamID]) {
-            loopTimer[streamID]=(double)sample->loopEnd;
+          w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0)|(sampleDir[streamID]?0x10:0)); // flags
+          if (sample->isLoopable() && !sampleDir[streamID]) {
+            loopTimer[streamID]=sample->length8;
             loopSample[streamID]=write.val;
           }
         }
@@ -841,7 +841,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   }
 }
 
-SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
+SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool patternHints) {
   if (version<0x150) {
     lastError="VGM version is too low";
     return NULL;
@@ -1603,7 +1603,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
     size_t memPos=0;
     for (int i=0; i<song.sampleLen; i++) {
       DivSample* sample=song.sample[i];
-      unsigned int alignedSize=(sample->length8+0xff)&(~0xff);
+      unsigned int alignedSize=(sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)+0xff)&(~0xff);
       if (alignedSize>65536) alignedSize=65536;
       if ((memPos&0xff0000)!=((memPos+alignedSize)&0xff0000)) {
         memPos=(memPos+0xffff)&0xff0000;
@@ -1613,9 +1613,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       sample->offSegaPCM=memPos;
       unsigned int readPos=0;
       for (unsigned int j=0; j<alignedSize; j++) {
-        if (((sample->loopMode != DIV_SAMPLE_LOOPMODE_ONESHOT) && readPos>=sample->loopEnd) || readPos>=sample->length8) {
+        if (readPos>=(unsigned int)sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
           if (sample->isLoopable()) {
-            readPos=sample->loopStart;
+            readPos=sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT);
             pcmMem[memPos++]=((unsigned char)sample->data8[readPos]+0x80);
           } else {
             pcmMem[memPos++]=0x80;
@@ -1626,7 +1626,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         readPos++;
         if (memPos>=16777216) break;
       }
-      sample->loopOffP=readPos-sample->loopStart;
+      sample->loopOffP=readPos-sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT);
       if (memPos>=16777216) break;
     }
 
@@ -1862,6 +1862,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   playSub(false);
   size_t tickCount=0;
   bool writeLoop=false;
+  int ord=-1;
+  int exportChans=0;
+  for (int i=0; i<chans; i++) {
+    if (!willExport[dispatchOfChan[i]]) continue;
+    exportChans++;
+  }
   while (!done) {
     if (loopPos==-1) {
       if (loopOrder==curOrder && loopRow==curRow && ticks==1) {
@@ -1886,6 +1892,26 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
       if (!playing) {
         writeLoop=false;
         loopPos=-1;
+      }
+    } else {
+      // check for pattern change
+      if (prevOrder!=ord) {
+        logI("registering order change %d on %d",prevOrder, prevRow);
+        ord=prevOrder;
+
+        if (patternHints) {
+          w->writeC(0x67);
+          w->writeC(0x66);
+          w->writeC(0xfe);
+          w->writeI(3+exportChans);
+          w->writeC(0x01);
+          w->writeC(prevOrder);
+          w->writeC(prevRow);
+          for (int i=0; i<chans; i++) {
+            if (!willExport[dispatchOfChan[i]]) continue;
+            w->writeC(curSubSong->orders.ord[i][prevOrder]);
+          }
+        }
       }
     }
     // get register dumps
@@ -1938,12 +1964,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
         if (loopSample[nextToTouch]<song.sampleLen) {
           DivSample* sample=song.sample[loopSample[nextToTouch]];
           // insert loop
-          if (sample->loopStart<(int)sample->loopEnd) {
+          if (sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)<sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
             w->writeC(0x93);
             w->writeC(nextToTouch);
-            w->writeI(sample->off8+sample->loopStart);
+            w->writeI(sample->off8+sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT));
             w->writeC(0x81);
-            w->writeI(sample->loopEnd-sample->loopStart);
+            w->writeI(sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)-sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT));
           }
         }
         loopSample[nextToTouch]=-1;
@@ -1987,24 +2013,20 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version) {
   WString ws;
   ws=utf8To16(song.name.c_str());
   w->writeWString(ws,false); // name
-  w->writeS(0); // japanese name
-  w->writeS(0); // game name
-  w->writeS(0); // japanese game name
-  if (song.systemLen>1) {
-    ws=L"Multiple Systems";
-  } else {
-    ws=utf8To16(getSystemName(song.system[0]));
-  }
+  ws=utf8To16(song.nameJ.c_str());
+  w->writeWString(ws,false); // japanese name
+  ws=utf8To16(song.category.c_str());
+  w->writeWString(ws,false); // game name
+  ws=utf8To16(song.categoryJ.c_str());
+  w->writeWString(ws,false); // japanese game name
+  ws=utf8To16(song.systemName.c_str());
   w->writeWString(ws,false); // system name
-  if (song.systemLen>1) {
-    ws=L"複数システム";
-  } else {
-    ws=utf8To16(getSystemNameJ(song.system[0]));
-  }
+  ws=utf8To16(song.systemNameJ.c_str());
   w->writeWString(ws,false); // japanese system name
   ws=utf8To16(song.author.c_str());
   w->writeWString(ws,false); // author name
-  w->writeS(0); // japanese author name
+  ws=utf8To16(song.authorJ.c_str());
+  w->writeWString(ws,false); // japanese author name
   w->writeS(0); // date
   w->writeWString(L"Furnace Tracker",false); // ripper
   w->writeS(0); // notes

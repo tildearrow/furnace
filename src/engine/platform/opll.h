@@ -93,6 +93,7 @@ class DivPlatformOPLL: public DivDispatch {
     int octave(int freq);
     int toFreq(int freq);
 
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
     void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
@@ -122,7 +123,6 @@ class DivPlatformOPLL: public DivDispatch {
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformOPLL();

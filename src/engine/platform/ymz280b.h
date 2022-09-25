@@ -32,8 +32,9 @@ class DivPlatformYMZ280B: public DivDispatch {
     int sample, wave, ins;
     int note;
     int panning;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, setPos;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, setPos, isNewYMZ;
     int vol, outVol;
+    int macroVolMul;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
       std.init(which);
@@ -56,8 +57,10 @@ class DivPlatformYMZ280B: public DivDispatch {
       keyOff(false),
       inPorta(false),
       setPos(false),
+      isNewYMZ(false),
       vol(255),
-      outVol(255) {}
+      outVol(255),
+      macroVolMul(64) {}
   };
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];
@@ -68,6 +71,7 @@ class DivPlatformYMZ280B: public DivDispatch {
   size_t sampleMemLen;
   ymz280b_device ymz280b;
   unsigned char regPool[256];
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   public:
@@ -91,7 +95,6 @@ class DivPlatformYMZ280B: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     const void* getSampleMem(int index = 0);
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);

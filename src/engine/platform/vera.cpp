@@ -27,7 +27,9 @@ extern "C" {
   #include "sound/vera_pcm.h"
 }
 
-#define rWrite(c,a,d) {regPool[(c)*4+(a)]=(d); psg_writereg(psg,((c)*4+(a)),(d));}
+//if (dumpWrites) {addWrite(((c)*4+(a)),(d));}
+//#define rWrite(c,a,d) {regPool[(c)*4+(a)]=(d); psg_writereg(psg,((c)*4+(a)),(d));}
+#define rWrite(c,a,d) {regPool[(c)*4+(a)]=(d); psg_writereg(psg,((c)*4+(a)),(d));if (dumpWrites) {addWrite(((c)*4+(a)),(d));}}
 #define rWriteLo(c,a,d) rWrite(c,a,(regPool[(c)*4+(a)]&(~0x3f))|((d)&0x3f))
 #define rWriteHi(c,a,d) rWrite(c,a,(regPool[(c)*4+(a)]&(~0xc0))|(((d)<<6)&0xc0))
 #define rWritePCMCtrl(d) {regPool[64]=(d); pcm_write_ctrl(pcm,d);}
@@ -49,18 +51,6 @@ const char* regCheatSheetVERA[]={
 
 const char** DivPlatformVERA::getRegisterSheet() {
   return regCheatSheetVERA;
-}
-
-const char* DivPlatformVERA::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x20:
-      return "20xx: Change waveform";
-      break;
-    case 0x22:
-      return "22xx: Set duty cycle (0 to 3F)";
-      break;
-  }
-  return NULL;
 }
 
 void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
@@ -96,13 +86,11 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
           rWritePCMData(tmp_r&0xff);
         }
         chan[16].pcm.pos++;
-        if (((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && chan[16].pcm.pos>=s->loopEnd) || (chan[16].pcm.pos>=s->samples)) {
-          if (s->isLoopable()) {
-            chan[16].pcm.pos=s->loopStart;
-          } else {
-            chan[16].pcm.sample=-1;
-            break;
-          }
+        if (s->isLoopable() && chan[16].pcm.pos>=(unsigned int)s->loopEnd) {
+          chan[16].pcm.pos=s->loopStart;
+        } else if (chan[16].pcm.pos>=s->samples) {
+          chan[16].pcm.sample=-1;
+          break;
         }
       }
     } else {
@@ -173,18 +161,9 @@ void DivPlatformVERA::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=calcNoteFreq(0,chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=calcNoteFreq(0,chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=calcNoteFreq(0,parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=calcNoteFreq(0,chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       rWriteLo(i,3,chan[i].std.duty.val);
@@ -223,18 +202,9 @@ void DivPlatformVERA::tick(bool sysTick) {
   }
   if (chan[16].std.arp.had) {
     if (!chan[16].inPorta) {
-      if (chan[16].std.arp.mode) {
-        chan[16].baseFreq=calcNoteFreq(16,chan[16].std.arp.val);
-      } else {
-        chan[16].baseFreq=calcNoteFreq(16,chan[16].note+chan[16].std.arp.val);
-      }
+      chan[16].baseFreq=calcNoteFreq(16,parent->calcArp(chan[16].note,chan[16].std.arp.val));
     }
     chan[16].freqChanged=true;
-  } else {
-    if (chan[16].std.arp.mode && chan[16].std.arp.finished) {
-      chan[16].baseFreq=calcNoteFreq(16,chan[16].note);
-      chan[16].freqChanged=true;
-    }
   }
   if (chan[16].freqChanged) {
     double off=65536.0;
@@ -359,6 +329,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VERA));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=calcNoteFreq(c.chan,chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_STD_NOISE_MODE:

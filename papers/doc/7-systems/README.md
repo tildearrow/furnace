@@ -27,6 +27,7 @@ this is a list of systems that Furnace supports, including each system's effects
 - [WonderSwan](wonderswan.md)
 - [Bubble System WSG](bubblesystem.md)
 - [Namco 163](n163.md)
+- [Namco WSG](namco.md)
 - [Yamaha OPL](opl.md)
 - [PC Speaker](pcspkr.md)
 - [Commodore PET](pet.md)
@@ -35,5 +36,6 @@ this is a list of systems that Furnace supports, including each system's effects
 - [Konami VRC6](vrc6.md)
 - [Famicom Disk System](fds.md)
 - [Nintendo MMC5](mmc5.md)
+- [SNES](snes.md)
 
 Furnace also reads .dmf files with the [Yamaha YMU759](ymu759.md) system, but...

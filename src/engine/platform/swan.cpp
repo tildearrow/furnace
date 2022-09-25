@@ -50,27 +50,6 @@ const char** DivPlatformSwan::getRegisterSheet() {
   return regCheatSheetWS;
 }
 
-const char* DivPlatformSwan::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-    case 0x11:
-      return "11xx: Setup noise mode (0: disabled; 1-8: enabled/tap)";
-      break;
-    case 0x12:
-      return "12xx: Setup sweep period (0: disabled; 1-20: enabled/period)";
-      break;
-    case 0x13:
-      return "13xx: Set sweep amount";
-      break;
-    case 0x17:
-      return "17xx: Toggle PCM mode";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformSwan::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     // PCM part
@@ -80,15 +59,14 @@ void DivPlatformSwan::acquire(short* bufL, short* bufR, size_t start, size_t len
         DivSample* s=parent->getSample(dacSample);
         if (s->samples<=0) {
           dacSample=-1;
-          continue;
+          dacPeriod=0;
+          break;
         }
         rWrite(0x09,(unsigned char)s->data8[dacPos++]+0x80);
-        if (((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && dacPos>=s->loopEnd) || dacPos>=s->samples) {
-          if (s->isLoopable()) {
-            dacPos=s->loopStart;
-          } else {
-            dacSample=-1;
-          }
+        if (s->isLoopable() && dacPos>=(unsigned int)s->loopEnd) {
+          dacPos=s->loopStart;
+        } else if (dacPos>=s->samples) {
+          dacSample=-1;
         }
         dacPeriod-=rate;
       }
@@ -157,18 +135,9 @@ void DivPlatformSwan::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.wave.had && !(i==1 && pcm)) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
@@ -253,7 +222,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SWAN);
       if (c.chan==1) {
-        if (ins->type==DIV_INS_AMIGA) {
+        if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           pcm=true;
         } else if (furnaceDac) {
           pcm=false;
@@ -262,7 +231,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
           if (skipRegisterWrites) break;
           dacPos=0;
           dacPeriod=0;
-          if (ins->type==DIV_INS_AMIGA) {
+          if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
             dacSample=ins->amiga.getSample(c.value);
             if (dacSample<0 || dacSample>=parent->song.sampleLen) {
               dacSample=-1;
@@ -431,6 +400,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SWAN));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

@@ -39,7 +39,7 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::TableNextColumn();
       float avail=ImGui::GetContentRegionAvail().x;
       ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputText("##Name",&e->song.name)) { MARK_MODIFIED
+      if (ImGui::InputText("##Name",&e->song.name,ImGuiInputTextFlags_UndoRedo)) { MARK_MODIFIED
         updateWindowTitle();
       }
       if (e->song.insLen==2) {
@@ -61,9 +61,40 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::Text("Author");
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputText("##Author",&e->song.author)) {
+      if (ImGui::InputText("##Author",&e->song.author,ImGuiInputTextFlags_UndoRedo)) {
         MARK_MODIFIED;
       }
+
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("Album");
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(avail);
+      if (ImGui::InputText("##Category",&e->song.category,ImGuiInputTextFlags_UndoRedo)) {
+        MARK_MODIFIED;
+      }
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::Text("System");
+      ImGui::TableNextColumn();
+      ImGui::SetNextItemWidth(MAX(16.0f*dpiScale,avail-autoButtonSize-ImGui::GetStyle().ItemSpacing.x));
+      if (ImGui::InputText("##SystemName",&e->song.systemName,ImGuiInputTextFlags_UndoRedo)) {
+        MARK_MODIFIED;
+        updateWindowTitle();
+        e->song.autoSystem=false;
+      }
+      ImGui::SameLine();
+      pushToggleColors(e->song.autoSystem);
+      if (ImGui::Button("Auto")) {
+        e->song.autoSystem=!e->song.autoSystem;
+        if (e->song.autoSystem) {
+          autoDetectSystem();
+          updateWindowTitle();
+        }
+      }
+      popToggleColors();
+      autoButtonSize=ImGui::GetItemRectSize().x;
+
       ImGui::EndTable();
     }
 
@@ -176,7 +207,7 @@ void FurnaceGUI::drawSongInfo() {
       float setHz=tempoView?e->curSubSong->hz*2.5:e->curSubSong->hz;
       if (ImGui::InputFloat("##Rate",&setHz,1.0f,1.0f,"%g")) { MARK_MODIFIED
         if (tempoView) setHz/=2.5;
-        if (setHz<10) setHz=10;
+        if (setHz<1) setHz=1;
         if (setHz>999) setHz=999;
         e->setSongRate(setHz,setHz<52);
       }

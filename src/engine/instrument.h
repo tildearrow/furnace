@@ -62,6 +62,16 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_SU=30,
   DIV_INS_NAMCO=31,
   DIV_INS_OPL_DRUMS=32,
+  DIV_INS_OPM=33,
+  DIV_INS_NES=34,
+  DIV_INS_MSM6258=35,
+  DIV_INS_MSM6295=36,
+  DIV_INS_ADPCMA=37,
+  DIV_INS_ADPCMB=38,
+  DIV_INS_SEGAPCM=39,
+  DIV_INS_QSOUND=40,
+  DIV_INS_YMZ280B=41,
+  DIV_INS_RF5C68=42,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -89,6 +99,7 @@ struct DivInstrumentFM {
     bool enable;
     unsigned char am, ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
     unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759/OPL/OPZ
+    unsigned char kvs;
     Operator():
       enable(true),
       am(0),
@@ -110,7 +121,8 @@ struct DivInstrumentFM {
       sus(0),
       vib(0),
       ws(0),
-      ksr(0) {}
+      ksr(0),
+      kvs(2) {}
   } op[4];
   DivInstrumentFM():
     alg(0),
@@ -167,21 +179,20 @@ struct DivInstrumentMacro {
   int val[256];
   unsigned int mode;
   bool open;
-  unsigned char len;
-  signed char loop;
-  signed char rel;
+  unsigned char len, delay, speed, loop, rel;
   
   // the following variables are used by the GUI and not saved in the file
   int vScroll, vZoom;
-
 
   explicit DivInstrumentMacro(const String& n, bool initOpen=false):
     name(n),
     mode(0),
     open(initOpen),
     len(0),
-    loop(-1),
-    rel(-1),
+    delay(0),
+    speed(1),
+    loop(255),
+    rel(255),
     vScroll(0),
     vZoom(-1) {
     memset(val,0,256*sizeof(int));
@@ -263,12 +274,32 @@ struct DivInstrumentSTD {
 };
 
 struct DivInstrumentGB {
-  unsigned char envVol, envDir, envLen, soundLen;
+  unsigned char envVol, envDir, envLen, soundLen, hwSeqLen;
+  bool softEnv, alwaysInit;
+  enum HWSeqCommands: unsigned char {
+    DIV_GB_HWCMD_ENVELOPE=0,
+    DIV_GB_HWCMD_SWEEP,
+    DIV_GB_HWCMD_WAIT,
+    DIV_GB_HWCMD_WAIT_REL,
+    DIV_GB_HWCMD_LOOP,
+    DIV_GB_HWCMD_LOOP_REL,
+
+    DIV_GB_HWCMD_MAX
+  };
+  struct HWSeqCommand {
+    unsigned char cmd;
+    unsigned short data;
+  } hwSeq[256];
   DivInstrumentGB():
     envVol(15),
     envDir(0),
     envLen(2),
-    soundLen(64) {}
+    soundLen(64),
+    hwSeqLen(0),
+    softEnv(false),
+    alwaysInit(false) {
+    memset(hwSeq,0,256*sizeof(int));
+  }
 };
 
 struct DivInstrumentC64 {
@@ -308,15 +339,14 @@ struct DivInstrumentC64 {
 };
 
 struct DivInstrumentAmiga {
-  struct NoteMap {
+  struct SampleMap {
     int freq;
-    short ind;
+    short map;
     unsigned char reversed;
-
-    NoteMap():
-      freq(0),
-      ind(-1),
-      reversed(false) {}
+    SampleMap(int f=0, short m=-1, unsigned char r=0):
+      freq(f),
+      map(m),
+      reversed(r) {}
   };
 
   struct TransWaveSlice {
@@ -381,9 +411,10 @@ struct DivInstrumentAmiga {
   short initSample;
   bool reversed;
   bool useNoteMap;
+  bool useSample;
   bool useWave;
   unsigned char waveLen;
-  NoteMap noteMap[120];
+  SampleMap noteMap[120];
   TransWave transWave;
   std::vector<TransWaveMap> transWaveMap;
 
@@ -395,7 +426,7 @@ struct DivInstrumentAmiga {
     if (useNoteMap) {
       if (note<0) note=0;
       if (note>119) note=119;
-      return noteMap[note].ind;
+      return noteMap[note].map;
     }
     return initSample;
   }
@@ -430,9 +461,22 @@ struct DivInstrumentAmiga {
     initSample(0),
     reversed(false),
     useNoteMap(false),
+    useSample(false),
     useWave(false),
     waveLen(31),
-    transWaveMap(1) {}
+    transWave(TransWave()),
+    transWaveMap(1) {
+    for (SampleMap& elem: noteMap) {
+      elem=SampleMap();
+    }
+  }
+};
+
+struct DivInstrumentX1_010 {
+  int bankSlot;
+
+  DivInstrumentX1_010():
+    bankSlot(0) {}
 };
 
 struct DivInstrumentN163 {
@@ -457,43 +501,6 @@ struct DivInstrumentFDS {
     initModTableWithFirstWave(false) {
     memset(modTable,0,32);
   }
-};
-
-struct DivInstrumentES5506 {
-  struct Filter {
-    enum FilterMode: unsigned char { // filter mode for pole 4,3
-      FILTER_MODE_HPK2_HPK2,
-      FILTER_MODE_HPK2_LPK1,
-      FILTER_MODE_LPK2_LPK2,
-      FILTER_MODE_LPK2_LPK1,
-    };
-    FilterMode mode;
-    unsigned short k1, k2;
-    Filter():
-      mode(FILTER_MODE_LPK2_LPK1),
-      k1(0xffff),
-      k2(0xffff) {}
-  };
-  struct Envelope {
-    unsigned short ecount;
-    signed char lVRamp, rVRamp;
-    signed char k1Ramp, k2Ramp;
-    bool k1Slow, k2Slow;
-    Envelope():
-      ecount(0),
-      lVRamp(0),
-      rVRamp(0),
-      k1Ramp(0),
-      k2Ramp(0),
-      k1Slow(false),
-      k2Slow(false) {}
-  };
-  signed int lVol, rVol;
-  Filter filter;
-  Envelope envelope;
-  DivInstrumentES5506():
-    lVol(0xffff),
-    rVol(0xffff) {}
 };
 
 struct DivInstrumentMultiPCM {
@@ -553,6 +560,70 @@ struct DivInstrumentWaveSynth {
     param4(0) {}
 };
 
+struct DivInstrumentSoundUnit {
+  bool switchRoles;
+  DivInstrumentSoundUnit():
+    switchRoles(false) {}
+};
+
+struct DivInstrumentES5506 {
+  struct Filter {
+    enum FilterMode: unsigned char { // filter mode for pole 4,3
+      FILTER_MODE_HPK2_HPK2=0,
+      FILTER_MODE_HPK2_LPK1,
+      FILTER_MODE_LPK2_LPK2,
+      FILTER_MODE_LPK2_LPK1,
+    };
+    FilterMode mode;
+    unsigned short k1, k2;
+    Filter():
+      mode(FILTER_MODE_LPK2_LPK1),
+      k1(0xffff),
+      k2(0xffff) {}
+  };
+  struct Envelope {
+    unsigned short ecount;
+    signed char lVRamp, rVRamp;
+    signed char k1Ramp, k2Ramp;
+    bool k1Slow, k2Slow;
+    Envelope():
+      ecount(0),
+      lVRamp(0),
+      rVRamp(0),
+      k1Ramp(0),
+      k2Ramp(0),
+      k1Slow(false),
+      k2Slow(false) {}
+  };
+  Filter filter;
+  Envelope envelope;
+  DivInstrumentES5506():
+    filter(Filter()),
+    envelope(Envelope()) {}
+};
+
+struct DivInstrumentSNES {
+  enum GainMode: unsigned char {
+    GAIN_MODE_DIRECT=0,
+    GAIN_MODE_DEC_LINEAR=4,
+    GAIN_MODE_DEC_LOG=5,
+    GAIN_MODE_INC_LINEAR=6,
+    GAIN_MODE_INC_INVLOG=7
+  };
+  bool useEnv;
+  GainMode gainMode;
+  unsigned char gain;
+  unsigned char a, d, s, r;
+  DivInstrumentSNES():
+    useEnv(true),
+    gainMode(GAIN_MODE_DIRECT),
+    gain(127),
+    a(15),
+    d(7),
+    s(7),
+    r(0) {}
+};
+
 struct DivInstrument {
   String name;
   bool mode;
@@ -562,11 +633,14 @@ struct DivInstrument {
   DivInstrumentGB gb;
   DivInstrumentC64 c64;
   DivInstrumentAmiga amiga;
+  DivInstrumentX1_010 x1_010;
   DivInstrumentN163 n163;
   DivInstrumentFDS fds;
-  DivInstrumentES5506 es5506;
   DivInstrumentMultiPCM multipcm;
   DivInstrumentWaveSynth ws;
+  DivInstrumentSoundUnit su;
+  DivInstrumentES5506 es5506;
+  DivInstrumentSNES snes;
   
   /**
    * save the instrument to a SafeWriter.
@@ -588,6 +662,13 @@ struct DivInstrument {
    * @return whether it was successful.
    */
   bool save(const char* path);
+
+  /**
+   * save this instrument to a file in .dmp format.
+   * @param path file path.
+   * @return whether it was successful.
+   */
+  bool saveDMP(const char* path);
   DivInstrument():
     name(""),
     type(DIV_INS_FM) {

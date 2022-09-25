@@ -23,7 +23,7 @@
 #include <math.h>
 #include <map>
 
-#define CHIP_FREQBASE 98304
+#define CHIP_FREQBASE 25165824
 
 #define rWrite(a,v) {if(!skipRegisterWrites) {ymz280b.write(0,a); ymz280b.write(1,v); regPool[a]=v; if(dumpWrites) addWrite(a,v); }}
 
@@ -60,10 +60,6 @@ const char** DivPlatformYMZ280B::getRegisterSheet() {
   return regCheatSheetYMZ280B;
 }
 
-const char* DivPlatformYMZ280B::getEffectName(unsigned char effect) {
-  return NULL;
-}
-
 void DivPlatformYMZ280B::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   short buf[16][256];
   short *bufPtrs[16]={
@@ -94,23 +90,14 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=((chan[i].vol&0xff)*chan[i].std.vol.val)>>6;
+      chan[i].outVol=((chan[i].vol&0xff)*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/chan[i].macroVolMul;
       writeOutVol(i);
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -122,8 +109,18 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.panL.had) { // panning
-      chan[i].panning=MIN((chan[i].std.panL.val*15/16+15)/2+1,15);
+      if (chan[i].isNewYMZ) {
+        chan[i].panning=8+chan[i].std.panL.val;
+      } else {
+        chan[i].panning=MIN((chan[i].std.panL.val*15/16+15)/2+1,15);
+      }
       rWrite(0x03+i*4,chan[i].panning);
+    }
+    if (chan[i].std.phaseReset.had) {
+      if ((chan[i].std.phaseReset.val==1) && chan[i].active) {
+        chan[i].audPos=0;
+        chan[i].setPos=true;
+      }
     }
     if (chan[i].setPos) {
       // force keyon
@@ -142,7 +139,7 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
         default: ctrl=0;
       }
       double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
-      chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE))-1;
+      chan[i].freq=(int)round(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE)/256.0)-1;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>511) chan[i].freq=511;
       // ADPCM has half the range
@@ -207,6 +204,8 @@ int DivPlatformYMZ280B::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
+      chan[c.chan].isNewYMZ=ins->type==DIV_INS_YMZ280B;
+      chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
       chan[c.chan].sample=ins->amiga.getSample(c.value);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
@@ -267,14 +266,15 @@ int DivPlatformYMZ280B::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_FREQUENCY(c.value2);
       bool return2=false;
+      int multiplier=(parent->song.linearPitch==2)?1:256;
       if (destFreq>chan[c.chan].baseFreq) {
-        chan[c.chan].baseFreq+=c.value;
+        chan[c.chan].baseFreq+=c.value*multiplier;
         if (chan[c.chan].baseFreq>=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
         }
       } else {
-        chan[c.chan].baseFreq-=c.value;
+        chan[c.chan].baseFreq-=c.value*multiplier;
         if (chan[c.chan].baseFreq<=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
@@ -297,6 +297,7 @@ int DivPlatformYMZ280B::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS:
@@ -330,6 +331,8 @@ void DivPlatformYMZ280B::forceIns() {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
     chan[i].sample=-1;
+
+    rWrite(0x03+i*4,chan[i].panning);
   }
 }
 

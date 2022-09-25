@@ -27,7 +27,7 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
     unsigned char freqH, freqL;
     int freq, baseFreq, pitch, pitch2, portaPauseFreq, ins;
     signed char konCycles;
-    bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
+    bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, mask;
     int vol;
     unsigned char pan;
     OpChannel():
@@ -46,11 +46,13 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
       keyOff(false),
       portaPause(false),
       inPorta(false),
+      mask(true),
       vol(0),
       pan(3) {}
   };
   OpChannel opChan[4];
   bool isOpMuted[4];
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     int dispatch(DivCommand c);

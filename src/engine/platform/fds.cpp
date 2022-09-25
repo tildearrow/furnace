@@ -55,30 +55,6 @@ const char** DivPlatformFDS::getRegisterSheet() {
   return regCheatSheetFDS;
 }
 
-const char* DivPlatformFDS::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-    case 0x11:
-      return "11xx: Set modulation depth";
-      break;
-    case 0x12:
-      return "12xy: Set modulation speed high byte (x: enable; y: value)";
-      break;
-    case 0x13:
-      return "13xx: Set modulation speed low byte";
-      break;
-    case 0x14:
-      return "14xx: Set modulator position";
-      break;
-    case 0x15:
-      return "15xx: Set modulator table to waveform";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformFDS::acquire_puNES(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     extcl_apu_tick_FDS(fds);
@@ -145,18 +121,9 @@ void DivPlatformFDS::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note+chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     /*
     if (chan[i].std.duty.had) {
@@ -406,6 +373,7 @@ int DivPlatformFDS::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_FDS));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

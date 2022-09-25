@@ -29,14 +29,20 @@ const char* sampleNote[12]={
   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
 };
 
-void FurnaceGUI::drawInsList() {
+void FurnaceGUI::drawInsList(bool asChild) {
   if (nextWindow==GUI_WINDOW_INS_LIST) {
     insListOpen=true;
     ImGui::SetNextWindowFocus();
     nextWindow=GUI_WINDOW_NOTHING;
   }
-  if (!insListOpen) return;
-  if (ImGui::Begin("Instruments",&insListOpen,globalWinFlags)) {
+  if (!insListOpen && !asChild) return;
+  bool began=false;
+  if (asChild) {
+    began=ImGui::BeginChild("Instruments");
+  } else {
+    began=ImGui::Begin("Instruments",&insListOpen,globalWinFlags);
+  }
+  if (began) {
     if (settings.unifiedDataView) settings.horizontalDataView=0;
     if (ImGui::Button(ICON_FA_PLUS "##InsAdd")) {
       if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_ADD);
@@ -121,16 +127,30 @@ void FurnaceGUI::drawInsList() {
         if (ImGui::MenuItem("instrument")) {
           doAction(GUI_ACTION_INS_LIST_SAVE);
         }
+        if (ImGui::MenuItem("instrument (.dmp)")) {
+          doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
+        }
         if (ImGui::MenuItem("wavetable")) {
           doAction(GUI_ACTION_WAVE_LIST_SAVE);
+        }
+        if (ImGui::MenuItem("wavetable (.dmw)")) {
+          doAction(GUI_ACTION_WAVE_LIST_SAVE_DMW);
+        }
+        if (ImGui::MenuItem("wavetable (raw)")) {
+          doAction(GUI_ACTION_WAVE_LIST_SAVE_RAW);
         }
         if (ImGui::MenuItem("sample")) {
           doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
         }
         ImGui::EndPopup();
       }
-    }
-    if (!settings.unifiedDataView) {
+    } else {
+      if (ImGui::BeginPopupContextItem("InsSaveFormats",ImGuiMouseButton_Right)) {
+        if (ImGui::MenuItem("save as .dmp...")) {
+          doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
+        }
+        ImGui::EndPopup();
+      }
       ImGui::SameLine();
       if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
         doAction(GUI_ACTION_INS_LIST_MOVE_UP);
@@ -184,6 +204,7 @@ void FurnaceGUI::drawInsList() {
         if (i>=0) {
           DivInstrument* ins=e->song.ins[i];
           insType=(ins->type>DIV_INS_MAX)?"Unknown":insTypes[ins->type];
+          if (ins->type==DIV_INS_N163) insType=settings.c163Name.c_str();
           switch (ins->type) {
             case DIV_INS_FM:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_FM]);
@@ -317,6 +338,46 @@ void FurnaceGUI::drawInsList() {
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPL_DRUMS]);
               name=fmt::sprintf(ICON_FA_COFFEE " %.2X: %s##_INS%d",i,ins->name,i);
               break;
+            case DIV_INS_OPM:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPM]);
+              name=fmt::sprintf(ICON_FA_AREA_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_NES:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_NES]);
+              name=fmt::sprintf(ICON_FA_GAMEPAD " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_MSM6258:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MSM6258]);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_MSM6295:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MSM6295]);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_ADPCMA:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_ADPCMA]);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_ADPCMB:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_ADPCMB]);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_SEGAPCM:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SEGAPCM]);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_QSOUND:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_QSOUND]);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_YMZ280B:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_YMZ280B]);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
+            case DIV_INS_RF5C68:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_RF5C68]);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              break;
             default:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
               name=fmt::sprintf(ICON_FA_QUESTION " %.2X: %s##_INS%d",i,ins->name,i);
@@ -358,6 +419,9 @@ void FurnaceGUI::drawInsList() {
             if (ImGui::MenuItem("save")) {
               doAction(GUI_ACTION_INS_LIST_SAVE);
             }
+            if (ImGui::MenuItem("save (.dmp)")) {
+              doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
+            }
             if (ImGui::MenuItem("delete")) {
               doAction(GUI_ACTION_INS_LIST_DELETE);
             }
@@ -391,11 +455,15 @@ void FurnaceGUI::drawInsList() {
       ImGui::EndTable();
     }
   }
-  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_INS_LIST;
-  ImGui::End();
+  if (asChild) {
+    ImGui::EndChild();
+  } else {
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_INS_LIST;
+    ImGui::End();
+  }
 }
 
-void FurnaceGUI::drawWaveList() {
+void FurnaceGUI::drawWaveList(bool asChild) {
   if (nextWindow==GUI_WINDOW_WAVE_LIST) {
     waveListOpen=true;
     if (settings.unifiedDataView) {
@@ -406,8 +474,14 @@ void FurnaceGUI::drawWaveList() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (settings.unifiedDataView) return;
-  if (!waveListOpen) return;
-  if (ImGui::Begin("Wavetables",&waveListOpen,globalWinFlags)) {
+  if (!waveListOpen && !asChild) return;
+  bool began=false;
+  if (asChild) {
+    began=ImGui::BeginChild("Wavetables");
+  } else {
+    began=ImGui::Begin("Wavetables",&waveListOpen,globalWinFlags);
+  }
+  if (began) {
     if (ImGui::Button(ICON_FA_PLUS "##WaveAdd")) {
       doAction(GUI_ACTION_WAVE_LIST_ADD);
     }
@@ -419,9 +493,26 @@ void FurnaceGUI::drawWaveList() {
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##WaveLoad")) {
       doAction(GUI_ACTION_WAVE_LIST_OPEN);
     }
+    if (ImGui::BeginPopupContextItem("WaveOpenOpt")) {
+      if (ImGui::MenuItem("replace...")) {
+        doAction((curWave>=0 && curWave<(int)e->song.wave.size())?GUI_ACTION_WAVE_LIST_OPEN_REPLACE:GUI_ACTION_WAVE_LIST_OPEN);
+      }
+      ImGui::EndPopup();
+    }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FLOPPY_O "##WaveSave")) {
       doAction(GUI_ACTION_WAVE_LIST_SAVE);
+    }
+    if (!settings.unifiedDataView) {
+      if (ImGui::BeginPopupContextItem("WaveSaveFormats",ImGuiMouseButton_Right)) {
+        if (ImGui::MenuItem("save as .dmw...")) {
+          doAction(GUI_ACTION_WAVE_LIST_SAVE_DMW);
+        }
+        if (ImGui::MenuItem("save raw...")) {
+          doAction(GUI_ACTION_WAVE_LIST_SAVE_RAW);
+        }
+        ImGui::EndPopup();
+      }
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("WaveUp",ImGuiDir_Up)) {
@@ -441,11 +532,15 @@ void FurnaceGUI::drawWaveList() {
       ImGui::EndTable();
     }
   }
-  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_WAVE_LIST;
-  ImGui::End();
+  if (asChild) {
+    ImGui::EndChild();
+  } else {
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_WAVE_LIST;
+    ImGui::End();
+  }
 }
 
-void FurnaceGUI::drawSampleList() {
+void FurnaceGUI::drawSampleList(bool asChild) {
   if (nextWindow==GUI_WINDOW_SAMPLE_LIST) {
     sampleListOpen=true;
     if (settings.unifiedDataView) {
@@ -456,8 +551,14 @@ void FurnaceGUI::drawSampleList() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (settings.unifiedDataView) return;
-  if (!sampleListOpen) return;
-  if (ImGui::Begin("Samples",&sampleListOpen,globalWinFlags)) {
+  if (!sampleListOpen && !asChild) return;
+  bool began=false;
+  if (asChild) {
+    began=ImGui::BeginChild("Samples");
+  } else {
+    began=ImGui::Begin("Samples",&sampleListOpen,globalWinFlags);
+  }
+  if (began) {
     if (ImGui::Button(ICON_FA_FILE "##SampleAdd")) {
       doAction(GUI_ACTION_SAMPLE_LIST_ADD);
     }
@@ -468,6 +569,19 @@ void FurnaceGUI::drawSampleList() {
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##SampleLoad")) {
       doAction(GUI_ACTION_SAMPLE_LIST_OPEN);
+    }
+    if (ImGui::BeginPopupContextItem("SampleOpenOpt")) {
+      if (ImGui::MenuItem("replace...")) {
+        doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE:GUI_ACTION_SAMPLE_LIST_OPEN);
+      }
+      ImGui::Separator();
+      if (ImGui::MenuItem("import raw...")) {
+        doAction(GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
+      }
+      if (ImGui::MenuItem("import raw (replace)...")) {
+        doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW:GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
+      }
+      ImGui::EndPopup();
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FLOPPY_O "##SampleSave")) {
@@ -500,8 +614,12 @@ void FurnaceGUI::drawSampleList() {
     }
     ImGui::Unindent();
   }
-  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SAMPLE_LIST;
-  ImGui::End();
+  if (asChild) {
+    ImGui::EndChild();
+  } else {
+    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SAMPLE_LIST;
+    ImGui::End();
+  }
 }
 
 void FurnaceGUI::actualWaveList() {

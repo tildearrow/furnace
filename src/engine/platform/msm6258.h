@@ -87,6 +87,7 @@ class DivPlatformMSM6258: public DivDispatch {
 
     int delay, updateOsc, sample, samplePos;
 
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:
@@ -109,7 +110,6 @@ class DivPlatformMSM6258: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     void setFlags(unsigned int flags);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);

@@ -21,6 +21,7 @@
 #include "../ta-log.h"
 #include "../fileutils.h"
 #include <fmt/printf.h>
+#include <limits.h>
 
 enum DivInsFormats {
   DIV_INSFORMAT_DMP,
@@ -149,9 +150,13 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           ins->type=DIV_INS_FM;
           logD("instrument type is Arcade");
           break;
+        case 9: // Neo Geo
+          ins->type=DIV_INS_FM;
+          logD("instrument type is Neo Geo");
+          break;
         default:
           logD("instrument type is unknown");
-          lastError="unknown instrument type!";
+          lastError=fmt::sprintf("unknown instrument type %d!",sys);
           delete ins;
           return;
           break;
@@ -170,11 +175,21 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       mode=reader.readC();
       logD("instrument mode is %d",mode);
       if (mode==0) {
-        if (version<11) {
-          ins->type=DIV_INS_STD;
+        if (ins->type==DIV_INS_FM) {
+          if (sys==9) {
+            ins->type=DIV_INS_AY;
+          } else {
+            ins->type=DIV_INS_STD;
+          }
         }
       } else {
-        ins->type=DIV_INS_FM;
+        if (sys==3 || sys==6) {
+          ins->type=DIV_INS_OPLL;
+        } else if (sys==1) {
+          ins->type=DIV_INS_OPL;
+        } else {
+          ins->type=DIV_INS_FM;
+        }
       }
     } else {
       ins->type=DIV_INS_FM;
@@ -231,12 +246,23 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           ins->fm.op[j].dvb=reader.readC();
           ins->fm.op[j].dam=reader.readC();
         } else {
-          ins->fm.op[j].rs=reader.readC();
-          ins->fm.op[j].dt=reader.readC();
-          ins->fm.op[j].dt2=ins->fm.op[j].dt>>4;
-          ins->fm.op[j].dt&=15;
-          ins->fm.op[j].d2r=reader.readC();
-          ins->fm.op[j].ssgEnv=reader.readC();
+          if (sys==3 || sys==6) { // OPLL/VRC7
+            ins->fm.op[j].ksr=reader.readC()?1:0;
+            ins->fm.op[j].vib=reader.readC();
+            if (j==0) {
+              ins->fm.opllPreset=ins->fm.op[j].vib>>4;
+            }
+            ins->fm.op[j].vib=ins->fm.op[j].vib?1:0;
+            ins->fm.op[j].ksl=reader.readC()?1:0;
+            ins->fm.op[j].ssgEnv=reader.readC();
+          } else {
+            ins->fm.op[j].rs=reader.readC();
+            ins->fm.op[j].dt=reader.readC();
+            ins->fm.op[j].dt2=ins->fm.op[j].dt>>4;
+            ins->fm.op[j].dt&=15;
+            ins->fm.op[j].d2r=reader.readC();
+            ins->fm.op[j].ssgEnv=reader.readC();
+          }
         }
       }
     } else { // STD
@@ -246,6 +272,9 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
         if (version>5) {
           for (int i=0; i<ins->std.volMacro.len; i++) {
             ins->std.volMacro.val[i]=reader.readI();
+            if (ins->std.volMacro.val[i]>15 && sys==6) { // FDS
+              ins->type=DIV_INS_FDS;
+            }
           }
         } else {
           for (int i=0; i<ins->std.volMacro.len; i++) {
@@ -732,6 +761,8 @@ void DivEngine::loadOPLI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
           ins = new DivInstrument;
           ins->type = DIV_INS_OPL;
           ins->name = fmt::sprintf("%s (2)", insName);
+          ins->fm.alg = (feedConnect2nd & 0x1);
+          ins->fm.fb = ((feedConnect2nd >> 1) & 0xF);
           for (int i : {1,0}) {
             readOpliOp(reader, ins->fm.op[i]);
           }
@@ -802,7 +833,7 @@ void DivEngine::loadOPNI(SafeReader& reader, std::vector<DivInstrument*>& ret, S
 
         op.mult = dtMul & 0xF;
         op.dt = ((dtMul >> 4) & 0x7);
-        op.tl = totalLevel & 0x3F;
+        op.tl = totalLevel & 0x7F;
         op.rs = ((arRateScale >> 6) & 0x3);
         op.ar = arRateScale & 0x1F;
         op.dr = drAmpEnable & 0x1F;
@@ -1262,7 +1293,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     patchNameRead = lfoRead = characteristicRead = m1Read = c1Read = m2Read = c2Read = false;
     newPatch = NULL;
   };
-  auto readIntStrWithinRange = [](String&& input, int limitLow, int limitHigh) -> int {
+  auto readIntStrWithinRange = [](String&& input, int limitLow = INT_MIN, int limitHigh = INT_MAX) -> int {
     int x = std::stoi(input.c_str());
     if (x > limitHigh || x < limitLow) {
       throw std::invalid_argument(fmt::sprintf("%s is out of bounds of range [%d..%d]", input, limitLow, limitHigh));
@@ -1280,7 +1311,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
     op.mult = readIntStrWithinRange(reader.readStringToken(), 0, 15);
     op.dt = fmDtRegisterToFurnace(readIntStrWithinRange(reader.readStringToken(), 0, 7));
     op.dt2 = readIntStrWithinRange(reader.readStringToken(), 0, 3);
-    op.am = readIntStrWithinRange(reader.readStringToken(), 0, 1);
+    op.am = readIntStrWithinRange(reader.readStringToken(), 0) > 0 ? 1 : 0;
   };
   auto seekGroupValStart = [](SafeReader& reader, int pos) {
     // Seek to position then move to next ':' character
@@ -1497,6 +1528,8 @@ void DivEngine::loadWOPL(SafeReader& reader, std::vector<DivInstrument*>& ret, S
           ins = new DivInstrument;
           ins->type = DIV_INS_OPL;
           ins->name = fmt::sprintf("%s (2)", insName);
+          ins->fm.alg = (feedConnect2nd & 0x1);
+          ins->fm.fb = ((feedConnect2nd >> 1) & 0xF);
           for (int i : {1,0}) {
             patchSum += readWoplOp(reader, ins->fm.op[i]);
           }
@@ -1638,7 +1671,7 @@ void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, S
 
     total += (op.mult = dtMul & 0xF);
     total += (op.dt = ((dtMul >> 4) & 0x7));
-    total += (op.tl = totalLevel & 0x3F);
+    total += (op.tl = totalLevel & 0x7F);
     total += (op.rs = ((arRateScale >> 6) & 0x3));
     total += (op.ar = arRateScale & 0x1F);
     total += (op.dr = drAmpEnable & 0x1F);

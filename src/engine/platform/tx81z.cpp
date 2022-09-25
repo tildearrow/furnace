@@ -55,139 +55,6 @@ const char** DivPlatformTX81Z::getRegisterSheet() {
   return regCheatSheetOPZ;
 }
 
-const char* DivPlatformTX81Z::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Set noise frequency (xx: value; 0 disables noise)";
-      break;
-    case 0x11:
-      return "11xx: Set feedback (0 to 7)";
-      break;
-    case 0x12:
-      return "12xx: Set level of operator 1 (0 highest, 7F lowest)";
-      break;
-    case 0x13:
-      return "13xx: Set level of operator 2 (0 highest, 7F lowest)";
-      break;
-    case 0x14:
-      return "14xx: Set level of operator 3 (0 highest, 7F lowest)";
-      break;
-    case 0x15:
-      return "15xx: Set level of operator 4 (0 highest, 7F lowest)";
-      break;
-    case 0x16:
-      return "16xy: Set operator multiplier (x: operator from 1 to 4; y: multiplier)";
-      break;
-    case 0x17:
-      return "17xx: Set LFO speed";
-      break;
-    case 0x18:
-      return "18xx: Set LFO waveform (0 saw, 1 square, 2 triangle, 3 noise)";
-      break;
-    case 0x19:
-      return "19xx: Set attack of all operators (0 to 1F)";
-      break;
-    case 0x1a:
-      return "1Axx: Set attack of operator 1 (0 to 1F)";
-      break;
-    case 0x1b:
-      return "1Bxx: Set attack of operator 2 (0 to 1F)";
-      break;
-    case 0x1c:
-      return "1Cxx: Set attack of operator 3 (0 to 1F)";
-      break;
-    case 0x1d:
-      return "1Dxx: Set attack of operator 4 (0 to 1F)";
-      break;
-    case 0x1e:
-      return "1Exx: Set AM depth (0 to 7F)";
-      break;
-    case 0x1f:
-      return "1Fxx: Set PM depth (0 to 7F)";
-      break;
-    case 0x28:
-      return "28xy: Set reverb (x: operator from 1 to 4 (0 for all ops); y: reverb from 0 to 7)";
-      break;
-    case 0x2a:
-      return "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 7)";
-      break;
-    case 0x2b:
-      return "2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); y: shift from 0 to 3)";
-      break;
-    case 0x2c:
-      return "2Cxy: Set fine multiplier (x: operator from 1 to 4 (0 for all ops); y: fine)";
-      break;
-    case 0x2f:
-      return "2Fxx: Toggle hard envelope reset on new notes";
-      break;
-    case 0x30: case 0x31: case 0x32: case 0x33:
-    case 0x34: case 0x35: case 0x36: case 0x37:
-      return "3xyy: Set fixed frequency of operator 1 (x: octave from 0 to 7; y: frequency)";
-      break;
-    case 0x38: case 0x39: case 0x3a: case 0x3b:
-    case 0x3c: case 0x3d: case 0x3e: case 0x3f:
-      return "3xyy: Set fixed frequency of operator 2 (x: octave from 8 to F; y: frequency)";
-      break;
-    case 0x40: case 0x41: case 0x42: case 0x43:
-    case 0x44: case 0x45: case 0x46: case 0x47:
-      return "4xyy: Set fixed frequency of operator 3 (x: octave from 0 to 7; y: frequency)";
-      break;
-    case 0x48: case 0x49: case 0x4a: case 0x4b:
-    case 0x4c: case 0x4d: case 0x4e: case 0x4f:
-      return "4xyy: Set fixed frequency of operator 4 (x: octave from 8 to F; y: frequency)";
-      break;
-    case 0x50:
-      return "50xy: Set AM (x: operator from 1 to 4 (0 for all ops); y: AM)";
-      break;
-    case 0x51:
-      return "51xy: Set sustain level (x: operator from 1 to 4 (0 for all ops); y: sustain)";
-      break;
-    case 0x52:
-      return "52xy: Set release (x: operator from 1 to 4 (0 for all ops); y: release)";
-      break;
-    case 0x53:
-      return "53xy: Set detune (x: operator from 1 to 4 (0 for all ops); y: detune where 3 is center)";
-      break;
-    case 0x54:
-      return "54xy: Set envelope scale (x: operator from 1 to 4 (0 for all ops); y: scale from 0 to 3)";
-      break;
-    case 0x55:
-      return "55xy: Set detune 2 (x: operator from 1 to 4 (0 for all ops); y: detune from 0 to 3)";
-      break;
-    case 0x56:
-      return "56xx: Set decay of all operators (0 to 1F)";
-      break;
-    case 0x57:
-      return "57xx: Set decay of operator 1 (0 to 1F)";
-      break;
-    case 0x58:
-      return "58xx: Set decay of operator 2 (0 to 1F)";
-      break;
-    case 0x59:
-      return "59xx: Set decay of operator 3 (0 to 1F)";
-      break;
-    case 0x5a:
-      return "5Axx: Set decay of operator 4 (0 to 1F)";
-      break;
-    case 0x5b:
-      return "5Bxx: Set decay 2 of all operators (0 to 1F)";
-      break;
-    case 0x5c:
-      return "5Cxx: Set decay 2 of operator 1 (0 to 1F)";
-      break;
-    case 0x5d:
-      return "5Dxx: Set decay 2 of operator 2 (0 to 1F)";
-      break;
-    case 0x5e:
-      return "5Exx: Set decay 2 of operator 3 (0 to 1F)";
-      break;
-    case 0x5f:
-      return "5Fxx: Set decay 2 of operator 4 (0 to 1F)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformTX81Z::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
 
@@ -245,7 +112,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
-          if (isOutput[chan[i].state.alg][j]) {
+          if (KVS(i,j)) {
             rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
           } else {
             rWrite(baseAddr+ADDR_TL,op.tl);
@@ -256,18 +123,9 @@ void DivPlatformTX81Z::tick(bool sysTick) {
 
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_LINEAR(chan[i].std.arp.val);
-        } else {
-          chan[i].baseFreq=NOTE_LINEAR(chan[i].note+(signed char)chan[i].std.arp.val);
-        }
+        chan[i].baseFreq=NOTE_LINEAR(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_LINEAR(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
 
     if (chan[i].std.duty.had) {
@@ -321,7 +179,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
-          if (isOutput[chan[i].state.alg][j]) {
+          if (KVS(i,j)) {
             rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
           } else {
             rWrite(baseAddr+ADDR_TL,op.tl);
@@ -374,7 +232,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
-          if (isOutput[chan[i].state.alg][j]) {
+          if (KVS(i,j)) {
             rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
           } else {
             rWrite(baseAddr+ADDR_TL,op.tl);
@@ -466,7 +324,7 @@ void DivPlatformTX81Z::muteChannel(int ch, bool mute) {
     if (isMuted[ch]) {
       rWrite(baseAddr+ADDR_TL,127);
     } else {
-      if (isOutput[chan[ch].state.alg][i]) {
+      if (KVS(ch,i)) {
         rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[ch].outVol&0x7f,127));
       } else {
         rWrite(baseAddr+ADDR_TL,op.tl);
@@ -495,7 +353,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
         if (isMuted[c.chan]) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
-          if (isOutput[chan[c.chan].state.alg][i]) {
+          if (KVS(c.chan,i)) {
             if (!chan[c.chan].active || chan[c.chan].insChanged) {
               rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[c.chan].outVol&0x7f,127));
             }
@@ -561,7 +419,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
         if (isMuted[c.chan]) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
-          if (isOutput[chan[c.chan].state.alg][i]) {
+          if (KVS(c.chan,i)) {
             rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[c.chan].outVol&0x7f,127));
           } else {
             rWrite(baseAddr+ADDR_TL,op.tl);
@@ -661,7 +519,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       if (isMuted[c.chan]) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
-        if (isOutput[chan[c.chan].state.alg][c.value]) {
+        if (KVS(c.chan,c.value)) {
           rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[c.chan].outVol&0x7f,127));
         } else {
           rWrite(baseAddr+ADDR_TL,op.tl);
@@ -933,6 +791,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       return 127;
       break;
     case DIV_CMD_PRE_PORTA:
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_LINEAR(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
@@ -952,7 +811,7 @@ void DivPlatformTX81Z::forceIns() {
       if (isMuted[i]) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
-        if (isOutput[chan[i].state.alg][j]) {
+        if (KVS(i,j)) {
           rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
         } else {
           rWrite(baseAddr+ADDR_TL,op.tl);
@@ -1047,6 +906,7 @@ void DivPlatformTX81Z::reset() {
   pmDepth=0x7f;
 
   //rWrite(0x18,0x10);
+  immWrite(0x18,0x00); // LFO Freq Off
   immWrite(0x19,amDepth);
   immWrite(0x19,0x80|pmDepth);
   //rWrite(0x1b,0x00);

@@ -58,13 +58,13 @@ SOFTWARE.
 	#ifndef PATH_MAX
 		#define PATH_MAX 260
 	#endif // PATH_MAX
-#elif defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__) || defined (__EMSCRIPTEN__)
+#elif defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__) || defined (__EMSCRIPTEN__) || defined(__HAIKU__)
 	#define UNIX
 	#define stricmp strcasecmp
 	#include <sys/types.h>
 	// this option need c++17
 	#ifndef USE_STD_FILESYSTEM
-		#include <dirent.h> 
+		#include <dirent.h>
 	#endif // USE_STD_FILESYSTEM
 	#define PATH_SEP '/'
 #endif // defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__)
@@ -1547,28 +1547,53 @@ namespace IGFD
 				for (i = 0; i < n; i++)
 				{
 					struct dirent* ent = files[i];
-
+					std::string where = path + std::string("/") + std::string(ent->d_name);
 					char fileType = 0;
-					switch (ent->d_type)
+#ifdef HAVE_DIRENT_TYPE
+					if (ent->d_type != DT_UNKNOWN)
 					{
-					case DT_REG:
-						fileType = 'f'; break;
-					case DT_DIR:
-						fileType = 'd'; break;
-					case DT_LNK:
-            std::string where = path+std::string("/")+std::string(ent->d_name);
-            DIR* dirTest = opendir(where.c_str());
-            if (dirTest==NULL) {
-              if (errno==ENOTDIR) {
-                fileType = 'f';
-              } else {
-                fileType = 'l';
-              }
-            } else {
-              fileType = 'd';
-              closedir(dirTest);
-            }
-            break;
+						switch (ent->d_type)
+						{
+						case DT_REG:
+							fileType = 'f'; break;
+						case DT_DIR:
+							fileType = 'd'; break;
+						case DT_LNK:
+							DIR* dirTest = opendir(where.c_str());
+							if (dirTest == NULL)
+							{
+								if (errno == ENOTDIR)
+								{
+									fileType = 'f';
+								}
+								else
+								{
+									fileType = 'l';
+								}
+							}
+							else
+							{
+								fileType = 'd';
+								closedir(dirTest);
+							}
+							break;
+						}
+					}
+					else
+#endif // HAVE_DIRENT_TYPE
+					{
+						struct stat filestat;
+						if (stat(where.c_str(), &filestat) == 0)
+						{
+							if (S_ISDIR(filestat.st_mode))
+							{
+								fileType = 'd';
+							}
+							else
+							{
+								fileType = 'f';
+							}
+						}
 					}
 
 					auto fileNameExt = ent->d_name;

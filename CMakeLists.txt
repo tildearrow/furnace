@@ -22,6 +22,9 @@ set(USE_SDL2_DEFAULT ON)
 set(USE_SNDFILE_DEFAULT ON)
 set(SYSTEM_SDL2_DEFAULT OFF)
 
+include(CheckIncludeFile)
+include(TestBigEndian)
+
 if (ANDROID)
   set(USE_RTMIDI_DEFAULT OFF)
   set(USE_BACKWARD_DEFAULT OFF)
@@ -31,7 +34,16 @@ if (ANDROID)
   endif()
 else()
   set(USE_RTMIDI_DEFAULT ON)
-  set(USE_BACKWARD_DEFAULT ON)
+  if (WIN32 OR APPLE)
+    set(USE_BACKWARD_DEFAULT ON)
+  else()
+    CHECK_INCLUDE_FILE(execinfo.h EXECINFO_FOUND)
+    if (EXECINFO_FOUND)
+      set(USE_BACKWARD_DEFAULT ON)
+    else()
+      set(USE_BACKWARD_DEFAULT OFF)
+    endif()
+  endif()
 endif()
 
 find_package(PkgConfig)
@@ -55,13 +67,21 @@ option(SYSTEM_RTMIDI "Use a system-installed version of RtMidi instead of the ve
 option(SYSTEM_ZLIB "Use a system-installed version of zlib instead of the vendored one" OFF)
 option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendored one" ${SYSTEM_SDL2_DEFAULT})
 option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be treated as errors" OFF)
+option(WITH_DEMOS "Install demo songs" ON)
+option(WITH_INSTRUMENTS "Install instruments" ON)
 
 set(DEPENDENCIES_INCLUDE_DIRS "")
 
 if (ANDROID AND NOT TERMUX)
-set(DEPENDENCIES_DEFINES "IS_MOBILE")
+  set(DEPENDENCIES_DEFINES "IS_MOBILE")
 else()
-set(DEPENDENCIES_DEFINES "")
+  set(DEPENDENCIES_DEFINES "")
+endif()
+
+TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
+
+if (IS_BIG_ENDIAN)
+  list(APPEND DEPENDENCIES_DEFINES "TA_BIG_ENDIAN")
 endif()
 
 set(DEPENDENCIES_COMPILE_OPTIONS "")
@@ -77,6 +97,7 @@ else()
 endif()
 
 list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/SAASound/include")
+list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/vgsound_emu-modified")
 
 find_package(Threads REQUIRED)
 list(APPEND DEPENDENCIES_LIBRARIES ${CMAKE_THREAD_LIBS_INIT})
@@ -221,6 +242,11 @@ if (USE_SDL2)
       set(SDL_SHARED OFF CACHE BOOL "Force no dynamically-linked SDL" FORCE)
       set(SDL_STATIC ON CACHE BOOL "Force statically-linked SDL" FORCE)
     endif()
+    # https://github.com/libsdl-org/SDL/issues/5535
+    # disable PipeWire support due to an unfixable bug:
+    #   Looks like their headers have a C90 violation... I imagine they're probably on C99 so not the craziest bug in the world. Definitely file this at the PipeWire repository as well so they know this is out there.
+    set(SDL_PIPEWIRE OFF CACHE BOOL "Use Pipewire audio" FORCE)
+
     # https://github.com/libsdl-org/SDL/issues/1481
     # On 2014-06-22 17:15:50 +0000, Sam Lantinga wrote:
     #   If you link SDL statically, you also need to define HAVE_LIBC so it builds with the C runtime that your application uses.
@@ -294,6 +320,31 @@ extern/SAASound/src/SAANoise.cpp
 extern/SAASound/src/SAASndC.cpp
 extern/SAASound/src/SAASound.cpp
 
+extern/vgsound_emu-modified/vgsound_emu/src/core/vox/vox.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/es550x/es550x.cpp
+extern/vgsound_emu-modified/vgsound_emu/src/es550x/es550x_alu.cpp
+extern/vgsound_emu-modified/vgsound_emu/src/es550x/es550x_filter.cpp
+extern/vgsound_emu-modified/vgsound_emu/src/es550x/es5504.cpp
+extern/vgsound_emu-modified/vgsound_emu/src/es550x/es5505.cpp
+extern/vgsound_emu-modified/vgsound_emu/src/es550x/es5506.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/k005289/k005289.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/k007232/k007232.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/k053260/k053260.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/msm6295/msm6295.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/n163/n163.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/scc/scc.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/vrcvi/vrcvi.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/x1_010/x1_010.cpp
+
 extern/adpcm/bs_codec.c
 extern/adpcm/oki_codec.c
 extern/adpcm/yma_codec.c
@@ -343,7 +394,26 @@ src/engine/platform/sound/c64/wave8580_PST.cc
 src/engine/platform/sound/c64/wave8580_P_T.cc
 src/engine/platform/sound/c64/wave8580__ST.cc
 
-src/engine/platform/sound/tia/TIASnd.cpp
+src/engine/platform/sound/c64_fp/Dac.cpp
+src/engine/platform/sound/c64_fp/EnvelopeGenerator.cpp
+src/engine/platform/sound/c64_fp/ExternalFilter.cpp
+src/engine/platform/sound/c64_fp/Filter6581.cpp
+src/engine/platform/sound/c64_fp/Filter8580.cpp
+src/engine/platform/sound/c64_fp/Filter.cpp
+src/engine/platform/sound/c64_fp/FilterModelConfig6581.cpp
+src/engine/platform/sound/c64_fp/FilterModelConfig8580.cpp
+src/engine/platform/sound/c64_fp/FilterModelConfig.cpp
+src/engine/platform/sound/c64_fp/Integrator6581.cpp
+src/engine/platform/sound/c64_fp/Integrator8580.cpp
+src/engine/platform/sound/c64_fp/OpAmp.cpp
+src/engine/platform/sound/c64_fp/SID.cpp
+src/engine/platform/sound/c64_fp/Spline.cpp
+src/engine/platform/sound/c64_fp/WaveformCalculator.cpp
+src/engine/platform/sound/c64_fp/WaveformGenerator.cpp
+src/engine/platform/sound/c64_fp/resample/SincResampler.cpp
+
+src/engine/platform/sound/tia/AudioChannel.cpp
+src/engine/platform/sound/tia/Audio.cpp
 
 src/engine/platform/sound/ymfm/ymfm_adpcm.cpp
 src/engine/platform/sound/ymfm/ymfm_opm.cpp
@@ -355,41 +425,26 @@ src/engine/platform/sound/lynx/Mikey.cpp
 
 src/engine/platform/sound/qsound.c
 
-src/engine/platform/sound/x1_010/x1_010.cpp
-
 src/engine/platform/sound/swan.cpp
 
 src/engine/platform/sound/su.cpp
 
-src/engine/platform/sound/k005289/k005289.cpp
-
-src/engine/platform/sound/n163/n163.cpp
-
 src/engine/platform/sound/vic20sound.c
-
-src/engine/platform/sound/vrcvi/vrcvi.cpp
-
-src/engine/platform/sound/es550x/es550x.cpp
-src/engine/platform/sound/es550x/es550x_alu.cpp
-src/engine/platform/sound/es550x/es550x_filter.cpp
-src/engine/platform/sound/es550x/es5504.cpp
-src/engine/platform/sound/es550x/es5505.cpp
-src/engine/platform/sound/es550x/es5506.cpp
-
-src/engine/platform/sound/scc/scc.cpp
 
 src/engine/platform/sound/ymz280b.cpp
 
 src/engine/platform/sound/rf5c68.cpp
 
 src/engine/platform/sound/oki/okim6258.cpp
-src/engine/platform/sound/oki/msm6295.cpp
+
+src/engine/platform/sound/snes/SPC_DSP.cpp
 
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
 
 src/engine/blip_buf.c
+src/engine/brrUtils.c
 src/engine/safeReader.cpp
 src/engine/safeWriter.cpp
 src/engine/config.cpp
@@ -408,6 +463,8 @@ src/engine/sysDef.cpp
 src/engine/wavetable.cpp
 src/engine/waveSynth.cpp
 src/engine/vgmOps.cpp
+src/engine/zsmOps.cpp
+src/engine/zsm.cpp
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
 src/engine/platform/genesisext.cpp
@@ -456,6 +513,8 @@ src/engine/platform/scc.cpp
 src/engine/platform/ymz280b.cpp
 src/engine/platform/namcowsg.cpp
 src/engine/platform/rf5c68.cpp
+src/engine/platform/snes.cpp
+src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 )
 
@@ -468,6 +527,10 @@ if (WIN32)
   list(APPEND ENGINE_SOURCES src/engine/winStuff.cpp)
   list(APPEND ENGINE_SOURCES res/furnace.rc)
 endif()
+
+set(CLI_SOURCES
+src/cli/cli.cpp
+)
 
 set(GUI_SOURCES
 extern/imgui_patched/imgui.cpp
@@ -516,6 +579,7 @@ src/gui/midiMap.cpp
 src/gui/newSong.cpp
 src/gui/orders.cpp
 src/gui/osc.cpp
+src/gui/patManager.cpp
 src/gui/pattern.cpp
 src/gui/piano.cpp
 src/gui/presets.cpp
@@ -529,6 +593,8 @@ src/gui/stats.cpp
 src/gui/subSongs.cpp
 src/gui/sysConf.cpp
 src/gui/sysEx.cpp
+src/gui/sysManager.cpp
+src/gui/sysPicker.cpp
 src/gui/util.cpp
 src/gui/waveEdit.cpp
 src/gui/volMeter.cpp
@@ -551,14 +617,17 @@ endif()
 if (NOT WIN32 AND NOT APPLE)
   list(APPEND GUI_SOURCES src/gui/icon.c)
 
-  include(CheckIncludeFile)
-
   CHECK_INCLUDE_FILE(sys/io.h SYS_IO_FOUND)
   CHECK_INCLUDE_FILE(linux/input.h LINUX_INPUT_FOUND)
   CHECK_INCLUDE_FILE(linux/kd.h LINUX_KD_FOUND)
   if (SYS_IO_FOUND)
-    list(APPEND DEPENDENCIES_DEFINES HAVE_SYS_IO)
-    message(STATUS "PC speaker output: outb()")
+    try_compile(HAVE_INOUTB ${CMAKE_BINARY_DIR}/check SOURCES ${CMAKE_SOURCE_DIR}/src/check/check_sysIO.c)
+    if (HAVE_INOUTB)
+      list(APPEND DEPENDENCIES_DEFINES HAVE_SYS_IO)
+      message(STATUS "PC speaker output: outb()")
+    else()
+      message(STATUS "sys/io.h found but inb()/outb() not present")
+    endif()
   endif()
   if (LINUX_INPUT_FOUND)
     list(APPEND DEPENDENCIES_DEFINES HAVE_LINUX_INPUT)
@@ -570,12 +639,23 @@ if (NOT WIN32 AND NOT APPLE)
   endif()
 endif()
 
-set(USED_SOURCES ${ENGINE_SOURCES} ${AUDIO_SOURCES} src/main.cpp)
+if (NOT WIN32)
+  try_compile(HAVE_DIRENT_TYPE ${CMAKE_BINARY_DIR}/check SOURCES ${CMAKE_SOURCE_DIR}/src/check/check_dirent_type.c)
+  if (HAVE_DIRENT_TYPE)
+    list(APPEND DEPENDENCIES_DEFINES HAVE_DIRENT_TYPE)
+  endif()
+endif()
+
+set(USED_SOURCES ${ENGINE_SOURCES} ${AUDIO_SOURCES} ${CLI_SOURCES} src/main.cpp)
 
 if (USE_BACKWARD)
   list(APPEND USED_SOURCES src/backtrace.cpp)
   if (WIN32 AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     list(APPEND DEPENDENCIES_LIBRARIES dbghelp psapi)
+  endif()
+  find_library(EXECINFO_IS_LIBRARY execinfo)
+  if (EXECINFO_IS_LIBRARY)
+    list(APPEND DEPENDENCIES_LIBRARIES execinfo)
   endif()
   message(STATUS "Using backward-cpp")
 else()
@@ -675,24 +755,29 @@ if (PKG_CONFIG_FOUND AND (SYSTEM_FMT OR SYSTEM_LIBSNDFILE OR SYSTEM_ZLIB OR SYST
 endif()
 
 if (NOT ANDROID OR TERMUX)
-  install(TARGETS furnace RUNTIME DESTINATION bin)
-  
   if (NOT WIN32 AND NOT APPLE)
     include(GNUInstallDirs)
+    install(TARGETS furnace RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
     install(FILES res/furnace.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
     install(FILES res/furnace.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
     install(DIRECTORY papers DESTINATION ${CMAKE_INSTALL_DOCDIR})
     install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/furnace)
-    install(DIRECTORY demos DESTINATION ${CMAKE_INSTALL_DATADIR}/furnace)
-    install(DIRECTORY instruments DESTINATION ${CMAKE_INSTALL_DATADIR}/furnace)
+    if (WITH_DEMOS)
+      install(DIRECTORY demos DESTINATION ${CMAKE_INSTALL_DATADIR}/furnace)
+    endif()
+    if (WITH_INSTRUMENTS)
+      install(DIRECTORY instruments DESTINATION ${CMAKE_INSTALL_DATADIR}/furnace)
+    endif()
     foreach(num 16 32 64 128 256 512)
       set(res ${num}x${num})
       install(FILES res/icon.iconset/icon_${res}.png RENAME furnace.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/${res}/apps)
       install(FILES res/icon.iconset/icon_${res}@2x.png RENAME furnace.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/${res}@2/apps)
     endforeach()
     install(FILES res/logo.png RENAME furnace.png DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/hicolor/1024x1024/apps)
+  else()
+    install(TARGETS furnace RUNTIME DESTINATION bin)
   endif()
-  
+
   set(CPACK_PACKAGE_NAME "Furnace")
   set(CPACK_PACKAGE_VENDOR "tildearrow")
   set(CPACK_PACKAGE_DESCRIPTION "free and open-source chiptune tracker")

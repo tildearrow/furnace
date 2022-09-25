@@ -48,6 +48,7 @@ class DivPlatformLynx: public DivDispatch {
     unsigned char pan;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, pcm;
     signed char vol, outVol;
+    int macroVolMul;
     void macroInit(DivInstrument* which) {
       std.init(which);
       pitch2=0;
@@ -77,12 +78,14 @@ class DivPlatformLynx: public DivDispatch {
       inPorta(false),
       pcm(false),
       vol(127),
-      outVol(127) {}
+      outVol(127),
+      macroVolMul(127) {}
   };
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
-  std::unique_ptr<Lynx::Mikey> mikey;
+  std::unique_ptr<Lynx::Mikey> mikey;  
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -104,7 +107,6 @@ class DivPlatformLynx: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName( unsigned char effect );
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformLynx();

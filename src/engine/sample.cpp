@@ -33,13 +33,155 @@ extern "C" {
 #include "../../extern/adpcm/ymb_codec.h"
 #include "../../extern/adpcm/ymz_codec.h"
 }
+#include "brrUtils.h"
 
 DivSampleHistory::~DivSampleHistory() {
   if (data!=NULL) delete[] data;
 }
 
 bool DivSample::isLoopable() {
-  return ((loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && (loopStart>=0 && loopStart<(int)samples) && loopEnd<=samples);
+  return loop && ((loopStart>=0 && loopStart<loopEnd) && (loopEnd>loopStart && loopEnd<=(int)samples));
+}
+
+int DivSample::getSampleOffset(int offset, int length, DivSampleDepth depth) {
+  if ((length==0) || (offset==length)) {
+    int off=offset;
+    switch (depth) {
+      case DIV_SAMPLE_DEPTH_1BIT:
+        off=(offset+7)/8;
+        break;
+      case DIV_SAMPLE_DEPTH_1BIT_DPCM:
+        off=(offset+7)/8;
+        break;
+      case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
+        off=(offset+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_QSOUND_ADPCM:
+        off=(offset+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_ADPCM_A:
+        off=(offset+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_ADPCM_B:
+        off=(offset+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_8BIT:
+        off=offset;
+        break;
+      case DIV_SAMPLE_DEPTH_BRR:
+        off=9*((offset+15)/16);
+        break;
+      case DIV_SAMPLE_DEPTH_VOX:
+        off=(offset+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_16BIT:
+        off=offset*2;
+        break;
+      default:
+        break;
+    }
+    return off;
+  } else {
+    int off=offset;
+    int len=length;
+    switch (depth) {
+      case DIV_SAMPLE_DEPTH_1BIT:
+        off=(offset+7)/8;
+        len=(length+7)/8;
+        break;
+      case DIV_SAMPLE_DEPTH_1BIT_DPCM:
+        off=(offset+7)/8;
+        len=(length+7)/8;
+        break;
+      case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
+        off=(offset+1)/2;
+        len=(length+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_QSOUND_ADPCM:
+        off=(offset+1)/2;
+        len=(length+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_ADPCM_A:
+        off=(offset+1)/2;
+        len=(length+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_ADPCM_B:
+        off=(offset+1)/2;
+        len=(length+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_8BIT:
+        off=offset;
+        len=length;
+        break;
+      case DIV_SAMPLE_DEPTH_BRR:
+        off=9*((offset+15)/16);
+        len=9*((length+15)/16);
+        break;
+      case DIV_SAMPLE_DEPTH_VOX:
+        off=(offset+1)/2;
+        len=(length+1)/2;
+        break;
+      case DIV_SAMPLE_DEPTH_16BIT:
+        off=offset*2;
+        len=length*2;
+        break;
+      default:
+        break;
+    }
+    return isLoopable()?off:len;
+  }
+}
+
+int DivSample::getLoopStartPosition(DivSampleDepth depth) {
+  return getSampleOffset(loopStart,0,depth);
+}
+
+int DivSample::getLoopEndPosition(DivSampleDepth depth) {
+  return getSampleOffset(loopEnd,samples,depth);
+}
+
+int DivSample::getEndPosition(DivSampleDepth depth) {
+  int off=samples;
+  switch (depth) {
+    case DIV_SAMPLE_DEPTH_1BIT:
+      off=length1;
+      break;
+    case DIV_SAMPLE_DEPTH_1BIT_DPCM:
+      off=lengthDPCM;
+      break;
+    case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
+      off=lengthZ;
+      break;
+    case DIV_SAMPLE_DEPTH_QSOUND_ADPCM:
+      off=lengthQSoundA;
+      break;
+    case DIV_SAMPLE_DEPTH_ADPCM_A:
+      off=lengthA;
+      break;
+    case DIV_SAMPLE_DEPTH_ADPCM_B:
+      off=lengthB;
+      break;
+    case DIV_SAMPLE_DEPTH_8BIT:
+      off=length8;
+      break;
+    case DIV_SAMPLE_DEPTH_BRR:
+      off=lengthBRR;
+      break;
+    case DIV_SAMPLE_DEPTH_VOX:
+      off=lengthVOX;
+      break;
+    case DIV_SAMPLE_DEPTH_16BIT:
+      off=length16;
+      break;
+    default:
+      break;
+  }
+  return off;
+}
+
+void DivSample::setSampleCount(unsigned int count) {
+  samples=count;
+  if ((!isLoopable()) || loopEnd<0 || loopEnd>(int)samples) loopEnd=samples;
 }
 
 bool DivSample::save(const char* path) {
@@ -57,7 +199,7 @@ bool DivSample::save(const char* path) {
   si.channels=1;
   si.samplerate=rate;
   switch (depth) {
-    case 8: // 8-bit
+    case DIV_SAMPLE_DEPTH_8BIT: // 8-bit
       si.format=SF_FORMAT_PCM_U8|SF_FORMAT_WAV;
       break;
     default: // 16-bit
@@ -83,14 +225,14 @@ bool DivSample::save(const char* path) {
   if(isLoopable())
   {
     inst.loop_count = 1;
-    inst.loops[0].mode = SF_LOOP_NONE+loopMode;
+    inst.loops[0].mode = (int)loopMode+SF_LOOP_FORWARD;
     inst.loops[0].start = loopStart;
     inst.loops[0].end = loopEnd;
   }
   sf_command(f, SFC_SET_INSTRUMENT, &inst, sizeof(inst));
 
   switch (depth) {
-    case 8: {
+    case DIV_SAMPLE_DEPTH_8BIT: {
       // convert from signed to unsigned
       unsigned char* buf=new unsigned char[length8];
       for (size_t i=0; i<length8; i++) {
@@ -184,10 +326,7 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
 
 bool DivSample::init(unsigned int count) {
   if (!initInternal(depth,count)) return false;
-  samples=count;
-  if (loopEnd>samples) {
-    loopEnd=samples;
-  }
+  setSampleCount(count);
   return true;
 }
 
@@ -202,7 +341,7 @@ bool DivSample::resize(unsigned int count) {
     } else {
       initInternal(DIV_SAMPLE_DEPTH_8BIT,count);
     }
-    samples=count;
+    setSampleCount(count);
     return true;
   } else if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     if (data16!=NULL) {
@@ -214,7 +353,7 @@ bool DivSample::resize(unsigned int count) {
     } else {
       initInternal(DIV_SAMPLE_DEPTH_16BIT,count);
     }
-    samples=count;
+    setSampleCount(count);
     return true;
   }
   return false;
@@ -241,7 +380,7 @@ bool DivSample::strip(unsigned int begin, unsigned int end) {
       // do nothing
       return true;
     }
-    samples=count;
+    setSampleCount(count);
     return true;
   } else if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     if (data16!=NULL) {
@@ -259,7 +398,7 @@ bool DivSample::strip(unsigned int begin, unsigned int end) {
       // do nothing
       return true;
     }
-    samples=count;
+    setSampleCount(count);
     return true;
   }
   return false;
@@ -280,7 +419,7 @@ bool DivSample::trim(unsigned int begin, unsigned int end) {
       // do nothing
       return true;
     }
-    samples=count;
+    setSampleCount(count);
     return true;
   } else if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     if (data16!=NULL) {
@@ -293,7 +432,7 @@ bool DivSample::trim(unsigned int begin, unsigned int end) {
       // do nothing
       return true;
     }
-    samples=count;
+    setSampleCount(count);
     return true;
   }
   return false;
@@ -316,7 +455,7 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
     } else {
       initInternal(DIV_SAMPLE_DEPTH_8BIT,count);
     }
-    samples=count;
+    setSampleCount(count);
     return true;
   } else if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     if (data16!=NULL) {
@@ -333,7 +472,7 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
     } else {
       initInternal(DIV_SAMPLE_DEPTH_16BIT,count);
     }
-    samples=count;
+    setSampleCount(count);
     return true;
   }
   return false;
@@ -360,11 +499,10 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
 
 #define RESAMPLE_END \
   if (loopStart>=0) loopStart=(double)loopStart*(r/(double)rate); \
-  if (loopEnd<samples) loopEnd=(double)loopEnd*(r/(double)rate); \
+  if (loopEnd>=0) loopEnd=(double)loopEnd*(r/(double)rate); \
   centerRate=(int)((double)centerRate*(r/(double)rate)); \
   rate=r; \
   samples=finalCount; \
-  if (loopEnd>samples) loopEnd=samples; \
   if (depth==DIV_SAMPLE_DEPTH_16BIT) { \
     delete[] oldData16; \
   } else if (depth==DIV_SAMPLE_DEPTH_8BIT) { \
@@ -714,7 +852,7 @@ void DivSample::render() {
         }
         break;
       case DIV_SAMPLE_DEPTH_BRR: // BRR
-        // TODO!
+        brrDecode(dataBRR,data16,samples);
         break;
       case DIV_SAMPLE_DEPTH_VOX: // VOX
         oki_decode(dataVOX,data16,samples);
@@ -771,7 +909,10 @@ void DivSample::render() {
       data8[i]=data16[i]>>8;
     }
   }
-  // TODO: BRR!
+  if (depth!=DIV_SAMPLE_DEPTH_BRR) { // BRR
+    if (!initInternal(DIV_SAMPLE_DEPTH_BRR,samples)) return;
+    brrEncode(data16,dataBRR,samples);
+  }
   if (depth!=DIV_SAMPLE_DEPTH_VOX) { // VOX
     if (!initInternal(DIV_SAMPLE_DEPTH_VOX,samples)) return;
     oki_encode(data16,dataVOX,samples);
@@ -801,7 +942,7 @@ void* DivSample::getCurBuf() {
     case DIV_SAMPLE_DEPTH_16BIT:
       return data16;
     default:
-      break;
+      return NULL;
   }
   return NULL;
 }
@@ -829,7 +970,7 @@ unsigned int DivSample::getCurBufLen() {
     case DIV_SAMPLE_DEPTH_16BIT:
       return length16;
     default:
-      break;
+      return 0;
   }
   return 0;
 }
@@ -844,9 +985,9 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       duplicate=new unsigned char[getCurBufLen()];
       memcpy(duplicate,getCurBuf(),getCurBufLen());
     }
-    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loopMode);
+    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,loopMode);
   } else {
-    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loopMode);
+    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,loopMode);
   }
   if (!doNotPush) {
     while (!redoHist.empty()) {
@@ -878,6 +1019,7 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
   centerRate=h->centerRate; \
   loopStart=h->loopStart; \
   loopEnd=h->loopEnd; \
+  loop=h->loop; \
   loopMode=h->loopMode;
 
 

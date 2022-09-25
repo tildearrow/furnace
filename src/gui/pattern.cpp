@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+// for suck's fake Clang extension!
+#include <imgui.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "../ta-log.h"
@@ -24,6 +26,7 @@
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "guiConst.h"
+#include "../utfutils.h"
 #include <fmt/printf.h>
 
 inline float randRange(float min, float max) {
@@ -56,7 +59,7 @@ void FurnaceGUI::popPartBlend() {
 
 // draw a pattern row
 inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel) {
-  static char id[32];
+  static char id[64];
   bool selectedRow=(i>=sel1.y && i<=sel2.y && !inhibitSel);
   ImGui::TableNextRow(0,lineHeight);
   ImGui::TableNextColumn();
@@ -114,9 +117,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   ImGui::PushStyleColor(ImGuiCol_Text,rowIndexColor);
   
   if (settings.patRowsBase==1) {
-    snprintf(id,31," %.2X ##PR_%d",i,i);
+    snprintf(id,63," %.2X ##PR_%d",i,i);
   } else {
-    snprintf(id,31,"%3d ##PR_%d",i,i);
+    snprintf(id,63,"%3d ##PR_%d",i,i);
   }
   ImGui::Selectable(id,false,ImGuiSelectableFlags_NoPadWithHalfSpacing,fourChars);
   if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
@@ -151,7 +154,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     bool cursorVol=(cursor.y==i && cursor.xCoarse==j && cursor.xFine==2 && curWindowLast==GUI_WINDOW_PATTERN);
 
     // note
-    sprintf(id,"%s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
+    snprintf(id,63,"%.31s##PN_%d_%d",noteName(pat->data[i][0],pat->data[i][1]),i,j);
     if (pat->data[i][0]==0 && pat->data[i][1]==0) {
       ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
     } else {
@@ -182,7 +185,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       // instrument
       if (pat->data[i][2]==-1) {
         ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
-        sprintf(id,"..##PI_%d_%d",i,j);
+        snprintf(id,63,"%.31s##PI_%d_%d",emptyLabel2,i,j);
       } else {
         if (pat->data[i][2]<0 || pat->data[i][2]>=e->song.insLen) {
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS_ERROR]);
@@ -194,7 +197,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
           }
         }
-        sprintf(id,"%.2X##PI_%d_%d",pat->data[i][2],i,j);
+        snprintf(id,63,"%.2X##PI_%d_%d",pat->data[i][2],i,j);
       }
       ImGui::SameLine(0.0f,0.0f);
       if (cursorIns) {
@@ -221,13 +224,13 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     if (e->curSubSong->chanCollapse[j]<2) {
       // volume
       if (pat->data[i][3]==-1) {
-        sprintf(id,"..##PV_%d_%d",i,j);
+        snprintf(id,63,"%.31s##PV_%d_%d",emptyLabel2,i,j);
         ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
       } else {
         int volColor=(pat->data[i][3]*127)/chanVolMax;
         if (volColor>127) volColor=127;
         if (volColor<0) volColor=0;
-        sprintf(id,"%.2X##PV_%d_%d",pat->data[i][3],i,j);
+        snprintf(id,63,"%.2X##PV_%d_%d",pat->data[i][3],i,j);
         ImGui::PushStyleColor(ImGuiCol_Text,volColors[volColor]);
       }
       ImGui::SameLine(0.0f,0.0f);
@@ -263,15 +266,15 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         
         // effect
         if (pat->data[i][index]==-1) {
-          sprintf(id,"..##PE%d_%d_%d",k,i,j);
+          snprintf(id,63,"%.31s##PE%d_%d_%d",emptyLabel2,k,i,j);
           ImGui::PushStyleColor(ImGuiCol_Text,inactiveColor);
         } else {
           if (pat->data[i][index]>0xff) {
-            sprintf(id,"??##PE%d_%d_%d",k,i,j);
+            snprintf(id,63,"??##PE%d_%d_%d",k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
           } else {
             const unsigned char data=pat->data[i][index];
-            sprintf(id,"%.2X##PE%d_%d_%d",data,k,i,j);
+            snprintf(id,63,"%.2X##PE%d_%d_%d",data,k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
           }
         }
@@ -297,9 +300,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
 
         // effect value
         if (pat->data[i][index+1]==-1) {
-          sprintf(id,"..##PF%d_%d_%d",k,i,j);
+          snprintf(id,63,"%.31s##PF%d_%d_%d",emptyLabel2,k,i,j);
         } else {
-          sprintf(id,"%.2X##PF%d_%d_%d",pat->data[i][index+1],k,i,j);
+          snprintf(id,63,"%.2X##PF%d_%d_%d",pat->data[i][index+1],k,i,j);
         }
         ImGui::SameLine(0.0f,0.0f);
         if (cursorEffectVal) {
@@ -372,10 +375,17 @@ void FurnaceGUI::drawPattern() {
     sel2.xFine^=sel1.xFine;
   }
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
+  if (mobileUI) {
+    patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*scrH*dpiScale)):ImVec2((0.16*scrH*dpiScale)+0.5*scrW*dpiScale*mobileMenuPos,0.0f));
+    patWindowSize=(portrait?ImVec2(scrW*dpiScale,scrH*dpiScale-(0.16*scrW*dpiScale)-(pianoOpen?(0.4*scrW*dpiScale):0.0f)):ImVec2(scrW*dpiScale-(0.16*scrH*dpiScale),scrH*dpiScale-(pianoOpen?(0.3*scrH*dpiScale):0.0f)));
+    ImGui::SetNextWindowPos(patWindowPos);
+    ImGui::SetNextWindowSize(patWindowSize);
+  }
   if (ImGui::Begin("Pattern",&patternOpen,globalWinFlags|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0))) {
-    //ImGui::SetWindowSize(ImVec2(scrW*dpiScale,scrH*dpiScale));
-    patWindowPos=ImGui::GetWindowPos();
-    patWindowSize=ImGui::GetWindowSize();
+    if (!mobileUI) {
+      patWindowPos=ImGui::GetWindowPos();
+      patWindowSize=ImGui::GetWindowSize();
+    }
     //char id[32];
     ImGui::PushFont(patFont);
     int ord=oldOrder;
@@ -393,7 +403,7 @@ void FurnaceGUI::drawPattern() {
     ImGui::PushStyleColor(ImGuiCol_Header,uiColors[GUI_COLOR_PATTERN_SELECTION]);
     ImGui::PushStyleColor(ImGuiCol_HeaderHovered,uiColors[GUI_COLOR_PATTERN_SELECTION_HOVER]);
     ImGui::PushStyleColor(ImGuiCol_HeaderActive,uiColors[GUI_COLOR_PATTERN_SELECTION_ACTIVE]);
-    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX)) {
+    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea)) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[2048];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
@@ -440,40 +450,45 @@ void FurnaceGUI::drawPattern() {
         if (!e->curSubSong->chanShow[i]) continue;
         ImGui::TableNextColumn();
         bool displayTooltip=false;
-        if (e->curSubSong->chanCollapse[i]) {
-          const char* chName=e->getChannelShortName(i);
-          if (strlen(chName)>3) {
-            snprintf(chanID,2048,"...##_CH%d",i);
-          } else {
-            snprintf(chanID,2048,"%s##_CH%d",chName,i);
-          }
-          displayTooltip=true;
-        } else {
-          const char* chName=e->getChannelName(i);
-          size_t chNameLimit=6+4*e->curPat[i].effectCols;
-          if (strlen(chName)>chNameLimit) {
-            String shortChName=chName;
-            shortChName.resize(chNameLimit-3);
-            shortChName+="...";
-            snprintf(chanID,2048," %s##_CH%d",shortChName.c_str(),i);
-            displayTooltip=true;
-          } else {
-            snprintf(chanID,2048," %s##_CH%d",chName,i);
-          }
-        }
+
         bool muted=e->isChannelMuted(i);
-        ImVec4 chanHead=muted?uiColors[GUI_COLOR_CHANNEL_MUTED]:uiColors[GUI_COLOR_CHANNEL_FM+e->getChannelType(i)];
+        ImVec4 chanHead=muted?uiColors[GUI_COLOR_CHANNEL_MUTED]:channelColor(i);
         ImVec4 chanHeadActive=chanHead;
         ImVec4 chanHeadHover=chanHead;
+        ImVec4 chanHeadBase=chanHead;
+
         if (e->keyHit[i]) {
-          keyHit[i]=0.2;
-          if (!muted) {
-            int note=e->getChanState(i)->note+60;
-            if (note>=0 && note<180) {
-              pianoKeyHit[note]=1.0;
+          keyHit1[i]=1.0f;
+          if (settings.channelFeedbackStyle==1) {
+            keyHit[i]=0.2;
+            if (!muted) {
+              int note=e->getChanState(i)->note+60;
+              if (note>=0 && note<180) {
+                pianoKeyHit[note]=1.0;
+              }
             }
           }
           e->keyHit[i]=false;
+        }
+        if (settings.channelFeedbackStyle==2 && e->isRunning()) {
+          float amount=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i));
+          if (!e->getChanState(i)->keyOn) amount=0.0f;
+          keyHit[i]=amount*0.2f;
+          if (!muted) {
+            int note=e->getChanState(i)->note+60;
+            if (note>=0 && note<180) {
+              pianoKeyHit[note]=amount;
+            }
+          }
+        } else if (settings.channelFeedbackStyle==3 && e->isRunning()) {
+          bool active=e->getChanState(i)->keyOn;
+          keyHit[i]=active?0.2f:0.0f;
+          if (!muted) {
+            int note=e->getChanState(i)->note+60;
+            if (note>=0 && note<180) {
+              pianoKeyHit[note]=active?1.0f:0.0f;
+            }
+          }
         }
         if (settings.guiColorsBase) {
           chanHead.x*=1.0-keyHit[i]; chanHead.y*=1.0-keyHit[i]; chanHead.z*=1.0-keyHit[i];
@@ -484,17 +499,210 @@ void FurnaceGUI::drawPattern() {
           chanHeadActive.x*=0.8; chanHeadActive.y*=0.8; chanHeadActive.z*=0.8;
           chanHeadHover.x*=0.4+keyHit[i]; chanHeadHover.y*=0.4+keyHit[i]; chanHeadHover.z*=0.4+keyHit[i];
         }
-        keyHit[i]-=0.02*60.0*ImGui::GetIO().DeltaTime;
+        keyHit[i]-=((settings.channelStyle==0)?0.02:0.01)*60.0*ImGui::GetIO().DeltaTime;
         if (keyHit[i]<0) keyHit[i]=0;
         ImGui::PushStyleColor(ImGuiCol_Header,chanHead);
         ImGui::PushStyleColor(ImGuiCol_HeaderActive,chanHeadActive);
         ImGui::PushStyleColor(ImGuiCol_HeaderHovered,chanHeadHover);
-        ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(chanHead));
+        ImGui::PushStyleColor(ImGuiCol_Text,ImGui::GetColorU32(channelTextColor(i)));
+        if (settings.channelStyle==0) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(chanHead));
         if (muted) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_CHANNEL_MUTED]);
-        ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale));
+        if (settings.channelFont==0) ImGui::PushFont(mainFont);
+
+        // TODO: appearance
+        ImGuiWindow* window=ImGui::GetCurrentWindow();
+        ImVec2 size=ImVec2(
+          1.0f,
+          lineHeight+1.0f*dpiScale
+        );
+        ImDrawList* dl=ImGui::GetWindowDrawList();
+
+        if (settings.channelStyle!=0) {
+          size.y+=6.0f*dpiScale;
+        }
+
+        if (settings.channelStyle==2) {
+          size.y+=6.0f*dpiScale;
+        }
+        
+        ImVec2 minArea=window->DC.CursorPos;
+        ImVec2 maxArea=ImVec2(
+          minArea.x+window->WorkRect.Max.x-window->WorkRect.Min.x,
+          minArea.y+size.y
+        );
+        ImRect rect=ImRect(minArea,maxArea);
+        float padding=ImGui::CalcTextSize("A").x;
+
+        ImVec2 minLabelArea=minArea;
+        ImVec2 maxLabelArea=maxArea;
+
+        if (e->curSubSong->chanCollapse[i]) {
+          const char* chName=e->getChannelShortName(i);
+          if (strlen(chName)>3) {
+            snprintf(chanID,2048,"...");
+          } else {
+            snprintf(chanID,2048,"%s",chName);
+          }
+          displayTooltip=true;
+        } else {
+          minLabelArea.x+=padding;
+          maxLabelArea.x-=padding;
+          if (settings.channelStyle==3) { // split button
+            maxLabelArea.x-=ImGui::GetFrameHeightWithSpacing();
+          }
+          const char* chName=e->getChannelName(i);
+          float chNameLimit=maxLabelArea.x-minLabelArea.x;
+          if (ImGui::CalcTextSize(chName).x>chNameLimit) {
+            String shortChName;
+            float totalAdvanced=0.0f;
+            float ellipsisSize=ImGui::CalcTextSize("...").x;
+            for (const char* j=chName; *j;) {
+              signed char l;
+              int ch=decodeUTF8((const unsigned char*)j,l);
+
+              totalAdvanced+=ImGui::GetFont()->GetCharAdvance(ch);
+              if (totalAdvanced>(chNameLimit-ellipsisSize)) break;
+
+              for (int k=0; k<l; k++) {
+                shortChName+=j[k];
+              }
+
+              j+=l;
+            }
+            shortChName+="...";
+            snprintf(chanID,2048,"%s",shortChName.c_str());
+            displayTooltip=true;
+          } else {
+            snprintf(chanID,2048,"%s",chName);
+          }
+        }
+
+        if (settings.channelTextCenter) {
+          minLabelArea.x+=0.5f*(maxLabelArea.x-minLabelArea.x-ImGui::CalcTextSize(chanID).x);
+        }
+
+        if (extraChannelButtons==0 || settings.channelVolStyle!=0) ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(0.0f,0.0f));
+
+        ImGui::PushID(2048+i);
+        switch (settings.channelStyle) {
+          case 0: // classic
+            ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
+            if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              ImU32 col=hovered?ImGui::GetColorU32(ImGuiCol_HeaderHovered):ImGui::GetColorU32(ImGuiCol_Header);
+              dl->AddRectFilled(rect.Min,rect.Max,col);
+              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y),ImGui::GetColorU32(channelTextColor(i)),chanID);
+            }
+            break;
+          case 1: { // line
+            ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
+            if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              ImU32 fadeCol0=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                hovered?0.25f:0.0f
+              ));
+              ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                hovered?0.5f:MIN(1.0f,chanHeadBase.w*keyHit[i]*4.0f)
+              ));
+              dl->AddRectFilledMultiColor(rect.Min,rect.Max,fadeCol0,fadeCol0,fadeCol,fadeCol);
+              dl->AddLine(ImVec2(rect.Min.x,rect.Max.y),ImVec2(rect.Max.x,rect.Max.y),ImGui::GetColorU32(chanHeadBase),2.0f*dpiScale);
+              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+            }
+            break;
+          }
+          case 2: { // round
+            ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
+            if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              ImU32 fadeCol0=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                hovered?0.5f:MIN(1.0f,0.3f+chanHeadBase.w*keyHit[i]*1.5f)
+              ));
+              ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                hovered?0.3f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*1.2f)
+              ));
+              ImVec2 rMin=rect.Min;
+              ImVec2 rMax=rect.Max;
+              rMin.x+=3.0f*dpiScale;
+              rMin.y+=6.0f*dpiScale;
+              rMax.x-=3.0f*dpiScale;
+              rMax.y-=6.0f*dpiScale;
+              dl->AddRectFilledMultiColor(rMin,rMax,fadeCol0,fadeCol0,fadeCol,fadeCol,4.0f*dpiScale);
+              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y+6.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+            }
+            break;
+          }
+          case 3: // split button
+            ImGui::Dummy(ImVec2(1.0f,2.0f*dpiScale));
+            ImGui::SetCursorPosX(minLabelArea.x);
+            ImGui::TextUnformatted(chanID);
+            ImGui::SameLine();
+            ImGui::PushFont(mainFont);
+            ImGui::SmallButton(muted?ICON_FA_VOLUME_OFF:ICON_FA_VOLUME_UP);
+            ImGui::PopFont();
+            break;
+          case 4: { // square border
+            ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
+            if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                hovered?1.0f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*4.0f)
+              ));
+              ImVec2 rMin=rect.Min;
+              ImVec2 rMax=rect.Max;
+              rMin.x+=2.0f*dpiScale;
+              rMin.y+=3.0f*dpiScale;
+              rMax.x-=3.0f*dpiScale;
+              rMax.y-=3.0f*dpiScale;
+              dl->AddRect(rMin,rMax,fadeCol,0.0f,2.0*dpiScale);
+              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+            }
+            break;
+          }
+          case 5: { // round border
+            ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
+            if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
+              bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
+              ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
+                chanHeadBase.x,
+                chanHeadBase.y,
+                chanHeadBase.z,
+                hovered?1.0f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*4.0f)
+              ));
+              ImVec2 rMin=rect.Min;
+              ImVec2 rMax=rect.Max;
+              rMin.x+=2.0f*dpiScale;
+              rMin.y+=3.0f*dpiScale;
+              rMax.x-=3.0f*dpiScale;
+              rMax.y-=3.0f*dpiScale;
+              dl->AddRect(rMin,rMax,fadeCol,4.0f*dpiScale,ImDrawFlags_RoundCornersAll,2.0*dpiScale);
+              dl->AddText(ImVec2(minLabelArea.x,rect.Min.y+3.0*dpiScale),ImGui::GetColorU32(channelTextColor(i)),chanID);
+            }
+            break;
+          }
+        }
+        ImGui::PopID();
+
+        if (extraChannelButtons==0 || settings.channelVolStyle!=0) ImGui::PopStyleVar();
+
         if (displayTooltip && ImGui::IsItemHovered()) {
           ImGui::SetTooltip("%s",e->getChannelName(i));
         }
+        if (settings.channelFont==0) ImGui::PopFont();
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
           if (settings.soloAction!=1 && soloTimeout>0 && soloChan==i) {
             e->toggleSolo(i);
@@ -506,11 +714,72 @@ void FurnaceGUI::drawPattern() {
           }
         }
         if (muted) ImGui::PopStyleColor();
-        ImGui::PopStyleColor(3);
+        ImGui::PopStyleColor(4);
         if (settings.soloAction!=2) if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           inhibitMenu=true;
           e->toggleSolo(i);
         }
+
+        if (settings.channelStyle==3) {
+          ImGui::Dummy(ImVec2(1.0f,2.0f*dpiScale));
+        }
+
+        // volume bar
+        if (settings.channelVolStyle!=0) {
+          ImVec2 sizeV=ImVec2(
+            1.0f,
+            6.0*dpiScale
+          );
+          ImVec2 minAreaV=window->DC.CursorPos;
+          ImVec2 maxAreaV=ImVec2(
+            minAreaV.x+window->WorkRect.Max.x-window->WorkRect.Min.x,
+            minAreaV.y+sizeV.y
+          );
+          ImRect rectV=ImRect(minAreaV,maxAreaV);
+          ImGui::ItemSize(sizeV,ImGui::GetStyle().FramePadding.y);
+          if (ImGui::ItemAdd(rectV,ImGui::GetID(chanID))) {
+            float xLeft=0.0f;
+            float xRight=1.0f;
+
+            if (e->keyHit[i]) {
+              keyHit1[i]=1.0f;
+              e->keyHit[i]=false;
+            }
+
+            if (e->isRunning()) {
+              DivChannelState* cs=e->getChanState(i);
+              float stereoPan=(float)(e->convertPanSplitToLinearLR(cs->panL,cs->panR,256)-128)/128.0;
+              switch (settings.channelVolStyle) {
+                case 1: // simple
+                  xRight=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i))*0.9+(keyHit1[i]*0.1f);
+                  break;
+                case 2: { // stereo
+                  float amount=((float)(e->getChanState(i)->volume>>8)/(float)e->getMaxVolumeChan(i))*0.4+(keyHit1[i]*0.1f);
+                  xRight=0.5+amount*(1.0+MIN(0.0,stereoPan));
+                  xLeft=0.5-amount*(1.0-MAX(0.0,stereoPan));
+                  break;
+                }
+                case 3: // real
+                  xRight=chanOscVol[i];
+                  break;
+                case 4: // real (stereo)
+                  xRight=0.5+chanOscVol[i]*0.5*(1.0+MIN(0.0,stereoPan));
+                  xLeft=0.5-chanOscVol[i]*0.5*(1.0-MAX(0.0,stereoPan));
+                  break;
+              }
+
+              dl->AddRectFilled(
+                ImLerp(rectV.Min,rectV.Max,ImVec2(xLeft,0.0f)),
+                ImLerp(rectV.Min,rectV.Max,ImVec2(xRight,1.0f)),
+                ImGui::GetColorU32(chanHeadBase)
+              );
+            }
+            keyHit1[i]-=0.2f;
+            if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
+          }
+        }
+        
+        // extra buttons
         if (extraChannelButtons==2) {
           DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][ord],true);
           ImGui::PushFont(mainFont);
@@ -701,6 +970,15 @@ void FurnaceGUI::drawPattern() {
         if (i.cmd==DIV_CMD_SAMPLE_BANK) continue;
         if (i.cmd==DIV_CMD_GET_VOLUME) continue;
         if (i.cmd==DIV_ALWAYS_SET_VOLUME) continue;
+        if (i.cmd==DIV_CMD_HINT_VOLUME ||
+            i.cmd==DIV_CMD_HINT_PORTA ||
+            i.cmd==DIV_CMD_HINT_LEGATO ||
+            i.cmd==DIV_CMD_HINT_VOL_SLIDE ||
+            i.cmd==DIV_CMD_HINT_ARPEGGIO ||
+            i.cmd==DIV_CMD_HINT_PITCH ||
+            i.cmd==DIV_CMD_HINT_VIBRATO ||
+            i.cmd==DIV_CMD_HINT_VIBRATO_RANGE ||
+            i.cmd==DIV_CMD_HINT_VIBRATO_SHAPE) continue;
 
         float width=patChanX[i.chan+1]-patChanX[i.chan];
         float speedX=0.0f;

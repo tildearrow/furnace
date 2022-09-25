@@ -24,7 +24,7 @@
 #include <queue>
 #include "../macroInt.h"
 #include "../waveSynth.h"
-#include "sound/k005289/k005289.hpp"
+#include "vgsound_emu/src/k005289/k005289.hpp"
 
 class DivPlatformBubSysWSG: public DivDispatch {
   struct Channel {
@@ -60,9 +60,10 @@ class DivPlatformBubSysWSG: public DivDispatch {
   bool isMuted[2];
   unsigned char writeOscBuf;
 
-  k005289_core* k005289;
+  k005289_core k005289;
   unsigned short regPool[4];
-  void updateWave(int ch);
+  void updateWave(int ch);  
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -85,7 +86,6 @@ class DivPlatformBubSysWSG: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformBubSysWSG();

@@ -25,14 +25,11 @@
 #include "../ta-utils.h"
 #include <deque>
 
-enum DivResampleFilters {
-  DIV_RESAMPLE_NONE=0,
-  DIV_RESAMPLE_LINEAR,
-  DIV_RESAMPLE_CUBIC,
-  DIV_RESAMPLE_BLEP,
-  DIV_RESAMPLE_SINC,
-  DIV_RESAMPLE_BEST,
-  DIV_RESAMPLE_MAX // for identify boundary
+enum DivSampleLoopMode: unsigned char {
+  DIV_SAMPLE_LOOP_FORWARD=0,
+  DIV_SAMPLE_LOOP_BACKWARD,
+  DIV_SAMPLE_LOOP_PINGPONG,
+  DIV_SAMPLE_LOOP_MAX // boundary for loop mode
 };
 
 enum DivSampleDepth: unsigned char {
@@ -46,26 +43,28 @@ enum DivSampleDepth: unsigned char {
   DIV_SAMPLE_DEPTH_BRR=9,
   DIV_SAMPLE_DEPTH_VOX=10,
   DIV_SAMPLE_DEPTH_16BIT=16,
-  DIV_SAMPLE_DEPTH_MAX // for identify boundary
+  DIV_SAMPLE_DEPTH_MAX // boundary for sample depth
 };
 
-enum DivSampleLoopMode: unsigned char {
-  DIV_SAMPLE_LOOPMODE_ONESHOT=0,
-  DIV_SAMPLE_LOOPMODE_FORWARD,
-  DIV_SAMPLE_LOOPMODE_BACKWARD,
-  DIV_SAMPLE_LOOPMODE_PINGPONG,
-  DIV_SAMPLE_LOOPMODE_MAX // for identify boundary
+enum DivResampleFilters {
+  DIV_RESAMPLE_NONE=0,
+  DIV_RESAMPLE_LINEAR,
+  DIV_RESAMPLE_CUBIC,
+  DIV_RESAMPLE_BLEP,
+  DIV_RESAMPLE_SINC,
+  DIV_RESAMPLE_BEST,
+  DIV_RESAMPLE_MAX // for identify boundary
 };
 
 struct DivSampleHistory {
   unsigned char* data;
   unsigned int length, samples;
   DivSampleDepth depth;
-  int rate, centerRate, loopStart;
-  unsigned int loopEnd;
+  int rate, centerRate, loopStart, loopEnd;
+  bool loop;
   DivSampleLoopMode loopMode;
   bool hasSample;
-  DivSampleHistory(void* d, unsigned int l, unsigned int s, DivSampleDepth de, int r, int cr, int ls, unsigned int le, DivSampleLoopMode lm):
+  DivSampleHistory(void* d, unsigned int l, unsigned int s, DivSampleDepth de, int r, int cr, int ls, int le, bool lp, DivSampleLoopMode lm):
     data((unsigned char*)d),
     length(l),
     samples(s),
@@ -74,9 +73,10 @@ struct DivSampleHistory {
     centerRate(cr),
     loopStart(ls),
     loopEnd(le),
+    loop(lp),
     loopMode(lm),
     hasSample(true) {}
-  DivSampleHistory(DivSampleDepth de, int r, int cr, int ls, unsigned int le, DivSampleLoopMode lm):
+  DivSampleHistory(DivSampleDepth de, int r, int cr, int ls, int le, bool lp, DivSampleLoopMode lm):
     data(NULL),
     length(0),
     samples(0),
@@ -85,6 +85,7 @@ struct DivSampleHistory {
     centerRate(cr),
     loopStart(ls),
     loopEnd(le),
+    loop(lp),
     loopMode(lm),
     hasSample(false) {}
   ~DivSampleHistory();
@@ -92,14 +93,7 @@ struct DivSampleHistory {
 
 struct DivSample {
   String name;
-  int rate, centerRate, loopStart, loopOffP;
-  unsigned int loopEnd;
-  // valid values are:
-  // - 0: One Shot (Loop disable)
-  // - 1: Foward loop
-  // - 2: Backward loop
-  // - 3: Pingpong loop
-  DivSampleLoopMode loopMode;
+  int rate, centerRate, loopStart, loopEnd, loopOffP;
   // valid values are:
   // - 0: ZX Spectrum overlay drum (1-bit)
   // - 1: 1-bit NES DPCM (1-bit)
@@ -112,6 +106,12 @@ struct DivSample {
   // - 10: VOX ADPCM
   // - 16: 16-bit PCM
   DivSampleDepth depth;
+  bool loop;
+  // valid values are:
+  // - 0: Forward loop
+  // - 1: Backward loop
+  // - 2: Pingpong loop
+  DivSampleLoopMode loopMode;
 
   // these are the new data structures.
   signed char* data8; // 8
@@ -127,12 +127,47 @@ struct DivSample {
 
   unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthBRR, lengthVOX;
   unsigned int off8, off16, off1, offDPCM, offZ, offQSoundA, offA, offB, offBRR, offVOX;
-  unsigned int offSegaPCM, offQSound, offX1_010, offES5506, offSU, offYMZ280B, offRF5C68;
+  unsigned int offSegaPCM, offQSound, offX1_010, offES5506, offSU, offYMZ280B, offRF5C68, offSNES;
 
   unsigned int samples;
 
   std::deque<DivSampleHistory*> undoHist;
   std::deque<DivSampleHistory*> redoHist;
+
+  /**
+   * check if sample is loopable.
+   * @return whether it is loopable.
+   */
+  bool isLoopable();
+
+  /**
+   * get sample start position
+   * @return the samples start position.
+   */
+  int getLoopStartPosition(DivSampleDepth depth=DIV_SAMPLE_DEPTH_MAX);
+
+  /**
+   * get sample loop end position
+   * @return the samples loop end position.
+   */
+  int getLoopEndPosition(DivSampleDepth depth=DIV_SAMPLE_DEPTH_MAX);
+
+  /**
+   * get sample end position
+   * @return the samples end position.
+   */
+  int getEndPosition(DivSampleDepth depth=DIV_SAMPLE_DEPTH_MAX);
+
+  /**
+   * get sample offset
+   * @return the sample offset.
+   */
+  int getSampleOffset(int offset, int length, DivSampleDepth depth=DIV_SAMPLE_DEPTH_MAX);
+
+  /**
+   * @warning DO NOT USE - internal functions
+   */
+  void setSampleCount(unsigned int count);
 
   /**
    * @warning DO NOT USE - internal functions
@@ -258,11 +293,12 @@ struct DivSample {
     name(""),
     rate(32000),
     centerRate(8363),
-    loopStart(0),
+    loopStart(-1),
+    loopEnd(-1),
     loopOffP(0),
-    loopEnd(~0),
-    loopMode(DIV_SAMPLE_LOOPMODE_ONESHOT),
     depth(DIV_SAMPLE_DEPTH_16BIT),
+    loop(false),
+    loopMode(DIV_SAMPLE_LOOP_FORWARD),
     data8(NULL),
     data16(NULL),
     data1(NULL),
@@ -300,6 +336,7 @@ struct DivSample {
     offSU(0),
     offYMZ280B(0),
     offRF5C68(0),
+    offSNES(0),
     samples(0) {}
   ~DivSample();
 };

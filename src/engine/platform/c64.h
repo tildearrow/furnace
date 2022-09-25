@@ -23,6 +23,7 @@
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include "sound/c64/sid.h"
+#include "sound/c64_fp/SID.h"
 
 class DivPlatformC64: public DivDispatch {
   struct Channel {
@@ -76,11 +77,17 @@ class DivPlatformC64: public DivDispatch {
   unsigned char filtControl, filtRes, vol;
   unsigned char writeOscBuf;
   int filtCut, resetTime;
+  bool isFP;
 
   SID sid;
+  reSIDfp::SID sid_fp;
   unsigned char regPool[32];
-
+  
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
+
+  void acquire_classic(short* bufL, short* bufR, size_t start, size_t len);
+  void acquire_fp(short* bufL, short* bufR, size_t start, size_t len);
 
   void updateFilter();
   public:
@@ -97,14 +104,16 @@ class DivPlatformC64: public DivDispatch {
     void setFlags(unsigned int flags);
     void notifyInsChange(int ins);
     bool getDCOffRequired();
+    bool getWantPreNote();
+    float getPostAmp();
     DivMacroInt* getChanMacroInt(int ch);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void setChipModel(bool is6581);
+    void setFP(bool fp);
     void quit();
     ~DivPlatformC64();
 };

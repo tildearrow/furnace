@@ -30,15 +30,6 @@ const char** DivPlatformMSM6295::getRegisterSheet() {
   return NULL;
 }
 
-const char* DivPlatformMSM6295::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x20:
-      return "20xx: Set chip output rate (0: clock/132; 1: clock/165)";
-      break; 
-  }
-  return NULL;
-}
-
 u8 DivPlatformMSM6295::read_byte(u32 address) {
   if (adpcmMem==NULL || address>=getSampleMemCapacity(0)) {
     return 0;
@@ -77,9 +68,11 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
         delay=w.delay;
       }
     } else {
-      delay--;
+      delay-=3;
     }
     
+    msm.tick();
+    msm.tick();
     msm.tick();
   
     bufL[h]=msm.out()<<4;
@@ -88,21 +81,54 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
       updateOsc=0;
       // TODO: per-channel osc
       for (int i=0; i<4; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=msm.m_voice[i].m_muted?0:(msm.m_voice[i].m_out<<6);
+        oscBuf[i]->data[oscBuf[i]->needle++]=msm.voice_out(i)<<6;
       }
     }
   }
 }
 
 void DivPlatformMSM6295::tick(bool sysTick) {
-  // nothing
+  for (int i=0; i<4; i++) {
+    if (!parent->song.disableSampleMacro) {
+      chan[i].std.next();
+      if (chan[i].std.vol.had) {
+        chan[i].outVol=VOL_SCALE_LOG(chan[i].std.vol.val,chan[i].vol,8);
+      }
+      if (chan[i].std.duty.had) {
+        if (rateSel!=(chan[i].std.duty.val&1)) {
+          rateSel=chan[i].std.duty.val&1;
+          rWrite(12,!rateSel);
+        }
+      }
+      if (chan[i].std.phaseReset.had) {
+        if (chan[i].std.phaseReset.val && chan[i].active) {
+          chan[i].keyOn=true;
+        }
+      }
+    }
+    if (chan[i].keyOn || chan[i].keyOff) {
+      rWriteDelay(0,(8<<i),60); // turn off
+      if (chan[i].active && !chan[i].keyOff) {
+        if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+          rWrite(0,0x80|chan[i].sample); // set phrase
+          rWrite(0,(16<<i)|(8-chan[i].outVol)); // turn on
+        } else {
+          chan[i].sample=-1;
+        }
+      } else {
+        chan[i].sample=-1;
+      }
+      chan[i].keyOn=false;
+      chan[i].keyOff=false;
+    }
+  }
 }
 
 int DivPlatformMSM6295::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
-      if (ins->type==DIV_INS_AMIGA) {
+      if (ins->type==DIV_INS_MSM6295 || ins->type==DIV_INS_AMIGA) {
         chan[c.chan].furnacePCM=true;
       } else {
         chan[c.chan].furnacePCM=false;
@@ -122,7 +148,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
           }
           chan[c.chan].active=true;
           chan[c.chan].keyOn=true;
-          rWriteDelay(0,(8<<c.chan),60); // turn off
+          rWriteDelay(0,(8<<c.chan),180); // turn off
           rWrite(0,0x80|chan[c.chan].sample); // set phrase
           rWrite(0,(16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
         } else {
@@ -137,7 +163,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
         }
         //DivSample* s=parent->getSample(12*sampleBank+c.value%12);
         chan[c.chan].sample=12*sampleBank+c.value%12;
-        rWriteDelay(0,(8<<c.chan),60); // turn off
+        rWriteDelay(0,(8<<c.chan),180); // turn off
         rWrite(0,0x80|chan[c.chan].sample); // set phrase
         rWrite(0,(16<<c.chan)|(8-chan[c.chan].outVol)); // turn on
       }
@@ -147,14 +173,14 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      rWriteDelay(0,(8<<c.chan),60); // turn off
+      rWriteDelay(0,(8<<c.chan),180); // turn off
       chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      rWriteDelay(0,(8<<c.chan),60); // turn off
+      rWriteDelay(0,(8<<c.chan),180); // turn off
       chan[c.chan].std.release();
       break;
     case DIV_CMD_ENV_RELEASE:
@@ -215,7 +241,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
 
 void DivPlatformMSM6295::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  msm.m_voice[ch].m_muted=mute;
+  msm.voice_mute(ch,mute);
 }
 
 void DivPlatformMSM6295::forceIns() {
@@ -264,6 +290,7 @@ void DivPlatformMSM6295::reset() {
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformMSM6295::Channel();
     chan[i].std.setEngine(parent);
+    msm.voice_mute(i,isMuted[i]);
   }
   for (int i=0; i<4; i++) {
     chan[i].vol=8;

@@ -21,8 +21,8 @@
 #include "../engine.h"
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {GB_apu_write(gb,a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
-#define immWrite(a,v) {GB_apu_write(gb,a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define immWrite(a,v) {writes.emplace(a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_DIVIDER 16
 
@@ -61,29 +61,14 @@ const char** DivPlatformGB::getRegisterSheet() {
   return regCheatSheetGB;
 }
 
-const char* DivPlatformGB::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-    case 0x11:
-      return "11xx: Set noise length (0: long; 1: short)";
-      break;
-    case 0x12:
-      return "12xx: Set duty cycle (0 to 3)";
-      break;
-    case 0x13:
-      return "13xy: Setup sweep (x: time; y: shift)";
-      break;
-    case 0x14:
-      return "14xx: Set sweep direction (0: up; 1: down)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t i=start; i<start+len; i++) {
+    if (!writes.empty()) {
+      QueuedWrite& w=writes.front();
+      GB_apu_write(gb,w.addr,w.val);
+      writes.pop();
+    }
+
     GB_advance_cycles(gb,16);
     bufL[i]=gb->apu_output.final_sample.left;
     bufR[i]=gb->apu_output.final_sample.right;
@@ -97,10 +82,11 @@ void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) 
 void DivPlatformGB::updateWave() {
   rWrite(0x1a,0);
   for (int i=0; i<16; i++) {
-    int nibble1=15-ws.output[i<<1];
-    int nibble2=15-ws.output[1+(i<<1)];
+    int nibble1=15-ws.output[((i<<1)+antiClickWavePos-1)&31];
+    int nibble2=15-ws.output[((1+(i<<1))+antiClickWavePos-1)&31];
     rWrite(0x30+i,(nibble1<<4)|nibble2);
   }
+  antiClickWavePos&=31;
 }
 
 static unsigned char chanMuteMask[4]={
@@ -151,39 +137,47 @@ static unsigned char noiseTable[256]={
 };
 
 void DivPlatformGB::tick(bool sysTick) {
+  if (antiClickEnabled && sysTick && chan[2].freq>0) {
+    antiClickPeriodCount+=((chipClock>>1)/MAX(parent->getCurHz(),1.0f));
+    antiClickWavePos+=antiClickPeriodCount/chan[2].freq;
+    antiClickPeriodCount%=chan[2].freq;
+  }
+
   for (int i=0; i<4; i++) {
     chan[i].std.next();
+    if (chan[i].softEnv) {
+      if (chan[i].std.vol.had) {
+        chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
+        if (chan[i].outVol<0) chan[i].outVol=0;
+
+        if (i==2) {
+          rWrite(16+i*5+2,gbVolMap[chan[i].outVol]);
+          chan[i].soundLen=64;
+        } else {
+          chan[i].envLen=0;
+          chan[i].envDir=1;
+          chan[i].envVol=chan[i].outVol;
+          chan[i].soundLen=64;
+
+          if (!chan[i].keyOn) chan[i].killIt=true;
+        }
+      }
+    }
     if (chan[i].std.arp.had) {
       if (i==3) { // noise
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=chan[i].std.arp.val+24;
-        } else {
-          chan[i].baseFreq=chan[i].note+chan[i].std.arp.val;
-        }
+        chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.arp.val,24);
         if (chan[i].baseFreq>255) chan[i].baseFreq=255;
         if (chan[i].baseFreq<0) chan[i].baseFreq=0;
       } else {
-        if (!chan[i].inPorta) {
-          if (chan[i].std.arp.mode) {
-            chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val+24);
-          } else {
-            chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-          }
-        }
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val,24));
       }
       chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        chan[i].freqChanged=true;
-      }
     }
     if (chan[i].std.duty.had) {
       chan[i].duty=chan[i].std.duty.val;
-      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_GB);
       if (i!=2) {
-        rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
-      } else {
+        rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
+      } else if (!chan[i].softEnv) {
         if (parent->song.waveDutyIsVol) {
           rWrite(16+i*5+2,gbVolMap[(chan[i].std.duty.val&3)<<2]);
         }
@@ -213,6 +207,10 @@ void DivPlatformGB::tick(bool sysTick) {
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
         chan[i].keyOn=true;
+        if (i==2) {
+          antiClickWavePos=0;
+          antiClickPeriodCount=0;
+        }
       }
     }
     if (i==2) {
@@ -223,14 +221,64 @@ void DivPlatformGB::tick(bool sysTick) {
         }
       }
     }
+    // run hardware sequence
+    if (chan[i].active) {
+      if (--chan[i].hwSeqDelay<=0) {
+        chan[i].hwSeqDelay=0;
+        DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_GB);
+        int hwSeqCount=0;
+        while (chan[i].hwSeqPos<ins->gb.hwSeqLen && hwSeqCount<4) {
+          bool leave=false;
+          unsigned short data=ins->gb.hwSeq[chan[i].hwSeqPos].data;
+          switch (ins->gb.hwSeq[chan[i].hwSeqPos].cmd) {
+            case DivInstrumentGB::DIV_GB_HWCMD_ENVELOPE:
+              if (!chan[i].softEnv) {
+                chan[i].envLen=data&7;
+                chan[i].envDir=(data&8)?1:0;
+                chan[i].envVol=(data>>4)&15;
+                chan[i].soundLen=data>>8;
+                chan[i].keyOn=true;
+              }
+              break;
+            case DivInstrumentGB::DIV_GB_HWCMD_SWEEP:
+              chan[i].sweep=data;
+              chan[i].sweepChanged=true;
+              break;
+            case DivInstrumentGB::DIV_GB_HWCMD_WAIT:
+              chan[i].hwSeqDelay=data+1;
+              leave=true;
+              break;
+            case DivInstrumentGB::DIV_GB_HWCMD_WAIT_REL:
+              if (!chan[i].released) {
+                chan[i].hwSeqPos--;
+                leave=true;
+              }
+              break;
+            case DivInstrumentGB::DIV_GB_HWCMD_LOOP:
+              chan[i].hwSeqPos=data-1;
+              break;
+            case DivInstrumentGB::DIV_GB_HWCMD_LOOP_REL:
+              if (!chan[i].released) {
+                chan[i].hwSeqPos=data-1;
+              }
+              break;
+          }
+
+          chan[i].hwSeqPos++;
+          if (leave) break;
+          hwSeqCount++;
+        }
+      }
+    }
+
     if (chan[i].sweepChanged) {
       chan[i].sweepChanged=false;
       if (i==0) {
         rWrite(16+i*5,chan[i].sweep);
       }
     }
+
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_GB);
       if (i==3) { // noise
         int ntPos=chan[i].baseFreq;
         if (ntPos<0) ntPos=0;
@@ -244,10 +292,11 @@ void DivPlatformGB::tick(bool sysTick) {
       if (chan[i].keyOn) {
         if (i==2) { // wave
           rWrite(16+i*5,0x80);
-          rWrite(16+i*5+2,gbVolMap[chan[i].vol]);
+          rWrite(16+i*5+2,gbVolMap[chan[i].outVol]);
         } else {
-          rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
-          rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
+          rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
+          rWrite(16+i*5+2,((chan[i].envVol<<4))|(chan[i].envLen&7)|((chan[i].envDir&1)<<3));
+          chan[i].lastKill=chan[i].envVol;
         }
       }
       if (chan[i].keyOff) {
@@ -259,15 +308,35 @@ void DivPlatformGB::tick(bool sysTick) {
       }
       if (i==3) { // noise
         rWrite(16+i*5+3,(chan[i].freq&0xff)|(chan[i].duty?8:0));
-        rWrite(16+i*5+4,((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((ins->gb.soundLen<64)<<6));
+        rWrite(16+i*5+4,((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((chan[i].soundLen<64)<<6));
       } else {
         rWrite(16+i*5+3,(2048-chan[i].freq)&0xff);
-        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((ins->gb.soundLen<63)<<6));
+        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((chan[i].soundLen<63)<<6));
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
     }
+    if (chan[i].killIt) {
+      if (i!=2) {
+        //rWrite(16+i*5+2,8);
+        int killDelta=chan[i].lastKill-chan[i].outVol+1;
+        if (killDelta<0) killDelta+=16;
+        chan[i].lastKill=chan[i].outVol;
+
+        if (killDelta!=1) {
+          rWrite(16+i*5+2,((chan[i].envVol<<4))|8);
+          for (int j=0; j<killDelta; j++) {
+            rWrite(16+i*5+2,0x09);
+            rWrite(16+i*5+2,0x11);
+            rWrite(16+i*5+2,0x08);
+          }
+        }
+      }
+      chan[i].killIt=false;
+    }
+
+    chan[i].soManyHacksToMakeItDefleCompatible=false;
   }
 }
 
@@ -291,6 +360,10 @@ int DivPlatformGB::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
+      chan[c.chan].hwSeqPos=0;
+      chan[c.chan].hwSeqDelay=0;
+      chan[c.chan].released=false;
+      chan[c.chan].softEnv=ins->gb.softEnv;
       chan[c.chan].macroInit(ins);
       if (c.chan==2) {
         if (chan[c.chan].wave<0) {
@@ -299,17 +372,35 @@ int DivPlatformGB::dispatch(DivCommand c) {
         }
         ws.init(ins,32,15,chan[c.chan].insChanged);
       }
+      if ((chan[c.chan].insChanged || ins->gb.alwaysInit) && !chan[c.chan].softEnv) {
+        if (!chan[c.chan].soManyHacksToMakeItDefleCompatible && c.chan!=2) {
+          chan[c.chan].envVol=ins->gb.envVol;
+        }
+        chan[c.chan].envLen=ins->gb.envLen;
+        chan[c.chan].envDir=ins->gb.envDir;
+        chan[c.chan].soundLen=ins->gb.soundLen;
+        if (!chan[c.chan].soManyHacksToMakeItDefleCompatible && c.chan!=2) {
+          chan[c.chan].vol=chan[c.chan].envVol;
+          chan[c.chan].outVol=chan[c.chan].envVol;
+        }
+      }
+      if (c.chan==2 && chan[c.chan].softEnv) {
+        chan[c.chan].soundLen=64;
+      }
       chan[c.chan].insChanged=false;
       break;
     }
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
+      chan[c.chan].hwSeqPos=0;
+      chan[c.chan].hwSeqDelay=0;
       chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
       chan[c.chan].std.release();
+      chan[c.chan].released=true;
       break;
     case DIV_CMD_INSTRUMENT:
       if (chan[c.chan].ins!=c.value || c.value2==1) {
@@ -317,17 +408,33 @@ int DivPlatformGB::dispatch(DivCommand c) {
         chan[c.chan].insChanged=true;
         if (c.chan!=2) {
           DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_GB);
-          chan[c.chan].vol=ins->gb.envVol;
-          if (parent->song.gbInsAffectsEnvelope) {
-            rWrite(16+c.chan*5+2,((chan[c.chan].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
+          if (!ins->gb.softEnv) {
+            chan[c.chan].envVol=ins->gb.envVol;
+            chan[c.chan].envLen=ins->gb.envLen;
+            chan[c.chan].envDir=ins->gb.envDir;
+            chan[c.chan].soundLen=ins->gb.soundLen;
+            chan[c.chan].vol=chan[c.chan].envVol;
+            chan[c.chan].outVol=chan[c.chan].vol;
+            if (parent->song.gbInsAffectsEnvelope) {
+              rWrite(16+c.chan*5+2,((chan[c.chan].vol<<4))|(chan[c.chan].envLen&7)|((chan[c.chan].envDir&1)<<3));
+            }
           }
         }
       }
       break;
     case DIV_CMD_VOLUME:
       chan[c.chan].vol=c.value;
+      chan[c.chan].outVol=c.value;
       if (c.chan==2) {
-        rWrite(16+c.chan*5+2,gbVolMap[chan[c.chan].vol]);
+        rWrite(16+c.chan*5+2,gbVolMap[chan[c.chan].outVol]);
+      }
+      if (!chan[c.chan].softEnv) {
+        chan[c.chan].envVol=chan[c.chan].vol;
+        chan[c.chan].soManyHacksToMakeItDefleCompatible=true;
+      } else if (c.chan!=2) {
+        chan[c.chan].envVol=chan[c.chan].vol;
+        if (!chan[c.chan].keyOn) chan[c.chan].killIt=true;
+        chan[c.chan].freqChanged=true;
       }
       break;
     case DIV_CMD_GET_VOLUME:
@@ -393,6 +500,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_GB));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GB_SWEEP_DIR:
@@ -461,7 +569,7 @@ void DivPlatformGB::reset() {
   }
   memset(gb,0,sizeof(GB_gameboy_t));
   memset(regPool,0,128);
-  gb->model=GB_MODEL_DMG_B;
+  gb->model=model;
   GB_apu_init(gb);
   GB_set_sample_rate(gb,rate);
   // enable all channels
@@ -470,10 +578,21 @@ void DivPlatformGB::reset() {
   lastPan=0xff;
   immWrite(0x25,procMute());
   immWrite(0x24,0x77);
+
+  antiClickPeriodCount=0;
+  antiClickWavePos=0;
+}
+
+int DivPlatformGB::getPortaFloor(int ch) {
+  return 24;
 }
 
 bool DivPlatformGB::isStereo() {
   return true;
+}
+
+bool DivPlatformGB::getDCOffRequired() {
+  return (model==GB_MODEL_AGB);
 }
 
 void DivPlatformGB::notifyInsChange(int ins) {
@@ -488,7 +607,7 @@ void DivPlatformGB::notifyWaveChange(int wave) {
   if (chan[2].wave==wave) {
     ws.changeWave1(wave);
     updateWave();
-    if (!chan[2].keyOff) chan[2].keyOn=true;
+    if (!chan[2].keyOff && chan[2].active) chan[2].keyOn=true;
   }
 }
 
@@ -506,6 +625,24 @@ void DivPlatformGB::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
+void DivPlatformGB::setFlags(unsigned int flags) {
+  antiClickEnabled=!(flags&8);
+  switch (flags&3) {
+    case 0:
+      model=GB_MODEL_DMG_B;
+      break;
+    case 1:
+      model=GB_MODEL_CGB_C;
+      break;
+    case 2:
+      model=GB_MODEL_CGB_E;
+      break;
+    case 3:
+      model=GB_MODEL_AGB;
+      break;
+  }
+}
+
 int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
   chipClock=4194304;
   rate=chipClock/16;
@@ -517,7 +654,9 @@ int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, unsigned int fl
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  model=GB_MODEL_DMG_B;
   gb=new GB_gameboy_t;
+  setFlags(flags);
   reset();
   return 4;
 }

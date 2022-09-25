@@ -238,6 +238,12 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_CHANNELS:
       nextWindow=GUI_WINDOW_CHANNELS;
       break;
+    case GUI_ACTION_WINDOW_PAT_MANAGER:
+      nextWindow=GUI_WINDOW_PAT_MANAGER;
+      break;
+    case GUI_ACTION_WINDOW_SYS_MANAGER:
+      nextWindow=GUI_WINDOW_SYS_MANAGER;
+      break;
     case GUI_ACTION_WINDOW_REGISTER_VIEW:
       nextWindow=GUI_WINDOW_REGISTER_VIEW;
       break;
@@ -321,6 +327,12 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_CHANNELS:
           channelsOpen=false;
+          break;
+        case GUI_WINDOW_PAT_MANAGER:
+          patManagerOpen=false;
+          break;
+        case GUI_WINDOW_SYS_MANAGER:
+          sysManagerOpen=false;
           break;
         case GUI_WINDOW_REGISTER_VIEW:
           regViewOpen=false;
@@ -587,6 +599,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_INS_LIST_SAVE:
       if (curIns>=0 && curIns<(int)e->song.ins.size()) openFileDialog(GUI_FILE_INS_SAVE);
       break;
+    case GUI_ACTION_INS_LIST_SAVE_DMP:
+      if (curIns>=0 && curIns<(int)e->song.ins.size()) openFileDialog(GUI_FILE_INS_SAVE_DMP);
+      break;
     case GUI_ACTION_INS_LIST_MOVE_UP:
       if (e->moveInsUp(curIns)) {
         curIns--;
@@ -630,6 +645,7 @@ void FurnaceGUI::doAction(int what) {
       } else {
         wantScrollList=true;
         MARK_MODIFIED;
+        RESET_WAVE_MACRO_ZOOM;
       }
       break;
     case GUI_ACTION_WAVE_LIST_DUPLICATE:
@@ -642,14 +658,24 @@ void FurnaceGUI::doAction(int what) {
           (*e->song.wave[curWave])=(*e->song.wave[prevWave]);
           wantScrollList=true;
           MARK_MODIFIED;
+          RESET_WAVE_MACRO_ZOOM;
         }
       }
       break;
     case GUI_ACTION_WAVE_LIST_OPEN:
       openFileDialog(GUI_FILE_WAVE_OPEN);
       break;
+    case GUI_ACTION_WAVE_LIST_OPEN_REPLACE:
+      openFileDialog(GUI_FILE_WAVE_OPEN_REPLACE);
+      break;
     case GUI_ACTION_WAVE_LIST_SAVE:
       if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE);
+      break;
+    case GUI_ACTION_WAVE_LIST_SAVE_DMW:
+      if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE_DMW);
+      break;
+    case GUI_ACTION_WAVE_LIST_SAVE_RAW:
+      if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE_RAW);
       break;
     case GUI_ACTION_WAVE_LIST_MOVE_UP:
       if (e->moveWaveUp(curWave)) {
@@ -710,6 +736,7 @@ void FurnaceGUI::doAction(int what) {
               sample->name=prevSample->name;
               sample->loopStart=prevSample->loopStart;
               sample->loopEnd=prevSample->loopEnd;
+              sample->loop=prevSample->loop;
               sample->loopMode=prevSample->loopMode;
               sample->depth=prevSample->depth;
               if (sample->init(prevSample->samples)) {
@@ -728,6 +755,15 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_SAMPLE_LIST_OPEN:
       openFileDialog(GUI_FILE_SAMPLE_OPEN);
+      break;
+    case GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE:
+      openFileDialog(GUI_FILE_SAMPLE_OPEN_REPLACE);
+      break;
+    case GUI_ACTION_SAMPLE_LIST_OPEN_RAW:
+      openFileDialog(GUI_FILE_SAMPLE_OPEN_RAW);
+      break;
+    case GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW:
+      openFileDialog(GUI_FILE_SAMPLE_OPEN_REPLACE_RAW);
       break;
     case GUI_ACTION_SAMPLE_LIST_SAVE:
       if (curSample>=0 && curSample<(int)e->song.sample.size()) openFileDialog(GUI_FILE_SAMPLE_SAVE);
@@ -1263,16 +1299,41 @@ void FurnaceGUI::doAction(int what) {
       e->lockEngine([this,sample]() {
         SAMPLE_OP_BEGIN;
 
-        if (sample->loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT) {
-          sample->loopMode=DIV_SAMPLE_LOOPMODE_FORWARD;
-        }
         sample->loopStart=start;
         sample->loopEnd=end;
+        sample->loop=true;
         updateSampleTex=true;
 
         e->renderSamples();
       });
       MARK_MODIFIED;
+      break;
+    }
+    case GUI_ACTION_SAMPLE_CREATE_WAVE: {
+      if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      DivSample* sample=e->song.sample[curSample];
+      SAMPLE_OP_BEGIN;
+      if (end-start<1) {
+        showError("select at least one sample!");
+      } else if (end-start>256) {
+        showError("maximum size is 256 samples!");
+      } else {
+        curWave=e->addWave();
+        if (curWave==-1) {
+          showError("too many wavetables!");
+        } else {
+          DivWavetable* wave=e->song.wave[curWave];
+          wave->min=0;
+          wave->max=255;
+          wave->len=end-start;
+          for (unsigned int i=start; i<end; i++) {
+            wave->data[i-start]=(sample->data8[i]&0xff)^0x80;
+          }
+          nextWindow=GUI_WINDOW_WAVE_EDIT;
+          MARK_MODIFIED;
+          RESET_WAVE_MACRO_ZOOM;
+        }
+      }
       break;
     }
 

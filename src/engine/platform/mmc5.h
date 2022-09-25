@@ -67,7 +67,8 @@ class DivPlatformMMC5: public DivDispatch {
   unsigned char writeOscBuf;
   struct _mmc5* mmc5;
   unsigned char regPool[128];
-
+  
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   public:
@@ -89,7 +90,6 @@ class DivPlatformMMC5: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformMMC5();

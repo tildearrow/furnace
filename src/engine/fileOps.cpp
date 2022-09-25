@@ -28,6 +28,8 @@
 #define DIV_DMF_MAGIC ".DelekDefleMask."
 #define DIV_FUR_MAGIC "-Furnace module-"
 #define DIV_FTM_MAGIC "FamiTracker Module"
+#define DIV_FC13_MAGIC "SMOD"
+#define DIV_FC14_MAGIC "FC14"
 
 struct InflateBlock {
   unsigned char* buf;
@@ -143,7 +145,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.loopModality=0;
     ds.properNoiseLayout=false;
     ds.waveDutyIsVol=false;
-    ds.resetMacroOnPorta=true;
+    // TODO: WHAT?! geodude.dmf fails when this is true
+    // but isn't that how Defle behaves???
+    ds.resetMacroOnPorta=false;
     ds.legacyVolumeSlides=true;
     ds.compatibleArpeggio=true;
     ds.noteOffResetsSlides=true;
@@ -172,6 +176,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.volMacroLinger=false;
     ds.brokenOutVol=true; // ???
     ds.e1e2StopOnSameNote=true;
+    ds.brokenPortaArp=false;
+    ds.snNoLowPeriods=true;
+    ds.disableSampleMacro=true;
+    ds.delayBehavior=0;
+    ds.jumpTreatment=2;
 
     // 1.1 compat flags
     if (ds.version>24) {
@@ -187,6 +196,15 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.tuning=443.23;
     }
     */
+
+    // Genesis detuned on Defle v10 and earlier
+    /*if (ds.version<19 && ds.system[0]==DIV_SYSTEM_GENESIS) {
+      ds.tuning=443.23;
+    }*/
+    // C64 detuned on Defle v11 and earlier
+    /*if (ds.version<21 && (ds.system[0]==DIV_SYSTEM_C64_6581 || ds.system[0]==DIV_SYSTEM_C64_8580)) {
+      ds.tuning=433.2;
+    }*/
 
     logI("reading module data...");
     if (ds.version>0x0c) {
@@ -319,7 +337,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
       logD("%d name: %s",i,ins->name.c_str());
       if (ds.version<0x0b) {
-        // instruments in ancient versions were all FM or STD.
+        // instruments in ancient versions were all FM.
         mode=1;
       } else {
         mode=reader.readC();
@@ -347,6 +365,12 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       }
       if (ds.system[0]==DIV_SYSTEM_YMU759) {
         ins->type=DIV_INS_OPL;
+      }
+      if (ds.system[0]==DIV_SYSTEM_ARCADE) {
+        ins->type=DIV_INS_OPM;
+      }
+      if ((ds.system[0]==DIV_SYSTEM_NES || ds.system[0]==DIV_SYSTEM_NES_VRC7 || ds.system[0]==DIV_SYSTEM_NES_FDS) && ins->type==DIV_INS_STD) {
+        ins->type=DIV_INS_NES;
       }
 
       if (mode) { // FM
@@ -441,6 +465,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
               ins->fm.op[j].ssgEnv=reader.readC();
             }
           }
+          if (ds.version<0x12) { // before version 10 all ops were responsive to volume
+            ins->fm.op[j].kvs=1;
+          }
 
           logD("OP%d: AM %d AR %d DAM %d DR %d DVB %d EGT %d KSL %d MULT %d RR %d SL %d SUS %d TL %d VIB %d WS %d RS %d DT %d D2R %d SSG-EG %d",j,
                ins->fm.op[j].am,
@@ -501,6 +528,14 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         if (!ins->std.arpMacro.mode) {
           for (int j=0; j<ins->std.arpMacro.len; j++) {
             ins->std.arpMacro.val[j]-=12;
+          }
+        } else {
+          ins->std.arpMacro.mode=0;
+          for (int j=0; j<ins->std.arpMacro.len; j++) {
+            ins->std.arpMacro.val[j]^=0x40000000;
+          }
+          if (ins->std.arpMacro.loop==255 && ins->std.arpMacro.len<255) {
+            ins->std.arpMacro.val[ins->std.arpMacro.len++]=0;
           }
         }
 
@@ -587,7 +622,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
 
           logD("GB data: vol %d dir %d len %d sl %d",ins->gb.envVol,ins->gb.envDir,ins->gb.envLen,ins->gb.soundLen);
         } else if (ds.system[0]==DIV_SYSTEM_GB) {
-          // try to convert macro to envelope
+          // set software envelope flag
+          ins->gb.softEnv=true;
+          // try to convert macro to envelope in case the user decides to switch to them
           if (ins->std.volMacro.len>0) {
             ins->gb.envVol=ins->std.volMacro.val[0];
             if (ins->std.volMacro.val[0]<ins->std.volMacro.val[1]) {
@@ -597,7 +634,6 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
               ins->gb.soundLen=ins->std.volMacro.len*2;
             }
           }
-          addWarning("Game Boy volume macros converted to envelopes. may not be perfect!");
         }
       }
 
@@ -798,7 +834,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         sample->rate=ymuSampleRate*400;
       }
       if (ds.version>0x15) {
-        sample->depth=DivSampleDepth(reader.readC());
+        sample->depth=(DivSampleDepth)reader.readC();
         if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) {
           logW("%d: sample depth is wrong! (%d)",i,sample->depth);
           sample->depth=DIV_SAMPLE_DEPTH_16BIT;
@@ -821,6 +857,13 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             data=new short[length];
             reader.read(data,length*2);
           }
+          
+#ifdef TA_BIG_ENDIAN
+          // convert to big-endian
+          for (int pos=0; pos<length; pos++) {
+            data[pos]=(short)((((unsigned short)data[pos])<<8)|(((unsigned short)data[pos])>>8));
+          }
+#endif
 
           if (pitch!=5) {
             logD("%d: scaling from %d...",i,pitch);
@@ -905,6 +948,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.system[0]=DIV_SYSTEM_NES;
       ds.system[1]=DIV_SYSTEM_FDS;
     }
+
+    ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
 
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
@@ -1046,6 +1091,24 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
     if (ds.version<100) {
       ds.e1e2StopOnSameNote=false;
+    }
+    if (ds.version<101) {
+      ds.brokenPortaArp=true;
+    }
+    if (ds.version<108) {
+      ds.snNoLowPeriods=true;
+    }
+    if (ds.version<110) {
+      ds.delayBehavior=1;
+    }
+    if (ds.version<113) {
+      ds.jumpTreatment=1;
+    }
+    if (ds.version<115) {
+      ds.autoSystem=false;
+    }
+    if (ds.version<117) {
+      ds.disableSampleMacro=true;
     }
     ds.isDMF=false;
 
@@ -1314,9 +1377,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
 
     // pointers
-    reader.read(insPtr,ds.insLen*4);
-    reader.read(wavePtr,ds.waveLen*4);
-    reader.read(samplePtr,ds.sampleLen*4);
+    for (int i=0; i<ds.insLen; i++) {
+      insPtr[i]=reader.readI();
+    }
+    for (int i=0; i<ds.waveLen; i++) {
+      wavePtr[i]=reader.readI();
+    }
+    for (int i=0; i<ds.sampleLen; i++) {
+      samplePtr[i]=reader.readI();
+    }
     for (int i=0; i<numberOfPats; i++) patPtr.push_back(reader.readI());
 
     logD("reading orders (%d)...",subSong->ordersLen);
@@ -1448,7 +1517,37 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<8; i++) {
+      if (ds.version>=101) {
+        ds.brokenPortaArp=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=108) {
+        ds.snNoLowPeriods=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=110) {
+        ds.delayBehavior=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=113) {
+        ds.jumpTreatment=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=115) {
+        ds.autoSystem=reader.readC();
+      } else {
+        reader.readC();
+      }
+      if (ds.version>=117) {
+        ds.disableSampleMacro=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<2; i++) {
         reader.readC();
       }
     }
@@ -1473,7 +1572,23 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       for (int i=0; i<numberOfSubSongs; i++) {
         subSongPtr[i]=reader.readI();
       }
+    }
 
+    // additional metadata
+    if (ds.version>=103) {
+      ds.systemName=reader.readString();
+      ds.category=reader.readString();
+      ds.nameJ=reader.readString();
+      ds.authorJ=reader.readString();
+      ds.systemNameJ=reader.readString();
+      ds.categoryJ=reader.readString();
+    } else {
+      ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
+      ds.autoSystem=true;
+    }
+
+    // read subsongs
+    if (ds.version>=95) {
       for (int i=0; i<numberOfSubSongs; i++) {
         ds.subsong.push_back(new DivSubSong);
         if (!reader.seek(subSongPtr[i],SEEK_SET)) {
@@ -1610,58 +1725,95 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
 
       reader.read(magic,4);
-      if (strcmp(magic,"SMPL")!=0) {
+      if (strcmp(magic,"SMPL")!=0 && strcmp(magic,"SMP2")!=0) {
         logE("%d: invalid sample header!",i);
         lastError="invalid sample header!";
         ds.unload();
         delete[] file;
         return false;
       }
+      bool isNewSample=(strcmp(magic,"SMP2")==0);
       reader.readI();
       DivSample* sample=new DivSample;
       logD("reading sample %d at %x...",i,samplePtr[i]);
+      if (!isNewSample) logV("(old sample)");
 
       sample->name=reader.readString();
       sample->samples=reader.readI();
-      sample->loopEnd=sample->samples;
+      if (!isNewSample) {
+        sample->loopEnd=sample->samples;
+      }
       sample->rate=reader.readI();
-      if (ds.version<58) {
-        vol=reader.readS();
-        pitch=reader.readS();
-      } else {
-        reader.readI();
-      }
-      sample->depth=DivSampleDepth(reader.readC());
 
-      // reserved
-      reader.readC();
+      if (isNewSample) {
+        sample->centerRate=reader.readI();
+        sample->depth=(DivSampleDepth)reader.readC();
 
-      // while version 32 stored this value, it was unused.
-      if (ds.version>=38) {
-        sample->centerRate=(unsigned short) reader.readS();
-      } else {
-        reader.readS();
-      }
+        // reserved
+        reader.readC();
+        reader.readC();
+        reader.readC();
 
-      if (ds.version>=19) {
         sample->loopStart=reader.readI();
-        if (sample->loopStart<0) {
-          sample->loopMode=DIV_SAMPLE_LOOPMODE_ONESHOT;
-          sample->loopStart=0;
-        } else {
-          sample->loopMode=DIV_SAMPLE_LOOPMODE_FORWARD;
+        sample->loopEnd=reader.readI();
+        sample->loop=(sample->loopStart>=0)&&(sample->loopEnd>=0);
+
+        for (int i=0; i<4; i++) {
+          reader.readI();
         }
       } else {
-        reader.readI();
+        if (ds.version<58) {
+          vol=reader.readS();
+          pitch=reader.readS();
+        } else {
+          reader.readI();
+        }
+        sample->depth=(DivSampleDepth)reader.readC();
+
+        // reserved
+        reader.readC();
+
+        // while version 32 stored this value, it was unused.
+        if (ds.version>=38) {
+          sample->centerRate=(unsigned short)reader.readS();
+        } else {
+          reader.readS();
+        }
+
+        if (ds.version>=19) {
+          sample->loopStart=reader.readI();
+          sample->loop=(sample->loopStart>=0)&&(sample->loopEnd>=0);
+        } else {
+          reader.readI();
+        }
       }
 
       if (ds.version>=58) { // modern sample
         sample->init(sample->samples);
         reader.read(sample->getCurBuf(),sample->getCurBufLen());
+#ifdef TA_BIG_ENDIAN
+        // convert 16-bit samples to big-endian
+        if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
+          unsigned char* sampleBuf=(unsigned char*)sample->getCurBuf();
+          size_t sampleBufLen=sample->getCurBufLen();
+          for (size_t pos=0; pos<sampleBufLen; pos+=2) {
+            sampleBuf[pos]^=sampleBuf[pos+1];
+            sampleBuf[pos+1]^=sampleBuf[pos];
+            sampleBuf[pos]^=sampleBuf[pos+1];
+          }
+        }
+#endif
       } else { // legacy sample
         int length=sample->samples;
         short* data=new short[length];
         reader.read(data,2*length);
+
+#ifdef TA_BIG_ENDIAN
+        // convert 16-bit samples to big-endian
+        for (int pos=0; pos<length; pos++) {
+          data[pos]=((unsigned short)data[pos]>>8)|((unsigned short)data[pos]<<8);
+        }
+#endif
 
         if (pitch!=5) {
           logD("%d: scaling from %d...",i,pitch);
@@ -1773,6 +1925,57 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
+    // convert OPM/NES instrument types
+    if (ds.version<117) {
+      int opnCount=0;
+      int opmCount=0;
+      int snCount=0;
+      int nesCount=0;
+      for (int i=0; i<ds.systemLen; i++) {
+        switch (ds.system[i]) {
+          case DIV_SYSTEM_NES:
+          case DIV_SYSTEM_MMC5:
+            nesCount++;
+            break;
+          case DIV_SYSTEM_SMS:
+            snCount++;
+            break;
+          case DIV_SYSTEM_YM2151:
+          case DIV_SYSTEM_OPZ:
+            opmCount++;
+            break;
+          case DIV_SYSTEM_YM2610:
+          case DIV_SYSTEM_YM2610_EXT:
+          case DIV_SYSTEM_YM2610_FULL:
+          case DIV_SYSTEM_YM2610_FULL_EXT:
+          case DIV_SYSTEM_YM2610B:
+          case DIV_SYSTEM_YM2610B_EXT:
+          case DIV_SYSTEM_OPN:
+          case DIV_SYSTEM_OPN_EXT:
+          case DIV_SYSTEM_PC98:
+          case DIV_SYSTEM_PC98_EXT:
+          case DIV_SYSTEM_YM2612:
+          case DIV_SYSTEM_YM2612_EXT:
+          case DIV_SYSTEM_YM2612_FRAC:
+          case DIV_SYSTEM_YM2612_FRAC_EXT:
+            opnCount++;
+            break;
+          default:
+            break;
+        }
+      }
+      if (opmCount>opnCount) {
+        for (DivInstrument* i: ds.ins) {
+          if (i->type==DIV_INS_FM) i->type=DIV_INS_OPM;
+        }
+      }
+      if (nesCount>snCount) {
+        for (DivInstrument* i: ds.ins) {
+          if (i->type==DIV_INS_STD) i->type=DIV_INS_NES;
+        }
+      }
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
@@ -1825,6 +2028,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.noSlidesOnFirstTick=true;
     ds.rowResetsArpPos=true;
     ds.ignoreJumpAtEnd=false;
+    ds.delayBehavior=0;
 
     int insCount=31;
     bool bypassLimits=false;
@@ -1840,26 +2044,33 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     }
     if (memcmp(magic,"M.K.",4)==0 || memcmp(magic,"M!K!",4)==0 || memcmp(magic,"M&K!",4)==0) {
       logD("detected a ProTracker module");
+      ds.systemName="Amiga";
       chCount=4;
     } else if (memcmp(magic,"CD81",4)==0 || memcmp(magic,"OKTA",4)==0 || memcmp(magic,"OCTA",4)==0) {
       logD("detected an Oktalyzer/Octalyzer/OctaMED module");
+      ds.systemName="Amiga (8-channel)";
       chCount=8;
     } else if (memcmp(magic+1,"CHN",3)==0 && magic[0]>='1' && magic[0]<='9') {
       logD("detected a FastTracker module");
+      ds.systemName="PC";
       chCount=magic[0]-'0';
     } else if (memcmp(magic,"FLT",3)==0 && magic[3]>='1' && magic[3]<='9') {
       logD("detected a Fairlight module");
+      ds.systemName="Amiga";
       chCount=magic[3]-'0';
     } else if (memcmp(magic,"TDZ",3)==0 && magic[3]>='1' && magic[3]<='9') {
       logD("detected a TakeTracker module");
+      ds.systemName="PC";
       chCount=magic[3]-'0';
     } else if ((memcmp(magic+2,"CH",2)==0 || memcmp(magic+2,"CN",2)==0)  &&
                (magic[0]>='1' && magic[0]<='9' && magic[1]>='0' && magic[1]<='9')) {
       logD("detected a Fast/TakeTracker module");
+      ds.systemName="PC";
       chCount=((magic[0]-'0')*10)+(magic[1]-'0');
     } else {
       insCount=15;
       logD("possibly a Soundtracker module");
+      ds.systemName="Amiga";
       chCount=4;
     }
 
@@ -1895,14 +2106,9 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
         loopLen=0;
       }
       if (loopLen>=2) {
-        if (loopEnd<slen) slen=loopEnd;
         sample->loopStart=loopStart;
-        if (sample->loopStart<0) {
-          sample->loopMode=DIV_SAMPLE_LOOPMODE_ONESHOT;
-          sample->loopStart=0;
-        } else {
-          sample->loopMode=DIV_SAMPLE_LOOPMODE_FORWARD;
-        }
+        sample->loopEnd=loopEnd;
+        sample->loop=(sample->loopStart>=0)&&(sample->loopEnd>=0);
       }
       sample->init(slen);
       ds.sample.push_back(sample);
@@ -2216,6 +2422,688 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
   return success;
 }
 
+unsigned char fcXORTriangle[32]={
+  0xc0, 0xc0, 0xd0, 0xd8, 0xe0, 0xe8, 0xf0, 0xf8, 0x00, 0xf8, 0xf0, 0xe8, 0xe0, 0xd8, 0xd0, 0xc8,
+  0xc0, 0xb8, 0xb0, 0xa8, 0xa0, 0x98, 0x90, 0x88, 0x80, 0x88, 0x90, 0x98, 0xa0, 0xa8, 0xb0, 0xb8
+};
+
+unsigned char fcCustom1[32]={
+  0x45, 0x45, 0x79, 0x7d, 0x7a, 0x77, 0x70, 0x66, 0x61, 0x58, 0x53, 0x4d, 0x2c, 0x20, 0x18, 0x12,
+  0x04, 0xdb, 0xd3, 0xcd, 0xc6, 0xbc, 0xb5, 0xae, 0xa8, 0xa3, 0x9d, 0x99, 0x93, 0x8e, 0x8b, 0x8a
+};
+
+unsigned char fcCustom2[32]={
+  0x45, 0x45, 0x79, 0x7d, 0x7a, 0x77, 0x70, 0x66, 0x5b, 0x4b, 0x43, 0x37, 0x2c, 0x20, 0x18, 0x12,
+  0x04, 0xf8, 0xe8, 0xdb, 0xcf, 0xc6, 0xbe, 0xb0, 0xa8, 0xa4, 0x9e, 0x9a, 0x95, 0x94, 0x8d, 0x83
+};
+
+unsigned char fcTinyTriangle[16]={
+  0x00, 0x00, 0x40, 0x60, 0x7f, 0x60, 0x40, 0x20, 0x00, 0xe0, 0xc0, 0xa0, 0x80, 0xa0, 0xc0, 0xe0
+};
+
+void generateFCPresetWave(int index, DivWavetable* wave) {
+  wave->max=255;
+  wave->len=32;
+
+  switch (index) {
+    case 0x00: case 0x01: case 0x02: case 0x03:
+    case 0x04: case 0x05: case 0x06: case 0x07:
+    case 0x08: case 0x09: case 0x0a: case 0x0b:
+    case 0x0c: case 0x0d: case 0x0e: case 0x0f:
+      // XOR triangle
+      for (int i=0; i<32; i++) {
+        wave->data[i]=(unsigned char)((fcXORTriangle[i]^0x80)^(((index+15)<i)?0x87:0x00));
+      }
+      break;
+    case 0x10: case 0x11: case 0x12: case 0x13:
+    case 0x14: case 0x15: case 0x16: case 0x17:
+    case 0x18: case 0x19: case 0x1a: case 0x1b:
+    case 0x1c: case 0x1d: case 0x1e: case 0x1f:
+      // pulse
+      for (int i=0; i<32; i++) {
+        wave->data[i]=(index>i)?0x01:0xff;
+      }
+      break;
+    case 0x20: case 0x21: case 0x22: case 0x23:
+    case 0x24: case 0x25: case 0x26: case 0x27:
+      // tiny pulse
+      for (int i=0; i<32; i++) {
+        wave->data[i]=((index-0x18)>(i&15))?0x01:0xff;
+      }
+      break;
+    case 0x28:
+    case 0x2e:
+      // saw
+      for (int i=0; i<32; i++) {
+        wave->data[i]=i<<3;
+      }
+      break;
+    case 0x29:
+    case 0x2f:
+      // tiny saw
+      for (int i=0; i<32; i++) {
+        wave->data[i]=(i<<4)&0xff;
+      }
+      break;
+    case 0x2a:
+      // custom 1
+      for (int i=0; i<32; i++) {
+        wave->data[i]=fcCustom1[i]^0x80;
+      }
+      break;
+    case 0x2b:
+      // custom 2
+      for (int i=0; i<32; i++) {
+        wave->data[i]=fcCustom2[i]^0x80;
+      }
+      break;
+    case 0x2c: case 0x2d:
+      // tiny triangle
+      for (int i=0; i<32; i++) {
+        wave->data[i]=fcTinyTriangle[i&15]^0x80;
+      }
+      break;
+    default:
+      for (int i=0; i<32; i++) {
+        wave->data[i]=i;
+      }
+      break;
+  }
+}
+
+bool DivEngine::loadFC(unsigned char* file, size_t len) {
+  struct InvalidHeaderException {};
+  bool success=false;
+  char magic[4]={0,0,0,0};
+  SafeReader reader=SafeReader(file,len);
+  warnings="";
+  bool isFC14=false;
+  unsigned int patPtr, freqMacroPtr, volMacroPtr, samplePtr, wavePtr;
+  unsigned int seqLen, patLen, freqMacroLen, volMacroLen, sampleLen;
+
+  unsigned char waveLen[80];
+  //unsigned char waveLoopLen[40];
+
+  struct FCSequence {
+    unsigned char pat[4];
+    signed char transpose[4];
+    signed char offsetIns[4];
+    unsigned char speed;
+  };
+  std::vector<FCSequence> seq;
+  struct FCPattern {
+    unsigned char note[32];
+    unsigned char val[32];
+  };
+  std::vector<FCPattern> pat;
+  struct FCMacro {
+    unsigned char val[64];
+  };
+  std::vector<FCMacro> freqMacros;
+  std::vector<FCMacro> volMacros;
+
+  struct FCSample {
+    unsigned short loopLen, len, loopStart;
+  } sample[10];
+
+  try {
+    DivSong ds;
+    ds.tuning=436.0;
+    ds.version=DIV_VERSION_FC;
+    //ds.linearPitch=0;
+    //ds.pitchMacroIsLinear=false;
+    //ds.noSlidesOnFirstTick=true;
+    //ds.rowResetsArpPos=true;
+    ds.pitchSlideSpeed=8;
+    ds.ignoreJumpAtEnd=false;
+
+    // load here
+    if (!reader.seek(0,SEEK_SET)) {
+      logE("premature end of file!");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+    reader.read(magic,4);
+
+    if (memcmp(magic,DIV_FC13_MAGIC,4)==0) {
+      isFC14=false;
+    } else if (memcmp(magic,DIV_FC14_MAGIC,4)==0) {
+      isFC14=true;
+    } else {
+      logW("the magic isn't complete");
+      throw EndOfFileException(&reader,reader.tell());
+    }
+
+    ds.systemLen=1;
+    ds.system[0]=DIV_SYSTEM_AMIGA;
+    ds.systemVol[0]=64;
+    ds.systemPan[0]=0;
+    ds.systemFlags[0]=1|(80<<8); // PAL
+    ds.systemName="Amiga";
+
+    seqLen=reader.readI_BE();
+    if (seqLen%13) {
+      logW("sequence length is not multiple of 13 (%d)",seqLen);
+      //throw EndOfFileException(&reader,reader.tell());
+    }
+    patPtr=reader.readI_BE();
+    patLen=reader.readI_BE();
+    if (patLen%64) {
+      logW("pattern length is not multiple of 64 (%d)",patLen);
+      throw EndOfFileException(&reader,reader.tell());
+    }
+    freqMacroPtr=reader.readI_BE();
+    freqMacroLen=reader.readI_BE();
+    if (freqMacroLen%64) {
+      logW("freq sequence length is not multiple of 64 (%d)",freqMacroLen);
+      //throw EndOfFileException(&reader,reader.tell());
+    }
+    volMacroPtr=reader.readI_BE();
+    volMacroLen=reader.readI_BE();
+    if (volMacroLen%64) {
+      logW("vol sequence length is not multiple of 64 (%d)",volMacroLen);
+      //throw EndOfFileException(&reader,reader.tell());
+    }
+    samplePtr=reader.readI_BE();
+    if (isFC14) {
+      wavePtr=reader.readI_BE(); // wave len
+      sampleLen=0;
+    } else {
+      sampleLen=reader.readI_BE();
+      wavePtr=0;
+    }
+
+    logD("patPtr: %x",patPtr);
+    logD("patLen: %d",patLen);
+    logD("freqMacroPtr: %x",freqMacroPtr);
+    logD("freqMacroLen: %d",freqMacroLen);
+    logD("volMacroPtr: %x",volMacroPtr);
+    logD("volMacroLen: %d",volMacroLen);
+    logD("samplePtr: %x",samplePtr);
+    if (isFC14) {
+      logD("wavePtr: %x",wavePtr);
+    } else {
+      logD("sampleLen: %d",sampleLen);
+    }
+
+    // sample info
+    logD("samples: (%x)",reader.tell());
+    for (int i=0; i<10; i++) {
+      sample[i].len=reader.readS_BE();
+      sample[i].loopStart=reader.readS_BE();
+      sample[i].loopLen=reader.readS_BE();
+
+      logD("- %d: %d (%d, %d)",i,sample[i].len,sample[i].loopStart,sample[i].loopLen);
+    }
+
+    // wavetable lengths
+    if (isFC14) {
+      logD("wavetables:");
+      for (int i=0; i<80; i++) {
+        waveLen[i]=(unsigned char)reader.readC();
+
+        logD("- %d: %.4x",i,waveLen[i]);
+      }
+    }
+
+    // sequences
+    seqLen/=13;
+    logD("reading sequences... (%d)",seqLen);
+    for (unsigned int i=0; i<seqLen; i++) {
+      FCSequence s;
+      for (int j=0; j<4; j++) {
+        s.pat[j]=reader.readC();
+        s.transpose[j]=reader.readC();
+        s.offsetIns[j]=reader.readC();
+      }
+      s.speed=reader.readC();
+      seq.push_back(s);
+      logV(
+        "%.2x | %.2x%.2x%.2x %.2x%.2x%.2x %.2x%.2x%.2x %.2x%.2x%.2x | %.2x",
+        i,
+        s.pat[0],s.transpose[0],s.offsetIns[0],
+        s.pat[1],s.transpose[1],s.offsetIns[1],
+        s.pat[2],s.transpose[2],s.offsetIns[2],
+        s.pat[3],s.transpose[3],s.offsetIns[3],
+        s.speed
+      );
+    }
+
+    // patterns
+    if (!reader.seek(patPtr,SEEK_SET)) {
+      logE("premature end of file!");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+    patLen/=64;
+    logD("reading patterns... (%d)",patLen);
+    for (unsigned int i=0; i<patLen; i++) {
+      FCPattern p;
+      logV("- pattern %d",i);
+      for (int j=0; j<32; j++) {
+        p.note[j]=reader.readC();
+        p.val[j]=reader.readC();
+        //logV("%.2x | %.2x %.2x",j,p.note[j],p.val[j]);
+      }
+      pat.push_back(p);
+    }
+
+    // freq sequences
+    if (!reader.seek(freqMacroPtr,SEEK_SET)) {
+      logE("premature end of file!");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+    freqMacroLen/=64;
+    logD("reading freq sequences... (%d)",freqMacroLen);
+    for (unsigned int i=0; i<freqMacroLen; i++) {
+      FCMacro m;
+      reader.read(m.val,64);
+      freqMacros.push_back(m);
+    }
+
+    // vol sequences
+    if (!reader.seek(volMacroPtr,SEEK_SET)) {
+      logE("premature end of file!");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+    volMacroLen/=64;
+    logD("reading volume sequences... (%d)",volMacroLen);
+    for (unsigned int i=0; i<volMacroLen; i++) {
+      FCMacro m;
+      reader.read(m.val,64);
+      volMacros.push_back(m);
+    }
+
+    // samples
+    if (!reader.seek(samplePtr,SEEK_SET)) {
+      logE("premature end of file!");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+    logD("reading samples...");
+    for (int i=0; i<10; i++) {
+      DivSample* s=new DivSample;
+      s->depth=DIV_SAMPLE_DEPTH_8BIT;
+      if (sample[i].len>0) {
+        s->init(sample[i].len*2);
+      }
+      s->name=fmt::sprintf("Sample %d",i+1);
+      if (sample[i].loopLen>1) {
+        s->loopStart=sample[i].loopStart;
+        s->loopEnd=sample[i].loopStart+(sample[i].loopLen*2);
+        s->loop=(s->loopStart>=0)&&(s->loopEnd>=0);
+      }
+      reader.read(s->data8,sample[i].len*2);
+      ds.sample.push_back(s);
+    }
+    ds.sampleLen=(int)ds.sample.size();
+
+    // wavetables
+    if (isFC14) {
+      if (!reader.seek(wavePtr,SEEK_SET)) {
+        logE("premature end of file!");
+        lastError="incomplete file";
+        delete[] file;
+        return false;
+      }
+      logD("reading wavetables...");
+      for (int i=0; i<80; i++) {
+        DivWavetable* w=new DivWavetable;
+        w->min=0;
+        w->max=255;
+        w->len=MIN(256,waveLen[i]*2);
+
+        for (int i=0; i<256; i++) {
+          w->data[i]=128;
+        }
+        
+        if (waveLen[i]>0) {
+          signed char* waveArray=new signed char[waveLen[i]*2];
+          reader.read(waveArray,waveLen[i]*2);
+          int howMany=waveLen[i]*2;
+          if (howMany>256) howMany=256;
+          for (int i=0; i<howMany; i++) {
+            w->data[i]=waveArray[i]+128;
+          }
+          delete[] waveArray;
+        } else {
+          logV("empty wave %d",i);
+          generateFCPresetWave(i,w);
+        }
+
+        ds.wave.push_back(w);
+      }
+    } else {
+      // generate preset waves
+      for (int i=0; i<48; i++) {
+        DivWavetable* w=new DivWavetable;
+        generateFCPresetWave(i,w);
+        ds.wave.push_back(w);
+      }
+    }
+    ds.waveLen=(int)ds.wave.size();
+
+    // convert
+    ds.subsong[0]->ordersLen=seqLen;
+    ds.subsong[0]->patLen=32;
+    ds.subsong[0]->hz=50;
+    ds.subsong[0]->pal=true;
+    ds.subsong[0]->customTempo=true;
+    ds.subsong[0]->pat[3].effectCols=3;
+    ds.subsong[0]->speed1=3;
+    ds.subsong[0]->speed2=3;
+
+    int lastIns[4];
+    int lastNote[4];
+    signed char lastTranspose[4];
+    bool isSliding[4];
+
+    memset(lastIns,-1,4*sizeof(int));
+    memset(lastNote,-1,4*sizeof(int));
+    memset(lastTranspose,0,4);
+    memset(isSliding,0,4*sizeof(bool));
+
+    for (unsigned int i=0; i<seqLen; i++) {
+      for (int j=0; j<4; j++) {
+        ds.subsong[0]->orders.ord[j][i]=i;
+        DivPattern* p=ds.subsong[0]->pat[j].getPattern(i,true);
+        if (j==3 && seq[i].speed) {
+          p->data[0][6]=0x09;
+          p->data[0][7]=seq[i].speed;
+          p->data[0][8]=0x0f;
+          p->data[0][9]=seq[i].speed;
+        }
+
+        bool ignoreNext=false;
+
+        for (int k=0; k<32; k++) {
+          FCPattern& fp=pat[seq[i].pat[j]];
+          if (fp.note[k]>0 && fp.note[k]<0x49) {
+            lastNote[j]=fp.note[k];
+            short note=(fp.note[k]+seq[i].transpose[j])%12;
+            short octave=2+((fp.note[k]+seq[i].transpose[j])/12);
+            if (fp.note[k]>=0x3d) octave-=6;
+            if (note==0) {
+              note=12;
+              octave--;
+            }
+            octave&=0xff;
+            p->data[k][0]=note;
+            p->data[k][1]=octave;
+            if (isSliding[j]) {
+              isSliding[j]=false;
+              p->data[k][4]=2;
+              p->data[k][5]=0;
+            }
+          } else if (fp.note[k]==0x49) {
+            if (k>0) {
+              p->data[k-1][4]=0x0d;
+              p->data[k-1][5]=0;
+            }
+          } else if (k==0 && lastTranspose[j]!=seq[i].transpose[j]) {
+            p->data[0][2]=lastIns[j];
+            p->data[0][4]=0x03;
+            p->data[0][5]=0xff;
+            lastTranspose[j]=seq[i].transpose[j];
+
+            short note=(lastNote[j]+seq[i].transpose[j])%12;
+            short octave=2+((lastNote[j]+seq[i].transpose[j])/12);
+            if (lastNote[j]>=0x3d) octave-=6;
+            if (note==0) {
+              note=12;
+              octave--;
+            }
+            octave&=0xff;
+            p->data[k][0]=note;
+            p->data[k][1]=octave;
+          }
+          if (fp.val[k]) {
+            if (ignoreNext) {
+              ignoreNext=false;
+            } else {
+              if (fp.val[k]==0xf0) {
+                p->data[k][0]=100;
+                p->data[k][1]=0;
+                p->data[k][2]=-1;
+              } else if (fp.val[k]&0xe0) {
+                if (fp.val[k]&0x40) {
+                  p->data[k][4]=2;
+                  p->data[k][5]=0;
+                  isSliding[j]=false;
+                } else if (fp.val[k]&0x80) {
+                  isSliding[j]=true;
+                  if (k<31) {
+                    if (fp.val[k+1]&0x20) {
+                      p->data[k][4]=2;
+                      p->data[k][5]=fp.val[k+1]&0x1f;
+                    } else {
+                      p->data[k][4]=1;
+                      p->data[k][5]=fp.val[k+1]&0x1f;
+                    }
+                    ignoreNext=true;
+                  } else {
+                    p->data[k][4]=2;
+                    p->data[k][5]=0;
+                  }
+                }
+              } else {
+                p->data[k][2]=(fp.val[k]+seq[i].offsetIns[j])&0x3f;
+                lastIns[j]=p->data[k][2];
+              }
+            }
+          } else if (fp.note[k]>0 && fp.note[k]<0x49) {
+            p->data[k][2]=seq[i].offsetIns[j];
+            lastIns[j]=p->data[k][2];
+          }
+        }
+      }
+    }
+
+    // convert instruments
+    for (unsigned int i=0; i<volMacroLen; i++) {
+      DivInstrument* ins=new DivInstrument;
+      FCMacro& m=volMacros[i];
+      
+      ins->type=DIV_INS_AMIGA;
+      ins->name=fmt::sprintf("Instrument %d",i);
+      ins->amiga.useWave=true;
+      unsigned char seqSpeed=m.val[0];
+      unsigned char freqMacro=m.val[1];
+      unsigned char vibSpeed=m.val[2];
+      unsigned char vibDepth=m.val[3];
+      unsigned char vibDelay=m.val[4];
+
+      unsigned char lastVal=m.val[5];
+
+      signed char loopMap[64];
+      memset(loopMap,-1,64);
+
+      signed char loopMapFreq[64];
+      memset(loopMapFreq,-1,64);
+
+      signed char loopMapWave[64];
+      memset(loopMapWave,-1,64);
+
+      // volume sequence
+      ins->std.volMacro.len=0;
+      for (int j=5; j<64; j++) {
+        loopMap[j]=ins->std.volMacro.len;
+        if (m.val[j]==0xe1) { // end
+          break;
+        } else if (m.val[j]==0xe0) { // loop
+          if (++j>=64) break;
+          ins->std.volMacro.loop=loopMap[m.val[j]&63];
+          break;
+        } else if (m.val[j]==0xe8) { // sustain
+          if (++j>=64) break;
+          unsigned char susTime=m.val[j];
+          // TODO: <= or <?
+          for (int k=0; k<=susTime; k++) {
+            ins->std.volMacro.val[ins->std.volMacro.len]=lastVal;
+            if (++ins->std.volMacro.len>=255) break;
+          }
+          if (ins->std.volMacro.len>=255) break;
+        } else if (m.val[j]==0xe9 || m.val[j]==0xea) { // volume slide
+          if (++j>=64) break;
+          signed char slideStep=m.val[j];
+          if (++j>=64) break;
+          unsigned char slideTime=m.val[j];
+          // TODO: <= or <?
+          for (int k=0; k<=slideTime; k++) {
+            if (slideStep>0) {
+              lastVal+=slideStep;
+              if (lastVal>63) lastVal=63;
+            } else {
+              if (-slideStep>lastVal) {
+                lastVal=0;
+              } else {
+                lastVal-=slideStep;
+              }
+            }
+            ins->std.volMacro.val[ins->std.volMacro.len]=lastVal;
+            if (++ins->std.volMacro.len>=255) break;
+          }
+        } else {
+          // TODO: replace with upcoming macro speed
+          for (int k=0; k<MAX(1,seqSpeed); k++) {
+            ins->std.volMacro.val[ins->std.volMacro.len]=m.val[j];
+            lastVal=m.val[j];
+            if (++ins->std.volMacro.len>=255) break;
+          }
+          if (ins->std.volMacro.len>=255) break;
+        }
+      }
+
+      // frequency sequence
+      lastVal=0;
+      ins->amiga.initSample=-1;
+      if (freqMacro<freqMacros.size()) {
+        FCMacro& fm=freqMacros[freqMacro];
+        for (int j=0; j<64; j++) {
+          loopMapFreq[j]=ins->std.arpMacro.len;
+          loopMapWave[j]=ins->std.waveMacro.len;
+          if (fm.val[j]==0xe1) {
+            break;
+          } else if (fm.val[j]==0xe2 || fm.val[j]==0xe4) {
+            if (++j>=64) break;
+            unsigned char wave=fm.val[j];
+            if (wave<10) { // sample
+              if (ins->amiga.initSample==-1) {
+                ins->amiga.initSample=wave;
+                ins->amiga.useWave=false;
+              }
+            } else { // waveform
+              ins->std.waveMacro.val[ins->std.waveMacro.len]=wave-10;
+              ins->std.waveMacro.open=true;
+              lastVal=wave;
+              //if (++ins->std.arpMacro.len>=255) break;
+            }
+          } else if (fm.val[j]==0xe0) {
+            if (++j>=64) break;
+            ins->std.arpMacro.loop=loopMapFreq[fm.val[j]&63];
+            ins->std.waveMacro.loop=loopMapWave[fm.val[j]&63];
+            break;
+          } else if (fm.val[j]==0xe3) {
+            logV("unhandled vibrato!");
+          } else if (fm.val[j]==0xe8) {
+            logV("unhandled sustain!");
+          } else if (fm.val[j]==0xe7) {
+            if (++j>=64) break;
+            fm=freqMacros[MIN(fm.val[j],freqMacros.size()-1)];
+            j=0;
+          } else if (fm.val[j]==0xe9) {
+            logV("unhandled pack!");
+          } else if (fm.val[j]==0xea) {
+            logV("unhandled pitch!");
+          } else {
+            if (fm.val[j]>0x80) {
+              ins->std.arpMacro.val[ins->std.arpMacro.len]=(fm.val[j]-0x80+24)^0x40000000;
+            } else {
+              ins->std.arpMacro.val[ins->std.arpMacro.len]=fm.val[j];
+            }
+            if (lastVal>=10) {
+              ins->std.waveMacro.val[ins->std.waveMacro.len]=lastVal-10;
+            }
+            ins->std.arpMacro.open=true;
+            if (++ins->std.arpMacro.len>=255) break;
+            if (++ins->std.waveMacro.len>=255) break;
+          }
+        }
+      }
+
+      // waveform width
+      if (lastVal>=10 && (unsigned int)(lastVal-10)<ds.wave.size()) {
+        ins->amiga.waveLen=ds.wave[lastVal-10]->len-1;
+      }
+
+      // vibrato
+      for (int j=0; j<=vibDelay; j++) {
+        ins->std.pitchMacro.val[ins->std.pitchMacro.len]=0;
+        if (++ins->std.pitchMacro.len>=255) break;
+      }
+      int vibPos=0;
+      ins->std.pitchMacro.loop=ins->std.pitchMacro.len;
+      do {
+        vibPos+=vibSpeed;
+        if (vibPos>vibDepth) vibPos=vibDepth;
+        ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*32;
+        if (++ins->std.pitchMacro.len>=255) break;
+      } while (vibPos<vibDepth);
+      do {
+        vibPos-=vibSpeed;
+        if (vibPos<-vibDepth) vibPos=-vibDepth;
+        ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*32;
+        if (++ins->std.pitchMacro.len>=255) break;
+      } while (vibPos>-vibDepth);
+      do {
+        vibPos+=vibSpeed;
+        if (vibPos>0) vibPos=0;
+        ins->std.pitchMacro.val[ins->std.pitchMacro.len]=vibPos*32;
+        if (++ins->std.pitchMacro.len>=255) break;
+      } while (vibPos<0);
+
+      ds.ins.push_back(ins);
+    }
+    ds.insLen=(int)ds.ins.size();
+
+    // optimize
+    ds.subsong[0]->optimizePatterns();
+    ds.subsong[0]->rearrangePatterns();
+
+    if (active) quitDispatch();
+    BUSY_BEGIN_SOFT;
+    saveLock.lock();
+    song.unload();
+    song=ds;
+    changeSong(0);
+    recalcChans();
+    saveLock.unlock();
+    BUSY_END;
+    if (active) {
+      initDispatch();
+      BUSY_BEGIN;
+      renderSamples();
+      reset();
+      BUSY_END;
+    }
+    success=true;
+  } catch (EndOfFileException& e) {
+    //logE("premature end of file!");
+    lastError="incomplete file";
+  } catch (InvalidHeaderException& e) {
+    //logE("invalid header!");
+    lastError="invalid header!";
+  }
+  return success;
+}
+
 #define CHECK_BLOCK_VERSION(x) \
   if (blockVersion>x) { \
     logE("incompatible block version %d for %s!",blockVersion,blockName); \
@@ -2406,7 +3294,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
           unsigned char insType=reader.readC();
           switch (insType) {
             case 1:
-              ins->type=DIV_INS_STD;
+              ins->type=DIV_INS_NES;
               break;
             case 2: // TODO: tell VRC6 and VRC6 saw instruments apart
               ins->type=DIV_INS_VRC6;
@@ -2433,7 +3321,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
 
           // instrument data
           switch (ins->type) {
-            case DIV_INS_STD: {
+            case DIV_INS_NES: {
               unsigned int totalSeqs=reader.readI();
               if (totalSeqs>5) {
                 logE("%d: too many sequences!",insIndex);
@@ -2449,7 +3337,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
 
               const int dpcmNotes=(blockVersion>=2)?96:72;
               for (int j=0; j<dpcmNotes; j++) {
-                ins->amiga.noteMap[j].ind=(short)((unsigned char)reader.readC())-1;
+                ins->amiga.noteMap[j].map=(short)((unsigned char)reader.readC())-1;
                 ins->amiga.noteMap[j].freq=(unsigned char)reader.readC();
                 if (blockVersion>=6) {
                   reader.readC(); // DMC value
@@ -2505,6 +3393,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
               ins->std.arpMacro.len=reader.readC();
               ins->std.arpMacro.loop=reader.readI();
               ins->std.arpMacro.rel=reader.readI();
+              // TODO: get rid
               ins->std.arpMacro.mode=reader.readI();
               for (int j=0; j<ins->std.arpMacro.len; j++) {
                 ins->std.arpMacro.val[j]=reader.readC();
@@ -2688,6 +3577,8 @@ bool DivEngine::load(unsigned char* f, size_t slen) {
     return loadFTM(file,len);
   } else if (memcmp(file,DIV_FUR_MAGIC,16)==0) {
     return loadFur(file,len);
+  } else if (memcmp(file,DIV_FC13_MAGIC,4)==0 || memcmp(file,DIV_FC14_MAGIC,4)==0) {
+    return loadFC(file,len);
   }
 
   // step 3: try loading as .mod
@@ -2782,15 +3673,27 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   // high short is channel
   // low short is pattern number
   std::vector<PatToWrite> patsToWrite;
-  bool alreadyAdded[256];
-  for (int i=0; i<chans; i++) {
-    for (size_t j=0; j<song.subsong.size(); j++) {
-      DivSubSong* subs=song.subsong[j];
-      memset(alreadyAdded,0,256*sizeof(bool));
-      for (int k=0; k<subs->ordersLen; k++) {
-        if (alreadyAdded[subs->orders.ord[i][k]]) continue;
-        patsToWrite.push_back(PatToWrite(j,i,subs->orders.ord[i][k]));
-        alreadyAdded[subs->orders.ord[i][k]]=true;
+  if (getConfInt("saveUnusedPatterns",0)==1) {
+    for (int i=0; i<chans; i++) {
+      for (size_t j=0; j<song.subsong.size(); j++) {
+        DivSubSong* subs=song.subsong[j];
+        for (int k=0; k<256; k++) {
+          if (subs->pat[i].data[k]==NULL) continue;
+          patsToWrite.push_back(PatToWrite(j,i,k));
+        }
+      }
+    }
+  } else {
+    bool alreadyAdded[256];
+    for (int i=0; i<chans; i++) {
+      for (size_t j=0; j<song.subsong.size(); j++) {
+        DivSubSong* subs=song.subsong[j];
+        memset(alreadyAdded,0,256*sizeof(bool));
+        for (int k=0; k<subs->ordersLen; k++) {
+          if (alreadyAdded[subs->orders.ord[i][k]]) continue;
+          patsToWrite.push_back(PatToWrite(j,i,subs->orders.ord[i][k]));
+          alreadyAdded[subs->orders.ord[i][k]]=true;
+        }
       }
     }
   }
@@ -2935,7 +3838,13 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.volMacroLinger);
   w->writeC(song.brokenOutVol);
   w->writeC(song.e1e2StopOnSameNote);
-  for (int i=0; i<8; i++) {
+  w->writeC(song.brokenPortaArp);
+  w->writeC(song.snNoLowPeriods);
+  w->writeC(song.delayBehavior);
+  w->writeC(song.jumpTreatment);
+  w->writeC(song.autoSystem);
+  w->writeC(song.disableSampleMacro);
+  for (int i=0; i<2; i++) {
     w->writeC(0);
   }
 
@@ -2955,6 +3864,14 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   for (size_t i=0; i<(song.subsong.size()-1); i++) {
     w->writeI(0);
   }
+
+  // additional metadata
+  w->writeString(song.systemName,false);
+  w->writeString(song.category,false);
+  w->writeString(song.nameJ,false);
+  w->writeString(song.authorJ,false);
+  w->writeString(song.systemNameJ,false);
+  w->writeString(song.categoryJ,false);
 
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);
@@ -3034,20 +3951,40 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* sample=song.sample[i];
     samplePtr.push_back(w->tell());
-    w->write("SMPL",4);
+    w->write("SMP2",4);
     blockStartSeek=w->tell();
     w->writeI(0);
 
     w->writeString(sample->name,false);
     w->writeI(sample->samples);
     w->writeI(sample->rate);
-    w->writeI(0); // reserved (for now)
-    w->writeC((unsigned char)(sample->depth));
+    w->writeI(sample->centerRate);
+    w->writeC(sample->depth);
+    w->writeC(0); // reserved
     w->writeC(0);
-    w->writeS(sample->centerRate);
-    w->writeI((sample->loopMode==DIV_SAMPLE_LOOPMODE_ONESHOT)?-1:sample->loopStart);
+    w->writeC(0);
+    w->writeI(sample->loop?sample->loopStart:-1);
+    w->writeI(sample->loop?sample->loopEnd:-1);
 
+    for (int i=0; i<4; i++) {
+      w->writeI(0xffffffff);
+    }
+
+#ifdef TA_BIG_ENDIAN
+    // store 16-bit samples as little-endian
+    if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
+      unsigned char* sampleBuf=(unsigned char*)sample->getCurBuf();
+      size_t bufLen=sample->getCurBufLen();
+      for (size_t i=0; i<bufLen; i+=2) {
+        w->writeC(sampleBuf[i+1]);
+        w->writeC(sampleBuf[i]);
+      }
+    } else {
+      w->write(sample->getCurBuf(),sample->getCurBufLen());
+    }
+#else
     w->write(sample->getCurBuf(),sample->getCurBufLen());
+#endif
 
     blockEndSeek=w->tell();
     w->seek(blockStartSeek,SEEK_SET);
@@ -3074,7 +4011,13 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
       w->writeS(pat->data[j][1]); // octave
       w->writeS(pat->data[j][2]); // instrument
       w->writeS(pat->data[j][3]); // volume
+#ifdef TA_BIG_ENDIAN
+      for (int k=0; k<song.subsong[i.subsong]->pat[i.chan].effectCols*2; k++) {
+        w->writeS(pat->data[j][4+k]);
+      }
+#else
       w->write(&pat->data[j][4],2*song.subsong[i.subsong]->pat[i.chan].effectCols*2); // effects
+#endif
     }
 
     w->writeString(pat->name,false);
@@ -3297,7 +4240,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   }
 
   for (DivInstrument* i: song.ins) {
-    if (i->type==DIV_INS_FM) {
+    if (i->type==DIV_INS_FM || i->type==DIV_INS_OPM) {
       addWarning("no FM macros in .dmf format");
       break;
     }
@@ -3308,15 +4251,40 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     w->writeString(i->name,true);
 
     // safety check
-    if (!isFMSystem(sys) && i->type!=DIV_INS_STD && i->type!=DIV_INS_FDS) {
-      i->type=DIV_INS_STD;
+    if (!isFMSystem(sys) && i->type!=DIV_INS_STD && i->type!=DIV_INS_NES && i->type!=DIV_INS_FDS) {
+      switch (song.system[0]) {
+        case DIV_SYSTEM_GB:
+          i->type=DIV_INS_GB;
+          break;
+        case DIV_SYSTEM_NES:
+          i->type=DIV_INS_NES;
+          break;
+        case DIV_SYSTEM_C64_6581:
+        case DIV_SYSTEM_C64_8580:
+          i->type=DIV_INS_C64;
+          break;
+        case DIV_SYSTEM_PCE:
+          i->type=DIV_INS_PCE;
+          break;
+        case DIV_SYSTEM_YM2610:
+        case DIV_SYSTEM_YM2610_EXT:
+          i->type=DIV_INS_AY;
+          break;
+        default:
+          i->type=DIV_INS_STD;
+          break;
+      }
     }
-    if (!isSTDSystem(sys) && i->type!=DIV_INS_FM) {
-      i->type=DIV_INS_FM;
+    if (!isSTDSystem(sys) && i->type!=DIV_INS_FM && i->type!=DIV_INS_OPM) {
+      if (sys==DIV_SYSTEM_ARCADE) {
+        i->type=DIV_INS_OPM;
+      } else {
+        i->type=DIV_INS_FM;
+      }
     }
 
-    w->writeC((i->type==DIV_INS_FM || i->type==DIV_INS_OPLL)?1:0);
-    if (i->type==DIV_INS_FM || i->type==DIV_INS_OPLL) { // FM
+    w->writeC((i->type==DIV_INS_FM || i->type==DIV_INS_OPM || i->type==DIV_INS_OPLL)?1:0);
+    if (i->type==DIV_INS_FM || i->type==DIV_INS_OPM || i->type==DIV_INS_OPLL) { // FM
       w->writeC(i->fm.alg);
       w->writeC(i->fm.fb);
       w->writeC(i->fm.fms);
@@ -3350,47 +4318,79 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
       }
     } else { // STD
       if (sys!=DIV_SYSTEM_GB) {
-        w->writeC(i->std.volMacro.len);
+        int realVolMacroLen=i->std.volMacro.len;
+        if (realVolMacroLen>127) realVolMacroLen=127;
+        w->writeC(realVolMacroLen);
         if ((sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) && i->c64.volIsCutoff) {
-          for (int j=0; j<i->std.volMacro.len; j++) {
+          for (int j=0; j<realVolMacroLen; j++) {
             w->writeI(i->std.volMacro.val[j]+18);
           }
         } else {
-          w->write(i->std.volMacro.val,4*i->std.volMacro.len);
+          for (int j=0; j<realVolMacroLen; j++) {
+            w->writeI(i->std.volMacro.val[j]);
+          }
         }
-        if (i->std.volMacro.len>0) {
+        if (realVolMacroLen>0) {
           w->writeC(i->std.volMacro.loop);
         }
       }
 
+      // TODO: take care of new arp macro format
       w->writeC(i->std.arpMacro.len);
-      if (i->std.arpMacro.mode) {
-        w->write(i->std.arpMacro.val,4*i->std.arpMacro.len);
+      bool arpMacroMode=false;
+      int arpMacroHowManyFixed=0;
+      int realArpMacroLen=i->std.arpMacro.len;
+      for (int j=0; j<i->std.arpMacro.len; j++) {
+        if ((i->std.arpMacro.val[j]&0xc0000000)==0x40000000 || (i->std.arpMacro.val[j]&0xc0000000)==0x80000000) {
+          arpMacroHowManyFixed++;
+        }
+      }
+      if (arpMacroHowManyFixed>=i->std.arpMacro.len-1) {
+        arpMacroMode=true;
+      }
+      if (i->std.arpMacro.len>0) {
+        if (arpMacroMode && i->std.arpMacro.val[i->std.arpMacro.len-1]==0 && i->std.arpMacro.loop>=i->std.arpMacro.len) {
+          realArpMacroLen--;
+        }
+      }
+
+      if (arpMacroMode) {
+        for (int j=0; j<realArpMacroLen; j++) {
+          w->writeI(i->std.arpMacro.val[j]);
+        }
       } else {
-        for (int j=0; j<i->std.arpMacro.len; j++) {
+        for (int j=0; j<realArpMacroLen; j++) {
           w->writeI(i->std.arpMacro.val[j]+12);
         }
       }
-      if (i->std.arpMacro.len>0) {
+      if (realArpMacroLen>0) {
         w->writeC(i->std.arpMacro.loop);
       }
-      w->writeC(i->std.arpMacro.mode);
+      w->writeC(arpMacroMode);
 
-      w->writeC(i->std.dutyMacro.len);
+      int realDutyMacroLen=i->std.dutyMacro.len;
+      if (realDutyMacroLen>127) realDutyMacroLen=127;
+      w->writeC(realDutyMacroLen);
       if (sys==DIV_SYSTEM_C64_6581 || sys==DIV_SYSTEM_C64_8580) {
-        for (int j=0; j<i->std.dutyMacro.len; j++) {
+        for (int j=0; j<realDutyMacroLen; j++) {
           w->writeI(i->std.dutyMacro.val[j]+12);
         }
       } else {
-        w->write(i->std.dutyMacro.val,4*i->std.dutyMacro.len);
+        for (int j=0; j<realDutyMacroLen; j++) {
+          w->writeI(i->std.dutyMacro.val[j]);
+        }
       }
-      if (i->std.dutyMacro.len>0) {
+      if (realDutyMacroLen>0) {
         w->writeC(i->std.dutyMacro.loop);
       }
 
-      w->writeC(i->std.waveMacro.len);
-      w->write(i->std.waveMacro.val,4*i->std.waveMacro.len);
-      if (i->std.waveMacro.len>0) {
+      int realWaveMacroLen=i->std.waveMacro.len;
+      if (realWaveMacroLen>127) realWaveMacroLen=127;
+      w->writeC(realWaveMacroLen);
+      for (int j=0; j<realWaveMacroLen; j++) {
+        w->writeI(i->std.waveMacro.val[j]);
+      }
+      if (realWaveMacroLen>0) {
         w->writeC(i->std.waveMacro.loop);
       }
 
@@ -3440,9 +4440,13 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         w->writeI(i->data[j]>>2);
       }
     } else {
-      w->write(i->data,4*i->len);
+      for (int j=0; j<i->len; j++) {
+        w->writeI(i->data[j]);
+      }
     }
   }
+
+  bool relWarning=false;
 
   for (int i=0; i<getChannelCount(sys); i++) {
     w->writeC(curPat[i].effectCols);
@@ -3450,10 +4454,25 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     for (int j=0; j<curSubSong->ordersLen; j++) {
       DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][j],false);
       for (int k=0; k<curSubSong->patLen; k++) {
-        w->writeS(pat->data[k][0]); // note
-        w->writeS(pat->data[k][1]); // octave
+        if ((pat->data[k][0]==101 || pat->data[k][0]==102) && pat->data[k][1]==0) {
+          w->writeS(100);
+          w->writeS(0);
+          if (!relWarning) {
+            relWarning=true;
+            addWarning("note/macro release will be converted to note off!");
+          }
+        } else {
+          w->writeS(pat->data[k][0]); // note
+          w->writeS(pat->data[k][1]); // octave
+        }
         w->writeS(pat->data[k][3]); // volume
+#ifdef TA_BIG_ENDIAN
+        for (int l=0; l<curPat[i].effectCols*2; l++) {
+          w->writeS(pat->data[k][4+l]);
+        }
+#else
         w->write(&pat->data[k][4],2*curPat[i].effectCols*2); // effects
+#endif
         w->writeS(pat->data[k][2]); // instrument
       }
     }
@@ -3472,7 +4491,15 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
     w->writeC(50);
     // i'm too lazy to deal with .dmf's weird way of storing 8-bit samples
     w->writeC(16);
+    // well I can't be lazy if it's on a big-endian system
+#ifdef TA_BIG_ENDIAN
+    for (unsigned int j=0; j<i->length16; j++) {
+      w->writeC(((unsigned short)i->data16[j])&0xff);
+      w->writeC(((unsigned short)i->data16[j])>>8);
+    }
+#else
     w->write(i->data16,i->length16);
+#endif
   }
   
   saveLock.unlock();

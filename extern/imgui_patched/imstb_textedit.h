@@ -717,6 +717,9 @@ static int stb_textedit_paste_internal(STB_TEXTEDIT_STRING *str, STB_TexteditSta
       state->cursor += len;
       state->has_preferred_x = 0;
       return 1;
+   } else {
+     printf("stb_textedit_paste_internal failed.\n");
+     state->cursor=0;
    }
    // note: paste failure will leave deleted selection, may be restored with an undo (see https://github.com/nothings/stb/issues/734 for details)
    return 0;
@@ -746,6 +749,9 @@ retry:
                if (STB_TEXTEDIT_INSERTCHARS(str, state->cursor, &ch, 1)) {
                   ++state->cursor;
                   state->has_preferred_x = 0;
+               } else {
+                 printf("key failed: first section.\n");
+                 state->cursor=0;
                }
             } else {
                stb_textedit_delete_selection(str,state); // implicitly clamps
@@ -753,6 +759,9 @@ retry:
                   stb_text_makeundo_insert(state, state->cursor, 1);
                   ++state->cursor;
                   state->has_preferred_x = 0;
+               } else {
+                 printf("key failed: second section.\n");
+                 state->cursor=0;
                }
             }
          }
@@ -1275,14 +1284,22 @@ static void stb_text_undo(STB_TEXTEDIT_STRING *str, STB_TexteditState *state)
       STB_TEXTEDIT_DELETECHARS(str, u.where, u.delete_length);
    }
 
+   bool steFailed=false;
+
    // check type of recorded action:
    if (u.insert_length) {
       // easy case: was a deletion, so we need to insert n characters
-      STB_TEXTEDIT_INSERTCHARS(str, u.where, &s->undo_char[u.char_storage], u.insert_length);
+      if (!STB_TEXTEDIT_INSERTCHARS(str, u.where, &s->undo_char[u.char_storage], u.insert_length)) {
+        printf("undo u.insert_length failed\n");
+        state->cursor=0;
+        steFailed=true;
+      }
       s->undo_char_point -= u.insert_length;
    }
 
-   state->cursor = u.where + u.insert_length;
+   if (!steFailed) {
+     state->cursor = u.where + u.insert_length;
+   }
 
    s->undo_point--;
    s->redo_point--;
@@ -1327,13 +1344,21 @@ static void stb_text_redo(STB_TEXTEDIT_STRING *str, STB_TexteditState *state)
       STB_TEXTEDIT_DELETECHARS(str, r.where, r.delete_length);
    }
 
+   bool steFailed=false;
+
    if (r.insert_length) {
       // easy case: need to insert n characters
-      STB_TEXTEDIT_INSERTCHARS(str, r.where, &s->undo_char[r.char_storage], r.insert_length);
+      if (!STB_TEXTEDIT_INSERTCHARS(str, r.where, &s->undo_char[r.char_storage], r.insert_length)) {
+        printf("redo insert char failed\n");
+        state->cursor=0;
+        steFailed=true;
+      }
       s->redo_char_point += r.insert_length;
    }
 
-   state->cursor = r.where + r.insert_length;
+   if (!steFailed) {
+     state->cursor = r.where + r.insert_length;
+   }
 
    s->undo_point++;
    s->redo_point++;

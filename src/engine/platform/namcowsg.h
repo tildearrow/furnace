@@ -74,6 +74,7 @@ class DivPlatformNamcoWSG: public DivDispatch {
   int devType, chans;
   unsigned char regPool[512];
   void updateWave(int ch);
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -96,7 +97,6 @@ class DivPlatformNamcoWSG: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformNamcoWSG();

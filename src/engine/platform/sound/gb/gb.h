@@ -16,7 +16,7 @@ extern "C" {
 
 #define GB_STRUCT_VERSION 13
 
-#define CGB 0
+#define CGB (gb->model&GB_MODEL_CGB_FAMILY)
 
 #define GB_MODEL_FAMILY_MASK 0xF00
 #define GB_MODEL_DMG_FAMILY 0x000

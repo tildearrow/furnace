@@ -86,6 +86,7 @@ class DivPlatformAmiga: public DivDispatch {
 
   int sep1, sep2;
 
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   public:
@@ -105,7 +106,6 @@ class DivPlatformAmiga: public DivDispatch {
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
 };

@@ -24,7 +24,7 @@
 #include <queue>
 #include "../macroInt.h"
 #include "../waveSynth.h"
-#include "sound/scc/scc.hpp"
+#include "vgsound_emu/src/scc/scc.hpp"
 
 class DivPlatformSCC: public DivDispatch {
   struct Channel {
@@ -65,6 +65,7 @@ class DivPlatformSCC: public DivDispatch {
   unsigned char regBase;
   unsigned char regPool[225];
   void updateWave(int ch);
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -84,7 +85,6 @@ class DivPlatformSCC: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     void setFlags(unsigned int flags);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void setChipModel(bool isPlus);

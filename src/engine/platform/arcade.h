@@ -43,9 +43,9 @@ class DivPlatformArcade: public DivPlatformOPM {
       int freq, baseFreq, pitch, pitch2, note;
       int ins;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM, hardReset;
+      bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM, hardReset, opMaskChanged;
       int vol, outVol;
-      unsigned char chVolL, chVolR;
+      unsigned char chVolL, chVolR, opMask;
       void macroInit(DivInstrument* which) {
         std.init(which);
         pitch2=0;
@@ -68,23 +68,24 @@ class DivPlatformArcade: public DivPlatformOPM {
         portaPause(false),
         furnacePCM(false),
         hardReset(false),
+        opMaskChanged(false),
         vol(0),
         outVol(0),
         chVolL(127),
-        chVolR(127) {}
+        chVolR(127),
+        opMask(15) {}
     };
     Channel chan[8];
     DivDispatchOscBuffer* oscBuf[8];
     opm_t fm;
     int baseFreqOff;
-    int pcmL, pcmR, pcmCycles;
     unsigned char amDepth, pmDepth;
 
     ymfm::ym2151* fm_ymfm;
     ymfm::ym2151::output_data out_ymfm;
     DivArcadeInterface iface;
 
-    bool extMode, useYMFM;
+    bool useYMFM;
 
     bool isMuted[8];
 
@@ -94,6 +95,7 @@ class DivPlatformArcade: public DivPlatformOPM {
     void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
     void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
   
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:
@@ -115,7 +117,6 @@ class DivPlatformArcade: public DivPlatformOPM {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformArcade();

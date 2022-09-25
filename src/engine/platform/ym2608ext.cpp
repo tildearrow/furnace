@@ -59,6 +59,7 @@ int DivPlatformYM2608Ext::dispatch(DivCommand c) {
         rWrite(baseAddr+0x70,op.d2r&31);
         rWrite(baseAddr+0x80,(op.rr&15)|(op.sl<<4));
         rWrite(baseAddr+0x90,op.ssgEnv&15);
+        opChan[ch].mask=op.enable;
       }
       if (opChan[ch].insChanged) { // TODO how does this work?
         rWrite(chanOffs[2]+0xb0,(ins->fm.alg&7)|(ins->fm.fb<<3));
@@ -358,7 +359,7 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
     bool writeSomething=false;
     unsigned char writeMask=2;
     for (int i=0; i<4; i++) {
-      writeMask|=opChan[i].active<<(4+i);
+      writeMask|=(unsigned char)(opChan[i].mask && opChan[i].active)<<(4+i);
       if (opChan[i].keyOn || opChan[i].keyOff) {
         writeSomething=true;
         writeMask&=~(1<<(4+i));
@@ -395,10 +396,12 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
       immWrite(opChanOffsH[i],opChan[i].freq>>8);
       immWrite(opChanOffsL[i],opChan[i].freq&0xff);
     }
-    writeMask|=opChan[i].active<<(4+i);
+    writeMask|=(unsigned char)(opChan[i].mask && opChan[i].active)<<(4+i);
     if (opChan[i].keyOn) {
       writeNoteOn=true;
-      writeMask|=1<<(4+i);
+      if (opChan[i].mask) {
+        writeMask|=1<<(4+i);
+      }
       opChan[i].keyOn=false;
     }
   }
@@ -439,7 +442,7 @@ void DivPlatformYM2608Ext::forceIns() {
       if (i==2) { // extended channel
         if (isOpMuted[j]) {
           rWrite(baseAddr+0x40,127);
-        } else if (isOutput[chan[i].state.alg][j]) {
+        } else if (KVS(i,j)) {
           rWrite(baseAddr+0x40,127-VOL_SCALE_LOG(127-op.tl,opChan[j].vol&0x7f,127));
         } else {
           rWrite(baseAddr+0x40,op.tl);
@@ -448,7 +451,7 @@ void DivPlatformYM2608Ext::forceIns() {
         if (isMuted[i]) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
-          if (isOutput[chan[i].state.alg][j]) {
+          if (KVS(i,j)) {
             rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
           } else {
             rWrite(baseAddr+ADDR_TL,op.tl);
@@ -469,8 +472,13 @@ void DivPlatformYM2608Ext::forceIns() {
       chan[i].freqChanged=true;
     }
   }
-  for (int i=6; i<16; i++) {
+  for (int i=9; i<16; i++) {
     chan[i].insChanged=true;
+    if (i>14) { // ADPCM-B
+      immWrite(0x10b,chan[i].outVol);
+    } else {
+      immWrite(0x18+(i-9),isMuted[i]?0:((chan[i].pan<<6)|chan[i].outVol));
+    }
   }
   ay->forceIns();
   ay->flushWrites();

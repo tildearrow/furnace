@@ -22,7 +22,7 @@
 #include "../dispatch.h"
 #include "../macroInt.h"
 #include <queue>
-#include "sound/oki/msm6295.hpp"
+#include "vgsound_emu/src/msm6295/msm6295.hpp"
 
 class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
   protected:
@@ -46,8 +46,8 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
         keyOff(false),
         furnacePCM(false),
         hardReset(false),
-        vol(0),
-        outVol(15),
+        vol(8),
+        outVol(8),
         sample(-1) {}
     };
     Channel chan[4];
@@ -57,7 +57,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
       unsigned short addr;
       unsigned char val;
       unsigned short delay;
-      QueuedWrite(unsigned short a, unsigned char v, unsigned short d=32):
+      QueuedWrite(unsigned short a, unsigned char v, unsigned short d=96):
         addr(a),
         val(v),
         delay(d) {}
@@ -74,6 +74,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
 
     bool rateSel=false, rateSelInit=false;
   
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:
@@ -97,7 +98,6 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual void poke(std::vector<DivRegWrite>& wlist) override;
     virtual void setFlags(unsigned int flags) override;
     virtual const char** getRegisterSheet() override;
-    virtual const char* getEffectName(unsigned char effect) override;
     virtual const void* getSampleMem(int index) override;
     virtual size_t getSampleMemCapacity(int index) override;
     virtual size_t getSampleMemUsage(int index) override;

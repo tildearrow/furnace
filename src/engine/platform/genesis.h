@@ -45,9 +45,9 @@ class DivPlatformGenesis: public DivPlatformOPN {
       unsigned char freqH, freqL;
       int freq, baseFreq, pitch, pitch2, portaPauseFreq, note;
       int ins;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, hardReset;
+      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, hardReset, opMaskChanged;
       int vol, outVol;
-      unsigned char pan;
+      unsigned char pan, opMask;
 
       bool dacMode;
       int dacPeriod;
@@ -86,9 +86,11 @@ class DivPlatformGenesis: public DivPlatformOPN {
         furnaceDac(false),
         inPorta(false),
         hardReset(false),
+        opMaskChanged(false),
         vol(0),
         outVol(0),
         pan(3),
+        opMask(15),
         dacMode(false),
         dacPeriod(0),
         dacRate(0),
@@ -118,7 +120,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
     bool ladder;
   
     unsigned char dacVolTable[128];
-
+  
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
     inline void processDAC();
@@ -149,7 +152,6 @@ class DivPlatformGenesis: public DivPlatformOPN {
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     DivPlatformGenesis():

@@ -79,7 +79,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Yamaha YM2610B (OPNB-B)", {
+    "Yamaha YM2610B (OPNB2)", {
       DIV_SYSTEM_YM2610B, 64, 0, 0,
       0
     }
@@ -362,7 +362,13 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_MSM6295, 64, 0, 0,
       0
     }
-  ));  
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNES", {
+      DIV_SYSTEM_SNES, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Wavetable","chips which use user-specified waveforms to generate sound.");
@@ -415,7 +421,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Namco C163", {
+    "Namco 163", {
       DIV_SYSTEM_N163, 64, 0, 0,
       0
     }
@@ -595,49 +601,49 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with Konami VRC6", {
+    "Famicom with Konami VRC6", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_VRC6, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with Konami VRC7", {
+    "Famicom with Konami VRC7", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_VRC7, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with MMC5", {
+    "Famicom with MMC5", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_MMC5, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with Sunsoft 5B", {
+    "Famicom with Sunsoft 5B", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 32,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with Namco C163", {
+    "Famicom with Namco 163", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_N163, 64, 0, 112,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with Family Noraebang", {
+    "Comboy with Family Noraebang", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_OPLL, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with Family Noraebang (drums mode)", {
+    "Comboy with Family Noraebang (drums mode)", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0,
       0
@@ -647,6 +653,12 @@ void FurnaceGUI::initSystemPresets() {
     "Famicom Disk System", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_FDS, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "SNES", {
+      DIV_SYSTEM_SNES, 64, 0, 0,
       0
     }
   ));
@@ -861,6 +873,41 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Neotron", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2610_FULL, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Neotron (extended channel 2)", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2610_FULL_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Neotron (with YM2610B)", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2610B, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + Neotron (with YM2610B; extended channel 3)", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_YM2610B_EXT, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "MSX + SIMPL", {
+      DIV_SYSTEM_AY8910, 64, 0, 16,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 55929|(7<<16), // variable rate, Mono DAC
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with PC-9801-26/K)", {
       DIV_SYSTEM_OPN, 64, 0, 4, // 3.9936MHz but some compatible card has 4MHz
       0
@@ -931,11 +978,27 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with PC-9801-86)", { // -73 also has OPNA
       DIV_SYSTEM_PC98, 64, 0, 1,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16), // 2x 16-bit Burr Brown DAC
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16),
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with PC-9801-86; extended channel 3)", { // -73 also has OPNA
+      DIV_SYSTEM_PC98_EXT, 64, 0, 1,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16),
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16),
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with PC-9801-73)", {
+      DIV_SYSTEM_PC98, 64, 0, 1,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "NEC PC-98 (with PC-9801-73; extended channel 3)", {
       DIV_SYSTEM_PC98_EXT, 64, 0, 1,
       0
     }
@@ -943,6 +1006,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible)", {
       DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
       DIV_SYSTEM_OPL3, 64, 0, 0,
       0
     }
@@ -950,6 +1014,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible; extended channel 3)", {
       DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
       DIV_SYSTEM_OPL3, 64, 0, 0,
       0
     }
@@ -957,6 +1022,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode)", {
       DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
       DIV_SYSTEM_OPL3_DRUMS, 64, 0, 2,
       0
     }
@@ -964,6 +1030,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode; extended channel 3)", {
       DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
       DIV_SYSTEM_OPL3_DRUMS, 64, 0, 2,
       0
     }
@@ -1064,6 +1131,20 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Atari ST", {
+      DIV_SYSTEM_AY8910, 64, 0, 19,
+      0
+    }
+  ));
+    cat.systems.push_back(FurnaceGUISysDef(
+    "Atari STE", {
+      DIV_SYSTEM_AY8910, 64, 0, 19,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 50667|(7<<16),
+      DIV_SYSTEM_PCM_DAC, 64, 0, 50667|(7<<16),
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "SAM Coupé", {
       DIV_SYSTEM_SAA1099, 64, 0, 0,
       0
@@ -1117,10 +1198,25 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
-  cat.systems.push_back(FurnaceGUISysDef(
-    "PC + AdLib/Sound Blaster", {
+    cat.systems.push_back(FurnaceGUISysDef(
+    "PC + AdLib", {
       DIV_SYSTEM_OPL2, 64, 0, 0,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+      cat.systems.push_back(FurnaceGUISysDef(
+    "PC + AdLib (drums mode)", {
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "PC + Sound Blaster", {
+      DIV_SYSTEM_OPL2, 64, 0, 0,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16),
       0
     }
   ));
@@ -1128,6 +1224,7 @@ void FurnaceGUI::initSystemPresets() {
     "PC + AdLib/Sound Blaster (drums mode)", {
       DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16),
       0
     }
   ));
@@ -1136,6 +1233,7 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_OPL2, 64, 0, 0,
       DIV_SYSTEM_SAA1099, 64, 0, 1,
       DIV_SYSTEM_SAA1099, 64, 0, 1,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16),
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -1145,6 +1243,7 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0,
       DIV_SYSTEM_SAA1099, 64, 0, 1,
       DIV_SYSTEM_SAA1099, 64, 0, 1,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16),
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -1153,6 +1252,7 @@ void FurnaceGUI::initSystemPresets() {
     "PC + Sound Blaster Pro", {
       DIV_SYSTEM_OPL2, 64, -127, 0,
       DIV_SYSTEM_OPL2, 64, 127, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16)|(1<<20), //alternatively 44.1 khz mono
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -1161,6 +1261,7 @@ void FurnaceGUI::initSystemPresets() {
     "PC + Sound Blaster Pro (drums mode)", {
       DIV_SYSTEM_OPL2_DRUMS, 64, -127, 0,
       DIV_SYSTEM_OPL2_DRUMS, 64, 127, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16)|(1<<20), //alternatively 44.1 khz mono
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -1168,6 +1269,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster Pro 2", {
       DIV_SYSTEM_OPL3, 64, 0, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -1175,6 +1277,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "PC + Sound Blaster Pro 2 (drums mode)", {
       DIV_SYSTEM_OPL3_DRUMS, 64, 0, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
       DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
@@ -1248,6 +1351,15 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Williams/Midway Y/T unit w/ADPCM sound board", {
+      // ADPCM sound board
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 15624|(7<<16), // variable via OPM timer?
+      DIV_SYSTEM_MSM6295, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Konami Gyruss", {
       DIV_SYSTEM_AY8910, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 0,
@@ -1264,6 +1376,34 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_AY8910, 64, 0, 0,
       DIV_SYSTEM_BUBSYS_WSG, 64, 0, 0,
       // VLM5030 exists but not used for music at all
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Konami Battlantis", {
+      DIV_SYSTEM_OPL2, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_OPL2, 64, 0, 3, // ""
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Konami Battlantis (drums mode on first OPL2)", {
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_OPL2, 64, 0, 3, // ""
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Konami Battlantis (drums mode on second OPL2)", {
+      DIV_SYSTEM_OPL2, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 3, // ""
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Konami Battlantis (drums mode on both OPL2s)", {
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 3, // 3MHz
+      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 3, // ""
       0
     }
   ));
@@ -1329,6 +1469,13 @@ void FurnaceGUI::initSystemPresets() {
     "Sega OutRun/X Board", {
       DIV_SYSTEM_YM2151, 64, 0, 2, // 4MHz
       DIV_SYSTEM_SEGAPCM, 64, 0, 0, // ASIC, 31.25KHz output rate
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Sega System 24", {
+      DIV_SYSTEM_YM2151, 64, 0, 2, // 4MHz
+      DIV_SYSTEM_PCM_DAC, 64, 0, 61499|(7<<16), // software controlled, variable rate via configurable timers
       0
     }
   ));
@@ -1869,7 +2016,7 @@ void FurnaceGUI::initSystemPresets() {
     "Alpha denshi Alpha-68K", {
       DIV_SYSTEM_OPN, 64, 0, 3, // 3MHz
       DIV_SYSTEM_OPLL, 64, 0, 0, // 3.58MHz
-      // software controlled 8 bit DAC
+      DIV_SYSTEM_PCM_DAC, 64, 0, 7613|(7<<16), // software controlled 8 bit DAC
       0
     }
   ));
@@ -1877,7 +2024,7 @@ void FurnaceGUI::initSystemPresets() {
     "Alpha denshi Alpha-68K (extended channel 3)", {
       DIV_SYSTEM_OPN_EXT, 64, 0, 3, // 3MHz
       DIV_SYSTEM_OPLL, 64, 0, 0, // 3.58MHz
-      // software controlled 8 bit DAC
+      DIV_SYSTEM_PCM_DAC, 64, 0, 7613|(7<<16), // software controlled 8 bit DAC
       0
     }
   ));
@@ -1885,7 +2032,7 @@ void FurnaceGUI::initSystemPresets() {
     "Alpha denshi Alpha-68K (drums mode)", {
       DIV_SYSTEM_OPN, 64, 0, 3, // 3MHz
       DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0, // 3.58MHz
-      // software controlled 8 bit DAC
+      DIV_SYSTEM_PCM_DAC, 64, 0, 7613|(7<<16), // software controlled 8 bit DAC
       0
     }
   ));
@@ -1893,7 +2040,7 @@ void FurnaceGUI::initSystemPresets() {
     "Alpha denshi Alpha-68K (extended channel 3; drums mode)", {
       DIV_SYSTEM_OPN_EXT, 64, 0, 3, // 3MHz
       DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0, // 3.58MHz
-      // software controlled 8 bit DAC
+      DIV_SYSTEM_PCM_DAC, 64, 0, 7613|(7<<16), // software controlled 8 bit DAC
       0
     }
   ));
@@ -1936,9 +2083,26 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Namco System 86", { // without expansion board case; Hopping Mappy, etc
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Namco Thunder Ceptor", {
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 7999|(7<<16), // M65C02 software driven, correct sample rate?
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Namco System 1", {
       DIV_SYSTEM_YM2151, 64, 0, 0,
       DIV_SYSTEM_NAMCO_CUS30, 64, 0, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 5999|(7<<16), // sample rate verified from https://github.com/mamedev/mame/blob/master/src/devices/sound/n63701x.cpp
+      DIV_SYSTEM_PCM_DAC, 64, 0, 5999|(7<<16), // ""
       0
     }
   ));
@@ -2051,6 +2215,13 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Irem M72", {
+      DIV_SYSTEM_YM2151, 64, 0, 0,
+      DIV_SYSTEM_PCM_DAC, 64, 0, 7811|(7<<16),
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("DefleMask-compatible","these configurations are compatible with DefleMask.\nselect this if you need to save as .dmf or work with that program.");
@@ -2100,7 +2271,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "NES with Konami VRC7", {
+    "Famicom with Konami VRC7", {
       DIV_SYSTEM_NES, 64, 0, 0,
       DIV_SYSTEM_VRC7, 64, 0, 0,
       0

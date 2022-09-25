@@ -78,6 +78,7 @@ class DivPlatformSMS: public DivDispatch {
     QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
   };
   std::queue<QueuedWrite> writes;
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
@@ -101,7 +102,6 @@ class DivPlatformSMS: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     void setNuked(bool value);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();

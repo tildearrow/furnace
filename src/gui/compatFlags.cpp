@@ -139,6 +139,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("if enabled, no checks for the presence of a volume macro will be made.\nthis will cause the last macro value to linger unless a value in the volume column is present.");
     }
+    ImGui::Checkbox("Treat SN76489 periods under 8 as 1",&e->song.snNoLowPeriods);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("when enabled, any SN period under 8 will be written as 1 instead.\nthis replicates DefleMask behavior, but reduces available period range.");
+    }
 
     ImGui::Text("Pitch linearity:");
     if (ImGui::RadioButton("None",e->song.linearPitch==0)) {
@@ -189,6 +193,46 @@ void FurnaceGUI::drawCompatFlags() {
       ImGui::SetTooltip("select to not reset channels on loop.");
     }
 
+    ImGui::Text("Cut/delay effect policy:");
+    if (ImGui::RadioButton("Strict",e->song.delayBehavior==0)) {
+      e->song.delayBehavior=0;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("only when time is less than speed (like DefleMask/ProTracker)");
+    }
+    if (ImGui::RadioButton("Strict (old)",e->song.delayBehavior==1)) {
+      e->song.delayBehavior=1;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("only when time is less than or equal to speed (original buggy behavior)");
+    }
+    if (ImGui::RadioButton("Lax",e->song.delayBehavior==2)) {
+      e->song.delayBehavior=2;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("no checks (like FamiTracker)");
+    }
+
+    ImGui::Text("Simultaneous jump (0B+0D) treatment:");
+    if (ImGui::RadioButton("Normal",e->song.jumpTreatment==0)) {
+      e->song.jumpTreatment=0;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("accept 0B+0D to jump to a specific row of an order");
+    }
+    if (ImGui::RadioButton("Old Furnace",e->song.jumpTreatment==1)) {
+      e->song.jumpTreatment=1;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("only accept the first jump effect");
+    }
+    if (ImGui::RadioButton("DefleMask",e->song.jumpTreatment==2)) {
+      e->song.jumpTreatment=2;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("only accept 0Dxx");
+    }
+
     ImGui::Separator();
 
     ImGui::TextWrapped("the following flags are for compatibility with older Furnace versions.");
@@ -207,31 +251,39 @@ void FurnaceGUI::drawCompatFlags() {
     }
     ImGui::Checkbox("Stop portamento on note off",&e->song.stopPortaOnNoteOff);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("behavior changed in 0.6");
+      ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
     ImGui::Checkbox("Allow instrument change during slides",&e->song.newInsTriggersInPorta);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("behavior changed in 0.6");
+      ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
     ImGui::Checkbox("Reset note to base on arpeggio stop",&e->song.arp0Reset);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("behavior changed in 0.6");
+      ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
     ImGui::Checkbox("ExtCh channel status is shared among operators",&e->song.sharedExtStat);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("behavior changed in 0.6");
+      ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
     ImGui::Checkbox("New SegaPCM features (macros and better panning)",&e->song.newSegaPCM);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("behavior changed in 0.6");
+      ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
     ImGui::Checkbox("Old FM octave boundary behavior",&e->song.oldOctaveBoundary);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("behavior changed in 0.6");
+      ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
     ImGui::Checkbox("No OPN2 DAC volume control",&e->song.noOPN2Vol);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("behavior changed in 0.6");
+      ImGui::SetTooltip("behavior changed in 0.6pre1");
+    }
+    ImGui::Checkbox("Broken initial position of portamento after arpeggio",&e->song.brokenPortaArp);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("behavior changed in 0.6pre1.5");
+    }
+    ImGui::Checkbox("Disable new sample features",&e->song.disableSampleMacro);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("behavior changed in 0.6pre2");
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_COMPAT_FLAGS;

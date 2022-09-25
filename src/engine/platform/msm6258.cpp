@@ -30,18 +30,6 @@ const char** DivPlatformMSM6258::getRegisterSheet() {
   return NULL;
 }
 
-const char* DivPlatformMSM6258::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x20:
-      return "20xx: Set frequency divider (0-2)";
-      break;
-    case 0x21:
-      return "21xx: Select clock rate (0: full; 1: half)";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformMSM6258::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   short* outs[2]={
     &msmOut,
@@ -102,14 +90,56 @@ void DivPlatformMSM6258::acquire(short* bufL, short* bufR, size_t start, size_t 
 }
 
 void DivPlatformMSM6258::tick(bool sysTick) {
-  // nothing
+  for (int i=0; i<1; i++) {
+    if (!parent->song.disableSampleMacro) {
+      chan[i].std.next();
+      if (chan[i].std.duty.had) {
+        if (rateSel!=(chan[i].std.duty.val&3)) {
+          rateSel=chan[i].std.duty.val&3;
+          rWrite(12,rateSel);
+        }
+      }
+      if (chan[i].std.panL.had) {
+        if (chan[i].pan!=(chan[i].std.panL.val&3)) {
+          chan[i].pan=chan[i].std.panL.val&3;
+          rWrite(2,chan[i].pan);
+        }
+      }
+      if (chan[i].std.ex1.had) {
+        if (clockSel!=(chan[i].std.ex1.val&1)) {
+          clockSel=chan[i].std.ex1.val&1;
+          rWrite(8,clockSel);
+        }
+      }
+      if (chan[i].std.phaseReset.had) {
+        if (chan[i].std.phaseReset.val && chan[i].active) {
+          chan[i].keyOn=true;
+        }
+      }
+    }
+    if (chan[i].keyOn || chan[i].keyOff) {
+      samplePos=0;
+      rWrite(0,1); // turn off
+      if (chan[i].active && !chan[i].keyOff) {
+        if (sample>=0 && sample<parent->song.sampleLen) {
+          rWrite(0,2);
+        } else {
+          sample=-1;
+        }
+      } else {
+        sample=-1;
+      }
+      chan[i].keyOn=false;
+      chan[i].keyOff=false;
+    }
+  }
 }
 
 int DivPlatformMSM6258::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
-      if (ins->type==DIV_INS_AMIGA) {
+      if (ins->type==DIV_INS_MSM6258 || ins->type==DIV_INS_AMIGA) {
         chan[c.chan].furnacePCM=true;
       } else {
         chan[c.chan].furnacePCM=false;
@@ -121,6 +151,7 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
           chan[c.chan].outVol=chan[c.chan].vol;
         }
         sample=ins->amiga.getSample(c.value);
+        samplePos=0;
         if (sample>=0 && sample<parent->song.sampleLen) {
           //DivSample* s=parent->getSample(chan[c.chan].sample);
           if (c.value!=DIV_NOTE_NULL) {
@@ -129,8 +160,6 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
           }
           chan[c.chan].active=true;
           chan[c.chan].keyOn=true;
-          rWrite(0,1);
-          rWrite(0,2);
         } else {
           break;
         }
@@ -144,8 +173,8 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
         //DivSample* s=parent->getSample(12*sampleBank+c.value%12);
         sample=12*sampleBank+c.value%12;
         samplePos=0;
-        msm->ctrl_w(1);
-        msm->ctrl_w(2);
+        chan[c.chan].active=true;
+        chan[c.chan].keyOn=true;
       }
       break;
     }
@@ -153,18 +182,12 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      rWrite(0,1); // turn off
-      sample=-1;
-      samplePos=0;
       chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      rWrite(0,1); // turn off
-      sample=-1;
-      samplePos=0;
       chan[c.chan].std.release();
       break;
     case DIV_CMD_ENV_RELEASE:

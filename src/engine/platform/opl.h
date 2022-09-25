@@ -44,6 +44,7 @@ class DivPlatformOPL: public DivDispatch {
       bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnacePCM, inPorta, fourOp, hardReset;
       int vol, outVol;
       unsigned char pan;
+      int macroVolMul;
       void macroInit(DivInstrument* which) {
         std.init(which);
         pitch2=0;
@@ -70,7 +71,8 @@ class DivPlatformOPL: public DivDispatch {
         fourOp(false),
         hardReset(false),
         vol(0),
-        pan(3) {
+        pan(3),
+        macroVolMul(64) {
         state.ops=2;
       }
     };
@@ -116,6 +118,7 @@ class DivPlatformOPL: public DivDispatch {
     int toFreq(int freq);
     double NOTE_ADPCMB(int note);
 
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
     void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
@@ -145,7 +148,6 @@ class DivPlatformOPL: public DivDispatch {
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
-    const char* getEffectName(unsigned char effect);
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);

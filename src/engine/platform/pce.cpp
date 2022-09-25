@@ -53,27 +53,6 @@ const char** DivPlatformPCE::getRegisterSheet() {
   return regCheatSheetPCE;
 }
 
-const char* DivPlatformPCE::getEffectName(unsigned char effect) {
-  switch (effect) {
-    case 0x10:
-      return "10xx: Change waveform";
-      break;
-    case 0x11:
-      return "11xx: Toggle noise mode";
-      break;
-    case 0x12:
-      return "12xx: Setup LFO (0: disabled; 1: 1x depth; 2: 16x depth; 3: 256x depth)";
-      break;
-    case 0x13:
-      return "13xx: Set LFO speed";
-      break;
-    case 0x17:
-      return "17xx: Toggle PCM mode";
-      break;
-  }
-  return NULL;
-}
-
 void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     // PCM part
@@ -87,15 +66,20 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
             continue;
           }
           chWrite(i,0x07,0);
-          chWrite(i,0x04,0xdf);
-          chWrite(i,0x06,(((unsigned char)s->data8[chan[i].dacPos]+0x80)>>3));
+          signed char dacData=((signed char)((unsigned char)s->data8[chan[i].dacPos]^0x80))>>3;
+          chan[i].dacOut=CLAMP(dacData,-16,15);
+          if (!isMuted[i]) {
+            chWrite(i,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[i].outVol));
+            chWrite(i,0x06,chan[i].dacOut&0x1f);
+          } else {
+            chWrite(i,0x04,0xc0);
+            chWrite(i,0x06,0x10);
+          }
           chan[i].dacPos++;
-          if (((s->loopMode!=DIV_SAMPLE_LOOPMODE_ONESHOT) && chan[i].dacPos>=s->loopEnd) || (chan[i].dacPos>=s->samples)) {
-            if (s->isLoopable()) {
-              chan[i].dacPos=s->loopStart;
-            } else {
-              chan[i].dacSample=-1;
-            }
+          if (s->isLoopable() && chan[i].dacPos>=(unsigned int)s->loopEnd) {
+            chan[i].dacPos=s->loopStart;
+          } else if (chan[i].dacPos>=s->samples) {
+            chan[i].dacSample=-1;
           }
           chan[i].dacPeriod-=rate;
         }
@@ -117,7 +101,7 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
     pce->ResetTS(0);
 
     for (int i=0; i<6; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1])<<1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP((pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1])<<1,-32768,32767);
     }
 
     tempL[0]=(tempL[0]>>1)+(tempL[0]>>2);
@@ -135,13 +119,21 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
 }
 
 void DivPlatformPCE::updateWave(int ch) {
+  if (chan[ch].pcm) {
+    chan[ch].deferredWaveUpdate=true;
+    return;
+  }
   chWrite(ch,0x04,0x5f);
   chWrite(ch,0x04,0x1f);
   for (int i=0; i<32; i++) {
-    chWrite(ch,0x06,chan[ch].ws.output[i]);
+    chWrite(ch,0x06,chan[ch].ws.output[(i+chan[ch].antiClickWavePos)&31]);
   }
+  chan[ch].antiClickWavePos&=31;
   if (chan[ch].active) {
     chWrite(ch,0x04,0x80|chan[ch].outVol);
+  }
+  if (chan[ch].deferredWaveUpdate) {
+    chan[ch].deferredWaveUpdate=false;
   }
 }
 
@@ -152,6 +144,13 @@ static unsigned char noiseFreq[12]={
 
 void DivPlatformPCE::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
+    // anti-click
+    if (antiClickEnabled && sysTick && chan[i].freq>0) {
+      chan[i].antiClickPeriodCount+=(chipClock/MAX(parent->getCurHz(),1.0f));
+      chan[i].antiClickWavePos+=chan[i].antiClickPeriodCount/chan[i].freq;
+      chan[i].antiClickPeriodCount%=chan[i].freq;
+    }
+
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LOG(chan[i].vol&31,MIN(31,chan[i].std.vol.val),31);
@@ -170,28 +169,12 @@ void DivPlatformPCE::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].std.arp.val);
-          // noise
-          int noiseSeek=chan[i].std.arp.val;
-          if (noiseSeek<0) noiseSeek=0;
-          chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
-        } else {
-          chan[i].baseFreq=NOTE_PERIODIC(chan[i].note+chan[i].std.arp.val);
-          int noiseSeek=chan[i].note+chan[i].std.arp.val;
-          if (noiseSeek<0) noiseSeek=0;
-          chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
-        }
-      }
-      chan[i].freqChanged=true;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].baseFreq=NOTE_PERIODIC(chan[i].note);
-        int noiseSeek=chan[i].note;
+        int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.arp.val);
+        chan[i].baseFreq=NOTE_PERIODIC(noiseSeek);
         if (noiseSeek<0) noiseSeek=0;
         chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
-        chan[i].freqChanged=true;
       }
+      chan[i].freqChanged=true;
     }
     if (chan[i].std.wave.had && !chan[i].pcm) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
@@ -220,8 +203,21 @@ void DivPlatformPCE::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
+    if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
+      if (chan[i].furnaceDac && chan[i].pcm) {
+        if (chan[i].active && chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
+          chan[i].dacPos=0;
+          chan[i].dacPeriod=0;
+          chWrite(i,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[i].vol));
+          addWrite(0xffff0000+(i<<8),chan[i].dacSample);
+          chan[i].keyOn=true;
+        }
+      }
+      chan[i].antiClickWavePos=0;
+      chan[i].antiClickPeriodCount=0;
+    }
     if (chan[i].active) {
-      if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1)) {
+      if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) || chan[i].deferredWaveUpdate) {
         updateWave(i);
       }
     }
@@ -262,13 +258,14 @@ int DivPlatformPCE::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
-      if (ins->type==DIV_INS_AMIGA) {
+      chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:31;
+      if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
         chan[c.chan].pcm=true;
       } else if (chan[c.chan].furnaceDac) {
         chan[c.chan].pcm=false;
       }
       if (chan[c.chan].pcm) {
-        if (ins->type==DIV_INS_AMIGA) {
+        if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           chan[c.chan].furnaceDac=true;
           if (skipRegisterWrites) break;
           chan[c.chan].dacSample=ins->amiga.getSample(c.value);
@@ -278,7 +275,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
             break;
           } else {
              if (dumpWrites) {
-               chWrite(c.chan,0x04,0xdf);
+               chWrite(c.chan,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[c.chan].vol));
                addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
              }
           }
@@ -291,6 +288,9 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           }
           chan[c.chan].active=true;
           chan[c.chan].macroInit(ins);
+          if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+            chan[c.chan].outVol=chan[c.chan].vol;
+          }
           //chan[c.chan].keyOn=true;
         } else {
           chan[c.chan].furnaceDac=false;
@@ -310,7 +310,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
           chan[c.chan].dacPeriod=0;
           chan[c.chan].dacRate=parent->getSample(chan[c.chan].dacSample)->rate;
           if (dumpWrites) {
-            chWrite(c.chan,0x04,0xdf);
+            chWrite(c.chan,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[c.chan].vol));
             addWrite(0xffff0001+(c.chan<<8),chan[c.chan].dacRate);
           }
         }
@@ -362,7 +362,9 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
-          if (chan[c.chan].active) chWrite(c.chan,0x04,0x80|chan[c.chan].outVol);
+          if (chan[c.chan].active && !chan[c.chan].pcm) {
+            chWrite(c.chan,0x04,0x80|chan[c.chan].outVol);
+          }
         }
       }
       break;
@@ -445,6 +447,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
       }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
@@ -462,6 +465,10 @@ int DivPlatformPCE::dispatch(DivCommand c) {
 void DivPlatformPCE::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   chWrite(ch,0x05,isMuted[ch]?0:chan[ch].pan);
+  if (!isMuted[ch] && (chan[ch].pcm && chan[ch].dacSample!=-1)) {
+    chWrite(ch,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[ch].outVol));
+    chWrite(ch,0x06,chan[ch].dacOut&0x1f);
+  }
 }
 
 void DivPlatformPCE::forceIns() {
@@ -556,10 +563,18 @@ void DivPlatformPCE::setFlags(unsigned int flags) {
   } else {
     chipClock=COLOR_NTSC;
   }
+  // flags&4 will be chip revision
+  antiClickEnabled=!(flags&8);
   rate=chipClock/12;
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;
   }
+
+  if (pce!=NULL) {
+    delete pce;
+    pce=NULL;
+  }
+  pce=new PCE_PSG(tempL,tempR,(flags&4)?PCE_PSG::REVISION_HUC6280A:PCE_PSG::REVISION_HUC6280);
 }
 
 void DivPlatformPCE::poke(unsigned int addr, unsigned short val) {
@@ -578,8 +593,8 @@ int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, unsigned int f
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
+  pce=NULL;
   setFlags(flags);
-  pce=new PCE_PSG(tempL,tempR,PCE_PSG::REVISION_HUC6280A);
   reset();
   return 6;
 }
@@ -588,7 +603,10 @@ void DivPlatformPCE::quit() {
   for (int i=0; i<6; i++) {
     delete oscBuf[i];
   }
-  delete pce;
+  if (pce!=NULL) {
+    delete pce;
+    pce=NULL;
+  }
 }
 
 DivPlatformPCE::~DivPlatformPCE() {

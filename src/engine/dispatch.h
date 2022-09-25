@@ -55,6 +55,18 @@ enum DivDispatchCmds {
   DIV_CMD_PRE_PORTA, // (inPorta, isPortaOrSlide)
   DIV_CMD_PRE_NOTE, // used in C64 (note)
 
+  // these will be used in ROM export.
+  // do NOT implement!
+  DIV_CMD_HINT_VIBRATO, // (speed, depth)
+  DIV_CMD_HINT_VIBRATO_RANGE, // (range)
+  DIV_CMD_HINT_VIBRATO_SHAPE, // (shape)
+  DIV_CMD_HINT_PITCH, // (pitch)
+  DIV_CMD_HINT_ARPEGGIO, // (note1, note2)
+  DIV_CMD_HINT_VOLUME, // (vol)
+  DIV_CMD_HINT_VOL_SLIDE, // (amount, oneTick)
+  DIV_CMD_HINT_PORTA, // (target, speed)
+  DIV_CMD_HINT_LEGATO, // (note)
+
   DIV_CMD_SAMPLE_MODE, // (enabled)
   DIV_CMD_SAMPLE_FREQ, // (frequency)
   DIV_CMD_SAMPLE_BANK, // (bank)
@@ -155,6 +167,7 @@ enum DivDispatchCmds {
   DIV_CMD_X1_010_ENVELOPE_PERIOD,
   DIV_CMD_X1_010_ENVELOPE_SLIDE,
   DIV_CMD_X1_010_AUTO_ENVELOPE,
+  DIV_CMD_X1_010_SAMPLE_BANK_SLOT,
 
   DIV_CMD_WS_SWEEP_TIME,
   DIV_CMD_WS_SWEEP_AMOUNT,
@@ -190,6 +203,8 @@ enum DivDispatchCmds {
   DIV_CMD_SU_SWEEP_ENABLE, // (which, val)
   DIV_CMD_SU_SYNC_PERIOD_LOW,
   DIV_CMD_SU_SYNC_PERIOD_HIGH,
+
+  DIV_CMD_ADPCMA_GLOBAL_VOLUME,
 
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
@@ -414,11 +429,10 @@ class DivDispatch {
     virtual bool getDCOffRequired();
 
     /**
-     * get a description of a dispatch-specific effect.
-     * @param effect the effect.
-     * @return the description, or NULL if effect is invalid.
+     * check whether PRE_NOTE command is desired.
+     * @return truth.
      */
-     virtual const char* getEffectName(unsigned char effect);
+    virtual bool getWantPreNote();
 
     /**
      * set the chip flags.

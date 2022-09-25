@@ -60,6 +60,7 @@ class DivPlatformVERA: public DivDispatch {
     struct VERA_PCM* pcm;
   
     int calcNoteFreq(int ch, int note);
+    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:
@@ -79,7 +80,6 @@ class DivPlatformVERA: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    const char* getEffectName(unsigned char effect);
     int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
     void quit();
     ~DivPlatformVERA();

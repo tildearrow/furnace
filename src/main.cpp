@@ -20,7 +20,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string>
-#ifdef HAVE_GUI
+#ifdef HAVE_SDL2
 #include "SDL_events.h"
 #endif
 #include "ta-log.h"
@@ -36,6 +36,8 @@
 #include <unistd.h>
 #endif
 
+#include "cli/cli.h"
+
 #ifdef HAVE_GUI
 #include "gui/gui.h"
 #endif
@@ -46,9 +48,14 @@ DivEngine e;
 FurnaceGUI g;
 #endif
 
+FurnaceCLI cli;
+
 String outName;
 String vgmOutName;
+String zsmOutName;
+String cmdOutName;
 int loops=1;
+int benchMode=0;
 DivAudioExportModes outMode=DIV_EXPORT_MODE_ONE;
 
 #ifdef HAVE_GUI
@@ -58,6 +65,7 @@ bool consoleMode=true;
 #endif
 
 bool displayEngineFailError=false;
+bool cmdOutBinary=false;
 
 std::vector<TAParam> params;
 
@@ -106,6 +114,11 @@ TAParamResult pView(String val) {
 
 TAParamResult pConsole(String val) {
   consoleMode=true;
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pBinary(String val) {
+  cmdOutBinary=true;
   return TA_PARAM_SUCCESS;
 }
 
@@ -169,8 +182,9 @@ TAParamResult pVersion(String) {
   printf("- puNES by FHorse (GPLv2)\n");
   printf("- NSFPlay by Brad Smith and Brezza (unknown open-source license)\n");
   printf("- reSID by Dag Lem (GPLv2)\n");
+  printf("- reSIDfp by Dag Lem, Antti Lankila and Leandro Nini (GPLv2)\n");
   printf("- Stella by Stella Team (GPLv2)\n");
-  printf("- vgsound_emu (first version) by cam900 (BSD 3-clause)\n");
+  printf("- vgsound_emu (second version, modified version) by cam900 (zlib license)\n");
   return TA_PARAM_QUIT;
 }
 
@@ -220,6 +234,19 @@ TAParamResult pOutMode(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pBenchmark(String val) {
+  if (val=="render") {
+    benchMode=1;
+  } else if (val=="seek") {
+    benchMode=2;
+  } else {
+    logE("invalid value for benchmark! valid values are: render and seek.");
+    return TA_PARAM_ERROR;
+  }
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return TA_PARAM_SUCCESS;
+}
+
 TAParamResult pOutput(String val) {
   outName=val;
   e.setAudio(DIV_AUDIO_DUMMY);
@@ -228,6 +255,18 @@ TAParamResult pOutput(String val) {
 
 TAParamResult pVGMOut(String val) {
   vgmOutName=val;
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pZSMOut(String val) {
+  zsmOutName=val;
+  e.setAudio(DIV_AUDIO_DUMMY);
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pCmdOut(String val) {
+  cmdOutName=val;
   e.setAudio(DIV_AUDIO_DUMMY);
   return TA_PARAM_SUCCESS;
 }
@@ -247,12 +286,17 @@ void initParams() {
   params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl","set audio engine (SDL by default)"));
   params.push_back(TAParam("o","output",true,pOutput,"<filename>","output audio to file"));
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
+  params.push_back(TAParam("Z","zsmout",true,pZSMOut,"<filename>","output .zsm data for Commander X16 Zsound"));
+  params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
+  params.push_back(TAParam("b","binary",false,pBinary,"","set command stream output format to binary"));
   params.push_back(TAParam("L","loglevel",true,pLogLevel,"debug|info|warning|error","set the log level (info by default)"));
   params.push_back(TAParam("v","view",true,pView,"pattern|commands|nothing","set visualization (pattern by default)"));
   params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
 
   params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops (-1 means loop forever)"));
   params.push_back(TAParam("o","outmode",true,pOutMode,"one|persys|perchan","set file output mode"));
+
+  params.push_back(TAParam("B","benchmark",true,pBenchmark,"render|seek","run performance test"));
 
   params.push_back(TAParam("V","version",false,pVersion,"","view information about Furnace."));
   params.push_back(TAParam("W","warranty",false,pWarranty,"","view warranty disclaimer."));
@@ -279,7 +323,7 @@ int main(int argc, char** argv) {
     logE("CoInitializeEx failed!");
   }
 #endif
-#if !(defined(__APPLE__) || defined(_WIN32) || defined(ANDROID))
+#if !(defined(__APPLE__) || defined(_WIN32) || defined(ANDROID) || defined(__HAIKU__))
   // workaround for Wayland HiDPI issue
   if (getenv("SDL_VIDEODRIVER")==NULL) {
     setenv("SDL_VIDEODRIVER","x11",1);
@@ -287,6 +331,8 @@ int main(int argc, char** argv) {
 #endif
   outName="";
   vgmOutName="";
+  zsmOutName="";
+  cmdOutName="";
 
   initParams();
 
@@ -414,7 +460,32 @@ int main(int argc, char** argv) {
       displayEngineFailError=true;
     }
   }
-  if (outName!="" || vgmOutName!="") {
+  if (benchMode) {
+    logI("starting benchmark!");
+    if (benchMode==2) {
+      e.benchmarkSeek();
+    } else {
+      e.benchmarkPlayback();
+    }
+    return 0;
+  }
+  if (outName!="" || vgmOutName!="" || cmdOutName!="") {
+    if (cmdOutName!="") {
+      SafeWriter* w=e.saveCommand(cmdOutBinary);
+      if (w!=NULL) {
+        FILE* f=fopen(cmdOutName.c_str(),"wb");
+        if (f!=NULL) {
+          fwrite(w->getFinalBuf(),1,w->size(),f);
+          fclose(f);
+        } else {
+          reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
+        }
+        w->finish();
+        delete w;
+      } else {
+        reportError("could not write command stream!");
+      }
+    }
     if (vgmOutName!="") {
       SafeWriter* w=e.saveVGM();
       if (w!=NULL) {
@@ -440,25 +511,39 @@ int main(int argc, char** argv) {
   }
 
   if (consoleMode) {
+    bool cliSuccess=false;
+    cli.bindEngine(&e);
+    if (!cli.init()) {
+      reportError("error while starting CLI!");
+    } else {
+      cliSuccess=true;
+    }
     logI("playing...");
     e.play();
-#ifdef HAVE_GUI
-    SDL_Event ev;
-    while (true) {
-      SDL_WaitEvent(&ev);
-      if (ev.type==SDL_QUIT) break;
-    }
-    e.quit();
-    return 0;
+    if (cliSuccess) {
+      cli.loop();
+      cli.finish();
+      e.quit();
+      return 0;
+    } else {
+#ifdef HAVE_SDL2
+      SDL_Event ev;
+      while (true) {
+        SDL_WaitEvent(&ev);
+        if (ev.type==SDL_QUIT) break;
+      }
+      e.quit();
+      return 0;
 #else
-    while (true) {
+      while (true) {
 #ifdef _WIN32
-      Sleep(500);
+        Sleep(500);
 #else
-      usleep(500000);
+        usleep(500000);
+#endif
+      }
 #endif
     }
-#endif
   }
 
 #ifdef HAVE_GUI
