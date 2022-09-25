@@ -102,8 +102,12 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
 #define DO_ONE_SAMPLE \
   if (next&8) next|=0xfffffff0; \
 \
-  next<<=(buf[0]>>4); /* range */ \
-  next>>=1; \
+  if (buf[0]>=0xd0) { /* invalid shift */ \
+    next=(next<0)?0xfffff800:0; \
+  } else { \
+    next<<=(buf[0]>>4); /* range */ \
+    next>>=1; \
+  } \
 \
   switch (control&0xc) { /* filter */ \
     case 0: \
