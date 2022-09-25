@@ -33,7 +33,7 @@ class DivPlatformSNES: public DivDispatch {
     int sample, wave, ins;
     int note;
     int panL, panR;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos, noise, echo, pitchMod, invertL, invertR;
     int vol, outVol;
     int wtLen;
     DivInstrumentSNES state;
@@ -63,6 +63,7 @@ class DivPlatformSNES: public DivDispatch {
       inPorta(false),
       useWave(false),
       setPos(false),
+      noise(false),
       vol(127),
       outVol(127),
       wtLen(16) {} 
@@ -71,6 +72,7 @@ class DivPlatformSNES: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
   signed char globalVolL, globalVolR;
+  unsigned char noiseFreq;
   size_t sampleTableBase;
 
   struct QueuedWrite {

@@ -93,24 +93,15 @@ void DivPlatformSNES::tick(bool sysTick) {
   // so they have to be accumulated
   unsigned char kon=0;
   unsigned char koff=0;
+  bool writeControl=false;
+  bool writeNoise=false;
+  bool writePitchMod=false;
+  bool writeEcho=false;
   for (int i=0; i<8; i++) {
-    //bool hadGain=chan[i].std.vol.had || chan[i].std.ex1.had || chan[i].std.ex2.had;
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LOG(chan[i].vol&127,MIN(127,chan[i].std.vol.val),127);
     }
-    /*
-    if (chan[i].std.vol.had) {
-      chWrite(i,7,MIN(127,chan[i].std.vol.val*2));
-    } else if (!chan[i].state.useEnv && hadGain) {
-      if (chan[i].std.ex1.val==0) {
-        // direct gain
-        chWrite(i,7,chan[i].std.vol.val);
-      } else {
-        // inc/dec
-        chWrite(i,7,chan[i].std.ex2.val|((chan[i].std.ex1.val-1)<<5)|0x80);
-      }
-    }*/
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arp.mode) {
@@ -125,6 +116,10 @@ void DivPlatformSNES::tick(bool sysTick) {
         chan[i].baseFreq=NOTE_FREQUENCY(chan[i].note);
         chan[i].freqChanged=true;
       }
+    }
+    if (chan[i].std.duty.had) {
+      noiseFreq=chan[i].std.duty.val;
+      writeControl=true;
     }
     if (chan[i].useWave && chan[i].std.wave.had) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
@@ -149,7 +144,30 @@ void DivPlatformSNES::tick(bool sysTick) {
       int val=chan[i].std.panR.val&0x7f;
       chan[i].panR=(val<<1)|(val>>6);
     }
-    if (chan[i].std.vol.had || chan[i].std.panL.had || chan[i].std.panR.had) {
+    bool hasInverted=false;
+    if (chan[i].std.ex1.had) {
+      if (chan[i].invertL!=(chan[i].std.ex1.val&16)) {
+        chan[i].invertL=chan[i].std.ex1.val&16;
+        hasInverted=true;
+      }
+      if (chan[i].invertR!=(chan[i].std.ex1.val&8)) {
+        chan[i].invertR=chan[i].std.ex1.val&8;
+        hasInverted=true;
+      }
+      if (chan[i].pitchMod!=(chan[i].std.ex1.val&4)) {
+        chan[i].pitchMod=chan[i].std.ex1.val&4;
+        writePitchMod=true;
+      }
+      if (chan[i].echo!=(chan[i].std.ex1.val&2)) {
+        chan[i].echo=chan[i].std.ex1.val&2;
+        writeEcho=true;
+      }
+      if (chan[i].noise!=(chan[i].std.ex1.val&1)) {
+        chan[i].noise=chan[i].std.ex1.val&1;
+        writeNoise=true;
+      }
+    }
+    if (chan[i].std.vol.had || chan[i].std.panL.had || chan[i].std.panR.had || hasInverted) {
       writeOutVol(i);
     }
     if (chan[i].setPos) {
@@ -173,29 +191,6 @@ void DivPlatformSNES::tick(bool sysTick) {
       if (chan[i].keyOn) {
         unsigned int start, end, loop;
         unsigned short tabAddr=sampleTableAddr(i);
-        if (chan[i].state.useEnv) {
-          chWrite(i,5,chan[i].state.a|(chan[i].state.d<<4)|0x80);
-          chWrite(i,6,chan[i].state.r|(chan[i].state.s<<5));
-        } else {
-          chWrite(i,5,0);
-          switch (chan[i].state.gainMode) {
-            case DivInstrumentSNES::GAIN_MODE_DIRECT:
-              chWrite(i,7,chan[i].state.gain&127);
-              break;
-            case DivInstrumentSNES::GAIN_MODE_DEC_LINEAR:
-              chWrite(i,7,0x80|(chan[i].state.gain&31));
-              break;
-            case DivInstrumentSNES::GAIN_MODE_INC_LINEAR:
-              chWrite(i,7,0xc0|(chan[i].state.gain&31));
-              break;
-            case DivInstrumentSNES::GAIN_MODE_DEC_LOG:
-              chWrite(i,7,0xa0|(chan[i].state.gain&31));
-              break;
-            case DivInstrumentSNES::GAIN_MODE_INC_INVLOG:
-              chWrite(i,7,0xe0|(chan[i].state.gain&31));
-              break;
-          }
-        }
         if (chan[i].useWave) {
           start=waveTableAddr(i);
           loop=start;
@@ -227,6 +222,49 @@ void DivPlatformSNES::tick(bool sysTick) {
         chan[i].freqChanged=false;
       }
     }
+  }
+  if (writeControl) {
+    unsigned char control=noiseFreq&0x1f;
+    rWrite(0x6c,control);
+  }
+  if (writeNoise) {
+    unsigned char noiseBits=(
+      (chan[0].noise?1:0)|
+      (chan[1].noise?2:0)|
+      (chan[2].noise?4:0)|
+      (chan[3].noise?8:0)|
+      (chan[4].noise?0x10:0)|
+      (chan[5].noise?0x20:0)|
+      (chan[6].noise?0x40:0)|
+      (chan[7].noise?0x80:0)
+    );
+    rWrite(0x3d,noiseBits);
+  }
+  if (writePitchMod) {
+    unsigned char pitchModBits=(
+      (chan[0].pitchMod?1:0)|
+      (chan[1].pitchMod?2:0)|
+      (chan[2].pitchMod?4:0)|
+      (chan[3].pitchMod?8:0)|
+      (chan[4].pitchMod?0x10:0)|
+      (chan[5].pitchMod?0x20:0)|
+      (chan[6].pitchMod?0x40:0)|
+      (chan[7].pitchMod?0x80:0)
+    );
+    rWrite(0x2d,pitchModBits);
+  }
+  if (writeEcho) {
+    unsigned char echoBits=(
+      (chan[0].echo?1:0)|
+      (chan[1].echo?2:0)|
+      (chan[2].echo?4:0)|
+      (chan[3].echo?8:0)|
+      (chan[4].echo?0x10:0)|
+      (chan[5].echo?0x20:0)|
+      (chan[6].echo?0x40:0)|
+      (chan[7].echo?0x80:0)
+    );
+    rWrite(0x4d,echoBits);
   }
   if (kon!=0) {
     rWrite(0x4c,kon);
@@ -260,6 +298,29 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->snes;
       }
+      if (chan[c.chan].state.useEnv) {
+          chWrite(c.chan,5,chan[c.chan].state.a|(chan[c.chan].state.d<<4)|0x80);
+          chWrite(c.chan,6,chan[c.chan].state.r|(chan[c.chan].state.s<<5));
+        } else {
+          chWrite(c.chan,5,0);
+          switch (chan[c.chan].state.gainMode) {
+            case DivInstrumentSNES::GAIN_MODE_DIRECT:
+              chWrite(c.chan,7,chan[c.chan].state.gain&127);
+              break;
+            case DivInstrumentSNES::GAIN_MODE_DEC_LINEAR:
+              chWrite(c.chan,7,0x80|(chan[c.chan].state.gain&31));
+              break;
+            case DivInstrumentSNES::GAIN_MODE_INC_LINEAR:
+              chWrite(c.chan,7,0xc0|(chan[c.chan].state.gain&31));
+              break;
+            case DivInstrumentSNES::GAIN_MODE_DEC_LOG:
+              chWrite(c.chan,7,0xa0|(chan[c.chan].state.gain&31));
+              break;
+            case DivInstrumentSNES::GAIN_MODE_INC_INVLOG:
+              chWrite(c.chan,7,0xe0|(chan[c.chan].state.gain&31));
+              break;
+          }
+        }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=round(NOTE_FREQUENCY(c.value));
         chan[c.chan].freqChanged=true;
@@ -375,6 +436,8 @@ void DivPlatformSNES::writeOutVol(int ch) {
   if (!isMuted[ch]) {
     outL=(globalVolL*((chan[ch].outVol*chan[ch].panL)/127))/127;
     outR=(globalVolR*((chan[ch].outVol*chan[ch].panR)/127))/127;
+    if (chan[ch].invertL) outL=-outL;
+    if (chan[ch].invertR) outR=-outR;
   }
   chWrite(ch,0,outL);
   chWrite(ch,1,outR);

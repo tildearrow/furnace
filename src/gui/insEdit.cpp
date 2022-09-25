@@ -227,6 +227,10 @@ const char* saaEnvBits[9]={
   "mirror", "loop", "cut", "direction", "resolution", "fixed", "N/A","enabled", NULL
 };
 
+const char* snesModeBits[6]={
+  "noise", "echo", "pitch mod", "invert right", "invert left", NULL
+};
+
 const char* filtModeBits[5]={
   "low", "band", "high", "ch3off", NULL
 };
@@ -4380,9 +4384,12 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Noise";
             dutyMax=ins->amiga.useSample?0:8;
           }
+          if (ins->type==DIV_INS_SNES) {
+            dutyLabel="Noise Freq";
+            dutyMax=31;
+          }
           if (ins->type==DIV_INS_OPLL || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS ||
-              ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_FDS || ins->type==DIV_INS_MULTIPCM ||
-              ins->type==DIV_INS_SNES) {
+              ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_FDS || ins->type==DIV_INS_MULTIPCM) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VERA) {
@@ -4504,9 +4511,9 @@ void FurnaceGUI::drawInsEdit() {
             ex1Max=65535;
             ex2Max=65535;
           }
-          if (ins->type==DIV_INS_SNES && !ins->snes.useEnv) {
-            ex1Max=4;
-            ex2Max=31;
+          if (ins->type==DIV_INS_SNES) {
+            ex1Max=5;
+            ex2Max=5;
           }
 
           int panMin=0;
@@ -4556,6 +4563,10 @@ void FurnaceGUI::drawInsEdit() {
             panMin=-127;
             panMax=127;
             panSingleNoBit=true;
+          }
+          if (ins->type==DIV_INS_SNES) {
+            panMin=0;
+            panMax=127;
           }
           if (ins->type==DIV_INS_ES5506) {
             panMax=65535;
@@ -4649,7 +4660,7 @@ void FurnaceGUI::drawInsEdit() {
             } else if (ins->type==DIV_INS_QSOUND) {
               macroList.push_back(FurnaceGUIMacroDesc("Echo Feedback",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_SNES) {
-              macroList.push_back(FurnaceGUIMacroDesc("Gain Mode",&ins->std.ex1Macro,0,ex1Max,64,uiColors[GUI_COLOR_MACRO_VOLUME],false,NULL,NULL,false,snesGainModes));
+              macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex1Macro,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,snesModeBits));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             }
@@ -4668,7 +4679,7 @@ void FurnaceGUI::drawInsEdit() {
             } else if (ins->type==DIV_INS_QSOUND) {
               macroList.push_back(FurnaceGUIMacroDesc("Echo Length",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_SNES) {
-              macroList.push_back(FurnaceGUIMacroDesc("Gain Rate",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
+              macroList.push_back(FurnaceGUIMacroDesc("Gain Mode",&ins->std.ex2Macro,0,ex2Max,64,uiColors[GUI_COLOR_MACRO_VOLUME],false,NULL,NULL,false,snesGainModes));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex2Macro,0,ex2Max,ex2Bit?64:160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,ex2Bit,ayEnvBits));
             }
@@ -4707,6 +4718,9 @@ void FurnaceGUI::drawInsEdit() {
             macroList.push_back(FurnaceGUIMacroDesc("Envelope K2 ramp",&ins->std.ex7Macro,-128,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("Envelope mode",&ins->std.ex8Macro,0,2,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,es5506EnvelopeModes));
             macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.algMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,es5506ControlModes));
+          }
+          if (ins->type==DIV_INS_SNES) {
+            macroList.push_back(FurnaceGUIMacroDesc("Gain Rate",&ins->std.ex3Macro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
           }
 
           drawMacros(macroList);
