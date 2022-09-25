@@ -243,7 +243,7 @@ bool DivSample::save(const char* path) {
       break;
     }
     default:
-      sf_write_raw(f,data16,length16);
+      sf_writef_short(f,data16,samples);
       break;
   }
 
@@ -852,7 +852,7 @@ void DivSample::render() {
         }
         break;
       case DIV_SAMPLE_DEPTH_BRR: // BRR
-        brrDecode(dataBRR,data16,samples);
+        brrDecode(dataBRR,data16,lengthBRR);
         break;
       case DIV_SAMPLE_DEPTH_VOX: // VOX
         oki_decode(dataVOX,data16,samples);
@@ -909,7 +909,7 @@ void DivSample::render() {
       data8[i]=data16[i]>>8;
     }
   }
-  if (depth!=DIV_SAMPLE_DEPTH_VOX) { // BRR
+  if (depth!=DIV_SAMPLE_DEPTH_BRR) { // BRR
     if (!initInternal(DIV_SAMPLE_DEPTH_BRR,samples)) return;
     // TODO: loop point
     brrEncode(data16,dataBRR,samples,0);
