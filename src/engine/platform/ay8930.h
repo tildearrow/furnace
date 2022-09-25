@@ -62,9 +62,11 @@ class DivPlatformAY8930: public DivDispatch {
           return dac?0:(envelope<<2);
         }
 
-        PSGMode():
-          val(1) {}
-      } psgMode;
+        PSGMode(unsigned char v=0):
+          val(v) {}
+      };
+      PSGMode currPSGMode;
+      PSGMode nextPSGMode;
 
       struct DAC {
         int sample, rate, period, pos, out;
@@ -92,7 +94,8 @@ class DivPlatformAY8930: public DivDispatch {
       }
       Channel():
         envelope(Envelope()),
-        psgMode(PSGMode()),
+        currPSGMode(PSGMode(0)),
+        nextPSGMode(PSGMode(1)),
         dac(DAC()),
         freq(0),
         baseFreq(0),
