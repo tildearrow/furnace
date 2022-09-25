@@ -204,6 +204,7 @@ const char* cmdName[]={
   "SU_SWEEP_BOUND",
   "SU_SWEEP_ENABLE",
   "SU_SYNC_PERIOD_LOW",
+  "SU_SYNC_PERIOD_HIGH",
 
   "ADPCMA_GLOBAL_VOLUME",
 
