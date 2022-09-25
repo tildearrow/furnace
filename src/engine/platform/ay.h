@@ -57,7 +57,7 @@ class DivPlatformAY8910: public DivDispatch {
         PSGMode(unsigned char v=0):
           val(v) {}
       };
-      PSGMode currPSGMode;
+      PSGMode curPSGMode;
       PSGMode nextPSGMode;
 
       struct DAC {
@@ -85,7 +85,7 @@ class DivPlatformAY8910: public DivDispatch {
         pitch2=0;
       }
       Channel():
-        currPSGMode(PSGMode(0)),
+        curPSGMode(PSGMode(0)),
         nextPSGMode(PSGMode(1)),
         dac(DAC()),
         freq(0),
