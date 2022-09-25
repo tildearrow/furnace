@@ -546,7 +546,7 @@ bool DivSample::resampleLinear(double r) {
   if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     for (int i=0; i<finalCount; i++) {
       short s1=(posInt>=samples)?0:oldData16[posInt];
-      short s2=(posInt+1>=samples)?(isLoopable()?oldData16[loopStart]:0):oldData16[posInt+1];
+      short s2=(posInt+1>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData16[loopStart]:0):oldData16[posInt+1];
 
       data16[i]=s1+(float)(s2-s1)*posFrac;
 
@@ -559,7 +559,7 @@ bool DivSample::resampleLinear(double r) {
   } else if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     for (int i=0; i<finalCount; i++) {
       short s1=(posInt>=samples)?0:oldData8[posInt];
-      short s2=(posInt+1>=samples)?(isLoopable()?oldData8[loopStart]:0):oldData8[posInt+1];
+      short s2=(posInt+1>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData8[loopStart]:0):oldData8[posInt+1];
 
       data8[i]=s1+(float)(s2-s1)*posFrac;
 
@@ -589,8 +589,8 @@ bool DivSample::resampleCubic(double r) {
       float* t=&cubicTable[n<<2];
       float s0=(posInt<1)?0:oldData16[posInt-1];
       float s1=(posInt>=samples)?0:oldData16[posInt];
-      float s2=(posInt+1>=samples)?(isLoopable()?oldData16[loopStart]:0):oldData16[posInt+1];
-      float s3=(posInt+2>=samples)?(isLoopable()?oldData16[loopStart]:0):oldData16[posInt+2];
+      float s2=(posInt+1>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData16[loopStart]:0):oldData16[posInt+1];
+      float s3=(posInt+2>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData16[loopStart]:0):oldData16[posInt+2];
 
       float result=s0*t[0]+s1*t[1]+s2*t[2]+s3*t[3];
       if (result<-32768) result=-32768;
@@ -609,8 +609,8 @@ bool DivSample::resampleCubic(double r) {
       float* t=&cubicTable[n<<2];
       float s0=(posInt<1)?0:oldData8[posInt-1];
       float s1=(posInt>=samples)?0:oldData8[posInt];
-      float s2=(posInt+1>=samples)?(isLoopable()?oldData8[loopStart]:0):oldData8[posInt+1];
-      float s3=(posInt+2>=samples)?(isLoopable()?oldData8[loopStart]:0):oldData8[posInt+2];
+      float s2=(posInt+1>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData8[loopStart]:0):oldData8[posInt+1];
+      float s3=(posInt+2>=samples)?((loopStart>=0 && loopStart<(int)samples)?oldData8[loopStart]:0):oldData8[posInt+2];
 
       float result=s0*t[0]+s1*t[1]+s2*t[2]+s3*t[3];
       if (result<-128) result=-128;

@@ -272,7 +272,7 @@ void DivPlatformES5506::e_pin(bool state)
                 unsigned int loopFlag=(chan[ch].pcm.bank<<14)|(chan[ch].pcm.reversed?0x0040:0x0000);
                 chan[ch].isReverseLoop=false;
                 switch (chan[ch].pcm.loopMode) {
-                  case DIV_SAMPLE_LOOP_MAX: // One shot (no loop)
+                  case DIV_SAMPLE_LOOP_MAX: // no loop
                   default:
                     break;
                   case DIV_SAMPLE_LOOP_FORWARD: // Foward loop
@@ -326,11 +326,11 @@ void DivPlatformES5506::irqb(bool state) {
 void DivPlatformES5506::tick(bool sysTick) {
   for (int i=0; i<=chanMax; i++) {
     chan[i].std.next();
-    DivInstrument* ins=parent->getIns(chan[i].ins);
+    DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_ES5506);
     signed int k1=chan[i].k1Prev,k2=chan[i].k2Prev;
     // volume/panning macros
     if (chan[i].std.vol.had) {
-      const unsigned int nextVol=VOL_SCALE_LOG((0xffff*chan[i].vol)/0xff,(0xffff*chan[i].std.vol.val)/chan[i].volMacroMax,0xffff);
+      const unsigned int nextVol=VOL_SCALE_LOG((0xffff*chan[i].vol)/0xff,(0xffff*(unsigned int)chan[i].std.vol.val)/chan[i].volMacroMax,0xffff);
       if (chan[i].outVol!=nextVol) {
         chan[i].outVol=nextVol;
         if (!isMuted[i]) {
@@ -339,7 +339,7 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
     }
     if (chan[i].std.panL.had) {
-      const unsigned int nextLVol=VOL_SCALE_LOG((0xffff*chan[i].lVol)/0xff,(0xffff*chan[i].std.panL.val)/chan[i].panMacroMax,0xffff);
+      const unsigned int nextLVol=VOL_SCALE_LOG((0xffff*chan[i].lVol)/0xff,(0xffff*(unsigned int)chan[i].std.panL.val)/chan[i].panMacroMax,0xffff);
       if (chan[i].outLVol!=nextLVol) {
         chan[i].outLVol=nextLVol;
         if (!isMuted[i]) {
@@ -348,7 +348,7 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
     }
     if (chan[i].std.panR.had) {
-      const unsigned int nextRVol=VOL_SCALE_LOG((0xffff*chan[i].rVol)/0xff,(0xffff*chan[i].std.panR.val)/chan[i].panMacroMax,0xffff);
+      const unsigned int nextRVol=VOL_SCALE_LOG((0xffff*chan[i].rVol)/0xff,(0xffff*(unsigned int)chan[i].std.panR.val)/chan[i].panMacroMax,0xffff);
       if (chan[i].outRVol!=nextRVol) {
         chan[i].outRVol=nextRVol;
         if (!isMuted[i]) {
@@ -359,18 +359,9 @@ void DivPlatformES5506::tick(bool sysTick) {
     // arpeggio/pitch macros, frequency related
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        if (chan[i].std.arp.mode) {
-          chan[i].nextNote=chan[i].std.arp.val;
-        } else {
-          chan[i].nextNote=chan[i].note+chan[i].std.arp.val;
-        }
+        chan[i].nextNote=parent->calcArp(chan[i].note,chan[i].std.arp.val);
       }
       chan[i].noteChanged.note=1;
-    } else {
-      if (chan[i].std.arp.mode && chan[i].std.arp.finished) {
-        chan[i].nextNote=chan[i].note;
-        chan[i].noteChanged.note=1;
-      }
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -408,8 +399,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             chan[i].filterChanged.k1=1;
           }
           break;
-        /*
-        case 2: { // delta
+        /*case 2: { // delta
           const signed int next_k1=CLAMP(chan[i].k1Offs+chan[i].std.ex1.val,-65535,65535);
           if (chan[i].k1Offs!=next_k1) {
             chan[i].k1Offs=next_k1;
@@ -436,8 +426,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             chan[i].filterChanged.k2=1;
           }
           break;
-        /*
-        case 2: { // delta
+        /*case 2: { // delta
           const signed int next_k2=CLAMP(chan[i].k2Offs+chan[i].std.ex2.val,-65535,65535);
           if (chan[i].k2Offs!=next_k2) {
             chan[i].k2Offs=next_k2;
@@ -757,7 +746,7 @@ void DivPlatformES5506::tick(bool sysTick) {
               unsigned int loopFlag=(chan[i].pcm.bank<<14)|(chan[i].pcm.reversed?0x0040:0x0000);
               chan[i].isReverseLoop=false;
               switch (chan[i].pcm.loopMode) {
-                case DIV_SAMPLE_LOOP_MAX: // One shot (no loop)
+                case DIV_SAMPLE_LOOP_MAX: // no loop
                 default:
                   break;
                 case DIV_SAMPLE_LOOP_FORWARD: // Foward loop
@@ -891,7 +880,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           unsigned int loopFlag=chan[i].pcm.reversed?0x0040:0x0000;
           chan[i].isReverseLoop=false;
           switch (chan[i].pcm.loopMode) {
-            case DIV_SAMPLE_LOOP_MAX: // One shot (no loop)
+            case DIV_SAMPLE_LOOP_MAX: // no loop
             default:
               break;
             case DIV_SAMPLE_LOOP_FORWARD: // Foward loop
@@ -938,7 +927,7 @@ void DivPlatformES5506::tick(bool sysTick) {
 int DivPlatformES5506::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_ES5506);
       bool sampleVaild=false;
       if (((ins->amiga.useNoteMap && !ins->amiga.transWave.enable) && (c.value>=0 && c.value<120)) ||
           ((!ins->amiga.useNoteMap && ins->amiga.transWave.enable) && (ins->amiga.transWave.ind>=0 && ins->amiga.transWave.ind<(int)ins->amiga.transWaveMap.size())) ||
@@ -1079,7 +1068,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       return chan[c.chan].outVol;
       break;
     case DIV_CMD_PANNING: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_ES5506);
       // Left volume
       if (chan[c.chan].lVol!=(unsigned int)(c.value)) {
         chan[c.chan].lVol=c.value;
@@ -1110,7 +1099,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     case DIV_CMD_WAVE:
       if (!chan[c.chan].useWave) {
         if (chan[c.chan].active) {
-          DivInstrument* ins=parent->getIns(chan[c.chan].ins);
+          DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_ES5506);
           if (((ins->amiga.useNoteMap && !ins->amiga.transWave.enable) && (c.value>=0 && c.value<120)) ||
               ((!ins->amiga.useNoteMap && ins->amiga.transWave.enable) && (c.value>=0 && c.value<(int)ins->amiga.transWaveMap.size())) ||
               ((!ins->amiga.useNoteMap && !ins->amiga.transWave.enable) && (c.value>=0 && c.value<parent->song.sampleLen))) {
@@ -1221,7 +1210,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_ES5506));
       }
       chan[c.chan].inPorta=c.value;
       break;

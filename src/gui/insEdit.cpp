@@ -3792,6 +3792,7 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::BeginDisabled(ins->amiga.useWave||ins->amiga.transWave.enable);
             P(ImGui::Checkbox("Use sample map (does not work yet!)",&ins->amiga.useNoteMap));
             if (ins->amiga.useNoteMap) {
+              // TODO: frequency map?
               if (ImGui::BeginTable("NoteMap",3/*4*/,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
                 ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
@@ -3809,49 +3810,49 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::TableNextColumn();
                 ImGui::Text("Reversed");
                 for (int i=0; i<120; i++) {
+                  DivInstrumentAmiga::SampleMap& sampleMap=ins->amiga.noteMap[i];
                   ImGui::TableNextRow();
                   ImGui::PushID(fmt::sprintf("NM_%d",i).c_str());
                   ImGui::TableNextColumn();
                   ImGui::Text("%s",noteNames[60+i]);
                   ImGui::TableNextColumn();
-                  if (ins->amiga.noteMap[i].map<0 || ins->amiga.noteMap[i].map>=e->song.sampleLen) {
+                  if (sampleMap.map<0 || sampleMap.map>=e->song.sampleLen) {
                     sName="-- empty --";
-                    ins->amiga.noteMap[i].map=-1;
+                    sampleMap.map=-1;
                   } else {
-                    sName=e->song.sample[ins->amiga.noteMap[i].map]->name;
+                    sName=e->song.sample[sampleMap.map]->name;
                   }
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                   if (ImGui::BeginCombo(fmt::sprintf("##SampleMap_Index_%d",i).c_str(),sName.c_str())) {
                     String id;
-                    if (ImGui::Selectable("-- empty --",ins->amiga.noteMap[i].map==-1)) { PARAMETER
-                      ins->amiga.noteMap[i].map=-1;
+                    if (ImGui::Selectable("-- empty --",sampleMap.map==-1)) { PARAMETER
+                      sampleMap.map=-1;
                     }
                     for (int j=0; j<e->song.sampleLen; j++) {
                       id=fmt::sprintf("%d: %s",j,e->song.sample[j]->name);
-                      if (ImGui::Selectable(id.c_str(),ins->amiga.noteMap[i].map==j)) { PARAMETER
-                        ins->amiga.noteMap[i].map=j;
-                        if (ins->amiga.noteMap[i].freq<=0) ins->amiga.noteMap[i].freq=(int)((double)e->song.sample[j]->centerRate*pow(2.0,((double)i-48.0)/12.0));
+                      if (ImGui::Selectable(id.c_str(),sampleMap.map==j)) { PARAMETER
+                        sampleMap.map=j;
+                        if (sampleMap.freq<=0) sampleMap.freq=(int)((double)e->song.sample[j]->centerRate*pow(2.0,((double)i-48.0)/12.0));
                       }
                     }
                     ImGui::EndCombo();
                   }
-                  /*
-                  ImGui::TableNextColumn();
+                  /*ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::InputInt(fmt::sprintf("##SampleMap_Freq_%d",i).c_str(),&ins->amiga.noteMap[i].freq,50,500)) { PARAMETER
-                    if (ins->amiga.noteMap[i].freq<0) ins->amiga.noteMap[i].freq=0;
-                    if (ins->amiga.noteMap[i].freq>262144) ins->amiga.noteMap[i].freq=262144;
+                  if (ImGui::InputInt(fmt::sprintf("##SampleMap_Freq_%d",i).c_str(),&sampleMap.freq,50,500)) { PARAMETER
+                    if (sampleMap.freq<0) sampleMap.freq=0;
+                    if (sampleMap.freq>262144) sampleMap.freq=262144;
                   }
                   */
                   ImGui::TableNextColumn();
-                  if (ImGui::RadioButton(fmt::sprintf("Disable##SampleMap_Reversed_Disable_%d",i).c_str(),ins->amiga.noteMap[i].reversed==0)) { MARK_MODIFIED
-                    ins->amiga.noteMap[i].reversed=0;
+                  if (ImGui::RadioButton(fmt::sprintf("Disable##SampleMap_Reversed_Disable_%d",i).c_str(),sampleMap.reversed==0)) { MARK_MODIFIED
+                    sampleMap.reversed=0;
                   }
-                  if (ImGui::RadioButton(fmt::sprintf("Enable##SampleMap_Reversed_Enable_%d",i).c_str(),ins->amiga.noteMap[i].reversed==1)) { MARK_MODIFIED
-                    ins->amiga.noteMap[i].reversed=1;
+                  if (ImGui::RadioButton(fmt::sprintf("Enable##SampleMap_Reversed_Enable_%d",i).c_str(),sampleMap.reversed==1)) { MARK_MODIFIED
+                    sampleMap.reversed=1;
                   }
-                  if (ImGui::RadioButton(fmt::sprintf("Use instrument setting##SampleMap_Reversed_Default_%d",i).c_str(),ins->amiga.noteMap[i].reversed==2)) { MARK_MODIFIED
-                    ins->amiga.noteMap[i].reversed=2;
+                  if (ImGui::RadioButton(fmt::sprintf("Use instrument setting##SampleMap_Reversed_Default_%d",i).c_str(),sampleMap.reversed==2)) { MARK_MODIFIED
+                    sampleMap.reversed=2;
                   }
                   ImGui::PopID();
                 }

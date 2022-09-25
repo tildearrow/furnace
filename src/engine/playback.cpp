@@ -1372,10 +1372,6 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     if (sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) {
       DivSample* s=song.sample[sPreview.sample];
 
-      const bool pBeginVaild=sPreview.pBegin>=0 && sPreview.pBegin<(int)s->samples;
-      const bool pEndVaild=sPreview.pEnd>=0 && sPreview.pEnd<(int)s->samples;
-      const int loopStart=pBeginVaild?sPreview.pBegin:s->loopStart;
-      const int loopEnd=pEndVaild?sPreview.pEnd:(int)s->loopEnd;
       for (size_t i=0; i<prevtotal; i++) {
         if (sPreview.pos>=(int)s->samples || (sPreview.pEnd>=0 && sPreview.pos>=sPreview.pEnd)) {
           samp_temp=0;
