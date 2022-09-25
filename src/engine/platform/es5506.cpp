@@ -1068,7 +1068,6 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       return chan[c.chan].outVol;
       break;
     case DIV_CMD_PANNING: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_ES5506);
       // Left volume
       if (chan[c.chan].lVol!=(unsigned int)(c.value)) {
         chan[c.chan].lVol=c.value;
