@@ -227,6 +227,7 @@ struct DivSysDef {
   int channels;
   bool isFM, isSTD, isCompound;
   unsigned int vgmVersion;
+  unsigned int sampleFormatMask;
   const char* chanNames[DIV_MAX_CHANS];
   const char* chanShortNames[DIV_MAX_CHANS];
   int chanTypes[DIV_MAX_CHANS];
@@ -237,7 +238,7 @@ struct DivSysDef {
   const EffectHandlerMap postEffectHandlers;
   DivSysDef(
     const char* sysName, const char* sysNameJ, unsigned char fileID, unsigned char fileID_DMF, int chans,
-    bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound, const char* desc,
+    bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound, unsigned int formatMask, const char* desc,
     std::initializer_list<const char*> chNames,
     std::initializer_list<const char*> chShortNames,
     std::initializer_list<int> chTypes,
@@ -255,6 +256,7 @@ struct DivSysDef {
     isSTD(isSTDChip),
     isCompound(compound),
     vgmVersion(vgmVer),
+    sampleFormatMask(formatMask),
     effectHandlers(fxHandlers_),
     postEffectHandlers(postFxHandlers_) {
     memset(chanNames,0,DIV_MAX_CHANS*sizeof(void*));

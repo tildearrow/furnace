@@ -1015,9 +1015,17 @@ void DivEngine::renderSamples() {
   sPreview.pos=0;
   sPreview.dir=false;
 
+  // step 0: make sample format mask
+  unsigned int formatMask=1U<<16; // 16-bit is always on
+  for (int i=0; i<song.systemLen; i++) {
+    const DivSysDef* s=getSystemDef(song.system[i]);
+    if (s==NULL) continue;
+    formatMask|=s->sampleFormatMask;
+  }
+
   // step 1: render samples
   for (int i=0; i<song.sampleLen; i++) {
-    song.sample[i]->render();
+    song.sample[i]->render(formatMask);
   }
 
   // step 2: render samples to dispatch

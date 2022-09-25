@@ -77,6 +77,9 @@ void FurnaceGUI::drawSampleEdit() {
               if (sampleDepths[i]==NULL) continue;
               if (ImGui::Selectable(sampleDepths[i])) {
                 sample->prepareUndo(true);
+                e->lockEngine([sample]() {
+                  sample->render();
+                });
                 sample->depth=(DivSampleDepth)i;
                 e->renderSamplesP();
                 updateSampleTex=true;
@@ -630,6 +633,9 @@ void FurnaceGUI::drawSampleEdit() {
               if (sampleDepths[i]==NULL) continue;
               if (ImGui::Selectable(sampleDepths[i])) {
                 sample->prepareUndo(true);
+                e->lockEngine([sample]() {
+                  sample->render();
+                });
                 sample->depth=(DivSampleDepth)i;
                 e->renderSamplesP();
                 updateSampleTex=true;
