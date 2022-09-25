@@ -44,7 +44,6 @@ extern const char* sampleLoopModes[];
 extern const char* sampleDepths[];
 extern const char* resampleStrats[];
 extern const char* chipCategoryNames[];
-extern const char* loopMode[];
 extern const int availableSystems[];
 extern const int chipsFM[];
 extern const int chipsSquare[];

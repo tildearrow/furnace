@@ -161,12 +161,6 @@ const char* resampleStrats[DIV_RESAMPLE_MAX]={
   "best possible"
 };
 
-const char* loopMode[DIV_SAMPLE_LOOP_MAX]={
-  "Forward",
-  "Backward",
-  "Pingpong"
-};
-
 const FurnaceGUIColors fxColors[256]={
   GUI_COLOR_PATTERN_EFFECT_MISC, // 00
   GUI_COLOR_PATTERN_EFFECT_PITCH, // 01
