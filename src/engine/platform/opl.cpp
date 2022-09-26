@@ -690,9 +690,9 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(8,0);
-            immWrite(9,(s->offB>>2)&0xff);
-            immWrite(10,(s->offB>>10)&0xff);
-            int end=s->offB+s->lengthB-1;
+            immWrite(9,(sampleOffB[chan[c.chan].sample]>>2)&0xff);
+            immWrite(10,(sampleOffB[chan[c.chan].sample]>>10)&0xff);
+            int end=sampleOffB[chan[c.chan].sample]+s->lengthB-1;
             immWrite(11,(end>>2)&0xff);
             immWrite(12,(end>>10)&0xff);
             if (c.value!=DIV_NOTE_NULL) {
@@ -721,9 +721,9 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(12*sampleBank+c.value%12);
             immWrite(8,0);
-            immWrite(9,(s->offB>>2)&0xff);
-            immWrite(10,(s->offB>>10)&0xff);
-            int end=s->offB+s->lengthB-1;
+            immWrite(9,(sampleOffB[chan[c.chan].sample]>>2)&0xff);
+            immWrite(10,(sampleOffB[chan[c.chan].sample]>>10)&0xff);
+            int end=sampleOffB[chan[c.chan].sample]+s->lengthB-1;
             immWrite(11,(end>>2)&0xff);
             immWrite(12,(end>>10)&0xff);
             int freq=(65536.0*(double)s->rate)/(double)chipRateBase;
@@ -1760,6 +1760,7 @@ size_t DivPlatformOPL::getSampleMemUsage(int index) {
 void DivPlatformOPL::renderSamples() {
   if (adpcmChan<0) return;
   memset(adpcmBMem,0,getSampleMemCapacity(0));
+  memset(sampleOffB,0,256*sizeof(unsigned int));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -1778,7 +1779,7 @@ void DivPlatformOPL::renderSamples() {
     } else {
       memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
     }
-    s->offB=memPos;
+    sampleOffB[i]=memPos;
     memPos+=paddedLen;
   }
   adpcmBMemLen=memPos+256;

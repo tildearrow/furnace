@@ -286,8 +286,8 @@ void DivPlatformQSound::tick(bool sysTick) {
     uint16_t qsound_end = 0;
     if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
       DivSample* s=parent->getSample(chan[i].sample);
-      qsound_bank = 0x8000 | (s->offQSound >> 16);
-      qsound_addr = s->offQSound & 0xffff;
+      qsound_bank = 0x8000 | (offPCM[chan[i].sample] >> 16);
+      qsound_addr = offPCM[chan[i].sample] & 0xffff;
 
       int loopStart=s->loopStart;
       int length = s->loopEnd;
@@ -295,10 +295,10 @@ void DivPlatformQSound::tick(bool sysTick) {
         length = 65536 - 16;
       }
       if (loopStart == -1 || loopStart >= length) {
-        qsound_end = s->offQSound + length + 15;
+        qsound_end = offPCM[chan[i].sample] + length + 15;
         qsound_loop = 15;
       } else {
-        qsound_end = s->offQSound + length;
+        qsound_end = offPCM[chan[i].sample] + length;
         qsound_loop = length - loopStart;
       }
     }
@@ -644,6 +644,7 @@ size_t DivPlatformQSound::getSampleMemUsage(int index) {
   return index == 0 ? sampleMemLen : 0;
 }
 
+// TODO: ADPCM... come on...
 void DivPlatformQSound::renderSamples() {
   memset(sampleMem,0,getSampleMemCapacity());
 
@@ -671,7 +672,7 @@ void DivPlatformQSound::renderSamples() {
         sampleMem[(memPos+i)^0x8000]=s->data8[i];
       }
     }
-    s->offQSound=memPos^0x8000;
+    offPCM[i]=memPos^0x8000;
     memPos+=length+16;
   }
   sampleMemLen=memPos+256;

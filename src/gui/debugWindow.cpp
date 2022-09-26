@@ -191,23 +191,6 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("lengthBRR: %d",sample->lengthBRR);
           ImGui::Text("lengthVOX: %d",sample->lengthVOX);
 
-          ImGui::Text("off8: %x",sample->off8);
-          ImGui::Text("off16: %x",sample->off16);
-          ImGui::Text("off1: %x",sample->off1);
-          ImGui::Text("offDPCM: %x",sample->offDPCM);
-          ImGui::Text("offZ: %x",sample->offZ);
-          ImGui::Text("offQSoundA: %x",sample->offQSoundA);
-          ImGui::Text("offA: %x",sample->offA);
-          ImGui::Text("offB: %x",sample->offB);
-          ImGui::Text("offBRR: %x",sample->offBRR);
-          ImGui::Text("offVOX: %x",sample->offVOX);
-          ImGui::Text("offSegaPCM: %x",sample->offSegaPCM);
-          ImGui::Text("offQSound: %x",sample->offQSound);
-          ImGui::Text("offX1_010: %x",sample->offX1_010);
-          ImGui::Text("offSU: %x",sample->offSU);
-          ImGui::Text("offYMZ280B: %x",sample->offYMZ280B);
-          ImGui::Text("offRF5C68: %x",sample->offRF5C68);
-
           ImGui::Text("samples: %d",sample->samples);
           ImGui::TreePop();
         }

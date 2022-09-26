@@ -90,6 +90,7 @@ struct DivSampleHistory {
 
 struct DivSample {
   String name;
+  // TODO: get rid of loopOffP
   int rate, centerRate, loopStart, loopEnd, loopOffP;
   // valid values are:
   // - 0: ZX Spectrum overlay drum (1-bit)
@@ -124,8 +125,6 @@ struct DivSample {
   unsigned char* dataVOX; // 10
 
   unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthBRR, lengthVOX;
-  unsigned int off8, off16, off1, offDPCM, offZ, offQSoundA, offA, offB, offBRR, offVOX;
-  unsigned int offSegaPCM, offQSound, offX1_010, offSU, offYMZ280B, offRF5C68, offSNES;
 
   unsigned int samples;
 
@@ -311,23 +310,6 @@ struct DivSample {
     lengthB(0),
     lengthBRR(0),
     lengthVOX(0),
-    off8(0),
-    off16(0),
-    off1(0),
-    offDPCM(0),
-    offZ(0),
-    offQSoundA(0),
-    offA(0),
-    offB(0),
-    offBRR(0),
-    offVOX(0),
-    offSegaPCM(0),
-    offQSound(0),
-    offX1_010(0),
-    offSU(0),
-    offYMZ280B(0),
-    offRF5C68(0),
-    offSNES(0),
     samples(0) {}
   ~DivSample();
 };

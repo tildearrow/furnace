@@ -91,6 +91,8 @@ class DivPlatformSegaPCM: public DivDispatch {
   
     short oldWrites[256];
     short pendingWrites[256];
+
+    unsigned int sampleOffSegaPCM[256];
   
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
@@ -108,6 +110,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void notifyInsChange(int ins);
+    void renderSamples();
     void setFlags(unsigned int flags);
     bool isStereo();
     void poke(unsigned int addr, unsigned short val);

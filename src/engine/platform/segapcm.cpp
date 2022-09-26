@@ -159,17 +159,17 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
               int loopStart=s->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT);
               int actualLength=(s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT));
               if (actualLength>0xfeff) actualLength=0xfeff;
-              addWrite(0x10086+(i<<3),3+((s->offSegaPCM>>16)<<3));
-              addWrite(0x10084+(i<<3),(s->offSegaPCM)&0xff);
-              addWrite(0x10085+(i<<3),(s->offSegaPCM>>8)&0xff);
-              addWrite(0x10006+(i<<3),MIN(255,((s->offSegaPCM&0xffff)+actualLength-1)>>8));
+              addWrite(0x10086+(i<<3),3+((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
+              addWrite(0x10084+(i<<3),(sampleOffSegaPCM[chan[i].pcm.sample])&0xff);
+              addWrite(0x10085+(i<<3),(sampleOffSegaPCM[chan[i].pcm.sample]>>8)&0xff);
+              addWrite(0x10006+(i<<3),MIN(255,((sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+actualLength-1)>>8));
               if (loopStart<0 || loopStart>=actualLength) {
-                addWrite(0x10086+(i<<3),2+((s->offSegaPCM>>16)<<3));
+                addWrite(0x10086+(i<<3),2+((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
               } else {
-                int loopPos=(s->offSegaPCM&0xffff)+loopStart+s->loopOffP;
+                int loopPos=(sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+loopStart+s->loopOffP;
                 addWrite(0x10004+(i<<3),loopPos&0xff);
                 addWrite(0x10005+(i<<3),(loopPos>>8)&0xff);
-                addWrite(0x10086+(i<<3),((s->offSegaPCM>>16)<<3));
+                addWrite(0x10086+(i<<3),((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
               }
             }
           } else {
@@ -178,17 +178,17 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
               int loopStart=s->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT);
               int actualLength=(s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT));
               if (actualLength>65536) actualLength=65536;
-              addWrite(0x10086+(i<<3),3+((s->offSegaPCM>>16)<<3));
-              addWrite(0x10084+(i<<3),(s->offSegaPCM)&0xff);
-              addWrite(0x10085+(i<<3),(s->offSegaPCM>>8)&0xff);
-              addWrite(0x10006+(i<<3),MIN(255,((s->offSegaPCM&0xffff)+actualLength-1)>>8));
+              addWrite(0x10086+(i<<3),3+((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
+              addWrite(0x10084+(i<<3),(sampleOffSegaPCM[chan[i].pcm.sample])&0xff);
+              addWrite(0x10085+(i<<3),(sampleOffSegaPCM[chan[i].pcm.sample]>>8)&0xff);
+              addWrite(0x10006+(i<<3),MIN(255,((sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+actualLength-1)>>8));
               if (loopStart<0 || loopStart>=actualLength) {
-                addWrite(0x10086+(i<<3),2+((s->offSegaPCM>>16)<<3));
+                addWrite(0x10086+(i<<3),2+((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
               } else {
-                int loopPos=(s->offSegaPCM&0xffff)+loopStart+s->loopOffP;
+                int loopPos=(sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+loopStart+s->loopOffP;
                 addWrite(0x10004+(i<<3),loopPos&0xff);
                 addWrite(0x10005+(i<<3),(loopPos>>8)&0xff);
-                addWrite(0x10086+(i<<3),((s->offSegaPCM>>16)<<3));
+                addWrite(0x10086+(i<<3),((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
               }
               addWrite(0x10007+(i<<3),chan[i].pcm.freq);
             }
@@ -450,6 +450,10 @@ void DivPlatformSegaPCM::reset() {
     }
   }
 }
+
+ void DivPlatformSegaPCM::renderSamples() {
+   // TODO: THIS MESS
+ }
 
 void DivPlatformSegaPCM::setFlags(unsigned int flags) {
   chipClock=8000000.0;

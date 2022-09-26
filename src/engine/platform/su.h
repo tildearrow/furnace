@@ -101,6 +101,7 @@ class DivPlatformSoundUnit: public DivDispatch {
   unsigned char ilCtrl, ilSize, fil1;
   unsigned char initIlCtrl, initIlSize, initFil1;
   signed char echoVol, initEchoVol;
+  unsigned int sampleOffSU[256];
 
   int cycles, curChan, delay;
   short tempL;

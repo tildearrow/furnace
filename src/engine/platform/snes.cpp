@@ -178,6 +178,7 @@ void DivPlatformSNES::tick(bool sysTick) {
         updateWave(i);
       }
     }
+    // TODO: THIS WILL CRASH IF THE SAMPLE IS INVALID!!!
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
       double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
@@ -191,7 +192,7 @@ void DivPlatformSNES::tick(bool sysTick) {
           start=waveTableAddr(i);
           loop=start;
         } else {
-          start=s->offSNES;
+          start=sampleOff[chan[i].sample];
           end=MIN(start+MAX(s->lengthBRR,1),getSampleMemCapacity());
           loop=MAX(start,end-1);
           if (chan[i].audPos>0) {
@@ -567,6 +568,7 @@ size_t DivPlatformSNES::getSampleMemUsage(int index) {
 
 void DivPlatformSNES::renderSamples() {
   memset(sampleMem,0,getSampleMemCapacity());
+  memset(sampleOff,0,256*sizeof(unsigned int));
 
   // skip past sample table and wavetable buffer
   size_t memPos=sampleTableBase+8*4+8*9*16;
@@ -575,7 +577,7 @@ void DivPlatformSNES::renderSamples() {
     int length=s->lengthBRR;
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos)/9*9,length);
     if (actualLength>0) {
-      s->offSNES=memPos;
+      sampleOff[i]=memPos;
       memcpy(&sampleMem[memPos],s->dataBRR,actualLength);
       memPos+=actualLength;
     }

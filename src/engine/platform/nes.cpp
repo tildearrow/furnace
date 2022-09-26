@@ -317,7 +317,7 @@ void DivPlatformNES::tick(bool sysTick) {
       dacRate=MIN(chan[4].freq*off,32000);
       if (chan[4].keyOn) {
         if (dpcmMode && !skipRegisterWrites && dacSample>=0 && dacSample<parent->song.sampleLen) {
-          unsigned int dpcmAddr=parent->getSample(dacSample)->offDPCM;
+          unsigned int dpcmAddr=sampleOffDPCM[dacSample];
           unsigned int dpcmLen=(parent->getSample(dacSample)->lengthDPCM+15)>>4;
           if (dpcmLen>255) dpcmLen=255;
           goingToLoop=parent->getSample(dacSample)->isLoopable();
@@ -383,7 +383,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
           if (dumpWrites && !dpcmMode) addWrite(0xffff0001,dacRate);
           chan[c.chan].furnaceDac=false;
           if (dpcmMode && !skipRegisterWrites) {
-            unsigned int dpcmAddr=parent->getSample(dacSample)->offDPCM;
+            unsigned int dpcmAddr=sampleOffDPCM[dacSample];
             unsigned int dpcmLen=(parent->getSample(dacSample)->lengthDPCM+15)>>4;
             if (dpcmLen>255) dpcmLen=255;
             goingToLoop=parent->getSample(dacSample)->isLoopable();
@@ -724,7 +724,7 @@ void DivPlatformNES::renderSamples() {
     } else {
       memcpy(dpcmMem+memPos,s->dataDPCM,MIN(s->lengthDPCM,paddedLen));
     }
-    s->offDPCM=memPos;
+    sampleOffDPCM[i]=memPos;
     memPos+=paddedLen;
   }
   dpcmMemLen=memPos;

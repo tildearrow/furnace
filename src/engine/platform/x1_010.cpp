@@ -541,14 +541,14 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             if (isBanked) {
               chan[c.chan].bankSlot=ins->x1_010.bankSlot;
-              bankSlot[chan[c.chan].bankSlot]=s->offX1_010>>17;
-              unsigned int bankedOffs=(chan[c.chan].bankSlot<<17)|(s->offX1_010&0x1ffff);
+              bankSlot[chan[c.chan].bankSlot]=sampleOffX1[chan[c.chan].sample]>>17;
+              unsigned int bankedOffs=(chan[c.chan].bankSlot<<17)|(sampleOffX1[chan[c.chan].sample]&0x1ffff);
               chWrite(c.chan,4,(bankedOffs>>12)&0xff);
               int end=(bankedOffs+MIN(s->length8,0x1ffff)+0xfff)&~0xfff; // padded
               chWrite(c.chan,5,(0x100-(end>>12))&0xff);
             } else {
-              chWrite(c.chan,4,(s->offX1_010>>12)&0xff);
-              int end=(s->offX1_010+s->length8+0xfff)&~0xfff; // padded
+              chWrite(c.chan,4,(sampleOffX1[chan[c.chan].sample]>>12)&0xff);
+              int end=(sampleOffX1[chan[c.chan].sample]+s->length8+0xfff)&~0xfff; // padded
               chWrite(c.chan,5,(0x100-(end>>12))&0xff);
             }
             if (c.value!=DIV_NOTE_NULL) {
@@ -581,14 +581,14 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
           }
           DivSample* s=parent->getSample(12*sampleBank+c.value%12);
           if (isBanked) {
-            bankSlot[chan[c.chan].bankSlot]=s->offX1_010>>17;
-            unsigned int bankedOffs=(chan[c.chan].bankSlot<<17)|(s->offX1_010&0x1ffff);
+            bankSlot[chan[c.chan].bankSlot]=sampleOffX1[chan[c.chan].sample]>>17;
+            unsigned int bankedOffs=(chan[c.chan].bankSlot<<17)|(sampleOffX1[chan[c.chan].sample]&0x1ffff);
             chWrite(c.chan,4,(bankedOffs>>12)&0xff);
             int end=(bankedOffs+MIN(s->length8,0x1ffff)+0xfff)&~0xfff; // padded
             chWrite(c.chan,5,(0x100-(end>>12))&0xff);
           } else {
-            chWrite(c.chan,4,(s->offX1_010>>12)&0xff);
-            int end=(s->offX1_010+s->length8+0xfff)&~0xfff; // padded
+            chWrite(c.chan,4,(sampleOffX1[chan[c.chan].sample]>>12)&0xff);
+            int end=(sampleOffX1[chan[c.chan].sample]+s->length8+0xfff)&~0xfff; // padded
             chWrite(c.chan,5,(0x100-(end>>12))&0xff);
           }
           chan[c.chan].baseFreq=(((unsigned int)s->rate)<<4)/(chipClock/512);
@@ -945,6 +945,7 @@ size_t DivPlatformX1_010::getSampleMemUsage(int index) {
 
 void DivPlatformX1_010::renderSamples() {
   memset(sampleMem,0,getSampleMemCapacity());
+  memset(sampleOffX1,0,256*sizeof(unsigned int));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -969,7 +970,7 @@ void DivPlatformX1_010::renderSamples() {
     } else {
       memcpy(sampleMem+memPos,s->data8,paddedLen);
     }
-    s->offX1_010=memPos;
+    sampleOffX1[i]=memPos;
     memPos+=paddedLen;
   }
   sampleMemLen=memPos+256;

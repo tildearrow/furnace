@@ -382,7 +382,6 @@ void DivPlatformMSM6258::renderSamples() {
     } else {
       memcpy(adpcmMem+memPos,s->dataVOX,paddedLen);
     }
-    s->offVOX=memPos;
     memPos+=paddedLen;
   }
   adpcmMemLen=memPos+256;
