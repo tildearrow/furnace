@@ -122,9 +122,6 @@ void DivPlatformRF5C68::tick(bool sysTick) {
     } else {
       chan[i].audPos=0;
     }
-    // TODO: BANG BANG BANG
-    // AAAAAAAAAAAAAAAAAAA
-    // ASGDJFJFSDGL;ASDHFKJLSHFLKAJSFHKLJVSJ
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       unsigned char keyon=regPool[8]&~(1<<i);
       unsigned char keyoff=keyon|(1<<i);
@@ -133,8 +130,12 @@ void DivPlatformRF5C68::tick(bool sysTick) {
       chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {
-        unsigned int start=sampleOffRFC[chan[i].sample];
-        unsigned int loop=start+s->length8;
+        unsigned int start=0;
+        unsigned int loop=0;
+        if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+          start=sampleOffRFC[chan[i].sample];
+          loop=start+s->length8;
+        }
         if (chan[i].audPos>0) {
           start=start+MIN(chan[i].audPos,s->length8);
         }

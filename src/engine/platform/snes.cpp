@@ -178,7 +178,6 @@ void DivPlatformSNES::tick(bool sysTick) {
         updateWave(i);
       }
     }
-    // TODO: THIS WILL CRASH IF THE SAMPLE IS INVALID!!!
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
       double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
@@ -191,7 +190,7 @@ void DivPlatformSNES::tick(bool sysTick) {
         if (chan[i].useWave) {
           start=waveTableAddr(i);
           loop=start;
-        } else {
+        } else if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
           start=sampleOff[chan[i].sample];
           end=MIN(start+MAX(s->lengthBRR,1),getSampleMemCapacity());
           loop=MAX(start,end-1);
@@ -201,6 +200,10 @@ void DivPlatformSNES::tick(bool sysTick) {
           if (s->loopStart>=0) {
             loop=start+s->loopStart/16*9;
           }
+        } else {
+          start=0;
+          end=0;
+          loop=0;
         }
         sampleMem[tabAddr+0]=start&0xff;
         sampleMem[tabAddr+1]=start>>8;

@@ -163,7 +163,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
           DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
           int sNum=ins->amiga.getSample(chan[i].note);
           DivSample* sample=parent->getSample(sNum);
-          if (sample!=NULL) {
+          if (sample!=NULL && sNum>=0 && sNum<parent->song.sampleLen) {
             unsigned int sampleEnd=sampleOffSU[sNum]+(sample->getLoopEndPosition());
             unsigned int off=sampleOffSU[sNum]+chan[i].hasOffset;
             chan[i].hasOffset=0;
