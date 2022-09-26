@@ -257,52 +257,79 @@ int DivEngine::dispatchCmd(DivCommand c) {
 
   if (output) if (!skipping && output->midiOut!=NULL) {
     if (output->midiOut->isDeviceOpen()) {
-      int scaledVol=(chan[c.chan].volume*127)/MAX(1,chan[c.chan].volMax);
-      if (scaledVol<0) scaledVol=0;
-      if (scaledVol>127) scaledVol=127;
-      switch (c.cmd) {
-        case DIV_CMD_NOTE_ON:
-        case DIV_CMD_LEGATO:
-          if (chan[c.chan].curMidiNote>=0) {
-            output->midiOut->send(TAMidiMessage(0x80|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+      if (midiOutMode==DIV_MIDI_MODE_NOTE) {
+        int scaledVol=(chan[c.chan].volume*127)/MAX(1,chan[c.chan].volMax);
+        if (scaledVol<0) scaledVol=0;
+        if (scaledVol>127) scaledVol=127;
+        switch (c.cmd) {
+          case DIV_CMD_NOTE_ON:
+          case DIV_CMD_LEGATO:
+            if (chan[c.chan].curMidiNote>=0) {
+              output->midiOut->send(TAMidiMessage(0x80|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+            }
+            if (c.value!=DIV_NOTE_NULL) {
+              chan[c.chan].curMidiNote=c.value+12;
+              if (chan[c.chan].curMidiNote<0) chan[c.chan].curMidiNote=0;
+              if (chan[c.chan].curMidiNote>127) chan[c.chan].curMidiNote=127;
+            }
+            output->midiOut->send(TAMidiMessage(0x90|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+            break;
+          case DIV_CMD_NOTE_OFF:
+          case DIV_CMD_NOTE_OFF_ENV:
+            if (chan[c.chan].curMidiNote>=0) {
+              output->midiOut->send(TAMidiMessage(0x80|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+            }
+            chan[c.chan].curMidiNote=-1;
+            break;
+          case DIV_CMD_INSTRUMENT:
+            if (chan[c.chan].lastIns!=c.value) {
+              output->midiOut->send(TAMidiMessage(0xc0|(c.chan&15),c.value,0));
+            }
+            break;
+          case DIV_CMD_VOLUME:
+            if (chan[c.chan].curMidiNote>=0 && chan[c.chan].midiAftertouch) {
+              chan[c.chan].midiAftertouch=false;
+              output->midiOut->send(TAMidiMessage(0xa0|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+            }
+            break;
+          case DIV_CMD_PITCH: {
+            int pitchBend=8192+(c.value<<5);
+            if (pitchBend<0) pitchBend=0;
+            if (pitchBend>16383) pitchBend=16383;
+            if (pitchBend!=chan[c.chan].midiPitch) {
+              chan[c.chan].midiPitch=pitchBend;
+              output->midiOut->send(TAMidiMessage(0xe0|(c.chan&15),pitchBend&0x7f,pitchBend>>7));
+            }
+            break;
           }
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].curMidiNote=c.value+12;
-            if (chan[c.chan].curMidiNote<0) chan[c.chan].curMidiNote=0;
-            if (chan[c.chan].curMidiNote>127) chan[c.chan].curMidiNote=127;
+          case DIV_CMD_PANNING: {
+            int pan=convertPanSplitToLinearLR(c.value,c.value2,127);
+            output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x0a,pan));
+            break;
           }
-          output->midiOut->send(TAMidiMessage(0x90|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
-          break;
-        case DIV_CMD_NOTE_OFF:
-        case DIV_CMD_NOTE_OFF_ENV:
-          if (chan[c.chan].curMidiNote>=0) {
-            output->midiOut->send(TAMidiMessage(0x80|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+          case DIV_CMD_HINT_PORTA: {
+            if (c.value2>0) {
+              if (c.value<=0 || c.value>=255) break;
+              //output->midiOut->send(TAMidiMessage(0x80|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
+              int target=c.value+12;
+              if (target<0) target=0;
+              if (target>127) target=127;
+              
+              if (chan[c.chan].curMidiNote>=0) {
+                output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x54,chan[c.chan].curMidiNote));
+              }
+              output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x05,1/*MIN(0x7f,c.value2/4)*/));
+              output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x41,0x7f));
+              
+              output->midiOut->send(TAMidiMessage(0x90|(c.chan&15),target,scaledVol));
+            } else {
+              output->midiOut->send(TAMidiMessage(0xb0|(c.chan&15),0x41,0));
+            }
+            break;
           }
-          chan[c.chan].curMidiNote=-1;
-          break;
-        case DIV_CMD_INSTRUMENT:
-          if (chan[c.chan].lastIns!=c.value) {
-            output->midiOut->send(TAMidiMessage(0xc0|(c.chan&15),c.value,0));
-          }
-          break;
-        case DIV_CMD_VOLUME:
-          if (chan[c.chan].curMidiNote>=0 && chan[c.chan].midiAftertouch) {
-            chan[c.chan].midiAftertouch=false;
-            output->midiOut->send(TAMidiMessage(0xa0|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
-          }
-          break;
-        case DIV_CMD_PITCH: {
-          int pitchBend=8192+(c.value<<5);
-          if (pitchBend<0) pitchBend=0;
-          if (pitchBend>16383) pitchBend=16383;
-          if (pitchBend!=chan[c.chan].midiPitch) {
-            chan[c.chan].midiPitch=pitchBend;
-            output->midiOut->send(TAMidiMessage(0xe0|(c.chan&15),pitchBend&0x7f,pitchBend>>7));
-          }
-          break;
+          default:
+            break;
         }
-        default:
-          break;
       }
     }
   }
@@ -1055,11 +1082,6 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     cycles++;
   }
 
-  // MIDI clock
-  if (output) if (!skipping && output->midiOut!=NULL) {
-    //output->midiOut->send(TAMidiMessage(TA_MIDI_CLOCK,0,0));
-  }
-
   if (!pendingNotes.empty()) {
     bool isOn[DIV_MAX_CHANS];
     memset(isOn,0,DIV_MAX_CHANS*sizeof(bool));
@@ -1106,6 +1128,12 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   if (!freelance) {
     if (--subticks<=0) {
       subticks=tickMult;
+
+      // MIDI clock
+      if (output) if (!skipping && output->midiOut!=NULL && midiOutClock) {
+        output->midiOut->send(TAMidiMessage(TA_MIDI_CLOCK,0,0));
+      }
+
       if (stepPlay!=1) {
         tempoAccum+=curSubSong->virtualTempoN;
         while (tempoAccum>=curSubSong->virtualTempoD) {

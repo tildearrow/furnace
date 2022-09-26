@@ -1195,6 +1195,8 @@ class FurnaceGUI {
     int channelFeedbackStyle;
     int channelFont;
     int channelTextCenter;
+    int midiOutClock;
+    int midiOutMode;
     int maxRecentFile;
     unsigned int maxUndoSteps;
     String mainFontPath;
@@ -1318,6 +1320,8 @@ class FurnaceGUI {
       channelFeedbackStyle(1),
       channelFont(1),
       channelTextCenter(1),
+      midiOutClock(0),
+      midiOutMode(1),
       maxRecentFile(10),
       maxUndoSteps(100),
       mainFontPath(""),
