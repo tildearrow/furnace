@@ -140,11 +140,9 @@ void DivPlatformES5506::acquire(short* bufL, short* bufR, size_t start, size_t l
   }
 }
 
-void DivPlatformES5506::e_pin(bool state)
-{
-  // get channel outputs
+void DivPlatformES5506::e_pin(bool state) {
   if (es5506.e_falling_edge()) {
-    if (es5506.voice_update()) {
+    if (es5506.voice_update()) { // get channel outputs
       chan[prevChanCycle].lOut=es5506.voice_lout(prevChanCycle);
       chan[prevChanCycle].rOut=es5506.voice_rout(prevChanCycle);
       chan[prevChanCycle].oscOut=CLAMP((chan[prevChanCycle].lOut+chan[prevChanCycle].rOut)>>5,-32768,32767);
