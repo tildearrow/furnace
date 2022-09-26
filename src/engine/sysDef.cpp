@@ -1185,7 +1185,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SFX_BEEPER]=new DivSysDef(
-    "ZX Spectrum Beeper", NULL, 0x9f, 0, 6, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_1BIT,
+    "ZX Spectrum Beeper", NULL, 0x9f, 0, 6, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "the ZX Spectrum only had a basic beeper capable of...\n...a bunch of thin pulses and tons of other interesting stuff!\nFurnace provides a thin pulse system.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6"},
