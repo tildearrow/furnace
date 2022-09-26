@@ -20,6 +20,7 @@
 // TODO: new macro formula
 #include "segapcm.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <string.h>
 #include <math.h>
 
@@ -452,7 +453,36 @@ void DivPlatformSegaPCM::reset() {
 }
 
  void DivPlatformSegaPCM::renderSamples() {
-   // TODO: THIS MESS
+  size_t memPos=0;
+  
+  for (int i=0; i<parent->song.sampleLen; i++) {
+    DivSample* sample=parent->getSample(i);
+    unsigned int alignedSize=(sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)+0xff)&(~0xff);
+    if (alignedSize>65536) alignedSize=65536;
+    if ((memPos&0xff0000)!=((memPos+alignedSize)&0xff0000)) {
+      memPos=(memPos+0xffff)&0xff0000;
+    }
+    logV("- sample %d will be at %x with length %x",i,memPos,alignedSize);
+    if (memPos>=16777216) break;
+    sampleOffSegaPCM[i]=memPos;
+    unsigned int readPos=0;
+    for (unsigned int j=0; j<alignedSize; j++) {
+      if (readPos>=(unsigned int)sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
+        if (sample->isLoopable()) {
+          readPos=sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT);
+          memPos++;
+        } else {
+          memPos++;
+        }
+      } else {
+        memPos++;
+      }
+      readPos++;
+      if (memPos>=16777216) break;
+    }
+    sample->loopOffP=readPos-sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT);
+    if (memPos>=16777216) break;
+  }
  }
 
 void DivPlatformSegaPCM::setFlags(unsigned int flags) {
