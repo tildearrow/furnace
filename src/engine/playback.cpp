@@ -266,7 +266,11 @@ int DivEngine::dispatchCmd(DivCommand c) {
           if (chan[c.chan].curMidiNote>=0) {
             output->midiOut->send(TAMidiMessage(0x80|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
           }
-          if (c.value!=DIV_NOTE_NULL) chan[c.chan].curMidiNote=c.value+12;
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].curMidiNote=c.value+12;
+            if (chan[c.chan].curMidiNote<0) chan[c.chan].curMidiNote=0;
+            if (chan[c.chan].curMidiNote>127) chan[c.chan].curMidiNote=127;
+          }
           output->midiOut->send(TAMidiMessage(0x90|(c.chan&15),chan[c.chan].curMidiNote,scaledVol));
           break;
         case DIV_CMD_NOTE_OFF:
