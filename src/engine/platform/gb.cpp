@@ -432,7 +432,11 @@ int DivPlatformGB::dispatch(DivCommand c) {
         chan[c.chan].envVol=chan[c.chan].vol;
         chan[c.chan].soManyHacksToMakeItDefleCompatible=true;
       } else if (c.chan!=2) {
-        chan[c.chan].envVol=chan[c.chan].vol;
+        if (chan[c.chan].std.vol.will && !chan[c.chan].std.vol.finished) {
+          chan[c.chan].outVol=VOL_SCALE_LINEAR(chan[c.chan].vol&15,MIN(15,chan[c.chan].std.vol.val),15);
+        }
+        chan[c.chan].envVol=chan[c.chan].outVol;
+        
         if (!chan[c.chan].keyOn) chan[c.chan].killIt=true;
         chan[c.chan].freqChanged=true;
       }
