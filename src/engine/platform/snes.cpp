@@ -83,7 +83,13 @@ void DivPlatformSNES::acquire(short* bufL, short* bufR, size_t start, size_t len
     bufL[h]=out[0];
     bufR[h]=out[1];
     for (int i=0; i<8; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=chOut[i*2]+chOut[i*2+1];
+      int next=chOut[i*2]+chOut[i*2+1];
+      if (next<-32768) next=-32768;
+      if (next>32767) next=32767;
+      next=(next*254)/MAX(1,globalVolL+globalVolR);
+      if (next<-32768) next=-32768;
+      if (next>32767) next=32767;
+      oscBuf[i]->data[oscBuf[i]->needle++]=next;
     }
   }
 }
@@ -133,12 +139,10 @@ void DivPlatformSNES::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.panL.had) {
-      int val=chan[i].std.panL.val&0x7f;
-      chan[i].panL=(val<<1)|(val>>6);
+      chan[i].panL=chan[i].std.panL.val&0x7f;
     }
     if (chan[i].std.panR.had) {
-      int val=chan[i].std.panR.val&0x7f;
-      chan[i].panR=(val<<1)|(val>>6);
+      chan[i].panR=chan[i].std.panR.val&0x7f;
     }
     bool hasInverted=false;
     if (chan[i].std.ex1.had) {
@@ -362,8 +366,8 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       return chan[c.chan].vol;
       break;
     case DIV_CMD_PANNING:
-      chan[c.chan].panL=c.value;
-      chan[c.chan].panR=c.value2;
+      chan[c.chan].panL=c.value>>1;
+      chan[c.chan].panR=c.value2>>1;
       writeOutVol(c.chan);
       break;
     case DIV_CMD_PITCH:
@@ -509,7 +513,7 @@ void DivPlatformSNES::reset() {
     chan[i]=Channel();
     chan[i].std.setEngine(parent);
     chan[i].ws.setEngine(parent);
-    chan[i].ws.init(NULL,32,255);
+    chan[i].ws.init(NULL,32,15);
     writeOutVol(i);
     chWrite(i,4,i); // source number
   }
