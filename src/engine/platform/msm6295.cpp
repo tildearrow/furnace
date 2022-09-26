@@ -336,7 +336,10 @@ size_t DivPlatformMSM6295::getSampleMemUsage(int index) {
 }
 
 void DivPlatformMSM6295::renderSamples() {
+  unsigned int sampleOffVOX[256];
+
   memset(adpcmMem,0,getSampleMemCapacity(0));
+  memset(sampleOffVOX,0,256*sizeof(unsigned int));
 
   // sample data
   size_t memPos=128*8;
@@ -355,7 +358,7 @@ void DivPlatformMSM6295::renderSamples() {
     } else {
       memcpy(adpcmMem+memPos,s->dataVOX,paddedLen);
     }
-    s->offVOX=memPos;
+    sampleOffVOX[i]=memPos;
     memPos+=paddedLen;
   }
   adpcmMemLen=memPos+256;
@@ -363,10 +366,10 @@ void DivPlatformMSM6295::renderSamples() {
   // phrase book
   for (int i=0; i<sampleCount; i++) {
     DivSample* s=parent->song.sample[i];
-    int endPos=s->offVOX+s->lengthVOX;
-    adpcmMem[i*8]=(s->offVOX>>16)&0xff;
-    adpcmMem[1+i*8]=(s->offVOX>>8)&0xff;
-    adpcmMem[2+i*8]=(s->offVOX)&0xff;
+    int endPos=sampleOffVOX[i]+s->lengthVOX;
+    adpcmMem[i*8]=(sampleOffVOX[i]>>16)&0xff;
+    adpcmMem[1+i*8]=(sampleOffVOX[i]>>8)&0xff;
+    adpcmMem[2+i*8]=(sampleOffVOX[i])&0xff;
     adpcmMem[3+i*8]=(endPos>>16)&0xff;
     adpcmMem[4+i*8]=(endPos>>8)&0xff;
     adpcmMem[5+i*8]=(endPos)&0xff;

@@ -146,10 +146,14 @@ void DivPlatformYMZ280B::tick(bool sysTick) {
       if (s->depth==DIV_SAMPLE_DEPTH_YMZ_ADPCM && chan[i].freq>255) chan[i].freq=255;
       ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0)|(chan[i].freq>>8);
       if (chan[i].keyOn) {
-        unsigned int start=s->offYMZ280B;
+        unsigned int start=0;
         unsigned int loopStart=0;
         unsigned int loopEnd=0;
-        unsigned int end=MIN(start+s->getCurBufLen(),getSampleMemCapacity()-1);
+        unsigned int end=0;
+        if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+          start=sampleOff[chan[i].sample];
+          end=MIN(start+s->getCurBufLen(),getSampleMemCapacity()-1);
+        }
         if (chan[i].audPos>0) {
           switch (s->depth) {
             case DIV_SAMPLE_DEPTH_YMZ_ADPCM: start+=chan[i].audPos/2; break;
@@ -418,6 +422,7 @@ size_t DivPlatformYMZ280B::getSampleMemUsage(int index) {
 
 void DivPlatformYMZ280B::renderSamples() {
   memset(sampleMem,0,getSampleMemCapacity());
+  memset(sampleOff,0,256*sizeof(unsigned int));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -427,7 +432,7 @@ void DivPlatformYMZ280B::renderSamples() {
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos),length);
     if (actualLength>0) {
       memcpy(&sampleMem[memPos],src,actualLength);
-      s->offYMZ280B=memPos;
+      sampleOff[i]=memPos;
       memPos+=length;
     }
     if (actualLength<length) {

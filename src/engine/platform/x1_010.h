@@ -115,6 +115,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
 
   bool isBanked=false;
   unsigned int bankSlot[8];
+  unsigned int sampleOffX1[256];
 
   unsigned char regPool[0x2000];
   double NoteX1_010(int ch, int note);

@@ -926,6 +926,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   int loopPos=-1;
   int loopTick=-1;
 
+  unsigned int sampleOff8[256];
+  unsigned int sampleOffSegaPCM[256];
+
   SafeWriter* w=new SafeWriter;
   w->init();
 
@@ -1555,12 +1558,16 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
 
   unsigned int songOff=w->tell();
 
+  // initialize sample offsets
+  memset(sampleOff8,0,256*sizeof(unsigned int));
+  memset(sampleOffSegaPCM,0,256*sizeof(unsigned int));
+
   // write samples
   unsigned int sampleSeek=0;
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* sample=song.sample[i];
     logI("setting seek to %d",sampleSeek);
-    sample->off8=sampleSeek;
+    sampleOff8[i]=sampleSeek;
     sampleSeek+=sample->length8;
   }
 
@@ -1610,7 +1617,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       }
       logV("- sample %d will be at %x with length %x",i,memPos,alignedSize);
       if (memPos>=16777216) break;
-      sample->offSegaPCM=memPos;
+      sampleOffSegaPCM[i]=memPos;
       unsigned int readPos=0;
       for (unsigned int j=0; j<alignedSize; j++) {
         if (readPos>=(unsigned int)sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
@@ -1715,6 +1722,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       size_t sampleMemLen=writeZ280[i]->getSampleMemUsage();
       unsigned char* sampleMem=new unsigned char[sampleMemLen];
       memcpy(sampleMem,writeZ280[i]->getSampleMem(),sampleMemLen);
+      // TODO: please fix this later
+      /*
       for (int i=0; i<song.sampleLen; i++) {
         DivSample* s=song.sample[i];
         if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
@@ -1727,6 +1736,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           }
         }
       }
+      */
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x86);
@@ -1967,7 +1977,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           if (sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)<sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
             w->writeC(0x93);
             w->writeC(nextToTouch);
-            w->writeI(sample->off8+sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT));
+            w->writeI(sampleOff8[loopSample[nextToTouch]]+sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT));
             w->writeC(0x81);
             w->writeI(sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)-sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT));
           }

@@ -99,6 +99,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
     DivYM2608Interface iface;
+    unsigned int sampleOffB[256];
   
     DivPlatformAY8910* ay;
     unsigned char sampleBank;

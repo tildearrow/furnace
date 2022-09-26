@@ -66,6 +66,7 @@ class DivPlatformRF5C68: public DivDispatch {
   bool isMuted[8];
   int chipType;
   unsigned char curChan;
+  unsigned int sampleOffRFC[256];
 
   unsigned char* sampleMem;
   size_t sampleMemLen;

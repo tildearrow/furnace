@@ -161,10 +161,11 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
       if (chan[i].keyOn) {
         if (chan[i].pcm) {
           DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
-          DivSample* sample=parent->getSample(ins->amiga.getSample(chan[i].note));
-          if (sample!=NULL) {
-            unsigned int sampleEnd=sample->offSU+(sample->getLoopEndPosition());
-            unsigned int off=sample->offSU+chan[i].hasOffset;
+          int sNum=ins->amiga.getSample(chan[i].note);
+          DivSample* sample=parent->getSample(sNum);
+          if (sample!=NULL && sNum>=0 && sNum<parent->song.sampleLen) {
+            unsigned int sampleEnd=sampleOffSU[sNum]+(sample->getLoopEndPosition());
+            unsigned int off=sampleOffSU[sNum]+chan[i].hasOffset;
             chan[i].hasOffset=0;
             if (sampleEnd>=getSampleMemCapacity(0)) sampleEnd=getSampleMemCapacity(0)-1;
             chWrite(i,0x0a,off&0xff);
@@ -172,7 +173,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
             chWrite(i,0x0c,sampleEnd&0xff);
             chWrite(i,0x0d,sampleEnd>>8);
             if (sample->isLoopable()) {
-              unsigned int sampleLoop=sample->offSU+sample->getLoopStartPosition();
+              unsigned int sampleLoop=sampleOffSU[sNum]+sample->getLoopStartPosition();
               if (sampleLoop>=getSampleMemCapacity(0)) sampleLoop=getSampleMemCapacity(0)-1;
               chWrite(i,0x0e,sampleLoop&0xff);
               chWrite(i,0x0f,sampleLoop>>8);
@@ -547,6 +548,7 @@ size_t DivPlatformSoundUnit::getSampleMemUsage(int index) {
 
 void DivPlatformSoundUnit::renderSamples() {
   memset(su->pcm,0,getSampleMemCapacity(0));
+  memset(sampleOffSU,0,256*sizeof(unsigned int));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -563,7 +565,7 @@ void DivPlatformSoundUnit::renderSamples() {
     } else {
       memcpy(su->pcm+memPos,s->data8,paddedLen);
     }
-    s->offSU=memPos;
+    sampleOffSU[i]=memPos;
     memPos+=paddedLen;
   }
   sampleMemLen=memPos;

@@ -115,7 +115,7 @@ const unsigned char dacLogTableAY[256]={
 
 void DivPlatformAY8910::runDAC() {
   for (int i=0; i<3; i++) {
-    if (chan[i].active && chan[i].currPSGMode.dac && chan[i].dac.sample!=-1) {
+    if (chan[i].active && chan[i].curPSGMode.dac && chan[i].dac.sample!=-1) {
       chan[i].dac.period+=chan[i].dac.rate;
       bool end=false;
       bool changed=false;
@@ -215,22 +215,22 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
 void DivPlatformAY8910::updateOutSel(bool immediate) {
   if (immediate) {
     immWrite(0x07,
-          ~((chan[0].currPSGMode.getTone())|
-           ((chan[1].currPSGMode.getTone())<<1)|
-           ((chan[2].currPSGMode.getTone())<<2)|
-           ((chan[0].currPSGMode.getNoise())<<2)|
-           ((chan[1].currPSGMode.getNoise())<<3)|
-           ((chan[2].currPSGMode.getNoise())<<4)|
+          ~((chan[0].curPSGMode.getTone())|
+           ((chan[1].curPSGMode.getTone())<<1)|
+           ((chan[2].curPSGMode.getTone())<<2)|
+           ((chan[0].curPSGMode.getNoise())<<2)|
+           ((chan[1].curPSGMode.getNoise())<<3)|
+           ((chan[2].curPSGMode.getNoise())<<4)|
            ((!ioPortA)<<6)|
            ((!ioPortB)<<7)));
   } else {
     rWrite(0x07,
-          ~((chan[0].currPSGMode.getTone())|
-           ((chan[1].currPSGMode.getTone())<<1)|
-           ((chan[2].currPSGMode.getTone())<<2)|
-           ((chan[0].currPSGMode.getNoise())<<2)|
-           ((chan[1].currPSGMode.getNoise())<<3)|
-           ((chan[2].currPSGMode.getNoise())<<4)|
+          ~((chan[0].curPSGMode.getTone())|
+           ((chan[1].curPSGMode.getTone())<<1)|
+           ((chan[2].curPSGMode.getTone())<<2)|
+           ((chan[0].curPSGMode.getNoise())<<2)|
+           ((chan[1].curPSGMode.getNoise())<<3)|
+           ((chan[2].curPSGMode.getNoise())<<4)|
            ((!ioPortA)<<6)|
            ((!ioPortB)<<7)));
   }
@@ -266,7 +266,7 @@ void DivPlatformAY8910::tick(bool sysTick) {
       if (!chan[i].nextPSGMode.dac) {
         chan[i].nextPSGMode.val=(chan[i].std.wave.val+1)&7;
         if (chan[i].active) {
-          chan[i].currPSGMode.val=chan[i].nextPSGMode.val;
+          chan[i].curPSGMode.val=chan[i].nextPSGMode.val;
         }
         if (isMuted[i]) {
           rWrite(0x08+i,0);
@@ -340,11 +340,11 @@ void DivPlatformAY8910::tick(bool sysTick) {
         //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));
         //rWrite(16+i*5+2,((chan[i].vol<<4))|(ins->gb.envLen&7)|((ins->gb.envDir&1)<<3));
         if (!chan[i].nextPSGMode.dac) {
-          chan[i].currPSGMode.val=chan[i].nextPSGMode.val;
+          chan[i].curPSGMode.val=chan[i].nextPSGMode.val;
         }
       }
       if (chan[i].keyOff) {
-        chan[i].currPSGMode.val=0;
+        chan[i].curPSGMode.val=0;
         rWrite(0x08+i,0);
       }
       rWrite((i)<<1,chan[i].freq&0xff);
@@ -448,7 +448,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
           }
           chan[c.chan].dac.furnaceDAC=false;
         }
-        chan[c.chan].currPSGMode.dac=chan[c.chan].nextPSGMode.dac;
+        chan[c.chan].curPSGMode.dac=chan[c.chan].nextPSGMode.dac;
         break;
       }
       if (c.value!=DIV_NOTE_NULL) {
@@ -553,7 +553,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
         if (c.value<16) {
           chan[c.chan].nextPSGMode.val=(c.value+1)&7;
           if (chan[c.chan].active) {
-            chan[c.chan].currPSGMode.val=chan[c.chan].nextPSGMode.val;
+            chan[c.chan].curPSGMode.val=chan[c.chan].nextPSGMode.val;
           }
           if (isMuted[c.chan]) {
             rWrite(0x08+c.chan,0);
@@ -579,7 +579,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
         chan[c.chan].nextPSGMode.envelope&=~1;
       }
       if (!chan[c.chan].nextPSGMode.dac && chan[c.chan].active) {
-        chan[c.chan].currPSGMode.val=chan[c.chan].nextPSGMode.val;
+        chan[c.chan].curPSGMode.val=chan[c.chan].nextPSGMode.val;
       }
       if (isMuted[c.chan]) {
         rWrite(0x08+c.chan,0);
@@ -626,7 +626,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_MODE:
       chan[c.chan].nextPSGMode.dac=(c.value>0)?1:0;
       if (chan[c.chan].active) {
-        chan[c.chan].currPSGMode.dac=chan[c.chan].nextPSGMode.dac;
+        chan[c.chan].curPSGMode.dac=chan[c.chan].nextPSGMode.dac;
       }
       break;
     case DIV_CMD_SAMPLE_BANK:

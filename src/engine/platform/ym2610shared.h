@@ -136,6 +136,9 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
     size_t adpcmBMemLen;
     DivYM2610Interface iface;
 
+    unsigned int sampleOffA[256];
+    unsigned int sampleOffB[256];
+
     unsigned char sampleBank;
   
     bool extMode;
@@ -207,6 +210,8 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
 
     void renderSamples() {
       memset(adpcmAMem,0,getSampleMemCapacity(0));
+      memset(sampleOffA,0,256*sizeof(unsigned int));
+      memset(sampleOffB,0,256*sizeof(unsigned int));
 
       size_t memPos=0;
       for (int i=0; i<parent->song.sampleLen; i++) {
@@ -225,7 +230,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
         } else {
           memcpy(adpcmAMem+memPos,s->dataA,paddedLen);
         }
-        s->offA=memPos;
+        sampleOffA[i]=memPos;
         memPos+=paddedLen;
       }
       adpcmAMemLen=memPos+256;
@@ -249,7 +254,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
         } else {
           memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
         }
-        s->offB=memPos;
+        sampleOffB[i]=memPos;
         memPos+=paddedLen;
       }
       adpcmBMemLen=memPos+256;

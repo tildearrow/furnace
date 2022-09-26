@@ -212,6 +212,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   bool isMuted[32];
   signed short* sampleMem; // ES5506 uses 16 bit data bus for samples
   size_t sampleMemLen;
+  unsigned int sampleOffES5506[256];
   struct QueuedHostIntf {
       unsigned char state;
       unsigned char step;

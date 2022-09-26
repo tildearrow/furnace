@@ -220,6 +220,7 @@ void DivPlatformES5506::e_pin(bool state)
               DivInstrumentAmiga::TransWaveMap& transWaveInd=ins->amiga.transWaveMap[next];
               int sample=transWaveInd.ind;
               if (sample>=0 && sample<parent->song.sampleLen) {
+                const unsigned int offES5506=sampleOffES5506[sample];
                 chan[ch].pcm.index=sample;
                 chan[ch].transWave.ind=next;
                 DivSample* s=parent->getSample(sample);
@@ -254,13 +255,13 @@ void DivPlatformES5506::e_pin(bool state)
                 if (transWaveInd.reversed!=2) {
                   reversed=transWaveInd.reversed;
                 }
-                const unsigned int start=s->offES5506<<10;
+                const unsigned int start=offES5506<<10;
                 const unsigned int length=s->samples-1;
                 const unsigned int end=start+(length<<11);
                 const double nextFreqOffs=PITCH_OFFSET*off;
                 chan[ch].pcm.loopMode=loopMode;
                 chan[ch].pcm.reversed=reversed;
-                chan[ch].pcm.bank=(s->offES5506>>22)&3;
+                chan[ch].pcm.bank=(offES5506>>22)&3;
                 chan[ch].pcm.start=start;
                 chan[ch].pcm.loopStart=(start+(unsigned int)(loopStart*2048.0))&0xfffff800;
                 chan[ch].pcm.loopEnd=(start+(unsigned int)((loopEnd-1.0)*2048.0))&0xffffff80;
@@ -633,6 +634,7 @@ void DivPlatformES5506::tick(bool sysTick) {
                 sample=noteMapind.map;
               }
               if (sample>=0 && sample<parent->song.sampleLen) {
+                const unsigned int offES5506=sampleOffES5506[sample];
                 sampleVaild=true;
                 chan[i].pcm.index=sample;
                 chan[i].pcm.isNoteMap=ins->amiga.useNoteMap && !ins->amiga.transWave.enable;
@@ -678,10 +680,10 @@ void DivPlatformES5506::tick(bool sysTick) {
                 } else if (ins->amiga.useNoteMap&&noteMapind.reversed!=2) {
                   reversed=noteMapind.reversed;
                 }
-                const unsigned int start=s->offES5506<<10;
+                const unsigned int start=offES5506<<10;
                 const unsigned int length=s->samples-1;
                 const unsigned int end=start+(length<<11);
-                const unsigned int nextBank=(s->offES5506>>22)&3;
+                const unsigned int nextBank=(offES5506>>22)&3;
                 const double nextFreqOffs=PITCH_OFFSET*off;
                 chan[i].pcm.loopMode=loopMode;
                 chan[i].pcm.reversed=reversed;
@@ -722,7 +724,7 @@ void DivPlatformES5506::tick(bool sysTick) {
                   loopStart=chan[i].transWave.sliceStart;
                   loopEnd=chan[i].transWave.sliceEnd;
                 }
-                const unsigned int start=s->offES5506<<10;
+                const unsigned int start=sampleOffES5506[chan[i].pcm.index]<<10;
                 const unsigned int nextLoopStart=(start+(unsigned int)(loopStart*2048.0))&0xfffff800;
                 const unsigned int nextLoopEnd=(start+(unsigned int)((loopEnd-1.0)*2048.0))&0xffffff80;
                 if ((chan[i].pcm.loopStart!=nextLoopStart) || (chan[i].pcm.loopEnd!=nextLoopEnd)) {
@@ -941,6 +943,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
           sample=noteMapind.map;
         }
         if (sample>=0 && sample<parent->song.sampleLen) {
+          const unsigned int offES5506=sampleOffES5506[sample];
           sampleVaild=true;
           chan[c.chan].pcm.index=chan[c.chan].pcm.next=sample;
           chan[c.chan].pcm.pause=(chan[c.chan].std.alg.will)?(chan[c.chan].std.alg.val&1):false;
@@ -989,13 +992,13 @@ int DivPlatformES5506::dispatch(DivCommand c) {
           } else if (ins->amiga.useNoteMap&&noteMapind.reversed!=2) {
             reversed=noteMapind.reversed;
           }
-          const unsigned int start=s->offES5506<<10;
+          const unsigned int start=offES5506<<10;
           const unsigned int length=s->samples-1;
           const unsigned int end=start+(length<<11);
           chan[c.chan].pcm.loopMode=loopMode;
           chan[c.chan].pcm.freqOffs=PITCH_OFFSET*off;
           chan[c.chan].pcm.reversed=reversed;
-          chan[c.chan].pcm.bank=(s->offES5506>>22)&3;
+          chan[c.chan].pcm.bank=(offES5506>>22)&3;
           chan[c.chan].pcm.start=start;
           chan[c.chan].pcm.end=end;
           chan[c.chan].pcm.length=length;
@@ -1372,6 +1375,7 @@ size_t DivPlatformES5506::getSampleMemUsage(int index) {
 
 void DivPlatformES5506::renderSamples() {
   memset(sampleMem,0,getSampleMemCapacity());
+  memset(sampleOffES5506,0,256*sizeof(unsigned int));
 
   size_t memPos=128;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -1394,7 +1398,7 @@ void DivPlatformES5506::renderSamples() {
     } else {
       memcpy(sampleMem+(memPos/sizeof(short)),s->data16,length);
     }
-    s->offES5506=memPos;
+    sampleOffES5506[i]=memPos;
     memPos+=length;
   }
   sampleMemLen=memPos+256;

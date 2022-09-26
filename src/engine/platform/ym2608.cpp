@@ -684,9 +684,9 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
-            immWrite(0x102,(s->offB>>5)&0xff);
-            immWrite(0x103,(s->offB>>13)&0xff);
-            int end=s->offB+s->lengthB-1;
+            immWrite(0x102,(sampleOffB[chan[c.chan].sample]>>5)&0xff);
+            immWrite(0x103,(sampleOffB[chan[c.chan].sample]>>13)&0xff);
+            int end=sampleOffB[chan[c.chan].sample]+s->lengthB-1;
             immWrite(0x104,(end>>5)&0xff);
             immWrite(0x105,(end>>13)&0xff);
             immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|2);
@@ -715,9 +715,9 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
           chan[c.chan].sample=12*sampleBank+c.value%12;
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
-            immWrite(0x102,(s->offB>>5)&0xff);
-            immWrite(0x103,(s->offB>>13)&0xff);
-            int end=s->offB+s->lengthB-1;
+            immWrite(0x102,(sampleOffB[chan[c.chan].sample]>>5)&0xff);
+            immWrite(0x103,(sampleOffB[chan[c.chan].sample]>>13)&0xff);
+            int end=sampleOffB[chan[c.chan].sample]+s->lengthB-1;
             immWrite(0x104,(end>>5)&0xff);
             immWrite(0x105,(end>>13)&0xff);
             immWrite(0x101,(isMuted[c.chan]?0:(chan[c.chan].pan<<6))|2);
@@ -1334,6 +1334,7 @@ size_t DivPlatformYM2608::getSampleMemUsage(int index) {
 
 void DivPlatformYM2608::renderSamples() {
   memset(adpcmBMem,0,getSampleMemCapacity(0));
+  memset(sampleOffB,0,256*sizeof(unsigned int));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -1352,7 +1353,7 @@ void DivPlatformYM2608::renderSamples() {
     } else {
       memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
     }
-    s->offB=memPos;
+    sampleOffB[i]=memPos;
     memPos+=paddedLen;
   }
   adpcmBMemLen=memPos+256;

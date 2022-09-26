@@ -66,6 +66,7 @@ class DivPlatformYMZ280B: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
   int chipType;
+  unsigned int sampleOff[256];
 
   unsigned char* sampleMem;
   size_t sampleMemLen;

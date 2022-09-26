@@ -75,6 +75,7 @@ additional guidelines:
   - if you are making major changes to the playback routine, make sure to test with older songs to ensure nothing breaks.
     - I will run a test suite to make sure this is the case.
     - if something breaks, you might want to add a compatibility flag (this requires changing the format though).
+- do not use `#pragma once`.
 
 ## Demo Songs
 

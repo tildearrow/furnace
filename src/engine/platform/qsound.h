@@ -72,6 +72,9 @@ class DivPlatformQSound: public DivDispatch {
   struct qsound_chip chip;
   unsigned short regPool[512];
 
+  unsigned int offPCM[256];
+  unsigned int offBS[256];
+
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 

@@ -90,6 +90,7 @@ class DivPlatformOPL: public DivDispatch {
     unsigned char* adpcmBMem;
     size_t adpcmBMemLen;
     DivOPLAInterface iface;
+    unsigned int sampleOffB[256];
   
     ymfm::adpcm_b_engine* adpcmB;
     const unsigned char** slotsNonDrums;

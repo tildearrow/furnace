@@ -83,6 +83,12 @@ enum DivHaltPositions {
   DIV_HALT_BREAKPOINT
 };
 
+enum DivMIDIModes {
+  DIV_MIDI_MODE_OFF=0,
+  DIV_MIDI_MODE_NOTE,
+  DIV_MIDI_MODE_LIGHT_SHOW
+};
+
 struct DivChannelState {
   std::vector<DivDelayedCommand> delayed;
   int note, oldNote, lastIns, pitch, portaSpeed, portaNote;
@@ -340,6 +346,8 @@ class DivEngine {
   bool lowLatency;
   bool systemsRegistered;
   bool hasLoadedSomething;
+  bool midiOutClock;
+  int midiOutMode;
   int softLockCount;
   int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed;
   size_t curSubSongIndex;
@@ -1008,6 +1016,8 @@ class DivEngine {
       lowLatency(false),
       systemsRegistered(false),
       hasLoadedSomething(false),
+      midiOutClock(false),
+      midiOutMode(DIV_MIDI_MODE_NOTE),
       softLockCount(0),
       subticks(0),
       ticks(0),

@@ -130,8 +130,12 @@ void DivPlatformRF5C68::tick(bool sysTick) {
       chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {
-        unsigned int start=s->offRF5C68;
-        unsigned int loop=start+s->length8;
+        unsigned int start=0;
+        unsigned int loop=0;
+        if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+          start=sampleOffRFC[chan[i].sample];
+          loop=start+s->length8;
+        }
         if (chan[i].audPos>0) {
           start=start+MIN(chan[i].audPos,s->length8);
         }
@@ -383,6 +387,7 @@ size_t DivPlatformRF5C68::getSampleMemUsage(int index) {
 
 void DivPlatformRF5C68::renderSamples() {
   memset(sampleMem,0,getSampleMemCapacity());
+  memset(sampleOffRFC,0,256*sizeof(unsigned int));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -390,7 +395,7 @@ void DivPlatformRF5C68::renderSamples() {
     int length=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-31,length);
     if (actualLength>0) {
-      s->offRF5C68=memPos;
+      sampleOffRFC[i]=memPos;
       for (int j=0; j<actualLength; j++) {
         // convert to signed magnitude
         signed char val=s->data8[j];

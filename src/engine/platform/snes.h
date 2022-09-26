@@ -75,7 +75,7 @@ class DivPlatformSNES: public DivDispatch {
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
-  signed char globalVolL, globalVolR;
+  int globalVolL, globalVolR;
   unsigned char noiseFreq;
   size_t sampleTableBase;
   bool writeControl;
@@ -92,6 +92,7 @@ class DivPlatformSNES: public DivDispatch {
 
   signed char sampleMem[65536];
   size_t sampleMemLen;
+  unsigned int sampleOff[256];
   unsigned char regPool[0x80];
   SPC_DSP dsp;
   friend void putDispatchChan(void*,int,int);
