@@ -17,125 +17,96 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include <fmt/printf.h>
 #include "tiaExporter.h"
 
-SafeWriter* TiaTrackerROMBuilder::buildROM(DivEngine & e, int sysIndex) {
-  e.stop();
-  e.setOrder(0);
-//  BUSY_BEGIN_SOFT;
-//   // determine loop point
-//   int loopOrder=0;
-//   int loopRow=0;
-//   int loopEnd=0;
-//   walkSong(loopOrder,loopRow,loopEnd);
-//   logI("loop point: %d %d",loopOrder,loopRow);
+struct PatternInfo {
+  unsigned short subsong, chan, pat;
+  PatternInfo(unsigned short s, unsigned short c, unsigned short p):
+    subsong(s),
+    chan(c),
+    pat(p) {}
+};
+
+SafeWriter* FurnaceTrackerROMBuilder::buildROM(int sysIndex) {
 
   SafeWriter* w=new SafeWriter;
   w->init();
+  w->writeText("# Data exported from Furnace to TIATracker data track.\n");
+  w->writeText(fmt::sprintf("# Song: %s\n", e->song.name));
+  w->writeText(fmt::sprintf("# Author: %s\n", e->song.author));
+// TODO: never populated?
+//   w->writeText(fmt::sprintf("# Composer: %s\n", e->song.composer));
+//   w->writeText(fmt::sprintf("# Arranger: %s\n", e->song.arranger));
+//   w->writeText(fmt::sprintf("# Copyright: %s\n", e->song.copyright));
+//   w->writeText(fmt::sprintf("# Created Date: %s\n", e->song.createdDate));
+  w->writeText("ft_InsAUDCxTable\n");
+  for (int i = 0; i < e->song.insLen; i++) {
+    DivInstrument* ins = e->getIns(i, DIV_INS_TIA);
+    w->writeText(fmt::sprintf("ft_Ins%d_AUDCx ; Waveforms for %s", i, ins->name));
+    for (int j = 0; j < 1; j++) { // TODO: multiple waveforms? ins->std.waveMacro.len; j++) {
+      if (j % 8 == 0) {
+        w->writeText("\n    byte ");
+      } else {
+        w->writeText(",");
+      }
+      w->writeText(fmt::format_int(ins->std.waveMacro.val[j]).c_str());
+    }
+    w->writeC('\n');
+  }
+  w->writeText("ft_InsAUDFxAUDVxTable\n");
+  for (int i = 0; i < e->song.insLen; i++) {
+    DivInstrument* ins = e->getIns(i, DIV_INS_TIA);
+    w->writeText(fmt::sprintf("ft_Ins%d_AUDFxAUDVx ; FreqVol for %s", i, ins->name));
+    for (int j = 0; j < ins->std.volMacro.len; j++) {
+      if (j % 8 == 0) {
+        w->writeText("\n    byte ");
+      } else {
+        w->writeText(",");
+      }
+      short freqVol = (ins->std.volMacro.val[j] << 4) + ins->std.pitchMacro.val[j];
+      w->writeText(fmt::format_int(freqVol).c_str());
+    }
+    w->writeC('\n');
+  }
 
-  w->writeText("TIATracker data");
-//   // write header
-//   if (binary) {
-//     w->write("FCS",4);
-//   } else {
+  // borrow from fileops - pull patterns to write
+  std::vector<PatternInfo> patterns;
+  bool alreadyAdded[256];
+  for (int i = 0; i < e->getChannelCount(DIV_SYSTEM_TIA); i++) {
+    for (size_t j = 0; j < e->song.subsong.size(); j++) {
+      DivSubSong* subs = e->song.subsong[j];
+      memset(alreadyAdded, 0, 256*sizeof(bool));
+      for (int k = 0; k < subs->ordersLen; k++) {
+        if (alreadyAdded[subs->orders.ord[i][k]]) continue;
+        patterns.push_back(PatternInfo(j, i, subs->orders.ord[i][k]));
+        alreadyAdded[subs->orders.ord[i][k]] = true;
+      }
+    }
+  }
 
-//     w->writeText("[Information]\n");
-//     w->writeText(fmt::sprintf("name: %s\n",song.name));
-//     w->writeText(fmt::sprintf("author: %s\n",song.author));
-//     w->writeText(fmt::sprintf("category: %s\n",song.category));
-//     w->writeText(fmt::sprintf("system: %s\n",song.systemName));
-
-//     w->writeText("\n");
-
-//     w->writeText("[SubSongInformation]\n");
-//     w->writeText(fmt::sprintf("name: %s\n",curSubSong->name));
-//     w->writeText(fmt::sprintf("tickRate: %f\n",curSubSong->hz));
-
-//     w->writeText("\n");
-
-//     w->writeText("[SysDefinition]\n");
-//     // TODO
-
-//     w->writeText("\n");
-//   }
-
-//   // play the song ourselves
-//   bool done=false;
-//   playSub(false);
-  
-//   if (!binary) {
-//     w->writeText("[Stream]\n");
-//   }
-//   int tick=0;
-//   bool oldCmdStreamEnabled=cmdStreamEnabled;
-//   cmdStreamEnabled=true;
-//   double curDivider=divider;
-//   int lastTick=0;
-//   while (!done) {
-//     if (nextTick(false,true) || !playing) {
-//       done=true;
-//     }
-//     // get command stream
-//     bool wroteTick=false;
-//     if (curDivider!=divider) {
-//       curDivider=divider;
-//       WRITE_TICK;
-//       if (binary) {
-//         w->writeC(0xfb);
-//         w->writeI((int)(curDivider*65536));
-//       } else {
-//         w->writeText(fmt::sprintf(">> SET_RATE %f\n",curDivider));
-//       }
-//     }
-//     for (DivCommand& i: cmdStream) {
-//       switch (i.cmd) {
-//         // strip away hinted/useless commands
-//         case DIV_ALWAYS_SET_VOLUME:
-//           break;
-//         case DIV_CMD_GET_VOLUME:
-//           break;
-//         case DIV_CMD_VOLUME:
-//           break;
-//         case DIV_CMD_NOTE_PORTA:
-//           break;
-//         case DIV_CMD_LEGATO:
-//           break;
-//         case DIV_CMD_PITCH:
-//           break;
-//         case DIV_CMD_PRE_NOTE:
-//           break;
-//         default:
-//           WRITE_TICK;
-//           if (binary) {
-//             w->writeC(i.chan);
-//             writePackedCommandValues(w,i);
-//           } else {
-//             w->writeText(fmt::sprintf("  %d: %s %d %d\n",i.chan,cmdName[i.cmd],i.value,i.value2));
-//           }
-//           break;
-//       }
-//     }
-//     cmdStream.clear();
-//     tick++;
-//   }
-//   cmdStreamEnabled=oldCmdStreamEnabled;
-
-//   if (binary) {
-//     w->writeC(0xff);
-//   } else {
-//     if (!playing) {
-//       w->writeText(">> END\n");
-//     } else {
-//       w->writeText(">> LOOP 0\n");
-//     }
-//   }
-
-//   remainingLoops=-1;
-//   playing=false;
-//   freelance=false;
-//   extValuePresent=false;
-//   BUSY_END;
+  for (PatternInfo& i: patterns) {
+    DivPattern* pat = e->song.subsong[i.subsong]->pat[i.chan].getPattern(i.pat, false);
+    w->writeText(fmt::sprintf("# Subsong: %d Channel: %d Pattern: %d / %s\n", i.subsong, i.chan, i.pat, pat->name));
+    w->writeText(fmt::sprintf("ft_subsong%d_chan%d_pat%d_start", i.subsong, i.chan, i.pat));
+    for (int j=0; j<e->song.subsong[i.subsong]->patLen; j++) {
+      if (j % 8 == 0) {
+        w->writeText("\n    byte ");
+      } else {
+        w->writeText(",");
+      }
+      short note = pat->data[j][0];
+      //short octave = pat->data[j][1];
+      short instrument = pat->data[j][2];
+      //short volume = pat->data[j][3]; 
+      // TODO: effects 
+      // TODO: check instrument size
+      // TODO: define percussions
+      // write instrument to bits 7..5, frequency to bits 0..4 
+      char bits = (((0x07 & instrument) + 1) << 5) + (0xf & note); // TODO: note_frequency(note, octave);
+      w->writeText(fmt::sprintf("%d", bits));
+    }
+  }
 
   return w;
 }
-    

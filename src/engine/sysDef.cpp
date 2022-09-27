@@ -842,7 +842,7 @@ void DivEngine::registerSystems() {
     {},
     {},
     waveOnlyEffectHandlerMap,
-    new TiaTrackerROMBuilder()
+    new FurnaceTrackerROMBuilder(this) // TODO: lifecycle
   );
 
   sysDefs[DIV_SYSTEM_SAA1099]=new DivSysDef(

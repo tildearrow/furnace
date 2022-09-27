@@ -19,12 +19,10 @@
 
 #include "../engine.h"
 
-class TiaTrackerROMBuilder : public SystemROMBuilder {
-public:
-
-    virtual ~TiaTrackerROMBuilder() {}
-
-    SafeWriter* buildROM(DivEngine &e, int sysIndex) override;
-    
+class FurnaceTrackerROMBuilder : public SystemROMBuilder {
+public:    
+    FurnaceTrackerROMBuilder(DivEngine* eng) : SystemROMBuilder(eng) {}
+    virtual ~FurnaceTrackerROMBuilder() {}
+    SafeWriter* buildROM(int sysIndex) override;
  };
 

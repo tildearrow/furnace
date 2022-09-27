@@ -30,6 +30,6 @@ SafeWriter* DivEngine::buildROM(int sysIndex) {
         return NULL;
     }
     // perform ROM build
-    return romBuilder->buildROM(*this, sysIndex);
+    return romBuilder->buildROM(sysIndex);
 }
 
