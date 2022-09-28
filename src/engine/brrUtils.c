@@ -21,7 +21,6 @@
  */
 
 #include "brrUtils.h"
-#include <stdio.h>
 
 #define NEXT_SAMPLE buf[j]-(buf[j]>>3)
 
@@ -301,7 +300,6 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
         if (error<0) error=-error;
         avgError[1]+=error;
         if (error>maxError[1]) maxError[1]=error;
-        //printf("%6d | %6d => %6d\n",s,nextDec<<1,error);
       }
       last1=prevLast1;
       last2=prevLast2;
@@ -320,7 +318,6 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
         if (error<0) error=-error;
         avgError[2]+=error;
         if (error>maxError[2]) maxError[2]=error;
-        //printf("%6d | %6d => %6d\n",s,nextDec<<1,error);
       }
       last1=prevLast1;
       last2=prevLast2;
@@ -339,7 +336,6 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
         if (error<0) error=-error;
         avgError[3]+=error;
         if (error>maxError[3]) maxError[3]=error;
-        //printf("%6d | %6d => %6d\n",s,nextDec<<1,error);
       }
       last1=prevLast1;
       last2=prevLast2;
@@ -352,7 +348,7 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
           filter=j;
         }
       }
-      printf("block %ld: %8d %8d %8d %8d -> %d\n",i>>4,avgError[0],avgError[1],avgError[2],avgError[3],filter);
+      //printf("block %ld: %8d %8d %8d %8d -> %d\n",i>>4,avgError[0],avgError[1],avgError[2],avgError[3],filter);
     } else {
       // don't filter on the first or loop block
       filter=0;
