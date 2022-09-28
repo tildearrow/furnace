@@ -92,6 +92,12 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
   short o1=0;
   short o2=0;
   short o0=0;
+  short o1f1=0;
+  short o1f2=0;
+  short o1f3=0;
+  short o2f1=0;
+  short o2f2=0;
+  short o2f3=0;
 
   int last1=0;
   int last2=0;
@@ -132,6 +138,13 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
       range1=0;
       range2=0;
       range3=0;
+      o2f1=o2;
+      o2f2=o2;
+      o2f3=o2;
+      o1f1=o1;
+      o1f2=o1;
+      o1f3=o1;
+      // first pass
       for (int j=0; j<16; j++) {
         int s=NEXT_SAMPLE;
 
@@ -150,26 +163,34 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
         o2=o1;
         o1=s;
       }
+      // calculate range of values
       for (int j=0; j<16; j++) {
         short s=pred1[j];
         if (s<0) s=-s;
-        while (range1<10 && s>((8<<range1)-1)) range1++;
+        while (range1<12 && s>((8<<range1)-1)) range1++;
 
         s=pred2[j];
         if (s<0) s=-s;
-        while (range2<7 && s>((8<<range2)-1)) range2++;
+        while (range2<12 && s>((8<<range2)-1)) range2++;
 
         s=pred3[j];
         if (s<0) s=-s;
-        while (range3<7 && s>((8<<range3)-1)) range3++;
+        while (range3<12 && s>((8<<range3)-1)) range3++;
       }
+      // second pass
+      int prevLast1=last1;
+      int prevLast2=last2;
       for (int j=0; j<16; j++) {
-        short s=pred1[j];
-        o0=s>>range1;
-        if (range1) if (s&(1<<(range1>>1))) o0++;
+        int s=NEXT_SAMPLE;
+
+        pred1[j]=s-(((int)o1f1*15)>>4);
+        if (pred1[j]<-32768) pred1[j]=-32768;
+        if (pred1[j]>32767) pred1[j]=32767;
+
+        o0=pred1[j]>>range1;
+        if (range1) if (pred1[j]&(1<<(range1>>1))) o0++;
         if (o0>7) o0=7;
         if (o0<-8) o0=-8;
-        if (range1>=10) if (o0<-7) o0=-7;
         o=o0&15;
         if (j&1) {
           next1[j>>1]|=o;
@@ -177,12 +198,23 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
           next1[j>>1]=o<<4;
         }
 
-        s=pred2[j];
-        o0=s>>range2;
-        if (range2) if (s&(1<<(range2>>1))) o0++;
+        nextDec=o;
+        DO_ONE_DEC(range1);
+        o2f1=last2<<1;
+        o1f1=last1<<1;
+      }
+      last1=prevLast1;
+      last2=prevLast2;
+      for (int j=0; j<16; j++) {
+        int s=NEXT_SAMPLE;
+        pred2[j]=s+(((int)o2f2*15)>>4)-(((int)o1f2*61)>>5);
+        if (pred2[j]<-32768) pred2[j]=-32768;
+        if (pred2[j]>32767) pred2[j]=32767;
+
+        o0=pred2[j]>>range2;
+        if (range2) if (pred2[j]&(1<<(range2>>1))) o0++;
         if (o0>7) o0=7;
         if (o0<-8) o0=-8;
-        if (range2>=7) if (o0<-7) o0=-7;
         o=o0&15;
         if (j&1) {
           next2[j>>1]|=o;
@@ -190,19 +222,37 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
           next2[j>>1]=o<<4;
         }
 
-        s=pred3[j];
-        o0=s>>range3;
-        if (range3) if (s&(1<<(range3>>1))) o0++;
+        nextDec=o;
+        DO_ONE_DEC(range2);
+        o2f2=last2<<1;
+        o1f2=last1<<1;
+      }
+      last1=prevLast1;
+      last2=prevLast2;
+      for (int j=0; j<16; j++) {
+        int s=NEXT_SAMPLE;
+        pred3[j]=s+(((int)o2f3*13)>>4)-(((int)o1f3*115)>>6);
+        if (pred3[j]<-32768) pred3[j]=-32768;
+        if (pred3[j]>32767) pred3[j]=32767;
+
+        o0=pred3[j]>>range3;
+        if (range3) if (pred3[j]&(1<<(range3>>1))) o0++;
         if (o0>7) o0=7;
         if (o0<-8) o0=-8;
-        if (range3>=7) if (o0<-7) o0=-7;
         o=o0&15;
         if (j&1) {
           next3[j>>1]|=o;
         } else {
           next3[j>>1]=o<<4;
         }
+
+        nextDec=o;
+        DO_ONE_DEC(range3);
+        o2f3=last2<<1;
+        o1f3=last1<<1;
       }
+      last1=prevLast1;
+      last2=prevLast2;
     }
 
     if (i && i!=loopStart) {
@@ -235,7 +285,6 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
         avgError[0]+=error;
         if (error>maxError[0]) maxError[0]=error;
       }
-      avgError[0]>>=4;
       last1=prevLast1;
       last2=prevLast2;
 
@@ -255,7 +304,6 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
         if (error>maxError[1]) maxError[1]=error;
         //printf("%6d | %6d => %6d\n",s,nextDec<<1,error);
       }
-      avgError[1]>>=4;
       last1=prevLast1;
       last2=prevLast2;
 
@@ -275,7 +323,6 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
         if (error>maxError[2]) maxError[2]=error;
         //printf("%6d | %6d => %6d\n",s,nextDec<<1,error);
       }
-      avgError[2]>>=4;
       last1=prevLast1;
       last2=prevLast2;
 
@@ -295,7 +342,6 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
         if (error>maxError[3]) maxError[3]=error;
         //printf("%6d | %6d => %6d\n",s,nextDec<<1,error);
       }
-      avgError[3]>>=4;
       last1=prevLast1;
       last2=prevLast2;
 
@@ -308,7 +354,7 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
           filter=j;
         }
       }
-      //printf("block %ld: %8d %8d -> %d\n",i>>4,avgError[0],avgError[1],filter);
+      printf("block %ld: %8d %8d %8d %8d -> %d\n",i>>4,avgError[0],avgError[1],avgError[2],avgError[3],filter);
     } else {
       // don't filter on the first or loop block
       filter=0;
