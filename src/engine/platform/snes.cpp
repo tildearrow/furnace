@@ -296,29 +296,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       }
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->snes;
-        if (chan[c.chan].state.useEnv) {
-          chWrite(c.chan,5,chan[c.chan].state.a|(chan[c.chan].state.d<<4)|0x80);
-          chWrite(c.chan,6,chan[c.chan].state.r|(chan[c.chan].state.s<<5));
-        } else {
-          chWrite(c.chan,5,0);
-          switch (chan[c.chan].state.gainMode) {
-            case DivInstrumentSNES::GAIN_MODE_DIRECT:
-              chWrite(c.chan,7,chan[c.chan].state.gain&127);
-              break;
-            case DivInstrumentSNES::GAIN_MODE_DEC_LINEAR:
-              chWrite(c.chan,7,0x80|(chan[c.chan].state.gain&31));
-              break;
-            case DivInstrumentSNES::GAIN_MODE_INC_LINEAR:
-              chWrite(c.chan,7,0xc0|(chan[c.chan].state.gain&31));
-              break;
-            case DivInstrumentSNES::GAIN_MODE_DEC_LOG:
-              chWrite(c.chan,7,0xa0|(chan[c.chan].state.gain&31));
-              break;
-            case DivInstrumentSNES::GAIN_MODE_INC_INVLOG:
-              chWrite(c.chan,7,0xe0|(chan[c.chan].state.gain&31));
-              break;
-          }
-        }
+        writeEnv(c.chan);
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=round(NOTE_FREQUENCY(c.value));
@@ -368,6 +346,11 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       chan[c.chan].pitch=c.value;
       chan[c.chan].freqChanged=true;
       break;
+    case DIV_CMD_WAVE:
+      if (!chan[c.chan].useWave) break;
+      chan[c.chan].wave=c.value;
+      chan[c.chan].ws.changeWave1(chan[c.chan].wave);
+      break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=round(NOTE_FREQUENCY(c.value2));
       bool return2=false;
@@ -404,8 +387,75 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS:
+      // may have to remove this
       chan[c.chan].audPos=c.value;
       chan[c.chan].setPos=true;
+      break;
+    case DIV_CMD_STD_NOISE_MODE:
+      chan[c.chan].noise=c.value;
+      writeNoise=true;
+      break;
+    case DIV_CMD_SNES_PITCH_MOD:
+      chan[c.chan].pitchMod=c.value;
+      writePitchMod=true;
+      break;
+    case DIV_CMD_SNES_INVERT:
+      chan[c.chan].invertL=(c.value>>4);
+      chan[c.chan].invertR=c.chan&15;
+      writeOutVol(c.chan);
+      break;
+    case DIV_CMD_SNES_GAIN_MODE:
+      if (c.value) {
+        chan[c.chan].state.useEnv=false;
+        switch (c.value) {
+          case 1:
+            chan[c.chan].state.gainMode=DivInstrumentSNES::GAIN_MODE_DIRECT;
+            break;
+          case 2:
+            chan[c.chan].state.gainMode=DivInstrumentSNES::GAIN_MODE_DEC_LINEAR;
+            break;
+          case 3:
+            chan[c.chan].state.gainMode=DivInstrumentSNES::GAIN_MODE_DEC_LOG;
+            break;
+          case 4:
+            chan[c.chan].state.gainMode=DivInstrumentSNES::GAIN_MODE_INC_LINEAR;
+            break;
+          case 5:
+            chan[c.chan].state.gainMode=DivInstrumentSNES::GAIN_MODE_INC_INVLOG;
+            break;
+        }
+      } else {
+        chan[c.chan].state.useEnv=true;
+      }
+      writeEnv(c.chan);
+      break;
+    case DIV_CMD_SNES_GAIN:
+      if (chan[c.chan].state.gainMode==DivInstrumentSNES::GAIN_MODE_DIRECT) {
+        chan[c.chan].state.gain=c.value&0x7f;
+      } else {
+        chan[c.chan].state.gain=c.value&0x1f;
+      }
+      if (!chan[c.chan].state.useEnv) writeEnv(c.chan);
+      break;
+    case DIV_CMD_STD_NOISE_FREQ:
+      noiseFreq=c.value&0x1f;
+      writeControl=true;
+      break;
+    case DIV_CMD_FM_AR:
+      chan[c.chan].state.a=c.value&15;
+      if (chan[c.chan].state.useEnv) writeEnv(c.chan);
+      break;
+    case DIV_CMD_FM_DR:
+      chan[c.chan].state.d=c.value&7;
+      if (chan[c.chan].state.useEnv) writeEnv(c.chan);
+      break;
+    case DIV_CMD_FM_SL:
+      chan[c.chan].state.s=c.value&7;
+      if (chan[c.chan].state.useEnv) writeEnv(c.chan);
+      break;
+    case DIV_CMD_FM_RR:
+      chan[c.chan].state.r=c.value&0x1f;
+      if (chan[c.chan].state.useEnv) writeEnv(c.chan);
       break;
     case DIV_CMD_SNES_ECHO:
       chan[c.chan].echo=c.value;
@@ -482,6 +532,32 @@ void DivPlatformSNES::writeOutVol(int ch) {
   }
   chWrite(ch,0,outL);
   chWrite(ch,1,outR);
+}
+
+void DivPlatformSNES::writeEnv(int ch) {
+  if (chan[ch].state.useEnv) {
+    chWrite(ch,5,chan[ch].state.a|(chan[ch].state.d<<4)|0x80);
+    chWrite(ch,6,chan[ch].state.r|(chan[ch].state.s<<5));
+  } else {
+    chWrite(ch,5,0);
+    switch (chan[ch].state.gainMode) {
+      case DivInstrumentSNES::GAIN_MODE_DIRECT:
+        chWrite(ch,7,chan[ch].state.gain&127);
+        break;
+      case DivInstrumentSNES::GAIN_MODE_DEC_LINEAR:
+        chWrite(ch,7,0x80|(chan[ch].state.gain&31));
+        break;
+      case DivInstrumentSNES::GAIN_MODE_INC_LINEAR:
+        chWrite(ch,7,0xc0|(chan[ch].state.gain&31));
+        break;
+      case DivInstrumentSNES::GAIN_MODE_DEC_LOG:
+        chWrite(ch,7,0xa0|(chan[ch].state.gain&31));
+        break;
+      case DivInstrumentSNES::GAIN_MODE_INC_INVLOG:
+        chWrite(ch,7,0xe0|(chan[ch].state.gain&31));
+        break;
+    }
+  }
 }
 
 void DivPlatformSNES::muteChannel(int ch, bool mute) {

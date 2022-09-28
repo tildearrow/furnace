@@ -131,6 +131,7 @@ class DivPlatformSNES: public DivDispatch {
   private:
     void updateWave(int ch);
     void writeOutVol(int ch);
+    void writeEnv(int ch);
     void initEcho();
 };
 
