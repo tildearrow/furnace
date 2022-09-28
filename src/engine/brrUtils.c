@@ -95,7 +95,7 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
   short o1f1=0;
   short o1f2=0;
   short o1f3=0;
-  short o2f1=0;
+  //short o2f1=0;
   short o2f2=0;
   short o2f3=0;
 
@@ -138,7 +138,7 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
       range1=0;
       range2=0;
       range3=0;
-      o2f1=o2;
+      //o2f1=o2;
       o2f2=o2;
       o2f3=o2;
       o1f1=o1;
@@ -180,6 +180,7 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
       // second pass
       int prevLast1=last1;
       int prevLast2=last2;
+      filter=1;
       for (int j=0; j<16; j++) {
         int s=NEXT_SAMPLE;
 
@@ -200,11 +201,12 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
 
         nextDec=o;
         DO_ONE_DEC(range1);
-        o2f1=last2<<1;
+        //o2f1=last2<<1;
         o1f1=last1<<1;
       }
       last1=prevLast1;
       last2=prevLast2;
+      filter=2;
       for (int j=0; j<16; j++) {
         int s=NEXT_SAMPLE;
         pred2[j]=s+(((int)o2f2*15)>>4)-(((int)o1f2*61)>>5);
@@ -229,6 +231,7 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
       }
       last1=prevLast1;
       last2=prevLast2;
+      filter=3;
       for (int j=0; j<16; j++) {
         int s=NEXT_SAMPLE;
         pred3[j]=s+(((int)o2f3*13)>>4)-(((int)o1f3*115)>>6);
@@ -253,12 +256,8 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
       }
       last1=prevLast1;
       last2=prevLast2;
-    }
 
-    if (i && i!=loopStart) {
       // find best filter
-      int prevLast1=last1;
-      int prevLast2=last2;
       int error=0;
 
       maxError[0]=0;
@@ -347,7 +346,6 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
 
       // pick best filter
       int candError=0x7fffffff;
-      //avgError[0]+=1000;
       for (int j=0; j<4; j++) {
         if (avgError[j]<candError) {
           candError=avgError[j];
@@ -362,13 +360,14 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
 
     switch (filter) {
       case 0:
-        nextDec=next0[7]>>4;
-        DO_ONE_DEC(range0);
-        o2=nextDec<<1;
-
-        nextDec=next0[7]&15;
-        DO_ONE_DEC(range0);
-        o1=nextDec<<1;
+        for (int j=0; j<8; j++) {
+          nextDec=next0[j]>>4;
+          DO_ONE_DEC(range0);
+          nextDec=next0[j]&15;
+          DO_ONE_DEC(range0);
+        }
+        o2=last2<<1;
+        o1=last1<<1;
 
         out[0]=(range0<<4)|(filter<<2)|((i+16>=len)?((loopStart>=0)?3:1):0);
         out[1]=next0[0];
