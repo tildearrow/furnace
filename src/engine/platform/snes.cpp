@@ -668,6 +668,7 @@ void DivPlatformSNES::renderSamples() {
     }
   }
   sampleMemLen=memPos;
+  memcpy(sampleMem,copyOfSampleMem,65536);
 }
 
 void DivPlatformSNES::setFlags(unsigned int flags) {
