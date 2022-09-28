@@ -248,7 +248,7 @@ size | description
      |   - 0xb9: Namco WSG - 3 channels
      |   - 0xba: Namco 15xx - 8 channels
      |   - 0xbb: Namco CUS30 - 8 channels
-     |   - 0xbc: reserved - 8 channels
+     |   - 0xbc: MSM5232 - 8 channels
      |   - 0xbd: YM2612 extra features extended - 11 channels
      |   - 0xbe: YM2612 extra features - 7 channels
      |   - 0xbf: T6W28 - 4 channels
@@ -258,7 +258,6 @@ size | description
      |   - 0xc3: OPN CSM - 10 channels
      |   - 0xc4: PC-98 CSM - 20 channels
      |   - 0xc5: YM2610B CSM - 20 channels
-     |   - 0xc6: MSM5232 - 8 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfd: Dummy System - 8 channels
