@@ -25,6 +25,7 @@
 
 class DivConfig {
   std::map<String,String> conf;
+  void parseLine(const char* line);
   public:
     // config loading/saving
     bool loadFromMemory(const char* buf);

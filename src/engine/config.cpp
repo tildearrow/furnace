@@ -40,38 +40,68 @@ bool DivConfig::save(const char* path) {
   return true;
 }
 
+String DivConfig::toString() {
+  String ret;
+  for (auto& i: conf) {
+    ret+=fmt::sprintf("%s=%s\n",i.first,i.second);
+  }
+  return ret;
+}
+
+void DivConfig::parseLine(const char* line) {
+  String key="";
+  String value="";
+  bool keyOrValue=false;
+  for (const char* i=line; *i; i++) {
+    if (*i=='\n') continue;
+    if (keyOrValue) {
+      value+=*i;
+    } else {
+      if (*i=='=') {
+        keyOrValue=true;
+      } else {
+        key+=*i;
+      }
+    }
+  }
+  if (keyOrValue) {
+    conf[key]=value;
+  }
+}
+
 bool DivConfig::loadFromFile(const char* path, bool createOnFail) {
   char line[4096];
   FILE* f=ps_fopen(path,"rb");
   if (f==NULL) {
-    logI("creating default config.");
-    return save(path);
+    if (createOnFail) {
+      logI("creating default config.");
+      return save(path);
+    } else {
+      return false;
+    }
   }
   logI("loading config.");
   while (!feof(f)) {
-    String key="";
-    String value="";
-    bool keyOrValue=false;
     if (fgets(line,4095,f)==NULL) {
       break;
     }
-    for (char* i=line; *i; i++) {
-      if (*i=='\n') continue;
-      if (keyOrValue) {
-        value+=*i;
-      } else {
-        if (*i=='=') {
-          keyOrValue=true;
-        } else {
-          key+=*i;
-        }
-      }
-    }
-    if (keyOrValue) {
-      conf[key]=value;
-    }
+    parseLine(line);
   }
   fclose(f);
+  return true;
+}
+
+bool DivConfig::loadFromMemory(const char* buf) {
+  String line;
+  const char* readPos=buf;
+  while (*readPos) {
+    line+=*readPos;
+    readPos++;
+    if ((*readPos)=='\n' || (*readPos)==0) {
+      parseLine(line.c_str());
+      line="";
+    }
+  }
   return true;
 }
 
