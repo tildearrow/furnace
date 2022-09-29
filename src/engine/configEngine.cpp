@@ -118,45 +118,45 @@ bool DivEngine::loadConf() {
 }
 
 bool DivEngine::getConfBool(String key, bool fallback) {
-  return conf.getConfBool(key,fallback);
+  return conf.getBool(key,fallback);
 }
 
 int DivEngine::getConfInt(String key, int fallback) {
-  return conf.getConfInt(key,fallback);
+  return conf.getInt(key,fallback);
 }
 
 float DivEngine::getConfFloat(String key, float fallback) {
-  return conf.getConfFloat(key,fallback);
+  return conf.getFloat(key,fallback);
 }
 
 double DivEngine::getConfDouble(String key, double fallback) {
-  return conf.getConfDouble(key,fallback);
+  return conf.getDouble(key,fallback);
 }
 
 String DivEngine::getConfString(String key, String fallback) {
-  return conf.getConfString(key,fallback);
+  return conf.getString(key,fallback);
 }
 
 void DivEngine::setConf(String key, bool value) {
-  conf.setConf(key,value);
+  conf.set(key,value);
 }
 
 void DivEngine::setConf(String key, int value) {
-  conf.setConf(key,value);
+  conf.set(key,value);
 }
 
 void DivEngine::setConf(String key, float value) {
-  conf.setConf(key,value);
+  conf.set(key,value);
 }
 
 void DivEngine::setConf(String key, double value) {
-  conf.setConf(key,value);
+  conf.set(key,value);
 }
 
 void DivEngine::setConf(String key, const char* value) {
-  conf.setConf(key,value);
+  conf.set(key,value);
 }
 
 void DivEngine::setConf(String key, String value) {
-  conf.setConf(key,value);
+  conf.set(key,value);
 }

@@ -1229,7 +1229,7 @@ chips which aren't on this list don't have any flags.
 
 ## 0x05: PC Engine
 
-- bit 1: clockSel (int)
+- bit 0: clockSel (int)
   - 0: NTSC
   - 1: pseudo-PAL
 - bit 2: chipType (int)
@@ -1289,6 +1289,7 @@ chips which aren't on this list don't have any flags.
   - 2: Sunsoft 5B
   - 3: AY-3-8914
 - bit 6: stereo (bool)
+- bit 7: halfClock (bool)
 - bit 8-15: stereoSep (int)
 
 ## 0x81: Amiga
@@ -1454,6 +1455,7 @@ chips which aren't on this list don't have any flags.
   - 11: double NTSC
   - 12: 3.6MHz
 - bit 6: stereo (bool)
+- bit 7: halfClock (bool)
 - bit 8-15: stereoSep (int)
 
 ## 0x9d: VRC7

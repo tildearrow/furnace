@@ -20,6 +20,9 @@
 #include "gui.h"
 
 void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool modifyOnChange) {
+  ImGui::Text("temporarily unavailable!");
+  return;
+  /*
   bool restart=settings.restartOnFlagChange && modifyOnChange;
   bool sysPal=flags&1;
   unsigned int copyOfFlags=flags;
@@ -797,4 +800,5 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool
       flags=copyOfFlags;
     }
   }
+  */
 }

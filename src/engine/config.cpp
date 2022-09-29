@@ -105,7 +105,7 @@ bool DivConfig::loadFromMemory(const char* buf) {
   return true;
 }
 
-bool DivConfig::getConfBool(String key, bool fallback) {
+bool DivConfig::getBool(String key, bool fallback) {
   try {
     String val=conf.at(key);
     if (val=="true") {
@@ -118,7 +118,7 @@ bool DivConfig::getConfBool(String key, bool fallback) {
   return fallback;
 }
 
-int DivConfig::getConfInt(String key, int fallback) {
+int DivConfig::getInt(String key, int fallback) {
   try {
     String val=conf.at(key);
     int ret=std::stoi(val);
@@ -129,7 +129,7 @@ int DivConfig::getConfInt(String key, int fallback) {
   return fallback;
 }
 
-float DivConfig::getConfFloat(String key, float fallback) {
+float DivConfig::getFloat(String key, float fallback) {
   try {
     String val=conf.at(key);
     float ret=std::stof(val);
@@ -140,7 +140,7 @@ float DivConfig::getConfFloat(String key, float fallback) {
   return fallback;
 }
 
-double DivConfig::getConfDouble(String key, double fallback) {
+double DivConfig::getDouble(String key, double fallback) {
   try {
     String val=conf.at(key);
     double ret=std::stod(val);
@@ -151,7 +151,7 @@ double DivConfig::getConfDouble(String key, double fallback) {
   return fallback;
 }
 
-String DivConfig::getConfString(String key, String fallback) {
+String DivConfig::getString(String key, String fallback) {
   try {
     String val=conf.at(key);
     return val;
@@ -160,7 +160,7 @@ String DivConfig::getConfString(String key, String fallback) {
   return fallback;
 }
 
-void DivConfig::setConf(String key, bool value) {
+void DivConfig::set(String key, bool value) {
   if (value) {
     conf[key]="true";
   } else {
@@ -168,22 +168,30 @@ void DivConfig::setConf(String key, bool value) {
   }
 }
 
-void DivConfig::setConf(String key, int value) {
+void DivConfig::set(String key, int value) {
   conf[key]=fmt::sprintf("%d",value);
 }
 
-void DivConfig::setConf(String key, float value) {
+void DivConfig::set(String key, float value) {
   conf[key]=fmt::sprintf("%f",value);
 }
 
-void DivConfig::setConf(String key, double value) {
+void DivConfig::set(String key, double value) {
   conf[key]=fmt::sprintf("%f",value);
 }
 
-void DivConfig::setConf(String key, const char* value) {
+void DivConfig::set(String key, const char* value) {
   conf[key]=String(value);
 }
 
-void DivConfig::setConf(String key, String value) {
+void DivConfig::set(String key, String value) {
   conf[key]=value;
+}
+
+bool DivConfig::remove(String key) {
+  return conf.erase(key);
+}
+
+void DivConfig::clear() {
+  conf.clear();
 }

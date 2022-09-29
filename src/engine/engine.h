@@ -47,8 +47,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev118"
-#define DIV_ENGINE_VERSION 118
+#define DIV_VERSION "dev119"
+#define DIV_ENGINE_VERSION 119
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -441,6 +441,8 @@ class DivEngine {
   void recalcChans();
   void reset();
   void playSub(bool preserveDrift, int goalRow=0);
+
+  void convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivSystem sys);
 
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
