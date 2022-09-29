@@ -1258,8 +1258,14 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   // SNES
   if (version>=109) {
     snes.useEnv=reader.readC();
-    snes.gainMode=(DivInstrumentSNES::GainMode)reader.readC();
-    snes.gain=reader.readC();
+    if (version<118) {
+      // why why why
+      reader.readC();
+      reader.readC();
+    } else {
+      snes.gainMode=(DivInstrumentSNES::GainMode)reader.readC();
+      snes.gain=reader.readC();
+    }
     snes.a=reader.readC();
     snes.d=reader.readC();
     snes.s=reader.readC();
