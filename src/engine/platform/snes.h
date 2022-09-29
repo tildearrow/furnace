@@ -77,11 +77,15 @@ class DivPlatformSNES: public DivDispatch {
   bool isMuted[8];
   int globalVolL, globalVolR;
   unsigned char noiseFreq;
+  signed char echoVolL, echoVolR, echoFeedback;
+  signed char echoFIR[8];
+  unsigned char echoDelay;
   size_t sampleTableBase;
   bool writeControl;
   bool writeNoise;
   bool writePitchMod;
   bool writeEcho;
+  bool echoOn;
 
   struct QueuedWrite {
     unsigned char addr;
@@ -91,6 +95,7 @@ class DivPlatformSNES: public DivDispatch {
   std::queue<QueuedWrite> writes;
 
   signed char sampleMem[65536];
+  signed char copyOfSampleMem[65536];
   size_t sampleMemLen;
   unsigned int sampleOff[256];
   unsigned char regPool[0x80];
@@ -126,6 +131,8 @@ class DivPlatformSNES: public DivDispatch {
   private:
     void updateWave(int ch);
     void writeOutVol(int ch);
+    void writeEnv(int ch);
+    void initEcho();
 };
 
 #endif

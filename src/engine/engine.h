@@ -19,6 +19,7 @@
 
 #ifndef _ENGINE_H
 #define _ENGINE_H
+#include "config.h"
 #include "instrument.h"
 #include "song.h"
 #include "dispatch.h"
@@ -46,8 +47,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev117"
-#define DIV_ENGINE_VERSION 117
+#define DIV_VERSION "dev118"
+#define DIV_ENGINE_VERSION 118
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -327,6 +328,7 @@ class DivEngine {
   bool lowQuality;
   bool playing;
   bool freelance;
+  bool shallStop;
   bool speedAB;
   bool endOfSong;
   bool consoleMode;
@@ -365,7 +367,7 @@ class DivEngine {
   DivAudioEngines audioEngine;
   DivAudioExportModes exportMode;
   double exportFadeOut;
-  std::map<String,String> conf;
+  DivConfig conf;
   std::deque<DivNoteEvent> pendingNotes;
   // bitfield
   unsigned char walked[8192];
@@ -998,6 +1000,7 @@ class DivEngine {
       lowQuality(false),
       playing(false),
       freelance(false),
+      shallStop(false),
       speedAB(false),
       endOfSong(false),
       consoleMode(false),

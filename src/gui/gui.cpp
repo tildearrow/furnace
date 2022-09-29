@@ -1396,9 +1396,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Open File",
-        {"compatible files", "*.fur *.dmf *.mod *.fc13 *.fc14 *.smod",
+        {"compatible files", "*.fur *.dmf *.mod *.fc13 *.fc14 *.smod *.fc",
          "all files", ".*"},
-        "compatible files{.fur,.dmf,.mod,.fc13,.fc14,.smod},.*",
+        "compatible files{.fur,.dmf,.mod,.fc13,.fc14,.smod,.fc},.*",
         workingDirSong,
         dpiScale
       );
@@ -3438,7 +3438,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::BeginMenu("configure chip...")) {
           for (int i=0; i<e->song.systemLen; i++) {
             if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSP%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-              drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true);
+              drawSysConf(i,e->song.system[i],e->song.systemFlagsOld[i],true);
               ImGui::TreePop();
             }
           }

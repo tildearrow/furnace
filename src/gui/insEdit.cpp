@@ -1074,7 +1074,7 @@ void FurnaceGUI::drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, cons
   }
 }
 
-void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, const ImVec2& size, unsigned short instType) {
+void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType) {
   ImDrawList* dl=ImGui::GetWindowDrawList();
   ImGuiWindow* window=ImGui::GetCurrentWindow();
 
@@ -1100,7 +1100,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
     float arPos=float(maxArDr-ar)/maxArDr; //peak of AR, start of DR
     float drPos=arPos+((sl/15.0)*(float(maxArDr-dr)/maxArDr)); //end of DR, start of D2R
     float d2rPos=drPos+(((15.0-sl)/15.0)*(float(31.0-d2r)/31.0)); //End of D2R
-    float rrPos=(float(15-rr)/15.0); //end of RR
+    float rrPos=(float(maxRr-rr)/float(maxRr)); //end of RR
 
     //shrink all the x positions horizontally
     arPos/=2.0;
@@ -1129,7 +1129,7 @@ void FurnaceGUI::drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr,
       //addAALine(dl,pos3,posSLineVEnd,colorS); //draw vert. line through sustain level
       addAALine(dl,pos1,pos2,color); //A
       addAALine(dl,pos2,posDecayRate0Pt,color); //Line from A to end of graph
-    } else if (d2r==0.0 || (instType==DIV_INS_OPL && sus==1.0) || (instType==DIV_INS_OPLL && egt!=0.0)) { //envelope stays at the sustain level forever
+    } else if (d2r==0.0 || ((instType==DIV_INS_OPL || instType==DIV_INS_SNES) && sus==1.0) || (instType==DIV_INS_OPLL && egt!=0.0)) { //envelope stays at the sustain level forever
       dl->AddTriangleFilled(posRStart,posREnd,pos1,colorS); //draw release as shaded triangle behind everything
       addAALine(dl,pos3,posSLineHEnd,colorR); //draw horiz line through sustain level
       addAALine(dl,pos3,posSLineVEnd,colorR); //draw vert. line through sustain level
@@ -1908,7 +1908,7 @@ void FurnaceGUI::drawInsEdit() {
                     if (e->song.system[i]==DIV_SYSTEM_VRC7) {
                       isPresent[3]=true;
                     } else if (e->song.system[i]==DIV_SYSTEM_OPLL || e->song.system[i]==DIV_SYSTEM_OPLL_DRUMS) {
-                      isPresent[(e->song.systemFlags[i]>>4)&3]=true;
+                      isPresent[(e->song.systemFlagsOld[i]>>4)&3]=true;
                     }
                   }
                   if (!isPresent[0] && !isPresent[1] && !isPresent[2] && !isPresent[3]) {
@@ -2397,7 +2397,7 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     ImGui::TableNextColumn();
-                    drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,ins->fm.alg,maxTl,maxArDr,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight),ins->type);
+                    drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,ins->fm.alg,maxTl,maxArDr,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderHeight),ins->type);
 
                     if (settings.separateFMColors) {
                       popAccentColors();
@@ -2814,7 +2814,7 @@ void FurnaceGUI::drawInsEdit() {
                       if (ins->type==DIV_INS_OPZ) {
                         envHeight-=ImGui::GetFrameHeightWithSpacing()*2.0f;
                       }
-                      drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,ins->fm.alg,maxTl,maxArDr,ImVec2(ImGui::GetContentRegionAvail().x,envHeight),ins->type);
+                      drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,ins->fm.alg,maxTl,maxArDr,15,ImVec2(ImGui::GetContentRegionAvail().x,envHeight),ins->type);
 
                       if (ins->type==DIV_INS_OPZ) {
                         ImGui::Separator();
@@ -3007,7 +3007,7 @@ void FurnaceGUI::drawInsEdit() {
                     }
 
                     //52.0 controls vert scaling; default 96
-                    drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,ins->fm.alg,maxTl,maxArDr,ImVec2(ImGui::GetContentRegionAvail().x,52.0*dpiScale),ins->type);
+                    drawFMEnv(op.tl&maxTl,op.ar&maxArDr,op.dr&maxArDr,(ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPLL)?((op.rr&15)*2):op.d2r&31,op.rr&15,op.sl&15,op.sus,op.ssgEnv&8,ins->fm.alg,maxTl,maxArDr,15,ImVec2(ImGui::GetContentRegionAvail().x,52.0*dpiScale),ins->type);
                     //P(CWSliderScalar(FM_NAME(FM_AR),ImGuiDataType_U8,&op.ar,&_ZERO,&_THIRTY_ONE)); rightClickable
                     if (ImGui::BeginTable("opParams",2,ImGuiTableFlags_SizingStretchProp)) {
                       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0); \
@@ -3654,7 +3654,7 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::TableNextColumn();
             P(CWVSliderScalar("##Release",sliderSize,ImGuiDataType_U8,&ins->c64.r,&_ZERO,&_FIFTEEN));
             ImGui::TableNextColumn();
-            drawFMEnv(0,16-ins->c64.a,16-ins->c64.d,15-ins->c64.r,15-ins->c64.r,15-ins->c64.s,0,0,0,15,16,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
+            drawFMEnv(0,16-ins->c64.a,16-ins->c64.d,15-ins->c64.r,15-ins->c64.r,15-ins->c64.s,0,0,0,15,16,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
 
             ImGui::EndTable();
           }
@@ -3773,11 +3773,16 @@ void FurnaceGUI::drawInsEdit() {
               P(ImGui::Checkbox("Use wavetable (Amiga/SNES only)",&ins->amiga.useWave));
               if (ins->amiga.useWave) {
                 int len=ins->amiga.waveLen+1;
+                int origLen=len;
                 if (ImGui::InputInt("Width",&len,2,16)) {
                   if (ins->type==DIV_INS_SNES) {
                     if (len<16) len=16;
                     if (len>256) len=256;
-                    ins->amiga.waveLen=(len&(~15))-1;
+                    if (len>origLen) {
+                      ins->amiga.waveLen=((len+15)&(~15))-1;
+                    } else {
+                      ins->amiga.waveLen=(len&(~15))-1;
+                    }
                   } else {
                     if (len<2) len=2;
                     if (len>256) len=256;
@@ -4211,7 +4216,7 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::TableNextColumn();
               P(CWVSliderScalar("##Rate Correction",sliderSize,ImGuiDataType_U8,&ins->multipcm.rc,&_ZERO,&_FIFTEEN));
               ImGui::TableNextColumn();
-              drawFMEnv(0,ins->multipcm.ar,ins->multipcm.d1r,ins->multipcm.d2r,ins->multipcm.rr,ins->multipcm.dl,0,0,0,127,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
+              drawFMEnv(0,ins->multipcm.ar,ins->multipcm.d1r,ins->multipcm.d2r,ins->multipcm.rr,ins->multipcm.dl,0,0,0,127,15,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
               ImGui::EndTable();
             }
             if (ImGui::BeginTable("MultiPCMLFOParams",3,ImGuiTableFlags_SizingStretchSame)) {
@@ -4267,10 +4272,11 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::TableNextColumn();
               P(CWVSliderScalar("##Release",sliderSize,ImGuiDataType_U8,&ins->snes.r,&_ZERO,&_THIRTY_ONE));
               ImGui::TableNextColumn();
-              drawFMEnv(0,ins->snes.a+1,1+ins->snes.d*2,ins->snes.r,ins->snes.r,(14-ins->snes.s*2),(ins->snes.r==0),0,0,7,16,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
+              drawFMEnv(0,ins->snes.a+1,1+ins->snes.d*2,ins->snes.r,ins->snes.r,(14-ins->snes.s*2),(ins->snes.r==0 || ins->snes.sus),0,0,7,16,31,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
 
               ImGui::EndTable();
             }
+            ImGui::Checkbox("Make sustain effective",&ins->snes.sus);
           } else {
             if (ImGui::BeginTable("SNESGainParams",3,ImGuiTableFlags_NoHostExtendX)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);

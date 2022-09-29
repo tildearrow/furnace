@@ -610,12 +610,13 @@ struct DivInstrumentSNES {
     GAIN_MODE_INC_LINEAR=6,
     GAIN_MODE_INC_INVLOG=7
   };
-  bool useEnv;
+  bool useEnv, sus;
   GainMode gainMode;
   unsigned char gain;
   unsigned char a, d, s, r;
   DivInstrumentSNES():
     useEnv(true),
+    sus(false),
     gainMode(GAIN_MODE_DIRECT),
     gain(127),
     a(15),

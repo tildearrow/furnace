@@ -17,101 +17,13 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "engine.h"
+#include "config.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
 #include <fmt/printf.h>
 
-#ifdef _WIN32
-#include "winStuff.h"
-#define CONFIG_FILE "\\furnace.cfg"
-#else
-#ifdef __HAIKU__
-#include <support/SupportDefs.h>
-#include <storage/FindDirectory.h>
-#endif
-#include <unistd.h>
-#include <pwd.h>
-#include <sys/stat.h>
-#define CONFIG_FILE "/furnace.cfg"
-#endif
-
-#ifdef IS_MOBILE
-#ifdef HAVE_SDL2
-#include <SDL.h>
-#else
-#error "Furnace mobile requires SDL2!"
-#endif
-#endif
-
-void DivEngine::initConfDir() {
-#ifdef _WIN32
-  // maybe move this function in here instead?
-  configPath=getWinConfigPath();
-#elif defined(IS_MOBILE)
-  configPath=SDL_GetPrefPath("tildearrow","furnace");
-#else
-#ifdef __HAIKU__
-  char userSettingsDir[PATH_MAX];
-  status_t findUserDir = find_directory(B_USER_SETTINGS_DIRECTORY,0,true,userSettingsDir,PATH_MAX);
-  if (findUserDir==B_OK) {
-    configPath=userSettingsDir;
-  } else {
-    logW("unable to find/create user settings directory (%s)!",strerror(findUserDir));
-    configPath=".";
-    return;
-  }
-#else
-  // TODO this should check XDG_CONFIG_HOME first
-  char* home=getenv("HOME");
-  if (home==NULL) {
-    int uid=getuid();
-    struct passwd* entry=getpwuid(uid);
-    if (entry==NULL) {
-      logW("unable to determine home directory (%s)!",strerror(errno));
-      configPath=".";
-      return;
-    } else {
-      configPath=entry->pw_dir;
-    }
-  } else {
-    configPath=home;
-  }
-#ifdef __APPLE__
-  configPath+="/Library/Application Support";
-#else
-  // FIXME this doesn't honour XDG_CONFIG_HOME *at all*
-  configPath+="/.config";
-#endif // __APPLE__
-#endif // __HAIKU__
-#ifdef __APPLE__
-  configPath+="/Furnace";
-#else
-  configPath+="/furnace";
-#endif // __APPLE__
-  struct stat st;
-  std::string pathSep="/";
-  configPath+=pathSep;
-  size_t sepPos=configPath.find(pathSep,1);
-  while (sepPos!=std::string::npos) {
-    std::string subpath=configPath.substr(0,sepPos++);
-    if (stat(subpath.c_str(),&st)!=0) {
-      logI("creating config path element %s ...",subpath.c_str());
-      if (mkdir(subpath.c_str(),0755)!=0) {
-        logW("could not create config path element %s! (%s)",subpath.c_str(),strerror(errno));
-        configPath=".";
-        return;
-      }
-    }
-    sepPos=configPath.find(pathSep,sepPos);
-  }
-  configPath.resize(configPath.length()-pathSep.length());
-#endif // _WIN32
-}
-
-bool DivEngine::saveConf() {
-  configFile=configPath+String(CONFIG_FILE);
-  FILE* f=ps_fopen(configFile.c_str(),"wb");
+bool DivConfig::save(const char* path) {
+  FILE* f=ps_fopen(path,"wb");
   if (f==NULL) {
     logW("could not write config file! %s",strerror(errno));
     return false;
@@ -128,43 +40,72 @@ bool DivEngine::saveConf() {
   return true;
 }
 
-bool DivEngine::loadConf() {
+String DivConfig::toString() {
+  String ret;
+  for (auto& i: conf) {
+    ret+=fmt::sprintf("%s=%s\n",i.first,i.second);
+  }
+  return ret;
+}
+
+void DivConfig::parseLine(const char* line) {
+  String key="";
+  String value="";
+  bool keyOrValue=false;
+  for (const char* i=line; *i; i++) {
+    if (*i=='\n') continue;
+    if (keyOrValue) {
+      value+=*i;
+    } else {
+      if (*i=='=') {
+        keyOrValue=true;
+      } else {
+        key+=*i;
+      }
+    }
+  }
+  if (keyOrValue) {
+    conf[key]=value;
+  }
+}
+
+bool DivConfig::loadFromFile(const char* path, bool createOnFail) {
   char line[4096];
-  configFile=configPath+String(CONFIG_FILE);
-  FILE* f=ps_fopen(configFile.c_str(),"rb");
+  FILE* f=ps_fopen(path,"rb");
   if (f==NULL) {
-    logI("creating default config.");
-    return saveConf();
+    if (createOnFail) {
+      logI("creating default config.");
+      return save(path);
+    } else {
+      return false;
+    }
   }
   logI("loading config.");
   while (!feof(f)) {
-    String key="";
-    String value="";
-    bool keyOrValue=false;
     if (fgets(line,4095,f)==NULL) {
       break;
     }
-    for (char* i=line; *i; i++) {
-      if (*i=='\n') continue;
-      if (keyOrValue) {
-        value+=*i;
-      } else {
-        if (*i=='=') {
-          keyOrValue=true;
-        } else {
-          key+=*i;
-        }
-      }
-    }
-    if (keyOrValue) {
-      conf[key]=value;
-    }
+    parseLine(line);
   }
   fclose(f);
   return true;
 }
 
-bool DivEngine::getConfBool(String key, bool fallback) {
+bool DivConfig::loadFromMemory(const char* buf) {
+  String line;
+  const char* readPos=buf;
+  while (*readPos) {
+    line+=*readPos;
+    readPos++;
+    if ((*readPos)=='\n' || (*readPos)==0) {
+      parseLine(line.c_str());
+      line="";
+    }
+  }
+  return true;
+}
+
+bool DivConfig::getConfBool(String key, bool fallback) {
   try {
     String val=conf.at(key);
     if (val=="true") {
@@ -177,7 +118,7 @@ bool DivEngine::getConfBool(String key, bool fallback) {
   return fallback;
 }
 
-int DivEngine::getConfInt(String key, int fallback) {
+int DivConfig::getConfInt(String key, int fallback) {
   try {
     String val=conf.at(key);
     int ret=std::stoi(val);
@@ -188,7 +129,7 @@ int DivEngine::getConfInt(String key, int fallback) {
   return fallback;
 }
 
-float DivEngine::getConfFloat(String key, float fallback) {
+float DivConfig::getConfFloat(String key, float fallback) {
   try {
     String val=conf.at(key);
     float ret=std::stof(val);
@@ -199,7 +140,7 @@ float DivEngine::getConfFloat(String key, float fallback) {
   return fallback;
 }
 
-double DivEngine::getConfDouble(String key, double fallback) {
+double DivConfig::getConfDouble(String key, double fallback) {
   try {
     String val=conf.at(key);
     double ret=std::stod(val);
@@ -210,7 +151,7 @@ double DivEngine::getConfDouble(String key, double fallback) {
   return fallback;
 }
 
-String DivEngine::getConfString(String key, String fallback) {
+String DivConfig::getConfString(String key, String fallback) {
   try {
     String val=conf.at(key);
     return val;
@@ -219,7 +160,7 @@ String DivEngine::getConfString(String key, String fallback) {
   return fallback;
 }
 
-void DivEngine::setConf(String key, bool value) {
+void DivConfig::setConf(String key, bool value) {
   if (value) {
     conf[key]="true";
   } else {
@@ -227,22 +168,22 @@ void DivEngine::setConf(String key, bool value) {
   }
 }
 
-void DivEngine::setConf(String key, int value) {
+void DivConfig::setConf(String key, int value) {
   conf[key]=fmt::sprintf("%d",value);
 }
 
-void DivEngine::setConf(String key, float value) {
+void DivConfig::setConf(String key, float value) {
   conf[key]=fmt::sprintf("%f",value);
 }
 
-void DivEngine::setConf(String key, double value) {
+void DivConfig::setConf(String key, double value) {
   conf[key]=fmt::sprintf("%f",value);
 }
 
-void DivEngine::setConf(String key, const char* value) {
+void DivConfig::setConf(String key, const char* value) {
   conf[key]=String(value);
 }
 
-void DivEngine::setConf(String key, String value) {
+void DivConfig::setConf(String key, String value) {
   conf[key]=value;
 }

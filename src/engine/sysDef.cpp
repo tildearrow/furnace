@@ -61,7 +61,7 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
       return "help! what's going on!";
     case 1:
       if (ds.system[0]==DIV_SYSTEM_AY8910) {
-        switch (ds.systemFlags[0]&0x3f) {
+        switch (ds.systemFlagsOld[0]&0x3f) {
           case 0: // AY-3-8910, 1.79MHz
           case 1: // AY-3-8910, 1.77MHz
           case 2: // AY-3-8910, 1.75MHz
@@ -88,35 +88,35 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
             return "Intellivision (PAL)";
 
           default:
-            if ((ds.systemFlags[0]&0x30)==0x00) {
+            if ((ds.systemFlagsOld[0]&0x30)==0x00) {
               return "AY-3-8910";
-            } else if ((ds.systemFlags[0]&0x30)==0x10) {
+            } else if ((ds.systemFlagsOld[0]&0x30)==0x10) {
               return "Yamaha YM2149";
-            } else if ((ds.systemFlags[0]&0x30)==0x20) {
+            } else if ((ds.systemFlagsOld[0]&0x30)==0x20) {
               return "Overclocked Sunsoft 5B";
-            } else if ((ds.systemFlags[0]&0x30)==0x30) {
+            } else if ((ds.systemFlagsOld[0]&0x30)==0x30) {
               return "Intellivision";
             }
         }
       } else if (ds.system[0]==DIV_SYSTEM_SMS) {
-        switch (ds.systemFlags[0]&0x0f) {
+        switch (ds.systemFlagsOld[0]&0x0f) {
           case 0: case 1:
             return "Sega Master System";
           case 6:
             return "BBC Micro";
         }
       } else if (ds.system[0]==DIV_SYSTEM_YM2612) {
-        switch (ds.systemFlags[0]&3) {
+        switch (ds.systemFlagsOld[0]&3) {
           case 2:
             return "FM Towns";
         }
       } else if (ds.system[0]==DIV_SYSTEM_YM2151) {
-        switch (ds.systemFlags[0]&3) {
+        switch (ds.systemFlagsOld[0]&3) {
           case 2:
             return "Sharp X68000";
         }
       } else if (ds.system[0]==DIV_SYSTEM_SAA1099) {
-        switch (ds.systemFlags[0]&3) {
+        switch (ds.systemFlagsOld[0]&3) {
           case 0:
             return "SAM Coupé";
         }
@@ -875,23 +875,11 @@ void DivEngine::registerSystems() {
     {DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES},
     {},
     {
-      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
-      {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Toggle noise mode"}},
-      {0x12, {DIV_CMD_SNES_ECHO, "12xx: Toggle echo on this channel"}},
-      {0x13, {DIV_CMD_SNES_PITCH_MOD, "13xx: Toggle pitch modulation"}},
-      {0x14, {DIV_CMD_SNES_INVERT, "14xy: Toggle invert (x: left; y: right)"}},
-      {0x15, {DIV_CMD_SNES_GAIN_MODE, "15xx: Set gain mode"}},
-      {0x16, {DIV_CMD_SNES_GAIN, "16xx: Set gain"}},
       {0x18, {DIV_CMD_SNES_ECHO_ENABLE, "18xx: Enable echo buffer"}},
-      {0x19, {DIV_CMD_SNES_ECHO_DELAY, "19xx: Set echo delay"}},
+      {0x19, {DIV_CMD_SNES_ECHO_DELAY, "19xx: Set echo delay (0 to F)"}},
       {0x1a, {DIV_CMD_SNES_ECHO_VOL_LEFT, "1Axx: Set left echo volume"}},
       {0x1b, {DIV_CMD_SNES_ECHO_VOL_RIGHT, "1Bxx: Set right echo volume"}},
       {0x1c, {DIV_CMD_SNES_ECHO_FEEDBACK, "1Cxx: Set echo feedback"}},
-      {0x1d, {DIV_CMD_STD_NOISE_FREQ, "1Dxx: Set noise frequency"}},
-      {0x20, {DIV_CMD_FM_AR, "20xx: Set attack"}},
-      {0x21, {DIV_CMD_FM_DR, "21xx: Set decay"}},
-      {0x22, {DIV_CMD_FM_SL, "22xx: Set sustain"}},
-      {0x23, {DIV_CMD_FM_RR, "23xx: Set release"}},
       {0x30, {DIV_CMD_SNES_ECHO_FIR, "30xx: Set echo filter coefficient 0",constVal<0>,effectVal}},
       {0x31, {DIV_CMD_SNES_ECHO_FIR, "31xx: Set echo filter coefficient 1",constVal<1>,effectVal}},
       {0x32, {DIV_CMD_SNES_ECHO_FIR, "32xx: Set echo filter coefficient 2",constVal<2>,effectVal}},
@@ -900,6 +888,20 @@ void DivEngine::registerSystems() {
       {0x35, {DIV_CMD_SNES_ECHO_FIR, "35xx: Set echo filter coefficient 5",constVal<5>,effectVal}},
       {0x36, {DIV_CMD_SNES_ECHO_FIR, "36xx: Set echo filter coefficient 6",constVal<6>,effectVal}},
       {0x37, {DIV_CMD_SNES_ECHO_FIR, "37xx: Set echo filter coefficient 7",constVal<7>,effectVal}},
+    },
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+      {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Toggle noise mode"}},
+      {0x12, {DIV_CMD_SNES_ECHO, "12xx: Toggle echo on this channel"}},
+      {0x13, {DIV_CMD_SNES_PITCH_MOD, "13xx: Toggle pitch modulation"}},
+      {0x14, {DIV_CMD_SNES_INVERT, "14xy: Toggle invert (x: left; y: right)"}},
+      {0x15, {DIV_CMD_SNES_GAIN_MODE, "15xx: Set envelope mode (0: ADSR, 1: gain/direct, 2: dec, 3: exp, 4: inc, 5: bent)"}},
+      {0x16, {DIV_CMD_SNES_GAIN, "16xx: Set gain (00 to 7F if direct; 00 to 1F otherwise)"}},
+      {0x1d, {DIV_CMD_STD_NOISE_FREQ, "1Dxx: Set noise frequency (00 to 1F)"}},
+      {0x20, {DIV_CMD_FM_AR, "20xx: Set attack (0 to F)"}},
+      {0x21, {DIV_CMD_FM_DR, "21xx: Set decay (0 to 7)"}},
+      {0x22, {DIV_CMD_FM_SL, "22xx: Set sustain (0 to 7)"}},
+      {0x23, {DIV_CMD_FM_RR, "23xx: Set release (00 to 1F)"}},
     }
   );
 
@@ -1193,7 +1195,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SFX_BEEPER]=new DivSysDef(
-    "ZX Spectrum Beeper", NULL, 0x9f, 0, 6, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_1BIT,
+    "ZX Spectrum Beeper", NULL, 0x9f, 0, 6, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "the ZX Spectrum only had a basic beeper capable of...\n...a bunch of thin pulses and tons of other interesting stuff!\nFurnace provides a thin pulse system.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6"},

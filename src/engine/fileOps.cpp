@@ -1235,7 +1235,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     // system props
     for (int i=0; i<32; i++) {
-      ds.systemFlags[i]=reader.readI();
+      ds.systemFlagsOld[i]=reader.readI();
     }
 
     // handle compound systems
@@ -2373,7 +2373,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.systemLen=(chCount+3)/4;
     for(int i=0; i<ds.systemLen; i++) {
       ds.system[i]=DIV_SYSTEM_AMIGA;
-      ds.systemFlags[i]=1|(80<<8)|(bypassLimits?4:0)|((ds.systemLen>1 || bypassLimits)?2:0); // PAL
+      ds.systemFlagsOld[i]=1|(80<<8)|(bypassLimits?4:0)|((ds.systemLen>1 || bypassLimits)?2:0); // PAL
     }
     for(int i=0; i<chCount; i++) {
       ds.subsong[0]->chanShow[i]=true;
@@ -2579,7 +2579,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     ds.system[0]=DIV_SYSTEM_AMIGA;
     ds.systemVol[0]=64;
     ds.systemPan[0]=0;
-    ds.systemFlags[0]=1|(80<<8); // PAL
+    ds.systemFlagsOld[0]=1|(80<<8); // PAL
     ds.systemName="Amiga";
 
     seqLen=reader.readI_BE();
@@ -3219,11 +3219,11 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
         }
         if (expansions&16) {
           ds.system[systemID]=DIV_SYSTEM_N163;
-          ds.systemFlags[systemID++]=n163Chans;
+          ds.systemFlagsOld[systemID++]=n163Chans;
         }
         if (expansions&32) {
           ds.system[systemID]=DIV_SYSTEM_AY8910;
-          ds.systemFlags[systemID++]=38; // Sunsoft 5B
+          ds.systemFlagsOld[systemID++]=38; // Sunsoft 5B
         }
         ds.systemLen=systemID;
 
@@ -3734,7 +3734,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   }
 
   for (int i=0; i<32; i++) {
-    w->writeI(song.systemFlags[i]);
+    w->writeI(song.systemFlagsOld[i]);
   }
 
   // song name
