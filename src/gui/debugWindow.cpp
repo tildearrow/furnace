@@ -382,9 +382,9 @@ void FurnaceGUI::drawDebug() {
     }
     if (ImGui::TreeNode("ADSR Test Area")) {
       static int tl, ar, dr, d2r, sl, rr, sus, egt, algOrGlobalSus, instType;
-      static float maxArDr, maxTl;
+      static float maxArDr, maxTl, maxRr;
       ImGui::Text("This window was done out of frustration");
-      drawFMEnv(tl,ar,dr,d2r,rr,sl,sus,egt,algOrGlobalSus,maxTl,maxArDr,ImVec2(200.0f*dpiScale,100.0f*dpiScale),instType);
+      drawFMEnv(tl,ar,dr,d2r,rr,sl,sus,egt,algOrGlobalSus,maxTl,maxArDr,maxRr,ImVec2(200.0f*dpiScale,100.0f*dpiScale),instType);
 
       ImGui::InputInt("tl",&tl);
       ImGui::InputInt("ar",&ar);
@@ -398,6 +398,7 @@ void FurnaceGUI::drawDebug() {
       ImGui::InputInt("instType",&instType);
       ImGui::InputFloat("maxArDr",&maxArDr);
       ImGui::InputFloat("maxTl",&maxTl);
+      ImGui::InputFloat("maxRr",&maxRr);
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("User Interface")) {

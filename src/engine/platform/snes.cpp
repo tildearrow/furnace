@@ -284,9 +284,9 @@ int DivPlatformSNES::dispatch(DivCommand c) {
         if (chan[c.chan].insChanged) {
           if (chan[c.chan].wave<0) {
             chan[c.chan].wave=0;
-            chan[c.chan].ws.setWidth(chan[c.chan].wtLen);
-            chan[c.chan].ws.changeWave1(chan[c.chan].wave);
           }
+          chan[c.chan].ws.setWidth(chan[c.chan].wtLen);
+          chan[c.chan].ws.changeWave1(chan[c.chan].wave);
         }
         chan[c.chan].ws.init(ins,chan[c.chan].wtLen,15,chan[c.chan].insChanged);
       } else {
