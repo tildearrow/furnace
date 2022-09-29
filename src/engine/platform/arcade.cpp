@@ -218,6 +218,10 @@ void DivPlatformArcade::tick(bool sysTick) {
       immWrite(0x18,chan[i].std.ex3.val);
     }
 
+    if (chan[i].std.ex1.had || chan[i].std.ex2.had || chan[i].std.ex3.had) {
+      immWrite(0x01,0x00); // LFO On
+    }
+
     if (chan[i].std.alg.had) {
       chan[i].state.alg=chan[i].std.alg.val;
       if (isMuted[i]) {
