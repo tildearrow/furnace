@@ -47,7 +47,7 @@ void DivPlatformPCMDAC::acquire(short* bufL, short* bufR, size_t start, size_t l
           chan.audPos%=chan.audLen;
           chan.audDir=false;
         }
-        output=(chan.ws.output[chan.audPos]^0x80)<<8;
+        output=(chan.ws.output[chan.audPos]-0x80)<<8;
       } else {
         DivSample* s=parent->getSample(chan.sample);
         if (s->samples>0) {
@@ -195,7 +195,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan.ins,DIV_INS_AMIGA);
       if (ins->amiga.useWave) {
         chan.useWave=true;
-        chan.audLen=ins->amiga.waveLen;
+        chan.audLen=ins->amiga.waveLen+1;
         if (chan.insChanged) {
           if (chan.wave<0) {
             chan.wave=0;
