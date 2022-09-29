@@ -483,6 +483,7 @@ void DivPlatformYM2608Ext::forceIns() {
   ay->forceIns();
   ay->flushWrites();
   for (DivRegWrite& i: ay->getRegisterWrites()) {
+    if (i.addr>15) continue;
     immWrite(i.addr&15,i.val);
   }
   ay->getRegisterWrites().clear();
