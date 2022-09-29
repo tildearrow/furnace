@@ -1448,15 +1448,15 @@ void DivEngine::registerSystems() {
       {0x23, {DIV_CMD_ES5506_ENVELOPE_RVRAMP, "23xx: Set envelope right volume ramp (signed) (00 to FF)",effectVal}},
       {0x24, {DIV_CMD_ES5506_ENVELOPE_K1RAMP, "24xx: Set envelope filter coefficient k1 ramp (signed) (00 to FF)",effectVal,constVal<0>}},
       {0x25, {DIV_CMD_ES5506_ENVELOPE_K1RAMP, "25xx: Set envelope filter coefficient k1 ramp (signed, slower) (00 to FF)",effectVal,constVal<1>}},
-      {0x26, {DIV_CMD_ES5506_ENVELOPE_K2RAMP, "24xx: Set envelope filter coefficient k2 ramp (signed) (00 to FF)",effectVal,constVal<0>}},
-      {0x27, {DIV_CMD_ES5506_ENVELOPE_K2RAMP, "25xx: Set envelope filter coefficient k2 ramp (signed, slower) (00 to FF)",effectVal,constVal<1>}}
+      {0x26, {DIV_CMD_ES5506_ENVELOPE_K2RAMP, "26xx: Set envelope filter coefficient k2 ramp (signed) (00 to FF)",effectVal,constVal<0>}},
+      {0x27, {DIV_CMD_ES5506_ENVELOPE_K2RAMP, "27xx: Set envelope filter coefficient k2 ramp (signed, slower) (00 to FF)",effectVal,constVal<1>}}
   };
   EffectHandlerMap es5506PostEffectHandlerMap={
       {0x12, {DIV_CMD_ES5506_PAUSE, "120x: Set pause (bit 0)",effectValAnd<1>}},
       {0x18, {DIV_CMD_ES5506_FILTER_K1_SLIDE, "18xx: Set filter coefficient K1 slide up (00 to FF)",effectVal,constVal<0>}},
       {0x19, {DIV_CMD_ES5506_FILTER_K1_SLIDE, "19xx: Set filter coefficient K1 slide down (00 to FF)",effectVal,constVal<1>}},
-      {0x1a, {DIV_CMD_ES5506_FILTER_K2_SLIDE, "1axx: Set filter coefficient K2 slide up (00 to FF)",effectVal,constVal<0>}},
-      {0x1b, {DIV_CMD_ES5506_FILTER_K2_SLIDE, "1bxx: Set filter coefficient K2 slide down (00 to FF)",effectVal,constVal<1>}},
+      {0x1a, {DIV_CMD_ES5506_FILTER_K2_SLIDE, "1Axx: Set filter coefficient K2 slide up (00 to FF)",effectVal,constVal<0>}},
+      {0x1b, {DIV_CMD_ES5506_FILTER_K2_SLIDE, "1Bxx: Set filter coefficient K2 slide down (00 to FF)",effectVal,constVal<1>}},
   };
   const EffectHandler es5506ECountHandler(DIV_CMD_ES5506_ENVELOPE_COUNT, "2xxx: Set envelope count (000 to 1FF)", effectValLong<9>);
   const EffectHandler es5506K1Handler(DIV_CMD_ES5506_FILTER_K1, "3xxx: Set filter coefficient K1 (000 to FFF)", effectValLongShift<12,4>);
