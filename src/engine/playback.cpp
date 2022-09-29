@@ -844,15 +844,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       
       case 0xff: // stop song
-        freelance=false;
-        playing=false;
-        extValuePresent=false;
-        stepPlay=0;
-        remainingLoops=-1;
-        sPreview.sample=-1;
-        sPreview.wave=-1;
-        sPreview.pos=0;
-        sPreview.dir=false;
+        shallStop=true;
         break;
     }
   }
@@ -1284,6 +1276,20 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   }
 
   firstTick=false;
+
+  if (shallStop) {
+    freelance=false;
+    playing=false;
+    extValuePresent=false;
+    stepPlay=0;
+    remainingLoops=-1;
+    sPreview.sample=-1;
+    sPreview.wave=-1;
+    sPreview.pos=0;
+    sPreview.dir=false;
+    ret=true;
+    return ret;
+  }
 
   // system tick
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->tick(subticks==tickMult);

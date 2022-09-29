@@ -401,6 +401,7 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
 SafeWriter* DivEngine::saveCommand(bool binary) {
   stop();
   repeatPattern=false;
+  shallStop=false;
   setOrder(0);
   BUSY_BEGIN_SOFT;
   // determine loop point
@@ -1873,6 +1874,7 @@ void DivEngine::play() {
   sPreview.wave=-1;
   sPreview.pos=0;
   sPreview.dir=false;
+  shallStop=false;
   if (stepPlay==0) {
     freelance=false;
     playSub(false);
@@ -2031,6 +2033,7 @@ void DivEngine::reset() {
   speed1=curSubSong->speed1;
   speed2=curSubSong->speed2;
   firstTick=false;
+  shallStop=false;
   nextSpeed=speed1;
   divider=60;
   if (curSubSong->customTempo) {
