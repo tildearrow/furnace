@@ -1288,6 +1288,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     sPreview.pos=0;
     sPreview.dir=false;
     ret=true;
+    shallStop=false;
     return ret;
   }
 
