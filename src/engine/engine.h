@@ -19,6 +19,7 @@
 
 #ifndef _ENGINE_H
 #define _ENGINE_H
+#include "config.h"
 #include "instrument.h"
 #include "song.h"
 #include "dispatch.h"
@@ -366,7 +367,7 @@ class DivEngine {
   DivAudioEngines audioEngine;
   DivAudioExportModes exportMode;
   double exportFadeOut;
-  std::map<String,String> conf;
+  DivConfig conf;
   std::deque<DivNoteEvent> pendingNotes;
   // bitfield
   unsigned char walked[8192];
