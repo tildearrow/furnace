@@ -559,13 +559,12 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->writeC(es5506.envelope.k2Slow);
   
   // SNES
-  // @tildearrow please update this
   w->writeC(snes.useEnv);
-  w->writeC(0);
-  w->writeC(0);
+  w->writeC(snes.gainMode);
+  w->writeC(snes.gain);
   w->writeC(snes.a);
   w->writeC(snes.d);
-  w->writeC(snes.s);
+  w->writeC((snes.s&7)|(snes.sus?8:0));
   w->writeC(snes.r);
 
   // macro speed/delay
@@ -1259,11 +1258,13 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   // SNES
   if (version>=109) {
     snes.useEnv=reader.readC();
-    reader.readC();
-    reader.readC();
+    snes.gainMode=(DivInstrumentSNES::GainMode)reader.readC();
+    snes.gain=reader.readC();
     snes.a=reader.readC();
     snes.d=reader.readC();
     snes.s=reader.readC();
+    snes.sus=snes.s&8;
+    snes.s&=7;
     snes.r=reader.readC();
   }
 

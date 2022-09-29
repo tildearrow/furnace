@@ -32,6 +32,8 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 118: Furnace dev118
+- 117: Furnace dev117
 - 116: Furnace 0.6pre1.5
 - 115: Furnace dev115
 - 114: Furnace dev114
@@ -905,6 +907,7 @@ size | description
   1  | attack
   1  | decay
   1  | sustain
+     | - bit 3: sustain mode (>=118)
   1  | release
  --- | **macro speeds/delays** (>=111)
   1  | volume macro speed

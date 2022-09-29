@@ -4066,6 +4066,7 @@ void FurnaceGUI::drawInsEdit() {
 
               ImGui::EndTable();
             }
+            ImGui::Checkbox("Make sustain effective",&ins->snes.sus);
           } else {
             if (ImGui::BeginTable("SNESGainParams",3,ImGuiTableFlags_NoHostExtendX)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);

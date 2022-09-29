@@ -208,7 +208,9 @@ void DivPlatformSNES::tick(bool sysTick) {
         chan[i].keyOn=false;
       }
       if (chan[i].keyOff) {
-        koff|=(1<<i);
+        if (!chan[i].state.sus) {
+          koff|=(1<<i);
+        }
         chan[i].keyOff=false;
       }
       if (chan[i].freqChanged) {
@@ -296,6 +298,9 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       }
       if (chan[c.chan].insChanged) {
         chan[c.chan].state=ins->snes;
+      }
+      chan[c.chan].active=true;
+      if (chan[c.chan].insChanged || chan[c.chan].state.sus) {
         writeEnv(c.chan);
       }
       if (c.value!=DIV_NOTE_NULL) {
@@ -303,19 +308,30 @@ int DivPlatformSNES::dispatch(DivCommand c) {
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
-      chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
       chan[c.chan].insChanged=false;
       break;
     }
     case DIV_CMD_NOTE_OFF:
-      chan[c.chan].sample=-1;
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
-      chan[c.chan].macroInit(NULL);
+      chan[c.chan].keyOn=false;
+      if (chan[c.chan].state.sus) {
+        writeEnv(c.chan);
+      } else {
+        chan[c.chan].macroInit(NULL);
+      }
       break;
     case DIV_CMD_NOTE_OFF_ENV:
+      chan[c.chan].active=false;
+      chan[c.chan].keyOff=true;
+      chan[c.chan].keyOn=false;
+      if (chan[c.chan].state.sus) {
+        writeEnv(c.chan);
+      }
+      chan[c.chan].std.release();
+      break;
     case DIV_CMD_ENV_RELEASE:
       chan[c.chan].std.release();
       break;
@@ -537,7 +553,11 @@ void DivPlatformSNES::writeOutVol(int ch) {
 void DivPlatformSNES::writeEnv(int ch) {
   if (chan[ch].state.useEnv) {
     chWrite(ch,5,chan[ch].state.a|(chan[ch].state.d<<4)|0x80);
-    chWrite(ch,6,chan[ch].state.r|(chan[ch].state.s<<5));
+    if (chan[ch].state.sus && chan[ch].active) {
+      chWrite(ch,6,chan[ch].state.s<<5);
+    } else {
+      chWrite(ch,6,chan[ch].state.r|(chan[ch].state.s<<5));
+    }
   } else {
     chWrite(ch,5,0);
     switch (chan[ch].state.gainMode) {
