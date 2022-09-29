@@ -273,7 +273,7 @@ void FurnaceGUI::drawSettings() {
               settings.initialSys.push_back(e->song.system[i]);
               settings.initialSys.push_back(e->song.systemVol[i]);
               settings.initialSys.push_back(e->song.systemPan[i]);
-              settings.initialSys.push_back(e->song.systemFlags[i]);
+              settings.initialSys.push_back(e->song.systemFlagsOld[i]);
             }
             settings.initialSysName=e->song.systemName;
           }

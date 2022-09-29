@@ -61,7 +61,7 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
       return "help! what's going on!";
     case 1:
       if (ds.system[0]==DIV_SYSTEM_AY8910) {
-        switch (ds.systemFlags[0]&0x3f) {
+        switch (ds.systemFlagsOld[0]&0x3f) {
           case 0: // AY-3-8910, 1.79MHz
           case 1: // AY-3-8910, 1.77MHz
           case 2: // AY-3-8910, 1.75MHz
@@ -88,35 +88,35 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
             return "Intellivision (PAL)";
 
           default:
-            if ((ds.systemFlags[0]&0x30)==0x00) {
+            if ((ds.systemFlagsOld[0]&0x30)==0x00) {
               return "AY-3-8910";
-            } else if ((ds.systemFlags[0]&0x30)==0x10) {
+            } else if ((ds.systemFlagsOld[0]&0x30)==0x10) {
               return "Yamaha YM2149";
-            } else if ((ds.systemFlags[0]&0x30)==0x20) {
+            } else if ((ds.systemFlagsOld[0]&0x30)==0x20) {
               return "Overclocked Sunsoft 5B";
-            } else if ((ds.systemFlags[0]&0x30)==0x30) {
+            } else if ((ds.systemFlagsOld[0]&0x30)==0x30) {
               return "Intellivision";
             }
         }
       } else if (ds.system[0]==DIV_SYSTEM_SMS) {
-        switch (ds.systemFlags[0]&0x0f) {
+        switch (ds.systemFlagsOld[0]&0x0f) {
           case 0: case 1:
             return "Sega Master System";
           case 6:
             return "BBC Micro";
         }
       } else if (ds.system[0]==DIV_SYSTEM_YM2612) {
-        switch (ds.systemFlags[0]&3) {
+        switch (ds.systemFlagsOld[0]&3) {
           case 2:
             return "FM Towns";
         }
       } else if (ds.system[0]==DIV_SYSTEM_YM2151) {
-        switch (ds.systemFlags[0]&3) {
+        switch (ds.systemFlagsOld[0]&3) {
           case 2:
             return "Sharp X68000";
         }
       } else if (ds.system[0]==DIV_SYSTEM_SAA1099) {
-        switch (ds.systemFlags[0]&3) {
+        switch (ds.systemFlagsOld[0]&3) {
           case 0:
             return "SAM Coupé";
         }

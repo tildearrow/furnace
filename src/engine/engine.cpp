@@ -1122,7 +1122,7 @@ void DivEngine::initSongWithDesc(const int* description) {
       song.system[index]=(DivSystem)description[i];
       song.systemVol[index]=description[i+1];
       song.systemPan[index]=description[i+2];
-      song.systemFlags[index]=description[i+3];
+      song.systemFlagsOld[index]=description[i+3];
       index++;
       chanCount+=getChannelCount(song.system[index]);
       if (chanCount>=DIV_MAX_CHANS) break;
@@ -1345,7 +1345,7 @@ void DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
   }
 
   song.system[index]=which;
-  song.systemFlags[index]=0;
+  song.systemFlagsOld[index]=0;
   recalcChans();
   saveLock.unlock();
   BUSY_END;
@@ -1371,7 +1371,7 @@ bool DivEngine::addSystem(DivSystem which) {
   song.system[song.systemLen]=which;
   song.systemVol[song.systemLen]=64;
   song.systemPan[song.systemLen]=0;
-  song.systemFlags[song.systemLen++]=0;
+  song.systemFlagsOld[song.systemLen++]=0;
   recalcChans();
   saveLock.unlock();
   BUSY_END;
@@ -1415,7 +1415,7 @@ bool DivEngine::removeSystem(int index, bool preserveOrder) {
     song.system[i]=song.system[i+1];
     song.systemVol[i]=song.systemVol[i+1];
     song.systemPan[i]=song.systemPan[i+1];
-    song.systemFlags[i]=song.systemFlags[i+1];
+    song.systemFlagsOld[i]=song.systemFlagsOld[i+1];
   }
   recalcChans();
   saveLock.unlock();
@@ -1541,9 +1541,9 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
   song.systemPan[dest]^=song.systemPan[src];
   song.systemPan[src]^=song.systemPan[dest];
 
-  song.systemFlags[src]^=song.systemFlags[dest];
-  song.systemFlags[dest]^=song.systemFlags[src];
-  song.systemFlags[src]^=song.systemFlags[dest];
+  song.systemFlagsOld[src]^=song.systemFlagsOld[dest];
+  song.systemFlagsOld[dest]^=song.systemFlagsOld[src];
+  song.systemFlagsOld[src]^=song.systemFlagsOld[dest];
 
   recalcChans();
   saveLock.unlock();
@@ -3470,9 +3470,9 @@ void DivEngine::setOrder(unsigned char order) {
 void DivEngine::setSysFlags(int system, unsigned int flags, bool restart) {
   BUSY_BEGIN_SOFT;
   saveLock.lock();
-  song.systemFlags[system]=flags;
+  song.systemFlagsOld[system]=flags;
   saveLock.unlock();
-  disCont[system].dispatch->setFlags(song.systemFlags[system]);
+  disCont[system].dispatch->setFlags(song.systemFlagsOld[system]);
   disCont[system].setRates(got.rate);
   if (restart && isPlaying()) {
     playSub(false);
@@ -3630,7 +3630,7 @@ void DivEngine::rescanAudioDevices() {
 void DivEngine::initDispatch() {
   BUSY_BEGIN;
   for (int i=0; i<song.systemLen; i++) {
-    disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlags[i]);
+    disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlagsOld[i]);
     disCont[i].setRates(got.rate);
     disCont[i].setQuality(lowQuality);
   }

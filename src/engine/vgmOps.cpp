@@ -939,7 +939,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         if (!hasSN) {
           hasSN=disCont[i].dispatch->chipClock;
           willExport[i]=true;
-          switch ((song.systemFlags[i]>>2)&3) {
+          switch ((song.systemFlagsOld[i]>>2)&3) {
             case 1: // real SN
               snNoiseConfig=3;
               snNoiseSize=15;
@@ -1054,7 +1054,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
             ayConfig=0x03;
             hasClockDivider=true;
           } else {
-            switch ((song.systemFlags[i]>>4)&3) {
+            switch ((song.systemFlagsOld[i]>>4)&3) {
               default:
               case 0: // AY8910
                 ayConfig=0x00;
@@ -1073,10 +1073,10 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
                 break;
             }
           }
-          if (hasClockDivider && ((song.systemFlags[i]>>7)&1)) {
+          if (hasClockDivider && ((song.systemFlagsOld[i]>>7)&1)) {
             ayFlags|=0x10;
           }
-          if (hasStereo && ((song.systemFlags[i]>>6)&1)) {
+          if (hasStereo && ((song.systemFlagsOld[i]>>6)&1)) {
             ayFlags|=0x80;
           }
           willExport[i]=true;
@@ -1304,7 +1304,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         // chips even though the only difference is the output resolution
         // these system types are currently handled by reusing isSecond flag
         // also this system is not dual-able
-        if ((song.systemFlags[i]>>4)==1) {
+        if ((song.systemFlagsOld[i]>>4)==1) {
           if (!hasRFC1) {
             hasRFC1=disCont[i].dispatch->chipClock;
             isSecond[i]=true;

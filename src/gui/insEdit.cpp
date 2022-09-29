@@ -1904,7 +1904,7 @@ void FurnaceGUI::drawInsEdit() {
                     if (e->song.system[i]==DIV_SYSTEM_VRC7) {
                       isPresent[3]=true;
                     } else if (e->song.system[i]==DIV_SYSTEM_OPLL || e->song.system[i]==DIV_SYSTEM_OPLL_DRUMS) {
-                      isPresent[(e->song.systemFlags[i]>>4)&3]=true;
+                      isPresent[(e->song.systemFlagsOld[i]>>4)&3]=true;
                     }
                   }
                   if (!isPresent[0] && !isPresent[1] && !isPresent[2] && !isPresent[3]) {
