@@ -1520,6 +1520,10 @@ chips which aren't on this list don't have any flags.
   - 1: 16.67MHz
 - bit 4: stereo (bool)
 
+## 0xb1: Ensoniq ES5506
+
+- bit 0-4: channels (int)
+
 ## 0xb5: tildearrow Sound Unit
 
 - bit 0: clockSel (int)
