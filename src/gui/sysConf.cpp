@@ -19,177 +19,250 @@
 
 #include "gui.h"
 
-void FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange) {
-  ImGui::Text("temporarily unavailable!");
-  return;
-  /*
+bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange) {
+  bool altered=false;
   bool restart=settings.restartOnFlagChange && modifyOnChange;
-  bool sysPal=flags&1;
-  unsigned int copyOfFlags=flags;
+
   switch (type) {
     case DIV_SYSTEM_YM2612:
     case DIV_SYSTEM_YM2612_EXT: 
     case DIV_SYSTEM_YM2612_FRAC:
     case DIV_SYSTEM_YM2612_FRAC_EXT: {
-      if (ImGui::RadioButton("NTSC (7.67MHz)",(flags&(~0x80000000))==0)) {
-        copyOfFlags=(flags&0x80000000)|0;
+      int clockSel=flags.getInt("clockSel",0);
+      bool ladder=flags.getBool("ladderEffect",0);
+
+      if (ImGui::RadioButton("NTSC (7.67MHz)",clockSel==0)) {
+        clockSel=0;
+        altered=true;
       }
-      if (ImGui::RadioButton("PAL (7.61MHz)",(flags&(~0x80000000))==1)) {
-        copyOfFlags=(flags&0x80000000)|1;
+      if (ImGui::RadioButton("PAL (7.61MHz)",clockSel==1)) {
+        clockSel=1;
+        altered=true;
       }
-      if (ImGui::RadioButton("FM Towns (8MHz)",(flags&(~0x80000000))==2)) {
-        copyOfFlags=(flags&0x80000000)|2;
+      if (ImGui::RadioButton("FM Towns (8MHz)",clockSel==2)) {
+        clockSel=2;
+        altered=true;
       }
-      if (ImGui::RadioButton("AtGames Genesis (6.13MHz)",(flags&(~0x80000000))==3)) {
-        copyOfFlags=(flags&0x80000000)|3;
+      if (ImGui::RadioButton("AtGames Genesis (6.13MHz)",clockSel==3)) {
+        clockSel=3;
+        altered=true;
       }
-      if (ImGui::RadioButton("Sega System 32 (8.05MHz)",(flags&(~0x80000000))==4)) {
-        copyOfFlags=(flags&0x80000000)|4;
+      if (ImGui::RadioButton("Sega System 32 (8.05MHz)",clockSel==4)) {
+        clockSel=4;
+        altered=true;
       }
-      bool ladder=flags&0x80000000;
       if (ImGui::Checkbox("Enable DAC distortion",&ladder)) {
-        copyOfFlags=(flags&(~0x80000000))|(ladder?0x80000000:0);
+        altered=true;
+      }
+      
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",clockSel);
+          flags.set("ladderEffect",ladder);
+        });
       }
       break;
     }
     case DIV_SYSTEM_SMS: {
+      int clockSel=flags.getInt("clockSel",0);
+      int chipType=flags.getInt("chipType",0);
+      bool noPhaseReset=flags.getBool("noPhaseReset",false);
+
       ImGui::Text("Clock rate:");
-      if (ImGui::RadioButton("3.58MHz (NTSC)",(flags&0xff03)==0x0000)) {
-        copyOfFlags=(flags&(~0xff03))|0x0000;
+      if (ImGui::RadioButton("3.58MHz (NTSC)",clockSel==0)) {
+        clockSel=0;
+        altered=true;
       }
-      if (ImGui::RadioButton("3.55MHz (PAL)",(flags&0xff03)==0x0001)) {
-        copyOfFlags=(flags&(~0xff03))|0x0001;
+      if (ImGui::RadioButton("3.55MHz (PAL)",clockSel==1)) {
+        clockSel=1;
+        altered=true;
       }
-      if (ImGui::RadioButton("4MHz (BBC Micro)",(flags&0xff03)==0x0002)) {
-        copyOfFlags=(flags&(~0xff03))|0x0002;
+      if (ImGui::RadioButton("4MHz (BBC Micro)",clockSel==2)) {
+        clockSel=2;
+        altered=true;
       }
-      if (ImGui::RadioButton("1.79MHz (Half NTSC)",(flags&0xff03)==0x0003)) {
-        copyOfFlags=(flags&(~0xff03))|0x0003;
+      if (ImGui::RadioButton("1.79MHz (Half NTSC)",clockSel==3)) {
+        clockSel=3;
+        altered=true;
       }
-      if (ImGui::RadioButton("3MHz (Exed Exes)",(flags&0xff03)==0x0100)) {
-        copyOfFlags=(flags&(~0xff03))|0x0100;
+      if (ImGui::RadioButton("3MHz (Exed Exes)",clockSel==4)) {
+        clockSel=4;
+        altered=true;
       }
-      if (ImGui::RadioButton("2MHz (Sega System 1)",(flags&0xff03)==0x0101)) {
-        copyOfFlags=(flags&(~0xff03))|0x0101;
+      if (ImGui::RadioButton("2MHz (Sega System 1)",clockSel==5)) {
+        clockSel=5;
+        altered=true;
       }
-      if (ImGui::RadioButton("447KHz (TI-99/4A)",(flags&0xff03)==0x0102)) {
-        copyOfFlags=(flags&(~0xff03))|0x0102;
+      if (ImGui::RadioButton("447KHz (TI-99/4A)",clockSel==6)) {
+        clockSel=6;
+        altered=true;
       }
       ImGui::Text("Chip type:");
-      if (ImGui::RadioButton("Sega VDP/Master System",(flags&0xcc)==0x00)) {
-        copyOfFlags=(flags&(~0xcc))|0x00;
+      if (ImGui::RadioButton("Sega VDP/Master System",chipType==0)) {
+        chipType=0;
+        altered=true;
       }
-      if (ImGui::RadioButton("TI SN76489",(flags&0xcc)==0x04)) {
-        copyOfFlags=(flags&(~0xcc))|0x04;
+      if (ImGui::RadioButton("TI SN76489",chipType==1)) {
+        chipType=1;
+        altered=true;
       }
-      if (ImGui::RadioButton("TI SN76489 with Atari-like short noise",(flags&0xcc)==0x08)) {
-        copyOfFlags=(flags&(~0xcc))|0x08;
+      if (ImGui::RadioButton("TI SN76489 with Atari-like short noise",chipType==2)) {
+        chipType=2;
+        altered=true;
       }
-      if (ImGui::RadioButton("Game Gear",(flags&0xcc)==0x0c)) {
-        copyOfFlags=(flags&(~0xcc))|0x0c;
+      if (ImGui::RadioButton("Game Gear",chipType==3)) {
+        chipType=3;
+        altered=true;
       }
-      if (ImGui::RadioButton("TI SN76489A",(flags&0xcc)==0x40)) {
-        copyOfFlags=(flags&(~0xcc))|0x40;
+      if (ImGui::RadioButton("TI SN76489A",chipType==4)) {
+        chipType=4;
+        altered=true;
       }
-      if (ImGui::RadioButton("TI SN76496",(flags&0xcc)==0x44)) {
-        copyOfFlags=(flags&(~0xcc))|0x44;
+      if (ImGui::RadioButton("TI SN76496",chipType==5)) {
+        chipType=5;
+        altered=true;
       }
-      if (ImGui::RadioButton("NCR 8496",(flags&0xcc)==0x48)) {
-        copyOfFlags=(flags&(~0xcc))|0x48;
+      if (ImGui::RadioButton("NCR 8496",chipType==6)) {
+        chipType=6;
+        altered=true;
       }
-      if (ImGui::RadioButton("Tandy PSSJ 3-voice sound",(flags&0xcc)==0x4c)) {
-        copyOfFlags=(flags&(~0xcc))|0x4c;
+      if (ImGui::RadioButton("Tandy PSSJ 3-voice sound",chipType==7)) {
+        chipType=7;
+        altered=true;
       }
-      if (ImGui::RadioButton("TI SN94624",(flags&0xcc)==0x80)) {
-        copyOfFlags=(flags&(~0xcc))|0x80;
+      if (ImGui::RadioButton("TI SN94624",chipType==8)) {
+        chipType=8;
+        altered=true;
       }
-      if (ImGui::RadioButton("TI SN76494",(flags&0xcc)==0x84)) {
-        copyOfFlags=(flags&(~0xcc))|0x84;
+      if (ImGui::RadioButton("TI SN76494",chipType==9)) {
+        chipType=9;
+        altered=true;
       }
-      bool noPhaseReset=flags&16;
+
       if (ImGui::Checkbox("Disable noise period change phase reset",&noPhaseReset)) {
-        copyOfFlags=(flags&(~16))|(noPhaseReset<<4);
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",clockSel);
+          flags.set("chipType",chipType);
+          flags.set("noPhaseReset",noPhaseReset);
+        });
       }
       break;
     }
     case DIV_SYSTEM_PCE: {
-      sysPal=flags&1;
-      if (ImGui::Checkbox("Pseudo-PAL",&sysPal)) {
-        copyOfFlags=(flags&(~1))|(unsigned int)sysPal;
+      bool clockSel=flags.getInt("clockSel",0);
+      int chipType=flags.getInt("chipType",0);
+      bool noAntiClick=flags.getBool("noAntiClick",false);
+
+      if (ImGui::Checkbox("Pseudo-PAL",&clockSel)) {
+        altered=true;
       }
-      bool antiClick=flags&8;
-      if (ImGui::Checkbox("Disable anti-click",&antiClick)) {
-        copyOfFlags=(flags&(~8))|(antiClick<<3);
+      if (ImGui::Checkbox("Disable anti-click",&noAntiClick)) {
+        altered=true;
       }
       ImGui::Text("Chip revision:");
-      if (ImGui::RadioButton("HuC6280 (original)",(flags&4)==0)) {
-        copyOfFlags=(flags&(~4))|0;
+      if (ImGui::RadioButton("HuC6280 (original)",chipType==0)) {
+        chipType=0;
+        altered=true;
       }
-      if (ImGui::RadioButton("HuC6280A (SuperGrafx)",(flags&4)==4)) {
-        copyOfFlags=(flags&(~4))|4;
+      if (ImGui::RadioButton("HuC6280A (SuperGrafx)",chipType==1)) {
+        chipType=1;
+        altered=true;
+      }
+
+      if (altered) {
+        flags.set("clockSel",(int)clockSel);
+        flags.set("chipType",chipType);
+        flags.set("noPhaseReset",noAntiClick);
       }
       break;
     }
     case DIV_SYSTEM_SOUND_UNIT: {
+      int clockSel=flags.getInt("clockSel",0);
+      bool echo=flags.getBool("echo",false);
+      bool swapEcho=flags.getBool("swapEcho",false);
+      int sampleMemSize=flags.getInt("sampleMemSize",0);
+      bool pdm=flags.getBool("pdm",false);
+      int echoDelay=flags.getInt("echoDelay",0);
+      int echoFeedback=flags.getInt("echoFeedback",0);
+      int echoResolution=flags.getInt("echoResolution",0);
+      int echoVol=(signed char)flags.getInt("echoVol",0);
+
       ImGui::Text("CPU rate:");
-      if (ImGui::RadioButton("6.18MHz (NTSC)",(flags&3)==0)) {
-        copyOfFlags=(flags&(~3))|0;
+      if (ImGui::RadioButton("6.18MHz (NTSC)",clockSel==0)) {
+        clockSel=0;
+        altered=true;
       }
-      if (ImGui::RadioButton("5.95MHz (PAL)",(flags&3)==1)) {
-        copyOfFlags=(flags&(~3))|1;
+      if (ImGui::RadioButton("5.95MHz (PAL)",clockSel==1)) {
+        clockSel=1;
+        altered=true;
       }
       ImGui::Text("Sample memory:");
-      if (ImGui::RadioButton("8K (rev A/B/E)",(flags&16)==0)) {
-        copyOfFlags=(flags&(~16))|0;
+      if (ImGui::RadioButton("8K (rev A/B/E)",sampleMemSize==0)) {
+        sampleMemSize=0;
+        altered=true;
       }
-      if (ImGui::RadioButton("64K (rev D/F)",(flags&16)==16)) {
-        copyOfFlags=(flags&(~16))|16;
+      if (ImGui::RadioButton("64K (rev D/F)",sampleMemSize==1)) {
+        sampleMemSize=1;
+        altered=true;
       }
-      ImGui::Text("DAC resolution");
-      if (ImGui::RadioButton("16-bit (rev A/B/D/F)",(flags&32)==0)) {
-        copyOfFlags=(flags&(~32))|0;
+      ImGui::Text("DAC resolution:");
+      if (ImGui::RadioButton("16-bit (rev A/B/D/F)",pdm==0)) {
+        pdm=false;
+        altered=true;
       }
-      if (ImGui::RadioButton("1-bit PDM (rev C/E)",(flags&32)==32)) {
-        copyOfFlags=(flags&(~32))|32;
+      if (ImGui::RadioButton("1-bit PDM (rev C/E)",pdm==1)) {
+        pdm=true;
+        altered=true;
       }
-      bool echo=flags&4;
       if (ImGui::Checkbox("Enable echo",&echo)) {
-        copyOfFlags=(flags&(~4))|(echo<<2);
+        altered=true;
       }
-      bool flipEcho=flags&8;
-      if (ImGui::Checkbox("Swap echo channels",&flipEcho)) {
-        copyOfFlags=(flags&(~8))|(flipEcho<<3);
+      if (ImGui::Checkbox("Swap echo channels",&swapEcho)) {
+        altered=true;
       }
       ImGui::Text("Echo delay:");
-      int echoBufSize=(flags&0x3f00)>>8;
-      if (CWSliderInt("##EchoBufSize",&echoBufSize,0,63)) {
-        if (echoBufSize<0) echoBufSize=0;
-        if (echoBufSize>63) echoBufSize=63;
-        copyOfFlags=(flags&~0x3f00)|(echoBufSize<<8);
+      if (CWSliderInt("##EchoBufSize",&echoDelay,0,63)) {
+        if (echoDelay<0) echoDelay=0;
+        if (echoDelay>63) echoDelay=63;
+        altered=true;
       } rightClickable
       ImGui::Text("Echo resolution:");
-      int echoResolution=(flags&0xf00000)>>20;
       if (CWSliderInt("##EchoResolution",&echoResolution,0,15)) {
         if (echoResolution<0) echoResolution=0;
         if (echoResolution>15) echoResolution=15;
-        copyOfFlags=(flags&(~0xf00000))|(echoResolution<<20);
+        altered=true;
       } rightClickable
       ImGui::Text("Echo feedback:");
-      int echoFeedback=(flags&0xf0000)>>16;
       if (CWSliderInt("##EchoFeedback",&echoFeedback,0,15)) {
         if (echoFeedback<0) echoFeedback=0;
         if (echoFeedback>15) echoFeedback=15;
-        copyOfFlags=(flags&(~0xf0000))|(echoFeedback<<16);
+        altered=true;
       } rightClickable
       ImGui::Text("Echo volume:");
-      int echoVolume=(signed char)((flags&0xff000000)>>24);
-      if (CWSliderInt("##EchoVolume",&echoVolume,-128,127)) {
-        if (echoVolume<-128) echoVolume=-128;
-        if (echoVolume>127) echoVolume=127;
-        copyOfFlags=(flags&(~0xff000000))|(((unsigned char)echoVolume)<<24);
+      if (CWSliderInt("##EchoVolume",&echoVol,-128,127)) {
+        if (echoVol<-128) echoVol=-128;
+        if (echoVol>127) echoVol=127;
+        altered=true;
       } rightClickable
+
+      if (altered) {
+        flags.set("clockSel",clockSel);
+        flags.set("echo",echo);
+        flags.set("swapEcho",swapEcho);
+        flags.set("sampleMemSize",sampleMemSize);
+        flags.set("pdm",pdm);
+        flags.set("echoDelay",echoDelay);
+        flags.set("echoFeedback",echoFeedback);
+        flags.set("echoResolution",echoResolution);
+        flags.set("echoVol",(unsigned char)echoVol);
+      }
       break;
     }
+    /*
     case DIV_SYSTEM_GB: {
       bool antiClick=flags&8;
       if (ImGui::Checkbox("Disable anti-click",&antiClick)) {
@@ -787,18 +860,26 @@ void FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         copyOfFlags=sysPal;
       }
       break;
+    */
+    default:
+      ImGui::Text("Wait... is that right? No... I don't think so.");
+
+      if (ImGui::Button("But it is right!")) {
+        showError("https://github.com/tildearrow/furnace/issues/new");
+      }
+      break;
   }
 
-  if (copyOfFlags!=flags) {
+  if (altered) {
     if (chan>=0) {
-      e->setSysFlags(chan,copyOfFlags,restart);
+      e->updateSysFlags(chan,restart);
       if (e->song.autoSystem) {
         autoDetectSystem();
       }
       updateWindowTitle();
-    } else {
-      flags=copyOfFlags;
     }
+    MARK_MODIFIED;
   }
-  */
+
+  return altered;
 }

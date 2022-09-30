@@ -270,7 +270,7 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::Button("Current system")) {
             settings.initialSys.clear();
             for (int i=0; i<e->song.systemLen; i++) {
-              settings.initialSys.set(fmt::sprintf("id%d",i),e->getSystemDef(e->song.system[i])->id);
+              settings.initialSys.set(fmt::sprintf("id%d",i),e->systemToFileFur(e->song.system[i]));
               settings.initialSys.set(fmt::sprintf("vol%d",i),(int)e->song.systemVol[i]);
               settings.initialSys.set(fmt::sprintf("pan%d",i),(int)e->song.systemPan[i]);
               settings.initialSys.set(fmt::sprintf("flags%d",i),e->song.systemFlags[i].toBase64());
@@ -285,27 +285,24 @@ void FurnaceGUI::drawSettings() {
             for (totalAvailSys=0; availableSystems[totalAvailSys]; totalAvailSys++);
             if (totalAvailSys>0) {
               for (int i=0; i<howMany; i++) {
-                /*
-                settings.initialSys.push_back(availableSystems[rand()%totalAvailSys]);
-                settings.initialSys.push_back(64);
-                settings.initialSys.push_back(0);
-                settings.initialSys.push_back(0);
-                */
+                settings.initialSys.set(fmt::sprintf("id%d",i),e->systemToFileFur((DivSystem)availableSystems[rand()%totalAvailSys]));
+                settings.initialSys.set(fmt::sprintf("vol%d",i),64);
+                settings.initialSys.set(fmt::sprintf("pan%d",i),0);
+                settings.initialSys.set(fmt::sprintf("flags%d",i),"");
               }
             } else {
-              /*
-              settings.initialSys.push_back(DIV_SYSTEM_DUMMY);
-              settings.initialSys.push_back(64);
-              settings.initialSys.push_back(0);
-              settings.initialSys.push_back(0);
-              */
+              settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_DUMMY));
+              settings.initialSys.set("vol0",64);
+              settings.initialSys.set("pan0",0);
+              settings.initialSys.set("flags0","");
+              howMany=1;
             }
             // randomize system name
             std::vector<String> wordPool[6];
-            /*
-            for (size_t i=0; i<settings.initialSys.size()/4; i++) {
+            for (int i=0; i<howMany; i++) {
               int wpPos=0;
-              String sName=e->getSystemName((DivSystem)settings.initialSys[i*4]);
+              DivSystem sysID=e->systemFromFileFur(settings.initialSys.getInt(fmt::sprintf("id%d",i),0));
+              String sName=e->getSystemName(sysID);
               String nameWord;
               sName+=" ";
               for (char& i: sName) {
@@ -326,16 +323,15 @@ void FurnaceGUI::drawSettings() {
               settings.initialSysName+=wordPool[i][rand()%wordPool[i].size()];
               settings.initialSysName+=" ";
             }
-            */
           }
           ImGui::SameLine();
           if (ImGui::Button("Reset to defaults")) {
             settings.initialSys.clear();
-            settings.initialSys.set("id0",e->getSystemDef(DIV_SYSTEM_YM2612)->id);
+            settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_YM2612));
             settings.initialSys.set("vol0",64);
             settings.initialSys.set("pan0",0);
             settings.initialSys.set("flags0","");
-            settings.initialSys.set("id1",e->getSystemDef(DIV_SYSTEM_SMS)->id);
+            settings.initialSys.set("id1",e->systemToFileFur(DIV_SYSTEM_SMS));
             settings.initialSys.set("vol1",64);
             settings.initialSys.set("pan1",0);
             settings.initialSys.set("flags1","");
@@ -362,6 +358,7 @@ void FurnaceGUI::drawSettings() {
               for (int j=0; availableSystems[j]; j++) {
                 if (ImGui::Selectable(getSystemName((DivSystem)availableSystems[j]),sysID==availableSystems[j])) {
                   sysID=(DivSystem)availableSystems[j];
+                  settings.initialSys.set(fmt::sprintf("id%d",i),(int)e->systemToFileFur(sysID));
                   settings.initialSys.set(fmt::sprintf("flags%d",i),"");
                 }
               }
@@ -371,6 +368,7 @@ void FurnaceGUI::drawSettings() {
             ImGui::SameLine();
             if (ImGui::Checkbox("Invert",&doInvert)) {
               sysVol^=128;
+              settings.initialSys.set(fmt::sprintf("vol%d",i),(int)sysVol);
             }
             ImGui::SameLine();
             //ImGui::BeginDisabled(settings.initialSys.size()<=4);
@@ -381,16 +379,21 @@ void FurnaceGUI::drawSettings() {
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
             if (CWSliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
               sysVol=(sysVol&128)|vol;
+              settings.initialSys.set(fmt::sprintf("vol%d",i),(int)sysVol);
             } rightClickable
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
-            CWSliderScalar("Panning",ImGuiDataType_S8,&sysPan,&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN); rightClickable
+            if (CWSliderScalar("Panning",ImGuiDataType_S8,&sysPan,&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN)) {
+              settings.initialSys.set(fmt::sprintf("pan%d",i),(int)sysPan);
+            } rightClickable
 
             // oh please MSVC don't cry
             if (ImGui::TreeNode("Configure")) {
               String sysFlagsS=settings.initialSys.getString(fmt::sprintf("flags%d",i),"");
               DivConfig sysFlags;
               sysFlags.loadFromBase64(sysFlagsS.c_str());
-              drawSysConf(-1,sysID,sysFlags,false);
+              if (drawSysConf(-1,sysID,sysFlags,false)) {
+                settings.initialSys.set(fmt::sprintf("flags%d",i),sysFlags.toBase64());
+              }
               ImGui::TreePop();
             }
 
@@ -2461,11 +2464,11 @@ void FurnaceGUI::syncSettings() {
   settings.initialSys.loadFromBase64(initialSys2.c_str());
   if (settings.initialSys.getInt("id0",0)==0) {
     settings.initialSys.clear();
-    settings.initialSys.set("id0",e->getSystemDef(DIV_SYSTEM_YM2612)->id);
+    settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_YM2612));
     settings.initialSys.set("vol0",64);
     settings.initialSys.set("pan0",0);
     settings.initialSys.set("flags0","");
-    settings.initialSys.set("id1",e->getSystemDef(DIV_SYSTEM_SMS)->id);
+    settings.initialSys.set("id1",e->systemToFileFur(DIV_SYSTEM_SMS));
     settings.initialSys.set("vol1",64);
     settings.initialSys.set("pan1",0);
     settings.initialSys.set("flags1","");

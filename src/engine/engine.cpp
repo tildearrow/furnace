@@ -3467,76 +3467,8 @@ void DivEngine::setOrder(unsigned char order) {
   BUSY_END;
 }
 
-void DivEngine::setSysFlags(int system, String key, bool value, bool restart) {
+void DivEngine::updateSysFlags(int system, bool restart) {
   BUSY_BEGIN_SOFT;
-  saveLock.lock();
-  song.systemFlags[system].set(key,value);
-  saveLock.unlock();
-  disCont[system].dispatch->setFlags(song.systemFlags[system]);
-  disCont[system].setRates(got.rate);
-  if (restart && isPlaying()) {
-    playSub(false);
-  }
-  BUSY_END;
-}
-
-void DivEngine::setSysFlags(int system, String key, int value, bool restart) {
-  BUSY_BEGIN_SOFT;
-  saveLock.lock();
-  song.systemFlags[system].set(key,value);
-  saveLock.unlock();
-  disCont[system].dispatch->setFlags(song.systemFlags[system]);
-  disCont[system].setRates(got.rate);
-  if (restart && isPlaying()) {
-    playSub(false);
-  }
-  BUSY_END;
-}
-
-void DivEngine::setSysFlags(int system, String key, float value, bool restart) {
-  BUSY_BEGIN_SOFT;
-  saveLock.lock();
-  song.systemFlags[system].set(key,value);
-  saveLock.unlock();
-  disCont[system].dispatch->setFlags(song.systemFlags[system]);
-  disCont[system].setRates(got.rate);
-  if (restart && isPlaying()) {
-    playSub(false);
-  }
-  BUSY_END;
-}
-
-void DivEngine::setSysFlags(int system, String key, double value, bool restart) {
-  BUSY_BEGIN_SOFT;
-  saveLock.lock();
-  song.systemFlags[system].set(key,value);
-  saveLock.unlock();
-  disCont[system].dispatch->setFlags(song.systemFlags[system]);
-  disCont[system].setRates(got.rate);
-  if (restart && isPlaying()) {
-    playSub(false);
-  }
-  BUSY_END;
-}
-
-void DivEngine::setSysFlags(int system, String key, const char* value, bool restart) {
-  BUSY_BEGIN_SOFT;
-  saveLock.lock();
-  song.systemFlags[system].set(key,value);
-  saveLock.unlock();
-  disCont[system].dispatch->setFlags(song.systemFlags[system]);
-  disCont[system].setRates(got.rate);
-  if (restart && isPlaying()) {
-    playSub(false);
-  }
-  BUSY_END;
-}
-
-void DivEngine::setSysFlags(int system, String key, String value, bool restart) {
-  BUSY_BEGIN_SOFT;
-  saveLock.lock();
-  song.systemFlags[system].set(key,value);
-  saveLock.unlock();
   disCont[system].dispatch->setFlags(song.systemFlags[system]);
   disCont[system].setRates(got.rate);
   if (restart && isPlaying()) {

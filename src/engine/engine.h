@@ -821,13 +821,8 @@ class DivEngine {
     // go to order
     void setOrder(unsigned char order);
 
-    // set system flags
-    void setSysFlags(int system, String key, bool value, bool restart);
-    void setSysFlags(int system, String key, int value, bool restart);
-    void setSysFlags(int system, String key, float value, bool restart);
-    void setSysFlags(int system, String key, double value, bool restart);
-    void setSysFlags(int system, String key, const char* value, bool restart);
-    void setSysFlags(int system, String key, String value, bool restart);
+    // update system flags
+    void updateSysFlags(int system, bool restart);
 
     // set Hz
     void setSongRate(float hz, bool pal);

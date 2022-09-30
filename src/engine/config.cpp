@@ -79,6 +79,8 @@ String DivConfig::toBase64() {
     ret+=base64Table[(groupOfThree>>12)&63];
     ret+="==";
   }
+  
+  logV("toBase64: %s",ret);
 
   return ret;
 }
@@ -170,6 +172,8 @@ bool DivConfig::loadFromBase64(const char* buf) {
       groupOfThree=0;
     }
   }
+
+  logV("fromBase64: %s",data);
 
   return loadFromMemory(data.c_str());
 }
