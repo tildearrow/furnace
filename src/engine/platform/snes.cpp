@@ -672,21 +672,27 @@ void DivPlatformSNES::reset() {
   writeControl=false;
   writeNoise=false;
   writePitchMod=false;
-  writeEcho=false;
+  writeEcho=true;
 
-  echoDelay=0;
-  echoFeedback=0;
-  echoFIR[0]=127;
-  echoFIR[1]=0;
-  echoFIR[2]=0;
-  echoFIR[3]=0;
-  echoFIR[4]=0;
-  echoFIR[5]=0;
-  echoFIR[6]=0;
-  echoFIR[7]=0;
-  echoVolL=127;
-  echoVolR=127;
-  echoOn=false;
+  echoDelay=initEchoDelay;
+  echoFeedback=initEchoFeedback;
+  echoFIR[0]=initEchoFIR[0];
+  echoFIR[1]=initEchoFIR[1];
+  echoFIR[2]=initEchoFIR[2];
+  echoFIR[3]=initEchoFIR[3];
+  echoFIR[4]=initEchoFIR[4];
+  echoFIR[5]=initEchoFIR[5];
+  echoFIR[6]=initEchoFIR[6];
+  echoFIR[7]=initEchoFIR[7];
+  echoVolL=initEchoVolL;
+  echoVolR=initEchoVolR;
+  echoOn=initEchoOn;
+  
+  for (int i=0; i<8; i++) {
+    if (initEchoMask&(1<<i)) {
+      chan[i].echo=true;
+    }
+  }
 
   initEcho();
 }
@@ -770,6 +776,23 @@ void DivPlatformSNES::renderSamples() {
 void DivPlatformSNES::setFlags(const DivConfig& flags) {
   globalVolL=127-flags.getInt("volScaleL",0);
   globalVolR=127-flags.getInt("volScaleR",0);
+
+  initEchoOn=flags.getBool("echo",false);
+  initEchoVolL=flags.getInt("echoVolL",127);
+  initEchoVolR=flags.getInt("echoVolR",127);
+  initEchoDelay=flags.getInt("echoDelay",0)&15;
+  initEchoFeedback=flags.getInt("echoFeedback",0);
+
+  initEchoFIR[0]=flags.getInt("echoFilter0",127);
+  initEchoFIR[1]=flags.getInt("echoFilter1",0);
+  initEchoFIR[2]=flags.getInt("echoFilter2",0);
+  initEchoFIR[3]=flags.getInt("echoFilter3",0);
+  initEchoFIR[4]=flags.getInt("echoFilter4",0);
+  initEchoFIR[5]=flags.getInt("echoFilter5",0);
+  initEchoFIR[6]=flags.getInt("echoFilter6",0);
+  initEchoFIR[7]=flags.getInt("echoFilter7",0);
+
+  initEchoMask=flags.getInt("echoMask",0);
 }
 
 int DivPlatformSNES::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

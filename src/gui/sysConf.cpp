@@ -1183,8 +1183,25 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       break;
     }
     case DIV_SYSTEM_SNES: { // TODO: echo
+      char temp[64];
       int vsL=127-(flags.getInt("volScaleL",0)&127);
       int vsR=127-(flags.getInt("volScaleR",0)&127);
+      bool echo=flags.getBool("echo",false);
+      int echoVolL=flags.getInt("echoVolL",127);
+      int echoVolR=flags.getInt("echoVolR",127);
+      int echoDelay=flags.getInt("echoDelay",0)&15;
+      int echoFeedback=flags.getInt("echoFeedback",0);
+      int echoMask=flags.getInt("echoMask",0);
+
+      int echoFilter[8];
+      echoFilter[0]=flags.getInt("echoFilter0",127);
+      echoFilter[1]=flags.getInt("echoFilter1",0);
+      echoFilter[2]=flags.getInt("echoFilter2",0);
+      echoFilter[3]=flags.getInt("echoFilter3",0);
+      echoFilter[4]=flags.getInt("echoFilter4",0);
+      echoFilter[5]=flags.getInt("echoFilter5",0);
+      echoFilter[6]=flags.getInt("echoFilter6",0);
+      echoFilter[7]=flags.getInt("echoFilter7",0);
 
       ImGui::Text("Volume scale:");
       if (CWSliderInt("Left##VolScaleL",&vsL,0,127)) {
@@ -1198,12 +1215,79 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       } rightClickable
 
+      if (ImGui::Checkbox("Enable echo",&echo)) {
+        altered=true;
+      }
+      
+      ImGui::Text("Initial echo state:");
+      for (int i=0; i<8; i++) {
+        bool echoChan=(bool)(echoMask&(1<<i));
+        snprintf(temp,63,"%d##EON%d",i+1,i);
+        if (ImGui::Checkbox(temp,&echoChan)) {
+          echoMask&=~(1<<i);
+          if (echoChan) {
+            echoMask|=1<<i;
+          }
+          altered=true;
+        }
+        if (i<7) ImGui::SameLine();
+      }
+
+      if (CWSliderInt("Delay##EchoDelay",&echoDelay,0,15)) {
+        if (echoDelay<0) echoDelay=0;
+        if (echoDelay>15) echoDelay=15;
+        altered=true;
+      } rightClickable
+
+      if (CWSliderInt("Feedback##EchoFeedback",&echoFeedback,-128,127)) {
+        if (echoFeedback<-128) echoFeedback=-128;
+        if (echoFeedback>127) echoFeedback=127;
+        altered=true;
+      } rightClickable
+
+      ImGui::Text("Echo volume:");
+      if (CWSliderInt("Left##EchoVolL",&echoVolL,-128,127)) {
+        if (echoVolL<-128) echoVolL=-128;
+        if (echoVolL>127) echoVolL=127;
+        altered=true;
+      } rightClickable
+      if (CWSliderInt("Right##EchoVolL",&echoVolR,-128,127)) {
+        if (echoVolR<-128) echoVolR=-128;
+        if (echoVolR>127) echoVolR=127;
+        altered=true;
+      } rightClickable
+
+      ImGui::Text("Echo filter:");
+      for (int i=0; i<8; i++) {
+        snprintf(temp,63,"%d##FIR%d",i+1,i);
+        if (CWSliderInt(temp,&echoFilter[i],-128,127)) {
+          if (echoFilter[i]<-128) echoFilter[i]=-128;
+          if (echoFilter[i]>127) echoFilter[i]=127;
+          altered=true;
+        } rightClickable
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("volScaleL",127-vsL);
           flags.set("volScaleR",127-vsR);
+          flags.set("echo",echo);
+          flags.set("echoVolL",echoVolL);
+          flags.set("echoVolR",echoVolR);
+          flags.set("echoDelay",echoDelay);
+          flags.set("echoFeedback",echoFeedback);
+          flags.set("echoFilter0",echoFilter[0]);
+          flags.set("echoFilter1",echoFilter[1]);
+          flags.set("echoFilter2",echoFilter[2]);
+          flags.set("echoFilter3",echoFilter[3]);
+          flags.set("echoFilter4",echoFilter[4]);
+          flags.set("echoFilter5",echoFilter[5]);
+          flags.set("echoFilter6",echoFilter[6]);
+          flags.set("echoFilter7",echoFilter[7]);
+          flags.set("echoMask",echoMask);
         });
       }
+
       break;
     }
     case DIV_SYSTEM_SWAN:

@@ -87,6 +87,14 @@ class DivPlatformSNES: public DivDispatch {
   bool writeEcho;
   bool echoOn;
 
+  bool initEchoOn;
+  signed char initEchoVolL;
+  signed char initEchoVolR;
+  signed char initEchoFeedback;
+  signed char initEchoFIR[8];
+  unsigned char initEchoDelay;
+  unsigned char initEchoMask;
+
   struct QueuedWrite {
     unsigned char addr;
     unsigned char val;
