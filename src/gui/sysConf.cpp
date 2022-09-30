@@ -19,7 +19,7 @@
 
 #include "gui.h"
 
-void FurnaceGUI::drawSysConf(int chan, DivSystem type, unsigned int& flags, bool modifyOnChange) {
+void FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange) {
   ImGui::Text("temporarily unavailable!");
   return;
   /*

@@ -19,6 +19,7 @@
 
 #include "gui.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include <fmt/printf.h>
 #include <algorithm>
 
 void FurnaceGUI::drawNewSong() {
@@ -140,7 +141,16 @@ void FurnaceGUI::drawNewSong() {
   }
 
   if (accepted) {
-    e->createNew(nextDesc,nextDescName);
+    // TODO: remove after porting all presets to new format
+    String oldDescFormat;
+    for (const int* i=nextDesc; *i; i+=4) {
+      oldDescFormat+=fmt::sprintf("%d ",e->systemToFileFur((DivSystem)i[0]));
+      oldDescFormat+=fmt::sprintf("%d ",i[1]);
+      oldDescFormat+=fmt::sprintf("%d ",i[2]);
+      oldDescFormat+=fmt::sprintf("%d ",i[3]);
+    }
+    String oldDesc=e->decodeSysDesc(oldDescFormat.c_str());
+    e->createNew(oldDesc.c_str(),nextDescName);
     undoHist.clear();
     redoHist.clear();
     curFileName="";

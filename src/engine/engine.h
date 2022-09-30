@@ -425,10 +425,6 @@ class DivEngine {
   // MIDI stuff
   std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -2;};
 
-  DivSystem systemFromFileFur(unsigned char val);
-  unsigned char systemToFileFur(DivSystem val);
-  DivSystem systemFromFileDMF(unsigned char val);
-  unsigned char systemToFileDMF(DivSystem val);
   int dispatchCmd(DivCommand c);
   void processRow(int i, bool afterDelay);
   void nextOrder();
@@ -471,7 +467,7 @@ class DivEngine {
   bool deinitAudioBackend(bool dueToSwitchMaster=false);
 
   void registerSystems();
-  void initSongWithDesc(const int* description);
+  void initSongWithDesc(const char* description);
 
   void exchangeIns(int one, int two);
   void swapChannels(int src, int dest);
@@ -502,11 +498,10 @@ class DivEngine {
     DivWavetable* getWave(int index);
     DivSample* getSample(int index);
     DivDispatch* getDispatch(int index);
-    // parse system setup description
-    String encodeSysDesc(std::vector<int>& desc);
-    std::vector<int> decodeSysDesc(String desc);
+    // parse old system setup description
+    String decodeSysDesc(String desc);
     // start fresh
-    void createNew(const int* description, String sysName);
+    void createNew(const char* description, String sysName);
     // load a file.
     bool load(unsigned char* f, size_t length);
     // save as .dmf.
@@ -533,6 +528,12 @@ class DivEngine {
     void notifyInsChange(int ins);
     // notify wavetable change
     void notifyWaveChange(int wave);
+
+    // get system IDs
+    DivSystem systemFromFileFur(unsigned char val);
+    unsigned char systemToFileFur(DivSystem val);
+    DivSystem systemFromFileDMF(unsigned char val);
+    unsigned char systemToFileDMF(DivSystem val);
 
     // benchmark (returns time in seconds)
     double benchmarkPlayback();

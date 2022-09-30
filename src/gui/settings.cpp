@@ -270,10 +270,10 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::Button("Current system")) {
             settings.initialSys.clear();
             for (int i=0; i<e->song.systemLen; i++) {
-              settings.initialSys.push_back(e->song.system[i]);
-              settings.initialSys.push_back(e->song.systemVol[i]);
-              settings.initialSys.push_back(e->song.systemPan[i]);
-              settings.initialSys.push_back(e->song.systemFlagsOld[i]);
+              settings.initialSys.set(fmt::sprintf("id%d",i),e->getSystemDef(e->song.system[i])->id);
+              settings.initialSys.set(fmt::sprintf("vol%d",i),(int)e->song.systemVol[i]);
+              settings.initialSys.set(fmt::sprintf("pan%d",i),(int)e->song.systemPan[i]);
+              settings.initialSys.set(fmt::sprintf("flags%d",i),e->song.systemFlags[i].toBase64());
             }
             settings.initialSysName=e->song.systemName;
           }
@@ -285,19 +285,24 @@ void FurnaceGUI::drawSettings() {
             for (totalAvailSys=0; availableSystems[totalAvailSys]; totalAvailSys++);
             if (totalAvailSys>0) {
               for (int i=0; i<howMany; i++) {
+                /*
                 settings.initialSys.push_back(availableSystems[rand()%totalAvailSys]);
                 settings.initialSys.push_back(64);
                 settings.initialSys.push_back(0);
                 settings.initialSys.push_back(0);
+                */
               }
             } else {
+              /*
               settings.initialSys.push_back(DIV_SYSTEM_DUMMY);
               settings.initialSys.push_back(64);
               settings.initialSys.push_back(0);
               settings.initialSys.push_back(0);
+              */
             }
             // randomize system name
             std::vector<String> wordPool[6];
+            /*
             for (size_t i=0; i<settings.initialSys.size()/4; i++) {
               int wpPos=0;
               String sName=e->getSystemName((DivSystem)settings.initialSys[i*4]);
@@ -321,18 +326,19 @@ void FurnaceGUI::drawSettings() {
               settings.initialSysName+=wordPool[i][rand()%wordPool[i].size()];
               settings.initialSysName+=" ";
             }
+            */
           }
           ImGui::SameLine();
           if (ImGui::Button("Reset to defaults")) {
             settings.initialSys.clear();
-            settings.initialSys.push_back(DIV_SYSTEM_YM2612);
-            settings.initialSys.push_back(64);
-            settings.initialSys.push_back(0);
-            settings.initialSys.push_back(0);
-            settings.initialSys.push_back(DIV_SYSTEM_SMS);
-            settings.initialSys.push_back(32);
-            settings.initialSys.push_back(0);
-            settings.initialSys.push_back(0);
+            settings.initialSys.set("id0",e->getSystemDef(DIV_SYSTEM_YM2612)->id);
+            settings.initialSys.set("vol0",64);
+            settings.initialSys.set("pan0",0);
+            settings.initialSys.set("flags0","");
+            settings.initialSys.set("id1",e->getSystemDef(DIV_SYSTEM_SMS)->id);
+            settings.initialSys.set("vol1",64);
+            settings.initialSys.set("pan1",0);
+            settings.initialSys.set("flags1","");
             settings.initialSysName="Sega Genesis/Mega Drive";
           }
 
@@ -341,18 +347,22 @@ void FurnaceGUI::drawSettings() {
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::InputText("##InitSysName",&settings.initialSysName);
 
-          for (size_t i=0; i<settings.initialSys.size(); i+=4) {
-            bool doRemove=false;
-            bool doInvert=settings.initialSys[i+1]&128;
-            signed char vol=settings.initialSys[i+1]&127;
+          for (size_t i=0; settings.initialSys.getInt(fmt::sprintf("id%d",i),0); i++) {
+            DivSystem sysID=e->systemFromFileFur(settings.initialSys.getInt(fmt::sprintf("id%d",i),0));
+            signed char sysVol=settings.initialSys.getInt(fmt::sprintf("vol%d",i),0);
+            signed char sysPan=settings.initialSys.getInt(fmt::sprintf("pan%d",i),0);
+
+            //bool doRemove=false;
+            bool doInvert=sysVol&128;
+            signed char vol=sysVol&127;
             ImGui::PushID(i);
 
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Invert").x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x);
-            if (ImGui::BeginCombo("##System",getSystemName((DivSystem)settings.initialSys[i]))) {
+            if (ImGui::BeginCombo("##System",getSystemName(sysID))) {
               for (int j=0; availableSystems[j]; j++) {
-                if (ImGui::Selectable(getSystemName((DivSystem)availableSystems[j]),settings.initialSys[i]==availableSystems[j])) {
-                  settings.initialSys[i]=availableSystems[j];
-                  settings.initialSys[i+3]=0;
+                if (ImGui::Selectable(getSystemName((DivSystem)availableSystems[j]),sysID==availableSystems[j])) {
+                  sysID=(DivSystem)availableSystems[j];
+                  settings.initialSys.set(fmt::sprintf("flags%d",i),"");
                 }
               }
               ImGui::EndCombo();
@@ -360,39 +370,42 @@ void FurnaceGUI::drawSettings() {
 
             ImGui::SameLine();
             if (ImGui::Checkbox("Invert",&doInvert)) {
-              settings.initialSys[i+1]^=128;
+              sysVol^=128;
             }
             ImGui::SameLine();
-            ImGui::BeginDisabled(settings.initialSys.size()<=4);
+            //ImGui::BeginDisabled(settings.initialSys.size()<=4);
             if (ImGui::Button(ICON_FA_MINUS "##InitSysRemove")) {
-              doRemove=true;
+              //doRemove=true;
             }
-            ImGui::EndDisabled();
+            //ImGui::EndDisabled();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
             if (CWSliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
-              settings.initialSys[i+1]=(settings.initialSys[i+1]&128)|vol;
+              sysVol=(sysVol&128)|vol;
             } rightClickable
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
-            CWSliderScalar("Panning",ImGuiDataType_S8,&settings.initialSys[i+2],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN); rightClickable
+            CWSliderScalar("Panning",ImGuiDataType_S8,&sysPan,&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN); rightClickable
 
             // oh please MSVC don't cry
             if (ImGui::TreeNode("Configure")) {
-              drawSysConf(-1,(DivSystem)settings.initialSys[i],(unsigned int&)settings.initialSys[i+3],false);
+              String sysFlagsS=settings.initialSys.getString(fmt::sprintf("flags%d",i),"");
+              DivConfig sysFlags;
+              sysFlags.loadFromBase64(sysFlagsS.c_str());
+              drawSysConf(-1,sysID,sysFlags,false);
               ImGui::TreePop();
             }
 
             ImGui::PopID();
-            if (doRemove && settings.initialSys.size()>=8) {
+            /*if (doRemove && settings.initialSys.size()>=8) {
               settings.initialSys.erase(settings.initialSys.begin()+i,settings.initialSys.begin()+i+4);
               i-=4;
-            }
+            }*/
           }
 
           if (ImGui::Button(ICON_FA_PLUS "##InitSysAdd")) {
-            settings.initialSys.push_back(DIV_SYSTEM_YM2612);
+            /*settings.initialSys.push_back(DIV_SYSTEM_YM2612);
             settings.initialSys.push_back(64);
             settings.initialSys.push_back(0);
-            settings.initialSys.push_back(0);
+            settings.initialSys.push_back(0);*/
           }
 
           ImGui::Separator();
@@ -2440,17 +2453,22 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.midiOutClock,0,1);
   clampSetting(settings.midiOutMode,0,2);
 
-  settings.initialSys=e->decodeSysDesc(e->getConfString("initialSys",""));
-  if (settings.initialSys.size()<4) {
+  String initialSys2=e->getConfString("initialSys2","");
+  if (initialSys2.empty()) {
+    initialSys2=e->decodeSysDesc(e->getConfString("initialSys",""));
+  }
+  settings.initialSys.clear();
+  settings.initialSys.loadFromBase64(initialSys2.c_str());
+  if (settings.initialSys.getInt("id0",0)==0) {
     settings.initialSys.clear();
-    settings.initialSys.push_back(DIV_SYSTEM_YM2612);
-    settings.initialSys.push_back(64);
-    settings.initialSys.push_back(0);
-    settings.initialSys.push_back(0);
-    settings.initialSys.push_back(DIV_SYSTEM_SMS);
-    settings.initialSys.push_back(32);
-    settings.initialSys.push_back(0);
-    settings.initialSys.push_back(0);
+    settings.initialSys.set("id0",e->getSystemDef(DIV_SYSTEM_YM2612)->id);
+    settings.initialSys.set("vol0",64);
+    settings.initialSys.set("pan0",0);
+    settings.initialSys.set("flags0","");
+    settings.initialSys.set("id1",e->getSystemDef(DIV_SYSTEM_SMS)->id);
+    settings.initialSys.set("vol1",64);
+    settings.initialSys.set("pan1",0);
+    settings.initialSys.set("flags1","");
   }
 
   // keybinds
@@ -2564,7 +2582,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("eventDelay",settings.eventDelay);
   e->setConf("moveWindowTitle",settings.moveWindowTitle);
   e->setConf("hiddenSystems",settings.hiddenSystems);
-  e->setConf("initialSys",e->encodeSysDesc(settings.initialSys));
+  e->setConf("initialSys2",settings.initialSys.toBase64());
   e->setConf("initialSysName",settings.initialSysName);
   e->setConf("horizontalDataView",settings.horizontalDataView);
   e->setConf("noMultiSystem",settings.noMultiSystem);

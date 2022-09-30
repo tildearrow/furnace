@@ -233,9 +233,6 @@ struct DivSong {
   unsigned char systemLen;
   signed char systemVol[32];
   signed char systemPan[32];
-  // this one will be removed soon...
-  unsigned int systemFlagsOld[32];
-  // ...and replaced with... this!
   DivConfig systemFlags[32];
 
   // song information
@@ -432,7 +429,6 @@ struct DivSong {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;
       systemPan[i]=0;
-      systemFlagsOld[i]=0;
     }
     subsong.push_back(new DivSubSong);
     system[0]=DIV_SYSTEM_YM2612;

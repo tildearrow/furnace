@@ -939,7 +939,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         if (!hasSN) {
           hasSN=disCont[i].dispatch->chipClock;
           willExport[i]=true;
-          switch ((song.systemFlagsOld[i]>>2)&3) {
+          switch (song.systemFlags[i].getInt("chipType",0)) {
             case 1: // real SN
               snNoiseConfig=3;
               snNoiseSize=15;
@@ -1054,11 +1054,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
             ayConfig=0x03;
             hasClockDivider=true;
           } else {
-            switch ((song.systemFlagsOld[i]>>4)&3) {
-              default:
-              case 0: // AY8910
-                ayConfig=0x00;
-                break;
+            switch (song.systemFlags[i].getInt("chipType",0)) {
               case 1: // YM2149
                 ayConfig=0x10;
                 hasClockDivider=true;
@@ -1071,12 +1067,15 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
               case 3: // AY8914
                 ayConfig=0x04;
                 break;
+              default: // AY8910
+                ayConfig=0x00;
+                break;
             }
           }
-          if (hasClockDivider && ((song.systemFlagsOld[i]>>7)&1)) {
+          if (hasClockDivider && song.systemFlags[i].getBool("halfClock",false)) {
             ayFlags|=0x10;
           }
-          if (hasStereo && ((song.systemFlagsOld[i]>>6)&1)) {
+          if (hasStereo && song.systemFlags[i].getBool("stereo",false)) {
             ayFlags|=0x80;
           }
           willExport[i]=true;
@@ -1304,7 +1303,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         // chips even though the only difference is the output resolution
         // these system types are currently handled by reusing isSecond flag
         // also this system is not dual-able
-        if ((song.systemFlagsOld[i]>>4)==1) {
+        if (song.systemFlags[i].getInt("chipType",0)==1) {
           if (!hasRFC1) {
             hasRFC1=disCont[i].dispatch->chipClock;
             isSecond[i]=true;
