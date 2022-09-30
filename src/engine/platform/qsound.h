@@ -93,7 +93,7 @@ class DivPlatformQSound: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
-    void setFlags(unsigned int flags);
+    void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
@@ -104,7 +104,7 @@ class DivPlatformQSound: public DivDispatch {
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
     void renderSamples();
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
 };
 

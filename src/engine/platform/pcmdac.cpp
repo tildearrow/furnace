@@ -382,18 +382,17 @@ void DivPlatformPCMDAC::notifyInsDeletion(void* ins) {
   chan.std.notifyInsDeletion((DivInstrument*)ins);
 }
 
-void DivPlatformPCMDAC::setFlags(unsigned int flags) {
+void DivPlatformPCMDAC::setFlags(const DivConfig& flags) {
   // default to 44100Hz 16-bit stereo
-  if (!flags) flags=0x1f0000|44099;
-  rate=(flags&0xffff)+1;
+  rate=flags.getInt("rate",44100);
   // rate can't be too low or the resampler will break
   if (rate<1000) rate=1000;
   chipClock=rate;
-  outDepth=(flags>>16)&0xf;
-  outStereo=(flags>>20)&1;
+  outDepth=(flags.getInt("outDepth",15))&15;
+  outStereo=flags.getBool("stereo",true);
 }
 
-int DivPlatformPCMDAC::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformPCMDAC::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

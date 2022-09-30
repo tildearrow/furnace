@@ -426,7 +426,7 @@ void DivPlatformVERA::poke(std::vector<DivRegWrite>& wlist) {
   for (auto &i: wlist) poke(i.addr,i.val);
 }
 
-int DivPlatformVERA::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformVERA::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   for (int i=0; i<17; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;

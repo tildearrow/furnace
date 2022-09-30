@@ -183,7 +183,7 @@ struct DivDispatchContainer {
   void flush(size_t count);
   void fillBuf(size_t runtotal, size_t offset, size_t size);
   void clear();
-  void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, unsigned int flags);
+  void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags);
   void quit();
   DivDispatchContainer():
     dispatch(NULL),
@@ -821,7 +821,12 @@ class DivEngine {
     void setOrder(unsigned char order);
 
     // set system flags
-    void setSysFlags(int system, unsigned int flags, bool restart);
+    void setSysFlags(int system, String key, bool value, bool restart);
+    void setSysFlags(int system, String key, int value, bool restart);
+    void setSysFlags(int system, String key, float value, bool restart);
+    void setSysFlags(int system, String key, double value, bool restart);
+    void setSysFlags(int system, String key, const char* value, bool restart);
+    void setSysFlags(int system, String key, String value, bool restart);
 
     // set Hz
     void setSongRate(float hz, bool pal);

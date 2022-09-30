@@ -1278,7 +1278,7 @@ void DivPlatformYM2610::setSkipRegisterWrites(bool value) {
   ay->setSkipRegisterWrites(value);
 }
 
-int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformYM2610::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   DivPlatformYM2610Base::init(p, channels, sugRate, flags);
   reset();
   return 14;

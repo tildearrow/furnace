@@ -586,10 +586,10 @@ bool DivPlatformPCSpeaker::keyOffAffectsArp(int ch) {
   return true;
 }
 
-void DivPlatformPCSpeaker::setFlags(unsigned int flags) {
+void DivPlatformPCSpeaker::setFlags(const DivConfig& flags) {
   chipClock=COLOR_NTSC/3.0;
   rate=chipClock/PCSPKR_DIVIDER;
-  speakerType=flags&3;
+  speakerType=flags.getInt("speakerType",0)&3;
   oscBuf->rate=rate;
 }
 
@@ -611,7 +611,7 @@ void DivPlatformPCSpeaker::poke(std::vector<DivRegWrite>& wlist) {
   // ???
 }
 
-int DivPlatformPCSpeaker::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformPCSpeaker::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

@@ -629,9 +629,9 @@ void DivPlatformGB::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
-void DivPlatformGB::setFlags(unsigned int flags) {
-  antiClickEnabled=!(flags&8);
-  switch (flags&3) {
+void DivPlatformGB::setFlags(const DivConfig& flags) {
+  antiClickEnabled=!flags.getBool("noAntiClick",false);
+  switch (flags.getInt("chipType",0)) {
     case 0:
       model=GB_MODEL_DMG_B;
       break;
@@ -647,7 +647,7 @@ void DivPlatformGB::setFlags(unsigned int flags) {
   }
 }
 
-int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   chipClock=4194304;
   rate=chipClock/16;
   for (int i=0; i<4; i++) {

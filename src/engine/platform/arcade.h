@@ -111,13 +111,13 @@ class DivPlatformArcade: public DivPlatformOPM {
     void muteChannel(int ch, bool mute);
     DivMacroInt* getChanMacroInt(int ch);
     void notifyInsChange(int ins);
-    void setFlags(unsigned int flags);
+    void setFlags(const DivConfig& flags);
     bool isStereo();
     void setYMFM(bool use);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformArcade();
 };

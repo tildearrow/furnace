@@ -29,16 +29,18 @@ class DivConfig {
   public:
     // config loading/saving
     bool loadFromMemory(const char* buf);
+    bool loadFromBase64(const char* buf);
     bool loadFromFile(const char* path, bool createOnFail=true);
     String toString();
+    String toBase64();
     bool save(const char* path);
 
     // get a config value
-    bool getBool(String key, bool fallback);
-    int getInt(String key, int fallback);
-    float getFloat(String key, float fallback);
-    double getDouble(String key, double fallback);
-    String getString(String key, String fallback);
+    bool getBool(String key, bool fallback) const;
+    int getInt(String key, int fallback) const;
+    float getFloat(String key, float fallback) const;
+    double getDouble(String key, double fallback) const;
+    String getString(String key, String fallback) const;
 
     // set a config value
     void set(String key, bool value);

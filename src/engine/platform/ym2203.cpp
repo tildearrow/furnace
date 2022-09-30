@@ -909,13 +909,9 @@ void DivPlatformYM2203::setSkipRegisterWrites(bool value) {
   ay->setSkipRegisterWrites(value);
 }
 
-void DivPlatformYM2203::setFlags(unsigned int flags) {
+void DivPlatformYM2203::setFlags(const DivConfig& flags) {
   // Clock flags
-  switch (flags&0x1f) {
-    default:
-    case 0x00:
-      chipClock=COLOR_NTSC;
-      break;
+  switch (flags.getInt("clockSel",0)) {
     case 0x01:
       chipClock=COLOR_PAL*4.0/5.0;
       break;
@@ -931,16 +927,12 @@ void DivPlatformYM2203::setFlags(unsigned int flags) {
     case 0x05:
       chipClock=3000000.0/2.0;
       break;
+    default:
+      chipClock=COLOR_NTSC;
+      break;
   }
   // Prescaler flags
-  switch ((flags>>5)&0x3) {
-    default:
-    case 0x00: // /6
-      prescale=0x2d;
-      fmFreqBase=4720270.0,
-      fmDivBase=36,
-      ayDiv=16;
-      break;
+  switch (flags.getInt("prescale",0)) {
     case 0x01: // /3
       prescale=0x2e;
       fmFreqBase=4720270.0/2.0,
@@ -953,6 +945,12 @@ void DivPlatformYM2203::setFlags(unsigned int flags) {
       fmDivBase=12,
       ayDiv=4;
       break;
+    default: // /6
+      prescale=0x2d;
+      fmFreqBase=4720270.0,
+      fmDivBase=36,
+      ayDiv=16;
+      break;
   }
   rate=fm->sample_rate(chipClock);
   for (int i=0; i<6; i++) {
@@ -961,10 +959,11 @@ void DivPlatformYM2203::setFlags(unsigned int flags) {
   immWrite(0x2d,0xff);
   immWrite(prescale,0xff);
   ay->setExtClockDiv(chipClock,ayDiv);
-  ay->setFlags(16);
+  ay->setFlags(ayFlags);
 }
 
-int DivPlatformYM2203::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformYM2203::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
+  ayFlags.set("chipType",1);
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
@@ -976,7 +975,7 @@ int DivPlatformYM2203::init(DivEngine* p, int channels, int sugRate, unsigned in
   fm->set_fidelity(ymfm::OPN_FIDELITY_MIN);
   // YM2149, 2MHz
   ay=new DivPlatformAY8910(true,chipClock,ayDiv);
-  ay->init(p,3,sugRate,16);
+  ay->init(p,3,sugRate,ayFlags);
   ay->toggleRegisterDump(true);
   setFlags(flags);
 

@@ -138,7 +138,7 @@ void DivPlatformDummy::reset() {
   }
 }
 
-int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformDummy::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

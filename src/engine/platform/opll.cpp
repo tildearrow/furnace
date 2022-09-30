@@ -947,24 +947,25 @@ void DivPlatformOPLL::setYMFM(bool use) {
   useYMFM=use;
 }
 
-void DivPlatformOPLL::setFlags(unsigned int flags) {
-  if ((flags&15)==3) {
+void DivPlatformOPLL::setFlags(const DivConfig& flags) {
+  int clockSel=flags.getInt("clockSel",0);
+  if (clockSel==3) {
     chipClock=COLOR_NTSC/2.0;
-  } else if ((flags&15)==2) {
+  } else if (clockSel==2) {
     chipClock=4000000.0;
-  } else if ((flags&15)==1) {
+  } else if (clockSel==1) {
     chipClock=COLOR_PAL*4.0/5.0;
   } else {
     chipClock=COLOR_NTSC;
   }
   rate=chipClock/36;
-  patchSet=flags>>4;
+  patchSet=flags.getInt("patchSet",0);
   for (int i=0; i<11; i++) {
     oscBuf[i]->rate=rate/2;
   }
 }
 
-int DivPlatformOPLL::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformOPLL::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

@@ -761,9 +761,9 @@ void DivPlatformAY8930::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) immWrite(i.addr,i.val);
 }
 
-void DivPlatformAY8930::setFlags(unsigned int flags) {
-  clockSel=(flags>>7)&1;
-  switch (flags&15) {
+void DivPlatformAY8930::setFlags(const DivConfig& flags) {
+  clockSel=flags.getBool("halfClock",false);
+  switch (flags.getInt("clockSel",0)) {
     case 1:
       chipClock=COLOR_PAL*2.0/5.0;
       break;
@@ -809,11 +809,11 @@ void DivPlatformAY8930::setFlags(unsigned int flags) {
     oscBuf[i]->rate=rate;
   }
 
-  stereo=(flags>>6)&1;
-  stereoSep=(flags>>8)&255;
+  stereo=flags.getBool("stereo",false);
+  stereoSep=flags.getInt("stereoSep",0)&255;
 }
 
-int DivPlatformAY8930::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformAY8930::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

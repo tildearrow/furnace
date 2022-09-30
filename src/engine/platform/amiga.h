@@ -101,12 +101,12 @@ class DivPlatformAmiga: public DivDispatch {
     bool isStereo();
     bool keyOffAffectsArp(int ch);
     DivMacroInt* getChanMacroInt(int ch);
-    void setFlags(unsigned int flags);
+    void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     const char** getRegisterSheet();
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
 };
 

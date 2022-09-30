@@ -77,13 +77,13 @@ class DivPlatformVIC20: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    void setFlags(unsigned int flags);
+    void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
     bool isStereo();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformVIC20();
   private:

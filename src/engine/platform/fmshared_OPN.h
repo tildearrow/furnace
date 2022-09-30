@@ -106,6 +106,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
     unsigned int ayDiv;
     bool extSys;
 
+    DivConfig ayFlags;
+
     DivPlatformOPN(double f=9440540.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false):
       DivPlatformFMBase(),
       fmFreqBase(f),

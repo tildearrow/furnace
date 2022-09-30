@@ -350,21 +350,21 @@ void DivPlatformTIA::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-void DivPlatformTIA::setFlags(unsigned int flags) {
-  if (flags&1) {
+void DivPlatformTIA::setFlags(const DivConfig& flags) {
+  if (flags.getInt("clockSel",0)) {
     rate=COLOR_PAL*4.0/5.0;
   } else {
     rate=COLOR_NTSC;
   }
   chipClock=rate;
-  mixingType=(flags>>1)&3;
+  mixingType=flags.getInt("mixingType",0)&3;
   for (int i=0; i<2; i++) {
     oscBuf[i]->rate=rate/114;
   }
   tia.reset(mixingType);
 }
 
-int DivPlatformTIA::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformTIA::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

@@ -138,7 +138,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     void muteChannel(int ch, bool mute);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
-    void setFlags(unsigned int flags);
+    void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
@@ -149,7 +149,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     void renderSamples();
     const char** getRegisterSheet();
     void setBanked(bool banked);
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformX1_010():
       DivDispatch(),

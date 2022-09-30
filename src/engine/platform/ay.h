@@ -162,7 +162,7 @@ class DivPlatformAY8910: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    void setFlags(unsigned int flags);
+    void setFlags(const DivConfig& flags);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
     DivMacroInt* getChanMacroInt(int ch);
@@ -171,7 +171,7 @@ class DivPlatformAY8910: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformAY8910(bool useExtMode=false, unsigned int eclk=COLOR_NTSC, unsigned char ediv=8):
       DivDispatch(),

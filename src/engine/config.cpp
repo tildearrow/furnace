@@ -48,6 +48,41 @@ String DivConfig::toString() {
   return ret;
 }
 
+const char* base64Table="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+String DivConfig::toBase64() {
+  String data=toString();
+  String ret;
+
+  ret.reserve((2+data.size()*4)/3);
+
+  unsigned int groupOfThree=0;
+  unsigned char pos=0;
+  for (char& i: data) {
+    groupOfThree|=((unsigned char)i)<<((2-pos)<<3);
+    if (++pos>=3) {
+      pos=0;
+      ret+=base64Table[(groupOfThree>>18)&63];
+      ret+=base64Table[(groupOfThree>>12)&63];
+      ret+=base64Table[(groupOfThree>>6)&63];
+      ret+=base64Table[groupOfThree&63];
+      groupOfThree=0;
+    }
+  }
+  if (pos==2) {
+    ret+=base64Table[(groupOfThree>>18)&63];
+    ret+=base64Table[(groupOfThree>>12)&63];
+    ret+=base64Table[(groupOfThree>>6)&63];
+    ret+='=';
+  } else if (pos==1) {
+    ret+=base64Table[(groupOfThree>>18)&63];
+    ret+=base64Table[(groupOfThree>>12)&63];
+    ret+="==";
+  }
+
+  return ret;
+}
+
 void DivConfig::parseLine(const char* line) {
   String key="";
   String value="";
@@ -105,7 +140,41 @@ bool DivConfig::loadFromMemory(const char* buf) {
   return true;
 }
 
-bool DivConfig::getBool(String key, bool fallback) {
+bool DivConfig::loadFromBase64(const char* buf) {
+  String data;
+
+  unsigned int groupOfThree=0;
+  signed char pos=18;
+  for (const char* i=buf; *i; i++) {
+    unsigned char nextVal=0;
+    if ((*i)=='/') {
+      nextVal=63;
+    } else if ((*i)=='+') {
+      nextVal=62;
+    } else if ((*i)>='0' && (*i)<='9') {
+      nextVal=52+((*i)-'0');
+    } else if ((*i)>='a' && (*i)<='z') {
+      nextVal=26+((*i)-'a');
+    } else if ((*i)>='A' && (*i)<='Z') {
+      nextVal=((*i)-'A');
+    } else {
+      nextVal=0;
+    }
+    groupOfThree|=nextVal<<pos;
+    pos-=6;
+    if (pos<0) {
+      pos=18;
+      if ((groupOfThree>>16)&0xff) data+=(groupOfThree>>16)&0xff;
+      if ((groupOfThree>>8)&0xff) data+=(groupOfThree>>8)&0xff;
+      if (groupOfThree&0xff) data+=groupOfThree&0xff;
+      groupOfThree=0;
+    }
+  }
+
+  return loadFromMemory(data.c_str());
+}
+
+bool DivConfig::getBool(String key, bool fallback) const {
   try {
     String val=conf.at(key);
     if (val=="true") {
@@ -118,7 +187,7 @@ bool DivConfig::getBool(String key, bool fallback) {
   return fallback;
 }
 
-int DivConfig::getInt(String key, int fallback) {
+int DivConfig::getInt(String key, int fallback) const {
   try {
     String val=conf.at(key);
     int ret=std::stoi(val);
@@ -129,7 +198,7 @@ int DivConfig::getInt(String key, int fallback) {
   return fallback;
 }
 
-float DivConfig::getFloat(String key, float fallback) {
+float DivConfig::getFloat(String key, float fallback) const {
   try {
     String val=conf.at(key);
     float ret=std::stof(val);
@@ -140,7 +209,7 @@ float DivConfig::getFloat(String key, float fallback) {
   return fallback;
 }
 
-double DivConfig::getDouble(String key, double fallback) {
+double DivConfig::getDouble(String key, double fallback) const {
   try {
     String val=conf.at(key);
     double ret=std::stod(val);
@@ -151,7 +220,7 @@ double DivConfig::getDouble(String key, double fallback) {
   return fallback;
 }
 
-String DivConfig::getString(String key, String fallback) {
+String DivConfig::getString(String key, String fallback) const {
   try {
     String val=conf.at(key);
     return val;

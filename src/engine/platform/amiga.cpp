@@ -427,8 +427,8 @@ void DivPlatformAmiga::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformAmiga::setFlags(unsigned int flags) {
-  if (flags&1) {
+void DivPlatformAmiga::setFlags(const DivConfig& flags) {
+  if (flags.getInt("clockSel",0)) {
     chipClock=COLOR_PAL*4.0/5.0;
   } else {
     chipClock=COLOR_NTSC;
@@ -437,10 +437,11 @@ void DivPlatformAmiga::setFlags(unsigned int flags) {
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;
   }
-  sep1=((flags>>8)&127)+127;
-  sep2=127-((flags>>8)&127);
-  amigaModel=flags&2;
-  bypassLimits=flags&4;
+  int sep=flags.getInt("stereoSep",0)&127;
+  sep1=sep+127;
+  sep2=127-sep;
+  amigaModel=flags.getInt("chipType",0);
+  bypassLimits=flags.getBool("bypassLimits",false);
   if (amigaModel) {
     filtConstOff=4000;
     filtConstOn=sin(M_PI*8000.0/(double)rate)*4096.0;
@@ -450,7 +451,7 @@ void DivPlatformAmiga::setFlags(unsigned int flags) {
   }
 }
 
-int DivPlatformAmiga::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformAmiga::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

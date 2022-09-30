@@ -138,8 +138,8 @@ class DivPlatformYM2608: public DivPlatformOPN {
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
     void renderSamples();
-    void setFlags(unsigned int flags);
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    void setFlags(const DivConfig& flags);
+    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformYM2608():
       DivPlatformOPN(9440540.0, 72, 32),

@@ -3467,12 +3467,77 @@ void DivEngine::setOrder(unsigned char order) {
   BUSY_END;
 }
 
-void DivEngine::setSysFlags(int system, unsigned int flags, bool restart) {
+void DivEngine::setSysFlags(int system, String key, bool value, bool restart) {
   BUSY_BEGIN_SOFT;
   saveLock.lock();
-  song.systemFlagsOld[system]=flags;
+  song.systemFlags[system].set(key,value);
   saveLock.unlock();
-  disCont[system].dispatch->setFlags(song.systemFlagsOld[system]);
+  disCont[system].dispatch->setFlags(song.systemFlags[system]);
+  disCont[system].setRates(got.rate);
+  if (restart && isPlaying()) {
+    playSub(false);
+  }
+  BUSY_END;
+}
+
+void DivEngine::setSysFlags(int system, String key, int value, bool restart) {
+  BUSY_BEGIN_SOFT;
+  saveLock.lock();
+  song.systemFlags[system].set(key,value);
+  saveLock.unlock();
+  disCont[system].dispatch->setFlags(song.systemFlags[system]);
+  disCont[system].setRates(got.rate);
+  if (restart && isPlaying()) {
+    playSub(false);
+  }
+  BUSY_END;
+}
+
+void DivEngine::setSysFlags(int system, String key, float value, bool restart) {
+  BUSY_BEGIN_SOFT;
+  saveLock.lock();
+  song.systemFlags[system].set(key,value);
+  saveLock.unlock();
+  disCont[system].dispatch->setFlags(song.systemFlags[system]);
+  disCont[system].setRates(got.rate);
+  if (restart && isPlaying()) {
+    playSub(false);
+  }
+  BUSY_END;
+}
+
+void DivEngine::setSysFlags(int system, String key, double value, bool restart) {
+  BUSY_BEGIN_SOFT;
+  saveLock.lock();
+  song.systemFlags[system].set(key,value);
+  saveLock.unlock();
+  disCont[system].dispatch->setFlags(song.systemFlags[system]);
+  disCont[system].setRates(got.rate);
+  if (restart && isPlaying()) {
+    playSub(false);
+  }
+  BUSY_END;
+}
+
+void DivEngine::setSysFlags(int system, String key, const char* value, bool restart) {
+  BUSY_BEGIN_SOFT;
+  saveLock.lock();
+  song.systemFlags[system].set(key,value);
+  saveLock.unlock();
+  disCont[system].dispatch->setFlags(song.systemFlags[system]);
+  disCont[system].setRates(got.rate);
+  if (restart && isPlaying()) {
+    playSub(false);
+  }
+  BUSY_END;
+}
+
+void DivEngine::setSysFlags(int system, String key, String value, bool restart) {
+  BUSY_BEGIN_SOFT;
+  saveLock.lock();
+  song.systemFlags[system].set(key,value);
+  saveLock.unlock();
+  disCont[system].dispatch->setFlags(song.systemFlags[system]);
   disCont[system].setRates(got.rate);
   if (restart && isPlaying()) {
     playSub(false);
@@ -3630,7 +3695,7 @@ void DivEngine::rescanAudioDevices() {
 void DivEngine::initDispatch() {
   BUSY_BEGIN;
   for (int i=0; i<song.systemLen; i++) {
-    disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlagsOld[i]);
+    disCont[i].init(song.system[i],this,getChannelCount(song.system[i]),got.rate,song.systemFlags[i]);
     disCont[i].setRates(got.rate);
     disCont[i].setQuality(lowQuality);
   }

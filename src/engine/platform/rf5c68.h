@@ -92,7 +92,7 @@ class DivPlatformRF5C68: public DivDispatch {
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
-    void setFlags(unsigned int flags);
+    void setFlags(const DivConfig& flags);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
@@ -100,7 +100,7 @@ class DivPlatformRF5C68: public DivDispatch {
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
     void renderSamples();
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
   private:
     void chWrite(unsigned char ch, unsigned int addr, unsigned char val);

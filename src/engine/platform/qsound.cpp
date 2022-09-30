@@ -592,14 +592,14 @@ void DivPlatformQSound::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformQSound::setFlags(unsigned int flags) {
-  echoDelay = 2725 - (flags & 0xfff);
-  echoFeedback = (flags >> 12) & 255;
+void DivPlatformQSound::setFlags(const DivConfig& flags) {
+  echoDelay = 2725 - flags.getInt("echoDelay",0);
+  echoFeedback = flags.getInt("echoFeedback",0) & 255;
 
-  if(echoDelay < 0) {
+  if (echoDelay < 0) {
     echoDelay = 0;
   }
-  if(echoDelay > 2725) {
+  if (echoDelay > 2725) {
     echoDelay = 2725;
   }
   //rate=chipClock/CHIP_DIVIDER;
@@ -678,7 +678,7 @@ void DivPlatformQSound::renderSamples() {
   sampleMemLen=memPos+256;
 }
 
-int DivPlatformQSound::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformQSound::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

@@ -17,7 +17,6 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-// TODO: new macro formula
 #include "segapcm.h"
 #include "../engine.h"
 #include "../../ta-log.h"
@@ -485,7 +484,7 @@ void DivPlatformSegaPCM::reset() {
   }
  }
 
-void DivPlatformSegaPCM::setFlags(unsigned int flags) {
+void DivPlatformSegaPCM::setFlags(const DivConfig& flags) {
   chipClock=8000000.0;
   rate=31250;
   for (int i=0; i<16; i++) {
@@ -497,7 +496,7 @@ bool DivPlatformSegaPCM::isStereo() {
   return true;
 }
 
-int DivPlatformSegaPCM::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformSegaPCM::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

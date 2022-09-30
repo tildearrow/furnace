@@ -621,20 +621,20 @@ void DivPlatformN163::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-void DivPlatformN163::setFlags(unsigned int flags) {
-  switch (flags&0xf) {
-    case 0x0: // NTSC
-      rate=COLOR_NTSC/2.0;
-      break;
-    case 0x1: // PAL
+void DivPlatformN163::setFlags(const DivConfig& flags) {
+  switch (flags.getInt("clockSel",0)) {
+    case 1: // PAL
       rate=COLOR_PAL*3.0/8.0;
       break;
-    case 0x2: // Dendy
+    case 2: // Dendy
       rate=COLOR_PAL*2.0/5.0;
       break;
+    default: // NTSC
+      rate=COLOR_NTSC/2.0;
+      break;
   }
-  initChanMax=chanMax=(flags>>4)&7;
-  multiplex=((flags>>7)&1)?false:true; // not accurate in real hardware
+  initChanMax=chanMax=flags.getInt("channels",0)&7;
+  multiplex=!flags.getBool("multiplex",false); // not accurate in real hardware
   chipClock=rate;
   rate/=15;
   n163.set_multiplex(multiplex);
@@ -647,7 +647,7 @@ void DivPlatformN163::setFlags(unsigned int flags) {
   reset();
 }
 
-int DivPlatformN163::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformN163::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

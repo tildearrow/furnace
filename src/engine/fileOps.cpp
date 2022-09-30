@@ -1538,6 +1538,7 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
       newFlags.set("echoVol",(int)((oldFlags>>24)&255));
       break;
     case DIV_SYSTEM_PCM_DAC:
+      if (!oldFlags) oldFlags=0x1f0000|44099;
       newFlags.set("rate",(int)((oldFlags&0xffff)+1));
       newFlags.set("outDepth",(int)((oldFlags>>16)&15));
       if (oldFlags&0x100000) newFlags.set("stereo",true);
@@ -2982,7 +2983,10 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.systemLen=(chCount+3)/4;
     for(int i=0; i<ds.systemLen; i++) {
       ds.system[i]=DIV_SYSTEM_AMIGA;
-      ds.systemFlagsOld[i]=1|(80<<8)|(bypassLimits?4:0)|((ds.systemLen>1 || bypassLimits)?2:0); // PAL
+      ds.systemFlags[i].set("clockSel",1); // PAL
+      ds.systemFlags[i].set("stereoSep",80);
+      ds.systemFlags[i].set("bypassLimits",bypassLimits);
+      ds.systemFlags[i].set("chipType",(bool)(ds.systemLen>1 || bypassLimits));
     }
     for(int i=0; i<chCount; i++) {
       ds.subsong[0]->chanShow[i]=true;
@@ -3188,7 +3192,8 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     ds.system[0]=DIV_SYSTEM_AMIGA;
     ds.systemVol[0]=64;
     ds.systemPan[0]=0;
-    ds.systemFlagsOld[0]=1|(80<<8); // PAL
+    ds.systemFlags[0].set("clockSel",1); // PAL
+    ds.systemFlags[0].set("stereoSep",80);
     ds.systemName="Amiga";
 
     seqLen=reader.readI_BE();
@@ -3828,11 +3833,11 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
         }
         if (expansions&16) {
           ds.system[systemID]=DIV_SYSTEM_N163;
-          ds.systemFlagsOld[systemID++]=n163Chans;
+          ds.systemFlags[systemID++].set("channels",(int)n163Chans);
         }
         if (expansions&32) {
           ds.system[systemID]=DIV_SYSTEM_AY8910;
-          ds.systemFlagsOld[systemID++]=38; // Sunsoft 5B
+          ds.systemFlags[systemID++].set("chipType",2); // Sunsoft 5B
         }
         ds.systemLen=systemID;
 

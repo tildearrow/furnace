@@ -130,7 +130,7 @@ class DivPlatformSoundUnit: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool isStereo();
     bool keyOffAffectsArp(int ch);
-    void setFlags(unsigned int flags);
+    void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
@@ -139,7 +139,7 @@ class DivPlatformSoundUnit: public DivDispatch {
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
     void renderSamples();
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformSoundUnit();
 };

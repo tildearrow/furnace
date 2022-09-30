@@ -640,11 +640,12 @@ bool DivPlatformNES::keyOffAffectsArp(int ch) {
   return true;
 }
 
-void DivPlatformNES::setFlags(unsigned int flags) {
-  if (flags==2) { // Dendy
+void DivPlatformNES::setFlags(const DivConfig& flags) {
+  int clockSel=flags.getInt("clockSel",0);
+  if (clockSel==2) { // Dendy
     rate=COLOR_PAL*2.0/5.0;
     apuType=2;
-  } else if (flags==1) { // PAL
+  } else if (clockSel==1) { // PAL
     rate=COLOR_PAL*3.0/8.0;
     apuType=1;
   } else { // NTSC
@@ -730,9 +731,8 @@ void DivPlatformNES::renderSamples() {
   dpcmMemLen=memPos;
 }
 
-int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
-  apuType=flags;
   dumpWrites=false;
   skipRegisterWrites=false;
   if (useNP) {

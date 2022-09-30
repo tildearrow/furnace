@@ -104,14 +104,14 @@ class DivPlatformN163: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    void setFlags(unsigned int flags);
+    void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformN163();
 };

@@ -104,7 +104,7 @@ class DivPlatformNES: public DivDispatch {
     float getPostAmp();
     unsigned char readDMC(unsigned short addr);
     void setNSFPlay(bool use);
-    void setFlags(unsigned int flags);
+    void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
@@ -113,7 +113,7 @@ class DivPlatformNES: public DivDispatch {
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
     void renderSamples();
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformNES();
 };

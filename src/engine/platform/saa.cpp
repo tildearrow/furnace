@@ -422,10 +422,11 @@ void DivPlatformSAA1099::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformSAA1099::setFlags(unsigned int flags) {
-  if (flags==2) {
+void DivPlatformSAA1099::setFlags(const DivConfig& flags) {
+  int clockSel=flags.getInt("clockSel",0);
+  if (clockSel==2) {
     chipClock=COLOR_PAL*8.0/5.0;
-  } else if (flags==1) {
+  } else if (clockSel==1) {
     chipClock=COLOR_NTSC*2.0;
   } else {
     chipClock=8000000;
@@ -448,7 +449,7 @@ void DivPlatformSAA1099::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformSAA1099::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

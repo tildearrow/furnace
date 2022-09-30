@@ -530,7 +530,7 @@ void DivPlatformNamcoWSG::setDeviceType(int type) {
   }
 }
 
-void DivPlatformNamcoWSG::setFlags(unsigned int flags) {
+void DivPlatformNamcoWSG::setFlags(const DivConfig& flags) {
   chipClock=3072000;
   rate=chipClock/32;
   namco->device_clock_changed(rate);
@@ -547,7 +547,7 @@ void DivPlatformNamcoWSG::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformNamcoWSG::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformNamcoWSG::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

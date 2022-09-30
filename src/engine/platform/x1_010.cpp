@@ -903,8 +903,8 @@ void DivPlatformX1_010::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformX1_010::setFlags(unsigned int flags) {
-  switch (flags&15) {
+void DivPlatformX1_010::setFlags(const DivConfig& flags) {
+  switch (flags.getInt("clockSel",0)) {
     case 0: // 16MHz (earlier hardwares)
       chipClock=16000000;
       break;
@@ -917,7 +917,7 @@ void DivPlatformX1_010::setFlags(unsigned int flags) {
       break;
   }
   rate=chipClock/512;
-  stereo=flags&16;
+  stereo=flags.getBool("stereo",false);
   for (int i=0; i<16; i++) {
     oscBuf[i]->rate=rate;
   }
@@ -980,7 +980,7 @@ void DivPlatformX1_010::setBanked(bool banked) {
   isBanked=banked;
 }
 
-int DivPlatformX1_010::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformX1_010::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

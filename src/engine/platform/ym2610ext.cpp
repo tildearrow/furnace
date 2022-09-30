@@ -532,7 +532,7 @@ void DivPlatformYM2610Ext::notifyInsChange(int ins) {
   }
 }
 
-int DivPlatformYM2610Ext::init(DivEngine* parent, int channels, int sugRate, unsigned int flags) {
+int DivPlatformYM2610Ext::init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) {
   DivPlatformYM2610::init(parent,channels,sugRate,flags);
   for (int i=0; i<4; i++) {
     isOpMuted[i]=false;

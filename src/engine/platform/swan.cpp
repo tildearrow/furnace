@@ -509,7 +509,7 @@ void DivPlatformSwan::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformSwan::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformSwan::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

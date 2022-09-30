@@ -94,7 +94,7 @@ bool DivDispatch::getWantPreNote() {
   return false;
 }
 
-void DivDispatch::setFlags(unsigned int flags) {
+void DivDispatch::setFlags(const DivConfig& flags) {
 }
 
 void DivDispatch::setSkipRegisterWrites(bool value) {
@@ -157,7 +157,7 @@ void DivDispatch::renderSamples() {
   
 }
 
-int DivDispatch::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivDispatch::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   return 0;
 }
 

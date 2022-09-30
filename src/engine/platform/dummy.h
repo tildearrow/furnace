@@ -44,7 +44,7 @@ class DivPlatformDummy: public DivDispatch {
     DivDispatchOscBuffer* getOscBuffer(int chan);
     void reset();
     void tick(bool sysTick=true);
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformDummy();
 };

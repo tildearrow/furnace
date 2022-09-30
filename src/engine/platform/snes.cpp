@@ -767,12 +767,12 @@ void DivPlatformSNES::renderSamples() {
   memcpy(sampleMem,copyOfSampleMem,65536);
 }
 
-void DivPlatformSNES::setFlags(unsigned int flags) {
-  globalVolL=127-(flags&127);
-  globalVolR=127-((flags>>8)&127);
+void DivPlatformSNES::setFlags(const DivConfig& flags) {
+  globalVolL=127-flags.getInt("volScaleL",0);
+  globalVolR=127-flags.getInt("volScaleR",0);
 }
 
-int DivPlatformSNES::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformSNES::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
