@@ -2,7 +2,7 @@
 	path = extern/Nuked-OPN2
 	url = https://github.com/nukeykt/Nuked-OPN2
 [submodule "extern/Nuked-OPF2"]
-	path = extern/Nuked-OPN2
+	path = extern/Nuked-OPF2
 	url = https://github.com/system64MC/Nuked-OPF2
 [submodule "extern/SDL"]
 	path = extern/SDL
