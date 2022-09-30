@@ -353,6 +353,7 @@ extern/adpcm/ymz_codec.c
 
 extern/Nuked-OPN2/ym3438.c
 extern/Nuked-PSG/ympsg.c
+extern/Nuked-OPF2/ym5173.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
 extern/opl/opl3.c
@@ -469,6 +470,8 @@ src/engine/zsm.cpp
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
 src/engine/platform/genesisext.cpp
+src/engine/platform/SysMD.cpp
+src/engine/platform/SysMDExt.cpp
 src/engine/platform/sms.cpp
 src/engine/platform/opll.cpp
 src/engine/platform/gb.cpp

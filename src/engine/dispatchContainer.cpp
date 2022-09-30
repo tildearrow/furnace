@@ -21,6 +21,8 @@
 #include "engine.h"
 #include "platform/genesis.h"
 #include "platform/genesisext.h"
+#include "platform/SysMD.h"
+#include "platform/SysMDExt.h"
 #include "platform/msm6258.h"
 #include "platform/msm6295.h"
 #include "platform/namcowsg.h"
@@ -204,24 +206,24 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       ((DivPlatformGenesisExt*)dispatch)->setSoftPCM(true);
       break;
     case DIV_SYSTEM_YM5173:
-        dispatch = new DivPlatformGenesis;
-        ((DivPlatformGenesis*)dispatch)->setYMFM(eng->getConfInt("ym2612Core", 0));
-        ((DivPlatformGenesis*)dispatch)->setSoftPCM(false);
+        dispatch = new DivPlatformSysMD;
+        //((DivPlatformSysMD*)dispatch)->setYMFM(eng->getConfInt("ym2612Core", 0));
+        ((DivPlatformSysMD*)dispatch)->setSoftPCM(false);
         break;
     case DIV_SYSTEM_YM5173_EXT:
-        dispatch = new DivPlatformGenesisExt;
-        ((DivPlatformGenesisExt*)dispatch)->setYMFM(eng->getConfInt("ym2612Core", 0));
-        ((DivPlatformGenesisExt*)dispatch)->setSoftPCM(false);
+        dispatch = new DivPlatformSysMDExt;
+        //((DivPlatformSysMDExt*)dispatch)->setYMFM(eng->getConfInt("ym2612Core", 0));
+        ((DivPlatformSysMDExt*)dispatch)->setSoftPCM(false);
         break;
     case DIV_SYSTEM_YM5173_FRAC:
-        dispatch = new DivPlatformGenesis;
-        ((DivPlatformGenesis*)dispatch)->setYMFM(eng->getConfInt("ym2612Core", 0));
-        ((DivPlatformGenesis*)dispatch)->setSoftPCM(true);
+        dispatch = new DivPlatformSysMD;
+        //((DivPlatformSysMD*)dispatch)->setYMFM(eng->getConfInt("ym2612Core", 0));
+        ((DivPlatformSysMD*)dispatch)->setSoftPCM(true);
         break;
     case DIV_SYSTEM_YM5173_FRAC_EXT:
-        dispatch = new DivPlatformGenesisExt;
-        ((DivPlatformGenesisExt*)dispatch)->setYMFM(eng->getConfInt("ym2612Core", 0));
-        ((DivPlatformGenesisExt*)dispatch)->setSoftPCM(true);
+        dispatch = new DivPlatformSysMDExt;
+        //((DivPlatformSysMDExt*)dispatch)->setYMFM(eng->getConfInt("ym2612Core", 0));
+        ((DivPlatformSysMDExt*)dispatch)->setSoftPCM(true);
         break;
     case DIV_SYSTEM_SMS:
       dispatch=new DivPlatformSMS;
