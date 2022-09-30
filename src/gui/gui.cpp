@@ -5397,6 +5397,7 @@ FurnaceGUI::FurnaceGUI():
   editOptsVisible(false),
   latchNibble(false),
   nonLatchNibble(false),
+  keepLoopAlive(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),

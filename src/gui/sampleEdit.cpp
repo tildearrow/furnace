@@ -121,7 +121,8 @@ void FurnaceGUI::drawSampleEdit() {
             }
             updateSampleTex=true;
           }
-          if (doLoop) {
+          if (doLoop || keepLoopAlive) {
+            keepLoopAlive=false;
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::Text("Loop Mode");
@@ -153,6 +154,9 @@ void FurnaceGUI::drawSampleEdit() {
               }
               updateSampleTex=true;
             }
+            if (ImGui::IsItemActive()) {
+              keepLoopAlive=true;
+            }
             ImGui::TableNextColumn();
             ImGui::Text("Loop End");
             ImGui::SameLine();
@@ -165,6 +169,9 @@ void FurnaceGUI::drawSampleEdit() {
                 sample->loopEnd=sample->samples;
               }
               updateSampleTex=true;
+            }
+            if (ImGui::IsItemActive()) {
+              keepLoopAlive=true;
             }
           }
           ImGui::EndTable();
@@ -678,7 +685,8 @@ void FurnaceGUI::drawSampleEdit() {
             }
             updateSampleTex=true;
           }
-          if (doLoop) {
+          if (doLoop || keepLoopAlive) {
+            keepLoopAlive=false;
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::Text("Loop Mode");
@@ -711,6 +719,9 @@ void FurnaceGUI::drawSampleEdit() {
               }
               updateSampleTex=true;
             }
+            if (ImGui::IsItemActive()) {
+              keepLoopAlive=true;
+            }
             ImGui::TableNextColumn();
             ImGui::Text("Loop End");
             ImGui::SameLine();
@@ -723,6 +734,9 @@ void FurnaceGUI::drawSampleEdit() {
                 sample->loopEnd=sample->samples;
               }
               updateSampleTex=true;
+            }
+            if (ImGui::IsItemActive()) {
+              keepLoopAlive=true;
             }
           }
           ImGui::EndTable();
