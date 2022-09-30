@@ -43,6 +43,31 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+      "Yamaha YM5173 (OPF)", {
+        DIV_SYSTEM_YM5173, 64, 0, 0,
+        0
+      }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+      "Yamaha YM5173 (OPF) with DualPCM", {
+        DIV_SYSTEM_YM2612_FRAC, 64, 0, (int)0x80000000,
+        0
+      }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+      "Yamaha YM5173 (OPF) (extended channel 3) with DualPCM", {
+        DIV_SYSTEM_YM2612_FRAC_EXT, 64, 0, (int)0x80000000,
+        0
+      }
+  ));
+
+  cat.systems.push_back(FurnaceGUISysDef(
+      "Yamaha YM5173 (OPF extended channel 3)", {
+        DIV_SYSTEM_YM5173_EXT, 64, 0, 0,
+        0
+      }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Yamaha YM2203 (OPN)", {
       DIV_SYSTEM_OPN, 64, 0, 3,
       0

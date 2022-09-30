@@ -1669,6 +1669,54 @@ void DivEngine::registerSystems() {
     {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}
   );
 
+  sysDefs[DIV_SYSTEM_YM5173] = new DivSysDef(
+      "Yamaha YM5173 (OPF2)", NULL, 0xe1, 0, 6, true, false, 0x150, false, 1U << DIV_SAMPLE_DEPTH_8BIT,
+      "this chip is an YM2612, without SSG-EG, but with more waves!.",
+      { "FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6" },
+      { "F1", "F2", "F3", "F4", "F5", "F6" },
+      { DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM },
+      { DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM },
+      { DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA },
+      fmOPN2EffectHandlerMap,
+      fmOPN2PostEffectHandlerMap
+  );
+
+  sysDefs[DIV_SYSTEM_YM5173_EXT] = new DivSysDef(
+      "Yamaha YM5173 (OPF2) Extended Channel 3", NULL, 0xe2, 0, 9, true, false, 0x150, false, 1U << DIV_SAMPLE_DEPTH_8BIT,
+      "this chip is an YM2612, without SSG-EG, but with more waves!.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies.",
+      { "FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6" },
+      { "F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "F6" },
+      { DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM },
+      { DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM },
+      { DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA },
+      fmOPN2EffectHandlerMap,
+      fmOPN2PostEffectHandlerMap
+  );
+
+  sysDefs[DIV_SYSTEM_YM5173_FRAC] = new DivSysDef(
+      "Yamaha YM5173 (OPF2) with DualPCM", NULL, 0xe3, 0, 7, true, false, 0, false, 1U << DIV_SAMPLE_DEPTH_8BIT,
+      "this chip is an YM2612, without SSG-EG, but with more waves!.\nthis system uses software mixing to provide two sample channels.",
+      { "FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6/PCM 1", "PCM 2" },
+      { "F1", "F2", "F3", "F4", "F5", "P1", "P2" },
+      { DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PCM, DIV_CH_PCM },
+      { DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AMIGA },
+      { DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_NULL },
+      fmOPN2EffectHandlerMap,
+      fmOPN2PostEffectHandlerMap
+  );
+
+  sysDefs[DIV_SYSTEM_YM5173_FRAC_EXT] = new DivSysDef(
+      "Yamaha YM5173 (OPF2) Extended Channel 3 with DualPCM and CSM", NULL, 0xe4, 0, 11, true, false, 0, false, 1U << DIV_SAMPLE_DEPTH_8BIT,
+      "this chip is an YM2612, without SSG-EG, but with more waves!.\nthis system uses software mixing to provide two sample channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies.",
+      { "FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6/PCM 1", "PCM 2", "CSM Timer" },
+      { "F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "P1", "P2", "CSM" },
+      { DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_NOISE },
+      { DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AMIGA, DIV_INS_FM },
+      { DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_NULL, DIV_INS_NULL },
+      fmOPN2EffectHandlerMap,
+      fmOPN2PostEffectHandlerMap
+  );
+
   for (int i=0; i<256; i++) {
     if (sysDefs[i]==NULL) continue;
     if (sysDefs[i]->id!=0) {
