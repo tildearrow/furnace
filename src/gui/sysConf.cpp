@@ -177,7 +177,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         e->lockSave([&]() {
           flags.set("clockSel",(int)clockSel);
           flags.set("chipType",chipType);
-          flags.set("noPhaseReset",noAntiClick);
+          flags.set("noAntiClick",noAntiClick);
         });
       }
       break;
@@ -294,7 +294,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       if (altered) {
         e->lockSave([&]() {
           flags.set("chipType",chipType);
-          flags.set("noPhaseReset",noAntiClick);
+          flags.set("noAntiClick",noAntiClick);
         });
       }
       break;
