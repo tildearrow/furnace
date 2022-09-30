@@ -270,9 +270,6 @@ void DivPlatformES5506::e_pin(bool state) {
                 unsigned int loopFlag=(chan[ch].pcm.bank<<14)|(chan[ch].pcm.reversed?0x0040:0x0000);
                 chan[ch].isReverseLoop=false;
                 switch (chan[ch].pcm.loopMode) {
-                  case DIV_SAMPLE_LOOP_MAX: // no loop
-                  default:
-                    break;
                   case DIV_SAMPLE_LOOP_FORWARD: // Foward loop
                     loopFlag|=0x0008;
                     break;
@@ -282,6 +279,9 @@ void DivPlatformES5506::e_pin(bool state) {
                     break;
                   case DIV_SAMPLE_LOOP_PINGPONG: // Pingpong loop: Hardware support
                     loopFlag|=0x0018;
+                    break;
+                  case DIV_SAMPLE_LOOP_MAX: // no loop
+                  default:
                     break;
                 }
                 // Set loop mode & Bank
@@ -745,9 +745,6 @@ void DivPlatformES5506::tick(bool sysTick) {
               unsigned int loopFlag=(chan[i].pcm.bank<<14)|(chan[i].pcm.reversed?0x0040:0x0000);
               chan[i].isReverseLoop=false;
               switch (chan[i].pcm.loopMode) {
-                case DIV_SAMPLE_LOOP_MAX: // no loop
-                default:
-                  break;
                 case DIV_SAMPLE_LOOP_FORWARD: // Foward loop
                   loopFlag|=0x0008;
                   break;
@@ -757,6 +754,9 @@ void DivPlatformES5506::tick(bool sysTick) {
                   break;
                 case DIV_SAMPLE_LOOP_PINGPONG: // Pingpong loop: Hardware support
                   loopFlag|=0x0018;
+                  break;
+                case DIV_SAMPLE_LOOP_MAX: // no loop
+                default:
                   break;
               }
               // Set loop mode & Bank
@@ -879,9 +879,6 @@ void DivPlatformES5506::tick(bool sysTick) {
           unsigned int loopFlag=chan[i].pcm.reversed?0x0040:0x0000;
           chan[i].isReverseLoop=false;
           switch (chan[i].pcm.loopMode) {
-            case DIV_SAMPLE_LOOP_MAX: // no loop
-            default:
-              break;
             case DIV_SAMPLE_LOOP_FORWARD: // Foward loop
               loopFlag|=0x0008;
               break;
@@ -891,6 +888,9 @@ void DivPlatformES5506::tick(bool sysTick) {
               break;
             case DIV_SAMPLE_LOOP_PINGPONG: // Pingpong loop: Hardware support
               loopFlag|=0x0018;
+              break;
+            case DIV_SAMPLE_LOOP_MAX: // no loop
+            default:
               break;
           }
           if (chan[i].pcm.pause) {
@@ -1324,8 +1324,8 @@ void DivPlatformES5506::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformES5506::setFlags(unsigned int flags) {
-  initChanMax=MAX(4,flags&0x1f);
+void DivPlatformES5506::setFlags(const DivConfig& flags) {
+  initChanMax=MAX(4,flags.getInt("channels",0)&0x1f);
   chanMax=initChanMax;
   pageWriteMask(0x00,0x60,0x0b,chanMax);
 }
@@ -1401,7 +1401,7 @@ void DivPlatformES5506::renderSamples() {
   sampleMemLen=memPos+256;
 }
 
-int DivPlatformES5506::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformES5506::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   sampleMem=new signed short[getSampleMemCapacity()/sizeof(short)];
   sampleMemLen=0;
   parent=p;

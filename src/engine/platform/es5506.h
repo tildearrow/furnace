@@ -290,7 +290,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     virtual void muteChannel(int ch, bool mute) override;
     virtual bool isStereo() override;
     virtual bool keyOffAffectsArp(int ch) override;
-    virtual void setFlags(unsigned int flags) override;
+    virtual void setFlags(const DivConfig& flags) override;
     virtual void notifyInsChange(int ins) override;
     virtual void notifyWaveChange(int wave) override;
     virtual void notifyInsDeletion(void* ins) override;
@@ -301,7 +301,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     virtual size_t getSampleMemUsage(int index = 0) override;
     virtual void renderSamples() override;
     virtual const char** getRegisterSheet() override;
-    virtual int init(DivEngine* parent, int channels, int sugRate, unsigned int flags) override;
+    virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
     virtual void quit() override;
     DivPlatformES5506():
       DivDispatch(),
