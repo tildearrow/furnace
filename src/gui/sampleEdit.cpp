@@ -1231,10 +1231,10 @@ void FurnaceGUI::drawSampleEdit() {
           if (SDL_LockTexture(sampleTex,NULL,(void**)&data,&pitch)!=0) {
             logE("error while locking sample texture! %s",SDL_GetError());
           } else {
-            ImU32 bgColor=ImGui::GetColorU32(ImGuiCol_FrameBg);
-            ImU32 bgColorLoop=ImAlphaBlendColors(bgColor,ImGui::GetColorU32(ImGuiCol_FrameBgHovered,0.5));
-            ImU32 lineColor=ImGui::GetColorU32(ImGuiCol_PlotLines);
-            ImU32 centerLineColor=ImAlphaBlendColors(bgColor,ImGui::GetColorU32(ImGuiCol_PlotLines,0.25));
+            ImU32 bgColor=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_BG]);
+            ImU32 bgColorLoop=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP]);
+            ImU32 lineColor=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_FG]);
+            ImU32 centerLineColor=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_CENTER]);
             for (int i=0; i<availY; i++) {
               for (int j=0; j<availX; j++) {
                 int scaledPos=samplePos+(j*sampleZoom);
@@ -1443,6 +1443,39 @@ void FurnaceGUI::drawSampleEdit() {
 
         if (e->isPreviewingSample()) {
           statusBar+=fmt::sprintf(" | %.2fHz",e->getSamplePreviewRate());
+
+          int start=sampleSelStart;
+          int end=sampleSelEnd;
+          if (start>end) {
+            start^=end;
+            end^=start;
+            start^=end;
+          }
+          ImDrawList* dl=ImGui::GetWindowDrawList();
+          ImVec2 p1=rectMin;
+          p1.x+=(e->getSamplePreviewPos()-samplePos)/sampleZoom;     
+          ImVec4 posColor=uiColors[GUI_COLOR_SAMPLE_NEEDLE];
+          ImVec4 posTrail1=posColor;
+          ImVec4 posTrail2=posColor;
+          posTrail1.w*=0.5f;
+          posTrail2.w=0.0f;
+          float trailDistance=(e->getSamplePreviewRate()/100.0f)/sampleZoom;
+
+          if (p1.x<rectMin.x) p1.x=rectMin.x;
+          if (p1.x>rectMax.x) p1.x=rectMax.x;
+
+          ImVec2 p2=p1;
+          p2.y=rectMax.y;
+
+          dl->AddRectFilledMultiColor(
+            ImVec2(p1.x-trailDistance,p1.y),
+            p2,
+            ImGui::GetColorU32(posTrail2),
+            ImGui::GetColorU32(posTrail1),
+            ImGui::GetColorU32(posTrail1),
+            ImGui::GetColorU32(posTrail2)
+          );
+          dl->AddLine(p1,p2,ImGui::GetColorU32(posColor));
         }
 
         if (drawSelection) {
@@ -1458,10 +1491,8 @@ void FurnaceGUI::drawSampleEdit() {
           p1.x+=(start-samplePos)/sampleZoom;
 
           ImVec2 p2=ImVec2(rectMin.x+(end-samplePos)/sampleZoom,rectMax.y);
-          ImVec4 boundColor=uiColors[GUI_COLOR_ACCENT_PRIMARY];
-          ImVec4 selColor=uiColors[GUI_COLOR_ACCENT_SECONDARY];
-          boundColor.w*=0.5;
-          selColor.w*=0.25;
+          ImVec4 boundColor=uiColors[GUI_COLOR_SAMPLE_SEL_POINT];
+          ImVec4 selColor=uiColors[GUI_COLOR_SAMPLE_SEL];
 
           if (p1.x<rectMin.x) p1.x=rectMin.x;
           if (p1.x>rectMax.x) p1.x=rectMax.x;
