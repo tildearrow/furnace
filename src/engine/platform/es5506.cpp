@@ -249,7 +249,7 @@ void DivPlatformES5506::e_pin(bool state) {
                 }
                 // get reversed
                 bool reversed=ins->amiga.reversed;
-                if (transWaveInd.reversed!=2) {
+                if (transWaveInd.reversed!=DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DEFAULT) {
                   reversed=transWaveInd.reversed;
                 }
                 const unsigned int start=offES5506<<10;
@@ -601,7 +601,7 @@ void DivPlatformES5506::tick(bool sysTick) {
                 }
                 // get reversed
                 bool reversed=ins->amiga.reversed;
-                if (transWaveInd.reversed!=2) {
+                if (transWaveInd.reversed!=DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DEFAULT) {
                   reversed=transWaveInd.reversed;
                 }
                 chan[i].pcmChanged.slice=1;
@@ -672,9 +672,9 @@ void DivPlatformES5506::tick(bool sysTick) {
                 }
                 // get reversed
                 bool reversed=ins->amiga.reversed;
-                if (ins->amiga.transWave.enable&&transWaveInd.reversed!=2) {
+                if (ins->amiga.transWave.enable&&transWaveInd.reversed!=DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DEFAULT) {
                   reversed=transWaveInd.reversed;
-                } else if (ins->amiga.useNoteMap&&noteMapind.reversed!=2) {
+                } else if (ins->amiga.useNoteMap&&noteMapind.reversed!=DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DEFAULT) {
                   reversed=noteMapind.reversed;
                 }
                 const unsigned int start=offES5506<<10;
@@ -984,9 +984,9 @@ int DivPlatformES5506::dispatch(DivCommand c) {
           }
           // get reversed
           bool reversed=ins->amiga.reversed;
-          if (ins->amiga.transWave.enable&&transWaveInd.reversed!=2) {
+          if (ins->amiga.transWave.enable&&transWaveInd.reversed!=DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DEFAULT) {
             reversed=transWaveInd.reversed;
-          } else if (ins->amiga.useNoteMap&&noteMapind.reversed!=2) {
+          } else if (ins->amiga.useNoteMap&&noteMapind.reversed!=DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DEFAULT) {
             reversed=noteMapind.reversed;
           }
           const unsigned int start=offES5506<<10;

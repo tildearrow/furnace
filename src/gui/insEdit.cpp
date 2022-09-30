@@ -3765,7 +3765,10 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::EndCombo();
             }
             ImGui::BeginDisabled(ins->amiga.useWave);
-            P(ImGui::Checkbox("Reversed playback",&ins->amiga.reversed));
+            bool reversed=ins->amiga.reversed==DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_ENABLE;
+            if (ImGui::Checkbox("Reversed playback",&reversed)) { PARAMETER
+              ins->amiga.reversed=reversed?DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_ENABLE:DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DISABLE;
+            }
             ImGui::EndDisabled();
             // Wavetable
             if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SNES) {
@@ -3850,14 +3853,14 @@ void FurnaceGUI::drawInsEdit() {
                   }
                   */
                   ImGui::TableNextColumn();
-                  if (ImGui::RadioButton(fmt::sprintf("Disable##SampleMap_Reversed_Disable_%d",i).c_str(),sampleMap.reversed==0)) { MARK_MODIFIED
-                    sampleMap.reversed=0;
+                  if (ImGui::RadioButton(fmt::sprintf("Disable##SampleMap_Reversed_Disable_%d",i).c_str(),sampleMap.reversed==DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DISABLE)) { MARK_MODIFIED
+                    sampleMap.reversed=DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DISABLE;
                   }
-                  if (ImGui::RadioButton(fmt::sprintf("Enable##SampleMap_Reversed_Enable_%d",i).c_str(),sampleMap.reversed==1)) { MARK_MODIFIED
-                    sampleMap.reversed=1;
+                  if (ImGui::RadioButton(fmt::sprintf("Enable##SampleMap_Reversed_Enable_%d",i).c_str(),sampleMap.reversed==DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_ENABLE)) { MARK_MODIFIED
+                    sampleMap.reversed=DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_ENABLE;
                   }
-                  if (ImGui::RadioButton(fmt::sprintf("Use instrument setting##SampleMap_Reversed_Default_%d",i).c_str(),sampleMap.reversed==2)) { MARK_MODIFIED
-                    sampleMap.reversed=2;
+                  if (ImGui::RadioButton(fmt::sprintf("Use instrument setting##SampleMap_Reversed_Default_%d",i).c_str(),sampleMap.reversed==DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DEFAULT)) { MARK_MODIFIED
+                    sampleMap.reversed=DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DEFAULT;
                   }
                   ImGui::PopID();
                 }
@@ -3962,10 +3965,10 @@ void FurnaceGUI::drawInsEdit() {
                       if (ImGui::Selectable(id.c_str(),transWaveMap.ind==j)) { PARAMETER
                         transWaveMap.ind=j;
                         if (transWaveMap.loopStart<0 || transWaveMap.loopStart>(int)(s->samples)) {
-                          transWaveMap.loopStart=s->loopStart;
+                          transWaveMap.loopStart=CLAMP(s->loopStart,0,s->samples);
                         }
                         if (transWaveMap.loopEnd<0 || transWaveMap.loopEnd>(int)(s->samples)) {
-                          transWaveMap.loopEnd=s->loopEnd;
+                          transWaveMap.loopEnd=CLAMP(s->loopEnd,0,s->samples);
                         }
                         transWaveMap.updateSize(s->samples,transWaveMap.loopStart,transWaveMap.loopEnd);
                         if (ins->amiga.transWave.sliceEnable && (int)i==ins->amiga.transWave.ind) {
@@ -4019,14 +4022,14 @@ void FurnaceGUI::drawInsEdit() {
                     transWaveMap.loopMode=DIV_SAMPLE_LOOP_MAX;
                   }
                   ImGui::TableNextColumn();
-                  if (ImGui::RadioButton(fmt::sprintf("Disable##TransWaveMap_Reversed_Disable_%d",i).c_str(),transWaveMap.reversed==0)) { MARK_MODIFIED
-                    transWaveMap.reversed=0;
+                  if (ImGui::RadioButton(fmt::sprintf("Disable##TransWaveMap_Reversed_Disable_%d",i).c_str(),transWaveMap.reversed==DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DISABLE)) { MARK_MODIFIED
+                    transWaveMap.reversed=DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DISABLE;
                   }
-                  if (ImGui::RadioButton(fmt::sprintf("Enable##TransWaveMap_Reversed_Enable_%d",i).c_str(),transWaveMap.reversed==1)) { MARK_MODIFIED
-                    transWaveMap.reversed=1;
+                  if (ImGui::RadioButton(fmt::sprintf("Enable##TransWaveMap_Reversed_Enable_%d",i).c_str(),transWaveMap.reversed==DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_ENABLE)) { MARK_MODIFIED
+                    transWaveMap.reversed=DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_ENABLE;
                   }
-                  if (ImGui::RadioButton(fmt::sprintf("Use instrument setting##TransWaveMap_Reversed_Default_%d",i).c_str(),transWaveMap.reversed==2)) { MARK_MODIFIED
-                    transWaveMap.reversed=2;
+                  if (ImGui::RadioButton(fmt::sprintf("Use instrument setting##TransWaveMap_Reversed_Default_%d",i).c_str(),transWaveMap.reversed==DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DEFAULT)) { MARK_MODIFIED
+                    transWaveMap.reversed=DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DEFAULT;
                   }
                   ImGui::EndDisabled();
                   ImGui::PopID();
@@ -4044,8 +4047,6 @@ void FurnaceGUI::drawInsEdit() {
               drawMacros(macroList);
               ImGui::EndTabItem();
             }
-            ImGui::EndDisabled();
-            ImGui::EndTabItem();
           }
         }
         if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem(settings.c163Name.c_str())) {
