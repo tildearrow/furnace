@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <vector>
+#include "config.h"
 
 #define ONE_SEMITONE 2200
 
@@ -448,9 +449,9 @@ class DivDispatch {
 
     /**
      * set the chip flags.
-     * @param flags the flags. see song.h for possible values.
+     * @param flags a DivConfig containing chip flags.
      */
-    virtual void setFlags(unsigned int flags);
+    virtual void setFlags(const DivConfig& flags);
 
     /**
      * set skip reg writes.
@@ -536,10 +537,10 @@ class DivDispatch {
      * @param parent the parent DivEngine.
      * @param channels the number of channels to acquire.
      * @param sugRate the suggested rate. this may change, so don't rely on it.
-     * @param flags the chip flags. see song.h for possible values.
+     * @param flags a DivConfig containing chip flags.
      * @return the number of channels allocated.
      */
-    virtual int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
 
     /**
      * quit the DivDispatch.

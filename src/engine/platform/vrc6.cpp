@@ -479,10 +479,11 @@ bool DivPlatformVRC6::keyOffAffectsArp(int ch) {
   return true;
 }
 
-void DivPlatformVRC6::setFlags(unsigned int flags) {
-  if (flags==2) { // Dendy
+void DivPlatformVRC6::setFlags(const DivConfig& flags) {
+  int clockSel=flags.getInt("clockSel",0);
+  if (clockSel==2) { // Dendy
     rate=COLOR_PAL*2.0/5.0;
-  } else if (flags==1) { // PAL
+  } else if (clockSel==1) { // PAL
     rate=COLOR_PAL*3.0/8.0;
   } else { // NTSC
     rate=COLOR_NTSC/2.0;
@@ -507,7 +508,7 @@ void DivPlatformVRC6::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformVRC6::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformVRC6::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

@@ -557,14 +557,13 @@ void DivPlatformPCE::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformPCE::setFlags(unsigned int flags) {
-  if (flags&1) { // technically there is no PAL PC Engine but oh well...
+void DivPlatformPCE::setFlags(const DivConfig& flags) {
+  if (flags.getInt("clockSel",0)) { // technically there is no PAL PC Engine but oh well...
     chipClock=COLOR_PAL*4.0/5.0;
   } else {
     chipClock=COLOR_NTSC;
   }
-  // flags&4 will be chip revision
-  antiClickEnabled=!(flags&8);
+  antiClickEnabled=!flags.getBool("noAntiClick",false);
   rate=chipClock/12;
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;
@@ -574,7 +573,7 @@ void DivPlatformPCE::setFlags(unsigned int flags) {
     delete pce;
     pce=NULL;
   }
-  pce=new PCE_PSG(tempL,tempR,(flags&4)?PCE_PSG::REVISION_HUC6280A:PCE_PSG::REVISION_HUC6280);
+  pce=new PCE_PSG(tempL,tempR,flags.getInt("chipType",0)?PCE_PSG::REVISION_HUC6280A:PCE_PSG::REVISION_HUC6280);
 }
 
 void DivPlatformPCE::poke(unsigned int addr, unsigned short val) {
@@ -585,7 +584,7 @@ void DivPlatformPCE::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

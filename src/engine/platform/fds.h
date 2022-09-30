@@ -69,7 +69,6 @@ class DivPlatformFDS: public DivDispatch {
   DivDispatchOscBuffer* oscBuf;
   bool isMuted[1];
   DivWaveSynth ws;
-  unsigned char apuType;
   unsigned char writeOscBuf;
   bool useNP;
   struct _fds* fds;
@@ -99,13 +98,13 @@ class DivPlatformFDS: public DivDispatch {
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     void setNSFPlay(bool use);
-    void setFlags(unsigned int flags);
+    void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
     float getPostAmp();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformFDS();
 };

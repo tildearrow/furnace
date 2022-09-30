@@ -772,17 +772,13 @@ void DivPlatformAY8910::setExtClockDiv(unsigned int eclk, unsigned char ediv) {
   }
 }
 
-void DivPlatformAY8910::setFlags(unsigned int flags) {
+void DivPlatformAY8910::setFlags(const DivConfig& flags) {
   if (extMode) {
     chipClock=extClock;
     rate=chipClock/extDiv;
   } else {
-    clockSel=(flags>>7)&1;
-    switch (flags&15) {
-      default:
-      case 0:
-        chipClock=COLOR_NTSC/2.0;
-        break;
+    clockSel=flags.getBool("halfClock",false);
+    switch (flags.getInt("clockSel",0)) {
       case 1:
         chipClock=COLOR_PAL*2.0/5.0;
         break;
@@ -825,6 +821,9 @@ void DivPlatformAY8910::setFlags(unsigned int flags) {
       case 14:
         chipClock=1536000;
         break;
+      default:
+        chipClock=COLOR_NTSC/2.0;
+        break;
     }
     rate=chipClock/8;
   }
@@ -833,7 +832,7 @@ void DivPlatformAY8910::setFlags(unsigned int flags) {
   }
 
   if (ay!=NULL) delete ay;
-  switch ((flags>>4)&3) {
+  switch (flags.getInt("chipType",0)) {
     case 1:
       ay=new ym2149_device(rate,clockSel);
       sunsoft=false;
@@ -858,11 +857,11 @@ void DivPlatformAY8910::setFlags(unsigned int flags) {
   ay->device_start();
   ay->device_reset();
 
-  stereo=(flags>>6)&1;
-  stereoSep=(flags>>8)&255;
+  stereo=flags.getBool("stereo",false);
+  stereoSep=flags.getInt("stereoSep",0)&255;
 }
 
-int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformAY8910::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

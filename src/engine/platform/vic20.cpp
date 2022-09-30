@@ -301,8 +301,8 @@ void DivPlatformVIC20::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformVIC20::setFlags(unsigned int flags) {
-  if (flags&1) {
+void DivPlatformVIC20::setFlags(const DivConfig& flags) {
+  if (flags.getInt("clockSel",0)) {
     chipClock=COLOR_PAL/4.0;
   } else {
     chipClock=COLOR_NTSC*2.0/7.0;
@@ -321,7 +321,7 @@ void DivPlatformVIC20::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformVIC20::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformVIC20::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

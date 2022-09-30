@@ -87,6 +87,14 @@ class DivPlatformSNES: public DivDispatch {
   bool writeEcho;
   bool echoOn;
 
+  bool initEchoOn;
+  signed char initEchoVolL;
+  signed char initEchoVolR;
+  signed char initEchoFeedback;
+  signed char initEchoFIR[8];
+  unsigned char initEchoDelay;
+  unsigned char initEchoMask;
+
   struct QueuedWrite {
     unsigned char addr;
     unsigned char val;
@@ -117,7 +125,7 @@ class DivPlatformSNES: public DivDispatch {
     bool isStereo();
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
-    void setFlags(unsigned int flags);
+    void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
@@ -126,7 +134,7 @@ class DivPlatformSNES: public DivDispatch {
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
     void renderSamples();
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
   private:
     void updateWave(int ch);

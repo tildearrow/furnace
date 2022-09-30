@@ -286,8 +286,9 @@ void DivPlatformZXBeeper::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformZXBeeper::setFlags(unsigned int flags) {
-  if (flags&1) { // technically there is no PAL PC Engine but oh well...
+void DivPlatformZXBeeper::setFlags(const DivConfig& flags) {
+  // TODO: where's ZX Spectrum 48K?!
+  if (flags.getInt("clockSel",0)) {
     chipClock=COLOR_PAL*4.0/5.0;
   } else {
     chipClock=COLOR_NTSC;
@@ -306,7 +307,7 @@ void DivPlatformZXBeeper::poke(std::vector<DivRegWrite>& wlist) {
 
 }
 
-int DivPlatformZXBeeper::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformZXBeeper::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

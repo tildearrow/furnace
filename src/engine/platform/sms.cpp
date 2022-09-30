@@ -429,85 +429,78 @@ void DivPlatformSMS::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-void DivPlatformSMS::setFlags(unsigned int flags) {
-  switch (flags&0xff03) {
-    default:
-    case 0x0000:
-      chipClock=COLOR_NTSC;
-      break;
-    case 0x0001:
+void DivPlatformSMS::setFlags(const DivConfig& flags) {
+  switch (flags.getInt("clockSel",0)) {
+    case 1:
       chipClock=COLOR_PAL*4.0/5.0;
       break;
-    case 0x0002:
+    case 2:
       chipClock=4000000;
       break;
-    case 0x0003:
+    case 3:
       chipClock=COLOR_NTSC/2.0;
       break;
-    case 0x0100:
+    case 4:
       chipClock=3000000;
       break;
-    case 0x0101:
+    case 5:
       chipClock=2000000;
       break;
-    case 0x0102:
+    case 6:
       chipClock=COLOR_NTSC/8.0;
       break;
+    default:
+      chipClock=COLOR_NTSC;
+      break;
   }
-  resetPhase=!(flags&16);
+  resetPhase=!flags.getBool("noPhaseReset",false);
   divider=16;
   toneDivider=64.0;
   noiseDivider=64.0;
   if (sn!=NULL) delete sn;
-  switch (flags&0xcc) {
-    default: // Sega
-    case 0x00:
-      sn=new segapsg_device();
-      isRealSN=false;
-      stereo=false;
-      break;
-    case 0x04: // TI SN76489
+  switch (flags.getInt("chipType",0)) {
+    case 1: // TI SN76489
       sn=new sn76489_device();
       isRealSN=true;
       stereo=false;
       noiseDivider=60.0; // 64 for match to tone frequency on non-Sega PSG but compatibility
       break;
-    case 0x08: // TI+Atari
+    case 2: // TI+Atari
       sn=new sn76496_base_device(0x4000, 0x0f35, 0x01, 0x02, true, false, 1/*8*/, false, true);
       isRealSN=true;
       stereo=false;
       noiseDivider=60.0;
       break;
-    case 0x0c: // Game Gear (not fully emulated yet!)
+    case 3: // Game Gear (not fully emulated yet!)
       sn=new gamegear_device();
       isRealSN=false;
       stereo=true;
       break;
-    case 0x40: // TI SN76489A
+    case 4: // TI SN76489A
       sn=new sn76489a_device();
       isRealSN=false; // TODO
       stereo=false;
       noiseDivider=60.0;
       break;
-    case 0x44: // TI SN76496
+    case 5: // TI SN76496
       sn=new sn76496_device();
       isRealSN=false; // TODO
       stereo=false;
       noiseDivider=60.0;
       break;
-    case 0x48: // NCR 8496
+    case 6: // NCR 8496
       sn=new ncr8496_device();
       isRealSN=false;
       stereo=false;
       noiseDivider=60.0;
       break;
-    case 0x4c: // Tandy PSSJ 3-voice sound
+    case 7: // Tandy PSSJ 3-voice sound
       sn=new pssj3_device();
       isRealSN=false;
       stereo=false;
       noiseDivider=60.0;
       break;
-    case 0x80: // TI SN94624
+    case 8: // TI SN94624
       sn=new sn94624_device();
       isRealSN=true;
       stereo=false;
@@ -515,13 +508,18 @@ void DivPlatformSMS::setFlags(unsigned int flags) {
       toneDivider=8.0;
       noiseDivider=7.5;
       break;
-    case 0x84: // TI SN76494
+    case 9: // TI SN76494
       sn=new sn76494_device();
       isRealSN=false; // TODO
       stereo=false;
       divider=2;
       toneDivider=8.0;
       noiseDivider=7.5;
+      break;
+    default: // Sega
+      sn=new segapsg_device();
+      isRealSN=false;
+      stereo=false;
       break;
   }
   rate=chipClock/divider;
@@ -534,7 +532,7 @@ void DivPlatformSMS::setNuked(bool value) {
   nuked=value;
 }
 
-int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformSMS::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

@@ -386,10 +386,11 @@ bool DivPlatformMMC5::keyOffAffectsArp(int ch) {
   return true;
 }
 
-void DivPlatformMMC5::setFlags(unsigned int flags) {
-  if (flags==2) { // Dendy
+void DivPlatformMMC5::setFlags(const DivConfig& flags) {
+  int clockSel=flags.getInt("clockSel",0);
+  if (clockSel==2) { // Dendy
     rate=COLOR_PAL*2.0/5.0;
-  } else if (flags==1) { // PAL
+  } else if (clockSel==1) { // PAL
     rate=COLOR_PAL*3.0/8.0;
   } else { // NTSC
     rate=COLOR_NTSC/2.0;
@@ -414,9 +415,8 @@ void DivPlatformMMC5::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformMMC5::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformMMC5::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
-  apuType=flags;
   dumpWrites=false;
   skipRegisterWrites=false;
   writeOscBuf=0;

@@ -18,7 +18,7 @@
  */
 
 #include "gui.h"
-
+#include "../ta-log.h"
 #include "actionUtil.h"
 
 void FurnaceGUI::startSelection(int xCoarse, int xFine, int y, bool fullRow) {
@@ -187,8 +187,10 @@ void FurnaceGUI::finishSelection() {
     selStart.xFine=0;
   }
   if (e->curSubSong->chanCollapse[selEnd.xCoarse] && selEnd.xFine>=(3-e->curSubSong->chanCollapse[selEnd.xCoarse])) {
-    selEnd.xFine=2+e->curPat[cursor.xCoarse].effectCols*2;
+    selEnd.xFine=2+e->curPat[selEnd.xCoarse].effectCols*2;
   }
+
+  logV("finish selection: %d.%d,%d - %d.%d,%d",selStart.xCoarse,selStart.xFine,selStart.y,selEnd.xCoarse,selEnd.xFine,selEnd.y);
 
   e->setMidiBaseChan(cursor.xCoarse);
 }

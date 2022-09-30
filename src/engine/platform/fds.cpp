@@ -451,10 +451,11 @@ void DivPlatformFDS::setNSFPlay(bool use) {
   useNP=use;
 }
 
-void DivPlatformFDS::setFlags(unsigned int flags) {
-  if (flags==2) { // Dendy
+void DivPlatformFDS::setFlags(const DivConfig& flags) {
+  int clockSel=flags.getInt("clockSel",0);
+  if (clockSel==2) { // Dendy
     rate=COLOR_PAL*2.0/5.0;
-  } else if (flags==1) { // PAL
+  } else if (clockSel==1) { // PAL
     rate=COLOR_PAL*3.0/8.0;
   } else { // NTSC
     rate=COLOR_NTSC/2.0;
@@ -485,9 +486,8 @@ void DivPlatformFDS::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformFDS::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformFDS::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
-  apuType=flags;
   dumpWrites=false;
   skipRegisterWrites=false;
   writeOscBuf=0;

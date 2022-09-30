@@ -96,14 +96,14 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual void notifyInsDeletion(void* ins) override;
     virtual void poke(unsigned int addr, unsigned short val) override;
     virtual void poke(std::vector<DivRegWrite>& wlist) override;
-    virtual void setFlags(unsigned int flags) override;
+    virtual void setFlags(const DivConfig& flags) override;
     virtual const char** getRegisterSheet() override;
     virtual const void* getSampleMem(int index) override;
     virtual size_t getSampleMemCapacity(int index) override;
     virtual size_t getSampleMemUsage(int index) override;
     virtual void renderSamples() override;
 
-    virtual int init(DivEngine* parent, int channels, int sugRate, unsigned int flags) override;
+    virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
     virtual void quit() override;
     DivPlatformMSM6295():
       DivDispatch(),

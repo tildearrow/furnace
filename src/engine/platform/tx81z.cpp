@@ -914,11 +914,12 @@ void DivPlatformTX81Z::reset() {
   extMode=false;
 }
 
-void DivPlatformTX81Z::setFlags(unsigned int flags) {
-  if (flags==2) {
+void DivPlatformTX81Z::setFlags(const DivConfig& flags) {
+  int clockSel=flags.getInt("clockSel",0);
+  if (clockSel==2) {
     chipClock=4000000.0;
     baseFreqOff=-122;
-  } else if (flags==1) {
+  } else if (clockSel==1) {
     chipClock=COLOR_PAL*4.0/5.0;
     baseFreqOff=12;
   } else {
@@ -935,7 +936,7 @@ bool DivPlatformTX81Z::isStereo() {
   return true;
 }
 
-int DivPlatformTX81Z::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformTX81Z::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

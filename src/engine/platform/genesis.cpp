@@ -1191,16 +1191,25 @@ void DivPlatformGenesis::setSoftPCM(bool value) {
   softPCM=value;
 }
 
-void DivPlatformGenesis::setFlags(unsigned int flags) {
-  switch (flags&(~0x80000000)) {
+void DivPlatformGenesis::setFlags(const DivConfig& flags) {
+  switch (flags.getInt("clockSel",0)) {
+    case 1:
+      chipClock=COLOR_PAL*12.0/7.0;
+      break;
+    case 2:
+      chipClock=8000000.0;
+      break;
+    case 3:
+      chipClock=COLOR_NTSC*12.0/7.0;
+      break;
+    case 4:
+      chipClock=COLOR_NTSC*9.0/4.0;
+      break;
     default:
-    case 0: chipClock=COLOR_NTSC*15.0/7.0; break;
-    case 1: chipClock=COLOR_PAL*12.0/7.0; break;
-    case 2: chipClock=8000000.0; break;
-    case 3: chipClock=COLOR_NTSC*12.0/7.0; break;
-    case 4: chipClock=COLOR_NTSC*9.0/4.0; break;
+      chipClock=COLOR_NTSC*15.0/7.0;
+      break;
   }
-  ladder=flags&0x80000000;
+  ladder=flags.getBool("ladderEffect",false);
   OPN2_SetChipType(ladder?ym3438_mode_ym2612:0);
   if (useYMFM) {
     if (fm_ymfm!=NULL) delete fm_ymfm;
@@ -1218,7 +1227,7 @@ void DivPlatformGenesis::setFlags(unsigned int flags) {
   }
 }
 
-int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   ladder=false;

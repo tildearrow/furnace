@@ -47,8 +47,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev118"
-#define DIV_ENGINE_VERSION 118
+#define DIV_VERSION "dev119"
+#define DIV_ENGINE_VERSION 119
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -183,7 +183,7 @@ struct DivDispatchContainer {
   void flush(size_t count);
   void fillBuf(size_t runtotal, size_t offset, size_t size);
   void clear();
-  void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, unsigned int flags);
+  void init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags);
   void quit();
   DivDispatchContainer():
     dispatch(NULL),
@@ -425,10 +425,6 @@ class DivEngine {
   // MIDI stuff
   std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -2;};
 
-  DivSystem systemFromFileFur(unsigned char val);
-  unsigned char systemToFileFur(DivSystem val);
-  DivSystem systemFromFileDMF(unsigned char val);
-  unsigned char systemToFileDMF(DivSystem val);
   int dispatchCmd(DivCommand c);
   void processRow(int i, bool afterDelay);
   void nextOrder();
@@ -441,6 +437,8 @@ class DivEngine {
   void recalcChans();
   void reset();
   void playSub(bool preserveDrift, int goalRow=0);
+
+  void convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivSystem sys);
 
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
@@ -469,7 +467,7 @@ class DivEngine {
   bool deinitAudioBackend(bool dueToSwitchMaster=false);
 
   void registerSystems();
-  void initSongWithDesc(const int* description);
+  void initSongWithDesc(const char* description);
 
   void exchangeIns(int one, int two);
   void swapChannels(int src, int dest);
@@ -500,11 +498,10 @@ class DivEngine {
     DivWavetable* getWave(int index);
     DivSample* getSample(int index);
     DivDispatch* getDispatch(int index);
-    // parse system setup description
-    String encodeSysDesc(std::vector<int>& desc);
-    std::vector<int> decodeSysDesc(String desc);
+    // parse old system setup description
+    String decodeSysDesc(String desc);
     // start fresh
-    void createNew(const int* description, String sysName);
+    void createNew(const char* description, String sysName);
     // load a file.
     bool load(unsigned char* f, size_t length);
     // save as .dmf.
@@ -531,6 +528,12 @@ class DivEngine {
     void notifyInsChange(int ins);
     // notify wavetable change
     void notifyWaveChange(int wave);
+
+    // get system IDs
+    DivSystem systemFromFileFur(unsigned char val);
+    unsigned char systemToFileFur(DivSystem val);
+    DivSystem systemFromFileDMF(unsigned char val);
+    unsigned char systemToFileDMF(DivSystem val);
 
     // benchmark (returns time in seconds)
     double benchmarkPlayback();
@@ -818,8 +821,8 @@ class DivEngine {
     // go to order
     void setOrder(unsigned char order);
 
-    // set system flags
-    void setSysFlags(int system, unsigned int flags, bool restart);
+    // update system flags
+    void updateSysFlags(int system, bool restart);
 
     // set Hz
     void setSongRate(float hz, bool pal);

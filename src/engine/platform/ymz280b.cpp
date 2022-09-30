@@ -447,14 +447,11 @@ void DivPlatformYMZ280B::setChipModel(int type) {
   chipType=type;
 }
 
-void DivPlatformYMZ280B::setFlags(unsigned int flags) {
+void DivPlatformYMZ280B::setFlags(const DivConfig& flags) {
   switch (chipType) {
     default:
     case 280:
-      switch (flags&0xff) {
-        case 0x00:
-          chipClock=16934400;
-          break;
+      switch (flags.getInt("clockSel",0)) {
         case 0x01:
           chipClock=COLOR_NTSC*4.0;
           break;
@@ -470,6 +467,9 @@ void DivPlatformYMZ280B::setFlags(unsigned int flags) {
         case 0x05:
           chipClock=14000000;
           break;
+        default:
+          chipClock=16934400;
+          break;
       }
       rate=chipClock/384;
       break;
@@ -483,7 +483,7 @@ void DivPlatformYMZ280B::setFlags(unsigned int flags) {
   }
 }
 
-int DivPlatformYMZ280B::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformYMZ280B::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

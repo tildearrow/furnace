@@ -387,8 +387,8 @@ void DivPlatformMSM6258::renderSamples() {
   adpcmMemLen=memPos+256;
 }
 
-void DivPlatformMSM6258::setFlags(unsigned int flags) {
-  switch (flags) {
+void DivPlatformMSM6258::setFlags(const DivConfig& flags) {
+  switch (flags.getInt("clockSel",0)) {
     case 3:
       chipClock=8192000;
       break;
@@ -408,7 +408,7 @@ void DivPlatformMSM6258::setFlags(unsigned int flags) {
   }
 }
 
-int DivPlatformMSM6258::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformMSM6258::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   adpcmMem=new unsigned char[getSampleMemCapacity(0)];
   adpcmMemLen=0;

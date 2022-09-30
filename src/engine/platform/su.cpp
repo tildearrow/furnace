@@ -505,8 +505,8 @@ void DivPlatformSoundUnit::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformSoundUnit::setFlags(unsigned int flags) {
-  if (flags&1) {
+void DivPlatformSoundUnit::setFlags(const DivConfig& flags) {
+  if (flags.getInt("clockSel",0)) {
     chipClock=1190000;
   } else {
     chipClock=1236000;
@@ -515,14 +515,15 @@ void DivPlatformSoundUnit::setFlags(unsigned int flags) {
   for (int i=0; i<8; i++) {
     oscBuf[i]->rate=rate;
   }
-  initIlCtrl=3|(flags&4);
-  initIlSize=((flags>>8)&63)|((flags&4)?0x40:0)|((flags&8)?0x80:0);
-  initFil1=flags>>16;
-  initEchoVol=flags>>24;
+  bool echoOn=flags.getBool("echo",false);
+  initIlCtrl=3|(echoOn?4:0);
+  initIlSize=((flags.getInt("echoDelay",0))&63)|(echoOn?0x40:0)|(flags.getBool("swapEcho",false)?0x80:0);
+  initFil1=flags.getInt("echoFeedback",0);
+  initEchoVol=flags.getInt("echoVol",0);
 
-  sampleMemSize=flags&16;
+  sampleMemSize=flags.getInt("sampleMemSize",0);
 
-  su->Init(sampleMemSize?65536:8192,flags&32);
+  su->Init(sampleMemSize?65536:8192,flags.getBool("pdm",false));
   renderSamples();
 }
 
@@ -572,7 +573,7 @@ void DivPlatformSoundUnit::renderSamples() {
 
 }
 
-int DivPlatformSoundUnit::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformSoundUnit::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

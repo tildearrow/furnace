@@ -61,62 +61,81 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
       return "help! what's going on!";
     case 1:
       if (ds.system[0]==DIV_SYSTEM_AY8910) {
-        switch (ds.systemFlagsOld[0]&0x3f) {
-          case 0: // AY-3-8910, 1.79MHz
-          case 1: // AY-3-8910, 1.77MHz
-          case 2: // AY-3-8910, 1.75MHz
-            return "ZX Spectrum";
-          case 3: // AY-3-8910, 2MHz
-            return "Fujitsu Micro-7";
-          case 4: // AY-3-8910, 1.5MHz
-            return "Vectrex";
-          case 5: // AY-3-8910, 1MHz
-            return "Amstrad CPC";
-
-          case 0x10: // YM2149, 1.79MHz
-            return "MSX";
-          case 0x13: // YM2149, 2MHz
-            return "Atari ST";
-          case 0x26: // 5B NTSC
-            return "Sunsoft 5B standalone";
-          case 0x28: // 5B PAL
-            return "Sunsoft 5B standalone (PAL)";
-
-          case 0x30: // AY-3-8914, 1.79MHz
-            return "Intellivision";
-          case 0x33: // AY-3-8914, 2MHz
-            return "Intellivision (PAL)";
-
-          default:
-            if ((ds.systemFlagsOld[0]&0x30)==0x00) {
-              return "AY-3-8910";
-            } else if ((ds.systemFlagsOld[0]&0x30)==0x10) {
-              return "Yamaha YM2149";
-            } else if ((ds.systemFlagsOld[0]&0x30)==0x20) {
-              return "Overclocked Sunsoft 5B";
-            } else if ((ds.systemFlagsOld[0]&0x30)==0x30) {
-              return "Intellivision";
+        switch (ds.systemFlags[0].getInt("chipType",0)) {
+          case 0: // AY-3-8910
+            switch (ds.systemFlags[0].getInt("clockSel",0)) {
+              case 0: // AY-3-8910, 1.79MHz
+              case 1: // AY-3-8910, 1.77MHz
+              case 2: // AY-3-8910, 1.75MHz
+                return "ZX Spectrum";
+              case 3: // AY-3-8910, 2MHz
+                return "Fujitsu Micro-7";
+              case 4: // AY-3-8910, 1.5MHz
+                return "Vectrex";
+              case 5: // AY-3-8910, 1MHz
+                return "Amstrad CPC";
+              default:
+                return "AY-3-8910";
             }
+            break;
+          case 1: // YM2149
+            switch (ds.systemFlags[0].getInt("clockSel",0)) {
+              case 0: // YM2149, 1.79MHz
+                return "MSX";
+              case 3: // YM2149, 2MHz
+                return "Atari ST";
+              default:
+                return "Yamaha YM2149";
+            }
+            break;
+          case 2: // 5B
+            switch (ds.systemFlags[0].getInt("clockSel",0)) {
+              case 6: // 5B NTSC
+                return "Sunsoft 5B standalone";
+              case 8: // 5B PAL
+                return "Sunsoft 5B standalone (PAL)";
+              default:
+                return "Overclocked Sunsoft 5B";
+            }
+            break;
+          case 3: // AY-3-8914
+            switch (ds.systemFlags[0].getInt("clockSel",0)) {
+              case 0: // AY-3-8914, 1.79MHz
+                return "Intellivision";
+              case 3: // AY-3-8914, 2MHz
+                return "Intellivision (PAL)";
+              default:
+                return "Intellivision";
+            }
+            break;
         }
       } else if (ds.system[0]==DIV_SYSTEM_SMS) {
-        switch (ds.systemFlagsOld[0]&0x0f) {
-          case 0: case 1:
-            return "Sega Master System";
-          case 6:
-            return "BBC Micro";
+        switch (ds.systemFlags[0].getInt("chipType",0)) {
+          case 0:
+            switch (ds.systemFlags[0].getInt("clockSel",0)) {
+              case 0: case 1:
+                return "Sega Master System";
+            }
+            break;
+          case 1:
+            switch (ds.systemFlags[0].getInt("clockSel",0)) {
+              case 2:
+                return "BBC Micro";
+            }
+            break;
         }
       } else if (ds.system[0]==DIV_SYSTEM_YM2612) {
-        switch (ds.systemFlagsOld[0]&3) {
+        switch (ds.systemFlags[0].getInt("clockSel",0)) {
           case 2:
             return "FM Towns";
         }
       } else if (ds.system[0]==DIV_SYSTEM_YM2151) {
-        switch (ds.systemFlagsOld[0]&3) {
+        switch (ds.systemFlags[0].getInt("clockSel",0)) {
           case 2:
             return "Sharp X68000";
         }
       } else if (ds.system[0]==DIV_SYSTEM_SAA1099) {
-        switch (ds.systemFlagsOld[0]&3) {
+        switch (ds.systemFlags[0].getInt("clockSel",0)) {
           case 0:
             return "SAM Coupé";
         }

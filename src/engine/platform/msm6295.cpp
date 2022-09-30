@@ -376,13 +376,9 @@ void DivPlatformMSM6295::renderSamples() {
   }
 }
 
-void DivPlatformMSM6295::setFlags(unsigned int flags) {
-  rateSelInit=(flags>>7)&1;
-  switch (flags&0x7f) {
-    default:
-    case 0:
-      chipClock=4000000/4;
-      break;
+void DivPlatformMSM6295::setFlags(const DivConfig& flags) {
+  rateSelInit=flags.getBool("rateSel",false);
+  switch (flags.getInt("clockSel",0)) {
     case 1:
       chipClock=4224000/4;
       break;
@@ -425,6 +421,9 @@ void DivPlatformMSM6295::setFlags(unsigned int flags) {
     case 14:
       chipClock=COLOR_NTSC/3.0;
       break;
+    default:
+      chipClock=4000000/4;
+      break;
   }
   rate=chipClock/3;
   for (int i=0; i<4; i++) {
@@ -436,7 +435,7 @@ void DivPlatformMSM6295::setFlags(unsigned int flags) {
   }
 }
 
-int DivPlatformMSM6295::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformMSM6295::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   adpcmMem=new unsigned char[getSampleMemCapacity(0)];
   adpcmMemLen=0;

@@ -321,7 +321,7 @@ void DivPlatformBubSysWSG::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformBubSysWSG::setFlags(unsigned int flags) {
+void DivPlatformBubSysWSG::setFlags(const DivConfig& flags) {
   chipClock=COLOR_NTSC;
   rate=chipClock;
   for (int i=0; i<2; i++) {
@@ -337,7 +337,7 @@ void DivPlatformBubSysWSG::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformBubSysWSG::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformBubSysWSG::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

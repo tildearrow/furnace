@@ -70,7 +70,7 @@ void FurnaceGUI::drawSysManager() {
         }
         ImGui::TableNextColumn();
         if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSM%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-          drawSysConf(i,e->song.system[i],e->song.systemFlagsOld[i],true);
+          drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true);
           ImGui::TreePop();
         }
         ImGui::TableNextColumn();

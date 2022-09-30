@@ -342,13 +342,13 @@ void DivPlatformRF5C68::notifyInsDeletion(void* ins) {
   }
 }
 
-void DivPlatformRF5C68::setFlags(unsigned int flags) {
-  switch (flags&0x0f) {
+void DivPlatformRF5C68::setFlags(const DivConfig& flags) {
+  switch (flags.getInt("clockSel",0)) {
     case 1: chipClock=10000000; break;
     case 2: chipClock=12500000; break;
     default: chipClock=8000000; break;
   }
-  chipType=flags>>4;
+  chipType=flags.getInt("chipType",0);
   rate=chipClock/384;
   for (int i=0; i<8; i++) {
     oscBuf[i]->rate=rate;
@@ -416,7 +416,7 @@ void DivPlatformRF5C68::renderSamples() {
   sampleMemLen=memPos;
 }
 
-int DivPlatformRF5C68::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformRF5C68::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

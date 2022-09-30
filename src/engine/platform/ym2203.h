@@ -117,8 +117,8 @@ class DivPlatformYM2203: public DivPlatformOPN {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    void setFlags(unsigned int flags);
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    void setFlags(const DivConfig& flags);
+    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformYM2203():
       DivPlatformOPN(4720270.0, 36, 16),

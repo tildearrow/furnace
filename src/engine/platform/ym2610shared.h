@@ -260,14 +260,13 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       adpcmBMemLen=memPos+256;
     }
 
-    void setFlags(unsigned int flags) {
-      switch (flags&0xff) {
-        default:
-        case 0x00:
-          chipClock=8000000.0;
-          break;
+    void setFlags(const DivConfig& flags) {
+      switch (flags.getInt("clockSel",0)) {
         case 0x01:
           chipClock=24167829/3;
+          break;
+        default:
+          chipClock=8000000.0;
           break;
       }
       rate=chipClock/16;
@@ -276,8 +275,9 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       }
     }
 
-    int init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+    int init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
       parent=p;
+      ayFlags.set("chipType",1);
       dumpWrites=false;
       skipRegisterWrites=false;
       for (int i=0; i<ChanNum; i++) {
@@ -296,7 +296,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       setFlags(flags);
       // YM2149, 2MHz
       ay=new DivPlatformAY8910(true,chipClock,32);
-      ay->init(p,3,sugRate,16);
+      ay->init(p,3,sugRate,ayFlags);
       ay->toggleRegisterDump(true);
       return 0;
     }

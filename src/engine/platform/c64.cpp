@@ -531,8 +531,8 @@ void DivPlatformC64::setFP(bool fp) {
   isFP=fp;
 }
 
-void DivPlatformC64::setFlags(unsigned int flags) {
-  switch (flags&0xf) {
+void DivPlatformC64::setFlags(const DivConfig& flags) {
+  switch (flags.getInt("clockSel",0)) {
     case 0x0: // NTSC C64
       rate=COLOR_NTSC*2.0/7.0;
       break;
@@ -554,7 +554,7 @@ void DivPlatformC64::setFlags(unsigned int flags) {
   }
 }
 
-int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, unsigned int flags) {
+int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

@@ -76,6 +76,8 @@ additional guidelines:
     - I will run a test suite to make sure this is the case.
     - if something breaks, you might want to add a compatibility flag (this requires changing the format though).
 - do not use `#pragma once`.
+- on a switch block, **always** put `default` last and not in any other position.
+  - I have fear of some C/C++ compilers ignoring the rest of cases upon hitting default.
 
 ## Demo Songs
 

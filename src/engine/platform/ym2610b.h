@@ -54,7 +54,7 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base<16> {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    int init(DivEngine* parent, int channels, int sugRate, unsigned int flags);
+    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformYM2610B():
       DivPlatformYM2610Base<16>(2,6,9,15) {}

@@ -158,7 +158,7 @@ void DivDispatchContainer::clear() {
   prevSample[1]=temp[1];*/
 }
 
-void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, unsigned int flags) {
+void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags) {
   if (dispatch!=NULL) return;
 
   bb[0]=blip_new(32768);
