@@ -2131,6 +2131,7 @@ void DivEngine::previewSample(int sample, int note, int pStart, int pEnd) {
   if (rate<100) rate=100;
   blip_set_rates(samp_bb,rate,got.rate);
   samp_prevSample=0;
+  sPreview.rate=rate;
   sPreview.pos=(sPreview.pBegin>=0)?sPreview.pBegin:0;
   sPreview.sample=sample;
   sPreview.wave=-1;
@@ -2164,6 +2165,7 @@ void DivEngine::previewWave(int wave, int note) {
   if (rate<100) rate=100;
   blip_set_rates(samp_bb,rate,got.rate);
   samp_prevSample=0;
+  sPreview.rate=rate;
   sPreview.pos=0;
   sPreview.sample=-1;
   sPreview.wave=wave;
@@ -2177,6 +2179,18 @@ void DivEngine::stopWavePreview() {
   sPreview.pos=0;
   sPreview.dir=false;
   BUSY_END;
+}
+
+bool DivEngine::isPreviewingSample() {
+  return (sPreview.sample>=0 && sPreview.sample<(int)song.sample.size());
+}
+
+int DivEngine::getSamplePreviewPos() {
+  return sPreview.pos;
+}
+
+double DivEngine::getSamplePreviewRate() {
+  return sPreview.rate;
 }
 
 String DivEngine::getConfigPath() {

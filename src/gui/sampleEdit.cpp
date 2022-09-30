@@ -178,8 +178,6 @@ void FurnaceGUI::drawSampleEdit() {
         */
         ImGui::Separator();
 
-        ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
-
         pushToggleColors(!sampleDragMode);
         if (ImGui::Button(ICON_FA_I_CURSOR "##SSelect")) {
           sampleDragMode=false;
@@ -197,6 +195,7 @@ void FurnaceGUI::drawSampleEdit() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Edit mode: Draw");
         }
+        ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
         ImGui::SameLine();
         ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
         ImGui::SameLine();
@@ -564,6 +563,7 @@ void FurnaceGUI::drawSampleEdit() {
           }
           ImGui::EndPopup();
         }
+        ImGui::EndDisabled();
         ImGui::SameLine();
         ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
         ImGui::SameLine();
@@ -736,8 +736,6 @@ void FurnaceGUI::drawSampleEdit() {
         */
         ImGui::Separator();
 
-        ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
-
         pushToggleColors(!sampleDragMode);
         if (ImGui::Button(ICON_FA_I_CURSOR "##SSelect")) {
           sampleDragMode=false;
@@ -755,6 +753,7 @@ void FurnaceGUI::drawSampleEdit() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Edit mode: Draw");
         }
+        ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
         ImGui::SameLine();
         ImGui::Dummy(ImVec2(7.0*dpiScale,dpiScale));
         ImGui::SameLine();
@@ -1129,6 +1128,8 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::SetTooltip("Trim");
         }
 
+        ImGui::EndDisabled();
+
         if (ImGui::Button(ICON_FA_PLAY "##PreviewSample")) {
           e->previewSample(curSample);
         }
@@ -1308,11 +1309,23 @@ void FurnaceGUI::drawSampleEdit() {
             sampleSelStart=0;
             sampleSelEnd=sample->samples;
           } else {
-            if (sample->samples>0 && (sample->depth==DIV_SAMPLE_DEPTH_16BIT || sample->depth==DIV_SAMPLE_DEPTH_8BIT)) {
+            if (sample->samples>0) {
               sampleDragStart=rectMin;
               sampleDragAreaSize=rectSize;
-              sampleDrag16=(sample->depth==DIV_SAMPLE_DEPTH_16BIT);
-              sampleDragTarget=(sample->depth==DIV_SAMPLE_DEPTH_16BIT)?((void*)sample->data16):((void*)sample->data8);
+              switch (sample->depth) {
+                case DIV_SAMPLE_DEPTH_8BIT:
+                  sampleDrag16=false;
+                  sampleDragTarget=(void*)sample->data8;
+                  break;
+                case DIV_SAMPLE_DEPTH_16BIT:
+                  sampleDrag16=true;
+                  sampleDragTarget=(void*)sample->data16;
+                  break;
+                default:
+                  sampleDrag16=true;
+                  sampleDragTarget=NULL;
+                  break;
+              }
               sampleDragLen=sample->samples;
               sampleDragActive=true;
               sampleSelStart=-1;
@@ -1328,12 +1341,15 @@ void FurnaceGUI::drawSampleEdit() {
         }
 
         if (ImGui::BeginPopup("SRightClick",ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize)) {
+          ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
           if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_SAMPLE_CUT))) {
             doAction(GUI_ACTION_SAMPLE_CUT);
           }
+          ImGui::EndDisabled();
           if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_SAMPLE_COPY))) {
             doAction(GUI_ACTION_SAMPLE_COPY);
           }
+          ImGui::BeginDisabled(sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT);
           if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_SAMPLE_PASTE))) {
             doAction(GUI_ACTION_SAMPLE_PASTE);
           }
@@ -1343,6 +1359,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::MenuItem("paste (mix)",BIND_FOR(GUI_ACTION_SAMPLE_PASTE_MIX))) {
             doAction(GUI_ACTION_SAMPLE_PASTE_MIX);
           }
+          ImGui::EndDisabled();
           if (ImGui::MenuItem("select all",BIND_FOR(GUI_ACTION_SAMPLE_SELECT_ALL))) {
             doAction(GUI_ACTION_SAMPLE_SELECT_ALL);
           }
@@ -1368,7 +1385,11 @@ void FurnaceGUI::drawSampleEdit() {
               end^=start;
               start^=end;
             }
-            statusBar+=fmt::sprintf(" (%d-%d)",start,end);
+            if (start==end) {
+              statusBar+=fmt::sprintf(" (%d)",start);
+            } else {
+              statusBar+=fmt::sprintf(" (%d-%d: %d samples)",start,end,end-start);
+            }
             drawSelection=true;
           }
         }
@@ -1420,6 +1441,10 @@ void FurnaceGUI::drawSampleEdit() {
           }
         }
 
+        if (e->isPreviewingSample()) {
+          statusBar+=fmt::sprintf(" | %.2fHz",e->getSamplePreviewRate());
+        }
+
         if (drawSelection) {
           int start=sampleSelStart;
           int end=sampleSelEnd;
@@ -1464,11 +1489,9 @@ void FurnaceGUI::drawSampleEdit() {
           }
         }
 
-        if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) {
+        if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT && sampleDragMode) {
           statusBar="Non-8/16-bit samples cannot be edited without prior conversion.";
         }
-
-        ImGui::EndDisabled();
         
         ImGui::SetCursorPosY(ImGui::GetCursorPosY()+ImGui::GetStyle().ScrollbarSize);
         ImGui::Text("%s",statusBar.c_str());
