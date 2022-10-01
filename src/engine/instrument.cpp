@@ -1502,11 +1502,36 @@ bool DivInstrument::saveDMP(const char* path) {
     }
 
     w->writeC(std.arpMacro.len);
+    bool arpMacroMode=false;
+    int arpMacroHowManyFixed=0;
+    int realArpMacroLen=std.arpMacro.len;
     for (int i=0; i<std.arpMacro.len; i++) {
-      w->writeI(std.arpMacro.val[i]+12);
+      if ((std.arpMacro.val[i]&0xc0000000)==0x40000000 || (std.arpMacro.val[i]&0xc0000000)==0x80000000) {
+        arpMacroHowManyFixed++;
+      }
     }
-    if (std.arpMacro.len>0) w->writeC(std.arpMacro.loop);
-    w->writeC(std.arpMacro.mode);
+    if (arpMacroHowManyFixed>=std.arpMacro.len-1) {
+      arpMacroMode=true;
+    }
+    if (std.arpMacro.len>0) {
+      if (arpMacroMode && std.arpMacro.val[std.arpMacro.len-1]==0 && std.arpMacro.loop>=std.arpMacro.len) {
+        realArpMacroLen--;
+      }
+    }
+
+    if (arpMacroMode) {
+      for (int i=0; i<realArpMacroLen; i++) {
+        w->writeI(std.arpMacro.val[i]);
+      }
+    } else {
+      for (int i=0; i<realArpMacroLen; i++) {
+        w->writeI(std.arpMacro.val[i]+12);
+      }
+    }
+    if (realArpMacroLen>0) {
+      w->writeC(std.arpMacro.loop);
+    }
+    w->writeC(arpMacroMode);
 
     w->writeC(std.dutyMacro.len);
     for (int i=0; i<std.dutyMacro.len; i++) {
