@@ -243,6 +243,10 @@ const char* mikeyFeedbackBits[11] = {
   "0", "1", "2", "3", "4", "5", "7", "10", "11", "int", NULL
 };
 
+const char* msm5232ControlBits[6]={
+  "2'", "4'", "8'", "16'", "sustain", NULL
+};
+
 const char* x1_010EnvBits[8]={
   "enable", "oneshot", "split L/R", "HinvR", "VinvR", "HinvL", "VinvL", NULL
 };
@@ -4326,7 +4330,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ES5506) {
             volMax=65535;
           }
-          if (ins->type==DIV_INS_MSM6258) {
+          if (ins->type==DIV_INS_MSM6258 || ins->type==DIV_INS_MSM5232) {
             volMax=0;
           }
           if (ins->type==DIV_INS_MSM6295) {
@@ -4369,6 +4373,10 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_MIKEY) {
             dutyLabel="Duty/Int";
             dutyMax=ins->amiga.useSample?0:10;
+          }
+          if (ins->type==DIV_INS_MSM5232) {
+            dutyLabel="Group Ctrl";
+            dutyMax=5;
           }
           if (ins->type==DIV_INS_BEEPER) {
             dutyLabel="Pulse Width";
@@ -4454,6 +4462,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ADPCMB) waveMax=0;
           if (ins->type==DIV_INS_QSOUND) waveMax=0;
           if (ins->type==DIV_INS_YMZ280B) waveMax=0;
+          if (ins->type==DIV_INS_MSM5232) waveMax=0;
           if (ins->type==DIV_INS_MSM6258) waveMax=0;
           if (ins->type==DIV_INS_MSM6295) waveMax=0;
           if (ins->type==DIV_INS_SEGAPCM) waveMax=0;
@@ -4521,6 +4530,10 @@ void FurnaceGUI::drawInsEdit() {
             ex1Max=5;
             ex2Max=5;
           }
+          if (ins->type==DIV_INS_MSM5232) {
+            ex1Max=5;
+            ex2Max=11;
+          }
 
           int panMin=0;
           int panMax=0;
@@ -4585,6 +4598,8 @@ void FurnaceGUI::drawInsEdit() {
           if (dutyMax>0) {
             if (ins->type==DIV_INS_MIKEY) {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,mikeyFeedbackBits));
+            } else if (ins->type==DIV_INS_MSM5232) {
+              macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,msm5232ControlBits));
             } else if (ins->type==DIV_INS_ES5506) {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,dutyMin,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,&macroHoverES5506FilterMode));
             } else {
@@ -4615,7 +4630,9 @@ void FurnaceGUI::drawInsEdit() {
               }
             }
           }
-          macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+          if (ins->type!=DIV_INS_MSM5232) {
+            macroList.push_back(FurnaceGUIMacroDesc("Pitch",&ins->std.pitchMacro,-2048,2047,160,uiColors[GUI_COLOR_MACRO_PITCH],true,macroRelativeMode));
+          }
           if (ins->type==DIV_INS_FM ||
               ins->type==DIV_INS_OPM ||
               ins->type==DIV_INS_STD ||
@@ -4667,6 +4684,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Echo Feedback",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_SNES) {
               macroList.push_back(FurnaceGUIMacroDesc("Special",&ins->std.ex1Macro,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,snesModeBits));
+            } else if (ins->type==DIV_INS_MSM5232) {
+              macroList.push_back(FurnaceGUIMacroDesc("Group Attack",&ins->std.ex1Macro,0,ex1Max,96,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Duty",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             }
@@ -4686,6 +4705,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Echo Length",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_SNES) {
               macroList.push_back(FurnaceGUIMacroDesc("Gain Mode",&ins->std.ex2Macro,0,ex2Max,64,uiColors[GUI_COLOR_MACRO_VOLUME],false,NULL,NULL,false,snesGainModes));
+            } else if (ins->type==DIV_INS_MSM5232) {
+              macroList.push_back(FurnaceGUIMacroDesc("Group Decay",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else {
               macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex2Macro,0,ex2Max,ex2Bit?64:160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,ex2Bit,ayEnvBits));
             }

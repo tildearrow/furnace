@@ -70,6 +70,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_QSOUND=40,
   DIV_INS_YMZ280B=41,
   DIV_INS_RF5C68=42,
+  DIV_INS_MSM5232=43,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
