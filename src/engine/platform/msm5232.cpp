@@ -81,7 +81,7 @@ void DivPlatformMSM5232::tick(bool sysTick) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LOG(chan[i].vol&31,MIN(31,chan[i].std.vol.val),31);
-      // TODO: volume write?
+      // MSM5232 doesn't even have volume control :<
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
@@ -300,7 +300,8 @@ void DivPlatformMSM5232::notifyInsDeletion(void* ins) {
 
 void DivPlatformMSM5232::setFlags(const DivConfig& flags) {
   chipClock=2119040;
-  msm->set_clock(chipClock);
+  detune=flags.getInt("detune",0);
+  msm->set_clock(chipClock+detune*1024);
   rate=msm->get_rate();
   for (int i=0; i<8; i++) {
     oscBuf[i]->rate=rate;

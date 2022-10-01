@@ -1290,6 +1290,20 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
 
       break;
     }
+    case DIV_SYSTEM_MSM5232: {
+      int detune=flags.getInt("detune",0);
+
+      if (CWSliderInt("Detune",&detune,-127,127)) {
+        if (detune<-127) detune=-127;
+        if (detune>127) detune=127;
+        altered=true;
+      } rightClickable
+
+      if (altered) {
+        flags.set("detune",detune);
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_VERA:
     case DIV_SYSTEM_BUBSYS_WSG:

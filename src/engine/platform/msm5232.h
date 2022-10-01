@@ -63,7 +63,7 @@ class DivPlatformMSM5232: public DivDispatch {
   };
   std::queue<QueuedWrite> writes;
 
-  int cycles, curChan, delay;
+  int cycles, curChan, delay, detune;
   short temp[16];
   msm5232_device* msm;
   unsigned char regPool[128];
