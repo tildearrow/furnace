@@ -19,6 +19,7 @@ public:
 
 	void write(unsigned int offset, uint8_t data);
 	void set_clock(int clock);
+  void mute(int voice, bool mute);
 
 	// device-level overrides
 	void device_start();
@@ -34,6 +35,7 @@ public:
 private:
 	struct VOICE {
 		uint8_t mode;
+    bool mute;
 
 		int     TG_count_period;
 		int     TG_count;

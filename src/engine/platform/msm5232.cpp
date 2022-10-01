@@ -226,7 +226,7 @@ int DivPlatformMSM5232::dispatch(DivCommand c) {
 
 void DivPlatformMSM5232::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  // TODO: this
+  msm->mute(ch,mute);
 }
 
 void DivPlatformMSM5232::forceIns() {
@@ -281,6 +281,7 @@ void DivPlatformMSM5232::reset() {
 
   for (int i=0; i<8; i++) {
     rWrite(i,0);
+    msm->mute(i,isMuted[i]);
   }
 }
 

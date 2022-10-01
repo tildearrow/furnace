@@ -225,8 +225,13 @@ void msm5232_device::init_voice(int i)
 	m_voi[i].eg     = 0.0;
 	m_voi[i].eg_arm = 0;
 	m_voi[i].pitch  = -1.0;
+  m_voi[i].mute = false;
 }
 
+void msm5232_device::mute(int voice, bool mute)
+{
+  m_voi[voice].mute = mute;
+}
 
 void msm5232_device::gate_update()
 {
@@ -571,16 +576,18 @@ void msm5232_device::TG_group_advance(int groupidx)
 		}
 
 		/* calculate signed output */
-		o16 += ( (out16-(1<<(STEP_SH-1))) * voi->egvol) >> STEP_SH;
-		o8  += ( (out8 -(1<<(STEP_SH-1))) * voi->egvol) >> STEP_SH;
-		o4  += ( (out4 -(1<<(STEP_SH-1))) * voi->egvol) >> STEP_SH;
-		o2  += ( (out2 -(1<<(STEP_SH-1))) * voi->egvol) >> STEP_SH;
+    if (!voi->mute) {
+      o16 += ( (out16-(1<<(STEP_SH-1))) * voi->egvol) >> STEP_SH;
+      o8  += ( (out8 -(1<<(STEP_SH-1))) * voi->egvol) >> STEP_SH;
+      o4  += ( (out4 -(1<<(STEP_SH-1))) * voi->egvol) >> STEP_SH;
+      o2  += ( (out2 -(1<<(STEP_SH-1))) * voi->egvol) >> STEP_SH;
 
-		if (i == 1 && groupidx == 1)
-		{
-			solo16 += ( (out16-(1<<(STEP_SH-1))) << 11) >> STEP_SH;
-			solo8  += ( (out8 -(1<<(STEP_SH-1))) << 11) >> STEP_SH;
-		}
+      if (i == 1 && groupidx == 1)
+      {
+        solo16 += ( (out16-(1<<(STEP_SH-1))) << 11) >> STEP_SH;
+        solo8  += ( (out8 -(1<<(STEP_SH-1))) << 11) >> STEP_SH;
+      }
+    }
 
 		voi++;
 		i--;
