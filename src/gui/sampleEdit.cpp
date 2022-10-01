@@ -121,6 +121,9 @@ void FurnaceGUI::drawSampleEdit() {
             }
             updateSampleTex=true;
           }
+          if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
+            ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
+          }
           if (doLoop || keepLoopAlive) {
             keepLoopAlive=false;
             ImGui::TableNextRow();
@@ -157,6 +160,9 @@ void FurnaceGUI::drawSampleEdit() {
             if (ImGui::IsItemActive()) {
               keepLoopAlive=true;
             }
+            if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
+              ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
+            }
             ImGui::TableNextColumn();
             ImGui::Text("Loop End");
             ImGui::SameLine();
@@ -172,6 +178,9 @@ void FurnaceGUI::drawSampleEdit() {
             }
             if (ImGui::IsItemActive()) {
               keepLoopAlive=true;
+            }
+            if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
+              ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
             }
           }
           ImGui::EndTable();
@@ -685,6 +694,9 @@ void FurnaceGUI::drawSampleEdit() {
             }
             updateSampleTex=true;
           }
+          if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
+            ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
+          }
           if (doLoop || keepLoopAlive) {
             keepLoopAlive=false;
             ImGui::TableNextRow();
@@ -722,6 +734,9 @@ void FurnaceGUI::drawSampleEdit() {
             if (ImGui::IsItemActive()) {
               keepLoopAlive=true;
             }
+            if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
+              ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
+            }
             ImGui::TableNextColumn();
             ImGui::Text("Loop End");
             ImGui::SameLine();
@@ -737,6 +752,9 @@ void FurnaceGUI::drawSampleEdit() {
             }
             if (ImGui::IsItemActive()) {
               keepLoopAlive=true;
+            }
+            if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
+              ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
             }
           }
           ImGui::EndTable();
