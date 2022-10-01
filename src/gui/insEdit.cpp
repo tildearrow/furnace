@@ -3965,10 +3965,10 @@ void FurnaceGUI::drawInsEdit() {
                       if (ImGui::Selectable(id.c_str(),transWaveMap.ind==j)) { PARAMETER
                         transWaveMap.ind=j;
                         if (transWaveMap.loopStart<0 || transWaveMap.loopStart>(int)(s->samples)) {
-                          transWaveMap.loopStart=CLAMP(s->loopStart,0,s->samples);
+                          transWaveMap.loopStart=CLAMP(s->loopStart,0,(int)s->samples);
                         }
                         if (transWaveMap.loopEnd<0 || transWaveMap.loopEnd>(int)(s->samples)) {
-                          transWaveMap.loopEnd=CLAMP(s->loopEnd,0,s->samples);
+                          transWaveMap.loopEnd=CLAMP(s->loopEnd,0,(int)s->samples);
                         }
                         transWaveMap.updateSize(s->samples,transWaveMap.loopStart,transWaveMap.loopEnd);
                         if (ins->amiga.transWave.sliceEnable && (int)i==ins->amiga.transWave.ind) {
