@@ -4749,6 +4749,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_SNES) {
             macroList.push_back(FurnaceGUIMacroDesc("Gain Rate",&ins->std.ex3Macro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
           }
+          if (ins->type==DIV_INS_MSM5232) {
+            macroList.push_back(FurnaceGUIMacroDesc("Noise",&ins->std.ex3Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
+          }
 
           drawMacros(macroList);
           ImGui::EndTabItem();

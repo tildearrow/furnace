@@ -50,8 +50,8 @@ class DivPlatformMSM5232: public DivDispatch {
       keyOff(false),
       inPorta(false),
       noise(false),
-      vol(31),
-      outVol(31) {}
+      vol(1),
+      outVol(1) {}
   };
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];

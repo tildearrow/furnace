@@ -79,10 +79,6 @@ const int decayMap[16]={
 void DivPlatformMSM5232::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
-    if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LOG(chan[i].vol&31,MIN(31,chan[i].std.vol.val),31);
-      // MSM5232 doesn't even have volume control :<
-    }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_LINEAR(parent->calcArp(chan[i].note,chan[i].std.arp.val));
@@ -98,6 +94,10 @@ void DivPlatformMSM5232::tick(bool sysTick) {
     if (chan[i].std.ex2.had) { // decay
       rWrite(10+(i>>2),decayMap[chan[i].std.ex2.val&15]);
     }
+    if (chan[i].std.ex3.had) { // noise
+      chan[i].noise=chan[i].std.ex3.val;
+      chan[i].freqChanged=true;
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
       chan[i].freq=chan[i].baseFreq+chan[i].pitch+chan[i].pitch2-(12<<7);
@@ -108,7 +108,7 @@ void DivPlatformMSM5232::tick(bool sysTick) {
         //chWrite(i,0x04,0x80|chan[i].vol);
       }
       if (chan[i].active) {
-        rWrite(i,0x80|(chan[i].freq>>7));
+        rWrite(i,chan[i].noise?0xd8:(0x80|(chan[i].freq>>7)));
       }
       if (chan[i].keyOff) {
         rWrite(i,0);
@@ -213,7 +213,7 @@ int DivPlatformMSM5232::dispatch(DivCommand c) {
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
-      return 31;
+      return 1;
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
