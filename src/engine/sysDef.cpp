@@ -1610,7 +1610,15 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
-    {DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232}
+    {DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232},
+    {},
+    {},
+    {
+      {0x10, {DIV_CMD_WAVE, "10xy: Set group control (x: sustain; y: part toggle bitmask)"}},
+      {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set noise mode"}},
+      {0x12, {DIV_CMD_FM_AR, "12xx: Set group attack (0 to 5)"}},
+      {0x13, {DIV_CMD_FM_DR, "13xx: Set group decay (0 to 11)"}}
+    }
   );
 
   sysDefs[DIV_SYSTEM_YM2612_FRAC]=new DivSysDef(

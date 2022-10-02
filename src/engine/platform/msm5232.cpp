@@ -229,9 +229,21 @@ int DivPlatformMSM5232::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_WAVE:
+      groupControl[c.chan>>2]=c.value&0x1f;
+      updateGroup[c.chan>>2]=true;
+      break;
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].noise=c.value;
       chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_FM_AR:
+      groupAR[c.chan>>2]=attackMap[c.value&7];
+      updateGroupAR[c.chan>>2]=true;
+      break;
+    case DIV_CMD_FM_DR:
+      groupDR[c.chan>>2]=decayMap[c.value&15];
+      updateGroupDR[c.chan>>2]=true;
       break;
     case DIV_CMD_LEGATO:
       chan[c.chan].baseFreq=NOTE_LINEAR(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
