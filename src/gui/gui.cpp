@@ -3291,6 +3291,11 @@ bool FurnaceGUI::loop() {
           }
           if (recentFile.empty()) {
             ImGui::Text("nothing here yet");
+          } else {
+            ImGui::Separator();
+            if (ImGui::MenuItem("clear history")) {
+              showWarning("Are you sure you want to clear the recent file list?",GUI_WARN_CLEAR_HISTORY);
+            }
           }
           ImGui::EndMenu();
         }
@@ -4623,6 +4628,16 @@ bool FurnaceGUI::loop() {
               autoDetectSystem();
               updateWindowTitle();
             }
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_CLEAR_HISTORY:
+          if (ImGui::Button("Yes")) {
+            recentFile.clear();
             ImGui::CloseCurrentPopup();
           }
           ImGui::SameLine();
