@@ -3376,6 +3376,7 @@ bool DivEngine::moveWaveDown(int which) {
   song.wave[which]=song.wave[which+1];
   song.wave[which+1]=prev;
   saveLock.unlock();
+  renderSamples();
   BUSY_END;
   return true;
 }
@@ -3391,6 +3392,7 @@ bool DivEngine::moveSampleDown(int which) {
   song.sample[which]=song.sample[which+1];
   song.sample[which+1]=prev;
   saveLock.unlock();
+  renderSamples();
   BUSY_END;
   return true;
 }
