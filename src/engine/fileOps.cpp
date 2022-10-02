@@ -206,6 +206,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.tuning=433.2;
     }*/
 
+    // Game Boy arp+soundLen screwery
+    ds.systemFlags[0].set("enoughAlready",true);
+
     logI("reading module data...");
     if (ds.version>0x0c) {
       ds.subsong[0]->hilightA=reader.readC();

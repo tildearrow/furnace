@@ -270,6 +270,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_GB: {
       int chipType=flags.getInt("chipType",0);
       bool noAntiClick=flags.getBool("noAntiClick",false);
+      bool enoughAlready=flags.getBool("enoughAlready",false);
 
       if (ImGui::Checkbox("Disable anti-click",&noAntiClick)) {
         altered=true;
@@ -291,11 +292,15 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         chipType=3;
         altered=true;
       }
+      if (ImGui::Checkbox("Pretty please one more compat flag when I use arpeggio and my sound length",&enoughAlready)) {
+        altered=true;
+      }
 
       if (altered) {
         e->lockSave([&]() {
           flags.set("chipType",chipType);
           flags.set("noAntiClick",noAntiClick);
+          flags.set("enoughAlready",enoughAlready);
         });
       }
       break;
