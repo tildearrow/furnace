@@ -18,6 +18,7 @@
  */
 
 #include "gui.h"
+#include <imgui.h>
 
 bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange) {
   bool altered=false;
@@ -1304,6 +1305,113 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         });
       }
 
+      break;
+    }
+    case DIV_SYSTEM_MSM5232: {
+      int detune=flags.getInt("detune",0);
+      bool groupEnv[2];
+      int groupVol[8];
+      float capValue[8];
+      char temp[64];
+      groupEnv[0]=flags.getBool("groupEnv0",true);
+      groupEnv[1]=flags.getBool("groupEnv1",true);
+      groupVol[0]=flags.getInt("partVolume0",255);
+      groupVol[1]=flags.getInt("partVolume1",255);
+      groupVol[2]=flags.getInt("partVolume2",255);
+      groupVol[3]=flags.getInt("partVolume3",255);
+      groupVol[4]=flags.getInt("partVolume4",255);
+      groupVol[5]=flags.getInt("partVolume5",255);
+      groupVol[6]=flags.getInt("partVolume6",255);
+      groupVol[7]=flags.getInt("partVolume7",255);
+      capValue[0]=flags.getFloat("capValue0",390.0f);
+      capValue[1]=flags.getFloat("capValue1",390.0f);
+      capValue[2]=flags.getFloat("capValue2",390.0f);
+      capValue[3]=flags.getFloat("capValue3",390.0f);
+      capValue[4]=flags.getFloat("capValue4",390.0f);
+      capValue[5]=flags.getFloat("capValue5",390.0f);
+      capValue[6]=flags.getFloat("capValue6",390.0f);
+      capValue[7]=flags.getFloat("capValue7",390.0f);
+
+      if (CWSliderInt("Detune",&detune,-127,127)) {
+        if (detune<-127) detune=-127;
+        if (detune>127) detune=127;
+        altered=true;
+      } rightClickable
+
+      ImGui::Text("Capacitor values (nF):");
+       for (int i=0; i<8; i++) {
+        snprintf(temp,63,"%d##CAPV%d",i+1,i);
+        if (CWSliderFloat(temp,&capValue[i],1.0f,1000.0f)) {
+          if (capValue[i]<0) capValue[i]=0;
+          if (capValue[i]>1000) capValue[i]=1000;
+          altered=true;
+        } rightClickable
+      }
+      
+      ImGui::Text("Initial part volume (channel 1-4):");
+      for (int i=0; i<4; i++) {
+        snprintf(temp,63,"%d'##GRPV%d",16>>i,i);
+        if (CWSliderInt(temp,&groupVol[i],0,255)) {
+          if (groupVol[i]<0) groupVol[i]=0;
+          if (groupVol[i]>255) groupVol[i]=255;
+          altered=true;
+        } rightClickable
+      }
+
+      ImGui::Text("Initial part volume (channel 5-8):");
+      for (int i=4; i<8; i++) {
+        snprintf(temp,63,"%d'##GRPV%d",16>>(i-4),i);
+        if (CWSliderInt(temp,&groupVol[i],0,255)) {
+          if (groupVol[i]<0) groupVol[i]=0;
+          if (groupVol[i]>255) groupVol[i]=255;
+          altered=true;
+        } rightClickable
+      }
+
+      ImGui::Text("Envelope mode (channel 1-4):");
+      if (ImGui::RadioButton("Capacitor (attack/decay)##EM00",groupEnv[0])) {
+        groupEnv[0]=true;
+        altered=true;
+      }
+      if (ImGui::RadioButton("External (volume macro)##EM01",!groupEnv[0])) {
+        groupEnv[0]=false;
+        altered=true;
+      }
+
+      ImGui::Text("Envelope mode (channel 5-8):");
+      if (ImGui::RadioButton("Capacitor (attack/decay)##EM10",groupEnv[1])) {
+        groupEnv[1]=true;
+        altered=true;
+      }
+      if (ImGui::RadioButton("External (volume macro)##EM11",!groupEnv[1])) {
+        groupEnv[1]=false;
+        altered=true;
+      }
+
+      if (altered) {
+        flags.set("detune",detune);
+
+        flags.set("capValue0",capValue[0]);
+        flags.set("capValue1",capValue[1]);
+        flags.set("capValue2",capValue[2]);
+        flags.set("capValue3",capValue[3]);
+        flags.set("capValue4",capValue[4]);
+        flags.set("capValue5",capValue[5]);
+        flags.set("capValue6",capValue[6]);
+        flags.set("capValue7",capValue[7]);
+
+        flags.set("partVolume0",groupVol[0]);
+        flags.set("partVolume1",groupVol[1]);
+        flags.set("partVolume2",groupVol[2]);
+        flags.set("partVolume3",groupVol[3]);
+        flags.set("partVolume4",groupVol[4]);
+        flags.set("partVolume5",groupVol[5]);
+        flags.set("partVolume6",groupVol[6]);
+        flags.set("partVolume7",groupVol[7]);
+
+        flags.set("groupEnv0",groupEnv[0]);
+        flags.set("groupEnv1",groupEnv[1]);
+      }
       break;
     }
     case DIV_SYSTEM_SWAN:

@@ -387,12 +387,14 @@ class DivEngine {
   DivSystem sysFileMapDMF[256];
 
   struct SamplePreview {
+    double rate;
     int sample;
     int wave;
     int pos;
     int pBegin, pEnd;
     bool dir;
     SamplePreview():
+      rate(0.0),
       sample(-1),
       wave(-1),
       pos(0),
@@ -600,6 +602,11 @@ class DivEngine {
 
     // reset playback state
     void syncReset();
+
+    // sample preview query
+    bool isPreviewingSample();
+    int getSamplePreviewPos();
+    double getSamplePreviewRate();
 
     // trigger sample preview
     void previewSample(int sample, int note=-1, int pStart=-1, int pEnd=-1);

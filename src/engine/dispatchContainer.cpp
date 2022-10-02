@@ -21,6 +21,7 @@
 #include "engine.h"
 #include "platform/genesis.h"
 #include "platform/genesisext.h"
+#include "platform/msm5232.h"
 #include "platform/msm6258.h"
 #include "platform/msm6295.h"
 #include "platform/namcowsg.h"
@@ -389,6 +390,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_MSM6295:
       dispatch=new DivPlatformMSM6295;
+      break;
+    case DIV_SYSTEM_MSM5232:
+      dispatch=new DivPlatformMSM5232;
       break;
     case DIV_SYSTEM_NAMCO:
       dispatch=new DivPlatformNamcoWSG;

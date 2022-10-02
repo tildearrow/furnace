@@ -2134,18 +2134,20 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     if (x1>=(int)sampleDragLen) x1=sampleDragLen-1;
     double y=0.5-double(dragY-sampleDragStart.y)/sampleDragAreaSize.y;
     if (sampleDragMode) { // draw
-      if (sampleDrag16) {
-        int val=y*65536;
-        if (val<-32768) val=-32768;
-        if (val>32767) val=32767;
-        for (int i=x; i<=x1; i++) ((short*)sampleDragTarget)[i]=val;
-      } else {
-        int val=y*256;
-        if (val<-128) val=-128;
-        if (val>127) val=127;
-        for (int i=x; i<=x1; i++) ((signed char*)sampleDragTarget)[i]=val;
+      if (sampleDragTarget) {
+        if (sampleDrag16) {
+          int val=y*65536;
+          if (val<-32768) val=-32768;
+          if (val>32767) val=32767;
+          for (int i=x; i<=x1; i++) ((short*)sampleDragTarget)[i]=val;
+        } else {
+          int val=y*256;
+          if (val<-128) val=-128;
+          if (val>127) val=127;
+          for (int i=x; i<=x1; i++) ((signed char*)sampleDragTarget)[i]=val;
+        }
+        updateSampleTex=true;
       }
-      updateSampleTex=true;
     } else { // select
       if (sampleSelStart<0) {
         sampleSelStart=x;
@@ -2836,7 +2838,7 @@ void FurnaceGUI::pointDown(int x, int y, int button) {
 }
 
 void FurnaceGUI::pointUp(int x, int y, int button) {
-  if (macroDragActive || macroLoopDragActive || waveDragActive || (sampleDragActive && sampleDragMode)) {
+  if (macroDragActive || macroLoopDragActive || waveDragActive || (sampleDragActive && sampleDragMode && sampleDragTarget)) {
     MARK_MODIFIED;
   }
   if (macroDragActive && macroDragLineMode && !macroDragMouseMoved) {
@@ -5395,6 +5397,7 @@ FurnaceGUI::FurnaceGUI():
   editOptsVisible(false),
   latchNibble(false),
   nonLatchNibble(false),
+  keepLoopAlive(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),

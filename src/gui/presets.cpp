@@ -306,6 +306,12 @@ void FurnaceGUI::initSystemPresets() {
       0
     }
   ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "OKI MSM5232", {
+      DIV_SYSTEM_MSM5232, 64, 0, 0,
+      0
+    }
+  ));
   sysCategories.push_back(cat);
 
   cat=FurnaceGUISysCategory("Sample","chips/systems which use PCM or ADPCM samples for sound synthesis.");

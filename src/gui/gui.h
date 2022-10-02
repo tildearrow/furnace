@@ -170,6 +170,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_QSOUND,
   GUI_COLOR_INSTR_YMZ280B,
   GUI_COLOR_INSTR_RF5C68,
+  GUI_COLOR_INSTR_MSM5232,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -216,6 +217,15 @@ enum FurnaceGUIColors {
   GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,
   GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,
   GUI_COLOR_PATTERN_EFFECT_MISC,
+
+  GUI_COLOR_SAMPLE_BG,
+  GUI_COLOR_SAMPLE_FG,
+  GUI_COLOR_SAMPLE_LOOP,
+  GUI_COLOR_SAMPLE_CENTER,
+  GUI_COLOR_SAMPLE_GRID,
+  GUI_COLOR_SAMPLE_SEL,
+  GUI_COLOR_SAMPLE_SEL_POINT,
+  GUI_COLOR_SAMPLE_NEEDLE,
 
   GUI_COLOR_PAT_MANAGER_NULL,
   GUI_COLOR_PAT_MANAGER_USED,
@@ -1357,6 +1367,7 @@ class FurnaceGUI {
   SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
   bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
+  bool keepLoopAlive;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];

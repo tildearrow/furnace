@@ -452,8 +452,8 @@ size | description
   4  | size of this block
   2  | format version (see header)
   1  | instrument type
-     | - 0: standard
-     | - 1: FM (OPM/OPN)
+     | - 0: SN76489/standard
+     | - 1: FM (OPN)
      | - 2: Game Boy
      | - 3: C64
      | - 4: Amiga/sample
@@ -485,6 +485,17 @@ size | description
      | - 30: Sound Unit
      | - 31: Namco WSG
      | - 32: OPL (drums)
+     | - 33: FM (OPM)
+     | - 34: NES
+     | - 35: MSM6258
+     | - 36: MSM6295
+     | - 37: ADPCM-A
+     | - 38: ADPCM-B
+     | - 39: SegaPCM
+     | - 40: QSound
+     | - 41: YMZ280B
+     | - 42: RF5C68
+     | - 43: MSM5232
   1  | reserved
  STR | instrument name
  --- | **FM instrument data**

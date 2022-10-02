@@ -1773,6 +1773,17 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_EE_VALUE,"External command output");
               ImGui::TreePop();
             }
+            if (ImGui::TreeNode("Sample Editor")) {
+              UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_BG,"Background");
+              UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_FG,"Waveform");
+              UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_LOOP,"Loop region");
+              UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CENTER,"Center guide");
+              UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_GRID,"Grid");
+              UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_SEL,"Selection");
+              UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_SEL_POINT,"Selection points");
+              UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_NEEDLE,"Preview needle");
+              ImGui::TreePop();
+            }
             if (ImGui::TreeNode("Pattern Manager")) {
               UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_NULL,"Unallocated");
               UI_COLOR_CONFIG(GUI_COLOR_PAT_MANAGER_UNUSED,"Unused");

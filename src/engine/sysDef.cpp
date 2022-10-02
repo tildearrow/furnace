@@ -1646,14 +1646,13 @@ void DivEngine::registerSystems() {
     namcoEffectHandlerMap
   );
 
-  // replace with an 8-channel chip in a future
-  sysDefs[DIV_SYSTEM_RESERVED_8]=new DivSysDef(
-    "Reserved", NULL, 0xbc, 0, 8, false, true, 0, false, 0,
-    "this was YM2612_FRAC, but due to changes this ID is reserved.",
+  sysDefs[DIV_SYSTEM_MSM5232]=new DivSysDef(
+    "OKI MSM5232", NULL, 0xbc, 0, 8, false, true, 0, false, 0,
+    "a square wave additive synthesis chip made by OKI. used in some arcade machines and instruments.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
-    {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
-    {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}
+    {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
+    {DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232, DIV_INS_MSM5232}
   );
 
   sysDefs[DIV_SYSTEM_YM2612_FRAC]=new DivSysDef(

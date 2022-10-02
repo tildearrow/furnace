@@ -113,8 +113,8 @@ const char* insTypes[DIV_INS_MAX+1]={
   "Sound Unit",
   "Namco WSG",
   "OPL (drums)",
-  "FM (OPM)", // 33
-  "NES", // 34
+  "FM (OPM)",
+  "NES",
   "MSM6258",
   "MSM6295",
   "ADPCM-A",
@@ -123,6 +123,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   "QSound",
   "YMZ280B",
   "RF5C68",
+  "MSM5232",
   NULL
 };
 
@@ -799,6 +800,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_QSOUND,"",ImVec4(1.0f,0.8f,0.3f,1.0f)),
   D(GUI_COLOR_INSTR_YMZ280B,"",ImVec4(0.4f,0.5f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_RF5C68,"",ImVec4(1.0f,0.3f,0.3f,1.0f)),
+  D(GUI_COLOR_INSTR_MSM5232,"",ImVec4(0.5f,0.9f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_BG,"",ImVec4(0.4f,0.6f,0.8f,1.0f)),
@@ -845,6 +847,15 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,"",ImVec4(0.5f,1.0f,0.0f,1.0f)),
   D(GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,"",ImVec4(0.0f,1.0f,0.5f,1.0f)),
   D(GUI_COLOR_PATTERN_EFFECT_MISC,"",ImVec4(0.3f,0.3f,1.0f,1.0f)),
+
+  D(GUI_COLOR_SAMPLE_BG,"",ImVec4(0.04f,0.13f,0.2f,1.0f)),
+  D(GUI_COLOR_SAMPLE_FG,"",ImVec4(0.7f,0.7f,0.7f,1.0f)),
+  D(GUI_COLOR_SAMPLE_LOOP,"",ImVec4(0.1f,0.22f,0.35f,1.0f)),
+  D(GUI_COLOR_SAMPLE_CENTER,"",ImVec4(0.2f,0.2f,0.2f,1.0f)),
+  D(GUI_COLOR_SAMPLE_GRID,"",ImVec4(0.1f,0.1f,0.15f,1.0f)),
+  D(GUI_COLOR_SAMPLE_SEL,"",ImVec4(0.26f,0.59f,0.98f,0.25f)),
+  D(GUI_COLOR_SAMPLE_SEL_POINT,"",ImVec4(0.06f,0.53f,0.98f,0.5f)),
+  D(GUI_COLOR_SAMPLE_NEEDLE,"",ImVec4(1.0f,0.8f,0.0f,1.0f)),
 
   D(GUI_COLOR_PAT_MANAGER_NULL,"",ImVec4(0.15f,0.15f,0.15f,1.0f)),
   D(GUI_COLOR_PAT_MANAGER_USED,"",ImVec4(0.15f,1.0f,0.15f,1.0f)),
@@ -944,6 +955,7 @@ const int availableSystems[]={
   DIV_SYSTEM_MSM6295,
   DIV_SYSTEM_RF5C68,
   DIV_SYSTEM_SNES,
+  DIV_SYSTEM_MSM5232,
   DIV_SYSTEM_PCM_DAC,
   0 // don't remove this last one!
 };
@@ -988,6 +1000,7 @@ const int chipsSquare[]={
   DIV_SYSTEM_PCSPKR,
   DIV_SYSTEM_SAA1099,
   DIV_SYSTEM_VIC20,
+  DIV_SYSTEM_MSM5232,
   0 // don't remove this last one!
 };
 
