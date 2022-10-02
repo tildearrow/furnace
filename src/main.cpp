@@ -549,7 +549,7 @@ int main(int argc, char** argv) {
 #ifdef HAVE_GUI
   g.bindEngine(&e);
   if (!g.init()) {
-    reportError("error while starting GUI!");
+    reportError(g.getLastError());
     return 1;
   }
 
