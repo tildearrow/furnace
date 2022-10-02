@@ -1143,6 +1143,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             break;
           }
         }
+        // under no circumstances shall the accumulator become this large
+        if (tempoAccum>1023) tempoAccum=1023;
       }
       // process stuff
       for (int i=0; i<chans; i++) {
