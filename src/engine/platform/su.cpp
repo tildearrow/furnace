@@ -518,7 +518,7 @@ void DivPlatformSoundUnit::setFlags(const DivConfig& flags) {
   bool echoOn=flags.getBool("echo",false);
   initIlCtrl=3|(echoOn?4:0);
   initIlSize=((flags.getInt("echoDelay",0))&63)|(echoOn?0x40:0)|(flags.getBool("swapEcho",false)?0x80:0);
-  initFil1=flags.getInt("echoFeedback",0);
+  initFil1=flags.getInt("echoFeedback",0)|(flags.getInt("echoResolution",0)<<4);
   initEchoVol=flags.getInt("echoVol",0);
 
   sampleMemSize=flags.getInt("sampleMemSize",0);
