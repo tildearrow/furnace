@@ -1501,12 +1501,11 @@ bool DivInstrument::saveDMP(const char* path) {
       if (std.volMacro.len>0) w->writeC(std.volMacro.loop);
     }
 
-    w->writeC(std.arpMacro.len);
     bool arpMacroMode=false;
     int arpMacroHowManyFixed=0;
     int realArpMacroLen=std.arpMacro.len;
-    for (int i=0; i<std.arpMacro.len; i++) {
-      if ((std.arpMacro.val[i]&0xc0000000)==0x40000000 || (std.arpMacro.val[i]&0xc0000000)==0x80000000) {
+    for (int j=0; j<std.arpMacro.len; j++) {
+      if ((std.arpMacro.val[j]&0xc0000000)==0x40000000 || (std.arpMacro.val[j]&0xc0000000)==0x80000000) {
         arpMacroHowManyFixed++;
       }
     }
@@ -1519,13 +1518,25 @@ bool DivInstrument::saveDMP(const char* path) {
       }
     }
 
+    if (realArpMacroLen>127) realArpMacroLen=127;
+
+    w->writeC(realArpMacroLen);
+
     if (arpMacroMode) {
-      for (int i=0; i<realArpMacroLen; i++) {
-        w->writeI(std.arpMacro.val[i]);
+      for (int j=0; j<realArpMacroLen; j++) {
+        if ((std.arpMacro.val[j]&0xc0000000)==0x40000000 || (std.arpMacro.val[j]&0xc0000000)==0x80000000) {
+          w->writeI(std.arpMacro.val[j]^0x40000000);
+        } else {
+          w->writeI(std.arpMacro.val[j]);
+        }
       }
     } else {
-      for (int i=0; i<realArpMacroLen; i++) {
-        w->writeI(std.arpMacro.val[i]+12);
+      for (int j=0; j<realArpMacroLen; j++) {
+        if ((std.arpMacro.val[j]&0xc0000000)==0x40000000 || (std.arpMacro.val[j]&0xc0000000)==0x80000000) {
+          w->writeI((std.arpMacro.val[j]^0x40000000)+12);
+        } else {
+          w->writeI(std.arpMacro.val[j]+12);
+        }
       }
     }
     if (realArpMacroLen>0) {

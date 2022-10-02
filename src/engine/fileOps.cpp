@@ -4977,8 +4977,6 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         }
       }
 
-      // TODO: take care of new arp macro format
-      w->writeC(i->std.arpMacro.len);
       bool arpMacroMode=false;
       int arpMacroHowManyFixed=0;
       int realArpMacroLen=i->std.arpMacro.len;
@@ -4996,13 +4994,25 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         }
       }
 
+      if (realArpMacroLen>127) realArpMacroLen=127;
+
+      w->writeC(realArpMacroLen);
+
       if (arpMacroMode) {
         for (int j=0; j<realArpMacroLen; j++) {
-          w->writeI(i->std.arpMacro.val[j]);
+          if ((i->std.arpMacro.val[j]&0xc0000000)==0x40000000 || (i->std.arpMacro.val[j]&0xc0000000)==0x80000000) {
+            w->writeI(i->std.arpMacro.val[j]^0x40000000);
+          } else {
+            w->writeI(i->std.arpMacro.val[j]);
+          }
         }
       } else {
         for (int j=0; j<realArpMacroLen; j++) {
-          w->writeI(i->std.arpMacro.val[j]+12);
+          if ((i->std.arpMacro.val[j]&0xc0000000)==0x40000000 || (i->std.arpMacro.val[j]&0xc0000000)==0x80000000) {
+            w->writeI((i->std.arpMacro.val[j]^0x40000000)+12);
+          } else {
+            w->writeI(i->std.arpMacro.val[j]+12);
+          }
         }
       }
       if (realArpMacroLen>0) {
