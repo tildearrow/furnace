@@ -737,6 +737,9 @@ class DivEngine {
     // play by one row
     void stepOne(int row);
 
+    // advance one tick
+    bool tick();
+
     // stop
     void stop();
 

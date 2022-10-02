@@ -19,10 +19,15 @@
 
 #include "../engine.h"
 
-class FurnaceTrackerROMBuilder : public SystemROMBuilder {
+class R9TrackerBuilder : public SystemROMBuilder {
+    unsigned char calculateFrequency(unsigned char shape, unsigned char note, unsigned char octave, int pitch);
+    
+    void dumpCommands(SafeWriter* w);
+    void writeTrackData(SafeWriter* w);
+
 public:    
-    FurnaceTrackerROMBuilder(DivEngine* eng) : SystemROMBuilder(eng) {}
-    virtual ~FurnaceTrackerROMBuilder() {}
+    R9TrackerBuilder(DivEngine* eng) : SystemROMBuilder(eng) {}
+    virtual ~R9TrackerBuilder() {}
     SafeWriter* buildROM(int sysIndex) override;
  };
 
