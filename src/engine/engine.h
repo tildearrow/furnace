@@ -955,6 +955,9 @@ class DivEngine {
     // get warnings
     String getWarnings();
 
+    // get debug info
+    String getPlaybackDebugInfo();
+
     // switch master
     bool switchMaster();
 

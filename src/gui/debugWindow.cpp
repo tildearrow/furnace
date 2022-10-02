@@ -98,7 +98,7 @@ void FurnaceGUI::drawDebug() {
       ImGui::Columns();
       ImGui::TreePop();
     }
-    if (ImGui::TreeNode("Playback Status")) {
+    if (ImGui::TreeNode("Channel Status")) {
       ImGui::Text("for best results set latency to minimum or use the Frame Advance button.");
       ImGui::Columns(e->getTotalChannelCount());
       for (int i=0; i<e->getTotalChannelCount(); i++) {
@@ -158,6 +158,11 @@ void FurnaceGUI::drawDebug() {
         ImGui::NextColumn();
       }
       ImGui::Columns();
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Playback Status")) {
+      String pdi=e->getPlaybackDebugInfo();
+      ImGui::TextWrapped("%s",pdi.c_str());
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Sample Debug")) {

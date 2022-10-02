@@ -1578,6 +1578,40 @@ String DivEngine::getWarnings() {
   return warnings;
 }
 
+String DivEngine::getPlaybackDebugInfo() {
+  return fmt::sprintf(
+    "curOrder: %d\n"
+    "prevOrder: %d\n"
+    "curRow: %d\n"
+    "prevRow: %d\n"
+    "ticks: %d\n"
+    "subticks: %d\n"
+    "totalLoops: %d\n"
+    "lastLoopPos: %d\n"
+    "nextSpeed: %d\n"
+    "divider: %f\n"
+    "cycles: %d\n"
+    "clockDrift: %f\n"
+    "changeOrd: %d\n"
+    "changePos: %d\n"
+    "totalSeconds: %d\n"
+    "totalTicks: %d\n"
+    "totalTicksR: %d\n"
+    "totalCmds: %d\n"
+    "lastCmds: %d\n"
+    "cmdsPerSecond: %d\n"
+    "globalPitch: %d\n"
+    "extValue: %d\n"
+    "speed1: %d\n"
+    "speed2: %d\n"
+    "tempoAccum: %d\n"
+    "totalProcessed: %d\n",
+    curOrder,prevOrder,curRow,prevRow,ticks,subticks,totalLoops,lastLoopPos,nextSpeed,divider,cycles,clockDrift,
+    changeOrd,changePos,totalSeconds,totalTicks,totalTicksR,totalCmds,lastCmds,cmdsPerSecond,globalPitch,
+    (int)extValue,(int)speed1,(int)speed2,(int)tempoAccum,(int)totalProcessed
+  );
+}
+
 DivInstrument* DivEngine::getIns(int index, DivInstrumentType fallbackType) {
   if (index==-2 && tempIns!=NULL) {
     return tempIns;
@@ -1701,6 +1735,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   skipping=true;
   memset(walked,0,8192);
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(true);
+  logV("goal: %d goalRow: %d",goal,goalRow);
   while (playing && curOrder<goal) {
     if (nextTick(preserveDrift)) {
       skipping=false;
@@ -1714,6 +1749,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
       return;
     }
     if (oldOrder!=curOrder) break;
+    if (ticks-((tempoAccum+curSubSong->virtualTempoN)/MAX(1,curSubSong->virtualTempoD))<1 && curRow>=goalRow) break;
   }
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
   if (goal>0 || goalRow>0) {
@@ -1734,6 +1770,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
     subticks=1;
     prevOrder=curOrder;
     prevRow=curRow;
+    tempoAccum=0;
   }
   skipping=false;
   cmdStream.clear();
