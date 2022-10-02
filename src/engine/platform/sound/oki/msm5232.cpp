@@ -79,6 +79,18 @@ void msm5232_device::set_capacitors(double cap1, double cap2, double cap3, doubl
 	m_external_capacity[7] = cap8;
 }
 
+void msm5232_device::set_vol_input(double v1, double v2, double v3, double v4, double v5, double v6, double v7, double v8)
+{
+	m_external_input[0] = v1;
+	m_external_input[1] = v2;
+	m_external_input[2] = v3;
+	m_external_input[3] = v4;
+	m_external_input[4] = v5;
+	m_external_input[5] = v6;
+	m_external_input[6] = v7;
+	m_external_input[7] = v8;
+}
+
 /* Default chip clock is 2119040 Hz */
 /* At this clock chip generates exactly 440.0 Hz signal on 8' output when pitch data=0x21 */
 
@@ -224,6 +236,7 @@ void msm5232_device::init_voice(int i)
 	m_voi[i].eg_sect= -1;
 	m_voi[i].eg     = 0.0;
 	m_voi[i].eg_arm = 0;
+  m_voi[i].eg_ext = 0;
 	m_voi[i].pitch  = -1.0;
   m_voi[i].mute = false;
 }
@@ -366,6 +379,7 @@ void msm5232_device::write(unsigned int offset, uint8_t data)
 				if ( (data&0x10) && (m_voi[i].eg_sect == 1) )
 					m_voi[i].eg_sect = 0;
 				m_voi[i].eg_arm = data&0x10;
+        m_voi[i].eg_ext = !(data&0x20);
 			}
 
 			m_EN_out16[0] = (data&1) ? ~0:0;
@@ -391,6 +405,7 @@ void msm5232_device::write(unsigned int offset, uint8_t data)
 				if ( (data&0x10) && (m_voi[i+4].eg_sect == 1) )
 					m_voi[i+4].eg_sect = 0;
 				m_voi[i+4].eg_arm = data&0x10;
+        m_voi[i+4].eg_ext = !(data&0x20);
 			}
 
 			m_EN_out16[1] = (data&1) ? ~0:0;
@@ -418,90 +433,94 @@ void msm5232_device::EG_voices_advance()
 	i = 8;
 	do
 	{
-		switch(voi->eg_sect)
-		{
-		case 0: /* attack */
+    if (voi->eg_ext) {
+      voi->egvol=m_external_input[8-i]*2048.0;
+    } else {
+      switch(voi->eg_sect)
+      {
+      case 0: /* attack */
 
-			/* capacitor charge */
-			if (voi->eg < VMAX)
-			{
-				voi->counter -= (int)((VMAX - voi->eg) / voi->ar_rate);
-				if ( voi->counter <= 0 )
-				{
-					int n = -voi->counter / samplerate + 1;
-					voi->counter += n * samplerate;
-					if ( (voi->eg += n) > VMAX )
-						voi->eg = VMAX;
-				}
-			}
+        /* capacitor charge */
+        if (voi->eg < VMAX)
+        {
+          voi->counter -= (int)((VMAX - voi->eg) / voi->ar_rate);
+          if ( voi->counter <= 0 )
+          {
+            int n = -voi->counter / samplerate + 1;
+            voi->counter += n * samplerate;
+            if ( (voi->eg += n) > VMAX )
+              voi->eg = VMAX;
+          }
+        }
 
-			/* when ARM=0, EG switches to decay as soon as cap is charged to VT (EG inversion voltage; about 80% of MAX) */
-			if (!voi->eg_arm)
-			{
-				if(voi->eg >= VMAX * 80/100 )
-				{
-					voi->eg_sect = 1;
-				}
-			}
-			else
-			/* ARM=1 */
-			{
-				/* when ARM=1, EG stays at maximum until key off */
-			}
+        /* when ARM=0, EG switches to decay as soon as cap is charged to VT (EG inversion voltage; about 80% of MAX) */
+        if (!voi->eg_arm)
+        {
+          if(voi->eg >= VMAX * 80/100 )
+          {
+            voi->eg_sect = 1;
+          }
+        }
+        else
+        /* ARM=1 */
+        {
+          /* when ARM=1, EG stays at maximum until key off */
+        }
 
-			voi->egvol = voi->eg / 16; /*32768/16 = 2048 max*/
+        voi->egvol = voi->eg / 16; /*32768/16 = 2048 max*/
 
-			break;
+        break;
 
-		case 1: /* decay */
+      case 1: /* decay */
 
-			/* capacitor discharge */
-			if (voi->eg > VMIN)
-			{
-				voi->counter -= (int)((voi->eg - VMIN) / voi->dr_rate);
-				if ( voi->counter <= 0 )
-				{
-					int n = -voi->counter / samplerate + 1;
-					voi->counter += n * samplerate;
-					if ( (voi->eg -= n) < VMIN )
-						voi->eg = VMIN;
-				}
-			}
-			else /* voi->eg <= VMIN */
-			{
-				voi->eg_sect =-1;
-			}
+        /* capacitor discharge */
+        if (voi->eg > VMIN)
+        {
+          voi->counter -= (int)((voi->eg - VMIN) / voi->dr_rate);
+          if ( voi->counter <= 0 )
+          {
+            int n = -voi->counter / samplerate + 1;
+            voi->counter += n * samplerate;
+            if ( (voi->eg -= n) < VMIN )
+              voi->eg = VMIN;
+          }
+        }
+        else /* voi->eg <= VMIN */
+        {
+          voi->eg_sect =-1;
+        }
 
-			voi->egvol = voi->eg / 16; /*32768/16 = 2048 max*/
+        voi->egvol = voi->eg / 16; /*32768/16 = 2048 max*/
 
-			break;
+        break;
 
-		case 2: /* release */
+      case 2: /* release */
 
-			/* capacitor discharge */
-			if (voi->eg > VMIN)
-			{
-				voi->counter -= (int)((voi->eg - VMIN) / voi->rr_rate);
-				if ( voi->counter <= 0 )
-				{
-					int n = -voi->counter / samplerate + 1;
-					voi->counter += n * samplerate;
-					if ( (voi->eg -= n) < VMIN )
-						voi->eg = VMIN;
-				}
-			}
-			else /* voi->eg <= VMIN */
-			{
-				voi->eg_sect =-1;
-			}
+        /* capacitor discharge */
+        if (voi->eg > VMIN)
+        {
+          voi->counter -= (int)((voi->eg - VMIN) / voi->rr_rate);
+          if ( voi->counter <= 0 )
+          {
+            int n = -voi->counter / samplerate + 1;
+            voi->counter += n * samplerate;
+            if ( (voi->eg -= n) < VMIN )
+              voi->eg = VMIN;
+          }
+        }
+        else /* voi->eg <= VMIN */
+        {
+          voi->eg_sect =-1;
+        }
 
-			voi->egvol = voi->eg / 16; /*32768/16 = 2048 max*/
+        voi->egvol = voi->eg / 16; /*32768/16 = 2048 max*/
 
-			break;
+        break;
 
-		default:
-			break;
-		}
+      default:
+        break;
+      }
+    }
 
 		voi++;
 		i--;

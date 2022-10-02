@@ -15,6 +15,7 @@ public:
 	msm5232_device(uint32_t clock);
 
 	void set_capacitors(double cap1, double cap2, double cap3, double cap4, double cap5, double cap6, double cap7, double cap8);
+  void set_vol_input(double v1, double v2, double v3, double v4, double v5, double v6, double v7, double v8);
 	//auto gate() { return m_gate_handler_cb.bind(); }
 
 	void write(unsigned int offset, uint8_t data);
@@ -52,6 +53,7 @@ private:
 		int     eg;
 
 		uint8_t   eg_arm;     /* attack/release mode */
+    uint8_t   eg_ext;     /* inhibit envelope generator */
 
 		double  ar_rate;
 		double  dr_rate;
@@ -90,6 +92,7 @@ private:
   uint32_t m_clock;
 
 	double  m_external_capacity[8]; /* in Farads, eg 0.39e-6 = 0.36 uF (microFarads) */
+  double m_external_input[8];
 	std::function<void(int)> m_gate_handler_cb;/* callback called when the GATE output pin changes state */
 
 	void init_tables();

@@ -243,7 +243,7 @@ const char* mikeyFeedbackBits[11] = {
   "0", "1", "2", "3", "4", "5", "7", "10", "11", "int", NULL
 };
 
-const char* msm5232ControlBits[6]={
+const char* msm5232ControlBits[7]={
   "2'", "4'", "8'", "16'", "sustain", NULL
 };
 
@@ -4311,7 +4311,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_SEGAPCM || ins->type==DIV_INS_MIKEY ||
               ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_SU || ins->type==DIV_INS_OPZ ||
-              ins->type==DIV_INS_OPM || ins->type==DIV_INS_SNES) {
+              ins->type==DIV_INS_OPM || ins->type==DIV_INS_SNES || ins->type==DIV_INS_MSM5232) {
             volMax=127;
           }
           if (ins->type==DIV_INS_GB) {
@@ -4330,7 +4330,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ES5506) {
             volMax=65535;
           }
-          if (ins->type==DIV_INS_MSM6258 || ins->type==DIV_INS_MSM5232) {
+          if (ins->type==DIV_INS_MSM6258) {
             volMax=0;
           }
           if (ins->type==DIV_INS_MSM6295) {

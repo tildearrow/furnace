@@ -50,12 +50,22 @@ class DivPlatformMSM5232: public DivDispatch {
       keyOff(false),
       inPorta(false),
       noise(false),
-      vol(1),
-      outVol(1) {}
+      vol(127),
+      outVol(127) {}
   };
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];
+  int partVolume[8];
+  int initPartVolume[8];
+  double capacitance[8];
   bool isMuted[8];
+  bool updateGroup[2];
+  bool updateGroupAR[2];
+  bool updateGroupDR[2];
+  bool groupEnv[2];
+  unsigned char groupControl[2];
+  unsigned char groupAR[2];
+  unsigned char groupDR[2];
   struct QueuedWrite {
       unsigned char addr;
       unsigned char val;
