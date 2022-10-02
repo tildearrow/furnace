@@ -906,6 +906,9 @@ class DivEngine {
     // load sample ROMs
     int loadSampleROMs();
 
+    // get the sample format mask
+    unsigned int getSampleFormatMask();
+
     // UNSAFE render samples - only execute when locked
     void renderSamples();
 

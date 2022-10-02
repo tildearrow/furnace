@@ -447,7 +447,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     }
     if (returnAfterPre) return;
   } else {
-    logV("honoring delay at position %d",whatRow);
+    //logV("honoring delay at position %d",whatRow);
   }
 
   if (chan[i].delayLocked) return;

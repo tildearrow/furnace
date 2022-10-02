@@ -120,6 +120,9 @@ void FurnaceGUI::drawSampleEdit() {
               sample->loopEnd=sample->samples;
             }
             updateSampleTex=true;
+            if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
+              e->renderSamplesP();
+            }
           }
           if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
             ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
@@ -156,6 +159,9 @@ void FurnaceGUI::drawSampleEdit() {
                 sample->loopStart=sample->loopEnd;
               }
               updateSampleTex=true;
+              if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
+                e->renderSamplesP();
+              }
             }
             if (ImGui::IsItemActive()) {
               keepLoopAlive=true;
@@ -175,6 +181,9 @@ void FurnaceGUI::drawSampleEdit() {
                 sample->loopEnd=sample->samples;
               }
               updateSampleTex=true;
+              if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
+                e->renderSamplesP();
+              }
             }
             if (ImGui::IsItemActive()) {
               keepLoopAlive=true;
@@ -693,6 +702,9 @@ void FurnaceGUI::drawSampleEdit() {
               sample->loopEnd=sample->samples;
             }
             updateSampleTex=true;
+            if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
+              e->renderSamplesP();
+            }
           }
           if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
             ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
@@ -729,6 +741,9 @@ void FurnaceGUI::drawSampleEdit() {
               if (sample->loopStart>sample->loopEnd) {
                 sample->loopStart=sample->loopEnd;
               }
+              if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
+                e->renderSamplesP();
+              }
               updateSampleTex=true;
             }
             if (ImGui::IsItemActive()) {
@@ -747,6 +762,9 @@ void FurnaceGUI::drawSampleEdit() {
               }
               if (sample->loopEnd>=(int)sample->samples) {
                 sample->loopEnd=sample->samples;
+              }
+              if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
+                e->renderSamplesP();
               }
               updateSampleTex=true;
             }

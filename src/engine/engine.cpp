@@ -985,6 +985,16 @@ int DivEngine::loadSampleROM(String path, ssize_t expectedSize, unsigned char*& 
   return 0;
 }
 
+unsigned int DivEngine::getSampleFormatMask() {
+  unsigned int formatMask=1U<<16; // 16-bit is always on
+  for (int i=0; i<song.systemLen; i++) {
+    const DivSysDef* s=getSystemDef(song.system[i]);
+    if (s==NULL) continue;
+    formatMask|=s->sampleFormatMask;
+  }
+  return formatMask;
+}
+
 int DivEngine::loadSampleROMs() {
   if (yrw801ROM!=NULL) {
     delete[] yrw801ROM;
@@ -1015,6 +1025,8 @@ void DivEngine::renderSamples() {
   sPreview.sample=-1;
   sPreview.pos=0;
   sPreview.dir=false;
+
+  logD("rendering samples...");
 
   // step 0: make sample format mask
   unsigned int formatMask=1U<<16; // 16-bit is always on
