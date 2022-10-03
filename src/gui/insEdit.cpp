@@ -342,7 +342,7 @@ String macroHoverNote(int id, float val, void* u) {
 }
 
 String macroHover(int id, float val, void* u) {
-  return fmt::sprintf("%d: %d",id,val);
+  return fmt::sprintf("%d: %d",id,(int)val);
 }
 
 String macroHoverLoop(int id, float val, void* u) {
@@ -354,6 +354,22 @@ String macroHoverLoop(int id, float val, void* u) {
 String macroHoverBit30(int id, float val, void* u) {
   if (val>0) return "Fixed";
   return "Relative";
+}
+
+String macroHoverGain(int id, float val, void* u) {
+  if (val>=224.0f) {
+    return fmt::sprintf("%d: +%d (exponential)",id,(int)(val-224));
+  }
+  if (val>=192.0f) {
+    return fmt::sprintf("%d: +%d (linear)",id,(int)(val-192));
+  }
+  if (val>=160.0f) {
+    return fmt::sprintf("%d: -%d (exponential)",id,(int)(val-160));
+  }
+  if (val>=128.0f) {
+    return fmt::sprintf("%d: -%d (linear)",id,(int)(val-128));
+  }
+  return fmt::sprintf("%d: %d (direct)",id,(int)val);
 }
 
 String macroHoverES5506FilterMode(int id, float val, void* u) {
@@ -4528,7 +4544,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_SNES) {
             ex1Max=5;
-            ex2Max=5;
+            ex2Max=255;
           }
           if (ins->type==DIV_INS_MSM5232) {
             ex1Max=5;
@@ -4704,7 +4720,7 @@ void FurnaceGUI::drawInsEdit() {
             } else if (ins->type==DIV_INS_QSOUND) {
               macroList.push_back(FurnaceGUIMacroDesc("Echo Length",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_SNES) {
-              macroList.push_back(FurnaceGUIMacroDesc("Gain Mode",&ins->std.ex2Macro,0,ex2Max,64,uiColors[GUI_COLOR_MACRO_VOLUME],false,NULL,NULL,false,snesGainModes));
+              macroList.push_back(FurnaceGUIMacroDesc("Gain",&ins->std.ex2Macro,0,ex2Max,256,uiColors[GUI_COLOR_MACRO_VOLUME],false,NULL,macroHoverGain,false));
             } else if (ins->type==DIV_INS_MSM5232) {
               macroList.push_back(FurnaceGUIMacroDesc("Group Decay",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else {
@@ -4745,9 +4761,6 @@ void FurnaceGUI::drawInsEdit() {
             macroList.push_back(FurnaceGUIMacroDesc("Envelope K2 ramp",&ins->std.ex7Macro,-128,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("Envelope mode",&ins->std.ex8Macro,0,2,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,es5506EnvelopeModes));
             macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.algMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,es5506ControlModes));
-          }
-          if (ins->type==DIV_INS_SNES) {
-            macroList.push_back(FurnaceGUIMacroDesc("Gain Rate",&ins->std.ex3Macro,0,127,160,uiColors[GUI_COLOR_MACRO_VOLUME]));
           }
           if (ins->type==DIV_INS_MSM5232) {
             macroList.push_back(FurnaceGUIMacroDesc("Noise",&ins->std.ex3Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));

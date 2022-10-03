@@ -161,6 +161,29 @@ void DivPlatformSNES::tick(bool sysTick) {
     if (chan[i].std.vol.had || chan[i].std.panL.had || chan[i].std.panR.had || hasInverted) {
       writeOutVol(i);
     }
+    if (chan[i].std.ex2.had) {
+      if (chan[i].std.ex2.val&0x80) {
+        switch (chan[i].std.ex2.val&0x60) {
+          case 0x00:
+            chan[i].state.gainMode=DivInstrumentSNES::GAIN_MODE_DEC_LINEAR;
+            break;
+          case 0x20:
+            chan[i].state.gainMode=DivInstrumentSNES::GAIN_MODE_DEC_LOG;
+            break;
+          case 0x40:
+            chan[i].state.gainMode=DivInstrumentSNES::GAIN_MODE_INC_LINEAR;
+            break;
+          case 0x60:
+            chan[i].state.gainMode=DivInstrumentSNES::GAIN_MODE_INC_INVLOG;
+            break;
+        }
+        chan[i].state.gain=chan[i].std.ex2.val&31;
+      } else {
+        chan[i].state.gainMode=DivInstrumentSNES::GAIN_MODE_DIRECT;
+        chan[i].state.gain=chan[i].std.ex2.val&127;
+      }
+      writeEnv(i);
+    }
     if (chan[i].setPos) {
       // force keyon
       chan[i].keyOn=true;
