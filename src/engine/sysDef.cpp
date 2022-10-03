@@ -422,6 +422,10 @@ void DivEngine::registerSystems() {
 
   // Common effect handler maps
 
+  EffectHandlerMap ayPreEffectHandlerMap={
+    {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}},
+  };
+
   EffectHandlerMap ayPostEffectHandlerMap={
     {0x20, {DIV_CMD_STD_NOISE_MODE, "20xx: Set channel mode (bit 0: square; bit 1: noise; bit 2: envelope)"}},
     {0x21, {DIV_CMD_STD_NOISE_FREQ, "21xx: Set noise frequency (0 to 1F)"}},
@@ -771,7 +775,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
     {DIV_INS_AY, DIV_INS_AY, DIV_INS_AY},
     {},
-    {},
+    ayPreEffectHandlerMap,
     ayPostEffectHandlerMap
   );
 
@@ -851,7 +855,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
     {DIV_INS_AY8930, DIV_INS_AY8930, DIV_INS_AY8930},
     {},
-    {},
+    ayPreEffectHandlerMap,
     ay8930PostEffectHandlerMap
   );
 
