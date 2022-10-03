@@ -20,10 +20,10 @@
 #include "../engine.h"
 
 class R9TrackerBuilder : public SystemROMBuilder {
-    unsigned char calculateFrequency(unsigned char shape, unsigned char note, unsigned char octave, int pitch);
     
-    void dumpCommands(SafeWriter* w);
+    void dumpRegisters(SafeWriter* w);
     void writeTrackData(SafeWriter* w);
+    void writeWaveform(SafeWriter *w, unsigned short channel, int startRow, int endRow);
 
 public:    
     R9TrackerBuilder(DivEngine* eng) : SystemROMBuilder(eng) {}

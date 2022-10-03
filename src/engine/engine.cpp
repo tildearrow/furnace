@@ -2197,6 +2197,10 @@ float DivEngine::getCurHz() {
   return divider;
 }
 
+int DivEngine::getCurRow() {
+  return curRow;
+}
+
 int DivEngine::getTotalSeconds() {
   return totalSeconds;
 }

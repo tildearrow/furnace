@@ -26,7 +26,7 @@ const int AUDF0 = 0x17;
 const int AUDF1 = 0x18;
 const int AUDV0 = 0x19;
 const int AUDV1 = 0x1A;
-
+ 
 struct TiaRegisters {
 
   unsigned short audc0;
@@ -72,40 +72,13 @@ struct PatternInfo {
     pat(p) {}
 };
 
-unsigned char R9TrackerBuilder::calculateFrequency(unsigned char shape, unsigned char note, unsigned char octave, int pitch) {
-  int value = note + ((signed char)octave) * 12;
-  int base = value << 8;
-  if (base&0x80000000 && ((base&0x7fffffff)<32)) {
-    return base&0x1f;
-  }
-  int bp=base+pitch;
-  double mult=0.25*(e->song.tuning*0.0625)*pow(2.0,double(768+bp)/(256.0*12.0));
-  if (mult<0.5) mult=0.5;
-  switch (shape) {
-    case 1: // buzzy
-      return ceil(31400/(30.6*mult))-1;
-      break;
-    case 2: // low buzzy
-      return ceil(31400/(480*mult))-1;
-      break;
-    case 3: // flangy
-      return ceil(31400/(60*mult))-1;
-      break;
-    case 4: case 5: // square
-      return ceil(31400/(4.05*mult))-1;
-      break;
-    case 6: case 7: case 8: case 9: case 10: // pure buzzy/reedy/noise
-      return ceil(31400/(63*mult))-1;
-      break;
-    case 12: case 13: // low square
-      return round(31400/(4.0*3*mult))-1;
-      break;
-    case 14: case 15: // low pure buzzy/reedy
-      return ceil(31400/(3*63*mult))-1;
-      break;
-  }
-  return 0;
-}
+struct RowInfo {
+  PatternInfo pattern;
+  unsigned short row;
+  RowInfo(PatternInfo p, unsigned short r):
+    pattern(p),
+    row(r) {}
+};
 
 SafeWriter* R9TrackerBuilder::buildROM(int sysIndex) {
 
@@ -120,12 +93,12 @@ SafeWriter* R9TrackerBuilder::buildROM(int sysIndex) {
   //   w->writeText(fmt::sprintf("# Copyright: %s\n", e->song.copyright));
   //   w->writeText(fmt::sprintf("# Created Date: %s\n", e->song.createdDate));
 
-  dumpCommands(w);
+  writeTrackData(w);
 
   return w;
 }
 
-void R9TrackerBuilder::dumpCommands(SafeWriter *w) {
+void R9TrackerBuilder::dumpRegisters(SafeWriter *w) {
   e->stop();
   e->setRepeatPattern(false);
   e->setOrder(0);
@@ -142,7 +115,7 @@ void R9TrackerBuilder::dumpCommands(SafeWriter *w) {
   for (int i=0; i<e->song.systemLen; i++) {
     e->getDispatch(i)->toggleRegisterDump(true);
   }
-
+   
   int tick = 0;
   int lastWriteTick = 0;
   TiaRegisters currentState;
@@ -181,8 +154,6 @@ void R9TrackerBuilder::dumpCommands(SafeWriter *w) {
 
   // final seq
   w->writeText(fmt::sprintf("  byte %d\n", tick - lastWriteTick));
-  w->writeText(fmt::sprintf("  byte %d,%d,%d\n", currentState.audc0, currentState.audf0, currentState.audv0));
-  w->writeText(fmt::sprintf("  byte %d,%d,%d\n", currentState.audc1, currentState.audf1, currentState.audv1));      
 
   for (int i=0; i<e->song.systemLen; i++) {
     e->getDispatch(i)->toggleRegisterDump(false);
@@ -191,39 +162,8 @@ void R9TrackerBuilder::dumpCommands(SafeWriter *w) {
 }
 
 void R9TrackerBuilder::writeTrackData(SafeWriter *w) {
-
-  w->writeText("rft_InsAUDCxTable\n");
-  for (int i = 0; i < e->song.insLen; i++) {
-    DivInstrument* ins = e->getIns(i, DIV_INS_TIA);
-    w->writeText(fmt::sprintf("rft_Ins%d_AUDCx ; Waveforms for %s", i, ins->name));
-    for (int j = 0; j < 1; j++) { // TODO: multiple waveforms? ins->std.waveMacro.len; j++) {
-      if (j % 8 == 0) {
-        w->writeText("\n    byte ");
-      } else {
-        w->writeText(",");
-      }
-      w->writeText(fmt::sprintf("$%02x", ins->std.waveMacro.val[j]));
-    }
-    w->writeC('\n');
-  }
-
-  w->writeText("rft_InsAUDFxAUDVxTable\n");
-  for (int i = 0; i < e->song.insLen; i++) {
-    DivInstrument* ins = e->getIns(i, DIV_INS_TIA);
-    w->writeText(fmt::sprintf("rft_Ins%d_AUDFxAUDVx ; FreqVol for %s", i, ins->name));
-    for (int j = 0; j < ins->std.volMacro.len; j++) {
-      if (j % 8 == 0) {
-        w->writeText("\n    byte ");
-      } else {
-        w->writeText(",");
-      }
-      short freqVol = (ins->std.volMacro.val[j] << 4) + ins->std.pitchMacro.val[j];
-      w->writeText(fmt::sprintf("$%02x", freqVol));
-    }
-    w->writeC('\n');
-  }
-
-  // borrow from fileops - pull patterns to write
+  // pull patterns to write
+  // borrowed from fileops
   std::vector<PatternInfo> patterns;
   bool alreadyAdded[256];
   for (int i = 0; i < e->getChannelCount(DIV_SYSTEM_TIA); i++) {
@@ -238,26 +178,123 @@ void R9TrackerBuilder::writeTrackData(SafeWriter *w) {
     }
   }
 
-  for (PatternInfo& i: patterns) {
-    DivPattern* pat = e->song.subsong[i.subsong]->pat[i.chan].getPattern(i.pat, false);
-    w->writeText(fmt::sprintf("# Subsong: %d Channel: %d Pattern: %d / %s\n", i.subsong, i.chan, i.pat, pat->name));
-    w->writeText(fmt::sprintf("rft_subsong%d_chan%d_pat%d_start", i.subsong, i.chan, i.pat));
-    for (int j=0; j<e->song.subsong[i.subsong]->patLen; j++) {
+  // emit patterns
+  // we emit the "note" being played as an assembly variable including the instrument being played
+  // later we will figure out what we need to emit as far as TIA register settings
+  // this assumes the song has a limited number of unique "notes"
+  std::map<String, RowInfo> waveForms;
+  for (PatternInfo& patternInfo: patterns) {
+    DivPattern* pat = e->song.subsong[patternInfo.subsong]->pat[patternInfo.chan].getPattern(patternInfo.pat, false);
+    w->writeText(fmt::sprintf("; Subsong: %d Channel: %d Pattern: %d / %s\n", patternInfo.subsong, patternInfo.chan, patternInfo.pat, pat->name));
+    w->writeText(fmt::sprintf("PAT_S%d_C%d_P%d", patternInfo.subsong, patternInfo.chan, patternInfo.pat));
+    for (int j = 0; j<e->song.subsong[patternInfo.subsong]->patLen; j++) {
       if (j % 8 == 0) {
         w->writeText("\n    byte ");
       } else {
         w->writeText(",");
       }
+      int row = j; // TODO: is this right?
       short note = pat->data[j][0];
       short octave = pat->data[j][1];
       short instrument = pat->data[j][2];
-      //short volume = pat->data[j][3]; 
-      // write instrument to bits 7..5, frequency to bits 0..4 
-      short shape = e->getIns(instrument)->std.waveMacro.val[0];
-      unsigned char freq = calculateFrequency(shape, note, octave, 0);
-      char bits = (((0x07 & instrument) + 1) << 5) + (0xf & freq);
-      w->writeText(fmt::sprintf("$%02x", bits));
+      short volume = pat->data[j][3]; 
+      String key = fmt::sprintf(
+        "WF_N%d_O%d_I%d_V%d",
+        note & 0xff, 
+        octave & 0xff,
+        instrument & 0xff,
+        volume & 0xff);
+      waveForms.emplace(key, RowInfo(patternInfo, row));
+      w->writeText(key);
     }
     w->writeC('\n');
   }
+
+  // emit waveform table
+  // this is where we can lookup specific instrument/note/octave combinations
+  w->writeC('\n');
+  w->writeText("; Waveform Lookup Table\n");
+  w->writeText("    ALIGN 256\n");
+  w->writeText("WF_TABLE_START\n");
+  for (auto it = waveForms.begin(); it != waveForms.end(); ++it) {
+    w->writeText(fmt::sprintf("%s = . - WF_TABLE_START\n", it->first));
+    w->writeText(fmt::sprintf("   word %s_ADDR\n", it->first, it->first));
+  }
+    
+  // emit waveform data
+  // this is done by playing back the song from the unique notes
+  w->writeC('\n');
+  w->writeText("; Waveforms\n");
+  for (auto it = waveForms.begin(); it != waveForms.end(); ++it) {
+    w->writeText(fmt::sprintf("; Waveform %s C%d P%d S%d R%d\n",
+     it->first, 
+    it->second.pattern.chan,
+     it->second.pattern.pat, 
+     it->second.pattern.subsong,
+    it->second.row));
+    w->writeText(fmt::sprintf("%s_ADDR\n", it->first));
+    int startRow = it->second.row;
+    int endRow = startRow + 1;
+    writeWaveform(w, it->second.pattern.chan, startRow, endRow);
+  }
+
+}  
+
+void R9TrackerBuilder::writeWaveform(SafeWriter *w, unsigned short channel, int startRow, int endRow) {
+  e->stop();
+  e->setRepeatPattern(false);
+  e->setOrder(0);
+  e->playToRow(startRow);
+  
+  for (int i=0; i<e->song.systemLen; i++) {
+    e->getDispatch(i)->toggleRegisterDump(true);
+  }
+   
+  int tick = 0;
+  int lastWriteTick = 0;
+  TiaRegisters currentState;
+  memset(&currentState, 0, sizeof(currentState));
+  bool done=false;
+  while (!done) {
+    if (e->tick() || !e->isPlaying() || endRow <= e->getCurRow()) {
+      done=true;
+      for (int i=0; i<e->song.systemLen; i++) {
+        e->getDispatch(i)->getRegisterWrites().clear();
+      }
+      break;
+    }
+    tick++;
+    // get register dumps
+    for (int i=0; i<e->song.systemLen; i++) {
+      bool isDirty = false;
+      std::vector<DivRegWrite>& registerWrites=e->getDispatch(i)->getRegisterWrites();
+      for (DivRegWrite& registerWrite: registerWrites) {
+        isDirty |= currentState.write(registerWrite);
+      }
+      registerWrites.clear();
+
+      if (isDirty) {
+        // end last seq
+        if (lastWriteTick > 0) {
+          w->writeText(fmt::sprintf("  byte %d\n", tick - lastWriteTick));
+        }
+        // start next seq
+        lastWriteTick = tick;
+        if (0 == channel) {
+          w->writeText(fmt::sprintf("  byte %d,%d,%d\n", currentState.audc0, currentState.audf0, currentState.audv0));
+        } else {
+          w->writeText(fmt::sprintf("  byte %d,%d,%d\n", currentState.audc1, currentState.audf1, currentState.audv1));
+        }
+      }
+    }
+  }
+
+  // final seq
+  w->writeText(fmt::sprintf("  byte %d, 255\n", tick - lastWriteTick));
+
+  for (int i=0; i<e->song.systemLen; i++) {
+    e->getDispatch(i)->toggleRegisterDump(false);
+  }
+
 }
+
