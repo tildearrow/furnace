@@ -3303,7 +3303,7 @@ void DivEngine::exchangeIns(int one, int two) {
     for (size_t j=0; j<song.subsong.size(); j++) {
       for (int k=0; k<256; k++) {
         if (song.subsong[j]->pat[i].data[k]==NULL) continue;
-        for (int l=0; l<curSubSong->patLen; l++) {
+        for (int l=0; l<song.subsong[j]->patLen; l++) {
           if (song.subsong[j]->pat[i].data[k]->data[l][2]==one) {
             song.subsong[j]->pat[i].data[k]->data[l][2]=two;
           } else if (song.subsong[j]->pat[i].data[k]->data[l][2]==two) {
