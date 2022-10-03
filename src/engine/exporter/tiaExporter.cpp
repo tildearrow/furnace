@@ -186,7 +186,8 @@ void R9TrackerBuilder::writeTrackData(SafeWriter *w) {
   for (PatternInfo& patternInfo: patterns) {
     DivPattern* pat = e->song.subsong[patternInfo.subsong]->pat[patternInfo.chan].getPattern(patternInfo.pat, false);
     w->writeText(fmt::sprintf("; Subsong: %d Channel: %d Pattern: %d / %s\n", patternInfo.subsong, patternInfo.chan, patternInfo.pat, pat->name));
-    w->writeText(fmt::sprintf("PAT_S%d_C%d_P%d", patternInfo.subsong, patternInfo.chan, patternInfo.pat));
+    String key = fmt::sprintf("PAT_S%d_C%d_P%d", patternInfo.subsong, patternInfo.chan, patternInfo.pat);
+    w->writeText(fmt::sprintf("%s = . - AUDIO_TRACKS", key));
     for (int j = 0; j<e->song.subsong[patternInfo.subsong]->patLen; j++) {
       if (j % 8 == 0) {
         w->writeText("\n    byte ");
@@ -207,7 +208,7 @@ void R9TrackerBuilder::writeTrackData(SafeWriter *w) {
       waveForms.emplace(key, RowInfo(patternInfo, row));
       w->writeText(key);
     }
-    w->writeC('\n');
+    w->writeText(fmt::sprintf("\n    byte 255, %s\n", key));
   }
 
   // emit waveform table
