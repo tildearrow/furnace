@@ -5420,6 +5420,7 @@ FurnaceGUI::FurnaceGUI():
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
+  lastPatternWidth(0.0f),
   nextDesc(NULL),
   latchNote(-1),
   latchIns(-2),

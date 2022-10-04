@@ -1209,6 +1209,7 @@ class FurnaceGUI {
     int midiOutClock;
     int midiOutMode;
     int maxRecentFile;
+    int centerPattern;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1334,6 +1335,7 @@ class FurnaceGUI {
       midiOutClock(0),
       midiOutMode(1),
       maxRecentFile(10),
+      centerPattern(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1373,6 +1375,7 @@ class FurnaceGUI {
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
+  float lastPatternWidth;
   const int* nextDesc;
   String nextDescName;
 
