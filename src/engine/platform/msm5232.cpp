@@ -52,7 +52,6 @@ void DivPlatformMSM5232::acquire(short* bufL, short* bufR, size_t start, size_t 
       regPool[w.addr&0x0f]=w.val;
       writes.pop();
     }
-    memset(temp,0,16*sizeof(short));
 
     for (int i=0; i<8; i++) {
       int o=(
@@ -64,7 +63,15 @@ void DivPlatformMSM5232::acquire(short* bufL, short* bufR, size_t start, size_t 
       oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(o,-32768,32767);
     }
 
-    msm->sound_stream_update(temp);
+    clockDriftLFOPos+=clockDriftLFOSpeed;
+    clockDriftLFOPos&=(1U<<21)-1;
+    clockDriftAccum+=clockDriftLFOWave[clockDriftLFOPos>>13];
+    if (clockDriftAccum>=2048) {
+      clockDriftAccum-=2048;
+    } else {
+      memset(temp,0,16*sizeof(short));
+      msm->sound_stream_update(temp);
+    }
     
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
     bufL[h]=0;
@@ -328,6 +335,8 @@ void DivPlatformMSM5232::reset() {
   cycles=0;
   curChan=-1;
   delay=500;
+  clockDriftLFOPos=0;
+  clockDriftAccum=0;
 
   for (int i=0; i<2; i++) {
     groupControl[i]=15|(groupEnv[i]?0x20:0);
@@ -399,6 +408,11 @@ void DivPlatformMSM5232::setFlags(const DivConfig& flags) {
     capacitance[6]*0.000000001,
     capacitance[7]*0.000000001
   );
+
+  for (int i=0; i<256; i++) {
+    clockDriftLFOWave[i]=(1.0+sin(M_PI*(double)i/128.0))*flags.getInt("vibDepth",0.0f);
+  }
+  clockDriftLFOSpeed=flags.getInt("vibSpeed",0);
 }
 
 void DivPlatformMSM5232::poke(unsigned int addr, unsigned short val) {

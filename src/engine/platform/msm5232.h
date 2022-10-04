@@ -57,6 +57,7 @@ class DivPlatformMSM5232: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[8];
   int partVolume[8];
   int initPartVolume[8];
+  int clockDriftLFOWave[256];
   double capacitance[8];
   bool isMuted[8];
   bool updateGroup[2];
@@ -73,7 +74,8 @@ class DivPlatformMSM5232: public DivDispatch {
   };
   std::queue<QueuedWrite> writes;
 
-  int cycles, curChan, delay, detune;
+  int cycles, curChan, delay, detune, clockDriftAccum;
+  unsigned int clockDriftLFOPos, clockDriftLFOSpeed;
   short temp[16];
   msm5232_device* msm;
   unsigned char regPool[128];
