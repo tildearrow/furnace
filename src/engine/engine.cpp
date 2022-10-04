@@ -274,23 +274,26 @@ double DivEngine::benchmarkSeek() {
   return tAvg;
 }
 
-#define WRITE_TICK \
-  if (!wroteTick) { \
-    wroteTick=true; \
-    if (binary) { \
-      if (tick-lastTick>255) { \
-        w->writeC(0xfc); \
-        w->writeS(tick-lastTick); \
-      } else if (tick-lastTick>1) { \
-        w->writeC(0xfd); \
-        w->writeC(tick-lastTick); \
+#define WRITE_TICK(x) \
+  if (binary) { \
+    if (!wroteTick[x]) { \
+      wroteTick[x]=true; \
+      if (tick-lastTick[x]>255) { \
+        chanStream[x]->writeC(0xfc); \
+        chanStream[x]->writeS(tick-lastTick[x]); \
+      } else if (tick-lastTick[x]>1) { \
+        chanStream[x]->writeC(0xfd); \
+        chanStream[x]->writeC(tick-lastTick[x]); \
       } else { \
-        w->writeC(0xfe); \
+        chanStream[x]->writeC(0xfe); \
       } \
-    } else { \
+      lastTick[x]=tick; \
+    } \
+  } else { \
+    if (!wroteTickGlobal) { \
+      wroteTickGlobal=true; \
       w->writeText(fmt::sprintf(">> TICK %d\n",tick)); \
     } \
-    lastTick=tick; \
   }
 
 void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
@@ -410,6 +413,13 @@ SafeWriter* DivEngine::saveCommand(bool binary) {
   int loopEnd=0;
   walkSong(loopOrder,loopRow,loopEnd);
   logI("loop point: %d %d",loopOrder,loopRow);
+  
+  SafeWriter* chanStream[DIV_MAX_CHANS];
+  unsigned int chanStreamOff[DIV_MAX_CHANS];
+  bool wroteTick[DIV_MAX_CHANS];
+
+  memset(chanStream,0,DIV_MAX_CHANS*sizeof(void*));
+  memset(chanStreamOff,0,DIV_MAX_CHANS*sizeof(unsigned int));
 
   SafeWriter* w=new SafeWriter;
   w->init();
@@ -417,6 +427,13 @@ SafeWriter* DivEngine::saveCommand(bool binary) {
   // write header
   if (binary) {
     w->write("FCS",4);
+    w->writeI(chans);
+    // offsets
+    for (int i=0; i<chans; i++) {
+      chanStream[i]=new SafeWriter;
+      chanStream[i]->init();
+      w->writeI(0);
+    }
   } else {
     w->writeText("# Furnace Command Stream\n\n");
 
@@ -451,19 +468,22 @@ SafeWriter* DivEngine::saveCommand(bool binary) {
   bool oldCmdStreamEnabled=cmdStreamEnabled;
   cmdStreamEnabled=true;
   double curDivider=divider;
-  int lastTick=0;
+  int lastTick[DIV_MAX_CHANS];
+
+  memset(lastTick,0,DIV_MAX_CHANS*sizeof(int));
   while (!done) {
     if (nextTick(false,true) || !playing) {
       done=true;
     }
     // get command stream
-    bool wroteTick=false;
+    bool wroteTickGlobal=false;
+    memset(wroteTick,0,DIV_MAX_CHANS*sizeof(bool));
     if (curDivider!=divider) {
       curDivider=divider;
-      WRITE_TICK;
+      WRITE_TICK(0);
       if (binary) {
-        w->writeC(0xfb);
-        w->writeI((int)(curDivider*65536));
+        chanStream[0]->writeC(0xfb);
+        chanStream[0]->writeI((int)(curDivider*65536));
       } else {
         w->writeText(fmt::sprintf(">> SET_RATE %f\n",curDivider));
       }
@@ -486,10 +506,9 @@ SafeWriter* DivEngine::saveCommand(bool binary) {
         case DIV_CMD_PRE_NOTE:
           break;
         default:
-          WRITE_TICK;
+          WRITE_TICK(i.chan);
           if (binary) {
-            w->writeC(i.chan);
-            writePackedCommandValues(w,i);
+            writePackedCommandValues(chanStream[i.chan],i);
           } else {
             w->writeText(fmt::sprintf("  %d: %s %d %d\n",i.chan,cmdName[i.cmd],i.value,i.value2));
           }
@@ -502,7 +521,20 @@ SafeWriter* DivEngine::saveCommand(bool binary) {
   cmdStreamEnabled=oldCmdStreamEnabled;
 
   if (binary) {
-    w->writeC(0xff);
+    for (int i=0; i<chans; i++) {
+      chanStream[i]->writeC(0xff);
+
+      chanStreamOff[i]=w->tell();
+      logI("- %d: off %x size %ld",i,chanStreamOff[i],chanStream[i]->size());
+      w->write(chanStream[i]->getFinalBuf(),chanStream[i]->size());
+      chanStream[i]->finish();
+      delete chanStream[i];
+    }
+
+    w->seek(8,SEEK_SET);
+    for (int i=0; i<chans; i++) {
+      w->writeI(chanStreamOff[i]);
+    }
   } else {
     if (!playing) {
       w->writeText(">> END\n");
