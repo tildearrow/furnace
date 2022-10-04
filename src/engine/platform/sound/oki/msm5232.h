@@ -33,6 +33,11 @@ public:
 
   int get_rate();
 
+  int vo16[8];
+  int vo8[8];
+  int vo4[8];
+  int vo2[8];
+
 private:
 	struct VOICE {
 		uint8_t mode;
