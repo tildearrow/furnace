@@ -561,6 +561,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
           } else {
             chan[c.chan].macroInit(NULL);
             chan[c.chan].outVol=chan[c.chan].vol;
+            // huh?
             if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
               chWrite(c.chan,0,0); // reset
               chWrite(c.chan,1,0);

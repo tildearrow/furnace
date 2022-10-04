@@ -776,6 +776,7 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
   if (extMode) {
     chipClock=extClock;
     rate=chipClock/extDiv;
+    clockSel=false;
   } else {
     clockSel=flags.getBool("halfClock",false);
     switch (flags.getInt("clockSel",0)) {

@@ -158,7 +158,7 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
         chan[c.chan].sample=-1;
         chan[c.chan].macroInit(NULL);
         chan[c.chan].outVol=chan[c.chan].vol;
-        if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
+        if ((12*sampleBank+c.value%12)<0 || (12*sampleBank+c.value%12)>=parent->song.sampleLen) {
           break;
         }
         //DivSample* s=parent->getSample(12*sampleBank+c.value%12);
