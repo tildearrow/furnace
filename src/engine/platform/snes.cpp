@@ -783,6 +783,10 @@ void DivPlatformSNES::renderSamples() {
     if (actualLength>0) {
       sampleOff[i]=memPos;
       memcpy(&copyOfSampleMem[memPos],s->dataBRR,actualLength);
+      // inject loop if needed
+      if (s->loop) {
+        copyOfSampleMem[memPos+actualLength-9]|=3;
+      }
       memPos+=actualLength;
     }
     if (actualLength<length) {
