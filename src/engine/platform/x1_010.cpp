@@ -240,15 +240,15 @@ u8 DivPlatformX1_010::read_byte(u32 address) {
 }
 
 double DivPlatformX1_010::NoteX1_010(int ch, int note) {
-  if (chan[ch].pcm) { // PCM note
-    double off=8192.0;
+  if (chan[ch].furnacePCM) { // PCM note
+    double off=4194304.0;
     int sample=chan[ch].sample;
     if (sample>=0 && sample<parent->song.sampleLen) {
       DivSample* s=parent->getSample(sample);
       if (s->centerRate<1) {
-        off=8192.0;
+        off=4194304.0;
       } else {
-        off=8192.0*(s->centerRate/8363.0);
+        off=4194304.0*(s->centerRate/8363.0);
       }
     }
     return parent->calcBaseFreq(chipClock,off,note,false);
@@ -463,20 +463,21 @@ void DivPlatformX1_010::tick(bool sysTick) {
       chan[i].envChanged=false;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      double off=8192.0;
-      if (chan[i].pcm) {
+      if (chan[i].furnacePCM) {
+        double off=4194304.0;
         int sample=chan[i].sample;
         if (sample>=0 && sample<parent->song.sampleLen) {
           DivSample* s=parent->getSample(sample);
           if (s->centerRate<1) {
-            off=8192.0;
+            off=4194304.0;
           } else {
-            off=8192.0*(s->centerRate/8363.0);
+            off=4194304.0*(s->centerRate/8363.0);
           }
         }
       }
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,chan[i].pcm?off:CHIP_FREQBASE);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].pcm) {
+        chan[i].freq>>=8;
         if (chan[i].freq<1) chan[i].freq=1;
         if (chan[i].freq>255) chan[i].freq=255;
         chWrite(i,2,chan[i].freq&0xff);
@@ -591,7 +592,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
             int end=(sampleOffX1[chan[c.chan].sample]+s->length8+0xfff)&~0xfff; // padded
             chWrite(c.chan,5,(0x100-(end>>12))&0xff);
           }
-          chan[c.chan].baseFreq=(((unsigned int)s->rate)<<4)/(chipClock/512);
+          chan[c.chan].baseFreq=(((unsigned int)s->rate)<<14)/(chipClock/384);
           chan[c.chan].freqChanged=true;
         }
       } else if (c.value!=DIV_NOTE_NULL) {
