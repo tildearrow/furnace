@@ -68,7 +68,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
         slide(0),
         slidefrac(0) {}
     };
-    int freq, baseFreq, pitch, pitch2, note;
+    int freq, baseFreq, fixedFreq, pitch, pitch2, note;
     int wave, sample, ins;
     unsigned char pan, autoEnvNum, autoEnvDen;
     bool active, insChanged, envChanged, freqChanged, keyOn, keyOff, inPorta, furnacePCM, pcm;
@@ -95,7 +95,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
       pitch2=0;
     }
     Channel():
-      freq(0), baseFreq(0), pitch(0), pitch2(0), note(0),
+      freq(0), baseFreq(0), fixedFreq(0), pitch(0), pitch2(0), note(0),
       wave(-1), sample(-1), ins(-1),
       pan(255), autoEnvNum(0), autoEnvDen(0),
       active(false), insChanged(true), envChanged(true), freqChanged(false), keyOn(false), keyOff(false), inPorta(false), furnacePCM(false), pcm(false),
