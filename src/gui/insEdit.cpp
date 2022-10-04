@@ -1689,7 +1689,41 @@ void FurnaceGUI::drawInsEdit() {
   }
   if (ImGui::Begin("Instrument Editor",&insEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curIns<0 || curIns>=(int)e->song.ins.size()) {
+      ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()*2.0f)*0.5f);
+      CENTER_TEXT("no instrument selected");
       ImGui::Text("no instrument selected");
+      if (ImGui::BeginTable("noAssetCenter",3)) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.5f);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5f);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableNextColumn();
+
+        if (e->song.ins.size()>0) {
+          if (ImGui::BeginCombo("##InsSelect","select one...")) {
+            String name;
+            for (size_t i=0; i<e->song.ins.size(); i++) {
+              name=fmt::sprintf("%.2X: %s##_INSS%d",i,e->song.ins[i]->name,i);
+              if (ImGui::Selectable(name.c_str(),curIns==(int)i)) {
+                curIns=i;
+                wavePreviewInit=true;
+              }
+            }
+            ImGui::EndCombo();
+          }
+          ImGui::SameLine();
+          ImGui::TextUnformatted("or");
+          ImGui::SameLine();
+        }
+        if (ImGui::Button("Create New")) {
+          doAction(GUI_ACTION_INS_LIST_ADD);
+        }
+
+        ImGui::TableNextColumn();
+        ImGui::EndTable();
+      }
     } else {
       DivInstrument* ins=e->song.ins[curIns];
       if (settings.insEditColorize) {
