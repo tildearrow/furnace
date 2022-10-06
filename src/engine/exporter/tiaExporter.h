@@ -23,7 +23,7 @@ class R9TrackerBuilder : public SystemROMBuilder {
     
     void dumpRegisters(SafeWriter* w);
     void writeTrackData(SafeWriter* w);
-    void writeWaveform(SafeWriter *w, unsigned short channel, int startRow, int endRow);
+    void writeWaveformHeader(SafeWriter* w, const char * key);
 
 public:    
     R9TrackerBuilder(DivEngine* eng) : SystemROMBuilder(eng) {}

@@ -874,8 +874,6 @@ class DivEngine {
 
     // get current Hz
     float getCurHz();
-
-    int getCurRow();
     
     // get time
     int getTotalTicks(); // 1/1000000th of a second

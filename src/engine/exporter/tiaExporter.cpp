@@ -18,7 +18,9 @@
  */
 
 #include <fmt/printf.h>
+#include <set>
 #include "tiaExporter.h"
+#include "../../ta-log.h"
 
 const int AUDC0 = 0x15;
 const int AUDC1 = 0x16;
@@ -29,55 +31,84 @@ const int AUDV1 = 0x1A;
  
 struct TiaRegisters {
 
-  unsigned short audc0;
-  unsigned short audc1;
-  unsigned short audf0;
-  unsigned short audf1;
-  unsigned short audv0;
-  unsigned short audv1;
+  unsigned char audc0;
+  unsigned char audc1;
+  unsigned char audf0;
+  unsigned char audf1;
+  unsigned char audv0;
+  unsigned char audv1;
 
   bool write(const DivRegWrite& registerWrite);
 
 };
 
 bool TiaRegisters::write(const DivRegWrite& registerWrite) {
+  const unsigned char val = registerWrite.val;
   switch (registerWrite.addr) {
     case AUDC0:
-      audc0 = registerWrite.val & 0xff;
+      if (val == audc0) return false;
+      audc0 = val;
       return true;
     case AUDC1:
-      audc1 = registerWrite.val & 0xff;
+      if (val == audc1) return false;
+      audc1 = val;
       return true;
     case AUDF0:
-      audf0 = registerWrite.val & 0xff;
+      if (val == audf0) return false;
+      audf0 = val;
       return true;
     case AUDF1:
-      audf1 = registerWrite.val & 0xff;
+      if (val == audf1) return false;
+      audf1 = val;
       return true;
     case AUDV0:
-      audv0 = registerWrite.val & 0xff;
+      if (val == audv0) return false;
+      audv0 = val;
       return true;
     case AUDV1:
-      audv1 = registerWrite.val & 0xff;
+      if (val == audv1) return false;
+      audv1 = val;
       return true;
   }
   return false;
 }
 
-struct PatternInfo {
-  unsigned short subsong, chan, pat;
-  PatternInfo(unsigned short s, unsigned short c, unsigned short p):
+struct PatternIndex {
+  unsigned short subsong, chan, ord, pat;
+  PatternIndex(
+    unsigned short s,
+    unsigned short c,
+    unsigned short o,
+    unsigned short p):
     subsong(s),
     chan(c),
+    ord(o),
     pat(p) {}
 };
 
-struct RowInfo {
-  PatternInfo pattern;
-  unsigned short row;
-  RowInfo(PatternInfo p, unsigned short r):
-    pattern(p),
+struct RowIndex{
+  unsigned short subsong, ord, row;
+  RowIndex(unsigned short s, unsigned short o, unsigned short r):
+    subsong(s),
+    ord(o),
     row(r) {}
+  bool advance(unsigned short s, unsigned short o, unsigned short r)
+  {
+    bool changed = false;
+    if (subsong != s) {
+      subsong = s;
+      changed = true;
+    }
+    if (ord != o) {
+      ord = o;
+      changed = true;
+    }
+    if (row != r) {
+      row = r;
+      changed = true;
+    }
+    return changed;
+  }  
 };
 
 SafeWriter* R9TrackerBuilder::buildROM(int sysIndex) {
@@ -164,16 +195,17 @@ void R9TrackerBuilder::dumpRegisters(SafeWriter *w) {
 void R9TrackerBuilder::writeTrackData(SafeWriter *w) {
   // pull patterns to write
   // borrowed from fileops
-  std::vector<PatternInfo> patterns;
+  std::vector<PatternIndex> patterns;
   bool alreadyAdded[256];
   for (int i = 0; i < e->getChannelCount(DIV_SYSTEM_TIA); i++) {
     for (size_t j = 0; j < e->song.subsong.size(); j++) {
       DivSubSong* subs = e->song.subsong[j];
       memset(alreadyAdded, 0, 256*sizeof(bool));
       for (int k = 0; k < subs->ordersLen; k++) {
-        if (alreadyAdded[subs->orders.ord[i][k]]) continue;
-        patterns.push_back(PatternInfo(j, i, subs->orders.ord[i][k]));
-        alreadyAdded[subs->orders.ord[i][k]] = true;
+        unsigned short p = subs->orders.ord[i][k];
+        if (alreadyAdded[p]) continue;
+        patterns.push_back(PatternIndex(j, i, k, p));
+        alreadyAdded[p] = true;
       }
     }
   }
@@ -182,11 +214,13 @@ void R9TrackerBuilder::writeTrackData(SafeWriter *w) {
   // we emit the "note" being played as an assembly variable including the instrument being played
   // later we will figure out what we need to emit as far as TIA register settings
   // this assumes the song has a limited number of unique "notes"
-  std::map<String, RowInfo> waveForms;
-  for (PatternInfo& patternInfo: patterns) {
+  std::set<String> waveFormSet;
+  const char* waveForms[4][2][4][256];
+  memset(&waveForms, 0, 8192);
+  for (PatternIndex& patternInfo: patterns) {
     DivPattern* pat = e->song.subsong[patternInfo.subsong]->pat[patternInfo.chan].getPattern(patternInfo.pat, false);
     w->writeText(fmt::sprintf("; Subsong: %d Channel: %d Pattern: %d / %s\n", patternInfo.subsong, patternInfo.chan, patternInfo.pat, pat->name));
-    String key = fmt::sprintf("PAT_S%d_C%d_P%d", patternInfo.subsong, patternInfo.chan, patternInfo.pat);
+    String key = fmt::sprintf("PAT_S%02x_C%02x_P%02x", patternInfo.subsong, patternInfo.chan, patternInfo.pat);
     w->writeText(fmt::sprintf("%s = . - AUDIO_TRACKS", key));
     for (int j = 0; j<e->song.subsong[patternInfo.subsong]->patLen; j++) {
       if (j % 8 == 0) {
@@ -194,7 +228,6 @@ void R9TrackerBuilder::writeTrackData(SafeWriter *w) {
       } else {
         w->writeText(",");
       }
-      int row = j; // TODO: is this right?
       short note = pat->data[j][0];
       short octave = pat->data[j][1];
       short instrument = pat->data[j][2];
@@ -205,97 +238,124 @@ void R9TrackerBuilder::writeTrackData(SafeWriter *w) {
         octave & 0xff,
         instrument & 0xff,
         volume & 0xff);
-      waveForms.emplace(key, RowInfo(patternInfo, row));
+        
+      auto it = waveFormSet.emplace(key);
+      if (it.second) {
+        waveForms[patternInfo.subsong][patternInfo.ord][patternInfo.chan][j] = it.first->c_str();
+      }
       w->writeText(key);
     }
     w->writeText(fmt::sprintf("\n    byte 255, %s\n", key));
   }
-
   // emit waveform table
   // this is where we can lookup specific instrument/note/octave combinations
   w->writeC('\n');
   w->writeText("; Waveform Lookup Table\n");
   w->writeText("    ALIGN 256\n");
   w->writeText("WF_TABLE_START\n");
-  for (auto it = waveForms.begin(); it != waveForms.end(); ++it) {
-    w->writeText(fmt::sprintf("%s = . - WF_TABLE_START\n", it->first));
-    w->writeText(fmt::sprintf("   word %s_ADDR\n", it->first, it->first));
+  for (auto it = waveFormSet.begin(); it != waveFormSet.end(); ++it) {
+    w->writeText(fmt::sprintf("%s = . - WF_TABLE_START\n", *it));
+    w->writeText(fmt::sprintf("   word %s_ADDR\n", *it, *it));
   }
     
   // emit waveform data
   // this is done by playing back the song from the unique notes
+  
+
+
   w->writeC('\n');
   w->writeText("; Waveforms\n");
-  for (auto it = waveForms.begin(); it != waveForms.end(); ++it) {
-    w->writeText(fmt::sprintf("; Waveform %s C%d P%d S%d R%d\n",
-     it->first, 
-    it->second.pattern.chan,
-     it->second.pattern.pat, 
-     it->second.pattern.subsong,
-    it->second.row));
-    w->writeText(fmt::sprintf("%s_ADDR\n", it->first));
-    int startRow = it->second.row;
-    int endRow = startRow + 1;
-    writeWaveform(w, it->second.pattern.chan, startRow, endRow);
-  }
-
-}  
-
-void R9TrackerBuilder::writeWaveform(SafeWriter *w, unsigned short channel, int startRow, int endRow) {
-  e->stop();
-  e->setRepeatPattern(false);
-  e->setOrder(0);
-  e->playToRow(startRow);
-  
   for (int i=0; i<e->song.systemLen; i++) {
     e->getDispatch(i)->toggleRegisterDump(true);
   }
-   
-  int tick = 0;
-  int lastWriteTick = 0;
-  TiaRegisters currentState;
-  memset(&currentState, 0, sizeof(currentState));
-  bool done=false;
-  while (!done) {
-    if (e->tick() || !e->isPlaying() || endRow <= e->getCurRow()) {
-      done=true;
-      for (int i=0; i<e->song.systemLen; i++) {
-        e->getDispatch(i)->getRegisterWrites().clear();
-      }
-      break;
+  for (int channel = 0; channel < 2; channel++) {
+    e->stop();
+    e->setRepeatPattern(false);
+    e->setOrder(0);
+    e->play();
+    
+    RowIndex curRowIndex(e->getCurrentSubSong(), e->getOrder(), e->getRow());
+    const char *key = waveForms[curRowIndex.subsong][curRowIndex.ord][channel][curRowIndex.row];
+    if (NULL != key) {
+      logI("got key %s", key);
+      writeWaveformHeader(w, key);
     }
-    tick++;
-    // get register dumps
-    for (int i=0; i<e->song.systemLen; i++) {
-      bool isDirty = false;
-      std::vector<DivRegWrite>& registerWrites=e->getDispatch(i)->getRegisterWrites();
-      for (DivRegWrite& registerWrite: registerWrites) {
-        isDirty |= currentState.write(registerWrite);
-      }
-      registerWrites.clear();
 
-      if (isDirty) {
-        // end last seq
-        if (lastWriteTick > 0) {
-          w->writeText(fmt::sprintf("  byte %d\n", tick - lastWriteTick));
+    int tick = 0;
+    int lastWriteTick = 0;
+    TiaRegisters currentState;
+    memset(&currentState, 0, sizeof(currentState));
+    bool done=false;
+    while (!done) {
+      if (e->tick() || !e->isPlaying()) {
+        done=true;
+        for (int i=0; i<e->song.systemLen; i++) {
+          e->getDispatch(i)->getRegisterWrites().clear();
         }
-        // start next seq
-        lastWriteTick = tick;
-        if (0 == channel) {
-          w->writeText(fmt::sprintf("  byte %d,%d,%d\n", currentState.audc0, currentState.audf0, currentState.audv0));
-        } else {
-          w->writeText(fmt::sprintf("  byte %d,%d,%d\n", currentState.audc1, currentState.audf1, currentState.audv1));
+        break;
+      }
+      tick++;
+      if (curRowIndex.advance(e->getCurrentSubSong(), e->getOrder(), e->getRow())) {
+        if (NULL != key) {
+          w->writeText(fmt::sprintf("  byte %d, 255\n", tick - lastWriteTick));
+          lastWriteTick = tick;
+        }
+        logI("advancing %d %d %d %d", curRowIndex.subsong, curRowIndex.ord, curRowIndex.row, channel);
+        key = waveForms[curRowIndex.subsong][curRowIndex.ord][channel][curRowIndex.row];
+        if (NULL != key) {
+          logI("got key %s", key);
+          writeWaveformHeader(w, key);
         }
       }
+      // get register dumps
+      for (int i=0; i<e->song.systemLen; i++) {
+        bool isDirty = false;
+        std::vector<DivRegWrite>& registerWrites=e->getDispatch(i)->getRegisterWrites();
+        for (DivRegWrite& registerWrite: registerWrites) {
+          switch (registerWrite.addr) {
+            case AUDC0:
+            case AUDF0:
+            case AUDV0:
+              if (1 == channel) continue;
+              break;
+            case AUDC1:
+            case AUDF1:
+            case AUDV1:
+              if (0 == channel) continue;
+              break;
+            default:
+              continue;
+          }
+          isDirty |= currentState.write(registerWrite);
+        }
+        registerWrites.clear();
+        if (NULL != key && isDirty) {
+          // end last seq
+          int deltaTick = tick - lastWriteTick;
+          if (lastWriteTick > 0 && deltaTick > 0) {
+            w->writeText(fmt::sprintf("  byte %d\n", deltaTick));
+          }
+          // start next seq
+          lastWriteTick = tick;
+          if (0 == channel) {
+            w->writeText(fmt::sprintf("  byte %d,%d,%d\n", currentState.audc0, currentState.audf0, currentState.audv0));
+          } else {
+            w->writeText(fmt::sprintf("  byte %d,%d,%d\n", currentState.audc1, currentState.audf1, currentState.audv1));
+          }
+        }
+      }
+    }
+    if (NULL != key) {
+      // final seq
+      w->writeText(fmt::sprintf("  byte %d, 255\n", tick - lastWriteTick));
     }
   }
-
-  // final seq
-  w->writeText(fmt::sprintf("  byte %d, 255\n", tick - lastWriteTick));
-
   for (int i=0; i<e->song.systemLen; i++) {
     e->getDispatch(i)->toggleRegisterDump(false);
   }
 
 }
 
+void R9TrackerBuilder::writeWaveformHeader(SafeWriter* w, const char * key) {
+  w->writeText(fmt::sprintf("%s_ADDR\n", key));
+}
