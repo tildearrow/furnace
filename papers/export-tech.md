@@ -13,6 +13,20 @@ then read data.
 
 ## binary command stream
 
+Furnace Command Stream, split version.
+
+```
+size | description
+-----|------------------------------------
+  4  | "FCS\0" format magic
+  4  | channel count
+ 4?? | pointers to channel data
+ 2?? | preset delays
+     | - 16 values
+ 1?? | speed dial commands
+     | - 16 values
+```
+
 read channel, command and values.
 
 if channel is 80 or higher, then it is a special command:
