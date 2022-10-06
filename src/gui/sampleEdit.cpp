@@ -151,7 +151,7 @@ void FurnaceGUI::drawSampleEdit() {
             ImGui::Text("Loop Start");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::InputInt("##LoopStartPosition",&sample->loopStart,1,10)) { MARK_MODIFIED
+            if (ImGui::InputInt("##LoopStartPosition",&sample->loopStart,1,16)) { MARK_MODIFIED
               if (sample->loopStart<0) {
                 sample->loopStart=0;
               }
@@ -173,7 +173,7 @@ void FurnaceGUI::drawSampleEdit() {
             ImGui::Text("Loop End");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::InputInt("##LoopEndPosition",&sample->loopEnd,1,10)) { MARK_MODIFIED
+            if (ImGui::InputInt("##LoopEndPosition",&sample->loopEnd,1,16)) { MARK_MODIFIED
               if (sample->loopEnd<sample->loopStart) {
                 sample->loopEnd=sample->loopStart;
               }
@@ -734,7 +734,7 @@ void FurnaceGUI::drawSampleEdit() {
             ImGui::Text("Loop Start");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::InputInt("##LoopStartPosition",&sample->loopStart,1,10)) { MARK_MODIFIED
+            if (ImGui::InputInt("##LoopStartPosition",&sample->loopStart,1,16)) { MARK_MODIFIED
               if (sample->loopStart<0) {
                 sample->loopStart=0;
               }
@@ -756,7 +756,7 @@ void FurnaceGUI::drawSampleEdit() {
             ImGui::Text("Loop End");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::InputInt("##LoopEndPosition",&sample->loopEnd,1,10)) { MARK_MODIFIED
+            if (ImGui::InputInt("##LoopEndPosition",&sample->loopEnd,1,16)) { MARK_MODIFIED
               if (sample->loopEnd<sample->loopStart) {
                 sample->loopEnd=sample->loopStart;
               }
