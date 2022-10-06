@@ -396,6 +396,15 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_AY_NOISE_MASK_AND:
     case DIV_CMD_AY_NOISE_MASK_OR:
     case DIV_CMD_AY_AUTO_ENVELOPE:
+    case DIV_CMD_FDS_MOD_DEPTH:
+    case DIV_CMD_FDS_MOD_HIGH:
+    case DIV_CMD_FDS_MOD_LOW:
+    case DIV_CMD_FDS_MOD_POS:
+    case DIV_CMD_FDS_MOD_WAVE:
+    case DIV_CMD_SAA_ENVELOPE:
+    case DIV_CMD_AMIGA_FILTER:
+    case DIV_CMD_AMIGA_AM:
+    case DIV_CMD_AMIGA_PM:
       w->writeC(1); // length
       w->writeC(c.value);
       break;
@@ -426,6 +435,7 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
       break;
     case DIV_CMD_C64_FINE_DUTY:
     case DIV_CMD_C64_FINE_CUTOFF:
+    case DIV_CMD_LYNX_LFSR_LOAD:
       w->writeC(2); // length
       w->writeS(c.value);
       break;
