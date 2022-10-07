@@ -1348,8 +1348,8 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
         }
         if (ImGui::Button(macroTypeLabels[(i.macro->open>>1)&3])) {
           i.macro->open+=2;
-          if (i.macro->open>=8) {
-            i.macro->open-=8;
+          if (i.macro->open>=6) {
+            i.macro->open-=6;
           }
           PARAMETER;
         }
@@ -1363,9 +1363,6 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
               break;
             case 4:
               ImGui::SetTooltip("Macro type: LFO");
-              break;
-            case 6:
-              ImGui::SetTooltip("Macro type: ADSR+LFO");
               break;
             default:
               ImGui::SetTooltip("Macro type: What's going on here?");
@@ -1705,7 +1702,65 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
           }
         }
         if (i.macro->open&4) {
-          ImGui::Text("LFO...");
+          if (ImGui::BeginTable("MacroLFO",4)) {
+            ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.3);
+            ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
+            ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.3);
+            //ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch,0.4);
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("Bottom");
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::InputInt("##MABottom",&i.macro->val[0],1,16)) { PARAMETER
+              if (i.macro->val[0]<i.min) i.macro->val[0]=i.min;
+              if (i.macro->val[0]>i.max) i.macro->val[0]=i.max;
+            }
+
+            ImGui::TableNextColumn();
+            ImGui::Text("Top");
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (ImGui::InputInt("##MATop",&i.macro->val[1],1,16)) { PARAMETER
+              if (i.macro->val[1]<i.min) i.macro->val[1]=i.min;
+              if (i.macro->val[1]>i.max) i.macro->val[1]=i.max;
+            }
+
+            /*ImGui::TableNextColumn();
+            ImGui::Text("the envelope goes here");*/
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("Speed");
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (CWSliderInt("##MLSpeed",&i.macro->val[11],0,255)) { PARAMETER
+              if (i.macro->val[11]<0) i.macro->val[11]=0;
+              if (i.macro->val[11]>255) i.macro->val[11]=255;
+            }
+
+            ImGui::TableNextColumn();
+            ImGui::Text("Phase");
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (CWSliderInt("##MLPhase",&i.macro->val[13],0,1023)) { PARAMETER
+              if (i.macro->val[13]<0) i.macro->val[13]=0;
+              if (i.macro->val[13]>1023) i.macro->val[13]=1023;
+            }
+
+            ImGui::TableNextColumn();
+            ImGui::Text("Shape");
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (CWSliderInt("##MLShape",&i.macro->val[12],0,2)) { PARAMETER
+              if (i.macro->val[12]<0) i.macro->val[12]=0;
+              if (i.macro->val[12]>2) i.macro->val[12]=2;
+            }
+
+            ImGui::EndTable();
+          }
         }
       }
       ImGui::PopID();
