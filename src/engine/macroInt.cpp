@@ -31,11 +31,18 @@
 #define ADSR_SR source.val[7]
 #define ADSR_RR source.val[8]
 
+#define LFO_SPEED source.val[11]
+#define LFO_WAVE source.val[12]
+#define LFO_PHASE source.val[13]
+#define LFO_LOOP source.val[14]
+#define LFO_GLOBAL source.val[15]
+
 void DivMacroStruct::prepare(DivInstrumentMacro& source, DivEngine* e) {
   has=had=actualHad=will=true;
   mode=source.mode;
   type=(source.open>>1)&3;
   linger=(source.name=="vol" && e->song.volMacroLinger);
+  lfoPos=LFO_PHASE;
 }
 
 void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tick) {
@@ -86,7 +93,7 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
         }
       }
     }
-    if (type==1 || type==3) { // ADSR
+    if (type==1) { // ADSR
       if (released && lastPos<3) lastPos=3;
       switch (lastPos) {
         case 0: // attack
@@ -126,8 +133,23 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
       }
       val=ADSR_LOW+((pos+(ADSR_HIGH-ADSR_LOW)*pos)>>8);
     }
-    if (type==2 || type==3) { // LFO
-    
+    if (type==2) { // LFO
+      lfoPos+=LFO_SPEED;
+      lfoPos&=1023;
+
+      int lfoOut=0;
+      switch (LFO_WAVE&3) {
+        case 0: // triangle
+          lfoOut=((lfoPos&512)?(1023-lfoPos):(lfoPos))>>1;
+          break;
+        case 1: // saw
+          lfoOut=lfoPos>>2;
+          break;
+        case 2: // pulse
+          lfoOut=(lfoPos&512)?255:0;
+          break;
+      }
+      val=ADSR_LOW+((lfoOut+(ADSR_HIGH-ADSR_LOW)*lfoOut)>>8);
     }
   }
 }

@@ -32,7 +32,8 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
-- 119: Furnace dev119 (still not released)
+- 120: Furnace dev120
+- 119: Furnace dev119
 - 118: Furnace dev118
 - 117: Furnace dev117
 - 116: Furnace 0.6pre1.5
@@ -441,7 +442,6 @@ notes:
     - 0: sequence (normal)
     - 1: ADSR
     - 2: LFO
-    - 3: ADSR+LFO
   - see sub-section for information on how to interpret parameters.
 - FM operator order is:
   - 1/3/2/4 (internal order) for OPN, OPM, OPZ and OPL 4-op
@@ -1044,18 +1044,14 @@ size | description
   - `val[7]`: decay 2
   - `val[8]`: release
 - LFO:
-  - `val[9]`: bottom
-  - `val[10]`: top
   - `val[11]`: speed
   - `val[12]`: waveform
     - 0: triangle
-    - 1: sine
-    - 2: saw
-    - 3: pulse
+    - 1: saw
+    - 2: pulse
   - `val[13]`: phase
   - `val[14]`: loop
   - `val[15]`: global (not sure how will I implement this)
-- for ADSR+LFO just interpret both ADSR and LFO params.
 
 # wavetable
 
