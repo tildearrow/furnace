@@ -210,6 +210,10 @@ const char* macroTypeLabels[4]={
   ICON_FA_SIGN_OUT "##IMacroType"
 };
 
+const char* macroLFOShapes[4]={
+  "Triangle", "Saw", "Square", "How did you even"
+};
+
 const char* fmOperatorBits[5]={
   "op1", "op2", "op3", "op4", NULL
 };
@@ -1347,9 +1351,32 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
           }
         }
         if (ImGui::Button(macroTypeLabels[(i.macro->open>>1)&3])) {
+          unsigned char prevOpen=i.macro->open;
           i.macro->open+=2;
           if (i.macro->open>=6) {
             i.macro->open-=6;
+          }
+
+          // check whether macro type is now ADSR/LFO or sequence
+          if (((prevOpen&6)?1:0)!=((i.macro->open&6)?1:0)) {
+            // swap memory
+            // this way the macro isn't corrupted if the user decides to go
+            // back to sequence mode
+            i.macro->len^=i.macro->lenMemory;
+            i.macro->lenMemory^=i.macro->len;
+            i.macro->len^=i.macro->lenMemory;
+
+            for (int j=0; j<16; j++) {
+              i.macro->val[j]^=i.macro->typeMemory[j];
+              i.macro->typeMemory[j]^=i.macro->val[j];
+              i.macro->val[j]^=i.macro->typeMemory[j];
+            }
+
+            // if ADSR/LFO, populate min/max
+            if (i.macro->open&6) {
+              i.macro->val[0]=i.min;
+              i.macro->val[1]=i.max;
+            }
           }
           PARAMETER;
         }
@@ -1368,6 +1395,9 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
               ImGui::SetTooltip("Macro type: What's going on here?");
               break;
           }
+        }
+        if (i.macro->open&6) {
+          i.macro->len=16;
         }
         ImGui::SameLine();
         ImGui::Button(ICON_FA_ELLIPSIS_H "##IMacroSet");
@@ -1754,7 +1784,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
             ImGui::Text("Shape");
             ImGui::TableNextColumn();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (CWSliderInt("##MLShape",&i.macro->val[12],0,2)) { PARAMETER
+            if (CWSliderInt("##MLShape",&i.macro->val[12],0,2,macroLFOShapes[i.macro->val[12]&3])) { PARAMETER
               if (i.macro->val[12]<0) i.macro->val[12]=0;
               if (i.macro->val[12]>2) i.macro->val[12]=2;
             }
