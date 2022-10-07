@@ -177,7 +177,7 @@ struct DivInstrumentMacro {
   String name;
   int val[256];
   unsigned int mode;
-  bool open;
+  unsigned char open;
   unsigned char len, delay, speed, loop, rel;
   
   // the following variables are used by the GUI and not saved in the file

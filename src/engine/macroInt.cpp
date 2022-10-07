@@ -21,9 +21,20 @@
 #include "instrument.h"
 #include "engine.h"
 
+#define ADSR_LOW source.val[0]
+#define ADSR_HIGH source.val[1]
+#define ADSR_AR source.val[2]
+#define ADSR_HT source.val[3]
+#define ADSR_DR source.val[4]
+#define ADSR_SL source.val[5]
+#define ADSR_ST source.val[6]
+#define ADSR_SR source.val[7]
+#define ADSR_RR source.val[8]
+
 void DivMacroStruct::prepare(DivInstrumentMacro& source, DivEngine* e) {
   has=had=actualHad=will=true;
   mode=source.mode;
+  type=(source.open>>1)&3;
   linger=(source.name=="vol" && e->song.volMacroLinger);
 }
 
@@ -53,24 +64,70 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
   }
   actualHad=has;
   had=actualHad;
+
   if (has) {
-    lastPos=pos;
-    val=source.val[pos++];
-    if (pos>source.rel && !released) {
-      if (source.loop<source.len && source.loop<source.rel) {
-        pos=source.loop;
-      } else {
-        pos--;
+    if (type==0) { // sequence
+      lastPos=pos;
+      val=source.val[pos++];
+      if (pos>source.rel && !released) {
+        if (source.loop<source.len && source.loop<source.rel) {
+          pos=source.loop;
+        } else {
+          pos--;
+        }
+      }
+      if (pos>=source.len) {
+        if (source.loop<source.len && (source.loop>=source.rel || source.rel>=source.len)) {
+          pos=source.loop;
+        } else if (linger) {
+          pos--;
+        } else {
+          has=false;
+        }
       }
     }
-    if (pos>=source.len) {
-      if (source.loop<source.len && (source.loop>=source.rel || source.rel>=source.len)) {
-        pos=source.loop;
-      } else if (linger) {
-        pos--;
-      } else {
-        has=false;
+    if (type==1 || type==3) { // ADSR
+      if (released && lastPos<3) lastPos=3;
+      switch (lastPos) {
+        case 0: // attack
+          pos+=ADSR_AR;
+          if (pos>255) {
+            pos=255;
+            lastPos=1;
+            delay=ADSR_HT;
+          }
+          break;
+        case 1: // decay
+          pos-=ADSR_DR;
+          if (pos<=ADSR_SL) {
+            pos=ADSR_SL;
+            lastPos=2;
+            delay=ADSR_ST;
+          }
+          break;
+        case 2: // sustain
+          pos-=ADSR_SR;
+          if (pos<0) {
+            pos=0;
+            lastPos=4;
+          }
+          break;
+        case 3: // release
+          pos-=ADSR_RR;
+          if (pos<0) {
+            pos=0;
+            lastPos=4;
+          }
+          break;
+        case 4: // end
+          pos=0;
+          if (!linger) has=false;
+          break;
       }
+      val=ADSR_LOW+((pos+(ADSR_HIGH-ADSR_LOW)*pos)>>8);
+    }
+    if (type==2 || type==3) { // LFO
+    
     }
   }
 }

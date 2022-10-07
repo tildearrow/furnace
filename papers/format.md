@@ -437,6 +437,12 @@ notes:
 - the entire instrument is stored, regardless of instrument type.
 - the macro range varies depending on the instrument type.
 - "macro open" indicates whether the macro is collapsed or not in the instrument editor.
+  - as of format version 120, bit 1-2 indicates macro mode:
+    - 0: sequence (normal)
+    - 1: ADSR
+    - 2: LFO
+    - 3: ADSR+LFO
+  - see sub-section for information on how to interpret parameters.
 - FM operator order is:
   - 1/3/2/4 (internal order) for OPN, OPM, OPZ and OPL 4-op
   - 1/2/?/? (? = unused) for OPL 2-op and OPLL
@@ -1023,6 +1029,33 @@ size | description
   1  | WS macro delay
   1  | KSR macro delay
 ```
+
+## interpreting macro mode values
+
+- sequence (normal): I think this is obvious...
+- ADSR:
+  - `val[0]`: bottom
+  - `val[1]`: top
+  - `val[2]`: attack
+  - `val[3]`: hold time
+  - `val[4]`: decay
+  - `val[5]`: sustain level
+  - `val[6]`: sustain hold time
+  - `val[7]`: decay 2
+  - `val[8]`: release
+- LFO:
+  - `val[9]`: bottom
+  - `val[10]`: top
+  - `val[11]`: speed
+  - `val[12]`: waveform
+    - 0: triangle
+    - 1: sine
+    - 2: saw
+    - 3: pulse
+  - `val[13]`: phase
+  - `val[14]`: loop
+  - `val[15]`: global (not sure how will I implement this)
+- for ADSR+LFO just interpret both ADSR and LFO params.
 
 # wavetable
 
