@@ -1210,7 +1210,7 @@ void FurnaceGUI::drawPattern() {
   }
   ImGui::PopStyleVar();
   if (patternOpen) {
-    if (!inhibitMenu && ImGui::IsItemClicked(ImGuiMouseButton_Right)) ImGui::OpenPopup("patternActionMenu");
+    if (!inhibitMenu && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) ImGui::OpenPopup("patternActionMenu");
     if (ImGui::BeginPopup("patternActionMenu",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
       editOptions(false);
       ImGui::EndPopup();
