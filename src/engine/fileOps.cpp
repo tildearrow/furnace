@@ -494,6 +494,19 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
                ins->fm.op[j].ssgEnv
                );
         }
+
+        // swap alg operator 2 and 3 if YMU759
+        if (ds.system[0]==DIV_SYSTEM_YMU759 && ins->fm.ops==4) {
+          DivInstrumentFM::Operator oldOp=ins->fm.op[2];
+          ins->fm.op[2]=ins->fm.op[1];
+          ins->fm.op[1]=oldOp;
+
+          if (ins->fm.alg==1) {
+            ins->fm.alg=2;
+          } else if (ins->fm.alg==2) {
+            ins->fm.alg=1;
+          }
+        }
       } else { // STD
         if (ds.system[0]!=DIV_SYSTEM_GB || ds.version<0x12) {
           ins->std.volMacro.len=reader.readC();
