@@ -415,6 +415,8 @@ int DivPlatformNES::dispatch(DivCommand c) {
       chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
+      }
+      if (!parent->song.brokenOutVol2) {
         if (c.chan==2) {
           rWrite(0x4000+c.chan*4,0xff);
         } else {

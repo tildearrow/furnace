@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 121: Furnace dev121
 - 120: Furnace dev120
 - 119: Furnace dev119
 - 118: Furnace dev118
@@ -351,7 +352,9 @@ size | description
   1  | 0B/0D effect treatment (>=113) or reserved
   1  | automatic system name detection (>=115) or reserved
      | - this one isn't a compatibility flag, but it's here for convenience...
-  3  | reserved
+  1  | disable sample macro (>=117) or reserved
+  1  | broken outVol episode 2 (>=121) or reserved
+  1  | reserved
  --- | **virtual tempo data**
   2  | virtual tempo numerator of first song (>=96) or reserved
   2  | virtual tempo denominator of first song (>=96) or reserved

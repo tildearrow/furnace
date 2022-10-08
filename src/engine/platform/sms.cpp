@@ -249,7 +249,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
         chan[c.chan].actualNote=c.value;
       }
       chan[c.chan].active=true;
-      if (!parent->song.brokenOutVol) {
+      if (!parent->song.brokenOutVol2) {
         rWrite(0,0x90|c.chan<<5|(isMuted[c.chan]?15:(15-(chan[c.chan].vol&15))));
       }
       chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));

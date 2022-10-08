@@ -174,7 +174,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.noOPN2Vol=true;
     ds.newVolumeScaling=false;
     ds.volMacroLinger=false;
-    ds.brokenOutVol=true; // ???
+    ds.brokenOutVol=true;
+    ds.brokenOutVol2=true;
     ds.e1e2StopOnSameNote=true;
     ds.brokenPortaArp=false;
     ds.snNoLowPeriods=true;
@@ -1689,6 +1690,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<117) {
       ds.disableSampleMacro=true;
     }
+    if (ds.version<121) {
+      ds.brokenOutVol2=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -2126,7 +2130,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<2; i++) {
+      if (ds.version>=121) {
+        ds.brokenOutVol2=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<1; i++) {
         reader.readC();
       }
     }
@@ -4464,7 +4473,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.jumpTreatment);
   w->writeC(song.autoSystem);
   w->writeC(song.disableSampleMacro);
-  for (int i=0; i<2; i++) {
+  w->writeC(song.brokenOutVol2);
+  for (int i=0; i<1; i++) {
     w->writeC(0);
   }
 
