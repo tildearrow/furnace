@@ -169,7 +169,9 @@ void DivPlatformGB::tick(bool sysTick) {
         if (chan[i].baseFreq>255) chan[i].baseFreq=255;
         if (chan[i].baseFreq<0) chan[i].baseFreq=0;
       } else {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val,24));
+        if (!chan[i].inPorta) {
+          chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val,24));
+        }
       }
       chan[i].freqChanged=true;
     }
