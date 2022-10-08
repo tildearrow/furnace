@@ -28,6 +28,9 @@
 #include "sampleUtil.h"
 #include "util.h"
 
+#define CENTER_TEXT(text) \
+  ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
+
 void FurnaceGUI::drawSampleEdit() {
   if (nextWindow==GUI_WINDOW_SAMPLE_EDIT) {
     sampleEditOpen=true;
@@ -43,7 +46,40 @@ void FurnaceGUI::drawSampleEdit() {
   }
   if (ImGui::Begin("Sample Editor",&sampleEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curSample<0 || curSample>=(int)e->song.sample.size()) {
+      ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()*2.0f)*0.5f);
+      CENTER_TEXT("no sample selected");
       ImGui::Text("no sample selected");
+      if (ImGui::BeginTable("noAssetCenter",3)) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.5f);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5f);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableNextColumn();
+
+        if (e->song.sample.size()>0) {
+          if (ImGui::BeginCombo("##SampleSelect","select one...")) {
+            actualSampleList();
+            ImGui::EndCombo();
+          }
+          ImGui::SameLine();
+          ImGui::TextUnformatted("or");
+          ImGui::SameLine();
+        }
+        if (ImGui::Button("Open")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_OPEN);
+        }
+        ImGui::SameLine();
+        ImGui::TextUnformatted("or");
+        ImGui::SameLine();
+        if (ImGui::Button("Create New")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_ADD);
+        }
+
+        ImGui::TableNextColumn();
+        ImGui::EndTable();
+      }
     } else {
       DivSample* sample=e->song.sample[curSample];
       String sampleType="Invalid";

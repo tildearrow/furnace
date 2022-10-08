@@ -1940,6 +1940,12 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::TextUnformatted("or");
           ImGui::SameLine();
         }
+        if (ImGui::Button("Open")) {
+          doAction(GUI_ACTION_INS_LIST_OPEN);
+        }
+        ImGui::SameLine();
+        ImGui::TextUnformatted("or");
+        ImGui::SameLine();
         if (ImGui::Button("Create New")) {
           doAction(GUI_ACTION_INS_LIST_ADD);
         }
