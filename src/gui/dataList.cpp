@@ -436,9 +436,11 @@ void FurnaceGUI::drawInsList(bool asChild) {
           }
         }
         if (i>=0) {
-          DivInstrument* ins=e->song.ins[i];
-          ImGui::SameLine();
-          ImGui::Text("%.2X: %s",i,ins->name.c_str());
+          if (i<(int)e->song.ins.size()) {
+            DivInstrument* ins=e->song.ins[i];
+            ImGui::SameLine();
+            ImGui::Text("%.2X: %s",i,ins->name.c_str());
+          }
         } else {
           ImGui::SameLine();
           ImGui::Text("- None -");
