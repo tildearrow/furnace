@@ -32,11 +32,6 @@ typedef struct
 
 class T6W28_Apu {
 public:
-	// Set overall volume of all oscillators, where 1.0 is full volume
-	void volume( double );
-	
-	// Set treble equalization
-	void treble_eq( const blip_eq_t& );
 	
 	// Outputs can be assigned to a single buffer for mono output, or to three
 	// buffers for stereo output (using Stereo_Buffer to do the mixing).

@@ -228,18 +228,6 @@ T6W28_Apu::~T6W28_Apu()
 {
 }
 
-void T6W28_Apu::volume( double vol )
-{
-	vol *= 0.85 / (osc_count * 64 * 2);
-	square_synth.volume( vol );
-	noise.synth.volume( vol );
-}
-
-void T6W28_Apu::treble_eq( const blip_eq_t& eq )
-{
-	square_synth.treble_eq( eq );
-	noise.synth.treble_eq( eq );
-}
 
 void T6W28_Apu::osc_output( int index, Blip_Buffer* center, Blip_Buffer* left, Blip_Buffer* right )
 {
@@ -368,64 +356,6 @@ void T6W28_Apu::write_data_right( sms_time_t time, int data )
                 noise.tap = (data & 0x04) ? 13 : tap_disabled;
                 noise.shifter = 0x4000;
         }
-}
-
-
-void T6W28_Apu::save_state(T6W28_ApuState *ret)
-{
- for(int x = 0; x < 4; x++)
- {
-  ret->delay[x] = oscs[x]->delay;
-  ret->volume_left[x] = oscs[x]->volume_left;
-  ret->volume_right[x] = oscs[x]->volume_right;
- }
- for(int x = 0; x < 3; x++)
- {
-  ret->sq_period[x] = squares[x].period;
-  ret->sq_phase[x] = squares[x].phase;
- }
- ret->noise_shifter = noise.shifter;
- ret->noise_tap = noise.tap;
- ret->noise_period_extra = noise.period_extra;
-
- if(noise.period == &noise_periods[0])
-  ret->noise_period = 0;
- else if(noise.period == &noise_periods[1])
-  ret->noise_period = 1;
- else if(noise.period == &noise_periods[2])
-  ret->noise_period = 2;
- else ret->noise_period = 3;
-
- ret->latch_left = latch_left;
- ret->latch_right = latch_right;
-}
-
-void T6W28_Apu::load_state(const T6W28_ApuState *state)
-{
- for(int x = 0; x < 4; x++)
- {
-  oscs[x]->delay = state->delay[x] & ((x == 3) ? 0x7FFF : 0x3FFF);
-  oscs[x]->volume_left = state->volume_left[x];
-  oscs[x]->volume_right = state->volume_right[x];
- }
- for(int x = 0; x < 3; x++)
- {
-  squares[x].period = state->sq_period[x] & 0x3FFF;
-  squares[x].phase = state->sq_phase[x];
- }
- noise.shifter = state->noise_shifter;
- noise.tap = state->noise_tap;
- noise.period_extra = state->noise_period_extra & 0x3FFF;
-
- unsigned select = state->noise_period;
-
- if ( select < 3 )
-  noise.period = &noise_periods [select];
- else
-  noise.period = &noise.period_extra;
-
- latch_left = state->latch_left;
- latch_right = state->latch_right;
 }
 
 }
