@@ -37,10 +37,13 @@ NUM_AUDIO_CHANNELS = 2
 
 frame              ds 1  ; frame counter
 
-audio_tracker      ds 2  ; current track index
-audio_waveform_idx ds 2  ; current channel index
-audio_timer        ds 2  ; time left on audio
-tmp_waveform_ptr   ds 2  ; current waveform ptr
+audio_order        ds 1  ; where are we in song
+audio_row_idx      ds 1  ; where are we in pattern
+audio_pattern_idx  ds 2  ; which pattern is playing
+audio_waveform_idx ds 2  ; where are we in waveform
+audio_timer        ds 2  ; time left on next action
+tmp_pattern_ptr    ds 2  ; holding for pattern ptr
+tmp_waveform_ptr   ds 2  ; holding for waveform ptr
 
 vis_frequency      ds 2
 vis_amplitude      ds 2
@@ -61,10 +64,14 @@ CleanStart
             CLEAN_START
 
             ; load track
-            lda #PAT_S00_C00_P00
-            sta audio_tracker
-            lda #PAT_S00_C01_P00
-            sta audio_tracker + 1
+            ldy #0
+            lda ORDERS,y
+            sta audio_pattern_idx
+            iny
+            lda ORDERS,y
+            sta audio_pattern_idx+1
+            iny
+            sty audio_order
 
 newFrame
 
@@ -104,20 +111,25 @@ _end_switches
 ; -- audio tracker
 ;
 
+audio_tracker           
             ldx #NUM_AUDIO_CHANNELS - 1
 audio_loop 
-            lda audio_tracker,x
-            beq _audio_next_channel
             ldy audio_timer,x
-            dey
             beq _audio_next_note
+            dey
             sty audio_timer,x
             jmp _audio_next_channel
 _audio_next_note
-            tay
+            ldy audio_pattern_idx,x 
+            lda PAT_TABLE_START,y
+_audio_next_note_t
+            sta tmp_pattern_ptr
+            lda PAT_TABLE_START+1,y
+            sta tmp_pattern_ptr + 1
+            ldy audio_row_idx
+            lda (tmp_pattern_ptr),y
 _audio_next_note_ty
-            lda AUDIO_TRACKS,y
-            tay
+            tay                       ; y is now waveform ptr
             lda WF_TABLE_START,y
             sta tmp_waveform_ptr
             lda WF_TABLE_START+1,y
@@ -143,23 +155,50 @@ _audio_next_note_ty
             sty audio_waveform_idx,x
             jmp _audio_next_channel
 _audio_advance_tracker ; got a 255 on waveform
-            lda #$0
+            lda #255
+            sta audio_timer,x
+            lda #255
             sta audio_waveform_idx,x
-            ldy audio_tracker,x
-            iny 
-            lda AUDIO_TRACKS,y ; store next track #
-            cmp #255
-            beq _audio_change_track
-            sty audio_tracker,x
-            jmp _audio_next_note_ty; if not 255 loop back 
-_audio_change_track ; got a 255 on track
-            iny
-            lda AUDIO_TRACKS,y ; loop
-            sta audio_tracker,x
-            jmp _audio_next_note ; if not 255 loop back 
 _audio_next_channel
             dex
             bpl audio_loop
+
+            ; update track - check if both waveforms done
+            lda audio_waveform_idx
+            and audio_waveform_idx+1
+            cmp #255
+            bne audio_end            
+            lda #0
+            sta audio_timer
+            sta audio_timer+1
+            sta audio_waveform_idx
+            sta audio_waveform_idx+1
+            ldy audio_row_idx
+            iny
+            lda (tmp_pattern_ptr),y
+            cmp #255
+            beq _audio_advance_order
+            sty audio_row_idx
+            jmp audio_tracker; if not 255 loop back 
+_audio_advance_order ; got a 255 on pattern
+            lda #0
+            sta audio_row_idx
+            ldy audio_order
+            lda ORDERS,y
+            cmp #255
+            bne _audio_advance_order_advance_pattern
+            ldy #0
+            lda ORDERS,y
+_audio_advance_order_advance_pattern
+            sta audio_pattern_idx
+            iny
+            lda ORDERS,y
+            sta audio_pattern_idx+1
+            iny
+            sty audio_order
+            jmp audio_tracker;  loop back 
+
+audio_end
 
 ;---------------------
 ; vis timing

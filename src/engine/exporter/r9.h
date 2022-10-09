@@ -22,6 +22,19 @@
 
 #include "../engine.h"
 
+struct TiaRegisters {
+
+  unsigned char audc0;
+  unsigned char audc1;
+  unsigned char audf0;
+  unsigned char audf1;
+  unsigned char audv0;
+  unsigned char audv1;
+
+  bool write(const DivRegWrite& registerWrite);
+
+};
+
 class R9 {
 
   DivEngine* e;
@@ -29,6 +42,7 @@ class R9 {
   void dumpRegisters(SafeWriter* w);
   void writeTrackData(SafeWriter* w);
   void writeWaveformHeader(SafeWriter* w, const char * key);
+  void writeRegisters(SafeWriter* w, const TiaRegisters& reg, int channel);
 
 public:    
 
