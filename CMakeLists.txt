@@ -435,6 +435,8 @@ src/engine/platform/sound/ymz280b.cpp
 
 src/engine/platform/sound/vsu.cpp
 
+src/engine/platform/sound/t6w28/T6W28_Apu.cpp
+
 src/engine/platform/sound/rf5c68.cpp
 
 src/engine/platform/sound/oki/msm5232.cpp
