@@ -491,6 +491,15 @@ bool FurnaceGUI::CWVSliderInt(const char* label, const ImVec2& size, int* v, int
   return CWVSliderScalar(label,size,ImGuiDataType_S32,v,&v_min,&v_max,format,flags);
 }
 
+bool FurnaceGUI::InvCheckbox(const char* label, bool* value) {
+  bool t=!(*value);
+  if (ImGui::Checkbox(label,&t)) {
+    *value=t;
+    return true;
+  }
+  return false;
+}
+
 const char* FurnaceGUI::getSystemName(DivSystem which) {
   /*
   if (settings.chipNames) {

@@ -1644,6 +1644,9 @@ class FurnaceGUI {
   bool CWSliderFloat(const char* label, float* v, float v_min, float v_max, const char* format="%.3f", ImGuiSliderFlags flags=0);
   bool CWVSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format="%d", ImGuiSliderFlags flags=0);
 
+  // inverted checkbox
+  bool InvCheckbox(const char* label, bool* value);
+
   void updateWindowTitle();
   void autoDetectSystem();
   void prepareLayout();
