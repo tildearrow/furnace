@@ -179,11 +179,13 @@ struct DivInstrumentMacro {
   String name;
   int val[256];
   unsigned int mode;
-  bool open;
+  unsigned char open;
   unsigned char len, delay, speed, loop, rel;
   
   // the following variables are used by the GUI and not saved in the file
   int vScroll, vZoom;
+  int typeMemory[16];
+  unsigned char lenMemory;
 
   explicit DivInstrumentMacro(const String& n, bool initOpen=false):
     name(n),
@@ -195,8 +197,10 @@ struct DivInstrumentMacro {
     loop(255),
     rel(255),
     vScroll(0),
-    vZoom(-1) {
+    vZoom(-1),
+    lenMemory(0) {
     memset(val,0,256*sizeof(int));
+    memset(typeMemory,0,16*sizeof(int));
   }
 };
 

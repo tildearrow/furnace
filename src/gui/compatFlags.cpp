@@ -139,6 +139,10 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("if enabled, no checks for the presence of a volume macro will be made.\nthis will cause the last macro value to linger unless a value in the volume column is present.");
     }
+    ImGui::Checkbox("Broken output volume - Episode 2 (PLEASE KEEP ME DISABLED)",&e->song.brokenOutVol2);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("these compatibility flags are getting SO damn ridiculous and out of control.\nas you may have guessed, this one exists due to yet ANOTHER DefleMask-specific behavior.\nplease keep this off at all costs, because I will not support it when ROM export comes.\noh, and don't start an argument out of it. Furnace isn't a DefleMask replacement, and no,\nI am not trying to make it look like one with all these flags.\n\noh, and what about the other flags that don't have to do with DefleMask?\nthose are for .mod import, future FamiTracker import and personal taste!\n\nend of rant");
+    }
     ImGui::Checkbox("Treat SN76489 periods under 8 as 1",&e->song.snNoLowPeriods);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, any SN period under 8 will be written as 1 instead.\nthis replicates DefleMask behavior, but reduces available period range.");

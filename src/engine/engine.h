@@ -47,8 +47,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev119"
-#define DIV_ENGINE_VERSION 119
+#define DIV_VERSION "dev121"
+#define DIV_ENGINE_VERSION 121
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -906,6 +906,9 @@ class DivEngine {
     // load sample ROMs
     int loadSampleROMs();
 
+    // get the sample format mask
+    unsigned int getSampleFormatMask();
+
     // UNSAFE render samples - only execute when locked
     void renderSamples();
 
@@ -954,6 +957,9 @@ class DivEngine {
 
     // get warnings
     String getWarnings();
+
+    // get debug info
+    String getPlaybackDebugInfo();
 
     // switch master
     bool switchMaster();

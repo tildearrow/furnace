@@ -1443,6 +1443,11 @@ void FurnaceGUI::drawSettings() {
             settings.germanNotation=germanNotationB;
           }
 
+          bool centerPatternB=settings.centerPattern;
+          if (ImGui::Checkbox("Center pattern view",&centerPatternB)) {
+            settings.centerPattern=centerPatternB;
+          }
+
           bool unsignedDetuneB=settings.unsignedDetune;
           if (ImGui::Checkbox("Unsigned FM detune values",&unsignedDetuneB)) {
             settings.unsignedDetune=unsignedDetuneB;
@@ -2363,6 +2368,7 @@ void FurnaceGUI::syncSettings() {
   settings.maxRecentFile=e->getConfInt("maxRecentFile",10);
   settings.midiOutClock=e->getConfInt("midiOutClock",0);
   settings.midiOutMode=e->getConfInt("midiOutMode",1);
+  settings.centerPattern=e->getConfInt("centerPattern",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2466,6 +2472,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.maxRecentFile,0,30);
   clampSetting(settings.midiOutClock,0,1);
   clampSetting(settings.midiOutMode,0,2);
+  clampSetting(settings.centerPattern,0,1);
 
   String initialSys2=e->getConfString("initialSys2","");
   if (initialSys2.empty()) {
@@ -2630,6 +2637,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("maxRecentFile",settings.maxRecentFile);
   e->setConf("midiOutClock",settings.midiOutClock);
   e->setConf("midiOutMode",settings.midiOutMode);
+  e->setConf("centerPattern",settings.centerPattern);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

@@ -174,7 +174,8 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.noOPN2Vol=true;
     ds.newVolumeScaling=false;
     ds.volMacroLinger=false;
-    ds.brokenOutVol=true; // ???
+    ds.brokenOutVol=true;
+    ds.brokenOutVol2=true;
     ds.e1e2StopOnSameNote=true;
     ds.brokenPortaArp=false;
     ds.snNoLowPeriods=true;
@@ -205,6 +206,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     /*if (ds.version<21 && (ds.system[0]==DIV_SYSTEM_C64_6581 || ds.system[0]==DIV_SYSTEM_C64_8580)) {
       ds.tuning=433.2;
     }*/
+
+    // Game Boy arp+soundLen screwery
+    ds.systemFlags[0].set("enoughAlready",true);
 
     logI("reading module data...");
     if (ds.version>0x0c) {
@@ -489,6 +493,19 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
                ins->fm.op[j].d2r,
                ins->fm.op[j].ssgEnv
                );
+        }
+
+        // swap alg operator 2 and 3 if YMU759
+        if (ds.system[0]==DIV_SYSTEM_YMU759 && ins->fm.ops==4) {
+          DivInstrumentFM::Operator oldOp=ins->fm.op[2];
+          ins->fm.op[2]=ins->fm.op[1];
+          ins->fm.op[1]=oldOp;
+
+          if (ins->fm.alg==1) {
+            ins->fm.alg=2;
+          } else if (ins->fm.alg==2) {
+            ins->fm.alg=1;
+          }
         }
       } else { // STD
         if (ds.system[0]!=DIV_SYSTEM_GB || ds.version<0x12) {
@@ -1686,6 +1703,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<117) {
       ds.disableSampleMacro=true;
     }
+    if (ds.version<121) {
+      ds.brokenOutVol2=false;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -2123,7 +2143,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<2; i++) {
+      if (ds.version>=121) {
+        ds.brokenOutVol2=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<1; i++) {
         reader.readC();
       }
     }
@@ -4461,7 +4486,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.jumpTreatment);
   w->writeC(song.autoSystem);
   w->writeC(song.disableSampleMacro);
-  for (int i=0; i<2; i++) {
+  w->writeC(song.brokenOutVol2);
+  for (int i=0; i<1; i++) {
     w->writeC(0);
   }
 
@@ -4977,8 +5003,6 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         }
       }
 
-      // TODO: take care of new arp macro format
-      w->writeC(i->std.arpMacro.len);
       bool arpMacroMode=false;
       int arpMacroHowManyFixed=0;
       int realArpMacroLen=i->std.arpMacro.len;
@@ -4996,13 +5020,25 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
         }
       }
 
+      if (realArpMacroLen>127) realArpMacroLen=127;
+
+      w->writeC(realArpMacroLen);
+
       if (arpMacroMode) {
         for (int j=0; j<realArpMacroLen; j++) {
-          w->writeI(i->std.arpMacro.val[j]);
+          if ((i->std.arpMacro.val[j]&0xc0000000)==0x40000000 || (i->std.arpMacro.val[j]&0xc0000000)==0x80000000) {
+            w->writeI(i->std.arpMacro.val[j]^0x40000000);
+          } else {
+            w->writeI(i->std.arpMacro.val[j]);
+          }
         }
       } else {
         for (int j=0; j<realArpMacroLen; j++) {
-          w->writeI(i->std.arpMacro.val[j]+12);
+          if ((i->std.arpMacro.val[j]&0xc0000000)==0x40000000 || (i->std.arpMacro.val[j]&0xc0000000)==0x80000000) {
+            w->writeI((i->std.arpMacro.val[j]^0x40000000)+12);
+          } else {
+            w->writeI(i->std.arpMacro.val[j]+12);
+          }
         }
       }
       if (realArpMacroLen>0) {

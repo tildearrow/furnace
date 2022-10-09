@@ -22,6 +22,7 @@
 #include "plot_nolerp.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
+#include <fmt/printf.h>
 #include <math.h>
 #include <imgui.h>
 
@@ -175,7 +176,40 @@ void FurnaceGUI::drawWaveEdit() {
   }
   if (ImGui::Begin("Wavetable Editor",&waveEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curWave<0 || curWave>=(int)e->song.wave.size()) {
+      ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()*2.0f)*0.5f);
+      CENTER_TEXT("no wavetable selected");
       ImGui::Text("no wavetable selected");
+      if (ImGui::BeginTable("noAssetCenter",3)) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.5f);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5f);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableNextColumn();
+
+        if (e->song.wave.size()>0) {
+          if (ImGui::BeginCombo("##WaveSelect","select one...")) {
+            actualWaveList();
+            ImGui::EndCombo();
+          }
+          ImGui::SameLine();
+          ImGui::TextUnformatted("or");
+          ImGui::SameLine();
+        }
+        if (ImGui::Button("Open")) {
+          doAction(GUI_ACTION_WAVE_LIST_OPEN);
+        }
+        ImGui::SameLine();
+        ImGui::TextUnformatted("or");
+        ImGui::SameLine();
+        if (ImGui::Button("Create New")) {
+          doAction(GUI_ACTION_WAVE_LIST_ADD);
+        }
+
+        ImGui::TableNextColumn();
+        ImGui::EndTable();
+      }
     } else {
       DivWavetable* wave=e->song.wave[curWave];
 

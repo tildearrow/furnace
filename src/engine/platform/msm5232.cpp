@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#define _USE_MATH_DEFINES
 #include "msm5232.h"
 #include "../engine.h"
 #include <math.h>
@@ -52,13 +53,26 @@ void DivPlatformMSM5232::acquire(short* bufL, short* bufR, size_t start, size_t 
       regPool[w.addr&0x0f]=w.val;
       writes.pop();
     }
-    memset(temp,0,16*sizeof(short));
 
-    /*for (int i=0; i<8; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP((pce->channel[i].blip_prev_samp[0]+pce->channel[i].blip_prev_samp[1])<<1,-32768,32767);
-    }*/
+    for (int i=0; i<8; i++) {
+      int o=(
+        ((regPool[12+(i>>4)]&1)?((msm->vo16[i]*partVolume[3+(i&4)])>>8):0)+
+        ((regPool[12+(i>>4)]&2)?((msm->vo8[i]*partVolume[2+(i&4)])>>8):0)+
+        ((regPool[12+(i>>4)]&4)?((msm->vo4[i]*partVolume[1+(i&4)])>>8):0)+
+        ((regPool[12+(i>>4)]&8)?((msm->vo2[i]*partVolume[i&4])>>8):0)
+      )<<3;
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(o,-32768,32767);
+    }
 
-    msm->sound_stream_update(temp);
+    clockDriftLFOPos+=clockDriftLFOSpeed;
+    clockDriftLFOPos&=(1U<<21)-1;
+    clockDriftAccum+=clockDriftLFOWave[clockDriftLFOPos>>13];
+    if (clockDriftAccum>=2048) {
+      clockDriftAccum-=2048;
+    } else {
+      memset(temp,0,16*sizeof(short));
+      msm->sound_stream_update(temp);
+    }
     
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
     bufL[h]=0;
@@ -229,9 +243,21 @@ int DivPlatformMSM5232::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_WAVE:
+      groupControl[c.chan>>2]=c.value&0x1f;
+      updateGroup[c.chan>>2]=true;
+      break;
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].noise=c.value;
       chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_FM_AR:
+      groupAR[c.chan>>2]=attackMap[c.value&7];
+      updateGroupAR[c.chan>>2]=true;
+      break;
+    case DIV_CMD_FM_DR:
+      groupDR[c.chan>>2]=decayMap[c.value&15];
+      updateGroupDR[c.chan>>2]=true;
       break;
     case DIV_CMD_LEGATO:
       chan[c.chan].baseFreq=NOTE_LINEAR(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
@@ -310,6 +336,8 @@ void DivPlatformMSM5232::reset() {
   cycles=0;
   curChan=-1;
   delay=500;
+  clockDriftLFOPos=0;
+  clockDriftAccum=0;
 
   for (int i=0; i<2; i++) {
     groupControl[i]=15|(groupEnv[i]?0x20:0);
@@ -381,6 +409,11 @@ void DivPlatformMSM5232::setFlags(const DivConfig& flags) {
     capacitance[6]*0.000000001,
     capacitance[7]*0.000000001
   );
+
+  for (int i=0; i<256; i++) {
+    clockDriftLFOWave[i]=(1.0+sin(M_PI*(double)i/128.0))*flags.getInt("vibDepth",0.0f);
+  }
+  clockDriftLFOSpeed=flags.getInt("vibSpeed",0);
 }
 
 void DivPlatformMSM5232::poke(unsigned int addr, unsigned short val) {

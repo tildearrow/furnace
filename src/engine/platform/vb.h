@@ -17,26 +17,27 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _GB_H
-#define _GB_H
+#ifndef _PLATFORM_VB_H
+#define _PLATFORM_VB_H
 
 #include "../dispatch.h"
+#include <queue>
 #include "../macroInt.h"
 #include "../waveSynth.h"
-#include "sound/gb/gb.h"
-#include <queue>
+#include "sound/vsu.h"
 
-class DivPlatformGB: public DivDispatch {
+class DivPlatformVB: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, pitch2, note, ins;
-    unsigned char duty, sweep;
-    bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, released, softEnv, killIt;
-    bool soManyHacksToMakeItDefleCompatible;
-    signed char vol, outVol, wave, lastKill;
-    unsigned char envVol, envDir, envLen, soundLen;
-    unsigned short hwSeqPos;
-    short hwSeqDelay;
+    int freq, baseFreq, pitch, pitch2, note, antiClickPeriodCount, antiClickWavePos;
+    int dacPeriod, dacRate, dacOut;
+    unsigned int dacPos;
+    int dacSample, ins;
+    unsigned char pan;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, furnaceDac, deferredWaveUpdate;
+    signed char vol, outVol, wave;
+    int macroVolMul;
     DivMacroInt std;
+    DivWaveSynth ws;
     void macroInit(DivInstrument* which) {
       std.init(which);
       pitch2=0;
@@ -47,53 +48,49 @@ class DivPlatformGB: public DivDispatch {
       pitch(0),
       pitch2(0),
       note(0),
+      antiClickPeriodCount(0),
+      antiClickWavePos(0),
+      dacPeriod(0),
+      dacRate(0),
+      dacOut(0),
+      dacPos(0),
+      dacSample(-1),
       ins(-1),
-      duty(0),
-      sweep(0),
+      pan(255),
       active(false),
       insChanged(true),
       freqChanged(false),
-      sweepChanged(false),
       keyOn(false),
       keyOff(false),
       inPorta(false),
-      released(false),
-      softEnv(false),
-      killIt(false),
-      soManyHacksToMakeItDefleCompatible(false),
-      vol(15),
-      outVol(15),
+      noise(false),
+      pcm(false),
+      furnaceDac(false),
+      deferredWaveUpdate(false),
+      vol(31),
+      outVol(31),
       wave(-1),
-      lastKill(0),
-      envVol(0),
-      envDir(0),
-      envLen(0),
-      soundLen(0),
-      hwSeqPos(0),
-      hwSeqDelay(0) {}
+      macroVolMul(31) {}
   };
-  Channel chan[4];
-  DivDispatchOscBuffer* oscBuf[4];
-  bool isMuted[4];
+  Channel chan[6];
+  DivDispatchOscBuffer* oscBuf[6];
+  bool isMuted[6];
   bool antiClickEnabled;
-  bool enoughAlready;
-  unsigned char lastPan;
-  DivWaveSynth ws;
   struct QueuedWrite {
-      unsigned char addr;
+      unsigned short addr;
       unsigned char val;
-      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
   std::queue<QueuedWrite> writes;
+  unsigned char lastPan;
 
-  int antiClickPeriodCount, antiClickWavePos;
-
-  GB_gameboy_t* gb;
-  GB_model_t model;
-  unsigned char regPool[128];
-  
-  unsigned char procMute();
-  void updateWave();  
+  int cycles, curChan, delay;
+  int tempL;
+  int tempR;
+  unsigned char sampleBank, lfoMode, lfoSpeed;
+  VSU* vb;
+  unsigned char regPool[0x600];
+  void updateWave(int ch);
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
@@ -104,23 +101,23 @@ class DivPlatformGB: public DivDispatch {
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    int getRegisterPoolDepth();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    int getPortaFloor(int ch);
     bool isStereo();
-    bool getDCOffRequired();
-    void notifyInsChange(int ins);
+    bool keyOffAffectsArp(int ch);
+    float getPostAmp();
+    void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
-    void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
-    ~DivPlatformGB();
+    ~DivPlatformVB();
 };
 
 #endif

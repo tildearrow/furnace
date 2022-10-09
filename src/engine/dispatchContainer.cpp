@@ -68,6 +68,7 @@
 #include "platform/ymz280b.h"
 #include "platform/rf5c68.h"
 #include "platform/snes.h"
+#include "platform/vb.h"
 #include "platform/pcmdac.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
@@ -342,6 +343,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SWAN:
       dispatch=new DivPlatformSwan;
+      break;
+    case DIV_SYSTEM_VBOY:
+      dispatch=new DivPlatformVB;
       break;
     case DIV_SYSTEM_VERA:
       dispatch=new DivPlatformVERA;

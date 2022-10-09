@@ -171,6 +171,7 @@ TAParamResult pVersion(String) {
   printf("- MAME SAA1099 emulation core by Juergen Buchmueller and Manuel Abadia (BSD 3-clause)\n");
   printf("- MAME Namco WSG by Nicola Salmoria and Aaron Giles (BSD 3-clause)\n");
   printf("- MAME RF5C68 core by Olivier Galibert and Aaron Giles (BSD 3-clause)\n");
+  printf("- MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya (GPLv2)\n");
   printf("- MAME MSM6258 core by Barry Rodewald (BSD 3-clause)\n");
   printf("- MAME YMZ280B core by Aaron Giles (BSD 3-clause)\n");
   printf("- QSound core by superctr (BSD 3-clause)\n");
@@ -179,6 +180,7 @@ TAParamResult pVersion(String) {
   printf("- SAASound by Dave Hooper and Simon Owen (BSD 3-clause)\n");
   printf("- SameBoy by Lior Halphon (MIT)\n");
   printf("- Mednafen PCE and WonderSwan by Mednafen Team (GPLv2)\n");
+  printf("- SNES DSP core by Blargg (LGPLv2.1)\n");
   printf("- puNES by FHorse (GPLv2)\n");
   printf("- NSFPlay by Brad Smith and Brezza (unknown open-source license)\n");
   printf("- reSID by Dag Lem (GPLv2)\n");
@@ -549,7 +551,7 @@ int main(int argc, char** argv) {
 #ifdef HAVE_GUI
   g.bindEngine(&e);
   if (!g.init()) {
-    reportError("error while starting GUI!");
+    reportError(g.getLastError());
     return 1;
   }
 

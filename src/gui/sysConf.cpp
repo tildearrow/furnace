@@ -270,6 +270,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_GB: {
       int chipType=flags.getInt("chipType",0);
       bool noAntiClick=flags.getBool("noAntiClick",false);
+      bool enoughAlready=flags.getBool("enoughAlready",false);
 
       if (ImGui::Checkbox("Disable anti-click",&noAntiClick)) {
         altered=true;
@@ -291,11 +292,15 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         chipType=3;
         altered=true;
       }
+      if (ImGui::Checkbox("Pretty please one more compat flag when I use arpeggio and my sound length",&enoughAlready)) {
+        altered=true;
+      }
 
       if (altered) {
         e->lockSave([&]() {
           flags.set("chipType",chipType);
           flags.set("noAntiClick",noAntiClick);
+          flags.set("enoughAlready",enoughAlready);
         });
       }
       break;
@@ -1309,6 +1314,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     }
     case DIV_SYSTEM_MSM5232: {
       int detune=flags.getInt("detune",0);
+      int vibSpeed=flags.getInt("vibSpeed",0);
+      float vibDepth=flags.getFloat("vibDepth",0.0f);
       bool groupEnv[2];
       int groupVol[8];
       float capValue[8];
@@ -1388,8 +1395,23 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
+      ImGui::Text("Global vibrato:");
+
+      if (CWSliderInt("Speed",&vibSpeed,0,256)) {
+        if (vibSpeed<0) vibSpeed=0;
+        if (vibSpeed>256) vibSpeed=256;
+        altered=true;
+      } rightClickable
+      if (CWSliderFloat("Depth",&vibDepth,0.0f,256.0f)) {
+        if (vibDepth<0) vibDepth=0;
+        if (vibDepth>256) vibDepth=256;
+        altered=true;
+      } rightClickable
+
       if (altered) {
         flags.set("detune",detune);
+        flags.set("vibSpeed",vibSpeed);
+        flags.set("vibDepth",vibDepth);
 
         flags.set("capValue0",capValue[0]);
         flags.set("capValue1",capValue[1]);

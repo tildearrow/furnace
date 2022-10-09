@@ -169,7 +169,9 @@ void DivPlatformGB::tick(bool sysTick) {
         if (chan[i].baseFreq>255) chan[i].baseFreq=255;
         if (chan[i].baseFreq<0) chan[i].baseFreq=0;
       } else {
-        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val,24));
+        if (!chan[i].inPorta) {
+          chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val,24));
+        }
       }
       chan[i].freqChanged=true;
     }
@@ -312,6 +314,9 @@ void DivPlatformGB::tick(bool sysTick) {
       } else {
         rWrite(16+i*5+3,(2048-chan[i].freq)&0xff);
         rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((chan[i].soundLen<63)<<6));
+      }
+      if (enoughAlready) { // more compat garbage
+        rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
@@ -645,6 +650,7 @@ void DivPlatformGB::setFlags(const DivConfig& flags) {
       model=GB_MODEL_AGB;
       break;
   }
+  enoughAlready=flags.getBool("enoughAlready",false);
 }
 
 int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

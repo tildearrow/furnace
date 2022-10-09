@@ -1439,6 +1439,12 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_ORDERS_REMOVE:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->deleteOrder();
+      if (curOrder>=e->curSubSong->ordersLen) {
+        curOrder=e->curSubSong->ordersLen-1;
+        oldOrder=curOrder;
+        oldOrder1=curOrder;
+        e->setOrder(curOrder);
+      }
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_MOVE_UP:

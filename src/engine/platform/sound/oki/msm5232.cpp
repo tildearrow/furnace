@@ -596,10 +596,10 @@ void msm5232_device::TG_group_advance(int groupidx)
 
 		/* calculate signed output */
     if (!voi->mute) {
-      o16 += ( (out16-(1<<(STEP_SH-1))) * voi->egvol) >> STEP_SH;
-      o8  += ( (out8 -(1<<(STEP_SH-1))) * voi->egvol) >> STEP_SH;
-      o4  += ( (out4 -(1<<(STEP_SH-1))) * voi->egvol) >> STEP_SH;
-      o2  += ( (out2 -(1<<(STEP_SH-1))) * voi->egvol) >> STEP_SH;
+      o16 += vo16[groupidx*4+(4-i)] = ( (out16-(1<<(STEP_SH-1))) * voi->egvol) >> STEP_SH;
+      o8  += vo8 [groupidx*4+(4-i)] = ( (out8 -(1<<(STEP_SH-1))) * voi->egvol) >> STEP_SH;
+      o4  += vo4 [groupidx*4+(4-i)] = ( (out4 -(1<<(STEP_SH-1))) * voi->egvol) >> STEP_SH;
+      o2  += vo2 [groupidx*4+(4-i)] = ( (out2 -(1<<(STEP_SH-1))) * voi->egvol) >> STEP_SH;
 
       if (i == 1 && groupidx == 1)
       {

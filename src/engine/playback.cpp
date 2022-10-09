@@ -461,7 +461,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     }
     if (returnAfterPre) return;
   } else {
-    logV("honoring delay at position %d",whatRow);
+    //logV("honoring delay at position %d",whatRow);
   }
 
   if (chan[i].delayLocked) return;
@@ -1157,6 +1157,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             break;
           }
         }
+        // under no circumstances shall the accumulator become this large
+        if (tempoAccum>1023) tempoAccum=1023;
       }
       // process stuff
       for (int i=0; i<chans; i++) {
@@ -1584,7 +1586,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   int attempts=0;
   int runLeftG=size<<MASTER_CLOCK_PREC;
-  while (++attempts<100) {
+  while (++attempts<(int)size) {
     // 0. check if we've halted
     if (halted) break;
     // 1. check whether we are done with all buffers
@@ -1647,7 +1649,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
 
   //logD("attempts: %d",attempts);
-  if (attempts>=100) {
+  if (attempts>=(int)size) {
     logE("hang detected! stopping! at %d seconds %d micro",totalSeconds,totalTicks);
     freelance=false;
     playing=false;

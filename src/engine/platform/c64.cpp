@@ -129,18 +129,6 @@ void DivPlatformC64::tick(bool sysTick) {
       rWrite(i*7+2,chan[i].duty&0xff);
       rWrite(i*7+3,chan[i].duty>>8);
     }
-    if (sysTick) {
-      if (chan[i].testWhen>0) {
-        if (--chan[i].testWhen<1) {
-          if (!chan[i].resetMask && !chan[i].inPorta) {
-            DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);
-            rWrite(i*7+5,0);
-            rWrite(i*7+6,0);
-            rWrite(i*7+4,(chan[i].wave<<4)|(ins->c64.noTest?0:8)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1));
-          }
-        }
-      }
-    }
     if (chan[i].std.wave.had) {
       chan[i].wave=chan[i].std.wave.val;
       rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1)|(int)(chan[i].active));
@@ -171,6 +159,19 @@ void DivPlatformC64::tick(bool sysTick) {
     if (chan[i].std.ex4.had) {
       chan[i].test=chan[i].std.ex4.val&1;
       rWrite(i*7+4,(chan[i].wave<<4)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1)|(int)(chan[i].active));
+    }
+
+    if (sysTick) {
+      if (chan[i].testWhen>0) {
+        if (--chan[i].testWhen<1) {
+          if (!chan[i].resetMask && !chan[i].inPorta) {
+            DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);
+            rWrite(i*7+5,0);
+            rWrite(i*7+6,0);
+            rWrite(i*7+4,(chan[i].wave<<4)|(ins->c64.noTest?0:8)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1));
+          }
+        }
+      }
     }
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {

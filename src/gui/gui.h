@@ -355,6 +355,7 @@ enum FurnaceGUIWarnings {
   GUI_WARN_CLEAR,
   GUI_WARN_SUBSONG_DEL,
   GUI_WARN_SYSTEM_DEL,
+  GUI_WARN_CLEAR_HISTORY,
   GUI_WARN_GENERIC
 };
 
@@ -1208,6 +1209,7 @@ class FurnaceGUI {
     int midiOutClock;
     int midiOutMode;
     int maxRecentFile;
+    int centerPattern;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1333,6 +1335,7 @@ class FurnaceGUI {
       midiOutClock(0),
       midiOutMode(1),
       maxRecentFile(10),
+      centerPattern(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1372,6 +1375,7 @@ class FurnaceGUI {
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
+  float lastPatternWidth;
   const int* nextDesc;
   String nextDescName;
 
@@ -1801,6 +1805,7 @@ class FurnaceGUI {
   public:
     void showWarning(String what, FurnaceGUIWarnings type);
     void showError(String what);
+    String getLastError();
     const char* noteNameNormal(short note, short octave);
     const char* noteName(short note, short octave);
     bool decodeNote(const char* what, short& note, short& octave);

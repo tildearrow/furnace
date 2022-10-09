@@ -476,6 +476,7 @@ void DivPlatformX1_010::tick(bool sysTick) {
         }
       }
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,chan[i].pcm?off:CHIP_FREQBASE);
+      if (chan[i].fixedFreq) chan[i].freq=chan[i].fixedFreq;
       if (chan[i].pcm) {
         if (chan[i].freq<1) chan[i].freq=1;
         if (chan[i].freq>255) chan[i].freq=255;
@@ -554,11 +555,13 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
             if (c.value!=DIV_NOTE_NULL) {
               chan[c.chan].note=c.value;
               chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note);
+              chan[c.chan].fixedFreq=0;
               chan[c.chan].freqChanged=true;
             }
           } else {
             chan[c.chan].macroInit(NULL);
             chan[c.chan].outVol=chan[c.chan].vol;
+            // huh?
             if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
               chWrite(c.chan,0,0); // reset
               chWrite(c.chan,1,0);
@@ -571,7 +574,8 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
         } else {
           chan[c.chan].macroInit(NULL);
           chan[c.chan].outVol=chan[c.chan].vol;
-          if ((12*sampleBank+c.value%12)>=parent->song.sampleLen) {
+          chan[c.chan].sample=12*sampleBank+c.value%12;
+          if (chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
             chWrite(c.chan,0,0); // reset
             chWrite(c.chan,1,0);
             chWrite(c.chan,2,0);
@@ -579,7 +583,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
             chWrite(c.chan,5,0);
             break;
           }
-          DivSample* s=parent->getSample(12*sampleBank+c.value%12);
+          DivSample* s=parent->getSample(chan[c.chan].sample);
           if (isBanked) {
             bankSlot[chan[c.chan].bankSlot]=sampleOffX1[chan[c.chan].sample]>>17;
             unsigned int bankedOffs=(chan[c.chan].bankSlot<<17)|(sampleOffX1[chan[c.chan].sample]&0x1ffff);
@@ -591,12 +595,14 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
             int end=(sampleOffX1[chan[c.chan].sample]+s->length8+0xfff)&~0xfff; // padded
             chWrite(c.chan,5,(0x100-(end>>12))&0xff);
           }
-          chan[c.chan].baseFreq=(((unsigned int)s->rate)<<4)/(chipClock/512);
+          // ????
+          chan[c.chan].fixedFreq=(((unsigned int)s->rate)<<4)/(chipClock/512);
           chan[c.chan].freqChanged=true;
         }
       } else if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].note=c.value;
         chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note);
+        chan[c.chan].fixedFreq=0;
         chan[c.chan].freqChanged=true;
       }
       chan[c.chan].active=true;

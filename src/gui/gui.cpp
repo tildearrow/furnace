@@ -1993,6 +1993,10 @@ void FurnaceGUI::showError(String what) {
   displayError=true;
 }
 
+String FurnaceGUI::getLastError() {
+  return lastError;
+}
+
 // what monster did I just create here?
 #define B30(tt) (macroDragBit30?((((tt)&0xc0000000)==0x40000000 || ((tt)&0xc0000000)==0x80000000)?0x40000000:0):0)
 
@@ -3291,6 +3295,11 @@ bool FurnaceGUI::loop() {
           }
           if (recentFile.empty()) {
             ImGui::Text("nothing here yet");
+          } else {
+            ImGui::Separator();
+            if (ImGui::MenuItem("clear history")) {
+              showWarning("Are you sure you want to clear the recent file list?",GUI_WARN_CLEAR_HISTORY);
+            }
           }
           ImGui::EndMenu();
         }
@@ -4630,6 +4639,16 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
           }
           break;
+        case GUI_WARN_CLEAR_HISTORY:
+          if (ImGui::Button("Yes")) {
+            recentFile.clear();
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
         case GUI_WARN_GENERIC:
           if (ImGui::Button("OK")) {
             ImGui::CloseCurrentPopup();
@@ -5002,7 +5021,7 @@ bool FurnaceGUI::init() {
 
   sdlWin=SDL_CreateWindow("Furnace",scrX,scrY,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(scrMax?SDL_WINDOW_MAXIMIZED:0)|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
   if (sdlWin==NULL) {
-    logE("could not open window! %s",SDL_GetError());
+    lastError=fmt::sprintf("could not open window! %s",SDL_GetError());
     return false;
   }
 
@@ -5057,7 +5076,7 @@ bool FurnaceGUI::init() {
   sdlRend=SDL_CreateRenderer(sdlWin,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC|SDL_RENDERER_TARGETTEXTURE);
 
   if (sdlRend==NULL) {
-    logE("could not init renderer! %s",SDL_GetError());
+    lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
     return false;
   }
 
@@ -5401,6 +5420,7 @@ FurnaceGUI::FurnaceGUI():
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
+  lastPatternWidth(0.0f),
   nextDesc(NULL),
   latchNote(-1),
   latchIns(-2),

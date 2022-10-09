@@ -28,6 +28,9 @@
 #include "sampleUtil.h"
 #include "util.h"
 
+#define CENTER_TEXT(text) \
+  ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
+
 void FurnaceGUI::drawSampleEdit() {
   if (nextWindow==GUI_WINDOW_SAMPLE_EDIT) {
     sampleEditOpen=true;
@@ -43,7 +46,40 @@ void FurnaceGUI::drawSampleEdit() {
   }
   if (ImGui::Begin("Sample Editor",&sampleEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curSample<0 || curSample>=(int)e->song.sample.size()) {
+      ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()*2.0f)*0.5f);
+      CENTER_TEXT("no sample selected");
       ImGui::Text("no sample selected");
+      if (ImGui::BeginTable("noAssetCenter",3)) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.5f);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5f);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TableNextColumn();
+
+        if (e->song.sample.size()>0) {
+          if (ImGui::BeginCombo("##SampleSelect","select one...")) {
+            actualSampleList();
+            ImGui::EndCombo();
+          }
+          ImGui::SameLine();
+          ImGui::TextUnformatted("or");
+          ImGui::SameLine();
+        }
+        if (ImGui::Button("Open")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_OPEN);
+        }
+        ImGui::SameLine();
+        ImGui::TextUnformatted("or");
+        ImGui::SameLine();
+        if (ImGui::Button("Create New")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_ADD);
+        }
+
+        ImGui::TableNextColumn();
+        ImGui::EndTable();
+      }
     } else {
       DivSample* sample=e->song.sample[curSample];
       String sampleType="Invalid";
@@ -120,6 +156,9 @@ void FurnaceGUI::drawSampleEdit() {
               sample->loopEnd=sample->samples;
             }
             updateSampleTex=true;
+            if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
+              e->renderSamplesP();
+            }
           }
           if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
             ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
@@ -151,7 +190,7 @@ void FurnaceGUI::drawSampleEdit() {
             ImGui::Text("Loop Start");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::InputInt("##LoopStartPosition",&sample->loopStart,1,10)) { MARK_MODIFIED
+            if (ImGui::InputInt("##LoopStartPosition",&sample->loopStart,1,16)) { MARK_MODIFIED
               if (sample->loopStart<0) {
                 sample->loopStart=0;
               }
@@ -159,6 +198,9 @@ void FurnaceGUI::drawSampleEdit() {
                 sample->loopStart=sample->loopEnd;
               }
               updateSampleTex=true;
+              if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
+                e->renderSamplesP();
+              }
             }
             if (ImGui::IsItemActive()) {
               keepLoopAlive=true;
@@ -170,7 +212,7 @@ void FurnaceGUI::drawSampleEdit() {
             ImGui::Text("Loop End");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::InputInt("##LoopEndPosition",&sample->loopEnd,1,10)) { MARK_MODIFIED
+            if (ImGui::InputInt("##LoopEndPosition",&sample->loopEnd,1,16)) { MARK_MODIFIED
               if (sample->loopEnd<sample->loopStart) {
                 sample->loopEnd=sample->loopStart;
               }
@@ -178,6 +220,9 @@ void FurnaceGUI::drawSampleEdit() {
                 sample->loopEnd=sample->samples;
               }
               updateSampleTex=true;
+              if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
+                e->renderSamplesP();
+              }
             }
             if (ImGui::IsItemActive()) {
               keepLoopAlive=true;
@@ -696,6 +741,9 @@ void FurnaceGUI::drawSampleEdit() {
               sample->loopEnd=sample->samples;
             }
             updateSampleTex=true;
+            if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
+              e->renderSamplesP();
+            }
           }
           if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
             ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
@@ -728,12 +776,15 @@ void FurnaceGUI::drawSampleEdit() {
             ImGui::Text("Loop Start");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::InputInt("##LoopStartPosition",&sample->loopStart,1,10)) { MARK_MODIFIED
+            if (ImGui::InputInt("##LoopStartPosition",&sample->loopStart,1,16)) { MARK_MODIFIED
               if (sample->loopStart<0) {
                 sample->loopStart=0;
               }
               if (sample->loopStart>sample->loopEnd) {
                 sample->loopStart=sample->loopEnd;
+              }
+              if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
+                e->renderSamplesP();
               }
               updateSampleTex=true;
             }
@@ -747,12 +798,15 @@ void FurnaceGUI::drawSampleEdit() {
             ImGui::Text("Loop End");
             ImGui::SameLine();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-            if (ImGui::InputInt("##LoopEndPosition",&sample->loopEnd,1,10)) { MARK_MODIFIED
+            if (ImGui::InputInt("##LoopEndPosition",&sample->loopEnd,1,16)) { MARK_MODIFIED
               if (sample->loopEnd<sample->loopStart) {
                 sample->loopEnd=sample->loopStart;
               }
               if (sample->loopEnd>=(int)sample->samples) {
                 sample->loopEnd=sample->samples;
+              }
+              if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
+                e->renderSamplesP();
               }
               updateSampleTex=true;
             }

@@ -315,6 +315,7 @@ struct DivSong {
   bool newVolumeScaling;
   bool volMacroLinger;
   bool brokenOutVol;
+  bool brokenOutVol2;
   bool e1e2StopOnSameNote;
   bool brokenPortaArp;
   bool snNoLowPeriods;
@@ -421,6 +422,7 @@ struct DivSong {
     newVolumeScaling(true),
     volMacroLinger(true),
     brokenOutVol(false),
+    brokenOutVol2(false),
     e1e2StopOnSameNote(false),
     brokenPortaArp(false),
     snNoLowPeriods(false),

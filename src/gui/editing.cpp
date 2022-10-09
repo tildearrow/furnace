@@ -565,6 +565,8 @@ void FurnaceGUI::doPaste(PasteMode mode, int arg) {
   if (settings.cursorPastePos) {
     cursor.y=j;
     if (cursor.y>=e->curSubSong->patLen) cursor.y=e->curSubSong->patLen-1;
+    selStart=cursor;
+    selEnd=cursor;
     updateScroll(cursor.y);
   }
 

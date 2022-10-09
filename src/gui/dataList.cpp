@@ -199,7 +199,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
       int curRow=0;
       for (int i=-1; i<(int)e->song.ins.size(); i++) {
         ImGui::PushID(i);
-        String name=ICON_FA_CIRCLE_O " - None -";
+        String name=ICON_FA_CIRCLE_O;
         const char* insType="Bug!";
         if (i>=0) {
           DivInstrument* ins=e->song.ins[i];
@@ -208,183 +208,183 @@ void FurnaceGUI::drawInsList(bool asChild) {
           switch (ins->type) {
             case DIV_INS_FM:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_FM]);
-              name=fmt::sprintf(ICON_FA_AREA_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_AREA_CHART "##_INS%d",i);
               break;
             case DIV_INS_STD:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_STD]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
               break;
             case DIV_INS_GB:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_GB]);
-              name=fmt::sprintf(ICON_FA_GAMEPAD " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
               break;
             case DIV_INS_C64:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_C64]);
-              name=fmt::sprintf(ICON_FA_KEYBOARD_O " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_KEYBOARD_O "##_INS%d",i);
               break;
             case DIV_INS_AMIGA:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AMIGA]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
               break;
             case DIV_INS_PCE:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_PCE]);
-              name=fmt::sprintf(ICON_FA_ID_BADGE " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_ID_BADGE "##_INS%d",i);
               break;
             case DIV_INS_AY:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AY]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
               break;
             case DIV_INS_AY8930:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AY8930]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
               break;
             case DIV_INS_TIA:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_TIA]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
               break;
             case DIV_INS_SAA1099:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SAA1099]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
               break;
             case DIV_INS_VIC:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VIC]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
               break;
             case DIV_INS_PET:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_PET]);
-              name=fmt::sprintf(ICON_FA_SQUARE " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_SQUARE "##_INS%d",i);
               break;
             case DIV_INS_VRC6:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VRC6]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
               break;
             case DIV_INS_VRC6_SAW:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VRC6_SAW]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
               break;
             case DIV_INS_OPLL:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPLL]);
-              name=fmt::sprintf(ICON_FA_AREA_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_AREA_CHART "##_INS%d",i);
               break;
             case DIV_INS_OPL:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPL]);
-              name=fmt::sprintf(ICON_FA_AREA_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_AREA_CHART "##_INS%d",i);
               break;
             case DIV_INS_FDS:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_FDS]);
-              name=fmt::sprintf(ICON_FA_FLOPPY_O " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_FLOPPY_O "##_INS%d",i);
               break;
             case DIV_INS_VBOY:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VBOY]);
-              name=fmt::sprintf(ICON_FA_BINOCULARS " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_BINOCULARS "##_INS%d",i);
               break;
             case DIV_INS_N163:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_N163]);
-              name=fmt::sprintf(ICON_FA_CALCULATOR " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_CALCULATOR "##_INS%d",i);
               break;
             case DIV_INS_SCC:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SCC]);
-              name=fmt::sprintf(ICON_FA_CALCULATOR " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_CALCULATOR "##_INS%d",i);
               break;
             case DIV_INS_OPZ:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPZ]);
-              name=fmt::sprintf(ICON_FA_AREA_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_AREA_CHART "##_INS%d",i);
               break;
             case DIV_INS_POKEY:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_POKEY]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
               break;
             case DIV_INS_BEEPER:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_BEEPER]);
-              name=fmt::sprintf(ICON_FA_SQUARE " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_SQUARE "##_INS%d",i);
               break;
             case DIV_INS_SWAN:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SWAN]);
-              name=fmt::sprintf(ICON_FA_GAMEPAD " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
               break;
             case DIV_INS_MIKEY:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MIKEY]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
               break;
             case DIV_INS_VERA:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VERA]);
-              name=fmt::sprintf(ICON_FA_KEYBOARD_O " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_KEYBOARD_O "##_INS%d",i);
               break;
             case DIV_INS_X1_010:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_X1_010]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
               break;
             case DIV_INS_ES5506:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_ES5506]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
               break;
             case DIV_INS_MULTIPCM:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MULTIPCM]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
               break;
             case DIV_INS_SNES:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SNES]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
               break;
             case DIV_INS_SU:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SU]);
-              name=fmt::sprintf(ICON_FA_MICROCHIP " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_MICROCHIP "##_INS%d",i);
               break;
             case DIV_INS_NAMCO:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_NAMCO]);
-              name=fmt::sprintf(ICON_FA_PIE_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_PIE_CHART "##_INS%d",i);
               break;
             case DIV_INS_OPL_DRUMS:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPL_DRUMS]);
-              name=fmt::sprintf(ICON_FA_COFFEE " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_COFFEE "##_INS%d",i);
               break;
             case DIV_INS_OPM:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPM]);
-              name=fmt::sprintf(ICON_FA_AREA_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_AREA_CHART "##_INS%d",i);
               break;
             case DIV_INS_NES:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_NES]);
-              name=fmt::sprintf(ICON_FA_GAMEPAD " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
               break;
             case DIV_INS_MSM6258:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MSM6258]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
               break;
             case DIV_INS_MSM6295:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MSM6295]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
               break;
             case DIV_INS_ADPCMA:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_ADPCMA]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
               break;
             case DIV_INS_ADPCMB:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_ADPCMB]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
               break;
             case DIV_INS_SEGAPCM:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SEGAPCM]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
               break;
             case DIV_INS_QSOUND:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_QSOUND]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
               break;
             case DIV_INS_YMZ280B:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_YMZ280B]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
               break;
             case DIV_INS_RF5C68:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_RF5C68]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
               break;
             case DIV_INS_MSM5232:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MSM5232]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
               break;
             default:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
-              name=fmt::sprintf(ICON_FA_QUESTION " %.2X: %s##_INS%d",i,ins->name,i);
+              name=fmt::sprintf(ICON_FA_QUESTION "##_INS%d",i);
               break;
           }
         } else {
@@ -400,7 +400,6 @@ void FurnaceGUI::drawInsList(bool asChild) {
           curIns=i;
           wavePreviewInit=true;
         }
-        ImGui::PopStyleColor();
         if (wantScrollList && curIns==i) ImGui::SetScrollHereY();
         if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
           nextWindow=GUI_WINDOW_PATTERN;
@@ -408,7 +407,9 @@ void FurnaceGUI::drawInsList(bool asChild) {
           wavePreviewInit=true;
         }
         if (ImGui::IsItemHovered() && i>=0) {
+          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
           ImGui::SetTooltip("%s",insType);
+          ImGui::PopStyleColor();
           if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
             insEditOpen=true;
             nextWindow=GUI_WINDOW_INS_EDIT;
@@ -417,6 +418,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
         if (i>=0) {
           if (ImGui::BeginPopupContextItem("InsRightMenu")) {
             curIns=i;
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
             if (ImGui::MenuItem("replace...")) {
               doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
             }
@@ -429,9 +431,21 @@ void FurnaceGUI::drawInsList(bool asChild) {
             if (ImGui::MenuItem("delete")) {
               doAction(GUI_ACTION_INS_LIST_DELETE);
             }
+            ImGui::PopStyleColor();
             ImGui::EndPopup();
           }
         }
+        if (i>=0) {
+          if (i<(int)e->song.ins.size()) {
+            DivInstrument* ins=e->song.ins[i];
+            ImGui::SameLine();
+            ImGui::Text("%.2X: %s",i,ins->name.c_str());
+          }
+        } else {
+          ImGui::SameLine();
+          ImGui::Text("- None -");
+        }
+        ImGui::PopStyleColor();
         if (settings.horizontalDataView) {
           if (++curRow>=availableRows) curRow=0;
         }
