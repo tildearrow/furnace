@@ -1573,7 +1573,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   int attempts=0;
   int runLeftG=size<<MASTER_CLOCK_PREC;
-  while (++attempts<100) {
+  while (++attempts<(int)size) {
     // 0. check if we've halted
     if (halted) break;
     // 1. check whether we are done with all buffers
@@ -1636,7 +1636,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
 
   //logD("attempts: %d",attempts);
-  if (attempts>=100) {
+  if (attempts>=(int)size) {
     logE("hang detected! stopping! at %d seconds %d micro",totalSeconds,totalTicks);
     freelance=false;
     playing=false;
