@@ -108,14 +108,14 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
 
  //Update(timestamp);
 
- printf("VSU Write: %d, %08x %02x\n", timestamp, A, V);
+ //printf("VSU Write: %d, %08x %02x\n", timestamp, A, V);
 
  if(A < 0x280)
   WaveData[A >> 7][(A >> 2) & 0x1F] = V & 0x3F;
  else if(A < 0x400)
  {
-  if(A >= 0x300)
-   printf("Modulation mirror write? %08x %02x\n", A, V);
+  //if(A >= 0x300)
+   //printf("Modulation mirror write? %08x %02x\n", A, V);
   ModData[(A >> 2) & 0x1F] = V;
  }
  else if(A < 0x600)
@@ -123,7 +123,7 @@ void VSU::Write(int timestamp, unsigned int A, unsigned char V)
   int ch = (A >> 6) & 0xF;
 
   //if(ch < 6)
-  printf("Ch: %d, Reg: %d, Value: %02x\n", ch, (A >> 2) & 0xF, V);
+  //printf("Ch: %d, Reg: %d, Value: %02x\n", ch, (A >> 2) & 0xF, V);
  
   if(ch > 5)
   {

@@ -4415,6 +4415,7 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_FDS ||
             (ins->type==DIV_INS_SWAN && !ins->amiga.useSample) ||
             (ins->type==DIV_INS_PCE && !ins->amiga.useSample) ||
+            (ins->type==DIV_INS_VBOY) ||
             ins->type==DIV_INS_SCC ||
             ins->type==DIV_INS_SNES ||
             ins->type==DIV_INS_NAMCO) {
@@ -4666,7 +4667,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC ||
               ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC || ins->type==DIV_INS_SEGAPCM ||
-              ins->type==DIV_INS_FM) {
+              ins->type==DIV_INS_FM || ins->type==DIV_INS_VBOY) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_NAMCO) {
@@ -4832,7 +4833,9 @@ void FurnaceGUI::drawInsEdit() {
             panMax=1;
             panSingle=true;
           }
-          if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY || ins->type==DIV_INS_SAA1099 || ins->type==DIV_INS_NAMCO || ins->type==DIV_INS_RF5C68) {
+          if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY ||
+              ins->type==DIV_INS_SAA1099 || ins->type==DIV_INS_NAMCO || ins->type==DIV_INS_RF5C68 ||
+              ins->type==DIV_INS_VBOY) {
             panMax=15;
           }
           if (ins->type==DIV_INS_SEGAPCM) {
