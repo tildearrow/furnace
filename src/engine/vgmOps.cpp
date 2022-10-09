@@ -683,6 +683,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(write.val&0xff);
       }
       break;
+    case DIV_SYSTEM_VBOY:
+      w->writeC(0xc7);
+      w->writeS_BE(baseAddr2S|(write.addr>>2));
+      w->writeC(write.val&0xff);
+      break;
     case DIV_SYSTEM_OPL:
     case DIV_SYSTEM_OPL_DRUMS:
       w->writeC(0x0b|baseAddr1);
@@ -1214,6 +1219,17 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           isSecond[i]=true;
           willExport[i]=true;
           hasSwan|=0x40000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_VBOY:
+        if (!hasVSU) {
+          hasVSU=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+        } else if (!(hasVSU&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasVSU|=0x40000000;
           howManyChips++;
         }
         break;

@@ -1173,7 +1173,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_VBOY]=new DivSysDef(
-    "Virtual Boy", NULL, 0x9c, 0, 6, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Virtual Boy", NULL, 0x9c, 0, 6, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "a console which failed to sell well due to its headache-inducing features.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Noise"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "NO"},

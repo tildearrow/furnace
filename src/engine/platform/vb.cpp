@@ -25,7 +25,7 @@
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) rWrite(0x400+((c)<<6)+((a)<<2),v);
 
-#define CHIP_DIVIDER 64
+#define CHIP_DIVIDER 16
 
 const char* regCheatSheetVB[]={
   "Wave0", "000",
@@ -75,7 +75,7 @@ const char* regCheatSheetVB[]={
   "S4EV1", "514",
   "S4RAM", "518",
 
-  "S5SWP", "51C",
+  "S4SWP", "51C",
 
   "S5INT", "540",
   "S5LRV", "544",
@@ -598,9 +598,9 @@ void DivPlatformVB::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformVB::setFlags(const DivConfig& flags) {
-  chipClock=20000000.0;
+  chipClock=5000000.0;
   antiClickEnabled=!flags.getBool("noAntiClick",false);
-  rate=chipClock/64;
+  rate=chipClock/16;
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;
   }
