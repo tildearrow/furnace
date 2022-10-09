@@ -433,6 +433,8 @@ src/engine/platform/sound/vic20sound.c
 
 src/engine/platform/sound/ymz280b.cpp
 
+src/engine/platform/sound/vsu.cpp
+
 src/engine/platform/sound/rf5c68.cpp
 
 src/engine/platform/sound/oki/msm5232.cpp
@@ -504,6 +506,7 @@ src/engine/platform/x1_010.cpp
 src/engine/platform/lynx.cpp
 src/engine/platform/su.cpp
 src/engine/platform/swan.cpp
+src/engine/platform/vb.cpp
 src/engine/platform/vera.cpp
 src/engine/platform/zxbeeper.cpp
 src/engine/platform/bubsyswsg.cpp

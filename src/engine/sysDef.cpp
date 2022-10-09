@@ -1178,7 +1178,9 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Noise"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "NO"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_NOISE},
-    {DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY}
+    {DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY},
+    {},
+    waveOnlyEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_VRC7]=new DivSysDef(
