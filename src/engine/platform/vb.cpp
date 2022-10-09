@@ -559,13 +559,12 @@ void DivPlatformVB::reset() {
   sampleBank=0;
   lfoMode=0;
   lfoSpeed=255;
-  // set per-channel initial panning
+  // set per-channel initial values
   for (int i=0; i<6; i++) {
-    chWrite(i,0x01,0xff);
+    chWrite(i,0x01,isMuted[i]?0:chan[i].pan);
     chWrite(i,0x05,0x00);
     chWrite(i,0x00,0x80);
     chWrite(i,0x06,i);
-    //chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
   }
   delay=500;
 }
