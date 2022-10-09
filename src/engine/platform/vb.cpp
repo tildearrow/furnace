@@ -35,55 +35,55 @@ const char* regCheatSheetVB[]={
   "Wave4", "200",
   "ModTable", "280",
 
-  "S0INT", "400",
-  "S0LRV", "404",
-  "S0FQL", "408",
-  "S0FQH", "40C",
-  "S0EV0", "410",
-  "S0EV1", "414",
-  "S0RAM", "418",
+  "S1INT", "400",
+  "S1LRV", "404",
+  "S1FQL", "408",
+  "S1FQH", "40C",
+  "S1EV0", "410",
+  "S1EV1", "414",
+  "S1RAM", "418",
 
-  "S1INT", "440",
-  "S1LRV", "444",
-  "S1FQL", "448",
-  "S1FQH", "44C",
-  "S1EV0", "450",
-  "S1EV1", "454",
-  "S1RAM", "458",
+  "S2INT", "440",
+  "S2LRV", "444",
+  "S2FQL", "448",
+  "S2FQH", "44C",
+  "S2EV0", "450",
+  "S2EV1", "454",
+  "S2RAM", "458",
 
-  "S2INT", "480",
-  "S2LRV", "484",
-  "S2FQL", "488",
-  "S2FQH", "48C",
-  "S2EV0", "480",
-  "S2EV1", "484",
-  "S2RAM", "488",
+  "S3INT", "480",
+  "S3LRV", "484",
+  "S3FQL", "488",
+  "S3FQH", "48C",
+  "S3EV0", "480",
+  "S3EV1", "484",
+  "S3RAM", "488",
 
-  "S3INT", "4C0",
-  "S3LRV", "4C4",
-  "S3FQL", "4C8",
-  "S3FQH", "4CC",
-  "S3EV0", "4C0",
-  "S3EV1", "4C4",
-  "S3RAM", "4C8",
+  "S4INT", "4C0",
+  "S4LRV", "4C4",
+  "S4FQL", "4C8",
+  "S4FQH", "4CC",
+  "S4EV0", "4C0",
+  "S4EV1", "4C4",
+  "S4RAM", "4C8",
 
-  "S4INT", "500",
-  "S4LRV", "504",
-  "S4FQL", "508",
-  "S4FQH", "50C",
-  "S4EV0", "510",
-  "S4EV1", "514",
-  "S4RAM", "518",
+  "S5INT", "500",
+  "S5LRV", "504",
+  "S5FQL", "508",
+  "S5FQH", "50C",
+  "S5EV0", "510",
+  "S5EV1", "514",
+  "S5RAM", "518",
 
-  "S4SWP", "51C",
+  "S5SWP", "51C",
 
-  "S5INT", "540",
-  "S5LRV", "544",
-  "S5FQL", "548",
-  "S5FQH", "54C",
-  "S5EV0", "550",
-  "S5EV1", "554",
-  "S5RAM", "558",
+  "S6INT", "540",
+  "S6LRV", "544",
+  "S6FQL", "548",
+  "S6FQH", "54C",
+  "S6EV0", "550",
+  "S6EV1", "554",
+  "S6RAM", "558",
   NULL
 };
 
@@ -125,26 +125,11 @@ void DivPlatformVB::updateWave(int ch) {
 
   for (int i=0; i<32; i++) {
     rWrite((ch<<7)+(i<<2),chan[ch].ws.output[i]);
-    //chWrite(ch,0x06,chan[ch].ws.output[(i+chan[ch].antiClickWavePos)&31]);
-  }
-  chan[ch].antiClickWavePos&=31;
-  if (chan[ch].active) {
-    //chWrite(ch,0x04,0x80|chan[ch].outVol);
-  }
-  if (chan[ch].deferredWaveUpdate) {
-    chan[ch].deferredWaveUpdate=false;
   }
 }
 
 void DivPlatformVB::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
-    // anti-click
-    if (antiClickEnabled && sysTick && chan[i].freq>0) {
-      chan[i].antiClickPeriodCount+=(chipClock/MAX(parent->getCurHz(),1.0f));
-      chan[i].antiClickWavePos+=chan[i].antiClickPeriodCount/chan[i].freq;
-      chan[i].antiClickPeriodCount%=chan[i].freq;
-    }
-
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
@@ -184,11 +169,10 @@ void DivPlatformVB::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
-      chan[i].antiClickWavePos=0;
-      chan[i].antiClickPeriodCount=0;
+      // ???
     }
     if (chan[i].active) {
-      if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) || chan[i].deferredWaveUpdate) {
+      if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1)) {
         updateWave(i);
       }
     }
@@ -236,8 +220,6 @@ int DivPlatformVB::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_NOTE_OFF:
-      chan[c.chan].dacSample=-1;
-      if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].macroInit(NULL);
@@ -399,7 +381,6 @@ void DivPlatformVB::reset() {
     addWrite(0xffffffff,0);
   }
   vb->Power();
-  lastPan=0xff;
   tempL=0;
   tempR=0;
   cycles=0;
@@ -445,7 +426,6 @@ void DivPlatformVB::notifyInsDeletion(void* ins) {
 
 void DivPlatformVB::setFlags(const DivConfig& flags) {
   chipClock=5000000.0;
-  antiClickEnabled=!flags.getBool("noAntiClick",false);
   rate=chipClock/16;
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;

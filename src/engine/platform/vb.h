@@ -28,10 +28,8 @@
 
 class DivPlatformVB: public DivDispatch {
   struct Channel {
-    int freq, baseFreq, pitch, pitch2, note, antiClickPeriodCount, antiClickWavePos;
-    int dacPeriod, dacRate, dacOut;
-    unsigned int dacPos;
-    int dacSample, ins;
+    int freq, baseFreq, pitch, pitch2, note;
+    int ins;
     unsigned char pan;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, deferredWaveUpdate;
     signed char vol, outVol, wave;
@@ -47,13 +45,6 @@ class DivPlatformVB: public DivDispatch {
       pitch(0),
       pitch2(0),
       note(0),
-      antiClickPeriodCount(0),
-      antiClickWavePos(0),
-      dacPeriod(0),
-      dacRate(0),
-      dacOut(0),
-      dacPos(0),
-      dacSample(-1),
       ins(-1),
       pan(255),
       active(false),
@@ -71,7 +62,6 @@ class DivPlatformVB: public DivDispatch {
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];
   bool isMuted[6];
-  bool antiClickEnabled;
   struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
