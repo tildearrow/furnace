@@ -30,6 +30,12 @@ void FurnaceGUI::drawDebug() {
   static int bpRow;
   static int bpTick;
   static bool bpOn;
+
+  static double ptcClock;
+  static double ptcDivider;
+  static int ptcOctave;
+  static int ptcMode;
+  static int ptcBlockBits;
   if (nextWindow==GUI_WINDOW_DEBUG) {
     debugOpen=true;
     ImGui::SetNextWindowFocus();
@@ -297,6 +303,78 @@ void FurnaceGUI::drawDebug() {
       ImGui::SameLine();
       if (ImGui::Button("Test Save")) {
         openFileDialog(GUI_FILE_TEST_SAVE);
+      }
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("Pitch Table Calculator")) {
+      ImGui::InputDouble("Clock",&ptcClock);
+      ImGui::InputDouble("Divider/FreqBase",&ptcDivider);
+      ImGui::InputInt("Octave",&ptcOctave);
+      if (ImGui::RadioButton("Frequency",ptcMode==0)) ptcMode=0;
+      ImGui::SameLine();
+      if (ImGui::RadioButton("Period",ptcMode==1)) ptcMode=1;
+      ImGui::SameLine();
+      if (ImGui::RadioButton("FreqNum/Block",ptcMode==2)) ptcMode=2;
+
+      if (ptcMode==2) {
+        if (ImGui::InputInt("FreqNum Bits",&ptcBlockBits)) {
+          if (ptcBlockBits<0) ptcBlockBits=0;
+          if (ptcBlockBits>13) ptcBlockBits=13;
+        }
+      }
+
+      if (ImGui::BeginTable("PitchTable",7)) {
+        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+        ImGui::TableNextColumn();
+        ImGui::Text("Note");
+        ImGui::TableNextColumn();
+        ImGui::Text("Pitch");
+
+        ImGui::TableNextColumn();
+        ImGui::Text("Base");
+        ImGui::TableNextColumn();
+        ImGui::Text("Hex");
+
+        ImGui::TableNextColumn();
+        ImGui::Text("Final");
+
+        ImGui::TableNextColumn();
+        ImGui::Text("Hex");
+
+        ImGui::TableNextColumn();
+        ImGui::Text("Delta");
+
+        int lastFinal=0;
+        for (int i=0; i<12; i++) {
+          int note=(12*ptcOctave)+i;
+          int pitch=0;
+
+          int base=e->calcBaseFreq(ptcClock,ptcDivider,note,ptcMode==1);
+          int final=e->calcFreq(base,pitch,ptcMode==1,0,0,ptcClock,ptcDivider,(ptcMode==2)?ptcBlockBits:0);
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text("%d",note);
+          ImGui::TableNextColumn();
+          ImGui::Text("%d",pitch);
+
+          ImGui::TableNextColumn();
+          ImGui::Text("%d",base);
+          ImGui::TableNextColumn();
+          ImGui::Text("%x",base);
+
+          ImGui::TableNextColumn();
+          ImGui::Text("%d",final);
+          ImGui::TableNextColumn();
+          ImGui::Text("%x",final);
+
+          ImGui::TableNextColumn();
+          ImGui::Text("%d",final-lastFinal);
+
+          lastFinal=final;
+        }
+
+        ImGui::EndTable();
       }
       ImGui::TreePop();
     }
