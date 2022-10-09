@@ -1,6 +1,8 @@
 // T6W28_Snd_Emu
 
 #include "T6W28_Apu.h"
+#include <stdlib.h>
+#include <assert.h>
 
 #undef require
 #define require( expr ) assert( expr )
@@ -20,6 +22,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA */
 
 namespace MDFN_IEN_NGP
 {
+
+void fakeBufOffset(int time, int delta, Fake_Buffer* buf) {
+  buf->curValue+=delta;
+}
 
 T6W28_Osc::T6W28_Osc()
 {
@@ -41,7 +47,7 @@ void T6W28_Osc::reset()
 
 // T6W28_Square
 
-blip_inline void T6W28_Square::reset()
+void T6W28_Square::reset()
 {
 	period = 0;
 	phase = 0;
@@ -55,13 +61,13 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 		// ignore 16kHz and higher
 		if ( last_amp_left )
 		{
-			synth->offset( time, -last_amp_left, outputs[2] );
+			fakeBufOffset( time, -last_amp_left, outputs[2] );
 			last_amp_left = 0;
 		}
 
                 if ( last_amp_right )
                 {
-                        synth->offset( time, -last_amp_right, outputs[1] );
+                        fakeBufOffset( time, -last_amp_right, outputs[1] );
                         last_amp_right = 0;
                 }
 
@@ -90,21 +96,21 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 		 if ( delta_left )
 		 {
 			last_amp_left = amp_left;
-			synth->offset( time, delta_left, outputs[2] );
+			fakeBufOffset( time, delta_left, outputs[2] );
 		 }
 		
                  if ( delta_right )
                  {
                         last_amp_right = amp_right;
-                        synth->offset( time, delta_right, outputs[1] );
+                        fakeBufOffset( time, delta_right, outputs[1] );
                  }
 		}
 
 		time += delay;
 		if ( time < end_time )
 		{
-			Blip_Buffer* const output_left = this->outputs[2];
-			Blip_Buffer* const output_right = this->outputs[1];
+			Fake_Buffer* const output_left = this->outputs[2];
+			Fake_Buffer* const output_right = this->outputs[1];
 
 			int delta_left = amp_left * 2;
 			int delta_right = amp_right * 2;
@@ -113,8 +119,8 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 				delta_left = -delta_left;
 				delta_right = -delta_right;
 
-				synth->offset_inline( time, delta_left, output_left );
-				synth->offset_inline( time, delta_right, output_right );
+				fakeBufOffset( time, delta_left, output_left );
+				fakeBufOffset( time, delta_right, output_right );
 				time += period;
 				phase ^= 1;
 			}
@@ -131,7 +137,7 @@ void T6W28_Square::run( sms_time_t time, sms_time_t end_time )
 
 static const int noise_periods [3] = { 0x100, 0x200, 0x400 };
 
-blip_inline void T6W28_Noise::reset()
+void T6W28_Noise::reset()
 {
 	period = &noise_periods [0];
 	shifter = 0x4000;
@@ -158,13 +164,13 @@ void T6W28_Noise::run( sms_time_t time, sms_time_t end_time )
 	 if ( delta_left )
 	 {
 		last_amp_left = amp_left;
-		synth.offset( time, delta_left, outputs[2] );
+		fakeBufOffset( time, delta_left, outputs[2] );
 	 }
 	
          if ( delta_right )
          {
                 last_amp_right = amp_right;
-                synth.offset( time, delta_right, outputs[1] );
+                fakeBufOffset( time, delta_right, outputs[1] );
          }
 	}
 
@@ -175,8 +181,8 @@ void T6W28_Noise::run( sms_time_t time, sms_time_t end_time )
 	
 	if ( time < end_time )
 	{
-		Blip_Buffer* const output_left = this->outputs[2];
-		Blip_Buffer* const output_right = this->outputs[1];
+		Fake_Buffer* const output_left = this->outputs[2];
+		Fake_Buffer* const output_right = this->outputs[1];
 
 		unsigned l_shifter = this->shifter;
 		int delta_left = amp_left * 2;
@@ -193,10 +199,10 @@ void T6W28_Noise::run( sms_time_t time, sms_time_t end_time )
 			if ( changed )
 			{
 				delta_left = -delta_left;
-				synth.offset_inline( time, delta_left, output_left );
+				fakeBufOffset( time, delta_left, output_left );
 
 				delta_right = -delta_right;
-				synth.offset_inline( time, delta_right, output_right );
+				fakeBufOffset( time, delta_right, output_right );
 			}
 			time += l_period;
 		}
@@ -215,12 +221,10 @@ T6W28_Apu::T6W28_Apu()
 {
 	for ( int i = 0; i < 3; i++ )
 	{
-		squares [i].synth = &square_synth;
 		oscs [i] = &squares [i];
 	}
 	oscs [3] = &noise;
 	
-	volume( 1.0 );
 	reset();
 }
 
@@ -229,9 +233,9 @@ T6W28_Apu::~T6W28_Apu()
 }
 
 
-void T6W28_Apu::osc_output( int index, Blip_Buffer* center, Blip_Buffer* left, Blip_Buffer* right )
+void T6W28_Apu::osc_output( int index, Fake_Buffer* center, Fake_Buffer* left, Fake_Buffer* right )
 {
-	require( (unsigned) index < osc_count );
+	require( (unsigned int) index < osc_count );
 	require( (center && left && right) || (!center && !left && !right) );
 	T6W28_Osc& osc = *oscs [index];
 	osc.outputs [1] = right;
@@ -239,7 +243,7 @@ void T6W28_Apu::osc_output( int index, Blip_Buffer* center, Blip_Buffer* left, B
 	osc.outputs [3] = center;
 }
 
-void T6W28_Apu::output( Blip_Buffer* center, Blip_Buffer* left, Blip_Buffer* right )
+void T6W28_Apu::output( Fake_Buffer* center, Fake_Buffer* left, Fake_Buffer* right )
 {
 	for ( int i = 0; i < osc_count; i++ )
 		osc_output( i, center, left, right );
