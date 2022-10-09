@@ -93,46 +93,11 @@ const char** DivPlatformVB::getRegisterSheet() {
 
 void DivPlatformVB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
-    // PCM part
-    /*
-    for (int i=0; i<6; i++) {
-      if (chan[i].pcm && chan[i].dacSample!=-1) {
-        chan[i].dacPeriod+=chan[i].dacRate;
-        if (chan[i].dacPeriod>rate) {
-          DivSample* s=parent->getSample(chan[i].dacSample);
-          if (s->samples<=0) {
-            chan[i].dacSample=-1;
-            continue;
-          }
-          chWrite(i,0x07,0);
-          signed char dacData=((signed char)((unsigned char)s->data8[chan[i].dacPos]^0x80))>>3;
-          chan[i].dacOut=CLAMP(dacData,-16,15);
-          if (!isMuted[i]) {
-            chWrite(i,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[i].outVol));
-            chWrite(i,0x06,chan[i].dacOut&0x1f);
-          } else {
-            chWrite(i,0x04,0xc0);
-            chWrite(i,0x06,0x10);
-          }
-          chan[i].dacPos++;
-          if (s->isLoopable() && chan[i].dacPos>=(unsigned int)s->loopEnd) {
-            chan[i].dacPos=s->loopStart;
-          } else if (chan[i].dacPos>=s->samples) {
-            chan[i].dacSample=-1;
-          }
-          chan[i].dacPeriod-=rate;
-        }
-      }
-    }
-    */
-  
-    // VB part
     cycles=0;
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
       vb->Write(cycles,w.addr,w.val);
-      regPool[w.addr]=w.val;
-      //cycles+=2;
+      regPool[w.addr>>2]=w.val;
       writes.pop();
     }
     vb->EndFrame(16);
@@ -158,10 +123,6 @@ void DivPlatformVB::acquire(short* bufL, short* bufR, size_t start, size_t len) 
 void DivPlatformVB::updateWave(int ch) {
   if (ch>=5) return;
 
-  if (chan[ch].pcm) {
-    chan[ch].deferredWaveUpdate=true;
-    return;
-  }
   for (int i=0; i<32; i++) {
     rWrite((ch<<7)+(i<<2),chan[ch].ws.output[i]);
     //chWrite(ch,0x06,chan[ch].ws.output[(i+chan[ch].antiClickWavePos)&31]);
@@ -175,11 +136,6 @@ void DivPlatformVB::updateWave(int ch) {
   }
 }
 
-// TODO: in octave 6 the noise table changes to a tonal one
-static unsigned char noiseFreq[12]={
-  4,13,15,18,21,23,25,27,29,31,0,2  
-};
-
 void DivPlatformVB::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     // anti-click
@@ -192,29 +148,15 @@ void DivPlatformVB::tick(bool sysTick) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
-      if (chan[i].furnaceDac && chan[i].pcm) {
-        // ignore for now
-      } else {
-        chWrite(i,0x04,chan[i].outVol<<4);
-      }
-    }
-    if (chan[i].std.duty.had && i>=4) {
-      chan[i].noise=chan[i].std.duty.val;
-      chan[i].freqChanged=true;
-      int noiseSeek=chan[i].note;
-      if (noiseSeek<0) noiseSeek=0;
-      chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
+      chWrite(i,0x04,chan[i].outVol<<4);
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        chan[i].baseFreq=NOTE_PERIODIC(noiseSeek);
-        if (noiseSeek<0) noiseSeek=0;
-        chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.wave.had && !chan[i].pcm) {
+    if (chan[i].std.wave.had) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
         chan[i].wave=chan[i].std.wave.val;
         chan[i].ws.changeWave1(chan[i].wave);
@@ -242,15 +184,6 @@ void DivPlatformVB::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
-      if (chan[i].furnaceDac && chan[i].pcm) {
-        if (chan[i].active && chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
-          chan[i].dacPos=0;
-          chan[i].dacPeriod=0;
-          //chWrite(i,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[i].vol));
-          addWrite(0xffff0000+(i<<8),chan[i].dacSample);
-          chan[i].keyOn=true;
-        }
-      }
       chan[i].antiClickWavePos=0;
       chan[i].antiClickPeriodCount=0;
     }
@@ -260,21 +193,7 @@ void DivPlatformVB::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
-      if (chan[i].furnaceDac && chan[i].pcm) {
-        double off=1.0;
-        if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
-          DivSample* s=parent->getSample(chan[i].dacSample);
-          if (s->centerRate<1) {
-            off=1.0;
-          } else {
-            off=8363.0/(double)s->centerRate;
-          }
-        }
-        chan[i].dacRate=((double)chipClock/2)/MAX(1,off*chan[i].freq);
-        if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
-      }
       if (chan[i].freq<1) chan[i].freq=1;
       if (chan[i].freq>2047) chan[i].freq=2047;
       chan[i].freq=2048-chan[i].freq;
@@ -296,64 +215,6 @@ int DivPlatformVB::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
-      chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:31;
-      if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
-        chan[c.chan].pcm=true;
-      } else if (chan[c.chan].furnaceDac) {
-        chan[c.chan].pcm=false;
-      }
-      if (chan[c.chan].pcm) {
-        if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
-          chan[c.chan].furnaceDac=true;
-          if (skipRegisterWrites) break;
-          chan[c.chan].dacSample=ins->amiga.getSample(c.value);
-          if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
-            chan[c.chan].dacSample=-1;
-            if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
-            break;
-          } else {
-             if (dumpWrites) {
-               //chWrite(c.chan,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[c.chan].vol));
-               addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
-             }
-          }
-          chan[c.chan].dacPos=0;
-          chan[c.chan].dacPeriod=0;
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
-            chan[c.chan].freqChanged=true;
-            chan[c.chan].note=c.value;
-          }
-          chan[c.chan].active=true;
-          chan[c.chan].macroInit(ins);
-          if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
-            chan[c.chan].outVol=chan[c.chan].vol;
-          }
-          //chan[c.chan].keyOn=true;
-        } else {
-          chan[c.chan].furnaceDac=false;
-          if (skipRegisterWrites) break;
-          if (c.value!=DIV_NOTE_NULL) {
-            chan[c.chan].note=c.value;
-          }
-          chan[c.chan].dacSample=12*sampleBank+chan[c.chan].note%12;
-          if (chan[c.chan].dacSample>=parent->song.sampleLen) {
-            chan[c.chan].dacSample=-1;
-            if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
-            break;
-          } else {
-            if (dumpWrites) addWrite(0xffff0000+(c.chan<<8),chan[c.chan].dacSample);
-          }
-          chan[c.chan].dacPos=0;
-          chan[c.chan].dacPeriod=0;
-          chan[c.chan].dacRate=parent->getSample(chan[c.chan].dacSample)->rate;
-          if (dumpWrites) {
-            //chWrite(c.chan,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[c.chan].vol));
-            addWrite(0xffff0001+(c.chan<<8),chan[c.chan].dacRate);
-          }
-        }
-        break;
-      }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
@@ -364,6 +225,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
       chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
+        chWrite(c.chan,0x04,chan[c.chan].outVol<<4);
       }
       if (chan[c.chan].wave<0) {
         chan[c.chan].wave=0;
@@ -376,7 +238,6 @@ int DivPlatformVB::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].dacSample=-1;
       if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
-      chan[c.chan].pcm=false;
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].macroInit(NULL);
@@ -396,7 +257,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
-          if (chan[c.chan].active && !chan[c.chan].pcm) {
+          if (chan[c.chan].active) {
             chWrite(c.chan,0x04,chan[c.chan].outVol<<4);
           }
         }
@@ -458,15 +319,6 @@ int DivPlatformVB::dispatch(DivCommand c) {
       chan[c.chan].noise=c.value;
       chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|chan[c.chan].note):0);
       break;
-    case DIV_CMD_SAMPLE_MODE:
-      chan[c.chan].pcm=c.value;
-      break;
-    case DIV_CMD_SAMPLE_BANK:
-      sampleBank=c.value;
-      if (sampleBank>(parent->song.sample.size()/12)) {
-        sampleBank=parent->song.sample.size()/12;
-      }
-      break;
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
       chWrite(c.chan,0x01,isMuted[c.chan]?0:chan[c.chan].pan);
@@ -499,10 +351,6 @@ int DivPlatformVB::dispatch(DivCommand c) {
 void DivPlatformVB::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   chWrite(ch,0x01,isMuted[ch]?0:chan[ch].pan);
-  if (!isMuted[ch] && (chan[ch].pcm && chan[ch].dacSample!=-1)) {
-    //chWrite(ch,0x04,parent->song.disableSampleMacro?0xdf:(0xc0|chan[ch].outVol));
-    //chWrite(ch,0x06,chan[ch].dacOut&0x1f);
-  }
 }
 
 void DivPlatformVB::forceIns() {
@@ -531,7 +379,7 @@ unsigned char* DivPlatformVB::getRegisterPool() {
 }
 
 int DivPlatformVB::getRegisterPoolSize() {
-  return 0x600;
+  return 0x180;
 }
 
 int DivPlatformVB::getRegisterPoolDepth() {
@@ -556,7 +404,6 @@ void DivPlatformVB::reset() {
   tempR=0;
   cycles=0;
   curChan=-1;
-  sampleBank=0;
   lfoMode=0;
   lfoSpeed=255;
   // set per-channel initial values

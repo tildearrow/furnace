@@ -33,9 +33,8 @@ class DivPlatformVB: public DivDispatch {
     unsigned int dacPos;
     int dacSample, ins;
     unsigned char pan;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, furnaceDac, deferredWaveUpdate;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, deferredWaveUpdate;
     signed char vol, outVol, wave;
-    int macroVolMul;
     DivMacroInt std;
     DivWaveSynth ws;
     void macroInit(DivInstrument* which) {
@@ -64,13 +63,10 @@ class DivPlatformVB: public DivDispatch {
       keyOff(false),
       inPorta(false),
       noise(false),
-      pcm(false),
-      furnaceDac(false),
       deferredWaveUpdate(false),
-      vol(31),
-      outVol(31),
-      wave(-1),
-      macroVolMul(31) {}
+      vol(15),
+      outVol(15),
+      wave(-1) {}
   };
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];
@@ -87,7 +83,7 @@ class DivPlatformVB: public DivDispatch {
   int cycles, curChan, delay;
   int tempL;
   int tempR;
-  unsigned char sampleBank, lfoMode, lfoSpeed;
+  unsigned char lfoMode, lfoSpeed;
   VSU* vb;
   unsigned char regPool[0x600];
   void updateWave(int ch);
