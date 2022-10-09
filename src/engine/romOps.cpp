@@ -25,11 +25,11 @@ SafeWriter* DivEngine::buildROM(int sysIndex) {
     if (NULL == sysDef) {
         return NULL;
     }
-    SystemROMBuilder* romBuilder = sysDef->romBuilder;
+    ROMBuilder* romBuilder = sysDef->romBuilder;
     if (NULL == romBuilder) {
         return NULL;
     }
     // perform ROM build
-    return romBuilder->buildROM(sysIndex);
+    return (*romBuilder)(this, sysIndex);
 }
 

@@ -842,7 +842,7 @@ void DivEngine::registerSystems() {
     {},
     {},
     waveOnlyEffectHandlerMap,
-    new R9TrackerBuilder(this)
+    R9TrackerBuilder
   );
 
   sysDefs[DIV_SYSTEM_SAA1099]=new DivSysDef(

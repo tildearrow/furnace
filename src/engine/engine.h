@@ -279,14 +279,7 @@ struct EffectHandler {
   val2(val2_) {}
 };
 
-class SystemROMBuilder {
-protected:
-  DivEngine* e;
-  SystemROMBuilder(DivEngine* eng) : e(eng) {}
-public:
-  virtual ~SystemROMBuilder() {}
-  virtual SafeWriter* buildROM(int sysIndex)=0;
-};
+typedef SafeWriter* ROMBuilder(DivEngine* eng,int sysIndex);
 
 struct DivDoNotHandleEffect {
 };

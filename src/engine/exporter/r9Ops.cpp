@@ -17,10 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "tiaExporter.h"
+#include "r9.h"
+
 #include <fmt/printf.h>
 #include <set>
-#include "tiaExporter.h"
 #include "../../ta-log.h"
+
+SafeWriter* R9TrackerBuilder(DivEngine* eng, int sysIndex) {
+  R9 r9(eng);
+  return r9.buildROM(sysIndex);
+}
 
 const int AUDC0 = 0x15;
 const int AUDC1 = 0x16;
@@ -111,88 +118,20 @@ struct RowIndex{
   }  
 };
 
-SafeWriter* R9TrackerBuilder::buildROM(int sysIndex) {
+SafeWriter* R9::buildROM(int sysIndex) {
 
   SafeWriter* w=new SafeWriter;
   w->init();
-  w->writeText("# Data exported from Furnace to R9 (Tia) data track.\n");
-  w->writeText(fmt::sprintf("# Song: %s\n", e->song.name));
-  w->writeText(fmt::sprintf("# Author: %s\n", e->song.author));
-  // TODO: never populated?
-  //   w->writeText(fmt::sprintf("# Composer: %s\n", e->song.composer));
-  //   w->writeText(fmt::sprintf("# Arranger: %s\n", e->song.arranger));
-  //   w->writeText(fmt::sprintf("# Copyright: %s\n", e->song.copyright));
-  //   w->writeText(fmt::sprintf("# Created Date: %s\n", e->song.createdDate));
+  w->writeText("; Data exported from Furnace to R9 data track.\n");
+  w->writeText(fmt::sprintf("; Song: %s\n", e->song.name));
+  w->writeText(fmt::sprintf("; Author: %s\n", e->song.author));
 
   writeTrackData(w);
 
   return w;
 }
 
-void R9TrackerBuilder::dumpRegisters(SafeWriter *w) {
-  e->stop();
-  e->setRepeatPattern(false);
-  e->setOrder(0);
-
-  // determine loop point
-  int loopOrder=0;
-  int loopRow=0;
-  int loopEnd=0;
-  e->walkSong(loopOrder, loopRow, loopEnd);
-
-  // play the song ourselves
-  e->play();
-
-  for (int i=0; i<e->song.systemLen; i++) {
-    e->getDispatch(i)->toggleRegisterDump(true);
-  }
-   
-  int tick = 0;
-  int lastWriteTick = 0;
-  TiaRegisters currentState;
-  memset(&currentState, 0, sizeof(currentState));
-  bool done=false;
-  while (!done) {
-    if (e->tick() || !e->isPlaying()) {
-      done=true;
-      for (int i=0; i<e->song.systemLen; i++) {
-        e->getDispatch(i)->getRegisterWrites().clear();
-      }
-      break;
-    }
-    tick++;
-    // get register dumps
-    for (int i=0; i<e->song.systemLen; i++) {
-      bool isDirty = false;
-      std::vector<DivRegWrite>& registerWrites=e->getDispatch(i)->getRegisterWrites();
-      for (DivRegWrite& registerWrite: registerWrites) {
-        isDirty |= currentState.write(registerWrite);
-      }
-      registerWrites.clear();
-
-      if (isDirty) {
-        // end last seq
-        if (lastWriteTick > 0) {
-          w->writeText(fmt::sprintf("  byte %d\n", tick - lastWriteTick));
-        }
-        // start next seq
-        lastWriteTick = tick;
-        w->writeText(fmt::sprintf("  byte %d,%d,%d\n", currentState.audc0, currentState.audf0, currentState.audv0));
-        w->writeText(fmt::sprintf("  byte %d,%d,%d\n", currentState.audc1, currentState.audf1, currentState.audv1));      
-      }
-    }
-  }
-
-  // final seq
-  w->writeText(fmt::sprintf("  byte %d\n", tick - lastWriteTick));
-
-  for (int i=0; i<e->song.systemLen; i++) {
-    e->getDispatch(i)->toggleRegisterDump(false);
-  }
-
-}
-
-void R9TrackerBuilder::writeTrackData(SafeWriter *w) {
+void R9::writeTrackData(SafeWriter *w) {
   // pull patterns to write
   // borrowed from fileops
   std::vector<PatternIndex> patterns;
@@ -233,7 +172,7 @@ void R9TrackerBuilder::writeTrackData(SafeWriter *w) {
       short instrument = pat->data[j][2];
       short volume = pat->data[j][3]; 
       String key = fmt::sprintf(
-        "WF_N%d_O%d_I%d_V%d",
+        "WF_N%d_O%d_I%d_V%d", // TODO: could be more readable in code
         note & 0xff, 
         octave & 0xff,
         instrument & 0xff,
@@ -260,9 +199,6 @@ void R9TrackerBuilder::writeTrackData(SafeWriter *w) {
     
   // emit waveform data
   // this is done by playing back the song from the unique notes
-  
-
-
   w->writeC('\n');
   w->writeText("; Waveforms\n");
   for (int i=0; i<e->song.systemLen; i++) {
@@ -277,12 +213,13 @@ void R9TrackerBuilder::writeTrackData(SafeWriter *w) {
     RowIndex curRowIndex(e->getCurrentSubSong(), e->getOrder(), e->getRow());
     const char *key = waveForms[curRowIndex.subsong][curRowIndex.ord][channel][curRowIndex.row];
     if (NULL != key) {
-      logI("got key %s", key);
+      logD("got key %s", key);
       writeWaveformHeader(w, key);
     }
 
     int tick = 0;
     int lastWriteTick = 0;
+    bool needsWriteDuration = false;
     TiaRegisters currentState;
     memset(&currentState, 0, sizeof(currentState));
     bool done=false;
@@ -294,21 +231,26 @@ void R9TrackerBuilder::writeTrackData(SafeWriter *w) {
         }
         break;
       }
-      tick++;
+      
+      // check if we've changed rows
       if (curRowIndex.advance(e->getCurrentSubSong(), e->getOrder(), e->getRow())) {
-        if (NULL != key) {
+        if (needsWriteDuration) {
+          // prev seq
           w->writeText(fmt::sprintf("  byte %d, 255\n", tick - lastWriteTick));
-          lastWriteTick = tick;
+          needsWriteDuration = false;
         }
-        logI("advancing %d %d %d %d", curRowIndex.subsong, curRowIndex.ord, curRowIndex.row, channel);
+        lastWriteTick = tick = 0;
+        logD("advancing %d %d %d %d", curRowIndex.subsong, curRowIndex.ord, curRowIndex.row, channel);
         key = waveForms[curRowIndex.subsong][curRowIndex.ord][channel][curRowIndex.row];
         if (NULL != key) {
-          logI("got key %s", key);
+          logD("got key %s", key);
           writeWaveformHeader(w, key);
         }
       }
       // get register dumps
+      int deltaTick = tick - lastWriteTick;
       for (int i=0; i<e->song.systemLen; i++) {
+        // BUGBUG: don't iterate systems this way (will break)
         bool isDirty = false;
         std::vector<DivRegWrite>& registerWrites=e->getDispatch(i)->getRegisterWrites();
         for (DivRegWrite& registerWrite: registerWrites) {
@@ -331,12 +273,12 @@ void R9TrackerBuilder::writeTrackData(SafeWriter *w) {
         registerWrites.clear();
         if (NULL != key && isDirty) {
           // end last seq
-          int deltaTick = tick - lastWriteTick;
-          if (lastWriteTick > 0 && deltaTick > 0) {
+          if (needsWriteDuration) {
             w->writeText(fmt::sprintf("  byte %d\n", deltaTick));
           }
           // start next seq
           lastWriteTick = tick;
+          needsWriteDuration = true;
           if (0 == channel) {
             w->writeText(fmt::sprintf("  byte %d,%d,%d\n", currentState.audc0, currentState.audf0, currentState.audv0));
           } else {
@@ -344,8 +286,9 @@ void R9TrackerBuilder::writeTrackData(SafeWriter *w) {
           }
         }
       }
+      tick++;
     }
-    if (NULL != key) {
+    if (needsWriteDuration) {
       // final seq
       w->writeText(fmt::sprintf("  byte %d, 255\n", tick - lastWriteTick));
     }
@@ -356,6 +299,6 @@ void R9TrackerBuilder::writeTrackData(SafeWriter *w) {
 
 }
 
-void R9TrackerBuilder::writeWaveformHeader(SafeWriter* w, const char * key) {
+void R9::writeWaveformHeader(SafeWriter* w, const char * key) {
   w->writeText(fmt::sprintf("%s_ADDR\n", key));
 }

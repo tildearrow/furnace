@@ -591,7 +591,7 @@ src/engine/wavOps.cpp
 src/engine/vgmOps.cpp
 src/engine/zsmOps.cpp
 src/engine/zsm.cpp
-src/engine/exporter/tiaExporter.cpp
+src/engine/exporter/r9Ops.cpp
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
 src/engine/platform/genesisext.cpp

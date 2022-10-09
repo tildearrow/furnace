@@ -17,11 +17,25 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _TIA_EXPORTER_H
-#define _TIA_EXPORTER_H
+#ifndef _R9_H
+#define _R9_H
 
 #include "../engine.h"
 
-SafeWriter* R9TrackerBuilder(DivEngine* eng, int sysIndex);
+class R9 {
 
-#endif // _TIA_EXPORTER_H
+  DivEngine* e;
+
+  void dumpRegisters(SafeWriter* w);
+  void writeTrackData(SafeWriter* w);
+  void writeWaveformHeader(SafeWriter* w, const char * key);
+
+public:    
+
+  R9(DivEngine* _e) : e(_e) {}
+  ~R9() {}
+  SafeWriter* buildROM(int sysIndex);
+
+};
+
+#endif // _R9_H
