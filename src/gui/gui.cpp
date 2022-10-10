@@ -494,7 +494,7 @@ bool FurnaceGUI::CWVSliderInt(const char* label, const ImVec2& size, int* v, int
 bool FurnaceGUI::InvCheckbox(const char* label, bool* value) {
   bool t=!(*value);
   if (ImGui::Checkbox(label,&t)) {
-    *value=t;
+    *value=!t;
     return true;
   }
   return false;
