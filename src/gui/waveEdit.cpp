@@ -256,7 +256,7 @@ void FurnaceGUI::drawWaveEdit() {
         ImGui::TableNextColumn();
         ImGui::Text("Width");
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("use a width of:\n- any on Amiga/N163\n- 32 on Game Boy, PC Engine, SCC, Konami Bubble System, Namco WSG and WonderSwan\n- 64 on FDS\n- 128 on X1-010\nany other widths will be scaled during playback.");
+          ImGui::SetTooltip("use a width of:\n- any on Amiga/N163\n- 32 on Game Boy, PC Engine, SCC, Konami Bubble System, Namco WSG, Virtual Boy and WonderSwan\n- 64 on FDS\n- 128 on X1-010\nany other widths will be scaled during playback.");
         }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
@@ -270,7 +270,7 @@ void FurnaceGUI::drawWaveEdit() {
         ImGui::SameLine();
         ImGui::Text("Height");
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("use a height of:\n- 15 for Game Boy, WonderSwan, Namco WSG, Konami Bubble System, X1-010 Envelope shape and N163\n- 31 for PC Engine\n- 63 for FDS\n- 255 for X1-010 and SCC\nany other heights will be scaled during playback.");
+          ImGui::SetTooltip("use a height of:\n- 15 for Game Boy, WonderSwan, Namco WSG, Konami Bubble System, X1-010 Envelope shape and N163\n- 31 for PC Engine\n- 63 for FDS and Virtual Boy\n- 255 for X1-010 and SCC\nany other heights will be scaled during playback.");
         }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
