@@ -153,6 +153,8 @@ void FurnaceGUI::doGenerateWave() {
     if (finalResult[i]>1.0f) finalResult[i]=1.0f;
     wave->data[i]=round(finalResult[i]*wave->max);
   }
+
+  e->notifyWaveChange(curWave);
 }
 
 #define CENTER_TEXT(text) \
