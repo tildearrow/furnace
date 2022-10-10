@@ -30,7 +30,7 @@ class DivPlatformVB: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note;
     int ins;
-    unsigned char pan;
+    unsigned char pan, envLow, envHigh;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, deferredWaveUpdate;
     signed char vol, outVol, wave;
     DivMacroInt std;
@@ -47,6 +47,8 @@ class DivPlatformVB: public DivDispatch {
       note(0),
       ins(-1),
       pan(255),
+      envLow(0),
+      envHigh(0),
       active(false),
       insChanged(true),
       freqChanged(false),
@@ -73,10 +75,11 @@ class DivPlatformVB: public DivDispatch {
   int cycles, curChan, delay;
   int tempL;
   int tempR;
-  unsigned char lfoMode, lfoSpeed;
+  unsigned char modulation;
   VSU* vb;
   unsigned char regPool[0x600];
   void updateWave(int ch);
+  void writeEnv(int ch);
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:

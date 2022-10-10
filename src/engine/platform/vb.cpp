@@ -128,12 +128,17 @@ void DivPlatformVB::updateWave(int ch) {
   }
 }
 
+void DivPlatformVB::writeEnv(int ch) {
+  chWrite(ch,0x04,(chan[ch].outVol<<4)|(chan[ch].envLow&15));
+  chWrite(ch,0x05,chan[ch].envHigh);
+}
+
 void DivPlatformVB::tick(bool sysTick) {
   for (int i=0; i<6; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
-      chWrite(i,0x04,chan[i].outVol<<4);
+      writeEnv(i);
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
@@ -209,7 +214,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
       chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
-        chWrite(c.chan,0x04,chan[c.chan].outVol<<4);
+        writeEnv(c.chan);
       }
       if (chan[c.chan].wave<0) {
         chan[c.chan].wave=0;
@@ -240,7 +245,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
           if (chan[c.chan].active) {
-            chWrite(c.chan,0x04,chan[c.chan].outVol<<4);
+            writeEnv(c.chan);
           }
         }
       }
@@ -259,20 +264,6 @@ int DivPlatformVB::dispatch(DivCommand c) {
       chan[c.chan].wave=c.value;
       chan[c.chan].ws.changeWave1(chan[c.chan].wave);
       chan[c.chan].keyOn=true;
-      break;
-    case DIV_CMD_PCE_LFO_MODE:
-      if (c.value==0) {
-        lfoMode=0;
-      } else {
-        lfoMode=c.value;
-      }
-      rWrite(0x08,lfoSpeed);
-      rWrite(0x09,lfoMode);
-      break;
-    case DIV_CMD_PCE_LFO_SPEED:
-      lfoSpeed=255-c.value;
-      rWrite(0x08,lfoSpeed);
-      rWrite(0x09,lfoMode);
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
@@ -298,8 +289,30 @@ int DivPlatformVB::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_STD_NOISE_MODE:
-      chan[c.chan].noise=c.value;
-      chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|chan[c.chan].note):0);
+      if (c.chan!=5) break;
+      chan[c.chan].envHigh&=~0x70;
+      chan[c.chan].envHigh|=(c.value&7)<<4;
+      writeEnv(c.chan);
+      break;
+    case DIV_CMD_STD_NOISE_FREQ:
+      chan[c.chan].envHigh&=~3;
+      chan[c.chan].envHigh|=(c.value>>4)&3;
+      chan[c.chan].envLow=c.value&15;
+      writeEnv(c.chan);
+      break;
+    case DIV_CMD_FDS_MOD_DEPTH: // set modulation
+      if (c.chan!=4) break;
+      modulation=c.value;
+      chWrite(4,0x06,modulation);
+      if (modulation!=0) {
+        chan[c.chan].envHigh|=0x10;
+      } else {
+        chan[c.chan].envHigh&=~0x10;
+      }
+      writeEnv(4);
+      break;
+    case DIV_CMD_FDS_MOD_WAVE: // set modulation wave
+      
       break;
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
@@ -385,8 +398,7 @@ void DivPlatformVB::reset() {
   tempR=0;
   cycles=0;
   curChan=-1;
-  lfoMode=0;
-  lfoSpeed=255;
+  modulation=0;
   // set per-channel initial values
   for (int i=0; i<6; i++) {
     chWrite(i,0x01,isMuted[i]?0:chan[i].pan);
