@@ -76,6 +76,7 @@ class DivPlatformVB: public DivDispatch {
   int tempL;
   int tempR;
   unsigned char modulation;
+  signed char modTable[32];
   VSU* vb;
   unsigned char regPool[0x600];
   void updateWave(int ch);

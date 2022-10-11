@@ -303,17 +303,32 @@ int DivPlatformVB::dispatch(DivCommand c) {
     case DIV_CMD_FDS_MOD_DEPTH: // set modulation
       if (c.chan!=4) break;
       modulation=c.value;
-      chWrite(4,0x06,modulation);
+      chWrite(4,0x07,modulation);
       if (modulation!=0) {
-        chan[c.chan].envHigh|=0x10;
+        chan[c.chan].envHigh|=0x70;
       } else {
-        chan[c.chan].envHigh&=~0x10;
+        chan[c.chan].envHigh&=~0x70;
       }
       writeEnv(4);
+      chWrite(c.chan,0x00,0x80);
       break;
-    case DIV_CMD_FDS_MOD_WAVE: // set modulation wave
-      
+    case DIV_CMD_FDS_MOD_WAVE: { // set modulation wave
+      if (c.chan!=4) break;
+      DivWavetable* wt=parent->getWave(c.value);
+      for (int i=0; i<32; i++) {
+        if (wt->max<1 || wt->len<1) {
+          modTable[i]=0;
+          rWrite(0x280+(i<<2),0);
+        } else {
+          int data=(wt->data[i*wt->len/32]*255/wt->max)-128;
+          if (data<-128) data=-128;
+          if (data>127) data=127;
+          modTable[i]=data;
+          rWrite(0x280+(i<<2),modTable[i]);
+        }
+      }
       break;
+    }
     case DIV_CMD_PANNING: {
       chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
       chWrite(c.chan,0x01,isMuted[c.chan]?0:chan[c.chan].pan);
@@ -399,6 +414,7 @@ void DivPlatformVB::reset() {
   cycles=0;
   curChan=-1;
   modulation=0;
+  memset(modTable,0,32);
   // set per-channel initial values
   for (int i=0; i<6; i++) {
     chWrite(i,0x01,isMuted[i]?0:chan[i].pan);
