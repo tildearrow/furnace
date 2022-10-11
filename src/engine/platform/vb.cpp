@@ -310,12 +310,12 @@ int DivPlatformVB::dispatch(DivCommand c) {
       break;
     case DIV_CMD_FDS_MOD_DEPTH: // set modulation
       if (c.chan!=4) break;
-      modulation=c.value;
+      modulation=(c.value<<4)&15;
       modType=true;
       chWrite(4,0x07,modulation);
       if (modulation!=0) {
         chan[c.chan].envHigh&=~0x70;
-        chan[c.chan].envHigh|=0x70;
+        chan[c.chan].envHigh|=0x40|((c.value&15)<<4);
       } else {
         chan[c.chan].envHigh&=~0x70;
       }
