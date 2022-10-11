@@ -4044,7 +4044,7 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::EndCombo();
             }
             if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SNES) {
-              P(ImGui::Checkbox("Use wavetable (Amiga/SNES only)",&ins->amiga.useWave));
+              P(ImGui::Checkbox("Use wavetable (Amiga/SNES/Generic DAC only)",&ins->amiga.useWave));
               if (ins->amiga.useWave) {
                 int len=ins->amiga.waveLen+1;
                 int origLen=len;
