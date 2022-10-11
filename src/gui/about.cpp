@@ -134,7 +134,7 @@ const char* aboutLine[]={
   "MAME YMZ280B core by Aaron Giles",
   "SAASound by Dave Hooper and Simon Owen",
   "SameBoy by Lior Halphon",
-  "Mednafen PCE and WonderSwan audio cores",
+  "Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores",
   "SNES DSP core by Blargg",
   "puNES (NES, MMC5 and FDS) by FHorse",
   "NSFPlay (NES and FDS) by Brad Smith and Brezza",
