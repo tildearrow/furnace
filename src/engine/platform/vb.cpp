@@ -128,9 +128,11 @@ void DivPlatformVB::updateWave(int ch) {
   }
 }
 
-void DivPlatformVB::writeEnv(int ch) {
+void DivPlatformVB::writeEnv(int ch, bool upperByteToo) {
   chWrite(ch,0x04,(chan[ch].outVol<<4)|(chan[ch].envLow&15));
-  chWrite(ch,0x05,chan[ch].envHigh);
+  if (ch<5 || upperByteToo) {
+    chWrite(ch,0x05,chan[ch].envHigh);
+  }
 }
 
 void DivPlatformVB::tick(bool sysTick) {
@@ -298,7 +300,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
       if (c.chan!=5) break;
       chan[c.chan].envHigh&=~0x70;
       chan[c.chan].envHigh|=(c.value&7)<<4;
-      writeEnv(c.chan);
+      writeEnv(c.chan,true);
       break;
     case DIV_CMD_STD_NOISE_FREQ:
       chan[c.chan].envHigh&=~3;

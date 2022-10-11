@@ -439,6 +439,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Virtual Boy", {
+      DIV_SYSTEM_VBOY, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Seta/Allumer X1-010", {
       DIV_SYSTEM_X1_010, 64, 0, 0,
       0
@@ -701,6 +707,12 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "WonderSwan", {
       DIV_SYSTEM_SWAN, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
+    "Virtual Boy", {
+      DIV_SYSTEM_VBOY, 64, 0, 0,
       0
     }
   ));

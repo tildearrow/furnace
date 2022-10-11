@@ -81,7 +81,7 @@ class DivPlatformVB: public DivDispatch {
   VSU* vb;
   unsigned char regPool[0x600];
   void updateWave(int ch);
-  void writeEnv(int ch);
+  void writeEnv(int ch, bool upperByteToo=false);
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
