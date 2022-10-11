@@ -312,6 +312,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
       modType=true;
       chWrite(4,0x07,modulation);
       if (modulation!=0) {
+        chan[c.chan].envHigh&=~0x70;
         chan[c.chan].envHigh|=0x70;
       } else {
         chan[c.chan].envHigh&=~0x70;
@@ -324,9 +325,10 @@ int DivPlatformVB::dispatch(DivCommand c) {
       modType=false;
       chWrite(4,0x07,modulation);
       if (modulation!=0) {
+        chan[c.chan].envHigh&=~0x70;
         chan[c.chan].envHigh|=0x10;
       } else {
-        chan[c.chan].envHigh&=~0x10;
+        chan[c.chan].envHigh&=~0x70;
       }
       writeEnv(4);
       break;
