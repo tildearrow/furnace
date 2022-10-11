@@ -4191,6 +4191,37 @@ void FurnaceGUI::drawInsEdit() {
           }
           ImGui::EndTabItem();
         }
+        if (ins->type==DIV_INS_VBOY) if (ImGui::BeginTabItem("Virtual Boy")) {
+          float modTable[32];
+          P(ImGui::Checkbox("Set modulation table (channel 5 only)",&ins->fds.initModTableWithFirstWave));
+
+          ImGui::BeginDisabled(!ins->fds.initModTableWithFirstWave);
+          for (int i=0; i<32; i++) {
+            modTable[i]=ins->fds.modTable[i];
+          }
+          ImVec2 modTableSize=ImVec2(ImGui::GetContentRegionAvail().x,256.0f*dpiScale);
+          PlotCustom("ModTable",modTable,32,0,NULL,-128,127,modTableSize,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,NULL,true);
+          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+            macroDragStart=ImGui::GetItemRectMin();
+            macroDragAreaSize=modTableSize;
+            macroDragMin=-128;
+            macroDragMax=127;
+            macroDragBitOff=0;
+            macroDragBitMode=false;
+            macroDragInitialValueSet=false;
+            macroDragInitialValue=false;
+            macroDragLen=32;
+            macroDragActive=true;
+            macroDragCTarget=(unsigned char*)ins->fds.modTable;
+            macroDragChar=true;
+            macroDragLineMode=false;
+            macroDragLineInitial=ImVec2(0,0);
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+          }
+
+          ImGui::EndDisabled();
+          ImGui::EndTabItem();
+        }
         if (ins->type==DIV_INS_ES5506) if (ImGui::BeginTabItem("ES5506")) {
           if (ImGui::BeginTable("ESParams",2,ImGuiTableFlags_SizingStretchSame)) {
             ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
