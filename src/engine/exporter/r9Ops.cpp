@@ -132,9 +132,9 @@ void R9::writeTrackData(SafeWriter *w) {
   w->writeText("ORDERS\n");
   std::vector<PatternIndex> patterns;
   bool alreadyAdded[2][256];
-  memset(alreadyAdded, 0, 2*256*sizeof(bool));
   for (size_t i = 0; i < e->song.subsong.size(); i++) {
     DivSubSong* subs = e->song.subsong[i];
+    memset(alreadyAdded, 0, 2*256*sizeof(bool));
     for (int j = 0; j < subs->ordersLen; j++) {
       w->writeText("    byte ");
       for (int k = 0; k < e->getChannelCount(DIV_SYSTEM_TIA); k++) {
@@ -219,106 +219,110 @@ void R9::writeTrackData(SafeWriter *w) {
   for (int i=0; i<e->song.systemLen; i++) {
     e->getDispatch(i)->toggleRegisterDump(true);
   }
-  for (int channel = 0; channel < 2; channel++) {
-    e->stop();
-    e->setRepeatPattern(false);
-    e->setOrder(0);
-    e->play();
-    
-    int tick = 0;
-    int lastWriteTick = 0;
-    bool needsRegisterWrite = false;
-    bool needsWriteDuration = false;
-
-    RowIndex curRowIndex(e->getCurrentSubSong(), e->getOrder(), e->getRow());
-    const char *key = waveforms[curRowIndex.subsong][curRowIndex.ord][curRowIndex.row][channel];
-    if (NULL != key) {
-      logD("got key %s", key);
-      writeWaveformHeader(w, key);
-      needsRegisterWrite = true;
-    }
-
-    TiaRegisters currentState;
-    memset(&currentState, 0, sizeof(currentState));
-    bool done=false;
-    while (!done) {
-      if (e->tick() || !e->isPlaying()) {
-        done=true;
-        for (int i=0; i<e->song.systemLen; i++) {
-          e->getDispatch(i)->getRegisterWrites().clear();
-        }
-        break;
-      }
+  for (size_t subsong = 0; subsong < e->song.subsong.size(); subsong++) {
+    e->changeSongP(subsong);
+    for (int channel = 0; channel < 2; channel++) {
+      e->stop();
+      e->setRepeatPattern(false);
+      e->setOrder(0);
+      e->play();
       
-      // check if we've changed rows
-      if (curRowIndex.advance(e->getCurrentSubSong(), e->getOrder(), e->getRow())) {
-        if (needsRegisterWrite) {
-          writeRegisters(w, currentState, channel);
-          needsWriteDuration = true;
-        }
-        if (needsWriteDuration) {
-          // prev seq
-          w->writeText(fmt::sprintf("  byte %d, 255\n", tick - lastWriteTick - 1));
-          needsWriteDuration = false;
-        }
-        lastWriteTick = tick = 0;
-        logD("advancing %d %d %d %d", curRowIndex.subsong, curRowIndex.ord, curRowIndex.row, channel);
-        key = waveforms[curRowIndex.subsong][curRowIndex.ord][curRowIndex.row][channel];
-        if (NULL != key) {
-          logD("got key %s", key);
-          writeWaveformHeader(w, key);
-          needsRegisterWrite = true;
-        } else {
-          needsRegisterWrite = false;
-        }
+      int tick = 0;
+      int lastWriteTick = 0;
+      bool needsRegisterWrite = false;
+      bool needsWriteDuration = false;
+
+      RowIndex curRowIndex(e->getCurrentSubSong(), e->getOrder(), e->getRow());
+      const char *key = waveforms[curRowIndex.subsong][curRowIndex.ord][curRowIndex.row][channel];
+      if (NULL != key) {
+        logD("got key %s", key);
+        writeWaveformHeader(w, key);
+        needsRegisterWrite = true;
       }
-      // get register dumps
-      int deltaTick = tick - lastWriteTick - 1;
-      for (int i=0; i<e->song.systemLen; i++) {
-        // BUGBUG: don't iterate systems this way (will break if multiple systems)
-        bool isDirty = false;
-        std::vector<DivRegWrite>& registerWrites=e->getDispatch(i)->getRegisterWrites();
-        for (DivRegWrite& registerWrite: registerWrites) {
-          switch (registerWrite.addr) {
-            case AUDC0:
-            case AUDF0:
-            case AUDV0:
-              if (1 == channel) continue;
-              break;
-            case AUDC1:
-            case AUDF1:
-            case AUDV1:
-              if (0 == channel) continue;
-              break;
-            default:
-              continue;
+
+      TiaRegisters currentState;
+      memset(&currentState, 0, sizeof(currentState));
+      bool done=false;
+      while (!done) {
+        if (e->tick() || !e->isPlaying()) {
+          done=true;
+          for (int i=0; i<e->song.systemLen; i++) {
+            e->getDispatch(i)->getRegisterWrites().clear();
           }
-          isDirty |= currentState.write(registerWrite);
+          break;
         }
-        registerWrites.clear();
-        if (NULL != key && isDirty) {
-          // end last seq
+        
+        // check if we've changed rows
+        if (curRowIndex.advance(e->getCurrentSubSong(), e->getOrder(), e->getRow())) {
+          if (needsRegisterWrite) {
+            writeRegisters(w, currentState, channel);
+            needsWriteDuration = true;
+          }
           if (needsWriteDuration) {
-            w->writeText(fmt::sprintf("  byte %d\n", deltaTick));
+            // prev seq
+            w->writeText(fmt::sprintf("  byte %d, 255\n", tick - lastWriteTick - 1));
+            needsWriteDuration = false;
           }
-          // start next seq
-          lastWriteTick = tick;
-          needsWriteDuration = true;
-          writeRegisters(w, currentState, channel);
-          needsRegisterWrite = false;
+          lastWriteTick = tick = 0;
+          logD("advancing %d %d %d %d", curRowIndex.subsong, curRowIndex.ord, curRowIndex.row, channel);
+          key = waveforms[curRowIndex.subsong][curRowIndex.ord][curRowIndex.row][channel];
+          if (NULL != key) {
+            logD("got key %s", key);
+            writeWaveformHeader(w, key);
+            needsRegisterWrite = true;
+          } else {
+            needsRegisterWrite = false;
+          }
         }
+        // get register dumps
+        int deltaTick = tick - lastWriteTick - 1;
+        for (int i=0; i<e->song.systemLen; i++) {
+          // BUGBUG: don't iterate systems this way (will break if multiple systems)
+          bool isDirty = false;
+          std::vector<DivRegWrite>& registerWrites=e->getDispatch(i)->getRegisterWrites();
+          for (DivRegWrite& registerWrite: registerWrites) {
+            switch (registerWrite.addr) {
+              case AUDC0:
+              case AUDF0:
+              case AUDV0:
+                if (1 == channel) continue;
+                break;
+              case AUDC1:
+              case AUDF1:
+              case AUDV1:
+                if (0 == channel) continue;
+                break;
+              default:
+                continue;
+            }
+            isDirty |= currentState.write(registerWrite);
+          }
+          registerWrites.clear();
+          if (NULL != key && isDirty) {
+            // end last seq
+            if (needsWriteDuration) {
+              w->writeText(fmt::sprintf("  byte %d\n", deltaTick));
+            }
+            // start next seq
+            lastWriteTick = tick;
+            needsWriteDuration = true;
+            writeRegisters(w, currentState, channel);
+            needsRegisterWrite = false;
+          }
+        }
+        tick++;
       }
-      tick++;
-    }
-    if (needsRegisterWrite) {
-      writeRegisters(w, currentState, channel);
-      needsWriteDuration = true;
-    }
-    if (needsWriteDuration) {
-      // final seq
-      w->writeText(fmt::sprintf("  byte %d, 255\n", tick - lastWriteTick - 1));
+      if (needsRegisterWrite) {
+        writeRegisters(w, currentState, channel);
+        needsWriteDuration = true;
+      }
+      if (needsWriteDuration) {
+        // final seq
+        w->writeText(fmt::sprintf("  byte %d, 255\n", tick - lastWriteTick - 1));
+      }
     }
   }
+
   for (int i=0; i<e->song.systemLen; i++) {
     e->getDispatch(i)->toggleRegisterDump(false);
   }

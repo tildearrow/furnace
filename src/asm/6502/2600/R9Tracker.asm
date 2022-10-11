@@ -299,9 +299,6 @@ waitOnVBlank_loop
 
     ALIGN 256
 
-AUDIO_TRACKS
-    byte 0
-
     #include "R9Data.inc"
 
 ;-----------------------------------------------------------------------------------
