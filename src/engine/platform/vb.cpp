@@ -212,6 +212,12 @@ int DivPlatformVB::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
+      if (chan[c.chan].insChanged && ins->fds.initModTableWithFirstWave) {
+        for (int i=0; i<32; i++) {
+          modTable[i]=ins->fds.modTable[i];
+          rWrite(0x280+(i<<2),modTable[i]);
+        }
+      }
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
         writeEnv(c.chan);
@@ -303,6 +309,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
     case DIV_CMD_FDS_MOD_DEPTH: // set modulation
       if (c.chan!=4) break;
       modulation=c.value;
+      modType=true;
       chWrite(4,0x07,modulation);
       if (modulation!=0) {
         chan[c.chan].envHigh|=0x70;
@@ -310,7 +317,18 @@ int DivPlatformVB::dispatch(DivCommand c) {
         chan[c.chan].envHigh&=~0x70;
       }
       writeEnv(4);
-      chWrite(c.chan,0x00,0x80);
+      break;
+    case DIV_CMD_GB_SWEEP_TIME: // set sweep
+      if (c.chan!=4) break;
+      modulation=c.value;
+      modType=false;
+      chWrite(4,0x07,modulation);
+      if (modulation!=0) {
+        chan[c.chan].envHigh|=0x10;
+      } else {
+        chan[c.chan].envHigh&=~0x10;
+      }
+      writeEnv(4);
       break;
     case DIV_CMD_FDS_MOD_WAVE: { // set modulation wave
       if (c.chan!=4) break;
@@ -414,6 +432,7 @@ void DivPlatformVB::reset() {
   cycles=0;
   curChan=-1;
   modulation=0;
+  modType=false;
   memset(modTable,0,32);
   // set per-channel initial values
   for (int i=0; i<6; i++) {
