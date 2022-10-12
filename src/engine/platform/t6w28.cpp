@@ -25,7 +25,7 @@
 //#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_DIVIDER 64
+#define CHIP_DIVIDER 16
 
 const char* regCheatSheetT6W28[]={
   "Data0", "0",
@@ -113,8 +113,14 @@ void DivPlatformT6W28::tick(bool sysTick) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (chan[i].freq>1023) chan[i].freq=1023;
-      rWrite(0,0x80|i<<5|(chan[i].freq&15));
-      rWrite(0,chan[i].freq>>4);
+      if (i==3) {
+        rWrite(1,0xe7);
+        rWrite(1,0x80|(2<<5)|(chan[3].freq&15));
+        rWrite(1,chan[3].freq>>4);
+      } else {
+        rWrite(0,0x80|i<<5|(chan[i].freq&15));
+        rWrite(0,chan[i].freq>>4);
+      }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
@@ -298,7 +304,7 @@ void DivPlatformT6W28::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformT6W28::setFlags(const DivConfig& flags) {
-  chipClock=4000000.0;
+  chipClock=3072000.0;
   rate=chipClock/16;
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;
