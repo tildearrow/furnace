@@ -45,6 +45,7 @@ const char* aboutLine[]={
   "laoo",
   "OPNA2608",
   "superctr",
+  "System64",
   "",
   "-- graphics/UI design --",
   "tildearrow",
