@@ -537,7 +537,12 @@ void FurnaceGUI::drawWaveEdit() {
                     if (waveGenScaleX > 0 && wave->len != waveGenScaleX) e->lockEngine([this, wave]() {
                         int origData[256];
                         // Copy original wave to temp buffer
-                        assert(wave->len <= 256);
+                        // If longer than 256 samples, return
+                        if (wave->len >= 256)
+                        {
+                            showError("ERROR : Wavetable longer than 256 samples!");
+                            return;
+                        }
                         memcpy(origData, wave->data, wave->len * sizeof(int));
 
                         float t = 0; // Index used into `origData`
@@ -576,7 +581,7 @@ void FurnaceGUI::drawWaveEdit() {
                             case 3: // Cubic Spline
                             {
                                 int idx = t; // Implicitly floors `t`
-                                int s0 = origData[(idx) % wave->len], s1 = origData[(idx + 1) % wave->len], s2 = origData[(idx + 2) % wave->len], s3 = origData[(idx + 3) % wave->len];
+                                int s0 = origData[((idx - 1 % wave->len + wave->len) % wave->len)], s1 = origData[(idx) % wave->len], s2 = origData[(idx + 1) % wave->len], s3 = origData[(idx + 2) % wave->len];
                                 double a0, a1, a2, a3;
                                 double mu = (t - idx);
                                 double mu2 = mu * mu;
