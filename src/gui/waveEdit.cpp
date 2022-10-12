@@ -538,7 +538,7 @@ void FurnaceGUI::drawWaveEdit() {
                         int origData[256];
                         // Copy original wave to temp buffer
                         // If longer than 256 samples, return
-                        if (wave->len >= 256)
+                        if (wave->len > 256)
                         {
                             showError("ERROR : Wavetable longer than 256 samples!");
                             return;
