@@ -906,6 +906,7 @@ const int availableSystems[]={
   DIV_SYSTEM_YM2610_FULL_EXT,
   DIV_SYSTEM_YM2610B,
   DIV_SYSTEM_YM2610B_EXT,
+  DIV_SYSTEM_T6W28,
   DIV_SYSTEM_AY8910,
   DIV_SYSTEM_AMIGA,
   DIV_SYSTEM_PCSPKR,
@@ -1001,6 +1002,7 @@ const int chipsSquare[]={
   DIV_SYSTEM_SAA1099,
   DIV_SYSTEM_VIC20,
   DIV_SYSTEM_MSM5232,
+  DIV_SYSTEM_T6W28,
   0 // don't remove this last one!
 };
 

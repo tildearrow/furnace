@@ -508,6 +508,7 @@ src/engine/platform/x1_010.cpp
 src/engine/platform/lynx.cpp
 src/engine/platform/su.cpp
 src/engine/platform/swan.cpp
+src/engine/platform/t6w28.cpp
 src/engine/platform/vb.cpp
 src/engine/platform/vera.cpp
 src/engine/platform/zxbeeper.cpp

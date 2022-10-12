@@ -32,6 +32,7 @@
 #include "platform/nes.h"
 #include "platform/c64.h"
 #include "platform/arcade.h"
+#include "platform/t6w28.h"
 #include "platform/tx81z.h"
 #include "platform/ym2203.h"
 #include "platform/ym2203ext.h"
@@ -342,6 +343,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SWAN:
       dispatch=new DivPlatformSwan;
+      break;
+    case DIV_SYSTEM_T6W28:
+      dispatch=new DivPlatformT6W28;
       break;
     case DIV_SYSTEM_VBOY:
       dispatch=new DivPlatformVB;
