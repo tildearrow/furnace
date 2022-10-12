@@ -72,8 +72,10 @@ void DivPlatformT6W28::acquire(short* bufL, short* bufR, size_t start, size_t le
 }
 
 void DivPlatformT6W28::writeOutVol(int ch) {
-  rWrite(1,0x90|(ch<<5)|(isMuted[ch]?15:(15-(chan[ch].outVol&15))));
-  rWrite(0,0x90|(ch<<5)|(isMuted[ch]?15:(15-(chan[ch].outVol&15))));
+  int left=15-CLAMP(chan[ch].outVol+chan[ch].panL-15,0,15);
+  int right=15-CLAMP(chan[ch].outVol+chan[ch].panR-15,0,15);
+  rWrite(0,0x90|(ch<<5)|(isMuted[ch]?15:left));
+  rWrite(1,0x90|(ch<<5)|(isMuted[ch]?15:right));
 }
 
 void DivPlatformT6W28::tick(bool sysTick) {
@@ -90,12 +92,10 @@ void DivPlatformT6W28::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.panL.had) {
-      chan[i].pan&=0x0f;
-      chan[i].pan|=(chan[i].std.panL.val&15)<<4;
+      chan[i].panL=chan[i].std.panL.val&15;
     }
     if (chan[i].std.panR.had) {
-      chan[i].pan&=0xf0;
-      chan[i].pan|=chan[i].std.panR.val&15;
+      chan[i].panR=chan[i].std.panR.val&15;
     }
     if (chan[i].std.vol.had || chan[i].std.panL.had || chan[i].std.panR.had) {
       writeOutVol(i);
@@ -208,7 +208,9 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
       chan[c.chan].noise=c.value;
       break;
     case DIV_CMD_PANNING: {
-      chan[c.chan].pan=(c.value&0xf0)|(c.value2>>4);
+      chan[c.chan].panL=c.value>>4;
+      chan[c.chan].panR=c.value2>>4;
+      writeOutVol(c.chan);
       break;
     }
     case DIV_CMD_LEGATO:

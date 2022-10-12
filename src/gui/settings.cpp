@@ -1680,6 +1680,7 @@ void FurnaceGUI::drawSettings() {
             if (ImGui::TreeNode("Instrument Types")) {
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_FM,"FM (OPN)");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_STD,"SN76489/Sega PSG");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_T6W28,"T6W28");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_GB,"Game Boy");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_C64,"C64");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_AMIGA,"Amiga/Generic Sample");

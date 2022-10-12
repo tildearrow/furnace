@@ -29,7 +29,7 @@ class DivPlatformT6W28: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note;
     int ins;
-    unsigned char pan;
+    unsigned char panL, panR;
     bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise;
     signed char vol, outVol;
     DivMacroInt std;
@@ -44,7 +44,8 @@ class DivPlatformT6W28: public DivDispatch {
       pitch2(0),
       note(0),
       ins(-1),
-      pan(255),
+      panL(15),
+      panR(15),
       active(false),
       insChanged(true),
       freqChanged(false),
