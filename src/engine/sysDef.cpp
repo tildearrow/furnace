@@ -1664,7 +1664,7 @@ void DivEngine::registerSystems() {
     {DIV_INS_T6W28, DIV_INS_T6W28, DIV_INS_T6W28, DIV_INS_T6W28},
     {},
     {
-      {0x20, {DIV_CMD_STD_NOISE_MODE, "20xy: Set noise mode (x: preset/variable; y: thin pulse/noise)"}}
+      {0x20, {DIV_CMD_STD_NOISE_MODE, "20xy: Set noise mode (x: 0-2 for preset, 3 for tonal; y: thin pulse/noise)"}}
     }
   );
 

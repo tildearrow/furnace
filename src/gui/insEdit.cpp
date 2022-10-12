@@ -4693,6 +4693,10 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Pulse Width";
             dutyMax=255;
           }
+          if (ins->type==DIV_INS_T6W28) {
+            dutyLabel="Noise Type/Freq";
+            dutyMax=7;
+          }
           if (ins->type==DIV_INS_AY8930) {
             dutyMax=ins->amiga.useSample?0:255;
           }
@@ -4973,6 +4977,7 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_SU ||
               ins->type==DIV_INS_MIKEY ||
               ins->type==DIV_INS_ES5506 ||
+              ins->type==DIV_INS_T6W28 ||
               (ins->type==DIV_INS_X1_010 && ins->amiga.useSample)) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }

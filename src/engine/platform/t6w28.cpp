@@ -25,8 +25,6 @@
 //#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_DIVIDER 16
-
 const char* regCheatSheetT6W28[]={
   "Data0", "0",
   "Data1", "1",
@@ -72,14 +70,21 @@ void DivPlatformT6W28::acquire(short* bufL, short* bufR, size_t start, size_t le
 }
 
 void DivPlatformT6W28::writeOutVol(int ch) {
-  int left=15-CLAMP(chan[ch].outVol+chan[ch].panL-15,0,15);
-  int right=15-CLAMP(chan[ch].outVol+chan[ch].panR-15,0,15);
-  rWrite(0,0x90|(ch<<5)|(isMuted[ch]?15:left));
-  rWrite(1,0x90|(ch<<5)|(isMuted[ch]?15:right));
+  if (chan[ch].active) {
+    int left=15-CLAMP(chan[ch].outVol+chan[ch].panL-15,0,15);
+    int right=15-CLAMP(chan[ch].outVol+chan[ch].panR-15,0,15);
+    rWrite(0,0x90|(ch<<5)|(isMuted[ch]?15:left));
+    rWrite(1,0x90|(ch<<5)|(isMuted[ch]?15:right));
+  } else {
+    rWrite(0,0x9f|(ch<<5));
+    rWrite(1,0x9f|(ch<<5));
+  }
 }
 
 void DivPlatformT6W28::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
+    double CHIP_DIVIDER=16;
+    if (i==3) CHIP_DIVIDER=15;
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LOG(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
@@ -90,6 +95,12 @@ void DivPlatformT6W28::tick(bool sysTick) {
         chan[i].baseFreq=NOTE_PERIODIC(noiseSeek);
       }
       chan[i].freqChanged=true;
+    }
+    if (i==3 && chan[i].std.duty.had) {
+      if (chan[i].duty!=chan[i].std.duty.val) {
+        chan[i].duty=chan[i].std.duty.val&7;
+        rWrite(1,0xe0+chan[i].duty);
+      }
     }
     if (chan[i].std.panL.had) {
       chan[i].panL=chan[i].std.panL.val&15;
@@ -109,12 +120,13 @@ void DivPlatformT6W28::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
+    if (chan[i].std.phaseReset.had) {
+      rWrite(1,0xe0+chan[i].duty);
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (chan[i].freq>1023) chan[i].freq=1023;
       if (i==3) {
-        rWrite(1,0xe7);
         rWrite(1,0x80|(2<<5)|(chan[3].freq&15));
         rWrite(1,chan[3].freq>>4);
       } else {
@@ -129,6 +141,8 @@ void DivPlatformT6W28::tick(bool sysTick) {
 }
 
 int DivPlatformT6W28::dispatch(DivCommand c) {
+  double CHIP_DIVIDER=16;
+  if (c.chan==3) CHIP_DIVIDER=15;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
@@ -142,6 +156,7 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
       chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
+        writeOutVol(c.chan);
       }
       chan[c.chan].insChanged=false;
       break;
@@ -150,6 +165,7 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].macroInit(NULL);
+      writeOutVol(c.chan);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -166,8 +182,7 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
-          if (chan[c.chan].active) {
-          }
+          writeOutVol(c.chan);
         }
       }
       break;
@@ -205,7 +220,9 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_STD_NOISE_MODE:
-      chan[c.chan].noise=c.value;
+      if (c.chan!=3) break;
+      chan[c.chan].duty=(((c.value&15)==1)?4:0)|((c.value>>4)&3);
+      rWrite(1,0xe0+chan[c.chan].duty);
       break;
     case DIV_CMD_PANNING: {
       chan[c.chan].panL=c.value>>4;
@@ -226,7 +243,7 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
-      return 31;
+      return 15;
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
@@ -289,6 +306,8 @@ void DivPlatformT6W28::reset() {
   cycles=0;
   curChan=-1;
   delay=0;
+  // default noise mode
+  rWrite(1,0xe7);
 }
 
 bool DivPlatformT6W28::isStereo() {

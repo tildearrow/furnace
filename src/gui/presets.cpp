@@ -271,6 +271,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Toshiba T6W28", {
+      DIV_SYSTEM_T6W28, 64, 0, 0,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "AY-3-8910", {
       DIV_SYSTEM_AY8910, 64, 0, 0,
       0
