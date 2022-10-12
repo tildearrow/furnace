@@ -5608,6 +5608,7 @@ FurnaceGUI::FurnaceGUI():
 #endif
   hasACED(false),
   waveGenBaseShape(0),
+  waveInterpolation(0),
   waveGenDuty(0.5f),
   waveGenPower(1),
   waveGenInvertPoint(1.0f),

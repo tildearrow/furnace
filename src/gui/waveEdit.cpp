@@ -33,6 +33,13 @@ const char* waveGenBaseShapes[4]={
   "Pulse"
 };
 
+const char* waveInterpolations[4] = {
+    "None",
+    "Linear",
+    "Cosine",
+    "Cubic"
+};
+
 const float multFactors[17]={
   M_PI,
   2*M_PI,
@@ -555,17 +562,76 @@ void FurnaceGUI::drawWaveEdit() {
                   if (waveGenScaleX<2) waveGenScaleX=2;
                   if (waveGenScaleX>256) waveGenScaleX=256;
                 }
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (CWSliderInt("##WGInterpolation", &waveInterpolation, 0, 3, waveInterpolations[waveInterpolation])) {
+                    if (waveInterpolation < 0) waveInterpolation = 0;
+                    if (waveInterpolation > 3) waveInterpolation = 3;
+                    //doGenerateWave();
+                }
                 ImGui::TableNextColumn();
                 if (ImGui::Button("Scale X")) {
-                  if (waveGenScaleX>0 && wave->len!=waveGenScaleX) e->lockEngine([this,wave]() {
-                    int origData[256];
-                    memcpy(origData,wave->data,wave->len*sizeof(int));
-                    for (int i=0; i<waveGenScaleX; i++) {
-                      wave->data[i]=origData[i*wave->len/waveGenScaleX];
-                    }
-                    wave->len=waveGenScaleX;
-                    MARK_MODIFIED;
-                  });
+                    if (waveGenScaleX > 0 && wave->len != waveGenScaleX) e->lockEngine([this, wave]() {
+                        int origData[256];
+                        // Copy original wave to temp buffer
+                        // If longer than 256 samples, return
+                        if (wave->len > 256)
+                        {
+                            showError("ERROR : Wavetable longer than 256 samples!");
+                            return;
+                        }
+                        memcpy(origData, wave->data, wave->len * sizeof(int));
+
+                        float t = 0; // Index used into `origData`
+
+                        for (int i = 0; i < waveGenScaleX; i++, t += (float)wave->len / waveGenScaleX) {
+
+                            switch (waveInterpolation)
+                            {
+                            default: // No interpolation
+                            {
+                                wave->data[i] = origData[i * wave->len / waveGenScaleX];
+                                break; // No interpolation
+                            }
+                            case 0:
+                            {
+                                wave->data[i] = origData[i * wave->len / waveGenScaleX];
+                                break;
+                            }
+                            case 1: // Linear
+                            {
+                                int idx = t; // Implicitly floors `t`
+                                int s0 = origData[(idx) % wave->len], s1 = origData[(idx + 1) % wave->len];
+                                double mu = (t - idx);
+                                wave->data[i] = s0 + mu * s1 - (mu * s0);
+                                break;
+                            }
+                            case 2: // Cosine
+                            {
+                                int idx = t; // Implicitly floors `t`
+                                int s0 = origData[(idx) % wave->len], s1 = origData[(idx + 1) % wave->len];
+                                double mu = (t - idx);
+                                double muCos = (1 - cos(mu * M_PI)) / 2;
+                                wave->data[i] = s0 + muCos * s1 - (muCos * s0);
+                                break;
+                            }
+                            case 3: // Cubic Spline
+                            {
+                                int idx = t; // Implicitly floors `t`
+                                int s0 = origData[((idx - 1 % wave->len + wave->len) % wave->len)], s1 = origData[(idx) % wave->len], s2 = origData[(idx + 1) % wave->len], s3 = origData[(idx + 2) % wave->len];
+                                double a0, a1, a2, a3;
+                                double mu = (t - idx);
+                                double mu2 = mu * mu;
+                                a0 = -0.5 * s0 + 1.5 * s1 - 1.5 * s2 + 0.5 * s3;
+                                a1 = s0 - 2.5 * s1 + 2 * s2 - 0.5 * s3;
+                                a2 = -0.5 * s0 + 0.5 * s2;
+                                a3 = s1;
+                                wave->data[i] = (a0 * mu * mu2 + a1 * mu2 + a2 * mu + a3);
+                            }
+                            }
+                        }
+                        wave->len = waveGenScaleX;
+                        MARK_MODIFIED;
+                        });
                 }
 
                 ImGui::TableNextRow();
