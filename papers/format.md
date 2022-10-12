@@ -505,6 +505,7 @@ size | description
      | - 41: YMZ280B
      | - 42: RF5C68
      | - 43: MSM5232
+     | - 44: T6W28
   1  | reserved
  STR | instrument name
  --- | **FM instrument data**
