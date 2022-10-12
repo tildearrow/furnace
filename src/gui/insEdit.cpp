@@ -4056,7 +4056,7 @@ void FurnaceGUI::drawInsEdit() {
             // Wavetable
             if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SNES) {
               ImGui::BeginDisabled(ins->amiga.useNoteMap||ins->amiga.transWave.enable);
-              P(ImGui::Checkbox("Use wavetable (Amiga/SNES only)",&ins->amiga.useWave));
+              P(ImGui::Checkbox("Use wavetable (Amiga/SNES/Generic DAC only)",&ins->amiga.useWave));
               if (ins->amiga.useWave) {
                 int len=ins->amiga.waveLen+1;
                 int origLen=len;
@@ -4395,6 +4395,37 @@ void FurnaceGUI::drawInsEdit() {
             macroDragLineInitial=ImVec2(0,0);
             processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
           }
+          ImGui::EndTabItem();
+        }
+        if (ins->type==DIV_INS_VBOY) if (ImGui::BeginTabItem("Virtual Boy")) {
+          float modTable[32];
+          P(ImGui::Checkbox("Set modulation table (channel 5 only)",&ins->fds.initModTableWithFirstWave));
+
+          ImGui::BeginDisabled(!ins->fds.initModTableWithFirstWave);
+          for (int i=0; i<32; i++) {
+            modTable[i]=ins->fds.modTable[i];
+          }
+          ImVec2 modTableSize=ImVec2(ImGui::GetContentRegionAvail().x,256.0f*dpiScale);
+          PlotCustom("ModTable",modTable,32,0,NULL,-128,127,modTableSize,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,NULL,true);
+          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+            macroDragStart=ImGui::GetItemRectMin();
+            macroDragAreaSize=modTableSize;
+            macroDragMin=-128;
+            macroDragMax=127;
+            macroDragBitOff=0;
+            macroDragBitMode=false;
+            macroDragInitialValueSet=false;
+            macroDragInitialValue=false;
+            macroDragLen=32;
+            macroDragActive=true;
+            macroDragCTarget=(unsigned char*)ins->fds.modTable;
+            macroDragChar=true;
+            macroDragLineMode=false;
+            macroDragLineInitial=ImVec2(0,0);
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+          }
+
+          ImGui::EndDisabled();
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_ES5506) if (ImGui::BeginTabItem("ES5506")) {
@@ -4941,7 +4972,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SAA1099) {
             waveBitMode=true;
           }
-          if (ins->type==DIV_INS_STD || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_NES) waveMax=0;
+          if (ins->type==DIV_INS_STD || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_NES || ins->type==DIV_INS_T6W28) waveMax=0;
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_VIC || ins->type==DIV_INS_OPLL) waveMax=15;
           if (ins->type==DIV_INS_C64) waveMax=4;
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
@@ -5065,7 +5096,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY ||
               ins->type==DIV_INS_SAA1099 || ins->type==DIV_INS_NAMCO || ins->type==DIV_INS_RF5C68 ||
-              ins->type==DIV_INS_VBOY) {
+              ins->type==DIV_INS_VBOY || ins->type==DIV_INS_T6W28) {
             panMax=15;
           }
           if (ins->type==DIV_INS_SEGAPCM) {

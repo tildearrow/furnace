@@ -34,9 +34,9 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, slides are limited to a compatible range.\nmay cause problems with slides in negative octaves.");
     }
-    ImGui::Checkbox("Proper noise layout on NES and PC Engine",&e->song.properNoiseLayout);
+    InvCheckbox("Compatible noise layout on NES and PC Engine",&e->song.properNoiseLayout);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("use a proper noise channel note mapping (0-15) instead of a rather unusual compatible one.\nunlocks all noise frequencies on PC Engine.");
+      ImGui::SetTooltip("use a rather unusual compatible noise frequency layout.\nremoves some noise frequencies on PC Engine.");
     }
     ImGui::Checkbox("Game Boy instrument duty is wave volume",&e->song.waveDutyIsVol);
     if (ImGui::IsItemHovered()) {
@@ -55,13 +55,13 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("delay arpeggio by one tick on every new note.");
     }
-    ImGui::Checkbox("Reset slides after note off",&e->song.noteOffResetsSlides);
+    InvCheckbox("Don't reset slides after note off",&e->song.noteOffResetsSlides);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("when enabled, note off will reset the channel's slide effect.");
+      ImGui::SetTooltip("when enabled, note off will not reset the channel's slide effect.");
     }
-    ImGui::Checkbox("Reset portamento after reaching target",&e->song.targetResetsSlides);
+    InvCheckbox("Don't reset portamento after reaching target",&e->song.targetResetsSlides);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("when enabled, the slide effect is disabled after it reaches its target.");
+      ImGui::SetTooltip("when enabled, the slide effect will not be disabled after it reaches its target.");
     }
     ImGui::Checkbox("Ignore duplicate slide effects",&e->song.ignoreDuplicateSlides);
     if (ImGui::IsItemHovered()) {
@@ -103,9 +103,9 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("if this is on, a pitch slide that crosses the octave boundary will stop for one tick and then continue from the nearest octave boundary.\nfor .dmf compatibility.");
     }
-    ImGui::Checkbox("Apply Game Boy envelope on note-less instrument change",&e->song.gbInsAffectsEnvelope);
+    InvCheckbox("Don't apply Game Boy envelope on note-less instrument change",&e->song.gbInsAffectsEnvelope);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("if this is on, an instrument change will also affect the envelope.");
+      ImGui::SetTooltip("if this is on, an instrument change will not affect the envelope.");
     }
     ImGui::Checkbox("Ignore DAC mode change outside of intended channel in ExtCh mode",&e->song.ignoreDACModeOutsideIntendedChannel);
     if (ImGui::IsItemHovered()) {
@@ -123,17 +123,17 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("when enabled, duty macro will always reset phase, even if its value hasn't changed.");
     }
-    ImGui::Checkbox("Pitch macro is linear",&e->song.pitchMacroIsLinear);
+    InvCheckbox("Pitch macro is not linear",&e->song.pitchMacroIsLinear);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("when enabled, the pitch macro of an instrument is in linear space.");
+      ImGui::SetTooltip("when enabled, the pitch macro of an instrument is in frequency/period space.");
     }
-    ImGui::Checkbox("Proper volume scaling strategy",&e->song.newVolumeScaling);
+    InvCheckbox("Broken volume scaling strategy",&e->song.newVolumeScaling);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("when disabled:\n- log scaling: multiply\n- linear scaling: subtract\nwhen enabled:\n- log scaling: subtract\n- linear scaling: multiply");
+      ImGui::SetTooltip("when enabled:\n- log scaling: multiply\n- linear scaling: subtract\nwhen disabled:\n- log scaling: subtract\n- linear scaling: multiply");
     }
-    ImGui::Checkbox("Persist volume macro after it finishes",&e->song.volMacroLinger);
+    InvCheckbox("Don't persist volume macro after it finishes",&e->song.volMacroLinger);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("when disabled, a value in the volume column that happens after the volume macro is done will disregard the macro.");
+      ImGui::SetTooltip("when enabled, a value in the volume column that happens after the volume macro is done will disregard the macro.");
     }
     ImGui::Checkbox("Broken output volume on instrument change",&e->song.brokenOutVol);
     if (ImGui::IsItemHovered()) {
@@ -257,19 +257,19 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
-    ImGui::Checkbox("Allow instrument change during slides",&e->song.newInsTriggersInPorta);
+    InvCheckbox("Don't allow instrument change during slides",&e->song.newInsTriggersInPorta);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
-    ImGui::Checkbox("Reset note to base on arpeggio stop",&e->song.arp0Reset);
+    InvCheckbox("Don't reset note to base on arpeggio stop",&e->song.arp0Reset);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
-    ImGui::Checkbox("ExtCh channel status is shared among operators",&e->song.sharedExtStat);
+    InvCheckbox("ExtCh channel status is not shared among operators",&e->song.sharedExtStat);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
-    ImGui::Checkbox("New SegaPCM features (macros and better panning)",&e->song.newSegaPCM);
+    InvCheckbox("Disable new SegaPCM features (macros and better panning)",&e->song.newSegaPCM);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
@@ -277,7 +277,7 @@ void FurnaceGUI::drawCompatFlags() {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6pre1");
     }
-    ImGui::Checkbox("No OPN2 DAC volume control",&e->song.noOPN2Vol);
+    ImGui::Checkbox("Disable OPN2 DAC volume control",&e->song.noOPN2Vol);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6pre1");
     }

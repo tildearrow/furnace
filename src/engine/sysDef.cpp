@@ -1188,7 +1188,14 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_NOISE},
     {DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY},
     {},
-    waveOnlyEffectHandlerMap
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
+      {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set noise length (0 to 7)"}},
+      {0x12, {DIV_CMD_STD_NOISE_FREQ, "12xy: Setup envelope (x: enabled/loop (1: enable, 3: enable+loop); y: speed/direction (0-7: down, 8-F: up))"}},
+      {0x13, {DIV_CMD_GB_SWEEP_TIME, "13xy: Setup sweep (x: speed; y: shift; channel 5 only)"}},
+      {0x14, {DIV_CMD_FDS_MOD_DEPTH, "14xy: Setup modulation (x: enabled/loop (1: enable, 3: enable+loop); y: speed; channel 5 only)"}},
+      {0x15, {DIV_CMD_FDS_MOD_WAVE, "15xx: Set modulation waveform (x: wavetable; channel 5 only)"}},
+    }
   );
 
   sysDefs[DIV_SYSTEM_VRC7]=new DivSysDef(
@@ -1695,7 +1702,7 @@ void DivEngine::registerSystems() {
     {"Square 1", "Square 2", "Square 3", "Noise"},
     {"S1", "S2", "S3", "NO"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_NOISE},
-    {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD},
+    {DIV_INS_T6W28, DIV_INS_T6W28, DIV_INS_T6W28, DIV_INS_T6W28},
     {},
     {
       {0x20, {DIV_CMD_STD_NOISE_MODE, "20xy: Set noise mode (x: preset/variable; y: thin pulse/noise)"}}

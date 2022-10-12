@@ -171,6 +171,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_YMZ280B,
   GUI_COLOR_INSTR_RF5C68,
   GUI_COLOR_INSTR_MSM5232,
+  GUI_COLOR_INSTR_T6W28,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -1643,6 +1644,9 @@ class FurnaceGUI {
   bool CWSliderInt(const char* label, int* v, int v_min, int v_max, const char* format="%d", ImGuiSliderFlags flags=0);
   bool CWSliderFloat(const char* label, float* v, float v_min, float v_max, const char* format="%.3f", ImGuiSliderFlags flags=0);
   bool CWVSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format="%d", ImGuiSliderFlags flags=0);
+
+  // inverted checkbox
+  bool InvCheckbox(const char* label, bool* value);
 
   void updateWindowTitle();
   void autoDetectSystem();

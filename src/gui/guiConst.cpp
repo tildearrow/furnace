@@ -124,6 +124,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   "YMZ280B",
   "RF5C68",
   "MSM5232",
+  "T6W28",
   NULL
 };
 
@@ -801,6 +802,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_YMZ280B,"",ImVec4(0.4f,0.5f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_RF5C68,"",ImVec4(1.0f,0.3f,0.3f,1.0f)),
   D(GUI_COLOR_INSTR_MSM5232,"",ImVec4(0.5f,0.9f,1.0f,1.0f)),
+  D(GUI_COLOR_INSTR_T6W28,"",ImVec4(1.0f,0.8f,0.1f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_BG,"",ImVec4(0.4f,0.6f,0.8f,1.0f)),
@@ -906,6 +908,7 @@ const int availableSystems[]={
   DIV_SYSTEM_YM2610_FULL_EXT,
   DIV_SYSTEM_YM2610B,
   DIV_SYSTEM_YM2610B_EXT,
+  DIV_SYSTEM_T6W28,
   DIV_SYSTEM_AY8910,
   DIV_SYSTEM_AMIGA,
   DIV_SYSTEM_PCSPKR,
@@ -1002,6 +1005,7 @@ const int chipsSquare[]={
   DIV_SYSTEM_SAA1099,
   DIV_SYSTEM_VIC20,
   DIV_SYSTEM_MSM5232,
+  DIV_SYSTEM_T6W28,
   0 // don't remove this last one!
 };
 
