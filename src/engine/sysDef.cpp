@@ -1655,7 +1655,8 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_T6W28]=new DivSysDef(
-    "T6W28", NULL, 0xbf, 0, 4, false, true, 0, false, 0,
+    // 0x0a = wild guess. it may as well be 0x83
+    "T6W28", NULL, 0xbf, 0x0a, 4, false, true, 0, false, 0,
     "an SN76489 derivative used in Neo Geo Pocket, has independent stereo volume and noise channel frequency.",
     {"Square 1", "Square 2", "Square 3", "Noise"},
     {"S1", "S2", "S3", "NO"},
