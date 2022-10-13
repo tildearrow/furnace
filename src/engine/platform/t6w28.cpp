@@ -98,7 +98,7 @@ void DivPlatformT6W28::tick(bool sysTick) {
     }
     if (i==3 && chan[i].std.duty.had) {
       if (chan[i].duty!=chan[i].std.duty.val) {
-        chan[i].duty=chan[i].std.duty.val&7;
+        chan[i].duty=((chan[i].std.duty.val==1)?4:0)|3;
         rWrite(1,0xe0+chan[i].duty);
       }
     }
@@ -221,7 +221,7 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
     }
     case DIV_CMD_STD_NOISE_MODE:
       if (c.chan!=3) break;
-      chan[c.chan].duty=(((c.value&15)==1)?4:0)|((c.value>>4)&3);
+      chan[c.chan].duty=(((c.value&15)==1)?4:0)|3;
       rWrite(1,0xe0+chan[c.chan].duty);
       break;
     case DIV_CMD_PANNING: {

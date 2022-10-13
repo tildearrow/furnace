@@ -4694,8 +4694,8 @@ void FurnaceGUI::drawInsEdit() {
             dutyMax=255;
           }
           if (ins->type==DIV_INS_T6W28) {
-            dutyLabel="Noise Type/Freq";
-            dutyMax=7;
+            dutyLabel="Noise Type";
+            dutyMax=1;
           }
           if (ins->type==DIV_INS_AY8930) {
             dutyMax=ins->amiga.useSample?0:255;
