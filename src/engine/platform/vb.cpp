@@ -148,6 +148,13 @@ void DivPlatformVB::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
+    if (i==5 && chan[i].std.duty.had) {
+      if ((chan[i].std.duty.val&7)!=((chan[i].envHigh>>4)&7)) {
+        chan[i].envHigh&=~0x70;
+        chan[i].envHigh|=(chan[i].std.duty.val&7)<<4;
+        writeEnv(i,true);
+      }
+    }
     if (chan[i].std.wave.had) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
         chan[i].wave=chan[i].std.wave.val;

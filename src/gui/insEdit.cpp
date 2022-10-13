@@ -4702,8 +4702,12 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC ||
               ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC || ins->type==DIV_INS_SEGAPCM ||
-              ins->type==DIV_INS_FM || ins->type==DIV_INS_VBOY) {
+              ins->type==DIV_INS_FM) {
             dutyMax=0;
+          }
+          if (ins->type==DIV_INS_VBOY) {
+            dutyLabel="Noise Length";
+            dutyMax=7;
           }
           if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_NAMCO) {
             dutyLabel="Noise";
