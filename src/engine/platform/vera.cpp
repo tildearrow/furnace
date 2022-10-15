@@ -174,6 +174,7 @@ void DivPlatformVERA::tick(bool sysTick) {
     if (i<16) {
       if (chan[i].std.panL.had) {
         chan[i].pan=chan[i].std.panL.val&3;
+        chan[i].pan=((chan[i].pan&1)<<1)|((chan[i].pan&2)>>1);
         rWriteHi(i,2,isMuted[i]?0:chan[i].pan);
       }
     }
