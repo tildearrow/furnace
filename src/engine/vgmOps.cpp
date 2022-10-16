@@ -79,6 +79,14 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0x90|(i<<5)|15);
         }
         break;
+      case DIV_SYSTEM_T6W28:
+        for (int i=0; i<4; i++) {
+          w->writeC(0x30);
+          w->writeC(0x90|(i<<5)|15);
+          w->writeC(0x50);
+          w->writeC(0x90|(i<<5)|15);
+        }
+        break;
       case DIV_SYSTEM_GB:
         // square 1
         w->writeC(0xb3);
@@ -497,6 +505,12 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(baseAddr2|12);
         w->writeC(1);
         break;
+      case DIV_SYSTEM_VBOY:
+        // isn't it amazing when a chip has a built-in reset command?
+        w->writeC(0xc7);
+        w->writeS_BE(baseAddr2S|(0x580>>2));
+        w->writeC(0xff);
+        break;
       default:
         break;
     }
@@ -557,6 +571,14 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       break;
     case DIV_SYSTEM_SMS:
       w->writeC(smsAddr);
+      w->writeC(write.val);
+      break;
+    case DIV_SYSTEM_T6W28:
+      if (write.addr) {
+        w->writeC(0x30);
+      } else {
+        w->writeC(0x50);
+      }
       w->writeC(write.val);
       break;
     case DIV_SYSTEM_GB:
@@ -808,14 +830,14 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
 }
 
 #define CHIP_VOL(_id,_mult) { \
-  double _vol=fabs(song.systemVol[i])*4.0*_mult; \
+  double _vol=fabs((float)song.systemVol[i])*4.0*_mult; \
   if (_vol<0.0) _vol=0.0; \
   if (_vol>32767.0) _vol=32767.0; \
   chipVol.push_back((_id)|(0x80000000)|(((unsigned int)_vol)<<16)); \
 }
 
 #define CHIP_VOL_SECOND(_id,_mult) { \
-  double _vol=fabs(song.systemVol[i])*4.0*_mult; \
+  double _vol=fabs((float)song.systemVol[i])*4.0*_mult; \
   if (_vol<0.0) _vol=0.0; \
   if (_vol>32767.0) _vol=32767.0; \
   chipVol.push_back((_id)|(0x80000100)|(((unsigned int)_vol)<<16)); \
@@ -1360,6 +1382,13 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           writeMSM6295[1]=disCont[i].dispatch;
           hasOKIM6295|=0x40000000;
           howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_T6W28:
+        if (!hasSN) {
+          hasSN=0xc0000000|disCont[i].dispatch->chipClock;
+          CHIP_VOL(0,1.0);
+          willExport[i]=true;
         }
         break;
       default:
