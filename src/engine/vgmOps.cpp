@@ -1388,6 +1388,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         if (!hasSN) {
           hasSN=0xc0000000|disCont[i].dispatch->chipClock;
           CHIP_VOL(0,1.0);
+          snNoiseConfig=3;
+          snNoiseSize=15;
           willExport[i]=true;
         }
         break;
