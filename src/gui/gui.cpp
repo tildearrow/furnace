@@ -3446,6 +3446,8 @@ bool FurnaceGUI::loop() {
           if (picked!=DIV_SYSTEM_NULL) {
             if (!e->addSystem(picked)) {
               showError("cannot add chip! ("+e->getLastError()+")");
+            } else {
+              MARK_MODIFIED;
             }
             ImGui::CloseCurrentPopup();
             if (e->song.autoSystem) {
@@ -3471,6 +3473,7 @@ bool FurnaceGUI::loop() {
               DivSystem picked=systemPicker();
               if (picked!=DIV_SYSTEM_NULL) {
                 e->changeSystem(i,picked,preserveChanPos);
+                MARK_MODIFIED;
                 if (e->song.autoSystem) {
                   autoDetectSystem();
                 }
@@ -3488,6 +3491,8 @@ bool FurnaceGUI::loop() {
             if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
               if (!e->removeSystem(i,preserveChanPos)) {
                 showError("cannot remove chip! ("+e->getLastError()+")");
+              } else {
+                MARK_MODIFIED;
               }
               if (e->song.autoSystem) {
                 autoDetectSystem();
@@ -4640,6 +4645,7 @@ bool FurnaceGUI::loop() {
             if (e->song.autoSystem) {
               autoDetectSystem();
               updateWindowTitle();
+              MARK_MODIFIED;
             }
             ImGui::CloseCurrentPopup();
           }
