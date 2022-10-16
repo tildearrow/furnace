@@ -36,7 +36,7 @@ afterwards everyone moved to Windows and software mixed PCM streaming...
   - this effect applies to all channels.
 - `18xx`: toggle drums mode.
   - 0 disables it and 1 enables it.
-  - only in drums system.
+  - only in drums chip.
 - `19xx`: set attack of all operators.
 - `1Axx`: set attack of operator 1.
 - `1Bxx`: set attack of operator 2.

@@ -6,7 +6,7 @@ however, the K005289 is just part of the logic used for pitch and wavetable ROM 
 waveform select and volume control are tied with single AY-3-8910 IO for both channels.
 another AY-3-8910 IO is used for reading sound hardware status.
 
-Furnace emulates this configuration as single system with 32x16 wavetables.
+Furnace emulates this configuration as a "chip" with 32x16 wavetables.
 
 # effects
 

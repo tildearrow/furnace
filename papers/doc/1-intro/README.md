@@ -1,7 +1,7 @@
 # introduction
 
 Furnace is a tool which allows you to create music using emulated sound chips from the 8/16-bit era.
-For a full list of soundchips that Furnace supports, please see [the list of systems](https://github.com/tildearrow/furnace/tree/master/papers/doc/7-systems).
+For a full list of soundchips that Furnace supports, please see [this list](https://github.com/tildearrow/furnace/tree/master/papers/doc/7-systems).
 
 It has a music tracker interface. think of a piano roll, or a table that scrolls up and plays the notes.
 

@@ -1,6 +1,6 @@
 # sound chips
 
-this is a list of sound chips that Furnace supports, including each system's effects.
+this is a list of sound chips that Furnace supports, including effects.
 
 - [Yamaha YM2612](ym2612.md)
 - [TI SN76489](sms.md)
