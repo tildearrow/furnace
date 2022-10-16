@@ -162,6 +162,7 @@ void FurnaceGUI::doGenerateWave() {
   }
 
   e->notifyWaveChange(curWave);
+  MARK_MODIFIED;
 }
 
 #define CENTER_TEXT(text) \
@@ -850,6 +851,7 @@ void FurnaceGUI::drawWaveEdit() {
       if (ImGui::InputText("##MMLWave",&mmlStringW)) {
         int actualData[256];
         decodeMMLStrW(mmlStringW,actualData,wave->len,(waveSigned && !waveHex)?(-((wave->max+1)/2)):0,(waveSigned && !waveHex)?(wave->max/2):wave->max,waveHex);
+        MARK_MODIFIED;
         if (waveSigned && !waveHex) {
           for (int i=0; i<wave->len; i++) {
             actualData[i]+=(wave->max+1)/2;
