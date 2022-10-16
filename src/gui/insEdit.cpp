@@ -2571,7 +2571,7 @@ void FurnaceGUI::drawInsEdit() {
                       int detune=(op.dt&7)-(settings.unsignedDetune?0:3);
                       ImGui::TableNextColumn();
                       CENTER_VSLIDER;
-                      if (CWVSliderInt("##DT",ImVec2(20.0f*dpiScale,sliderHeight),&detune,-3,4)) { PARAMETER
+                      if (CWVSliderInt("##DT",ImVec2(20.0f*dpiScale,sliderHeight),&detune,settings.unsignedDetune?0:-3,settings.unsignedDetune?7:4)) { PARAMETER
                         op.dt=detune+(settings.unsignedDetune?0:3);
                       }
 
@@ -2904,7 +2904,7 @@ void FurnaceGUI::drawInsEdit() {
                           int detune=(op.dt&7)-(settings.unsignedDetune?0:3);
                           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                           snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_DT));
-                          if (CWSliderInt("##DT",&detune,-3,4,tempID)) { PARAMETER
+                          if (CWSliderInt("##DT",&detune,settings.unsignedDetune?0:-3,settings.unsignedDetune?7:4,tempID)) { PARAMETER
                             op.dt=detune+(settings.unsignedDetune?0:3);
                           } rightClickable
 
@@ -2926,7 +2926,7 @@ void FurnaceGUI::drawInsEdit() {
                           int detune=(op.dt&7)-(settings.unsignedDetune?0:3);
                           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                           snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_DT));
-                          if (CWSliderInt("##DT",&detune,-3,4,tempID)) { PARAMETER
+                          if (CWSliderInt("##DT",&detune,settings.unsignedDetune?0:-3,settings.unsignedDetune?7:4,tempID)) { PARAMETER
                             op.dt=detune+(settings.unsignedDetune?0:3);
                           } rightClickable
 
@@ -3067,7 +3067,7 @@ void FurnaceGUI::drawInsEdit() {
                             int detune=(op.dt&7)-(settings.unsignedDetune?0:3);
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                             snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_DT));
-                            if (CWSliderInt("##DT",&detune,-3,4,tempID)) { PARAMETER
+                            if (CWSliderInt("##DT",&detune,settings.unsignedDetune?0:-3,settings.unsignedDetune?7:4,tempID)) { PARAMETER
                               op.dt=detune+(settings.unsignedDetune?0:3);
                             } rightClickable
                           }
@@ -3442,7 +3442,7 @@ void FurnaceGUI::drawInsEdit() {
                           ImGui::TableNextRow();
                           ImGui::TableNextColumn();
                           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                          if (CWSliderInt("##DT",&detune,-3,4)) { PARAMETER
+                          if (CWSliderInt("##DT",&detune,settings.unsignedDetune?0:-3,settings.unsignedDetune?7:4)) { PARAMETER
                             op.dt=detune+(settings.unsignedDetune?0:3);
                           } rightClickable
                           ImGui::TableNextColumn();
