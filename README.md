@@ -243,6 +243,17 @@ see [papers/](papers/doc/README.md). it's kind of incomplete, but at least the s
 
 this is due to Apple's application signing policy. a workaround is to right click on the Furnace app icon and select Open.
 
+**as of Monterey, this workaround no longer works (especially on ARM).** yeah, Apple has decided to be strict on the matter.
+if you happen to be on that version, use this workaround instead (on a Terminal):
+
+```
+xattr -d com.apple.quarantine /path/to/Furnace.app
+```
+
+(replace /path/to/ with the path where Furnace.app is located)
+
+you may need to log out and/or reboot after doing this.
+
 > how do I use C64 absolute filter/duty?
 
 on Instrument Editor in the C64 tab there are two options to toggle these.
