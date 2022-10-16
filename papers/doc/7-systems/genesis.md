@@ -2,7 +2,7 @@
 
 a video game console that showed itself as the first true rival to Nintendo's video game market near-monopoly in the US during the '80's.
 
-this console is powered by two sound chips: the Yamaha YM2612 and a derivative of the SN76489.
+this console is powered by two sound chips: the [Yamaha YM2612](ym2612.md) and [a derivative of the SN76489](sms.md).
 
 # effects
 

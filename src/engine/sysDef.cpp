@@ -788,6 +788,7 @@ void DivEngine::registerSystems() {
       {0x10, {DIV_CMD_AMIGA_FILTER, "10xx: Toggle filter (0 disables; 1 enables)"}},
       {0x11, {DIV_CMD_AMIGA_AM, "11xx: Toggle AM with next channel"}},
       {0x12, {DIV_CMD_AMIGA_PM, "12xx: Toggle period modulation with next channel"}},
+      {0x13, {DIV_CMD_WAVE, "13xx: Set waveform"}}
     }
   );
 
