@@ -84,6 +84,8 @@ const char* regCheatSheetVB[]={
   "S6EV0", "550",
   "S6EV1", "554",
   "S6RAM", "558",
+
+  "RESET", "580",
   NULL
 };
 
