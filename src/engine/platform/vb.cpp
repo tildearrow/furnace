@@ -335,7 +335,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
       chWrite(4,0x07,modulation);
       if (modulation!=0) {
         chan[c.chan].envHigh&=~0x70;
-        chan[c.chan].envHigh|=0x10;
+        chan[c.chan].envHigh|=0x40;
       } else {
         chan[c.chan].envHigh&=~0x70;
       }
