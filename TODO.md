@@ -2,8 +2,6 @@
 
 - POKEY
 - Pokémon Mini
-- Virtual Boy
-- T6W28
 - (maybe) YM2612 CSM (no DualPCM)
 - port presets to new format
 - bug fixes
