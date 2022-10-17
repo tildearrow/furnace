@@ -324,7 +324,7 @@ class DivDispatch {
      * @param rate stream rate (e.g. 44100 for VGM).
      * @param len number of samples.
      */
-    virtual void fillStream(std::vector<DivDelayedWrite>& stream, int rate, size_t len);
+    virtual void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
 
     /**
      * send a command to this dispatch.

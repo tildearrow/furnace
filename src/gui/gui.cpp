@@ -3390,6 +3390,14 @@ bool FurnaceGUI::loop() {
               "pattern indexes are ordered as they appear in the song."
             );
           }
+          ImGui::Checkbox("direct stream mode",&vgmExportDirectStream);
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(
+              "required for DualPCM and MSM6258 export.\n\n"
+              "allows for volume/direction changes when playing samples,\n"
+              "at the cost of a massive increase in file size."
+            );
+          }
           ImGui::Text("chips to export:");
           bool hasOneAtLeast=false;
           for (int i=0; i<e->song.systemLen; i++) {
@@ -4161,7 +4169,7 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_EXPORT_VGM: {
-              SafeWriter* w=e->saveVGM(willExport,vgmExportLoop,vgmExportVersion,vgmExportPatternHints);
+              SafeWriter* w=e->saveVGM(willExport,vgmExportLoop,vgmExportVersion,vgmExportPatternHints,vgmExportDirectStream);
               if (w!=NULL) {
                 FILE* f=ps_fopen(copyOfName.c_str(),"wb");
                 if (f!=NULL) {
@@ -5309,6 +5317,7 @@ FurnaceGUI::FurnaceGUI():
   vgmExportLoop(true),
   zsmExportLoop(true),
   vgmExportPatternHints(false),
+  vgmExportDirectStream(false),
   portrait(false),
   mobileMenuOpen(false),
   wantCaptureKeyboard(false),

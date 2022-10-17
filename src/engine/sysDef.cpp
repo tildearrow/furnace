@@ -1553,7 +1553,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_MSM6258]=new DivSysDef(
-    "OKI MSM6258", NULL, 0xab, 0, 1, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_VOX,
+    "OKI MSM6258", NULL, 0xab, 0, 1, false, true, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_VOX,
     "an ADPCM sound chip manufactured by OKI and used in the Sharp X68000.",
     {"Sample"},
     {"PCM"},
@@ -1632,7 +1632,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2612_FRAC]=new DivSysDef(
-    "Yamaha YM2612 (OPN2) with DualPCM", NULL, 0xbe, 0, 7, true, false, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Yamaha YM2612 (OPN2) with DualPCM", NULL, 0xbe, 0, 7, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).\nthis system uses software mixing to provide two sample channels.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6/PCM 1", "PCM 2"},
     {"F1", "F2", "F3", "F4", "F5", "P1", "P2"},
@@ -1644,7 +1644,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_YM2612_FRAC_EXT]=new DivSysDef(
-    "Yamaha YM2612 (OPN2) Extended Channel 3 with DualPCM and CSM", NULL, 0xbd, 0, 11, true, false, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Yamaha YM2612 (OPN2) Extended Channel 3 with DualPCM and CSM", NULL, 0xbd, 0, 11, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).\nthis system uses software mixing to provide two sample channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies.",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6/PCM 1", "PCM 2", "CSM Timer"},
     {"F1", "F2", "O1", "O2", "O3", "O4", "F4", "F5", "P1", "P2", "CSM"},
