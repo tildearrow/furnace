@@ -34,6 +34,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
     switch (sys) {
       case DIV_SYSTEM_YM2612:
       case DIV_SYSTEM_YM2612_EXT:
+      case DIV_SYSTEM_YM2612_FRAC:
+      case DIV_SYSTEM_YM2612_FRAC_EXT:
         for (int i=0; i<3; i++) { // set SL and RR to highest
           w->writeC(2|baseAddr1);
           w->writeC(0x80+i);
@@ -554,6 +556,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   switch (sys) {
     case DIV_SYSTEM_YM2612:
     case DIV_SYSTEM_YM2612_EXT:
+    case DIV_SYSTEM_YM2612_FRAC:
+    case DIV_SYSTEM_YM2612_FRAC_EXT:
       switch (write.addr>>8) {
         case 0: // port 0
           w->writeC(2|baseAddr1);
@@ -1148,6 +1152,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         break;
       case DIV_SYSTEM_YM2612:
       case DIV_SYSTEM_YM2612_EXT:
+      case DIV_SYSTEM_YM2612_FRAC:
+      case DIV_SYSTEM_YM2612_FRAC_EXT:
         if (!hasOPN2) {
           hasOPN2=disCont[i].dispatch->chipClock;
           willExport[i]=true;
@@ -1796,6 +1802,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       switch (song.system[i]) {
         case DIV_SYSTEM_YM2612:
         case DIV_SYSTEM_YM2612_EXT:
+        case DIV_SYSTEM_YM2612_FRAC:
+        case DIV_SYSTEM_YM2612_FRAC_EXT:
           w->writeC(0x90);
           w->writeC(streamID);
           w->writeC(0x02);
