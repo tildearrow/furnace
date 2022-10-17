@@ -1759,7 +1759,14 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
          "all files", ".*"},
         "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
         workingDirTest,
-        dpiScale
+        dpiScale,
+        [](const char* path) {
+          if (path!=NULL) {
+            logI("Callback Result: %s",path);
+          } else {
+            logI("Callback Result: NULL");
+          }
+        }
       );
       break;
     case GUI_FILE_TEST_OPEN_MULTI:
@@ -1772,7 +1779,13 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
         workingDirTest,
         dpiScale,
-        NULL,
+        [](const char* path) {
+          if (path!=NULL) {
+            logI("Callback Result: %s",path);
+          } else {
+            logI("Callback Result: NULL");
+          }
+        },
         true
       );
       break;
