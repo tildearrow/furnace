@@ -937,13 +937,13 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemLen=2;
       ds.system[0]=DIV_SYSTEM_YM2612;
       ds.system[1]=DIV_SYSTEM_SMS;
-      ds.systemVol[1]=24;
+      ds.systemVol[1]=32;
     }
     if (ds.system[0]==DIV_SYSTEM_GENESIS_EXT) {
       ds.systemLen=2;
       ds.system[0]=DIV_SYSTEM_YM2612_EXT;
       ds.system[1]=DIV_SYSTEM_SMS;
-      ds.systemVol[1]=24;
+      ds.systemVol[1]=32;
     }
     if (ds.system[0]==DIV_SYSTEM_ARCADE) {
       ds.systemLen=2;
