@@ -527,35 +527,35 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega Genesis", {
       DIV_SYSTEM_YM2612, 64, 0, 0,
-      DIV_SYSTEM_SMS, 24, 0, 0,
+      DIV_SYSTEM_SMS, 32, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega Genesis (extended channel 3)", {
       DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
-      DIV_SYSTEM_SMS, 24, 0, 0,
+      DIV_SYSTEM_SMS, 32, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega Genesis (Fractal Sound template)", {
       DIV_SYSTEM_YM2612_FRAC, 64, 0, 0,
-      DIV_SYSTEM_SMS, 24, 0, 0,
+      DIV_SYSTEM_SMS, 32, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega Genesis (Fractal Sound template, extended channel 3)", {
       DIV_SYSTEM_YM2612_FRAC_EXT, 64, 0, 0,
-      DIV_SYSTEM_SMS, 24, 0, 0,
+      DIV_SYSTEM_SMS, 32, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega Genesis (with Sega CD)", {
       DIV_SYSTEM_YM2612, 64, 0, 0,
-      DIV_SYSTEM_SMS, 24, 0, 0,
+      DIV_SYSTEM_SMS, 32, 0, 0,
       DIV_SYSTEM_RF5C68, 64, 0, 18,
       0
     }
@@ -563,7 +563,7 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega Genesis (extended channel 3 with Sega CD)", {
       DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
-      DIV_SYSTEM_SMS, 24, 0, 0,
+      DIV_SYSTEM_SMS, 32, 0, 0,
       DIV_SYSTEM_RF5C68, 64, 0, 18,
       0
     }
@@ -2246,14 +2246,14 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega Genesis", {
       DIV_SYSTEM_YM2612, 64, 0, 0,
-      DIV_SYSTEM_SMS, 24, 0, 0,
+      DIV_SYSTEM_SMS, 32, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega Genesis (extended channel 3)", {
       DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
-      DIV_SYSTEM_SMS, 24, 0, 0,
+      DIV_SYSTEM_SMS, 32, 0, 0,
       0
     }
   ));
