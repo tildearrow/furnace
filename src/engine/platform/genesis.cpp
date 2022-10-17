@@ -27,11 +27,11 @@
 
 #define IS_REALLY_MUTED(x) (isMuted[x] && (x<5 || !softPCM || (isMuted[5] && isMuted[6])))
 
-void DivPlatformGenesis::processDAC() {
+void DivPlatformGenesis::processDAC(int iRate) {
   if (softPCM) {
     softPCMTimer+=chipClock/576;
-    if (softPCMTimer>rate) {
-      softPCMTimer-=rate;
+    if (softPCMTimer>iRate) {
+      softPCMTimer-=iRate;
 
       int sample=0;
       for (int i=5; i<7; i++) {
@@ -75,14 +75,14 @@ void DivPlatformGenesis::processDAC() {
   } else {
     if (!chan[5].dacReady) {
       chan[5].dacDelay+=32000;
-      if (chan[5].dacDelay>=rate) {
-        chan[5].dacDelay-=rate;
+      if (chan[5].dacDelay>=iRate) {
+        chan[5].dacDelay-=iRate;
         chan[5].dacReady=true;
       }
     }
     if (chan[5].dacMode && chan[5].dacSample!=-1) {
       chan[5].dacPeriod+=chan[5].dacRate;
-      if (chan[5].dacPeriod>=rate) {
+      if (chan[5].dacPeriod>=iRate) {
         DivSample* s=parent->getSample(chan[5].dacSample);
         if (s->samples>0) {
           if (!isMuted[5]) {
@@ -106,7 +106,7 @@ void DivPlatformGenesis::processDAC() {
               rWrite(0x2b,0);
             }
           }
-          while (chan[5].dacPeriod>=rate) chan[5].dacPeriod-=rate;
+          while (chan[5].dacPeriod>=iRate) chan[5].dacPeriod-=iRate;
         } else {
           chan[5].dacSample=-1;
         }
@@ -120,7 +120,7 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
   static int os[2];
 
   for (size_t h=start; h<start+len; h++) {
-    processDAC();
+    processDAC(rate);
 
     os[0]=0; os[1]=0;
     for (int i=0; i<6; i++) {
@@ -180,7 +180,7 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
   ymfm::ym2612::fm_engine* fme=fm_ymfm->debug_engine();
 
   for (size_t h=start; h<start+len; h++) {
-    processDAC();
+    processDAC(rate);
   
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
@@ -235,6 +235,20 @@ void DivPlatformGenesis::acquire(short* bufL, short* bufR, size_t start, size_t 
   } else {
     acquire_nuked(bufL,bufR,start,len);
   }
+}
+
+void DivPlatformGenesis::fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
+  while (!writes.empty()) writes.pop_front();
+  for (size_t i=0; i<len; i++) {
+    processDAC(sRate);
+
+    while (!writes.empty()) {
+      QueuedWrite& w=writes.front();
+      stream.push_back(DivDelayedWrite(i,w.addr,w.val));
+      writes.pop_front();
+    }
+  }
+  regWrites.clear();
 }
 
 void DivPlatformGenesis::tick(bool sysTick) {

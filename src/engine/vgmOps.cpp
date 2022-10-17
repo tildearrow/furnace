@@ -948,6 +948,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   bool sampleDir[DIV_MAX_CHANS];
   std::vector<unsigned int> chipVol; 
   std::vector<DivDelayedWrite> delayedWrites[32];
+  std::vector<std::pair<int,DivDelayedWrite>> sortedWrites;
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     loopTimer[i]=0;
@@ -1942,8 +1943,42 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     // check whether we need to loop
     int totalWait=cycles>>MASTER_CLOCK_PREC;
     if (directStream) {
+      // render stream of all chips
       for (int i=0; i<song.systemLen; i++) {
         disCont[i].dispatch->fillStream(delayedWrites[i],44100,totalWait);
+        for (DivDelayedWrite& j: delayedWrites[i]) {
+          sortedWrites.push_back(std::pair<int,DivDelayedWrite>(i,j));
+        }
+        delayedWrites[i].clear();
+      }
+
+      if (!sortedWrites.empty()) {
+        // sort if more than one chip
+        if (song.systemLen>1) {
+          std::sort(sortedWrites.begin(),sortedWrites.end(),[](const std::pair<int,DivDelayedWrite>& a, const std::pair<int,DivDelayedWrite>& b) -> bool {
+            return a.second.time<b.second.time;
+          });
+        }
+
+        // write it out
+        int lastOne=0;
+        for (std::pair<int,DivDelayedWrite>& i: sortedWrites) {
+          if (i.second.time>lastOne) {
+            // write delay
+            int delay=i.second.time-lastOne;
+            if (delay>16) {
+              w->writeC(0x61);
+              w->writeS(totalWait);
+            } else if (delay>0) {
+              w->writeC(0x70+delay-1);
+            }
+            lastOne=i.second.time;
+          }
+          // write write
+          performVGMWrite(w,song.system[i.first],i.second.write,streamIDs[i.first],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i.first],directStream);
+        }
+        sortedWrites.clear();
+        totalWait-=lastOne;
       }
     } else {
       for (int i=0; i<streamID; i++) {

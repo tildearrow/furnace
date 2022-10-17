@@ -264,6 +264,9 @@ struct DivRegWrite {
 struct DivDelayedWrite {
   int time;
   DivRegWrite write;
+  DivDelayedWrite(int t, unsigned int a, unsigned short v):
+    time(t),
+    write(a,v) {}
 };
 
 struct DivDispatchOscBuffer {

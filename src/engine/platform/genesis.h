@@ -119,12 +119,13 @@ class DivPlatformGenesis: public DivPlatformOPN {
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
-    inline void processDAC();
+    inline void processDAC(int iRate);
     void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
     void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
   
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
