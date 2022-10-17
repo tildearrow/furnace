@@ -515,37 +515,39 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         break;
     }
   }
-  if (write.addr>=0xffff0000 && !directStream) { // Furnace special command
-    unsigned char streamID=streamOff+((write.addr&0xff00)>>8);
-    logD("writing stream command %x:%x with stream ID %d",write.addr,write.val,streamID);
-    switch (write.addr&0xff) {
-      case 0: // play sample
-        if (write.val<song.sampleLen) {
-          DivSample* sample=song.sample[write.val];
-          w->writeC(0x95);
-          w->writeC(streamID);
-          w->writeS(write.val); // sample number
-          w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0)|(sampleDir[streamID]?0x10:0)); // flags
-          if (sample->isLoopable() && !sampleDir[streamID]) {
-            loopTimer[streamID]=sample->length8;
-            loopSample[streamID]=write.val;
+  if (write.addr>=0xffff0000) { // Furnace special command
+    if (!directStream) {
+      unsigned char streamID=streamOff+((write.addr&0xff00)>>8);
+      logD("writing stream command %x:%x with stream ID %d",write.addr,write.val,streamID);
+      switch (write.addr&0xff) {
+        case 0: // play sample
+          if (write.val<song.sampleLen) {
+            DivSample* sample=song.sample[write.val];
+            w->writeC(0x95);
+            w->writeC(streamID);
+            w->writeS(write.val); // sample number
+            w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0)|(sampleDir[streamID]?0x10:0)); // flags
+            if (sample->isLoopable() && !sampleDir[streamID]) {
+              loopTimer[streamID]=sample->length8;
+              loopSample[streamID]=write.val;
+            }
           }
-        }
-        break;
-      case 1: // set sample freq
-        w->writeC(0x92);
-        w->writeC(streamID);
-        w->writeI(write.val);
-        loopFreq[streamID]=write.val;
-        break;
-      case 2: // stop sample
-        w->writeC(0x94);
-        w->writeC(streamID);
-        loopSample[streamID]=-1;
-        break;
-      case 3: // set sample direction
-        sampleDir[streamID]=write.val;
-        break;
+          break;
+        case 1: // set sample freq
+          w->writeC(0x92);
+          w->writeC(streamID);
+          w->writeI(write.val);
+          loopFreq[streamID]=write.val;
+          break;
+        case 2: // stop sample
+          w->writeC(0x94);
+          w->writeC(streamID);
+          loopSample[streamID]=-1;
+          break;
+        case 3: // set sample direction
+          sampleDir[streamID]=write.val;
+          break;
+      }
     }
     return;
   }
