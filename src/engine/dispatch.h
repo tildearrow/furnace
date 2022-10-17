@@ -261,6 +261,11 @@ struct DivRegWrite {
     addr(a), val(v) {}
 };
 
+struct DivDelayedWrite {
+  int time;
+  DivRegWrite write;
+};
+
 struct DivDispatchOscBuffer {
   bool follow;
   unsigned int rate;
@@ -312,6 +317,14 @@ class DivDispatch {
      * @param len the amount of samples to fill.
      */
     virtual void acquire(short* bufL, short* bufR, size_t start, size_t len);
+
+    /**
+     * fill a write stream with data (e.g. for software-mixed PCM).
+     * @param stream the write stream.
+     * @param rate stream rate (e.g. 44100 for VGM).
+     * @param len number of samples.
+     */
+    virtual void fillStream(std::vector<DivDelayedWrite>& stream, int rate, size_t len);
 
     /**
      * send a command to this dispatch.
