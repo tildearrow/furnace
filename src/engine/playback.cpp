@@ -533,13 +533,21 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   // volume
   if (pat->data[whatRow][3]!=-1) {
+    int cond=0;
     if (dispatchCmd(DivCommand(DIV_ALWAYS_SET_VOLUME,i)) || (MIN(chan[i].volMax,chan[i].volume)>>8)!=pat->data[whatRow][3]) {
-      if (pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0) {
-        chan[i].midiAftertouch=true;
-      }
+      cond=3;
+    } else if (MIN(chan[i].volMax,chan[i].volume)!=(pat->data[whatRow][3]<<8)) {
+      cond=1;
+    }
+    if (cond) {
       chan[i].volume=pat->data[whatRow][3]<<8;
-      dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-      dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
+      if (cond&2) {
+        if (pat->data[whatRow][0]==0 && pat->data[whatRow][1]==0) {
+          chan[i].midiAftertouch=true;
+        }
+        dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+        dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
+      }
     }
   }
 
