@@ -819,7 +819,7 @@ void FurnaceGUI::drawWaveEdit() {
               if (ImGui::Button("Randomize",buttonSize)) {
                 if (wave->max>0) e->lockEngine([this,wave]() {
                   for (int i=0; i<wave->len; i++) {
-                    wave->data[i]=rand()%wave->max;
+                    wave->data[i]=rand()%(wave->max+1);
                   }
                   MARK_MODIFIED;
                 });
