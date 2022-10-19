@@ -200,7 +200,10 @@ void FurnaceGUI::drawWaveEdit() {
 
         if (e->song.wave.size()>0) {
           if (ImGui::BeginCombo("##WaveSelect","select one...")) {
-            actualWaveList();
+            if (ImGui::BeginTable("WaveSelCombo",1,ImGuiTableFlags_ScrollY)) {
+              actualWaveList();
+              ImGui::EndTable();
+            }
             ImGui::EndCombo();
           }
           ImGui::SameLine();

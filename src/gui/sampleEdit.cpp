@@ -60,7 +60,10 @@ void FurnaceGUI::drawSampleEdit() {
 
         if (e->song.sample.size()>0) {
           if (ImGui::BeginCombo("##SampleSelect","select one...")) {
-            actualSampleList();
+            if (ImGui::BeginTable("SampleSelCombo",1,ImGuiTableFlags_ScrollY)) {
+              actualSampleList();
+              ImGui::EndTable();
+            }
             ImGui::EndCombo();
           }
           ImGui::SameLine();
