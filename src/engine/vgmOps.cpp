@@ -1567,7 +1567,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   unsigned int exHeaderOff=w->tell();
   if (version>=0x170) {
     logD("writing extended header...");
-    w->writeI(8);
+    w->writeI(12);
     w->writeI(0);
     w->writeI(4);
 
