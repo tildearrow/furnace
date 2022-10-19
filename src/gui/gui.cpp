@@ -5012,7 +5012,30 @@ bool FurnaceGUI::init() {
 
   e->setAutoNotePoly(noteInputPoly);
 
+  SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER,"1");
+  SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS,"0");
+  SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS,"0");
+  // don't disable compositing on KWin
+#if SDL_VERSION_ATLEAST(2,0,22)
+  SDL_SetHint(SDL_HINT_X11_WINDOW_TYPE,"_NET_WM_WINDOW_TYPE_NORMAL");
+#endif
+
+  // initialize SDL
+  SDL_Init(SDL_INIT_VIDEO);
+
+  const char* videoBackend=SDL_GetCurrentVideoDriver();
+  if (videoBackend!=NULL) {
+    if (strcmp(videoBackend,"wayland")==0 ||
+        strcmp(videoBackend,"cocoa")==0 ||
+        strcmp(videoBackend,"uikit")==0) {
+      sysManagedScale=true;
+    }
+  }
+
+  // TODO: get scaling factor
+
 #if !(defined(__APPLE__) || defined(_WIN32))
+  // get the icon (on macOS and Windows the icon is bundled with the app)
   unsigned char* furIcon=getFurnaceIcon();
   SDL_Surface* icon=SDL_CreateRGBSurfaceFrom(furIcon,256,256,32,256*4,0xff,0xff00,0xff0000,0xff000000);
 #endif
@@ -5023,8 +5046,10 @@ bool FurnaceGUI::init() {
   scrX=0;
   scrY=0;
 #else
-  scrW=scrConfW=e->getConfInt("lastWindowWidth",1280);
-  scrH=scrConfH=e->getConfInt("lastWindowHeight",800);
+  double defaultW=1280*(sysManagedScale?1.0:dpiScale);
+  double defaultH=800*(sysManagedScale?1.0:dpiScale);
+  scrW=scrConfW=e->getConfInt("lastWindowWidth",(int)defaultW);
+  scrH=scrConfH=e->getConfInt("lastWindowHeight",(int)defaultH);
   scrX=scrConfX=e->getConfInt("lastWindowX",SDL_WINDOWPOS_CENTERED);
   scrY=scrConfY=e->getConfInt("lastWindowY",SDL_WINDOWPOS_CENTERED);
   scrMax=e->getConfBool("lastWindowMax",false);
@@ -5036,16 +5061,6 @@ bool FurnaceGUI::init() {
   SDL_Rect displaySize;
 #endif
 
-  SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER,"1");
-  SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS,"0");
-  SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS,"0");
-  // don't disable compositing on KWin
-#if SDL_VERSION_ATLEAST(2,0,22)
-  SDL_SetHint(SDL_HINT_X11_WINDOW_TYPE,"_NET_WM_WINDOW_TYPE_NORMAL");
-#endif
-
-  SDL_Init(SDL_INIT_VIDEO);
-
 #ifndef IS_MOBILE
   // if window would spawn out of bounds, force it to be get default position
   if (!detectOutOfBoundsWindow()) {
@@ -5055,12 +5070,13 @@ bool FurnaceGUI::init() {
   }
 #endif
 
-  sdlWin=SDL_CreateWindow("Furnace",scrX,scrY,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(scrMax?SDL_WINDOW_MAXIMIZED:0)|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
+  sdlWin=SDL_CreateWindow("Furnace",scrX,scrY,scrW,scrH,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(scrMax?SDL_WINDOW_MAXIMIZED:0)|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
   if (sdlWin==NULL) {
     lastError=fmt::sprintf("could not open window! %s",SDL_GetError());
     return false;
   }
 
+  // TODO: remove this
 #ifndef __APPLE__
   if (settings.dpiScale<0.5f) {
     // TODO: replace with a function to actually detect the display scaling factor as it's unreliable.
@@ -5358,6 +5374,7 @@ FurnaceGUI::FurnaceGUI():
   scrConfX(SDL_WINDOWPOS_CENTERED),
   scrConfY(SDL_WINDOWPOS_CENTERED),
   scrMax(false),
+  sysManagedScale(false),
   dpiScale(1),
   aboutScroll(0),
   aboutSin(0),
