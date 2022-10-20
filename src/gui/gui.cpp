@@ -2751,12 +2751,8 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
       TouchPoint* point=NULL;
       FIND_POINT(point,-1);
       if (point!=NULL) {
-        point->x=ev.motion.x;
-        point->y=ev.motion.y;
-#ifdef __APPLE__
-        point->x*=dpiScale;
-        point->y*=dpiScale;
-#endif
+        point->x=(double)ev.motion.x*((double)canvasW/(double)scrW);
+        point->y=(double)ev.motion.y*((double)canvasH/(double)scrH);
       }
       break;
     }
@@ -2797,8 +2793,8 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
       if (point!=NULL) {
         float prevX=point->x;
         float prevY=point->y;
-        point->x=ev.tfinger.x*scrW*dpiScale;
-        point->y=ev.tfinger.y*scrH*dpiScale;
+        point->x=ev.tfinger.x*canvasW;
+        point->y=ev.tfinger.y*canvasH;
         point->z=ev.tfinger.pressure;
 
         if (point->id==0) {
@@ -2817,7 +2813,7 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
           break;
         }
       }
-      TouchPoint newPoint(ev.tfinger.fingerId,ev.tfinger.x*scrW*dpiScale,ev.tfinger.y*scrH*dpiScale,ev.tfinger.pressure);
+      TouchPoint newPoint(ev.tfinger.fingerId,ev.tfinger.x*canvasW,ev.tfinger.y*canvasH,ev.tfinger.pressure);
       activePoints.push_back(newPoint);
       pressedPoints.push_back(newPoint);
 
@@ -2983,16 +2979,10 @@ bool FurnaceGUI::loop() {
       if (!doThreadedInput) processEvent(&ev);
       switch (ev.type) {
         case SDL_MOUSEMOTION: {
-          int motionX=ev.motion.x;
-          int motionY=ev.motion.y;
-          int motionXrel=ev.motion.xrel;
-          int motionYrel=ev.motion.yrel;
-#ifdef __APPLE__
-          motionX*=dpiScale;
-          motionY*=dpiScale;
-          motionXrel*=dpiScale;
-          motionYrel*=dpiScale;
-#endif
+          int motionX=(double)ev.motion.x*((double)canvasW/(double)scrW);
+          int motionY=(double)ev.motion.y*((double)canvasH/(double)scrH);
+          int motionXrel=(double)ev.motion.xrel*((double)canvasW/(double)scrW);
+          int motionYrel=(double)ev.motion.yrel*((double)canvasH/(double)scrH);
           pointMotion(motionX,motionY,motionXrel,motionYrel);
           break;
         }
@@ -3009,13 +2999,8 @@ bool FurnaceGUI::loop() {
         case SDL_WINDOWEVENT:
           switch (ev.window.event) {
             case SDL_WINDOWEVENT_RESIZED:
-#ifdef __APPLE__
               scrW=ev.window.data1;
               scrH=ev.window.data2;
-#else
-              scrW=ev.window.data1/dpiScale;
-              scrH=ev.window.data2/dpiScale;
-#endif
               portrait=(scrW<scrH);
               logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
               updateWindow=true;
@@ -3095,6 +3080,9 @@ bool FurnaceGUI::loop() {
         scrConfW=scrW;
         scrConfH=scrH;
       }
+
+      // update canvas size as well
+      SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH);
     }
 
     wantCaptureKeyboard=ImGui::GetIO().WantTextInput;
@@ -3773,10 +3761,10 @@ bool FurnaceGUI::loop() {
       firstFrame=false;
 #ifdef IS_MOBILE
       SDL_GetWindowSize(sdlWin,&scrW,&scrH);
-      scrW/=dpiScale;
-      scrH/=dpiScale;
       portrait=(scrW<scrH);
       logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
+
+      SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH);
 #endif
       if (patternOpen) nextWindow=GUI_WINDOW_PATTERN;
 #ifdef __APPLE__
@@ -3794,12 +3782,12 @@ bool FurnaceGUI::loop() {
         ImGui::CloseCurrentPopup();
       }
       ImDrawList* dl=ImGui::GetForegroundDrawList();
-      dl->AddRectFilled(ImVec2(0.0f,0.0f),ImVec2(scrW*dpiScale,scrH*dpiScale),ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_MODAL_BACKDROP]));
+      dl->AddRectFilled(ImVec2(0.0f,0.0f),ImVec2(canvasW,canvasH),ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_MODAL_BACKDROP]));
       ImGui::EndPopup();
     }
 #endif
 
-    if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
+    if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH))) {
       bool openOpen=false;
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
       if ((curFileDialog==GUI_FILE_INS_OPEN || curFileDialog==GUI_FILE_INS_OPEN_REPLACE) && prevIns!=-3) {
@@ -4345,9 +4333,9 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
+    ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(canvasW,canvasH));
     if (ImGui::BeginPopupModal("New Song",NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
-      ImGui::SetWindowPos(ImVec2(((scrW*dpiScale)-ImGui::GetWindowSize().x)*0.5,((scrH*dpiScale)-ImGui::GetWindowSize().y)*0.5));
+      ImGui::SetWindowPos(ImVec2(((canvasW)-ImGui::GetWindowSize().x)*0.5,((canvasH)-ImGui::GetWindowSize().y)*0.5));
       drawNewSong();
       ImGui::EndPopup();
     }
@@ -4715,8 +4703,8 @@ bool FurnaceGUI::loop() {
       }
       bool anySelected=false;
       float sizeY=ImGui::GetFrameHeightWithSpacing()*pendingIns.size();
-      if (sizeY>(scrH-180.0)*dpiScale) {
-        sizeY=(scrH-180.0)*dpiScale;
+      if (sizeY>(canvasH-180.0*dpiScale)) {
+        sizeY=canvasH-180.0*dpiScale;
         if (sizeY<60.0*dpiScale) sizeY=60.0*dpiScale;
       }
       if (ImGui::BeginTable("PendingInsList",1,ImGuiTableFlags_ScrollY,ImVec2(0.0f,sizeY))) {
@@ -5077,7 +5065,7 @@ bool FurnaceGUI::init() {
     canvasH=scrH;
   }
 
-#if !defined(__APPLE__) && !defined(IS_MOBILE)
+#ifndef IS_MOBILE
   SDL_Rect displaySize;
 #endif
 
@@ -5098,6 +5086,7 @@ bool FurnaceGUI::init() {
     return false;
   }
 
+#ifndef IS_MOBILE
   if (SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(sdlWin),&displaySize)==0) {
     bool mustChange=false;
     if (scrW>((displaySize.w)-48) && scrH>((displaySize.h)-64)) {
@@ -5122,6 +5111,7 @@ bool FurnaceGUI::init() {
       }
     }
   }
+#endif
 
 #ifdef IS_MOBILE
   SDL_GetWindowSize(sdlWin,&scrW,&scrH);
