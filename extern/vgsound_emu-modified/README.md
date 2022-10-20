@@ -1,6 +1,6 @@
 # vgsound_emu V2 (modified)
 
-This is a library of video game sound chip emulation cores. useful for emulators, chiptune trackers, or players.
+This is a C++ library of video game sound chip emulation cores. useful for emulators, chiptune trackers, or players.
 
 This is a modified version of vgsound_emu, tailored for Furnace.
 
@@ -46,7 +46,8 @@ See [here](https://gitlab.com/cam900/vgsound_emu/-/blob/main/LICENSE) for detail
 
 ### dependencies
 
-- CMake
+- C++11 (or later)
+- CMake (3.1 or later is recommended)
 - git (for source repository management)
 - MSVC or GCC or Clang (for compile)
 
@@ -59,7 +60,7 @@ git clone https://gitlab.com/cam900/vgsound_emu.git
 cd vgsound_emu
 ```
 
-### Compile
+### Compile with CMake
 
 #### MSVC
 
