@@ -11,9 +11,7 @@
 
 #pragma once
 
-#include "../core/core.hpp"
-
-using namespace vgsound_emu;
+#include "../core/util.hpp"
 
 class k053260_intf : public vgsound_emu_core
 {
@@ -33,7 +31,7 @@ class k053260_core : public vgsound_emu_core
 		friend class k053260_intf;	// k053260 specific interface
 
 	private:
-		static constexpr int pan_dir[8] = {-1, 0, 24, 35, 45, 55, 66, 90};	 // pan direction
+		const int pan_dir[8] = {-1, 0, 24, 35, 45, 55, 66, 90};	 // pan direction
 
 		class voice_t : public vgsound_emu_core
 		{

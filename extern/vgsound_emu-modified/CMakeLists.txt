@@ -97,8 +97,8 @@ set(EMU_SOURCE "")
 # Core functions
 list(APPEND CORE_SOURCE
 	vgsound_emu/src/core/core.hpp
-	vgsound_emu/src/core/util.hpp
 	vgsound_emu/src/core/util/clock_pulse.hpp
+	vgsound_emu/src/core/util/fifo.hpp
 	vgsound_emu/src/core/util/mem_intf.hpp
 )
 

@@ -11,9 +11,7 @@
 
 #pragma once
 
-#include "../core/core.hpp"
-
-using namespace vgsound_emu;
+#include "../core/util.hpp"
 
 class k007232_intf : public vgsound_emu_core
 {

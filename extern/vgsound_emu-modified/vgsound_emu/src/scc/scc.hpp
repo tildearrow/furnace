@@ -12,10 +12,7 @@
 
 #pragma once
 
-#include "../core/core.hpp"
-#include "../core/util/mem_intf.hpp"
-
-using namespace vgsound_emu;
+#include "../core/util.hpp"
 
 // shared for SCCs
 class scc_core : public vgsound_emu_core
