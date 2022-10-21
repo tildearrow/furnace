@@ -11,8 +11,11 @@
 
 #pragma once
 
-#include "../core/util.hpp"
+#include "../core/core.hpp"
+#include "../core/util/mem_intf.hpp"
 #include "../core/vox/vox.hpp"
+
+using namespace vgsound_emu;
 
 class msm6295_core : public vox_core
 {
@@ -20,15 +23,16 @@ class msm6295_core : public vox_core
 
 	private:
 		// Internal volume table, 9 step
-		const s32 m_volume_table[9] = {32 /* 0.0dB */,
-									   22 /* -3.2dB */,
-									   16 /* -6.0dB */,
-									   11 /* -9.2dB */,
-									   8 /* -12.0dB */,
-									   6 /* -14.5dB */,
-									   4 /* -18.0dB */,
-									   3 /* -20.5dB */,
-									   2 /* -24.0dB */};  // scale out to 5 bit for optimization
+		static constexpr s32 m_volume_table[9] = {
+		  32 /* 0.0dB */,
+		  22 /* -3.2dB */,
+		  16 /* -6.0dB */,
+		  11 /* -9.2dB */,
+		  8 /* -12.0dB */,
+		  6 /* -14.5dB */,
+		  4 /* -18.0dB */,
+		  3 /* -20.5dB */,
+		  2 /* -24.0dB */};	 // scale out to 5 bit for optimization
 
 		// msm6295 voice classes
 		class voice_t : vox_decoder_t

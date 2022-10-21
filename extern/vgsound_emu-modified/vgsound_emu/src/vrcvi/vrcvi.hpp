@@ -11,7 +11,9 @@
 
 #pragma once
 
-#include "../core/util.hpp"
+#include "../core/core.hpp"
+
+using namespace vgsound_emu;
 
 class vrcvi_intf : public vgsound_emu_core
 {
