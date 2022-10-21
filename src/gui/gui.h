@@ -1062,9 +1062,9 @@ class FurnaceGUI {
 
   FurnaceGUIFileDialog* fileDialog;
 
-  int scrW, scrH, scrConfW, scrConfH;
+  int scrW, scrH, scrConfW, scrConfH, canvasW, canvasH;
   int scrX, scrY, scrConfX, scrConfY;
-  bool scrMax;
+  bool scrMax, sysManagedScale;
 
   double dpiScale;
 

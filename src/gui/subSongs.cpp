@@ -11,7 +11,7 @@ void FurnaceGUI::drawSubSongs() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!subSongsOpen) return;
-  ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
+  ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(canvasW,canvasH));
   if (ImGui::Begin("Subsongs",&subSongsOpen,globalWinFlags)) {
     char id[1024];
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0f-ImGui::GetStyle().ItemSpacing.x);

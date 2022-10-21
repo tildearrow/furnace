@@ -1,3 +1,5 @@
+#define _USE_MATH_DEFINES
+// OK, sorry for inserting the define here but I'm so tired of this extension
 /**
  * Furnace Tracker - multi-system chiptune tracker
  * Copyright (C) 2021-2022 tildearrow and contributors
@@ -20,7 +22,7 @@
 // I hate you clangd extension!
 // how about you DON'T insert random headers before this freaking important
 // define!!!!!!
-#define _USE_MATH_DEFINES
+
 #include "gui.h"
 #include "util.h"
 #include "icon.h"
@@ -36,16 +38,11 @@
 #include "plot_nolerp.h"
 #include "guiConst.h"
 #include "intConst.h"
+#include "scaling.h"
 #include <stdint.h>
 #include <zlib.h>
 #include <fmt/printf.h>
 #include <stdexcept>
-
-#ifdef __APPLE__
-extern "C" {
-#include "macstuff.h"
-}
-#endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -2754,12 +2751,8 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
       TouchPoint* point=NULL;
       FIND_POINT(point,-1);
       if (point!=NULL) {
-        point->x=ev.motion.x;
-        point->y=ev.motion.y;
-#ifdef __APPLE__
-        point->x*=dpiScale;
-        point->y*=dpiScale;
-#endif
+        point->x=(double)ev.motion.x*((double)canvasW/(double)scrW);
+        point->y=(double)ev.motion.y*((double)canvasH/(double)scrH);
       }
       break;
     }
@@ -2800,8 +2793,8 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
       if (point!=NULL) {
         float prevX=point->x;
         float prevY=point->y;
-        point->x=ev.tfinger.x*scrW*dpiScale;
-        point->y=ev.tfinger.y*scrH*dpiScale;
+        point->x=ev.tfinger.x*canvasW;
+        point->y=ev.tfinger.y*canvasH;
         point->z=ev.tfinger.pressure;
 
         if (point->id==0) {
@@ -2820,7 +2813,7 @@ void FurnaceGUI::processPoint(SDL_Event& ev) {
           break;
         }
       }
-      TouchPoint newPoint(ev.tfinger.fingerId,ev.tfinger.x*scrW*dpiScale,ev.tfinger.y*scrH*dpiScale,ev.tfinger.pressure);
+      TouchPoint newPoint(ev.tfinger.fingerId,ev.tfinger.x*canvasW,ev.tfinger.y*canvasH,ev.tfinger.pressure);
       activePoints.push_back(newPoint);
       pressedPoints.push_back(newPoint);
 
@@ -2986,16 +2979,10 @@ bool FurnaceGUI::loop() {
       if (!doThreadedInput) processEvent(&ev);
       switch (ev.type) {
         case SDL_MOUSEMOTION: {
-          int motionX=ev.motion.x;
-          int motionY=ev.motion.y;
-          int motionXrel=ev.motion.xrel;
-          int motionYrel=ev.motion.yrel;
-#ifdef __APPLE__
-          motionX*=dpiScale;
-          motionY*=dpiScale;
-          motionXrel*=dpiScale;
-          motionYrel*=dpiScale;
-#endif
+          int motionX=(double)ev.motion.x*((double)canvasW/(double)scrW);
+          int motionY=(double)ev.motion.y*((double)canvasH/(double)scrH);
+          int motionXrel=(double)ev.motion.xrel*((double)canvasW/(double)scrW);
+          int motionYrel=(double)ev.motion.yrel*((double)canvasH/(double)scrH);
           pointMotion(motionX,motionY,motionXrel,motionYrel);
           break;
         }
@@ -3012,13 +2999,8 @@ bool FurnaceGUI::loop() {
         case SDL_WINDOWEVENT:
           switch (ev.window.event) {
             case SDL_WINDOWEVENT_RESIZED:
-#ifdef __APPLE__
               scrW=ev.window.data1;
               scrH=ev.window.data2;
-#else
-              scrW=ev.window.data1/dpiScale;
-              scrH=ev.window.data2/dpiScale;
-#endif
               portrait=(scrW<scrH);
               logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
               updateWindow=true;
@@ -3098,6 +3080,9 @@ bool FurnaceGUI::loop() {
         scrConfW=scrW;
         scrConfH=scrH;
       }
+
+      // update canvas size as well
+      SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH);
     }
 
     wantCaptureKeyboard=ImGui::GetIO().WantTextInput;
@@ -3776,10 +3761,10 @@ bool FurnaceGUI::loop() {
       firstFrame=false;
 #ifdef IS_MOBILE
       SDL_GetWindowSize(sdlWin,&scrW,&scrH);
-      scrW/=dpiScale;
-      scrH/=dpiScale;
       portrait=(scrW<scrH);
       logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
+
+      SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH);
 #endif
       if (patternOpen) nextWindow=GUI_WINDOW_PATTERN;
 #ifdef __APPLE__
@@ -3797,12 +3782,12 @@ bool FurnaceGUI::loop() {
         ImGui::CloseCurrentPopup();
       }
       ImDrawList* dl=ImGui::GetForegroundDrawList();
-      dl->AddRectFilled(ImVec2(0.0f,0.0f),ImVec2(scrW*dpiScale,scrH*dpiScale),ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_MODAL_BACKDROP]));
+      dl->AddRectFilled(ImVec2(0.0f,0.0f),ImVec2(canvasW,canvasH),ImGui::ColorConvertFloat4ToU32(uiColors[GUI_COLOR_MODAL_BACKDROP]));
       ImGui::EndPopup();
     }
 #endif
 
-    if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale))) {
+    if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH))) {
       bool openOpen=false;
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
       if ((curFileDialog==GUI_FILE_INS_OPEN || curFileDialog==GUI_FILE_INS_OPEN_REPLACE) && prevIns!=-3) {
@@ -4348,9 +4333,9 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
+    ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(canvasW,canvasH));
     if (ImGui::BeginPopupModal("New Song",NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
-      ImGui::SetWindowPos(ImVec2(((scrW*dpiScale)-ImGui::GetWindowSize().x)*0.5,((scrH*dpiScale)-ImGui::GetWindowSize().y)*0.5));
+      ImGui::SetWindowPos(ImVec2(((canvasW)-ImGui::GetWindowSize().x)*0.5,((canvasH)-ImGui::GetWindowSize().y)*0.5));
       drawNewSong();
       ImGui::EndPopup();
     }
@@ -4718,8 +4703,8 @@ bool FurnaceGUI::loop() {
       }
       bool anySelected=false;
       float sizeY=ImGui::GetFrameHeightWithSpacing()*pendingIns.size();
-      if (sizeY>(scrH-180.0)*dpiScale) {
-        sizeY=(scrH-180.0)*dpiScale;
+      if (sizeY>(canvasH-180.0*dpiScale)) {
+        sizeY=canvasH-180.0*dpiScale;
         if (sizeY<60.0*dpiScale) sizeY=60.0*dpiScale;
       }
       if (ImGui::BeginTable("PendingInsList",1,ImGuiTableFlags_ScrollY,ImVec2(0.0f,sizeY))) {
@@ -4898,9 +4883,7 @@ bool FurnaceGUI::loop() {
 }
 
 bool FurnaceGUI::init() {
-#ifndef __APPLE__
-  float dpiScaleF;
-#endif
+  logI("initializing GUI.");
 
   String homeDir=getHomeDir();
   workingDir=e->getConfString("lastDir",homeDir);
@@ -5004,15 +4987,49 @@ bool FurnaceGUI::init() {
     }
   }
 
-  if (settings.dpiScale>=0.5f) {
-    dpiScale=settings.dpiScale;
-  }
-
   initSystemPresets();
 
   e->setAutoNotePoly(noteInputPoly);
 
+  SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER,"1");
+  SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS,"0");
+  SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS,"0");
+  // don't disable compositing on KWin
+#if SDL_VERSION_ATLEAST(2,0,22)
+  logV("setting window type to NORMAL.");
+  SDL_SetHint(SDL_HINT_X11_WINDOW_TYPE,"_NET_WM_WINDOW_TYPE_NORMAL");
+#endif
+
+  // initialize SDL
+  SDL_Init(SDL_INIT_VIDEO);
+
+  const char* videoBackend=SDL_GetCurrentVideoDriver();
+  if (videoBackend!=NULL) {
+    logV("video backend: %s",videoBackend);
+    if (strcmp(videoBackend,"wayland")==0 ||
+        strcmp(videoBackend,"cocoa")==0 ||
+        strcmp(videoBackend,"uikit")==0) {
+      sysManagedScale=true;
+      logV("scaling managed by system.");
+    } else {
+      logV("scaling managed by application.");
+    }
+  } else {
+    logV("could not get video backend name!");
+  }
+
+  // get scale factor
+  if (settings.dpiScale>=0.5f) {
+    logD("setting UI scale factor from config (%f).",settings.dpiScale);
+    dpiScale=settings.dpiScale;
+  } else {
+    logD("auto-detecting UI scale factor.");
+    dpiScale=getScaleFactor(videoBackend);
+    logD("scale factor: %f",dpiScale);
+  }
+
 #if !(defined(__APPLE__) || defined(_WIN32))
+  // get the icon (on macOS and Windows the icon is bundled with the app)
   unsigned char* furIcon=getFurnaceIcon();
   SDL_Surface* icon=SDL_CreateRGBSurfaceFrom(furIcon,256,256,32,256*4,0xff,0xff00,0xff0000,0xff000000);
 #endif
@@ -5032,19 +5049,25 @@ bool FurnaceGUI::init() {
   portrait=(scrW<scrH);
   logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
 
-#if !defined(__APPLE__) && !defined(IS_MOBILE)
+  // if old config, scale size as it was stored unscaled before
+  if (e->getConfInt("configVersion",0)<122 && !sysManagedScale) {
+    logD("scaling window size to scale factor because configVersion is not present.");
+    scrW*=dpiScale;
+    scrH*=dpiScale;
+  }
+
+  // predict the canvas size
+  if (sysManagedScale) {
+    canvasW=scrW*dpiScale;
+    canvasH=scrH*dpiScale;
+  } else {
+    canvasW=scrW;
+    canvasH=scrH;
+  }
+
+#ifndef IS_MOBILE
   SDL_Rect displaySize;
 #endif
-
-  SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER,"1");
-  SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS,"0");
-  SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS,"0");
-  // don't disable compositing on KWin
-#if SDL_VERSION_ATLEAST(2,0,22)
-  SDL_SetHint(SDL_HINT_X11_WINDOW_TYPE,"_NET_WM_WINDOW_TYPE_NORMAL");
-#endif
-
-  SDL_Init(SDL_INIT_VIDEO);
 
 #ifndef IS_MOBILE
   // if window would spawn out of bounds, force it to be get default position
@@ -5055,46 +5078,43 @@ bool FurnaceGUI::init() {
   }
 #endif
 
-  sdlWin=SDL_CreateWindow("Furnace",scrX,scrY,scrW*dpiScale,scrH*dpiScale,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(scrMax?SDL_WINDOW_MAXIMIZED:0)|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
+  logV("window size: %dx%d",scrW,scrH);
+
+  sdlWin=SDL_CreateWindow("Furnace",scrX,scrY,scrW,scrH,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(scrMax?SDL_WINDOW_MAXIMIZED:0)|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
   if (sdlWin==NULL) {
     lastError=fmt::sprintf("could not open window! %s",SDL_GetError());
     return false;
   }
 
-#ifndef __APPLE__
-  if (settings.dpiScale<0.5f) {
-    // TODO: replace with a function to actually detect the display scaling factor as it's unreliable.
-    SDL_GetDisplayDPI(SDL_GetWindowDisplayIndex(sdlWin),&dpiScaleF,NULL,NULL);
-    dpiScale=round(dpiScaleF/96.0f);
-    if (dpiScale<1) dpiScale=1;
 #ifndef IS_MOBILE
-    if (dpiScale!=1) {
-      if (!fullScreen) {
-        SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
-      }
+  if (SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(sdlWin),&displaySize)==0) {
+    bool mustChange=false;
+    if (scrW>((displaySize.w)-48) && scrH>((displaySize.h)-64)) {
+      // maximize
+      SDL_MaximizeWindow(sdlWin);
+      logD("maximizing as it doesn't fit (%dx%d+%d+%d).",displaySize.w,displaySize.h,displaySize.x,displaySize.y);
     }
-
-    if (SDL_GetDisplayUsableBounds(SDL_GetWindowDisplayIndex(sdlWin),&displaySize)==0) {
-      if (scrW>((displaySize.w/dpiScale)-48) && scrH>((displaySize.h/dpiScale)-64)) {
-        // maximize
-        SDL_MaximizeWindow(sdlWin);
-      }
-      if (scrW>displaySize.w/dpiScale) scrW=(displaySize.w/dpiScale)-32;
-      if (scrH>displaySize.h/dpiScale) scrH=(displaySize.h/dpiScale)-32;
+    if (scrW>displaySize.w) {
+      scrW=(displaySize.w)-32;
+      mustChange=true;
+    }
+    if (scrH>displaySize.h) {
+      scrH=(displaySize.h)-32;
+      mustChange=true;
+    }
+    if (mustChange) {
       portrait=(scrW<scrH);
       logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
       if (!fullScreen) {
-        SDL_SetWindowSize(sdlWin,scrW*dpiScale,scrH*dpiScale);
+        logD("setting window size to %dx%d as it goes off bounds (%dx%d+%d+%d).",scrW,scrH,displaySize.w,displaySize.h,displaySize.x,displaySize.y);
+        SDL_SetWindowSize(sdlWin,scrW,scrH);
       }
     }
-#endif
   }
 #endif
 
 #ifdef IS_MOBILE
   SDL_GetWindowSize(sdlWin,&scrW,&scrH);
-  scrW/=dpiScale;
-  scrH/=dpiScale;
   portrait=(scrW<scrH);
   logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
 #endif
@@ -5116,9 +5136,19 @@ bool FurnaceGUI::init() {
     return false;
   }
 
-#ifdef __APPLE__
-  dpiScale=getMacDPIScale();
-#endif
+  // try acquiring the canvas size
+  if (SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH)!=0) {
+    logW("could not get renderer output size! %s",SDL_GetError());
+  } else {
+    logV("canvas size: %dx%d",canvasW,canvasH);
+  }
+
+  // special consideration for Wayland
+  if (settings.dpiScale<0.5f) {
+    if (strcmp(videoBackend,"wayland")==0) {
+      dpiScale=(double)canvasW/(double)scrW;
+    }
+  }
 
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
@@ -5181,6 +5211,8 @@ bool FurnaceGUI::finish() {
   ImGui::DestroyContext();
   SDL_DestroyRenderer(sdlRend);
   SDL_DestroyWindow(sdlWin);
+
+  e->setConf("configVersion",(int)DIV_ENGINE_VERSION);
 
   e->setConf("lastDir",workingDir);
   e->setConf("lastDirSong",workingDirSong);
@@ -5353,11 +5385,14 @@ FurnaceGUI::FurnaceGUI():
   scrH(800),
   scrConfW(1280),
   scrConfH(800),
+  canvasW(1280),
+  canvasH(800),
   scrX(SDL_WINDOWPOS_CENTERED),
   scrY(SDL_WINDOWPOS_CENTERED),
   scrConfX(SDL_WINDOWPOS_CENTERED),
   scrConfY(SDL_WINDOWPOS_CENTERED),
   scrMax(false),
+  sysManagedScale(false),
   dpiScale(1),
   aboutScroll(0),
   aboutSin(0),

@@ -23,17 +23,12 @@
 
 const char* aboutLine[]={
   "tildearrow",
-  "is not so happy to present",
+  "is proud to present",
   "",
   ("Furnace " DIV_VERSION),
   "",
   "the biggest multi-system chiptune tracker!",
   "featuring DefleMask song compatibility.",
-  "",
-  "what a mess of a versioning scheme we have...",
-  "I mean it! these pre-releases are like normal releases",
-  "by now but only because I promised you to have SNES in",
-  "0.6pre2 I am doing this whole mess...",
   "",
   "> CREDITS <",
   "",
@@ -187,7 +182,7 @@ void FurnaceGUI::drawAbout() {
   // do stuff
   if (ImGui::Begin("About Furnace",NULL,ImGuiWindowFlags_Modal|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar)) {
     ImGui::SetWindowPos(ImVec2(0,0));
-    ImGui::SetWindowSize(ImVec2(scrW*dpiScale,scrH*dpiScale));
+    ImGui::SetWindowSize(ImVec2(canvasW,canvasH));
     ImGui::PushFont(bigFont);
     ImDrawList* dl=ImGui::GetWindowDrawList();
     float r=0;
@@ -195,47 +190,47 @@ void FurnaceGUI::drawAbout() {
     float b=0;
     float peakMix=settings.partyTime?((peak[0]+peak[1])*0.5):0.3;
     ImGui::ColorConvertHSVtoRGB(aboutHue,1.0,0.25+MIN(0.75f,peakMix*0.75f),r,g,b);
-    dl->AddRectFilled(ImVec2(0,0),ImVec2(scrW*dpiScale,scrH*dpiScale),0xff000000);
+    dl->AddRectFilled(ImVec2(0,0),ImVec2(canvasW,canvasH),0xff000000);
     bool skip=false;
     bool skip2=false;
-    for (int i=(-80-sin(double(aboutSin)*2*M_PI/120.0)*80.0)*2; i<scrW; i+=160) {
+    for (int i=(-80-sin(double(aboutSin)*2*M_PI/120.0)*80.0)*2*dpiScale; i<canvasW; i+=160*dpiScale) {
       skip2=!skip2;
       skip=skip2;
-      for (int j=(-80-cos(double(aboutSin)*2*M_PI/150.0)*80.0)*2; j<scrH; j+=160) {
+      for (int j=(-80-cos(double(aboutSin)*2*M_PI/150.0)*80.0)*2*dpiScale; j<canvasH; j+=160*dpiScale) {
         skip=!skip;
         if (skip) continue;
-        dl->AddRectFilled(ImVec2(i*dpiScale,j*dpiScale),ImVec2((i+160)*dpiScale,(j+160)*dpiScale),ImGui::GetColorU32(ImVec4(r*0.25,g*0.25,b*0.25,1.0)));
+        dl->AddRectFilled(ImVec2(i,j),ImVec2(i+160*dpiScale,j+160*dpiScale),ImGui::GetColorU32(ImVec4(r*0.25,g*0.25,b*0.25,1.0)));
       }
     }
 
     skip=false;
     skip2=false;
-    for (int i=(-80-cos(double(aboutSin)*2*M_PI/120.0)*80.0)*2; i<scrW; i+=160) {
+    for (int i=(-80-cos(double(aboutSin)*2*M_PI/120.0)*80.0)*2*dpiScale; i<canvasW; i+=160*dpiScale) {
       skip2=!skip2;
       skip=skip2;
-      for (int j=(-80-sin(double(aboutSin)*2*M_PI/150.0)*80.0)*2; j<scrH; j+=160) {
+      for (int j=(-80-sin(double(aboutSin)*2*M_PI/150.0)*80.0)*2*dpiScale; j<canvasH; j+=160*dpiScale) {
         skip=!skip;
         if (skip) continue;
-        dl->AddRectFilled(ImVec2(i*dpiScale,j*dpiScale),ImVec2((i+160)*dpiScale,(j+160)*dpiScale),ImGui::GetColorU32(ImVec4(r*0.5,g*0.5,b*0.5,1.0)));
+        dl->AddRectFilled(ImVec2(i,j),ImVec2(i+160*dpiScale,j+160*dpiScale),ImGui::GetColorU32(ImVec4(r*0.5,g*0.5,b*0.5,1.0)));
       }
     }
 
     skip=false;
     skip2=false;
-    for (int i=(-160+fmod(aboutSin*2,160))*2; i<scrW; i+=160) {
+    for (int i=(-160+fmod(aboutSin*2,160))*2*dpiScale; i<canvasW; i+=160*dpiScale) {
       skip2=!skip2;
       skip=skip2;
-      for (int j=(-240-cos(double(aboutSin*M_PI/300.0))*240.0)*2; j<scrH; j+=160) {
+      for (int j=(-240-cos(double(aboutSin*M_PI/300.0))*240.0)*2*dpiScale; j<canvasH; j+=160*dpiScale) {
         skip=!skip;
         if (skip) continue;
-        dl->AddRectFilled(ImVec2(i*dpiScale,j*dpiScale),ImVec2((i+160)*dpiScale,(j+160)*dpiScale),ImGui::GetColorU32(ImVec4(r*0.75,g*0.75,b*0.75,1.0)));
+        dl->AddRectFilled(ImVec2(i,j),ImVec2(i+160*dpiScale,j+160*dpiScale),ImGui::GetColorU32(ImVec4(r*0.75,g*0.75,b*0.75,1.0)));
       }
     }
 
     for (size_t i=0; i<aboutCount; i++) {
-      double posX=(scrW*dpiScale/2.0)+(sin(double(i)*0.5+double(aboutScroll)/90.0)*120*dpiScale)-(ImGui::CalcTextSize(aboutLine[i]).x*0.5);
-      double posY=(scrH-aboutScroll+42*i)*dpiScale;
-      if (posY<-80*dpiScale || posY>scrH*dpiScale) continue;
+      double posX=(canvasW/2.0)+(sin(double(i)*0.5+double(aboutScroll)/(90.0*dpiScale))*120*dpiScale)-(ImGui::CalcTextSize(aboutLine[i]).x*0.5);
+      double posY=(canvasH-aboutScroll+42*i*dpiScale);
+      if (posY<-80*dpiScale || posY>canvasH) continue;
       dl->AddText(bigFont,bigFont->FontSize,
                   ImVec2(posX+dpiScale,posY+dpiScale),
                   0xff000000,aboutLine[i]);
@@ -257,12 +252,12 @@ void FurnaceGUI::drawAbout() {
     float timeScale=60.0f*ImGui::GetIO().DeltaTime;
 
     aboutHue+=(0.001+peakMix*0.004)*timeScale;
-    aboutScroll+=(2+(peakMix>0.78)*3)*timeScale;
+    aboutScroll+=(2+(peakMix>0.78)*3)*timeScale*dpiScale;
     aboutSin+=(1+(peakMix>0.75)*2)*timeScale;
 
     while (aboutHue>1) aboutHue--;
     while (aboutSin>=2400) aboutSin-=2400;
-    if (aboutScroll>(42*aboutCount+scrH)) aboutScroll=-20;
+    if (aboutScroll>(42*dpiScale*aboutCount+canvasH)) aboutScroll=-20*dpiScale;
 
     WAKE_UP;
   }
