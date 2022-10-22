@@ -27,12 +27,13 @@ void FurnaceGUI::drawMixer() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!mixerOpen) return;
-  ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
+  ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(canvasW,canvasH));
   if (ImGui::Begin("Mixer",&mixerOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     char id[32];
     if (ImGui::SliderFloat("Master Volume",&e->song.masterVol,0,3,"%.2fx")) {
       if (e->song.masterVol<0) e->song.masterVol=0;
       if (e->song.masterVol>3) e->song.masterVol=3;
+      MARK_MODIFIED;
     } rightClickable
     for (int i=0; i<e->song.systemLen; i++) {
       snprintf(id,31,"MixS%d",i);
@@ -43,13 +44,17 @@ void FurnaceGUI::drawMixer() {
       ImGui::SameLine(ImGui::GetWindowWidth()-(82.0f*dpiScale));
       if (ImGui::Checkbox("Invert",&doInvert)) {
         e->song.systemVol[i]^=128;
+        MARK_MODIFIED;
       }
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
       if (CWSliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
         e->song.systemVol[i]=(e->song.systemVol[i]&128)|vol;
+        MARK_MODIFIED;
       } rightClickable
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
-      CWSliderScalar("Panning",ImGuiDataType_S8,&e->song.systemPan[i],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN); rightClickable
+      if (CWSliderScalar("Panning",ImGuiDataType_S8,&e->song.systemPan[i],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN)) {
+        MARK_MODIFIED;
+      } rightClickable
 
       ImGui::PopID();
     }

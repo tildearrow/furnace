@@ -11,7 +11,10 @@
 
 #pragma once
 
-#include "../core/util.hpp"
+#include "../core/core.hpp"
+#include "../core/util/clock_pulse.hpp"
+
+using namespace vgsound_emu;
 
 // ES5504/ES5505/ES5506 interface
 class es550x_intf : public vgsound_emu_core
@@ -168,11 +171,11 @@ class es550x_shared_core : public vgsound_emu_core
 						}
 
 						// configurations
-						const u8 m_integer;
-						const u8 m_fraction;
-						const u8 m_total_bits;
-						const u32 m_accum_mask;
-						const bool m_transwave;
+						const u8 m_integer	   = 21;
+						const u8 m_fraction	   = 11;
+						const u8 m_total_bits  = 32;
+						const u32 m_accum_mask = 0xffffffff;
+						const bool m_transwave = true;
 
 						// internal states
 						void reset();

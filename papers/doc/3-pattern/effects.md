@@ -13,16 +13,16 @@ however, effects are continuous, which means you only need to type it once and t
 - `07xy`: tremolo. `x` is the speed, while `y` is the depth.
   - maximum tremolo depth is -60 volume steps.
 - `08xy`: set panning. `x` is the left channel and `y` is the right one.
-  - not all systems support this effect.
+  - not all chips support this effect.
 - `80xx`: set panning (linear). this effect behaves more like other trackers:
   - `00` is left.
   - `80` is center.
   - `FF` is right.
-  - not all systems support this effect.
+  - not all chips support this effect.
 - `81xx`: set volume of left channel (from `00` to `FF`).
-  - not all systems support this effect.
+  - not all chips support this effect.
 - `82xx`: set volume of right channel (from `00` to `FF`).
-  - not all systems support this effect.
+  - not all chips support this effect.
 - `09xx`: set speed 1.
 - `0Axy`: volume slide.
   - if `x` is 0 then this is a slide down.
@@ -34,7 +34,7 @@ however, effects are continuous, which means you only need to type it once and t
 - `0Fxx`: set speed 2.
 
 - `9xxx`: set sample position to `xxx`\*0x100.
-  - not all systems support this effect.
+  - not all chips support this effect.
 
 - `Cxxx`: change song Hz.
   - `xxx` may be from `000` to `3ff`.
@@ -72,4 +72,4 @@ however, effects are continuous, which means you only need to type it once and t
   - if `y` is 0 then this is a slide up.
 - `FFxx`: end of song/stop playback.
 
-additionally each system has its own effects. [click here for more details](../7-systems/README.md).
+additionally each chip has its own effects. [click here for more details](../7-systems/README.md).

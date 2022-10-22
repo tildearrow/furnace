@@ -79,7 +79,7 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
   - bug/quirk implementation for increased playback accuracy through compatibility flags
 - VGM export
 - modular layout that you may adapt to your needs
-- audio file export - entire song, per system or per channel
+- audio file export - entire song, per chip or per channel
 - quality emulation cores (Nuked, MAME, SameBoy, Mednafen PCE, NSFplay, puNES, reSID, Stella, SAASound, vgsound_emu and ymfm)
 - wavetable synthesizer
   - available on wavetable chips
@@ -237,11 +237,22 @@ yup, it's real.
 
 > where's the manual?
 
-see [papers/](papers/doc/README.md). it's kind of incomplete, but at least the systems (sound chips) section is there.
+see [papers/](papers/doc/README.md). it's kind of incomplete, but at least the sound chips section is there.
 
 > it doesn't open under macOS!
 
 this is due to Apple's application signing policy. a workaround is to right click on the Furnace app icon and select Open.
+
+**as of Monterey, this workaround no longer works (especially on ARM).** yeah, Apple has decided to be strict on the matter.
+if you happen to be on that version, use this workaround instead (on a Terminal):
+
+```
+xattr -d com.apple.quarantine /path/to/Furnace.app
+```
+
+(replace /path/to/ with the path where Furnace.app is located)
+
+you may need to log out and/or reboot after doing this.
 
 > how do I use C64 absolute filter/duty?
 
@@ -252,7 +263,7 @@ also provided are two effects:
 - `4xxx`: set fine cutoff. `xxx` range is 000-7ff.
 additionally, you can change the cutoff and/or duty as a macro inside an instrument by clicking the `absolute cutoff macro` and/or `absolute duty macro` checkbox at the bottom of the instrument. (for the filter, you also need to click the checkbox that says `volume macro is cutoff macro`.)
 
-> how do I use PCM on a PCM-capable system?
+> how do I use PCM on a PCM-capable chip?
 
 two possibilities:
 - the recommended way is by creating the "Sample" type instrument and assigning a sample to it.

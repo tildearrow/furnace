@@ -84,6 +84,8 @@ const char* regCheatSheetVB[]={
   "S6EV0", "550",
   "S6EV1", "554",
   "S6RAM", "558",
+
+  "RESET", "580",
   NULL
 };
 
@@ -148,6 +150,13 @@ void DivPlatformVB::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
+    if (i==5 && chan[i].std.duty.had) {
+      if ((chan[i].std.duty.val&7)!=((chan[i].envHigh>>4)&7)) {
+        chan[i].envHigh&=~0x70;
+        chan[i].envHigh|=(chan[i].std.duty.val&7)<<4;
+        writeEnv(i,true);
+      }
+    }
     if (chan[i].std.wave.had) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
         chan[i].wave=chan[i].std.wave.val;
@@ -176,7 +185,7 @@ void DivPlatformVB::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
-      // ???
+      chWrite(i,0x00,0x80);
     }
     if (chan[i].active) {
       if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1)) {
@@ -310,12 +319,12 @@ int DivPlatformVB::dispatch(DivCommand c) {
       break;
     case DIV_CMD_FDS_MOD_DEPTH: // set modulation
       if (c.chan!=4) break;
-      modulation=(c.value<<4)&15;
+      modulation=(c.value&15)<<4;
       modType=true;
       chWrite(4,0x07,modulation);
       if (modulation!=0) {
         chan[c.chan].envHigh&=~0x70;
-        chan[c.chan].envHigh|=0x40|((c.value&15)<<4);
+        chan[c.chan].envHigh|=0x40|(c.value&0xf0);
       } else {
         chan[c.chan].envHigh&=~0x70;
       }
@@ -328,7 +337,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
       chWrite(4,0x07,modulation);
       if (modulation!=0) {
         chan[c.chan].envHigh&=~0x70;
-        chan[c.chan].envHigh|=0x10;
+        chan[c.chan].envHigh|=0x40;
       } else {
         chan[c.chan].envHigh&=~0x70;
       }

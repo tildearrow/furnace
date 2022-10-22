@@ -3,7 +3,7 @@
 	see https://gitlab.com/cam900/vgsound_emu/-/blob/main/LICENSE for more details
 
 	Copyright holder(s): cam900
-	Dialogic ADPCM core
+	OKI/Dialogic ADPCM core
 */
 
 #ifndef _VGSOUND_EMU_SRC_CORE_VOX_VOX_HPP
@@ -11,7 +11,9 @@
 
 #pragma once
 
-#include "../util.hpp"
+#include "../core.hpp"
+
+using namespace vgsound_emu;
 
 class vox_core : public vgsound_emu_core
 {

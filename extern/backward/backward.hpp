@@ -1159,6 +1159,10 @@ public:
     s.AddrPC.Offset = ctx_->Rip;
     s.AddrStack.Offset = ctx_->Rsp;
     s.AddrFrame.Offset = ctx_->Rbp;
+#elif _M_ARM64
+    s.AddrPC.Offset = ctx_->Pc;
+    s.AddrStack.Offset = ctx_->Sp;
+    s.AddrFrame.Offset = ctx_->Fp;
 #else
     s.AddrPC.Offset = ctx_->Eip;
     s.AddrStack.Offset = ctx_->Esp;
@@ -1168,6 +1172,8 @@ public:
     if (!machine_type_) {
 #ifdef _M_X64
       machine_type_ = IMAGE_FILE_MACHINE_AMD64;
+#elif _M_ARM64
+      machine_type_ = IMAGE_FILE_MACHINE_ARM64;
 #else
       machine_type_ = IMAGE_FILE_MACHINE_I386;
 #endif

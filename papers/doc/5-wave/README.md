@@ -2,7 +2,7 @@
 
 Wavetable synthesizers, in context of Furnace, are sound sources that operate on extremely short n-bit PCM streams. By extremely short, no more than 256 bytes. This amount of space is nowhere near enough to store an actual sampled sound, it allows certain amount of freedom to define a waveform shape. As of Furnace 0.5.8, wavetable editor affects PC Engine, WonderSwan and channel 3 of Game Boy.
 
-Furnace's wavetable editor is rather simple, you can draw the waveform using mouse or by pasting an MML bit stream in the input field. Maximum wave width (length) is 256 bytes, and maximum wave height (depth) is 256. NOTE: Game Boy, PCE, WonderSwan and Bubble System can handle max 32 byte waveforms, X1-010 can handle max 128 byte waveforms as of now, with 16-level height for GB, X1-010 Envelope, WS, Bubble System and N163, and 32-level height for PCE. If a larger wave is defined for these systems, it will be squashed to fit within the constraints of the system.
+Furnace's wavetable editor is rather simple, you can draw the waveform using mouse or by pasting an MML bit stream in the input field. Maximum wave width (length) is 256 bytes, and maximum wave height (depth) is 256. NOTE: Game Boy, PCE, WonderSwan and Bubble System can handle max 32 byte waveforms, X1-010 can handle max 128 byte waveforms as of now, with 16-level height for GB, X1-010 Envelope, WS, Bubble System and N163, and 32-level height for PCE. If a larger wave is defined for these chips, it will be squashed to fit within the constraints of the chips.
 
 ## wavetable synthesizer
 

@@ -19,3 +19,4 @@ furthermore, it has some PCM and LFO!
   - when LFO is enabled, channel 2 is muted and its output is passed to channel 1's frequency.
 - `13xx`: set LFO speed.
 - `17xx`: toggle PCM mode.
+  - **this effect is there for compatibility reasons** - it is otherwise recommended to use Sample type instruments (which automatically enable PCM mode when used).

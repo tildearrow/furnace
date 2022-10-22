@@ -62,6 +62,7 @@ void FurnaceGUI::drawSysManager() {
             if (dragItem->IsDataType("FUR_SYS")) {
               if (sysToMove!=i && sysToMove>=0) {
                 e->swapSystem(sysToMove,i,preserveChanPos);
+                MARK_MODIFIED;
               }
               sysToMove=-1;
             }
@@ -82,6 +83,7 @@ void FurnaceGUI::drawSysManager() {
           DivSystem picked=systemPicker();
           if (picked!=DIV_SYSTEM_NULL) {
             e->changeSystem(i,picked,preserveChanPos);
+            MARK_MODIFIED;
             if (e->song.autoSystem) {
               autoDetectSystem();
             }
@@ -112,6 +114,8 @@ void FurnaceGUI::drawSysManager() {
           if (picked!=DIV_SYSTEM_NULL) {
             if (!e->addSystem(picked)) {
               showError("cannot add chip! ("+e->getLastError()+")");
+            } else {
+              MARK_MODIFIED;
             }
             if (e->song.autoSystem) {
               autoDetectSystem();

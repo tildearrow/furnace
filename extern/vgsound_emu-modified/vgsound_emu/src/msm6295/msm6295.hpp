@@ -11,8 +11,11 @@
 
 #pragma once
 
-#include "../core/util.hpp"
+#include "../core/core.hpp"
+#include "../core/util/mem_intf.hpp"
 #include "../core/vox/vox.hpp"
+
+using namespace vgsound_emu;
 
 class msm6295_core : public vox_core
 {

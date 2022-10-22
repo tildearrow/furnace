@@ -66,6 +66,7 @@ bool consoleMode=true;
 
 bool displayEngineFailError=false;
 bool cmdOutBinary=false;
+bool vgmOutDirect=false;
 
 std::vector<TAParam> params;
 
@@ -119,6 +120,11 @@ TAParamResult pConsole(String val) {
 
 TAParamResult pBinary(String val) {
   cmdOutBinary=true;
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pDirect(String val) {
+  vgmOutDirect=true;
   return TA_PARAM_SUCCESS;
 }
 
@@ -289,6 +295,7 @@ void initParams() {
   params.push_back(TAParam("a","audio",true,pAudio,"jack|sdl","set audio engine (SDL by default)"));
   params.push_back(TAParam("o","output",true,pOutput,"<filename>","output audio to file"));
   params.push_back(TAParam("O","vgmout",true,pVGMOut,"<filename>","output .vgm data"));
+  params.push_back(TAParam("D","direct",false,pDirect,"","set VGM export direct stream mode"));
   params.push_back(TAParam("Z","zsmout",true,pZSMOut,"<filename>","output .zsm data for Commander X16 Zsound"));
   params.push_back(TAParam("C","cmdout",true,pCmdOut,"<filename>","output command stream"));
   params.push_back(TAParam("b","binary",false,pBinary,"","set command stream output format to binary"));
@@ -324,12 +331,6 @@ int main(int argc, char** argv) {
   HRESULT coResult=CoInitializeEx(NULL,COINIT_MULTITHREADED);
   if (coResult!=S_OK) {
     logE("CoInitializeEx failed!");
-  }
-#endif
-#if !(defined(__APPLE__) || defined(_WIN32) || defined(ANDROID) || defined(__HAIKU__))
-  // workaround for Wayland HiDPI issue
-  if (getenv("SDL_VIDEODRIVER")==NULL) {
-    setenv("SDL_VIDEODRIVER","x11",1);
   }
 #endif
   outName="";
@@ -490,7 +491,7 @@ int main(int argc, char** argv) {
       }
     }
     if (vgmOutName!="") {
-      SafeWriter* w=e.saveVGM();
+      SafeWriter* w=e.saveVGM(NULL,true,0x171,false,vgmOutDirect);
       if (w!=NULL) {
         FILE* f=fopen(vgmOutName.c_str(),"wb");
         if (f!=NULL) {

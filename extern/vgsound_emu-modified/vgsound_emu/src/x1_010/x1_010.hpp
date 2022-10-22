@@ -11,7 +11,10 @@
 
 #pragma once
 
-#include "../core/util.hpp"
+#include "../core/core.hpp"
+#include "../core/util/mem_intf.hpp"
+
+using namespace vgsound_emu;
 
 class x1_010_core : public vgsound_emu_core
 {

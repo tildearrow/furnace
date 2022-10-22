@@ -9,6 +9,7 @@ void FurnaceGUI::drawEffectList() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!effectListOpen) return;
+  ImGui::SetNextWindowSizeConstraints(ImVec2(60.0f*dpiScale,20.0f*dpiScale),ImVec2(canvasW,canvasH));
   if (ImGui::Begin("Effect List",&effectListOpen,globalWinFlags)) {
     ImGui::Text("Chip at cursor: %s",e->getSystemName(e->sysOfChan[cursor.xCoarse]));
     if (ImGui::BeginTable("effectList",2)) {

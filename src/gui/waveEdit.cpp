@@ -33,6 +33,13 @@ const char* waveGenBaseShapes[4]={
   "Pulse"
 };
 
+const char* waveInterpolations[4]={
+  "None",
+  "Linear",
+  "Cosine",
+  "Cubic"
+};
+
 const float multFactors[17]={
   M_PI,
   2*M_PI,
@@ -155,6 +162,7 @@ void FurnaceGUI::doGenerateWave() {
   }
 
   e->notifyWaveChange(curWave);
+  MARK_MODIFIED;
 }
 
 #define CENTER_TEXT(text) \
@@ -169,12 +177,12 @@ void FurnaceGUI::drawWaveEdit() {
   if (!waveEditOpen) return;
   float wavePreview[257];
   if (mobileUI) {
-    patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*scrH*dpiScale)):ImVec2((0.16*scrH*dpiScale)+0.5*scrW*dpiScale*mobileMenuPos,0.0f));
-    patWindowSize=(portrait?ImVec2(scrW*dpiScale,scrH*dpiScale-(0.16*scrW*dpiScale)-(pianoOpen?(0.4*scrW*dpiScale):0.0f)):ImVec2(scrW*dpiScale-(0.16*scrH*dpiScale),scrH*dpiScale-(pianoOpen?(0.3*scrH*dpiScale):0.0f)));
+    patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*canvasH)):ImVec2((0.16*canvasH)+0.5*canvasW*mobileMenuPos,0.0f));
+    patWindowSize=(portrait?ImVec2(canvasW,canvasH-(0.16*canvasW)-(pianoOpen?(0.4*canvasW):0.0f)):ImVec2(canvasW-(0.16*canvasH),canvasH-(pianoOpen?(0.3*canvasH):0.0f)));
     ImGui::SetNextWindowPos(patWindowPos);
     ImGui::SetNextWindowSize(patWindowSize);
   } else {
-    ImGui::SetNextWindowSizeConstraints(ImVec2(300.0f*dpiScale,300.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
+    ImGui::SetNextWindowSizeConstraints(ImVec2(300.0f*dpiScale,300.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Wavetable Editor",&waveEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curWave<0 || curWave>=(int)e->song.wave.size()) {
@@ -192,7 +200,10 @@ void FurnaceGUI::drawWaveEdit() {
 
         if (e->song.wave.size()>0) {
           if (ImGui::BeginCombo("##WaveSelect","select one...")) {
-            actualWaveList();
+            if (ImGui::BeginTable("WaveSelCombo",1,ImGuiTableFlags_ScrollY)) {
+              actualWaveList();
+              ImGui::EndTable();
+            }
             ImGui::EndCombo();
           }
           ImGui::SameLine();
@@ -555,13 +566,68 @@ void FurnaceGUI::drawWaveEdit() {
                   if (waveGenScaleX<2) waveGenScaleX=2;
                   if (waveGenScaleX>256) waveGenScaleX=256;
                 }
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (CWSliderInt("##WGInterpolation",&waveInterpolation,0,3,waveInterpolations[waveInterpolation])) {
+                  if (waveInterpolation<0) waveInterpolation=0;
+                  if (waveInterpolation>3) waveInterpolation=3;
+                }
                 ImGui::TableNextColumn();
                 if (ImGui::Button("Scale X")) {
                   if (waveGenScaleX>0 && wave->len!=waveGenScaleX) e->lockEngine([this,wave]() {
                     int origData[256];
+                    // Copy original wave to temp buffer
+                    // If longer than 256 samples, return
+                    if (wave->len>256) {
+                      showError("wavetable longer than 256 samples!");
+                      return;
+                    }
                     memcpy(origData,wave->data,wave->len*sizeof(int));
-                    for (int i=0; i<waveGenScaleX; i++) {
-                      wave->data[i]=origData[i*wave->len/waveGenScaleX];
+
+                    float t=0; // Index used into `origData`
+
+                    for (int i=0; i<waveGenScaleX; i++, t+=(float)wave->len/waveGenScaleX) {
+                      switch (waveInterpolation) {
+                        case 0: {
+                          wave->data[i]=origData[i*wave->len/waveGenScaleX];
+                          break;
+                        }
+                        case 1: { // Linear
+                          int idx=t; // Implicitly floors `t`
+                          int s0=origData[(idx)%wave->len];
+                          int s1=origData[(idx+1)%wave->len];
+                          double mu=(t-idx);
+                          wave->data[i]=s0+mu*s1-(mu*s0);
+                          break;
+                        }
+                        case 2: { // Cosine
+                          int idx=t; // Implicitly floors `t`
+                          int s0=origData[(idx)%wave->len];
+                          int s1=origData[(idx+1)%wave->len];
+                          double mu=(t-idx);
+                          double muCos=(1-cos(mu*M_PI))/2;
+                          wave->data[i]=s0+muCos*s1-(muCos*s0);
+                          break;
+                        }
+                        case 3: { // Cubic Spline
+                          int idx=t; // Implicitly floors `t`
+                          int s0=origData[((idx-1%wave->len+wave->len)%wave->len)];
+                          int s1=origData[(idx)%wave->len];
+                          int s2=origData[(idx+1)%wave->len];
+                          int s3=origData[(idx+2)%wave->len];
+                          double mu=(t-idx);
+                          double mu2=mu*mu;
+                          double a0=-0.5*s0+1.5*s1-1.5*s2+0.5*s3;
+                          double a1=s0-2.5*s1+2*s2-0.5*s3;
+                          double a2=-0.5*s0+0.5*s2;
+                          double a3=s1;
+                          wave->data[i]=(a0*mu*mu2+a1*mu2+a2*mu+a3);
+                          break;
+                        }
+                        default: { // No interpolation
+                          wave->data[i]=origData[i*wave->len/waveGenScaleX];
+                          break;
+                        }
+                      }
                     }
                     wave->len=waveGenScaleX;
                     MARK_MODIFIED;
@@ -756,7 +822,7 @@ void FurnaceGUI::drawWaveEdit() {
               if (ImGui::Button("Randomize",buttonSize)) {
                 if (wave->max>0) e->lockEngine([this,wave]() {
                   for (int i=0; i<wave->len; i++) {
-                    wave->data[i]=rand()%wave->max;
+                    wave->data[i]=rand()%(wave->max+1);
                   }
                   MARK_MODIFIED;
                 });
@@ -788,6 +854,7 @@ void FurnaceGUI::drawWaveEdit() {
       if (ImGui::InputText("##MMLWave",&mmlStringW)) {
         int actualData[256];
         decodeMMLStrW(mmlStringW,actualData,wave->len,(waveSigned && !waveHex)?(-((wave->max+1)/2)):0,(waveSigned && !waveHex)?(wave->max/2):wave->max,waveHex);
+        MARK_MODIFIED;
         if (waveSigned && !waveHex) {
           for (int i=0; i<wave->len; i++) {
             actualData[i]+=(wave->max+1)/2;

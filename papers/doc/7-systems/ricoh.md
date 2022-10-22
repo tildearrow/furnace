@@ -1,6 +1,6 @@
 # Ricoh RF5C68
 
-YM2612's sidekick - poor man's SPC-700. 8ch PCM sample-based synthesizer used in Sega Mega CD, Fujitsu FM Towns and some of Sega's arcade machines. Supports up to 64 Kbytes of external PCM data.
+YM2612's sidekick - poor man's SNES DSP. 8-channel PCM sample-based synthesizer used in Sega CD, Fujitsu FM Towns and some of Sega's arcade machines. supports up to 64KB of external PCM data.
 
 # effects
 

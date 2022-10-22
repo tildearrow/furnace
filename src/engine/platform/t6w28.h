@@ -29,8 +29,8 @@ class DivPlatformT6W28: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note;
     int ins;
-    unsigned char panL, panR;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise;
+    unsigned char panL, panR, duty;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
     signed char vol, outVol;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
@@ -46,13 +46,13 @@ class DivPlatformT6W28: public DivDispatch {
       ins(-1),
       panL(15),
       panR(15),
+      duty(7),
       active(false),
       insChanged(true),
       freqChanged(false),
       keyOn(false),
       keyOff(false),
       inPorta(false),
-      noise(false),
       vol(15),
       outVol(15) {}
   };

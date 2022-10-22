@@ -33,7 +33,7 @@ the YM2413 is equipped with the following features:
   - `y` is the mutliplier.
 - `18xx`: toggle drums mode.
   - 0 disables it and 1 enables it.
-  - only in drums system.
+  - only in drums chip.
 - `19xx`: set attack of all operators.
 - `1Axx`: set attack of operator 1.
 - `1Bxx`: set attack of operator 2.

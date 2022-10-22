@@ -3993,7 +3993,13 @@ namespace IGFD
         } else {
 				  fdi.SelectFileName(prFileDialogInternal, vInfos);
           if (prFileDialogInternal.puDLGselFun!=NULL) {
-            prFileDialogInternal.puDLGselFun(GetFilePathName().c_str());
+            std::string argPath;
+            for (auto& i: GetSelection()) {
+              argPath=i.second;
+            }
+            if (!argPath.empty()) {
+              prFileDialogInternal.puDLGselFun(argPath.c_str());
+            }
           }
         }
 			}

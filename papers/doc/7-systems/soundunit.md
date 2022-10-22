@@ -1,5 +1,16 @@
 # tildearrow Sound Unit
-This is a fantasy sound chip, used in the specs2 fantasy computer designed by tildearrow. It includes native support for sample playback, but with only 8KB or 64KB of sample data, depending on the configuration used. Since 0.6pre1, this sound chip is no longer hidden by default and can be accessed through the module creation screen and can be added or removed.
+
+a fantasy sound chip, used in the specs2 fantasy computer designed by tildearrow.
+
+it has the following capabilities:
+- 8 channels of either waveform or sample
+- stereo sound
+- 8 waveforms (pulse, saw, sine, triangle, noise, periodic noise, XOR sine and XOR triangle)
+- 128 widths for the pulse wave
+- per-channel resonant filter
+- ring modulation
+- volume, frequency and cutoff sweep units (per-channel)
+- phase reset timer (per-channel)
 
 # effects
 

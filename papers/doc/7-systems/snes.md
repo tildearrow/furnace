@@ -1,50 +1,77 @@
-# Super NES
+# Super Nintendo Entertainment System (SNES)/Super Famicom
 
-The successor to NES to compete with Genesis. Now packing superior graphics and sample-based audio. Also known as Super Famicom in Japan.
+the successor to NES to compete with Genesis, packing superior graphics and sample-based audio.
 
-Its audio subsystem, developed by Sony, features the DSP chip, SPC700 microcontroller and 64KB of dedicated SRAM used by both. This whole system itself is pretty much a separate computer that the main CPU needs to upload its program and samples to.
+its audio system, developed by Sony, features a DSP chip, SPC700 CPU and 64KB of dedicated SRAM used by both.
+this whole system itself is pretty much a separate computer that the main CPU needs to upload its program and samples to.
 
-Furnace communicates with the DSP directly and provides a full 64KB of memory. This memory might be reduced excessively on ROM export to make up for playback engine and pattern data. As of version 0.6pre2, you can go to `window -> statistics` to see how much memory your samples are using.
+Furnace communicates with the DSP directly and provides a full 64KB of memory. this memory might be reduced excessively on ROM export to make up for playback engine and pattern data. you can go to window > statistics to see how much memory your samples are using.
 
-Some notable features of the DSP are:
-- It has pitch modulation, meaning that you can use 2 channels to make a basic FM synth without eating up too much memory
-- It has a built in noise generator, useful for hihats, cymbals, rides, sfx, among other things.
-- It famously features per-channel echo, which unfortunately eats up a lot of memory but can be used to save channels in songs.
-- It can loop samples, but the loop points have to be multiples of 16.
-- It can invert the left and/or right channels, for surround sound.
-- It features ADSR, similar to the Commodore 64, but its functionality is closer to the OPL(L|1|2|3)'s implementation of ADSR.
-- It features an 8-tap FIR filter, which is basically a procedural low-pass filter that you can edit however you want.
-- 7-bit volume, per-channel.
-- Per-channel interpolation, which is basically a low-pass filter that gets affected by the pitch of the channel.
+some notable features of the DSP are:
+- pitch modulation, meaning that you can use 2 channels to make a basic FM synth without eating up too much memory.
+- a built in noise generator, useful for hi-hats, cymbals, rides, effects, among other things.
+- per-channel echo, which unfortunately eats up a lot of memory but can be used to save channels in songs.
+- an 8-tap FIR filter for the echo, which is basically a procedural low-pass filter that you can edit however you want.
+- sample loop, but the loop points have to be multiples of 16.
+- left/right channel invert for surround sound.
+- ADSR and gain envelope modes.
+- 7-bit volume per channel.
+- sample interpolation, which is basically a low-pass filter that gets affected by the pitch of the channel.
 
-Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) in order to create more 'animated' sounds, using less memory than regular samples. This, however, is not a hardware feature, and might be difficult to implement on real hardware.
+Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) in order to create more 'animated' sounds, using less memory than regular samples. this however is not a hardware feature, and might be difficult to implement on real hardware.
 
 # effects
 
-Note: this chip has a signed left/right level. Which can be used for inverted (surround) stereo. A signed 8-bit value means 80 - FF = -128 - -1. Other values work normally. A value of -128 is not recommended as it could cause overflows.
-
-- `10xx`: Set waveform.
-- `11xx`: Toggle noise generator mode.
-- `12xx`: Toggle echo on this channel.
-- `13xx`: Toggle pitch modulation.
-- `14xy`: Toggle inverting the left or right channels. (x: left, y: right)
-- `15xx`: Set envelope mode. (0: ADSR, 1: gain/direct, 2: decrement, 3: exponential, 4: increment, 5: bent)
-- `16xx`: Set gain. (00 to 7F if direct, 00 to 1F otherwise)
-- `18xx`: Enable echo buffer.
-- `19xx`: Set echo delay. (0 to F)
-- `1Axx`: Set left echo channel volume.
-- `1Bxx`: Set right echo channel volume.
-- `1Cxx`: Set echo feedback.
-- `1Dxx`: Set noise generator frequency. (00 to 1F)
-- `20xx`: Set attack (0 to F)
-- `21xx`: Set decay (0 to 7)
-- `22xx`: Set sustain (0 to 7)
-- `23xx`: Set release (00 to 1F)
-- `30xx`: Set echo filter coefficient 0
-- `31xx`: Set echo filter coefficient 1
-- `32xx`: Set echo filter coefficient 2
-- `33xx`: Set echo filter coefficient 3
-- `34xx`: Set echo filter coefficient 4
-- `35xx`: Set echo filter coefficient 5
-- `36xx`: Set echo filter coefficient 6
-- `37xx`: Set echo filter coefficient 7
+- `10xx`: set waveform.
+- `11xx`: toggle noise mode.
+- `12xx`: toggle echo on this channel.
+- `13xx`: toggle pitch modulation.
+- `14xy`: toggle inverting the left or right channels (x: left, y: right).
+- `15xx`: set envelope mode.
+  - 0: ADSR.
+  - 1: gain (direct).
+  - 2: linear decrement.
+  - 3: exponential decrement.
+  - 4: linear increment.
+  - 5: bent line (inverse log) increment.
+- `16xx`: set gain (00 to 7F if direct, 00 to 1F otherwise).
+- `18xx`: enable echo buffer.
+- `19xx`: set echo delay
+  - goes from 0 to F.
+- `1Axx`: set left echo channel volume.
+  - this is a signed number.
+  - 00 to 7F for 0 to 127.
+  - 80 to FF for -128 to -1.
+    - setting this to -128 is not recommended as it may cause echo output to overflow and therefore click.
+- `1Bxx`: set right echo channel volume.
+  - this is a signed number.
+  - 00 to 7F for 0 to 127.
+  - 80 to FF for -128 to -1.
+    - setting this to -128 is not recommended as it may cause echo output to overflow and therefore click.
+- `1Cxx`: set echo feedback.
+  - this is a signed number.
+  - 00 to 7F for 0 to 127.
+  - 80 to FF for -128 to -1.
+    - setting this to -128 is not recommended as it may cause echo output to overflow and therefore click.
+- `1Dxx`: set noise generator frequency (00 to 1F).
+- `20xx`: set attack (0 to F).
+  - only in ADSR envelope mode.
+- `21xx`: set decay (0 to 7).
+  - only in ADSR envelope mode.
+- `22xx`: set sustain (0 to 7).
+  - only in ADSR envelope mode.
+- `23xx`: set release (00 to 1F).
+  - only in ADSR envelope mode.
+- `30xx`: set echo filter coefficient 0.
+- `31xx`: set echo filter coefficient 1.
+- `32xx`: set echo filter coefficient 2.
+- `33xx`: set echo filter coefficient 3.
+- `34xx`: set echo filter coefficient 4.
+- `35xx`: set echo filter coefficient 5.
+- `36xx`: set echo filter coefficient 6.
+- `37xx`: set echo filter coefficient 7.
+  - all of these are signed numbers.
+  - 00 to 7F for 0 to 127.
+  - 80 to FF for -128 to -1.
+  - make sure the sum of these is between -128 or 127.
+    - failure to comply may result in overflow and therefore clicking.

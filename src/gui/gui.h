@@ -1035,6 +1035,7 @@ class FurnaceGUI {
   std::deque<String> recentFile;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
+  bool vgmExportDirectStream;
   bool portrait, mobileMenuOpen;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
@@ -1061,9 +1062,9 @@ class FurnaceGUI {
 
   FurnaceGUIFileDialog* fileDialog;
 
-  int scrW, scrH, scrConfW, scrConfH;
+  int scrW, scrH, scrConfW, scrConfH, canvasW, canvasH;
   int scrX, scrY, scrConfX, scrConfY;
-  bool scrMax;
+  bool scrMax, sysManagedScale;
 
   double dpiScale;
 
@@ -1615,6 +1616,7 @@ class FurnaceGUI {
 
   // wave generator
   int waveGenBaseShape;
+  int waveInterpolation;
   float waveGenDuty;
   int waveGenPower;
   float waveGenInvertPoint;

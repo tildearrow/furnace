@@ -20,7 +20,7 @@ depending on the instrument type, there are currently 13 different types of an i
 - [AY8930](8930.md) - for use with Microchip AY8930 E-PSG sound source.
 - [Commodore 64](c64.md) - for use with Commodore 64 SID.
 - [SAA1099](saa.md) - for use with Philips SAA1099 PSG sound source.
-- [TIA](tia.md) - for use with Atari 2600 system.
+- [TIA](tia.md) - for use with Atari 2600 chip.
 - [AY-3-8910](ay8910.md) - for use with AY-3-8910 PSG sound source and SSG portion in YM2610.
 - [Amiga/sample](amiga.md) for controlling Amiga and other sample based synthsizers like YM2612's Channel 6 PCM mode, NES channel 5, Sega PCM, X1-010 and PC Engine's sample playback mode.
 - [Atari Lynx](lynx.md) - for use with Atari Lynx handheld console.

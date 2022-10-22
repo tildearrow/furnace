@@ -22,6 +22,9 @@
 void DivDispatch::acquire(short* bufL, short* bufR, size_t start, size_t len) {
 }
 
+void DivDispatch::fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
+}
+
 void DivDispatch::tick(bool sysTick) {
 }
 

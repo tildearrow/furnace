@@ -1907,12 +1907,12 @@ void FurnaceGUI::drawInsEdit() {
   }
   if (!insEditOpen) return;
   if (mobileUI) {
-    patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*scrH*dpiScale)):ImVec2((0.16*scrH*dpiScale)+0.5*scrW*dpiScale*mobileMenuPos,0.0f));
-    patWindowSize=(portrait?ImVec2(scrW*dpiScale,scrH*dpiScale-(0.16*scrW*dpiScale)-(pianoOpen?(0.4*scrW*dpiScale):0.0f)):ImVec2(scrW*dpiScale-(0.16*scrH*dpiScale),scrH*dpiScale-(pianoOpen?(0.3*scrH*dpiScale):0.0f)));
+    patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*canvasH)):ImVec2((0.16*canvasH)+0.5*canvasW*mobileMenuPos,0.0f));
+    patWindowSize=(portrait?ImVec2(canvasW,canvasH-(0.16*canvasW)-(pianoOpen?(0.4*canvasW):0.0f)):ImVec2(canvasW-(0.16*canvasH),canvasH-(pianoOpen?(0.3*canvasH):0.0f)));
     ImGui::SetNextWindowPos(patWindowPos);
     ImGui::SetNextWindowSize(patWindowSize);
   } else {
-    ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(scrW*dpiScale,scrH*dpiScale));
+    ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Instrument Editor",&insEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curIns<0 || curIns>=(int)e->song.ins.size()) {
@@ -2575,7 +2575,7 @@ void FurnaceGUI::drawInsEdit() {
                       int detune=(op.dt&7)-(settings.unsignedDetune?0:3);
                       ImGui::TableNextColumn();
                       CENTER_VSLIDER;
-                      if (CWVSliderInt("##DT",ImVec2(20.0f*dpiScale,sliderHeight),&detune,-3,4)) { PARAMETER
+                      if (CWVSliderInt("##DT",ImVec2(20.0f*dpiScale,sliderHeight),&detune,settings.unsignedDetune?0:-3,settings.unsignedDetune?7:4)) { PARAMETER
                         op.dt=detune+(settings.unsignedDetune?0:3);
                       }
 
@@ -2908,7 +2908,7 @@ void FurnaceGUI::drawInsEdit() {
                           int detune=(op.dt&7)-(settings.unsignedDetune?0:3);
                           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                           snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_DT));
-                          if (CWSliderInt("##DT",&detune,-3,4,tempID)) { PARAMETER
+                          if (CWSliderInt("##DT",&detune,settings.unsignedDetune?0:-3,settings.unsignedDetune?7:4,tempID)) { PARAMETER
                             op.dt=detune+(settings.unsignedDetune?0:3);
                           } rightClickable
 
@@ -2930,7 +2930,7 @@ void FurnaceGUI::drawInsEdit() {
                           int detune=(op.dt&7)-(settings.unsignedDetune?0:3);
                           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                           snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_DT));
-                          if (CWSliderInt("##DT",&detune,-3,4,tempID)) { PARAMETER
+                          if (CWSliderInt("##DT",&detune,settings.unsignedDetune?0:-3,settings.unsignedDetune?7:4,tempID)) { PARAMETER
                             op.dt=detune+(settings.unsignedDetune?0:3);
                           } rightClickable
 
@@ -3071,7 +3071,7 @@ void FurnaceGUI::drawInsEdit() {
                             int detune=(op.dt&7)-(settings.unsignedDetune?0:3);
                             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                             snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_DT));
-                            if (CWSliderInt("##DT",&detune,-3,4,tempID)) { PARAMETER
+                            if (CWSliderInt("##DT",&detune,settings.unsignedDetune?0:-3,settings.unsignedDetune?7:4,tempID)) { PARAMETER
                               op.dt=detune+(settings.unsignedDetune?0:3);
                             } rightClickable
                           }
@@ -3446,7 +3446,7 @@ void FurnaceGUI::drawInsEdit() {
                           ImGui::TableNextRow();
                           ImGui::TableNextColumn();
                           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                          if (CWSliderInt("##DT",&detune,-3,4)) { PARAMETER
+                          if (CWSliderInt("##DT",&detune,settings.unsignedDetune?0:-3,settings.unsignedDetune?7:4)) { PARAMETER
                             op.dt=detune+(settings.unsignedDetune?0:3);
                           } rightClickable
                           ImGui::TableNextColumn();
@@ -4899,13 +4899,21 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Pulse Width";
             dutyMax=255;
           }
+          if (ins->type==DIV_INS_T6W28) {
+            dutyLabel="Noise Type";
+            dutyMax=1;
+          }
           if (ins->type==DIV_INS_AY8930) {
             dutyMax=ins->amiga.useSample?0:255;
           }
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC ||
               ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC || ins->type==DIV_INS_SEGAPCM ||
-              ins->type==DIV_INS_FM || ins->type==DIV_INS_VBOY) {
+              ins->type==DIV_INS_FM) {
             dutyMax=0;
+          }
+          if (ins->type==DIV_INS_VBOY) {
+            dutyLabel="Noise Length";
+            dutyMax=7;
           }
           if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_NAMCO) {
             dutyLabel="Noise";
@@ -5203,6 +5211,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_SU ||
               ins->type==DIV_INS_MIKEY ||
               ins->type==DIV_INS_ES5506 ||
+              ins->type==DIV_INS_T6W28 ||
+              ins->type==DIV_INS_VBOY ||
               (ins->type==DIV_INS_X1_010 && ins->amiga.useSample)) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }

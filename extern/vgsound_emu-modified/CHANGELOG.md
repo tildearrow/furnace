@@ -2,6 +2,17 @@
 
 ## Important changes
 
+### V 2.1.2 (2022-10-21)
+
+Split utilities and core framework header
+Use static constexprs for global constants
+Fix initialization
+Fix CMake
+
+### V 2.1.1 (2022-10-20)
+
+Add C++11 detection for CMake
+
 ### V 2.1.0 (2022-09-08)
 
 Move source folder into vgsound_emu folder

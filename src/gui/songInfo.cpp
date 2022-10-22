@@ -91,6 +91,7 @@ void FurnaceGUI::drawSongInfo() {
           autoDetectSystem();
           updateWindowTitle();
         }
+        MARK_MODIFIED;
       }
       popToggleColors();
       autoButtonSize=ImGui::GetItemRectSize().x;

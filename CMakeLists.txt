@@ -594,6 +594,7 @@ src/gui/piano.cpp
 src/gui/presets.cpp
 src/gui/regView.cpp
 src/gui/sampleEdit.cpp
+src/gui/scaling.cpp
 src/gui/settings.cpp
 src/gui/songInfo.cpp
 src/gui/songNotes.cpp

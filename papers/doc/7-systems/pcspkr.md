@@ -4,8 +4,8 @@
 
 # real output
 
-so far this is the only system in Furnace which has a real hardware output option.
-to enable it, select file > configure system... > PC Speaker > Use system beeper.
+so far this is the only chip in Furnace which has a real hardware output option.
+to enable it, select file > configure chip... > PC Speaker > Use system beeper.
 
 be noted that this will only work on Linux as Windows does not provide any user-space APIs to address the PC speaker directly!
 
