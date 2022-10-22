@@ -1986,9 +1986,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           }
           // write write
           performVGMWrite(w,song.system[i.first],i.second.write,streamIDs[i.first],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i.first],directStream);
+          writeCount++;
         }
         sortedWrites.clear();
         totalWait-=lastOne;
+        tickCount+=lastOne;
       }
     } else {
       for (int i=0; i<streamID; i++) {
