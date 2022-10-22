@@ -18,6 +18,7 @@
  */
 
 #include "gui.h"
+#include <imgui.h>
 
 void FurnaceGUI::drawRegView() {
   if (nextWindow==GUI_WINDOW_REGISTER_VIEW) {
@@ -38,6 +39,8 @@ void FurnaceGUI::drawRegView() {
       } else {
         ImGui::PushFont(patFont);
         if (ImGui::BeginTable("Memory",17)) {
+          ImGui::TableSetupColumn("addr",ImGuiTableColumnFlags_WidthFixed);
+          
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           for (int i=0; i<16; i++) {
