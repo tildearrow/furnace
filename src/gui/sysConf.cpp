@@ -1426,6 +1426,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_YMU759:
     case DIV_SYSTEM_PET:
     case DIV_SYSTEM_T6W28:
+    case DIV_SYSTEM_VBOY:
       ImGui::Text("nothing to configure");
       break;
     default: {
