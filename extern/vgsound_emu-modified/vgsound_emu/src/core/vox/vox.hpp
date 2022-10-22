@@ -95,8 +95,8 @@ class vox_core : public vgsound_emu_core
 				bool m_loop_saved = false;
 		};
 
-		static constexpr s8 m_index_table[8]  = {-1, -1, -1, -1, 2, 4, 6, 8};
-		static constexpr s32 m_step_table[49] = {
+		const s8 m_index_table[8]  = {-1, -1, -1, -1, 2, 4, 6, 8};
+		const s32 m_step_table[49] = {
 		  16,  17,	19,	 21,  23,  25,	28,	 31,  34,  37,	41,	  45,	50,	  55,	60,	 66,  73,
 		  80,  88,	97,	 107, 118, 130, 143, 157, 173, 190, 209,  230,	253,  279,	307, 337, 371,
 		  408, 449, 494, 544, 598, 658, 724, 796, 876, 963, 1060, 1166, 1282, 1411, 1552};
