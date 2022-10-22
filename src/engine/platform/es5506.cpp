@@ -479,8 +479,6 @@ void DivPlatformES5506::tick(bool sysTick) {
               chan[i].pcm.note=next;
             }
             // get loop mode
-            double loopStart=(double)s->loopStart;
-            double loopEnd=(double)s->loopEnd;
             DivSampleLoopMode loopMode=s->isLoopable()?s->loopMode:DIV_SAMPLE_LOOP_MAX;
             // get reversed
             bool reversed=ins->amiga.reversed;
