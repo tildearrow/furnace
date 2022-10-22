@@ -785,7 +785,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       break;
     }
     case DIV_SYSTEM_ES5506: {
-      int channels=flags.getInt("channels",0)+1;
+      int channels=flags.getInt("channels",0x1f)+1;
       ImGui::Text("Initial channel limit:");
       if (CWSliderInt("##OTTO_InitialChannelLimit",&channels,5,32)) {
         if (channels<5) channels=5;

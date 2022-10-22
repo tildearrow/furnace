@@ -361,65 +361,6 @@ struct DivInstrumentAmiga {
       reversed(r) {}
   };
 
-  struct TransWaveSlice {
-    // states
-    double sliceSize;
-    double sliceBound;
-    double sliceStart;
-    double sliceEnd;
-  
-    // inlines
-    inline void updateSize(double length, double loopStart, double loopEnd) {
-      sliceSize=loopEnd-loopStart;
-      sliceBound=(length-sliceSize);
-    }
-    inline double slicePos(double slice) {
-      double pos=sliceBound*slice;
-      if (sliceStart!=pos) {
-        sliceStart=pos;
-      }
-      if (sliceEnd!=(sliceSize+pos)) {
-        sliceEnd=(sliceSize+pos);
-      }
-      return pos;
-    }
-
-    TransWaveSlice():
-      sliceSize(0),
-      sliceBound(0),
-      sliceStart(0),
-      sliceEnd(0) {}
-  };
-
-  struct TransWave: TransWaveSlice {
-    bool enable;
-    bool sliceEnable;
-    int ind;
-    unsigned short slice;
-
-    TransWave():
-      TransWaveSlice(),
-      enable(false),
-      sliceEnable(false),
-      ind(0),
-      slice(0) {}
-  };
-
-  struct TransWaveMap: TransWaveSlice {
-    short ind;
-    DivReverseMode reversed;
-    int loopStart, loopEnd;
-    DivSampleLoopMode loopMode;
-
-    TransWaveMap():
-      TransWaveSlice(),
-      ind(-1),
-      reversed(DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DEFAULT),
-      loopStart(-1),
-      loopEnd(-1),
-      loopMode(DIV_SAMPLE_LOOP_MAX) {}
-  };
-
   short initSample;
   DivInstrumentAmiga::DivReverseMode reversed;
   bool useNoteMap;
@@ -427,8 +368,6 @@ struct DivInstrumentAmiga {
   bool useWave;
   unsigned char waveLen;
   SampleMap noteMap[120];
-  TransWave transWave;
-  std::vector<TransWaveMap> transWaveMap;
 
   /**
    * get the sample at specified note.
@@ -475,9 +414,7 @@ struct DivInstrumentAmiga {
     useNoteMap(false),
     useSample(false),
     useWave(false),
-    waveLen(31),
-    transWave(TransWave()),
-    transWaveMap(1) {
+    waveLen(31) {
     for (SampleMap& elem: noteMap) {
       elem=SampleMap();
     }

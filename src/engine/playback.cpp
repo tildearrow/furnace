@@ -74,8 +74,6 @@ const char* cmdName[]={
   "SAMPLE_BANK",
   "SAMPLE_POS",
   "SAMPLE_DIR",
-  "SAMPLE_TRANSWAVE_SLICE_MODE", // (enabled)
-  "SAMPLE_TRANSWAVE_SLICE_POS", // (slice)
 
   "FM_HARD_RESET",
   "FM_LFO",

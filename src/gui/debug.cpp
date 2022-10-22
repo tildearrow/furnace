@@ -1078,6 +1078,7 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text(" - loopStart: %.8x",ch->pcm.loopStart);
       ImGui::Text(" - loopEnd: %.8x",ch->pcm.loopEnd);
       ImGui::Text(" - loopMode: %d",ch->pcm.loopMode);
+      ImGui::Text(" - nextPos: %d",ch->pcm.nextPos);
       ImGui::Text("* Filter:");
       ImGui::Text(" - Mode: %d",ch->filter.mode);
       ImGui::Text(" - K1: %.4x",ch->filter.k1);
@@ -1122,10 +1123,7 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->pcmChanged.slice?colorOn:colorOff,">> PCMSliceChanged");
       ImGui::TextColored(ch->pcmChanged.position?colorOn:colorOff,">> PCMPositionChanged");
       ImGui::TextColored(ch->pcmChanged.loopBank?colorOn:colorOff,">> PCMLoopBankChanged");
-      ImGui::TextColored(ch->pcmChanged.transwaveInd?colorOn:colorOff,">> PCMTranswaveIndexChanged");
       ImGui::TextColored(ch->isReverseLoop?colorOn:colorOff,">> IsReverseLoop");
-      ImGui::TextColored(ch->isTranswave?colorOn:colorOff,">> IsTranswave");
-      ImGui::TextColored(ch->transwaveIRQ?colorOn:colorOff,">> TranswaveIRQ");
       ImGui::TextColored(ch->pcm.reversed?colorOn:colorOff,">> PCMReversed");
       ImGui::TextColored(ch->envelope.k1Slow?colorOn:colorOff,">> EnvK1Slow");
       ImGui::TextColored(ch->envelope.k2Slow?colorOn:colorOff,">> EnvK2Slow");

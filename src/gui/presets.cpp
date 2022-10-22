@@ -2169,6 +2169,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
+    "Sammy/Seta/Visco SSV", {
+      DIV_SYSTEM_ES5506, 64, 0, 31,
+      0
+    }
+  ));
+  cat.systems.push_back(FurnaceGUISysDef(
     "Cave 68000", {
       DIV_SYSTEM_YMZ280B, 64, 0, 0,
       0

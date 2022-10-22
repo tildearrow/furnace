@@ -73,8 +73,6 @@ enum DivDispatchCmds {
   DIV_CMD_SAMPLE_BANK, // (bank)
   DIV_CMD_SAMPLE_POS, // (pos)
   DIV_CMD_SAMPLE_DIR, // (direction)
-  DIV_CMD_SAMPLE_TRANSWAVE_SLICE_MODE, // (enabled)
-  DIV_CMD_SAMPLE_TRANSWAVE_SLICE_POS, // (slice)
 
   DIV_CMD_FM_HARD_RESET, // (enabled)
   DIV_CMD_FM_LFO, // (speed)
