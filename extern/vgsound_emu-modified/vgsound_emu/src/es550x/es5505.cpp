@@ -222,6 +222,7 @@ void es5505_core::voice_t::fetch(u8 voice, u8 cycle)
 
 void es5505_core::voice_t::tick(u8 voice)
 {
+	m_output[0] = m_output[1] = 0;
 	m_ch.reset();
 
 	// Filter execute
@@ -293,6 +294,8 @@ void es5505_core::voice_t::reset()
 	m_lvol = 0;
 	m_rvol = 0;
 	m_ch.reset();
+	m_mute		= false;
+	m_output[0] = m_output[1] = 0;
 }
 
 // Accessors
