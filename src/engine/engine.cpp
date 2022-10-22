@@ -2357,6 +2357,7 @@ void DivEngine::reset() {
   speed2=curSubSong->speed2;
   firstTick=false;
   shallStop=false;
+  shallStopSched=false;
   nextSpeed=speed1;
   divider=60;
   if (curSubSong->customTempo) {

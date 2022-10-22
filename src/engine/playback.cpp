@@ -844,7 +844,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
         break;
       
       case 0xff: // stop song
-        shallStop=true;
+        shallStopSched=true;
+        logV("scheduling stop");
         break;
     }
   }
@@ -1132,7 +1133,11 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
           tempoAccum-=curSubSong->virtualTempoD;
           if (--ticks<=0) {
             ret=endOfSong;
-            if (endOfSong) {
+            if (shallStopSched) {
+              logV("acknowledging scheduled stop");
+              shallStop=true;
+              break;
+            } else if (endOfSong) {
               if (song.loopModality!=2) {
                 playSub(true);
               }
@@ -1147,7 +1152,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         if (tempoAccum>1023) tempoAccum=1023;
       }
       // process stuff
-      for (int i=0; i<chans; i++) {
+      if (!shallStop) for (int i=0; i<chans; i++) {
         if (chan[i].rowDelay>0) {
           if (--chan[i].rowDelay==0) {
             processRow(i,true);
@@ -1291,6 +1296,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     sPreview.dir=false;
     ret=true;
     shallStop=false;
+    shallStopSched=false;
     return ret;
   }
 
