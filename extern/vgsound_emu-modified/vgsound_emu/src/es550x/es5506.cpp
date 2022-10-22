@@ -11,8 +11,6 @@
 // Internal functions
 void es5506_core::tick()
 {
-	m_voice_update = false;
-	m_voice_end	   = false;
 	// CLKIN
 	if (m_clkin.tick())
 	{
@@ -192,8 +190,6 @@ void es5506_core::tick()
 // less cycle accurate, but less CPU heavy routine
 void es5506_core::tick_perf()
 {
-	m_voice_update = false;
-	m_voice_end	   = false;
 	// output
 	if (((!m_mode.lrclk_en()) && (!m_mode.bclk_en()) && (!m_mode.wclk_en())) && (m_w_st < m_w_end))
 	{
@@ -268,6 +264,10 @@ void es5506_core::voice_tick()
 				elem.ch().reset();
 			}
 		}
+		else
+		{
+			m_voice_end = false;
+		}
 		m_voice_fetch = 0;
 	}
 }
@@ -295,8 +295,11 @@ void es5506_core::voice_t::tick(u8 voice)
 	if (m_alu.busy())
 	{
 		// Send to output
-		m_ch.set_left(volume_calc(m_lvol, sign_ext<s32>(m_filter.o4_1(), 16)));
-		m_ch.set_right(volume_calc(m_rvol, sign_ext<s32>(m_filter.o4_1(), 16)));
+		m_output[0] = volume_calc(m_lvol, sign_ext<s32>(m_filter.o4_1(), 16));
+		m_output[1] = volume_calc(m_rvol, sign_ext<s32>(m_filter.o4_1(), 16));
+
+		m_ch.set_left(m_output[0]);
+		m_ch.set_right(m_output[1]);
 
 		// ALU execute
 		if (m_alu.tick())

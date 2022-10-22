@@ -11,8 +11,6 @@
 // Internal functions
 void es5504_core::tick()
 {
-	m_voice_update = false;
-	m_voice_end	   = false;
 	// /CAS, E
 	if (m_clkin.falling_edge())	 // falling edge triggers /CAS, E clock
 	{
@@ -77,8 +75,6 @@ void es5504_core::tick()
 // less cycle accurate, but less CPU heavy routine
 void es5504_core::tick_perf()
 {
-	m_voice_update = false;
-	m_voice_end	   = false;
 	// update
 	// falling edge
 	m_e.edge().set(false);
@@ -120,6 +116,10 @@ void es5504_core::voice_tick()
 		{
 			m_voice_end	  = true;
 			m_voice_cycle = 0;
+		}
+		else
+		{
+			m_voice_end = false;
 		}
 
 		m_voice_fetch = 0;

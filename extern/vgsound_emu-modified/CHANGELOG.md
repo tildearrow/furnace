@@ -2,6 +2,10 @@
 
 ## Important changes
 
+### V 2.1.3 (2022-10-22)
+
+Fix ES5504, ES5505, ES5506 per-voice preview functions
+
 ### V 2.1.2 (2022-10-21)
 
 Split utilities and core framework header

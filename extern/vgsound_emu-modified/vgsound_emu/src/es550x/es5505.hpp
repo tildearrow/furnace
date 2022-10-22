@@ -105,6 +105,8 @@ class es5505_core : public es550x_shared_core
 					, m_lvol(0)
 					, m_rvol(0)
 					, m_ch(output_t())
+					, m_mute(false)
+					, m_output{0}
 				{
 				}
 
@@ -125,14 +127,23 @@ class es5505_core : public es550x_shared_core
 
 				output_t &ch() { return m_ch; }
 
+				// for debug/preview only
+				inline void set_mute(bool mute) { m_mute = mute; }
+
+				inline s32 left_out() { return m_mute ? 0 : m_output[0]; }
+
+				inline s32 right_out() { return m_mute ? 0 : m_output[1]; }
+
 			private:
 				s32 volume_calc(u8 volume, s32 in);
 
 				// registers
 				es5505_core &m_host;
-				u8 m_lvol = 0;	// Left volume
-				u8 m_rvol = 0;	// Right volume
-				output_t m_ch;	// channel output
+				u8 m_lvol = 0;				  // Left volume
+				u8 m_rvol = 0;				  // Right volume
+				output_t m_ch;				  // channel output
+				bool m_mute = false;		  // mute flag (for debug purpose)
+				std::array<s32, 2> m_output;  // output preview (for debug purpose)
 		};
 
 		class sermode_t : public vgsound_emu_core
@@ -270,10 +281,12 @@ class es5505_core : public es550x_shared_core
 			return ret;
 		}
 
-		// per-voice outputs
-		inline s32 voice_lout(u8 voice) { return (voice < 32) ? m_voice[voice].ch().left() : 0; }
+		inline void set_mute(u8 ch, bool mute) { m_voice[ch & 0x1f].set_mute(mute); }
 
-		inline s32 voice_rout(u8 voice) { return (voice < 32) ? m_voice[voice].ch().right() : 0; }
+		// per-voice outputs
+		inline s32 voice_lout(u8 voice) { return (voice < 32) ? m_voice[voice].left_out() : 0; }
+
+		inline s32 voice_rout(u8 voice) { return (voice < 32) ? m_voice[voice].right_out() : 0; }
 
 	protected:
 		virtual inline u8 max_voices() override { return 32; }

@@ -147,6 +147,7 @@ class es5506_core : public es550x_shared_core
 					, m_filtcount(0)
 					, m_ch(output_t())
 					, m_mute(false)
+					, m_output{0}
 				{
 				}
 
@@ -186,9 +187,9 @@ class es5506_core : public es550x_shared_core
 				// for debug/preview only
 				inline void set_mute(bool mute) { m_mute = mute; }
 
-				inline s32 left_out() { return m_mute ? 0 : m_ch.left(); }
+				inline s32 left_out() { return m_mute ? 0 : m_output[0]; }
 
-				inline s32 right_out() { return m_mute ? 0 : m_ch.right(); }
+				inline s32 right_out() { return m_mute ? 0 : m_output[1]; }
 
 			private:
 				// accessors, getters, setters
@@ -202,14 +203,15 @@ class es5506_core : public es550x_shared_core
 				s32 m_lvol = 0;	 // Left volume
 				s32 m_rvol = 0;	 // Right volume
 				// Envelope
-				s32 m_lvramp = 0;		 // Left volume ramp
-				s32 m_rvramp = 0;		 // Righr volume ramp
-				s16 m_ecount = 0;		 // Envelope counter
-				filter_ramp_t m_k2ramp;	 // Filter coefficient 2 Ramp
-				filter_ramp_t m_k1ramp;	 // Filter coefficient 1 Ramp
-				u8 m_filtcount = 0;		 // Internal counter for slow mode
-				output_t m_ch;			 // channel output
-				bool m_mute = false;	 // mute flag (for debug purpose)
+				s32 m_lvramp = 0;			  // Left volume ramp
+				s32 m_rvramp = 0;			  // Righr volume ramp
+				s16 m_ecount = 0;			  // Envelope counter
+				filter_ramp_t m_k2ramp;		  // Filter coefficient 2 Ramp
+				filter_ramp_t m_k1ramp;		  // Filter coefficient 1 Ramp
+				u8 m_filtcount = 0;			  // Internal counter for slow mode
+				output_t m_ch;				  // channel output
+				bool m_mute = false;		  // mute flag (for debug purpose)
+				std::array<s32, 2> m_output;  // output preview (for debug purpose)
 		};
 
 		// 5 bit mode
