@@ -61,10 +61,10 @@ bool vrcvi_core::alu_t::tick()
 		}
 
 		// carry handling
-		bool carry = bitfield(m_host.m_control.shift(), 1)
-					 ? (bitfield(temp, 8, 4) == 0)
-					 : (bitfield(m_host.m_control.shift(), 0) ? (bitfield(temp, 4, 8) == 0)
-															  : (bitfield(temp, 0, 12) == 0));
+		const bool carry = bitfield(m_host.m_control.shift(), 1)
+						   ? (bitfield(temp, 8, 4) == 0)
+						   : (bitfield(m_host.m_control.shift(), 0) ? (bitfield(temp, 4, 8) == 0)
+																	: (bitfield(temp, 0, 12) == 0));
 		if (carry)
 		{
 			m_counter = m_divider.divider();
