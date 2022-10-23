@@ -1,4 +1,3 @@
-#include <SDL_error.h>
 #define _USE_MATH_DEFINES
 // OK, sorry for inserting the define here but I'm so tired of this extension
 /**
