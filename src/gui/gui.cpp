@@ -1,3 +1,4 @@
+#include <SDL_error.h>
 #define _USE_MATH_DEFINES
 // OK, sorry for inserting the define here but I'm so tired of this extension
 /**
@@ -3074,6 +3075,7 @@ bool FurnaceGUI::loop() {
 
     // update config x/y/w/h values based on scrMax state
     if (updateWindow) {
+      logV("updateWindow is true");
       if (!scrMax) {
         scrConfX=scrX;
         scrConfY=scrY;
@@ -3082,7 +3084,11 @@ bool FurnaceGUI::loop() {
       }
 
       // update canvas size as well
-      SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH);
+      if (SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH)!=0) {
+        logW("updateWindow: error while getting output size! %s",SDL_GetError());
+      } else {
+        logV("updateWindow: canvas size %dx%d",canvasW,canvasH);
+      }
     }
 
     wantCaptureKeyboard=ImGui::GetIO().WantTextInput;

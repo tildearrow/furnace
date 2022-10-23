@@ -65,6 +65,7 @@
 
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
+#include <stdio.h>
 #include <cmath>
 
 // SDL
@@ -288,6 +289,7 @@ bool ImGui_ImplSDL2_ProcessEvent(const SDL_Event* event)
             if (!platform_io.Monitors.empty() && platform_io.Monitors[0].DpiScale > 1.0f)
             {
                 // The Framebuffer is scaled by an integer ceiling of the actual ratio, so 2.0 not 1.685 on Mac!
+                //printf("multiply by %f\n",platform_io.Monitors[0].DpiScale);
                 mouse_pos.x *= std::ceil(platform_io.Monitors[0].DpiScale);
                 mouse_pos.y *= std::ceil(platform_io.Monitors[0].DpiScale);
             }
@@ -690,10 +692,11 @@ void ImGui_ImplSDL2_NewFrame()
 
     // On Apple and Wayland, The window size is reported in Low DPI, even when running in high DPI mode
     ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
-    if (!platform_io.Monitors.empty() /*&& platform_io.Monitors[0].DpiScale > 1.0f*/ && display_h != h)
+    if (!platform_io.Monitors.empty() /*&& platform_io.Monitors[0].DpiScale > 1.0f*/ && display_h != h && w != 0)
     {
         io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
         io.DisplaySize = ImVec2((float)display_w, (float)display_h);
+        //printf("write %d/%d to DpiScale\n",display_w,w);
         platform_io.Monitors[0].DpiScale=(float)display_w/(float)w;
     }
 
