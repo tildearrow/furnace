@@ -596,10 +596,16 @@ void DivPlatformSNES::writeOutVol(int ch) {
 
 void DivPlatformSNES::writeEnv(int ch) {
   if (chan[ch].state.useEnv) {
-    chWrite(ch,5,chan[ch].state.a|(chan[ch].state.d<<4)|0x80);
-    if (chan[ch].state.sus && chan[ch].active) {
-      chWrite(ch,6,chan[ch].state.s<<5);
+    if (chan[ch].state.sus) {
+      if (chan[ch].active) {
+        chWrite(ch,5,chan[ch].state.a|(chan[ch].state.d<<4)|0x80);
+        chWrite(ch,6,chan[ch].state.s<<5);
+      } else { // dec linear
+        chWrite(ch,7,0x80|chan[ch].state.r);
+        chWrite(ch,5,0);
+      }
     } else {
+      chWrite(ch,5,chan[ch].state.a|(chan[ch].state.d<<4)|0x80);
       chWrite(ch,6,chan[ch].state.r|(chan[ch].state.s<<5));
     }
   } else {
