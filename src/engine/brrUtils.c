@@ -130,7 +130,7 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
     }
 
     // encode with filter
-    if (i && i!=loopStart) {
+    if (i /*&& i!=loopStart*/) {
       // 1: x = o0 - o1 * 15/16
       // 2: x = o0 + o2 * 15/16 - o1 * 61/32
       // 3: x = o0 + o2 * 13/16 - o1 * 115/64
