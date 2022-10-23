@@ -1340,7 +1340,7 @@ void FurnaceGUI::doAction(int what) {
           wave->max=255;
           wave->len=end-start;
           for (unsigned int i=start; i<end; i++) {
-            wave->data[i-start]=(sample->data8[i]&0xff)^0x80;
+            wave->data[i-start]=(((unsigned short)sample->data16[i]&0xff00)>>8)^0x80;
           }
           nextWindow=GUI_WINDOW_WAVE_EDIT;
           MARK_MODIFIED;
