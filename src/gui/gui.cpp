@@ -3082,11 +3082,15 @@ bool FurnaceGUI::loop() {
         scrConfH=scrH;
       }
 
-      // update canvas size as well
-      if (SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH)!=0) {
-        logW("updateWindow: error while getting output size! %s",SDL_GetError());
-      } else {
-        logV("updateWindow: canvas size %dx%d",canvasW,canvasH);
+    }
+    // update canvas size as well
+    if (SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH)!=0) {
+      logW("loop: error while getting output size! %s",SDL_GetError());
+    } else {
+      //logV("updateWindow: canvas size %dx%d",canvasW,canvasH);
+      // and therefore window size
+      if (SDL_GetWindowSize(sdlWin,&scrW,&scrH)!=0) {
+        logW("loop: error while getting window size! %s",SDL_GetError());
       }
     }
 
