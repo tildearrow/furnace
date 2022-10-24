@@ -3086,6 +3086,7 @@ bool FurnaceGUI::loop() {
       if (SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH)!=0) {
         logW("updateWindow: error while getting output size! %s",SDL_GetError());
       } else {
+        SDL_GetWindowSize(sdlWin,&scrW,&scrH);
         logV("updateWindow: canvas size %dx%d",canvasW,canvasH);
       }
     }
