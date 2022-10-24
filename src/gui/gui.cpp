@@ -3081,7 +3081,6 @@ bool FurnaceGUI::loop() {
         scrConfW=scrW;
         scrConfH=scrH;
       }
-
     }
     // update canvas size as well
     if (SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH)!=0) {

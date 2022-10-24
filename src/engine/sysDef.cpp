@@ -1102,6 +1102,15 @@ void DivEngine::registerSystems() {
     {DIV_INS_BEEPER}
   );
 
+  sysDefs[DIV_SYSTEM_PONG]=new DivSysDef(
+    "Pong", NULL, 0xfc, 0, 1, false, true, 0, false, 0,
+    "LOL",
+    {"Square"},
+    {"SQ"},
+    {DIV_CH_PULSE},
+    {DIV_INS_BEEPER}
+  );
+
   sysDefs[DIV_SYSTEM_POKEY]=new DivSysDef(
     "POKEY", NULL, 0x94, 0, 4, false, true, 0, false, 0,
     "TIA, but better and more flexible.\nused in the Atari 8-bit family of computers (400/800/XL/XE).",

@@ -960,6 +960,7 @@ const int availableSystems[]={
   DIV_SYSTEM_SNES,
   DIV_SYSTEM_MSM5232,
   DIV_SYSTEM_PCM_DAC,
+  DIV_SYSTEM_PONG,
   0 // don't remove this last one!
 };
 
