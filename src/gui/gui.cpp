@@ -3088,9 +3088,7 @@ bool FurnaceGUI::loop() {
     } else {
       //logV("updateWindow: canvas size %dx%d",canvasW,canvasH);
       // and therefore window size
-      if (SDL_GetWindowSize(sdlWin,&scrW,&scrH)!=0) {
-        logW("loop: error while getting window size! %s",SDL_GetError());
-      }
+      SDL_GetWindowSize(sdlWin,&scrW,&scrH);
     }
 
     wantCaptureKeyboard=ImGui::GetIO().WantTextInput;
