@@ -60,6 +60,7 @@
 #include "platform/bubsyswsg.h"
 #include "platform/n163.h"
 #include "platform/pet.h"
+#include "platform/pong.h"
 #include "platform/vic20.h"
 #include "platform/vrc6.h"
 #include "platform/fds.h"
@@ -364,6 +365,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_VIC20:
       dispatch=new DivPlatformVIC20;
+      break;
+    case DIV_SYSTEM_PONG:
+      dispatch=new DivPlatformPong;
       break;
     case DIV_SYSTEM_VRC6:
       dispatch=new DivPlatformVRC6;
