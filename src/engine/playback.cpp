@@ -1280,6 +1280,11 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         }
       }
     }
+  } else {
+    // still tick the subtick counter
+    if (--subticks<=0) {
+      subticks=tickMult;
+    }
   }
 
   firstTick=false;
