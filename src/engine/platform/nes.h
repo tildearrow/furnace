@@ -28,7 +28,7 @@
 class DivPlatformNES: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, prevFreq, note, ins;
-    unsigned char duty, sweep;
+    unsigned char duty, sweep, envMode, len;
     bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, furnaceDac;
     signed char vol, outVol, wave;
     DivMacroInt std;
@@ -46,6 +46,8 @@ class DivPlatformNES: public DivDispatch {
       ins(-1),
       duty(0),
       sweep(8),
+      envMode(3),
+      len(0x1f),
       active(false),
       insChanged(true),
       freqChanged(false),
@@ -74,6 +76,7 @@ class DivPlatformNES: public DivDispatch {
   bool dacAntiClickOn;
   bool useNP;
   bool goingToLoop;
+  bool countMode;
   struct NESAPU* nes;
   xgm::NES_APU* nes1_NP;
   xgm::NES_DMC* nes2_NP;

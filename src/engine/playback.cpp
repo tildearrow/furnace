@@ -206,6 +206,10 @@ const char* cmdName[]={
   "SNES_ECHO_FEEDBACK",
   "SNES_ECHO_FIR",
 
+  "DIV_CMD_NES_ENV_MODE",
+  "DIV_CMD_NES_LENGTH",
+  "DIV_CMD_NES_COUNT_MODE",
+
   "ALWAYS_SET_VOLUME"
 };
 
