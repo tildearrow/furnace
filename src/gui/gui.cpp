@@ -3003,6 +3003,7 @@ bool FurnaceGUI::loop() {
               scrH=ev.window.data2;
               portrait=(scrW<scrH);
               logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
+              logD("window resized to %dx%d",scrW,scrH);
               updateWindow=true;
               break;
             case SDL_WINDOWEVENT_MOVED:
@@ -3020,6 +3021,15 @@ bool FurnaceGUI::loop() {
               break;
           }
           break;
+        case SDL_DISPLAYEVENT: {
+          switch (ev.display.event) {
+            case SDL_DISPLAYEVENT_ORIENTATION:
+              logD("display oriented to %d",ev.display.data1);
+              updateWindow=true;
+              break;
+          }
+          break;
+        }
         case SDL_KEYDOWN:
           if (!ImGui::GetIO().WantCaptureKeyboard) {
             keyDown(ev);
