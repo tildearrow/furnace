@@ -547,7 +547,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           unsigned int loopFlag=(chan[i].pcm.bank<<14)|(chan[i].pcm.reversed?0x0040:0x0000);
           chan[i].isReverseLoop=false;
           switch (chan[i].pcm.loopMode) {
-            case DIV_SAMPLE_LOOP_FORWARD: // Foward loop
+            case DIV_SAMPLE_LOOP_FORWARD: // Forward loop
               loopFlag|=0x0008;
               break;
             case DIV_SAMPLE_LOOP_BACKWARD: // Backward loop: IRQ enable
@@ -685,7 +685,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           unsigned int loopFlag=chan[i].pcm.reversed?0x0040:0x0000;
           chan[i].isReverseLoop=false;
           switch (chan[i].pcm.loopMode) {
-            case DIV_SAMPLE_LOOP_FORWARD: // Foward loop
+            case DIV_SAMPLE_LOOP_FORWARD: // Forward loop
               loopFlag|=0x0008;
               break;
             case DIV_SAMPLE_LOOP_BACKWARD: // Backward loop: IRQ enable
