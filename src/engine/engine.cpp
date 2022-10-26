@@ -1042,6 +1042,8 @@ void DivEngine::runExportThread() {
         curOrder=0;
         prevOrder=0;
         curFadeOutSample=0;
+        lastLoopPos=-1;
+        totalLoops=0;
         isFadingOut=false;
         if (exportFadeOut<=0.01) {
           remainingLoops=loopCount;
@@ -1984,10 +1986,14 @@ void DivEngine::getCommandStream(std::vector<DivCommand>& where) {
 }
 
 void DivEngine::playSub(bool preserveDrift, int goalRow) {
+  logV("playSub() called");
   std::chrono::high_resolution_clock::time_point timeStart=std::chrono::high_resolution_clock::now();
   for (int i=0; i<song.systemLen; i++) disCont[i].dispatch->setSkipRegisterWrites(false);
   reset();
-  if (preserveDrift && curOrder==0) return;
+  if (preserveDrift && curOrder==0) {
+    logV("preserveDrift && curOrder is true");
+    return;
+  }
   bool oldRepeatPattern=repeatPattern;
   repeatPattern=false;
   int goal=curOrder;
@@ -2000,9 +2006,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   prevDrift=clockDrift;
   clockDrift=0;
   cycles=0;
-  if (preserveDrift) {
-    endOfSong=false;
-  } else {
+  if (!preserveDrift) {
     ticks=1;
     tempoAccum=0;
     totalTicks=0;
@@ -2011,6 +2015,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
     totalLoops=0;
     lastLoopPos=-1;
   }
+  endOfSong=false;
   speedAB=false;
   playing=true;
   skipping=true;
@@ -2352,6 +2357,7 @@ void DivEngine::reset() {
   speed2=curSubSong->speed2;
   firstTick=false;
   shallStop=false;
+  shallStopSched=false;
   nextSpeed=speed1;
   divider=60;
   if (curSubSong->customTempo) {

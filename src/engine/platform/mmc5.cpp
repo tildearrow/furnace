@@ -289,7 +289,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
     }
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].duty=c.value;
-      rWrite(0x5000+c.chan*4,0x30|chan[c.chan].outVol|((chan[c.chan].duty&3)<<6));
+      rWrite(0x5000+c.chan*4,0x30|(chan[c.chan].active?chan[c.chan].outVol:0)|((chan[c.chan].duty&3)<<6));
       break;
     case DIV_CMD_SAMPLE_BANK:
       sampleBank=c.value;

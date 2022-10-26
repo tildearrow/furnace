@@ -627,7 +627,7 @@ void DivPlatformYM2608::tick(bool sysTick) {
     immWrite(0x109,chan[15].freq&0xff);
     immWrite(0x10a,(chan[15].freq>>8)&0xff);
     if (chan[15].keyOn || chan[15].keyOff) {
-      immWrite(0x100,0x01); // reset
+      if (chan[15].keyOff) immWrite(0x100,0x01); // reset
       if (chan[15].active && chan[15].keyOn && !chan[15].keyOff) {
         if (chan[15].sample>=0 && chan[15].sample<parent->song.sampleLen) {
           DivSample* s=parent->getSample(chan[15].sample);
@@ -685,6 +685,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
           chan[c.chan].sample=ins->amiga.getSample(c.value);
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
+            immWrite(0x100,0x01); // reset
             immWrite(0x102,(sampleOffB[chan[c.chan].sample]>>5)&0xff);
             immWrite(0x103,(sampleOffB[chan[c.chan].sample]>>13)&0xff);
             int end=sampleOffB[chan[c.chan].sample]+s->lengthB-1;
@@ -716,6 +717,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
           chan[c.chan].sample=12*sampleBank+c.value%12;
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
+            immWrite(0x100,0x01); // reset
             immWrite(0x102,(sampleOffB[chan[c.chan].sample]>>5)&0xff);
             immWrite(0x103,(sampleOffB[chan[c.chan].sample]>>13)&0xff);
             int end=sampleOffB[chan[c.chan].sample]+s->lengthB-1;

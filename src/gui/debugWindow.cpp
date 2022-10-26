@@ -379,6 +379,14 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Window Debug")) {
+      ImGui::Text("Screen: %dx%d+%d+%d",scrW,scrH,scrX,scrY);
+      ImGui::Text("Screen (Conf): %dx%d+%d+%d",scrConfW,scrConfH,scrConfX,scrConfY);
+      ImGui::Text("Canvas: %dx%d",canvasW,canvasH);
+      ImGui::Text("Maximized: %d",scrMax);
+      ImGui::Text("System Managed Scale: %d",sysManagedScale);
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Playground")) {
       if (pgSys<0 || pgSys>=e->song.systemLen) pgSys=0;
       if (ImGui::BeginCombo("Chip",fmt::sprintf("%d. %s",pgSys+1,e->getSystemName(e->song.system[pgSys])).c_str())) {

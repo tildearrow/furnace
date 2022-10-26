@@ -265,6 +265,7 @@ size | description
      |   - 0xc5: YM2610B CSM - 20 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
+     |   - 0xfc: Pong - 1 channel
      |   - 0xfd: Dummy System - 8 channels
      |   - 0xfe: reserved for development
      |   - 0xff: reserved for development

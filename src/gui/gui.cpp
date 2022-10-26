@@ -3003,6 +3003,7 @@ bool FurnaceGUI::loop() {
               scrH=ev.window.data2;
               portrait=(scrW<scrH);
               logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
+              logD("window resized to %dx%d",scrW,scrH);
               updateWindow=true;
               break;
             case SDL_WINDOWEVENT_MOVED:
@@ -3020,6 +3021,15 @@ bool FurnaceGUI::loop() {
               break;
           }
           break;
+        case SDL_DISPLAYEVENT: {
+          switch (ev.display.event) {
+            case SDL_DISPLAYEVENT_ORIENTATION:
+              logD("display oriented to %d",ev.display.data1);
+              updateWindow=true;
+              break;
+          }
+          break;
+        }
         case SDL_KEYDOWN:
           if (!ImGui::GetIO().WantCaptureKeyboard) {
             keyDown(ev);
@@ -3074,15 +3084,21 @@ bool FurnaceGUI::loop() {
 
     // update config x/y/w/h values based on scrMax state
     if (updateWindow) {
+      logV("updateWindow is true");
       if (!scrMax) {
         scrConfX=scrX;
         scrConfY=scrY;
         scrConfW=scrW;
         scrConfH=scrH;
       }
-
-      // update canvas size as well
-      SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH);
+    }
+    // update canvas size as well
+    if (SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH)!=0) {
+      logW("loop: error while getting output size! %s",SDL_GetError());
+    } else {
+      //logV("updateWindow: canvas size %dx%d",canvasW,canvasH);
+      // and therefore window size
+      SDL_GetWindowSize(sdlWin,&scrW,&scrH);
     }
 
     wantCaptureKeyboard=ImGui::GetIO().WantTextInput;

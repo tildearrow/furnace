@@ -328,7 +328,7 @@ class DivEngine {
   bool lowQuality;
   bool playing;
   bool freelance;
-  bool shallStop;
+  bool shallStop, shallStopSched;
   bool speedAB;
   bool endOfSong;
   bool consoleMode;
@@ -1017,6 +1017,7 @@ class DivEngine {
       playing(false),
       freelance(false),
       shallStop(false),
+      shallStopSched(false),
       speedAB(false),
       endOfSong(false),
       consoleMode(false),

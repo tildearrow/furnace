@@ -701,6 +701,9 @@ void DivEngine::registerSystems() {
       {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set duty cycle/noise mode (pulse: 0 to 3; noise: 0 or 1)"}},
       {0x13, {DIV_CMD_NES_SWEEP, "13xy: Sweep up (x: time; y: shift)",constVal<0>,effectVal}},
       {0x14, {DIV_CMD_NES_SWEEP, "14xy: Sweep down (x: time; y: shift)",constVal<1>,effectVal}},
+      {0x15, {DIV_CMD_NES_ENV_MODE, "15xx: Set envelope mode (0: envelope, 1: length, 2: looping, 3: constant)"}},
+      {0x16, {DIV_CMD_NES_LENGTH, "16xx: Set length counter (refer to manual for a list of values)"}},
+      {0x17, {DIV_CMD_NES_COUNT_MODE, "17xx: Set frame counter mode (0: 4-step, 1: 5-step)"}},
       {0x18, {DIV_CMD_SAMPLE_MODE, "18xx: Select PCM/DPCM mode (0: PCM; 1: DPCM)"}}
     }
   );
@@ -1104,6 +1107,15 @@ void DivEngine::registerSystems() {
   sysDefs[DIV_SYSTEM_PCSPKR]=new DivSysDef(
     "PC Speaker", NULL, 0x93, 0, 1, false, true, 0, false, 0,
     "good luck!",
+    {"Square"},
+    {"SQ"},
+    {DIV_CH_PULSE},
+    {DIV_INS_BEEPER}
+  );
+
+  sysDefs[DIV_SYSTEM_PONG]=new DivSysDef(
+    "Pong", NULL, 0xfc, 0, 1, false, true, 0, false, 0,
+    "LOL",
     {"Square"},
     {"SQ"},
     {DIV_CH_PULSE},

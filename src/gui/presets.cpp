@@ -1105,42 +1105,6 @@ void FurnaceGUI::initSystemPresets() {
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "ZX Spectrum (128K) with TurboSound FM + SAA", {
-      DIV_SYSTEM_AY8910, 64, 0, 1,
-      DIV_SYSTEM_OPN, 64, 0, 1,
-      DIV_SYSTEM_OPN, 64, 0, 1,
-      DIV_SYSTEM_SAA1099, 64, 0, 0,
-      0
-    }
-  ));
-  cat.systems.push_back(FurnaceGUISysDef(
-    "ZX Spectrum (128K) with TurboSound FM + SAA (extended channel 3 on first OPN)", {
-      DIV_SYSTEM_AY8910, 64, 0, 1,
-      DIV_SYSTEM_OPN_EXT, 64, 0, 1,
-      DIV_SYSTEM_OPN, 64, 0, 1,
-      DIV_SYSTEM_SAA1099, 64, 0, 0,
-      0
-    }
-  ));
-  cat.systems.push_back(FurnaceGUISysDef(
-    "ZX Spectrum (128K) with TurboSound FM + SAA (extended channel 3 on second OPN)", {
-      DIV_SYSTEM_AY8910, 64, 0, 1,
-      DIV_SYSTEM_OPN, 64, 0, 1,
-      DIV_SYSTEM_OPN_EXT, 64, 0, 1,
-      DIV_SYSTEM_SAA1099, 64, 0, 0,
-      0
-    }
-  ));
-  cat.systems.push_back(FurnaceGUISysDef(
-    "ZX Spectrum (128K) with TurboSound FM + SAA (extended channel 3 on both OPNs)", {
-      DIV_SYSTEM_AY8910, 64, 0, 1,
-      DIV_SYSTEM_OPN_EXT, 64, 0, 1,
-      DIV_SYSTEM_OPN_EXT, 64, 0, 1,
-      DIV_SYSTEM_SAA1099, 64, 0, 0,
-      0
-    }
-  ));
-  cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (128K) with TurboSound", {
       DIV_SYSTEM_AY8910, 64, 0, 1,
       DIV_SYSTEM_AY8910, 64, 0, 1, // or YM2149
