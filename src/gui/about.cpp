@@ -94,6 +94,7 @@ const char* aboutLine[]={
   "TheRealHedgehogSonic",
   "tildearrow",
   "Ultraprogramer",
+  "UserSniper",
   "Weeppiko",
   "ZoomTen (Zumi)",
   "",
