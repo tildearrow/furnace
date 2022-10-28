@@ -1525,7 +1525,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
          "all files", ".*"},
         "compatible files{.fuw,.dmw},.*",
         workingDirWave,
-        dpiScale
+        dpiScale,
+        NULL, // TODO
+        (type==GUI_FILE_WAVE_OPEN)
       );
       break;
     case GUI_FILE_WAVE_SAVE:
@@ -1567,7 +1569,9 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
          "all files", ".*"},
         "compatible files{.wav,.dmc,.brr},.*",
         workingDirSample,
-        dpiScale
+        dpiScale,
+        NULL, // TODO
+        (type==GUI_FILE_SAMPLE_OPEN)
       );
       break;
     case GUI_FILE_SAMPLE_OPEN_RAW:
@@ -4038,15 +4042,32 @@ bool FurnaceGUI::loop() {
               }
               break;
             case GUI_FILE_SAMPLE_OPEN: {
-              DivSample* s=e->sampleFromFile(copyOfName.c_str());
-              if (s==NULL) {
-                showError(e->getLastError());
-              } else {
-                if (e->addSamplePtr(s)==-1) {
-                  showError(e->getLastError());
+              String errs="there were some errors while loading wavetables:\n";
+              bool warn=false;
+              for (String i: fileDialog->getFileName()) {
+                DivSample* s=e->sampleFromFile(i.c_str());
+                if (s==NULL) {
+                  if (fileDialog->getFileName().size()>1) {
+                    warn=true;
+                    errs+=fmt::sprintf("- %s: %s\n",i,e->getLastError());
+                  } else {
+                    showError(e->getLastError());
+                  }
                 } else {
-                  MARK_MODIFIED;
+                  if (e->addSamplePtr(s)==-1) {
+                    if (fileDialog->getFileName().size()>1) {
+                      warn=true;
+                      errs+=fmt::sprintf("- %s: %s\n",i,e->getLastError());
+                    } else {
+                      showError(e->getLastError());
+                    }
+                  } else {
+                    MARK_MODIFIED;
+                  }
                 }
+              }
+              if (warn) {
+                showWarning(errs,GUI_WARN_GENERIC);
               }
               break;
             }
@@ -4165,16 +4186,33 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_WAVE_OPEN: {
-              DivWavetable* wave=e->waveFromFile(copyOfName.c_str());
-              if (wave==NULL) {
-                showError("cannot load wavetable! ("+e->getLastError()+")");
-              } else {
-                if (e->addWavePtr(wave)==-1) {
-                  showError("cannot load wavetable! ("+e->getLastError()+")");
+              String errs="there were some errors while loading wavetables:\n";
+              bool warn=false;
+              for (String i: fileDialog->getFileName()) {
+                DivWavetable* wave=e->waveFromFile(i.c_str());
+                if (wave==NULL) {
+                  if (fileDialog->getFileName().size()>1) {
+                    warn=true;
+                    errs+=fmt::sprintf("- %s: %s\n",i,e->getLastError());
+                  } else {
+                    showError("cannot load wavetable! ("+e->getLastError()+")");
+                  }
                 } else {
-                  MARK_MODIFIED;
-                  RESET_WAVE_MACRO_ZOOM;
+                  if (e->addWavePtr(wave)==-1) {
+                    if (fileDialog->getFileName().size()>1) {
+                      warn=true;
+                      errs+=fmt::sprintf("- %s: %s\n",i,e->getLastError());
+                    } else {
+                      showError("cannot load wavetable! ("+e->getLastError()+")");
+                    }
+                  } else {
+                    MARK_MODIFIED;
+                    RESET_WAVE_MACRO_ZOOM;
+                  }
                 }
+              }
+              if (warn) {
+                showWarning(errs,GUI_WARN_GENERIC);
               }
               break;
             }
