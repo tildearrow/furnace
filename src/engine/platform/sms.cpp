@@ -125,7 +125,7 @@ void DivPlatformSMS::tick(bool sysTick) {
     if (i==3) CHIP_DIVIDER=noiseDivider;
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LOG(chan[i].std.vol.val,chan[i].vol,15);
+      chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].std.vol.val,chan[i].vol,15);
       if (chan[i].outVol<0) chan[i].outVol=0;
       // old formula
       // ((chan[i].vol&15)*MIN(15,chan[i].std.vol.val))>>4;

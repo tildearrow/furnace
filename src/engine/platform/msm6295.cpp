@@ -92,7 +92,7 @@ void DivPlatformMSM6295::tick(bool sysTick) {
     if (!parent->song.disableSampleMacro) {
       chan[i].std.next();
       if (chan[i].std.vol.had) {
-        chan[i].outVol=VOL_SCALE_LOG(chan[i].std.vol.val,chan[i].vol,8);
+        chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].std.vol.val,chan[i].vol,8);
       }
       if (chan[i].std.duty.had) {
         if (rateSel!=(chan[i].std.duty.val&1)) {
