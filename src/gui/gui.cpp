@@ -1492,7 +1492,8 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
             }
           }
           for (DivInstrument* i: instruments) delete i;
-        }
+        },
+        (type==GUI_FILE_INS_OPEN)
       );
       break;
     case GUI_FILE_INS_SAVE:
@@ -4090,12 +4091,39 @@ bool FurnaceGUI::loop() {
               exportAudio(copyOfName,DIV_EXPORT_MODE_MANY_CHAN);
               break;
             case GUI_FILE_INS_OPEN: {
-              std::vector<DivInstrument*> instruments=e->instrumentFromFile(copyOfName.c_str());
-              if (!instruments.empty()) {
-                if (!e->getWarnings().empty()) {
-                  showWarning(e->getWarnings(),GUI_WARN_GENERIC);
+              std::vector<DivInstrument*> instruments;
+              bool ask=false;
+              bool warn=false;
+              String warns="there were some warnings/errors while loading instruments:\n";
+              for (String i: fileDialog->getFileName()) {
+                std::vector<DivInstrument*> insTemp=e->instrumentFromFile(i.c_str());
+                if (insTemp.empty()) {
+                  warn=true;
+                  warns+=fmt::sprintf("> %s: cannot load instrument! (%s)\n",i,e->getLastError());
+                } else if (!e->getWarnings().empty()) {
+                  warn=true;
+                  warns+=fmt::sprintf("> %s:\n%s\n",i,e->getWarnings());
                 }
-                if (instruments.size()>1) { // ask which instruments to load
+                if (insTemp.size()>1) ask=true;
+                for (DivInstrument* j: insTemp) {
+                  instruments.push_back(j);
+                }
+              }
+              if (warn) {
+                if (instruments.empty()) {
+                  if (fileDialog->getFileName().size()>1) {
+                    showError(warns);
+                  } else {
+                    showError("cannot load instrument! ("+e->getLastError()+")");
+                  }
+                } else {
+                  showWarning(warns,GUI_WARN_GENERIC);
+                }
+              } else if (instruments.empty()) {
+                showError("congratulations! you managed to load nothing.\nyou are entitled to a bug report.");
+              }
+              if (!instruments.empty()) {
+                if (ask) { // ask which instruments to load
                   for (DivInstrument* i: instruments) {
                     pendingIns.push_back(std::make_pair(i,false));
                   }
@@ -4106,8 +4134,6 @@ bool FurnaceGUI::loop() {
                     e->addInstrumentPtr(i);
                   }
                 }
-              } else {
-                showError("cannot load instrument! ("+e->getLastError()+")");
               }
               break;
             }
