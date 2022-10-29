@@ -1478,11 +1478,8 @@ void DivEngine::registerSystems() {
   );
 
   EffectHandlerMap es5506PreEffectHandlerMap={
-      {0x10, {DIV_CMD_WAVE, "10xx: Change waveform or sample (00 to FF)",effectVal}}
-  };
-  EffectHandlerMap es5506PostEffectHandlerMap={
+      {0x10, {DIV_CMD_WAVE, "10xx: Change waveform or sample (00 to FF)",effectVal}},
       {0x11, {DIV_CMD_ES5506_FILTER_MODE, "11xx: Set filter mode (00 to 03)",effectValAnd<3>}},
-      {0x12, {DIV_CMD_ES5506_PAUSE, "120x: Set pause (bit 0)",effectValAnd<1>}},
       {0x14, {DIV_CMD_ES5506_FILTER_K1, "14xx: Set filter coefficient K1 low byte (00 to FF)",effectValShift<0>,constVal<0x00ff>}},
       {0x15, {DIV_CMD_ES5506_FILTER_K1, "15xx: Set filter coefficient K1 high byte (00 to FF)",effectValShift<8>,constVal<0xff00>}},
       {0x16, {DIV_CMD_ES5506_FILTER_K2, "16xx: Set filter coefficient K2 low byte (00 to FF)",effectValShift<0>,constVal<0x00ff>}},
@@ -1498,12 +1495,15 @@ void DivEngine::registerSystems() {
       {0x26, {DIV_CMD_ES5506_ENVELOPE_K2RAMP, "26xx: Set envelope filter coefficient k2 ramp (signed) (00 to FF)",effectVal,constVal<0>}},
       {0x27, {DIV_CMD_ES5506_ENVELOPE_K2RAMP, "27xx: Set envelope filter coefficient k2 ramp (signed, slower) (00 to FF)",effectVal,constVal<1>}}
   };
+  EffectHandlerMap es5506PostEffectHandlerMap={
+      {0x12, {DIV_CMD_ES5506_PAUSE, "120x: Set pause (bit 0)",effectValAnd<1>}}
+  };
   const EffectHandler es5506ECountHandler(DIV_CMD_ES5506_ENVELOPE_COUNT, "2xxx: Set envelope count (000 to 1FF)", effectValLong<9>);
-  const EffectHandler es5506K1Handler(DIV_CMD_ES5506_FILTER_K1, "3xxx: Set filter coefficient K1 (000 to FFF)", effectValLongShift<12,4>);
-  const EffectHandler es5506K2Handler(DIV_CMD_ES5506_FILTER_K2, "4xxx: Set filter coefficient K2 (000 to FFF)", effectValLongShift<12,4>);
-  for (int i=0; i<2; i++) es5506PostEffectHandlerMap.emplace(0x20+i,es5506ECountHandler);
-  for (int i=0; i<16; i++) es5506PostEffectHandlerMap.emplace(0x30+i, es5506K1Handler);
-  for (int i=0; i<16; i++) es5506PostEffectHandlerMap.emplace(0x40+i, es5506K2Handler);
+  const EffectHandler es5506K1Handler(DIV_CMD_ES5506_FILTER_K1, "3xxx: Set filter coefficient K1 (000 to FFF)", effectValLongShift<12,4>,constVal<0xfff0>);
+  const EffectHandler es5506K2Handler(DIV_CMD_ES5506_FILTER_K2, "4xxx: Set filter coefficient K2 (000 to FFF)", effectValLongShift<12,4>,constVal<0xfff0>);
+  for (int i=0; i<2; i++) es5506PreEffectHandlerMap.emplace(0x20+i,es5506ECountHandler);
+  for (int i=0; i<16; i++) es5506PreEffectHandlerMap.emplace(0x30+i, es5506K1Handler);
+  for (int i=0; i<16; i++) es5506PreEffectHandlerMap.emplace(0x40+i, es5506K2Handler);
 
   // TODO: custom sample format
   sysDefs[DIV_SYSTEM_ES5506]=new DivSysDef(

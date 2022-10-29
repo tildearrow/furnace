@@ -554,6 +554,24 @@ void putDispatchChip(void* data, int type) {
       ImGui::TextColored(ch->outStereo?colorOn:colorOff,">> OutStereo");
       break;
     }
+    case DIV_SYSTEM_ES5506: {
+      DivPlatformES5506* ch=(DivPlatformES5506*)data;
+      ImGui::Text("> ES5506");
+      COMMON_CHIP_DEBUG;
+      ImGui::Text("- cycle: %d",ch->cycle);
+      ImGui::Text("- curPage: %d",ch->curPage);
+      ImGui::Text("- maskedVal: %.2x",ch->maskedVal);
+      ImGui::Text("- irqv: %.2x",ch->irqv);
+      ImGui::Text("- curCR: %.8x",ch->curCR);
+      ImGui::Text("- prevChanCycle: %d",ch->prevChanCycle);
+      ImGui::Text("- initChanMax: %d",ch->initChanMax);
+      ImGui::Text("- chanMax: %d",ch->chanMax);
+      COMMON_CHIP_DEBUG_BOOL;
+      ImGui::TextColored(ch->isMasked?colorOn:colorOff,">> IsMasked");
+      ImGui::TextColored(ch->isReaded?colorOn:colorOff,">> isReaded");
+      ImGui::TextColored(ch->irqTrigger?colorOn:colorOff,">> IrqTrigger");
+      break;
+    }
     default:
       ImGui::Text("Unimplemented chip! Help!");
       break;
@@ -1095,6 +1113,17 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text(" - K2Slide: %d",ch->k2Slide);
       ImGui::Text(" - K1Prev: %.4x",ch->k1Prev);
       ImGui::Text(" - K2Prev: %.4x",ch->k2Prev);
+      ImGui::Text("* Overwrite:");
+      ImGui::Text(" * Filter:");
+      ImGui::Text("  - Mode: %d",ch->overwrite.filter.mode);
+      ImGui::Text("  - K1: %.4x",ch->overwrite.filter.k1);
+      ImGui::Text("  - K2: %.4x",ch->overwrite.filter.k2);
+      ImGui::Text(" * Envelope:");
+      ImGui::Text("  - EnvCount: %.3x",ch->overwrite.envelope.ecount);
+      ImGui::Text("  - LVRamp: %d",ch->overwrite.envelope.lVRamp);
+      ImGui::Text("  - RVRamp: %d",ch->overwrite.envelope.rVRamp);
+      ImGui::Text("  - K1Ramp: %d",ch->overwrite.envelope.k1Ramp);
+      ImGui::Text("  - K2Ramp: %d",ch->overwrite.envelope.k2Ramp);
       ImGui::Text("- vol: %.2x",ch->vol);
       ImGui::Text("- LVol: %.2x",ch->lVol);
       ImGui::Text("- RVol: %.2x",ch->rVol);
@@ -1103,8 +1132,6 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("- outRVol: %.2x",ch->outRVol);
       ImGui::Text("- ResLVol: %.2x",ch->resLVol);
       ImGui::Text("- ResRVol: %.2x",ch->resRVol);
-      ImGui::Text("- LOut: %d",ch->lOut);
-      ImGui::Text("- ROut: %d",ch->rOut);
       ImGui::Text("- oscOut: %d",ch->oscOut);
       ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
       ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
@@ -1127,6 +1154,16 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->pcm.reversed?colorOn:colorOff,">> PCMReversed");
       ImGui::TextColored(ch->envelope.k1Slow?colorOn:colorOff,">> EnvK1Slow");
       ImGui::TextColored(ch->envelope.k2Slow?colorOn:colorOff,">> EnvK2Slow");
+      ImGui::TextColored(ch->overwrite.envelope.k1Slow?colorOn:colorOff,">> EnvK1SlowOverwrite");
+      ImGui::TextColored(ch->overwrite.envelope.k2Slow?colorOn:colorOff,">> EnvK2SlowOverwrite");
+      ImGui::TextColored(ch->overwrite.state.mode?colorOn:colorOff,">> FilterModeOverwrited");
+      ImGui::TextColored(ch->overwrite.state.k1?colorOn:colorOff,">> FilterK1Overwrited");
+      ImGui::TextColored(ch->overwrite.state.k2?colorOn:colorOff,">> FilterK2Overwrited");
+      ImGui::TextColored(ch->overwrite.state.ecount?colorOn:colorOff,">> EnvECountOverwrited");
+      ImGui::TextColored(ch->overwrite.state.lVRamp?colorOn:colorOff,">> EnvLVRampOverwrited");
+      ImGui::TextColored(ch->overwrite.state.rVRamp?colorOn:colorOff,">> EnvRVRampOverwrited");
+      ImGui::TextColored(ch->overwrite.state.k1Ramp?colorOn:colorOff,">> EnvK1RampOverwrited");
+      ImGui::TextColored(ch->overwrite.state.k2Ramp?colorOn:colorOff,">> EnvK2RampOverwrited");
       break;
     }
     case DIV_SYSTEM_LYNX: {

@@ -143,13 +143,13 @@ void DivPlatformES5506::acquire(short* bufL, short* bufR, size_t start, size_t l
 void DivPlatformES5506::e_pin(bool state) {
   if (es5506.e_falling_edge()) { // get channel outputs
     if (es5506.voice_update()) {
-      chan[prevChanCycle].lOut=es5506.voice_lout(prevChanCycle);
-      chan[prevChanCycle].rOut=es5506.voice_rout(prevChanCycle);
-      chan[prevChanCycle].oscOut=CLAMP((chan[prevChanCycle].lOut+chan[prevChanCycle].rOut)>>5,-32768,32767);
+      const signed int lOut=es5506.voice_lout(prevChanCycle);
+      const signed int rOut=es5506.voice_rout(prevChanCycle);
+      chan[prevChanCycle].oscOut=CLAMP((lOut+rOut)>>5,-32768,32767);
       if (es5506.voice_end()) {
         if (prevChanCycle<31) {
           for (int c=31; c>prevChanCycle; c--) {
-            chan[c].lOut=chan[c].rOut=chan[c].oscOut=0;
+            chan[c].oscOut=0;
           }
         }
       }
@@ -614,11 +614,9 @@ void DivPlatformES5506::tick(bool sysTick) {
       if (chan[i].noteChanged.offs) {
         if (chan[i].pcm.freqOffs!=chan[i].pcm.nextFreqOffs) {
           chan[i].pcm.freqOffs=chan[i].pcm.nextFreqOffs;
-          const int nextFreq=NOTE_ES5506(i,chan[i].currNote);
-          if (chan[i].nextFreq!=nextFreq) {
-            chan[i].nextFreq=nextFreq;
-            chan[i].noteChanged.freq=1;
-          }
+          chan[i].nextFreq=NOTE_ES5506(i,chan[i].currNote);
+          chan[i].noteChanged.freq=1;
+          chan[i].freqChanged=true;
         }
       }
       if (chan[i].noteChanged.note) {
@@ -659,24 +657,36 @@ void DivPlatformES5506::tick(bool sysTick) {
           pageWrite(0x00|i,0x01,chan[i].freq);
           pageWrite(0x20|i,0x01,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.start:chan[i].pcm.loopStart);
           pageWrite(0x20|i,0x02,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.end:chan[i].pcm.loopEnd);
+          // initialize overwrite
+          const DivInstrumentES5506::Filter::FilterMode filterModeInit=chan[i].overwrite.state.mode?chan[i].overwrite.filter.mode:chan[i].filter.mode;
+          const signed int k1Init=chan[i].overwrite.state.k1?chan[i].overwrite.filter.k1:chan[i].filter.k1;
+          const signed int k2Init=chan[i].overwrite.state.k2?chan[i].overwrite.filter.k2:chan[i].filter.k2;
+
+          const unsigned short ecountInit=chan[i].overwrite.state.ecount?chan[i].overwrite.envelope.ecount:chan[i].envelope.ecount;
+          const unsigned char lVRampInit=(unsigned char)(chan[i].overwrite.state.lVRamp?chan[i].overwrite.envelope.lVRamp:chan[i].envelope.lVRamp);
+          const unsigned char rVRampInit=(unsigned char)(chan[i].overwrite.state.rVRamp?chan[i].overwrite.envelope.rVRamp:chan[i].envelope.rVRamp);
+          const unsigned char k1RampInit=(unsigned char)(chan[i].overwrite.state.k1Ramp?chan[i].overwrite.envelope.k1Ramp:chan[i].envelope.k1Ramp);
+          const unsigned char k2RampInit=(unsigned char)(chan[i].overwrite.state.k2Ramp?chan[i].overwrite.envelope.k2Ramp:chan[i].envelope.k2Ramp);
+          const bool k1SlowInit=chan[i].overwrite.state.k1Ramp?chan[i].overwrite.envelope.k1Slow:chan[i].envelope.k1Slow;
+          const bool k2SlowInit=chan[i].overwrite.state.k2Ramp?chan[i].overwrite.envelope.k2Slow:chan[i].envelope.k2Slow;
           // initialize envelope
-          pageWrite(0x00|i,0x03,((unsigned char)chan[i].envelope.lVRamp)<<8);
-          pageWrite(0x00|i,0x05,((unsigned char)chan[i].envelope.rVRamp)<<8);
-          pageWrite(0x00|i,0x0a,(((unsigned char)chan[i].envelope.k1Ramp)<<8)|(chan[i].envelope.k1Slow?1:0));
-          pageWrite(0x00|i,0x08,(((unsigned char)chan[i].envelope.k2Ramp)<<8)|(chan[i].envelope.k2Slow?1:0));
+          pageWrite(0x00|i,0x03,lVRampInit<<8);
+          pageWrite(0x00|i,0x05,rVRampInit<<8);
+          pageWrite(0x00|i,0x0a,(k1RampInit<<8)|(k1SlowInit?1:0));
+          pageWrite(0x00|i,0x08,(k2RampInit<<8)|(k2SlowInit?1:0));
           // initialize filter
-          pageWriteMask(0x00|i,0x5f,0x00,(chan[i].pcm.bank<<14)|(chan[i].filter.mode<<8),0xc300);
+          pageWriteMask(0x00|i,0x5f,0x00,(chan[i].pcm.bank<<14)|(filterModeInit<<8),0xc300);
           if ((chan[i].std.ex2.mode!=0) && (chan[i].std.ex2.had)) {
-            k2=CLAMP(chan[i].filter.k2+chan[i].k2Offs,0,65535);
+            k2=CLAMP(k2Init+chan[i].k2Offs,0,65535);
           } else {
-            k2=chan[i].filter.k2;
+            k2=k2Init;
           }
           pageWrite(0x00|i,0x07,k2);
           chan[i].k2Prev=k2;
           if ((chan[i].std.ex1.mode!=0) && (chan[i].std.ex1.had)) {
-            k1=CLAMP(chan[i].filter.k1+chan[i].k1Offs,0,65535);
+            k1=CLAMP(k1Init+chan[i].k1Offs,0,65535);
           } else {
-            k1=chan[i].filter.k1;
+            k1=k1Init;
           }
           pageWrite(0x00|i,0x09,k1);
           chan[i].k1Prev=k1;
@@ -703,17 +713,20 @@ void DivPlatformES5506::tick(bool sysTick) {
             loopFlag|=0x0002;
           }
           // Run sample
-          pageWrite(0x00|i,0x06,chan[i].envelope.ecount); // Clear ECOUNT
+          pageWrite(0x00|i,0x06,ecountInit); // Clear ECOUNT
           pageWriteMask(0x00|i,0x5f,0x00,loopFlag,0x3cff);
         }
       }
       if (chan[i].keyOff) {
         pageWriteMask(0x00|i,0x5f,0x00,0x0303); // Wipeout CR
-      } else if (chan[i].active) {
+      } else if (!chan[i].keyOn && chan[i].active) {
         pageWrite(0x00|i,0x01,chan[i].freq);
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
+      if (chan[i].overwrite.state.overwrited!=0) {
+        chan[i].overwrite.state.overwrited=0;
+      }
       chan[i].freqChanged=false;
     }
     if (!chan[i].keyOn && chan[i].active) {
@@ -854,14 +867,35 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       break;
     // Filter commands
     case DIV_CMD_ES5506_FILTER_MODE:
+      if (!chan[c.chan].keyOn) {
+        if (!chan[c.chan].overwrite.state.mode) {
+          chan[c.chan].overwrite.filter.mode=chan[c.chan].filter.mode;
+          chan[c.chan].overwrite.state.mode=1;
+        }
+        chan[c.chan].overwrite.filter.mode=DivInstrumentES5506::Filter::FilterMode(c.value&3);
+      }
       chan[c.chan].filter.mode=DivInstrumentES5506::Filter::FilterMode(c.value&3);
       chan[c.chan].filterChanged.mode=1;
       break;
     case DIV_CMD_ES5506_FILTER_K1:
+      if (!chan[c.chan].keyOn) {
+        if (!chan[c.chan].overwrite.state.k1) {
+          chan[c.chan].overwrite.filter.k1=chan[c.chan].filter.k1;
+          chan[c.chan].overwrite.state.k1=1;
+        }
+        chan[c.chan].overwrite.filter.k1=(chan[c.chan].overwrite.filter.k1&~c.value2)|(c.value&c.value2);
+      }
       chan[c.chan].filter.k1=(chan[c.chan].filter.k1&~c.value2)|(c.value&c.value2);
       chan[c.chan].filterChanged.k1=1;
       break;
     case DIV_CMD_ES5506_FILTER_K2:
+      if (!chan[c.chan].keyOn) {
+        if (!chan[c.chan].overwrite.state.k2) {
+          chan[c.chan].overwrite.filter.k2=chan[c.chan].filter.k2;
+          chan[c.chan].overwrite.state.k2=1;
+        }
+        chan[c.chan].overwrite.filter.k2=(chan[c.chan].overwrite.filter.k2&~c.value2)|(c.value&c.value2);
+      }
       chan[c.chan].filter.k2=(chan[c.chan].filter.k2&~c.value2)|(c.value&c.value2);
       chan[c.chan].filterChanged.k2=1;
       break;
@@ -873,23 +907,62 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       break;
     // Envelope commands
     case DIV_CMD_ES5506_ENVELOPE_COUNT:
+      if (!chan[c.chan].keyOn) {
+        if (!chan[c.chan].overwrite.state.ecount) {
+          chan[c.chan].overwrite.envelope.ecount=chan[c.chan].envelope.ecount;
+          chan[c.chan].overwrite.state.ecount=1;
+        }
+        chan[c.chan].overwrite.envelope.ecount=c.value&0x1ff;
+      }
       chan[c.chan].envelope.ecount=c.value&0x1ff;
       chan[c.chan].envChanged.ecount=1;
       break;
     case DIV_CMD_ES5506_ENVELOPE_LVRAMP:
+      if (!chan[c.chan].keyOn) {
+        if (!chan[c.chan].overwrite.state.lVRamp) {
+          chan[c.chan].overwrite.envelope.lVRamp=chan[c.chan].envelope.lVRamp;
+          chan[c.chan].overwrite.state.lVRamp=1;
+        }
+        chan[c.chan].overwrite.envelope.lVRamp=(signed char)(c.value&0xff);
+      }
       chan[c.chan].envelope.lVRamp=(signed char)(c.value&0xff);
       chan[c.chan].envChanged.lVRamp=1;
       break;
     case DIV_CMD_ES5506_ENVELOPE_RVRAMP:
+      if (!chan[c.chan].keyOn) {
+        if (!chan[c.chan].overwrite.state.rVRamp) {
+          chan[c.chan].overwrite.envelope.rVRamp=chan[c.chan].envelope.rVRamp;
+          chan[c.chan].overwrite.state.rVRamp=1;
+        }
+        chan[c.chan].overwrite.envelope.rVRamp=(signed char)(c.value&0xff);
+      }
       chan[c.chan].envelope.rVRamp=(signed char)(c.value&0xff);
       chan[c.chan].envChanged.rVRamp=1;
       break;
     case DIV_CMD_ES5506_ENVELOPE_K1RAMP:
+      if (!chan[c.chan].keyOn) {
+        if (!chan[c.chan].overwrite.state.k1Ramp) {
+          chan[c.chan].overwrite.envelope.k1Ramp=chan[c.chan].envelope.k1Ramp;
+          chan[c.chan].overwrite.envelope.k1Slow=chan[c.chan].envelope.k1Slow;
+          chan[c.chan].overwrite.state.k1Ramp=1;
+        }
+        chan[c.chan].overwrite.envelope.k1Ramp=(signed char)(c.value&0xff);
+        chan[c.chan].overwrite.envelope.k1Slow=c.value2&1;
+      }
       chan[c.chan].envelope.k1Ramp=(signed char)(c.value&0xff);
       chan[c.chan].envelope.k1Slow=c.value2&1;
       chan[c.chan].envChanged.k1Ramp=1;
       break;
     case DIV_CMD_ES5506_ENVELOPE_K2RAMP:
+      if (!chan[c.chan].keyOn) {
+        if (!chan[c.chan].overwrite.state.k2Ramp) {
+          chan[c.chan].overwrite.envelope.k2Ramp=chan[c.chan].envelope.k2Ramp;
+          chan[c.chan].overwrite.envelope.k2Slow=chan[c.chan].envelope.k2Slow;
+          chan[c.chan].overwrite.state.k2Ramp=1;
+        }
+        chan[c.chan].overwrite.envelope.k2Ramp=(signed char)(c.value&0xff);
+        chan[c.chan].overwrite.envelope.k2Slow=c.value2&1;
+      }
       chan[c.chan].envelope.k2Ramp=(signed char)(c.value&0xff);
       chan[c.chan].envelope.k2Slow=c.value2&1;
       chan[c.chan].envChanged.k2Ramp=1;

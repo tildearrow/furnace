@@ -141,7 +141,38 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         };
         unsigned char changed;
       };
+      PCMChanged():
+        changed(0) {}
     } pcmChanged;
+
+    struct Overwrite {
+      DivInstrumentES5506::Filter filter;
+      DivInstrumentES5506::Envelope envelope;
+
+      struct State {
+        // overwrited flag
+        union {
+          struct {
+            unsigned char mode: 1; // filter mode
+            unsigned char k1: 1; // k1
+            unsigned char k2: 1; // k2
+            unsigned char ecount: 1; // envelope count
+            unsigned char lVRamp: 1; // left volume ramp
+            unsigned char rVRamp: 1; // right volume ramp
+            unsigned char k1Ramp: 1; // k1 ramp
+            unsigned char k2Ramp: 1; // k2 ramp
+          };
+          unsigned char overwrited;
+        };
+        State():
+          overwrited(0) {}
+      } state;
+
+      Overwrite():
+        filter(DivInstrumentES5506::Filter()),
+        envelope(DivInstrumentES5506::Envelope()),
+        state(State()) {}
+    } overwrite;
 
     signed int k1Offs, k2Offs;
     signed int k1Slide, k2Slide;
@@ -149,7 +180,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     unsigned int vol, lVol, rVol;
     unsigned int outVol, outLVol, outRVol;
     unsigned int resLVol, resRVol;
-    signed int lOut, rOut, oscOut;
+    signed int oscOut;
     DivInstrumentES5506::Filter filter;
     DivInstrumentES5506::Envelope envelope;
     DivMacroInt std;
@@ -166,6 +197,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       k2Prev=0xffff;
     }
     Channel():
+      pcm(PCM()),
       freq(0),
       baseFreq(0),
       nextFreq(0),
@@ -187,6 +219,12 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       useWave(false),
       isReverseLoop(false),
       cr(0),
+      noteChanged(NoteChanged()),
+      volChanged(VolChanged()),
+      filterChanged(FilterChanged()),
+      envChanged(EnvChanged()),
+      pcmChanged(PCMChanged()),
+      overwrite(Overwrite()),
       k1Offs(0),
       k2Offs(0),
       k1Slide(0),
@@ -201,9 +239,9 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       outRVol(0xffff),
       resLVol(0xffff),
       resRVol(0xffff),
-      lOut(0),
-      rOut(0),
-      oscOut(0) {}
+      oscOut(0),
+      filter(DivInstrumentES5506::Filter()),
+      envelope(DivInstrumentES5506::Envelope()) {}
   };
   Channel chan[32];
   DivDispatchOscBuffer* oscBuf[32];
@@ -263,6 +301,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   es5506_core es5506;
   unsigned char regPool[4*16*128]; // 7 bit page x 16 registers per page x 32 bit per registers
 
+  friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
   public:
