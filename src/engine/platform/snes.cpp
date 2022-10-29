@@ -104,7 +104,7 @@ void DivPlatformSNES::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LOG(chan[i].vol&127,MIN(127,chan[i].std.vol.val),127);
+      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&127,MIN(127,chan[i].std.vol.val),127);
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {

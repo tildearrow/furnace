@@ -60,7 +60,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
         rWrite(baseAddr+0x40,127);
       } else {
         if (opChan[ch].insChanged) {
-          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG(127-op.tl,opChan[ch].vol&0x7f,127));
+          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].vol&0x7f,127));
         }
       }
       if (opChan[ch].insChanged) {
@@ -99,7 +99,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       if (isOpMuted[ch]) {
         rWrite(baseAddr+0x40,127);
       } else {
-        rWrite(baseAddr+0x40,127-VOL_SCALE_LOG(127-op.tl,opChan[ch].vol&0x7f,127));
+        rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].vol&0x7f,127));
       }
       break;
     }
@@ -210,7 +210,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       if (isOpMuted[ch]) {
         rWrite(baseAddr+0x40,127);
       } else if (KVS(2,c.value)) {
-        rWrite(baseAddr+0x40,127-VOL_SCALE_LOG(127-op.tl,opChan[ch].vol&0x7f,127));
+        rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].vol&0x7f,127));
       } else {
         rWrite(baseAddr+0x40,op.tl);
       }
@@ -393,8 +393,8 @@ void DivPlatformGenesisExt::muteChannel(int ch, bool mute) {
     rWrite(baseAddr+0x40,127);
     immWrite(baseAddr+0x40,127);
   } else if (KVS(2,ordch)) {
-    rWrite(baseAddr+0x40,127-VOL_SCALE_LOG(127-op.tl,opChan[ch-2].vol&0x7f,127));
-    immWrite(baseAddr+0x40,127-VOL_SCALE_LOG(127-op.tl,opChan[ch-2].vol&0x7f,127));
+    rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-2].vol&0x7f,127));
+    immWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-2].vol&0x7f,127));
   } else {
     rWrite(baseAddr+0x40,op.tl);
     immWrite(baseAddr+0x40,op.tl);
@@ -527,7 +527,7 @@ void DivPlatformGenesisExt::forceIns() {
         if (isOpMuted[j]) {
           rWrite(baseAddr+0x40,127);
         } else if (KVS(i,j)) {
-          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG(127-op.tl,opChan[j].vol&0x7f,127));
+          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[j].vol&0x7f,127));
         } else {
           rWrite(baseAddr+0x40,op.tl);
         }
@@ -536,7 +536,7 @@ void DivPlatformGenesisExt::forceIns() {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
           if (KVS(i,j)) {
-            rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG(127-op.tl,chan[i].outVol&0x7f,127));
+            rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[i].outVol&0x7f,127));
           } else {
             rWrite(baseAddr+ADDR_TL,op.tl);
           }

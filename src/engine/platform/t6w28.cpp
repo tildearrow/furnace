@@ -87,7 +87,7 @@ void DivPlatformT6W28::tick(bool sysTick) {
     if (i==3) CHIP_DIVIDER=15;
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LOG(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
+      chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
