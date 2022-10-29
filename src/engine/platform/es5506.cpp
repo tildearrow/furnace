@@ -885,7 +885,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       break;
     // Filter commands
     case DIV_CMD_ES5506_FILTER_MODE:
-      if (!chan[c.chan].keyOn) {
+      if (!chan[c.chan].active) {
         if (!chan[c.chan].overwrite.state.mode) {
           chan[c.chan].overwrite.filter.mode=chan[c.chan].filter.mode;
           chan[c.chan].overwrite.state.mode=1;
@@ -896,7 +896,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       chan[c.chan].filterChanged.mode=1;
       break;
     case DIV_CMD_ES5506_FILTER_K1:
-      if (!chan[c.chan].keyOn) {
+      if (!chan[c.chan].active) {
         if (!chan[c.chan].overwrite.state.k1) {
           chan[c.chan].overwrite.filter.k1=chan[c.chan].filter.k1;
           chan[c.chan].overwrite.state.k1=1;
@@ -907,7 +907,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       chan[c.chan].filterChanged.k1=1;
       break;
     case DIV_CMD_ES5506_FILTER_K2:
-      if (!chan[c.chan].keyOn) {
+      if (!chan[c.chan].active) {
         if (!chan[c.chan].overwrite.state.k2) {
           chan[c.chan].overwrite.filter.k2=chan[c.chan].filter.k2;
           chan[c.chan].overwrite.state.k2=1;
@@ -925,7 +925,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       break;
     // Envelope commands
     case DIV_CMD_ES5506_ENVELOPE_COUNT:
-      if (!chan[c.chan].keyOn) {
+      if (!chan[c.chan].active) {
         if (!chan[c.chan].overwrite.state.ecount) {
           chan[c.chan].overwrite.envelope.ecount=chan[c.chan].envelope.ecount;
           chan[c.chan].overwrite.state.ecount=1;
@@ -936,7 +936,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       chan[c.chan].envChanged.ecount=1;
       break;
     case DIV_CMD_ES5506_ENVELOPE_LVRAMP:
-      if (!chan[c.chan].keyOn) {
+      if (!chan[c.chan].active) {
         if (!chan[c.chan].overwrite.state.lVRamp) {
           chan[c.chan].overwrite.envelope.lVRamp=chan[c.chan].envelope.lVRamp;
           chan[c.chan].overwrite.state.lVRamp=1;
@@ -947,7 +947,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       chan[c.chan].envChanged.lVRamp=1;
       break;
     case DIV_CMD_ES5506_ENVELOPE_RVRAMP:
-      if (!chan[c.chan].keyOn) {
+      if (!chan[c.chan].active) {
         if (!chan[c.chan].overwrite.state.rVRamp) {
           chan[c.chan].overwrite.envelope.rVRamp=chan[c.chan].envelope.rVRamp;
           chan[c.chan].overwrite.state.rVRamp=1;
@@ -958,7 +958,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       chan[c.chan].envChanged.rVRamp=1;
       break;
     case DIV_CMD_ES5506_ENVELOPE_K1RAMP:
-      if (!chan[c.chan].keyOn) {
+      if (!chan[c.chan].active) {
         if (!chan[c.chan].overwrite.state.k1Ramp) {
           chan[c.chan].overwrite.envelope.k1Ramp=chan[c.chan].envelope.k1Ramp;
           chan[c.chan].overwrite.envelope.k1Slow=chan[c.chan].envelope.k1Slow;
@@ -972,7 +972,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       chan[c.chan].envChanged.k1Ramp=1;
       break;
     case DIV_CMD_ES5506_ENVELOPE_K2RAMP:
-      if (!chan[c.chan].keyOn) {
+      if (!chan[c.chan].active) {
         if (!chan[c.chan].overwrite.state.k2Ramp) {
           chan[c.chan].overwrite.envelope.k2Ramp=chan[c.chan].envelope.k2Ramp;
           chan[c.chan].overwrite.envelope.k2Slow=chan[c.chan].envelope.k2Slow;
