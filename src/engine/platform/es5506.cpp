@@ -659,10 +659,11 @@ void DivPlatformES5506::tick(bool sysTick) {
           pageWrite(0x20|i,0x01,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.start:chan[i].pcm.loopStart);
           pageWrite(0x20|i,0x02,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.end:chan[i].pcm.loopEnd);
           // initialize overwrite
+          // Filter
           const DivInstrumentES5506::Filter::FilterMode filterModeInit=chan[i].overwrite.state.mode?chan[i].overwrite.filter.mode:chan[i].filter.mode;
           const signed int k1Init=chan[i].overwrite.state.k1?chan[i].overwrite.filter.k1:chan[i].filter.k1;
           const signed int k2Init=chan[i].overwrite.state.k2?chan[i].overwrite.filter.k2:chan[i].filter.k2;
-
+          // Envelope
           const unsigned short ecountInit=chan[i].overwrite.state.ecount?chan[i].overwrite.envelope.ecount:chan[i].envelope.ecount;
           const unsigned char lVRampInit=(unsigned char)(chan[i].overwrite.state.lVRamp?chan[i].overwrite.envelope.lVRamp:chan[i].envelope.lVRamp);
           const unsigned char rVRampInit=(unsigned char)(chan[i].overwrite.state.rVRamp?chan[i].overwrite.envelope.rVRamp:chan[i].envelope.rVRamp);
