@@ -659,36 +659,55 @@ void DivPlatformES5506::tick(bool sysTick) {
           pageWrite(0x20|i,0x01,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.start:chan[i].pcm.loopStart);
           pageWrite(0x20|i,0x02,(chan[i].pcm.loopMode==DIV_SAMPLE_LOOP_MAX)?chan[i].pcm.end:chan[i].pcm.loopEnd);
           // initialize overwrite
-          // Filter
-          const DivInstrumentES5506::Filter::FilterMode filterModeInit=chan[i].overwrite.state.mode?chan[i].overwrite.filter.mode:chan[i].filter.mode;
-          const signed int k1Init=chan[i].overwrite.state.k1?chan[i].overwrite.filter.k1:chan[i].filter.k1;
-          const signed int k2Init=chan[i].overwrite.state.k2?chan[i].overwrite.filter.k2:chan[i].filter.k2;
-          // Envelope
-          const unsigned short ecountInit=chan[i].overwrite.state.ecount?chan[i].overwrite.envelope.ecount:chan[i].envelope.ecount;
-          const unsigned char lVRampInit=(unsigned char)(chan[i].overwrite.state.lVRamp?chan[i].overwrite.envelope.lVRamp:chan[i].envelope.lVRamp);
-          const unsigned char rVRampInit=(unsigned char)(chan[i].overwrite.state.rVRamp?chan[i].overwrite.envelope.rVRamp:chan[i].envelope.rVRamp);
-          const unsigned char k1RampInit=(unsigned char)(chan[i].overwrite.state.k1Ramp?chan[i].overwrite.envelope.k1Ramp:chan[i].envelope.k1Ramp);
-          const unsigned char k2RampInit=(unsigned char)(chan[i].overwrite.state.k2Ramp?chan[i].overwrite.envelope.k2Ramp:chan[i].envelope.k2Ramp);
-          const bool k1SlowInit=chan[i].overwrite.state.k1Ramp?chan[i].overwrite.envelope.k1Slow:chan[i].envelope.k1Slow;
-          const bool k2SlowInit=chan[i].overwrite.state.k2Ramp?chan[i].overwrite.envelope.k2Slow:chan[i].envelope.k2Slow;
+          if (chan[i].overwrite.state.overwrited) {
+            // Filter
+            if (chan[i].overwrite.state.mode) {
+              chan[i].filter.mode=chan[i].overwrite.filter.mode;
+            }
+            if (chan[i].overwrite.state.k1) {
+              chan[i].filter.k1=chan[i].overwrite.filter.k1;
+            }
+            if (chan[i].overwrite.state.k2) {
+              chan[i].filter.k2=chan[i].overwrite.filter.k2;
+            }
+            // Envelope
+            if (chan[i].overwrite.state.ecount) {
+              chan[i].envelope.ecount=chan[i].overwrite.envelope.ecount;
+            }
+            if (chan[i].overwrite.state.lVRamp) {
+              chan[i].envelope.lVRamp=chan[i].overwrite.envelope.lVRamp;
+            }
+            if (chan[i].overwrite.state.rVRamp) {
+              chan[i].envelope.rVRamp=chan[i].overwrite.envelope.rVRamp;
+            }
+            if (chan[i].overwrite.state.k1Ramp) {
+              chan[i].envelope.k1Ramp=chan[i].overwrite.envelope.k1Ramp;
+              chan[i].envelope.k1Slow=chan[i].overwrite.envelope.k1Slow;
+            }
+            if (chan[i].overwrite.state.k2Ramp) {
+              chan[i].envelope.k2Ramp=chan[i].overwrite.envelope.k2Ramp;
+              chan[i].envelope.k2Slow=chan[i].overwrite.envelope.k2Slow;
+            }
+            chan[i].overwrite.state.overwrited=0;
+          }
           // initialize envelope
-          pageWrite(0x00|i,0x03,lVRampInit<<8);
-          pageWrite(0x00|i,0x05,rVRampInit<<8);
-          pageWrite(0x00|i,0x0a,(k1RampInit<<8)|(k1SlowInit?1:0));
-          pageWrite(0x00|i,0x08,(k2RampInit<<8)|(k2SlowInit?1:0));
+          pageWrite(0x00|i,0x03,(unsigned char)(chan[i].envelope.lVRamp)<<8);
+          pageWrite(0x00|i,0x05,(unsigned char)(chan[i].envelope.rVRamp)<<8);
+          pageWrite(0x00|i,0x0a,((unsigned char)(chan[i].envelope.k1Ramp)<<8)|(chan[i].envelope.k1Slow?1:0));
+          pageWrite(0x00|i,0x08,((unsigned char)(chan[i].envelope.k2Ramp)<<8)|(chan[i].envelope.k2Slow?1:0));
           // initialize filter
-          pageWriteMask(0x00|i,0x5f,0x00,(chan[i].pcm.bank<<14)|(filterModeInit<<8),0xc300);
+          pageWriteMask(0x00|i,0x5f,0x00,(chan[i].pcm.bank<<14)|(chan[i].filter.mode<<8),0xc300);
           if ((chan[i].std.ex2.mode!=0) && (chan[i].std.ex2.had)) {
-            k2=CLAMP(k2Init+chan[i].k2Offs,0,65535);
+            k2=CLAMP(chan[i].filter.k2+chan[i].k2Offs,0,65535);
           } else {
-            k2=k2Init;
+            k2=chan[i].filter.k2;
           }
           pageWrite(0x00|i,0x07,k2);
           chan[i].k2Prev=k2;
           if ((chan[i].std.ex1.mode!=0) && (chan[i].std.ex1.had)) {
-            k1=CLAMP(k1Init+chan[i].k1Offs,0,65535);
+            k1=CLAMP(chan[i].filter.k1+chan[i].k1Offs,0,65535);
           } else {
-            k1=k1Init;
+            k1=chan[i].filter.k1;
           }
           pageWrite(0x00|i,0x09,k1);
           chan[i].k1Prev=k1;
@@ -715,7 +734,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             loopFlag|=0x0002;
           }
           // Run sample
-          pageWrite(0x00|i,0x06,ecountInit); // Clear ECOUNT
+          pageWrite(0x00|i,0x06,chan[i].envelope.ecount); // Clear ECOUNT
           pageWriteMask(0x00|i,0x5f,0x00,loopFlag,0x3cff);
         }
       }
@@ -726,9 +745,6 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
-      if (chan[i].overwrite.state.overwrited!=0) {
-        chan[i].overwrite.state.overwrited=0;
-      }
       chan[i].freqChanged=false;
     }
     if (!chan[i].keyOn && chan[i].active) {
