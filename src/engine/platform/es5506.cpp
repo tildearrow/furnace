@@ -643,8 +643,9 @@ void DivPlatformES5506::tick(bool sysTick) {
         if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
           unsigned int startPos=chan[i].pcm.reversed?chan[i].pcm.end:chan[i].pcm.start;
           if (chan[i].pcm.nextPos) {
+            const unsigned int start=chan[i].pcm.start;
             const unsigned int end=chan[i].pcm.length;
-            startPos+=(chan[i].pcm.reversed?(end-chan[i].pcm.nextPos):chan[i].pcm.nextPos)<<11;
+            startPos=start+((chan[i].pcm.reversed?(end-chan[i].pcm.nextPos):(chan[i].pcm.nextPos))<<11);
             chan[i].pcm.nextPos=0;
           }
           chan[i].k1Prev=0xffff;
