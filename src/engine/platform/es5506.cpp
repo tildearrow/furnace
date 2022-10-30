@@ -1195,7 +1195,7 @@ void DivPlatformES5506::renderSamples() {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleOffES5506,0,256*sizeof(unsigned int));
 
-  size_t memPos=128;
+  size_t memPos=128; // add silent at begin and end of each bank for reverse playback
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     unsigned int length=s->length16;
