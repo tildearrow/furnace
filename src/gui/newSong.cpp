@@ -128,7 +128,9 @@ void FurnaceGUI::drawNewSong() {
       if (newSystemCat->systems.size()==0) {
         ImGui::CloseCurrentPopup();
       } else {
-        nextDesc=newSystemCat->systems[rand()%newSystemCat->systems.size()].definition.data();
+        unsigned int selection=rand()%newSystemCat->systems.size();
+        nextDesc=newSystemCat->systems[selection].definition.data();
+        nextDescName=newSystemCat->systems[selection].name;
         accepted=true;
       }
     }
