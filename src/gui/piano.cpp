@@ -369,6 +369,7 @@ void FurnaceGUI::drawPiano() {
           pianoOptions=!pianoOptions;
         }
 
+        // TODO: wave and sample preview
         // first check released keys
         for (int i=0; i<180; i++) {
           int note=i-60;

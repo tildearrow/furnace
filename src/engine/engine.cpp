@@ -3067,8 +3067,20 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
       if (extS==".brr") {
         dataBuf=sample->dataBRR;
         if ((len%9)==2) {
-          // ignore loop position
-          fseek(f,2,SEEK_SET);
+          // read loop position
+          unsigned short loopPos=0;
+          logD("BRR file has loop position");
+          if (fread(&loopPos,1,2,f)!=2) {
+            logW("could not read loop position! %s",strerror(errno));
+          } else {
+#ifdef TA_BIG_ENDIAN
+            loopPos=(loopPos>>8)|(loopPos<<8);
+#endif
+            sample->loopStart=16*(loopPos/9);
+            sample->loopEnd=sample->samples;
+            sample->loop=true;
+            sample->loopMode=DIV_SAMPLE_LOOP_FORWARD;
+          }
           len-=2;
           if (len==0) {
             fclose(f);
