@@ -18,7 +18,7 @@
  */
 
 #include "gui.h"
-#include <imgui.h>
+#include "misc/cpp/imgui_stdlib.h"
 
 bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange) {
   bool altered=false;
@@ -1271,6 +1271,19 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           if (echoFilter[i]>127) echoFilter[i]=127;
           altered=true;
         } rightClickable
+      }
+
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); // wavetable text input size found here
+      if (ImGui::InputText("##MMLWave",&mmlStringSNES)) {
+        int actualData[256];
+        int discardIt=0;
+        memset(actualData,0,256*sizeof(int));
+        decodeMMLStrW(mmlStringSNES,actualData,discardIt,-128,127,false);
+        memcpy(echoFilter,actualData,8*sizeof(int));
+        altered=true;
+      }
+      if (!ImGui::IsItemActive()) {
+        encodeMMLStr(mmlStringSNES,echoFilter,8,-1,-1,false);
       }
 
       if (altered) {
