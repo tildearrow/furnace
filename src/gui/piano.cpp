@@ -369,14 +369,27 @@ void FurnaceGUI::drawPiano() {
           pianoOptions=!pianoOptions;
         }
 
+        // TODO: wave and sample preview
         // first check released keys
         for (int i=0; i<180; i++) {
           int note=i-60;
           if (!pianoKeyPressed[i]) {
             if (pianoKeyPressed[i]!=oldPianoKeyPressed[i]) {
-              e->synchronized([this,note]() {
-                e->autoNoteOff(-1,note);
-              });
+              switch (curWindow) {
+                case GUI_WINDOW_WAVE_LIST:
+                case GUI_WINDOW_WAVE_EDIT:
+                  e->stopWavePreview();
+                  break;
+                case GUI_WINDOW_SAMPLE_LIST:
+                case GUI_WINDOW_SAMPLE_EDIT:
+                  e->stopSamplePreview();
+                  break;
+                default:
+                  e->synchronized([this,note]() {
+                    e->autoNoteOff(-1,note);
+                  });
+                  break;
+              }
             }
           }
         }
@@ -385,10 +398,22 @@ void FurnaceGUI::drawPiano() {
           int note=i-60;
           if (pianoKeyPressed[i]) {
             if (pianoKeyPressed[i]!=oldPianoKeyPressed[i]) {
-              e->synchronized([this,note]() {
-                e->autoNoteOn(-1,curIns,note);
-              });
-              if (edit) noteInput(note,0);
+              switch (curWindow) {
+                case GUI_WINDOW_WAVE_LIST:
+                case GUI_WINDOW_WAVE_EDIT:
+                  e->previewWave(curWave,note);
+                  break;
+                case GUI_WINDOW_SAMPLE_LIST:
+                case GUI_WINDOW_SAMPLE_EDIT:
+                  e->previewSample(curWave,note);
+                  break;
+                default:
+                  e->synchronized([this,note]() {
+                    e->autoNoteOn(-1,curIns,note);
+                  });
+                  if (edit) noteInput(note,0);
+                  break;
+              }
             }
           }
         }
@@ -397,7 +422,8 @@ void FurnaceGUI::drawPiano() {
       ImGui::EndTable();
     }
   }
-  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PIANO;
+  // don't worry about it
+  //if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PIANO;
   ImGui::End();
 
   // draw input pad if necessary
@@ -458,7 +484,8 @@ void FurnaceGUI::drawPiano() {
       }
       ImGui::EndDisabled();
     }
-    if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PIANO;
+    // don't worry about it either
+    //if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_PIANO;
     ImGui::End();
   }
 }

@@ -3344,7 +3344,9 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       }
     }
 
-    if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale))==NULL) {
+    // 0x39B = Λ
+    static const ImWchar bigFontRange[]={0x20,0xFF,0x39b,0x39b,0};
+    if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale,NULL,bigFontRange))==NULL) {
       logE("could not load big UI font!");
     }
 
