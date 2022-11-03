@@ -1039,7 +1039,7 @@ class FurnaceGUI {
   bool portrait, mobileMenuOpen;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
-  bool displayPendingIns, pendingInsSingle, displayPendingRawSample;
+  bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex;
   bool willExport[32];
   int vgmExportVersion;
   int drawHalt;

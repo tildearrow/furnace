@@ -5443,6 +5443,7 @@ FurnaceGUI::FurnaceGUI():
   displayPendingIns(false),
   pendingInsSingle(false),
   displayPendingRawSample(false),
+  snesFilterHex(false),
   vgmExportVersion(0x171),
   drawHalt(10),
   zsmExportTickRate(60),
