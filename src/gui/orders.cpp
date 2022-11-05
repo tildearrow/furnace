@@ -29,6 +29,14 @@ void FurnaceGUI::drawOrders() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!ordersOpen) return;
+  if (mobileUI) {
+    patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*canvasH)):ImVec2((0.16*canvasH)+0.5*canvasW*mobileMenuPos,0.0f));
+    patWindowSize=(portrait?ImVec2(canvasW,canvasH-(0.16*canvasW)):ImVec2(canvasW-(0.16*canvasH),canvasH));
+    ImGui::SetNextWindowPos(patWindowPos);
+    ImGui::SetNextWindowSize(patWindowSize);
+  } else {
+    //ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
+  }
   if (ImGui::Begin("Orders",&ordersOpen,globalWinFlags)) {
     float regionX=ImGui::GetContentRegionAvail().x;
     ImVec2 prevSpacing=ImGui::GetStyle().ItemSpacing;
