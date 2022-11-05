@@ -1412,7 +1412,7 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
           newFlags.set("chipType",0);
           break;
         case 1:
-          newFlags.set("chipType",0);
+          newFlags.set("chipType",1);
           break;
       }
       break;
