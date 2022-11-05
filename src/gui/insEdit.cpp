@@ -4451,6 +4451,50 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_SNES ||
             ins->type==DIV_INS_NAMCO) {
           if (ImGui::BeginTabItem("Wavetable")) {
+            switch (ins->type) {
+              case DIV_INS_GB:
+              case DIV_INS_NAMCO:
+              case DIV_INS_SWAN:
+                wavePreviewLen=32;
+                wavePreviewHeight=15;
+                break;
+              case DIV_INS_PCE:
+                wavePreviewLen=32;
+                wavePreviewHeight=31;
+                break;
+              case DIV_INS_VBOY:
+                wavePreviewLen=32;
+                wavePreviewHeight=63;
+                break;
+              case DIV_INS_SCC:
+                wavePreviewLen=32;
+                wavePreviewHeight=255;
+                break;
+              case DIV_INS_FDS:
+                wavePreviewLen=64;
+                wavePreviewHeight=63;
+                break;
+              case DIV_INS_N163:
+                wavePreviewLen=ins->n163.waveLen;
+                wavePreviewHeight=15;
+                break;
+              case DIV_INS_X1_010:
+                wavePreviewLen=128;
+                wavePreviewHeight=255;
+                break;
+              case DIV_INS_AMIGA:
+                wavePreviewLen=ins->amiga.waveLen+1;
+                wavePreviewHeight=255;
+                break;
+              case DIV_INS_SNES:
+                wavePreviewLen=ins->amiga.waveLen+1;
+                wavePreviewHeight=15;
+                break;
+              default:
+                wavePreviewLen=32;
+                wavePreviewHeight=31;
+                break;
+            }
             if (ImGui::Checkbox("Enable synthesizer",&ins->ws.enabled)) {
               wavePreviewInit=true;
             }
@@ -4556,14 +4600,7 @@ void FurnaceGUI::drawInsEdit() {
                 wavePreviewInit=true;
               }
               ImGui::SameLine();
-              ImGui::Text("Preview Width");
-              ImGui::SameLine();
-              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-              if (ImGui::InputInt("##SelWave3",&wavePreviewLen,1,4)) {
-                if (wavePreviewLen<1) wavePreviewLen=1;
-                if (wavePreviewLen>256) wavePreviewLen=256;
-                wavePreviewInit=true;
-              }
+              ImGui::Text("(%d×%d)",wavePreviewLen,wavePreviewHeight+1);
               ImGui::EndTable();
             }
 
