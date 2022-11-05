@@ -2977,6 +2977,10 @@ bool FurnaceGUI::loop() {
     }
     eventTimeBegin=SDL_GetPerformanceCounter();
     bool updateWindow=false;
+    if (injectBackUp) {
+      ImGui::GetIO().AddKeyEvent(ImGuiKey_Backspace,false);
+      injectBackUp=false;
+    }
     while (SDL_PollEvent(&ev)) {
       WAKE_UP;
       ImGui_ImplSDL2_ProcessEvent(&ev);
@@ -3039,6 +3043,9 @@ bool FurnaceGUI::loop() {
           if (!ImGui::GetIO().WantCaptureKeyboard) {
             keyDown(ev);
           }
+#ifdef IS_MOBILE
+          injectBackUp=true;
+#endif
           break;
         case SDL_KEYUP:
           // for now
@@ -3738,6 +3745,10 @@ bool FurnaceGUI::loop() {
           drawPiano();
           break;
       }
+
+      globalWinFlags=0;
+      drawDebug();
+      drawLog();
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -5441,6 +5452,7 @@ FurnaceGUI::FurnaceGUI():
   vgmExportPatternHints(false),
   vgmExportDirectStream(false),
   portrait(false),
+  injectBackUp(false),
   mobileMenuOpen(false),
   wantCaptureKeyboard(false),
   oldWantCaptureKeyboard(false),

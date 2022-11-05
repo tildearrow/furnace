@@ -244,6 +244,14 @@ void FurnaceGUI::drawMobileControls() {
             mobileMenuOpen=false;
           }
           ImGui::SameLine();
+          if (ImGui::Button("Log")) {
+            logOpen=!logOpen;
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("Debug")) {
+            debugOpen=!debugOpen;
+          }
+          ImGui::SameLine();
           if (ImGui::Button("About")) {
             mobileMenuOpen=false;
             mobileMenuPos=0.0f;

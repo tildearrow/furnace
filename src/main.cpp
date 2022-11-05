@@ -317,6 +317,13 @@ void reportError(String what) {
   logE("%s",what);
   MessageBox(NULL,what.c_str(),"Furnace",MB_OK|MB_ICONERROR);
 }
+#elif defined(ANDROID)
+void reportError(String what) {
+  logE("%s",what);
+#ifdef HAVE_SDL2
+  SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Error",what.c_str(),NULL);
+#endif
+}
 #else
 void reportError(String what) {
   logE("%s",what);
