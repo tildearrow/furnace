@@ -437,7 +437,7 @@ void FurnaceGUI::drawPattern() {
       if (ImGui::Selectable((extraChannelButtons==2)?" --##ExtraChannelButtons":" ++##ExtraChannelButtons",false,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
         if (++extraChannelButtons>2) extraChannelButtons=0;
       }
-      if (ImGui::IsItemHovered()) {
+      if (ImGui::IsItemHovered() && !mobileUI) {
         if (extraChannelButtons==2) {
           ImGui::SetTooltip("Pattern names (click to collapse)\nRight-click for visualizer");
         } else if (extraChannelButtons==1) {
@@ -706,7 +706,7 @@ void FurnaceGUI::drawPattern() {
 
         if (extraChannelButtons==0 || settings.channelVolStyle!=0) ImGui::PopStyleVar();
 
-        if (displayTooltip && ImGui::IsItemHovered()) {
+        if (displayTooltip && ImGui::IsItemHovered() && !mobileUI) {
           ImGui::SetTooltip("%s",e->getChannelName(i));
         }
         if (settings.channelFont==0) ImGui::PopFont();

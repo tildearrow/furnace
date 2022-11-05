@@ -3897,7 +3897,11 @@ bool FurnaceGUI::loop() {
 #if defined(_WIN32) || defined(__APPLE__)
         showError("there was an error in the file dialog! you may want to report this issue to:\nhttps://github.com/tildearrow/furnace/issues\ncheck the Log Viewer (window > log viewer) for more information.\n\nfor now please disable the system file picker in Settings > General.");
 #else
+#ifdef ANDROID
+        showError("can't do anything without Storage permissions!");
+#else
         showError("Zenity/KDialog not available!\nplease install one of these, or disable the system file picker in Settings > General.");
+#endif
 #endif
       }
       if (fileDialog->accepted()) {

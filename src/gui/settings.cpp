@@ -1460,6 +1460,11 @@ void FurnaceGUI::drawSettings() {
             settings.sysSeparators=sysSeparatorsB;
           }*/
 
+          bool ordersCursorB=settings.ordersCursor;
+          if (ImGui::Checkbox("Highlight channel at cursor in Orders",&ordersCursorB)) {
+            settings.ordersCursor=ordersCursorB;
+          }
+
           bool partyTimeB=settings.partyTime;
           if (ImGui::Checkbox("About screen party time",&partyTimeB)) {
             settings.partyTime=partyTimeB;
@@ -2371,6 +2376,7 @@ void FurnaceGUI::syncSettings() {
   settings.midiOutClock=e->getConfInt("midiOutClock",0);
   settings.midiOutMode=e->getConfInt("midiOutMode",1);
   settings.centerPattern=e->getConfInt("centerPattern",0);
+  settings.ordersCursor=e->getConfInt("ordersCursor",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2475,6 +2481,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.midiOutClock,0,1);
   clampSetting(settings.midiOutMode,0,2);
   clampSetting(settings.centerPattern,0,1);
+  clampSetting(settings.ordersCursor,0,1);
 
   String initialSys2=e->getConfString("initialSys2","");
   if (initialSys2.empty()) {
@@ -2640,6 +2647,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("midiOutClock",settings.midiOutClock);
   e->setConf("midiOutMode",settings.midiOutMode);
   e->setConf("centerPattern",settings.centerPattern);
+  e->setConf("ordersCursor",settings.ordersCursor);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

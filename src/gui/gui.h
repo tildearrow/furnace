@@ -1212,6 +1212,7 @@ class FurnaceGUI {
     int midiOutMode;
     int maxRecentFile;
     int centerPattern;
+    int ordersCursor;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1338,6 +1339,7 @@ class FurnaceGUI {
       midiOutMode(1),
       maxRecentFile(10),
       centerPattern(0),
+      ordersCursor(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

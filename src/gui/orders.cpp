@@ -102,7 +102,7 @@ void FurnaceGUI::drawOrders() {
           //}
 
           ImGui::PushStyleColor(ImGuiCol_Text,(curOrder==i || e->curOrders->ord[j][i]==e->curOrders->ord[j][curOrder])?uiColors[GUI_COLOR_ORDER_SIMILAR]:uiColors[GUI_COLOR_ORDER_INACTIVE]);
-          if (ImGui::Selectable(selID,(orderEditMode!=0 && curOrder==i && orderCursor==j))) {
+          if (ImGui::Selectable(selID,settings.ordersCursor?(cursor.xCoarse==j && oldOrder1!=i):false)) {
             if (curOrder==i) {
               if (orderEditMode==0) {
                 prepareUndo(GUI_UNDO_CHANGE_ORDER);
@@ -135,6 +135,11 @@ void FurnaceGUI::drawOrders() {
             }
           }
           ImGui::PopStyleColor();
+          if (orderEditMode!=0 && curOrder==i && orderCursor==j) {
+            // draw a border
+            ImDrawList* dl=ImGui::GetWindowDrawList();
+            dl->AddRect(ImGui::GetItemRectMin(),ImGui::GetItemRectMax(),ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),2.0f*dpiScale);
+          }
           if (!pat->name.empty() && ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s",pat->name.c_str());
           }
