@@ -40,8 +40,9 @@
 #define POWER_SAVE_DEFAULT 0
 #endif
 
-#ifdef __HAIKU__
+#if defined(__HAIKU__) || defined(IS_MOBILE)
 // NFD doesn't support Haiku
+// I still haven't implemented Android file picker
 #define SYS_FILE_DIALOG_DEFAULT 0
 #else
 #define SYS_FILE_DIALOG_DEFAULT 1
