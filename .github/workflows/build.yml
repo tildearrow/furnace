@@ -106,7 +106,7 @@ jobs:
 
     - name: Setup Toolchain [Windows MSVC]
       if: ${{ matrix.config.compiler == 'msvc' }}
-      uses: seanmiddleditch/gha-setup-vsdevenv@v3
+      uses: vadz/gha-setup-vsdevenv@avoid-deprecation-warnings
       with:
         arch: ${{ steps.windows-identify.outputs.vswhere-target }}
 
