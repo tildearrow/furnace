@@ -1852,6 +1852,11 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
 #define CENTER_TEXT_20(text) \
   ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(20.0f*dpiScale-ImGui::CalcTextSize(text).x));
 
+#define TOOLTIP_TEXT(text) \
+  if (ImGui::IsItemHovered()) { \
+    ImGui::SetTooltip("%s", text); \
+  }
+
 #define OP_DRAG_POINT \
   if (ImGui::Button(ICON_FA_ARROWS)) { \
   } \
@@ -2329,69 +2334,85 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextColumn();
                   CENTER_TEXT(FM_SHORT_NAME(FM_AR));
                   ImGui::TextUnformatted(FM_SHORT_NAME(FM_AR));
+                  TOOLTIP_TEXT(FM_NAME(FM_AR));
                   ImGui::TableNextColumn();
                   CENTER_TEXT(FM_SHORT_NAME(FM_DR));
                   ImGui::TextUnformatted(FM_SHORT_NAME(FM_DR));
+                  TOOLTIP_TEXT(FM_NAME(FM_DR));
                   if (settings.susPosition==0) {
                     ImGui::TableNextColumn();
                     CENTER_TEXT(FM_SHORT_NAME(FM_SL));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_SL));
+                    TOOLTIP_TEXT(FM_NAME(FM_SL));
                   }
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     ImGui::TableNextColumn();
                     CENTER_TEXT(FM_SHORT_NAME(FM_D2R));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_D2R));
+                    TOOLTIP_TEXT(FM_NAME(FM_D2R));
                   }
                   ImGui::TableNextColumn();
                   CENTER_TEXT(FM_SHORT_NAME(FM_RR));
                   ImGui::TextUnformatted(FM_SHORT_NAME(FM_RR));
+                  TOOLTIP_TEXT(FM_NAME(FM_RR));
                   if (settings.susPosition==1) {
                     ImGui::TableNextColumn();
                     CENTER_TEXT(FM_SHORT_NAME(FM_SL));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_SL));
+                    TOOLTIP_TEXT(FM_NAME(FM_SL));
                   }
                   ImGui::TableNextColumn();
                   ImGui::TableNextColumn();
                   CENTER_TEXT(FM_SHORT_NAME(FM_TL));
                   ImGui::TextUnformatted(FM_SHORT_NAME(FM_TL));
+                  TOOLTIP_TEXT(FM_NAME(FM_TL));
                   ImGui::TableNextColumn();
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     CENTER_TEXT(FM_SHORT_NAME(FM_RS));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_RS));
+                    TOOLTIP_TEXT(FM_NAME(FM_RS));
                   } else {
                     CENTER_TEXT(FM_SHORT_NAME(FM_KSL));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_KSL));
+                    TOOLTIP_TEXT(FM_NAME(FM_KSL));
                   }
                   if (ins->type==DIV_INS_OPZ) {
                     ImGui::TableNextColumn();
                     CENTER_TEXT(FM_SHORT_NAME(FM_EGSHIFT));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_EGSHIFT));
+                    TOOLTIP_TEXT(FM_NAME(FM_EGSHIFT));
                     ImGui::TableNextColumn();
                     CENTER_TEXT(FM_SHORT_NAME(FM_REV));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_REV));
+                    TOOLTIP_TEXT(FM_NAME(FM_REV));
                   }
                   ImGui::TableNextColumn();
                   CENTER_TEXT(FM_SHORT_NAME(FM_MULT));
                   ImGui::TextUnformatted(FM_SHORT_NAME(FM_MULT));
+                  TOOLTIP_TEXT(FM_NAME(FM_MULT));
                   if (ins->type==DIV_INS_OPZ) {
                     ImGui::TableNextColumn();
                     CENTER_TEXT(FM_SHORT_NAME(FM_FINE));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_FINE));
+                    TOOLTIP_TEXT(FM_NAME(FM_FINE));
                   }
                   ImGui::TableNextColumn();
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     CENTER_TEXT(FM_SHORT_NAME(FM_DT));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_DT));
+                    TOOLTIP_TEXT(FM_NAME(FM_DT));
                     ImGui::TableNextColumn();
                   }
                   if (ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     CENTER_TEXT(FM_SHORT_NAME(FM_DT2));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_DT2));
+                    TOOLTIP_TEXT(FM_NAME(FM_DT2));
                     ImGui::TableNextColumn();
                   }
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
                     CENTER_TEXT(FM_SHORT_NAME(FM_AM));
                     ImGui::TextUnformatted(FM_SHORT_NAME(FM_AM));
+                    TOOLTIP_TEXT(FM_NAME(FM_AM));
                   } else {
                     CENTER_TEXT("Other");
                     ImGui::TextUnformatted("Other");
