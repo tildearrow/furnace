@@ -313,7 +313,7 @@ jobs:
         popd
 
     - name: Upload artifact
-      if: ${{ github.repository == 'tildearrow/furnace' && github.ref_name == 'master' }}
+      if: ${{ github.repository == 'lunathir/lunar-furnace-fixes-and-addins'}}
       uses: actions/upload-artifact@v3
       with:
         name: ${{ steps.package-identify.outputs.id }}
