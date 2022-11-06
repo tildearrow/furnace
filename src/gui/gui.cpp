@@ -4935,6 +4935,8 @@ bool FurnaceGUI::loop() {
         }
       }
     }
+    
+    curWindowThreadSafe=curWindow;
 
     SDL_SetRenderDrawColor(sdlRend,uiColors[GUI_COLOR_BACKGROUND].x*255,
                                    uiColors[GUI_COLOR_BACKGROUND].y*255,
@@ -5300,6 +5302,31 @@ bool FurnaceGUI::init() {
     if (!midiMap.noteInput) return -2;
     if (learning!=-1) return -2;
     if (midiMap.at(msg)) return -2;
+
+    if (curWindowThreadSafe==GUI_WINDOW_WAVE_EDIT || curWindowThreadSafe==GUI_WINDOW_WAVE_LIST) {
+      if ((msg.type&0xf0)==TA_MIDI_NOTE_ON) {
+        e->previewWaveNoLock(curWave,msg.data[0]-12);
+        wavePreviewNote=msg.data[0]-12;
+      } else if ((msg.type&0xf0)==TA_MIDI_NOTE_OFF) {
+        if (wavePreviewNote==msg.data[0]-12) {
+          e->stopWavePreviewNoLock();
+        }
+      }
+      return -2;
+    }
+
+    if (curWindowThreadSafe==GUI_WINDOW_SAMPLE_EDIT || curWindowThreadSafe==GUI_WINDOW_SAMPLE_LIST) {
+      if ((msg.type&0xf0)==TA_MIDI_NOTE_ON) {
+        e->previewSampleNoLock(curSample,msg.data[0]-12);
+        samplePreviewNote=msg.data[0]-12;
+      } else if ((msg.type&0xf0)==TA_MIDI_NOTE_OFF) {
+        if (samplePreviewNote==msg.data[0]-12) {
+          e->stopSamplePreviewNoLock();
+        }
+      }
+      return -2;
+    }
+
     return curIns;
   });
 
@@ -5602,6 +5629,7 @@ FurnaceGUI::FurnaceGUI():
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
+  curWindowThreadSafe(GUI_WINDOW_NOTHING),
   lastPatternWidth(0.0f),
   nextDesc(NULL),
   latchNote(-1),

@@ -1382,6 +1382,7 @@ class FurnaceGUI {
   bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   bool keepLoopAlive;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
+  std::atomic<FurnaceGUIWindows> curWindowThreadSafe;
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];

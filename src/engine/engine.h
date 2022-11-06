@@ -616,6 +616,14 @@ class DivEngine {
     void previewWave(int wave, int note);
     void stopWavePreview();
 
+    // trigger sample preview
+    void previewSampleNoLock(int sample, int note=-1, int pStart=-1, int pEnd=-1);
+    void stopSamplePreviewNoLock();
+
+    // trigger wave preview
+    void previewWaveNoLock(int wave, int note);
+    void stopWavePreviewNoLock();
+
     // get config path
     String getConfigPath();
 
