@@ -5079,6 +5079,11 @@ bool FurnaceGUI::init() {
 
   syncSettings();
 
+  if (!settings.persistFadeOut) {
+    exportLoops=settings.exportLoops;
+    exportFadeOut=settings.exportFadeOut;
+  }
+
   for (int i=0; i<settings.maxRecentFile; i++) {
     String r=e->getConfString(fmt::sprintf("recentFile%d",i),"");
     if (!r.empty()) {
@@ -5378,8 +5383,10 @@ bool FurnaceGUI::finish() {
   e->setConf("followPattern",followPattern);
   e->setConf("orderEditMode",orderEditMode);
   e->setConf("noteInputPoly",noteInputPoly);
-  e->setConf("exportLoops",exportLoops);
-  e->setConf("exportFadeOut",exportFadeOut);
+  if (settings.persistFadeOut) {
+    e->setConf("exportLoops",exportLoops);
+    e->setConf("exportFadeOut",exportFadeOut);
+  }
 
   // commit oscilloscope state
   e->setConf("oscZoom",oscZoom);

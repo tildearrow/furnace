@@ -1213,6 +1213,9 @@ class FurnaceGUI {
     int maxRecentFile;
     int centerPattern;
     int ordersCursor;
+    int persistFadeOut;
+    int exportLoops;
+    double exportFadeOut;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1340,6 +1343,9 @@ class FurnaceGUI {
       maxRecentFile(10),
       centerPattern(0),
       ordersCursor(1),
+      persistFadeOut(1),
+      exportLoops(0),
+      exportFadeOut(0.0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
