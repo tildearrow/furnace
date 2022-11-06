@@ -4553,7 +4553,7 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::Unindent();
               ImGui::EndCombo();
             }
-            if (ImGui::BeginTable("WSPreview",3)) {
+            if (ImGui::BeginTable("WSPreview",(ins->ws.effect>=128)?3:2)) {
               DivWavetable* wave1=e->getWave(ins->ws.wave1);
               DivWavetable* wave2=e->getWave(ins->ws.wave2);
               if (wavePreviewInit) {
@@ -4586,15 +4586,19 @@ void FurnaceGUI::drawInsEdit() {
                 }
               }
 
+              float ySize=((ins->ws.effect>=128)?96.0f:128.0f)*dpiScale;
+
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
-              ImVec2 size1=ImVec2(ImGui::GetContentRegionAvail().x,64.0f*dpiScale);
+              ImVec2 size1=ImVec2(ImGui::GetContentRegionAvail().x,ySize);
               PlotNoLerp("##WaveformP1",wavePreview1,wave1->len+1,0,"Wave 1",0,wave1->max,size1);
+              if (ins->ws.effect>=128) {
+                ImGui::TableNextColumn();
+                ImVec2 size2=ImVec2(ImGui::GetContentRegionAvail().x,ySize);
+                PlotNoLerp("##WaveformP2",wavePreview2,wave2->len+1,0,"Wave 2",0,wave2->max,size2);
+              }
               ImGui::TableNextColumn();
-              ImVec2 size2=ImVec2(ImGui::GetContentRegionAvail().x,64.0f*dpiScale);
-              PlotNoLerp("##WaveformP2",wavePreview2,wave2->len+1,0,"Wave 2",0,wave2->max,size2);
-              ImGui::TableNextColumn();
-              ImVec2 size3=ImVec2(ImGui::GetContentRegionAvail().x,64.0f*dpiScale);
+              ImVec2 size3=ImVec2(ImGui::GetContentRegionAvail().x,ySize);
               PlotNoLerp("##WaveformP3",wavePreview3,wavePreviewLen,0,"Result",0,wavePreviewHeight,size3);
 
               ImGui::TableNextRow();
@@ -4607,14 +4611,16 @@ void FurnaceGUI::drawInsEdit() {
                 if (ins->ws.wave1>=(int)e->song.wave.size()) ins->ws.wave1=e->song.wave.size()-1;
                 wavePreviewInit=true;
               }
-              ImGui::TableNextColumn();
-              ImGui::Text("Wave 2");
-              ImGui::SameLine();
-              ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-              if (ImGui::InputInt("##SelWave2",&ins->ws.wave2,1,4)) {
-                if (ins->ws.wave2<0) ins->ws.wave2=0;
-                if (ins->ws.wave2>=(int)e->song.wave.size()) ins->ws.wave2=e->song.wave.size()-1;
-                wavePreviewInit=true;
+              if (ins->ws.effect>=128) {
+                ImGui::TableNextColumn();
+                ImGui::Text("Wave 2");
+                ImGui::SameLine();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##SelWave2",&ins->ws.wave2,1,4)) {
+                  if (ins->ws.wave2<0) ins->ws.wave2=0;
+                  if (ins->ws.wave2>=(int)e->song.wave.size()) ins->ws.wave2=e->song.wave.size()-1;
+                  wavePreviewInit=true;
+                }
               }
               ImGui::TableNextColumn();
               if (ImGui::Button(ICON_FA_REPEAT "##WSRestart")) {
