@@ -1259,7 +1259,7 @@ class FurnaceGUI {
       wrapVertical(0),
       macroView(0),
       fmNames(0),
-      allowEditDocking(0),
+      allowEditDocking(1),
       chipNames(0),
       overflowHighlight(0),
       partyTime(0),

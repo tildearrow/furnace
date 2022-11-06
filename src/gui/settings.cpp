@@ -2303,7 +2303,7 @@ void FurnaceGUI::syncSettings() {
   settings.wrapVertical=e->getConfInt("wrapVertical",0);
   settings.macroView=e->getConfInt("macroView",0);
   settings.fmNames=e->getConfInt("fmNames",0);
-  settings.allowEditDocking=e->getConfInt("allowEditDocking",0);
+  settings.allowEditDocking=e->getConfInt("allowEditDocking",1);
   settings.chipNames=e->getConfInt("chipNames",0);
   settings.overflowHighlight=e->getConfInt("overflowHighlight",0);
   settings.partyTime=e->getConfInt("partyTime",0);
