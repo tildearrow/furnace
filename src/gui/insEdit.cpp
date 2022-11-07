@@ -2836,7 +2836,7 @@ void FurnaceGUI::drawInsEdit() {
                       ImGui::Text("Envelope");
                       ImGui::TableNextColumn();
                       CENTER_TEXT(FM_SHORT_NAME(FM_TL));
-                      ImGui::Text(FM_SHORT_NAME(FM_TL));
+                      ImGui::TextUnformatted(FM_SHORT_NAME(FM_TL));
                       TOOLTIP_TEXT(FM_NAME(FM_TL));
 
                       // A/D/S/R
