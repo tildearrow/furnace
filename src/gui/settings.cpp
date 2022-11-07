@@ -239,6 +239,12 @@ void FurnaceGUI::drawSettings() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!settingsOpen) return;
+  if (mobileUI) {
+    ImVec2 setWindowPos=ImVec2(0,0);
+    ImVec2 setWindowSize=ImVec2(canvasW,canvasH);
+    ImGui::SetNextWindowPos(setWindowPos);
+    ImGui::SetNextWindowSize(setWindowSize);
+  }
   if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|globalWinFlags)) {
     if (!settingsOpen) {
       settingsOpen=true;
