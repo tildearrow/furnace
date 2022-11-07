@@ -40,7 +40,7 @@
 #define POWER_SAVE_DEFAULT 0
 #endif
 
-#if defined(__HAIKU__)
+#if defined(__HAIKU__) || defined(IS_MOBILE)
 // NFD doesn't support Haiku
 #define SYS_FILE_DIALOG_DEFAULT 0
 #else
