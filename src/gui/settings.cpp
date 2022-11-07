@@ -3082,6 +3082,14 @@ void FurnaceGUI::popAccentColors() {
 #define SYSTEM_PAT_FONT_PATH_1 "/System/Library/Fonts/SFNSMono.ttf"
 #define SYSTEM_PAT_FONT_PATH_2 "/System/Library/Fonts/Courier New.ttf"
 #define SYSTEM_PAT_FONT_PATH_3 "/System/Library/Fonts/Courier New.ttf"
+#elif defined(ANDROID)
+#define SYSTEM_FONT_PATH_1 "/system/fonts/Roboto-Regular.ttf"
+#define SYSTEM_FONT_PATH_2 "/system/fonts/DroidSans.ttf"
+#define SYSTEM_FONT_PATH_3 "/system/fonts/DroidSans.ttf"
+// ???
+#define SYSTEM_PAT_FONT_PATH_1 "/system/fonts/RobotoMono-Regular.ttf"
+#define SYSTEM_PAT_FONT_PATH_2 "/system/fonts/DroidSansMono.ttf"
+#define SYSTEM_PAT_FONT_PATH_3 "/system/fonts/CutiveMono.ttf"
 #else
 #define SYSTEM_FONT_PATH_1 "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 #define SYSTEM_FONT_PATH_2 "/usr/share/fonts/TTF/DejaVuSans.ttf"
