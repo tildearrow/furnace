@@ -2616,6 +2616,21 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
+    // ExtCh compat flag
+    if (ds.version<125) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_YM2612_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2612_FRAC_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2610_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2610_FULL_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2610B_EXT ||
+            ds.system[i]==DIV_SYSTEM_OPN_EXT ||
+            ds.system[i]==DIV_SYSTEM_PC98_EXT) {
+          ds.systemFlags[i].set("noExtMacros",true);
+        }
+      }
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();

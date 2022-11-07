@@ -106,7 +106,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     unsigned char writeRSSOff, writeRSSOn;
     int globalRSSVolume;
 
-    bool extMode;
+    bool extMode, noExtMacros;
     unsigned char prescale;
   
     double NOTE_OPNB(int ch, int note);

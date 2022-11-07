@@ -1219,6 +1219,7 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
       break;
   }
   ladder=flags.getBool("ladderEffect",false);
+  noExtMacros=flags.getBool("noExtMacros",false);
   OPN2_SetChipType(ladder?ym3438_mode_ym2612:0);
   if (useYMFM) {
     if (fm_ymfm!=NULL) delete fm_ymfm;

@@ -952,6 +952,7 @@ void DivPlatformYM2203::setFlags(const DivConfig& flags) {
       ayDiv=16;
       break;
   }
+  noExtMacros=flags.getBool("noExtMacros",false);
   rate=fm->sample_rate(chipClock);
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;

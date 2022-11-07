@@ -141,7 +141,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
 
     unsigned char sampleBank;
   
-    bool extMode;
+    bool extMode, noExtMacros;
   
     unsigned char writeADPCMAOff, writeADPCMAOn;
     int globalADPCMAVolume;
@@ -269,6 +269,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
           chipClock=8000000.0;
           break;
       }
+      noExtMacros=flags.getBool("noExtMacros",false);
       rate=chipClock/16;
       for (int i=0; i<ChanNum; i++) {
         oscBuf[i]->rate=rate;
