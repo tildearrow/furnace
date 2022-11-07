@@ -259,7 +259,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_FIND:
       nextWindow=GUI_WINDOW_FIND;
       break;
-    
+
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
       break;
@@ -637,7 +637,7 @@ void FurnaceGUI::doAction(int what) {
       wantScrollList=true;
       wavePreviewInit=true;
       break;
-    
+
     case GUI_ACTION_WAVE_LIST_ADD:
       curWave=e->addWave();
       if (curWave==-1) {
@@ -1296,7 +1296,9 @@ void FurnaceGUI::doAction(int what) {
       if (curIns==-1) {
         showError("too many instruments!");
       } else {
-        e->song.ins[curIns]->type=DIV_INS_AMIGA;
+        e->song.ins[curIns]->type = (sample->depth == DIV_SAMPLE_DEPTH_BRR)
+          ? DIV_INS_SNES
+          : DIV_INS_AMIGA;
         e->song.ins[curIns]->name=sample->name;
         e->song.ins[curIns]->amiga.initSample=curSample;
         nextWindow=GUI_WINDOW_INS_EDIT;
