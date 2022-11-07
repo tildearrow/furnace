@@ -410,7 +410,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
           curIns=i;
           wavePreviewInit=true;
         }
-        if (ImGui::IsItemHovered() && i>=0) {
+        if (ImGui::IsItemHovered() && i>=0 && !mobileUI) {
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
           ImGui::SetTooltip("%s",insType);
           ImGui::PopStyleColor();
@@ -679,7 +679,7 @@ void FurnaceGUI::actualSampleList() {
       updateSampleTex=true;
     }
     if (wantScrollList && curSample==i) ImGui::SetScrollHereY();
-    if (ImGui::IsItemHovered()) {
+    if (ImGui::IsItemHovered() && !mobileUI) {
       ImGui::SetTooltip("Bank %d: %s",i/12,sampleNote[i%12]);
       if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         sampleEditOpen=true;

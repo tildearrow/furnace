@@ -2977,6 +2977,10 @@ bool FurnaceGUI::loop() {
     }
     eventTimeBegin=SDL_GetPerformanceCounter();
     bool updateWindow=false;
+    if (injectBackUp) {
+      ImGui::GetIO().AddKeyEvent(ImGuiKey_Backspace,false);
+      injectBackUp=false;
+    }
     while (SDL_PollEvent(&ev)) {
       WAKE_UP;
       ImGui_ImplSDL2_ProcessEvent(&ev);
@@ -3039,6 +3043,9 @@ bool FurnaceGUI::loop() {
           if (!ImGui::GetIO().WantCaptureKeyboard) {
             keyDown(ev);
           }
+#ifdef IS_MOBILE
+          injectBackUp=true;
+#endif
           break;
         case SDL_KEYUP:
           // for now
@@ -3738,6 +3745,10 @@ bool FurnaceGUI::loop() {
           drawPiano();
           break;
       }
+
+      globalWinFlags=0;
+      drawDebug();
+      drawLog();
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -3808,7 +3819,7 @@ bool FurnaceGUI::loop() {
     }
 #endif
 
-    if (fileDialog->render(ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH))) {
+    if (fileDialog->render(mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(600.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW-((mobileUI && !portrait)?(60.0*dpiScale):0),canvasH-(mobileUI?(60.0*dpiScale):0)))) {
       bool openOpen=false;
       //ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NavEnableKeyboard;
       if ((curFileDialog==GUI_FILE_INS_OPEN || curFileDialog==GUI_FILE_INS_OPEN_REPLACE) && prevIns!=-3) {
@@ -3897,7 +3908,11 @@ bool FurnaceGUI::loop() {
 #if defined(_WIN32) || defined(__APPLE__)
         showError("there was an error in the file dialog! you may want to report this issue to:\nhttps://github.com/tildearrow/furnace/issues\ncheck the Log Viewer (window > log viewer) for more information.\n\nfor now please disable the system file picker in Settings > General.");
 #else
+#ifdef ANDROID
+        showError("can't do anything without Storage permissions!");
+#else
         showError("Zenity/KDialog not available!\nplease install one of these, or disable the system file picker in Settings > General.");
+#endif
 #endif
       }
       if (fileDialog->accepted()) {
@@ -4920,6 +4935,8 @@ bool FurnaceGUI::loop() {
         }
       }
     }
+    
+    curWindowThreadSafe=curWindow;
 
     SDL_SetRenderDrawColor(sdlRend,uiColors[GUI_COLOR_BACKGROUND].x*255,
                                    uiColors[GUI_COLOR_BACKGROUND].y*255,
@@ -5026,6 +5043,10 @@ bool FurnaceGUI::init() {
   followOrders=e->getConfBool("followOrders",true);
   followPattern=e->getConfBool("followPattern",true);
   noteInputPoly=e->getConfBool("noteInputPoly",true);
+  exportLoops=e->getConfInt("exportLoops",0);
+  if (exportLoops<0) exportLoops=0;
+  exportFadeOut=e->getConfDouble("exportFadeOut",0.0);
+  if (exportFadeOut<0.0) exportFadeOut=0.0;
   orderEditMode=e->getConfInt("orderEditMode",0);
   if (orderEditMode<0) orderEditMode=0;
   if (orderEditMode>3) orderEditMode=3;
@@ -5059,6 +5080,11 @@ bool FurnaceGUI::init() {
   chanOscGrad.render();
 
   syncSettings();
+
+  if (!settings.persistFadeOut) {
+    exportLoops=settings.exportLoops;
+    exportFadeOut=settings.exportFadeOut;
+  }
 
   for (int i=0; i<settings.maxRecentFile; i++) {
     String r=e->getConfString(fmt::sprintf("recentFile%d",i),"");
@@ -5276,6 +5302,31 @@ bool FurnaceGUI::init() {
     if (!midiMap.noteInput) return -2;
     if (learning!=-1) return -2;
     if (midiMap.at(msg)) return -2;
+
+    if (curWindowThreadSafe==GUI_WINDOW_WAVE_EDIT || curWindowThreadSafe==GUI_WINDOW_WAVE_LIST) {
+      if ((msg.type&0xf0)==TA_MIDI_NOTE_ON) {
+        e->previewWaveNoLock(curWave,msg.data[0]-12);
+        wavePreviewNote=msg.data[0]-12;
+      } else if ((msg.type&0xf0)==TA_MIDI_NOTE_OFF) {
+        if (wavePreviewNote==msg.data[0]-12) {
+          e->stopWavePreviewNoLock();
+        }
+      }
+      return -2;
+    }
+
+    if (curWindowThreadSafe==GUI_WINDOW_SAMPLE_EDIT || curWindowThreadSafe==GUI_WINDOW_SAMPLE_LIST) {
+      if ((msg.type&0xf0)==TA_MIDI_NOTE_ON) {
+        e->previewSampleNoLock(curSample,msg.data[0]-12);
+        samplePreviewNote=msg.data[0]-12;
+      } else if ((msg.type&0xf0)==TA_MIDI_NOTE_OFF) {
+        if (samplePreviewNote==msg.data[0]-12) {
+          e->stopSamplePreviewNoLock();
+        }
+      }
+      return -2;
+    }
+
     return curIns;
   });
 
@@ -5359,6 +5410,10 @@ bool FurnaceGUI::finish() {
   e->setConf("followPattern",followPattern);
   e->setConf("orderEditMode",orderEditMode);
   e->setConf("noteInputPoly",noteInputPoly);
+  if (settings.persistFadeOut) {
+    e->setConf("exportLoops",exportLoops);
+    e->setConf("exportFadeOut",exportFadeOut);
+  }
 
   // commit oscilloscope state
   e->setConf("oscZoom",oscZoom);
@@ -5431,6 +5486,7 @@ FurnaceGUI::FurnaceGUI():
   vgmExportPatternHints(false),
   vgmExportDirectStream(false),
   portrait(false),
+  injectBackUp(false),
   mobileMenuOpen(false),
   wantCaptureKeyboard(false),
   oldWantCaptureKeyboard(false),
@@ -5443,6 +5499,7 @@ FurnaceGUI::FurnaceGUI():
   displayPendingIns(false),
   pendingInsSingle(false),
   displayPendingRawSample(false),
+  snesFilterHex(false),
   vgmExportVersion(0x171),
   drawHalt(10),
   zsmExportTickRate(60),
@@ -5572,6 +5629,7 @@ FurnaceGUI::FurnaceGUI():
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
+  curWindowThreadSafe(GUI_WINDOW_NOTHING),
   lastPatternWidth(0.0f),
   nextDesc(NULL),
   latchNote(-1),

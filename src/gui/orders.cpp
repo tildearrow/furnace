@@ -29,6 +29,14 @@ void FurnaceGUI::drawOrders() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!ordersOpen) return;
+  if (mobileUI) {
+    patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*canvasH)):ImVec2((0.16*canvasH)+0.5*canvasW*mobileMenuPos,0.0f));
+    patWindowSize=(portrait?ImVec2(canvasW,canvasH-(0.16*canvasW)):ImVec2(canvasW-(0.16*canvasH),canvasH));
+    ImGui::SetNextWindowPos(patWindowPos);
+    ImGui::SetNextWindowSize(patWindowSize);
+  } else {
+    //ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
+  }
   if (ImGui::Begin("Orders",&ordersOpen,globalWinFlags)) {
     float regionX=ImGui::GetContentRegionAvail().x;
     ImVec2 prevSpacing=ImGui::GetStyle().ItemSpacing;
@@ -94,7 +102,7 @@ void FurnaceGUI::drawOrders() {
           //}
 
           ImGui::PushStyleColor(ImGuiCol_Text,(curOrder==i || e->curOrders->ord[j][i]==e->curOrders->ord[j][curOrder])?uiColors[GUI_COLOR_ORDER_SIMILAR]:uiColors[GUI_COLOR_ORDER_INACTIVE]);
-          if (ImGui::Selectable(selID,(orderEditMode!=0 && curOrder==i && orderCursor==j))) {
+          if (ImGui::Selectable(selID,settings.ordersCursor?(cursor.xCoarse==j && oldOrder1!=i):false)) {
             if (curOrder==i) {
               if (orderEditMode==0) {
                 prepareUndo(GUI_UNDO_CHANGE_ORDER);
@@ -127,6 +135,11 @@ void FurnaceGUI::drawOrders() {
             }
           }
           ImGui::PopStyleColor();
+          if (orderEditMode!=0 && curOrder==i && orderCursor==j) {
+            // draw a border
+            ImDrawList* dl=ImGui::GetWindowDrawList();
+            dl->AddRect(ImGui::GetItemRectMin(),ImGui::GetItemRectMax(),ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),2.0f*dpiScale);
+          }
           if (!pat->name.empty() && ImGui::IsItemHovered()) {
             ImGui::SetTooltip("%s",pat->name.c_str());
           }

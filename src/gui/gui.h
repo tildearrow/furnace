@@ -1028,7 +1028,7 @@ class FurnaceGUI {
   String workingDirVGMExport, workingDirZSMExport, workingDirROMExport, workingDirFont, workingDirColors, workingDirKeybinds;
   String workingDirLayout, workingDirROM, workingDirTest;
   String mmlString[32];
-  String mmlStringW;
+  String mmlStringW, mmlStringSNES;
 
   std::vector<DivSystem> sysSearchResults;
   std::vector<FurnaceGUISysDef> newSongSearchResults;
@@ -1036,10 +1036,10 @@ class FurnaceGUI {
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
   bool vgmExportDirectStream;
-  bool portrait, mobileMenuOpen;
+  bool portrait, injectBackUp, mobileMenuOpen;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
-  bool displayPendingIns, pendingInsSingle, displayPendingRawSample;
+  bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex;
   bool willExport[32];
   int vgmExportVersion;
   int drawHalt;
@@ -1212,6 +1212,10 @@ class FurnaceGUI {
     int midiOutMode;
     int maxRecentFile;
     int centerPattern;
+    int ordersCursor;
+    int persistFadeOut;
+    int exportLoops;
+    double exportFadeOut;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1255,7 +1259,7 @@ class FurnaceGUI {
       wrapVertical(0),
       macroView(0),
       fmNames(0),
-      allowEditDocking(0),
+      allowEditDocking(1),
       chipNames(0),
       overflowHighlight(0),
       partyTime(0),
@@ -1338,6 +1342,10 @@ class FurnaceGUI {
       midiOutMode(1),
       maxRecentFile(10),
       centerPattern(0),
+      ordersCursor(1),
+      persistFadeOut(1),
+      exportLoops(0),
+      exportFadeOut(0.0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1374,6 +1382,7 @@ class FurnaceGUI {
   bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
   bool keepLoopAlive;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
+  std::atomic<FurnaceGUIWindows> curWindowThreadSafe;
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];

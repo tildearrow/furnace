@@ -85,9 +85,6 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
   - available on wavetable chips
   - create complex sounds with ease - provide up to two wavetables, select and effect and let go!
 - MIDI input support
-- [Fractal Sound](https://gitlab.com/Natsumi/Fractal-Sound) support!
-  - the game-ready Sega Genesis/Mega Drive sound driver!
-  - compose your songs in Furnace using the Fractal Sound presets and then use them in your games with Fractal!
 - additional features:
   - FM macros!
   - negative octaves

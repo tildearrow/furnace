@@ -33,7 +33,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3.1.0
       with:
         submodules: recursive
 
@@ -59,9 +59,9 @@ jobs:
           echo "MinGW cross target: ${mingw_target}"
         fi
 
-        echo "::set-output name=vswhere-target::${vswhere_target}"
-        echo "::set-output name=msvc-target::${msvc_target}"
-        echo "::set-output name=mingw-target::${mingw_target}"
+        echo "vswhere-target=${vswhere_target}" >> $GITHUB_OUTPUT
+        echo "msvc-target=${msvc_target}" >> $GITHUB_OUTPUT
+        echo "mingw-target=${mingw_target}" >> $GITHUB_OUTPUT
 
     - name: Set package identifier
       id: package-identify
@@ -88,8 +88,8 @@ jobs:
         echo "Package identifier: ${package_name}"
         echo "Package file: ${package_name}${package_ext}"
 
-        echo "::set-output name=id::${package_name}"
-        echo "::set-output name=filename::${package_name}${package_ext}"
+        echo "id=${package_name}" >> $GITHUB_OUTPUT
+        echo "filename=${package_name}${package_ext}" >> $GITHUB_OUTPUT
 
     - name: Set build cores amount
       id: build-cores
@@ -102,11 +102,11 @@ jobs:
 
         echo "Amount of cores we can build with: ${amount}"
 
-        echo "::set-output name=amount::${amount}"
+        echo "amount=${amount}" >> $GITHUB_OUTPUT
 
     - name: Setup Toolchain [Windows MSVC]
       if: ${{ matrix.config.compiler == 'msvc' }}
-      uses: seanmiddleditch/gha-setup-vsdevenv@v3
+      uses: vadz/gha-setup-vsdevenv@avoid-deprecation-warnings
       with:
         arch: ${{ steps.windows-identify.outputs.vswhere-target }}
 
@@ -314,7 +314,7 @@ jobs:
 
     - name: Upload artifact
       if: ${{ github.repository == 'tildearrow/furnace' && github.ref_name == 'master' }}
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v3.1.1
       with:
         name: ${{ steps.package-identify.outputs.id }}
         path: ${{ steps.package-identify.outputs.filename }}

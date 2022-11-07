@@ -405,7 +405,7 @@ void FurnaceGUI::drawPiano() {
                   break;
                 case GUI_WINDOW_SAMPLE_LIST:
                 case GUI_WINDOW_SAMPLE_EDIT:
-                  e->previewSample(curWave,note);
+                  e->previewSample(curSample,note);
                   break;
                 default:
                   e->synchronized([this,note]() {

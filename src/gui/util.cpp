@@ -32,6 +32,15 @@
 #endif
 
 String getHomeDir() {
+#ifdef IS_MOBILE
+
+#ifdef ANDROID
+  return "/storage/emulated/0/";
+#else
+  return "/";
+#endif
+
+#else
   String ret;
   char tempDir[4096];
 
@@ -73,6 +82,7 @@ String getHomeDir() {
   }
 
   return ret;
+#endif
 }
 
 String getKeyName(int key, bool emptyNone) {

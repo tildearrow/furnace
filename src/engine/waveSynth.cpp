@@ -60,7 +60,7 @@ bool DivWaveSynth::tick(bool skipSubDiv) {
         break;
       case DIV_WS_SUBTRACT:
         for (int i=0; i<=state.speed; i++) {
-          output[pos]+=MIN(height,state.param1);
+          output[pos]-=MIN(height,state.param1);
           if (output[pos]<0) output[pos]+=height;
           if (++pos>=width) pos=0;
         }

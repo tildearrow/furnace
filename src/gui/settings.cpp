@@ -40,7 +40,7 @@
 #define POWER_SAVE_DEFAULT 0
 #endif
 
-#ifdef __HAIKU__
+#if defined(__HAIKU__)
 // NFD doesn't support Haiku
 #define SYS_FILE_DIALOG_DEFAULT 0
 #else
@@ -546,6 +546,24 @@ void FurnaceGUI::drawSettings() {
           bool saveUnusedPatternsB=settings.saveUnusedPatterns;
           if (ImGui::Checkbox("Save unused patterns",&saveUnusedPatternsB)) {
             settings.saveUnusedPatterns=saveUnusedPatternsB;
+          }
+
+          ImGui::Text("Audio export loop/fade out time:");
+          if (ImGui::RadioButton("Set to these values on start-up:##fot0",settings.persistFadeOut==0)) {
+            settings.persistFadeOut=0;
+          }
+          ImGui::BeginDisabled(settings.persistFadeOut);
+          if (ImGui::InputInt("Loops",&settings.exportLoops,1,2)) {
+            if (exportLoops<0) exportLoops=0;
+            exportLoops=settings.exportLoops;
+          }
+          if (ImGui::InputDouble("Fade out (seconds)",&settings.exportFadeOut,1.0,2.0,"%.1f")) {
+            if (exportFadeOut<0.0) exportFadeOut=0.0;
+            exportFadeOut=settings.exportFadeOut;
+          }
+          ImGui::EndDisabled();
+          if (ImGui::RadioButton("Remember last values##fot1",settings.persistFadeOut==1)) {
+            settings.persistFadeOut=1;
           }
 
           ImGui::Text("Note preview behavior:");
@@ -1459,6 +1477,11 @@ void FurnaceGUI::drawSettings() {
             settings.sysSeparators=sysSeparatorsB;
           }*/
 
+          bool ordersCursorB=settings.ordersCursor;
+          if (ImGui::Checkbox("Highlight channel at cursor in Orders",&ordersCursorB)) {
+            settings.ordersCursor=ordersCursorB;
+          }
+
           bool partyTimeB=settings.partyTime;
           if (ImGui::Checkbox("About screen party time",&partyTimeB)) {
             settings.partyTime=partyTimeB;
@@ -2280,7 +2303,7 @@ void FurnaceGUI::syncSettings() {
   settings.wrapVertical=e->getConfInt("wrapVertical",0);
   settings.macroView=e->getConfInt("macroView",0);
   settings.fmNames=e->getConfInt("fmNames",0);
-  settings.allowEditDocking=e->getConfInt("allowEditDocking",0);
+  settings.allowEditDocking=e->getConfInt("allowEditDocking",1);
   settings.chipNames=e->getConfInt("chipNames",0);
   settings.overflowHighlight=e->getConfInt("overflowHighlight",0);
   settings.partyTime=e->getConfInt("partyTime",0);
@@ -2370,6 +2393,10 @@ void FurnaceGUI::syncSettings() {
   settings.midiOutClock=e->getConfInt("midiOutClock",0);
   settings.midiOutMode=e->getConfInt("midiOutMode",1);
   settings.centerPattern=e->getConfInt("centerPattern",0);
+  settings.ordersCursor=e->getConfInt("ordersCursor",1);
+  settings.persistFadeOut=e->getConfInt("persistFadeOut",1);
+  settings.exportLoops=e->getConfInt("exportLoops",0);
+  settings.exportFadeOut=e->getConfDouble("exportFadeOut",0.0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2474,6 +2501,11 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.midiOutClock,0,1);
   clampSetting(settings.midiOutMode,0,2);
   clampSetting(settings.centerPattern,0,1);
+  clampSetting(settings.ordersCursor,0,1);
+  clampSetting(settings.persistFadeOut,0,1);
+
+  if (settings.exportLoops<0.0) settings.exportLoops=0.0;
+  if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
 
   String initialSys2=e->getConfString("initialSys2","");
   if (initialSys2.empty()) {
@@ -2639,6 +2671,10 @@ void FurnaceGUI::commitSettings() {
   e->setConf("midiOutClock",settings.midiOutClock);
   e->setConf("midiOutMode",settings.midiOutMode);
   e->setConf("centerPattern",settings.centerPattern);
+  e->setConf("ordersCursor",settings.ordersCursor);
+  e->setConf("persistFadeOut",settings.persistFadeOut);
+  e->setConf("exportLoops",settings.exportLoops);
+  e->setConf("exportFadeOut",settings.exportFadeOut);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

@@ -196,11 +196,20 @@ double getScaleFactor(const char* driverHint) {
 #endif
 
   // SDL fallback
+#ifdef ANDROID
+  float dpiScaleF=192.0f;
+  if (SDL_GetDisplayDPI(0,&dpiScaleF,NULL,NULL)==0) {
+    ret=round(dpiScaleF/192.0f);
+    if (ret<1) ret=1;
+  }
+
+#else
   float dpiScaleF=96.0f;
   if (SDL_GetDisplayDPI(0,&dpiScaleF,NULL,NULL)==0) {
     ret=round(dpiScaleF/96.0f);
     if (ret<1) ret=1;
   }
+#endif
 
   // couldn't detect scaling factor :<
   return ret;

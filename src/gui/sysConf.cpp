@@ -18,6 +18,7 @@
  */
 
 #include "gui.h"
+#include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
 
 bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange) {
@@ -1288,6 +1289,51 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           altered=true;
         } rightClickable
       }
+
+      if (ImGui::Button(snesFilterHex?"Hex##SNESFHex":"Dec##SNESFHex")) {
+        snesFilterHex=!snesFilterHex;
+      }
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); // wavetable text input size found here
+      if (ImGui::InputText("##MMLWave",&mmlStringSNES)) {
+        int actualData[256];
+        int discardIt=0;
+        memset(actualData,0,256*sizeof(int));
+        decodeMMLStrW(mmlStringSNES,actualData,discardIt,snesFilterHex?0:-128,snesFilterHex?255:127,snesFilterHex);
+        if (snesFilterHex) {
+          for (int i=0; i<8; i++) {
+            if (actualData[i]>=128) actualData[i]-=256;
+          }
+        }
+        memcpy(echoFilter,actualData,8*sizeof(int));
+        altered=true;
+      }
+      if (!ImGui::IsItemActive()) {
+        int actualData[8];
+        for (int i=0; i<8; i++) {
+          if (echoFilter[i]<0 && snesFilterHex) {
+            actualData[i]=echoFilter[i]+256;
+          } else {
+            actualData[i]=echoFilter[i];
+          }
+        }
+        encodeMMLStr(mmlStringSNES,actualData,8,-1,-1,snesFilterHex);
+      }
+
+      int filterSum=(
+        echoFilter[0]+
+        echoFilter[1]+
+        echoFilter[2]+
+        echoFilter[3]+
+        echoFilter[4]+
+        echoFilter[5]+
+        echoFilter[6]+
+        echoFilter[7]
+      );
+
+      ImGui::PushStyleColor(ImGuiCol_Text,(filterSum<-128 || filterSum>127)?uiColors[GUI_COLOR_LOGLEVEL_WARNING]:uiColors[GUI_COLOR_TEXT]);
+      ImGui::Text("sum: %d",filterSum);
+      ImGui::PopStyleColor();
 
       if (altered) {
         e->lockSave([&]() {

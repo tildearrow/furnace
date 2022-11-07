@@ -2438,6 +2438,29 @@ int DivEngine::getEffectiveSampleRate(int rate) {
 
 void DivEngine::previewSample(int sample, int note, int pStart, int pEnd) {
   BUSY_BEGIN;
+  previewSampleNoLock(sample,note,pStart,pEnd);
+  BUSY_END;
+}
+
+void DivEngine::stopSamplePreview() {
+  BUSY_BEGIN;
+  stopSamplePreviewNoLock();
+  BUSY_END;
+}
+
+void DivEngine::previewWave(int wave, int note) {
+  BUSY_BEGIN;
+  previewWaveNoLock(wave,note);
+  BUSY_END;
+}
+
+void DivEngine::stopWavePreview() {
+  BUSY_BEGIN;
+  stopWavePreviewNoLock();
+  BUSY_END;
+}
+
+void DivEngine::previewSampleNoLock(int sample, int note, int pStart, int pEnd) {
   sPreview.pBegin=pStart;
   sPreview.pEnd=pEnd;
   sPreview.dir=false;
@@ -2445,7 +2468,6 @@ void DivEngine::previewSample(int sample, int note, int pStart, int pEnd) {
     sPreview.sample=-1;
     sPreview.pos=0;
     sPreview.dir=false;
-    BUSY_END;
     return;
   }
   blip_clear(samp_bb);
@@ -2462,28 +2484,22 @@ void DivEngine::previewSample(int sample, int note, int pStart, int pEnd) {
   sPreview.sample=sample;
   sPreview.wave=-1;
   sPreview.dir=false;
-  BUSY_END;
 }
 
-void DivEngine::stopSamplePreview() {
-  BUSY_BEGIN;
+void DivEngine::stopSamplePreviewNoLock() {
   sPreview.sample=-1;
   sPreview.pos=0;
   sPreview.dir=false;
-  BUSY_END;
 }
 
-void DivEngine::previewWave(int wave, int note) {
-  BUSY_BEGIN;
+void DivEngine::previewWaveNoLock(int wave, int note) {
   if (wave<0 || wave>=(int)song.wave.size()) {
     sPreview.wave=-1;
     sPreview.pos=0;
     sPreview.dir=false;
-    BUSY_END;
     return;
   }
   if (song.wave[wave]->len<=0) {
-    BUSY_END;
     return;
   }
   blip_clear(samp_bb);
@@ -2496,15 +2512,12 @@ void DivEngine::previewWave(int wave, int note) {
   sPreview.sample=-1;
   sPreview.wave=wave;
   sPreview.dir=false;
-  BUSY_END;
 }
 
-void DivEngine::stopWavePreview() {
-  BUSY_BEGIN;
+void DivEngine::stopWavePreviewNoLock() {
   sPreview.wave=-1;
   sPreview.pos=0;
   sPreview.dir=false;
-  BUSY_END;
 }
 
 bool DivEngine::isPreviewingSample() {
