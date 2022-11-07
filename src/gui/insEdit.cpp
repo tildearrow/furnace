@@ -2724,7 +2724,7 @@ void FurnaceGUI::drawInsEdit() {
                 char tempID[1024];
                 ImVec2 oldPadding=ImGui::GetStyle().CellPadding;
                 ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(8.0f*dpiScale,4.0f*dpiScale));
-                if (ImGui::BeginTable("KGE93BSIEO3NOWBDJZBA",columns,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersInner)) {
+                if (ImGui::BeginTable("AltFMOperators",columns,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersInner)) {
                   for (int i=0; i<opCount; i++) {
                     DivInstrumentFM::Operator& op=ins->fm.op[(opCount==4 && ins->type!=DIV_INS_OPL_DRUMS)?opOrder[i]:i];
                     if ((settings.fmLayout!=6 && ((i+1)&1)) || i==0 || settings.fmLayout==5) ImGui::TableNextRow();
@@ -2825,6 +2825,7 @@ void FurnaceGUI::drawInsEdit() {
                       float textY=ImGui::GetCursorPosY();
                       CENTER_TEXT_20(FM_SHORT_NAME(FM_AR));
                       ImGui::TextUnformatted(FM_SHORT_NAME(FM_AR));
+                      TOOLTIP_TEXT(FM_NAME(FM_AR));
                       ImGui::TableNextColumn();
                       if (ins->type==DIV_INS_FM) {
                         ImGui::Text("SSG-EG");
@@ -2835,7 +2836,8 @@ void FurnaceGUI::drawInsEdit() {
                       ImGui::Text("Envelope");
                       ImGui::TableNextColumn();
                       CENTER_TEXT(FM_SHORT_NAME(FM_TL));
-                      ImGui::Text("TL");
+                      ImGui::Text(FM_SHORT_NAME(FM_TL));
+                      TOOLTIP_TEXT(FM_NAME(FM_TL));
 
                       // A/D/S/R
                       ImGui::TableNextColumn();
@@ -2882,19 +2884,23 @@ void FurnaceGUI::drawInsEdit() {
                       ImGui::SetCursorPos(ImVec2(textX_DR,textY));
                       CENTER_TEXT_20(FM_SHORT_NAME(FM_DR));
                       ImGui::TextUnformatted(FM_SHORT_NAME(FM_DR));
+                      TOOLTIP_TEXT(FM_NAME(FM_DR));
 
                       ImGui::SetCursorPos(ImVec2(textX_SL,textY));
                       CENTER_TEXT_20(FM_SHORT_NAME(FM_SL));
                       ImGui::TextUnformatted(FM_SHORT_NAME(FM_SL));
+                      TOOLTIP_TEXT(FM_NAME(FM_SL));
 
                       ImGui::SetCursorPos(ImVec2(textX_RR,textY));
                       CENTER_TEXT_20(FM_SHORT_NAME(FM_RR));
                       ImGui::TextUnformatted(FM_SHORT_NAME(FM_RR));
+                      TOOLTIP_TEXT(FM_NAME(FM_RR));
 
                       if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                         ImGui::SetCursorPos(ImVec2(textX_D2R,textY));
                         CENTER_TEXT_20(FM_SHORT_NAME(FM_D2R));
                         ImGui::TextUnformatted(FM_SHORT_NAME(FM_D2R));
+                        TOOLTIP_TEXT(FM_NAME(FM_D2R));
                       }
 
                       ImGui::SetCursorPos(prevCurPos);
@@ -3162,6 +3168,7 @@ void FurnaceGUI::drawInsEdit() {
                       if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
                         CENTER_TEXT(FM_SHORT_NAME(FM_AM));
                         ImGui::TextUnformatted(FM_SHORT_NAME(FM_AM));
+                        TOOLTIP_TEXT(FM_NAME(FM_AM));
                         bool amOn=op.am;
                         if (ImGui::Checkbox("##AM",&amOn)) { PARAMETER
                           op.am=amOn;
@@ -4553,7 +4560,8 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::Unindent();
               ImGui::EndCombo();
             }
-            if (ImGui::BeginTable("WSPreview",(ins->ws.effect>=128)?3:2)) {
+            const bool isSingleWaveFX=(ins->ws.effect>=128);
+            if (ImGui::BeginTable("WSPreview",isSingleWaveFX?3:2)) {
               DivWavetable* wave1=e->getWave(ins->ws.wave1);
               DivWavetable* wave2=e->getWave(ins->ws.wave2);
               if (wavePreviewInit) {
@@ -4586,13 +4594,13 @@ void FurnaceGUI::drawInsEdit() {
                 }
               }
 
-              float ySize=((ins->ws.effect>=128)?96.0f:128.0f)*dpiScale;
+              float ySize=(isSingleWaveFX?96.0f:128.0f)*dpiScale;
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
               ImVec2 size1=ImVec2(ImGui::GetContentRegionAvail().x,ySize);
               PlotNoLerp("##WaveformP1",wavePreview1,wave1->len+1,0,"Wave 1",0,wave1->max,size1);
-              if (ins->ws.effect>=128) {
+              if (isSingleWaveFX) {
                 ImGui::TableNextColumn();
                 ImVec2 size2=ImVec2(ImGui::GetContentRegionAvail().x,ySize);
                 PlotNoLerp("##WaveformP2",wavePreview2,wave2->len+1,0,"Wave 2",0,wave2->max,size2);
@@ -4611,7 +4619,7 @@ void FurnaceGUI::drawInsEdit() {
                 if (ins->ws.wave1>=(int)e->song.wave.size()) ins->ws.wave1=e->song.wave.size()-1;
                 wavePreviewInit=true;
               }
-              if (ins->ws.effect>=128) {
+              if (isSingleWaveFX) {
                 ImGui::TableNextColumn();
                 ImGui::Text("Wave 2");
                 ImGui::SameLine();
