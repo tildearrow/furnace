@@ -32,6 +32,8 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 123: Furnace dev123
+- 122: Furnace dev122
 - 121: Furnace dev121
 - 120: Furnace dev120
 - 119: Furnace dev119
@@ -1096,7 +1098,11 @@ size | description
      | - 9: BRR (SNES)
      | - 10: VOX
      | - 16: 16-bit PCM
-  3  | reserved
+  1  | loop direction (>=123) or reserved
+     | - 0: forward
+     | - 0: backward
+     | - 0: ping-pong
+  2  | reserved
   4  | loop start
      | - -1 means no loop
   4  | loop end

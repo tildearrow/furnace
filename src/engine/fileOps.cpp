@@ -2383,9 +2383,13 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       if (isNewSample) {
         sample->centerRate=reader.readI();
         sample->depth=(DivSampleDepth)reader.readC();
+        if (ds.version>=123) {
+          sample->loopMode=(DivSampleLoopMode)reader.readC();
+        } else {
+          sample->loopMode=DIV_SAMPLE_LOOP_FORWARD;
+        }
 
         // reserved
-        reader.readC();
         reader.readC();
         reader.readC();
 
@@ -4624,8 +4628,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeI(sample->rate);
     w->writeI(sample->centerRate);
     w->writeC(sample->depth);
+    w->writeC(sample->loopMode);
     w->writeC(0); // reserved
-    w->writeC(0);
     w->writeC(0);
     w->writeI(sample->loop?sample->loopStart:-1);
     w->writeI(sample->loop?sample->loopEnd:-1);

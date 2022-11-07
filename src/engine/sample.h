@@ -106,10 +106,9 @@ struct DivSample {
   DivSampleDepth depth;
   bool loop;
   // valid values are:
-  // - 0: No loop
-  // - 1: Forward loop
-  // - 2: Backward loop
-  // - 3: Pingpong loop
+  // - 0: Forward loop
+  // - 1: Backward loop
+  // - 2: Pingpong loop
   DivSampleLoopMode loopMode;
 
   // these are the new data structures.
