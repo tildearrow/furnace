@@ -2387,6 +2387,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
           sample->loopMode=(DivSampleLoopMode)reader.readC();
         } else {
           sample->loopMode=DIV_SAMPLE_LOOP_FORWARD;
+          reader.readC();
         }
 
         // reserved
