@@ -602,6 +602,7 @@ void DivPlatformGenesisExt::reset() {
   for (int i=0; i<4; i++) {
     opChan[i]=DivPlatformGenesisExt::OpChannel();
     opChan[i].vol=127;
+    opChan[i].outVol=127;
   }
 
   // channel 3 mode

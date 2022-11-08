@@ -28,8 +28,12 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
     int freq, baseFreq, pitch, pitch2, portaPauseFreq, ins;
     signed char konCycles;
     bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, mask;
-    int vol;
+    int vol, outVol;
     unsigned char pan;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     OpChannel():
       freqH(0),
       freqL(0),
@@ -48,6 +52,7 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
       inPorta(false),
       mask(true),
       vol(0),
+      outVol(0),
       pan(3) {}
   };
   OpChannel opChan[4];
