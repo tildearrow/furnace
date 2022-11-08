@@ -411,7 +411,7 @@ String macroLFOWaves(int id, float val, void* u) {
     case 1:
       return "Square";
     case 2:
-      return "Sine";
+      return "Triangle";
     case 3:
       return "Random";
     default:

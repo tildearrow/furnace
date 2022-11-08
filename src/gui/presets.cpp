@@ -440,12 +440,14 @@ void FurnaceGUI::initSystemPresets() {
   cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with PC-9801-26/K)", {
       DIV_SYSTEM_OPN, 64, 0, 4, // 3.9936MHz but some compatible card has 4MHz
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with PC-9801-26/K; extended channel 3)", {
       DIV_SYSTEM_OPN_EXT, 64, 0, 4, // 3.9936MHz but some compatible card has 4MHz
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
@@ -453,6 +455,7 @@ void FurnaceGUI::initSystemPresets() {
     "NEC PC-98 (with Sound Orchestra)", {
       DIV_SYSTEM_OPN, 64, 0, 4,
       DIV_SYSTEM_OPL2, 64, 0, 4,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
@@ -460,6 +463,7 @@ void FurnaceGUI::initSystemPresets() {
     "NEC PC-98 (with Sound Orchestra; extended channel 3)", {
       DIV_SYSTEM_OPN_EXT, 64, 0, 4,
       DIV_SYSTEM_OPL2, 64, 0, 4,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
@@ -467,6 +471,7 @@ void FurnaceGUI::initSystemPresets() {
     "NEC PC-98 (with Sound Orchestra in drums mode)", {
       DIV_SYSTEM_OPN, 64, 0, 4,
       DIV_SYSTEM_OPL2_DRUMS, 64, 0, 4,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
@@ -474,6 +479,7 @@ void FurnaceGUI::initSystemPresets() {
     "NEC PC-98 (with Sound Orchestra in drums mode; extended channel 3)", {
       DIV_SYSTEM_OPN_EXT, 64, 0, 4,
       DIV_SYSTEM_OPL2_DRUMS, 64, 0, 4,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
@@ -481,6 +487,7 @@ void FurnaceGUI::initSystemPresets() {
     "NEC PC-98 (with Sound Orchestra V)", {
       DIV_SYSTEM_OPN, 64, 0, 4,
       DIV_SYSTEM_Y8950, 64, 0, 4,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
@@ -488,6 +495,7 @@ void FurnaceGUI::initSystemPresets() {
     "NEC PC-98 (with Sound Orchestra V; extended channel 3)", {
       DIV_SYSTEM_OPN_EXT, 64, 0, 4,
       DIV_SYSTEM_Y8950, 64, 0, 4,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
@@ -495,6 +503,7 @@ void FurnaceGUI::initSystemPresets() {
     "NEC PC-98 (with Sound Orchestra V in drums mode)", {
       DIV_SYSTEM_OPN, 64, 0, 4,
       DIV_SYSTEM_Y8950_DRUMS, 64, 0, 4,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
@@ -502,6 +511,7 @@ void FurnaceGUI::initSystemPresets() {
     "NEC PC-98 (with Sound Orchestra V in drums mode; extended channel 3)", {
       DIV_SYSTEM_OPN_EXT, 64, 0, 4,
       DIV_SYSTEM_Y8950_DRUMS, 64, 0, 4,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
@@ -510,6 +520,7 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_PC98, 64, 0, 1,
       DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16), // 2x 16-bit Burr Brown DAC
       DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16),
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
@@ -518,18 +529,21 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_PC98_EXT, 64, 0, 1,
       DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16),
       DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16),
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
     cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with PC-9801-73)", {
       DIV_SYSTEM_PC98, 64, 0, 1,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
     cat.systems.push_back(FurnaceGUISysDef(
     "NEC PC-98 (with PC-9801-73; extended channel 3)", {
       DIV_SYSTEM_PC98_EXT, 64, 0, 1,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
@@ -538,6 +552,7 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
       DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
       DIV_SYSTEM_OPL3, 64, 0, 0,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
@@ -546,6 +561,7 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
       DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
       DIV_SYSTEM_OPL3, 64, 0, 0,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
@@ -554,6 +570,7 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
       DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
       DIV_SYSTEM_OPL3_DRUMS, 64, 0, 2,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
@@ -562,24 +579,26 @@ void FurnaceGUI::initSystemPresets() {
       DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
       DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
       DIV_SYSTEM_OPL3_DRUMS, 64, 0, 2,
+      DIV_SYSTEM_PCSPKR, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (48K)", {
-      DIV_SYSTEM_AY8910, 64, 0, 2,
       DIV_SYSTEM_SFX_BEEPER, 64, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (128K)", {
+      DIV_SYSTEM_SFX_BEEPER, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 1,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (128K) with TurboSound FM", {
+      DIV_SYSTEM_SFX_BEEPER, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 1,
       DIV_SYSTEM_OPN, 64, 0, 1,
       DIV_SYSTEM_OPN, 64, 0, 1,
@@ -588,6 +607,7 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on first OPN)", {
+      DIV_SYSTEM_SFX_BEEPER, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 1,
       DIV_SYSTEM_OPN_EXT, 64, 0, 1,
       DIV_SYSTEM_OPN, 64, 0, 1,
@@ -596,6 +616,7 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on second OPN)", {
+      DIV_SYSTEM_SFX_BEEPER, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 1,
       DIV_SYSTEM_OPN, 64, 0, 1,
       DIV_SYSTEM_OPN_EXT, 64, 0, 1,
@@ -604,6 +625,7 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on both OPNs)", {
+      DIV_SYSTEM_SFX_BEEPER, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 1,
       DIV_SYSTEM_OPN_EXT, 64, 0, 1,
       DIV_SYSTEM_OPN_EXT, 64, 0, 1,
@@ -612,6 +634,7 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (128K) with TurboSound", {
+      DIV_SYSTEM_SFX_BEEPER, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 1,
       DIV_SYSTEM_AY8910, 64, 0, 1, // or YM2149
       DIV_SYSTEM_AY8910, 64, 0, 1, // or YM2149
