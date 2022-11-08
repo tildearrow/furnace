@@ -285,7 +285,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
         chan[i].freqChanged=true;
       }
     } else {
-       if (chan[i].std.arp.had) {
+      if (chan[i].std.arp.had) {
         if (!chan[i].inPorta) {
           chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11);
         }
