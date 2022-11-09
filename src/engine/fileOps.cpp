@@ -2966,7 +2966,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
               writeFxCol(fxTyp,fxVal);
               break;
             case 12: // set vol
-              data[row][3]=fxVal;
+              data[row][3]=MIN(0x40,fxVal);
               break;
             case 13: // break to row (BCD)
               writeFxCol(fxTyp,((fxVal>>4)*10)+(fxVal&15));
