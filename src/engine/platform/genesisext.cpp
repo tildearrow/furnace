@@ -463,11 +463,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
       if (isOpMuted[i]) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
-        if (KVS(2,i)) {
-          rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[i].outVol&0x7f,127));
-        } else {
-          rWrite(baseAddr+ADDR_TL,op.tl);
-        }
+        rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[i].outVol&0x7f,127));
       }
     }
 
@@ -486,6 +482,59 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
         opChan[i].pitch2=opChan[i].std.pitch.val;
       }
       opChan[i].freqChanged=true;
+    }
+
+    // param macros
+    unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[i]];
+    DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[i]];
+    DivMacroInt::IntOp& m=opChan[i].std.op[orderedOps[i]];
+    if (m.am.had) {
+      op.am=m.am.val;
+      rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+    }
+    if (m.ar.had) {
+      op.ar=m.ar.val;
+      rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+    }
+    if (m.dr.had) {
+      op.dr=m.dr.val;
+      rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+    }
+    if (m.mult.had) {
+      op.mult=m.mult.val;
+      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+    }
+    if (m.rr.had) {
+      op.rr=m.rr.val;
+      rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+    }
+    if (m.sl.had) {
+      op.sl=m.sl.val;
+      rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+    }
+    if (m.tl.had) {
+      op.tl=127-m.tl.val;
+      if (isOpMuted[i]) {
+        rWrite(baseAddr+ADDR_TL,127);
+      } else {
+        rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[i].outVol&0x7f,127));
+      }
+    }
+    if (m.rs.had) {
+      op.rs=m.rs.val;
+      rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+    }
+    if (m.dt.had) {
+      op.dt=m.dt.val;
+      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+    }
+    if (m.d2r.had) {
+      op.d2r=m.d2r.val;
+      rWrite(baseAddr+ADDR_DT2_D2R,op.d2r&31);
+    }
+    if (m.ssg.had) {
+      op.ssgEnv=m.ssg.val;
+      rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
     }
   }
 
