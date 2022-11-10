@@ -201,6 +201,8 @@ double getScaleFactor(const char* driverHint) {
   if (SDL_GetDisplayDPI(0,&dpiScaleF,NULL,NULL)==0) {
     ret=round(dpiScaleF/192.0f);
     if (ret<1) ret=1;
+    logI("dpiScaleF: %f",dpiScaleF);
+    logI("ret: %f",ret);
   }
 
 #else
