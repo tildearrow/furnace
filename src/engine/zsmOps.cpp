@@ -94,10 +94,12 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   if (VERA >= 0) disCont[VERA].dispatch->toggleRegisterDump(true);
   if (YM >= 0) {
     disCont[YM].dispatch->toggleRegisterDump(true);
-    zsm.writeYM(0x18,0); // initialize the LFO freq to 0
-    // note - I think there's a bug where Furnace writes AMD/PMD=max
-    // that shouldn't be there, requiring this initialization that shouldn't
-    // be there for ZSM.
+    // emit LFO initialization commands
+    zsm.writeYM(0x18,0);    // freq = 0
+    zsm.writeYM(0x19,0x7F); // AMD  = 7F
+    zsm.writeYM(0x19,0xFF); // PMD  = 7F
+    // TODO: incorporate the Furnace meta-command for init data and filter
+    //       out writes to otherwise-unused channels.
   }
 
   while (!done) {
