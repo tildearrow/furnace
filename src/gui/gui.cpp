@@ -2651,7 +2651,9 @@ int _processEvent(void* instance, SDL_Event* event) {
 
 int FurnaceGUI::processEvent(SDL_Event* ev) {
 #ifdef IS_MOBILE
-  if (ev->type==SDL_APP_WILLENTERBACKGROUND) {
+  if (ev->type==SDL_APP_TERMINATING) {
+    // TODO: save last song state here
+  } else if (ev->type==SDL_APP_WILLENTERBACKGROUND) {
     commitState();
     e->saveConf();
   }
@@ -2959,7 +2961,11 @@ bool FurnaceGUI::detectOutOfBoundsWindow() {
 }
 
 bool FurnaceGUI::loop() {
+#ifdef IS_MOBILE
+  bool doThreadedInput=true;
+#else
   bool doThreadedInput=!settings.noThreadedInput;
+#endif
   if (doThreadedInput) {
     logD("key input: event filter");
     SDL_SetEventFilter(_processEvent,this);

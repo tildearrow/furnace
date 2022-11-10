@@ -528,6 +528,7 @@ void FurnaceGUI::drawSettings() {
             ImGui::SetTooltip("saves power by lowering the frame rate to 2fps when idle.\nmay cause issues under Mesa drivers!");
           }
 
+#ifndef IS_MOBILE
           bool noThreadedInputB=settings.noThreadedInput;
           if (ImGui::Checkbox("Disable threaded input (restart after changing!)",&noThreadedInputB)) {
             settings.noThreadedInput=noThreadedInputB;
@@ -543,6 +544,7 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("remembers the window's last position on startup.");
           }
+#endif
 
           bool blankInsB=settings.blankIns;
           if (ImGui::Checkbox("New instruments are blank",&blankInsB)) {
