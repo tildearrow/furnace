@@ -219,11 +219,14 @@ void FurnaceGUI::drawPiano() {
         // render piano
         //ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
         if (ImGui::ItemAdd(rect,ImGui::GetID("pianoDisplay"))) {
-          ImGui::ItemHoverable(rect,ImGui::GetID("pianoDisplay"));
+          bool canInput=false;
+          if (ImGui::ItemHoverable(rect,ImGui::GetID("pianoDisplay"))) {
+            canInput=true;
+          }
           if (view) {
             int notes=oct*12;
             // evaluate input
-            for (TouchPoint& i: activePoints) {
+            if (canInput) for (TouchPoint& i: activePoints) {
               if (rect.Contains(ImVec2(i.x,i.y))) {
                 int note=(((i.x-rect.Min.x)/(rect.Max.x-rect.Min.x))*notes)+12*off;
                 if (note<0) continue;
