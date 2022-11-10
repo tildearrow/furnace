@@ -2359,6 +2359,8 @@ void DivEngine::reset() {
   shallStop=false;
   shallStopSched=false;
   pendingMetroTick=0;
+  elapsedBars=0;
+  elapsedBeats=0;
   nextSpeed=speed1;
   divider=60;
   if (curSubSong->customTempo) {
@@ -2545,6 +2547,14 @@ unsigned char DivEngine::getOrder() {
 
 int DivEngine::getRow() {
   return prevRow;
+}
+
+int DivEngine::getElapsedBars() {
+  return elapsedBars;
+}
+
+int DivEngine::getElapsedBeats() {
+  return elapsedBeats;
 }
 
 size_t DivEngine::getCurrentSubSong() {

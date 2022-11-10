@@ -964,10 +964,17 @@ void DivEngine::nextRow() {
   }
 
   if (curSubSong->hilightA>0) {
-    if ((curRow%curSubSong->hilightA)==0) pendingMetroTick=1;
+    if ((curRow%curSubSong->hilightA)==0) {
+      pendingMetroTick=1;
+      elapsedBeats++;
+    }
   }
   if (curSubSong->hilightB>0) {
-    if ((curRow%curSubSong->hilightB)==0) pendingMetroTick=2;
+    if ((curRow%curSubSong->hilightB)==0) {
+      pendingMetroTick=2;
+      elapsedBars++;
+      elapsedBeats=0;
+    }
   }
 
   prevOrder=curOrder;

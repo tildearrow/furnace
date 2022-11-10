@@ -243,6 +243,10 @@ enum FurnaceGUIColors {
   GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE,
   GUI_COLOR_PIANO_KEY_TOP_ACTIVE,
 
+  GUI_COLOR_CLOCK_TEXT,
+  GUI_COLOR_CLOCK_BEAT_LOW,
+  GUI_COLOR_CLOCK_BEAT_HIGH,
+
   GUI_COLOR_LOGLEVEL_ERROR,
   GUI_COLOR_LOGLEVEL_WARNING,
   GUI_COLOR_LOGLEVEL_INFO,
@@ -285,6 +289,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_CHAN_OSC,
   GUI_WINDOW_SUBSONGS,
   GUI_WINDOW_FIND,
+  GUI_WINDOW_CLOCK,
   GUI_WINDOW_SPOILER
 };
 
@@ -425,6 +430,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_CHAN_OSC,
   GUI_ACTION_WINDOW_SUBSONGS,
   GUI_ACTION_WINDOW_FIND,
+  GUI_ACTION_WINDOW_CLOCK,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -1367,7 +1373,7 @@ class FurnaceGUI {
 
   int curIns, curWave, curSample, curOctave, curOrder, prevIns, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory, latchTarget;
-  int wheelX, wheelY, dragSourceX, dragSourceY, dragDestinationX, dragDestinationY;
+  int wheelX, wheelY, dragSourceX, dragSourceY, dragDestinationX, dragDestinationY, oldBeat, oldBar;
 
   double exportFadeOut;
 
@@ -1375,7 +1381,10 @@ class FurnaceGUI {
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
-  bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen;
+  bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen;
+
+  bool clockShowReal, clockShowRow, clockShowBeat, clockShowMetro, clockShowTime;
+  float clockMetroTick[16];
 
   SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
   bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
@@ -1717,6 +1726,7 @@ class FurnaceGUI {
   void drawSubSongs();
   void drawFindReplace();
   void drawSpoiler();
+  void drawClock();
 
   void parseKeybinds();
   void promptKey(int which);

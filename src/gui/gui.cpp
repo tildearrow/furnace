@@ -3620,6 +3620,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("oscilloscope (master)",BIND_FOR(GUI_ACTION_WINDOW_OSCILLOSCOPE),oscOpen)) oscOpen=!oscOpen;
         if (ImGui::MenuItem("oscilloscope (per-channel)",BIND_FOR(GUI_ACTION_WINDOW_CHAN_OSC),chanOscOpen)) chanOscOpen=!chanOscOpen;
         if (ImGui::MenuItem("volume meter",BIND_FOR(GUI_ACTION_WINDOW_VOL_METER),volMeterOpen)) volMeterOpen=!volMeterOpen;
+        if (ImGui::MenuItem("clock",BIND_FOR(GUI_ACTION_WINDOW_CLOCK),clockOpen)) clockOpen=!clockOpen;
         if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
         if (ImGui::MenuItem("log viewer",BIND_FOR(GUI_ACTION_WINDOW_LOG),logOpen)) logOpen=!logOpen;
         if (ImGui::MenuItem("statistics",BIND_FOR(GUI_ACTION_WINDOW_STATS),statsOpen)) statsOpen=!statsOpen;
@@ -3783,6 +3784,7 @@ bool FurnaceGUI::loop() {
       drawChannels();
       drawPatManager();
       drawSysManager();
+      drawClock();
       drawRegView();
       drawLog();
       drawEffectList();
@@ -5021,6 +5023,7 @@ bool FurnaceGUI::init() {
   channelsOpen=e->getConfBool("channelsOpen",false);
   patManagerOpen=e->getConfBool("patManagerOpen",false);
   sysManagerOpen=e->getConfBool("sysManagerOpen",false);
+  clockOpen=e->getConfBool("clockOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",false);
@@ -5384,6 +5387,7 @@ bool FurnaceGUI::finish() {
   e->setConf("channelsOpen",channelsOpen);
   e->setConf("patManagerOpen",patManagerOpen);
   e->setConf("sysManagerOpen",sysManagerOpen);
+  e->setConf("clockOpen",clockOpen);
   e->setConf("regViewOpen",regViewOpen);
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
@@ -5572,6 +5576,8 @@ FurnaceGUI::FurnaceGUI():
   dragSourceY(0),
   dragDestinationX(0),
   dragDestinationY(0),
+  oldBeat(-1),
+  oldBar(-1),
   exportFadeOut(5.0),
   editControlsOpen(true),
   ordersOpen(true),
@@ -5604,6 +5610,12 @@ FurnaceGUI::FurnaceGUI():
   spoilerOpen(false),
   patManagerOpen(false),
   sysManagerOpen(false),
+  clockOpen(false),
+  clockShowReal(true),
+  clockShowRow(true),
+  clockShowBeat(true),
+  clockShowMetro(true),
+  clockShowTime(true),
   selecting(false),
   selectingFull(false),
   dragging(false),

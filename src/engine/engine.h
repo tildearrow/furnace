@@ -351,7 +351,7 @@ class DivEngine {
   bool midiOutClock;
   int midiOutMode;
   int softLockCount;
-  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed;
+  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed, elapsedBars, elapsedBeats;
   size_t curSubSongIndex;
   double divider;
   int cycles;
@@ -709,6 +709,10 @@ class DivEngine {
     // get current row
     int getRow();
 
+    // get beat/bar
+    int getElapsedBars();
+    int getElapsedBeats();
+
     // get current subsong
     size_t getCurrentSubSong();
 
@@ -1058,6 +1062,8 @@ class DivEngine {
       lastLoopPos(0),
       exportLoopCount(0),
       nextSpeed(3),
+      elapsedBars(0),
+      elapsedBeats(0),
       curSubSongIndex(0),
       divider(60),
       cycles(0),
