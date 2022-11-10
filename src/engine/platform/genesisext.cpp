@@ -462,8 +462,6 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
     }
   }
 
-  DivPlatformGenesis::tick(sysTick);
-
   if (extMode && !noExtMacros) for (int i=0; i<4; i++) {
     opChan[i].std.next();
 
@@ -548,6 +546,8 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
       rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
     }
   }
+
+  DivPlatformGenesis::tick(sysTick);
 
   bool writeNoteOn=false;
   unsigned char writeMask=2;
