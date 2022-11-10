@@ -2652,7 +2652,8 @@ int _processEvent(void* instance, SDL_Event* event) {
 int FurnaceGUI::processEvent(SDL_Event* ev) {
 #ifdef IS_MOBILE
   if (ev->type==SDL_APP_WILLENTERBACKGROUND) {
-    // TODO: save "last state" and potentially suspend engine
+    commitState();
+    e->saveConf();
   }
 #endif
   if (ev->type==SDL_KEYDOWN) {
@@ -5337,15 +5338,10 @@ bool FurnaceGUI::init() {
   return true;
 }
 
-bool FurnaceGUI::finish() {
+void FurnaceGUI::commitState() {
   if (!mobileUI) {
     ImGui::SaveIniSettingsToDisk(finalLayoutPath);
   }
-  ImGui_ImplSDLRenderer_Shutdown();
-  ImGui_ImplSDL2_Shutdown();
-  ImGui::DestroyContext();
-  SDL_DestroyRenderer(sdlRend);
-  SDL_DestroyWindow(sdlWin);
 
   e->setConf("configVersion",(int)DIV_ENGINE_VERSION);
 
@@ -5459,6 +5455,15 @@ bool FurnaceGUI::finish() {
       e->setConf(key,recentFile[i]);
     }
   }
+}
+
+bool FurnaceGUI::finish() {
+  commitState();
+  ImGui_ImplSDLRenderer_Shutdown();
+  ImGui_ImplSDL2_Shutdown();
+  ImGui::DestroyContext();
+  SDL_DestroyRenderer(sdlRend);
+  SDL_DestroyWindow(sdlWin);
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];

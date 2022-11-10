@@ -1746,6 +1746,7 @@ class FurnaceGUI {
 
   void syncSettings();
   void commitSettings();
+  void commitState();
   void processDrags(int dragX, int dragY);
   void processPoint(SDL_Event& ev);
 
