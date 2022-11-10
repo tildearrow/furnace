@@ -683,7 +683,22 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       break;
     }
     case DIV_SYSTEM_PCSPKR: {
+      int clockSel=flags.getInt("clockSel",0);
       int speakerType=flags.getInt("speakerType",0);
+
+      ImGui::Text("Clock rate:");
+      if (ImGui::RadioButton("1.19MHz (PC)",clockSel==0)) {
+        clockSel=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.99MHz (PC-98)",clockSel==1)) {
+        clockSel=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton("2.46MHz (PC-98)",clockSel==2)) {
+        clockSel=2;
+        altered=true;
+      }
 
       ImGui::Text("Speaker type:");
       if (ImGui::RadioButton("Unfiltered",speakerType==0)) {
@@ -705,6 +720,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
 
       if (altered) {
         e->lockSave([&]() {
+          flags.set("clockSel",clockSel);
           flags.set("speakerType",speakerType);
         });
       }
