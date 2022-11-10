@@ -66,6 +66,7 @@ const char* aboutLine[]={
   "BlueElectric05",
   "breakthetargets",
   "brickblock369",
+  "Burnt Fishy",
   "CaptainMalware",
   "DeMOSic",
   "DevEd",
