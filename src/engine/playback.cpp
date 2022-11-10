@@ -963,6 +963,13 @@ void DivEngine::nextRow() {
     printf("| %.2x:%s | \x1b[1;33m%3d%s\x1b[m\n",curOrder,pb1,curRow,pb3);
   }
 
+  if (curSubSong->hilightA>0) {
+    if ((curRow%curSubSong->hilightA)==0) pendingMetroTick=1;
+  }
+  if (curSubSong->hilightB>0) {
+    if ((curRow%curSubSong->hilightB)==0) pendingMetroTick=2;
+  }
+
   prevOrder=curOrder;
   prevRow=curRow;
 
@@ -1597,16 +1604,6 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     // 2. check whether we gonna tick
     if (cycles<=0) {
       // we have to tick
-      if (!freelance && stepPlay!=-1 && subticks==1) {
-        unsigned int realPos=size-(runLeftG>>MASTER_CLOCK_PREC);
-        if (realPos>=size) realPos=size-1;
-        if (curSubSong->hilightA>0) {
-          if ((curRow%curSubSong->hilightA)==0 && ticks==1) metroTick[realPos]=1;
-        }
-        if (curSubSong->hilightB>0) {
-          if ((curRow%curSubSong->hilightB)==0 && ticks==1) metroTick[realPos]=2;
-        }
-      }
       if (nextTick()) {
         lastLoopPos=size-(runLeftG>>MASTER_CLOCK_PREC);
         logD("last loop pos: %d for a size of %d and runLeftG of %d",lastLoopPos,size,runLeftG);
@@ -1622,6 +1619,12 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
             break;
           }
         }
+      }
+      if (pendingMetroTick) {
+        unsigned int realPos=size-(runLeftG>>MASTER_CLOCK_PREC);
+        if (realPos>=size) realPos=size-1;
+        metroTick[realPos]=pendingMetroTick;
+        pendingMetroTick=0;
       }
     } else {
       // 3. tick the clock and fill buffers as needed

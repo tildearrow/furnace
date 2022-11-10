@@ -2358,6 +2358,7 @@ void DivEngine::reset() {
   firstTick=false;
   shallStop=false;
   shallStopSched=false;
+  pendingMetroTick=0;
   nextSpeed=speed1;
   divider=60;
   if (curSubSong->customTempo) {

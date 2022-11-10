@@ -358,7 +358,7 @@ class DivEngine {
   double clockDrift;
   int stepPlay;
   int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
-  unsigned char extValue;
+  unsigned char extValue, pendingMetroTick;
   unsigned char speed1, speed2;
   short tempoAccum;
   DivStatusView view;
@@ -1073,6 +1073,7 @@ class DivEngine {
       cmdsPerSecond(0),
       globalPitch(0),
       extValue(0),
+      pendingMetroTick(0),
       speed1(3),
       speed2(3),
       tempoAccum(0),
