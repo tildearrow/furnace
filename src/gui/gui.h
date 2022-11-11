@@ -951,6 +951,12 @@ struct FurnaceGUIMacroDesc {
   }
 };
 
+struct FurnaceGUIMacroEditState {
+  int selectedMacro;
+  FurnaceGUIMacroEditState():
+    selectedMacro(0) {}
+};
+
 enum FurnaceGUIFindQueryModes {
   GUI_QUERY_IGNORE=0,
   GUI_QUERY_MATCH,
@@ -1522,6 +1528,8 @@ class FurnaceGUI {
   int macroLoopDragLen;
   bool macroLoopDragActive;
 
+  FurnaceGUIMacroEditState macroEditStateFM, macroEditStateOP[4], macroEditStateMacros;
+
   ImVec2 waveDragStart;
   ImVec2 waveDragAreaSize;
   int* waveDragTarget;
@@ -1687,7 +1695,7 @@ class FurnaceGUI {
   void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel);
 
   void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);
-  void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros);
+  void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state);
 
   void actualWaveList();
   void actualSampleList();

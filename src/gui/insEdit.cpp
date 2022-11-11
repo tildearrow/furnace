@@ -1719,23 +1719,23 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
     i.macro->len=16; \
   }
 
-#define BUTTON_TO_SET_PROPS \
+#define BUTTON_TO_SET_PROPS(_x) \
   ImGui::Button(ICON_FA_ELLIPSIS_H "##IMacroSet"); \
   if (ImGui::IsItemHovered()) { \
     ImGui::SetTooltip("Delay/Step Length"); \
   } \
   if (ImGui::BeginPopupContextItem("IMacroSetP",ImGuiPopupFlags_MouseButtonLeft)) { \
-    if (ImGui::InputScalar("Step Length (ticks)##IMacroSpeed",ImGuiDataType_U8,&i.macro->speed,&_ONE,&_THREE)) { \
-      if (i.macro->speed<1) i.macro->speed=1; \
+    if (ImGui::InputScalar("Step Length (ticks)##IMacroSpeed",ImGuiDataType_U8,&_x.macro->speed,&_ONE,&_THREE)) { \
+      if (_x.macro->speed<1) _x.macro->speed=1; \
       MARK_MODIFIED; \
     } \
-    if (ImGui::InputScalar("Delay##IMacroDelay",ImGuiDataType_U8,&i.macro->delay,&_ONE,&_THREE)) { \
+    if (ImGui::InputScalar("Delay##IMacroDelay",ImGuiDataType_U8,&_x.macro->delay,&_ONE,&_THREE)) { \
       MARK_MODIFIED; \
     } \
     ImGui::EndPopup(); \
   }
 
-void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
+void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state) {
   int index=0;
   float reservedSpace=(settings.oldMacroVSlider)?(20.0f*dpiScale+ImGui::GetStyle().ItemSpacing.x):ImGui::GetStyle().ScrollbarSize;
   switch (settings.macroLayout) {
@@ -1788,7 +1788,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
             }
             BUTTON_TO_SET_MODE(ImGui::Button);
             ImGui::SameLine();
-            BUTTON_TO_SET_PROPS;
+            BUTTON_TO_SET_PROPS(i);
             // do not change this!
             // anything other than a checkbox will look ugly!
             // if you really need more than two macro modes please tell me.
@@ -1825,59 +1825,131 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros) {
       break;
     }
     case 2: {
-      for (FurnaceGUIMacroDesc& i: macros) {
-        if (index>0) ImGui::Separator();
-        
-        float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace;
-        int totalFit=i.macro->len;
-        if (totalFit<1) totalFit=1;
+      int columns=round(ImGui::GetContentRegionAvail().x/(400.0*dpiScale));
+      int curColumn=0;
+      if (ImGui::BeginTable("MacroGrid",columns,ImGuiTableFlags_BordersInner)) {
+        for (FurnaceGUIMacroDesc& i: macros) {
+          if (curColumn==0) ImGui::TableNextRow();
+          ImGui::TableNextColumn();
 
-        ImGui::PushID(index);
+          if (++curColumn>=columns) curColumn=0;
+          
+          float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace;
+          int totalFit=i.macro->len;
+          if (totalFit<1) totalFit=1;
 
-        ImGui::TextUnformatted(i.displayName);
-        ImGui::SameLine();
-        if (ImGui::SmallButton((i.macro->open&1)?(ICON_FA_CHEVRON_UP "##IMacroOpen"):(ICON_FA_CHEVRON_DOWN "##IMacroOpen"))) {
-          i.macro->open^=1;
-        }
+          ImGui::PushID(index);
 
-        if (i.macro->open&1) {
+          ImGui::TextUnformatted(i.displayName);
           ImGui::SameLine();
-          BUTTON_TO_SET_MODE(ImGui::Button);
-        }
-
-        drawMacroEdit(i,totalFit,availableWidth,index);
-
-        if (i.macro->open&1) {
-          if ((i.macro->open&6)==0) {
-            ImGui::Text("Length");
-            ImGui::SameLine();
-            ImGui::SetNextItemWidth(120.0f*dpiScale);
-            int macroLen=i.macro->len;
-            if (ImGui::InputScalar("##IMacroLen",ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { MARK_MODIFIED
-              if (macroLen<0) macroLen=0;
-              if (macroLen>255) macroLen=255;
-              i.macro->len=macroLen;
-            }
-            ImGui::SameLine();
+          if (ImGui::SmallButton((i.macro->open&1)?(ICON_FA_CHEVRON_UP "##IMacroOpen"):(ICON_FA_CHEVRON_DOWN "##IMacroOpen"))) {
+            i.macro->open^=1;
           }
-          BUTTON_TO_SET_PROPS;
-          if (i.modeName!=NULL) {
-            bool modeVal=i.macro->mode;
-            String modeName=fmt::sprintf("%s##IMacroMode",i.modeName);
+
+          if (i.macro->open&1) {
             ImGui::SameLine();
-            if (ImGui::Checkbox(modeName.c_str(),&modeVal)) {
-              i.macro->mode=modeVal;
+            BUTTON_TO_SET_MODE(ImGui::SmallButton);
+          }
+
+          drawMacroEdit(i,totalFit,availableWidth,index);
+
+          if (i.macro->open&1) {
+            if ((i.macro->open&6)==0) {
+              ImGui::Text("Length");
+              ImGui::SameLine();
+              ImGui::SetNextItemWidth(120.0f*dpiScale);
+              int macroLen=i.macro->len;
+              if (ImGui::InputScalar("##IMacroLen",ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { MARK_MODIFIED
+                if (macroLen<0) macroLen=0;
+                if (macroLen>255) macroLen=255;
+                i.macro->len=macroLen;
+              }
+              ImGui::SameLine();
+            }
+            BUTTON_TO_SET_PROPS(i);
+            if (i.modeName!=NULL) {
+              bool modeVal=i.macro->mode;
+              String modeName=fmt::sprintf("%s##IMacroMode",i.modeName);
+              ImGui::SameLine();
+              if (ImGui::Checkbox(modeName.c_str(),&modeVal)) {
+                i.macro->mode=modeVal;
+              }
             }
           }
-        }
 
-        ImGui::PopID();
-        index++;
+          ImGui::PopID();
+          index++;
+        }
+        ImGui::EndTable();
       }
       break;
     }
     case 3: {
-      ImGui::Text("Single (with list)");
+      if (ImGui::BeginTable("MacroList",2,ImGuiTableFlags_Borders)) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        for (size_t i=0; i<macros.size(); i++) {
+          if (ImGui::Selectable(macros[i].displayName,state.selectedMacro==(int)i)) {
+            state.selectedMacro=i;
+          }
+        }
+
+        ImGui::TableNextColumn();
+        float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace;
+        int totalFit=MIN(255,availableWidth/MAX(1,macroPointSize*dpiScale));
+        if (macroDragScroll>255-totalFit) {
+          macroDragScroll=255-totalFit;
+        }
+
+        if (state.selectedMacro<0 || state.selectedMacro>=(int)macros.size()) {
+          state.selectedMacro=0;
+        }
+
+        if (state.selectedMacro>=0 && state.selectedMacro<(int)macros.size()) {
+          FurnaceGUIMacroDesc& m=macros[state.selectedMacro];
+          m.macro->open|=1;
+
+          m.height=ImGui::GetContentRegionAvail().y-ImGui::GetFontSize()-ImGui::GetFrameHeightWithSpacing()-12.0f*dpiScale-ImGui::GetStyle().ItemSpacing.y*3.0f;
+          if (m.macro->name=="arp") m.height-=12.0f*dpiScale;
+          if (m.height<10.0f*dpiScale) m.height=10.0f*dpiScale;
+          m.height/=dpiScale;
+          drawMacroEdit(m,totalFit,availableWidth,index);
+
+          if (m.macro->open&1) {
+            if ((m.macro->open&6)==0) {
+              ImGui::Text("Length");
+              ImGui::SameLine();
+              ImGui::SetNextItemWidth(120.0f*dpiScale);
+              int macroLen=m.macro->len;
+              if (ImGui::InputScalar("##IMacroLen",ImGuiDataType_U8,&macroLen,&_ONE,&_THREE)) { MARK_MODIFIED
+                if (macroLen<0) macroLen=0;
+                if (macroLen>255) macroLen=255;
+                m.macro->len=macroLen;
+              }
+              ImGui::SameLine();
+            }
+            BUTTON_TO_SET_PROPS(m);
+            if (m.modeName!=NULL) {
+              bool modeVal=m.macro->mode;
+              String modeName=fmt::sprintf("%s##IMacroMode",m.modeName);
+              ImGui::SameLine();
+              if (ImGui::Checkbox(modeName.c_str(),&modeVal)) {
+                m.macro->mode=modeVal;
+              }
+            }
+          } else {
+            ImGui::Text("The heck? No, this isn't even working correctly...");
+          }
+        } else {
+          ImGui::Text("The only problem with that selectedMacro is that it's a bug...");
+        }
+
+        // goes here
+        ImGui::EndTable();
+      }
       break;
     }
     case 4: {
@@ -3648,7 +3720,7 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("LFO2 Speed",&ins->std.ex7Macro,0,255,128,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc("LFO2 Shape",&ins->std.ex8Macro,0,3,48,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,macroLFOWaves));
             }
-            drawMacros(macroList);
+            drawMacros(macroList,macroEditStateFM);
             ImGui::EndTabItem();
           }
           for (int i=0; i<opCount; i++) {
@@ -3720,7 +3792,7 @@ void FurnaceGUI::drawInsEdit() {
                   macroList.push_back(FurnaceGUIMacroDesc(FM_NAME(FM_SSG),&ins->std.opMacros[ordi].ssgMacro,0,4,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,ssgEnvBits));
                 }
               }
-              drawMacros(macroList);
+              drawMacros(macroList,macroEditStateOP[ordi]);
               ImGui::PopID();
               ImGui::EndTabItem();
             }
@@ -5223,7 +5295,7 @@ void FurnaceGUI::drawInsEdit() {
             macroList.push_back(FurnaceGUIMacroDesc("Noise",&ins->std.ex3Macro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
 
-          drawMacros(macroList);
+          drawMacros(macroList,macroEditStateMacros);
           ImGui::EndTabItem();
         }
         ImGui::EndTabBar();
