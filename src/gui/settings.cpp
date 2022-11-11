@@ -1326,6 +1326,23 @@ void FurnaceGUI::drawSettings() {
             settings.susPosition=1;
           }
 
+          ImGui::Text("Macro editor layout:");
+          if (ImGui::RadioButton("Unified##mel0",settings.macroLayout==0)) {
+            settings.macroLayout=0;
+          }
+          if (ImGui::RadioButton("Mobile##mel1",settings.macroLayout==1)) {
+            settings.macroLayout=1;
+          }
+          if (ImGui::RadioButton("Grid##mel2",settings.macroLayout==2)) {
+            settings.macroLayout=2;
+          }
+          if (ImGui::RadioButton("Single (with list)##mel3",settings.macroLayout==3)) {
+            settings.macroLayout=3;
+          }
+          if (ImGui::RadioButton("Single (combo box)##mel4",settings.macroLayout==4)) {
+            settings.macroLayout=4;
+          }
+
           ImGui::Separator();
 
           ImGui::Text("Namco 163 chip name");
@@ -2405,6 +2422,7 @@ void FurnaceGUI::syncSettings() {
   settings.persistFadeOut=e->getConfInt("persistFadeOut",1);
   settings.exportLoops=e->getConfInt("exportLoops",0);
   settings.exportFadeOut=e->getConfDouble("exportFadeOut",0.0);
+  settings.macroLayout=e->getConfInt("macroLayout",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2511,6 +2529,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.centerPattern,0,1);
   clampSetting(settings.ordersCursor,0,1);
   clampSetting(settings.persistFadeOut,0,1);
+  clampSetting(settings.macroLayout,0,4);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -2683,6 +2702,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("persistFadeOut",settings.persistFadeOut);
   e->setConf("exportLoops",settings.exportLoops);
   e->setConf("exportFadeOut",settings.exportFadeOut);
+  e->setConf("macroLayout",settings.macroLayout);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

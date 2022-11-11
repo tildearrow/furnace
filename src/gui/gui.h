@@ -1222,6 +1222,7 @@ class FurnaceGUI {
     int persistFadeOut;
     int exportLoops;
     double exportFadeOut;
+    int macroLayout;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1352,6 +1353,7 @@ class FurnaceGUI {
       persistFadeOut(1),
       exportLoops(0),
       exportFadeOut(0.0),
+      macroLayout(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1684,6 +1686,7 @@ class FurnaceGUI {
 
   void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel);
 
+  void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);
   void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros);
 
   void actualWaveList();
