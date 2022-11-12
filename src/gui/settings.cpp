@@ -349,10 +349,14 @@ void FurnaceGUI::drawSettings() {
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::InputText("##InitSysName",&settings.initialSysName);
 
+          int sysCount=0;
+          int doRemove=-1;
           for (size_t i=0; settings.initialSys.getInt(fmt::sprintf("id%d",i),0); i++) {
             DivSystem sysID=e->systemFromFileFur(settings.initialSys.getInt(fmt::sprintf("id%d",i),0));
             signed char sysVol=settings.initialSys.getInt(fmt::sprintf("vol%d",i),0);
             signed char sysPan=settings.initialSys.getInt(fmt::sprintf("pan%d",i),0);
+
+            sysCount=i+1;
 
             //bool doRemove=false;
             bool doInvert=sysVol&128;
@@ -379,7 +383,7 @@ void FurnaceGUI::drawSettings() {
             ImGui::SameLine();
             //ImGui::BeginDisabled(settings.initialSys.size()<=4);
             if (ImGui::Button(ICON_FA_MINUS "##InitSysRemove")) {
-              //doRemove=true;
+              doRemove=i;
             }
             //ImGui::EndDisabled();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
@@ -404,17 +408,31 @@ void FurnaceGUI::drawSettings() {
             }
 
             ImGui::PopID();
-            /*if (doRemove && settings.initialSys.size()>=8) {
-              settings.initialSys.erase(settings.initialSys.begin()+i,settings.initialSys.begin()+i+4);
-              i-=4;
-            }*/
           }
 
-          if (ImGui::Button(ICON_FA_PLUS "##InitSysAdd")) {
-            /*settings.initialSys.push_back(DIV_SYSTEM_YM2612);
-            settings.initialSys.push_back(64);
-            settings.initialSys.push_back(0);
-            settings.initialSys.push_back(0);*/
+          if (doRemove>=0 && sysCount>1) {
+            for (int i=doRemove; i<sysCount-1; i++) {
+              int sysID=settings.initialSys.getInt(fmt::sprintf("id%d",i+1),0);
+              int sysVol=settings.initialSys.getInt(fmt::sprintf("vol%d",i+1),0);
+              int sysPan=settings.initialSys.getInt(fmt::sprintf("pan%d",i+1),0);
+              String sysFlags=settings.initialSys.getString(fmt::sprintf("flags%d",i+1),"");
+              settings.initialSys.set(fmt::sprintf("id%d",i),sysID);
+              settings.initialSys.set(fmt::sprintf("vol%d",i),sysVol);
+              settings.initialSys.set(fmt::sprintf("pan%d",i),sysPan);
+              settings.initialSys.set(fmt::sprintf("flags%d",i),sysFlags);
+            }
+
+            settings.initialSys.remove(fmt::sprintf("id%d",sysCount-1));
+            settings.initialSys.remove(fmt::sprintf("vol%d",sysCount-1));
+            settings.initialSys.remove(fmt::sprintf("pan%d",sysCount-1));
+            settings.initialSys.remove(fmt::sprintf("flags%d",sysCount-1));
+          }
+
+          if (sysCount<32) if (ImGui::Button(ICON_FA_PLUS "##InitSysAdd")) {
+            settings.initialSys.set(fmt::sprintf("id%d",sysCount),(int)e->systemToFileFur(DIV_SYSTEM_YM2612));
+            settings.initialSys.set(fmt::sprintf("vol%d",sysCount),64);
+            settings.initialSys.set(fmt::sprintf("pan%d",sysCount),0);
+            settings.initialSys.set(fmt::sprintf("flags%d",sysCount),"");
           }
 
           ImGui::Separator();
