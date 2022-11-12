@@ -11,7 +11,7 @@ defaults:
     shell: bash
 
 env:
-  BUILD_TYPE: Debug
+  BUILD_TYPE: Release
 
 jobs:
   build:
@@ -240,6 +240,7 @@ jobs:
           -DCMAKE_INSTALL_PREFIX=/usr \
           -DCMAKE_BUILD_TYPE=${{ env.BUILD_TYPE }} \
           -DWARNINGS_ARE_ERRORS=${USE_WAE} \
+          -DUSE_RTMIDI=OFF \
           "${CMAKE_EXTRA_ARGS[@]}"
 
     - name: Build
