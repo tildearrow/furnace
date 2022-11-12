@@ -338,7 +338,7 @@ void FurnaceGUI::drawSettings() {
             settings.initialSys.set("pan0",0);
             settings.initialSys.set("flags0","");
             settings.initialSys.set("id1",e->systemToFileFur(DIV_SYSTEM_SMS));
-            settings.initialSys.set("vol1",64);
+            settings.initialSys.set("vol1",32);
             settings.initialSys.set("pan1",0);
             settings.initialSys.set("flags1","");
             settings.initialSysName="Sega Genesis/Mega Drive";
