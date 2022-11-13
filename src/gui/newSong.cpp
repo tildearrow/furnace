@@ -143,7 +143,7 @@ void FurnaceGUI::drawNewSong() {
   }
 
   if (accepted) {
-    e->createNew(nextDesc.c_str(),nextDescName);
+    e->createNew(nextDesc.c_str(),nextDescName,false);
     undoHist.clear();
     redoHist.clear();
     curFileName="";

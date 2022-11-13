@@ -1390,10 +1390,14 @@ String DivEngine::decodeSysDesc(String desc) {
   return newDesc.toBase64();
 }
 
-void DivEngine::initSongWithDesc(const char* description) {
+void DivEngine::initSongWithDesc(const char* description, bool inBase64) {
   int chanCount=0;
   DivConfig c;
-  c.loadFromBase64(description);
+  if (inBase64) {
+    c.loadFromBase64(description);
+  } else {
+    c.loadFromMemory(description);
+  }
   int index=0;
   for (; index<32; index++) {
     song.system[index]=systemFromFileFur(c.getInt(fmt::sprintf("id%d",index),0));
@@ -1414,7 +1418,7 @@ void DivEngine::initSongWithDesc(const char* description) {
   song.systemLen=index;
 }
 
-void DivEngine::createNew(const char* description, String sysName) {
+void DivEngine::createNew(const char* description, String sysName, bool inBase64) {
   quitDispatch();
   BUSY_BEGIN;
   saveLock.lock();
@@ -1422,7 +1426,7 @@ void DivEngine::createNew(const char* description, String sysName) {
   song=DivSong();
   changeSong(0);
   if (description!=NULL) {
-    initSongWithDesc(description);
+    initSongWithDesc(description,inBase64);
   }
   if (sysName=="") {
     song.systemName=getSongSystemLegacyName(song,!getConfInt("noMultiSystem",0));

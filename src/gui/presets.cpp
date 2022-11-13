@@ -2335,16 +2335,16 @@ FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<int> def
     if (uncompiled[i]==0) break;
 
     DivConfig oldFlags;
-    DivEngine::convertOldFlags(uncompiled[3],oldFlags,(DivSystem)uncompiled[0]);
+    DivEngine::convertOldFlags(uncompiled[i+3],oldFlags,(DivSystem)uncompiled[i]);
 
     definition+=fmt::sprintf(
       "id%d=%d\nvol%d=%d\npan%d=%d\nflags%d=%s\n",
       index,
-      DivEngine::systemToFileFur((DivSystem)uncompiled[0]),
+      DivEngine::systemToFileFur((DivSystem)uncompiled[i]),
       index,
-      uncompiled[1],
+      uncompiled[i+1],
       index,
-      uncompiled[2],
+      uncompiled[i+2],
       index,
       oldFlags.toBase64()
     );

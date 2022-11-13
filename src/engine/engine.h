@@ -467,7 +467,7 @@ class DivEngine {
   bool deinitAudioBackend(bool dueToSwitchMaster=false);
 
   void registerSystems();
-  void initSongWithDesc(const char* description);
+  void initSongWithDesc(const char* description, bool inBase64=true);
 
   void exchangeIns(int one, int two);
   void swapChannels(int src, int dest);
@@ -501,7 +501,7 @@ class DivEngine {
     // parse old system setup description
     String decodeSysDesc(String desc);
     // start fresh
-    void createNew(const char* description, String sysName);
+    void createNew(const char* description, String sysName, bool inBase64=true);
     // load a file.
     bool load(unsigned char* f, size_t length);
     // save as .dmf.
