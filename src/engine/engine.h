@@ -759,7 +759,7 @@ class DivEngine {
     bool isExporting();
 
     // add instrument
-    int addInstrument(int refChan=0);
+    int addInstrument(int refChan=0, DivInstrumentType fallbackType=DIV_INS_STD);
 
     // add instrument from pointer
     int addInstrumentPtr(DivInstrument* which);

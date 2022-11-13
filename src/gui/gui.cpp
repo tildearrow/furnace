@@ -4409,6 +4409,11 @@ bool FurnaceGUI::loop() {
       ImGui::OpenPopup("Import Raw Sample");
     }
 
+    if (displayInsTypeList) {
+      displayInsTypeList=false;
+      ImGui::OpenPopup("InsTypeList");
+    }
+
     if (displayExporting) {
       displayExporting=false;
       ImGui::OpenPopup("Rendering...");
@@ -4785,6 +4790,31 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
           }
           break;
+      }
+      ImGui::EndPopup();
+    }
+
+    if (ImGui::BeginPopup("InsTypeList",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      char temp[1024];
+      for (DivInstrumentType& i: makeInsTypeList) {
+        strncpy(temp,insTypes[i],1023);
+        if (ImGui::MenuItem(temp)) {
+          // create ins
+          curIns=e->addInstrument(-1,i);
+          if (curIns==-1) {
+            showError("too many instruments!");
+          } else {
+            if (displayInsTypeListMakeInsSample>=0 && displayInsTypeListMakeInsSample<(int)e->song.sample.size()) {
+              e->song.ins[curIns]->type=i;
+              e->song.ins[curIns]->name=e->song.sample[displayInsTypeListMakeInsSample]->name;
+              e->song.ins[curIns]->amiga.initSample=displayInsTypeListMakeInsSample;
+              if (i!=DIV_INS_AMIGA) e->song.ins[curIns]->amiga.useSample=true;
+              nextWindow=GUI_WINDOW_INS_EDIT;
+              wavePreviewInit=true;
+            }
+            MARK_MODIFIED;
+          }
+        }
       }
       ImGui::EndPopup();
     }
@@ -5506,6 +5536,7 @@ FurnaceGUI::FurnaceGUI():
   zsmExportLoop(true),
   vgmExportPatternHints(false),
   vgmExportDirectStream(false),
+  displayInsTypeList(false),
   portrait(false),
   injectBackUp(false),
   mobileMenuOpen(false),
@@ -5526,6 +5557,7 @@ FurnaceGUI::FurnaceGUI():
   zsmExportTickRate(60),
   macroPointSize(16),
   waveEditStyle(0),
+  displayInsTypeListMakeInsSample(-1),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
   curSysSection(NULL),

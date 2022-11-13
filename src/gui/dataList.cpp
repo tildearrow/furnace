@@ -60,6 +60,11 @@ void FurnaceGUI::drawInsList(bool asChild) {
         }
         ImGui::EndPopup();
       }
+    } else {
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        displayInsTypeList=true;
+        displayInsTypeListMakeInsSample=-1;
+      }
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FILES_O "##InsClone")) {

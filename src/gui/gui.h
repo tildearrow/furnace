@@ -1055,9 +1055,11 @@ class FurnaceGUI {
   std::vector<DivSystem> sysSearchResults;
   std::vector<FurnaceGUISysDef> newSongSearchResults;
   std::deque<String> recentFile;
+  std::vector<DivInstrumentType> makeInsTypeList;
+
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
-  bool vgmExportDirectStream;
+  bool vgmExportDirectStream, displayInsTypeList;
   bool portrait, injectBackUp, mobileMenuOpen;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
@@ -1068,6 +1070,7 @@ class FurnaceGUI {
   int zsmExportTickRate;
   int macroPointSize;
   int waveEditStyle;
+  int displayInsTypeListMakeInsSample;
   float mobileMenuPos, autoButtonSize;
   const int* curSysSection;
 
