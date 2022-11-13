@@ -913,10 +913,7 @@ struct FurnaceGUISysDefChip {
 struct FurnaceGUISysDef {
   const char* name;
   String definition;
-  FurnaceGUISysDef(const char* n, std::initializer_list<int> def):
-    name(n) {
-    // fuck it
-  }
+  FurnaceGUISysDef(const char* n, std::initializer_list<int> def);
   FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def);
 };
 

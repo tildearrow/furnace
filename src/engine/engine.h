@@ -440,8 +440,6 @@ class DivEngine {
   void reset();
   void playSub(bool preserveDrift, int goalRow=0);
 
-  void convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivSystem sys);
-
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
   bool loadMod(unsigned char* file, size_t len);
@@ -536,6 +534,10 @@ class DivEngine {
     static unsigned char systemToFileFur(DivSystem val);
     static DivSystem systemFromFileDMF(unsigned char val);
     static unsigned char systemToFileDMF(DivSystem val);
+
+    // convert old flags
+    static void convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivSystem sys);
+
 
     // benchmark (returns time in seconds)
     double benchmarkPlayback();

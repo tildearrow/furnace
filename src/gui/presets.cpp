@@ -18,6 +18,7 @@
  */
 
 #include "gui.h"
+#include "../baseutils.h"
 #include <fmt/printf.h>
 
 // add system configurations here.
@@ -2325,6 +2326,32 @@ void FurnaceGUI::initSystemPresets() {
   sysCategories.push_back(cat);
 }
 
+FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<int> def):
+  name(n) {
+  std::vector<int> uncompiled=def;
+  int index=0;
+
+  for (size_t i=0; i<uncompiled.size(); i+=4) {
+    if (uncompiled[i]==0) break;
+
+    DivConfig oldFlags;
+    DivEngine::convertOldFlags(uncompiled[3],oldFlags,(DivSystem)uncompiled[0]);
+
+    definition+=fmt::sprintf(
+      "id%d=%d\nvol%d=%d\npan%d=%d\nflags%d=%s\n",
+      index,
+      DivEngine::systemToFileFur((DivSystem)uncompiled[0]),
+      index,
+      uncompiled[1],
+      index,
+      uncompiled[2],
+      index,
+      oldFlags.toBase64()
+    );
+    index++;
+  }
+}
+
 FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def):
   name(n) {
   std::vector<FurnaceGUISysDefChip> uncompiled=def;
@@ -2339,9 +2366,8 @@ FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceG
       index,
       i.pan,
       index,
-      i.flags
+      taEncodeBase64(i.flags)
     );
     index++;
   }
 }
-
