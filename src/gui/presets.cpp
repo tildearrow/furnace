@@ -18,6 +18,7 @@
  */
 
 #include "gui.h"
+#include <fmt/printf.h>
 
 // add system configurations here.
 // every entry is written in the following format:
@@ -2323,3 +2324,24 @@ void FurnaceGUI::initSystemPresets() {
   ));
   sysCategories.push_back(cat);
 }
+
+FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def):
+  name(n) {
+  std::vector<FurnaceGUISysDefChip> uncompiled=def;
+  int index=0;
+  for (FurnaceGUISysDefChip& i: uncompiled) {
+    definition+=fmt::sprintf(
+      "id%d=%d\nvol%d=%d\npan%d=%d\nflags%d=%s\n",
+      index,
+      DivEngine::systemToFileFur(i.sys),
+      index,
+      i.vol,
+      index,
+      i.pan,
+      index,
+      i.flags
+    );
+    index++;
+  }
+}
+

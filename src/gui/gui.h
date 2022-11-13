@@ -899,12 +899,25 @@ struct Gradient2D {
   }
 };
 
+struct FurnaceGUISysDefChip {
+  DivSystem sys;
+  int vol, pan;
+  const char* flags;
+  FurnaceGUISysDefChip(DivSystem s, int v, int p, const char* f):
+    sys(s),
+    vol(v),
+    pan(p),
+    flags(f) {}
+};
+
 struct FurnaceGUISysDef {
   const char* name;
-  std::vector<int> definition;
+  String definition;
   FurnaceGUISysDef(const char* n, std::initializer_list<int> def):
-    name(n), definition(def) {
+    name(n) {
+    // fuck it
   }
+  FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def);
 };
 
 struct FurnaceGUISysCategory {
@@ -1404,7 +1417,7 @@ class FurnaceGUI {
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
   float lastPatternWidth;
-  const int* nextDesc;
+  String nextDesc;
   String nextDescName;
 
   OperationMask opMaskDelete, opMaskPullDelete, opMaskInsert, opMaskPaste, opMaskTransposeNote, opMaskTransposeValue;

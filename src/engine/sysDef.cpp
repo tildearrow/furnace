@@ -23,6 +23,10 @@
 #include "song.h"
 #include "../ta-log.h"
 
+DivSysDef* DivEngine::sysDefs[256];
+DivSystem DivEngine::sysFileMapFur[256];
+DivSystem DivEngine::sysFileMapDMF[256];
+
 DivSystem DivEngine::systemFromFileFur(unsigned char val) {
   return sysFileMapFur[val];
 }

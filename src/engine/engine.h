@@ -382,9 +382,9 @@ class DivEngine {
   std::vector<String> midiOuts;
   std::vector<DivCommand> cmdStream;
   std::vector<DivInstrumentType> possibleInsTypes;
-  DivSysDef* sysDefs[256];
-  DivSystem sysFileMapFur[256];
-  DivSystem sysFileMapDMF[256];
+  static DivSysDef* sysDefs[256];
+  static DivSystem sysFileMapFur[256];
+  static DivSystem sysFileMapDMF[256];
 
   struct SamplePreview {
     double rate;
@@ -532,10 +532,10 @@ class DivEngine {
     void notifyWaveChange(int wave);
 
     // get system IDs
-    DivSystem systemFromFileFur(unsigned char val);
-    unsigned char systemToFileFur(DivSystem val);
-    DivSystem systemFromFileDMF(unsigned char val);
-    unsigned char systemToFileDMF(DivSystem val);
+    static DivSystem systemFromFileFur(unsigned char val);
+    static unsigned char systemToFileFur(DivSystem val);
+    static DivSystem systemFromFileDMF(unsigned char val);
+    static unsigned char systemToFileDMF(DivSystem val);
 
     // benchmark (returns time in seconds)
     double benchmarkPlayback();

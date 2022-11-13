@@ -5655,7 +5655,6 @@ FurnaceGUI::FurnaceGUI():
   curWindowLast(GUI_WINDOW_NOTHING),
   curWindowThreadSafe(GUI_WINDOW_NOTHING),
   lastPatternWidth(0.0f),
-  nextDesc(NULL),
   latchNote(-1),
   latchIns(-2),
   latchVol(-1),
