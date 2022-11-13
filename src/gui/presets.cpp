@@ -591,14 +591,12 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (128K)", {
-      DIV_SYSTEM_SFX_BEEPER, 64, 0, 0,
-      DIV_SYSTEM_AY8910, 64, 0, 1,
+      DIV_SYSTEM_AY8910, 64, 0, 1, //beeper was also included
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (128K) with TurboSound FM", {
-      DIV_SYSTEM_SFX_BEEPER, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 1,
       DIV_SYSTEM_OPN, 64, 0, 1,
       DIV_SYSTEM_OPN, 64, 0, 1,
@@ -607,7 +605,6 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on first OPN)", {
-      DIV_SYSTEM_SFX_BEEPER, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 1,
       DIV_SYSTEM_OPN_EXT, 64, 0, 1,
       DIV_SYSTEM_OPN, 64, 0, 1,
@@ -616,7 +613,6 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on second OPN)", {
-      DIV_SYSTEM_SFX_BEEPER, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 1,
       DIV_SYSTEM_OPN, 64, 0, 1,
       DIV_SYSTEM_OPN_EXT, 64, 0, 1,
@@ -625,7 +621,6 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on both OPNs)", {
-      DIV_SYSTEM_SFX_BEEPER, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 1,
       DIV_SYSTEM_OPN_EXT, 64, 0, 1,
       DIV_SYSTEM_OPN_EXT, 64, 0, 1,
@@ -634,7 +629,6 @@ void FurnaceGUI::initSystemPresets() {
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "ZX Spectrum (128K) with TurboSound", {
-      DIV_SYSTEM_SFX_BEEPER, 64, 0, 0,
       DIV_SYSTEM_AY8910, 64, 0, 1,
       DIV_SYSTEM_AY8910, 64, 0, 1, // or YM2149
       DIV_SYSTEM_AY8910, 64, 0, 1, // or YM2149
