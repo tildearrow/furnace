@@ -155,7 +155,6 @@ const char* aboutLine[]={
   "MSM6295 emulator by cam900",
   "",
   "greetings to:",
-  "Fractal Sound team",
   "NEOART Costa Rica",
   "all members of Deflers of Noice!",
   "",

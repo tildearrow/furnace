@@ -25,12 +25,14 @@
 // every entry is written in the following format:
 //   cat.systems.push_back(FurnaceGUISysDef(
 //     "System Name", {
-//      DIV_SYSTEM_???, Volume, Panning, Flags,
-//      DIV_SYSTEM_???, Volume, Panning, Flags,
+//      CH(DIV_SYSTEM_???, Volume, Panning, Flags),
+//      CH(DIV_SYSTEM_???, Volume, Panning, Flags),
 //      ...
-//      0
 //    }
 //  ));
+// flags are a string of new line-separated values.
+
+#define CH FurnaceGUISysDefChip
 
 void FurnaceGUI::initSystemPresets() {
   sysCategories.clear();
@@ -40,27 +42,25 @@ void FurnaceGUI::initSystemPresets() {
   cat=FurnaceGUISysCategory("Game consoles","let's play some chiptune making games!");
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega Genesis", {
-      DIV_SYSTEM_YM2612, 64, 0, 0,
-      DIV_SYSTEM_SMS, 32, 0, 0,
-      0
+      CH(DIV_SYSTEM_YM2612, 64, 0, ""),
+      CH(DIV_SYSTEM_SMS, 32, 0, "")
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
     "Sega Genesis (extended channel 3)", {
-      DIV_SYSTEM_YM2612_EXT, 64, 0, 0,
-      DIV_SYSTEM_SMS, 32, 0, 0,
-      0
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, ""),
+      CH(DIV_SYSTEM_SMS, 32, 0, "")
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Sega Genesis (Fractal Sound template)", {
+    "Sega Genesis (DualPCM)", {
       DIV_SYSTEM_YM2612_FRAC, 64, 0, 0,
       DIV_SYSTEM_SMS, 32, 0, 0,
       0
     }
   ));
   cat.systems.push_back(FurnaceGUISysDef(
-    "Sega Genesis (Fractal Sound template, extended channel 3)", {
+    "Sega Genesis (DualPCM, extended channel 3)", {
       DIV_SYSTEM_YM2612_FRAC_EXT, 64, 0, 0,
       DIV_SYSTEM_SMS, 32, 0, 0,
       0
