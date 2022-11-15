@@ -652,7 +652,7 @@ void FurnaceGUI::drawPattern() {
           }
           case 3: // split button
             ImGui::Dummy(ImVec2(1.0f,2.0f*dpiScale));
-            ImGui::SetCursorPosX(minLabelArea.x);
+            //ImGui::SetCursorPosX(minLabelArea.x);
             ImGui::TextUnformatted(chanID);
             ImGui::SameLine();
             ImGui::PushFont(mainFont);
