@@ -736,7 +736,13 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "FM Towns", {
-      DIV_SYSTEM_YM2612, 64, 0, 2, // YM3438
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=2"), // YM3438
+      CH(DIV_SYSTEM_RF5C68, 64, 0, ""),
+    }
+  );
+  ENTRY(
+    "FM Towns (extended channel 3)", {
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=2"), // YM3438
       CH(DIV_SYSTEM_RF5C68, 64, 0, ""),
     }
   );
