@@ -409,7 +409,7 @@ void FurnaceGUI::drawDebug() {
         ImGui::EndTable();
       }
       
-      ImGui::Text("particle count: %ld",particles.size());
+      ImGui::Text("particle count: %d",(int)particles.size());
 
       ImGui::TreePop();
     }
