@@ -76,6 +76,7 @@ class DivPlatformPCE: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[6];
   bool isMuted[6];
   bool antiClickEnabled;
+  bool updateLFO;
   struct QueuedWrite {
       unsigned char addr;
       unsigned char val;
