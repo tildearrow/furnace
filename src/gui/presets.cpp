@@ -1263,18 +1263,17 @@ void FurnaceGUI::initSystemPresets() {
   );
   CATEGORY_END;
 
-  /* TODO: everything here
   CATEGORY_BEGIN("Arcade systems","INSERT COIN");
   ENTRY(
     "Pong", {
-      CH(DIV_SYSTEM_PONG, 64, 0, ""),
+      CH(DIV_SYSTEM_PONG, 64, 0, "")
     }
   );
   ENTRY(
     "Bally Midway MCR", {
       // SSIO sound board
-      DIV_SYSTEM_AY8910, 64, 0, 3, // 2MHz
-      DIV_SYSTEM_AY8910, 64, 0, 3, // 2MHz
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=3"), // 2MHz
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=3") // 2MHz
       // additional sound boards, mostly software controlled DAC
     }
   );
@@ -1282,8 +1281,11 @@ void FurnaceGUI::initSystemPresets() {
     "Williams/Midway Y/T unit w/ADPCM sound board", {
       // ADPCM sound board
       CH(DIV_SYSTEM_YM2151, 64, 0, ""),
-      DIV_SYSTEM_PCM_DAC, 64, 0, 15624|(7<<16), // variable via OPM timer?
-      CH(DIV_SYSTEM_MSM6295, 64, 0, ""),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=15625\n"
+        "outDepth=8\n"
+      ), // variable via OPM timer?
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "")
     }
   );
   ENTRY(
@@ -1292,7 +1294,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_AY8910, 64, 0, ""),
       CH(DIV_SYSTEM_AY8910, 64, 0, ""),
       CH(DIV_SYSTEM_AY8910, 64, 0, ""),
-      CH(DIV_SYSTEM_AY8910, 64, 0, ""),
+      CH(DIV_SYSTEM_AY8910, 64, 0, "")
       // additional discrete sound logics
     }
   );
@@ -1300,739 +1302,810 @@ void FurnaceGUI::initSystemPresets() {
     "Konami Bubble System", {
       CH(DIV_SYSTEM_AY8910, 64, 0, ""),
       CH(DIV_SYSTEM_AY8910, 64, 0, ""),
-      CH(DIV_SYSTEM_BUBSYS_WSG, 64, 0, ""),
+      CH(DIV_SYSTEM_BUBSYS_WSG, 64, 0, "")
       // VLM5030 exists but not used for music at all
     }
   );
   ENTRY(
     "Konami Battlantis", {
-      DIV_SYSTEM_OPL2, 64, 0, 3, // 3MHz
-      DIV_SYSTEM_OPL2, 64, 0, 3, // ""
+      CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=3")  // ""
     }
   );
   ENTRY(
     "Konami Battlantis (drums mode on first OPL2)", {
-      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 3, // 3MHz
-      DIV_SYSTEM_OPL2, 64, 0, 3, // ""
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=3") // ""
     }
   );
   ENTRY(
     "Konami Battlantis (drums mode on second OPL2)", {
-      DIV_SYSTEM_OPL2, 64, 0, 3, // 3MHz
-      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 3, // ""
+      CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=3") // ""
     }
   );
   ENTRY(
     "Konami Battlantis (drums mode on both OPL2s)", {
-      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 3, // 3MHz
-      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 3, // ""
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=3") // ""
     }
   );
   ENTRY(
     "Konami Hexion", {
-      DIV_SYSTEM_SCC, 64, 0, 2, // 1.5MHz (3MHz input)
-      DIV_SYSTEM_MSM6295, 64, 0, 1,
+      CH(DIV_SYSTEM_SCC, 64, 0, "clockSel=2"), // 1.5MHz (3MHz input)
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "Sega Kyugo", {
-      DIV_SYSTEM_AY8910, 64, 0, 14,
-      DIV_SYSTEM_AY8910, 64, 0, 14,
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=14"),
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=14")
     }
   );
   ENTRY(
     "Sega System 1", {
-      DIV_SYSTEM_SMS, 64, 0, 0x42, // SN76489A 4MHz
-      DIV_SYSTEM_SMS, 64, 0, 0x0141, // SN76489A 2MHz
+      CH(DIV_SYSTEM_SMS, 64, 0,
+        "clockSel=2\n"
+        "chipType=4\n"
+      ), // SN76489A 4MHz
+      CH(DIV_SYSTEM_SMS, 64, 0,
+        "clockSel=5\n"
+        "chipType=4\n"
+      ) // SN76489A 2MHz
     }
   );
   ENTRY(
     "Sega System E", {
       CH(DIV_SYSTEM_SMS, 64, 0, ""),
-      CH(DIV_SYSTEM_SMS, 64, 0, ""),
+      CH(DIV_SYSTEM_SMS, 64, 0, "")
     }
   );
   ENTRY(
     "Sega System E (with FM expansion)", {
       CH(DIV_SYSTEM_SMS, 64, 0, ""),
       CH(DIV_SYSTEM_SMS, 64, 0, ""),
-      CH(DIV_SYSTEM_OPLL, 64, 0, ""),
+      CH(DIV_SYSTEM_OPLL, 64, 0, "")
     }
   );
   ENTRY(
     "Sega System E (with FM expansion in drums mode)", {
       CH(DIV_SYSTEM_SMS, 64, 0, ""),
       CH(DIV_SYSTEM_SMS, 64, 0, ""),
-      CH(DIV_SYSTEM_OPLL_DRUMS, 64, 0, ""),
+      CH(DIV_SYSTEM_OPLL_DRUMS, 64, 0, "")
     }
   );
   ENTRY(
     "Sega Hang-On", {
-      DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_SEGAPCM, 64, 0, 0, // discrete logics, 62.5KHz output rate
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_SEGAPCM, 64, 0, "") // discrete logics, 62.5KHz output rate
     }
   );
   ENTRY(
     "Sega Hang-On (extended channel 3)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_SEGAPCM, 64, 0, 0, // discrete logics, 62.5KHz output rate
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_SEGAPCM, 64, 0, "") // discrete logics, 62.5KHz output rate
     }
   );
   ENTRY(
     "Sega OutRun/X Board", {
-      DIV_SYSTEM_YM2151, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_SEGAPCM, 64, 0, 0, // ASIC, 31.25KHz output rate
+      CH(DIV_SYSTEM_YM2151, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_SEGAPCM, 64, 0, "") // ASIC, 31.25KHz output rate
     }
   );
   ENTRY(
     "Sega System 24", {
-      DIV_SYSTEM_YM2151, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_PCM_DAC, 64, 0, 61499|(7<<16), // software controlled, variable rate via configurable timers
+      CH(DIV_SYSTEM_YM2151, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=61500\n"
+        "outDepth=8\n"
+      ) // software controlled, variable rate via configurable timers
     }
   );
   ENTRY(
     "Sega System 18", {
-      DIV_SYSTEM_YM2612, 64, 0, 2, // discrete 8MHz YM3438
-      DIV_SYSTEM_YM2612, 64, 0, 2, // ^^
-      DIV_SYSTEM_RF5C68, 64, 0, 1, // 10MHz
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=2"), // discrete 8MHz YM3438
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=2"), // ^^
+      CH(DIV_SYSTEM_RF5C68, 64, 0, "clockSel=1") // 10MHz
     }
   );
   ENTRY(
     "Sega System 18 (extended channel 3 on first OPN2C)", {
-      DIV_SYSTEM_YM2612_EXT, 64, 0, 2, // discrete 8MHz YM3438
-      DIV_SYSTEM_YM2612, 64, 0, 2, // ^^
-      DIV_SYSTEM_RF5C68, 64, 0, 1, // 10MHz
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=2"), // discrete 8MHz YM3438
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=2"), // ^^
+      CH(DIV_SYSTEM_RF5C68, 64, 0, "clockSel=1") // 10MHz
     }
   );
   ENTRY(
     "Sega System 18 (extended channel 3 on second OPN2C)", {
-      DIV_SYSTEM_YM2612, 64, 0, 2, // discrete 8MHz YM3438
-      DIV_SYSTEM_YM2612_EXT, 64, 0, 2, // ^^
-      DIV_SYSTEM_RF5C68, 64, 0, 1, // 10MHz
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=2"), // discrete 8MHz YM3438
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=2"), // ^^
+      CH(DIV_SYSTEM_RF5C68, 64, 0, "clockSel=1") // 10MHz
     }
   );
   ENTRY(
     "Sega System 18 (extended channel 3 on both OPN2Cs)", {
-      DIV_SYSTEM_YM2612_EXT, 64, 0, 2, // discrete 8MHz YM3438
-      DIV_SYSTEM_YM2612_EXT, 64, 0, 2, // ^^
-      DIV_SYSTEM_RF5C68, 64, 0, 1, // 10MHz
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=2"), // discrete 8MHz YM3438
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=2"), // ^^
+      CH(DIV_SYSTEM_RF5C68, 64, 0, "clockSel=1") // 10MHz
     }
   );
   ENTRY(
     "Sega System 32", {
-      DIV_SYSTEM_YM2612, 64, 0, 4, // discrete 8.05MHz YM3438
-      DIV_SYSTEM_YM2612, 64, 0, 4, // ^^
-      DIV_SYSTEM_RF5C68, 64, 0, 2, // 12.5MHz
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=4"), // discrete 8.05MHz YM3438
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=4"), // ^^
+      CH(DIV_SYSTEM_RF5C68, 64, 0, "clockSel=2") // 12.5MHz
     }
   );
   ENTRY(
     "Sega System 32 (extended channel 3 on first OPN2C)", {
-      DIV_SYSTEM_YM2612_EXT, 64, 0, 4, // discrete 8.05MHz YM3438
-      DIV_SYSTEM_YM2612, 64, 0, 4, // ^^
-      DIV_SYSTEM_RF5C68, 64, 0, 2, // 12.5MHz
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=4"), // discrete 8.05MHz YM3438
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=4"), // ^^
+      CH(DIV_SYSTEM_RF5C68, 64, 0, "clockSel=2") // 12.5MHz
     }
   );
   ENTRY(
     "Sega System 32 (extended channel 3 on second OPN2C)", {
-      DIV_SYSTEM_YM2612, 64, 0, 4, // discrete 8.05MHz YM3438
-      DIV_SYSTEM_YM2612_EXT, 64, 0, 4, // ^^
-      DIV_SYSTEM_RF5C68, 64, 0, 2, // 12.5MHz
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=4"), // discrete 8.05MHz YM3438
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=4"), // ^^
+      CH(DIV_SYSTEM_RF5C68, 64, 0, "clockSel=2") // 12.5MHz
     }
   );
   ENTRY(
     "Sega System 32 (extended channel 3 on both OPN2Cs)", {
-      DIV_SYSTEM_YM2612_EXT, 64, 0, 4, // discrete 8.05MHz YM3438
-      DIV_SYSTEM_YM2612_EXT, 64, 0, 4, // ^^
-      DIV_SYSTEM_RF5C68, 64, 0, 2, // 12.5MHz
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=4"), // discrete 8.05MHz YM3438
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=4"), // ^^
+      CH(DIV_SYSTEM_RF5C68, 64, 0, "clockSel=2") // 12.5MHz
     }
   );
   ENTRY(
     "Capcom Exed Eyes", {
-      DIV_SYSTEM_AY8910, 64, 0, 4, // 1.5MHz
-      DIV_SYSTEM_SMS, 64, 0, 0x0104, // SN76489 3MHz
-      DIV_SYSTEM_SMS, 64, 0, 0x0104, // SN76489 3MHz
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=4"), // 1.5MHz
+      CH(DIV_SYSTEM_SMS, 64, 0,
+        "clockSel=4\n"
+        "chipType=1\n"
+      ), // SN76489 3MHz
+      CH(DIV_SYSTEM_SMS, 64, 0,
+        "clockSel=4\n"
+        "chipType=1\n"
+      ) // SN76489 3MHz
     }
   );
   ENTRY(
     "Capcom Arcade", { // 1943, Side arms, etc
-      DIV_SYSTEM_OPN, 64, 0, 5, // 4 or 1.5MHz; various per games
-      DIV_SYSTEM_OPN, 64, 0, 5,
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"), // 4 or 1.5MHz; various per games
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5")
     }
   );
   ENTRY(
     "Capcom Arcade (extended channel 3 on first OPN)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 5,
-      DIV_SYSTEM_OPN, 64, 0, 5,
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5")
     }
   );
   ENTRY(
     "Capcom Arcade (extended channel 3 on second OPN)", {
-      DIV_SYSTEM_OPN, 64, 0, 5,
-      DIV_SYSTEM_OPN_EXT, 64, 0, 5,
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5")
     }
   );
   ENTRY(
     "Capcom Arcade (extended channel 3 on both OPNs)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 5,
-      DIV_SYSTEM_OPN_EXT, 64, 0, 5,
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5")
     }
   );
   ENTRY(
     "Capcom CPS-1", { 
-      DIV_SYSTEM_YM2151, 64, 0, 0, // 3.58MHz
-      CH(DIV_SYSTEM_MSM6295, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "")
     }
   );
   ENTRY(
     "Capcom CPS-2 (QSound)", {
-      CH(DIV_SYSTEM_QSOUND, 64, 0, ""),
+      CH(DIV_SYSTEM_QSOUND, 64, 0, "")
     }
   );
   ENTRY(
     "Jaleco Ginga NinkyouDen", {
-      DIV_SYSTEM_AY8910, 64, 0, 16, // 1.79MHz
-      DIV_SYSTEM_Y8950, 64, 0, 0, // 3.58MHz
+      CH(DIV_SYSTEM_AY8910, 64, 0, "chipType=1"), // 1.79MHz
+      CH(DIV_SYSTEM_Y8950, 64, 0, "") // 3.58MHz
     }
   );
   ENTRY(
     "Jaleco Ginga NinkyouDen (drums mode)", {
-      DIV_SYSTEM_AY8910, 64, 0, 16, // 1.79MHz
-      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 0, // 3.58MHz
+      CH(DIV_SYSTEM_AY8910, 64, 0, "chipType=1"), // 1.79MHz
+      CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "") // 3.58MHz
     }
   );
   ENTRY(
     "Jaleco Mega System 1", {
-      DIV_SYSTEM_YM2151, 64, 0, 1, // 3.5MHz (7MHz / 2)
-      DIV_SYSTEM_MSM6295, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 2, // 4MHz
+      CH(DIV_SYSTEM_YM2151, 64, 0, "clockSel=1"), // 3.5MHz (7MHz / 2)
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=2") // 4MHz
     }
   );
   ENTRY(
     "NMK 16-bit Arcade", {
-      DIV_SYSTEM_OPN, 64, 0, 5, // 1.5MHz; optional
-      DIV_SYSTEM_MSM6295, 64, 0, 130, // 4MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 130, // ^^
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"), // 1.5MHz; optional
+      CH(DIV_SYSTEM_MSM6295, 64, 0,
+        "clockSel=2\n"
+        "rateSel=true\n"
+      ), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0,
+        "clockSel=2\n"
+        "rateSel=true\n"
+      ) // ^^
     }
   );
   ENTRY(
     "NMK 16-bit Arcade (extended channel 3)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 5, // 1.5MHz; optional
-      DIV_SYSTEM_MSM6295, 64, 0, 130, // 4MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 130, // ^^
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5"), // 1.5MHz; optional
+      CH(DIV_SYSTEM_MSM6295, 64, 0,
+        "clockSel=2\n"
+        "rateSel=true\n"
+      ), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0,
+        "clockSel=2\n"
+        "rateSel=true\n"
+      ) // ^^
     }
   );
   ENTRY(
     "Kaneko DJ Boy", {
-      DIV_SYSTEM_OPN, 64, 0, 3, // 3MHz
-      DIV_SYSTEM_MSM6295, 64, -127, 12, // 1.5MHz, Left output
-      DIV_SYSTEM_MSM6295, 64, 127, 12, // 1.5MHz, Right output
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_MSM6295, 64, -127, "clockSel=12"), // 1.5MHz, Left output
+      CH(DIV_SYSTEM_MSM6295, 64, 127, "clockSel=12"), // 1.5MHz, Right output
     }
   );
   ENTRY(
     "Kaneko DJ Boy (extended channel 3)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 3, // 3MHz
-      DIV_SYSTEM_MSM6295, 64, -127, 12, // 1.5MHz, Left output
-      DIV_SYSTEM_MSM6295, 64, 127, 12, // 1.5MHz, Right output
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_MSM6295, 64, -127, "clockSel=12"), // 1.5MHz, Left output
+      CH(DIV_SYSTEM_MSM6295, 64, 127, "clockSel=12") // 1.5MHz, Right output
     }
   );
   ENTRY(
     "Kaneko Air Buster", {
-      DIV_SYSTEM_OPN, 64, 0, 3, // 3MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 141, // 3MHz
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0,
+        "clockSel=13\n"
+        "rateSel=true\n"
+      ) // 3MHz
     }
   );
   ENTRY(
     "Kaneko Air Buster (extended channel 3)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 3, // 3MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 141, // 3MHz
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0,
+        "clockSel=13\n"
+        "rateSel=true\n"
+      ) // 3MHz
     }
   );
   ENTRY(
     "Kaneko Toybox System", {
-      DIV_SYSTEM_AY8910, 64, 0, 19, // YM2149 2MHz
-      DIV_SYSTEM_AY8910, 64, 0, 19, // ^^
-      DIV_SYSTEM_MSM6295, 64, 0, 8, // 2MHz
+      CH(DIV_SYSTEM_AY8910, 64, 0,
+        "clockSel=3\n"
+        "chipType=1\n"
+      ), // YM2149 2MHz
+      CH(DIV_SYSTEM_AY8910, 64, 0,
+        "clockSel=3\n"
+        "chipType=1\n"
+      ), // ^^
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=8") // 2MHz
     }
   );
   ENTRY(
     "Kaneko Jackie Chan", {
-      DIV_SYSTEM_YMZ280B, 64, 0, 3, // 16MHz
+      CH(DIV_SYSTEM_YMZ280B, 64, 0, "clockSel=3") // 16MHz
     }
   );
   ENTRY(
     "Super Kaneko Nova System", {
-      DIV_SYSTEM_YMZ280B, 64, 0, 4, // 16.67MHz (33.33MHz / 2)
+      CH(DIV_SYSTEM_YMZ280B, 64, 0, "clockSel=4") // 16.67MHz (33.33MHz / 2)
     }
   );
   ENTRY(
     "Tecmo Ninja Gaiden", { // Ninja Gaiden, Raiga, etc
-      DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1MHz
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1MHz
     }
   );
   ENTRY(
     "Tecmo Ninja Gaiden (extended channel 3 on first OPN)", { // Ninja Gaiden, Raiga, etc
-      DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1MHz
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1MHz
     }
   );
   ENTRY(
     "Tecmo Ninja Gaiden (extended channel 3 on second OPN)", { // Ninja Gaiden, Raiga, etc
-      DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1MHz
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1MHz
     }
   );
   ENTRY(
     "Tecmo Ninja Gaiden (extended channel 3 on both OPNs)", { // Ninja Gaiden, Raiga, etc
-      DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1MHz
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1MHz
     }
   );
   ENTRY(
     "Tecmo System", {
       CH(DIV_SYSTEM_OPL3, 64, 0, ""),
       CH(DIV_SYSTEM_YMZ280B, 64, 0, ""),
-      DIV_SYSTEM_MSM6295, 64, 0, 8, // 2MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=8") // 2MHz
     }
   );
   ENTRY(
     "Tecmo System (drums mode)", {
       CH(DIV_SYSTEM_OPL3_DRUMS, 64, 0, ""),
       CH(DIV_SYSTEM_YMZ280B, 64, 0, ""),
-      DIV_SYSTEM_MSM6295, 64, 0, 8, // 2MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=8") // 2MHz
     }
   );
   ENTRY(
     "Seibu Kaihatsu Raiden", { // Raiden, Seibu cup soccer, Zero team, etc
-      DIV_SYSTEM_OPL2, 64, 0, 0, // YM3812 3.58MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1 or 1.023MHz (28.636363MHz / 28); various per games
+      CH(DIV_SYSTEM_OPL2, 64, 0, ""), // YM3812 3.58MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1 or 1.023MHz (28.636363MHz / 28); various per games
     }
   );
   ENTRY(
     "Seibu Kaihatsu Raiden (drums mode)", { // Raiden, Seibu cup soccer, Zero team, etc
-      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 0, // YM3812 3.58MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1 or 1.023MHz (28.636363MHz / 28); various per games
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, ""), // YM3812 3.58MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1 or 1.023MHz (28.636363MHz / 28); various per games
     }
   );
   ENTRY(
     "Sunsoft Shanghai 3", {
-      DIV_SYSTEM_AY8910, 64, 0, 20, // YM2149 1.5MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 1, // 1.056MHz
+      CH(DIV_SYSTEM_AY8910, 64, 0,
+        "clockSel=4\n"
+        "chipType=1\n"
+      ), // YM2149 1.5MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=1") // 1.056MHz
     }
   );
   ENTRY(
     "Sunsoft Arcade", {
-      DIV_SYSTEM_YM2612, 64, 0, 2, // discrete YM3438 8MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 1, // 1.056MHz
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=2"), // discrete YM3438 8MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=1") // 1.056MHz
     }
   );
   ENTRY(
     "Sunsoft Arcade (extended channel 3)", {
-      DIV_SYSTEM_YM2612_EXT, 64, 0, 2, // discrete YM3438 8MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 1, // 1.056MHz
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=2"), // discrete YM3438 8MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=1") // 1.056MHz
     }
   );
   ENTRY(
     "Atari Klax", { 
-      DIV_SYSTEM_MSM6295, 64, 0, 7, // 0.895MHz (3.579545MHz / 4)
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=7") // 0.895MHz (3.579545MHz / 4)
     }
   );
   ENTRY(
-    "Atari Rampart", { 
-      DIV_SYSTEM_OPLL, 64, 0, 0, // 3.579545MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 14, // 1.193MHz (3.579545MHz / 3)
+    "Atari Rampart", {
+      CH(DIV_SYSTEM_OPLL, 64, 0, ""), // 3.579545MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=14") // 1.193MHz (3.579545MHz / 3)
     }
   );
   ENTRY(
     "Atari Rampart (drums mode)", { 
-      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0, // 3.579545MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 14, // 1.193MHz (3.579545MHz / 3)
+      CH(DIV_SYSTEM_OPLL_DRUMS, 64, 0, ""), // 3.579545MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=14") // 1.193MHz (3.579545MHz / 3)
     }
   );
   ENTRY(
     "Atari JSA IIIs", { 
-      DIV_SYSTEM_YM2151, 64, 0, 0, // 3.579545MHz
-      DIV_SYSTEM_MSM6295, 64, -127, 14, // 1.193MHz (3.579545MHz / 3), Left output
-      DIV_SYSTEM_MSM6295, 64, 127, 14, // 1.193MHz (3.579545MHz / 3), Right output
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""), // 3.579545MHz
+      CH(DIV_SYSTEM_MSM6295, 64, -127, "clockSel=14"), // 1.193MHz (3.579545MHz / 3), Left output
+      CH(DIV_SYSTEM_MSM6295, 64, 127, "clockSel=14") // 1.193MHz (3.579545MHz / 3), Right output
     }
   );
   ENTRY(
     "Data East Karnov", {
-      DIV_SYSTEM_OPN, 64, 0, 5, // 1.5MHz
-      DIV_SYSTEM_OPL, 64, 0, 3, // 3MHz
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=3") // 3MHz
     }
   );
   ENTRY(
     "Data East Karnov (extended channel 3)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 5, // 1.5MHz
-      DIV_SYSTEM_OPL, 64, 0, 3, // 3MHz
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=3") // 3MHz
     }
   );
   ENTRY(
     "Data East Karnov (drums mode)", {
-      DIV_SYSTEM_OPN, 64, 0, 5, // 1.5MHz
-      DIV_SYSTEM_OPL_DRUMS, 64, 0, 3, // 3MHz
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "clockSel=3") // 3MHz
     }
   );
   ENTRY(
     "Data East Karnov (extended channel 3; drums mode)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 5, // 1.5MHz
-      DIV_SYSTEM_OPL_DRUMS, 64, 0, 3, // 3MHz
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "clockSel=3") // 3MHz
     }
   );
   ENTRY(
     "Data East Arcade", { // Bad dudes, Robocop, etc
-      DIV_SYSTEM_OPN, 64, 0, 5, // 1.5MHz
-      DIV_SYSTEM_OPL2, 64, 0, 3, // 3MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1 to 1.056MHz; various per games or optional
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1 to 1.056MHz; various per games or optional
     }
   );
   ENTRY(
     "Data East Arcade (extended channel 3)", { // Bad dudes, Robocop, etc
-      DIV_SYSTEM_OPN_EXT, 64, 0, 5, // 1.5MHz
-      DIV_SYSTEM_OPL2, 64, 0, 3, // 3MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1 to 1.056MHz; various per games or optional
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1 to 1.056MHz; various per games or optional
     }
   );
   ENTRY(
     "Data East Arcade (drums mode)", { // Bad dudes, Robocop, etc
-      DIV_SYSTEM_OPN, 64, 0, 5, // 1.5MHz
-      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 3, // 3MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1 to 1.056MHz; various per games or optional
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1 to 1.056MHz; various per games or optional
     }
   );
   ENTRY(
     "Data East Arcade (extended channel 3; drums mode)", { // Bad dudes, Robocop, etc
-      DIV_SYSTEM_OPN_EXT, 64, 0, 5, // 1.5MHz
-      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 3, // 3MHz
-      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1 to 1.056MHz; various per games or optional
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1 to 1.056MHz; various per games or optional
     }
   );
   ENTRY(
     "Data East PCX", {
-      DIV_SYSTEM_OPN, 64, 0, 5, // 1.5MHz
-      CH(DIV_SYSTEM_PCE, 64, 0, ""),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_PCE, 64, 0, "")
       // software controlled MSM5205
     }
   );
   ENTRY(
     "Data East PCX (extended channel 3)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 5, // 1.5MHz
-      CH(DIV_SYSTEM_PCE, 64, 0, ""),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_PCE, 64, 0, "")
       // software controlled MSM5205
     }
   );
   ENTRY(
     "Data East Dark Seal", { // Dark Seal, Crude Buster, Vapor Trail, etc
-      DIV_SYSTEM_YM2151, 64, 0, 0, // 3.580MHz (32.22MHz / 9)
-      DIV_SYSTEM_OPN, 64, 0, 2, // 4.0275MHz (32.22MHz / 8); optional
-      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1.007MHz (32.22MHz / 32)
-      DIV_SYSTEM_MSM6295, 64, 0, 8, // 2.014MHz (32.22MHz / 16); optional
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""), // 3.580MHz (32.22MHz / 9)
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4.0275MHz (32.22MHz / 8); optional
+      CH(DIV_SYSTEM_MSM6295, 64, 0, ""), // 1.007MHz (32.22MHz / 32)
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=8") // 2.014MHz (32.22MHz / 16); optional
       // HuC6280 is for control them, internal sound isn't used
     }
   );
   ENTRY(
     "Data East Dark Seal (extended channel 3)", { // Dark Seal, Crude Buster, Vapor Trail, etc
-      DIV_SYSTEM_YM2151, 64, 0, 0, // 3.580MHz (32.22MHz / 9)
-      DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4.0275MHz (32.22MHz / 8); optional
-      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1.007MHz (32.22MHz / 32)
-      DIV_SYSTEM_MSM6295, 64, 0, 8, // 2.014MHz (32.22MHz / 16); optional
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""), // 3.580MHz (32.22MHz / 9)
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4.0275MHz (32.22MHz / 8); optional
+      CH(DIV_SYSTEM_MSM6295, 64, 0, ""), // 1.007MHz (32.22MHz / 32)
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=8") // 2.014MHz (32.22MHz / 16); optional
       // HuC6280 is for control them, internal sound isn't used
     }
   );
   ENTRY(
     "Data East Deco 156", {
-      DIV_SYSTEM_MSM6295, 64, 0, 0, // 1 or 1.007MHz (32.22MHz / 32); various per games
-      DIV_SYSTEM_MSM6295, 64, 0, 8, // 1 or 2 or 2.014MHz (32.22MHz / 16); various per games
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=0"), // 1 or 1.007MHz (32.22MHz / 32); various per games
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=8") // 1 or 2 or 2.014MHz (32.22MHz / 16); various per games
     }
   );
   ENTRY(
     "Data East MLC", {
-      DIV_SYSTEM_YMZ280B, 64, 0, 5, // 14MHz
+      CH(DIV_SYSTEM_YMZ280B, 64, 0, "clockSel=5") // 14MHz
     }
   );
   ENTRY(
     "SNK Ikari Warriors", {
-      DIV_SYSTEM_OPL, 64, 0, 2,
-      DIV_SYSTEM_OPL, 64, 0, 2,
+      CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "SNK Ikari Warriors (drums mode on first OPL)", {
-      DIV_SYSTEM_OPL_DRUMS, 64, 0, 2,
-      DIV_SYSTEM_OPL, 64, 0, 2,
+      CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "SNK Ikari Warriors (drums mode on second OPL)", {
-      DIV_SYSTEM_OPL, 64, 0, 2,
-      DIV_SYSTEM_OPL_DRUMS, 64, 0, 2,
+      CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "SNK Ikari Warriors (drums mode on both OPLs)", {
-      DIV_SYSTEM_OPL_DRUMS, 64, 0, 2,
-      DIV_SYSTEM_OPL_DRUMS, 64, 0, 2,
+      CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "SNK Triple Z80", {
-      DIV_SYSTEM_Y8950, 64, 0, 2,
-      DIV_SYSTEM_OPL, 64, 0, 2,
+      CH(DIV_SYSTEM_Y8950, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "SNK Triple Z80 (drums mode on Y8950)", {
-      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 2,
-      DIV_SYSTEM_OPL, 64, 0, 2,
+      CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "SNK Triple Z80 (drums mode on OPL)", {
-      DIV_SYSTEM_Y8950, 64, 0, 2,
-      DIV_SYSTEM_OPL_DRUMS, 64, 0, 2,
+      CH(DIV_SYSTEM_Y8950, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "SNK Triple Z80 (drums mode on Y8950 and OPL)", {
-      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 2,
-      DIV_SYSTEM_OPL_DRUMS, 64, 0, 2,
+      CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "SNK Chopper I", {
-      DIV_SYSTEM_Y8950, 64, 0, 2,
-      DIV_SYSTEM_OPL2, 64, 0, 2,
+      CH(DIV_SYSTEM_Y8950, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "SNK Chopper I (drums mode on Y8950)", {
-      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 2,
-      DIV_SYSTEM_OPL2, 64, 0, 2,
+      CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "SNK Chopper I (drums mode on OPL2)", {
-      DIV_SYSTEM_Y8950, 64, 0, 2,
-      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 2,
+      CH(DIV_SYSTEM_Y8950, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "SNK Chopper I (drums mode on Y8950 and OPL2)", {
-      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 2,
-      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 2,
+      CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "SNK Touchdown Fever", {
-      DIV_SYSTEM_OPL, 64, 0, 2,
-      DIV_SYSTEM_Y8950, 64, 0, 2,
+      CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_Y8950, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "SNK Touchdown Fever (drums mode on OPL)", {
-      DIV_SYSTEM_OPL_DRUMS, 64, 0, 2,
-      DIV_SYSTEM_Y8950, 64, 0, 2,
+      CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_Y8950, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "SNK Touchdown Fever (drums mode on Y8950)", {
-      DIV_SYSTEM_OPL, 64, 0, 2,
-      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 2,
+      CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "SNK Touchdown Fever (drums mode on OPL and Y8950)", {
-      DIV_SYSTEM_OPL_DRUMS, 64, 0, 2,
-      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 2,
+      CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "Alpha denshi Alpha-68K", {
-      DIV_SYSTEM_OPN, 64, 0, 3, // 3MHz
-      DIV_SYSTEM_OPLL, 64, 0, 0, // 3.58MHz
-      DIV_SYSTEM_PCM_DAC, 64, 0, 7613|(7<<16), // software controlled 8 bit DAC
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_OPLL, 64, 0, "clockSel=0"), // 3.58MHz
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=7614\n"
+        "outDepth=8\n"
+      ) // software controlled 8 bit DAC
     }
   );
   ENTRY(
     "Alpha denshi Alpha-68K (extended channel 3)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 3, // 3MHz
-      DIV_SYSTEM_OPLL, 64, 0, 0, // 3.58MHz
-      DIV_SYSTEM_PCM_DAC, 64, 0, 7613|(7<<16), // software controlled 8 bit DAC
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_OPLL, 64, 0, "clockSel=0"), // 3.58MHz
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=7614\n"
+        "outDepth=8\n"
+      ) // software controlled 8 bit DAC
     }
   );
   ENTRY(
     "Alpha denshi Alpha-68K (drums mode)", {
-      DIV_SYSTEM_OPN, 64, 0, 3, // 3MHz
-      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0, // 3.58MHz
-      DIV_SYSTEM_PCM_DAC, 64, 0, 7613|(7<<16), // software controlled 8 bit DAC
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_OPLL_DRUMS, 64, 0, "clockSel=0"), // 3.58MHz
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=7614\n"
+        "outDepth=8\n"
+      ) // software controlled 8 bit DAC
     }
   );
   ENTRY(
     "Alpha denshi Alpha-68K (extended channel 3; drums mode)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 3, // 3MHz
-      DIV_SYSTEM_OPLL_DRUMS, 64, 0, 0, // 3.58MHz
-      DIV_SYSTEM_PCM_DAC, 64, 0, 7613|(7<<16), // software controlled 8 bit DAC
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_OPLL_DRUMS, 64, 0, "clockSel=0"), // 3.58MHz
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=7614\n"
+        "outDepth=8\n"
+      ) // software controlled 8 bit DAC
     }
   );
   ENTRY(
     "Neo Geo MVS", {
-      CH(DIV_SYSTEM_YM2610_FULL, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2610_FULL, 64, 0, "")
     }
   );
   ENTRY(
     "Neo Geo MVS (extended channel 2)", {
-      CH(DIV_SYSTEM_YM2610_FULL_EXT, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2610_FULL_EXT, 64, 0, "")
     }
   );
   ENTRY(
     "Nichibutsu Mag Max", {
-      DIV_SYSTEM_AY8910, 64, 0, 13,
-      DIV_SYSTEM_AY8910, 64, 0, 13,
-      DIV_SYSTEM_AY8910, 64, 0, 13,
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=13"),
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=13"),
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=13")
     }
   );
   ENTRY(
     "Namco (3-channel WSG)", { // Pac-Man, Galaga, Xevious, etc
-      CH(DIV_SYSTEM_NAMCO, 64, 0, ""),
+      CH(DIV_SYSTEM_NAMCO, 64, 0, "")
     }
   );
   ENTRY(
     "Namco Mappy", { // Mappy, Super Pac-Man, Libble Rabble, etc
-      CH(DIV_SYSTEM_NAMCO_15XX, 64, 0, ""),
+      CH(DIV_SYSTEM_NAMCO_15XX, 64, 0, "")
     }
   );
   ENTRY(
     "Namco Pac-Land", { // Pac-Land, Baraduke, Sky kid, etc
-      CH(DIV_SYSTEM_NAMCO_CUS30, 64, 0, ""),
+      CH(DIV_SYSTEM_NAMCO_CUS30, 64, 0, "")
     }
   );
   ENTRY(
     "Namco System 86", { // without expansion board case; Hopping Mappy, etc
       CH(DIV_SYSTEM_YM2151, 64, 0, ""),
-      CH(DIV_SYSTEM_NAMCO_CUS30, 64, 0, ""),
+      CH(DIV_SYSTEM_NAMCO_CUS30, 64, 0, "")
     }
   );
   ENTRY(
     "Namco Thunder Ceptor", {
       CH(DIV_SYSTEM_YM2151, 64, 0, ""),
       CH(DIV_SYSTEM_NAMCO_CUS30, 64, 0, ""),
-      DIV_SYSTEM_PCM_DAC, 64, 0, 7999|(7<<16), // M65C02 software driven, correct sample rate?
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
+        "rate=8000\n"
+        "outDepth=8\n"
+      ) // M65C02 software driven, correct sample rate?
     }
   );
   ENTRY(
     "Namco System 1", {
       CH(DIV_SYSTEM_YM2151, 64, 0, ""),
       CH(DIV_SYSTEM_NAMCO_CUS30, 64, 0, ""),
-      DIV_SYSTEM_PCM_DAC, 64, 0, 5999|(7<<16), // sample rate verified from https://github.com/mamedev/mame/blob/master/src/devices/sound/n63701x.cpp
-      DIV_SYSTEM_PCM_DAC, 64, 0, 5999|(7<<16), // ""
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=6000\n"
+        "outDepth=8\n"
+      ), // sample rate verified from https://github.com/mamedev/mame/blob/master/src/devices/sound/n63701x.cpp
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=6000\n"
+        "outDepth=8\n"
+      ) // ""
     }
   );
   ENTRY(
     "Taito Arcade", {
-      CH(DIV_SYSTEM_YM2610B, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2610B, 64, 0, "")
     }
   );
   ENTRY(
     "Taito Arcade (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2610B_EXT, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2610B_EXT, 64, 0, "")
     }
   );
   ENTRY(
     "Seta 1", {
-      CH(DIV_SYSTEM_X1_010, 64, 0, ""),
+      CH(DIV_SYSTEM_X1_010, 64, 0, "")
     }
   );
   ENTRY(
     "Seta 1 + FM addon", {
       CH(DIV_SYSTEM_X1_010, 64, 0, ""),
-      DIV_SYSTEM_YM2612, 64, 0, 2, // Discrete YM3438
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=2") // Discrete YM3438
     }
   );
   ENTRY(
     "Seta 1 + FM addon (extended channel 3)", {
       CH(DIV_SYSTEM_X1_010, 64, 0, ""),
-      DIV_SYSTEM_YM2612_EXT, 64, 0, 2, // Discrete YM3438
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=2") // Discrete YM3438
     }
   );
   ENTRY(
     "Seta 2", {
-      DIV_SYSTEM_X1_010, 64, 0, 1,
+      CH(DIV_SYSTEM_X1_010, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "Cave 68000", {
-      CH(DIV_SYSTEM_YMZ280B, 64, 0, ""),
+      CH(DIV_SYSTEM_YMZ280B, 64, 0, "")
     }
   );
   ENTRY(
     "Coreland Cyber Tank", {
-      DIV_SYSTEM_Y8950, 64, -127, 0, // 3.58MHz, Left output
-      DIV_SYSTEM_Y8950, 64, 127, 0, // 3.58MHz, Right output
+      CH(DIV_SYSTEM_Y8950, 64, -127, ""), // 3.58MHz, Left output
+      CH(DIV_SYSTEM_Y8950, 64, 127, "") // 3.58MHz, Right output
     }
   );
   ENTRY(
     "Coreland Cyber Tank (drums mode)", {
-      DIV_SYSTEM_Y8950, 64, -127, 0, // 3.58MHz, Left output
-      DIV_SYSTEM_Y8950, 64, 127, 0, // 3.58MHz, Right output
+      CH(DIV_SYSTEM_Y8950_DRUMS, 64, -127, ""), // 3.58MHz, Left output
+      CH(DIV_SYSTEM_Y8950_DRUMS, 64, 127, "") // 3.58MHz, Right output
     }
   );
   ENTRY(
     "ICE Skimaxx", {
-      DIV_SYSTEM_MSM6295, 64, -127, 130, // 4MHz, Left output
-      DIV_SYSTEM_MSM6295, 64, 127, 130, // 4MHz, Right output
-      DIV_SYSTEM_MSM6295, 64, -127, 8, // 2MHz, Left output
-      DIV_SYSTEM_MSM6295, 64, 127, 8, // 2MHz, Right output
+      CH(DIV_SYSTEM_MSM6295, 64, -127,
+        "clockSel=2\n"
+        "rateSel=true\n"
+      ), // 4MHz, Left output
+      CH(DIV_SYSTEM_MSM6295, 64, 127,
+        "clockSel=2\n"
+        "rateSel=true\n"
+      ), // 4MHz, Right output
+      CH(DIV_SYSTEM_MSM6295, 64, -127, "clockSel=8"), // 2MHz, Left output
+      CH(DIV_SYSTEM_MSM6295, 64, 127, "clockSel=8") // 2MHz, Right output
     }
   );
   ENTRY(
     "Toaplan 1", {
-      DIV_SYSTEM_OPL2, 64, 0, 5, // 3.5MHz
+      CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=5") // 3.5MHz
     }
   );
   ENTRY(
     "Toaplan 1 (drums mode)", {
-      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 5, // 3.5MHz
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=5") // 3.5MHz
     }
   );
   ENTRY(
     "Dynax/Nakanihon 3rd generation hardware", {
-      DIV_SYSTEM_AY8910, 64, 0, 0, // AY or YM, optional - 1.79MHz or 3.58MHz; various per game
+      CH(DIV_SYSTEM_AY8910, 64, 0, ""), // AY or YM, optional - 1.79MHz or 3.58MHz; various per game
       CH(DIV_SYSTEM_OPLL, 64, 0, ""),
-      DIV_SYSTEM_MSM6295, 64, 0, 6, // 1.023MHz mostly
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=6") // 1.023MHz mostly
     }
   );
   ENTRY(
     "Dynax/Nakanihon 3rd generation hardware (drums mode)", {
-      DIV_SYSTEM_AY8910, 64, 0, 0, // AY or YM, optional - 1.79MHz or 3.58MHz; various per game
+      CH(DIV_SYSTEM_AY8910, 64, 0, ""), // AY or YM, optional - 1.79MHz or 3.58MHz; various per game
       CH(DIV_SYSTEM_OPLL_DRUMS, 64, 0, ""),
-      DIV_SYSTEM_MSM6295, 64, 0, 6, // 1.023MHz mostly
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=6") // 1.023MHz mostly
     }
   );
   ENTRY(
     "Dynax/Nakanihon Real Break", {
       CH(DIV_SYSTEM_OPLL, 64, 0, ""),
-      CH(DIV_SYSTEM_YMZ280B, 64, 0, ""),
+      CH(DIV_SYSTEM_YMZ280B, 64, 0, "")
     }
   );
   ENTRY(
     "Dynax/Nakanihon Real Break (drums mode)", {
       CH(DIV_SYSTEM_OPLL_DRUMS, 64, 0, ""),
-      CH(DIV_SYSTEM_YMZ280B, 64, 0, ""),
+      CH(DIV_SYSTEM_YMZ280B, 64, 0, "")
     }
   );
   ENTRY(
     "Irem M72", {
       CH(DIV_SYSTEM_YM2151, 64, 0, ""),
-      DIV_SYSTEM_PCM_DAC, 64, 0, 7811|(7<<16),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=7812\n"
+        "outDepth=8\n"
+      )
     }
   );
   CATEGORY_END;
-  */
 
   CATEGORY_BEGIN("DefleMask-compatible","these configurations are compatible with DefleMask.\nselect this if you need to save as .dmf or work with that program.");
   ENTRY(
