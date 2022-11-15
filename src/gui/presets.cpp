@@ -388,7 +388,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_AY8910, 64, 0, "chipType=1"),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=55930\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       ) // variable rate, Mono DAC
     }
   );
@@ -465,11 +465,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0, // 2x 16-bit Burr Brown DAC
         "rate=44100\n"
-        "outDepth=16\n"
+        "outDepth=15\n"
       ),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=44100\n"
-        "outDepth=16\n"
+        "outDepth=15\n"
       ),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
@@ -479,11 +479,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=44100\n"
-        "outDepth=16\n"
+        "outDepth=15\n"
       ),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=44100\n"
-        "outDepth=16\n"
+        "outDepth=15\n"
       ),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
@@ -505,7 +505,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=44100\n"
-        "outDepth=16\n"
+        "outDepth=15\n"
         "stereo=true\n"
       ),
       CH(DIV_SYSTEM_OPL3, 64, 0, "clockSel=2"),
@@ -517,7 +517,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=44100\n"
-        "outDepth=16\n"
+        "outDepth=15\n"
         "stereo=true\n"
       ),
       CH(DIV_SYSTEM_OPL3, 64, 0, "clockSel=2"),
@@ -529,7 +529,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=44100\n"
-        "outDepth=16\n"
+        "outDepth=15\n"
         "stereo=true\n"
       ),
       CH(DIV_SYSTEM_OPL3_DRUMS, 64, 0, "clockSel=2"),
@@ -541,7 +541,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=44100\n"
-        "outDepth=16\n"
+        "outDepth=15\n"
         "stereo=true\n"
       ),
       CH(DIV_SYSTEM_OPL3_DRUMS, 64, 0, "clockSel=2"),
@@ -614,11 +614,11 @@ void FurnaceGUI::initSystemPresets() {
       ),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=50668\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       ),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=50668\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       )
     }
   );
@@ -689,7 +689,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
         "rate=22050\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       )
     }
   );
@@ -699,7 +699,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
         "rate=22050\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       )
     }
   );
@@ -710,7 +710,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_SAA1099, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
         "rate=22050\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       ),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
@@ -722,7 +722,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_SAA1099, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
         "rate=22050\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       ),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
@@ -733,7 +733,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPL2, 64, 127, ""),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
         "rate=22050\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
         "stereo=true\n"
       ), //alternatively 44.1 khz mono
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
@@ -745,7 +745,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPL2_DRUMS, 64, 127, ""),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
         "rate=22050\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
         "stereo=true\n"
       ), //alternatively 44.1 khz mono
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
@@ -756,7 +756,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPL3, 64, 0, ""),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
         "rate=44100\n"
-        "outDepth=16\n"
+        "outDepth=15\n"
         "stereo=true\n"
       ),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
@@ -767,7 +767,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPL3_DRUMS, 64, 0, ""),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
         "rate=44100\n"
-        "outDepth=16\n"
+        "outDepth=15\n"
         "stereo=true\n"
       ),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
@@ -1283,7 +1283,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_YM2151, 64, 0, ""),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=15625\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       ), // variable via OPM timer?
       CH(DIV_SYSTEM_MSM6295, 64, 0, "")
     }
@@ -1397,7 +1397,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_YM2151, 64, 0, "clockSel=2"), // 4MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=61500\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       ) // software controlled, variable rate via configurable timers
     }
   );
@@ -1901,7 +1901,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPLL, 64, 0, "clockSel=0"), // 3.58MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=7614\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       ) // software controlled 8 bit DAC
     }
   );
@@ -1911,7 +1911,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPLL, 64, 0, "clockSel=0"), // 3.58MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=7614\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       ) // software controlled 8 bit DAC
     }
   );
@@ -1921,7 +1921,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPLL_DRUMS, 64, 0, "clockSel=0"), // 3.58MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=7614\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       ) // software controlled 8 bit DAC
     }
   );
@@ -1931,7 +1931,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPLL_DRUMS, 64, 0, "clockSel=0"), // 3.58MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=7614\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       ) // software controlled 8 bit DAC
     }
   );
@@ -1979,7 +1979,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_NAMCO_CUS30, 64, 0, ""),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
         "rate=8000\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       ) // M65C02 software driven, correct sample rate?
     }
   );
@@ -1989,11 +1989,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_NAMCO_CUS30, 64, 0, ""),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=6000\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       ), // sample rate verified from https://github.com/mamedev/mame/blob/master/src/devices/sound/n63701x.cpp
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=6000\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       ) // ""
     }
   );
@@ -2101,7 +2101,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_YM2151, 64, 0, ""),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=7812\n"
-        "outDepth=8\n"
+        "outDepth=7\n"
       )
     }
   );
