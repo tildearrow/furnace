@@ -318,6 +318,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_VRC7: {
       int clockSel=flags.getInt("clockSel",0);
       int patchSet=flags.getInt("patchSet",0);
+      bool noTopHatFreq=flags.getBool("noTopHatFreq",false);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("NTSC (3.58MHz)",clockSel==0)) {
@@ -356,12 +357,19 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         }
       }
 
+      if (type==DIV_SYSTEM_OPLL_DRUMS) {
+        if (ImGui::Checkbox("Ignore top/hi-hat frequency changes",&noTopHatFreq)) {
+          altered=true;
+        }
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           if (type!=DIV_SYSTEM_VRC7) {
             flags.set("patchSet",patchSet);
           }
+          flags.set("noTopHatFreq",noTopHatFreq);
         });
       }
       break;
