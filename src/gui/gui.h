@@ -1072,6 +1072,7 @@ class FurnaceGUI {
   int displayInsTypeListMakeInsSample;
   float mobileMenuPos, autoButtonSize;
   const int* curSysSection;
+  DivInstrumentFM opllPreview;
 
   String pendingRawSample;
   int pendingRawSampleDepth, pendingRawSampleChannels;
