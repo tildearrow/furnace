@@ -133,14 +133,14 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   for (int j=0; j<chans; j++) {
     // check if channel is not hidden
     if (!e->curSubSong->chanShow[j]) {
-      patChanX[j]=ImGui::GetCursorPosX();
+      patChanX[j]=ImGui::GetCursorScreenPos().x;
       continue;
     }
     int chanVolMax=e->getMaxVolumeChan(j);
     if (chanVolMax<1) chanVolMax=1;
     const DivPattern* pat=patCache[j];
     ImGui::TableNextColumn();
-    patChanX[j]=ImGui::GetCursorPosX();
+    patChanX[j]=ImGui::GetCursorScreenPos().x;
 
     // selection highlight flags
     int sel1XSum=sel1.xCoarse*32+sel1.xFine;
@@ -331,7 +331,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     ImGui::PopStyleColor();
   }
   ImGui::TableNextColumn();
-  patChanX[chans]=ImGui::GetCursorPosX();
+  patChanX[chans]=ImGui::GetCursorScreenPos().x;
 }
 
 void FurnaceGUI::drawPattern() {
@@ -966,7 +966,7 @@ void FurnaceGUI::drawPattern() {
     if (fancyPattern) { // visualizer
       e->getCommandStream(cmdStream);
       ImDrawList* dl=ImGui::GetWindowDrawList();
-      ImVec2 off=ImGui::GetWindowPos();
+      ImVec2 off=ImVec2(0.0f,ImGui::GetWindowPos().y);
       
       // commands
       for (DivCommand& i: cmdStream) {
