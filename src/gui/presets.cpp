@@ -404,509 +404,579 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
-  /* TODO: everything here
   ENTRY(
     "NEC PC-98 (with Sound Orchestra)", {
-      DIV_SYSTEM_OPN, 64, 0, 4,
-      DIV_SYSTEM_OPL2, 64, 0, 4,
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Orchestra; extended channel 3)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 4,
-      DIV_SYSTEM_OPL2, 64, 0, 4,
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Orchestra in drums mode)", {
-      DIV_SYSTEM_OPN, 64, 0, 4,
-      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 4,
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Orchestra in drums mode; extended channel 3)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 4,
-      DIV_SYSTEM_OPL2_DRUMS, 64, 0, 4,
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Orchestra V)", {
-      DIV_SYSTEM_OPN, 64, 0, 4,
-      DIV_SYSTEM_Y8950, 64, 0, 4,
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_Y8950, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Orchestra V; extended channel 3)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 4,
-      DIV_SYSTEM_Y8950, 64, 0, 4,
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_Y8950, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Orchestra V in drums mode)", {
-      DIV_SYSTEM_OPN, 64, 0, 4,
-      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 4,
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Orchestra V in drums mode; extended channel 3)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 4,
-      DIV_SYSTEM_Y8950_DRUMS, 64, 0, 4,
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with PC-9801-86)", { // -73 also has OPNA
-      DIV_SYSTEM_PC98, 64, 0, 1,
-      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16), // 2x 16-bit Burr Brown DAC
-      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16),
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, // 2x 16-bit Burr Brown DAC
+        "rate=44100\n"
+        "outDepth=16\n"
+      ),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=44100\n"
+        "outDepth=16\n"
+      ),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with PC-9801-86; extended channel 3)", { // -73 also has OPNA
-      DIV_SYSTEM_PC98_EXT, 64, 0, 1,
-      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16),
-      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16),
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=44100\n"
+        "outDepth=16\n"
+      ),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=44100\n"
+        "outDepth=16\n"
+      ),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
-    ENTRY(
+  ENTRY(
     "NEC PC-98 (with PC-9801-73)", {
-      DIV_SYSTEM_PC98, 64, 0, 1,
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
-    ENTRY(
+  ENTRY(
     "NEC PC-98 (with PC-9801-73; extended channel 3)", {
-      DIV_SYSTEM_PC98_EXT, 64, 0, 1,
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible)", {
-      DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
-      CH(DIV_SYSTEM_OPL3, 64, 0, ""),
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=44100\n"
+        "outDepth=16\n"
+        "stereo=true\n"
+      ),
+      CH(DIV_SYSTEM_OPL3, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible; extended channel 3)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
-      CH(DIV_SYSTEM_OPL3, 64, 0, ""),
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=44100\n"
+        "outDepth=16\n"
+        "stereo=true\n"
+      ),
+      CH(DIV_SYSTEM_OPL3, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode)", {
-      DIV_SYSTEM_OPN, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
-      DIV_SYSTEM_OPL3_DRUMS, 64, 0, 2,
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=44100\n"
+        "outDepth=16\n"
+        "stereo=true\n"
+      ),
+      CH(DIV_SYSTEM_OPL3_DRUMS, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode; extended channel 3)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 2, // 4MHz
-      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
-      DIV_SYSTEM_OPL3_DRUMS, 64, 0, 2,
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=44100\n"
+        "outDepth=16\n"
+        "stereo=true\n"
+      ),
+      CH(DIV_SYSTEM_OPL3_DRUMS, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "ZX Spectrum (48K)", {
-      CH(DIV_SYSTEM_SFX_BEEPER, 64, 0, ""),
+      CH(DIV_SYSTEM_SFX_BEEPER, 64, 0, "")
     }
   );
   ENTRY(
     "ZX Spectrum (128K)", {
-      DIV_SYSTEM_AY8910, 64, 0, 1, //beeper was also included
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=1") //beeper was also included
     }
   );
   ENTRY(
     "ZX Spectrum (128K) with TurboSound FM", {
-      DIV_SYSTEM_AY8910, 64, 0, 1,
-      DIV_SYSTEM_OPN, 64, 0, 1,
-      DIV_SYSTEM_OPN, 64, 0, 1,
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on first OPN)", {
-      DIV_SYSTEM_AY8910, 64, 0, 1,
-      DIV_SYSTEM_OPN_EXT, 64, 0, 1,
-      DIV_SYSTEM_OPN, 64, 0, 1,
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on second OPN)", {
-      DIV_SYSTEM_AY8910, 64, 0, 1,
-      DIV_SYSTEM_OPN, 64, 0, 1,
-      DIV_SYSTEM_OPN_EXT, 64, 0, 1,
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on both OPNs)", {
-      DIV_SYSTEM_AY8910, 64, 0, 1,
-      DIV_SYSTEM_OPN_EXT, 64, 0, 1,
-      DIV_SYSTEM_OPN_EXT, 64, 0, 1,
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "ZX Spectrum (128K) with TurboSound", {
-      DIV_SYSTEM_AY8910, 64, 0, 1,
-      DIV_SYSTEM_AY8910, 64, 0, 1, // or YM2149
-      DIV_SYSTEM_AY8910, 64, 0, 1, // or YM2149
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=1"), // or YM2149
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=1") // or YM2149
     }
   );
   ENTRY(
     "Amstrad CPC", {
-      DIV_SYSTEM_AY8910, 64, 0, 5,
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=5")
     }
   );
   ENTRY(
     "Atari ST", {
-      DIV_SYSTEM_AY8910, 64, 0, 19,
+      CH(DIV_SYSTEM_AY8910, 64, 0,
+        "clockSel=3\n"
+        "chipType=1\n"
+      )
     }
   );
-    ENTRY(
+  ENTRY(
     "Atari STE", {
-      DIV_SYSTEM_AY8910, 64, 0, 19,
-      DIV_SYSTEM_PCM_DAC, 64, 0, 50667|(7<<16),
-      DIV_SYSTEM_PCM_DAC, 64, 0, 50667|(7<<16),
+      CH(DIV_SYSTEM_AY8910, 64, 0,
+        "clockSel=3\n"
+        "chipType=1\n"
+      ),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=50668\n"
+        "outDepth=8\n"
+      ),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0,
+        "rate=50668\n"
+        "outDepth=8\n"
+      )
     }
   );
   ENTRY(
     "SAM Coupé", {
-      CH(DIV_SYSTEM_SAA1099, 64, 0, ""),
+      CH(DIV_SYSTEM_SAA1099, 64, 0, "")
     }
   );
   ENTRY(
     "BBC Micro", {
-      DIV_SYSTEM_SMS, 64, 0, 0x42, // SN76489A 4MHz
+      CH(DIV_SYSTEM_SMS, 64, 0,
+        "clockSel=2\n"
+        "chipType=4\n" // SN76489A 4MHz
+      )
     }
   );
   ENTRY(
     "PC (barebones)", {
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
   );
   ENTRY(
     "IBM PCjr", {
       // it can be enable sound output at once
-      DIV_SYSTEM_SMS, 64, 0, 0x44, // SN76496
+      CH(DIV_SYSTEM_SMS, 64, 0, "chipType=5") // SN76496
     }
   );
   ENTRY(
     "Tandy 1000", {
-      DIV_SYSTEM_SMS, 64, 0, 0x44, // NCR 8496 or SN76496 or Tandy PSSJ(with 8 bit DAC)
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
+      CH(DIV_SYSTEM_SMS, 64, 0, "chipType=5"), // NCR 8496 or SN76496 or Tandy PSSJ(with 8 bit DAC)
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
   );
   ENTRY(
     "PC + Covox Sound Master", {
-      DIV_SYSTEM_AY8930, 64, 0, 3,
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
+      CH(DIV_SYSTEM_AY8930, 64, 0, "clockSel=3"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
   );
   ENTRY(
     "PC + SSI 2001", {
-      DIV_SYSTEM_C64_6581, 64, 0, 2,
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
+      CH(DIV_SYSTEM_C64_6581, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
   );
   ENTRY(
     "PC + Game Blaster", {
-      DIV_SYSTEM_SAA1099, 64, 0, 1,
-      DIV_SYSTEM_SAA1099, 64, 0, 1,
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
+      CH(DIV_SYSTEM_SAA1099, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_SAA1099, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
   );
-    ENTRY(
+  ENTRY(
     "PC + AdLib", {
       CH(DIV_SYSTEM_OPL2, 64, 0, ""),
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
   );
-      ENTRY(
+  ENTRY(
     "PC + AdLib (drums mode)", {
       CH(DIV_SYSTEM_OPL2, 64, 0, ""),
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
   );
   ENTRY(
     "PC + Sound Blaster", {
       CH(DIV_SYSTEM_OPL2, 64, 0, ""),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
-      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
+        "rate=22050\n"
+        "outDepth=8\n"
+      )
     }
   );
   ENTRY(
     "PC + AdLib/Sound Blaster (drums mode)", {
       CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, ""),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
-      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
+        "rate=22050\n"
+        "outDepth=8\n"
+      )
     }
   );
   ENTRY(
     "PC + Sound Blaster w/Game Blaster Compatible", {
       CH(DIV_SYSTEM_OPL2, 64, 0, ""),
-      DIV_SYSTEM_SAA1099, 64, 0, 1,
-      DIV_SYSTEM_SAA1099, 64, 0, 1,
-      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16),
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
+      CH(DIV_SYSTEM_SAA1099, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_SAA1099, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
+        "rate=22050\n"
+        "outDepth=8\n"
+      ),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
   );
   ENTRY(
     "PC + Sound Blaster w/Game Blaster Compatible (drums mode)", {
       CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, ""),
-      DIV_SYSTEM_SAA1099, 64, 0, 1,
-      DIV_SYSTEM_SAA1099, 64, 0, 1,
-      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16),
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
+      CH(DIV_SYSTEM_SAA1099, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_SAA1099, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
+        "rate=22050\n"
+        "outDepth=8\n"
+      ),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
   );
   ENTRY(
     "PC + Sound Blaster Pro", {
-      DIV_SYSTEM_OPL2, 64, -127, 0,
-      DIV_SYSTEM_OPL2, 64, 127, 0,
-      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16)|(1<<20), //alternatively 44.1 khz mono
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
+      CH(DIV_SYSTEM_OPL2, 64, -127, ""),
+      CH(DIV_SYSTEM_OPL2, 64, 127, ""),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
+        "rate=22050\n"
+        "outDepth=8\n"
+        "stereo=true\n"
+      ), //alternatively 44.1 khz mono
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
   );
   ENTRY(
     "PC + Sound Blaster Pro (drums mode)", {
-      DIV_SYSTEM_OPL2_DRUMS, 64, -127, 0,
-      DIV_SYSTEM_OPL2_DRUMS, 64, 127, 0,
-      DIV_SYSTEM_PCM_DAC, 64, 0, 22049|(7<<16)|(1<<20), //alternatively 44.1 khz mono
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, -127, ""),
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 127, ""),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
+        "rate=22050\n"
+        "outDepth=8\n"
+        "stereo=true\n"
+      ), //alternatively 44.1 khz mono
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
   );
   ENTRY(
     "PC + Sound Blaster Pro 2", {
       CH(DIV_SYSTEM_OPL3, 64, 0, ""),
-      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
+        "rate=44100\n"
+        "outDepth=16\n"
+        "stereo=true\n"
+      ),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
   );
   ENTRY(
     "PC + Sound Blaster Pro 2 (drums mode)", {
       CH(DIV_SYSTEM_OPL3_DRUMS, 64, 0, ""),
-      DIV_SYSTEM_PCM_DAC, 64, 0, 44099|(15<<16)|(1<<20),
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
+        "rate=44100\n"
+        "outDepth=16\n"
+        "stereo=true\n"
+      ),
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
   );
   ENTRY(
     "PC + PC-FXGA", {
-      DIV_SYSTEM_PCE, 64, 0, 0, // HuC6230 (WSG from HuC6280 but with built in 2 OKI ADPCM playback engines)
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
+      CH(DIV_SYSTEM_PCE, 64, 0, ""), // HuC6230 (WSG from HuC6280 but with built in 2 OKI ADPCM playback engines)
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
   );
   ENTRY(
     "PC + SAAYM", {
-      DIV_SYSTEM_YM2151, 64, 0, 0, // 3.58MHz or 4MHz selectable via jumper
-      DIV_SYSTEM_SAA1099, 64, 0, 1, // 7.16MHz or 8MHz selectable via jumper
-      DIV_SYSTEM_SAA1099, 64, 0, 1, // ""
-      CH(DIV_SYSTEM_PCSPKR, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""), // 3.58MHz or 4MHz selectable via jumper
+      CH(DIV_SYSTEM_SAA1099, 64, 0, "clockSel=1"), // 7.16MHz or 8MHz selectable via jumper
+      CH(DIV_SYSTEM_SAA1099, 64, 0, "clockSel=1"), // ""
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "")
     }
   );
   ENTRY(
     "Sharp X1", {
-      DIV_SYSTEM_AY8910, 64, 0, 3,
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=3")
     }
   );
   ENTRY(
     "Sharp X1 + FM Addon", {
-      DIV_SYSTEM_AY8910, 64, 0, 3,
-      DIV_SYSTEM_YM2151, 64, 0, 2,
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=3"),
+      CH(DIV_SYSTEM_YM2151, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
     "Sharp X68000", {
-      DIV_SYSTEM_YM2151, 64, 0, 2,
-      CH(DIV_SYSTEM_MSM6258, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2151, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_MSM6258, 64, 0, "")
     }
   );
   ENTRY(
     "FM Towns", {
       CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=2"), // YM3438
-      CH(DIV_SYSTEM_RF5C68, 64, 0, ""),
+      CH(DIV_SYSTEM_RF5C68, 64, 0, "")
     }
   );
   ENTRY(
     "FM Towns (extended channel 3)", {
       CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=2"), // YM3438
-      CH(DIV_SYSTEM_RF5C68, 64, 0, ""),
+      CH(DIV_SYSTEM_RF5C68, 64, 0, "")
     }
   );
   ENTRY(
     "Commander X16", {
       CH(DIV_SYSTEM_VERA, 64, 0, ""),
-      CH(DIV_SYSTEM_YM2151, 32, 0, ""),
+      CH(DIV_SYSTEM_YM2151, 32, 0, "")
     }
   );
   ENTRY(
     "TI-99/4A", {
-      DIV_SYSTEM_SMS, 64, 0, 0x182, // SN94624 447KHz
+      CH(DIV_SYSTEM_SMS, 64, 0,
+        "clockSel=6\n"
+        "chipType=8\n" // SN94624 447KHz
+      )
     }
   );
-  */
   CATEGORY_END;
 
-  /* TODO: everything here
   CATEGORY_BEGIN("FM","chips which use frequency modulation (FM) to generate sound.\nsome of these also pack more (like square and sample channels).");
   ENTRY(
     "Yamaha YM2151 (OPM)", {
-      CH(DIV_SYSTEM_YM2151, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2151, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM2203 (OPN)", {
-      DIV_SYSTEM_OPN, 64, 0, 3,
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=3")
     }
   );
   ENTRY(
     "Yamaha YM2203 (extended channel 3)", {
-      DIV_SYSTEM_OPN_EXT, 64, 0, 3,
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=3")
     }
   );
   ENTRY(
     "Yamaha YM2608 (OPNA)", {
-      CH(DIV_SYSTEM_PC98, 64, 0, ""),
+      CH(DIV_SYSTEM_PC98, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM2608 (extended channel 3)", {
-      CH(DIV_SYSTEM_PC98_EXT, 64, 0, ""),
+      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM2610 (OPNB)", {
-      CH(DIV_SYSTEM_YM2610_FULL, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2610_FULL, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM2610 (extended channel 2)", {
-      CH(DIV_SYSTEM_YM2610_FULL_EXT, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2610_FULL_EXT, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM2610B (OPNB2)", {
-      CH(DIV_SYSTEM_YM2610B, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2610B, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM2610B (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2610B_EXT, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2610B_EXT, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM2612 (OPN2)", {
-      DIV_SYSTEM_YM2612, 64, 0, (int)0x80000000,
+      CH(DIV_SYSTEM_YM2612, 64, 0, "ladderEffect=true")
     }
   );
   ENTRY(
     "Yamaha YM2612 (extended channel 3)", {
-      DIV_SYSTEM_YM2612_EXT, 64, 0, (int)0x80000000,
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "ladderEffect=true")
     }
   );
   ENTRY(
     "Yamaha YM2612 (OPN2) with DualPCM", {
-      DIV_SYSTEM_YM2612_FRAC, 64, 0, (int)0x80000000,
+      CH(DIV_SYSTEM_YM2612_FRAC, 64, 0, "ladderEffect=true")
     }
   );
   ENTRY(
     "Yamaha YM2612 (extended channel 3) with DualPCM", {
-      DIV_SYSTEM_YM2612_FRAC_EXT, 64, 0, (int)0x80000000,
+      CH(DIV_SYSTEM_YM2612_FRAC_EXT, 64, 0, "ladderEffect=true")
     }
   );
   ENTRY(
     "Yamaha YM2413 (OPLL)", {
-      CH(DIV_SYSTEM_OPLL, 64, 0, ""),
+      CH(DIV_SYSTEM_OPLL, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM2413 (drums mode)", {
-      CH(DIV_SYSTEM_OPLL_DRUMS, 64, 0, ""),
+      CH(DIV_SYSTEM_OPLL_DRUMS, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM2414 (OPZ)", {
-      CH(DIV_SYSTEM_OPZ, 64, 0, ""),
+      CH(DIV_SYSTEM_OPZ, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM3438 (OPN2C)", {
-      CH(DIV_SYSTEM_YM2612, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2612, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM3438 (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM3438 (OPN2C) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_FRAC, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2612_FRAC, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM3438 (extended channel 3) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_FRAC_EXT, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2612_FRAC_EXT, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM3526 (OPL)", {
-      CH(DIV_SYSTEM_OPL, 64, 0, ""),
+      CH(DIV_SYSTEM_OPL, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM3526 (drums mode)", {
-      CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, ""),
+      CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha Y8950", {
-      CH(DIV_SYSTEM_Y8950, 64, 0, ""),
+      CH(DIV_SYSTEM_Y8950, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha Y8950 (drums mode)", {
-      CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, ""),
+      CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM3812 (OPL2)", {
-      CH(DIV_SYSTEM_OPL2, 64, 0, ""),
+      CH(DIV_SYSTEM_OPL2, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM3812 (drums mode)", {
-      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, ""),
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YMF262 (OPL3)", {
-      CH(DIV_SYSTEM_OPL3, 64, 0, ""),
+      CH(DIV_SYSTEM_OPL3, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YMF262 (drums mode)", {
-      CH(DIV_SYSTEM_OPL3_DRUMS, 64, 0, ""),
+      CH(DIV_SYSTEM_OPL3_DRUMS, 64, 0, "")
     }
   );
   if (settings.hiddenSystems) {
     ENTRY(
       "Yamaha YMU759 (MA-2)", {
-        CH(DIV_SYSTEM_YMU759, 64, 0, ""),
-        0
+        CH(DIV_SYSTEM_YMU759, 64, 0, "")
       }
     );
   }
@@ -915,27 +985,27 @@ void FurnaceGUI::initSystemPresets() {
   CATEGORY_BEGIN("Square","these chips generate square/pulse tones only (but may include noise).");
   ENTRY(
     "TI SN76489", {
-      DIV_SYSTEM_SMS, 64, 0, 4,
+      CH(DIV_SYSTEM_SMS, 64, 0, "chipType=1")
     }
   );
   ENTRY(
     "TI SN76489A", {
-      DIV_SYSTEM_SMS, 64, 0, 0x40,
+      CH(DIV_SYSTEM_SMS, 64, 0, "chipType=4")
     }
   );
   ENTRY(
     "TI SN76496", {
-      DIV_SYSTEM_SMS, 64, 0, 0x44,
+      CH(DIV_SYSTEM_SMS, 64, 0, "chipType=5")
     }
   );
   ENTRY(
     "NCR 8496", {
-      DIV_SYSTEM_SMS, 64, 0, 0x48,
+      CH(DIV_SYSTEM_SMS, 64, 0, "chipType=6")
     }
   );
   ENTRY(
     "Tandy PSSJ 3-voice sound", {
-      DIV_SYSTEM_SMS, 64, 0, 0x4c,
+      CH(DIV_SYSTEM_SMS, 64, 0, "chipType=7")
       // 8 bit DAC
     }
   );
@@ -946,62 +1016,68 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Sega PSG (SN76489-like, Stereo)", {
-      DIV_SYSTEM_SMS, 64, 0, 0xc,
+      CH(DIV_SYSTEM_SMS, 64, 0, "chipType=3")
     }
   );
   ENTRY(
     "TI SN94624", {
-      DIV_SYSTEM_SMS, 64, 0, 0x182,
+      CH(DIV_SYSTEM_SMS, 64, 0,
+        "clockSel=6\n"
+        "chipType=8\n"
+      )
     }
   );
   ENTRY(
     "TI SN76494", {
-      DIV_SYSTEM_SMS, 64, 0, 0x186,
+      CH(DIV_SYSTEM_SMS, 64, 0,
+        "clockSel=6\n"
+        "chipType=9\n"
+      )
     }
   );
   ENTRY(
     "Toshiba T6W28", {
-      CH(DIV_SYSTEM_T6W28, 64, 0, ""),
+      CH(DIV_SYSTEM_T6W28, 64, 0, "")
     }
   );
   ENTRY(
     "AY-3-8910", {
-      CH(DIV_SYSTEM_AY8910, 64, 0, ""),
+      CH(DIV_SYSTEM_AY8910, 64, 0, "")
     }
   );
   ENTRY(
     "AY-3-8914", {
-      DIV_SYSTEM_AY8910, 64, 0, 48,
+      CH(DIV_SYSTEM_AY8910, 64, 0, "chipType=3")
     }
   );
   ENTRY(
     "Yamaha YM2149(F)", {
-      DIV_SYSTEM_AY8910, 64, 0, 16,
+      CH(DIV_SYSTEM_AY8910, 64, 0, "chipType=1")
     }
   );
   ENTRY(
     "Philips SAA1099", {
-      CH(DIV_SYSTEM_SAA1099, 64, 0, ""),
+      CH(DIV_SYSTEM_SAA1099, 64, 0, "")
     }
   );
   ENTRY(
     "PC Speaker", {
-      CH(DIV_SYSTEM_PCSPKR, 32, 0, ""),
+      CH(DIV_SYSTEM_PCSPKR, 32, 0, "")
     }
   );
   ENTRY(
     "Commodore VIC", {
-      DIV_SYSTEM_VIC20, 64, 0, 1,
+      CH(DIV_SYSTEM_VIC20, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "OKI MSM5232", {
-      CH(DIV_SYSTEM_MSM5232, 64, 0, ""),
+      CH(DIV_SYSTEM_MSM5232, 64, 0, "")
     }
   );
   ENTRY(
     "Pong", {
-      CH(DIV_SYSTEM_PONG, 64, 0, ""),
+      CH(DIV_SYSTEM_PONG, 64, 0, "")
     }
   );
   CATEGORY_END;
@@ -1009,52 +1085,52 @@ void FurnaceGUI::initSystemPresets() {
   CATEGORY_BEGIN("Sample","chips/systems which use PCM or ADPCM samples for sound synthesis.");
   ENTRY(
     "Amiga", {
-      CH(DIV_SYSTEM_AMIGA, 64, 0, ""),
+      CH(DIV_SYSTEM_AMIGA, 64, 0, "")
     }
   );
   ENTRY(
     "SegaPCM", {
-      CH(DIV_SYSTEM_SEGAPCM, 64, 0, ""),
+      CH(DIV_SYSTEM_SEGAPCM, 64, 0, "")
     }
   );
   ENTRY(
     "Capcom QSound", {
-      CH(DIV_SYSTEM_QSOUND, 64, 0, ""),
+      CH(DIV_SYSTEM_QSOUND, 64, 0, "")
     }
   );
   ENTRY(
     "Seta/Allumer X1-010", {
-      CH(DIV_SYSTEM_X1_010, 64, 0, ""),
+      CH(DIV_SYSTEM_X1_010, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YMZ280B (PCMD8)", {
-      CH(DIV_SYSTEM_YMZ280B, 64, 0, ""),
+      CH(DIV_SYSTEM_YMZ280B, 64, 0, "")
     }
   );
   ENTRY(
     "Ricoh RF5C68", {
-      CH(DIV_SYSTEM_RF5C68, 64, 0, ""),
+      CH(DIV_SYSTEM_RF5C68, 64, 0, "")
     }
   ); 
   ENTRY(
     "OKI MSM6258", {
-      CH(DIV_SYSTEM_MSM6258, 64, 0, ""),
+      CH(DIV_SYSTEM_MSM6258, 64, 0, "")
     }
   );
   ENTRY(
     "OKI MSM6295", {
-      CH(DIV_SYSTEM_MSM6295, 64, 0, ""),
+      CH(DIV_SYSTEM_MSM6295, 64, 0, "")
     }
   );
   ENTRY(
     "SNES", {
-      CH(DIV_SYSTEM_SNES, 64, 0, ""),
+      CH(DIV_SYSTEM_SNES, 64, 0, "")
     }
   );
   ENTRY(
     "Generic PCM DAC", {
-      CH(DIV_SYSTEM_PCM_DAC, 64, 0, ""),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, "")
     }
   );
   CATEGORY_END;
@@ -1062,67 +1138,67 @@ void FurnaceGUI::initSystemPresets() {
   CATEGORY_BEGIN("Wavetable","chips which use user-specified waveforms to generate sound.");
   ENTRY(
     "PC Engine", {
-      CH(DIV_SYSTEM_PCE, 64, 0, ""),
+      CH(DIV_SYSTEM_PCE, 64, 0, "")
     }
   );
   ENTRY(
     "Commodore PET (pseudo-wavetable)", {
-      CH(DIV_SYSTEM_PET, 64, 0, ""),
+      CH(DIV_SYSTEM_PET, 64, 0, "")
     }
   );
   ENTRY(
     "Konami Bubble System WSG", {
-      CH(DIV_SYSTEM_BUBSYS_WSG, 64, 0, ""),
+      CH(DIV_SYSTEM_BUBSYS_WSG, 64, 0, "")
     }
   );
   ENTRY(
     "Konami SCC", {
-      CH(DIV_SYSTEM_SCC, 64, 0, ""),
+      CH(DIV_SYSTEM_SCC, 64, 0, "")
     }
   );
   ENTRY(
     "Konami SCC+", {
-      CH(DIV_SYSTEM_SCC_PLUS, 64, 0, ""),
+      CH(DIV_SYSTEM_SCC_PLUS, 64, 0, "")
     }
   );
   ENTRY(
     "Namco WSG", {
-      CH(DIV_SYSTEM_NAMCO, 64, 0, ""),
+      CH(DIV_SYSTEM_NAMCO, 64, 0, "")
     }
   );
   ENTRY(
     "Namco C15 (8-channel mono)", {
-      CH(DIV_SYSTEM_NAMCO_15XX, 64, 0, ""),
+      CH(DIV_SYSTEM_NAMCO_15XX, 64, 0, "")
     }
   );
   ENTRY(
     "Namco C30 (8-channel stereo)", {
-      CH(DIV_SYSTEM_NAMCO_CUS30, 64, 0, ""),
+      CH(DIV_SYSTEM_NAMCO_CUS30, 64, 0, "")
     }
   );
   ENTRY(
     "Namco 163", {
-      CH(DIV_SYSTEM_N163, 64, 0, ""),
+      CH(DIV_SYSTEM_N163, 64, 0, "")
     }
   );
   ENTRY(
     "Famicom Disk System (chip)", {
-      CH(DIV_SYSTEM_FDS, 64, 0, ""),
+      CH(DIV_SYSTEM_FDS, 64, 0, "")
     }
   );
   ENTRY(
     "WonderSwan", {
-      CH(DIV_SYSTEM_SWAN, 64, 0, ""),
+      CH(DIV_SYSTEM_SWAN, 64, 0, "")
     }
   );
   ENTRY(
     "Virtual Boy", {
-      CH(DIV_SYSTEM_VBOY, 64, 0, ""),
+      CH(DIV_SYSTEM_VBOY, 64, 0, "")
     }
   );
   ENTRY(
     "Seta/Allumer X1-010", {
-      CH(DIV_SYSTEM_X1_010, 64, 0, ""),
+      CH(DIV_SYSTEM_X1_010, 64, 0, "")
     }
   );
   CATEGORY_END;
@@ -1130,64 +1206,64 @@ void FurnaceGUI::initSystemPresets() {
   CATEGORY_BEGIN("Specialized","chips/systems with unique sound synthesis methods.");
   ENTRY(
     "MOS Technology SID (6581)", {
-      DIV_SYSTEM_C64_6581, 64, 0, 1,
+      CH(DIV_SYSTEM_C64_6581, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "MOS Technology SID (8580)", {
-      DIV_SYSTEM_C64_8580, 64, 0, 1,
+      CH(DIV_SYSTEM_C64_8580, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "Microchip AY8930", {
-      CH(DIV_SYSTEM_AY8930, 64, 0, ""),
+      CH(DIV_SYSTEM_AY8930, 64, 0, "")
     }
   );
   ENTRY(
     "Game Boy", {
-      CH(DIV_SYSTEM_GB, 64, 0, ""),
+      CH(DIV_SYSTEM_GB, 64, 0, "")
     }
   );
   ENTRY(
     "Atari Lynx", {
-      CH(DIV_SYSTEM_LYNX, 64, 0, ""),
+      CH(DIV_SYSTEM_LYNX, 64, 0, "")
     }
   );
   ENTRY(
     "Atari TIA", {
-      CH(DIV_SYSTEM_TIA, 64, 0, ""),
+      CH(DIV_SYSTEM_TIA, 64, 0, "")
     }
   );
   ENTRY(
     "NES (Ricoh 2A03)", {
-      CH(DIV_SYSTEM_NES, 64, 0, ""),
+      CH(DIV_SYSTEM_NES, 64, 0, "")
     }
   );
   ENTRY(
     "Commander X16 (VERA only)", {
-      CH(DIV_SYSTEM_VERA, 64, 0, ""),
+      CH(DIV_SYSTEM_VERA, 64, 0, "")
     }
   );
   ENTRY(
     "ZX Spectrum (beeper only)", {
-      CH(DIV_SYSTEM_SFX_BEEPER, 64, 0, ""),
+      CH(DIV_SYSTEM_SFX_BEEPER, 64, 0, "")
     }
   );
   if (settings.hiddenSystems) {
     ENTRY(
       "Dummy System", {
-        CH(DIV_SYSTEM_DUMMY, 64, 0, ""),
-        0
+        CH(DIV_SYSTEM_DUMMY, 64, 0, "")
       }
     );
   }
   ENTRY(
     "tildearrow Sound Unit", {
-      CH(DIV_SYSTEM_SOUND_UNIT, 64, 0, ""),
+      CH(DIV_SYSTEM_SOUND_UNIT, 64, 0, "")
     }
   );
   CATEGORY_END;
 
+  /* TODO: everything here
   CATEGORY_BEGIN("Arcade systems","INSERT COIN");
   ENTRY(
     "Pong", {
@@ -1956,112 +2032,86 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   CATEGORY_END;
+  */
 
   CATEGORY_BEGIN("DefleMask-compatible","these configurations are compatible with DefleMask.\nselect this if you need to save as .dmf or work with that program.");
   ENTRY(
     "Sega Genesis", {
       CH(DIV_SYSTEM_YM2612, 64, 0, ""),
-      CH(DIV_SYSTEM_SMS, 32, 0, ""),
+      CH(DIV_SYSTEM_SMS, 32, 0, "")
     }
   );
   ENTRY(
     "Sega Genesis (extended channel 3)", {
       CH(DIV_SYSTEM_YM2612_EXT, 64, 0, ""),
-      CH(DIV_SYSTEM_SMS, 32, 0, ""),
+      CH(DIV_SYSTEM_SMS, 32, 0, "")
     }
   );
   ENTRY(
     "Sega Master System", {
-      CH(DIV_SYSTEM_SMS, 64, 0, ""),
+      CH(DIV_SYSTEM_SMS, 64, 0, "")
     }
   );
   ENTRY(
     "Sega Master System (with FM expansion)", {
       CH(DIV_SYSTEM_SMS, 64, 0, ""),
-      CH(DIV_SYSTEM_OPLL, 64, 0, ""),
+      CH(DIV_SYSTEM_OPLL, 64, 0, "")
     }
   );
   ENTRY(
     "Game Boy", {
-      CH(DIV_SYSTEM_GB, 64, 0, ""),
+      CH(DIV_SYSTEM_GB, 64, 0, "")
     }
   );
   ENTRY(
     "NEC PC Engine/TurboGrafx-16", {
-      CH(DIV_SYSTEM_PCE, 64, 0, ""),
+      CH(DIV_SYSTEM_PCE, 64, 0, "")
     }
   );
   ENTRY(
     "NES", {
-      CH(DIV_SYSTEM_NES, 64, 0, ""),
+      CH(DIV_SYSTEM_NES, 64, 0, "")
     }
   );
   ENTRY(
     "Famicom with Konami VRC7", {
       CH(DIV_SYSTEM_NES, 64, 0, ""),
-      CH(DIV_SYSTEM_VRC7, 64, 0, ""),
+      CH(DIV_SYSTEM_VRC7, 64, 0, "")
     }
   );
   ENTRY(
     "Famicom Disk System", {
       CH(DIV_SYSTEM_NES, 64, 0, ""),
-      CH(DIV_SYSTEM_FDS, 64, 0, ""),
+      CH(DIV_SYSTEM_FDS, 64, 0, "")
     }
   );
   ENTRY(
     "Commodore 64 (6581 SID)", {
-      DIV_SYSTEM_C64_6581, 64, 0, 1,
+      CH(DIV_SYSTEM_C64_6581, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "Commodore 64 (8580 SID)", {
-      DIV_SYSTEM_C64_8580, 64, 0, 1,
+      CH(DIV_SYSTEM_C64_8580, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "Arcade (YM2151 and SegaPCM)", {
       CH(DIV_SYSTEM_YM2151, 64, 0, ""),
-      CH(DIV_SYSTEM_SEGAPCM_COMPAT, 64, 0, ""),
+      CH(DIV_SYSTEM_SEGAPCM_COMPAT, 64, 0, "")
     }
   );
   ENTRY(
     "Neo Geo CD", {
-      CH(DIV_SYSTEM_YM2610, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2610, 64, 0, "")
     }
   );
   ENTRY(
     "Neo Geo CD (extended channel 2)", {
-      CH(DIV_SYSTEM_YM2610_EXT, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2610_EXT, 64, 0, "")
     }
   );
   CATEGORY_END;
-  */
-}
-
-FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<int> def):
-  name(n) {
-  std::vector<int> uncompiled=def;
-  int index=0;
-
-  for (size_t i=0; i<uncompiled.size(); i+=4) {
-    if (uncompiled[i]==0) break;
-
-    DivConfig oldFlags;
-    DivEngine::convertOldFlags(uncompiled[i+3],oldFlags,(DivSystem)uncompiled[i]);
-
-    definition+=fmt::sprintf(
-      "id%d=%d\nvol%d=%d\npan%d=%d\nflags%d=%s\n",
-      index,
-      DivEngine::systemToFileFur((DivSystem)uncompiled[i]),
-      index,
-      uncompiled[i+1],
-      index,
-      uncompiled[i+2],
-      index,
-      oldFlags.toBase64()
-    );
-    index++;
-  }
 }
 
 FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def):
