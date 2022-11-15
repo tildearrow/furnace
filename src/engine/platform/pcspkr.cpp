@@ -587,7 +587,17 @@ bool DivPlatformPCSpeaker::keyOffAffectsArp(int ch) {
 }
 
 void DivPlatformPCSpeaker::setFlags(const DivConfig& flags) {
-  chipClock=COLOR_NTSC/3.0;
+  switch (flags.getInt("clockSel",0)) {
+    case 1: // PC-98
+      chipClock=38400*52;
+      break;
+    case 2: // PC-98
+      chipClock=38400*64;
+      break;
+    default: // IBM PC
+      chipClock=COLOR_NTSC/3.0;
+      break;
+  }
   rate=chipClock/PCSPKR_DIVIDER;
   speakerType=flags.getInt("speakerType",0)&3;
   oscBuf->rate=rate;

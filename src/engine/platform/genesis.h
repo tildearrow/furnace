@@ -116,7 +116,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
 
     int softPCMTimer;
 
-    bool extMode, softPCM, useYMFM;
+    bool extMode, softPCM, noExtMacros, useYMFM;
     bool ladder;
   
     unsigned char dacVolTable[128];

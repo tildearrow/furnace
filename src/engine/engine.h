@@ -47,8 +47,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev122"
-#define DIV_ENGINE_VERSION 122
+#define DIV_VERSION "dev125"
+#define DIV_ENGINE_VERSION 125
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -351,14 +351,14 @@ class DivEngine {
   bool midiOutClock;
   int midiOutMode;
   int softLockCount;
-  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed;
+  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed, elapsedBars, elapsedBeats;
   size_t curSubSongIndex;
   double divider;
   int cycles;
   double clockDrift;
   int stepPlay;
   int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
-  unsigned char extValue;
+  unsigned char extValue, pendingMetroTick;
   unsigned char speed1, speed2;
   short tempoAccum;
   DivStatusView view;
@@ -382,9 +382,9 @@ class DivEngine {
   std::vector<String> midiOuts;
   std::vector<DivCommand> cmdStream;
   std::vector<DivInstrumentType> possibleInsTypes;
-  DivSysDef* sysDefs[256];
-  DivSystem sysFileMapFur[256];
-  DivSystem sysFileMapDMF[256];
+  static DivSysDef* sysDefs[256];
+  static DivSystem sysFileMapFur[256];
+  static DivSystem sysFileMapDMF[256];
 
   struct SamplePreview {
     double rate;
@@ -440,8 +440,6 @@ class DivEngine {
   void reset();
   void playSub(bool preserveDrift, int goalRow=0);
 
-  void convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivSystem sys);
-
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
   bool loadMod(unsigned char* file, size_t len);
@@ -469,7 +467,7 @@ class DivEngine {
   bool deinitAudioBackend(bool dueToSwitchMaster=false);
 
   void registerSystems();
-  void initSongWithDesc(const char* description);
+  void initSongWithDesc(const char* description, bool inBase64=true);
 
   void exchangeIns(int one, int two);
   void swapChannels(int src, int dest);
@@ -503,7 +501,7 @@ class DivEngine {
     // parse old system setup description
     String decodeSysDesc(String desc);
     // start fresh
-    void createNew(const char* description, String sysName);
+    void createNew(const char* description, String sysName, bool inBase64=true);
     // load a file.
     bool load(unsigned char* f, size_t length);
     // save as .dmf.
@@ -532,10 +530,14 @@ class DivEngine {
     void notifyWaveChange(int wave);
 
     // get system IDs
-    DivSystem systemFromFileFur(unsigned char val);
-    unsigned char systemToFileFur(DivSystem val);
-    DivSystem systemFromFileDMF(unsigned char val);
-    unsigned char systemToFileDMF(DivSystem val);
+    static DivSystem systemFromFileFur(unsigned char val);
+    static unsigned char systemToFileFur(DivSystem val);
+    static DivSystem systemFromFileDMF(unsigned char val);
+    static unsigned char systemToFileDMF(DivSystem val);
+
+    // convert old flags
+    static void convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivSystem sys);
+
 
     // benchmark (returns time in seconds)
     double benchmarkPlayback();
@@ -709,6 +711,10 @@ class DivEngine {
     // get current row
     int getRow();
 
+    // get beat/bar
+    int getElapsedBars();
+    int getElapsedBeats();
+
     // get current subsong
     size_t getCurrentSubSong();
 
@@ -753,7 +759,7 @@ class DivEngine {
     bool isExporting();
 
     // add instrument
-    int addInstrument(int refChan=0);
+    int addInstrument(int refChan=0, DivInstrumentType fallbackType=DIV_INS_STD);
 
     // add instrument from pointer
     int addInstrumentPtr(DivInstrument* which);
@@ -1058,6 +1064,8 @@ class DivEngine {
       lastLoopPos(0),
       exportLoopCount(0),
       nextSpeed(3),
+      elapsedBars(0),
+      elapsedBeats(0),
       curSubSongIndex(0),
       divider(60),
       cycles(0),
@@ -1073,6 +1081,7 @@ class DivEngine {
       cmdsPerSecond(0),
       globalPitch(0),
       extValue(0),
+      pendingMetroTick(0),
       speed1(3),
       speed2(3),
       tempoAccum(0),

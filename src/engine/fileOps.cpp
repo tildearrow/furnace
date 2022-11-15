@@ -2383,9 +2383,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       if (isNewSample) {
         sample->centerRate=reader.readI();
         sample->depth=(DivSampleDepth)reader.readC();
+        if (ds.version>=123) {
+          sample->loopMode=(DivSampleLoopMode)reader.readC();
+        } else {
+          sample->loopMode=DIV_SAMPLE_LOOP_FORWARD;
+          reader.readC();
+        }
 
         // reserved
-        reader.readC();
         reader.readC();
         reader.readC();
 
@@ -2607,6 +2612,21 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       if (nesCount>snCount) {
         for (DivInstrument* i: ds.ins) {
           if (i->type==DIV_INS_STD) i->type=DIV_INS_NES;
+        }
+      }
+    }
+
+    // ExtCh compat flag
+    if (ds.version<125) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_YM2612_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2612_FRAC_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2610_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2610_FULL_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2610B_EXT ||
+            ds.system[i]==DIV_SYSTEM_OPN_EXT ||
+            ds.system[i]==DIV_SYSTEM_PC98_EXT) {
+          ds.systemFlags[i].set("noExtMacros",true);
         }
       }
     }
@@ -2946,7 +2966,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
               writeFxCol(fxTyp,fxVal);
               break;
             case 12: // set vol
-              data[row][3]=fxVal;
+              data[row][3]=MIN(0x40,fxVal);
               break;
             case 13: // break to row (BCD)
               writeFxCol(fxTyp,((fxVal>>4)*10)+(fxVal&15));
@@ -4624,8 +4644,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeI(sample->rate);
     w->writeI(sample->centerRate);
     w->writeC(sample->depth);
+    w->writeC(sample->loopMode);
     w->writeC(0); // reserved
-    w->writeC(0);
     w->writeC(0);
     w->writeI(sample->loop?sample->loopStart:-1);
     w->writeI(sample->loop?sample->loopEnd:-1);

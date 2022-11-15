@@ -2651,8 +2651,11 @@ int _processEvent(void* instance, SDL_Event* event) {
 
 int FurnaceGUI::processEvent(SDL_Event* ev) {
 #ifdef IS_MOBILE
-  if (ev->type==SDL_APP_WILLENTERBACKGROUND) {
-    // TODO: save "last state" and potentially suspend engine
+  if (ev->type==SDL_APP_TERMINATING) {
+    // TODO: save last song state here
+  } else if (ev->type==SDL_APP_WILLENTERBACKGROUND) {
+    commitState();
+    e->saveConf();
   }
 #endif
   if (ev->type==SDL_KEYDOWN) {
@@ -2958,7 +2961,11 @@ bool FurnaceGUI::detectOutOfBoundsWindow() {
 }
 
 bool FurnaceGUI::loop() {
+#ifdef IS_MOBILE
+  bool doThreadedInput=true;
+#else
   bool doThreadedInput=!settings.noThreadedInput;
+#endif
   if (doThreadedInput) {
     logD("key input: event filter");
     SDL_SetEventFilter(_processEvent,this);
@@ -3620,6 +3627,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("oscilloscope (master)",BIND_FOR(GUI_ACTION_WINDOW_OSCILLOSCOPE),oscOpen)) oscOpen=!oscOpen;
         if (ImGui::MenuItem("oscilloscope (per-channel)",BIND_FOR(GUI_ACTION_WINDOW_CHAN_OSC),chanOscOpen)) chanOscOpen=!chanOscOpen;
         if (ImGui::MenuItem("volume meter",BIND_FOR(GUI_ACTION_WINDOW_VOL_METER),volMeterOpen)) volMeterOpen=!volMeterOpen;
+        if (ImGui::MenuItem("clock",BIND_FOR(GUI_ACTION_WINDOW_CLOCK),clockOpen)) clockOpen=!clockOpen;
         if (ImGui::MenuItem("register view",BIND_FOR(GUI_ACTION_WINDOW_REGISTER_VIEW),regViewOpen)) regViewOpen=!regViewOpen;
         if (ImGui::MenuItem("log viewer",BIND_FOR(GUI_ACTION_WINDOW_LOG),logOpen)) logOpen=!logOpen;
         if (ImGui::MenuItem("statistics",BIND_FOR(GUI_ACTION_WINDOW_STATS),statsOpen)) statsOpen=!statsOpen;
@@ -3747,6 +3755,7 @@ bool FurnaceGUI::loop() {
       }
 
       globalWinFlags=0;
+      drawSettings();
       drawDebug();
       drawLog();
     } else {
@@ -3782,6 +3791,7 @@ bool FurnaceGUI::loop() {
       drawChannels();
       drawPatManager();
       drawSysManager();
+      drawClock();
       drawRegView();
       drawLog();
       drawEffectList();
@@ -4399,6 +4409,11 @@ bool FurnaceGUI::loop() {
       ImGui::OpenPopup("Import Raw Sample");
     }
 
+    if (displayInsTypeList) {
+      displayInsTypeList=false;
+      ImGui::OpenPopup("InsTypeList");
+    }
+
     if (displayExporting) {
       displayExporting=false;
       ImGui::OpenPopup("Rendering...");
@@ -4428,9 +4443,14 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(canvasW,canvasH));
+    ImVec2 newSongMinSize=mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(400.0f*dpiScale,200.0f*dpiScale);
+    ImVec2 newSongMaxSize=ImVec2(canvasW-((mobileUI && !portrait)?(60.0*dpiScale):0),canvasH-(mobileUI?(60.0*dpiScale):0));
+    ImGui::SetNextWindowSizeConstraints(newSongMinSize,newSongMaxSize);
     if (ImGui::BeginPopupModal("New Song",NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
       ImGui::SetWindowPos(ImVec2(((canvasW)-ImGui::GetWindowSize().x)*0.5,((canvasH)-ImGui::GetWindowSize().y)*0.5));
+      if (ImGui::GetWindowSize().x<newSongMinSize.x || ImGui::GetWindowSize().y<newSongMinSize.y) {
+        ImGui::SetWindowSize(newSongMinSize,ImGuiCond_Always);
+      }
       drawNewSong();
       ImGui::EndPopup();
     }
@@ -4774,6 +4794,31 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    if (ImGui::BeginPopup("InsTypeList",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      char temp[1024];
+      for (DivInstrumentType& i: makeInsTypeList) {
+        strncpy(temp,insTypes[i],1023);
+        if (ImGui::MenuItem(temp)) {
+          // create ins
+          curIns=e->addInstrument(-1,i);
+          if (curIns==-1) {
+            showError("too many instruments!");
+          } else {
+            if (displayInsTypeListMakeInsSample>=0 && displayInsTypeListMakeInsSample<(int)e->song.sample.size()) {
+              e->song.ins[curIns]->type=i;
+              e->song.ins[curIns]->name=e->song.sample[displayInsTypeListMakeInsSample]->name;
+              e->song.ins[curIns]->amiga.initSample=displayInsTypeListMakeInsSample;
+              if (i!=DIV_INS_AMIGA) e->song.ins[curIns]->amiga.useSample=true;
+              nextWindow=GUI_WINDOW_INS_EDIT;
+              wavePreviewInit=true;
+            }
+            MARK_MODIFIED;
+          }
+        }
+      }
+      ImGui::EndPopup();
+    }
+
     // TODO:
     // - multiple selection
     // - replace instrument
@@ -5020,6 +5065,7 @@ bool FurnaceGUI::init() {
   channelsOpen=e->getConfBool("channelsOpen",false);
   patManagerOpen=e->getConfBool("patManagerOpen",false);
   sysManagerOpen=e->getConfBool("sysManagerOpen",false);
+  clockOpen=e->getConfBool("clockOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",false);
@@ -5333,15 +5379,10 @@ bool FurnaceGUI::init() {
   return true;
 }
 
-bool FurnaceGUI::finish() {
+void FurnaceGUI::commitState() {
   if (!mobileUI) {
     ImGui::SaveIniSettingsToDisk(finalLayoutPath);
   }
-  ImGui_ImplSDLRenderer_Shutdown();
-  ImGui_ImplSDL2_Shutdown();
-  ImGui::DestroyContext();
-  SDL_DestroyRenderer(sdlRend);
-  SDL_DestroyWindow(sdlWin);
 
   e->setConf("configVersion",(int)DIV_ENGINE_VERSION);
 
@@ -5383,6 +5424,7 @@ bool FurnaceGUI::finish() {
   e->setConf("channelsOpen",channelsOpen);
   e->setConf("patManagerOpen",patManagerOpen);
   e->setConf("sysManagerOpen",sysManagerOpen);
+  e->setConf("clockOpen",clockOpen);
   e->setConf("regViewOpen",regViewOpen);
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
@@ -5454,6 +5496,15 @@ bool FurnaceGUI::finish() {
       e->setConf(key,recentFile[i]);
     }
   }
+}
+
+bool FurnaceGUI::finish() {
+  commitState();
+  ImGui_ImplSDLRenderer_Shutdown();
+  ImGui_ImplSDL2_Shutdown();
+  ImGui::DestroyContext();
+  SDL_DestroyRenderer(sdlRend);
+  SDL_DestroyWindow(sdlWin);
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
@@ -5485,6 +5536,7 @@ FurnaceGUI::FurnaceGUI():
   zsmExportLoop(true),
   vgmExportPatternHints(false),
   vgmExportDirectStream(false),
+  displayInsTypeList(false),
   portrait(false),
   injectBackUp(false),
   mobileMenuOpen(false),
@@ -5505,6 +5557,7 @@ FurnaceGUI::FurnaceGUI():
   zsmExportTickRate(60),
   macroPointSize(16),
   waveEditStyle(0),
+  displayInsTypeListMakeInsSample(-1),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
   curSysSection(NULL),
@@ -5571,6 +5624,8 @@ FurnaceGUI::FurnaceGUI():
   dragSourceY(0),
   dragDestinationX(0),
   dragDestinationY(0),
+  oldBeat(-1),
+  oldBar(-1),
   exportFadeOut(5.0),
   editControlsOpen(true),
   ordersOpen(true),
@@ -5603,6 +5658,12 @@ FurnaceGUI::FurnaceGUI():
   spoilerOpen(false),
   patManagerOpen(false),
   sysManagerOpen(false),
+  clockOpen(false),
+  clockShowReal(true),
+  clockShowRow(true),
+  clockShowBeat(true),
+  clockShowMetro(true),
+  clockShowTime(true),
   selecting(false),
   selectingFull(false),
   dragging(false),
@@ -5631,7 +5692,6 @@ FurnaceGUI::FurnaceGUI():
   curWindowLast(GUI_WINDOW_NOTHING),
   curWindowThreadSafe(GUI_WINDOW_NOTHING),
   lastPatternWidth(0.0f),
-  nextDesc(NULL),
   latchNote(-1),
   latchIns(-2),
   latchVol(-1),

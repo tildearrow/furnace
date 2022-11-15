@@ -1390,10 +1390,14 @@ String DivEngine::decodeSysDesc(String desc) {
   return newDesc.toBase64();
 }
 
-void DivEngine::initSongWithDesc(const char* description) {
+void DivEngine::initSongWithDesc(const char* description, bool inBase64) {
   int chanCount=0;
   DivConfig c;
-  c.loadFromBase64(description);
+  if (inBase64) {
+    c.loadFromBase64(description);
+  } else {
+    c.loadFromMemory(description);
+  }
   int index=0;
   for (; index<32; index++) {
     song.system[index]=systemFromFileFur(c.getInt(fmt::sprintf("id%d",index),0));
@@ -1414,7 +1418,7 @@ void DivEngine::initSongWithDesc(const char* description) {
   song.systemLen=index;
 }
 
-void DivEngine::createNew(const char* description, String sysName) {
+void DivEngine::createNew(const char* description, String sysName, bool inBase64) {
   quitDispatch();
   BUSY_BEGIN;
   saveLock.lock();
@@ -1422,7 +1426,7 @@ void DivEngine::createNew(const char* description, String sysName) {
   song=DivSong();
   changeSong(0);
   if (description!=NULL) {
-    initSongWithDesc(description);
+    initSongWithDesc(description,inBase64);
   }
   if (sysName=="") {
     song.systemName=getSongSystemLegacyName(song,!getConfInt("noMultiSystem",0));
@@ -2358,6 +2362,9 @@ void DivEngine::reset() {
   firstTick=false;
   shallStop=false;
   shallStopSched=false;
+  pendingMetroTick=0;
+  elapsedBars=0;
+  elapsedBeats=0;
   nextSpeed=speed1;
   divider=60;
   if (curSubSong->customTempo) {
@@ -2548,6 +2555,14 @@ int DivEngine::getRow() {
   return prevRow;
 }
 
+int DivEngine::getElapsedBars() {
+  return elapsedBars;
+}
+
+int DivEngine::getElapsedBeats() {
+  return elapsedBeats;
+}
+
 size_t DivEngine::getCurrentSubSong() {
   return curSubSongIndex;
 }
@@ -2673,12 +2688,17 @@ void DivEngine::unmuteAll() {
   BUSY_END;
 }
 
-int DivEngine::addInstrument(int refChan) {
+int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
   if (song.ins.size()>=256) return -1;
   BUSY_BEGIN;
   DivInstrument* ins=new DivInstrument;
   int insCount=(int)song.ins.size();
-  DivInstrumentType prefType=getPreferInsType(refChan);
+  DivInstrumentType prefType;
+  if (refChan<0) {
+    prefType=fallbackType;
+  } else {
+    prefType=getPreferInsType(refChan);
+  }
   switch (prefType) {
     case DIV_INS_OPLL:
       *ins=song.nullInsOPLL;
@@ -2692,8 +2712,10 @@ int DivEngine::addInstrument(int refChan) {
     default:
       break;
   }
-  if (sysOfChan[refChan]==DIV_SYSTEM_QSOUND) {
-    *ins=song.nullInsQSound;
+  if (refChan>=0) {
+    if (sysOfChan[refChan]==DIV_SYSTEM_QSOUND) {
+      *ins=song.nullInsQSound;
+    }
   }
   ins->name=fmt::sprintf("Instrument %d",insCount);
   if (prefType!=DIV_INS_NULL) {

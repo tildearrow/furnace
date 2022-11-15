@@ -1291,14 +1291,54 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_SAMPLE_MAKE_INS: {
       if (curSample<0 || curSample>=(int)e->song.sample.size()) break;
+      // determine instrument type
+      std::vector<DivInstrumentType> tempTypeList=e->getPossibleInsTypes();
+      makeInsTypeList.clear();
+
+      for (DivInstrumentType& i: tempTypeList) {
+        if (i==DIV_INS_PCE ||
+            i==DIV_INS_MSM6258 ||
+            i==DIV_INS_MSM6295 ||
+            i==DIV_INS_ADPCMA ||
+            i==DIV_INS_ADPCMB ||
+            i==DIV_INS_SEGAPCM ||
+            i==DIV_INS_QSOUND ||
+            i==DIV_INS_YMZ280B ||
+            i==DIV_INS_RF5C68 ||
+            i==DIV_INS_MULTIPCM ||
+            i==DIV_INS_MIKEY ||
+            i==DIV_INS_X1_010 ||
+            i==DIV_INS_SWAN ||
+            i==DIV_INS_AY ||
+            i==DIV_INS_AY8930 ||
+            i==DIV_INS_VRC6 ||
+            i==DIV_INS_SU ||
+            i==DIV_INS_SNES ||
+            i==DIV_INS_ES5506) {
+          makeInsTypeList.push_back(i);
+        }
+      }
+
+      if (makeInsTypeList.size()>1) {
+        displayInsTypeList=true;
+        displayInsTypeListMakeInsSample=curSample;
+        break;
+      }
+
+      DivInstrumentType insType=DIV_INS_AMIGA;
+      if (!makeInsTypeList.empty()) {
+        insType=makeInsTypeList[0];
+      }
+
       DivSample* sample=e->song.sample[curSample];
       curIns=e->addInstrument(cursor.xCoarse);
       if (curIns==-1) {
         showError("too many instruments!");
       } else {
-        e->song.ins[curIns]->type=DIV_INS_AMIGA;
+        e->song.ins[curIns]->type=insType;
         e->song.ins[curIns]->name=sample->name;
         e->song.ins[curIns]->amiga.initSample=curSample;
+        if (insType!=DIV_INS_AMIGA) e->song.ins[curIns]->amiga.useSample=true;
         nextWindow=GUI_WINDOW_INS_EDIT;
         MARK_MODIFIED;
         wavePreviewInit=true;

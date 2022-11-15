@@ -513,6 +513,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_CHAN_OSC", "Oscilloscope (per-channel)", 0),
   D("WINDOW_SUBSONGS", "Subsongs", 0),
   D("WINDOW_FIND", "Find/Replace", FURKMOD_CMD|SDLK_f),
+  D("WINDOW_CLOCK", "Clock", 0),
 
   D("COLLAPSE_WINDOW", "Collapse/expand current window", 0),
   D("CLOSE_WINDOW", "Close current window", FURKMOD_SHIFT|SDLK_ESCAPE),
@@ -873,6 +874,10 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_PIANO_KEY_TOP_HIT,"",ImVec4(0.3f,0.5f,0.7f,1.0f)),
   D(GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE,"",ImVec4(0.5f,0.5f,0.5f,1.0f)),
   D(GUI_COLOR_PIANO_KEY_TOP_ACTIVE,"",ImVec4(0.4f,0.4f,0.4f,1.0f)),
+
+  D(GUI_COLOR_CLOCK_TEXT,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
+  D(GUI_COLOR_CLOCK_BEAT_LOW,"",ImVec4(0.1f,0.13f,0.25f,1.0f)),
+  D(GUI_COLOR_CLOCK_BEAT_HIGH,"",ImVec4(0.5f,0.8f,1.0f,1.0f)),
 
   D(GUI_COLOR_LOGLEVEL_ERROR,"",ImVec4(1.0f,0.2f,0.2f,1.0f)),
   D(GUI_COLOR_LOGLEVEL_WARNING,"",ImVec4(1.0f,1.0f,0.2f,1.0f)),

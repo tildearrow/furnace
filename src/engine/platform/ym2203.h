@@ -91,7 +91,7 @@ class DivPlatformYM2203: public DivPlatformOPN {
     DivPlatformAY8910* ay;
     unsigned char sampleBank;
 
-    bool extMode;
+    bool extMode, noExtMacros;
     unsigned char prescale;
   
     friend void putDispatchChip(void*,int);

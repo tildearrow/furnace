@@ -25,11 +25,15 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
   struct OpChannel {
     DivMacroInt std;
     unsigned char freqH, freqL;
-    int freq, baseFreq, pitch, pitch2, portaPauseFreq, ins;
+    int freq, baseFreq, pitch, pitch2, portaPauseFreq, ins, note;
     signed char konCycles;
     bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, mask;
-    int vol;
+    int vol, outVol;
     unsigned char pan;
+    void macroInit(DivInstrument* which) {
+      std.init(which);
+      pitch2=0;
+    }
     OpChannel():
       freqH(0),
       freqL(0),
@@ -39,6 +43,7 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
       pitch2(0),
       portaPauseFreq(0),
       ins(-1),
+      note(0),
       active(false),
       insChanged(true),
       freqChanged(false),
@@ -48,6 +53,7 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
       inPorta(false),
       mask(true),
       vol(0),
+      outVol(0),
       pan(3) {}
   };
   OpChannel opChan[4];

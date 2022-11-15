@@ -33,14 +33,14 @@
 
 #define DEFAULT_NOTE_KEYS "5:7;6:4;7:3;8:16;10:6;11:8;12:24;13:10;16:11;17:9;18:26;19:28;20:12;21:17;22:1;23:19;24:23;25:5;26:14;27:2;28:21;29:0;30:100;31:13;32:15;34:18;35:20;36:22;38:25;39:27;43:100;46:101;47:29;48:31;53:102;"
 
-#if defined(_WIN32) || defined(__APPLE__)
+#if defined(_WIN32) || defined(__APPLE__) || defined(IS_MOBILE)
 #define POWER_SAVE_DEFAULT 1
 #else
 // currently off on Linux/other due to Mesa catch-up behavior.
 #define POWER_SAVE_DEFAULT 0
 #endif
 
-#if defined(__HAIKU__)
+#if defined(__HAIKU__) || defined(IS_MOBILE)
 // NFD doesn't support Haiku
 #define SYS_FILE_DIALOG_DEFAULT 0
 #else
@@ -239,6 +239,12 @@ void FurnaceGUI::drawSettings() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!settingsOpen) return;
+  if (mobileUI) {
+    ImVec2 setWindowPos=ImVec2(0,0);
+    ImVec2 setWindowSize=ImVec2(canvasW,canvasH);
+    ImGui::SetNextWindowPos(setWindowPos);
+    ImGui::SetNextWindowSize(setWindowSize);
+  }
   if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|globalWinFlags)) {
     if (!settingsOpen) {
       settingsOpen=true;
@@ -332,7 +338,7 @@ void FurnaceGUI::drawSettings() {
             settings.initialSys.set("pan0",0);
             settings.initialSys.set("flags0","");
             settings.initialSys.set("id1",e->systemToFileFur(DIV_SYSTEM_SMS));
-            settings.initialSys.set("vol1",64);
+            settings.initialSys.set("vol1",32);
             settings.initialSys.set("pan1",0);
             settings.initialSys.set("flags1","");
             settings.initialSysName="Sega Genesis/Mega Drive";
@@ -343,10 +349,14 @@ void FurnaceGUI::drawSettings() {
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           ImGui::InputText("##InitSysName",&settings.initialSysName);
 
+          int sysCount=0;
+          int doRemove=-1;
           for (size_t i=0; settings.initialSys.getInt(fmt::sprintf("id%d",i),0); i++) {
             DivSystem sysID=e->systemFromFileFur(settings.initialSys.getInt(fmt::sprintf("id%d",i),0));
             signed char sysVol=settings.initialSys.getInt(fmt::sprintf("vol%d",i),0);
             signed char sysPan=settings.initialSys.getInt(fmt::sprintf("pan%d",i),0);
+
+            sysCount=i+1;
 
             //bool doRemove=false;
             bool doInvert=sysVol&128;
@@ -373,7 +383,7 @@ void FurnaceGUI::drawSettings() {
             ImGui::SameLine();
             //ImGui::BeginDisabled(settings.initialSys.size()<=4);
             if (ImGui::Button(ICON_FA_MINUS "##InitSysRemove")) {
-              //doRemove=true;
+              doRemove=i;
             }
             //ImGui::EndDisabled();
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
@@ -398,17 +408,31 @@ void FurnaceGUI::drawSettings() {
             }
 
             ImGui::PopID();
-            /*if (doRemove && settings.initialSys.size()>=8) {
-              settings.initialSys.erase(settings.initialSys.begin()+i,settings.initialSys.begin()+i+4);
-              i-=4;
-            }*/
           }
 
-          if (ImGui::Button(ICON_FA_PLUS "##InitSysAdd")) {
-            /*settings.initialSys.push_back(DIV_SYSTEM_YM2612);
-            settings.initialSys.push_back(64);
-            settings.initialSys.push_back(0);
-            settings.initialSys.push_back(0);*/
+          if (doRemove>=0 && sysCount>1) {
+            for (int i=doRemove; i<sysCount-1; i++) {
+              int sysID=settings.initialSys.getInt(fmt::sprintf("id%d",i+1),0);
+              int sysVol=settings.initialSys.getInt(fmt::sprintf("vol%d",i+1),0);
+              int sysPan=settings.initialSys.getInt(fmt::sprintf("pan%d",i+1),0);
+              String sysFlags=settings.initialSys.getString(fmt::sprintf("flags%d",i+1),"");
+              settings.initialSys.set(fmt::sprintf("id%d",i),sysID);
+              settings.initialSys.set(fmt::sprintf("vol%d",i),sysVol);
+              settings.initialSys.set(fmt::sprintf("pan%d",i),sysPan);
+              settings.initialSys.set(fmt::sprintf("flags%d",i),sysFlags);
+            }
+
+            settings.initialSys.remove(fmt::sprintf("id%d",sysCount-1));
+            settings.initialSys.remove(fmt::sprintf("vol%d",sysCount-1));
+            settings.initialSys.remove(fmt::sprintf("pan%d",sysCount-1));
+            settings.initialSys.remove(fmt::sprintf("flags%d",sysCount-1));
+          }
+
+          if (sysCount<32) if (ImGui::Button(ICON_FA_PLUS "##InitSysAdd")) {
+            settings.initialSys.set(fmt::sprintf("id%d",sysCount),(int)e->systemToFileFur(DIV_SYSTEM_YM2612));
+            settings.initialSys.set(fmt::sprintf("vol%d",sysCount),64);
+            settings.initialSys.set(fmt::sprintf("pan%d",sysCount),0);
+            settings.initialSys.set(fmt::sprintf("flags%d",sysCount),"");
           }
 
           ImGui::Separator();
@@ -522,6 +546,7 @@ void FurnaceGUI::drawSettings() {
             ImGui::SetTooltip("saves power by lowering the frame rate to 2fps when idle.\nmay cause issues under Mesa drivers!");
           }
 
+#ifndef IS_MOBILE
           bool noThreadedInputB=settings.noThreadedInput;
           if (ImGui::Checkbox("Disable threaded input (restart after changing!)",&noThreadedInputB)) {
             settings.noThreadedInput=noThreadedInputB;
@@ -537,6 +562,7 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("remembers the window's last position on startup.");
           }
+#endif
 
           bool blankInsB=settings.blankIns;
           if (ImGui::Checkbox("New instruments are blank",&blankInsB)) {
@@ -1316,6 +1342,23 @@ void FurnaceGUI::drawSettings() {
           }
           if (ImGui::RadioButton("After Release Rate##susp1",settings.susPosition==1)) {
             settings.susPosition=1;
+          }
+
+          ImGui::Text("Macro editor layout:");
+          if (ImGui::RadioButton("Unified##mel0",settings.macroLayout==0)) {
+            settings.macroLayout=0;
+          }
+          if (ImGui::RadioButton("Mobile##mel1",settings.macroLayout==1)) {
+            settings.macroLayout=1;
+          }
+          if (ImGui::RadioButton("Grid##mel2",settings.macroLayout==2)) {
+            settings.macroLayout=2;
+          }
+          if (ImGui::RadioButton("Single (with list)##mel3",settings.macroLayout==3)) {
+            settings.macroLayout=3;
+          }
+          if (ImGui::RadioButton("Single (combo box)##mel4",settings.macroLayout==4)) {
+            settings.macroLayout=4;
           }
 
           ImGui::Separator();
@@ -2397,6 +2440,7 @@ void FurnaceGUI::syncSettings() {
   settings.persistFadeOut=e->getConfInt("persistFadeOut",1);
   settings.exportLoops=e->getConfInt("exportLoops",0);
   settings.exportFadeOut=e->getConfDouble("exportFadeOut",0.0);
+  settings.macroLayout=e->getConfInt("macroLayout",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2503,6 +2547,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.centerPattern,0,1);
   clampSetting(settings.ordersCursor,0,1);
   clampSetting(settings.persistFadeOut,0,1);
+  clampSetting(settings.macroLayout,0,4);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -2675,6 +2720,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("persistFadeOut",settings.persistFadeOut);
   e->setConf("exportLoops",settings.exportLoops);
   e->setConf("exportFadeOut",settings.exportFadeOut);
+  e->setConf("macroLayout",settings.macroLayout);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -3082,6 +3128,14 @@ void FurnaceGUI::popAccentColors() {
 #define SYSTEM_PAT_FONT_PATH_1 "/System/Library/Fonts/SFNSMono.ttf"
 #define SYSTEM_PAT_FONT_PATH_2 "/System/Library/Fonts/Courier New.ttf"
 #define SYSTEM_PAT_FONT_PATH_3 "/System/Library/Fonts/Courier New.ttf"
+#elif defined(ANDROID)
+#define SYSTEM_FONT_PATH_1 "/system/fonts/Roboto-Regular.ttf"
+#define SYSTEM_FONT_PATH_2 "/system/fonts/DroidSans.ttf"
+#define SYSTEM_FONT_PATH_3 "/system/fonts/DroidSans.ttf"
+// ???
+#define SYSTEM_PAT_FONT_PATH_1 "/system/fonts/RobotoMono-Regular.ttf"
+#define SYSTEM_PAT_FONT_PATH_2 "/system/fonts/DroidSansMono.ttf"
+#define SYSTEM_PAT_FONT_PATH_3 "/system/fonts/CutiveMono.ttf"
 #else
 #define SYSTEM_FONT_PATH_1 "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 #define SYSTEM_FONT_PATH_2 "/usr/share/fonts/TTF/DejaVuSans.ttf"

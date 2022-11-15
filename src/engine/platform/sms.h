@@ -31,7 +31,7 @@ extern "C" {
 class DivPlatformSMS: public DivDispatch {
   struct Channel {
     int freq, baseFreq, pitch, pitch2, note, actualNote, ins;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
+    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, writeVol;
     signed char vol, outVol;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
@@ -52,6 +52,7 @@ class DivPlatformSMS: public DivDispatch {
       keyOn(false),
       keyOff(false),
       inPorta(false),
+      writeVol(false),
       vol(15),
       outVol(15) {}
   };

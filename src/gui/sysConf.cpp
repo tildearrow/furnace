@@ -32,6 +32,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_YM2612_FRAC_EXT: {
       int clockSel=flags.getInt("clockSel",0);
       bool ladder=flags.getBool("ladderEffect",0);
+      bool noExtMacros=flags.getBool("noExtMacros",false);
 
       if (ImGui::RadioButton("NTSC (7.67MHz)",clockSel==0)) {
         clockSel=0;
@@ -56,11 +57,17 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       if (ImGui::Checkbox("Enable DAC distortion",&ladder)) {
         altered=true;
       }
+      if (type==DIV_SYSTEM_YM2612_EXT || type==DIV_SYSTEM_YM2612_FRAC_EXT) {
+        if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
+          altered=true;
+        }
+      }
       
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("ladderEffect",ladder);
+          flags.set("noExtMacros",noExtMacros);
         });
       }
       break;
@@ -439,6 +446,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_YM2610B:
     case DIV_SYSTEM_YM2610B_EXT: {
       int clockSel=flags.getInt("clockSel",0);
+      bool noExtMacros=flags.getBool("noExtMacros",false);
 
       if (ImGui::RadioButton("8MHz (Neo Geo MVS)",clockSel==0)) {
         clockSel=0;
@@ -449,9 +457,16 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
+      if (type==DIV_SYSTEM_YM2610_EXT || type==DIV_SYSTEM_YM2610_FULL_EXT || type==DIV_SYSTEM_YM2610B_EXT) {
+        if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
+          altered=true;
+        }
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
+          flags.set("noExtMacros",noExtMacros);
         });
       }
       break;
@@ -668,7 +683,22 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       break;
     }
     case DIV_SYSTEM_PCSPKR: {
+      int clockSel=flags.getInt("clockSel",0);
       int speakerType=flags.getInt("speakerType",0);
+
+      ImGui::Text("Clock rate:");
+      if (ImGui::RadioButton("1.19MHz (PC)",clockSel==0)) {
+        clockSel=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1.99MHz (PC-98)",clockSel==1)) {
+        clockSel=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton("2.46MHz (PC-98)",clockSel==2)) {
+        clockSel=2;
+        altered=true;
+      }
 
       ImGui::Text("Speaker type:");
       if (ImGui::RadioButton("Unfiltered",speakerType==0)) {
@@ -690,6 +720,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
 
       if (altered) {
         e->lockSave([&]() {
+          flags.set("clockSel",clockSel);
           flags.set("speakerType",speakerType);
         });
       }
@@ -805,6 +836,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_OPN_EXT: {
       int clockSel=flags.getInt("clockSel",0);
       int prescale=flags.getInt("prescale",0);
+      bool noExtMacros=flags.getBool("noExtMacros",false);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("3.58MHz (NTSC)",clockSel==0)) {
@@ -845,10 +877,17 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
+      if (type==DIV_SYSTEM_OPN_EXT) {
+        if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
+          altered=true;
+        }
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("prescale",prescale);
+          flags.set("noExtMacros",noExtMacros);
         });
       }
       break;
@@ -857,6 +896,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_PC98_EXT: {
       int clockSel=flags.getInt("clockSel",0);
       int prescale=flags.getInt("prescale",0);
+      bool noExtMacros=flags.getBool("noExtMacros",false);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("8MHz (Arcade)",clockSel==0)) {
@@ -881,10 +921,17 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
+      if (type==DIV_SYSTEM_PC98_EXT) {
+        if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
+          altered=true;
+        }
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("prescale",prescale);
+          flags.set("noExtMacros",noExtMacros);
         });
       }
       break;
