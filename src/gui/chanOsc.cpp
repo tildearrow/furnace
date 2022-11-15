@@ -77,7 +77,12 @@ void FurnaceGUI::calcChanOsc() {
   int chans=e->getTotalChannelCount();
   
   for (int i=0; i<chans; i++) {
+    int tryAgain=i;
     DivDispatchOscBuffer* buf=e->getOscBuffer(i);
+    while (buf==NULL) {
+      if (--tryAgain<0) break;
+      buf=e->getOscBuffer(tryAgain);
+    }
     if (buf!=NULL && e->curSubSong->chanShow[i]) {
       // 30ms should be enough
       int displaySize=(float)(buf->rate)*0.03f;
