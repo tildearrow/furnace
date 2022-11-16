@@ -591,6 +591,6 @@ int main(int argc, char** argv) {
   return 0;
 }
 
-//#ifdef _WIN32
-//#include "winMain.cpp"
-//#endif
+#ifdef _WIN32
+#include "winMain.cpp"
+#endif
