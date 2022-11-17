@@ -550,7 +550,6 @@ struct DivInstrumentSNES {
 
 struct DivInstrument {
   String name;
-  bool mode;
   DivInstrumentType type;
   DivInstrumentFM fm;
   DivInstrumentSTD std;

@@ -677,7 +677,6 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
 
   reader.readS(); // format version. ignored.
   type=(DivInstrumentType)reader.readC();
-  mode=(type==DIV_INS_FM);
   reader.readC();
   name=reader.readString();
 
