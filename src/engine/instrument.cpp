@@ -29,10 +29,36 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui) {
   if (fui) {
     w->write("FINS",4);
   } else {
-    w->write("INST",4);
+    w->write("INS2",4);
     blockStartSeek=w->tell();
     w->writeI(0);
   }
+
+  w->writeS(DIV_ENGINE_VERSION);
+  w->writeC(type);
+  w->writeC(0);
+
+  // write features
+  bool featureNA=false;
+  bool featureFM=false;
+  bool featureMA=false;
+  bool feature64=false;
+  bool featureGB=false;
+  bool featureSM=false;
+  bool featureO1=false;
+  bool featureO2=false;
+  bool featureO3=false;
+  bool featureO4=false;
+  bool featureLD=false;
+  bool featureSN=false;
+  bool featureN1=false;
+  bool featureFD=false;
+  bool featureWS=false;
+  bool featureSL=false;
+  bool featureWL=false;
+  bool featureMP=false;
+  bool featureSU=false;
+  bool featureES=false;
 
   blockEndSeek=w->tell();
   if (!fui) {
