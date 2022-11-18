@@ -572,6 +572,12 @@ struct DivInstrument {
   void putInsData(SafeWriter* w);
 
   /**
+   * save the instrument to a SafeWriter using new format.
+   * @param w the SafeWriter in question.
+   */
+  void putInsData2(SafeWriter* w, bool fui=false);
+
+  /**
    * read instrument data in .fui format.
    * @param reader the reader.
    * @param version the format version.

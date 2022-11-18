@@ -23,6 +23,18 @@
 #include "../ta-log.h"
 #include "../fileutils.h"
 
+void DivInstrument::putInsData2(SafeWriter* w, bool fui) {
+  size_t blockStartSeek, blockEndSeek;
+
+  if (fui) {
+    w->write("FINS",4);
+  } else {
+    w->write("INST",4);
+    blockStartSeek=w->tell();
+    w->writeI(0);
+  }
+}
+
 void DivInstrument::putInsData(SafeWriter* w) {
   size_t blockStartSeek, blockEndSeek;
 
