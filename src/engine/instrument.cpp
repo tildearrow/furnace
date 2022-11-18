@@ -33,6 +33,13 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui) {
     blockStartSeek=w->tell();
     w->writeI(0);
   }
+
+  blockEndSeek=w->tell();
+  if (!fui) {
+    w->seek(blockStartSeek,SEEK_SET);
+    w->writeI(blockEndSeek-blockStartSeek-4);
+  }
+  w->seek(0,SEEK_END);
 }
 
 void DivInstrument::putInsData(SafeWriter* w) {
