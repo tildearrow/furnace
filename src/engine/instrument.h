@@ -641,8 +641,9 @@ struct DivInstrument {
   /**
    * these are internal functions.
    */
+  void writeMacro(SafeWriter* w, const DivInstrumentMacro& m, unsigned char macroCode);
   void writeFeatureNA(SafeWriter* w);
-  void writeFeatureFM(SafeWriter* w);
+  void writeFeatureFM(SafeWriter* w, bool fui);
   void writeFeatureMA(SafeWriter* w);
   void writeFeature64(SafeWriter* w);
   void writeFeatureGB(SafeWriter* w);
@@ -653,8 +654,8 @@ struct DivInstrument {
   void writeFeatureN1(SafeWriter* w);
   void writeFeatureFD(SafeWriter* w);
   void writeFeatureWS(SafeWriter* w);
-  void writeFeatureSL(SafeWriter* w, const DivSong* song);
-  void writeFeatureWL(SafeWriter* w, const DivSong* song);
+  void writeFeatureSL(SafeWriter* w, std::vector<int>& list, const DivSong* song);
+  void writeFeatureWL(SafeWriter* w, std::vector<int>& list, const DivSong* song);
   void writeFeatureMP(SafeWriter* w);
   void writeFeatureSU(SafeWriter* w);
   void writeFeatureES(SafeWriter* w);

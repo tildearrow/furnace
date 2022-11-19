@@ -25,78 +25,6 @@
 
 const DivInstrument defaultIns;
 
-void DivInstrument::writeFeatureNA(SafeWriter* w) {
-
-}
-
-void DivInstrument::writeFeatureFM(SafeWriter* w) {
-
-}
-
-void DivInstrument::writeFeatureMA(SafeWriter* w) {
-
-}
-
-void DivInstrument::writeFeature64(SafeWriter* w) {
-
-}
-
-void DivInstrument::writeFeatureGB(SafeWriter* w) {
-
-}
-
-void DivInstrument::writeFeatureSM(SafeWriter* w) {
-
-}
-
-void DivInstrument::writeFeatureOx(SafeWriter* w, int op) {
-
-}
-
-void DivInstrument::writeFeatureLD(SafeWriter* w) {
-
-}
-
-void DivInstrument::writeFeatureSN(SafeWriter* w) {
-
-}
-
-void DivInstrument::writeFeatureN1(SafeWriter* w) {
-
-}
-
-void DivInstrument::writeFeatureFD(SafeWriter* w) {
-
-}
-
-void DivInstrument::writeFeatureWS(SafeWriter* w) {
-
-}
-
-void DivInstrument::writeFeatureSL(SafeWriter* w, const DivSong* song) {
-
-}
-
-void DivInstrument::writeFeatureWL(SafeWriter* w, const DivSong* song) {
-
-}
-
-void DivInstrument::writeFeatureMP(SafeWriter* w) {
-
-}
-
-void DivInstrument::writeFeatureSU(SafeWriter* w) {
-
-}
-
-void DivInstrument::writeFeatureES(SafeWriter* w) {
-
-}
-
-void DivInstrument::writeFeatureX1(SafeWriter* w) {
-
-}
-
 #define _C(x) x==other.x
 
 bool DivInstrumentFM::operator==(const DivInstrumentFM& other) {
@@ -282,8 +210,212 @@ bool DivInstrumentSNES::operator==(const DivInstrumentSNES& other) {
   );
 }
 
+#undef _C
+
+#define FEATURE_BEGIN(x) \
+  w->write(x,2); \
+  size_t featStartSeek=w->tell(); \
+  w->writeS(0);
+
+#define FEATURE_END \
+  size_t featEndSeek=w->tell(); \
+  w->seek(featStartSeek,SEEK_SET); \
+  w->writeS(featEndSeek-featStartSeek-2); \
+  w->seek(featEndSeek,SEEK_SET);
+
+void DivInstrument::writeFeatureNA(SafeWriter* w) {
+  FEATURE_BEGIN("NA");
+
+  w->writeString(name,false);
+
+  FEATURE_END;
+}
+
+void DivInstrument::writeFeatureFM(SafeWriter* w, bool fui) {
+  FEATURE_BEGIN("FM");
+
+  int opCount=4;
+  if (fui) {
+    if (type==DIV_INS_OPLL) {
+      opCount=2;
+    } else if (type==DIV_INS_OPL) {
+      opCount=(fm.ops==4)?4:2;
+    }
+  }
+  
+  w->writeC(
+    (fm.op[3].enable?128:0)|
+    (fm.op[2].enable?64:0)|
+    (fm.op[1].enable?32:0)|
+    (fm.op[0].enable?16:0)|
+    opCount
+  );
+
+  // base data
+  w->writeC(((fm.alg&7)<<4)|(fm.fb&7));
+  w->writeC(((fm.fms2&7)<<5)|((fm.ams&3)<<3)|(fm.fms&7));
+  w->writeC(((fm.ams2&3)<<6)|((fm.ops==4)?32:0)|(fm.opllPreset&31));
+
+  // operator data
+  for (int i=0; i<opCount; i++) {
+    DivInstrumentFM::Operator& op=fm.op[i];
+
+    w->writeC((op.ksr?128:0)|((op.dt&7)<<4)|(op.mult&15));
+    w->writeC((op.sus?128:0)|(op.tl&127));
+    w->writeC(((op.rs&3)<<6)|(op.vib?32:0)|(op.ar&31));
+    w->writeC((op.am?128:0)|((op.ksl&3)<<5)|(op.dr&31));
+    w->writeC((op.egt?128:0)|((op.kvs&3)<<5)|(op.d2r&31));
+    w->writeC(((op.sl&15)<<4)|(op.rr&15));
+    w->writeC(((op.dvb&15)<<4)|(op.ssgEnv&15));
+    w->writeC(((op.dam&7)<<5)|((op.dt2&3)<<3)|(op.ws&7));
+  }
+
+  FEATURE_END;
+}
+
+void DivInstrument::writeMacro(SafeWriter* w, const DivInstrumentMacro& m, unsigned char macroCode) {
+  if (!m.len) return;
+
+  // determine word size
+  int macroMin=0x7fffffff;
+  int macroMax=0x80000000;
+  for (int i=0; i<m.len; i++) {
+    if (m.val[i]<macroMin) macroMin=m.val[i];
+    if (m.val[i]>macroMax) macroMax=m.val[i];
+  }
+
+  unsigned char wordSize=192; // 32-bit
+
+  if (macroMin>=0 && macroMax<=255) {
+    wordSize=0; // 8-bit unsigned
+  } else if (macroMin>=-128 && macroMax<=127) {
+    wordSize=64; // 8-bit signed
+  } else if (macroMin>=-32768 && macroMax<=32767) {
+    wordSize=128; // 16-bit signed
+  } else {
+    wordSize=192; // 32-bit signed
+  }
+
+  w->writeC(macroCode);
+  w->writeC(m.len);
+  w->writeC(m.loop);
+  w->writeC(m.rel);
+  w->writeC(m.mode);
+  w->writeC(m.open|wordSize);
+  w->writeC(m.delay);
+  w->writeC(m.speed);
+
+  switch (wordSize) {
+    case 0:
+      for (int i=0; i<m.len; i++) {
+        w->writeC((unsigned char)m.val[i]);
+      }
+      break;
+    case 64:
+      for (int i=0; i<m.len; i++) {
+        w->writeC((signed char)m.val[i]);
+      }
+      break;
+    case 128:
+      for (int i=0; i<m.len; i++) {
+        w->writeS((short)m.val[i]);
+      }
+      break;
+    default: // 192
+      for (int i=0; i<m.len; i++) {
+        w->writeI(m.val[i]);
+      }
+      break;
+  }
+}
+
+void DivInstrument::writeFeatureMA(SafeWriter* w) {
+  FEATURE_BEGIN("MA");
+
+  // if you update the macro header, please update this value as well.
+  // it's the length.
+  w->writeS(8);
+  
+  // write macros
+  writeMacro(w,std.volMacro,0);
+  writeMacro(w,std.arpMacro,1);
+  writeMacro(w,std.dutyMacro,2);
+  writeMacro(w,std.waveMacro,3);
+  writeMacro(w,std.pitchMacro,4);
+  writeMacro(w,std.ex1Macro,5);
+  writeMacro(w,std.ex2Macro,6);
+  writeMacro(w,std.ex3Macro,7);
+  writeMacro(w,std.algMacro,8);
+  writeMacro(w,std.fbMacro,9);
+  writeMacro(w,std.fmsMacro,10);
+  writeMacro(w,std.amsMacro,11);
+  writeMacro(w,std.panLMacro,12);
+  writeMacro(w,std.panRMacro,13);
+  writeMacro(w,std.phaseResetMacro,14);
+  writeMacro(w,std.ex4Macro,15);
+  writeMacro(w,std.ex5Macro,16);
+  writeMacro(w,std.ex6Macro,17);
+  writeMacro(w,std.ex7Macro,18);
+  writeMacro(w,std.ex8Macro,19);
+
+  // "stop reading" code
+  w->writeC(255);
+
+  FEATURE_END;
+}
+
+void DivInstrument::writeFeature64(SafeWriter* w) {
+  FEATURE_BEGIN("64");
+
+  FEATURE_END;
+}
+
+void DivInstrument::writeFeatureGB(SafeWriter* w) {
+}
+
+void DivInstrument::writeFeatureSM(SafeWriter* w) {
+}
+
+void DivInstrument::writeFeatureOx(SafeWriter* w, int op) {
+}
+
+void DivInstrument::writeFeatureLD(SafeWriter* w) {
+}
+
+void DivInstrument::writeFeatureSN(SafeWriter* w) {
+}
+
+void DivInstrument::writeFeatureN1(SafeWriter* w) {
+}
+
+void DivInstrument::writeFeatureFD(SafeWriter* w) {
+}
+
+void DivInstrument::writeFeatureWS(SafeWriter* w) {
+}
+
+void DivInstrument::writeFeatureSL(SafeWriter* w, std::vector<int>& list, const DivSong* song) {
+}
+
+void DivInstrument::writeFeatureWL(SafeWriter* w, std::vector<int>& list, const DivSong* song) {
+}
+
+void DivInstrument::writeFeatureMP(SafeWriter* w) {
+}
+
+void DivInstrument::writeFeatureSU(SafeWriter* w) {
+}
+
+void DivInstrument::writeFeatureES(SafeWriter* w) {
+}
+
+void DivInstrument::writeFeatureX1(SafeWriter* w) {
+}
+
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
   size_t blockStartSeek, blockEndSeek;
+  std::vector<int> waveList;
+  std::vector<int> sampleList;
 
   if (fui) {
     w->write("FINS",4);
@@ -609,7 +741,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
     writeFeatureNA(w);
   }
   if (featureFM) {
-    writeFeatureFM(w);
+    writeFeatureFM(w,fui);
   }
   if (featureMA) {
     writeFeatureMA(w);
@@ -644,10 +776,10 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
     writeFeatureWS(w);
   }
   if (featureSL) {
-    writeFeatureSL(w,song);
+    writeFeatureSL(w,sampleList,song);
   }
   if (featureWL) {
-    writeFeatureWL(w,song);
+    writeFeatureWL(w,waveList,song);
   }
   if (featureMP) {
     writeFeatureMP(w);
@@ -661,14 +793,10 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
   if (featureX1) {
     writeFeatureX1(w);
   }
-  if (featureNA) {
-    writeFeatureNA(w);
-  }
-  if (featureNA) {
-    writeFeatureNA(w);
-  }
-  if (featureNA) {
-    writeFeatureNA(w);
+
+  if (fui && (featureSL || featureWL)) {
+    w->write("EN",2);
+    // TODO: write wave/sample data here
   }
 
   blockEndSeek=w->tell();
