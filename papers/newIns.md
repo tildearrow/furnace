@@ -40,13 +40,14 @@ the following feature codes are recognized:
 - `LD`: OPL drums mode data
 - `SN`: SNES ins data
 - `N1`: Namco 163 ins data
-- `FD`: FDS ins data
+- `FD`: FDS/Virtual Boy ins data
 - `WS`: wavetable synth data
 - `SL`: list of samples
 - `WL`: list of wavetables
 - `MP`: MultiPCM ins data
 - `SU`: Sound Unit ins data
 - `ES`: ES5506 ins data
+- `X1`: X1-010 ins data
 
 # FM data (FM)
 

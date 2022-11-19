@@ -23,7 +23,158 @@
 #include "../ta-log.h"
 #include "../fileutils.h"
 
-void DivInstrument::putInsData2(SafeWriter* w, bool fui) {
+const DivInstrument defaultIns;
+
+void DivInstrument::writeFeatureNA(SafeWriter* w) {
+
+}
+
+void DivInstrument::writeFeatureFM(SafeWriter* w) {
+
+}
+
+void DivInstrument::writeFeatureMA(SafeWriter* w) {
+
+}
+
+void DivInstrument::writeFeature64(SafeWriter* w) {
+
+}
+
+void DivInstrument::writeFeatureGB(SafeWriter* w) {
+
+}
+
+void DivInstrument::writeFeatureSM(SafeWriter* w) {
+
+}
+
+void DivInstrument::writeFeatureOx(SafeWriter* w, int op) {
+
+}
+
+void DivInstrument::writeFeatureLD(SafeWriter* w) {
+
+}
+
+void DivInstrument::writeFeatureSN(SafeWriter* w) {
+
+}
+
+void DivInstrument::writeFeatureN1(SafeWriter* w) {
+
+}
+
+void DivInstrument::writeFeatureFD(SafeWriter* w) {
+
+}
+
+void DivInstrument::writeFeatureWS(SafeWriter* w) {
+
+}
+
+void DivInstrument::writeFeatureSL(SafeWriter* w, const DivSong* song) {
+
+}
+
+void DivInstrument::writeFeatureWL(SafeWriter* w, const DivSong* song) {
+
+}
+
+void DivInstrument::writeFeatureMP(SafeWriter* w) {
+
+}
+
+void DivInstrument::writeFeatureSU(SafeWriter* w) {
+
+}
+
+void DivInstrument::writeFeatureES(SafeWriter* w) {
+
+}
+
+void DivInstrument::writeFeatureX1(SafeWriter* w) {
+
+}
+
+#define _C(x) x==a.x
+
+bool DivInstrumentFM::operator==(const DivInstrumentFM& a) {
+  return true;
+}
+
+bool DivInstrumentFM::Operator::operator==(const DivInstrumentFM::Operator& a) {
+  return (
+    _C(enable) &&
+    _C(am) &&
+    _C(ar) &&
+    _C(dr) &&
+    _C(mult) &&
+    _C(rr) &&
+    _C(sl) &&
+    _C(tl) &&
+    _C(dt2) &&
+    _C(rs) &&
+    _C(dt) &&
+    _C(d2r) &&
+    _C(ssgEnv) &&
+    _C(dam) &&
+    _C(dvb) &&
+    _C(egt) &&
+    _C(ksl) &&
+    _C(sus) &&
+    _C(vib) &&
+    _C(ws) &&
+    _C(ksr) &&
+    _C(kvs)
+  );
+}
+
+bool DivInstrumentGB::operator==(const DivInstrumentGB& a) {
+  return true;
+}
+
+bool DivInstrumentC64::operator==(const DivInstrumentC64& a) {
+  return true;
+}
+
+bool DivInstrumentAmiga::operator==(const DivInstrumentAmiga& a) {
+  return true;
+}
+
+bool DivInstrumentX1_010::operator==(const DivInstrumentX1_010& a) {
+  return true;
+}
+
+bool DivInstrumentN163::operator==(const DivInstrumentN163& a) {
+  return true;
+}
+
+bool DivInstrumentFDS::operator==(const DivInstrumentFDS& a) {
+  return true;
+}
+
+bool DivInstrumentMultiPCM::operator==(const DivInstrumentMultiPCM& a) {
+  return true;
+}
+
+bool DivInstrumentWaveSynth::operator==(const DivInstrumentWaveSynth& a) {
+  return true;
+}
+
+bool DivInstrumentSoundUnit::operator==(const DivInstrumentSoundUnit& a) {
+  return true;
+}
+
+bool DivInstrumentES5506::operator==(const DivInstrumentES5506& a) {
+  return true;
+}
+
+bool DivInstrumentSNES::operator==(const DivInstrumentSNES& a) {
+  return true;
+}
+
+void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
   size_t blockStartSeek, blockEndSeek;
 
   if (fui) {
@@ -45,10 +196,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui) {
   bool feature64=false;
   bool featureGB=false;
   bool featureSM=false;
-  bool featureO1=false;
-  bool featureO2=false;
-  bool featureO3=false;
-  bool featureO4=false;
+  bool featureOx[4];
   bool featureLD=false;
   bool featureSN=false;
   bool featureN1=false;
@@ -59,10 +207,361 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui) {
   bool featureMP=false;
   bool featureSU=false;
   bool featureES=false;
+  bool featureX1=false;
 
-  // almost 40 years of C++, and there still isn't a way to easily compare two structs.
-  // even Java, which many regard as having a slow runtime, has .equals().
-  
+  bool checkForWL=false;
+
+  featureOx[0]=false;
+  featureOx[1]=false;
+  featureOx[2]=false;
+  featureOx[3]=false;
+
+  // turn on base features if .fui
+  if (fui) {
+    switch (type) {
+      case DIV_INS_STD:
+        break;
+      case DIV_INS_FM:
+        featureFM=true;
+        break;
+      case DIV_INS_GB:
+        featureGB=true;
+        checkForWL=true;
+        if (ws.enabled) featureWS=true;
+        break;
+      case DIV_INS_C64:
+        feature64=true;
+        break;
+      case DIV_INS_AMIGA:
+        featureSM=true;
+        break;
+      case DIV_INS_PCE:
+        checkForWL=true;
+        featureSM=true;
+        if (ws.enabled) featureWS=true;
+        break;
+      case DIV_INS_AY:
+        featureSM=true;
+        break;
+      case DIV_INS_AY8930:
+        featureSM=true;
+        break;
+      case DIV_INS_TIA:
+        break;
+      case DIV_INS_SAA1099:
+        break;
+      case DIV_INS_VIC:
+        break;
+      case DIV_INS_PET:
+        break;
+      case DIV_INS_VRC6:
+        featureSM=true;
+        break;
+      case DIV_INS_OPLL:
+        featureFM=true;
+        if (fm.fixedDrums) featureLD=true;
+        break;
+      case DIV_INS_OPL:
+        featureFM=true;
+        if (fm.fixedDrums) featureLD=true;
+        break;
+      case DIV_INS_FDS:
+        checkForWL=true;
+        featureFD=true;
+        if (ws.enabled) featureWS=true;
+        break;
+      case DIV_INS_VBOY:
+        checkForWL=true;
+        featureFD=true;
+        if (ws.enabled) featureWS=true;
+        break;
+      case DIV_INS_N163:
+        checkForWL=true;
+        featureN1=true;
+        if (ws.enabled) featureWS=true;
+        break;
+      case DIV_INS_SCC:
+        checkForWL=true;
+        if (ws.enabled) featureWS=true;
+        break;
+      case DIV_INS_OPZ:
+        featureFM=true;
+        break;
+      case DIV_INS_POKEY:
+        break;
+      case DIV_INS_BEEPER:
+        break;
+      case DIV_INS_SWAN:
+        checkForWL=true;
+        featureSM=true;
+        if (ws.enabled) featureWS=true;
+        break;
+      case DIV_INS_MIKEY:
+        featureSM=true;
+        break;
+      case DIV_INS_VERA:
+        break;
+      case DIV_INS_X1_010:
+        checkForWL=true;
+        featureX1=true;
+        if (ws.enabled) featureWS=true;
+        break;
+      case DIV_INS_VRC6_SAW:
+        break;
+      case DIV_INS_ES5506:
+        featureSM=true;
+        featureES=true;
+        break;
+      case DIV_INS_MULTIPCM:
+        featureSM=true;
+        featureMP=true;
+        break;
+      case DIV_INS_SNES:
+        featureSM=true;
+        featureSN=true;
+        checkForWL=true;
+        if (ws.enabled) featureWS=true;
+        break;
+      case DIV_INS_SU:
+        featureSM=true;
+        featureSU=true;
+        break;
+      case DIV_INS_NAMCO:
+        checkForWL=true;
+        if (ws.enabled) featureWS=true;
+        break;
+      case DIV_INS_OPL_DRUMS:
+        featureFM=true;
+        if (fm.fixedDrums) featureLD=true;
+        break;
+      case DIV_INS_OPM:
+        featureFM=true;
+        break;
+      case DIV_INS_NES:
+        break;
+      case DIV_INS_MSM6258:
+        featureSM=true;
+        break;
+      case DIV_INS_MSM6295:
+        featureSM=true;
+        break;
+      case DIV_INS_ADPCMA:
+        featureSM=true;
+        break;
+      case DIV_INS_ADPCMB:
+        featureSM=true;
+        break;
+      case DIV_INS_SEGAPCM:
+        featureSM=true;
+        break;
+      case DIV_INS_QSOUND:
+        featureSM=true;
+        break;
+      case DIV_INS_YMZ280B:
+        featureSM=true;
+        break;
+      case DIV_INS_RF5C68:
+        featureSM=true;
+        break;
+      case DIV_INS_MSM5232:
+        break;
+      case DIV_INS_T6W28:
+        break;
+
+      case DIV_INS_MAX:
+        break;
+      case DIV_INS_NULL:
+        break;
+    }
+  } else {
+    // turn on features depending on what is set
+    // almost 40 years of C++, and there still isn't an official way to easily compare two structs.
+    // even Java, which many regard as having a slow runtime, has .equals().
+    if (fm!=defaultIns.fm) {
+      featureFM=true;
+      featureLD=true;
+    }
+    if (c64!=defaultIns.c64) {
+      feature64=true;
+    }
+    if (gb!=defaultIns.gb) {
+      featureGB=true;
+    }
+    if (amiga!=defaultIns.amiga) {
+      featureSM=true;
+    }
+    if (snes!=defaultIns.snes) {
+      featureSN=true;
+    }
+    if (n163!=defaultIns.n163) {
+      featureN1=true;
+    }
+    if (fds!=defaultIns.fds) {
+      featureFD=true;
+    }
+    if (ws!=defaultIns.ws) {
+      featureWS=true;
+    }
+    if (multipcm!=defaultIns.multipcm) {
+      featureMP=true;
+    }
+    if (su!=defaultIns.su) {
+      featureSU=true;
+    }
+    if (es5506!=defaultIns.es5506) {
+      featureES=true;
+    }
+    if (x1_010!=defaultIns.x1_010) {
+      featureX1=true;
+    }
+  }
+
+  // check ins name
+  if (!name.empty()) {
+    featureNA=true;
+  }
+
+  // check macros
+  if (std.volMacro.len ||
+      std.arpMacro.len ||
+      std.dutyMacro.len ||
+      std.waveMacro.len ||
+      std.pitchMacro.len ||
+      std.ex1Macro.len ||
+      std.ex2Macro.len ||
+      std.ex3Macro.len ||
+      std.algMacro.len ||
+      std.fbMacro.len ||
+      std.fmsMacro.len ||
+      std.amsMacro.len ||
+      std.panLMacro.len ||
+      std.panRMacro.len ||
+      std.phaseResetMacro.len ||
+      std.ex4Macro.len ||
+      std.ex5Macro.len ||
+      std.ex6Macro.len ||
+      std.ex7Macro.len ||
+      std.ex8Macro.len) {
+    featureMA=true;
+  }
+
+  // check whether to write wavetable list
+  if (checkForWL && fui) {
+    if (std.waveMacro.len || ws.enabled) {
+      featureWL=true;
+    }
+  }
+
+  if (featureFM) {
+    // check FM macros
+    int opCount=4;
+    bool storeExtendedAsWell=true;
+    if (fui) {
+      if (type==DIV_INS_OPLL) {
+        opCount=2;
+      } else if (type==DIV_INS_OPL) {
+        opCount=(fm.ops==4)?4:2;
+      } else if (type==DIV_INS_FM || type==DIV_INS_OPM) {
+        storeExtendedAsWell=false;
+      }
+    }
+    for (int i=0; i<opCount; i++) {
+      const DivInstrumentSTD::OpMacro& m=std.opMacros[i];
+      if (m.amMacro.len ||
+          m.arMacro.len ||
+          m.drMacro.len ||
+          m.multMacro.len ||
+          m.rrMacro.len ||
+          m.slMacro.len ||
+          m.tlMacro.len ||
+          m.dt2Macro.len ||
+          m.rsMacro.len ||
+          m.dtMacro.len ||
+          m.d2rMacro.len ||
+          m.ssgMacro.len) {
+        featureOx[i]=true;
+      }
+      if (storeExtendedAsWell) {
+        if (m.damMacro.len ||
+            m.dvbMacro.len ||
+            m.egtMacro.len ||
+            m.kslMacro.len ||
+            m.susMacro.len ||
+            m.vibMacro.len ||
+            m.wsMacro.len ||
+            m.ksrMacro.len) {
+          featureOx[i]=true;
+        }
+      }
+    }
+  }
+
+  // write features
+  if (featureNA) {
+    writeFeatureNA(w);
+  }
+  if (featureFM) {
+    writeFeatureFM(w);
+  }
+  if (featureMA) {
+    writeFeatureMA(w);
+  }
+  if (feature64) {
+    writeFeature64(w);
+  }
+  if (featureGB) {
+    writeFeatureGB(w);
+  }
+  if (featureSM) {
+    writeFeatureSM(w);
+  }
+  for (int i=0; i<4; i++) {
+    if (featureOx[i]) {
+      writeFeatureOx(w,i);
+    }
+  }
+  if (featureLD) {
+    writeFeatureLD(w);
+  }
+  if (featureSN) {
+    writeFeatureSN(w);
+  }
+  if (featureN1) {
+    writeFeatureN1(w);
+  }
+  if (featureFD) {
+    writeFeatureFD(w);
+  }
+  if (featureWS) {
+    writeFeatureWS(w);
+  }
+  if (featureSL) {
+    writeFeatureSL(w,song);
+  }
+  if (featureWL) {
+    writeFeatureWL(w,song);
+  }
+  if (featureMP) {
+    writeFeatureMP(w);
+  }
+  if (featureSU) {
+    writeFeatureSU(w);
+  }
+  if (featureES) {
+    writeFeatureES(w);
+  }
+  if (featureX1) {
+    writeFeatureX1(w);
+  }
+  if (featureNA) {
+    writeFeatureNA(w);
+  }
+  if (featureNA) {
+    writeFeatureNA(w);
+  }
+  if (featureNA) {
+    writeFeatureNA(w);
+  }
 
   blockEndSeek=w->tell();
   if (!fui) {

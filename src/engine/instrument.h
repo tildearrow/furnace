@@ -23,6 +23,8 @@
 #include "dataErrors.h"
 #include "../ta-utils.h"
 
+class DivSong;
+
 // NOTICE!
 // before adding new instrument types to this struct, please ask me first.
 // absolutely zero support granted to conflicting formats.
@@ -95,11 +97,21 @@ struct DivInstrumentFM {
   unsigned char alg, fb, fms, ams, fms2, ams2, ops, opllPreset;
   bool fixedDrums;
   unsigned short kickFreq, snareHatFreq, tomTopFreq;
+
+  bool operator==(const DivInstrumentFM& a);
+  bool operator!=(const DivInstrumentFM& a) {
+    return !(*this==a);
+  }
   struct Operator {
     bool enable;
     unsigned char am, ar, dr, mult, rr, sl, tl, dt2, rs, dt, d2r, ssgEnv;
     unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759/OPL/OPZ
     unsigned char kvs;
+
+    bool operator==(const Operator& a);
+    bool operator!=(const Operator& a) {
+      return !(*this==a);
+    }
     Operator():
       enable(true),
       am(0),
@@ -294,6 +306,12 @@ struct DivInstrumentGB {
     unsigned char cmd;
     unsigned short data;
   } hwSeq[256];
+
+  bool operator==(const DivInstrumentGB& a);
+  bool operator!=(const DivInstrumentGB& a) {
+    return !(*this==a);
+  }
+
   DivInstrumentGB():
     envVol(15),
     envDir(0),
@@ -315,6 +333,11 @@ struct DivInstrumentC64 {
   unsigned char res;
   unsigned short cut;
   bool hp, lp, bp, ch3off;
+
+  bool operator==(const DivInstrumentC64& a);
+  bool operator!=(const DivInstrumentC64& a) {
+    return !(*this==a);
+  }
 
   DivInstrumentC64():
     triOn(false),
@@ -357,6 +380,11 @@ struct DivInstrumentAmiga {
   unsigned char waveLen;
   SampleMap noteMap[120];
 
+  bool operator==(const DivInstrumentAmiga& a);
+  bool operator!=(const DivInstrumentAmiga& a) {
+    return !(*this==a);
+  }
+
   /**
    * get the sample at specified note.
    * @return the sample.
@@ -398,6 +426,11 @@ struct DivInstrumentAmiga {
 struct DivInstrumentX1_010 {
   int bankSlot;
 
+  bool operator==(const DivInstrumentX1_010& a);
+  bool operator!=(const DivInstrumentX1_010& a) {
+    return !(*this==a);
+  }
+
   DivInstrumentX1_010():
     bankSlot(0) {}
 };
@@ -405,6 +438,11 @@ struct DivInstrumentX1_010 {
 struct DivInstrumentN163 {
   int wave, wavePos, waveLen;
   unsigned char waveMode;
+
+  bool operator==(const DivInstrumentN163& a);
+  bool operator!=(const DivInstrumentN163& a) {
+    return !(*this==a);
+  }
 
   DivInstrumentN163():
     wave(-1),
@@ -418,6 +456,12 @@ struct DivInstrumentFDS {
   int modSpeed, modDepth;
   // this is here for compatibility.
   bool initModTableWithFirstWave;
+
+  bool operator==(const DivInstrumentFDS& a);
+  bool operator!=(const DivInstrumentFDS& a) {
+    return !(*this==a);
+  }
+
   DivInstrumentFDS():
     modSpeed(0),
     modDepth(0),
@@ -429,6 +473,11 @@ struct DivInstrumentFDS {
 struct DivInstrumentMultiPCM {
   unsigned char ar, d1r, dl, d2r, rr, rc;
   unsigned char lfo, vib, am;
+
+  bool operator==(const DivInstrumentMultiPCM& a);
+  bool operator!=(const DivInstrumentMultiPCM& a) {
+    return !(*this==a);
+  }
 
   DivInstrumentMultiPCM():
     ar(15), d1r(15), dl(0), d2r(0), rr(15), rc(15),
@@ -468,6 +517,12 @@ struct DivInstrumentWaveSynth {
   unsigned char effect;
   bool oneShot, enabled, global;
   unsigned char speed, param1, param2, param3, param4;
+
+  bool operator==(const DivInstrumentWaveSynth& a);
+  bool operator!=(const DivInstrumentWaveSynth& a) {
+    return !(*this==a);
+  }
+
   DivInstrumentWaveSynth():
     wave1(0),
     wave2(0),
@@ -485,6 +540,12 @@ struct DivInstrumentWaveSynth {
 
 struct DivInstrumentSoundUnit {
   bool switchRoles;
+
+  bool operator==(const DivInstrumentSoundUnit& a);
+  bool operator!=(const DivInstrumentSoundUnit& a) {
+    return !(*this==a);
+  }
+
   DivInstrumentSoundUnit():
     switchRoles(false) {}
 };
@@ -520,6 +581,12 @@ struct DivInstrumentES5506 {
   };
   Filter filter;
   Envelope envelope;
+
+  bool operator==(const DivInstrumentES5506& a);
+  bool operator!=(const DivInstrumentES5506& a) {
+    return !(*this==a);
+  }
+
   DivInstrumentES5506():
     filter(Filter()),
     envelope(Envelope()) {}
@@ -537,6 +604,12 @@ struct DivInstrumentSNES {
   GainMode gainMode;
   unsigned char gain;
   unsigned char a, d, s, r;
+
+  bool operator==(const DivInstrumentSNES& a);
+  bool operator!=(const DivInstrumentSNES& a) {
+    return !(*this==a);
+  }
+
   DivInstrumentSNES():
     useEnv(true),
     sus(false),
@@ -564,6 +637,28 @@ struct DivInstrument {
   DivInstrumentSoundUnit su;
   DivInstrumentES5506 es5506;
   DivInstrumentSNES snes;
+
+  /**
+   * these are internal functions.
+   */
+  void writeFeatureNA(SafeWriter* w);
+  void writeFeatureFM(SafeWriter* w);
+  void writeFeatureMA(SafeWriter* w);
+  void writeFeature64(SafeWriter* w);
+  void writeFeatureGB(SafeWriter* w);
+  void writeFeatureSM(SafeWriter* w);
+  void writeFeatureOx(SafeWriter* w, int op);
+  void writeFeatureLD(SafeWriter* w);
+  void writeFeatureSN(SafeWriter* w);
+  void writeFeatureN1(SafeWriter* w);
+  void writeFeatureFD(SafeWriter* w);
+  void writeFeatureWS(SafeWriter* w);
+  void writeFeatureSL(SafeWriter* w, const DivSong* song);
+  void writeFeatureWL(SafeWriter* w, const DivSong* song);
+  void writeFeatureMP(SafeWriter* w);
+  void writeFeatureSU(SafeWriter* w);
+  void writeFeatureES(SafeWriter* w);
+  void writeFeatureX1(SafeWriter* w);
   
   /**
    * save the instrument to a SafeWriter.
@@ -575,7 +670,7 @@ struct DivInstrument {
    * save the instrument to a SafeWriter using new format.
    * @param w the SafeWriter in question.
    */
-  void putInsData2(SafeWriter* w, bool fui=false);
+  void putInsData2(SafeWriter* w, bool fui=false, const DivSong* song=NULL);
 
   /**
    * read instrument data in .fui format.
