@@ -359,7 +359,7 @@ void DivInstrument::writeFeatureMA(SafeWriter* w) {
   writeMacro(w,std.ex8Macro,19);
 
   // "stop reading" code
-  w->writeC(255);
+  w->writeC(-1);
 
   FEATURE_END;
 }
