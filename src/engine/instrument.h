@@ -98,9 +98,9 @@ struct DivInstrumentFM {
   bool fixedDrums;
   unsigned short kickFreq, snareHatFreq, tomTopFreq;
 
-  bool operator==(const DivInstrumentFM& a);
-  bool operator!=(const DivInstrumentFM& a) {
-    return !(*this==a);
+  bool operator==(const DivInstrumentFM& other);
+  bool operator!=(const DivInstrumentFM& other) {
+    return !(*this==other);
   }
   struct Operator {
     bool enable;
@@ -108,9 +108,9 @@ struct DivInstrumentFM {
     unsigned char dam, dvb, egt, ksl, sus, vib, ws, ksr; // YMU759/OPL/OPZ
     unsigned char kvs;
 
-    bool operator==(const Operator& a);
-    bool operator!=(const Operator& a) {
-      return !(*this==a);
+    bool operator==(const Operator& other);
+    bool operator!=(const Operator& other) {
+      return !(*this==other);
     }
     Operator():
       enable(true),
@@ -307,9 +307,9 @@ struct DivInstrumentGB {
     unsigned short data;
   } hwSeq[256];
 
-  bool operator==(const DivInstrumentGB& a);
-  bool operator!=(const DivInstrumentGB& a) {
-    return !(*this==a);
+  bool operator==(const DivInstrumentGB& other);
+  bool operator!=(const DivInstrumentGB& other) {
+    return !(*this==other);
   }
 
   DivInstrumentGB():
@@ -334,9 +334,9 @@ struct DivInstrumentC64 {
   unsigned short cut;
   bool hp, lp, bp, ch3off;
 
-  bool operator==(const DivInstrumentC64& a);
-  bool operator!=(const DivInstrumentC64& a) {
-    return !(*this==a);
+  bool operator==(const DivInstrumentC64& other);
+  bool operator!=(const DivInstrumentC64& other) {
+    return !(*this==other);
   }
 
   DivInstrumentC64():
@@ -380,9 +380,9 @@ struct DivInstrumentAmiga {
   unsigned char waveLen;
   SampleMap noteMap[120];
 
-  bool operator==(const DivInstrumentAmiga& a);
-  bool operator!=(const DivInstrumentAmiga& a) {
-    return !(*this==a);
+  bool operator==(const DivInstrumentAmiga& other);
+  bool operator!=(const DivInstrumentAmiga& other) {
+    return !(*this==other);
   }
 
   /**
@@ -426,9 +426,9 @@ struct DivInstrumentAmiga {
 struct DivInstrumentX1_010 {
   int bankSlot;
 
-  bool operator==(const DivInstrumentX1_010& a);
-  bool operator!=(const DivInstrumentX1_010& a) {
-    return !(*this==a);
+  bool operator==(const DivInstrumentX1_010& other);
+  bool operator!=(const DivInstrumentX1_010& other) {
+    return !(*this==other);
   }
 
   DivInstrumentX1_010():
@@ -439,9 +439,9 @@ struct DivInstrumentN163 {
   int wave, wavePos, waveLen;
   unsigned char waveMode;
 
-  bool operator==(const DivInstrumentN163& a);
-  bool operator!=(const DivInstrumentN163& a) {
-    return !(*this==a);
+  bool operator==(const DivInstrumentN163& other);
+  bool operator!=(const DivInstrumentN163& other) {
+    return !(*this==other);
   }
 
   DivInstrumentN163():
@@ -457,9 +457,9 @@ struct DivInstrumentFDS {
   // this is here for compatibility.
   bool initModTableWithFirstWave;
 
-  bool operator==(const DivInstrumentFDS& a);
-  bool operator!=(const DivInstrumentFDS& a) {
-    return !(*this==a);
+  bool operator==(const DivInstrumentFDS& other);
+  bool operator!=(const DivInstrumentFDS& other) {
+    return !(*this==other);
   }
 
   DivInstrumentFDS():
@@ -474,9 +474,9 @@ struct DivInstrumentMultiPCM {
   unsigned char ar, d1r, dl, d2r, rr, rc;
   unsigned char lfo, vib, am;
 
-  bool operator==(const DivInstrumentMultiPCM& a);
-  bool operator!=(const DivInstrumentMultiPCM& a) {
-    return !(*this==a);
+  bool operator==(const DivInstrumentMultiPCM& other);
+  bool operator!=(const DivInstrumentMultiPCM& other) {
+    return !(*this==other);
   }
 
   DivInstrumentMultiPCM():
@@ -518,9 +518,9 @@ struct DivInstrumentWaveSynth {
   bool oneShot, enabled, global;
   unsigned char speed, param1, param2, param3, param4;
 
-  bool operator==(const DivInstrumentWaveSynth& a);
-  bool operator!=(const DivInstrumentWaveSynth& a) {
-    return !(*this==a);
+  bool operator==(const DivInstrumentWaveSynth& other);
+  bool operator!=(const DivInstrumentWaveSynth& other) {
+    return !(*this==other);
   }
 
   DivInstrumentWaveSynth():
@@ -541,9 +541,9 @@ struct DivInstrumentWaveSynth {
 struct DivInstrumentSoundUnit {
   bool switchRoles;
 
-  bool operator==(const DivInstrumentSoundUnit& a);
-  bool operator!=(const DivInstrumentSoundUnit& a) {
-    return !(*this==a);
+  bool operator==(const DivInstrumentSoundUnit& other);
+  bool operator!=(const DivInstrumentSoundUnit& other) {
+    return !(*this==other);
   }
 
   DivInstrumentSoundUnit():
@@ -582,9 +582,9 @@ struct DivInstrumentES5506 {
   Filter filter;
   Envelope envelope;
 
-  bool operator==(const DivInstrumentES5506& a);
-  bool operator!=(const DivInstrumentES5506& a) {
-    return !(*this==a);
+  bool operator==(const DivInstrumentES5506& other);
+  bool operator!=(const DivInstrumentES5506& other) {
+    return !(*this==other);
   }
 
   DivInstrumentES5506():
@@ -605,9 +605,9 @@ struct DivInstrumentSNES {
   unsigned char gain;
   unsigned char a, d, s, r;
 
-  bool operator==(const DivInstrumentSNES& a);
-  bool operator!=(const DivInstrumentSNES& a) {
-    return !(*this==a);
+  bool operator==(const DivInstrumentSNES& other);
+  bool operator!=(const DivInstrumentSNES& other) {
+    return !(*this==other);
   }
 
   DivInstrumentSNES():

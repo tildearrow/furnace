@@ -97,13 +97,30 @@ void DivInstrument::writeFeatureX1(SafeWriter* w) {
 
 }
 
-#define _C(x) x==a.x
+#define _C(x) x==other.x
 
-bool DivInstrumentFM::operator==(const DivInstrumentFM& a) {
-  return true;
+bool DivInstrumentFM::operator==(const DivInstrumentFM& other) {
+  return (
+    _C(alg) &&
+    _C(fb) &&
+    _C(fms) &&
+    _C(ams) &&
+    _C(fms2) &&
+    _C(ams2) &&
+    _C(ops) &&
+    _C(opllPreset) &&
+    _C(fixedDrums) &&
+    _C(kickFreq) &&
+    _C(snareHatFreq) &&
+    _C(tomTopFreq) &&
+    _C(op[0]) &&
+    _C(op[1]) &&
+    _C(op[2]) &&
+    _C(op[3])
+  );
 }
 
-bool DivInstrumentFM::Operator::operator==(const DivInstrumentFM::Operator& a) {
+bool DivInstrumentFM::Operator::operator==(const DivInstrumentFM::Operator& other) {
   return (
     _C(enable) &&
     _C(am) &&
@@ -130,48 +147,139 @@ bool DivInstrumentFM::Operator::operator==(const DivInstrumentFM::Operator& a) {
   );
 }
 
-bool DivInstrumentGB::operator==(const DivInstrumentGB& a) {
-  return true;
+bool DivInstrumentGB::operator==(const DivInstrumentGB& other) {
+  return (
+    _C(envVol) &&
+    _C(envDir) &&
+    _C(envLen) &&
+    _C(soundLen) &&
+    _C(hwSeqLen) &&
+    _C(softEnv) &&
+    _C(alwaysInit)
+  );
 }
 
-bool DivInstrumentC64::operator==(const DivInstrumentC64& a) {
-  return true;
+bool DivInstrumentC64::operator==(const DivInstrumentC64& other) {
+  return (
+    _C(triOn) &&
+    _C(sawOn) &&
+    _C(pulseOn) &&
+    _C(noiseOn) &&
+    _C(a) &&
+    _C(d) &&
+    _C(s) &&
+    _C(r) &&
+    _C(duty) &&
+    _C(ringMod) &&
+    _C(oscSync) &&
+    _C(toFilter) &&
+    _C(volIsCutoff) &&
+    _C(initFilter) &&
+    _C(dutyIsAbs) &&
+    _C(filterIsAbs) &&
+    _C(noTest) &&
+    _C(res) &&
+    _C(cut) &&
+    _C(hp) &&
+    _C(lp) &&
+    _C(bp) &&
+    _C(ch3off)
+  );
 }
 
-bool DivInstrumentAmiga::operator==(const DivInstrumentAmiga& a) {
-  return true;
+bool DivInstrumentAmiga::operator==(const DivInstrumentAmiga& other) {
+  return (
+    _C(initSample) &&
+    _C(useNoteMap) &&
+    _C(useSample) &&
+    _C(useWave) &&
+    _C(waveLen)
+  );
 }
 
-bool DivInstrumentX1_010::operator==(const DivInstrumentX1_010& a) {
-  return true;
+bool DivInstrumentX1_010::operator==(const DivInstrumentX1_010& other) {
+  return _C(bankSlot);
 }
 
-bool DivInstrumentN163::operator==(const DivInstrumentN163& a) {
-  return true;
+bool DivInstrumentN163::operator==(const DivInstrumentN163& other) {
+  return (
+    _C(wave) &&
+    _C(wavePos) &&
+    _C(waveLen) &&
+    _C(waveMode)
+  );
 }
 
-bool DivInstrumentFDS::operator==(const DivInstrumentFDS& a) {
-  return true;
+bool DivInstrumentFDS::operator==(const DivInstrumentFDS& other) {
+  return (
+    (memcmp(modTable,other.modTable,32)==0) &&
+    _C(modSpeed) &&
+    _C(modDepth) &&
+    _C(initModTableWithFirstWave)
+  );
 }
 
-bool DivInstrumentMultiPCM::operator==(const DivInstrumentMultiPCM& a) {
-  return true;
+bool DivInstrumentMultiPCM::operator==(const DivInstrumentMultiPCM& other) {
+  return (
+    _C(ar) &&
+    _C(d1r) &&
+    _C(dl) &&
+    _C(d2r) &&
+    _C(rr) &&
+    _C(rc) &&
+    _C(lfo) &&
+    _C(vib) &&
+    _C(am)
+  );
 }
 
-bool DivInstrumentWaveSynth::operator==(const DivInstrumentWaveSynth& a) {
-  return true;
+bool DivInstrumentWaveSynth::operator==(const DivInstrumentWaveSynth& other) {
+  return (
+    _C(wave1) &&
+    _C(wave2) &&
+    _C(rateDivider) &&
+    _C(effect) &&
+    _C(oneShot) &&
+    _C(enabled) &&
+    _C(global) &&
+    _C(speed) &&
+    _C(param1) &&
+    _C(param2) &&
+    _C(param3) &&
+    _C(param4)
+  );
 }
 
-bool DivInstrumentSoundUnit::operator==(const DivInstrumentSoundUnit& a) {
-  return true;
+bool DivInstrumentSoundUnit::operator==(const DivInstrumentSoundUnit& other) {
+  return _C(switchRoles);
 }
 
-bool DivInstrumentES5506::operator==(const DivInstrumentES5506& a) {
-  return true;
+bool DivInstrumentES5506::operator==(const DivInstrumentES5506& other) {
+  return (
+    _C(filter.mode) &&
+    _C(filter.k1) &&
+    _C(filter.k2) &&
+    _C(envelope.ecount) &&
+    _C(envelope.lVRamp) &&
+    _C(envelope.rVRamp) &&
+    _C(envelope.k1Ramp) &&
+    _C(envelope.k2Ramp) &&
+    _C(envelope.k1Slow) &&
+    _C(envelope.k2Slow)
+  );
 }
 
-bool DivInstrumentSNES::operator==(const DivInstrumentSNES& a) {
-  return true;
+bool DivInstrumentSNES::operator==(const DivInstrumentSNES& other) {
+  return (
+    _C(useEnv) &&
+    _C(sus) &&
+    _C(gainMode) &&
+    _C(gain) &&
+    _C(a) &&
+    _C(d) &&
+    _C(s) &&
+    _C(r)
+  );
 }
 
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
