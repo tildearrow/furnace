@@ -23,7 +23,7 @@
 #include "dataErrors.h"
 #include "../ta-utils.h"
 
-class DivSong;
+struct DivSong;
 
 // NOTICE!
 // before adding new instrument types to this struct, please ask me first.
