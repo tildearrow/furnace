@@ -367,19 +367,128 @@ void DivInstrument::writeFeatureMA(SafeWriter* w) {
 void DivInstrument::writeFeature64(SafeWriter* w) {
   FEATURE_BEGIN("64");
 
+  w->writeC(
+    (c64.dutyIsAbs?0x80:0)|
+    (c64.initFilter?0x40:0)|
+    (c64.volIsCutoff?0x20:0)|
+    (c64.toFilter?0x10:0)|
+    (c64.noiseOn?8:0)|
+    (c64.pulseOn?4:0)|
+    (c64.sawOn?2:0)|
+    (c64.triOn?1:0)
+  );
+
+  w->writeC(
+    (c64.oscSync?0x80:0)|
+    (c64.ringMod?0x40:0)|
+    (c64.noTest?0x20:0)|
+    (c64.filterIsAbs?0x10:0)|
+    (c64.ch3off?8:0)|
+    (c64.bp?4:0)|
+    (c64.hp?2:0)|
+    (c64.lp?1:0)
+  );
+
+  w->writeC(((c64.a&15)<<4)|(c64.d&15));
+  w->writeC(((c64.s&15)<<4)|(c64.r&15));
+  w->writeS(c64.duty);
+  w->writeS((unsigned short)((c64.cut&2047)|(c64.res<<12)));
+
   FEATURE_END;
 }
 
 void DivInstrument::writeFeatureGB(SafeWriter* w) {
+  FEATURE_BEGIN("GB");
+
+  w->writeC(((gb.envLen&7)<<5)|(gb.envDir?16:0)|(gb.envVol&15));
+  w->writeC(gb.soundLen);
+
+  w->writeC(
+    (gb.alwaysInit?2:0)|
+    (gb.softEnv?1:0)
+  );
+
+  w->writeC(gb.hwSeqLen);
+  for (int i=0; i<gb.hwSeqLen; i++) {
+    w->writeC(gb.hwSeq[i].cmd);
+    w->writeS(gb.hwSeq[i].data);
+  }
+
+  FEATURE_END;
 }
 
 void DivInstrument::writeFeatureSM(SafeWriter* w) {
+  FEATURE_BEGIN("SM");
+
+  w->writeS(amiga.initSample);
+  w->writeC(
+    (amiga.useWave?4:0)|
+    (amiga.useSample?2:0)|
+    (amiga.useNoteMap?1:0)
+  );
+  w->writeC(amiga.waveLen);
+
+  if (amiga.useNoteMap) {
+    for (int note=0; note<120; note++) {
+      w->writeS(amiga.noteMap[note].freq);
+      w->writeS(amiga.noteMap[note].map);
+    }
+  }
+
+  FEATURE_END;
 }
 
-void DivInstrument::writeFeatureOx(SafeWriter* w, int op) {
+void DivInstrument::writeFeatureOx(SafeWriter* w, int ope) {
+  char opCode[3];
+  opCode[0]='O';
+  opCode[1]='1'+ope;
+  opCode[2]=0;
+
+  FEATURE_BEGIN(opCode);
+
+  // if you update the macro header, please update this value as well.
+  // it's the length.
+  w->writeS(8);
+  
+  // write macros
+  const DivInstrumentSTD::OpMacro& o=std.opMacros[ope];
+
+  writeMacro(w,o.amMacro,0);
+  writeMacro(w,o.arMacro,0);
+  writeMacro(w,o.drMacro,0);
+  writeMacro(w,o.multMacro,0);
+  writeMacro(w,o.rrMacro,0);
+  writeMacro(w,o.slMacro,0);
+  writeMacro(w,o.tlMacro,0);
+  writeMacro(w,o.dt2Macro,0);
+  writeMacro(w,o.rsMacro,0);
+  writeMacro(w,o.dtMacro,0);
+  writeMacro(w,o.d2rMacro,0);
+  writeMacro(w,o.ssgMacro,0);
+  writeMacro(w,o.damMacro,0);
+  writeMacro(w,o.dvbMacro,0);
+  writeMacro(w,o.egtMacro,0);
+  writeMacro(w,o.kslMacro,0);
+  writeMacro(w,o.susMacro,0);
+  writeMacro(w,o.vibMacro,0);
+  writeMacro(w,o.wsMacro,0);
+  writeMacro(w,o.ksrMacro,0);
+
+  // "stop reading" code
+  w->writeC(-1);
+
+  FEATURE_END;
 }
 
 void DivInstrument::writeFeatureLD(SafeWriter* w) {
+  FEATURE_BEGIN("LD");
+
+  w->writeC(fm.fixedDrums);
+  w->writeS(fm.kickFreq);
+  w->writeS(fm.snareHatFreq);
+  w->writeS(fm.tomTopFreq);
+
+  FEATURE_END;
 }
 
 void DivInstrument::writeFeatureSN(SafeWriter* w) {
@@ -2168,6 +2277,8 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
 bool DivInstrument::save(const char* path) {
   SafeWriter* w=new SafeWriter();
   w->init();
+
+  //putInsData2(w,true);
 
   // write magic
   w->write("-Furnace instr.-",16);

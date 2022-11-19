@@ -158,7 +158,7 @@ size | description
 -----|------------------------------------
   1  | flags 1
      | - bit 7: dutyIsAbs
-     | - bit 6: initFter
+     | - bit 6: initFilter
      | - bit 5: volIsCutoff
      | - bit 4: toFilter
      | - bit 3: noise on
