@@ -60,6 +60,10 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui) {
   bool featureSU=false;
   bool featureES=false;
 
+  // almost 40 years of C++, and there still isn't a way to easily compare two structs.
+  // even Java, which many regard as having a slow runtime, has .equals().
+  
+
   blockEndSeek=w->tell();
   if (!fui) {
     w->seek(blockStartSeek,SEEK_SET);
