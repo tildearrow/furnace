@@ -6,10 +6,24 @@ the aim of this new format is to greatly reduce the size of a resulting instrume
 
 # header
 
+.fui files use the following header:
+
 ```
 size | description
 -----|------------------------------------
   4  | "FINS" format magic
+  2  | format version
+  2  | instrument type
+ ??? | features...
+```
+
+instruments in a .fur file use the following header instead:
+
+```
+size | description
+-----|------------------------------------
+  4  | "INS2" block ID
+  4  | size of this block
   2  | format version
   2  | instrument type
  ??? | features...
@@ -51,6 +65,7 @@ the following feature codes are recognized:
 - `EN`: end of features
   - if you find this feature code, stop reading the instrument.
   - it will usually appear only when there sample/wave lists.
+  - instruments in a .fur shall end with this feature code.
 
 # instrument name (NA)
 

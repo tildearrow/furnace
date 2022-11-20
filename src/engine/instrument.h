@@ -661,6 +661,9 @@ struct DivInstrument {
   void writeFeatureSU(SafeWriter* w);
   void writeFeatureES(SafeWriter* w);
   void writeFeatureX1(SafeWriter* w);
+
+  DivDataErrors readInsDataOld(SafeReader& reader, short version);
+  DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui);
   
   /**
    * save the instrument to a SafeWriter.

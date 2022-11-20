@@ -1720,17 +1720,16 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->seek(0,SEEK_END);
 }
 
+DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui) {
+  logE("new ins reading not implemented yet!");
+  return DIV_DATA_INVALID_DATA;
+}
+
 #define READ_MACRO_VALS(x,y) \
   for (int macroValPos=0; macroValPos<y; macroValPos++) x[macroValPos]=reader.readI();
 
-DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
-  char magic[4];
-  reader.read(magic,4);
-  if (memcmp(magic,"INST",4)!=0) {
-    logE("invalid instrument header!");
-    return DIV_DATA_INVALID_HEADER;
-  }
-  reader.readI();
+DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
+  reader.readI(); // length. ignored.
 
   reader.readS(); // format version. ignored.
   type=(DivInstrumentType)reader.readC();
@@ -2436,6 +2435,31 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   }
 
   return DIV_DATA_SUCCESS;
+}
+
+DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
+  // 0: old (INST)
+  // 1: new (INS2, length)
+  // 2: new (FINS, no length)
+  int type=-1;
+
+  char magic[4];
+  reader.read(magic,4);
+  if (memcmp(magic,"INST",4)==0) {
+    type=0;
+  } else if (memcmp(magic,"INS2",4)==0) {
+    type=1;
+  } else if (memcmp(magic,"FINS",4)==0) {
+    type=2;
+  } else {
+    logE("invalid instrument header!");
+    return DIV_DATA_INVALID_HEADER;
+  }
+
+  if (type==1 || type==2) {
+    return readInsDataNew(reader,version,type==2);
+  }
+  return readInsDataOld(reader,version);
 }
 
 bool DivInstrument::save(const char* path) {
