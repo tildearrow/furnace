@@ -266,7 +266,7 @@ void FurnaceGUI::drawPiano() {
           } else {
             int bottomNotes=7*oct;
             // evaluate input
-            for (TouchPoint& i: activePoints) {
+            if (canInput) for (TouchPoint& i: activePoints) {
               if (rect.Contains(ImVec2(i.x,i.y))) {
                 // top
                 int o=((i.x-rect.Min.x)/(rect.Max.x-rect.Min.x))*oct;
