@@ -492,33 +492,196 @@ void DivInstrument::writeFeatureLD(SafeWriter* w) {
 }
 
 void DivInstrument::writeFeatureSN(SafeWriter* w) {
+  FEATURE_BEGIN("SN");
+
+  w->writeC(((snes.d&7)<<4)|(snes.a&15));
+  w->writeC(((snes.s&7)<<5)|(snes.r&31));
+
+  w->writeC(
+    (snes.useEnv?16:0)|
+    (snes.sus?8:0)|
+    (snes.gainMode)
+  );
+  
+  w->writeC(snes.gain);
+
+  FEATURE_END;
 }
 
 void DivInstrument::writeFeatureN1(SafeWriter* w) {
+  FEATURE_BEGIN("N1");
+
+  w->writeI(n163.wave);
+  w->writeC(n163.wavePos);
+  w->writeC(n163.waveLen);
+  w->writeC(n163.waveMode);
+
+  FEATURE_END;
 }
 
 void DivInstrument::writeFeatureFD(SafeWriter* w) {
+  FEATURE_BEGIN("FD");
+
+  w->writeI(fds.modSpeed);
+  w->writeI(fds.modDepth);
+  w->writeC(fds.initModTableWithFirstWave);
+  w->write(fds.modTable,32);
+
+  FEATURE_END;
 }
 
 void DivInstrument::writeFeatureWS(SafeWriter* w) {
+  FEATURE_BEGIN("WS");
+
+  w->writeI(ws.wave1);
+  w->writeI(ws.wave2);
+  w->writeC(ws.rateDivider);
+  w->writeC(ws.effect);
+  w->writeC(ws.enabled);
+  w->writeC(ws.global);
+  w->writeC(ws.speed);
+  w->writeC(ws.param1);
+  w->writeC(ws.param2);
+  w->writeC(ws.param3);
+  w->writeC(ws.param4);
+
+  FEATURE_END;
 }
 
-void DivInstrument::writeFeatureSL(SafeWriter* w, std::vector<int>& list, const DivSong* song) {
+size_t DivInstrument::writeFeatureSL(SafeWriter* w, std::vector<int>& list, const DivSong* song) {
+  FEATURE_BEGIN("SL");
+
+  bool sampleUsed[256];
+  memset(sampleUsed,0,256*sizeof(bool));
+
+  if (amiga.initSample>=0 && amiga.initSample<(int)song->sample.size()) {
+    sampleUsed[amiga.initSample]=true;
+  }
+
+  if (amiga.useNoteMap) {
+    for (int i=0; i<120; i++) {
+      if (amiga.noteMap[i].map>=0 && amiga.noteMap[i].map<(int)song->sample.size()) {
+        sampleUsed[amiga.noteMap[i].map]=true;
+      }
+    }
+  }
+
+  for (size_t i=0; i<song->sample.size(); i++) {
+    if (sampleUsed[i]) {
+      list.push_back(i);
+    }
+  }
+
+  w->writeC(list.size());
+
+  for (int i: list) {
+    w->writeC(i);
+  }
+
+  size_t ret=w->tell();
+
+  // pointers (these will be filled later)
+  for (size_t i=0; i<list.size(); i++) {
+    w->writeI(0);
+  }
+
+  FEATURE_END;
+
+  return ret;
 }
 
-void DivInstrument::writeFeatureWL(SafeWriter* w, std::vector<int>& list, const DivSong* song) {
+size_t DivInstrument::writeFeatureWL(SafeWriter* w, std::vector<int>& list, const DivSong* song) {
+  FEATURE_BEGIN("WL");
+
+  bool waveUsed[256];
+  memset(waveUsed,0,256*sizeof(bool));
+
+  for (int i=0; i<std.waveMacro.len; i++) {
+    if (std.waveMacro.val[i]>=0 && std.waveMacro.val[i]<(int)song->wave.size()) {
+      waveUsed[std.waveMacro.val[i]]=true;
+    }
+  }
+
+  if (ws.enabled) {
+    if (ws.wave1>=0 && ws.wave1<(int)song->wave.size()) {
+      waveUsed[ws.wave1]=true;
+    }
+    if ((ws.effect&0x80) && ws.wave2>=0 && ws.wave2<(int)song->wave.size()) {
+      waveUsed[ws.wave2]=true;
+    }
+  }
+
+  for (size_t i=0; i<song->wave.size(); i++) {
+    if (waveUsed[i]) {
+      list.push_back(i);
+    }
+  }
+
+  w->writeC(list.size());
+
+  for (int i: list) {
+    w->writeC(i);
+  }
+
+  size_t ret=w->tell();
+
+  // pointers (these will be filled later)
+  for (size_t i=0; i<list.size(); i++) {
+    w->writeI(0);
+  }
+
+  FEATURE_END;
+
+  return ret;
 }
 
 void DivInstrument::writeFeatureMP(SafeWriter* w) {
+  FEATURE_BEGIN("MP");
+
+  w->writeC(multipcm.ar);
+  w->writeC(multipcm.d1r);
+  w->writeC(multipcm.dl);
+  w->writeC(multipcm.d2r);
+  w->writeC(multipcm.rr);
+  w->writeC(multipcm.rc);
+  w->writeC(multipcm.lfo);
+  w->writeC(multipcm.vib);
+  w->writeC(multipcm.am);
+
+  FEATURE_END;
 }
 
 void DivInstrument::writeFeatureSU(SafeWriter* w) {
+  FEATURE_BEGIN("SU");
+
+  w->writeC(su.switchRoles);
+
+  FEATURE_END;
 }
 
 void DivInstrument::writeFeatureES(SafeWriter* w) {
+  FEATURE_BEGIN("ES");
+
+  w->writeC(es5506.filter.mode);
+  w->writeS(es5506.filter.k1);
+  w->writeS(es5506.filter.k2);
+  w->writeS(es5506.envelope.ecount);
+  w->writeC(es5506.envelope.lVRamp);
+  w->writeC(es5506.envelope.rVRamp);
+  w->writeC(es5506.envelope.k1Ramp);
+  w->writeC(es5506.envelope.k2Ramp);
+  w->writeC(es5506.envelope.k1Slow);
+  w->writeC(es5506.envelope.k2Slow);
+
+  FEATURE_END;
 }
 
 void DivInstrument::writeFeatureX1(SafeWriter* w) {
+  FEATURE_BEGIN("X1");
+
+  w->writeI(x1_010.bankSlot);
+
+  FEATURE_END;
 }
 
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {

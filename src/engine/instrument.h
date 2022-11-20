@@ -655,8 +655,8 @@ struct DivInstrument {
   void writeFeatureN1(SafeWriter* w);
   void writeFeatureFD(SafeWriter* w);
   void writeFeatureWS(SafeWriter* w);
-  void writeFeatureSL(SafeWriter* w, std::vector<int>& list, const DivSong* song);
-  void writeFeatureWL(SafeWriter* w, std::vector<int>& list, const DivSong* song);
+  size_t writeFeatureSL(SafeWriter* w, std::vector<int>& list, const DivSong* song);
+  size_t writeFeatureWL(SafeWriter* w, std::vector<int>& list, const DivSong* song);
   void writeFeatureMP(SafeWriter* w);
   void writeFeatureSU(SafeWriter* w);
   void writeFeatureES(SafeWriter* w);

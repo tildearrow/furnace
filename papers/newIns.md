@@ -308,7 +308,7 @@ size | description
      | - bit 4-6: decay
      | - bit 0-3: attack
   1  | sustain/release
-     | - bit 5-6: sustain
+     | - bit 5-7: sustain
      | - bit 0-4: release
   1  | flags
      | - bit 4: envelope on
@@ -369,6 +369,7 @@ size | description
 size | description
 -----|------------------------------------
   1  | number of samples
+ 1?? | sample indexes...
  4?? | pointers to samples...
      | - these use the Furnace sample format.
 ```
@@ -379,6 +380,7 @@ size | description
 size | description
 -----|------------------------------------
   1  | number of wavetables
+ 1?? | wavetable indexes...
  4?? | pointers to wavetables...
      | - these use the Furnace wavetable format.
 ```
