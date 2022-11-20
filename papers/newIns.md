@@ -1,4 +1,4 @@
-# possible new Furnace instrument format
+# new Furnace instrument format
 
 the main issue with Furnace instrument files is that they are too big, even if the instrument is nothing more than the FM setup...
 

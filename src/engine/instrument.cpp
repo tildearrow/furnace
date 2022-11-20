@@ -1738,6 +1738,71 @@ void DivInstrument::readFeatureNA(SafeReader& reader) {
 void DivInstrument::readFeatureFM(SafeReader& reader) {
   READ_FEAT_BEGIN;
 
+  unsigned char opCount=reader.readC();
+
+  fm.op[0].enable=(opCount&16);
+  fm.op[1].enable=(opCount&32);
+  fm.op[2].enable=(opCount&64);
+  fm.op[3].enable=(opCount&128);
+
+  opCount&=15;
+
+  unsigned char next=reader.readC();
+  fm.alg=(next>>4)&7;
+  fm.fb=next&7;
+
+  next=reader.readC();
+  fm.fms2=(next>>5)&7;
+  fm.ams=(next>>3)&3;
+  fm.fms=next&7;
+
+  next=reader.readC();
+  fm.ams2=(next>>6)&3;
+  fm.ops=(next&32)?4:2;
+  fm.opllPreset=next&31;
+
+  // read operators
+  for (int i=0; i<opCount; i++) {
+    DivInstrumentFM::Operator& op=fm.op[i];
+
+    next=reader.readC();
+    op.ksr=(next&128)?1:0;
+    op.dt=(next>>4)&7;
+    op.mult=next&15;
+
+    next=reader.readC();
+    op.sus=(next&128)?1:0;
+    op.tl=next&127;
+
+    next=reader.readC();
+    op.rs=(next>>6)&3;
+    op.vib=(next&32)?1:0;
+    op.ar=next&31;
+
+    next=reader.readC();
+    op.am=(next&128)?1:0;
+    op.ksl=(next>>5)&3;
+    op.dr=next&31;
+
+    next=reader.readC();
+    op.egt=(next&128)?1:0;
+    op.kvs=(next>>5)&3;
+    op.d2r=next&31;
+
+    next=reader.readC();
+    op.sl=(next>>4)&15;
+    op.rr=next&15;
+
+    next=reader.readC();
+    op.dvb=(next>>4)&15;
+    op.ssgEnv=next&15;
+
+    next=reader.readC();
+    op.dam=(next>>5)&7;
+    op.dt2=(next>>3)&3;
+    op.ws=next&7;
+  }
+
   READ_FEAT_END;
 }
 
@@ -2644,6 +2709,7 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version, DivS
   }
 
   if (type==1 || type==2) {
+    logV("reading new instrument data...");
     return readInsDataNew(reader,version,type==2,song);
   }
   return readInsDataOld(reader,version);

@@ -1880,10 +1880,19 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
 
   unsigned char magic[16];
   bool isFurnaceInstr=false;
+  bool isOldFurnaceIns=false;
   try {
-    reader.read(magic,16);
-    if (memcmp("-Furnace instr.-",magic,16)==0) {
+    reader.read(magic,4);
+    if (memcmp("FINS",magic,4)==0) {
       isFurnaceInstr=true;
+      logV("found a new Furnace ins");
+    } else {
+      reader.read(&magic[4],12);
+      if (memcmp("-Furnace instr.-",magic,16)==0) {
+        logV("found an old Furnace ins");
+        isFurnaceInstr=true;
+        isOldFurnaceIns=true;
+      }
     }
   } catch (EndOfFileException& e) {
     reader.seek(0,SEEK_SET);
@@ -1892,17 +1901,25 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
   if (isFurnaceInstr) {
     DivInstrument* ins=new DivInstrument;
     try {
-      short version=reader.readS();
-      reader.readS(); // reserved
+      short version=0;
+      if (isOldFurnaceIns) {
+        version=reader.readS();
+        reader.readS(); // reserved
+      } else {
+        version=reader.readS();
+        reader.seek(0,SEEK_SET);
+      }
 
       if (version>DIV_ENGINE_VERSION) {
         warnings="this instrument is made with a more recent version of Furnace!";
       }
 
-      unsigned int dataPtr=reader.readI();
-      reader.seek(dataPtr,SEEK_SET);
+      if (isOldFurnaceIns) {
+        unsigned int dataPtr=reader.readI();
+        reader.seek(dataPtr,SEEK_SET);
+      }
 
-      if (ins->readInsData(reader,version)!=DIV_DATA_SUCCESS) {
+      if (ins->readInsData(reader,version,&song)!=DIV_DATA_SUCCESS) {
         lastError="invalid instrument header/data!";
         delete ins;
         delete[] buf;
