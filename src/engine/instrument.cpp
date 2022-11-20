@@ -1809,11 +1809,158 @@ void DivInstrument::readFeatureFM(SafeReader& reader) {
 void DivInstrument::readFeatureMA(SafeReader& reader) {
   READ_FEAT_BEGIN;
 
+  unsigned short macroHeaderLen=reader.readS();
+
+  DivInstrumentMacro& target=std.volMacro;
+
+  while (reader.tell()<endOfFeat) {
+    size_t endOfMacroHeader=reader.tell()+macroHeaderLen;
+    unsigned char macroCode=reader.readC();
+
+    // end of macro list
+    if (macroCode==255) break;
+
+    switch (macroCode) {
+      case 0:
+        target=std.volMacro;
+        break;
+      case 1:
+        target=std.arpMacro;
+        break;
+      case 2:
+        target=std.dutyMacro;
+        break;
+      case 3:
+        target=std.waveMacro;
+        break;
+      case 4:
+        target=std.pitchMacro;
+        break;
+      case 5:
+        target=std.ex1Macro;
+        break;
+      case 6:
+        target=std.ex2Macro;
+        break;
+      case 7:
+        target=std.ex3Macro;
+        break;
+      case 8:
+        target=std.algMacro;
+        break;
+      case 9:
+        target=std.fbMacro;
+        break;
+      case 10:
+        target=std.fmsMacro;
+        break;
+      case 11:
+        target=std.amsMacro;
+        break;
+      case 12:
+        target=std.panLMacro;
+        break;
+      case 13:
+        target=std.panRMacro;
+        break;
+      case 14:
+        target=std.phaseResetMacro;
+        break;
+      case 15:
+        target=std.ex4Macro;
+        break;
+      case 16:
+        target=std.ex5Macro;
+        break;
+      case 17:
+        target=std.ex6Macro;
+        break;
+      case 18:
+        target=std.ex7Macro;
+        break;
+      case 19:
+        target=std.ex8Macro;
+        break;
+    }
+
+    target.len=reader.readC();
+    target.loop=reader.readC();
+    target.rel=reader.readC();
+    target.mode=reader.readC();
+
+    unsigned char wordSize=reader.readC();
+    target.open=wordSize&7;
+    wordSize>>=6;
+
+    target.delay=reader.readC();
+    target.speed=reader.readC();
+
+    reader.seek(endOfMacroHeader,SEEK_SET);
+
+    // read macro
+    switch (wordSize) {
+      case 0:
+        for (int i=0; i<target.len; i++) {
+          target.val[i]=(unsigned char)reader.readC();
+        }
+        break;
+      case 1:
+        for (int i=0; i<target.len; i++) {
+          target.val[i]=(signed char)reader.readC();
+        }
+        break;
+      case 2:
+        for (int i=0; i<target.len; i++) {
+          target.val[i]=reader.readS();
+        }
+        break;
+      default:
+        for (int i=0; i<target.len; i++) {
+          target.val[i]=reader.readI();
+        }
+        break;
+    }
+  }
+
   READ_FEAT_END;
 }
 
 void DivInstrument::readFeature64(SafeReader& reader) {
   READ_FEAT_BEGIN;
+
+  unsigned char next=reader.readC();
+  c64.dutyIsAbs=next&128;
+  c64.initFilter=next&64;
+  c64.volIsCutoff=next&32;
+  c64.toFilter=next&16;
+  c64.noiseOn=next&8;
+  c64.pulseOn=next&4;
+  c64.sawOn=next&2;
+  c64.triOn=next&1;
+
+  next=reader.readC();
+  c64.oscSync=(next&128)?1:0;
+  c64.ringMod=(next&64)?1:0;
+  c64.noTest=next&32;
+  c64.filterIsAbs=next&16;
+  c64.ch3off=next&8;
+  c64.bp=next&4;
+  c64.hp=next&2;
+  c64.lp=next&1;
+
+  next=reader.readC();
+  c64.a=(next>>4)&15;
+  c64.d=next&15;
+
+  next=reader.readC();
+  c64.s=(next>>4)&15;
+  c64.r=next&15;
+
+  c64.duty=reader.readS()&4095;
+
+  unsigned short cr=reader.readS();
+  c64.cut=cr&2047;
+  c64.res=cr>>12;
 
   READ_FEAT_END;
 }
@@ -1821,11 +1968,44 @@ void DivInstrument::readFeature64(SafeReader& reader) {
 void DivInstrument::readFeatureGB(SafeReader& reader) {
   READ_FEAT_BEGIN;
 
+  unsigned char next=reader.readC();
+  gb.envLen=(next>>5)&7;
+  gb.envDir=(next&16)?1:0;
+  gb.envVol=next&15;
+
+  gb.soundLen=reader.readC();
+
+  next=reader.readC();
+  gb.alwaysInit=next&2;
+  gb.softEnv=next&1;
+
+  gb.hwSeqLen=reader.readC();
+  for (int i=0; i<gb.hwSeqLen; i++) {
+    gb.hwSeq[i].cmd=reader.readC();
+    gb.hwSeq[i].data=reader.readS();
+  }
+
   READ_FEAT_END;
 }
 
 void DivInstrument::readFeatureSM(SafeReader& reader) {
   READ_FEAT_BEGIN;
+
+  amiga.initSample=reader.readS();
+
+  unsigned char next=reader.readC();
+  amiga.useWave=next&4;
+  amiga.useSample=next&2;
+  amiga.useNoteMap=next&1;
+
+  amiga.waveLen=(unsigned char)reader.readC();
+
+  if (amiga.useNoteMap) {
+    for (int note=0; note<120; note++) {
+      amiga.noteMap[note].freq=reader.readS();
+      amiga.noteMap[note].map=reader.readS();
+    }
+  }
 
   READ_FEAT_END;
 }
@@ -1833,11 +2013,129 @@ void DivInstrument::readFeatureSM(SafeReader& reader) {
 void DivInstrument::readFeatureOx(SafeReader& reader, int op) {
   READ_FEAT_BEGIN;
 
+  unsigned short macroHeaderLen=reader.readS();
+
+  DivInstrumentMacro& target=std.opMacros[op].amMacro;
+
+  while (reader.tell()<endOfFeat) {
+    size_t endOfMacroHeader=reader.tell()+macroHeaderLen;
+    unsigned char macroCode=reader.readC();
+
+    // end of macro list
+    if (macroCode==255) break;
+
+    switch (macroCode) {
+      case 0:
+        target=std.opMacros[op].amMacro;
+        break;
+      case 1:
+        target=std.opMacros[op].arMacro;
+        break;
+      case 2:
+        target=std.opMacros[op].drMacro;
+        break;
+      case 3:
+        target=std.opMacros[op].multMacro;
+        break;
+      case 4:
+        target=std.opMacros[op].rrMacro;
+        break;
+      case 5:
+        target=std.opMacros[op].slMacro;
+        break;
+      case 6:
+        target=std.opMacros[op].tlMacro;
+        break;
+      case 7:
+        target=std.opMacros[op].dt2Macro;
+        break;
+      case 8:
+        target=std.opMacros[op].rsMacro;
+        break;
+      case 9:
+        target=std.opMacros[op].dtMacro;
+        break;
+      case 10:
+        target=std.opMacros[op].d2rMacro;
+        break;
+      case 11:
+        target=std.opMacros[op].ssgMacro;
+        break;
+      case 12:
+        target=std.opMacros[op].damMacro;
+        break;
+      case 13:
+        target=std.opMacros[op].dvbMacro;
+        break;
+      case 14:
+        target=std.opMacros[op].egtMacro;
+        break;
+      case 15:
+        target=std.opMacros[op].kslMacro;
+        break;
+      case 16:
+        target=std.opMacros[op].susMacro;
+        break;
+      case 17:
+        target=std.opMacros[op].vibMacro;
+        break;
+      case 18:
+        target=std.opMacros[op].wsMacro;
+        break;
+      case 19:
+        target=std.opMacros[op].ksrMacro;
+        break;
+    }
+
+    target.len=reader.readC();
+    target.loop=reader.readC();
+    target.rel=reader.readC();
+    target.mode=reader.readC();
+
+    unsigned char wordSize=reader.readC();
+    target.open=wordSize&7;
+    wordSize>>=6;
+
+    target.delay=reader.readC();
+    target.speed=reader.readC();
+
+    reader.seek(endOfMacroHeader,SEEK_SET);
+
+    // read macro
+    switch (wordSize) {
+      case 0:
+        for (int i=0; i<target.len; i++) {
+          target.val[i]=(unsigned char)reader.readC();
+        }
+        break;
+      case 1:
+        for (int i=0; i<target.len; i++) {
+          target.val[i]=(signed char)reader.readC();
+        }
+        break;
+      case 2:
+        for (int i=0; i<target.len; i++) {
+          target.val[i]=reader.readS();
+        }
+        break;
+      default:
+        for (int i=0; i<target.len; i++) {
+          target.val[i]=reader.readI();
+        }
+        break;
+    }
+  }
+
   READ_FEAT_END;
 }
 
 void DivInstrument::readFeatureLD(SafeReader& reader) {
   READ_FEAT_BEGIN;
+
+  fm.fixedDrums=reader.readC();
+  fm.kickFreq=reader.readS();
+  fm.snareHatFreq=reader.readS();
+  fm.tomTopFreq=reader.readS();
 
   READ_FEAT_END;
 }
@@ -1845,11 +2143,34 @@ void DivInstrument::readFeatureLD(SafeReader& reader) {
 void DivInstrument::readFeatureSN(SafeReader& reader) {
   READ_FEAT_BEGIN;
 
+  unsigned char next=reader.readC();
+  snes.d=(next>>4)&7;
+  snes.a=next&15;
+
+  next=reader.readC();
+  snes.s=(next>>5)&7;
+  snes.r=next&31;
+
+  next=reader.readC();
+  snes.useEnv=next&16;
+  snes.sus=next&8;
+  snes.gainMode=(DivInstrumentSNES::GainMode)(next&7);
+
+  if (snes.gainMode==1 || snes.gainMode==2 || snes.gainMode==3) snes.gainMode=DivInstrumentSNES::GAIN_MODE_DIRECT;
+
+  snes.gain=reader.readC();
+  
+
   READ_FEAT_END;
 }
 
 void DivInstrument::readFeatureN1(SafeReader& reader) {
   READ_FEAT_BEGIN;
+
+  n163.wave=reader.readI();
+  n163.wavePos=(unsigned char)reader.readC();
+  n163.waveLen=(unsigned char)reader.readC();
+  n163.waveMode=(unsigned char)reader.readC();
 
   READ_FEAT_END;
 }
@@ -1857,11 +2178,28 @@ void DivInstrument::readFeatureN1(SafeReader& reader) {
 void DivInstrument::readFeatureFD(SafeReader& reader) {
   READ_FEAT_BEGIN;
 
+  fds.modSpeed=reader.readI();
+  fds.modDepth=reader.readI();
+  fds.initModTableWithFirstWave=reader.readC();
+  reader.read(fds.modTable,32);
+
   READ_FEAT_END;
 }
 
 void DivInstrument::readFeatureWS(SafeReader& reader) {
   READ_FEAT_BEGIN;
+
+  ws.wave1=reader.readI();
+  ws.wave2=reader.readI();
+  ws.rateDivider=reader.readC();
+  ws.effect=reader.readC();
+  ws.enabled=reader.readC();
+  ws.global=reader.readC();
+  ws.speed=reader.readC();
+  ws.param1=reader.readC();
+  ws.param2=reader.readC();
+  ws.param3=reader.readC();
+  ws.param4=reader.readC();
 
   READ_FEAT_END;
 }
@@ -1869,11 +2207,51 @@ void DivInstrument::readFeatureWS(SafeReader& reader) {
 void DivInstrument::readFeatureSL(SafeReader& reader, const DivSong* song) {
   READ_FEAT_BEGIN;
 
+  unsigned int samplePtr[256];
+  unsigned char sampleIndex[256];
+  memset(samplePtr,0,256*sizeof(unsigned int));
+  memset(sampleIndex,0,256);
+
+  unsigned char sampleCount=reader.readC();
+
+  for (int i=0; i<sampleCount; i++) {
+    sampleIndex[i]=reader.readC();
+  }
+  for (int i=0; i<sampleCount; i++) {
+    samplePtr[i]=reader.readI();
+  }
+
+  size_t lastSeek=reader.tell();
+
+  // TODO: load samples here
+
+  reader.seek(lastSeek,SEEK_CUR);
+
   READ_FEAT_END;
 }
 
 void DivInstrument::readFeatureWL(SafeReader& reader, const DivSong* song) {
   READ_FEAT_BEGIN;
+
+  unsigned int wavePtr[256];
+  unsigned char waveIndex[256];
+  memset(wavePtr,0,256*sizeof(unsigned int));
+  memset(waveIndex,0,256);
+
+  unsigned char waveCount=reader.readC();
+
+  for (int i=0; i<waveCount; i++) {
+    waveIndex[i]=reader.readC();
+  }
+  for (int i=0; i<waveCount; i++) {
+    wavePtr[i]=reader.readI();
+  }
+
+  size_t lastSeek=reader.tell();
+
+  // TODO: load samples here
+
+  reader.seek(lastSeek,SEEK_CUR);
 
   READ_FEAT_END;
 }
@@ -1881,11 +2259,23 @@ void DivInstrument::readFeatureWL(SafeReader& reader, const DivSong* song) {
 void DivInstrument::readFeatureMP(SafeReader& reader) {
   READ_FEAT_BEGIN;
 
+  multipcm.ar=reader.readC();
+  multipcm.d1r=reader.readC();
+  multipcm.dl=reader.readC();
+  multipcm.d2r=reader.readC();
+  multipcm.rr=reader.readC();
+  multipcm.rc=reader.readC();
+  multipcm.lfo=reader.readC();
+  multipcm.vib=reader.readC();
+  multipcm.am=reader.readC();
+
   READ_FEAT_END;
 }
 
 void DivInstrument::readFeatureSU(SafeReader& reader) {
   READ_FEAT_BEGIN;
+
+  su.switchRoles=reader.readC();
 
   READ_FEAT_END;
 }
@@ -1893,11 +2283,24 @@ void DivInstrument::readFeatureSU(SafeReader& reader) {
 void DivInstrument::readFeatureES(SafeReader& reader) {
   READ_FEAT_BEGIN;
 
+  es5506.filter.mode=(DivInstrumentES5506::Filter::FilterMode)reader.readC();
+  es5506.filter.k1=reader.readS();
+  es5506.filter.k2=reader.readS();
+  es5506.envelope.ecount=reader.readS();
+  es5506.envelope.lVRamp=reader.readC();
+  es5506.envelope.rVRamp=reader.readC();
+  es5506.envelope.k1Ramp=reader.readC();
+  es5506.envelope.k2Ramp=reader.readC();
+  es5506.envelope.k1Slow=reader.readC();
+  es5506.envelope.k2Slow=reader.readC();
+
   READ_FEAT_END;
 }
 
 void DivInstrument::readFeatureX1(SafeReader& reader) {
   READ_FEAT_BEGIN;
+
+  x1_010.bankSlot=reader.readI();
 
   READ_FEAT_END;
 }
