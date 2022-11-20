@@ -522,7 +522,8 @@ void DivInstrument::writeFeatureX1(SafeWriter* w) {
 }
 
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
-  size_t blockStartSeek, blockEndSeek;
+  size_t blockStartSeek=0;
+  size_t blockEndSeek=0;
   std::vector<int> waveList;
   std::vector<int> sampleList;
 
