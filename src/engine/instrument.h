@@ -22,6 +22,7 @@
 #include "safeWriter.h"
 #include "dataErrors.h"
 #include "../ta-utils.h"
+#include <vector>
 
 struct DivSong;
 
