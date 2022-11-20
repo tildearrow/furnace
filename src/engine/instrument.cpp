@@ -1720,9 +1720,196 @@ void DivInstrument::putInsData(SafeWriter* w) {
   w->seek(0,SEEK_END);
 }
 
-DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui) {
-  logE("new ins reading not implemented yet!");
-  return DIV_DATA_INVALID_DATA;
+#define READ_FEAT_BEGIN \
+  unsigned short featLen=reader.readS(); \
+  size_t endOfFeat=reader.tell()+featLen;
+
+#define READ_FEAT_END \
+  if (reader.tell()<endOfFeat) reader.seek(endOfFeat,SEEK_SET);
+
+void DivInstrument::readFeatureNA(SafeReader& reader) {
+  READ_FEAT_BEGIN;
+
+  name=reader.readString();
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureFM(SafeReader& reader) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureMA(SafeReader& reader) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeature64(SafeReader& reader) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureGB(SafeReader& reader) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureSM(SafeReader& reader) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureOx(SafeReader& reader, int op) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureLD(SafeReader& reader) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureSN(SafeReader& reader) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureN1(SafeReader& reader) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureFD(SafeReader& reader) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureWS(SafeReader& reader) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureSL(SafeReader& reader, const DivSong* song) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureWL(SafeReader& reader, const DivSong* song) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureMP(SafeReader& reader) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureSU(SafeReader& reader) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureES(SafeReader& reader) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+void DivInstrument::readFeatureX1(SafeReader& reader) {
+  READ_FEAT_BEGIN;
+
+  READ_FEAT_END;
+}
+
+DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song) {
+  unsigned char featCode[2];
+
+  int dataLen=reader.size()-4;
+  if (!fui) {
+    dataLen=reader.readI();
+  }
+  dataLen+=reader.tell();
+
+  logV("data length: %d",dataLen);
+
+  reader.readS(); // format version. ignored.
+
+  type=(DivInstrumentType)reader.readS();
+
+  // feature reading loop
+  while ((int)reader.tell()<dataLen) {
+    // read feature code
+    reader.read(featCode,2);
+
+    if (memcmp(featCode,"EN",2)==0) { // end of instrument
+      break;
+    } else if (memcmp(featCode,"NA",2)==0) { // name
+      readFeatureNA(reader);
+    } else if (memcmp(featCode,"FM",2)==0) { // FM
+      readFeatureFM(reader);
+    } else if (memcmp(featCode,"MA",2)==0) { // macros
+      readFeatureMA(reader);
+    } else if (memcmp(featCode,"64",2)==0) { // C64
+      readFeature64(reader);
+    } else if (memcmp(featCode,"GB",2)==0) { // Game Boy
+      readFeatureGB(reader);
+    } else if (memcmp(featCode,"SM",2)==0) { // sample
+      readFeatureSM(reader);
+    } else if (memcmp(featCode,"O1",2)==0) { // op1 macros
+      readFeatureOx(reader,0);
+    } else if (memcmp(featCode,"O2",2)==0) { // op2 macros
+      readFeatureOx(reader,1);
+    } else if (memcmp(featCode,"O3",2)==0) { // op3 macros
+      readFeatureOx(reader,2);
+    } else if (memcmp(featCode,"O4",2)==0) { // op4 macros
+      readFeatureOx(reader,3);
+    } else if (memcmp(featCode,"LD",2)==0) { // OPL drums
+      readFeatureLD(reader);
+    } else if (memcmp(featCode,"SN",2)==0) { // SNES
+      readFeatureSN(reader);
+    } else if (memcmp(featCode,"N1",2)==0) { // Namco 163
+      readFeatureN1(reader);
+    } else if (memcmp(featCode,"FD",2)==0) { // FDS/VB
+      readFeatureFD(reader);
+    } else if (memcmp(featCode,"WS",2)==0) { // WaveSynth
+      readFeatureWS(reader);
+    } else if (memcmp(featCode,"SL",2)==0 && fui && song!=NULL) { // sample list
+      readFeatureSL(reader,NULL);
+    } else if (memcmp(featCode,"WL",2)==0 && fui && song!=NULL) { // wave list
+      readFeatureWL(reader,NULL);
+    } else if (memcmp(featCode,"MP",2)==0) { // MultiPCM
+      readFeatureMP(reader);
+    } else if (memcmp(featCode,"SU",2)==0) { // Sound Unit
+      readFeatureSU(reader);
+    } else if (memcmp(featCode,"ES",2)==0) { // ES5506
+      readFeatureES(reader);
+    } else if (memcmp(featCode,"X1",2)==0) { // X1-010
+      readFeatureX1(reader);
+    } else {
+      logW("unknown feature code %c%c!",featCode[0],featCode[1]);
+      // skip feature
+      unsigned short skip=reader.readS();
+      reader.seek(skip,SEEK_CUR);
+    }
+  }
+
+  return DIV_DATA_SUCCESS;
 }
 
 #define READ_MACRO_VALS(x,y) \
@@ -2437,7 +2624,7 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
   return DIV_DATA_SUCCESS;
 }
 
-DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
+DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version, DivSong* song) {
   // 0: old (INST)
   // 1: new (INS2, length)
   // 2: new (FINS, no length)
@@ -2457,7 +2644,7 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version) {
   }
 
   if (type==1 || type==2) {
-    return readInsDataNew(reader,version,type==2);
+    return readInsDataNew(reader,version,type==2,song);
   }
   return readInsDataOld(reader,version);
 }

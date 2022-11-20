@@ -662,8 +662,27 @@ struct DivInstrument {
   void writeFeatureES(SafeWriter* w);
   void writeFeatureX1(SafeWriter* w);
 
+  void readFeatureNA(SafeReader& reader);
+  void readFeatureFM(SafeReader& reader);
+  void readFeatureMA(SafeReader& reader);
+  void readFeature64(SafeReader& reader);
+  void readFeatureGB(SafeReader& reader);
+  void readFeatureSM(SafeReader& reader);
+  void readFeatureOx(SafeReader& reader, int op);
+  void readFeatureLD(SafeReader& reader);
+  void readFeatureSN(SafeReader& reader);
+  void readFeatureN1(SafeReader& reader);
+  void readFeatureFD(SafeReader& reader);
+  void readFeatureWS(SafeReader& reader);
+  void readFeatureSL(SafeReader& reader, const DivSong* song);
+  void readFeatureWL(SafeReader& reader, const DivSong* song);
+  void readFeatureMP(SafeReader& reader);
+  void readFeatureSU(SafeReader& reader);
+  void readFeatureES(SafeReader& reader);
+  void readFeatureX1(SafeReader& reader);
+
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
-  DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui);
+  DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);
   
   /**
    * save the instrument to a SafeWriter.
@@ -683,7 +702,7 @@ struct DivInstrument {
    * @param version the format version.
    * @return a DivDataErrors.
    */
-  DivDataErrors readInsData(SafeReader& reader, short version);
+  DivDataErrors readInsData(SafeReader& reader, short version, DivSong* song=NULL);
 
   /**
    * save this instrument to a file.
