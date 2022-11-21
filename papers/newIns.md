@@ -4,6 +4,32 @@ the main issue with Furnace instrument files is that they are too big, even if t
 
 the aim of this new format is to greatly reduce the size of a resulting instrument.
 
+# information
+
+this format is "featural", meaning that only used parameters are stored (depending on instrument types).
+this is the biggest improvement over the previous format, which stored everything including unused parameters.
+
+features which are not recognized by Furnace will be ignored.
+
+instruments are not compressed using zlib, unlike Furnace songs.
+
+all numbers are little-endian.
+
+the following fields may be found in "size":
+- `f` indicates a floating point number.
+- `STR` is a UTF-8 zero-terminated string.
+- `???` is an array of variable size.
+- `S??` is an array of `STR`s.
+- `1??` is an array of bytes.
+- `2??` is an array of shorts.
+- `4??` is an array of ints.
+
+the format may change across versions. a `(>=VER)` indicates this field is only present starting from format version `VER`, and `(<VER)` indicates this field is present only before version `VER`.
+
+furthermore, an `or reserved` indicates this field is always present, but is reserved when the version condition is not met.
+
+the `size of this block` fields represent the size of a block excluding the ID and the aforementioned field.
+
 # header
 
 .fui files use the following header:
@@ -77,6 +103,10 @@ size | description
 
 # FM data (FM)
 
+- FM operator order is:
+  - 1/3/2/4 (internal order) for OPN, OPM, OPZ and OPL 4-op
+  - 1/2/?/? (? = unused) for OPL 2-op and OPLL
+
 ```
 size | description
 -----|------------------------------------
@@ -110,6 +140,15 @@ size | description
 ```
 
 # macro data (MA)
+
+notes:
+
+- the macro range varies depending on the instrument type.
+- "macro open" indicates whether the macro is collapsed or not in the instrument editor.
+- meaning of extended macros varies depending on instrument type.
+- meaning of panning macros varies depending on instrument type:
+  - for hard-panned chips (e.g. FM and Game Boy): left panning is 2-bit panning macro (left/right)
+  - otherwise both left and right panning macros are used
 
 ```
 size | description
@@ -165,6 +204,29 @@ size | description
  ??? | macro data
      | - length: macro length × word sizs
 ```
+
+## interpreting macro mode values
+
+- sequence (normal): I think this is obvious...
+- ADSR:
+  - `val[0]`: bottom
+  - `val[1]`: top
+  - `val[2]`: attack
+  - `val[3]`: hold time
+  - `val[4]`: decay
+  - `val[5]`: sustain level
+  - `val[6]`: sustain hold time
+  - `val[7]`: decay 2
+  - `val[8]`: release
+- LFO:
+  - `val[11]`: speed
+  - `val[12]`: waveform
+    - 0: triangle
+    - 1: saw
+    - 2: pulse
+  - `val[13]`: phase
+  - `val[14]`: loop
+  - `val[15]`: global (not sure how will I implement this)
 
 # C64 data (64)
 
