@@ -4503,7 +4503,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   for (int i=0; i<song.insLen; i++) {
     DivInstrument* ins=song.ins[i];
     insPtr.push_back(w->tell());
-    ins->putInsData(w);
+    logV("writing instrument %d...",i);
+    ins->putInsData2(w,false);
   }
 
   /// WAVETABLE

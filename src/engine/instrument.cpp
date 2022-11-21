@@ -213,6 +213,7 @@ bool DivInstrumentSNES::operator==(const DivInstrumentSNES& other) {
 #undef _C
 
 #define FEATURE_BEGIN(x) \
+  logV("- %s",x); \
   w->write(x,2); \
   size_t featStartSeek=w->tell(); \
   w->writeS(0);
@@ -1878,7 +1879,7 @@ void DivInstrument::readFeatureMA(SafeReader& reader) {
 
   unsigned short macroHeaderLen=reader.readS();
 
-  DivInstrumentMacro& target=std.volMacro;
+  DivInstrumentMacro* target=&std.volMacro;
 
   while (reader.tell()<endOfFeat) {
     size_t endOfMacroHeader=reader.tell()+macroHeaderLen;
@@ -1889,101 +1890,104 @@ void DivInstrument::readFeatureMA(SafeReader& reader) {
 
     switch (macroCode) {
       case 0:
-        target=std.volMacro;
+        target=&std.volMacro;
         break;
       case 1:
-        target=std.arpMacro;
+        target=&std.arpMacro;
         break;
       case 2:
-        target=std.dutyMacro;
+        target=&std.dutyMacro;
         break;
       case 3:
-        target=std.waveMacro;
+        target=&std.waveMacro;
         break;
       case 4:
-        target=std.pitchMacro;
+        target=&std.pitchMacro;
         break;
       case 5:
-        target=std.ex1Macro;
+        target=&std.ex1Macro;
         break;
       case 6:
-        target=std.ex2Macro;
+        target=&std.ex2Macro;
         break;
       case 7:
-        target=std.ex3Macro;
+        target=&std.ex3Macro;
         break;
       case 8:
-        target=std.algMacro;
+        target=&std.algMacro;
         break;
       case 9:
-        target=std.fbMacro;
+        target=&std.fbMacro;
         break;
       case 10:
-        target=std.fmsMacro;
+        target=&std.fmsMacro;
         break;
       case 11:
-        target=std.amsMacro;
+        target=&std.amsMacro;
         break;
       case 12:
-        target=std.panLMacro;
+        target=&std.panLMacro;
         break;
       case 13:
-        target=std.panRMacro;
+        target=&std.panRMacro;
         break;
       case 14:
-        target=std.phaseResetMacro;
+        target=&std.phaseResetMacro;
         break;
       case 15:
-        target=std.ex4Macro;
+        target=&std.ex4Macro;
         break;
       case 16:
-        target=std.ex5Macro;
+        target=&std.ex5Macro;
         break;
       case 17:
-        target=std.ex6Macro;
+        target=&std.ex6Macro;
         break;
       case 18:
-        target=std.ex7Macro;
+        target=&std.ex7Macro;
         break;
       case 19:
-        target=std.ex8Macro;
+        target=&std.ex8Macro;
+        break;
+      default:
+        logW("invalid macro code %d!");
         break;
     }
 
-    target.len=reader.readC();
-    target.loop=reader.readC();
-    target.rel=reader.readC();
-    target.mode=reader.readC();
+    target->len=reader.readC();
+    target->loop=reader.readC();
+    target->rel=reader.readC();
+    target->mode=reader.readC();
 
     unsigned char wordSize=reader.readC();
-    target.open=wordSize&7;
+    target->open=wordSize&7;
     wordSize>>=6;
 
-    target.delay=reader.readC();
-    target.speed=reader.readC();
+    target->delay=reader.readC();
+    target->speed=reader.readC();
 
     reader.seek(endOfMacroHeader,SEEK_SET);
 
     // read macro
     switch (wordSize) {
       case 0:
-        for (int i=0; i<target.len; i++) {
-          target.val[i]=(unsigned char)reader.readC();
+        for (int i=0; i<target->len; i++) {
+          target->val[i]=(unsigned char)reader.readC();
         }
         break;
       case 1:
-        for (int i=0; i<target.len; i++) {
-          target.val[i]=(signed char)reader.readC();
+        for (int i=0; i<target->len; i++) {
+          target->val[i]=(signed char)reader.readC();
         }
         break;
       case 2:
-        for (int i=0; i<target.len; i++) {
-          target.val[i]=reader.readS();
+        for (int i=0; i<target->len; i++) {
+          target->val[i]=reader.readS();
         }
         break;
       default:
-        for (int i=0; i<target.len; i++) {
-          target.val[i]=reader.readI();
+        for (int i=0; i<target->len; i++) {
+          target->val[i]=reader.readI();
         }
         break;
     }
@@ -2082,7 +2086,7 @@ void DivInstrument::readFeatureOx(SafeReader& reader, int op) {
 
   unsigned short macroHeaderLen=reader.readS();
 
-  DivInstrumentMacro& target=std.opMacros[op].amMacro;
+  DivInstrumentMacro* target=&std.opMacros[op].amMacro;
 
   while (reader.tell()<endOfFeat) {
     size_t endOfMacroHeader=reader.tell()+macroHeaderLen;
@@ -2093,101 +2097,101 @@ void DivInstrument::readFeatureOx(SafeReader& reader, int op) {
 
     switch (macroCode) {
       case 0:
-        target=std.opMacros[op].amMacro;
+        target=&std.opMacros[op].amMacro;
         break;
       case 1:
-        target=std.opMacros[op].arMacro;
+        target=&std.opMacros[op].arMacro;
         break;
       case 2:
-        target=std.opMacros[op].drMacro;
+        target=&std.opMacros[op].drMacro;
         break;
       case 3:
-        target=std.opMacros[op].multMacro;
+        target=&std.opMacros[op].multMacro;
         break;
       case 4:
-        target=std.opMacros[op].rrMacro;
+        target=&std.opMacros[op].rrMacro;
         break;
       case 5:
-        target=std.opMacros[op].slMacro;
+        target=&std.opMacros[op].slMacro;
         break;
       case 6:
-        target=std.opMacros[op].tlMacro;
+        target=&std.opMacros[op].tlMacro;
         break;
       case 7:
-        target=std.opMacros[op].dt2Macro;
+        target=&std.opMacros[op].dt2Macro;
         break;
       case 8:
-        target=std.opMacros[op].rsMacro;
+        target=&std.opMacros[op].rsMacro;
         break;
       case 9:
-        target=std.opMacros[op].dtMacro;
+        target=&std.opMacros[op].dtMacro;
         break;
       case 10:
-        target=std.opMacros[op].d2rMacro;
+        target=&std.opMacros[op].d2rMacro;
         break;
       case 11:
-        target=std.opMacros[op].ssgMacro;
+        target=&std.opMacros[op].ssgMacro;
         break;
       case 12:
-        target=std.opMacros[op].damMacro;
+        target=&std.opMacros[op].damMacro;
         break;
       case 13:
-        target=std.opMacros[op].dvbMacro;
+        target=&std.opMacros[op].dvbMacro;
         break;
       case 14:
-        target=std.opMacros[op].egtMacro;
+        target=&std.opMacros[op].egtMacro;
         break;
       case 15:
-        target=std.opMacros[op].kslMacro;
+        target=&std.opMacros[op].kslMacro;
         break;
       case 16:
-        target=std.opMacros[op].susMacro;
+        target=&std.opMacros[op].susMacro;
         break;
       case 17:
-        target=std.opMacros[op].vibMacro;
+        target=&std.opMacros[op].vibMacro;
         break;
       case 18:
-        target=std.opMacros[op].wsMacro;
+        target=&std.opMacros[op].wsMacro;
         break;
       case 19:
-        target=std.opMacros[op].ksrMacro;
+        target=&std.opMacros[op].ksrMacro;
         break;
     }
 
-    target.len=reader.readC();
-    target.loop=reader.readC();
-    target.rel=reader.readC();
-    target.mode=reader.readC();
+    target->len=reader.readC();
+    target->loop=reader.readC();
+    target->rel=reader.readC();
+    target->mode=reader.readC();
 
     unsigned char wordSize=reader.readC();
-    target.open=wordSize&7;
+    target->open=wordSize&7;
     wordSize>>=6;
 
-    target.delay=reader.readC();
-    target.speed=reader.readC();
+    target->delay=reader.readC();
+    target->speed=reader.readC();
 
     reader.seek(endOfMacroHeader,SEEK_SET);
 
     // read macro
     switch (wordSize) {
       case 0:
-        for (int i=0; i<target.len; i++) {
-          target.val[i]=(unsigned char)reader.readC();
+        for (int i=0; i<target->len; i++) {
+          target->val[i]=(unsigned char)reader.readC();
         }
         break;
       case 1:
-        for (int i=0; i<target.len; i++) {
-          target.val[i]=(signed char)reader.readC();
+        for (int i=0; i<target->len; i++) {
+          target->val[i]=(signed char)reader.readC();
         }
         break;
       case 2:
-        for (int i=0; i<target.len; i++) {
-          target.val[i]=reader.readS();
+        for (int i=0; i<target->len; i++) {
+          target->val[i]=reader.readS();
         }
         break;
       default:
-        for (int i=0; i<target.len; i++) {
-          target.val[i]=reader.readI();
+        for (int i=0; i<target->len; i++) {
+          target->val[i]=reader.readI();
         }
         break;
     }
