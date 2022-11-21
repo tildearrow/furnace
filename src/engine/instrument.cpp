@@ -455,25 +455,25 @@ void DivInstrument::writeFeatureOx(SafeWriter* w, int ope) {
   const DivInstrumentSTD::OpMacro& o=std.opMacros[ope];
 
   writeMacro(w,o.amMacro,0);
-  writeMacro(w,o.arMacro,0);
-  writeMacro(w,o.drMacro,0);
-  writeMacro(w,o.multMacro,0);
-  writeMacro(w,o.rrMacro,0);
-  writeMacro(w,o.slMacro,0);
-  writeMacro(w,o.tlMacro,0);
-  writeMacro(w,o.dt2Macro,0);
-  writeMacro(w,o.rsMacro,0);
-  writeMacro(w,o.dtMacro,0);
-  writeMacro(w,o.d2rMacro,0);
-  writeMacro(w,o.ssgMacro,0);
-  writeMacro(w,o.damMacro,0);
-  writeMacro(w,o.dvbMacro,0);
-  writeMacro(w,o.egtMacro,0);
-  writeMacro(w,o.kslMacro,0);
-  writeMacro(w,o.susMacro,0);
-  writeMacro(w,o.vibMacro,0);
-  writeMacro(w,o.wsMacro,0);
-  writeMacro(w,o.ksrMacro,0);
+  writeMacro(w,o.arMacro,1);
+  writeMacro(w,o.drMacro,2);
+  writeMacro(w,o.multMacro,3);
+  writeMacro(w,o.rrMacro,4);
+  writeMacro(w,o.slMacro,5);
+  writeMacro(w,o.tlMacro,6);
+  writeMacro(w,o.dt2Macro,7);
+  writeMacro(w,o.rsMacro,8);
+  writeMacro(w,o.dtMacro,9);
+  writeMacro(w,o.d2rMacro,10);
+  writeMacro(w,o.ssgMacro,11);
+  writeMacro(w,o.damMacro,12);
+  writeMacro(w,o.dvbMacro,13);
+  writeMacro(w,o.egtMacro,14);
+  writeMacro(w,o.kslMacro,15);
+  writeMacro(w,o.susMacro,16);
+  writeMacro(w,o.vibMacro,17);
+  writeMacro(w,o.wsMacro,18);
+  writeMacro(w,o.ksrMacro,19);
 
   // "stop reading" code
   w->writeC(-1);
@@ -996,7 +996,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
     }
   }
 
-  if (featureFM) {
+  if (featureFM || !fui) {
     // check FM macros
     int opCount=4;
     bool storeExtendedAsWell=true;
@@ -2464,6 +2464,7 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
   while ((int)reader.tell()<dataLen) {
     // read feature code
     reader.read(featCode,2);
+    logV("- %c%c",featCode[0],featCode[1]);
 
     if (memcmp(featCode,"EN",2)==0) { // end of instrument
       break;
