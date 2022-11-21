@@ -1140,6 +1140,10 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
     }
   }
 
+  if (!fui) {
+    w->write("EN",2);
+  }
+
   blockEndSeek=w->tell();
   if (!fui) {
     w->seek(blockStartSeek,SEEK_SET);
