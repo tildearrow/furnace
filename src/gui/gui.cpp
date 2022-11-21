@@ -1475,7 +1475,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale,
         [this](const char* path) {
           int sampleCountBefore=e->song.sampleLen;
-          std::vector<DivInstrument*> instruments=e->instrumentFromFile(path);
+          std::vector<DivInstrument*> instruments=e->instrumentFromFile(path,false);
           if (!instruments.empty()) {
             if (e->song.sampleLen!=sampleCountBefore) {
               e->renderSamplesP();

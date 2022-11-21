@@ -2502,7 +2502,11 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
     } else if (memcmp(featCode,"X1",2)==0) { // X1-010
       readFeatureX1(reader);
     } else {
-      logW("unknown feature code %c%c!",featCode[0],featCode[1]);
+      if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0))) {
+        // nothing
+      } else {
+        logW("unknown feature code %c%c!",featCode[0],featCode[1]);
+      }
       // skip feature
       unsigned short skip=reader.readS();
       reader.seek(skip,SEEK_CUR);

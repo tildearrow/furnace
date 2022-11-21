@@ -1814,7 +1814,7 @@ void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, S
   }
 }
 
-std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
+std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path, bool loadAssets) {
   std::vector<DivInstrument*> ret;
   warnings="";
 
@@ -1919,7 +1919,7 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
         reader.seek(dataPtr,SEEK_SET);
       }
 
-      if (ins->readInsData(reader,version,&song)!=DIV_DATA_SUCCESS) {
+      if (ins->readInsData(reader,version,loadAssets?(&song):NULL)!=DIV_DATA_SUCCESS) {
         lastError="invalid instrument header/data!";
         delete ins;
         delete[] buf;
