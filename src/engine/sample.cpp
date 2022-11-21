@@ -96,10 +96,11 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
   char magic[4];
 
   reader.read(magic,4);
-  if (strcmp(magic,"SMPL")!=0 && strcmp(magic,"SMP2")!=0) {
+  if (memcmp(magic,"SMPL",4)!=0 && memcmp(magic,"SMP2",4)!=0) {
+    logV("header is invalid: %c%c%c%c",magic[0],magic[1],magic[2],magic[3]);
     return DIV_DATA_INVALID_HEADER;
   }
-  bool isNewSample=(strcmp(magic,"SMP2")==0);
+  bool isNewSample=(memcmp(magic,"SMP2",4)==0);
   reader.readI();
   if (!isNewSample) logV("(old sample)");
 
