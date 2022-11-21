@@ -204,7 +204,9 @@ void FurnaceGUI::drawMobileControls() {
           ImGui::SameLine();
           ImGui::Button("Export Audio");
           ImGui::SameLine();
-          ImGui::Button("Export VGM");
+          if (ImGui::Button("Export VGM")) {
+            openFileDialog(GUI_FILE_EXPORT_VGM);
+          }
 
           ImGui::Button("CmdStream");
 

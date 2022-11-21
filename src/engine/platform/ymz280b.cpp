@@ -431,7 +431,17 @@ void DivPlatformYMZ280B::renderSamples() {
     unsigned char* src=(unsigned char*)s->getCurBuf();
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos),length);
     if (actualLength>0) {
+#ifdef TA_BIG_ENDIAN
       memcpy(&sampleMem[memPos],src,actualLength);
+#else
+      if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
+        for (int i=0; i<actualLength; i++) {
+          sampleMem[memPos+i]=src[i^1];
+        }
+      } else {
+        memcpy(&sampleMem[memPos],src,actualLength);
+      }
+#endif
       sampleOff[i]=memPos;
       memPos+=length;
     }

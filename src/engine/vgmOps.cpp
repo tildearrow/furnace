@@ -1746,21 +1746,6 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       size_t sampleMemLen=writeZ280[i]->getSampleMemUsage();
       unsigned char* sampleMem=new unsigned char[sampleMemLen];
       memcpy(sampleMem,writeZ280[i]->getSampleMem(),sampleMemLen);
-      // TODO: please fix this later
-      /*
-      for (int i=0; i<song.sampleLen; i++) {
-        DivSample* s=song.sample[i];
-        if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
-          unsigned int pos=s->offYMZ280B;
-          for (unsigned int j=0; j<s->samples; j++) {
-            unsigned char lo=sampleMem[pos+j*2];
-            unsigned char hi=sampleMem[pos+j*2+1];
-            sampleMem[pos+j*2]=hi;
-            sampleMem[pos+j*2+1]=lo;
-          }
-        }
-      }
-      */
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x86);
