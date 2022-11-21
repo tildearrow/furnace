@@ -21,6 +21,8 @@
 #define _SAMPLE_H
 
 #include "../ta-utils.h"
+#include "safeWriter.h"
+#include "dataErrors.h"
 #include <deque>
 
 enum DivSampleLoopMode: unsigned char {
@@ -129,6 +131,20 @@ struct DivSample {
 
   std::deque<DivSampleHistory*> undoHist;
   std::deque<DivSampleHistory*> redoHist;
+
+  /**
+   * put sample data.
+   * @param w a SafeWriter.
+   */
+  void putSampleData(SafeWriter* w);
+
+  /**
+   * read sample data.
+   * @param reader the reader.
+   * @param version the format version.
+   * @return a DivDataErrors.
+   */
+  DivDataErrors readSampleData(SafeReader& reader, short version);
 
   /**
    * check if sample is loopable.

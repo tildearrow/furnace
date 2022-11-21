@@ -590,6 +590,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("INS_LIST_OPEN", "Open", 0),
   D("INS_LIST_OPEN_REPLACE", "Open (replace current)", 0),
   D("INS_LIST_SAVE", "Save", 0),
+  D("INS_LIST_SAVE_OLD", "Save (legacy .fui)", 0),
   D("INS_LIST_SAVE_DMP", "Save (.dmp)", 0),
   D("INS_LIST_MOVE_UP", "Move up", FURKMOD_SHIFT|SDLK_UP),
   D("INS_LIST_MOVE_DOWN", "Move down", FURKMOD_SHIFT|SDLK_DOWN),

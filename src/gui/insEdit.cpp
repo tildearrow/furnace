@@ -2167,6 +2167,9 @@ void FurnaceGUI::drawInsEdit() {
           doAction(GUI_ACTION_INS_LIST_SAVE);
         }
         if (ImGui::BeginPopupContextItem("InsSaveFormats",ImGuiMouseButton_Right)) {
+          if (ImGui::MenuItem("save in legacy format...")) {
+            doAction(GUI_ACTION_INS_LIST_SAVE_OLD);
+          }
           if (ImGui::MenuItem("save as .dmp...")) {
             doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
           }

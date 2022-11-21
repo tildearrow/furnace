@@ -549,8 +549,6 @@ void DivInstrument::writeFeatureWS(SafeWriter* w) {
 }
 
 size_t DivInstrument::writeFeatureSL(SafeWriter* w, std::vector<int>& list, const DivSong* song) {
-  FEATURE_BEGIN("SL");
-
   bool sampleUsed[256];
   memset(sampleUsed,0,256*sizeof(bool));
 
@@ -572,6 +570,10 @@ size_t DivInstrument::writeFeatureSL(SafeWriter* w, std::vector<int>& list, cons
     }
   }
 
+  if (list.empty()) return 0;
+
+  FEATURE_BEGIN("SL");
+
   w->writeC(list.size());
 
   for (int i: list) {
@@ -591,8 +593,6 @@ size_t DivInstrument::writeFeatureSL(SafeWriter* w, std::vector<int>& list, cons
 }
 
 size_t DivInstrument::writeFeatureWL(SafeWriter* w, std::vector<int>& list, const DivSong* song) {
-  FEATURE_BEGIN("WL");
-
   bool waveUsed[256];
   memset(waveUsed,0,256*sizeof(bool));
 
@@ -616,6 +616,10 @@ size_t DivInstrument::writeFeatureWL(SafeWriter* w, std::vector<int>& list, cons
       list.push_back(i);
     }
   }
+
+  if (list.empty()) return 0;
+
+  FEATURE_BEGIN("WL");
 
   w->writeC(list.size());
 
@@ -687,8 +691,13 @@ void DivInstrument::writeFeatureX1(SafeWriter* w) {
 void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
   size_t blockStartSeek=0;
   size_t blockEndSeek=0;
+  size_t slSeek=0;
+  size_t wlSeek=0;
   std::vector<int> waveList;
   std::vector<int> sampleList;
+
+  std::vector<unsigned int> wavePtr;
+  std::vector<unsigned int> samplePtr;
 
   if (fui) {
     w->write("FINS",4);
@@ -747,17 +756,21 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
         break;
       case DIV_INS_AMIGA:
         featureSM=true;
+        if (!amiga.useWave) featureSL=true;
         break;
       case DIV_INS_PCE:
         checkForWL=true;
         featureSM=true;
+        if (amiga.useSample) featureSL=true;
         if (ws.enabled) featureWS=true;
         break;
       case DIV_INS_AY:
         featureSM=true;
+        if (amiga.useSample) featureSL=true;
         break;
       case DIV_INS_AY8930:
         featureSM=true;
+        if (amiga.useSample) featureSL=true;
         break;
       case DIV_INS_TIA:
         break;
@@ -769,6 +782,7 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
         break;
       case DIV_INS_VRC6:
         featureSM=true;
+        if (amiga.useSample) featureSL=true;
         break;
       case DIV_INS_OPLL:
         featureFM=true;
@@ -807,36 +821,44 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
       case DIV_INS_SWAN:
         checkForWL=true;
         featureSM=true;
+        if (amiga.useSample) featureSL=true;
         if (ws.enabled) featureWS=true;
         break;
       case DIV_INS_MIKEY:
         featureSM=true;
+        if (amiga.useSample) featureSL=true;
         break;
       case DIV_INS_VERA:
         break;
       case DIV_INS_X1_010:
         checkForWL=true;
         featureX1=true;
+        featureSM=true;
+        if (amiga.useSample) featureSL=true;
         if (ws.enabled) featureWS=true;
         break;
       case DIV_INS_VRC6_SAW:
         break;
       case DIV_INS_ES5506:
         featureSM=true;
+        featureSL=true;
         featureES=true;
         break;
       case DIV_INS_MULTIPCM:
         featureSM=true;
+        featureSL=true;
         featureMP=true;
         break;
       case DIV_INS_SNES:
         featureSM=true;
+        if (!amiga.useWave) featureSL=true;
         featureSN=true;
         checkForWL=true;
         if (ws.enabled) featureWS=true;
         break;
       case DIV_INS_SU:
         featureSM=true;
+        if (amiga.useSample) featureSL=true;
         featureSU=true;
         break;
       case DIV_INS_NAMCO:
@@ -854,27 +876,35 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
         break;
       case DIV_INS_MSM6258:
         featureSM=true;
+        featureSL=true;
         break;
       case DIV_INS_MSM6295:
         featureSM=true;
+        featureSL=true;
         break;
       case DIV_INS_ADPCMA:
         featureSM=true;
+        featureSL=true;
         break;
       case DIV_INS_ADPCMB:
         featureSM=true;
+        featureSL=true;
         break;
       case DIV_INS_SEGAPCM:
         featureSM=true;
+        featureSL=true;
         break;
       case DIV_INS_QSOUND:
         featureSM=true;
+        featureSL=true;
         break;
       case DIV_INS_YMZ280B:
         featureSM=true;
+        featureSL=true;
         break;
       case DIV_INS_RF5C68:
         featureSM=true;
+        featureSL=true;
         break;
       case DIV_INS_MSM5232:
         break;
@@ -1049,10 +1079,10 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
     writeFeatureWS(w);
   }
   if (featureSL) {
-    writeFeatureSL(w,sampleList,song);
+    slSeek=writeFeatureSL(w,sampleList,song);
   }
   if (featureWL) {
-    writeFeatureWL(w,waveList,song);
+    wlSeek=writeFeatureWL(w,waveList,song);
   }
   if (featureMP) {
     writeFeatureMP(w);
@@ -1069,7 +1099,44 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
 
   if (fui && (featureSL || featureWL)) {
     w->write("EN",2);
-    // TODO: write wave/sample data here
+
+    if (wlSeek!=0 && !waveList.empty()) {
+      for (int i: waveList) {
+        if (i<0 || i>=(int)song->wave.size()) {
+          wavePtr.push_back(0);
+          continue;
+        }
+        DivWavetable* wave=song->wave[i];
+
+        wavePtr.push_back(w->tell());
+        wave->putWaveData(w);
+      }
+
+      w->seek(wlSeek,SEEK_SET);
+      for (unsigned int i: wavePtr) {
+        w->writeI(i);
+      }
+      w->seek(0,SEEK_END);
+    }
+
+    if (slSeek!=0 && !sampleList.empty()) {
+      for (int i: sampleList) {
+        if (i<0 || i>=(int)song->sample.size()) {
+          samplePtr.push_back(0);
+          continue;
+        }
+        DivSample* sample=song->sample[i];
+
+        samplePtr.push_back(w->tell());
+        sample->putSampleData(w);
+      }
+
+      w->seek(slSeek,SEEK_SET);
+      for (unsigned int i: samplePtr) {
+        w->writeI(i);
+      }
+      w->seek(0,SEEK_END);
+    }
   }
 
   blockEndSeek=w->tell();
@@ -2204,13 +2271,15 @@ void DivInstrument::readFeatureWS(SafeReader& reader) {
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeatureSL(SafeReader& reader, const DivSong* song) {
+void DivInstrument::readFeatureSL(SafeReader& reader, DivSong* song, short version) {
   READ_FEAT_BEGIN;
 
   unsigned int samplePtr[256];
   unsigned char sampleIndex[256];
+  unsigned char sampleRemap[256];
   memset(samplePtr,0,256*sizeof(unsigned int));
   memset(sampleIndex,0,256);
+  memset(sampleRemap,0,256);
 
   unsigned char sampleCount=reader.readC();
 
@@ -2223,20 +2292,53 @@ void DivInstrument::readFeatureSL(SafeReader& reader, const DivSong* song) {
 
   size_t lastSeek=reader.tell();
 
-  // TODO: load samples here
+  // load samples
+  for (int i=0; i<sampleCount; i++) {
+    reader.seek(samplePtr[i],SEEK_SET);
+    if (song->sample.size()>=256) {
+      break;
+    }
+    DivSample* sample=new DivSample;
+    int sampleCount=(int)song->sample.size();
+
+    DivDataErrors result=sample->readSampleData(reader,version);
+    if (result==DIV_DATA_SUCCESS) {
+      song->sample.push_back(sample);
+      song->sampleLen=sampleCount+1;
+      sampleRemap[sampleIndex[i]]=sampleCount;
+    } else {
+      delete sample;
+      sampleRemap[sampleIndex[i]]=0;
+    }
+  }
 
   reader.seek(lastSeek,SEEK_CUR);
+
+  // re-map samples
+  if (amiga.initSample>=0 && amiga.initSample<256) {
+    amiga.initSample=sampleRemap[amiga.initSample];
+  }
+
+  if (amiga.useNoteMap) {
+    for (int i=0; i<120; i++) {
+      if (amiga.noteMap[i].map>=0 && amiga.noteMap[i].map<256) {
+        amiga.noteMap[i].map=sampleRemap[amiga.noteMap[i].map];
+      }
+    }
+  }
 
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeatureWL(SafeReader& reader, const DivSong* song) {
+void DivInstrument::readFeatureWL(SafeReader& reader, DivSong* song, short version) {
   READ_FEAT_BEGIN;
 
   unsigned int wavePtr[256];
   unsigned char waveIndex[256];
+  unsigned char waveRemap[256];
   memset(wavePtr,0,256*sizeof(unsigned int));
   memset(waveIndex,0,256);
+  memset(waveRemap,0,256);
 
   unsigned char waveCount=reader.readC();
 
@@ -2249,9 +2351,39 @@ void DivInstrument::readFeatureWL(SafeReader& reader, const DivSong* song) {
 
   size_t lastSeek=reader.tell();
 
-  // TODO: load samples here
+  // load wavetables
+  for (int i=0; i<waveCount; i++) {
+    reader.seek(wavePtr[i],SEEK_SET);
+    if (song->wave.size()>=256) {
+      break;
+    }
+    DivWavetable* wave=new DivWavetable;
+    int waveCount=(int)song->wave.size();
+
+    DivDataErrors result=wave->readWaveData(reader,version);
+    if (result==DIV_DATA_SUCCESS) {
+      song->wave.push_back(wave);
+      song->waveLen=waveCount+1;
+      waveRemap[waveIndex[i]]=waveCount;
+    } else {
+      delete wave;
+      waveRemap[waveIndex[i]]=0;
+    }
+  }
 
   reader.seek(lastSeek,SEEK_CUR);
+
+  // re-map wavetables
+  if (ws.enabled) {
+    if (ws.wave1>=0 && ws.wave1<256) ws.wave1=waveRemap[ws.wave1];
+    if (ws.effect&0x80) {
+      if (ws.wave2>=0 && ws.wave2<256) ws.wave2=waveRemap[ws.wave2];
+    }
+  }
+  if (n163.wave>=0 && n163.wave<256) n163.wave=waveRemap[n163.wave];
+  for (int i=0; i<std.waveMacro.len; i++) {
+    if (std.waveMacro.val[i]>=0 && std.waveMacro.val[i]<256) std.waveMacro.val[i]=waveRemap[std.waveMacro.val[i]];
+  }
 
   READ_FEAT_END;
 }
@@ -2358,9 +2490,9 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
     } else if (memcmp(featCode,"WS",2)==0) { // WaveSynth
       readFeatureWS(reader);
     } else if (memcmp(featCode,"SL",2)==0 && fui && song!=NULL) { // sample list
-      readFeatureSL(reader,NULL);
+      readFeatureSL(reader,song,version);
     } else if (memcmp(featCode,"WL",2)==0 && fui && song!=NULL) { // wave list
-      readFeatureWL(reader,NULL);
+      readFeatureWL(reader,song,version);
     } else if (memcmp(featCode,"MP",2)==0) { // MultiPCM
       readFeatureMP(reader);
     } else if (memcmp(featCode,"SU",2)==0) { // Sound Unit
@@ -3118,30 +3250,32 @@ DivDataErrors DivInstrument::readInsData(SafeReader& reader, short version, DivS
   return readInsDataOld(reader,version);
 }
 
-bool DivInstrument::save(const char* path) {
+bool DivInstrument::save(const char* path, bool oldFormat, DivSong* song) {
   SafeWriter* w=new SafeWriter();
   w->init();
 
-  //putInsData2(w,true);
+  if (oldFormat) {
+    // write magic
+    w->write("-Furnace instr.-",16);
 
-  // write magic
-  w->write("-Furnace instr.-",16);
+    // write version
+    w->writeS(DIV_ENGINE_VERSION);
 
-  // write version
-  w->writeS(DIV_ENGINE_VERSION);
+    // reserved
+    w->writeS(0);
 
-  // reserved
-  w->writeS(0);
+    // pointer to data
+    w->writeI(32);
 
-  // pointer to data
-  w->writeI(32);
+    // currently reserved (TODO; wavetable and sample here)
+    w->writeS(0);
+    w->writeS(0);
+    w->writeI(0);
 
-  // currently reserved (TODO; wavetable and sample here)
-  w->writeS(0);
-  w->writeS(0);
-  w->writeI(0);
-
-  putInsData(w);
+    putInsData(w);
+  } else {
+    putInsData2(w,true,song);
+  }
 
   FILE* outFile=ps_fopen(path,"wb");
   if (outFile==NULL) {

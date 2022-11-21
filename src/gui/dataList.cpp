@@ -132,6 +132,9 @@ void FurnaceGUI::drawInsList(bool asChild) {
         if (ImGui::MenuItem("instrument")) {
           doAction(GUI_ACTION_INS_LIST_SAVE);
         }
+        if (ImGui::MenuItem("instrument (legacy .fui)")) {
+          doAction(GUI_ACTION_INS_LIST_SAVE_OLD);
+        }
         if (ImGui::MenuItem("instrument (.dmp)")) {
           doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
         }
@@ -151,6 +154,9 @@ void FurnaceGUI::drawInsList(bool asChild) {
       }
     } else {
       if (ImGui::BeginPopupContextItem("InsSaveFormats",ImGuiMouseButton_Right)) {
+        if (ImGui::MenuItem("save in legacy format...")) {
+          doAction(GUI_ACTION_INS_LIST_SAVE_OLD);
+        }
         if (ImGui::MenuItem("save as .dmp...")) {
           doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
         }
@@ -433,6 +439,9 @@ void FurnaceGUI::drawInsList(bool asChild) {
             }
             if (ImGui::MenuItem("save")) {
               doAction(GUI_ACTION_INS_LIST_SAVE);
+            }
+            if (ImGui::MenuItem("save (legacy .fui)")) {
+              doAction(GUI_ACTION_INS_LIST_SAVE_OLD);
             }
             if (ImGui::MenuItem("save (.dmp)")) {
               doAction(GUI_ACTION_INS_LIST_SAVE_DMP);

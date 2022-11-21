@@ -1506,6 +1506,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_INS_SAVE_OLD:
+      if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        "Save Instrument",
+        {"Furnace instrument", "*.fui"},
+        "Furnace instrument{.fui}",
+        workingDirIns,
+        dpiScale
+      );
+      break;
     case GUI_FILE_INS_SAVE_DMP:
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -3855,6 +3865,7 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_INS_OPEN:
         case GUI_FILE_INS_OPEN_REPLACE:
         case GUI_FILE_INS_SAVE:
+        case GUI_FILE_INS_SAVE_OLD:
         case GUI_FILE_INS_SAVE_DMP:
           workingDirIns=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
@@ -3950,6 +3961,9 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_INS_SAVE) {
             checkExtension(".fui");
           }
+          if (curFileDialog==GUI_FILE_INS_SAVE_OLD) {
+            checkExtension(".fui");
+          }
           if (curFileDialog==GUI_FILE_INS_SAVE_DMP) {
             checkExtension(".dmp");
           }
@@ -4041,7 +4055,12 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_INS_SAVE:
               if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-                e->song.ins[curIns]->save(copyOfName.c_str());
+                e->song.ins[curIns]->save(copyOfName.c_str(),false,&e->song);
+              }
+              break;
+            case GUI_FILE_INS_SAVE_OLD:
+              if (curIns>=0 && curIns<(int)e->song.ins.size()) {
+                e->song.ins[curIns]->save(copyOfName.c_str(),true);
               }
               break;
             case GUI_FILE_INS_SAVE_DMP:

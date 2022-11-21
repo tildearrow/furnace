@@ -674,8 +674,8 @@ struct DivInstrument {
   void readFeatureN1(SafeReader& reader);
   void readFeatureFD(SafeReader& reader);
   void readFeatureWS(SafeReader& reader);
-  void readFeatureSL(SafeReader& reader, const DivSong* song);
-  void readFeatureWL(SafeReader& reader, const DivSong* song);
+  void readFeatureSL(SafeReader& reader, DivSong* song, short version);
+  void readFeatureWL(SafeReader& reader, DivSong* song, short version);
   void readFeatureMP(SafeReader& reader);
   void readFeatureSU(SafeReader& reader);
   void readFeatureES(SafeReader& reader);
@@ -707,9 +707,11 @@ struct DivInstrument {
   /**
    * save this instrument to a file.
    * @param path file path.
+   * @param oldFormat whether to save in legacy Furnace ins format.
+   * @param song if new format, a DivSong to read wavetables and samples.
    * @return whether it was successful.
    */
-  bool save(const char* path);
+  bool save(const char* path, bool oldFormat=false, DivSong* song=NULL);
 
   /**
    * save this instrument to a file in .dmp format.
