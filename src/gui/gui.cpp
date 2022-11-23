@@ -5836,6 +5836,7 @@ FurnaceGUI::FurnaceGUI():
   oldOrdersLen(0),
   sampleZoom(1.0),
   prevSampleZoom(1.0),
+  minSampleZoom(1.0),
   samplePos(0),
   resizeSize(1024),
   silenceSize(1024),

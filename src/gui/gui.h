@@ -1583,6 +1583,7 @@ class FurnaceGUI {
   // sample editor specific
   double sampleZoom;
   double prevSampleZoom;
+  double minSampleZoom;
   int samplePos;
   int resizeSize, silenceSize;
   double resampleTarget;

@@ -1540,11 +1540,6 @@ void FurnaceGUI::drawSettings() {
             settings.waveLayout=waveLayoutB;
           }
 
-          bool sampleLayoutB=settings.sampleLayout;
-          if (ImGui::Checkbox("Use compact sample editor",&sampleLayoutB)) {
-            settings.sampleLayout=sampleLayoutB;
-          }
-
           bool oldMacroVSliderB=settings.oldMacroVSlider;
           if (ImGui::Checkbox("Use classic macro editor vertical slider",&oldMacroVSliderB)) {
             settings.oldMacroVSlider=oldMacroVSliderB;
