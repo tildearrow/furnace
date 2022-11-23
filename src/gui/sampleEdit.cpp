@@ -965,11 +965,18 @@ void FurnaceGUI::drawSampleEdit() {
             double zoomPercent=100.0/sampleZoom;
             if (wheelY>0) {
               for (int i=0; i<wheelY; i++) {
+                double oldArea=round(rectSize.x*100.0/zoomPercent);
                 zoomPercent+=zoomPercent/8.0;
+                double increment=fabs(oldArea-(rectSize.x*100.0/zoomPercent))*((ImGui::GetMousePos().x-rectMin.x)/rectSize.x);
+                samplePos+=increment;
               }
             } else {
               for (int i=0; i<-wheelY; i++) {
+                double oldArea=round(rectSize.x*100.0/zoomPercent);
                 zoomPercent-=zoomPercent/8.0;
+                double increment=fabs(oldArea-(rectSize.x*100.0/zoomPercent))*((ImGui::GetMousePos().x-rectMin.x)/rectSize.x);
+                samplePos-=increment;
+                if (samplePos<0) samplePos=0;
               }
             }
             if (zoomPercent>10000.0) zoomPercent=10000.0;
