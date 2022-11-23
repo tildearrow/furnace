@@ -882,7 +882,6 @@ void FurnaceGUI::drawSampleEdit() {
         }
 
         if (ImGui::IsItemActive()) {
-          logV("item is active...");
           if (ImGui::GetMousePos().x>rectMax.x) {
             double delta=pow(MAX(1.0,(ImGui::GetMousePos().x-rectMax.x)*0.04),2.0);
             samplePos+=MAX(1.0,sampleZoom*delta);
@@ -964,11 +963,18 @@ void FurnaceGUI::drawSampleEdit() {
         if (ImGui::IsItemHovered()) {
           if (ctrlWheeling) {
             double zoomPercent=100.0/sampleZoom;
-            zoomPercent+=wheelY*10.0;
+            if (wheelY>0) {
+              for (int i=0; i<wheelY; i++) {
+                zoomPercent+=zoomPercent/8.0;
+              }
+            } else {
+              for (int i=0; i<-wheelY; i++) {
+                zoomPercent-=zoomPercent/8.0;
+              }
+            }
             if (zoomPercent>10000.0) zoomPercent=10000.0;
-            if (zoomPercent<1.0) zoomPercent=1.0;
+            if (zoomPercent<0.01) zoomPercent=0.01;
             sampleZoom=100.0/zoomPercent;
-            if (sampleZoom<0.01) sampleZoom=0.01;
             sampleZoomAuto=false;
             int bounds=((int)sample->samples-round(rectSize.x*sampleZoom));
             if (bounds<0) bounds=0;
