@@ -82,6 +82,8 @@ class DivPlatformSMS: public DivDispatch {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
+  double NOTE_SN(int note);
+
   void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
   void acquire_mame(short* bufL, short* bufR, size_t start, size_t len);
   public:
