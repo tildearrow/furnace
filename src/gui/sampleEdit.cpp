@@ -881,6 +881,28 @@ void FurnaceGUI::drawSampleEdit() {
           }
         }
 
+        if (ImGui::IsItemActive()) {
+          logV("item is active...");
+          if (ImGui::GetMousePos().x>rectMax.x) {
+            double delta=pow(MAX(1.0,(ImGui::GetMousePos().x-rectMax.x)*0.04),2.0);
+            samplePos+=MAX(1.0,sampleZoom*delta);
+            int bounds=((int)sample->samples-round(avail.x*sampleZoom));
+            if (bounds<0) bounds=0;
+            if (samplePos>bounds) samplePos=bounds;
+            updateSampleTex=true;
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+            WAKE_UP;
+          }
+          if (ImGui::GetMousePos().x<rectMin.x) {
+            double delta=pow(MAX(1.0,(rectMin.x-ImGui::GetMousePos().x)*0.04),2.0);
+            samplePos-=MAX(1.0,sampleZoom*delta);
+            if (samplePos<0) samplePos=0;
+            updateSampleTex=true;
+            processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+            WAKE_UP;
+          }
+        }
+
         if (!sampleDragMode && ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           ImGui::OpenPopup("SRightClick");
         }
