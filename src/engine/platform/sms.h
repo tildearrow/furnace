@@ -70,6 +70,7 @@ class DivPlatformSMS: public DivDispatch {
   bool isRealSN;
   bool stereo;
   bool nuked;
+  bool easyNoise;
   sn76496_base_device* sn;
   ympsg_t sn_nuked;
   struct QueuedWrite {

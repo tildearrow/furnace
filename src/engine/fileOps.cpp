@@ -208,7 +208,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }*/
 
     // Game Boy arp+soundLen screwery
-    ds.systemFlags[0].set("enoughAlready",true);
+    if (ds.system[0]==DIV_SYSTEM_GB) {
+      ds.systemFlags[0].set("enoughAlready",true);
+    }
 
     logI("reading module data...");
     if (ds.version>0x0c) {
@@ -964,6 +966,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemLen=2;
       ds.system[0]=DIV_SYSTEM_NES;
       ds.system[1]=DIV_SYSTEM_FDS;
+    }
+
+    // SMS noise freq
+    if (ds.system[0]==DIV_SYSTEM_SMS) {
+      ds.systemFlags[0].set("noEasyNoise",true);
     }
 
     ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
@@ -2509,6 +2516,16 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
             ds.system[i]==DIV_SYSTEM_OPN_EXT ||
             ds.system[i]==DIV_SYSTEM_PC98_EXT) {
           ds.systemFlags[i].set("noExtMacros",true);
+        }
+      }
+    }
+
+    // SN noise compat
+    if (ds.version<128) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_SMS ||
+            ds.system[i]==DIV_SYSTEM_T6W28) {
+          ds.systemFlags[i].set("noEasyNoise",true);
         }
       }
     }

@@ -60,6 +60,7 @@ class DivPlatformT6W28: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   bool antiClickEnabled;
+  bool easyNoise;
   struct QueuedWrite {
       unsigned char addr;
       unsigned char val;

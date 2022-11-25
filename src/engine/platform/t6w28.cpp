@@ -330,6 +330,7 @@ void DivPlatformT6W28::setFlags(const DivConfig& flags) {
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;
   }
+  easyNoise=!flags.getBool("noEasyNoise",false);
 
   if (t6w!=NULL) {
     delete t6w;

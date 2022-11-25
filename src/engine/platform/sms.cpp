@@ -467,6 +467,7 @@ void DivPlatformSMS::setFlags(const DivConfig& flags) {
       break;
   }
   resetPhase=!flags.getBool("noPhaseReset",false);
+  easyNoise=!flags.getBool("noEasyNoise",false);
   divider=16;
   toneDivider=64.0;
   noiseDivider=64.0;
