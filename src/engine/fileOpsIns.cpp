@@ -1341,7 +1341,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       // At this point we know any other line would be associated with patch params
       if (newPatch == NULL) {
         newPatch = new DivInstrument;
-        newPatch->type = DIV_INS_FM;
+        newPatch->type = DIV_INS_OPM;
         newPatch->fm.ops = 4;
       }
 
