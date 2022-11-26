@@ -93,6 +93,7 @@ const char* aboutLine[]={
   "SnugglyBun",
   "SuperJet Spade",
   "TakuikaNinja",
+  "The Blender Fiddler",
   "TheDuccinator",
   "theloredev",
   "TheRealHedgehogSonic",
