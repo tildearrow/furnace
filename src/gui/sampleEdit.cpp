@@ -132,47 +132,18 @@ void FurnaceGUI::drawSampleEdit() {
         MARK_MODIFIED;
       }
 
-      if (ImGui::BeginTable("SampleProps",4,ImGuiTableFlags_SizingStretchSame)) {
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("Type");
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::BeginCombo("##SampleType",sampleType.c_str())) {
-          for (int i=0; i<DIV_SAMPLE_DEPTH_MAX; i++) {
-            if (sampleDepths[i]==NULL) continue;
-            if (ImGui::Selectable(sampleDepths[i])) {
-              sample->prepareUndo(true);
-              e->lockEngine([sample]() {
-                sample->render();
-              });
-              sample->depth=(DivSampleDepth)i;
-              e->renderSamplesP();
-              updateSampleTex=true;
-              MARK_MODIFIED;
-            }
-          }
-          ImGui::EndCombo();
-        }
+      ImGui::Separator();
 
+      if (ImGui::BeginTable("SampleProps",4,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersV|ImGuiTableFlags_BordersOuterH)) {
+        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
         ImGui::TableNextColumn();
-        ImGui::Text("C-4 (Hz)");
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputInt("##SampleCenter",&sample->centerRate,10,200)) { MARK_MODIFIED
-          if (sample->centerRate<100) sample->centerRate=100;
-          if (sample->centerRate>65535) sample->centerRate=65535;
+        if (ImGui::Button(sampleInfo?(ICON_FA_CHEVRON_UP "##SECollapse"):(ICON_FA_CHEVRON_DOWN "##SECollapse"))) {
+          sampleInfo=!sampleInfo;
         }
-
+        ImGui::SameLine();
+        ImGui::Text("Info");
         ImGui::TableNextColumn();
-        ImGui::Text("Compat Rate");
-        ImGui::SameLine();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (ImGui::InputInt("##SampleRate",&sample->rate,10,200)) { MARK_MODIFIED
-          if (sample->rate<100) sample->rate=100;
-          if (sample->rate>96000) sample->rate=96000;
-        }
-
+        ImGui::Text("Rate");
         ImGui::TableNextColumn();
         bool doLoop=(sample->isLoopable());
         if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
@@ -193,11 +164,53 @@ void FurnaceGUI::drawSampleEdit() {
         if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
           ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
         }
-        if (doLoop || keepLoopAlive) {
-          keepLoopAlive=false;
+        ImGui::TableNextColumn();
+        ImGui::Text("Chips");
+        
+        if (sampleInfo) {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
-          ImGui::Text("Loop Mode");
+          ImGui::Text("Type");
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::BeginCombo("##SampleType",sampleType.c_str())) {
+            for (int i=0; i<DIV_SAMPLE_DEPTH_MAX; i++) {
+              if (sampleDepths[i]==NULL) continue;
+              if (ImGui::Selectable(sampleDepths[i])) {
+                sample->prepareUndo(true);
+                e->lockEngine([sample]() {
+                  sample->render();
+                });
+                sample->depth=(DivSampleDepth)i;
+                e->renderSamplesP();
+                updateSampleTex=true;
+                MARK_MODIFIED;
+              }
+            }
+            ImGui::EndCombo();
+          }
+
+          ImGui::TableNextColumn();
+          ImGui::Text("C-4 (Hz)");
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::InputInt("##SampleCenter",&sample->centerRate,10,200)) { MARK_MODIFIED
+            if (sample->centerRate<100) sample->centerRate=100;
+            if (sample->centerRate>65535) sample->centerRate=65535;
+          }
+
+          ImGui::Text("Compat");
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::InputInt("##SampleRate",&sample->rate,10,200)) { MARK_MODIFIED
+            if (sample->rate<100) sample->rate=100;
+            if (sample->rate>96000) sample->rate=96000;
+          }
+
+          ImGui::TableNextColumn();
+          ImGui::BeginDisabled(!(doLoop || keepLoopAlive));
+          keepLoopAlive=false;
+          ImGui::Text("Mode");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::BeginCombo("##SampleLoopMode",loopType.c_str())) {
@@ -213,8 +226,8 @@ void FurnaceGUI::drawSampleEdit() {
             }
             ImGui::EndCombo();
           }
-          ImGui::TableNextColumn();
-          ImGui::Text("Loop Start");
+
+          ImGui::Text("Start");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::InputInt("##LoopStartPosition",&sample->loopStart,1,16)) { MARK_MODIFIED
@@ -235,8 +248,8 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
             ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
           }
-          ImGui::TableNextColumn();
-          ImGui::Text("Loop End");
+
+          ImGui::Text("End");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::InputInt("##LoopEndPosition",&sample->loopEnd,1,16)) { MARK_MODIFIED
@@ -257,7 +270,12 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
             ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
           }
+          ImGui::EndDisabled();
+
+          ImGui::TableNextColumn();
+          ImGui::Text("To-do...");
         }
+
         ImGui::EndTable();
       }
 

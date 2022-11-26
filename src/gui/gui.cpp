@@ -5845,6 +5845,7 @@ FurnaceGUI::FurnaceGUI():
   amplifyVol(100.0),
   sampleSelStart(-1),
   sampleSelEnd(-1),
+  sampleInfo(true),
   sampleDragActive(false),
   sampleDragMode(false),
   sampleDrag16(false),

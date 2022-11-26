@@ -1590,6 +1590,7 @@ class FurnaceGUI {
   int resampleStrat;
   float amplifyVol;
   int sampleSelStart, sampleSelEnd;
+  bool sampleInfo;
   bool sampleDragActive, sampleDragMode, sampleDrag16, sampleZoomAuto;
   void* sampleDragTarget;
   ImVec2 sampleDragStart;
