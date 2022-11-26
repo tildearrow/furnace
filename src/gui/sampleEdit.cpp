@@ -273,7 +273,34 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::EndDisabled();
 
           ImGui::TableNextColumn();
-          ImGui::Text("To-do...");
+          
+          if (e->song.systemLen<1) {
+            ImGui::Text("NO CHIPS LESS GOOO");
+          } else {
+            if (ImGui::BeginTable("SEChipSel",e->song.systemLen+1,ImGuiTableFlags_SizingFixedSame|ImGuiTableFlags_ScrollX)) {
+              ImGui::TableNextRow();
+              ImGui::TableNextColumn();
+              for (int i=0; i<e->song.systemLen; i++) {
+                ImGui::TableNextColumn();
+                ImGui::Text("%d",i+1);
+              }
+              char id[1024];
+              for (int i=0; i<4; i++) {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("%c",'A'+i);
+                for (int j=0; j<e->song.systemLen; j++) {
+                  ImGui::TableNextColumn();
+                  snprintf(id,1023,"##_SEC%d_%d",i,j);
+                  if (ImGui::Checkbox(id,&sample->renderOn[i][j])) {
+                    showError("wait! I have not implemented that yet!");
+                  }
+                }
+              }
+              ImGui::EndTable();
+            }
+          }
+          
         }
 
         ImGui::EndTable();
