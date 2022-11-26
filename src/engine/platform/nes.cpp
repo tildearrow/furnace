@@ -721,6 +721,12 @@ size_t DivPlatformNES::getSampleMemUsage(int index) {
   return index==0?dpcmMemLen:0;
 }
 
+bool DivPlatformNES::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
 void DivPlatformNES::renderSamples() {
   memset(dpcmMem,0,getSampleMemCapacity(0));
 

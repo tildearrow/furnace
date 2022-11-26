@@ -1336,6 +1336,12 @@ size_t DivPlatformYM2608::getSampleMemUsage(int index) {
   return index == 0 ? adpcmBMemLen : 0;
 }
 
+bool DivPlatformYM2608::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
 void DivPlatformYM2608::renderSamples() {
   memset(adpcmBMem,0,getSampleMemCapacity(0));
   memset(sampleOffB,0,256*sizeof(unsigned int));

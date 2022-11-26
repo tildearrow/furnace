@@ -644,6 +644,12 @@ size_t DivPlatformQSound::getSampleMemUsage(int index) {
   return index == 0 ? sampleMemLen : 0;
 }
 
+bool DivPlatformQSound::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
 // TODO: ADPCM... come on...
 void DivPlatformQSound::renderSamples() {
   memset(sampleMem,0,getSampleMemCapacity());

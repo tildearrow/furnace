@@ -1757,6 +1757,12 @@ size_t DivPlatformOPL::getSampleMemUsage(int index) {
   return (index==0 && adpcmChan>=0) ? adpcmBMemLen : 0;
 }
 
+bool DivPlatformOPL::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
 void DivPlatformOPL::renderSamples() {
   if (adpcmChan<0) return;
   memset(adpcmBMem,0,getSampleMemCapacity(0));

@@ -547,6 +547,12 @@ size_t DivPlatformSoundUnit::getSampleMemUsage(int index) {
   return (index==0)?sampleMemLen:0;
 }
 
+bool DivPlatformSoundUnit::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
 void DivPlatformSoundUnit::renderSamples() {
   memset(su->pcm,0,getSampleMemCapacity(0));
   memset(sampleOffSU,0,256*sizeof(unsigned int));

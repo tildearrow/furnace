@@ -385,6 +385,12 @@ size_t DivPlatformRF5C68::getSampleMemUsage(int index) {
   return index == 0 ? sampleMemLen : 0;
 }
 
+bool DivPlatformRF5C68::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
 void DivPlatformRF5C68::renderSamples() {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleOffRFC,0,256*sizeof(unsigned int));

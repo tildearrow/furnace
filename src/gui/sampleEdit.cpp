@@ -277,6 +277,7 @@ void FurnaceGUI::drawSampleEdit() {
           bool isChipVisible[32];
           bool isTypeVisible[4];
           bool isMemVisible[4][32];
+          bool isMemWarning[4][32];
           memset(isChipVisible,0,32*sizeof(bool));
           memset(isTypeVisible,0,4*sizeof(bool));
           memset(isMemVisible,0,32*4*sizeof(bool));
@@ -289,6 +290,7 @@ void FurnaceGUI::drawSampleEdit() {
               isChipVisible[i]=true;
               isTypeVisible[j]=true;
               isMemVisible[j][i]=true;
+              if (!dispatch->isSampleLoaded(j,curSample)) isMemWarning[j][i]=true;
             }
           }
           int selColumns=1;
@@ -319,9 +321,41 @@ void FurnaceGUI::drawSampleEdit() {
 
                   if (!isMemVisible[i][j]) continue;
                   snprintf(id,1023,"##_SEC%d_%d",i,j);
+
+                  ImVec4 baseColor=sample->renderOn[i][j]?(isMemWarning[i][j]?uiColors[GUI_COLOR_SAMPLE_CHIP_WARNING]:uiColors[GUI_COLOR_SAMPLE_CHIP_ENABLED]):uiColors[GUI_COLOR_SAMPLE_CHIP_DISABLED];
+                  ImVec4 color=baseColor;
+                  ImVec4 colorHovered=baseColor;
+                  ImVec4 colorActive=baseColor;
+
+                  if (settings.guiColorsBase) {
+                    color.x*=0.8f;
+                    color.y*=0.8f;
+                    color.z*=0.8f;
+                    colorHovered.x*=0.65f;
+                    colorHovered.y*=0.65f;
+                    colorHovered.z*=0.65f;
+                    colorActive.x*=0.3f;
+                    colorActive.y*=0.3f;
+                    colorActive.z*=0.3f;
+                  } else {
+                    color.x*=0.2f;
+                    color.y*=0.2f;
+                    color.z*=0.2f;
+                    colorHovered.x*=0.4f;
+                    colorHovered.y*=0.4f;
+                    colorHovered.z*=0.4f;
+                  }
+
+                  ImGui::PushStyleColor(ImGuiCol_FrameBg,color);
+                  ImGui::PushStyleColor(ImGuiCol_FrameBgHovered,colorHovered);
+                  ImGui::PushStyleColor(ImGuiCol_FrameBgActive,colorActive);
+                  ImGui::PushStyleColor(ImGuiCol_CheckMark,baseColor);
+
                   if (ImGui::Checkbox(id,&sample->renderOn[i][j])) {
                     e->renderSamplesP();
                   }
+
+                  ImGui::PopStyleColor(4);
                 }
               }
               ImGui::EndTable();

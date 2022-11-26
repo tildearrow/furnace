@@ -520,18 +520,33 @@ class DivDispatch {
 
     /**
      * Get sample memory buffer.
+     * @param index the memory index.
+     * @return a pointer to sample memory, or NULL.
      */
     virtual const void* getSampleMem(int index = 0);
 
     /**
      * Get sample memory capacity.
+     * @param index the memory index.
+     * @return memory capacity in bytes, or 0 if memory doesn't exist.
      */
     virtual size_t getSampleMemCapacity(int index = 0);
 
     /**
      * Get sample memory usage.
+     * @param index the memory index.
+     * @return memory usage in bytes.
      */
     virtual size_t getSampleMemUsage(int index = 0);
+
+    /**
+     * check whether sample has been loaded in memory.
+     * @param memory index.
+     * @param sample the sample in question.
+     * @return whether it did.
+     */
+    virtual bool isSampleLoaded(int index, int sample);
+    
 
     /**
      * Render samples into sample memory.

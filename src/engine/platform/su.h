@@ -102,6 +102,7 @@ class DivPlatformSoundUnit: public DivDispatch {
   unsigned char initIlCtrl, initIlSize, initFil1;
   signed char echoVol, initEchoVol;
   unsigned int sampleOffSU[256];
+  bool sampleLoaded[256];
 
   int cycles, curChan, delay;
   short tempL;
@@ -138,6 +139,7 @@ class DivPlatformSoundUnit: public DivDispatch {
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
+    bool isSampleLoaded(int index, int sample);
     void renderSamples();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

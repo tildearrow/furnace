@@ -797,6 +797,12 @@ size_t DivPlatformSNES::getSampleMemUsage(int index) {
   return index == 0 ? sampleMemLen : 0;
 }
 
+bool DivPlatformSNES::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
 void DivPlatformSNES::renderSamples() {
   memset(copyOfSampleMem,0,getSampleMemCapacity());
   memset(sampleOff,0,256*sizeof(unsigned int));

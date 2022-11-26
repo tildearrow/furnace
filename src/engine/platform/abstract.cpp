@@ -156,6 +156,10 @@ size_t DivDispatch::getSampleMemUsage(int index) {
   return 0;
 }
 
+bool DivDispatch::isSampleLoaded(int index, int sample) {
+  return false;
+}
+
 void DivDispatch::renderSamples() {
   
 }

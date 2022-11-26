@@ -420,6 +420,12 @@ size_t DivPlatformYMZ280B::getSampleMemUsage(int index) {
   return index == 0 ? sampleMemLen : 0;
 }
 
+bool DivPlatformYMZ280B::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
 void DivPlatformYMZ280B::renderSamples() {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleOff,0,256*sizeof(unsigned int));

@@ -142,6 +142,8 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
     unsigned char sampleBank;
   
     bool extMode, noExtMacros;
+
+    bool sampleLoaded[2][256];
   
     unsigned char writeADPCMAOff, writeADPCMAOn;
     int globalADPCMAVolume;
@@ -208,10 +210,17 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       return index == 0 ? adpcmAMemLen : index == 1 ? adpcmBMemLen : 0;
     }
 
+    bool isSampleLoaded(int index, int sample) {
+      if (index<0 || index>1) return false;
+      if (sample<0 || sample>255) return false;
+      return sampleLoaded[index][sample];
+    }
+
     void renderSamples() {
       memset(adpcmAMem,0,getSampleMemCapacity(0));
       memset(sampleOffA,0,256*sizeof(unsigned int));
       memset(sampleOffB,0,256*sizeof(unsigned int));
+      memset(sampleLoaded,0,256*2*sizeof(bool));
 
       size_t memPos=0;
       for (int i=0; i<parent->song.sampleLen; i++) {
@@ -231,6 +240,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
           memcpy(adpcmAMem+memPos,s->dataA,paddedLen);
         }
         sampleOffA[i]=memPos;
+        sampleLoaded[0][i]=true;
         memPos+=paddedLen;
       }
       adpcmAMemLen=memPos+256;
@@ -255,6 +265,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
           memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
         }
         sampleOffB[i]=memPos;
+        sampleLoaded[1][i]=true;
         memPos+=paddedLen;
       }
       adpcmBMemLen=memPos+256;

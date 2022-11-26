@@ -362,6 +362,12 @@ size_t DivPlatformMSM6258::getSampleMemUsage(int index) {
   return index == 0 ? adpcmMemLen : 0;
 }
 
+bool DivPlatformMSM6258::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
 void DivPlatformMSM6258::renderSamples() {
   memset(adpcmMem,0,getSampleMemCapacity(0));
 

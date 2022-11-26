@@ -949,6 +949,12 @@ size_t DivPlatformX1_010::getSampleMemUsage(int index) {
   return index >= 0 ? sampleMemLen : 0;
 }
 
+bool DivPlatformX1_010::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
 void DivPlatformX1_010::renderSamples() {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleOffX1,0,256*sizeof(unsigned int));

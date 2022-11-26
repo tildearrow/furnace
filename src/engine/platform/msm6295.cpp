@@ -335,6 +335,12 @@ size_t DivPlatformMSM6295::getSampleMemUsage(int index) {
   return index == 0 ? adpcmMemLen : 0;
 }
 
+bool DivPlatformMSM6295::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
 void DivPlatformMSM6295::renderSamples() {
   unsigned int sampleOffVOX[256];
 
