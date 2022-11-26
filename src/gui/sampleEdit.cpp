@@ -274,26 +274,53 @@ void FurnaceGUI::drawSampleEdit() {
 
           ImGui::TableNextColumn();
           
-          if (e->song.systemLen<1) {
+          bool isChipVisible[32];
+          bool isTypeVisible[4];
+          bool isMemVisible[4][32];
+          memset(isChipVisible,0,32*sizeof(bool));
+          memset(isTypeVisible,0,4*sizeof(bool));
+          memset(isMemVisible,0,32*4*sizeof(bool));
+          for (int i=0; i<e->song.systemLen; i++) {
+            DivDispatch* dispatch=e->getDispatch(i);
+            if (dispatch==NULL) continue;
+
+            for (int j=0; j<4; j++) {
+              if (dispatch->getSampleMemCapacity(j)==0) continue;
+              isChipVisible[i]=true;
+              isTypeVisible[j]=true;
+              isMemVisible[j][i]=true;
+            }
+          }
+          int selColumns=1;
+          for (int i=0; i<32; i++) {
+            if (isChipVisible[i]) selColumns++;
+          }
+          if (selColumns<=1) {
             ImGui::Text("NO CHIPS LESS GOOO");
           } else {
-            if (ImGui::BeginTable("SEChipSel",e->song.systemLen+1,ImGuiTableFlags_SizingFixedSame|ImGuiTableFlags_ScrollX)) {
+            if (ImGui::BeginTable("SEChipSel",selColumns,ImGuiTableFlags_SizingFixedSame|ImGuiTableFlags_ScrollX)) {
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
               for (int i=0; i<e->song.systemLen; i++) {
+                if (!isChipVisible[i]) continue;
                 ImGui::TableNextColumn();
                 ImGui::Text("%d",i+1);
               }
               char id[1024];
               for (int i=0; i<4; i++) {
+                if (!isTypeVisible[i]) continue;
+
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::Text("%c",'A'+i);
                 for (int j=0; j<e->song.systemLen; j++) {
+                  if (!isChipVisible[j]) continue;
                   ImGui::TableNextColumn();
+
+                  if (!isMemVisible[i][j]) continue;
                   snprintf(id,1023,"##_SEC%d_%d",i,j);
                   if (ImGui::Checkbox(id,&sample->renderOn[i][j])) {
-                    showError("wait! I have not implemented that yet!");
+                    e->renderSamplesP();
                   }
                 }
               }
