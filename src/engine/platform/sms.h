@@ -65,6 +65,7 @@ class DivPlatformSMS: public DivDispatch {
   int divider=16;
   double toneDivider=64.0;
   double noiseDivider=64.0;
+  int easyThreshold;
   bool updateSNMode;
   bool resetPhase;
   bool isRealSN;
@@ -83,7 +84,8 @@ class DivPlatformSMS: public DivDispatch {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
-  double NOTE_SN(int note);
+  double NOTE_SN(int ch, int note);
+  int snCalcFreq(int ch);
 
   void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
   void acquire_mame(short* bufL, short* bufR, size_t start, size_t len);

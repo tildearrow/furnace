@@ -76,6 +76,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int clockSel=flags.getInt("clockSel",0);
       int chipType=flags.getInt("chipType",0);
       bool noPhaseReset=flags.getBool("noPhaseReset",false);
+      bool noEasyNoise=flags.getBool("noEasyNoise",false);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("3.58MHz (NTSC)",clockSel==0)) {
@@ -152,11 +153,16 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
+      if (ImGui::Checkbox("Disable easy period to note mapping on upper octaves",&noEasyNoise)) {
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("chipType",chipType);
           flags.set("noPhaseReset",noPhaseReset);
+          flags.set("noEasyNoise",noEasyNoise);
         });
       }
       break;
