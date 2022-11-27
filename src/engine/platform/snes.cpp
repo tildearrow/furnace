@@ -803,7 +803,7 @@ bool DivPlatformSNES::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
-void DivPlatformSNES::renderSamples() {
+void DivPlatformSNES::renderSamples(int sysID) {
   memset(copyOfSampleMem,0,getSampleMemCapacity());
   memset(sampleOff,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
@@ -812,6 +812,11 @@ void DivPlatformSNES::renderSamples() {
   size_t memPos=sampleTableBase+8*4+8*9*16;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[0][sysID]) {
+      sampleOff[i]=0;
+      continue;
+    }
+
     int length=s->lengthBRR;
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos)/9*9,length);
     if (actualLength>0) {

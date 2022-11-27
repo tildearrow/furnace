@@ -557,8 +557,9 @@ class DivDispatch {
 
     /**
      * Render samples into sample memory.
+     * @param sysID the chip's index in the chip list.
      */
-    virtual void renderSamples();
+    virtual void renderSamples(int sysID);
 
     /**
      * initialize this DivDispatch.

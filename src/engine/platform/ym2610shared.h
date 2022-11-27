@@ -220,7 +220,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       return sampleLoaded[index][sample];
     }
 
-    void renderSamples() {
+    void renderSamples(int sysID) {
       memset(adpcmAMem,0,getSampleMemCapacity(0));
       memset(sampleOffA,0,256*sizeof(unsigned int));
       memset(sampleOffB,0,256*sizeof(unsigned int));
@@ -229,6 +229,11 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       size_t memPos=0;
       for (int i=0; i<parent->song.sampleLen; i++) {
         DivSample* s=parent->song.sample[i];
+        if (!s->renderOn[0][sysID]) {
+          sampleOffA[i]=0;
+          continue;
+        }
+
         int paddedLen=(s->lengthA+255)&(~0xff);
         if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
           memPos=(memPos+0xfffff)&0xf00000;
@@ -254,6 +259,11 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       memPos=0;
       for (int i=0; i<parent->song.sampleLen; i++) {
         DivSample* s=parent->song.sample[i];
+        if (!s->renderOn[1][sysID]) {
+          sampleOffB[i]=0;
+          continue;
+        }
+
         int paddedLen=(s->lengthB+255)&(~0xff);
         if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
           memPos=(memPos+0xfffff)&0xf00000;

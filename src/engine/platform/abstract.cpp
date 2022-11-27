@@ -165,7 +165,7 @@ bool DivDispatch::isSampleLoaded(int index, int sample) {
   return false;
 }
 
-void DivDispatch::renderSamples() {
+void DivDispatch::renderSamples(int sysID) {
   
 }
 

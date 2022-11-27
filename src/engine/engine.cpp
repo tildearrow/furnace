@@ -1315,7 +1315,7 @@ void DivEngine::renderSamples() {
   // step 2: render samples to dispatch
   for (int i=0; i<song.systemLen; i++) {
     if (disCont[i].dispatch!=NULL) {
-      disCont[i].dispatch->renderSamples();
+      disCont[i].dispatch->renderSamples(i);
     }
   }
 }
