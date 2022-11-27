@@ -147,7 +147,7 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           logD("instrument type is C64");
           break;
         case 8: // Arcade
-          ins->type=DIV_INS_FM;
+          ins->type=DIV_INS_OPM;
           logD("instrument type is Arcade");
           break;
         case 9: // Neo Geo
@@ -187,6 +187,8 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           ins->type=DIV_INS_OPLL;
         } else if (sys==1) {
           ins->type=DIV_INS_OPL;
+        } else if (sys==8) {
+          ins->type=DIV_INS_OPM;
         } else {
           ins->type=DIV_INS_FM;
         }
