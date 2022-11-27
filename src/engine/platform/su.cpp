@@ -595,6 +595,7 @@ int DivPlatformSoundUnit::init(DivEngine* p, int channels, int sugRate, const Di
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   su=new SoundUnit();
+  sysIDCache=0;
   setFlags(flags);
   reset();
   return 8;
