@@ -139,7 +139,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
     bool isSampleLoaded(int index, int sample);
-    void renderSamples();
+    void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

@@ -101,7 +101,7 @@ class DivPlatformRF5C68: public DivDispatch {
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
     bool isSampleLoaded(int index, int sample);
-    void renderSamples();
+    void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
   private:

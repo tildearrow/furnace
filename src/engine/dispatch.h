@@ -533,6 +533,13 @@ class DivDispatch {
     virtual size_t getSampleMemCapacity(int index = 0);
 
     /**
+     * get sample memory name.
+     * @param index the memory index.
+     * @return a name, or NULL if it doesn't have any name in particular.
+     */
+    virtual const char* getSampleMemName(int index=0);
+
+    /**
      * Get sample memory usage.
      * @param index the memory index.
      * @return memory usage in bytes.
@@ -550,8 +557,9 @@ class DivDispatch {
 
     /**
      * Render samples into sample memory.
+     * @param sysID the chip's index in the chip list.
      */
-    virtual void renderSamples();
+    virtual void renderSamples(int sysID);
 
     /**
      * initialize this DivDispatch.

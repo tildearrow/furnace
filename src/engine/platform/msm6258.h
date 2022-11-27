@@ -115,7 +115,7 @@ class DivPlatformMSM6258: public DivDispatch {
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
     bool isSampleLoaded(int index, int sample);
-    void renderSamples();
+    void renderSamples(int chipID);
     
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

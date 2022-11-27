@@ -5,5 +5,4 @@
 - (maybe) YM2612 CSM (no DualPCM)
 - port presets to new format
 - bug fixes
-- (maybe) ExtCh FM macros?
 - (maybe) advanced linear arpeggio? (run arp+slide simultaneously)

@@ -391,13 +391,19 @@ bool DivPlatformRF5C68::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
-void DivPlatformRF5C68::renderSamples() {
+void DivPlatformRF5C68::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleOffRFC,0,256*sizeof(unsigned int));
+  memset(sampleLoaded,0,256*sizeof(bool));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[0][sysID]) {
+      sampleOffRFC[i]=0;
+      continue;
+    }
+
     int length=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-31,length);
     if (actualLength>0) {
@@ -418,6 +424,7 @@ void DivPlatformRF5C68::renderSamples() {
     }
     // align memPos to 256-byte boundary
     memPos=(memPos+0xff)&~0xff;
+    sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
 }

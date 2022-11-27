@@ -368,8 +368,9 @@ bool DivPlatformMSM6258::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
-void DivPlatformMSM6258::renderSamples() {
+void DivPlatformMSM6258::renderSamples(int sysID) {
   memset(adpcmMem,0,getSampleMemCapacity(0));
+  memset(sampleLoaded,0,256*sizeof(bool));
 
   // sample data
   size_t memPos=0;
@@ -377,6 +378,8 @@ void DivPlatformMSM6258::renderSamples() {
   if (sampleCount>128) sampleCount=128;
   for (int i=0; i<sampleCount; i++) {
     DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[0][sysID]) continue;
+
     int paddedLen=s->lengthVOX;
     if (memPos>=getSampleMemCapacity(0)) {
       logW("out of ADPCM memory for sample %d!",i);
@@ -387,6 +390,7 @@ void DivPlatformMSM6258::renderSamples() {
       logW("out of ADPCM memory for sample %d!",i);
     } else {
       memcpy(adpcmMem+memPos,s->dataVOX,paddedLen);
+      sampleLoaded[i]=true;
     }
     memPos+=paddedLen;
   }

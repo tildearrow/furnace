@@ -1763,14 +1763,20 @@ bool DivPlatformOPL::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
-void DivPlatformOPL::renderSamples() {
+void DivPlatformOPL::renderSamples(int sysID) {
   if (adpcmChan<0) return;
   memset(adpcmBMem,0,getSampleMemCapacity(0));
   memset(sampleOffB,0,256*sizeof(unsigned int));
+  memset(sampleLoaded,0,256*sizeof(bool));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[0][sysID]) {
+      sampleOffB[i]=0;
+      continue;
+    }
+
     int paddedLen=(s->lengthB+255)&(~0xff);
     if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
       memPos=(memPos+0xfffff)&0xf00000;
@@ -1784,6 +1790,7 @@ void DivPlatformOPL::renderSamples() {
       logW("out of ADPCM memory for sample %d!",i);
     } else {
       memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
+      sampleLoaded[i]=true;
     }
     sampleOffB[i]=memPos;
     memPos+=paddedLen;

@@ -955,13 +955,19 @@ bool DivPlatformX1_010::isSampleLoaded(int index, int sample) {
   return sampleLoaded[sample];
 }
 
-void DivPlatformX1_010::renderSamples() {
+void DivPlatformX1_010::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleOffX1,0,256*sizeof(unsigned int));
+  memset(sampleLoaded,0,256*sizeof(bool));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[0][sysID]) {
+      sampleOffX1[i]=0;
+      continue;
+    }
+    
     int paddedLen=(s->length8+4095)&(~0xfff);
     if (isBanked) {
     // fit sample bank size to 128KB for Seta 2 external bankswitching logic (not emulated yet!)
@@ -981,6 +987,7 @@ void DivPlatformX1_010::renderSamples() {
       logW("out of X1-010 memory for sample %d!",i);
     } else {
       memcpy(sampleMem+memPos,s->data8,paddedLen);
+      sampleLoaded[i]=true;
     }
     sampleOffX1[i]=memPos;
     memPos+=paddedLen;
