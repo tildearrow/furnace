@@ -379,7 +379,7 @@ void FurnaceGUI::drawSampleEdit() {
                       toolText=fmt::sprintf("%s (%s)\n%d bytes free",e->getSystemName(e->song.system[j]),memName,totalFree);
                     }
 
-                    if (isMemWarning[i][j]) {
+                    if (isMemWarning[i][j] && sample->renderOn[i][j]) {
                       toolText+="\n\nnot enough memory for this sample!";
                     }
 
