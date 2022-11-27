@@ -206,6 +206,10 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       return index == 0 ? 16777216 : index == 1 ? 16777216 : 0;
     }
 
+    const char* getSampleMemName(int index=0) {
+      return index == 0 ? "ADPCM-A" : index == 1 ? "ADPCM-B" : NULL;
+    }
+
     size_t getSampleMemUsage(int index) {
       return index == 0 ? adpcmAMemLen : index == 1 ? adpcmBMemLen : 0;
     }
@@ -238,9 +242,9 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
           logW("out of ADPCM-A memory for sample %d!",i);
         } else {
           memcpy(adpcmAMem+memPos,s->dataA,paddedLen);
+          sampleLoaded[0][i]=true;
         }
         sampleOffA[i]=memPos;
-        sampleLoaded[0][i]=true;
         memPos+=paddedLen;
       }
       adpcmAMemLen=memPos+256;
@@ -263,9 +267,9 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
           logW("out of ADPCM-B memory for sample %d!",i);
         } else {
           memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
+          sampleLoaded[1][i]=true;
         }
         sampleOffB[i]=memPos;
-        sampleLoaded[1][i]=true;
         memPos+=paddedLen;
       }
       adpcmBMemLen=memPos+256;

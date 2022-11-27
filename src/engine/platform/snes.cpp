@@ -806,6 +806,7 @@ bool DivPlatformSNES::isSampleLoaded(int index, int sample) {
 void DivPlatformSNES::renderSamples() {
   memset(copyOfSampleMem,0,getSampleMemCapacity());
   memset(sampleOff,0,256*sizeof(unsigned int));
+  memset(sampleLoaded,0,256*sizeof(bool));
 
   // skip past sample table and wavetable buffer
   size_t memPos=sampleTableBase+8*4+8*9*16;
@@ -828,6 +829,7 @@ void DivPlatformSNES::renderSamples() {
       logW("out of BRR memory for sample %d!",i);
       break;
     }
+    sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
   memcpy(sampleMem,copyOfSampleMem,65536);

@@ -556,6 +556,7 @@ bool DivPlatformSoundUnit::isSampleLoaded(int index, int sample) {
 void DivPlatformSoundUnit::renderSamples() {
   memset(su->pcm,0,getSampleMemCapacity(0));
   memset(sampleOffSU,0,256*sizeof(unsigned int));
+  memset(sampleLoaded,0,256*sizeof(bool));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -571,6 +572,7 @@ void DivPlatformSoundUnit::renderSamples() {
       logW("out of PCM memory for sample %d!",i);
     } else {
       memcpy(su->pcm+memPos,s->data8,paddedLen);
+      sampleLoaded[i]=true;
     }
     sampleOffSU[i]=memPos;
     memPos+=paddedLen;

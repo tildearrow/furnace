@@ -281,6 +281,7 @@ void FurnaceGUI::drawSampleEdit() {
           memset(isChipVisible,0,32*sizeof(bool));
           memset(isTypeVisible,0,4*sizeof(bool));
           memset(isMemVisible,0,32*4*sizeof(bool));
+          memset(isMemWarning,0,32*4*sizeof(bool));
           for (int i=0; i<e->song.systemLen; i++) {
             DivDispatch* dispatch=e->getDispatch(i);
             if (dispatch==NULL) continue;
@@ -300,7 +301,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (selColumns<=1) {
             ImGui::Text("NO CHIPS LESS GOOO");
           } else {
-            if (ImGui::BeginTable("SEChipSel",selColumns,ImGuiTableFlags_SizingFixedSame|ImGuiTableFlags_ScrollX)) {
+            if (ImGui::BeginTable("SEChipSel",selColumns,ImGuiTableFlags_SizingFixedSame)) {
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
               for (int i=0; i<e->song.systemLen; i++) {
@@ -356,6 +357,34 @@ void FurnaceGUI::drawSampleEdit() {
                   }
 
                   ImGui::PopStyleColor(4);
+
+                  if (ImGui::IsItemHovered()) {
+                    const char* memName=NULL;
+                    size_t capacity=0;
+                    size_t usage=0;
+                    int totalFree=0;
+                    DivDispatch* dispatch=e->getDispatch(j);
+                    if (dispatch!=NULL) {
+                      memName=dispatch->getSampleMemName(i);
+                      capacity=dispatch->getSampleMemCapacity(i);
+                      usage=dispatch->getSampleMemUsage(i);
+                      if (usage<capacity) {
+                        totalFree=capacity-usage;
+                      }
+                    }
+                    String toolText;
+                    if (memName==NULL) {
+                      toolText=fmt::sprintf("%s\n%d bytes free",e->getSystemName(e->song.system[j]),totalFree);
+                    } else {
+                      toolText=fmt::sprintf("%s (%s)\n%d bytes free",e->getSystemName(e->song.system[j]),memName,totalFree);
+                    }
+
+                    if (isMemWarning[i][j]) {
+                      toolText+="\n\nnot enough memory for this sample!";
+                    }
+
+                    ImGui::SetTooltip("%s",toolText.c_str());
+                  }
                 }
               }
               ImGui::EndTable();

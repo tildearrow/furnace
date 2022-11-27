@@ -394,6 +394,7 @@ bool DivPlatformRF5C68::isSampleLoaded(int index, int sample) {
 void DivPlatformRF5C68::renderSamples() {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleOffRFC,0,256*sizeof(unsigned int));
+  memset(sampleLoaded,0,256*sizeof(bool));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -418,6 +419,7 @@ void DivPlatformRF5C68::renderSamples() {
     }
     // align memPos to 256-byte boundary
     memPos=(memPos+0xff)&~0xff;
+    sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
 }

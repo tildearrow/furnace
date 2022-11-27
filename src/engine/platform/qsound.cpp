@@ -653,6 +653,7 @@ bool DivPlatformQSound::isSampleLoaded(int index, int sample) {
 // TODO: ADPCM... come on...
 void DivPlatformQSound::renderSamples() {
   memset(sampleMem,0,getSampleMemCapacity());
+  memset(sampleLoaded,0,256*sizeof(bool));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -677,6 +678,7 @@ void DivPlatformQSound::renderSamples() {
       for (int i=0; i<length; i++) {
         sampleMem[(memPos+i)^0x8000]=s->data8[i];
       }
+      sampleLoaded[i]=true;
     }
     offPCM[i]=memPos^0x8000;
     memPos+=length+16;

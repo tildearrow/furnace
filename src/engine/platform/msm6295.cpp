@@ -346,6 +346,7 @@ void DivPlatformMSM6295::renderSamples() {
 
   memset(adpcmMem,0,getSampleMemCapacity(0));
   memset(sampleOffVOX,0,256*sizeof(unsigned int));
+  memset(sampleLoaded,0,256*sizeof(bool));
 
   // sample data
   size_t memPos=128*8;
@@ -363,6 +364,7 @@ void DivPlatformMSM6295::renderSamples() {
       logW("out of ADPCM memory for sample %d!",i);
     } else {
       memcpy(adpcmMem+memPos,s->dataVOX,paddedLen);
+      sampleLoaded[i]=true;
     }
     sampleOffVOX[i]=memPos;
     memPos+=paddedLen;

@@ -152,11 +152,16 @@ size_t DivDispatch::getSampleMemCapacity(int index) {
   return 0;
 }
 
+const char* DivDispatch::getSampleMemName(int index) {
+  return NULL;
+}
+
 size_t DivDispatch::getSampleMemUsage(int index) {
   return 0;
 }
 
 bool DivDispatch::isSampleLoaded(int index, int sample) {
+  printf("you are calling.\n");
   return false;
 }
 

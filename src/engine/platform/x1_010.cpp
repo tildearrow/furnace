@@ -958,6 +958,7 @@ bool DivPlatformX1_010::isSampleLoaded(int index, int sample) {
 void DivPlatformX1_010::renderSamples() {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleOffX1,0,256*sizeof(unsigned int));
+  memset(sampleLoaded,0,256*sizeof(bool));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -981,6 +982,7 @@ void DivPlatformX1_010::renderSamples() {
       logW("out of X1-010 memory for sample %d!",i);
     } else {
       memcpy(sampleMem+memPos,s->data8,paddedLen);
+      sampleLoaded[i]=true;
     }
     sampleOffX1[i]=memPos;
     memPos+=paddedLen;

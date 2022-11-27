@@ -429,6 +429,7 @@ bool DivPlatformYMZ280B::isSampleLoaded(int index, int sample) {
 void DivPlatformYMZ280B::renderSamples() {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleOff,0,256*sizeof(unsigned int));
+  memset(sampleLoaded,0,256*sizeof(bool));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -455,6 +456,7 @@ void DivPlatformYMZ280B::renderSamples() {
       logW("out of YMZ280B PCM memory for sample %d!",i);
       break;
     }
+    sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
 }

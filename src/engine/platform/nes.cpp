@@ -728,7 +728,8 @@ bool DivPlatformNES::isSampleLoaded(int index, int sample) {
 }
 
 void DivPlatformNES::renderSamples() {
-  memset(dpcmMem,0,getSampleMemCapacity(0));
+  memset(dpcmMem,0,getSampleMemCapacity(0));\
+  memset(sampleLoaded,0,256*sizeof(bool));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -750,6 +751,7 @@ void DivPlatformNES::renderSamples() {
       logW("out of DPCM memory for sample %d!",i);
     } else {
       memcpy(dpcmMem+memPos,s->dataDPCM,MIN(s->lengthDPCM,paddedLen));
+      sampleLoaded[i]=true;
     }
     sampleOffDPCM[i]=memPos;
     memPos+=paddedLen;
