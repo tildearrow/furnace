@@ -76,6 +76,10 @@ class DivPlatformT6W28: public DivDispatch {
   unsigned char regPool[128];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
+
+  double NOTE_SN(int ch, int note);
+  int snCalcFreq(int ch);
+  
   void writeOutVol(int ch);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);

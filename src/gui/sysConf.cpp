@@ -1527,12 +1527,25 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
+    case DIV_SYSTEM_T6W28: {
+      bool noEasyNoise=flags.getBool("noEasyNoise",false);
+
+      if (ImGui::Checkbox("Disable easy period to note mapping on upper octaves",&noEasyNoise)) {
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("noEasyNoise",noEasyNoise);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_VERA:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_YMU759:
     case DIV_SYSTEM_PET:
-    case DIV_SYSTEM_T6W28:
     case DIV_SYSTEM_VBOY:
       ImGui::Text("nothing to configure");
       break;

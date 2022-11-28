@@ -137,7 +137,7 @@ int DivPlatformSMS::snCalcFreq(int ch) {
     if (ret<0) ret=0;
     return ret;
   }
-  return parent->calcFreq(chan[ch].baseFreq,chan[ch].pitch,true,0,chan[ch].pitch2,chipClock,toneDivider);
+  return parent->calcFreq(chan[ch].baseFreq,chan[ch].pitch,true,0,chan[ch].pitch2,chipClock,ch==3?noiseDivider:toneDivider);
 }
 
 void DivPlatformSMS::tick(bool sysTick) {
