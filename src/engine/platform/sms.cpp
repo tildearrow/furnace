@@ -464,32 +464,38 @@ void DivPlatformSMS::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 1:
       chipClock=COLOR_PAL*4.0/5.0;
-      easyThreshold=92;
+      easyThreshold=84;
+      easyStartingPeriod=13;
       break;
     case 2:
       chipClock=4000000;
-      easyThreshold=95;
+      easyThreshold=86;
+      easyStartingPeriod=13;
       break;
     case 3:
       chipClock=COLOR_NTSC/2.0;
-      easyThreshold=80;
+      easyThreshold=72;
+      easyStartingPeriod=13;
       break;
     case 4:
       chipClock=3000000;
-      easyThreshold=89;
+      easyThreshold=81;
+      easyStartingPeriod=13;
       break;
     case 5:
       chipClock=2000000;
-      easyThreshold=82;
+      easyThreshold=74;
+      easyStartingPeriod=13;
       break;
     case 6:
       chipClock=COLOR_NTSC/8.0;
-      easyThreshold=57;
+      easyThreshold=48;
+      easyStartingPeriod=13;
       break;
     default:
       chipClock=COLOR_NTSC;
-      easyThreshold=92;
-      easyStartingPeriod=8;
+      easyThreshold=84;
+      easyStartingPeriod=13;
       break;
   }
   resetPhase=!flags.getBool("noPhaseReset",false);
