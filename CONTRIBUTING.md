@@ -86,7 +86,7 @@ just put your demo song in `demos/`! be noted there are some guidelines:
 
 - avoid Nintendo song covers.
 - avoid big label song covers.
-- avoid poor quality songs.
+- low effort compositions/covers may not be accepted at all.
 
 # Finishing
 
