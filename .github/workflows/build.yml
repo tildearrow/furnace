@@ -25,7 +25,7 @@ jobs:
           - { name: 'macOS x86_64', os: macos-latest, arch: x86_64 }
           - { name: 'macOS ARM', os: macos-latest, arch: arm64 }
           - { name: 'Linux x86_64', os: ubuntu-18.04, arch: x86_64 }
-          - { name: 'Linux ARM', os: ubuntu-18.04, arch: armhf }
+          #- { name: 'Linux ARM', os: ubuntu-18.04, arch: armhf }
       fail-fast: false
 
     name: ${{ matrix.config.name }}
