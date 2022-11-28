@@ -126,7 +126,7 @@ double DivPlatformSMS::NOTE_SN(int ch, int note) {
     return NOTE_PERIODIC(note);
   }
   if (note>easyThreshold) {
-    return MAX(0,easyStartingPeriod-easyThreshold);
+    return MAX(0,easyStartingPeriod-(note-easyThreshold));
   }
   return NOTE_PERIODIC(note);
 }

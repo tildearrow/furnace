@@ -88,7 +88,7 @@ double DivPlatformT6W28::NOTE_SN(int ch, int note) {
     return NOTE_PERIODIC(note);
   }
   if (note>107) {
-    return MAX(0,13-107);
+    return MAX(0,13-(note-107));
   }
   return NOTE_PERIODIC(note);
 }
