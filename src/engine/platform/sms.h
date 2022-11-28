@@ -66,6 +66,7 @@ class DivPlatformSMS: public DivDispatch {
   double toneDivider=64.0;
   double noiseDivider=64.0;
   int easyThreshold;
+  int easyStartingPeriod;
   bool updateSNMode;
   bool resetPhase;
   bool isRealSN;

@@ -126,14 +126,14 @@ double DivPlatformSMS::NOTE_SN(int ch, int note) {
     return NOTE_PERIODIC(note);
   }
   if (note>easyThreshold) {
-    return MAX(0,8-easyThreshold);
+    return MAX(0,easyStartingPeriod-easyThreshold);
   }
   return NOTE_PERIODIC(note);
 }
 
 int DivPlatformSMS::snCalcFreq(int ch) {
   if (parent->song.linearPitch==2 && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(easyThreshold<<7)) {
-    int ret=(0x440-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(easyThreshold<<7)))>>7;
+    int ret=(((easyStartingPeriod<<7)+0x40)-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(easyThreshold<<7)))>>7;
     if (ret<0) ret=0;
     return ret;
   }
@@ -489,6 +489,7 @@ void DivPlatformSMS::setFlags(const DivConfig& flags) {
     default:
       chipClock=COLOR_NTSC;
       easyThreshold=92;
+      easyStartingPeriod=8;
       break;
   }
   resetPhase=!flags.getBool("noPhaseReset",false);
