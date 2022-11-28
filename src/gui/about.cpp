@@ -76,6 +76,7 @@ const char* aboutLine[]={
   "Fragmare",
   "freq-mod",
   "iyatemu",
+  "JayBOB18",
   "kleeder",
   "jaezu",
   "Laggy",
