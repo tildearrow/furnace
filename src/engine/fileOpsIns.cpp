@@ -1980,7 +1980,12 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path, bool
         format=DIV_INSFORMAT_WOPL;
       } else if (extS==".wopn") {
         format=DIV_INSFORMAT_WOPN;
-      } 
+      } else {
+        // unknown format
+        lastError="unknown instrument format";
+        delete[] buf;
+        return ret;
+      }
     }
 
     switch (format) {
