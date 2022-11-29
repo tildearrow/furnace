@@ -212,7 +212,7 @@ void FurnaceGUI::drawMobileControls() {
 
           ImGui::Separator();
 
-          ImGui::Text("Song info here...");
+          drawSongInfo(true);
           break;
         }
         case GUI_SCENE_CHANNELS:

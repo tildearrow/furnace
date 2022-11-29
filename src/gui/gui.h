@@ -1730,8 +1730,9 @@ class FurnaceGUI {
   void popToggleColors();
 
   void drawMobileControls();
+  void drawMobileOrderSel();
   void drawEditControls();
-  void drawSongInfo();
+  void drawSongInfo(bool asChild=false);
   void drawOrders();
   void drawPattern();
   void drawInsList(bool asChild=false);

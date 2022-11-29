@@ -3774,6 +3774,7 @@ bool FurnaceGUI::loop() {
           curWindow=GUI_WINDOW_PATTERN;
           drawPattern();
           drawPiano();
+          drawMobileOrderSel();
           break;
       }
 
