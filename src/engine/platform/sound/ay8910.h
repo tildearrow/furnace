@@ -344,8 +344,10 @@ private:
 	unsigned char m_vol_enabled[NUM_CHANNELS];
 	const ay_ym_param *m_par;
 	const ay_ym_param *m_par_env;
+  const ay_ym_param *m_par_ext;
 	short m_vol_table[NUM_CHANNELS][16];
 	short m_env_table[NUM_CHANNELS][32];
+  short m_ext_table[NUM_CHANNELS][32];
 	short m_vol3d_table[32*32*32*8];
 	int m_flags;          /* Flags */
 	int m_feature;        /* Chip specific features */

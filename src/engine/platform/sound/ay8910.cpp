@@ -142,7 +142,7 @@
         http://mametesters.org/view.php?id=3043
 
   TODO:
-  * Measure volume / envelope parameters for AY8930 expanded mode
+  * Measure envelope parameters for AY8930 expanded mode
   * YM2610 & YM2608 will need a separate flag in their config structures
     to distinguish between legacy and discrete mode.
 
@@ -643,6 +643,47 @@ static const ay8910_device::ay_ym_param ym2149_param_env =
 		18447, 15864, 14009, 12371, 10506,  8922,  7787,  6796,
 		5689,  4763,  4095,  3521,  2909,  2403,  2043,  1737,
 		1397,  1123,   925,   762,   578,   438,   332,   251 },
+};
+
+// TODO: fix
+static const ay8910_device::ay_ym_param ay8930_param_ext =
+{
+	800000, 8000000,
+	32,
+  {
+    103350,
+    13818,
+    11298,
+    8949,
+    7391,
+    6284,
+    5725,
+    4396,
+    3539,
+    3252,
+    2830,
+    2341,
+    1947,
+    1723,
+    1519,
+    1320,
+    1217,
+    1046,
+    880,
+    798,
+    708,
+    614,
+    547,
+    499,
+    462,
+    420,
+    386,
+    346,
+    321,
+    290,
+    270,
+    251,
+  },
 };
 
 #if 0
@@ -1172,7 +1213,7 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 							if (m_feature & PSG_EXTENDED_ENVELOPE) // AY8914 Has a two bit tone_envelope field
 								outputs[chan][sampindex]=m_env_table[chan][m_vol_enabled[chan] ? env_volume >> (3-tone_envelope(tone)) : 0];
 							else
-								outputs[chan][sampindex]=m_env_table[chan][m_vol_enabled[chan] ? env_volume : 0];
+								outputs[chan][sampindex]=m_ext_table[chan][m_vol_enabled[chan] ? env_volume : 0];
 						}
 					}
 					else
@@ -1186,7 +1227,7 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 				else
 				{
 					if (is_expanded_mode())
-						outputs[chan][sampindex]=m_env_table[chan][m_vol_enabled[chan] ? tone_volume(tone) : 0];
+						outputs[chan][sampindex]=m_ext_table[chan][m_vol_enabled[chan] ? tone_volume(tone) : 0];
 					else
 						outputs[chan][sampindex]=m_vol_table[chan][m_vol_enabled[chan] ? tone_volume(tone) : 0];
 				}
@@ -1222,6 +1263,7 @@ void ay8910_device::build_mixer_table()
 		{
 			build_single_table(m_res_load[chan], m_par, normalize, m_vol_table[chan], m_zero_is_off);
 			build_single_table(m_res_load[chan], m_par_env, normalize, m_env_table[chan], 0);
+      build_single_table(m_res_load[chan], m_par_ext, normalize, m_ext_table[chan], 0);
 		}
 	}
 	/*
@@ -1453,6 +1495,7 @@ ay8910_device::ay8910_device(device_type type, unsigned int clock,
 		m_zero_is_off(  (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? 1 : 0),
 		m_par(          (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? &ay8910_param : &ym2149_param),
 		m_par_env(      (!(feature & PSG_HAS_EXPANDED_MODE)) && (psg_type == PSG_TYPE_AY) ? &ay8910_param : &ym2149_param_env),
+    m_par_ext(&ay8930_param_ext),
 		m_flags(AY8910_LEGACY_OUTPUT | (((feature & PSG_PIN26_IS_CLKSEL) && clk_sel) ? YM2149_PIN26_LOW : 0)),
 		m_feature(feature)
 {
@@ -1478,6 +1521,7 @@ void ay8910_device::set_type(psg_type_t psg_type, bool clk_sel)
 		m_zero_is_off = 1;
 		m_par = &ay8910_param;
 		m_par_env = &ay8910_param;
+    m_par_ext = &ay8930_param_ext;
 	}
 	else
 	{
@@ -1486,6 +1530,7 @@ void ay8910_device::set_type(psg_type_t psg_type, bool clk_sel)
 		m_zero_is_off = 0;
 		m_par = &ym2149_param;
 		m_par_env = &ym2149_param_env;
+    m_par_ext = &ay8930_param_ext;
 	}
 	if (m_feature & PSG_HAS_EXPANDED_MODE)
 		m_env_step_mul <<= 1;
