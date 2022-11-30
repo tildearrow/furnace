@@ -26,7 +26,9 @@ m_uParamRate(0),
 m_nClockRate(EXTERNAL_CLK_HZ),
 m_nSampleRate(SAMPLE_RATE_HZ),
 m_nOversample(DEFAULT_OVERSAMPLE),
-m_bHighpass(false)
+m_bHighpass(false),
+filterout_z1_left_mixed(0),
+filterout_z1_right_mixed(0)
 {
 #ifdef USE_CONFIG_FILE
 	m_Config.ReadConfig();
@@ -301,7 +303,6 @@ void scale_for_output(unsigned int left_input, unsigned int right_input,
 void CSAASoundInternal::GenerateMany(BYTE* pBuffer, unsigned long nSamples, DivDispatchOscBuffer** oscBuf)
 {
 	unsigned int left_mixed, right_mixed;
-	static double filterout_z1_left_mixed = 0, filterout_z1_right_mixed = 0;
 
 #if defined(DEBUGSAA) || defined(USE_CONFIG_FILE)
 	BYTE* pBufferStart = pBuffer;

@@ -21,6 +21,8 @@
 #define _SAMPLE_H
 
 #include "../ta-utils.h"
+#include "safeWriter.h"
+#include "dataErrors.h"
 #include <deque>
 
 enum DivSampleLoopMode: unsigned char {
@@ -112,6 +114,8 @@ struct DivSample {
   // - 2: Pingpong loop
   DivSampleLoopMode loopMode;
 
+  bool renderOn[4][32];
+
   // these are the new data structures.
   signed char* data8; // 8
   short* data16; // 16
@@ -130,6 +134,20 @@ struct DivSample {
 
   std::deque<DivSampleHistory*> undoHist;
   std::deque<DivSampleHistory*> redoHist;
+
+  /**
+   * put sample data.
+   * @param w a SafeWriter.
+   */
+  void putSampleData(SafeWriter* w);
+
+  /**
+   * read sample data.
+   * @param reader the reader.
+   * @param version the format version.
+   * @return a DivDataErrors.
+   */
+  DivDataErrors readSampleData(SafeReader& reader, short version);
 
   /**
    * check if sample is loopable.
@@ -310,7 +328,14 @@ struct DivSample {
     lengthB(0),
     lengthBRR(0),
     lengthVOX(0),
-    samples(0) {}
+    samples(0) {
+    for (int i=0; i<32; i++) {
+      renderOn[0][i]=true;
+      renderOn[1][i]=true;
+      renderOn[2][i]=true;
+      renderOn[3][i]=true;
+    }
+  }
   ~DivSample();
 };
 

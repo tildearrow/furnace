@@ -18,8 +18,45 @@
  */
 
 #include "gui.h"
+#include <fmt/printf.h>
 #include "IconsFontAwesome4.h"
-#include <imgui.h>
+#include "imgui_internal.h"
+
+void FurnaceGUI::drawMobileOrderSel() {
+  if (!portrait) return;
+
+  ImGui::SetNextWindowPos(ImVec2(0.0f,mobileMenuPos*-0.65*canvasH));
+  ImGui::SetNextWindowSize(ImVec2(canvasW,0.12*canvasW));
+  if (ImGui::Begin("OrderSel",NULL,globalWinFlags)) {
+    ImDrawList* dl=ImGui::GetWindowDrawList();
+    ImGuiWindow* window=ImGui::GetCurrentWindow();
+    ImGuiStyle& style=ImGui::GetStyle();
+
+    ImVec2 size=ImGui::GetContentRegionAvail();
+
+    ImVec2 minArea=window->DC.CursorPos;
+    ImVec2 maxArea=ImVec2(
+      minArea.x+size.x,
+      minArea.y+size.y
+    );
+    ImRect rect=ImRect(minArea,maxArea);
+    ImGui::ItemSize(size,style.FramePadding.y);
+    ImU32 col=ImGui::GetColorU32(ImGuiCol_Text);
+    if (ImGui::ItemAdd(rect,ImGui::GetID("OrderSelW"))) {
+      String text=fmt::sprintf("%.2X",curOrder);
+
+      ImVec2 pos=ImLerp(minArea,maxArea,ImVec2(0.5,0.0));
+      ImGui::PushFont(bigFont);
+      ImVec2 textSize=ImGui::CalcTextSize(text.c_str());
+      ImGui::PopFont();
+
+      pos.x-=textSize.x*0.5*(size.y/textSize.y);
+
+      dl->AddText(bigFont,size.y,pos,col,text.c_str());
+    }
+  }
+  ImGui::End();
+}
 
 void FurnaceGUI::drawOrders() {
   static char selID[4096];

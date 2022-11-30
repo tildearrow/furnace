@@ -91,6 +91,7 @@ class DivPlatformOPL: public DivDispatch {
     size_t adpcmBMemLen;
     DivOPLAInterface iface;
     unsigned int sampleOffB[256];
+    bool sampleLoaded[256];
   
     ymfm::adpcm_b_engine* adpcmB;
     const unsigned char** slotsNonDrums;
@@ -152,7 +153,8 @@ class DivPlatformOPL: public DivDispatch {
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
-    void renderSamples();
+    bool isSampleLoaded(int index, int sample);
+    void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformOPL();

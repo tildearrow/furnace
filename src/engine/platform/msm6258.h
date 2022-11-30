@@ -81,6 +81,7 @@ class DivPlatformMSM6258: public DivDispatch {
 
     unsigned char* adpcmMem;
     size_t adpcmMemLen;
+    bool sampleLoaded[256];
     unsigned char sampleBank, msmPan, msmDivider, rateSel, msmClock, clockSel;
     signed char msmDividerCount, msmClockCount;
     short msmOut;
@@ -113,7 +114,8 @@ class DivPlatformMSM6258: public DivDispatch {
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
-    void renderSamples();
+    bool isSampleLoaded(int index, int sample);
+    void renderSamples(int chipID);
     
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

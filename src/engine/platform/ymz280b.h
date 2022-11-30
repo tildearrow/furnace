@@ -67,6 +67,7 @@ class DivPlatformYMZ280B: public DivDispatch {
   bool isMuted[8];
   int chipType;
   unsigned int sampleOff[256];
+  bool sampleLoaded[256];
 
   unsigned char* sampleMem;
   size_t sampleMemLen;
@@ -99,7 +100,8 @@ class DivPlatformYMZ280B: public DivDispatch {
     const void* getSampleMem(int index = 0);
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
-    void renderSamples();
+    bool isSampleLoaded(int index, int sample);
+    void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();

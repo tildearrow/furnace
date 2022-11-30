@@ -644,13 +644,25 @@ size_t DivPlatformQSound::getSampleMemUsage(int index) {
   return index == 0 ? sampleMemLen : 0;
 }
 
+bool DivPlatformQSound::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
 // TODO: ADPCM... come on...
-void DivPlatformQSound::renderSamples() {
+void DivPlatformQSound::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
+  memset(sampleLoaded,0,256*sizeof(bool));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[0][sysID]) {
+      offPCM[i]=0;
+      continue;
+    }
+
     int length=s->length8;
     if (length>65536-16) {
       length=65536-16;
@@ -671,6 +683,7 @@ void DivPlatformQSound::renderSamples() {
       for (int i=0; i<length; i++) {
         sampleMem[(memPos+i)^0x8000]=s->data8[i];
       }
+      sampleLoaded[i]=true;
     }
     offPCM[i]=memPos^0x8000;
     memPos+=length+16;

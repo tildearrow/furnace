@@ -142,6 +142,8 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
     unsigned char sampleBank;
   
     bool extMode, noExtMacros;
+
+    bool sampleLoaded[2][256];
   
     unsigned char writeADPCMAOff, writeADPCMAOn;
     int globalADPCMAVolume;
@@ -204,18 +206,34 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       return index == 0 ? 16777216 : index == 1 ? 16777216 : 0;
     }
 
+    const char* getSampleMemName(int index=0) {
+      return index == 0 ? "ADPCM-A" : index == 1 ? "ADPCM-B" : NULL;
+    }
+
     size_t getSampleMemUsage(int index) {
       return index == 0 ? adpcmAMemLen : index == 1 ? adpcmBMemLen : 0;
     }
 
-    void renderSamples() {
+    bool isSampleLoaded(int index, int sample) {
+      if (index<0 || index>1) return false;
+      if (sample<0 || sample>255) return false;
+      return sampleLoaded[index][sample];
+    }
+
+    void renderSamples(int sysID) {
       memset(adpcmAMem,0,getSampleMemCapacity(0));
       memset(sampleOffA,0,256*sizeof(unsigned int));
       memset(sampleOffB,0,256*sizeof(unsigned int));
+      memset(sampleLoaded,0,256*2*sizeof(bool));
 
       size_t memPos=0;
       for (int i=0; i<parent->song.sampleLen; i++) {
         DivSample* s=parent->song.sample[i];
+        if (!s->renderOn[0][sysID]) {
+          sampleOffA[i]=0;
+          continue;
+        }
+
         int paddedLen=(s->lengthA+255)&(~0xff);
         if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
           memPos=(memPos+0xfffff)&0xf00000;
@@ -229,6 +247,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
           logW("out of ADPCM-A memory for sample %d!",i);
         } else {
           memcpy(adpcmAMem+memPos,s->dataA,paddedLen);
+          sampleLoaded[0][i]=true;
         }
         sampleOffA[i]=memPos;
         memPos+=paddedLen;
@@ -240,6 +259,11 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       memPos=0;
       for (int i=0; i<parent->song.sampleLen; i++) {
         DivSample* s=parent->song.sample[i];
+        if (!s->renderOn[1][sysID]) {
+          sampleOffB[i]=0;
+          continue;
+        }
+
         int paddedLen=(s->lengthB+255)&(~0xff);
         if ((memPos&0xf00000)!=((memPos+paddedLen)&0xf00000)) {
           memPos=(memPos+0xfffff)&0xf00000;
@@ -253,6 +277,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
           logW("out of ADPCM-B memory for sample %d!",i);
         } else {
           memcpy(adpcmBMem+memPos,s->dataB,paddedLen);
+          sampleLoaded[1][i]=true;
         }
         sampleOffB[i]=memPos;
         memPos+=paddedLen;

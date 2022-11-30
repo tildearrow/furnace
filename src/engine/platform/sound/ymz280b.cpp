@@ -286,6 +286,8 @@ int ymz280b_device::generate_pcm8(struct YMZ280BVoice *voice, s16 *buffer, int s
 
 ***********************************************************************************************/
 
+// according to this core, it should be little-endian.
+// but it's big-endian in VGMPlay...
 int ymz280b_device::generate_pcm16(struct YMZ280BVoice *voice, s16 *buffer, int samples)
 {
 	u32 position = voice->position;
@@ -298,7 +300,7 @@ int ymz280b_device::generate_pcm16(struct YMZ280BVoice *voice, s16 *buffer, int 
 		while (samples)
 		{
 			/* fetch the current value */
-			val = (s16)((m_ext_mem[position / 2 + 1] << 8) + m_ext_mem[position / 2 + 0]);
+			val = (s16)((m_ext_mem[position / 2 + 0] << 8) + m_ext_mem[position / 2 + 1]);
 
 			/* output to the buffer, scaling by the volume */
 			*buffer++ = val;
@@ -321,7 +323,7 @@ int ymz280b_device::generate_pcm16(struct YMZ280BVoice *voice, s16 *buffer, int 
 		while (samples)
 		{
 			/* fetch the current value */
-			val = (s16)((m_ext_mem[position / 2 + 1] << 8) + m_ext_mem[position / 2 + 0]);
+			val = (s16)((m_ext_mem[position / 2 + 0] << 8) + m_ext_mem[position / 2 + 1]);
 
 			/* output to the buffer, scaling by the volume */
 			*buffer++ = val;

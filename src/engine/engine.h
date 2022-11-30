@@ -47,8 +47,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev125"
-#define DIV_ENGINE_VERSION 125
+#define DIV_VERSION "dev128"
+#define DIV_ENGINE_VERSION 128
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -766,7 +766,7 @@ class DivEngine {
 
     // get instrument from file
     // if the returned vector is empty then there was an error.
-    std::vector<DivInstrument*> instrumentFromFile(const char* path);
+    std::vector<DivInstrument*> instrumentFromFile(const char* path, bool loadAssets=true);
 
     // load temporary instrument
     void loadTempIns(DivInstrument* which);

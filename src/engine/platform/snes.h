@@ -109,6 +109,7 @@ class DivPlatformSNES: public DivDispatch {
   signed char copyOfSampleMem[65536];
   size_t sampleMemLen;
   unsigned int sampleOff[256];
+  bool sampleLoaded[256];
   unsigned char regPool[0x80];
   SPC_DSP dsp;
   friend void putDispatchChan(void*,int,int);
@@ -136,7 +137,8 @@ class DivPlatformSNES: public DivDispatch {
     const void* getSampleMem(int index = 0);
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
-    void renderSamples();
+    bool isSampleLoaded(int index, int sample);
+    void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
   private:

@@ -68,6 +68,7 @@ class DivPlatformNES: public DivDispatch {
   int dacSample;
   unsigned char* dpcmMem;
   size_t dpcmMemLen;
+  bool sampleLoaded[256];
   unsigned char dpcmBank;
   unsigned char sampleBank;
   unsigned char writeOscBuf;
@@ -115,7 +116,8 @@ class DivPlatformNES: public DivDispatch {
     const void* getSampleMem(int index);
     size_t getSampleMemCapacity(int index);
     size_t getSampleMemUsage(int index);
-    void renderSamples();
+    bool isSampleLoaded(int index, int sample);
+    void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformNES();

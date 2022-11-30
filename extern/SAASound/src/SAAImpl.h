@@ -36,6 +36,7 @@ private:
 	unsigned int m_nSampleRate;
 	unsigned int m_nOversample;
 	bool m_bHighpass;
+  double filterout_z1_left_mixed, filterout_z1_right_mixed;
 #ifdef USE_CONFIG_FILE
 	SAAConfig m_Config;
 #endif

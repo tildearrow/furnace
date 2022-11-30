@@ -65,11 +65,14 @@ class DivPlatformSMS: public DivDispatch {
   int divider=16;
   double toneDivider=64.0;
   double noiseDivider=64.0;
+  int easyThreshold;
+  int easyStartingPeriod;
   bool updateSNMode;
   bool resetPhase;
   bool isRealSN;
   bool stereo;
   bool nuked;
+  bool easyNoise;
   sn76496_base_device* sn;
   ympsg_t sn_nuked;
   struct QueuedWrite {
@@ -81,6 +84,9 @@ class DivPlatformSMS: public DivDispatch {
   std::queue<QueuedWrite> writes;
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
+
+  double NOTE_SN(int ch, int note);
+  int snCalcFreq(int ch);
 
   void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
   void acquire_mame(short* bufL, short* bufR, size_t start, size_t len);

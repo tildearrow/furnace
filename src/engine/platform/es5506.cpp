@@ -1191,13 +1191,25 @@ size_t DivPlatformES5506::getSampleMemUsage(int index) {
   return index == 0 ? sampleMemLen : 0;
 }
 
-void DivPlatformES5506::renderSamples() {
+bool DivPlatformES5506::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
+void DivPlatformES5506::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleOffES5506,0,256*sizeof(unsigned int));
+  memset(sampleLoaded,0,256*sizeof(bool));
 
   size_t memPos=128; // add silent at begin and end of each bank for reverse playback
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[0][sysID]) {
+      sampleOffES5506[i]=0;
+      continue;
+    }
+
     unsigned int length=s->length16;
     // fit sample size to single bank size
     if (length>(4194304-128)) {
@@ -1217,6 +1229,7 @@ void DivPlatformES5506::renderSamples() {
       memcpy(sampleMem+(memPos/sizeof(short)),s->data16,length);
     }
     sampleOffES5506[i]=memPos;
+    sampleLoaded[i]=true;
     memPos+=length;
   }
   sampleMemLen=memPos+256;

@@ -110,7 +110,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void notifyInsChange(int ins);
-    void renderSamples();
+    void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
     bool isStereo();
     void poke(unsigned int addr, unsigned short val);

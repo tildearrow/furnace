@@ -147,7 +147,7 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           logD("instrument type is C64");
           break;
         case 8: // Arcade
-          ins->type=DIV_INS_FM;
+          ins->type=DIV_INS_OPM;
           logD("instrument type is Arcade");
           break;
         case 9: // Neo Geo
@@ -187,6 +187,8 @@ void DivEngine::loadDMP(SafeReader& reader, std::vector<DivInstrument*>& ret, St
           ins->type=DIV_INS_OPLL;
         } else if (sys==1) {
           ins->type=DIV_INS_OPL;
+        } else if (sys==8) {
+          ins->type=DIV_INS_OPM;
         } else {
           ins->type=DIV_INS_FM;
         }
@@ -1341,7 +1343,7 @@ void DivEngine::loadOPM(SafeReader& reader, std::vector<DivInstrument*>& ret, St
       // At this point we know any other line would be associated with patch params
       if (newPatch == NULL) {
         newPatch = new DivInstrument;
-        newPatch->type = DIV_INS_FM;
+        newPatch->type = DIV_INS_OPM;
         newPatch->fm.ops = 4;
       }
 
@@ -1814,7 +1816,7 @@ void DivEngine::loadWOPN(SafeReader& reader, std::vector<DivInstrument*>& ret, S
   }
 }
 
-std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
+std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path, bool loadAssets) {
   std::vector<DivInstrument*> ret;
   warnings="";
 
@@ -1880,10 +1882,19 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
 
   unsigned char magic[16];
   bool isFurnaceInstr=false;
+  bool isOldFurnaceIns=false;
   try {
-    reader.read(magic,16);
-    if (memcmp("-Furnace instr.-",magic,16)==0) {
+    reader.read(magic,4);
+    if (memcmp("FINS",magic,4)==0) {
       isFurnaceInstr=true;
+      logV("found a new Furnace ins");
+    } else {
+      reader.read(&magic[4],12);
+      if (memcmp("-Furnace instr.-",magic,16)==0) {
+        logV("found an old Furnace ins");
+        isFurnaceInstr=true;
+        isOldFurnaceIns=true;
+      }
     }
   } catch (EndOfFileException& e) {
     reader.seek(0,SEEK_SET);
@@ -1892,17 +1903,25 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
   if (isFurnaceInstr) {
     DivInstrument* ins=new DivInstrument;
     try {
-      short version=reader.readS();
-      reader.readS(); // reserved
+      short version=0;
+      if (isOldFurnaceIns) {
+        version=reader.readS();
+        reader.readS(); // reserved
+      } else {
+        version=reader.readS();
+        reader.seek(0,SEEK_SET);
+      }
 
       if (version>DIV_ENGINE_VERSION) {
         warnings="this instrument is made with a more recent version of Furnace!";
       }
 
-      unsigned int dataPtr=reader.readI();
-      reader.seek(dataPtr,SEEK_SET);
+      if (isOldFurnaceIns) {
+        unsigned int dataPtr=reader.readI();
+        reader.seek(dataPtr,SEEK_SET);
+      }
 
-      if (ins->readInsData(reader,version)!=DIV_DATA_SUCCESS) {
+      if (ins->readInsData(reader,version,loadAssets?(&song):NULL)!=DIV_DATA_SUCCESS) {
         lastError="invalid instrument header/data!";
         delete ins;
         delete[] buf;
@@ -1961,7 +1980,12 @@ std::vector<DivInstrument*> DivEngine::instrumentFromFile(const char* path) {
         format=DIV_INSFORMAT_WOPL;
       } else if (extS==".wopn") {
         format=DIV_INSFORMAT_WOPN;
-      } 
+      } else {
+        // unknown format
+        lastError="unknown instrument format";
+        delete[] buf;
+        return ret;
+      }
     }
 
     switch (format) {

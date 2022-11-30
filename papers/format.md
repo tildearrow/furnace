@@ -32,6 +32,10 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 127: Furnace dev127
+- 126: Furnace dev126
+- 125: Furnace dev125
+- 124: Furnace dev124
 - 123: Furnace dev123
 - 122: Furnace dev122
 - 121: Furnace dev121
@@ -437,7 +441,23 @@ clock=4000000
 stereo=true
 ```
 
-# instrument
+# instrument (>=127)
+
+Furnace dev127 and higher use the new instrument format.
+
+```
+size | description
+-----|------------------------------------
+  4  | "INS2" block ID
+  4  | size of this block
+  2  | format version
+  2  | instrument type
+ ??? | features...
+```
+
+see [newIns.md](newIns.md) for more information.
+
+# old instrument (<127)
 
 notes:
 

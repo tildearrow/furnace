@@ -420,18 +420,40 @@ size_t DivPlatformYMZ280B::getSampleMemUsage(int index) {
   return index == 0 ? sampleMemLen : 0;
 }
 
-void DivPlatformYMZ280B::renderSamples() {
+bool DivPlatformYMZ280B::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
+void DivPlatformYMZ280B::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleOff,0,256*sizeof(unsigned int));
+  memset(sampleLoaded,0,256*sizeof(bool));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[0][sysID]) {
+      sampleOff[i]=0;
+      continue;
+    }
+
     int length=s->getCurBufLen();
     unsigned char* src=(unsigned char*)s->getCurBuf();
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos),length);
     if (actualLength>0) {
+#ifdef TA_BIG_ENDIAN
       memcpy(&sampleMem[memPos],src,actualLength);
+#else
+      if (s->depth==DIV_SAMPLE_DEPTH_16BIT) {
+        for (int i=0; i<actualLength; i++) {
+          sampleMem[memPos+i]=src[i^1];
+        }
+      } else {
+        memcpy(&sampleMem[memPos],src,actualLength);
+      }
+#endif
       sampleOff[i]=memPos;
       memPos+=length;
     }
@@ -439,6 +461,7 @@ void DivPlatformYMZ280B::renderSamples() {
       logW("out of YMZ280B PCM memory for sample %d!",i);
       break;
     }
+    sampleLoaded[i]=true;
   }
   sampleMemLen=memPos;
 }

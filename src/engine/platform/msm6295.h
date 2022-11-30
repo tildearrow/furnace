@@ -68,6 +68,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
 
     unsigned char* adpcmMem;
     size_t adpcmMemLen;
+    bool sampleLoaded[256];
     unsigned char sampleBank;
 
     int delay, updateOsc;
@@ -101,7 +102,8 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
     virtual const void* getSampleMem(int index) override;
     virtual size_t getSampleMemCapacity(int index) override;
     virtual size_t getSampleMemUsage(int index) override;
-    virtual void renderSamples() override;
+    virtual bool isSampleLoaded(int index, int sample) override;
+    virtual void renderSamples(int chipID) override;
 
     virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
     virtual void quit() override;

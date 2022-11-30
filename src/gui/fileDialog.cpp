@@ -80,6 +80,14 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, c
   if (opened) return false;
   saving=false;
   curPath=path;
+
+  // strip excess directory separators
+  while (!curPath.empty()) {
+    if (curPath[curPath.size()-1]!=DIR_SEPARATOR) break;
+    curPath.erase(curPath.size()-1);
+  }
+  curPath+=DIR_SEPARATOR;
+
   logD("opening load file dialog with curPath %s",curPath.c_str());
   if (sysDialog) {
 #ifdef USE_NFD
@@ -145,6 +153,14 @@ bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, c
   if (opened) return false;
   saving=true;
   curPath=path;
+
+  // strip excess directory separators
+  while (!curPath.empty()) {
+    if (curPath[curPath.size()-1]!=DIR_SEPARATOR) break;
+    curPath.erase(curPath.size()-1);
+  }
+  curPath+=DIR_SEPARATOR;
+
   logD("opening save file dialog with curPath %s",curPath.c_str());
   if (sysDialog) {
 #ifdef USE_NFD

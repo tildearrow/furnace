@@ -227,6 +227,13 @@ enum FurnaceGUIColors {
   GUI_COLOR_SAMPLE_SEL,
   GUI_COLOR_SAMPLE_SEL_POINT,
   GUI_COLOR_SAMPLE_NEEDLE,
+  GUI_COLOR_SAMPLE_NEEDLE_PLAYING,
+  GUI_COLOR_SAMPLE_LOOP_POINT,
+  GUI_COLOR_SAMPLE_TIME_BG,
+  GUI_COLOR_SAMPLE_TIME_FG,
+  GUI_COLOR_SAMPLE_CHIP_DISABLED,
+  GUI_COLOR_SAMPLE_CHIP_ENABLED,
+  GUI_COLOR_SAMPLE_CHIP_WARNING,
 
   GUI_COLOR_PAT_MANAGER_NULL,
   GUI_COLOR_PAT_MANAGER_USED,
@@ -313,6 +320,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_INS_OPEN,
   GUI_FILE_INS_OPEN_REPLACE,
   GUI_FILE_INS_SAVE,
+  GUI_FILE_INS_SAVE_OLD,
   GUI_FILE_INS_SAVE_DMP,
   GUI_FILE_WAVE_OPEN,
   GUI_FILE_WAVE_OPEN_REPLACE,
@@ -507,6 +515,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_INS_LIST_OPEN,
   GUI_ACTION_INS_LIST_OPEN_REPLACE,
   GUI_ACTION_INS_LIST_SAVE,
+  GUI_ACTION_INS_LIST_SAVE_OLD,
   GUI_ACTION_INS_LIST_SAVE_DMP,
   GUI_ACTION_INS_LIST_MOVE_UP,
   GUI_ACTION_INS_LIST_MOVE_DOWN,
@@ -913,7 +922,6 @@ struct FurnaceGUISysDefChip {
 struct FurnaceGUISysDef {
   const char* name;
   String definition;
-  FurnaceGUISysDef(const char* n, std::initializer_list<int> def);
   FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def);
 };
 
@@ -1073,6 +1081,7 @@ class FurnaceGUI {
   int displayInsTypeListMakeInsSample;
   float mobileMenuPos, autoButtonSize;
   const int* curSysSection;
+  DivInstrumentFM opllPreview;
 
   String pendingRawSample;
   int pendingRawSampleDepth, pendingRawSampleChannels;
@@ -1581,12 +1590,14 @@ class FurnaceGUI {
   // sample editor specific
   double sampleZoom;
   double prevSampleZoom;
+  double minSampleZoom;
   int samplePos;
   int resizeSize, silenceSize;
   double resampleTarget;
   int resampleStrat;
   float amplifyVol;
   int sampleSelStart, sampleSelEnd;
+  bool sampleInfo;
   bool sampleDragActive, sampleDragMode, sampleDrag16, sampleZoomAuto;
   void* sampleDragTarget;
   ImVec2 sampleDragStart;
@@ -1719,8 +1730,9 @@ class FurnaceGUI {
   void popToggleColors();
 
   void drawMobileControls();
+  void drawMobileOrderSel();
   void drawEditControls();
-  void drawSongInfo();
+  void drawSongInfo(bool asChild=false);
   void drawOrders();
   void drawPattern();
   void drawInsList(bool asChild=false);

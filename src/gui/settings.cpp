@@ -1540,11 +1540,6 @@ void FurnaceGUI::drawSettings() {
             settings.waveLayout=waveLayoutB;
           }
 
-          bool sampleLayoutB=settings.sampleLayout;
-          if (ImGui::Checkbox("Use compact sample editor",&sampleLayoutB)) {
-            settings.sampleLayout=sampleLayoutB;
-          }
-
           bool oldMacroVSliderB=settings.oldMacroVSlider;
           if (ImGui::Checkbox("Use classic macro editor vertical slider",&oldMacroVSliderB)) {
             settings.oldMacroVSlider=oldMacroVSliderB;
@@ -1848,12 +1843,19 @@ void FurnaceGUI::drawSettings() {
             if (ImGui::TreeNode("Sample Editor")) {
               UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_BG,"Background");
               UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_FG,"Waveform");
+              UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_TIME_BG,"Time background");
+              UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_TIME_FG,"Time text");
               UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_LOOP,"Loop region");
               UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CENTER,"Center guide");
               UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_GRID,"Grid");
               UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_SEL,"Selection");
               UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_SEL_POINT,"Selection points");
               UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_NEEDLE,"Preview needle");
+              UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_NEEDLE_PLAYING,"Playing needles");
+              UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_LOOP_POINT,"Loop markers");
+              UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CHIP_DISABLED,"Chip select: disabled");
+              UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CHIP_ENABLED,"Chip select: enabled");
+              UI_COLOR_CONFIG(GUI_COLOR_SAMPLE_CHIP_WARNING,"Chip select: enabled (failure)");
               ImGui::TreePop();
             }
             if (ImGui::TreeNode("Pattern Manager")) {

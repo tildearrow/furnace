@@ -116,6 +116,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
   bool isBanked=false;
   unsigned int bankSlot[8];
   unsigned int sampleOffX1[256];
+  bool sampleLoaded[256];
 
   unsigned char regPool[0x2000];
   double NoteX1_010(int ch, int note);
@@ -146,7 +147,8 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     const void* getSampleMem(int index = 0);
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
-    void renderSamples();
+    bool isSampleLoaded(int index, int sample);
+    void renderSamples(int chipID);
     const char** getRegisterSheet();
     void setBanked(bool banked);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);

@@ -20,8 +20,8 @@ private:
 	const static unsigned long m_FreqTable[2048];
 #else
 	// we'll calculate the frequency lookup table at runtime.
-	static unsigned long m_FreqTable[2048];
-	static unsigned long m_nClockRate;
+	unsigned long m_FreqTable[2048];
+	unsigned long m_nClockRate;
 #endif
 
 	unsigned long m_nCounter;

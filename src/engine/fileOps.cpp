@@ -208,7 +208,9 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }*/
 
     // Game Boy arp+soundLen screwery
-    ds.systemFlags[0].set("enoughAlready",true);
+    if (ds.system[0]==DIV_SYSTEM_GB) {
+      ds.systemFlags[0].set("enoughAlready",true);
+    }
 
     logI("reading module data...");
     if (ds.version>0x0c) {
@@ -964,6 +966,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemLen=2;
       ds.system[0]=DIV_SYSTEM_NES;
       ds.system[1]=DIV_SYSTEM_FDS;
+    }
+
+    // SMS noise freq
+    if (ds.system[0]==DIV_SYSTEM_SMS) {
+      ds.systemFlags[0].set("noEasyNoise",true);
     }
 
     ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
@@ -2348,141 +2355,23 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     // read samples
     for (int i=0; i<ds.sampleLen; i++) {
-      int vol=0;
-      int pitch=0;
+      DivSample* sample=new DivSample;
 
       if (!reader.seek(samplePtr[i],SEEK_SET)) {
         logE("couldn't seek to sample %d!",i);
         lastError=fmt::sprintf("couldn't seek to sample %d!",i);
         ds.unload();
+        delete sample;
         delete[] file;
         return false;
       }
 
-      reader.read(magic,4);
-      if (strcmp(magic,"SMPL")!=0 && strcmp(magic,"SMP2")!=0) {
-        logE("%d: invalid sample header!",i);
-        lastError="invalid sample header!";
+      if (sample->readSampleData(reader,ds.version)!=DIV_DATA_SUCCESS) {
+        lastError="invalid sample header/data!";
         ds.unload();
+        delete sample;
         delete[] file;
         return false;
-      }
-      bool isNewSample=(strcmp(magic,"SMP2")==0);
-      reader.readI();
-      DivSample* sample=new DivSample;
-      logD("reading sample %d at %x...",i,samplePtr[i]);
-      if (!isNewSample) logV("(old sample)");
-
-      sample->name=reader.readString();
-      sample->samples=reader.readI();
-      if (!isNewSample) {
-        sample->loopEnd=sample->samples;
-      }
-      sample->rate=reader.readI();
-
-      if (isNewSample) {
-        sample->centerRate=reader.readI();
-        sample->depth=(DivSampleDepth)reader.readC();
-        if (ds.version>=123) {
-          sample->loopMode=(DivSampleLoopMode)reader.readC();
-        } else {
-          sample->loopMode=DIV_SAMPLE_LOOP_FORWARD;
-          reader.readC();
-        }
-
-        // reserved
-        reader.readC();
-        reader.readC();
-
-        sample->loopStart=reader.readI();
-        sample->loopEnd=reader.readI();
-        sample->loop=(sample->loopStart>=0)&&(sample->loopEnd>=0);
-
-        for (int i=0; i<4; i++) {
-          reader.readI();
-        }
-      } else {
-        if (ds.version<58) {
-          vol=reader.readS();
-          pitch=reader.readS();
-        } else {
-          reader.readI();
-        }
-        sample->depth=(DivSampleDepth)reader.readC();
-
-        // reserved
-        reader.readC();
-
-        // while version 32 stored this value, it was unused.
-        if (ds.version>=38) {
-          sample->centerRate=(unsigned short)reader.readS();
-        } else {
-          reader.readS();
-        }
-
-        if (ds.version>=19) {
-          sample->loopStart=reader.readI();
-          sample->loop=(sample->loopStart>=0)&&(sample->loopEnd>=0);
-        } else {
-          reader.readI();
-        }
-      }
-
-      if (ds.version>=58) { // modern sample
-        sample->init(sample->samples);
-        reader.read(sample->getCurBuf(),sample->getCurBufLen());
-#ifdef TA_BIG_ENDIAN
-        // convert 16-bit samples to big-endian
-        if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
-          unsigned char* sampleBuf=(unsigned char*)sample->getCurBuf();
-          size_t sampleBufLen=sample->getCurBufLen();
-          for (size_t pos=0; pos<sampleBufLen; pos+=2) {
-            sampleBuf[pos]^=sampleBuf[pos+1];
-            sampleBuf[pos+1]^=sampleBuf[pos];
-            sampleBuf[pos]^=sampleBuf[pos+1];
-          }
-        }
-#endif
-      } else { // legacy sample
-        int length=sample->samples;
-        short* data=new short[length];
-        reader.read(data,2*length);
-
-#ifdef TA_BIG_ENDIAN
-        // convert 16-bit samples to big-endian
-        for (int pos=0; pos<length; pos++) {
-          data[pos]=((unsigned short)data[pos]>>8)|((unsigned short)data[pos]<<8);
-        }
-#endif
-
-        if (pitch!=5) {
-          logD("%d: scaling from %d...",i,pitch);
-        }
-
-        // render data
-        if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) {
-          logW("%d: sample depth is wrong! (%d)",i,sample->depth);
-          sample->depth=DIV_SAMPLE_DEPTH_16BIT;
-        }
-        sample->samples=(double)sample->samples/samplePitches[pitch];
-        sample->init(sample->samples);
-
-        unsigned int k=0;
-        float mult=(float)(vol)/50.0f;
-        for (double j=0; j<length; j+=samplePitches[pitch]) {
-          if (k>=sample->samples) {
-            break;
-          }
-          if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
-            float next=(float)(data[(unsigned int)j]-0x80)*mult;
-            sample->data8[k++]=fmin(fmax(next,-128),127);
-          } else {
-            float next=(float)data[(unsigned int)j]*mult;
-            sample->data16[k++]=fmin(fmax(next,-32768),32767);
-          }
-        }
-
-        delete[] data;
       }
 
       ds.sample.push_back(sample);
@@ -2627,6 +2516,16 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
             ds.system[i]==DIV_SYSTEM_OPN_EXT ||
             ds.system[i]==DIV_SYSTEM_PC98_EXT) {
           ds.systemFlags[i].set("noExtMacros",true);
+        }
+      }
+    }
+
+    // SN noise compat
+    if (ds.version<128) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_SMS ||
+            ds.system[i]==DIV_SYSTEM_T6W28) {
+          ds.systemFlags[i].set("noEasyNoise",true);
         }
       }
     }
@@ -4621,7 +4520,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   for (int i=0; i<song.insLen; i++) {
     DivInstrument* ins=song.ins[i];
     insPtr.push_back(w->tell());
-    ins->putInsData(w);
+    logV("writing instrument %d...",i);
+    ins->putInsData2(w,false);
   }
 
   /// WAVETABLE
@@ -4635,45 +4535,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   for (int i=0; i<song.sampleLen; i++) {
     DivSample* sample=song.sample[i];
     samplePtr.push_back(w->tell());
-    w->write("SMP2",4);
-    blockStartSeek=w->tell();
-    w->writeI(0);
-
-    w->writeString(sample->name,false);
-    w->writeI(sample->samples);
-    w->writeI(sample->rate);
-    w->writeI(sample->centerRate);
-    w->writeC(sample->depth);
-    w->writeC(sample->loopMode);
-    w->writeC(0); // reserved
-    w->writeC(0);
-    w->writeI(sample->loop?sample->loopStart:-1);
-    w->writeI(sample->loop?sample->loopEnd:-1);
-
-    for (int i=0; i<4; i++) {
-      w->writeI(0xffffffff);
-    }
-
-#ifdef TA_BIG_ENDIAN
-    // store 16-bit samples as little-endian
-    if (sample->depth==DIV_SAMPLE_DEPTH_16BIT) {
-      unsigned char* sampleBuf=(unsigned char*)sample->getCurBuf();
-      size_t bufLen=sample->getCurBufLen();
-      for (size_t i=0; i<bufLen; i+=2) {
-        w->writeC(sampleBuf[i+1]);
-        w->writeC(sampleBuf[i]);
-      }
-    } else {
-      w->write(sample->getCurBuf(),sample->getCurBufLen());
-    }
-#else
-    w->write(sample->getCurBuf(),sample->getCurBufLen());
-#endif
-
-    blockEndSeek=w->tell();
-    w->seek(blockStartSeek,SEEK_SET);
-    w->writeI(blockEndSeek-blockStartSeek-4);
-    w->seek(0,SEEK_END);
+    sample->putSampleData(w);
   }
 
   /// PATTERN

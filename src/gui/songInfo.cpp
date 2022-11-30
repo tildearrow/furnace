@@ -22,14 +22,15 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include "intConst.h"
 
-void FurnaceGUI::drawSongInfo() {
+void FurnaceGUI::drawSongInfo(bool asChild) {
   if (nextWindow==GUI_WINDOW_SONG_INFO) {
     songInfoOpen=true;
     ImGui::SetNextWindowFocus();
     nextWindow=GUI_WINDOW_NOTHING;
   }
-  if (!songInfoOpen) return;
-  if (ImGui::Begin("Song Information",&songInfoOpen,globalWinFlags)) {
+  if (!songInfoOpen && !asChild) return;
+  bool began=asChild?ImGui::BeginChild("Song Information"):ImGui::Begin("Song Information",&songInfoOpen,globalWinFlags);
+  if (began) {
     if (ImGui::BeginTable("NameAuthor",2,ImGuiTableFlags_SizingStretchProp)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
@@ -240,6 +241,10 @@ void FurnaceGUI::drawSongInfo() {
       ImGui::EndTable();
     }
   }
-  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SONG_INFO;
-  ImGui::End();
+  if (!asChild && ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SONG_INFO;
+  if (asChild) {
+    ImGui::EndChild();
+  } else {
+    ImGui::End();
+  }
 }

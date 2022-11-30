@@ -1474,8 +1474,12 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         workingDirIns,
         dpiScale,
         [this](const char* path) {
-          std::vector<DivInstrument*> instruments=e->instrumentFromFile(path);
+          int sampleCountBefore=e->song.sampleLen;
+          std::vector<DivInstrument*> instruments=e->instrumentFromFile(path,false);
           if (!instruments.empty()) {
+            if (e->song.sampleLen!=sampleCountBefore) {
+              e->renderSamplesP();
+            }
             if (curFileDialog==GUI_FILE_INS_OPEN_REPLACE) {
               if (prevIns==-3) {
                 prevIns=curIns;
@@ -1497,6 +1501,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       );
       break;
     case GUI_FILE_INS_SAVE:
+      if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        "Save Instrument",
+        {"Furnace instrument", "*.fui"},
+        "Furnace instrument{.fui}",
+        workingDirIns,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_INS_SAVE_OLD:
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openSave(
         "Save Instrument",
@@ -3059,10 +3073,14 @@ bool FurnaceGUI::loop() {
           break;
         case SDL_DROPFILE:
           if (ev.drop.file!=NULL) {
+            int sampleCountBefore=e->song.sampleLen;
             std::vector<DivInstrument*> instruments=e->instrumentFromFile(ev.drop.file);
             DivWavetable* droppedWave=NULL;
             DivSample* droppedSample=NULL;;
             if (!instruments.empty()) {
+              if (e->song.sampleLen!=sampleCountBefore) {
+                e->renderSamplesP();
+              }
               if (!e->getWarnings().empty()) {
                 showWarning(e->getWarnings(),GUI_WARN_GENERIC);
               }
@@ -3746,11 +3764,17 @@ bool FurnaceGUI::loop() {
           drawSampleEdit();
           drawPiano();
           break;
+        case GUI_SCENE_CHIPS:
+          sysManagerOpen=true;
+          curWindow=GUI_WINDOW_SYS_MANAGER;
+          drawSysManager();
+          break;
         default:
           patternOpen=true;
           curWindow=GUI_WINDOW_PATTERN;
           drawPattern();
           drawPiano();
+          drawMobileOrderSel();
           break;
       }
 
@@ -3855,6 +3879,7 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_INS_OPEN:
         case GUI_FILE_INS_OPEN_REPLACE:
         case GUI_FILE_INS_SAVE:
+        case GUI_FILE_INS_SAVE_OLD:
         case GUI_FILE_INS_SAVE_DMP:
           workingDirIns=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
@@ -3950,6 +3975,9 @@ bool FurnaceGUI::loop() {
           if (curFileDialog==GUI_FILE_INS_SAVE) {
             checkExtension(".fui");
           }
+          if (curFileDialog==GUI_FILE_INS_SAVE_OLD) {
+            checkExtension(".fui");
+          }
           if (curFileDialog==GUI_FILE_INS_SAVE_DMP) {
             checkExtension(".dmp");
           }
@@ -4041,7 +4069,12 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_INS_SAVE:
               if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-                e->song.ins[curIns]->save(copyOfName.c_str());
+                e->song.ins[curIns]->save(copyOfName.c_str(),false,&e->song);
+              }
+              break;
+            case GUI_FILE_INS_SAVE_OLD:
+              if (curIns>=0 && curIns<(int)e->song.ins.size()) {
+                e->song.ins[curIns]->save(copyOfName.c_str(),true);
               }
               break;
             case GUI_FILE_INS_SAVE_DMP:
@@ -4141,6 +4174,7 @@ bool FurnaceGUI::loop() {
               bool ask=false;
               bool warn=false;
               String warns="there were some warnings/errors while loading instruments:\n";
+              int sampleCountBefore=e->song.sampleLen;
               for (String i: fileDialog->getFileName()) {
                 std::vector<DivInstrument*> insTemp=e->instrumentFromFile(i.c_str());
                 if (insTemp.empty()) {
@@ -4154,6 +4188,9 @@ bool FurnaceGUI::loop() {
                 for (DivInstrument* j: insTemp) {
                   instruments.push_back(j);
                 }
+              }
+              if (e->song.sampleLen!=sampleCountBefore) {
+                e->renderSamplesP();
               }
               if (warn) {
                 if (instruments.empty()) {
@@ -4184,8 +4221,12 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_INS_OPEN_REPLACE: {
+              int sampleCountBefore=e->song.sampleLen;
               std::vector<DivInstrument*> instruments=e->instrumentFromFile(copyOfName.c_str());
               if (!instruments.empty()) {
+                if (e->song.sampleLen!=sampleCountBefore) {
+                  e->renderSamplesP();
+                }
                 if (!e->getWarnings().empty()) {
                   showWarning(e->getWarnings(),GUI_WARN_GENERIC);
                 }
@@ -5801,6 +5842,7 @@ FurnaceGUI::FurnaceGUI():
   oldOrdersLen(0),
   sampleZoom(1.0),
   prevSampleZoom(1.0),
+  minSampleZoom(1.0),
   samplePos(0),
   resizeSize(1024),
   silenceSize(1024),
@@ -5809,6 +5851,7 @@ FurnaceGUI::FurnaceGUI():
   amplifyVol(100.0),
   sampleSelStart(-1),
   sampleSelEnd(-1),
+  sampleInfo(true),
   sampleDragActive(false),
   sampleDragMode(false),
   sampleDrag16(false),

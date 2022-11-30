@@ -76,6 +76,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int clockSel=flags.getInt("clockSel",0);
       int chipType=flags.getInt("chipType",0);
       bool noPhaseReset=flags.getBool("noPhaseReset",false);
+      bool noEasyNoise=flags.getBool("noEasyNoise",false);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("3.58MHz (NTSC)",clockSel==0)) {
@@ -152,11 +153,16 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
+      if (ImGui::Checkbox("Disable easy period to note mapping on upper octaves",&noEasyNoise)) {
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("chipType",chipType);
           flags.set("noPhaseReset",noPhaseReset);
+          flags.set("noEasyNoise",noEasyNoise);
         });
       }
       break;
@@ -318,6 +324,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_VRC7: {
       int clockSel=flags.getInt("clockSel",0);
       int patchSet=flags.getInt("patchSet",0);
+      bool noTopHatFreq=flags.getBool("noTopHatFreq",false);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("NTSC (3.58MHz)",clockSel==0)) {
@@ -356,12 +363,19 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         }
       }
 
+      if (type==DIV_SYSTEM_OPLL_DRUMS) {
+        if (ImGui::Checkbox("Ignore top/hi-hat frequency changes",&noTopHatFreq)) {
+          altered=true;
+        }
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           if (type!=DIV_SYSTEM_VRC7) {
             flags.set("patchSet",patchSet);
           }
+          flags.set("noTopHatFreq",noTopHatFreq);
         });
       }
       break;
@@ -1529,12 +1543,25 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
+    case DIV_SYSTEM_T6W28: {
+      bool noEasyNoise=flags.getBool("noEasyNoise",false);
+
+      if (ImGui::Checkbox("Disable easy period to note mapping on upper octaves",&noEasyNoise)) {
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("noEasyNoise",noEasyNoise);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_VERA:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_YMU759:
     case DIV_SYSTEM_PET:
-    case DIV_SYSTEM_T6W28:
     case DIV_SYSTEM_VBOY:
       ImGui::Text("nothing to configure");
       break;

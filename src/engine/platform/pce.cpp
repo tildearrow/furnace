@@ -252,6 +252,11 @@ void DivPlatformPCE::tick(bool sysTick) {
       chan[i].freqChanged=false;
     }
   }
+  if (updateLFO) {
+    rWrite(0x08,lfoSpeed);
+    rWrite(0x09,lfoMode);
+    updateLFO=false;
+  }
 }
 
 int DivPlatformPCE::dispatch(DivCommand c) {
@@ -389,13 +394,11 @@ int DivPlatformPCE::dispatch(DivCommand c) {
       } else {
         lfoMode=c.value;
       }
-      rWrite(0x08,lfoSpeed);
-      rWrite(0x09,lfoMode);
+      updateLFO=true;
       break;
     case DIV_CMD_PCE_LFO_SPEED:
       lfoSpeed=255-c.value;
-      rWrite(0x08,lfoSpeed);
-      rWrite(0x09,lfoMode);
+      updateLFO=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
@@ -525,8 +528,7 @@ void DivPlatformPCE::reset() {
   rWrite(0,0);
   rWrite(0x01,0xff);
   // set LFO
-  rWrite(0x08,lfoSpeed);
-  rWrite(0x09,lfoMode);
+  updateLFO=true;
   // set per-channel initial panning
   for (int i=0; i<6; i++) {
     chWrite(i,0x05,isMuted[i]?0:chan[i].pan);
@@ -588,6 +590,7 @@ int DivPlatformPCE::init(DivEngine* p, int channels, int sugRate, const DivConfi
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  updateLFO=false;
   for (int i=0; i<6; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;

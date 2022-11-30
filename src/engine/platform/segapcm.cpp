@@ -451,7 +451,7 @@ void DivPlatformSegaPCM::reset() {
   }
 }
 
- void DivPlatformSegaPCM::renderSamples() {
+ void DivPlatformSegaPCM::renderSamples(int sysID) {
   size_t memPos=0;
   
   for (int i=0; i<parent->song.sampleLen; i++) {

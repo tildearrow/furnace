@@ -48,6 +48,7 @@ DivDataErrors DivWavetable::readWaveData(SafeReader& reader, short version) {
   char magic[4];
   reader.read(magic,4);
   if (memcmp(magic,"WAVE",4)!=0) {
+    logV("header is invalid: %c%c%c%c",magic[0],magic[1],magic[2],magic[3]);
     return DIV_DATA_INVALID_HEADER;
   }
   reader.readI(); // reserved
@@ -57,7 +58,10 @@ DivDataErrors DivWavetable::readWaveData(SafeReader& reader, short version) {
   min=reader.readI();
   max=reader.readI();
 
-  if (len>256 || min!=0 || max>255) return DIV_DATA_INVALID_DATA;
+  if (len>256 || min!=0 || max>255) {
+    logV("invalid len/min/max: %d %d %d",len,min,max);
+    return DIV_DATA_INVALID_DATA;
+  }
 
   for (int i=0; i<len; i++) {
     data[i]=reader.readI();

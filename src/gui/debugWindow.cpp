@@ -387,6 +387,33 @@ void FurnaceGUI::drawDebug() {
       ImGui::Text("System Managed Scale: %d",sysManagedScale);
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Visualizer Debug")) {
+      if (ImGui::BeginTable("visX",3,ImGuiTableFlags_Borders)) {
+        ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+        ImGui::TableNextColumn();
+        ImGui::Text("channel");
+        ImGui::TableNextColumn();
+        ImGui::Text("patChanX");
+        ImGui::TableNextColumn();
+        ImGui::Text("patChanSlideY");
+
+        for (int i=0; i<e->getTotalChannelCount(); i++) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::Text("%d",i);
+          ImGui::TableNextColumn();
+          ImGui::Text("%f",patChanX[i]);
+          ImGui::TableNextColumn();
+          ImGui::Text("%f",patChanSlideY[i]);
+        }
+
+        ImGui::EndTable();
+      }
+      
+      ImGui::Text("particle count: %d",(int)particles.size());
+
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Playground")) {
       if (pgSys<0 || pgSys>=e->song.systemLen) pgSys=0;
       if (ImGui::BeginCombo("Chip",fmt::sprintf("%d. %s",pgSys+1,e->getSystemName(e->song.system[pgSys])).c_str())) {

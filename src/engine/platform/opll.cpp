@@ -247,7 +247,7 @@ void DivPlatformOPLL::tick(bool sysTick) {
       if (chan[i].freq>65535) chan[i].freq=65535;
       int freqt=toFreq(chan[i].freq);
       chan[i].freqL=freqt&0xff;
-      if (i>=6 && properDrums) {
+      if (i>=6 && properDrums && (i<9 || !noTopHatFreq)) {
         immWrite(0x10+drumSlot[i],freqt&0xff);
         immWrite(0x20+drumSlot[i],freqt>>8);
       } else if (i<6 || !drums) {
@@ -963,6 +963,7 @@ void DivPlatformOPLL::setFlags(const DivConfig& flags) {
   for (int i=0; i<11; i++) {
     oscBuf[i]->rate=rate/2;
   }
+  noTopHatFreq=flags.getBool("noTopHatFreq",false);
 }
 
 int DivPlatformOPLL::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

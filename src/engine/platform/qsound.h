@@ -69,6 +69,7 @@ class DivPlatformQSound: public DivDispatch {
 
   unsigned char* sampleMem;
   size_t sampleMemLen;
+  bool sampleLoaded[256];
   struct qsound_chip chip;
   unsigned short regPool[512];
 
@@ -103,7 +104,8 @@ class DivPlatformQSound: public DivDispatch {
     const void* getSampleMem(int index = 0);
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
-    void renderSamples();
+    bool isSampleLoaded(int index, int sample);
+    void renderSamples(int chipID);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
 };

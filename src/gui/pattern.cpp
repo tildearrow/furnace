@@ -133,14 +133,14 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   for (int j=0; j<chans; j++) {
     // check if channel is not hidden
     if (!e->curSubSong->chanShow[j]) {
-      patChanX[j]=ImGui::GetCursorPosX();
+      patChanX[j]=ImGui::GetCursorScreenPos().x;
       continue;
     }
     int chanVolMax=e->getMaxVolumeChan(j);
     if (chanVolMax<1) chanVolMax=1;
     const DivPattern* pat=patCache[j];
     ImGui::TableNextColumn();
-    patChanX[j]=ImGui::GetCursorPosX();
+    patChanX[j]=ImGui::GetCursorScreenPos().x;
 
     // selection highlight flags
     int sel1XSum=sel1.xCoarse*32+sel1.xFine;
@@ -331,7 +331,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     ImGui::PopStyleColor();
   }
   ImGui::TableNextColumn();
-  patChanX[chans]=ImGui::GetCursorPosX();
+  patChanX[chans]=ImGui::GetCursorScreenPos().x;
 }
 
 void FurnaceGUI::drawPattern() {
@@ -376,8 +376,8 @@ void FurnaceGUI::drawPattern() {
   }
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
   if (mobileUI) {
-    patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*canvasH)):ImVec2((0.16*canvasH)+0.5*canvasW*mobileMenuPos,0.0f));
-    patWindowSize=(portrait?ImVec2(canvasW,canvasH-(0.16*canvasW)-(pianoOpen?(0.4*canvasW):0.0f)):ImVec2(canvasW-(0.16*canvasH),canvasH-(pianoOpen?(0.3*canvasH):0.0f)));
+    patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*canvasH)+(0.12*canvasW)):ImVec2((0.16*canvasH)+0.5*canvasW*mobileMenuPos,0.0f));
+    patWindowSize=(portrait?ImVec2(canvasW,canvasH-(0.16*canvasW)-(0.12*canvasW)-(pianoOpen?(0.4*canvasW):0.0f)):ImVec2(canvasW-(0.16*canvasH),canvasH-(pianoOpen?(0.3*canvasH):0.0f)));
     ImGui::SetNextWindowPos(patWindowPos);
     ImGui::SetNextWindowSize(patWindowSize);
   }
@@ -652,7 +652,7 @@ void FurnaceGUI::drawPattern() {
           }
           case 3: // split button
             ImGui::Dummy(ImVec2(1.0f,2.0f*dpiScale));
-            ImGui::SetCursorPosX(minLabelArea.x);
+            //ImGui::SetCursorPosX(minLabelArea.x);
             ImGui::TextUnformatted(chanID);
             ImGui::SameLine();
             ImGui::PushFont(mainFont);
@@ -966,7 +966,7 @@ void FurnaceGUI::drawPattern() {
     if (fancyPattern) { // visualizer
       e->getCommandStream(cmdStream);
       ImDrawList* dl=ImGui::GetWindowDrawList();
-      ImVec2 off=ImGui::GetWindowPos();
+      ImVec2 off=ImVec2(0.0f,ImGui::GetWindowPos().y);
       
       // commands
       for (DivCommand& i: cmdStream) {

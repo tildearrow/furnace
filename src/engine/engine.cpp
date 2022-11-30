@@ -1315,7 +1315,7 @@ void DivEngine::renderSamples() {
   // step 2: render samples to dispatch
   for (int i=0; i<song.systemLen; i++) {
     if (disCont[i].dispatch!=NULL) {
-      disCont[i].dispatch->renderSamples();
+      disCont[i].dispatch->renderSamples(i);
     }
   }
 }
@@ -2478,10 +2478,10 @@ void DivEngine::previewSampleNoLock(int sample, int note, int pStart, int pEnd) 
     return;
   }
   blip_clear(samp_bb);
-  double rate=song.sample[sample]->rate;
+  double rate=song.sample[sample]->centerRate;
   if (note>=0) {
     rate=(pow(2.0,(double)(note)/12.0)*((double)song.sample[sample]->centerRate)*0.0625);
-    if (rate<=0) rate=song.sample[sample]->rate;
+    if (rate<=0) rate=song.sample[sample]->centerRate;
   }
   if (rate<100) rate=100;
   blip_set_rates(samp_bb,rate,got.rate);
