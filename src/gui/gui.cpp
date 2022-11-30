@@ -2197,6 +2197,11 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
       sampleSelEnd=x;
     }
   }
+  if (orderScrollLocked) {
+    orderScroll=(orderScrollSlideOrigin-dragX)/(40.0*dpiScale);
+    if (orderScroll<0.0f) orderScroll=0.0f;
+    if (orderScroll>(float)e->curSubSong->ordersLen-1) orderScroll=e->curSubSong->ordersLen-1;
+  }
 }
 
 #define checkExtension(x) \
@@ -2906,6 +2911,13 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
     }
   }
   sampleDragActive=false;
+  if (orderScrollLocked) {
+    int targetOrder=round(orderScroll);
+    if (targetOrder<0) targetOrder=0;
+    if (targetOrder>e->curSubSong->ordersLen-1) targetOrder=e->curSubSong->ordersLen-1;
+    if (curOrder!=targetOrder) setOrder(targetOrder);
+  }
+  orderScrollLocked=false;
   if (selecting) {
     if (!selectingFull) cursor=selEnd;
     finishSelection();
@@ -2929,7 +2941,7 @@ void FurnaceGUI::pointMotion(int x, int y, int xrel, int yrel) {
       addScroll(1);
     }
   }
-  if (macroDragActive || macroLoopDragActive || waveDragActive || sampleDragActive) {
+  if (macroDragActive || macroLoopDragActive || waveDragActive || sampleDragActive || orderScrollLocked) {
     int distance=fabs((double)xrel);
     if (distance<1) distance=1;
     float start=x-xrel;
@@ -5728,6 +5740,7 @@ FurnaceGUI::FurnaceGUI():
   latchNibble(false),
   nonLatchNibble(false),
   keepLoopAlive(false),
+  orderScrollLocked(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
@@ -5816,6 +5829,8 @@ FurnaceGUI::FurnaceGUI():
   bindSetPending(false),
   nextScroll(-1.0f),
   nextAddScroll(0.0f),
+  orderScroll(0.0f),
+  orderScrollSlideOrigin(0.0f),
   layoutTimeBegin(0),
   layoutTimeEnd(0),
   layoutTimeDelta(0),
