@@ -81,7 +81,9 @@ void FurnaceGUI::drawMobileOrderSel() {
     }
     if (ImGui::IsItemClicked()) {
       orderScrollSlideOrigin=ImGui::GetMousePos().x+orderScroll*40.0f*dpiScale;
+      orderScrollRealOrigin=ImGui::GetMousePos();
       orderScrollLocked=true;
+      orderScrollTolerance=true;
     }
   }
   ImGui::End();

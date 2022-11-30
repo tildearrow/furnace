@@ -1419,7 +1419,7 @@ class FurnaceGUI {
   SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
   bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
-  bool keepLoopAlive, orderScrollLocked;
+  bool keepLoopAlive, orderScrollLocked, orderScrollTolerance;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   std::atomic<FurnaceGUIWindows> curWindowThreadSafe;
   float peak[2];
@@ -1563,6 +1563,8 @@ class FurnaceGUI {
   bool bindSetActive, bindSetPending;
 
   float nextScroll, nextAddScroll, orderScroll, orderScrollSlideOrigin;
+
+  ImVec2 orderScrollRealOrigin;
 
   int layoutTimeBegin, layoutTimeEnd, layoutTimeDelta;
   int renderTimeBegin, renderTimeEnd, renderTimeDelta;

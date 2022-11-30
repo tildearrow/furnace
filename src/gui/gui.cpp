@@ -2198,6 +2198,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
     }
   }
   if (orderScrollLocked) {
+    if (fabs(orderScrollRealOrigin.x-dragX)>2.0f*dpiScale || fabs(orderScrollRealOrigin.y-dragY)>2.0f*dpiScale) orderScrollTolerance=false;
     orderScroll=(orderScrollSlideOrigin-dragX)/(40.0*dpiScale);
     if (orderScroll<0.0f) orderScroll=0.0f;
     if (orderScroll>(float)e->curSubSong->ordersLen-1) orderScroll=e->curSubSong->ordersLen-1;
@@ -2913,11 +2914,15 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   sampleDragActive=false;
   if (orderScrollLocked) {
     int targetOrder=round(orderScroll);
+    if (orderScrollTolerance) {
+      targetOrder=round(orderScroll+(orderScrollRealOrigin.x-(canvasW/2))/(40.0f*dpiScale));
+    }
     if (targetOrder<0) targetOrder=0;
     if (targetOrder>e->curSubSong->ordersLen-1) targetOrder=e->curSubSong->ordersLen-1;
     if (curOrder!=targetOrder) setOrder(targetOrder);
   }
   orderScrollLocked=false;
+  orderScrollTolerance=false;
   if (selecting) {
     if (!selectingFull) cursor=selEnd;
     finishSelection();
@@ -5741,6 +5746,7 @@ FurnaceGUI::FurnaceGUI():
   nonLatchNibble(false),
   keepLoopAlive(false),
   orderScrollLocked(false),
+  orderScrollTolerance(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
@@ -5831,6 +5837,7 @@ FurnaceGUI::FurnaceGUI():
   nextAddScroll(0.0f),
   orderScroll(0.0f),
   orderScrollSlideOrigin(0.0f),
+  orderScrollRealOrigin(0.0f,0.0f),
   layoutTimeBegin(0),
   layoutTimeEnd(0),
   layoutTimeDelta(0),
