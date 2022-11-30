@@ -1064,7 +1064,7 @@ void DivEngine::nextRow() {
                 }
               }
             }
-            if (doPrepareCut) chan[i].cut=ticks;
+            if (doPrepareCut && chan[i].cut<=0) chan[i].cut=ticks;
           }
         }
       }
