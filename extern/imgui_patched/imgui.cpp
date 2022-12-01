@@ -6896,13 +6896,17 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
 
         // Inertial scroll
         if (g.IO.ConfigFlags & ImGuiConfigFlags_InertialScrollEnable) {
-          if (g.HoveredWindow == window) {
+          if (g.IO.MouseClicked[ImGuiMouseButton_Left] && (g.NavWindowingTarget ? g.NavWindowingTarget : g.NavWindow) == window) {
+            g.InertialScrollId = window->ID;
+            printf("changing the ID to %d\n",window->ID);
+          }
+          if ((g.NavWindowingTarget ? g.NavWindowingTarget : g.NavWindow) == window) {
             if (g.IO.MouseDown[ImGuiMouseButton_Left] || g.IO.MouseReleased[ImGuiMouseButton_Left]) {
               // launch inertial scroll
               if (g.IO.MouseClicked[ImGuiMouseButton_Left]) {
-                g.HoveredWindow->InertialScrollSpeed=ImVec2(0.0f,0.0f);
+                window->InertialScrollSpeed=ImVec2(0.0f,0.0f);
               } else {
-                g.HoveredWindow->InertialScrollSpeed=ImVec2(-g.IO.MouseDelta.x,-g.IO.MouseDelta.y);
+                window->InertialScrollSpeed=ImVec2(window->ScrollbarX?-g.IO.MouseDelta.x:0.0f,window->ScrollbarY?-g.IO.MouseDelta.y:0.0f);
               }
             }
           }
