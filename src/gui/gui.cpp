@@ -3788,6 +3788,11 @@ bool FurnaceGUI::loop() {
           drawSampleEdit();
           drawPiano();
           break;
+        case GUI_SCENE_CHANNELS:
+          channelsOpen=true;
+          curWindow=GUI_WINDOW_CHANNELS;
+          drawChannels();
+          break;
         case GUI_SCENE_CHIPS:
           sysManagerOpen=true;
           curWindow=GUI_WINDOW_SYS_MANAGER;
