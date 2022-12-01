@@ -1178,6 +1178,9 @@ ImGuiIO::ImGuiIO()
     ConfigViewportsNoDecoration = true;
     ConfigViewportsNoDefaultParent = false;
 
+    // Inertial scrolling options (when ImGuiConfigFlags_InertialScrollEnable is set)
+    ConfigInertialScrollToleranceSqr = 36.0f;
+
     // Miscellaneous options
     MouseDrawCursor = false;
 #ifdef __APPLE__
@@ -4156,6 +4159,8 @@ static void ImGui::UpdateMouseInputs()
     // Round mouse position to avoid spreading non-rounded position (e.g. UpdateManualResize doesn't support them well)
     if (IsMousePosValid(&io.MousePos))
         io.MousePos = g.MouseLastValidPos = ImFloorSigned(io.MousePos);
+    
+    io.MouseDeltaPrev=io.MouseDelta;
 
     // If mouse just appeared or disappeared (usually denoted by -FLT_MAX components) we cancel out movement in MouseDelta
     if (IsMousePosValid(&io.MousePos) && IsMousePosValid(&io.MousePosPrev))
@@ -4166,6 +4171,18 @@ static void ImGui::UpdateMouseInputs()
     // If mouse moved we re-enable mouse hovering in case it was disabled by gamepad/keyboard. In theory should use a >0.0f threshold but would need to reset in everywhere we set this to true.
     if (io.MouseDelta.x != 0.0f || io.MouseDelta.y != 0.0f)
         g.NavDisableMouseHover = false;
+
+    // Update mouse speed
+    if (ImFabs(io.MouseDelta.x)>ImFabs(io.MouseDeltaPrev.x)) {
+      io.MouseSpeed.x=io.MouseDelta.x;
+    } else {
+      io.MouseSpeed.x=io.MouseDeltaPrev.x;
+    }
+    if (ImFabs(io.MouseDelta.y)>ImFabs(io.MouseDeltaPrev.y)) {
+      io.MouseSpeed.y=io.MouseDelta.y;
+    } else {
+      io.MouseSpeed.y=io.MouseDeltaPrev.y;
+    }
 
     io.MousePosPrev = io.MousePos;
     for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++)
@@ -6896,17 +6913,21 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
 
         // Inertial scroll
         if (g.IO.ConfigFlags & ImGuiConfigFlags_InertialScrollEnable) {
-          if (g.IO.MouseClicked[ImGuiMouseButton_Left] && (g.NavWindowingTarget ? g.NavWindowingTarget : g.NavWindow) == window) {
-            g.InertialScrollId = window->ID;
-            printf("changing the ID to %d\n",window->ID);
-          }
           if ((g.NavWindowingTarget ? g.NavWindowingTarget : g.NavWindow) == window) {
             if (g.IO.MouseDown[ImGuiMouseButton_Left] || g.IO.MouseReleased[ImGuiMouseButton_Left]) {
               // launch inertial scroll
               if (g.IO.MouseClicked[ImGuiMouseButton_Left]) {
                 window->InertialScrollSpeed=ImVec2(0.0f,0.0f);
               } else {
-                window->InertialScrollSpeed=ImVec2(window->ScrollbarX?-g.IO.MouseDelta.x:0.0f,window->ScrollbarY?-g.IO.MouseDelta.y:0.0f);
+                if (g.IO.MouseDragMaxDistanceSqr[ImGuiMouseButton_Left]>g.IO.ConfigInertialScrollToleranceSqr) {
+                  if (g.IO.MouseReleased[ImGuiMouseButton_Left]) {
+                    window->InertialScrollSpeed=ImVec2(window->ScrollbarX?-g.IO.MouseSpeed.x:0.0f,window->ScrollbarY?-g.IO.MouseSpeed.y:0.0f);
+                  } else {
+                    window->InertialScrollSpeed=ImVec2(window->ScrollbarX?-g.IO.MouseDelta.x:0.0f,window->ScrollbarY?-g.IO.MouseDelta.y:0.0f);
+                  }
+                } else {
+                  window->InertialScrollSpeed=ImVec2(0.0f,0.0f);
+                }
               }
             }
           }

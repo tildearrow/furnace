@@ -1817,7 +1817,6 @@ struct ImGuiContext
     ImGuiWindow*            WheelingWindow;                     // Track the window we started mouse-wheeling on. Until a timer elapse or mouse has moved, generally keep scrolling the same window even if during the course of scrolling the mouse ends up hovering a child window.
     ImVec2                  WheelingWindowRefMousePos;
     float                   WheelingWindowTimer;
-    ImGuiID                 InertialScrollId;                   // The last window in where to apply inertial scroll
 
     // Item/widgets state and tracking information
     ImGuiID                 DebugHookIdInfo;                    // Will call core hooks: DebugHookIdInfo() from GetID functions, used by Stack Tool [next HoveredId/ActiveId to not pull in an extra cache-line]
