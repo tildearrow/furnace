@@ -2629,9 +2629,11 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
     mobileUI=enable;
     if (mobileUI) {
       ImGui::GetIO().IniFilename=NULL;
+      ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_InertialScrollEnable;
     } else {
       ImGui::GetIO().IniFilename=NULL;
       ImGui::LoadIniSettingsFromDisk(finalLayoutPath);
+      ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_InertialScrollEnable;
     }
   }
 }

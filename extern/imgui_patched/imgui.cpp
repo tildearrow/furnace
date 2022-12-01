@@ -3313,6 +3313,7 @@ ImGuiWindow::ImGuiWindow(ImGuiContext* context, const char* name) : DrawListInst
     TabId = GetID("#TAB");
     ScrollTarget = ImVec2(FLT_MAX, FLT_MAX);
     ScrollTargetCenterRatio = ImVec2(0.5f, 0.5f);
+    InertialScrollSpeed = ImVec2(0.0f, 0.0f);
     AutoFitFramesX = AutoFitFramesY = -1;
     AutoPosLastDirection = ImGuiDir_None;
     SetWindowPosAllowFlags = SetWindowSizeAllowFlags = SetWindowCollapsedAllowFlags = SetWindowDockAllowFlags = ImGuiCond_Always | ImGuiCond_Once | ImGuiCond_FirstUseEver | ImGuiCond_Appearing;
@@ -6892,6 +6893,43 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         // for right/bottom aligned items without creating a scrollbar.
         window->ScrollMax.x = ImMax(0.0f, window->ContentSize.x + window->WindowPadding.x * 2.0f - window->InnerRect.GetWidth());
         window->ScrollMax.y = ImMax(0.0f, window->ContentSize.y + window->WindowPadding.y * 2.0f - window->InnerRect.GetHeight());
+
+        // Inertial scroll
+        if (g.IO.ConfigFlags & ImGuiConfigFlags_InertialScrollEnable) {
+          if (g.HoveredWindow == window) {
+            if (g.IO.MouseDown[ImGuiMouseButton_Left] || g.IO.MouseReleased[ImGuiMouseButton_Left]) {
+              // launch inertial scroll
+              if (g.IO.MouseClicked[ImGuiMouseButton_Left]) {
+                g.HoveredWindow->InertialScrollSpeed=ImVec2(0.0f,0.0f);
+              } else {
+                g.HoveredWindow->InertialScrollSpeed=ImVec2(-g.IO.MouseDelta.x,-g.IO.MouseDelta.y);
+              }
+            }
+          }
+
+          if (window->ScrollTarget.x == FLT_MAX && window->ScrollTarget.y == FLT_MAX) {
+            if (fabs(window->InertialScrollSpeed.x)>0.1f) {
+              window->Scroll.x=window->Scroll.x+window->InertialScrollSpeed.x;
+              window->InertialScrollSpeed.x*=0.95f;
+            } else {
+              window->InertialScrollSpeed.x=0.0f;
+            }
+            if (fabs(window->InertialScrollSpeed.y)>0.1f) {
+              window->Scroll.y=window->Scroll.y+window->InertialScrollSpeed.y;
+              window->InertialScrollSpeed.y*=0.95f;
+            } else {
+              window->InertialScrollSpeed.y=0.0f;
+            }
+          } else {
+            window->InertialScrollSpeed.x=0.0f;
+            window->InertialScrollSpeed.y=0.0f;
+          }
+
+          if (g.IO.MouseDown[ImGuiMouseButton_Left]) {
+            window->InertialScrollSpeed.x=0.0f;
+            window->InertialScrollSpeed.y=0.0f;
+          }
+        }
 
         // Apply scrolling
         window->Scroll = CalcNextScrollFromScrollTargetAndClamp(window);
@@ -18612,6 +18650,7 @@ void ImGui::DebugNodeWindow(ImGuiWindow* window, const char* label)
         (flags & ImGuiWindowFlags_NoMouseInputs)? "NoMouseInputs":"", (flags & ImGuiWindowFlags_NoNavInputs) ? "NoNavInputs" : "", (flags & ImGuiWindowFlags_AlwaysAutoResize) ? "AlwaysAutoResize" : "");
     BulletText("WindowClassId: 0x%08X", window->WindowClass.ClassId);
     BulletText("Scroll: (%.2f/%.2f,%.2f/%.2f) Scrollbar:%s%s", window->Scroll.x, window->ScrollMax.x, window->Scroll.y, window->ScrollMax.y, window->ScrollbarX ? "X" : "", window->ScrollbarY ? "Y" : "");
+    BulletText("InertialScrollSpeed: %.2f,%.2f",window->InertialScrollSpeed.x,window->InertialScrollSpeed.y);
     BulletText("Active: %d/%d, WriteAccessed: %d, BeginOrderWithinContext: %d", window->Active, window->WasActive, window->WriteAccessed, (window->Active || window->WasActive) ? window->BeginOrderWithinContext : -1);
     BulletText("Appearing: %d, Hidden: %d (CanSkip %d Cannot %d), SkipItems: %d", window->Appearing, window->Hidden, window->HiddenFramesCanSkipItems, window->HiddenFramesCannotSkipItems, window->SkipItems);
     for (int layer = 0; layer < ImGuiNavLayer_COUNT; layer++)
