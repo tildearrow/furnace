@@ -1378,6 +1378,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
       PlotCustom("##IMacro",asFloat,totalFit,macroDragScroll,NULL,i.min+i.macro->vScroll,i.min+i.macro->vScroll+i.macro->vZoom,ImVec2(availableWidth,(i.macro->open&1)?(i.height*dpiScale):(32.0f*dpiScale)),sizeof(float),i.color,i.macro->len-macroDragScroll,i.hoverFunc,i.hoverFuncUser,i.blockMode,(i.macro->open&1)?genericGuide:NULL,doHighlight);
     }
     if ((i.macro->open&1) && (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right))) {
+      ImGui::InhibitInertialScroll();
       macroDragStart=ImGui::GetItemRectMin();
       macroDragAreaSize=ImVec2(availableWidth,i.height*dpiScale);
       if (i.isBitfield) {
@@ -1466,6 +1467,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
       if (i.bit30) {
         PlotCustom("##IMacroBit30",bit30Indicator,totalFit,macroDragScroll,NULL,0,1,ImVec2(availableWidth,12.0f*dpiScale),sizeof(float),i.color,i.macro->len-macroDragScroll,&macroHoverBit30);
         if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+          ImGui::InhibitInertialScroll();
           macroDragStart=ImGui::GetItemRectMin();
           macroDragAreaSize=ImVec2(availableWidth,12.0f*dpiScale);
           macroDragInitialValueSet=false;
@@ -1486,6 +1488,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
       // loop area
       PlotCustom("##IMacroLoop",loopIndicator,totalFit,macroDragScroll,NULL,0,2,ImVec2(availableWidth,12.0f*dpiScale),sizeof(float),i.color,i.macro->len-macroDragScroll,&macroHoverLoop);
       if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+        ImGui::InhibitInertialScroll();
         macroLoopDragStart=ImGui::GetItemRectMin();
         macroLoopDragAreaSize=ImVec2(availableWidth,12.0f*dpiScale);
         macroLoopDragLen=totalFit;
@@ -1498,6 +1501,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
       }
       if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        ImGui::InhibitInertialScroll();
         if (ImGui::IsKeyDown(ImGuiKey_LeftShift) || ImGui::IsKeyDown(ImGuiKey_RightShift)) {
           i.macro->rel=255;
         } else {
@@ -4423,6 +4427,7 @@ void FurnaceGUI::drawInsEdit() {
             macroDragLineMode=false;
             macroDragLineInitial=ImVec2(0,0);
             processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+            ImGui::InhibitInertialScroll();
           }
           ImGui::EndTabItem();
         }
@@ -4452,6 +4457,7 @@ void FurnaceGUI::drawInsEdit() {
             macroDragLineMode=false;
             macroDragLineInitial=ImVec2(0,0);
             processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
+            ImGui::InhibitInertialScroll();
           }
 
           ImGui::EndDisabled();

@@ -3447,6 +3447,15 @@ void ImGui::SetActiveID(ImGuiID id, ImGuiWindow* window)
     {
         g.ActiveIdIsAlive = id;
         g.ActiveIdSource = (g.NavActivateId == id || g.NavActivateInputId == id || g.NavJustMovedToId == id) ? (ImGuiInputSource)ImGuiInputSource_Nav : ImGuiInputSource_Mouse;
+        // TODO: check whether this works
+        if (g.LastItemData.InFlags & ImGuiItemFlags_NoInertialScroll) {
+          if (window) {
+            window->InertialScrollInhibited=true;
+            printf("inhibiting scroll\n");
+          }
+        }
+    } else {
+      if (window) window->InertialScrollInhibited=false;
     }
 
     // Clear declaration of inputs claimed by the widget
@@ -6923,7 +6932,8 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
           if ((g.NavWindowingTarget ? g.NavWindowingTarget : g.NavWindow) == window) {
             if ((g.IO.MouseDown[ImGuiMouseButton_Left] || g.IO.MouseReleased[ImGuiMouseButton_Left]) &&
                 g.ActiveId!=GetWindowScrollbarID(window,ImGuiAxis_X) &&
-                g.ActiveId!=GetWindowScrollbarID(window,ImGuiAxis_Y)) {
+                g.ActiveId!=GetWindowScrollbarID(window,ImGuiAxis_Y) &&
+                !window->InertialScrollInhibited) {
               // launch inertial scroll
               if (g.IO.MouseClicked[ImGuiMouseButton_Left]) {
                 window->InertialScrollSpeed=ImVec2(0.0f,0.0f);
@@ -6969,6 +6979,9 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
           if (g.IO.MouseDown[ImGuiMouseButton_Left]) {
             window->InertialScrollSpeed.x=0.0f;
             window->InertialScrollSpeed.y=0.0f;
+          }
+          if (g.IO.MouseReleased[ImGuiMouseButton_Left]) {
+            window->InertialScrollInhibited=false;
           }
         }
 
@@ -7532,6 +7545,16 @@ void ImGui::EndDisabled()
     g.CurrentItemFlags = g.ItemFlagsStack.back();
     if (was_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) == 0)
         g.Style.Alpha = g.DisabledAlphaBackup; //PopStyleVar();
+}
+
+// InhibitInertialScroll()
+
+void ImGui::InhibitInertialScroll()
+{
+  ImGuiWindow* window = GetCurrentWindow();
+  if (window!=NULL) {
+    window->InertialScrollInhibited=true;
+  }
 }
 
 // FIXME: Look into renaming this once we have settled the new Focus/Activation/TabStop system.

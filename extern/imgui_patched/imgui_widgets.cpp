@@ -2949,7 +2949,7 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
 
     const bool temp_input_allowed = (flags & ImGuiSliderFlags_NoInput) == 0;
     ItemSize(total_bb, style.FramePadding.y);
-    if (!ItemAdd(total_bb, id, &frame_bb, temp_input_allowed ? ImGuiItemFlags_Inputable : 0))
+    if (!ItemAdd(total_bb, id, &frame_bb, (temp_input_allowed ? ImGuiItemFlags_Inputable : 0) | ImGuiItemFlags_NoInertialScroll))
         return false;
 
     // Default format string when passing NULL
