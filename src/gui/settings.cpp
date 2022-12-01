@@ -3231,6 +3231,10 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.25,secondary.x,secondary.y,secondary.z);
   }
 
+  if (mobileUI) { // disable all hovered colors
+    primaryHover=primary;
+    secondaryHover=secondary;
+  }
 
   sty.Colors[ImGuiCol_WindowBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND];
   sty.Colors[ImGuiCol_ModalWindowDimBg]=uiColors[GUI_COLOR_MODAL_BACKDROP];
