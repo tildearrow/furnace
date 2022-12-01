@@ -3171,6 +3171,11 @@ bool FurnaceGUI::loop() {
     if (wantCaptureKeyboard) {
       WAKE_UP;
     }
+
+    if (ImGui::GetIO().IsSomethingHappening) {
+      WAKE_UP;
+    }
+
     if (ImGui::GetIO().MouseDown[0] || ImGui::GetIO().MouseDown[1] || ImGui::GetIO().MouseDown[2] || ImGui::GetIO().MouseDown[3] || ImGui::GetIO().MouseDown[4]) {
       WAKE_UP;
     }

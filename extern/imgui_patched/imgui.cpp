@@ -4469,6 +4469,7 @@ void ImGui::NewFrame()
     g.FramerateSecPerFrameIdx = (g.FramerateSecPerFrameIdx + 1) % IM_ARRAYSIZE(g.FramerateSecPerFrame);
     g.FramerateSecPerFrameCount = ImMin(g.FramerateSecPerFrameCount + 1, IM_ARRAYSIZE(g.FramerateSecPerFrame));
     g.IO.Framerate = (g.FramerateSecPerFrameAccum > 0.0f) ? (1.0f / (g.FramerateSecPerFrameAccum / (float)g.FramerateSecPerFrameCount)) : FLT_MAX;
+    g.IO.IsSomethingHappening = false;
 
     UpdateViewportsNewFrame();
 
@@ -6961,12 +6962,14 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
             if (fabs(window->InertialScrollSpeed.x)>0.1f) {
               window->Scroll.x=window->Scroll.x+window->InertialScrollSpeed.x;
               window->InertialScrollSpeed.x*=0.95f;
+              g.IO.IsSomethingHappening = true;
             } else {
               window->InertialScrollSpeed.x=0.0f;
             }
             if (fabs(window->InertialScrollSpeed.y)>0.1f) {
               window->Scroll.y=window->Scroll.y+window->InertialScrollSpeed.y;
               window->InertialScrollSpeed.y*=0.95f;
+              g.IO.IsSomethingHappening = true;
             } else {
               window->InertialScrollSpeed.y=0.0f;
             }
