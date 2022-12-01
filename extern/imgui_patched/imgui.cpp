@@ -3540,6 +3540,8 @@ bool ImGui::IsItemHovered(ImGuiHoveredFlags flags)
             return false;
         if (!IsItemFocused())
             return false;
+        if (window->InertialScroll)
+            return false;
     }
     else
     {
@@ -3571,6 +3573,10 @@ bool ImGui::IsItemHovered(ImGuiHoveredFlags flags)
 
         // Test if the item is disabled
         if ((g.LastItemData.InFlags & ImGuiItemFlags_Disabled) && !(flags & ImGuiHoveredFlags_AllowWhenDisabled))
+            return false;
+        
+        // Test for inertial scroll
+        if (window->InertialScroll)
             return false;
 
         // Special handling for calling after Begin() which represent the title bar or tab.
@@ -3609,8 +3615,9 @@ bool ImGui::ItemHoverable(const ImRect& bb, ImGuiID id)
         SetHoveredID(id);
 
     // When disabled we'll return false but still set HoveredId
+    // Same thing if swiping
     ImGuiItemFlags item_flags = (g.LastItemData.ID == id ? g.LastItemData.InFlags : g.CurrentItemFlags);
-    if (item_flags & ImGuiItemFlags_Disabled)
+    if (item_flags & ImGuiItemFlags_Disabled || window->InertialScroll)
     {
         // Release active id if turning disabled
         if (g.ActiveId == id)
@@ -6914,19 +6921,27 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         // Inertial scroll
         if (g.IO.ConfigFlags & ImGuiConfigFlags_InertialScrollEnable) {
           if ((g.NavWindowingTarget ? g.NavWindowingTarget : g.NavWindow) == window) {
-            if (g.IO.MouseDown[ImGuiMouseButton_Left] || g.IO.MouseReleased[ImGuiMouseButton_Left]) {
+            if ((g.IO.MouseDown[ImGuiMouseButton_Left] || g.IO.MouseReleased[ImGuiMouseButton_Left]) &&
+                g.ActiveId!=GetWindowScrollbarID(window,ImGuiAxis_X) &&
+                g.ActiveId!=GetWindowScrollbarID(window,ImGuiAxis_Y)) {
               // launch inertial scroll
               if (g.IO.MouseClicked[ImGuiMouseButton_Left]) {
                 window->InertialScrollSpeed=ImVec2(0.0f,0.0f);
+                window->InertialScroll=false;
               } else {
                 if (g.IO.MouseDragMaxDistanceSqr[ImGuiMouseButton_Left]>g.IO.ConfigInertialScrollToleranceSqr) {
                   if (g.IO.MouseReleased[ImGuiMouseButton_Left]) {
                     window->InertialScrollSpeed=ImVec2(window->ScrollbarX?-g.IO.MouseSpeed.x:0.0f,window->ScrollbarY?-g.IO.MouseSpeed.y:0.0f);
+                    window->InertialScroll=false;
                   } else {
                     window->InertialScrollSpeed=ImVec2(window->ScrollbarX?-g.IO.MouseDelta.x:0.0f,window->ScrollbarY?-g.IO.MouseDelta.y:0.0f);
+                    if (window->ScrollbarX || window->ScrollbarY) {
+                      window->InertialScroll=true;
+                    }
                   }
                 } else {
                   window->InertialScrollSpeed=ImVec2(0.0f,0.0f);
+                  window->InertialScroll=false;
                 }
               }
             }
@@ -6948,6 +6963,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
           } else {
             window->InertialScrollSpeed.x=0.0f;
             window->InertialScrollSpeed.y=0.0f;
+            window->InertialScroll=false;
           }
 
           if (g.IO.MouseDown[ImGuiMouseButton_Left]) {
@@ -18677,7 +18693,7 @@ void ImGui::DebugNodeWindow(ImGuiWindow* window, const char* label)
     BulletText("Scroll: (%.2f/%.2f,%.2f/%.2f) Scrollbar:%s%s", window->Scroll.x, window->ScrollMax.x, window->Scroll.y, window->ScrollMax.y, window->ScrollbarX ? "X" : "", window->ScrollbarY ? "Y" : "");
     BulletText("InertialScrollSpeed: %.2f,%.2f",window->InertialScrollSpeed.x,window->InertialScrollSpeed.y);
     BulletText("Active: %d/%d, WriteAccessed: %d, BeginOrderWithinContext: %d", window->Active, window->WasActive, window->WriteAccessed, (window->Active || window->WasActive) ? window->BeginOrderWithinContext : -1);
-    BulletText("Appearing: %d, Hidden: %d (CanSkip %d Cannot %d), SkipItems: %d", window->Appearing, window->Hidden, window->HiddenFramesCanSkipItems, window->HiddenFramesCannotSkipItems, window->SkipItems);
+    BulletText("Appearing: %d, Hidden: %d (CanSkip %d Cannot %d), SkipItems: %d, InertialScroll: %d", window->Appearing, window->Hidden, window->HiddenFramesCanSkipItems, window->HiddenFramesCannotSkipItems, window->SkipItems, window->InertialScroll);
     for (int layer = 0; layer < ImGuiNavLayer_COUNT; layer++)
     {
         ImRect r = window->NavRectRel[layer];
