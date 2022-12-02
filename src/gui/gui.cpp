@@ -2630,10 +2630,12 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
     if (mobileUI) {
       ImGui::GetIO().IniFilename=NULL;
       ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_InertialScrollEnable;
+      fileDialog->singleClickSel=true;
     } else {
       ImGui::GetIO().IniFilename=NULL;
       ImGui::LoadIniSettingsFromDisk(finalLayoutPath);
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_InertialScrollEnable;
+      fileDialog->singleClickSel=false;
     }
   }
 }
@@ -5225,7 +5227,7 @@ bool FurnaceGUI::init() {
 #endif
 
   // initialize SDL
-  SDL_Init(SDL_INIT_VIDEO);
+  SDL_Init(SDL_INIT_VIDEO|SDL_INIT_HAPTIC);
 
   const char* videoBackend=SDL_GetCurrentVideoDriver();
   if (videoBackend!=NULL) {
@@ -5448,6 +5450,17 @@ bool FurnaceGUI::init() {
     return curIns;
   });
 
+  vibrator=SDL_HapticOpen(0);
+  if (vibrator==NULL) {
+    logD("could not open vibration device: %s",SDL_GetError());
+  } else {
+    if (SDL_HapticRumbleInit(vibrator)==0) {
+      vibratorAvailable=true;
+    } else {
+      logD("vibration not available: %s",SDL_GetError());
+    }
+  }
+
   return true;
 }
 
@@ -5578,6 +5591,10 @@ bool FurnaceGUI::finish() {
   SDL_DestroyRenderer(sdlRend);
   SDL_DestroyWindow(sdlWin);
 
+  if (vibrator) {
+    SDL_HapticClose(vibrator);
+  }
+
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
   }
@@ -5593,6 +5610,8 @@ FurnaceGUI::FurnaceGUI():
   e(NULL),
   sdlWin(NULL),
   sdlRend(NULL),
+  vibrator(NULL),
+  vibratorAvailable(false),
   sampleTex(NULL),
   sampleTexW(0),
   sampleTexH(0),
@@ -5766,7 +5785,7 @@ FurnaceGUI::FurnaceGUI():
   curWindowLast(GUI_WINDOW_NOTHING),
   curWindowThreadSafe(GUI_WINDOW_NOTHING),
   lastPatternWidth(0.0f),
-  longThreshold(0.4f),
+  longThreshold(0.48f),
   latchNote(-1),
   latchIns(-2),
   latchVol(-1),

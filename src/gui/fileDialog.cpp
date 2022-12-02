@@ -116,7 +116,7 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, c
     }
 
     jclass class_=jniEnv->GetObjectClass(activity);
-    jmethodID showFileDialog=jniEnv->GetMethodID(class_,"showFileDialog","()B");
+    jmethodID showFileDialog=jniEnv->GetMethodID(class_,"showFileDialog","()V");
 
     if (showFileDialog==NULL) {
       logE("method showFileDialog not found!");
@@ -126,12 +126,12 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, c
       return false;
     }
 
-    jboolean mret=jniEnv->CallBooleanMethod(activity,showFileDialog);
+    jniEnv->CallVoidMethod(activity,showFileDialog);
 
-    if (!(bool)mret) {
+    /*if (!(bool)mret) {
       hasError=true;
       logW("could not open Android file picker...");
-    }
+    }*/
 
     jniEnv->DeleteLocalRef(class_);
     jniEnv->DeleteLocalRef(activity);
@@ -142,6 +142,7 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, c
 #endif
   } else {
     hasError=false;
+    ImGuiFileDialog::Instance()->singleClickSel=singleClickSel;
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;
     ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path,allowMultiple?999:1,nullptr,0,clickCallback);
   }
@@ -178,6 +179,7 @@ bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, c
 #endif
   } else {
     hasError=false;
+    ImGuiFileDialog::Instance()->singleClickSel=false;
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;
     ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
   }

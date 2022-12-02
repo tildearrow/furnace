@@ -128,7 +128,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   if (ImGui::IsItemClicked()) {
     startSelection(0,0,i,true);
   }
-  if (CHECK_LONG_HOLD) {
+  if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
     ImGui::InhibitInertialScroll();
     NOTIFY_LONG_HOLD;
   }
@@ -182,7 +182,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
       updateSelection(j,0,i);
     }
-    if (CHECK_LONG_HOLD) {
+    if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
       ImGui::InhibitInertialScroll();
       NOTIFY_LONG_HOLD;
     }
@@ -226,7 +226,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
         updateSelection(j,1,i);
       }
-      if (CHECK_LONG_HOLD) {
+      if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
         ImGui::InhibitInertialScroll();
         NOTIFY_LONG_HOLD;
       }
@@ -264,7 +264,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
         updateSelection(j,2,i);
       }
-      if (CHECK_LONG_HOLD) {
+      if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
         ImGui::InhibitInertialScroll();
         NOTIFY_LONG_HOLD;
       }
@@ -313,7 +313,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
           updateSelection(j,index-1,i);
         }
-        if (CHECK_LONG_HOLD) {
+        if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
           ImGui::InhibitInertialScroll();
           NOTIFY_LONG_HOLD;
         }
@@ -343,7 +343,7 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
           updateSelection(j,index,i);
         }
-        if (CHECK_LONG_HOLD) {
+        if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
           ImGui::InhibitInertialScroll();
           NOTIFY_LONG_HOLD;
         }

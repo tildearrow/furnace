@@ -79,6 +79,8 @@ SOFTWARE.
 #include <algorithm>
 #include <iostream>
 
+#define DOUBLE_CLICKED ((singleClickSel && ImGui::IsMouseReleased(0)) || (!singleClickSel && ImGui::IsMouseDoubleClicked(0)))
+
 #ifdef USE_THUMBNAILS
 #ifndef DONT_DEFINE_AGAIN__STB_IMAGE_IMPLEMENTATION
 #ifndef STB_IMAGE_IMPLEMENTATION
@@ -3319,7 +3321,7 @@ namespace IGFD
 	//// FILE DIALOG CONSTRUCTOR / DESTRUCTOR ///////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	IGFD::FileDialog::FileDialog() : BookMarkFeature(), KeyExplorerFeature(), ThumbnailFeature() {DpiScale=1.0f;}
+	IGFD::FileDialog::FileDialog() : BookMarkFeature(), KeyExplorerFeature(), ThumbnailFeature() {DpiScale=1.0f; singleClickSel=false;}
 	IGFD::FileDialog::~FileDialog() = default;
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3972,7 +3974,7 @@ namespace IGFD
 				}
 				else // no nav system => classic behavior
 				{
-					if (ImGui::IsMouseDoubleClicked(0)) // 0 -> left mouse button double click
+					if (DOUBLE_CLICKED) // 0 -> left mouse button double click
 					{
             isSelectingDir=true;
 						fdi.puPathClicked = fdi.SelectDirectory(vInfos);
@@ -3987,7 +3989,7 @@ namespace IGFD
 			}
 			else
 			{
-        if (ImGui::IsMouseDoubleClicked(0)) {
+        if (DOUBLE_CLICKED) {
           fdi.SelectFileName(prFileDialogInternal, vInfos);
           prFileDialogInternal.puIsOk = true;
           return 2;

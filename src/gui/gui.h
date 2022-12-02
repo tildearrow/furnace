@@ -53,10 +53,15 @@
     _wi->std.waveMacro.vScroll=-1; \
   }
 
-#define CHECK_LONG_HOLD (mobileUI && ImGui::GetIO().MouseDown[ImGuiMouseButton_Left] && ImGui::GetIO().MouseDownDuration[ImGuiMouseButton_Left]>longThreshold && !ImGui::IsInertialScroll())
+#define CHECK_LONG_HOLD (mobileUI && ImGui::GetIO().MouseDown[ImGuiMouseButton_Left] && ImGui::GetIO().MouseDownDuration[ImGuiMouseButton_Left]>=longThreshold && ImGui::GetIO().MouseDownDurationPrev[ImGuiMouseButton_Left]<longThreshold && !ImGui::IsInertialScroll())
 
 // for now
-#define NOTIFY_LONG_HOLD logV("long hold");
+#define NOTIFY_LONG_HOLD \
+  if (vibrator && vibratorAvailable) { \
+    if (SDL_HapticRumblePlay(vibrator,0.5f,20)!=0) { \
+      logV("could not vibrate: %s!",SDL_GetError()); \
+    } \
+  }
 
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
 
@@ -1053,6 +1058,8 @@ class FurnaceGUI {
 
   SDL_Window* sdlWin;
   SDL_Renderer* sdlRend;
+  SDL_Haptic* vibrator;
+  bool vibratorAvailable;
 
   SDL_Texture* sampleTex;
   int sampleTexW, sampleTexH;
