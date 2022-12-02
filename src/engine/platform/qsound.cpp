@@ -397,9 +397,11 @@ void DivPlatformQSound::tick(bool sysTick) {
           rWrite(q1_reg_map[Q1V_START][i], qsound_addr);
           rWrite(q1_reg_map[Q1V_PHASE][i], 0x8000);
         } else {
+          rWrite(Q1A_KEYON+(i-16),0);
           rWrite(q1a_bank_map[i-16], qsound_bank);
           rWrite(q1a_end_map[i-16], qsound_end);
           rWrite(q1a_start_map[i-16], qsound_addr);
+          rWrite(Q1A_KEYON+(i-16),1);
         }
         //logV("ch %d bank=%04x, addr=%04x, end=%04x, loop=%04x!",i,qsound_bank,qsound_addr,qsound_end,qsound_loop);
         // Write sample address. Enable volume
@@ -423,6 +425,7 @@ void DivPlatformQSound::tick(bool sysTick) {
           rWrite(q1_reg_map[Q1V_FREQ][i],0);
         } else {
           rWrite(q1a_vol_map[i-16],0);
+          rWrite(Q1A_KEYON+(i-16),0);
         }
       } else if (chan[i].active) {
         //logV("ch %d frequency set to %04x, off=%f, note=%d, %04x!",i,chan[i].freq,off,chan[i].note,QS_NOTE_FREQUENCY(chan[i].note));
@@ -751,6 +754,8 @@ void DivPlatformQSound::renderSamples(int sysID) {
   }
   sampleMemLen=memPos+256;
 
+  memPos=(memPos+0xffff)&0xff0000;
+
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[1][sysID]) {
@@ -759,8 +764,8 @@ void DivPlatformQSound::renderSamples(int sysID) {
     }
 
     int length=s->lengthQSoundA;
-    if (length>65536-16) {
-      length=65536-16;
+    if (length>65536) {
+      length=65536;
     }
     if ((memPos&0xff0000)!=((memPos+length)&0xff0000)) {
       memPos=(memPos+0xffff)&0xff0000;
@@ -771,16 +776,16 @@ void DivPlatformQSound::renderSamples(int sysID) {
     }
     if (memPos+length>=getSampleMemCapacity()) {
       for (unsigned int i=0; i<getSampleMemCapacity()-(memPos+length); i++) {
-        sampleMem[(memPos+i)^0x8000]=s->dataQSoundA[i];
+        sampleMem[(memPos+i)]=s->dataQSoundA[i];
       }
       logW("out of QSound ADPCM memory for sample %d!",i);
     } else {
       for (int i=0; i<length; i++) {
-        sampleMem[(memPos+i)^0x8000]=s->dataQSoundA[i];
+        sampleMem[(memPos+i)]=s->dataQSoundA[i];
       }
       sampleLoaded[i]=true;
     }
-    offBS[i]=memPos^0x8000;
+    offBS[i]=memPos;
     memPos+=length+16;
   }
   sampleMemLenBS=memPos+256;
