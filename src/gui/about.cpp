@@ -100,6 +100,7 @@ const char* aboutLine[]={
   "theloredev",
   "TheRealHedgehogSonic",
   "tildearrow",
+  "Uhrwerk Klockwerx",
   "Ultraprogramer",
   "UserSniper",
   "Weeppiko",
