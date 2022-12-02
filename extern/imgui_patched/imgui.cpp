@@ -3449,13 +3449,10 @@ void ImGui::SetActiveID(ImGuiID id, ImGuiWindow* window)
         g.ActiveIdSource = (g.NavActivateId == id || g.NavActivateInputId == id || g.NavJustMovedToId == id) ? (ImGuiInputSource)ImGuiInputSource_Nav : ImGuiInputSource_Mouse;
         // TODO: check whether this works
         if (g.LastItemData.InFlags & ImGuiItemFlags_NoInertialScroll) {
-          if (window) {
-            window->InertialScrollInhibited=true;
-            printf("inhibiting scroll\n");
-          }
+          g.InertialScrollInhibited=true;
         }
     } else {
-      if (window) window->InertialScrollInhibited=false;
+      g.InertialScrollInhibited=false;
     }
 
     // Clear declaration of inputs claimed by the widget
@@ -5102,6 +5099,11 @@ void ImGui::EndFrame()
         g.DragDropWithinSource = true;
         SetTooltip("...");
         g.DragDropWithinSource = false;
+    }
+
+    // Check for inertial scroll inhibit status
+    if (g.IO.MouseReleased[ImGuiMouseButton_Left]) {
+      g.InertialScrollInhibited=false;
     }
 
     // End frame
@@ -6934,7 +6936,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
             if ((g.IO.MouseDown[ImGuiMouseButton_Left] || g.IO.MouseReleased[ImGuiMouseButton_Left]) &&
                 g.ActiveId!=GetWindowScrollbarID(window,ImGuiAxis_X) &&
                 g.ActiveId!=GetWindowScrollbarID(window,ImGuiAxis_Y) &&
-                !window->InertialScrollInhibited) {
+                !g.InertialScrollInhibited) {
               // launch inertial scroll
               if (g.IO.MouseClicked[ImGuiMouseButton_Left]) {
                 window->InertialScrollSpeed=ImVec2(0.0f,0.0f);
@@ -6955,6 +6957,9 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
                   window->InertialScroll=false;
                 }
               }
+            } else if (g.InertialScrollInhibited) {
+              window->InertialScrollSpeed=ImVec2(0.0f,0.0f);
+              window->InertialScroll=false;
             }
           }
 
@@ -6982,9 +6987,6 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
           if (g.IO.MouseDown[ImGuiMouseButton_Left]) {
             window->InertialScrollSpeed.x=0.0f;
             window->InertialScrollSpeed.y=0.0f;
-          }
-          if (g.IO.MouseReleased[ImGuiMouseButton_Left]) {
-            window->InertialScrollInhibited=false;
           }
         }
 
@@ -7554,10 +7556,8 @@ void ImGui::EndDisabled()
 
 void ImGui::InhibitInertialScroll()
 {
-  ImGuiWindow* window = GetCurrentWindow();
-  if (window!=NULL) {
-    window->InertialScrollInhibited=true;
-  }
+  ImGuiContext& g = *GImGui;
+  g.InertialScrollInhibited=true;
 }
 
 // FIXME: Look into renaming this once we have settled the new Focus/Activation/TabStop system.

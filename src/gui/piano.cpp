@@ -222,6 +222,7 @@ void FurnaceGUI::drawPiano() {
           bool canInput=false;
           if (ImGui::ItemHoverable(rect,ImGui::GetID("pianoDisplay"))) {
             canInput=true;
+            ImGui::InhibitInertialScroll();
           }
           if (view) {
             int notes=oct*12;

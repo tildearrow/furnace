@@ -1936,6 +1936,9 @@ struct ImGuiContext
     float                   NavWindowingHighlightAlpha;
     bool                    NavWindowingToggleLayer;
 
+    // Inertial scroll
+    bool                    InertialScrollInhibited;            // Is inertial scroll inhibited? (e.g. by ImGuiItemFlags_NoInertialScroll)
+
     // Render
     float                   DimBgRatio;                         // 0.0..1.0 animation when fading in a dimming background (for modal window and CTRL+TAB list)
     ImGuiMouseCursor        MouseCursor;
@@ -2145,6 +2148,8 @@ struct ImGuiContext
         NavWindowingTimer = NavWindowingHighlightAlpha = 0.0f;
         NavWindowingToggleLayer = false;
 
+        InertialScrollInhibited = false;
+
         DimBgRatio = 0.0f;
         MouseCursor = ImGuiMouseCursor_Arrow;
 
@@ -2295,7 +2300,6 @@ struct IMGUI_API ImGuiWindow
     ImVec2                  ScrollTargetEdgeSnapDist;           // 0.0f = no snapping, >0.0f snapping threshold
     ImVec2                  ScrollbarSizes;                     // Size taken by each scrollbars on their smaller axis. Pay attention! ScrollbarSizes.x == width of the vertical scrollbar, ScrollbarSizes.y = height of the horizontal scrollbar.
     ImVec2                  InertialScrollSpeed;                // current speed of inertial scroll (AKA "swipe")
-    bool                    InertialScrollInhibited;            // Is inertial scroll inhibited? (e.g. by ImGuiItemFlags_NoInertialScroll)
     bool                    ScrollbarX, ScrollbarY;             // Are scrollbars visible?
     bool                    ViewportOwned;
     bool                    Active;                             // Set to true on Begin(), unless Collapsed
