@@ -2928,11 +2928,13 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   if (selecting) {
     if (!selectingFull) cursor=selEnd;
     finishSelection();
-    demandScrollX=true;
-    if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
-        cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
-      if (!settings.cursorMoveNoScroll) {
-        updateScroll(cursor.y);
+    if (!mobileUI) {
+      demandScrollX=true;
+      if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
+          cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
+        if (!settings.cursorMoveNoScroll) {
+          updateScroll(cursor.y);
+        }
       }
     }
   }
