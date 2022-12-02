@@ -53,6 +53,11 @@
     _wi->std.waveMacro.vScroll=-1; \
   }
 
+#define CHECK_LONG_HOLD (mobileUI && ImGui::GetIO().MouseDown[ImGuiMouseButton_Left] && ImGui::GetIO().MouseDownDuration[ImGuiMouseButton_Left]>longThreshold && !ImGui::IsInertialScroll())
+
+// for now
+#define NOTIFY_LONG_HOLD logV("long hold");
+
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
 
 // TODO:
@@ -1425,7 +1430,7 @@ class FurnaceGUI {
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
-  float lastPatternWidth;
+  float lastPatternWidth, longThreshold;
   String nextDesc;
   String nextDescName;
 

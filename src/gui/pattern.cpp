@@ -128,6 +128,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   if (ImGui::IsItemClicked()) {
     startSelection(0,0,i,true);
   }
+  if (CHECK_LONG_HOLD) {
+    ImGui::InhibitInertialScroll();
+    NOTIFY_LONG_HOLD;
+  }
   ImGui::PopStyleColor();
   // for each column
   for (int j=0; j<chans; j++) {
@@ -178,6 +182,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
       updateSelection(j,0,i);
     }
+    if (CHECK_LONG_HOLD) {
+      ImGui::InhibitInertialScroll();
+      NOTIFY_LONG_HOLD;
+    }
     ImGui::PopStyleColor();
 
     // the following is only visible when the channel is not collapsed
@@ -218,6 +226,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
         updateSelection(j,1,i);
       }
+      if (CHECK_LONG_HOLD) {
+        ImGui::InhibitInertialScroll();
+        NOTIFY_LONG_HOLD;
+      }
       ImGui::PopStyleColor();
     }
 
@@ -251,6 +263,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       }
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
         updateSelection(j,2,i);
+      }
+      if (CHECK_LONG_HOLD) {
+        ImGui::InhibitInertialScroll();
+        NOTIFY_LONG_HOLD;
       }
       ImGui::PopStyleColor();
     }
@@ -297,6 +313,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
           updateSelection(j,index-1,i);
         }
+        if (CHECK_LONG_HOLD) {
+          ImGui::InhibitInertialScroll();
+          NOTIFY_LONG_HOLD;
+        }
 
         // effect value
         if (pat->data[i][index+1]==-1) {
@@ -322,6 +342,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         }
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
           updateSelection(j,index,i);
+        }
+        if (CHECK_LONG_HOLD) {
+          ImGui::InhibitInertialScroll();
+          NOTIFY_LONG_HOLD;
         }
         ImGui::PopStyleColor();
       }

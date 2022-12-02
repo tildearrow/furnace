@@ -7552,6 +7552,16 @@ void ImGui::EndDisabled()
         g.Style.Alpha = g.DisabledAlphaBackup; //PopStyleVar();
 }
 
+// IsInertialScroll()
+
+bool ImGui::IsInertialScroll()
+{
+  ImGuiWindow* window = GetCurrentWindow();
+  if (window==NULL) return false;
+  return window->InertialScroll;
+}
+
+
 // InhibitInertialScroll()
 
 void ImGui::InhibitInertialScroll()
