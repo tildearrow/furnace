@@ -58,7 +58,11 @@ void DivSample::putSampleData(SafeWriter* w) {
   w->writeI(loop?loopEnd:-1);
 
   for (int i=0; i<4; i++) {
-    w->writeI(0xffffffff);
+    unsigned int out=0;
+    for (int j=0; j<32; j++) {
+      if (renderOn[i][j]) out|=1<<j;
+    }
+    w->writeI(out);
   }
 
 #ifdef TA_BIG_ENDIAN
@@ -130,7 +134,10 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
     loop=(loopStart>=0)&&(loopEnd>=0);
 
     for (int i=0; i<4; i++) {
-      reader.readI();
+      unsigned int outMask=(unsigned int)reader.readI();
+      for (int j=0; j<32; j++) {
+        renderOn[i][j]=outMask&(1<<j);
+      }
     }
   } else {
     if (version<58) {
