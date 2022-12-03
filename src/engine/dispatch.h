@@ -454,6 +454,18 @@ class DivDispatch {
     virtual bool getWantPreNote();
 
     /**
+     * get minimum chip clock.
+     * @return clock in Hz, or 0 if custom clocks are not supported.
+     */
+    virtual unsigned int getClockRangeMin();
+
+    /**
+     * get maximum chip clock.
+     * @return clock in Hz, or 0 if custom clocks are not supported.
+     */
+    virtual unsigned int getClockRangeMax();
+
+    /**
      * set the chip flags.
      * @param flags a DivConfig containing chip flags.
      */
