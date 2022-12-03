@@ -3284,6 +3284,10 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.FrameShading=(float)settings.guiColorsShading/100.0f;
   }
 
+  if (mobileUI) {
+    sty.FramePadding=ImVec2(8.0f,6.0f);
+  }
+
   sty.ScaleAllSizes(dpiScale);
 
   ImGui::GetStyle()=sty;
