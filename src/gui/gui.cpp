@@ -2630,12 +2630,14 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
     if (mobileUI) {
       ImGui::GetIO().IniFilename=NULL;
       ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_InertialScrollEnable;
-      fileDialog->singleClickSel=true;
+      ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NoHoverColors;
+      fileDialog->mobileUI=true;
     } else {
       ImGui::GetIO().IniFilename=NULL;
       ImGui::LoadIniSettingsFromDisk(finalLayoutPath);
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_InertialScrollEnable;
-      fileDialog->singleClickSel=false;
+      ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NoHoverColors;
+      fileDialog->mobileUI=false;
     }
   }
 }
@@ -2643,14 +2645,16 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
 void FurnaceGUI::pushToggleColors(bool status) {
   ImVec4 toggleColor=status?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF];
   ImGui::PushStyleColor(ImGuiCol_Button,toggleColor);
-  if (settings.guiColorsBase) {
-    toggleColor.x*=0.8f;
-    toggleColor.y*=0.8f;
-    toggleColor.z*=0.8f;
-  } else {
-    toggleColor.x=CLAMP(toggleColor.x*1.3f,0.0f,1.0f);
-    toggleColor.y=CLAMP(toggleColor.y*1.3f,0.0f,1.0f);
-    toggleColor.z=CLAMP(toggleColor.z*1.3f,0.0f,1.0f);
+  if (!mobileUI) {
+    if (settings.guiColorsBase) {
+      toggleColor.x*=0.8f;
+      toggleColor.y*=0.8f;
+      toggleColor.z*=0.8f;
+    } else {
+      toggleColor.x=CLAMP(toggleColor.x*1.3f,0.0f,1.0f);
+      toggleColor.y=CLAMP(toggleColor.y*1.3f,0.0f,1.0f);
+      toggleColor.z=CLAMP(toggleColor.z*1.3f,0.0f,1.0f);
+    }
   }
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,toggleColor);
   if (settings.guiColorsBase) {
@@ -3684,6 +3688,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::BeginMenu("help")) {
         if (ImGui::MenuItem("effect list",BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
         if (ImGui::MenuItem("debug menu",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
+        if (ImGui::MenuItem("inspector",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) inspectorOpen=!inspectorOpen;
         if (ImGui::MenuItem("panic",BIND_FOR(GUI_ACTION_PANIC))) e->syncReset();
         if (ImGui::MenuItem("about...",BIND_FOR(GUI_ACTION_WINDOW_ABOUT))) {
           aboutOpen=true;

@@ -3215,7 +3215,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   }
 
   ImVec4 secondaryActive=uiColors[GUI_COLOR_ACCENT_SECONDARY];
-  ImVec4 secondaryHover, secondary, secondarySemiActive;
+  ImVec4 secondaryHoverActual, secondaryHover, secondary, secondarySemiActive;
   secondarySemiActive.w=secondaryActive.w;
   secondaryHover.w=secondaryActive.w;
   secondary.w=secondaryActive.w;
@@ -3230,6 +3230,8 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.5,secondaryHover.x,secondaryHover.y,secondaryHover.z);
     ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.25,secondary.x,secondary.y,secondary.z);
   }
+
+  secondaryHoverActual=secondaryHover;
 
   if (mobileUI) { // disable all hovered colors
     primaryHover=primary;
@@ -3261,7 +3263,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   sty.Colors[ImGuiCol_SliderGrabActive]=primaryActive;
   sty.Colors[ImGuiCol_TitleBgActive]=primary;
   sty.Colors[ImGuiCol_CheckMark]=primaryActive;
-  sty.Colors[ImGuiCol_TextSelectedBg]=secondaryHover;
+  sty.Colors[ImGuiCol_TextSelectedBg]=secondaryHoverActual;
   sty.Colors[ImGuiCol_PlotHistogram]=uiColors[GUI_COLOR_MACRO_OTHER];
   sty.Colors[ImGuiCol_PlotHistogramHovered]=uiColors[GUI_COLOR_MACRO_OTHER];
   sty.Colors[ImGuiCol_Border]=uiColors[GUI_COLOR_BORDER];
@@ -3492,5 +3494,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   if (updateFonts) {
     if (fileDialog!=NULL) delete fileDialog;
     fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog);
+
+    fileDialog->mobileUI=mobileUI;
   }
 }

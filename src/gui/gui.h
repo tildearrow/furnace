@@ -53,7 +53,7 @@
     _wi->std.waveMacro.vScroll=-1; \
   }
 
-#define CHECK_LONG_HOLD (mobileUI && ImGui::GetIO().MouseDown[ImGuiMouseButton_Left] && ImGui::GetIO().MouseDownDuration[ImGuiMouseButton_Left]>=longThreshold && ImGui::GetIO().MouseDownDurationPrev[ImGuiMouseButton_Left]<longThreshold && !ImGui::IsInertialScroll())
+#define CHECK_LONG_HOLD (mobileUI && ImGui::GetIO().MouseDown[ImGuiMouseButton_Left] && ImGui::GetIO().MouseDownDuration[ImGuiMouseButton_Left]>=longThreshold && ImGui::GetIO().MouseDownDurationPrev[ImGuiMouseButton_Left]<longThreshold && ImGui::GetIO().MouseDragMaxDistanceSqr[ImGuiMouseButton_Left]<=ImGui::GetIO().ConfigInertialScrollToleranceSqr)
 
 // for now
 #define NOTIFY_LONG_HOLD \
@@ -63,6 +63,7 @@
     } \
   } else { \
     fputc(7,stderr); /* bell */ \
+    logI("beep!"); \
   }
 
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()

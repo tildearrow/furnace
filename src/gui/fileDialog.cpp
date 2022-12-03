@@ -149,8 +149,9 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, c
     }
 #endif
 
-    ImGuiFileDialog::Instance()->singleClickSel=singleClickSel;
+    ImGuiFileDialog::Instance()->singleClickSel=mobileUI;
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;
+    ImGuiFileDialog::Instance()->mobileMode=mobileUI;
     ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path,allowMultiple?999:1,nullptr,0,clickCallback);
   }
   opened=true;
@@ -233,6 +234,7 @@ bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, c
 
     ImGuiFileDialog::Instance()->singleClickSel=false;
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;
+    ImGuiFileDialog::Instance()->mobileMode=mobileUI;
     ImGuiFileDialog::Instance()->OpenModal("FileDialog",header,noSysFilter,path,1,nullptr,ImGuiFileDialogFlags_ConfirmOverwrite);
   }
   opened=true;

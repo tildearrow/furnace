@@ -67,7 +67,7 @@ void FurnaceGUI::drawMobileOrderSel() {
         String text=fmt::sprintf("%.2X",i);
         float targetSize=size.y-fabs(i-orderScroll)*2.0*dpiScale;
         if (targetSize<8.0*dpiScale) targetSize=8.0*dpiScale;
-        color.w*=MIN(1.0f,targetSize/size.y);
+        color.w*=CLAMP(2.0f*(targetSize/size.y-0.5f),0.0f,1.0f);
 
         ImGui::PushFont(bigFont);
         ImVec2 textSize=ImGui::CalcTextSize(text.c_str());

@@ -620,7 +620,7 @@ void FurnaceGUI::drawPattern() {
             ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
               bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
-              ImU32 col=hovered?ImGui::GetColorU32(ImGuiCol_HeaderHovered):ImGui::GetColorU32(ImGuiCol_Header);
+              ImU32 col=(hovered || (!mobileUI && ImGui::IsMouseDown(ImGuiMouseButton_Left)))?ImGui::GetColorU32(ImGuiCol_HeaderHovered):ImGui::GetColorU32(ImGuiCol_Header);
               dl->AddRectFilled(rect.Min,rect.Max,col);
               dl->AddText(ImVec2(minLabelArea.x,rect.Min.y),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
@@ -633,13 +633,13 @@ void FurnaceGUI::drawPattern() {
                 chanHeadBase.x,
                 chanHeadBase.y,
                 chanHeadBase.z,
-                hovered?0.25f:0.0f
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?0.25f:0.0f
               ));
               ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
                 chanHeadBase.x,
                 chanHeadBase.y,
                 chanHeadBase.z,
-                hovered?0.5f:MIN(1.0f,chanHeadBase.w*keyHit[i]*4.0f)
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?0.5f:MIN(1.0f,chanHeadBase.w*keyHit[i]*4.0f)
               ));
               dl->AddRectFilledMultiColor(rect.Min,rect.Max,fadeCol0,fadeCol0,fadeCol,fadeCol);
               dl->AddLine(ImVec2(rect.Min.x,rect.Max.y),ImVec2(rect.Max.x,rect.Max.y),ImGui::GetColorU32(chanHeadBase),2.0f*dpiScale);
@@ -655,13 +655,13 @@ void FurnaceGUI::drawPattern() {
                 chanHeadBase.x,
                 chanHeadBase.y,
                 chanHeadBase.z,
-                hovered?0.5f:MIN(1.0f,0.3f+chanHeadBase.w*keyHit[i]*1.5f)
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?0.5f:MIN(1.0f,0.3f+chanHeadBase.w*keyHit[i]*1.5f)
               ));
               ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
                 chanHeadBase.x,
                 chanHeadBase.y,
                 chanHeadBase.z,
-                hovered?0.3f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*1.2f)
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?0.3f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*1.2f)
               ));
               ImVec2 rMin=rect.Min;
               ImVec2 rMax=rect.Max;
@@ -691,7 +691,7 @@ void FurnaceGUI::drawPattern() {
                 chanHeadBase.x,
                 chanHeadBase.y,
                 chanHeadBase.z,
-                hovered?1.0f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*4.0f)
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?1.0f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*4.0f)
               ));
               ImVec2 rMin=rect.Min;
               ImVec2 rMax=rect.Max;
@@ -712,7 +712,7 @@ void FurnaceGUI::drawPattern() {
                 chanHeadBase.x,
                 chanHeadBase.y,
                 chanHeadBase.z,
-                hovered?1.0f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*4.0f)
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?1.0f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*4.0f)
               ));
               ImVec2 rMin=rect.Min;
               ImVec2 rMax=rect.Max;

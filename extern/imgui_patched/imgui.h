@@ -1580,6 +1580,7 @@ enum ImGuiConfigFlags_
 
     // [CUSTOM] Inertial scroll
     ImGuiConfigFlags_InertialScrollEnable   = 1 << 7,   // Docking enable flags.
+    ImGuiConfigFlags_NoHoverColors          = 1 << 8,   // Disable all "hovered" color changes (useful for mobile).
 
     // [BETA] Viewports
     // When using viewports it is recommended that your default value for ImGuiCol_WindowBg is opaque (Alpha=1.0) so transition to a viewport won't be noticeable.
