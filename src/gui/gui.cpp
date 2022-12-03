@@ -2923,7 +2923,7 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   if (orderScrollLocked) {
     int targetOrder=round(orderScroll);
     if (orderScrollTolerance) {
-      targetOrder=round(orderScroll+(orderScrollRealOrigin.x-(canvasW/2))/(40.0f*dpiScale));
+      targetOrder=round(orderScroll+(orderScrollRealOrigin.x-((float)canvasW/2.0f))/(40.0f*dpiScale));
     }
     if (targetOrder<0) targetOrder=0;
     if (targetOrder>e->curSubSong->ordersLen-1) targetOrder=e->curSubSong->ordersLen-1;
