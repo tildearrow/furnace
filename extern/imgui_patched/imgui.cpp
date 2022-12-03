@@ -3451,8 +3451,6 @@ void ImGui::SetActiveID(ImGuiID id, ImGuiWindow* window)
         if (g.LastItemData.InFlags & ImGuiItemFlags_NoInertialScroll) {
           g.InertialScrollInhibited=true;
         }
-    } else {
-      g.InertialScrollInhibited=false;
     }
 
     // Clear declaration of inputs claimed by the widget
@@ -5102,7 +5100,7 @@ void ImGui::EndFrame()
     }
 
     // Check for inertial scroll inhibit status
-    if (g.IO.MouseReleased[ImGuiMouseButton_Left]) {
+    if (!g.IO.MouseDown[ImGuiMouseButton_Left]) {
       g.InertialScrollInhibited=false;
     }
 
@@ -6941,25 +6939,32 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
               if (g.IO.MouseClicked[ImGuiMouseButton_Left]) {
                 window->InertialScrollSpeed=ImVec2(0.0f,0.0f);
                 window->InertialScroll=false;
+                g.InertialScroll=false;
+                g.WasInertialScroll=false;
               } else {
                 if (g.IO.MouseDragMaxDistanceSqr[ImGuiMouseButton_Left]>g.IO.ConfigInertialScrollToleranceSqr) {
                   if (g.IO.MouseReleased[ImGuiMouseButton_Left]) {
                     window->InertialScrollSpeed=ImVec2(window->ScrollbarX?-g.IO.MouseSpeed.x:0.0f,window->ScrollbarY?-g.IO.MouseSpeed.y:0.0f);
                     window->InertialScroll=false;
+                    g.InertialScroll=false;
                   } else {
                     window->InertialScrollSpeed=ImVec2(window->ScrollbarX?-g.IO.MouseDelta.x:0.0f,window->ScrollbarY?-g.IO.MouseDelta.y:0.0f);
                     if (window->ScrollbarX || window->ScrollbarY) {
                       window->InertialScroll=true;
+                      g.InertialScroll=true;
+                      g.WasInertialScroll=true;
                     }
                   }
                 } else {
                   window->InertialScrollSpeed=ImVec2(0.0f,0.0f);
                   window->InertialScroll=false;
+                  g.InertialScroll=false;
                 }
               }
             } else if (g.InertialScrollInhibited) {
               window->InertialScrollSpeed=ImVec2(0.0f,0.0f);
               window->InertialScroll=false;
+              g.InertialScroll=false;
             }
           }
 
@@ -6982,6 +6987,7 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
             window->InertialScrollSpeed.x=0.0f;
             window->InertialScrollSpeed.y=0.0f;
             window->InertialScroll=false;
+            g.InertialScroll=false;
           }
 
           if (g.IO.MouseDown[ImGuiMouseButton_Left]) {
@@ -7556,11 +7562,22 @@ void ImGui::EndDisabled()
 
 bool ImGui::IsInertialScroll()
 {
+  /*
   ImGuiWindow* window = GetCurrentWindow();
   if (window==NULL) return false;
   return window->InertialScroll;
+  */
+  ImGuiContext& g = *GImGui;
+  return g.InertialScroll;
 }
 
+// WasInertialScroll()
+
+bool ImGui::WasInertialScroll()
+{
+  ImGuiContext& g = *GImGui;
+  return g.WasInertialScroll;
+}
 
 // InhibitInertialScroll()
 

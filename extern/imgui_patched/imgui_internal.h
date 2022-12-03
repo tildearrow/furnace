@@ -1938,6 +1938,8 @@ struct ImGuiContext
 
     // Inertial scroll
     bool                    InertialScrollInhibited;            // Is inertial scroll inhibited? (e.g. by ImGuiItemFlags_NoInertialScroll)
+    bool                    InertialScroll;                     // Is any window being scrolled?
+    bool                    WasInertialScroll;                  // Was ^?
 
     // Render
     float                   DimBgRatio;                         // 0.0..1.0 animation when fading in a dimming background (for modal window and CTRL+TAB list)

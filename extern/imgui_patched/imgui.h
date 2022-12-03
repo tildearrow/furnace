@@ -840,6 +840,7 @@ namespace ImGui
 
     // Inertial scroll
     IMGUI_API bool          IsInertialScroll();
+    IMGUI_API bool          WasInertialScroll();
     IMGUI_API void          InhibitInertialScroll();
 
     // Clipping

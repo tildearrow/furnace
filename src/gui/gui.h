@@ -61,6 +61,8 @@
     if (SDL_HapticRumblePlay(vibrator,0.5f,20)!=0) { \
       logV("could not vibrate: %s!",SDL_GetError()); \
     } \
+  } else { \
+    fputc(7,stderr); /* bell */ \
   }
 
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
