@@ -56,6 +56,10 @@
   last2=last1; \
   last1=nextDec; \
 
+void brrEncodeBlock(short* buf, unsigned char* out, unsigned char flag, short* last1, short* last2) {
+  // encode one block using BRR
+}
+
 long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
   if (len==0) return 0;
 
