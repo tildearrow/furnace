@@ -24,6 +24,7 @@
 class DivPlatformYM2203Ext: public DivPlatformYM2203 {
   OPNOpChannel opChan[4];
   bool isOpMuted[4];
+  friend void putDispatchChip(void*,int);
   public:
     int dispatch(DivCommand c);
     void* getChanState(int chan);

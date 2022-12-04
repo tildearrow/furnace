@@ -19,6 +19,7 @@
 
 #include "debug.h"
 #include "imgui.h"
+#include "../engine/platform/fmsharedbase.h"
 #include "../engine/platform/genesis.h"
 #include "../engine/platform/genesisext.h"
 #include "../engine/platform/sms.h"

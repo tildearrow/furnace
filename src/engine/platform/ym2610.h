@@ -35,6 +35,7 @@ class DivPlatformYM2610: public DivPlatformYM2610Base<14> {
       1, 2, 4, 5
     };
 
+    friend void putDispatchChip(void*,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);

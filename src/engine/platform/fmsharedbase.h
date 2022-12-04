@@ -123,7 +123,6 @@ class DivPlatformFMBase: public DivDispatch {
       }
     }
 
-    friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
     DivPlatformFMBase():

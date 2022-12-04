@@ -51,6 +51,7 @@ class DivPlatformYM2203: public DivPlatformOPN {
     bool extMode, noExtMacros;
     unsigned char prescale;
 
+    friend void putDispatchChip(void*,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
