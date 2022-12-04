@@ -22,7 +22,7 @@
 #include "ym2610b.h"
 
 class DivPlatformYM2610BExt: public DivPlatformYM2610B {
-  DivPlatformYM2610Base::OpChannel opChan[4];
+  OPNOpChannelStereo opChan[4];
   bool isOpMuted[4];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);

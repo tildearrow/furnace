@@ -101,6 +101,54 @@ class DivPlatformOPN: public DivPlatformFMBase {
       0x00, 0x04, 0x08, 0x0c
     };
 
+    struct OPNChannel: public FMChannel {
+      unsigned char psgMode, autoEnvNum, autoEnvDen;
+      bool furnacePCM;
+      int sample, macroVolMul;
+
+      OPNChannel():
+        FMChannel(),
+        psgMode(1),
+        autoEnvNum(0),
+        autoEnvDen(0),
+        furnacePCM(false),
+        sample(-1),
+        macroVolMul(255) {}
+    };
+
+    struct OPNChannelStereo: public OPNChannel {
+      unsigned char pan;
+      OPNChannelStereo():
+        OPNChannel(),
+        pan(3) {}
+    };
+
+    struct OPNOpChannel: public SharedChannelFreq, public SharedChannelVolume<int> {
+      DivMacroInt std;
+      unsigned char freqH, freqL;
+      int portaPauseFreq;
+      signed char konCycles;
+      bool mask;
+      void macroInit(DivInstrument* which) {
+        std.init(which);
+        pitch2=0;
+      }
+      OPNOpChannel():
+        SharedChannelFreq(),
+        SharedChannelVolume<int>(0),
+        freqH(0),
+        freqL(0),
+        portaPauseFreq(0),
+        mask(true) {}
+    };
+
+    struct OPNOpChannelStereo: public OPNOpChannel {
+    unsigned char pan;
+      OPNOpChannelStereo():
+        OPNOpChannel(),
+        pan(3) {}
+    };
+
     double fmFreqBase;
     unsigned int fmDivBase;
     unsigned int ayDiv;

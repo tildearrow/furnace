@@ -97,6 +97,14 @@ bool DivDispatch::getWantPreNote() {
   return false;
 }
 
+unsigned int DivDispatch::getClockRangeMin() {
+  return MIN_CUSTOM_CLOCK;
+}
+
+unsigned int DivDispatch::getClockRangeMax() {
+  return MAX_CUSTOM_CLOCK;
+}
+
 void DivDispatch::setFlags(const DivConfig& flags) {
 }
 

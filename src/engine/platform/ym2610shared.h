@@ -20,7 +20,6 @@
 #ifndef _YM2610SHARED_H
 #define _YM2610SHARED_H
 #include "fmshared_OPN.h"
-#include "../macroInt.h"
 #include "../engine.h"
 #include "../../ta-log.h"
 #include "ay.h"
@@ -46,83 +45,7 @@ class DivYM2610Interface: public ymfm::ymfm_interface {
 
 template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
   protected:
-    struct Channel {
-      DivInstrumentFM state;
-      unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, pitch2, portaPauseFreq, note, ins;
-      unsigned char psgMode, autoEnvNum, autoEnvDen;
-      signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset, opMaskChanged;
-      int vol, outVol;
-      int sample;
-      unsigned char pan, opMask;
-      int macroVolMul;
-      DivMacroInt std;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
-      Channel():
-        freqH(0),
-        freqL(0),
-        freq(0),
-        baseFreq(0),
-        pitch(0),
-        pitch2(0),
-        portaPauseFreq(0),
-        note(0),
-        ins(-1),
-        psgMode(1),
-        autoEnvNum(0),
-        autoEnvDen(0),
-        active(false),
-        insChanged(true),
-        freqChanged(false),
-        keyOn(false),
-        keyOff(false),
-        portaPause(false),
-        inPorta(false),
-        furnacePCM(false),
-        hardReset(false),
-        opMaskChanged(false),
-        vol(0),
-        outVol(15),
-        sample(-1),
-        pan(3),
-        opMask(15),
-        macroVolMul(255) {}
-    };
-
-    struct OpChannel {
-      DivMacroInt std;
-      unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, pitch2, portaPauseFreq, ins;
-      signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, mask;
-      int vol;
-      unsigned char pan;
-      // UGLY
-      OpChannel():
-        freqH(0),
-        freqL(0),
-        freq(0),
-        baseFreq(0),
-        pitch(0),
-        pitch2(0),
-        portaPauseFreq(0),
-        ins(-1),
-        active(false),
-        insChanged(true),
-        freqChanged(false),
-        keyOn(false),
-        keyOff(false),
-        portaPause(false),
-        inPorta(false),
-        mask(true),
-        vol(0),
-        pan(3) {}
-    };
-    Channel chan[ChanNum];
+    OPNChannelStereo chan[ChanNum];
     DivDispatchOscBuffer* oscBuf[ChanNum];
     bool isMuted[ChanNum];
 

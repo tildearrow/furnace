@@ -26,30 +26,25 @@
 #include "sound/su.h"
 
 class DivPlatformSoundUnit: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note;
-    int ins, cutoff, baseCutoff, res, control, hasOffset;
+  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
+    int cutoff, baseCutoff, res, control, hasOffset;
     signed char pan;
     unsigned char duty;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, phaseReset, filterPhaseReset, switchRoles;
+    bool noise, pcm, phaseReset, filterPhaseReset, switchRoles;
     bool pcmLoop, timerSync, freqSweep, volSweep, cutSweep;
     unsigned short freqSweepP, volSweepP, cutSweepP;
     unsigned char freqSweepB, volSweepB, cutSweepB;
     unsigned char freqSweepV, volSweepV, cutSweepV;
     unsigned short syncTimer;
-    signed char vol, outVol, wave;
+    signed short wave;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
       std.init(which);
       pitch2=0;
     }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
-      ins(-1),
+      SharedChannelFreq(),
+      SharedChannelVolume<signed char>(127),
       cutoff(16383),
       baseCutoff(16380),
       res(0),
@@ -57,12 +52,6 @@ class DivPlatformSoundUnit: public DivDispatch {
       hasOffset(0),
       pan(0),
       duty(63),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       noise(false),
       pcm(false),
       phaseReset(false),
@@ -83,8 +72,6 @@ class DivPlatformSoundUnit: public DivDispatch {
       volSweepV(0),
       cutSweepV(0),
       syncTimer(0),
-      vol(127),
-      outVol(127),
       wave(0) {}
   };
   Channel chan[8];
