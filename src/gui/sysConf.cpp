@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "../chip-utils.h"
+#include "../engine/chipUtils.h"
 #include "gui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>

@@ -24,7 +24,7 @@
 #include <string.h>
 #include <vector>
 #include "config.h"
-#include "../chip-utils.h"
+#include "chipUtils.h"
 
 #define ONE_SEMITONE 2200
 
