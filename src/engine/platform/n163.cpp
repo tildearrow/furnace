@@ -624,18 +624,19 @@ void DivPlatformN163::poke(std::vector<DivRegWrite>& wlist) {
 void DivPlatformN163::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 1: // PAL
-      rate=COLOR_PAL*3.0/8.0;
+      chipClock=COLOR_PAL*3.0/8.0;
       break;
     case 2: // Dendy
-      rate=COLOR_PAL*2.0/5.0;
+      chipClock=COLOR_PAL*2.0/5.0;
       break;
     default: // NTSC
-      rate=COLOR_NTSC/2.0;
+      chipClock=COLOR_NTSC/2.0;
       break;
   }
+  CHECK_CUSTOM_CLOCK;
   initChanMax=chanMax=flags.getInt("channels",0)&7;
   multiplex=!flags.getBool("multiplex",false); // not accurate in real hardware
-  chipClock=rate;
+  rate=chipClock;
   rate/=15;
   n163.set_multiplex(multiplex);
   rWrite(0x7f,initChanMax<<4);

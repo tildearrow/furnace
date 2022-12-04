@@ -294,6 +294,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
           chipClock=8000000.0;
           break;
       }
+      CHECK_CUSTOM_CLOCK;
       noExtMacros=flags.getBool("noExtMacros",false);
       rate=chipClock/16;
       for (int i=0; i<ChanNum; i++) {

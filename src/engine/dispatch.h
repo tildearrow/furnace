@@ -591,6 +591,14 @@ class DivDispatch {
     virtual ~DivDispatch();
 };
 
+// custom chip clock helper define. put in setFlags, but before rate is set.
+#define CHECK_CUSTOM_CLOCK \
+  if (flags.getInt("customClock",0)>0) { \
+    chipClock=flags.getInt("customClock",1000000); \
+    if (chipClock>20000000) chipClock=20000000; \
+    if (chipClock<100000) chipClock=100000; \
+  }
+
 // pitch calculation:
 // - a DivDispatch usually contains four variables per channel:
 //   - baseFreq: this changes on new notes, legato, arpeggio and slides.

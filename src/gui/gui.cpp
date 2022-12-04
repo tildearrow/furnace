@@ -2197,6 +2197,12 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
       sampleSelEnd=x;
     }
   }
+  if (orderScrollLocked) {
+    if (fabs(orderScrollRealOrigin.x-dragX)>2.0f*dpiScale || fabs(orderScrollRealOrigin.y-dragY)>2.0f*dpiScale) orderScrollTolerance=false;
+    orderScroll=(orderScrollSlideOrigin-dragX)/(40.0*dpiScale);
+    if (orderScroll<0.0f) orderScroll=0.0f;
+    if (orderScroll>(float)e->curSubSong->ordersLen-1) orderScroll=e->curSubSong->ordersLen-1;
+  }
 }
 
 #define checkExtension(x) \
@@ -2623,9 +2629,15 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
     mobileUI=enable;
     if (mobileUI) {
       ImGui::GetIO().IniFilename=NULL;
+      ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_InertialScrollEnable;
+      ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NoHoverColors;
+      fileDialog->mobileUI=true;
     } else {
       ImGui::GetIO().IniFilename=NULL;
       ImGui::LoadIniSettingsFromDisk(finalLayoutPath);
+      ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_InertialScrollEnable;
+      ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NoHoverColors;
+      fileDialog->mobileUI=false;
     }
   }
 }
@@ -2633,14 +2645,16 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
 void FurnaceGUI::pushToggleColors(bool status) {
   ImVec4 toggleColor=status?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF];
   ImGui::PushStyleColor(ImGuiCol_Button,toggleColor);
-  if (settings.guiColorsBase) {
-    toggleColor.x*=0.8f;
-    toggleColor.y*=0.8f;
-    toggleColor.z*=0.8f;
-  } else {
-    toggleColor.x=CLAMP(toggleColor.x*1.3f,0.0f,1.0f);
-    toggleColor.y=CLAMP(toggleColor.y*1.3f,0.0f,1.0f);
-    toggleColor.z=CLAMP(toggleColor.z*1.3f,0.0f,1.0f);
+  if (!mobileUI) {
+    if (settings.guiColorsBase) {
+      toggleColor.x*=0.8f;
+      toggleColor.y*=0.8f;
+      toggleColor.z*=0.8f;
+    } else {
+      toggleColor.x=CLAMP(toggleColor.x*1.3f,0.0f,1.0f);
+      toggleColor.y=CLAMP(toggleColor.y*1.3f,0.0f,1.0f);
+      toggleColor.z=CLAMP(toggleColor.z*1.3f,0.0f,1.0f);
+    }
   }
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,toggleColor);
   if (settings.guiColorsBase) {
@@ -2906,14 +2920,27 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
     }
   }
   sampleDragActive=false;
+  if (orderScrollLocked) {
+    int targetOrder=round(orderScroll);
+    if (orderScrollTolerance) {
+      targetOrder=round(orderScroll+(orderScrollRealOrigin.x-((float)canvasW/2.0f))/(40.0f*dpiScale));
+    }
+    if (targetOrder<0) targetOrder=0;
+    if (targetOrder>e->curSubSong->ordersLen-1) targetOrder=e->curSubSong->ordersLen-1;
+    if (curOrder!=targetOrder) setOrder(targetOrder);
+  }
+  orderScrollLocked=false;
+  orderScrollTolerance=false;
   if (selecting) {
     if (!selectingFull) cursor=selEnd;
     finishSelection();
-    demandScrollX=true;
-    if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
-        cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
-      if (!settings.cursorMoveNoScroll) {
-        updateScroll(cursor.y);
+    if (!mobileUI) {
+      demandScrollX=true;
+      if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
+          cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
+        if (!settings.cursorMoveNoScroll) {
+          updateScroll(cursor.y);
+        }
       }
     }
   }
@@ -2929,7 +2956,7 @@ void FurnaceGUI::pointMotion(int x, int y, int xrel, int yrel) {
       addScroll(1);
     }
   }
-  if (macroDragActive || macroLoopDragActive || waveDragActive || sampleDragActive) {
+  if (macroDragActive || macroLoopDragActive || waveDragActive || sampleDragActive || orderScrollLocked) {
     int distance=fabs((double)xrel);
     if (distance<1) distance=1;
     float start=x-xrel;
@@ -3152,6 +3179,11 @@ bool FurnaceGUI::loop() {
     if (wantCaptureKeyboard) {
       WAKE_UP;
     }
+
+    if (ImGui::GetIO().IsSomethingHappening) {
+      WAKE_UP;
+    }
+
     if (ImGui::GetIO().MouseDown[0] || ImGui::GetIO().MouseDown[1] || ImGui::GetIO().MouseDown[2] || ImGui::GetIO().MouseDown[3] || ImGui::GetIO().MouseDown[4]) {
       WAKE_UP;
     }
@@ -3656,6 +3688,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::BeginMenu("help")) {
         if (ImGui::MenuItem("effect list",BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
         if (ImGui::MenuItem("debug menu",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
+        if (ImGui::MenuItem("inspector",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) inspectorOpen=!inspectorOpen;
         if (ImGui::MenuItem("panic",BIND_FOR(GUI_ACTION_PANIC))) e->syncReset();
         if (ImGui::MenuItem("about...",BIND_FOR(GUI_ACTION_WINDOW_ABOUT))) {
           aboutOpen=true;
@@ -3763,6 +3796,11 @@ bool FurnaceGUI::loop() {
           curWindow=GUI_WINDOW_SAMPLE_EDIT;
           drawSampleEdit();
           drawPiano();
+          break;
+        case GUI_SCENE_CHANNELS:
+          channelsOpen=true;
+          curWindow=GUI_WINDOW_CHANNELS;
+          drawChannels();
           break;
         case GUI_SCENE_CHIPS:
           sysManagerOpen=true;
@@ -5194,7 +5232,7 @@ bool FurnaceGUI::init() {
 #endif
 
   // initialize SDL
-  SDL_Init(SDL_INIT_VIDEO);
+  SDL_Init(SDL_INIT_VIDEO|SDL_INIT_HAPTIC);
 
   const char* videoBackend=SDL_GetCurrentVideoDriver();
   if (videoBackend!=NULL) {
@@ -5417,6 +5455,17 @@ bool FurnaceGUI::init() {
     return curIns;
   });
 
+  vibrator=SDL_HapticOpen(0);
+  if (vibrator==NULL) {
+    logD("could not open vibration device: %s",SDL_GetError());
+  } else {
+    if (SDL_HapticRumbleInit(vibrator)==0) {
+      vibratorAvailable=true;
+    } else {
+      logD("vibration not available: %s",SDL_GetError());
+    }
+  }
+
   return true;
 }
 
@@ -5547,6 +5596,10 @@ bool FurnaceGUI::finish() {
   SDL_DestroyRenderer(sdlRend);
   SDL_DestroyWindow(sdlWin);
 
+  if (vibrator) {
+    SDL_HapticClose(vibrator);
+  }
+
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
   }
@@ -5562,6 +5615,8 @@ FurnaceGUI::FurnaceGUI():
   e(NULL),
   sdlWin(NULL),
   sdlRend(NULL),
+  vibrator(NULL),
+  vibratorAvailable(false),
   sampleTex(NULL),
   sampleTexW(0),
   sampleTexH(0),
@@ -5728,11 +5783,14 @@ FurnaceGUI::FurnaceGUI():
   latchNibble(false),
   nonLatchNibble(false),
   keepLoopAlive(false),
+  orderScrollLocked(false),
+  orderScrollTolerance(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
   curWindowThreadSafe(GUI_WINDOW_NOTHING),
   lastPatternWidth(0.0f),
+  longThreshold(0.48f),
   latchNote(-1),
   latchIns(-2),
   latchVol(-1),
@@ -5816,6 +5874,9 @@ FurnaceGUI::FurnaceGUI():
   bindSetPending(false),
   nextScroll(-1.0f),
   nextAddScroll(0.0f),
+  orderScroll(0.0f),
+  orderScrollSlideOrigin(0.0f),
+  orderScrollRealOrigin(0.0f,0.0f),
   layoutTimeBegin(0),
   layoutTimeEnd(0),
   layoutTimeDelta(0),

@@ -198,12 +198,14 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "WonderSwan", {
       CH(DIV_SYSTEM_SWAN, 64, 0, "")
-    }
+    },
+    "tickRate=75.47169811320754716981"
   );
   ENTRY(
     "Virtual Boy", {
       CH(DIV_SYSTEM_VBOY, 64, 0, "")
-    }
+    },
+    "tickRate=50.2734877734878"
   );
   ENTRY(
     "Gamate", {
@@ -220,7 +222,8 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Commodore PET", {
       CH(DIV_SYSTEM_PET, 64, 0, "")
-    }
+    },
+    "tickRate=50"
   );
   ENTRY(
     "Commodore VIC-20", {
@@ -230,65 +233,76 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Commodore 64 (6581 SID)", {
       CH(DIV_SYSTEM_C64_6581, 64, 0, "clockSel=1")
-    }
+    },
+    "tickRate=50.1245421"
   );
   ENTRY(
     "Commodore 64 (8580 SID)", {
       CH(DIV_SYSTEM_C64_8580, 64, 0, "clockSel=1")
-    }
+    },
+    "tickRate=50.1245421"
   );
   ENTRY(
     "Commodore 64 (6581 SID + Sound Expander)", {
       CH(DIV_SYSTEM_C64_6581, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_OPL, 64, 0, "")
-    }
+    },
+    "tickRate=50.1245421"
   );
   ENTRY(
     "Commodore 64 (6581 SID + Sound Expander in drums mode)", {
       CH(DIV_SYSTEM_C64_6581, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "")
-    }
+    },
+    "tickRate=50.1245421"
   );
   ENTRY(
     "Commodore 64 (8580 SID + Sound Expander)", {
       CH(DIV_SYSTEM_C64_8580, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_OPL, 64, 0, "")
-    }
+    },
+    "tickRate=50.1245421"
   );
   ENTRY(
     "Commodore 64 (8580 SID + Sound Expander in drums mode)", {
       CH(DIV_SYSTEM_C64_8580, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "")
-    }
+    },
+    "tickRate=50.1245421"
   );
   ENTRY(
     "Commodore 64 (6581 SID + FM-YAM)", {
       CH(DIV_SYSTEM_C64_6581, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_OPL2, 64, 0, "")
-    }
+    },
+    "tickRate=50.1245421"
   );
   ENTRY(
     "Commodore 64 (6581 SID + FM-YAM in drums mode)", {
       CH(DIV_SYSTEM_C64_6581, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "")
-    }
+    },
+    "tickRate=50.1245421"
   );
   ENTRY(
     "Commodore 64 (8580 SID + FM-YAM)", {
       CH(DIV_SYSTEM_C64_8580, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_OPL2, 64, 0, "")
-    }
+    },
+    "tickRate=50.1245421"
   );
   ENTRY(
     "Commodore 64 (8580 SID + FM-YAM in drums mode)", {
       CH(DIV_SYSTEM_C64_8580, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "")
-    }
+    },
+    "tickRate=50.1245421"
   );
   ENTRY(
     "Amiga", {
-      CH(DIV_SYSTEM_AMIGA, 64, 0, "")
-    }
+      CH(DIV_SYSTEM_AMIGA, 64, 0, "clockSel=1")
+    },
+    "tickRate=50"
   );
   ENTRY(
     "MSX", {
@@ -1085,8 +1099,9 @@ void FurnaceGUI::initSystemPresets() {
   CATEGORY_BEGIN("Sample","chips/systems which use PCM or ADPCM samples for sound synthesis.");
   ENTRY(
     "Amiga", {
-      CH(DIV_SYSTEM_AMIGA, 64, 0, "")
-    }
+      CH(DIV_SYSTEM_AMIGA, 64, 0, "clockSel=1")
+    },
+    "tickRate=50"
   );
   ENTRY(
     "SegaPCM", {
@@ -1149,7 +1164,8 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Commodore PET (pseudo-wavetable)", {
       CH(DIV_SYSTEM_PET, 64, 0, "")
-    }
+    },
+    "tickRate=50"
   );
   ENTRY(
     "Konami Bubble System WSG", {
@@ -1194,12 +1210,14 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "WonderSwan", {
       CH(DIV_SYSTEM_SWAN, 64, 0, "")
-    }
+    },
+    "tickRate=75.47169811320754716981"
   );
   ENTRY(
     "Virtual Boy", {
       CH(DIV_SYSTEM_VBOY, 64, 0, "")
-    }
+    },
+    "tickRate=50.2734877734878"
   );
   ENTRY(
     "Seta/Allumer X1-010", {
@@ -1212,12 +1230,14 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "MOS Technology SID (6581)", {
       CH(DIV_SYSTEM_C64_6581, 64, 0, "clockSel=1")
-    }
+    },
+    "tickRate=50.1245421"
   );
   ENTRY(
     "MOS Technology SID (8580)", {
       CH(DIV_SYSTEM_C64_8580, 64, 0, "clockSel=1")
-    }
+    },
+    "tickRate=50.1245421"
   );
   ENTRY(
     "Microchip AY8930", {
@@ -2171,12 +2191,14 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Commodore 64 (6581 SID)", {
       CH(DIV_SYSTEM_C64_6581, 64, 0, "clockSel=1")
-    }
+    },
+    "tickRate=50.1245421"
   );
   ENTRY(
     "Commodore 64 (8580 SID)", {
       CH(DIV_SYSTEM_C64_8580, 64, 0, "clockSel=1")
-    }
+    },
+    "tickRate=50.1245421"
   );
   ENTRY(
     "Arcade (YM2151 and SegaPCM)", {
@@ -2197,8 +2219,9 @@ void FurnaceGUI::initSystemPresets() {
   CATEGORY_END;
 }
 
-FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def):
-  name(n) {
+FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e):
+  name(n),
+  extra(e) {
   std::vector<FurnaceGUISysDefChip> uncompiled=def;
   int index=0;
   for (FurnaceGUISysDefChip& i: uncompiled) {
@@ -2214,5 +2237,8 @@ FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceG
       taEncodeBase64(i.flags)
     );
     index++;
+  }
+  if (extra) {
+    definition+=extra;
   }
 }

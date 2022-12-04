@@ -438,6 +438,7 @@ int DivPlatformVERA::init(DivEngine* p, int channels, int sugRate, const DivConf
   dumpWrites=false;
   skipRegisterWrites=false;
   chipClock=25000000;
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/512;
   for (int i=0; i<17; i++) {
     oscBuf[i]->rate=rate;

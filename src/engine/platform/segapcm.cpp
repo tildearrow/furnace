@@ -486,7 +486,8 @@ void DivPlatformSegaPCM::reset() {
 
 void DivPlatformSegaPCM::setFlags(const DivConfig& flags) {
   chipClock=8000000.0;
-  rate=31250;
+  CHECK_CUSTOM_CLOCK;
+  rate=chipClock/256;
   for (int i=0; i<16; i++) {
     oscBuf[i]->rate=rate;
   }

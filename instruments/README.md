@@ -34,6 +34,7 @@ these are organized in the following categories:
 - theloredev
 - TheRealHedgehogSonic
 - tildearrow
+- Uhrwerk Klockwerx
 - Weeppiko
 - Ygor G.
 - YohananDiamond

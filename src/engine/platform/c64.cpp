@@ -535,17 +535,18 @@ void DivPlatformC64::setFP(bool fp) {
 void DivPlatformC64::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 0x0: // NTSC C64
-      rate=COLOR_NTSC*2.0/7.0;
+      chipClock=COLOR_NTSC*2.0/7.0;
       break;
     case 0x1: // PAL C64
-      rate=COLOR_PAL*2.0/9.0;
+      chipClock=COLOR_PAL*2.0/9.0;
       break;
     case 0x2: // SSI 2001
     default:
-      rate=14318180.0/16.0;
+      chipClock=14318180.0/16.0;
       break;
   }
-  chipClock=rate;
+  CHECK_CUSTOM_CLOCK;
+  rate=chipClock;
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate/16;
   }

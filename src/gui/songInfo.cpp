@@ -43,10 +43,10 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
       if (ImGui::InputText("##Name",&e->song.name,ImGuiInputTextFlags_UndoRedo)) { MARK_MODIFIED
         updateWindowTitle();
       }
-      if (e->song.insLen==2) {
+      if (e->song.insLen==1) {
         unsigned int checker=0x11111111;
         unsigned int checker1=0;
-        DivInstrument* ins=e->getIns(1);
+        DivInstrument* ins=e->getIns(0);
         if (ins->name.size()==15 && e->curSubSong->ordersLen==8) {
           for (int i=0; i<15; i++) {
             checker^=ins->name[i]<<i;

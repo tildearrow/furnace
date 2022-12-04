@@ -494,6 +494,7 @@ void DivPlatformYMZ280B::setFlags(const DivConfig& flags) {
           chipClock=16934400;
           break;
       }
+      CHECK_CUSTOM_CLOCK;
       rate=chipClock/384;
       break;
     case 759:

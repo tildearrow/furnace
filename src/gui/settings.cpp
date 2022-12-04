@@ -3215,7 +3215,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   }
 
   ImVec4 secondaryActive=uiColors[GUI_COLOR_ACCENT_SECONDARY];
-  ImVec4 secondaryHover, secondary, secondarySemiActive;
+  ImVec4 secondaryHoverActual, secondaryHover, secondary, secondarySemiActive;
   secondarySemiActive.w=secondaryActive.w;
   secondaryHover.w=secondaryActive.w;
   secondary.w=secondaryActive.w;
@@ -3231,6 +3231,12 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.25,secondary.x,secondary.y,secondary.z);
   }
 
+  secondaryHoverActual=secondaryHover;
+
+  if (mobileUI) { // disable all hovered colors
+    primaryHover=primary;
+    secondaryHover=secondary;
+  }
 
   sty.Colors[ImGuiCol_WindowBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND];
   sty.Colors[ImGuiCol_ModalWindowDimBg]=uiColors[GUI_COLOR_MODAL_BACKDROP];
@@ -3257,7 +3263,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   sty.Colors[ImGuiCol_SliderGrabActive]=primaryActive;
   sty.Colors[ImGuiCol_TitleBgActive]=primary;
   sty.Colors[ImGuiCol_CheckMark]=primaryActive;
-  sty.Colors[ImGuiCol_TextSelectedBg]=secondaryHover;
+  sty.Colors[ImGuiCol_TextSelectedBg]=secondaryHoverActual;
   sty.Colors[ImGuiCol_PlotHistogram]=uiColors[GUI_COLOR_MACRO_OTHER];
   sty.Colors[ImGuiCol_PlotHistogramHovered]=uiColors[GUI_COLOR_MACRO_OTHER];
   sty.Colors[ImGuiCol_Border]=uiColors[GUI_COLOR_BORDER];
@@ -3280,12 +3286,17 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.FrameShading=(float)settings.guiColorsShading/100.0f;
   }
 
+  if (mobileUI) {
+    sty.FramePadding=ImVec2(8.0f,6.0f);
+  }
+
   sty.ScaleAllSizes(dpiScale);
 
   ImGui::GetStyle()=sty;
 
   ImGui::GetIO().ConfigInputTrickleEventQueue=settings.eventDelay;
   ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly=settings.moveWindowTitle;
+  ImGui::GetIO().ConfigInertialScrollToleranceSqr=pow(dpiScale*4.0f,2.0f);
 
   for (int i=0; i<256; i++) {
     ImVec4& base=uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH];
@@ -3483,5 +3494,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   if (updateFonts) {
     if (fileDialog!=NULL) delete fileDialog;
     fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog);
+
+    fileDialog->mobileUI=mobileUI;
   }
 }

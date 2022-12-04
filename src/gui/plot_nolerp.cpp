@@ -76,7 +76,7 @@ int PlotNoLerpEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
     const ImRect inner_bb(frame_bb.Min + style.FramePadding, frame_bb.Max - style.FramePadding);
     const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0));
     ImGui::ItemSize(total_bb, style.FramePadding.y);
-    if (!ImGui::ItemAdd(total_bb, 0, &frame_bb))
+    if (!ImGui::ItemAdd(total_bb, 0, &frame_bb, ImGuiItemFlags_NoInertialScroll))
         return -1;
     const bool hovered = ImGui::ItemHoverable(frame_bb, id);
 
@@ -203,7 +203,7 @@ int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx),
     const ImRect inner_bb(frame_bb.Min + style.FramePadding, frame_bb.Max - style.FramePadding);
     const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0));
     ImGui::ItemSize(total_bb, style.FramePadding.y);
-    if (!ImGui::ItemAdd(total_bb, 0, &frame_bb))
+    if (!ImGui::ItemAdd(total_bb, 0, &frame_bb, ImGuiItemFlags_NoInertialScroll))
         return -1;
     const bool hovered = ImGui::ItemHoverable(frame_bb, id);
 
@@ -313,7 +313,7 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
     const ImRect inner_bb(frame_bb.Min + style.FramePadding, frame_bb.Max - style.FramePadding);
     const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0));
     ImGui::ItemSize(total_bb, style.FramePadding.y);
-    if (!ImGui::ItemAdd(total_bb, 0, &frame_bb))
+    if (!ImGui::ItemAdd(total_bb, 0, &frame_bb, ImGuiItemFlags_NoInertialScroll))
         return -1;
     const bool hovered = ImGui::ItemHoverable(frame_bb, id);
 

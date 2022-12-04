@@ -25,6 +25,20 @@
 void FurnaceGUI::drawMobileOrderSel() {
   if (!portrait) return;
 
+  if (!orderScrollLocked) {
+    if (orderScroll>(float)curOrder-0.005f && orderScroll<(float)curOrder+0.005f) {
+      orderScroll=curOrder;
+    } else if (orderScroll<curOrder) {
+      orderScroll+=MAX(0.05f,(curOrder-orderScroll)*0.2f);
+      if (orderScroll>curOrder) orderScroll=curOrder;
+      WAKE_UP;
+    } else {
+      orderScroll-=MAX(0.05f,(orderScroll-curOrder)*0.2f);
+      if (orderScroll<curOrder) orderScroll=curOrder;
+      WAKE_UP;
+    }
+  }
+
   ImGui::SetNextWindowPos(ImVec2(0.0f,mobileMenuPos*-0.65*canvasH));
   ImGui::SetNextWindowSize(ImVec2(canvasW,0.12*canvasW));
   if (ImGui::Begin("OrderSel",NULL,globalWinFlags)) {
@@ -41,18 +55,35 @@ void FurnaceGUI::drawMobileOrderSel() {
     );
     ImRect rect=ImRect(minArea,maxArea);
     ImGui::ItemSize(size,style.FramePadding.y);
-    ImU32 col=ImGui::GetColorU32(ImGuiCol_Text);
     if (ImGui::ItemAdd(rect,ImGui::GetID("OrderSelW"))) {
-      String text=fmt::sprintf("%.2X",curOrder);
+      ImVec2 centerPos=ImLerp(minArea,maxArea,ImVec2(0.5,0.5));
+      
+      for (int i=0; i<e->curSubSong->ordersLen; i++) {
+        ImVec2 pos=centerPos;
+        ImVec4 color=uiColors[GUI_COLOR_TEXT];
+        pos.x+=(i-orderScroll)*40.0*dpiScale;
+        if (pos.x<-200.0*dpiScale) continue;
+        if (pos.x>canvasW+200.0*dpiScale) break;
+        String text=fmt::sprintf("%.2X",i);
+        float targetSize=size.y-fabs(i-orderScroll)*2.0*dpiScale;
+        if (targetSize<8.0*dpiScale) targetSize=8.0*dpiScale;
+        color.w*=CLAMP(2.0f*(targetSize/size.y-0.5f),0.0f,1.0f);
 
-      ImVec2 pos=ImLerp(minArea,maxArea,ImVec2(0.5,0.0));
-      ImGui::PushFont(bigFont);
-      ImVec2 textSize=ImGui::CalcTextSize(text.c_str());
-      ImGui::PopFont();
+        ImGui::PushFont(bigFont);
+        ImVec2 textSize=ImGui::CalcTextSize(text.c_str());
+        ImGui::PopFont();
 
-      pos.x-=textSize.x*0.5*(size.y/textSize.y);
+        pos.x-=textSize.x*0.5*(targetSize/textSize.y);
+        pos.y-=targetSize*0.5;
 
-      dl->AddText(bigFont,size.y,pos,col,text.c_str());
+        dl->AddText(bigFont,targetSize,pos,ImGui::GetColorU32(color),text.c_str());
+      }
+    }
+    if (ImGui::IsItemClicked()) {
+      orderScrollSlideOrigin=ImGui::GetMousePos().x+orderScroll*40.0f*dpiScale;
+      orderScrollRealOrigin=ImGui::GetMousePos();
+      orderScrollLocked=true;
+      orderScrollTolerance=true;
     }
   }
   ImGui::End();

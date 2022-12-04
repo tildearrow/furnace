@@ -826,6 +826,7 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
         chipClock=COLOR_NTSC/2.0;
         break;
     }
+    CHECK_CUSTOM_CLOCK;
     rate=chipClock/8;
   }
   for (int i=0; i<3; i++) {

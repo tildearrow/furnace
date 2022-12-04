@@ -77,7 +77,7 @@ void FurnaceGUI::drawCompatFlags() {
     }
     ImGui::Checkbox("Auto-insert one tick gap between notes",&e->song.oneTickCut);
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("when enabled, a one-tick note cut will be inserted between non-legato/non-portamento notes.\nthis simulates the behavior of some Amiga/SNES music engines.");
+      ImGui::SetTooltip("when enabled, a one-tick note cut will be inserted between non-legato/non-portamento notes.\nthis simulates the behavior of some Amiga/SNES music engines.\n\nineffective on C64.");
     }
     ImGui::Checkbox("Broken speed alternation",&e->song.brokenSpeedSel);
     if (ImGui::IsItemHovered()) {

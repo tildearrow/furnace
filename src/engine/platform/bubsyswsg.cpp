@@ -323,6 +323,7 @@ void DivPlatformBubSysWSG::notifyInsDeletion(void* ins) {
 
 void DivPlatformBubSysWSG::setFlags(const DivConfig& flags) {
   chipClock=COLOR_NTSC;
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock;
   for (int i=0; i<2; i++) {
     oscBuf[i]->rate=rate/64;

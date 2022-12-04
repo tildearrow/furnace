@@ -300,6 +300,7 @@ int DivPlatformPET::init(DivEngine* p, int channels, int sugRate, const DivConfi
   dumpWrites=false;
   skipRegisterWrites=false;
   chipClock=1000000;
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/SAMP_DIVIDER; // = 250000kHz
   isMuted=false;
   oscBuf=new DivDispatchOscBuffer;

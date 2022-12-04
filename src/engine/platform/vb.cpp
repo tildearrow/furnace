@@ -486,6 +486,7 @@ void DivPlatformVB::notifyInsDeletion(void* ins) {
 
 void DivPlatformVB::setFlags(const DivConfig& flags) {
   chipClock=5000000.0;
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/16;
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;

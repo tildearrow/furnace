@@ -53,6 +53,19 @@
     _wi->std.waveMacro.vScroll=-1; \
   }
 
+#define CHECK_LONG_HOLD (mobileUI && ImGui::GetIO().MouseDown[ImGuiMouseButton_Left] && ImGui::GetIO().MouseDownDuration[ImGuiMouseButton_Left]>=longThreshold && ImGui::GetIO().MouseDownDurationPrev[ImGuiMouseButton_Left]<longThreshold && ImGui::GetIO().MouseDragMaxDistanceSqr[ImGuiMouseButton_Left]<=ImGui::GetIO().ConfigInertialScrollToleranceSqr)
+
+// for now
+#define NOTIFY_LONG_HOLD \
+  if (vibrator && vibratorAvailable) { \
+    if (SDL_HapticRumblePlay(vibrator,0.5f,20)!=0) { \
+      logV("could not vibrate: %s!",SDL_GetError()); \
+    } \
+  } else { \
+    fputc(7,stderr); /* bell */ \
+    logI("beep!"); \
+  }
+
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
 
 // TODO:
@@ -921,8 +934,9 @@ struct FurnaceGUISysDefChip {
 
 struct FurnaceGUISysDef {
   const char* name;
+  const char* extra;
   String definition;
-  FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def);
+  FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e=NULL);
 };
 
 struct FurnaceGUISysCategory {
@@ -1048,6 +1062,8 @@ class FurnaceGUI {
 
   SDL_Window* sdlWin;
   SDL_Renderer* sdlRend;
+  SDL_Haptic* vibrator;
+  bool vibratorAvailable;
 
   SDL_Texture* sampleTex;
   int sampleTexW, sampleTexH;
@@ -1419,13 +1435,13 @@ class FurnaceGUI {
   SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
   bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
-  bool keepLoopAlive;
+  bool keepLoopAlive, orderScrollLocked, orderScrollTolerance;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   std::atomic<FurnaceGUIWindows> curWindowThreadSafe;
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
-  float lastPatternWidth;
+  float lastPatternWidth, longThreshold;
   String nextDesc;
   String nextDescName;
 
@@ -1562,7 +1578,9 @@ class FurnaceGUI {
   int bindSetTarget, bindSetPrevValue;
   bool bindSetActive, bindSetPending;
 
-  float nextScroll, nextAddScroll;
+  float nextScroll, nextAddScroll, orderScroll, orderScrollSlideOrigin;
+
+  ImVec2 orderScrollRealOrigin;
 
   int layoutTimeBegin, layoutTimeEnd, layoutTimeDelta;
   int renderTimeBegin, renderTimeEnd, renderTimeDelta;

@@ -1057,8 +1057,10 @@ void DivEngine::nextRow() {
     if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
       if (pat->data[curRow][0]!=100 && pat->data[curRow][0]!=101 && pat->data[curRow][0]!=102) {
         if (!chan[i].legato) {
+          bool wantPreNote=false;
           if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
-            if (disCont[dispatchOfChan[i]].dispatch->getWantPreNote()) dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks));
+            wantPreNote=disCont[dispatchOfChan[i]].dispatch->getWantPreNote();
+            if (wantPreNote) dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks));
           }
 
           if (song.oneTickCut) {
@@ -1076,7 +1078,7 @@ void DivEngine::nextRow() {
                 }
               }
             }
-            if (doPrepareCut) chan[i].cut=ticks;
+            if (doPrepareCut && !wantPreNote && chan[i].cut<=0) chan[i].cut=ticks;
           }
         }
       }

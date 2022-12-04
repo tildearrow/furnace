@@ -222,6 +222,7 @@ void FurnaceGUI::drawPiano() {
           bool canInput=false;
           if (ImGui::ItemHoverable(rect,ImGui::GetID("pianoDisplay"))) {
             canInput=true;
+            ImGui::InhibitInertialScroll();
           }
           if (view) {
             int notes=oct*12;
@@ -414,7 +415,7 @@ void FurnaceGUI::drawPiano() {
                   e->synchronized([this,note]() {
                     e->autoNoteOn(-1,curIns,note);
                   });
-                  if (edit) noteInput(note,0);
+                  if (edit && curWindow!=GUI_WINDOW_INS_LIST && curWindow!=GUI_WINDOW_INS_EDIT) noteInput(note,0);
                   break;
               }
             }

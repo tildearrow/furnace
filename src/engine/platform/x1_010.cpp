@@ -922,6 +922,7 @@ void DivPlatformX1_010::setFlags(const DivConfig& flags) {
       chipClock=16000000;
       break;
   }
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/512;
   stereo=flags.getBool("stereo",false);
   for (int i=0; i<16; i++) {

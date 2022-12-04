@@ -663,13 +663,13 @@ bool DivPlatformNES::keyOffAffectsArp(int ch) {
 void DivPlatformNES::setFlags(const DivConfig& flags) {
   int clockSel=flags.getInt("clockSel",0);
   if (clockSel==2) { // Dendy
-    rate=COLOR_PAL*2.0/5.0;
+    chipClock=COLOR_PAL*2.0/5.0;
     apuType=2;
   } else if (clockSel==1) { // PAL
-    rate=COLOR_PAL*3.0/8.0;
+    chipClock=COLOR_PAL*3.0/8.0;
     apuType=1;
   } else { // NTSC
-    rate=COLOR_NTSC/2.0;
+    chipClock=COLOR_NTSC/2.0;
     apuType=0;
   }
   if (useNP) {
@@ -681,7 +681,8 @@ void DivPlatformNES::setFlags(const DivConfig& flags) {
   } else {
     nes->apu.type=apuType;
   }
-  chipClock=rate;
+  CHECK_CUSTOM_CLOCK;
+  rate=chipClock;
   for (int i=0; i<5; i++) {
     oscBuf[i]->rate=rate/32;
   }

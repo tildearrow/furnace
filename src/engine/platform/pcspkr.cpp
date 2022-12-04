@@ -598,6 +598,7 @@ void DivPlatformPCSpeaker::setFlags(const DivConfig& flags) {
       chipClock=COLOR_NTSC/3.0;
       break;
   }
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/PCSPKR_DIVIDER;
   speakerType=flags.getInt("speakerType",0)&3;
   oscBuf->rate=rate;

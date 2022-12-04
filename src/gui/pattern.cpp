@@ -128,6 +128,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   if (ImGui::IsItemClicked()) {
     startSelection(0,0,i,true);
   }
+  if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
+    ImGui::InhibitInertialScroll();
+    NOTIFY_LONG_HOLD;
+  }
   ImGui::PopStyleColor();
   // for each column
   for (int j=0; j<chans; j++) {
@@ -178,6 +182,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
       updateSelection(j,0,i);
     }
+    if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
+      ImGui::InhibitInertialScroll();
+      NOTIFY_LONG_HOLD;
+    }
     ImGui::PopStyleColor();
 
     // the following is only visible when the channel is not collapsed
@@ -218,6 +226,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
         updateSelection(j,1,i);
       }
+      if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
+        ImGui::InhibitInertialScroll();
+        NOTIFY_LONG_HOLD;
+      }
       ImGui::PopStyleColor();
     }
 
@@ -251,6 +263,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
       }
       if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
         updateSelection(j,2,i);
+      }
+      if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
+        ImGui::InhibitInertialScroll();
+        NOTIFY_LONG_HOLD;
       }
       ImGui::PopStyleColor();
     }
@@ -297,6 +313,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
           updateSelection(j,index-1,i);
         }
+        if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
+          ImGui::InhibitInertialScroll();
+          NOTIFY_LONG_HOLD;
+        }
 
         // effect value
         if (pat->data[i][index+1]==-1) {
@@ -322,6 +342,10 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
         }
         if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem)) {
           updateSelection(j,index,i);
+        }
+        if (ImGui::IsItemActive() && CHECK_LONG_HOLD) {
+          ImGui::InhibitInertialScroll();
+          NOTIFY_LONG_HOLD;
         }
         ImGui::PopStyleColor();
       }
@@ -596,7 +620,7 @@ void FurnaceGUI::drawPattern() {
             ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
               bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
-              ImU32 col=hovered?ImGui::GetColorU32(ImGuiCol_HeaderHovered):ImGui::GetColorU32(ImGuiCol_Header);
+              ImU32 col=(hovered || (!mobileUI && ImGui::IsMouseDown(ImGuiMouseButton_Left)))?ImGui::GetColorU32(ImGuiCol_HeaderHovered):ImGui::GetColorU32(ImGuiCol_Header);
               dl->AddRectFilled(rect.Min,rect.Max,col);
               dl->AddText(ImVec2(minLabelArea.x,rect.Min.y),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
@@ -609,13 +633,13 @@ void FurnaceGUI::drawPattern() {
                 chanHeadBase.x,
                 chanHeadBase.y,
                 chanHeadBase.z,
-                hovered?0.25f:0.0f
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?0.25f:0.0f
               ));
               ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
                 chanHeadBase.x,
                 chanHeadBase.y,
                 chanHeadBase.z,
-                hovered?0.5f:MIN(1.0f,chanHeadBase.w*keyHit[i]*4.0f)
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?0.5f:MIN(1.0f,chanHeadBase.w*keyHit[i]*4.0f)
               ));
               dl->AddRectFilledMultiColor(rect.Min,rect.Max,fadeCol0,fadeCol0,fadeCol,fadeCol);
               dl->AddLine(ImVec2(rect.Min.x,rect.Max.y),ImVec2(rect.Max.x,rect.Max.y),ImGui::GetColorU32(chanHeadBase),2.0f*dpiScale);
@@ -631,13 +655,13 @@ void FurnaceGUI::drawPattern() {
                 chanHeadBase.x,
                 chanHeadBase.y,
                 chanHeadBase.z,
-                hovered?0.5f:MIN(1.0f,0.3f+chanHeadBase.w*keyHit[i]*1.5f)
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?0.5f:MIN(1.0f,0.3f+chanHeadBase.w*keyHit[i]*1.5f)
               ));
               ImU32 fadeCol=ImGui::GetColorU32(ImVec4(
                 chanHeadBase.x,
                 chanHeadBase.y,
                 chanHeadBase.z,
-                hovered?0.3f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*1.2f)
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?0.3f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*1.2f)
               ));
               ImVec2 rMin=rect.Min;
               ImVec2 rMax=rect.Max;
@@ -667,7 +691,7 @@ void FurnaceGUI::drawPattern() {
                 chanHeadBase.x,
                 chanHeadBase.y,
                 chanHeadBase.z,
-                hovered?1.0f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*4.0f)
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?1.0f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*4.0f)
               ));
               ImVec2 rMin=rect.Min;
               ImVec2 rMax=rect.Max;
@@ -688,7 +712,7 @@ void FurnaceGUI::drawPattern() {
                 chanHeadBase.x,
                 chanHeadBase.y,
                 chanHeadBase.z,
-                hovered?1.0f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*4.0f)
+                (hovered && (!mobileUI || ImGui::IsMouseDown(ImGuiMouseButton_Left)))?1.0f:MIN(1.0f,0.2f+chanHeadBase.w*keyHit[i]*4.0f)
               ));
               ImVec2 rMin=rect.Min;
               ImVec2 rMax=rect.Max;
@@ -710,19 +734,36 @@ void FurnaceGUI::drawPattern() {
           ImGui::SetTooltip("%s",e->getChannelName(i));
         }
         if (settings.channelFont==0) ImGui::PopFont();
-        if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-          if (settings.soloAction!=1 && soloTimeout>0 && soloChan==i) {
-            e->toggleSolo(i);
-            soloTimeout=0;
-          } else {
-            e->toggleMute(i);
-            soloTimeout=20;
-            soloChan=i;
+        if (mobileUI) {
+          if (ImGui::IsItemHovered()) {
+            if (CHECK_LONG_HOLD) {
+              NOTIFY_LONG_HOLD;
+              e->toggleSolo(i);
+              soloChan=i;
+            }
+            if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && !ImGui::WasInertialScroll()) {
+              if (soloChan!=i) {
+                e->toggleMute(i);
+              } else {
+                soloChan=-1;
+              }
+            }
+          } 
+        } else {
+          if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+            if (settings.soloAction!=1 && soloTimeout>0 && soloChan==i) {
+              e->toggleSolo(i);
+              soloTimeout=0;
+            } else {
+              e->toggleMute(i);
+              soloTimeout=20;
+              soloChan=i;
+            }
           }
         }
         if (muted) ImGui::PopStyleColor();
         ImGui::PopStyleColor(4);
-        if (settings.soloAction!=2) if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        if (settings.soloAction!=2 && !mobileUI) if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           inhibitMenu=true;
           e->toggleSolo(i);
         }

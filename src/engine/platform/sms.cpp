@@ -568,6 +568,7 @@ void DivPlatformSMS::setFlags(const DivConfig& flags) {
       stereo=false;
       break;
   }
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/divider;
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;

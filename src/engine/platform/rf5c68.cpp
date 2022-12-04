@@ -348,6 +348,7 @@ void DivPlatformRF5C68::setFlags(const DivConfig& flags) {
     case 2: chipClock=12500000; break;
     default: chipClock=8000000; break;
   }
+  CHECK_CUSTOM_CLOCK;
   chipType=flags.getInt("chipType",0);
   rate=chipClock/384;
   for (int i=0; i<8; i++) {
