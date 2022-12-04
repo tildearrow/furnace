@@ -565,6 +565,7 @@ void DivPlatformPCE::setFlags(const DivConfig& flags) {
   } else {
     chipClock=COLOR_NTSC;
   }
+  CHECK_CUSTOM_CLOCK;
   antiClickEnabled=!flags.getBool("noAntiClick",false);
   rate=chipClock/12;
   for (int i=0; i<6; i++) {

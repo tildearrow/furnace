@@ -21,7 +21,7 @@
 #include "../engine.h"
 #include "../../ta-log.h"
 
-#define CHIP_DIVIDER 16
+#define CHIP_DIVIDER 1024
 
 void DivPlatformPong::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   int out=0;
@@ -226,8 +226,9 @@ bool DivPlatformPong::keyOffAffectsArp(int ch) {
 }
 
 void DivPlatformPong::setFlags(const DivConfig& flags) {
-  chipClock=15625;
-  rate=chipClock;
+  chipClock=1000000;
+  CHECK_CUSTOM_CLOCK;
+  rate=chipClock/64;
   oscBuf->rate=rate;
 }
 

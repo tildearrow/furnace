@@ -412,6 +412,7 @@ void DivPlatformMSM6258::setFlags(const DivConfig& flags) {
       chipClock=4000000;
       break;
   }
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/256;
   for (int i=0; i<1; i++) {
     oscBuf[i]->rate=rate;

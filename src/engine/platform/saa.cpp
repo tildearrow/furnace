@@ -438,6 +438,7 @@ void DivPlatformSAA1099::setFlags(const DivConfig& flags) {
   } else {
     chipClock=8000000;
   }
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/32;
 
   for (int i=0; i<6; i++) {

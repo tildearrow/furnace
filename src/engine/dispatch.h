@@ -454,18 +454,6 @@ class DivDispatch {
     virtual bool getWantPreNote();
 
     /**
-     * get minimum chip clock.
-     * @return clock in Hz, or 0 if custom clocks are not supported.
-     */
-    virtual unsigned int getClockRangeMin();
-
-    /**
-     * get maximum chip clock.
-     * @return clock in Hz, or 0 if custom clocks are not supported.
-     */
-    virtual unsigned int getClockRangeMax();
-
-    /**
      * set the chip flags.
      * @param flags a DivConfig containing chip flags.
      */
@@ -590,6 +578,14 @@ class DivDispatch {
 
     virtual ~DivDispatch();
 };
+
+// custom chip clock helper define. put in setFlags, but before rate is set.
+#define CHECK_CUSTOM_CLOCK \
+  if (flags.getInt("customClock",0)>0) { \
+    chipClock=flags.getInt("customClock",1000000); \
+    if (chipClock>20000000) chipClock=20000000; \
+    if (chipClock<100000) chipClock=100000; \
+  }
 
 // pitch calculation:
 // - a DivDispatch usually contains four variables per channel:

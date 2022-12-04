@@ -293,6 +293,7 @@ void DivPlatformZXBeeper::setFlags(const DivConfig& flags) {
   } else {
     chipClock=COLOR_NTSC;
   }
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;

@@ -24,6 +24,7 @@
 bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange) {
   bool altered=false;
   bool restart=settings.restartOnFlagChange && modifyOnChange;
+  bool supportsCustomRate=true;
 
   switch (type) {
     case DIV_SYSTEM_YM2612:
@@ -765,6 +766,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           flags.set("echoFeedback",echoFeedback);
         });
       }
+
+      supportsCustomRate=false;
       break;
     }
     case DIV_SYSTEM_X1_010: {
@@ -1401,6 +1404,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         });
       }
 
+      supportsCustomRate=false;
+
       break;
     }
     case DIV_SYSTEM_MSM5232: {
@@ -1542,12 +1547,14 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       break;
     }
     case DIV_SYSTEM_SWAN:
-    case DIV_SYSTEM_VERA:
     case DIV_SYSTEM_BUBSYS_WSG:
-    case DIV_SYSTEM_YMU759:
     case DIV_SYSTEM_PET:
     case DIV_SYSTEM_VBOY:
       ImGui::Text("nothing to configure");
+      break;
+    case DIV_SYSTEM_VERA:
+    case DIV_SYSTEM_YMU759:
+      supportsCustomRate=false;
       break;
     default: {
       bool sysPal=flags.getInt("clockSel",0);
@@ -1562,6 +1569,32 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         });
       }
       break;
+    }
+  }
+
+  if (supportsCustomRate) {
+    ImGui::Separator();
+    int customClock=flags.getInt("customClock",0);
+    bool usingCustomClock=customClock>=100000;
+
+    if (ImGui::Checkbox("Custom clock rate",&usingCustomClock)) {
+      if (usingCustomClock) {
+        customClock=1000000;
+      } else {
+        customClock=0;
+      }
+      altered=true;
+    }
+    if (ImGui::InputInt("Hz",&customClock)) {
+      if (customClock<100000) customClock=0;
+      if (customClock>20000000) customClock=20000000;
+      altered=true;
+    }
+
+    if (altered) {
+      e->lockSave([&]() {
+        flags.set("customClock",customClock);
+      });
     }
   }
 

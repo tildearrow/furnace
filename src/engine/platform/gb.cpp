@@ -655,6 +655,7 @@ void DivPlatformGB::setFlags(const DivConfig& flags) {
 
 int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   chipClock=4194304;
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/16;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;

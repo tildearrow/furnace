@@ -514,6 +514,7 @@ int DivPlatformSwan::init(DivEngine* p, int channels, int sugRate, const DivConf
   dumpWrites=false;
   skipRegisterWrites=false;
   chipClock=3072000;
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/16; // = 192000kHz, should be enough
   for (int i=0; i<4; i++) {
     isMuted[i]=false;

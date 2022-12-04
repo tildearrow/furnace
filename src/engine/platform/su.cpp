@@ -511,6 +511,7 @@ void DivPlatformSoundUnit::setFlags(const DivConfig& flags) {
   } else {
     chipClock=1236000;
   }
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
   for (int i=0; i<8; i++) {
     oscBuf[i]->rate=rate;

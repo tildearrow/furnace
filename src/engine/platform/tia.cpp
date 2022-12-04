@@ -356,6 +356,7 @@ void DivPlatformTIA::setFlags(const DivConfig& flags) {
   } else {
     rate=COLOR_NTSC;
   }
+  CHECK_CUSTOM_CLOCK;
   chipClock=rate;
   mixingType=flags.getInt("mixingType",0)&3;
   for (int i=0; i<2; i++) {

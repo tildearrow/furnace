@@ -372,6 +372,7 @@ void DivPlatformMSM5232::notifyInsDeletion(void* ins) {
 
 void DivPlatformMSM5232::setFlags(const DivConfig& flags) {
   chipClock=2119040;
+  CHECK_CUSTOM_CLOCK;
   detune=flags.getInt("detune",0);
   msm->set_clock(chipClock+detune*1024);
   rate=msm->get_rate();

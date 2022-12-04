@@ -1694,6 +1694,7 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
           chipClock=COLOR_NTSC;
           break;
       }
+      CHECK_CUSTOM_CLOCK;
       rate=chipClock/72;
       chipRateBase=rate;
       break;
@@ -1715,6 +1716,7 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
           chipClock=COLOR_NTSC*4.0;
           break;
       }
+      CHECK_CUSTOM_CLOCK;
       rate=chipClock/288;
       chipRateBase=rate;
       break;
@@ -1730,6 +1732,7 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
           chipClock=COLOR_NTSC*8.0;
           break;
       }
+      CHECK_CUSTOM_CLOCK;
       rate=chipClock/768;
       chipRateBase=chipClock/684;
       break;

@@ -343,6 +343,7 @@ void DivPlatformT6W28::notifyInsDeletion(void* ins) {
 
 void DivPlatformT6W28::setFlags(const DivConfig& flags) {
   chipClock=3072000.0;
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/16;
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;

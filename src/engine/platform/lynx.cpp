@@ -471,6 +471,7 @@ int DivPlatformLynx::init(DivEngine* p, int channels, int sugRate, const DivConf
   }
 
   chipClock = 16000000;
+  CHECK_CUSTOM_CLOCK;
   rate = chipClock/128;
 
   for (int i=0; i<4; i++) {

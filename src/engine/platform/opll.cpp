@@ -958,6 +958,7 @@ void DivPlatformOPLL::setFlags(const DivConfig& flags) {
   } else {
     chipClock=COLOR_NTSC;
   }
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/36;
   patchSet=flags.getInt("patchSet",0);
   for (int i=0; i<11; i++) {
