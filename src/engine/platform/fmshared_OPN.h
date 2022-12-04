@@ -156,6 +156,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
 
     DivConfig ayFlags;
 
+    friend void putDispatchChip(void*,int);
     DivPlatformOPN(double f=9440540.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false):
       DivPlatformFMBase(),
       fmFreqBase(f),

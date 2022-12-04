@@ -90,6 +90,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
     void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
   
+    friend void putDispatchChip(void*,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
