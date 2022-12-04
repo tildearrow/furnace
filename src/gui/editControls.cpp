@@ -23,19 +23,29 @@
 
 void FurnaceGUI::drawMobileControls() {
   float timeScale=1.0f/(60.0f*ImGui::GetIO().DeltaTime);
-  if (mobileMenuOpen) {
-    if (mobileMenuPos<0.999f) {
-      WAKE_UP;
-      mobileMenuPos+=MIN(0.1,(1.0-mobileMenuPos)*0.65)*timeScale;
+  if (dragMobileMenu) {
+    if (portrait) {
+      mobileMenuPos=(dragMobileMenuOrigin.y-ImGui::GetMousePos().y)/(canvasH*0.65);
     } else {
-      mobileMenuPos=1.0f;
+      mobileMenuPos=(ImGui::GetMousePos().x-dragMobileMenuOrigin.x)/(canvasW*0.65);
     }
+    if (mobileMenuPos<0.0f) mobileMenuPos=0.0f;
+    if (mobileMenuPos>1.0f) mobileMenuPos=1.0f;
   } else {
-    if (mobileMenuPos>0.001f) {
-      WAKE_UP;
-      mobileMenuPos-=MIN(0.1,mobileMenuPos*0.65)*timeScale;
+    if (mobileMenuOpen) {
+      if (mobileMenuPos<0.999f) {
+        WAKE_UP;
+        mobileMenuPos+=MIN(0.1,(1.0-mobileMenuPos)*0.65)*timeScale;
+      } else {
+        mobileMenuPos=1.0f;
+      }
     } else {
-      mobileMenuPos=0.0f;
+      if (mobileMenuPos>0.001f) {
+        WAKE_UP;
+        mobileMenuPos-=MIN(0.1,mobileMenuPos*0.65)*timeScale;
+      } else {
+        mobileMenuPos=0.0f;
+      }
     }
   }
   ImGui::SetNextWindowPos(portrait?ImVec2(0.0f,((1.0-mobileMenuPos*0.65)*canvasH)-(0.16*canvasW)):ImVec2(0.5*canvasW*mobileMenuPos,0.0f));
@@ -54,7 +64,20 @@ void FurnaceGUI::drawMobileControls() {
       }
     }
     if (ImGui::Button(mobButtonName,buttonSize)) {
-      mobileMenuOpen=!mobileMenuOpen;
+      if (!dragMobileMenu) {
+        mobileMenuOpen=!mobileMenuOpen;
+      }
+    }
+    if (ImGui::IsItemActive() && ImGui::GetIO().MouseDragMaxDistanceSqr[ImGuiMouseButton_Left]>ImGui::GetIO().ConfigInertialScrollToleranceSqr*2.0f) {
+      if (!dragMobileMenu) {
+        dragMobileMenu=true;
+        dragMobileMenuOrigin=ImGui::GetMousePos();
+        if (portrait) {
+          dragMobileMenuOrigin.y+=mobileMenuPos*canvasH*0.65f;
+        } else {
+          dragMobileMenuOrigin.x-=mobileMenuPos*canvasW*0.65f;
+        }
+      }
     }
 
     if (!portrait) ImGui::Separator();
