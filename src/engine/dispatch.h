@@ -458,13 +458,13 @@ class DivDispatch {
      * get minimum chip clock.
      * @return clock in Hz, or 0 if custom clocks are not supported.
      */
-    virtual unsigned int getClockRangeMin();
+    virtual int getClockRangeMin();
 
     /**
      * get maximum chip clock.
      * @return clock in Hz, or 0 if custom clocks are not supported.
      */
-    virtual unsigned int getClockRangeMax();
+    virtual int getClockRangeMax();
 
     /**
      * set the chip flags.
