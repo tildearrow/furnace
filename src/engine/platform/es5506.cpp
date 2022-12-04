@@ -1245,12 +1245,13 @@ int DivPlatformES5506::init(DivEngine* p, int channels, int sugRate, const DivCo
   dumpWrites=false;
   skipRegisterWrites=false;
 
+  setFlags(flags);
+
   for (int i=0; i<32; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
     oscBuf[i]->rate=rate;
   }
-  setFlags(flags);
 
   reset();
   return 32;
