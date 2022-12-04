@@ -934,8 +934,9 @@ struct FurnaceGUISysDefChip {
 
 struct FurnaceGUISysDef {
   const char* name;
+  const char* extra;
   String definition;
-  FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def);
+  FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e=NULL);
 };
 
 struct FurnaceGUISysCategory {
