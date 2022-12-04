@@ -65,9 +65,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
   
     double NOTE_OPNB(int ch, int note);
     double NOTE_ADPCMB(int note);
-    friend void putDispatchChip(void*,int);
-    friend void putDispatchChan(void*,int,int);
-  
+
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
