@@ -56,8 +56,87 @@
   last2=last1; \
   last1=nextDec; \
 
-void brrEncodeBlock(short* buf, unsigned char* out, unsigned char flag, short* last1, short* last2) {
+void brrEncodeBlock(const short* buf, unsigned char* out, unsigned char range, unsigned char filter, short* last1, short* last2) {
   // encode one block using BRR
+  switch (filter) {
+    case 0:
+      for (int j=0; j<16; j++) {
+      }
+      break;
+    case 1:
+      for (int j=0; j<16; j++) {
+        int s=NEXT_SAMPLE;
+
+        pred1[j]=s-(((int)o1f1*15)>>4);
+        if (pred1[j]<-32768) pred1[j]=-32768;
+        if (pred1[j]>32767) pred1[j]=32767;
+
+        o0=pred1[j]>>range1;
+        if (range1) if (pred1[j]&(1<<(range1>>1))) o0++;
+        if (o0>7) o0=7;
+        if (o0<-8) o0=-8;
+        o=o0&15;
+        if (j&1) {
+          next1[j>>1]|=o;
+        } else {
+          next1[j>>1]=o<<4;
+        }
+
+        nextDec=o;
+        DO_ONE_DEC(range1);
+        //o2f1=last2<<1;
+        o1f1=last1<<1;
+      }
+      break;
+    case 2:
+      for (int j=0; j<16; j++) {
+        int s=NEXT_SAMPLE;
+        pred2[j]=s+(((int)o2f2*15)>>4)-(((int)o1f2*61)>>5);
+        if (pred2[j]<-32768) pred2[j]=-32768;
+        if (pred2[j]>32767) pred2[j]=32767;
+
+        o0=pred2[j]>>range2;
+        if (range2) if (pred2[j]&(1<<(range2>>1))) o0++;
+        if (o0>7) o0=7;
+        if (o0<-8) o0=-8;
+        o=o0&15;
+        if (j&1) {
+          next2[j>>1]|=o;
+        } else {
+          next2[j>>1]=o<<4;
+        }
+
+        nextDec=o;
+        DO_ONE_DEC(range2);
+        o2f2=last2<<1;
+        o1f2=last1<<1;
+      }
+      break;
+    case 3:
+      for (int j=0; j<16; j++) {
+        int s=NEXT_SAMPLE;
+        pred3[j]=s+(((int)o2f3*13)>>4)-(((int)o1f3*115)>>6);
+        if (pred3[j]<-32768) pred3[j]=-32768;
+        if (pred3[j]>32767) pred3[j]=32767;
+
+        o0=pred3[j]>>range3;
+        if (range3) if (pred3[j]&(1<<(range3>>1))) o0++;
+        if (o0>7) o0=7;
+        if (o0<-8) o0=-8;
+        o=o0&15;
+        if (j&1) {
+          next3[j>>1]|=o;
+        } else {
+          next3[j>>1]=o<<4;
+        }
+
+        nextDec=o;
+        DO_ONE_DEC(range3);
+        o2f3=last2<<1;
+        o1f3=last1<<1;
+      }
+      break;
+  }
 }
 
 long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
