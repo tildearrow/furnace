@@ -158,7 +158,7 @@ void FurnaceGUI::drawPiano() {
       }
 
       ImGui::TableNextColumn();
-      if (pianoInputPadMode==1 && cursor.xFine>0 && curWindow==GUI_WINDOW_PATTERN) {
+      if (pianoInputPadMode==1 && cursor.xFine>0) {
         ImVec2 buttonSize=ImGui::GetContentRegionAvail();
         if (ImGui::BeginTable("InputPadP",8,ImGuiTableFlags_SizingFixedSame)) {
           ImGui::TableNextRow();
@@ -431,7 +431,7 @@ void FurnaceGUI::drawPiano() {
   ImGui::End();
 
   // draw input pad if necessary
-  if (curWindow==GUI_WINDOW_PATTERN && ((pianoInputPadMode==2 && cursor.xFine>0) || pianoInputPadMode==3)) {
+  if ((pianoInputPadMode==2 && cursor.xFine>0) || pianoInputPadMode==3) {
     if (ImGui::Begin("Input Pad",NULL,ImGuiWindowFlags_NoTitleBar)) {
       ImGui::BeginDisabled(cursor.xFine==0);
       if (ImGui::BeginTable("InputPad",3,ImGuiTableFlags_Borders)) {
