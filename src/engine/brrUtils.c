@@ -21,6 +21,8 @@
  */
 
 #include "brrUtils.h"
+#include <stdio.h>
+#include <string.h>
 
 #define NEXT_SAMPLE buf[j]-(buf[j]>>3)
 
@@ -56,6 +58,86 @@
   last2=last1; \
   last1=nextDec; \
 
+void brrEncodeBlock(const short* buf, unsigned char* out, unsigned char range, unsigned char filter, short* last1, short* last2, int* errorSum) {
+  // encode one block using BRR
+  unsigned char nibble=0;
+  int preOut=0;
+  int pred=0;
+  int nextDec=0;
+  int nextError=0;
+  *errorSum=0;
+  for (int j=0; j<16; j++) {
+    short s=NEXT_SAMPLE;
+    switch (filter) {
+      case 0: // no filter
+        pred=s;
+        break;
+      case 1: // simple
+        pred=s-(((int)(*last1*2)*15)>>4);
+        break;
+      case 2: // complex
+        pred=s+(((int)(*last2*2)*15)>>4)-(((int)(*last1*2)*61)>>5);
+        break;
+      case 3:
+        pred=s+(((int)(*last2*2)*13)>>4)-(((int)(*last1*2)*115)>>6);
+        break;
+    }
+
+    if (pred<-32768) pred=-32768;
+    if (pred>32767) pred=32767;
+
+    preOut=pred>>range;
+    if (range) {
+      if (pred&(1<<(range>>1))) preOut++;
+      if (filter==0 && range>=12) if (preOut<-7) preOut=-7;
+    }
+    if (preOut>7) preOut=7;
+    if (preOut<-8) preOut=-8;
+
+    nibble=preOut&15;
+    if (j&1) {
+      out[j>>1]|=nibble;
+    } else {
+      out[j>>1]=nibble<<4;
+    }
+
+    // roll last1/last2
+    nextDec=nibble;
+    if (nextDec&8) nextDec|=0xfffffff0;
+
+    if (range>=13) { /* invalid shift */
+      nextDec=(nextDec<0)?0xfffff800:0;
+    } else {
+      nextDec<<=range; /* range */
+      nextDec>>=1;
+    }
+
+    switch (filter) { /* filter */
+      case 0:
+        break;
+      case 1:
+        nextDec+=(*last1)+((-(*last1))>>4);
+        break;
+      case 2:
+        nextDec+=(*last1)*2+((-(*last1)*3)>>5)-(*last2)+((*last2)>>4);
+        break;
+      case 3:
+        nextDec+=(*last1)*2+((-(*last1)*13)>>6)-(*last2)+(((*last2)*3)>>4);
+        break;
+    }
+
+    nextDec&=0x7fff;
+    if (nextDec&0x4000) nextDec|=0xffff8000;
+
+    nextError=s-(nextDec<<1);
+    if (nextError<0) nextError=-nextError;
+    *errorSum+=nextError;
+
+    *last2=*last1;
+    *last1=nextDec;
+  }
+}
+
 long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
   if (len==0) return 0;
 
@@ -63,375 +145,77 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
   // 1. read next group of 16 samples
   // 2. is this the first block?
   //   - if yes, don't filter. output and then go to 1
-  // 3. is this the loop block?
-  //   - if yes, don't filter. output and then go to 1
-  // 4. try encoding using 4 filters
-  //   - perform linear prediction
-  //   - calculate range
-  //   - decode and apply correction to achieve low error
+  // 4. try encoding using 3 filters and 12 ranges (besides no filter)
   // 5. which one of these yields the least amount of error?
   // 6. output the one which does
-  // 7. is this the last block?
-  //   - if yes, mark end and finish
-  // 8. go to 1
+  // 7. do we still have more to encode?
+  //   - if so, go to 1
+  // 8. is loop point set?
+  //   - if not, end process here
+  // 9. is transition between last block and loop block smooth?
+  //   - if not, encode the loop block again and output it
   long total=0;
-  unsigned char next0[8];
-  unsigned char next1[8];
-  unsigned char next2[8];
-  unsigned char next3[8];
   unsigned char filter=0;
-  unsigned char range0=0;
-  unsigned char range1=0;
-  unsigned char range2=0;
-  unsigned char range3=0;
-  unsigned char o=0;
-  int pred1[16];
-  int pred2[16];
-  int pred3[16];
-  short o1=0;
-  short o2=0;
-  short o0=0;
-  short o1f1=0;
-  short o1f2=0;
-  short o1f3=0;
-  //short o2f1=0;
-  short o2f2=0;
-  short o2f3=0;
+  unsigned char range=0;
 
-  int last1=0;
-  int last2=0;
-  int nextDec=0;
-  int maxError[4];
-  int avgError[4];
+  short in[16];
+
+  short last1[4][13];
+  short last2[4][13];
+  int avgError[4][13];
+  unsigned char possibleOut[4][13][8];
+
+  memset(in,0,16*sizeof(short));
+  memset(last1,0,4*13*sizeof(short));
+  memset(last2,0,4*13*sizeof(short));
+  memset(avgError,0,4*13*sizeof(int));
+  memset(possibleOut,0,4*13*8);
 
   len&=~15;
   loopStart&=~15;
   for (long i=0; i<len; i+=16) {
-    range0=0;
-    // encode with no filter
-    for (int j=0; j<16; j++) {
-      short s=NEXT_SAMPLE;
-      if (s<0) s=-s;
-      while (range0<12 && s>((8<<range0)-1)) range0++;
-    }
-    for (int j=0; j<16; j++) {
-      short s=NEXT_SAMPLE;
-      o0=s>>range0;
-      if (range0) if (s&(1<<(range1>>1))) o0++;
-      if (o0>7) o0=7;
-      if (o0<-8) o0=-8;
-      if (range0>=12) if (o0<-7) o0=-7;
-      o=o0&15;
-      if (j&1) {
-        next0[j>>1]|=o;
-      } else {
-        next0[j>>1]=o<<4;
+    memcpy(in,buf,16*sizeof(short));
+
+    // encode
+    for (int j=0; j<4; j++) {
+      for (int k=0; k<13; k++) {
+        brrEncodeBlock(in,possibleOut[j][k],k,j,&last1[j][k],&last2[j][k],&avgError[j][k]);
       }
     }
 
-    // encode with filter
-    if (i /*&& i!=loopStart*/) {
-      // 1: x = o0 - o1 * 15/16
-      // 2: x = o0 + o2 * 15/16 - o1 * 61/32
-      // 3: x = o0 + o2 * 13/16 - o1 * 115/64
-      range1=0;
-      range2=0;
-      range3=0;
-      //o2f1=o2;
-      o2f2=o2;
-      o2f3=o2;
-      o1f1=o1;
-      o1f2=o1;
-      o1f3=o1;
-      // first pass
-      for (int j=0; j<16; j++) {
-        int s=NEXT_SAMPLE;
-
-        pred1[j]=s-(((int)o1*15)>>4);
-        if (pred1[j]<-32768) pred1[j]=-32768;
-        if (pred1[j]>32767) pred1[j]=32767;
-
-        pred2[j]=s+(((int)o2*15)>>4)-(((int)o1*61)>>5);
-        if (pred2[j]<-32768) pred2[j]=-32768;
-        if (pred2[j]>32767) pred2[j]=32767;
-
-        pred3[j]=s+(((int)o2*13)>>4)-(((int)o1*115)>>6);
-        if (pred3[j]<-32768) pred3[j]=-32768;
-        if (pred3[j]>32767) pred3[j]=32767;
-        
-        o2=o1;
-        o1=s;
-      }
-      // calculate range of values
-      for (int j=0; j<16; j++) {
-        short s=pred1[j];
-        if (s<0) s=-s;
-        while (range1<12 && s>((8<<range1)-1)) range1++;
-
-        s=pred2[j];
-        if (s<0) s=-s;
-        while (range2<12 && s>((8<<range2)-1)) range2++;
-
-        s=pred3[j];
-        if (s<0) s=-s;
-        while (range3<12 && s>((8<<range3)-1)) range3++;
-      }
-      // second pass
-      int prevLast1=last1;
-      int prevLast2=last2;
-      filter=1;
-      for (int j=0; j<16; j++) {
-        int s=NEXT_SAMPLE;
-
-        pred1[j]=s-(((int)o1f1*15)>>4);
-        if (pred1[j]<-32768) pred1[j]=-32768;
-        if (pred1[j]>32767) pred1[j]=32767;
-
-        o0=pred1[j]>>range1;
-        if (range1) if (pred1[j]&(1<<(range1>>1))) o0++;
-        if (o0>7) o0=7;
-        if (o0<-8) o0=-8;
-        o=o0&15;
-        if (j&1) {
-          next1[j>>1]|=o;
-        } else {
-          next1[j>>1]=o<<4;
-        }
-
-        nextDec=o;
-        DO_ONE_DEC(range1);
-        //o2f1=last2<<1;
-        o1f1=last1<<1;
-      }
-      last1=prevLast1;
-      last2=prevLast2;
-      filter=2;
-      for (int j=0; j<16; j++) {
-        int s=NEXT_SAMPLE;
-        pred2[j]=s+(((int)o2f2*15)>>4)-(((int)o1f2*61)>>5);
-        if (pred2[j]<-32768) pred2[j]=-32768;
-        if (pred2[j]>32767) pred2[j]=32767;
-
-        o0=pred2[j]>>range2;
-        if (range2) if (pred2[j]&(1<<(range2>>1))) o0++;
-        if (o0>7) o0=7;
-        if (o0<-8) o0=-8;
-        o=o0&15;
-        if (j&1) {
-          next2[j>>1]|=o;
-        } else {
-          next2[j>>1]=o<<4;
-        }
-
-        nextDec=o;
-        DO_ONE_DEC(range2);
-        o2f2=last2<<1;
-        o1f2=last1<<1;
-      }
-      last1=prevLast1;
-      last2=prevLast2;
-      filter=3;
-      for (int j=0; j<16; j++) {
-        int s=NEXT_SAMPLE;
-        pred3[j]=s+(((int)o2f3*13)>>4)-(((int)o1f3*115)>>6);
-        if (pred3[j]<-32768) pred3[j]=-32768;
-        if (pred3[j]>32767) pred3[j]=32767;
-
-        o0=pred3[j]>>range3;
-        if (range3) if (pred3[j]&(1<<(range3>>1))) o0++;
-        if (o0>7) o0=7;
-        if (o0<-8) o0=-8;
-        o=o0&15;
-        if (j&1) {
-          next3[j>>1]|=o;
-        } else {
-          next3[j>>1]=o<<4;
-        }
-
-        nextDec=o;
-        DO_ONE_DEC(range3);
-        o2f3=last2<<1;
-        o1f3=last1<<1;
-      }
-      last1=prevLast1;
-      last2=prevLast2;
-
-      // find best filter
-      int error=0;
-
-      maxError[0]=0;
-      maxError[1]=0;
-      maxError[2]=0;
-      maxError[3]=0;
-      avgError[0]=0;
-      avgError[1]=0;
-      avgError[2]=0;
-      avgError[3]=0;
-
-      // test filter 0
+    // find best filter/range
+    int candError=0x7fffffff;
+    if (i==0) {
       filter=0;
-      for (int j=0; j<16; j++) {
-        int s=NEXT_SAMPLE;
-        if (j&1) {
-          nextDec=next0[j>>1]&15;
-        } else {
-          nextDec=next0[j>>1]>>4;
-        }
-        DO_ONE_DEC(range0);
-        error=s-(nextDec<<1);
-        if (error<0) error=-error;
-        avgError[0]+=error;
-        if (error>maxError[0]) maxError[0]=error;
-      }
-      last1=prevLast1;
-      last2=prevLast2;
-
-      // test filter 1
-      filter=1;
-      for (int j=0; j<16; j++) {
-        int s=NEXT_SAMPLE;
-        if (j&1) {
-          nextDec=next1[j>>1]&15;
-        } else {
-          nextDec=next1[j>>1]>>4;
-        }
-        DO_ONE_DEC(range1);
-        error=s-(nextDec<<1);
-        if (error<0) error=-error;
-        avgError[1]+=error;
-        if (error>maxError[1]) maxError[1]=error;
-      }
-      last1=prevLast1;
-      last2=prevLast2;
-
-      // test filter 2
-      filter=2;
-      for (int j=0; j<16; j++) {
-        int s=NEXT_SAMPLE;
-        if (j&1) {
-          nextDec=next2[j>>1]&15;
-        } else {
-          nextDec=next2[j>>1]>>4;
-        }
-        DO_ONE_DEC(range2);
-        error=s-(nextDec<<1);
-        if (error<0) error=-error;
-        avgError[2]+=error;
-        if (error>maxError[2]) maxError[2]=error;
-      }
-      last1=prevLast1;
-      last2=prevLast2;
-
-      // test filter 3
-      filter=3;
-      for (int j=0; j<16; j++) {
-        int s=NEXT_SAMPLE;
-        if (j&1) {
-          nextDec=next3[j>>1]&15;
-        } else {
-          nextDec=next3[j>>1]>>4;
-        }
-        DO_ONE_DEC(range3);
-        error=s-(nextDec<<1);
-        if (error<0) error=-error;
-        avgError[3]+=error;
-        if (error>maxError[3]) maxError[3]=error;
-      }
-      last1=prevLast1;
-      last2=prevLast2;
-
-      // pick best filter
-      int candError=0x7fffffff;
-      for (int j=0; j<4; j++) {
-        if (avgError[j]<candError) {
-          candError=avgError[j];
-          filter=j;
+      for (int k=0; k<13; k++) {
+        if (avgError[0][k]<candError) {
+          candError=avgError[0][k];
+          range=k;
         }
       }
-      //printf("block %ld: %8d %8d %8d %8d -> %d\n",i>>4,avgError[0],avgError[1],avgError[2],avgError[3],filter);
     } else {
-      // don't filter on the first or loop block
-      filter=0;
+      for (int j=0; j<4; j++) {
+        for (int k=0; k<13; k++) {
+          if (avgError[j][k]<candError) {
+            candError=avgError[j][k];
+            filter=j;
+            range=k;
+          }
+        }
+      }
     }
 
-    switch (filter) {
-      case 0:
-        for (int j=0; j<8; j++) {
-          nextDec=next0[j]>>4;
-          DO_ONE_DEC(range0);
-          nextDec=next0[j]&15;
-          DO_ONE_DEC(range0);
-        }
-        o2=last2<<1;
-        o1=last1<<1;
+    // write
+    out[0]=(range<<4)|(filter<<2)|((i+16>=len)?((loopStart>=0)?3:1):0);
+    for (int j=0; j<8; j++) {
+      out[j+1]=possibleOut[filter][range][j];
+    }
 
-        out[0]=(range0<<4)|(filter<<2)|((i+16>=len)?((loopStart>=0)?3:1):0);
-        out[1]=next0[0];
-        out[2]=next0[1];
-        out[3]=next0[2];
-        out[4]=next0[3];
-        out[5]=next0[4];
-        out[6]=next0[5];
-        out[7]=next0[6];
-        out[8]=next0[7];
-        break;
-      case 1:
-        for (int j=0; j<8; j++) {
-          nextDec=next1[j]>>4;
-          DO_ONE_DEC(range1);
-          nextDec=next1[j]&15;
-          DO_ONE_DEC(range1);
-        }
-        o2=last2<<1;
-        o1=last1<<1;
-        out[0]=(range1<<4)|(filter<<2)|((i+16>=len)?((loopStart>=0)?3:1):0);
-        out[1]=next1[0];
-        out[2]=next1[1];
-        out[3]=next1[2];
-        out[4]=next1[3];
-        out[5]=next1[4];
-        out[6]=next1[5];
-        out[7]=next1[6];
-        out[8]=next1[7];
-        break;
-      case 2:
-        for (int j=0; j<8; j++) {
-          nextDec=next2[j]>>4;
-          DO_ONE_DEC(range2);
-          nextDec=next2[j]&15;
-          DO_ONE_DEC(range2);
-        }
-        o2=last2<<1;
-        o1=last1<<1;
-        out[0]=(range2<<4)|(filter<<2)|((i+16>=len)?((loopStart>=0)?3:1):0);
-        out[1]=next2[0];
-        out[2]=next2[1];
-        out[3]=next2[2];
-        out[4]=next2[3];
-        out[5]=next2[4];
-        out[6]=next2[5];
-        out[7]=next2[6];
-        out[8]=next2[7];
-        break;
-      case 3:
-        for (int j=0; j<8; j++) {
-          nextDec=next3[j]>>4;
-          DO_ONE_DEC(range3);
-          nextDec=next3[j]&15;
-          DO_ONE_DEC(range3);
-        }
-        o2=last2<<1;
-        o1=last1<<1;
-        out[0]=(range3<<4)|(filter<<2)|((i+16>=len)?((loopStart>=0)?3:1):0);
-        out[1]=next3[0];
-        out[2]=next3[1];
-        out[3]=next3[2];
-        out[4]=next3[3];
-        out[5]=next3[4];
-        out[6]=next3[5];
-        out[7]=next3[6];
-        out[8]=next3[7];
-        break;
+    for (int j=0; j<4; j++) {
+      for (int k=0; k<13; k++) {
+        last1[j][k]=last1[filter][range];
+        last2[j][k]=last2[filter][range];
+      }
     }
     buf+=16;
     out+=9;
