@@ -80,7 +80,7 @@ void DivPlatformVIC20::calcAndWriteOutVol(int ch, int env) {
 }
 
 void DivPlatformVIC20::writeOutVol(int ch) {
-  if (!isMuted[ch]) {
+  if (!isMuted[ch] && chan[ch].active) {
     rWrite(14,chan[ch].outVol);
   }
 }
