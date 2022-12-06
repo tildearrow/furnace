@@ -30,7 +30,7 @@ extern "C" {
 /**
  * read len samples from buf, encode in BRR and output to out.
  * @param buf input data.
- * @param out output buffer. shall be at least 9*(len/16) shorts in size.
+ * @param out output buffer. shall be at least 9*((15+len)/16) shorts in size (9 more if loopStart is not -1!)
  * @param len input length (should be a multiple of 16. if it isn't, the output will be padded).
  * @param loopStart beginning of loop area (may be -1 for no loop). this is used to ensure the respective block has no filter in order to loop properly.
  * @return number of written samples.

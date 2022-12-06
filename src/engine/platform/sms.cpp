@@ -498,6 +498,7 @@ void DivPlatformSMS::setFlags(const DivConfig& flags) {
       easyStartingPeriod=13;
       break;
   }
+  CHECK_CUSTOM_CLOCK;
   resetPhase=!flags.getBool("noPhaseReset",false);
   easyNoise=!flags.getBool("noEasyNoise",false);
   divider=16;
@@ -568,7 +569,6 @@ void DivPlatformSMS::setFlags(const DivConfig& flags) {
       stereo=false;
       break;
   }
-  CHECK_CUSTOM_CLOCK;
   rate=chipClock/divider;
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;

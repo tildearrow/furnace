@@ -2931,6 +2931,14 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   }
   orderScrollLocked=false;
   orderScrollTolerance=false;
+  if (dragMobileMenu) {
+    dragMobileMenu=false;
+    if (mobileMenuOpen) {
+      mobileMenuOpen=(mobileMenuPos>=0.85f);
+    } else {
+      mobileMenuOpen=(mobileMenuPos>=0.15f);
+    }
+  }
   if (selecting) {
     if (!selectingFull) cursor=selEnd;
     finishSelection();
@@ -5785,6 +5793,7 @@ FurnaceGUI::FurnaceGUI():
   keepLoopAlive(false),
   orderScrollLocked(false),
   orderScrollTolerance(false),
+  dragMobileMenu(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
@@ -5877,6 +5886,7 @@ FurnaceGUI::FurnaceGUI():
   orderScroll(0.0f),
   orderScrollSlideOrigin(0.0f),
   orderScrollRealOrigin(0.0f,0.0f),
+  dragMobileMenuOrigin(0.0f,0.0f),
   layoutTimeBegin(0),
   layoutTimeEnd(0),
   layoutTimeDelta(0),
