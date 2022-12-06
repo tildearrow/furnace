@@ -126,8 +126,6 @@ void brrEncodeBlock(const short* buf, unsigned char* out, unsigned char range, u
         break;
     }
 
-    if (nextDec>32767) nextDec=32767;
-    if (nextDec<-32768) nextDec=-32768;
     nextDec&=0x7fff;
     if (nextDec&0x4000) nextDec|=0xffff8000;
 
