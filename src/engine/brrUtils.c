@@ -171,10 +171,24 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
   memset(avgError,0,4*13*sizeof(int));
   memset(possibleOut,0,4*13*8);
 
-  len&=~15;
-  loopStart&=~15;
   for (long i=0; i<len; i+=16) {
-    memcpy(in,buf,16*sizeof(short));
+    if (i+16>len) {
+      long p=i;
+      for (int j=0; j<16; j++) {
+        if (p>=len) {
+          if (loopStart<0 || loopStart>=len) {
+            in[j]=0;
+          } else {
+            p=loopStart;
+            in[j]=buf[p++];
+          }
+        } else {
+          in[j]=buf[p++];
+        }
+      }
+    } else {
+      memcpy(in,&buf[i],16*sizeof(short));
+    }
 
     // encode
     for (int j=0; j<4; j++) {
@@ -206,7 +220,7 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
     }
 
     // write
-    out[0]=(range<<4)|(filter<<2)|((i+16>=len)?((loopStart>=0)?3:1):0);
+    out[0]=(range<<4)|(filter<<2)|((i+16>=len && loopStart<0)?1:0);
     for (int j=0; j<8; j++) {
       out[j+1]=possibleOut[filter][range][j];
     }
@@ -217,7 +231,50 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
         last2[j][k]=last2[filter][range];
       }
     }
-    buf+=16;
+    out+=9;
+    total+=9;
+  }
+  // encode loop block
+  if (loopStart>=0) {
+    long p=loopStart;
+    for (int i=0; i<16; i++) {
+      if (p>=len) {
+        p=loopStart;
+      }
+      in[i]=buf[p++];
+    }
+
+    // encode (filter 0/1 only)
+    for (int j=0; j<2; j++) {
+      for (int k=0; k<13; k++) {
+        brrEncodeBlock(in,possibleOut[j][k],k,j,&last1[j][k],&last2[j][k],&avgError[j][k]);
+      }
+    }
+
+    // find best filter/range
+    int candError=0x7fffffff;
+    for (int j=0; j<2; j++) {
+      for (int k=0; k<13; k++) {
+        if (avgError[j][k]<candError) {
+          candError=avgError[j][k];
+          filter=j;
+          range=k;
+        }
+      }
+    }
+
+    // write
+    out[0]=(range<<4)|(filter<<2)|3;
+    for (int j=0; j<8; j++) {
+      out[j+1]=possibleOut[filter][range][j];
+    }
+
+    for (int j=0; j<4; j++) {
+      for (int k=0; k<13; k++) {
+        last1[j][k]=last1[filter][range];
+        last2[j][k]=last2[filter][range];
+      }
+    }
     out+=9;
     total+=9;
   }

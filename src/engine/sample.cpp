@@ -490,8 +490,8 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
     case DIV_SAMPLE_DEPTH_BRR: // BRR
       if (dataBRR!=NULL) delete[] dataBRR;
       lengthBRR=9*((count+15)/16);
-      dataBRR=new unsigned char[lengthBRR];
-      memset(dataBRR,0,lengthBRR);
+      dataBRR=new unsigned char[lengthBRR+9];
+      memset(dataBRR,0,lengthBRR+9);
       break;
     case DIV_SAMPLE_DEPTH_VOX: // VOX
       if (dataVOX!=NULL) delete[] dataVOX;
@@ -1100,7 +1100,7 @@ void DivSample::render(unsigned int formatMask) {
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_BRR)) { // BRR
     if (!initInternal(DIV_SAMPLE_DEPTH_BRR,samples)) return;
-    brrEncode(data16,dataBRR,(samples+15)&(~15),loop?loopStart:-1);
+    brrEncode(data16,dataBRR,samples,loop?loopStart:-1);
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_VOX)) { // VOX
     if (!initInternal(DIV_SAMPLE_DEPTH_VOX,samples)) return;
