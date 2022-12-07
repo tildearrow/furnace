@@ -2939,6 +2939,9 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
       mobileMenuOpen=(mobileMenuPos>=0.15f);
     }
   }
+  if (dragMobileEditButton) {
+    dragMobileEditButton=false;
+  }
   if (selecting) {
     if (!selectingFull) cursor=selEnd;
     finishSelection();
@@ -5663,6 +5666,8 @@ FurnaceGUI::FurnaceGUI():
   waveEditStyle(0),
   displayInsTypeListMakeInsSample(-1),
   mobileMenuPos(0.0f),
+  mobileEditButtonPos(0.0f,0.0f),
+  mobileEditButtonSize(0.0f,0.0f),
   autoButtonSize(0.0f),
   curSysSection(NULL),
   pendingRawSampleDepth(8),
@@ -5794,12 +5799,14 @@ FurnaceGUI::FurnaceGUI():
   orderScrollLocked(false),
   orderScrollTolerance(false),
   dragMobileMenu(false),
+  dragMobileEditButton(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
   curWindowThreadSafe(GUI_WINDOW_NOTHING),
   lastPatternWidth(0.0f),
   longThreshold(0.48f),
+  buttonLongThreshold(0.20f),
   latchNote(-1),
   latchIns(-2),
   latchVol(-1),
