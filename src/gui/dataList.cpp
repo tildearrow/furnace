@@ -684,20 +684,48 @@ void FurnaceGUI::actualWaveList() {
 
 void FurnaceGUI::actualSampleList() {
   for (int i=0; i<(int)e->song.sample.size(); i++) {
+    bool memWarning=false;
+
     DivSample* sample=e->song.sample[i];
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
+    for (int j=0; j<e->song.systemLen; j++) {
+      DivDispatch* dispatch=e->getDispatch(j);
+      if (dispatch==NULL) continue;
+
+      for (int k=0; k<4; k++) {
+        if (dispatch->getSampleMemCapacity(k)==0) continue;
+        if (!dispatch->isSampleLoaded(k,i) && sample->renderOn[k][j]) {
+          memWarning=true;
+          break;
+        }
+      }
+      if (memWarning) break;
+    }
+    if (memWarning) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_SAMPLE_CHIP_WARNING]);
     if (ImGui::Selectable(fmt::sprintf("%d: %s##_SAM%d",i,sample->name,i).c_str(),curSample==i)) {
       curSample=i;
       samplePos=0;
       updateSampleTex=true;
     }
-    if (wantScrollList && curSample==i) ImGui::SetScrollHereY();
     if (ImGui::IsItemHovered() && !mobileUI) {
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
       ImGui::SetTooltip("Bank %d: %s",i/12,sampleNote[i%12]);
       if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         sampleEditOpen=true;
       }
+      ImGui::PopStyleColor();
     }
+    if (memWarning) {
+      ImGui::SameLine();
+      ImGui::Text(ICON_FA_EXCLAMATION_TRIANGLE);
+      if (ImGui::IsItemHovered() && !mobileUI) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+        ImGui::SetTooltip("out of memory for this sample!");
+        ImGui::PopStyleColor();
+      }
+      ImGui::PopStyleColor();
+    }
+    if (wantScrollList && curSample==i) ImGui::SetScrollHereY();
   }
 }
