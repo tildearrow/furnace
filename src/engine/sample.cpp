@@ -52,8 +52,8 @@ void DivSample::putSampleData(SafeWriter* w) {
   w->writeI(centerRate);
   w->writeC(depth);
   w->writeC(loopMode);
+  w->writeC(brrEmphasis);
   w->writeC(0); // reserved
-  w->writeC(0);
   w->writeI(loop?loopStart:-1);
   w->writeI(loop?loopEnd:-1);
 
@@ -125,8 +125,12 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
       reader.readC();
     }
 
+    if (version>=129) {
+      brrEmphasis=reader.readC();
+    } else {
+      reader.readC();
+    }
     // reserved
-    reader.readC();
     reader.readC();
 
     loopStart=reader.readI();
@@ -1041,7 +1045,7 @@ void DivSample::render(unsigned int formatMask) {
         }
         break;
       case DIV_SAMPLE_DEPTH_BRR: // BRR
-        brrDecode(dataBRR,data16,lengthBRR);
+        brrDecode(dataBRR,data16,lengthBRR,brrEmphasis);
         break;
       case DIV_SAMPLE_DEPTH_VOX: // VOX
         oki_decode(dataVOX,data16,samples);
@@ -1100,7 +1104,7 @@ void DivSample::render(unsigned int formatMask) {
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_BRR)) { // BRR
     if (!initInternal(DIV_SAMPLE_DEPTH_BRR,samples)) return;
-    brrEncode(data16,dataBRR,samples,loop?loopStart:-1);
+    brrEncode(data16,dataBRR,samples,loop?loopStart:-1,brrEmphasis);
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_VOX)) { // VOX
     if (!initInternal(DIV_SAMPLE_DEPTH_VOX,samples)) return;
@@ -1174,9 +1178,9 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       duplicate=new unsigned char[getCurBufLen()];
       memcpy(duplicate,getCurBuf(),getCurBufLen());
     }
-    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,loopMode);
+    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,loopMode);
   } else {
-    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,loopMode);
+    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,loopMode);
   }
   if (!doNotPush) {
     while (!redoHist.empty()) {
