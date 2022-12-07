@@ -44,8 +44,6 @@ void FurnaceGUI::drawSampleEdit() {
     ImGui::SetNextWindowPos(patWindowPos);
     ImGui::SetNextWindowSize(patWindowSize);
   }
-
-
   if (ImGui::Begin("Sample Editor",&sampleEditOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
     if (curSample<0 || curSample>=(int)e->song.sample.size()) {
       ImGui::SetCursorPosY(ImGui::GetCursorPosY()+(ImGui::GetContentRegionAvail().y-ImGui::GetFrameHeightWithSpacing()*2.0f)*0.5f);
@@ -186,13 +184,11 @@ void FurnaceGUI::drawSampleEdit() {
         popToggleColors();
         ImGui::TableNextColumn();
         bool doLoop=(sample->isLoopable());
-        static int stepSize = 1;
         if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
           if (doLoop) {
             sample->loop=true;
             sample->loopStart=0;
             sample->loopEnd=sample->samples;
-            stepSize = 1;
           } else {
             sample->loop=false;
             sample->loopStart=-1;
@@ -203,20 +199,6 @@ void FurnaceGUI::drawSampleEdit() {
             e->renderSamplesP();
           }
         }
-
-/*
-          static bool snesLoopCheckbox = false;
-          ImGui::Checkbox("SNES", &snesLoopCheckbox);
-          {
-              if (snesLoopCheckbox) {
-                  snesLoopCheckbox = true;
-                  stepSize = 16;
-              } else {
-                  snesLoopCheckbox = false;
-                  stepSize = 1;
-              }
-          }
-*/
         if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
           ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
         }
@@ -385,7 +367,7 @@ void FurnaceGUI::drawSampleEdit() {
           keepLoopAlive=false;
           ImGui::Text("Mode");
           ImGui::SameLine();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x / 2);
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::BeginCombo("##SampleLoopMode",loopType.c_str())) {
             for (int i=0; i<DIV_SAMPLE_LOOP_MAX; i++) {
               if (sampleLoopModes[i]==NULL) continue;
@@ -399,23 +381,11 @@ void FurnaceGUI::drawSampleEdit() {
             }
             ImGui::EndCombo();
           }
-            ImGui::SameLine();
-            ImGui::Text("Step");
-            ImGui::SameLine();
-            //ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
 
-            if (ImGui::InputInt("##LoopStepSize",&stepSize,1,16)) {
-                if (stepSize<0) {
-                    stepSize = 0;
-                }
-                if (stepSize>1024) {
-                    stepSize = 1024;
-                }
-            }
           ImGui::Text("Start");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::InputInt("##LoopStartPosition",&sample->loopStart,stepSize,16)) { MARK_MODIFIED
+          if (ImGui::InputInt("##LoopStartPosition",&sample->loopStart,1,16)) { MARK_MODIFIED
             if (sample->loopStart<0) {
               sample->loopStart=0;
             }
@@ -437,7 +407,7 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::Text("End");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::InputInt("##LoopEndPosition",&sample->loopEnd,stepSize,16)) { MARK_MODIFIED
+          if (ImGui::InputInt("##LoopEndPosition",&sample->loopEnd,1,16)) { MARK_MODIFIED
             if (sample->loopEnd<sample->loopStart) {
               sample->loopEnd=sample->loopStart;
             }
