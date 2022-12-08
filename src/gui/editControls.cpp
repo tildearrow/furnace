@@ -48,12 +48,36 @@ void FurnaceGUI::drawMobileControls() {
       }
     }
   }
+  if (dragMobileEditButton) {
+    mobileEditButtonPos.x=((ImGui::GetMousePos().x/canvasW)-((portrait?0.16*canvasW:0.16*canvasH)/2)/canvasW);
+    mobileEditButtonPos.y=((ImGui::GetMousePos().y/canvasH)-((portrait?0.16*canvasW:0.16*canvasH)/2)/canvasH);
+  }
+  if (mobileEditButtonPos.x<0) mobileEditButtonPos.x=0;
+  if (mobileEditButtonPos.x>1) mobileEditButtonPos.x=1;
+  if (mobileEditButtonPos.y<0) mobileEditButtonPos.y=0;
+  if (mobileEditButtonPos.y>1) mobileEditButtonPos.y=1;
+  ImGui::SetNextWindowPos(ImVec2(mobileEditButtonPos.x*canvasW, mobileEditButtonPos.y*canvasH));
+  ImGui::SetNextWindowSize(portrait?ImVec2(0.16*canvasW,0.16*canvasW):ImVec2(0.16*canvasH,0.16*canvasH));
+  if (ImGui::Begin("MobileEdit",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoBackground|ImGuiWindowFlags_NoDecoration|globalWinFlags)) {
+    float avail=portrait?ImGui::GetContentRegionAvail().y:ImGui::GetContentRegionAvail().x;
+    mobileEditButtonSize=ImVec2(avail,avail);
+    if (ImGui::Button("Edit", mobileEditButtonSize)) {
+      //click
+    }
+    if (ImGui::IsItemActive()) {
+      if (CHECK_BUTTON_LONG_HOLD) {
+        //drag
+        if (!dragMobileEditButton) dragMobileEditButton=!dragMobileEditButton;
+      }
+    }
+  }
+  ImGui::End();
+  
   ImGui::SetNextWindowPos(portrait?ImVec2(0.0f,((1.0-mobileMenuPos*0.65)*canvasH)-(0.16*canvasW)):ImVec2(0.5*canvasW*mobileMenuPos,0.0f));
   ImGui::SetNextWindowSize(portrait?ImVec2(canvasW,0.16*canvasW):ImVec2(0.16*canvasH,canvasH));
   if (ImGui::Begin("Mobile Controls",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|globalWinFlags)) {
     float avail=portrait?ImGui::GetContentRegionAvail().y:ImGui::GetContentRegionAvail().x;
     ImVec2 buttonSize=ImVec2(avail,avail);
-
     const char* mobButtonName=ICON_FA_CHEVRON_RIGHT "##MobileMenu";
     if (portrait) mobButtonName=ICON_FA_CHEVRON_UP "##MobileMenu";
     if (mobileMenuOpen) {
