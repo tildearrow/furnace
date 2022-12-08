@@ -1693,6 +1693,16 @@ void DivEngine::registerSystems() {
     {DIV_INS_AMIGA}
   );
 
+  sysDefs[DIV_SYSTEM_K007232]=new DivSysDef(
+    "Konami K007232", NULL, 0xc1/*Placeholder*/, 0, 2, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "this PCM chip was widely used at Konami arcade boards in 1986-1990.",
+    {"Channel 1", "Channel 2"},
+    {"CH1", "CH2"},
+    {DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_K007232, DIV_INS_K007232},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA}
+  );
+
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
     "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false, 0,
     "this is a system designed for testing purposes.",

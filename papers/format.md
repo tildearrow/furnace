@@ -1626,6 +1626,10 @@ chips which aren't on this list don't have any flags.
 - bit 16-19: outDepth (int)
 - bit 20: stereo (bool)
 
+## (Placeholder): Konami K007232
+
+- bit 0: stereo (bool)
+
 ## 0xe0: QSound
 
 - bit 0-11: echoDelay (int)

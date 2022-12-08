@@ -1571,6 +1571,9 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
       newFlags.set("echoDelay",(int)(oldFlags&0xfff));
       newFlags.set("echoFeedback",(int)((oldFlags>>12)&255));
       break;
+    case DIV_SYSTEM_K007232:
+      if (oldFlags&1) newFlags.set("stereo",true);
+      break;
     default:
       break;
   }

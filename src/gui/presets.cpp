@@ -1144,6 +1144,11 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Konami K007232", {
+      CH(DIV_SYSTEM_K007232, 64, 0, "")
+    }
+  );
+  ENTRY(
     "Generic PCM DAC", {
       CH(DIV_SYSTEM_PCM_DAC, 64, 0, "")
     }
