@@ -530,7 +530,7 @@ int DivPlatformK007232::init(DivEngine* p, int channels, int sugRate, const DivC
   setFlags(flags);
   reset();
   
-  return 8;
+  return 2;
 }
 
 void DivPlatformK007232::quit() {
