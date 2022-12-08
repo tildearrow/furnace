@@ -158,7 +158,6 @@ void DivPlatformSMS::tick(bool sysTick) {
     }
     if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        // TODO: check whether this weird octave boundary thing applies to other systems as well
         // TODO: add compatibility flag. this is horrible.
         int areYouSerious=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         while (areYouSerious>0x60) areYouSerious-=12;
@@ -428,7 +427,7 @@ void DivPlatformSMS::reset() {
   YMPSG_Init(&sn_nuked,isRealSN,12,isRealSN?13:15,isRealSN?16383:32767);
   snNoiseMode=3;
   rWrite(0,0xe7);
-  updateSNMode=false;
+  updateSNMode=true;
   oldValue=0xff;
   lastPan=0xff;
   if (stereo) {
