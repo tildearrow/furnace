@@ -1100,6 +1100,8 @@ void FurnaceGUI::drawSampleEdit() {
         }
 
         String statusBar=sampleDragMode?"Draw":"Select";
+        String statusBar2="";
+        String statusBar3=fmt::sprintf("%d samples, %d bytes",sample->samples,sample->getCurBufLen());
         bool drawSelection=false;
 
         if (!sampleDragMode) {
@@ -1180,12 +1182,15 @@ void FurnaceGUI::drawSampleEdit() {
           }
           posY=(0.5-pos.y/rectSize.y)*((sample->depth==DIV_SAMPLE_DEPTH_8BIT)?255:32767);
           if (posX>=0) {
-            statusBar+=fmt::sprintf(" | (%d, %d)",posX,posY);
+            statusBar2=fmt::sprintf("(%d, %d)",posX,posY);
           }
         }
 
         if (e->isPreviewingSample()) {
-          statusBar+=fmt::sprintf(" | %.2fHz",e->getSamplePreviewRate());
+          if (!statusBar2.empty()) {
+            statusBar2+=" | ";
+          }
+          statusBar2+=fmt::sprintf("%.2fHz",e->getSamplePreviewRate());
 
           int start=sampleSelStart;
           int end=sampleSelEnd;
@@ -1268,7 +1273,23 @@ void FurnaceGUI::drawSampleEdit() {
         }
         
         ImGui::SetCursorPosY(ImGui::GetCursorPosY()+ImGui::GetStyle().ScrollbarSize);
-        ImGui::Text("%s",statusBar.c_str());
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0,0));
+        if (ImGui::BeginTable("SEStatus",3,ImGuiTableFlags_BordersInnerV)) {
+          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.7);
+          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.3);
+          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::TextUnformatted(statusBar.c_str());
+          ImGui::TableNextColumn();
+          ImGui::TextUnformatted(statusBar2.c_str());
+          ImGui::TableNextColumn();
+          ImGui::TextUnformatted(statusBar3.c_str());
+
+          ImGui::EndTable();
+        }
+        ImGui::PopStyleVar();
       }
     }
   }
