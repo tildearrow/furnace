@@ -29,6 +29,7 @@ the coding style is described here:
   - no spaces in operations except for `||` and `&&`
   - no space between variable name and assignment
   - space between macro in string literals
+  - space after comment delimiter
   - C++ pointer style: `void* variable` rather than `void *variable`
   - indent switch cases
   - preprocessor directives not intended
