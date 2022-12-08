@@ -5923,6 +5923,7 @@ FurnaceGUI::FurnaceGUI():
   sampleSelStart(-1),
   sampleSelEnd(-1),
   sampleInfo(true),
+  sampleCompatRate(false),
   sampleDragActive(false),
   sampleDragMode(false),
   sampleDrag16(false),

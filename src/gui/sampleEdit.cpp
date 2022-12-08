@@ -168,7 +168,20 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SameLine();
         ImGui::Text("Info");
         ImGui::TableNextColumn();
-        ImGui::Text("Rate");
+        pushToggleColors(!sampleCompatRate);
+        if (ImGui::Button("Rate")) {
+          sampleCompatRate=false;
+        }
+        popToggleColors();
+        ImGui::SameLine();
+        pushToggleColors(sampleCompatRate);
+        if (ImGui::Button("Compat Rate")) {
+          sampleCompatRate=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("used in DefleMask-compatible sample mode (17xx), in where samples are mapped to an octave.");
+        }
+        popToggleColors();
         ImGui::TableNextColumn();
         bool doLoop=(sample->isLoopable());
         if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
@@ -243,21 +256,92 @@ void FurnaceGUI::drawSampleEdit() {
             }
           }
 
-          ImGui::TableNextColumn();
-          ImGui::Text("C-4 (Hz)");
-          ImGui::SameLine();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::InputInt("##SampleCenter",&sample->centerRate,10,200)) { MARK_MODIFIED
-            if (sample->centerRate<100) sample->centerRate=100;
-            if (sample->centerRate>65535) sample->centerRate=65535;
+          int targetRate=sampleCompatRate?sample->rate:sample->centerRate;
+          int sampleNote=round(64.0+(128.0*12.0*log((double)targetRate/8363.0)/log(2.0)));
+          int sampleNoteCoarse=60+(sampleNote>>7);
+          int sampleNoteFine=(sampleNote&127)-64;
+
+          if (sampleNoteCoarse<0) {
+            sampleNoteCoarse=0;
+            sampleNoteFine=-64;
+          }
+          if (sampleNoteCoarse>119) {
+            sampleNoteCoarse=119;
+            sampleNoteFine=63;
           }
 
-          ImGui::Text("Compat");
+          ImGui::TableNextColumn();
+          ImGui::Text("Hz");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::InputInt("##SampleRate",&sample->rate,10,200)) { MARK_MODIFIED
-            if (sample->rate<100) sample->rate=100;
-            if (sample->rate>96000) sample->rate=96000;
+          if (ImGui::InputInt("##SampleRate",&targetRate,10,200)) { MARK_MODIFIED
+            if (targetRate<100) targetRate=100;
+            if (targetRate>192000) targetRate=192000;
+
+            if (sampleCompatRate) {
+              sample->rate=targetRate;
+            } else {
+              sample->centerRate=targetRate;
+            }
+          }
+          
+          ImGui::Text("Note");
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::BeginCombo("##SampleNote",noteNames[sampleNoteCoarse+60])) {
+            char temp[1024];
+            for (int i=0; i<120; i++) {
+              snprintf(temp,1023,"%s##_SRN%d",noteNames[i+60],i);
+              if (ImGui::Selectable(temp,i==sampleNoteCoarse)) {
+                sampleNoteCoarse=i;
+
+                sampleNote=((sampleNoteCoarse-60)<<7)+sampleNoteFine;
+
+                targetRate=8363.0*pow(2.0,(double)sampleNote/(128.0*12.0));
+                if (targetRate<100) targetRate=100;
+                if (targetRate>192000) targetRate=192000;
+
+                if (sampleCompatRate) {
+                  sample->rate=targetRate;
+                } else {
+                  sample->centerRate=targetRate;
+                }
+              }
+            }
+            ImGui::EndCombo();
+          }
+
+          ImGui::Text("Fine");
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          int prevFine=sampleNoteFine;
+          int prevSampleRate=targetRate;
+          if (ImGui::InputInt("##SampleFine",&sampleNoteFine,1,10)) { MARK_MODIFIED
+            if (sampleNoteFine>63) sampleNoteFine=63;
+            if (sampleNoteFine<-64) sampleNoteFine=-64;
+
+            sampleNote=((sampleNoteCoarse-60)<<7)+sampleNoteFine;
+
+            targetRate=round(8363.0*pow(2.0,(double)sampleNote/(128.0*12.0)));
+
+            if (targetRate==prevSampleRate) {
+              if (prevFine==sampleNoteFine) {
+                // do nothing
+              } else if (prevFine>sampleNoteFine) { // coarse incr/decr due to precision loss
+                targetRate--;
+              } else {
+                targetRate++;
+              }
+            }
+
+            if (targetRate<100) targetRate=100;
+            if (targetRate>192000) targetRate=192000;
+
+            if (sampleCompatRate) {
+              sample->rate=targetRate;
+            } else {
+              sample->centerRate=targetRate;
+            }
           }
 
           ImGui::TableNextColumn();
