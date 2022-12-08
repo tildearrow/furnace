@@ -134,7 +134,32 @@ void FurnaceGUI::drawSampleEdit() {
 
       ImGui::Separator();
 
-      if (ImGui::BeginTable("SampleProps",4,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersV|ImGuiTableFlags_BordersOuterH)) {
+      bool isChipVisible[32];
+      bool isTypeVisible[4];
+      bool isMemVisible[4][32];
+      bool isMemWarning[4][32];
+      memset(isChipVisible,0,32*sizeof(bool));
+      memset(isTypeVisible,0,4*sizeof(bool));
+      memset(isMemVisible,0,32*4*sizeof(bool));
+      memset(isMemWarning,0,32*4*sizeof(bool));
+      for (int i=0; i<e->song.systemLen; i++) {
+        DivDispatch* dispatch=e->getDispatch(i);
+        if (dispatch==NULL) continue;
+
+        for (int j=0; j<4; j++) {
+          if (dispatch->getSampleMemCapacity(j)==0) continue;
+          isChipVisible[i]=true;
+          isTypeVisible[j]=true;
+          isMemVisible[j][i]=true;
+          if (!dispatch->isSampleLoaded(j,curSample)) isMemWarning[j][i]=true;
+        }
+      }
+      int selColumns=1;
+      for (int i=0; i<32; i++) {
+        if (isChipVisible[i]) selColumns++;
+      }
+
+      if (ImGui::BeginTable("SampleProps",(selColumns>1)?4:3,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersV|ImGuiTableFlags_BordersOuterH)) {
         ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
         ImGui::TableNextColumn();
         if (ImGui::Button(sampleInfo?(ICON_FA_CHEVRON_UP "##SECollapse"):(ICON_FA_CHEVRON_DOWN "##SECollapse"))) {
@@ -164,8 +189,11 @@ void FurnaceGUI::drawSampleEdit() {
         if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
           ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
         }
-        ImGui::TableNextColumn();
-        ImGui::Text("Chips");
+
+        if (selColumns>1) {
+          ImGui::TableNextColumn();
+          ImGui::Text("Chips");
+        }
         
         if (sampleInfo) {
           ImGui::TableNextRow();
@@ -297,35 +325,8 @@ void FurnaceGUI::drawSampleEdit() {
           }
           ImGui::EndDisabled();
 
-          ImGui::TableNextColumn();
-          
-          bool isChipVisible[32];
-          bool isTypeVisible[4];
-          bool isMemVisible[4][32];
-          bool isMemWarning[4][32];
-          memset(isChipVisible,0,32*sizeof(bool));
-          memset(isTypeVisible,0,4*sizeof(bool));
-          memset(isMemVisible,0,32*4*sizeof(bool));
-          memset(isMemWarning,0,32*4*sizeof(bool));
-          for (int i=0; i<e->song.systemLen; i++) {
-            DivDispatch* dispatch=e->getDispatch(i);
-            if (dispatch==NULL) continue;
-
-            for (int j=0; j<4; j++) {
-              if (dispatch->getSampleMemCapacity(j)==0) continue;
-              isChipVisible[i]=true;
-              isTypeVisible[j]=true;
-              isMemVisible[j][i]=true;
-              if (!dispatch->isSampleLoaded(j,curSample)) isMemWarning[j][i]=true;
-            }
-          }
-          int selColumns=1;
-          for (int i=0; i<32; i++) {
-            if (isChipVisible[i]) selColumns++;
-          }
-          if (selColumns<=1) {
-            ImGui::Text("NO CHIPS LESS GOOO");
-          } else {
+          if (selColumns>1) {
+            ImGui::TableNextColumn();
             if (ImGui::BeginTable("SEChipSel",selColumns,ImGuiTableFlags_SizingFixedSame)) {
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
