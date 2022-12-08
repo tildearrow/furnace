@@ -125,6 +125,9 @@ double DivPlatformSMS::NOTE_SN(int ch, int note) {
   if (parent->song.linearPitch==2 || !easyNoise) {
     return NOTE_PERIODIC(note);
   }
+  int easyStartingPeriod=16;
+  //int easyThreshold=round(CHIP_CLOCK/(parent->song.tuning*0.0625*pow(2.0,(float)(nbase+384)/(128.0*12.0)))/CHIP_DIVIDER);
+  int easyThreshold=round(log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/parent->song.tuning)/log(2.0));
   if (note>easyThreshold) {
     return MAX(0,easyStartingPeriod-(note-easyThreshold));
   }
@@ -132,12 +135,16 @@ double DivPlatformSMS::NOTE_SN(int ch, int note) {
 }
 
 int DivPlatformSMS::snCalcFreq(int ch) {
-  if (parent->song.linearPitch==2 && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(easyThreshold<<7)) {
-    int ret=(((easyStartingPeriod<<7)+0x40)-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(easyThreshold<<7)))>>7;
+  double CHIP_DIVIDER=toneDivider;
+  if (ch==3) CHIP_DIVIDER=noiseDivider;
+  int easyStartingPeriod=16;
+  int easyThreshold=round(128.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/parent->song.tuning)/log(2.0));
+  if (parent->song.linearPitch==2 && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(easyThreshold)) {
+    int ret=(((easyStartingPeriod<<7))-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(easyThreshold)))>>7;
     if (ret<0) ret=0;
     return ret;
   }
-  return parent->calcFreq(chan[ch].baseFreq,chan[ch].pitch,true,0,chan[ch].pitch2,chipClock,ch==3?noiseDivider:toneDivider);
+  return parent->calcFreq(chan[ch].baseFreq,chan[ch].pitch,true,0,chan[ch].pitch2,chipClock,CHIP_DIVIDER);
 }
 
 void DivPlatformSMS::tick(bool sysTick) {
@@ -464,40 +471,27 @@ void DivPlatformSMS::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 1:
       chipClock=COLOR_PAL*4.0/5.0;
-      easyThreshold=84;
-      easyStartingPeriod=13;
       break;
     case 2:
       chipClock=4000000;
-      easyThreshold=86;
-      easyStartingPeriod=13;
       break;
     case 3:
       chipClock=COLOR_NTSC/2.0;
-      easyThreshold=72;
-      easyStartingPeriod=13;
       break;
     case 4:
       chipClock=3000000;
-      easyThreshold=81;
-      easyStartingPeriod=13;
       break;
     case 5:
       chipClock=2000000;
-      easyThreshold=74;
-      easyStartingPeriod=13;
       break;
     case 6:
       chipClock=COLOR_NTSC/8.0;
-      easyThreshold=48;
-      easyStartingPeriod=13;
       break;
     default:
       chipClock=COLOR_NTSC;
-      easyThreshold=84;
-      easyStartingPeriod=13;
       break;
   }
+  CHECK_CUSTOM_CLOCK;
   resetPhase=!flags.getBool("noPhaseReset",false);
   easyNoise=!flags.getBool("noEasyNoise",false);
   divider=16;
@@ -568,7 +562,7 @@ void DivPlatformSMS::setFlags(const DivConfig& flags) {
       stereo=false;
       break;
   }
-  CHECK_CUSTOM_CLOCK;
+
   rate=chipClock/divider;
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;

@@ -190,6 +190,31 @@ void FurnaceGUI::drawSampleEdit() {
             ImGui::EndCombo();
           }
 
+          bool isThereSNES=false;
+          for (int i=0; i<e->song.systemLen; i++) {
+            if (e->song.system[i]==DIV_SYSTEM_SNES) {
+              isThereSNES=true;
+              break;
+            }
+          }
+          if (sample->depth==DIV_SAMPLE_DEPTH_BRR || isThereSNES) {
+            bool be=sample->brrEmphasis;
+            if (ImGui::Checkbox("BRR emphasis",&be)) {
+              sample->prepareUndo(true);
+              sample->brrEmphasis=be;
+              e->renderSamplesP();
+              updateSampleTex=true;
+              MARK_MODIFIED;
+            }
+            if (ImGui::IsItemHovered()) {
+              if (sample->depth==DIV_SAMPLE_DEPTH_BRR) {
+                ImGui::SetTooltip("this is a BRR sample.\nenabling this option will muffle it (only affects non-SNES chips).");
+              } else {
+                ImGui::SetTooltip("enable this option to slightly boost high frequencies\nto compensate for the SNES' Gaussian filter's muffle.");
+              }
+            }
+          }
+
           ImGui::TableNextColumn();
           ImGui::Text("C-4 (Hz)");
           ImGui::SameLine();

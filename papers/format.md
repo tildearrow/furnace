@@ -32,6 +32,8 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 129: Furnace dev129
+- 128: Furnace dev128
 - 127: Furnace dev127
 - 126: Furnace dev126
 - 125: Furnace dev125
@@ -1120,9 +1122,11 @@ size | description
      | - 16: 16-bit PCM
   1  | loop direction (>=123) or reserved
      | - 0: forward
-     | - 0: backward
-     | - 0: ping-pong
-  2  | reserved
+     | - 1: backward
+     | - 2: ping-pong
+  1  | flags (>=129) or reserved
+     | - 0: BRR emphasis
+  1  | reserved
   4  | loop start
      | - -1 means no loop
   4  | loop end

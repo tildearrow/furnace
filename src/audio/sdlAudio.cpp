@@ -106,6 +106,13 @@ bool TAAudioSDL::init(TAAudioDesc& request, TAAudioDesc& response) {
     audioSysStarted=true;
   }
 
+  const char* audioDriver=SDL_GetCurrentAudioDriver();
+  if (audioDriver==NULL) {
+    logD("SDL audio driver: NULL!");
+  } else {
+    logD("SDL audio driver: %s",audioDriver);
+  }
+
   desc=request;
   desc.outFormat=TA_AUDIO_FORMAT_F32;
 
