@@ -138,7 +138,7 @@ void brrEncodeBlock(const short* buf, unsigned char* out, unsigned char range, u
   }
 }
 
-long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
+long brrEncode(short* buf, unsigned char* out, long len, long loopStart, unsigned char emphasis) {
   if (len==0) return 0;
 
   // encoding process:
@@ -158,7 +158,12 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
   unsigned char filter=0;
   unsigned char range=0;
 
-  short in[16];
+  short x0=0;
+  short x1=0;
+  short x2=0;
+  int emphOut=0;
+
+  short in[17];
 
   short last1[4][13];
   short last2[4][13];
@@ -172,9 +177,9 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
   memset(possibleOut,0,4*13*8);
 
   for (long i=0; i<len; i+=16) {
-    if (i+16>len) {
+    if (i+17>len) {
       long p=i;
-      for (int j=0; j<16; j++) {
+      for (int j=0; j<17; j++) {
         if (p>=len) {
           if (loopStart<0 || loopStart>=len) {
             in[j]=0;
@@ -187,7 +192,22 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
         }
       }
     } else {
-      memcpy(in,&buf[i],16*sizeof(short));
+      memcpy(in,&buf[i],17*sizeof(short));
+    }
+    
+    // emphasis
+    if (emphasis) {
+      for (int j=0; j<17; j++) {
+        x0=x1;
+        x1=x2;
+        x2=in[j];
+
+        if (j==0) continue;
+        emphOut=((x1<<11)-x0*370-in[j]*374)/1305;
+        if (emphOut<-32768) emphOut=-32768;
+        if (emphOut>32767) emphOut=32767;
+        in[j-1]=emphOut;
+      }
     }
 
     // encode
@@ -237,11 +257,25 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
   // encode loop block
   if (loopStart>=0) {
     long p=loopStart;
-    for (int i=0; i<16; i++) {
+    for (int i=0; i<17; i++) {
       if (p>=len) {
         p=loopStart;
       }
       in[i]=buf[p++];
+    }
+
+    if (emphasis) {
+      for (int j=0; j<17; j++) {
+        x0=x1;
+        x1=x2;
+        x2=in[j];
+
+        if (j==0) continue;
+        emphOut=((x1<<11)-x0*370-in[j]*374)/1305;
+        if (emphOut<-32768) emphOut=-32768;
+        if (emphOut>32767) emphOut=32767;
+        in[j-1]=emphOut;
+      }
     }
 
     // encode (filter 0/1 only)
@@ -315,8 +349,10 @@ long brrEncode(short* buf, unsigned char* out, long len, long loopStart) {
   *out=next<<1; \
   out++;
 
-long brrDecode(unsigned char* buf, short* out, long len) {
+long brrDecode(unsigned char* buf, short* out, long len, unsigned char emphasis) {
   if (len==0) return 0;
+
+  short* outOrig=out;
 
   long total=0;
 
@@ -342,6 +378,21 @@ long brrDecode(unsigned char* buf, short* out, long len) {
     total+=16;
     if (control&1) break;
     buf+=9;
+  }
+
+  if (emphasis) {
+    short x0=0;
+    short x1=0;
+    short x2=0;
+    for (long i=0; i<=total; i++) {
+      x0=x1;
+      x1=x2;
+      x2=(i>=total)?0:outOrig[i];
+
+      if (i==0) continue;
+
+      outOrig[i-1]=(x0*370+x1*1305+x2*374)>>11;
+    }
   }
 
   return total;

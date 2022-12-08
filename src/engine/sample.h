@@ -61,10 +61,10 @@ struct DivSampleHistory {
   unsigned int length, samples;
   DivSampleDepth depth;
   int rate, centerRate, loopStart, loopEnd;
-  bool loop;
+  bool loop, brrEmphasis;
   DivSampleLoopMode loopMode;
   bool hasSample;
-  DivSampleHistory(void* d, unsigned int l, unsigned int s, DivSampleDepth de, int r, int cr, int ls, int le, bool lp, DivSampleLoopMode lm):
+  DivSampleHistory(void* d, unsigned int l, unsigned int s, DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, DivSampleLoopMode lm):
     data((unsigned char*)d),
     length(l),
     samples(s),
@@ -74,9 +74,10 @@ struct DivSampleHistory {
     loopStart(ls),
     loopEnd(le),
     loop(lp),
+    brrEmphasis(be),
     loopMode(lm),
     hasSample(true) {}
-  DivSampleHistory(DivSampleDepth de, int r, int cr, int ls, int le, bool lp, DivSampleLoopMode lm):
+  DivSampleHistory(DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, DivSampleLoopMode lm):
     data(NULL),
     length(0),
     samples(0),
@@ -86,6 +87,7 @@ struct DivSampleHistory {
     loopStart(ls),
     loopEnd(le),
     loop(lp),
+    brrEmphasis(be),
     loopMode(lm),
     hasSample(false) {}
   ~DivSampleHistory();
@@ -107,7 +109,7 @@ struct DivSample {
   // - 10: VOX ADPCM
   // - 16: 16-bit PCM
   DivSampleDepth depth;
-  bool loop;
+  bool loop, brrEmphasis;
   // valid values are:
   // - 0: Forward loop
   // - 1: Backward loop
@@ -307,6 +309,7 @@ struct DivSample {
     loopOffP(0),
     depth(DIV_SAMPLE_DEPTH_16BIT),
     loop(false),
+    brrEmphasis(true),
     loopMode(DIV_SAMPLE_LOOP_FORWARD),
     data8(NULL),
     data16(NULL),
