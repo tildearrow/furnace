@@ -152,7 +152,7 @@ void DivPlatformK007232::tick(bool sysTick) {
       }
       else {
         chan[i].lvol=chan[i].rvol=isMuted[i]?0:chan[i].outVol&0xf;
-        rWrite(0xc,regPool[0xc]&~(0xf<<(i<<2))|((chan[i].outVol&0xf)<<(i<<2)));
+        rWrite(0xc,(regPool[0xc]&~(0xf<<(i<<2)))|((chan[i].outVol&0xf)<<(i<<2)));
       }
       chan[i].volumeChanged=false;
     }
