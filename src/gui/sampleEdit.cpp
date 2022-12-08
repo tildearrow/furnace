@@ -270,13 +270,15 @@ void FurnaceGUI::drawSampleEdit() {
             sampleNoteFine=63;
           }
 
+          bool coarseChanged=false;
+
           ImGui::TableNextColumn();
           ImGui::Text("Hz");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::InputInt("##SampleRate",&targetRate,10,200)) { MARK_MODIFIED
             if (targetRate<100) targetRate=100;
-            if (targetRate>192000) targetRate=192000;
+            if (targetRate>384000) targetRate=384000;
 
             if (sampleCompatRate) {
               sample->rate=targetRate;
@@ -294,21 +296,37 @@ void FurnaceGUI::drawSampleEdit() {
               snprintf(temp,1023,"%s##_SRN%d",noteNames[i+60],i);
               if (ImGui::Selectable(temp,i==sampleNoteCoarse)) {
                 sampleNoteCoarse=i;
-
-                sampleNote=((sampleNoteCoarse-60)<<7)+sampleNoteFine;
-
-                targetRate=8363.0*pow(2.0,(double)sampleNote/(128.0*12.0));
-                if (targetRate<100) targetRate=100;
-                if (targetRate>192000) targetRate=192000;
-
-                if (sampleCompatRate) {
-                  sample->rate=targetRate;
-                } else {
-                  sample->centerRate=targetRate;
-                }
+                coarseChanged=true;
               }
             }
             ImGui::EndCombo();
+          } else if (ImGui::IsItemHovered()) {
+            if (wheelY!=0) {
+              sampleNoteCoarse-=wheelY;
+              if (sampleNoteCoarse<0) {
+                sampleNoteCoarse=0;
+                sampleNoteFine=-64;
+              }
+              if (sampleNoteCoarse>119) {
+                sampleNoteCoarse=119;
+                sampleNoteFine=63;
+              }
+              coarseChanged=true;
+            }
+          }
+
+          if (coarseChanged) { MARK_MODIFIED
+            sampleNote=((sampleNoteCoarse-60)<<7)+sampleNoteFine;
+
+            targetRate=8363.0*pow(2.0,(double)sampleNote/(128.0*12.0));
+            if (targetRate<100) targetRate=100;
+            if (targetRate>384000) targetRate=384000;
+
+            if (sampleCompatRate) {
+              sample->rate=targetRate;
+            } else {
+              sample->centerRate=targetRate;
+            }
           }
 
           ImGui::Text("Fine");
@@ -335,7 +353,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
 
             if (targetRate<100) targetRate=100;
-            if (targetRate>192000) targetRate=192000;
+            if (targetRate>384000) targetRate=384000;
 
             if (sampleCompatRate) {
               sample->rate=targetRate;
