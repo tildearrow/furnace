@@ -126,8 +126,7 @@ double DivPlatformSMS::NOTE_SN(int ch, int note) {
     return NOTE_PERIODIC(note);
   }
   int easyStartingPeriod=16;
-  //int easyThreshold=round(CHIP_CLOCK/(parent->song.tuning*0.0625*pow(2.0,(float)(nbase+384)/(128.0*12.0)))/CHIP_DIVIDER);
-  int easyThreshold=round(log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/parent->song.tuning)/log(2.0));
+  int easyThreshold=round(12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-3;
   if (note>easyThreshold) {
     return MAX(0,easyStartingPeriod-(note-easyThreshold));
   }
@@ -138,7 +137,7 @@ int DivPlatformSMS::snCalcFreq(int ch) {
   double CHIP_DIVIDER=toneDivider;
   if (ch==3) CHIP_DIVIDER=noiseDivider;
   int easyStartingPeriod=16;
-  int easyThreshold=round(128.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/parent->song.tuning)/log(2.0));
+  int easyThreshold=round(128.0*12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-384+64;
   if (parent->song.linearPitch==2 && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(easyThreshold)) {
     int ret=(((easyStartingPeriod<<7))-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(easyThreshold)))>>7;
     if (ret<0) ret=0;
