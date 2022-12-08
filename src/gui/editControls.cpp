@@ -48,27 +48,55 @@ void FurnaceGUI::drawMobileControls() {
       }
     }
   }
+
   if (dragMobileEditButton) {
-    mobileEditButtonPos.x=((ImGui::GetMousePos().x/canvasW)-((portrait?0.16*canvasW:0.16*canvasH)/2)/canvasW);
-    mobileEditButtonPos.y=((ImGui::GetMousePos().y/canvasH)-((portrait?0.16*canvasW:0.16*canvasH)/2)/canvasH);
+    if (ImGui::GetIO().MouseDragMaxDistanceSqr[ImGuiMouseButton_Left]>ImGui::GetIO().ConfigInertialScrollToleranceSqr) {
+      mobileEditButtonPos.x=((ImGui::GetMousePos().x/canvasW)-((portrait?0.16*canvasW:0.16*canvasH)/2)/canvasW);
+      mobileEditButtonPos.y=((ImGui::GetMousePos().y/canvasH)-((portrait?0.16*canvasW:0.16*canvasH)/2)/canvasH);
+    }
   }
+
   if (mobileEditButtonPos.x<0) mobileEditButtonPos.x=0;
   if (mobileEditButtonPos.x>1) mobileEditButtonPos.x=1;
   if (mobileEditButtonPos.y<0) mobileEditButtonPos.y=0;
   if (mobileEditButtonPos.y>1) mobileEditButtonPos.y=1;
-  ImGui::SetNextWindowPos(ImVec2(mobileEditButtonPos.x*canvasW, mobileEditButtonPos.y*canvasH));
-  ImGui::SetNextWindowSize(portrait?ImVec2(0.16*canvasW,0.16*canvasW):ImVec2(0.16*canvasH,0.16*canvasH));
-  if (ImGui::Begin("MobileEdit",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoBackground|ImGuiWindowFlags_NoDecoration|globalWinFlags)) {
-    float avail=portrait?ImGui::GetContentRegionAvail().y:ImGui::GetContentRegionAvail().x;
-    mobileEditButtonSize=ImVec2(avail,avail);
-    if (ImGui::Button("Edit", mobileEditButtonSize)) {
-      //click
+
+  if (mobileEdit) {
+    mobileEditAnim+=ImGui::GetIO().DeltaTime*2.0;
+    if (mobileEditAnim>1.0f) mobileEditAnim=1.0f;
+  } else {
+    mobileEditAnim-=ImGui::GetIO().DeltaTime*2.0;
+    if (mobileEditAnim<0.0f) mobileEditAnim=0.0f;
+  }
+
+  if (mobileEditAnim>0.0f) {
+    ImGui::SetNextWindowPos(ImVec2(0.0f,0.0f));
+    ImGui::SetNextWindowSize(ImVec2(canvasW,canvasH));
+  } else {
+    ImGui::SetNextWindowPos(ImVec2(mobileEditButtonPos.x*canvasW, mobileEditButtonPos.y*canvasH));
+    ImGui::SetNextWindowSize(portrait?ImVec2(0.16*canvasW,0.16*canvasW):ImVec2(0.16*canvasH,0.16*canvasH));
+  }
+
+  if (ImGui::Begin("MobileEdit",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoTitleBar/*|ImGuiWindowFlags_NoBackground|ImGuiWindowFlags_NoDecoration*/)) {
+    if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && mobileEdit) {
+      mobileEdit=false;
     }
-    if (ImGui::IsItemActive()) {
-      if (CHECK_BUTTON_LONG_HOLD) {
-        //drag
-        if (!dragMobileEditButton) dragMobileEditButton=!dragMobileEditButton;
+
+    if (mobileEditAnim>0.0f) {
+      ImGui::SetCursorPos(ImVec2(mobileEditButtonPos.x*canvasW,mobileEditButtonPos.y*canvasH));
+    } else {
+      float avail=portrait?ImGui::GetContentRegionAvail().y:ImGui::GetContentRegionAvail().x;
+      mobileEditButtonSize=ImVec2(avail,avail);
+    }
+
+    if (ImGui::Button("Edit",mobileEditButtonSize)) {
+      // click
+      if (ImGui::GetIO().MouseDragMaxDistanceSqr[ImGuiMouseButton_Left]<=ImGui::GetIO().ConfigInertialScrollToleranceSqr) {
+        mobileEdit=true;
       }
+    }
+    if (ImGui::IsItemClicked() && !mobileEdit) {
+      dragMobileEditButton=true;
     }
   }
   ImGui::End();

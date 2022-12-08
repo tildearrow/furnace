@@ -1088,6 +1088,7 @@ class FurnaceGUI {
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex;
+  bool mobileEdit;
   bool willExport[32];
   int vgmExportVersion;
   int drawHalt;
@@ -1095,9 +1096,8 @@ class FurnaceGUI {
   int macroPointSize;
   int waveEditStyle;
   int displayInsTypeListMakeInsSample;
-  float mobileMenuPos, autoButtonSize;
-  ImVec2 mobileEditButtonPos;
-  ImVec2 mobileEditButtonSize;
+  float mobileMenuPos, autoButtonSize, mobileEditAnim;
+  ImVec2 mobileEditButtonPos, mobileEditButtonSize;
   const int* curSysSection;
   DivInstrumentFM opllPreview;
 
