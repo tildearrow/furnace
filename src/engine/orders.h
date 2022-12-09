@@ -21,7 +21,7 @@
 #define _ORDERS_H
 
 struct DivOrders {
-  unsigned char ord[DIV_MAX_CHANS][DIV_MAX_PATTERNS];
+  ORDERTYPE ord[DIV_MAX_CHANS][DIV_MAX_PATTERNS];
 
   DivOrders() {
     memset(ord,0,DIV_MAX_CHANS*DIV_MAX_PATTERNS);

@@ -2000,7 +2000,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     for (int i=0; i<tchans; i++) {
       subSong->pat[i].effectCols=reader.readC();
-      if (subSong->pat[i].effectCols<1 || subSong->pat[i].effectCols>8) {
+      if (subSong->pat[i].effectCols<1 || subSong->pat[i].effectCols>DIV_MAX_EFFECTS) {
         logE("channel %d has zero or too many effect columns! (%d)",i,subSong->pat[i].effectCols);
         lastError=fmt::sprintf("channel %d has too many effect columns! (%d)",i,subSong->pat[i].effectCols);
         delete[] file;

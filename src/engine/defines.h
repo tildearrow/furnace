@@ -20,11 +20,19 @@
 #ifndef _DEFINES_H
 #define _DEFINES_H
 
+// global
 #define DIV_MAX_CHIPS 32
 #define DIV_MAX_CHANS 128
 #define DIV_MAX_PATTERNS 256
+
+// in-pattern
 #define DIV_MAX_ROWS 256
 #define DIV_MAX_COLS 32
+#define DIV_MAX_EFFECTS 8
+
+// sample related
 #define DIV_MAX_SAMPLE_TYPE 4
+
+typedef unsigned char ORDERTYPE;
 
 #endif
