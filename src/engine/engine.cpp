@@ -3533,7 +3533,7 @@ void DivEngine::deepCloneOrder(bool where) {
         order[i]=j;
         DivPattern* oldPat=curPat[i].getPattern(origOrd,false);
         DivPattern* pat=curPat[i].getPattern(j,true);
-        memcpy(pat->data,oldPat->data,DIV_MAX_ROWS*32*sizeof(short));
+        memcpy(pat->data,oldPat->data,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
         logD("found at %d",j);
         didNotFind=false;
         break;
