@@ -4176,12 +4176,12 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   // fail if values are out of range
   /*
   if (subSong->ordersLen>DIV_MAX_PATTERNS) {
-    logE(fmt::sprintf("maximum song length is %d!",DIV_MAX_PATTERNS).c_str());
+    logE("maximum song length is %d!",DIV_MAX_PATTERNS);
     lastError=fmt::sprintf("maximum song length is %d",DIV_MAX_PATTERNS);
     return NULL;
   }
   if (subSong->patLen>DIV_MAX_ROWS) {
-    logE(fmt::sprintf("maximum pattern length is %d!",DIV_MAX_ROWS).c_str());
+    logE("maximum pattern length is %d!",DIV_MAX_ROWS);
     lastError=fmt::sprintf("maximum pattern length is %d",DIV_MAX_ROWS);
     return NULL;
   }
