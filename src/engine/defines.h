@@ -33,6 +33,6 @@
 // sample related
 #define DIV_MAX_SAMPLE_TYPE 4
 
-typedef unsigned char ORDERTYPE;
+typedef unsigned char PatternOrder;
 
 #endif

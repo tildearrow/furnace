@@ -177,10 +177,10 @@ void FurnaceGUI::drawOrders() {
                 e->lockSave([this,i,j]() {
                   if (changeAllOrders) {
                     for (int k=0; k<e->getTotalChannelCount(); k++) {
-                      if (e->curOrders->ord[k][i]<(ORDERTYPE)(DIV_MAX_PATTERNS-1)) e->curOrders->ord[k][i]++;
+                      if (e->curOrders->ord[k][i]<(PatternOrder)(DIV_MAX_PATTERNS-1)) e->curOrders->ord[k][i]++;
                     }
                   } else {
-                    if (e->curOrders->ord[j][i]<(ORDERTYPE)(DIV_MAX_PATTERNS-1)) e->curOrders->ord[j][i]++;
+                    if (e->curOrders->ord[j][i]<(PatternOrder)(DIV_MAX_PATTERNS-1)) e->curOrders->ord[j][i]++;
                   }
                 });
                 e->walkSong(loopOrder,loopRow,loopEnd);
