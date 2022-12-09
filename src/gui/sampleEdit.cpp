@@ -975,7 +975,26 @@ void FurnaceGUI::drawSampleEdit() {
 
       ImGui::Separator();
 
-      ImVec2 avail=ImGui::GetContentRegionAvail(); // graph size determined here
+      // time
+      ImDrawList* dl=ImGui::GetWindowDrawList();
+      ImGuiWindow* window=ImGui::GetCurrentWindow();
+
+      ImVec2 size=ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetFontSize()+2.0*dpiScale);
+
+      ImVec2 minArea=window->DC.CursorPos;
+      ImVec2 maxArea=ImVec2(
+        minArea.x+size.x,
+        minArea.y+size.y
+      );
+      ImRect rect=ImRect(minArea,maxArea);
+      ImGuiStyle& style=ImGui::GetStyle();
+
+      ImGui::ItemSize(size,style.FramePadding.y);
+      if (ImGui::ItemAdd(rect,ImGui::GetID("SETime"))) {
+        dl->AddText(minArea,0xffffffff,"0");
+      }
+
+      ImVec2 avail=ImGui::GetContentRegionAvail(); // sample view size determined here
       // don't do this. reason: mobile.
       /*if (ImGui::GetContentRegionAvail().y>(ImGui::GetContentRegionAvail().x*0.5f)) {
         avail=ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().x*0.5f);
