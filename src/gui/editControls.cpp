@@ -19,7 +19,22 @@
 
 #include "gui.h"
 #include "IconsFontAwesome4.h"
-#include <imgui.h>
+#include <fmt/printf.h>
+
+// 0: all directions
+// 1: half
+// 2: quarter
+float mobileButtonAngles[3][8]={
+  {0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875},
+  {0.8, 0.933333, 0.066667, 0.2, 0.8, 0.933333, 0.066667, 0.2},
+  {0.75, 0.833333, 0.916667, 0.0, 0.75, 0.833333, 0.916667, 0.0}
+};
+
+float mobileButtonDistances[3][8]={
+  {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0},
+  {1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0},
+  {1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0}
+};
 
 void FurnaceGUI::drawMobileControls() {
   float timeScale=1.0f/(60.0f*ImGui::GetIO().DeltaTime);
@@ -63,10 +78,18 @@ void FurnaceGUI::drawMobileControls() {
 
   if (mobileEdit) {
     mobileEditAnim+=ImGui::GetIO().DeltaTime*2.0;
-    if (mobileEditAnim>1.0f) mobileEditAnim=1.0f;
+    if (mobileEditAnim>1.0f) {
+      mobileEditAnim=1.0f;
+    } else {
+      WAKE_UP;
+    }
   } else {
     mobileEditAnim-=ImGui::GetIO().DeltaTime*2.0;
-    if (mobileEditAnim<0.0f) mobileEditAnim=0.0f;
+    if (mobileEditAnim<0.0f) {
+      mobileEditAnim=0.0f;
+    } else {
+      WAKE_UP;
+    }
   }
 
   if (mobileEditAnim>0.0f) {
@@ -77,12 +100,37 @@ void FurnaceGUI::drawMobileControls() {
     ImGui::SetNextWindowSize(portrait?ImVec2(0.16*canvasW,0.16*canvasW):ImVec2(0.16*canvasH,0.16*canvasH));
   }
 
-  if (ImGui::Begin("MobileEdit",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoTitleBar/*|ImGuiWindowFlags_NoBackground|ImGuiWindowFlags_NoDecoration*/)) {
+  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
+  if (ImGui::Begin("MobileEdit",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground|ImGuiWindowFlags_NoDecoration)) {
     if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && mobileEdit) {
       mobileEdit=false;
     }
 
     if (mobileEditAnim>0.0f) {
+      int curButtonPos=0;
+      float buttonDir, buttonDist;
+      float buttonMirrorX=1.0f;
+      float buttonMirrorY=1.0f;
+
+      int buttonLayout=0;
+
+      for (int i=0; i<8; i++) {
+        float anim=(mobileEditAnim*5)-(float)i*0.5;
+        if (anim<0.0f) anim=0.0f;
+        if (anim>1.0f) anim=1.0f;
+
+        buttonDir=mobileButtonAngles[buttonLayout][curButtonPos];
+        buttonDist=mobileButtonDistances[buttonLayout][curButtonPos]*mobileEditButtonSize.x*1.6f;
+
+        ImGui::SetCursorPos(ImVec2(
+          (mobileEditButtonPos.x*canvasW)+cos(buttonDir*2.0*M_PI)*buttonDist*buttonMirrorX*anim,
+          (mobileEditButtonPos.y*canvasH)+sin(buttonDir*2.0*M_PI)*buttonDist*buttonMirrorY*anim
+        ));
+        ImGui::Button(fmt::sprintf("%d",i+1).c_str(),mobileEditButtonSize);
+
+        curButtonPos++;
+      }
+
       ImGui::SetCursorPos(ImVec2(mobileEditButtonPos.x*canvasW,mobileEditButtonPos.y*canvasH));
     } else {
       float avail=portrait?ImGui::GetContentRegionAvail().y:ImGui::GetContentRegionAvail().x;
@@ -100,6 +148,7 @@ void FurnaceGUI::drawMobileControls() {
     }
   }
   ImGui::End();
+  ImGui::PopStyleVar();
   
   ImGui::SetNextWindowPos(portrait?ImVec2(0.0f,((1.0-mobileMenuPos*0.65)*canvasH)-(0.16*canvasW)):ImVec2(0.5*canvasW*mobileMenuPos,0.0f));
   ImGui::SetNextWindowSize(portrait?ImVec2(canvasW,0.16*canvasW):ImVec2(0.16*canvasH,canvasH));
