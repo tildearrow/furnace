@@ -693,7 +693,7 @@ void FurnaceGUI::actualSampleList() {
       DivDispatch* dispatch=e->getDispatch(j);
       if (dispatch==NULL) continue;
 
-      for (int k=0; k<4; k++) {
+      for (int k=0; k<DIV_MAX_SAMPLE_TYPE; k++) {
         if (dispatch->getSampleMemCapacity(k)==0) continue;
         if (!dispatch->isSampleLoaded(k,i) && sample->renderOn[k][j]) {
           memWarning=true;

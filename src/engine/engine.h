@@ -318,7 +318,7 @@ enum DivChanTypes {
 extern const char* cmdName[];
 
 class DivEngine {
-  DivDispatchContainer disCont[32];
+  DivDispatchContainer disCont[DIV_MAX_CHIPS];
   TAAudio* output;
   TAAudioDesc want, got;
   String exportPath;
