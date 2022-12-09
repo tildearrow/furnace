@@ -1786,7 +1786,7 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
 
     for (size_t i=0; i<song.subsong.size(); i++) {
       DivOrders prevOrders=song.subsong[i]->orders;
-      DivPattern* prevPat[DIV_MAX_CHANS][256];
+      DivPattern* prevPat[DIV_MAX_CHANS][DIV_MAX_PATTERNS];
       unsigned char prevEffectCols[DIV_MAX_CHANS];
       String prevChanName[DIV_MAX_CHANS];
       String prevChanShortName[DIV_MAX_CHANS];
