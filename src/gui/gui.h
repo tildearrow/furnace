@@ -1089,7 +1089,7 @@ class FurnaceGUI {
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex;
   bool mobileEdit;
-  bool willExport[32];
+  bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;
   int drawHalt;
   int zsmExportTickRate;

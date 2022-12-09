@@ -1581,7 +1581,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
   unsigned int wavePtr[256];
   unsigned int samplePtr[256];
   unsigned int subSongPtr[256];
-  unsigned int sysFlagsPtr[32];
+  unsigned int sysFlagsPtr[DIV_MAX_CHIPS];
   std::vector<int> patPtr;
   int numberOfSubSongs=0;
   char magic[5];
@@ -1760,7 +1760,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       delete[] file;
       return false;
     }
-    if (subSong->patLen>256) {
+    if (subSong->patLen>DIV_MAX_ROWS) {
       logE("pattern length is too large!");
       lastError="pattern length is too large!";
       delete[] file;
@@ -1772,7 +1772,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       delete[] file;
       return false;
     }
-    if (subSong->ordersLen>256) {
+    if (subSong->ordersLen>DIV_MAX_PATTERNS) {
       logE("song is too long!");
       lastError="song is too long!";
       delete[] file;
@@ -1804,7 +1804,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
 
     logD("systems:");
-    for (int i=0; i<32; i++) {
+    for (int i=0; i<DIV_MAX_CHIPS; i++) {
       unsigned char sysID=reader.readC();
       ds.system[i]=systemFromFileFur(sysID);
       logD("- %d: %.2x (%s)",i,sysID,getSystemName(ds.system[i]));
@@ -1826,7 +1826,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
 
     // system volume
-    for (int i=0; i<32; i++) {
+    for (int i=0; i<DIV_MAX_CHIPS; i++) {
       ds.systemVol[i]=reader.readC();
       if (ds.version<59 && ds.system[i]==DIV_SYSTEM_NES) {
         ds.systemVol[i]/=4;
@@ -1834,15 +1834,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
 
     // system panning
-    for (int i=0; i<32; i++) ds.systemPan[i]=reader.readC();
+    for (int i=0; i<DIV_MAX_CHIPS; i++) ds.systemPan[i]=reader.readC();
 
     // system props
-    for (int i=0; i<32; i++) {
+    for (int i=0; i<DIV_MAX_CHIPS; i++) {
       sysFlagsPtr[i]=reader.readI();
     }
 
     // handle compound systems
-    for (int i=0; i<32; i++) {
+    for (int i=0; i<DIV_MAX_CHIPS; i++) {
       if (ds.system[i]==DIV_SYSTEM_GENESIS ||
           ds.system[i]==DIV_SYSTEM_GENESIS_EXT ||
           ds.system[i]==DIV_SYSTEM_ARCADE) {
@@ -1851,7 +1851,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
           ds.systemVol[j]=ds.systemVol[j-1];
           ds.systemPan[j]=ds.systemPan[j-1];
         }
-        if (++ds.systemLen>32) ds.systemLen=32;
+        if (++ds.systemLen>DIV_MAX_CHIPS) ds.systemLen=DIV_MAX_CHIPS;
 
         if (ds.system[i]==DIV_SYSTEM_GENESIS) {
           ds.system[i]=DIV_SYSTEM_YM2612;
@@ -2198,7 +2198,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     // read system flags
     if (ds.version>=119) {
       logD("reading chip flags...");
-      for (int i=0; i<32; i++) {
+      for (int i=0; i<DIV_MAX_CHIPS; i++) {
         if (sysFlagsPtr[i]==0) continue;
 
         if (!reader.seek(sysFlagsPtr[i],SEEK_SET)) {
@@ -2416,7 +2416,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         delete[] file;
         return false;
       }
-      if (index<0 || index>255) {
+      if (index<0 || index>(DIV_MAX_PATTERNS-1)) {
         logE("pattern index out of range!",i);
         lastError="pattern index out of range!";
         ds.unload();
@@ -4175,14 +4175,14 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
 
   // fail if values are out of range
   /*
-  if (subSong->ordersLen>256) {
-    logE("maximum song length is 256!");
-    lastError="maximum song length is 256";
+  if (subSong->ordersLen>DIV_MAX_PATTERNS) {
+    logE(fmt::sprintf("maximum song length is %d!",DIV_MAX_PATTERNS).c_str());
+    lastError=fmt::sprintf("maximum song length is %d",DIV_MAX_PATTERNS);
     return NULL;
   }
-  if (subSong->patLen>256) {
-    logE("maximum pattern length is 256!");
-    lastError="maximum pattern length is 256";
+  if (subSong->patLen>DIV_MAX_ROWS) {
+    logE(fmt::sprintf("maximum pattern length is %d!",DIV_MAX_ROWS).c_str());
+    lastError=fmt::sprintf("maximum pattern length is %d",DIV_MAX_ROWS);
     return NULL;
   }
   */
@@ -4236,18 +4236,18 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     for (int i=0; i<chans; i++) {
       for (size_t j=0; j<song.subsong.size(); j++) {
         DivSubSong* subs=song.subsong[j];
-        for (int k=0; k<256; k++) {
+        for (int k=0; k<DIV_MAX_PATTERNS; k++) {
           if (subs->pat[i].data[k]==NULL) continue;
           patsToWrite.push_back(PatToWrite(j,i,k));
         }
       }
     }
   } else {
-    bool alreadyAdded[256];
+    bool alreadyAdded[DIV_MAX_PATTERNS];
     for (int i=0; i<chans; i++) {
       for (size_t j=0; j<song.subsong.size(); j++) {
         DivSubSong* subs=song.subsong[j];
-        memset(alreadyAdded,0,256*sizeof(bool));
+        memset(alreadyAdded,0,DIV_MAX_PATTERNS*sizeof(bool));
         for (int k=0; k<subs->ordersLen; k++) {
           if (alreadyAdded[subs->orders.ord[i][k]]) continue;
           patsToWrite.push_back(PatToWrite(j,i,subs->orders.ord[i][k]));
@@ -4276,7 +4276,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeS(song.sampleLen);
   w->writeI(patsToWrite.size());
 
-  for (int i=0; i<32; i++) {
+  for (int i=0; i<DIV_MAX_CHIPS; i++) {
     if (i>=song.systemLen) {
       w->writeC(0);
     } else {
@@ -4284,17 +4284,17 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     }
   }
 
-  for (int i=0; i<32; i++) {
+  for (int i=0; i<DIV_MAX_CHIPS; i++) {
     w->writeC(song.systemVol[i]);
   }
 
-  for (int i=0; i<32; i++) {
+  for (int i=0; i<DIV_MAX_CHIPS; i++) {
     w->writeC(song.systemPan[i]);
   }
 
   // chip flags (we'll seek here later)
   sysFlagsPtrSeek=w->tell();
-  for (int i=0; i<32; i++) {
+  for (int i=0; i<DIV_MAX_CHIPS; i++) {
     w->writeI(0);
   }
 

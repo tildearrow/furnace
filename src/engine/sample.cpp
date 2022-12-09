@@ -57,9 +57,9 @@ void DivSample::putSampleData(SafeWriter* w) {
   w->writeI(loop?loopStart:-1);
   w->writeI(loop?loopEnd:-1);
 
-  for (int i=0; i<4; i++) {
+  for (int i=0; i<DIV_MAX_SAMPLE_TYPE; i++) {
     unsigned int out=0;
-    for (int j=0; j<32; j++) {
+    for (int j=0; j<DIV_MAX_CHIPS; j++) {
       if (renderOn[i][j]) out|=1<<j;
     }
     w->writeI(out);
@@ -137,9 +137,9 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
     loopEnd=reader.readI();
     loop=(loopStart>=0)&&(loopEnd>=0);
 
-    for (int i=0; i<4; i++) {
+    for (int i=0; i<DIV_MAX_SAMPLE_TYPE; i++) {
       unsigned int outMask=(unsigned int)reader.readI();
-      for (int j=0; j<32; j++) {
+      for (int j=0; j<DIV_MAX_CHIPS; j++) {
         renderOn[i][j]=outMask&(1<<j);
       }
     }

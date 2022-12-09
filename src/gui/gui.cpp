@@ -4766,7 +4766,7 @@ bool FurnaceGUI::loop() {
           if (ImGui::Button("Orders")) {
             stop();
             e->lockEngine([this]() {
-              memset(e->curOrders->ord,0,DIV_MAX_CHANS*256);
+              memset(e->curOrders->ord,0,DIV_MAX_CHANS*DIV_MAX_PATTERNS);
               e->curSubSong->ordersLen=1;
             });
             e->setOrder(0);
@@ -4782,8 +4782,8 @@ bool FurnaceGUI::loop() {
             e->lockEngine([this]() {
               for (int i=0; i<e->getTotalChannelCount(); i++) {
                 DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],true);
-                memset(pat->data,-1,256*32*sizeof(short));
-                for (int j=0; j<256; j++) {
+                memset(pat->data,-1,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
+                for (int j=0; j<DIV_MAX_ROWS; j++) {
                   pat->data[j][0]=0;
                   pat->data[j][1]=0;
                 }
@@ -6032,7 +6032,7 @@ FurnaceGUI::FurnaceGUI():
   valueKeys[SDLK_KP_8]=8;
   valueKeys[SDLK_KP_9]=9;
 
-  memset(willExport,1,32*sizeof(bool));
+  memset(willExport,1,DIV_MAX_CHIPS*sizeof(bool));
 
   peak[0]=0;
   peak[1]=0;

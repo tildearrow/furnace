@@ -134,19 +134,19 @@ void FurnaceGUI::drawSampleEdit() {
 
       ImGui::Separator();
 
-      bool isChipVisible[32];
-      bool isTypeVisible[4];
-      bool isMemVisible[4][32];
-      bool isMemWarning[4][32];
-      memset(isChipVisible,0,32*sizeof(bool));
-      memset(isTypeVisible,0,4*sizeof(bool));
-      memset(isMemVisible,0,32*4*sizeof(bool));
-      memset(isMemWarning,0,32*4*sizeof(bool));
+      bool isChipVisible[DIV_MAX_CHIPS];
+      bool isTypeVisible[DIV_MAX_SAMPLE_TYPE];
+      bool isMemVisible[DIV_MAX_SAMPLE_TYPE][DIV_MAX_CHIPS];
+      bool isMemWarning[DIV_MAX_SAMPLE_TYPE][DIV_MAX_CHIPS];
+      memset(isChipVisible,0,DIV_MAX_CHIPS*sizeof(bool));
+      memset(isTypeVisible,0,DIV_MAX_SAMPLE_TYPE*sizeof(bool));
+      memset(isMemVisible,0,DIV_MAX_CHIPS*DIV_MAX_SAMPLE_TYPE*sizeof(bool));
+      memset(isMemWarning,0,DIV_MAX_CHIPS*DIV_MAX_SAMPLE_TYPE*sizeof(bool));
       for (int i=0; i<e->song.systemLen; i++) {
         DivDispatch* dispatch=e->getDispatch(i);
         if (dispatch==NULL) continue;
 
-        for (int j=0; j<4; j++) {
+        for (int j=0; j<DIV_MAX_SAMPLE_TYPE; j++) {
           if (dispatch->getSampleMemCapacity(j)==0) continue;
           isChipVisible[i]=true;
           isTypeVisible[j]=true;
@@ -155,7 +155,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
       }
       int selColumns=1;
-      for (int i=0; i<32; i++) {
+      for (int i=0; i<DIV_MAX_CHIPS; i++) {
         if (isChipVisible[i]) selColumns++;
       }
 
@@ -438,7 +438,7 @@ void FurnaceGUI::drawSampleEdit() {
                 ImGui::Text("%d",i+1);
               }
               char id[1024];
-              for (int i=0; i<4; i++) {
+              for (int i=0; i<DIV_MAX_SAMPLE_TYPE; i++) {
                 if (!isTypeVisible[i]) continue;
 
                 ImGui::TableNextRow();

@@ -22,8 +22,7 @@
 #include <stdio.h>
 #include <vector>
 
-#define DIV_MAX_CHANS 128
-
+#include "defines.h"
 #include "../ta-utils.h"
 #include "config.h"
 #include "orders.h"
@@ -230,11 +229,11 @@ struct DivSong {
   bool isDMF;
 
   // system
-  DivSystem system[32];
+  DivSystem system[DIV_MAX_CHIPS];
   unsigned char systemLen;
-  signed char systemVol[32];
-  signed char systemPan[32];
-  DivConfig systemFlags[32];
+  signed char systemVol[DIV_MAX_CHIPS];
+  signed char systemPan[DIV_MAX_CHIPS];
+  DivConfig systemFlags[DIV_MAX_CHIPS];
 
   // song information
   String name, author, systemName;
@@ -428,7 +427,7 @@ struct DivSong {
     snNoLowPeriods(false),
     disableSampleMacro(false),
     autoSystem(true) {
-    for (int i=0; i<32; i++) {
+    for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;
       systemPan[i]=0;
