@@ -25,7 +25,7 @@ void DivSubSong::clearData() {
     pat[i].wipePatterns();
   }
 
-  memset(orders.ord,0,DIV_MAX_CHANS*256);
+  memset(orders.ord,0,DIV_MAX_CHANS*DIV_MAX_PATTERNS);
   ordersLen=1;
 }
 
@@ -34,7 +34,7 @@ void DivSubSong::optimizePatterns() {
     logD("optimizing channel %d...",i);
     std::vector<std::pair<int,int>> clearOuts=pat[i].optimize();
     for (auto& j: clearOuts) {
-      for (int k=0; k<256; k++) {
+      for (int k=0; k<DIV_MAX_PATTERNS; k++) {
         if (orders.ord[i][k]==j.first) {
           orders.ord[i][k]=j.second;
         }
@@ -48,7 +48,7 @@ void DivSubSong::rearrangePatterns() {
     logD("re-arranging channel %d...",i);
     std::vector<std::pair<int,int>> clearOuts=pat[i].rearrange();
     for (auto& j: clearOuts) {
-      for (int k=0; k<256; k++) {
+      for (int k=0; k<DIV_MAX_PATTERNS; k++) {
         if (orders.ord[i][k]==j.first) {
           orders.ord[i][k]=j.second;
         }

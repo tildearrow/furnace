@@ -275,6 +275,7 @@ jobs:
         cp -v ../LICENSE LICENSE.txt
         cp -v ../README.md README.txt
         cp -vr ../{papers,demos,instruments} ../${binPath}/furnace.exe ./
+        sha256sum ../${binPath}/furnace.exe > checksum.txt
 
         popd
 
