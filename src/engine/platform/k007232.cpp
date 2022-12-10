@@ -103,9 +103,7 @@ void DivPlatformK007232::tick(bool sysTick) {
       signed char macroVol=((chan[i].vol&0xf)*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/chan[i].macroVolMul;
       if ((!isMuted[i]) && (macroVol!=chan[i].outVol)) {
         chan[i].outVol=macroVol;
-        if (!isMuted[i]) {
-          chan[i].volumeChanged=true;
-        }
+        chan[i].volumeChanged=true;
       }
     }
     if (chan[i].std.arp.had) {
