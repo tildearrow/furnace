@@ -984,15 +984,15 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   w->writeI(0); // will be written later
   w->writeI(version);
 
-  bool willExport[32];
-  bool isSecond[32];
-  int streamIDs[32];
+  bool willExport[DIV_MAX_CHIPS];
+  bool isSecond[DIV_MAX_CHIPS];
+  int streamIDs[DIV_MAX_CHIPS];
   double loopTimer[DIV_MAX_CHANS];
   double loopFreq[DIV_MAX_CHANS];
   int loopSample[DIV_MAX_CHANS];
   bool sampleDir[DIV_MAX_CHANS];
   std::vector<unsigned int> chipVol; 
-  std::vector<DivDelayedWrite> delayedWrites[32];
+  std::vector<DivDelayedWrite> delayedWrites[DIV_MAX_CHIPS];
   std::vector<std::pair<int,DivDelayedWrite>> sortedWrites;
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {

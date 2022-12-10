@@ -875,11 +875,11 @@ void FurnaceGUI::drawPattern() {
             }
             ImGui::EndDisabled();
             ImGui::SameLine();
-            ImGui::BeginDisabled(e->curPat[i].effectCols>=8);
+            ImGui::BeginDisabled(e->curPat[i].effectCols>=DIV_MAX_EFFECTS);
             snprintf(chanID,2048,">##_RCH%d",i);
             if (ImGui::SmallButton(chanID)) {
               e->curPat[i].effectCols++;
-              if (e->curPat[i].effectCols>8) e->curPat[i].effectCols=8;
+              if (e->curPat[i].effectCols>DIV_MAX_EFFECTS) e->curPat[i].effectCols=DIV_MAX_EFFECTS;
             }
             ImGui::EndDisabled();
           }

@@ -220,20 +220,20 @@ void FurnaceGUI::doReplace() {
   UndoStep us;
   us.type=GUI_UNDO_REPLACE;
 
-  short prevVal[32];
-  memset(prevVal,0,32*sizeof(short));
+  short prevVal[DIV_MAX_COLS];
+  memset(prevVal,0,DIV_MAX_COLS*sizeof(short));
 
   for (FurnaceGUIQueryResult& i: curQueryResults) {
     int patIndex=e->song.subsong[i.subsong]->orders.ord[i.x][i.order];
     DivPattern* p=e->song.subsong[i.subsong]->pat[i.x].getPattern(patIndex,true);
     if (touched[i.x]==NULL) {
-      touched[i.x]=new bool[256*256];
-      memset(touched[i.x],0,256*256*sizeof(bool));
+      touched[i.x]=new bool[DIV_MAX_PATTERNS*DIV_MAX_ROWS];
+      memset(touched[i.x],0,DIV_MAX_PATTERNS*DIV_MAX_ROWS*sizeof(bool));
     }
     if (touched[i.x][(patIndex<<8)|i.y]) continue;
     touched[i.x][(patIndex<<8)|i.y]=true;
 
-    memcpy(prevVal,p->data[i.y],32*sizeof(short));
+    memcpy(prevVal,p->data[i.y],DIV_MAX_COLS*sizeof(short));
 
     if (queryReplaceNoteDo) {
       switch (queryReplaceNoteMode) {
@@ -462,7 +462,7 @@ void FurnaceGUI::doReplace() {
     }
 
     // issue undo step
-    for (int j=0; j<32; j++) {
+    for (int j=0; j<DIV_MAX_COLS; j++) {
       if (p->data[i.y][j]!=prevVal[j]) {
         us.pat.push_back(UndoPatternData(i.subsong,i.x,patIndex,i.y,j,prevVal[j],p->data[i.y][j]));
       }

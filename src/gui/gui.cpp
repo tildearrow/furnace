@@ -2939,6 +2939,9 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
       mobileMenuOpen=(mobileMenuPos>=0.15f);
     }
   }
+  if (dragMobileEditButton) {
+    dragMobileEditButton=false;
+  }
   if (selecting) {
     if (!selectingFull) cursor=selEnd;
     finishSelection();
@@ -4763,7 +4766,7 @@ bool FurnaceGUI::loop() {
           if (ImGui::Button("Orders")) {
             stop();
             e->lockEngine([this]() {
-              memset(e->curOrders->ord,0,DIV_MAX_CHANS*256);
+              memset(e->curOrders->ord,0,DIV_MAX_CHANS*DIV_MAX_PATTERNS);
               e->curSubSong->ordersLen=1;
             });
             e->setOrder(0);
@@ -4779,8 +4782,8 @@ bool FurnaceGUI::loop() {
             e->lockEngine([this]() {
               for (int i=0; i<e->getTotalChannelCount(); i++) {
                 DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],true);
-                memset(pat->data,-1,256*32*sizeof(short));
-                for (int j=0; j<256; j++) {
+                memset(pat->data,-1,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
+                for (int j=0; j<DIV_MAX_ROWS; j++) {
                   pat->data[j][0]=0;
                   pat->data[j][1]=0;
                 }
@@ -5656,6 +5659,7 @@ FurnaceGUI::FurnaceGUI():
   pendingInsSingle(false),
   displayPendingRawSample(false),
   snesFilterHex(false),
+  mobileEdit(false),
   vgmExportVersion(0x171),
   drawHalt(10),
   zsmExportTickRate(60),
@@ -5664,6 +5668,9 @@ FurnaceGUI::FurnaceGUI():
   displayInsTypeListMakeInsSample(-1),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
+  mobileEditAnim(0.0f),
+  mobileEditButtonPos(0.7f,0.7f),
+  mobileEditButtonSize(60.0f,60.0f),
   curSysSection(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),
@@ -5794,12 +5801,14 @@ FurnaceGUI::FurnaceGUI():
   orderScrollLocked(false),
   orderScrollTolerance(false),
   dragMobileMenu(false),
+  dragMobileEditButton(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
   curWindowThreadSafe(GUI_WINDOW_NOTHING),
   lastPatternWidth(0.0f),
   longThreshold(0.48f),
+  buttonLongThreshold(0.20f),
   latchNote(-1),
   latchIns(-2),
   latchVol(-1),
@@ -5923,6 +5932,7 @@ FurnaceGUI::FurnaceGUI():
   sampleSelStart(-1),
   sampleSelEnd(-1),
   sampleInfo(true),
+  sampleCompatRate(false),
   sampleDragActive(false),
   sampleDragMode(false),
   sampleDrag16(false),
@@ -6022,7 +6032,7 @@ FurnaceGUI::FurnaceGUI():
   valueKeys[SDLK_KP_8]=8;
   valueKeys[SDLK_KP_9]=9;
 
-  memset(willExport,1,32*sizeof(bool));
+  memset(willExport,1,DIV_MAX_CHIPS*sizeof(bool));
 
   peak[0]=0;
   peak[1]=0;

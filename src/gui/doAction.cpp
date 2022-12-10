@@ -522,7 +522,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_PAT_INCREASE_COLUMNS:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
       e->curPat[cursor.xCoarse].effectCols++;
-              if (e->curPat[cursor.xCoarse].effectCols>8) e->curPat[cursor.xCoarse].effectCols=8;
+              if (e->curPat[cursor.xCoarse].effectCols>DIV_MAX_EFFECTS) e->curPat[cursor.xCoarse].effectCols=DIV_MAX_EFFECTS;
       break;
     case GUI_ACTION_PAT_DECREASE_COLUMNS:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;

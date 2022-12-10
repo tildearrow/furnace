@@ -884,10 +884,10 @@ void DivEngine::runExportThread() {
       break;
     }
     case DIV_EXPORT_MODE_MANY_SYS: {
-      SNDFILE* sf[32];
-      SF_INFO si[32];
-      String fname[32];
-      SFWrapper sfWrap[32];
+      SNDFILE* sf[DIV_MAX_CHIPS];
+      SF_INFO si[DIV_MAX_CHIPS];
+      String fname[DIV_MAX_CHIPS];
+      SFWrapper sfWrap[DIV_MAX_CHIPS];
       for (int i=0; i<song.systemLen; i++) {
         sf[i]=NULL;
         si[i].samplerate=got.rate;
@@ -915,7 +915,7 @@ void DivEngine::runExportThread() {
       float* outBuf[2];
       outBuf[0]=new float[EXPORT_BUFSIZE];
       outBuf[1]=new float[EXPORT_BUFSIZE];
-      short* sysBuf[32];
+      short* sysBuf[DIV_MAX_CHIPS];
       for (int i=0; i<song.systemLen; i++) {
         sysBuf[i]=new short[EXPORT_BUFSIZE*2];
       }
@@ -1399,7 +1399,7 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64) {
     c.loadFromMemory(description);
   }
   int index=0;
-  for (; index<32; index++) {
+  for (; index<DIV_MAX_CHIPS; index++) {
     song.system[index]=systemFromFileFur(c.getInt(fmt::sprintf("id%d",index),0));
     if (song.system[index]==DIV_SYSTEM_NULL) {
       break;
@@ -1456,7 +1456,7 @@ void DivEngine::swapChannels(int src, int dest) {
     return;
   }
 
-  for (int i=0; i<256; i++) {
+  for (int i=0; i<DIV_MAX_PATTERNS; i++) {
     curOrders->ord[dest][i]^=curOrders->ord[src][i];
     curOrders->ord[src][i]^=curOrders->ord[dest][i];
     curOrders->ord[dest][i]^=curOrders->ord[src][i];
@@ -1487,7 +1487,7 @@ void DivEngine::swapChannels(int src, int dest) {
 
 void DivEngine::stompChannel(int ch) {
   logV("stomping channel %d",ch);
-  for (int i=0; i<256; i++) {
+  for (int i=0; i<DIV_MAX_PATTERNS; i++) {
     curOrders->ord[ch][i]=0;
   }
   curPat[ch].wipePatterns();
@@ -1649,8 +1649,8 @@ void DivEngine::changeSystem(int index, DivSystem which, bool preserveOrder) {
 }
 
 bool DivEngine::addSystem(DivSystem which) {
-  if (song.systemLen>32) {
-    lastError="max number of systems is 32";
+  if (song.systemLen>DIV_MAX_CHIPS) {
+    lastError=fmt::sprintf("max number of systems is %d",DIV_MAX_CHIPS);
     return false;
   }
   if (chans+getChannelCount(which)>DIV_MAX_CHANS) {
@@ -1786,7 +1786,7 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
 
     for (size_t i=0; i<song.subsong.size(); i++) {
       DivOrders prevOrders=song.subsong[i]->orders;
-      DivPattern* prevPat[DIV_MAX_CHANS][256];
+      DivPattern* prevPat[DIV_MAX_CHANS][DIV_MAX_PATTERNS];
       unsigned char prevEffectCols[DIV_MAX_CHANS];
       String prevChanName[DIV_MAX_CHANS];
       String prevChanShortName[DIV_MAX_CHANS];
@@ -1794,7 +1794,7 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
       unsigned char prevChanCollapse[DIV_MAX_CHANS];
 
       for (int j=0; j<tchans; j++) {
-        for (int k=0; k<256; k++) {
+        for (int k=0; k<DIV_MAX_PATTERNS; k++) {
           prevPat[j][k]=song.subsong[i]->pat[j].data[k];
         }
         prevEffectCols[j]=song.subsong[i]->pat[j].effectCols;
@@ -1806,7 +1806,7 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
       }
 
       for (int j=0; j<tchans; j++) {
-        for (int k=0; k<256; k++) {
+        for (int k=0; k<DIV_MAX_PATTERNS; k++) {
           song.subsong[i]->orders.ord[j][k]=prevOrders.ord[swappedChannels[j]][k];
           song.subsong[i]->pat[j].data[k]=prevPat[swappedChannels[j]][k];
         }
@@ -2770,7 +2770,7 @@ void DivEngine::delInstrument(int index) {
     song.insLen=song.ins.size();
     for (int i=0; i<chans; i++) {
       for (size_t j=0; j<song.subsong.size(); j++) {
-        for (int k=0; k<256; k++) {
+        for (int k=0; k<DIV_MAX_PATTERNS; k++) {
           if (song.subsong[j]->pat[i].data[k]==NULL) continue;
           for (int l=0; l<song.subsong[j]->patLen; l++) {
             if (song.subsong[j]->pat[i].data[k]->data[l][2]>index) {
@@ -3470,7 +3470,7 @@ void DivEngine::delSample(int index) {
 
 void DivEngine::addOrder(bool duplicate, bool where) {
   unsigned char order[DIV_MAX_CHANS];
-  if (curSubSong->ordersLen>=0xff) return;
+  if (curSubSong->ordersLen>=(DIV_MAX_PATTERNS-1)) return;
   memset(order,0,DIV_MAX_CHANS);
   BUSY_BEGIN_SOFT;
   if (duplicate) {
@@ -3478,14 +3478,14 @@ void DivEngine::addOrder(bool duplicate, bool where) {
       order[i]=curOrders->ord[i][curOrder];
     }
   } else {
-    bool used[256];
+    bool used[DIV_MAX_PATTERNS];
     for (int i=0; i<chans; i++) {
-      memset(used,0,sizeof(bool)*256);
+      memset(used,0,sizeof(bool)*DIV_MAX_PATTERNS);
       for (int j=0; j<curSubSong->ordersLen; j++) {
         used[curOrders->ord[i][j]]=true;
       }
-      order[i]=0xff;
-      for (int j=0; j<256; j++) {
+      order[i]=(DIV_MAX_PATTERNS-1);
+      for (int j=0; j<DIV_MAX_PATTERNS; j++) {
         if (!used[j]) {
           order[i]=j;
           break;
@@ -3520,7 +3520,7 @@ void DivEngine::addOrder(bool duplicate, bool where) {
 
 void DivEngine::deepCloneOrder(bool where) {
   unsigned char order[DIV_MAX_CHANS];
-  if (curSubSong->ordersLen>=0xff) return;
+  if (curSubSong->ordersLen>=(DIV_MAX_PATTERNS-1)) return;
   warnings="";
   BUSY_BEGIN_SOFT;
   for (int i=0; i<chans; i++) {
@@ -3528,14 +3528,14 @@ void DivEngine::deepCloneOrder(bool where) {
     logD("channel %d",i);
     order[i]=curOrders->ord[i][curOrder];
     // find free slot
-    for (int j=0; j<256; j++) {
+    for (int j=0; j<DIV_MAX_PATTERNS; j++) {
       logD("finding free slot in %d...",j);
       if (curPat[i].data[j]==NULL) {
         int origOrd=order[i];
         order[i]=j;
         DivPattern* oldPat=curPat[i].getPattern(origOrd,false);
         DivPattern* pat=curPat[i].getPattern(j,true);
-        memcpy(pat->data,oldPat->data,256*32*sizeof(short));
+        memcpy(pat->data,oldPat->data,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
         logD("found at %d",j);
         didNotFind=false;
         break;
@@ -3631,7 +3631,7 @@ void DivEngine::moveOrderDown() {
 void DivEngine::exchangeIns(int one, int two) {
   for (int i=0; i<chans; i++) {
     for (size_t j=0; j<song.subsong.size(); j++) {
-      for (int k=0; k<256; k++) {
+      for (int k=0; k<DIV_MAX_PATTERNS; k++) {
         if (song.subsong[j]->pat[i].data[k]==NULL) continue;
         for (int l=0; l<song.subsong[j]->patLen; l++) {
           if (song.subsong[j]->pat[i].data[k]->data[l][2]==one) {

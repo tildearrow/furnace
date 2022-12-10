@@ -17,15 +17,20 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _ORDERS_H
-#define _ORDERS_H
+#ifndef _DEFINES_H
+#define _DEFINES_H
 
-struct DivOrders {
-  unsigned char ord[DIV_MAX_CHANS][DIV_MAX_PATTERNS];
+// global
+#define DIV_MAX_CHIPS 32
+#define DIV_MAX_CHANS 128
+#define DIV_MAX_PATTERNS 256
 
-  DivOrders() {
-    memset(ord,0,DIV_MAX_CHANS*DIV_MAX_PATTERNS);
-  }
-};
+// in-pattern
+#define DIV_MAX_ROWS 256
+#define DIV_MAX_COLS 32
+#define DIV_MAX_EFFECTS 8
+
+// sample related
+#define DIV_MAX_SAMPLE_TYPE 4
 
 #endif

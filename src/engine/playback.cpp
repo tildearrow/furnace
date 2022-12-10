@@ -1592,7 +1592,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     if (disCont[i].lastAvail>0) {
       disCont[i].flush(disCont[i].lastAvail);
     }
-    disCont[i].runtotal=blip_clocks_needed(disCont[i].bb[0],size-disCont[i].lastAvail);
+    if (size<disCont[i].lastAvail) {
+      disCont[i].runtotal=0;
+    } else {
+      disCont[i].runtotal=blip_clocks_needed(disCont[i].bb[0],size-disCont[i].lastAvail);
+    }
     if (disCont[i].runtotal>disCont[i].bbInLen) {
       logV("growing dispatch %d bbIn to %d",i,disCont[i].runtotal+256);
       delete[] disCont[i].bbIn[0];

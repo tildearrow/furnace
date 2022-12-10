@@ -21,6 +21,7 @@
 #define _SAMPLE_H
 
 #include "../ta-utils.h"
+#include "defines.h"
 #include "safeWriter.h"
 #include "dataErrors.h"
 #include <deque>
@@ -116,7 +117,7 @@ struct DivSample {
   // - 2: Pingpong loop
   DivSampleLoopMode loopMode;
 
-  bool renderOn[4][32];
+  bool renderOn[DIV_MAX_SAMPLE_TYPE][DIV_MAX_CHIPS];
 
   // these are the new data structures.
   signed char* data8; // 8
@@ -332,11 +333,10 @@ struct DivSample {
     lengthBRR(0),
     lengthVOX(0),
     samples(0) {
-    for (int i=0; i<32; i++) {
-      renderOn[0][i]=true;
-      renderOn[1][i]=true;
-      renderOn[2][i]=true;
-      renderOn[3][i]=true;
+    for (int i=0; i<DIV_MAX_CHIPS; i++) {
+      for (int j=0; j<DIV_MAX_SAMPLE_TYPE; j++) {
+        renderOn[j][i]=true;
+      }
     }
   }
   ~DivSample();

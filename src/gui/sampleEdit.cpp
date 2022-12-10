@@ -134,7 +134,32 @@ void FurnaceGUI::drawSampleEdit() {
 
       ImGui::Separator();
 
-      if (ImGui::BeginTable("SampleProps",4,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersV|ImGuiTableFlags_BordersOuterH)) {
+      bool isChipVisible[DIV_MAX_CHIPS];
+      bool isTypeVisible[DIV_MAX_SAMPLE_TYPE];
+      bool isMemVisible[DIV_MAX_SAMPLE_TYPE][DIV_MAX_CHIPS];
+      bool isMemWarning[DIV_MAX_SAMPLE_TYPE][DIV_MAX_CHIPS];
+      memset(isChipVisible,0,DIV_MAX_CHIPS*sizeof(bool));
+      memset(isTypeVisible,0,DIV_MAX_SAMPLE_TYPE*sizeof(bool));
+      memset(isMemVisible,0,DIV_MAX_CHIPS*DIV_MAX_SAMPLE_TYPE*sizeof(bool));
+      memset(isMemWarning,0,DIV_MAX_CHIPS*DIV_MAX_SAMPLE_TYPE*sizeof(bool));
+      for (int i=0; i<e->song.systemLen; i++) {
+        DivDispatch* dispatch=e->getDispatch(i);
+        if (dispatch==NULL) continue;
+
+        for (int j=0; j<DIV_MAX_SAMPLE_TYPE; j++) {
+          if (dispatch->getSampleMemCapacity(j)==0) continue;
+          isChipVisible[i]=true;
+          isTypeVisible[j]=true;
+          isMemVisible[j][i]=true;
+          if (!dispatch->isSampleLoaded(j,curSample)) isMemWarning[j][i]=true;
+        }
+      }
+      int selColumns=1;
+      for (int i=0; i<DIV_MAX_CHIPS; i++) {
+        if (isChipVisible[i]) selColumns++;
+      }
+
+      if (ImGui::BeginTable("SampleProps",(selColumns>1)?4:3,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersV|ImGuiTableFlags_BordersOuterH)) {
         ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
         ImGui::TableNextColumn();
         if (ImGui::Button(sampleInfo?(ICON_FA_CHEVRON_UP "##SECollapse"):(ICON_FA_CHEVRON_DOWN "##SECollapse"))) {
@@ -143,7 +168,20 @@ void FurnaceGUI::drawSampleEdit() {
         ImGui::SameLine();
         ImGui::Text("Info");
         ImGui::TableNextColumn();
-        ImGui::Text("Rate");
+        pushToggleColors(!sampleCompatRate);
+        if (ImGui::Button("Rate")) {
+          sampleCompatRate=false;
+        }
+        popToggleColors();
+        ImGui::SameLine();
+        pushToggleColors(sampleCompatRate);
+        if (ImGui::Button("Compat Rate")) {
+          sampleCompatRate=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("used in DefleMask-compatible sample mode (17xx), in where samples are mapped to an octave.");
+        }
+        popToggleColors();
         ImGui::TableNextColumn();
         bool doLoop=(sample->isLoopable());
         if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
@@ -164,8 +202,11 @@ void FurnaceGUI::drawSampleEdit() {
         if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
           ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
         }
-        ImGui::TableNextColumn();
-        ImGui::Text("Chips");
+
+        if (selColumns>1) {
+          ImGui::TableNextColumn();
+          ImGui::Text("Chips");
+        }
         
         if (sampleInfo) {
           ImGui::TableNextRow();
@@ -216,21 +257,110 @@ void FurnaceGUI::drawSampleEdit() {
             }
           }
 
-          ImGui::TableNextColumn();
-          ImGui::Text("C-4 (Hz)");
-          ImGui::SameLine();
-          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::InputInt("##SampleCenter",&sample->centerRate,10,200)) { MARK_MODIFIED
-            if (sample->centerRate<100) sample->centerRate=100;
-            if (sample->centerRate>65535) sample->centerRate=65535;
+          int targetRate=sampleCompatRate?sample->rate:sample->centerRate;
+          int sampleNote=round(64.0+(128.0*12.0*log((double)targetRate/8363.0)/log(2.0)));
+          int sampleNoteCoarse=60+(sampleNote>>7);
+          int sampleNoteFine=(sampleNote&127)-64;
+
+          if (sampleNoteCoarse<0) {
+            sampleNoteCoarse=0;
+            sampleNoteFine=-64;
+          }
+          if (sampleNoteCoarse>119) {
+            sampleNoteCoarse=119;
+            sampleNoteFine=63;
           }
 
-          ImGui::Text("Compat");
+          bool coarseChanged=false;
+
+          ImGui::TableNextColumn();
+          ImGui::Text("Hz");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-          if (ImGui::InputInt("##SampleRate",&sample->rate,10,200)) { MARK_MODIFIED
-            if (sample->rate<100) sample->rate=100;
-            if (sample->rate>96000) sample->rate=96000;
+          if (ImGui::InputInt("##SampleRate",&targetRate,10,200)) { MARK_MODIFIED
+            if (targetRate<100) targetRate=100;
+            if (targetRate>384000) targetRate=384000;
+
+            if (sampleCompatRate) {
+              sample->rate=targetRate;
+            } else {
+              sample->centerRate=targetRate;
+            }
+          }
+          
+          ImGui::Text("Note");
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          if (ImGui::BeginCombo("##SampleNote",noteNames[sampleNoteCoarse+60])) {
+            char temp[1024];
+            for (int i=0; i<120; i++) {
+              snprintf(temp,1023,"%s##_SRN%d",noteNames[i+60],i);
+              if (ImGui::Selectable(temp,i==sampleNoteCoarse)) {
+                sampleNoteCoarse=i;
+                coarseChanged=true;
+              }
+            }
+            ImGui::EndCombo();
+          } else if (ImGui::IsItemHovered()) {
+            if (wheelY!=0) {
+              sampleNoteCoarse-=wheelY;
+              if (sampleNoteCoarse<0) {
+                sampleNoteCoarse=0;
+                sampleNoteFine=-64;
+              }
+              if (sampleNoteCoarse>119) {
+                sampleNoteCoarse=119;
+                sampleNoteFine=63;
+              }
+              coarseChanged=true;
+            }
+          }
+
+          if (coarseChanged) { MARK_MODIFIED
+            sampleNote=((sampleNoteCoarse-60)<<7)+sampleNoteFine;
+
+            targetRate=8363.0*pow(2.0,(double)sampleNote/(128.0*12.0));
+            if (targetRate<100) targetRate=100;
+            if (targetRate>384000) targetRate=384000;
+
+            if (sampleCompatRate) {
+              sample->rate=targetRate;
+            } else {
+              sample->centerRate=targetRate;
+            }
+          }
+
+          ImGui::Text("Fine");
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+          int prevFine=sampleNoteFine;
+          int prevSampleRate=targetRate;
+          if (ImGui::InputInt("##SampleFine",&sampleNoteFine,1,10)) { MARK_MODIFIED
+            if (sampleNoteFine>63) sampleNoteFine=63;
+            if (sampleNoteFine<-64) sampleNoteFine=-64;
+
+            sampleNote=((sampleNoteCoarse-60)<<7)+sampleNoteFine;
+
+            targetRate=round(8363.0*pow(2.0,(double)sampleNote/(128.0*12.0)));
+
+            if (targetRate==prevSampleRate) {
+              if (prevFine==sampleNoteFine) {
+                // do nothing
+              } else if (prevFine>sampleNoteFine) { // coarse incr/decr due to precision loss
+                targetRate--;
+              } else {
+                targetRate++;
+              }
+            }
+
+            if (targetRate<100) targetRate=100;
+            if (targetRate>384000) targetRate=384000;
+
+            if (sampleCompatRate) {
+              sample->rate=targetRate;
+            } else {
+              sample->centerRate=targetRate;
+            }
           }
 
           ImGui::TableNextColumn();
@@ -298,35 +428,8 @@ void FurnaceGUI::drawSampleEdit() {
           }
           ImGui::EndDisabled();
 
-          ImGui::TableNextColumn();
-          
-          bool isChipVisible[32];
-          bool isTypeVisible[4];
-          bool isMemVisible[4][32];
-          bool isMemWarning[4][32];
-          memset(isChipVisible,0,32*sizeof(bool));
-          memset(isTypeVisible,0,4*sizeof(bool));
-          memset(isMemVisible,0,32*4*sizeof(bool));
-          memset(isMemWarning,0,32*4*sizeof(bool));
-          for (int i=0; i<e->song.systemLen; i++) {
-            DivDispatch* dispatch=e->getDispatch(i);
-            if (dispatch==NULL) continue;
-
-            for (int j=0; j<4; j++) {
-              if (dispatch->getSampleMemCapacity(j)==0) continue;
-              isChipVisible[i]=true;
-              isTypeVisible[j]=true;
-              isMemVisible[j][i]=true;
-              if (!dispatch->isSampleLoaded(j,curSample)) isMemWarning[j][i]=true;
-            }
-          }
-          int selColumns=1;
-          for (int i=0; i<32; i++) {
-            if (isChipVisible[i]) selColumns++;
-          }
-          if (selColumns<=1) {
-            ImGui::Text("NO CHIPS LESS GOOO");
-          } else {
+          if (selColumns>1) {
+            ImGui::TableNextColumn();
             if (ImGui::BeginTable("SEChipSel",selColumns,ImGuiTableFlags_SizingFixedSame)) {
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
@@ -336,7 +439,7 @@ void FurnaceGUI::drawSampleEdit() {
                 ImGui::Text("%d",i+1);
               }
               char id[1024];
-              for (int i=0; i<4; i++) {
+              for (int i=0; i<DIV_MAX_SAMPLE_TYPE; i++) {
                 if (!isTypeVisible[i]) continue;
 
                 ImGui::TableNextRow();
@@ -873,7 +976,26 @@ void FurnaceGUI::drawSampleEdit() {
 
       ImGui::Separator();
 
-      ImVec2 avail=ImGui::GetContentRegionAvail(); // graph size determined here
+      // time
+      ImDrawList* dl=ImGui::GetWindowDrawList();
+      ImGuiWindow* window=ImGui::GetCurrentWindow();
+
+      ImVec2 size=ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetFontSize()+2.0*dpiScale);
+
+      ImVec2 minArea=window->DC.CursorPos;
+      ImVec2 maxArea=ImVec2(
+        minArea.x+size.x,
+        minArea.y+size.y
+      );
+      ImRect rect=ImRect(minArea,maxArea);
+      ImGuiStyle& style=ImGui::GetStyle();
+
+      ImGui::ItemSize(size,style.FramePadding.y);
+      if (ImGui::ItemAdd(rect,ImGui::GetID("SETime"))) {
+        dl->AddText(minArea,0xffffffff,"0");
+      }
+
+      ImVec2 avail=ImGui::GetContentRegionAvail(); // sample view size determined here
       // don't do this. reason: mobile.
       /*if (ImGui::GetContentRegionAvail().y>(ImGui::GetContentRegionAvail().x*0.5f)) {
         avail=ImVec2(ImGui::GetContentRegionAvail().x,ImGui::GetContentRegionAvail().x*0.5f);
@@ -1101,6 +1223,8 @@ void FurnaceGUI::drawSampleEdit() {
         }
 
         String statusBar=sampleDragMode?"Draw":"Select";
+        String statusBar2="";
+        String statusBar3=fmt::sprintf("%d samples, %d bytes",sample->samples,sample->getCurBufLen());
         bool drawSelection=false;
 
         if (!sampleDragMode) {
@@ -1181,12 +1305,15 @@ void FurnaceGUI::drawSampleEdit() {
           }
           posY=(0.5-pos.y/rectSize.y)*((sample->depth==DIV_SAMPLE_DEPTH_8BIT)?255:32767);
           if (posX>=0) {
-            statusBar+=fmt::sprintf(" | (%d, %d)",posX,posY);
+            statusBar2=fmt::sprintf("(%d, %d)",posX,posY);
           }
         }
 
         if (e->isPreviewingSample()) {
-          statusBar+=fmt::sprintf(" | %.2fHz",e->getSamplePreviewRate());
+          if (!statusBar2.empty()) {
+            statusBar2+=" | ";
+          }
+          statusBar2+=fmt::sprintf("%.2fHz",e->getSamplePreviewRate());
 
           int start=sampleSelStart;
           int end=sampleSelEnd;
@@ -1269,7 +1396,23 @@ void FurnaceGUI::drawSampleEdit() {
         }
         
         ImGui::SetCursorPosY(ImGui::GetCursorPosY()+ImGui::GetStyle().ScrollbarSize);
-        ImGui::Text("%s",statusBar.c_str());
+        ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0,0));
+        if (ImGui::BeginTable("SEStatus",3,ImGuiTableFlags_BordersInnerV)) {
+          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.7);
+          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.3);
+          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
+
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          ImGui::TextUnformatted(statusBar.c_str());
+          ImGui::TableNextColumn();
+          ImGui::TextUnformatted(statusBar2.c_str());
+          ImGui::TableNextColumn();
+          ImGui::TextUnformatted(statusBar3.c_str());
+
+          ImGui::EndTable();
+        }
+        ImGui::PopStyleVar();
       }
     }
   }
