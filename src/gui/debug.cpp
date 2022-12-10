@@ -47,6 +47,7 @@
 #include "../engine/platform/vrc6.h"
 #include "../engine/platform/lynx.h"
 #include "../engine/platform/pcmdac.h"
+#include "../engine/platform/k007232.h"
 #include "../engine/platform/dummy.h"
 
 #define COMMON_CHIP_DEBUG \
@@ -551,6 +552,17 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text("- outDepth: %d",ch->outDepth);
       COMMON_CHIP_DEBUG_BOOL;
       ImGui::TextColored(ch->outStereo?colorOn:colorOff,">> OutStereo");
+      break;
+    }
+    case DIV_SYSTEM_K007232: {
+      DivPlatformK007232* ch=(DivPlatformK007232*)data;
+      ImGui::Text("> K007232");
+      COMMON_CHIP_DEBUG;
+      ImGui::Text("- delay: %.2x",ch->delay);
+      ImGui::Text("- lastLoop: %.2x",ch->lastLoop);
+      ImGui::Text("- lastVolume: %.2x",ch->lastVolume);
+      COMMON_CHIP_DEBUG_BOOL;
+      ImGui::TextColored(ch->stereo?colorOn:colorOff,">> Stereo");
       break;
     }
     default:
@@ -1111,6 +1123,34 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
       ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
       ImGui::TextColored(ch->useWave?colorOn:colorOff,">> UseWave");
+      ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
+      break;
+    }
+    case DIV_SYSTEM_K007232: {
+      DivPlatformK007232::Channel* ch=(DivPlatformK007232::Channel*)data;
+      ImGui::Text("> K007232");
+      ImGui::Text("* freq:");
+      ImGui::Text(" - base: %d",ch->baseFreq);
+      ImGui::Text(" - pitch: %d",ch->pitch);
+      ImGui::Text(" - pitch2: %d",ch->pitch2);
+      ImGui::Text("* note: %d",ch->note);
+      ImGui::Text("* Sample: %d",ch->sample);
+      ImGui::Text(" - pos: %d",ch->audPos);
+      ImGui::Text("- wave: %d",ch->wave);
+      ImGui::Text("- ins: %d",ch->ins);
+      ImGui::Text("- panning: %d",ch->panning);
+      ImGui::Text("- vol: %.2x",ch->vol);
+      ImGui::Text("- outVol: %.2x",ch->outVol);
+      ImGui::Text("- lvol: %.2x",ch->lvol);
+      ImGui::Text("- rvol: %.2x",ch->rvol);
+      ImGui::Text("- macroVolMul: %.2x",ch->macroVolMul);
+      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
+      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
+      ImGui::TextColored(ch->volumeChanged?colorOn:colorOff,">> VolumeChanged");
+      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
+      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
+      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
+      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
       ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
       break;
     }

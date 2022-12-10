@@ -72,15 +72,17 @@ void DivPlatformK007232::acquire(short* bufL, short* bufR, size_t start, size_t 
     k007232.tick();
 
     if (stereo) {
-      const signed int lout[2]={(k007232.output(0)*(regPool[0x10]&0xf)),(k007232.output(1)*(regPool[0x11]&0xf))};
-      const signed int rout[2]={(k007232.output(0)*((regPool[0x10]>>4)&0xf)),(k007232.output(1)*((regPool[0x11]>>4)&0xf))};
+      const unsigned char vol1=regPool[0x10],vol2=regPool[0x11];
+      const signed int lout[2]={(k007232.output(0)*(vol1&0xf)),(k007232.output(1)*(vol2&0xf))};
+      const signed int rout[2]={(k007232.output(0)*((vol1>>4)&0xf)),(k007232.output(1)*((vol2>>4)&0xf))};
       bufL[h]=(lout[0]+lout[1])<<4;
       bufR[h]=(rout[0]+rout[1])<<4;
       for (int i=0; i<2; i++) {
         oscBuf[i]->data[oscBuf[i]->needle++]=(lout[i]+rout[i])<<4;
       }
     } else {
-      const signed int out[2]={(k007232.output(0)*(regPool[0xc]&0xf)),(k007232.output(1)*((regPool[0xc]>>4)&0xf))};
+      const unsigned char vol=regPool[0xc];
+      const signed int out[2]={(k007232.output(0)*(vol&0xf)),(k007232.output(1)*((vol>>4)&0xf))};
       bufL[h]=bufR[h]=(out[0]+out[1])<<4;
       for (int i=0; i<2; i++) {
         oscBuf[i]->data[oscBuf[i]->needle++]=out[i]<<5;
