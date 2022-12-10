@@ -103,7 +103,7 @@ void DivPlatformK007232::tick(bool sysTick) {
   for (int i=0; i<2; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      signed char macroVol=((chan[i].vol&0xf)*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/chan[i].macroVolMul;
+      const signed char macroVol=((chan[i].vol&0xf)*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/chan[i].macroVolMul;
       if ((!isMuted[i]) && (macroVol!=chan[i].outVol)) {
         chan[i].outVol=macroVol;
         chan[i].volumeChanged=true;
@@ -337,7 +337,7 @@ int DivPlatformK007232::dispatch(DivCommand c) {
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
-      int destFreq=NOTE_PERIODIC(c.value2);
+      const int destFreq=NOTE_PERIODIC(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
         chan[c.chan].baseFreq+=c.value;
@@ -514,7 +514,7 @@ void DivPlatformK007232::renderSamples(int sysID) {
       continue;
     }
 
-    int length=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
+    const int length=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-1,length);
     if (actualLength>0) {
       if (actualLength>131072-1) {
