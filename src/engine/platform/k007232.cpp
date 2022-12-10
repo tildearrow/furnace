@@ -206,7 +206,7 @@ void DivPlatformK007232::tick(bool sysTick) {
           loop=start+s->loopStart;
           lastLoop|=(1<<i);
         } else {
-          lastLoop&=~(i<<i);
+          lastLoop&=~(1<<i);
         }
         rWrite(0xd,lastLoop);
         rWrite(0x12+i,bank);
