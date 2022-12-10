@@ -149,12 +149,19 @@ void DivPlatformK007232::tick(bool sysTick) {
       if (stereo) {
         chan[i].lvol=isMuted[i]?0:(((chan[i].outVol&0xf)*((chan[i].panning>>0)&0xf))/15);
         chan[i].rvol=isMuted[i]?0:(((chan[i].outVol&0xf)*((chan[i].panning>>4)&0xf))/15);
-        rWrite(0x10+i,(chan[i].lvol&0xf)|((chan[i].rvol&0xf)<<4));
+        const unsigned char prevPan=lastPan[i];
+        lastPan[i]=(chan[i].lvol&0xf)|((chan[i].rvol&0xf)<<4);
+        if (prevPan!=lastPan[i]) {
+          rWrite(0x10+i,(chan[i].lvol&0xf)|((chan[i].rvol&0xf)<<4));
+        }
       }
       else {
         chan[i].lvol=chan[i].rvol=isMuted[i]?0:chan[i].outVol&0xf;
+        const unsigned char prevVolume=lastVolume;
         lastVolume=(lastVolume&~(0xf<<(i<<2)))|((chan[i].outVol&0xf)<<(i<<2));
-        rWrite(0xc,lastVolume);
+        if (prevVolume!=lastVolume) {
+          rWrite(0xc,lastVolume);
+        }
       }
       chan[i].volumeChanged=false;
     }
@@ -202,13 +209,16 @@ void DivPlatformK007232::tick(bool sysTick) {
         chWrite(i,4,0x1);
         chWrite(i,5,0);
         // keyon
+        const unsigned char prevLoop=lastLoop;
         if (s->isLoopable()) {
           loop=start+s->loopStart;
           lastLoop|=(1<<i);
         } else {
           lastLoop&=~(1<<i);
         }
-        rWrite(0xd,lastLoop);
+        if (prevLoop!=lastLoop) {
+          rWrite(0xd,lastLoop);
+        }
         rWrite(0x12+i,bank);
         chWrite(i,0,chan[i].freq&0xff);
         chWrite(i,1,(chan[i].freq>>8)&0xf);
@@ -399,10 +409,11 @@ void DivPlatformK007232::reset() {
   while (!writes.empty()) {
     writes.pop();
   }
-  memset(regPool,0,32);
+  memset(regPool,0,20);
   k007232.reset();
   lastLoop=0;
-  lastVolume=0xff;
+  lastVolume=0;
+  lastPan[0]=lastPan[1]=0;
   for (int i=0; i<2; i++) {
     chan[i]=DivPlatformK007232::Channel();
     chan[i].std.setEngine(parent);
@@ -462,7 +473,7 @@ unsigned char* DivPlatformK007232::getRegisterPool() {
 }
 
 int DivPlatformK007232::getRegisterPoolSize() {
-  return 32;
+  return 20;
 }
 
 const void* DivPlatformK007232::getSampleMem(int index) {

@@ -80,13 +80,14 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
   unsigned int sampleOffK007232[256];
   bool sampleLoaded[256];
 
-  int delay, lastLoop, lastVolume;
+  int delay;
+  unsigned char lastLoop, lastVolume, lastPan[2];
   bool stereo;
 
   unsigned char* sampleMem;
   size_t sampleMemLen;
   k007232_core k007232;
-  unsigned char regPool[32];
+  unsigned char regPool[20];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
