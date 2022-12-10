@@ -241,9 +241,15 @@ void FurnaceGUI::drawWaveEdit() {
         if (ImGui::Button(ICON_FA_FOLDER_OPEN "##WELoad")) {
           doAction(GUI_ACTION_WAVE_LIST_OPEN_REPLACE);
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Load");
+        }
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_FLOPPY_O "##WESave")) {
           doAction(GUI_ACTION_WAVE_LIST_SAVE);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Save");
         }
         if (ImGui::BeginPopupContextItem("WaveSaveFormats",ImGuiMouseButton_Right)) {
           if (ImGui::MenuItem("save as .dmw...")) {

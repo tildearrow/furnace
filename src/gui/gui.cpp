@@ -1040,13 +1040,13 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
 
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
 
-  if (key==100) { // note off
+  if (key==GUI_NOTE_OFF) { // note off
     pat->data[cursor.y][0]=100;
     pat->data[cursor.y][1]=0;
-  } else if (key==101) { // note off + env release
+  } else if (key==GUI_NOTE_OFF_RELEASE) { // note off + env release
     pat->data[cursor.y][0]=101;
     pat->data[cursor.y][1]=0;
-  } else if (key==102) { // env release only
+  } else if (key==GUI_NOTE_RELEASE) { // env release only
     pat->data[cursor.y][0]=102;
     pat->data[cursor.y][1]=0;
   } else {
@@ -5979,8 +5979,8 @@ FurnaceGUI::FurnaceGUI():
   pianoOptionsSet(false),
   pianoOffset(6),
   pianoOffsetEdit(9),
-  pianoView(2),
-  pianoInputPadMode(2),
+  pianoView(PIANO_LAYOUT_AUTOMATIC),
+  pianoInputPadMode(PIANO_INPUT_PAD_SPLIT_AUTO),
 #else
   pianoOctaves(7),
   pianoOctavesEdit(4),
@@ -5988,8 +5988,8 @@ FurnaceGUI::FurnaceGUI():
   pianoSharePosition(true),
   pianoOffset(6),
   pianoOffsetEdit(6),
-  pianoView(0),
-  pianoInputPadMode(0),
+  pianoView(PIANO_LAYOUT_STANDARD),
+  pianoInputPadMode(PIANO_INPUT_PAD_DISABLE),
 #endif
   hasACED(false),
   waveGenBaseShape(0),

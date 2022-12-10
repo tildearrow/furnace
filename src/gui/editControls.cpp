@@ -188,15 +188,24 @@ void FurnaceGUI::drawMobileControls() {
     if (ImGui::Button(ICON_FA_PLAY "##Play",buttonSize)) {
       play();
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Play");
+    }
     popToggleColors();
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_STOP "##Stop",buttonSize)) {
       stop();
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Stop");
+    }
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne",buttonSize)) {
       e->stepOne(cursor.y);
       pendingStepUpdate=true;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Step 1 row");
     }
 
     bool repeatPattern=e->getRepeatPattern();
@@ -205,12 +214,18 @@ void FurnaceGUI::drawMobileControls() {
     if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern",buttonSize)) {
       e->setRepeatPattern(!repeatPattern);
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Repeat pattern");
+    }
     popToggleColors();
 
     pushToggleColors(edit);
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_CIRCLE "##Edit",buttonSize)) {
       edit=!edit;
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Edit");
     }
     popToggleColors();
 
@@ -219,6 +234,9 @@ void FurnaceGUI::drawMobileControls() {
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_BELL_O "##Metronome",buttonSize)) {
       e->setMetronome(!metro);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Metronome");
     }
     popToggleColors();
   }
@@ -445,10 +463,16 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
           play();
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Play");
+        }
         popToggleColors();
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_STOP "##Stop")) {
           stop();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Stop");
         }
         ImGui::SameLine();
         ImGui::Checkbox("Edit",&edit);
@@ -473,12 +497,18 @@ void FurnaceGUI::drawEditControls() {
           e->stepOne(cursor.y);
           pendingStepUpdate=true;
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Step 1 row");
+        }
 
         ImGui::SameLine();
         pushToggleColors(noteInputPoly);
         if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
           noteInputPoly=!noteInputPoly;
           e->setAutoNotePoly(noteInputPoly);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Polyphony");
         }
         popToggleColors();
       }
@@ -490,16 +520,25 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::Button(ICON_FA_STOP "##Stop")) {
           stop();
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Stop");
+        }
         ImGui::SameLine();
         pushToggleColors(e->isPlaying());
         if (ImGui::Button(ICON_FA_PLAY "##Play")) {
           play();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Play");
         }
         popToggleColors();
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
           pendingStepUpdate=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Step 1 row");
         }
 
         ImGui::SameLine();
@@ -508,12 +547,18 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern")) {
           e->setRepeatPattern(!repeatPattern);
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Repeat pattern");
+        }
         popToggleColors();
 
         ImGui::SameLine();
         pushToggleColors(edit);
         if (ImGui::Button(ICON_FA_CIRCLE "##Edit")) {
           edit=!edit;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Edit");
         }
         popToggleColors();
 
@@ -522,6 +567,9 @@ void FurnaceGUI::drawEditControls() {
         pushToggleColors(metro);
         if (ImGui::Button(ICON_FA_BELL_O "##Metronome")) {
           e->setMetronome(!metro);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Metronome");
         }
         popToggleColors();
 
@@ -565,6 +613,9 @@ void FurnaceGUI::drawEditControls() {
           noteInputPoly=!noteInputPoly;
           e->setAutoNotePoly(noteInputPoly);
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Polyphony");
+        }
         popToggleColors();
       }
       if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_EDIT_CONTROLS;
@@ -577,13 +628,22 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::Button(ICON_FA_PLAY "##Play",buttonSize)) {
           play();
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Play");
+        }
         popToggleColors();
         if (ImGui::Button(ICON_FA_STOP "##Stop",buttonSize)) {
           stop();
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Stop");
+        }
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne",buttonSize)) {
           e->stepOne(cursor.y);
           pendingStepUpdate=true;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Step 1 row");
         }
 
         bool repeatPattern=e->getRepeatPattern();
@@ -591,11 +651,17 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern",buttonSize)) {
           e->setRepeatPattern(!repeatPattern);
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Repeat pattern");
+        }
         popToggleColors();
 
         pushToggleColors(edit);
         if (ImGui::Button(ICON_FA_CIRCLE "##Edit",buttonSize)) {
           edit=!edit;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Edit");
         }
         popToggleColors();
 
@@ -604,9 +670,15 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::Button(ICON_FA_BELL_O "##Metronome",buttonSize)) {
           e->setMetronome(!metro);
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Metronome");
+        }
         popToggleColors();
 
         ImGui::Text("Oct.");
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Octave");
+        }
         float avail=ImGui::GetContentRegionAvail().x;
         ImGui::SetNextItemWidth(avail);
         if (ImGui::InputInt("##Octave",&curOctave,0,0)) {
@@ -631,14 +703,23 @@ void FurnaceGUI::drawEditControls() {
         }
 
         ImGui::Text("Foll.");
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Follow");
+        }
         pushToggleColors(followOrders);
         if (ImGui::Button("Ord##FollowOrders",buttonSize)) { handleUnimportant
           followOrders=!followOrders;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Orders");
         }
         popToggleColors();
         pushToggleColors(followPattern);
         if (ImGui::Button("Pat##FollowPattern",buttonSize)) { handleUnimportant
           followPattern=!followPattern;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Pattern");
         }
         popToggleColors();
 
@@ -646,6 +727,9 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
           noteInputPoly=!noteInputPoly;
           e->setAutoNotePoly(noteInputPoly);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Polyphony");
         }
         popToggleColors();
       }
@@ -659,10 +743,16 @@ void FurnaceGUI::drawEditControls() {
           if (ImGui::Button(ICON_FA_STOP "##Stop")) {
             stop();
           }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Stop");
+          }
           popToggleColors();
         } else {
           if (ImGui::Button(ICON_FA_PLAY "##Play")) {
             play(oldRow);
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Play");
           }
         }
         ImGui::SameLine();
@@ -670,21 +760,33 @@ void FurnaceGUI::drawEditControls() {
           e->setRepeatPattern(false);
           play();
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Play from the beginning of this pattern");
+        }
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_STEP_FORWARD "##PlayRepeat")) {
           e->setRepeatPattern(true);
           play();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Repeat from the beginning of this pattern");
         }
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
           pendingStepUpdate=true;
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Step 1 row");
+        }
 
         ImGui::SameLine();
         pushToggleColors(edit);
         if (ImGui::Button(ICON_FA_CIRCLE "##Edit")) {
           edit=!edit;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Edit");
         }
         popToggleColors();
 
@@ -694,6 +796,9 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::Button(ICON_FA_BELL_O "##Metronome")) {
           e->setMetronome(!metro);
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Metronome");
+        }
         popToggleColors();
 
         ImGui::SameLine();
@@ -702,6 +807,9 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern")) {
           e->setRepeatPattern(!repeatPattern);
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Repeat pattern");
+        }
         popToggleColors();
 
         ImGui::SameLine();
@@ -709,6 +817,9 @@ void FurnaceGUI::drawEditControls() {
         if (ImGui::Button(noteInputPoly?("Poly##PolyInput"):("Mono##PolyInput"))) {
           noteInputPoly=!noteInputPoly;
           e->setAutoNotePoly(noteInputPoly);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Polyphony");
         }
         popToggleColors();
       }
