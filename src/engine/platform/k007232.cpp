@@ -217,7 +217,7 @@ void DivPlatformK007232::tick(bool sysTick) {
         if (prevLoop!=lastLoop) {
           rWrite(0xd,lastLoop);
         }
-        if (chan[i].prevBank!=bank) {
+        if (chan[i].prevBank!=(int)bank) {
           rWrite(0x12+i,bank);
           chan[i].prevBank=bank;
         }
