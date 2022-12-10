@@ -176,8 +176,6 @@ void DivPlatformK007232::tick(bool sysTick) {
           off=8363.0/s->centerRate;
         }
       }
-      unsigned char loopon=lastLoop|(1<<i);
-      unsigned char loopoff=loopon&~(1<<i);
       DivSample* s=parent->getSample(chan[i].sample);
       chan[i].freq=0x1000-(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER));
       if (chan[i].freq>4095) chan[i].freq=4095;
@@ -206,9 +204,9 @@ void DivPlatformK007232::tick(bool sysTick) {
         // keyon
         if (s->isLoopable()) {
           loop=start+s->loopStart;
-          lastLoop=loopon;
+          lastLoop|=(1<<i);
         } else {
-          lastLoop=loopoff;
+          lastLoop&=~(i<<i);
         }
         rWrite(0xd,lastLoop);
         rWrite(0x12+i,bank);
@@ -238,6 +236,8 @@ void DivPlatformK007232::tick(bool sysTick) {
         chWrite(i,3,0xff);
         chWrite(i,4,0x1);
         chWrite(i,5,0);
+        lastLoop&=~(1<<i);
+        rWrite(0xd,lastLoop);
         chan[i].keyOff=false;
       }
       if (chan[i].freqChanged) {
