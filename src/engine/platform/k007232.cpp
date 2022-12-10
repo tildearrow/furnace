@@ -57,6 +57,7 @@ inline void DivPlatformK007232::chWrite(unsigned char ch, unsigned int addr, uns
 void DivPlatformK007232::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     if ((--delay)<=0) {
+      delay=MAX(0,delay);
       if (!writes.empty()) {
         QueuedWrite& w=writes.front();
         // write on-chip register

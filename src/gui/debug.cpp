@@ -1129,7 +1129,7 @@ void putDispatchChan(void* data, int chanNum, int type) {
     case DIV_SYSTEM_K007232: {
       DivPlatformK007232::Channel* ch=(DivPlatformK007232::Channel*)data;
       ImGui::Text("> K007232");
-      ImGui::Text("* freq:");
+      ImGui::Text("* freq: %d",ch->freq);
       ImGui::Text(" - base: %d",ch->baseFreq);
       ImGui::Text(" - pitch: %d",ch->pitch);
       ImGui::Text(" - pitch2: %d",ch->pitch2);
