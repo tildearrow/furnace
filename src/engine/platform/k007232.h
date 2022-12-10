@@ -27,11 +27,12 @@
 
 class DivPlatformK007232: public DivDispatch, public k007232_intf {
   struct Channel {
-    int freq, baseFreq, pitch, pitch2;
+    int freq, prevFreq, baseFreq, pitch, pitch2;
     unsigned int audPos;
+    int prevBank;
     int sample, wave, ins;
     int note;
-    int panning;
+    int panning, prevPan;
     bool active, insChanged, volumeChanged, freqChanged, keyOn, keyOff, inPorta, setPos;
     int vol, outVol, lvol, rvol;
     int macroVolMul;
@@ -42,14 +43,17 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
     }
     Channel():
       freq(0),
+      prevFreq(-1),
       baseFreq(0),
       pitch(0),
       pitch2(0),
       audPos(0),
+      prevBank(-1),
       sample(-1),
       ins(-1),
       note(0),
       panning(255),
+      prevPan(-1),
       active(false),
       insChanged(true),
       volumeChanged(false),
@@ -81,7 +85,7 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
   bool sampleLoaded[256];
 
   int delay;
-  unsigned char lastLoop, lastVolume, lastPan[2];
+  unsigned char lastLoop, lastVolume;
   bool stereo;
 
   unsigned char* sampleMem;

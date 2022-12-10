@@ -149,10 +149,10 @@ void DivPlatformK007232::tick(bool sysTick) {
       if (stereo) {
         chan[i].lvol=isMuted[i]?0:(((chan[i].outVol&0xf)*((chan[i].panning>>0)&0xf))/15);
         chan[i].rvol=isMuted[i]?0:(((chan[i].outVol&0xf)*((chan[i].panning>>4)&0xf))/15);
-        const unsigned char prevPan=lastPan[i];
-        lastPan[i]=(chan[i].lvol&0xf)|((chan[i].rvol&0xf)<<4);
-        if (prevPan!=lastPan[i]) {
+        const int newPan=(chan[i].lvol&0xf)|((chan[i].rvol&0xf)<<4);
+        if (chan[i].prevPan!=newPan) {
           rWrite(0x10+i,(chan[i].lvol&0xf)|((chan[i].rvol&0xf)<<4));
+          chan[i].prevPan=newPan;
         }
       }
       else {
@@ -202,8 +202,6 @@ void DivPlatformK007232::tick(bool sysTick) {
         start=MIN(start,MIN(getSampleMemCapacity(),131072)-1);
         loop=MIN(loop,MIN(getSampleMemCapacity(),131072)-1);
         // force keyoff first
-        chWrite(i,0,0);
-        chWrite(i,1,0);
         chWrite(i,2,0xff);
         chWrite(i,3,0xff);
         chWrite(i,4,0x1);
@@ -219,14 +217,20 @@ void DivPlatformK007232::tick(bool sysTick) {
         if (prevLoop!=lastLoop) {
           rWrite(0xd,lastLoop);
         }
-        rWrite(0x12+i,bank);
-        chWrite(i,0,chan[i].freq&0xff);
-        chWrite(i,1,(chan[i].freq>>8)&0xf);
+        if (chan[i].prevBank!=bank) {
+          rWrite(0x12+i,bank);
+          chan[i].prevBank=bank;
+        }
+        if (chan[i].prevFreq!=chan[i].freq) {
+          chWrite(i,0,chan[i].freq&0xff);
+          chWrite(i,1,(chan[i].freq>>8)&0xf);
+          chan[i].prevFreq=chan[i].freq;
+        }
         chWrite(i,2,start&0xff);
         chWrite(i,3,start>>8);
         chWrite(i,4,start>>16);
         chWrite(i,5,0);
-        if (s->isLoopable()) {
+        if (s->isLoopable() && start!=loop) {
           chWrite(i,2,loop&0xff);
           chWrite(i,3,loop>>8);
           chWrite(i,4,loop>>16);
@@ -240,19 +244,23 @@ void DivPlatformK007232::tick(bool sysTick) {
         chan[i].keyOn=false;
       }
       if (chan[i].keyOff) {
-        chWrite(i,0,0);
-        chWrite(i,1,0);
         chWrite(i,2,0xff);
         chWrite(i,3,0xff);
         chWrite(i,4,0x1);
         chWrite(i,5,0);
+        const unsigned char prevLoop=lastLoop;
         lastLoop&=~(1<<i);
-        rWrite(0xd,lastLoop);
+        if (prevLoop!=lastLoop) {
+          rWrite(0xd,lastLoop);
+        }
         chan[i].keyOff=false;
       }
       if (chan[i].freqChanged) {
-        chWrite(i,0,chan[i].freq&0xff);
-        chWrite(i,1,(chan[i].freq>>8)&0xf);
+        if (chan[i].prevFreq!=chan[i].freq) {
+          chWrite(i,0,chan[i].freq&0xff);
+          chWrite(i,1,(chan[i].freq>>8)&0xf);
+          chan[i].prevFreq=chan[i].freq;
+        }
         chan[i].freqChanged=false;
       }
     }
@@ -413,7 +421,6 @@ void DivPlatformK007232::reset() {
   k007232.reset();
   lastLoop=0;
   lastVolume=0;
-  lastPan[0]=lastPan[1]=0;
   for (int i=0; i<2; i++) {
     chan[i]=DivPlatformK007232::Channel();
     chan[i].std.setEngine(parent);
