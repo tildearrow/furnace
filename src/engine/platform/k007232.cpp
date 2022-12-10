@@ -150,7 +150,8 @@ void DivPlatformK007232::tick(bool sysTick) {
       }
       else {
         chan[i].lvol=chan[i].rvol=isMuted[i]?0:chan[i].outVol&0xf;
-        rWrite(0xc,(regPool[0xc]&~(0xf<<(i<<2)))|((chan[i].outVol&0xf)<<(i<<2)));
+        lastVolume=(lastVolume&~(0xf<<(i<<2)))|((chan[i].outVol&0xf)<<(i<<2));
+        rWrite(0xc,lastVolume);
       }
       chan[i].volumeChanged=false;
     }
@@ -172,7 +173,7 @@ void DivPlatformK007232::tick(bool sysTick) {
           off=8363.0/s->centerRate;
         }
       }
-      unsigned char loopon=regPool[0xd]|(1<<i);
+      unsigned char loopon=lastLoop|(1<<i);
       unsigned char loopoff=loopon&~(1<<i);
       DivSample* s=parent->getSample(chan[i].sample);
       chan[i].freq=0x1000-(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER));
@@ -190,12 +191,6 @@ void DivPlatformK007232::tick(bool sysTick) {
         if (chan[i].audPos>0) {
           start=start+MIN(chan[i].audPos,MIN(131072-1,s->length8));
         }
-        if (s->isLoopable()) {
-          loop=start+s->loopStart;
-          rWrite(0xd,loopon);
-        } else {
-          rWrite(0xd,loopoff);
-        }
         start=MIN(start,MIN(getSampleMemCapacity(),131072)-1);
         loop=MIN(loop,MIN(getSampleMemCapacity(),131072)-1);
         // force keyoff first
@@ -206,6 +201,13 @@ void DivPlatformK007232::tick(bool sysTick) {
         chWrite(i,4,0x1);
         chWrite(i,5,0);
         // keyon
+        if (s->isLoopable()) {
+          loop=start+s->loopStart;
+          lastLoop=loopon;
+        } else {
+          lastLoop=loopoff;
+        }
+        rWrite(0xd,lastLoop);
         rWrite(0x12+i,bank);
         chWrite(i,0,chan[i].freq&0xff);
         chWrite(i,1,(chan[i].freq>>8)&0xf);
@@ -391,8 +393,13 @@ DivDispatchOscBuffer* DivPlatformK007232::getOscBuffer(int ch) {
 }
 
 void DivPlatformK007232::reset() {
+  while (!writes.empty()) {
+    writes.pop();
+  }
   memset(regPool,0,32);
   k007232.reset();
+  lastLoop=0;
+  lastVolume=0xff;
   for (int i=0; i<2; i++) {
     chan[i]=DivPlatformK007232::Channel();
     chan[i].std.setEngine(parent);
