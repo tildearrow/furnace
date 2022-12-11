@@ -1694,7 +1694,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_K007232]=new DivSysDef(
-    "Konami K007232", NULL, 0xc1, 0, 2, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Konami K007232", NULL, 0xc6, 0, 2, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "this PCM chip was widely used at Konami arcade boards in 1986-1990.",
     {"Channel 1", "Channel 2"},
     {"CH1", "CH2"},
