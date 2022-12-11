@@ -34,7 +34,7 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
     int note;
     int panning, prevPan;
     bool active, insChanged, volumeChanged, freqChanged, keyOn, keyOff, inPorta, setPos;
-    int vol, outVol, lvol, rvol;
+    int vol, outVol, resVol, lvol, rvol;
     int macroVolMul;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
@@ -64,6 +64,7 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
       setPos(false),
       vol(15),
       outVol(15),
+      resVol(15),
       lvol(15),
       rvol(15),
       macroVolMul(64) {}

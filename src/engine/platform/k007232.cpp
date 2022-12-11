@@ -146,9 +146,10 @@ void DivPlatformK007232::tick(bool sysTick) {
       }
     }
     if (chan[i].volumeChanged) {
+      chan[i].resVol=isMuted[i]?0:chan[i].outVol&0xf;
       if (stereo) {
-        chan[i].lvol=isMuted[i]?0:(((chan[i].outVol&0xf)*((chan[i].panning>>0)&0xf))/15);
-        chan[i].rvol=isMuted[i]?0:(((chan[i].outVol&0xf)*((chan[i].panning>>4)&0xf))/15);
+        chan[i].lvol=((chan[i].resVol&0xf)*((chan[i].panning>>0)&0xf))/15;
+        chan[i].rvol=((chan[i].resVol&0xf)*((chan[i].panning>>4)&0xf))/15;
         const int newPan=(chan[i].lvol&0xf)|((chan[i].rvol&0xf)<<4);
         if (chan[i].prevPan!=newPan) {
           rWrite(0x10+i,(chan[i].lvol&0xf)|((chan[i].rvol&0xf)<<4));
@@ -156,9 +157,8 @@ void DivPlatformK007232::tick(bool sysTick) {
         }
       }
       else {
-        chan[i].lvol=chan[i].rvol=isMuted[i]?0:chan[i].outVol&0xf;
         const unsigned char prevVolume=lastVolume;
-        lastVolume=(lastVolume&~(0xf<<(i<<2)))|((chan[i].lvol&0xf)<<(i<<2));
+        lastVolume=(lastVolume&~(0xf<<(i<<2)))|((chan[i].resVol&0xf)<<(i<<2));
         if (prevVolume!=lastVolume) {
           rWrite(0xc,lastVolume);
         }

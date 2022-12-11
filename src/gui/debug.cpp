@@ -1144,6 +1144,7 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text(" - prev: %d",ch->prevPan);
       ImGui::Text("- vol: %.2x",ch->vol);
       ImGui::Text("- outVol: %.2x",ch->outVol);
+      ImGui::Text("- resVol: %.2x",ch->resVol);
       ImGui::Text("- lvol: %.2x",ch->lvol);
       ImGui::Text("- rvol: %.2x",ch->rvol);
       ImGui::Text("- macroVolMul: %.2x",ch->macroVolMul);
