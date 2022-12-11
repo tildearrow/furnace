@@ -205,7 +205,7 @@ void FurnaceGUI::drawMobileControls() {
       pendingStepUpdate=true;
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Step 1 row");
+      ImGui::SetTooltip("Step one row");
     }
 
     bool repeatPattern=e->getRepeatPattern();
@@ -498,7 +498,7 @@ void FurnaceGUI::drawEditControls() {
           pendingStepUpdate=true;
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Step 1 row");
+          ImGui::SetTooltip("Step one row");
         }
 
         ImGui::SameLine();
@@ -538,7 +538,7 @@ void FurnaceGUI::drawEditControls() {
           pendingStepUpdate=true;
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Step 1 row");
+          ImGui::SetTooltip("Step one row");
         }
 
         ImGui::SameLine();
@@ -643,7 +643,7 @@ void FurnaceGUI::drawEditControls() {
           pendingStepUpdate=true;
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Step 1 row");
+          ImGui::SetTooltip("Step one row");
         }
 
         bool repeatPattern=e->getRepeatPattern();
@@ -777,7 +777,7 @@ void FurnaceGUI::drawEditControls() {
           pendingStepUpdate=true;
         }
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Step 1 row");
+          ImGui::SetTooltip("Step one row");
         }
 
         ImGui::SameLine();

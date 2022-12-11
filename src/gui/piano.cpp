@@ -78,37 +78,25 @@ void FurnaceGUI::drawPiano() {
           if (ImGui::Button("OFF##PianoNOff",optionSize)) {
             if (edit) noteInput(0,GUI_NOTE_OFF);
           }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Note Off");
-          }
           ImGui::SameLine();
           if (ImGui::Button("===##PianoNRel",optionSize)) {
             if (edit) noteInput(0,GUI_NOTE_OFF_RELEASE);
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Note Off + Release");
           }
         } else {
           if (ImGui::Button(ICON_FA_ARROW_LEFT "##PianoLeft",optionSize)) {
             off--;
             if (off<0) off=0;
           }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Left scroll");
-          }
           ImGui::SameLine();
           if (ImGui::Button(ICON_FA_ARROW_RIGHT "##PianoRight",optionSize)) {
             off++;
             if ((off+oct)>14) off=15-oct;
           }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Right scroll");
-          }
         }
         ImGui::SameLine();
         ImGui::Button(ICON_FA_ELLIPSIS_V "##PianoOptions",optionSize);
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Piano Options");
+          ImGui::SetTooltip("Options");
         }
         if (ImGui::BeginPopupContextItem("PianoOptions",ImGuiPopupFlags_MouseButtonLeft)) {
           ImGui::Text("Key layout:");
@@ -146,23 +134,14 @@ void FurnaceGUI::drawPiano() {
           if (ImGui::Button("REL##PianoNMRel",optionSize)) {
             if (edit) noteInput(0,GUI_NOTE_RELEASE);
           }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Note Release");
-          }
           ImGui::SameLine();
           if (ImGui::Button(ICON_FA_TIMES "##PianoDelP",optionSize)) {
             doDelete();
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Note Delete");
           }
         } else {
           if (ImGui::Button(ICON_FA_MINUS "##PianoOctaveDown",optionSize)) {
             oct--;
             if (oct<1) oct=1;
-          }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Octave down");
           }
           ImGui::SameLine();
           if (ImGui::Button(ICON_FA_PLUS "##PianoOctaveUp",optionSize)) {
@@ -170,16 +149,10 @@ void FurnaceGUI::drawPiano() {
             if (oct>15) oct=15;
             if ((off+oct)>14) off=15-oct;
           }
-          if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("Octave up");
-          }
         }
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ELLIPSIS_H "##PianoSel",optionSize)) {
           pianoOptionsSet=!pianoOptionsSet;
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip(pianoOptionsSet?"Note Off/Release":"Scroll/Resize Piano");
         }
       }
 
@@ -509,9 +482,6 @@ void FurnaceGUI::drawPiano() {
         ImGui::TableNextColumn();
         if (ImGui::Button(ICON_FA_TIMES "##PianoDel",buttonSize)) {
           doDelete();
-        }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Delete");
         }
         ImGui::TableNextColumn();
         VALUE_DIGIT(0,"0");

@@ -95,7 +95,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
       if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_OPEN);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Load");
+      ImGui::SetTooltip("Open");
     }
     if (settings.unifiedDataView) {
       if (ImGui::BeginPopupContextItem("UnifiedLoad",ImGuiMouseButton_Left)) {
@@ -557,7 +557,7 @@ void FurnaceGUI::drawWaveList(bool asChild) {
       doAction(GUI_ACTION_WAVE_LIST_OPEN);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Load");
+      ImGui::SetTooltip("Open");
     }
     if (ImGui::BeginPopupContextItem("WaveOpenOpt")) {
       if (ImGui::MenuItem("replace...")) {
@@ -655,7 +655,7 @@ void FurnaceGUI::drawSampleList(bool asChild) {
       doAction(GUI_ACTION_SAMPLE_LIST_OPEN);
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Load");
+      ImGui::SetTooltip("Open");
     }
     if (ImGui::BeginPopupContextItem("SampleOpenOpt")) {
       if (ImGui::MenuItem("replace...")) {

@@ -119,7 +119,7 @@ void FurnaceGUI::drawSampleEdit() {
         doAction(GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE);
       }
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Load");
+        ImGui::SetTooltip("Open");
       }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_FLOPPY_O "##SESave")) {
