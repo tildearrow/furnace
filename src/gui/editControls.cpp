@@ -188,24 +188,15 @@ void FurnaceGUI::drawMobileControls() {
     if (ImGui::Button(ICON_FA_PLAY "##Play",buttonSize)) {
       play();
     }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Play");
-    }
     popToggleColors();
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_STOP "##Stop",buttonSize)) {
       stop();
     }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Stop");
-    }
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne",buttonSize)) {
       e->stepOne(cursor.y);
       pendingStepUpdate=true;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Step one row");
     }
 
     bool repeatPattern=e->getRepeatPattern();
@@ -214,18 +205,12 @@ void FurnaceGUI::drawMobileControls() {
     if (ImGui::Button(ICON_FA_REPEAT "##RepeatPattern",buttonSize)) {
       e->setRepeatPattern(!repeatPattern);
     }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Repeat pattern");
-    }
     popToggleColors();
 
     pushToggleColors(edit);
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_CIRCLE "##Edit",buttonSize)) {
       edit=!edit;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Edit");
     }
     popToggleColors();
 
@@ -234,9 +219,6 @@ void FurnaceGUI::drawMobileControls() {
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_BELL_O "##Metronome",buttonSize)) {
       e->setMetronome(!metro);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Metronome");
     }
     popToggleColors();
   }
