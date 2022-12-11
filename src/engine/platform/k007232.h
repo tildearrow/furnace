@@ -95,6 +95,7 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 
+  void chWrite(unsigned char ch, unsigned int addr, unsigned char val);
   public:
     u8 read_sample(u8 ne, u32 address);
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
@@ -128,8 +129,6 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
       DivDispatch(),
       k007232_intf(),
       k007232(*this) {}
-  private:
-    void chWrite(unsigned char ch, unsigned int addr, unsigned char val);
 };
 
 #endif

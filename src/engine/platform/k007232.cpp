@@ -128,14 +128,14 @@ void DivPlatformK007232::tick(bool sysTick) {
     if (chan[i].std.panL.had) {
       chan[i].panning&=0xf0;
       chan[i].panning|=chan[i].std.panL.val&15;
-      if (!isMuted[i] && stereo) {
+      if ((!isMuted[i]) && stereo) {
         chan[i].volumeChanged=true;
       }
     }
     if (chan[i].std.panR.had) {
       chan[i].panning&=0x0f;
       chan[i].panning|=(chan[i].std.panR.val&15)<<4;
-      if (!isMuted[i] && stereo) {
+      if ((!isMuted[i]) && stereo) {
         chan[i].volumeChanged=true;
       }
     }
@@ -158,7 +158,7 @@ void DivPlatformK007232::tick(bool sysTick) {
       else {
         chan[i].lvol=chan[i].rvol=isMuted[i]?0:chan[i].outVol&0xf;
         const unsigned char prevVolume=lastVolume;
-        lastVolume=(lastVolume&~(0xf<<(i<<2)))|((chan[i].outVol&0xf)<<(i<<2));
+        lastVolume=(lastVolume&~(0xf<<(i<<2)))|((chan[i].lvol&0xf)<<(i<<2));
         if (prevVolume!=lastVolume) {
           rWrite(0xc,lastVolume);
         }
