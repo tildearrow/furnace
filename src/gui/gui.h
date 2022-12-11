@@ -653,6 +653,12 @@ enum PasteMode {
   GUI_PASTE_MODE_INS_BG
 };
 
+enum NoteCtrl {
+  GUI_NOTE_OFF=100,
+  GUI_NOTE_OFF_RELEASE=101,
+  GUI_NOTE_RELEASE=102
+};
+
 #define FURKMOD_CTRL (1U<<31)
 #define FURKMOD_SHIFT (1<<29)
 #define FURKMOD_META (1<<28)
@@ -1677,6 +1683,21 @@ class FurnaceGUI {
   bool followLog;
 
   // piano
+  enum PianoLayoutMode {
+    PIANO_LAYOUT_STANDARD = 0,
+    PIANO_LAYOUT_CONTINUOUS,
+    PIANO_LAYOUT_AUTOMATIC,
+    PIANO_LAYOUT_MAX
+  };
+
+  enum PianoInputPadMode {
+    PIANO_INPUT_PAD_DISABLE = 0,
+    PIANO_INPUT_PAD_REPLACE,
+    PIANO_INPUT_PAD_SPLIT_AUTO,
+    PIANO_INPUT_PAD_SPLIT_VISIBLE,
+    PIANO_INPUT_PAD_MAX
+  };
+
   int pianoOctaves, pianoOctavesEdit;
   bool pianoOptions, pianoSharePosition, pianoOptionsSet;
   float pianoKeyHit[180];
