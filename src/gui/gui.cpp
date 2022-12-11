@@ -3822,8 +3822,10 @@ bool FurnaceGUI::loop() {
           curWindow=GUI_WINDOW_PATTERN;
           drawPattern();
           drawPiano();
-          drawFindReplace();
           drawMobileOrderSel();
+
+          globalWinFlags=0;
+          drawFindReplace();
           break;
       }
 
@@ -5150,7 +5152,11 @@ bool FurnaceGUI::init() {
   volMeterOpen=e->getConfBool("volMeterOpen",true);
   statsOpen=e->getConfBool("statsOpen",false);
   compatFlagsOpen=e->getConfBool("compatFlagsOpen",false);
-  pianoOpen=e->getConfBool("pianoOpen",IS_MOBILE?true:false);
+#ifdef IS_MOBILE
+  pianoOpen=e->getConfBool("pianoOpen",true);
+#else
+  pianoOpen=e->getConfBool("pianoOpen",false);
+#endif
   notesOpen=e->getConfBool("notesOpen",false);
   channelsOpen=e->getConfBool("channelsOpen",false);
   patManagerOpen=e->getConfBool("patManagerOpen",false);
