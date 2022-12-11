@@ -226,7 +226,7 @@ void FurnaceGUI::drawMobileControls() {
       ImGui::SetNextWindowPos(ImVec2(0.0f,0.0f));
       ImGui::SetNextWindowSize(ImVec2(canvasW,canvasH));
     } else {
-      ImGui::SetNextWindowPos(ImVec2(mobileEditButtonPos.x*canvasW, mobileEditButtonPos.y*canvasH));
+      ImGui::SetNextWindowPos(ImVec2((mobileEditButtonPos.x+(portrait?0:(mobileMenuPos*0.65)))*canvasW,(mobileEditButtonPos.y-(portrait?(mobileMenuPos*0.65):0))*canvasH));
       ImGui::SetNextWindowSize(portrait?ImVec2(0.16*canvasW,0.16*canvasW):ImVec2(0.16*canvasH,0.16*canvasH));
     }
 
@@ -295,7 +295,7 @@ void FurnaceGUI::drawMobileControls() {
               doAction(mobileButtonActions[i+mobileEditPage*8]);
             }
             if (mobileButtonPersist[i+mobileEditPage*8]) {
-              mobileEdit=true;
+              if (mobileMenuPos<=0.0) mobileEdit=true;
             }
           }
 
@@ -314,10 +314,10 @@ void FurnaceGUI::drawMobileControls() {
           if (++mobileEditPage>3) mobileEditPage=0;
         }
         if (ImGui::GetIO().MouseDragMaxDistanceSqr[ImGuiMouseButton_Left]<=ImGui::GetIO().ConfigInertialScrollToleranceSqr) {
-          mobileEdit=true;
+          if (mobileMenuPos<=0.0) mobileEdit=true;
         }
       }
-      if (ImGui::IsItemClicked() && !mobileEdit) {
+      if (ImGui::IsItemClicked() && !mobileEdit && mobileMenuPos<=0.0) {
         dragMobileEditButton=true;
       }
     }
