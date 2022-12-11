@@ -23,17 +23,20 @@
 
 // 0: all directions
 // 1: half
-// 2: quarter
-float mobileButtonAngles[3][8]={
+// 2: half
+// 3: quarter
+float mobileButtonAngles[4][8]={
   {0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875},
-  {0.8, 0.933333, 0.066667, 0.2, 0.8, 0.933333, 0.066667, 0.2},
-  {0.75, 0.833333, 0.916667, 0.0, 0.75, 0.833333, 0.916667, 0.0}
+  {0.8333, 0.0, 0.1667, 0.8, 0.9, 0.0, 0.1, 0.2},
+  {0.0833, 0.25, 0.4167, 0.45, 0.35, 0.25, 0.15, 0.05},
+  {0.25, 0.125, 0.0, 0.25, 0.1875, 0.125, 0.0625, 0.0}
 };
 
-float mobileButtonDistances[3][8]={
+float mobileButtonDistances[4][8]={
   {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0},
-  {1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0},
-  {1.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0, 2.0}
+  {0.8, 0.75, 0.8, 1.5, 1.5, 1.5, 1.5, 1.5},
+  {0.8, 0.75, 0.8, 1.5, 1.5, 1.5, 1.5, 1.5},
+  {0.9, 1.0, 0.9, 1.78, 1.82, 1.95, 1.82, 1.78}
 };
 
 void FurnaceGUI::drawMobileControls() {
@@ -101,6 +104,7 @@ void FurnaceGUI::drawMobileControls() {
   }
 
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
+  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,mobileEditButtonSize.x);
   if (ImGui::Begin("MobileEdit",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground|ImGuiWindowFlags_NoDecoration)) {
     if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && mobileEdit) {
       mobileEdit=false;
@@ -113,6 +117,37 @@ void FurnaceGUI::drawMobileControls() {
       float buttonMirrorY=1.0f;
 
       int buttonLayout=0;
+
+      ImVec2 scaledButtonPos=ImVec2(
+        mobileEditButtonPos.x+((mobileEditButtonSize.x*0.5)/(float)canvasW),
+        mobileEditButtonPos.y+((mobileEditButtonSize.y*0.5)/(float)canvasH)
+      );
+
+      if (scaledButtonPos.x>0.25 &&
+          scaledButtonPos.x<0.75 &&
+          scaledButtonPos.y>0.2 &&
+          scaledButtonPos.y<0.8) {
+        buttonLayout=0;
+      } else if (scaledButtonPos.x>0.4 && scaledButtonPos.x<0.6) {
+        buttonLayout=2;
+      } else if (scaledButtonPos.y>0.25 && scaledButtonPos.y<0.75) {
+        buttonLayout=1;
+      } else {
+        buttonLayout=3;
+      }
+
+      switch (buttonLayout) {
+        case 1:
+          if (mobileEditButtonPos.x>0.5) buttonMirrorX=-1.0f;
+          break;
+        case 2:
+          if (mobileEditButtonPos.y>0.5) buttonMirrorY=-1.0f;
+          break;
+        case 3:
+          if (mobileEditButtonPos.x>0.5) buttonMirrorX=-1.0f;
+          if (mobileEditButtonPos.y>0.5) buttonMirrorY=-1.0f;
+          break;
+      }
 
       for (int i=0; i<8; i++) {
         float anim=(mobileEditAnim*1.5)-(float)i*0.05;
@@ -149,7 +184,7 @@ void FurnaceGUI::drawMobileControls() {
     }
   }
   ImGui::End();
-  ImGui::PopStyleVar();
+  ImGui::PopStyleVar(2);
   
   ImGui::SetNextWindowPos(portrait?ImVec2(0.0f,((1.0-mobileMenuPos*0.65)*canvasH)-(0.16*canvasW)):ImVec2(0.5*canvasW*mobileMenuPos,0.0f));
   ImGui::SetNextWindowSize(portrait?ImVec2(canvasW,0.16*canvasW):ImVec2(0.16*canvasH,canvasH));
