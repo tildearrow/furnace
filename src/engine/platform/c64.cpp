@@ -22,7 +22,7 @@
 #include "sound/c64_fp/siddefs-fp.h"
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {if (isFP) {sid_fp.write(a,v);} else {sid.write(a,v);}; regPool[(a)&0x1f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_FREQBASE 524288
 
@@ -66,6 +66,16 @@ const char** DivPlatformC64::getRegisterSheet() {
 void DivPlatformC64::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   int dcOff=isFP?0:sid.get_dc(0);
   for (size_t i=start; i<start+len; i++) {
+    if (!writes.empty()) {
+      QueuedWrite w=writes.front();
+      if (isFP) {
+        sid_fp.write(w.addr,w.val);
+      } else {
+        sid.write(w.addr,w.val);
+      };
+      regPool[w.addr&0x1f]=w.val;
+      writes.pop();
+    }
     if (isFP) {
       sid_fp.clock(4,&bufL[i]);
       if (++writeOscBuf>=4) {
@@ -483,6 +493,7 @@ float DivPlatformC64::getPostAmp() {
 }
 
 void DivPlatformC64::reset() {
+  while (!writes.empty()) writes.pop();
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformC64::Channel();
     chan[i].std.setEngine(parent);
