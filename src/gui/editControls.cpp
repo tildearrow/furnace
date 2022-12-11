@@ -77,14 +77,14 @@ void FurnaceGUI::drawMobileControls() {
   if (mobileEditButtonPos.y>1) mobileEditButtonPos.y=1;
 
   if (mobileEdit) {
-    mobileEditAnim+=ImGui::GetIO().DeltaTime*2.0;
+    mobileEditAnim+=ImGui::GetIO().DeltaTime*2.4;
     if (mobileEditAnim>1.0f) {
       mobileEditAnim=1.0f;
     } else {
       WAKE_UP;
     }
   } else {
-    mobileEditAnim-=ImGui::GetIO().DeltaTime*2.0;
+    mobileEditAnim-=ImGui::GetIO().DeltaTime*2.4;
     if (mobileEditAnim<0.0f) {
       mobileEditAnim=0.0f;
     } else {
@@ -115,9 +115,10 @@ void FurnaceGUI::drawMobileControls() {
       int buttonLayout=0;
 
       for (int i=0; i<8; i++) {
-        float anim=(mobileEditAnim*5)-(float)i*0.5;
+        float anim=(mobileEditAnim*1.5)-(float)i*0.05;
         if (anim<0.0f) anim=0.0f;
         if (anim>1.0f) anim=1.0f;
+        anim=5*anim-7*pow(anim,2.0f)+3*pow(anim,3.0f);
 
         buttonDir=mobileButtonAngles[buttonLayout][curButtonPos];
         buttonDist=mobileButtonDistances[buttonLayout][curButtonPos]*mobileEditButtonSize.x*1.6f;
