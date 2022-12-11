@@ -421,6 +421,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_FULLSCREEN,
   GUI_ACTION_TX81Z_REQUEST,
   GUI_ACTION_PANIC,
+  GUI_ACTION_CLEAR,
 
   GUI_ACTION_WINDOW_EDIT_CONTROLS,
   GUI_ACTION_WINDOW_ORDERS,
@@ -520,6 +521,8 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_COLLAPSE_SONG,
   GUI_ACTION_PAT_EXPAND_SONG,
   GUI_ACTION_PAT_LATCH,
+  GUI_ACTION_PAT_SCROLL_MODE,
+  GUI_ACTION_PAT_CLEAR_LATCH,
   GUI_ACTION_PAT_MAX,
 
   GUI_ACTION_INS_LIST_MIN,
@@ -1102,6 +1105,7 @@ class FurnaceGUI {
   int macroPointSize;
   int waveEditStyle;
   int displayInsTypeListMakeInsSample;
+  int mobileEditPage;
   float mobileMenuPos, autoButtonSize, mobileEditAnim;
   ImVec2 mobileEditButtonPos, mobileEditButtonSize;
   const int* curSysSection;

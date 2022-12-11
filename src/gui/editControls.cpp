@@ -25,18 +25,144 @@
 // 1: half
 // 2: half
 // 3: quarter
-float mobileButtonAngles[4][8]={
+const float mobileButtonAngles[4][8]={
   {0.0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875},
   {0.8333, 0.0, 0.1667, 0.8, 0.9, 0.0, 0.1, 0.2},
   {0.0833, 0.25, 0.4167, 0.45, 0.35, 0.25, 0.15, 0.05},
   {0.25, 0.125, 0.0, 0.25, 0.1875, 0.125, 0.0625, 0.0}
 };
 
-float mobileButtonDistances[4][8]={
+const float mobileButtonDistances[4][8]={
   {1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0},
   {0.8, 0.75, 0.8, 1.5, 1.5, 1.5, 1.5, 1.5},
   {0.8, 0.75, 0.8, 1.5, 1.5, 1.5, 1.5, 1.5},
   {0.9, 1.0, 0.9, 1.78, 1.82, 1.95, 1.82, 1.78}
+};
+
+const char* mobileButtonLabels[32]={
+  // page 1
+  "cut",
+  "copy",
+  "paste",
+  "delete",
+  "select\nall",
+  "piano",
+  "undo",
+  "redo",
+
+  // page 2
+  "paste\nmix",
+  "paste\nmix bg",
+  "paste\nins",
+  "paste\nins bg",
+  "paste\nflood",
+  "paste\noverflow",
+  "transpose\nnotes",
+  "transpose\nvalues",
+
+  // page 3
+  "change\nins",
+  "find/\nreplace",
+  "collapse",
+  "expand",
+  "flip",
+  "invert",
+  "interpolate",
+  "scale",
+
+  // page 4
+  "fade",
+  "randomize",
+  "opmask",
+  "scroll\nmode",
+  "input\nlatch",
+  "set\nlatch",
+  "clear\nlatch",
+  "clear"
+};
+
+const int mobileButtonActions[32]={
+  // page 1
+  GUI_ACTION_PAT_CUT,
+  GUI_ACTION_PAT_COPY,
+  GUI_ACTION_PAT_PASTE,
+  GUI_ACTION_PAT_DELETE,
+  GUI_ACTION_PAT_SELECT_ALL,
+  0,
+  GUI_ACTION_UNDO,
+  GUI_ACTION_REDO,
+
+  // page 2
+  GUI_ACTION_PAT_PASTE_MIX,
+  GUI_ACTION_PAT_PASTE_MIX_BG,
+  0,
+  0,
+  GUI_ACTION_PAT_PASTE_FLOOD,
+  GUI_ACTION_PAT_PASTE_OVERFLOW,
+  0,
+  0,
+
+  // page 3
+  0,
+  GUI_ACTION_WINDOW_FIND,
+  GUI_ACTION_PAT_COLLAPSE_ROWS,
+  GUI_ACTION_PAT_EXPAND_ROWS,
+  GUI_ACTION_PAT_FLIP_SELECTION,
+  GUI_ACTION_PAT_INVERT_VALUES,
+  GUI_ACTION_PAT_INTERPOLATE,
+  0,
+
+  // page 4
+  GUI_ACTION_PAT_FADE,
+  0,
+  0,
+  GUI_ACTION_PAT_SCROLL_MODE,
+  0,
+  GUI_ACTION_PAT_LATCH,
+  GUI_ACTION_PAT_CLEAR_LATCH,
+  GUI_ACTION_CLEAR
+};
+
+const bool mobileButtonPersist[32]={
+  // page 1
+  false,
+  false,
+  false,
+  false,
+  true,
+  true,
+  true,
+  true,
+
+  // page 2
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+
+  // page 3
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+  false,
+
+  // page 4
+  false,
+  false,
+  false,
+  true,
+  false,
+  false,
+  false,
+  false,
 };
 
 void FurnaceGUI::drawMobileControls() {
@@ -106,6 +232,7 @@ void FurnaceGUI::drawMobileControls() {
   ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
   ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,mobileEditButtonSize.x);
   if (ImGui::Begin("MobileEdit",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground|ImGuiWindowFlags_NoDecoration)) {
+    bool mobileEditWas=mobileEdit;
     if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && mobileEdit) {
       mobileEdit=false;
     }
@@ -162,7 +289,14 @@ void FurnaceGUI::drawMobileControls() {
           (mobileEditButtonPos.x*canvasW)+cos(buttonDir*2.0*M_PI)*buttonDist*buttonMirrorX*anim,
           (mobileEditButtonPos.y*canvasH)+sin(buttonDir*2.0*M_PI)*buttonDist*buttonMirrorY*anim
         ));
-        ImGui::Button(fmt::sprintf("%d",i+1).c_str(),mobileEditButtonSize);
+        if (ImGui::Button(mobileButtonLabels[i+mobileEditPage*8],mobileEditButtonSize)) {
+          if (mobileButtonActions[i+mobileEditPage*8]) {
+            doAction(mobileButtonActions[i+mobileEditPage*8]);
+          }
+          if (mobileButtonPersist[i+mobileEditPage*8]) {
+            mobileEdit=true;
+          }
+        }
 
         curButtonPos++;
       }
@@ -173,8 +307,11 @@ void FurnaceGUI::drawMobileControls() {
       mobileEditButtonSize=ImVec2(avail,avail);
     }
 
-    if (ImGui::Button("Edit",mobileEditButtonSize)) {
+    if (ImGui::Button(ICON_FA_PENCIL "##Edit",mobileEditButtonSize)) {
       // click
+      if (mobileEditWas) {
+        if (++mobileEditPage>3) mobileEditPage=0;
+      }
       if (ImGui::GetIO().MouseDragMaxDistanceSqr[ImGuiMouseButton_Left]<=ImGui::GetIO().ConfigInertialScrollToleranceSqr) {
         mobileEdit=true;
       }

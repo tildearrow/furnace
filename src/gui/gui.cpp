@@ -3627,7 +3627,7 @@ bool FurnaceGUI::loop() {
         editOptions(true);
         ImGui::Separator();
         if (ImGui::MenuItem("clear...")) {
-          showWarning("Are you sure you want to clear... (cannot be undone!)",GUI_WARN_CLEAR);
+          doAction(GUI_ACTION_CLEAR);
         }
         ImGui::EndMenu();
       }
@@ -3782,7 +3782,6 @@ bool FurnaceGUI::loop() {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
       //globalWinFlags=ImGuiWindowFlags_NoTitleBar;
       // scene handling goes here!
-      pianoOpen=true;
       drawMobileControls();
       switch (mobScene) {
         case GUI_SCENE_ORDERS:
@@ -3823,6 +3822,7 @@ bool FurnaceGUI::loop() {
           curWindow=GUI_WINDOW_PATTERN;
           drawPattern();
           drawPiano();
+          drawFindReplace();
           drawMobileOrderSel();
           break;
       }
@@ -5150,7 +5150,7 @@ bool FurnaceGUI::init() {
   volMeterOpen=e->getConfBool("volMeterOpen",true);
   statsOpen=e->getConfBool("statsOpen",false);
   compatFlagsOpen=e->getConfBool("compatFlagsOpen",false);
-  pianoOpen=e->getConfBool("pianoOpen",false);
+  pianoOpen=e->getConfBool("pianoOpen",IS_MOBILE?true:false);
   notesOpen=e->getConfBool("notesOpen",false);
   channelsOpen=e->getConfBool("channelsOpen",false);
   patManagerOpen=e->getConfBool("patManagerOpen",false);
@@ -5666,6 +5666,7 @@ FurnaceGUI::FurnaceGUI():
   macroPointSize(16),
   waveEditStyle(0),
   displayInsTypeListMakeInsSample(-1),
+  mobileEditPage(0),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
   mobileEditAnim(0.0f),
