@@ -221,107 +221,109 @@ void FurnaceGUI::drawMobileControls() {
     }
   }
 
-  if (mobileEditAnim>0.0f) {
-    ImGui::SetNextWindowPos(ImVec2(0.0f,0.0f));
-    ImGui::SetNextWindowSize(ImVec2(canvasW,canvasH));
-  } else {
-    ImGui::SetNextWindowPos(ImVec2(mobileEditButtonPos.x*canvasW, mobileEditButtonPos.y*canvasH));
-    ImGui::SetNextWindowSize(portrait?ImVec2(0.16*canvasW,0.16*canvasW):ImVec2(0.16*canvasH,0.16*canvasH));
-  }
-
-  ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
-  ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,mobileEditButtonSize.x);
-  if (ImGui::Begin("MobileEdit",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground|ImGuiWindowFlags_NoDecoration)) {
-    bool mobileEditWas=mobileEdit;
-    if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && mobileEdit) {
-      mobileEdit=false;
+  if (curWindowLast==GUI_WINDOW_PATTERN) {
+    if (mobileEditAnim>0.0f) {
+      ImGui::SetNextWindowPos(ImVec2(0.0f,0.0f));
+      ImGui::SetNextWindowSize(ImVec2(canvasW,canvasH));
+    } else {
+      ImGui::SetNextWindowPos(ImVec2(mobileEditButtonPos.x*canvasW, mobileEditButtonPos.y*canvasH));
+      ImGui::SetNextWindowSize(portrait?ImVec2(0.16*canvasW,0.16*canvasW):ImVec2(0.16*canvasH,0.16*canvasH));
     }
 
-    if (mobileEditAnim>0.0f) {
-      int curButtonPos=0;
-      float buttonDir, buttonDist;
-      float buttonMirrorX=1.0f;
-      float buttonMirrorY=1.0f;
-
-      int buttonLayout=0;
-
-      ImVec2 scaledButtonPos=ImVec2(
-        mobileEditButtonPos.x+((mobileEditButtonSize.x*0.5)/(float)canvasW),
-        mobileEditButtonPos.y+((mobileEditButtonSize.y*0.5)/(float)canvasH)
-      );
-
-      if (scaledButtonPos.x>0.25 &&
-          scaledButtonPos.x<0.75 &&
-          scaledButtonPos.y>0.2 &&
-          scaledButtonPos.y<0.8) {
-        buttonLayout=0;
-      } else if (scaledButtonPos.x>0.4 && scaledButtonPos.x<0.6) {
-        buttonLayout=2;
-      } else if (scaledButtonPos.y>0.25 && scaledButtonPos.y<0.75) {
-        buttonLayout=1;
-      } else {
-        buttonLayout=3;
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding,ImVec2(0.0f,0.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding,mobileEditButtonSize.x);
+    if (ImGui::Begin("MobileEdit",NULL,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground|ImGuiWindowFlags_NoDecoration)) {
+      bool mobileEditWas=mobileEdit;
+      if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && mobileEdit) {
+        mobileEdit=false;
       }
 
-      switch (buttonLayout) {
-        case 1:
-          if (mobileEditButtonPos.x>0.5) buttonMirrorX=-1.0f;
-          break;
-        case 2:
-          if (mobileEditButtonPos.y>0.5) buttonMirrorY=-1.0f;
-          break;
-        case 3:
-          if (mobileEditButtonPos.x>0.5) buttonMirrorX=-1.0f;
-          if (mobileEditButtonPos.y>0.5) buttonMirrorY=-1.0f;
-          break;
-      }
+      if (mobileEditAnim>0.0f) {
+        int curButtonPos=0;
+        float buttonDir, buttonDist;
+        float buttonMirrorX=1.0f;
+        float buttonMirrorY=1.0f;
 
-      for (int i=0; i<8; i++) {
-        float anim=(mobileEditAnim*1.5)-(float)i*0.05;
-        if (anim<0.0f) anim=0.0f;
-        if (anim>1.0f) anim=1.0f;
-        anim=5*anim-7*pow(anim,2.0f)+3*pow(anim,3.0f);
+        int buttonLayout=0;
 
-        buttonDir=mobileButtonAngles[buttonLayout][curButtonPos];
-        buttonDist=mobileButtonDistances[buttonLayout][curButtonPos]*mobileEditButtonSize.x*1.6f;
+        ImVec2 scaledButtonPos=ImVec2(
+          mobileEditButtonPos.x+((mobileEditButtonSize.x*0.5)/(float)canvasW),
+          mobileEditButtonPos.y+((mobileEditButtonSize.y*0.5)/(float)canvasH)
+        );
 
-        ImGui::SetCursorPos(ImVec2(
-          (mobileEditButtonPos.x*canvasW)+cos(buttonDir*2.0*M_PI)*buttonDist*buttonMirrorX*anim,
-          (mobileEditButtonPos.y*canvasH)+sin(buttonDir*2.0*M_PI)*buttonDist*buttonMirrorY*anim
-        ));
-        if (ImGui::Button(mobileButtonLabels[i+mobileEditPage*8],mobileEditButtonSize)) {
-          if (mobileButtonActions[i+mobileEditPage*8]) {
-            doAction(mobileButtonActions[i+mobileEditPage*8]);
-          }
-          if (mobileButtonPersist[i+mobileEditPage*8]) {
-            mobileEdit=true;
-          }
+        if (scaledButtonPos.x>0.25 &&
+            scaledButtonPos.x<0.75 &&
+            scaledButtonPos.y>0.2 &&
+            scaledButtonPos.y<0.8) {
+          buttonLayout=0;
+        } else if (scaledButtonPos.x>0.4 && scaledButtonPos.x<0.6) {
+          buttonLayout=2;
+        } else if (scaledButtonPos.y>0.25 && scaledButtonPos.y<0.75) {
+          buttonLayout=1;
+        } else {
+          buttonLayout=3;
         }
 
-        curButtonPos++;
+        switch (buttonLayout) {
+          case 1:
+            if (mobileEditButtonPos.x>0.5) buttonMirrorX=-1.0f;
+            break;
+          case 2:
+            if (mobileEditButtonPos.y>0.5) buttonMirrorY=-1.0f;
+            break;
+          case 3:
+            if (mobileEditButtonPos.x>0.5) buttonMirrorX=-1.0f;
+            if (mobileEditButtonPos.y>0.5) buttonMirrorY=-1.0f;
+            break;
+        }
+
+        for (int i=0; i<8; i++) {
+          float anim=(mobileEditAnim*1.5)-(float)i*0.05;
+          if (anim<0.0f) anim=0.0f;
+          if (anim>1.0f) anim=1.0f;
+          anim=5*anim-7*pow(anim,2.0f)+3*pow(anim,3.0f);
+
+          buttonDir=mobileButtonAngles[buttonLayout][curButtonPos];
+          buttonDist=mobileButtonDistances[buttonLayout][curButtonPos]*mobileEditButtonSize.x*1.6f;
+
+          ImGui::SetCursorPos(ImVec2(
+            (mobileEditButtonPos.x*canvasW)+cos(buttonDir*2.0*M_PI)*buttonDist*buttonMirrorX*anim,
+            (mobileEditButtonPos.y*canvasH)+sin(buttonDir*2.0*M_PI)*buttonDist*buttonMirrorY*anim
+          ));
+          if (ImGui::Button(mobileButtonLabels[i+mobileEditPage*8],mobileEditButtonSize)) {
+            if (mobileButtonActions[i+mobileEditPage*8]) {
+              doAction(mobileButtonActions[i+mobileEditPage*8]);
+            }
+            if (mobileButtonPersist[i+mobileEditPage*8]) {
+              mobileEdit=true;
+            }
+          }
+
+          curButtonPos++;
+        }
+
+        ImGui::SetCursorPos(ImVec2(mobileEditButtonPos.x*canvasW,mobileEditButtonPos.y*canvasH));
+      } else {
+        float avail=portrait?ImGui::GetContentRegionAvail().y:ImGui::GetContentRegionAvail().x;
+        mobileEditButtonSize=ImVec2(avail,avail);
       }
 
-      ImGui::SetCursorPos(ImVec2(mobileEditButtonPos.x*canvasW,mobileEditButtonPos.y*canvasH));
-    } else {
-      float avail=portrait?ImGui::GetContentRegionAvail().y:ImGui::GetContentRegionAvail().x;
-      mobileEditButtonSize=ImVec2(avail,avail);
-    }
-
-    if (ImGui::Button(ICON_FA_PENCIL "##Edit",mobileEditButtonSize)) {
-      // click
-      if (mobileEditWas) {
-        if (++mobileEditPage>3) mobileEditPage=0;
+      if (ImGui::Button(ICON_FA_PENCIL "##Edit",mobileEditButtonSize)) {
+        // click
+        if (mobileEditWas) {
+          if (++mobileEditPage>3) mobileEditPage=0;
+        }
+        if (ImGui::GetIO().MouseDragMaxDistanceSqr[ImGuiMouseButton_Left]<=ImGui::GetIO().ConfigInertialScrollToleranceSqr) {
+          mobileEdit=true;
+        }
       }
-      if (ImGui::GetIO().MouseDragMaxDistanceSqr[ImGuiMouseButton_Left]<=ImGui::GetIO().ConfigInertialScrollToleranceSqr) {
-        mobileEdit=true;
+      if (ImGui::IsItemClicked() && !mobileEdit) {
+        dragMobileEditButton=true;
       }
     }
-    if (ImGui::IsItemClicked() && !mobileEdit) {
-      dragMobileEditButton=true;
-    }
+    ImGui::End();
+    ImGui::PopStyleVar(2);
   }
-  ImGui::End();
-  ImGui::PopStyleVar(2);
   
   ImGui::SetNextWindowPos(portrait?ImVec2(0.0f,((1.0-mobileMenuPos*0.65)*canvasH)-(0.16*canvasW)):ImVec2(0.5*canvasW*mobileMenuPos,0.0f));
   ImGui::SetNextWindowSize(portrait?ImVec2(canvasW,0.16*canvasW):ImVec2(0.16*canvasH,canvasH));
