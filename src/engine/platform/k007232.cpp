@@ -394,6 +394,7 @@ void DivPlatformK007232::muteChannel(int ch, bool mute) {
 }
 
 void DivPlatformK007232::forceIns() {
+  while (!writes.empty()) writes.pop();
   for (int i=0; i<2; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
