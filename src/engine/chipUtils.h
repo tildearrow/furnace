@@ -56,11 +56,10 @@ struct SharedChannelFreq: public SharedChannel {
 // common shared channel volume struct
 template<typename T>
 struct SharedChannelVolume {
-  T vol, outVol, resVol;
+  T vol, outVol;
   SharedChannelVolume(T initVol):
     vol(initVol),
-    outVol(initVol),
-    resVol(initVol) {}
+    outVol(initVol) {}
 };
 
 #endif

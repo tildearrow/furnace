@@ -27,6 +27,7 @@
 
 class DivPlatformQSound: public DivDispatch {
   struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
+    int resVol;
     int sample, wave;
     int panning;
     int echo;
@@ -38,7 +39,8 @@ class DivPlatformQSound: public DivDispatch {
     }
     Channel():
       SharedChannelFreq(),
-      SharedChannelVolume<int>(4095),
+      SharedChannelVolume<int>(255),
+      resVol(4095),
       sample(-1),
       panning(0x10),
       echo(0),
