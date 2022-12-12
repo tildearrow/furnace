@@ -27,7 +27,7 @@ namespace vgsound_emu
 					const u8 m_init_edge = 1;
 
 				public:
-					edge_t(u8 init_edge = 0)
+					edge_t(const u8 init_edge = 0)
 						: vgsound_emu_core("clock_pulse_edge")
 						, m_init_edge(init_edge)
 						, m_current(init_edge ^ 1)
@@ -78,13 +78,13 @@ namespace vgsound_emu
 					}
 
 					// getters
-					inline bool current() { return m_current; }
+					inline bool current() const { return m_current; }
 
-					inline bool rising() { return m_rising; }
+					inline bool rising() const { return m_rising; }
 
-					inline bool falling() { return m_falling; }
+					inline bool falling() const { return m_falling; }
 
-					inline bool changed() { return m_changed; }
+					inline bool changed() const { return m_changed; }
 
 				private:
 					u8 m_current  : 1;	// current edge
@@ -95,7 +95,7 @@ namespace vgsound_emu
 			};
 
 		public:
-			clock_pulse_t(T init_width, u8 init_edge = 0)
+			clock_pulse_t(const T init_width, const u8 init_edge = 0)
 				: vgsound_emu_core("clock_pulse")
 				, m_init_width(init_width)
 				, m_edge(edge_t(init_edge & 1))
@@ -145,11 +145,11 @@ namespace vgsound_emu
 			inline void set_width_latch(T width) { m_width_latch = width; }
 
 			// Accessors
-			inline bool current_edge() { return m_edge.current(); }
+			inline bool current_edge() const { return m_edge.current(); }
 
-			inline bool rising_edge() { return m_edge.rising(); }
+			inline bool rising_edge() const { return m_edge.rising(); }
 
-			inline bool falling_edge() { return m_edge.falling(); }
+			inline bool falling_edge() const { return m_edge.falling(); }
 
 			// getters
 			edge_t &edge() { return m_edge; }

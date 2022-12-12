@@ -16,7 +16,7 @@ void template_core::tick()
 void template_core::reset()
 {
 	// reset this chip
-	std::fill(m_array.begin(), m_array.end(), 0);  // std::fill() for fill std::array, std::vector
+	m_array.fill(0);  // .fill() for fill std::array, std::fill() for fill std::vector
 }
 
 /*

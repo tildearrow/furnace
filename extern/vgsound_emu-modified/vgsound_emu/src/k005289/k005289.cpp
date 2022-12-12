@@ -35,8 +35,8 @@ void k005289_core::timer_t::tick()
 
 void k005289_core::timer_t::reset()
 {
+	m_counter = 0;
 	m_addr	  = 0;
 	m_pitch	  = 0;
 	m_freq	  = 0;
-	m_counter = 0;
 }

@@ -23,7 +23,7 @@ void vox_core::vox_decoder_t::decoder_state_t::copy_state(decoder_state_t &src)
 }
 
 // decode single nibble
-void vox_core::vox_decoder_t::decoder_state_t::decode(u8 nibble)
+void vox_core::vox_decoder_t::decoder_state_t::decode(const u8 nibble)
 {
 	const u8 delta = bitfield(nibble, 0, 3);
 	const s16 ss   = m_vox.m_step_table[m_index];  // ss(n)

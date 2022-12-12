@@ -8,7 +8,7 @@
 
 #include "n163.hpp"
 
-void n163_core::tick()
+s16 n163_core::tick()
 {
 	if (m_multiplex)
 	{
@@ -22,7 +22,7 @@ void n163_core::tick()
 		{
 			m_out = 0;
 		}
-		return;
+		return 0;
 	}
 
 	// tick per each clock
@@ -72,6 +72,7 @@ void n163_core::tick()
 		m_out = m_acc / (m_multiplex ? 1 : (bitfield(m_ram[0x7f], 4, 3) + 1));
 		m_acc = 0;
 	}
+	return m_out;
 }
 
 void n163_core::reset()
@@ -79,7 +80,7 @@ void n163_core::reset()
 	// reset this chip
 	m_disable	= false;
 	m_multiplex = true;
-	std::fill(m_ram.begin(), m_ram.end(), 0);
+	m_ram.fill(0);
 	m_voice_cycle = 0x78;
 	m_addr_latch.reset();
 	m_out = 0;
@@ -87,13 +88,13 @@ void n163_core::reset()
 }
 
 // accessor
-void n163_core::addr_w(u8 data)
+void n163_core::addr_w(const u8 data)
 {
 	// 0xf800-0xffff Sound address, increment
 	m_addr_latch.write(data);
 }
 
-void n163_core::data_w(u8 data, bool cpu_access)
+void n163_core::data_w(const u8 data, const bool cpu_access)
 {
 	// 0x4800-0x4fff Sound data write
 	m_ram[m_addr_latch.addr()] = data;
@@ -105,7 +106,7 @@ void n163_core::data_w(u8 data, bool cpu_access)
 	}
 }
 
-u8 n163_core::data_r(bool cpu_access)
+u8 n163_core::data_r(const bool cpu_access)
 {
 	// 0x4800-0x4fff Sound data read
 	const u8 ret = m_ram[m_addr_latch.addr()];

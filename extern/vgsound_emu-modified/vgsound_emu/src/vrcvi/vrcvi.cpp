@@ -8,7 +8,7 @@
 
 #include "vrcvi.hpp"
 
-void vrcvi_core::tick()
+s8 vrcvi_core::tick()
 {
 	m_out = 0;
 	if (!m_control.halt())	// Halt flag
@@ -24,6 +24,7 @@ void vrcvi_core::tick()
 	{
 		m_timer.counter_tick();
 	}
+	return m_out;
 }
 
 void vrcvi_core::reset()
@@ -45,12 +46,12 @@ bool vrcvi_core::alu_t::tick()
 	{
 		const u16 temp = m_counter;
 		// post decrement
-		if (bitfield(m_host.m_control.shift(), 1))
+		if (bitfield(m_host.control().shift(), 1))
 		{
 			m_counter = (m_counter & 0x0ff) | (bitfield(bitfield(m_counter, 8, 4) - 1, 0, 4) << 8);
 			m_counter = (m_counter & 0xf00) | (bitfield(bitfield(m_counter, 0, 8) - 1, 0, 8) << 0);
 		}
-		else if (bitfield(m_host.m_control.shift(), 0))
+		else if (bitfield(m_host.control().shift(), 0))
 		{
 			m_counter = (m_counter & 0x00f) | (bitfield(bitfield(m_counter, 4, 8) - 1, 0, 8) << 4);
 			m_counter = (m_counter & 0xff0) | (bitfield(bitfield(m_counter, 0, 4) - 1, 0, 4) << 0);
@@ -61,9 +62,9 @@ bool vrcvi_core::alu_t::tick()
 		}
 
 		// carry handling
-		const bool carry = bitfield(m_host.m_control.shift(), 1)
+		const bool carry = bitfield(m_host.control().shift(), 1)
 						   ? (bitfield(temp, 8, 4) == 0)
-						   : (bitfield(m_host.m_control.shift(), 0) ? (bitfield(temp, 4, 8) == 0)
+						   : (bitfield(m_host.control().shift(), 0) ? (bitfield(temp, 4, 8) == 0)
 																	: (bitfield(temp, 0, 12) == 0));
 		if (carry)
 		{
@@ -183,7 +184,7 @@ void vrcvi_core::timer_t::reset()
 
 // Accessors
 
-void vrcvi_core::alu_t::divider_t::write(bool msb, u8 data)
+void vrcvi_core::alu_t::divider_t::write(const bool msb, const u8 data)
 {
 	if (msb)
 	{
@@ -196,7 +197,7 @@ void vrcvi_core::alu_t::divider_t::write(bool msb, u8 data)
 	}
 }
 
-void vrcvi_core::pulse_w(u8 voice, u8 address, u8 data)
+void vrcvi_core::pulse_w(const u8 voice, const u8 address, const u8 data)
 {
 	pulse_t &v = m_pulse[voice];
 	switch (address)
@@ -217,7 +218,7 @@ void vrcvi_core::pulse_w(u8 voice, u8 address, u8 data)
 	}
 }
 
-void vrcvi_core::saw_w(u8 address, u8 data)
+void vrcvi_core::saw_w(const u8 address, const u8 data)
 {
 	switch (address)
 	{
@@ -237,7 +238,7 @@ void vrcvi_core::saw_w(u8 address, u8 data)
 	}
 }
 
-void vrcvi_core::timer_w(u8 address, u8 data)
+void vrcvi_core::timer_w(const u8 address, const u8 data)
 {
 	switch (address)
 	{
@@ -253,7 +254,7 @@ void vrcvi_core::timer_w(u8 address, u8 data)
 	}
 }
 
-void vrcvi_core::control_w(u8 data)
+void vrcvi_core::control_w(const u8 data)
 {
 	// Global control - 0x9003
 	m_control.write(data);

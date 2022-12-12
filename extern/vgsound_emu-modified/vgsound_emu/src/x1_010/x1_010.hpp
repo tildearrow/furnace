@@ -38,7 +38,7 @@ class x1_010_core : public vgsound_emu_core
 						}
 
 						// internal state
-						void reset()
+						inline void reset()
 						{
 							m_div		  = 0;
 							m_env_oneshot = 0;
@@ -47,25 +47,25 @@ class x1_010_core : public vgsound_emu_core
 						}
 
 						// register accessor
-						inline void write(u8 data)
+						inline void write(const u8 data)
 						{
-							m_div		  = (data >> 7) & 1;
-							m_env_oneshot = (data >> 2) & 1;
-							m_wavetable	  = (data >> 1) & 1;
-							m_keyon		  = (data >> 0) & 1;
+							m_div		  = bitfield(data, 7);
+							m_env_oneshot = bitfield(data, 2);
+							m_wavetable	  = bitfield(data, 1);
+							m_keyon		  = bitfield(data, 0);
 						}
 
 						// Setters
-						inline void set_keyon(bool keyon) { m_keyon = keyon; }
+						inline void set_keyon(const bool keyon) { m_keyon = boolmask<u8>(keyon); }
 
 						// Getters
-						inline bool div() { return m_div; }
+						inline bool div() const { return m_div; }
 
-						inline bool env_oneshot() { return m_env_oneshot; }
+						inline bool env_oneshot() const { return m_env_oneshot; }
 
-						inline bool wavetable() { return m_wavetable; }
+						inline bool wavetable() const { return m_wavetable; }
 
-						inline bool keyon() { return m_keyon; }
+						inline bool keyon() const { return m_keyon; }
 
 					private:
 						u8 m_div		 : 1;
@@ -97,11 +97,11 @@ class x1_010_core : public vgsound_emu_core
 				void tick();
 
 				// register accessor
-				u8 reg_r(u8 offset);
-				void reg_w(u8 offset, u8 data);
+				u8 reg_r(const u8 offset) const;
+				void reg_w(const u8 offset, const u8 data);
 
 				// getters
-				inline s32 out(u8 ch) { return m_out[ch & 1]; }
+				inline s32 out(const u8 ch) const { return m_out[ch & 1]; }
 
 			private:
 				// host flag
@@ -151,18 +151,29 @@ class x1_010_core : public vgsound_emu_core
 		}
 
 		// register accessor
-		u8 ram_r(u16 offset);
-		void ram_w(u16 offset, u8 data);
+		u8 ram_r(const u16 offset) const;
+		void ram_w(const u16 offset, const u8 data);
 
 		// getters
-		inline s32 output(u8 ch) { return m_out[ch & 1]; }
+		inline s32 output(const u8 ch) const { return m_out[ch & 1]; }
 
 		// internal state
 		void reset();
 		void tick();
 
+		template<typename T>
+		void tick_stream(const std::size_t stream_len, T **out)
+		{
+			for (std::size_t s = 0; s < stream_len; s++)
+			{
+				tick();
+				out[0][s] = this->output(0);
+				out[1][s] = this->output(1);
+			}
+		}
+
 		// for preview only
-		inline s32 voice_out(u8 voice, u8 ch)
+		inline s32 voice_out(const u8 voice, const u8 ch) const
 		{
 			return (voice < 16) ? m_voice[voice].out(ch & 1) : 0;
 		}

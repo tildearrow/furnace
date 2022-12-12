@@ -2,6 +2,13 @@
 
 ## Important changes
 
+### V 2.1.4-draft (2022-12-12)
+
+Constant-ize, Inline-ize functions and arguments
+Add AYPSG, DCSG, Namco C140/C219, Nanao GA20, SM8521 core (WIP)
+Split SCC mapper and sound core emulation
+Add per-stream update function on some cores
+
 ### V 2.1.3 (2022-10-22)
 
 Fix ES5504, ES5505, ES5506 per-voice preview functions

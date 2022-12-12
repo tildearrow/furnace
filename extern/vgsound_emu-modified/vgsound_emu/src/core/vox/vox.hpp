@@ -23,8 +23,11 @@ class vox_core : public vgsound_emu_core
 			private:
 				class decoder_state_t : public vgsound_emu_core
 				{
+					private:
+						const bool m_wraparound = false;  // wraparound or clamp?
+
 					public:
-						decoder_state_t(vox_core &vox, bool wraparound)
+						decoder_state_t(vox_core &vox, const bool wraparound)
 							: vgsound_emu_core("vox_decoder_state")
 							, m_wraparound(wraparound)
 							, m_vox(vox)
@@ -35,26 +38,24 @@ class vox_core : public vgsound_emu_core
 
 						// internal states
 						void reset();
-						void decode(u8 nibble);
+						void decode(const u8 nibble);
 
 						// getters
-						s8 index() { return m_index; }
+						inline s8 index() const { return m_index; }
 
-						s32 step() { return m_step; }
+						inline s32 step() const { return m_step; }
 
 						void copy_state(decoder_state_t &src);
 
 					private:
-						const bool m_wraparound = false;  // wraparound or clamp?
-
 						vox_core &m_vox;
 						s8 m_index = 0;
 						s32 m_step = 16;
 				};
 
 			public:
-				vox_decoder_t(vox_core &vox, bool wraparound)
-					: vgsound_emu_core("vox_decoder")
+				vox_decoder_t(const std::string tag, vox_core &vox, const bool wraparound)
+					: vgsound_emu_core(tag)
 					, m_curr(vox, wraparound)
 					, m_loop(vox, wraparound)
 					, m_loop_saved(false)
@@ -87,7 +88,7 @@ class vox_core : public vgsound_emu_core
 
 				void decode(u8 nibble) { m_curr.decode(nibble); }
 
-				s32 step() { return m_curr.step(); }
+				inline s32 step() const { return m_curr.step(); }
 
 			private:
 				decoder_state_t m_curr;

@@ -113,7 +113,7 @@ u32 es550x_shared_core::es550x_voice_t::es550x_alu_t::get_accum_integer()
 
 void es550x_shared_core::es550x_voice_t::es550x_alu_t::irq_exec(es550x_intf &intf,
 																es550x_irq_t &irqv,
-																u8 index)
+																const u8 index)
 {
 	const bool prev = irqv.irqb();
 	if (m_cr.irq())

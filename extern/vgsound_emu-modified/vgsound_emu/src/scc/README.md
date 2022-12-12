@@ -11,7 +11,9 @@
 ## Source code
 
 - scc.hpp: Base header
-  - scc.cpp: Source emulation core
+  - scc_mapper.hpp: Mapper header
+    - scc_mapper.cpp: Mapper emulation core
+  - scc.cpp: SCC Sound emulation core
 
 ## Description
 

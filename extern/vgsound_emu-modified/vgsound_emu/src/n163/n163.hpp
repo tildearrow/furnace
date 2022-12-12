@@ -36,18 +36,18 @@ class n163_core : public vgsound_emu_core
 				}
 
 				// accessors
-				inline void write(u8 data)
+				inline void write(const u8 data)
 				{
-					m_addr = (data >> 0) & 0x7f;
-					m_incr = (data >> 7) & 0x01;
+					m_addr = bitfield(data, 0, 7);
+					m_incr = bitfield(data, 7, 1);
 				}
 
 				inline void addr_inc() { m_addr = (m_addr + 1) & 0x7f; }
 
 				// getters
-				inline u8 addr() { return m_addr; }
+				inline u8 addr() const { return m_addr; }
 
-				inline bool incr() { return m_incr; }
+				inline bool incr() const { return m_incr; }
 
 			private:
 				u8 m_addr : 7;
@@ -69,28 +69,42 @@ class n163_core : public vgsound_emu_core
 		}
 
 		// accessors, getters, setters
-		void addr_w(u8 data);
-		void data_w(u8 data, bool cpu_access = false);
-		u8 data_r(bool cpu_access = false);
+		void addr_w(const u8 data);
+		void data_w(const u8 data, const bool cpu_access = false);
+		u8 data_r(const bool cpu_access = false);
 
-		inline void set_disable(bool disable) { m_disable = disable; }
+		inline void set_disable(const bool disable) { m_disable = disable; }
 
 		// internal state
 		void reset();
-		void tick();
+		s16 tick();
+
+		template<typename T>
+		void tick_stream(const std::size_t stream_len, T *out)
+		{
+			if (m_disable)
+			{
+				std::fill_n(out, stream_len, 0);
+				return;
+			}
+			for (std::size_t s = 0; s < stream_len; s++)
+			{
+				out[s] = tick();
+			};
+		}
 
 		// sound output pin
-		inline s16 out() { return m_out; }
+		inline s16 out() const { return m_out; }
 
 		// register pool
-		inline u8 reg(u8 addr) { return m_ram[addr & 0x7f]; }
+		inline u8 reg(const u8 addr) const { return m_ram[addr & 0x7f]; }
 
-		inline void set_multiplex(bool multiplex = true) { m_multiplex = multiplex; }
+		inline void set_multiplex(const bool multiplex = true) { m_multiplex = multiplex; }
 
 		// preview only
-		inline u8 voice_cycle() { return m_voice_cycle; }
+		inline u8 voice_cycle() const { return m_voice_cycle; }
 
-		inline s16 voice_out(u8 voice)
+		inline s16 voice_out(const u8 voice) const
 		{
 			return (voice <= ((m_ram[0x7f] >> 4) & 7)) ? m_voice_out[7 - voice] : 0;
 		}

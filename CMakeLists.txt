@@ -323,12 +323,18 @@ extern/SAASound/src/SAASound.cpp
 
 extern/vgsound_emu-modified/vgsound_emu/src/core/vox/vox.cpp
 
+extern/vgsound_emu-modified/vgsound_emu/src/aypsg/aypsg.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/dcsg/dcsg.cpp
+
 extern/vgsound_emu-modified/vgsound_emu/src/es550x/es550x.cpp
 extern/vgsound_emu-modified/vgsound_emu/src/es550x/es550x_alu.cpp
 extern/vgsound_emu-modified/vgsound_emu/src/es550x/es550x_filter.cpp
 extern/vgsound_emu-modified/vgsound_emu/src/es550x/es5504.cpp
 extern/vgsound_emu-modified/vgsound_emu/src/es550x/es5505.cpp
 extern/vgsound_emu-modified/vgsound_emu/src/es550x/es5506.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/ga20/ga20.cpp
 
 extern/vgsound_emu-modified/vgsound_emu/src/k005289/k005289.cpp
 
@@ -340,7 +346,11 @@ extern/vgsound_emu-modified/vgsound_emu/src/msm6295/msm6295.cpp
 
 extern/vgsound_emu-modified/vgsound_emu/src/n163/n163.cpp
 
+extern/vgsound_emu-modified/vgsound_emu/src/namcopcm/namcopcm.cpp
+
 extern/vgsound_emu-modified/vgsound_emu/src/scc/scc.cpp
+
+extern/vgsound_emu-modified/vgsound_emu/src/sm8521/sm8521.cpp
 
 extern/vgsound_emu-modified/vgsound_emu/src/vrcvi/vrcvi.cpp
 

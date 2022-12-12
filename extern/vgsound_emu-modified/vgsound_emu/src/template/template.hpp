@@ -42,10 +42,12 @@ class template_core : public vgsound_emu_core
 				// accessors, getters, setters
 
 				// setters
-				void set_something(s32 something) { m_something = something; }
+				// inline, const if necessary
+				inline void set_something(const s32 something) { m_something = something; }
 
 				// getters
-				s32 something() { return m_something; }
+				// inline, const if necessary
+				inline s32 something() const { return m_something; }
 
 			private:
 				// registers
@@ -74,6 +76,15 @@ class template_core : public vgsound_emu_core
 		// internal state
 		void reset();
 		void tick();
+
+		template<typename T>
+		void tick_stream(const std::size_t stream_len, T *out)
+		{
+			for (std::size_t s = 0; s < stream_len; s++)
+			{
+				// tick per each stream
+			}
+		}
 
 	protected:
 		// place local variables and functions here if shares between inheritances

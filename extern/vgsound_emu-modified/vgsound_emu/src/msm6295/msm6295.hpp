@@ -34,19 +34,19 @@ class msm6295_core : public vox_core
 									   2 /* -24.0dB */};  // scale out to 5 bit for optimization
 
 		// msm6295 voice classes
-		class voice_t : vox_decoder_t
+		class voice_t : public vox_decoder_t
 		{
 			public:
 				// constructor
 				voice_t(msm6295_core &host)
-					: vox_decoder_t(host, false)
+					: vox_decoder_t("msm6295_voice", host, false)
 					, m_host(host)
-					, m_clock(0)
-					, m_busy(false)
 					, m_command(0)
+					, m_busy(0)
+					, m_clock(0)
 					, m_addr(0)
-					, m_nibble(0)
 					, m_end(0)
+					, m_nibble(0)
 					, m_volume(0)
 					, m_out(0)
 					, m_mute(false)
@@ -58,30 +58,30 @@ class msm6295_core : public vox_core
 				void tick();
 
 				// Setters
-				inline void set_command(u8 command) { m_command = command; }
+				inline void set_command(const u8 command) { m_command = command; }
 
-				inline void set_volume(s32 volume)
+				inline void set_volume(const s32 volume)
 				{
 					m_volume = (volume < 9) ? m_host.m_volume_table[volume] : 0;
 				}
 
-				inline void set_mute(bool mute) { m_mute = mute; }
+				inline void set_mute(const bool mute) { m_mute = mute; }
 
 				// Getters
-				inline bool busy() { return m_busy; }
+				inline bool busy() const { return m_busy; }
 
-				inline s32 out() { return m_mute ? 0 : m_out; }
+				inline s32 out() const { return m_mute ? 0 : m_out; }
 
 			private:
 				// accessors, getters, setters
 				// registers
 				msm6295_core &m_host;  // host core
-				u16 m_clock	 = 0;	   // clock counter
-				bool m_busy	 = false;  // busy status
-				u8 m_command = 0;	   // current command
+				u16 m_command : 8;	   // current command
+				u16 m_busy	  : 1;	   // busy status
+				u16 m_clock	  : 7;	   // clock counter
 				u32 m_addr	 = 0;	   // current address
-				s8 m_nibble	 = 0;	   // current nibble
 				u32 m_end	 = 0;	   // end address
+				s8 m_nibble	 = 0;	   // current nibble
 				s32 m_volume = 0;	   // volume
 				s32 m_out	 = 0;	   // output
 				// for preview only
@@ -106,19 +106,28 @@ class msm6295_core : public vox_core
 		}
 
 		// accessors, getters, setters
-		u8 busy_r();
-		void command_w(u8 data);
+		u8 busy_r() const;
+		void command_w(const u8 data);
 
-		inline void ss_w(bool ss) { m_ss = ss; }  // SS pin
+		inline void ss_w(const bool ss) { m_ss = ss; }	// SS pin
 
 		// internal state
 		void reset();
-		void tick();
+		s32 tick();
 
-		inline s32 out() { return m_out; }	// built in 12 bit DAC
+		template<typename T>
+		void tick_stream(const std::size_t stream_len, T *out)
+		{
+			for (std::size_t s = 0; s < stream_len; s++)
+			{
+				out[s] = tick();
+			};
+		}
+
+		inline s32 out() const { return m_out; }  // built in 12 bit DAC
 
 		// for preview
-		inline void voice_mute(u8 voice, bool mute)
+		inline void voice_mute(const u8 voice, const bool mute)
 		{
 			if (voice < 4)
 			{
@@ -126,7 +135,10 @@ class msm6295_core : public vox_core
 			}
 		}
 
-		inline s32 voice_out(u8 voice) { return (voice < 4) ? m_voice[voice].out() : 0; }
+		inline s32 voice_out(const u8 voice) const
+		{
+			return (voice < 4) ? m_voice[voice].out() : 0;
+		}
 
 	private:
 		std::array<voice_t, 4> m_voice;

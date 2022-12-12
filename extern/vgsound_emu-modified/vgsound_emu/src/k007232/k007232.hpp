@@ -42,12 +42,12 @@ class k007232_core : public vgsound_emu_core
 				voice_t(k007232_core &host)
 					: vgsound_emu_core("k007232_voice")
 					, m_host(host)
-					, m_busy(false)
-					, m_loop(false)
-					, m_pitch(0)
-					, m_start(0)
+					, m_busy(0)
+					, m_loop(0)
 					, m_counter(0)
 					, m_addr(0)
+					, m_pitch(0)
+					, m_start(0)
 					, m_data(0)
 					, m_out(0)
 				{
@@ -55,30 +55,32 @@ class k007232_core : public vgsound_emu_core
 
 				// internal state
 				void reset();
-				void tick(u8 ne);
+				s8 tick(const u8 ne);
 
 				// accessors
-				void write(u8 address, u8 data);
+				void write(const u8 address, const u8 data);
 				void keyon();
 
 				// setters
-				inline void set_loop(bool loop) { m_loop = loop; }
+				inline void set_loop(const bool loop) { m_loop = boolmask<u32>(loop); }
 
 				// getters
-				inline s8 out() { return m_out; }
+				inline s8 out() const { return m_out; }
 
 			private:
 				// registers
 				k007232_core &m_host;
-				bool m_busy = false;  // busy status
-				bool m_loop = false;  // loop flag
-				u16 m_pitch = 0;	  // pitch, frequency divider
-				u32 m_start = 0;	  // start position when keyon or loop start position at
-									  // when reach end marker if loop enabled
-				u16 m_counter = 0;	  // frequency counter
-				u32 m_addr	  = 0;	  // current address
-				u8 m_data	  = 0;	  // current data
-				s8 m_out	  = 0;	  // current output (7 bit unsigned)
+				u32 m_busy	  : 1;	 // busy status
+				u32 m_loop	  : 1;	 // loop flag
+				u32 m_counter : 12;	 // frequency counter
+				u32 m_addr	  : 17;	 // current address
+				u32 m_dummy0  : 1;	 // dummy
+				u32 m_pitch	  : 14;	 // pitch, frequency divider
+				u32 m_start	  : 17;	 // start position when keyon or loop start position at
+									 // when reach end marker if loop enabled
+				u32 m_dummy1 : 1;	 // dummy
+				u8 m_data = 0;		 // current data
+				s8 m_out  = 0;		 // current output (7 bit unsigned)
 		};
 
 	public:
@@ -92,19 +94,31 @@ class k007232_core : public vgsound_emu_core
 		}
 
 		// host accessors
-		void keyon(u8 voice) { m_voice[voice & 1].keyon(); }
+		void keyon(const u8 voice) { m_voice[voice & 1].keyon(); }
 
-		void write(u8 address, u8 data);
+		void write(const u8 address, const u8 data);
 
 		// internal state
 		void reset();
 		void tick();
 
+		template<typename T>
+		void tick_stream(const std::size_t stream_len, T **out)
+		{
+			for (std::size_t s = 0; s < stream_len; s++)
+			{
+				for (u8 v = 0; v < 2; v++)
+				{
+					out[v][s] = m_voice[v].tick(v);
+				}
+			};
+		}
+
 		// output for each voices, ASD/BSD pin
-		inline s32 output(u8 voice) { return m_voice[voice & 1].out(); }
+		inline s32 output(const u8 voice) const { return m_voice[voice & 1].out(); }
 
 		// getters for debug, trackers, etc
-		inline u8 reg_r(u8 address) { return m_reg[address & 0xf]; }
+		inline u8 reg_r(const u8 address) const { return m_reg[address & 0xf]; }
 
 	private:
 		std::array<voice_t, 2> m_voice;

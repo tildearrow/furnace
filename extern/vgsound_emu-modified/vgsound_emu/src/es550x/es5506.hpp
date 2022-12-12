@@ -27,19 +27,19 @@ class es5506_core : public es550x_shared_core
 				{
 				}
 
-				void reset()
+				inline void reset()
 				{
 					m_left	= 0;
 					m_right = 0;
 				}
 
-				inline void copy_output(output_t &src)
+				inline void copy_output(const output_t &src)
 				{
 					m_left	= src.left();
 					m_right = src.right();
 				}
 
-				inline s32 clamp20(s32 in) { return clamp(in, -0x80000, 0x7ffff); }
+				inline s32 clamp20(const s32 in) const { return clamp(in, -0x80000, 0x7ffff); }
 
 				inline void clamp20(output_t &src)
 				{
@@ -54,26 +54,26 @@ class es5506_core : public es550x_shared_core
 				}
 
 				// setters
-				inline void set_left(s32 left) { m_left = clamp20(left); }
+				inline void set_left(const s32 left) { m_left = clamp20(left); }
 
-				inline void set_right(s32 right) { m_right = clamp20(right); }
+				inline void set_right(const s32 right) { m_right = clamp20(right); }
 
-				void serial_in(bool ch, u8 in)
+				inline void serial_in(const bool ch, const u8 in)
 				{
 					if (ch)	 // Right output
 					{
-						m_right = (m_right << 1) | (in ? 1 : 0);
+						m_right = (m_right << 1) | boolmask<s32>(in);
 					}
 					else  // Left output
 					{
-						m_left = (m_left << 1) | (in ? 1 : 0);
+						m_left = (m_left << 1) | boolmask<s32>(in);
 					}
 				}
 
 				// getters
-				inline s32 left() { return m_left; }
+				inline s32 left() const { return m_left; }
 
-				inline s32 right() { return m_right; }
+				inline s32 right() const { return m_right; }
 
 				output_t &operator+=(output_t &src)
 				{
@@ -82,7 +82,7 @@ class es5506_core : public es550x_shared_core
 					return *this;
 				}
 
-				output_t &operator>>(s32 shift)
+				output_t &operator>>(const s32 shift)
 				{
 					m_left	>>= shift;
 					m_right >>= shift;
@@ -109,33 +109,34 @@ class es5506_core : public es550x_shared_core
 						{
 						}
 
-						void reset()
+						inline void reset()
 						{
 							m_slow = 0;
 							m_ramp = 0;
 						};
 
 						// Setters
-						inline void write(u16 data)
+						inline void write(const u16 data)
 						{
-							m_slow = data & 1;
-							m_ramp = (data >> 8) & 0xff;
+							m_slow = bitfield(data, 0);
+							m_ramp = bitfield(data, 8, 8);
 						}
 
 						// Getters
-						inline bool slow() { return m_slow; }
+						inline bool slow() const { return m_slow; }
 
-						inline u16 ramp() { return m_ramp; }
+						inline u16 ramp() const { return m_ramp; }
 
 					private:
-						u16 m_slow : 1;	 // Slow mode flag
-						u16 m_ramp = 8;	 // Ramp value
+						u16 m_slow	: 1;  // Slow mode flag
+						u16 m_dummy : 7;  // dummy
+						u16 m_ramp	: 8;  // Ramp value
 				};
 
 			public:
 				// constructor
 				voice_t(es5506_core &host)
-					: es550x_voice_t("es5506_voice", 21, 11, true)
+					: es550x_voice_t("es5506_voice", 21, 11, true, m_cr_r, m_cr_w)
 					, m_host(host)
 					, m_lvol(0)
 					, m_rvol(0)
@@ -153,30 +154,30 @@ class es5506_core : public es550x_shared_core
 
 				// internal state
 				virtual void reset() override;
-				virtual void fetch(u8 voice, u8 cycle) override;
-				virtual void tick(u8 voice) override;
+				virtual void fetch(const u8 voice, const u8 cycle) override;
+				virtual void tick(const u8 voice) override;
 
-				// Setters
-				inline void set_lvol(s32 lvol) { m_lvol = lvol; }
+				// setters
+				inline void set_lvol(const s32 lvol) { m_lvol = lvol; }
 
-				inline void set_rvol(s32 rvol) { m_rvol = rvol; }
+				inline void set_rvol(const s32 rvol) { m_rvol = rvol; }
 
-				inline void set_lvramp(s32 lvramp) { m_lvramp = lvramp; }
+				inline void set_lvramp(const s32 lvramp) { m_lvramp = lvramp; }
 
-				inline void set_rvramp(s32 rvramp) { m_rvramp = rvramp; }
+				inline void set_rvramp(const s32 rvramp) { m_rvramp = rvramp; }
 
-				inline void set_ecount(s16 ecount) { m_ecount = ecount; }
+				inline void set_ecount(const s16 ecount) { m_ecount = ecount; }
 
-				// Getters
-				inline s32 lvol() { return m_lvol; }
+				// getters
+				inline s32 lvol() const { return m_lvol; }
 
-				inline s32 rvol() { return m_rvol; }
+				inline s32 rvol() const { return m_rvol; }
 
-				inline s32 lvramp() { return m_lvramp; }
+				inline s32 lvramp() const { return m_lvramp; }
 
-				inline s32 rvramp() { return m_rvramp; }
+				inline s32 rvramp() const { return m_rvramp; }
 
-				inline s16 ecount() { return m_ecount; }
+				inline s16 ecount() const { return m_ecount; }
 
 				inline filter_ramp_t &k2ramp() { return m_k2ramp; }
 
@@ -185,16 +186,39 @@ class es5506_core : public es550x_shared_core
 				output_t &ch() { return m_ch; }
 
 				// for debug/preview only
-				inline void set_mute(bool mute) { m_mute = mute; }
+				inline void set_mute(const bool mute) { m_mute = mute; }
 
-				inline s32 left_out() { return m_mute ? 0 : m_output[0]; }
+				inline s32 left_out() const { return m_mute ? 0 : m_output[0]; }
 
-				inline s32 right_out() { return m_mute ? 0 : m_output[1]; }
+				inline s32 right_out() const { return m_mute ? 0 : m_output[1]; }
 
 			private:
 				// accessors, getters, setters
-				s16 decompress(u8 sample);
-				s32 volume_calc(u16 volume, s32 in);
+				s16 decompress(const u8 sample) const;
+				s32 volume_calc(const u16 volume, const s32 in) const;
+
+				std::function<void(u32)> m_cr_w = [this](u32 data)
+				{
+					alu().set_stop(bitfield(data, 0, 2));
+					alu().set_lei(bitfield(data, 2));
+					alu().set_loop(bitfield(data, 3, 2));
+					alu().set_irqe(bitfield(data, 5));
+					alu().set_dir(bitfield(data, 6));
+					alu().set_irq(bitfield(data, 7));
+					filter().set_lp(bitfield(data, 8, 2));
+					cr().set_ca(std::min<u8>(5, bitfield(data, 10, 3)));
+					cr().set_cmpd(bitfield(data, 13));
+					cr().set_bs(bitfield(data, 14, 2));
+				};
+
+				std::function<u32(u32)> m_cr_r = [this](u32 ret) -> u32
+				{
+					return (ret & ~0xffff) | (alu().stop() << 0) | (alu().lei() ? 0x0004 : 0x0000) |
+						   (alu().loop() << 3) | (alu().irqe() ? 0x0020 : 0x0000) |
+						   (alu().dir() ? 0x0040 : 0x0000) | (alu().irq() ? 0x0080 : 0x0000) |
+						   (bitfield(filter().lp(), 0, 2) << 8) | (cr().ca() << 10) |
+						   (cr().cmpd() ? 0x2000 : 0x0000) | (cr().bs() << 14);
+				};
 
 				// registers
 				es5506_core &m_host;
@@ -229,7 +253,7 @@ class es5506_core : public es550x_shared_core
 				}
 
 				// internal states
-				void reset()
+				inline void reset()
 				{
 					m_lrclk_en = 1;
 					m_wclk_en  = 1;
@@ -239,25 +263,25 @@ class es5506_core : public es550x_shared_core
 				}
 
 				// accessors
-				void write(u8 data)
+				inline void write(const u8 data)
 				{
-					m_lrclk_en = (data >> 0) & 1;
-					m_wclk_en  = (data >> 1) & 1;
-					m_bclk_en  = (data >> 2) & 1;
-					m_master   = (data >> 3) & 1;
-					m_dual	   = (data >> 4) & 1;
+					m_lrclk_en = bitfield(data, 0);
+					m_wclk_en  = bitfield(data, 1);
+					m_bclk_en  = bitfield(data, 2);
+					m_master   = bitfield(data, 3);
+					m_dual	   = bitfield(data, 4);
 				}
 
 				// getters
-				bool lrclk_en() { return m_lrclk_en; }
+				inline bool lrclk_en() const { return m_lrclk_en; }
 
-				bool wclk_en() { return m_wclk_en; }
+				inline bool wclk_en() const { return m_wclk_en; }
 
-				bool bclk_en() { return m_bclk_en; }
+				inline bool bclk_en() const { return m_bclk_en; }
 
-				bool master() { return m_master; }
+				inline bool master() const { return m_master; }
 
-				bool dual() { return m_dual; }
+				inline bool dual() const { return m_dual; }
 
 			private:
 				u8 m_lrclk_en : 1;	// Set LRCLK to output
@@ -265,6 +289,7 @@ class es5506_core : public es550x_shared_core
 				u8 m_bclk_en  : 1;	// Set BCLK to output
 				u8 m_master	  : 1;	// Set memory mode to master
 				u8 m_dual	  : 1;	// Set dual chip config
+				u8 m_dummy	  : 3;	// dummy
 		};
 
 	public:
@@ -295,8 +320,8 @@ class es5506_core : public es550x_shared_core
 		}
 
 		// host interface
-		u8 host_r(u8 address);
-		void host_w(u8 address, u8 data);
+		u8 host_r(const u8 address);
+		void host_w(const u8 address, const u8 data);
 
 		// internal state
 		virtual void reset() override;
@@ -305,17 +330,45 @@ class es5506_core : public es550x_shared_core
 		// less cycle accurate, but also less cpu heavy update routine
 		void tick_perf();
 
+		template<typename T>
+		void tick_stream(const std::size_t stream_len, T **out)
+		{
+			for (std::size_t s = 0; s < stream_len; s++)
+			{
+				tick();
+				for (u8 c = 0; c < 12; c += 2)
+				{
+					out[c + 0][s] += this->lout(c);
+					out[c + 1][s] += this->rout(c);
+				}
+			}
+		}
+
+		template<typename T>
+		void tick_stream_perf(const std::size_t stream_len, T **out)
+		{
+			for (std::size_t s = 0; s < stream_len; s++)
+			{
+				tick_perf();
+				for (u8 c = 0; c < 12; c += 2)
+				{
+					out[c + 0][s] += this->lout(c);
+					out[c + 1][s] += this->rout(c);
+				}
+			}
+		}
+
 		// clock outputs
-		inline bool bclk() { return m_bclk.current_edge(); }
+		inline bool bclk() const { return m_bclk.current_edge(); }
 
-		inline bool bclk_rising_edge() { return m_bclk.rising_edge(); }
+		inline bool bclk_rising_edge() const { return m_bclk.rising_edge(); }
 
-		inline bool bclk_falling_edge() { return m_bclk.falling_edge(); }
+		inline bool bclk_falling_edge() const { return m_bclk.falling_edge(); }
 
 		// 6 stereo output channels
-		inline s32 lout(u8 ch) { return m_output[std::min<u8>(5, ch & 0x7)].left(); }
+		inline s32 lout(const u8 ch) const { return m_output[std::min<u8>(5, ch & 0x7)].left(); }
 
-		inline s32 rout(u8 ch) { return m_output[std::min<u8>(5, ch & 0x7)].right(); }
+		inline s32 rout(const u8 ch) const { return m_output[std::min<u8>(5, ch & 0x7)].right(); }
 
 		//-----------------------------------------------------------------
 		//
@@ -324,13 +377,13 @@ class es5506_core : public es550x_shared_core
 		//-----------------------------------------------------------------
 
 		// bypass chips host interface for debug purpose only
-		u8 read(u8 address, bool cpu_access = false);
-		void write(u8 address, u8 data);
+		u8 read(const u8 address, const bool cpu_access = false);
+		void write(const u8 address, const u8 data);
 
-		u32 regs_r(u8 page, u8 address, bool cpu_access = false);
-		void regs_w(u8 page, u8 address, u32 data);
+		u32 regs_r(const u8 page, const u8 address, const bool cpu_access = false);
+		void regs_w(const u8 page, const u8 address, const u32 data);
 
-		u8 regs8_r(u8 page, u8 address)
+		u8 regs8_r(const u8 page, const u8 address)
 		{
 			u8 prev = m_page;
 			m_page	= page;
@@ -339,15 +392,21 @@ class es5506_core : public es550x_shared_core
 			return ret;
 		}
 
-		inline void set_mute(u8 ch, bool mute) { m_voice[ch & 0x1f].set_mute(mute); }
+		inline void set_mute(const u8 ch, const bool mute) { m_voice[ch & 0x1f].set_mute(mute); }
 
 		// per-voice outputs
-		inline s32 voice_lout(u8 voice) { return (voice < 32) ? m_voice[voice].left_out() : 0; }
+		inline s32 voice_lout(const u8 voice) const
+		{
+			return (voice < 32) ? m_voice[voice].left_out() : 0;
+		}
 
-		inline s32 voice_rout(u8 voice) { return (voice < 32) ? m_voice[voice].right_out() : 0; }
+		inline s32 voice_rout(const u8 voice) const
+		{
+			return (voice < 32) ? m_voice[voice].right_out() : 0;
+		}
 
 	protected:
-		virtual inline u8 max_voices() override { return 32; }
+		virtual inline u8 max_voices() const override { return 32; }
 
 		virtual void voice_tick() override;
 

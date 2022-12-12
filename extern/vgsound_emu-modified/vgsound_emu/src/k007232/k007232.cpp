@@ -16,7 +16,7 @@ void k007232_core::tick()
 	}
 }
 
-void k007232_core::voice_t::tick(u8 ne)
+s8 k007232_core::voice_t::tick(const u8 ne)
 {
 	if (m_busy)
 	{
@@ -63,7 +63,7 @@ void k007232_core::voice_t::tick(u8 ne)
 			}
 			else
 			{
-				m_busy = false;
+				m_busy = 0;
 			}
 		}
 
@@ -73,13 +73,14 @@ void k007232_core::voice_t::tick(u8 ne)
 	{
 		m_out = 0;
 	}
+	return m_out;
 }
 
-void k007232_core::write(u8 address, u8 data)
+void k007232_core::write(const u8 address, const u8 data)
 {
-	address &= 0xf;	 // 4 bit for CPU write
+	const u8 reg = bitfield(address, 0, 4);	 // 4 bit for CPU write
 
-	switch (address)
+	switch (reg)
 	{
 		case 0x0:
 		case 0x1:
@@ -93,7 +94,7 @@ void k007232_core::write(u8 address, u8 data)
 		case 0x9:
 		case 0xa:
 		case 0xb:  // voice 1
-			m_voice[(address / 6) & 1].write(address % 6, data);
+			m_voice[(reg / 6) & 1].write(reg % 6, data);
 			break;
 		case 0xc:  // external register with SLEV pin
 			m_intf.write_slev(data);
@@ -105,11 +106,11 @@ void k007232_core::write(u8 address, u8 data)
 		default: break;
 	}
 
-	m_reg[address] = data;
+	m_reg[reg] = data;
 }
 
 // write registers on each voices
-void k007232_core::voice_t::write(u8 address, u8 data)
+void k007232_core::voice_t::write(const u8 address, const u8 data)
 {
 	switch (address)
 	{
@@ -137,7 +138,7 @@ void k007232_core::voice_t::write(u8 address, u8 data)
 // key on trigger (write OR read 0x05/0x11 register)
 void k007232_core::voice_t::keyon()
 {
-	m_busy	  = true;
+	m_busy	  = 1;
 	m_counter = bitfield(m_pitch, 0, 12);
 	m_addr	  = m_start;
 }
@@ -152,14 +153,14 @@ void k007232_core::reset()
 
 	m_intf.write_slev(0);
 
-	std::fill(m_reg.begin(), m_reg.end(), 0);
+	m_reg.fill(0);
 }
 
 // reset voice
 void k007232_core::voice_t::reset()
 {
-	m_busy	  = false;
-	m_loop	  = false;
+	m_busy	  = 0;
+	m_loop	  = 0;
 	m_pitch	  = 0;
 	m_start	  = 0;
 	m_counter = 0;

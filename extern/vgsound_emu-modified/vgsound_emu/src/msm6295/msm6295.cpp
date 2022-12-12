@@ -8,7 +8,7 @@
 
 #include "msm6295.hpp"
 
-void msm6295_core::tick()
+s32 msm6295_core::tick()
 {
 	if (m_counter < 4)
 	{
@@ -77,6 +77,7 @@ void msm6295_core::tick()
 		m_out_temp = 0;
 		m_counter  = 0;
 	}
+	return m_out;
 }
 
 void msm6295_core::reset()
@@ -113,7 +114,7 @@ void msm6295_core::voice_t::tick()
 					(m_host.m_intf.read_byte(phrase | 5) << 0);
 			m_nibble  = 4;	// MSB first, LSB second
 			m_command = 0;
-			m_busy	  = true;
+			m_busy	  = 1;
 			vox_decoder_t::reset();
 		}
 		m_out = 0;
@@ -140,7 +141,7 @@ void msm6295_core::voice_t::tick()
 			if (is_end)
 			{
 				m_command = 0;
-				m_busy	  = false;
+				m_busy	  = 0;
 			}
 			m_out	= (step() * m_volume) >> 7;	 // scale out to 12 bit output
 			m_clock = 0;
@@ -151,25 +152,25 @@ void msm6295_core::voice_t::tick()
 void msm6295_core::voice_t::reset()
 {
 	vox_decoder_t::reset();
-	m_clock	  = 0;
-	m_busy	  = false;
 	m_command = 0;
+	m_busy	  = 0;
+	m_clock	  = 0;
 	m_addr	  = 0;
-	m_nibble  = 0;
 	m_end	  = 0;
+	m_nibble  = 0;
 	m_volume  = 0;
 	m_out	  = 0;
 	m_mute	  = false;
 }
 
 // accessors
-u8 msm6295_core::busy_r()
+u8 msm6295_core::busy_r() const
 {
 	return (m_voice[0].busy() ? 0x01 : 0x00) | (m_voice[1].busy() ? 0x02 : 0x00) |
 		   (m_voice[2].busy() ? 0x04 : 0x00) | (m_voice[3].busy() ? 0x08 : 0x00);
 }
 
-void msm6295_core::command_w(u8 data)
+void msm6295_core::command_w(const u8 data)
 {
 	if (!m_command_pending)
 	{

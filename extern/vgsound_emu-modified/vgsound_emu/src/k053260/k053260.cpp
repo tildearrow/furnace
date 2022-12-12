@@ -88,8 +88,8 @@ void k053260_core::voice_t::tick()
 		// calculate output
 		s32 output = m_adpcm ? m_adpcm_buf : sign_ext<s32>(m_data, 8) * s32(m_volume);
 		// use math for now; actually fomula unknown
-		m_out[0] = (m_pan >= 0) ? s32(output * cos(f64(m_pan) * PI / 180)) : 0;
-		m_out[1] = (m_pan >= 0) ? s32(output * sin(f64(m_pan) * PI / 180)) : 0;
+		m_out[0] = (output * m_host.pan_lut(m_pan, 0)) >> 15;
+		m_out[1] = (output * m_host.pan_lut(m_pan, 1)) >> 15;
 	}
 	else
 	{
@@ -97,15 +97,15 @@ void k053260_core::voice_t::tick()
 	}
 }
 
-u8 k053260_core::read(u8 address)
+u8 k053260_core::read(const u8 address)
 {
-	address &= 0x3f;  // 6 bit for CPU read
+	const u8 reg = bitfield(address, 0, 6);	 // 6 bit for CPU read
 
-	switch (address)
+	switch (reg)
 	{
 		case 0x0:
 		case 0x1:  // Answer from host
-			return m_host2snd[address & 1];
+			return m_host2snd[reg & 1];
 			break;
 		case 0x29:	// Voice playing status
 			return (m_voice[0].busy() ? 0x1 : 0x0) | (m_voice[1].busy() ? 0x2 : 0x0) |
@@ -125,15 +125,15 @@ u8 k053260_core::read(u8 address)
 	return 0xff;
 }
 
-void k053260_core::write(u8 address, u8 data)
+void k053260_core::write(const u8 address, const u8 data)
 {
-	address &= 0x3f;  // 6 bit for CPU write
+	const u8 reg = bitfield(address, 0, 6);	 // 6 bit for CPU write
 
-	switch (address)
+	switch (reg)
 	{
 		case 0x2:
 		case 0x3:  // Reply to host
-			m_snd2host[address & 1] = data;
+			m_snd2host[reg & 1] = data;
 			break;
 		case 0x08:
 		case 0x09:
@@ -167,7 +167,7 @@ void k053260_core::write(u8 address, u8 data)
 		case 0x25:
 		case 0x26:
 		case 0x27:	// voice 3
-			m_voice[bitfield(address - 0x8, 3, 2)].write(bitfield(address, 0, 3), data);
+			m_voice[bitfield(reg - 0x8, 3, 2)].write(bitfield(reg, 0, 3), data);
 			break;
 		case 0x28:	// keyon/off toggle
 			for (int i = 0; i < 4; i++)
@@ -201,11 +201,11 @@ void k053260_core::write(u8 address, u8 data)
 		default: break;
 	}
 
-	m_reg[address] = data;
+	m_reg[reg] = data;
 }
 
 // write registers on each voices
-void k053260_core::voice_t::write(u8 address, u8 data)
+void k053260_core::voice_t::write(const u8 address, const u8 data)
 {
 	switch (address)
 	{
@@ -245,7 +245,7 @@ void k053260_core::voice_t::keyon()
 	m_remain		  = m_length;
 	m_bitpos		  = 4;
 	m_adpcm_buf		  = 0;
-	std::fill(m_out.begin(), m_out.end(), 0);
+	m_out.fill(0);
 }
 
 // key off trigger
@@ -261,13 +261,13 @@ void k053260_core::reset()
 
 	m_intf.write_int(0);
 
-	std::fill(m_host2snd.begin(), m_host2snd.end(), 0);
-	std::fill(m_snd2host.begin(), m_snd2host.end(), 0);
+	m_host2snd.fill(0);
+	m_snd2host.fill(0);
 	m_ctrl.reset();
 	m_dac.reset();
 
-	std::fill(m_reg.begin(), m_reg.end(), 0);
-	std::fill(m_out.begin(), m_out.end(), 0);
+	m_reg.fill(0);
+	m_out.fill(0);
 }
 
 // reset voice
@@ -281,7 +281,7 @@ void k053260_core::voice_t::reset()
 	m_start		= 0;
 	m_length	= 0;
 	m_volume	= 0;
-	m_pan		= -1;
+	m_pan		= 4;
 	m_counter	= 0;
 	m_addr		= 0;
 	m_remain	= 0;

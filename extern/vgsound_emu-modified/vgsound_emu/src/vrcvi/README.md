@@ -84,7 +84,7 @@ f001    ---- -0-- Sync with scanline
 f002    ---- ---- IRQ Acknowledge
 ```
 
-# Frequency calculation
+## Frequency calculation
 
 ```
  if 4 bit Frequency Mode then

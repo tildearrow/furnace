@@ -31,13 +31,18 @@ See [here](https://gitlab.com/cam900/vgsound_emu/-/blob/main/LICENSE) for detail
   - src: source codes for emulation cores
     - core: core files used in most of emulation cores
       - vox: Dialogic ADPCM core
+    - aypsg: GI AY-3-8910 and variants, 3 Square wave/Envelope/Noise channels
+    - dcsg: TI DCSG and variants, 3 Square wave channels and 1 Noise channel
     - es550x: Ensoniq ES5504, ES5505, ES5506 PCM sound chip families, 25/32 voices with 16/4 stereo/6 stereo output channels
+    - ga20: Nanao GA20, 4 PCM channels
     - k005289: Konami K005289, 2 timers
     - k007232: Konami K007232, 2 PCM channels
     - k053260: Konami K053260, 4 PCM or ADPCM channels with CPU to CPU communication feature
     - msm6295: OKI MSM6295, 4 ADPCM channels
     - n163: Namco 163, NES Mapper with up to 8 Wavetable channels
+    - namcopcm: Namco C140, C219 PCM sound chip, 24/16 PCM channels
     - scc: Konami SCC, MSX Mappers with 5 Wavetable channels
+    - sm8521: Sharp SM8521 SoC, 2 Wavetable channels and 1 noise channel on sound core
     - vrcvi: Konami VRC VI, NES Mapper with 2 Pulse channels and 1 Sawtooth channel
     - x1_010: Seta/Allumer X1-010, 16 Wavetable/PCM channels
     - template: Template for sound emulation core
@@ -93,15 +98,21 @@ You can add multiple option with CMake.
 
 | Options | Available Value | Default | Descriptions |
 | :-: | :-: | :-: | :-: |
+| VGSOUND_EMU_AYPSG | ON/OFF | ON | Use AY-3-8910 and variants core |
+| VGSOUND_EMU_DCSG | ON/OFF | ON | Use SN76489 and variants core |
 | VGSOUND_EMU_ES5504 | ON/OFF | ON | Use ES5504 core |
 | VGSOUND_EMU_ES5505 | ON/OFF | ON | Use ES5505 core |
 | VGSOUND_EMU_ES5506 | ON/OFF | ON | Use ES5506 core |
+| VGSOUND_EMU_GA20 | ON/OFF | ON | Use GA20 core |
 | VGSOUND_EMU_K005289 | ON/OFF | ON | Use K005289 core |
 | VGSOUND_EMU_K007232 | ON/OFF | ON | Use K007232 core |
 | VGSOUND_EMU_K053260 | ON/OFF | ON | Use K053260 core |
 | VGSOUND_EMU_MSM6295 | ON/OFF | ON | Use MSM6295 core |
 | VGSOUND_EMU_NAMCO_163 | ON/OFF | ON | Use Namco 163 core |
+| VGSOUND_EMU_NAMCOPCM | ON/OFF | ON | Use Namco C140/C219 core |
 | VGSOUND_EMU_SCC | ON/OFF | ON | Use SCC core |
+| VGSOUND_EMU_SCC_MAPPER | ON/OFF | ON | Use SCC Mapper core |
+| VGSOUND_EMU_SM8521 | ON/OFF | ON | Use SM8521 core |
 | VGSOUND_EMU_VRCVI | ON/OFF | ON | Use VRC VI core |
 | VGSOUND_EMU_X1_010 | ON/OFF | ON | Use X1-010 core |
 

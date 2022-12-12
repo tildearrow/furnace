@@ -28,7 +28,7 @@ void x1_010_core::voice_t::tick()
 		if (m_flag.wavetable())	 // Wavetable
 		{
 			// envelope, each nibble is for each output
-			u8 vol =
+			const u8 vol =
 			  m_host.m_envelope[(bitfield(m_end_envshape, 0, 5) << 7) | bitfield(m_env_acc, 10, 7)];
 			m_vol_out[0] = bitfield(vol, 4, 4);
 			m_vol_out[1] = bitfield(vol, 0, 4);
@@ -63,7 +63,7 @@ void x1_010_core::voice_t::tick()
 	}
 }
 
-u8 x1_010_core::ram_r(u16 offset)
+u8 x1_010_core::ram_r(const u16 offset) const
 {
 	if (offset & 0x1000)
 	{  // wavetable data
@@ -79,7 +79,7 @@ u8 x1_010_core::ram_r(u16 offset)
 	}
 }
 
-void x1_010_core::ram_w(u16 offset, u8 data)
+void x1_010_core::ram_w(const u16 offset, const u8 data)
 {
 	if (offset & 0x1000)
 	{  // wavetable data
@@ -95,7 +95,7 @@ void x1_010_core::ram_w(u16 offset, u8 data)
 	}
 }
 
-u8 x1_010_core::voice_t::reg_r(u8 offset)
+u8 x1_010_core::voice_t::reg_r(const u8 offset) const
 {
 	switch (offset & 0x7)
 	{
@@ -112,7 +112,7 @@ u8 x1_010_core::voice_t::reg_r(u8 offset)
 	return 0;
 }
 
-void x1_010_core::voice_t::reg_w(u8 offset, u8 data)
+void x1_010_core::voice_t::reg_w(const u8 offset, const u8 data)
 {
 	switch (offset & 0x7)
 	{

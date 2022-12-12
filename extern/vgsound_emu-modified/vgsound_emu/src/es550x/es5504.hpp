@@ -23,7 +23,7 @@ class es5504_core : public es550x_shared_core
 			public:
 				// constructor
 				voice_t(es5504_core &host)
-					: es550x_voice_t("es5504_voice", 20, 9, false)
+					: es550x_voice_t("es5504_voice", 20, 9, false, m_cr_r, m_cr_w)
 					, m_host(host)
 					, m_volume(0)
 					, m_out(0)
@@ -32,19 +32,38 @@ class es5504_core : public es550x_shared_core
 
 				// internal state
 				virtual void reset() override;
-				virtual void fetch(u8 voice, u8 cycle) override;
-				virtual void tick(u8 voice) override;
+				virtual void fetch(const u8 voice, const u8 cycle) override;
+				virtual void tick(const u8 voice) override;
 
 				// setters
-				inline void set_volume(u16 volume) { m_volume = volume; }
+				inline void set_volume(const u16 volume) { m_volume = volume; }
 
 				// getters
-				inline u16 volume() { return m_volume; }
+				inline u16 volume() const { return m_volume; }
 
-				inline s32 out() { return m_out; }
+				inline s32 out() const { return m_out; }
 
 			private:
 				void adc_exec();
+
+				std::function<u32(u32)> m_cr_r = [this](u32 ret) -> u32
+				{
+					return (ret & ~0xff) | bitfield(alu().stop(), 0, 2) |
+						   (cr().adc() ? 0x04 : 0x00) | (alu().lpe() ? 0x08 : 0x00) |
+						   (alu().ble() ? 0x10 : 0x00) | (alu().irqe() ? 0x20 : 0x00) |
+						   (alu().dir() ? 0x40 : 0x00) | (alu().irq() ? 0x80 : 0x00);
+				};
+
+				std::function<void(u32)> m_cr_w = [this](u32 data)
+				{
+					alu().set_stop(bitfield(data, 0, 2));
+					cr().set_adc(bitfield(data, 2));
+					alu().set_lpe(bitfield(data, 3));
+					alu().set_ble(bitfield(data, 4));
+					alu().set_irqe(bitfield(data, 5));
+					alu().set_dir(bitfield(data, 6));
+					alu().set_irq(bitfield(data, 7));
+				};
 
 				// registers
 				es5504_core &m_host;
@@ -65,8 +84,8 @@ class es5504_core : public es550x_shared_core
 		}
 
 		// host interface
-		u16 host_r(u8 address);
-		void host_w(u8 address, u16 data);
+		u16 host_r(const u8 address);
+		void host_w(const u8 address, const u16 data);
 
 		// internal state
 		virtual void reset() override;
@@ -75,8 +94,34 @@ class es5504_core : public es550x_shared_core
 		// less cycle accurate, but also less cpu heavy update routine
 		void tick_perf();
 
+		template<typename T>
+		void tick_stream(const std::size_t stream_len, T **out)
+		{
+			for (std::size_t s = 0; s < stream_len; s++)
+			{
+				tick();
+				for (u8 c = 0; c < 16; c++)
+				{
+					out[c][s] += this->out(c);
+				}
+			}
+		}
+
+		template<typename T>
+		void tick_stream_perf(const std::size_t stream_len, T **out)
+		{
+			for (std::size_t s = 0; s < stream_len; s++)
+			{
+				tick_perf();
+				for (u8 c = 0; c < 16; c++)
+				{
+					out[c][s] += this->out(c);
+				}
+			}
+		}
+
 		// 16 analog output channels
-		inline s32 out(u8 ch) { return m_out[ch & 0xf]; }
+		inline s32 out(const u8 ch) const { return m_out[ch & 0xf]; }
 
 		//-----------------------------------------------------------------
 		//
@@ -85,13 +130,13 @@ class es5504_core : public es550x_shared_core
 		//-----------------------------------------------------------------
 
 		// bypass chips host interface for debug purpose only
-		u16 read(u8 address, bool cpu_access = false);
-		void write(u8 address, u16 data, bool cpu_access = false);
+		u16 read(const u8 address, const bool cpu_access = false);
+		void write(const u8 address, const u16 data, const bool cpu_access = false);
 
-		u16 regs_r(u8 page, u8 address, bool cpu_access = false);
-		void regs_w(u8 page, u8 address, u16 data, bool cpu_access = false);
+		u16 regs_r(const u8 page, const u8 address, const bool cpu_access = false);
+		void regs_w(const u8 page, const u8 address, const u16 data, const bool cpu_access = false);
 
-		u16 regs_r(u8 page, u8 address)
+		u16 regs_r(const u8 page, const u8 address)
 		{
 			u8 prev = m_page;
 			m_page	= page;
@@ -101,10 +146,13 @@ class es5504_core : public es550x_shared_core
 		}
 
 		// per-voice outputs
-		inline s32 voice_out(u8 voice) { return (voice < 25) ? m_voice[voice].out() : 0; }
+		inline s32 voice_out(const u8 voice) const
+		{
+			return (voice < 25) ? m_voice[voice].out() : 0;
+		}
 
 	protected:
-		virtual inline u8 max_voices() override { return 25; }
+		virtual inline u8 max_voices() const override { return 25; }
 
 		virtual void voice_tick() override;
 

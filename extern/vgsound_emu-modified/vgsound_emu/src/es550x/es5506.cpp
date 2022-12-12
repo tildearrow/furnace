@@ -66,7 +66,6 @@ void es5506_core::tick()
 									// overflow guard bits)
 									m_output_latch[i].clamp20(m_ch[i]);
 									m_output_temp[i].reset();
-									m_output_latch[i].clamp20();
 									// set signed
 									if (m_output_latch[i].left() < 0)
 									{
@@ -247,7 +246,7 @@ void es5506_core::voice_tick()
 		// Refresh output
 		if ((++m_voice_cycle) > clamp<u8>(m_active, 4, 31))	 // 5 ~ 32 voices
 		{
-			m_voice_end	  = true;
+			m_voice_end	  = 1;
 			m_voice_cycle = 0;
 			for (output_t &elem : m_ch)
 			{
@@ -266,13 +265,13 @@ void es5506_core::voice_tick()
 		}
 		else
 		{
-			m_voice_end = false;
+			m_voice_end = 0;
 		}
 		m_voice_fetch = 0;
 	}
 }
 
-void es5506_core::voice_t::fetch(u8 voice, u8 cycle)
+void es5506_core::voice_t::fetch(const u8 voice, const u8 cycle)
 {
 	m_alu.set_sample(
 	  cycle,
@@ -285,7 +284,7 @@ void es5506_core::voice_t::fetch(u8 voice, u8 cycle)
 	}
 }
 
-void es5506_core::voice_t::tick(u8 voice)
+void es5506_core::voice_t::tick(const u8 voice)
 {
 	m_output[0] = m_output[1] = 0;
 	m_ch.reset();
@@ -344,10 +343,10 @@ void es5506_core::voice_t::tick(u8 voice)
 }
 
 // Compressed format
-s16 es5506_core::voice_t::decompress(u8 sample)
+s16 es5506_core::voice_t::decompress(const u8 sample) const
 {
-	u8 exponent = bitfield(sample, 5, 3);
-	u8 mantissa = bitfield(sample, 0, 5);
+	const u8 exponent = bitfield(sample, 5, 3);
+	const u8 mantissa = bitfield(sample, 0, 5);
 	return (exponent > 0)
 		   ? s16(((bitfield(mantissa, 4) ? 0x10 : ~0x1f) | bitfield(mantissa, 0, 4))
 				 << (4 + (exponent - 1)))
@@ -355,10 +354,10 @@ s16 es5506_core::voice_t::decompress(u8 sample)
 }
 
 // volume calculation
-s32 es5506_core::voice_t::volume_calc(u16 volume, s32 in)
+s32 es5506_core::voice_t::volume_calc(const u16 volume, const s32 in) const
 {
-	u8 exponent = bitfield(volume, 12, 4);
-	u8 mantissa = bitfield(volume, 4, 8);
+	const u8 exponent = bitfield(volume, 12, 4);
+	const u8 mantissa = bitfield(volume, 4, 8);
 	return (in * s32(0x100 | mantissa)) >> (20 - exponent);
 }
 
@@ -418,7 +417,7 @@ void es5506_core::voice_t::reset()
 }
 
 // Accessors
-u8 es5506_core::host_r(u8 address)
+u8 es5506_core::host_r(const u8 address)
 {
 	if (!m_host_intf.host_access())
 	{
@@ -435,7 +434,7 @@ u8 es5506_core::host_r(u8 address)
 	return m_hd;
 }
 
-void es5506_core::host_w(u8 address, u8 data)
+void es5506_core::host_w(const u8 address, const u8 data)
 {
 	if (!m_host_intf.host_access())
 	{
@@ -452,7 +451,7 @@ void es5506_core::host_w(u8 address, u8 data)
 	}
 }
 
-u8 es5506_core::read(u8 address, bool cpu_access)
+u8 es5506_core::read(const u8 address, const bool cpu_access)
 {
 	const u8 byte  = bitfield(address, 0, 2);  // byte select
 	const u8 shift = 24 - (byte << 3);
@@ -461,19 +460,19 @@ u8 es5506_core::read(u8 address, bool cpu_access)
 		return bitfield(m_read_latch, shift, 8);
 	}
 
-	address = bitfield(address, 2, 4);	// 4 bit address for CPU access
+	const u8 reg = bitfield(address, 2, 4);	 // 4 bit address for CPU access
 
 	// get read register
-	m_read_latch = regs_r(m_page, address, cpu_access);
+	m_read_latch = regs_r(m_page, reg, cpu_access);
 
 	return bitfield(m_read_latch, 24, 8);
 }
 
-void es5506_core::write(u8 address, u8 data)
+void es5506_core::write(const u8 address, const u8 data)
 {
 	const u8 byte  = bitfield(address, 0, 2);  // byte select
 	const u8 shift = 24 - (byte << 3);
-	address		   = bitfield(address, 2, 4);  // 4 bit address for CPU access
+	const u8 reg   = bitfield(address, 2, 4);  // 4 bit address for CPU access
 
 	// Update register latch
 	m_write_latch = (m_write_latch & ~(0xff << shift)) | (u32(data) << shift);
@@ -483,19 +482,21 @@ void es5506_core::write(u8 address, u8 data)
 		return;
 	}
 
-	regs_w(m_page, address, m_write_latch);
+	regs_w(m_page, reg, m_write_latch);
 
 	// Reset latch
 	m_write_latch = 0;
 }
 
-u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
+u32 es5506_core::regs_r(const u8 page, const u8 address, const bool cpu_access)
 {
 	u32 read_latch = 0xffffffff;
+	const u8 reg   = bitfield(address, 0, 4);  // 4 bit address for CPU access
+
 	// Global registers
-	if (address >= 13)
+	if (reg >= 13)
 	{
-		switch (address)
+		switch (reg)
 		{
 			case 13:  // POT (Pot A/D Register)
 				read_latch = (read_latch & ~0x3ff) | bitfield(m_intf.adc_r(), 0, 10);
@@ -524,7 +525,7 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 		{
 			if (!cpu_access)  // CPU can't read here
 			{
-				switch (address)
+				switch (reg)
 				{
 					case 0:	  // CH0L (Channel 0 Left)
 					case 2:	  // CH1L (Channel 1 Left)
@@ -532,7 +533,7 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 					case 6:	  // CH3L (Channel 3 Left)
 					case 8:	  // CH4L (Channel 4 Left)
 					case 10:  // CH5L (Channel 5 Left)
-						read_latch = m_ch[bitfield(address, 1, 3)].left();
+						read_latch = m_ch[bitfield(reg, 1, 3)].left();
 						break;
 					case 1:	  // CH0R (Channel 0 Right)
 					case 3:	  // CH1R (Channel 1 Right)
@@ -540,7 +541,7 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 					case 7:	  // CH3R (Channel 3 Right)
 					case 9:	  // CH4R (Channel 4 Right)
 					case 11:  // CH5R (Channel 5 Right)
-						read_latch = m_ch[bitfield(address, 1, 3)].right();
+						read_latch = m_ch[bitfield(reg, 1, 3)].right();
 						break;
 				}
 			}
@@ -551,16 +552,10 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 			voice_t &v	   = m_voice[voice];
 			if (bitfield(page, 5))	// Page 32 - 63
 			{
-				switch (address)
+				switch (reg)
 				{
 					case 0:	 // CR (Control Register)
-						read_latch = (read_latch & ~0xffff) | (v.alu().stop() << 0) |
-									 (v.alu().lei() ? 0x0004 : 0x0000) | (v.alu().loop() << 3) |
-									 (v.alu().irqe() ? 0x0020 : 0x0000) |
-									 (v.alu().dir() ? 0x0040 : 0x0000) |
-									 (v.alu().irq() ? 0x0080 : 0x0000) |
-									 (bitfield(v.filter().lp(), 0, 2) << 8) | (v.cr().ca() << 10) |
-									 (v.cr().cmpd() ? 0x2000 : 0x0000) | (v.cr().bs() << 14);
+						read_latch = v.cr_r(read_latch);
 						break;
 					case 1:	 // START (Loop Start Register)
 						read_latch = (read_latch & ~0xfffff800) | (v.alu().start() & 0xfffff800);
@@ -650,16 +645,10 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 			}
 			else  // Page 0 - 31
 			{
-				switch (address)
+				switch (reg)
 				{
 					case 0:	 // CR (Control Register)
-						read_latch = (read_latch & ~0xffff) | (v.alu().stop() << 0) |
-									 (v.alu().lei() ? 0x0004 : 0x0000) | (v.alu().loop() << 3) |
-									 (v.alu().irqe() ? 0x0020 : 0x0000) |
-									 (v.alu().dir() ? 0x0040 : 0x0000) |
-									 (v.alu().irq() ? 0x0080 : 0x0000) |
-									 (bitfield(v.filter().lp(), 0, 2) << 8) | (v.cr().ca() << 10) |
-									 (v.cr().cmpd() ? 0x2000 : 0x0000) | (v.cr().bs() << 14);
+						read_latch = v.cr_r(read_latch);
 						break;
 					case 1:	 // FC (Frequency Control)
 						read_latch = (read_latch & ~0x1ffff) | bitfield(v.alu().fc(), 0, 17);
@@ -712,12 +701,14 @@ u32 es5506_core::regs_r(u8 page, u8 address, bool cpu_access)
 	return read_latch;
 }
 
-void es5506_core::regs_w(u8 page, u8 address, u32 data)
+void es5506_core::regs_w(const u8 page, const u8 address, const u32 data)
 {
+	const u8 reg = bitfield(address, 0, 4);	 // 4 bit address for CPU access
+
 	// Global registers
-	if (address >= 13)
+	if (reg >= 13)
 	{
-		switch (address)
+		switch (reg)
 		{
 			case 13:  // POT (Pot A/D Register)
 				// Read only
@@ -735,7 +726,7 @@ void es5506_core::regs_w(u8 page, u8 address, u32 data)
 		// Channel registers are Write only, and for test purposes
 		if (bitfield(page, 6))
 		{
-			switch (address)
+			switch (reg)
 			{
 				case 0:	  // CH0L (Channel 0 Left)
 				case 2:	  // CH1L (Channel 1 Left)
@@ -743,8 +734,7 @@ void es5506_core::regs_w(u8 page, u8 address, u32 data)
 				case 6:	  // CH3L (Channel 3 Left)
 				case 8:	  // CH4L (Channel 4 Left)
 				case 10:  // CH5L (Channel 5 Left)
-					m_ch[bitfield(address, 1, 3)].set_left(
-					  sign_ext<s32>(bitfield(data, 0, 23), 23));
+					m_ch[bitfield(reg, 1, 3)].set_left(sign_ext<s32>(bitfield(data, 0, 23), 23));
 					break;
 				case 1:	  // CH0R (Channel 0 Right)
 				case 3:	  // CH1R (Channel 1 Right)
@@ -752,8 +742,7 @@ void es5506_core::regs_w(u8 page, u8 address, u32 data)
 				case 7:	  // CH3R (Channel 3 Right)
 				case 9:	  // CH4R (Channel 4 Right)
 				case 11:  // CH5R (Channel 5 Right)
-					m_ch[bitfield(address, 1, 3)].set_right(
-					  sign_ext<s32>(bitfield(data, 0, 23), 23));
+					m_ch[bitfield(reg, 1, 3)].set_right(sign_ext<s32>(bitfield(data, 0, 23), 23));
 					break;
 			}
 		}
@@ -763,19 +752,10 @@ void es5506_core::regs_w(u8 page, u8 address, u32 data)
 			voice_t &v	   = m_voice[voice];
 			if (bitfield(page, 5))	// Page 32 - 63
 			{
-				switch (address)
+				switch (reg)
 				{
 					case 0:	 // CR (Control Register)
-						v.alu().set_stop(bitfield(data, 0, 2));
-						v.alu().set_lei(bitfield(data, 2));
-						v.alu().set_loop(bitfield(data, 3, 2));
-						v.alu().set_irqe(bitfield(data, 5));
-						v.alu().set_dir(bitfield(data, 6));
-						v.alu().set_irq(bitfield(data, 7));
-						v.filter().set_lp(bitfield(data, 8, 2));
-						v.cr().set_ca(std::min<u8>(5, bitfield(data, 10, 3)));
-						v.cr().set_cmpd(bitfield(data, 13));
-						v.cr().set_bs(bitfield(data, 14, 2));
+						v.cr_w(data);
 						break;
 					case 1:	 // START (Loop Start Register)
 						v.alu().set_start(data & 0xfffff800);
@@ -818,19 +798,10 @@ void es5506_core::regs_w(u8 page, u8 address, u32 data)
 			}
 			else  // Page 0 - 31
 			{
-				switch (address)
+				switch (reg)
 				{
 					case 0:	 // CR (Control Register)
-						v.alu().set_stop(bitfield(data, 0, 2));
-						v.alu().set_lei(bitfield(data, 2));
-						v.alu().set_loop(bitfield(data, 3, 2));
-						v.alu().set_irqe(bitfield(data, 5));
-						v.alu().set_dir(bitfield(data, 6));
-						v.alu().set_irq(bitfield(data, 7));
-						v.filter().set_lp(bitfield(data, 8, 2));
-						v.cr().set_ca(std::min<u8>(5, bitfield(data, 10, 3)));
-						v.cr().set_cmpd(bitfield(data, 13));
-						v.cr().set_bs(bitfield(data, 14, 2));
+						v.cr_w(data);
 						break;
 					case 1:	 // FC (Frequency Control)
 						v.alu().set_fc(bitfield(data, 0, 17));

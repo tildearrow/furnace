@@ -50,7 +50,7 @@ class k053260_core : public vgsound_emu_core
 					, m_start(0)
 					, m_length(0)
 					, m_volume(0)
-					, m_pan(-1)
+					, m_pan(4)
 					, m_counter(0)
 					, m_addr(0)
 					, m_remain(0)
@@ -66,33 +66,33 @@ class k053260_core : public vgsound_emu_core
 				void tick();
 
 				// accessors
-				void write(u8 address, u8 data);
+				void write(const u8 address, const u8 data);
 				void keyon();
 				void keyoff();
 
 				// setters
-				inline void set_enable(bool enable) { m_enable = enable ? 1 : 0; }
+				inline void set_enable(const bool enable) { m_enable = boolmask<u16>(enable); }
 
-				inline void set_busy(bool busy) { m_busy = busy ? 1 : 0; }
+				inline void set_busy(const bool busy) { m_busy = boolmask<u16>(busy); }
 
-				inline void set_loop(bool loop) { m_loop = loop ? 1 : 0; }
+				inline void set_loop(const bool loop) { m_loop = boolmask<u16>(loop); }
 
-				inline void set_adpcm(bool adpcm) { m_adpcm = adpcm ? 1 : 0; }
+				inline void set_adpcm(const bool adpcm) { m_adpcm = boolmask<u16>(adpcm); }
 
 				inline void length_inc() { m_length = (m_length + 1) & 0xffff; }
 
-				inline void set_pan(u8 pan) { m_pan = m_host.pan_dir[pan & 7]; }
+				inline void set_pan(const u8 pan) { m_pan = pan & 7; }
 
 				// getters
-				inline bool enable() { return m_enable; }
+				inline bool enable() const { return m_enable; }
 
-				inline bool busy() { return m_busy; }
+				inline bool busy() const { return m_busy; }
 
-				inline u32 start() { return m_start; }
+				inline u32 start() const { return m_start; }
 
-				inline u16 length() { return m_length; }
+				inline u16 length() const { return m_length; }
 
-				inline s32 out(u8 ch) { return m_out[ch & 1]; }
+				inline s32 out(const u8 ch) const { return m_out[ch & 1]; }
 
 			private:
 				// registers
@@ -105,7 +105,7 @@ class k053260_core : public vgsound_emu_core
 				u32 m_start				 = 0;	 // start position
 				u16 m_length			 = 0;	 // source length
 				u8 m_volume				 = 0;	 // master volume
-				int m_pan				 = -1;	 // master pan
+				u8 m_pan				 = 4;	 // master pan
 				u16 m_counter			 = 0;	 // frequency counter
 				u32 m_addr				 = 0;	 // current address
 				s32 m_remain			 = 0;	 // remain for end sample
@@ -115,28 +115,29 @@ class k053260_core : public vgsound_emu_core
 				std::array<s32, 2> m_out = {0};	 // current output
 		};
 
-		class ctrl_t
+		class ctrl_t : public vgsound_emu_core
 		{
 			public:
 				ctrl_t()
-					: m_rom_read(0)
+					: vgsound_emu_core("k053260_ctrl")
+					, m_rom_read(0)
 					, m_sound_en(0)
 					, m_input_en(0)
 				{
 				}
 
-				void reset()
+				inline void reset()
 				{
 					m_rom_read = 0;
 					m_sound_en = 0;
 					m_input_en = 0;
 				}
 
-				void write(u8 data)
+				inline void write(const u8 data)
 				{
-					m_rom_read = (data >> 0) & 1;
-					m_sound_en = (data >> 1) & 1;
-					m_input_en = (data >> 2) & 3;
+					m_rom_read = bitfield(data, 0);
+					m_sound_en = bitfield(data, 1);
+					m_input_en = bitfield(data, 2, 2);
 				}
 
 				// getters
@@ -144,33 +145,36 @@ class k053260_core : public vgsound_emu_core
 
 				inline bool sound_en() { return m_sound_en; }
 
-				inline u8 input_en() { return m_input_en; }
+				inline u8 input_en() const { return m_input_en; }
 
 			private:
 				u8 m_rom_read : 1;	// ROM readback
 				u8 m_sound_en : 1;	// Sound enable
 				u8 m_input_en : 2;	// Input enable
+				u8 m_dummy	  : 4;	// dummy
 		};
 
-		class ym3012_t
+		class ym3012_t : public vgsound_emu_core
 		{
 			public:
 				ym3012_t()
-					: m_in{0}
+					: vgsound_emu_core("k053260_ym3012_out")
+					, m_in{0}
 					, m_out{0}
 				{
 				}
 
-				void reset()
+				inline void reset()
 				{
-					std::fill(m_in.begin(), m_in.end(), 0);
-					std::fill(m_out.begin(), m_out.end(), 0);
+					m_in.fill(0);
+					m_out.fill(0);
 				}
 
-				void tick(u8 ch, s32 in)
+				inline void tick(const u8 _ch, const s32 in)
 				{
-					m_out[(ch & 1)]	   = m_in[(ch & 1)];
-					m_in[(ch & 1) ^ 1] = in;
+					const u8 ch	 = bitfield(_ch, 0);
+					m_out[ch]	 = m_in[ch];
+					m_in[ch ^ 1] = in;
 				}
 
 			private:
@@ -178,32 +182,34 @@ class k053260_core : public vgsound_emu_core
 				std::array<s32, 2> m_out = {0};
 		};
 
-		class dac_t
+		class dac_t : public vgsound_emu_core
 		{
 			public:
 				dac_t()
-					: m_clock(0)
+					: vgsound_emu_core("k053260_dac_intf")
+					, m_clock(0)
 					, m_state(0)
 				{
 				}
 
-				void reset()
+				inline void reset()
 				{
 					m_clock = 0;
 					m_state = 0;
 				}
 
-				inline void set_clock(u8 clock) { m_clock = clock; }
+				inline void set_clock(const u8 clock) { m_clock = bitfield(clock, 0, 4); }
 
-				inline void set_state(u8 state) { m_state = state; }
+				inline void set_state(const u8 state) { m_state = bitfield(state, 0, 2); }
 
-				inline u8 clock() { return m_clock; }
+				inline u8 clock() const { return m_clock; }
 
-				inline u8 state() { return m_state; }
+				inline u8 state() const { return m_state; }
 
 			private:
 				u8 m_clock : 4;	 // DAC clock (16 clock)
 				u8 m_state : 2;	 // DAC state (4 state - SAM1, SAM2)
+				u8 m_dummy : 2;	 // Dummy
 		};
 
 	public:
@@ -220,33 +226,54 @@ class k053260_core : public vgsound_emu_core
 			, m_reg{0}
 			, m_out{0}
 		{
+			// generate pan LUT
+			for (int p = 0; p < 8; p++)
+			{
+				m_pan_lut[p][0] = (pan_dir[p] < 0) ? 0 : s32(cos(f64(p) * PI / 180) * 32767.0);
+				m_pan_lut[p][1] = (pan_dir[p] < 0) ? 0 : s32(sin(f64(p) * PI / 180) * 32767.0);
+			}
 		}
 
 		// communications
-		inline u8 snd2host_r(u8 address) { return m_snd2host[address & 1]; }
+		inline u8 snd2host_r(const u8 address) const { return m_snd2host[address & 1]; }
 
-		inline void host2snd_w(u8 address, u8 data) { m_host2snd[address & 1] = data; }
+		inline void host2snd_w(const u8 address, const u8 data) { m_host2snd[address & 1] = data; }
 
 		// sound accessors
-		u8 read(u8 address);
-		void write(u8 address, u8 data);
+		u8 read(const u8 address);
+		void write(const u8 address, const u8 data);
 
 		// internal state
 		void reset();
 		void tick();
 
+		template<typename T>
+		void tick_stream(const std::size_t stream_len, T **out)
+		{
+			for (std::size_t s = 0; s < stream_len; s++)
+			{
+				tick();
+				out[0][s] = this->output(0);
+				out[1][s] = this->output(1);
+			};
+		}
+
 		// getters for debug, trackers, etc
-		inline s32 output(u8 ch) { return m_out[ch & 1]; }	// output for each channels
+		inline s32 output(const u8 ch) const { return m_out[ch & 1]; }	// output for each channels
 
-		inline u8 reg_r(u8 address) { return m_reg[address & 0x3f]; }
+		inline u8 reg_r(const u8 address) const { return m_reg[address & 0x3f]; }
 
-		inline s32 voice_out(u8 voice, u8 ch)
+		inline s32 voice_out(const u8 voice, const u8 ch) const
 		{
 			return (voice < 4) ? m_voice[voice].out(ch & 1) : 0;
 		}
 
+	protected:
+		inline s32 pan_lut(const u8 pan, const u8 out) { return m_pan_lut[pan][out]; }
+
 	private:
 		std::array<voice_t, 4> m_voice;
+		std::array<std::array<s32, 2>, 8> m_pan_lut;
 		k053260_intf &m_intf;  // common memory interface
 
 		std::array<u8, 2> m_host2snd = {0};

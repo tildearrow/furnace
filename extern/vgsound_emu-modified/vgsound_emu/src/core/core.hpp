@@ -17,18 +17,18 @@ namespace vgsound_emu
 {
 	class vgsound_emu_core
 	{
+		private:
+			const std::string m_tag = "";  // core tags
+
 		public:
 			// constructors
-			vgsound_emu_core(std::string tag)
+			vgsound_emu_core(const std::string tag)
 				: m_tag(tag)
 			{
 			}
 
 			// getters
-			std::string tag() { return m_tag; }
-
-		private:
-			std::string m_tag = "";	 // core tags
+			inline std::string tag() const { return m_tag; }
 	};
 };	// namespace vgsound_emu
 #endif

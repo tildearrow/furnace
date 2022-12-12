@@ -114,19 +114,19 @@ void es5504_core::voice_tick()
 
 		if ((++m_voice_cycle) > std::min<u8>(24, m_active))	 // ~ 25 voices
 		{
-			m_voice_end	  = true;
+			m_voice_end	  = 1;
 			m_voice_cycle = 0;
 		}
 		else
 		{
-			m_voice_end = false;
+			m_voice_end = 0;
 		}
 
 		m_voice_fetch = 0;
 	}
 }
 
-void es5504_core::voice_t::fetch(u8 voice, u8 cycle)
+void es5504_core::voice_t::fetch(const u8 voice, const u8 cycle)
 {
 	m_alu.set_sample(
 	  cycle,
@@ -135,7 +135,7 @@ void es5504_core::voice_t::fetch(u8 voice, u8 cycle)
 								bitfield(m_alu.get_accum_integer() + cycle, 0, m_alu.m_integer)));
 }
 
-void es5504_core::voice_t::tick(u8 voice)
+void es5504_core::voice_t::tick(const u8 voice)
 {
 	m_out = 0;
 
@@ -180,7 +180,7 @@ void es5504_core::reset()
 	}
 
 	m_adc = 0;
-	std::fill(m_out.begin(), m_out.end(), 0);
+	m_out.fill(0);
 }
 
 void es5504_core::voice_t::reset()
@@ -191,7 +191,7 @@ void es5504_core::voice_t::reset()
 }
 
 // Accessors
-u16 es5504_core::host_r(u8 address)
+u16 es5504_core::host_r(const u8 address)
 {
 	if (!m_host_intf.host_access())
 	{
@@ -208,7 +208,7 @@ u16 es5504_core::host_r(u8 address)
 	return m_hd;
 }
 
-void es5504_core::host_w(u8 address, u16 data)
+void es5504_core::host_w(const u8 address, const u16 data)
 {
 	if (!m_host_intf.host_access())
 	{
@@ -225,21 +225,24 @@ void es5504_core::host_w(u8 address, u16 data)
 	}
 }
 
-u16 es5504_core::read(u8 address, bool cpu_access) { return regs_r(m_page, address, cpu_access); }
+u16 es5504_core::read(const u8 address, const bool cpu_access)
+{
+	return regs_r(m_page, address, cpu_access);
+}
 
-void es5504_core::write(u8 address, u16 data, bool cpu_access)
+void es5504_core::write(const u8 address, const u16 data, const bool cpu_access)
 {
 	regs_w(m_page, address, data, cpu_access);
 }
 
-u16 es5504_core::regs_r(u8 page, u8 address, bool cpu_access)
+u16 es5504_core::regs_r(const u8 page, const u8 address, const bool cpu_access)
 {
-	u16 ret = 0xffff;
-	address = bitfield(address, 0, 4);	// 4 bit address for CPU access
+	u16 ret		 = 0xffff;
+	const u8 reg = bitfield(address, 0, 4);	 // 4 bit address for CPU access
 
-	if (address >= 12)	// Global registers
+	if (reg >= 12)	// Global registers
 	{
-		switch (address)
+		switch (reg)
 		{
 			case 12:  // A/D (A to D Convert/Test)
 				ret = (ret & ~0xfffb) | (m_adc & 0xfffb);
@@ -271,7 +274,7 @@ u16 es5504_core::regs_r(u8 page, u8 address, bool cpu_access)
 			voice_t &v = m_voice[voice];
 			if (bitfield(page, 5))	// Page 32 - 56
 			{
-				switch (address)
+				switch (reg)
 				{
 					case 1:	 // O4(n-1) (Filter 4 Temp Register)
 						ret = v.filter().o4_1();
@@ -295,13 +298,10 @@ u16 es5504_core::regs_r(u8 page, u8 address, bool cpu_access)
 			}
 			else  // Page 0 - 24
 			{
-				switch (address)
+				switch (reg)
 				{
 					case 0:	 // CR (Control Register)
-						ret = (ret & ~0xff) | (v.alu().stop() ? 0x01 : 0x00) |
-							  (v.cr().adc() ? 0x04 : 0x00) | (v.alu().lpe() ? 0x08 : 0x00) |
-							  (v.alu().ble() ? 0x10 : 0x00) | (v.alu().irqe() ? 0x20 : 0x00) |
-							  (v.alu().dir() ? 0x40 : 0x00) | (v.alu().irq() ? 0x80 : 0x00);
+						ret = v.cr_r(ret);
 						break;
 					case 1:	 // FC (Frequency Control)
 						ret = (ret & ~0xfffe) | (v.alu().fc() << 1);
@@ -345,13 +345,13 @@ u16 es5504_core::regs_r(u8 page, u8 address, bool cpu_access)
 	return ret;
 }
 
-void es5504_core::regs_w(u8 page, u8 address, u16 data, bool cpu_access)
+void es5504_core::regs_w(const u8 page, const u8 address, const u16 data, const bool cpu_access)
 {
-	address = bitfield(address, 0, 4);	// 4 bit address for CPU access
+	const u8 reg = bitfield(address, 0, 4);	 // 4 bit address for CPU access
 
-	if (address >= 12)	// Global registers
+	if (reg >= 12)	// Global registers
 	{
-		switch (address)
+		switch (reg)
 		{
 			case 12:					 // A/D (A to D Convert/Test)
 				if (bitfield(m_adc, 0))	 // Writam_ble ADC
@@ -383,7 +383,7 @@ void es5504_core::regs_w(u8 page, u8 address, u16 data, bool cpu_access)
 			voice_t &v = m_voice[voice];
 			if (bitfield(page, 5))	// Page 32 - 56
 			{
-				switch (address)
+				switch (reg)
 				{
 					case 1:	 // O4(n-1) (Filter 4 Temp Register)
 						v.filter().set_o4_1(sign_ext<s32>(data, 16));
@@ -407,16 +407,10 @@ void es5504_core::regs_w(u8 page, u8 address, u16 data, bool cpu_access)
 			}
 			else  // Page 0 - 24
 			{
-				switch (address)
+				switch (reg)
 				{
 					case 0:	 // CR (Control Register)
-						v.alu().set_stop(bitfield(data, 0, 2));
-						v.cr().set_adc(bitfield(data, 2));
-						v.alu().set_lpe(bitfield(data, 3));
-						v.alu().set_ble(bitfield(data, 4));
-						v.alu().set_irqe(bitfield(data, 5));
-						v.alu().set_dir(bitfield(data, 6));
-						v.alu().set_irq(bitfield(data, 7));
+						v.cr_w(data);
 						break;
 					case 1:	 // FC (Frequency Control)
 						v.alu().set_fc(bitfield(data, 1, 15));
