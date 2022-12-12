@@ -67,9 +67,7 @@ class DivPlatformNamcoWSG: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
   std::queue<QueuedWrite> writes;
-  unsigned char lastPan;
 
-  int cycles, curChan, delay;
   namco_audio_device* namco;
   int devType, chans;
   unsigned char regPool[512];
