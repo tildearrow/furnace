@@ -180,7 +180,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
       int patLen=e->curSubSong->patLen;
       if (ImGui::InputInt("##PatLength",&patLen,1,3)) { MARK_MODIFIED
         if (patLen<1) patLen=1;
-        if (patLen>256) patLen=256;
+        if (patLen>DIV_MAX_PATTERNS) patLen=DIV_MAX_PATTERNS;
         e->curSubSong->patLen=patLen;
       }
 
@@ -192,7 +192,7 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
       int ordLen=e->curSubSong->ordersLen;
       if (ImGui::InputInt("##OrdLength",&ordLen,1,3)) { MARK_MODIFIED
         if (ordLen<1) ordLen=1;
-        if (ordLen>256) ordLen=256;
+        if (ordLen>DIV_MAX_PATTERNS) ordLen=DIV_MAX_PATTERNS;
         e->curSubSong->ordersLen=ordLen;
         if (curOrder>=ordLen) {
           setOrder(ordLen-1);

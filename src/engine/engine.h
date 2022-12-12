@@ -47,8 +47,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev128"
-#define DIV_ENGINE_VERSION 128
+#define DIV_VERSION "dev129"
+#define DIV_ENGINE_VERSION 129
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -318,7 +318,7 @@ enum DivChanTypes {
 extern const char* cmdName[];
 
 class DivEngine {
-  DivDispatchContainer disCont[32];
+  DivDispatchContainer disCont[DIV_MAX_CHIPS];
   TAAudio* output;
   TAAudioDesc want, got;
   String exportPath;

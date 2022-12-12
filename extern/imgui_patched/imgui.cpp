@@ -3970,6 +3970,7 @@ void ImGui::UpdateMouseMovingWindowNewFrame()
             {
                 MarkIniSettingsDirty(moving_window);
                 SetWindowPos(moving_window, pos, ImGuiCond_Always);
+                g.InertialScrollInhibited=true;
                 if (moving_window->ViewportOwned) // Synchronize viewport immediately because some overlays may relies on clipping rectangle before we Begin() into the window.
                 {
                     moving_window->Viewport->Pos = pos;
@@ -6025,6 +6026,7 @@ static bool ImGui::UpdateWindowManualResize(ImGuiWindow* window, const ImVec2& s
     if (size_target.x != FLT_MAX)
     {
         window->SizeFull = size_target;
+        g.InertialScrollInhibited=true;
         MarkIniSettingsDirty(window);
     }
     if (pos_target.x != FLT_MAX)

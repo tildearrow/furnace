@@ -21,6 +21,7 @@
 #define _C64_H
 
 #include "../dispatch.h"
+#include <queue>
 #include "../macroInt.h"
 #include "sound/c64/sid.h"
 #include "sound/c64_fp/SID.h"
@@ -61,6 +62,12 @@ class DivPlatformC64: public DivDispatch {
   Channel chan[3];
   DivDispatchOscBuffer* oscBuf[3];
   bool isMuted[3];
+  struct QueuedWrite {
+      unsigned char addr;
+      unsigned char val;
+      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+  };
+  std::queue<QueuedWrite> writes;
 
   unsigned char filtControl, filtRes, vol;
   unsigned char writeOscBuf;

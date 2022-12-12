@@ -1040,13 +1040,13 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
 
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
 
-  if (key==100) { // note off
+  if (key==GUI_NOTE_OFF) { // note off
     pat->data[cursor.y][0]=100;
     pat->data[cursor.y][1]=0;
-  } else if (key==101) { // note off + env release
+  } else if (key==GUI_NOTE_OFF_RELEASE) { // note off + env release
     pat->data[cursor.y][0]=101;
     pat->data[cursor.y][1]=0;
-  } else if (key==102) { // env release only
+  } else if (key==GUI_NOTE_RELEASE) { // env release only
     pat->data[cursor.y][0]=102;
     pat->data[cursor.y][1]=0;
   } else {
@@ -2931,6 +2931,17 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   }
   orderScrollLocked=false;
   orderScrollTolerance=false;
+  if (dragMobileMenu) {
+    dragMobileMenu=false;
+    if (mobileMenuOpen) {
+      mobileMenuOpen=(mobileMenuPos>=0.85f);
+    } else {
+      mobileMenuOpen=(mobileMenuPos>=0.15f);
+    }
+  }
+  if (dragMobileEditButton) {
+    dragMobileEditButton=false;
+  }
   if (selecting) {
     if (!selectingFull) cursor=selEnd;
     finishSelection();
@@ -3616,7 +3627,7 @@ bool FurnaceGUI::loop() {
         editOptions(true);
         ImGui::Separator();
         if (ImGui::MenuItem("clear...")) {
-          showWarning("Are you sure you want to clear... (cannot be undone!)",GUI_WARN_CLEAR);
+          doAction(GUI_ACTION_CLEAR);
         }
         ImGui::EndMenu();
       }
@@ -3771,7 +3782,6 @@ bool FurnaceGUI::loop() {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
       //globalWinFlags=ImGuiWindowFlags_NoTitleBar;
       // scene handling goes here!
-      pianoOpen=true;
       drawMobileControls();
       switch (mobScene) {
         case GUI_SCENE_ORDERS:
@@ -3813,6 +3823,9 @@ bool FurnaceGUI::loop() {
           drawPattern();
           drawPiano();
           drawMobileOrderSel();
+
+          globalWinFlags=0;
+          drawFindReplace();
           break;
       }
 
@@ -3820,6 +3833,7 @@ bool FurnaceGUI::loop() {
       drawSettings();
       drawDebug();
       drawLog();
+      drawStats();
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -4755,7 +4769,7 @@ bool FurnaceGUI::loop() {
           if (ImGui::Button("Orders")) {
             stop();
             e->lockEngine([this]() {
-              memset(e->curOrders->ord,0,DIV_MAX_CHANS*256);
+              memset(e->curOrders->ord,0,DIV_MAX_CHANS*DIV_MAX_PATTERNS);
               e->curSubSong->ordersLen=1;
             });
             e->setOrder(0);
@@ -4771,8 +4785,8 @@ bool FurnaceGUI::loop() {
             e->lockEngine([this]() {
               for (int i=0; i<e->getTotalChannelCount(); i++) {
                 DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],true);
-                memset(pat->data,-1,256*32*sizeof(short));
-                for (int j=0; j<256; j++) {
+                memset(pat->data,-1,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
+                for (int j=0; j<DIV_MAX_ROWS; j++) {
                   pat->data[j][0]=0;
                   pat->data[j][1]=0;
                 }
@@ -5139,7 +5153,11 @@ bool FurnaceGUI::init() {
   volMeterOpen=e->getConfBool("volMeterOpen",true);
   statsOpen=e->getConfBool("statsOpen",false);
   compatFlagsOpen=e->getConfBool("compatFlagsOpen",false);
+#ifdef IS_MOBILE
+  pianoOpen=e->getConfBool("pianoOpen",true);
+#else
   pianoOpen=e->getConfBool("pianoOpen",false);
+#endif
   notesOpen=e->getConfBool("notesOpen",false);
   channelsOpen=e->getConfBool("channelsOpen",false);
   patManagerOpen=e->getConfBool("patManagerOpen",false);
@@ -5648,14 +5666,19 @@ FurnaceGUI::FurnaceGUI():
   pendingInsSingle(false),
   displayPendingRawSample(false),
   snesFilterHex(false),
+  mobileEdit(false),
   vgmExportVersion(0x171),
   drawHalt(10),
   zsmExportTickRate(60),
   macroPointSize(16),
   waveEditStyle(0),
   displayInsTypeListMakeInsSample(-1),
+  mobileEditPage(0),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
+  mobileEditAnim(0.0f),
+  mobileEditButtonPos(0.7f,0.7f),
+  mobileEditButtonSize(60.0f,60.0f),
   curSysSection(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),
@@ -5785,12 +5808,15 @@ FurnaceGUI::FurnaceGUI():
   keepLoopAlive(false),
   orderScrollLocked(false),
   orderScrollTolerance(false),
+  dragMobileMenu(false),
+  dragMobileEditButton(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
   curWindowThreadSafe(GUI_WINDOW_NOTHING),
   lastPatternWidth(0.0f),
   longThreshold(0.48f),
+  buttonLongThreshold(0.20f),
   latchNote(-1),
   latchIns(-2),
   latchVol(-1),
@@ -5877,6 +5903,7 @@ FurnaceGUI::FurnaceGUI():
   orderScroll(0.0f),
   orderScrollSlideOrigin(0.0f),
   orderScrollRealOrigin(0.0f,0.0f),
+  dragMobileMenuOrigin(0.0f,0.0f),
   layoutTimeBegin(0),
   layoutTimeEnd(0),
   layoutTimeDelta(0),
@@ -5913,6 +5940,7 @@ FurnaceGUI::FurnaceGUI():
   sampleSelStart(-1),
   sampleSelEnd(-1),
   sampleInfo(true),
+  sampleCompatRate(false),
   sampleDragActive(false),
   sampleDragMode(false),
   sampleDrag16(false),
@@ -5959,8 +5987,8 @@ FurnaceGUI::FurnaceGUI():
   pianoOptionsSet(false),
   pianoOffset(6),
   pianoOffsetEdit(9),
-  pianoView(2),
-  pianoInputPadMode(2),
+  pianoView(PIANO_LAYOUT_AUTOMATIC),
+  pianoInputPadMode(PIANO_INPUT_PAD_SPLIT_AUTO),
 #else
   pianoOctaves(7),
   pianoOctavesEdit(4),
@@ -5968,8 +5996,8 @@ FurnaceGUI::FurnaceGUI():
   pianoSharePosition(true),
   pianoOffset(6),
   pianoOffsetEdit(6),
-  pianoView(0),
-  pianoInputPadMode(0),
+  pianoView(PIANO_LAYOUT_STANDARD),
+  pianoInputPadMode(PIANO_INPUT_PAD_DISABLE),
 #endif
   hasACED(false),
   waveGenBaseShape(0),
@@ -6012,7 +6040,7 @@ FurnaceGUI::FurnaceGUI():
   valueKeys[SDLK_KP_8]=8;
   valueKeys[SDLK_KP_9]=9;
 
-  memset(willExport,1,32*sizeof(bool));
+  memset(willExport,1,DIV_MAX_CHIPS*sizeof(bool));
 
   peak[0]=0;
   peak[1]=0;

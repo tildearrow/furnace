@@ -52,14 +52,14 @@ void DivSample::putSampleData(SafeWriter* w) {
   w->writeI(centerRate);
   w->writeC(depth);
   w->writeC(loopMode);
+  w->writeC(brrEmphasis);
   w->writeC(0); // reserved
-  w->writeC(0);
   w->writeI(loop?loopStart:-1);
   w->writeI(loop?loopEnd:-1);
 
-  for (int i=0; i<4; i++) {
+  for (int i=0; i<DIV_MAX_SAMPLE_TYPE; i++) {
     unsigned int out=0;
-    for (int j=0; j<32; j++) {
+    for (int j=0; j<DIV_MAX_CHIPS; j++) {
       if (renderOn[i][j]) out|=1<<j;
     }
     w->writeI(out);
@@ -125,17 +125,21 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
       reader.readC();
     }
 
+    if (version>=129) {
+      brrEmphasis=reader.readC();
+    } else {
+      reader.readC();
+    }
     // reserved
-    reader.readC();
     reader.readC();
 
     loopStart=reader.readI();
     loopEnd=reader.readI();
     loop=(loopStart>=0)&&(loopEnd>=0);
 
-    for (int i=0; i<4; i++) {
+    for (int i=0; i<DIV_MAX_SAMPLE_TYPE; i++) {
       unsigned int outMask=(unsigned int)reader.readI();
-      for (int j=0; j<32; j++) {
+      for (int j=0; j<DIV_MAX_CHIPS; j++) {
         renderOn[i][j]=outMask&(1<<j);
       }
     }
@@ -490,8 +494,8 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
     case DIV_SAMPLE_DEPTH_BRR: // BRR
       if (dataBRR!=NULL) delete[] dataBRR;
       lengthBRR=9*((count+15)/16);
-      dataBRR=new unsigned char[lengthBRR];
-      memset(dataBRR,0,lengthBRR);
+      dataBRR=new unsigned char[lengthBRR+9];
+      memset(dataBRR,0,lengthBRR+9);
       break;
     case DIV_SAMPLE_DEPTH_VOX: // VOX
       if (dataVOX!=NULL) delete[] dataVOX;
@@ -1041,7 +1045,7 @@ void DivSample::render(unsigned int formatMask) {
         }
         break;
       case DIV_SAMPLE_DEPTH_BRR: // BRR
-        brrDecode(dataBRR,data16,lengthBRR);
+        brrDecode(dataBRR,data16,lengthBRR,brrEmphasis);
         break;
       case DIV_SAMPLE_DEPTH_VOX: // VOX
         oki_decode(dataVOX,data16,samples);
@@ -1100,7 +1104,7 @@ void DivSample::render(unsigned int formatMask) {
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_BRR)) { // BRR
     if (!initInternal(DIV_SAMPLE_DEPTH_BRR,samples)) return;
-    brrEncode(data16,dataBRR,(samples+15)&(~15),loop?loopStart:-1);
+    brrEncode(data16,dataBRR,samples,loop?loopStart:-1,brrEmphasis);
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_VOX)) { // VOX
     if (!initInternal(DIV_SAMPLE_DEPTH_VOX,samples)) return;
@@ -1174,9 +1178,9 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       duplicate=new unsigned char[getCurBufLen()];
       memcpy(duplicate,getCurBuf(),getCurBufLen());
     }
-    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,loopMode);
+    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,loopMode);
   } else {
-    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,loopMode);
+    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,loopMode);
   }
   if (!doNotPush) {
     while (!redoHist.empty()) {

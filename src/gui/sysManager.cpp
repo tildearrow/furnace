@@ -112,7 +112,7 @@ void FurnaceGUI::drawSysManager() {
         ImGui::EndDisabled();
         ImGui::PopID();
       }
-      if (e->song.systemLen<32) {
+      if (e->song.systemLen<DIV_MAX_CHIPS) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TableNextColumn();

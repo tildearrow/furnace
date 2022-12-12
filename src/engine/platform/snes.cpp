@@ -214,13 +214,13 @@ void DivPlatformSNES::tick(bool sysTick) {
           loop=start;
         } else if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
           start=sampleOff[chan[i].sample];
-          end=MIN(start+MAX(s->lengthBRR,1),getSampleMemCapacity());
+          end=MIN(start+MAX(s->lengthBRR+((s->loop && s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0),1),getSampleMemCapacity());
           loop=MAX(start,end-1);
           if (chan[i].audPos>0) {
             start=start+MIN(chan[i].audPos,s->lengthBRR-1)/16*9;
           }
           if (s->loopStart>=0) {
-            loop=start+s->loopStart/16*9;
+            loop=((s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0)+start+((s->loopStart/16)*9);
           }
         } else {
           start=0;
@@ -817,7 +817,7 @@ void DivPlatformSNES::renderSamples(int sysID) {
       continue;
     }
 
-    int length=s->lengthBRR;
+    int length=s->lengthBRR+((s->loop && s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0);
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos)/9*9,length);
     if (actualLength>0) {
       sampleOff[i]=memPos;

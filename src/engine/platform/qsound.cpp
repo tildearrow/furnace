@@ -783,7 +783,7 @@ void DivPlatformQSound::renderSamples(int sysID) {
       for (int i=0; i<length; i++) {
         sampleMem[(memPos+i)]=s->dataQSoundA[i];
       }
-      sampleLoaded[i]=true;
+      sampleLoadedBS[i]=true;
     }
     offBS[i]=memPos;
     memPos+=length+16;

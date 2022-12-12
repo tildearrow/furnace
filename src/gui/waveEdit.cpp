@@ -241,9 +241,15 @@ void FurnaceGUI::drawWaveEdit() {
         if (ImGui::Button(ICON_FA_FOLDER_OPEN "##WELoad")) {
           doAction(GUI_ACTION_WAVE_LIST_OPEN_REPLACE);
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Open");
+        }
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_FLOPPY_O "##WESave")) {
           doAction(GUI_ACTION_WAVE_LIST_SAVE);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Save");
         }
         if (ImGui::BeginPopupContextItem("WaveSaveFormats",ImGuiMouseButton_Right)) {
           if (ImGui::MenuItem("save as .dmw...")) {
@@ -643,11 +649,11 @@ void FurnaceGUI::drawWaveEdit() {
                 }
                 ImGui::TableNextColumn();
                 if (ImGui::Button("Scale Y")) {
-                  if (waveGenScaleY>0 && wave->max!=waveGenScaleY) e->lockEngine([this,wave]() {
+                  if (waveGenScaleY>0 && wave->max!=(waveGenScaleY-1)) e->lockEngine([this,wave]() {
                     for (int i=0; i<wave->len; i++) {
                       wave->data[i]=(wave->data[i]*(waveGenScaleY+1))/(wave->max+1);
                     }
-                    wave->max=waveGenScaleY;
+                    wave->max=waveGenScaleY-1;
                     MARK_MODIFIED;
                   });
                 }

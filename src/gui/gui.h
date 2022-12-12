@@ -54,7 +54,7 @@
   }
 
 #define CHECK_LONG_HOLD (mobileUI && ImGui::GetIO().MouseDown[ImGuiMouseButton_Left] && ImGui::GetIO().MouseDownDuration[ImGuiMouseButton_Left]>=longThreshold && ImGui::GetIO().MouseDownDurationPrev[ImGuiMouseButton_Left]<longThreshold && ImGui::GetIO().MouseDragMaxDistanceSqr[ImGuiMouseButton_Left]<=ImGui::GetIO().ConfigInertialScrollToleranceSqr)
-
+#define CHECK_BUTTON_LONG_HOLD (mobileUI && ImGui::GetIO().MouseDown[ImGuiMouseButton_Left] && ImGui::GetIO().MouseDownDuration[ImGuiMouseButton_Left]>=buttonLongThreshold && ImGui::GetIO().MouseDownDurationPrev[ImGuiMouseButton_Left]<buttonLongThreshold)
 // for now
 #define NOTIFY_LONG_HOLD \
   if (vibrator && vibratorAvailable) { \
@@ -421,6 +421,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_FULLSCREEN,
   GUI_ACTION_TX81Z_REQUEST,
   GUI_ACTION_PANIC,
+  GUI_ACTION_CLEAR,
 
   GUI_ACTION_WINDOW_EDIT_CONTROLS,
   GUI_ACTION_WINDOW_ORDERS,
@@ -520,6 +521,8 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_COLLAPSE_SONG,
   GUI_ACTION_PAT_EXPAND_SONG,
   GUI_ACTION_PAT_LATCH,
+  GUI_ACTION_PAT_SCROLL_MODE,
+  GUI_ACTION_PAT_CLEAR_LATCH,
   GUI_ACTION_PAT_MAX,
 
   GUI_ACTION_INS_LIST_MIN,
@@ -651,6 +654,12 @@ enum PasteMode {
   GUI_PASTE_MODE_OVERFLOW,
   GUI_PASTE_MODE_INS_FG,
   GUI_PASTE_MODE_INS_BG
+};
+
+enum NoteCtrl {
+  GUI_NOTE_OFF=100,
+  GUI_NOTE_OFF_RELEASE=101,
+  GUI_NOTE_RELEASE=102
 };
 
 #define FURKMOD_CTRL (1U<<31)
@@ -1088,14 +1097,17 @@ class FurnaceGUI {
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex;
-  bool willExport[32];
+  bool mobileEdit;
+  bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;
   int drawHalt;
   int zsmExportTickRate;
   int macroPointSize;
   int waveEditStyle;
   int displayInsTypeListMakeInsSample;
-  float mobileMenuPos, autoButtonSize;
+  int mobileEditPage;
+  float mobileMenuPos, autoButtonSize, mobileEditAnim;
+  ImVec2 mobileEditButtonPos, mobileEditButtonSize;
   const int* curSysSection;
   DivInstrumentFM opllPreview;
 
@@ -1435,13 +1447,14 @@ class FurnaceGUI {
   SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
   bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
-  bool keepLoopAlive, orderScrollLocked, orderScrollTolerance;
+  bool keepLoopAlive, orderScrollLocked, orderScrollTolerance, dragMobileMenu, dragMobileEditButton;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   std::atomic<FurnaceGUIWindows> curWindowThreadSafe;
   float peak[2];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
   float lastPatternWidth, longThreshold;
+  float buttonLongThreshold;
   String nextDesc;
   String nextDescName;
 
@@ -1581,6 +1594,7 @@ class FurnaceGUI {
   float nextScroll, nextAddScroll, orderScroll, orderScrollSlideOrigin;
 
   ImVec2 orderScrollRealOrigin;
+  ImVec2 dragMobileMenuOrigin;
 
   int layoutTimeBegin, layoutTimeEnd, layoutTimeDelta;
   int renderTimeBegin, renderTimeEnd, renderTimeDelta;
@@ -1615,7 +1629,7 @@ class FurnaceGUI {
   int resampleStrat;
   float amplifyVol;
   int sampleSelStart, sampleSelEnd;
-  bool sampleInfo;
+  bool sampleInfo, sampleCompatRate;
   bool sampleDragActive, sampleDragMode, sampleDrag16, sampleZoomAuto;
   void* sampleDragTarget;
   ImVec2 sampleDragStart;
@@ -1673,6 +1687,21 @@ class FurnaceGUI {
   bool followLog;
 
   // piano
+  enum PianoLayoutMode {
+    PIANO_LAYOUT_STANDARD = 0,
+    PIANO_LAYOUT_CONTINUOUS,
+    PIANO_LAYOUT_AUTOMATIC,
+    PIANO_LAYOUT_MAX
+  };
+
+  enum PianoInputPadMode {
+    PIANO_INPUT_PAD_DISABLE = 0,
+    PIANO_INPUT_PAD_REPLACE,
+    PIANO_INPUT_PAD_SPLIT_AUTO,
+    PIANO_INPUT_PAD_SPLIT_VISIBLE,
+    PIANO_INPUT_PAD_MAX
+  };
+
   int pianoOctaves, pianoOctavesEdit;
   bool pianoOptions, pianoSharePosition, pianoOptionsSet;
   float pianoKeyHit[180];

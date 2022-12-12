@@ -23,8 +23,8 @@
 static DivPattern emptyPat;
 
 DivPattern::DivPattern() {
-  memset(data,-1,256*32*sizeof(short));
-  for (int i=0; i<256; i++) {
+  memset(data,-1,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
+  for (int i=0; i<DIV_MAX_ROWS; i++) {
     data[i][0]=0;
     data[i][1]=0;
   }
@@ -43,13 +43,13 @@ DivPattern* DivChannelData::getPattern(int index, bool create) {
 
 std::vector<std::pair<int,int>> DivChannelData::optimize() {
   std::vector<std::pair<int,int>> ret;
-  for (int i=0; i<256; i++) {
+  for (int i=0; i<DIV_MAX_PATTERNS; i++) {
     if (data[i]!=NULL) {
       // compare
-      for (int j=0; j<256; j++) {
+      for (int j=0; j<DIV_MAX_PATTERNS; j++) {
         if (j==i) continue;
         if (data[j]==NULL) continue;
-        if (memcmp(data[i]->data,data[j]->data,256*32*sizeof(short))==0) {
+        if (memcmp(data[i]->data,data[j]->data,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short))==0) {
           delete data[j];
           data[j]=NULL;
           logV("%d == %d",i,j);
@@ -63,15 +63,15 @@ std::vector<std::pair<int,int>> DivChannelData::optimize() {
 
 std::vector<std::pair<int,int>> DivChannelData::rearrange() {
   std::vector<std::pair<int,int>> ret;
-  for (int i=0; i<256; i++) {
+  for (int i=0; i<DIV_MAX_PATTERNS; i++) {
     if (data[i]==NULL) {
-      for (int j=i; j<256; j++) {
+      for (int j=i; j<DIV_MAX_PATTERNS; j++) {
         if (data[j]!=NULL) {
           data[i]=data[j];
           data[j]=NULL;
           logV("%d -> %d",j,i);
           ret.push_back(std::pair<int,int>(j,i));
-          if (++i>=256) break;
+          if (++i>=DIV_MAX_PATTERNS) break;
         }
       }
     }
@@ -80,7 +80,7 @@ std::vector<std::pair<int,int>> DivChannelData::rearrange() {
 }
 
 void DivChannelData::wipePatterns() {
-  for (int i=0; i<256; i++) {
+  for (int i=0; i<DIV_MAX_PATTERNS; i++) {
     if (data[i]!=NULL) {
       delete data[i];
       data[i]=NULL;
@@ -95,5 +95,5 @@ void DivPattern::copyOn(DivPattern* dest) {
 
 DivChannelData::DivChannelData():
   effectCols(1) {
-  memset(data,0,256*sizeof(void*));
+  memset(data,0,DIV_MAX_PATTERNS*sizeof(void*));
 }
