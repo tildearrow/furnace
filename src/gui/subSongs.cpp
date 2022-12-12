@@ -50,9 +50,15 @@ void FurnaceGUI::drawSubSongs() {
           if (ImGui::SmallButton(ICON_FA_ARROW_UP "##SubUp")) {
             e->moveSubSongUp(i);
           }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Move up");
+          }
           ImGui::SameLine();
           if (ImGui::SmallButton(ICON_FA_ARROW_DOWN "##SubDown")) {
             e->moveSubSongDown(i);
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Move down");
           }
           ImGui::PopID();
         }
@@ -79,6 +85,9 @@ void FurnaceGUI::drawSubSongs() {
         MARK_MODIFIED;
       }
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Add");
+    }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_MINUS "##SubSongDel")) {
       if (e->song.subsong.size()<=1) {
@@ -86,6 +95,9 @@ void FurnaceGUI::drawSubSongs() {
       } else {
         showWarning("are you sure you want to remove this subsong?",GUI_WARN_SUBSONG_DEL);
       }
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Remove");
     }
 
     ImGui::Text("Name");
