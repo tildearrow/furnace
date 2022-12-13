@@ -21,13 +21,12 @@
 #define _GB_H
 
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include "../waveSynth.h"
 #include "sound/gb/gb.h"
 #include <queue>
 
 class DivPlatformGB: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
+  struct Channel: public SharedChannel<signed char> {
     unsigned char duty, sweep;
     bool sweepChanged, released, softEnv, killIt;
     bool soManyHacksToMakeItDefleCompatible;
@@ -36,14 +35,8 @@ class DivPlatformGB: public DivDispatch {
     unsigned char envVol, envDir, envLen, soundLen;
     unsigned short hwSeqPos;
     short hwSeqDelay;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<signed char>(15),
+      SharedChannel<signed char>(15),
       duty(0),
       sweep(0),
       sweepChanged(false),

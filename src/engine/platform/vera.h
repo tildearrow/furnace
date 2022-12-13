@@ -19,20 +19,19 @@
 
 #ifndef _VERA_H
 #define _VERA_H
+
 #include "../dispatch.h"
 #include "../instrument.h"
-#include "../macroInt.h"
 
 struct VERA_PSG;
 struct VERA_PCM;
 
 class DivPlatformVERA: public DivDispatch {
   protected:
-    struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
+    struct Channel: public SharedChannel<int> {
       unsigned char pan;
       unsigned accum;
       int noiseval;
-      DivMacroInt std;
 
       struct PCMChannel {
         int sample;
@@ -42,14 +41,8 @@ class DivPlatformVERA: public DivDispatch {
         bool depth16;
         PCMChannel(): sample(-1), pos(0), len(0), freq(0), depth16(false) {}
       } pcm;
-      // somebody please split this into multiple lines!
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
       Channel():
-        SharedChannelFreq(),
-        SharedChannelVolume<int>(0),
+        SharedChannel<int>(0),
         pan(0),
         accum(0),
         noiseval(0),

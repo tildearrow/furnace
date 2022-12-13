@@ -22,11 +22,10 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "../waveSynth.h"
 
 class DivPlatformAmiga: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
+  struct Channel: public SharedChannel<signed char> {
     unsigned int audLoc;
     unsigned short audLen;
     unsigned int audPos;
@@ -35,15 +34,9 @@ class DivPlatformAmiga: public DivDispatch {
     int sample, wave;
     int busClock;
     bool useWave, setPos, useV, useP;
-    DivMacroInt std;
     DivWaveSynth ws;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<signed char>(64),
+      SharedChannel<signed char>(64),
       audLoc(0),
       audLen(0),
       audPos(0),

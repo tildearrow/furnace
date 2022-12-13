@@ -19,23 +19,17 @@
 
 #ifndef _TIA_H
 #define _TIA_H
+
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include <queue>
 #include "sound/tia/Audio.h"
 
 class DivPlatformTIA: public DivDispatch {
   protected:
-    struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
+    struct Channel: public SharedChannel<int> {
       unsigned char shape;
-      DivMacroInt std;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
       Channel():
-        SharedChannelFreq(),
-        SharedChannelVolume<int>(15),
+        SharedChannel<int>(15),
         shape(4) {}
     };
     Channel chan[2];

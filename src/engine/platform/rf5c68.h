@@ -22,24 +22,17 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "sound/rf5c68.h"
 
 class DivPlatformRF5C68: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
+  struct Channel: public SharedChannel<int> {
     unsigned int audPos;
     int sample, wave;
     int panning;
     bool setPos;
     int macroVolMul;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<int>(255),
+      SharedChannel<int>(255),
       audPos(0),
       sample(-1),
       panning(255),

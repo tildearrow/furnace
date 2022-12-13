@@ -22,12 +22,11 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "../waveSynth.h"
 #include "vgsound_emu/src/n163/n163.hpp"
 
 class DivPlatformN163: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
+  struct Channel: public SharedChannel<signed char> {
     signed char resVol;
     short wave, wavePos, waveLen;
     unsigned char waveMode;
@@ -35,15 +34,9 @@ class DivPlatformN163: public DivDispatch {
     unsigned char loadMode;
     bool volumeChanged;
     bool waveChanged, waveUpdated;
-    DivMacroInt std;
     DivWaveSynth ws;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<signed char>(15),
+      SharedChannel<signed char>(15),
       resVol(15),
       wave(-1),
       wavePos(0),

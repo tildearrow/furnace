@@ -19,6 +19,7 @@
 
 #ifndef _YM2610B_H
 #define _YM2610B_H
+
 #include "ym2610shared.h"
 
 class DivPlatformYM2610B: public DivPlatformYM2610Base<16> {

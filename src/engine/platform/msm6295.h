@@ -19,23 +19,18 @@
 
 #ifndef _MSM6295_H
 #define _MSM6295_H
+
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include <queue>
 #include "vgsound_emu/src/msm6295/msm6295.hpp"
 
 class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
   protected:
-    struct Channel: public SharedChannel, public SharedChannelVolume<int> {
+    struct Channel: public SharedChannel<int> {
       bool furnacePCM;
       int sample;
-      DivMacroInt std;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-      }
       Channel():
-        SharedChannel(),
-        SharedChannelVolume<int>(8),
+        SharedChannel<int>(8),
         furnacePCM(false),
         sample(-1) {}
     };

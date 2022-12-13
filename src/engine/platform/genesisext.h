@@ -17,6 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#ifndef _GENESISEXT_H
+#define _GENESISEXT_H
+
 #include "../dispatch.h"
 
 #include "genesis.h"
@@ -43,3 +46,5 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
     void quit();
     ~DivPlatformGenesisExt();
 };
+
+#endif

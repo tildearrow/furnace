@@ -22,12 +22,11 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "../waveSynth.h"
 #include "sound/pce_psg.h"
 
 class DivPlatformPCE: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
+  struct Channel: public SharedChannel<signed char> {
     int antiClickPeriodCount, antiClickWavePos;
     int dacPeriod, dacRate, dacOut;
     unsigned int dacPos;
@@ -36,15 +35,9 @@ class DivPlatformPCE: public DivDispatch {
     bool noise, pcm, furnaceDac, deferredWaveUpdate;
     signed short wave;
     int macroVolMul;
-    DivMacroInt std;
     DivWaveSynth ws;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<signed char>(31),
+      SharedChannel<signed char>(31),
       antiClickPeriodCount(0),
       antiClickWavePos(0),
       dacPeriod(0),

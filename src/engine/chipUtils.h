@@ -20,46 +20,40 @@
 #ifndef _CHIP_UTILS_H
 #define _CHIP_UTILS_H
 
+#include "macroInt.h"
+
 // custom clock limits
 #define MIN_CUSTOM_CLOCK 100000
 #define MAX_CUSTOM_CLOCK 40000000
 
 // common shared channel struct
-struct SharedChannel {
-  int ins;
-  int note;
-  bool active, insChanged, keyOn, keyOff;
-  SharedChannel():
-    ins(-1),
-    note(0),
-    active(false),
-    insChanged(true),
-    keyOn(false),
-    keyOff(false) {} 
-};
-
-// common shared channel struct with frequency
-struct SharedChannelFreq: public SharedChannel {
+template<typename T> struct SharedChannel {
   int freq, baseFreq, pitch, pitch2;
-  bool freqChanged, inPorta, portaPause;
-  SharedChannelFreq():
-    SharedChannel(),
+  int ins, note;
+  bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
+  T vol, outVol;
+  DivMacroInt std;
+  void macroInit(DivInstrument* which) {
+    std.init(which);
+    pitch2=0;
+  }
+  SharedChannel(T initVol):
     freq(0),
     baseFreq(0),
     pitch(0),
     pitch2(0),
+    ins(-1),
+    note(0),
+    active(false),
+    insChanged(true),
     freqChanged(false),
+    keyOn(false),
+    keyOff(false),
+    portaPause(false),
     inPorta(false),
-    portaPause(false) {}
-};
-
-// common shared channel volume struct
-template<typename T>
-struct SharedChannelVolume {
-  T vol, outVol;
-  SharedChannelVolume(T initVol):
     vol(initVol),
-    outVol(initVol) {}
+    outVol(initVol),
+    std() {} 
 };
 
 #endif

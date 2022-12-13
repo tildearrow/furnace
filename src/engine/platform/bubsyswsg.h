@@ -22,23 +22,16 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "../waveSynth.h"
 #include "vgsound_emu/src/k005289/k005289.hpp"
 
 class DivPlatformBubSysWSG: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
+  struct Channel: public SharedChannel<signed char> {
     signed short wave;
     signed char waveROM[32] = {0}; // 4 bit PROM per channel on bubble system
-    DivMacroInt std;
     DivWaveSynth ws;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<signed char>(15),
+      SharedChannel<signed char>(15),
       wave(-1) {}
   };
   Channel chan[2];

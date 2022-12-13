@@ -20,7 +20,6 @@
 #ifndef _AY_H
 #define _AY_H
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include <queue>
 #include "sound/ay8910.h"
 
@@ -30,7 +29,7 @@ class DivPlatformAY8910: public DivDispatch {
       0,4,1,5,2,6,9,8,11,12,13,3,7,10,14,15
     };
     inline unsigned char regRemap(unsigned char reg) { return intellivision?AY8914RegRemap[reg&0x0f]:reg&0x0f; }
-    struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
+    struct Channel: public SharedChannel<int> {
       struct PSGMode {
         union {
           struct {
@@ -75,14 +74,8 @@ class DivPlatformAY8910: public DivDispatch {
 
       unsigned char autoEnvNum, autoEnvDen;
       signed char konCycles;
-      DivMacroInt std;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
       Channel():
-        SharedChannelFreq(),
-        SharedChannelVolume<int>(15),
+        SharedChannel<int>(15),
         curPSGMode(PSGMode(0)),
         nextPSGMode(PSGMode(1)),
         dac(DAC()),
