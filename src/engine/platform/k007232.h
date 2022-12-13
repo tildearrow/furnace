@@ -26,15 +26,14 @@
 #include "vgsound_emu/src/k007232/k007232.hpp"
 
 class DivPlatformK007232: public DivDispatch, public k007232_intf {
-  struct Channel {
-    int freq, prevFreq, baseFreq, pitch, pitch2;
+  struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
+    int prevFreq;
     unsigned int audPos;
     int prevBank;
-    int sample, wave, ins;
-    int note;
+    int sample;
     int panning, prevPan;
-    bool active, insChanged, volumeChanged, freqChanged, keyOn, keyOff, inPorta, setPos;
-    int vol, outVol, resVol, lvol, rvol;
+    bool volumeChanged, setPos;
+    int resVol, lvol, rvol;
     int macroVolMul;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
@@ -42,28 +41,16 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
       pitch2=0;
     }
     Channel():
-      freq(0),
+      SharedChannelFreq(),
+      SharedChannelVolume<int>(15),
       prevFreq(-1),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
       audPos(0),
       prevBank(-1),
       sample(-1),
-      ins(-1),
-      note(0),
       panning(255),
       prevPan(-1),
-      active(false),
-      insChanged(true),
       volumeChanged(false),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       setPos(false),
-      vol(15),
-      outVol(15),
       resVol(15),
       lvol(15),
       rvol(15),
