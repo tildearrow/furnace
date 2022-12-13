@@ -644,7 +644,6 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text(" - prev: %d",ch->prevFreq);
       ImGui::Text("- duty: %d",ch->duty);
       ImGui::Text("- sweep: %.2x",ch->sweep);
-      ImGui::Text("- wave: %d",ch->wave);
       COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->sweepChanged?colorOn:colorOff,">> SweepChanged");
       ImGui::TextColored(ch->furnaceDac?colorOn:colorOff,">> FurnaceDAC");
