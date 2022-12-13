@@ -1146,7 +1146,6 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("* Sample: %d",ch->sample);
       ImGui::Text(" - pos: %d",ch->audPos);
       ImGui::Text(" - prevBank: %d",ch->prevBank);
-      ImGui::Text("- wave: %d",ch->wave);
       ImGui::Text("- ins: %d",ch->ins);
       ImGui::Text("* panning: %d",ch->panning);
       ImGui::Text(" - prev: %d",ch->prevPan);
