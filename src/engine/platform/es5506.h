@@ -30,7 +30,7 @@
 #include "vgsound_emu/src/es550x/es5506.hpp"
 
 class DivPlatformES5506: public DivDispatch, public es550x_intf {
-  struct Channel {
+  struct Channel : public SharedChannelFreq, public SharedChannelVolume<unsigned int> {
     struct PCM {
       bool isNoteMap;
       int index, next;
@@ -64,9 +64,9 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         nextPos(0),
         loopMode(DIV_SAMPLE_LOOP_MAX) {}
     } pcm;
-    int freq, baseFreq, nextFreq, pitch, pitch2, note, nextNote, currNote, ins, wave;
+    int nextFreq, nextNote, currNote, wave;
     unsigned int volMacroMax, panMacroMax;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, isReverseLoop;
+    bool useWave, isReverseLoop;
     unsigned int cr;
 
     struct NoteChanged { // Note changed flags
@@ -177,8 +177,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     signed int k1Offs, k2Offs;
     signed int k1Slide, k2Slide;
     signed int k1Prev, k2Prev;
-    unsigned int vol, lVol, rVol;
-    unsigned int outVol, outLVol, outRVol;
+    unsigned int lVol, rVol;
+    unsigned int outLVol, outRVol;
     unsigned int resLVol, resRVol;
     signed int oscOut;
     DivInstrumentES5506::Filter filter;
@@ -197,25 +197,15 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       k2Prev=0xffff;
     }
     Channel():
+      SharedChannelFreq(),
+      SharedChannelVolume<unsigned int>(0xff),
       pcm(PCM()),
-      freq(0),
-      baseFreq(0),
       nextFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
       nextNote(0),
       currNote(0),
-      ins(-1),
       wave(-1),
       volMacroMax(0xffff),
       panMacroMax(0xffff),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       useWave(false),
       isReverseLoop(false),
       cr(0),
@@ -231,17 +221,17 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       k2Slide(0),
       k1Prev(0xffff),
       k2Prev(0xffff),
-      vol(0xff),
       lVol(0xff),
       rVol(0xff),
-      outVol(0xffff),
       outLVol(0xffff),
       outRVol(0xffff),
       resLVol(0xffff),
       resRVol(0xffff),
       oscOut(0),
       filter(DivInstrumentES5506::Filter()),
-      envelope(DivInstrumentES5506::Envelope()) {}
+      envelope(DivInstrumentES5506::Envelope()) {
+        outVol=0xffff;
+      }
   };
   Channel chan[32];
   DivDispatchOscBuffer* oscBuf[32];
