@@ -91,7 +91,8 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
 
     virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
     virtual void quit() override;
-    DivPlatformMSM6295():DivDispatch(),
+    DivPlatformMSM6295():
+      DivDispatch(),
       vgsound_emu_mem_intf(),
       msm(*this) {}
     ~DivPlatformMSM6295();

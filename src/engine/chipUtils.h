@@ -27,8 +27,7 @@
 #define MAX_CUSTOM_CLOCK 40000000
 
 // common shared channel struct
-template<typename T>
-struct SharedChannel {
+template<typename T> struct SharedChannel {
   int freq, baseFreq, pitch, pitch2;
   int ins, note;
   bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
