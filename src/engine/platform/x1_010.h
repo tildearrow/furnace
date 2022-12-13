@@ -27,7 +27,7 @@
 #include "vgsound_emu/src/x1_010/x1_010.hpp"
 
 class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
-  struct Channel {
+  struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
     struct Envelope {
       struct EnvFlag {
         unsigned char envEnable : 1;
@@ -68,11 +68,11 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
         slide(0),
         slidefrac(0) {}
     };
-    int freq, baseFreq, fixedFreq, pitch, pitch2, note;
-    int wave, sample, ins;
+    int fixedFreq;
+    int wave, sample;
     unsigned char pan, autoEnvNum, autoEnvDen;
-    bool active, insChanged, envChanged, freqChanged, keyOn, keyOff, inPorta, furnacePCM, pcm;
-    int vol, outVol, lvol, rvol;
+    bool envChanged, furnacePCM, pcm;
+    int lvol, rvol;
     int macroVolMul;
     unsigned char waveBank;
     unsigned int bankSlot;
@@ -80,26 +80,34 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     DivMacroInt std;
     DivWaveSynth ws;
     void reset() {
-        freq = baseFreq = pitch = pitch2 = note = 0;
-        wave = sample = ins = -1;
-        pan = 255;
-        autoEnvNum = autoEnvDen = 0;
-        active = false;
-        insChanged = envChanged = freqChanged = true;
-        keyOn = keyOff = inPorta = furnacePCM = pcm = false;
-        vol = outVol = lvol = rvol = 15;
-        waveBank = 0;
+        freq=baseFreq=pitch=pitch2=note=0;
+        wave=sample=ins=-1;
+        pan=255;
+        autoEnvNum=autoEnvDen=0;
+        active=false;
+        insChanged=envChanged=freqChanged=true;
+        keyOn=keyOff=inPorta=furnacePCM=pcm=false;
+        vol=outVol=lvol=rvol=15;
+        waveBank=0;
     }
     void macroInit(DivInstrument* which) {
       std.init(which);
       pitch2=0;
     }
     Channel():
-      freq(0), baseFreq(0), fixedFreq(0), pitch(0), pitch2(0), note(0),
-      wave(-1), sample(-1), ins(-1),
-      pan(255), autoEnvNum(0), autoEnvDen(0),
-      active(false), insChanged(true), envChanged(true), freqChanged(false), keyOn(false), keyOff(false), inPorta(false), furnacePCM(false), pcm(false),
-      vol(15), outVol(15), lvol(15), rvol(15),
+      SharedChannelFreq(),
+      SharedChannelVolume<int>(15),
+      fixedFreq(0),
+      wave(-1),
+      sample(-1),
+      pan(255),
+      autoEnvNum(0),
+      autoEnvDen(0),
+      envChanged(true),
+      furnacePCM(false),
+      pcm(false),
+      lvol(15),
+      rvol(15),
       macroVolMul(15),
       waveBank(0),
       bankSlot(0) {}

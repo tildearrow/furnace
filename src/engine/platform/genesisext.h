@@ -22,41 +22,7 @@
 #include "genesis.h"
 
 class DivPlatformGenesisExt: public DivPlatformGenesis {
-  struct OpChannel {
-    DivMacroInt std;
-    unsigned char freqH, freqL;
-    int freq, baseFreq, pitch, pitch2, portaPauseFreq, ins, note;
-    signed char konCycles;
-    bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, mask;
-    int vol, outVol;
-    unsigned char pan;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
-    OpChannel():
-      freqH(0),
-      freqL(0),
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      portaPauseFreq(0),
-      ins(-1),
-      note(0),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      portaPause(false),
-      inPorta(false),
-      mask(true),
-      vol(0),
-      outVol(0),
-      pan(3) {}
-  };
-  OpChannel opChan[4];
+  OPNOpChannelStereo opChan[4];
   bool isOpMuted[4];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);

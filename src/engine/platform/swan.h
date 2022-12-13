@@ -27,11 +27,9 @@
 #include <queue>
 
 class DivPlatformSwan: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note, ins;
+  struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
     unsigned char pan;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
-    int vol, outVol, wave;
+    int wave;
     DivMacroInt std;
     DivWaveSynth ws;
     void macroInit(DivInstrument* which) {
@@ -39,21 +37,9 @@ class DivPlatformSwan: public DivDispatch {
       pitch2=0;
     }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
-      ins(-1),
+      SharedChannelFreq(),
+      SharedChannelVolume<int>(15),
       pan(255),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
-      vol(15),
-      outVol(15),
       wave(-1) {}
   };
   Channel chan[4];

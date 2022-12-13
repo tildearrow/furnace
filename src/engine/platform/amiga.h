@@ -26,19 +26,15 @@
 #include "../waveSynth.h"
 
 class DivPlatformAmiga: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2;
+  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
     unsigned int audLoc;
     unsigned short audLen;
     unsigned int audPos;
     int audSub;
     signed char audDat;
     int sample, wave;
-    int ins;
     int busClock;
-    int note;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos, useV, useP;
-    signed char vol, outVol;
+    bool useWave, setPos, useV, useP;
     DivMacroInt std;
     DivWaveSynth ws;
     void macroInit(DivInstrument* which) {
@@ -46,10 +42,8 @@ class DivPlatformAmiga: public DivDispatch {
       pitch2=0;
     }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
+      SharedChannelFreq(),
+      SharedChannelVolume<signed char>(64),
       audLoc(0),
       audLen(0),
       audPos(0),
@@ -57,21 +51,11 @@ class DivPlatformAmiga: public DivDispatch {
       audDat(0),
       sample(-1),
       wave(-1),
-      ins(-1),
       busClock(0),
-      note(0),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       useWave(false),
       setPos(false),
       useV(false),
-      useP(false),
-      vol(64),
-      outVol(64) {}
+      useP(false) {}
   };
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];

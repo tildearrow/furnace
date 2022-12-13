@@ -144,7 +144,6 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
           //DivSample* s=parent->getSample(chan[c.chan].sample);
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
-            chan[c.chan].freqChanged=true;
           }
           chan[c.chan].active=true;
           chan[c.chan].keyOn=true;

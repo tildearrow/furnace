@@ -29,37 +29,24 @@ extern "C" {
 
 class DivPlatformOPLL: public DivDispatch {
   protected:
-    struct Channel {
+    struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
       DivInstrumentFM state;
       DivMacroInt std;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, pitch2, note, ins, fixedFreq;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta;
-      int vol, outVol;
+      int fixedFreq;
+      bool furnaceDac;
       unsigned char pan;
       void macroInit(DivInstrument* which) {
         std.init(which);
         pitch2=0;
       }
       Channel():
+        SharedChannelFreq(),
+        SharedChannelVolume<int>(0),
         freqH(0),
         freqL(0),
-        freq(0),
-        baseFreq(0),
-        pitch(0),
-        pitch2(0),
-        note(0),
-        ins(-1),
         fixedFreq(0),
-        active(false),
-        insChanged(true),
-        freqChanged(false),
-        keyOn(false),
-        keyOff(false),
-        portaPause(false),
         furnaceDac(false),
-        inPorta(false),
-        vol(0),
         pan(3) {}
     };
     Channel chan[11];

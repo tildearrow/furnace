@@ -26,17 +26,15 @@
 #include "../waveSynth.h"
 
 class DivPlatformPCMDAC: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2;
+  struct Channel: public SharedChannelFreq {
     bool audDir;
     unsigned int audLoc;
     unsigned short audLen;
     int audPos;
     int audSub;
-    int sample, wave, ins;
-    int note;
+    int sample, wave;
     int panL, panR;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos;
+    bool useWave, setPos;
     int vol, envVol;
     DivMacroInt std;
     DivWaveSynth ws;
@@ -45,10 +43,7 @@ class DivPlatformPCMDAC: public DivDispatch {
       pitch2=0;
     }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
+      SharedChannelFreq(),
       audDir(false),
       audLoc(0),
       audLen(0),
@@ -56,16 +51,8 @@ class DivPlatformPCMDAC: public DivDispatch {
       audSub(0),
       sample(-1),
       wave(-1),
-      ins(-1),
-      note(0),
       panL(255),
       panR(255),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       useWave(false),
       setPos(false),
       vol(255),

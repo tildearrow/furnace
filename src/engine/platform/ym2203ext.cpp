@@ -483,7 +483,7 @@ void DivPlatformYM2203Ext::reset() {
   DivPlatformYM2203::reset();
 
   for (int i=0; i<4; i++) {
-    opChan[i]=DivPlatformYM2203Ext::OpChannel();
+    opChan[i]=DivPlatformOPN::OPNOpChannel();
     opChan[i].vol=127;
   }
 
