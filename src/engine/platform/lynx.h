@@ -21,7 +21,6 @@
 #define _LYNX_H
 
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include "sound/lynx/Mikey.hpp"
 
 class DivPlatformLynx: public DivDispatch {
@@ -40,22 +39,15 @@ class DivPlatformLynx: public DivDispatch {
     MikeyDuty(int duty);
   };
 
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
-    DivMacroInt std;
+  struct Channel: public SharedChannel<signed char> {
     MikeyFreqDiv fd;
     MikeyDuty duty;
     int actualNote, lfsr, sample, samplePos, sampleAccum, sampleBaseFreq, sampleFreq;
     unsigned char pan;
     bool pcm;
     int macroVolMul;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<signed char>(127),
-      std(),
+      SharedChannel<signed char>(127),
       fd(0),
       duty(0),
       actualNote(0),

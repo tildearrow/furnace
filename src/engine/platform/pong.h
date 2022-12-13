@@ -21,18 +21,11 @@
 #define _PONG_H
 
 #include "../dispatch.h"
-#include "../macroInt.h"
 
 class DivPlatformPong: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
+  struct Channel: public SharedChannel<signed char> {
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<signed char>(1) {}
+      SharedChannel<signed char>(1) {}
   };
   Channel chan[1];
   DivDispatchOscBuffer* oscBuf;

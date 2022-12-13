@@ -19,15 +19,14 @@
 
 #ifndef _SEGAPCM_H
 #define _SEGAPCM_H
+
 #include "../dispatch.h"
 #include "../instrument.h"
 #include <queue>
-#include "../macroInt.h"
 
 class DivPlatformSegaPCM: public DivDispatch {
   protected:
-    struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
-      DivMacroInt std;
+    struct Channel: public SharedChannel<int> {
       bool furnacePCM, isNewSegaPCM;
       unsigned char chVolL, chVolR;
       unsigned char chPanL, chPanR;
@@ -40,13 +39,8 @@ class DivPlatformSegaPCM: public DivDispatch {
         unsigned char freq;
         PCMChannel(): sample(-1), pos(0), len(0), freq(0) {}
       } pcm;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
       Channel():
-        SharedChannelFreq(),
-        SharedChannelVolume<int>(127),
+        SharedChannel<int>(127),
         furnacePCM(false),
         isNewSegaPCM(false),
         chVolL(127),

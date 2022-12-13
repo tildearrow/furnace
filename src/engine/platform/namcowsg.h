@@ -22,24 +22,17 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "../waveSynth.h"
 #include "sound/namco.h"
 
 class DivPlatformNamcoWSG: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
+  struct Channel: public SharedChannel<signed char> {
     unsigned char pan;
     bool noise;
-    signed char wave;
-    DivMacroInt std;
+    signed short wave;
     DivWaveSynth ws;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<signed char>(15),
+      SharedChannel<signed char>(15),
       pan(255),
       noise(false),
       wave(-1) {}

@@ -21,28 +21,21 @@
 #define _SNES_H
 
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include "../waveSynth.h"
 #include <queue>
 #include "sound/snes/SPC_DSP.h"
 
 class DivPlatformSNES: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
+  struct Channel: public SharedChannel<int> {
     unsigned int audPos;
     int sample, wave;
     int panL, panR;
     bool useWave, setPos, noise, echo, pitchMod, invertL, invertR, shallWriteVol, shallWriteEnv;
     int wtLen;
     DivInstrumentSNES state;
-    DivMacroInt std;
     DivWaveSynth ws;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<int>(127),
+      SharedChannel<int>(127),
       audPos(0),
       sample(-1),
       wave(-1),

@@ -22,11 +22,10 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "../waveSynth.h"
 
 class DivPlatformPCMDAC: public DivDispatch {
-  struct Channel: public SharedChannelFreq {
+  struct Channel: public SharedChannel<int> {
     bool audDir;
     unsigned int audLoc;
     unsigned short audLen;
@@ -35,15 +34,10 @@ class DivPlatformPCMDAC: public DivDispatch {
     int sample, wave;
     int panL, panR;
     bool useWave, setPos;
-    int vol, envVol;
-    DivMacroInt std;
+    int envVol;
     DivWaveSynth ws;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
+      SharedChannel<int>(255),
       audDir(false),
       audLoc(0),
       audLen(0),
@@ -55,7 +49,6 @@ class DivPlatformPCMDAC: public DivDispatch {
       panR(255),
       useWave(false),
       setPos(false),
-      vol(255),
       envVol(64) {}
   };
   Channel chan;

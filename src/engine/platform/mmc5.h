@@ -21,22 +21,15 @@
 #define _MMC5_H
 
 #include "../dispatch.h"
-#include "../macroInt.h"
 
 class DivPlatformMMC5: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
+  struct Channel: public SharedChannel<signed char> {
     int prevFreq;
     unsigned char duty, sweep;
     bool sweepChanged, furnaceDac;
-    signed char wave;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
+    signed short wave;
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<signed char>(15),
+      SharedChannel<signed char>(15),
       prevFreq(65535),
       duty(0),
       sweep(8),

@@ -17,6 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#ifndef _YM2610BEXT_H
+#define _YM2610BEXT_H
+
 #include "../dispatch.h"
 
 #include "ym2610b.h"
@@ -40,3 +43,5 @@ class DivPlatformYM2610BExt: public DivPlatformYM2610B {
     void quit();
     ~DivPlatformYM2610BExt();
 };
+
+#endif

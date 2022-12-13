@@ -20,7 +20,7 @@
 #ifndef _GENESIS_H
 #define _GENESIS_H
 #include "fmshared_OPN.h"
-#include "../macroInt.h"
+
 #include "../../../extern/Nuked-OPN2/ym3438.h"
 #include "sound/ymfm/ymfm_opn.h"
 

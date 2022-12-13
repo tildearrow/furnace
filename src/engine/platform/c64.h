@@ -22,25 +22,18 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "sound/c64/sid.h"
 #include "sound/c64_fp/SID.h"
 
 class DivPlatformC64: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
+  struct Channel: public SharedChannel<signed char> {
     int prevFreq, testWhen;
     unsigned char sweep, wave, attack, decay, sustain, release;
     short duty;
     bool sweepChanged, filter;
     bool resetMask, resetFilter, resetDuty, ring, sync, test;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<signed char>(15),
+      SharedChannel<signed char>(15),
       prevFreq(65535),
       testWhen(0),
       sweep(0),
