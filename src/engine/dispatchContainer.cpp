@@ -49,6 +49,7 @@
 #include "platform/saa.h"
 #include "platform/amiga.h"
 #include "platform/pcspkr.h"
+#include "platform/pokemini.h"
 #include "platform/segapcm.h"
 #include "platform/qsound.h"
 #include "platform/vera.h"
@@ -325,6 +326,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     }
     case DIV_SYSTEM_PCSPKR:
       dispatch=new DivPlatformPCSpeaker;
+      break;
+    case DIV_SYSTEM_POKEMINI:
+      dispatch=new DivPlatformPokeMini;
       break;
     case DIV_SYSTEM_SFX_BEEPER:
       dispatch=new DivPlatformZXBeeper;
