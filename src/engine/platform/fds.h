@@ -22,6 +22,7 @@
 
 #include "../dispatch.h"
 #include "../waveSynth.h"
+
 #include "sound/nes_nsfplay/nes_fds.h"
 
 class DivPlatformFDS: public DivDispatch {
