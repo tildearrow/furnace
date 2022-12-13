@@ -24,6 +24,7 @@
 #include <string.h>
 #include <vector>
 #include "config.h"
+#include "chipUtils.h"
 
 #define ONE_SEMITONE 2200
 
@@ -466,6 +467,18 @@ class DivDispatch {
     virtual bool getWantPreNote();
 
     /**
+     * get minimum chip clock.
+     * @return clock in Hz, or 0 if custom clocks are not supported.
+     */
+    virtual int getClockRangeMin();
+
+    /**
+     * get maximum chip clock.
+     * @return clock in Hz, or 0 if custom clocks are not supported.
+     */
+    virtual int getClockRangeMax();
+
+    /**
      * set the chip flags.
      * @param flags a DivConfig containing chip flags.
      */
@@ -594,9 +607,9 @@ class DivDispatch {
 // custom chip clock helper define. put in setFlags, but before rate is set.
 #define CHECK_CUSTOM_CLOCK \
   if (flags.getInt("customClock",0)>0) { \
-    chipClock=flags.getInt("customClock",1000000); \
-    if (chipClock>20000000) chipClock=20000000; \
-    if (chipClock<100000) chipClock=100000; \
+    chipClock=flags.getInt("customClock",getClockRangeMin()); \
+    if (chipClock>getClockRangeMax()) chipClock=getClockRangeMax(); \
+    if (chipClock<getClockRangeMin()) chipClock=getClockRangeMin(); \
   }
 
 // pitch calculation:

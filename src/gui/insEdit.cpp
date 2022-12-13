@@ -2166,9 +2166,15 @@ void FurnaceGUI::drawInsEdit() {
         if (ImGui::Button(ICON_FA_FOLDER_OPEN "##IELoad")) {
           doAction(GUI_ACTION_INS_LIST_OPEN_REPLACE);
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Open");
+        }
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_FLOPPY_O "##IESave")) {
           doAction(GUI_ACTION_INS_LIST_SAVE);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Save");
         }
         if (ImGui::BeginPopupContextItem("InsSaveFormats",ImGuiMouseButton_Right)) {
           if (ImGui::MenuItem("save in legacy format...")) {

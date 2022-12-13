@@ -421,6 +421,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_FULLSCREEN,
   GUI_ACTION_TX81Z_REQUEST,
   GUI_ACTION_PANIC,
+  GUI_ACTION_CLEAR,
 
   GUI_ACTION_WINDOW_EDIT_CONTROLS,
   GUI_ACTION_WINDOW_ORDERS,
@@ -520,6 +521,8 @@ enum FurnaceGUIActions {
   GUI_ACTION_PAT_COLLAPSE_SONG,
   GUI_ACTION_PAT_EXPAND_SONG,
   GUI_ACTION_PAT_LATCH,
+  GUI_ACTION_PAT_SCROLL_MODE,
+  GUI_ACTION_PAT_CLEAR_LATCH,
   GUI_ACTION_PAT_MAX,
 
   GUI_ACTION_INS_LIST_MIN,
@@ -651,6 +654,12 @@ enum PasteMode {
   GUI_PASTE_MODE_OVERFLOW,
   GUI_PASTE_MODE_INS_FG,
   GUI_PASTE_MODE_INS_BG
+};
+
+enum NoteCtrl {
+  GUI_NOTE_OFF=100,
+  GUI_NOTE_OFF_RELEASE=101,
+  GUI_NOTE_RELEASE=102
 };
 
 #define FURKMOD_CTRL (1U<<31)
@@ -1096,6 +1105,7 @@ class FurnaceGUI {
   int macroPointSize;
   int waveEditStyle;
   int displayInsTypeListMakeInsSample;
+  int mobileEditPage;
   float mobileMenuPos, autoButtonSize, mobileEditAnim;
   ImVec2 mobileEditButtonPos, mobileEditButtonSize;
   const int* curSysSection;
@@ -1677,6 +1687,21 @@ class FurnaceGUI {
   bool followLog;
 
   // piano
+  enum PianoLayoutMode {
+    PIANO_LAYOUT_STANDARD = 0,
+    PIANO_LAYOUT_CONTINUOUS,
+    PIANO_LAYOUT_AUTOMATIC,
+    PIANO_LAYOUT_MAX
+  };
+
+  enum PianoInputPadMode {
+    PIANO_INPUT_PAD_DISABLE = 0,
+    PIANO_INPUT_PAD_REPLACE,
+    PIANO_INPUT_PAD_SPLIT_AUTO,
+    PIANO_INPUT_PAD_SPLIT_VISIBLE,
+    PIANO_INPUT_PAD_MAX
+  };
+
   int pianoOctaves, pianoOctavesEdit;
   bool pianoOptions, pianoSharePosition, pianoOptionsSet;
   float pianoKeyHit[180];

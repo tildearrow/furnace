@@ -26,11 +26,9 @@
 
 class DivPlatformSegaPCM: public DivDispatch {
   protected:
-    struct Channel {
+    struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
       DivMacroInt std;
-      int freq, baseFreq, pitch, pitch2, note, ins;
-      bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM, isNewSegaPCM;
-      int vol, outVol;
+      bool furnacePCM, isNewSegaPCM;
       unsigned char chVolL, chVolR;
       unsigned char chPanL, chPanR;
       int macroVolMul;
@@ -47,23 +45,10 @@ class DivPlatformSegaPCM: public DivDispatch {
         pitch2=0;
       }
       Channel():
-        freq(0),
-        baseFreq(0),
-        pitch(0),
-        pitch2(0),
-        note(0),
-        ins(-1),
-        active(false),
-        insChanged(true),
-        freqChanged(false),
-        keyOn(false),
-        keyOff(false),
-        inPorta(false),
-        portaPause(false),
+        SharedChannelFreq(),
+        SharedChannelVolume<int>(127),
         furnacePCM(false),
         isNewSegaPCM(false),
-        vol(0),
-        outVol(0),
         chVolL(127),
         chVolR(127),
         chPanL(127),

@@ -483,6 +483,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("FULLSCREEN", "Toggle full-screen", SDLK_F11),
   D("TX81Z_REQUEST", "Request voice from TX81Z", 0),
   D("PANIC", "Panic", SDLK_F12),
+  D("CLEAR", "Clear song data", 0),
 
   D("WINDOW_EDIT_CONTROLS", "Edit Controls", 0),
   D("WINDOW_ORDERS", "Orders", 0),
@@ -582,6 +583,8 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("PAT_COLLAPSE_SONG", "Collapse song", 0),
   D("PAT_EXPAND_SONG", "Expand song", 0),
   D("PAT_LATCH", "Set note input latch", 0),
+  D("PAT_SCROLL_MODE", "Change mobile scroll mode", 0),
+  D("PAT_CLEAR_LATCH", "Clear note input latch", 0),
   D("PAT_MAX", "", NOT_AN_ACTION),
 
   D("INS_LIST_MIN", "---Instrument list", NOT_AN_ACTION),

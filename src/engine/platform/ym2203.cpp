@@ -851,7 +851,7 @@ void DivPlatformYM2203::reset() {
   }
   fm->reset();
   for (int i=0; i<6; i++) {
-    chan[i]=DivPlatformYM2203::Channel();
+    chan[i]=DivPlatformOPN::OPNChannel();
     chan[i].std.setEngine(parent);
   }
   for (int i=0; i<3; i++) {

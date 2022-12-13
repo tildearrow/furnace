@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "../engine/chipUtils.h"
 #include "gui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
@@ -1591,19 +1592,19 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
   if (supportsCustomRate) {
     ImGui::Separator();
     int customClock=flags.getInt("customClock",0);
-    bool usingCustomClock=customClock>=100000;
+    bool usingCustomClock=customClock>=MIN_CUSTOM_CLOCK;
 
     if (ImGui::Checkbox("Custom clock rate",&usingCustomClock)) {
       if (usingCustomClock) {
-        customClock=1000000;
+        customClock=MIN_CUSTOM_CLOCK;
       } else {
         customClock=0;
       }
       altered=true;
     }
     if (ImGui::InputInt("Hz",&customClock)) {
-      if (customClock<100000) customClock=0;
-      if (customClock>20000000) customClock=20000000;
+      if (customClock<MIN_CUSTOM_CLOCK) customClock=0;
+      if (customClock>MAX_CUSTOM_CLOCK) customClock=MAX_CUSTOM_CLOCK;
       altered=true;
     }
 

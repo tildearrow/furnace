@@ -1040,13 +1040,13 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
 
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
 
-  if (key==100) { // note off
+  if (key==GUI_NOTE_OFF) { // note off
     pat->data[cursor.y][0]=100;
     pat->data[cursor.y][1]=0;
-  } else if (key==101) { // note off + env release
+  } else if (key==GUI_NOTE_OFF_RELEASE) { // note off + env release
     pat->data[cursor.y][0]=101;
     pat->data[cursor.y][1]=0;
-  } else if (key==102) { // env release only
+  } else if (key==GUI_NOTE_RELEASE) { // env release only
     pat->data[cursor.y][0]=102;
     pat->data[cursor.y][1]=0;
   } else {
@@ -3627,7 +3627,7 @@ bool FurnaceGUI::loop() {
         editOptions(true);
         ImGui::Separator();
         if (ImGui::MenuItem("clear...")) {
-          showWarning("Are you sure you want to clear... (cannot be undone!)",GUI_WARN_CLEAR);
+          doAction(GUI_ACTION_CLEAR);
         }
         ImGui::EndMenu();
       }
@@ -3782,7 +3782,6 @@ bool FurnaceGUI::loop() {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
       //globalWinFlags=ImGuiWindowFlags_NoTitleBar;
       // scene handling goes here!
-      pianoOpen=true;
       drawMobileControls();
       switch (mobScene) {
         case GUI_SCENE_ORDERS:
@@ -3824,6 +3823,9 @@ bool FurnaceGUI::loop() {
           drawPattern();
           drawPiano();
           drawMobileOrderSel();
+
+          globalWinFlags=0;
+          drawFindReplace();
           break;
       }
 
@@ -3831,6 +3833,7 @@ bool FurnaceGUI::loop() {
       drawSettings();
       drawDebug();
       drawLog();
+      drawStats();
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -5150,7 +5153,11 @@ bool FurnaceGUI::init() {
   volMeterOpen=e->getConfBool("volMeterOpen",true);
   statsOpen=e->getConfBool("statsOpen",false);
   compatFlagsOpen=e->getConfBool("compatFlagsOpen",false);
+#ifdef IS_MOBILE
+  pianoOpen=e->getConfBool("pianoOpen",true);
+#else
   pianoOpen=e->getConfBool("pianoOpen",false);
+#endif
   notesOpen=e->getConfBool("notesOpen",false);
   channelsOpen=e->getConfBool("channelsOpen",false);
   patManagerOpen=e->getConfBool("patManagerOpen",false);
@@ -5666,6 +5673,7 @@ FurnaceGUI::FurnaceGUI():
   macroPointSize(16),
   waveEditStyle(0),
   displayInsTypeListMakeInsSample(-1),
+  mobileEditPage(0),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
   mobileEditAnim(0.0f),
@@ -5979,8 +5987,8 @@ FurnaceGUI::FurnaceGUI():
   pianoOptionsSet(false),
   pianoOffset(6),
   pianoOffsetEdit(9),
-  pianoView(2),
-  pianoInputPadMode(2),
+  pianoView(PIANO_LAYOUT_AUTOMATIC),
+  pianoInputPadMode(PIANO_INPUT_PAD_SPLIT_AUTO),
 #else
   pianoOctaves(7),
   pianoOctavesEdit(4),
@@ -5988,8 +5996,8 @@ FurnaceGUI::FurnaceGUI():
   pianoSharePosition(true),
   pianoOffset(6),
   pianoOffsetEdit(6),
-  pianoView(0),
-  pianoInputPadMode(0),
+  pianoView(PIANO_LAYOUT_STANDARD),
+  pianoInputPadMode(PIANO_INPUT_PAD_DISABLE),
 #endif
   hasACED(false),
   waveGenBaseShape(0),

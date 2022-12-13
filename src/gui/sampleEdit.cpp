@@ -118,9 +118,15 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::Button(ICON_FA_FOLDER_OPEN "##SELoad")) {
         doAction(GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE);
       }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Open");
+      }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_FLOPPY_O "##SESave")) {
         doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Save");
       }
 
       ImGui::SameLine();

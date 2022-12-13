@@ -484,9 +484,6 @@ void DivPlatformNamcoWSG::reset() {
   namco->set_voices(chans);
   namco->set_stereo((devType==2 || devType==30));
   namco->device_start(NULL);
-  lastPan=0xff;
-  cycles=0;
-  curChan=-1;
 }
 
 bool DivPlatformNamcoWSG::isStereo() {
