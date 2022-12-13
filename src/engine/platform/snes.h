@@ -27,14 +27,11 @@
 #include "sound/snes/SPC_DSP.h"
 
 class DivPlatformSNES: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2;
+  struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
     unsigned int audPos;
-    int sample, wave, ins;
-    int note;
+    int sample, wave;
     int panL, panR;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos, noise, echo, pitchMod, invertL, invertR, shallWriteVol, shallWriteEnv;
-    int vol, outVol;
+    bool useWave, setPos, noise, echo, pitchMod, invertL, invertR, shallWriteVol, shallWriteEnv;
     int wtLen;
     DivInstrumentSNES state;
     DivMacroInt std;
@@ -44,23 +41,13 @@ class DivPlatformSNES: public DivDispatch {
       pitch2=0;
     }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
+      SharedChannelFreq(),
+      SharedChannelVolume<int>(127),
       audPos(0),
       sample(-1),
       wave(-1),
-      ins(-1),
-      note(0),
       panL(127),
       panR(127),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       useWave(false),
       setPos(false),
       noise(false),
@@ -70,8 +57,6 @@ class DivPlatformSNES: public DivDispatch {
       invertR(false),
       shallWriteVol(false),
       shallWriteEnv(false),
-      vol(127),
-      outVol(127),
       wtLen(16) {} 
   };
   Channel chan[8];

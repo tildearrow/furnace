@@ -27,14 +27,14 @@
 #include "vgsound_emu/src/n163/n163.hpp"
 
 class DivPlatformN163: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note;
-    short ins, wave, wavePos, waveLen;
+  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
+    signed char resVol;
+    short wave, wavePos, waveLen;
     unsigned char waveMode;
     short loadWave, loadPos, loadLen;
     unsigned char loadMode;
-    bool active, insChanged, freqChanged, volumeChanged, waveChanged, waveUpdated, keyOn, keyOff, inPorta;
-    signed char vol, outVol, resVol;
+    bool volumeChanged;
+    bool waveChanged, waveUpdated;
     DivMacroInt std;
     DivWaveSynth ws;
     void macroInit(DivInstrument* which) {
@@ -42,12 +42,9 @@ class DivPlatformN163: public DivDispatch {
       pitch2=0;
     }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
-      ins(-1),
+      SharedChannelFreq(),
+      SharedChannelVolume<signed char>(15),
+      resVol(15),
       wave(-1),
       wavePos(0),
       waveLen(0),
@@ -56,18 +53,9 @@ class DivPlatformN163: public DivDispatch {
       loadPos(0),
       loadLen(0),
       loadMode(0),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
       volumeChanged(false),
       waveChanged(false),
-      waveUpdated(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
-      vol(15),
-      outVol(15),
-      resVol(15) {}
+      waveUpdated(false) {}
   };
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];

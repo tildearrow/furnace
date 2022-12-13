@@ -26,35 +26,19 @@
 #include "sound/t6w28/T6W28_Apu.h"
 
 class DivPlatformT6W28: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note;
-    int ins;
+  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
     unsigned char panL, panR, duty;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
-    signed char vol, outVol;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
       std.init(which);
       pitch2=0;
     }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
-      ins(-1),
+      SharedChannelFreq(),
+      SharedChannelVolume<signed char>(15),
       panL(15),
       panR(15),
-      duty(7),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
-      vol(15),
-      outVol(15) {}
+      duty(7) {}
   };
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];

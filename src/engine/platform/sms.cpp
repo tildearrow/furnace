@@ -160,7 +160,7 @@ void DivPlatformSMS::tick(bool sysTick) {
       if (!chan[i].inPorta) {
         // TODO: add compatibility flag. this is horrible.
         int areYouSerious=parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        while (areYouSerious>0x60) areYouSerious-=12;
+        if (!easyNoise) while (areYouSerious>0x60) areYouSerious-=12;
         chan[i].baseFreq=NOTE_SN(i,areYouSerious);
         chan[i].actualNote=areYouSerious;
         chan[i].freqChanged=true;

@@ -1276,7 +1276,7 @@ void DivPlatformYM2610B::reset() {
   }
   fm->reset();
   for (int i=0; i<16; i++) {
-    chan[i]=DivPlatformYM2610B::Channel();
+    chan[i]=DivPlatformOPN::OPNChannelStereo();
     chan[i].std.setEngine(parent);
   }
   for (int i=0; i<psgChanOffs; i++) {

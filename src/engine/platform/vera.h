@@ -28,11 +28,8 @@ struct VERA_PCM;
 
 class DivPlatformVERA: public DivDispatch {
   protected:
-    struct Channel {
-      int freq, baseFreq, pitch, pitch2, note, ins;
+    struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
       unsigned char pan;
-      bool active, freqChanged, inPorta;
-      int vol, outVol;
       unsigned accum;
       int noiseval;
       DivMacroInt std;
@@ -50,7 +47,13 @@ class DivPlatformVERA: public DivDispatch {
         std.init(which);
         pitch2=0;
       }
-      Channel(): freq(0), baseFreq(0), pitch(0), pitch2(0), note(0), ins(-1), pan(0), active(false), freqChanged(false), inPorta(false), vol(0), outVol(0), accum(0), noiseval(0) {}
+      Channel():
+        SharedChannelFreq(),
+        SharedChannelVolume<int>(0),
+        pan(0),
+        accum(0),
+        noiseval(0),
+        pcm(PCMChannel()) {}
     };
     Channel chan[17];
     DivDispatchOscBuffer* oscBuf[17];

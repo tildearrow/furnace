@@ -26,32 +26,17 @@
 #include "sound/oki/msm5232.h"
 
 class DivPlatformMSM5232: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note;
-    int ins;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise;
-    signed char vol, outVol;
+  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
+    bool noise;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
       std.init(which);
       pitch2=0;
     }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
-      ins(-1),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
-      noise(false),
-      vol(127),
-      outVol(127) {}
+      SharedChannelFreq(),
+      SharedChannelVolume<signed char>(127),
+      noise(false) {}
   };
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];

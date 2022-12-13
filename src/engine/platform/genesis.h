@@ -39,16 +39,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
       0, 1, 2, 4, 5, 6
     };
 
-    struct Channel {
-      DivInstrumentFM state;
-      DivMacroInt std;
-      unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, pitch2, portaPauseFreq, note;
-      int ins;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta, hardReset, opMaskChanged;
-      int vol, outVol;
-      unsigned char pan, opMask;
-
+    struct Channel: public FMChannelStereo {
+      bool furnaceDac;
       bool dacMode;
       int dacPeriod;
       int dacRate;
@@ -59,34 +51,9 @@ class DivPlatformGenesis: public DivPlatformOPN {
       bool dacDirection;
       unsigned char sampleBank;
       signed char dacOutput;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
       Channel():
-        freqH(0),
-        freqL(0),
-        freq(0),
-        baseFreq(0),
-        pitch(0),
-        pitch2(0),
-        portaPauseFreq(0),
-        note(0),
-        ins(-1),
-        active(false),
-        insChanged(true),
-        freqChanged(false),
-        keyOn(false),
-        keyOff(false),
-        portaPause(false),
+        FMChannelStereo(),
         furnaceDac(false),
-        inPorta(false),
-        hardReset(false),
-        opMaskChanged(false),
-        vol(0),
-        outVol(0),
-        pan(3),
-        opMask(15),
         dacMode(false),
         dacPeriod(0),
         dacRate(0),
@@ -123,6 +90,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
     void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
   
+    friend void putDispatchChip(void*,int);
+    friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);

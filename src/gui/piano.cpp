@@ -63,7 +63,7 @@ void FurnaceGUI::drawPiano() {
     if (ImGui::BeginTable("PianoLayout",((pianoOptions && (!mobileUI || !portrait))?2:1),ImGuiTableFlags_BordersInnerV)) {
       int& off=(e->isPlaying() || pianoSharePosition)?pianoOffset:pianoOffsetEdit;
       int& oct=(e->isPlaying() || pianoSharePosition)?pianoOctaves:pianoOctavesEdit;
-      bool view=(pianoView==2)?(!e->isPlaying()):pianoView;
+      bool view=(pianoView==PIANO_LAYOUT_AUTOMATIC)?(!e->isPlaying()):pianoView;
       if (pianoOptions && (!mobileUI || !portrait)) {
         ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
       }
@@ -76,11 +76,11 @@ void FurnaceGUI::drawPiano() {
         ImVec2 optionSize=ImVec2((mobileUI && portrait)?((ImGui::GetContentRegionAvail().x-ImGui::GetStyle().ItemSpacing.x*5.0f)/6.0f):(1.2f*optionSizeY),optionSizeY);
         if (pianoOptionsSet) {
           if (ImGui::Button("OFF##PianoNOff",optionSize)) {
-            if (edit) noteInput(0,100);
+            if (edit) noteInput(0,GUI_NOTE_OFF);
           }
           ImGui::SameLine();
           if (ImGui::Button("===##PianoNRel",optionSize)) {
-            if (edit) noteInput(0,101);
+            if (edit) noteInput(0,GUI_NOTE_OFF_RELEASE);
           }
         } else {
           if (ImGui::Button(ICON_FA_ARROW_LEFT "##PianoLeft",optionSize)) {
@@ -95,29 +95,32 @@ void FurnaceGUI::drawPiano() {
         }
         ImGui::SameLine();
         ImGui::Button(ICON_FA_ELLIPSIS_V "##PianoOptions",optionSize);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Options");
+        }
         if (ImGui::BeginPopupContextItem("PianoOptions",ImGuiPopupFlags_MouseButtonLeft)) {
           ImGui::Text("Key layout:");
-          if (ImGui::RadioButton("Automatic",pianoView==2)) {
-            pianoView=2;
+          if (ImGui::RadioButton("Automatic",pianoView==PIANO_LAYOUT_AUTOMATIC)) {
+            pianoView=PIANO_LAYOUT_AUTOMATIC;
           }
-          if (ImGui::RadioButton("Standard",pianoView==0)) {
-            pianoView=0;
+          if (ImGui::RadioButton("Standard",pianoView==PIANO_LAYOUT_STANDARD)) {
+            pianoView=PIANO_LAYOUT_STANDARD;
           }
-          if (ImGui::RadioButton("Continuous",pianoView==1)) {
-            pianoView=1;
+          if (ImGui::RadioButton("Continuous",pianoView==PIANO_LAYOUT_CONTINUOUS)) {
+            pianoView=PIANO_LAYOUT_CONTINUOUS;
           }
           ImGui::Text("Value input pad:");
-          if (ImGui::RadioButton("Disabled",pianoInputPadMode==0)) {
-            pianoInputPadMode=0;
+          if (ImGui::RadioButton("Disabled",pianoInputPadMode==PIANO_INPUT_PAD_DISABLE)) {
+            pianoInputPadMode=PIANO_INPUT_PAD_DISABLE;
           }
-          if (ImGui::RadioButton("Replace piano",pianoInputPadMode==1)) {
-            pianoInputPadMode=1;
+          if (ImGui::RadioButton("Replace piano",pianoInputPadMode==PIANO_INPUT_PAD_REPLACE)) {
+            pianoInputPadMode=PIANO_INPUT_PAD_REPLACE;
           }
-          if (ImGui::RadioButton("Split (automatic)",pianoInputPadMode==2)) {
-            pianoInputPadMode=2;
+          if (ImGui::RadioButton("Split (automatic)",pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_AUTO)) {
+            pianoInputPadMode=PIANO_INPUT_PAD_SPLIT_AUTO;
           }
-          if (ImGui::RadioButton("Split (always visible)",pianoInputPadMode==3)) {
-            pianoInputPadMode=3;
+          if (ImGui::RadioButton("Split (always visible)",pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_VISIBLE)) {
+            pianoInputPadMode=PIANO_INPUT_PAD_SPLIT_VISIBLE;
           }
           ImGui::Checkbox("Share play/edit offset/range",&pianoSharePosition);
           ImGui::EndPopup();
@@ -129,7 +132,7 @@ void FurnaceGUI::drawPiano() {
 
         if (pianoOptionsSet) {
           if (ImGui::Button("REL##PianoNMRel",optionSize)) {
-            if (edit) noteInput(0,102);
+            if (edit) noteInput(0,GUI_NOTE_RELEASE);
           }
           ImGui::SameLine();
           if (ImGui::Button(ICON_FA_TIMES "##PianoDelP",optionSize)) {
@@ -158,7 +161,7 @@ void FurnaceGUI::drawPiano() {
       }
 
       ImGui::TableNextColumn();
-      if (pianoInputPadMode==1 && cursor.xFine>0 && curWindow==GUI_WINDOW_PATTERN) {
+      if (pianoInputPadMode==PIANO_INPUT_PAD_REPLACE && cursor.xFine>0 && curWindow==GUI_WINDOW_PATTERN) {
         ImVec2 buttonSize=ImGui::GetContentRegionAvail();
         if (ImGui::BeginTable("InputPadP",8,ImGuiTableFlags_SizingFixedSame)) {
           ImGui::TableNextRow();
@@ -431,7 +434,7 @@ void FurnaceGUI::drawPiano() {
   ImGui::End();
 
   // draw input pad if necessary
-  if (curWindow==GUI_WINDOW_PATTERN && ((pianoInputPadMode==2 && cursor.xFine>0) || pianoInputPadMode==3)) {
+  if (curWindow==GUI_WINDOW_PATTERN && ((pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_AUTO && cursor.xFine>0) || pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_VISIBLE)) {
     if (ImGui::Begin("Input Pad",NULL,ImGuiWindowFlags_NoTitleBar)) {
       ImGui::BeginDisabled(cursor.xFine==0);
       if (ImGui::BeginTable("InputPad",3,ImGuiTableFlags_Borders)) {

@@ -29,32 +29,19 @@ extern "C" {
 #include <queue>
 
 class DivPlatformSMS: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note, actualNote, ins;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, writeVol;
-    signed char vol, outVol;
+  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
+    int actualNote;
+    bool writeVol;
     DivMacroInt std;
     void macroInit(DivInstrument* which) {
       std.init(which);
       pitch2=0;
     }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
+      SharedChannelFreq(),
+      SharedChannelVolume<signed char>(15),
       actualNote(0),
-      ins(-1),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
-      writeVol(false),
-      vol(15),
-      outVol(15) {}
+      writeVol(false) {}
   };
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];
