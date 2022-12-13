@@ -12,6 +12,8 @@ contact me or send a pull request if you want your song to be added to this coll
 - big label music covers also are discouraged
 - low effort compositions/covers may not be accepted at all.
 
+make sure to put your demo song under the respective category.
+
 tildearrow also accepts demo songs in the .dmf format as well as the .fur format.
 
 thank you for contributing!
