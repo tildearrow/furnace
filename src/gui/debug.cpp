@@ -898,31 +898,19 @@ void putDispatchChan(void* data, int chanNum, int type) {
     case DIV_SYSTEM_K007232: {
       DivPlatformK007232::Channel* ch=(DivPlatformK007232::Channel*)data;
       ImGui::Text("> K007232");
-      ImGui::Text("* freq: %d",ch->freq);
-      ImGui::Text(" - prev: %d",ch->prevFreq);
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text(" - pitch2: %d",ch->pitch2);
-      ImGui::Text("* note: %d",ch->note);
+      COMMON_CHAN_DEBUG;
+      ImGui::Text("- prevFreq: %d",ch->prevFreq);
       ImGui::Text("* Sample: %d",ch->sample);
       ImGui::Text(" - pos: %d",ch->audPos);
       ImGui::Text(" - prevBank: %d",ch->prevBank);
-      ImGui::Text("- ins: %d",ch->ins);
       ImGui::Text("* panning: %d",ch->panning);
       ImGui::Text(" - prev: %d",ch->prevPan);
-      ImGui::Text("- vol: %.2x",ch->vol);
-      ImGui::Text("- outVol: %.2x",ch->outVol);
       ImGui::Text("- resVol: %.2x",ch->resVol);
       ImGui::Text("- lvol: %.2x",ch->lvol);
       ImGui::Text("- rvol: %.2x",ch->rvol);
       ImGui::Text("- macroVolMul: %.2x",ch->macroVolMul);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
+      COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->volumeChanged?colorOn:colorOff,">> VolumeChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
-      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
       ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
       break;
     }
