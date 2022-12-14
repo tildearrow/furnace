@@ -30,7 +30,7 @@
 #include "vgsound_emu/src/es550x/es5506.hpp"
 
 class DivPlatformES5506: public DivDispatch, public es550x_intf {
-  struct Channel : public SharedChannelFreq, public SharedChannelVolume<unsigned int> {
+  struct Channel : public SharedChannel<unsigned int> {
     struct PCM {
       bool isNoteMap;
       int index, next;
@@ -183,10 +183,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     signed int oscOut;
     DivInstrumentES5506::Filter filter;
     DivInstrumentES5506::Envelope envelope;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
+    virtual void macroInit(DivInstrument* which) override {
+      SharedChannel<unsigned int>::macroInit(which);
       if (std.ex1.mode==2) {
         k1Offs=0;
       }
@@ -197,8 +195,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       k2Prev=0xffff;
     }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<unsigned int>(0xff),
+      SharedChannel<unsigned int>(0xff),
       pcm(PCM()),
       nextFreq(0),
       nextNote(0),

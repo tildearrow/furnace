@@ -33,7 +33,7 @@ template<typename T> struct SharedChannel {
   bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
   T vol, outVol;
   DivMacroInt std;
-  void macroInit(DivInstrument* which) {
+  virtual void macroInit(DivInstrument* which) {
     std.init(which);
     pitch2=0;
   }
