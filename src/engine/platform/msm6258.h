@@ -19,24 +19,19 @@
 
 #ifndef _MSM6258_H
 #define _MSM6258_H
+
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include <queue>
 #include "sound/oki/okim6258.h"
 
 class DivPlatformMSM6258: public DivDispatch {
   protected:
-    struct Channel: public SharedChannel, public SharedChannelVolume<int> {
+    struct Channel: public SharedChannel<int> {
       bool furnacePCM;
       int sample;
       unsigned char pan;
-      DivMacroInt std;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-      }
       Channel():
-        SharedChannel(),
-        SharedChannelVolume<int>(8),
+        SharedChannel<int>(8),
         furnacePCM(false),
         sample(-1),
         pan(3) {}

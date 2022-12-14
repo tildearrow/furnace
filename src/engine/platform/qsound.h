@@ -22,24 +22,17 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "sound/qsound.h"
 
 class DivPlatformQSound: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
+  struct Channel: public SharedChannel<int> {
     int resVol;
     int sample, wave;
     int panning;
     int echo;
     bool useWave, surround, isNewQSound;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<int>(255),
+      SharedChannel<int>(255),
       resVol(4095),
       sample(-1),
       panning(0x10),

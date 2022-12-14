@@ -21,24 +21,17 @@
 #define _SWAN_H
 
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include "../waveSynth.h"
 #include "sound/swan.h"
 #include <queue>
 
 class DivPlatformSwan: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
+  struct Channel: public SharedChannel<int> {
     unsigned char pan;
     int wave;
-    DivMacroInt std;
     DivWaveSynth ws;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<int>(15),
+      SharedChannel<int>(15),
       pan(255),
       wave(-1) {}
   };

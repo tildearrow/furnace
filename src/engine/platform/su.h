@@ -22,11 +22,10 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "sound/su.h"
 
 class DivPlatformSoundUnit: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
+  struct Channel: public SharedChannel<signed char> {
     int cutoff, baseCutoff, res, control, hasOffset;
     signed char pan;
     unsigned char duty;
@@ -37,14 +36,8 @@ class DivPlatformSoundUnit: public DivDispatch {
     unsigned char freqSweepV, volSweepV, cutSweepV;
     unsigned short syncTimer;
     signed short wave;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<signed char>(127),
+      SharedChannel<signed char>(127),
       cutoff(16383),
       baseCutoff(16380),
       res(0),

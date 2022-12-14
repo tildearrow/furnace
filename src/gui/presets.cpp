@@ -216,6 +216,11 @@ void FurnaceGUI::initSystemPresets() {
       )
     }
   );
+  ENTRY(
+    "Pokémon Mini", {
+      CH(DIV_SYSTEM_POKEMINI, 32, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Computers","let's get to work on chiptune today.");
@@ -1077,6 +1082,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "PC Speaker", {
       CH(DIV_SYSTEM_PCSPKR, 32, 0, "")
+    }
+  );
+  ENTRY(
+    "Pokémon Mini", {
+      CH(DIV_SYSTEM_POKEMINI, 32, 0, "")
     }
   );
   ENTRY(

@@ -123,19 +123,13 @@ class DivPlatformOPN: public DivPlatformFMBase {
         pan(3) {}
     };
 
-    struct OPNOpChannel: public SharedChannelFreq, public SharedChannelVolume<int> {
-      DivMacroInt std;
+    struct OPNOpChannel: public SharedChannel<int> {
       unsigned char freqH, freqL;
       int portaPauseFreq;
       signed char konCycles;
       bool mask;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
       OPNOpChannel():
-        SharedChannelFreq(),
-        SharedChannelVolume<int>(0),
+        SharedChannel<int>(0),
         freqH(0),
         freqL(0),
         portaPauseFreq(0),

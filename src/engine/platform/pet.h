@@ -21,23 +21,16 @@
 #define _PET_H
 
 #include "../dispatch.h"
-#include "../macroInt.h"
 
 class DivPlatformPET: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
+  struct Channel: public SharedChannel<int> {
     bool enable;
     int wave;
     unsigned char sreg;
     int cnt;
     short out;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<int>(1),
+      SharedChannel<int>(1),
       enable(false),
       wave(0b00001111),
       sreg(0),

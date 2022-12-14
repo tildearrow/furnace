@@ -17,31 +17,53 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _YM2608EXT_H
-#define _YM2608EXT_H
+#ifndef _POKEMINI_H
+#define _POKEMINI_H
 
 #include "../dispatch.h"
+#include "../macroInt.h"
 
-#include "ym2608.h"
+class DivPlatformPokeMini: public DivDispatch {
+  struct Channel: public SharedChannel<signed char> {
+    unsigned char duty;
+    Channel():
+      SharedChannel<signed char>(2),
+      duty(128) {}
+  };
+  Channel chan[1];
+  DivDispatchOscBuffer* oscBuf;
+  bool isMuted[1];
+  bool on;
+  int pos;
+  unsigned char timerScale, vol;
+  unsigned short preset, pivot;
+  unsigned char regPool[2];
+  unsigned short elapsedMain;
 
-class DivPlatformYM2608Ext: public DivPlatformYM2608 {
-  OPNOpChannelStereo opChan[4];
-  bool isOpMuted[4];
   friend void putDispatchChip(void*,int);
+  friend void putDispatchChan(void*,int,int);
+
   public:
+    void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    unsigned char* getRegisterPool();
+    int getRegisterPoolSize();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
-    void notifyInsChange(int ins);
+    void setFlags(const DivConfig& flags);
+    void notifyInsDeletion(void* ins);
+    void poke(unsigned int addr, unsigned short val);
+    void poke(std::vector<DivRegWrite>& wlist);
+    const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
-    ~DivPlatformYM2608Ext();
+    ~DivPlatformPokeMini();
 };
 
 #endif
