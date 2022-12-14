@@ -976,7 +976,7 @@ class DivEngine {
     String getPlaybackDebugInfo();
 
     // switch master
-    bool switchMaster();
+    bool switchMaster(bool full=false);
 
     // set MIDI base channel
     void setMidiBaseChan(int chan);

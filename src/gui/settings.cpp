@@ -2594,6 +2594,15 @@ void FurnaceGUI::commitSettings() {
     settings.tg100Path!=e->getConfString("tg100Path","") ||
     settings.mu5Path!=e->getConfString("mu5Path","");
 
+  bool coresChanged=(
+    settings.arcadeCore!=e->getConfInt("arcadeCore",0) ||
+    settings.ym2612Core!=e->getConfInt("ym2612Core",0) ||
+    settings.snCore!=e->getConfInt("snCore",0) ||
+    settings.nesCore!=e->getConfInt("nesCore",0) ||
+    settings.fdsCore!=e->getConfInt("fdsCore",0) ||
+    settings.c64Core!=e->getConfInt("c64Core",1)
+  );
+
   e->setConf("mainFontSize",settings.mainFontSize);
   e->setConf("patFontSize",settings.patFontSize);
   e->setConf("iconSize",settings.iconSize);
@@ -2754,7 +2763,7 @@ void FurnaceGUI::commitSettings() {
     }
   }
 
-  if (!e->switchMaster()) {
+  if (!e->switchMaster(coresChanged)) {
     showError("could not initialize audio!");
   }
 
