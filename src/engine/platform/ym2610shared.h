@@ -19,6 +19,7 @@
 
 #ifndef _YM2610SHARED_H
 #define _YM2610SHARED_H
+
 #include "fmshared_OPN.h"
 #include "../engine.h"
 #include "../../ta-log.h"

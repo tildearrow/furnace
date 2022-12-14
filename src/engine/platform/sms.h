@@ -21,7 +21,6 @@
 #define _SMS_H
 
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include "sound/sn76496.h"
 extern "C" {
   #include "../../../extern/Nuked-PSG/ympsg.h"
@@ -29,17 +28,11 @@ extern "C" {
 #include <queue>
 
 class DivPlatformSMS: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
+  struct Channel: public SharedChannel<signed char> {
     int actualNote;
     bool writeVol;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<signed char>(15),
+      SharedChannel<signed char>(15),
       actualNote(0),
       writeVol(false) {}
   };

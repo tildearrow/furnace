@@ -19,6 +19,7 @@
 
 #ifndef _YM2608_H
 #define _YM2608_H
+
 #include "fmshared_OPN.h"
 #include "sound/ymfm/ymfm_opn.h"
 

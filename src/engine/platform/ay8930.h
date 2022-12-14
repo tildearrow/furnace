@@ -20,13 +20,12 @@
 #ifndef _AY8930_H
 #define _AY8930_H
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include <queue>
 #include "sound/ay8910.h"
 
 class DivPlatformAY8930: public DivDispatch {
   protected:
-    struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
+    struct Channel: public SharedChannel<int> {
       struct Envelope {
         unsigned char mode;
         unsigned short period;
@@ -83,14 +82,8 @@ class DivPlatformAY8930: public DivDispatch {
 
       unsigned char autoEnvNum, autoEnvDen, duty;
       signed char konCycles;
-      DivMacroInt std;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
       Channel():
-        SharedChannelFreq(),
-        SharedChannelVolume<int>(31),
+        SharedChannel<int>(31),
         envelope(Envelope()),
         curPSGMode(PSGMode(0)),
         nextPSGMode(PSGMode(1)),

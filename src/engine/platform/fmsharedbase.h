@@ -22,7 +22,6 @@
 
 #include "../dispatch.h"
 #include "../instrument.h"
-#include "../macroInt.h"
 #include <deque>
 
 #define KVS(x,y) ((chan[x].state.op[y].kvs==2 && isOutput[chan[x].state.alg][y]) || chan[x].state.op[y].kvs==1)
@@ -48,22 +47,16 @@ class DivPlatformFMBase: public DivDispatch {
       0,2,1,3
     };
 
-    struct FMChannel: public SharedChannelFreq, public SharedChannelVolume<int> {
+    struct FMChannel: public SharedChannel<int> {
       DivInstrumentFM state;
-      DivMacroInt std;
       unsigned char freqH, freqL;
       int portaPauseFreq;
       unsigned char opMask;
       signed char konCycles;
       bool hardReset, opMaskChanged;
 
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
       FMChannel():
-        SharedChannelFreq(),
-        SharedChannelVolume<int>(0),
+        SharedChannel<int>(0),
         freqH(0),
         freqL(0),
         portaPauseFreq(0),
@@ -125,8 +118,7 @@ class DivPlatformFMBase: public DivDispatch {
 
     friend void putDispatchChan(void*,int,int);
   
-    DivPlatformFMBase():
-    DivDispatch(),
+    DivPlatformFMBase():DivDispatch(),
     lastBusy(0),
     delay(0) {}
 };

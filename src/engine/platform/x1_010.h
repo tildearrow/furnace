@@ -22,12 +22,11 @@
 
 #include "../dispatch.h"
 #include "../engine.h"
-#include "../macroInt.h"
 #include "../waveSynth.h"
 #include "vgsound_emu/src/x1_010/x1_010.hpp"
 
 class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<int> {
+  struct Channel: public SharedChannel<int> {
     struct Envelope {
       struct EnvFlag {
         unsigned char envEnable : 1;
@@ -77,7 +76,6 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     unsigned char waveBank;
     unsigned int bankSlot;
     Envelope env;
-    DivMacroInt std;
     DivWaveSynth ws;
     void reset() {
         freq=baseFreq=pitch=pitch2=note=0;
@@ -90,13 +88,8 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
         vol=outVol=lvol=rvol=15;
         waveBank=0;
     }
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<int>(15),
+      SharedChannel<int>(15),
       fixedFreq(0),
       wave(-1),
       sample(-1),

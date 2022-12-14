@@ -19,6 +19,7 @@
 
 #ifndef _TX81Z_H
 #define _TX81Z_H
+
 #include "fmshared_OPM.h"
 #include <queue>
 #include "sound/ymfm/ymfm_opz.h"

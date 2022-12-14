@@ -21,22 +21,15 @@
 #define _PCSPKR_H
 
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include <queue>
 #include <thread>
 #include <mutex>
 #include <condition_variable>
 
 class DivPlatformPCSpeaker: public DivDispatch {
-  struct Channel: public SharedChannelFreq, public SharedChannelVolume<signed char> {
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
+  struct Channel: public SharedChannel<signed char> {
     Channel():
-      SharedChannelFreq(),
-      SharedChannelVolume<signed char>(15) {}
+      SharedChannel<signed char>(15) {}
   };
   Channel chan[1];
   DivDispatchOscBuffer* oscBuf;
