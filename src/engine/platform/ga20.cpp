@@ -436,14 +436,14 @@ void DivPlatformGA20::renderSamples(int sysID) {
       for (int j=0; j<actualLength; j++) {
         // convert to 8 bit unsigned
         unsigned char val=((unsigned char)(s->data8[j]))^0x80;
-        sampleMem[memPos++]=CLAMP(val,1,255);
+        sampleMem[memPos++]=CLAMP(val,0x01,0xff);
       }
       // write end of sample marker
       memset(&sampleMem[memPos],0x00,1);
       memPos+=1;
     }
     if ((memPos+MAX(actualLength,0))>=(getSampleMemCapacity()-1)) {
-      logW("out of K007232 PCM memory for sample %d!",i);
+      logW("out of GA20 PCM memory for sample %d!",i);
       break;
     } else {
       sampleLoaded[i]=true;
