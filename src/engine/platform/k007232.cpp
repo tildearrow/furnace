@@ -377,7 +377,7 @@ int DivPlatformK007232::dispatch(DivCommand c) {
       chan[c.chan].setPos=true;
       break;
     case DIV_CMD_GET_VOLMAX:
-      return 255;
+      return 15;
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
