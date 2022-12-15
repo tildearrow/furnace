@@ -1174,7 +1174,7 @@ void DivEngine::registerSystems() {
     {"Square"},
     {"SQ"},
     {DIV_CH_PULSE},
-    {DIV_INS_BEEPER}
+    {DIV_INS_POKEMINI}
   );
 
   sysDefs[DIV_SYSTEM_SEGAPCM]=new DivSysDef(
@@ -1700,6 +1700,16 @@ void DivEngine::registerSystems() {
     {"CH1", "CH2"},
     {DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_K007232, DIV_INS_K007232},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA}
+  );
+
+  sysDefs[DIV_SYSTEM_GA20]=new DivSysDef(
+    "Irem GA20", NULL, 0xc7, 0, 4, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "yet another PCM chip from Irem.",
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
+    {"CH1", "CH2", "CH3", "CH4"},
+    {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_GA20, DIV_INS_GA20, DIV_INS_GA20, DIV_INS_GA20},
     {DIV_INS_AMIGA, DIV_INS_AMIGA}
   );
 

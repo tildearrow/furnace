@@ -4949,6 +4949,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_QSOUND) {
             volMax=16383;
           }
+          if (ins->type==DIV_INS_POKEMINI) {
+            volMax=2;
+          }
 
           const char* dutyLabel="Duty/Noise";
           int dutyMin=0;
@@ -4982,7 +4985,7 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Group Ctrl";
             dutyMax=5;
           }
-          if (ins->type==DIV_INS_BEEPER) {
+          if (ins->type==DIV_INS_BEEPER || ins->type==DIV_INS_POKEMINI) {
             dutyLabel="Pulse Width";
             dutyMax=255;
           }
@@ -5079,6 +5082,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_MSM6295) waveMax=0;
           if (ins->type==DIV_INS_SEGAPCM) waveMax=0;
           if (ins->type==DIV_INS_K007232) waveMax=0;
+          if (ins->type==DIV_INS_POKEMINI) waveMax=0;
           if (ins->type==DIV_INS_SU) waveMax=7;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
