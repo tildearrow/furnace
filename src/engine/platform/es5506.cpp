@@ -407,6 +407,12 @@ void DivPlatformES5506::tick(bool sysTick) {
           pageWriteMask(0x00|i,0x5f,0x00,chan[i].pcm.pause?0x0002:0x0000,0x0002);
         }
       }
+      if (chan[i].pcm.direction!=(bool)(chan[i].std.alg.val&2)) {
+        chan[i].pcm.direction=chan[i].std.alg.val&2;
+        if (!chan[i].keyOn) {
+          pageWriteMask(0x00|i,0x5f,0x00,chan[i].pcm.isReversed()?0x0040:0x0000,0x0040);
+        }
+      }
     }
     if (chan[i].pcm.isNoteMap) {
     // note map macros
@@ -510,7 +516,7 @@ void DivPlatformES5506::tick(bool sysTick) {
         }
         if (sampleVaild) {
           if (!chan[i].keyOn) {
-            pageWrite(0x20|i,0x03,(chan[i].pcm.reversed)?chan[i].pcm.end:chan[i].pcm.start);
+            pageWrite(0x20|i,0x03,(chan[i].pcm.isReversed())?chan[i].pcm.end:chan[i].pcm.start);
           }
           chan[i].pcmChanged.slice=1;
         }
@@ -544,7 +550,7 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
       if (chan[i].pcmChanged.loopBank) {
         if (!chan[i].keyOn) {
-          unsigned int loopFlag=(chan[i].pcm.bank<<14)|(chan[i].pcm.reversed?0x0040:0x0000);
+          unsigned int loopFlag=(chan[i].pcm.bank<<14)|(chan[i].pcm.isReversed()?0x0040:0x0000);
           chan[i].isReverseLoop=false;
           switch (chan[i].pcm.loopMode) {
             case DIV_SAMPLE_LOOP_FORWARD: // Forward loop
@@ -641,11 +647,11 @@ void DivPlatformES5506::tick(bool sysTick) {
       chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs),0,0x1ffff);
       if (chan[i].keyOn) {
         if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
-          unsigned int startPos=chan[i].pcm.reversed?chan[i].pcm.end:chan[i].pcm.start;
+          unsigned int startPos=chan[i].pcm.isReversed()?chan[i].pcm.end:chan[i].pcm.start;
           if (chan[i].pcm.nextPos) {
             const unsigned int start=chan[i].pcm.start;
             const unsigned int end=chan[i].pcm.length;
-            startPos=start+((chan[i].pcm.reversed?(end-chan[i].pcm.nextPos):(chan[i].pcm.nextPos))<<11);
+            startPos=start+((chan[i].pcm.isReversed()?(end-chan[i].pcm.nextPos):(chan[i].pcm.nextPos))<<11);
             chan[i].pcm.nextPos=0;
           }
           chan[i].k1Prev=0xffff;
@@ -713,7 +719,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           chan[i].k1Prev=k1;
           pageWrite(0x00|i,0x02,chan[i].resLVol);
           pageWrite(0x00|i,0x04,chan[i].resRVol);
-          unsigned int loopFlag=chan[i].pcm.reversed?0x0040:0x0000;
+          unsigned int loopFlag=chan[i].pcm.isReversed()?0x0040:0x0000;
           chan[i].isReverseLoop=false;
           switch (chan[i].pcm.loopMode) {
             case DIV_SAMPLE_LOOP_FORWARD: // Forward loop
@@ -1036,8 +1042,8 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (chan[c.chan].active) {
         const unsigned int start=chan[c.chan].pcm.start;
         const unsigned int end=chan[c.chan].pcm.length;
-        const unsigned int pos=chan[c.chan].pcm.reversed?(end-c.value):c.value;
-        if ((chan[c.chan].pcm.reversed && pos>0) || ((!chan[c.chan].pcm.reversed) && pos<end)) {
+        const unsigned int pos=chan[c.chan].pcm.isReversed()?(end-c.value):c.value;
+        if ((chan[c.chan].pcm.isReversed() && pos>0) || ((!chan[c.chan].pcm.isReversed()) && pos<end)) {
           pageWrite(0x20|c.chan,0x03,start+(pos<<11));
         }
         break;
@@ -1045,6 +1051,13 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         if (chan[c.chan].pcm.nextPos!=0) {
           chan[c.chan].pcm.nextPos=c.value;
         }
+      }
+      break;
+    }
+    case DIV_CMD_SAMPLE_DIR: {
+      if (chan[c.chan].pcm.direction!=(bool)(c.value&1)) {
+        chan[c.chan].pcm.direction=c.value&1;
+        pageWriteMask(0x00|c.chan,0x5f,0x00,chan[c.chan].pcm.isReversed()?0x0040:0x0000,0x0040);
       }
       break;
     }

@@ -32,12 +32,13 @@
 class DivPlatformES5506: public DivDispatch, public es550x_intf {
   struct Channel : public SharedChannel<unsigned int> {
     struct PCM {
+      bool isReversed() { return reversed^direction; }
       bool isNoteMap;
       int index, next;
       int note;
       double freqOffs;
       double nextFreqOffs;
-      bool reversed, pause;
+      bool reversed, pause, direction;
       unsigned int bank;
       unsigned int start;
       unsigned int end;
@@ -55,6 +56,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         nextFreqOffs(1.0),
         reversed(false),
         pause(false),
+        direction(false),
         bank(0),
         start(0),
         end(0),

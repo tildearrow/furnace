@@ -947,6 +947,8 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->pcmChanged.loopBank?colorOn:colorOff,">> PCMLoopBankChanged");
       ImGui::TextColored(ch->isReverseLoop?colorOn:colorOff,">> IsReverseLoop");
       ImGui::TextColored(ch->pcm.reversed?colorOn:colorOff,">> PCMReversed");
+      ImGui::TextColored(ch->pcm.pause?colorOn:colorOff,">> PCMPause");
+      ImGui::TextColored(ch->pcm.direction?colorOn:colorOff,">> PCMDirection");
       ImGui::TextColored(ch->envelope.k1Slow?colorOn:colorOff,">> EnvK1Slow");
       ImGui::TextColored(ch->envelope.k2Slow?colorOn:colorOff,">> EnvK2Slow");
       ImGui::TextColored(ch->overwrite.envelope.k1Slow?colorOn:colorOff,">> EnvK1SlowOverwrite");
