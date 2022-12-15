@@ -526,6 +526,7 @@ src/engine/platform/ymz280b.cpp
 src/engine/platform/namcowsg.cpp
 src/engine/platform/rf5c68.cpp
 src/engine/platform/snes.cpp
+src/engine/platform/k007232.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 )

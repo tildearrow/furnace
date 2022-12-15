@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#define _USE_MATH_DEFINES
 #include "gui.h"
 #include "imgui_internal.h"
 #include "../engine/macroInt.h"
@@ -4251,7 +4252,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_VRC6 ||
             ins->type==DIV_INS_SU ||
             ins->type==DIV_INS_SNES ||
-            ins->type==DIV_INS_ES5506) {
+            ins->type==DIV_INS_ES5506 ||
+            ins->type==DIV_INS_K007232) {
           if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
             String sName;
             if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
@@ -4971,6 +4973,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_QSOUND) {
             volMax=16383;
           }
+          if (ins->type==DIV_INS_POKEMINI) {
+            volMax=2;
+          }
 
           const char* dutyLabel="Duty/Noise";
           int dutyMin=0;
@@ -5004,7 +5009,7 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Group Ctrl";
             dutyMax=5;
           }
-          if (ins->type==DIV_INS_BEEPER) {
+          if (ins->type==DIV_INS_BEEPER || ins->type==DIV_INS_POKEMINI) {
             dutyLabel="Pulse Width";
             dutyMax=255;
           }
@@ -5017,7 +5022,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC ||
               ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC || ins->type==DIV_INS_SEGAPCM ||
-              ins->type==DIV_INS_FM) {
+              ins->type==DIV_INS_FM || ins->type==DIV_INS_K007232) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VBOY) {
@@ -5121,6 +5126,8 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_MSM6258) waveMax=0;
           if (ins->type==DIV_INS_MSM6295) waveMax=0;
           if (ins->type==DIV_INS_SEGAPCM) waveMax=0;
+          if (ins->type==DIV_INS_K007232) waveMax=0;
+          if (ins->type==DIV_INS_POKEMINI) waveMax=0;
           if (ins->type==DIV_INS_SU) waveMax=7;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
@@ -5210,7 +5217,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY ||
               ins->type==DIV_INS_SAA1099 || ins->type==DIV_INS_NAMCO || ins->type==DIV_INS_RF5C68 ||
-              ins->type==DIV_INS_VBOY || ins->type==DIV_INS_T6W28) {
+              ins->type==DIV_INS_VBOY || ins->type==DIV_INS_T6W28 || ins->type==DIV_INS_K007232) {
             panMax=15;
           }
           if (ins->type==DIV_INS_SEGAPCM) {
@@ -5319,7 +5326,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_ES5506 ||
               ins->type==DIV_INS_T6W28 ||
               ins->type==DIV_INS_VBOY ||
-              (ins->type==DIV_INS_X1_010 && ins->amiga.useSample)) {
+              (ins->type==DIV_INS_X1_010 && ins->amiga.useSample) ||
+              ins->type==DIV_INS_K007232) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {

@@ -26,7 +26,15 @@
 
 
 class DivYM2612Interface: public ymfm::ymfm_interface {
+  int countA, countB;
 
+  public:
+    void clock();
+    void ymfm_set_timer(uint32_t tnum, int32_t duration_in_clocks);
+    DivYM2612Interface():
+      ymfm::ymfm_interface(),
+      countA(-1),
+      countB(-1) {}
 };
 
 class DivPlatformGenesis: public DivPlatformOPN {

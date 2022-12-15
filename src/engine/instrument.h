@@ -77,6 +77,9 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_RF5C68=42,
   DIV_INS_MSM5232=43,
   DIV_INS_T6W28=44,
+  DIV_INS_K007232=45,
+  DIV_INS_GA20=46,
+  DIV_INS_POKEMINI=47,
   DIV_INS_MAX,
   DIV_INS_NULL
 };

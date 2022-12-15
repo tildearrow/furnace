@@ -19,6 +19,7 @@
 
 #include "genesis.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <string.h>
 #include <math.h>
 
@@ -26,6 +27,22 @@
 #define CHIP_DIVIDER fmDivBase
 
 #define IS_REALLY_MUTED(x) (isMuted[x] && (x<5 || !softPCM || (isMuted[5] && isMuted[6])))
+
+void DivYM2612Interface::ymfm_set_timer(uint32_t tnum, int32_t duration_in_clocks) {
+  if (tnum==1) {
+    countB=duration_in_clocks;
+  } else if (tnum==0) {
+    countA=duration_in_clocks;
+  }
+  logV("ymfm_set_timer(%d,%d)",tnum,duration_in_clocks);
+}
+
+void DivYM2612Interface::clock() {
+  if (countA>=0) {
+    countA-=144;
+    if (countA<0) m_engine->engine_timer_expired(0);
+  }
+}
 
 void DivPlatformGenesis::processDAC(int iRate) {
   if (softPCM) {
@@ -197,6 +214,7 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
     } else {
       ((ymfm::ym3438*)fm_ymfm)->generate(&out_ymfm);
     }
+    iface.clock();
     os[0]=out_ymfm.data[0];
     os[1]=out_ymfm.data[1];
     //OPN2_Write(&fm,0,0);

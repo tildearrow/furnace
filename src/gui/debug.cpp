@@ -49,6 +49,7 @@
 #include "../engine/platform/es5506.h"
 #include "../engine/platform/lynx.h"
 #include "../engine/platform/pcmdac.h"
+#include "../engine/platform/k007232.h"
 #include "../engine/platform/dummy.h"
 
 #define COMMON_CHIP_DEBUG \
@@ -507,6 +508,17 @@ void putDispatchChip(void* data, int type) {
       ImGui::TextColored(ch->isMasked?colorOn:colorOff,">> IsMasked");
       ImGui::TextColored(ch->isReaded?colorOn:colorOff,">> isReaded");
       ImGui::TextColored(ch->irqTrigger?colorOn:colorOff,">> IrqTrigger");
+      break;
+    }
+    case DIV_SYSTEM_K007232: {
+      DivPlatformK007232* ch=(DivPlatformK007232*)data;
+      ImGui::Text("> K007232");
+      COMMON_CHIP_DEBUG;
+      ImGui::Text("- delay: %.2x",ch->delay);
+      ImGui::Text("- lastLoop: %.2x",ch->lastLoop);
+      ImGui::Text("- lastVolume: %.2x",ch->lastVolume);
+      COMMON_CHIP_DEBUG_BOOL;
+      ImGui::TextColored(ch->stereo?colorOn:colorOff,">> Stereo");
       break;
     }
     default:
@@ -988,6 +1000,25 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("- envVol: %.2x",ch->envVol);
       COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->useWave?colorOn:colorOff,">> UseWave");
+      ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
+      break;
+    }
+    case DIV_SYSTEM_K007232: {
+      DivPlatformK007232::Channel* ch=(DivPlatformK007232::Channel*)data;
+      ImGui::Text("> K007232");
+      COMMON_CHAN_DEBUG;
+      ImGui::Text("- prevFreq: %d",ch->prevFreq);
+      ImGui::Text("* Sample: %d",ch->sample);
+      ImGui::Text(" - pos: %d",ch->audPos);
+      ImGui::Text(" - prevBank: %d",ch->prevBank);
+      ImGui::Text("* panning: %d",ch->panning);
+      ImGui::Text(" - prev: %d",ch->prevPan);
+      ImGui::Text("- resVol: %.2x",ch->resVol);
+      ImGui::Text("- lvol: %.2x",ch->lvol);
+      ImGui::Text("- rvol: %.2x",ch->rvol);
+      ImGui::Text("- macroVolMul: %.2x",ch->macroVolMul);
+      COMMON_CHAN_DEBUG_BOOL;
+      ImGui::TextColored(ch->volumeChanged?colorOn:colorOff,">> VolumeChanged");
       ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
       break;
     }
