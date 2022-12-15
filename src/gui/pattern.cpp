@@ -18,7 +18,6 @@
  */
 
 // for suck's fake Clang extension!
-#include <imgui.h>
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "../ta-log.h"
