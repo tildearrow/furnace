@@ -1171,8 +1171,8 @@ void DivEngine::registerSystems() {
   sysDefs[DIV_SYSTEM_POKEMINI]=new DivSysDef(
     "Pokémon Mini", NULL, 0x99, 0, 1, false, true, 0, false, 0,
     "this one is like PC Speaker but has duty cycles.",
-    {"Square"},
-    {"SQ"},
+    {"Pulse"},
+    {"P"},
     {DIV_CH_PULSE},
     {DIV_INS_POKEMINI}
   );
