@@ -164,10 +164,10 @@ void DivPlatformGA20::tick(bool sysTick) {
           chWrite(i,4,chan[i].freq&0xff);
           chan[i].prevFreq=chan[i].freq;
         }
-        chWrite(i,0,start&0xff);
-        chWrite(i,1,start>>8);
-        chWrite(i,2,end&0xff);
-        chWrite(i,3,end>>8);
+        chWrite(i,0,start>>4);
+        chWrite(i,1,start>>12);
+        chWrite(i,2,end>>4);
+        chWrite(i,3,end>>12);
         chWrite(i,5,chan[i].resVol);
         chWrite(i,6,2);
         if (!chan[i].std.vol.had) {
