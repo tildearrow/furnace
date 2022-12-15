@@ -47,7 +47,7 @@ Revisions:
 
 #include "iremga20.h"
 
-#include <algorithm>
+#include <string.h>
 
 
 //**************************************************************************
@@ -92,10 +92,10 @@ void iremga20_device::sound_stream_update(short** outputs, int len)
 {
 	for (int i = 0; i < len; i++)
 	{
-		s32 sampleout = 0;
-
 		for (int j = 0; j < 4; j++)
 		{
+			s32 sampleout = 0;
+
 			channel_def &ch = m_channel[j];
 			if (ch.play)
 			{
@@ -104,7 +104,7 @@ void iremga20_device::sound_stream_update(short** outputs, int len)
 					ch.play = false;
 				else
 				{
-					sampleout += (sample - 0x80) * (s32)ch.volume;
+					sampleout = (sample - 0x80) * (s32)ch.volume;
 					ch.counter--;
 					if (ch.counter <= ch.rate)
 					{
