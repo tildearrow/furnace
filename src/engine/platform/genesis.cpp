@@ -209,12 +209,12 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
       lastBusy=1;
     }
     
-    iface.clock();
     if (ladder) {
       fm_ymfm->generate(&out_ymfm);
     } else {
       ((ymfm::ym3438*)fm_ymfm)->generate(&out_ymfm);
     }
+    iface.clock();
     os[0]=out_ymfm.data[0];
     os[1]=out_ymfm.data[1];
     //OPN2_Write(&fm,0,0);
