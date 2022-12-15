@@ -25,6 +25,7 @@ as of Furnace 0.6, the following sound chips have sample support:
 - tildearrow Sound Unit
 - VERA (last channel only)
 - Y8950 (last channel only)
+- Konami K007232
 - a few more that I've forgotten to mention
 
 ## compatible sample mode

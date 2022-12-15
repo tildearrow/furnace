@@ -19,8 +19,8 @@
 
 #ifndef _OPL_H
 #define _OPL_H
+
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include <queue>
 #include "../../../extern/opl/opl3.h"
 #include "sound/ymfm/ymfm_adpcm.h"
@@ -36,41 +36,22 @@ class DivOPLAInterface: public ymfm::ymfm_interface {
 
 class DivPlatformOPL: public DivDispatch {
   protected:
-    struct Channel {
+    struct Channel: public SharedChannel<int> {
       DivInstrumentFM state;
-      DivMacroInt std;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, pitch2, note, ins, sample, fixedFreq;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnacePCM, inPorta, fourOp, hardReset;
-      int vol, outVol;
+      int sample, fixedFreq;
+      bool furnacePCM, fourOp, hardReset;
       unsigned char pan;
       int macroVolMul;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
       Channel():
+        SharedChannel<int>(0),
         freqH(0),
         freqL(0),
-        freq(0),
-        baseFreq(0),
-        pitch(0),
-        pitch2(0),
-        note(0),
-        ins(-1),
         sample(-1),
         fixedFreq(0),
-        active(false),
-        insChanged(true),
-        freqChanged(false),
-        keyOn(false),
-        keyOff(false),
-        portaPause(false),
         furnacePCM(false),
-        inPorta(false),
         fourOp(false),
         hardReset(false),
-        vol(0),
         pan(3),
         macroVolMul(64) {
         state.ops=2;

@@ -510,7 +510,7 @@ void DivPlatformYM2610Ext::reset() {
   DivPlatformYM2610::reset();
 
   for (int i=0; i<4; i++) {
-    opChan[i]=DivPlatformYM2610Ext::OpChannel();
+    opChan[i]=DivPlatformOPN::OPNOpChannelStereo();
     opChan[i].vol=127;
   }
 

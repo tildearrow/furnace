@@ -22,36 +22,13 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 
 class DivPlatformZXBeeper: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note;
-    int ins;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
-    signed char vol, outVol;
+  struct Channel: public SharedChannel<signed char> {
     unsigned short sPosition;
     unsigned char duty;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
-      ins(-1),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
-      vol(1),
-      outVol(1),
+      SharedChannel<signed char>(1),
       sPosition(0),
       duty(64) {}
   };

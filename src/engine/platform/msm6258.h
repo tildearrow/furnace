@@ -19,51 +19,20 @@
 
 #ifndef _MSM6258_H
 #define _MSM6258_H
+
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include <queue>
 #include "sound/oki/okim6258.h"
 
 class DivPlatformMSM6258: public DivDispatch {
   protected:
-    struct Channel {
-      unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, pitch2, portaPauseFreq, note, ins;
-      unsigned char psgMode, autoEnvNum, autoEnvDen;
-      signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, furnacePCM, hardReset;
-      int vol, outVol;
+    struct Channel: public SharedChannel<int> {
+      bool furnacePCM;
       int sample;
       unsigned char pan;
-      DivMacroInt std;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
       Channel():
-        freqH(0),
-        freqL(0),
-        freq(0),
-        baseFreq(0),
-        pitch(0),
-        pitch2(0),
-        portaPauseFreq(0),
-        note(0),
-        ins(-1),
-        psgMode(1),
-        autoEnvNum(0),
-        autoEnvDen(0),
-        active(false),
-        insChanged(true),
-        freqChanged(false),
-        keyOn(false),
-        keyOff(false),
-        portaPause(false),
-        inPorta(false),
+        SharedChannel<int>(8),
         furnacePCM(false),
-        hardReset(false),
-        vol(0),
-        outVol(15),
         sample(-1),
         pan(3) {}
     };

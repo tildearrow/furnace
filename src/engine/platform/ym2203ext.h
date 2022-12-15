@@ -17,42 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#ifndef _YM2203EXT_H
+#define _YM2203EXT_H
+
 #include "../dispatch.h"
 
 #include "ym2203.h"
 
 class DivPlatformYM2203Ext: public DivPlatformYM2203 {
-  struct OpChannel {
-    DivMacroInt std;
-    unsigned char freqH, freqL;
-    int freq, baseFreq, pitch, pitch2, portaPauseFreq, ins;
-    signed char konCycles;
-    bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, mask;
-    int vol;
-    // UGLY
-    OpChannel():
-      freqH(0),
-      freqL(0),
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      portaPauseFreq(0),
-      ins(-1),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      portaPause(false),
-      inPorta(false),
-      mask(true),
-      vol(0) {}
-  };
-  OpChannel opChan[4];
+  OPNOpChannel opChan[4];
   bool isOpMuted[4];
   friend void putDispatchChip(void*,int);
-  friend void putDispatchChan(void*,int,int);
   public:
     int dispatch(DivCommand c);
     void* getChanState(int chan);
@@ -68,3 +43,5 @@ class DivPlatformYM2203Ext: public DivPlatformYM2203 {
     void quit();
     ~DivPlatformYM2203Ext();
 };
+
+#endif

@@ -22,32 +22,20 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "sound/c64/sid.h"
 #include "sound/c64_fp/SID.h"
 
 class DivPlatformC64: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, prevFreq, testWhen, note, ins;
+  struct Channel: public SharedChannel<signed char> {
+    int prevFreq, testWhen;
     unsigned char sweep, wave, attack, decay, sustain, release;
     short duty;
-    bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, filter;
+    bool sweepChanged, filter;
     bool resetMask, resetFilter, resetDuty, ring, sync, test;
-    signed char vol, outVol;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
+      SharedChannel<signed char>(15),
       prevFreq(65535),
       testWhen(0),
-      note(0),
-      ins(-1),
       sweep(0),
       wave(0),
       attack(0),
@@ -55,21 +43,14 @@ class DivPlatformC64: public DivDispatch {
       sustain(0),
       release(0),
       duty(0),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
       sweepChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       filter(false),
       resetMask(false),
       resetFilter(false),
       resetDuty(false),
       ring(false),
       sync(false),
-      test(false),
-      vol(15) {}
+      test(false) {}
   };
   Channel chan[3];
   DivDispatchOscBuffer* oscBuf[3];

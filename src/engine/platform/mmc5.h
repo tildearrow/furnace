@@ -21,40 +21,19 @@
 #define _MMC5_H
 
 #include "../dispatch.h"
-#include "../macroInt.h"
 
 class DivPlatformMMC5: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, prevFreq, note, ins;
+  struct Channel: public SharedChannel<signed char> {
+    int prevFreq;
     unsigned char duty, sweep;
-    bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, furnaceDac;
-    signed char vol, outVol, wave;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
+    bool sweepChanged, furnaceDac;
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
+      SharedChannel<signed char>(15),
       prevFreq(65535),
-      note(0),
-      ins(-1),
       duty(0),
       sweep(8),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
       sweepChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
-      furnaceDac(false),
-      vol(15),
-      outVol(15),
-      wave(-1) {}
+      furnaceDac(false) {}
   };
   Channel chan[5];
   DivDispatchOscBuffer* oscBuf[3];

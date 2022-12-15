@@ -49,6 +49,7 @@
 #include "platform/saa.h"
 #include "platform/amiga.h"
 #include "platform/pcspkr.h"
+#include "platform/pokemini.h"
 #include "platform/segapcm.h"
 #include "platform/qsound.h"
 #include "platform/vera.h"
@@ -70,6 +71,7 @@
 #include "platform/rf5c68.h"
 #include "platform/snes.h"
 #include "platform/vb.h"
+#include "platform/k007232.h"
 #include "platform/pcmdac.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
@@ -326,6 +328,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_PCSPKR:
       dispatch=new DivPlatformPCSpeaker;
       break;
+    case DIV_SYSTEM_POKEMINI:
+      dispatch=new DivPlatformPokeMini;
+      break;
     case DIV_SYSTEM_SFX_BEEPER:
       dispatch=new DivPlatformZXBeeper;
       break;
@@ -417,6 +422,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SNES:
       dispatch=new DivPlatformSNES;
+      break;
+    case DIV_SYSTEM_K007232:
+      dispatch=new DivPlatformK007232;
       break;
     case DIV_SYSTEM_PCM_DAC:
       dispatch=new DivPlatformPCMDAC;

@@ -22,44 +22,22 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "sound/ymz280b.h"
 
 class DivPlatformYMZ280B: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2;
+  struct Channel: public SharedChannel<int> {
     unsigned int audPos;
-    int sample, wave, ins;
-    int note;
+    int sample, wave;
     int panning;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, setPos, isNewYMZ;
-    int vol, outVol;
+    bool setPos, isNewYMZ;
     int macroVolMul;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
+      SharedChannel<int>(255),
       audPos(0),
       sample(-1),
-      ins(-1),
-      note(0),
       panning(8),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       setPos(false),
       isNewYMZ(false),
-      vol(255),
-      outVol(255),
       macroVolMul(64) {}
   };
   Channel chan[8];

@@ -22,32 +22,22 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "../waveSynth.h"
 #include "sound/pce_psg.h"
 
 class DivPlatformPCE: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note, antiClickPeriodCount, antiClickWavePos;
+  struct Channel: public SharedChannel<signed char> {
+    int antiClickPeriodCount, antiClickWavePos;
     int dacPeriod, dacRate, dacOut;
     unsigned int dacPos;
-    int dacSample, ins;
+    int dacSample;
     unsigned char pan;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, furnaceDac, deferredWaveUpdate;
-    signed char vol, outVol, wave;
+    bool noise, pcm, furnaceDac, deferredWaveUpdate;
+    signed short wave;
     int macroVolMul;
-    DivMacroInt std;
     DivWaveSynth ws;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
+      SharedChannel<signed char>(31),
       antiClickPeriodCount(0),
       antiClickWavePos(0),
       dacPeriod(0),
@@ -55,20 +45,11 @@ class DivPlatformPCE: public DivDispatch {
       dacOut(0),
       dacPos(0),
       dacSample(-1),
-      ins(-1),
       pan(255),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       noise(false),
       pcm(false),
       furnaceDac(false),
       deferredWaveUpdate(false),
-      vol(31),
-      outVol(31),
       wave(-1),
       macroVolMul(31) {}
   };

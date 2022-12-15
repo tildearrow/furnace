@@ -3916,9 +3916,13 @@ void DivEngine::setConsoleMode(bool enable) {
   consoleMode=enable;
 }
 
-bool DivEngine::switchMaster() {
+bool DivEngine::switchMaster(bool full) {
   logI("switching output...");
   deinitAudioBackend(true);
+  if (full) {
+    quitDispatch();
+    initDispatch();
+  }
   if (initAudioBackend()) {
     for (int i=0; i<song.systemLen; i++) {
       disCont[i].setRates(got.rate);

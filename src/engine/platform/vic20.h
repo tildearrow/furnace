@@ -21,37 +21,14 @@
 #define _VIC20_H
 
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include "sound/vic20sound.h"
 #include <queue>
 
 class DivPlatformVIC20: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note, ins;
-    unsigned char pan;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
-    int vol, outVol, wave, waveWriteCycle;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
+  struct Channel: public SharedChannel<int> {
+    int wave, waveWriteCycle;
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
-      ins(-1),
-      pan(255),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
-      vol(15),
-      outVol(15),
+      SharedChannel<int>(15),
       wave(0),
       waveWriteCycle(-1) {}
   };

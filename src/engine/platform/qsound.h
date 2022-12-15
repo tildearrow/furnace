@@ -22,45 +22,24 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "sound/qsound.h"
 
 class DivPlatformQSound: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2;
-    int sample, wave, ins;
-    int note;
+  struct Channel: public SharedChannel<int> {
+    int resVol;
+    int sample, wave;
     int panning;
     int echo;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, surround, isNewQSound;
-    int vol, outVol, resVol;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
+    bool useWave, surround, isNewQSound;
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
+      SharedChannel<int>(255),
+      resVol(4095),
       sample(-1),
-      ins(-1),
-      note(0),
       panning(0x10),
       echo(0),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       useWave(false),
       surround(true),
-      isNewQSound(false),
-      vol(255),
-      outVol(255),
-      resVol(4096) {}
+      isNewQSound(false) {}
   };
   Channel chan[19];
   DivDispatchOscBuffer* oscBuf[19];

@@ -1171,10 +1171,10 @@ void DivEngine::registerSystems() {
   sysDefs[DIV_SYSTEM_POKEMINI]=new DivSysDef(
     "Pokémon Mini", NULL, 0x99, 0, 1, false, true, 0, false, 0,
     "this one is like PC Speaker but has duty cycles.",
-    {"Square"},
-    {"SQ"},
+    {"Pulse"},
+    {"P"},
     {DIV_CH_PULSE},
-    {DIV_INS_BEEPER}
+    {DIV_INS_POKEMINI}
   );
 
   sysDefs[DIV_SYSTEM_SEGAPCM]=new DivSysDef(
@@ -1691,6 +1691,26 @@ void DivEngine::registerSystems() {
     {"PCM"},
     {DIV_CH_PCM},
     {DIV_INS_AMIGA}
+  );
+
+  sysDefs[DIV_SYSTEM_K007232]=new DivSysDef(
+    "Konami K007232", NULL, 0xc6, 0, 2, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "this PCM chip was widely used at Konami arcade boards in 1986-1990.",
+    {"Channel 1", "Channel 2"},
+    {"CH1", "CH2"},
+    {DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_K007232, DIV_INS_K007232},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA}
+  );
+
+  sysDefs[DIV_SYSTEM_GA20]=new DivSysDef(
+    "Irem GA20", NULL, 0xc7, 0, 4, false, true, 0x171, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "yet another PCM chip from Irem.",
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
+    {"CH1", "CH2", "CH3", "CH4"},
+    {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_GA20, DIV_INS_GA20, DIV_INS_GA20, DIV_INS_GA20},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA}
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
