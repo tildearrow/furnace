@@ -22,6 +22,10 @@
 typedef HRESULT (*SPDA)(int);
 
 int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, PSTR args, int state) {
+  if (AttachConsole(ATTACH_PARENT_PROCESS)==0) {
+    if (GetLastError()==ERROR_ACCESS_DENIED) FreeConsole();
+  }
+
   int argc=0;
   wchar_t** argw=CommandLineToArgvW(GetCommandLineW(),&argc);
   char** argv=new char*[argc+1];
