@@ -29,25 +29,18 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
   struct Channel: public SharedChannel<int> {
     int prevFreq;
     unsigned int audPos;
-    int prevBank;
     int sample;
-    int panning, prevPan;
     bool volumeChanged, setPos;
-    int resVol, lvol, rvol;
+    int resVol;
     int macroVolMul;
     Channel():
-      SharedChannel<int>(15),
+      SharedChannel<int>(255),
       prevFreq(-1),
       audPos(0),
-      prevBank(-1),
       sample(-1),
-      panning(255),
-      prevPan(-1),
       volumeChanged(false),
       setPos(false),
-      resVol(15),
-      lvol(15),
-      rvol(15),
+      resVol(255),
       macroVolMul(64) {}
   };
   Channel chan[4];

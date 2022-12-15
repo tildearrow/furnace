@@ -72,9 +72,9 @@ void DivPlatformGA20::acquire(short* bufL, short* bufR, size_t start, size_t len
       }
     }
     ga20.sound_stream_update(ga20Buf, 1);
-    bufL[h]=(ga20Buf[0][h]+ga20Buf[1][h]+ga20Buf[2][h]+ga20Buf[3][h])<<4;
+    bufL[h]=(ga20Buf[0][h]+ga20Buf[1][h]+ga20Buf[2][h]+ga20Buf[3][h]);
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=ga20Buf[i][h]<<6;
+      oscBuf[i]->data[oscBuf[i]->needle++]=ga20Buf[i][h];
     }
   }
 }
@@ -345,12 +345,8 @@ void DivPlatformGA20::reset() {
     chan[i]=DivPlatformGA20::Channel();
     chan[i].std.setEngine(parent);
     // keyoff all channels
-    chWrite(i,0,0);
-    chWrite(i,1,0);
-    chWrite(i,2,0xff);
-    chWrite(i,3,0xff);
-    chWrite(i,4,1);
     chWrite(i,5,0);
+    chWrite(i,6,0);
   }
 }
 
@@ -439,7 +435,7 @@ void DivPlatformGA20::renderSamples(int sysID) {
       sampleOffGA20[i]=memPos;
       for (int j=0; j<actualLength; j++) {
         // convert to 8 bit unsigned
-        unsigned char val=((unsigned char)s->data8[j])^0x80;
+        unsigned char val=((unsigned char)(s->data8[j]))^0x80;
         sampleMem[memPos++]=CLAMP(val,1,255);
       }
       // write end of sample marker
@@ -452,6 +448,7 @@ void DivPlatformGA20::renderSamples(int sysID) {
     } else {
       sampleLoaded[i]=true;
     }
+    // allign to 16 byte
     memPos=(memPos+0xf)&~0xf;
   }
   sampleMemLen=memPos;
