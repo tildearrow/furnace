@@ -534,9 +534,8 @@ void DivPlatformK007232::renderSamples(int sysID) {
       memset(&sampleMem[memPos],0xc0,1);
       memPos+=1;
     }
-    if (actualLength<length) {
+    if ((memPos+actualLength)>=(getSampleMemCapacity()-1)) {
       logW("out of K007232 PCM memory for sample %d!",i);
-      sampleLoaded[i]=false;
       break;
     } else {
       sampleLoaded[i]=true;
