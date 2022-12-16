@@ -342,6 +342,7 @@ void DivPlatformGA20::reset() {
   }
   memset(regPool,0,32);
   ga20.device_reset();
+  delay=0;
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformGA20::Channel();
     chan[i].std.setEngine(parent);
