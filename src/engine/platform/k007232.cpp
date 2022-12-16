@@ -398,7 +398,8 @@ void DivPlatformK007232::forceIns() {
   for (int i=0; i<2; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
-    chan[i].sample=-1;
+    chan[i].prevFreq=-1;
+    chan[i].prevBank=-1;
   }
 }
 
