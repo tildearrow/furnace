@@ -319,8 +319,9 @@ void DivPlatformGA20::forceIns() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<4; i++) {
     chan[i].insChanged=true;
+    chan[i].volumeChanged=true;
     chan[i].freqChanged=true;
-    chan[i].sample=-1;
+    chan[i].prevFreq=-1;
   }
 }
 
