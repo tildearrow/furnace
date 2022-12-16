@@ -397,6 +397,7 @@ void DivPlatformK007232::forceIns() {
   while (!writes.empty()) writes.pop();
   for (int i=0; i<2; i++) {
     chan[i].insChanged=true;
+    chan[i].volumeChanged=true;
     chan[i].freqChanged=true;
     chan[i].prevFreq=-1;
     chan[i].prevBank=-1;
