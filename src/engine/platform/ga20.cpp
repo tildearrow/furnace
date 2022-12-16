@@ -466,6 +466,7 @@ int DivPlatformGA20::init(DivEngine* p, int channels, int sugRate, const DivConf
   }
   sampleMem=new unsigned char[getSampleMemCapacity()];
   sampleMemLen=0;
+  delay=0;
   setFlags(flags);
   ga20BufLen=65536;
   for (int i=0; i<4; i++) ga20Buf[i]=new short[ga20BufLen];
