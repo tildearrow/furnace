@@ -92,7 +92,6 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool isStereo();
-    void setChipModel(int type);
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
