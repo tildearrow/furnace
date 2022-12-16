@@ -402,6 +402,8 @@ void DivPlatformK007232::forceIns() {
     chan[i].prevFreq=-1;
     chan[i].prevBank=-1;
   }
+  lastLoop=0;
+  lastVolume=0;
 }
 
 void* DivPlatformK007232::getChanState(int ch) {
