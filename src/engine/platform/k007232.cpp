@@ -424,6 +424,7 @@ void DivPlatformK007232::reset() {
   k007232.reset();
   lastLoop=0;
   lastVolume=0;
+  delay=0;
   for (int i=0; i<2; i++) {
     chan[i]=DivPlatformK007232::Channel();
     chan[i].std.setEngine(parent);
