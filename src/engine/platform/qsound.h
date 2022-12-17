@@ -35,6 +35,7 @@ class DivPlatformQSound: public DivDispatch {
       SharedChannel<int>(255),
       resVol(4095),
       sample(-1),
+      wave(-1),
       panning(0x10),
       echo(0),
       useWave(false),
