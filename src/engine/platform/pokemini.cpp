@@ -71,7 +71,7 @@ void DivPlatformPokeMini::tick(bool sysTick) {
   for (int i=0; i<1; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol,chan[i].std.vol.val,3);
+      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol,chan[i].std.vol.val,2);
       vol=(chan[i].outVol==2)?3:chan[i].outVol;
     }
     if (NEW_ARP_STRAT) {
