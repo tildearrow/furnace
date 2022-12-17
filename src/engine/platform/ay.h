@@ -80,7 +80,8 @@ class DivPlatformAY8910: public DivDispatch {
         nextPSGMode(PSGMode(1)),
         dac(DAC()),
         autoEnvNum(0),
-        autoEnvDen(0) {}
+        autoEnvDen(0),
+        konCycles(0) {}
     };
     Channel chan[3];
     bool isMuted[3];
