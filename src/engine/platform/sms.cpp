@@ -246,9 +246,8 @@ void DivPlatformSMS::tick(bool sysTick) {
       }
     } else { // 3 fixed values
       unsigned char value;
-      if (NEW_ARP_STRAT) {
-        chan[3].handleArp();
-      } else if (chan[3].std.arp.had) {
+      // TODO: new arp?
+      if (chan[3].std.arp.had) {
         value=parent->calcArp(chan[3].note,chan[3].std.arp.val)%12;
       } else { // pardon?
         value=chan[3].note%12;
@@ -376,7 +375,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_SN(c.chan,chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_SN(c.chan,chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

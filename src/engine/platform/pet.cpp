@@ -229,7 +229,7 @@ int DivPlatformPET::dispatch(DivCommand c) {
       if (chan[0].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[0].macroInit(parent->getIns(chan[0].ins,DIV_INS_PET));
       }
-      if (!chan[0].inPorta && c.value && !parent->song.brokenPortaArp && chan[0].std.arp.will) chan[0].baseFreq=NOTE_PERIODIC(chan[0].note);
+      if (!chan[0].inPorta && c.value && !parent->song.brokenPortaArp && chan[0].std.arp.will && !NEW_ARP_STRAT) chan[0].baseFreq=NOTE_PERIODIC(chan[0].note);
       chan[0].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
