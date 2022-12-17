@@ -351,6 +351,13 @@ void DivPlatformArcade::tick(bool sysTick) {
   for (int i=0; i<8; i++) {
     if (chan[i].freqChanged) {
       chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64+chan[i].pitch2;
+      if (!parent->song.oldArpStrategy) {
+        if (chan[i].fixedArp) {
+          chan[i].freq=(chan[i].baseNoteOverride<<7)+(chan[i].pitch>>1)-64+chan[i].pitch2;
+        } else {
+          chan[i].freq+=chan[i].arpOff<<7;
+        }
+      }
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>=(95<<6)) chan[i].freq=(95<<6)-1;
       immWrite(i+0x28,hScale(chan[i].freq>>6));

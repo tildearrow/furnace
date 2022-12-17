@@ -176,7 +176,7 @@ void DivPlatformPCMDAC::tick(bool sysTick) {
       DivSample* s=parent->getSample(chan[0].sample);
       off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
     }
-    chan[0].freq=off*parent->calcFreq(chan[0].baseFreq,chan[0].pitch,false,2,chan[0].pitch2,chipClock,CHIP_FREQBASE);
+    chan[0].freq=off*parent->calcFreq(chan[0].baseFreq,chan[0].pitch,chan[0].fixedArp?chan[0].baseNoteOverride:chan[0].arpOff,chan[0].fixedArp,false,2,chan[0].pitch2,chipClock,CHIP_FREQBASE);
     if (chan[0].freq>16777215) chan[0].freq=16777215;
     if (chan[0].keyOn) {
       if (!chan[0].std.vol.had) {
@@ -305,7 +305,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[0].baseFreq=round(NOTE_FREQUENCY(c.value+((chan[0].std.arp.will && !chan[0].std.arp.mode)?(chan[0].std.arp.val):(0))));
+      chan[0].baseFreq=round(NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[0].std.arp.val):(0))));
       chan[0].freqChanged=true;
       chan[0].note=c.value;
       break;

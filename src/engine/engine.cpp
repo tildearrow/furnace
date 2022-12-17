@@ -2134,10 +2134,17 @@ int DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int
   CONVERT_FNUM_BLOCK(bf,bits,note)
 }
 
-int DivEngine::calcFreq(int base, int pitch, bool period, int octave, int pitch2, double clock, double divider, int blockBits) {
+int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period, int octave, int pitch2, double clock, double divider, int blockBits) {
   if (song.linearPitch==2) {
     // do frequency calculation here
     int nbase=base+pitch+pitch2;
+    if (!song.oldArpStrategy) {
+      if (arpFixed) {
+        nbase=(arp<<7)+pitch+pitch2;
+      } else {
+        nbase+=arp<<7;
+      }
+    }
     double fbase=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(nbase+384)/(128.0*12.0));
     int bf=period?
            round((clock/fbase)/divider):

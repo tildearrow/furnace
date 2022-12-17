@@ -132,14 +132,20 @@ void DivPlatformTIA::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=dealWithFreq(chan[i].shape,chan[i].baseFreq,chan[i].pitch)+chan[i].pitch2;
+      int bf=chan[i].baseFreq;
+      if (!parent->song.oldArpStrategy) {
+        if (!chan[i].fixedArp) {
+          bf+=chan[i].baseFreq+chan[i].arpOff;
+        }
+      }
+      chan[i].freq=dealWithFreq(chan[i].shape,bf,chan[i].pitch)+chan[i].pitch2;
       if ((chan[i].shape==4 || chan[i].shape==5) && !(chan[i].baseFreq&0x80000000 && ((chan[i].baseFreq&0x7fffffff)<32))) {
-        if (chan[i].baseFreq<39*256) {
+        if (bf<39*256) {
           rWrite(0x15+i,6);
-          chan[i].freq=dealWithFreq(6,chan[i].baseFreq,chan[i].pitch)+chan[i].pitch2;
-        } else if (chan[i].baseFreq<59*256) {
+          chan[i].freq=dealWithFreq(6,bf,chan[i].pitch)+chan[i].pitch2;
+        } else if (bf<59*256) {
           rWrite(0x15+i,12);
-          chan[i].freq=dealWithFreq(12,chan[i].baseFreq,chan[i].pitch)+chan[i].pitch2;
+          chan[i].freq=dealWithFreq(12,bf,chan[i].pitch)+chan[i].pitch2;
         } else {
           rWrite(0x15+i,chan[i].shape);
         }

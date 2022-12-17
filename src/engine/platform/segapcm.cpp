@@ -137,6 +137,13 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64;
+      if (!parent->song.oldArpStrategy) {
+        if (chan[i].fixedArp) {
+          chan[i].freq=(chan[i].baseNoteOverride<<7)+(chan[i].pitch>>1)-64+chan[i].pitch2;
+        } else {
+          chan[i].freq+=chan[i].arpOff<<7;
+        }
+      }
       if (chan[i].furnacePCM) {
         double off=1.0;
         if (chan[i].pcm.sample>=0 && chan[i].pcm.sample<parent->song.sampleLen) {
