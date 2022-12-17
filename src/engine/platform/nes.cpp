@@ -217,7 +217,7 @@ void DivPlatformNES::tick(bool sysTick) {
         rWrite(0x4000+i*4,(chan[i].envMode<<4)|chan[i].outVol|((chan[i].duty&3)<<6));
       }
     }
-    if (NEW_ARP_STRAT) {
+    if (NEW_ARP_STRAT && i!=3) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (i==3) { // noise
