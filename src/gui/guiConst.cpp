@@ -983,6 +983,7 @@ const int availableSystems[]={
   DIV_SYSTEM_SNES,
   DIV_SYSTEM_MSM5232,
   DIV_SYSTEM_K007232,
+  DIV_SYSTEM_GA20,
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_PONG,
   0 // don't remove this last one!
@@ -1083,6 +1084,7 @@ const int chipsSample[]={
   DIV_SYSTEM_RF5C68,
   DIV_SYSTEM_SNES,
   DIV_SYSTEM_K007232,
+  DIV_SYSTEM_GA20,
   DIV_SYSTEM_PCM_DAC,
   0 // don't remove this last one!
 };

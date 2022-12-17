@@ -1159,6 +1159,11 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Irem GA20", {
+      CH(DIV_SYSTEM_GA20, 64, 0, "")
+    }
+  );
+  ENTRY(
     "Generic PCM DAC", {
       CH(DIV_SYSTEM_PCM_DAC, 64, 0, "")
     }
@@ -2192,6 +2197,12 @@ void FurnaceGUI::initSystemPresets() {
         "rate=7812\n"
         "outDepth=7\n"
       )
+    }
+  );
+  ENTRY(
+    "Irem M92/M107", {
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""),
+      CH(DIV_SYSTEM_GA20, 64, 0, "")
     }
   );
   CATEGORY_END;
