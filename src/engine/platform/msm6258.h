@@ -48,9 +48,6 @@ class DivPlatformMSM6258: public DivDispatch {
     okim6258_device* msm;
     unsigned char lastBusy;
 
-    unsigned char* adpcmMem;
-    size_t adpcmMemLen;
-    bool sampleLoaded[256];
     unsigned char sampleBank, msmPan, msmDivider, rateSel, msmClock, clockSel;
     signed char msmDividerCount, msmClockCount;
     short msmOut;
@@ -80,12 +77,7 @@ class DivPlatformMSM6258: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     void setFlags(const DivConfig& flags);
     const char** getRegisterSheet();
-    const void* getSampleMem(int index);
-    size_t getSampleMemCapacity(int index);
-    size_t getSampleMemUsage(int index);
-    bool isSampleLoaded(int index, int sample);
-    void renderSamples(int chipID);
-    
+
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformMSM6258();
