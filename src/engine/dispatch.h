@@ -635,4 +635,6 @@ class DivDispatch {
   if (x<xMin) x=xMin; \
   if (x>xMax) x=xMax;
 
+#define NEW_ARP_STRAT (parent->song.linearPitch==2 && !parent->song.newArpStrategy)
+
 #endif

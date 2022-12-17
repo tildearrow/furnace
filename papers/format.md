@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 130: Furnace dev130
 - 129: Furnace dev129
 - 128: Furnace dev128
 - 127: Furnace dev127
@@ -365,7 +366,7 @@ size | description
      | - this one isn't a compatibility flag, but it's here for convenience...
   1  | disable sample macro (>=117) or reserved
   1  | broken outVol episode 2 (>=121) or reserved
-  1  | reserved
+  1  | old arpeggio strategy (>=130) or reserved
  --- | **virtual tempo data**
   2  | virtual tempo numerator of first song (>=96) or reserved
   2  | virtual tempo denominator of first song (>=96) or reserved
