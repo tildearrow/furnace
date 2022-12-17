@@ -35,6 +35,7 @@ class DivPlatformYMZ280B: public DivDispatch {
       SharedChannel<int>(255),
       audPos(0),
       sample(-1),
+      wave(-1),
       panning(8),
       setPos(false),
       isNewYMZ(false),

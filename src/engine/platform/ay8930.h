@@ -90,7 +90,8 @@ class DivPlatformAY8930: public DivDispatch {
         dac(DAC()),
         autoEnvNum(0),
         autoEnvDen(0),
-        duty(4) {}
+        duty(4),
+        konCycles(0) {}
     };
     Channel chan[3];
     bool isMuted[3];
