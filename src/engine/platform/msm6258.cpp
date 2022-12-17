@@ -355,53 +355,6 @@ void DivPlatformMSM6258::notifyInsChange(int ins) {
 void DivPlatformMSM6258::notifyInsDeletion(void* ins) {
 }
 
-const void* DivPlatformMSM6258::getSampleMem(int index) {
-  return index == 0 ? adpcmMem : NULL;
-}
-
-size_t DivPlatformMSM6258::getSampleMemCapacity(int index) {
-  return index == 0 ? 262144 : 0;
-}
-
-size_t DivPlatformMSM6258::getSampleMemUsage(int index) {
-  return index == 0 ? adpcmMemLen : 0;
-}
-
-bool DivPlatformMSM6258::isSampleLoaded(int index, int sample) {
-  if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
-  return sampleLoaded[sample];
-}
-
-void DivPlatformMSM6258::renderSamples(int sysID) {
-  memset(adpcmMem,0,getSampleMemCapacity(0));
-  memset(sampleLoaded,0,256*sizeof(bool));
-
-  // sample data
-  size_t memPos=0;
-  int sampleCount=parent->song.sampleLen;
-  if (sampleCount>128) sampleCount=128;
-  for (int i=0; i<sampleCount; i++) {
-    DivSample* s=parent->song.sample[i];
-    if (!s->renderOn[0][sysID]) continue;
-
-    int paddedLen=s->lengthVOX;
-    if (memPos>=getSampleMemCapacity(0)) {
-      logW("out of ADPCM memory for sample %d!",i);
-      break;
-    }
-    if (memPos+paddedLen>=getSampleMemCapacity(0)) {
-      memcpy(adpcmMem+memPos,s->dataVOX,getSampleMemCapacity(0)-memPos);
-      logW("out of ADPCM memory for sample %d!",i);
-    } else {
-      memcpy(adpcmMem+memPos,s->dataVOX,paddedLen);
-      sampleLoaded[i]=true;
-    }
-    memPos+=paddedLen;
-  }
-  adpcmMemLen=memPos+256;
-}
-
 void DivPlatformMSM6258::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 3:
@@ -426,8 +379,6 @@ void DivPlatformMSM6258::setFlags(const DivConfig& flags) {
 
 int DivPlatformMSM6258::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
-  adpcmMem=new unsigned char[getSampleMemCapacity(0)];
-  adpcmMemLen=0;
   dumpWrites=false;
   skipRegisterWrites=false;
   updateOsc=0;
@@ -447,7 +398,6 @@ void DivPlatformMSM6258::quit() {
     delete oscBuf[i];
   }
   delete msm;
-  delete[] adpcmMem;
 }
 
 DivPlatformMSM6258::~DivPlatformMSM6258() {
