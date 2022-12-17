@@ -50,6 +50,10 @@ void DivMacroStruct::doMacro(DivInstrumentMacro& source, bool released, bool tic
     had=false;
     return;
   }
+  if (masked) {
+    had=false;
+    return;
+  }
   if (delay>0) {
     delay--;
     had=false;
@@ -172,6 +176,66 @@ void DivMacroInt::next() {
     }
   }
 }
+
+#define CONSIDER(x,y) \
+  case y: \
+    x.masked=enabled; \
+    break;
+
+#define CONSIDER_OP(oi,o) \
+  CONSIDER(op[oi].am,0+o) \
+  CONSIDER(op[oi].ar,1+o) \
+  CONSIDER(op[oi].dr,2+o) \
+  CONSIDER(op[oi].mult,3+o) \
+  CONSIDER(op[oi].rr,4+o) \
+  CONSIDER(op[oi].sl,5+o) \
+  CONSIDER(op[oi].tl,6+o) \
+  CONSIDER(op[oi].dt2,7+o) \
+  CONSIDER(op[oi].rs,8+o) \
+  CONSIDER(op[oi].dt,9+o) \
+  CONSIDER(op[oi].d2r,10+o) \
+  CONSIDER(op[oi].ssg,11+o) \
+  CONSIDER(op[oi].dam,12+o) \
+  CONSIDER(op[oi].dvb,13+o) \
+  CONSIDER(op[oi].egt,14+o) \
+  CONSIDER(op[oi].ksl,15+o) \
+  CONSIDER(op[oi].sus,16+o) \
+  CONSIDER(op[oi].vib,17+o) \
+  CONSIDER(op[oi].ws,18+o) \
+  CONSIDER(op[oi].ksr,19+o)
+
+void DivMacroInt::mask(unsigned char id, bool enabled) {
+  switch (id) {
+    CONSIDER(vol,0)
+    CONSIDER(arp,1)
+    CONSIDER(duty,2)
+    CONSIDER(wave,3)
+    CONSIDER(pitch,4)
+    CONSIDER(ex1,5)
+    CONSIDER(ex2,6)
+    CONSIDER(ex3,7)
+    CONSIDER(alg,8)
+    CONSIDER(fb,9)
+    CONSIDER(fms,10)
+    CONSIDER(ams,11)
+    CONSIDER(panL,12)
+    CONSIDER(panR,13)
+    CONSIDER(phaseReset,14)
+    CONSIDER(ex4,15)
+    CONSIDER(ex5,16)
+    CONSIDER(ex6,17)
+    CONSIDER(ex7,18)
+    CONSIDER(ex8,19)
+
+    CONSIDER_OP(0,0x20)
+    CONSIDER_OP(2,0x40)
+    CONSIDER_OP(1,0x60)
+    CONSIDER_OP(3,0x80)
+  }
+}
+
+#undef CONSIDER_OP
+#undef CONSIDER
 
 void DivMacroInt::release() {
   released=true;
@@ -458,3 +522,5 @@ DivMacroStruct* DivMacroInt::structByName(const String& name) {
 
   return NULL;
 }
+
+#undef CONSIDER

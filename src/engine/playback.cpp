@@ -218,9 +218,12 @@ const char* cmdName[]={
   "SNES_ECHO_FEEDBACK",
   "SNES_ECHO_FIR",
 
-  "DIV_CMD_NES_ENV_MODE",
-  "DIV_CMD_NES_LENGTH",
-  "DIV_CMD_NES_COUNT_MODE",
+  "NES_ENV_MODE",
+  "NES_LENGTH",
+  "NES_COUNT_MODE",
+
+  "MACRO_OFF",
+  "MACRO_ON",
 
   "ALWAYS_SET_VOLUME"
 };
@@ -835,6 +838,12 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xf4: // fine volume ramp down
         chan[i].volSpeed=-effectVal;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
+        break;
+      case 0xf5: // disable macro
+        dispatchCmd(DivCommand(DIV_CMD_MACRO_OFF,i,effectVal&0xff));
+        break;
+      case 0xf6: // enable macro
+        dispatchCmd(DivCommand(DIV_CMD_MACRO_ON,i,effectVal&0xff));
         break;
       case 0xf8: // single volume ramp up
         chan[i].volume=MIN(chan[i].volume+effectVal*256,chan[i].volMax);

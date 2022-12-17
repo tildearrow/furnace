@@ -4253,7 +4253,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_SU ||
             ins->type==DIV_INS_SNES ||
             ins->type==DIV_INS_ES5506 ||
-            ins->type==DIV_INS_K007232) {
+            ins->type==DIV_INS_K007232 ||
+            ins->type==DIV_INS_GA20) {
           if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
             String sName;
             if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
@@ -4967,7 +4968,8 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ADPCMA) {
             volMax=31;
           }
-          if (ins->type==DIV_INS_ADPCMB || ins->type==DIV_INS_YMZ280B || ins->type==DIV_INS_RF5C68) {
+          if (ins->type==DIV_INS_ADPCMB || ins->type==DIV_INS_YMZ280B || ins->type==DIV_INS_RF5C68 ||
+              ins->type==DIV_INS_GA20) {
             volMax=255;
           }
           if (ins->type==DIV_INS_QSOUND) {
@@ -5022,7 +5024,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC ||
               ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC || ins->type==DIV_INS_SEGAPCM ||
-              ins->type==DIV_INS_FM || ins->type==DIV_INS_K007232) {
+              ins->type==DIV_INS_FM || ins->type==DIV_INS_K007232 || ins->type==DIV_INS_GA20) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VBOY) {
@@ -5127,6 +5129,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_MSM6295) waveMax=0;
           if (ins->type==DIV_INS_SEGAPCM) waveMax=0;
           if (ins->type==DIV_INS_K007232) waveMax=0;
+          if (ins->type==DIV_INS_GA20) waveMax=0;
           if (ins->type==DIV_INS_POKEMINI) waveMax=0;
           if (ins->type==DIV_INS_SU) waveMax=7;
           if (ins->type==DIV_INS_PET) {
@@ -5327,7 +5330,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_T6W28 ||
               ins->type==DIV_INS_VBOY ||
               (ins->type==DIV_INS_X1_010 && ins->amiga.useSample) ||
-              ins->type==DIV_INS_K007232) {
+              ins->type==DIV_INS_K007232 ||
+              ins->type==DIV_INS_GA20) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {

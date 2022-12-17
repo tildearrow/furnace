@@ -28,7 +28,7 @@
 
 // common shared channel struct
 template<typename T> struct SharedChannel {
-  int freq, baseFreq, pitch, pitch2;
+  int freq, baseFreq, baseFreqOverride, pitch, pitch2, arpOff;
   int ins, note;
   bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
   T vol, outVol;
@@ -40,8 +40,10 @@ template<typename T> struct SharedChannel {
   SharedChannel(T initVol):
     freq(0),
     baseFreq(0),
+    baseFreqOverride(-1),
     pitch(0),
     pitch2(0),
+    arpOff(0),
     ins(-1),
     note(0),
     active(false),

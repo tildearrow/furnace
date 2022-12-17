@@ -222,6 +222,9 @@ enum DivDispatchCmds {
   DIV_CMD_NES_LENGTH,
   DIV_CMD_NES_COUNT_MODE,
 
+  DIV_CMD_MACRO_OFF, // (which)
+  DIV_CMD_MACRO_ON, // (which)
+
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
   DIV_CMD_MAX

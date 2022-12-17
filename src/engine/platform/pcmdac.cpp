@@ -29,92 +29,92 @@ void DivPlatformPCMDAC::acquire(short* bufL, short* bufR, size_t start, size_t l
   const int depthScale=(15-outDepth);
   int output=0;
   for (size_t h=start; h<start+len; h++) {
-    if (!chan.active || isMuted) {
+    if (!chan[0].active || isMuted) {
       bufL[h]=0;
       bufR[h]=0;
       oscBuf->data[oscBuf->needle++]=0;
       continue;
     }
-    if (chan.useWave || (chan.sample>=0 && chan.sample<parent->song.sampleLen)) {
-      chan.audPos+=((!chan.useWave) && chan.audDir)?-(chan.freq>>16):(chan.freq>>16);
-      chan.audSub+=(chan.freq&0xffff);
-      if (chan.audSub>=0x10000) {
-        chan.audSub-=0x10000;
-        chan.audPos+=((!chan.useWave) && chan.audDir)?-1:1;
+    if (chan[0].useWave || (chan[0].sample>=0 && chan[0].sample<parent->song.sampleLen)) {
+      chan[0].audPos+=((!chan[0].useWave) && chan[0].audDir)?-(chan[0].freq>>16):(chan[0].freq>>16);
+      chan[0].audSub+=(chan[0].freq&0xffff);
+      if (chan[0].audSub>=0x10000) {
+        chan[0].audSub-=0x10000;
+        chan[0].audPos+=((!chan[0].useWave) && chan[0].audDir)?-1:1;
       }
-      if (chan.useWave) {
-        if (chan.audPos>=(int)chan.audLen) {
-          chan.audPos%=chan.audLen;
-          chan.audDir=false;
+      if (chan[0].useWave) {
+        if (chan[0].audPos>=(int)chan[0].audLen) {
+          chan[0].audPos%=chan[0].audLen;
+          chan[0].audDir=false;
         }
-        output=(chan.ws.output[chan.audPos]-0x80)<<8;
+        output=(chan[0].ws.output[chan[0].audPos]-0x80)<<8;
       } else {
-        DivSample* s=parent->getSample(chan.sample);
+        DivSample* s=parent->getSample(chan[0].sample);
         if (s->samples>0) {
-          if (chan.audDir) {
+          if (chan[0].audDir) {
             if (s->isLoopable()) {
               switch (s->loopMode) {
                 case DIV_SAMPLE_LOOP_FORWARD:
                 case DIV_SAMPLE_LOOP_PINGPONG:
-                  if (chan.audPos<s->loopStart) {
-                    chan.audPos=s->loopStart+(s->loopStart-chan.audPos);
-                    chan.audDir=false;
+                  if (chan[0].audPos<s->loopStart) {
+                    chan[0].audPos=s->loopStart+(s->loopStart-chan[0].audPos);
+                    chan[0].audDir=false;
                   }
                   break;
                 case DIV_SAMPLE_LOOP_BACKWARD:
-                  if (chan.audPos<s->loopStart) {
-                    chan.audPos=s->loopEnd-1-(s->loopStart-chan.audPos);
-                    chan.audDir=true;
+                  if (chan[0].audPos<s->loopStart) {
+                    chan[0].audPos=s->loopEnd-1-(s->loopStart-chan[0].audPos);
+                    chan[0].audDir=true;
                   }
                   break;
                 default:
-                  if (chan.audPos<0) {
-                    chan.sample=-1;
+                  if (chan[0].audPos<0) {
+                    chan[0].sample=-1;
                   }
                   break;
               }
-            } else if (chan.audPos>=(int)s->samples) {
-              chan.sample=-1;
+            } else if (chan[0].audPos>=(int)s->samples) {
+              chan[0].sample=-1;
             }
           } else {
             if (s->isLoopable()) {
               switch (s->loopMode) {
                 case DIV_SAMPLE_LOOP_FORWARD:
-                  if (chan.audPos>=s->loopEnd) {
-                    chan.audPos=(chan.audPos+s->loopStart)-s->loopEnd;
-                    chan.audDir=false;
+                  if (chan[0].audPos>=s->loopEnd) {
+                    chan[0].audPos=(chan[0].audPos+s->loopStart)-s->loopEnd;
+                    chan[0].audDir=false;
                   }
                   break;
                 case DIV_SAMPLE_LOOP_BACKWARD:
                 case DIV_SAMPLE_LOOP_PINGPONG:
-                  if (chan.audPos>=s->loopEnd) {
-                    chan.audPos=s->loopEnd-1-(s->loopEnd-1-chan.audPos);
-                    chan.audDir=true;
+                  if (chan[0].audPos>=s->loopEnd) {
+                    chan[0].audPos=s->loopEnd-1-(s->loopEnd-1-chan[0].audPos);
+                    chan[0].audDir=true;
                   }
                   break;
                 default:
-                  if (chan.audPos>=(int)s->samples) {
-                    chan.sample=-1;
+                  if (chan[0].audPos>=(int)s->samples) {
+                    chan[0].sample=-1;
                   }
                   break;
               }
-            } else if (chan.audPos>=(int)s->samples) {
-              chan.sample=-1;
+            } else if (chan[0].audPos>=(int)s->samples) {
+              chan[0].sample=-1;
             }
           }
-          if (chan.audPos>=0 && chan.audPos<(int)s->samples) {
-            output=s->data16[chan.audPos];
+          if (chan[0].audPos>=0 && chan[0].audPos<(int)s->samples) {
+            output=s->data16[chan[0].audPos];
           }
         } else {
-          chan.sample=-1;
+          chan[0].sample=-1;
         }
       }
     }
-    output=output*chan.vol*chan.envVol/16384;
+    output=output*chan[0].vol*chan[0].envVol/16384;
     oscBuf->data[oscBuf->needle++]=output;
     if (outStereo) {
-      bufL[h]=((output*chan.panL)>>(depthScale+8))<<depthScale;
-      bufR[h]=((output*chan.panR)>>(depthScale+8))<<depthScale;
+      bufL[h]=((output*chan[0].panL)>>(depthScale+8))<<depthScale;
+      bufR[h]=((output*chan[0].panR)>>(depthScale+8))<<depthScale;
     } else {
       output=(output>>depthScale)<<depthScale;
       bufL[h]=output;
@@ -124,203 +124,209 @@ void DivPlatformPCMDAC::acquire(short* bufL, short* bufR, size_t start, size_t l
 }
 
 void DivPlatformPCMDAC::tick(bool sysTick) {
-  chan.std.next();
-  if (chan.std.vol.had) {
-    chan.envVol=chan.std.vol.val;
+  chan[0].std.next();
+  if (chan[0].std.vol.had) {
+    chan[0].envVol=chan[0].std.vol.val;
   }
-  if (chan.std.arp.had) {
-    if (!chan.inPorta) {
-      chan.baseFreq=NOTE_FREQUENCY(parent->calcArp(chan.note,chan.std.arp.val));
+  if (chan[0].std.arp.had) {
+    if (!chan[0].inPorta) {
+      chan[0].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[0].note,chan[0].std.arp.val));
     }
-    chan.freqChanged=true;
+    chan[0].freqChanged=true;
   }
-  if (chan.useWave && chan.std.wave.had) {
-    if (chan.wave!=chan.std.wave.val || chan.ws.activeChanged()) {
-      chan.wave=chan.std.wave.val;
-      chan.ws.changeWave1(chan.wave);
-      if (!chan.keyOff) chan.keyOn=true;
+  if (chan[0].useWave && chan[0].std.wave.had) {
+    if (chan[0].wave!=chan[0].std.wave.val || chan[0].ws.activeChanged()) {
+      chan[0].wave=chan[0].std.wave.val;
+      chan[0].ws.changeWave1(chan[0].wave);
+      if (!chan[0].keyOff) chan[0].keyOn=true;
     }
   }
-  if (chan.useWave && chan.active) {
-    chan.ws.tick();
+  if (chan[0].useWave && chan[0].active) {
+    chan[0].ws.tick();
   }
-  if (chan.std.pitch.had) {
-    if (chan.std.pitch.mode) {
-      chan.pitch2+=chan.std.pitch.val;
-      CLAMP_VAR(chan.pitch2,-32768,32767);
+  if (chan[0].std.pitch.had) {
+    if (chan[0].std.pitch.mode) {
+      chan[0].pitch2+=chan[0].std.pitch.val;
+      CLAMP_VAR(chan[0].pitch2,-32768,32767);
     } else {
-      chan.pitch2=chan.std.pitch.val;
+      chan[0].pitch2=chan[0].std.pitch.val;
     }
-    chan.freqChanged=true;
+    chan[0].freqChanged=true;
   }
-  if (chan.std.panL.had) {
-    int val=chan.std.panL.val&0x7f;
-    chan.panL=val*2;
+  if (chan[0].std.panL.had) {
+    int val=chan[0].std.panL.val&0x7f;
+    chan[0].panL=val*2;
   }
-  if (chan.std.panR.had) {
-    int val=chan.std.panR.val&0x7f;
-    chan.panR=val*2;
+  if (chan[0].std.panR.had) {
+    int val=chan[0].std.panR.val&0x7f;
+    chan[0].panR=val*2;
   }
-  if (chan.std.phaseReset.had) {
-    if (chan.std.phaseReset.val==1) {
-      chan.audDir=false;
-      chan.audPos=0;
+  if (chan[0].std.phaseReset.had) {
+    if (chan[0].std.phaseReset.val==1) {
+      chan[0].audDir=false;
+      chan[0].audPos=0;
     }
   }
-  if (chan.freqChanged || chan.keyOn || chan.keyOff) {
-    //DivInstrument* ins=parent->getIns(chan.ins,DIV_INS_AMIGA);
+  if (chan[0].freqChanged || chan[0].keyOn || chan[0].keyOff) {
+    //DivInstrument* ins=parent->getIns(chan[0].ins,DIV_INS_AMIGA);
     double off=1.0;
-    if (!chan.useWave && chan.sample>=0 && chan.sample<parent->song.sampleLen) {
-      DivSample* s=parent->getSample(chan.sample);
+    if (!chan[0].useWave && chan[0].sample>=0 && chan[0].sample<parent->song.sampleLen) {
+      DivSample* s=parent->getSample(chan[0].sample);
       off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
     }
-    chan.freq=off*parent->calcFreq(chan.baseFreq,chan.pitch,false,2,chan.pitch2,chipClock,CHIP_FREQBASE);
-    if (chan.freq>16777215) chan.freq=16777215;
-    if (chan.keyOn) {
-      if (!chan.std.vol.had) {
-        chan.envVol=64;
+    chan[0].freq=off*parent->calcFreq(chan[0].baseFreq,chan[0].pitch,false,2,chan[0].pitch2,chipClock,CHIP_FREQBASE);
+    if (chan[0].freq>16777215) chan[0].freq=16777215;
+    if (chan[0].keyOn) {
+      if (!chan[0].std.vol.had) {
+        chan[0].envVol=64;
       }
-      chan.keyOn=false;
+      chan[0].keyOn=false;
     }
-    if (chan.keyOff) {
-      chan.keyOff=false;
+    if (chan[0].keyOff) {
+      chan[0].keyOff=false;
     }
-    chan.freqChanged=false;
+    chan[0].freqChanged=false;
   }
 }
 
 int DivPlatformPCMDAC::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan.ins,DIV_INS_AMIGA);
+      DivInstrument* ins=parent->getIns(chan[0].ins,DIV_INS_AMIGA);
       if (ins->amiga.useWave) {
-        chan.useWave=true;
-        chan.audLen=ins->amiga.waveLen+1;
-        if (chan.insChanged) {
-          if (chan.wave<0) {
-            chan.wave=0;
-            chan.ws.setWidth(chan.audLen);
-            chan.ws.changeWave1(chan.wave);
+        chan[0].useWave=true;
+        chan[0].audLen=ins->amiga.waveLen+1;
+        if (chan[0].insChanged) {
+          if (chan[0].wave<0) {
+            chan[0].wave=0;
+            chan[0].ws.setWidth(chan[0].audLen);
+            chan[0].ws.changeWave1(chan[0].wave);
           }
         }
       } else {
-        chan.sample=ins->amiga.getSample(c.value);
-        chan.useWave=false;
+        chan[0].sample=ins->amiga.getSample(c.value);
+        chan[0].useWave=false;
       }
       if (c.value!=DIV_NOTE_NULL) {
-        chan.baseFreq=round(NOTE_FREQUENCY(c.value));
+        chan[0].baseFreq=round(NOTE_FREQUENCY(c.value));
       }
-      if (chan.useWave || chan.sample<0 || chan.sample>=parent->song.sampleLen) {
-        chan.sample=-1;
+      if (chan[0].useWave || chan[0].sample<0 || chan[0].sample>=parent->song.sampleLen) {
+        chan[0].sample=-1;
       }
-      if (chan.setPos) {
-        chan.setPos=false;
+      if (chan[0].setPos) {
+        chan[0].setPos=false;
       } else {
-        chan.audDir=false;
-        chan.audPos=0;
+        chan[0].audDir=false;
+        chan[0].audPos=0;
       }
-      chan.audSub=0;
+      chan[0].audSub=0;
       if (c.value!=DIV_NOTE_NULL) {
-        chan.freqChanged=true;
-        chan.note=c.value;
+        chan[0].freqChanged=true;
+        chan[0].note=c.value;
       }
-      chan.active=true;
-      chan.keyOn=true;
-      chan.macroInit(ins);
-      if (!parent->song.brokenOutVol && !chan.std.vol.will) {
-        chan.envVol=64;
+      chan[0].active=true;
+      chan[0].keyOn=true;
+      chan[0].macroInit(ins);
+      if (!parent->song.brokenOutVol && !chan[0].std.vol.will) {
+        chan[0].envVol=64;
       }
-      if (chan.useWave) {
-        chan.ws.init(ins,chan.audLen,255,chan.insChanged);
+      if (chan[0].useWave) {
+        chan[0].ws.init(ins,chan[0].audLen,255,chan[0].insChanged);
       }
-      chan.insChanged=false;
+      chan[0].insChanged=false;
       break;
     }
     case DIV_CMD_NOTE_OFF:
-      chan.sample=-1;
-      chan.active=false;
-      chan.keyOff=true;
-      chan.macroInit(NULL);
+      chan[0].sample=-1;
+      chan[0].active=false;
+      chan[0].keyOff=true;
+      chan[0].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
-      chan.std.release();
+      chan[0].std.release();
       break;
     case DIV_CMD_INSTRUMENT:
-      if (chan.ins!=c.value || c.value2==1) {
-        chan.ins=c.value;
-        chan.insChanged=true;
+      if (chan[0].ins!=c.value || c.value2==1) {
+        chan[0].ins=c.value;
+        chan[0].insChanged=true;
       }
       break;
     case DIV_CMD_VOLUME:
-      if (chan.vol!=c.value) {
-        chan.vol=c.value;
-        if (!chan.std.vol.has) {
-          chan.envVol=64;
+      if (chan[0].vol!=c.value) {
+        chan[0].vol=c.value;
+        if (!chan[0].std.vol.has) {
+          chan[0].envVol=64;
         }
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      return chan.vol;
+      return chan[0].vol;
       break;
     case DIV_CMD_PANNING:
-      chan.panL=c.value;
-      chan.panR=c.value2;
+      chan[0].panL=c.value;
+      chan[0].panR=c.value2;
       break;
     case DIV_CMD_PITCH:
-      chan.pitch=c.value;
-      chan.freqChanged=true;
+      chan[0].pitch=c.value;
+      chan[0].freqChanged=true;
       break;
     case DIV_CMD_WAVE:
-      if (!chan.useWave) break;
-      chan.wave=c.value;
-      chan.keyOn=true;
-      chan.ws.changeWave1(chan.wave);
+      if (!chan[0].useWave) break;
+      chan[0].wave=c.value;
+      chan[0].keyOn=true;
+      chan[0].ws.changeWave1(chan[0].wave);
       break;
     case DIV_CMD_NOTE_PORTA: {
-      DivInstrument* ins=parent->getIns(chan.ins,DIV_INS_AMIGA);
-      chan.sample=ins->amiga.getSample(c.value2);
+      DivInstrument* ins=parent->getIns(chan[0].ins,DIV_INS_AMIGA);
+      chan[0].sample=ins->amiga.getSample(c.value2);
       int destFreq=round(NOTE_FREQUENCY(c.value2));
       bool return2=false;
-      if (destFreq>chan.baseFreq) {
-        chan.baseFreq+=c.value;
-        if (chan.baseFreq>=destFreq) {
-          chan.baseFreq=destFreq;
+      if (destFreq>chan[0].baseFreq) {
+        chan[0].baseFreq+=c.value;
+        if (chan[0].baseFreq>=destFreq) {
+          chan[0].baseFreq=destFreq;
           return2=true;
         }
       } else {
-        chan.baseFreq-=c.value;
-        if (chan.baseFreq<=destFreq) {
-          chan.baseFreq=destFreq;
+        chan[0].baseFreq-=c.value;
+        if (chan[0].baseFreq<=destFreq) {
+          chan[0].baseFreq=destFreq;
           return2=true;
         }
       }
-      chan.freqChanged=true;
+      chan[0].freqChanged=true;
       if (return2) {
-        chan.inPorta=false;
+        chan[0].inPorta=false;
         return 2;
       }
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan.baseFreq=round(NOTE_FREQUENCY(c.value+((chan.std.arp.will && !chan.std.arp.mode)?(chan.std.arp.val):(0))));
-      chan.freqChanged=true;
-      chan.note=c.value;
+      chan[0].baseFreq=round(NOTE_FREQUENCY(c.value+((chan[0].std.arp.will && !chan[0].std.arp.mode)?(chan[0].std.arp.val):(0))));
+      chan[0].freqChanged=true;
+      chan[0].note=c.value;
       break;
     }
     case DIV_CMD_PRE_PORTA:
-      if (chan.active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan.macroInit(parent->getIns(chan.ins,DIV_INS_AMIGA));
+      if (chan[0].active && c.value2) {
+        if (parent->song.resetMacroOnPorta) chan[0].macroInit(parent->getIns(chan[0].ins,DIV_INS_AMIGA));
       }
-      chan.inPorta=c.value;
+      chan[0].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS:
-      if (chan.useWave) break;
-      chan.audPos=c.value;
-      chan.setPos=true;
+      if (chan[0].useWave) break;
+      chan[0].audPos=c.value;
+      chan[0].setPos=true;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 255;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
@@ -336,11 +342,11 @@ void DivPlatformPCMDAC::muteChannel(int ch, bool mute) {
 }
 
 void DivPlatformPCMDAC::forceIns() {
-  chan.insChanged=true;
-  chan.freqChanged=true;
-  chan.audDir=false;
-  chan.audPos=0;
-  chan.sample=-1;
+  chan[0].insChanged=true;
+  chan[0].freqChanged=true;
+  chan[0].audDir=false;
+  chan[0].audPos=0;
+  chan[0].sample=-1;
 }
 
 void* DivPlatformPCMDAC::getChanState(int ch) {
@@ -352,10 +358,10 @@ DivDispatchOscBuffer* DivPlatformPCMDAC::getOscBuffer(int ch) {
 }
 
 void DivPlatformPCMDAC::reset() {
-  chan=DivPlatformPCMDAC::Channel();
-  chan.std.setEngine(parent);
-  chan.ws.setEngine(parent);
-  chan.ws.init(NULL,32,255);
+  chan[0]=DivPlatformPCMDAC::Channel();
+  chan[0].std.setEngine(parent);
+  chan[0].ws.setEngine(parent);
+  chan[0].ws.init(NULL,32,255);
 }
 
 bool DivPlatformPCMDAC::isStereo() {
@@ -363,23 +369,23 @@ bool DivPlatformPCMDAC::isStereo() {
 }
 
 DivMacroInt* DivPlatformPCMDAC::getChanMacroInt(int ch) {
-  return &chan.std;
+  return &chan[0].std;
 }
 
 void DivPlatformPCMDAC::notifyInsChange(int ins) {
-  if (chan.ins==ins) {
-    chan.insChanged=true;
+  if (chan[0].ins==ins) {
+    chan[0].insChanged=true;
   }
 }
 
 void DivPlatformPCMDAC::notifyWaveChange(int wave) {
-  if (chan.useWave && chan.wave==wave) {
-    chan.ws.changeWave1(wave);
+  if (chan[0].useWave && chan[0].wave==wave) {
+    chan[0].ws.changeWave1(wave);
   }
 }
 
 void DivPlatformPCMDAC::notifyInsDeletion(void* ins) {
-  chan.std.notifyInsDeletion((DivInstrument*)ins);
+  chan[0].std.notifyInsDeletion((DivInstrument*)ins);
 }
 
 void DivPlatformPCMDAC::setFlags(const DivConfig& flags) {
