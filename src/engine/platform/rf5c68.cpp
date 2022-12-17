@@ -61,6 +61,11 @@ void DivPlatformRF5C68::acquire(short* bufL, short* bufR, size_t start, size_t l
     buf[8],buf[9],buf[10],buf[11],buf[12],buf[13],buf[14],buf[15]
   };
   size_t pos=start;
+
+  for (int i=0; i<16; i++) {
+    memset(buf[i],0,256*sizeof(short));
+  }
+
   while (len > 0) {
     size_t blockLen=MIN(len,256);
     short* bufPtrs[2]={&bufL[pos],&bufR[pos]};
