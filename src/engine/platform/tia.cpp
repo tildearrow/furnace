@@ -103,7 +103,9 @@ void DivPlatformTIA::tick(bool sysTick) {
       }
     }
     // TODO: the way arps work on TIA is really weird
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arp.val<0 && (!(chan[i].std.arp.val&0x40000000))) {
           chan[i].baseFreq=0x80000000|(chan[i].std.arp.val|0x40000000);
@@ -130,14 +132,20 @@ void DivPlatformTIA::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=dealWithFreq(chan[i].shape,chan[i].baseFreq,chan[i].pitch)+chan[i].pitch2;
+      int bf=chan[i].baseFreq;
+      if (!parent->song.oldArpStrategy) {
+        if (!chan[i].fixedArp) {
+          bf+=chan[i].baseFreq+chan[i].arpOff;
+        }
+      }
+      chan[i].freq=dealWithFreq(chan[i].shape,bf,chan[i].pitch)+chan[i].pitch2;
       if ((chan[i].shape==4 || chan[i].shape==5) && !(chan[i].baseFreq&0x80000000 && ((chan[i].baseFreq&0x7fffffff)<32))) {
-        if (chan[i].baseFreq<39*256) {
+        if (bf<39*256) {
           rWrite(0x15+i,6);
-          chan[i].freq=dealWithFreq(6,chan[i].baseFreq,chan[i].pitch)+chan[i].pitch2;
-        } else if (chan[i].baseFreq<59*256) {
+          chan[i].freq=dealWithFreq(6,bf,chan[i].pitch)+chan[i].pitch2;
+        } else if (bf<59*256) {
           rWrite(0x15+i,12);
-          chan[i].freq=dealWithFreq(12,chan[i].baseFreq,chan[i].pitch)+chan[i].pitch2;
+          chan[i].freq=dealWithFreq(12,bf,chan[i].pitch)+chan[i].pitch2;
         } else {
           rWrite(0x15+i,chan[i].shape);
         }
@@ -269,7 +277,7 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_TIA));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=(chan[c.chan].note<<8);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=(chan[c.chan].note<<8);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:

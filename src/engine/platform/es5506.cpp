@@ -259,7 +259,9 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
     }
     // arpeggio/pitch macros, frequency related
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].nextNote=parent->calcArp(chan[i].note,chan[i].std.arp.val);
       }
@@ -644,7 +646,7 @@ void DivPlatformES5506::tick(bool sysTick) {
       chan[i].noteChanged.changed=0;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs),0,0x1ffff);
+      chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs),0,0x1ffff);
       if (chan[i].keyOn) {
         if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
           unsigned int startPos=chan[i].pcm.isReversed()?chan[i].pcm.end:chan[i].pcm.start;
@@ -1027,13 +1029,17 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO: {
       chan[c.chan].note=c.value;
-      chan[c.chan].nextNote=chan[c.chan].note+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val-12):(0));
+      chan[c.chan].nextNote=chan[c.chan].note+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0));
       chan[c.chan].noteChanged.note=1;
       break;
     }
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_ES5506));
+      }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) {
+        chan[c.chan].nextNote=chan[c.chan].note;
+        chan[c.chan].noteChanged.note=1;
       }
       chan[c.chan].inPorta=c.value;
       break;

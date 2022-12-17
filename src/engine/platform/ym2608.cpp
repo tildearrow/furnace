@@ -376,7 +376,9 @@ void DivPlatformYM2608::tick(bool sysTick) {
       }
     }
 
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11);
       }
@@ -526,9 +528,9 @@ void DivPlatformYM2608::tick(bool sysTick) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
       } else {
-        int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,4,chan[i].pitch2);
+        int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2);
         int block=(chan[i].baseFreq&0xf800)>>11;
         if (fNum<0) fNum=0;
         if (fNum>2047) {
@@ -595,7 +597,9 @@ void DivPlatformYM2608::tick(bool sysTick) {
       immWrite(0x10b,chan[15].outVol);
     }
 
-    if (chan[15].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[15].handleArp();
+    } else if (chan[15].std.arp.had) {
       if (!chan[15].inPorta) {
         chan[15].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[15].note,chan[15].std.arp.val));
       }
@@ -619,7 +623,7 @@ void DivPlatformYM2608::tick(bool sysTick) {
     if (chan[15].furnacePCM) {
       if (chan[15].sample>=0 && chan[15].sample<parent->song.sampleLen) {
         double off=65535.0*(double)(parent->getSample(chan[15].sample)->centerRate)/8363.0;
-        chan[15].freq=parent->calcFreq(chan[15].baseFreq,chan[15].pitch,false,4,chan[15].pitch2,(double)chipClock/144,off);
+        chan[15].freq=parent->calcFreq(chan[15].baseFreq,chan[15].pitch,chan[15].fixedArp?chan[15].baseNoteOverride:chan[15].arpOff,chan[15].fixedArp,false,4,chan[15].pitch2,(double)chipClock/144,off);
       } else {
         chan[15].freq=0;
       }

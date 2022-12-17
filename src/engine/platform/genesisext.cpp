@@ -560,9 +560,9 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
-        opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,false,2,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+        opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,0,false,false,2,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11);
       } else {
-        int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,false,2,opChan[i].pitch2);
+        int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,0,false,false,2,opChan[i].pitch2);
         int block=(opChan[i].baseFreq&0xf800)>>11;
         if (fNum<0) fNum=0;
         if (fNum>2047) {
@@ -590,7 +590,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
 
   if (extMode && softPCM) {
     if (chan[7].freqChanged) {
-      chan[7].freq=parent->calcFreq(chan[7].baseFreq,chan[7].pitch,true,0,chan[7].pitch2,chipClock,CHIP_DIVIDER);
+      chan[7].freq=parent->calcFreq(chan[7].baseFreq,chan[7].pitch,chan[7].fixedArp?chan[7].baseNoteOverride:chan[7].arpOff,chan[7].fixedArp,true,0,chan[7].pitch2,chipClock,CHIP_DIVIDER);
       if (chan[7].freq<1) chan[7].freq=1;
       if (chan[7].freq>1024) chan[7].freq=1024;
       int wf=0x400-chan[7].freq;

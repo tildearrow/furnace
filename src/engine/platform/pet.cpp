@@ -102,7 +102,9 @@ void DivPlatformPET::tick(bool sysTick) {
     chan[0].outVol=chan[0].std.vol.val&chan[0].vol;
     writeOutVol();
   }
-  if (chan[0].std.arp.had) {
+  if (NEW_ARP_STRAT) {
+    chan[0].handleArp();
+  } else if (chan[0].std.arp.had) {
     if (!chan[0].inPorta) {
       chan[0].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[0].note,chan[0].std.arp.val));
     }
@@ -124,7 +126,7 @@ void DivPlatformPET::tick(bool sysTick) {
     chan[0].freqChanged=true;
   }
   if (chan[0].freqChanged || chan[0].keyOn || chan[0].keyOff) {
-    chan[0].freq=parent->calcFreq(chan[0].baseFreq,chan[0].pitch,true,0,chan[0].pitch2,chipClock,CHIP_DIVIDER)-2;
+    chan[0].freq=parent->calcFreq(chan[0].baseFreq,chan[0].pitch,chan[0].fixedArp?chan[0].baseNoteOverride:chan[0].arpOff,chan[0].fixedArp,true,0,chan[0].pitch2,chipClock,CHIP_DIVIDER)-2;
     if (chan[0].freq>65535) chan[0].freq=65535;
     if (chan[0].freq<0) chan[0].freq=0;
     rWrite(8,chan[0].freq&0xff);
@@ -219,7 +221,7 @@ int DivPlatformPET::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[0].baseFreq=NOTE_PERIODIC(c.value+((chan[0].std.arp.will && !chan[0].std.arp.mode)?(chan[0].std.arp.val):(0)));
+      chan[0].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[0].std.arp.val):(0)));
       chan[0].freqChanged=true;
       chan[0].note=c.value;
       break;
@@ -227,7 +229,7 @@ int DivPlatformPET::dispatch(DivCommand c) {
       if (chan[0].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[0].macroInit(parent->getIns(chan[0].ins,DIV_INS_PET));
       }
-      if (!chan[0].inPorta && c.value && !parent->song.brokenPortaArp && chan[0].std.arp.will) chan[0].baseFreq=NOTE_PERIODIC(chan[0].note);
+      if (!chan[0].inPorta && c.value && !parent->song.brokenPortaArp && chan[0].std.arp.will && !NEW_ARP_STRAT) chan[0].baseFreq=NOTE_PERIODIC(chan[0].note);
       chan[0].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:

@@ -133,6 +133,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
         freqH(0),
         freqL(0),
         portaPauseFreq(0),
+        konCycles(0),
         mask(true) {}
     };
 
