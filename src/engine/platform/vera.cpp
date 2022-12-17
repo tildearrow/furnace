@@ -159,7 +159,9 @@ void DivPlatformVERA::tick(bool sysTick) {
       chan[i].outVol=MAX(chan[i].vol+chan[i].std.vol.val-63,0);
       rWriteLo(i,2,chan[i].outVol);
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=calcNoteFreq(0,parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -201,7 +203,9 @@ void DivPlatformVERA::tick(bool sysTick) {
     chan[16].outVol=MAX(chan[16].vol+MIN(chan[16].std.vol.val/4,15)-15,0);
     rWritePCMVol(chan[16].outVol&15);
   }
-  if (chan[16].std.arp.had) {
+  if (NEW_ARP_STRAT) {
+    chan[16].handleArp();
+  } else if (chan[16].std.arp.had) {
     if (!chan[16].inPorta) {
       chan[16].baseFreq=calcNoteFreq(16,parent->calcArp(chan[16].note,chan[16].std.arp.val));
     }

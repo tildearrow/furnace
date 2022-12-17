@@ -322,6 +322,7 @@ struct DivSong {
   bool snNoLowPeriods;
   bool disableSampleMacro;
   bool autoSystem;
+  bool oldArpStrategy;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -428,7 +429,8 @@ struct DivSong {
     brokenPortaArp(false),
     snNoLowPeriods(false),
     disableSampleMacro(false),
-    autoSystem(true) {
+    autoSystem(true),
+    oldArpStrategy(false) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;

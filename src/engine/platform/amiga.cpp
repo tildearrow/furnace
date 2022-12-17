@@ -162,7 +162,9 @@ void DivPlatformAmiga::tick(bool sysTick) {
         off=8363.0/(double)s->centerRate;
       }
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       // TODO: why the off mult? this may be a bug!
       chan[i].baseFreq=round(off*NOTE_PERIODIC_NOROUND(parent->calcArp(chan[i].note,chan[i].std.arp.val)));
       chan[i].freqChanged=true;

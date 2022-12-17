@@ -304,7 +304,9 @@ void DivPlatformOPL::tick(bool sysTick) {
       }
     }
 
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -489,7 +491,9 @@ void DivPlatformOPL::tick(bool sysTick) {
         immWrite(18,chan[adpcmChan].outVol);
       }
 
-      if (chan[adpcmChan].std.arp.had) {
+      if (NEW_ARP_STRAT) {
+        chan[adpcmChan].handleArp();
+      } else if (chan[adpcmChan].std.arp.had) {
         if (!chan[adpcmChan].inPorta) {
           chan[adpcmChan].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[adpcmChan].note,chan[adpcmChan].std.arp.val));
         }

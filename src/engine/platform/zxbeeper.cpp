@@ -79,7 +79,9 @@ void DivPlatformZXBeeper::tick(bool sysTick) {
       chan[i].duty=chan[i].std.duty.val;
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }

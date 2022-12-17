@@ -28,23 +28,44 @@
 
 // common shared channel struct
 template<typename T> struct SharedChannel {
-  int freq, baseFreq, baseFreqOverride, pitch, pitch2, arpOff;
+  int freq, baseFreq, baseNoteOverride, pitch, pitch2, arpOff;
   int ins, note;
-  bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
+  bool active, insChanged, freqChanged, fixedArp, keyOn, keyOff, portaPause, inPorta;
   T vol, outVol;
   DivMacroInt std;
-  void handleArp() {
+  void handleArp(int offset=0) {
+    if (std.arp.had) {
+      if (std.arp.val<0) {
+        if (!(std.arp.val&0x40000000)) {
+          baseNoteOverride=(std.arp.val|0x40000000)+offset;
+          fixedArp=true;
+        } else {
+          arpOff=std.arp.val;
+          fixedArp=false;
+        }
+      } else {
+        if (std.arp.val&0x40000000) {
+          baseNoteOverride=(std.arp.val&(~0x40000000))+offset;
+          fixedArp=true;
+        } else {
+          arpOff=std.arp.val;
+          fixedArp=false;
+        }
+      }
+      freqChanged=true;
+    }
   }
   void macroInit(DivInstrument* which) {
     std.init(which);
     pitch2=0;
     arpOff=0;
-    baseFreqOverride=-1;
+    baseNoteOverride=0;
+    fixedArp=false;
   }
   SharedChannel(T initVol):
     freq(0),
     baseFreq(0),
-    baseFreqOverride(-1),
+    baseNoteOverride(0),
     pitch(0),
     pitch2(0),
     arpOff(0),
@@ -53,6 +74,7 @@ template<typename T> struct SharedChannel {
     active(false),
     insChanged(true),
     freqChanged(false),
+    fixedArp(false),
     keyOn(false),
     keyOff(false),
     portaPause(false),

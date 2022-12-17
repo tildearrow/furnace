@@ -313,7 +313,9 @@ void DivPlatformYM2610::tick(bool sysTick) {
       }
     }
 
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11);
       }
@@ -534,7 +536,9 @@ void DivPlatformYM2610::tick(bool sysTick) {
       immWrite(0x1b,chan[adpcmBChanOffs].outVol);
     }
 
-    if (chan[adpcmBChanOffs].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[adpcmBChanOffs].handleArp();
+    } else if (chan[adpcmBChanOffs].std.arp.had) {
       if (!chan[adpcmBChanOffs].inPorta) {
         chan[adpcmBChanOffs].baseFreq=NOTE_ADPCMB(parent->calcArp(chan[adpcmBChanOffs].note,chan[adpcmBChanOffs].std.arp.val));
       }

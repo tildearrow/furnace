@@ -103,7 +103,9 @@ void DivPlatformTIA::tick(bool sysTick) {
       }
     }
     // TODO: the way arps work on TIA is really weird
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         if (chan[i].std.arp.val<0 && (!(chan[i].std.arp.val&0x40000000))) {
           chan[i].baseFreq=0x80000000|(chan[i].std.arp.val|0x40000000);

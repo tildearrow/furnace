@@ -128,7 +128,9 @@ void DivPlatformPCMDAC::tick(bool sysTick) {
   if (chan[0].std.vol.had) {
     chan[0].envVol=chan[0].std.vol.val;
   }
-  if (chan[0].std.arp.had) {
+  if (NEW_ARP_STRAT) {
+    chan[0].handleArp();
+  } else if (chan[0].std.arp.had) {
     if (!chan[0].inPorta) {
       chan[0].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[0].note,chan[0].std.arp.val));
     }

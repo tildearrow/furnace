@@ -156,7 +156,9 @@ void DivPlatformSMS::tick(bool sysTick) {
       // ((chan[i].vol&15)*MIN(15,chan[i].std.vol.val))>>4;
       chan[i].writeVol=true;
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         // TODO: add compatibility flag. this is horrible.
         int areYouSerious=parent->calcArp(chan[i].note,chan[i].std.arp.val);
@@ -244,7 +246,9 @@ void DivPlatformSMS::tick(bool sysTick) {
       }
     } else { // 3 fixed values
       unsigned char value;
-      if (chan[3].std.arp.had) {
+      if (NEW_ARP_STRAT) {
+        chan[3].handleArp();
+      } else if (chan[3].std.arp.had) {
         value=parent->calcArp(chan[3].note,chan[3].std.arp.val)%12;
       } else { // pardon?
         value=chan[3].note%12;

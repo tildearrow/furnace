@@ -104,7 +104,9 @@ void DivPlatformSAA1099::tick(bool sysTick) {
         rWrite(i,applyPan(chan[i].outVol&15,chan[i].pan));
       }
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }

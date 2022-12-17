@@ -113,7 +113,9 @@ void DivPlatformSCC::tick(bool sysTick) {
       chan[i].outVol=((chan[i].vol&15)*MIN(15,chan[i].std.vol.val))/15;
       rWrite(regBase+10+i,chan[i].outVol);
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }

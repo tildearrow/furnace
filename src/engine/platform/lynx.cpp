@@ -171,7 +171,9 @@ void DivPlatformLynx::tick(bool sysTick) {
       }
       WRITE_VOLUME(i,(isMuted[i]?0:(chan[i].outVol&127)));
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].actualNote=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].actualNote);

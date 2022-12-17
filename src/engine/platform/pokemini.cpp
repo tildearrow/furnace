@@ -74,7 +74,9 @@ void DivPlatformPokeMini::tick(bool sysTick) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol,chan[i].std.vol.val,3);
       vol=(chan[i].outVol==2)?3:chan[i].outVol;
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
