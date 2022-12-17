@@ -51,7 +51,7 @@ class DivPlatformPCMDAC: public DivDispatch {
       setPos(false),
       envVol(64) {}
   };
-  Channel chan;
+  Channel chan[1];
   DivDispatchOscBuffer* oscBuf;
   bool isMuted;
   int outDepth;

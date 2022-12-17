@@ -387,6 +387,12 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
     case DIV_CMD_GET_VOLMAX:
       return 127;
       break;
+    case DIV_CMD_MACRO_OFF:
+      opChan[ch].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      opChan[ch].std.mask(c.value,false);
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;

@@ -37,7 +37,7 @@ class DivPlatformPET: public DivDispatch {
       cnt(0),
       out(0) {}
   };
-  Channel chan;
+  Channel chan[1];
   DivDispatchOscBuffer* oscBuf;
   bool isMuted;
 

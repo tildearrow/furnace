@@ -403,6 +403,12 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       if (c.chan==2) return 63; // sawtooth has 6 bit volume
       return 15; // pulse has 4 bit volume
       break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
       break;

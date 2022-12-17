@@ -113,6 +113,10 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "F3xx: Fine volume slide up";
     case 0xf4:
       return "F4xx: Fine volume slide down";
+    case 0xf5:
+      return "F5xx: Disable macro (see manual)";
+    case 0xf6:
+      return "F6xx: Enable macro (see manual)";
     case 0xf8:
       return "F8xx: Single tick volume slide up";
     case 0xf9:
@@ -405,6 +409,8 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_AMIGA_FILTER:
     case DIV_CMD_AMIGA_AM:
     case DIV_CMD_AMIGA_PM:
+    case DIV_CMD_MACRO_OFF:
+    case DIV_CMD_MACRO_ON:
       w->writeC(1); // length
       w->writeC(c.value);
       break;
