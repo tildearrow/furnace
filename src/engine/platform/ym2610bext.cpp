@@ -330,6 +330,12 @@ int DivPlatformYM2610BExt::dispatch(DivCommand c) {
     case DIV_CMD_GET_VOLMAX:
       return 127;
       break;
+    case DIV_CMD_MACRO_OFF:
+      opChan[ch].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      opChan[ch].std.mask(c.value,false);
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -374,9 +380,9 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
-        opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,false,4,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+        opChan[i].freq=parent->calcFreq(opChan[i].baseFreq,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2,chipClock,CHIP_FREQBASE,11);
       } else {
-        int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,false,4,opChan[i].pitch2);
+        int fNum=parent->calcFreq(opChan[i].baseFreq&0x7ff,opChan[i].pitch,opChan[i].fixedArp?opChan[i].baseNoteOverride:opChan[i].arpOff,opChan[i].fixedArp,false,4,opChan[i].pitch2);
         int block=(opChan[i].baseFreq&0xf800)>>11;
         if (fNum<0) fNum=0;
         if (fNum>2047) {
@@ -510,7 +516,7 @@ void DivPlatformYM2610BExt::reset() {
   DivPlatformYM2610B::reset();
 
   for (int i=0; i<4; i++) {
-    opChan[i]=DivPlatformYM2610BExt::OpChannel();
+    opChan[i]=DivPlatformOPN::OPNOpChannelStereo();
     opChan[i].vol=127;
   }
 

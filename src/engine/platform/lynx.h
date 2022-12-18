@@ -21,64 +21,44 @@
 #define _LYNX_H
 
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include "sound/lynx/Mikey.hpp"
 
 class DivPlatformLynx: public DivDispatch {
 
   struct MikeyFreqDiv {
-    uint8_t clockDivider;
-    uint8_t backup;
+    unsigned char clockDivider;
+    unsigned char backup;
 
     MikeyFreqDiv(int frequency);
   };
 
   struct MikeyDuty {
-    uint8_t int_feedback7;
-    uint8_t feedback;
+    unsigned char int_feedback7;
+    unsigned char feedback;
 
     MikeyDuty(int duty);
   };
 
-  struct Channel {
-    DivMacroInt std;
+  struct Channel: public SharedChannel<signed char> {
     MikeyFreqDiv fd;
     MikeyDuty duty;
-    int baseFreq, pitch, pitch2, note, actualNote, lfsr, ins, sample, samplePos, sampleAccum, sampleBaseFreq, sampleFreq;
+    int actualNote, lfsr, sample, samplePos, sampleAccum, sampleBaseFreq, sampleFreq;
     unsigned char pan;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, pcm;
-    signed char vol, outVol;
+    bool pcm;
     int macroVolMul;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      std(),
+      SharedChannel<signed char>(127),
       fd(0),
       duty(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
       actualNote(0),
       lfsr(-1),
-      ins(-1),
       sample(-1),
       samplePos(0),
       sampleAccum(0),
       sampleBaseFreq(0),
       sampleFreq(0),
       pan(0xff),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       pcm(false),
-      vol(127),
-      outVol(127),
       macroVolMul(127) {}
   };
   Channel chan[4];

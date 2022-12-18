@@ -17,15 +17,17 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#ifndef _YM2610EXT_H
+#define _YM2610EXT_H
+
 #include "../dispatch.h"
 
 #include "ym2610.h"
 
 class DivPlatformYM2610Ext: public DivPlatformYM2610 {
-  DivPlatformYM2610Base::OpChannel opChan[4];
+  OPNOpChannelStereo opChan[4];
   bool isOpMuted[4];
   friend void putDispatchChip(void*,int);
-  friend void putDispatchChan(void*,int,int);
   public:
     int dispatch(DivCommand c);
     void* getChanState(int chan);
@@ -41,3 +43,5 @@ class DivPlatformYM2610Ext: public DivPlatformYM2610 {
     void quit();
     ~DivPlatformYM2610Ext();
 };
+
+#endif

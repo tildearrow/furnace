@@ -22,7 +22,7 @@
 #include "sound/c64_fp/siddefs-fp.h"
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {if (isFP) {sid_fp.write(a,v);} else {sid.write(a,v);}; regPool[(a)&0x1f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_FREQBASE 524288
 
@@ -66,6 +66,16 @@ const char** DivPlatformC64::getRegisterSheet() {
 void DivPlatformC64::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   int dcOff=isFP?0:sid.get_dc(0);
   for (size_t i=start; i<start+len; i++) {
+    if (!writes.empty()) {
+      QueuedWrite w=writes.front();
+      if (isFP) {
+        sid_fp.write(w.addr,w.val);
+      } else {
+        sid.write(w.addr,w.val);
+      };
+      regPool[w.addr&0x1f]=w.val;
+      writes.pop();
+    }
     if (isFP) {
       sid_fp.clock(4,&bufL[i]);
       if (++writeOscBuf>=4) {
@@ -113,7 +123,9 @@ void DivPlatformC64::tick(bool sysTick) {
         updateFilter();
       }
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -175,7 +187,7 @@ void DivPlatformC64::tick(bool sysTick) {
     }
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,8,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,8,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
       if (chan[i].keyOn) {
         rWrite(i*7+5,(chan[i].attack<<4)|(chan[i].decay));
@@ -315,7 +327,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       rWrite(c.chan*7+4,(chan[c.chan].wave<<4)|(chan[c.chan].test<<3)|(chan[c.chan].ring<<2)|(chan[c.chan].sync<<1)|(int)(chan[c.chan].active));
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -326,7 +338,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
           chan[c.chan].keyOn=true;
         }
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
@@ -406,6 +418,12 @@ int DivPlatformC64::dispatch(DivCommand c) {
           break;
       }
       break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
       break;
@@ -483,6 +501,7 @@ float DivPlatformC64::getPostAmp() {
 }
 
 void DivPlatformC64::reset() {
+  while (!writes.empty()) writes.pop();
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformC64::Channel();
     chan[i].std.setEngine(parent);

@@ -21,46 +21,27 @@
 #define _FDS_H
 
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include "../waveSynth.h"
 
 #include "sound/nes_nsfplay/nes_fds.h"
 
 class DivPlatformFDS: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, prevFreq, note, modFreq, ins;
+  struct Channel: public SharedChannel<signed char> {
+    int prevFreq, modFreq;
     unsigned char duty, sweep, modDepth, modPos;
-    bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, modOn;
-    signed char vol, outVol, wave;
+    bool sweepChanged, modOn;
+    signed short wave;
     signed char modTable[32];
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
+      SharedChannel<signed char>(32),
       prevFreq(65535),
-      note(0),
       modFreq(0),
-      ins(-1),
       duty(0),
       sweep(8),
       modDepth(0),
       modPos(0),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
       sweepChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       modOn(false),
-      vol(32),
-      outVol(32),
       wave(-1) {
       memset(modTable,0,32);
     }

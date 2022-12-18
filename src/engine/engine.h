@@ -47,8 +47,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev129"
-#define DIV_ENGINE_VERSION 129
+#define DIV_VERSION "dev130"
+#define DIV_ENGINE_VERSION 130
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -577,7 +577,7 @@ class DivEngine {
     int calcBaseFreqFNumBlock(double clock, double divider, int note, int bits);
 
     // calculate frequency/period
-    int calcFreq(int base, int pitch, bool period=false, int octave=0, int pitch2=0, double clock=1.0, double divider=1.0, int blockBits=0);
+    int calcFreq(int base, int pitch, int arp, bool arpFixed, bool period=false, int octave=0, int pitch2=0, double clock=1.0, double divider=1.0, int blockBits=0);
 
     // calculate arpeggio
     int calcArp(int note, int arp, int offset=0);
@@ -796,7 +796,7 @@ class DivEngine {
     DivSample* sampleFromFile(const char* path);
 
     // get raw sample
-    DivSample* sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign);
+    DivSample* sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign, bool swapNibbles);
 
     // delete sample
     void delSample(int index);
@@ -976,7 +976,7 @@ class DivEngine {
     String getPlaybackDebugInfo();
 
     // switch master
-    bool switchMaster();
+    bool switchMaster(bool full=false);
 
     // set MIDI base channel
     void setMidiBaseChan(int chan);
@@ -1011,6 +1011,9 @@ class DivEngine {
 
     // quit dispatch
     void quitDispatch();
+
+    // pre-initialize the engine.
+    void preInit();
 
     // initialize the engine.
     bool init();

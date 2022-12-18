@@ -3822,8 +3822,10 @@ bool FurnaceGUI::loop() {
           curWindow=GUI_WINDOW_PATTERN;
           drawPattern();
           drawPiano();
-          drawFindReplace();
           drawMobileOrderSel();
+
+          globalWinFlags=0;
+          drawFindReplace();
           break;
       }
 
@@ -3831,6 +3833,7 @@ bool FurnaceGUI::loop() {
       drawSettings();
       drawDebug();
       drawLog();
+      drawStats();
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -5016,8 +5019,12 @@ bool FurnaceGUI::loop() {
       ImGui::Checkbox("Big endian",&pendingRawSampleBigEndian);
       ImGui::EndDisabled();
 
+      ImGui::BeginDisabled(pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT);
+      ImGui::Checkbox("Swap nibbles",&pendingRawSampleSwapNibbles);
+      ImGui::EndDisabled();
+
       if (ImGui::Button("OK")) {
-        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned);
+        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned,pendingRawSampleSwapNibbles);
         if (s==NULL) {
           showError(e->getLastError());
         } else {
@@ -5150,7 +5157,11 @@ bool FurnaceGUI::init() {
   volMeterOpen=e->getConfBool("volMeterOpen",true);
   statsOpen=e->getConfBool("statsOpen",false);
   compatFlagsOpen=e->getConfBool("compatFlagsOpen",false);
-  pianoOpen=e->getConfBool("pianoOpen",IS_MOBILE?true:false);
+#ifdef IS_MOBILE
+  pianoOpen=e->getConfBool("pianoOpen",true);
+#else
+  pianoOpen=e->getConfBool("pianoOpen",false);
+#endif
   notesOpen=e->getConfBool("notesOpen",false);
   channelsOpen=e->getConfBool("channelsOpen",false);
   patManagerOpen=e->getConfBool("patManagerOpen",false);
@@ -5677,6 +5688,7 @@ FurnaceGUI::FurnaceGUI():
   pendingRawSampleChannels(1),
   pendingRawSampleUnsigned(false),
   pendingRawSampleBigEndian(false),
+  pendingRawSampleSwapNibbles(false),
   globalWinFlags(0),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),

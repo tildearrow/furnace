@@ -105,7 +105,9 @@ void DivPlatformOPLL::tick(bool sysTick) {
       }
     }
 
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -241,7 +243,7 @@ void DivPlatformOPLL::tick(bool sysTick) {
 
   for (int i=0; i<11; i++) {
     if (chan[i].freqChanged) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,octave(chan[i].baseFreq)*2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].fixedFreq>0) chan[i].freq=chan[i].fixedFreq;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
@@ -753,6 +755,12 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
         drumState=0;
       }
       break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -761,7 +769,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (c.chan>=9 && !properDrums) return 0;
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:

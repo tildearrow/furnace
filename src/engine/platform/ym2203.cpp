@@ -230,7 +230,9 @@ void DivPlatformYM2203::tick(bool sysTick) {
       }
     }
 
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_FNUM_BLOCK(parent->calcArp(chan[i].note,chan[i].std.arp.val),11);
       }
@@ -371,9 +373,9 @@ void DivPlatformYM2203::tick(bool sysTick) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
       } else {
-        int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,false,4,chan[i].pitch2);
+        int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2);
         int block=(chan[i].baseFreq&0xf800)>>11;
         if (fNum<0) fNum=0;
         if (fNum>2047) {
@@ -729,6 +731,12 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
     case DIV_CMD_FM_HARD_RESET:
       chan[c.chan].hardReset=c.value;
       break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -851,7 +859,7 @@ void DivPlatformYM2203::reset() {
   }
   fm->reset();
   for (int i=0; i<6; i++) {
-    chan[i]=DivPlatformYM2203::Channel();
+    chan[i]=DivPlatformOPN::OPNChannel();
     chan[i].std.setEngine(parent);
   }
   for (int i=0; i<3; i++) {

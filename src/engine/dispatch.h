@@ -24,6 +24,7 @@
 #include <string.h>
 #include <vector>
 #include "config.h"
+#include "chipUtils.h"
 
 #define ONE_SEMITONE 2200
 
@@ -208,6 +209,9 @@ enum DivDispatchCmds {
   DIV_CMD_NES_ENV_MODE,
   DIV_CMD_NES_LENGTH,
   DIV_CMD_NES_COUNT_MODE,
+
+  DIV_CMD_MACRO_OFF, // (which)
+  DIV_CMD_MACRO_ON, // (which)
 
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
@@ -454,6 +458,18 @@ class DivDispatch {
     virtual bool getWantPreNote();
 
     /**
+     * get minimum chip clock.
+     * @return clock in Hz, or 0 if custom clocks are not supported.
+     */
+    virtual int getClockRangeMin();
+
+    /**
+     * get maximum chip clock.
+     * @return clock in Hz, or 0 if custom clocks are not supported.
+     */
+    virtual int getClockRangeMax();
+
+    /**
      * set the chip flags.
      * @param flags a DivConfig containing chip flags.
      */
@@ -582,9 +598,9 @@ class DivDispatch {
 // custom chip clock helper define. put in setFlags, but before rate is set.
 #define CHECK_CUSTOM_CLOCK \
   if (flags.getInt("customClock",0)>0) { \
-    chipClock=flags.getInt("customClock",1000000); \
-    if (chipClock>20000000) chipClock=20000000; \
-    if (chipClock<100000) chipClock=100000; \
+    chipClock=flags.getInt("customClock",getClockRangeMin()); \
+    if (chipClock>getClockRangeMax()) chipClock=getClockRangeMax(); \
+    if (chipClock<getClockRangeMin()) chipClock=getClockRangeMin(); \
   }
 
 // pitch calculation:
@@ -618,5 +634,8 @@ class DivDispatch {
 #define CLAMP_VAR(x,xMin,xMax) \
   if (x<xMin) x=xMin; \
   if (x>xMax) x=xMax;
+
+#define NEW_ARP_STRAT (parent->song.linearPitch==2 && !parent->song.oldArpStrategy)
+#define HACKY_LEGATO_MESS chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode && !NEW_ARP_STRAT
 
 #endif

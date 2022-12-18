@@ -22,47 +22,26 @@
 
 #include <queue>
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include "vgsound_emu/src/vrcvi/vrcvi.hpp"
 
 
 class DivPlatformVRC6: public DivDispatch, public vrcvi_intf {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note;
+  struct Channel: public SharedChannel<signed char> {
     int dacPeriod, dacRate, dacOut;
     unsigned int dacPos;
-    int dacSample, ins;
+    int dacSample;
     unsigned char duty;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, pcm, furnaceDac;
-    signed char vol, outVol;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
+    bool pcm, furnaceDac;
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
+      SharedChannel<signed char>(15),
       dacPeriod(0),
       dacRate(0),
       dacOut(0),
       dacPos(0),
       dacSample(-1),
-      ins(-1),
       duty(0),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       pcm(false),
-      furnaceDac(false),
-      vol(15),
-      outVol(15) {}
+      furnaceDac(false) {}
   };
   Channel chan[3];
   DivDispatchOscBuffer* oscBuf[3];

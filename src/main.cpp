@@ -194,6 +194,7 @@ TAParamResult pVersion(String) {
   printf("- reSIDfp by Dag Lem, Antti Lankila and Leandro Nini (GPLv2)\n");
   printf("- Stella by Stella Team (GPLv2)\n");
   printf("- vgsound_emu (second version, modified version) by cam900 (zlib license)\n");
+  printf("- MAME GA20 core by Acho A. Tang, R. Belmont, Valley Bell (BSD 3-clause)\n");
   return TA_PARAM_QUIT;
 }
 
@@ -415,7 +416,11 @@ int main(int argc, char** argv) {
     logI("usage: %s file",argv[0]);
     return 1;
   }
+
   logI("Furnace version " DIV_VERSION ".");
+
+  e.preInit();
+
   if (!fileName.empty()) {
     logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
@@ -582,6 +587,8 @@ int main(int argc, char** argv) {
 
   logI("stopping engine.");
   e.quit();
+
+  finishLogFile();
 
 #ifdef _WIN32
   if (coResult==S_OK || coResult==S_FALSE) {

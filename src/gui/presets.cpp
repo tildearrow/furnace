@@ -216,6 +216,11 @@ void FurnaceGUI::initSystemPresets() {
       )
     }
   );
+  ENTRY(
+    "Pokémon Mini", {
+      CH(DIV_SYSTEM_POKEMINI, 32, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Computers","let's get to work on chiptune today.");
@@ -1080,6 +1085,11 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Pokémon Mini", {
+      CH(DIV_SYSTEM_POKEMINI, 32, 0, "")
+    }
+  );
+  ENTRY(
     "Commodore VIC", {
       CH(DIV_SYSTEM_VIC20, 64, 0, "clockSel=1")
     }
@@ -1141,6 +1151,16 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "SNES", {
       CH(DIV_SYSTEM_SNES, 64, 0, "")
+    }
+  );
+  ENTRY(
+    "Konami K007232", {
+      CH(DIV_SYSTEM_K007232, 64, 0, "")
+    }
+  );
+  ENTRY(
+    "Irem GA20", {
+      CH(DIV_SYSTEM_GA20, 64, 0, "")
     }
   );
   ENTRY(
@@ -1327,6 +1347,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Konami MX5000", {
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_K007232, 64, 0, "")  // ""
+    }
+  );
+  ENTRY(
     "Konami Battlantis", {
       CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=3"), // 3MHz
       CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=3")  // ""
@@ -1348,6 +1374,54 @@ void FurnaceGUI::initSystemPresets() {
     "Konami Battlantis (drums mode on both OPL2s)", {
       CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=3"), // 3MHz
       CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=3") // ""
+    }
+  );
+  ENTRY(
+    "Konami Fast Lane", {
+      CH(DIV_SYSTEM_K007232, 64, 0, ""),  // 3.58MHz
+      CH(DIV_SYSTEM_K007232, 64, 0, "")  // ""
+    }
+  );
+  ENTRY(
+    "Konami Chequered Flag", {
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_K007232, 64, 0, "stereo=true"),  // ""
+      CH(DIV_SYSTEM_K007232, 64, 0, "")  // ""
+    }
+  );
+  ENTRY(
+    "Konami Haunted Castle", {
+      CH(DIV_SYSTEM_OPL2, 64, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_SCC, 64, 0, ""),  // ""
+      CH(DIV_SYSTEM_K007232, 64, 0, "")  // ""
+    }
+  );
+  ENTRY(
+    "Konami Haunted Castle (drums mode)", {
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_SCC, 64, 0, ""), // ""
+      CH(DIV_SYSTEM_K007232, 64, 0, "")  // ""
+    }
+  );
+  ENTRY(
+    "Konami Hot Chase", {
+      CH(DIV_SYSTEM_K007232, 64, 0, "stereo=true"),  // 3.58MHz
+      CH(DIV_SYSTEM_K007232, 64, 0, "stereo=true"),  // ""
+      CH(DIV_SYSTEM_K007232, 64, 0, "stereo=true")  // ""
+    }
+  );
+  ENTRY(
+    "Konami S.P.Y.", {
+      CH(DIV_SYSTEM_OPL2, 64, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_K007232, 64, 0, ""),  // ""
+      CH(DIV_SYSTEM_K007232, 64, 0, "")  // ""
+    }
+  );
+  ENTRY(
+    "Konami S.P.Y. (drums mode)", {
+      CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_K007232, 64, 0, ""), // ""
+      CH(DIV_SYSTEM_K007232, 64, 0, "")  // ""
     }
   );
   ENTRY(
@@ -2123,6 +2197,12 @@ void FurnaceGUI::initSystemPresets() {
         "rate=7812\n"
         "outDepth=7\n"
       )
+    }
+  );
+  ENTRY(
+    "Irem M92/M107", {
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""),
+      CH(DIV_SYSTEM_GA20, 64, 0, "")
     }
   );
   CATEGORY_END;

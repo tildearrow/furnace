@@ -22,36 +22,18 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "../waveSynth.h"
 #include "vgsound_emu/src/scc/scc.hpp"
 
 class DivPlatformSCC: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note, ins;
-    bool active, insChanged, freqChanged, freqInit, inPorta;
-    signed char vol, outVol, wave;
-    signed char waveROM[32] = {0}; // 4 bit PROM per channel on bubble system
-    DivMacroInt std;
+  struct Channel: public SharedChannel<signed char> {
+    bool freqInit;
+    signed short wave;
+    signed char waveROM[32] = {0}; // 8 bit signed waveform
     DivWaveSynth ws;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
-      ins(-1),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
+      SharedChannel<signed char>(15),
       freqInit(false),
-      inPorta(false),
-      vol(15),
-      outVol(15),
       wave(-1) {}
   };
   Channel chan[5];

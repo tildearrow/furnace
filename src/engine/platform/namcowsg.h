@@ -22,40 +22,19 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "../waveSynth.h"
 #include "sound/namco.h"
 
 class DivPlatformNamcoWSG: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note;
-    int ins;
+  struct Channel: public SharedChannel<signed char> {
     unsigned char pan;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise;
-    signed char vol, outVol, wave;
-    DivMacroInt std;
+    bool noise;
+    signed short wave;
     DivWaveSynth ws;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
-      ins(-1),
+      SharedChannel<signed char>(15),
       pan(255),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       noise(false),
-      vol(15),
-      outVol(15),
       wave(-1) {}
   };
   Channel chan[8];
@@ -67,9 +46,7 @@ class DivPlatformNamcoWSG: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
   std::queue<QueuedWrite> writes;
-  unsigned char lastPan;
 
-  int cycles, curChan, delay;
   namco_audio_device* namco;
   int devType, chans;
   unsigned char regPool[512];

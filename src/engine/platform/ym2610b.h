@@ -19,6 +19,7 @@
 
 #ifndef _YM2610B_H
 #define _YM2610B_H
+
 #include "ym2610shared.h"
 
 class DivPlatformYM2610B: public DivPlatformYM2610Base<16> {
@@ -32,8 +33,6 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base<16> {
     };
 
     friend void putDispatchChip(void*,int);
-    friend void putDispatchChan(void*,int,int);
-
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);

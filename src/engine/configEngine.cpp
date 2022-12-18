@@ -23,6 +23,7 @@
 #ifdef _WIN32
 #include "winStuff.h"
 #define CONFIG_FILE "\\furnace.cfg"
+#define LOG_FILE "\\furnace.log"
 #else
 #ifdef __HAIKU__
 #include <support/SupportDefs.h>

@@ -106,7 +106,9 @@ void DivPlatformSNES::tick(bool sysTick) {
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&127,MIN(127,chan[i].std.vol.val),127);
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -204,7 +206,7 @@ void DivPlatformSNES::tick(bool sysTick) {
       DivSample* s=parent->getSample(chan[i].sample);
       double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
       if (chan[i].useWave) off=(double)chan[i].wtLen/32.0;
-      chan[i].freq=(unsigned int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
+      chan[i].freq=(unsigned int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
       if (chan[i].freq>16383) chan[i].freq=16383;
       if (chan[i].keyOn) {
         unsigned int start, end, loop;
@@ -435,7 +437,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=round(NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0))));
+      chan[c.chan].baseFreq=round(NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0))));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -560,6 +562,12 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     default:
       break;

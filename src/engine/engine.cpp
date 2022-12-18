@@ -113,6 +113,10 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "F3xx: Fine volume slide up";
     case 0xf4:
       return "F4xx: Fine volume slide down";
+    case 0xf5:
+      return "F5xx: Disable macro (see manual)";
+    case 0xf6:
+      return "F6xx: Enable macro (see manual)";
     case 0xf8:
       return "F8xx: Single tick volume slide up";
     case 0xf9:
@@ -405,6 +409,8 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_AMIGA_FILTER:
     case DIV_CMD_AMIGA_AM:
     case DIV_CMD_AMIGA_PM:
+    case DIV_CMD_MACRO_OFF:
+    case DIV_CMD_MACRO_ON:
       w->writeC(1); // length
       w->writeC(c.value);
       break;
@@ -2128,10 +2134,17 @@ int DivEngine::calcBaseFreqFNumBlock(double clock, double divider, int note, int
   CONVERT_FNUM_BLOCK(bf,bits,note)
 }
 
-int DivEngine::calcFreq(int base, int pitch, bool period, int octave, int pitch2, double clock, double divider, int blockBits) {
+int DivEngine::calcFreq(int base, int pitch, int arp, bool arpFixed, bool period, int octave, int pitch2, double clock, double divider, int blockBits) {
   if (song.linearPitch==2) {
     // do frequency calculation here
     int nbase=base+pitch+pitch2;
+    if (!song.oldArpStrategy) {
+      if (arpFixed) {
+        nbase=(arp<<7)+pitch+pitch2;
+      } else {
+        nbase+=arp<<7;
+      }
+    }
     double fbase=(period?(song.tuning*0.0625):song.tuning)*pow(2.0,(float)(nbase+384)/(128.0*12.0));
     int bf=period?
            round((clock/fbase)/divider):
@@ -3280,7 +3293,7 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
 #endif
 }
 
-DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign) {
+DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign, bool swapNibbles) {
   if (song.sample.size()>=256) {
     lastError="too many samples!";
     return NULL;
@@ -3445,6 +3458,14 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     memcpy(sample->getCurBuf(),buf,len);
   }
   delete[] buf;
+
+  // swap nibbles if needed
+  if (swapNibbles) {
+    unsigned char* b=(unsigned char*)sample->getCurBuf();
+    for (unsigned int i=0; i<sample->getCurBufLen(); i++) {
+      b[i]=(b[i]<<4)|(b[i]>>4);
+    }
+  }
 
   BUSY_END;
   return sample;
@@ -3916,9 +3937,13 @@ void DivEngine::setConsoleMode(bool enable) {
   consoleMode=enable;
 }
 
-bool DivEngine::switchMaster() {
+bool DivEngine::switchMaster(bool full) {
   logI("switching output...");
   deinitAudioBackend(true);
+  if (full) {
+    quitDispatch();
+    initDispatch();
+  }
   if (initAudioBackend()) {
     for (int i=0; i<song.systemLen; i++) {
       disCont[i].setRates(got.rate);
@@ -4196,7 +4221,7 @@ bool DivEngine::deinitAudioBackend(bool dueToSwitchMaster) {
   return true;
 }
 
-bool DivEngine::init() {
+void DivEngine::preInit() {
   // register systems
   if (!systemsRegistered) registerSystems();
 
@@ -4204,8 +4229,13 @@ bool DivEngine::init() {
   initConfDir();
   logD("config path: %s",configPath.c_str());
 
+  String logPath=configPath+DIR_SEPARATOR_STR+"furnace.log";
+  startLogFile(logPath.c_str());
+  
   loadConf();
+}
 
+bool DivEngine::init() {
   loadSampleROMs();
 
   // set default system preset

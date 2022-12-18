@@ -115,6 +115,8 @@ enum DivSystem {
   DIV_SYSTEM_YM2612_FRAC_EXT,
   DIV_SYSTEM_MSM5232,
   DIV_SYSTEM_T6W28,
+  DIV_SYSTEM_K007232,
+  DIV_SYSTEM_GA20,
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_PONG,
   DIV_SYSTEM_DUMMY
@@ -320,6 +322,7 @@ struct DivSong {
   bool snNoLowPeriods;
   bool disableSampleMacro;
   bool autoSystem;
+  bool oldArpStrategy;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -426,7 +429,8 @@ struct DivSong {
     brokenPortaArp(false),
     snNoLowPeriods(false),
     disableSampleMacro(false),
-    autoSystem(true) {
+    autoSystem(true),
+    oldArpStrategy(false) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=64;

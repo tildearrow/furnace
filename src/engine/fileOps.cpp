@@ -1713,6 +1713,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<121) {
       ds.brokenOutVol2=false;
     }
+    if (ds.version<130) {
+      ds.oldArpStrategy=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -2155,7 +2158,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       } else {
         reader.readC();
       }
-      for (int i=0; i<1; i++) {
+      if (ds.version>=130) {
+        ds.oldArpStrategy=reader.readC();
+      } else {
         reader.readC();
       }
     }
@@ -4406,9 +4411,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeC(song.autoSystem);
   w->writeC(song.disableSampleMacro);
   w->writeC(song.brokenOutVol2);
-  for (int i=0; i<1; i++) {
-    w->writeC(0);
-  }
+  w->writeC(song.oldArpStrategy);
 
   // first subsong virtual tempo
   w->writeS(subSong->virtualTempoN);

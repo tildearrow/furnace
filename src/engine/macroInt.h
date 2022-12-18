@@ -27,7 +27,7 @@ class DivEngine;
 struct DivMacroStruct {
   int pos, lastPos, lfoPos, delay;
   int val;
-  bool has, had, actualHad, finished, will, linger, began;
+  bool has, had, actualHad, finished, will, linger, began, masked;
   unsigned int mode, type;
   void doMacro(DivInstrumentMacro& source, bool released, bool tick);
   void init() {
@@ -52,6 +52,7 @@ struct DivMacroStruct {
     will(false),
     linger(false),
     began(true),
+    masked(false),
     mode(0),
     type(0) {}
 };
@@ -104,6 +105,11 @@ class DivMacroInt {
 
     // state
     bool hasRelease;
+
+    /**
+     * set mask on macro.
+     */
+    void mask(unsigned char id, bool enabled);
 
     /**
      * trigger macro release.

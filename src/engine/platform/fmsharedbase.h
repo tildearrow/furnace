@@ -21,6 +21,7 @@
 #define _FMSHARED_BASE_H
 
 #include "../dispatch.h"
+#include "../instrument.h"
 #include <deque>
 
 #define KVS(x,y) ((chan[x].state.op[y].kvs==2 && isOutput[chan[x].state.alg][y]) || chan[x].state.op[y].kvs==1)
@@ -44,6 +45,32 @@ class DivPlatformFMBase: public DivDispatch {
 
     const int orderedOps[4]={
       0,2,1,3
+    };
+
+    struct FMChannel: public SharedChannel<int> {
+      DivInstrumentFM state;
+      unsigned char freqH, freqL;
+      int portaPauseFreq;
+      unsigned char opMask;
+      signed char konCycles;
+      bool hardReset, opMaskChanged;
+
+      FMChannel():
+        SharedChannel<int>(0),
+        freqH(0),
+        freqL(0),
+        portaPauseFreq(0),
+        opMask(15),
+        konCycles(0),
+        hardReset(false),
+        opMaskChanged(false) {}
+    };
+
+    struct FMChannelStereo: public FMChannel {
+      unsigned char pan;
+      FMChannelStereo():
+        FMChannel(),
+        pan(3) {}
     };
 
     struct QueuedWrite {
@@ -89,8 +116,9 @@ class DivPlatformFMBase: public DivDispatch {
       }
     }
 
-    DivPlatformFMBase():
-    DivDispatch(),
+    friend void putDispatchChan(void*,int,int);
+  
+    DivPlatformFMBase():DivDispatch(),
     lastBusy(0),
     delay(0) {}
 };

@@ -513,6 +513,16 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeS_BE(baseAddr2S|(0x580>>2));
         w->writeC(0xff);
         break;
+      case DIV_SYSTEM_GA20:
+        for (int i=0; i<3; i++) {
+          w->writeC(0xbf); // mute
+          w->writeC((baseAddr2|5)+(i*8));
+          w->writeC(0);
+          w->writeC(0xbf); // keyoff
+          w->writeC((baseAddr2|6)+(i*8));
+          w->writeC(0);
+        }
+        break;
       default:
         break;
     }
@@ -829,6 +839,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(baseAddr2|(write.addr&0x7f));
       w->writeC(write.val);
       break;
+    case DIV_SYSTEM_GA20:
+      w->writeC(0xbf);
+      w->writeC(baseAddr2|(write.addr&0x7f));
+      w->writeC(write.val);
+      break;
     default:
       logW("write not handled!");
       break;
@@ -975,6 +990,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   DivDispatch* writeZ280[2]={NULL,NULL};
   DivDispatch* writeRF5C68[2]={NULL,NULL};
   DivDispatch* writeMSM6295[2]={NULL,NULL};
+  DivDispatch* writeGA20[2]={NULL,NULL};
 
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
@@ -1394,6 +1410,19 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           howManyChips++;
         }
         break;
+      case DIV_SYSTEM_GA20:
+        if (!hasGA20) {
+          hasGA20=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeGA20[0]=disCont[i].dispatch;
+        } else if (!(hasGA20&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          writeGA20[1]=disCont[i].dispatch;
+          hasGA20|=0x40000000;
+          howManyChips++;
+        }
+        break;
       case DIV_SYSTEM_T6W28:
         if (!hasSN) {
           hasSN=0xc0000000|disCont[i].dispatch->chipClock;
@@ -1775,6 +1804,15 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->writeI(writeMSM6295[i]->getSampleMemCapacity());
       w->writeI(0);
       w->write(writeMSM6295[i]->getSampleMem(),writeMSM6295[i]->getSampleMemUsage());
+    }
+    if (writeGA20[i]!=NULL && writeGA20[i]->getSampleMemUsage()>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x93);
+      w->writeI((writeGA20[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(writeGA20[i]->getSampleMemCapacity());
+      w->writeI(0);
+      w->write(writeGA20[i]->getSampleMem(),writeGA20[i]->getSampleMemUsage());
     }
   }
 

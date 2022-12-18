@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "../engine/chipUtils.h"
 #include "gui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
@@ -1226,6 +1227,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       // default to 44100Hz 16-bit stereo
       int sampRate=flags.getInt("rate",44100);
       int bitDepth=flags.getInt("outDepth",15)+1;
+      int interpolation=flags.getInt("interpolation",0);
       bool stereo=flags.getBool("stereo",false);
 
       ImGui::Text("Output rate:");
@@ -1244,11 +1246,30 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
+      ImGui::Text("Interpolation:");
+      if (ImGui::RadioButton("None",interpolation==0)) {
+        interpolation=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Linear",interpolation==1)) {
+        interpolation=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Cubic",interpolation==2)) {
+        interpolation=2;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Sinc",interpolation==3)) {
+        interpolation=3;
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("rate",sampRate);
           flags.set("outDepth",bitDepth-1);
           flags.set("stereo",stereo);
+          flags.set("interpolation",interpolation);
         });
       }
       break;
@@ -1546,10 +1567,25 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
+    case DIV_SYSTEM_K007232: {
+      bool stereo=flags.getBool("stereo",false);
+
+      if (ImGui::Checkbox("Stereo",&stereo)) {
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("stereo",stereo);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:
     case DIV_SYSTEM_VBOY:
+    case DIV_SYSTEM_GA20:
       ImGui::Text("nothing to configure");
       break;
     case DIV_SYSTEM_VERA:
@@ -1575,19 +1611,19 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
   if (supportsCustomRate) {
     ImGui::Separator();
     int customClock=flags.getInt("customClock",0);
-    bool usingCustomClock=customClock>=100000;
+    bool usingCustomClock=customClock>=MIN_CUSTOM_CLOCK;
 
     if (ImGui::Checkbox("Custom clock rate",&usingCustomClock)) {
       if (usingCustomClock) {
-        customClock=1000000;
+        customClock=MIN_CUSTOM_CLOCK;
       } else {
         customClock=0;
       }
       altered=true;
     }
     if (ImGui::InputInt("Hz",&customClock)) {
-      if (customClock<100000) customClock=0;
-      if (customClock>20000000) customClock=20000000;
+      if (customClock<MIN_CUSTOM_CLOCK) customClock=0;
+      if (customClock>MAX_CUSTOM_CLOCK) customClock=MAX_CUSTOM_CLOCK;
       altered=true;
     }
 

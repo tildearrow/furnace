@@ -22,33 +22,22 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "../waveSynth.h"
 
 class DivPlatformPCMDAC: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2;
+  struct Channel: public SharedChannel<int> {
     bool audDir;
     unsigned int audLoc;
     unsigned short audLen;
     int audPos;
     int audSub;
-    int sample, wave, ins;
-    int note;
+    int sample, wave;
     int panL, panR;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos;
-    int vol, envVol;
-    DivMacroInt std;
+    bool useWave, setPos;
+    int envVol;
     DivWaveSynth ws;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
+      SharedChannel<int>(255),
       audDir(false),
       audLoc(0),
       audLen(0),
@@ -56,25 +45,22 @@ class DivPlatformPCMDAC: public DivDispatch {
       audSub(0),
       sample(-1),
       wave(-1),
-      ins(-1),
-      note(0),
       panL(255),
       panR(255),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       useWave(false),
       setPos(false),
-      vol(255),
       envVol(64) {}
   };
-  Channel chan;
+  Channel chan[1];
   DivDispatchOscBuffer* oscBuf;
   bool isMuted;
   int outDepth;
+  // valid values:
+  // - 0: none
+  // - 1: linear
+  // - 2: cubic spline
+  // - 3: sinc
+  int interp;
   bool outStereo;
 
   friend void putDispatchChip(void*,int);

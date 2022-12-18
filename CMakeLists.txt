@@ -445,6 +445,8 @@ src/engine/platform/sound/oki/okim6258.cpp
 
 src/engine/platform/sound/snes/SPC_DSP.cpp
 
+src/engine/platform/sound/ga20/iremga20.cpp
+
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
@@ -516,6 +518,7 @@ src/engine/platform/zxbeeper.cpp
 src/engine/platform/bubsyswsg.cpp
 src/engine/platform/n163.cpp
 src/engine/platform/pet.cpp
+src/engine/platform/pokemini.cpp
 src/engine/platform/pong.cpp
 src/engine/platform/vic20.cpp
 src/engine/platform/vrc6.cpp
@@ -524,6 +527,8 @@ src/engine/platform/ymz280b.cpp
 src/engine/platform/namcowsg.cpp
 src/engine/platform/rf5c68.cpp
 src/engine/platform/snes.cpp
+src/engine/platform/k007232.cpp
+src/engine/platform/ga20.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 )

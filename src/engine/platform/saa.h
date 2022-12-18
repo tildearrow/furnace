@@ -19,27 +19,23 @@
 
 #ifndef _SAA_H
 #define _SAA_H
+
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include <queue>
 #include "../../../extern/SAASound/src/SAASound.h"
 
 class DivPlatformSAA1099: public DivDispatch {
   protected:
-    struct Channel {
+    struct Channel: public SharedChannel<int> {
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, pitch2, note, ins;
       unsigned char psgMode;
-      signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
-      int vol, outVol;
       unsigned char pan;
-      DivMacroInt std;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
-      Channel(): freqH(0), freqL(0), freq(0), baseFreq(0), pitch(0), pitch2(0), note(0), ins(-1), psgMode(1), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15), pan(255) {}
+      Channel():
+        SharedChannel<int>(15),
+        freqH(0),
+        freqL(0),
+        psgMode(1),
+        pan(255) {}
     };
     Channel chan[6];
     DivDispatchOscBuffer* oscBuf[6];

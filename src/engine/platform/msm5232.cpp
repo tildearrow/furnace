@@ -96,7 +96,9 @@ void DivPlatformMSM5232::tick(bool sysTick) {
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&127,MIN(127,chan[i].std.vol.val),127);
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_LINEAR(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -260,7 +262,7 @@ int DivPlatformMSM5232::dispatch(DivCommand c) {
       updateGroupDR[c.chan>>2]=true;
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_LINEAR(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_LINEAR(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -268,11 +270,17 @@ int DivPlatformMSM5232::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_LINEAR(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_LINEAR(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;

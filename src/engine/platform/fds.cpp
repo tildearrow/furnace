@@ -119,7 +119,9 @@ void DivPlatformFDS::tick(bool sysTick) {
       if (chan[i].outVol<0) chan[i].outVol=0;
       rWrite(0x4080,0x80|chan[i].outVol);
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -187,7 +189,7 @@ void DivPlatformFDS::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOn) {
@@ -365,7 +367,7 @@ int DivPlatformFDS::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -373,11 +375,17 @@ int DivPlatformFDS::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_FDS));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 32;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;

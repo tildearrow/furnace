@@ -217,7 +217,9 @@ void DivPlatformNES::tick(bool sysTick) {
         rWrite(0x4000+i*4,(chan[i].envMode<<4)|chan[i].outVol|((chan[i].duty&3)<<6));
       }
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT && i!=3) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (i==3) { // noise
         chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         if (chan[i].baseFreq>255) chan[i].baseFreq=255;
@@ -273,7 +275,7 @@ void DivPlatformNES::tick(bool sysTick) {
         if (ntPos>252) ntPos=252;
         chan[i].freq=(parent->song.properNoiseLayout)?(15-(chan[i].baseFreq&15)):(noiseTable[ntPos]);
       } else {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
         if (chan[i].freq>2047) chan[i].freq=2047;
         if (chan[i].freq<0) chan[i].freq=0;
       }
@@ -307,7 +309,7 @@ void DivPlatformNES::tick(bool sysTick) {
 
   // PCM
   if (chan[4].freqChanged || chan[4].keyOn) {
-    chan[4].freq=parent->calcFreq(chan[4].baseFreq,chan[4].pitch,false);
+    chan[4].freq=parent->calcFreq(chan[4].baseFreq,chan[4].pitch,chan[4].fixedArp?chan[4].baseNoteOverride:chan[4].arpOff,chan[4].fixedArp,false);
     if (chan[4].furnaceDac) {
       double off=1.0;
       if (dacSample>=0 && dacSample<parent->song.sampleLen) {
@@ -547,9 +549,9 @@ int DivPlatformNES::dispatch(DivCommand c) {
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
       if (c.chan==4) {
-        chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)),false);
+        chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)),false);
       } else {
-        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       }
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
@@ -558,11 +560,17 @@ int DivPlatformNES::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
