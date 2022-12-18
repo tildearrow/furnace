@@ -443,6 +443,7 @@ void DivPlatformPCMDAC::setFlags(const DivConfig& flags) {
   outDepth=(flags.getInt("outDepth",15))&15;
   outStereo=flags.getBool("stereo",true);
   interp=flags.getInt("interpolation",0);
+  oscBuf->rate=rate;
 }
 
 int DivPlatformPCMDAC::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
