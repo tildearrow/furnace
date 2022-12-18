@@ -96,24 +96,16 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
     }
 
     if (parent->song.newSegaPCM) if (chan[i].std.panL.had) {
-      if (chan[i].isNewSegaPCM) {
-        chan[i].chPanL=chan[i].std.panL.val&127;
-        chan[i].chVolL=(chan[i].outVol*chan[i].chPanL)/127;
-      } else {
-        chan[i].chVolL=chan[i].std.panL.val&127;
-      }
+      chan[i].chPanL=chan[i].std.panL.val&127;
+      chan[i].chVolL=(chan[i].outVol*chan[i].chPanL)/127;
       if (dumpWrites) {
         addWrite(0x10002+(i<<3),chan[i].chVolL);
       }
     }
 
     if (parent->song.newSegaPCM) if (chan[i].std.panR.had) {
-      if (chan[i].isNewSegaPCM) {
-        chan[i].chPanR=chan[i].std.panR.val&127;
-        chan[i].chVolR=(chan[i].outVol*chan[i].chPanR)/127;
-      } else {
-        chan[i].chVolR=chan[i].std.panR.val&127;
-      }
+      chan[i].chPanR=chan[i].std.panR.val&127;
+      chan[i].chVolR=(chan[i].outVol*chan[i].chPanR)/127;
       if (dumpWrites) {
         addWrite(0x10003+(i<<3),chan[i].chVolR);
       }
