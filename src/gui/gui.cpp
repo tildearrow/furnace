@@ -5019,8 +5019,12 @@ bool FurnaceGUI::loop() {
       ImGui::Checkbox("Big endian",&pendingRawSampleBigEndian);
       ImGui::EndDisabled();
 
+      ImGui::BeginDisabled(pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT);
+      ImGui::Checkbox("Swap nibbles",&pendingRawSampleSwapNibbles);
+      ImGui::EndDisabled();
+
       if (ImGui::Button("OK")) {
-        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned);
+        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned,pendingRawSampleSwapNibbles);
         if (s==NULL) {
           showError(e->getLastError());
         } else {
@@ -5684,6 +5688,7 @@ FurnaceGUI::FurnaceGUI():
   pendingRawSampleChannels(1),
   pendingRawSampleUnsigned(false),
   pendingRawSampleBigEndian(false),
+  pendingRawSampleSwapNibbles(false),
   globalWinFlags(0),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),

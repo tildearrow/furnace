@@ -796,7 +796,7 @@ class DivEngine {
     DivSample* sampleFromFile(const char* path);
 
     // get raw sample
-    DivSample* sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign);
+    DivSample* sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign, bool swapNibbles);
 
     // delete sample
     void delSample(int index);

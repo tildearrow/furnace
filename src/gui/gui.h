@@ -1116,7 +1116,7 @@ class FurnaceGUI {
 
   String pendingRawSample;
   int pendingRawSampleDepth, pendingRawSampleChannels;
-  bool pendingRawSampleUnsigned, pendingRawSampleBigEndian;
+  bool pendingRawSampleUnsigned, pendingRawSampleBigEndian, pendingRawSampleSwapNibbles;
 
   ImGuiWindowFlags globalWinFlags;
 
