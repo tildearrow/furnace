@@ -287,7 +287,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
-      if (parent->song.newSegaPCM && chan[c.chan].isNewSegaPCM) {
+      if (parent->song.newSegaPCM) {
         chan[c.chan].chVolL=(c.value*chan[c.chan].chPanL)/127;
         chan[c.chan].chVolR=(c.value*chan[c.chan].chPanR)/127;
       } else {
@@ -311,7 +311,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       chan[c.chan].ins=c.value;
       break;
     case DIV_CMD_PANNING: {
-      if (parent->song.newSegaPCM && chan[c.chan].isNewSegaPCM) {
+      if (parent->song.newSegaPCM) {
         chan[c.chan].chPanL=c.value>>1;
         chan[c.chan].chPanR=c.value2>>1;
         chan[c.chan].chVolL=(chan[c.chan].outVol*chan[c.chan].chPanL)/127;
