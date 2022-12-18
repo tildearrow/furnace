@@ -1227,6 +1227,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       // default to 44100Hz 16-bit stereo
       int sampRate=flags.getInt("rate",44100);
       int bitDepth=flags.getInt("outDepth",15)+1;
+      int interpolation=flags.getInt("interpolation",0);
       bool stereo=flags.getBool("stereo",false);
 
       ImGui::Text("Output rate:");
@@ -1245,11 +1246,30 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
+      ImGui::Text("Interpolation:");
+      if (ImGui::RadioButton("None",interpolation==0)) {
+        interpolation=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Linear",interpolation==1)) {
+        interpolation=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Cubic",interpolation==2)) {
+        interpolation=2;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Sinc",interpolation==3)) {
+        interpolation=3;
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("rate",sampRate);
           flags.set("outDepth",bitDepth-1);
           flags.set("stereo",stereo);
+          flags.set("interpolation",interpolation);
         });
       }
       break;

@@ -55,6 +55,12 @@ class DivPlatformPCMDAC: public DivDispatch {
   DivDispatchOscBuffer* oscBuf;
   bool isMuted;
   int outDepth;
+  // valid values:
+  // - 0: none
+  // - 1: linear
+  // - 2: cubic spline
+  // - 3: sinc
+  int interp;
   bool outStereo;
 
   friend void putDispatchChip(void*,int);

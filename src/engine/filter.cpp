@@ -24,6 +24,7 @@
 
 float* DivFilterTables::cubicTable=NULL;
 float* DivFilterTables::sincTable=NULL;
+float* DivFilterTables::sincTable8=NULL;
 float* DivFilterTables::sincIntegralTable=NULL;
 
 // portions from Schism Tracker (scripts/lutgen.c)
@@ -44,7 +45,7 @@ float* DivFilterTables::getCubicTable() {
   return cubicTable;
 }
 
-float* DivFilterTables:: getSincTable() {
+float* DivFilterTables::getSincTable() {
   if (sincTable==NULL) {
     logD("initializing sinc table.");
     sincTable=new float[65536];
@@ -62,6 +63,26 @@ float* DivFilterTables:: getSincTable() {
     }
   }
   return sincTable;
+}
+
+float* DivFilterTables::getSincTable8() {
+  if (sincTable8==NULL) {
+    logD("initializing sinc table (8).");
+    sincTable8=new float[32768];
+
+    sincTable8[0]=1.0f;
+    for (int i=1; i<32768; i++) {
+      int mapped=((i&8191)<<2)|(i>>13);
+      double x=(double)i*M_PI/8192.0;
+      sincTable8[mapped]=sin(x)/x;
+    }
+
+    for (int i=0; i<32768; i++) {
+      int mapped=((i&8191)<<2)|(i>>13);
+      sincTable8[mapped]*=pow(cos(M_PI*(double)i/65536.0),2.0);
+    }
+  }
+  return sincTable8;
 }
 
 float* DivFilterTables::getSincIntegralTable() {
