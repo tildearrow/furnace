@@ -21,6 +21,7 @@ class DivFilterTables {
   public:
     static float* cubicTable;
     static float* sincTable;
+    static float* sincTable8;
     static float* sincIntegralTable;
 
     /**
@@ -34,6 +35,12 @@ class DivFilterTables {
      * @return the table.
      */
     static float* getSincTable();
+
+    /**
+     * get a 8192x4 one-side sine-windowed sinc table.
+     * @return the table.
+     */
+    static float* getSincTable8();
 
     /**
      * get a 8192x8 one-side sine-windowed sinc integral table.
