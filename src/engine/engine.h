@@ -1012,6 +1012,9 @@ class DivEngine {
     // quit dispatch
     void quitDispatch();
 
+    // pre-initialize the engine.
+    void preInit();
+
     // initialize the engine.
     bool init();
 

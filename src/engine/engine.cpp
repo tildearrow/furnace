@@ -4221,7 +4221,7 @@ bool DivEngine::deinitAudioBackend(bool dueToSwitchMaster) {
   return true;
 }
 
-bool DivEngine::init() {
+void DivEngine::preInit() {
   // register systems
   if (!systemsRegistered) registerSystems();
 
@@ -4229,8 +4229,13 @@ bool DivEngine::init() {
   initConfDir();
   logD("config path: %s",configPath.c_str());
 
+  String logPath=configPath+DIR_SEPARATOR_STR+"furnace.log";
+  startLogFile(logPath.c_str());
+  
   loadConf();
+}
 
+bool DivEngine::init() {
   loadSampleROMs();
 
   // set default system preset
