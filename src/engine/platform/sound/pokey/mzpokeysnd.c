@@ -25,17 +25,10 @@
 // additional modifications for Furnace by tildearrow
 
 #define _USE_MATH_DEFINES
-#include "config.h"
 #include <stdlib.h>
 #include <math.h>
 
-#include "asap_internal.h"
-#include "atari.h"
 #include "mzpokeysnd.h"
-#include "pokeysnd.h"
-#include "remez.h"
-#include "antic.h"
-#include "gtia.h"
 
 #define CONSOLE_VOL 8
 #ifdef NONLINEAR_MIXING
@@ -1221,9 +1214,9 @@ found:
   return size;
 }
 
-static void mzpokeysnd_process_8(void* sndbuffer, int sndn);
-static void mzpokeysnd_process_16(void* sndbuffer, int sndn);
-static void Update_pokey_sound_mz(UWORD addr, UBYTE val, UBYTE gain);
+void mzpokeysnd_process_8(void* sndbuffer, int sndn);
+void mzpokeysnd_process_16(void* sndbuffer, int sndn);
+void Update_pokey_sound_mz(UWORD addr, UBYTE val, UBYTE gain);
 #ifdef VOL_ONLY_SOUND
 static void Update_vol_only_sound_mz( void );
 #endif
@@ -1857,7 +1850,7 @@ static void Update_c3stop(PokeyState* ps)
 /* Outputs: Adjusts local globals - no return value                          */
 /*                                                                           */
 /*****************************************************************************/
-static void Update_pokey_sound_mz(UWORD addr, UBYTE val, UBYTE gain)
+void Update_pokey_sound_mz(UWORD addr, UBYTE val, UBYTE gain)
 {
     PokeyState* ps = pokey_states;
 
@@ -2162,7 +2155,7 @@ static void Update_pokey_sound_mz(UWORD addr, UBYTE val, UBYTE gain)
 
 #define MAX_SAMPLE 152
 
-static void mzpokeysnd_process_8(void* sndbuffer, int sndn)
+void mzpokeysnd_process_8(void* sndbuffer, int sndn)
 {
     int i;
     int nsam = sndn;
@@ -2203,7 +2196,7 @@ static void mzpokeysnd_process_8(void* sndbuffer, int sndn)
     }
 }
 
-static void mzpokeysnd_process_16(void* sndbuffer, int sndn)
+void mzpokeysnd_process_16(void* sndbuffer, int sndn)
 {
     int i;
     int nsam = sndn;
