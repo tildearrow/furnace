@@ -84,11 +84,6 @@ typedef double qev_t;
 typedef unsigned char qev_t;
 #endif
 
-#ifdef SYNCHRONIZED_SOUND
-static double ticks_per_sample;
-static double samp_pos;
-#endif /* SYNCHRONIZED_SOUND */
-
 /* State variables for single Pokey Chip */
 typedef struct stPokeyState
 {
@@ -98,13 +93,6 @@ typedef struct stPokeyState
     int poly5pos;
     int poly17pos;
     int poly9pos;
-
-    /* Change queue */
-    qev_t ovola;
-    int qet[1322]; /* maximal length of filter */
-    qev_t qev[1322];
-    int qebeg;
-    int qeend;
 
     /* Main divider (64khz/15khz) */
     int mdivk;    /* 28 for 64khz, 114 for 15khz */
@@ -228,11 +216,6 @@ typedef struct stPokeyState
     int vol3;
 
     int outvol_3;
-
-    /* GTIA speaker */
-
-    int speaker;
-
 } PokeyState;
 
 // TODO: make this fully struct-ized
@@ -264,11 +247,6 @@ static void ResetPokeyState(PokeyState* ps)
     ps->poly5pos = 0;
     ps->poly9pos = 0;
     ps->poly17pos = 0;
-
-    /* Change queue */
-    ps->ovola = 0;
-    ps->qebeg = 0;
-    ps->qeend = 0;
 
     /* Global Pokey controls */
     ps->mdivk = 28;
@@ -389,121 +367,7 @@ static void ResetPokeyState(PokeyState* ps)
     ps->vol3 = 0;
 
     ps->outvol_3 = 0;
-
-    /* GTIA speaker */
-    ps->speaker = 0;
 }
-
-#ifdef SYNCHRONIZED_SOUND
-/* linear interpolation of filter data */
-static double interp_filter_data(int pos, double frac)
-{
-  if (pos+1 >= filter_size) {
-    return 0.0;
-  }
-  return (frac)*filter_data[pos+1]+(1-frac)*(filter_data[pos]-filter_data[filter_size-1]);
-}
-
-/* returns the filtered output sample value using an interpolated filter */
-/* frac is the fractional distance of the output sample point between
- * input sample values */
-static double interp_read_resam_all(PokeyState* ps, double frac)
-{
-    int i = ps->qebeg;
-    qev_t avol,bvol;
-    double sum;
-
-    if (ps->qebeg == ps->qeend)
-    {
-        return ps->ovola * interp_filter_data(0,frac); /* if no events in the queue */
-    }
-
-    avol = ps->ovola;
-    sum = 0;
-
-    /* Separate two loop cases, for wrap-around and without */
-    if (ps->qeend < ps->qebeg) /* With wrap */
-    {
-        while (i < filter_size)
-        {
-            bvol = ps->qev[i];
-            sum += (avol-bvol)*interp_filter_data(ps->curtick - ps->qet[i],frac);
-            avol = bvol;
-            ++i;
-        }
-        i = 0;
-    }
-
-    /* without wrap */
-    while (i < ps->qeend)
-    {
-        bvol = ps->qev[i];
-        sum += (avol-bvol)*interp_filter_data(ps->curtick - ps->qet[i],frac);
-        avol = bvol;
-        ++i;
-    }
-
-    sum += avol*interp_filter_data(0,frac);
-
-    return sum;
-}
-#endif  /* SYNCHRONIZED_SOUND */
-
-static void bump_qe_subticks(PokeyState* ps, int subticks)
-{
-    /* Remove too old events from the queue while bumping */
-    int i = ps->qebeg;
-    /* we must avoid curtick overflow in a 32-bit int, will happen in 20 min */
-    static const int tickoverflowlimit = 1000000000;
-    ps->curtick += subticks;
-    if (ps->curtick > tickoverflowlimit) {
-      ps->curtick -= tickoverflowlimit/2;
-      for (i=0; i<filter_size; i++) {
-        if (ps->qet[i] > tickoverflowlimit/2) {
-          ps->qet[i] -= tickoverflowlimit/2;
-        }
-      }
-    }
-
-
-    if(ps->qeend < ps->qebeg) /* Loop with wrap */
-    {
-        while(i<filter_size)
-        {
-            /*ps->qet[i] += subticks;*/
-            if(ps->curtick - ps->qet[i] >= filter_size - 1)
-            {
-                ps->ovola = ps->qev[i];
-                ++ps->qebeg;
-                if(ps->qebeg >= filter_size)
-                    ps->qebeg = 0;
-            }
-      else {
-        return;
-      }
-            ++i;
-        }
-        i=0;
-    }
-    /* loop without wrap */
-    while(i<ps->qeend)
-    {
-        /*ps->qet[i] += subticks;*/
-        if(ps->curtick - ps->qet[i] >= filter_size - 1)
-        {
-            ps->ovola = ps->qev[i];
-            ++ps->qebeg;
-            if(ps->qebeg >= filter_size)
-                ps->qebeg = 0;
-        }
-  else {
-      return;
-  }
-        ++i;
-    }
-}
-
-
 
 static void build_poly4(void)
 {
@@ -875,16 +739,9 @@ static void advance_ticks(PokeyState* ps, int ticks)
     {
         ps->forcero = 0;
 #ifdef NONLINEAR_MIXING
-#ifdef SYNCHRONIZED_SOUND
-        outvol_new = pokeymix[ps->outvol_0 + ps->outvol_1 + ps->outvol_2 + ps->outvol_3 + ps->speaker];
-#else
         outvol_new = pokeymix[ps->outvol_0 + ps->outvol_1 + ps->outvol_2 + ps->outvol_3];
-#endif /* SYNCHRONIZED_SOUND */
 #else
         outvol_new = ps->outvol_0 + ps->outvol_1 + ps->outvol_2 + ps->outvol_3;
-#ifdef SYNCHRONIZED_SOUND
-        outvol_new += ps->speaker;
-#endif /* SYNCHRONIZED_SOUND */
 #endif /* NONLINEAR_MIXING */
         if(outvol_new != ps->outvol_all)
         {
@@ -944,7 +801,6 @@ static void advance_ticks(PokeyState* ps, int ticks)
 #endif
 
         advance_polies(ps,ta);
-        bump_qe_subticks(ps,ta);
 
         if(need)
         {
@@ -1046,16 +902,9 @@ static void advance_ticks(PokeyState* ps, int ticks)
             }
 
 #ifdef NONLINEAR_MIXING
-#ifdef SYNCHRONIZED_SOUND
-            outvol_new = pokeymix[ps->outvol_0 + ps->outvol_1 + ps->outvol_2 + ps->outvol_3 + ps->speaker];
-#else
             outvol_new = pokeymix[ps->outvol_0 + ps->outvol_1 + ps->outvol_2 + ps->outvol_3];
-#endif /* SYNCHRONIZED_SOUND */
 #else
             outvol_new = ps->outvol_0 + ps->outvol_1 + ps->outvol_2 + ps->outvol_3;
-#ifdef SYNCHRONIZED_SOUND
-            outvol_new += ps->speaker;
-#endif /* SYNCHRONIZED_SOUND */
 #endif /* NONLINEAR_MIXING */
             if(outvol_new != ps->outvol_all)
             {
@@ -1180,19 +1029,6 @@ void Update_pokey_sound_mz(UWORD addr, UBYTE val, UBYTE gain);
 /*                                                                           */
 /*****************************************************************************/
 
-#ifdef SYNCHRONIZED_SOUND
-static void generate_sync(unsigned int num_ticks);
-
-static void init_syncsound(void)
-{
-    double samples_per_frame = (double)POKEYSND_playback_freq/(Atari800_tv_mode == Atari800_TV_PAL ? Atari800_FPS_PAL : Atari800_FPS_NTSC);
-    unsigned int ticks_per_frame = Atari800_tv_mode*114;
-    ticks_per_sample = (double)ticks_per_frame / samples_per_frame;
-    samp_pos = 0.0;
-    POKEYSND_GenerateSync = generate_sync;
-}
-#endif /* SYNCHRONIZED_SOUND */
-
 int MZPOKEYSND_Init(size_t freq17, int playback_freq,
                         int flags, int quality
                         , int clear_regs
@@ -1221,9 +1057,6 @@ int MZPOKEYSND_Init(size_t freq17, int playback_freq,
     ResetPokeyState(pokey_states);
   }
 
-#ifdef SYNCHRONIZED_SOUND
-  init_syncsound();
-#endif
         volume.s8 = POKEYSND_volume * 0xff / 256.0;
         volume.s16 = POKEYSND_volume * 0xffff / 256.0;
 
@@ -2125,54 +1958,3 @@ void mzpokeysnd_process_16(void* sndbuffer, int sndn)
         nsam -= 1;
     }
 }
-
-#ifdef SYNCHRONIZED_SOUND
-static void generate_sync(unsigned int num_ticks)
-{
-  double new_samp_pos;
-  unsigned int ticks;
-  UBYTE *buffer = POKEYSND_process_buffer + POKEYSND_process_buffer_fill;
-  UBYTE *buffer_end = POKEYSND_process_buffer + POKEYSND_process_buffer_length;
-  unsigned int i;
-
-  for (;;) {
-    double int_part;
-    new_samp_pos = samp_pos + ticks_per_sample;
-    new_samp_pos = modf(new_samp_pos, &int_part);
-    ticks = (unsigned int)int_part;
-    if (ticks > num_ticks) {
-      samp_pos -= num_ticks;
-      break;
-    }
-    if (buffer >= buffer_end)
-      break;
-
-    samp_pos = new_samp_pos;
-    num_ticks -= ticks;
-
-                      /* advance pokey to the new position and produce a sample */
-                      advance_ticks(pokey_states, ticks);
-                      if (POKEYSND_snd_flags & POKEYSND_BIT16) {
-                              *((SWORD *)buffer) = (SWORD)floor(
-                                      interp_read_resam_all(pokey_states, samp_pos)
-                                      * (volume.s16 / 2 / MAX_SAMPLE / 4 * M_PI * 0.95)
-                                      + 0.5 + 0.5 * rand() / RAND_MAX - 0.25
-                              );
-                              buffer += 2;
-                      }
-                      else
-                              *buffer++ = (UBYTE)floor(
-                                      interp_read_resam_all(pokey_states, samp_pos)
-                                      * (volume.s8 / 2 / MAX_SAMPLE / 4 * M_PI * 0.95)
-                                      + 128 + 0.5 + 0.5 * rand() / RAND_MAX - 0.25
-                              );
-  }
-
-  POKEYSND_process_buffer_fill = buffer - POKEYSND_process_buffer;
-  if (num_ticks > 0) {
-    /* remaining ticks */
-    advance_ticks(pokey_states, num_ticks);
-  }
-}
-#endif /* SYNCHRONIZED_SOUND */
-
