@@ -1167,9 +1167,6 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
         case 14:
           if (sys==DIV_SYSTEM_AY8910) newFlags.set("clockSel",14);
           break;
-        case 15:
-          if (sys==DIV_SYSTEM_AY8910) newFlags.set("clockSel",15);
-          break;
       }
       if (sys==DIV_SYSTEM_AY8910) switch ((oldFlags>>4)&3) {
         case 0:
