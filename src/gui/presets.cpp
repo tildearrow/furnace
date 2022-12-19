@@ -535,6 +535,22 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "NEC PC-8801FA (with PC-8801-10)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15"), // external
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15") // ""
+    }
+  );
+  ENTRY(
+    "NEC PC-8801FA (with PC-8801-10; extended channel 3)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15"), // external
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15") // ""
+    }
+  );
+  ENTRY(
     "NEC PC-8801FA (with PC-8801-11)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1"), // internal
