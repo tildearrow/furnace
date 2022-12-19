@@ -412,6 +412,199 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "NEC PC-88 (with PC-8801-10)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15"), // external
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15") // ""
+    }
+  );
+  ENTRY(
+    "NEC PC-88 (with PC-8801-11)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-88 (with PC-8801-11; extended channel 3)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-88 (with PC-8801-23)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-88 (with PC-8801-23; extended channel 3)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-88 (with HMB-20 HIBIKI-8800)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_YM2151, 64, 0, "clockSel=2") // external; 4.0000MHz
+    }
+  );
+  ENTRY(
+    "NEC PC-8801mk2SR (with PC-8801-10)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15"), // external
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15") // ""
+    }
+  );
+  ENTRY(
+    "NEC PC-8801mk2SR (with PC-8801-10; extended channel 3)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15"), // external
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15") // ""
+    }
+  );
+  ENTRY(
+    "NEC PC-8801mk2SR (with PC-8801-11)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on internal OPN)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on external OPN)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on both OPNs)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-8801mk2SR (with PC-8801-23)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on internal OPN)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on external OPN)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on both OPNs)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_YM2151, 64, 0, "clockSel=2") // external; 4.0000MHz
+    }
+  );
+  ENTRY(
+    "NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800; extended channel 3)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_YM2151, 64, 0, "clockSel=2") // external; 4.0000MHz
+    }
+  );
+  ENTRY(
+    "NEC PC-8801FA (with PC-8801-11)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-8801FA (with PC-8801-11; extended channel 3 on internal OPN)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-8801FA (with PC-8801-11; extended channel 3 on external OPN)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-8801FA (with PC-8801-11; extended channel 3 on both OPNs)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-8801FA (with PC-8801-23)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-8801FA (with PC-8801-23; extended channel 3 on internal OPN)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-8801FA (with PC-8801-23; extended channel 3 on external OPN)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-8801FA (with PC-8801-23; extended channel 3 on both OPNs)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1") // external
+    }
+  );
+  ENTRY(
+    "NEC PC-8801FA (with HMB-20 HIBIKI-8800)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_YM2151, 64, 0, "clockSel=2") // external; 4.0000MHz
+    }
+  );
+  ENTRY(
+    "NEC PC-8801FA (with HMB-20 HIBIKI-8800; extended channel 3)", {
+      CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_YM2151, 64, 0, "clockSel=2") // external; 4.0000MHz
+    }
+  );
+  ENTRY(
     "NEC PC-98 (with PC-9801-26/K)", {
       CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"), // 3.9936MHz but some compatible card has 4MHz
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
