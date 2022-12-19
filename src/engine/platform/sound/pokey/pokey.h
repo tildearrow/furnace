@@ -75,15 +75,4 @@
 #define POKEY_CHIP4      12
 #define POKEY_SAMPLE    127
 
-/* structures to hold the 9 pokey control bytes */
-extern UBYTE POKEY_AUDF[4 * POKEY_MAXPOKEYS];	/* AUDFx (D200, D202, D204, D206) */
-extern UBYTE POKEY_AUDC[4 * POKEY_MAXPOKEYS];	/* AUDCx (D201, D203, D205, D207) */
-extern UBYTE POKEY_AUDCTL[POKEY_MAXPOKEYS];		/* AUDCTL (D208) */
-
-extern int POKEY_DivNIRQ[4], POKEY_DivNMax[4];
-extern int POKEY_Base_mult[POKEY_MAXPOKEYS];	/* selects either 64Khz or 15Khz clock mult */
-
-extern UBYTE POKEY_poly9_lookup[POKEY_POLY9_SIZE];
-extern UBYTE POKEY_poly17_lookup[16385];
-
 #endif /* POKEY_H_ */
