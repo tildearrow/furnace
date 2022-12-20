@@ -26,7 +26,20 @@
 #define CHIP_DIVIDER 1
 
 const char* regCheatSheetPokeMini[]={
-  "Period", "0",
+  "TMR3_SCALE", "1C",
+  "TMR3_OSC", "1D",
+  "TMR3_CTRL_L", "48",
+  "TMR3_CTRL_H", "49",
+  "TMR3_PRE_L", "4A",
+  "TMR3_PRE_H", "4B",
+  "TMR3_PVT_L", "4C",
+  "TMR3_PVT_H", "4D",
+  "TMR3_CNT_L", "4E",
+  "TMR3_CNT_H", "4F",
+  "IO_DIR", "60",
+  "IO_DATA", "61",
+  "AUD_CTRL", "70",
+  "AUD_VOL", "71",
   NULL
 };
 
@@ -40,6 +53,37 @@ const short scaleTable[8]={
 
 const char** DivPlatformPokeMini::getRegisterSheet() {
   return regCheatSheetPokeMini;
+}
+
+void DivPlatformPokeMini::rWrite(unsigned char addr, unsigned char val) {
+  if (addr<128) regPool[addr]=val;
+  switch (addr) {
+    case 0x1c:
+      // ignore
+      break;
+    case 0x1d:
+      // ignore
+      break;
+    case 0x48: case 0x49:
+      on=val&4;
+      if (val&2) pos=0;
+      break;
+    case 0x4a:
+      preset=(preset&0xff00)|val;
+      break;
+    case 0x4b:
+      preset=(preset&0xff)|(val<<8);
+      break;
+    case 0x4c:
+      pivot=(pivot&0xff00)|val;
+      break;
+    case 0x4d:
+      pivot=(pivot&0xff)|(val<<8);
+      break;
+    case 0x71:
+      vol=val&3;
+      break;
+  }
 }
 
 void DivPlatformPokeMini::acquire(short* bufL, short* bufR, size_t start, size_t len) {
@@ -72,7 +116,7 @@ void DivPlatformPokeMini::tick(bool sysTick) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol,chan[i].std.vol.val,2);
-      vol=(chan[i].outVol==2)?3:chan[i].outVol;
+      rWrite(0x71,(chan[i].outVol==2)?3:chan[i].outVol);
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
@@ -100,13 +144,16 @@ void DivPlatformPokeMini::tick(bool sysTick) {
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {
-        on=true;
+        rWrite(0x48,4);
       }
       if (chan[i].keyOff) {
-        on=false;
+        rWrite(0x48,0);
       }
-      preset=chan[i].freq;
-      pivot=(chan[i].duty*preset)>>8;
+      rWrite(0x4a,chan[i].freq&0xff);
+      rWrite(0x4b,chan[i].freq>>8);
+      int pvt=(chan[i].duty*chan[i].freq)>>8;
+      rWrite(0x4c,pvt&0xff);
+      rWrite(0x4d,pvt>>8);
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
@@ -122,7 +169,7 @@ int DivPlatformPokeMini::dispatch(DivCommand c) {
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
-      vol=(chan[c.chan].outVol==2)?3:chan[c.chan].outVol;
+      rWrite(0x71,(chan[c.chan].outVol==2)?3:chan[c.chan].outVol);
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POKEMINI));
@@ -151,7 +198,7 @@ int DivPlatformPokeMini::dispatch(DivCommand c) {
           chan[c.chan].outVol=c.value;
         }
         if (chan[c.chan].active) {
-          on=chan[c.chan].vol;
+          rWrite(0x71,(chan[c.chan].outVol==2)?3:chan[c.chan].outVol);
         }
       }
       break;
@@ -186,14 +233,13 @@ int DivPlatformPokeMini::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      if (c.chan==3) break;
       chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_BEEPER));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POKEMINI));
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
@@ -239,18 +285,11 @@ DivDispatchOscBuffer* DivPlatformPokeMini::getOscBuffer(int ch) {
 }
 
 unsigned char* DivPlatformPokeMini::getRegisterPool() {
-  if (on) {
-    regPool[0]=preset;
-    regPool[1]=preset>>8;
-  } else {
-    regPool[0]=0;
-    regPool[1]=0;
-  }
   return regPool;
 }
 
 int DivPlatformPokeMini::getRegisterPoolSize() {
-  return 2;
+  return 128;
 }
 
 void DivPlatformPokeMini::reset() {
@@ -272,7 +311,7 @@ void DivPlatformPokeMini::reset() {
   pivot=0;
   elapsedMain=0;
 
-  memset(regPool,0,2);
+  memset(regPool,0,128);
 }
 
 bool DivPlatformPokeMini::keyOffAffectsArp(int ch) {
@@ -294,11 +333,11 @@ void DivPlatformPokeMini::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformPokeMini::poke(unsigned int addr, unsigned short val) {
-  // ???
+  rWrite(addr,val);
 }
 
 void DivPlatformPokeMini::poke(std::vector<DivRegWrite>& wlist) {
-  // ???
+  for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
 int DivPlatformPokeMini::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
