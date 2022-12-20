@@ -346,6 +346,7 @@ void DivPlatformPOKEY::forceIns() {
     chan[i].ctlChanged=true;
     chan[i].freqChanged=true;
   }
+  audctlChanged=true;
 }
 
 void* DivPlatformPOKEY::getChanState(int ch) {
