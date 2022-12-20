@@ -116,11 +116,11 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Neo Geo Pocket", {
-      CH(DIV_SYSTEM_T6W28, 64, 0, "")
+      CH(DIV_SYSTEM_T6W28, 64, 0, ""),
       CH(DIV_SYSTEM_PCM_DAC, 64, -127, 
         "rate=11025\n"
         "outDepth=5\n"
-      )
+      ),
       CH(DIV_SYSTEM_PCM_DAC, 64, 127, 
         "rate=11025\n"
         "outDepth=5\n"
@@ -205,7 +205,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Atari 7800 + Ballblazer/Commando", {
-      CH(DIV_SYSTEM_TIA, 64, 0, "")
+      CH(DIV_SYSTEM_TIA, 64, 0, ""),
       CH(DIV_SYSTEM_POKEY, 64, 0, "")
     }
   );
@@ -1669,6 +1669,25 @@ void FurnaceGUI::initSystemPresets() {
     "Konami Hexion", {
       CH(DIV_SYSTEM_SCC, 64, 0, "clockSel=2"), // 1.5MHz (3MHz input)
       CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=1")
+    }
+  );
+  ENTRY(
+    "Atari Marble Madness", {
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""), // clock should be 3.579 MHz
+      CH(DIV_SYSTEM_POKEY, 64, 0, "")
+    }
+  );
+  ENTRY(
+    "Atari Championship Sprint", {
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""), // clock should be 3.579 MHz
+      CH(DIV_SYSTEM_POKEY, 64, 0, ""),
+      CH(DIV_SYSTEM_POKEY, 64, 0, "")
+    }
+  );
+  ENTRY(
+    "Atari Tetris", {
+      CH(DIV_SYSTEM_POKEY, 64, 0, ""),
+      CH(DIV_SYSTEM_POKEY, 64, 0, "")
     }
   );
   ENTRY(
