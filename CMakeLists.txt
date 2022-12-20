@@ -510,6 +510,7 @@ src/engine/platform/pcspkr.cpp
 src/engine/platform/segapcm.cpp
 src/engine/platform/qsound.cpp
 src/engine/platform/x1_010.cpp
+src/engine/platform/pokey.cpp
 src/engine/platform/lynx.cpp
 src/engine/platform/su.cpp
 src/engine/platform/swan.cpp

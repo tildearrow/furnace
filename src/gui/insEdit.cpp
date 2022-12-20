@@ -5000,7 +5000,8 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC ||
               ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC || ins->type==DIV_INS_SEGAPCM ||
-              ins->type==DIV_INS_FM || ins->type==DIV_INS_K007232 || ins->type==DIV_INS_GA20) {
+              ins->type==DIV_INS_FM || ins->type==DIV_INS_K007232 || ins->type==DIV_INS_GA20 ||
+              ins->type==DIV_INS_POKEY) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VBOY) {
@@ -5086,7 +5087,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_K007232) waveMax=0;
           if (ins->type==DIV_INS_GA20) waveMax=0;
           if (ins->type==DIV_INS_POKEMINI) waveMax=0;
-          if (ins->type==DIV_INS_SU) waveMax=7;
+          if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
             waveBitMode=true;

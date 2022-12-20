@@ -153,6 +153,8 @@ void mzpokeysnd_process_8(PokeyState* ps, void* sndbuffer, int sndn);
 void mzpokeysnd_process_16(PokeyState* ps, void* sndbuffer, int sndn);
 void Update_pokey_sound_mz(PokeyState* ps, unsigned short addr, unsigned char val, unsigned char gain);
 
+void ResetPokeyState(PokeyState* ps);
+
 int MZPOKEYSND_Init(PokeyState* ps);
 
 #endif /* MZPOKEYSND_H_ */
