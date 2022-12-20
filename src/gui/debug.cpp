@@ -239,10 +239,10 @@ void putDispatchChip(void* data, int type) {
   ImVec4 colorOn=ImVec4(1.0f,1.0f,0.0f,1.0f);
   ImVec4 colorOff=ImVec4(0.3f,0.3f,0.3f,1.0f);
   switch (type) {
+    case DIV_SYSTEM_YM2612:
+    case DIV_SYSTEM_YM2612_EXT:
     case DIV_SYSTEM_YM2612_DUALPCM:
-    case DIV_SYSTEM_YM2612_DUALPCM_EXT:
-    case DIV_SYSTEM_YM2612_DUALPCM_FRAC:
-    case DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT: {
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT: {
       GENESIS_CHIP_DEBUG;
       break;
     }
@@ -540,13 +540,13 @@ void putDispatchChan(void* data, int chanNum, int type) {
       }
       break;
     }
-    case DIV_SYSTEM_YM2612_DUALPCM:
-    case DIV_SYSTEM_YM2612_DUALPCM_FRAC: {
+    case DIV_SYSTEM_YM2612:
+    case DIV_SYSTEM_YM2612_DUALPCM: {
       GENESIS_CHAN_DEBUG;
       break;
     }
-    case DIV_SYSTEM_YM2612_DUALPCM_EXT:
-    case DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT: {
+    case DIV_SYSTEM_YM2612_EXT:
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT: {
       if (chanNum>=2 && chanNum<=5) {
         DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data;
         ImGui::Text("> YM2612 (per operator)");

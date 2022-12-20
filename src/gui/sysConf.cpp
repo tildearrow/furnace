@@ -28,10 +28,10 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
   bool supportsCustomRate=true;
 
   switch (type) {
+    case DIV_SYSTEM_YM2612:
+    case DIV_SYSTEM_YM2612_EXT: 
     case DIV_SYSTEM_YM2612_DUALPCM:
-    case DIV_SYSTEM_YM2612_DUALPCM_EXT: 
-    case DIV_SYSTEM_YM2612_DUALPCM_FRAC:
-    case DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT: {
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT: {
       int clockSel=flags.getInt("clockSel",0);
       bool ladder=flags.getBool("ladderEffect",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
@@ -59,7 +59,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       if (ImGui::Checkbox("Enable DAC distortion",&ladder)) {
         altered=true;
       }
-      if (type==DIV_SYSTEM_YM2612_DUALPCM_EXT || type==DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT) {
+      if (type==DIV_SYSTEM_YM2612_EXT || type==DIV_SYSTEM_YM2612_DUALPCM_EXT) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
           altered=true;
         }

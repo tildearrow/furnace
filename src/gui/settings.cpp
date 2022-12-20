@@ -333,7 +333,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::SameLine();
           if (ImGui::Button("Reset to defaults")) {
             settings.initialSys.clear();
-            settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_YM2612_DUALPCM));
+            settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_YM2612));
             settings.initialSys.set("vol0",64);
             settings.initialSys.set("pan0",0);
             settings.initialSys.set("flags0","");
@@ -429,7 +429,7 @@ void FurnaceGUI::drawSettings() {
           }
 
           if (sysCount<32) if (ImGui::Button(ICON_FA_PLUS "##InitSysAdd")) {
-            settings.initialSys.set(fmt::sprintf("id%d",sysCount),(int)e->systemToFileFur(DIV_SYSTEM_YM2612_DUALPCM));
+            settings.initialSys.set(fmt::sprintf("id%d",sysCount),(int)e->systemToFileFur(DIV_SYSTEM_YM2612));
             settings.initialSys.set(fmt::sprintf("vol%d",sysCount),64);
             settings.initialSys.set(fmt::sprintf("pan%d",sysCount),0);
             settings.initialSys.set(fmt::sprintf("flags%d",sysCount),"");
@@ -2566,7 +2566,7 @@ void FurnaceGUI::syncSettings() {
   settings.initialSys.loadFromBase64(initialSys2.c_str());
   if (settings.initialSys.getInt("id0",0)==0) {
     settings.initialSys.clear();
-    settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_YM2612_DUALPCM));
+    settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_YM2612));
     settings.initialSys.set("vol0",64);
     settings.initialSys.set("pan0",0);
     settings.initialSys.set("flags0","");

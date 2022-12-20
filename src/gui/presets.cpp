@@ -45,31 +45,31 @@ void FurnaceGUI::initSystemPresets() {
   CATEGORY_BEGIN("Game consoles","let's play some chiptune making games!");
   ENTRY(
     "Sega Genesis", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2612, 64, 0, ""),
       CH(DIV_SYSTEM_SMS, 32, 0, "")
     }
   );
   ENTRY(
     "Sega Genesis (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, ""),
       CH(DIV_SYSTEM_SMS, 32, 0, "")
     }
   );
   ENTRY(
     "Sega Genesis (DualPCM)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_FRAC, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, ""),
       CH(DIV_SYSTEM_SMS, 32, 0, "")
     }
   );
   ENTRY(
     "Sega Genesis (DualPCM, extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, ""),
       CH(DIV_SYSTEM_SMS, 32, 0, "")
     }
   );
   ENTRY(
     "Sega Genesis (with Sega CD)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2612, 64, 0, ""),
       CH(DIV_SYSTEM_SMS, 32, 0, ""),
       CH(DIV_SYSTEM_RF5C68, 64, 0,
         "clockSel=2\n"
@@ -79,7 +79,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Sega Genesis (extended channel 3 with Sega CD)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, ""),
       CH(DIV_SYSTEM_SMS, 32, 0, ""),
       CH(DIV_SYSTEM_RF5C68, 64, 0,
         "clockSel=2\n"
@@ -1047,13 +1047,13 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "FM Towns", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "clockSel=2"), // YM3438
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=2"), // YM3438
       CH(DIV_SYSTEM_RF5C68, 64, 0, "")
     }
   );
   ENTRY(
     "FM Towns (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "clockSel=2"), // YM3438
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=2"), // YM3438
       CH(DIV_SYSTEM_RF5C68, 64, 0, "")
     }
   );
@@ -1121,22 +1121,22 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Yamaha YM2612 (OPN2)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "ladderEffect=true")
+      CH(DIV_SYSTEM_YM2612, 64, 0, "ladderEffect=true")
     }
   );
   ENTRY(
     "Yamaha YM2612 (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "ladderEffect=true")
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "ladderEffect=true")
     }
   );
   ENTRY(
     "Yamaha YM2612 (OPN2) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_FRAC, 64, 0, "ladderEffect=true")
+      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "ladderEffect=true")
     }
   );
   ENTRY(
     "Yamaha YM2612 (extended channel 3) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT, 64, 0, "ladderEffect=true")
+      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "ladderEffect=true")
     }
   );
   ENTRY(
@@ -1156,22 +1156,22 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Yamaha YM3438 (OPN2C)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "")
+      CH(DIV_SYSTEM_YM2612, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM3438 (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "")
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM3438 (OPN2C) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_FRAC, 64, 0, "")
+      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM3438 (extended channel 3) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT, 64, 0, "")
+      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "")
     }
   );
   ENTRY(
@@ -1719,57 +1719,57 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Sega System 18", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "clockSel=2"), // discrete 8MHz YM3438
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "clockSel=2"), // ^^
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=2"), // discrete 8MHz YM3438
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=2"), // ^^
       CH(DIV_SYSTEM_RF5C68, 64, 0, "clockSel=1") // 10MHz
     }
   );
   ENTRY(
     "Sega System 18 (extended channel 3 on first OPN2C)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "clockSel=2"), // discrete 8MHz YM3438
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "clockSel=2"), // ^^
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=2"), // discrete 8MHz YM3438
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=2"), // ^^
       CH(DIV_SYSTEM_RF5C68, 64, 0, "clockSel=1") // 10MHz
     }
   );
   ENTRY(
     "Sega System 18 (extended channel 3 on second OPN2C)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "clockSel=2"), // discrete 8MHz YM3438
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "clockSel=2"), // ^^
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=2"), // discrete 8MHz YM3438
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=2"), // ^^
       CH(DIV_SYSTEM_RF5C68, 64, 0, "clockSel=1") // 10MHz
     }
   );
   ENTRY(
     "Sega System 18 (extended channel 3 on both OPN2Cs)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "clockSel=2"), // discrete 8MHz YM3438
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "clockSel=2"), // ^^
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=2"), // discrete 8MHz YM3438
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=2"), // ^^
       CH(DIV_SYSTEM_RF5C68, 64, 0, "clockSel=1") // 10MHz
     }
   );
   ENTRY(
     "Sega System 32", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "clockSel=4"), // discrete 8.05MHz YM3438
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "clockSel=4"), // ^^
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=4"), // discrete 8.05MHz YM3438
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=4"), // ^^
       CH(DIV_SYSTEM_RF5C68, 64, 0, "clockSel=2") // 12.5MHz
     }
   );
   ENTRY(
     "Sega System 32 (extended channel 3 on first OPN2C)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "clockSel=4"), // discrete 8.05MHz YM3438
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "clockSel=4"), // ^^
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=4"), // discrete 8.05MHz YM3438
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=4"), // ^^
       CH(DIV_SYSTEM_RF5C68, 64, 0, "clockSel=2") // 12.5MHz
     }
   );
   ENTRY(
     "Sega System 32 (extended channel 3 on second OPN2C)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "clockSel=4"), // discrete 8.05MHz YM3438
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "clockSel=4"), // ^^
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=4"), // discrete 8.05MHz YM3438
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=4"), // ^^
       CH(DIV_SYSTEM_RF5C68, 64, 0, "clockSel=2") // 12.5MHz
     }
   );
   ENTRY(
     "Sega System 32 (extended channel 3 on both OPN2Cs)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "clockSel=4"), // discrete 8.05MHz YM3438
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "clockSel=4"), // ^^
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=4"), // discrete 8.05MHz YM3438
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=4"), // ^^
       CH(DIV_SYSTEM_RF5C68, 64, 0, "clockSel=2") // 12.5MHz
     }
   );
@@ -1986,13 +1986,13 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Sunsoft Arcade", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "clockSel=2"), // discrete YM3438 8MHz
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=2"), // discrete YM3438 8MHz
       CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=1") // 1.056MHz
     }
   );
   ENTRY(
     "Sunsoft Arcade (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "clockSel=2"), // discrete YM3438 8MHz
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=2"), // discrete YM3438 8MHz
       CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=1") // 1.056MHz
     }
   );
@@ -2331,13 +2331,13 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Seta 1 + FM addon", {
       CH(DIV_SYSTEM_X1_010, 64, 0, ""),
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "clockSel=2") // Discrete YM3438
+      CH(DIV_SYSTEM_YM2612, 64, 0, "clockSel=2") // Discrete YM3438
     }
   );
   ENTRY(
     "Seta 1 + FM addon (extended channel 3)", {
       CH(DIV_SYSTEM_X1_010, 64, 0, ""),
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "clockSel=2") // Discrete YM3438
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "clockSel=2") // Discrete YM3438
     }
   );
   ENTRY(
@@ -2432,13 +2432,13 @@ void FurnaceGUI::initSystemPresets() {
   CATEGORY_BEGIN("DefleMask-compatible","these configurations are compatible with DefleMask.\nselect this if you need to save as .dmf or work with that program.");
   ENTRY(
     "Sega Genesis", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2612, 64, 0, ""),
       CH(DIV_SYSTEM_SMS, 32, 0, "")
     }
   );
   ENTRY(
     "Sega Genesis (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2612_EXT, 64, 0, ""),
       CH(DIV_SYSTEM_SMS, 32, 0, "")
     }
   );

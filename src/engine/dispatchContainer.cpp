@@ -191,22 +191,22 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       dispatch=new DivPlatformOPL;
       ((DivPlatformOPL*)dispatch)->setOPLType(759,false);
       break;
-    case DIV_SYSTEM_YM2612_DUALPCM:
+    case DIV_SYSTEM_YM2612:
       dispatch=new DivPlatformGenesis;
       ((DivPlatformGenesis*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));
       ((DivPlatformGenesis*)dispatch)->setSoftPCM(false);
       break;
-    case DIV_SYSTEM_YM2612_DUALPCM_EXT:
+    case DIV_SYSTEM_YM2612_EXT:
       dispatch=new DivPlatformGenesisExt;
       ((DivPlatformGenesisExt*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));
       ((DivPlatformGenesisExt*)dispatch)->setSoftPCM(false);
       break;
-    case DIV_SYSTEM_YM2612_DUALPCM_FRAC:
+    case DIV_SYSTEM_YM2612_DUALPCM:
       dispatch=new DivPlatformGenesis;
       ((DivPlatformGenesis*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));
       ((DivPlatformGenesis*)dispatch)->setSoftPCM(true);
       break;
-    case DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT:
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT:
       dispatch=new DivPlatformGenesisExt;
       ((DivPlatformGenesisExt*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));
       ((DivPlatformGenesisExt*)dispatch)->setSoftPCM(true);
