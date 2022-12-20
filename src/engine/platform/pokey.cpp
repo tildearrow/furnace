@@ -125,15 +125,15 @@ void DivPlatformPOKEY::tick(bool sysTick) {
         chan[i].freq/=7;
         switch (chan[i].wave) {
           case 6:
+            chan[i].freq/=5;
+            chan[i].freq>>=1;
+            break;
+          case 7:
             if (audctl&1) {
               chan[i].freq/=5;
             } else {
               chan[i].freq/=15;
             }
-            chan[i].freq>>=1;
-            break;
-          case 7:
-            chan[i].freq/=5;
             chan[i].freq>>=1;
             break;
           default:
@@ -144,11 +144,11 @@ void DivPlatformPOKEY::tick(bool sysTick) {
         switch (chan[i].wave) {
           case 6:
             chan[i].freq<<=1;
-            chan[i].freq/=15;
+            chan[i].freq/=5;
             break;
           case 7:
             chan[i].freq<<=1;
-            chan[i].freq/=5;
+            chan[i].freq/=15;
             break;
         }
       }
@@ -161,13 +161,13 @@ void DivPlatformPOKEY::tick(bool sysTick) {
 
       // snap buzz periods
       int minFreq8=255;
-      if (chan[i].wave==6) {
+      if (chan[i].wave==7) {
         if ((i==0 && audctl&64) || (i==2 && audctl&32)) {
           chan[i].freq=15*(chan[i].freq/15)+snapPeriodLong16[(chan[i].freq%15)]+1;
         } else {
           if (!(audctl&1)) chan[i].freq=15*(chan[i].freq/15)+snapPeriodLong[(chan[i].freq%15)];
         }
-      } else if (chan[i].wave==7) {
+      } else if (chan[i].wave==6) {
         if ((i==0 && audctl&64) || (i==2 && audctl&32)) {
           chan[i].freq=15*(chan[i].freq/15)+snapPeriodShort16[(chan[i].freq%15)]+1;
         } else {
