@@ -78,6 +78,7 @@ const char* aboutLine[]={
   "iyatemu",
   "JayBOB18",
   "Jimmy-DS",
+  "Kagamiin~",
   "kleeder",
   "jaezu",
   "Laggy",
