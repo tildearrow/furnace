@@ -1673,13 +1673,13 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Atari Marble Madness", {
-      CH(DIV_SYSTEM_YM2151, 64, 0, ""), // clock should be 3.579 MHz
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""),
       CH(DIV_SYSTEM_POKEY, 64, 0, "")
     }
   );
   ENTRY(
     "Atari Championship Sprint", {
-      CH(DIV_SYSTEM_YM2151, 64, 0, ""), // clock should be 3.579 MHz
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""),
       CH(DIV_SYSTEM_POKEY, 64, 0, ""),
       CH(DIV_SYSTEM_POKEY, 64, 0, "")
     }
