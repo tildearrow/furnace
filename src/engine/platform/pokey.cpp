@@ -92,6 +92,10 @@ void DivPlatformPOKEY::tick(bool sysTick) {
       }
       chan[i].freqChanged=true;
     }
+    if (chan[i].std.duty.had) {
+      audctl=chan[i].std.duty.val;
+      audctlChanged=true;
+    }
     if (chan[i].std.wave.had) {
       chan[i].wave=chan[i].std.wave.val;
       chan[i].ctlChanged=true;
