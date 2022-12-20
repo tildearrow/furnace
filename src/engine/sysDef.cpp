@@ -1119,7 +1119,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_POKEY]=new DivSysDef(
-    "POKEY", NULL, 0x94, 0, 4, false, true, 0, false, 0,
+    "POKEY", NULL, 0x94, 0, 4, false, true, 0x161, false, 0,
     "TIA, but better and more flexible.\nused in the Atari 8-bit family of computers (400/800/XL/XE).",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},

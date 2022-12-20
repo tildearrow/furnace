@@ -1,6 +1,5 @@
 # to-do for 0.6pre2
 
-- POKEY
 - Pokémon Mini
   - register layout
   - confirm emulation

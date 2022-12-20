@@ -333,6 +333,13 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0);
         }
         break;
+      case DIV_SYSTEM_POKEY:
+        for (int i=0; i<9; i++) {
+          w->writeC(0xbb);
+          w->writeC(i|baseAddr2);
+          w->writeC(0);
+        }
+        break;
       case DIV_SYSTEM_LYNX:
         w->writeC(0x4e);
         w->writeC(0x44);
@@ -697,6 +704,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(0xbd);
       w->writeC(baseAddr2|(write.addr&0xff));
       w->writeC(write.val);
+      break;
+    case DIV_SYSTEM_POKEY:
+      w->writeC(0xbb);
+      w->writeC(baseAddr2|(write.addr&0x0f));
+      w->writeC(write.val&0xff);
       break;
     case DIV_SYSTEM_LYNX:
       w->writeC(0x4e);
@@ -1243,6 +1255,17 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           isSecond[i]=true;
           willExport[i]=true;
           hasNES|=0xc0000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_POKEY:
+        if (!hasPOKEY) {
+          hasPOKEY=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+        } else if (!(hasPOKEY&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasPOKEY|=0x40000000;
           howManyChips++;
         }
         break;
