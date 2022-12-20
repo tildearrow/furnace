@@ -57,6 +57,7 @@
 #include "platform/su.h"
 #include "platform/swan.h"
 #include "platform/lynx.h"
+#include "platform/pokey.h"
 #include "platform/zxbeeper.h"
 #include "platform/bubsyswsg.h"
 #include "platform/n163.h"
@@ -337,6 +338,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_LYNX:
       dispatch=new DivPlatformLynx;
+      break;
+    case DIV_SYSTEM_POKEY:
+      dispatch=new DivPlatformPOKEY;
       break;
     case DIV_SYSTEM_QSOUND:
       dispatch=new DivPlatformQSound;

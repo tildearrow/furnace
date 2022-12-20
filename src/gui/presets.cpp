@@ -827,6 +827,19 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Atari 800", {
+      CH(DIV_SYSTEM_POKEY, 64, 0, "clockSel=1")
+    },
+    "tickRate=50"
+  );
+  ENTRY(
+    "Atari 800 (stereo)", {
+      CH(DIV_SYSTEM_POKEY, 64, -127, "clockSel=1"),
+      CH(DIV_SYSTEM_POKEY, 64, 127, "clockSel=1"),
+    },
+    "tickRate=50"
+  );
+  ENTRY(
     "Atari ST", {
       CH(DIV_SYSTEM_AY8910, 64, 0,
         "clockSel=3\n"

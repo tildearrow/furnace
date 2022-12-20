@@ -1124,7 +1124,12 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
-    {DIV_INS_POKEY, DIV_INS_POKEY, DIV_INS_POKEY, DIV_INS_POKEY}
+    {DIV_INS_POKEY, DIV_INS_POKEY, DIV_INS_POKEY, DIV_INS_POKEY},
+    {},
+    {
+      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform (0 to 7)"}},
+      {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set AUDCTL"}},
+    }
   );
 
   sysDefs[DIV_SYSTEM_RF5C68]=new DivSysDef(
