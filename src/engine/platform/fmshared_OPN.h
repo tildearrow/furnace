@@ -147,17 +147,19 @@ class DivPlatformOPN: public DivPlatformFMBase {
     double fmFreqBase;
     unsigned int fmDivBase;
     unsigned int ayDiv;
+    unsigned char csmChan;
     bool extSys;
 
     DivConfig ayFlags;
 
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
-    DivPlatformOPN(double f=9440540.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false):
+    DivPlatformOPN(double f=9440540.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false, unsigned char cc=255):
       DivPlatformFMBase(),
       fmFreqBase(f),
       fmDivBase(d),
       ayDiv(a),
+      csmChan(cc),
       extSys(isExtSys) {}
 
 };

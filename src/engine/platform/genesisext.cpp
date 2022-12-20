@@ -454,7 +454,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
       }
     }
     if (writeSomething) {
-      if (chan[7].active) { // CSM
+      if (chan[csmChan].active) { // CSM
         writeMask^=0xf0;
       }
       /*printf(
@@ -589,17 +589,17 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
   }
 
   if (extMode && softPCM) {
-    if (chan[7].freqChanged) {
-      chan[7].freq=parent->calcFreq(chan[7].baseFreq,chan[7].pitch,chan[7].fixedArp?chan[7].baseNoteOverride:chan[7].arpOff,chan[7].fixedArp,true,0,chan[7].pitch2,chipClock,CHIP_DIVIDER);
-      if (chan[7].freq<1) chan[7].freq=1;
-      if (chan[7].freq>1024) chan[7].freq=1024;
-      int wf=0x400-chan[7].freq;
+    if (chan[csmChan].freqChanged) {
+      chan[csmChan].freq=parent->calcFreq(chan[csmChan].baseFreq,chan[csmChan].pitch,chan[csmChan].fixedArp?chan[csmChan].baseNoteOverride:chan[csmChan].arpOff,chan[csmChan].fixedArp,true,0,chan[csmChan].pitch2,chipClock,CHIP_DIVIDER);
+      if (chan[csmChan].freq<1) chan[csmChan].freq=1;
+      if (chan[csmChan].freq>1024) chan[csmChan].freq=1024;
+      int wf=0x400-chan[csmChan].freq;
       immWrite(0x24,wf>>2);
       immWrite(0x25,wf&3);
-      chan[7].freqChanged=false;
+      chan[csmChan].freqChanged=false;
     }
 
-    if (chan[7].keyOff || chan[7].keyOn) {
+    if (chan[csmChan].keyOff || chan[csmChan].keyOn) {
       writeNoteOn=true;
       for (int i=0; i<4; i++) {
         writeMask|=opChan[i].active<<(4+i);
@@ -608,7 +608,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
   }
 
   if (writeNoteOn) {
-    if (chan[7].active) { // CSM
+    if (chan[csmChan].active) { // CSM
       writeMask^=0xf0;
     }
     /*printf(
@@ -622,13 +622,13 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
   }
 
   if (extMode && softPCM) {
-    if (chan[7].keyOn) {
+    if (chan[csmChan].keyOn) {
       immWrite(0x27,0x81);
-      chan[7].keyOn=false;
+      chan[csmChan].keyOn=false;
     }
-    if (chan[7].keyOff) {
+    if (chan[csmChan].keyOff) {
       immWrite(0x27,0x40);
-      chan[7].keyOff=false;
+      chan[csmChan].keyOff=false;
     }
   }
 }
