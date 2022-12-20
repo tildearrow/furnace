@@ -38,6 +38,28 @@ const char* regCheatSheetPOKEY[]={
   NULL
 };
 
+// LLsLSsLLsSLsLLn
+const unsigned char snapPeriodLong[15]={
+  0, 1, 1, 3, 3, 6, 6, 7, 7, 10, 10, 12, 12, 13, 13
+};
+
+const unsigned char snapPeriodShort[15]={
+  2, 2, 2, 2, 5, 5, 5, 8, 8, 11, 11, 11, 11, 17, 17
+};
+
+// LsSLsLLnLLsLSsL
+const unsigned char snapPeriodLong16[15]={
+  0, 0, 3, 3, 3, 5, 6, 6, 8, 9, 9, 11, 11, 14, 14
+};
+
+const unsigned char snapPeriodShort16[15]={
+  1, 1, 1, 4, 4, 4, 4, 4, 10, 10, 10, 10, 13, 13, 13
+};
+
+const unsigned char waveMap[8]={
+  0, 1, 2, 3, 4, 5, 6, 6
+};
+
 const char** DivPlatformPOKEY::getRegisterSheet() {
   return regCheatSheetPOKEY;
 }
@@ -100,30 +122,74 @@ void DivPlatformPOKEY::tick(bool sysTick) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
 
       if ((i==0 && !(audctl&64)) || (i==2 && !(audctl&32)) || i==1 || i==3) {
-        chan[i].freq+=chan[i].freq>>3;
-        chan[i].freq>>=4;
-        if (chan[i].freq&1) chan[i].freq++;
-        chan[i].freq>>=1;
+        chan[i].freq/=7;
+        switch (chan[i].wave) {
+          case 6:
+            if (audctl&1) {
+              chan[i].freq/=5;
+            } else {
+              chan[i].freq/=15;
+            }
+            chan[i].freq>>=1;
+            break;
+          case 7:
+            chan[i].freq/=5;
+            chan[i].freq>>=1;
+            break;
+          default:
+            chan[i].freq>>=2;
+            break;
+        }
+      } else if ((i==0 && audctl&64) || (i==2 && audctl&32)) {
+        switch (chan[i].wave) {
+          case 6:
+            chan[i].freq<<=1;
+            chan[i].freq/=15;
+            break;
+          case 7:
+            chan[i].freq<<=1;
+            chan[i].freq/=5;
+            break;
+        }
       }
 
-      if (audctl&1) {
+      if (audctl&1 && !((i==0 && audctl&64) || (i==2 && audctl&32))) {
         chan[i].freq>>=2;
+      }
+
+      if (--chan[i].freq<0) chan[i].freq=0;
+
+      // snap buzz periods
+      int minFreq8=255;
+      if (chan[i].wave==6) {
+        if ((i==0 && audctl&64) || (i==2 && audctl&32)) {
+          chan[i].freq=15*(chan[i].freq/15)+snapPeriodLong16[(chan[i].freq%15)]+1;
+        } else {
+          if (!(audctl&1)) chan[i].freq=15*(chan[i].freq/15)+snapPeriodLong[(chan[i].freq%15)];
+        }
+      } else if (chan[i].wave==7) {
+        if ((i==0 && audctl&64) || (i==2 && audctl&32)) {
+          chan[i].freq=15*(chan[i].freq/15)+snapPeriodShort16[(chan[i].freq%15)]+1;
+        } else {
+          if (!(audctl&1)) chan[i].freq=15*(chan[i].freq/15)+snapPeriodShort[(chan[i].freq%15)];
+        }
+        minFreq8=251;
       }
 
       if ((i==0 && audctl&16) || (i==2 && audctl&8)) {
         if (chan[i].freq>65535) chan[i].freq=65535;
       } else {
-        if (chan[i].freq>255) chan[i].freq=255;
+        if (chan[i].freq>minFreq8) chan[i].freq=minFreq8;
       }
-
-      if (--chan[i].freq<0) chan[i].freq=0;
 
       // write frequency
       if ((i==1 && audctl&16) || (i==3 && audctl&8)) {
         // ignore - channel is paired
       } else {
-        rWrite(i<<1,chan[i].freq);
-        logV("%d: %d",i,chan[i].freq);
+        rWrite(i<<1,chan[i].freq&0xff);
+        if ((i==0 && audctl&16) || (i==2 && audctl&8)) {
+          rWrite((1+i)<<1,chan[i].freq>>8);
+        }
       }
 
       if (chan[i].keyOff) {
@@ -134,13 +200,17 @@ void DivPlatformPOKEY::tick(bool sysTick) {
       chan[i].freqChanged=false;
     }
     if (chan[i].ctlChanged) {
-      unsigned char val=((chan[i].active && !isMuted[i])?(chan[i].outVol&15):0)|(chan[i].wave<<5);
-      if ((i==1 && audctl&16) || (i==3 && audctl&8)) {
-        // mute - channel is paired
-        val=0;
-      }
+      unsigned char val=((chan[i].active && !isMuted[i])?(chan[i].outVol&15):0)|(waveMap[chan[i].wave&7]<<5);
       chan[i].ctlChanged=false;
-      rWrite(1+(i<<1),val);
+      if ((i==1 && audctl&16) || (i==3 && audctl&8)) {
+        // ignore - channel is paired
+      } else if ((i==0 && audctl&16) || (i==0 && audctl&8)) {
+        rWrite(1+(i<<1),0);
+        rWrite(3+(i<<1),val);
+      } else {
+        
+        rWrite(1+(i<<1),val);
+      }
     }
   }
 }
@@ -203,6 +273,10 @@ int DivPlatformPOKEY::dispatch(DivCommand c) {
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
       chan[c.chan].ctlChanged=true;
+      break;
+    case DIV_CMD_STD_NOISE_MODE:
+      audctl=c.value&0xff;
+      audctlChanged=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
