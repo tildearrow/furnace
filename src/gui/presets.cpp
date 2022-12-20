@@ -1691,6 +1691,14 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Atari I, Robot", {
+      CH(DIV_SYSTEM_POKEY, 64, 0, ""), // clock speed should be 1.512 MHz
+      CH(DIV_SYSTEM_POKEY, 64, 0, ""), // same here
+      CH(DIV_SYSTEM_POKEY, 64, 0, ""), // same here
+      CH(DIV_SYSTEM_POKEY, 64, 0, "")  // same here...
+    }
+  );
+  ENTRY(
     "Sega Kyugo", {
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=14"),
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=14")
