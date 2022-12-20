@@ -159,6 +159,7 @@ int DivPlatformPOKEY::dispatch(DivCommand c) {
       chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
+        chan[c.chan].ctlChanged=true;
       }
       chan[c.chan].insChanged=false;
       break;
@@ -308,6 +309,10 @@ void DivPlatformPOKEY::reset() {
 
 bool DivPlatformPOKEY::keyOffAffectsArp(int ch) {
   return true;
+}
+
+float DivPlatformPOKEY::getPostAmp() {
+  return 2.0f;
 }
 
 void DivPlatformPOKEY::notifyInsDeletion(void* ins) {

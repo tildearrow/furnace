@@ -64,6 +64,7 @@ class DivPlatformPOKEY: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
+    float getPostAmp();
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
