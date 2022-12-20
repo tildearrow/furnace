@@ -74,6 +74,14 @@ void DivPlatformPOKEY::acquire(short* bufL, short* bufR, size_t start, size_t le
     }
 
     mzpokeysnd_process_16(&pokey,&bufL[h],1);
+
+    if (++oscBufDelay>=14) {
+      oscBufDelay=0;
+      oscBuf[0]->data[oscBuf[0]->needle++]=pokey.outvol_0<<11;
+      oscBuf[1]->data[oscBuf[1]->needle++]=pokey.outvol_1<<11;
+      oscBuf[2]->data[oscBuf[2]->needle++]=pokey.outvol_2<<11;
+      oscBuf[3]->data[oscBuf[3]->needle++]=pokey.outvol_3<<11;
+    }
   }
 }
 
@@ -408,7 +416,7 @@ void DivPlatformPOKEY::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock;
   for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate/16;
+    oscBuf[i]->rate=rate/14;
   }
 }
 
@@ -424,6 +432,7 @@ int DivPlatformPOKEY::init(DivEngine* p, int channels, int sugRate, const DivCon
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  oscBufDelay=0;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;

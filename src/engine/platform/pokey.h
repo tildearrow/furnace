@@ -47,6 +47,7 @@ class DivPlatformPOKEY: public DivDispatch {
   std::queue<QueuedWrite> writes;
   unsigned char audctl;
   bool audctlChanged;
+  unsigned char oscBufDelay;
   PokeyState pokey;
   unsigned char regPool[16];
   friend void putDispatchChip(void*,int);
