@@ -149,7 +149,6 @@ typedef struct stPokeyState
     int outvol_3;
 } PokeyState;
 
-void mzpokeysnd_process_8(PokeyState* ps, void* sndbuffer, int sndn);
 void mzpokeysnd_process_16(PokeyState* ps, void* sndbuffer, int sndn);
 void Update_pokey_sound_mz(PokeyState* ps, unsigned short addr, unsigned char val, unsigned char gain);
 
