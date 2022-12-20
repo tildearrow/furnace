@@ -115,6 +115,19 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Neo Geo Pocket", {
+      CH(DIV_SYSTEM_T6W28, 64, 0, "")
+      CH(DIV_SYSTEM_PCM_DAC, 64, -127, 
+        "rate=11025\n"
+        "outDepth=5\n"
+      )
+      CH(DIV_SYSTEM_PCM_DAC, 64, 127, 
+        "rate=11025\n"
+        "outDepth=5\n"
+      ) // don't know what the actual sample rate is
+    }
+  );
+  ENTRY(
     "NEC PC Engine/TurboGrafx-16", {
       CH(DIV_SYSTEM_PCE, 64, 0, "")
     }
@@ -188,6 +201,12 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Atari 2600/7800", {
       CH(DIV_SYSTEM_TIA, 64, 0, "")
+    }
+  );
+  ENTRY(
+    "Atari 7800 + Ballblazer/Commando", {
+      CH(DIV_SYSTEM_TIA, 64, 0, "")
+      CH(DIV_SYSTEM_POKEY, 64, 0, "")
     }
   );
   ENTRY(
@@ -2185,30 +2204,6 @@ void FurnaceGUI::initSystemPresets() {
     "SNK Chopper I (drums mode on Y8950 and OPL2)", {
       CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "clockSel=2"),
       CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Touchdown Fever", {
-      CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_Y8950, 64, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Touchdown Fever (drums mode on OPL)", {
-      CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_Y8950, 64, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Touchdown Fever (drums mode on Y8950)", {
-      CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "clockSel=2")
-    }
-  );
-  ENTRY(
-    "SNK Touchdown Fever (drums mode on OPL and Y8950)", {
-      CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "clockSel=2"),
-      CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "clockSel=2")
     }
   );
   ENTRY(
