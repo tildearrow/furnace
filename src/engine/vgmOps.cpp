@@ -32,10 +32,10 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   unsigned char rf5c68Addr=isSecond?0xb1:0xb0;
   if (write.addr==0xffffffff) { // Furnace fake reset
     switch (sys) {
-      case DIV_SYSTEM_YM2612:
-      case DIV_SYSTEM_YM2612_EXT:
-      case DIV_SYSTEM_YM2612_FRAC:
-      case DIV_SYSTEM_YM2612_FRAC_EXT:
+      case DIV_SYSTEM_YM2612_DUALPCM:
+      case DIV_SYSTEM_YM2612_DUALPCM_EXT:
+      case DIV_SYSTEM_YM2612_DUALPCM_FRAC:
+      case DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT:
         for (int i=0; i<3; i++) { // set SL and RR to highest
           w->writeC(2|baseAddr1);
           w->writeC(0x80+i);
@@ -252,8 +252,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0);
         }
         break;
-      case DIV_SYSTEM_OPN:
-      case DIV_SYSTEM_OPN_EXT:
+      case DIV_SYSTEM_YM2203:
+      case DIV_SYSTEM_YM2203_EXT:
         for (int i=0; i<3; i++) { // set SL and RR to highest
           w->writeC(5|baseAddr1);
           w->writeC(0x80+i);
@@ -571,10 +571,10 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
     return;
   }
   switch (sys) {
-    case DIV_SYSTEM_YM2612:
-    case DIV_SYSTEM_YM2612_EXT:
-    case DIV_SYSTEM_YM2612_FRAC:
-    case DIV_SYSTEM_YM2612_FRAC_EXT:
+    case DIV_SYSTEM_YM2612_DUALPCM:
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT:
+    case DIV_SYSTEM_YM2612_DUALPCM_FRAC:
+    case DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT:
       switch (write.addr>>8) {
         case 0: // port 0
           w->writeC(2|baseAddr1);
@@ -666,14 +666,14 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           break;
       }
       break;
-    case DIV_SYSTEM_OPN:
-    case DIV_SYSTEM_OPN_EXT:
+    case DIV_SYSTEM_YM2203:
+    case DIV_SYSTEM_YM2203_EXT:
       w->writeC(5|baseAddr1);
       w->writeC(write.addr&0xff);
       w->writeC(write.val);
       break;
-    case DIV_SYSTEM_PC98:
-    case DIV_SYSTEM_PC98_EXT:
+    case DIV_SYSTEM_YM2608:
+    case DIV_SYSTEM_YM2608_EXT:
       switch (write.addr>>8) {
         case 0: // port 0
           w->writeC(6|baseAddr1);
@@ -1178,10 +1178,10 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           howManyChips++;
         }
         break;
-      case DIV_SYSTEM_YM2612:
-      case DIV_SYSTEM_YM2612_EXT:
-      case DIV_SYSTEM_YM2612_FRAC:
-      case DIV_SYSTEM_YM2612_FRAC_EXT:
+      case DIV_SYSTEM_YM2612_DUALPCM:
+      case DIV_SYSTEM_YM2612_DUALPCM_EXT:
+      case DIV_SYSTEM_YM2612_DUALPCM_FRAC:
+      case DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT:
         if (!hasOPN2) {
           hasOPN2=disCont[i].dispatch->chipClock;
           willExport[i]=true;
@@ -1204,8 +1204,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           howManyChips++;
         }
         break;
-      case DIV_SYSTEM_OPN:
-      case DIV_SYSTEM_OPN_EXT:
+      case DIV_SYSTEM_YM2203:
+      case DIV_SYSTEM_YM2203_EXT:
         if (!hasOPN) {
           hasOPN=disCont[i].dispatch->chipClock;
           willExport[i]=true;
@@ -1217,8 +1217,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           howManyChips++;
         }
         break;
-      case DIV_SYSTEM_PC98:
-      case DIV_SYSTEM_PC98_EXT:
+      case DIV_SYSTEM_YM2608:
+      case DIV_SYSTEM_YM2608_EXT:
         if (!hasOPNA) {
           hasOPNA=disCont[i].dispatch->chipClock;
           willExport[i]=true;
@@ -1846,10 +1846,10 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       if (!willExport[i]) continue;
       streamIDs[i]=streamID;
       switch (song.system[i]) {
-        case DIV_SYSTEM_YM2612:
-        case DIV_SYSTEM_YM2612_EXT:
-        case DIV_SYSTEM_YM2612_FRAC:
-        case DIV_SYSTEM_YM2612_FRAC_EXT:
+        case DIV_SYSTEM_YM2612_DUALPCM:
+        case DIV_SYSTEM_YM2612_DUALPCM_EXT:
+        case DIV_SYSTEM_YM2612_DUALPCM_FRAC:
+        case DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT:
           w->writeC(0x90);
           w->writeC(streamID);
           w->writeC(0x02);

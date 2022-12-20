@@ -2440,7 +2440,7 @@ int DivEngine::getEffectiveSampleRate(int rate) {
   switch (song.system[0]) {
     case DIV_SYSTEM_YMU759:
       return 8000;
-    case DIV_SYSTEM_YM2612: case DIV_SYSTEM_YM2612_EXT:
+    case DIV_SYSTEM_YM2612_DUALPCM: case DIV_SYSTEM_YM2612_DUALPCM_EXT:
       return 1278409/(1280000/rate);
     case DIV_SYSTEM_PCE:
       return 1789773/(1789773/rate);

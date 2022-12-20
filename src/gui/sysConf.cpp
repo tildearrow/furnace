@@ -28,10 +28,10 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
   bool supportsCustomRate=true;
 
   switch (type) {
-    case DIV_SYSTEM_YM2612:
-    case DIV_SYSTEM_YM2612_EXT: 
-    case DIV_SYSTEM_YM2612_FRAC:
-    case DIV_SYSTEM_YM2612_FRAC_EXT: {
+    case DIV_SYSTEM_YM2612_DUALPCM:
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT: 
+    case DIV_SYSTEM_YM2612_DUALPCM_FRAC:
+    case DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT: {
       int clockSel=flags.getInt("clockSel",0);
       bool ladder=flags.getBool("ladderEffect",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
@@ -59,7 +59,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       if (ImGui::Checkbox("Enable DAC distortion",&ladder)) {
         altered=true;
       }
-      if (type==DIV_SYSTEM_YM2612_EXT || type==DIV_SYSTEM_YM2612_FRAC_EXT) {
+      if (type==DIV_SYSTEM_YM2612_DUALPCM_EXT || type==DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
           altered=true;
         }
@@ -834,8 +834,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
-    case DIV_SYSTEM_OPN:
-    case DIV_SYSTEM_OPN_EXT: {
+    case DIV_SYSTEM_YM2203:
+    case DIV_SYSTEM_YM2203_EXT: {
       int clockSel=flags.getInt("clockSel",0);
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
@@ -879,7 +879,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
-      if (type==DIV_SYSTEM_OPN_EXT) {
+      if (type==DIV_SYSTEM_YM2203_EXT) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
           altered=true;
         }
@@ -894,8 +894,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
-    case DIV_SYSTEM_PC98:
-    case DIV_SYSTEM_PC98_EXT: {
+    case DIV_SYSTEM_YM2608:
+    case DIV_SYSTEM_YM2608_EXT: {
       int clockSel=flags.getInt("clockSel",0);
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
@@ -923,7 +923,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
-      if (type==DIV_SYSTEM_PC98_EXT) {
+      if (type==DIV_SYSTEM_YM2608_EXT) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
           altered=true;
         }

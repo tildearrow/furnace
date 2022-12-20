@@ -937,13 +937,13 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     // handle compound systems
     if (ds.system[0]==DIV_SYSTEM_GENESIS) {
       ds.systemLen=2;
-      ds.system[0]=DIV_SYSTEM_YM2612;
+      ds.system[0]=DIV_SYSTEM_YM2612_DUALPCM;
       ds.system[1]=DIV_SYSTEM_SMS;
       ds.systemVol[1]=32;
     }
     if (ds.system[0]==DIV_SYSTEM_GENESIS_EXT) {
       ds.systemLen=2;
-      ds.system[0]=DIV_SYSTEM_YM2612_EXT;
+      ds.system[0]=DIV_SYSTEM_YM2612_DUALPCM_EXT;
       ds.system[1]=DIV_SYSTEM_SMS;
       ds.systemVol[1]=32;
     }
@@ -1205,10 +1205,10 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
           break;
       }
       break;
-    case DIV_SYSTEM_YM2612:
-    case DIV_SYSTEM_YM2612_EXT:
-    case DIV_SYSTEM_YM2612_FRAC:
-    case DIV_SYSTEM_YM2612_FRAC_EXT:
+    case DIV_SYSTEM_YM2612_DUALPCM:
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT:
+    case DIV_SYSTEM_YM2612_DUALPCM_FRAC:
+    case DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT:
       switch (oldFlags&0x7fffffff) {
         case 0:
           newFlags.set("clockSel",0);
@@ -1295,8 +1295,8 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
       newFlags.set("channels",(int)((oldFlags>>4)&7));
       if (oldFlags&128) newFlags.set("multiplex",true);
       break;
-    case DIV_SYSTEM_OPN:
-    case DIV_SYSTEM_OPN_EXT:
+    case DIV_SYSTEM_YM2203:
+    case DIV_SYSTEM_YM2203_EXT:
       switch (oldFlags&31) {
         case 0:
           newFlags.set("clockSel",0);
@@ -1329,8 +1329,8 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
           break;
       }
       break;
-    case DIV_SYSTEM_PC98:
-    case DIV_SYSTEM_PC98_EXT:
+    case DIV_SYSTEM_YM2608:
+    case DIV_SYSTEM_YM2608_EXT:
       switch (oldFlags&31) {
         case 0:
           newFlags.set("clockSel",0);
@@ -1857,14 +1857,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         if (++ds.systemLen>DIV_MAX_CHIPS) ds.systemLen=DIV_MAX_CHIPS;
 
         if (ds.system[i]==DIV_SYSTEM_GENESIS) {
-          ds.system[i]=DIV_SYSTEM_YM2612;
+          ds.system[i]=DIV_SYSTEM_YM2612_DUALPCM;
           if (i<31) {
             ds.system[i+1]=DIV_SYSTEM_SMS;
             ds.systemVol[i+1]=(((ds.systemVol[i]&127)*3)>>3)|(ds.systemVol[i]&128);
           }
         }
         if (ds.system[i]==DIV_SYSTEM_GENESIS_EXT) {
-          ds.system[i]=DIV_SYSTEM_YM2612_EXT;
+          ds.system[i]=DIV_SYSTEM_YM2612_DUALPCM_EXT;
           if (i<31) {
             ds.system[i+1]=DIV_SYSTEM_SMS;
             ds.systemVol[i+1]=(((ds.systemVol[i]&127)*3)>>3)|(ds.systemVol[i]&128);
@@ -2484,14 +2484,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
           case DIV_SYSTEM_YM2610_FULL_EXT:
           case DIV_SYSTEM_YM2610B:
           case DIV_SYSTEM_YM2610B_EXT:
-          case DIV_SYSTEM_OPN:
-          case DIV_SYSTEM_OPN_EXT:
-          case DIV_SYSTEM_PC98:
-          case DIV_SYSTEM_PC98_EXT:
-          case DIV_SYSTEM_YM2612:
-          case DIV_SYSTEM_YM2612_EXT:
-          case DIV_SYSTEM_YM2612_FRAC:
-          case DIV_SYSTEM_YM2612_FRAC_EXT:
+          case DIV_SYSTEM_YM2203:
+          case DIV_SYSTEM_YM2203_EXT:
+          case DIV_SYSTEM_YM2608:
+          case DIV_SYSTEM_YM2608_EXT:
+          case DIV_SYSTEM_YM2612_DUALPCM:
+          case DIV_SYSTEM_YM2612_DUALPCM_EXT:
+          case DIV_SYSTEM_YM2612_DUALPCM_FRAC:
+          case DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT:
             opnCount++;
             break;
           default:
@@ -2513,13 +2513,13 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     // ExtCh compat flag
     if (ds.version<125) {
       for (int i=0; i<ds.systemLen; i++) {
-        if (ds.system[i]==DIV_SYSTEM_YM2612_EXT ||
-            ds.system[i]==DIV_SYSTEM_YM2612_FRAC_EXT ||
+        if (ds.system[i]==DIV_SYSTEM_YM2612_DUALPCM_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT ||
             ds.system[i]==DIV_SYSTEM_YM2610_EXT ||
             ds.system[i]==DIV_SYSTEM_YM2610_FULL_EXT ||
             ds.system[i]==DIV_SYSTEM_YM2610B_EXT ||
-            ds.system[i]==DIV_SYSTEM_OPN_EXT ||
-            ds.system[i]==DIV_SYSTEM_PC98_EXT) {
+            ds.system[i]==DIV_SYSTEM_YM2203_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2608_EXT) {
           ds.systemFlags[i].set("noExtMacros",true);
         }
       }
@@ -4625,10 +4625,10 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   // check whether system is compound
   bool isFlat=false;
   if (song.systemLen==2) {
-    if (song.system[0]==DIV_SYSTEM_YM2612 && song.system[1]==DIV_SYSTEM_SMS) {
+    if (song.system[0]==DIV_SYSTEM_YM2612_DUALPCM && song.system[1]==DIV_SYSTEM_SMS) {
       isFlat=true;
     }
-    if (song.system[0]==DIV_SYSTEM_YM2612_EXT && song.system[1]==DIV_SYSTEM_SMS) {
+    if (song.system[0]==DIV_SYSTEM_YM2612_DUALPCM_EXT && song.system[1]==DIV_SYSTEM_SMS) {
       isFlat=true;
     }
     if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM_COMPAT) {
@@ -4717,10 +4717,10 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   // version
   w->writeC(version);
   DivSystem sys=DIV_SYSTEM_NULL;
-  if (song.system[0]==DIV_SYSTEM_YM2612 && song.system[1]==DIV_SYSTEM_SMS) {
+  if (song.system[0]==DIV_SYSTEM_YM2612_DUALPCM && song.system[1]==DIV_SYSTEM_SMS) {
     w->writeC(systemToFileDMF(DIV_SYSTEM_GENESIS));
     sys=DIV_SYSTEM_GENESIS;
-  } else if (song.system[0]==DIV_SYSTEM_YM2612_EXT && song.system[1]==DIV_SYSTEM_SMS) {
+  } else if (song.system[0]==DIV_SYSTEM_YM2612_DUALPCM_EXT && song.system[1]==DIV_SYSTEM_SMS) {
     w->writeC(systemToFileDMF(DIV_SYSTEM_GENESIS_EXT));
     sys=DIV_SYSTEM_GENESIS_EXT;
   } else if (song.system[0]==DIV_SYSTEM_YM2151 && song.system[1]==DIV_SYSTEM_SEGAPCM_COMPAT) {

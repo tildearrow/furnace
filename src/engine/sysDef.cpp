@@ -128,7 +128,7 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
             }
             break;
         }
-      } else if (ds.system[0]==DIV_SYSTEM_YM2612) {
+      } else if (ds.system[0]==DIV_SYSTEM_YM2612_DUALPCM) {
         switch (ds.systemFlags[0].getInt("clockSel",0)) {
           case 2:
             return "FM Towns";
@@ -146,10 +146,10 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
       }
       return getSystemName(ds.system[0]);
     case 2:
-      if (ds.system[0]==DIV_SYSTEM_YM2612 && ds.system[1]==DIV_SYSTEM_SMS) {
+      if (ds.system[0]==DIV_SYSTEM_YM2612_DUALPCM && ds.system[1]==DIV_SYSTEM_SMS) {
         return "Sega Genesis/Mega Drive";
       }
-      if (ds.system[0]==DIV_SYSTEM_YM2612_EXT && ds.system[1]==DIV_SYSTEM_SMS) {
+      if (ds.system[0]==DIV_SYSTEM_YM2612_DUALPCM_EXT && ds.system[1]==DIV_SYSTEM_SMS) {
         return "Sega Genesis Extended Channel 3";
       }
 
@@ -293,7 +293,7 @@ const char* DivEngine::getSystemNameJ(DivSystem sys) {
       return "";
     case DIV_SYSTEM_YM2151:
       return "";
-    case DIV_SYSTEM_YM2612:
+    case DIV_SYSTEM_YM2612_DUALPCM:
       return "";
     case DIV_SYSTEM_TIA:
       return "";
@@ -811,7 +811,7 @@ void DivEngine::registerSystems() {
     fmOPMPostEffectHandlerMap
   );
 
-  sysDefs[DIV_SYSTEM_YM2612]=new DivSysDef(
+  sysDefs[DIV_SYSTEM_YM2612_DUALPCM]=new DivSysDef(
     "Yamaha YM2612 (OPN2)", NULL, 0x83, 0, 6, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6"},
@@ -1006,7 +1006,7 @@ void DivEngine::registerSystems() {
     }
   );
 
-  sysDefs[DIV_SYSTEM_OPN]=new DivSysDef(
+  sysDefs[DIV_SYSTEM_YM2203]=new DivSysDef(
     "Yamaha YM2203 (OPN)", NULL, 0x8d, 0, 6, true, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "cost-reduced version of the OPM with a different register layout and no stereo...\n...but it has a built-in AY-3-8910! (actually an YM2149)",
     {"FM 1", "FM 2", "FM 3", "PSG 1", "PSG 2", "PSG 3"},
@@ -1018,7 +1018,7 @@ void DivEngine::registerSystems() {
     fmOPNPostEffectHandlerMap
   );
 
-  sysDefs[DIV_SYSTEM_OPN_EXT]=new DivSysDef(
+  sysDefs[DIV_SYSTEM_YM2203_EXT]=new DivSysDef(
     "Yamaha YM2203 (OPN) Extended Channel 3", NULL, 0xb6, 0, 9, true, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "cost-reduced version of the OPM with a different register layout and no stereo...\n...but it has a built-in AY-3-8910! (actually an YM2149)\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "PSG 1", "PSG 2", "PSG 3"},
@@ -1030,7 +1030,7 @@ void DivEngine::registerSystems() {
     fmOPNPostEffectHandlerMap
   );
 
-  sysDefs[DIV_SYSTEM_OPN_CSM]=new DivSysDef(
+  sysDefs[DIV_SYSTEM_YM2203_CSM]=new DivSysDef(
     "Yamaha YM2203 (OPN) CSM", NULL, 0xc3, 0, 10, true, true, 0x151, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "cost-reduced version of the OPM with a different register layout and no stereo...\n...but it has a built-in AY-3-8910! (actually an YM2149)\nCSM blah blah",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "CSM Timer", "PSG 1", "PSG 2", "PSG 3"},
@@ -1042,7 +1042,7 @@ void DivEngine::registerSystems() {
     fmOPNPostEffectHandlerMap
   );
 
-  sysDefs[DIV_SYSTEM_PC98]=new DivSysDef(
+  sysDefs[DIV_SYSTEM_YM2608]=new DivSysDef(
     "Yamaha YM2608 (OPNA)", NULL, 0x8e, 0, 16, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
     "OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "ADPCM"},
@@ -1054,7 +1054,7 @@ void DivEngine::registerSystems() {
     fmOPNAPostEffectHandlerMap
   );
 
-  sysDefs[DIV_SYSTEM_PC98_EXT]=new DivSysDef(
+  sysDefs[DIV_SYSTEM_YM2608_EXT]=new DivSysDef(
     "Yamaha YM2608 (OPNA) Extended Channel 3", NULL, 0xb7, 0, 19, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
     "OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "ADPCM"},
@@ -1066,7 +1066,7 @@ void DivEngine::registerSystems() {
     fmOPNAPostEffectHandlerMap
   );
 
-  sysDefs[DIV_SYSTEM_PC98_CSM]=new DivSysDef(
+  sysDefs[DIV_SYSTEM_YM2608_CSM]=new DivSysDef(
     "Yamaha YM2608 (OPNA) CSM", NULL, 0xc4, 0, 20, true, true, 0x151, false, (1U<<DIV_SAMPLE_DEPTH_ADPCM_B)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
     "OPN but twice the FM channels, stereo makes a come-back and has rhythm and ADPCM channels.\nCSM blah blah",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "CSM Timer", "Square 1", "Square 2", "Square 3", "Kick", "Snare", "Top", "HiHat", "Tom", "Rim", "ADPCM"},
@@ -1274,7 +1274,7 @@ void DivEngine::registerSystems() {
     }
   );
 
-  sysDefs[DIV_SYSTEM_YM2612_EXT]=new DivSysDef(
+  sysDefs[DIV_SYSTEM_YM2612_DUALPCM_EXT]=new DivSysDef(
     "Yamaha YM2612 (OPN2) Extended Channel 3", NULL, 0xa0, 0, 9, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies.",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6"},
@@ -1286,7 +1286,7 @@ void DivEngine::registerSystems() {
     fmOPN2PostEffectHandlerMap
   );
 
-  sysDefs[DIV_SYSTEM_YM2612_CSM]=new DivSysDef(
+  sysDefs[DIV_SYSTEM_YM2612_DUALPCM_CSM]=new DivSysDef(
     "Yamaha YM2612 (OPN2) CSM", NULL, 0xc1, 0, 10, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).\nthis one includes CSM mode control for special effects on Channel 3.",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6", "CSM Timer"},
@@ -1712,7 +1712,7 @@ void DivEngine::registerSystems() {
     }
   );
 
-  sysDefs[DIV_SYSTEM_YM2612_FRAC]=new DivSysDef(
+  sysDefs[DIV_SYSTEM_YM2612_DUALPCM_FRAC]=new DivSysDef(
     "Yamaha YM2612 (OPN2) with DualPCM", NULL, 0xbe, 0, 7, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).\nthis system uses software mixing to provide two sample channels.",
     {"FM 1", "FM 2", "FM 3", "FM 4", "FM 5", "FM 6/PCM 1", "PCM 2"},
@@ -1724,7 +1724,7 @@ void DivEngine::registerSystems() {
     fmOPN2PostEffectHandlerMap
   );
 
-  sysDefs[DIV_SYSTEM_YM2612_FRAC_EXT]=new DivSysDef(
+  sysDefs[DIV_SYSTEM_YM2612_DUALPCM_FRAC_EXT]=new DivSysDef(
     "Yamaha YM2612 (OPN2) Extended Channel 3 with DualPCM and CSM", NULL, 0xbd, 0, 11, true, false, 0x150, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "this chip is mostly known for being in the Sega Genesis (but it also was on the FM Towns computer).\nthis system uses software mixing to provide two sample channels.\nthis one is in Extended Channel mode, which turns the third FM channel into four operators with independent notes/frequencies.",
     {"FM 1", "FM 2", "FM 3 OP1", "FM 3 OP2", "FM 3 OP3", "FM 3 OP4", "FM 4", "FM 5", "FM 6/PCM 1", "PCM 2", "CSM Timer"},
