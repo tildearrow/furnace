@@ -241,8 +241,8 @@ void putDispatchChip(void* data, int type) {
   switch (type) {
     case DIV_SYSTEM_YM2612:
     case DIV_SYSTEM_YM2612_EXT:
-    case DIV_SYSTEM_YM2612_FRAC:
-    case DIV_SYSTEM_YM2612_FRAC_EXT: {
+    case DIV_SYSTEM_YM2612_DUALPCM:
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT: {
       GENESIS_CHIP_DEBUG;
       break;
     }
@@ -256,8 +256,8 @@ void putDispatchChip(void* data, int type) {
       SMS_CHIP_DEBUG;
       break;
     }
-    case DIV_SYSTEM_OPN:
-    case DIV_SYSTEM_OPN_EXT: {
+    case DIV_SYSTEM_YM2203:
+    case DIV_SYSTEM_YM2203_EXT: {
       DivPlatformYM2203* ch=(DivPlatformYM2203*)data;
       ImGui::Text("> YM2203");
       FM_OPN_CHIP_DEBUG;
@@ -267,8 +267,8 @@ void putDispatchChip(void* data, int type) {
       ImGui::TextColored(ch->extMode?colorOn:colorOff,">> ExtMode");
       break;
     }
-    case DIV_SYSTEM_PC98:
-    case DIV_SYSTEM_PC98_EXT: {
+    case DIV_SYSTEM_YM2608:
+    case DIV_SYSTEM_YM2608_EXT: {
       DivPlatformYM2608* ch=(DivPlatformYM2608*)data;
       ImGui::Text("> YM2608");
       FM_OPN_CHIP_DEBUG;
@@ -541,12 +541,12 @@ void putDispatchChan(void* data, int chanNum, int type) {
       break;
     }
     case DIV_SYSTEM_YM2612:
-    case DIV_SYSTEM_YM2612_FRAC: {
+    case DIV_SYSTEM_YM2612_DUALPCM: {
       GENESIS_CHAN_DEBUG;
       break;
     }
     case DIV_SYSTEM_YM2612_EXT:
-    case DIV_SYSTEM_YM2612_FRAC_EXT: {
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT: {
       if (chanNum>=2 && chanNum<=5) {
         DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data;
         ImGui::Text("> YM2612 (per operator)");
@@ -560,11 +560,11 @@ void putDispatchChan(void* data, int chanNum, int type) {
       SMS_CHAN_DEBUG;
       break;
     }
-    case DIV_SYSTEM_OPN: {
+    case DIV_SYSTEM_YM2203: {
       OPN_CHAN_DEBUG;
       break;
     }
-    case DIV_SYSTEM_OPN_EXT: {
+    case DIV_SYSTEM_YM2203_EXT: {
       if (chanNum>=2 && chanNum<=5) {
         OPN_OPCHAN_DEBUG;
       } else {
@@ -572,13 +572,13 @@ void putDispatchChan(void* data, int chanNum, int type) {
       }
       break;
     }
-    case DIV_SYSTEM_PC98: {
+    case DIV_SYSTEM_YM2608: {
       DivPlatformOPN::OPNChannelStereo* ch=(DivPlatformOPN::OPNChannelStereo*)data;
       ImGui::Text("> YM2608");
       OPNB_CHAN_DEBUG;
       break;
     }
-    case DIV_SYSTEM_PC98_EXT: {
+    case DIV_SYSTEM_YM2608_EXT: {
       if (chanNum>=2 && chanNum<=5) {
         DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data;
         ImGui::Text("> YM2608 (per operator)");

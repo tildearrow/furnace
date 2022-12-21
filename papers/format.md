@@ -215,8 +215,8 @@ size | description
      |   - 0x8a: FDS - 1 channel
      |   - 0x8b: MMC5 - 3 channels
      |   - 0x8c: Namco 163 - 8 channels
-     |   - 0x8d: OPN (YM2203) - 6 channels
-     |   - 0x8e: PC-98 (YM2608) - 16 channels
+     |   - 0x8d: YM2203 - 6 channels
+     |   - 0x8e: YM2608 - 16 channels
      |   - 0x8f: OPL (YM3526) - 9 channels
      |   - 0x90: OPL2 (YM3812) - 9 channels
      |   - 0x91: OPL3 (YMF262) - 18 channels
@@ -256,8 +256,8 @@ size | description
      |   - 0xb3: Yamaha Y8950 drums - 12 channels
      |   - 0xb4: Konami SCC+ - 5 channels
      |   - 0xb5: tildearrow Sound Unit - 8 channels
-     |   - 0xb6: OPN extended - 9 channels
-     |   - 0xb7: PC-98 extended - 19 channels
+     |   - 0xb6: YM2203 extended - 9 channels
+     |   - 0xb7: YM2608 extended - 19 channels
      |   - 0xb8: YMZ280B - 8 channels
      |   - 0xb9: Namco WSG - 3 channels
      |   - 0xba: Namco 15xx - 8 channels
@@ -269,8 +269,8 @@ size | description
      |   - 0xc0: PCM DAC - 1 channel
      |   - 0xc1: YM2612 CSM - 10 channels
      |   - 0xc2: Neo Geo CSM (YM2610) - 18 channels
-     |   - 0xc3: OPN CSM - 10 channels
-     |   - 0xc4: PC-98 CSM - 20 channels
+     |   - 0xc3: YM2203 CSM - 10 channels
+     |   - 0xc4: YM2608 CSM - 20 channels
      |   - 0xc5: YM2610B CSM - 20 channels
      |   - 0xc6: K007232 - 2 channels
      |   - 0xc7: GA20 - 4 channels
@@ -1441,7 +1441,7 @@ chips which aren't on this list don't have any flags.
 - bit 4-6: channels (int)
 - bit 7: multiplex (bool)
 
-## 0x8d: OPN (YM2203) and 0xb6: OPN extended
+## 0x8d: YM2203 and 0xb6: YM2203 extended
 
 - bit 0-4: clockSel (int)
   - 0: NTSC
@@ -1455,7 +1455,7 @@ chips which aren't on this list don't have any flags.
   - 1: /3
   - 2: /2
 
-## 0x8e: PC-98 (YM2608) and 0xb7: PC-98 extended
+## 0x8e: YM2608 and 0xb7: YM2608 extended
 
 - bit 0-4: clockSel (int)
   - 0: 8MHz

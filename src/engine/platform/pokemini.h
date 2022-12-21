@@ -37,8 +37,10 @@ class DivPlatformPokeMini: public DivDispatch {
   int pos;
   unsigned char timerScale, vol;
   unsigned short preset, pivot;
-  unsigned char regPool[2];
+  unsigned char regPool[128];
   unsigned short elapsedMain;
+
+  void rWrite(unsigned char addr, unsigned char val);
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);

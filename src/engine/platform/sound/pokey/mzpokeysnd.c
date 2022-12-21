@@ -1637,23 +1637,6 @@ void Update_pokey_sound_mz(PokeyState* ps, unsigned short addr, unsigned char va
 
 #define MAX_SAMPLE 152
 
-void mzpokeysnd_process_8(PokeyState* ps, void* sndbuffer, int sndn)
-{
-    int i;
-    int nsam = sndn;
-    unsigned char *buffer = (unsigned char *) sndbuffer;
-
-    /* if there are two pokeys, then the signal is stereo
-       we assume even sndn */
-    while(nsam >= 1)
-    {
-        buffer[0] = (unsigned char)floor(generate_sample(ps)
-         * (255.0 / 2 / MAX_SAMPLE / 4 * M_PI * 0.95) + 128 + 0.5 + 0.5 * rand() / RAND_MAX - 0.25);
-        buffer += 1;
-        nsam -= 1;
-    }
-}
-
 void mzpokeysnd_process_16(PokeyState* ps, void* sndbuffer, int sndn)
 {
     int i;
@@ -1665,7 +1648,7 @@ void mzpokeysnd_process_16(PokeyState* ps, void* sndbuffer, int sndn)
     while(nsam >= (int) 1)
     {
         buffer[0] = (short)floor(generate_sample(ps)
-         * (65535.0 / 2 / MAX_SAMPLE / 4 * M_PI * 0.95) + 0.5 + 0.5 * rand() / RAND_MAX - 0.25);
+         * (65535.0 / 2 / MAX_SAMPLE / 4 * M_PI * 0.95));
         buffer += 1;
         nsam -= 1;
     }

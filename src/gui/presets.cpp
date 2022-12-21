@@ -57,13 +57,13 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Sega Genesis (DualPCM)", {
-      CH(DIV_SYSTEM_YM2612_FRAC, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, ""),
       CH(DIV_SYSTEM_SMS, 32, 0, "")
     }
   );
   ENTRY(
     "Sega Genesis (DualPCM, extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_FRAC_EXT, 64, 0, ""),
+      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, ""),
       CH(DIV_SYSTEM_SMS, 32, 0, "")
     }
   );
@@ -421,25 +421,25 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "NEC PC-88 (with PC-8801-11)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4") // external
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=4") // external
     }
   );
   ENTRY(
     "NEC PC-88 (with PC-8801-11; extended channel 3)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4") // external
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=4") // external
     }
   );
   ENTRY(
     "NEC PC-88 (with PC-8801-23)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1") // external
+      CH(DIV_SYSTEM_YM2608, 64, 0, "clockSel=1") // external
     }
   );
   ENTRY(
     "NEC PC-88 (with PC-8801-23; extended channel 3)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1") // external
+      CH(DIV_SYSTEM_YM2608_EXT, 64, 0, "clockSel=1") // external
     }
   );
   ENTRY(
@@ -451,7 +451,7 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "NEC PC-8801mk2SR (with PC-8801-10)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=4"), // internal
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15"), // external
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15") // ""
     }
@@ -459,7 +459,7 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "NEC PC-8801mk2SR (with PC-8801-10; extended channel 3)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=4"), // internal
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15"), // external
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15") // ""
     }
@@ -467,77 +467,77 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "NEC PC-8801mk2SR (with PC-8801-11)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4") // external
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=4") // external
     }
   );
   ENTRY(
     "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on internal OPN)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4") // external
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=4") // external
     }
   );
   ENTRY(
     "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on external OPN)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4") // external
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=4") // external
     }
   );
   ENTRY(
     "NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on both OPNs)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4") // external
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=4") // external
     }
   );
   ENTRY(
     "NEC PC-8801mk2SR (with PC-8801-23)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1") // external
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_YM2608, 64, 0, "clockSel=1") // external
     }
   );
   ENTRY(
     "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on internal OPN)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1") // external
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_YM2608, 64, 0, "clockSel=1") // external
     }
   );
   ENTRY(
     "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on external OPN)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1") // external
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_YM2608_EXT, 64, 0, "clockSel=1") // external
     }
   );
   ENTRY(
     "NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on both OPNs)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"), // internal
-      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1") // external
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_YM2608_EXT, 64, 0, "clockSel=1") // external
     }
   );
   ENTRY(
     "NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=4"), // internal
       CH(DIV_SYSTEM_YM2151, 64, 0, "clockSel=2") // external; 4.0000MHz
     }
   );
   ENTRY(
     "NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800; extended channel 3)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=4"), // internal
       CH(DIV_SYSTEM_YM2151, 64, 0, "clockSel=2") // external; 4.0000MHz
     }
   );
   ENTRY(
     "NEC PC-8801FA (with PC-8801-10)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_YM2608, 64, 0, "clockSel=4"), // internal
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15"), // external
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15") // ""
     }
@@ -545,7 +545,7 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "NEC PC-8801FA (with PC-8801-10; extended channel 3)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=4"), // internal
+      CH(DIV_SYSTEM_YM2608_EXT, 64, 0, "clockSel=4"), // internal
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15"), // external
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=15") // ""
     }
@@ -553,144 +553,144 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "NEC PC-8801FA (with PC-8801-11)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4") // external
+      CH(DIV_SYSTEM_YM2608, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=4") // external
     }
   );
   ENTRY(
     "NEC PC-8801FA (with PC-8801-11; extended channel 3 on internal OPN)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4") // external
+      CH(DIV_SYSTEM_YM2608_EXT, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=4") // external
     }
   );
   ENTRY(
     "NEC PC-8801FA (with PC-8801-11; extended channel 3 on external OPN)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4") // external
+      CH(DIV_SYSTEM_YM2608, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=4") // external
     }
   );
   ENTRY(
     "NEC PC-8801FA (with PC-8801-11; extended channel 3 on both OPNs)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4") // external
+      CH(DIV_SYSTEM_YM2608_EXT, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=4") // external
     }
   );
   ENTRY(
     "NEC PC-8801FA (with PC-8801-23)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1") // external
+      CH(DIV_SYSTEM_YM2608, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_YM2608, 64, 0, "clockSel=1") // external
     }
   );
   ENTRY(
     "NEC PC-8801FA (with PC-8801-23; extended channel 3 on internal OPN)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1") // external
+      CH(DIV_SYSTEM_YM2608_EXT, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_YM2608, 64, 0, "clockSel=1") // external
     }
   );
   ENTRY(
     "NEC PC-8801FA (with PC-8801-23; extended channel 3 on external OPN)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1") // external
+      CH(DIV_SYSTEM_YM2608, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_YM2608_EXT, 64, 0, "clockSel=1") // external
     }
   );
   ENTRY(
     "NEC PC-8801FA (with PC-8801-23; extended channel 3 on both OPNs)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1"), // internal
-      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1") // external
+      CH(DIV_SYSTEM_YM2608_EXT, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_YM2608_EXT, 64, 0, "clockSel=1") // external
     }
   );
   ENTRY(
     "NEC PC-8801FA (with HMB-20 HIBIKI-8800)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_YM2608, 64, 0, "clockSel=1"), // internal
       CH(DIV_SYSTEM_YM2151, 64, 0, "clockSel=2") // external; 4.0000MHz
     }
   );
   ENTRY(
     "NEC PC-8801FA (with HMB-20 HIBIKI-8800; extended channel 3)", {
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1"), // internal
+      CH(DIV_SYSTEM_YM2608_EXT, 64, 0, "clockSel=1"), // internal
       CH(DIV_SYSTEM_YM2151, 64, 0, "clockSel=2") // external; 4.0000MHz
     }
   );
   ENTRY(
     "NEC PC-98 (with PC-9801-26/K)", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"), // 3.9936MHz but some compatible card has 4MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=4"), // 3.9936MHz but some compatible card has 4MHz
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with PC-9801-26/K; extended channel 3)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"), // 3.9936MHz but some compatible card has 4MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=4"), // 3.9936MHz but some compatible card has 4MHz
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Orchestra)", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=4"),
       CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=4"),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Orchestra; extended channel 3)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=4"),
       CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=4"),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Orchestra in drums mode)", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=4"),
       CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=4"),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Orchestra in drums mode; extended channel 3)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=4"),
       CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=4"),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Orchestra V)", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=4"),
       CH(DIV_SYSTEM_Y8950, 64, 0, "clockSel=4"),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Orchestra V; extended channel 3)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=4"),
       CH(DIV_SYSTEM_Y8950, 64, 0, "clockSel=4"),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Orchestra V in drums mode)", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=4"),
       CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "clockSel=4"),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Orchestra V in drums mode; extended channel 3)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=4"),
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=4"),
       CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "clockSel=4"),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with PC-9801-86)", { // -73 also has OPNA
-      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_YM2608, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0, // 2x 16-bit Burr Brown DAC
         "rate=44100\n"
         "outDepth=15\n"
@@ -704,7 +704,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "NEC PC-98 (with PC-9801-86; extended channel 3)", { // -73 also has OPNA
-      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_YM2608_EXT, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=44100\n"
         "outDepth=15\n"
@@ -718,19 +718,19 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "NEC PC-98 (with PC-9801-73)", {
-      CH(DIV_SYSTEM_PC98, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_YM2608, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with PC-9801-73; extended channel 3)", {
-      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_YM2608_EXT, 64, 0, "clockSel=1"),
       CH(DIV_SYSTEM_PCSPKR, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible)", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=2"), // 4MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=44100\n"
         "outDepth=15\n"
@@ -742,7 +742,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible; extended channel 3)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=2"), // 4MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=44100\n"
         "outDepth=15\n"
@@ -754,7 +754,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode)", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=2"), // 4MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=44100\n"
         "outDepth=15\n"
@@ -766,7 +766,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode; extended channel 3)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=2"), // 4MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=44100\n"
         "outDepth=15\n"
@@ -789,29 +789,29 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "ZX Spectrum (128K) with TurboSound FM", {
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=1")
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on first OPN)", {
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=1")
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on second OPN)", {
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=1")
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
     "ZX Spectrum (128K) with TurboSound FM (extended channel 3 on both OPNs)", {
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=1"),
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=1")
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=1"),
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=1")
     }
   );
   ENTRY(
@@ -1081,22 +1081,22 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Yamaha YM2203 (OPN)", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=3")
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=3")
     }
   );
   ENTRY(
     "Yamaha YM2203 (extended channel 3)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=3")
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=3")
     }
   );
   ENTRY(
     "Yamaha YM2608 (OPNA)", {
-      CH(DIV_SYSTEM_PC98, 64, 0, "")
+      CH(DIV_SYSTEM_YM2608, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM2608 (extended channel 3)", {
-      CH(DIV_SYSTEM_PC98_EXT, 64, 0, "")
+      CH(DIV_SYSTEM_YM2608_EXT, 64, 0, "")
     }
   );
   ENTRY(
@@ -1131,12 +1131,12 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Yamaha YM2612 (OPN2) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_FRAC, 64, 0, "ladderEffect=true")
+      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "ladderEffect=true")
     }
   );
   ENTRY(
     "Yamaha YM2612 (extended channel 3) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_FRAC_EXT, 64, 0, "ladderEffect=true")
+      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "ladderEffect=true")
     }
   );
   ENTRY(
@@ -1166,12 +1166,12 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Yamaha YM3438 (OPN2C) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_FRAC, 64, 0, "")
+      CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "")
     }
   );
   ENTRY(
     "Yamaha YM3438 (extended channel 3) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_FRAC_EXT, 64, 0, "")
+      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 64, 0, "")
     }
   );
   ENTRY(
@@ -1692,13 +1692,13 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Sega Hang-On", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=2"), // 4MHz
       CH(DIV_SYSTEM_SEGAPCM, 64, 0, "") // discrete logics, 62.5KHz output rate
     }
   );
   ENTRY(
     "Sega Hang-On (extended channel 3)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=2"), // 4MHz
       CH(DIV_SYSTEM_SEGAPCM, 64, 0, "") // discrete logics, 62.5KHz output rate
     }
   );
@@ -1788,26 +1788,26 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Capcom Arcade", { // 1943, Side arms, etc
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"), // 4 or 1.5MHz; various per games
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5")
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=5"), // 4 or 1.5MHz; various per games
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=5")
     }
   );
   ENTRY(
     "Capcom Arcade (extended channel 3 on first OPN)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5"),
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5")
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=5"),
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=5")
     }
   );
   ENTRY(
     "Capcom Arcade (extended channel 3 on second OPN)", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"),
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5")
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=5"),
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=5")
     }
   );
   ENTRY(
     "Capcom Arcade (extended channel 3 on both OPNs)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5"),
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5")
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=5"),
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=5")
     }
   );
   ENTRY(
@@ -1842,7 +1842,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "NMK 16-bit Arcade", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"), // 1.5MHz; optional
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=5"), // 1.5MHz; optional
       CH(DIV_SYSTEM_MSM6295, 64, 0,
         "clockSel=2\n"
         "rateSel=true\n"
@@ -1855,7 +1855,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "NMK 16-bit Arcade (extended channel 3)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5"), // 1.5MHz; optional
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=5"), // 1.5MHz; optional
       CH(DIV_SYSTEM_MSM6295, 64, 0,
         "clockSel=2\n"
         "rateSel=true\n"
@@ -1868,21 +1868,21 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Kaneko DJ Boy", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=3"), // 3MHz
       CH(DIV_SYSTEM_MSM6295, 64, -127, "clockSel=12"), // 1.5MHz, Left output
       CH(DIV_SYSTEM_MSM6295, 64, 127, "clockSel=12"), // 1.5MHz, Right output
     }
   );
   ENTRY(
     "Kaneko DJ Boy (extended channel 3)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=3"), // 3MHz
       CH(DIV_SYSTEM_MSM6295, 64, -127, "clockSel=12"), // 1.5MHz, Left output
       CH(DIV_SYSTEM_MSM6295, 64, 127, "clockSel=12") // 1.5MHz, Right output
     }
   );
   ENTRY(
     "Kaneko Air Buster", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=3"), // 3MHz
       CH(DIV_SYSTEM_MSM6295, 64, 0,
         "clockSel=13\n"
         "rateSel=true\n"
@@ -1891,7 +1891,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Kaneko Air Buster (extended channel 3)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=3"), // 3MHz
       CH(DIV_SYSTEM_MSM6295, 64, 0,
         "clockSel=13\n"
         "rateSel=true\n"
@@ -1923,29 +1923,29 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Tecmo Ninja Gaiden", { // Ninja Gaiden, Raiga, etc
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=2"), // 4MHz
       CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1MHz
     }
   );
   ENTRY(
     "Tecmo Ninja Gaiden (extended channel 3 on first OPN)", { // Ninja Gaiden, Raiga, etc
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=2"), // 4MHz
       CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1MHz
     }
   );
   ENTRY(
     "Tecmo Ninja Gaiden (extended channel 3 on second OPN)", { // Ninja Gaiden, Raiga, etc
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=2"), // 4MHz
       CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1MHz
     }
   );
   ENTRY(
     "Tecmo Ninja Gaiden (extended channel 3 on both OPNs)", { // Ninja Gaiden, Raiga, etc
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4MHz
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=2"), // 4MHz
       CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1MHz
     }
   );
@@ -2022,66 +2022,66 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Data East Karnov", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=5"), // 1.5MHz
       CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=3") // 3MHz
     }
   );
   ENTRY(
     "Data East Karnov (extended channel 3)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=5"), // 1.5MHz
       CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=3") // 3MHz
     }
   );
   ENTRY(
     "Data East Karnov (drums mode)", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=5"), // 1.5MHz
       CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "clockSel=3") // 3MHz
     }
   );
   ENTRY(
     "Data East Karnov (extended channel 3; drums mode)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=5"), // 1.5MHz
       CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "clockSel=3") // 3MHz
     }
   );
   ENTRY(
     "Data East Arcade", { // Bad dudes, Robocop, etc
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=5"), // 1.5MHz
       CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=3"), // 3MHz
       CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1 to 1.056MHz; various per games or optional
     }
   );
   ENTRY(
     "Data East Arcade (extended channel 3)", { // Bad dudes, Robocop, etc
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=5"), // 1.5MHz
       CH(DIV_SYSTEM_OPL2, 64, 0, "clockSel=3"), // 3MHz
       CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1 to 1.056MHz; various per games or optional
     }
   );
   ENTRY(
     "Data East Arcade (drums mode)", { // Bad dudes, Robocop, etc
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=5"), // 1.5MHz
       CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=3"), // 3MHz
       CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1 to 1.056MHz; various per games or optional
     }
   );
   ENTRY(
     "Data East Arcade (extended channel 3; drums mode)", { // Bad dudes, Robocop, etc
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=5"), // 1.5MHz
       CH(DIV_SYSTEM_OPL2_DRUMS, 64, 0, "clockSel=3"), // 3MHz
       CH(DIV_SYSTEM_MSM6295, 64, 0, "") // 1 to 1.056MHz; various per games or optional
     }
   );
   ENTRY(
     "Data East PCX", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=5"), // 1.5MHz
       CH(DIV_SYSTEM_PCE, 64, 0, "")
       // software controlled MSM5205
     }
   );
   ENTRY(
     "Data East PCX (extended channel 3)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=5"), // 1.5MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=5"), // 1.5MHz
       CH(DIV_SYSTEM_PCE, 64, 0, "")
       // software controlled MSM5205
     }
@@ -2089,7 +2089,7 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Data East Dark Seal", { // Dark Seal, Crude Buster, Vapor Trail, etc
       CH(DIV_SYSTEM_YM2151, 64, 0, ""), // 3.580MHz (32.22MHz / 9)
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=2"), // 4.0275MHz (32.22MHz / 8); optional
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=2"), // 4.0275MHz (32.22MHz / 8); optional
       CH(DIV_SYSTEM_MSM6295, 64, 0, ""), // 1.007MHz (32.22MHz / 32)
       CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=8") // 2.014MHz (32.22MHz / 16); optional
       // HuC6280 is for control them, internal sound isn't used
@@ -2098,7 +2098,7 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Data East Dark Seal (extended channel 3)", { // Dark Seal, Crude Buster, Vapor Trail, etc
       CH(DIV_SYSTEM_YM2151, 64, 0, ""), // 3.580MHz (32.22MHz / 9)
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=2"), // 4.0275MHz (32.22MHz / 8); optional
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=2"), // 4.0275MHz (32.22MHz / 8); optional
       CH(DIV_SYSTEM_MSM6295, 64, 0, ""), // 1.007MHz (32.22MHz / 32)
       CH(DIV_SYSTEM_MSM6295, 64, 0, "clockSel=8") // 2.014MHz (32.22MHz / 16); optional
       // HuC6280 is for control them, internal sound isn't used
@@ -2213,7 +2213,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Alpha denshi Alpha-68K", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=3"), // 3MHz
       CH(DIV_SYSTEM_OPLL, 64, 0, "clockSel=0"), // 3.58MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=7614\n"
@@ -2223,7 +2223,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Alpha denshi Alpha-68K (extended channel 3)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=3"), // 3MHz
       CH(DIV_SYSTEM_OPLL, 64, 0, "clockSel=0"), // 3.58MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=7614\n"
@@ -2233,7 +2233,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Alpha denshi Alpha-68K (drums mode)", {
-      CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=3"), // 3MHz
       CH(DIV_SYSTEM_OPLL_DRUMS, 64, 0, "clockSel=0"), // 3.58MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=7614\n"
@@ -2243,7 +2243,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Alpha denshi Alpha-68K (extended channel 3; drums mode)", {
-      CH(DIV_SYSTEM_OPN_EXT, 64, 0, "clockSel=3"), // 3MHz
+      CH(DIV_SYSTEM_YM2203_EXT, 64, 0, "clockSel=3"), // 3MHz
       CH(DIV_SYSTEM_OPLL_DRUMS, 64, 0, "clockSel=0"), // 3.58MHz
       CH(DIV_SYSTEM_PCM_DAC, 64, 0,
         "rate=7614\n"
