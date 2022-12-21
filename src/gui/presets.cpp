@@ -2301,11 +2301,11 @@ void FurnaceGUI::initSystemPresets() {
     "Alpha denshi Equites", {
       CH(DIV_SYSTEM_MSM5232, 64, 0, ""), // // clock speed should be 6.144 MHz
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=14"),
-      CH(DIV_SYSTEM_DAC, 64, 0, 
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
          "rate=11025\n" 
          "outDepth=5\n"
       ),
-      CH(DIV_SYSTEM_DAC, 64, 0, 
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
          "rate=11025\n" 
          "outDepth=5\n"
       ) // don't know what the actual sample rate is
@@ -2397,7 +2397,7 @@ void FurnaceGUI::initSystemPresets() {
          "clockSel=3\n"
          "chipType=1\n"
       ),
-      CH(DIV_SYSTEM_DAC, 64, 0, 
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
          "rate=11025\n" 
          "outDepth=7\n"
       ) // don't know what the actual sample rate is
@@ -2414,7 +2414,7 @@ void FurnaceGUI::initSystemPresets() {
          "clockSel=3\n"
          "chipType=1\n"
       ),
-      CH(DIV_SYSTEM_DAC, 64, 0, 
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
          "rate=11025\n" 
          "outDepth=7\n"
       ) // don't know what the actual sample rate is
