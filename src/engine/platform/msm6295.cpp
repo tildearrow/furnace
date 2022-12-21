@@ -356,7 +356,7 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
   // sample data
   size_t memPos=128*8;
   int sampleCount=parent->song.sampleLen;
-  if (sampleCount>128) sampleCount=128;
+  if (sampleCount>127) sampleCount=127;
   for (int i=0; i<sampleCount; i++) {
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[0][sysID]) {
