@@ -41,15 +41,32 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
+
+      if (opChan[ch].insChanged) {
+        chan[2].state.alg=ins->fm.alg;
+        chan[2].state.fb=ins->fm.fb;
+        chan[2].state.fms=ins->fm.fms;
+        chan[2].state.ams=ins->fm.ams;
+        chan[2].state.op[ordch]=ins->fm.op[ordch];
+      }
+
+      if (noExtMacros) {
+        opChan[ch].macroInit(NULL);
+      } else {
+        opChan[ch].macroInit(ins);       
+      }
+      if (!opChan[ch].std.vol.will) {
+        opChan[ch].outVol=opChan[ch].vol;
+      }
       
       unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
-      DivInstrumentFM::Operator op=ins->fm.op[ordch];
+      DivInstrumentFM::Operator& op=chan[2].state.op[ordch];
       // TODO: how does this work?!
       if (isOpMuted[ch]) {
         rWrite(baseAddr+0x40,127);
       } else {
         if (opChan[ch].insChanged) {
-          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].vol&0x7f,127));
+          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].outVol&0x7f,127));
         }
       }
       if (opChan[ch].insChanged) {
@@ -62,13 +79,15 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
         opChan[ch].mask=op.enable;
       }
       if (opChan[ch].insChanged) { // TODO how does this work?
-        rWrite(chanOffs[2]+0xb0,(ins->fm.alg&7)|(ins->fm.fb<<3));
+        rWrite(chanOffs[2]+0xb0,(chan[2].state.alg&7)|(chan[2].state.fb<<3));
+        rWrite(chanOffs[2]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
       }
       opChan[ch].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
         opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
         opChan[ch].portaPause=false;
+        opChan[ch].note=c.value;
         opChan[ch].freqChanged=true;
       }
       opChan[ch].keyOn=true;
@@ -80,15 +99,28 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       opChan[ch].keyOn=false;
       opChan[ch].active=false;
       break;
+    case DIV_CMD_NOTE_OFF_ENV:
+      if (noExtMacros) break;
+      opChan[ch].keyOff=true;
+      opChan[ch].keyOn=false;
+      opChan[ch].active=false;
+      opChan[ch].std.release();
+      break;
+    case DIV_CMD_ENV_RELEASE:
+      if (noExtMacros) break;
+      opChan[ch].std.release();
+      break;
     case DIV_CMD_VOLUME: {
       opChan[ch].vol=c.value;
-      DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
+      if (!opChan[ch].std.vol.has) {
+        opChan[ch].outVol=c.value;
+      }
       unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
-      DivInstrumentFM::Operator op=ins->fm.op[ordch];
+      DivInstrumentFM::Operator& op=chan[2].state.op[ordch];
       if (isOpMuted[ch]) {
         rWrite(baseAddr+0x40,127);
       } else {
-        rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].vol&0x7f,127));
+        rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].outVol&0x7f,127));
       }
       break;
     }
