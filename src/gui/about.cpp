@@ -71,6 +71,7 @@ const char* aboutLine[]={
   "DeMOSic",
   "DevEd",
   "Dippy",
+  "dumbut",
   "FΛDE",
   "Forte",
   "Fragmare",
