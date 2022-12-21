@@ -2234,6 +2234,30 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "SNK Touchdown Fever", {
+      CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_Y8950, 64, 0, "clockSel=2")
+    }
+  );
+  ENTRY(
+    "SNK Touchdown Fever (drums mode on OPL)", {
+      CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_Y8950, 64, 0, "clockSel=2")
+    }
+  );
+  ENTRY(
+    "SNK Touchdown Fever (drums mode on Y8950)", {
+      CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "clockSel=2")
+    }
+  );
+  ENTRY(
+    "SNK Touchdown Fever (drums mode on OPL and Y8950)", {
+      CH(DIV_SYSTEM_OPL_DRUMS, 64, 0, "clockSel=2"),
+      CH(DIV_SYSTEM_Y8950_DRUMS, 64, 0, "clockSel=2")
+    }
+  );
+  ENTRY(
     "Alpha denshi Alpha-68K", {
       CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=3"), // 3MHz
       CH(DIV_SYSTEM_OPLL, 64, 0, "clockSel=0"), // 3.58MHz
