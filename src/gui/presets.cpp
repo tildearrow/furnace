@@ -1672,33 +1672,6 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "Atari Marble Madness", {
-      CH(DIV_SYSTEM_YM2151, 64, 0, ""),
-      CH(DIV_SYSTEM_POKEY, 64, 0, "")
-    }
-  );
-  ENTRY(
-    "Atari Championship Sprint", {
-      CH(DIV_SYSTEM_YM2151, 64, 0, ""),
-      CH(DIV_SYSTEM_POKEY, 64, 0, ""),
-      CH(DIV_SYSTEM_POKEY, 64, 0, "")
-    }
-  );
-  ENTRY(
-    "Atari Tetris", {
-      CH(DIV_SYSTEM_POKEY, 64, 0, ""),
-      CH(DIV_SYSTEM_POKEY, 64, 0, "")
-    }
-  );
-  ENTRY(
-    "Atari I, Robot", {
-      CH(DIV_SYSTEM_POKEY, 64, 0, ""), // clock speed should be 1.512 MHz
-      CH(DIV_SYSTEM_POKEY, 64, 0, ""), // same here
-      CH(DIV_SYSTEM_POKEY, 64, 0, ""), // same here
-      CH(DIV_SYSTEM_POKEY, 64, 0, "")  // same here...
-    }
-  );
-  ENTRY(
     "Sega Kyugo", {
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=14"),
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=14")
@@ -2067,6 +2040,33 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Atari Marble Madness", {
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""),
+      CH(DIV_SYSTEM_POKEY, 64, 0, "")
+    }
+  );
+  ENTRY(
+    "Atari Championship Sprint", {
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""),
+      CH(DIV_SYSTEM_POKEY, 64, 0, ""),
+      CH(DIV_SYSTEM_POKEY, 64, 0, "")
+    }
+  );
+  ENTRY(
+    "Atari Tetris", {
+      CH(DIV_SYSTEM_POKEY, 64, 0, ""),
+      CH(DIV_SYSTEM_POKEY, 64, 0, "")
+    }
+  );
+  ENTRY(
+    "Atari I, Robot", {
+      CH(DIV_SYSTEM_POKEY, 64, 0, ""), // clock speed should be 1.512 MHz
+      CH(DIV_SYSTEM_POKEY, 64, 0, ""), // same here
+      CH(DIV_SYSTEM_POKEY, 64, 0, ""), // same here
+      CH(DIV_SYSTEM_POKEY, 64, 0, "")  // same here...
+    }
+  );
+  ENTRY(
     "Data East Karnov", {
       CH(DIV_SYSTEM_OPN, 64, 0, "clockSel=5"), // 1.5MHz
       CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=3") // 3MHz
@@ -2298,6 +2298,20 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Alpha denshi Equites", {
+      CH(DIV_SYSTEM_MSM5232, 64, 0, ""), // // clock speed should be 6.144 MHz
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=14"),
+      CH(DIV_SYSTEM_DAC, 64, 0, 
+         "rate=11025\n" 
+         "outDepth=5\n"
+      ),
+      CH(DIV_SYSTEM_DAC, 64, 0, 
+         "rate=11025\n" 
+         "outDepth=5\n"
+      ) // don't know what the actual sample rate is
+    }
+  );
+  ENTRY(
     "Neo Geo MVS", {
       CH(DIV_SYSTEM_YM2610_FULL, 64, 0, "")
     }
@@ -2367,6 +2381,43 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Taito Arcade (extended channel 3)", {
       CH(DIV_SYSTEM_YM2610B_EXT, 64, 0, "")
+    }
+  );
+  ENTRY(
+    "Taito Metal Soldier Isaac II", {
+      CH(DIV_SYSTEM_MSM5232, 64, 0, ""),
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=3"),
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=3")
+    }
+  );
+  ENTRY(
+    "Taito The Fairyland Story", {
+      CH(DIV_SYSTEM_MSM5232, 64, 0, ""),
+      CH(DIV_SYSTEM_AY8910, 64, 0, 
+         "clockSel=3\n"
+         "chipType=1\n"
+      ),
+      CH(DIV_SYSTEM_DAC, 64, 0, 
+         "rate=11025\n" 
+         "outDepth=7\n"
+      ) // don't know what the actual sample rate is
+    }
+  );
+  ENTRY(
+    "Taito Wyvern F-0", {
+      CH(DIV_SYSTEM_MSM5232, 64, 0, ""),
+      CH(DIV_SYSTEM_AY8910, 64, 0, 
+         "clockSel=3\n"
+         "chipType=1\n"
+      ),
+      CH(DIV_SYSTEM_AY8910, 64, 0, 
+         "clockSel=3\n"
+         "chipType=1\n"
+      ),
+      CH(DIV_SYSTEM_DAC, 64, 0, 
+         "rate=11025\n" 
+         "outDepth=7\n"
+      ) // don't know what the actual sample rate is
     }
   );
   ENTRY(
