@@ -83,6 +83,8 @@
     return 2; \
   }
 
+#define IS_EXTCH_MUTED (isOpMuted[0] && isOpMuted[1] && isOpMuted[2] && isOpMuted[3])
+
 class DivPlatformOPN: public DivPlatformFMBase {
   protected:
     const unsigned short ADDR_MULT_DT=0x30;

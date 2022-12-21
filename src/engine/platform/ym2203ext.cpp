@@ -45,8 +45,6 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       if (opChan[ch].insChanged) {
         chan[2].state.alg=ins->fm.alg;
         chan[2].state.fb=ins->fm.fb;
-        chan[2].state.fms=ins->fm.fms;
-        chan[2].state.ams=ins->fm.ams;
         chan[2].state.op[ordch]=ins->fm.op[ordch];
       }
 
@@ -80,7 +78,6 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       }
       if (opChan[ch].insChanged) { // TODO how does this work?
         rWrite(chanOffs[2]+0xb0,(chan[2].state.alg&7)|(chan[2].state.fb<<3));
-        rWrite(chanOffs[2]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
       }
       opChan[ch].insChanged=false;
 
