@@ -163,6 +163,9 @@ void _logFileThread() {
 }
 
 bool startLogFile(const char* path) {
+  logFileAvail=false;
+  return false;
+  /*
   if (logFileAvail) return true;
 
   // rotate log file if possible
@@ -181,6 +184,7 @@ bool startLogFile(const char* path) {
 
   logFileThread=new std::thread(_logFileThread);
   return true;
+  */
 }
 
 bool finishLogFile() {
