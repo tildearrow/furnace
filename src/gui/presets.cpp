@@ -330,7 +330,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "MSX", {
-      CH(DIV_SYSTEM_AY8910, 64, 0, "chipType=1")
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=0\nchipType=1")
     }
   );
   ENTRY(
@@ -2611,9 +2611,9 @@ void FurnaceGUI::initSystemPresets() {
 FurnaceGUISysDef::FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e):
   name(n),
   extra(e) {
-  std::vector<FurnaceGUISysDefChip> uncompiled=def;
+  orig=def;
   int index=0;
-  for (FurnaceGUISysDefChip& i: uncompiled) {
+  for (FurnaceGUISysDefChip& i: orig) {
     definition+=fmt::sprintf(
       "id%d=%d\nvol%d=%d\npan%d=%d\nflags%d=%s\n",
       index,

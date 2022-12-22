@@ -54,6 +54,10 @@ String DivConfig::toBase64() {
   return taEncodeBase64(data);
 }
 
+const std::map<String,String>& DivConfig::configMap() {
+  return conf;
+}
+
 void DivConfig::parseLine(const char* line) {
   String key="";
   String value="";
@@ -169,6 +173,15 @@ String DivConfig::getString(String key, String fallback) const {
   } catch (std::out_of_range& e) {
   }
   return fallback;
+}
+
+bool DivConfig::has(String key) {
+  try {
+    conf.at(key);
+  } catch (std::out_of_range& e) {
+    return false;
+  }
+  return true;
 }
 
 void DivConfig::set(String key, bool value) {

@@ -35,12 +35,18 @@ class DivConfig {
     String toBase64();
     bool save(const char* path);
 
+    // get the map
+    const std::map<String,String>& configMap();
+
     // get a config value
     bool getBool(String key, bool fallback) const;
     int getInt(String key, int fallback) const;
     float getFloat(String key, float fallback) const;
     double getDouble(String key, double fallback) const;
     String getString(String key, String fallback) const;
+
+    // check for existence
+    bool has(String key);
 
     // set a config value
     void set(String key, bool value);

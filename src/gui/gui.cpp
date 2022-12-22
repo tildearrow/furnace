@@ -592,12 +592,14 @@ void FurnaceGUI::updateWindowTitle() {
 
 void FurnaceGUI::autoDetectSystem() {
   std::map<DivSystem,int> sysCountMap;
+  std::map<DivSystem,DivConfig> sysConfMap;
   for (int i=0; i<e->song.systemLen; i++) {
     try {
       sysCountMap.at(e->song.system[i])++;
     } catch (std::exception& ex) {
       sysCountMap[e->song.system[i]]=1;
     }
+    sysConfMap[e->song.system[i]]=e->song.systemFlags[i];
   }
 
   logV("sysCountMap:");
@@ -607,16 +609,20 @@ void FurnaceGUI::autoDetectSystem() {
 
   bool isMatch=false;
   std::map<DivSystem,int> defCountMap;
+  std::map<DivSystem,DivConfig> defConfMap;
   for (FurnaceGUISysCategory& i: sysCategories) {
     for (FurnaceGUISysDef& j: i.systems) {
       defCountMap.clear();
-      for (size_t k=0; k<j.definition.size(); k+=4) {
-        if (j.definition[k]==0) break;
+      defConfMap.clear();
+      for (FurnaceGUISysDefChip& k: j.orig) {
         try {
-          defCountMap.at((DivSystem)j.definition[k])++;
+          defCountMap.at(k.sys)++;
         } catch (std::exception& ex) {
-          defCountMap[(DivSystem)j.definition[k]]=1;
+          defCountMap[k.sys]=1;
         }
+        DivConfig dc;
+        dc.loadFromMemory(k.flags);
+        defConfMap[k.sys]=dc;
       }
       if (defCountMap.size()!=sysCountMap.size()) continue;
       isMatch=true;
@@ -630,6 +636,18 @@ void FurnaceGUI::autoDetectSystem() {
             isMatch=false;
             break;
           }
+          DivConfig& sysDC=sysConfMap.at(k.first);
+          for (std::pair<String,String> l: defConfMap.at(k.first).configMap()) {
+            if (!sysDC.has(l.first)) {
+              isMatch=false;
+              break;
+            }
+            if (sysDC.getString(l.first,"")!=l.second) {
+              isMatch=false;
+              break;
+            }
+          }
+          if (!isMatch) break;
         } catch (std::exception& ex) {
           isMatch=false;
           break;
@@ -1825,6 +1843,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
 
 int FurnaceGUI::save(String path, int dmfVersion) {
   SafeWriter* w;
+  logD("saving file...");
   if (dmfVersion) {
     if (dmfVersion<24) dmfVersion=24;
     w=e->saveDMF(dmfVersion);
@@ -1833,11 +1852,14 @@ int FurnaceGUI::save(String path, int dmfVersion) {
   }
   if (w==NULL) {
     lastError=e->getLastError();
+    logE("couldn't save! %s",lastError);
     return 3;
   }
+  logV("opening file for writing...");
   FILE* outFile=ps_fopen(path.c_str(),"wb");
   if (outFile==NULL) {
     lastError=strerror(errno);
+    logE("couldn't save! %s",lastError);
     w->finish();
     return 1;
   }
@@ -1918,6 +1940,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
     showWarning(e->getWarnings(),GUI_WARN_GENERIC);
   }
   pushRecentFile(path);
+  logD("save complete.");
   return 0;
 }
 
@@ -4070,7 +4093,6 @@ bool FurnaceGUI::loop() {
               }
               break;
             case GUI_FILE_SAVE: {
-              logD("saving: %s",copyOfName.c_str());
               bool saveWasSuccessful=true;
               if (save(copyOfName,0)>0) {
                 showError(fmt::sprintf("Error while saving file! (%s)",lastError));
@@ -5057,6 +5079,7 @@ bool FurnaceGUI::loop() {
             }
             logD("saving backup...");
             SafeWriter* w=e->saveFur(true);
+            logV("writing file...");
 
             if (w!=NULL) {
               FILE* outFile=ps_fopen(backupPath.c_str(),"wb");
@@ -5071,6 +5094,7 @@ bool FurnaceGUI::loop() {
                 w->finish();
               }
             }
+            logD("backup saved.");
             backupTimer=30.0;
             return true;
           });
