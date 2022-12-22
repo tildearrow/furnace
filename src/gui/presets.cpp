@@ -2060,10 +2060,10 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Atari I, Robot", {
-      CH(DIV_SYSTEM_POKEY, 64, 0, ""), // clock speed should be 1.512 MHz
-      CH(DIV_SYSTEM_POKEY, 64, 0, ""), // same here
-      CH(DIV_SYSTEM_POKEY, 64, 0, ""), // same here
-      CH(DIV_SYSTEM_POKEY, 64, 0, "")  // same here...
+      CH(DIV_SYSTEM_POKEY, 64, 0, "customClock=1512000"),
+      CH(DIV_SYSTEM_POKEY, 64, 0, "customClock=1512000"),
+      CH(DIV_SYSTEM_POKEY, 64, 0, "customClock=1512000"),
+      CH(DIV_SYSTEM_POKEY, 64, 0, "customClock=1512000")
     }
   );
   ENTRY(
@@ -2299,7 +2299,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Alpha denshi Equites", {
-      CH(DIV_SYSTEM_MSM5232, 64, 0, ""), // // clock speed should be 6.144 MHz
+      CH(DIV_SYSTEM_MSM5232, 64, 0, "customClock=6144000"),
       CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=14"),
       CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
          "rate=11025\n" 
