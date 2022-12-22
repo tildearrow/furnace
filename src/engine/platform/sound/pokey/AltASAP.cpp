@@ -39,11 +39,6 @@ static constexpr int MuteInit = 2;
 static constexpr int MuteUser = 4;
 static constexpr int MuteSerialInput = 8;
 
-int32_t clamp( int32_t v, int32_t lo, int32_t hi )
-{
-  return v < lo ? lo : ( v > hi ? hi : v );
-}
-
 struct PokeyBase
 {
   int64_t mPolyIndex;
@@ -131,7 +126,7 @@ private:
 class AudioChannel
 {
 public:
-  AudioChannel( ActionQueue& queue, uint32_t number ) : mQueue{ queue }, mNumber{ number }, mAudf{ 0 }, mAudc{ 0 }, mPeriodCycles{ 28 }, mMute{ MuteFrequency }, mOut{ 0 }, mDelta{ 0 }
+  AudioChannel( ActionQueue& queue, uint32_t number ) : mQueue{ queue }, mNumber{ number }, mAudf{ 0 }, mAudc{ 0 }, mPeriodCycles{ 28 }, mMute{ MuteFrequency }, mDelta{ 0 }, mOut{ 0 }
   {
   }
 
@@ -178,9 +173,9 @@ public:
         mOut ^= 1;
       else
       {
-        int newOut;
+        uint32_t newOut;
         if ( ( mAudc & 0x40 ) != 0 )
-          newOut = 0x5370 >> (int)( poly % 15 ); // 000011101100101
+          newOut = 0x5370u >> (int)( poly % 15 ); // 000011101100101
         else if ( pokey.mAudctl < 0x80 )
         {
           poly %= 131071;
@@ -278,7 +273,6 @@ private:
   uint32_t mMute;
   int32_t mDelta;
   uint32_t mOut;
-  bool mInit;
 };
 
 }
