@@ -173,8 +173,9 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       immWrite(0x27,extMode?0x40:0);
       break;
     }
-    case DIV_CMD_FM_LFO: {
-      rWrite(0x22,(c.value&7)|((c.value>>4)<<3));
+    case DIV_CMD_FM_LFO: { // ???
+      lfoValue=(c.value&7)|((c.value>>4)<<3);
+      rWrite(0x22,lfoValue);
       break;
     }
     case DIV_CMD_FM_FB: {
@@ -182,20 +183,23 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       rWrite(chanOffs[2]+ADDR_FB_ALG,(chan[2].state.alg&7)|(chan[2].state.fb<<3));
       break;
     }
-    case DIV_CMD_FM_MULT: { // TODO
+    case DIV_CMD_FM_MULT: {
       unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[c.value]];
-      DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
-      DivInstrumentFM::Operator op=ins->fm.op[orderedOps[c.value]];
-      rWrite(baseAddr+0x30,(c.value2&15)|(dtTable[op.dt&7]<<4));
+      DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[c.value]];
+      op.mult=c.value2&15;
+      rWrite(baseAddr+0x30,(op.mult&15)|(dtTable[op.dt&7]<<4));
       break;
     }
-    case DIV_CMD_FM_TL: { // TODO
+    case DIV_CMD_FM_TL: {
       unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[c.value]];
-      DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
-      if (isOutput[ins->fm.alg][c.value]) {
-        rWrite(baseAddr+0x40,127-(((127-c.value2)*(opChan[ch].vol&0x7f))/127));
+      DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[c.value]];
+      op.tl=c.value2;
+      if (isOpMuted[ch]) {
+        rWrite(baseAddr+0x40,127);
+      } else if (KVS(2,c.value)) {
+        rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].outVol&0x7f,127));
       } else {
-        rWrite(baseAddr+0x40,c.value2);
+        rWrite(baseAddr+0x40,op.tl);
       }
       break;
     }

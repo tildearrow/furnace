@@ -150,6 +150,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
     unsigned int fmDivBase;
     unsigned int ayDiv;
     unsigned char csmChan;
+    unsigned char lfoValue;
     bool extSys;
 
     DivConfig ayFlags;
@@ -162,6 +163,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
       fmDivBase(d),
       ayDiv(a),
       csmChan(cc),
+      lfoValue(0),
       extSys(isExtSys) {}
 
 };

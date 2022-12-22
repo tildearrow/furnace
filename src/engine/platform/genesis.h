@@ -81,8 +81,6 @@ class DivPlatformGenesis: public DivPlatformOPN {
     ymfm::ym2612* fm_ymfm;
     ymfm::ym2612::output_data out_ymfm;
     DivYM2612Interface iface;
-  
-    unsigned char lfoValue;
 
     int softPCMTimer;
 
