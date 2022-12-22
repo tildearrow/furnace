@@ -529,10 +529,10 @@ void DivPlatformK007232::renderSamples(int sysID) {
     }
 
     const int length=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
-    int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-1,length);
+    int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-2,length);
     if (actualLength>0) {
-      if (actualLength>131072-1) {
-        actualLength=131072-1;
+      if (actualLength>131072-2) {
+        actualLength=131072-2;
       }
       if ((memPos&0xfe0000)!=((memPos+actualLength+1)&0xfe0000)) {
         memPos=(memPos+0x1ffff)&0xfe0000;
