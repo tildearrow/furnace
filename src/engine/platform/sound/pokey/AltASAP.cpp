@@ -36,7 +36,6 @@ namespace
 static constexpr int64_t CNT_MAX = std::numeric_limits<int64_t>::max() & ~7;
 static constexpr int MuteFrequency = 1;
 static constexpr int MuteInit = 2;
-static constexpr int MuteUser = 4;
 static constexpr int MuteSerialInput = 8;
 
 struct PokeyBase
