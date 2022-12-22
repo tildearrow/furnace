@@ -612,7 +612,7 @@ private:
 };
 
 
-Pokey::Pokey( uint32_t pokeyClock, uint32_t sampleRate ) : mPokey{}, mPokeyClock{ pokeyClock }, mSampleRate{ sampleRate }
+Pokey::Pokey( uint32_t pokeyClock, uint32_t sampleRate ) : mPokey{ std::make_unique<PokeyPimpl>( mPokeyClock, mSampleRate ) }, mPokeyClock{ pokeyClock }, mSampleRate{ sampleRate }
 {
 }
 

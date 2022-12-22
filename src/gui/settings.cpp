@@ -103,8 +103,8 @@ const char* c64Cores[]={
 };
 
 const char* pokeyCores[]={
-  "mzpokeysnd",
-  "altASAP"
+  "Atari800 (mzpokeysnd)",
+  "ASAP (C++ port)"
 };
 
 const char* pcspkrOutMethods[]={

@@ -65,10 +65,12 @@ const char** DivPlatformPOKEY::getRegisterSheet() {
 }
 
 void DivPlatformPOKEY::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  if (useAltASAP)
+  if (useAltASAP) {
     acquireASAP(bufL, start, len);
-  else
+  }
+  else {
     acquireMZ(bufL, start, len);
+  }
 }
 
 void DivPlatformPOKEY::acquireMZ(short* buf, size_t start, size_t len) {
@@ -394,10 +396,12 @@ DivDispatchOscBuffer* DivPlatformPOKEY::getOscBuffer(int ch) {
 }
 
 unsigned char* DivPlatformPOKEY::getRegisterPool() {
-  if (useAltASAP)
+  if (useAltASAP) {
     return const_cast<unsigned char*>(altASAP->getRegisterPool());
-  else
+  }
+  else {
     return regPool;
+  }
 }
 
 int DivPlatformPOKEY::getRegisterPoolSize() {
@@ -415,10 +419,12 @@ void DivPlatformPOKEY::reset() {
     addWrite(0xffffffff,0);
   }
 
-  if (useAltASAP)
+  if (useAltASAP) {
     altASAP->reset();
-  else
+  }
+  else {
     ResetPokeyState(&pokey);
+  }
 
   audctl=0;
   audctlChanged=true;
@@ -450,9 +456,9 @@ void DivPlatformPOKEY::setFlags(const DivConfig& flags) {
     oscBuf[i]->rate=rate/14;
   }
 
-  if (useAltASAP)
+  if (useAltASAP) {
     altASAP=std::make_unique<AltASAP::Pokey>(chipClock, chipClock);
-
+  }
 }
 
 void DivPlatformPOKEY::poke(unsigned int addr, unsigned short val) {
@@ -473,8 +479,9 @@ int DivPlatformPOKEY::init(DivEngine* p, int channels, int sugRate, const DivCon
     oscBuf[i]=new DivDispatchOscBuffer;
   }
 
-  if (!useAltASAP)
+  if (!useAltASAP) {
     MZPOKEYSND_Init(&pokey);
+  }
   
   setFlags(flags);
   reset();
@@ -487,7 +494,7 @@ void DivPlatformPOKEY::quit() {
   }
 }
 
-void DivPlatformPOKEY::setAltASAP(bool value){
+void DivPlatformPOKEY::setAltASAP(bool value) {
   useAltASAP=value;
 }
 
