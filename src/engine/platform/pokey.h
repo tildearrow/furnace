@@ -27,6 +27,9 @@ extern "C" {
 #include "sound/pokey/mzpokeysnd.h"
 }
 
+#include "sound/pokey/Pokey.hpp"
+
+
 class DivPlatformPOKEY: public DivDispatch {
   struct Channel: public SharedChannel<int> {
     unsigned char wave;
@@ -49,6 +52,7 @@ class DivPlatformPOKEY: public DivDispatch {
   bool audctlChanged;
   unsigned char oscBufDelay;
   PokeyState pokey;
+  std::unique_ptr<Test::Pokey> mPokey2;
   unsigned char regPool[16];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);

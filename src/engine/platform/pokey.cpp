@@ -68,12 +68,15 @@ void DivPlatformPOKEY::acquire(short* bufL, short* bufR, size_t start, size_t le
   for (size_t h=start; h<start+len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
+      mPokey2->write( w.addr, w.val );
       Update_pokey_sound_mz(&pokey,w.addr,w.val,0);
       regPool[w.addr&0x0f]=w.val;
       writes.pop();
     }
 
     mzpokeysnd_process_16(&pokey,&bufL[h],1);
+    mPokey2->sampleAudio( &bufL[h], 1 );
+    bufL[h] *= 160;
 
     if (++oscBufDelay>=14) {
       oscBufDelay=0;
@@ -370,6 +373,7 @@ DivDispatchOscBuffer* DivPlatformPOKEY::getOscBuffer(int ch) {
 }
 
 unsigned char* DivPlatformPOKEY::getRegisterPool() {
+  return const_cast<unsigned char*>( mPokey2->getRegisterPool() );
   return regPool;
 }
 
@@ -389,6 +393,7 @@ void DivPlatformPOKEY::reset() {
   }
 
   ResetPokeyState(&pokey);
+  mPokey2->reset();
 
   audctl=0;
   audctlChanged=true;
@@ -419,6 +424,9 @@ void DivPlatformPOKEY::setFlags(const DivConfig& flags) {
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate/14;
   }
+
+  mPokey2 = std::make_unique<Test::Pokey>( chipClock, chipClock );
+
 }
 
 void DivPlatformPOKEY::poke(unsigned int addr, unsigned short val) {
