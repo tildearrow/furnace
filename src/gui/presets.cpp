@@ -115,6 +115,19 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Neo Geo Pocket", {
+      CH(DIV_SYSTEM_T6W28, 64, 0, ""),
+      CH(DIV_SYSTEM_PCM_DAC, 64, -127, 
+        "rate=11025\n"
+        "outDepth=5\n"
+      ),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 127, 
+        "rate=11025\n"
+        "outDepth=5\n"
+      ) // don't know what the actual sample rate is
+    }
+  );
+  ENTRY(
     "NEC PC Engine/TurboGrafx-16", {
       CH(DIV_SYSTEM_PCE, 64, 0, "")
     }
@@ -188,6 +201,12 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Atari 2600/7800", {
       CH(DIV_SYSTEM_TIA, 64, 0, "")
+    }
+  );
+  ENTRY(
+    "Atari 7800 + Ballblazer/Commando", {
+      CH(DIV_SYSTEM_TIA, 64, 0, ""),
+      CH(DIV_SYSTEM_POKEY, 64, 0, "")
     }
   );
   ENTRY(
@@ -2021,6 +2040,33 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Atari Marble Madness", {
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""),
+      CH(DIV_SYSTEM_POKEY, 64, 0, "")
+    }
+  );
+  ENTRY(
+    "Atari Championship Sprint", {
+      CH(DIV_SYSTEM_YM2151, 64, 0, ""),
+      CH(DIV_SYSTEM_POKEY, 64, 0, ""),
+      CH(DIV_SYSTEM_POKEY, 64, 0, "")
+    }
+  );
+  ENTRY(
+    "Atari Tetris", {
+      CH(DIV_SYSTEM_POKEY, 64, 0, ""),
+      CH(DIV_SYSTEM_POKEY, 64, 0, "")
+    }
+  );
+  ENTRY(
+    "Atari I, Robot", {
+      CH(DIV_SYSTEM_POKEY, 64, 0, "customClock=1512000"),
+      CH(DIV_SYSTEM_POKEY, 64, 0, "customClock=1512000"),
+      CH(DIV_SYSTEM_POKEY, 64, 0, "customClock=1512000"),
+      CH(DIV_SYSTEM_POKEY, 64, 0, "customClock=1512000")
+    }
+  );
+  ENTRY(
     "Data East Karnov", {
       CH(DIV_SYSTEM_YM2203, 64, 0, "clockSel=5"), // 1.5MHz
       CH(DIV_SYSTEM_OPL, 64, 0, "clockSel=3") // 3MHz
@@ -2252,6 +2298,20 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Alpha denshi Equites", {
+      CH(DIV_SYSTEM_MSM5232, 64, 0, "customClock=6144000"),
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=14"),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
+         "rate=11025\n" 
+         "outDepth=5\n"
+      ),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
+         "rate=11025\n" 
+         "outDepth=5\n"
+      ) // don't know what the actual sample rate is
+    }
+  );
+  ENTRY(
     "Neo Geo MVS", {
       CH(DIV_SYSTEM_YM2610_FULL, 64, 0, "")
     }
@@ -2321,6 +2381,43 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Taito Arcade (extended channel 3)", {
       CH(DIV_SYSTEM_YM2610B_EXT, 64, 0, "")
+    }
+  );
+  ENTRY(
+    "Taito Metal Soldier Isaac II", {
+      CH(DIV_SYSTEM_MSM5232, 64, 0, ""),
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=3"),
+      CH(DIV_SYSTEM_AY8910, 64, 0, "clockSel=3")
+    }
+  );
+  ENTRY(
+    "Taito The Fairyland Story", {
+      CH(DIV_SYSTEM_MSM5232, 64, 0, ""),
+      CH(DIV_SYSTEM_AY8910, 64, 0, 
+         "clockSel=3\n"
+         "chipType=1\n"
+      ),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
+         "rate=11025\n" 
+         "outDepth=7\n"
+      ) // don't know what the actual sample rate is
+    }
+  );
+  ENTRY(
+    "Taito Wyvern F-0", {
+      CH(DIV_SYSTEM_MSM5232, 64, 0, ""),
+      CH(DIV_SYSTEM_AY8910, 64, 0, 
+         "clockSel=3\n"
+         "chipType=1\n"
+      ),
+      CH(DIV_SYSTEM_AY8910, 64, 0, 
+         "clockSel=3\n"
+         "chipType=1\n"
+      ),
+      CH(DIV_SYSTEM_PCM_DAC, 64, 0, 
+         "rate=11025\n" 
+         "outDepth=7\n"
+      ) // don't know what the actual sample rate is
     }
   );
   ENTRY(
