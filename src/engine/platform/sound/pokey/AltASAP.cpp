@@ -20,14 +20,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "Pokey.hpp"
+#include "AltASAP.hpp"
 #include <array>
 #include <vector>
 #include <cassert>
 #include <algorithm>
 #include <limits>
 
-namespace Test
+namespace AltASAP
 {
 
 namespace
@@ -631,12 +631,9 @@ void Pokey::write( uint8_t address, uint8_t value )
   mPokey->write( address, value );
 }
 
-void Pokey::sampleAudio( int16_t* buf, size_t size, DivDispatchOscBuffer** oscb )
+int16_t Pokey::sampleAudio( DivDispatchOscBuffer** oscb )
 {
-  for ( size_t i = 0; i < size; ++i )
-  {
-    buf[i] = mPokey->sampleAudio( oscb );
-  }
+  return mPokey->sampleAudio( oscb ) * 160; //just some magick value to match the audio level of mzpokeysnd
 }
 
 uint8_t const* Pokey::getRegisterPool()

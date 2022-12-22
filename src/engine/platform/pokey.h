@@ -27,7 +27,7 @@ extern "C" {
 #include "sound/pokey/mzpokeysnd.h"
 }
 
-#include "sound/pokey/Pokey.hpp"
+#include "sound/pokey/AltASAP.hpp"
 
 
 class DivPlatformPOKEY: public DivDispatch {
@@ -52,12 +52,15 @@ class DivPlatformPOKEY: public DivDispatch {
   bool audctlChanged;
   unsigned char oscBufDelay;
   PokeyState pokey;
-  std::unique_ptr<Test::Pokey> mPokey2;
+  std::unique_ptr<AltASAP::Pokey> altASAP;
+  bool useAltASAP;
   unsigned char regPool[16];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquireMZ(short* buf, size_t start, size_t len);
+    void acquireASAP(short* buf, size_t start, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -77,6 +80,7 @@ class DivPlatformPOKEY: public DivDispatch {
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    void setAltASAP(bool useAltASAP);
     ~DivPlatformPOKEY();
 };
 

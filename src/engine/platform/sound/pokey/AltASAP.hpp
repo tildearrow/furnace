@@ -6,7 +6,7 @@
 // can you forgive me
 #include "../../../dispatch.h"
 
-namespace Test
+namespace AltASAP
 {
 
 class PokeyPimpl;
@@ -19,7 +19,7 @@ public:
   ~Pokey();
 
   void write( uint8_t address, uint8_t value );
-  void sampleAudio( int16_t* buf, size_t size, DivDispatchOscBuffer** oscb = NULL );
+  int16_t sampleAudio( DivDispatchOscBuffer** oscb = nullptr );
 
   uint8_t const* getRegisterPool();
 
