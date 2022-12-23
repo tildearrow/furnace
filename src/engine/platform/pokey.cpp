@@ -67,8 +67,7 @@ const char** DivPlatformPOKEY::getRegisterSheet() {
 void DivPlatformPOKEY::acquire(short* bufL, short* bufR, size_t start, size_t len) {
   if (useAltASAP) {
     acquireASAP(bufL, start, len);
-  }
-  else {
+  } else {
     acquireMZ(bufL, start, len);
   }
 }
@@ -398,8 +397,7 @@ DivDispatchOscBuffer* DivPlatformPOKEY::getOscBuffer(int ch) {
 unsigned char* DivPlatformPOKEY::getRegisterPool() {
   if (useAltASAP) {
     return const_cast<unsigned char*>(altASAP->getRegisterPool());
-  }
-  else {
+  } else {
     return regPool;
   }
 }
@@ -421,8 +419,7 @@ void DivPlatformPOKEY::reset() {
 
   if (useAltASAP) {
     altASAP->reset();
-  }
-  else {
+  } else {
     ResetPokeyState(&pokey);
   }
 
