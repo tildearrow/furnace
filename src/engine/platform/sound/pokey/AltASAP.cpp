@@ -37,6 +37,9 @@ static constexpr int64_t CNT_MAX = std::numeric_limits<int64_t>::max() & ~7;
 static constexpr int MuteFrequency = 1;
 static constexpr int MuteInit = 2;
 static constexpr int MuteSerialInput = 8;
+//just some magick value to match the audio level of mzpokeysnd
+static constexpr int16_t MAGICK_VOLUME_BOOSTER = 160;
+static constexpr int16_t MAGICK_OSC_VOLUME_BOOSTER = 4;
 
 struct PokeyBase
 {
@@ -219,15 +222,15 @@ public:
     int32_t volume = value & 0x0f;
     if ( ( value & 0x10 ) != 0 )
     {
-      mDelta = volume;
+      mDelta = volume * MAGICK_VOLUME_BOOSTER;
     }
     else
     {
       muteUltrasound( cycle );
       if ( mDelta > 0 )
-        mDelta = volume;
+        mDelta = volume * MAGICK_VOLUME_BOOSTER;
       else
-        mDelta = -volume;
+        mDelta = -volume * MAGICK_VOLUME_BOOSTER;
     }
   }
 
@@ -283,9 +286,9 @@ public:
 
   PokeyPimpl( uint32_t pokeyClock, uint32_t sampleRate ) : PokeyBase{}, mQueue{ std::make_unique<ActionQueue>() },
     mAudioChannels{ AudioChannel{ *mQueue, 0u }, AudioChannel{ *mQueue, 1u }, AudioChannel{ *mQueue, 2u }, AudioChannel{ *mQueue, 3u } },
-    mRegisterPool{}, mPokeyClock{ pokeyClock * 8 }, mTick{}, mNextTick{}, mSampleRate{ sampleRate }, mSamplesRemainder{},
-    mReloadCycles1{ 28 }, mReloadCycles3{ 28 }, mDivCycles{ 28 },
-    mTicksPerSample{ mPokeyClock / mSampleRate, mPokeyClock % mSampleRate }
+    mRegisterPool{}, mTick{}, mNextTick{},
+    mReloadCycles1{ 28 }, mReloadCycles3{ 28 }, mDivCycles{ 28 }, mSampleRate{ sampleRate }, mSamplesRemainder{},
+    mTicksPerSample{ ( pokeyClock * 8 ) / mSampleRate, ( pokeyClock * 8 ) % mSampleRate }
   {
     std::fill_n( mRegisterPool.data(), mRegisterPool.size(), (uint8_t)0xff );
     enqueueSampling();
@@ -468,7 +471,7 @@ public:
       for ( int i = 0; i < 4; i++ )
         mAudioChannels[i].doStimer( cycle );
       break;
-    case 0x0f:                                                                               
+    case 0x0f:
     {
       if ( value == mSkctl )
         break;
@@ -501,10 +504,10 @@ public:
 
         if ( oscb != nullptr )
         {
-          oscb[0]->data[oscb[0]->needle++]=ch0;
-          oscb[1]->data[oscb[1]->needle++]=ch1;
-          oscb[2]->data[oscb[2]->needle++]=ch2;
-          oscb[3]->data[oscb[3]->needle++]=ch3;
+          oscb[0]->data[oscb[0]->needle++]=ch0 * MAGICK_OSC_VOLUME_BOOSTER;
+          oscb[1]->data[oscb[1]->needle++]=ch1 * MAGICK_OSC_VOLUME_BOOSTER;
+          oscb[2]->data[oscb[2]->needle++]=ch2 * MAGICK_OSC_VOLUME_BOOSTER;
+          oscb[3]->data[oscb[3]->needle++]=ch3 * MAGICK_OSC_VOLUME_BOOSTER;
         }
 
         enqueueSampling();
@@ -598,21 +601,31 @@ private:
 
   std::array<uint8_t, 4 * 2 + 1> mRegisterPool;
 
-  uint32_t mPokeyClock;
   uint64_t mTick;
   uint64_t mNextTick;
+  int64_t mReloadCycles1;
+  int64_t mReloadCycles3;
+  int64_t mDivCycles;
   uint32_t mSampleRate;
   uint32_t mSamplesRemainder;
-  int mReloadCycles1;
-  int mReloadCycles3;
-  int mDivCycles;
   std::pair<uint32_t, uint32_t> mTicksPerSample;
-
 };
 
-
-Pokey::Pokey( uint32_t pokeyClock, uint32_t sampleRate ) : mPokey{ std::make_unique<PokeyPimpl>( mPokeyClock, mSampleRate ) }, mPokeyClock{ pokeyClock }, mSampleRate{ sampleRate }
+//Initializing periods with safe defaults
+Pokey::Pokey() : mPokeyClock{ (uint32_t)COLOR_NTSC / 2 }, mSampleRate{ mPokeyClock / 7 }, mPokey{}
 {
+}
+
+void Pokey::init( uint32_t pokeyClock, uint32_t sampleRate )
+{
+  mPokey.reset();
+  mPokeyClock = pokeyClock;
+  mSampleRate = sampleRate;
+}
+
+void Pokey::reset()
+{
+  mPokey = std::make_unique<PokeyPimpl>( mPokeyClock, mSampleRate );
 }
 
 Pokey::~Pokey()
@@ -621,22 +634,20 @@ Pokey::~Pokey()
 
 void Pokey::write( uint8_t address, uint8_t value )
 {
+  assert( mPokey );
   mPokey->write( address, value );
 }
 
 int16_t Pokey::sampleAudio( DivDispatchOscBuffer** oscb )
 {
-  return mPokey->sampleAudio( oscb ) * 160; //just some magick value to match the audio level of mzpokeysnd
+  assert( mPokey );
+  return mPokey->sampleAudio( oscb );
 }
 
 uint8_t const* Pokey::getRegisterPool()
 {
+  assert( mPokey );
   return mPokey->getRegisterPool();
-}
-
-void Pokey::reset()
-{
-  mPokey = std::make_unique<PokeyPimpl>( mPokeyClock, mSampleRate );
 }
 
 }

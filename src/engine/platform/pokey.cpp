@@ -96,16 +96,16 @@ void DivPlatformPOKEY::acquireMZ(short* buf, size_t start, size_t len) {
 void DivPlatformPOKEY::acquireASAP(short* buf, size_t start, size_t len) {
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
-    altASAP->write(w.addr, w.val);
+    altASAP.write(w.addr, w.val);
     writes.pop();
   }
 
   for (size_t h=start; h<start+len; h++) {
     if (++oscBufDelay>=2) {
       oscBufDelay=0;
-      buf[h]=altASAP->sampleAudio(oscBuf);
+      buf[h]=altASAP.sampleAudio(oscBuf);
     } else {
-      buf[h]=altASAP->sampleAudio();
+      buf[h]=altASAP.sampleAudio();
     }
   }
 }
@@ -396,7 +396,7 @@ DivDispatchOscBuffer* DivPlatformPOKEY::getOscBuffer(int ch) {
 
 unsigned char* DivPlatformPOKEY::getRegisterPool() {
   if (useAltASAP) {
-    return const_cast<unsigned char*>(altASAP->getRegisterPool());
+    return const_cast<unsigned char*>(altASAP.getRegisterPool());
   } else {
     return regPool;
   }
@@ -418,7 +418,7 @@ void DivPlatformPOKEY::reset() {
   }
 
   if (useAltASAP) {
-    altASAP->reset();
+    altASAP.reset();
   } else {
     ResetPokeyState(&pokey);
   }
@@ -454,10 +454,7 @@ void DivPlatformPOKEY::setFlags(const DivConfig& flags) {
     for (int i=0; i<4; i++) {
       oscBuf[i]->rate=rate/2;
     }
-    if (altASAP) {
-      delete altASAP;
-    }
-    altASAP=new AltASAP::Pokey(chipClock,rate);
+    altASAP.init(chipClock,rate);
   } else {
     rate=chipClock;
     for (int i=0; i<4; i++) {
@@ -479,7 +476,6 @@ int DivPlatformPOKEY::init(DivEngine* p, int channels, int sugRate, const DivCon
   dumpWrites=false;
   skipRegisterWrites=false;
   oscBufDelay=0;
-  altASAP=NULL;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
@@ -488,7 +484,7 @@ int DivPlatformPOKEY::init(DivEngine* p, int channels, int sugRate, const DivCon
   if (!useAltASAP) {
     MZPOKEYSND_Init(&pokey);
   }
-  
+
   setFlags(flags);
   reset();
   return 6;
@@ -497,9 +493,6 @@ int DivPlatformPOKEY::init(DivEngine* p, int channels, int sugRate, const DivCon
 void DivPlatformPOKEY::quit() {
   for (int i=0; i<4; i++) {
     delete oscBuf[i];
-  }
-  if (altASAP) {
-    delete altASAP;
   }
 }
 
