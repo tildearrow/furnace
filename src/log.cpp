@@ -96,7 +96,7 @@ int writeLog(int level, const char* msg, fmt::printf_args args) {
 
   printf("logPosition: %d\n",pos);
 
-  logEntries[pos].text=fmt::vsprintf(msg,args);
+  logEntries[pos].text.assign(fmt::vsprintf(msg,args));
   // why do I have to pass a pointer
   // can't I just pass the time_t directly?!
 #ifdef _WIN32
