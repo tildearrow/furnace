@@ -29,8 +29,8 @@ int logLevel=LOGLEVEL_INFO;
 
 FILE* logFile;
 char* logFileBuf;
-std::atomic<unsigned int> logFilePosI;
-std::atomic<unsigned int> logFilePosO;
+unsigned int logFilePosI;
+unsigned int logFilePosO;
 std::thread* logFileThread;
 std::mutex logFileLock;
 std::mutex logFileLockI;
@@ -67,7 +67,9 @@ void appendLogBuf(const LogEntry& entry) {
   const char* msg=toWrite.c_str();
   size_t len=toWrite.size();
 
-  int remaining=(logFilePosO-logFilePosI)&TA_LOGFILE_BUF_SIZE;
+  printf("appendLogBuf %d %d\n",logFilePosI,(int)len);
+
+  int remaining=(logFilePosO-logFilePosI-1)&TA_LOGFILE_BUF_SIZE;
 
   if (len>=(unsigned int)remaining) {
     printf("line too long to fit in log buffer!\n");
@@ -91,6 +93,8 @@ int writeLog(int level, const char* msg, fmt::printf_args args) {
   time_t thisMakesNoSense=time(NULL);
   int pos=logPosition;
   logPosition=(logPosition+1)&TA_LOG_MASK;
+
+  printf("logPosition: %d\n",pos);
 
   logEntries[pos].text=fmt::vsprintf(msg,args);
   // why do I have to pass a pointer
@@ -166,8 +170,6 @@ void _logFileThread() {
 }
 
 bool startLogFile(const char* path) {
-  logFileAvail=false;
-  return false;
   if (logFileAvail) return true;
 
   // rotate log file if possible
