@@ -494,10 +494,12 @@ public:
       int64_t value = mQueue->pop();
       if ( ( value & 7 ) == 6 ) // 6 == 4 ^ 2
       {
-        int16_t ch0 = mAudioChannels[0].getOutput();
-        int16_t ch1 = mAudioChannels[1].getOutput();
-        int16_t ch2 = mAudioChannels[2].getOutput();
-        int16_t ch3 = mAudioChannels[3].getOutput();
+        //just some magick value to match the audio level of mzpokeysnd
+        static constexpr int16_t MAGICK_VOLUME_BOOSTER = 160;
+        int16_t ch0 = mAudioChannels[0].getOutput() * MAGICK_VOLUME_BOOSTER;
+        int16_t ch1 = mAudioChannels[1].getOutput() * MAGICK_VOLUME_BOOSTER;
+        int16_t ch2 = mAudioChannels[2].getOutput() * MAGICK_VOLUME_BOOSTER;
+        int16_t ch3 = mAudioChannels[3].getOutput() * MAGICK_VOLUME_BOOSTER;
 
         if ( oscb != nullptr )
         {
@@ -626,7 +628,7 @@ void Pokey::write( uint8_t address, uint8_t value )
 
 int16_t Pokey::sampleAudio( DivDispatchOscBuffer** oscb )
 {
-  return mPokey->sampleAudio( oscb ) * 160; //just some magick value to match the audio level of mzpokeysnd
+  return mPokey->sampleAudio( oscb );
 }
 
 uint8_t const* Pokey::getRegisterPool()
