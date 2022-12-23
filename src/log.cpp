@@ -91,8 +91,7 @@ void appendLogBuf(const LogEntry& entry) {
 
 int writeLog(int level, const char* msg, fmt::printf_args args) {
   time_t thisMakesNoSense=time(NULL);
-  int pos=logPosition;
-  logPosition=(logPosition+1)&TA_LOG_MASK;
+  int pos=(logPosition.fetch_add(1))&TA_LOG_MASK;
 
   printf("logPosition: %d\n",pos);
 
