@@ -121,24 +121,24 @@ bool DivConfig::loadFromBase64(const char* buf) {
 }
 
 bool DivConfig::getBool(String key, bool fallback) const {
-  try {
-    String val=conf.at(key);
-    if (val=="true") {
+  auto it=conf.find(key);
+  if (it!=conf.cend()) {
+    if (it->second=="true") {
       return true;
-    } else if (val=="false") {
+    } else if (it->second=="false") {
       return false;
     }
-  } catch (std::out_of_range& e) {
   }
   return fallback;
 }
 
 int DivConfig::getInt(String key, int fallback) const {
   try {
-    String val=conf.at(key);
-    int ret=std::stoi(val);
-    return ret;
-  } catch (std::out_of_range& e) {
+    auto it=conf.find(key);
+    if (it!=conf.cend()) {
+      int ret=std::stoi(it->second);
+      return ret;
+    }
   } catch (std::invalid_argument& e) {
   }
   return fallback;
@@ -146,10 +146,11 @@ int DivConfig::getInt(String key, int fallback) const {
 
 float DivConfig::getFloat(String key, float fallback) const {
   try {
-    String val=conf.at(key);
-    float ret=std::stof(val);
-    return ret;
-  } catch (std::out_of_range& e) {
+    auto it=conf.find(key);
+    if (it!=conf.cend()) {
+      float ret=std::stof(it->second);
+      return ret;
+    }
   } catch (std::invalid_argument& e) {
   }
   return fallback;
@@ -157,31 +158,26 @@ float DivConfig::getFloat(String key, float fallback) const {
 
 double DivConfig::getDouble(String key, double fallback) const {
   try {
-    String val=conf.at(key);
-    double ret=std::stod(val);
-    return ret;
-  } catch (std::out_of_range& e) {
+    auto it=conf.find(key);
+    if (it!=conf.cend()) {
+      double ret=std::stod(it->second);
+      return ret;
+    }
   } catch (std::invalid_argument& e) {
   }
   return fallback;
 }
 
 String DivConfig::getString(String key, String fallback) const {
-  try {
-    String val=conf.at(key);
-    return val;
-  } catch (std::out_of_range& e) {
+  auto it=conf.find(key);
+  if (it!=conf.cend()) {
+    return it->second;
   }
   return fallback;
 }
 
 bool DivConfig::has(String key) {
-  try {
-    String test=conf.at(key);
-  } catch (std::out_of_range& e) {
-    return false;
-  }
-  return true;
+  return conf.find(key)!=conf.cend();
 }
 
 void DivConfig::set(String key, bool value) {

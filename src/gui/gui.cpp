@@ -1036,8 +1036,9 @@ void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
 }
 
 void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
-  try {
-    int key=noteKeys.at(scancode);
+  auto it=noteKeys.find(scancode);
+  if (it!=noteKeys.cend()) {
+    int key=it->second;
     int num=12*curOctave+key;
     if (num<-60) num=-60; // C-(-5)
     if (num>119) num=119; // B-9
@@ -1049,7 +1050,6 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
     e->synchronized([this,num]() {
       e->autoNoteOff(-1,num);
     });
-  } catch (std::out_of_range& e) {
   }
 }
 
@@ -1247,8 +1247,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           break;
       }
     } else {
-      try {
-        int num=valueKeys.at(ev.key.keysym.sym);
+      auto it=valueKeys.find(ev.key.keysym.sym);
+      if (it!=valueKeys.cend()) {
+        int num=it->second;
         switch (latchTarget) {
           case 1: // instrument
             changeLatch(latchIns);
@@ -1263,7 +1264,6 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             changeLatch(latchEffectVal);
             break;
         }
-      } catch (std::out_of_range& e) {
       }
     }
     return;
@@ -1272,20 +1272,23 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
   // PER-WINDOW KEYS
   switch (curWindow) {
     case GUI_WINDOW_PATTERN:
-      try {
-        int action=actionMapPat.at(mapped);
-        if (action>0) {
-          doAction(action);
-          return;
+      {
+        auto it=actionMapPat.find(mapped);
+        if (it!=actionMapPat.cend()) {
+          int action=it->second;
+          if (action>0) {
+            doAction(action);
+            return;
+          }
         }
-      } catch (std::out_of_range& e) {
       }
       // pattern input otherwise
       if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
       if (!ev.key.repeat) {
         if (cursor.xFine==0) { // note
-          try {
-            int key=noteKeys.at(ev.key.keysym.scancode);
+          auto it=noteKeys.find(ev.key.keysym.scancode);
+          if (it!=noteKeys.cend()) {
+            int key=it->second;
             int num=12*curOctave+key;
 
             if (num<-60) num=-60; // C-(-5)
@@ -1294,31 +1297,33 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             if (edit) {
               noteInput(num,key);
             }
-          } catch (std::out_of_range& e) {
           }
         } else if (edit) { // value
-          try {
-            int num=valueKeys.at(ev.key.keysym.sym);
+          auto it=valueKeys.find(ev.key.keysym.sym);
+          if (it!=valueKeys.cend()) {
+            int num=it->second;
             valueInput(num);
-          } catch (std::out_of_range& e) {
           }
         }
       }
       break;
     case GUI_WINDOW_ORDERS:
-      try {
-        int action=actionMapOrders.at(mapped);
-        if (action>0) {
-          doAction(action);
-          return;
+      {
+        auto it=actionMapOrders.find(mapped);
+        if (it!=actionMapOrders.cend()) {
+          int action=it->second;
+          if (action>0) {
+            doAction(action);
+            return;
+          }
         }
-      } catch (std::out_of_range& e) {
       }
       // order input otherwise
       if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
       if (orderEditMode!=0) {
-        try {
-          int num=valueKeys.at(ev.key.keysym.sym);
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
           if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
             e->lockSave([this,num]() {
               e->curOrders->ord[orderCursor][curOrder]=((e->curOrders->ord[orderCursor][curOrder]<<4)|num);
@@ -1339,48 +1344,55 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             }
             e->walkSong(loopOrder,loopRow,loopEnd);
           }
-        } catch (std::out_of_range& e) {
         }
       }
       break;
     case GUI_WINDOW_SAMPLE_EDIT:
-      try {
-        int action=actionMapSample.at(mapped);
-        if (action>0) {
-          doAction(action);
-          return;
+      {
+        auto it=actionMapSample.find(mapped);
+        if (it!=actionMapSample.cend()) {
+          int action=it->second;
+          if (action>0) {
+            doAction(action);
+            return;
+          }
         }
-      } catch (std::out_of_range& e) {
       }
       break;
     case GUI_WINDOW_INS_LIST:
-      try {
-        int action=actionMapInsList.at(mapped);
-        if (action>0) {
-          doAction(action);
-          return;
+      {
+        auto it=actionMapInsList.find(mapped);
+        if (it!=actionMapInsList.cend()) {
+          int action=it->second;
+          if (action>0) {
+            doAction(action);
+            return;
+          }
         }
-      } catch (std::out_of_range& e) {
       }
       break;
     case GUI_WINDOW_WAVE_LIST:
-      try {
-        int action=actionMapWaveList.at(mapped);
-        if (action>0) {
-          doAction(action);
-          return;
+      {
+        auto it=actionMapWaveList.find(mapped);
+        if (it!=actionMapWaveList.cend()) {
+          int action=it->second;
+          if (action>0) {
+            doAction(action);
+            return;
+          }
         }
-      } catch (std::out_of_range& e) {
       }
       break;
     case GUI_WINDOW_SAMPLE_LIST:
-      try {
-        int action=actionMapSampleList.at(mapped);
-        if (action>0) {
-          doAction(action);
-          return;
+      {
+        auto it=actionMapSampleList.find(mapped);
+        if (it!=actionMapSampleList.cend()) {
+          int action=it->second;
+          if (action>0) {
+            doAction(action);
+            return;
+          }
         }
-      } catch (std::out_of_range& e) {
       }
       break;
     default:
@@ -1388,13 +1400,13 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
   }
 
   // GLOBAL KEYS
-  try {
-    int action=actionMapGlobal.at(mapped);
+  auto it=actionMapGlobal.find(mapped);
+  if (it!=actionMapGlobal.cend()) {
+    int action=it->second;
     if (action>0) {
       doAction(action);
       return;
     }
-  } catch (std::out_of_range& e) {
   }
 }
 
@@ -2715,43 +2727,47 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
       switch (curWindow) {
         case GUI_WINDOW_SAMPLE_EDIT:
         case GUI_WINDOW_SAMPLE_LIST:
-          try {
-            int key=noteKeys.at(ev->key.keysym.scancode);
-            int num=12*curOctave+key;
-            if (key!=100 && key!=101 && key!=102) {
-              int pStart=-1;
-              int pEnd=-1;
-              if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
-                if (sampleSelStart!=sampleSelEnd) {
-                  pStart=sampleSelStart;
-                  pEnd=sampleSelEnd;
-                  if (pStart>pEnd) {
-                    pStart^=pEnd;
-                    pEnd^=pStart;
-                    pStart^=pEnd;
+          {
+            auto it=noteKeys.find(ev->key.keysym.scancode);
+            if (it!=noteKeys.cend()) {
+              int key=it->second;
+              int num=12*curOctave+key;
+              if (key!=100 && key!=101 && key!=102) {
+                int pStart=-1;
+                int pEnd=-1;
+                if (curWindow==GUI_WINDOW_SAMPLE_EDIT) {
+                  if (sampleSelStart!=sampleSelEnd) {
+                    pStart=sampleSelStart;
+                    pEnd=sampleSelEnd;
+                    if (pStart>pEnd) {
+                      pStart^=pEnd;
+                      pEnd^=pStart;
+                      pStart^=pEnd;
+                    }
                   }
                 }
+                e->previewSample(curSample,num,pStart,pEnd);
+                samplePreviewOn=true;
+                samplePreviewKey=ev->key.keysym.scancode;
+                samplePreviewNote=num;
               }
-              e->previewSample(curSample,num,pStart,pEnd);
-              samplePreviewOn=true;
-              samplePreviewKey=ev->key.keysym.scancode;
-              samplePreviewNote=num;
             }
-          } catch (std::out_of_range& e) {
           }
           break;
         case GUI_WINDOW_WAVE_LIST:
         case GUI_WINDOW_WAVE_EDIT:
-          try {
-            int key=noteKeys.at(ev->key.keysym.scancode);
-            int num=12*curOctave+key;
-            if (key!=100 && key!=101 && key!=102) {
-              e->previewWave(curWave,num);
-              wavePreviewOn=true;
-              wavePreviewKey=ev->key.keysym.scancode;
-              wavePreviewNote=num;
+          {
+            auto it=noteKeys.find(ev->key.keysym.scancode);
+            if (it!=noteKeys.cend()) {
+              int key=it->second;
+              int num=12*curOctave+key;
+              if (key!=100 && key!=101 && key!=102) {
+                e->previewWave(curWave,num);
+                wavePreviewOn=true;
+                wavePreviewKey=ev->key.keysym.scancode;
+                wavePreviewNote=num;
+              }
             }
-          } catch (std::out_of_range& e) {
           }
           break;
         case GUI_WINDOW_ORDERS: // ignore here
@@ -2764,17 +2780,19 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
           }
           // fall-through
         default:
-          try {
-            int key=noteKeys.at(ev->key.keysym.scancode);
-            int num=12*curOctave+key;
+          {
+            auto it=noteKeys.find(ev->key.keysym.scancode);
+            if (it!=noteKeys.cend()) {
+              int key=it->second;
+              int num=12*curOctave+key;
 
-            if (num<-60) num=-60; // C-(-5)
-            if (num>119) num=119; // B-9
+              if (num<-60) num=-60; // C-(-5)
+              if (num>119) num=119; // B-9
 
-            if (key!=100 && key!=101 && key!=102) {
-              previewNote(cursor.xCoarse,num);
+              if (key!=100 && key!=101 && key!=102) {
+                previewNote(cursor.xCoarse,num);
+              }
             }
-          } catch (std::out_of_range& e) {
           }
           break;
       }
