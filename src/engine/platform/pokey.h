@@ -52,7 +52,7 @@ class DivPlatformPOKEY: public DivDispatch {
   bool audctlChanged;
   unsigned char oscBufDelay;
   PokeyState pokey;
-  std::unique_ptr<AltASAP::Pokey> altASAP;
+  AltASAP::Pokey* altASAP;
   bool useAltASAP;
   unsigned char regPool[16];
   friend void putDispatchChip(void*,int);

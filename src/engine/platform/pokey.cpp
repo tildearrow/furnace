@@ -454,7 +454,10 @@ void DivPlatformPOKEY::setFlags(const DivConfig& flags) {
   }
 
   if (useAltASAP) {
-    altASAP=std::make_unique<AltASAP::Pokey>(chipClock, chipClock);
+    if (altASAP) {
+      delete altASAP;
+    }
+    altASAP=new AltASAP::Pokey(chipClock, chipClock);
   }
 }
 
@@ -471,6 +474,7 @@ int DivPlatformPOKEY::init(DivEngine* p, int channels, int sugRate, const DivCon
   dumpWrites=false;
   skipRegisterWrites=false;
   oscBufDelay=0;
+  altASAP=NULL;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
@@ -488,6 +492,9 @@ int DivPlatformPOKEY::init(DivEngine* p, int channels, int sugRate, const DivCon
 void DivPlatformPOKEY::quit() {
   for (int i=0; i<4; i++) {
     delete oscBuf[i];
+  }
+  if (altASAP) {
+    delete altASAP;
   }
 }
 
