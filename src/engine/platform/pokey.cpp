@@ -456,7 +456,6 @@ void DivPlatformPOKEY::setFlags(const DivConfig& flags) {
     }
     altASAP.init(chipClock,rate);
   } else {
-    MZPOKEYSND_Init(&pokey);
     rate=chipClock;
     for (int i=0; i<4; i++) {
       oscBuf[i]->rate=rate/14;
@@ -480,6 +479,10 @@ int DivPlatformPOKEY::init(DivEngine* p, int channels, int sugRate, const DivCon
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
+  }
+
+  if (!useAltASAP) {
+    MZPOKEYSND_Init(&pokey);
   }
 
   setFlags(flags);
