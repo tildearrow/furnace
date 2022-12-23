@@ -341,7 +341,7 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_POKEY:
       dispatch=new DivPlatformPOKEY;
-      ((DivPlatformPOKEY*)dispatch)->setAltASAP(eng->getConfInt("pokeyCore",0)==1);
+      ((DivPlatformPOKEY*)dispatch)->setAltASAP(eng->getConfInt("pokeyCore",1)==1);
       break;
     case DIV_SYSTEM_QSOUND:
       dispatch=new DivPlatformQSound;

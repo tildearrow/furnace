@@ -2345,7 +2345,7 @@ void FurnaceGUI::syncSettings() {
   settings.nesCore=e->getConfInt("nesCore",0);
   settings.fdsCore=e->getConfInt("fdsCore",0);
   settings.c64Core=e->getConfInt("c64Core",1);
-  settings.pokeyCore=e->getConfInt("pokeyCore",0);
+  settings.pokeyCore=e->getConfInt("pokeyCore",1);
   settings.pcSpeakerOutMethod=e->getConfInt("pcSpeakerOutMethod",0);
   settings.yrw801Path=e->getConfString("yrw801Path","");
   settings.tg100Path=e->getConfString("tg100Path","");
@@ -2616,7 +2616,7 @@ void FurnaceGUI::commitSettings() {
     settings.nesCore!=e->getConfInt("nesCore",0) ||
     settings.fdsCore!=e->getConfInt("fdsCore",0) ||
     settings.c64Core!=e->getConfInt("c64Core",1) ||
-    settings.pokeyCore!=e->getConfInt("pokeyCore",0)
+    settings.pokeyCore!=e->getConfInt("pokeyCore",1)
   );
 
   e->setConf("mainFontSize",settings.mainFontSize);
