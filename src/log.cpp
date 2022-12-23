@@ -67,8 +67,6 @@ void appendLogBuf(const LogEntry& entry) {
   const char* msg=toWrite.c_str();
   size_t len=toWrite.size();
 
-  printf("appendLogBuf %d %d\n",logFilePosI,(int)len);
-
   int remaining=(logFilePosO-logFilePosI-1)&TA_LOGFILE_BUF_SIZE;
 
   if (len>=(unsigned int)remaining) {
@@ -92,8 +90,6 @@ void appendLogBuf(const LogEntry& entry) {
 int writeLog(int level, const char* msg, fmt::printf_args args) {
   time_t thisMakesNoSense=time(NULL);
   int pos=(logPosition.fetch_add(1))&TA_LOG_MASK;
-
-  printf("logPosition: %d\n",pos);
 
   logEntries[pos].text.assign(fmt::vsprintf(msg,args));
   // why do I have to pass a pointer
