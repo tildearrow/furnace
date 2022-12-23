@@ -37,6 +37,9 @@ static constexpr int64_t CNT_MAX = std::numeric_limits<int64_t>::max() & ~7;
 static constexpr int MuteFrequency = 1;
 static constexpr int MuteInit = 2;
 static constexpr int MuteSerialInput = 8;
+//just some magick value to match the audio level of mzpokeysnd
+static constexpr int16_t MAGICK_VOLUME_BOOSTER = 160;
+static constexpr int16_t MAGICK_OSC_VOLUME_BOOSTER = 4;
 
 struct PokeyBase
 {
@@ -219,15 +222,15 @@ public:
     int32_t volume = value & 0x0f;
     if ( ( value & 0x10 ) != 0 )
     {
-      mDelta = volume;
+      mDelta = volume * MAGICK_VOLUME_BOOSTER;
     }
     else
     {
       muteUltrasound( cycle );
       if ( mDelta > 0 )
-        mDelta = volume;
+        mDelta = volume * MAGICK_VOLUME_BOOSTER;
       else
-        mDelta = -volume;
+        mDelta = -volume * MAGICK_VOLUME_BOOSTER;
     }
   }
 
@@ -283,7 +286,8 @@ public:
 
   PokeyPimpl( uint32_t pokeyClock, uint32_t sampleRate ) : PokeyBase{}, mQueue{ std::make_unique<ActionQueue>() },
     mAudioChannels{ AudioChannel{ *mQueue, 0u }, AudioChannel{ *mQueue, 1u }, AudioChannel{ *mQueue, 2u }, AudioChannel{ *mQueue, 3u } },
-    mRegisterPool{}, mTick{}, mNextTick{}, mReloadCycles1{ 28 }, mReloadCycles3{ 28 }, mDivCycles{ 28 }, mSampleRate{ sampleRate }, mSamplesRemainder{},
+    mRegisterPool{}, mTick{}, mNextTick{},
+    mReloadCycles1{ 28 }, mReloadCycles3{ 28 }, mDivCycles{ 28 }, mSampleRate{ sampleRate }, mSamplesRemainder{},
     mTicksPerSample{ ( pokeyClock * 8 ) / mSampleRate, ( pokeyClock * 8 ) % mSampleRate }
   {
     std::fill_n( mRegisterPool.data(), mRegisterPool.size(), (uint8_t)0xff );
@@ -493,19 +497,17 @@ public:
       int64_t value = mQueue->pop();
       if ( ( value & 7 ) == 6 ) // 6 == 4 ^ 2
       {
-        //just some magick value to match the audio level of mzpokeysnd
-        static constexpr int16_t MAGICK_VOLUME_BOOSTER = 160;
-        int16_t ch0 = mAudioChannels[0].getOutput() * MAGICK_VOLUME_BOOSTER;
-        int16_t ch1 = mAudioChannels[1].getOutput() * MAGICK_VOLUME_BOOSTER;
-        int16_t ch2 = mAudioChannels[2].getOutput() * MAGICK_VOLUME_BOOSTER;
-        int16_t ch3 = mAudioChannels[3].getOutput() * MAGICK_VOLUME_BOOSTER;
+        int16_t ch0 = mAudioChannels[0].getOutput();
+        int16_t ch1 = mAudioChannels[1].getOutput();
+        int16_t ch2 = mAudioChannels[2].getOutput();
+        int16_t ch3 = mAudioChannels[3].getOutput();
 
         if ( oscb != nullptr )
         {
-          oscb[0]->data[oscb[0]->needle++]=ch0;
-          oscb[1]->data[oscb[1]->needle++]=ch1;
-          oscb[2]->data[oscb[2]->needle++]=ch2;
-          oscb[3]->data[oscb[3]->needle++]=ch3;
+          oscb[0]->data[oscb[0]->needle++]=ch0 * MAGICK_OSC_VOLUME_BOOSTER;
+          oscb[1]->data[oscb[1]->needle++]=ch1 * MAGICK_OSC_VOLUME_BOOSTER;
+          oscb[2]->data[oscb[2]->needle++]=ch2 * MAGICK_OSC_VOLUME_BOOSTER;
+          oscb[3]->data[oscb[3]->needle++]=ch3 * MAGICK_OSC_VOLUME_BOOSTER;
         }
 
         enqueueSampling();
