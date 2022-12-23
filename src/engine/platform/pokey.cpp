@@ -101,7 +101,7 @@ void DivPlatformPOKEY::acquireASAP(short* buf, size_t start, size_t len) {
   }
 
   for (size_t h=start; h<start+len; h++) {
-    if (++oscBufDelay>=14) {
+    if (++oscBufDelay>=2) {
       oscBufDelay=0;
       buf[h]=altASAP->sampleAudio(oscBuf);
     } else {
@@ -448,16 +448,21 @@ void DivPlatformPOKEY::setFlags(const DivConfig& flags) {
     chipClock=COLOR_NTSC/2.0;
   }
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock;
-  for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate/14;
-  }
 
   if (useAltASAP) {
+    rate=chipClock/7;
+    for (int i=0; i<4; i++) {
+      oscBuf[i]->rate=rate/2;
+    }
     if (altASAP) {
       delete altASAP;
     }
-    altASAP=new AltASAP::Pokey(chipClock, chipClock);
+    altASAP=new AltASAP::Pokey(chipClock,rate);
+  } else {
+    rate=chipClock;
+    for (int i=0; i<4; i++) {
+      oscBuf[i]->rate=rate/14;
+    }
   }
 }
 
