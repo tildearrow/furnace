@@ -1178,6 +1178,7 @@ class FurnaceGUI {
     int nesCore;
     int fdsCore;
     int c64Core;
+    int pokeyCore;
     int pcSpeakerOutMethod;
     String yrw801Path;
     String tg100Path;
@@ -1310,6 +1311,7 @@ class FurnaceGUI {
       nesCore(0),
       fdsCore(0),
       c64Core(1),
+      pokeyCore(0),
       pcSpeakerOutMethod(0),
       yrw801Path(""),
       tg100Path(""),

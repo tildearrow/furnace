@@ -425,6 +425,7 @@ src/engine/platform/sound/ymfm/ymfm_ssg.cpp
 src/engine/platform/sound/lynx/Mikey.cpp
 
 src/engine/platform/sound/pokey/mzpokeysnd.c
+src/engine/platform/sound/pokey/AltASAP.cpp
 
 src/engine/platform/sound/qsound.c
 
