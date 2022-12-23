@@ -29,8 +29,8 @@ int logLevel=LOGLEVEL_INFO;
 
 FILE* logFile;
 char* logFileBuf;
-unsigned int logFilePosI=0;
-unsigned int logFilePosO=0;
+std::atomic<unsigned int> logFilePosI;
+std::atomic<unsigned int> logFilePosO;
 std::thread* logFileThread;
 std::mutex logFileLock;
 std::mutex logFileLockI;
@@ -52,11 +52,22 @@ const char* logTypes[5]={
   "trace"
 };
 
-void appendLogBuf(const char* msg, size_t len) {
+void appendLogBuf(const LogEntry& entry) {
   logFileLockI.lock();
 
-  int remaining=logFilePosO-logFilePosI;
-  if (remaining<=0) remaining+=TA_LOGFILE_BUF_SIZE;
+  std::string toWrite=fmt::sprintf(
+    "%02d:%02d:%02d [%s] %s\n",
+    entry.time.tm_hour,
+    entry.time.tm_min,
+    entry.time.tm_sec,
+    logTypes[entry.loglevel],
+    entry.text
+  );
+
+  const char* msg=toWrite.c_str();
+  size_t len=toWrite.size();
+
+  int remaining=(logFilePosO-logFilePosI)&TA_LOGFILE_BUF_SIZE;
 
   if (len>=(unsigned int)remaining) {
     printf("line too long to fit in log buffer!\n");
@@ -101,15 +112,7 @@ int writeLog(int level, const char* msg, fmt::printf_args args) {
 
   // write to log file
   if (logFileAvail) {
-    std::string toWrite=fmt::sprintf(
-      "%02d:%02d:%02d [%s] %s\n",
-      logEntries[pos].time.tm_hour,
-      logEntries[pos].time.tm_min,
-      logEntries[pos].time.tm_sec,
-      logTypes[logEntries[pos].loglevel],
-      logEntries[pos].text
-    );
-    appendLogBuf(toWrite.c_str(),toWrite.size());
+    appendLogBuf(logEntries[pos]);
     logFileNotify.notify_one();
   }
 
@@ -151,7 +154,7 @@ void _logFileThread() {
         logFilePosO=0;
       } else {
         fwrite(logFileBuf+logFilePosO,1,logFilePosICopy-logFilePosO,logFile);
-        logFilePosO=logFilePosICopy;
+        logFilePosO=logFilePosICopy&TA_LOGFILE_BUF_MASK;
       }
     } else {
       // wait
@@ -165,7 +168,6 @@ void _logFileThread() {
 bool startLogFile(const char* path) {
   logFileAvail=false;
   return false;
-  /*
   if (logFileAvail) return true;
 
   // rotate log file if possible
@@ -184,7 +186,6 @@ bool startLogFile(const char* path) {
 
   logFileThread=new std::thread(_logFileThread);
   return true;
-  */
 }
 
 bool finishLogFile() {
