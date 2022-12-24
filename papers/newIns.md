@@ -440,7 +440,7 @@ size | description
      | - bit 0-4: release
   1  | flags
      | - bit 4: envelope on
-     | - bit 3: make sustain effective
+     | - bit 3: make sustain effective (<131)
      | - bit 0-2: gain mode
      |   - 0: direct
      |   - 4: dec
@@ -448,6 +448,13 @@ size | description
      |   - 6: inc
      |   - 7: bent
   1  | gain
+  1  | decay 2/sustain mode (>=131)
+     | - bit 5-6: sustain mode
+     |   - 0: direct
+     |   - 1: sustain (release with dec)
+     |   - 2: sustain (release with exp)
+     |   - 3: sustain (release with rel)
+     | - bit 0-4: decay 2
 ```
 
 # Namco 163 data (N1)

@@ -4601,10 +4601,13 @@ void FurnaceGUI::drawInsEdit() {
           P(ImGui::Checkbox("Use envelope",&ins->snes.useEnv));
           ImVec2 sliderSize=ImVec2(20.0f*dpiScale,128.0*dpiScale);
           if (ins->snes.useEnv) {
-            if (ImGui::BeginTable("SNESEnvParams",5,ImGuiTableFlags_NoHostExtendX)) {
+            if (ImGui::BeginTable("SNESEnvParams",ins->snes.sus?6:5,ImGuiTableFlags_NoHostExtendX)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
               ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
               ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+              if (ins->snes.sus) {
+                ImGui::TableSetupColumn("c2x",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
+              }
               ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed,sliderSize.x);
               ImGui::TableSetupColumn("c4",ImGuiTableColumnFlags_WidthStretch);
 
@@ -4618,6 +4621,11 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::TableNextColumn();
               CENTER_TEXT("S");
               ImGui::TextUnformatted("S");
+              if (ins->snes.sus) {
+                ImGui::TableNextColumn();
+                CENTER_TEXT("D2");
+                ImGui::TextUnformatted("D2");
+              }
               ImGui::TableNextColumn();
               CENTER_TEXT("R");
               ImGui::TextUnformatted("R");
@@ -4632,14 +4640,30 @@ void FurnaceGUI::drawInsEdit() {
               P(CWVSliderScalar("##Decay",sliderSize,ImGuiDataType_U8,&ins->snes.d,&_ZERO,&_SEVEN));
               ImGui::TableNextColumn();
               P(CWVSliderScalar("##Sustain",sliderSize,ImGuiDataType_U8,&ins->snes.s,&_ZERO,&_SEVEN));
+              if (ins->snes.sus) {
+                ImGui::TableNextColumn();
+                P(CWVSliderScalar("##Decay2",sliderSize,ImGuiDataType_U8,&ins->snes.d2,&_ZERO,&_THIRTY_ONE));
+              }
               ImGui::TableNextColumn();
               P(CWVSliderScalar("##Release",sliderSize,ImGuiDataType_U8,&ins->snes.r,&_ZERO,&_THIRTY_ONE));
               ImGui::TableNextColumn();
-              drawFMEnv(0,ins->snes.a+1,1+ins->snes.d*2,ins->snes.r,ins->snes.r,(14-ins->snes.s*2),(ins->snes.r==0 || ins->snes.sus),0,0,7,16,31,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
+              drawFMEnv(0,ins->snes.a+1,1+ins->snes.d*2,ins->snes.sus?ins->snes.d2:ins->snes.r,ins->snes.sus?ins->snes.r:31,(14-ins->snes.s*2),(ins->snes.r==0 || (ins->snes.sus && ins->snes.d2==0)),0,0,7,16,31,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
 
               ImGui::EndTable();
             }
-            ImGui::Checkbox("Make sustain effective",&ins->snes.sus);
+            ImGui::Text("Sustain/release mode:");
+            if (ImGui::RadioButton("Direct (cut on release)",ins->snes.sus==0)) {
+              ins->snes.sus=0;
+            }
+            if (ImGui::RadioButton("Effective (linear decrease)",ins->snes.sus==1)) {
+              ins->snes.sus=1;
+            }
+            if (ImGui::RadioButton("Effective (exponential decrease)",ins->snes.sus==2)) {
+              ins->snes.sus=2;
+            }
+            if (ImGui::RadioButton("Delayed (write R on release)",ins->snes.sus==3)) {
+              ins->snes.sus=3;
+            }
           } else {
             if (ImGui::BeginTable("SNESGainParams",3,ImGuiTableFlags_NoHostExtendX)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
