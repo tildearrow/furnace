@@ -201,6 +201,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       ((DivPlatformGenesisExt*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));
       ((DivPlatformGenesisExt*)dispatch)->setSoftPCM(false);
       break;
+    case DIV_SYSTEM_YM2612_CSM:
+      dispatch=new DivPlatformGenesisExt;
+      ((DivPlatformGenesisExt*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));
+      ((DivPlatformGenesisExt*)dispatch)->setSoftPCM(false);
+      ((DivPlatformGenesisExt*)dispatch)->setCSMChannel(6);
+      break;
     case DIV_SYSTEM_YM2612_DUALPCM:
       dispatch=new DivPlatformGenesis;
       ((DivPlatformGenesis*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));

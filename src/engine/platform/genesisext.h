@@ -42,6 +42,7 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
     bool keyOffAffectsPorta(int ch);
     void notifyInsChange(int ins);
     int getPortaFloor(int ch);
+    void setCSMChannel(unsigned char ch);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformGenesisExt();

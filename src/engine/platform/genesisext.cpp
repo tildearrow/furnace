@@ -746,6 +746,10 @@ int DivPlatformGenesisExt::getPortaFloor(int ch) {
   return (ch>8)?12:0;
 }
 
+void DivPlatformGenesisExt::setCSMChannel(unsigned char ch) {
+  csmChan=ch;
+}
+
 int DivPlatformGenesisExt::init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) {
   DivPlatformGenesis::init(parent,channels,sugRate,flags);
   for (int i=0; i<4; i++) {

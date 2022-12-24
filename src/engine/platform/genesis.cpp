@@ -479,7 +479,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
     }
   }
 
-  for (int i=0; i<7; i++) {
+  for (int i=0; i<csmChan; i++) {
     if (i==2 && extMode) continue;
     if (chan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
@@ -1217,7 +1217,7 @@ void DivPlatformGenesis::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 int DivPlatformGenesis::getPortaFloor(int ch) {
-  return (ch>5)?12:0;
+  return 0;
 }
 
 void DivPlatformGenesis::setYMFM(bool use) {
