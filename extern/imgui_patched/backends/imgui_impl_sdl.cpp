@@ -680,8 +680,8 @@ void ImGui_ImplSDL2_NewFrame()
     int w, h;
     int display_w, display_h;
     SDL_GetWindowSize(bd->Window, &w, &h);
-    if (SDL_GetWindowFlags(bd->Window) & SDL_WINDOW_MINIMIZED)
-        w = h = 0;
+    /*if (SDL_GetWindowFlags(bd->Window) & SDL_WINDOW_MINIMIZED)
+        w = h = 0;*/
     if (bd->Renderer != NULL)
         SDL_GetRendererOutputSize(bd->Renderer, &display_w, &display_h);
     else
