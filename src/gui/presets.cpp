@@ -56,6 +56,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Sega Genesis (CSM)", {
+      CH(DIV_SYSTEM_YM2612_CSM, 64, 0, ""),
+      CH(DIV_SYSTEM_SMS, 32, 0, "")
+    }
+  );
+  ENTRY(
     "Sega Genesis (DualPCM)", {
       CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, ""),
       CH(DIV_SYSTEM_SMS, 32, 0, "")
@@ -80,6 +86,16 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Sega Genesis (extended channel 3 with Sega CD)", {
       CH(DIV_SYSTEM_YM2612_EXT, 64, 0, ""),
+      CH(DIV_SYSTEM_SMS, 32, 0, ""),
+      CH(DIV_SYSTEM_RF5C68, 64, 0,
+        "clockSel=2\n"
+        "chipType=1\n"
+      )
+    }
+  );
+  ENTRY(
+    "Sega Genesis (CSM with Sega CD)", {
+      CH(DIV_SYSTEM_YM2612_CSM, 64, 0, ""),
       CH(DIV_SYSTEM_SMS, 32, 0, ""),
       CH(DIV_SYSTEM_RF5C68, 64, 0,
         "clockSel=2\n"
@@ -1077,6 +1093,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "FM Towns (CSM)", {
+      CH(DIV_SYSTEM_YM2612_CSM, 64, 0, "clockSel=2"), // YM3438
+      CH(DIV_SYSTEM_RF5C68, 64, 0, "")
+    }
+  );
+  ENTRY(
     "Commander X16", {
       CH(DIV_SYSTEM_VERA, 64, 0, ""),
       CH(DIV_SYSTEM_YM2151, 32, 0, "")
@@ -1149,6 +1171,11 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Yamaha YM2612 (OPN2) CSM", {
+      CH(DIV_SYSTEM_YM2612_CSM, 64, 0, "ladderEffect=true")
+    }
+  );
+  ENTRY(
     "Yamaha YM2612 (OPN2) with DualPCM", {
       CH(DIV_SYSTEM_YM2612_DUALPCM, 64, 0, "ladderEffect=true")
     }
@@ -1181,6 +1208,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Yamaha YM3438 (extended channel 3)", {
       CH(DIV_SYSTEM_YM2612_EXT, 64, 0, "")
+    }
+  );
+  ENTRY(
+    "Yamaha YM3438 (OPN2C) CSM", {
+      CH(DIV_SYSTEM_YM2612_CSM, 64, 0, "")
     }
   );
   ENTRY(
