@@ -50,6 +50,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
     DivDispatchOscBuffer* oscBuf[16];
     bool isMuted[16];
 
+    ym3438_t fm_nuked;
     ymfm::ym2610b* fm;
     ymfm::ym2610b::output_data fmout;
     DivPlatformAY8910* ay;
@@ -94,6 +95,9 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       writeADPCMAOff=0;
       writeADPCMAOn=0;
       globalADPCMAVolume=0x3f;
+
+      OPN2_Reset(&fm_nuked);
+      OPN2_SetChipType(&fm_nuked,ym3438_mode_opn);
 
       ay->reset();
       ay->getRegisterWrites().clear();
@@ -217,7 +221,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       }
       CHECK_CUSTOM_CLOCK;
       noExtMacros=flags.getBool("noExtMacros",false);
-      rate=chipClock/16;
+      rate=fm->sample_rate(chipClock);
       for (int i=0; i<16; i++) {
         oscBuf[i]->rate=rate;
       }
@@ -240,7 +244,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       iface.adpcmBMem=adpcmBMem;
       iface.sampleBank=0;
       fm=new ymfm::ym2610b(iface);
-      fm->set_fidelity(ymfm::OPN_FIDELITY_MAX);
+      fm->set_fidelity(ymfm::OPN_FIDELITY_MED);
       setFlags(flags);
       // YM2149, 2MHz
       ay=new DivPlatformAY8910(true,chipClock,32);

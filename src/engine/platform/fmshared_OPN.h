@@ -21,6 +21,7 @@
 #define _FMSHARED_OPN_H
 
 #include "fmsharedbase.h"
+#include "../../../extern/opn/ym3438.h"
 
 #define PLEASE_HELP_ME(_targetChan) \
   int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false); \
@@ -153,7 +154,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
     unsigned int ayDiv;
     unsigned char csmChan;
     unsigned char lfoValue;
-    bool extSys;
+    bool extSys, useCombo;
 
     DivConfig ayFlags;
 
@@ -171,8 +172,12 @@ class DivPlatformOPN: public DivPlatformFMBase {
       ayDiv(a),
       csmChan(cc),
       lfoValue(0),
-      extSys(isExtSys) {}
-
+      extSys(isExtSys),
+      useCombo(false) {}
+  public:
+    void setCombo(bool combo) {
+      useCombo=combo;
+    }
 };
 
 #endif

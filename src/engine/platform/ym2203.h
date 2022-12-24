@@ -42,6 +42,7 @@ class DivPlatformYM2203: public DivPlatformOPN {
     OPNChannel chan[6];
     DivDispatchOscBuffer* oscBuf[6];
     bool isMuted[6];
+    ym3438_t fm_nuked;
     ymfm::ym2203* fm;
     ymfm::ym2203::output_data fmout;
     DivYM2203Interface iface;
@@ -50,9 +51,13 @@ class DivPlatformYM2203: public DivPlatformOPN {
     unsigned char sampleBank;
 
     bool extMode, noExtMacros;
-    unsigned char prescale;
+    unsigned char prescale, nukedMult;
 
     friend void putDispatchChip(void*,int);
+
+    void acquire_combo(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
+
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
