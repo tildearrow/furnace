@@ -993,7 +993,9 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_LFO: {
-      rWrite(0x22,(c.value&7)|((c.value>>4)<<3));
+      if (c.chan>=psgChanOffs) break;
+      lfoValue=(c.value&7)|((c.value>>4)<<3);
+      rWrite(0x22,lfoValue);
       break;
     }
     case DIV_CMD_FM_FB: {
@@ -1236,6 +1238,7 @@ void DivPlatformYM2610B::forceIns() {
       chan[i].freqChanged=true;
     }
   }
+  immWrite(0x22,lfoValue);
   for (int i=adpcmAChanOffs; i<=adpcmBChanOffs; i++) {
     chan[i].insChanged=true;
   }
@@ -1310,6 +1313,7 @@ void DivPlatformYM2610B::reset() {
   }
 
   lastBusy=60;
+  lfoValue=8;
   sampleBank=0;
   DivPlatformYM2610Base::reset();
 
@@ -1318,7 +1322,7 @@ void DivPlatformYM2610B::reset() {
   extMode=false;
 
   // LFO
-  immWrite(0x22,0x08);
+  immWrite(0x22,lfoValue);
 
   // PCM volume
   immWrite(0x101,0x3f); // A
