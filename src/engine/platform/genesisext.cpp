@@ -587,7 +587,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
     }
   }
 
-  if (extMode && softPCM) {
+  if (extMode) {
     if (chan[csmChan].freqChanged) {
       chan[csmChan].freq=parent->calcFreq(chan[csmChan].baseFreq,chan[csmChan].pitch,chan[csmChan].fixedArp?chan[csmChan].baseNoteOverride:chan[csmChan].arpOff,chan[csmChan].fixedArp,true,0,chan[csmChan].pitch2,chipClock,CHIP_DIVIDER);
       if (chan[csmChan].freq<1) chan[csmChan].freq=1;
@@ -620,7 +620,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
     immWrite(0x28,writeMask);
   }
 
-  if (extMode && softPCM) {
+  if (extMode) {
     if (chan[csmChan].keyOn) {
       immWrite(0x27,0x81);
       chan[csmChan].keyOn=false;
@@ -685,10 +685,10 @@ void DivPlatformGenesisExt::forceIns() {
       opChan[i].freqChanged=true;
     }
   }
-  if (extMode && softPCM && chan[7].active) { // CSM
-    chan[7].insChanged=true;
-    chan[7].freqChanged=true;
-    chan[7].keyOn=true;
+  if (extMode && chan[csmChan].active) { // CSM
+    chan[csmChan].insChanged=true;
+    chan[csmChan].freqChanged=true;
+    chan[csmChan].keyOn=true;
   }
 }
 
@@ -700,7 +700,7 @@ void* DivPlatformGenesisExt::getChanState(int ch) {
 
 DivMacroInt* DivPlatformGenesisExt::getChanMacroInt(int ch) {
   if (ch>=6) return &chan[ch-3].std;
-  if (ch>=2) return NULL; // currently not implemented
+  if (ch>=2) return &opChan[ch-2].std;
   return &chan[ch].std;
 }
 

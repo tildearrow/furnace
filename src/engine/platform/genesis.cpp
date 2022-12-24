@@ -554,7 +554,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
-      if (c.chan==csmChan && extMode && softPCM) { // CSM
+      if (c.chan==csmChan && extMode) { // CSM
         chan[c.chan].macroInit(ins);
         chan[c.chan].insChanged=false;
 

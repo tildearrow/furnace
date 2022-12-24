@@ -630,7 +630,7 @@ void* DivPlatformYM2610BExt::getChanState(int ch) {
 DivMacroInt* DivPlatformYM2610BExt::getChanMacroInt(int ch) {
   if (ch>=(psgChanOffs+3) && ch<(adpcmAChanOffs+3)) return ay->getChanMacroInt(ch-psgChanOffs-3);
   if (ch>=(extChanOffs+4)) return &chan[ch-3].std;
-  if (ch>=extChanOffs) return NULL; // currently not implemented
+  if (ch>=extChanOffs) return &opChan[ch-extChanOffs].std;
   return &chan[ch].std;
 }
 

@@ -601,7 +601,7 @@ void* DivPlatformYM2203Ext::getChanState(int ch) {
 
 DivMacroInt* DivPlatformYM2203Ext::getChanMacroInt(int ch) {
   if (ch>=6) return ay->getChanMacroInt(ch-6);
-  if (ch>=2) return NULL; // currently not implemented
+  if (ch>=2) return &opChan[ch-2].std;
   return &chan[ch].std;
 }
 
