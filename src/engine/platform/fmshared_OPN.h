@@ -146,6 +146,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
         pan(3) {}
     };
 
+    const int extChanOffs, psgChanOffs, adpcmAChanOffs, adpcmBChanOffs, chanNum;
+
     double fmFreqBase;
     unsigned int fmDivBase;
     unsigned int ayDiv;
@@ -157,8 +159,13 @@ class DivPlatformOPN: public DivPlatformFMBase {
 
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
-    DivPlatformOPN(double f=9440540.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false, unsigned char cc=255):
+    DivPlatformOPN(int ext, int psg, int adpcmA, int adpcmB, int chanCount, double f=9440540.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false, unsigned char cc=255):
       DivPlatformFMBase(),
+      extChanOffs(ext),
+      psgChanOffs(psg),
+      adpcmAChanOffs(adpcmA),
+      adpcmBChanOffs(adpcmB),
+      chanNum(chanCount),
       fmFreqBase(f),
       fmDivBase(d),
       ayDiv(a),

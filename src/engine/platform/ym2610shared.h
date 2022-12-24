@@ -44,11 +44,11 @@ class DivYM2610Interface: public ymfm::ymfm_interface {
       sampleBank(0) {}
 };
 
-template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
+class DivPlatformYM2610Base: public DivPlatformOPN {
   protected:
-    OPNChannelStereo chan[ChanNum];
-    DivDispatchOscBuffer* oscBuf[ChanNum];
-    bool isMuted[ChanNum];
+    OPNChannelStereo chan[16];
+    DivDispatchOscBuffer* oscBuf[16];
+    bool isMuted[16];
 
     ymfm::ym2610b* fm;
     ymfm::ym2610b::output_data fmout;
@@ -71,9 +71,6 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
   
     unsigned char writeADPCMAOff, writeADPCMAOn;
     int globalADPCMAVolume;
-
-    const int extChanOffs, psgChanOffs, adpcmAChanOffs, adpcmBChanOffs;
-    const int chanNum=ChanNum;
 
     double NOTE_OPNB(int ch, int note) {
       if (ch>=adpcmBChanOffs) { // ADPCM
@@ -221,7 +218,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       CHECK_CUSTOM_CLOCK;
       noExtMacros=flags.getBool("noExtMacros",false);
       rate=chipClock/16;
-      for (int i=0; i<ChanNum; i++) {
+      for (int i=0; i<16; i++) {
         oscBuf[i]->rate=rate;
       }
     }
@@ -231,7 +228,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       ayFlags.set("chipType",1);
       dumpWrites=false;
       skipRegisterWrites=false;
-      for (int i=0; i<ChanNum; i++) {
+      for (int i=0; i<16; i++) {
         isMuted[i]=false;
         oscBuf[i]=new DivDispatchOscBuffer;
       }
@@ -253,7 +250,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
     }
 
     void quit() {
-      for (int i=0; i<ChanNum; i++) {
+      for (int i=0; i<16; i++) {
         delete oscBuf[i];
       }
       ay->quit();
@@ -262,12 +259,8 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       delete[] adpcmBMem;
     }
 
-    DivPlatformYM2610Base(int ext, int psg, int adpcmA, int adpcmB):
-      DivPlatformOPN(9440540.0, 72, 32),
-      extChanOffs(ext),
-      psgChanOffs(psg),
-      adpcmAChanOffs(adpcmA),
-      adpcmBChanOffs(adpcmB) {}
+    DivPlatformYM2610Base(int ext, int psg, int adpcmA, int adpcmB, int chanCount):
+      DivPlatformOPN(ext,psg,adpcmA,adpcmB,chanCount,9440540.0, 72, 32) {}
 };
 
 #endif

@@ -22,7 +22,7 @@
 
 #include "ym2610shared.h"
 
-class DivPlatformYM2610B: public DivPlatformYM2610Base<16> {
+class DivPlatformYM2610B: public DivPlatformYM2610Base {
   protected:
     const unsigned short chanOffs[6]={
       0x00, 0x01, 0x02, 0x100, 0x101, 0x102
@@ -56,7 +56,7 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base<16> {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformYM2610B():
-      DivPlatformYM2610Base<16>(2,6,9,15) {}
+      DivPlatformYM2610Base(2,6,9,15,16) {}
     ~DivPlatformYM2610B();
 };
 #endif

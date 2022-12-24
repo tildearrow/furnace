@@ -1342,7 +1342,7 @@ bool DivPlatformYM2610B::keyOffAffectsArp(int ch) {
 }
 
 void DivPlatformYM2610B::notifyInsChange(int ins) {
-  for (int i=0; i<chanNum; i++) {
+  for (int i=0; i<16; i++) {
     if (chan[i].ins==ins) {
       chan[i].insChanged=true;
     }

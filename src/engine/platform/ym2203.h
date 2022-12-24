@@ -77,7 +77,7 @@ class DivPlatformYM2203: public DivPlatformOPN {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformYM2203():
-      DivPlatformOPN(4720270.0, 36, 16),
+      DivPlatformOPN(2, 3, 6, 6, 6, 4720270.0, 36, 16),
       prescale(0x2d) {}
     ~DivPlatformYM2203();
 };
