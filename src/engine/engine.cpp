@@ -3295,7 +3295,7 @@ DivSample* DivEngine::sampleFromFile(const char* path) {
 #endif
 }
 
-DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign) {
+DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, int channels, bool bigEndian, bool unsign, bool swapNibbles) {
   if (song.sample.size()>=256) {
     lastError="too many samples!";
     return NULL;
@@ -3460,6 +3460,14 @@ DivSample* DivEngine::sampleFromFileRaw(const char* path, DivSampleDepth depth, 
     memcpy(sample->getCurBuf(),buf,len);
   }
   delete[] buf;
+
+  // swap nibbles if needed
+  if (swapNibbles) {
+    unsigned char* b=(unsigned char*)sample->getCurBuf();
+    for (unsigned int i=0; i<sample->getCurBufLen(); i++) {
+      b[i]=(b[i]<<4)|(b[i]>>4);
+    }
+  }
 
   BUSY_END;
   return sample;
@@ -4215,7 +4223,7 @@ bool DivEngine::deinitAudioBackend(bool dueToSwitchMaster) {
   return true;
 }
 
-bool DivEngine::init() {
+void DivEngine::preInit() {
   // register systems
   if (!systemsRegistered) registerSystems();
 
@@ -4223,8 +4231,13 @@ bool DivEngine::init() {
   initConfDir();
   logD("config path: %s",configPath.c_str());
 
+  String logPath=configPath+DIR_SEPARATOR_STR+"furnace.log";
+  startLogFile(logPath.c_str());
+  
   loadConf();
+}
 
+bool DivEngine::init() {
   loadSampleROMs();
 
   // set default system preset

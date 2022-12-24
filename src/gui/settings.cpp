@@ -102,6 +102,11 @@ const char* c64Cores[]={
   "reSIDfp"
 };
 
+const char* pokeyCores[]={
+  "Atari800 (mzpokeysnd)",
+  "ASAP (C++ port)"
+};
+
 const char* pcspkrOutMethods[]={
   "evdev SND_TONE",
   "KIOCSOUND on /dev/tty1",
@@ -1068,6 +1073,10 @@ void FurnaceGUI::drawSettings() {
           ImGui::Text("SID core");
           ImGui::SameLine();
           ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,2);
+
+          ImGui::Text("POKEY core");
+          ImGui::SameLine();
+          ImGui::Combo("##POKEYCore",&settings.pokeyCore,pokeyCores,2);
 
           ImGui::Separator();
 
@@ -2336,6 +2345,7 @@ void FurnaceGUI::syncSettings() {
   settings.nesCore=e->getConfInt("nesCore",0);
   settings.fdsCore=e->getConfInt("fdsCore",0);
   settings.c64Core=e->getConfInt("c64Core",1);
+  settings.pokeyCore=e->getConfInt("pokeyCore",1);
   settings.pcSpeakerOutMethod=e->getConfInt("pcSpeakerOutMethod",0);
   settings.yrw801Path=e->getConfString("yrw801Path","");
   settings.tg100Path=e->getConfString("tg100Path","");
@@ -2461,6 +2471,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.nesCore,0,1);
   clampSetting(settings.fdsCore,0,1);
   clampSetting(settings.c64Core,0,1);
+  clampSetting(settings.pokeyCore,0,1);
   clampSetting(settings.pcSpeakerOutMethod,0,4);
   clampSetting(settings.mainFont,0,6);
   clampSetting(settings.patFont,0,6);
@@ -2604,7 +2615,8 @@ void FurnaceGUI::commitSettings() {
     settings.snCore!=e->getConfInt("snCore",0) ||
     settings.nesCore!=e->getConfInt("nesCore",0) ||
     settings.fdsCore!=e->getConfInt("fdsCore",0) ||
-    settings.c64Core!=e->getConfInt("c64Core",1)
+    settings.c64Core!=e->getConfInt("c64Core",1) ||
+    settings.pokeyCore!=e->getConfInt("pokeyCore",1)
   );
 
   e->setConf("mainFontSize",settings.mainFontSize);
@@ -2624,6 +2636,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("nesCore",settings.nesCore);
   e->setConf("fdsCore",settings.fdsCore);
   e->setConf("c64Core",settings.c64Core);
+  e->setConf("pokeyCore",settings.pokeyCore);
   e->setConf("pcSpeakerOutMethod",settings.pcSpeakerOutMethod);
   e->setConf("yrw801Path",settings.yrw801Path);
   e->setConf("tg100Path",settings.tg100Path);

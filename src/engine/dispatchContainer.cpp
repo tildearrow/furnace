@@ -57,6 +57,7 @@
 #include "platform/su.h"
 #include "platform/swan.h"
 #include "platform/lynx.h"
+#include "platform/pokey.h"
 #include "platform/zxbeeper.h"
 #include "platform/bubsyswsg.h"
 #include "platform/n163.h"
@@ -201,12 +202,18 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       ((DivPlatformGenesisExt*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));
       ((DivPlatformGenesisExt*)dispatch)->setSoftPCM(false);
       break;
-    case DIV_SYSTEM_YM2612_FRAC:
+    case DIV_SYSTEM_YM2612_CSM:
+      dispatch=new DivPlatformGenesisExt;
+      ((DivPlatformGenesisExt*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));
+      ((DivPlatformGenesisExt*)dispatch)->setSoftPCM(false);
+      ((DivPlatformGenesisExt*)dispatch)->setCSMChannel(6);
+      break;
+    case DIV_SYSTEM_YM2612_DUALPCM:
       dispatch=new DivPlatformGenesis;
       ((DivPlatformGenesis*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));
       ((DivPlatformGenesis*)dispatch)->setSoftPCM(true);
       break;
-    case DIV_SYSTEM_YM2612_FRAC_EXT:
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT:
       dispatch=new DivPlatformGenesisExt;
       ((DivPlatformGenesisExt*)dispatch)->setYMFM(eng->getConfInt("ym2612Core",0));
       ((DivPlatformGenesisExt*)dispatch)->setSoftPCM(true);
@@ -269,16 +276,16 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_TIA:
       dispatch=new DivPlatformTIA;
       break;
-    case DIV_SYSTEM_OPN:
+    case DIV_SYSTEM_YM2203:
       dispatch=new DivPlatformYM2203;
       break;
-    case DIV_SYSTEM_OPN_EXT:
+    case DIV_SYSTEM_YM2203_EXT:
       dispatch=new DivPlatformYM2203Ext;
       break;
-    case DIV_SYSTEM_PC98:
+    case DIV_SYSTEM_YM2608:
       dispatch=new DivPlatformYM2608;
       break;
-    case DIV_SYSTEM_PC98_EXT:
+    case DIV_SYSTEM_YM2608_EXT:
       dispatch=new DivPlatformYM2608Ext;
       break;
     case DIV_SYSTEM_OPLL:
@@ -338,6 +345,10 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_LYNX:
       dispatch=new DivPlatformLynx;
+      break;
+    case DIV_SYSTEM_POKEY:
+      dispatch=new DivPlatformPOKEY;
+      ((DivPlatformPOKEY*)dispatch)->setAltASAP(eng->getConfInt("pokeyCore",1)==1);
       break;
     case DIV_SYSTEM_QSOUND:
       dispatch=new DivPlatformQSound;

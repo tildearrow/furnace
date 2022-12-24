@@ -35,6 +35,9 @@
 // this has to be a power of 2
 #define TA_LOG_SIZE 2048
 
+// this as well
+#define TA_LOGFILE_BUF_SIZE 65536
+
 extern int logLevel;
 
 extern std::atomic<unsigned short> logPosition;
@@ -76,4 +79,6 @@ template<typename... T> int logE(const char* msg, const T&... args) {
 }
 
 void initLog();
+bool startLogFile(const char* path);
+bool finishLogFile();
 #endif

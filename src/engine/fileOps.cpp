@@ -1207,8 +1207,8 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
       break;
     case DIV_SYSTEM_YM2612:
     case DIV_SYSTEM_YM2612_EXT:
-    case DIV_SYSTEM_YM2612_FRAC:
-    case DIV_SYSTEM_YM2612_FRAC_EXT:
+    case DIV_SYSTEM_YM2612_DUALPCM:
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT:
       switch (oldFlags&0x7fffffff) {
         case 0:
           newFlags.set("clockSel",0);
@@ -1295,8 +1295,8 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
       newFlags.set("channels",(int)((oldFlags>>4)&7));
       if (oldFlags&128) newFlags.set("multiplex",true);
       break;
-    case DIV_SYSTEM_OPN:
-    case DIV_SYSTEM_OPN_EXT:
+    case DIV_SYSTEM_YM2203:
+    case DIV_SYSTEM_YM2203_EXT:
       switch (oldFlags&31) {
         case 0:
           newFlags.set("clockSel",0);
@@ -1329,8 +1329,8 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
           break;
       }
       break;
-    case DIV_SYSTEM_PC98:
-    case DIV_SYSTEM_PC98_EXT:
+    case DIV_SYSTEM_YM2608:
+    case DIV_SYSTEM_YM2608_EXT:
       switch (oldFlags&31) {
         case 0:
           newFlags.set("clockSel",0);
@@ -2484,14 +2484,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
           case DIV_SYSTEM_YM2610_FULL_EXT:
           case DIV_SYSTEM_YM2610B:
           case DIV_SYSTEM_YM2610B_EXT:
-          case DIV_SYSTEM_OPN:
-          case DIV_SYSTEM_OPN_EXT:
-          case DIV_SYSTEM_PC98:
-          case DIV_SYSTEM_PC98_EXT:
+          case DIV_SYSTEM_YM2203:
+          case DIV_SYSTEM_YM2203_EXT:
+          case DIV_SYSTEM_YM2608:
+          case DIV_SYSTEM_YM2608_EXT:
           case DIV_SYSTEM_YM2612:
           case DIV_SYSTEM_YM2612_EXT:
-          case DIV_SYSTEM_YM2612_FRAC:
-          case DIV_SYSTEM_YM2612_FRAC_EXT:
+          case DIV_SYSTEM_YM2612_DUALPCM:
+          case DIV_SYSTEM_YM2612_DUALPCM_EXT:
             opnCount++;
             break;
           default:
@@ -2514,12 +2514,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<125) {
       for (int i=0; i<ds.systemLen; i++) {
         if (ds.system[i]==DIV_SYSTEM_YM2612_EXT ||
-            ds.system[i]==DIV_SYSTEM_YM2612_FRAC_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2612_DUALPCM_EXT ||
             ds.system[i]==DIV_SYSTEM_YM2610_EXT ||
             ds.system[i]==DIV_SYSTEM_YM2610_FULL_EXT ||
             ds.system[i]==DIV_SYSTEM_YM2610B_EXT ||
-            ds.system[i]==DIV_SYSTEM_OPN_EXT ||
-            ds.system[i]==DIV_SYSTEM_PC98_EXT) {
+            ds.system[i]==DIV_SYSTEM_YM2203_EXT ||
+            ds.system[i]==DIV_SYSTEM_YM2608_EXT) {
           ds.systemFlags[i].set("noExtMacros",true);
         }
       }

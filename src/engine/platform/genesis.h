@@ -86,8 +86,6 @@ class DivPlatformGenesis: public DivPlatformOPN {
     ymfm::ym2612* fm_ymfm;
     ymfm::ym2612::output_data out_ymfm;
     DivYM2612Interface iface;
-  
-    unsigned char lfoValue;
 
     int softPCMTimer;
 
@@ -133,7 +131,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformGenesis():
-      DivPlatformOPN(9440540.0, 72, 32) {}
+      DivPlatformOPN(9440540.0, 72, 32, false, 7) {}
     ~DivPlatformGenesis();
 };
 #endif

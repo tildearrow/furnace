@@ -20,6 +20,7 @@
 #define _USE_MATH_DEFINES
 #include "pcmdac.h"
 #include "../engine.h"
+#include "../filter.h"
 #include <math.h>
 
 // to ease the driver, freqency register is a 8.16 counter relative to output sample rate
@@ -103,7 +104,50 @@ void DivPlatformPCMDAC::acquire(short* bufL, short* bufR, size_t start, size_t l
             }
           }
           if (chan[0].audPos>=0 && chan[0].audPos<(int)s->samples) {
-            output=s->data16[chan[0].audPos];
+            int s_4=((chan[0].audPos-4)>=0)?s->data16[chan[0].audPos-4]:0;
+            int s_3=((chan[0].audPos-3)>=0)?s->data16[chan[0].audPos-3]:0;
+            int s_2=((chan[0].audPos-2)>=0)?s->data16[chan[0].audPos-2]:0;
+            int s_1=((chan[0].audPos-1)>=0)?s->data16[chan[0].audPos-1]:0;
+            int s0=s->data16[chan[0].audPos];
+            int s1=((chan[0].audPos+1)<(int)s->samples)?s->data16[chan[0].audPos+1]:0;
+            int s2=((chan[0].audPos+2)<(int)s->samples)?s->data16[chan[0].audPos+2]:0;
+            int s3=((chan[0].audPos+3)<(int)s->samples)?s->data16[chan[0].audPos+3]:0;
+            switch (interp) {
+              case 1: // linear
+                output=s0+((s1-s0)*(chan[0].audSub&0xffff)>>16);
+                break;
+              case 2: { // cubic
+                float* cubicTable=DivFilterTables::getCubicTable();
+                float* t=&cubicTable[((chan[0].audSub&0xffff)>>6)<<2];
+                float result=(float)s_1*t[0]+(float)s0*t[1]+(float)s1*t[2]+(float)s2*t[3];
+                if (result<-32768) result=-32768;
+                if (result>32767) result=32767;
+                output=result;
+                break;
+              }
+              case 3: { // sinc
+                float* sincTable=DivFilterTables::getSincTable8();
+                float* t1=&sincTable[(8191-((chan[0].audSub&0xffff)>>3))<<2];
+                float* t2=&sincTable[((chan[0].audSub&0xffff)>>3)<<2];
+                float result=(
+                  s_4*t2[3]+
+                  s_3*t2[2]+
+                  s_2*t2[1]+
+                  s_1*t2[0]+
+                  s0*t1[0]+
+                  s1*t1[1]+
+                  s2*t1[2]+
+                  s3*t1[3]
+                );
+                if (result<-32768) result=-32768;
+                if (result>32767) result=32767;
+                output=result;
+                break;
+              }
+              default: // none
+                output=s0;
+                break;
+            }
           }
         } else {
           chan[0].sample=-1;
@@ -398,6 +442,8 @@ void DivPlatformPCMDAC::setFlags(const DivConfig& flags) {
   chipClock=rate;
   outDepth=(flags.getInt("outDepth",15))&15;
   outStereo=flags.getBool("stereo",true);
+  interp=flags.getInt("interpolation",0);
+  oscBuf->rate=rate;
 }
 
 int DivPlatformPCMDAC::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

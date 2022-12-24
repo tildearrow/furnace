@@ -227,11 +227,11 @@ void FurnaceGUI::drawSampleEdit() {
               if (sampleDepths[i]==NULL) continue;
               if (ImGui::Selectable(sampleDepths[i])) {
                 sample->prepareUndo(true);
-                e->lockEngine([sample]() {
+                e->lockEngine([this,sample,i]() {
                   sample->render();
+                  sample->depth=(DivSampleDepth)i;
+                  e->renderSamples();
                 });
-                sample->depth=(DivSampleDepth)i;
-                e->renderSamplesP();
                 updateSampleTex=true;
                 MARK_MODIFIED;
               }

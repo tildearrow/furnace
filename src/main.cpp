@@ -195,6 +195,8 @@ TAParamResult pVersion(String) {
   printf("- Stella by Stella Team (GPLv2)\n");
   printf("- vgsound_emu (second version, modified version) by cam900 (zlib license)\n");
   printf("- MAME GA20 core by Acho A. Tang, R. Belmont, Valley Bell (BSD 3-clause)\n");
+  printf("- Atari800 mzpokeysnd POKEY emulator by Michael Borisov (GPLv2)\n");
+  printf("- ASAP POKEY emulator by Piotr Fusik ported to C++ by laoo (GPLv2)\n");
   return TA_PARAM_QUIT;
 }
 
@@ -416,23 +418,30 @@ int main(int argc, char** argv) {
     logI("usage: %s file",argv[0]);
     return 1;
   }
+
   logI("Furnace version " DIV_VERSION ".");
+
+  e.preInit();
+
   if (!fileName.empty()) {
     logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
       reportError(fmt::sprintf("couldn't open file! (%s)",strerror(errno)));
+      finishLogFile();
       return 1;
     }
     if (fseek(f,0,SEEK_END)<0) {
       reportError(fmt::sprintf("couldn't open file! (couldn't get file size: %s)",strerror(errno)));
       fclose(f);
+      finishLogFile();
       return 1;
     }
     ssize_t len=ftell(f);
     if (len==(SIZE_MAX>>1)) {
       reportError(fmt::sprintf("couldn't open file! (couldn't get file length: %s)",strerror(errno)));
       fclose(f);
+      finishLogFile();
       return 1;
     }
     if (len<1) {
@@ -442,6 +451,7 @@ int main(int argc, char** argv) {
         reportError(fmt::sprintf("couldn't open file! (tell error: %s)",strerror(errno)));
       }
       fclose(f);
+      finishLogFile();
       return 1;
     }
     unsigned char* file=new unsigned char[len];
@@ -449,23 +459,27 @@ int main(int argc, char** argv) {
       reportError(fmt::sprintf("couldn't open file! (size error: %s)",strerror(errno)));
       fclose(f);
       delete[] file;
+      finishLogFile();
       return 1;
     }
     if (fread(file,1,(size_t)len,f)!=(size_t)len) {
       reportError(fmt::sprintf("couldn't open file! (read error: %s)",strerror(errno)));
       fclose(f);
       delete[] file;
+      finishLogFile();
       return 1;
     }
     fclose(f);
     if (!e.load(file,(size_t)len)) {
       reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
+      finishLogFile();
       return 1;
     }
   }
   if (!e.init()) {
     if (consoleMode) {
       reportError("could not initialize engine!");
+      finishLogFile();
       return 1;
     } else {
       logE("could not initialize engine!");
@@ -479,6 +493,7 @@ int main(int argc, char** argv) {
     } else {
       e.benchmarkPlayback();
     }
+    finishLogFile();
     return 0;
   }
   if (outName!="" || vgmOutName!="" || cmdOutName!="") {
@@ -519,6 +534,7 @@ int main(int argc, char** argv) {
       e.saveAudio(outName.c_str(),loops,outMode);
       e.waitAudioFile();
     }
+    finishLogFile();
     return 0;
   }
 
@@ -536,6 +552,7 @@ int main(int argc, char** argv) {
       cli.loop();
       cli.finish();
       e.quit();
+      finishLogFile();
       return 0;
     } else {
 #ifdef HAVE_SDL2
@@ -545,6 +562,7 @@ int main(int argc, char** argv) {
         if (ev.type==SDL_QUIT) break;
       }
       e.quit();
+      finishLogFile();
       return 0;
 #else
       while (true) {
@@ -562,6 +580,7 @@ int main(int argc, char** argv) {
   g.bindEngine(&e);
   if (!g.init()) {
     reportError(g.getLastError());
+    finishLogFile();
     return 1;
   }
 
@@ -583,6 +602,8 @@ int main(int argc, char** argv) {
 
   logI("stopping engine.");
   e.quit();
+
+  finishLogFile();
 
 #ifdef _WIN32
   if (coResult==S_OK || coResult==S_FALSE) {

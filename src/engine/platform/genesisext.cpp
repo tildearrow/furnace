@@ -25,7 +25,6 @@
 #define CHIP_DIVIDER fmDivBase
 
 #define IS_REALLY_MUTED(x) (isMuted[x] && (x<5 || !softPCM || (isMuted[5] && isMuted[6])))
-#define IS_EXTCH_MUTED (isOpMuted[0] && isOpMuted[1] && isOpMuted[2] && isOpMuted[3])
 
 int DivPlatformGenesisExt::dispatch(DivCommand c) {
   if (c.chan<2) {
@@ -220,14 +219,14 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       rWrite(chanOffs[2]+ADDR_FB_ALG,(chan[2].state.alg&7)|(chan[2].state.fb<<3));
       break;
     }
-    case DIV_CMD_FM_MULT: { // TODO
+    case DIV_CMD_FM_MULT: {
       unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[c.value]];
       op.mult=c.value2&15;
       rWrite(baseAddr+0x30,(op.mult&15)|(dtTable[op.dt&7]<<4));
       break;
     }
-    case DIV_CMD_FM_TL: { // TODO
+    case DIV_CMD_FM_TL: {
       unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[c.value]];
       op.tl=c.value2;
@@ -454,7 +453,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
       }
     }
     if (writeSomething) {
-      if (chan[7].active) { // CSM
+      if (chan[csmChan].active) { // CSM
         writeMask^=0xf0;
       }
       /*printf(
@@ -588,18 +587,18 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
     }
   }
 
-  if (extMode && softPCM) {
-    if (chan[7].freqChanged) {
-      chan[7].freq=parent->calcFreq(chan[7].baseFreq,chan[7].pitch,chan[7].fixedArp?chan[7].baseNoteOverride:chan[7].arpOff,chan[7].fixedArp,true,0,chan[7].pitch2,chipClock,CHIP_DIVIDER);
-      if (chan[7].freq<1) chan[7].freq=1;
-      if (chan[7].freq>1024) chan[7].freq=1024;
-      int wf=0x400-chan[7].freq;
+  if (extMode) {
+    if (chan[csmChan].freqChanged) {
+      chan[csmChan].freq=parent->calcFreq(chan[csmChan].baseFreq,chan[csmChan].pitch,chan[csmChan].fixedArp?chan[csmChan].baseNoteOverride:chan[csmChan].arpOff,chan[csmChan].fixedArp,true,0,chan[csmChan].pitch2,chipClock,CHIP_DIVIDER);
+      if (chan[csmChan].freq<1) chan[csmChan].freq=1;
+      if (chan[csmChan].freq>1024) chan[csmChan].freq=1024;
+      int wf=0x400-chan[csmChan].freq;
       immWrite(0x24,wf>>2);
       immWrite(0x25,wf&3);
-      chan[7].freqChanged=false;
+      chan[csmChan].freqChanged=false;
     }
 
-    if (chan[7].keyOff || chan[7].keyOn) {
+    if (chan[csmChan].keyOff || chan[csmChan].keyOn) {
       writeNoteOn=true;
       for (int i=0; i<4; i++) {
         writeMask|=opChan[i].active<<(4+i);
@@ -608,7 +607,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
   }
 
   if (writeNoteOn) {
-    if (chan[7].active) { // CSM
+    if (chan[csmChan].active) { // CSM
       writeMask^=0xf0;
     }
     /*printf(
@@ -621,14 +620,14 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
     immWrite(0x28,writeMask);
   }
 
-  if (extMode && softPCM) {
-    if (chan[7].keyOn) {
+  if (extMode) {
+    if (chan[csmChan].keyOn) {
       immWrite(0x27,0x81);
-      chan[7].keyOn=false;
+      chan[csmChan].keyOn=false;
     }
-    if (chan[7].keyOff) {
+    if (chan[csmChan].keyOff) {
       immWrite(0x27,0x40);
-      chan[7].keyOff=false;
+      chan[csmChan].keyOff=false;
     }
   }
 }
@@ -686,10 +685,10 @@ void DivPlatformGenesisExt::forceIns() {
       opChan[i].freqChanged=true;
     }
   }
-  if (extMode && softPCM && chan[7].active) { // CSM
-    chan[7].insChanged=true;
-    chan[7].freqChanged=true;
-    chan[7].keyOn=true;
+  if (extMode && chan[csmChan].active) { // CSM
+    chan[csmChan].insChanged=true;
+    chan[csmChan].freqChanged=true;
+    chan[csmChan].keyOn=true;
   }
 }
 
@@ -701,7 +700,7 @@ void* DivPlatformGenesisExt::getChanState(int ch) {
 
 DivMacroInt* DivPlatformGenesisExt::getChanMacroInt(int ch) {
   if (ch>=6) return &chan[ch-3].std;
-  if (ch>=2) return NULL; // currently not implemented
+  if (ch>=2) return &opChan[ch-2].std;
   return &chan[ch].std;
 }
 
@@ -745,6 +744,10 @@ void DivPlatformGenesisExt::notifyInsChange(int ins) {
 
 int DivPlatformGenesisExt::getPortaFloor(int ch) {
   return (ch>8)?12:0;
+}
+
+void DivPlatformGenesisExt::setCSMChannel(unsigned char ch) {
+  csmChan=ch;
 }
 
 int DivPlatformGenesisExt::init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) {

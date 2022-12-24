@@ -948,6 +948,7 @@ struct FurnaceGUISysDef {
   const char* name;
   const char* extra;
   String definition;
+  std::vector<FurnaceGUISysDefChip> orig;
   FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e=NULL);
 };
 
@@ -1116,7 +1117,7 @@ class FurnaceGUI {
 
   String pendingRawSample;
   int pendingRawSampleDepth, pendingRawSampleChannels;
-  bool pendingRawSampleUnsigned, pendingRawSampleBigEndian;
+  bool pendingRawSampleUnsigned, pendingRawSampleBigEndian, pendingRawSampleSwapNibbles;
 
   ImGuiWindowFlags globalWinFlags;
 
@@ -1177,6 +1178,7 @@ class FurnaceGUI {
     int nesCore;
     int fdsCore;
     int c64Core;
+    int pokeyCore;
     int pcSpeakerOutMethod;
     String yrw801Path;
     String tg100Path;
@@ -1309,6 +1311,7 @@ class FurnaceGUI {
       nesCore(0),
       fdsCore(0),
       c64Core(1),
+      pokeyCore(1),
       pcSpeakerOutMethod(0),
       yrw801Path(""),
       tg100Path(""),

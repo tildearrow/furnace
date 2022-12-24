@@ -34,8 +34,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
     switch (sys) {
       case DIV_SYSTEM_YM2612:
       case DIV_SYSTEM_YM2612_EXT:
-      case DIV_SYSTEM_YM2612_FRAC:
-      case DIV_SYSTEM_YM2612_FRAC_EXT:
+      case DIV_SYSTEM_YM2612_DUALPCM:
+      case DIV_SYSTEM_YM2612_DUALPCM_EXT:
         for (int i=0; i<3; i++) { // set SL and RR to highest
           w->writeC(2|baseAddr1);
           w->writeC(0x80+i);
@@ -252,8 +252,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0);
         }
         break;
-      case DIV_SYSTEM_OPN:
-      case DIV_SYSTEM_OPN_EXT:
+      case DIV_SYSTEM_YM2203:
+      case DIV_SYSTEM_YM2203_EXT:
         for (int i=0; i<3; i++) { // set SL and RR to highest
           w->writeC(5|baseAddr1);
           w->writeC(0x80+i);
@@ -330,6 +330,13 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         for (int i=0; i<6; i++) {
           w->writeC(0xbd);
           w->writeC((0|baseAddr2)+i);
+          w->writeC(0);
+        }
+        break;
+      case DIV_SYSTEM_POKEY:
+        for (int i=0; i<9; i++) {
+          w->writeC(0xbb);
+          w->writeC(i|baseAddr2);
           w->writeC(0);
         }
         break;
@@ -600,8 +607,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   switch (sys) {
     case DIV_SYSTEM_YM2612:
     case DIV_SYSTEM_YM2612_EXT:
-    case DIV_SYSTEM_YM2612_FRAC:
-    case DIV_SYSTEM_YM2612_FRAC_EXT:
+    case DIV_SYSTEM_YM2612_DUALPCM:
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT:
       switch (write.addr>>8) {
         case 0: // port 0
           w->writeC(2|baseAddr1);
@@ -693,14 +700,14 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           break;
       }
       break;
-    case DIV_SYSTEM_OPN:
-    case DIV_SYSTEM_OPN_EXT:
+    case DIV_SYSTEM_YM2203:
+    case DIV_SYSTEM_YM2203_EXT:
       w->writeC(5|baseAddr1);
       w->writeC(write.addr&0xff);
       w->writeC(write.val);
       break;
-    case DIV_SYSTEM_PC98:
-    case DIV_SYSTEM_PC98_EXT:
+    case DIV_SYSTEM_YM2608:
+    case DIV_SYSTEM_YM2608_EXT:
       switch (write.addr>>8) {
         case 0: // port 0
           w->writeC(6|baseAddr1);
@@ -731,6 +738,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(0xbd);
       w->writeC(baseAddr2|(write.addr&0xff));
       w->writeC(write.val);
+      break;
+    case DIV_SYSTEM_POKEY:
+      w->writeC(0xbb);
+      w->writeC(baseAddr2|(write.addr&0x0f));
+      w->writeC(write.val&0xff);
       break;
     case DIV_SYSTEM_LYNX:
       w->writeC(0x4e);
@@ -1208,8 +1220,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         break;
       case DIV_SYSTEM_YM2612:
       case DIV_SYSTEM_YM2612_EXT:
-      case DIV_SYSTEM_YM2612_FRAC:
-      case DIV_SYSTEM_YM2612_FRAC_EXT:
+      case DIV_SYSTEM_YM2612_DUALPCM:
+      case DIV_SYSTEM_YM2612_DUALPCM_EXT:
         if (!hasOPN2) {
           hasOPN2=disCont[i].dispatch->chipClock;
           willExport[i]=true;
@@ -1232,8 +1244,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           howManyChips++;
         }
         break;
-      case DIV_SYSTEM_OPN:
-      case DIV_SYSTEM_OPN_EXT:
+      case DIV_SYSTEM_YM2203:
+      case DIV_SYSTEM_YM2203_EXT:
         if (!hasOPN) {
           hasOPN=disCont[i].dispatch->chipClock;
           willExport[i]=true;
@@ -1245,8 +1257,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           howManyChips++;
         }
         break;
-      case DIV_SYSTEM_PC98:
-      case DIV_SYSTEM_PC98_EXT:
+      case DIV_SYSTEM_YM2608:
+      case DIV_SYSTEM_YM2608_EXT:
         if (!hasOPNA) {
           hasOPNA=disCont[i].dispatch->chipClock;
           willExport[i]=true;
@@ -1283,6 +1295,17 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           isSecond[i]=true;
           willExport[i]=true;
           hasNES|=0xc0000000;
+          howManyChips++;
+        }
+        break;
+      case DIV_SYSTEM_POKEY:
+        if (!hasPOKEY) {
+          hasPOKEY=disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+        } else if (!(hasPOKEY&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=true;
+          hasPOKEY|=0x40000000;
           howManyChips++;
         }
         break;
@@ -1892,8 +1915,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       switch (song.system[i]) {
         case DIV_SYSTEM_YM2612:
         case DIV_SYSTEM_YM2612_EXT:
-        case DIV_SYSTEM_YM2612_FRAC:
-        case DIV_SYSTEM_YM2612_FRAC_EXT:
+        case DIV_SYSTEM_YM2612_DUALPCM:
+        case DIV_SYSTEM_YM2612_DUALPCM_EXT:
           w->writeC(0x90);
           w->writeC(streamID);
           w->writeC(0x02);

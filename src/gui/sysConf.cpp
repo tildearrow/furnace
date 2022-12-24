@@ -30,8 +30,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
   switch (type) {
     case DIV_SYSTEM_YM2612:
     case DIV_SYSTEM_YM2612_EXT: 
-    case DIV_SYSTEM_YM2612_FRAC:
-    case DIV_SYSTEM_YM2612_FRAC_EXT: {
+    case DIV_SYSTEM_YM2612_DUALPCM:
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT: {
       int clockSel=flags.getInt("clockSel",0);
       bool ladder=flags.getBool("ladderEffect",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
@@ -59,7 +59,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       if (ImGui::Checkbox("Enable DAC distortion",&ladder)) {
         altered=true;
       }
-      if (type==DIV_SYSTEM_YM2612_EXT || type==DIV_SYSTEM_YM2612_FRAC_EXT) {
+      if (type==DIV_SYSTEM_YM2612_EXT || type==DIV_SYSTEM_YM2612_DUALPCM_EXT) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
           altered=true;
         }
@@ -850,8 +850,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
-    case DIV_SYSTEM_OPN:
-    case DIV_SYSTEM_OPN_EXT: {
+    case DIV_SYSTEM_YM2203:
+    case DIV_SYSTEM_YM2203_EXT: {
       int clockSel=flags.getInt("clockSel",0);
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
@@ -895,7 +895,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
-      if (type==DIV_SYSTEM_OPN_EXT) {
+      if (type==DIV_SYSTEM_YM2203_EXT) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
           altered=true;
         }
@@ -910,8 +910,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
-    case DIV_SYSTEM_PC98:
-    case DIV_SYSTEM_PC98_EXT: {
+    case DIV_SYSTEM_YM2608:
+    case DIV_SYSTEM_YM2608_EXT: {
       int clockSel=flags.getInt("clockSel",0);
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
@@ -939,7 +939,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
-      if (type==DIV_SYSTEM_PC98_EXT) {
+      if (type==DIV_SYSTEM_YM2608_EXT) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
           altered=true;
         }
@@ -1243,6 +1243,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       // default to 44100Hz 16-bit stereo
       int sampRate=flags.getInt("rate",44100);
       int bitDepth=flags.getInt("outDepth",15)+1;
+      int interpolation=flags.getInt("interpolation",0);
       bool stereo=flags.getBool("stereo",false);
 
       ImGui::Text("Output rate:");
@@ -1261,11 +1262,30 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
+      ImGui::Text("Interpolation:");
+      if (ImGui::RadioButton("None",interpolation==0)) {
+        interpolation=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Linear",interpolation==1)) {
+        interpolation=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Cubic",interpolation==2)) {
+        interpolation=2;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Sinc",interpolation==3)) {
+        interpolation=3;
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("rate",sampRate);
           flags.set("outDepth",bitDepth-1);
           flags.set("stereo",stereo);
+          flags.set("interpolation",interpolation);
         });
       }
       break;
