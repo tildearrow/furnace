@@ -456,12 +456,14 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       if (c.chan>=9 && !properDrums) return 0;
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
+      chan[c.chan].freqChanged=true;
       chan[c.chan].active=false;
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       if (c.chan>=9 && !properDrums) return 0;
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
+      chan[c.chan].freqChanged=true;
       chan[c.chan].active=false;
       chan[c.chan].std.release();
       break;
