@@ -166,9 +166,9 @@ class es550x_shared_core : public vgsound_emu_core
 							, m_start(0)
 							, m_end(0)
 							, m_accum(0)
-							, m_sample({0})
 						{
-						}
+ m_sample[0]=0;						
+ m_sample[1]=0;						}
 
 						// configurations
 						const u8 m_integer	   = 21;

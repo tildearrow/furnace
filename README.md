@@ -36,13 +36,17 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
     - TI SN76489 used in Sega Master System and BBC Micro
     - PC Speaker
     - Philips SAA1099 used in SAM Coupé
+    - OKI MSM5232 used in some arcade boards
   - sample chips:
+    - SNES
     - Amiga
     - SegaPCM - all 16 channels
     - Capcom QSound
     - Yamaha YMZ280B (PCMD8)
     - Ricoh RF5C68 used in Sega CD and FM Towns
     - OKI MSM6258 and MSM6295
+    - Konami K007232
+    - Irem GA20
   - wavetable chips:
     - HuC6280 used in PC Engine
     - Konami Bubble System WSG
@@ -61,9 +65,12 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
   - SID (6581/8580) used in Commodore 64
   - Mikey used in Atari Lynx
   - ZX Spectrum beeper (SFX-like engine)
+  - Pokémon Mini
   - Commodore PET
   - TIA used in Atari 2600
+  - POKEY used in Atari 8-bit computers
   - Game Boy
+  - Virtual Boy
   - modern/fantasy:
     - Commander X16 VERA
     - tildearrow Sound Unit
@@ -71,12 +78,12 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
   - over 200 ready to use presets from computers, game consoles and arcade boards...
   - ...or create your own - up to 32 of them or a total of 128 channels!
 - DefleMask compatibility
-  - loads .dmf modules from all versions (beta 1 to 1.1.3)
+  - loads .dmf modules from all versions (beta 1 to 1.1.5)
   - saves .dmf modules - both modern and legacy
     - Furnace doubles as a module downgrader
   - loads/saves .dmp instruments and .dmw wavetables as well
   - clean-room design (guesswork and ABX tests only, no decompilation involved)
-  - bug/quirk implementation for increased playback accuracy through compatibility flags
+  - some bug/quirk implementation for increased playback accuracy through compatibility flags
 - VGM export
 - modular layout that you may adapt to your needs
 - audio file export - entire song, per chip or per channel
@@ -88,11 +95,15 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
 - additional features:
   - FM macros!
   - negative octaves
+  - advanced arp macros
   - arbitrary pitch samples
   - sample loop points
   - SSG envelopes and ADPCM-B in Neo Geo
+  - pitchable OPLL drums
   - full duty/cutoff range in C64
+  - full 16-channel SegaPCM
   - ability to change tempo mid-song
+  - decimal tempo/tick rate
   - multiple sub-songs in a module
   - per-channel oscilloscope with waveform centering
   - built-in sample editor
@@ -250,6 +261,10 @@ xattr -d com.apple.quarantine /path/to/Furnace.app
 (replace /path/to/ with the path where Furnace.app is located)
 
 you may need to log out and/or reboot after doing this.
+
+> .spc export?
+
+**not yet!** coming in 0.7 though, in a future...
 
 > how do I use C64 absolute filter/duty?
 

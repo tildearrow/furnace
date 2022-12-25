@@ -141,6 +141,7 @@ const char* aboutLine[]={
   "MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya",
   "MAME MSM6258 core by Barry Rodewald",
   "MAME YMZ280B core by Aaron Giles",
+  "MAME GA20 core by Acho A. Tang and R. Belmont",
   "SAASound by Dave Hooper and Simon Owen",
   "SameBoy by Lior Halphon",
   "Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores",
