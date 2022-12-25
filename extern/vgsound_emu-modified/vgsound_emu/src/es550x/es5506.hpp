@@ -147,7 +147,7 @@ class es5506_core : public es550x_shared_core
 					, m_filtcount(0)
 					, m_ch(output_t())
 					, m_mute(false)
-					, m_output{0}
+					, m_output{0, 0}
 				{
 				}
 
@@ -211,7 +211,7 @@ class es5506_core : public es550x_shared_core
 				u8 m_filtcount = 0;			  // Internal counter for slow mode
 				output_t m_ch;				  // channel output
 				bool m_mute = false;		  // mute flag (for debug purpose)
-				std::array<s32, 2> m_output;  // output preview (for debug purpose)
+				std::array<s32, 2> m_output = {0, 0};  // output preview (for debug purpose)
 		};
 
 		// 5 bit mode

@@ -29,7 +29,10 @@ class scc_core : public vgsound_emu_core
 				voice_t(scc_core &host)
 					: vgsound_emu_core("scc_voice")
 					, m_host(host)
-					, m_wave{0}
+					, m_wave{0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0}
 					, m_enable(false)
 					, m_pitch(0)
 					, m_volume(0)
@@ -69,7 +72,10 @@ class scc_core : public vgsound_emu_core
 			private:
 				// registers
 				scc_core &m_host;
-				std::array<s8, 32> m_wave = {0};	// internal waveform
+				std::array<s8, 32> m_wave = {0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0,
+					0, 0, 0, 0, 0, 0, 0, 0};	// internal waveform
 				bool m_enable			  = false;	// output enable flag
 				u16 m_pitch	 : 12;					// pitch
 				u16 m_volume : 4;					// volume
@@ -138,8 +144,8 @@ class scc_core : public vgsound_emu_core
 			, m_voice{*this, *this, *this, *this, *this}
 			, m_test(test_t())
 			, m_out(0)
-			, m_reg{0}
 		{
+			m_reg.fill(0);
 		}
 
 		// destructor
@@ -173,7 +179,7 @@ class scc_core : public vgsound_emu_core
 		test_t m_test;					// test register
 		s32 m_out				  = 0;	// output to DA0...10
 
-		std::array<u8, 256> m_reg = {0};  // register pool
+		std::array<u8, 256> m_reg;  // register pool
 };
 
 // SCC core

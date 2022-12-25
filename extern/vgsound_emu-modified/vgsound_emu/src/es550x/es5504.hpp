@@ -60,7 +60,7 @@ class es5504_core : public es550x_shared_core
 					  *this, *this, *this, *this, *this, *this, *this, *this, *this,
 					  *this, *this, *this, *this, *this, *this, *this}
 			, m_adc(0)
-			, m_out{0}
+			, m_out{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 		{
 		}
 
@@ -111,7 +111,7 @@ class es5504_core : public es550x_shared_core
 	private:
 		std::array<voice_t, 25> m_voice;  // 25 voices
 		u16 m_adc				  = 0;	  // ADC register
-		std::array<s32, 16> m_out = {0};  // 16 channel outputs
+		std::array<s32, 16> m_out = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};  // 16 channel outputs
 };
 
 #endif
