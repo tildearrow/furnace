@@ -455,6 +455,7 @@ void DivPlatformPOKEY::setFlags(const DivConfig& flags) {
       oscBuf[i]->rate=rate/2;
     }
     altASAP.init(chipClock,rate);
+    altASAP.reset();
   } else {
     rate=chipClock;
     for (int i=0; i<4; i++) {
