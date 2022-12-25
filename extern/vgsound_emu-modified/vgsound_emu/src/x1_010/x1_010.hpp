@@ -87,9 +87,9 @@ class x1_010_core : public vgsound_emu_core
 					, m_acc(0)
 					, m_env_acc(0)
 					, m_data(0)
-					, m_vol_out{0, 0}
-					, m_out{0, 0}
 				{
+					m_vol_out.fill(0);
+					m_out.fill(0);
 				}
 
 				// internal state
@@ -117,10 +117,10 @@ class x1_010_core : public vgsound_emu_core
 				u32 m_acc					= 0;
 				u32 m_env_acc				= 0;
 				s8 m_data					= 0;
-				std::array<u8, 2> m_vol_out = {0, 0};
+				std::array<u8, 2> m_vol_out;
 
 				// for preview only
-				std::array<s32, 2> m_out = {0, 0};
+				std::array<s32, 2> m_out;
 		};
 
 	public:
