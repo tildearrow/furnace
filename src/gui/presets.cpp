@@ -1543,6 +1543,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "POKEY", {
+      CH(DIV_SYSTEM_POKEY, 64, 0, "clockSel=1")
+    },
+    "tickRate=50"
+  );
+  ENTRY(
     "Atari TIA", {
       CH(DIV_SYSTEM_TIA, 64, 0, "")
     }
