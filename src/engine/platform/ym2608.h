@@ -47,6 +47,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     OPNChannelStereo chan[16];
     DivDispatchOscBuffer* oscBuf[16];
     bool isMuted[16];
+    ym3438_t fm_nuked;
     ymfm::ym2608* fm;
     ymfm::ym2608::output_data fmout;
 
@@ -62,12 +63,16 @@ class DivPlatformYM2608: public DivPlatformOPN {
     int globalRSSVolume;
 
     bool extMode, noExtMacros;
-    unsigned char prescale;
+    unsigned char prescale, nukedMult;
   
     double NOTE_OPNB(int ch, int note);
     double NOTE_ADPCMB(int note);
 
     friend void putDispatchChip(void*,int);
+
+    void acquire_combo(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
+
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
@@ -97,7 +102,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformYM2608():
-      DivPlatformOPN(9440540.0, 72, 32),
+      DivPlatformOPN(2, 6, 9, 15, 16, 9440540.0, 72, 32),
       prescale(0x2d) {}
     ~DivPlatformYM2608();
 };

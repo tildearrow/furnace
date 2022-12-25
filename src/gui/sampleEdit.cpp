@@ -30,6 +30,16 @@
 #include "sampleUtil.h"
 #include "util.h"
 
+const double timeDivisors[10]={
+  1000.0, 500.0, 200.0, 100.0, 50.0, 20.0, 10.0, 5.0, 2.0, 1.0
+};
+
+const double timeMultipliers[13]={
+  1.0, 2.0, 5.0, 10.0, 20.0, 30.0,
+  60.0, 2*60.0, 5*60.0, 10*60.0, 20*60.0, 30*60.0,
+  3600.0
+};
+
 #define CENTER_TEXT(text) \
   ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
 
@@ -1000,7 +1010,48 @@ void FurnaceGUI::drawSampleEdit() {
 
       ImGui::ItemSize(size,style.FramePadding.y);
       if (ImGui::ItemAdd(rect,ImGui::GetID("SETime"))) {
-        dl->AddText(minArea,0xffffffff,"0");
+        int targetRate=sampleCompatRate?sample->rate:sample->centerRate;
+        int curDivisorSel=0;
+        int curMultiplierSel=0;
+        double divisor=1000.0;
+        double multiplier=1.0;
+        while ((((double)targetRate/divisor)/sampleZoom)<60.0*dpiScale) {
+          if (curDivisorSel>=10) break;
+          divisor=timeDivisors[++curDivisorSel];
+        }
+        if (curDivisorSel>=10) {
+          while ((((double)targetRate*multiplier)/sampleZoom)<60.0*dpiScale) {
+            if (curMultiplierSel>=13) {
+              multiplier+=3600.0;
+            } else {
+              multiplier=timeMultipliers[++curMultiplierSel];
+            }
+          }
+        }
+        double timeStep=multiplier*((double)targetRate/divisor);
+        double timeMin=-fmod(samplePos,timeStep);
+        double timeMax=size.x*sampleZoom;
+        ImU32 color=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_TIME_FG]);
+
+        dl->AddRectFilled(minArea,maxArea,ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_TIME_BG]));
+
+        for (double i=timeMin; i<timeMax; i+=timeStep) {
+          ImVec2 pos=ImVec2(minArea.x+(i/sampleZoom),minArea.y);
+          int timeMs=(int)((1000*(samplePos+i))/targetRate);
+          String t;
+          if (curDivisorSel>=9) {
+            if (timeMs>=3600000) {
+              t=fmt::sprintf("%d:%02d:%02d",timeMs/3600000,(timeMs/60000)%60,(timeMs/1000)%60);
+            } else if (timeMs>=60000) {
+              t=fmt::sprintf("%d:%02d.%02d",timeMs/60000,(timeMs/1000)%60,(timeMs%1000)/10);
+            } else {
+              t=fmt::sprintf("%d.%03d",timeMs/1000,timeMs%1000);
+            }
+          } else {
+            t=fmt::sprintf("%dms",timeMs);
+          }
+          dl->AddText(pos,color,t.c_str());
+        }
       }
 
       ImVec2 avail=ImGui::GetContentRegionAvail(); // sample view size determined here

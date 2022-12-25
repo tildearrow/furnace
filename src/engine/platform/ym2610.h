@@ -22,7 +22,7 @@
 
 #include "ym2610shared.h"
 
-class DivPlatformYM2610: public DivPlatformYM2610Base<14> {
+class DivPlatformYM2610: public DivPlatformYM2610Base {
   protected:
     const unsigned short chanOffs[4]={
       0x01, 0x02, 0x101, 0x102
@@ -37,6 +37,10 @@ class DivPlatformYM2610: public DivPlatformYM2610Base<14> {
     };
 
     friend void putDispatchChip(void*,int);
+
+    void acquire_combo(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
+    
   public:
     void acquire(short* bufL, short* bufR, size_t start, size_t len);
     int dispatch(DivCommand c);
@@ -60,7 +64,7 @@ class DivPlatformYM2610: public DivPlatformYM2610Base<14> {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformYM2610():
-      DivPlatformYM2610Base<14>(1,4,7,13) {}
+      DivPlatformYM2610Base(1,4,7,13,14) {}
     ~DivPlatformYM2610();
 };
 #endif

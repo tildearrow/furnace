@@ -157,6 +157,80 @@ const char** DivPlatformYM2203::getRegisterSheet() {
 }
 
 void DivPlatformYM2203::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  if (useCombo) {
+    acquire_combo(bufL,bufR,start,len);
+  } else {
+    acquire_ymfm(bufL,bufR,start,len);
+  }
+}
+
+void DivPlatformYM2203::acquire_combo(short* bufL, short* bufR, size_t start, size_t len) {
+  static int os;
+  static short ignored[2];
+
+  for (size_t h=start; h<start+len; h++) {
+    os=0;
+    // Nuked part
+    for (unsigned int i=0; i<nukedMult; i++) {
+      if (!writes.empty()) {
+        if (--delay<1 && !(fm->read(0)&0x80)) {
+          QueuedWrite& w=writes.front();
+
+          if (w.addr<=0x1c || w.addr==0x2d || w.addr==0x2e || w.addr==0x2f) {
+            // ymfm write
+            fm->write(0x0,w.addr);
+            fm->write(0x1,w.val);
+
+            regPool[w.addr&0xff]=w.val;
+            writes.pop_front();
+            delay=1;
+          } else {
+            // Nuked write
+            if (w.addrOrVal) {
+              OPN2_Write(&fm_nuked,0x1,w.val);
+              regPool[w.addr&0xff]=w.val;
+              writes.pop_front();
+            } else {
+              lastBusy++;
+              if (fm_nuked.write_busy==0) {
+                OPN2_Write(&fm_nuked,0x0,w.addr);
+                w.addrOrVal=true;
+              }
+            }
+          }
+        }
+      }
+
+      OPN2_Clock(&fm_nuked,ignored);
+    }
+    os=(
+      (fm_nuked.ch_out[0])+
+      (fm_nuked.ch_out[1])+
+      (fm_nuked.ch_out[2])
+    );
+
+    os&=~3;
+
+    // ymfm part
+    fm->generate(&fmout);
+
+    os+=((fmout.data[1]+fmout.data[2]+fmout.data[3])>>1);
+    if (os<-32768) os=-32768;
+    if (os>32767) os=32767;
+  
+    bufL[h]=os;
+    
+    for (int i=0; i<3; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=fm_nuked.ch_out[i];
+    }
+
+    for (int i=3; i<6; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=fmout.data[i-2];
+    }
+  }
+}
+
+void DivPlatformYM2203::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
   static int os;
 
   ymfm::ym2203::fm_engine* fme=fm->debug_fm_engine();
@@ -857,6 +931,8 @@ void DivPlatformYM2203::reset() {
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
+  OPN2_Reset(&fm_nuked);
+  OPN2_SetChipType(&fm_nuked,ym3438_mode_opn);
   fm->reset();
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformOPN::OPNChannel();
@@ -946,18 +1022,21 @@ void DivPlatformYM2203::setFlags(const DivConfig& flags) {
       fmFreqBase=4720270.0/2.0,
       fmDivBase=18,
       ayDiv=8;
+      nukedMult=16;
       break;
     case 0x02: // /2
       prescale=0x2f;
       fmFreqBase=4720270.0/3.0,
       fmDivBase=12,
       ayDiv=4;
+      nukedMult=24;
       break;
     default: // /6
       prescale=0x2d;
       fmFreqBase=4720270.0,
       fmDivBase=36,
       ayDiv=16;
+      nukedMult=8;
       break;
   }
   CHECK_CUSTOM_CLOCK;

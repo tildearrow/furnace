@@ -166,8 +166,8 @@ class es550x_shared_core : public vgsound_emu_core
 							, m_start(0)
 							, m_end(0)
 							, m_accum(0)
-							, m_sample({0})
 						{
+							m_sample.fill(0);
 						}
 
 						// configurations
@@ -367,7 +367,7 @@ class es550x_shared_core : public vgsound_emu_core
 						// 21 integer, 11 fraction for ES5506
 						u32 m_accum = 0;
 						// Samples
-						std::array<s32, 2> m_sample = {0};
+						std::array<s32, 2> m_sample;
 				};
 
 				// Filter

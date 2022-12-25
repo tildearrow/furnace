@@ -3101,14 +3101,32 @@ bool FurnaceGUI::loop() {
               scrX=ev.window.data1;
               scrY=ev.window.data2;
               updateWindow=true;
+              logV("window moved to %dx%d",scrX,scrY);
+              break;
+            case SDL_WINDOWEVENT_SIZE_CHANGED:
+              logV("window size changed to %dx%d",ev.window.data1,ev.window.data2);
+              break;
+            case SDL_WINDOWEVENT_MINIMIZED:
+              logV("window minimized");
               break;
             case SDL_WINDOWEVENT_MAXIMIZED:
               scrMax=true;
               updateWindow=true;
+              logV("window maximized");
               break;
             case SDL_WINDOWEVENT_RESTORED:
               scrMax=false;
               updateWindow=true;
+              logV("window restored");
+              break;
+            case SDL_WINDOWEVENT_SHOWN:
+              logV("window shown");
+              break;
+            case SDL_WINDOWEVENT_HIDDEN:
+              logV("window hidden");
+              break;
+            case SDL_WINDOWEVENT_EXPOSED:
+              logV("window exposed");
               break;
           }
           break;
@@ -3196,7 +3214,12 @@ bool FurnaceGUI::loop() {
     } else {
       //logV("updateWindow: canvas size %dx%d",canvasW,canvasH);
       // and therefore window size
+      int prevScrW=scrW;
+      int prevScrH=scrH;
       SDL_GetWindowSize(sdlWin,&scrW,&scrH);
+      if (prevScrW!=scrW || prevScrH!=scrH) {
+        logV("size change 2: %dx%d (from %dx%d)",scrW,scrH,prevScrW,prevScrH);
+      }
     }
 
     wantCaptureKeyboard=ImGui::GetIO().WantTextInput;

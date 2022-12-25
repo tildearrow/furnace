@@ -44,12 +44,13 @@ class DivYM2610Interface: public ymfm::ymfm_interface {
       sampleBank(0) {}
 };
 
-template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
+class DivPlatformYM2610Base: public DivPlatformOPN {
   protected:
-    OPNChannelStereo chan[ChanNum];
-    DivDispatchOscBuffer* oscBuf[ChanNum];
-    bool isMuted[ChanNum];
+    OPNChannelStereo chan[16];
+    DivDispatchOscBuffer* oscBuf[16];
+    bool isMuted[16];
 
+    ym3438_t fm_nuked;
     ymfm::ym2610b* fm;
     ymfm::ym2610b::output_data fmout;
     DivPlatformAY8910* ay;
@@ -71,9 +72,6 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
   
     unsigned char writeADPCMAOff, writeADPCMAOn;
     int globalADPCMAVolume;
-
-    const int extChanOffs, psgChanOffs, adpcmAChanOffs, adpcmBChanOffs;
-    const int chanNum=ChanNum;
 
     double NOTE_OPNB(int ch, int note) {
       if (ch>=adpcmBChanOffs) { // ADPCM
@@ -97,6 +95,9 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       writeADPCMAOff=0;
       writeADPCMAOn=0;
       globalADPCMAVolume=0x3f;
+
+      OPN2_Reset(&fm_nuked);
+      OPN2_SetChipType(&fm_nuked,ym3438_mode_opn);
 
       ay->reset();
       ay->getRegisterWrites().clear();
@@ -220,8 +221,8 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       }
       CHECK_CUSTOM_CLOCK;
       noExtMacros=flags.getBool("noExtMacros",false);
-      rate=chipClock/16;
-      for (int i=0; i<ChanNum; i++) {
+      rate=fm->sample_rate(chipClock);
+      for (int i=0; i<16; i++) {
         oscBuf[i]->rate=rate;
       }
     }
@@ -231,7 +232,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       ayFlags.set("chipType",1);
       dumpWrites=false;
       skipRegisterWrites=false;
-      for (int i=0; i<ChanNum; i++) {
+      for (int i=0; i<16; i++) {
         isMuted[i]=false;
         oscBuf[i]=new DivDispatchOscBuffer;
       }
@@ -243,7 +244,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       iface.adpcmBMem=adpcmBMem;
       iface.sampleBank=0;
       fm=new ymfm::ym2610b(iface);
-      fm->set_fidelity(ymfm::OPN_FIDELITY_MAX);
+      fm->set_fidelity(ymfm::OPN_FIDELITY_MED);
       setFlags(flags);
       // YM2149, 2MHz
       ay=new DivPlatformAY8910(true,chipClock,32);
@@ -253,7 +254,7 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
     }
 
     void quit() {
-      for (int i=0; i<ChanNum; i++) {
+      for (int i=0; i<16; i++) {
         delete oscBuf[i];
       }
       ay->quit();
@@ -262,12 +263,8 @@ template<int ChanNum> class DivPlatformYM2610Base: public DivPlatformOPN {
       delete[] adpcmBMem;
     }
 
-    DivPlatformYM2610Base(int ext, int psg, int adpcmA, int adpcmB):
-      DivPlatformOPN(9440540.0, 72, 32),
-      extChanOffs(ext),
-      psgChanOffs(psg),
-      adpcmAChanOffs(adpcmA),
-      adpcmBChanOffs(adpcmB) {}
+    DivPlatformYM2610Base(int ext, int psg, int adpcmA, int adpcmB, int chanCount):
+      DivPlatformOPN(ext,psg,adpcmA,adpcmB,chanCount,9440540.0, 72, 32) {}
 };
 
 #endif

@@ -106,8 +106,8 @@ class es5505_core : public es550x_shared_core
 					, m_rvol(0)
 					, m_ch(output_t())
 					, m_mute(false)
-					, m_output{0}
 				{
+					m_output.fill(0);
 				}
 
 				// internal state

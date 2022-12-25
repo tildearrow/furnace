@@ -298,6 +298,116 @@ double DivPlatformYM2608::NOTE_ADPCMB(int note) {
 }
 
 void DivPlatformYM2608::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+  if (useCombo) {
+    acquire_combo(bufL,bufR,start,len);
+  } else {
+    acquire_ymfm(bufL,bufR,start,len);
+  }
+}
+
+void DivPlatformYM2608::acquire_combo(short* bufL, short* bufR, size_t start, size_t len) {
+  static int os[2];
+  static short ignored[2];
+
+  ymfm::ssg_engine* ssge=fm->debug_ssg_engine();
+  ymfm::adpcm_a_engine* aae=fm->debug_adpcm_a_engine();
+  ymfm::adpcm_b_engine* abe=fm->debug_adpcm_b_engine();
+
+  ymfm::ssg_engine::output_data ssgOut;
+
+  ymfm::adpcm_a_channel* adpcmAChan[6];
+  for (int i=0; i<6; i++) {
+    adpcmAChan[i]=aae->debug_channel(i);
+  }
+
+  for (size_t h=start; h<start+len; h++) {
+    os[0]=0; os[1]=0;
+    // Nuked part
+    for (int i=0; i<nukedMult; i++) {
+      if (!writes.empty()) {
+        if (--delay<1 && !(fm->read(0)&0x80)) {
+          QueuedWrite& w=writes.front();
+
+          if (w.addr<=0x1c || w.addr==0x2d || w.addr==0x2e || w.addr==0x2f || (w.addr>=0x100 && w.addr<=0x12d)) {
+            // ymfm write
+            fm->write(0x0+((w.addr>>8)<<1),w.addr);
+            fm->write(0x1+((w.addr>>8)<<1),w.val);
+
+            regPool[w.addr&0x1ff]=w.val;
+            writes.pop_front();
+            delay=1;
+          } else {
+            // Nuked write
+            if (w.addrOrVal) {
+              OPN2_Write(&fm_nuked,0x1+((w.addr>>8)<<1),w.val);
+              regPool[w.addr&0x1ff]=w.val;
+              writes.pop_front();
+            } else {
+              lastBusy++;
+              if (fm_nuked.write_busy==0) {
+                OPN2_Write(&fm_nuked,0x0+((w.addr>>8)<<1),w.addr);
+                w.addrOrVal=true;
+              }
+            }
+          }
+        }
+      }
+
+      OPN2_Clock(&fm_nuked,ignored);
+    }
+    os[0]=(
+      (fm_nuked.pan_l[0]?fm_nuked.ch_out[0]:0)+
+      (fm_nuked.pan_l[1]?fm_nuked.ch_out[1]:0)+
+      (fm_nuked.pan_l[2]?fm_nuked.ch_out[2]:0)+
+      (fm_nuked.pan_l[3]?fm_nuked.ch_out[3]:0)+
+      (fm_nuked.pan_l[4]?fm_nuked.ch_out[4]:0)+
+      (fm_nuked.pan_l[5]?fm_nuked.ch_out[5]:0)
+    );
+    os[1]=(
+      (fm_nuked.pan_r[0]?fm_nuked.ch_out[0]:0)+
+      (fm_nuked.pan_r[1]?fm_nuked.ch_out[1]:0)+
+      (fm_nuked.pan_r[2]?fm_nuked.ch_out[2]:0)+
+      (fm_nuked.pan_r[3]?fm_nuked.ch_out[3]:0)+
+      (fm_nuked.pan_r[4]?fm_nuked.ch_out[4]:0)+
+      (fm_nuked.pan_r[5]?fm_nuked.ch_out[5]:0)
+    );
+
+    os[0]>>=1;
+    os[1]>>=1;
+
+    // ymfm part
+    fm->generate(&fmout);
+
+    os[0]+=fmout.data[0]+(fmout.data[2]>>1);
+    if (os[0]<-32768) os[0]=-32768;
+    if (os[0]>32767) os[0]=32767;
+
+    os[1]+=fmout.data[1]+(fmout.data[2]>>1);
+    if (os[1]<-32768) os[1]=-32768;
+    if (os[1]>32767) os[1]=32767;
+  
+    bufL[h]=os[0];
+    bufR[h]=os[1];
+
+    
+    for (int i=0; i<psgChanOffs; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=fm_nuked.ch_out[i];
+    }
+
+    ssge->get_last_out(ssgOut);
+    for (int i=psgChanOffs; i<adpcmAChanOffs; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=ssgOut.data[i-psgChanOffs];
+    }
+
+    for (int i=adpcmAChanOffs; i<adpcmBChanOffs; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=adpcmAChan[i-adpcmAChanOffs]->get_last_out(0)+adpcmAChan[i-adpcmAChanOffs]->get_last_out(1);
+    }
+
+    oscBuf[adpcmBChanOffs]->data[oscBuf[adpcmBChanOffs]->needle++]=abe->get_last_out(0)+abe->get_last_out(1);
+  }
+}
+
+void DivPlatformYM2608::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
   static int os[2];
 
   ymfm::ym2608::fm_engine* fme=fm->debug_fm_engine();
@@ -1256,6 +1366,8 @@ void DivPlatformYM2608::reset() {
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
+  OPN2_Reset(&fm_nuked);
+  OPN2_SetChipType(&fm_nuked,ym3438_mode_opn);
   fm->reset();
   for (int i=0; i<16; i++) {
     chan[i]=DivPlatformOPN::OPNChannelStereo();
@@ -1407,18 +1519,21 @@ void DivPlatformYM2608::setFlags(const DivConfig& flags) {
       fmFreqBase=9440540.0/2.0,
       fmDivBase=36,
       ayDiv=16;
+      nukedMult=16;
       break;
     case 0x02: // /2
       prescale=0x2f;
       fmFreqBase=9440540.0/3.0,
       fmDivBase=24,
       ayDiv=8;
+      nukedMult=24;
       break;
     default: // /6
       prescale=0x2d;
       fmFreqBase=9440540.0,
       fmDivBase=72,
       ayDiv=32;
+      nukedMult=8;
       break;
   }
   CHECK_CUSTOM_CLOCK;

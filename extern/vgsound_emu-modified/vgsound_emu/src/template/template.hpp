@@ -64,9 +64,9 @@ class template_core : public vgsound_emu_core
 			// anywhere, and it works as initializer.
 			, m_voice{*this}
 			, m_intf(intf)
-			, m_array{0}
-			, m_vector{0}
 		{
+			m_array.fill(0);
+			m_vector.resize(1,0);
 		}
 
 		// accessors, getters, setters
@@ -83,9 +83,8 @@ class template_core : public vgsound_emu_core
 
 		std::array<voice_t, 1 /*number of voices*/> m_voice;  // voice classes
 		vgsound_emu_mem_intf &m_intf;						  // common memory interface
-		std::array<u8 /*type*/, 8 /*size of array*/> m_array = {
-		  0};									  // std::array for static size array
-		std::vector<u8 /*type*/> m_vector = {0};  // std::vector for variable size array
+		std::array<u8 /*type*/, 8 /*size of array*/> m_array; // std::array for static size array
+		std::vector<u8 /*type*/> m_vector;  // std::vector for variable size array
 };
 
 #endif

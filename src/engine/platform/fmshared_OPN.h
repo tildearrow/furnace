@@ -21,6 +21,7 @@
 #define _FMSHARED_OPN_H
 
 #include "fmsharedbase.h"
+#include "../../../extern/opn/ym3438.h"
 
 #define PLEASE_HELP_ME(_targetChan) \
   int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false); \
@@ -146,26 +147,37 @@ class DivPlatformOPN: public DivPlatformFMBase {
         pan(3) {}
     };
 
+    const int extChanOffs, psgChanOffs, adpcmAChanOffs, adpcmBChanOffs, chanNum;
+
     double fmFreqBase;
     unsigned int fmDivBase;
     unsigned int ayDiv;
     unsigned char csmChan;
     unsigned char lfoValue;
-    bool extSys;
+    bool extSys, useCombo;
 
     DivConfig ayFlags;
 
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
-    DivPlatformOPN(double f=9440540.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false, unsigned char cc=255):
+    DivPlatformOPN(int ext, int psg, int adpcmA, int adpcmB, int chanCount, double f=9440540.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false, unsigned char cc=255):
       DivPlatformFMBase(),
+      extChanOffs(ext),
+      psgChanOffs(psg),
+      adpcmAChanOffs(adpcmA),
+      adpcmBChanOffs(adpcmB),
+      chanNum(chanCount),
       fmFreqBase(f),
       fmDivBase(d),
       ayDiv(a),
       csmChan(cc),
       lfoValue(0),
-      extSys(isExtSys) {}
-
+      extSys(isExtSys),
+      useCombo(false) {}
+  public:
+    void setCombo(bool combo) {
+      useCombo=combo;
+    }
 };
 
 #endif

@@ -630,10 +630,15 @@ struct DivInstrumentSNES {
     GAIN_MODE_INC_LINEAR=6,
     GAIN_MODE_INC_INVLOG=7
   };
-  bool useEnv, sus;
+  bool useEnv;
+  // 0: no sustain (key off = cut)
+  // 1: sustain (R = d2; key off = dec linear to r)
+  // 2: sustain (R = d2; key off = dec exponential to r)
+  // 3: sustain (R = d2; key off = R to r)
+  unsigned char sus;
   GainMode gainMode;
   unsigned char gain;
-  unsigned char a, d, s, r;
+  unsigned char a, d, s, r, d2;
 
   bool operator==(const DivInstrumentSNES& other);
   bool operator!=(const DivInstrumentSNES& other) {
@@ -642,13 +647,14 @@ struct DivInstrumentSNES {
 
   DivInstrumentSNES():
     useEnv(true),
-    sus(false),
+    sus(0),
     gainMode(GAIN_MODE_DIRECT),
     gain(127),
     a(15),
     d(7),
     s(7),
-    r(0) {}
+    r(0),
+    d2(0) {}
 };
 
 struct DivInstrument {
@@ -691,24 +697,24 @@ struct DivInstrument {
   void writeFeatureES(SafeWriter* w);
   void writeFeatureX1(SafeWriter* w);
 
-  void readFeatureNA(SafeReader& reader);
-  void readFeatureFM(SafeReader& reader);
-  void readFeatureMA(SafeReader& reader);
-  void readFeature64(SafeReader& reader);
-  void readFeatureGB(SafeReader& reader);
-  void readFeatureSM(SafeReader& reader);
-  void readFeatureOx(SafeReader& reader, int op);
-  void readFeatureLD(SafeReader& reader);
-  void readFeatureSN(SafeReader& reader);
-  void readFeatureN1(SafeReader& reader);
-  void readFeatureFD(SafeReader& reader);
-  void readFeatureWS(SafeReader& reader);
+  void readFeatureNA(SafeReader& reader, short version);
+  void readFeatureFM(SafeReader& reader, short version);
+  void readFeatureMA(SafeReader& reader, short version);
+  void readFeature64(SafeReader& reader, short version);
+  void readFeatureGB(SafeReader& reader, short version);
+  void readFeatureSM(SafeReader& reader, short version);
+  void readFeatureOx(SafeReader& reader, int op, short version);
+  void readFeatureLD(SafeReader& reader, short version);
+  void readFeatureSN(SafeReader& reader, short version);
+  void readFeatureN1(SafeReader& reader, short version);
+  void readFeatureFD(SafeReader& reader, short version);
+  void readFeatureWS(SafeReader& reader, short version);
   void readFeatureSL(SafeReader& reader, DivSong* song, short version);
   void readFeatureWL(SafeReader& reader, DivSong* song, short version);
-  void readFeatureMP(SafeReader& reader);
-  void readFeatureSU(SafeReader& reader);
-  void readFeatureES(SafeReader& reader);
-  void readFeatureX1(SafeReader& reader);
+  void readFeatureMP(SafeReader& reader, short version);
+  void readFeatureSU(SafeReader& reader, short version);
+  void readFeatureES(SafeReader& reader, short version);
+  void readFeatureX1(SafeReader& reader, short version);
 
   DivDataErrors readInsDataOld(SafeReader& reader, short version);
   DivDataErrors readInsDataNew(SafeReader& reader, short version, bool fui, DivSong* song);

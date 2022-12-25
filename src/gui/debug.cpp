@@ -66,7 +66,11 @@
   FM_CHIP_DEBUG; \
   ImGui::Text("- fmFreqBase: %.f",ch->fmFreqBase); \
   ImGui::Text("- fmDivBase: %d",ch->fmDivBase); \
-  ImGui::Text("- ayDiv: %d",ch->ayDiv);
+  ImGui::Text("- ayDiv: %d",ch->ayDiv); \
+  ImGui::Text("- extChanOffs: %d",ch->extChanOffs); \
+  ImGui::Text("- psgChanOffs: %d",ch->psgChanOffs); \
+  ImGui::Text("- adpcmAChanOffs: %d",ch->adpcmAChanOffs); \
+  ImGui::Text("- adpcmBChanOffs: %d",ch->adpcmBChanOffs); \
 
 #define COMMON_CHIP_DEBUG_BOOL \
   ImGui::TextColored(ch->skipRegisterWrites?colorOn:colorOff,">> SkipRegisterWrites"); \
@@ -98,11 +102,6 @@
   ImGui::Text("- writeADPCMAOff: %d",ch->writeADPCMAOff); \
   ImGui::Text("- writeADPCMAOn: %d",ch->writeADPCMAOn); \
   ImGui::Text("- globalADPCMAVolume: %d",ch->globalADPCMAVolume); \
-  ImGui::Text("- extChanOffs: %d",ch->extChanOffs); \
-  ImGui::Text("- psgChanOffs: %d",ch->psgChanOffs); \
-  ImGui::Text("- adpcmAChanOffs: %d",ch->adpcmAChanOffs); \
-  ImGui::Text("- adpcmBChanOffs: %d",ch->adpcmBChanOffs); \
-  ImGui::Text("- chanNum: %d",ch->chanNum); \
   FM_OPN_CHIP_DEBUG_BOOL; \
   ImGui::TextColored(ch->extMode?colorOn:colorOff,">> ExtMode");
 

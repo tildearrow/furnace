@@ -506,6 +506,8 @@ void DivInstrument::writeFeatureSN(SafeWriter* w) {
   
   w->writeC(snes.gain);
 
+  w->writeC(((snes.sus&3)<<5)|(snes.d2&31));
+
   FEATURE_END;
 }
 
@@ -1809,7 +1811,7 @@ void DivInstrument::putInsData(SafeWriter* w) {
 #define READ_FEAT_END \
   if (reader.tell()<endOfFeat) reader.seek(endOfFeat,SEEK_SET);
 
-void DivInstrument::readFeatureNA(SafeReader& reader) {
+void DivInstrument::readFeatureNA(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   name=reader.readString();
@@ -1817,7 +1819,7 @@ void DivInstrument::readFeatureNA(SafeReader& reader) {
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeatureFM(SafeReader& reader) {
+void DivInstrument::readFeatureFM(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   unsigned char opCount=reader.readC();
@@ -1888,7 +1890,7 @@ void DivInstrument::readFeatureFM(SafeReader& reader) {
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeatureMA(SafeReader& reader) {
+void DivInstrument::readFeatureMA(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   unsigned short macroHeaderLen=reader.readS();
@@ -2010,7 +2012,7 @@ void DivInstrument::readFeatureMA(SafeReader& reader) {
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeature64(SafeReader& reader) {
+void DivInstrument::readFeature64(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   unsigned char next=reader.readC();
@@ -2050,7 +2052,7 @@ void DivInstrument::readFeature64(SafeReader& reader) {
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeatureGB(SafeReader& reader) {
+void DivInstrument::readFeatureGB(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   unsigned char next=reader.readC();
@@ -2073,7 +2075,7 @@ void DivInstrument::readFeatureGB(SafeReader& reader) {
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeatureSM(SafeReader& reader) {
+void DivInstrument::readFeatureSM(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   amiga.initSample=reader.readS();
@@ -2095,7 +2097,7 @@ void DivInstrument::readFeatureSM(SafeReader& reader) {
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeatureOx(SafeReader& reader, int op) {
+void DivInstrument::readFeatureOx(SafeReader& reader, int op, short version) {
   READ_FEAT_BEGIN;
 
   unsigned short macroHeaderLen=reader.readS();
@@ -2214,7 +2216,7 @@ void DivInstrument::readFeatureOx(SafeReader& reader, int op) {
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeatureLD(SafeReader& reader) {
+void DivInstrument::readFeatureLD(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   fm.fixedDrums=reader.readC();
@@ -2225,7 +2227,7 @@ void DivInstrument::readFeatureLD(SafeReader& reader) {
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeatureSN(SafeReader& reader) {
+void DivInstrument::readFeatureSN(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   unsigned char next=reader.readC();
@@ -2238,18 +2240,23 @@ void DivInstrument::readFeatureSN(SafeReader& reader) {
 
   next=reader.readC();
   snes.useEnv=next&16;
-  snes.sus=next&8;
+  snes.sus=(next&8)?1:0;
   snes.gainMode=(DivInstrumentSNES::GainMode)(next&7);
 
   if (snes.gainMode==1 || snes.gainMode==2 || snes.gainMode==3) snes.gainMode=DivInstrumentSNES::GAIN_MODE_DIRECT;
 
   snes.gain=reader.readC();
   
+  if (version>=131) {
+    next=reader.readC();
+    snes.sus=(next>>5)&3;
+    snes.d2=next&31;
+  }
 
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeatureN1(SafeReader& reader) {
+void DivInstrument::readFeatureN1(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   n163.wave=reader.readI();
@@ -2260,7 +2267,7 @@ void DivInstrument::readFeatureN1(SafeReader& reader) {
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeatureFD(SafeReader& reader) {
+void DivInstrument::readFeatureFD(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   fds.modSpeed=reader.readI();
@@ -2271,7 +2278,7 @@ void DivInstrument::readFeatureFD(SafeReader& reader) {
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeatureWS(SafeReader& reader) {
+void DivInstrument::readFeatureWS(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   ws.wave1=reader.readI();
@@ -2406,7 +2413,7 @@ void DivInstrument::readFeatureWL(SafeReader& reader, DivSong* song, short versi
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeatureMP(SafeReader& reader) {
+void DivInstrument::readFeatureMP(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   multipcm.ar=reader.readC();
@@ -2422,7 +2429,7 @@ void DivInstrument::readFeatureMP(SafeReader& reader) {
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeatureSU(SafeReader& reader) {
+void DivInstrument::readFeatureSU(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   su.switchRoles=reader.readC();
@@ -2430,7 +2437,7 @@ void DivInstrument::readFeatureSU(SafeReader& reader) {
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeatureES(SafeReader& reader) {
+void DivInstrument::readFeatureES(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   es5506.filter.mode=(DivInstrumentES5506::Filter::FilterMode)reader.readC();
@@ -2447,7 +2454,7 @@ void DivInstrument::readFeatureES(SafeReader& reader) {
   READ_FEAT_END;
 }
 
-void DivInstrument::readFeatureX1(SafeReader& reader) {
+void DivInstrument::readFeatureX1(SafeReader& reader, short version) {
   READ_FEAT_BEGIN;
 
   x1_010.bankSlot=reader.readI();
@@ -2479,47 +2486,47 @@ DivDataErrors DivInstrument::readInsDataNew(SafeReader& reader, short version, b
     if (memcmp(featCode,"EN",2)==0) { // end of instrument
       break;
     } else if (memcmp(featCode,"NA",2)==0) { // name
-      readFeatureNA(reader);
+      readFeatureNA(reader,version);
     } else if (memcmp(featCode,"FM",2)==0) { // FM
-      readFeatureFM(reader);
+      readFeatureFM(reader,version);
     } else if (memcmp(featCode,"MA",2)==0) { // macros
-      readFeatureMA(reader);
+      readFeatureMA(reader,version);
     } else if (memcmp(featCode,"64",2)==0) { // C64
-      readFeature64(reader);
+      readFeature64(reader,version);
     } else if (memcmp(featCode,"GB",2)==0) { // Game Boy
-      readFeatureGB(reader);
+      readFeatureGB(reader,version);
     } else if (memcmp(featCode,"SM",2)==0) { // sample
-      readFeatureSM(reader);
+      readFeatureSM(reader,version);
     } else if (memcmp(featCode,"O1",2)==0) { // op1 macros
-      readFeatureOx(reader,0);
+      readFeatureOx(reader,0,version);
     } else if (memcmp(featCode,"O2",2)==0) { // op2 macros
-      readFeatureOx(reader,1);
+      readFeatureOx(reader,1,version);
     } else if (memcmp(featCode,"O3",2)==0) { // op3 macros
-      readFeatureOx(reader,2);
+      readFeatureOx(reader,2,version);
     } else if (memcmp(featCode,"O4",2)==0) { // op4 macros
-      readFeatureOx(reader,3);
+      readFeatureOx(reader,3,version);
     } else if (memcmp(featCode,"LD",2)==0) { // OPL drums
-      readFeatureLD(reader);
+      readFeatureLD(reader,version);
     } else if (memcmp(featCode,"SN",2)==0) { // SNES
-      readFeatureSN(reader);
+      readFeatureSN(reader,version);
     } else if (memcmp(featCode,"N1",2)==0) { // Namco 163
-      readFeatureN1(reader);
+      readFeatureN1(reader,version);
     } else if (memcmp(featCode,"FD",2)==0) { // FDS/VB
-      readFeatureFD(reader);
+      readFeatureFD(reader,version);
     } else if (memcmp(featCode,"WS",2)==0) { // WaveSynth
-      readFeatureWS(reader);
+      readFeatureWS(reader,version);
     } else if (memcmp(featCode,"SL",2)==0 && fui && song!=NULL) { // sample list
       readFeatureSL(reader,song,version);
     } else if (memcmp(featCode,"WL",2)==0 && fui && song!=NULL) { // wave list
       readFeatureWL(reader,song,version);
     } else if (memcmp(featCode,"MP",2)==0) { // MultiPCM
-      readFeatureMP(reader);
+      readFeatureMP(reader,version);
     } else if (memcmp(featCode,"SU",2)==0) { // Sound Unit
-      readFeatureSU(reader);
+      readFeatureSU(reader,version);
     } else if (memcmp(featCode,"ES",2)==0) { // ES5506
-      readFeatureES(reader);
+      readFeatureES(reader,version);
     } else if (memcmp(featCode,"X1",2)==0) { // X1-010
-      readFeatureX1(reader);
+      readFeatureX1(reader,version);
     } else {
       if (song==NULL && (memcmp(featCode,"SL",2)==0 || (memcmp(featCode,"WL",2)==0))) {
         // nothing
@@ -3134,7 +3141,7 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
     snes.a=reader.readC();
     snes.d=reader.readC();
     snes.s=reader.readC();
-    snes.sus=snes.s&8;
+    snes.sus=(snes.s&8)?1:0;
     snes.s&=7;
     snes.r=reader.readC();
   }

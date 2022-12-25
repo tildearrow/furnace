@@ -1,6 +1,3 @@
-[submodule "extern/Nuked-OPN2"]
-	path = extern/Nuked-OPN2
-	url = https://github.com/nukeykt/Nuked-OPN2
 [submodule "extern/SDL"]
 	path = extern/SDL
 	url = https://github.com/libsdl-org/SDL.git

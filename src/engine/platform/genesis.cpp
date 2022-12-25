@@ -1155,7 +1155,7 @@ void DivPlatformGenesis::reset() {
     fm_ymfm->reset();
   }
   OPN2_Reset(&fm);
-  OPN2_SetChipType(ladder?ym3438_mode_ym2612:0);
+  OPN2_SetChipType(&fm,ladder?ym3438_mode_ym2612:0);
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
@@ -1253,7 +1253,7 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
   }
   ladder=flags.getBool("ladderEffect",false);
   noExtMacros=flags.getBool("noExtMacros",false);
-  OPN2_SetChipType(ladder?ym3438_mode_ym2612:0);
+  OPN2_SetChipType(&fm,ladder?ym3438_mode_ym2612:0);
   CHECK_CUSTOM_CLOCK;
   if (useYMFM) {
     if (fm_ymfm!=NULL) delete fm_ymfm;

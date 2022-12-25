@@ -180,6 +180,7 @@ TAParamResult pVersion(String) {
   printf("- MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya (GPLv2)\n");
   printf("- MAME MSM6258 core by Barry Rodewald (BSD 3-clause)\n");
   printf("- MAME YMZ280B core by Aaron Giles (BSD 3-clause)\n");
+  printf("- MAME GA20 core by Acho A. Tang and R. Belmont (BSD 3-clause)\n");
   printf("- QSound core by superctr (BSD 3-clause)\n");
   printf("- VICE VIC-20 by Rami Rasanen and viznut (GPLv2)\n");
   printf("- VERA core by Frank van den Hoef (BSD 2-clause)\n");

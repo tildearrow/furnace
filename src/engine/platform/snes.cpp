@@ -607,10 +607,23 @@ void DivPlatformSNES::writeEnv(int ch) {
     if (chan[ch].state.sus) {
       if (chan[ch].active) {
         chWrite(ch,5,chan[ch].state.a|(chan[ch].state.d<<4)|0x80);
-        chWrite(ch,6,chan[ch].state.s<<5);
-      } else { // dec linear
-        chWrite(ch,7,0x80|chan[ch].state.r);
-        chWrite(ch,5,0);
+        chWrite(ch,6,(chan[ch].state.s<<5)|(chan[ch].state.d2&31));
+      } else {
+        switch (chan[ch].state.sus) {
+          case 1: // dec linear
+            chWrite(ch,7,0x80|chan[ch].state.r);
+            chWrite(ch,5,0);
+            break;
+          case 2: // dec exp
+            chWrite(ch,7,0xa0|chan[ch].state.r);
+            chWrite(ch,5,0);
+            break;
+          case 3: // update r
+            chWrite(ch,6,(chan[ch].state.s<<5)|(chan[ch].state.r&31));
+            break;
+          default: // what?
+            break;
+        }
       }
     } else {
       chWrite(ch,5,chan[ch].state.a|(chan[ch].state.d<<4)|0x80);
