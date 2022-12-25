@@ -680,19 +680,24 @@ void ImGui_ImplSDL2_NewFrame()
     int w, h;
     int display_w, display_h;
     SDL_GetWindowSize(bd->Window, &w, &h);
-    /*if (SDL_GetWindowFlags(bd->Window) & SDL_WINDOW_MINIMIZED)
-        w = h = 0;*/
-    if (bd->Renderer != NULL)
-        SDL_GetRendererOutputSize(bd->Renderer, &display_w, &display_h);
-    else
+    if (SDL_GetWindowFlags(bd->Window) & SDL_WINDOW_MINIMIZED)
+        w = h = 0;
+    if (bd->Renderer != NULL) {
+        if (SDL_GetRendererOutputSize(bd->Renderer, &display_w, &display_h)!=0) {
+          display_w=0;
+          display_h=0;
+        }
+    } else {
         SDL_GL_GetDrawableSize(bd->Window, &display_w, &display_h);
-    io.DisplaySize = ImVec2((float)w, (float)h);
-    if (w > 0 && h > 0)
+    }
+    if (w > 0 && h > 0) {
+        io.DisplaySize = ImVec2((float)w, (float)h);
         io.DisplayFramebufferScale = ImVec2((float)display_w / w, (float)display_h / h);
+    }
 
     // On Apple and Wayland, The window size is reported in Low DPI, even when running in high DPI mode
     ImGuiPlatformIO& platform_io = ImGui::GetPlatformIO();
-    if (!platform_io.Monitors.empty() /*&& platform_io.Monitors[0].DpiScale > 1.0f*/ && display_h != h && w != 0)
+    if (!platform_io.Monitors.empty() /*&& platform_io.Monitors[0].DpiScale > 1.0f*/ && display_h != h && w != 0 && display_w != 0)
     {
         io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
         io.DisplaySize = ImVec2((float)display_w, (float)display_h);
