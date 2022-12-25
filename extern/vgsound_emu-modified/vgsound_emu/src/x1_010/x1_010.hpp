@@ -144,10 +144,10 @@ class x1_010_core : public vgsound_emu_core
 					  *this,
 					  *this}
 			, m_intf(intf)
-			, m_out{0, 0}
 		{
 			m_envelope.fill(0);
 			m_wave.fill(0);
+			m_out.fill(0);
 		}
 
 		// register accessor
@@ -176,7 +176,7 @@ class x1_010_core : public vgsound_emu_core
 		std::array<u8, 0x1000> m_wave;
 
 		// output data
-		std::array<s32, 2> m_out = {0, 0};
+		std::array<s32, 2> m_out;
 };
 
 #endif
