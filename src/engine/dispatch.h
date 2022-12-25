@@ -185,18 +185,6 @@ enum DivDispatchCmds {
   DIV_CMD_N163_GLOBAL_WAVE_LOADLEN,
   DIV_CMD_N163_GLOBAL_WAVE_LOADMODE,
 
-  DIV_CMD_ES5506_FILTER_MODE, // (value)
-  DIV_CMD_ES5506_FILTER_K1, // (value, mask)
-  DIV_CMD_ES5506_FILTER_K2, // (value, mask)
-  DIV_CMD_ES5506_FILTER_K1_SLIDE, // (value, negative)
-  DIV_CMD_ES5506_FILTER_K2_SLIDE, // (value, negative)
-  DIV_CMD_ES5506_ENVELOPE_COUNT, // (count)
-  DIV_CMD_ES5506_ENVELOPE_LVRAMP, // (ramp)
-  DIV_CMD_ES5506_ENVELOPE_RVRAMP, // (ramp)
-  DIV_CMD_ES5506_ENVELOPE_K1RAMP, // (ramp, slowdown)
-  DIV_CMD_ES5506_ENVELOPE_K2RAMP, // (ramp, slowdown)
-  DIV_CMD_ES5506_PAUSE, // (value)
-
   DIV_CMD_SU_SWEEP_PERIOD_LOW, // (which, val)
   DIV_CMD_SU_SWEEP_PERIOD_HIGH, // (which, val)
   DIV_CMD_SU_SWEEP_BOUND, // (which, val)
@@ -224,6 +212,18 @@ enum DivDispatchCmds {
 
   DIV_CMD_MACRO_OFF, // (which)
   DIV_CMD_MACRO_ON, // (which)
+
+  DIV_CMD_ES5506_FILTER_MODE, // (value)
+  DIV_CMD_ES5506_FILTER_K1, // (value, mask)
+  DIV_CMD_ES5506_FILTER_K2, // (value, mask)
+  DIV_CMD_ES5506_FILTER_K1_SLIDE, // (value, negative)
+  DIV_CMD_ES5506_FILTER_K2_SLIDE, // (value, negative)
+  DIV_CMD_ES5506_ENVELOPE_COUNT, // (count)
+  DIV_CMD_ES5506_ENVELOPE_LVRAMP, // (ramp)
+  DIV_CMD_ES5506_ENVELOPE_RVRAMP, // (ramp)
+  DIV_CMD_ES5506_ENVELOPE_K1RAMP, // (ramp, slowdown)
+  DIV_CMD_ES5506_ENVELOPE_K2RAMP, // (ramp, slowdown)
+  DIV_CMD_ES5506_PAUSE, // (value)
 
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 

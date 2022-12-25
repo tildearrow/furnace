@@ -124,8 +124,7 @@ enum DivSystem {
   DIV_SYSTEM_YM2610_CSM,
   DIV_SYSTEM_YM2610B_CSM,
   DIV_SYSTEM_YM2203_CSM,
-  DIV_SYSTEM_YM2608_CSM,
-  DIV_SYSTEM_MAX // boundary for max system number
+  DIV_SYSTEM_YM2608_CSM
 };
 
 struct DivSubSong {
