@@ -29,10 +29,6 @@ class scc_core : public vgsound_emu_core
 				voice_t(scc_core &host)
 					: vgsound_emu_core("scc_voice")
 					, m_host(host)
-					, m_wave{0, 0, 0, 0, 0, 0, 0, 0,
-					0, 0, 0, 0, 0, 0, 0, 0,
-					0, 0, 0, 0, 0, 0, 0, 0,
-					0, 0, 0, 0, 0, 0, 0, 0}
 					, m_enable(false)
 					, m_pitch(0)
 					, m_volume(0)
@@ -40,6 +36,7 @@ class scc_core : public vgsound_emu_core
 					, m_counter(0)
 					, m_out(0)
 				{
+					m_wave.fill(0);
 				}
 
 				// internal state
@@ -72,10 +69,7 @@ class scc_core : public vgsound_emu_core
 			private:
 				// registers
 				scc_core &m_host;
-				std::array<s8, 32> m_wave = {0, 0, 0, 0, 0, 0, 0, 0,
-					0, 0, 0, 0, 0, 0, 0, 0,
-					0, 0, 0, 0, 0, 0, 0, 0,
-					0, 0, 0, 0, 0, 0, 0, 0};	// internal waveform
+				std::array<s8, 32> m_wave;	// internal waveform
 				bool m_enable			  = false;	// output enable flag
 				u16 m_pitch	 : 12;					// pitch
 				u16 m_volume : 4;					// volume
@@ -275,9 +269,12 @@ class k052539_core : public k052539_scc_core
 			public:
 				k052539_mapper_t()
 					: vgsound_emu_core("k052539_mapper")
-					, m_bank{0, 1, 2, 3}
-					, m_ram_enable{false}
 				{
+					m_bank[0] = 0;
+					m_bank[1] = 1;
+					m_bank[2] = 2;
+					m_bank[3] = 3;
+					m_ram_enable.fill(false);
 				}
 
 				// internal state
@@ -298,8 +295,8 @@ class k052539_core : public k052539_scc_core
 
 			private:
 				// registers
-				std::array<u8, 4> m_bank		 = {0, 1, 2, 3};
-				std::array<bool, 4> m_ram_enable = {false};
+				std::array<u8, 4> m_bank;
+				std::array<bool, 4> m_ram_enable;
 		};
 
 	public:

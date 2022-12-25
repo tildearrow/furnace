@@ -106,8 +106,8 @@ class es5505_core : public es550x_shared_core
 					, m_rvol(0)
 					, m_ch(output_t())
 					, m_mute(false)
-					, m_output{0, 0}
 				{
+					m_output.fill(0);
 				}
 
 				// internal state
@@ -143,7 +143,7 @@ class es5505_core : public es550x_shared_core
 				u8 m_rvol = 0;				  // Right volume
 				output_t m_ch;				  // channel output
 				bool m_mute = false;		  // mute flag (for debug purpose)
-				std::array<s32, 2> m_output = {0, 0};  // output preview (for debug purpose)
+				std::array<s32, 2> m_output;  // output preview (for debug purpose)
 		};
 
 		class sermode_t : public vgsound_emu_core

@@ -61,11 +61,11 @@ class n163_core : public vgsound_emu_core
 			, m_voice_cycle(0x78)
 			, m_addr_latch(addr_latch_t())
 			, m_out(0)
-			, m_voice_out{0, 0, 0, 0, 0, 0, 0, 0}
 			, m_multiplex(true)
 			, m_acc(0)
 		{
 			m_ram.fill(0);
+			m_voice_out.fill(0);
 		}
 
 		// accessors, getters, setters
@@ -97,12 +97,12 @@ class n163_core : public vgsound_emu_core
 
 	private:
 		bool m_disable			   = false;
-		std::array<u8, 0x80> m_ram ;	 // internal 128 byte RAM
+		std::array<u8, 0x80> m_ram;	 // internal 128 byte RAM
 		u8 m_voice_cycle		   = 0x78;	 // Voice cycle for processing
 		addr_latch_t m_addr_latch;			 // address latch
 		s16 m_out					   = 0;	 // output
 
-		std::array<s16, 8> m_voice_out = {0, 0, 0, 0, 0, 0, 0, 0};  // per-voice output, for preview only
+		std::array<s16, 8> m_voice_out;  // per-voice output, for preview only
 		// demultiplex related
 		bool m_multiplex = true;  // multiplex flag, but less noisy = inaccurate!
 		s16 m_acc		 = 0;	  // accumulated output
