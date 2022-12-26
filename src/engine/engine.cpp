@@ -2104,6 +2104,10 @@ double DivEngine::calcBaseFreq(double clock, double divider, int note, bool peri
   if (tuning>500.0) tuning=500.0; \
   int boundaryBottom=tuning*pow(2.0,0.25)*(divider/clock); \
   int boundaryTop=2.0*tuning*pow(2.0,0.25)*(divider/clock); \
+  while (boundaryTop>((1<<bits)-1)) { \
+    boundaryTop>>=1; \
+    boundaryBottom>>=1; \
+  } \
   int block=(note)/12; \
   if (block<0) block=0; \
   if (block>7) block=7; \
