@@ -575,6 +575,8 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         } else if (chan[c.chan].furnaceDac) {
           chan[c.chan].dacMode=0;
           rWrite(0x2b,0<<7);
+        } else if (!chan[c.chan].dacMode) {
+          rWrite(0x2b,0<<7);
         }
       }
       if (c.chan>=5 && chan[c.chan].dacMode) {
