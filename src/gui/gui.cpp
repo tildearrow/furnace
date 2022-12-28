@@ -3879,6 +3879,7 @@ bool FurnaceGUI::loop() {
       drawSettings();
       drawDebug();
       drawLog();
+      drawCompatFlags();
       drawStats();
     } else {
       globalWinFlags=0;
