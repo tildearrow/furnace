@@ -1474,7 +1474,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       
       ImGui::Text("Initial part volume (channel 1-4):");
       for (int i=0; i<4; i++) {
-        snprintf(temp,63,"%d'##GRPV%d",16>>i,i);
+        snprintf(temp,63,"%d'##GRPV%d",2<<i,i);
         if (CWSliderInt(temp,&groupVol[i],0,255)) {
           if (groupVol[i]<0) groupVol[i]=0;
           if (groupVol[i]>255) groupVol[i]=255;
@@ -1484,7 +1484,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
 
       ImGui::Text("Initial part volume (channel 5-8):");
       for (int i=4; i<8; i++) {
-        snprintf(temp,63,"%d'##GRPV%d",16>>(i-4),i);
+        snprintf(temp,63,"%d'##GRPV%d",2<<(i-4),i);
         if (CWSliderInt(temp,&groupVol[i],0,255)) {
           if (groupVol[i]<0) groupVol[i]=0;
           if (groupVol[i]>255) groupVol[i]=255;
