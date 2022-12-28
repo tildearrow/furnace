@@ -435,7 +435,7 @@ void DivPlatformYM2608Ext::tick(bool sysTick) {
     if (opChan[i].std.pitch.had) {
       if (opChan[i].std.pitch.mode) {
         opChan[i].pitch2+=opChan[i].std.pitch.val;
-        CLAMP_VAR(opChan[i].pitch2,-32768,32767);
+        CLAMP_VAR(opChan[i].pitch2,-1048576,1048575);
       } else {
         opChan[i].pitch2=opChan[i].std.pitch.val;
       }

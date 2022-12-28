@@ -436,7 +436,7 @@ void DivPlatformYM2610::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+        CLAMP_VAR(chan[i].pitch2,-1048576,1048575);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
