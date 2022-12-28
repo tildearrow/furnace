@@ -708,7 +708,7 @@ if (WIN32)
   endif()
   # support Windows XP
   if (CMAKE_SIZEOF_VOID_P EQUAL 4)
-    list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0501")
+    list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0501" "PSAPI_VERSION=1")
   endif()
 elseif (APPLE)
   find_library(COCOA Cocoa REQUIRED)
