@@ -5,11 +5,11 @@
  */
 
 
-//#ifdef __MINGW32__
+#ifdef __MINGW32__
 // Explicitly setting NTDDI version, this is necessary for the MinGW compiler
-//#define NTDDI_VERSION NTDDI_VISTA
-//#define _WIN32_WINNT _WIN32_WINNT_VISTA
-//#endif
+#define NTDDI_VERSION NTDDI_VISTA
+#define _WIN32_WINNT _WIN32_WINNT_VISTA
+#endif
 
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
