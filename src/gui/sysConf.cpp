@@ -31,10 +31,12 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_YM2612:
     case DIV_SYSTEM_YM2612_EXT: 
     case DIV_SYSTEM_YM2612_DUALPCM:
-    case DIV_SYSTEM_YM2612_DUALPCM_EXT: {
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT:
+    case DIV_SYSTEM_YM2612_CSM: {
       int clockSel=flags.getInt("clockSel",0);
       bool ladder=flags.getBool("ladderEffect",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
+      bool fbAllOps=flags.getBool("fbAllOps",false);
 
       if (ImGui::RadioButton("NTSC (7.67MHz)",clockSel==0)) {
         clockSel=0;
@@ -59,8 +61,11 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       if (ImGui::Checkbox("Enable DAC distortion",&ladder)) {
         altered=true;
       }
-      if (type==DIV_SYSTEM_YM2612_EXT || type==DIV_SYSTEM_YM2612_DUALPCM_EXT) {
+      if (type==DIV_SYSTEM_YM2612_EXT || type==DIV_SYSTEM_YM2612_DUALPCM_EXT || type==DIV_SYSTEM_YM2612_CSM) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
+          altered=true;
+        }
+        if (ImGui::Checkbox("Ins change in ExtCh operator 2-4 affects FB (compatibility)",&fbAllOps)) {
           altered=true;
         }
       }
@@ -70,6 +75,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           flags.set("clockSel",clockSel);
           flags.set("ladderEffect",ladder);
           flags.set("noExtMacros",noExtMacros);
+          flags.set("fbAllOps",fbAllOps);
         });
       }
       break;
@@ -457,12 +463,15 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     }
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610_CSM:
     case DIV_SYSTEM_YM2610_FULL:
     case DIV_SYSTEM_YM2610_FULL_EXT:
     case DIV_SYSTEM_YM2610B:
-    case DIV_SYSTEM_YM2610B_EXT: {
+    case DIV_SYSTEM_YM2610B_EXT:
+    case DIV_SYSTEM_YM2610B_CSM: {
       int clockSel=flags.getInt("clockSel",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
+      bool fbAllOps=flags.getBool("fbAllOps",false);
 
       if (ImGui::RadioButton("8MHz (Neo Geo MVS)",clockSel==0)) {
         clockSel=0;
@@ -473,8 +482,11 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
-      if (type==DIV_SYSTEM_YM2610_EXT || type==DIV_SYSTEM_YM2610_FULL_EXT || type==DIV_SYSTEM_YM2610B_EXT) {
+      if (type==DIV_SYSTEM_YM2610_EXT || type==DIV_SYSTEM_YM2610_FULL_EXT || type==DIV_SYSTEM_YM2610B_EXT || type==DIV_SYSTEM_YM2610_CSM || type==DIV_SYSTEM_YM2610B_CSM) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
+          altered=true;
+        }
+        if (ImGui::Checkbox("Ins change in ExtCh operator 2-4 affects FB (compatibility)",&fbAllOps)) {
           altered=true;
         }
       }
@@ -483,6 +495,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("noExtMacros",noExtMacros);
+          flags.set("fbAllOps",fbAllOps);
         });
       }
       break;
@@ -835,10 +848,12 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       break;
     }
     case DIV_SYSTEM_YM2203:
-    case DIV_SYSTEM_YM2203_EXT: {
+    case DIV_SYSTEM_YM2203_EXT:
+    case DIV_SYSTEM_YM2203_CSM: {
       int clockSel=flags.getInt("clockSel",0);
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
+      bool fbAllOps=flags.getBool("fbAllOps",false);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("3.58MHz (NTSC)",clockSel==0)) {
@@ -879,8 +894,11 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
-      if (type==DIV_SYSTEM_YM2203_EXT) {
+      if (type==DIV_SYSTEM_YM2203_EXT || type==DIV_SYSTEM_YM2203_CSM) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
+          altered=true;
+        }
+        if (ImGui::Checkbox("Ins change in ExtCh operator 2-4 affects FB (compatibility)",&fbAllOps)) {
           altered=true;
         }
       }
@@ -890,15 +908,18 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           flags.set("clockSel",clockSel);
           flags.set("prescale",prescale);
           flags.set("noExtMacros",noExtMacros);
+          flags.set("fbAllOps",fbAllOps);
         });
       }
       break;
     }
     case DIV_SYSTEM_YM2608:
-    case DIV_SYSTEM_YM2608_EXT: {
+    case DIV_SYSTEM_YM2608_EXT:
+    case DIV_SYSTEM_YM2608_CSM: {
       int clockSel=flags.getInt("clockSel",0);
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
+      bool fbAllOps=flags.getBool("fbAllOps",false);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("8MHz (Arcade)",clockSel==0)) {
@@ -923,8 +944,11 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
-      if (type==DIV_SYSTEM_YM2608_EXT) {
+      if (type==DIV_SYSTEM_YM2608_EXT || type==DIV_SYSTEM_YM2608_CSM) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
+          altered=true;
+        }
+        if (ImGui::Checkbox("Ins change in ExtCh operator 2-4 affects FB (compatibility)",&fbAllOps)) {
           altered=true;
         }
       }
@@ -934,6 +958,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           flags.set("clockSel",clockSel);
           flags.set("prescale",prescale);
           flags.set("noExtMacros",noExtMacros);
+          flags.set("fbAllOps",fbAllOps);
         });
       }
       break;

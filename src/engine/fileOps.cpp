@@ -2511,16 +2511,24 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
 
     // ExtCh compat flag
-    if (ds.version<125) {
-      for (int i=0; i<ds.systemLen; i++) {
-        if (ds.system[i]==DIV_SYSTEM_YM2612_EXT ||
-            ds.system[i]==DIV_SYSTEM_YM2612_DUALPCM_EXT ||
-            ds.system[i]==DIV_SYSTEM_YM2610_EXT ||
-            ds.system[i]==DIV_SYSTEM_YM2610_FULL_EXT ||
-            ds.system[i]==DIV_SYSTEM_YM2610B_EXT ||
-            ds.system[i]==DIV_SYSTEM_YM2203_EXT ||
-            ds.system[i]==DIV_SYSTEM_YM2608_EXT) {
+    for (int i=0; i<ds.systemLen; i++) {
+      if (ds.system[i]==DIV_SYSTEM_YM2612_EXT ||
+          ds.system[i]==DIV_SYSTEM_YM2612_DUALPCM_EXT ||
+          ds.system[i]==DIV_SYSTEM_YM2610_EXT ||
+          ds.system[i]==DIV_SYSTEM_YM2610_FULL_EXT ||
+          ds.system[i]==DIV_SYSTEM_YM2610B_EXT ||
+          ds.system[i]==DIV_SYSTEM_YM2203_EXT ||
+          ds.system[i]==DIV_SYSTEM_YM2608_EXT ||
+          ds.system[i]==DIV_SYSTEM_YM2612_CSM ||
+          ds.system[i]==DIV_SYSTEM_YM2203_CSM ||
+          ds.system[i]==DIV_SYSTEM_YM2608_CSM ||
+          ds.system[i]==DIV_SYSTEM_YM2610_CSM ||
+          ds.system[i]==DIV_SYSTEM_YM2610B_CSM) {
+        if (ds.version<125) {
           ds.systemFlags[i].set("noExtMacros",true);
+        }
+        if (ds.version<133) {
+          ds.systemFlags[i].set("fbAllOps",true);
         }
       }
     }

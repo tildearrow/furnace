@@ -40,7 +40,9 @@ int DivPlatformYM2610Ext::dispatch(DivCommand c) {
 
       if (opChan[ch].insChanged) {
         chan[extChanOffs].state.alg=ins->fm.alg;
-        chan[extChanOffs].state.fb=ins->fm.fb;
+        if (ch==0 || fbAllOps) {
+          chan[extChanOffs].state.fb=ins->fm.fb;
+        }
         chan[extChanOffs].state.fms=ins->fm.fms;
         chan[extChanOffs].state.ams=ins->fm.ams;
         chan[extChanOffs].state.op[ordch]=ins->fm.op[ordch];

@@ -44,7 +44,9 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
 
       if (opChan[ch].insChanged) {
         chan[2].state.alg=ins->fm.alg;
-        chan[2].state.fb=ins->fm.fb;
+        if (ch==0 || fbAllOps) {
+          chan[2].state.fb=ins->fm.fb;
+        }
         chan[2].state.op[ordch]=ins->fm.op[ordch];
       }
 

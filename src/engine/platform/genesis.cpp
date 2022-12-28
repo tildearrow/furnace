@@ -1250,6 +1250,7 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
   }
   ladder=flags.getBool("ladderEffect",false);
   noExtMacros=flags.getBool("noExtMacros",false);
+  fbAllOps=flags.getBool("fbAllOps",false);
   OPN2_SetChipType(&fm,ladder?ym3438_mode_ym2612:0);
   CHECK_CUSTOM_CLOCK;
   if (useYMFM) {
