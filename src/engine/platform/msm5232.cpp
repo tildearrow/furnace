@@ -141,6 +141,13 @@ void DivPlatformMSM5232::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
       chan[i].freq=chan[i].baseFreq+chan[i].pitch+chan[i].pitch2-(12<<7);
+      if (!parent->song.oldArpStrategy) {
+        if (chan[i].fixedArp) {
+          chan[i].freq=(chan[i].baseNoteOverride<<7)+(chan[i].pitch)-(12<<7);
+        } else {
+          chan[i].freq+=chan[i].arpOff<<7;
+        }
+      }
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0x2aff) chan[i].freq=0x2aff;
       if (chan[i].keyOn) {
