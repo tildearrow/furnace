@@ -622,7 +622,7 @@ src/gui/volMeter.cpp
 src/gui/gui.cpp
 )
 
-if (WIN32 AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+if (WIN32 AND (MSVC OR CMAKE_SIZEOF_VOID_P EQUAL 8))
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.cpp)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_win.cpp)
 endif()
@@ -707,8 +707,8 @@ if (WIN32)
     list(APPEND DEPENDENCIES_LIBRARIES -static)
   endif()
   # support Windows XP
-  if (CMAKE_SIZEOF_VOID_P EQUAL 4)
-    list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0501" "PSAPI_VERSION=1")
+  if (CMAKE_SIZEOF_VOID_P EQUAL 4 AND NOT MSVC)
+    list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0501")
   endif()
 elseif (APPLE)
   find_library(COCOA Cocoa REQUIRED)
