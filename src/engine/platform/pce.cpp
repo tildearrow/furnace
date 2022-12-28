@@ -169,6 +169,9 @@ void DivPlatformPCE::tick(bool sysTick) {
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
+      int noiseSeek=chan[i].fixedFreq?chan[i].baseNoteOverride:(chan[i].note+chan[i].arpOff);
+      if (noiseSeek<0) noiseSeek=0;
+      chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.arp.val);
