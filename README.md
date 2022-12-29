@@ -264,7 +264,7 @@ you may need to log out and/or reboot after doing this.
 
 > .spc export?
 
-**not yet!** coming in 0.7 though, in a future...
+**not yet!** coming in 0.7 though, eventually...
 
 > how do I use C64 absolute filter/duty?
 
