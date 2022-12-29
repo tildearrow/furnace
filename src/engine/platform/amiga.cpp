@@ -224,7 +224,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
           }
         }
       } else {
-        chan[c.chan].sample=ins->amiga.getSample(c.value);
+        if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
         chan[c.chan].useWave=false;
       }
       if (c.value!=DIV_NOTE_NULL) {

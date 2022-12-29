@@ -235,7 +235,7 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       if (c.chan<16) {
         rWriteLo(c.chan,2,chan[c.chan].vol);
       } else {
-        chan[16].pcm.sample=parent->getIns(chan[16].ins,DIV_INS_VERA)->amiga.getSample(c.value);
+        if (c.value!=DIV_NOTE_NULL) chan[16].pcm.sample=parent->getIns(chan[16].ins,DIV_INS_VERA)->amiga.getSample(c.value);
         if (chan[16].pcm.sample<0 || chan[16].pcm.sample>=parent->song.sampleLen) {
           chan[16].pcm.sample=-1;
         }

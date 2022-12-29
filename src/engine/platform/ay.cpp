@@ -404,7 +404,7 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       if (chan[c.chan].nextPSGMode.dac) {
         if (skipRegisterWrites) break;
         if (!parent->song.disableSampleMacro && (ins->type==DIV_INS_AMIGA || ins->amiga.useSample)) {
-          chan[c.chan].dac.sample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) chan[c.chan].dac.sample=ins->amiga.getSample(c.value);
           if (chan[c.chan].dac.sample<0 || chan[c.chan].dac.sample>=parent->song.sampleLen) {
             chan[c.chan].dac.sample=-1;
             if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
