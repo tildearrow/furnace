@@ -5111,6 +5111,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ADPCMB) waveMax=0;
           if (ins->type==DIV_INS_QSOUND) waveMax=0;
           if (ins->type==DIV_INS_YMZ280B) waveMax=0;
+          if (ins->type==DIV_INS_RF5C68) waveMax=0;
           if (ins->type==DIV_INS_MSM5232) waveMax=0;
           if (ins->type==DIV_INS_MSM6258) waveMax=0;
           if (ins->type==DIV_INS_MSM6295) waveMax=0;
