@@ -626,10 +626,10 @@ void FurnaceGUI::autoDetectSystem() {
       }
       if (defCountMap.size()!=sysCountMap.size()) continue;
       isMatch=true;
-      logV("trying on defCountMap: %s",j.name);
+      /*logV("trying on defCountMap: %s",j.name);
       for (std::pair<DivSystem,int> k: defCountMap) {
         logV("- %s: %d",e->getSystemName(k.first),k.second);
-      }
+      }*/
       for (std::pair<DivSystem,int> k: defCountMap) {
         try {
           if (sysCountMap.at(k.first)!=k.second) {
