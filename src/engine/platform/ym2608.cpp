@@ -328,7 +328,7 @@ void DivPlatformYM2608::acquire_combo(short* bufL, short* bufR, size_t start, si
         if (--delay<1 && !(fm->read(0)&0x80)) {
           QueuedWrite& w=writes.front();
 
-          if (w.addr<=0x1c || w.addr==0x2d || w.addr==0x2e || w.addr==0x2f || (w.addr>=0x100 && w.addr<=0x12d)) {
+          if (w.addr<=0x1d || w.addr==0x2d || w.addr==0x2e || w.addr==0x2f || (w.addr>=0x100 && w.addr<=0x12d)) {
             // ymfm write
             fm->write(0x0+((w.addr>>8)<<1),w.addr);
             fm->write(0x1+((w.addr>>8)<<1),w.val);
@@ -503,7 +503,7 @@ void DivPlatformYM2608::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+        CLAMP_VAR(chan[i].pitch2,-1048576,1048575);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -1538,6 +1538,7 @@ void DivPlatformYM2608::setFlags(const DivConfig& flags) {
   }
   CHECK_CUSTOM_CLOCK;
   noExtMacros=flags.getBool("noExtMacros",false);
+  fbAllOps=flags.getBool("fbAllOps",false);
   rate=fm->sample_rate(chipClock);
   for (int i=0; i<16; i++) {
     oscBuf[i]->rate=rate;

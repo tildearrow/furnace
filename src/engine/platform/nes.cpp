@@ -217,7 +217,7 @@ void DivPlatformNES::tick(bool sysTick) {
         rWrite(0x4000+i*4,(chan[i].envMode<<4)|chan[i].outVol|((chan[i].duty&3)<<6));
       }
     }
-    if (NEW_ARP_STRAT && i!=3) {
+    if (NEW_ARP_STRAT) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
       if (i==3) { // noise
@@ -271,9 +271,20 @@ void DivPlatformNES::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
         int ntPos=chan[i].baseFreq;
-        if (ntPos<0) ntPos=0;
-        if (ntPos>252) ntPos=252;
-        chan[i].freq=(parent->song.properNoiseLayout)?(15-(chan[i].baseFreq&15)):(noiseTable[ntPos]);
+        if (NEW_ARP_STRAT) {
+          if (chan[i].fixedArp) {
+            ntPos=chan[i].baseNoteOverride;
+          } else {
+            ntPos+=chan[i].arpOff;
+          }
+        }
+        if (parent->song.properNoiseLayout) {
+          chan[i].freq=15-(ntPos&15);
+        } else {
+          if (ntPos<0) ntPos=0;
+          if (ntPos>252) ntPos=252;
+          chan[i].freq=noiseTable[ntPos];
+        }
       } else {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
         if (chan[i].freq>2047) chan[i].freq=2047;

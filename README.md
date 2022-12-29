@@ -122,7 +122,7 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
 [![Packaging status](https://repology.org/badge/tiny-repos/furnace.svg)](https://repology.org/project/furnace/versions)
 
 some people have provided packages for Unix/Unix-like distributions. here's a list.
- - **Arch Linux**: [furnace-git is in the AUR.](https://aur.archlinux.org/packages/furnace-git) thank you Essem!
+ - **Arch Linux**: [furnace](https://archlinux.org/packages/community/x86_64/furnace/) is now in the community repo!
  - **FreeBSD**: [a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt.
  - **Nix**: [package](https://search.nixos.org/packages?channel=unstable&show=furnace&from=0&size=50&sort=relevance&type=packages&query=furnace) thanks to OPNA2608.
  - **openSUSE**: [a package](https://software.opensuse.org/package/furnace) is available, courtesy of fpesari.
@@ -264,7 +264,7 @@ you may need to log out and/or reboot after doing this.
 
 > .spc export?
 
-**not yet!** coming in 0.7 though, in a future...
+**not yet!** coming in 0.7 though, eventually...
 
 > how do I use C64 absolute filter/duty?
 

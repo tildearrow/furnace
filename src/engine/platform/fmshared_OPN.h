@@ -154,7 +154,7 @@ class DivPlatformOPN: public DivPlatformFMBase {
     unsigned int ayDiv;
     unsigned char csmChan;
     unsigned char lfoValue;
-    bool extSys, useCombo;
+    bool extSys, useCombo, fbAllOps;
 
     DivConfig ayFlags;
 
@@ -173,7 +173,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
       csmChan(cc),
       lfoValue(0),
       extSys(isExtSys),
-      useCombo(false) {}
+      useCombo(false),
+      fbAllOps(false) {}
   public:
     void setCombo(bool combo) {
       useCombo=combo;

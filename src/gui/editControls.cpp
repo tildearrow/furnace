@@ -537,6 +537,9 @@ void FurnaceGUI::drawMobileControls() {
           if (ImGui::Button("Stats")) {
             statsOpen=!statsOpen;
           }
+          if (ImGui::Button("Compat Flags")) {
+            compatFlagsOpen=!compatFlagsOpen;
+          }
 
           ImGui::Separator();
 

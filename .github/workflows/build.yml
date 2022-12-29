@@ -26,7 +26,7 @@ jobs:
           - { name: 'macOS ARM', os: macos-latest, arch: arm64 }
           - { name: 'Linux x86_64', os: ubuntu-18.04, arch: x86_64 }
           #- { name: 'Linux ARM', os: ubuntu-18.04, arch: armhf }
-      fail-fast: false
+      fail-fast: true
 
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}

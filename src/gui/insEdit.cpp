@@ -264,7 +264,7 @@ const char* mikeyFeedbackBits[11] = {
 };
 
 const char* msm5232ControlBits[7]={
-  "2'", "4'", "8'", "16'", "sustain", NULL
+  "16'", "8'", "4'", "2'", "sustain", NULL
 };
 
 const char* x1_010EnvBits[8]={

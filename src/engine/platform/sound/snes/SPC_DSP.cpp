@@ -803,7 +803,7 @@ void SPC_DSP::run( int clocks_remain )
 	{
 	loop:
 		// GCC, why
-#if defined(__GNUC__) && !defined(__clang__)
+#if (defined(__GNUC__) && (__GNUC__ >= 7)) && !defined(__clang__)
 		#define PHASE( n ) if ( n && !--clocks_remain ) break; __attribute__ ((fallthrough)); case n:
 #else
 		#define PHASE( n ) if ( n && !--clocks_remain ) break; case n:

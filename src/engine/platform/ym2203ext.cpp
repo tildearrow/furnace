@@ -44,7 +44,9 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
 
       if (opChan[ch].insChanged) {
         chan[2].state.alg=ins->fm.alg;
-        chan[2].state.fb=ins->fm.fb;
+        if (ch==0 || fbAllOps) {
+          chan[2].state.fb=ins->fm.fb;
+        }
         chan[2].state.op[ordch]=ins->fm.op[ordch];
       }
 
@@ -412,7 +414,7 @@ void DivPlatformYM2203Ext::tick(bool sysTick) {
     if (opChan[i].std.pitch.had) {
       if (opChan[i].std.pitch.mode) {
         opChan[i].pitch2+=opChan[i].std.pitch.val;
-        CLAMP_VAR(opChan[i].pitch2,-32768,32767);
+        CLAMP_VAR(opChan[i].pitch2,-1048576,1048575);
       } else {
         opChan[i].pitch2=opChan[i].std.pitch.val;
       }

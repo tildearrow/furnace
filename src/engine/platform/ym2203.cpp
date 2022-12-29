@@ -316,7 +316,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+        CLAMP_VAR(chan[i].pitch2,-1048576,1048575);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -449,7 +449,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
       if (parent->song.linearPitch==2) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2,chipClock,CHIP_FREQBASE,11);
       } else {
-        int fNum=parent->calcFreq(chan[i].baseFreq&0x7ff,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2);
+        int fNum=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,4,chan[i].pitch2);
         int block=(chan[i].baseFreq&0xf800)>>11;
         if (fNum<0) fNum=0;
         if (fNum>2047) {
@@ -1041,6 +1041,7 @@ void DivPlatformYM2203::setFlags(const DivConfig& flags) {
   }
   CHECK_CUSTOM_CLOCK;
   noExtMacros=flags.getBool("noExtMacros",false);
+  fbAllOps=flags.getBool("fbAllOps",false);
   rate=fm->sample_rate(chipClock);
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;

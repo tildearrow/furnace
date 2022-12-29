@@ -40,7 +40,9 @@ int DivPlatformYM2610BExt::dispatch(DivCommand c) {
 
       if (opChan[ch].insChanged) {
         chan[extChanOffs].state.alg=ins->fm.alg;
-        chan[extChanOffs].state.fb=ins->fm.fb;
+        if (ch==0 || fbAllOps) {
+          chan[extChanOffs].state.fb=ins->fm.fb;
+        }
         chan[extChanOffs].state.fms=ins->fm.fms;
         chan[extChanOffs].state.ams=ins->fm.ams;
         chan[extChanOffs].state.op[ordch]=ins->fm.op[ordch];
@@ -431,7 +433,7 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
     if (opChan[i].std.pitch.had) {
       if (opChan[i].std.pitch.mode) {
         opChan[i].pitch2+=opChan[i].std.pitch.val;
-        CLAMP_VAR(opChan[i].pitch2,-32768,32767);
+        CLAMP_VAR(opChan[i].pitch2,-1048576,1048575);
       } else {
         opChan[i].pitch2=opChan[i].std.pitch.val;
       }
