@@ -1586,6 +1586,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   // logic starts here
   for (int i=0; i<song.systemLen; i++) {
+    // TODO: we may have a problem here
     disCont[i].lastAvail=blip_samples_avail(disCont[i].bb[0]);
     if (disCont[i].lastAvail>0) {
       disCont[i].flush(disCont[i].lastAvail);
