@@ -279,11 +279,11 @@ void DivPlatformNES::tick(bool sysTick) {
           }
         }
         if (parent->song.properNoiseLayout) {
+          chan[i].freq=15-(ntPos&15);
+        } else {
           if (ntPos<0) ntPos=0;
           if (ntPos>252) ntPos=252;
           chan[i].freq=noiseTable[ntPos];
-        } else {
-          chan[i].freq=15-(ntPos&15);
         }
       } else {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
