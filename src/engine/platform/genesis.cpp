@@ -346,6 +346,12 @@ void DivPlatformGenesis::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
 
+    if (i>=5 && chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1 && chan[i].furnaceDac) {
+        chan[i].dacPos=0;
+      }
+    }
+
     if (i>=6) continue;
 
     if (chan[i].std.phaseReset.had) {
