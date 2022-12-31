@@ -88,6 +88,7 @@ const char* aboutLine[]={
   "Lunathir",
   "LVintageNerd",
   "Mahbod Karamoozian",
+  "Martin Demsky",
   "Miker",
   "nicco1690",
   "<nk>",
