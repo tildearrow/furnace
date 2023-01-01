@@ -127,12 +127,12 @@ void R9::writeTrackData(SafeWriter *w) {
   // simultaneously pull patterns to write
   // borrowed from fileops
   w->writeC('\n');
-  w->writeText("; orders\n");
+  w->writeText("; songs\n");
   w->writeText("    ALIGN 256\n");
-  w->writeText("ORDERS\n");
   std::vector<PatternIndex> patterns;
   bool alreadyAdded[2][256];
   for (size_t i = 0; i < e->song.subsong.size(); i++) {
+    w->writeText(fmt::sprintf("SONG_%d_ADDR\n", i));
     DivSubSong* subs = e->song.subsong[i];
     memset(alreadyAdded, 0, 2*256*sizeof(bool));
     for (int j = 0; j < subs->ordersLen; j++) {
@@ -151,8 +151,8 @@ void R9::writeTrackData(SafeWriter *w) {
       }
       w->writeText("\n");
     }
+    w->writeText("    byte 255\n");
   }
-  w->writeText("    byte 255\n");
 
   // emit pattern table
   // this is where we can lookup specific instrument/note/octave combinations
