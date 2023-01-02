@@ -65,10 +65,10 @@ CleanStart
 
             ; load track
             ldy #0
-            lda ORDERS,y
+            lda SONG_0_ADDR,y
             sta audio_pattern_idx
             iny
-            lda ORDERS,y
+            lda SONG_0_ADDR,y
             sta audio_pattern_idx+1
             iny
             sty audio_order
@@ -184,15 +184,15 @@ _audio_advance_order ; got a 255 on pattern
             lda #0
             sta audio_row_idx
             ldy audio_order
-            lda ORDERS,y
+            lda SONG_0_ADDR,y
             cmp #255
             bne _audio_advance_order_advance_pattern
             ldy #0
-            lda ORDERS,y
+            lda SONG_0_ADDR,y
 _audio_advance_order_advance_pattern
             sta audio_pattern_idx
             iny
-            lda ORDERS,y
+            lda SONG_0_ADDR,y
             sta audio_pattern_idx+1
             iny
             sty audio_order
@@ -298,6 +298,9 @@ waitOnVBlank_loop
 ; Audio Data 
 
     ALIGN 256
+
+AUDIO_TRACKS
+    byte 0
 
     #include "R9Data.inc"
 
