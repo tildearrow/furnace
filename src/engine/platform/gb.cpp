@@ -61,7 +61,7 @@ const char** DivPlatformGB::getRegisterSheet() {
   return regCheatSheetGB;
 }
 
-void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformGB::acquire(short** buf, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     if (!writes.empty()) {
       QueuedWrite& w=writes.front();
@@ -70,8 +70,8 @@ void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) 
     }
 
     GB_advance_cycles(gb,16);
-    bufL[i]=gb->apu_output.final_sample.left;
-    bufR[i]=gb->apu_output.final_sample.right;
+    buf[0][i]=gb->apu_output.final_sample.left;
+    buf[1][i]=gb->apu_output.final_sample.right;
 
     for (int i=0; i<4; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=(gb->apu_output.current_sample[i].left+gb->apu_output.current_sample[i].right)<<6;

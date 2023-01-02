@@ -73,8 +73,8 @@ void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     if (oL>32767) oL=32767;
     if (oR<-32768) oR=-32768;
     if (oR>32767) oR=32767;
-    bufL[h]=oL;
-    bufR[h]=oR;
+    buf[0][h]=oL;
+    buf[1][h]=oR;
     for (int i=0; i<4; i++) {
       if (isMuted[i]) {
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
@@ -97,8 +97,8 @@ void DivPlatformSMS::acquire_mame(short* bufL, short* bufR, size_t start, size_t
   }
   for (size_t h=start; h<start+len; h++) {
     short* outs[2]={
-      &bufL[h],
-      &bufR[h]
+      &buf[0][h],
+      &buf[1][h]
     };
     sn->sound_stream_update(outs,1);
     for (int i=0; i<4; i++) {
@@ -111,7 +111,7 @@ void DivPlatformSMS::acquire_mame(short* bufL, short* bufR, size_t start, size_t
   }
 }
 
-void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSMS::acquire(short** buf, size_t len) {
   if (nuked) {
     acquire_nuked(bufL,bufR,start,len);
   } else {

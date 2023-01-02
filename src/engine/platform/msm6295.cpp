@@ -37,7 +37,7 @@ u8 DivPlatformMSM6295::read_byte(u32 address) {
   return adpcmMem[address&0x3ffff];
 }
 
-void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformMSM6295::acquire(short** buf, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     if (delay<=0) {
       if (!writes.empty()) {
@@ -75,7 +75,7 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
     msm.tick();
     msm.tick();
   
-    bufL[h]=msm.out()<<4;
+    buf[0][h]=msm.out()<<4;
 
     if (++updateOsc>=22) {
       updateOsc=0;

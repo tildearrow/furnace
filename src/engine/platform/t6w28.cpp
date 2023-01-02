@@ -35,7 +35,7 @@ const char** DivPlatformT6W28::getRegisterSheet() {
   return regCheatSheetT6W28;
 }
 
-void DivPlatformT6W28::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformT6W28::acquire(short** buf, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     cycles=0;
     while (!writes.empty() && cycles<16) {
@@ -64,8 +64,8 @@ void DivPlatformT6W28::acquire(short* bufL, short* bufR, size_t start, size_t le
     if (tempR<-32768) tempR=-32768;
     if (tempR>32767) tempR=32767;
     
-    bufL[h]=tempL;
-    bufR[h]=tempR;
+    buf[0][h]=tempL;
+    buf[1][h]=tempR;
   }
 }
 

@@ -60,7 +60,7 @@ const char** DivPlatformYMZ280B::getRegisterSheet() {
   return regCheatSheetYMZ280B;
 }
 
-void DivPlatformYMZ280B::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformYMZ280B::acquire(short** buf, size_t len) {
   short buf[16][256];
   short *bufPtrs[16]={
     buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7],
@@ -78,8 +78,8 @@ void DivPlatformYMZ280B::acquire(short* bufL, short* bufR, size_t start, size_t 
         dataR+=buf[j*2+1][i];
         oscBuf[j]->data[oscBuf[j]->needle++]=(short)(((int)buf[j*2][i]+buf[j*2+1][i])/2);
       }
-      bufL[pos]=(short)(dataL/8);
-      bufR[pos]=(short)(dataR/8);
+      buf[0][pos]=(short)(dataL/8);
+      buf[1][pos]=(short)(dataR/8);
       pos++;
     }
     len-=blockLen;

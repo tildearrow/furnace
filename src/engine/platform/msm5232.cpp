@@ -45,7 +45,7 @@ const char** DivPlatformMSM5232::getRegisterSheet() {
   return regCheatSheetMSM5232;
 }
 
-void DivPlatformMSM5232::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformMSM5232::acquire(short** buf, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -75,9 +75,9 @@ void DivPlatformMSM5232::acquire(short* bufL, short* bufR, size_t start, size_t 
     }
     
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
-    bufL[h]=0;
+    buf[0][h]=0;
     for (int i=0; i<8; i++) {
-      bufL[h]+=(temp[i]*partVolume[i])>>8;
+      buf[0][h]+=(temp[i]*partVolume[i])>>8;
     }
   }
 }

@@ -130,7 +130,7 @@ const char** DivPlatformLynx::getRegisterSheet() {
   return regCheatSheetLynx;
 }
 
-void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformLynx::acquire(short** buf, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     for (int i=0; i<4; i++) {
       if (chan[i].pcm && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {

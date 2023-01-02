@@ -30,7 +30,7 @@ const char** DivPlatformMSM6258::getRegisterSheet() {
   return NULL;
 }
 
-void DivPlatformMSM6258::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformMSM6258::acquire(short** buf, size_t len) {
   short* outs[2]={
     &msmOut,
     NULL
@@ -78,12 +78,12 @@ void DivPlatformMSM6258::acquire(short* bufL, short* bufR, size_t start, size_t 
     }
     
     if (isMuted[0]) {
-      bufL[h]=0;
-      bufR[h]=0;
+      buf[0][h]=0;
+      buf[1][h]=0;
       oscBuf[0]->data[oscBuf[0]->needle++]=0;
     } else {
-      bufL[h]=(msmPan&2)?msmOut:0;
-      bufR[h]=(msmPan&1)?msmOut:0;
+      buf[0][h]=(msmPan&2)?msmOut:0;
+      buf[1][h]=(msmPan&1)?msmOut:0;
       oscBuf[0]->data[oscBuf[0]->needle++]=msmPan?msmOut:0;
     }
   }

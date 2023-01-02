@@ -128,7 +128,7 @@ class DivPlatformAY8910: public DivDispatch {
   
   public:
     void setExtClockDiv(unsigned int eclk=COLOR_NTSC, unsigned char ediv=8);
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);

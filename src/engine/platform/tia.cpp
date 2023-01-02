@@ -38,16 +38,16 @@ const char** DivPlatformTIA::getRegisterSheet() {
   return regCheatSheetTIA;
 }
 
-void DivPlatformTIA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformTIA::acquire(short** buf, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     tia.tick();
     if (mixingType==2) {
-      bufL[h]=tia.myCurrentSample[0];
-      bufR[h]=tia.myCurrentSample[1];
+      buf[0][h]=tia.myCurrentSample[0];
+      buf[1][h]=tia.myCurrentSample[1];
     } else if (mixingType==1) {
-      bufL[h]=(tia.myCurrentSample[0]+tia.myCurrentSample[1])>>1;
+      buf[0][h]=(tia.myCurrentSample[0]+tia.myCurrentSample[1])>>1;
     } else {
-      bufL[h]=tia.myCurrentSample[0];
+      buf[0][h]=tia.myCurrentSample[0];
     }
     if (++chanOscCounter>=114) {
       chanOscCounter=0;

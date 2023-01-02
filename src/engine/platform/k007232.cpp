@@ -54,7 +54,7 @@ inline void DivPlatformK007232::chWrite(unsigned char ch, unsigned int addr, uns
   }
 }
 
-void DivPlatformK007232::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformK007232::acquire(short** buf, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     if ((--delay)<=0) {
       delay=MAX(0,delay);
@@ -76,15 +76,15 @@ void DivPlatformK007232::acquire(short* bufL, short* bufR, size_t start, size_t 
       const unsigned char vol1=regPool[0x10],vol2=regPool[0x11];
       const signed int lout[2]={(k007232.output(0)*(vol1&0xf)),(k007232.output(1)*(vol2&0xf))};
       const signed int rout[2]={(k007232.output(0)*((vol1>>4)&0xf)),(k007232.output(1)*((vol2>>4)&0xf))};
-      bufL[h]=(lout[0]+lout[1])<<4;
-      bufR[h]=(rout[0]+rout[1])<<4;
+      buf[0][h]=(lout[0]+lout[1])<<4;
+      buf[1][h]=(rout[0]+rout[1])<<4;
       for (int i=0; i<2; i++) {
         oscBuf[i]->data[oscBuf[i]->needle++]=(lout[i]+rout[i])<<4;
       }
     } else {
       const unsigned char vol=regPool[0xc];
       const signed int out[2]={(k007232.output(0)*(vol&0xf)),(k007232.output(1)*((vol>>4)&0xf))};
-      bufL[h]=bufR[h]=(out[0]+out[1])<<4;
+      buf[0][h]=buf[1][h]=(out[0]+out[1])<<4;
       for (int i=0; i<2; i++) {
         oscBuf[i]->data[oscBuf[i]->needle++]=out[i]<<5;
       }

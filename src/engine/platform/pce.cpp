@@ -53,7 +53,7 @@ const char** DivPlatformPCE::getRegisterSheet() {
   return regCheatSheetPCE;
 }
 
-void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformPCE::acquire(short** buf, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     // PCM part
     for (int i=0; i<6; i++) {
@@ -113,8 +113,8 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
     if (tempR[0]>32767) tempR[0]=32767;
     
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
-    bufL[h]=tempL[0];
-    bufR[h]=tempR[0];
+    buf[0][h]=tempL[0];
+    buf[1][h]=tempR[0];
   }
 }
 

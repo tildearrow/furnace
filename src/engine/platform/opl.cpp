@@ -255,14 +255,14 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=os[0];
+    buf[0][h]=os[0];
     if (oplType==3 || oplType==759) {
-      bufR[h]=os[1];
+      buf[1][h]=os[1];
     }
   }
 }
 
-void DivPlatformOPL::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformOPL::acquire(short** buf, size_t len) {
   //if (useYMFM) {
   //  acquire_ymfm(bufL,bufR,start,len);
   //} else {

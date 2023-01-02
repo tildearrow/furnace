@@ -93,7 +93,7 @@ const char** DivPlatformVB::getRegisterSheet() {
   return regCheatSheetVB;
 }
 
-void DivPlatformVB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformVB::acquire(short** buf, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     cycles=0;
     while (!writes.empty()) {
@@ -117,8 +117,8 @@ void DivPlatformVB::acquire(short* bufL, short* bufR, size_t start, size_t len) 
     if (tempR<-32768) tempR=-32768;
     if (tempR>32767) tempR=32767;
     
-    bufL[h]=tempL;
-    bufR[h]=tempR;
+    buf[0][h]=tempL;
+    buf[1][h]=tempR;
   }
 }
 

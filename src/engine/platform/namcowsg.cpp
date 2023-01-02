@@ -151,7 +151,7 @@ const char** DivPlatformNamcoWSG::getRegisterSheet() {
   return regCheatSheetNamcoWSG;
 }
 
-void DivPlatformNamcoWSG::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformNamcoWSG::acquire(short** buf, size_t len) {
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     switch (devType) {

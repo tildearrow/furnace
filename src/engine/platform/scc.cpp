@@ -80,13 +80,13 @@ const char** DivPlatformSCC::getRegisterSheet() {
   return isPlus ? regCheatSheetSCCPlus : regCheatSheetSCC;
 }
 
-void DivPlatformSCC::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSCC::acquire(short** buf, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     for (int i=0; i<16; i++) {
       scc->tick();
     }
     short out=(short)scc->out()<<5;
-    bufL[h]=bufR[h]=out;
+    buf[0][h]=buf[1][h]=out;
 
     for (int i=0; i<5; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=scc->voice_out(i)<<7;

@@ -86,7 +86,7 @@ void DivPlatformPokeMini::rWrite(unsigned char addr, unsigned char val) {
   }
 }
 
-void DivPlatformPokeMini::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformPokeMini::acquire(short** buf, size_t len) {
   int out=0;
   for (size_t i=start; i<start+len; i++) {
     for (int j=0; j<PCSPKR_DIVIDER; j++) {
@@ -102,10 +102,10 @@ void DivPlatformPokeMini::acquire(short* bufL, short* bufR, size_t start, size_t
     }
     if (on) {
       out=(pos>=pivot && !isMuted[0])?volTable[vol&3]:0;
-      bufL[i]=out;
+      buf[0][i]=out;
       oscBuf->data[oscBuf->needle++]=out;
     } else {
-      bufL[i]=0;
+      buf[0][i]=0;
       oscBuf->data[oscBuf->needle++]=0;
     }
   }

@@ -80,7 +80,7 @@ class DivPlatformK007232: public DivDispatch, public k007232_intf {
   void chWrite(unsigned char ch, unsigned int addr, unsigned char val);
   public:
     u8 read_sample(u8 ne, u32 address);
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);

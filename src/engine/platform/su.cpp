@@ -40,14 +40,14 @@ double DivPlatformSoundUnit::NOTE_SU(int ch, int note) {
   return NOTE_FREQUENCY(note);
 }
 
-void DivPlatformSoundUnit::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSoundUnit::acquire(short** buf, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
       su->Write(w.addr,w.val);
       writes.pop();
     }
-    su->NextSample(&bufL[h],&bufR[h]);
+    su->NextSample(&buf[0][h],&buf[1][h]);
     for (int i=0; i<8; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=su->GetSample(i);
     }

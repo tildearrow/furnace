@@ -65,7 +65,7 @@ const char** DivPlatformSNES::getRegisterSheet() {
   return regCheatSheetSNESDSP;
 }
 
-void DivPlatformSNES::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSNES::acquire(short** buf, size_t len) {
   short out[2];
   short chOut[16];
   for (size_t h=start; h<start+len; h++) {
@@ -82,8 +82,8 @@ void DivPlatformSNES::acquire(short* bufL, short* bufR, size_t start, size_t len
     dsp.set_output(out,1);
     dsp.run(32);
     dsp.get_voice_outputs(chOut);
-    bufL[h]=out[0];
-    bufR[h]=out[1];
+    buf[0][h]=out[0];
+    buf[1][h]=out[1];
     for (int i=0; i<8; i++) {
       int next=(3*(chOut[i*2]+chOut[i*2+1]))>>2;
       if (next<-32768) next=-32768;

@@ -54,7 +54,7 @@ void DivPlatformRF5C68::chWrite(unsigned char ch, unsigned int addr, unsigned ch
   }
 }
 
-void DivPlatformRF5C68::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformRF5C68::acquire(short** buf, size_t len) {
   short buf[16][256];
   short* chBufPtrs[16]={
     buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7],
@@ -68,7 +68,7 @@ void DivPlatformRF5C68::acquire(short* bufL, short* bufR, size_t start, size_t l
 
   while (len > 0) {
     size_t blockLen=MIN(len,256);
-    short* bufPtrs[2]={&bufL[pos],&bufR[pos]};
+    short* bufPtrs[2]={&buf[0][pos],&buf[1][pos]};
     rf5c68.sound_stream_update(bufPtrs,chBufPtrs,blockLen);
     for (int i=0; i<8; i++) {
       for (size_t j=0; j<blockLen; j++) {

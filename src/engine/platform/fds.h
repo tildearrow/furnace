@@ -66,7 +66,7 @@ class DivPlatformFDS: public DivDispatch {
   void acquire_NSFPlay(short* bufL, short* bufR, size_t start, size_t len);
 
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);

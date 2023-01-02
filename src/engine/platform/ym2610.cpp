@@ -232,7 +232,7 @@ const char** DivPlatformYM2610::getRegisterSheet() {
   return regCheatSheetYM2610;
 }
 
-void DivPlatformYM2610::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformYM2610::acquire(short** buf, size_t len) {
   if (useCombo) {
     acquire_combo(bufL,bufR,start,len);
   } else {
@@ -317,8 +317,8 @@ void DivPlatformYM2610::acquire_combo(short* bufL, short* bufR, size_t start, si
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
 
     
     for (int i=0; i<psgChanOffs; i++) {
@@ -380,8 +380,8 @@ void DivPlatformYM2610::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
 
     for (int i=0; i<psgChanOffs; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1));

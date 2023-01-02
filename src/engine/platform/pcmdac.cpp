@@ -26,13 +26,13 @@
 // to ease the driver, freqency register is a 8.16 counter relative to output sample rate
 #define CHIP_FREQBASE 65536
 
-void DivPlatformPCMDAC::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
   const int depthScale=(15-outDepth);
   int output=0;
   for (size_t h=start; h<start+len; h++) {
     if (!chan[0].active || isMuted) {
-      bufL[h]=0;
-      bufR[h]=0;
+      buf[0][h]=0;
+      buf[1][h]=0;
       oscBuf->data[oscBuf->needle++]=0;
       continue;
     }
@@ -157,12 +157,12 @@ void DivPlatformPCMDAC::acquire(short* bufL, short* bufR, size_t start, size_t l
     output=output*chan[0].vol*chan[0].envVol/16384;
     oscBuf->data[oscBuf->needle++]=output;
     if (outStereo) {
-      bufL[h]=((output*chan[0].panL)>>(depthScale+8))<<depthScale;
-      bufR[h]=((output*chan[0].panR)>>(depthScale+8))<<depthScale;
+      buf[0][h]=((output*chan[0].panL)>>(depthScale+8))<<depthScale;
+      buf[1][h]=((output*chan[0].panR)>>(depthScale+8))<<depthScale;
     } else {
       output=(output>>depthScale)<<depthScale;
-      bufL[h]=output;
-      bufR[h]=output;
+      buf[0][h]=output;
+      buf[1][h]=output;
     }
   }
 }

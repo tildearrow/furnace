@@ -43,7 +43,7 @@ const char** DivPlatformMMC5::getRegisterSheet() {
   return regCheatSheetMMC5;
 }
 
-void DivPlatformMMC5::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformMMC5::acquire(short** buf, size_t len) {
   for (size_t i=start; i<start+len; i++) {
     if (dacSample!=-1) {
       dacPeriod+=dacRate;
@@ -81,7 +81,7 @@ void DivPlatformMMC5::acquire(short* bufL, short* bufR, size_t start, size_t len
     }
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
-    bufL[i]=sample;
+    buf[0][i]=sample;
 
     if (++writeOscBuf>=32) {
       writeOscBuf=0;

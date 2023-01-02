@@ -156,7 +156,7 @@ const char** DivPlatformYM2203::getRegisterSheet() {
   return regCheatSheetYM2203;
 }
 
-void DivPlatformYM2203::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformYM2203::acquire(short** buf, size_t len) {
   if (useCombo) {
     acquire_combo(bufL,bufR,start,len);
   } else {
@@ -218,7 +218,7 @@ void DivPlatformYM2203::acquire_combo(short* bufL, short* bufR, size_t start, si
     if (os<-32768) os=-32768;
     if (os>32767) os=32767;
   
-    bufL[h]=os;
+    buf[0][h]=os;
     
     for (int i=0; i<3; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=fm_nuked.ch_out[i];
@@ -259,7 +259,7 @@ void DivPlatformYM2203::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
     if (os<-32768) os=-32768;
     if (os>32767) os=32767;
   
-    bufL[h]=os;
+    buf[0][h]=os;
 
     
     for (int i=0; i<3; i++) {

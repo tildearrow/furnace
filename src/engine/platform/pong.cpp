@@ -23,7 +23,7 @@
 
 #define CHIP_DIVIDER 1024
 
-void DivPlatformPong::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformPong::acquire(short** buf, size_t len) {
   int out=0;
   for (size_t i=start; i<start+len; i++) {
     if (on) {
@@ -32,10 +32,10 @@ void DivPlatformPong::acquire(short* bufL, short* bufR, size_t start, size_t len
         flip=!flip;
       }
       out=(flip && !isMuted[0])?32767:0;
-      bufL[i]=out;
+      buf[0][i]=out;
       oscBuf->data[oscBuf->needle++]=out;
     } else {
-      bufL[i]=0;
+      buf[0][i]=0;
       oscBuf->data[oscBuf->needle++]=0;
       flip=false;
     }

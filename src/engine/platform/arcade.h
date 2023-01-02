@@ -64,7 +64,7 @@ class DivPlatformArcade: public DivPlatformOPM {
     friend void putDispatchChan(void*,int,int);
     friend void putDispatchChip(void*,int);
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);

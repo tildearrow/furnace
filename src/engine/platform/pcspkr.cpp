@@ -207,10 +207,10 @@ void DivPlatformPCSpeaker::acquire_unfilt(short* bufL, short* bufR, size_t start
         }
       }
       out=(pos>(freq>>1) && !isMuted[0])?32767:0;
-      bufL[i]=out;
+      buf[0][i]=out;
       oscBuf->data[oscBuf->needle++]=out;
     } else {
-      bufL[i]=0;
+      buf[0][i]=0;
       oscBuf->data[oscBuf->needle++]=0;
     }
   }
@@ -234,10 +234,10 @@ void DivPlatformPCSpeaker::acquire_cone(short* bufL, short* bufR, size_t start, 
       float out=(low+band)*0.75;
       if (out>1.0) out=1.0;
       if (out<-1.0) out=-1.0;
-      bufL[i]=out*32767;
+      buf[0][i]=out*32767;
       oscBuf->data[oscBuf->needle++]=out*32767;
     } else {
-      bufL[i]=0;
+      buf[0][i]=0;
       oscBuf->data[oscBuf->needle++]=0;
     }
   }
@@ -261,10 +261,10 @@ void DivPlatformPCSpeaker::acquire_piezo(short* bufL, short* bufR, size_t start,
       float out=band*0.15-(next-low)*0.06;
       if (out>1.0) out=1.0;
       if (out<-1.0) out=-1.0;
-      bufL[i]=out*32767;
+      buf[0][i]=out*32767;
       oscBuf->data[oscBuf->needle++]=out*32767;
     } else {
-      bufL[i]=0;
+      buf[0][i]=0;
       oscBuf->data[oscBuf->needle++]=0;
     }
   }
@@ -317,11 +317,11 @@ void DivPlatformPCSpeaker::acquire_real(short* bufL, short* bufR, size_t start, 
     } else {
       oscBuf->data[oscBuf->needle++]=0;
     }
-    bufL[i]=0;
+    buf[0][i]=0;
   }
 }
 
-void DivPlatformPCSpeaker::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformPCSpeaker::acquire(short** buf, size_t len) {
   switch (speakerType) {
     case 0:
       acquire_unfilt(bufL,bufR,start,len);

@@ -38,7 +38,7 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
     void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
 
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);

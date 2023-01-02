@@ -53,7 +53,7 @@ const char** DivPlatformVERA::getRegisterSheet() {
   return regCheatSheetVERA;
 }
 
-void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformVERA::acquire(short** buf, size_t len) {
   // both PSG part and PCM part output a full 16-bit range, putting bufL/R
   // argument right into both could cause an overflow
   short buf[4][128];
@@ -102,8 +102,8 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
     pcm_render(pcm,buf[2],buf[3],curLen);
     for (int i=0; i<curLen; i++) {
       psg_render(psg,&buf[0][i],&buf[1][i],1);
-      bufL[pos]=(short)(((int)buf[0][i]+buf[2][i])/2);
-      bufR[pos]=(short)(((int)buf[1][i]+buf[3][i])/2);
+      buf[0][pos]=(short)(((int)buf[0][i]+buf[2][i])/2);
+      buf[1][pos]=(short)(((int)buf[1][i]+buf[3][i])/2);
       pos++;
 
       for (int i=0; i<16; i++) {

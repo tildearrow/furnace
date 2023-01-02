@@ -39,7 +39,7 @@ const char** DivPlatformVIC20::getRegisterSheet() {
   return regCheatSheetVIC;
 }
 
-void DivPlatformVIC20::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformVIC20::acquire(short** buf, size_t len) {
   const unsigned char loadFreq[3] = {0x7e, 0x7d, 0x7b};
   const unsigned char wavePatterns[16] = {
     0b0,     0b10,    0b100,   0b110,   0b1000,  0b1010,   0b1011,   0b1110,
@@ -66,8 +66,8 @@ void DivPlatformVIC20::acquire(short* bufL, short* bufR, size_t start, size_t le
     }
     short samp;
     vic_sound_machine_calculate_samples(vic,&samp,1,1,0,SAMP_DIVIDER);
-    bufL[h]=samp;
-    bufR[h]=samp;
+    buf[0][h]=samp;
+    buf[1][h]=samp;
     for (int i=0; i<4; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=vic->ch[i].out?(vic->volume<<11):0;
     }

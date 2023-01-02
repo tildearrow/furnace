@@ -64,7 +64,7 @@ const char** DivPlatformPOKEY::getRegisterSheet() {
   return regCheatSheetPOKEY;
 }
 
-void DivPlatformPOKEY::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformPOKEY::acquire(short** buf, size_t len) {
   if (useAltASAP) {
     acquireASAP(bufL, start, len);
   } else {

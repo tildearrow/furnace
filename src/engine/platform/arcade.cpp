@@ -84,8 +84,8 @@ void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, si
     if (o[1]<-32768) o[1]=-32768;
     if (o[1]>32767) o[1]=32767;
 
-    bufL[h]=o[0];
-    bufR[h]=o[1];
+    buf[0][h]=o[0];
+    buf[1][h]=o[1];
   }
 }
 
@@ -121,16 +121,16 @@ void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
 
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
   }
 }
 
-void DivPlatformArcade::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformArcade::acquire(short** buf, size_t len) {
   if (useYMFM) {
-    acquire_ymfm(bufL,bufR,start,len);
+    acquire_ymfm(buf[0],buf[1],0,len);
   } else {
-    acquire_nuked(bufL,bufR,start,len);
+    acquire_nuked(buf[0],buf[1],0,len);
   }
 }
 

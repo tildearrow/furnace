@@ -127,7 +127,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
   friend void putDispatchChan(void*,int,int);
   public:
     u8 read_byte(u32 address);
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);

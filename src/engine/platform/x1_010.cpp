@@ -205,7 +205,7 @@ const char** DivPlatformX1_010::getRegisterSheet() {
   return regCheatSheetX1_010;
 }
 
-void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformX1_010::acquire(short** buf, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     x1_010.tick();
 
@@ -218,8 +218,8 @@ void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t l
     if (tempR>32767) tempR=32767;
 
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
-    bufL[h]=stereo?tempL:((tempL+tempR)>>1);
-    bufR[h]=stereo?tempR:bufL[h];
+    buf[0][h]=stereo?tempL:((tempL+tempR)>>1);
+    buf[1][h]=stereo?tempR:buf[0][h];
 
     for (int i=0; i<16; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=(x1_010.voice_out(i,0)+x1_010.voice_out(i,1))>>1;

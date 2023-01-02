@@ -61,7 +61,7 @@ void DivPlatformFDS::acquire_puNES(short* bufL, short* bufR, size_t start, size_
     int sample=isMuted[0]?0:fds->snd.main.output;
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
-    bufL[i]=sample;
+    buf[0][i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
       oscBuf->data[oscBuf->needle++]=sample<<1;
@@ -77,7 +77,7 @@ void DivPlatformFDS::acquire_NSFPlay(short* bufL, short* bufR, size_t start, siz
     int sample=isMuted[0]?0:(out[0]<<1);
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
-    bufL[i]=sample;
+    buf[0][i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
       oscBuf->data[oscBuf->needle++]=sample<<1;
@@ -93,7 +93,7 @@ void DivPlatformFDS::doWrite(unsigned short addr, unsigned char data) {
   }
 }
 
-void DivPlatformFDS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformFDS::acquire(short** buf, size_t len) {
   if (useNP) {
     acquire_NSFPlay(bufL,bufR,start,len);
   } else {

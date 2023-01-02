@@ -265,11 +265,11 @@ const char** DivPlatformQSound::getRegisterSheet() {
   return regCheatSheetQSound;
 }
 
-void DivPlatformQSound::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformQSound::acquire(short** buf, size_t len) {
   for (size_t h=start; h<start+len; h++) {
     qsound_update(&chip);
-    bufL[h]=chip.out[0];
-    bufR[h]=chip.out[1];
+    buf[0][h]=chip.out[0];
+    buf[1][h]=chip.out[1];
 
     for (int i=0; i<19; i++) {
       int data=chip.voice_output[i]<<2;

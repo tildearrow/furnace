@@ -83,14 +83,14 @@ void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size
     os*=50;
     if (os<-32768) os=-32768;
     if (os>32767) os=32767;
-    bufL[h]=os;
+    buf[0][h]=os;
   }
 }
 
 void DivPlatformOPLL::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
 }
 
-void DivPlatformOPLL::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformOPLL::acquire(short** buf, size_t len) {
   acquire_nuked(bufL,bufR,start,len);
 }
 
