@@ -171,7 +171,7 @@ void R9::writeTrackData(SafeWriter *w) {
   // this assumes the song has a limited number of unique "notes"
   std::set<String> waveFormSet;
   const char* waveforms[4][128][256][2];
-  memset(&waveforms, 0, 4 * 64 * 256 * 2);
+  memset(&waveforms, 0, 4 * 128 * 256 * 2);
   for (PatternIndex& patternIndex: patterns) {
     DivPattern* pat = e->song.subsong[patternIndex.subsong]->pat[patternIndex.chan].getPattern(patternIndex.pat, false);
     w->writeText(fmt::sprintf("; Subsong: %d Channel: %d Pattern: %d / %s\n", patternIndex.subsong, patternIndex.chan, patternIndex.pat, pat->name));
