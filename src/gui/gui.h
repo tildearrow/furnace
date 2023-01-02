@@ -1730,6 +1730,7 @@ class FurnaceGUI {
   float waveGenAmp[16];
   float waveGenPhase[16];
   float waveGenTL[4];
+  int fmWaveform[4];
   int waveGenMult[4];
   int waveGenFB[4];
   int waveGenScaleX, waveGenScaleY, waveGenOffsetX, waveGenOffsetY, waveGenSmooth;

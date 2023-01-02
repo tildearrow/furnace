@@ -40,6 +40,204 @@ const char* waveInterpolations[4]={
   "Cubic"
 };
 
+double sinus(double x) {
+    return sin(x);
+}
+double rectSin(double x) {
+    return sin(x) > 0 ? sin(x) : 0;
+}
+double absSin(double x) {
+    return abs(sin(x));
+}
+double quartSin(double x) {
+    if (x < M_PI / 2 || (x >= M_PI && x < (M_PI + M_PI / 2)))
+        return absSin(x);
+    return 0;
+}
+double squiSin(double x) {
+    return sin(x) >= 0 ? sin(2 * x) : 0;
+}
+double squiAbsSin(double x) {
+    return abs(squiSin(x));
+}
+
+
+double square(double x) {
+    return fmod(x, (2 * M_PI)) >= M_PI ? -1 : 1;
+}
+double rectSquare(double x) {
+    return square(x) > 0 ? square(x) : 0;
+}
+
+
+double saw(double x) {
+    return atan(tan(x / 2)) / (M_PI / 2);
+}
+double rectSaw(double x) {
+    return saw(x) > 0 ? saw(x) : 0;
+}
+double absSaw(double x) {
+    return saw(x) < 0 ? saw(x) + 1 : saw(x);
+}
+
+
+double cubSaw(double x) {
+    return pow(saw(x), 3);
+}
+double rectCubSaw(double x) {
+    return pow(rectSaw(x), 3);
+}
+double absCubSaw(double x) {
+    return pow(absSaw(x), 3);
+}
+
+
+double cubSine(double x) {
+    return pow(sin(x), 3);
+}
+double rectCubSin(double x) {
+    return pow(rectSin(x), 3);
+}
+double absCubSin(double x) {
+    return pow(absSin(x), 3);
+}
+double quartCubSin(double x) {
+    return pow(quartSin(x), 3);
+}
+double squishCubSin(double x) {
+    return pow(squiSin(x), 3);
+}
+double squishAbsCubSin(double x) {
+    return pow(squiAbsSin(x), 3);
+}
+
+
+double triangle(double x) {
+    return asin(sin(x)) / (M_PI / 2);
+}
+double rectTri(double x) {
+    return triangle(x) > 0 ? triangle(x) : 0;
+}
+double absTri(double x) {
+    return abs(triangle(x));
+}
+double quartTri(double x) {
+    if (x < M_PI / 2 || (x >= M_PI && x < (M_PI + M_PI / 2)))
+        return absTri(x);
+    return 0;
+}
+double squiTri(double x) {
+    return sin(x) >= 0 ? triangle(2 * x) : 0;
+}
+double absSquiTri(double x) {
+    return abs(squiTri(x));
+}
+
+
+double cubTriangle(double x) {
+    return pow(triangle(x), 3);
+}
+double cubRectTri(double x) {
+    return pow(rectTri(x), 3);
+}
+double cubAbsTri(double x) {
+    return pow(absTri(x), 3);
+}
+double cubQuartTri(double x) {
+    return pow(quartTri(x), 3);
+}
+double cubSquiTri(double x) {
+    return pow(squiTri(x), 3);
+}
+double absCubSquiTri(double x) {
+    return abs(cubSquiTri(x));
+}
+
+
+typedef double (*WaveFunc) (double a);
+
+WaveFunc waveFuncs[] = {
+    sinus,
+    rectSin,
+    absSin,
+    quartSin,
+    squiSin,
+    squiAbsSin,
+
+    square,
+    rectSquare,
+    
+    saw,
+    rectSaw,
+    absSaw,
+    
+    cubSaw,
+    rectCubSaw,
+    absCubSaw,
+    
+    cubSine,
+    rectCubSin,
+    absCubSin,
+    quartCubSin,
+    squishCubSin,
+    squishAbsCubSin,
+    
+    triangle,
+    rectTri,
+    absTri,
+    quartTri,
+    squiTri,
+    absSquiTri,
+
+    cubTriangle,
+    cubRectTri,
+    cubAbsTri,
+    cubQuartTri,
+    cubSquiTri,
+    absCubSquiTri
+};
+
+const char* fmWaveforms[] = {
+    "Sine",
+    "Rect. Sine",
+    "Abs. Sine",
+    "Quart. Sine",
+    "Squish. Sine",
+    "Abs. Squish. Sine",
+
+    "Square",
+    "rectSquare",
+
+    "Saw",
+    "Rect. Saw",
+    "Abs. Saw",
+
+    "Cubed Saw",
+    "Rect. Cubed Saw",
+    "Abs. Cubed Saw",
+
+    "Cubed Sine",
+    "Rect. Cubed Sine",
+    "Abs. Cubed Sine",
+    "Quart. Cubed Sine",
+    "Squish. Cubed Sine",
+    "Squish. Abs. Cub. Sine",
+
+    "Triangle",
+    "Rect. Triangle",
+    "Abs. Triangle",
+    "Quart. Triangle",
+    "Squish. Triangle",
+    "Abs. Squish. Triangle",
+
+    "Cubed Triangle",
+    "Rect. Cubed Triangle",
+    "Abs. Cubed Triangle",
+    "Quart. Cubed Triangle",
+    "Squish. Cubed Triangle",
+    "Squish. Abs. Cub. Triangle",
+};
+
 const float multFactors[17]={
   M_PI,
   2*M_PI,
@@ -59,6 +257,8 @@ const float multFactors[17]={
   30*M_PI,
   32*M_PI,
 };
+
+
 
 void FurnaceGUI::doGenerateWave() {
   float finalResult[256];
@@ -80,19 +280,20 @@ void FurnaceGUI::doGenerateWave() {
     float s3fb1=0;
     for (int i=0; i<wave->len; i++) {
       float pos=(float)i/(float)wave->len;
-      float s0=sin((pos+(waveGenFB[0]?((s0fb0+s0fb1)*pow(2.0f,waveGenFB[0]-8)):0.0f))*multFactors[waveGenMult[0]])*waveGenTL[0];
+      float s0= waveFuncs[fmWaveform[0]]((pos+(waveGenFB[0]?((s0fb0+s0fb1)*pow(2.0f,waveGenFB[0]-8)):0.0f))*multFactors[waveGenMult[0]])*waveGenTL[0];
       s0fb0=s0fb1;
       s0fb1=s0;
       
-      float s1=sin((pos+(waveGenFB[1]?((s1fb0+s1fb1)*pow(2.0f,waveGenFB[1]-8)):0.0f)+(waveGenFMCon1[0]?s0:0.0f))*multFactors[waveGenMult[1]])*waveGenTL[1];
+      float s1= waveFuncs[fmWaveform[1]]((pos+(waveGenFB[1]?((s1fb0+s1fb1)*pow(2.0f,waveGenFB[1]-8)):0.0f)+(waveGenFMCon1[0]?s0:0.0f))*multFactors[waveGenMult[1]])*waveGenTL[1];
       s1fb0=s1fb1;
       s1fb1=s1;
 
-      float s2=sin((pos+(waveGenFB[2]?((s2fb0+s2fb1)*pow(2.0f,waveGenFB[2]-8)):0.0f)+(waveGenFMCon1[1]?s0:0.0f)+(waveGenFMCon2[0]?s1:0.0f))*multFactors[waveGenMult[2]])*waveGenTL[2];
+      float s2= waveFuncs[fmWaveform[2]]((pos+(waveGenFB[2]?((s2fb0+s2fb1)*pow(2.0f,waveGenFB[2]-8)):0.0f)+(waveGenFMCon1[1]?s0:0.0f)+(waveGenFMCon2[0]?s1:0.0f))*multFactors[waveGenMult[2]])*waveGenTL[2];
       s2fb0=s2fb1;
       s2fb1=s2;
 
-      float s3=sin((pos+(waveGenFB[3]?((s3fb0+s3fb1)*pow(2.0f,waveGenFB[3]-8)):0.0f)+(waveGenFMCon1[2]?s0:0.0f)+(waveGenFMCon2[1]?s1:0.0f)+(waveGenFMCon3[0]?s2:0.0f))*multFactors[waveGenMult[3]])*waveGenTL[3];
+      //float s3 = sin((pos + (waveGenFB[3] ? ((s3fb0 + s3fb1) * pow(2.0f, waveGenFB[3] - 8)) : 0.0f) + (waveGenFMCon1[2] ? s0 : 0.0f) + (waveGenFMCon2[1] ? s1 : 0.0f) + (waveGenFMCon3[0] ? s2 : 0.0f)) * multFactors[waveGenMult[3]]) * waveGenTL[3];
+      float s3=waveFuncs[fmWaveform[3]]((pos+(waveGenFB[3]?((s3fb0+s3fb1)*pow(2.0f,waveGenFB[3]-8)):0.0f)+(waveGenFMCon1[2]?s0:0.0f)+(waveGenFMCon2[1]?s1:0.0f)+(waveGenFMCon3[0]?s2:0.0f))*multFactors[waveGenMult[3]])*waveGenTL[3];
       s3fb0=s3fb1;
       s3fb1=s3;
 
@@ -165,8 +366,14 @@ void FurnaceGUI::doGenerateWave() {
   MARK_MODIFIED;
 }
 
+
+
 #define CENTER_TEXT(text) \
   ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
+
+
+//int lengthArray()
+
 
 void FurnaceGUI::drawWaveEdit() {
   if (nextWindow==GUI_WINDOW_WAVE_EDIT) {
@@ -441,7 +648,7 @@ void FurnaceGUI::drawWaveEdit() {
                 ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize("Op").x);
                 ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.5);
                 ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.25);
-                ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch,0.25);
+                ImGui::TableSetupColumn("c3", ImGuiTableColumnFlags_WidthStretch, 0.25);
 
                 ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
                 ImGui::TableNextColumn();
@@ -480,11 +687,43 @@ void FurnaceGUI::drawWaveEdit() {
                   if (CWSliderInt("##WGFB",&waveGenFB[i],0,7)) {
                     doGenerateWave();
                   }
+                  
                   ImGui::PopID();
                 }
 
                 ImGui::EndTable();
               }
+
+
+
+              if (ImGui::BeginTable("WGFMWAVE", 2)) {
+                  ImGui::TableSetupColumn("c0", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Op").x);
+                  ImGui::TableSetupColumn("c1", ImGuiTableColumnFlags_WidthStretch, 1);
+
+                  ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+                  ImGui::TableNextColumn();
+                  ImGui::Text("Op");
+                  ImGui::TableNextColumn();
+                  ImGui::Text("Waveform");
+
+                  for (int i = 0; i < 4; i++) {
+                      ImGui::TableNextRow();
+                      ImGui::TableNextColumn();
+                      ImGui::Text("%d", i + 1);
+
+                      ImGui::TableNextColumn();
+                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                      ImGui::PushID(i);
+                      if (CWSliderInt("##WGWAVEFORM", &fmWaveform[i], 0, _countof(fmWaveforms)-1, fmWaveforms[fmWaveform[i]])) {
+                          doGenerateWave();
+                      }
+                      ImGui::PopID();
+                  }
+
+                  ImGui::EndTable();
+              }
+
+
 
               CENTER_TEXT("Connection Diagram");
               ImGui::Text("Connection Diagram");
