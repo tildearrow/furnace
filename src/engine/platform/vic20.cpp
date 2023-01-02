@@ -299,8 +299,8 @@ void DivPlatformVIC20::reset() {
   vic_sound_clock(vic,4);
 }
 
-bool DivPlatformVIC20::isStereo() {
-  return false;
+int DivPlatformVIC20::getOutputCount() {
+  return 1;
 }
 
 void DivPlatformVIC20::notifyInsDeletion(void* ins) {

@@ -67,7 +67,7 @@ class DivPlatformRF5C68: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    int getOutputCount();
     void setChipModel(int type);
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);

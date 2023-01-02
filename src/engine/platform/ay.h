@@ -140,7 +140,7 @@ class DivPlatformAY8910: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void setFlags(const DivConfig& flags);
-    bool isStereo();
+    int getOutputCount();
     bool keyOffAffectsArp(int ch);
     DivMacroInt* getChanMacroInt(int ch);
     bool getDCOffRequired();

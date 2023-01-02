@@ -444,8 +444,8 @@ void DivPlatformSMS::reset() {
   }
 }
 
-bool DivPlatformSMS::isStereo() {
-  return stereo;
+int DivPlatformSMS::getOutputCount() {
+  return stereo?2:1;
 }
 
 bool DivPlatformSMS::keyOffAffectsArp(int ch) {

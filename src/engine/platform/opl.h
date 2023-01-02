@@ -119,7 +119,7 @@ class DivPlatformOPL: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    int getOutputCount();
     void setYMFM(bool use);
     void setOPLType(int type, bool drums);
     bool keyOffAffectsArp(int ch);

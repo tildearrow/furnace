@@ -747,8 +747,8 @@ void DivPlatformAY8930::reset() {
   immWrite(0x1a,0x00); // or mask
 }
 
-bool DivPlatformAY8930::isStereo() {
-  return true;
+int DivPlatformAY8930::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformAY8930::keyOffAffectsArp(int ch) {

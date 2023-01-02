@@ -336,8 +336,8 @@ void DivPlatformMSM6258::reset() {
   delay=0;
 }
 
-bool DivPlatformMSM6258::isStereo() {
-  return true;
+int DivPlatformMSM6258::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformMSM6258::keyOffAffectsArp(int ch) {

@@ -448,8 +448,8 @@ void DivPlatformK007232::reset() {
   }
 }
 
-bool DivPlatformK007232::isStereo() {
-  return stereo;
+int DivPlatformK007232::getOutputCount() {
+  return stereo?2:1;
 }
 
 void DivPlatformK007232::notifyInsChange(int ins) {

@@ -502,8 +502,8 @@ void DivPlatformSegaPCM::setFlags(const DivConfig& flags) {
   }
 }
 
-bool DivPlatformSegaPCM::isStereo() {
-  return true;
+int DivPlatformSegaPCM::getOutputCount() {
+  return 2;
 }
 
 int DivPlatformSegaPCM::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

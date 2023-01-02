@@ -751,8 +751,8 @@ void DivPlatformAY8910::reset() {
   portBVal=0;
 }
 
-bool DivPlatformAY8910::isStereo() {
-  return true;
+int DivPlatformAY8910::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformAY8910::keyOffAffectsArp(int ch) {

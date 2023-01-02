@@ -410,8 +410,8 @@ void DivPlatformPCMDAC::reset() {
   chan[0].ws.init(NULL,32,255);
 }
 
-bool DivPlatformPCMDAC::isStereo() {
-  return true;
+int DivPlatformPCMDAC::getOutputCount() {
+  return 2;
 }
 
 DivMacroInt* DivPlatformPCMDAC::getChanMacroInt(int ch) {

@@ -1193,8 +1193,8 @@ void DivPlatformGenesis::reset() {
   delay=0;
 }
 
-bool DivPlatformGenesis::isStereo() {
-  return true;
+int DivPlatformGenesis::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformGenesis::keyOffAffectsArp(int ch) {

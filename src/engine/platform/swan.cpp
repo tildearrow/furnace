@@ -490,8 +490,8 @@ void DivPlatformSwan::reset() {
   rWrite(0x11,0x09); // enable speakers
 }
 
-bool DivPlatformSwan::isStereo() {
-  return true;
+int DivPlatformSwan::getOutputCount() {
+  return 2;
 }
 
 void DivPlatformSwan::notifyWaveChange(int wave) {

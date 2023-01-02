@@ -636,8 +636,8 @@ void DivPlatformQSound::reset() {
   immWrite(Q1_ECHO_FEEDBACK, echoFeedback << 6);
 }
 
-bool DivPlatformQSound::isStereo() {
-  return true;
+int DivPlatformQSound::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformQSound::keyOffAffectsArp(int ch) {

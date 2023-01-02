@@ -85,7 +85,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
     virtual void forceIns() override;
     virtual void tick(bool sysTick=true) override;
     virtual void muteChannel(int ch, bool mute) override;
-    virtual bool isStereo() override;
+    virtual int getOutputCount() override;
     virtual void notifyInsChange(int ins) override;
     virtual void notifyWaveChange(int wave) override;
     virtual void notifyInsDeletion(void* ins) override;

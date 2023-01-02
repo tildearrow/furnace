@@ -604,8 +604,8 @@ int DivPlatformGB::getPortaFloor(int ch) {
   return 24;
 }
 
-bool DivPlatformGB::isStereo() {
-  return true;
+int DivPlatformGB::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformGB::getDCOffRequired() {

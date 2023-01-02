@@ -499,8 +499,8 @@ void DivPlatformSoundUnit::reset() {
   rWrite(0xbd,fil1);
 }
 
-bool DivPlatformSoundUnit::isStereo() {
-  return true;
+int DivPlatformSoundUnit::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformSoundUnit::keyOffAffectsArp(int ch) {

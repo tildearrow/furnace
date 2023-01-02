@@ -1568,8 +1568,8 @@ void DivPlatformOPL::reset() {
   immWrite(0xbd,(dam<<7)|(dvb<<6)|(properDrums<<5)|drumState);
 }
 
-bool DivPlatformOPL::isStereo() {
-  return (oplType==3 || oplType==759);
+int DivPlatformOPL::getOutputCount() {
+  return (oplType==3 || oplType==759)?4:1;
 }
 
 bool DivPlatformOPL::keyOffAffectsArp(int ch) {

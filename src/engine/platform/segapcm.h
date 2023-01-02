@@ -91,7 +91,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     void notifyInsChange(int ins);
     void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
-    bool isStereo();
+    int getOutputCount();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);

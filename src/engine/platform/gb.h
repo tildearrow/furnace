@@ -90,7 +90,7 @@ class DivPlatformGB: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getPortaFloor(int ch);
-    bool isStereo();
+    int getOutputCount();
     bool getDCOffRequired();
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);

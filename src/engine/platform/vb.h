@@ -76,7 +76,7 @@ class DivPlatformVB: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    int getOutputCount();
     bool keyOffAffectsArp(int ch);
     float getPostAmp();
     void setFlags(const DivConfig& flags);

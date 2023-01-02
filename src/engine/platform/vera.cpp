@@ -406,8 +406,8 @@ float DivPlatformVERA::getPostAmp() {
   return 4.0f;
 }
 
-bool DivPlatformVERA::isStereo() {
-  return true;
+int DivPlatformVERA::getOutputCount() {
+  return 2;
 }
 
 void DivPlatformVERA::notifyInsDeletion(void* ins) {

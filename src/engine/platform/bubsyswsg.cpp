@@ -306,8 +306,8 @@ void DivPlatformBubSysWSG::reset() {
   k005289.reset();
 }
 
-bool DivPlatformBubSysWSG::isStereo() {
-  return false;
+int DivPlatformBubSysWSG::getOutputCount() {
+  return 1;
 }
 
 bool DivPlatformBubSysWSG::keyOffAffectsArp(int ch) {

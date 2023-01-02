@@ -947,8 +947,8 @@ void DivPlatformTX81Z::setFlags(const DivConfig& flags) {
   }
 }
 
-bool DivPlatformTX81Z::isStereo() {
-  return true;
+int DivPlatformTX81Z::getOutputCount() {
+  return 2;
 }
 
 int DivPlatformTX81Z::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

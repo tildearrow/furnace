@@ -465,8 +465,8 @@ void DivPlatformVB::reset() {
   delay=500;
 }
 
-bool DivPlatformVB::isStereo() {
-  return true;
+int DivPlatformVB::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformVB::keyOffAffectsArp(int ch) {

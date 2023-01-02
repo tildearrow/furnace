@@ -768,8 +768,8 @@ void DivPlatformSNES::reset() {
   initEcho();
 }
 
-bool DivPlatformSNES::isStereo() {
-  return true;
+int DivPlatformSNES::getOutputCount() {
+  return 2;
 }
 
 void DivPlatformSNES::notifyInsChange(int ins) {

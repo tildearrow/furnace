@@ -86,7 +86,7 @@ class DivPlatformSAA1099: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void setFlags(const DivConfig& flags);
-    bool isStereo();
+    int getOutputCount();
     int getPortaFloor(int ch);
     bool keyOffAffectsArp(int ch);
     void notifyInsDeletion(void* ins);

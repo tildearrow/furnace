@@ -885,8 +885,8 @@ void DivPlatformArcade::setFlags(const DivConfig& flags) {
   }
 }
 
-bool DivPlatformArcade::isStereo() {
-  return true;
+int DivPlatformArcade::getOutputCount() {
+  return 2;
 }
 
 void DivPlatformArcade::setYMFM(bool use) {

@@ -547,8 +547,8 @@ void DivPlatformPCE::reset() {
   delay=500;
 }
 
-bool DivPlatformPCE::isStereo() {
-  return true;
+int DivPlatformPCE::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformPCE::keyOffAffectsArp(int ch) {

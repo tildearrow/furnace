@@ -1372,8 +1372,8 @@ void DivPlatformYM2610::reset() {
   immWrite(0x1b,0xff); // B
 }
 
-bool DivPlatformYM2610::isStereo() {
-  return true;
+int DivPlatformYM2610::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformYM2610::keyOffAffectsArp(int ch) {

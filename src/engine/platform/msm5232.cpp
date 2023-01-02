@@ -371,8 +371,8 @@ void DivPlatformMSM5232::reset() {
   }
 }
 
-bool DivPlatformMSM5232::isStereo() {
-  return false;
+int DivPlatformMSM5232::getOutputCount() {
+  return 1;
 }
 
 bool DivPlatformMSM5232::keyOffAffectsArp(int ch) {

@@ -342,8 +342,8 @@ float DivPlatformTIA::getPostAmp() {
   return 0.5f;
 }
 
-bool DivPlatformTIA::isStereo() {
-  return (mixingType==2);
+int DivPlatformTIA::getOutputCount() {
+  return (mixingType==2)?2:1;
 }
 
 bool DivPlatformTIA::keyOffAffectsArp(int ch) {

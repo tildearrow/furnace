@@ -335,8 +335,8 @@ void DivPlatformSCC::reset() {
   lastUpdated34=0;
 }
 
-bool DivPlatformSCC::isStereo() {
-  return false;
+int DivPlatformSCC::getOutputCount() {
+  return 1;
 }
 
 void DivPlatformSCC::notifyWaveChange(int wave) {

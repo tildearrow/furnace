@@ -1443,8 +1443,8 @@ void DivPlatformYM2610B::reset() {
   ay->flushWrites();
 }
 
-bool DivPlatformYM2610B::isStereo() {
-  return true;
+int DivPlatformYM2610B::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformYM2610B::keyOffAffectsArp(int ch) {

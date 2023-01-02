@@ -393,8 +393,8 @@ void DivPlatformLynx::muteChannel(int ch, bool mute) {
   if (chan[ch].active) WRITE_VOLUME(ch,(isMuted[ch]?0:(chan[ch].outVol&127)));
 }
 
-bool DivPlatformLynx::isStereo() {
-  return true;
+int DivPlatformLynx::getOutputCount() {
+  return 2;
 }
 
 void DivPlatformLynx::forceIns() {

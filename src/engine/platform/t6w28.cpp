@@ -335,8 +335,8 @@ void DivPlatformT6W28::reset() {
   rWrite(1,0xe7);
 }
 
-bool DivPlatformT6W28::isStereo() {
-  return true;
+int DivPlatformT6W28::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformT6W28::keyOffAffectsArp(int ch) {

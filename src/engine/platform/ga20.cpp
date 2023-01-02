@@ -361,8 +361,8 @@ void DivPlatformGA20::reset() {
   }
 }
 
-bool DivPlatformGA20::isStereo() {
-  return false;
+int DivPlatformGA20::getOutputCount() {
+  return 1;
 }
 
 void DivPlatformGA20::notifyInsChange(int ins) {

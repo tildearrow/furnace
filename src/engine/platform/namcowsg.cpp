@@ -494,8 +494,8 @@ void DivPlatformNamcoWSG::reset() {
   namco->device_start(NULL);
 }
 
-bool DivPlatformNamcoWSG::isStereo() {
-  return (devType==30);
+int DivPlatformNamcoWSG::getOutputCount() {
+  return (devType==30)?2:1;
 }
 
 bool DivPlatformNamcoWSG::keyOffAffectsArp(int ch) {

@@ -138,7 +138,7 @@ class DivPlatformX1_010: public DivDispatch, public vgsound_emu_mem_intf {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    int getOutputCount();
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);

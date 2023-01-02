@@ -89,7 +89,11 @@ void DivDispatchContainer::setQuality(bool lowQual) {
 }
 
 void DivDispatchContainer::acquire(size_t offset, size_t count) {
-  dispatch->acquire(bbIn[0],bbIn[1],offset,count);
+  int outs=dispatch->getOutputCount();
+  for (int i=0; i<outs; i++) {
+    bbInMapped[i]=&bbIn[i][offset];
+  }
+  dispatch->acquire(bbInMapped,count);
 }
 
 void DivDispatchContainer::flush(size_t count) {
@@ -166,26 +170,10 @@ void DivDispatchContainer::clear() {
 }
 
 void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags) {
+  // quit if we already initialized
   if (dispatch!=NULL) return;
 
-  bb[0]=blip_new(32768);
-  if (bb[0]==NULL) {
-    logE("not enough memory!");
-    return;
-  }
-
-  bb[1]=blip_new(32768);
-  if (bb[1]==NULL) {
-    logE("not enough memory!");
-    return;
-  }
-
-  bbOut[0]=new short[32768];
-  bbOut[1]=new short[32768];
-  bbIn[0]=new short[32768];
-  bbIn[1]=new short[32768];
-  bbInLen=32768;
-
+  // initialize chip
   switch (sys) {
     case DIV_SYSTEM_YMU759:
       dispatch=new DivPlatformOPL;
@@ -461,6 +449,23 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
   }
   dispatch->init(eng,chanCount,gotRate,flags);
+
+  // initialize output buffers
+  int outs=dispatch->getOutputCount();
+  bbInLen=32768;
+
+  for (int i=0; i<outs; i++) {
+    bb[i]=blip_new(bbInLen);
+    if (bb[i]==NULL) {
+      logE("not enough memory!");
+      return;
+    }
+
+    bbIn[i]=new short[bbInLen];
+    bbOut[i]=new short[bbInLen];
+    memset(bbIn,0,bbInLen*sizeof(short));
+    memset(bbOut,0,bbInLen*sizeof(short));
+  }
 }
 
 void DivDispatchContainer::quit() {
@@ -469,11 +474,19 @@ void DivDispatchContainer::quit() {
   delete dispatch;
   dispatch=NULL;
 
-  delete[] bbOut[0];
-  delete[] bbOut[1];
-  delete[] bbIn[0];
-  delete[] bbIn[1];
+  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+    if (bbOut[i]!=NULL) {
+      delete[] bbOut[i];
+      bbOut[i]=NULL;
+    }
+    if (bbIn[i]!=NULL) {
+      delete[] bbIn[i];
+      bbIn[i]=NULL;
+    }
+    if (bb[i]!=NULL) {
+      blip_delete(bb[i]);
+      bb[i]=NULL;
+    }
+  }
   bbInLen=0;
-  blip_delete(bb[0]);
-  blip_delete(bb[1]);
 }

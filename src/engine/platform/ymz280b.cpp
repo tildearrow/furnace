@@ -372,8 +372,8 @@ void DivPlatformYMZ280B::reset() {
   }
 }
 
-bool DivPlatformYMZ280B::isStereo() {
-  return true;
+int DivPlatformYMZ280B::getOutputCount() {
+  return 2;
 }
 
 void DivPlatformYMZ280B::notifyInsChange(int ins) {

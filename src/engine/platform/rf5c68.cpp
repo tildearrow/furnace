@@ -332,8 +332,8 @@ void DivPlatformRF5C68::reset() {
   }
 }
 
-bool DivPlatformRF5C68::isStereo() {
-  return true;
+int DivPlatformRF5C68::getOutputCount() {
+  return 2;
 }
 
 void DivPlatformRF5C68::notifyInsChange(int ins) {

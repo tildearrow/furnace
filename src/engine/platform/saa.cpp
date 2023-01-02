@@ -419,8 +419,8 @@ void DivPlatformSAA1099::reset() {
   rWrite(0x1c,1);
 }
 
-bool DivPlatformSAA1099::isStereo() {
-  return true;
+int DivPlatformSAA1099::getOutputCount() {
+  return 2;
 }
 
 int DivPlatformSAA1099::getPortaFloor(int ch) {

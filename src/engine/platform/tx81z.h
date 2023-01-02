@@ -73,7 +73,7 @@ class DivPlatformTX81Z: public DivPlatformOPM {
     void muteChannel(int ch, bool mute);
     void notifyInsChange(int ins);
     void setFlags(const DivConfig& flags);
-    bool isStereo();
+    int getOutputCount();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

@@ -77,7 +77,7 @@ class DivPlatformArcade: public DivPlatformOPM {
     DivMacroInt* getChanMacroInt(int ch);
     void notifyInsChange(int ins);
     void setFlags(const DivConfig& flags);
-    bool isStereo();
+    int getOutputCount();
     void setYMFM(bool use);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

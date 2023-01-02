@@ -894,8 +894,8 @@ void DivPlatformX1_010::reset() {
   }
 }
 
-bool DivPlatformX1_010::isStereo() {
-  return stereo;
+int DivPlatformX1_010::getOutputCount() {
+  return stereo?2:1;
 }
 
 bool DivPlatformX1_010::keyOffAffectsArp(int ch) {

@@ -287,8 +287,8 @@ void DivPlatformPET::reset() {
   chan[0].std.setEngine(parent);
 }
 
-bool DivPlatformPET::isStereo() {
-  return false;
+int DivPlatformPET::getOutputCount() {
+  return 1;
 }
 
 void DivPlatformPET::notifyInsDeletion(void* ins) {

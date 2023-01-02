@@ -170,11 +170,12 @@ struct DivNoteEvent {
 
 struct DivDispatchContainer {
   DivDispatch* dispatch;
-  blip_buffer_t* bb[2];
+  blip_buffer_t* bb[DIV_MAX_OUTPUTS];
   size_t bbInLen, runtotal, runLeft, runPos, lastAvail;
-  int temp[2], prevSample[2];
-  short* bbIn[2];
-  short* bbOut[2];
+  int temp[DIV_MAX_OUTPUTS], prevSample[DIV_MAX_OUTPUTS];
+  short* bbInMapped[DIV_MAX_OUTPUTS];
+  short* bbIn[DIV_MAX_OUTPUTS];
+  short* bbOut[DIV_MAX_OUTPUTS];
   bool lowQuality, dcOffCompensation;
 
   void setRates(double gotRate);
@@ -187,18 +188,20 @@ struct DivDispatchContainer {
   void quit();
   DivDispatchContainer():
     dispatch(NULL),
-    bb{NULL,NULL},
     bbInLen(0),
     runtotal(0),
     runLeft(0),
     runPos(0),
     lastAvail(0),
-    temp{0,0},
-    prevSample{0,0},
-    bbIn{NULL,NULL},
-    bbOut{NULL,NULL},
     lowQuality(false),
-    dcOffCompensation(false) {}
+    dcOffCompensation(false) {
+    memset(bb,0,DIV_MAX_OUTPUTS*sizeof(void*));
+    memset(temp,0,DIV_MAX_OUTPUTS*sizeof(int));
+    memset(prevSample,0,DIV_MAX_OUTPUTS*sizeof(int));
+    memset(bbIn,0,DIV_MAX_OUTPUTS*sizeof(void*));
+    memset(bbInMapped,0,DIV_MAX_OUTPUTS*sizeof(void*));
+    memset(bbOut,0,DIV_MAX_OUTPUTS*sizeof(void*));
+  }
 };
 
 typedef int EffectValConversion(unsigned char,unsigned char);

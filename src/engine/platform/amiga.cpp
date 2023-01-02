@@ -401,8 +401,8 @@ void DivPlatformAmiga::reset() {
   filtConst=filterOn?filtConstOn:filtConstOff;
 }
 
-bool DivPlatformAmiga::isStereo() {
-  return true;
+int DivPlatformAmiga::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformAmiga::keyOffAffectsArp(int ch) {

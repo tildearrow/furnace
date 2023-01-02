@@ -68,7 +68,7 @@ class DivPlatformYMZ280B: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     float getPostAmp();
-    bool isStereo();
+    int getOutputCount();
     void setChipModel(int type);
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
