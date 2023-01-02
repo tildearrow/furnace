@@ -150,7 +150,7 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
         if (!chan[c.chan].std.vol.will) {
           chan[c.chan].outVol=chan[c.chan].vol;
         }
-        sample=ins->amiga.getSample(c.value);
+        if (c.value!=DIV_NOTE_NULL) sample=ins->amiga.getSample(c.value);
         samplePos=0;
         if (sample>=0 && sample<parent->song.sampleLen) {
           //DivSample* s=parent->getSample(chan[c.chan].sample);

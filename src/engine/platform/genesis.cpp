@@ -346,6 +346,12 @@ void DivPlatformGenesis::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
 
+    if (i>=5 && chan[i].std.phaseReset.had) {
+      if (chan[i].std.phaseReset.val==1 && chan[i].furnaceDac) {
+        chan[i].dacPos=0;
+      }
+    }
+
     if (i>=6) continue;
 
     if (chan[i].std.phaseReset.had) {
@@ -582,7 +588,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       if (c.chan>=5 && chan[c.chan].dacMode) {
         if (skipRegisterWrites) break;
         if (ins->type==DIV_INS_AMIGA) { // Furnace mode
-          chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) chan[c.chan].dacSample=ins->amiga.getSample(c.value);
           if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
             chan[c.chan].dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);

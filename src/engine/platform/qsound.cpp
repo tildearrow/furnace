@@ -323,14 +323,14 @@ void DivPlatformQSound::tick(bool sysTick) {
         if (i<16) {
           qsound_end = offPCM[chan[i].sample] + length + 15;
         } else {
-          qsound_end = offBS[chan[i].sample] + length + 15;
+          qsound_end = offBS[chan[i].sample] + (length>>1) + 15;
         }
         qsound_loop = 15;
       } else {
         if (i<16) {
           qsound_end = offPCM[chan[i].sample] + length;
         } else {
-          qsound_end = offBS[chan[i].sample] + length;
+          qsound_end = offBS[chan[i].sample] + (length>>1);
         }
         qsound_loop = length - loopStart;
       }
@@ -428,6 +428,9 @@ void DivPlatformQSound::tick(bool sysTick) {
         } else {
           rWrite(q1a_vol_map[i-16],0);
           rWrite(Q1A_KEYON+(i-16),0);
+          rWrite(q1a_end_map[i-16], 1);
+          rWrite(q1a_start_map[i-16], 0);
+          rWrite(Q1A_KEYON+(i-16),1);
         }
       } else if (chan[i].active) {
         //logV("ch %d frequency set to %04x, off=%f, note=%d, %04x!",i,chan[i].freq,off,chan[i].note,QS_NOTE_FREQUENCY(chan[i].note));
@@ -447,7 +450,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       chan[c.chan].isNewQSound=(ins->type==DIV_INS_QSOUND);
-      chan[c.chan].sample=ins->amiga.getSample(c.value);
+      if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(c.value);
       }

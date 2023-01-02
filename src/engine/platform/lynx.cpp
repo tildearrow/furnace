@@ -264,7 +264,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         if (chan[c.chan].pcm) {
           chan[c.chan].sampleBaseFreq=NOTE_FREQUENCY(c.value);
-          chan[c.chan].sample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
           chan[c.chan].sampleAccum=0;
           chan[c.chan].samplePos=0;
         }

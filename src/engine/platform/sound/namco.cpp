@@ -754,9 +754,15 @@ void namco_audio_device::sound_stream_update(short** outputs, int len)
 						int cnt;
 
 						if (voice->noise_state)
-							buffer[i]+=noise_data;
-						else
+							{
+buffer[i]+=noise_data;
+                        voice->last_out=noise_data;
+}
+						else {
 							buffer[i]+=-noise_data;
+                        voice->last_out=-noise_data;
+
+}
 
 						if (hold)
 						{

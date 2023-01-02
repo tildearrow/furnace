@@ -206,7 +206,8 @@ bool DivInstrumentSNES::operator==(const DivInstrumentSNES& other) {
     _C(a) &&
     _C(d) &&
     _C(s) &&
-    _C(r)
+    _C(r) &&
+    _C(d2)
   );
 }
 

@@ -133,9 +133,9 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
       chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64;
       if (!parent->song.oldArpStrategy) {
         if (chan[i].fixedArp) {
-          chan[i].freq=(chan[i].baseNoteOverride<<7)+(chan[i].pitch>>1)-64+chan[i].pitch2;
+          chan[i].freq=(chan[i].baseNoteOverride<<6)+(chan[i].pitch>>1)-64+chan[i].pitch2;
         } else {
-          chan[i].freq+=chan[i].arpOff<<7;
+          chan[i].freq+=chan[i].arpOff<<6;
         }
       }
       if (chan[i].furnacePCM) {
@@ -216,7 +216,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SEGAPCM) {
         chan[c.chan].macroVolMul=(ins->type==DIV_INS_AMIGA)?64:127;
         chan[c.chan].isNewSegaPCM=(ins->type==DIV_INS_SEGAPCM);
-        chan[c.chan].pcm.sample=ins->amiga.getSample(c.value);
+        if (c.value!=DIV_NOTE_NULL) chan[c.chan].pcm.sample=ins->amiga.getSample(c.value);
         if (chan[c.chan].pcm.sample<0 || chan[c.chan].pcm.sample>=parent->song.sampleLen) {
           chan[c.chan].pcm.sample=-1;
           if (dumpWrites) {

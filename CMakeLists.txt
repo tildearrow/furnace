@@ -66,6 +66,7 @@ option(SYSTEM_LIBSNDFILE "Use a system-installed version of libsndfile instead o
 option(SYSTEM_RTMIDI "Use a system-installed version of RtMidi instead of the vendored one" OFF)
 option(SYSTEM_ZLIB "Use a system-installed version of zlib instead of the vendored one" OFF)
 option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendored one" ${SYSTEM_SDL2_DEFAULT})
+option(SUPPORT_XP "Build a Windows XP-compatible binary" OFF)
 option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be treated as errors" OFF)
 option(WITH_DEMOS "Install demo songs" ON)
 option(WITH_INSTRUMENTS "Install instruments" ON)
@@ -623,7 +624,7 @@ src/gui/volMeter.cpp
 src/gui/gui.cpp
 )
 
-if (WIN32 AND (MSVC OR CMAKE_SIZEOF_VOID_P EQUAL 8))
+if (WIN32 AND NOT SUPPORT_XP)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.cpp)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_win.cpp)
 endif()
@@ -708,7 +709,7 @@ if (WIN32)
     list(APPEND DEPENDENCIES_LIBRARIES -static)
   endif()
   # support Windows XP
-  if (CMAKE_SIZEOF_VOID_P EQUAL 4 AND NOT MSVC)
+  if (SUPPORT_XP)
     list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0501")
   endif()
 elseif (APPLE)

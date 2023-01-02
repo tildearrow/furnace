@@ -176,7 +176,7 @@ int DivPlatformMMC5::dispatch(DivCommand c) {
       if (c.chan==2) { // PCM
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_STD);
         if (ins->type==DIV_INS_AMIGA) {
-          dacSample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) dacSample=ins->amiga.getSample(c.value);
           if (dacSample<0 || dacSample>=parent->song.sampleLen) {
             dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);
