@@ -146,6 +146,7 @@ void DivPlatformT6W28::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=snCalcFreq(i);
+      if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>1023) chan[i].freq=1023;
       if (i==3) {
         rWrite(1,0x80|(2<<5)|(chan[3].freq&15));
