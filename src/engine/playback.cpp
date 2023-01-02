@@ -1320,8 +1320,8 @@ void DivEngine::nextRow() {
   firstTick=true;
 }
 
-bool DivEngine::tick() {
-  return nextTick(true,false);
+bool DivEngine::tick(bool noAccum) {
+  return nextTick(noAccum,false);
 }
 
 bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {

@@ -731,7 +731,7 @@ class DivEngine {
     void stepOne(int row);
 
     // advance one tick
-    bool tick();
+    bool tick(bool noAccum=true);
 
     // stop
     void stop();

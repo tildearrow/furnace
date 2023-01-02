@@ -33,22 +33,47 @@ struct TiaRegisters {
 
   bool write(const DivRegWrite& registerWrite);
 
+  size_t hash() {
+    return (size_t)audc0 | ((size_t)audc1 << 8) |
+      ((size_t)audf0 << 16) | ((size_t)audf1 << 24) | 
+      ((size_t)audv0 << 32) + ((size_t)audv1 << 40); 
+  }
+
+};
+
+struct TiaNote {
+
+  TiaRegisters registers;
+  char duration;
+
+  TiaNote() {}
+
+  TiaNote(const TiaNote &n) : registers(n.registers), duration(n.duration) {}
+
+  TiaNote(const TiaRegisters &registers) : registers(registers), duration(-1) {}
+
+  size_t hash() {
+    return registers.hash() | ((size_t)duration << 48); // note: expect registers hash to use bits 0..47
+  }
+
 };
 
 class R9 {
 
   DivEngine* e;
 
-  void dumpRegisters(SafeWriter* w);
-  void writeTrackData(SafeWriter* w);
+  void writeTrackData_NOIV(SafeWriter* w);
+  void writeTrackData_CRD(SafeWriter* w);
   void writeWaveformHeader(SafeWriter* w, const char * key);
+
+  void writeNote(SafeWriter* w, const TiaNote& note);
   void writeRegisters(SafeWriter* w, const TiaRegisters& reg, int channel);
 
 public:    
 
   R9(DivEngine* _e) : e(_e) {}
   ~R9() {}
-  SafeWriter* buildROM(int sysIndex);
+  SafeWriter* buildROM(int sysIndex, bool compress=true);
 
 };
 
