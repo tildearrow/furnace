@@ -47,9 +47,12 @@ audio_pattern_idx   ds 2  ; which pattern is playing on each channel
 audio_waveform_idx  ds 2  ; where are we in waveform on each channel
 audio_timer         ds 2  ; time left on next action on each channel
 
+speed               ds 1  ; playback speed
+debounce_input      ds 1
+
 tmp_pattern_ptr     ds 2
 tmp_waveform_ptr    ds 2
-
+tmp_input           ds 1
 
 vis_song            ds 1
 vis_order           ds 1
@@ -73,6 +76,9 @@ CleanStart
 
             ; load track
             jsr sub_start_song
+            ; playback speed
+            lda #1
+            sta speed
 
 newFrame
 
@@ -111,16 +117,57 @@ _end_switches
 ;
 ; -- check input
 ;
-; TODO: fire = pause / play
-; TODO: l/r  = fwd / reverse
-; TODO: u/d  = choose track
-;
 
+
+            ; debounce input TODO: janky
+            lda SWCHA
+            lsr
+            lsr
+            lsr
+            lsr
+            sta tmp_input
+            lda INPT4
+            and #$80
+            ora tmp_input
+            eor #$8f
+            sta tmp_input
+            beq _end_input ; all zero
+            eor debounce_input
+            bpl _skip_trigger_pause
+            lda speed
+            bne _do_pause
+            lda #1
+            jmp _save_pause
+_do_pause
+            lda #0
+_save_pause
+            sta speed
+            jmp _end_input
+_skip_trigger_pause
+            ror
+            bcs _up
+            ror
+            bcs _down
+            ror 
+            jmp _end_input
+_down
+            jsr sub_inc_song
+            jmp _end_input            
+_up
+            jsr sub_dec_song
+_end_input
+            lda tmp_input
+            stx debounce_input
 
 ;
 ; -- audio tracker
 ;
-
+            lda speed
+            bne audio_tracker
+            lda #0
+            sta AUDV0
+            sta AUDV1
+            jmp audio_end
 audio_tracker           
             ldx #NUM_AUDIO_CHANNELS - 1
 audio_loop 
@@ -353,18 +400,17 @@ CHANNEL_COLORS
 
       MAC DISPLAY_COUNTER
             sta WSYNC
-            lda #WHITE
-            sta COLUBK
-            sta WSYNC
-            lda {1}
-            sec
-._counter_resp_loop
-            sbc #15
-            bcs ._counter_resp_loop
-            tay
-            lda LOOKUP_STD_HMOVE,y
-            sta HMP0
-            sta RESP0
+            lda #WHITE              ;2    2
+            sta COLUBK              ;3    5
+            lda {1}                 ;3    8
+            sec                     ;2   10
+._counter_resp_loop 
+            sbc #15                 ;2   12
+            bcs ._counter_resp_loop ;2/3 14
+            tay                     ;2   16
+            lda LOOKUP_STD_HMOVE,y  ;4   20
+            sta HMP0                ;3   23
+            sta RESP0               ;3   26
             sta WSYNC
             sta HMOVE
             lda #BLACK
