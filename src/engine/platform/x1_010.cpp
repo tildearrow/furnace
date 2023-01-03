@@ -219,7 +219,7 @@ void DivPlatformX1_010::acquire(short** buf, size_t len) {
 
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
     buf[0][h]=stereo?tempL:((tempL+tempR)>>1);
-    buf[1][h]=stereo?tempR:buf[0][h];
+    if (stereo) buf[1][h]=tempR;
 
     for (int i=0; i<16; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=(x1_010.voice_out(i,0)+x1_010.voice_out(i,1))>>1;

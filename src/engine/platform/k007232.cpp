@@ -84,7 +84,7 @@ void DivPlatformK007232::acquire(short** buf, size_t len) {
     } else {
       const unsigned char vol=regPool[0xc];
       const signed int out[2]={(k007232.output(0)*(vol&0xf)),(k007232.output(1)*((vol>>4)&0xf))};
-      buf[0][h]=buf[1][h]=(out[0]+out[1])<<4;
+      buf[0][h]=(out[0]+out[1])<<4;
       for (int i=0; i<2; i++) {
         oscBuf[i]->data[oscBuf[i]->needle++]=out[i]<<5;
       }

@@ -85,6 +85,7 @@ void DivDispatchContainer::setRates(double gotRate) {
   for (int i=0; i<outs; i++) {
     blip_set_rates(bb[i],dispatch->rate,gotRate);
   }
+  rateMemory=gotRate;
 }
 
 void DivDispatchContainer::setQuality(bool lowQual) {
