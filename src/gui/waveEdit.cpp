@@ -49,10 +49,19 @@ double rectSin(double x) {
 double absSin(double x) {
     return abs(sin(x));
 }
+
+double square(double x) {
+    return fmod(x, (2 * M_PI)) >= M_PI ? -1 : 1;
+}
+double rectSquare(double x) {
+    return square(x) > 0 ? square(x) : 0;
+}
+
 double quartSin(double x) {
-    if (x < M_PI / 2 || (x >= M_PI && x < (M_PI + M_PI / 2)))
-        return absSin(x);
-    return 0;
+    //if (x < M_PI / 2 || (x >= M_PI && x < (M_PI + M_PI / 2)))
+    //    return absSin(x);
+    //return 0;
+    return absSin(x) * rectSquare(2 * x);
 }
 double squiSin(double x) {
     return sin(x) >= 0 ? sin(2 * x) : 0;
@@ -62,12 +71,7 @@ double squiAbsSin(double x) {
 }
 
 
-double square(double x) {
-    return fmod(x, (2 * M_PI)) >= M_PI ? -1 : 1;
-}
-double rectSquare(double x) {
-    return square(x) > 0 ? square(x) : 0;
-}
+
 
 
 double saw(double x) {
@@ -122,9 +126,10 @@ double absTri(double x) {
     return abs(triangle(x));
 }
 double quartTri(double x) {
-    if (x < M_PI / 2 || (x >= M_PI && x < (M_PI + M_PI / 2)))
-        return absTri(x);
-    return 0;
+    //if (x < M_PI / 2 || (x >= M_PI && x < (M_PI + M_PI / 2)))
+    //    return absTri(x);
+    //return 0;
+    return absTri(x) * rectSquare(2 * x);
 }
 double squiTri(double x) {
     return sin(x) >= 0 ? triangle(2 * x) : 0;
