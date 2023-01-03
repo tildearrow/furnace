@@ -58,8 +58,8 @@ class DivPlatformArcade: public DivPlatformOPM {
     int octave(int freq);
     int toFreq(int freq);
 
-    void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
-    void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_nuked(short** buf, size_t len);
+    void acquire_ymfm(short** buf, size_t len);
 
     friend void putDispatchChan(void*,int,int);
     friend void putDispatchChip(void*,int);

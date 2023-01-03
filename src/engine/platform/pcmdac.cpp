@@ -29,7 +29,7 @@
 void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
   const int depthScale=(15-outDepth);
   int output=0;
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     if (!chan[0].active || isMuted) {
       buf[0][h]=0;
       buf[1][h]=0;

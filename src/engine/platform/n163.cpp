@@ -109,7 +109,7 @@ const char** DivPlatformN163::getRegisterSheet() {
 }
 
 void DivPlatformN163::acquire(short** buf, size_t len) {
-  for (size_t i=start; i<start+len; i++) {
+  for (size_t i=0; i<len; i++) {
     n163.tick();
     int out=(n163.out()<<6)*2; // scale to 16 bit
     if (out>32767) out=32767;

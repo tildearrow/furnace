@@ -38,8 +38,8 @@ class DivPlatformYM2610: public DivPlatformYM2610Base {
 
     friend void putDispatchChip(void*,int);
 
-    void acquire_combo(short* bufL, short* bufR, size_t start, size_t len);
-    void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_combo(short** buf, size_t len);
+    void acquire_ymfm(short** buf, size_t len);
     
   public:
     void acquire(short** buf, size_t len);

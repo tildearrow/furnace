@@ -62,7 +62,7 @@ const char** DivPlatformGB::getRegisterSheet() {
 }
 
 void DivPlatformGB::acquire(short** buf, size_t len) {
-  for (size_t i=start; i<start+len; i++) {
+  for (size_t i=0; i<len; i++) {
     if (!writes.empty()) {
       QueuedWrite& w=writes.front();
       GB_apu_write(gb,w.addr,w.val);

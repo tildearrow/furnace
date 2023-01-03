@@ -55,13 +55,13 @@ const char** DivPlatformFDS::getRegisterSheet() {
   return regCheatSheetFDS;
 }
 
-void DivPlatformFDS::acquire_puNES(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t i=start; i<start+len; i++) {
+void DivPlatformFDS::acquire_puNES(short* buf, size_t len) {
+  for (size_t i=0; i<len; i++) {
     extcl_apu_tick_FDS(fds);
     int sample=isMuted[0]?0:fds->snd.main.output;
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
-    buf[0][i]=sample;
+    buf[i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
       oscBuf->data[oscBuf->needle++]=sample<<1;
@@ -69,15 +69,15 @@ void DivPlatformFDS::acquire_puNES(short* bufL, short* bufR, size_t start, size_
   }
 }
 
-void DivPlatformFDS::acquire_NSFPlay(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformFDS::acquire_NSFPlay(short* buf, size_t len) {
   int out[2];
-  for (size_t i=start; i<start+len; i++) {
+  for (size_t i=0; i<len; i++) {
     fds_NP->Tick(1);
     fds_NP->Render(out);
     int sample=isMuted[0]?0:(out[0]<<1);
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
-    buf[0][i]=sample;
+    buf[i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
       oscBuf->data[oscBuf->needle++]=sample<<1;
@@ -95,9 +95,9 @@ void DivPlatformFDS::doWrite(unsigned short addr, unsigned char data) {
 
 void DivPlatformFDS::acquire(short** buf, size_t len) {
   if (useNP) {
-    acquire_NSFPlay(bufL,bufR,start,len);
+    acquire_NSFPlay(buf[0],len);
   } else {
-    acquire_puNES(bufL,bufR,start,len);
+    acquire_puNES(buf[0],len);
   }
 }
 

@@ -35,7 +35,7 @@ void DivPlatformMSM6258::acquire(short** buf, size_t len) {
     &msmOut,
     NULL
   };
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     if (--msmClockCount<0) {
       if (--msmDividerCount<=0) {
         if (!writes.empty()) {

@@ -60,7 +60,7 @@ void DivPlatformTX81Z::acquire(short** buf, size_t len) {
 
   ymfm::ym2414::fm_engine* fme=fm_ymfm->debug_engine();
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
       if (--delay<1) {

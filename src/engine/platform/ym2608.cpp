@@ -299,13 +299,13 @@ double DivPlatformYM2608::NOTE_ADPCMB(int note) {
 
 void DivPlatformYM2608::acquire(short** buf, size_t len) {
   if (useCombo) {
-    acquire_combo(bufL,bufR,start,len);
+    acquire_combo(buf,len);
   } else {
-    acquire_ymfm(bufL,bufR,start,len);
+    acquire_ymfm(buf,len);
   }
 }
 
-void DivPlatformYM2608::acquire_combo(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformYM2608::acquire_combo(short** buf, size_t len) {
   static int os[2];
   static short ignored[2];
 
@@ -320,7 +320,7 @@ void DivPlatformYM2608::acquire_combo(short* bufL, short* bufR, size_t start, si
     adpcmAChan[i]=aae->debug_channel(i);
   }
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     // Nuked part
     for (int i=0; i<nukedMult; i++) {
@@ -407,7 +407,7 @@ void DivPlatformYM2608::acquire_combo(short* bufL, short* bufR, size_t start, si
   }
 }
 
-void DivPlatformYM2608::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
   static int os[2];
 
   ymfm::ym2608::fm_engine* fme=fm->debug_fm_engine();
@@ -424,7 +424,7 @@ void DivPlatformYM2608::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
     adpcmAChan[i]=aae->debug_channel(i);
   }
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
       if (--delay<1) {

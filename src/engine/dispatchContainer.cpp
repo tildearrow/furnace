@@ -80,8 +80,11 @@
 #include "song.h"
 
 void DivDispatchContainer::setRates(double gotRate) {
-  blip_set_rates(bb[0],dispatch->rate,gotRate);
-  blip_set_rates(bb[1],dispatch->rate,gotRate);
+  int outs=dispatch->getOutputCount();
+
+  for (int i=0; i<outs; i++) {
+    blip_set_rates(bb[i],dispatch->rate,gotRate);
+  }
 }
 
 void DivDispatchContainer::setQuality(bool lowQual) {
@@ -90,73 +93,68 @@ void DivDispatchContainer::setQuality(bool lowQual) {
 
 void DivDispatchContainer::acquire(size_t offset, size_t count) {
   int outs=dispatch->getOutputCount();
-  for (int i=0; i<outs; i++) {
-    bbInMapped[i]=&bbIn[i][offset];
+  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+    if (i>=outs) {
+      bbInMapped[i]=NULL;
+    } else {
+      bbInMapped[i]=&bbIn[i][offset];
+    }
   }
   dispatch->acquire(bbInMapped,count);
 }
 
 void DivDispatchContainer::flush(size_t count) {
-  blip_read_samples(bb[0],bbOut[0],count,0);
+  int outs=dispatch->getOutputCount();
 
-  if (dispatch->isStereo()) {
-    blip_read_samples(bb[1],bbOut[1],count,0);
+  for (int i=0; i<outs; i++) {
+    blip_read_samples(bb[i],bbOut[i],count,0);
   }
 }
 
 void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) {
+  int outs=dispatch->getOutputCount();
   if (dcOffCompensation && runtotal>0) {
     dcOffCompensation=false;
-    prevSample[0]=bbIn[0][0];
-    if (dispatch->isStereo()) prevSample[1]=bbIn[1][0];
+    for (int i=0; i<outs; i++) {
+      prevSample[i]=bbIn[i][0];
+    }
   }
   if (lowQuality) {
-    for (size_t i=0; i<runtotal; i++) {
-      temp[0]=bbIn[0][i];
-      blip_add_delta_fast(bb[0],i,temp[0]-prevSample[0]);
-      prevSample[0]=temp[0];
-    }
-
-    if (dispatch->isStereo()) for (size_t i=0; i<runtotal; i++) {
-      temp[1]=bbIn[1][i];
-      blip_add_delta_fast(bb[1],i,temp[1]-prevSample[1]);
-      prevSample[1]=temp[1];
+    for (int i=0; i<outs; i++) {
+      for (size_t j=0; j<runtotal; j++) {
+        temp[i]=bbIn[i][j];
+        blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
+        prevSample[i]=temp[i];
+      }
     }
   } else {
-    for (size_t i=0; i<runtotal; i++) {
-      temp[0]=bbIn[0][i];
-      blip_add_delta(bb[0],i,temp[0]-prevSample[0]);
-      prevSample[0]=temp[0];
-    }
-
-    if (dispatch->isStereo()) for (size_t i=0; i<runtotal; i++) {
-      temp[1]=bbIn[1][i];
-      blip_add_delta(bb[1],i,temp[1]-prevSample[1]);
-      prevSample[1]=temp[1];
+    for (int i=0; i<outs; i++) {
+      for (size_t j=0; j<runtotal; j++) {
+        temp[i]=bbIn[i][j];
+        blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
+        prevSample[i]=temp[i];
+      }
     }
   }
 
-  blip_end_frame(bb[0],runtotal);
-  blip_read_samples(bb[0],bbOut[0]+offset,size,0);
+  for (int i=0; i<outs; i++) {
+    blip_end_frame(bb[i],runtotal);
+    blip_read_samples(bb[i],bbOut[i]+offset,size,0);
+  }
   /*if (totalRead<(int)size && totalRead>0) {
     for (size_t i=totalRead; i<size; i++) {
       bbOut[0][i]=bbOut[0][totalRead-1];//bbOut[0][totalRead];
     }
   }*/
-
-  if (dispatch->isStereo()) {
-    blip_end_frame(bb[1],runtotal);
-    blip_read_samples(bb[1],bbOut[1]+offset,size,0);
-  }
 }
 
 void DivDispatchContainer::clear() {
-  blip_clear(bb[0]);
-  blip_clear(bb[1]);
-  temp[0]=0;
-  temp[1]=0;
-  prevSample[0]=0;
-  prevSample[1]=0;
+  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+    if (bb[i]!=NULL) blip_clear(bb[i]);
+    temp[i]=0;
+    prevSample[i]=0;
+  }
+
   if (dispatch->getDCOffRequired()) {
     dcOffCompensation=true;
   }
@@ -463,8 +461,8 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
 
     bbIn[i]=new short[bbInLen];
     bbOut[i]=new short[bbInLen];
-    memset(bbIn,0,bbInLen*sizeof(short));
-    memset(bbOut,0,bbInLen*sizeof(short));
+    memset(bbIn[i],0,bbInLen*sizeof(short));
+    memset(bbOut[i],0,bbInLen*sizeof(short));
   }
 }
 

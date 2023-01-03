@@ -88,7 +88,7 @@ void DivPlatformPokeMini::rWrite(unsigned char addr, unsigned char val) {
 
 void DivPlatformPokeMini::acquire(short** buf, size_t len) {
   int out=0;
-  for (size_t i=start; i<start+len; i++) {
+  for (size_t i=0; i<len; i++) {
     for (int j=0; j<PCSPKR_DIVIDER; j++) {
       elapsedMain++;
       if (on) {

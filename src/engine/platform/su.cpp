@@ -41,7 +41,7 @@ double DivPlatformSoundUnit::NOTE_SU(int ch, int note) {
 }
 
 void DivPlatformSoundUnit::acquire(short** buf, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
       su->Write(w.addr,w.val);

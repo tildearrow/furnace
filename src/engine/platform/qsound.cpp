@@ -266,7 +266,7 @@ const char** DivPlatformQSound::getRegisterSheet() {
 }
 
 void DivPlatformQSound::acquire(short** buf, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     qsound_update(&chip);
     buf[0][h]=chip.out[0];
     buf[1][h]=chip.out[1];

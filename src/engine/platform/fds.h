@@ -62,8 +62,8 @@ class DivPlatformFDS: public DivDispatch {
   friend void putDispatchChan(void*,int,int);
 
   void doWrite(unsigned short addr, unsigned char data);
-  void acquire_puNES(short* bufL, short* bufR, size_t start, size_t len);
-  void acquire_NSFPlay(short* bufL, short* bufR, size_t start, size_t len);
+  void acquire_puNES(short* buf, size_t len);
+  void acquire_NSFPlay(short* buf, size_t len);
 
   public:
     void acquire(short** buf, size_t len);

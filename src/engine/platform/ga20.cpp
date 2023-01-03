@@ -60,7 +60,7 @@ void DivPlatformGA20::acquire(short** buf, size_t len) {
     }
   }
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     if ((--delay)<=0) {
       delay=MAX(0,delay);
       if (!writes.empty()) {

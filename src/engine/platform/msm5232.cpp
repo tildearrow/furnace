@@ -46,7 +46,7 @@ const char** DivPlatformMSM5232::getRegisterSheet() {
 }
 
 void DivPlatformMSM5232::acquire(short** buf, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
       msm->write(w.addr,w.val);

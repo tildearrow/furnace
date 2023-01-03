@@ -29,7 +29,7 @@ const char** DivPlatformZXBeeper::getRegisterSheet() {
 
 void DivPlatformZXBeeper::acquire(short** buf, size_t len) {
   bool o=false;
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     // clock here
     if (curSample>=0 && curSample<parent->song.sampleLen) {
       if (--curSamplePeriod<0) {

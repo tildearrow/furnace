@@ -47,7 +47,7 @@ const char** DivPlatformVRC6::getRegisterSheet() {
 }
 
 void DivPlatformVRC6::acquire(short** buf, size_t len) {
-  for (size_t i=start; i<start+len; i++) {
+  for (size_t i=0; i<len; i++) {
     // PCM part
     for (int i=0; i<2; i++) {
       if (chan[i].pcm && chan[i].dacSample!=-1) {

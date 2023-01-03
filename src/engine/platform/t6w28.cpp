@@ -36,7 +36,7 @@ const char** DivPlatformT6W28::getRegisterSheet() {
 }
 
 void DivPlatformT6W28::acquire(short** buf, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     cycles=0;
     while (!writes.empty() && cycles<16) {
       QueuedWrite w=writes.front();

@@ -206,7 +206,7 @@ const char** DivPlatformX1_010::getRegisterSheet() {
 }
 
 void DivPlatformX1_010::acquire(short** buf, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     x1_010.tick();
 
     signed int tempL=x1_010.output(0);

@@ -92,8 +92,8 @@ class DivPlatformGenesis: public DivPlatformOPN {
     friend void putDispatchChan(void*,int,int);
 
     inline void processDAC(int iRate);
-    void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
-    void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_nuked(short** buf, size_t len);
+    void acquire_ymfm(short** buf, size_t len);
   
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);

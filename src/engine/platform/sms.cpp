@@ -39,10 +39,10 @@ const char** DivPlatformSMS::getRegisterSheet() {
   return stereo?regCheatSheetGG:regCheatSheetSN;
 }
 
-void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSMS::acquire_nuked(short** buf, size_t len) {
   int oL=0;
   int oR=0;
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
       if (w.addr==0) {
@@ -74,7 +74,7 @@ void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     if (oR<-32768) oR=-32768;
     if (oR>32767) oR=32767;
     buf[0][h]=oL;
-    buf[1][h]=oR;
+    if (stereo) buf[1][h]=oR;
     for (int i=0; i<4; i++) {
       if (isMuted[i]) {
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
@@ -85,7 +85,7 @@ void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_
   }
 }
 
-void DivPlatformSMS::acquire_mame(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSMS::acquire_mame(short** buf, size_t len) {
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     if (stereo && (w.addr==1))
@@ -95,10 +95,10 @@ void DivPlatformSMS::acquire_mame(short* bufL, short* bufR, size_t start, size_t
     }
     writes.pop();
   }
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     short* outs[2]={
       &buf[0][h],
-      &buf[1][h]
+      stereo?(&buf[1][h]):NULL
     };
     sn->sound_stream_update(outs,1);
     for (int i=0; i<4; i++) {
@@ -113,9 +113,9 @@ void DivPlatformSMS::acquire_mame(short* bufL, short* bufR, size_t start, size_t
 
 void DivPlatformSMS::acquire(short** buf, size_t len) {
   if (nuked) {
-    acquire_nuked(bufL,bufR,start,len);
+    acquire_nuked(buf,len);
   } else {
-    acquire_mame(bufL,bufR,start,len);
+    acquire_mame(buf,len);
   }
 }
 

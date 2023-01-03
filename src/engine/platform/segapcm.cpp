@@ -29,7 +29,7 @@
 void DivPlatformSegaPCM::acquire(short** buf, size_t len) {
   static int os[2];
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     // do a PCM cycle
     pcmL=0; pcmR=0;

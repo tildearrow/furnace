@@ -45,7 +45,7 @@ void DivPlatformVIC20::acquire(short** buf, size_t len) {
     0b0,     0b10,    0b100,   0b110,   0b1000,  0b1010,   0b1011,   0b1110,
     0b10010, 0b10100, 0b10110, 0b11000, 0b11010, 0b100100, 0b101010, 0b101100
   };
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     if (hasWaveWrite) {
       hasWaveWrite=false;
       for (int i=0; i<3; i++) {

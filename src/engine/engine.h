@@ -195,12 +195,12 @@ struct DivDispatchContainer {
     lastAvail(0),
     lowQuality(false),
     dcOffCompensation(false) {
-    memset(bb,0,DIV_MAX_OUTPUTS*sizeof(void*));
+    memset(bb,0,DIV_MAX_OUTPUTS*sizeof(blip_buffer_t*));
     memset(temp,0,DIV_MAX_OUTPUTS*sizeof(int));
     memset(prevSample,0,DIV_MAX_OUTPUTS*sizeof(int));
-    memset(bbIn,0,DIV_MAX_OUTPUTS*sizeof(void*));
-    memset(bbInMapped,0,DIV_MAX_OUTPUTS*sizeof(void*));
-    memset(bbOut,0,DIV_MAX_OUTPUTS*sizeof(void*));
+    memset(bbIn,0,DIV_MAX_OUTPUTS*sizeof(short*));
+    memset(bbInMapped,0,DIV_MAX_OUTPUTS*sizeof(short*));
+    memset(bbOut,0,DIV_MAX_OUTPUTS*sizeof(short*));
   }
 };
 
@@ -356,6 +356,7 @@ class DivEngine {
   int softLockCount;
   int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed, elapsedBars, elapsedBeats;
   size_t curSubSongIndex;
+  size_t bufferPos;
   double divider;
   int cycles;
   double clockDrift;
@@ -905,6 +906,9 @@ class DivEngine {
     // set metronome volume (1.0 = 100%)
     void setMetronomeVol(float vol);
 
+    // get buffer position
+    int getBufferPos();
+
     // halt now
     void halt();
 
@@ -1073,6 +1077,7 @@ class DivEngine {
       elapsedBars(0),
       elapsedBeats(0),
       curSubSongIndex(0),
+      bufferPos(0),
       divider(60),
       cycles(0),
       clockDrift(0),

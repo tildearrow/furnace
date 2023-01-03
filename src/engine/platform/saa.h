@@ -71,7 +71,7 @@ class DivPlatformSAA1099: public DivDispatch {
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
-    void acquire_saaSound(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_saaSound(short** buf, size_t len);
   
   public:
     void acquire(short** buf, size_t len);

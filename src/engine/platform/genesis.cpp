@@ -132,11 +132,11 @@ void DivPlatformGenesis::processDAC(int iRate) {
   }
 }
 
-void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
   static short o[2];
   static int os[2];
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     processDAC(rate);
 
     os[0]=0; os[1]=0;
@@ -191,12 +191,12 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
   }
 }
 
-void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
   static int os[2];
 
   ymfm::ym2612::fm_engine* fme=fm_ymfm->debug_engine();
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     processDAC(rate);
   
     os[0]=0; os[1]=0;
@@ -249,9 +249,9 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
 
 void DivPlatformGenesis::acquire(short** buf, size_t len) {
   if (useYMFM) {
-    acquire_ymfm(bufL,bufR,start,len);
+    acquire_ymfm(buf,len);
   } else {
-    acquire_nuked(bufL,bufR,start,len);
+    acquire_nuked(buf,len);
   }
 }
 

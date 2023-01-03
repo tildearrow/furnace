@@ -51,7 +51,7 @@ const char** DivPlatformSwan::getRegisterSheet() {
 }
 
 void DivPlatformSwan::acquire(short** buf, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     // PCM part
     if (pcm && dacSample!=-1) {
       dacPeriod+=dacRate;

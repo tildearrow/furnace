@@ -44,7 +44,7 @@ const char** DivPlatformMMC5::getRegisterSheet() {
 }
 
 void DivPlatformMMC5::acquire(short** buf, size_t len) {
-  for (size_t i=start; i<start+len; i++) {
+  for (size_t i=0; i<len; i++) {
     if (dacSample!=-1) {
       dacPeriod+=dacRate;
       if (dacPeriod>=rate) {

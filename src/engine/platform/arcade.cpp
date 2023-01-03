@@ -50,10 +50,10 @@ const char** DivPlatformArcade::getRegisterSheet() {
   return regCheatSheetOPM;
 }
 
-void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformArcade::acquire_nuked(short** buf, size_t len) {
   static int o[2];
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     for (int i=0; i<8; i++) {
       if (!writes.empty() && !fm.write_busy) {
         QueuedWrite& w=writes.front();
@@ -89,12 +89,12 @@ void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, si
   }
 }
 
-void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformArcade::acquire_ymfm(short** buf, size_t len) {
   static int os[2];
 
   ymfm::ym2151::fm_engine* fme=fm_ymfm->debug_engine();
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
       if (--delay<1) {
@@ -128,9 +128,9 @@ void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
 
 void DivPlatformArcade::acquire(short** buf, size_t len) {
   if (useYMFM) {
-    acquire_ymfm(buf[0],buf[1],0,len);
+    acquire_ymfm(buf,len);
   } else {
-    acquire_nuked(buf[0],buf[1],0,len);
+    acquire_nuked(buf,len);
   }
 }
 

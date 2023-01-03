@@ -68,7 +68,7 @@ const char** DivPlatformSNES::getRegisterSheet() {
 void DivPlatformSNES::acquire(short** buf, size_t len) {
   short out[2];
   short chOut[16];
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     if (--delay<=0) {
       delay=0;
       if (!writes.empty()) {

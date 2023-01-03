@@ -56,7 +56,7 @@ const char** DivPlatformSAA1099::getRegisterSheet() {
   return regCheatSheetSAA;
 }
 
-void DivPlatformSAA1099::acquire_saaSound(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSAA1099::acquire_saaSound(short** buf, size_t len) {
   if (saaBufLen<len*2) {
     saaBufLen=len*2;
     for (int i=0; i<2; i++) {
@@ -73,19 +73,19 @@ void DivPlatformSAA1099::acquire_saaSound(short* bufL, short* bufR, size_t start
   saa_saaSound->GenerateMany((unsigned char*)saaBuf[0],len,oscBuf);
 #ifdef TA_BIG_ENDIAN
   for (size_t i=0; i<len; i++) {
-    buf[0][i+start]=(short)((((unsigned short)saaBuf[0][1+(i<<1)])<<8)|(((unsigned short)saaBuf[0][1+(i<<1)])>>8));
-    buf[1][i+start]=(short)((((unsigned short)saaBuf[0][i<<1])<<8)|(((unsigned short)saaBuf[0][i<<1])>>8));
+    buf[0][i]=(short)((((unsigned short)saaBuf[0][1+(i<<1)])<<8)|(((unsigned short)saaBuf[0][1+(i<<1)])>>8));
+    buf[1][i]=(short)((((unsigned short)saaBuf[0][i<<1])<<8)|(((unsigned short)saaBuf[0][i<<1])>>8));
   }
 #else
   for (size_t i=0; i<len; i++) {
-    buf[0][i+start]=saaBuf[0][i<<1];
-    buf[1][i+start]=saaBuf[0][1+(i<<1)];
+    buf[0][i]=saaBuf[0][i<<1];
+    buf[1][i]=saaBuf[0][1+(i<<1)];
   }
 #endif
 }
 
 void DivPlatformSAA1099::acquire(short** buf, size_t len) {
-  acquire_saaSound(bufL,bufR,start,len);
+  acquire_saaSound(buf,len);
 }
 
 inline unsigned char applyPan(unsigned char vol, unsigned char pan) {

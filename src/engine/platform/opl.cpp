@@ -159,12 +159,12 @@ const int orderedOpsL[4]={
 #define ADDR_FREQH 0xb0
 #define ADDR_LR_FB_ALG 0xc0
 
-void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
   static short o[2];
   static int os[2];
   static ymfm::ymfm_output<2> aOut;
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty() && --delay<0) {
       delay=1;
@@ -264,9 +264,9 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
 
 void DivPlatformOPL::acquire(short** buf, size_t len) {
   //if (useYMFM) {
-  //  acquire_ymfm(bufL,bufR,start,len);
+  //  acquire_ymfm(buf,len);
   //} else {
-    acquire_nuked(bufL,bufR,start,len);
+    acquire_nuked(buf,len);
   //}
 }
 

@@ -62,7 +62,7 @@ void DivPlatformPET::acquire(short** buf, size_t len) {
     if (!hwSROutput) {
       reload+=regPool[9]*512;
     }
-    for (size_t h=start; h<start+len; h++) {
+    for (size_t h=0; h<len; h++) {
       if (SAMP_DIVIDER>chan[0].cnt) {
         chan[0].out=(chan[0].sreg&1)*32767;
         chan[0].sreg=(chan[0].sreg>>1)|((chan[0].sreg&1)<<7);
@@ -78,7 +78,7 @@ void DivPlatformPET::acquire(short** buf, size_t len) {
     if (!hwSROutput) regPool[12]=chan[0].out?0xe0:0xc0;
   } else {
     chan[0].out=0;
-    for (size_t h=start; h<start+len; h++) {
+    for (size_t h=0; h<len; h++) {
       buf[0][h]=0;
       buf[1][h]=0;
       oscBuf->data[oscBuf->needle++]=0;

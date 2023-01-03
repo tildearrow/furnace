@@ -897,11 +897,7 @@ void DivEngine::runExportThread() {
       for (int i=0; i<song.systemLen; i++) {
         sf[i]=NULL;
         si[i].samplerate=got.rate;
-        if (disCont[i].dispatch->isStereo()) {
-          si[i].channels=2;
-        } else {
-          si[i].channels=1;
-        }
+        si[i].channels=disCont[i].dispatch->getOutputCount();
         si[i].format=SF_FORMAT_WAV|SF_FORMAT_PCM_16;
       }
 
@@ -944,11 +940,12 @@ void DivEngine::runExportThread() {
           if (isFadingOut) {
             double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
             for (int i=0; i<song.systemLen; i++) {
-              if (!disCont[i].dispatch->isStereo()) {
-                sysBuf[i][j]=(double)disCont[i].bbOut[0][j]*mul;
-              } else {
-                sysBuf[i][j<<1]=(double)disCont[i].bbOut[0][j]*mul;
-                sysBuf[i][1+(j<<1)]=(double)disCont[i].bbOut[1][j]*mul;
+              for (int k=0; k<si[i].channels; k++) {
+                if (disCont[i].bbOut[k]==NULL) {
+                  sysBuf[i][k+(j*si[i].channels)]=0;
+                } else {
+                  sysBuf[i][k+(j*si[i].channels)]=(double)disCont[i].bbOut[k][j]*mul;
+                }
               }
             }
             if (++curFadeOutSample>=fadeOutSamples) {
@@ -957,11 +954,12 @@ void DivEngine::runExportThread() {
             }
           } else {
             for (int i=0; i<song.systemLen; i++) {
-              if (!disCont[i].dispatch->isStereo()) {
-                sysBuf[i][j]=disCont[i].bbOut[0][j];
-              } else {
-                sysBuf[i][j<<1]=disCont[i].bbOut[0][j];
-                sysBuf[i][1+(j<<1)]=disCont[i].bbOut[1][j];
+              for (int k=0; k<si[i].channels; k++) {
+                if (disCont[i].bbOut[k]==NULL) {
+                  sysBuf[i][k+(j*si[i].channels)]=0;
+                } else {
+                  sysBuf[i][k+(j*si[i].channels)]=disCont[i].bbOut[k][j];
+                }
               }
             }
             if (lastLoopPos>-1 && j>=lastLoopPos && totalLoops>=exportLoopCount) {
@@ -1904,10 +1902,11 @@ String DivEngine::getPlaybackDebugInfo() {
     "speed1: %d\n"
     "speed2: %d\n"
     "tempoAccum: %d\n"
-    "totalProcessed: %d\n",
+    "totalProcessed: %d\n"
+    "bufferPos: %d\n",
     curOrder,prevOrder,curRow,prevRow,ticks,subticks,totalLoops,lastLoopPos,nextSpeed,divider,cycles,clockDrift,
     changeOrd,changePos,totalSeconds,totalTicks,totalTicksR,totalCmds,lastCmds,cmdsPerSecond,globalPitch,
-    (int)extValue,(int)speed1,(int)speed2,(int)tempoAccum,(int)totalProcessed
+    (int)extValue,(int)speed1,(int)speed2,(int)tempoAccum,(int)totalProcessed,(int)bufferPos
   );
 }
 
@@ -4311,6 +4310,10 @@ bool DivEngine::init() {
   if (!haveAudio) {
     return false;
   } else {
+    if (output==NULL) {
+      logE("output is NULL!");
+      return false;
+    }
     if (!output->setRun(true)) {
       logE("error while activating!");
       return false;

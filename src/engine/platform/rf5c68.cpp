@@ -54,16 +54,18 @@ void DivPlatformRF5C68::chWrite(unsigned char ch, unsigned int addr, unsigned ch
   }
 }
 
+// TODO: this code is weird
+//       make sure newDispatch didn't break it up
 void DivPlatformRF5C68::acquire(short** buf, size_t len) {
-  short buf[16][256];
+  short bufC[16][256];
   short* chBufPtrs[16]={
-    buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7],
-    buf[8],buf[9],buf[10],buf[11],buf[12],buf[13],buf[14],buf[15]
+    bufC[0],bufC[1],bufC[2],bufC[3],bufC[4],bufC[5],bufC[6],bufC[7],
+    bufC[8],bufC[9],bufC[10],bufC[11],bufC[12],bufC[13],bufC[14],bufC[15]
   };
-  size_t pos=start;
+  size_t pos=0;
 
   for (int i=0; i<16; i++) {
-    memset(buf[i],0,256*sizeof(short));
+    memset(bufC[i],0,256*sizeof(short));
   }
 
   while (len > 0) {
@@ -72,7 +74,7 @@ void DivPlatformRF5C68::acquire(short** buf, size_t len) {
     rf5c68.sound_stream_update(bufPtrs,chBufPtrs,blockLen);
     for (int i=0; i<8; i++) {
       for (size_t j=0; j<blockLen; j++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=buf[i*2][j]+buf[i*2+1][j];
+        oscBuf[i]->data[oscBuf[i]->needle++]=bufC[i*2][j]+bufC[i*2+1][j];
       }
     }
     pos+=blockLen;

@@ -1359,6 +1359,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   return ret;
 }
 
+int DivEngine::getBufferPos() {
+  return bufferPos>>MASTER_CLOCK_PREC;
+}
+
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
   lastLoopPos=-1;
 
@@ -1619,6 +1623,9 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   int attempts=0;
   int runLeftG=size<<MASTER_CLOCK_PREC;
   while (++attempts<(int)size) {
+    // -1. set bufferPos
+    bufferPos=(size<<MASTER_CLOCK_PREC)-runLeftG;
+
     // 0. check if we've halted
     if (halted) break;
     // 1. check whether we are done with all buffers
@@ -1693,12 +1700,13 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     disCont[i].fillBuf(disCont[i].runtotal,disCont[i].lastAvail,size-disCont[i].lastAvail);
   }
 
+  // TODO: handle more than 2 outputs
   for (int i=0; i<song.systemLen; i++) {
     float volL=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127-(int)song.systemPan[i])/127.0f)*song.masterVol;
     float volR=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127+(int)song.systemPan[i])/127.0f)*song.masterVol;
     volL*=disCont[i].dispatch->getPostAmp();
     volR*=disCont[i].dispatch->getPostAmp();
-    if (disCont[i].dispatch->isStereo()) {
+    if (disCont[i].dispatch->getOutputCount()>1) {
       for (size_t j=0; j<size; j++) {
         out[0][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*volL;
         out[1][j]+=((float)disCont[i].bbOut[1][j]/32768.0)*volR;

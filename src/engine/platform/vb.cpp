@@ -94,7 +94,7 @@ const char** DivPlatformVB::getRegisterSheet() {
 }
 
 void DivPlatformVB::acquire(short** buf, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     cycles=0;
     while (!writes.empty()) {
       QueuedWrite w=writes.front();

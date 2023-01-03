@@ -131,7 +131,7 @@ const char** DivPlatformLynx::getRegisterSheet() {
 }
 
 void DivPlatformLynx::acquire(short** buf, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     for (int i=0; i<4; i++) {
       if (chan[i].pcm && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
         chan[i].sampleAccum-=chan[i].sampleFreq;
@@ -156,7 +156,7 @@ void DivPlatformLynx::acquire(short** buf, size_t len) {
       }
     }
 
-    mikey->sampleAudio( bufL + h, bufR + h, 1, oscBuf );
+    mikey->sampleAudio(buf[0]+h,buf[1]+h,1,oscBuf);
   }
 }
 
