@@ -283,29 +283,63 @@ void FurnaceGUI::doGenerateWave() {
     float s2fb1=0;
     float s3fb0=0;
     float s3fb1=0;
+
+    float s0 = 0;
+    float s1 = 0;
+    float s2 = 0;
+    float s3 = 1;
+
     for (int i=0; i<wave->len; i++) {
       float pos=(float)i/(float)wave->len;
-      float s0= waveFuncs[fmWaveform[0]]((pos+(waveGenFB[0]?((s0fb0+s0fb1)*pow(2.0f,waveGenFB[0]-8)):0.0f))*multFactors[waveGenMult[0]])*waveGenTL[0];
+      
+      s0 = waveFuncs[fmWaveform[0]]((pos +
+          (waveGenFB[0] ? ((s0fb0 + s0fb1) * pow(2.0f, waveGenFB[0] - 8)) : 0.0f) +
+          (waveGenFMCon0[3] ? s3 : 0.0f) +
+          (waveGenFMCon0[2] ? s2 : 0.0f) +
+          (waveGenFMCon0[1] ? s1 : 0.0f) +
+          (waveGenFMCon0[0] ? s0 : 0.0f))* multFactors[waveGenMult[0]]) * waveGenTL[0];
+      
       s0fb0=s0fb1;
       s0fb1=s0;
       
-      float s1= waveFuncs[fmWaveform[1]]((pos+(waveGenFB[1]?((s1fb0+s1fb1)*pow(2.0f,waveGenFB[1]-8)):0.0f)+(waveGenFMCon1[0]?s0:0.0f))*multFactors[waveGenMult[1]])*waveGenTL[1];
+      
+      s1 = waveFuncs[fmWaveform[1]]((pos +
+          (waveGenFB[1] ? ((s1fb0 + s1fb1) * pow(2.0f, waveGenFB[1] - 8)) : 0.0f) +
+          (waveGenFMCon1[3] ? s3 : 0.0f) +
+          (waveGenFMCon1[2] ? s2 : 0.0f) +
+          (waveGenFMCon1[1] ? s1 : 0.0f) +
+          (waveGenFMCon1[0] ? s0 : 0.0f))* multFactors[waveGenMult[1]]) * waveGenTL[1];
+      
       s1fb0=s1fb1;
       s1fb1=s1;
+      
 
-      float s2= waveFuncs[fmWaveform[2]]((pos+(waveGenFB[2]?((s2fb0+s2fb1)*pow(2.0f,waveGenFB[2]-8)):0.0f)+(waveGenFMCon1[1]?s0:0.0f)+(waveGenFMCon2[0]?s1:0.0f))*multFactors[waveGenMult[2]])*waveGenTL[2];
+      s2 = waveFuncs[fmWaveform[2]]((pos +
+          (waveGenFB[2] ? ((s2fb0 + s2fb1) * pow(2.0f, waveGenFB[2] - 8)) : 0.0f) +
+          (waveGenFMCon2[3] ? s3 : 0.0f) +
+          (waveGenFMCon2[2] ? s2 : 0.0f) +
+          (waveGenFMCon2[1] ? s1 : 0.0f) +
+          (waveGenFMCon2[0] ? s0 : 0.0f))* multFactors[waveGenMult[2]]) * waveGenTL[2];
+      
       s2fb0=s2fb1;
       s2fb1=s2;
 
-      //float s3 = sin((pos + (waveGenFB[3] ? ((s3fb0 + s3fb1) * pow(2.0f, waveGenFB[3] - 8)) : 0.0f) + (waveGenFMCon1[2] ? s0 : 0.0f) + (waveGenFMCon2[1] ? s1 : 0.0f) + (waveGenFMCon3[0] ? s2 : 0.0f)) * multFactors[waveGenMult[3]]) * waveGenTL[3];
-      float s3=waveFuncs[fmWaveform[3]]((pos+(waveGenFB[3]?((s3fb0+s3fb1)*pow(2.0f,waveGenFB[3]-8)):0.0f)+(waveGenFMCon1[2]?s0:0.0f)+(waveGenFMCon2[1]?s1:0.0f)+(waveGenFMCon3[0]?s2:0.0f))*multFactors[waveGenMult[3]])*waveGenTL[3];
+
+      s3 = waveFuncs[fmWaveform[3]]((pos +
+          (waveGenFB[3] ? ((s3fb0 + s3fb1) * pow(2.0f, waveGenFB[3] - 8)) : 0.0f) +
+          (waveGenFMCon3[3] ? s3 : 0.0f) +
+          (waveGenFMCon3[2] ? s2 : 0.0f) +
+          (waveGenFMCon3[1] ? s1 : 0.0f) +
+          (waveGenFMCon3[0] ? s0 : 0.0f)) * multFactors[waveGenMult[3]])* waveGenTL[3];
+      
       s3fb0=s3fb1;
       s3fb1=s3;
 
-      if (waveGenFMCon1[3]) finalResult[i]+=s0;
-      if (waveGenFMCon2[2]) finalResult[i]+=s1;
-      if (waveGenFMCon3[1]) finalResult[i]+=s2;
-      finalResult[i]+=s3;
+      if (waveGenFMCon0[4]) finalResult[i]+=s0;
+      if (waveGenFMCon1[4]) finalResult[i]+=s1;
+      if (waveGenFMCon2[4]) finalResult[i]+=s2;
+      if (waveGenFMCon3[4]) finalResult[i]+=s3;
+      //finalResult[i]+=s3;
     }
   } else {
     switch (waveGenBaseShape) {
@@ -733,75 +767,198 @@ void FurnaceGUI::drawWaveEdit() {
               CENTER_TEXT("Connection Diagram");
               ImGui::Text("Connection Diagram");
 
-              if (ImGui::BeginTable("WGFMCon",5)) {
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text(">>");
-                ImGui::TableNextColumn();
-                ImGui::Text("2");
-                ImGui::TableNextColumn();
-                ImGui::Text("3");
-                ImGui::TableNextColumn();
-                ImGui::Text("4");
-                ImGui::TableNextColumn();
-                ImGui::Text("Out");
+              //if (ImGui::BeginTable("WGFMCon",5)) {
+              //  ImGui::TableNextRow();
+              //  ImGui::TableNextColumn();
+              //  ImGui::Text(">>");
+              //  ImGui::TableNextColumn();
+              //  ImGui::Text("2");
+              //  ImGui::TableNextColumn();
+              //  ImGui::Text("3");
+              //  ImGui::TableNextColumn();
+              //  ImGui::Text("4");
+              //  ImGui::TableNextColumn();
+              //  ImGui::Text("Out");
 
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("1");
-                ImGui::TableNextColumn();
-                if (ImGui::Checkbox("##Con12",&waveGenFMCon1[0])) {
-                  doGenerateWave();
-                }
-                ImGui::TableNextColumn();
-                if (ImGui::Checkbox("##Con13",&waveGenFMCon1[1])) {
-                  doGenerateWave();
-                }
-                ImGui::TableNextColumn();
-                if (ImGui::Checkbox("##Con14",&waveGenFMCon1[2])) {
-                  doGenerateWave();
-                }
-                ImGui::TableNextColumn();
-                if (ImGui::Checkbox("##Con1O",&waveGenFMCon1[3])) {
-                  doGenerateWave();
-                }
+              //  ImGui::TableNextRow();
+              //  ImGui::TableNextColumn();
+              //  ImGui::Text("1");
+              //  ImGui::TableNextColumn();
+              //  if (ImGui::Checkbox("##Con12",&waveGenFMCon1[0])) {
+              //    doGenerateWave();
+              //  }
+              //  ImGui::TableNextColumn();
+              //  if (ImGui::Checkbox("##Con13",&waveGenFMCon1[1])) {
+              //    doGenerateWave();
+              //  }
+              //  ImGui::TableNextColumn();
+              //  if (ImGui::Checkbox("##Con14",&waveGenFMCon1[2])) {
+              //    doGenerateWave();
+              //  }
+              //  ImGui::TableNextColumn();
+              //  if (ImGui::Checkbox("##Con1O",&waveGenFMCon1[3])) {
+              //    doGenerateWave();
+              //  }
 
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("2");
-                ImGui::TableNextColumn();
-                // blank
-                ImGui::TableNextColumn();
-                if (ImGui::Checkbox("##Con23",&waveGenFMCon2[0])) {
-                  doGenerateWave();
-                }
-                ImGui::TableNextColumn();
-                if (ImGui::Checkbox("##Con24",&waveGenFMCon2[1])) {
-                  doGenerateWave();
-                }
-                ImGui::TableNextColumn();
-                if (ImGui::Checkbox("##Con2O",&waveGenFMCon2[2])) {
-                  doGenerateWave();
-                }
+              //  ImGui::TableNextRow();
+              //  ImGui::TableNextColumn();
+              //  ImGui::Text("2");
+              //  ImGui::TableNextColumn();
+              //  // blank
+              //  ImGui::TableNextColumn();
+              //  if (ImGui::Checkbox("##Con23",&waveGenFMCon2[0])) {
+              //    doGenerateWave();
+              //  }
+              //  ImGui::TableNextColumn();
+              //  if (ImGui::Checkbox("##Con24",&waveGenFMCon2[1])) {
+              //    doGenerateWave();
+              //  }
+              //  ImGui::TableNextColumn();
+              //  if (ImGui::Checkbox("##Con2O",&waveGenFMCon2[2])) {
+              //    doGenerateWave();
+              //  }
 
-                ImGui::TableNextRow();
-                ImGui::TableNextColumn();
-                ImGui::Text("3");
-                ImGui::TableNextColumn();
-                // blank
-                ImGui::TableNextColumn();
-                // blank
-                ImGui::TableNextColumn();
-                if (ImGui::Checkbox("##Con34",&waveGenFMCon3[0])) {
-                  doGenerateWave();
-                }
-                ImGui::TableNextColumn();
-                if (ImGui::Checkbox("##Con3O",&waveGenFMCon3[1])) {
-                  doGenerateWave();
-                }
+              //  ImGui::TableNextRow();
+              //  ImGui::TableNextColumn();
+              //  ImGui::Text("3");
+              //  ImGui::TableNextColumn();
+              //  // blank
+              //  ImGui::TableNextColumn();
+              //  // blank
+              //  ImGui::TableNextColumn();
+              //  if (ImGui::Checkbox("##Con34",&waveGenFMCon3[0])) {
+              //    doGenerateWave();
+              //  }
+              //  ImGui::TableNextColumn();
+              //  if (ImGui::Checkbox("##Con3O",&waveGenFMCon3[1])) {
+              //    doGenerateWave();
+              //  }
 
-                ImGui::EndTable();
+              //  ImGui::EndTable();
+              //}
+
+
+
+              if (ImGui::BeginTable("WGFMCon", 6)) {
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::Text(">>");
+                  ImGui::TableNextColumn();
+                  ImGui::Text("1");
+                  ImGui::TableNextColumn();
+                  ImGui::Text("2");
+                  ImGui::TableNextColumn();
+                  ImGui::Text("3");
+                  ImGui::TableNextColumn();
+                  ImGui::Text("4");
+                  ImGui::TableNextColumn();
+                  //ImGui::Text("4");
+                  //ImGui::TableNextColumn();
+                  ImGui::Text("Out");
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::Text("1");
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##ConO1", &waveGenFMCon0[0])) {
+                      doGenerateWave();
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##ConO2", &waveGenFMCon0[1])) {
+                      doGenerateWave();
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##ConO3", &waveGenFMCon0[2])) {
+                      doGenerateWave();
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##ConO4", &waveGenFMCon0[3])) {
+                      doGenerateWave();
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##ConOO", &waveGenFMCon0[4])) {
+                      doGenerateWave();
+                  }
+
+                  
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::Text("2");
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##Con11", &waveGenFMCon1[0])) {
+                      doGenerateWave();
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##Con12", &waveGenFMCon1[1])) {
+                      doGenerateWave();
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##Con13", &waveGenFMCon1[2])) {
+                      doGenerateWave();
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##Con14", &waveGenFMCon1[3])) {
+                      doGenerateWave();
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##Con1O", &waveGenFMCon1[4])) {
+                      doGenerateWave();
+                  }
+
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::Text("3");
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##Con21", &waveGenFMCon2[0])) {
+                      doGenerateWave();
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##Con22", &waveGenFMCon2[1])) {
+                      doGenerateWave();
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##Con23", &waveGenFMCon2[2])) {
+                      doGenerateWave();
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##Con24", &waveGenFMCon2[3])) {
+                      doGenerateWave();
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##Con2O", &waveGenFMCon2[4])) {
+                      doGenerateWave();
+                  }
+
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::Text("4");
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##Con31", &waveGenFMCon3[0])) {
+                      doGenerateWave();
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##Con32", &waveGenFMCon3[1])) {
+                      doGenerateWave();
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##Con33", &waveGenFMCon3[2])) {
+                      doGenerateWave();
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##Con34", &waveGenFMCon3[3])) {
+                      doGenerateWave();
+                  }
+                  ImGui::TableNextColumn();
+                  if (ImGui::Checkbox("##Con3O", &waveGenFMCon3[4])) {
+                      doGenerateWave();
+                  }
+
+                  ImGui::EndTable();
               }
+
+
               ImGui::EndTabItem();
             }
             if (ImGui::BeginTabItem("WaveTools")) {
