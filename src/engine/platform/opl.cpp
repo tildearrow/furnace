@@ -160,12 +160,12 @@ const int orderedOpsL[4]={
 #define ADDR_LR_FB_ALG 0xc0
 
 void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
-  static short o[2];
-  static int os[2];
+  static short o[4];
+  static int os[4];
   static ymfm::ymfm_output<2> aOut;
 
   for (size_t h=0; h<len; h++) {
-    os[0]=0; os[1]=0;
+    os[0]=0; os[1]=0; os[2]=0; os[3]=0;
     if (!writes.empty() && --delay<0) {
       delay=1;
       QueuedWrite& w=writes.front();
@@ -194,11 +194,14 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
     }
 
     if (downsample) {
-      OPL3_GenerateResampled(&fm,o);
+      OPL3_Generate4ChResampled(&fm,o);
     } else {
-      OPL3_Generate(&fm,o);
+      OPL3_Generate4Ch(&fm,o);
     }
-    os[0]+=o[0]; os[1]+=o[1];
+    os[0]+=o[0];
+    os[1]+=o[1];
+    os[2]+=o[2];
+    os[3]+=o[3];
 
     if (adpcmChan>=0) {
       adpcmB->clock();
@@ -225,6 +228,12 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
         if (fm.channel[i].out[1]!=NULL) {
           oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
         }
+        if (fm.channel[i].out[2]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[2];
+        }
+        if (fm.channel[i].out[3]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[3];
+        }
         oscBuf[i]->data[oscBuf[i]->needle]<<=1;
         oscBuf[i]->needle++;
       }
@@ -244,6 +253,12 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
         if (fm.channel[i].out[1]!=NULL) {
           oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
         }
+        if (fm.channel[i].out[2]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[2];
+        }
+        if (fm.channel[i].out[3]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[3];
+        }
         oscBuf[i]->data[oscBuf[i]->needle]<<=1;
         oscBuf[i]->needle++;
       }
@@ -254,10 +269,18 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
 
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
+
+    if (os[2]<-32768) os[2]=-32768;
+    if (os[2]>32767) os[2]=32767;
+
+    if (os[3]<-32768) os[3]=-32768;
+    if (os[3]>32767) os[3]=32767;
   
     buf[0][h]=os[0];
     if (oplType==3 || oplType==759) {
       buf[1][h]=os[1];
+      buf[2][h]=os[2];
+      buf[3][h]=os[3];
     }
   }
 }
