@@ -1722,13 +1722,29 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
         case 0x04:
           chipClock=15000000.0;
           break;
+        case 0x05:
+          chipClock=33868800.0;
+          break;
         default:
           chipClock=COLOR_NTSC*4.0;
           break;
       }
       CHECK_CUSTOM_CLOCK;
-      rate=chipClock/288;
-      chipRateBase=rate;
+      switch (flags.getInt("chipType",0)) {
+        case 1: // YMF289B
+          chipFreqBase=32768*684;
+          rate=chipClock/684;
+          chipRateBase=chipClock/768;
+          downsample=true;
+          break;
+        default: // YMF262
+          chipFreqBase=32768*288;
+          rate=chipClock/288;
+          chipRateBase=rate;
+          downsample=false;
+          break;
+      }
+      reset();
       break;
     case 4:
       switch (flags.getInt("clockSel",0)) {

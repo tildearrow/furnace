@@ -2248,6 +2248,16 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPL3_DRUMS, 64, 0, "")
     }
   );
+  ENTRY(
+    "Yamaha YMF289B (OPL3-L)", {
+      CH(DIV_SYSTEM_OPL3, 64, 0, "chipType=1")
+    }
+  );
+  ENTRY(
+    "Yamaha YMF289B (drums mode)", {
+      CH(DIV_SYSTEM_OPL3_DRUMS, 64, 0, "chipType=1")
+    }
+  );
   if (settings.hiddenSystems) {
     ENTRY(
       "Yamaha YMU759 (MA-2)", {

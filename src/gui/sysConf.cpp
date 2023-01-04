@@ -1182,6 +1182,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_OPL3:
     case DIV_SYSTEM_OPL3_DRUMS: {
       int clockSel=flags.getInt("clockSel",0);
+      int chipType=flags.getInt("chipType",0);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("14.32MHz (NTSC)",clockSel==0)) {
@@ -1204,10 +1205,24 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=4;
         altered=true;
       }
+      if (ImGui::RadioButton("33.8688MHz (OPL3-L)",clockSel==5)) {
+        clockSel=5;
+        altered=true;
+      }
+      ImGui::Text("Chip type:");
+      if (ImGui::RadioButton("OPL3 (YMF262)",chipType==0)) {
+        chipType=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("OPL3-L (YMF289B)",chipType==1)) {
+        chipType=1;
+        altered=true;
+      }
 
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
+          flags.set("chipType",chipType);
         });
       }
       break;
