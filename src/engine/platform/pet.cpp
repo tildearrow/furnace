@@ -71,7 +71,6 @@ void DivPlatformPET::acquire(short** buf, size_t len) {
         chan[0].cnt-=SAMP_DIVIDER;
       }
       buf[0][h]=chan[0].out;
-      buf[1][h]=chan[0].out;
       oscBuf->data[oscBuf->needle++]=chan[0].out;
     }
     // emulate driver writes to PCR
@@ -80,7 +79,6 @@ void DivPlatformPET::acquire(short** buf, size_t len) {
     chan[0].out=0;
     for (size_t h=0; h<len; h++) {
       buf[0][h]=0;
-      buf[1][h]=0;
       oscBuf->data[oscBuf->needle++]=0;
     }
   }

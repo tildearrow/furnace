@@ -86,7 +86,7 @@ void DivPlatformSCC::acquire(short** buf, size_t len) {
       scc->tick();
     }
     short out=(short)scc->out()<<5;
-    buf[0][h]=buf[1][h]=out;
+    buf[0][h]=out;
 
     for (int i=0; i<5; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=scc->voice_out(i)<<7;
