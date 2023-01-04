@@ -83,6 +83,7 @@ void DivDispatchContainer::setRates(double gotRate) {
   int outs=dispatch->getOutputCount();
 
   for (int i=0; i<outs; i++) {
+    if (bb[i]==NULL) continue;
     blip_set_rates(bb[i],dispatch->rate,gotRate);
   }
   rateMemory=gotRate;
@@ -90,6 +91,16 @@ void DivDispatchContainer::setRates(double gotRate) {
 
 void DivDispatchContainer::setQuality(bool lowQual) {
   lowQuality=lowQual;
+}
+
+void DivDispatchContainer::grow(size_t size) {
+  bbInLen=size;
+  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+    if (bbIn[i]!=NULL) {
+      delete[] bbIn[i];
+      bbIn[i]=new short[bbInLen];
+    }
+  }
 }
 
 void DivDispatchContainer::acquire(size_t offset, size_t count) {
@@ -108,20 +119,44 @@ void DivDispatchContainer::flush(size_t count) {
   int outs=dispatch->getOutputCount();
 
   for (int i=0; i<outs; i++) {
+    if (bb[i]==NULL) continue;
     blip_read_samples(bb[i],bbOut[i],count,0);
   }
 }
 
 void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) {
   int outs=dispatch->getOutputCount();
+
+  // create missing buffers if any
+  bool mustClear=false;
+  for (int i=0; i<outs; i++) {
+    if (bb[i]==NULL) {
+      bb[i]=blip_new(bbInLen);
+      if (bb[i]==NULL) {
+        logE("not enough memory!");
+        return;
+      }
+      blip_set_rates(bb[i],dispatch->rate,rateMemory);
+
+      if (bbIn[i]==NULL) bbIn[i]=new short[bbInLen];
+      if (bbOut[i]==NULL) bbOut[i]=new short[bbInLen];
+      memset(bbIn[i],0,bbInLen*sizeof(short));
+      memset(bbOut[i],0,bbInLen*sizeof(short));
+    }
+  }
+  if (mustClear) clear();
+
   if (dcOffCompensation && runtotal>0) {
     dcOffCompensation=false;
     for (int i=0; i<outs; i++) {
+      if (bbIn[i]==NULL) continue;
       prevSample[i]=bbIn[i][0];
     }
   }
   if (lowQuality) {
     for (int i=0; i<outs; i++) {
+      if (bbIn[i]==NULL) continue;
+      if (bb[i]==NULL) continue;
       for (size_t j=0; j<runtotal; j++) {
         temp[i]=bbIn[i][j];
         blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
@@ -130,6 +165,8 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
     }
   } else {
     for (int i=0; i<outs; i++) {
+      if (bbIn[i]==NULL) continue;
+      if (bb[i]==NULL) continue;
       for (size_t j=0; j<runtotal; j++) {
         temp[i]=bbIn[i][j];
         blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
@@ -139,6 +176,8 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
   }
 
   for (int i=0; i<outs; i++) {
+    if (bbOut[i]==NULL) continue;
+    if (bb[i]==NULL) continue;
     blip_end_frame(bb[i],runtotal);
     blip_read_samples(bb[i],bbOut[i]+offset,size,0);
   }
