@@ -1488,8 +1488,8 @@ void DivPlatformOPL::reset() {
   }
   */
   if (downsample) {
-    const unsigned int downsampledRate=(unsigned int)((double)rate*rate/chipRateBase);
-    OPL3_Reset(&fm,downsampledRate);
+//    const unsigned int downsampledRate=(unsigned int)((double)rate*rate/chipRateBase);
+    OPL3_Reset(&fm,44100);
   } else {
     OPL3_Reset(&fm,rate);
   }
@@ -1733,8 +1733,8 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
       switch (flags.getInt("chipType",0)) {
         case 1: // YMF289B
           chipFreqBase=32768*684;
-          rate=chipClock/684;
-          chipRateBase=chipClock/768;
+          rate=chipClock/768;
+          chipRateBase=chipClock/684;
           downsample=true;
           break;
         default: // YMF262
