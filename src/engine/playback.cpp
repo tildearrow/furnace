@@ -213,6 +213,8 @@ const char* cmdName[]={
   "MACRO_OFF",
   "MACRO_ON",
 
+  "SURROUND_PANNING",
+
   "ALWAYS_SET_VOLUME"
 };
 
@@ -555,6 +557,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   short lastSlide=-1;
   bool calledPorta=false;
   bool panChanged=false;
+  bool surroundPanChanged=false;
 
   // effects
   for (int j=0; j<curPat[i].effectCols; j++) {
@@ -584,6 +587,19 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0x82: // panning right (split 8-bit)
         chan[i].panR=effectVal;
         panChanged=true;
+        break;
+      case 0x88: // panning rear (split 4-bit)
+        chan[i].panRL=(effectVal>>4)|(effectVal&0xf0);
+        chan[i].panRR=(effectVal&15)|((effectVal&15)<<4);
+        surroundPanChanged=true;
+        break;
+      case 0x89: // panning left (split 8-bit)
+        chan[i].panRL=effectVal;
+        surroundPanChanged=true;
+        break;
+      case 0x8a: // panning right (split 8-bit)
+        chan[i].panRR=effectVal;
+        surroundPanChanged=true;
         break;
       case 0x01: // ramp up
         if (song.ignoreDuplicateSlides && (lastSlide==0x01 || lastSlide==0x1337)) break;
@@ -865,6 +881,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
 
   if (panChanged) {
     dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
+  }
+  if (surroundPanChanged) {
+    dispatchCmd(DivCommand(DIV_CMD_SURROUND_PANNING,i,2,chan[i].panRL));
+    dispatchCmd(DivCommand(DIV_CMD_SURROUND_PANNING,i,3,chan[i].panRR));
   }
 
   if (insChanged && (chan[i].inPorta || calledPorta) && song.newInsTriggersInPorta) {

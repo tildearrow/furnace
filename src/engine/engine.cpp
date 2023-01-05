@@ -77,6 +77,15 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "81xx: Set panning (left channel)";
     case 0x82:
       return "82xx: Set panning (right channel)";
+    case 0x88:
+      return "88xx: Set panning (rear channels; x: left; y: right)";
+      break;
+    case 0x89:
+      return "89xx: Set panning (rear left channel)";
+      break;
+    case 0x8a:
+      return "8Axx: Set panning (rear right channel)";
+      break;
     case 0xc0: case 0xc1: case 0xc2: case 0xc3:
       return "Cxxx: Set tick rate (hz)";
     case 0xe0:
@@ -435,6 +444,7 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_FM_FINE:
     case DIV_CMD_AY_IO_WRITE:
     case DIV_CMD_AY_AUTO_PWM:
+    case DIV_CMD_SURROUND_PANNING:
       w->writeC(2); // length
       w->writeC(c.value);
       w->writeC(c.value2);

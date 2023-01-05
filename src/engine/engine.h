@@ -47,8 +47,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "0.6pre3"
-#define DIV_ENGINE_VERSION 133
+#define DIV_VERSION "dev134"
+#define DIV_ENGINE_VERSION 134
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -97,7 +97,7 @@ struct DivChannelState {
   int delayOrder, delayRow, retrigSpeed, retrigTick;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoPosGiant, vibratoDir, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
-  unsigned char arp, arpStage, arpTicks, panL, panR;
+  unsigned char arp, arpStage, arpTicks, panL, panR, panRL, panRR;
   bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff;
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, wasShorthandPorta, noteOnInhibit, resetArp;
 
@@ -135,6 +135,8 @@ struct DivChannelState {
     arpTicks(1),
     panL(255),
     panR(255),
+    panRL(0),
+    panRR(0),
     doNote(false),
     legato(false),
     portaStop(false),

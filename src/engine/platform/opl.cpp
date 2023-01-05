@@ -980,11 +980,38 @@ int DivPlatformOPL::dispatch(DivCommand c) {
       if (oplType!=3) break;
       if (c.chan==adpcmChan) break;
       chan[c.chan].pan&=~3;
-      if (c.value==0 && c.value2==0) {
+      if (c.value==0 && c.value2==0 && compatPan) {
         chan[c.chan].pan|=3;
       } else {
         chan[c.chan].pan|=(c.value>0)|((c.value2>0)<<1);
       }
+      int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
+      if (isMuted[c.chan]) {
+        rWrite(chanMap[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&1)|(chan[c.chan].state.fb<<1));
+        if (ops==4) {
+          rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1));
+        }
+      } else {
+        rWrite(chanMap[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&15)<<4));
+        if (ops==4) {
+          rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&15)<<4));
+        }
+      }
+      break;
+    }
+    case DIV_CMD_SURROUND_PANNING: {
+      if (oplType!=3) break;
+      if (c.chan==adpcmChan) break;
+
+      if (c.value==2) {
+        chan[c.chan].pan&=3;
+        if (c.value2>0) chan[c.chan].pan|=4;
+      } else if (c.value==3) {
+        if (c.value2>0) chan[c.chan].pan|=8;
+      } else {
+        break;
+      }
+
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
       if (isMuted[c.chan]) {
         rWrite(chanMap[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&1)|(chan[c.chan].state.fb<<1));
@@ -1705,6 +1732,8 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
     rate=chipClock/36;
   }*/
 
+  compatPan=false;
+
   switch (chipType) {
     default:
     case 1: case 2: case 8950:
@@ -1753,6 +1782,7 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
       CHECK_CUSTOM_CLOCK;
       rate=chipClock/288;
       chipRateBase=rate;
+      compatPan=flags.getBool("compatPan",false);
       break;
     case 4:
       switch (flags.getInt("clockSel",0)) {

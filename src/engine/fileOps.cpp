@@ -2543,6 +2543,16 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
+    // OPL3 pan compat
+    if (ds.version<134) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_OPL3 ||
+            ds.system[i]==DIV_SYSTEM_OPL3_DRUMS) {
+          ds.systemFlags[i].set("compatPan",true);
+        }
+      }
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();

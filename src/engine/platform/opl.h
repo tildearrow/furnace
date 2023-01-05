@@ -92,7 +92,7 @@ class DivPlatformOPL: public DivDispatch {
 
     unsigned char lfoValue;
 
-    bool useYMFM, update4OpMask, pretendYMU, downsample;
+    bool useYMFM, update4OpMask, pretendYMU, downsample, compatPan;
   
     short oldWrites[512];
     short pendingWrites[512];

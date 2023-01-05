@@ -213,6 +213,8 @@ enum DivDispatchCmds {
   DIV_CMD_MACRO_OFF, // (which)
   DIV_CMD_MACRO_ON, // (which)
 
+  DIV_CMD_SURROUND_PANNING, // (out, val)
+
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
   DIV_CMD_MAX
