@@ -4150,9 +4150,12 @@ bool DivEngine::initAudioBackend() {
   want.rate=getConfInt("audioRate",44100);
   want.fragments=2;
   want.inChans=0;
-  want.outChans=2;
+  want.outChans=getConfInt("audioChans",2);
   want.outFormat=TA_AUDIO_FORMAT_F32;
   want.name="Furnace";
+
+  if (want.outChans<1) want.outChans=1;
+  if (want.outChans>16) want.outChans=16;
 
   output->setCallback(process,this);
 
@@ -4162,6 +4165,13 @@ bool DivEngine::initAudioBackend() {
     output=NULL;
     audioEngine=DIV_AUDIO_NULL;
     return false;
+  }
+
+  for (int i=0; i<got.outChans; i++) {
+    if (oscBuf[i]==NULL) {
+      oscBuf[i]=new float[32768];
+    }
+    memset(oscBuf[i],0,32768*sizeof(float));
   }
 
   if (output->initMidi(false)) {
@@ -4296,12 +4306,6 @@ bool DivEngine::init() {
     keyHit[i]=false;
   }
 
-  oscBuf[0]=new float[32768];
-  oscBuf[1]=new float[32768];
-
-  memset(oscBuf[0],0,32768*sizeof(float));
-  memset(oscBuf[1],0,32768*sizeof(float));
-
   initDispatch();
   renderSamples();
   reset();
@@ -4328,8 +4332,9 @@ bool DivEngine::quit() {
   logI("saving config.");
   saveConf();
   active=false;
-  delete[] oscBuf[0];
-  delete[] oscBuf[1];
+  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+    if (oscBuf[i]!=NULL) delete[] oscBuf[i];
+  }
   if (yrw801ROM!=NULL) delete[] yrw801ROM;
   if (tg100ROM!=NULL) delete[] tg100ROM;
   if (mu5ROM!=NULL) delete[] mu5ROM;

@@ -1172,6 +1172,7 @@ class FurnaceGUI {
     int mainFontSize, patFontSize, iconSize;
     int audioEngine;
     int audioQuality;
+    int audioChans;
     int arcadeCore;
     int ym2612Core;
     int snCore;
@@ -1306,6 +1307,7 @@ class FurnaceGUI {
       iconSize(16),
       audioEngine(DIV_AUDIO_SDL),
       audioQuality(0),
+      audioChans(2),
       arcadeCore(0),
       ym2612Core(0),
       snCore(0),
@@ -1458,7 +1460,7 @@ class FurnaceGUI {
   bool keepLoopAlive, orderScrollLocked, orderScrollTolerance, dragMobileMenu, dragMobileEditButton;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   std::atomic<FurnaceGUIWindows> curWindowThreadSafe;
-  float peak[2];
+  float peak[DIV_MAX_OUTPUTS];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
   float lastPatternWidth, longThreshold;

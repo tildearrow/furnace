@@ -131,6 +131,7 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
   bool mustClear=false;
   for (int i=0; i<outs; i++) {
     if (bb[i]==NULL) {
+      logV("creating buf %d because it doesn't exist",i);
       bb[i]=blip_new(bbInLen);
       if (bb[i]==NULL) {
         logE("not enough memory!");
@@ -142,6 +143,7 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
       if (bbOut[i]==NULL) bbOut[i]=new short[bbInLen];
       memset(bbIn[i],0,bbInLen*sizeof(short));
       memset(bbOut[i],0,bbInLen*sizeof(short));
+      mustClear=true;
     }
   }
   if (mustClear) clear();

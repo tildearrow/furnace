@@ -6095,8 +6095,7 @@ FurnaceGUI::FurnaceGUI():
 
   memset(willExport,1,DIV_MAX_CHIPS*sizeof(bool));
 
-  peak[0]=0;
-  peak[1]=0;
+  memset(peak,0,DIV_MAX_OUTPUTS*sizeof(float));
 
   opMaskTransposeNote.note=true;
   opMaskTransposeNote.ins=false;

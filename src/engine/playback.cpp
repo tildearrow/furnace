@@ -1579,10 +1579,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
   if (!playing) {
     if (out!=NULL) {
-      // TODO: handle more than 2 outputs
       for (unsigned int i=0; i<size; i++) {
-        oscBuf[0][oscWritePos]=out[0][i];
-        oscBuf[1][oscWritePos]=out[1][i];
+        for (int j=0; j<outChans; j++) {
+          if (oscBuf[j]==NULL) continue;
+          oscBuf[j][oscWritePos]=out[j][i];
+        }
         if (++oscWritePos>=32768) oscWritePos=0;
       }
       oscSize=size;
@@ -1707,13 +1708,20 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     volR*=disCont[i].dispatch->getPostAmp();
     if (disCont[i].dispatch->getOutputCount()>1) {
       for (size_t j=0; j<size; j++) {
-        out[0][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*volL;
-        out[1][j]+=((float)disCont[i].bbOut[1][j]/32768.0)*volR;
+        int howManyToFill=MIN(outChans,disCont[i].dispatch->getOutputCount());
+        for (int k=0; k<howManyToFill; k++) {
+          // volL if even, volR if odd. if howManyToFill is odd and it is the last channel then ignore
+          const float whichVol=((howManyToFill&1) && (k==howManyToFill-1))?1.0:((k&1)?volR:volL);
+          out[k][j]+=((float)disCont[i].bbOut[k][j]/32768.0)*whichVol;
+        }
       }
     } else {
       for (size_t j=0; j<size; j++) {
-        out[0][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*volL;
-        out[1][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*volR;
+        for (int k=0; k<outChans; k++) {
+          // volL if even, volR if odd. if outChans is odd and it is the last channel then ignore
+          const float whichVol=((outChans&1) && (k==outChans-1))?1.0:((k&1)?volR:volL);
+          out[k][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*whichVol;
+        }
       }
     }
   }
@@ -1739,19 +1747,25 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     while (metroPos>=1) metroPos--;
   }
 
-  // TODO: handle more than 2 outputs
   for (unsigned int i=0; i<size; i++) {
-    oscBuf[0][oscWritePos]=out[0][i];
-    oscBuf[1][oscWritePos]=out[1][i];
+    for (int j=0; j<outChans; j++) {
+      if (oscBuf[j]==NULL) continue;
+      oscBuf[j][oscWritePos]=out[j][i];
+    }
     if (++oscWritePos>=32768) oscWritePos=0;
   }
   oscSize=size;
 
-  // TODO: handle more than 2 outputs
-  if (forceMono) {
+  if (forceMono && outChans>1) {
     for (size_t i=0; i<size; i++) {
-      out[0][i]=(out[0][i]+out[1][i])*0.5;
-      out[1][i]=out[0][i];
+      float chanSum=out[0][i];
+      for (int j=1; j<outChans; j++) {
+        chanSum=out[j][i];
+      }
+      out[0][i]=chanSum/outChans;
+      for (int j=1; j<outChans; j++) {
+        out[j][i]=out[0][i];
+      }
     }
   }
   if (clampSamples) {

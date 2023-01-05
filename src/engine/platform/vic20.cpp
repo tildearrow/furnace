@@ -67,7 +67,6 @@ void DivPlatformVIC20::acquire(short** buf, size_t len) {
     short samp;
     vic_sound_machine_calculate_samples(vic,&samp,1,1,0,SAMP_DIVIDER);
     buf[0][h]=samp;
-    buf[1][h]=samp;
     for (int i=0; i<4; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=vic->ch[i].out?(vic->volume<<11):0;
     }

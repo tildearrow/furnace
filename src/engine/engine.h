@@ -493,7 +493,7 @@ class DivEngine {
     int dispatchOfChan[DIV_MAX_CHANS];
     int dispatchChanOfChan[DIV_MAX_CHANS];
     bool keyHit[DIV_MAX_CHANS];
-    float* oscBuf[2];
+    float* oscBuf[DIV_MAX_OUTPUTS];
     float oscSize;
     int oscReadPos, oscWritePos;
     int tickMult;
@@ -1123,7 +1123,6 @@ class DivEngine {
       curOrders(NULL),
       curPat(NULL),
       tempIns(NULL),
-      oscBuf{NULL,NULL},
       oscSize(1),
       oscReadPos(0),
       oscWritePos(0),
@@ -1142,6 +1141,7 @@ class DivEngine {
       memset(pitchTable,0,4096*sizeof(int));
       memset(sysDefs,0,256*sizeof(void*));
       memset(walked,0,8192);
+      memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
 
       for (int i=0; i<256; i++) {
         sysFileMapFur[i]=DIV_SYSTEM_NULL;
