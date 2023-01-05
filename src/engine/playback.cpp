@@ -1367,8 +1367,9 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   lastLoopPos=-1;
 
   if (out!=NULL) {
-    memset(out[0],0,size*sizeof(float));
-    memset(out[1],0,size*sizeof(float));
+    for (int i=0; i<outChans; i++) {
+      memset(out[i],0,size*sizeof(float));
+    }
   }
 
   if (softLocked) {
@@ -1570,13 +1571,15 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     blip_end_frame(samp_bb,prevtotal);
     blip_read_samples(samp_bb,samp_bbOut+samp_bbOff,size-samp_bbOff,0);
     for (size_t i=0; i<size; i++) {
-      out[0][i]+=(float)samp_bbOut[i]/32768.0;
-      out[1][i]+=(float)samp_bbOut[i]/32768.0;
+      for (int j=0; j<outChans; j++) {
+        out[j][i]+=(float)samp_bbOut[i]/32768.0;
+      }
     }
   }
 
   if (!playing) {
     if (out!=NULL) {
+      // TODO: handle more than 2 outputs
       for (unsigned int i=0; i<size; i++) {
         oscBuf[0][oscWritePos]=out[0][i];
         oscBuf[1][oscWritePos]=out[1][i];
@@ -1726,8 +1729,9 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       metroAmp=0.7f;
     }
     if (metroAmp>0.0f) {
-      out[0][i]+=(sin(metroPos*2*M_PI))*metroAmp*metroVol;
-      out[1][i]+=(sin(metroPos*2*M_PI))*metroAmp*metroVol;
+      for (int j=0; j<outChans; j++) {
+        out[j][i]+=(sin(metroPos*2*M_PI))*metroAmp*metroVol;
+      }
     }
     metroAmp-=0.0003f;
     if (metroAmp<0.0f) metroAmp=0.0f;
@@ -1735,6 +1739,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     while (metroPos>=1) metroPos--;
   }
 
+  // TODO: handle more than 2 outputs
   for (unsigned int i=0; i<size; i++) {
     oscBuf[0][oscWritePos]=out[0][i];
     oscBuf[1][oscWritePos]=out[1][i];
@@ -1742,6 +1747,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
   oscSize=size;
 
+  // TODO: handle more than 2 outputs
   if (forceMono) {
     for (size_t i=0; i<size; i++) {
       out[0][i]=(out[0][i]+out[1][i])*0.5;
@@ -1750,10 +1756,10 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
   if (clampSamples) {
     for (size_t i=0; i<size; i++) {
-      if (out[0][i]<-1.0) out[0][i]=-1.0;
-      if (out[0][i]>1.0) out[0][i]=1.0;
-      if (out[1][i]<-1.0) out[1][i]=-1.0;
-      if (out[1][i]>1.0) out[1][i]=1.0;
+      for (int j=0; j<outChans; j++) {
+        if (out[j][i]<-1.0) out[j][i]=-1.0;
+        if (out[j][i]>1.0) out[j][i]=1.0;
+      }
     }
   }
   isBusy.unlock();
