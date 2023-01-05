@@ -373,15 +373,17 @@ void DivPlatformYM2610B::acquire_combo(short* bufL, short* bufR, size_t start, s
 
     os[0]>>=1;
     os[1]>>=1;
+    os[0]=(os[0]*fmVol)/255;
+    os[1]=(os[1]*fmVol)/255;
 
     // ymfm part
     fm->generate(&fmout);
 
-    os[0]+=fmout.data[0]+(fmout.data[2]>>1);
+    os[0]+=((fmout.data[0]*fmVol)/255)+(((fmout.data[2]>>1)*ssgVol)/255);
     if (os[0]<-32768) os[0]=-32768;
     if (os[0]>32767) os[0]=32767;
 
-    os[1]+=fmout.data[1]+(fmout.data[2]>>1);
+    os[1]+=((fmout.data[1]*fmVol)/255)+(((fmout.data[2]>>1)*ssgVol)/255);
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
@@ -438,11 +440,11 @@ void DivPlatformYM2610B::acquire_ymfm(short* bufL, short* bufR, size_t start, si
     
     fm->generate(&fmout);
 
-    os[0]=fmout.data[0]+(fmout.data[2]>>1);
+    os[0]+=((fmout.data[0]*fmVol)/255)+(((fmout.data[2]>>1)*ssgVol)/255);
     if (os[0]<-32768) os[0]=-32768;
     if (os[0]>32767) os[0]=32767;
 
-    os[1]=fmout.data[1]+(fmout.data[2]>>1);
+    os[1]+=((fmout.data[1]*fmVol)/255)+(((fmout.data[2]>>1)*ssgVol)/255);
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   

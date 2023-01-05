@@ -472,6 +472,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int clockSel=flags.getInt("clockSel",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
+      int ssgVol=flags.getInt("ssgVol",255);
+      int fmVol=flags.getInt("fmVol",255);
 
       if (ImGui::RadioButton("8MHz (Neo Geo MVS)",clockSel==0)) {
         clockSel=0;
@@ -491,11 +493,25 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         }
       }
 
+      if (CWSliderInt("SSG Volume",&ssgVol,0,255)) {
+        if (ssgVol<0) ssgVol=0;
+        if (ssgVol>255) ssgVol=255;
+        altered=true;
+      } rightClickable
+
+      if (CWSliderInt("FM/ADPCM Volume",&fmVol,0,255)) {
+        if (fmVol<0) fmVol=0;
+        if (fmVol>255) fmVol=255;
+        altered=true;
+      } rightClickable
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("noExtMacros",noExtMacros);
           flags.set("fbAllOps",fbAllOps);
+          flags.set("ssgVol",ssgVol);
+          flags.set("fmVol",fmVol);
         });
       }
       break;
@@ -854,6 +870,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
+      int ssgVol=flags.getInt("ssgVol",255);
+      int fmVol=flags.getInt("fmVol",255);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("3.58MHz (NTSC)",clockSel==0)) {
@@ -894,6 +912,18 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
+      if (CWSliderInt("SSG Volume",&ssgVol,0,255)) {
+        if (ssgVol<0) ssgVol=0;
+        if (ssgVol>255) ssgVol=255;
+        altered=true;
+      } rightClickable
+
+      if (CWSliderInt("FM Volume",&fmVol,0,255)) {
+        if (fmVol<0) fmVol=0;
+        if (fmVol>255) fmVol=255;
+        altered=true;
+      } rightClickable
+
       if (type==DIV_SYSTEM_YM2203_EXT || type==DIV_SYSTEM_YM2203_CSM) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
           altered=true;
@@ -909,6 +939,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           flags.set("prescale",prescale);
           flags.set("noExtMacros",noExtMacros);
           flags.set("fbAllOps",fbAllOps);
+          flags.set("ssgVol",ssgVol);
+          flags.set("fmVol",fmVol);
         });
       }
       break;
@@ -920,6 +952,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
+      int ssgVol=flags.getInt("ssgVol",255);
+      int fmVol=flags.getInt("fmVol",255);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("8MHz (Arcade)",clockSel==0)) {
@@ -944,6 +978,18 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
+      if (CWSliderInt("SSG Volume",&ssgVol,0,255)) {
+        if (ssgVol<0) ssgVol=0;
+        if (ssgVol>255) ssgVol=255;
+        altered=true;
+      } rightClickable
+
+      if (CWSliderInt("FM/ADPCM Volume",&fmVol,0,255)) {
+        if (fmVol<0) fmVol=0;
+        if (fmVol>255) fmVol=255;
+        altered=true;
+      } rightClickable
+
       if (type==DIV_SYSTEM_YM2608_EXT || type==DIV_SYSTEM_YM2608_CSM) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
           altered=true;
@@ -959,6 +1005,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           flags.set("prescale",prescale);
           flags.set("noExtMacros",noExtMacros);
           flags.set("fbAllOps",fbAllOps);
+          flags.set("ssgVol",ssgVol);
+          flags.set("fmVol",fmVol);
         });
       }
       break;
