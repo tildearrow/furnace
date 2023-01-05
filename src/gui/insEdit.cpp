@@ -1850,6 +1850,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
     case 2: {
       int columns=round(ImGui::GetContentRegionAvail().x/(400.0*dpiScale));
       int curColumn=0;
+      if (columns<1) columns=1;
       if (ImGui::BeginTable("MacroGrid",columns,ImGuiTableFlags_BordersInner)) {
         for (FurnaceGUIMacroDesc& i: macros) {
           if (curColumn==0) ImGui::TableNextRow();
