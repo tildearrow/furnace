@@ -50,6 +50,7 @@ class DivPlatformQSound: public DivDispatch {
   unsigned char* sampleMem;
   size_t sampleMemLen;
   size_t sampleMemLenBS;
+  size_t sampleMemUsage;
   bool sampleLoaded[256];
   bool sampleLoadedBS[256];
   struct qsound_chip chip;
