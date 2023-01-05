@@ -81,7 +81,7 @@ void FurnaceGUI::drawVolMeter() {
             ImLerp(rect.Min,rect.Max,ImVec2(float(i)/outChans,1.0-logPeak)),
             ImLerp(rect.Min,rect.Max,ImVec2(float(i+1)/outChans,1.0))
           );
-          if (i==(outChans-1)) s.Max.x-=dpiScale;
+          if (i!=(outChans-1)) s.Max.x-=dpiScale;
           if (isClipping) {
             dl->AddRectFilled(s.Min,s.Max,ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_PEAK]));
           } else {
