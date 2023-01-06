@@ -32,6 +32,8 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 135: Furnace dev135
+- 134: Furnace dev134
 - 133: Furnace 0.6pre3
 - 132: Furnace 0.6pre2
 - 131: Furnace dev131
@@ -386,7 +388,37 @@ size | description
  STR | song author (Japanese)
  STR | system name (Japanese)
  STR | album/category/game name (Japanese)
+ --- | **extra chip output settings (× chipCount)** (>=135)
+  4f | chip volume
+  4f | chip panning
+  4f | chip front/rear balance
+ --- | **patchbay** (>=135)
+  4  | patchbay connection count
+ 4?? | patchbay
+     | - see next section for more details.
 ```
+
+# patchbay
+
+Furnace dev135 adds a "patchbay" which allows for arbitrary connection of chip outputs to system outputs.
+it eventually will allow connecting outputs to effects and so on.
+
+a connection is represented as an unsigned int in the following format:
+
+- bit 16-31: source port
+- bit 0-15: destination port
+
+a port is in the following format (hexadecimal): `xxxy`
+
+- `xxx` (bit 4 to 15) represents an entity.
+- `y` (bit 0 to 3) is the port of that entity.
+
+reserved input entities:
+- `000`: system outputs
+- `FFF`: "null" entity
+
+reserved output entities:
+- `000` through `01F`: chip outputs
 
 # subsong
 

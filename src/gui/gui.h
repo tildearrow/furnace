@@ -935,9 +935,9 @@ struct Gradient2D {
 
 struct FurnaceGUISysDefChip {
   DivSystem sys;
-  int vol, pan;
+  float vol, pan;
   const char* flags;
-  FurnaceGUISysDefChip(DivSystem s, int v, int p, const char* f):
+  FurnaceGUISysDefChip(DivSystem s, float v, float p, const char* f):
     sys(s),
     vol(v),
     pan(p),

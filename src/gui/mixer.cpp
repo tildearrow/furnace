@@ -37,22 +37,35 @@ void FurnaceGUI::drawMixer() {
     } rightClickable
     for (int i=0; i<e->song.systemLen; i++) {
       snprintf(id,31,"MixS%d",i);
-      bool doInvert=e->song.systemVol[i]&128;
-      signed char vol=e->song.systemVol[i]&127;
+      bool doInvert=e->song.systemVol[i]<0;
+      float vol=fabs(e->song.systemVol[i]);
       ImGui::PushID(id);
       ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
       ImGui::SameLine(ImGui::GetWindowWidth()-(82.0f*dpiScale));
       if (ImGui::Checkbox("Invert",&doInvert)) {
-        e->song.systemVol[i]^=128;
+        e->song.systemVol[i]=-e->song.systemVol[i];
         MARK_MODIFIED;
       }
-      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
-      if (CWSliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
-        e->song.systemVol[i]=(e->song.systemVol[i]&128)|vol;
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      if (CWSliderFloat("Volume",&vol,0,2)) {
+        if (doInvert) {
+          if (vol<0.0001) vol=0.0001;
+        }
+        if (vol<0) vol=0;
+        if (vol>10) vol=10;
+        e->song.systemVol[i]=(doInvert)?-vol:vol;
         MARK_MODIFIED;
       } rightClickable
-      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
-      if (CWSliderScalar("Panning",ImGuiDataType_S8,&e->song.systemPan[i],&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN)) {
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      if (CWSliderFloat("Panning",&e->song.systemPan[i],-1.0f,1.0f)) {
+        if (e->song.systemPan[i]<-1.0f) e->song.systemPan[i]=-1.0f;
+        if (e->song.systemPan[i]>1.0f) e->song.systemPan[i]=1.0f;
+        MARK_MODIFIED;
+      } rightClickable
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      if (CWSliderFloat("Front/Rear",&e->song.systemPanFR[i],-1.0f,1.0f)) {
+        if (e->song.systemPanFR[i]<-1.0f) e->song.systemPanFR[i]=-1.0f;
+        if (e->song.systemPanFR[i]>1.0f) e->song.systemPanFR[i]=1.0f;
         MARK_MODIFIED;
       } rightClickable
 

@@ -47,8 +47,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev134"
-#define DIV_ENGINE_VERSION 134
+#define DIV_VERSION "dev135"
+#define DIV_ENGINE_VERSION 135
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -476,7 +476,7 @@ class DivEngine {
   bool deinitAudioBackend(bool dueToSwitchMaster=false);
 
   void registerSystems();
-  void initSongWithDesc(const char* description, bool inBase64=true);
+  void initSongWithDesc(const char* description, bool inBase64=true, bool oldVol=false);
 
   void exchangeIns(int one, int two);
   void swapChannels(int src, int dest);

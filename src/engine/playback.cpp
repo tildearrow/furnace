@@ -1720,10 +1720,10 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     disCont[i].fillBuf(disCont[i].runtotal,disCont[i].lastAvail,size-disCont[i].lastAvail);
   }
 
-  // TODO: handle more than 2 outputs
+  // TODO: patchbay
   for (int i=0; i<song.systemLen; i++) {
-    float volL=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127-(int)song.systemPan[i])/127.0f)*song.masterVol;
-    float volR=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127+(int)song.systemPan[i])/127.0f)*song.masterVol;
+    float volL=song.systemVol[i]*MIN(1.0f,1.0f-song.systemPan[i])*song.masterVol;
+    float volR=song.systemVol[i]*MIN(1.0f,1.0f+song.systemPan[i])*song.masterVol;
     volL*=disCont[i].dispatch->getPostAmp();
     volR*=disCont[i].dispatch->getPostAmp();
     if (disCont[i].dispatch->getOutputCount()>1) {

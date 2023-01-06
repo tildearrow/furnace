@@ -238,8 +238,9 @@ struct DivSong {
   // system
   DivSystem system[DIV_MAX_CHIPS];
   unsigned char systemLen;
-  signed char systemVol[DIV_MAX_CHIPS];
-  signed char systemPan[DIV_MAX_CHIPS];
+  float systemVol[DIV_MAX_CHIPS];
+  float systemPan[DIV_MAX_CHIPS];
+  float systemPanFR[DIV_MAX_CHIPS];
   DivConfig systemFlags[DIV_MAX_CHIPS];
 
   // song information
@@ -334,6 +335,7 @@ struct DivSong {
   std::vector<DivSample*> sample;
 
   std::vector<DivSubSong*> subsong;
+  std::vector<unsigned int> patchbay;
 
   DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsOPLDrums, nullInsQSound;
   DivWavetable nullWave;
@@ -438,8 +440,9 @@ struct DivSong {
     oldArpStrategy(false) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
-      systemVol[i]=64;
-      systemPan[i]=0;
+      systemVol[i]=1.0;
+      systemPan[i]=0.0;
+      systemPanFR[i]=0.0;
     }
     subsong.push_back(new DivSubSong);
     system[0]=DIV_SYSTEM_YM2612;

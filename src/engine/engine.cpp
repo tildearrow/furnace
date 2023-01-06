@@ -1341,8 +1341,8 @@ String DivEngine::decodeSysDesc(String desc) {
   int val=0;
   int curStage=0;
   int sysID=0;
-  int sysVol=0;
-  int sysPan=0;
+  float sysVol=0;
+  float sysPan=0;
   int sysFlags=0;
   int curSys=0;
   desc+=' '; // ha
@@ -1357,24 +1357,25 @@ String DivEngine::decodeSysDesc(String desc) {
               curStage++;
               break;
             case 1:
-              sysVol=val;
+              sysVol=(float)val/64.0f;
               curStage++;
               break;
             case 2:
-              sysPan=val;
+              sysPan=(float)val/127.0f;
               curStage++;
               break;
             case 3:
               sysFlags=val;
 
               if (sysID!=0) {
-                if (sysVol<-128) sysVol=-128;
-                if (sysVol>127) sysVol=127;
-                if (sysPan<-128) sysPan=-128;
-                if (sysPan>127) sysPan=127;
+                if (sysVol<-1.0f) sysVol=-1.0f;
+                if (sysVol>1.0f) sysVol=1.0f;
+                if (sysPan<-1.0f) sysPan=-1.0f;
+                if (sysPan>1.0f) sysPan=1.0f;
                 newDesc.set(fmt::sprintf("id%d",curSys),sysID);
                 newDesc.set(fmt::sprintf("vol%d",curSys),sysVol);
                 newDesc.set(fmt::sprintf("pan%d",curSys),sysPan);
+                newDesc.set(fmt::sprintf("fr%d",curSys),0.0f);
                 DivConfig newFlagsC;
                 newFlagsC.clear();
                 convertOldFlags((unsigned int)sysFlags,newFlagsC,systemFromFileFur(sysID));
@@ -1404,7 +1405,7 @@ String DivEngine::decodeSysDesc(String desc) {
   return newDesc.toBase64();
 }
 
-void DivEngine::initSongWithDesc(const char* description, bool inBase64) {
+void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool oldVol) {
   int chanCount=0;
   DivConfig c;
   if (inBase64) {
@@ -1423,9 +1424,16 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64) {
       song.system[index]=DIV_SYSTEM_NULL;
       break;
     }
-    song.systemVol[index]=c.getInt(fmt::sprintf("vol%d",index),DIV_SYSTEM_NULL);
-    song.systemPan[index]=c.getInt(fmt::sprintf("pan%d",index),DIV_SYSTEM_NULL);
+    song.systemVol[index]=c.getFloat(fmt::sprintf("vol%d",index),1.0f);
+    song.systemPan[index]=c.getFloat(fmt::sprintf("pan%d",index),0.0f);
+    song.systemPanFR[index]=c.getFloat(fmt::sprintf("fr%d",index),0.0f);
     song.systemFlags[index].clear();
+
+    if (oldVol) {
+      song.systemVol[index]/=64.0f;
+      song.systemPan[index]/=127.0f;
+    }
+
     String flags=c.getString(fmt::sprintf("flags%d",index),"");
     song.systemFlags[index].loadFromBase64(flags.c_str());
   }
@@ -1675,8 +1683,9 @@ bool DivEngine::addSystem(DivSystem which) {
   BUSY_BEGIN;
   saveLock.lock();
   song.system[song.systemLen]=which;
-  song.systemVol[song.systemLen]=64;
+  song.systemVol[song.systemLen]=1.0;
   song.systemPan[song.systemLen]=0;
+  song.systemPanFR[song.systemLen]=0;
   song.systemFlags[song.systemLen++].clear();
   recalcChans();
   saveLock.unlock();
@@ -1721,6 +1730,7 @@ bool DivEngine::removeSystem(int index, bool preserveOrder) {
     song.system[i]=song.system[i+1];
     song.systemVol[i]=song.systemVol[i+1];
     song.systemPan[i]=song.systemPan[i+1];
+    song.systemPanFR[i]=song.systemPanFR[i+1];
     song.systemFlags[i]=song.systemFlags[i+1];
   }
   recalcChans();
@@ -1835,17 +1845,21 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
   }
 
   DivSystem srcSystem=song.system[src];
+  float srcVol=song.systemVol[src];
+  float srcPan=song.systemPan[src];
+  float srcPanFR=song.systemPanFR[src];
 
   song.system[src]=song.system[dest];
   song.system[dest]=srcSystem;
 
-  song.systemVol[src]^=song.systemVol[dest];
-  song.systemVol[dest]^=song.systemVol[src];
-  song.systemVol[src]^=song.systemVol[dest];
+  song.systemVol[src]=song.systemVol[dest];
+  song.systemVol[dest]=srcVol;
 
-  song.systemPan[src]^=song.systemPan[dest];
-  song.systemPan[dest]^=song.systemPan[src];
-  song.systemPan[src]^=song.systemPan[dest];
+  song.systemPan[src]=song.systemPan[dest];
+  song.systemPan[dest]=srcPan;
+
+  song.systemPanFR[src]=song.systemPanFR[dest];
+  song.systemPanFR[dest]=srcPanFR;
 
   // I am kinda scared to use std::swap
   DivConfig oldFlags=song.systemFlags[src];
@@ -4265,13 +4279,15 @@ bool DivEngine::init() {
   if (!hasLoadedSomething) {
     logD("setting default preset");
     String preset=getConfString("initialSys2","");
+    bool oldVol=getConfInt("configVersion",DIV_ENGINE_VERSION)<135;
     if (preset.empty()) {
       // try loading old preset
       preset=decodeSysDesc(getConfString("initialSys",""));
+      oldVol=false;
     }
     logD("preset size %ld",preset.size());
     if (preset.size()>0 && (preset.size()&3)==0) {
-      initSongWithDesc(preset.c_str());
+      initSongWithDesc(preset.c_str(),true,oldVol);
     }
     String sysName=getConfString("initialSysName","");
     if (sysName=="") {

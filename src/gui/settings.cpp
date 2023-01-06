@@ -309,8 +309,9 @@ void FurnaceGUI::drawSettings() {
             settings.initialSys.clear();
             for (int i=0; i<e->song.systemLen; i++) {
               settings.initialSys.set(fmt::sprintf("id%d",i),e->systemToFileFur(e->song.system[i]));
-              settings.initialSys.set(fmt::sprintf("vol%d",i),(int)e->song.systemVol[i]);
-              settings.initialSys.set(fmt::sprintf("pan%d",i),(int)e->song.systemPan[i]);
+              settings.initialSys.set(fmt::sprintf("vol%d",i),(float)e->song.systemVol[i]);
+              settings.initialSys.set(fmt::sprintf("pan%d",i),(float)e->song.systemPan[i]);
+              settings.initialSys.set(fmt::sprintf("fr%d",i),(float)e->song.systemPanFR[i]);
               settings.initialSys.set(fmt::sprintf("flags%d",i),e->song.systemFlags[i].toBase64());
             }
             settings.initialSysName=e->song.systemName;
@@ -324,14 +325,16 @@ void FurnaceGUI::drawSettings() {
             if (totalAvailSys>0) {
               for (int i=0; i<howMany; i++) {
                 settings.initialSys.set(fmt::sprintf("id%d",i),e->systemToFileFur((DivSystem)availableSystems[rand()%totalAvailSys]));
-                settings.initialSys.set(fmt::sprintf("vol%d",i),64);
-                settings.initialSys.set(fmt::sprintf("pan%d",i),0);
+                settings.initialSys.set(fmt::sprintf("vol%d",i),1.0f);
+                settings.initialSys.set(fmt::sprintf("pan%d",i),0.0f);
+                settings.initialSys.set(fmt::sprintf("fr%d",i),0.0f);
                 settings.initialSys.set(fmt::sprintf("flags%d",i),"");
               }
             } else {
               settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_DUMMY));
-              settings.initialSys.set("vol0",64);
-              settings.initialSys.set("pan0",0);
+              settings.initialSys.set("vol0",1.0f);
+              settings.initialSys.set("pan0",0.0f);
+              settings.initialSys.set("fr0",0.0f);
               settings.initialSys.set("flags0","");
               howMany=1;
             }
@@ -366,12 +369,14 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::Button("Reset to defaults")) {
             settings.initialSys.clear();
             settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_YM2612));
-            settings.initialSys.set("vol0",64);
-            settings.initialSys.set("pan0",0);
+            settings.initialSys.set("vol0",1.0f);
+            settings.initialSys.set("pan0",0.0f);
+            settings.initialSys.set("fr0",0.0f);
             settings.initialSys.set("flags0","");
             settings.initialSys.set("id1",e->systemToFileFur(DIV_SYSTEM_SMS));
-            settings.initialSys.set("vol1",32);
-            settings.initialSys.set("pan1",0);
+            settings.initialSys.set("vol1",0.5f);
+            settings.initialSys.set("pan1",0.0f);
+            settings.initialSys.set("fr1",0.0f);
             settings.initialSys.set("flags1","");
             settings.initialSysName="Sega Genesis/Mega Drive";
           }
@@ -385,14 +390,15 @@ void FurnaceGUI::drawSettings() {
           int doRemove=-1;
           for (size_t i=0; settings.initialSys.getInt(fmt::sprintf("id%d",i),0); i++) {
             DivSystem sysID=e->systemFromFileFur(settings.initialSys.getInt(fmt::sprintf("id%d",i),0));
-            signed char sysVol=settings.initialSys.getInt(fmt::sprintf("vol%d",i),0);
-            signed char sysPan=settings.initialSys.getInt(fmt::sprintf("pan%d",i),0);
+            float sysVol=settings.initialSys.getFloat(fmt::sprintf("vol%d",i),0);
+            float sysPan=settings.initialSys.getFloat(fmt::sprintf("pan%d",i),0);
+            float sysPanFR=settings.initialSys.getFloat(fmt::sprintf("fr%d",i),0);
 
             sysCount=i+1;
 
             //bool doRemove=false;
-            bool doInvert=sysVol&128;
-            signed char vol=sysVol&127;
+            bool doInvert=(sysVol<0);
+            float vol=fabs(sysVol);
             ImGui::PushID(i);
 
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Invert").x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x);
@@ -409,8 +415,8 @@ void FurnaceGUI::drawSettings() {
 
             ImGui::SameLine();
             if (ImGui::Checkbox("Invert",&doInvert)) {
-              sysVol^=128;
-              settings.initialSys.set(fmt::sprintf("vol%d",i),(int)sysVol);
+              sysVol=-sysVol;
+              settings.initialSys.set(fmt::sprintf("vol%d",i),sysVol);
             }
             ImGui::SameLine();
             //ImGui::BeginDisabled(settings.initialSys.size()<=4);
@@ -418,14 +424,27 @@ void FurnaceGUI::drawSettings() {
               doRemove=i;
             }
             //ImGui::EndDisabled();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
-            if (CWSliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
-              sysVol=(sysVol&128)|vol;
-              settings.initialSys.set(fmt::sprintf("vol%d",i),(int)sysVol);
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (CWSliderFloat("Volume",&vol,0.0f,3.0f)) {
+              if (doInvert) {
+                if (vol<0.0001) vol=0.0001;
+              }
+              if (vol<0) vol=0;
+              if (vol>10) vol=10;
+              sysVol=doInvert?-vol:vol;
+              settings.initialSys.set(fmt::sprintf("vol%d",i),(float)sysVol);
             } rightClickable
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
-            if (CWSliderScalar("Panning",ImGuiDataType_S8,&sysPan,&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN)) {
-              settings.initialSys.set(fmt::sprintf("pan%d",i),(int)sysPan);
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (CWSliderFloat("Panning",&sysPan,-1.0f,1.0f)) {
+              if (sysPan<-1.0f) sysPan=-1.0f;
+              if (sysPan>1.0f) sysPan=1.0f;
+              settings.initialSys.set(fmt::sprintf("pan%d",i),(float)sysPan);
+            } rightClickable
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (CWSliderFloat("Front/Rear",&sysPanFR,-1.0f,1.0f)) {
+              if (sysPanFR<-1.0f) sysPanFR=-1.0f;
+              if (sysPanFR>1.0f) sysPanFR=1.0f;
+              settings.initialSys.set(fmt::sprintf("fr%d",i),(float)sysPanFR);
             } rightClickable
 
             // oh please MSVC don't cry
@@ -445,25 +464,29 @@ void FurnaceGUI::drawSettings() {
           if (doRemove>=0 && sysCount>1) {
             for (int i=doRemove; i<sysCount-1; i++) {
               int sysID=settings.initialSys.getInt(fmt::sprintf("id%d",i+1),0);
-              int sysVol=settings.initialSys.getInt(fmt::sprintf("vol%d",i+1),0);
-              int sysPan=settings.initialSys.getInt(fmt::sprintf("pan%d",i+1),0);
+              float sysVol=settings.initialSys.getFloat(fmt::sprintf("vol%d",i+1),0);
+              float sysPan=settings.initialSys.getFloat(fmt::sprintf("pan%d",i+1),0);
+              float sysPanFR=settings.initialSys.getFloat(fmt::sprintf("fr%d",i+1),0);
               String sysFlags=settings.initialSys.getString(fmt::sprintf("flags%d",i+1),"");
               settings.initialSys.set(fmt::sprintf("id%d",i),sysID);
               settings.initialSys.set(fmt::sprintf("vol%d",i),sysVol);
               settings.initialSys.set(fmt::sprintf("pan%d",i),sysPan);
+              settings.initialSys.set(fmt::sprintf("fr%d",i),sysPanFR);
               settings.initialSys.set(fmt::sprintf("flags%d",i),sysFlags);
             }
 
             settings.initialSys.remove(fmt::sprintf("id%d",sysCount-1));
             settings.initialSys.remove(fmt::sprintf("vol%d",sysCount-1));
             settings.initialSys.remove(fmt::sprintf("pan%d",sysCount-1));
+            settings.initialSys.remove(fmt::sprintf("fr%d",sysCount-1));
             settings.initialSys.remove(fmt::sprintf("flags%d",sysCount-1));
           }
 
           if (sysCount<32) if (ImGui::Button(ICON_FA_PLUS "##InitSysAdd")) {
             settings.initialSys.set(fmt::sprintf("id%d",sysCount),(int)e->systemToFileFur(DIV_SYSTEM_YM2612));
-            settings.initialSys.set(fmt::sprintf("vol%d",sysCount),64);
-            settings.initialSys.set(fmt::sprintf("pan%d",sysCount),0);
+            settings.initialSys.set(fmt::sprintf("vol%d",sysCount),1.0f);
+            settings.initialSys.set(fmt::sprintf("pan%d",sysCount),0.0f);
+            settings.initialSys.set(fmt::sprintf("fr%d",sysCount),0.0f);
             settings.initialSys.set(fmt::sprintf("flags%d",sysCount),"");
           }
 
@@ -2633,21 +2656,36 @@ void FurnaceGUI::syncSettings() {
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
 
   String initialSys2=e->getConfString("initialSys2","");
+  bool oldVol=e->getConfInt("configVersion",DIV_ENGINE_VERSION)<135;
   if (initialSys2.empty()) {
     initialSys2=e->decodeSysDesc(e->getConfString("initialSys",""));
+    oldVol=false;
   }
   settings.initialSys.clear();
   settings.initialSys.loadFromBase64(initialSys2.c_str());
   if (settings.initialSys.getInt("id0",0)==0) {
     settings.initialSys.clear();
     settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_YM2612));
-    settings.initialSys.set("vol0",64);
-    settings.initialSys.set("pan0",0);
+    settings.initialSys.set("vol0",1.0f);
+    settings.initialSys.set("pan0",0.0f);
+    settings.initialSys.set("fr0",0.0f);
     settings.initialSys.set("flags0","");
     settings.initialSys.set("id1",e->systemToFileFur(DIV_SYSTEM_SMS));
-    settings.initialSys.set("vol1",64);
+    settings.initialSys.set("vol1",0.5f);
     settings.initialSys.set("pan1",0);
+    settings.initialSys.set("fr1",0);
     settings.initialSys.set("flags1","");
+  } else {
+    if (oldVol) {
+      for (int i=0; settings.initialSys.getInt(fmt::sprintf("id%d",i),0); i++) {
+        float newVol=settings.initialSys.getInt(fmt::sprintf("vol%d",i),64);
+        float newPan=settings.initialSys.getInt(fmt::sprintf("pan%d",i),0);
+        newVol/=64.0f;
+        newPan/=127.0f;
+        settings.initialSys.set(fmt::sprintf("vol%d",i),newVol);
+        settings.initialSys.set(fmt::sprintf("pan%d",i),newPan);
+      }
+    }
   }
 
   // keybinds
