@@ -1466,6 +1466,7 @@ void DivEngine::createNew(const char* description, String sysName, bool inBase64
   BUSY_END;
   initDispatch();
   BUSY_BEGIN;
+  autoPatchbay();
   renderSamples();
   reset();
   BUSY_END;
@@ -3773,6 +3774,26 @@ bool DivEngine::moveSampleDown(int which) {
   return true;
 }
 
+void DivEngine::autoPatchbay() {
+  song.patchbay.clear();
+  for (unsigned int i=0; i<song.systemLen; i++) {
+    if (disCont[i].dispatch==NULL) continue;
+
+    unsigned int outs=disCont[i].dispatch->getOutputCount();
+    if (outs>16) outs=16;
+    if (outs<2) {
+      for (unsigned int j=0; j<DIV_MAX_OUTPUTS; j++) {
+        song.patchbay.push_back((i<<20)|j);
+      }
+    } else {
+      for (unsigned int j=0; j<outs; j++) {
+
+        song.patchbay.push_back((i<<20)|(j<<16)|j);
+      }
+    }
+  }
+}
+
 void DivEngine::noteOn(int chan, int ins, int note, int vol) {
   if (chan<0 || chan>=chans) return;
   BUSY_BEGIN;
@@ -4333,6 +4354,7 @@ bool DivEngine::init() {
   }
 
   initDispatch();
+  if (!hasLoadedSomething || song.version<135) autoPatchbay();
   renderSamples();
   reset();
   active=true;

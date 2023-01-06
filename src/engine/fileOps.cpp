@@ -987,6 +987,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     if (active) {
       initDispatch();
       BUSY_BEGIN;
+      autoPatchbay();
       renderSamples();
       reset();
       BUSY_END;
@@ -2584,6 +2585,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (active) {
       initDispatch();
       BUSY_BEGIN;
+      if (song.version<135) autoPatchbay();
       renderSamples();
       reset();
       BUSY_END;
@@ -3006,6 +3008,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     if (active) {
       initDispatch();
       BUSY_BEGIN;
+      autoPatchbay();
       renderSamples();
       reset();
       BUSY_END;
@@ -3176,7 +3179,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
 
     ds.systemLen=1;
     ds.system[0]=DIV_SYSTEM_AMIGA;
-    ds.systemVol[0]=64;
+    ds.systemVol[0]=1.0f;
     ds.systemPan[0]=0;
     ds.systemFlags[0].set("clockSel",1); // PAL
     ds.systemFlags[0].set("stereoSep",80);
@@ -3689,6 +3692,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     if (active) {
       initDispatch();
       BUSY_BEGIN;
+      autoPatchbay();
       renderSamples();
       reset();
       BUSY_END;

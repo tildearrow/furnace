@@ -410,14 +410,14 @@ a connection is represented as an unsigned int in the following format:
 
 a port is in the following format (hexadecimal): `xxxy`
 
-- `xxx` (bit 4 to 15) represents an entity.
-- `y` (bit 0 to 3) is the port of that entity.
+- `xxx` (bit 4 to 15) represents a portset.
+- `y` (bit 0 to 3) is the port in that portset.
 
-reserved input entities:
+reserved input portsets:
 - `000`: system outputs
-- `FFF`: "null" entity
+- `FFF`: "null" portset
 
-reserved output entities:
+reserved output portsets:
 - `000` through `01F`: chip outputs
 
 # subsong

@@ -835,6 +835,9 @@ class DivEngine {
     bool moveWaveDown(int which);
     bool moveSampleDown(int which);
 
+    // automatic patchbay
+    void autoPatchbay();
+
     // play note
     void noteOn(int chan, int ins, int note, int vol=-1);
 

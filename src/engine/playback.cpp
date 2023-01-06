@@ -1720,30 +1720,53 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     disCont[i].fillBuf(disCont[i].runtotal,disCont[i].lastAvail,size-disCont[i].lastAvail);
   }
 
-  // TODO: patchbay
-  for (int i=0; i<song.systemLen; i++) {
-    float volL=song.systemVol[i]*MIN(1.0f,1.0f-song.systemPan[i])*song.masterVol;
-    float volR=song.systemVol[i]*MIN(1.0f,1.0f+song.systemPan[i])*song.masterVol;
-    volL*=disCont[i].dispatch->getPostAmp();
-    volR*=disCont[i].dispatch->getPostAmp();
-    if (disCont[i].dispatch->getOutputCount()>1) {
-      for (size_t j=0; j<size; j++) {
-        int howManyToFill=MIN(outChans,disCont[i].dispatch->getOutputCount());
-        for (int k=0; k<howManyToFill; k++) {
-          // volL if even, volR if odd. if howManyToFill is odd and it is the last channel then ignore
-          const float whichVol=((howManyToFill&1) && (k==howManyToFill-1))?1.0:((k&1)?volR:volL);
-          out[k][j]+=((float)disCont[i].bbOut[k][j]/32768.0)*whichVol;
+  // resolve patchbay
+  for (unsigned int i: song.patchbay) {
+    const unsigned short srcPort=i>>16;
+    const unsigned short destPort=i&0xffff;
+
+    const unsigned short srcPortSet=srcPort>>4;
+    const unsigned short destPortSet=destPort>>4;
+    const unsigned char srcSubPort=srcPort&15;
+    const unsigned char destSubPort=destPort&15;
+
+    // null portset
+    if (destPortSet==0xfff) continue;
+
+    // system outputs
+    if (destPortSet==0x000) {
+      if (destSubPort>=outChans) continue;
+
+      // chip outputs
+      if (srcPortSet<song.systemLen) {
+        if (srcSubPort<disCont[srcPortSet].dispatch->getOutputCount()) {
+          float vol=song.systemVol[srcPortSet]*disCont[srcPortSet].dispatch->getPostAmp()*song.masterVol;
+
+          switch (destSubPort&3) {
+            case 0:
+              vol*=MIN(1.0f,1.0f-song.systemPan[srcPortSet])*MIN(1.0f,1.0f-song.systemPanFR[srcPortSet]);
+              break;
+            case 1:
+              vol*=MIN(1.0f,1.0f+song.systemPan[srcPortSet])*MIN(1.0f,1.0f-song.systemPanFR[srcPortSet]);
+              break;
+            case 2:
+              vol*=MIN(1.0f,1.0f-song.systemPan[srcPortSet])*MIN(1.0f,1.0f+song.systemPanFR[srcPortSet]);
+              break;
+            case 3:
+              vol*=MIN(1.0f,1.0f+song.systemPan[srcPortSet])*MIN(1.0f,1.0f+song.systemPanFR[srcPortSet]);
+              break;
+          }
+
+          for (size_t j=0; j<size; j++) {
+            out[destSubPort][j]+=((float)disCont[srcPortSet].bbOut[srcSubPort][j]/32768.0)*vol;
+          }
         }
       }
-    } else {
-      for (size_t j=0; j<size; j++) {
-        for (int k=0; k<outChans; k++) {
-          // volL if even, volR if odd. if outChans is odd and it is the last channel then ignore
-          const float whichVol=((outChans&1) && (k==outChans-1))?1.0:((k&1)?volR:volL);
-          out[k][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*whichVol;
-        }
-      }
+
+      // nothing/invalid
     }
+
+    // nothing/invalid
   }
 
   if (metronome) for (size_t i=0; i<size; i++) {
