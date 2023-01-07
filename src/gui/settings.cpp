@@ -2685,6 +2685,7 @@ void FurnaceGUI::syncSettings() {
         settings.initialSys.set(fmt::sprintf("vol%d",i),newVol);
         settings.initialSys.set(fmt::sprintf("pan%d",i),newPan);
       }
+      e->setConf("initialSys2",settings.initialSys.toBase64());
     }
   }
 
