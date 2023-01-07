@@ -3863,6 +3863,11 @@ bool FurnaceGUI::loop() {
           curWindow=GUI_WINDOW_SYS_MANAGER;
           drawSysManager();
           break;
+        case GUI_SCENE_MIXER:
+          mixerOpen=true;
+          curWindow=GUI_WINDOW_MIXER;
+          drawMixer();
+          break;
         default:
           patternOpen=true;
           curWindow=GUI_WINDOW_PATTERN;
