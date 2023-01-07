@@ -241,7 +241,7 @@ void DivPlatformPOKEY::tick(bool sysTick) {
       chan[i].ctlChanged=false;
       if ((i==1 && audctl&16) || (i==3 && audctl&8)) {
         // ignore - channel is paired
-      } else if ((i==0 && audctl&16) || (i==0 && audctl&8)) {
+      } else if ((i==0 && audctl&16) || (i==2 && audctl&8)) {
         rWrite(1+(i<<1),0);
         rWrite(3+(i<<1),val);
       } else {
