@@ -270,6 +270,9 @@ enum FurnaceGUIColors {
   GUI_COLOR_CLOCK_BEAT_LOW,
   GUI_COLOR_CLOCK_BEAT_HIGH,
 
+  GUI_COLOR_PATCHBAY_PORTSET,
+  GUI_COLOR_PATCHBAY_PORT,
+
   GUI_COLOR_LOGLEVEL_ERROR,
   GUI_COLOR_LOGLEVEL_WARNING,
   GUI_COLOR_LOGLEVEL_INFO,
@@ -1109,6 +1112,11 @@ class FurnaceGUI {
   int zsmExportTickRate;
   int macroPointSize;
   int waveEditStyle;
+  // 0xxx: output
+  // 1xxx: input
+  unsigned int selectedPortSet;
+  // any value not between 0 and 15 are "none"
+  int selectedSubPort;
   int displayInsTypeListMakeInsSample;
   int mobileEditPage;
   float mobileMenuPos, autoButtonSize, mobileEditAnim;
@@ -1759,6 +1767,9 @@ class FurnaceGUI {
 
   // inverted checkbox
   bool InvCheckbox(const char* label, bool* value);
+
+  // mixer stuff
+  bool portSet(String label, unsigned int portSetID, int ins, int outs);
 
   void updateWindowTitle();
   void autoDetectSystem();

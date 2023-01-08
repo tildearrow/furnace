@@ -5729,6 +5729,8 @@ FurnaceGUI::FurnaceGUI():
   zsmExportTickRate(60),
   macroPointSize(16),
   waveEditStyle(0),
+  selectedPortSet(0x1fff),
+  selectedSubPort(-1),
   displayInsTypeListMakeInsSample(-1),
   mobileEditPage(0),
   mobileMenuPos(0.0f),
