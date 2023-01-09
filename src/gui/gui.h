@@ -272,6 +272,7 @@ enum FurnaceGUIColors {
 
   GUI_COLOR_PATCHBAY_PORTSET,
   GUI_COLOR_PATCHBAY_PORT,
+  GUI_COLOR_PATCHBAY_CONNECTION,
 
   GUI_COLOR_LOGLEVEL_ERROR,
   GUI_COLOR_LOGLEVEL_WARNING,
@@ -1769,7 +1770,7 @@ class FurnaceGUI {
   bool InvCheckbox(const char* label, bool* value);
 
   // mixer stuff
-  bool portSet(String label, unsigned int portSetID, int ins, int outs);
+  bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos);
 
   void updateWindowTitle();
   void autoDetectSystem();

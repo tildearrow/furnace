@@ -20,9 +20,15 @@
 #include "gui.h"
 #include "intConst.h"
 #include <fmt/printf.h>
+#include "../ta-log.h"
 #include "imgui_internal.h"
 
-bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs) {
+const char* portNamesStereo[2]={
+  "left",
+  "right"
+};
+
+bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos) {
   String portID=fmt::sprintf("portSet%.4x",portSetID);
 
   ImDrawList* dl=ImGui::GetWindowDrawList();
@@ -38,7 +44,7 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
   size.y+=style.FramePadding.y*2.0f;
 
   // space for ports
-  size.y+=MAX(ins,outs)*labelSize.y+style.FramePadding.y*2.0f+style.ItemSpacing.y;
+  size.y+=MAX(ins,outs)*(labelSize.y+style.FramePadding.y+style.ItemSpacing.y);
 
   ImVec4 portSetBorderColor=uiColors[GUI_COLOR_PATCHBAY_PORTSET];
   ImVec4 portSetColor=ImVec4(
@@ -70,32 +76,129 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
 
   ImGui::ItemSize(size,style.FramePadding.y);
   if (ImGui::ItemAdd(rect,ImGui::GetID(portID.c_str()))) {
+    bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(portID.c_str()));
+    bool active=(hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left));
+
+
+    if (active) clickedPort=-1;
+
     // label
     dl->AddRectFilled(minArea,maxArea,ImGui::GetColorU32(portSetColor),0.0f);
     dl->AddRect(minArea,maxArea,ImGui::GetColorU32(portSetBorderColor),0.0f,dpiScale);
     dl->AddText(textPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),label.c_str());
 
-    // ports
-    for (int i=0; i<outs; i++) {
-      String portLabel=fmt::sprintf("%d",i+1);
+    // input ports
+    for (int i=0; i<ins; i++) {
+      String portLabel="input";
+      String subPortID=fmt::sprintf("subPort%.5x",(portSetID<<4)|i);
+      if (ins==2) {
+        portLabel=portNamesStereo[i&1];
+      } else if (ins>2) {
+        portLabel=fmt::sprintf("%d",i+1);
+      }
       ImVec2 portLabelSize=ImGui::CalcTextSize(portLabel.c_str());
 
       ImVec2 portMin=ImVec2(
-        maxArea.x-portLabelSize.x-style.FramePadding.x*2,
-        minArea.y+style.FramePadding.y+labelSize.y+(style.ItemSpacing.y+portLabelSize.y+style.FramePadding.y*2)*i
+        minArea.x,
+        minArea.y+style.FramePadding.y+labelSize.y+style.ItemSpacing.y+(style.ItemSpacing.y+portLabelSize.y+style.FramePadding.y)*i
+      );
+      ImVec2 portMax=ImVec2(
+        minArea.x+portLabelSize.x+style.FramePadding.x,
+        portMin.y+style.FramePadding.y+portLabelSize.y
+      );
+      ImRect portRect=ImRect(portMin,portMax);
+      ImVec2 portLabelPos=portMin;
+      portLabelPos.x+=style.FramePadding.x*0.5;
+      portLabelPos.y+=style.FramePadding.y*0.5;
+
+      portPos[(portSetID<<4)|i]=ImLerp(portMin,portMax,ImVec2(0.0f,0.5f));
+
+      if (ImGui::ItemAdd(portRect,ImGui::GetID(subPortID.c_str()))) {
+        ImGui::KeepAliveID(ImGui::GetID(subPortID.c_str()));
+        dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32(portColor),0.0f);
+        dl->AddRect(portMin,portMax,ImGui::GetColorU32(portBorderColor),0.0f,dpiScale);
+        dl->AddText(portLabelPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),portLabel.c_str());
+
+        ImGui::ItemHoverable(portRect,ImGui::GetID(subPortID.c_str()));
+
+        // connection
+        if (ImGui::BeginDragDropSource()) {
+          // set up
+          ImGui::SetDragDropPayload("FUR_PBIN",NULL,0,ImGuiCond_Once);
+          logV("bdds");
+          ImGui::EndDragDropSource();
+        }
+        if (ImGui::BeginDragDropTarget()) {
+          const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_PBIN");
+          if (dragItem!=NULL) {
+            if (dragItem->IsDataType("FUR_PBIN")) {
+            }
+          }
+          ImGui::EndDragDropTarget();
+        }
+      }
+
+      if (active) {
+        if (ImGui::IsMouseHoveringRect(portMin,portMax)) clickedPort=i;
+      }
+    }
+
+    // output ports
+    for (int i=0; i<outs; i++) {
+      String portLabel="output";
+      String subPortID=fmt::sprintf("subPort%.5x",(portSetID<<4)|i);
+      if (outs==2) {
+        portLabel=portNamesStereo[i&1];
+      } else if (outs>2) {
+        portLabel=fmt::sprintf("%d",i+1);
+      }
+      ImVec2 portLabelSize=ImGui::CalcTextSize(portLabel.c_str());
+
+      ImVec2 portMin=ImVec2(
+        maxArea.x-portLabelSize.x-style.FramePadding.x,
+        minArea.y+style.FramePadding.y+labelSize.y+style.ItemSpacing.y+(style.ItemSpacing.y+portLabelSize.y+style.FramePadding.y)*i
       );
       ImVec2 portMax=ImVec2(
         maxArea.x,
-        minArea.y+style.FramePadding.y+labelSize.y+portLabelSize.y+style.FramePadding.y*2+(style.ItemSpacing.y+portLabelSize.y+style.FramePadding.y*2)*i
+        portMin.y+style.FramePadding.y+portLabelSize.y
       );
+      ImRect portRect=ImRect(portMin,portMax);
       ImVec2 portLabelPos=portMin;
-      portLabelPos.x+=style.FramePadding.x;
-      portLabelPos.y+=style.FramePadding.y;
+      portLabelPos.x+=style.FramePadding.x*0.5;
+      portLabelPos.y+=style.FramePadding.y*0.5;
 
-      dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32(portColor),0.0f);
-      dl->AddRect(portMin,portMax,ImGui::GetColorU32(portBorderColor),0.0f,dpiScale);
-      dl->AddText(portLabelPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),portLabel.c_str());
+      portPos[(portSetID<<4)|i]=ImLerp(portMin,portMax,ImVec2(1.0f,0.5f));
+
+      if (ImGui::ItemAdd(portRect,ImGui::GetID(subPortID.c_str()))) {
+        dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32(portColor),0.0f);
+        dl->AddRect(portMin,portMax,ImGui::GetColorU32(portBorderColor),0.0f,dpiScale);
+        dl->AddText(portLabelPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),portLabel.c_str());
+
+        ImGui::ItemHoverable(portRect,ImGui::GetID(subPortID.c_str()));
+
+        // connection
+        if (ImGui::BeginDragDropSource()) {
+          // set up
+          ImGui::SetDragDropPayload("FUR_PBIN",NULL,0,ImGuiCond_Once);
+          logV("bdds");
+          ImGui::EndDragDropSource();
+        }
+        if (ImGui::BeginDragDropTarget()) {
+          const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_PBIN");
+          if (dragItem!=NULL) {
+            if (dragItem->IsDataType("FUR_PBIN")) {
+            }
+          }
+          ImGui::EndDragDropTarget();
+        }
+      }
+
+      if (active) {
+        if (ImGui::IsMouseHoveringRect(portMin,portMax)) clickedPort=i;
+      }
     }
+
+    if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) return true;
   }
 
   return false;
@@ -117,6 +220,7 @@ void FurnaceGUI::drawMixer() {
     ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Mixer",&mixerOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
+    std::map<unsigned int,ImVec2> portPos;
     if (ImGui::SliderFloat("Master Volume",&e->song.masterVol,0,3,"%.2fx")) {
       if (e->song.masterVol<0) e->song.masterVol=0;
       if (e->song.masterVol>3) e->song.masterVol=3;
@@ -180,12 +284,29 @@ void FurnaceGUI::drawMixer() {
       }
     }
     if (ImGui::BeginChild("Patchbay",ImVec2(0,0),true)) {
-      ImGui::Text("The patchbay goes here...");
+      ImVec2 topPos=ImGui::GetCursorPos();
+      topPos.x+=ImGui::GetContentRegionAvail().x-60.0*dpiScale;
       for (int i=0; i<e->song.systemLen; i++) {
         DivDispatch* dispatch=e->getDispatch(i);
         if (dispatch==NULL) continue;
-        if (portSet(fmt::sprintf("%d. %s",i+1,getSystemName(e->song.system[i])),i,0,dispatch->getOutputCount())) {
+        int outputs=dispatch->getOutputCount();
+        if (portSet(fmt::sprintf("%d. %s",i+1,getSystemName(e->song.system[i])),i,0,outputs,0,outputs,selectedSubPort,portPos)) {
           selectedPortSet=i;
+        }
+      }
+      ImGui::SetCursorPos(topPos);
+      if (portSet("System",0x1000,e->getAudioDescGot().outChans,0,e->getAudioDescGot().outChans,0,selectedSubPort,portPos)) {
+        selectedPortSet=0x1000;
+      }
+
+      // draw connections
+      ImDrawList* dl=ImGui::GetWindowDrawList();
+      for (unsigned int i: e->song.patchbay) {
+        try {
+          ImVec2 portSrc=portPos.at(i>>16);
+          ImVec2 portDest=portPos.at(0x10000|(i&0xffff));
+          dl->AddLine(portSrc,portDest,ImGui::GetColorU32(uiColors[GUI_COLOR_PATCHBAY_CONNECTION]),2.0f*dpiScale);
+        } catch (std::out_of_range& e) {
         }
       }
     }

@@ -838,6 +838,14 @@ class DivEngine {
     // automatic patchbay
     void autoPatchbay();
 
+    // connect in patchbay
+    // returns false if connection already made
+    bool patchConnect(unsigned int src, unsigned int dest);
+
+    // disconnect in patchbay
+    // returns false if connection doesn't exist
+    bool patchDisconnect(unsigned int src, unsigned int dest);
+
     // play note
     void noteOn(int chan, int ins, int note, int vol=-1);
 

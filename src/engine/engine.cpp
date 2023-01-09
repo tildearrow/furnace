@@ -3794,6 +3794,34 @@ void DivEngine::autoPatchbay() {
   }
 }
 
+bool DivEngine::patchConnect(unsigned int src, unsigned int dest) {
+  unsigned int armed=(src<<16)|(dest&0xffff);
+  for (unsigned int i: song.patchbay) {
+    if (i==armed) return false;
+  }
+  BUSY_BEGIN;
+  saveLock.lock();
+  song.patchbay.push_back(armed);
+  saveLock.unlock();
+  BUSY_END;
+  return true;
+}
+
+bool DivEngine::patchDisconnect(unsigned int src, unsigned int dest) {
+  unsigned int armed=(src<<16)|(dest&0xffff);
+  for (auto i=song.patchbay.begin(); i!=song.patchbay.end(); i++) {
+    if (*i==armed) {
+      BUSY_BEGIN;
+      saveLock.lock();
+      song.patchbay.erase(i);
+      saveLock.unlock();
+      BUSY_END;
+      return true;
+    }
+  }
+  return false;
+}
+
 void DivEngine::noteOn(int chan, int ins, int note, int vol) {
   if (chan<0 || chan>=chans) return;
   BUSY_BEGIN;
