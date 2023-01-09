@@ -63,6 +63,7 @@ const char* aboutLine[]={
   "akumanatt",
   "AmigaX",
   "AURORA*FIELDS",
+  "battybeats".
   "BlueElectric05",
   "breakthetargets",
   "brickblock369",
