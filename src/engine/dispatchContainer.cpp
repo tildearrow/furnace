@@ -103,13 +103,42 @@ void DivDispatchContainer::grow(size_t size) {
   }
 }
 
+#define CHECK_MISSING_BUFS \
+  int outs=dispatch->getOutputCount(); \
+ \
+  /* create missing buffers if any */ \
+  bool mustClear=false; \
+  for (int i=0; i<outs; i++) { \
+    if (bb[i]==NULL) { \
+      logV("creating buf %d because it doesn't exist",i); \
+      bb[i]=blip_new(bbInLen); \
+      if (bb[i]==NULL) { \
+        logE("not enough memory!"); \
+        return; \
+      } \
+      blip_set_rates(bb[i],dispatch->rate,rateMemory); \
+ \
+      if (bbIn[i]==NULL) bbIn[i]=new short[bbInLen]; \
+      if (bbOut[i]==NULL) bbOut[i]=new short[bbInLen]; \
+      memset(bbIn[i],0,bbInLen*sizeof(short)); \
+      memset(bbOut[i],0,bbInLen*sizeof(short)); \
+      mustClear=true; \
+    } \
+  } \
+  if (mustClear) clear(); \
+
 void DivDispatchContainer::acquire(size_t offset, size_t count) {
-  int outs=dispatch->getOutputCount();
+  CHECK_MISSING_BUFS;
+
   for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
     if (i>=outs) {
       bbInMapped[i]=NULL;
     } else {
-      bbInMapped[i]=&bbIn[i][offset];
+      if (bbIn[i]==NULL) {
+        bbInMapped[i]=NULL;
+      } else {
+        bbInMapped[i]=&bbIn[i][offset];
+      }
     }
   }
   dispatch->acquire(bbInMapped,count);
@@ -125,28 +154,7 @@ void DivDispatchContainer::flush(size_t count) {
 }
 
 void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) {
-  int outs=dispatch->getOutputCount();
-
-  // create missing buffers if any
-  bool mustClear=false;
-  for (int i=0; i<outs; i++) {
-    if (bb[i]==NULL) {
-      logV("creating buf %d because it doesn't exist",i);
-      bb[i]=blip_new(bbInLen);
-      if (bb[i]==NULL) {
-        logE("not enough memory!");
-        return;
-      }
-      blip_set_rates(bb[i],dispatch->rate,rateMemory);
-
-      if (bbIn[i]==NULL) bbIn[i]=new short[bbInLen];
-      if (bbOut[i]==NULL) bbOut[i]=new short[bbInLen];
-      memset(bbIn[i],0,bbInLen*sizeof(short));
-      memset(bbOut[i],0,bbInLen*sizeof(short));
-      mustClear=true;
-    }
-  }
-  if (mustClear) clear();
+  CHECK_MISSING_BUFS;
 
   if (dcOffCompensation && runtotal>0) {
     dcOffCompensation=false;
