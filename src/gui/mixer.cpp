@@ -248,6 +248,8 @@ void FurnaceGUI::drawMixer() {
 
         ImGui::EndTable();
       }
+    } else {
+      ImGui::Dummy(ImVec2(1.0f,ImGui::GetFrameHeightWithSpacing()*4.0f));
     }
 
     hoveredPortSet=0x1fff;
