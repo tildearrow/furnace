@@ -249,7 +249,12 @@ void FurnaceGUI::drawMixer() {
         ImGui::EndTable();
       }
     } else {
-      ImGui::Dummy(ImVec2(1.0f,ImGui::GetFrameHeightWithSpacing()*4.0f));
+      if (ImGui::Checkbox("Automatic patchbay",&e->song.patchbayAuto)) {
+        if (e->song.patchbayAuto) e->autoPatchbayP();
+        MARK_MODIFIED;
+      }
+      ImGui::Checkbox("Display hidden ports",&displayHiddenPorts);
+      ImGui::Dummy(ImVec2(1.0f,ImGui::GetFrameHeightWithSpacing()*2.0f));
     }
 
     hoveredPortSet=0x1fff;
@@ -259,6 +264,8 @@ void FurnaceGUI::drawMixer() {
       ImDrawList* dl=ImGui::GetWindowDrawList();
       ImVec2 topPos=ImGui::GetCursorPos();
       topPos.x+=ImGui::GetContentRegionAvail().x-60.0*dpiScale;
+
+      if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) selectedPortSet=0x1fff;
 
       if (portDragActive) {
         dl->AddLine(subPortPos,ImGui::GetMousePos(),ImGui::GetColorU32(uiColors[GUI_COLOR_PATCHBAY_CONNECTION]),2.0f*dpiScale);
@@ -281,7 +288,7 @@ void FurnaceGUI::drawMixer() {
         }
       }
       ImGui::SetCursorPos(topPos);
-      if (portSet("System",0x1000,e->getAudioDescGot().outChans,0,e->getAudioDescGot().outChans,0,selectedSubPort,portPos)) {
+      if (portSet("System",0x1000,displayHiddenPorts?DIV_MAX_OUTPUTS:e->getAudioDescGot().outChans,0,e->getAudioDescGot().outChans,0,selectedSubPort,portPos)) {
         selectedPortSet=0x1000;
         if (selectedSubPort>=0) {
           portDragActive=true;

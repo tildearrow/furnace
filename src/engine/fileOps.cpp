@@ -2220,6 +2220,8 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
+    if (ds.version>=136) song.patchbayAuto=reader.readC();
+
     // read system flags
     if (ds.version>=119) {
       logD("reading chip flags...");
@@ -4489,6 +4491,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   for (unsigned int i: song.patchbay) {
     w->writeI(i);
   }
+  w->writeC(song.patchbayAuto);
 
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);

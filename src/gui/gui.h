@@ -1664,7 +1664,7 @@ class FurnaceGUI {
   int selectedSubPort;
   unsigned int hoveredPortSet;
   int hoveredSubPort;
-  bool portDragActive;
+  bool portDragActive, displayHiddenPorts;
   ImVec2 subPortPos;
 
   // oscilloscope

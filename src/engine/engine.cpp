@@ -1693,6 +1693,27 @@ bool DivEngine::addSystem(DivSystem which) {
   BUSY_END;
   initDispatch();
   BUSY_BEGIN;
+  saveLock.lock();
+  if (song.patchbayAuto) {
+    autoPatchbay();
+  } else {
+    int i=song.systemLen-1;
+    if (disCont[i].dispatch!=NULL) {
+      unsigned int outs=disCont[i].dispatch->getOutputCount();
+      if (outs>16) outs=16;
+      if (outs<2) {
+        for (unsigned int j=0; j<DIV_MAX_OUTPUTS; j++) {
+          song.patchbay.push_back((i<<20)|j);
+        }
+      } else {
+        for (unsigned int j=0; j<outs; j++) {
+
+          song.patchbay.push_back((i<<20)|(j<<16)|j);
+        }
+      }
+    }
+  }
+  saveLock.unlock();
   renderSamples();
   reset();
   BUSY_END;
@@ -1722,6 +1743,14 @@ bool DivEngine::removeSystem(int index, bool preserveOrder) {
     }
     for (int i=firstChan+getChannelCount(song.system[index]); i<chanCount; i++) {
       swapChannels(i,i-getChannelCount(song.system[index]));
+    }
+  }
+
+  // patchbay
+  for (size_t i=0; i<song.patchbay.size(); i++) {
+    if (((song.patchbay[i]>>20)&0xfff)==index) {
+      song.patchbay.erase(song.patchbay.begin()+i);
+      i--;
     }
   }
 
@@ -1866,6 +1895,15 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
   DivConfig oldFlags=song.systemFlags[src];
   song.systemFlags[src]=song.systemFlags[dest];
   song.systemFlags[dest]=oldFlags;
+
+  // patchbay
+  for (unsigned int& i: song.patchbay) {
+    if (((i>>20)&0xfff)==src) {
+      i=(i&(~0xfff00000))|((unsigned int)dest<<20);
+    } else if (((i>>20)&0xfff)==dest) {
+      i=(i&(~0xfff00000))|((unsigned int)src<<20);
+    }
+  }
 
   recalcChans();
   saveLock.unlock();
@@ -3794,6 +3832,14 @@ void DivEngine::autoPatchbay() {
   }
 }
 
+void DivEngine::autoPatchbayP() {
+  BUSY_BEGIN;
+  saveLock.lock();
+  autoPatchbay();
+  saveLock.unlock();
+  BUSY_END;
+}
+
 bool DivEngine::patchConnect(unsigned int src, unsigned int dest) {
   unsigned int armed=(src<<16)|(dest&0xffff);
   for (unsigned int i: song.patchbay) {
@@ -3802,6 +3848,7 @@ bool DivEngine::patchConnect(unsigned int src, unsigned int dest) {
   BUSY_BEGIN;
   saveLock.lock();
   song.patchbay.push_back(armed);
+  song.patchbayAuto=false;
   saveLock.unlock();
   BUSY_END;
   return true;
@@ -3814,6 +3861,7 @@ bool DivEngine::patchDisconnect(unsigned int src, unsigned int dest) {
       BUSY_BEGIN;
       saveLock.lock();
       song.patchbay.erase(i);
+      song.patchbayAuto=false;
       saveLock.unlock();
       BUSY_END;
       return true;
@@ -3961,6 +4009,14 @@ void DivEngine::updateSysFlags(int system, bool restart) {
   BUSY_BEGIN_SOFT;
   disCont[system].dispatch->setFlags(song.systemFlags[system]);
   disCont[system].setRates(got.rate);
+
+  // patchbay
+  if (song.patchbayAuto) {
+    saveLock.lock();
+    autoPatchbay();
+    saveLock.unlock();
+  }
+
   if (restart && isPlaying()) {
     playSub(false);
   }

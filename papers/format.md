@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 136: Furnace dev136
 - 135: Furnace dev135
 - 134: Furnace dev134
 - 133: Furnace 0.6pre3
@@ -396,6 +397,7 @@ size | description
   4  | patchbay connection count
  4?? | patchbay
      | - see next section for more details.
+  1  | automatic patchbay (>=136)
 ```
 
 # patchbay
