@@ -80,6 +80,7 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
     bool active=(hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left));
 
 
+    if (hovered) hoveredPortSet=portSetID;
     if (active) clickedPort=-1;
 
     // label
@@ -114,32 +115,14 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
       portPos[(portSetID<<4)|i]=ImLerp(portMin,portMax,ImVec2(0.0f,0.5f));
 
       if (ImGui::ItemAdd(portRect,ImGui::GetID(subPortID.c_str()))) {
-        ImGui::KeepAliveID(ImGui::GetID(subPortID.c_str()));
         dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32(portColor),0.0f);
         dl->AddRect(portMin,portMax,ImGui::GetColorU32(portBorderColor),0.0f,dpiScale);
         dl->AddText(portLabelPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),portLabel.c_str());
-
-        ImGui::ItemHoverable(portRect,ImGui::GetID(subPortID.c_str()));
-
-        // connection
-        if (ImGui::BeginDragDropSource()) {
-          // set up
-          ImGui::SetDragDropPayload("FUR_PBIN",NULL,0,ImGuiCond_Once);
-          logV("bdds");
-          ImGui::EndDragDropSource();
-        }
-        if (ImGui::BeginDragDropTarget()) {
-          const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_PBIN");
-          if (dragItem!=NULL) {
-            if (dragItem->IsDataType("FUR_PBIN")) {
-            }
-          }
-          ImGui::EndDragDropTarget();
-        }
       }
 
-      if (active) {
-        if (ImGui::IsMouseHoveringRect(portMin,portMax)) clickedPort=i;
+      if (ImGui::IsMouseHoveringRect(portMin,portMax)) {
+        hoveredSubPort=i;
+        if (active) clickedPort=i;
       }
     }
 
@@ -173,28 +156,11 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
         dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32(portColor),0.0f);
         dl->AddRect(portMin,portMax,ImGui::GetColorU32(portBorderColor),0.0f,dpiScale);
         dl->AddText(portLabelPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),portLabel.c_str());
-
-        ImGui::ItemHoverable(portRect,ImGui::GetID(subPortID.c_str()));
-
-        // connection
-        if (ImGui::BeginDragDropSource()) {
-          // set up
-          ImGui::SetDragDropPayload("FUR_PBIN",NULL,0,ImGuiCond_Once);
-          logV("bdds");
-          ImGui::EndDragDropSource();
-        }
-        if (ImGui::BeginDragDropTarget()) {
-          const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_PBIN");
-          if (dragItem!=NULL) {
-            if (dragItem->IsDataType("FUR_PBIN")) {
-            }
-          }
-          ImGui::EndDragDropTarget();
-        }
       }
 
-      if (active) {
-        if (ImGui::IsMouseHoveringRect(portMin,portMax)) clickedPort=i;
+      if (ImGui::IsMouseHoveringRect(portMin,portMax)) {
+        if (active) clickedPort=i;
+        hoveredSubPort=i;
       }
     }
 
@@ -283,24 +249,72 @@ void FurnaceGUI::drawMixer() {
         ImGui::EndTable();
       }
     }
+
+    hoveredPortSet=0x1fff;
+    hoveredSubPort=-1;
+
     if (ImGui::BeginChild("Patchbay",ImVec2(0,0),true)) {
+      ImDrawList* dl=ImGui::GetWindowDrawList();
       ImVec2 topPos=ImGui::GetCursorPos();
       topPos.x+=ImGui::GetContentRegionAvail().x-60.0*dpiScale;
+
+      if (portDragActive) {
+        dl->AddLine(subPortPos,ImGui::GetMousePos(),ImGui::GetColorU32(uiColors[GUI_COLOR_PATCHBAY_CONNECTION]),2.0f*dpiScale);
+      }
+
       for (int i=0; i<e->song.systemLen; i++) {
         DivDispatch* dispatch=e->getDispatch(i);
         if (dispatch==NULL) continue;
         int outputs=dispatch->getOutputCount();
         if (portSet(fmt::sprintf("%d. %s",i+1,getSystemName(e->song.system[i])),i,0,outputs,0,outputs,selectedSubPort,portPos)) {
           selectedPortSet=i;
+          if (selectedSubPort>=0) {
+            portDragActive=true;
+            try {
+              subPortPos=portPos.at((selectedPortSet<<4)|selectedSubPort);
+            } catch (std::out_of_range& e) {
+              portDragActive=false;
+            }
+          }
         }
       }
       ImGui::SetCursorPos(topPos);
       if (portSet("System",0x1000,e->getAudioDescGot().outChans,0,e->getAudioDescGot().outChans,0,selectedSubPort,portPos)) {
         selectedPortSet=0x1000;
+        if (selectedSubPort>=0) {
+          portDragActive=true;
+          try {
+            subPortPos=portPos.at((selectedPortSet<<4)|selectedSubPort);
+          } catch (std::out_of_range& e) {
+            portDragActive=false;
+          }
+        }
+      }
+
+      if (portDragActive) {
+        if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+          portDragActive=false;
+          if (hoveredPortSet!=0x1fff && hoveredSubPort>=0) {
+            unsigned int src=(selectedPortSet<<4)|selectedSubPort;
+            unsigned int dest=(hoveredPortSet<<4)|hoveredSubPort;
+
+            if (src&0x10000) {
+              src^=dest;
+              dest^=src;
+              src^=dest;
+            }
+
+            src&=0xffff;
+            dest&=0xffff;
+
+            if (!e->patchConnect(src,dest)) {
+              e->patchDisconnect(src,dest);
+            }
+          }
+        }
       }
 
       // draw connections
-      ImDrawList* dl=ImGui::GetWindowDrawList();
       for (unsigned int i: e->song.patchbay) {
         try {
           ImVec2 portSrc=portPos.at(i>>16);

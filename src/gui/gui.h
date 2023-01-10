@@ -1113,11 +1113,6 @@ class FurnaceGUI {
   int zsmExportTickRate;
   int macroPointSize;
   int waveEditStyle;
-  // 0xxx: output
-  // 1xxx: input
-  unsigned int selectedPortSet;
-  // any value not between 0 and 15 are "none"
-  int selectedSubPort;
   int displayInsTypeListMakeInsSample;
   int mobileEditPage;
   float mobileMenuPos, autoButtonSize, mobileEditAnim;
@@ -1660,6 +1655,17 @@ class FurnaceGUI {
   short* sampleClipboard;
   size_t sampleClipboardLen;
   bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleSilenceOpt, openSampleFilterOpt;
+
+  // mixer
+  // 0xxx: output
+  // 1xxx: input
+  unsigned int selectedPortSet;
+  // any value not between 0 and 15 are "none"
+  int selectedSubPort;
+  unsigned int hoveredPortSet;
+  int hoveredSubPort;
+  bool portDragActive;
+  ImVec2 subPortPos;
 
   // oscilloscope
   int oscTotal;
