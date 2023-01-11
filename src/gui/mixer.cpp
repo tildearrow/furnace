@@ -354,7 +354,7 @@ void FurnaceGUI::drawMixer() {
       if (portDragActive) {
         if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
           portDragActive=false;
-          if (hoveredPortSet!=0x1fff && hoveredSubPort>=0) {
+          if (hoveredPortSet!=0x1fff && hoveredSubPort>=0 && selectedPortSet!=hoveredPortSet) {
             unsigned int src=(selectedPortSet<<4)|selectedSubPort;
             unsigned int dest=(hoveredPortSet<<4)|hoveredSubPort;
 
