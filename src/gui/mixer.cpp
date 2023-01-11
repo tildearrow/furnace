@@ -79,6 +79,14 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
     portBorderColor.w
   );
 
+  ImVec4 portBorderColorH=uiColors[GUI_COLOR_PATCHBAY_PORT_HIDDEN];
+  ImVec4 portColorH=ImVec4(
+    portBorderColorH.x*0.75f,
+    portBorderColorH.y*0.75f,
+    portBorderColorH.z*0.75f,
+    portBorderColorH.w
+  );
+
   ImVec2 minArea=window->DC.CursorPos;
   ImVec2 maxArea=ImVec2(
     minArea.x+size.x,
@@ -137,8 +145,8 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
 
     if (visible) {
       if (ImGui::ItemAdd(portRect,ImGui::GetID(subPortID.c_str()))) {
-        dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32(portColor),0.0f);
-        dl->AddRect(portMin,portMax,ImGui::GetColorU32(portBorderColor),0.0f,dpiScale);
+        dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32((i<activeIns)?portColor:portColorH),0.0f);
+        dl->AddRect(portMin,portMax,ImGui::GetColorU32((i<activeIns)?portBorderColor:portBorderColorH),0.0f,dpiScale);
         dl->AddText(portLabelPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),portLabel.c_str());
       }
 
@@ -177,8 +185,8 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
 
     if (visible) {
       if (ImGui::ItemAdd(portRect,ImGui::GetID(subPortID.c_str()))) {
-        dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32(portColor),0.0f);
-        dl->AddRect(portMin,portMax,ImGui::GetColorU32(portBorderColor),0.0f,dpiScale);
+        dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32((i<activeOuts)?portColor:portColorH),0.0f);
+        dl->AddRect(portMin,portMax,ImGui::GetColorU32((i<activeOuts)?portBorderColor:portBorderColorH),0.0f,dpiScale);
         dl->AddText(portLabelPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),portLabel.c_str());
       }
 
@@ -319,7 +327,7 @@ void FurnaceGUI::drawMixer() {
       // metronome/sample preview
       if (displayInternalPorts) {
         if (portSet("Sample Preview",0xffd,0,1,0,1,selectedSubPort,portPos)) {
-          selectedPortSet=0xffe;
+          selectedPortSet=0xffd;
           if (selectedSubPort>=0) {
             portDragActive=true;
             ImGui::InhibitInertialScroll();
@@ -383,6 +391,18 @@ void FurnaceGUI::drawMixer() {
 
       // draw connections
       for (unsigned int i: e->song.patchbay) {
+        if ((i>>20)==selectedPortSet) continue;
+        try {
+          ImVec2 portSrc=portPos.at(i>>16);
+          ImVec2 portDest=portPos.at(0x10000|(i&0xffff));
+          dl->AddLine(portSrc,portDest,ImGui::GetColorU32(uiColors[GUI_COLOR_PATCHBAY_CONNECTION_BG]),2.0f*dpiScale);
+        } catch (std::out_of_range& e) {
+        }
+      }
+
+      // foreground
+      for (unsigned int i: e->song.patchbay) {
+        if ((i>>20)!=selectedPortSet) continue;
         try {
           ImVec2 portSrc=portPos.at(i>>16);
           ImVec2 portDest=portPos.at(0x10000|(i&0xffff));

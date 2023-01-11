@@ -1972,6 +1972,22 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE,"Lower key (pressed)");
               ImGui::TreePop();
             }
+            if (ImGui::TreeNode("Clock")) {
+              UI_COLOR_CONFIG(GUI_COLOR_CLOCK_TEXT,"Clock text");
+              UI_COLOR_CONFIG(GUI_COLOR_CLOCK_BEAT_LOW,"Beat (off)");
+              UI_COLOR_CONFIG(GUI_COLOR_CLOCK_BEAT_HIGH,"Beat (on)");
+
+              ImGui::TreePop();
+            }
+            if (ImGui::TreeNode("Patchbay")) {
+              UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_PORTSET,"PortSet");
+              UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_PORT,"Port");
+              UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_PORT_HIDDEN,"Port (hidden/unavailable)");
+              UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_CONNECTION,"Connection (selected)");
+              UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_CONNECTION_BG,"Connection (other)");
+
+              ImGui::TreePop();
+            }
             if (ImGui::TreeNode("Log Viewer")) {
               UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_ERROR,"Log level: Error");
               UI_COLOR_CONFIG(GUI_COLOR_LOGLEVEL_WARNING,"Log level: Warning");
