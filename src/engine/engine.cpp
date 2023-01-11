@@ -1747,7 +1747,7 @@ bool DivEngine::removeSystem(int index, bool preserveOrder) {
 
   // patchbay
   for (size_t i=0; i<song.patchbay.size(); i++) {
-    if (((song.patchbay[i]>>20)&0xfff)==index) {
+    if (((song.patchbay[i]>>20)&0xfff)==(unsigned int)index) {
       song.patchbay.erase(song.patchbay.begin()+i);
       i--;
     }
@@ -1897,9 +1897,9 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
 
   // patchbay
   for (unsigned int& i: song.patchbay) {
-    if (((i>>20)&0xfff)==src) {
+    if (((i>>20)&0xfff)==(unsigned int)src) {
       i=(i&(~0xfff00000))|((unsigned int)dest<<20);
-    } else if (((i>>20)&0xfff)==dest) {
+    } else if (((i>>20)&0xfff)==(unsigned int)dest) {
       i=(i&(~0xfff00000))|((unsigned int)src<<20);
     }
   }
