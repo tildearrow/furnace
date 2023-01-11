@@ -1664,7 +1664,7 @@ class FurnaceGUI {
   int selectedSubPort;
   unsigned int hoveredPortSet;
   int hoveredSubPort;
-  bool portDragActive, displayHiddenPorts;
+  bool portDragActive, displayHiddenPorts, displayInternalPorts;
   ImVec2 subPortPos;
 
   // oscilloscope
@@ -1776,6 +1776,7 @@ class FurnaceGUI {
   bool InvCheckbox(const char* label, bool* value);
 
   // mixer stuff
+  ImVec2 calcPortSetSize(String label, int ins, int outs);
   bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos);
 
   void updateWindowTitle();

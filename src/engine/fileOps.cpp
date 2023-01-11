@@ -987,7 +987,6 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     if (active) {
       initDispatch();
       BUSY_BEGIN;
-      autoPatchbay();
       renderSamples();
       reset();
       BUSY_END;
@@ -2587,7 +2586,6 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (active) {
       initDispatch();
       BUSY_BEGIN;
-      if (song.version<135) autoPatchbay();
       renderSamples();
       reset();
       BUSY_END;
@@ -3010,7 +3008,6 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     if (active) {
       initDispatch();
       BUSY_BEGIN;
-      autoPatchbay();
       renderSamples();
       reset();
       BUSY_END;
@@ -3694,7 +3691,6 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     if (active) {
       initDispatch();
       BUSY_BEGIN;
-      autoPatchbay();
       renderSamples();
       reset();
       BUSY_END;

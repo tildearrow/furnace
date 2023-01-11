@@ -6027,6 +6027,7 @@ FurnaceGUI::FurnaceGUI():
   hoveredSubPort(-1),
   portDragActive(false),
   displayHiddenPorts(false),
+  displayInternalPorts(false),
   subPortPos(0.0f,0.0f),
   oscTotal(0),
   oscZoom(0.5f),

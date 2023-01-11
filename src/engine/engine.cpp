@@ -1466,7 +1466,6 @@ void DivEngine::createNew(const char* description, String sysName, bool inBase64
   BUSY_END;
   initDispatch();
   BUSY_BEGIN;
-  autoPatchbay();
   renderSamples();
   reset();
   BUSY_END;
@@ -3830,6 +3829,16 @@ void DivEngine::autoPatchbay() {
       }
     }
   }
+
+  // wave/sample preview
+  for (unsigned int j=0; j<DIV_MAX_OUTPUTS; j++) {
+    song.patchbay.push_back(0xffd00000|j);
+  }
+
+  // metronome
+  for (unsigned int j=0; j<DIV_MAX_OUTPUTS; j++) {
+    song.patchbay.push_back(0xffe00000|j);
+  }
 }
 
 void DivEngine::autoPatchbayP() {
@@ -4181,6 +4190,11 @@ void DivEngine::initDispatch() {
     disCont[i].setRates(got.rate);
     disCont[i].setQuality(lowQuality);
   }
+  if (song.patchbayAuto) {
+    saveLock.lock();
+    autoPatchbay();
+    saveLock.unlock();
+  }
   recalcChans();
   BUSY_END;
 }
@@ -4438,7 +4452,6 @@ bool DivEngine::init() {
   }
 
   initDispatch();
-  if (!hasLoadedSomething || song.version<135) autoPatchbay();
   renderSamples();
   reset();
   active=true;
