@@ -92,9 +92,12 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
   );
 
   ImGui::ItemSize(size,style.FramePadding.y);
-  if (ImGui::ItemAdd(rect,ImGui::GetID(portID.c_str()))) {
-    bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(portID.c_str()));
-    bool active=(hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left));
+  bool visible=ImGui::ItemAdd(rect,ImGui::GetID(portID.c_str()));
+  bool hovered=false;
+  bool active=false;
+  if (visible) {
+    hovered=ImGui::ItemHoverable(rect,ImGui::GetID(portID.c_str()));
+    active=(hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left));
 
 
     if (hovered) hoveredPortSet=portSetID;
@@ -104,85 +107,89 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
     dl->AddRectFilled(minArea,maxArea,ImGui::GetColorU32(portSetColor),0.0f);
     dl->AddRect(minArea,maxArea,ImGui::GetColorU32(portSetBorderColor),0.0f,dpiScale);
     dl->AddText(ImGui::GetFont(),ImGui::GetFontSize(),textPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),label.c_str(),NULL,ImGui::GetWindowSize().x*0.6f);
-
-    // input ports
-    for (int i=0; i<ins; i++) {
-      String portLabel="input";
-      String subPortID=fmt::sprintf("subPort%.5x",(portSetID<<4)|i);
-      if (ins==2) {
-        portLabel=portNamesStereo[i&1];
-      } else if (ins>2) {
-        portLabel=fmt::sprintf("%d",i+1);
-      }
-      ImVec2 portLabelSize=ImGui::CalcTextSize(portLabel.c_str());
-
-      ImVec2 portMin=ImVec2(
-        minArea.x,
-        minArea.y+style.FramePadding.y+labelSize.y+style.ItemSpacing.y+(style.ItemSpacing.y+portLabelSize.y+style.FramePadding.y)*i
-      );
-      ImVec2 portMax=ImVec2(
-        minArea.x+portLabelSize.x+style.FramePadding.x,
-        portMin.y+style.FramePadding.y+portLabelSize.y
-      );
-      ImRect portRect=ImRect(portMin,portMax);
-      ImVec2 portLabelPos=portMin;
-      portLabelPos.x+=style.FramePadding.x*0.5;
-      portLabelPos.y+=style.FramePadding.y*0.5;
-
-      portPos[(portSetID<<4)|i]=ImLerp(portMin,portMax,ImVec2(0.0f,0.5f));
-
-      if (ImGui::ItemAdd(portRect,ImGui::GetID(subPortID.c_str()))) {
-        dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32(portColor),0.0f);
-        dl->AddRect(portMin,portMax,ImGui::GetColorU32(portBorderColor),0.0f,dpiScale);
-        dl->AddText(portLabelPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),portLabel.c_str());
-      }
-
-      if (ImGui::IsMouseHoveringRect(portMin,portMax)) {
-        hoveredSubPort=i;
-        if (active) clickedPort=i;
-      }
-    }
-
-    // output ports
-    for (int i=0; i<outs; i++) {
-      String portLabel="output";
-      String subPortID=fmt::sprintf("subPort%.5x",(portSetID<<4)|i);
-      if (outs==2) {
-        portLabel=portNamesStereo[i&1];
-      } else if (outs>2) {
-        portLabel=fmt::sprintf("%d",i+1);
-      }
-      ImVec2 portLabelSize=ImGui::CalcTextSize(portLabel.c_str());
-
-      ImVec2 portMin=ImVec2(
-        maxArea.x-portLabelSize.x-style.FramePadding.x,
-        minArea.y+style.FramePadding.y+labelSize.y+style.ItemSpacing.y+(style.ItemSpacing.y+portLabelSize.y+style.FramePadding.y)*i
-      );
-      ImVec2 portMax=ImVec2(
-        maxArea.x,
-        portMin.y+style.FramePadding.y+portLabelSize.y
-      );
-      ImRect portRect=ImRect(portMin,portMax);
-      ImVec2 portLabelPos=portMin;
-      portLabelPos.x+=style.FramePadding.x*0.5;
-      portLabelPos.y+=style.FramePadding.y*0.5;
-
-      portPos[(portSetID<<4)|i]=ImLerp(portMin,portMax,ImVec2(1.0f,0.5f));
-
-      if (ImGui::ItemAdd(portRect,ImGui::GetID(subPortID.c_str()))) {
-        dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32(portColor),0.0f);
-        dl->AddRect(portMin,portMax,ImGui::GetColorU32(portBorderColor),0.0f,dpiScale);
-        dl->AddText(portLabelPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),portLabel.c_str());
-      }
-
-      if (ImGui::IsMouseHoveringRect(portMin,portMax)) {
-        if (active) clickedPort=i;
-        hoveredSubPort=i;
-      }
-    }
-
-    if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) return true;
   }
+
+  // input ports
+  for (int i=0; i<ins; i++) {
+    String portLabel="input";
+    String subPortID=fmt::sprintf("subPort%.5x",(portSetID<<4)|i);
+    if (ins==2) {
+      portLabel=portNamesStereo[i&1];
+    } else if (ins>2) {
+      portLabel=fmt::sprintf("%d",i+1);
+    }
+    ImVec2 portLabelSize=ImGui::CalcTextSize(portLabel.c_str());
+
+    ImVec2 portMin=ImVec2(
+      minArea.x,
+      minArea.y+style.FramePadding.y+labelSize.y+style.ItemSpacing.y+(style.ItemSpacing.y+portLabelSize.y+style.FramePadding.y)*i
+    );
+    ImVec2 portMax=ImVec2(
+      minArea.x+portLabelSize.x+style.FramePadding.x,
+      portMin.y+style.FramePadding.y+portLabelSize.y
+    );
+    ImRect portRect=ImRect(portMin,portMax);
+    ImVec2 portLabelPos=portMin;
+    portLabelPos.x+=style.FramePadding.x*0.5;
+    portLabelPos.y+=style.FramePadding.y*0.5;
+
+    portPos[(portSetID<<4)|i]=ImLerp(portMin,portMax,ImVec2(0.0f,0.5f));
+
+    if (visible) {
+      if (ImGui::ItemAdd(portRect,ImGui::GetID(subPortID.c_str()))) {
+        dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32(portColor),0.0f);
+        dl->AddRect(portMin,portMax,ImGui::GetColorU32(portBorderColor),0.0f,dpiScale);
+        dl->AddText(portLabelPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),portLabel.c_str());
+      }
+
+      if (ImGui::IsMouseHoveringRect(portMin,portMax)) {
+        hoveredSubPort=i;
+        if (active) clickedPort=i;
+      }
+    }
+  }
+
+  // output ports
+  for (int i=0; i<outs; i++) {
+    String portLabel="output";
+    String subPortID=fmt::sprintf("subPort%.5x",(portSetID<<4)|i);
+    if (outs==2) {
+      portLabel=portNamesStereo[i&1];
+    } else if (outs>2) {
+      portLabel=fmt::sprintf("%d",i+1);
+    }
+    ImVec2 portLabelSize=ImGui::CalcTextSize(portLabel.c_str());
+
+    ImVec2 portMin=ImVec2(
+      maxArea.x-portLabelSize.x-style.FramePadding.x,
+      minArea.y+style.FramePadding.y+labelSize.y+style.ItemSpacing.y+(style.ItemSpacing.y+portLabelSize.y+style.FramePadding.y)*i
+    );
+    ImVec2 portMax=ImVec2(
+      maxArea.x,
+      portMin.y+style.FramePadding.y+portLabelSize.y
+    );
+    ImRect portRect=ImRect(portMin,portMax);
+    ImVec2 portLabelPos=portMin;
+    portLabelPos.x+=style.FramePadding.x*0.5;
+    portLabelPos.y+=style.FramePadding.y*0.5;
+
+    portPos[(portSetID<<4)|i]=ImLerp(portMin,portMax,ImVec2(1.0f,0.5f));
+
+    if (visible) {
+      if (ImGui::ItemAdd(portRect,ImGui::GetID(subPortID.c_str()))) {
+        dl->AddRectFilled(portMin,portMax,ImGui::GetColorU32(portColor),0.0f);
+        dl->AddRect(portMin,portMax,ImGui::GetColorU32(portBorderColor),0.0f,dpiScale);
+        dl->AddText(portLabelPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),portLabel.c_str());
+      }
+
+      if (ImGui::IsMouseHoveringRect(portMin,portMax)) {
+        if (active) clickedPort=i;
+        hoveredSubPort=i;
+    }
+    }
+  }
+
+  if (visible && hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) return true;
 
   return false;
 }
@@ -283,7 +290,7 @@ void FurnaceGUI::drawMixer() {
       ImVec2 topPos=ImGui::GetCursorPos();
       ImVec2 sysSize=calcPortSetSize("System",displayHiddenPorts?DIV_MAX_OUTPUTS:e->getAudioDescGot().outChans,0);
       topPos.x+=ImGui::GetContentRegionAvail().x-sysSize.x;
-      topPos.y+=(ImGui::GetContentRegionAvail().y-sysSize.y)*0.5+ImGui::GetScrollY();
+      if (ImGui::GetContentRegionAvail().y>sysSize.y) topPos.y+=(ImGui::GetContentRegionAvail().y-sysSize.y)*0.5+ImGui::GetScrollY();
 
       if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) selectedPortSet=0x1fff;
 
