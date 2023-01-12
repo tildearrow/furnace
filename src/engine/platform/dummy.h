@@ -37,7 +37,7 @@ class DivPlatformDummy: public DivDispatch {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     void muteChannel(int ch, bool mute);
     int dispatch(DivCommand c);
     void* getChanState(int chan);

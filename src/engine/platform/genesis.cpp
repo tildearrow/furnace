@@ -132,11 +132,11 @@ void DivPlatformGenesis::processDAC(int iRate) {
   }
 }
 
-void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
   static short o[2];
   static int os[2];
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     processDAC(rate);
 
     os[0]=0; os[1]=0;
@@ -186,17 +186,17 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
   }
 }
 
-void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
   static int os[2];
 
   ymfm::ym2612::fm_engine* fme=fm_ymfm->debug_engine();
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     processDAC(rate);
   
     os[0]=0; os[1]=0;
@@ -242,16 +242,16 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
   }
 }
 
-void DivPlatformGenesis::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformGenesis::acquire(short** buf, size_t len) {
   if (useYMFM) {
-    acquire_ymfm(bufL,bufR,start,len);
+    acquire_ymfm(buf,len);
   } else {
-    acquire_nuked(bufL,bufR,start,len);
+    acquire_nuked(buf,len);
   }
 }
 
@@ -1193,8 +1193,8 @@ void DivPlatformGenesis::reset() {
   delay=0;
 }
 
-bool DivPlatformGenesis::isStereo() {
-  return true;
+int DivPlatformGenesis::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformGenesis::keyOffAffectsArp(int ch) {

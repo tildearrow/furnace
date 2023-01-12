@@ -55,12 +55,12 @@ const char** DivPlatformTX81Z::getRegisterSheet() {
   return regCheatSheetOPZ;
 }
 
-void DivPlatformTX81Z::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformTX81Z::acquire(short** buf, size_t len) {
   static int os[2];
 
   ymfm::ym2414::fm_engine* fme=fm_ymfm->debug_engine();
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
       if (--delay<1) {
@@ -87,8 +87,8 @@ void DivPlatformTX81Z::acquire(short* bufL, short* bufR, size_t start, size_t le
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
   }
 }
 
@@ -947,8 +947,8 @@ void DivPlatformTX81Z::setFlags(const DivConfig& flags) {
   }
 }
 
-bool DivPlatformTX81Z::isStereo() {
-  return true;
+int DivPlatformTX81Z::getOutputCount() {
+  return 2;
 }
 
 int DivPlatformTX81Z::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

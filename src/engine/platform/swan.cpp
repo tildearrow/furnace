@@ -50,8 +50,8 @@ const char** DivPlatformSwan::getRegisterSheet() {
   return regCheatSheetWS;
 }
 
-void DivPlatformSwan::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformSwan::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     // PCM part
     if (pcm && dacSample!=-1) {
       dacPeriod+=dacRate;
@@ -83,8 +83,8 @@ void DivPlatformSwan::acquire(short* bufL, short* bufR, size_t start, size_t len
     int16_t samp[2]{0, 0};
     ws->SoundUpdate(16);
     ws->SoundFlush(samp, 1);
-    bufL[h]=samp[0];
-    bufR[h]=samp[1];
+    buf[0][h]=samp[0];
+    buf[1][h]=samp[1];
     for (int i=0; i<4; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=(ws->sample_cache[i][0]+ws->sample_cache[i][1])<<6;
     }
@@ -490,8 +490,8 @@ void DivPlatformSwan::reset() {
   rWrite(0x11,0x09); // enable speakers
 }
 
-bool DivPlatformSwan::isStereo() {
-  return true;
+int DivPlatformSwan::getOutputCount() {
+  return 2;
 }
 
 void DivPlatformSwan::notifyWaveChange(int wave) {

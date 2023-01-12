@@ -51,7 +51,7 @@ inline void DivPlatformGA20::chWrite(unsigned char ch, unsigned int addr, unsign
   }
 }
 
-void DivPlatformGA20::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformGA20::acquire(short** buf, size_t len) {
   if (ga20BufLen<len) {
     ga20BufLen=len;
     for (int i=0; i<4; i++) {
@@ -60,7 +60,7 @@ void DivPlatformGA20::acquire(short* bufL, short* bufR, size_t start, size_t len
     }
   }
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     if ((--delay)<=0) {
       delay=MAX(0,delay);
       if (!writes.empty()) {
@@ -73,7 +73,7 @@ void DivPlatformGA20::acquire(short* bufL, short* bufR, size_t start, size_t len
     }
     short *buffer[4] = {&ga20Buf[0][h],&ga20Buf[1][h],&ga20Buf[2][h],&ga20Buf[3][h]};
     ga20.sound_stream_update(buffer, 1);
-    bufL[h]=(signed int)(ga20Buf[0][h]+ga20Buf[1][h]+ga20Buf[2][h]+ga20Buf[3][h])>>2;
+    buf[0][h]=(signed int)(ga20Buf[0][h]+ga20Buf[1][h]+ga20Buf[2][h]+ga20Buf[3][h])>>2;
     for (int i=0; i<4; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=ga20Buf[i][h];
     }
@@ -361,8 +361,8 @@ void DivPlatformGA20::reset() {
   }
 }
 
-bool DivPlatformGA20::isStereo() {
-  return false;
+int DivPlatformGA20::getOutputCount() {
+  return 1;
 }
 
 void DivPlatformGA20::notifyInsChange(int ins) {

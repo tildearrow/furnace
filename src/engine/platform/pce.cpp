@@ -53,8 +53,8 @@ const char** DivPlatformPCE::getRegisterSheet() {
   return regCheatSheetPCE;
 }
 
-void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformPCE::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     // PCM part
     for (int i=0; i<6; i++) {
       if (chan[i].pcm && chan[i].dacSample!=-1) {
@@ -113,8 +113,8 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
     if (tempR[0]>32767) tempR[0]=32767;
     
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
-    bufL[h]=tempL[0];
-    bufR[h]=tempR[0];
+    buf[0][h]=tempL[0];
+    buf[1][h]=tempR[0];
   }
 }
 
@@ -547,8 +547,8 @@ void DivPlatformPCE::reset() {
   delay=500;
 }
 
-bool DivPlatformPCE::isStereo() {
-  return true;
+int DivPlatformPCE::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformPCE::keyOffAffectsArp(int ch) {
