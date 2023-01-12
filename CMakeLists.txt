@@ -753,7 +753,7 @@ if (WARNINGS_ARE_ERRORS)
   )
 endif()
 
-if (MSVC)
+if (WIN32)
   add_executable(furnace WIN32 ${USED_SOURCES})
 elseif(ANDROID AND NOT TERMUX)
   add_library(furnace SHARED ${USED_SOURCES})
