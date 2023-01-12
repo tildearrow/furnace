@@ -849,6 +849,9 @@ class DivEngine {
     // returns false if connection doesn't exist
     bool patchDisconnect(unsigned int src, unsigned int dest);
 
+    // disconnect all in patchbay
+    void patchDisconnectAll(unsigned int portSet);
+
     // play note
     void noteOn(int chan, int ins, int note, int vol=-1);
 

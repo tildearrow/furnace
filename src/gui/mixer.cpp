@@ -107,13 +107,18 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
     hovered=ImGui::ItemHoverable(rect,ImGui::GetID(portID.c_str()));
     active=(hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Left));
 
+    if (hovered && ImGui::IsMouseClicked(ImGuiMouseButton_Right)) {
+      ImGui::OpenPopup("SubPortOptions");
+      selectedPortSet=portSetID;
+      clickedPort=-1;
+    }
 
     if (hovered) hoveredPortSet=portSetID;
     if (active) clickedPort=-1;
 
     // label
     dl->AddRectFilled(minArea,maxArea,ImGui::GetColorU32(portSetColor),0.0f);
-    dl->AddRect(minArea,maxArea,ImGui::GetColorU32(portSetBorderColor),0.0f,dpiScale);
+    dl->AddRect(minArea,maxArea,ImGui::GetColorU32((selectedPortSet==portSetID)?uiColors[GUI_COLOR_TEXT]:portSetBorderColor),0.0f,0,dpiScale);
     dl->AddText(ImGui::GetFont(),ImGui::GetFontSize(),textPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),label.c_str(),NULL,ImGui::GetWindowSize().x*0.6f);
   }
 
@@ -385,6 +390,7 @@ void FurnaceGUI::drawMixer() {
             if (!e->patchConnect(src,dest)) {
               e->patchDisconnect(src,dest);
             }
+            MARK_MODIFIED;
           }
         }
       }
@@ -410,6 +416,13 @@ void FurnaceGUI::drawMixer() {
         } catch (std::out_of_range& e) {
         }
       }
+    }
+    if (ImGui::BeginPopup("SubPortOptions",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      if (ImGui::MenuItem("disconnect all")) {
+        e->patchDisconnectAll(selectedPortSet);
+        MARK_MODIFIED;
+      }
+      ImGui::EndPopup();
     }
     ImGui::EndChild();
   }

@@ -3879,6 +3879,34 @@ bool DivEngine::patchDisconnect(unsigned int src, unsigned int dest) {
   return false;
 }
 
+void DivEngine::patchDisconnectAll(unsigned int portSet) {
+  BUSY_BEGIN;
+  saveLock.lock();
+
+  if (portSet&0x1000) {
+    portSet&=0xfff;
+
+    for (size_t i=0; i<song.patchbay.size(); i++) {
+      if ((song.patchbay[i]&0xfff0)==(portSet<<4)) {
+        song.patchbay.erase(song.patchbay.begin()+i);
+        i--;
+      }
+    }
+  } else {
+    portSet&=0xfff;
+
+    for (size_t i=0; i<song.patchbay.size(); i++) {
+      if ((song.patchbay[i]&0xfff00000)==(portSet<<20)) {
+        song.patchbay.erase(song.patchbay.begin()+i);
+        i--;
+      }
+    }
+  }
+
+  saveLock.unlock();
+  BUSY_END;
+}
+
 void DivEngine::noteOn(int chan, int ins, int note, int vol) {
   if (chan<0 || chan>=chans) return;
   BUSY_BEGIN;
