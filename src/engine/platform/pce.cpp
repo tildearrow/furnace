@@ -242,7 +242,7 @@ void DivPlatformPCE::tick(bool sysTick) {
         chan[i].dacRate=((double)chipClock/2)/MAX(1,off*chan[i].freq);
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
       }
-      if (chan[i].freq<0) chan[i].freq=0;
+      if (chan[i].freq<1) chan[i].freq=1;
       if (chan[i].freq>4095) chan[i].freq=4095;
       chWrite(i,0x02,chan[i].freq&0xff);
       chWrite(i,0x03,chan[i].freq>>8);
