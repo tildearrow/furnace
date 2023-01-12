@@ -2014,7 +2014,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Sammy/Seta/Visco SSV", {
-      CH(DIV_SYSTEM_ES5506, 64, 0, "channels=31")
+      CH(DIV_SYSTEM_ES5506, 1.0f, 0, "channels=31")
     }
   );
   ENTRY(
@@ -2431,7 +2431,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Ensoniq ES5506 (OTTO)", {
-      CH(DIV_SYSTEM_ES5506, 64, 0, "channels=31")
+      CH(DIV_SYSTEM_ES5506, 1.0f, 0, "channels=31")
     }
   );
   CATEGORY_END;
