@@ -715,6 +715,17 @@ void DivPlatformYM2608::tick(bool sysTick) {
       }
       chan[15].freqChanged=true;
     }
+
+    if (chan[15].std.pitch.had) {
+      if (chan[15].std.pitch.mode) {
+        chan[15].pitch2+=chan[15].std.pitch.val;
+        CLAMP_VAR(chan[15].pitch2,-65535,65535);
+      } else {
+        chan[15].pitch2=chan[15].std.pitch.val;
+      }
+      chan[15].freqChanged=true;
+    }
+
     if (chan[15].std.panL.had) {
       if (chan[15].pan!=(chan[15].std.panL.val&3)) {
         chan[15].pan=chan[15].std.panL.val&3;
