@@ -283,8 +283,8 @@ const char* es5506FilterModes[4]={
   "HP/K2, HP/K2", "HP/K2, LP/K1", "LP/K2, LP/K2", "LP/K2, LP/K1",
 };
 
-const char* panBits[3]={
-  "right", "left", NULL
+const char* panBits[5]={
+  "right", "left", "rear right", "rear left", NULL
 };
 
 const char* oneBit[2]={
@@ -1850,6 +1850,7 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
     case 2: {
       int columns=round(ImGui::GetContentRegionAvail().x/(400.0*dpiScale));
       int curColumn=0;
+      if (columns<1) columns=1;
       if (ImGui::BeginTable("MacroGrid",columns,ImGuiTableFlags_BordersInner)) {
         for (FurnaceGUIMacroDesc& i: macros) {
           if (curColumn==0) ImGui::TableNextRow();
@@ -4295,12 +4296,6 @@ void FurnaceGUI::drawInsEdit() {
               }
               ImGui::EndCombo();
             }
-            ImGui::BeginDisabled(ins->amiga.useWave);
-            bool reversed=ins->amiga.reversed==DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_ENABLE;
-            if (ImGui::Checkbox("Reversed playback",&reversed)) { PARAMETER
-              ins->amiga.reversed=reversed?DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_ENABLE:DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DISABLE;
-            }
-            ImGui::EndDisabled();
             // Wavetable
             if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SNES) {
               ImGui::BeginDisabled(ins->amiga.useNoteMap);
@@ -4332,11 +4327,10 @@ void FurnaceGUI::drawInsEdit() {
             P(ImGui::Checkbox("Use sample map",&ins->amiga.useNoteMap));
             if (ins->amiga.useNoteMap) {
               // TODO: frequency map?
-              if (ImGui::BeginTable("NoteMap",3/*4*/,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
+              if (ImGui::BeginTable("NoteMap",2/*3*/,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
                 ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
-                ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
-                //ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
+                //ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
 
                 ImGui::TableSetupScrollFreeze(0,1);
 
@@ -4346,8 +4340,6 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::Text("Sample");
                 /*ImGui::TableNextColumn();
                 ImGui::Text("Frequency");*/
-                ImGui::TableNextColumn();
-                ImGui::Text("Reversed");
                 for (int i=0; i<120; i++) {
                   DivInstrumentAmiga::SampleMap& sampleMap=ins->amiga.noteMap[i];
                   ImGui::TableNextRow();
@@ -4383,16 +4375,6 @@ void FurnaceGUI::drawInsEdit() {
                     if (sampleMap.freq>262144) sampleMap.freq=262144;
                   }
                   */
-                  ImGui::TableNextColumn();
-                  if (ImGui::RadioButton(fmt::sprintf("Disable##SampleMap_Reversed_Disable_%d",i).c_str(),sampleMap.reversed==DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DISABLE)) { MARK_MODIFIED
-                    sampleMap.reversed=DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DISABLE;
-                  }
-                  if (ImGui::RadioButton(fmt::sprintf("Enable##SampleMap_Reversed_Enable_%d",i).c_str(),sampleMap.reversed==DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_ENABLE)) { MARK_MODIFIED
-                    sampleMap.reversed=DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_ENABLE;
-                  }
-                  if (ImGui::RadioButton(fmt::sprintf("Use instrument setting##SampleMap_Reversed_Default_%d",i).c_str(),sampleMap.reversed==DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DEFAULT)) { MARK_MODIFIED
-                    sampleMap.reversed=DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DEFAULT;
-                  }
                   ImGui::PopID();
                 }
                 ImGui::EndTable();
@@ -5240,15 +5222,18 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_STD ||//Game Gear
               ins->type==DIV_INS_FM ||
               ins->type==DIV_INS_OPM ||
-              ins->type==DIV_INS_OPL ||
-              ins->type==DIV_INS_OPL_DRUMS ||
               ins->type==DIV_INS_GB ||
               ins->type==DIV_INS_OPZ ||
               ins->type==DIV_INS_MSM6258 ||
               ins->type==DIV_INS_VERA ||
               ins->type==DIV_INS_ADPCMA ||
               ins->type==DIV_INS_ADPCMB) {
-            panMax=1;
+            panMax=2;
+            panSingle=true;
+          }
+          if (ins->type==DIV_INS_OPL ||
+              ins->type==DIV_INS_OPL_DRUMS) {
+            panMax=4;
             panSingle=true;
           }
           if (ins->type==DIV_INS_X1_010 || ins->type==DIV_INS_PCE || ins->type==DIV_INS_MIKEY ||
@@ -5313,7 +5298,7 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (panMax>0) {
             if (panSingle) {
-              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
+              macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,0,panMax,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,panBits));
             } else if (ins->type==DIV_INS_QSOUND) {
               macroList.push_back(FurnaceGUIMacroDesc("Panning",&ins->std.panLMacro,panMin,panMax,CLAMP(31+panMax-panMin,32,160),uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc("Surround",&ins->std.panRMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
@@ -5450,6 +5435,7 @@ void FurnaceGUI::drawInsEdit() {
             macroList.push_back(FurnaceGUIMacroDesc("Envelope K1 ramp",&ins->std.ex6Macro,-128,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("Envelope K2 ramp",&ins->std.ex7Macro,-128,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("Envelope mode",&ins->std.ex8Macro,0,2,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,es5506EnvelopeModes));
+            macroList.push_back(FurnaceGUIMacroDesc("Channel assignment",&ins->std.fbMacro,0,5,64,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("Control",&ins->std.algMacro,0,2,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,es5506ControlModes));
           }
           if (ins->type==DIV_INS_MSM5232) {

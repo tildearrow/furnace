@@ -931,6 +931,7 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("  - RVRamp: %d",ch->overwrite.envelope.rVRamp);
       ImGui::Text("  - K1Ramp: %d",ch->overwrite.envelope.k1Ramp);
       ImGui::Text("  - K2Ramp: %d",ch->overwrite.envelope.k2Ramp);
+      ImGui::Text("- CA: %.2x",ch->ca);
       ImGui::Text("- LVol: %.2x",ch->lVol);
       ImGui::Text("- RVol: %.2x",ch->rVol);
       ImGui::Text("- outLVol: %.2x",ch->outLVol);
@@ -954,7 +955,6 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->pcmChanged.position?colorOn:colorOff,">> PCMPositionChanged");
       ImGui::TextColored(ch->pcmChanged.loopBank?colorOn:colorOff,">> PCMLoopBankChanged");
       ImGui::TextColored(ch->isReverseLoop?colorOn:colorOff,">> IsReverseLoop");
-      ImGui::TextColored(ch->pcm.reversed?colorOn:colorOff,">> PCMReversed");
       ImGui::TextColored(ch->pcm.pause?colorOn:colorOff,">> PCMPause");
       ImGui::TextColored(ch->pcm.direction?colorOn:colorOff,">> PCMDirection");
       ImGui::TextColored(ch->envelope.k1Slow?colorOn:colorOff,">> EnvK1Slow");

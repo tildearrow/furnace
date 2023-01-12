@@ -32,13 +32,12 @@
 class DivPlatformES5506: public DivDispatch, public es550x_intf {
   struct Channel : public SharedChannel<unsigned int> {
     struct PCM {
-      bool isReversed() { return reversed^direction; }
       bool isNoteMap;
       int index, next;
       int note;
       double freqOffs;
       double nextFreqOffs;
-      bool reversed, pause, direction;
+      bool pause, direction;
       unsigned int bank;
       unsigned int start;
       unsigned int end;
@@ -54,7 +53,6 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         note(0),
         freqOffs(1.0),
         nextFreqOffs(1.0),
-        reversed(false),
         pause(false),
         direction(false),
         bank(0),
@@ -91,7 +89,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         struct { // flag bits
           unsigned char lVol: 1; // left volume
           unsigned char rVol: 1; // right volume
-          unsigned char dummy: 6; // dummy for bit padding
+          unsigned char ca: 1; // Channel assignment
+          unsigned char dummy: 5; // dummy for bit padding
         };
         unsigned char changed; // Packed flags are stored here
       };
@@ -176,6 +175,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         state(State()) {}
     } overwrite;
 
+    unsigned char ca;
     signed int k1Offs, k2Offs;
     signed int k1Slide, k2Slide;
     signed int k1Prev, k2Prev;
@@ -214,6 +214,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       envChanged(EnvChanged()),
       pcmChanged(PCMChanged()),
       overwrite(Overwrite()),
+      ca(0),
       k1Offs(0),
       k2Offs(0),
       k1Slide(0),
@@ -303,7 +304,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       return sampleMem[((bank&3)<<21)|(address&0x1fffff)];
     }
 
-    virtual void acquire(short* bufL, short* bufR, size_t start, size_t len) override;
+    virtual void acquire(short** buf, size_t len) override;
     virtual int dispatch(DivCommand c) override;
     virtual void* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
@@ -314,7 +315,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     virtual void forceIns() override;
     virtual void tick(bool sysTick=true) override;
     virtual void muteChannel(int ch, bool mute) override;
-    virtual bool isStereo() override;
+    virtual int getOutputCount() override;
     virtual bool keyOffAffectsArp(int ch) override;
     virtual void setFlags(const DivConfig& flags) override;
     virtual void notifyInsChange(int ins) override;

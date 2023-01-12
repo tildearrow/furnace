@@ -372,24 +372,15 @@ struct DivInstrumentC64 {
 };
 
 struct DivInstrumentAmiga {
-  enum DivReverseMode: unsigned char {
-    DIV_REVERSE_DISABLE=0,
-    DIV_REVERSE_ENABLE,
-    DIV_REVERSE_DEFAULT
-  };
-
   struct SampleMap {
     int freq;
     short map;
-    DivInstrumentAmiga::DivReverseMode reversed;
-    SampleMap(int f=0, short m=-1, DivInstrumentAmiga::DivReverseMode r=DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DEFAULT):
+    SampleMap(int f=0, short m=-1):
       freq(f),
-      map(m),
-      reversed(r) {}
+      map(m) {}
   };
 
   short initSample;
-  DivInstrumentAmiga::DivReverseMode reversed;
   bool useNoteMap;
   bool useSample;
   bool useWave;
@@ -427,22 +418,8 @@ struct DivInstrumentAmiga {
     return -1;
   }
 
-  /**
-   * get the sample reversed flag at specified note.
-   * @return the reversed flag.
-   */
-  inline DivInstrumentAmiga::DivReverseMode getReversed(int note) {
-    if (useNoteMap) {
-      if (note<0) note=0;
-      if (note>119) note=119;
-      return noteMap[note].reversed;
-    }
-    return reversed;
-  }
-
   DivInstrumentAmiga():
     initSample(0),
-    reversed(DivInstrumentAmiga::DivReverseMode::DIV_REVERSE_DISABLE),
     useNoteMap(false),
     useSample(false),
     useWave(false),

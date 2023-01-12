@@ -56,9 +56,9 @@ void DivPlatformGenesis::processDAC(int iRate) {
           DivSample* s=parent->getSample(chan[i].dacSample);
           if (!isMuted[i] && s->samples>0) {
             if (parent->song.noOPN2Vol) {
-              chan[i].dacOutput=s->data8[chan[i].getDacDirection()?(s->samples-chan[i].dacPos-1):chan[i].dacPos];
+              chan[i].dacOutput=s->data8[chan[i].dacDirection?(s->samples-chan[i].dacPos-1):chan[i].dacPos];
             } else {
-              chan[i].dacOutput=(s->data8[chan[i].getDacDirection()?(s->samples-chan[i].dacPos-1):chan[i].dacPos]*dacVolTable[chan[i].outVol])>>7;
+              chan[i].dacOutput=(s->data8[chan[i].dacDirection?(s->samples-chan[i].dacPos-1):chan[i].dacPos]*dacVolTable[chan[i].outVol])>>7;
             }
             sample+=chan[i].dacOutput;
           } else {
@@ -106,9 +106,9 @@ void DivPlatformGenesis::processDAC(int iRate) {
             if (chan[5].dacReady && writes.size()<16) {
               int sample;
               if (parent->song.noOPN2Vol) {
-                sample=s->data8[chan[5].getDacDirection()?(s->samples-chan[5].dacPos-1):chan[5].dacPos];
+                sample=s->data8[chan[5].dacDirection?(s->samples-chan[5].dacPos-1):chan[5].dacPos];
               } else {
-                sample=(s->data8[chan[5].getDacDirection()?(s->samples-chan[5].dacPos-1):chan[5].dacPos]*dacVolTable[chan[5].outVol])>>7;
+                sample=(s->data8[chan[5].dacDirection?(s->samples-chan[5].dacPos-1):chan[5].dacPos]*dacVolTable[chan[5].outVol])>>7;
               }
               urgentWrite(0x2a,(unsigned char)sample+0x80);
               chan[5].dacReady=false;
@@ -132,11 +132,11 @@ void DivPlatformGenesis::processDAC(int iRate) {
   }
 }
 
-void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
   static short o[2];
   static int os[2];
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     processDAC(rate);
 
     os[0]=0; os[1]=0;
@@ -186,17 +186,17 @@ void DivPlatformGenesis::acquire_nuked(short* bufL, short* bufR, size_t start, s
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
   }
 }
 
-void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
   static int os[2];
 
   ymfm::ym2612::fm_engine* fme=fm_ymfm->debug_engine();
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     processDAC(rate);
   
     os[0]=0; os[1]=0;
@@ -242,16 +242,16 @@ void DivPlatformGenesis::acquire_ymfm(short* bufL, short* bufR, size_t start, si
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
   }
 }
 
-void DivPlatformGenesis::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformGenesis::acquire(short** buf, size_t len) {
   if (useYMFM) {
-    acquire_ymfm(bufL,bufR,start,len);
+    acquire_ymfm(buf,len);
   } else {
-    acquire_nuked(bufL,bufR,start,len);
+    acquire_nuked(buf,len);
   }
 }
 
@@ -594,11 +594,10 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
             if (dumpWrites) addWrite(0xffff0002,0);
             break;
           } else {
-            chan[c.chan].dacReversed=ins->amiga.getReversed(c.value);
             rWrite(0x2b,1<<7);
             if (dumpWrites) {
               addWrite(0xffff0000,chan[c.chan].dacSample);
-              addWrite(0xffff0003,chan[c.chan].getDacDirection());
+              addWrite(0xffff0003,chan[c.chan].dacDirection);
             }
           }
           chan[c.chan].dacPos=0;
@@ -637,7 +636,6 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
           chan[c.chan].dacRate=MAX(1,parent->getSample(chan[c.chan].dacSample)->rate);
           if (dumpWrites) addWrite(0xffff0001,parent->getSample(chan[c.chan].dacSample)->rate);
           chan[c.chan].furnaceDac=false;
-          chan[c.chan].dacReversed=false;
         }
         break;
       }
@@ -859,7 +857,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
     case DIV_CMD_SAMPLE_DIR: {
       if (c.chan<5) c.chan=5;
       chan[c.chan].dacDirection=c.value;
-      if (dumpWrites) addWrite(0xffff0003,chan[c.chan].getDacDirection());
+      if (dumpWrites) addWrite(0xffff0003,chan[c.chan].dacDirection);
       break;
     }
     case DIV_CMD_LEGATO: {
@@ -1198,8 +1196,8 @@ void DivPlatformGenesis::reset() {
   delay=0;
 }
 
-bool DivPlatformGenesis::isStereo() {
-  return true;
+int DivPlatformGenesis::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformGenesis::keyOffAffectsArp(int ch) {

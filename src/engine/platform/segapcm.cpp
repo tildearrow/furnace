@@ -26,10 +26,10 @@
 //#define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 //#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSegaPCM::acquire(short** buf, size_t len) {
   static int os[2];
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     // do a PCM cycle
     pcmL=0; pcmR=0;
@@ -67,8 +67,8 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
   }
 }
 
@@ -502,8 +502,8 @@ void DivPlatformSegaPCM::setFlags(const DivConfig& flags) {
   }
 }
 
-bool DivPlatformSegaPCM::isStereo() {
-  return true;
+int DivPlatformSegaPCM::getOutputCount() {
+  return 2;
 }
 
 int DivPlatformSegaPCM::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

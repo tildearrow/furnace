@@ -101,6 +101,7 @@ struct _opl3_channel {
     uint8_t alg;
     uint8_t ksv;
     uint16_t cha, chb;
+    uint16_t chc, chd;
     uint8_t ch_num;
     uint8_t muted;
 };
@@ -129,7 +130,7 @@ struct _opl3_chip {
     uint8_t tremoloshift;
     uint32_t noise;
     int16_t zeromod;
-    int32_t mixbuff[2];
+    int32_t mixbuff[4];
     uint8_t rm_hh_bit2;
     uint8_t rm_hh_bit3;
     uint8_t rm_hh_bit7;
@@ -144,8 +145,8 @@ struct _opl3_chip {
     /* OPL3L */
     int32_t rateratio;
     int32_t samplecnt;
-    int16_t oldsamples[2];
-    int16_t samples[2];
+    int16_t oldsamples[4];
+    int16_t samples[4];
 
     uint64_t writebuf_samplecnt;
     uint32_t writebuf_cur;
@@ -160,6 +161,10 @@ void OPL3_Reset(opl3_chip *chip, uint32_t samplerate);
 void OPL3_WriteReg(opl3_chip *chip, uint16_t reg, uint8_t v);
 void OPL3_WriteRegBuffered(opl3_chip *chip, uint16_t reg, uint8_t v);
 void OPL3_GenerateStream(opl3_chip *chip, int16_t *sndptr, uint32_t numsamples);
+
+void OPL3_Generate4Ch(opl3_chip *chip, int16_t *buf4);
+void OPL3_Generate4ChResampled(opl3_chip *chip, int16_t *buf4);
+void OPL3_Generate4ChStream(opl3_chip *chip, int16_t *sndptr1, int16_t *sndptr2, uint32_t numsamples);
 
 #ifdef __cplusplus
 }
