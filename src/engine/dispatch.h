@@ -213,6 +213,8 @@ enum DivDispatchCmds {
   DIV_CMD_MACRO_OFF, // (which)
   DIV_CMD_MACRO_ON, // (which)
 
+  DIV_CMD_SURROUND_PANNING, // (out, val)
+
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
   DIV_CMD_MAX
@@ -322,12 +324,10 @@ class DivDispatch {
 
     /**
      * fill a buffer with sound data.
-     * @param bufL the left or mono channel buffer.
-     * @param bufR the right channel buffer.
-     * @param start the start offset.
+     * @param buf pointers to output buffers.
      * @param len the amount of samples to fill.
      */
-    virtual void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    virtual void acquire(short** buf, size_t len);
 
     /**
      * fill a write stream with data (e.g. for software-mixed PCM).
@@ -413,10 +413,10 @@ class DivDispatch {
     virtual void muteChannel(int ch, bool mute);
 
     /**
-     * test whether this dispatch outputs audio in two channels.
-     * @return whether it does.
+     * get the number of outputs this dispatch provides.
+     * @return number of outputs (usually 1 or 2 but may be more). SHALL NOT be less than one.
      */
-    virtual bool isStereo();
+    virtual int getOutputCount();
 
     /**
      * test whether sending a key off command to a channel should reset arp too.

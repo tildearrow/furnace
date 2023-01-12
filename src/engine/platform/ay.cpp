@@ -169,7 +169,7 @@ void DivPlatformAY8910::checkWrites() {
   }
 }
 
-void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformAY8910::acquire(short** buf, size_t len) {
   if (ayBufLen<len) {
     ayBufLen=len;
     for (int i=0; i<3; i++) {
@@ -184,8 +184,8 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
       checkWrites();
 
       ay->sound_stream_update(ayBuf,1);
-      bufL[i+start]=ayBuf[0][0];
-      bufR[i+start]=bufL[i+start];
+      buf[0][i]=ayBuf[0][0];
+      buf[1][i]=buf[0][i];
 
       oscBuf[0]->data[oscBuf[0]->needle++]=sunsoftVolTable[31-(ay->lastIndx&31)]>>3;
       oscBuf[1]->data[oscBuf[1]->needle++]=sunsoftVolTable[31-((ay->lastIndx>>5)&31)]>>3;
@@ -198,11 +198,11 @@ void DivPlatformAY8910::acquire(short* bufL, short* bufR, size_t start, size_t l
 
       ay->sound_stream_update(ayBuf,1);
       if (stereo) {
-        bufL[i+start]=ayBuf[0][0]+ayBuf[1][0]+((ayBuf[2][0]*stereoSep)>>8);
-        bufR[i+start]=((ayBuf[0][0]*stereoSep)>>8)+ayBuf[1][0]+ayBuf[2][0];
+        buf[0][i]=ayBuf[0][0]+ayBuf[1][0]+((ayBuf[2][0]*stereoSep)>>8);
+        buf[1][i]=((ayBuf[0][0]*stereoSep)>>8)+ayBuf[1][0]+ayBuf[2][0];
       } else {
-        bufL[i+start]=ayBuf[0][0]+ayBuf[1][0]+ayBuf[2][0];
-        bufR[i+start]=bufL[i+start];
+        buf[0][i]=ayBuf[0][0]+ayBuf[1][0]+ayBuf[2][0];
+        buf[1][i]=buf[0][i];
       }
 
       oscBuf[0]->data[oscBuf[0]->needle++]=ayBuf[0][0]<<2;
@@ -751,8 +751,8 @@ void DivPlatformAY8910::reset() {
   portBVal=0;
 }
 
-bool DivPlatformAY8910::isStereo() {
-  return true;
+int DivPlatformAY8910::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformAY8910::keyOffAffectsArp(int ch) {

@@ -75,9 +75,9 @@ const char** DivPlatformAmiga::getRegisterSheet() {
     if (chan[i+1].freq<AMIGA_DIVIDER) chan[i+1].freq=AMIGA_DIVIDER; \
   }
 
-void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformAmiga::acquire(short** buf, size_t len) {
   static int outL, outR, output;
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     outL=0;
     outR=0;
     for (int i=0; i<4; i++) {
@@ -142,8 +142,8 @@ void DivPlatformAmiga::acquire(short* bufL, short* bufR, size_t start, size_t le
     filter[0][1]+=(filtConst*(filter[0][0]-filter[0][1]))>>12;
     filter[1][0]+=(filtConst*(outR-filter[1][0]))>>12;
     filter[1][1]+=(filtConst*(filter[1][0]-filter[1][1]))>>12;
-    bufL[h]=filter[0][1];
-    bufR[h]=filter[1][1];
+    buf[0][h]=filter[0][1];
+    buf[1][h]=filter[1][1];
   }
 }
 
@@ -401,8 +401,8 @@ void DivPlatformAmiga::reset() {
   filtConst=filterOn?filtConstOn:filtConstOff;
 }
 
-bool DivPlatformAmiga::isStereo() {
-  return true;
+int DivPlatformAmiga::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformAmiga::keyOffAffectsArp(int ch) {

@@ -45,7 +45,7 @@ class DivPlatformPET: public DivDispatch {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -57,7 +57,7 @@ class DivPlatformPET: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void notifyInsDeletion(void* ins);
-    bool isStereo();
+    int getOutputCount();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

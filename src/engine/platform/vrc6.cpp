@@ -46,8 +46,8 @@ const char** DivPlatformVRC6::getRegisterSheet() {
   return regCheatSheetVRC6;
 }
 
-void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t i=start; i<start+len; i++) {
+void DivPlatformVRC6::acquire(short** buf, size_t len) {
+  for (size_t i=0; i<len; i++) {
     // PCM part
     for (int i=0; i<2; i++) {
       if (chan[i].pcm && chan[i].dacSample!=-1) {
@@ -81,7 +81,7 @@ void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len
     int sample=vrc6.out()<<9; // scale to 16 bit
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
-    bufL[i]=bufR[i]=sample;
+    buf[0][i]=buf[1][i]=sample;
 
     // Oscilloscope buffer part
     if (++writeOscBuf>=32) {

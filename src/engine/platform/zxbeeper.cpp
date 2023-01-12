@@ -27,9 +27,9 @@ const char** DivPlatformZXBeeper::getRegisterSheet() {
   return NULL;
 }
 
-void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformZXBeeper::acquire(short** buf, size_t len) {
   bool o=false;
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     // clock here
     if (curSample>=0 && curSample<parent->song.sampleLen) {
       if (--curSamplePeriod<0) {
@@ -46,7 +46,7 @@ void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t
         }
       }
       o=sampleOut;
-      bufL[h]=o?16384:0;
+      buf[0][h]=o?16384:0;
       oscBuf[0]->data[oscBuf[0]->needle++]=o?16384:-16384;
       continue;
     }
@@ -64,7 +64,7 @@ void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t
     }
     if (++curChan>=6) curChan=0;
     
-    bufL[h]=o?16384:0;
+    buf[0][h]=o?16384:0;
     oscBuf[0]->data[oscBuf[0]->needle++]=o?16384:-16384;
   }
 }
