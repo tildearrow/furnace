@@ -4435,6 +4435,9 @@ bool DivEngine::init() {
 
   samp_bbIn=new short[32768];
   samp_bbInLen=32768;
+
+  metroBuf=new float[8192];
+  metroBufLen=8192;
   
   blip_set_rates(samp_bb,44100,got.rate);
 
@@ -4479,6 +4482,11 @@ bool DivEngine::quit() {
   active=false;
   for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
     if (oscBuf[i]!=NULL) delete[] oscBuf[i];
+  }
+  if (metroBuf!=NULL) {
+    delete[] metroBuf;
+    metroBuf=NULL;
+    metroBufLen=0;
   }
   if (yrw801ROM!=NULL) delete[] yrw801ROM;
   if (tg100ROM!=NULL) delete[] tg100ROM;

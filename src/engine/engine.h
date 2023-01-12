@@ -427,6 +427,8 @@ class DivEngine {
   short* samp_bbOut;
   unsigned char* metroTick;
   size_t metroTickLen;
+  float* metroBuf;
+  size_t metroBufLen;
   float metroFreq, metroPos;
   float metroAmp;
   float metroVol;
@@ -1129,6 +1131,8 @@ class DivEngine {
       samp_bbOut(NULL),
       metroTick(NULL),
       metroTickLen(0),
+      metroBuf(NULL),
+      metroBufLen(0),
       metroFreq(0),
       metroPos(0),
       metroAmp(0.0f),

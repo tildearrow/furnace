@@ -1453,7 +1453,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
   
   // process audio
-  if (out!=NULL && ((sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) || (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size()))) {
+  if ((sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) || (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size())) {
     unsigned int samp_bbOff=0;
     unsigned int prevAvail=blip_samples_avail(samp_bb);
     if (prevAvail>size) prevAvail=size;
@@ -1590,134 +1590,144 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
     blip_end_frame(samp_bb,prevtotal);
     blip_read_samples(samp_bb,samp_bbOut+samp_bbOff,size-samp_bbOff,0);
-    for (size_t i=0; i<size; i++) {
-      for (int j=0; j<outChans; j++) {
-        out[j][i]+=(float)samp_bbOut[i]/32768.0;
-      }
-    }
+  } else {
+    memset(samp_bbOut,0,size*sizeof(short));
   }
 
-  if (!playing) {
-    if (out!=NULL) {
-      for (unsigned int i=0; i<size; i++) {
-        for (int j=0; j<outChans; j++) {
-          if (oscBuf[j]==NULL) continue;
-          oscBuf[j][oscWritePos]=out[j][i];
+  if (playing && !halted) {
+    // logic starts here
+    for (int i=0; i<song.systemLen; i++) {
+      // TODO: we may have a problem here
+      disCont[i].lastAvail=blip_samples_avail(disCont[i].bb[0]);
+      if (disCont[i].lastAvail>0) {
+        disCont[i].flush(disCont[i].lastAvail);
+      }
+      if (size<disCont[i].lastAvail) {
+        disCont[i].runtotal=0;
+      } else {
+        disCont[i].runtotal=blip_clocks_needed(disCont[i].bb[0],size-disCont[i].lastAvail);
+      }
+      if (disCont[i].runtotal>disCont[i].bbInLen) {
+        logD("growing dispatch %d bbIn to %d",i,disCont[i].runtotal+256);
+        disCont[i].grow(disCont[i].runtotal+256);
+      }
+      disCont[i].runLeft=disCont[i].runtotal;
+      disCont[i].runPos=0;
+    }
+
+    if (metroTickLen<size) {
+      if (metroTick!=NULL) delete[] metroTick;
+      metroTick=new unsigned char[size];
+      metroTickLen=size;
+    }
+
+    memset(metroTick,0,size);
+
+    int attempts=0;
+    int runLeftG=size<<MASTER_CLOCK_PREC;
+    while (++attempts<(int)size) {
+      // -1. set bufferPos
+      bufferPos=(size<<MASTER_CLOCK_PREC)-runLeftG;
+
+      // 0. check if we've halted
+      if (halted) break;
+      // 1. check whether we are done with all buffers
+      if (runLeftG<=0) break;
+
+      // 2. check whether we gonna tick
+      if (cycles<=0) {
+        // we have to tick
+        if (nextTick()) {
+          lastLoopPos=size-(runLeftG>>MASTER_CLOCK_PREC);
+          logD("last loop pos: %d for a size of %d and runLeftG of %d",lastLoopPos,size,runLeftG);
+          totalLoops++;
+          if (remainingLoops>0) {
+            remainingLoops--;
+            if (!remainingLoops) {
+              logI("end of song!");
+              remainingLoops=-1;
+              playing=false;
+              freelance=false;
+              extValuePresent=false;
+              break;
+            }
+          }
         }
-        if (++oscWritePos>=32768) oscWritePos=0;
-      }
-      oscSize=size;
-    }
-    isBusy.unlock();
-    return;
-  }
-
-  // logic starts here
-  for (int i=0; i<song.systemLen; i++) {
-    // TODO: we may have a problem here
-    disCont[i].lastAvail=blip_samples_avail(disCont[i].bb[0]);
-    if (disCont[i].lastAvail>0) {
-      disCont[i].flush(disCont[i].lastAvail);
-    }
-    if (size<disCont[i].lastAvail) {
-      disCont[i].runtotal=0;
-    } else {
-      disCont[i].runtotal=blip_clocks_needed(disCont[i].bb[0],size-disCont[i].lastAvail);
-    }
-    if (disCont[i].runtotal>disCont[i].bbInLen) {
-      logD("growing dispatch %d bbIn to %d",i,disCont[i].runtotal+256);
-      disCont[i].grow(disCont[i].runtotal+256);
-    }
-    disCont[i].runLeft=disCont[i].runtotal;
-    disCont[i].runPos=0;
-  }
-
-  if (metroTickLen<size) {
-    if (metroTick!=NULL) delete[] metroTick;
-    metroTick=new unsigned char[size];
-    metroTickLen=size;
-  }
-
-  memset(metroTick,0,size);
-
-  int attempts=0;
-  int runLeftG=size<<MASTER_CLOCK_PREC;
-  while (++attempts<(int)size) {
-    // -1. set bufferPos
-    bufferPos=(size<<MASTER_CLOCK_PREC)-runLeftG;
-
-    // 0. check if we've halted
-    if (halted) break;
-    // 1. check whether we are done with all buffers
-    if (runLeftG<=0) break;
-
-    // 2. check whether we gonna tick
-    if (cycles<=0) {
-      // we have to tick
-      if (nextTick()) {
-        lastLoopPos=size-(runLeftG>>MASTER_CLOCK_PREC);
-        logD("last loop pos: %d for a size of %d and runLeftG of %d",lastLoopPos,size,runLeftG);
-        totalLoops++;
-        if (remainingLoops>0) {
-          remainingLoops--;
-          if (!remainingLoops) {
-            logI("end of song!");
-            remainingLoops=-1;
-            playing=false;
-            freelance=false;
-            extValuePresent=false;
-            break;
+        if (pendingMetroTick) {
+          unsigned int realPos=size-(runLeftG>>MASTER_CLOCK_PREC);
+          if (realPos>=size) realPos=size-1;
+          metroTick[realPos]=pendingMetroTick;
+          pendingMetroTick=0;
+        }
+      } else {
+        // 3. tick the clock and fill buffers as needed
+        if (cycles<runLeftG) {
+          for (int i=0; i<song.systemLen; i++) {
+            int total=(cycles*disCont[i].runtotal)/(size<<MASTER_CLOCK_PREC);
+            disCont[i].acquire(disCont[i].runPos,total);
+            disCont[i].runLeft-=total;
+            disCont[i].runPos+=total;
+          }
+          runLeftG-=cycles;
+          cycles=0;
+        } else {
+          cycles-=runLeftG;
+          runLeftG=0;
+          for (int i=0; i<song.systemLen; i++) {
+            disCont[i].acquire(disCont[i].runPos,disCont[i].runLeft);
+            disCont[i].runLeft=0;
           }
         }
       }
-      if (pendingMetroTick) {
-        unsigned int realPos=size-(runLeftG>>MASTER_CLOCK_PREC);
-        if (realPos>=size) realPos=size-1;
-        metroTick[realPos]=pendingMetroTick;
-        pendingMetroTick=0;
+    }
+
+    //logD("attempts: %d",attempts);
+    if (attempts>=(int)size) {
+      logE("hang detected! stopping! at %d seconds %d micro",totalSeconds,totalTicks);
+      freelance=false;
+      playing=false;
+      extValuePresent=false;
+    }
+    totalProcessed=size-(runLeftG>>MASTER_CLOCK_PREC);
+
+    for (int i=0; i<song.systemLen; i++) {
+      if (size<disCont[i].lastAvail) {
+        logW("%d: size<lastAvail! %d<%d",i,size,disCont[i].lastAvail);
+        continue;
       }
-    } else {
-      // 3. tick the clock and fill buffers as needed
-      if (cycles<runLeftG) {
-        for (int i=0; i<song.systemLen; i++) {
-          int total=(cycles*disCont[i].runtotal)/(size<<MASTER_CLOCK_PREC);
-          disCont[i].acquire(disCont[i].runPos,total);
-          disCont[i].runLeft-=total;
-          disCont[i].runPos+=total;
-        }
-        runLeftG-=cycles;
-        cycles=0;
-      } else {
-        cycles-=runLeftG;
-        runLeftG=0;
-        for (int i=0; i<song.systemLen; i++) {
-          disCont[i].acquire(disCont[i].runPos,disCont[i].runLeft);
-          disCont[i].runLeft=0;
-        }
-      }
+      disCont[i].fillBuf(disCont[i].runtotal,disCont[i].lastAvail,size-disCont[i].lastAvail);
     }
   }
 
-  if (out==NULL || halted) {
-    isBusy.unlock();
-    return;
+  if (metroBufLen<size || metroBuf==NULL) {
+    if (metroBuf!=NULL) delete[] metroBuf;
+    metroBuf=new float[size];
+    metroBufLen=size;
   }
 
-  //logD("attempts: %d",attempts);
-  if (attempts>=(int)size) {
-    logE("hang detected! stopping! at %d seconds %d micro",totalSeconds,totalTicks);
-    freelance=false;
-    playing=false;
-    extValuePresent=false;
-  }
-  totalProcessed=size-(runLeftG>>MASTER_CLOCK_PREC);
+  memset(metroBuf,0,metroBufLen*sizeof(float));
 
-  for (int i=0; i<song.systemLen; i++) {
-    if (size<disCont[i].lastAvail) {
-      logW("%d: size<lastAvail! %d<%d",i,size,disCont[i].lastAvail);
-      continue;
+  if (playing && !halted && metronome) {
+    for (size_t i=0; i<size; i++) {
+      if (metroTick[i]) {
+        if (metroTick[i]==2) {
+          metroFreq=1400/got.rate;
+        } else {
+          metroFreq=1050/got.rate;
+        }
+        metroPos=0;
+        metroAmp=0.7f;
+      }
+      if (metroAmp>0.0f) {
+        for (int j=0; j<outChans; j++) {
+          metroBuf[i]=(sin(metroPos*2*M_PI))*metroAmp*metroVol;
+        }
+      }
+      metroAmp-=0.0003f;
+      if (metroAmp<0.0f) metroAmp=0.0f;
+      metroPos+=metroFreq;
+      while (metroPos>=1) metroPos--;
     }
-    disCont[i].fillBuf(disCont[i].runtotal,disCont[i].lastAvail,size-disCont[i].lastAvail);
   }
 
   // resolve patchbay
@@ -1738,7 +1748,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       if (destSubPort>=outChans) continue;
 
       // chip outputs
-      if (srcPortSet<song.systemLen) {
+      if (srcPortSet<song.systemLen && playing && !halted) {
         if (srcSubPort<disCont[srcPortSet].dispatch->getOutputCount()) {
           float vol=song.systemVol[srcPortSet]*disCont[srcPortSet].dispatch->getPostAmp()*song.masterVol;
 
@@ -1761,33 +1771,22 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
             out[destSubPort][j]+=((float)disCont[srcPortSet].bbOut[srcSubPort][j]/32768.0)*vol;
           }
         }
+      } else if (srcPortSet==0xffd) {
+        // sample preview
+        for (size_t j=0; j<size; j++) {
+          out[destSubPort][j]+=samp_bbOut[j]/32768.0;
+        }
+      } else if (srcPortSet==0xffe && playing && !halted) {
+        // metronome
+        for (size_t j=0; j<size; j++) {
+          out[destSubPort][j]+=metroBuf[j];
+        }
       }
 
       // nothing/invalid
     }
 
     // nothing/invalid
-  }
-
-  if (metronome) for (size_t i=0; i<size; i++) {
-    if (metroTick[i]) {
-      if (metroTick[i]==2) {
-        metroFreq=1400/got.rate;
-      } else {
-        metroFreq=1050/got.rate;
-      }
-      metroPos=0;
-      metroAmp=0.7f;
-    }
-    if (metroAmp>0.0f) {
-      for (int j=0; j<outChans; j++) {
-        out[j][i]+=(sin(metroPos*2*M_PI))*metroAmp*metroVol;
-      }
-    }
-    metroAmp-=0.0003f;
-    if (metroAmp<0.0f) metroAmp=0.0f;
-    metroPos+=metroFreq;
-    while (metroPos>=1) metroPos--;
   }
 
   for (unsigned int i=0; i<size; i++) {
