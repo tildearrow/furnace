@@ -291,7 +291,7 @@ void DivPlatformGB::tick(bool sysTick) {
       } else {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
         if (chan[i].freq>2047) chan[i].freq=2047;
-        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq<1) chan[i].freq=1;
       }
       if (chan[i].keyOn) {
         if (i==2) { // wave
