@@ -941,14 +941,15 @@ void DivPlatformTX81Z::setFlags(const DivConfig& flags) {
   int clockSel=flags.getInt("clockSel",0);
   if (clockSel==2) {
     chipClock=4000000.0;
-    baseFreqOff=-122;
   } else if (clockSel==1) {
     chipClock=COLOR_PAL*4.0/5.0;
-    baseFreqOff=12;
   } else {
     chipClock=COLOR_NTSC;
-    baseFreqOff=0;
   }
+  CHECK_CUSTOM_CLOCK;
+
+  baseFreqOff=round(768.0*(log((COLOR_NTSC/(double)chipClock))/log(2.0)));
+
   rate=chipClock/64;
   for (int i=0; i<8; i++) {
     oscBuf[i]->rate=rate;

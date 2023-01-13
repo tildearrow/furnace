@@ -68,7 +68,7 @@ void DivPlatformBubSysWSG::acquire(short** buf, size_t len) {
     if (out>32767) out=32767;
 
     //printf("out: %d\n",out);
-    buf[0][h]=buf[1][h]=out;
+    buf[0][h]=out;
   }
 }
 

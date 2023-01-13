@@ -19,6 +19,7 @@
 
 #include "arcade.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <string.h>
 #include <math.h>
 
@@ -868,17 +869,18 @@ void DivPlatformArcade::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 1:
       chipClock=COLOR_PAL*4.0/5.0;
-      baseFreqOff=12;
       break;
     case 2:
       chipClock=4000000.0;
-      baseFreqOff=-122;
       break;
     default:
       chipClock=COLOR_NTSC;
-      baseFreqOff=0;
       break;
   }
+  CHECK_CUSTOM_CLOCK;
+
+  baseFreqOff=round(768.0*(log((COLOR_NTSC/(double)chipClock))/log(2.0)));
+
   rate=chipClock/64;
   for (int i=0; i<8; i++) {
     oscBuf[i]->rate=rate;

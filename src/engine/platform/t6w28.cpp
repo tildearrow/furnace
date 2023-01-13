@@ -289,6 +289,7 @@ void DivPlatformT6W28::forceIns() {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
   }
+  rWrite(1,0xe0+chan[3].duty);
 }
 
 void* DivPlatformT6W28::getChanState(int ch) {
