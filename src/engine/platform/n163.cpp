@@ -114,7 +114,7 @@ void DivPlatformN163::acquire(short** buf, size_t len) {
     int out=(n163.out()<<6)*2; // scale to 16 bit
     if (out>32767) out=32767;
     if (out<-32768) out=-32768;
-    buf[0][i]=buf[1][i]=out;
+    buf[0][i]=out;
 
     if (n163.voice_cycle()==0x78) for (int i=0; i<8; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=n163.voice_out(i)<<7;
