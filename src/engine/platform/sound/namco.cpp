@@ -659,11 +659,13 @@ void namco_audio_device::sound_stream_update(short** outputs, int len)
 						{
 							lmix[i]+=l_noise_data;
 							rmix[i]+=r_noise_data;
+             voice->last_out=(l_noise_data+r_noise_data)>>1;
 						}
 						else
 						{
 							lmix[i]+=-l_noise_data;
 							rmix[i]+=-r_noise_data;
+             voice->last_out=-((l_noise_data+r_noise_data)>>1);
 						}
 
 						if (hold)

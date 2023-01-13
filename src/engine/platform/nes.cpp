@@ -278,6 +278,7 @@ void DivPlatformNES::tick(bool sysTick) {
             ntPos+=chan[i].arpOff;
           }
         }
+        ntPos+=chan[i].pitch2;
         if (parent->song.properNoiseLayout) {
           chan[i].freq=15-(ntPos&15);
         } else {

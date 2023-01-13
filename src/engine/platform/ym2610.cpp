@@ -650,6 +650,17 @@ void DivPlatformYM2610::tick(bool sysTick) {
       }
       chan[adpcmBChanOffs].freqChanged=true;
     }
+
+    if (chan[adpcmBChanOffs].std.pitch.had) {
+      if (chan[adpcmBChanOffs].std.pitch.mode) {
+        chan[adpcmBChanOffs].pitch2+=chan[adpcmBChanOffs].std.pitch.val;
+        CLAMP_VAR(chan[adpcmBChanOffs].pitch2,-65535,65535);
+      } else {
+        chan[adpcmBChanOffs].pitch2=chan[adpcmBChanOffs].std.pitch.val;
+      }
+      chan[adpcmBChanOffs].freqChanged=true;
+    }
+
     if (chan[adpcmBChanOffs].std.panL.had) {
       if (chan[adpcmBChanOffs].pan!=(chan[adpcmBChanOffs].std.panL.val&3)) {
         chan[adpcmBChanOffs].pan=chan[adpcmBChanOffs].std.panL.val&3;

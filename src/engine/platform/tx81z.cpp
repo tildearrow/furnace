@@ -152,6 +152,14 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
 
+    if (chan[i].std.panL.had) {
+      chan[i].chVolL=(chan[i].std.panL.val&2)>>1;
+      chan[i].chVolR=chan[i].std.panL.val&1;
+      chan[i].freqChanged=true;
+
+      immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|(chan[i].active?0x40:0)|(chan[i].chVolR<<7));
+    }
+
     if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1 && chan[i].active) {
         chan[i].keyOn=true;
