@@ -809,6 +809,12 @@ void DivPlatformAY8930::setFlags(const DivConfig& flags) {
     case 12:
       chipClock=3600000;
       break;
+    case 13:
+      chipClock=20000000/16;
+      break;
+    case 14:
+      chipClock=1536000;
+      break;
     default:
       chipClock=COLOR_NTSC/2.0;
       break;
