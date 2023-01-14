@@ -297,7 +297,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
       }
     }
     if (chan[i].std.ex1.had) { // duty
-      rWrite(0x16+i,chan[i].std.ex1.val);
+      immWrite(0x16+i,chan[i].std.ex1.val);
     }
     if (chan[i].std.ex2.had) {
       chan[i].envelope.mode=chan[i].std.ex2.val;

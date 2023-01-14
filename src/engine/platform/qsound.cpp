@@ -707,11 +707,11 @@ const void* DivPlatformQSound::getSampleMem(int index) {
 }
 
 size_t DivPlatformQSound::getSampleMemCapacity(int index) {
-  return (index == 0 || index == 1) ? 16777216 : 0;
+  return index == 0 ? 16777216 : index == 1 ? MAX(0,16777216 - sampleMemUsage) : 0;
 }
 
 size_t DivPlatformQSound::getSampleMemUsage(int index) {
-  return index == 0 ? sampleMemLen : index == 1 ? sampleMemLenBS : 0;
+  return index == 0 ? sampleMemLen : index == 1 ? MAX(0,sampleMemLenBS - sampleMemUsage) : 0;
 }
 
 bool DivPlatformQSound::isSampleLoaded(int index, int sample) {
@@ -766,6 +766,7 @@ void DivPlatformQSound::renderSamples(int sysID) {
   sampleMemLen=memPos+256;
 
   memPos=(memPos+0xffff)&0xff0000;
+  sampleMemUsage=memPos;
 
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
@@ -818,6 +819,7 @@ int DivPlatformQSound::init(DivEngine* p, int channels, int sugRate, const DivCo
   sampleMem=new unsigned char[getSampleMemCapacity()];
   sampleMemLen=0;
   sampleMemLenBS=0;
+  sampleMemUsage=0;
   chip.rom_data=sampleMem;
   chip.rom_mask=0xffffff;
   reset();

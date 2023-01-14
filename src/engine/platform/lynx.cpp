@@ -509,12 +509,12 @@ DivPlatformLynx::MikeyFreqDiv::MikeyFreqDiv(int frequency) {
   if (top>7)
   {
     clockDivider=top-7;
-    backup=frequency>>(top-7);
+    backup=clamped>>(top-7);
   }
   else
   {
     clockDivider=0;
-    backup=frequency;
+    backup=clamped;
   }
 }
 
