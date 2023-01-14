@@ -367,7 +367,7 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
               if (plot_type == ImGuiPlotType_Lines)
                   ImGui::SetTooltip("%d: %8.4g\n%d: %8.4g", v_idx, v0, v_idx + 1, v1);
               else if (plot_type == ImGuiPlotType_Histogram)
-                  ImGui::SetTooltip("%d: %8.4g", v_idx+values_display_offset, v0);
+                  ImGui::SetTooltip("%d: %d", v_idx+values_display_offset, (int)v0);
             }
             idx_hovered = v_idx;
         }
