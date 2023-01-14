@@ -156,19 +156,19 @@ const char** DivPlatformYM2203::getRegisterSheet() {
   return regCheatSheetYM2203;
 }
 
-void DivPlatformYM2203::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformYM2203::acquire(short** buf, size_t len) {
   if (useCombo) {
-    acquire_combo(bufL,bufR,start,len);
+    acquire_combo(buf,len);
   } else {
-    acquire_ymfm(bufL,bufR,start,len);
+    acquire_ymfm(buf,len);
   }
 }
 
-void DivPlatformYM2203::acquire_combo(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
   static int os;
   static short ignored[2];
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os=0;
     // Nuked part
     for (unsigned int i=0; i<nukedMult; i++) {
@@ -219,7 +219,7 @@ void DivPlatformYM2203::acquire_combo(short* bufL, short* bufR, size_t start, si
     if (os<-32768) os=-32768;
     if (os>32767) os=32767;
   
-    bufL[h]=os;
+    buf[0][h]=os;
     
     for (int i=0; i<3; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=fm_nuked.ch_out[i];
@@ -231,7 +231,7 @@ void DivPlatformYM2203::acquire_combo(short* bufL, short* bufR, size_t start, si
   }
 }
 
-void DivPlatformYM2203::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
   static int os;
 
   ymfm::ym2203::fm_engine* fme=fm->debug_fm_engine();
@@ -241,7 +241,7 @@ void DivPlatformYM2203::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
     fmChan[i]=fme->debug_channel(i);
   }
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os=0;
     if (!writes.empty()) {
       if (--delay<1) {
@@ -260,7 +260,7 @@ void DivPlatformYM2203::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
     if (os<-32768) os=-32768;
     if (os>32767) os=32767;
   
-    bufL[h]=os;
+    buf[0][h]=os;
 
     
     for (int i=0; i<3; i++) {
@@ -968,8 +968,8 @@ void DivPlatformYM2203::reset() {
   ay->flushWrites();
 }
 
-bool DivPlatformYM2203::isStereo() {
-  return false;
+int DivPlatformYM2203::getOutputCount() {
+  return 1;
 }
 
 bool DivPlatformYM2203::keyOffAffectsArp(int ch) {

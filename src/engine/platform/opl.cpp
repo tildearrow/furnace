@@ -159,13 +159,13 @@ const int orderedOpsL[4]={
 #define ADDR_FREQH 0xb0
 #define ADDR_LR_FB_ALG 0xc0
 
-void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
-  static short o[2];
-  static int os[2];
+void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
+  static short o[4];
+  static int os[4];
   static ymfm::ymfm_output<2> aOut;
 
-  for (size_t h=start; h<start+len; h++) {
-    os[0]=0; os[1]=0;
+  for (size_t h=0; h<len; h++) {
+    os[0]=0; os[1]=0; os[2]=0; os[3]=0;
     if (!writes.empty() && --delay<0) {
       delay=1;
       QueuedWrite& w=writes.front();
@@ -194,11 +194,14 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     }
 
     if (downsample) {
-      OPL3_GenerateResampled(&fm,o);
+      OPL3_Generate4ChResampled(&fm,o);
     } else {
-      OPL3_Generate(&fm,o);
+      OPL3_Generate4Ch(&fm,o);
     }
-    os[0]+=o[0]; os[1]+=o[1];
+    os[0]+=o[0];
+    os[1]+=o[1];
+    os[2]+=o[2];
+    os[3]+=o[3];
 
     if (adpcmChan>=0) {
       adpcmB->clock();
@@ -225,6 +228,12 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
         if (fm.channel[i].out[1]!=NULL) {
           oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
         }
+        if (fm.channel[i].out[2]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[2];
+        }
+        if (fm.channel[i].out[3]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[3];
+        }
         oscBuf[i]->data[oscBuf[i]->needle]<<=1;
         oscBuf[i]->needle++;
       }
@@ -244,6 +253,12 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
         if (fm.channel[i].out[1]!=NULL) {
           oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
         }
+        if (fm.channel[i].out[2]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[2];
+        }
+        if (fm.channel[i].out[3]!=NULL) {
+          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[3];
+        }
         oscBuf[i]->data[oscBuf[i]->needle]<<=1;
         oscBuf[i]->needle++;
       }
@@ -254,19 +269,27 @@ void DivPlatformOPL::acquire_nuked(short* bufL, short* bufR, size_t start, size_
 
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
+
+    if (os[2]<-32768) os[2]=-32768;
+    if (os[2]>32767) os[2]=32767;
+
+    if (os[3]<-32768) os[3]=-32768;
+    if (os[3]>32767) os[3]=32767;
   
-    bufL[h]=os[0];
+    buf[0][h]=os[0];
     if (oplType==3 || oplType==759) {
-      bufR[h]=os[1];
+      buf[1][h]=os[1];
+      buf[2][h]=os[2];
+      buf[3][h]=os[3];
     }
   }
 }
 
-void DivPlatformOPL::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformOPL::acquire(short** buf, size_t len) {
   //if (useYMFM) {
-  //  acquire_ymfm(bufL,bufR,start,len);
+  //  acquire_ymfm(buf,len);
   //} else {
-    acquire_nuked(bufL,bufR,start,len);
+    acquire_nuked(buf,len);
   //}
 }
 
@@ -314,13 +337,13 @@ void DivPlatformOPL::tick(bool sysTick) {
     }
 
     if (oplType==3 && chan[i].std.panL.had) {
-      chan[i].pan=((chan[i].std.panL.val&1)<<1)|((chan[i].std.panL.val&2)>>1);
+      chan[i].pan=((chan[i].std.panL.val&1)<<1)|((chan[i].std.panL.val&2)>>1)|((chan[i].std.panL.val&4)<<1)|((chan[i].std.panL.val&8)>>1);
     }
 
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+        CLAMP_VAR(chan[i].pitch2,-131071,131071);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -347,9 +370,9 @@ void DivPlatformOPL::tick(bool sysTick) {
           rWrite(chanMap[i+1]+ADDR_LR_FB_ALG,((chan[i].state.alg>>1)&1)|(chan[i].state.fb<<1));
         }
       } else {
-        rWrite(chanMap[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&1)|(chan[i].state.fb<<1)|((chan[i].pan&3)<<4));
+        rWrite(chanMap[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&1)|(chan[i].state.fb<<1)|((chan[i].pan&15)<<4));
         if (ops==4) {
-          rWrite(chanMap[i+1]+ADDR_LR_FB_ALG,((chan[i].state.alg>>1)&1)|(chan[i].state.fb<<1)|((chan[i].pan&3)<<4));
+          rWrite(chanMap[i+1]+ADDR_LR_FB_ALG,((chan[i].state.alg>>1)&1)|(chan[i].state.fb<<1)|((chan[i].pan&15)<<4));
         }
       }
     }
@@ -659,9 +682,9 @@ void DivPlatformOPL::muteChannel(int ch, bool mute) {
       rWrite(chanMap[ch+1]+ADDR_LR_FB_ALG,((chan[ch].state.alg>>1)&1)|(chan[ch].state.fb<<1));
     }
   } else {
-    rWrite(chanMap[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&1)|(chan[ch].state.fb<<1)|((chan[ch].pan&3)<<4));
+    rWrite(chanMap[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&1)|(chan[ch].state.fb<<1)|((chan[ch].pan&15)<<4));
     if (ops==4) {
-      rWrite(chanMap[ch+1]+ADDR_LR_FB_ALG,((chan[ch].state.alg>>1)&1)|(chan[ch].state.fb<<1)|((chan[ch].pan&3)<<4));
+      rWrite(chanMap[ch+1]+ADDR_LR_FB_ALG,((chan[ch].state.alg>>1)&1)|(chan[ch].state.fb<<1)|((chan[ch].pan&15)<<4));
     }
   }
 }
@@ -797,7 +820,7 @@ int DivPlatformOPL::dispatch(DivCommand c) {
               rWrite(chanMap[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&1)|(chan[ch].state.fb<<1));
             } else {
               oldWrites[chanMap[ch]+ADDR_LR_FB_ALG]=-1;
-              rWrite(chanMap[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&1)|(chan[ch].state.fb<<1)|((chan[ch].pan&3)<<4));
+              rWrite(chanMap[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&1)|(chan[ch].state.fb<<1)|((chan[ch].pan&15)<<4));
             }
           }
         } else {
@@ -847,10 +870,10 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             }
           } else {
             oldWrites[chanMap[c.chan]+ADDR_LR_FB_ALG]=-1;
-            rWrite(chanMap[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&3)<<4));
+            rWrite(chanMap[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&15)<<4));
             if (ops==4) {
               oldWrites[chanMap[c.chan+1]+ADDR_LR_FB_ALG]=-1;
-              rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&3)<<4));
+              rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&15)<<4));
             }
           }
         }
@@ -956,10 +979,11 @@ int DivPlatformOPL::dispatch(DivCommand c) {
     case DIV_CMD_PANNING: {
       if (oplType!=3) break;
       if (c.chan==adpcmChan) break;
-      if (c.value==0 && c.value2==0) {
-        chan[c.chan].pan=3;
+      chan[c.chan].pan&=~3;
+      if (c.value==0 && c.value2==0 && compatPan) {
+        chan[c.chan].pan|=3;
       } else {
-        chan[c.chan].pan=(c.value>0)|((c.value2>0)<<1);
+        chan[c.chan].pan|=(c.value>0)|((c.value2>0)<<1);
       }
       int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
       if (isMuted[c.chan]) {
@@ -968,9 +992,36 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1));
         }
       } else {
-        rWrite(chanMap[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&3)<<4));
+        rWrite(chanMap[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&15)<<4));
         if (ops==4) {
-          rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&3)<<4));
+          rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&15)<<4));
+        }
+      }
+      break;
+    }
+    case DIV_CMD_SURROUND_PANNING: {
+      if (oplType!=3) break;
+      if (c.chan==adpcmChan) break;
+
+      if (c.value==2) {
+        chan[c.chan].pan&=3;
+        if (c.value2>0) chan[c.chan].pan|=4;
+      } else if (c.value==3) {
+        if (c.value2>0) chan[c.chan].pan|=8;
+      } else {
+        break;
+      }
+
+      int ops=(slots[3][c.chan]!=255 && chan[c.chan].state.ops==4 && oplType==3)?4:2;
+      if (isMuted[c.chan]) {
+        rWrite(chanMap[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&1)|(chan[c.chan].state.fb<<1));
+        if (ops==4) {
+          rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1));
+        }
+      } else {
+        rWrite(chanMap[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&15)<<4));
+        if (ops==4) {
+          rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&15)<<4));
         }
       }
       break;
@@ -1049,9 +1100,9 @@ int DivPlatformOPL::dispatch(DivCommand c) {
           rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1));
         }
       } else {
-        rWrite(chanMap[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&3)<<4));
+        rWrite(chanMap[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&15)<<4));
         if (ops==4) {
-          rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&3)<<4));
+          rWrite(chanMap[c.chan+1]+ADDR_LR_FB_ALG,((chan[c.chan].state.alg>>1)&1)|(chan[c.chan].state.fb<<1)|((chan[c.chan].pan&15)<<4));
         }
       }
       break;
@@ -1431,9 +1482,9 @@ void DivPlatformOPL::forceIns() {
         rWrite(chanMap[i+1]+ADDR_LR_FB_ALG,((chan[i].state.alg>>1)&1)|(chan[i].state.fb<<1));
       }
     } else {
-      rWrite(chanMap[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&1)|(chan[i].state.fb<<1)|((chan[i].pan&3)<<4));
+      rWrite(chanMap[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&1)|(chan[i].state.fb<<1)|((chan[i].pan&15)<<4));
       if (ops==4) {
-        rWrite(chanMap[i+1]+ADDR_LR_FB_ALG,((chan[i].state.alg>>1)&1)|(chan[i].state.fb<<1)|((chan[i].pan&3)<<4));
+        rWrite(chanMap[i+1]+ADDR_LR_FB_ALG,((chan[i].state.alg>>1)&1)|(chan[i].state.fb<<1)|((chan[i].pan&15)<<4));
       }
     }
     */
@@ -1568,8 +1619,8 @@ void DivPlatformOPL::reset() {
   immWrite(0xbd,(dam<<7)|(dvb<<6)|(properDrums<<5)|drumState);
 }
 
-bool DivPlatformOPL::isStereo() {
-  return (oplType==3 || oplType==759);
+int DivPlatformOPL::getOutputCount() {
+  return (oplType==3 || oplType==759)?4:1;
 }
 
 bool DivPlatformOPL::keyOffAffectsArp(int ch) {
@@ -1681,6 +1732,8 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
     rate=chipClock/36;
   }*/
 
+  compatPan=false;
+
   switch (chipType) {
     default:
     case 1: case 2: case 8950:
@@ -1729,6 +1782,7 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
       CHECK_CUSTOM_CLOCK;
       rate=chipClock/288;
       chipRateBase=rate;
+      compatPan=flags.getBool("compatPan",false);
       break;
     case 4:
       switch (flags.getInt("clockSel",0)) {

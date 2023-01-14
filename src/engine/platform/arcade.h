@@ -58,13 +58,13 @@ class DivPlatformArcade: public DivPlatformOPM {
     int octave(int freq);
     int toFreq(int freq);
 
-    void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
-    void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_nuked(short** buf, size_t len);
+    void acquire_ymfm(short** buf, size_t len);
 
     friend void putDispatchChan(void*,int,int);
     friend void putDispatchChip(void*,int);
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -77,7 +77,7 @@ class DivPlatformArcade: public DivPlatformOPM {
     DivMacroInt* getChanMacroInt(int ch);
     void notifyInsChange(int ins);
     void setFlags(const DivConfig& flags);
-    bool isStereo();
+    int getOutputCount();
     void setYMFM(bool use);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

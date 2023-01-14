@@ -33,4 +33,7 @@
 // sample related
 #define DIV_MAX_SAMPLE_TYPE 4
 
+// dispatch
+#define DIV_MAX_OUTPUTS 16
+
 #endif

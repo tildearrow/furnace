@@ -60,7 +60,7 @@ class DivPlatformVERA: public DivDispatch {
     friend void putDispatchChan(void*,int,int);
   
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -72,7 +72,7 @@ class DivPlatformVERA: public DivDispatch {
     void muteChannel(int ch, bool mute);
     void notifyInsDeletion(void* ins);
     float getPostAmp();
-    bool isStereo();
+    int getOutputCount();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

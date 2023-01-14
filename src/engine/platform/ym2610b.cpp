@@ -296,15 +296,15 @@ const char** DivPlatformYM2610B::getRegisterSheet() {
   return regCheatSheetYM2610B;
 }
 
-void DivPlatformYM2610B::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformYM2610B::acquire(short** buf, size_t len) {
   if (useCombo) {
-    acquire_combo(bufL,bufR,start,len);
+    acquire_combo(buf,len);
   } else {
-    acquire_ymfm(bufL,bufR,start,len);
+    acquire_ymfm(buf,len);
   }
 }
 
-void DivPlatformYM2610B::acquire_combo(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformYM2610B::acquire_combo(short** buf, size_t len) {
   static int os[2];
   static short ignored[2];
 
@@ -319,7 +319,7 @@ void DivPlatformYM2610B::acquire_combo(short* bufL, short* bufR, size_t start, s
     adpcmAChan[i]=aae->debug_channel(i);
   }
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     // Nuked part
     for (int i=0; i<24; i++) {
@@ -387,8 +387,8 @@ void DivPlatformYM2610B::acquire_combo(short* bufL, short* bufR, size_t start, s
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
 
     
     for (int i=0; i<psgChanOffs; i++) {
@@ -408,7 +408,7 @@ void DivPlatformYM2610B::acquire_combo(short* bufL, short* bufR, size_t start, s
   }
 }
 
-void DivPlatformYM2610B::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformYM2610B::acquire_ymfm(short** buf, size_t len) {
   static int os[2];
 
   ymfm::ym2610b::fm_engine* fme=fm->debug_fm_engine();
@@ -425,7 +425,7 @@ void DivPlatformYM2610B::acquire_ymfm(short* bufL, short* bufR, size_t start, si
     adpcmAChan[i]=aae->debug_channel(i);
   }
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
       if (--delay<1 && !(fm->read(0)&0x80)) {
@@ -448,8 +448,8 @@ void DivPlatformYM2610B::acquire_ymfm(short* bufL, short* bufR, size_t start, si
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
 
     
     for (int i=0; i<psgChanOffs; i++) {
@@ -719,6 +719,17 @@ void DivPlatformYM2610B::tick(bool sysTick) {
       }
       chan[adpcmBChanOffs].freqChanged=true;
     }
+
+    if (chan[adpcmBChanOffs].std.pitch.had) {
+      if (chan[adpcmBChanOffs].std.pitch.mode) {
+        chan[adpcmBChanOffs].pitch2+=chan[adpcmBChanOffs].std.pitch.val;
+        CLAMP_VAR(chan[adpcmBChanOffs].pitch2,-65535,65535);
+      } else {
+        chan[adpcmBChanOffs].pitch2=chan[adpcmBChanOffs].std.pitch.val;
+      }
+      chan[adpcmBChanOffs].freqChanged=true;
+    }
+
     if (chan[adpcmBChanOffs].std.panL.had) {
       if (chan[adpcmBChanOffs].pan!=(chan[adpcmBChanOffs].std.panL.val&3)) {
         chan[adpcmBChanOffs].pan=chan[adpcmBChanOffs].std.panL.val&3;
@@ -1445,8 +1456,8 @@ void DivPlatformYM2610B::reset() {
   ay->flushWrites();
 }
 
-bool DivPlatformYM2610B::isStereo() {
-  return true;
+int DivPlatformYM2610B::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformYM2610B::keyOffAffectsArp(int ch) {

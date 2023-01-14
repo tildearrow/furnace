@@ -63,6 +63,7 @@ const char* aboutLine[]={
   "akumanatt",
   "AmigaX",
   "AURORA*FIELDS",
+  "battybeats",
   "BlueElectric05",
   "breakthetargets",
   "brickblock369",
@@ -71,6 +72,7 @@ const char* aboutLine[]={
   "DeMOSic",
   "DevEd",
   "Dippy",
+  "djtuBIG-MaliceX",
   "dumbut",
   "FΛDE",
   "Forte",
@@ -99,6 +101,7 @@ const char* aboutLine[]={
   "SuperJet Spade",
   "SwapXFO",
   "TakuikaNinja",
+  "TCORPStudios",
   "The Blender Fiddler",
   "TheDuccinator",
   "theloredev",
@@ -205,7 +208,13 @@ void FurnaceGUI::drawAbout() {
     float r=0;
     float g=0;
     float b=0;
-    float peakMix=settings.partyTime?((peak[0]+peak[1])*0.5):0.3;
+    float peakMix=settings.partyTime?0:0.3;
+    if (settings.partyTime) {
+      for (int j=0; j<e->getAudioDescGot().outChans; j++) {
+        peakMix+=peak[j];
+      }
+      peakMix/=e->getAudioDescGot().outChans;
+    }
     ImGui::ColorConvertHSVtoRGB(aboutHue,1.0,0.25+MIN(0.75f,peakMix*0.75f),r,g,b);
     dl->AddRectFilled(ImVec2(0,0),ImVec2(canvasW,canvasH),0xff000000);
     bool skip=false;

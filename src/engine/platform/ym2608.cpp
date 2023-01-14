@@ -297,15 +297,15 @@ double DivPlatformYM2608::NOTE_ADPCMB(int note) {
   return 0;
 }
 
-void DivPlatformYM2608::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformYM2608::acquire(short** buf, size_t len) {
   if (useCombo) {
-    acquire_combo(bufL,bufR,start,len);
+    acquire_combo(buf,len);
   } else {
-    acquire_ymfm(bufL,bufR,start,len);
+    acquire_ymfm(buf,len);
   }
 }
 
-void DivPlatformYM2608::acquire_combo(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformYM2608::acquire_combo(short** buf, size_t len) {
   static int os[2];
   static short ignored[2];
 
@@ -320,7 +320,7 @@ void DivPlatformYM2608::acquire_combo(short* bufL, short* bufR, size_t start, si
     adpcmAChan[i]=aae->debug_channel(i);
   }
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     // Nuked part
     for (int i=0; i<nukedMult; i++) {
@@ -388,8 +388,8 @@ void DivPlatformYM2608::acquire_combo(short* bufL, short* bufR, size_t start, si
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
 
     
     for (int i=0; i<psgChanOffs; i++) {
@@ -409,7 +409,7 @@ void DivPlatformYM2608::acquire_combo(short* bufL, short* bufR, size_t start, si
   }
 }
 
-void DivPlatformYM2608::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
   static int os[2];
 
   ymfm::ym2608::fm_engine* fme=fm->debug_fm_engine();
@@ -426,7 +426,7 @@ void DivPlatformYM2608::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
     adpcmAChan[i]=aae->debug_channel(i);
   }
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
       if (--delay<1) {
@@ -449,8 +449,8 @@ void DivPlatformYM2608::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
 
     for (int i=0; i<6; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1));
@@ -717,6 +717,17 @@ void DivPlatformYM2608::tick(bool sysTick) {
       }
       chan[15].freqChanged=true;
     }
+
+    if (chan[15].std.pitch.had) {
+      if (chan[15].std.pitch.mode) {
+        chan[15].pitch2+=chan[15].std.pitch.val;
+        CLAMP_VAR(chan[15].pitch2,-65535,65535);
+      } else {
+        chan[15].pitch2=chan[15].std.pitch.val;
+      }
+      chan[15].freqChanged=true;
+    }
+
     if (chan[15].std.panL.had) {
       if (chan[15].pan!=(chan[15].std.panL.val&3)) {
         chan[15].pan=chan[15].std.panL.val&3;
@@ -1426,8 +1437,8 @@ void DivPlatformYM2608::reset() {
   ay->flushWrites();
 }
 
-bool DivPlatformYM2608::isStereo() {
-  return true;
+int DivPlatformYM2608::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformYM2608::keyOffAffectsArp(int ch) {

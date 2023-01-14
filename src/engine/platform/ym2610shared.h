@@ -119,8 +119,8 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       }
     }
 
-    bool isStereo() {
-      return true;
+    int getOutputCount() {
+      return 2;
     }
 
     const void* getSampleMem(int index) {

@@ -39,11 +39,11 @@ const unsigned char visMapOPLL[9]={
   6, 7, 8, 3, 4, 5, 0, 1, 2
 };
 
-void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformOPLL::acquire_nuked(short** buf, size_t len) {
   static int o[2];
   static int os;
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os=0;
     for (int i=0; i<9; i++) {
       if (!writes.empty() && --delay<0) {
@@ -83,15 +83,15 @@ void DivPlatformOPLL::acquire_nuked(short* bufL, short* bufR, size_t start, size
     os*=50;
     if (os<-32768) os=-32768;
     if (os>32767) os=32767;
-    bufL[h]=os;
+    buf[0][h]=os;
   }
 }
 
-void DivPlatformOPLL::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformOPLL::acquire_ymfm(short** buf, size_t len) {
 }
 
-void DivPlatformOPLL::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  acquire_nuked(bufL,bufR,start,len);
+void DivPlatformOPLL::acquire(short** buf, size_t len) {
+  acquire_nuked(buf,len);
 }
 
 void DivPlatformOPLL::tick(bool sysTick) {
@@ -124,7 +124,7 @@ void DivPlatformOPLL::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+        CLAMP_VAR(chan[i].pitch2,-65535,65535);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
