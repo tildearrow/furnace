@@ -230,7 +230,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+        CLAMP_VAR(chan[i].pitch2,-1048575,1048575);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -244,6 +244,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>1048575) chan[i].freq=1048575;
       if (chan[i].keyOn) {
       }

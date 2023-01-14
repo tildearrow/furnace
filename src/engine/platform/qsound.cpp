@@ -707,11 +707,11 @@ const void* DivPlatformQSound::getSampleMem(int index) {
 }
 
 size_t DivPlatformQSound::getSampleMemCapacity(int index) {
-  return index == 0 ? 16777216 : index == 1 ? MAX(0,16777216 - sampleMemUsage) : 0;
+  return index == 0 ? 16777216 : index == 1 ? (sampleMemUsage>=16777216?1:(16777216 - sampleMemUsage)) : 0;
 }
 
 size_t DivPlatformQSound::getSampleMemUsage(int index) {
-  return index == 0 ? sampleMemLen : index == 1 ? MAX(0,sampleMemLenBS - sampleMemUsage) : 0;
+  return index == 0 ? sampleMemLen : index == 1 ? ((sampleMemUsage>=sampleMemLenBS)?0:(sampleMemLenBS - sampleMemUsage)) : 0;
 }
 
 bool DivPlatformQSound::isSampleLoaded(int index, int sample) {
