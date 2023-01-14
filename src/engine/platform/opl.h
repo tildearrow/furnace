@@ -81,7 +81,7 @@ class DivPlatformOPL: public DivDispatch {
     const unsigned short* chanMap;
     const unsigned char* outChanMap;
     int chipFreqBase, chipRateBase;
-    int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan, sampleBank;
+    int delay, chipType, oplType, chans, melodicChans, totalChans, adpcmChan, sampleBank, totalOutputs;
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
@@ -92,7 +92,7 @@ class DivPlatformOPL: public DivDispatch {
 
     unsigned char lfoValue;
 
-    bool useYMFM, update4OpMask, pretendYMU, downsample;
+    bool useYMFM, update4OpMask, pretendYMU, downsample, compatPan;
   
     short oldWrites[512];
     short pendingWrites[512];
@@ -104,11 +104,11 @@ class DivPlatformOPL: public DivDispatch {
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
-    void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
-    //void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_nuked(short** buf, size_t len);
+    //void acquire_ymfm(short** buf, size_t len);
   
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -119,7 +119,7 @@ class DivPlatformOPL: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    int getOutputCount();
     void setYMFM(bool use);
     void setOPLType(int type, bool drums);
     bool keyOffAffectsArp(int ch);

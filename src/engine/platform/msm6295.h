@@ -64,7 +64,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
   
   public:
     virtual u8 read_byte(u32 address) override;
-    virtual void acquire(short* bufL, short* bufR, size_t start, size_t len) override;
+    virtual void acquire(short** buf, size_t len) override;
     virtual int dispatch(DivCommand c) override;
     virtual void* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;

@@ -71,10 +71,10 @@ class DivPlatformSAA1099: public DivDispatch {
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
-    void acquire_saaSound(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_saaSound(short** buf, size_t len);
   
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -86,7 +86,7 @@ class DivPlatformSAA1099: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void setFlags(const DivConfig& flags);
-    bool isStereo();
+    int getOutputCount();
     int getPortaFloor(int ch);
     bool keyOffAffectsArp(int ch);
     void notifyInsDeletion(void* ins);

@@ -449,6 +449,10 @@ void FurnaceGUI::drawMobileControls() {
         mobScene=GUI_SCENE_CHIPS;
       }
       ImGui::TableNextColumn();
+      if (ImGui::Button("Mixer",buttonSize)) {
+        mobScene=GUI_SCENE_MIXER;
+      }
+      ImGui::TableNextColumn();
       if (ImGui::Button("Other",buttonSize)) {
         mobScene=GUI_SCENE_OTHER;
       }
@@ -520,6 +524,9 @@ void FurnaceGUI::drawMobileControls() {
           break;
         case GUI_SCENE_CHIPS:
           ImGui::Text("Chips here...");
+          break;
+        case GUI_SCENE_MIXER:
+          ImGui::Text("What the hell...");
           break;
         case GUI_SCENE_OTHER: {
           if (ImGui::Button("Osc")) {

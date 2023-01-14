@@ -35,8 +35,8 @@ const char** DivPlatformT6W28::getRegisterSheet() {
   return regCheatSheetT6W28;
 }
 
-void DivPlatformT6W28::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformT6W28::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     cycles=0;
     while (!writes.empty() && cycles<16) {
       QueuedWrite w=writes.front();
@@ -64,8 +64,8 @@ void DivPlatformT6W28::acquire(short* bufL, short* bufR, size_t start, size_t le
     if (tempR<-32768) tempR=-32768;
     if (tempR>32767) tempR=32767;
     
-    bufL[h]=tempL;
-    bufR[h]=tempR;
+    buf[0][h]=tempL;
+    buf[1][h]=tempR;
   }
 }
 
@@ -289,6 +289,7 @@ void DivPlatformT6W28::forceIns() {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
   }
+  rWrite(1,0xe0+chan[3].duty);
 }
 
 void* DivPlatformT6W28::getChanState(int ch) {
@@ -336,8 +337,8 @@ void DivPlatformT6W28::reset() {
   rWrite(1,0xe7);
 }
 
-bool DivPlatformT6W28::isStereo() {
-  return true;
+int DivPlatformT6W28::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformT6W28::keyOffAffectsArp(int ch) {

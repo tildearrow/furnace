@@ -939,13 +939,13 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemLen=2;
       ds.system[0]=DIV_SYSTEM_YM2612;
       ds.system[1]=DIV_SYSTEM_SMS;
-      ds.systemVol[1]=32;
+      ds.systemVol[1]=0.5f;
     }
     if (ds.system[0]==DIV_SYSTEM_GENESIS_EXT) {
       ds.systemLen=2;
       ds.system[0]=DIV_SYSTEM_YM2612_EXT;
       ds.system[1]=DIV_SYSTEM_SMS;
-      ds.systemVol[1]=32;
+      ds.systemVol[1]=0.5f;
     }
     if (ds.system[0]==DIV_SYSTEM_ARCADE) {
       ds.systemLen=2;
@@ -1830,14 +1830,18 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     // system volume
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
-      ds.systemVol[i]=reader.readC();
+      signed char oldSysVol=reader.readC();
+      ds.systemVol[i]=(float)oldSysVol/64.0f;
       if (ds.version<59 && ds.system[i]==DIV_SYSTEM_NES) {
         ds.systemVol[i]/=4;
       }
     }
 
     // system panning
-    for (int i=0; i<DIV_MAX_CHIPS; i++) ds.systemPan[i]=reader.readC();
+    for (int i=0; i<DIV_MAX_CHIPS; i++) {
+      signed char oldSysPan=reader.readC();
+      ds.systemPan[i]=(float)oldSysPan/127.0f;
+    }
 
     // system props
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
@@ -1860,14 +1864,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
           ds.system[i]=DIV_SYSTEM_YM2612;
           if (i<31) {
             ds.system[i+1]=DIV_SYSTEM_SMS;
-            ds.systemVol[i+1]=(((ds.systemVol[i]&127)*3)>>3)|(ds.systemVol[i]&128);
+            ds.systemVol[i+1]=ds.systemVol[i]*0.375f;
           }
         }
         if (ds.system[i]==DIV_SYSTEM_GENESIS_EXT) {
           ds.system[i]=DIV_SYSTEM_YM2612_EXT;
           if (i<31) {
             ds.system[i+1]=DIV_SYSTEM_SMS;
-            ds.systemVol[i+1]=(((ds.systemVol[i]&127)*3)>>3)|(ds.systemVol[i]&128);
+            ds.systemVol[i+1]=ds.systemVol[i]*0.375f;
           }
         }
         if (ds.system[i]==DIV_SYSTEM_ARCADE) {
@@ -2199,6 +2203,23 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
       ds.autoSystem=true;
     }
+
+    // system output config
+    if (ds.version>=135) {
+      for (int i=0; i<ds.systemLen; i++) {
+        ds.systemVol[i]=reader.readF();
+        ds.systemPan[i]=reader.readF();
+        ds.systemPanFR[i]=reader.readF();
+      }
+
+      // patchbay
+      unsigned int conns=reader.readI();
+      for (unsigned int i=0; i<conns; i++) {
+        ds.patchbay.push_back((unsigned int)reader.readI());
+      }
+    }
+
+    if (ds.version>=136) song.patchbayAuto=reader.readC();
 
     // read system flags
     if (ds.version>=119) {
@@ -2539,6 +2560,16 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         if (ds.system[i]==DIV_SYSTEM_SMS ||
             ds.system[i]==DIV_SYSTEM_T6W28) {
           ds.systemFlags[i].set("noEasyNoise",true);
+        }
+      }
+    }
+
+    // OPL3 pan compat
+    if (ds.version<134) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_OPL3 ||
+            ds.system[i]==DIV_SYSTEM_OPL3_DRUMS) {
+          ds.systemFlags[i].set("compatPan",true);
         }
       }
     }
@@ -3147,7 +3178,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
 
     ds.systemLen=1;
     ds.system[0]=DIV_SYSTEM_AMIGA;
-    ds.systemVol[0]=64;
+    ds.systemVol[0]=1.0f;
     ds.systemPan[0]=0;
     ds.systemFlags[0].set("clockSel",1); // PAL
     ds.systemFlags[0].set("stereoSep",80);
@@ -4298,11 +4329,11 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   }
 
   for (int i=0; i<DIV_MAX_CHIPS; i++) {
-    w->writeC(song.systemVol[i]);
+    w->writeC(song.systemVol[i]*64.0f);
   }
 
   for (int i=0; i<DIV_MAX_CHIPS; i++) {
-    w->writeC(song.systemPan[i]);
+    w->writeC(song.systemPan[i]*127.0f);
   }
 
   // chip flags (we'll seek here later)
@@ -4445,6 +4476,18 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeString(song.authorJ,false);
   w->writeString(song.systemNameJ,false);
   w->writeString(song.categoryJ,false);
+
+  // system output config
+  for (int i=0; i<song.systemLen; i++) {
+    w->writeF(song.systemVol[i]);
+    w->writeF(song.systemPan[i]);
+    w->writeF(song.systemPanFR[i]);
+  }
+  w->writeI(song.patchbay.size());
+  for (unsigned int i: song.patchbay) {
+    w->writeI(i);
+  }
+  w->writeC(song.patchbayAuto);
 
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);

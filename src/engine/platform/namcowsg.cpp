@@ -151,7 +151,7 @@ const char** DivPlatformNamcoWSG::getRegisterSheet() {
   return regCheatSheetNamcoWSG;
 }
 
-void DivPlatformNamcoWSG::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformNamcoWSG::acquire(short** buf, size_t len) {
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     switch (devType) {
@@ -171,11 +171,11 @@ void DivPlatformNamcoWSG::acquire(short* bufL, short* bufR, size_t start, size_t
     regPool[w.addr&0x3f]=w.val;
     writes.pop();
   }
-  for (size_t h=start; h<start+len; h++) {
-    short* buf[2]={
-      bufL+h, bufR+h
+  for (size_t h=0; h<len; h++) {
+    short* bufC[2]={
+      buf[0]+h, buf[1]+h
     };
-    namco->sound_stream_update(buf,1);
+    namco->sound_stream_update(bufC,1);
     for (int i=0; i<chans; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=namco->m_channel_list[i].last_out*chans;
     }
@@ -494,8 +494,8 @@ void DivPlatformNamcoWSG::reset() {
   namco->device_start(NULL);
 }
 
-bool DivPlatformNamcoWSG::isStereo() {
-  return (devType==30);
+int DivPlatformNamcoWSG::getOutputCount() {
+  return (devType==30)?2:1;
 }
 
 bool DivPlatformNamcoWSG::keyOffAffectsArp(int ch) {

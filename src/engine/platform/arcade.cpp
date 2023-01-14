@@ -19,6 +19,7 @@
 
 #include "arcade.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <string.h>
 #include <math.h>
 
@@ -50,10 +51,10 @@ const char** DivPlatformArcade::getRegisterSheet() {
   return regCheatSheetOPM;
 }
 
-void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformArcade::acquire_nuked(short** buf, size_t len) {
   static int o[2];
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     for (int i=0; i<8; i++) {
       if (!writes.empty() && !fm.write_busy) {
         QueuedWrite& w=writes.front();
@@ -84,17 +85,17 @@ void DivPlatformArcade::acquire_nuked(short* bufL, short* bufR, size_t start, si
     if (o[1]<-32768) o[1]=-32768;
     if (o[1]>32767) o[1]=32767;
 
-    bufL[h]=o[0];
-    bufR[h]=o[1];
+    buf[0][h]=o[0];
+    buf[1][h]=o[1];
   }
 }
 
-void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformArcade::acquire_ymfm(short** buf, size_t len) {
   static int os[2];
 
   ymfm::ym2151::fm_engine* fme=fm_ymfm->debug_engine();
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
       if (--delay<1) {
@@ -121,16 +122,16 @@ void DivPlatformArcade::acquire_ymfm(short* bufL, short* bufR, size_t start, siz
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
 
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
   }
 }
 
-void DivPlatformArcade::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformArcade::acquire(short** buf, size_t len) {
   if (useYMFM) {
-    acquire_ymfm(bufL,bufR,start,len);
+    acquire_ymfm(buf,len);
   } else {
-    acquire_nuked(bufL,bufR,start,len);
+    acquire_nuked(buf,len);
   }
 }
 
@@ -868,25 +869,26 @@ void DivPlatformArcade::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 1:
       chipClock=COLOR_PAL*4.0/5.0;
-      baseFreqOff=12;
       break;
     case 2:
       chipClock=4000000.0;
-      baseFreqOff=-122;
       break;
     default:
       chipClock=COLOR_NTSC;
-      baseFreqOff=0;
       break;
   }
+  CHECK_CUSTOM_CLOCK;
+
+  baseFreqOff=round(768.0*(log((COLOR_NTSC/(double)chipClock))/log(2.0)));
+
   rate=chipClock/64;
   for (int i=0; i<8; i++) {
     oscBuf[i]->rate=rate;
   }
 }
 
-bool DivPlatformArcade::isStereo() {
-  return true;
+int DivPlatformArcade::getOutputCount() {
+  return 2;
 }
 
 void DivPlatformArcade::setYMFM(bool use) {
