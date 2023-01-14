@@ -613,7 +613,3 @@ int main(int argc, char** argv) {
 #endif
   return 0;
 }
-
-#ifdef _WIN32
-#include "winMain.cpp"
-#endif
