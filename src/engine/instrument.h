@@ -19,8 +19,6 @@
 
 #ifndef _INSTRUMENT_H
 #define _INSTRUMENT_H
-#include <vector>
-#include "sample.h"
 #include "safeWriter.h"
 #include "dataErrors.h"
 #include "../ta-utils.h"
@@ -379,7 +377,6 @@ struct DivInstrumentAmiga {
       freq(f),
       map(m) {}
   };
-
   short initSample;
   bool useNoteMap;
   bool useSample;
