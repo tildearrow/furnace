@@ -5148,7 +5148,7 @@ bool FurnaceGUI::loop() {
     renderTimeDelta=renderTimeEnd-renderTimeBegin;
     eventTimeDelta=eventTimeEnd-eventTimeBegin;
 
-    soloTimeout-=ImGui::GetIO().DeltaTime*60.0f;
+    soloTimeout-=ImGui::GetIO().DeltaTime;
     if (soloTimeout<0) {
       soloTimeout=0;
     } else {

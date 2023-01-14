@@ -492,6 +492,13 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::Separator();
 
+          if (CWSliderFloat("Double-click time (seconds)",&settings.doubleClickTime,0.02,1.0,"%.2f")) {
+            if (settings.doubleClickTime<0.02) settings.doubleClickTime=0.02;
+            if (settings.doubleClickTime>1.0) settings.doubleClickTime=1.0;
+
+            applyUISettings(false);
+          }
+
           ImGui::Text("Toggle channel solo on:");
           if (ImGui::RadioButton("Right-click or double-click##soloA",settings.soloAction==0)) {
             settings.soloAction=0;
@@ -2557,6 +2564,7 @@ void FurnaceGUI::syncSettings() {
   settings.exportLoops=e->getConfInt("exportLoops",0);
   settings.exportFadeOut=e->getConfDouble("exportFadeOut",0.0);
   settings.macroLayout=e->getConfInt("macroLayout",0);
+  settings.doubleClickTime=e->getConfFloat("doubleClickTime",0.3f);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2667,6 +2675,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.ordersCursor,0,1);
   clampSetting(settings.persistFadeOut,0,1);
   clampSetting(settings.macroLayout,0,4);
+  clampSetting(settings.doubleClickTime,0.02,1.0);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -2870,6 +2879,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("exportLoops",settings.exportLoops);
   e->setConf("exportFadeOut",settings.exportFadeOut);
   e->setConf("macroLayout",settings.macroLayout);
+  e->setConf("doubleClickTime",settings.doubleClickTime);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -3444,6 +3454,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   ImGui::GetIO().ConfigInputTrickleEventQueue=settings.eventDelay;
   ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly=settings.moveWindowTitle;
   ImGui::GetIO().ConfigInertialScrollToleranceSqr=pow(dpiScale*4.0f,2.0f);
+  ImGui::GetIO().MouseDoubleClickTime=settings.doubleClickTime;
 
   for (int i=0; i<256; i++) {
     ImVec4& base=uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH];
