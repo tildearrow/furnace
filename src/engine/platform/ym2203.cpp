@@ -210,12 +210,12 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
     );
 
     os&=~3;
-    os=(os*fmVol)/255;
+    os=(os*fmVol)>>8;
 
     // ymfm part
     fm->generate(&fmout);
 
-    os+=(((fmout.data[1]+fmout.data[2]+fmout.data[3])>>1)*ssgVol)/255;
+    os+=(((fmout.data[1]+fmout.data[2]+fmout.data[3])>>1)*ssgVol)>>8;
     if (os<-32768) os=-32768;
     if (os>32767) os=32767;
   
@@ -256,7 +256,7 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
     
     fm->generate(&fmout);
 
-    os=((fmout.data[0]*fmVol)/255)+((((fmout.data[1]+fmout.data[2]+fmout.data[3])>>1)*ssgVol)/255);
+    os=((fmout.data[0]*fmVol)>>8)+((((fmout.data[1]+fmout.data[2]+fmout.data[3])>>1)*ssgVol)>>8);
     if (os<-32768) os=-32768;
     if (os>32767) os=32767;
   
@@ -1043,8 +1043,8 @@ void DivPlatformYM2203::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   noExtMacros=flags.getBool("noExtMacros",false);
   fbAllOps=flags.getBool("fbAllOps",false);
-  ssgVol=flags.getInt("ssgVol",255);
-  fmVol=flags.getInt("fmVol",255);
+  ssgVol=flags.getInt("ssgVol",256);
+  fmVol=flags.getInt("fmVol",256);
   rate=fm->sample_rate(chipClock);
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;

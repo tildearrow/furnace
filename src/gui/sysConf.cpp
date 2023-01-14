@@ -472,8 +472,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int clockSel=flags.getInt("clockSel",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
-      int ssgVol=flags.getInt("ssgVol",255);
-      int fmVol=flags.getInt("fmVol",255);
+      int ssgVol=flags.getInt("ssgVol",256);
+      int fmVol=flags.getInt("fmVol",256);
 
       if (ImGui::RadioButton("8MHz (Neo Geo MVS)",clockSel==0)) {
         clockSel=0;
@@ -493,15 +493,15 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         }
       }
 
-      if (CWSliderInt("SSG Volume",&ssgVol,0,255)) {
+      if (CWSliderInt("SSG Volume",&ssgVol,0,256)) {
         if (ssgVol<0) ssgVol=0;
-        if (ssgVol>255) ssgVol=255;
+        if (ssgVol>256) ssgVol=256;
         altered=true;
       } rightClickable
 
-      if (CWSliderInt("FM/ADPCM Volume",&fmVol,0,255)) {
+      if (CWSliderInt("FM/ADPCM Volume",&fmVol,0,256)) {
         if (fmVol<0) fmVol=0;
-        if (fmVol>255) fmVol=255;
+        if (fmVol>256) fmVol=256;
         altered=true;
       } rightClickable
 
@@ -870,8 +870,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
-      int ssgVol=flags.getInt("ssgVol",255);
-      int fmVol=flags.getInt("fmVol",255);
+      int ssgVol=flags.getInt("ssgVol",256);
+      int fmVol=flags.getInt("fmVol",256);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("3.58MHz (NTSC)",clockSel==0)) {
@@ -912,15 +912,15 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
-      if (CWSliderInt("SSG Volume",&ssgVol,0,255)) {
+      if (CWSliderInt("SSG Volume",&ssgVol,0,256)) {
         if (ssgVol<0) ssgVol=0;
-        if (ssgVol>255) ssgVol=255;
+        if (ssgVol>256) ssgVol=256;
         altered=true;
       } rightClickable
 
-      if (CWSliderInt("FM Volume",&fmVol,0,255)) {
+      if (CWSliderInt("FM Volume",&fmVol,0,256)) {
         if (fmVol<0) fmVol=0;
-        if (fmVol>255) fmVol=255;
+        if (fmVol>256) fmVol=256;
         altered=true;
       } rightClickable
 
@@ -952,8 +952,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
-      int ssgVol=flags.getInt("ssgVol",255);
-      int fmVol=flags.getInt("fmVol",255);
+      int ssgVol=flags.getInt("ssgVol",256);
+      int fmVol=flags.getInt("fmVol",256);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("8MHz (Arcade)",clockSel==0)) {
@@ -978,15 +978,15 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
-      if (CWSliderInt("SSG Volume",&ssgVol,0,255)) {
+      if (CWSliderInt("SSG Volume",&ssgVol,0,256)) {
         if (ssgVol<0) ssgVol=0;
-        if (ssgVol>255) ssgVol=255;
+        if (ssgVol>256) ssgVol=256;
         altered=true;
       } rightClickable
 
-      if (CWSliderInt("FM/ADPCM Volume",&fmVol,0,255)) {
+      if (CWSliderInt("FM/ADPCM Volume",&fmVol,0,256)) {
         if (fmVol<0) fmVol=0;
-        if (fmVol>255) fmVol=255;
+        if (fmVol>256) fmVol=256;
         altered=true;
       } rightClickable
 
