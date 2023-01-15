@@ -883,16 +883,20 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
 }
 
 #define CHIP_VOL(_id,_mult) { \
-  double _vol=fabs((float)song.systemVol[i])*4.0*_mult; \
+  double _vol=fabs((float)song.systemVol[i])*256.0*_mult; \
   if (_vol<0.0) _vol=0.0; \
   if (_vol>32767.0) _vol=32767.0; \
+  chipVolSum+=(unsigned int)(_vol/_mult); \
+  chipAccounting++; \
   chipVol.push_back((_id)|(0x80000000)|(((unsigned int)_vol)<<16)); \
 }
 
 #define CHIP_VOL_SECOND(_id,_mult) { \
-  double _vol=fabs((float)song.systemVol[i])*4.0*_mult; \
+  double _vol=fabs((float)song.systemVol[i])*256.0*_mult; \
   if (_vol<0.0) _vol=0.0; \
   if (_vol>32767.0) _vol=32767.0; \
+  chipVolSum+=(unsigned int)(_vol/_mult); \
+  chipAccounting++; \
   chipVol.push_back((_id)|(0x80000100)|(((unsigned int)_vol)<<16)); \
 }
 
@@ -977,6 +981,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   int hasLynx=0;
 
   int howManyChips=0;
+  int chipVolSum=0;
+  int chipAccounting=0;
 
   int loopPos=-1;
   int loopTick=-1;
@@ -1040,7 +1046,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_SMS:
         if (!hasSN) {
           hasSN=disCont[i].dispatch->chipClock;
-          CHIP_VOL(0,1.0);
+          CHIP_VOL(0,2.0);
           willExport[i]=true;
           switch (song.systemFlags[i].getInt("chipType",0)) {
             case 1: // real SN
@@ -1059,7 +1065,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         } else if (!(hasSN&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
-          CHIP_VOL_SECOND(0,1.0);
+          CHIP_VOL_SECOND(0,2.0);
           hasSN|=0x40000000;
           howManyChips++;
         }
@@ -1067,9 +1073,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_GB:
         if (!hasGB) {
           hasGB=disCont[i].dispatch->chipClock;
+          CHIP_VOL(19,0.75);
           willExport[i]=true;
         } else if (!(hasGB&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(19,0.75);
           willExport[i]=true;
           hasGB|=0x40000000;
           howManyChips++;
@@ -1078,10 +1086,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_PCE:
         if (!hasPCE) {
           hasPCE=disCont[i].dispatch->chipClock;
+          CHIP_VOL(27,0.98);
           willExport[i]=true;
           writePCESamples=true;
         } else if (!(hasPCE&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL(27,0.98);
           willExport[i]=true;
           hasPCE|=0x40000000;
           howManyChips++;
@@ -1090,10 +1100,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_NES:
         if (!hasNES) {
           hasNES=disCont[i].dispatch->chipClock;
+          CHIP_VOL(20,1.7);
           willExport[i]=true;
           writeNESSamples=true;
         } else if (!(hasNES&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(20,1.7);
           willExport[i]=true;
           hasNES|=0x40000000;
           howManyChips++;
@@ -1103,10 +1115,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_SEGAPCM_COMPAT:
         if (!hasSegaPCM) {
           hasSegaPCM=4000000;
+          CHIP_VOL(4,0.67);
           willExport[i]=true;
           writeSegaPCM=1;
         } else if (!(hasSegaPCM&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(4,0.67);
           willExport[i]=true;
           writeSegaPCM=2;
           hasSegaPCM|=0x40000000;
@@ -1116,10 +1130,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_X1_010:
         if (!hasX1) {
           hasX1=disCont[i].dispatch->chipClock;
+          CHIP_VOL(38,0.5);
           willExport[i]=true;
           writeX1010[0]=disCont[i].dispatch;
         } else if (!(hasX1&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(38,0.5);
           willExport[i]=true;
           writeX1010[1]=disCont[i].dispatch;
           hasX1|=0x40000000;
@@ -1134,10 +1150,14 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_YM2610B_EXT:
         if (!hasOPNB) {
           hasOPNB=disCont[i].dispatch->chipClock;
+          CHIP_VOL(8,1.0);
+          CHIP_VOL(0x88,1.25);
           willExport[i]=true;
           writeADPCM_OPNB[0]=disCont[i].dispatch;
         } else if (!(hasOPNB&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(8,1.0);
+          CHIP_VOL_SECOND(0x88,1.25);
           willExport[i]=true;
           writeADPCM_OPNB[1]=disCont[i].dispatch;
           hasOPNB|=0x40000000;
@@ -1182,9 +1202,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           if (hasStereo && song.systemFlags[i].getBool("stereo",false)) {
             ayFlags|=0x80;
           }
+          CHIP_VOL(18,1.0);
           willExport[i]=true;
         } else if (!(hasAY&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(18,1.0);
           willExport[i]=true;
           hasAY|=0x40000000;
           howManyChips++;
@@ -1194,9 +1216,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_SAA1099:
         if (!hasSAA) {
           hasSAA=disCont[i].dispatch->chipClock;
+          CHIP_VOL(35,1.0);
           willExport[i]=true;
         } else if (!(hasSAA&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(35,1.0);
           willExport[i]=true;
           hasSAA|=0x40000000;
           howManyChips++;
@@ -1208,10 +1232,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_YM2612_DUALPCM_EXT:
         if (!hasOPN2) {
           hasOPN2=disCont[i].dispatch->chipClock;
+          CHIP_VOL(2,0.8);
           willExport[i]=true;
           writeDACSamples=true;
         } else if (!(hasOPN2&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(2,0.8);
           willExport[i]=true;
           hasOPN2|=0x40000000;
           howManyChips++;
@@ -1220,9 +1246,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_YM2151:
         if (!hasOPM) {
           hasOPM=disCont[i].dispatch->chipClock;
+          CHIP_VOL(3,1.0);
           willExport[i]=true;
         } else if (!(hasOPM&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(3,1.0);
           willExport[i]=true;
           hasOPM|=0x40000000;
           howManyChips++;
@@ -1233,10 +1261,14 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         if (!hasOPN) {
           hasOPN=disCont[i].dispatch->chipClock;
           willExport[i]=true;
+          CHIP_VOL(6,1.0);
+          CHIP_VOL(0x86,1.7);
           writeDACSamples=true;
         } else if (!(hasOPN&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
+          CHIP_VOL_SECOND(6,1.0);
+          CHIP_VOL_SECOND(0x86,1.7);
           hasOPN|=0x40000000;
           howManyChips++;
         }
@@ -1245,10 +1277,14 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_YM2608_EXT:
         if (!hasOPNA) {
           hasOPNA=disCont[i].dispatch->chipClock;
+          CHIP_VOL(7,1.0);
+          CHIP_VOL(0x87,1.3);
           willExport[i]=true;
           writeADPCM_OPNA[0]=disCont[i].dispatch;
         } else if (!(hasOPNA&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(7,1.0);
+          CHIP_VOL_SECOND(0x87,1.3);
           willExport[i]=true;
           writeADPCM_OPNA[1]=disCont[i].dispatch;
           hasOPNA|=0x40000000;
@@ -1260,9 +1296,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_VRC7:
         if (!hasOPLL) {
           hasOPLL=disCont[i].dispatch->chipClock;
+          CHIP_VOL(1,1.6);
           willExport[i]=true;
         } else if (!(hasOPLL&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(1,1.6);
           willExport[i]=true;
           hasOPLL|=0x40000000;
           howManyChips++;
@@ -1285,9 +1323,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_POKEY:
         if (!hasPOKEY) {
           hasPOKEY=disCont[i].dispatch->chipClock;
+          CHIP_VOL(30,0.8);
           willExport[i]=true;
         } else if (!(hasPOKEY&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(30,0.8);
           willExport[i]=true;
           hasPOKEY|=0x40000000;
           howManyChips++;
@@ -1310,10 +1350,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           // However I think it it not necessary because old VGM players will still
           // not be able to handle the 64kb sample bank trick
           hasQSound=disCont[i].dispatch->chipClock;
+          CHIP_VOL(31,1.0);
           willExport[i]=true;
           writeQSound[0]=disCont[i].dispatch;
         } else if (!(hasQSound&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(31,1.0);
           willExport[i]=false;
           writeQSound[1]=disCont[i].dispatch;
           addWarning("dual QSound is not supported by the VGM format");
@@ -1322,6 +1364,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_SWAN:
         if (!hasSwan) {
           hasSwan=disCont[i].dispatch->chipClock;
+          CHIP_VOL(33,1.0);
           willExport[i]=true;
           // funny enough, VGM doesn't have support for WSC's sound DMA by design
           // so DAC stream it goes
@@ -1329,6 +1372,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           writeDACSamples=true;
         } else if (!(hasSwan&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(33,1.0);
           willExport[i]=true;
           hasSwan|=0x40000000;
           howManyChips++;
@@ -1337,9 +1381,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_VBOY:
         if (!hasVSU) {
           hasVSU=disCont[i].dispatch->chipClock;
+          CHIP_VOL(34,0.72);
           willExport[i]=true;
         } else if (!(hasVSU&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(34,0.72);
           willExport[i]=true;
           hasVSU|=0x40000000;
           howManyChips++;
@@ -1349,9 +1395,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_OPL_DRUMS:
         if (!hasOPL) {
           hasOPL=disCont[i].dispatch->chipClock;
+          CHIP_VOL(9,1.0);
           willExport[i]=true;
         } else if (!(hasOPL&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(9,1.0);
           willExport[i]=true;
           hasOPL|=0x40000000;
           howManyChips++;
@@ -1361,10 +1409,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_Y8950_DRUMS:
         if (!hasY8950) {
           hasY8950=disCont[i].dispatch->chipClock;
+          CHIP_VOL(11,1.0);
           willExport[i]=true;
           writeADPCM_Y8950[0]=disCont[i].dispatch;
         } else if (!(hasY8950&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(11,1.0);
           willExport[i]=true;
           writeADPCM_Y8950[1]=disCont[i].dispatch;
           hasY8950|=0x40000000;
@@ -1375,9 +1425,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_OPL2_DRUMS:
         if (!hasOPL2) {
           hasOPL2=disCont[i].dispatch->chipClock;
+          CHIP_VOL(10,1.0);
           willExport[i]=true;
         } else if (!(hasOPL2&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(10,1.0);
           willExport[i]=true;
           hasOPL2|=0x40000000;
           howManyChips++;
@@ -1387,9 +1439,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_OPL3_DRUMS:
         if (!hasOPL3) {
           hasOPL3=disCont[i].dispatch->chipClock;
+          CHIP_VOL(12,1.0);
           willExport[i]=true;
         } else if (!(hasOPL3&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(12,1.0);
           willExport[i]=true;
           hasOPL3|=0x40000000;
           howManyChips++;
@@ -1402,9 +1456,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           if (song.system[i]==DIV_SYSTEM_SCC_PLUS) {
             hasK051649|=0x80000000;
           }
+          CHIP_VOL(25,1.0);
           willExport[i]=true;
         } else if (!(hasK051649&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(25,1.0);
           willExport[i]=true;
           hasK051649|=0x40000000;
           if (song.system[i]==DIV_SYSTEM_SCC_PLUS) {
@@ -1416,10 +1472,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_YMZ280B:
         if (!hasZ280) {
           hasZ280=disCont[i].dispatch->chipClock;
+          CHIP_VOL(15,0.72);
           willExport[i]=true;
           writeZ280[0]=disCont[i].dispatch;
         } else if (!(hasZ280&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(15,0.72);
           willExport[i]=true;
           writeZ280[1]=disCont[i].dispatch;
           hasZ280|=0x40000000;
@@ -1435,11 +1493,13 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           if (!hasRFC1) {
             hasRFC1=disCont[i].dispatch->chipClock;
             isSecond[i]=true;
+            CHIP_VOL(16,1.6);
             willExport[i]=true;
             writeRF5C68[1]=disCont[i].dispatch;
           }
         } else if (!hasRFC) {
           hasRFC=disCont[i].dispatch->chipClock;
+          CHIP_VOL(5,1.6);
           willExport[i]=true;
           writeRF5C68[0]=disCont[i].dispatch;
         }
@@ -1447,10 +1507,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_MSM6295:
         if (!hasOKIM6295) {
           hasOKIM6295=disCont[i].dispatch->chipClock;
+          CHIP_VOL(24,1.0);
           willExport[i]=true;
           writeMSM6295[0]=disCont[i].dispatch;
         } else if (!(hasOKIM6295&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(24,1.0);
           willExport[i]=true;
           writeMSM6295[1]=disCont[i].dispatch;
           hasOKIM6295|=0x40000000;
@@ -1460,10 +1522,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_GA20:
         if (!hasGA20) {
           hasGA20=disCont[i].dispatch->chipClock;
+          CHIP_VOL(40,0.4);
           willExport[i]=true;
           writeGA20[0]=disCont[i].dispatch;
         } else if (!(hasGA20&0x40000000)) {
           isSecond[i]=true;
+          CHIP_VOL_SECOND(40,0.4);
           willExport[i]=true;
           writeGA20[1]=disCont[i].dispatch;
           hasGA20|=0x40000000;
@@ -1473,7 +1537,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_T6W28:
         if (!hasSN) {
           hasSN=0xc0000000|disCont[i].dispatch->chipClock;
-          CHIP_VOL(0,1.0);
+          CHIP_VOL(0,2.0);
           snNoiseConfig=3;
           snNoiseSize=15;
           willExport[i]=true;
@@ -1548,8 +1612,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     w->writeC(0); // OPN
     w->writeC(0); // OPNA
   }
-  if (version>=0x160) {
-    int calcVolume=32.0*(log(song.masterVol)/log(2.0));
+  if (version>=0x160) { // global volume
+    double abnormalVol=song.masterVol*(double)chipVolSum/(256.0*MAX(1,chipAccounting));
+    int calcVolume=32.0*(log(abnormalVol)/log(2.0));
     if (calcVolume<-63) calcVolume=-63;
     if (calcVolume>192) calcVolume=192;
     w->writeC(calcVolume&0xff); // volume
