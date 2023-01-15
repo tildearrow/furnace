@@ -1509,7 +1509,7 @@ DivMacroInt* DivPlatformOPL::getChanMacroInt(int ch) {
 }
 
 DivDispatchOscBuffer* DivPlatformOPL::getOscBuffer(int ch) {
-  if (ch>=18) return NULL;
+  if (ch>=totalChans) return NULL;
   if (oplType==3 && ch<12) {
     if (chan[ch&(~1)].fourOp) {
       if (ch&1) {
