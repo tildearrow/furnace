@@ -586,7 +586,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         }
       }
       if (c.chan>=5 && chan[c.chan].dacMode) {
-        if (skipRegisterWrites) break;
+        //if (skipRegisterWrites) break;
         if (ins->type==DIV_INS_AMIGA) { // Furnace mode
           if (c.value!=DIV_NOTE_NULL) chan[c.chan].dacSample=ins->amiga.getSample(c.value);
           if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
@@ -1122,6 +1122,8 @@ void DivPlatformGenesis::forceIns() {
     }
   }
   if (chan[5].dacMode) {
+    chan[5].dacSample=-1;
+    chan[6].dacSample=-1;
     rWrite(0x2b,0x80);
   }
   immWrite(0x22,lfoValue);
