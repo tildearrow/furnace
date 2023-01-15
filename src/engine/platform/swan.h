@@ -51,6 +51,7 @@ class DivPlatformSwan: public DivDispatch {
       QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   std::queue<QueuedWrite> writes;
+  std::queue<DivRegWrite> postDACWrites;
   WSwan* ws;
   void updateWave(int ch);
   friend void putDispatchChip(void*,int);

@@ -570,7 +570,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
             w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0)|(sampleDir[streamID]?0x10:0)); // flags
             if (sample->isLoopable() && !sampleDir[streamID]) {
               loopTimer[streamID]=sample->length8;
-              loopSample[streamID]=write.val;
+              loopSample[streamID]=pendingFreq[streamID];
             }
             playingSample[streamID]=pendingFreq[streamID];
             pendingFreq[streamID]=-1;
