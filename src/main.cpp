@@ -32,6 +32,10 @@
 #include <windows.h>
 #include <combaseapi.h>
 #include <shellapi.h>
+
+#include "gui/shellScalingStub.h"
+
+typedef HRESULT (WINAPI *SPDA)(PROCESS_DPI_AWARENESS);
 #else
 #include <unistd.h>
 #endif
@@ -339,6 +343,22 @@ void reportError(String what) {
 int main(int argc, char** argv) {
   initLog();
 #ifdef _WIN32
+  // set DPI awareness
+  HMODULE shcore=LoadLibraryW(L"shcore.dll");
+  if (shcore!=NULL) {
+    SPDA ta_SetProcessDpiAwareness=(SPDA)GetProcAddress(shcore,"SetProcessDpiAwareness");
+    if (ta_SetProcessDpiAwareness!=NULL) {
+      HRESULT result=ta_SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+      if (result!=S_OK) {
+        // ???
+      }
+    }
+    if (!FreeLibrary(shcore)) {
+      // ???
+    }
+  }
+
+  // co initialize ex
   HRESULT coResult=CoInitializeEx(NULL,COINIT_MULTITHREADED);
   if (coResult!=S_OK) {
     logE("CoInitializeEx failed!");
