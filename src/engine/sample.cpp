@@ -898,6 +898,7 @@ bool DivSample::resampleBlep(double r) {
       data16[i]=round(result);
     }
   }
+  delete[] floatData;
 
   RESAMPLE_END;
   return true;
