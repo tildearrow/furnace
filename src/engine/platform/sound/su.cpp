@@ -17,13 +17,13 @@
 void SoundUnit::NextSample(short* l, short* r) {
   // run channels
   for (int i=0; i<8; i++) {
-    if (chan[i].vol==0 && !chan[i].flags.swvol) {
+    if (chan[i].vol==0 && !chan[i].flags1.swvol) {
       fns[i]=0;
       continue;
     }
-    if (chan[i].flags.pcm) {
+    if (chan[i].flags0.pcm) {
       ns[i]=pcm[chan[i].pcmpos];
-    } else switch (chan[i].flags.shape) {
+    } else switch (chan[i].flags0.shape) {
       case 0:
         ns[i]=(((cycle[i]>>15)&127)>chan[i].duty)*127;
         break;
@@ -47,11 +47,11 @@ void SoundUnit::NextSample(short* l, short* r) {
         break;
     }
 
-    if (chan[i].flags.ring) {
+    if (chan[i].flags0.ring) {
       ns[i]=(ns[i]*ns[(i+1)&7])>>7;
     }
     
-    if (chan[i].flags.pcm) {
+    if (chan[i].flags0.pcm) {
       if (chan[i].freq>0x8000) {
         pcmdec[i]+=0x8000;
       } else {
@@ -62,18 +62,18 @@ void SoundUnit::NextSample(short* l, short* r) {
         if (chan[i].pcmpos<chan[i].pcmbnd) {
           chan[i].pcmpos++;
           if (chan[i].pcmpos==chan[i].pcmbnd) {
-            if (chan[i].flags.pcmloop) {
+            if (chan[i].flags1.pcmloop) {
               chan[i].pcmpos=chan[i].pcmrst;
             }
           }
           chan[i].pcmpos&=(pcmSize-1);
-        } else if (chan[i].flags.pcmloop) {
+        } else if (chan[i].flags1.pcmloop) {
           chan[i].pcmpos=chan[i].pcmrst;
         }
       }
     } else {
       ocycle[i]=cycle[i];
-      if (chan[i].flags.shape==5) {
+      if (chan[i].flags0.shape==5) {
         switch ((chan[i].duty>>4)&3) {
           case 0:
             cycle[i]+=chan[i].freq*1-(chan[i].freq>>3);
@@ -92,7 +92,7 @@ void SoundUnit::NextSample(short* l, short* r) {
         cycle[i]+=chan[i].freq;
       }
       if ((cycle[i]&0xf80000)!=(ocycle[i]&0xf80000)) {
-        if (chan[i].flags.shape==4) {
+        if (chan[i].flags0.shape==4) {
           lfsr[i]=(lfsr[i]>>1|(((lfsr[i]) ^ (lfsr[i] >> 2) ^ (lfsr[i] >> 3) ^ (lfsr[i] >> 5) ) & 1)<<31);
         } else {
           switch ((chan[i].duty>>4)&3) {
@@ -114,7 +114,7 @@ void SoundUnit::NextSample(short* l, short* r) {
           }
         }
       }
-      if (chan[i].flags.restim) {
+      if (chan[i].flags1.restim) {
         if (--rcycle[i]<=0) {
           cycle[i]=0;
           rcycle[i]=chan[i].restimer;
@@ -122,19 +122,18 @@ void SoundUnit::NextSample(short* l, short* r) {
         }
       }
     }
-    fns[i]=ns[i]*chan[i].vol*(chan[i].flags.pcm?4:2);
-    if (chan[i].flags.fmode!=0) {
+    fns[i]=ns[i]*chan[i].vol*(chan[i].flags0.pcm?4:2);
+    if (chan[i].flags0.fmode!=0) {
       int ff=chan[i].cutoff;
       nslow[i]=nslow[i]+(((ff)*nsband[i])>>16);
       nshigh[i]=fns[i]-nslow[i]-(((256-chan[i].reson)*nsband[i])>>8);
       nsband[i]=(((ff)*nshigh[i])>>16)+nsband[i];
-      fns[i]=(((chan[i].flags.fmode&1)?(nslow[i]):(0))+((chan[i].flags.fmode&2)?(nshigh[i]):(0))+((chan[i].flags.fmode&4)?(nsband[i]):(0)));
+      fns[i]=(((chan[i].flags0.fmode&1)?(nslow[i]):(0))+((chan[i].flags0.fmode&2)?(nshigh[i]):(0))+((chan[i].flags0.fmode&4)?(nsband[i]):(0)));
     }
     nsL[i]=(fns[i]*SCpantabL[(unsigned char)chan[i].pan])>>8;
     nsR[i]=(fns[i]*SCpantabR[(unsigned char)chan[i].pan])>>8;
     oldfreq[i]=chan[i].freq;
-    oldflags[i]=chan[i].flags.flags;
-    if (chan[i].flags.swvol) {
+    if (chan[i].flags1.swvol) {
       if (--swvolt[i]<=0) {
         swvolt[i]=chan[i].swvol.speed;
         if (chan[i].swvol.dir) {
@@ -174,7 +173,7 @@ void SoundUnit::NextSample(short* l, short* r) {
         }
       }
     }
-    if (chan[i].flags.swfreq) {
+    if (chan[i].flags1.swfreq) {
       if (--swfreqt[i]<=0) {
         swfreqt[i]=chan[i].swfreq.speed;
         if (chan[i].swfreq.dir) {
@@ -198,7 +197,7 @@ void SoundUnit::NextSample(short* l, short* r) {
         }
       }
     }
-    if (chan[i].flags.swcut) {
+    if (chan[i].flags1.swcut) {
       if (--swcutt[i]<=0) {
         swcutt[i]=chan[i].swcut.speed;
         if (chan[i].swcut.dir) {
@@ -222,11 +221,11 @@ void SoundUnit::NextSample(short* l, short* r) {
         }
       }
     }
-    if (chan[i].flags.resosc) {
+    if (chan[i].flags1.resosc) {
       cycle[i]=0;
       rcycle[i]=chan[i].restimer;
       ocycle[i]=0;
-      chan[i].flags.resosc=0;
+      chan[i].flags1.resosc=0;
     }
     if (muted[i]) {
       nsL[i]=0;
@@ -377,7 +376,6 @@ void SoundUnit::Reset() {
     swcutt[i]=1;
     lfsr[i]=0xaaaa;
     oldfreq[i]=0;
-    oldflags[i]=0;
     pcmdec[i]=0;
   }
   dsCounterL=0;
