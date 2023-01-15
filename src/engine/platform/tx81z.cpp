@@ -55,12 +55,12 @@ const char** DivPlatformTX81Z::getRegisterSheet() {
   return regCheatSheetOPZ;
 }
 
-void DivPlatformTX81Z::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformTX81Z::acquire(short** buf, size_t len) {
   static int os[2];
 
   ymfm::ym2414::fm_engine* fme=fm_ymfm->debug_engine();
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
       if (--delay<1) {
@@ -87,8 +87,8 @@ void DivPlatformTX81Z::acquire(short* bufL, short* bufR, size_t start, size_t le
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
   }
 }
 
@@ -150,6 +150,14 @@ void DivPlatformTX81Z::tick(bool sysTick) {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
       chan[i].freqChanged=true;
+    }
+
+    if (chan[i].std.panL.had) {
+      chan[i].chVolL=(chan[i].std.panL.val&2)>>1;
+      chan[i].chVolR=chan[i].std.panL.val&1;
+      chan[i].freqChanged=true;
+
+      immWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|(chan[i].active?0x40:0)|(chan[i].chVolR<<7));
     }
 
     if (chan[i].std.phaseReset.had) {
@@ -933,22 +941,23 @@ void DivPlatformTX81Z::setFlags(const DivConfig& flags) {
   int clockSel=flags.getInt("clockSel",0);
   if (clockSel==2) {
     chipClock=4000000.0;
-    baseFreqOff=-122;
   } else if (clockSel==1) {
     chipClock=COLOR_PAL*4.0/5.0;
-    baseFreqOff=12;
   } else {
     chipClock=COLOR_NTSC;
-    baseFreqOff=0;
   }
+  CHECK_CUSTOM_CLOCK;
+
+  baseFreqOff=round(768.0*(log((COLOR_NTSC/(double)chipClock))/log(2.0)));
+
   rate=chipClock/64;
   for (int i=0; i<8; i++) {
     oscBuf[i]->rate=rate;
   }
 }
 
-bool DivPlatformTX81Z::isStereo() {
-  return true;
+int DivPlatformTX81Z::getOutputCount() {
+  return 2;
 }
 
 int DivPlatformTX81Z::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

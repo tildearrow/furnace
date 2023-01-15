@@ -70,11 +70,11 @@ class DivPlatformYM2608: public DivPlatformOPN {
 
     friend void putDispatchChip(void*,int);
 
-    void acquire_combo(short* bufL, short* bufR, size_t start, size_t len);
-    void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_combo(short** buf, size_t len);
+    void acquire_ymfm(short** buf, size_t len);
 
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -85,7 +85,7 @@ class DivPlatformYM2608: public DivPlatformOPN {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    int getOutputCount();
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);

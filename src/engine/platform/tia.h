@@ -45,7 +45,7 @@ class DivPlatformTIA: public DivDispatch {
     unsigned char dealWithFreq(unsigned char shape, int base, int pitch);
   
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -58,7 +58,7 @@ class DivPlatformTIA: public DivDispatch {
     void muteChannel(int ch, bool mute);
     void setFlags(const DivConfig& flags);
     float getPostAmp();
-    bool isStereo();
+    int getOutputCount();
     bool keyOffAffectsArp(int ch);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);

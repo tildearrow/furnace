@@ -3863,6 +3863,11 @@ bool FurnaceGUI::loop() {
           curWindow=GUI_WINDOW_SYS_MANAGER;
           drawSysManager();
           break;
+        case GUI_SCENE_MIXER:
+          mixerOpen=true;
+          curWindow=GUI_WINDOW_MIXER;
+          drawMixer();
+          break;
         default:
           patternOpen=true;
           curWindow=GUI_WINDOW_PATTERN;
@@ -5143,7 +5148,12 @@ bool FurnaceGUI::loop() {
     renderTimeDelta=renderTimeEnd-renderTimeBegin;
     eventTimeDelta=eventTimeEnd-eventTimeBegin;
 
-    if (--soloTimeout<0) soloTimeout=0;
+    soloTimeout-=ImGui::GetIO().DeltaTime;
+    if (soloTimeout<0) {
+      soloTimeout=0;
+    } else {
+      WAKE_UP;
+    }
 
     wheelX=0;
     wheelY=0;
@@ -5779,7 +5789,6 @@ FurnaceGUI::FurnaceGUI():
   editStep(1),
   exportLoops(0),
   soloChan(-1),
-  soloTimeout(0),
   orderEditMode(0),
   orderCursor(-1),
   loopOrder(-1),
@@ -5798,6 +5807,7 @@ FurnaceGUI::FurnaceGUI():
   dragDestinationY(0),
   oldBeat(-1),
   oldBar(-1),
+  soloTimeout(0.0f),
   exportFadeOut(5.0),
   editControlsOpen(true),
   ordersOpen(true),
@@ -6016,6 +6026,14 @@ FurnaceGUI::FurnaceGUI():
   openSampleAmplifyOpt(false),
   openSampleSilenceOpt(false),
   openSampleFilterOpt(false),
+  selectedPortSet(0x1fff),
+  selectedSubPort(-1),
+  hoveredPortSet(0x1fff),
+  hoveredSubPort(-1),
+  portDragActive(false),
+  displayHiddenPorts(false),
+  displayInternalPorts(false),
+  subPortPos(0.0f,0.0f),
   oscTotal(0),
   oscZoom(0.5f),
   oscWindowSize(20.0f),
@@ -6095,8 +6113,7 @@ FurnaceGUI::FurnaceGUI():
 
   memset(willExport,1,DIV_MAX_CHIPS*sizeof(bool));
 
-  peak[0]=0;
-  peak[1]=0;
+  memset(peak,0,DIV_MAX_OUTPUTS*sizeof(float));
 
   opMaskTransposeNote.note=true;
   opMaskTransposeNote.ins=false;

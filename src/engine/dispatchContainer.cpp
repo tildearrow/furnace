@@ -80,79 +80,131 @@
 #include "song.h"
 
 void DivDispatchContainer::setRates(double gotRate) {
-  blip_set_rates(bb[0],dispatch->rate,gotRate);
-  blip_set_rates(bb[1],dispatch->rate,gotRate);
+  int outs=dispatch->getOutputCount();
+
+  for (int i=0; i<outs; i++) {
+    if (bb[i]==NULL) continue;
+    blip_set_rates(bb[i],dispatch->rate,gotRate);
+  }
+  rateMemory=gotRate;
 }
 
 void DivDispatchContainer::setQuality(bool lowQual) {
   lowQuality=lowQual;
 }
 
+void DivDispatchContainer::grow(size_t size) {
+  bbInLen=size;
+  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+    if (bbIn[i]!=NULL) {
+      delete[] bbIn[i];
+      bbIn[i]=new short[bbInLen];
+    }
+  }
+}
+
+#define CHECK_MISSING_BUFS \
+  int outs=dispatch->getOutputCount(); \
+ \
+  /* create missing buffers if any */ \
+  bool mustClear=false; \
+  for (int i=0; i<outs; i++) { \
+    if (bb[i]==NULL) { \
+      logV("creating buf %d because it doesn't exist",i); \
+      bb[i]=blip_new(bbInLen); \
+      if (bb[i]==NULL) { \
+        logE("not enough memory!"); \
+        return; \
+      } \
+      blip_set_rates(bb[i],dispatch->rate,rateMemory); \
+ \
+      if (bbIn[i]==NULL) bbIn[i]=new short[bbInLen]; \
+      if (bbOut[i]==NULL) bbOut[i]=new short[bbInLen]; \
+      memset(bbIn[i],0,bbInLen*sizeof(short)); \
+      memset(bbOut[i],0,bbInLen*sizeof(short)); \
+      mustClear=true; \
+    } \
+  } \
+  if (mustClear) clear(); \
+
 void DivDispatchContainer::acquire(size_t offset, size_t count) {
-  dispatch->acquire(bbIn[0],bbIn[1],offset,count);
+  CHECK_MISSING_BUFS;
+
+  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+    if (i>=outs) {
+      bbInMapped[i]=NULL;
+    } else {
+      if (bbIn[i]==NULL) {
+        bbInMapped[i]=NULL;
+      } else {
+        bbInMapped[i]=&bbIn[i][offset];
+      }
+    }
+  }
+  dispatch->acquire(bbInMapped,count);
 }
 
 void DivDispatchContainer::flush(size_t count) {
-  blip_read_samples(bb[0],bbOut[0],count,0);
+  int outs=dispatch->getOutputCount();
 
-  if (dispatch->isStereo()) {
-    blip_read_samples(bb[1],bbOut[1],count,0);
+  for (int i=0; i<outs; i++) {
+    if (bb[i]==NULL) continue;
+    blip_read_samples(bb[i],bbOut[i],count,0);
   }
 }
 
 void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) {
+  CHECK_MISSING_BUFS;
+
   if (dcOffCompensation && runtotal>0) {
     dcOffCompensation=false;
-    prevSample[0]=bbIn[0][0];
-    if (dispatch->isStereo()) prevSample[1]=bbIn[1][0];
+    for (int i=0; i<outs; i++) {
+      if (bbIn[i]==NULL) continue;
+      prevSample[i]=bbIn[i][0];
+    }
   }
   if (lowQuality) {
-    for (size_t i=0; i<runtotal; i++) {
-      temp[0]=bbIn[0][i];
-      blip_add_delta_fast(bb[0],i,temp[0]-prevSample[0]);
-      prevSample[0]=temp[0];
-    }
-
-    if (dispatch->isStereo()) for (size_t i=0; i<runtotal; i++) {
-      temp[1]=bbIn[1][i];
-      blip_add_delta_fast(bb[1],i,temp[1]-prevSample[1]);
-      prevSample[1]=temp[1];
+    for (int i=0; i<outs; i++) {
+      if (bbIn[i]==NULL) continue;
+      if (bb[i]==NULL) continue;
+      for (size_t j=0; j<runtotal; j++) {
+        temp[i]=bbIn[i][j];
+        blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
+        prevSample[i]=temp[i];
+      }
     }
   } else {
-    for (size_t i=0; i<runtotal; i++) {
-      temp[0]=bbIn[0][i];
-      blip_add_delta(bb[0],i,temp[0]-prevSample[0]);
-      prevSample[0]=temp[0];
-    }
-
-    if (dispatch->isStereo()) for (size_t i=0; i<runtotal; i++) {
-      temp[1]=bbIn[1][i];
-      blip_add_delta(bb[1],i,temp[1]-prevSample[1]);
-      prevSample[1]=temp[1];
+    for (int i=0; i<outs; i++) {
+      if (bbIn[i]==NULL) continue;
+      if (bb[i]==NULL) continue;
+      for (size_t j=0; j<runtotal; j++) {
+        temp[i]=bbIn[i][j];
+        blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
+        prevSample[i]=temp[i];
+      }
     }
   }
 
-  blip_end_frame(bb[0],runtotal);
-  blip_read_samples(bb[0],bbOut[0]+offset,size,0);
+  for (int i=0; i<outs; i++) {
+    if (bbOut[i]==NULL) continue;
+    if (bb[i]==NULL) continue;
+    blip_end_frame(bb[i],runtotal);
+    blip_read_samples(bb[i],bbOut[i]+offset,size,0);
+  }
   /*if (totalRead<(int)size && totalRead>0) {
     for (size_t i=totalRead; i<size; i++) {
       bbOut[0][i]=bbOut[0][totalRead-1];//bbOut[0][totalRead];
     }
   }*/
-
-  if (dispatch->isStereo()) {
-    blip_end_frame(bb[1],runtotal);
-    blip_read_samples(bb[1],bbOut[1]+offset,size,0);
-  }
 }
 
 void DivDispatchContainer::clear() {
-  blip_clear(bb[0]);
-  blip_clear(bb[1]);
-  temp[0]=0;
-  temp[1]=0;
-  prevSample[0]=0;
-  prevSample[1]=0;
+  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+    if (bb[i]!=NULL) blip_clear(bb[i]);
+    temp[i]=0;
+    prevSample[i]=0;
+  }
+
   if (dispatch->getDCOffRequired()) {
     dcOffCompensation=true;
   }
@@ -166,26 +218,10 @@ void DivDispatchContainer::clear() {
 }
 
 void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, double gotRate, const DivConfig& flags) {
+  // quit if we already initialized
   if (dispatch!=NULL) return;
 
-  bb[0]=blip_new(32768);
-  if (bb[0]==NULL) {
-    logE("not enough memory!");
-    return;
-  }
-
-  bb[1]=blip_new(32768);
-  if (bb[1]==NULL) {
-    logE("not enough memory!");
-    return;
-  }
-
-  bbOut[0]=new short[32768];
-  bbOut[1]=new short[32768];
-  bbIn[0]=new short[32768];
-  bbIn[1]=new short[32768];
-  bbInLen=32768;
-
+  // initialize chip
   switch (sys) {
     case DIV_SYSTEM_YMU759:
       dispatch=new DivPlatformOPL;
@@ -461,6 +497,23 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
   }
   dispatch->init(eng,chanCount,gotRate,flags);
+
+  // initialize output buffers
+  int outs=dispatch->getOutputCount();
+  bbInLen=32768;
+
+  for (int i=0; i<outs; i++) {
+    bb[i]=blip_new(bbInLen);
+    if (bb[i]==NULL) {
+      logE("not enough memory!");
+      return;
+    }
+
+    bbIn[i]=new short[bbInLen];
+    bbOut[i]=new short[bbInLen];
+    memset(bbIn[i],0,bbInLen*sizeof(short));
+    memset(bbOut[i],0,bbInLen*sizeof(short));
+  }
 }
 
 void DivDispatchContainer::quit() {
@@ -469,11 +522,19 @@ void DivDispatchContainer::quit() {
   delete dispatch;
   dispatch=NULL;
 
-  delete[] bbOut[0];
-  delete[] bbOut[1];
-  delete[] bbIn[0];
-  delete[] bbIn[1];
+  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+    if (bbOut[i]!=NULL) {
+      delete[] bbOut[i];
+      bbOut[i]=NULL;
+    }
+    if (bbIn[i]!=NULL) {
+      delete[] bbIn[i];
+      bbIn[i]=NULL;
+    }
+    if (bb[i]!=NULL) {
+      blip_delete(bb[i]);
+      bb[i]=NULL;
+    }
+  }
   bbInLen=0;
-  blip_delete(bb[0]);
-  blip_delete(bb[1]);
 }

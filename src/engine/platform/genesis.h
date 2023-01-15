@@ -92,13 +92,13 @@ class DivPlatformGenesis: public DivPlatformOPN {
     friend void putDispatchChan(void*,int,int);
 
     inline void processDAC(int iRate);
-    void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
-    void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_nuked(short** buf, size_t len);
+    void acquire_ymfm(short** buf, size_t len);
   
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     void fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
@@ -110,7 +110,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    int getOutputCount();
     void setYMFM(bool use);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);

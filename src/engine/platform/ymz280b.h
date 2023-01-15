@@ -56,7 +56,7 @@ class DivPlatformYMZ280B: public DivDispatch {
   friend void putDispatchChan(void*,int,int);
 
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -68,7 +68,7 @@ class DivPlatformYMZ280B: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     float getPostAmp();
-    bool isStereo();
+    int getOutputCount();
     void setChipModel(int type);
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
