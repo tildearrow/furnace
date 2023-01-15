@@ -2253,7 +2253,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->writeI(0);
     } else {
       w->writeI(loopPos-0x1c);
-      w->writeI(tickCount-loopTick-1);
+      w->writeI(tickCount-loopTick);
     }
   } else {
     w->writeI(0);
