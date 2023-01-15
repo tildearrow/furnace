@@ -3493,7 +3493,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::BeginMenu("export VGM...")) {
           ImGui::Text("settings:");
           if (ImGui::BeginCombo("format version",fmt::sprintf("%d.%.2x",vgmExportVersion>>8,vgmExportVersion&0xff).c_str())) {
-            for (int i=0; i<6; i++) {
+            for (int i=0; i<7; i++) {
               if (ImGui::Selectable(fmt::sprintf("%d.%.2x",vgmVersions[i]>>8,vgmVersions[i]&0xff).c_str(),vgmExportVersion==vgmVersions[i])) {
                 vgmExportVersion=vgmVersions[i];
               }
