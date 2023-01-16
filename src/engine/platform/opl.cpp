@@ -1548,8 +1548,8 @@ void DivPlatformOPL::reset() {
   }
   */
   if (downsample) {
-    //const unsigned int downsampledRate=(unsigned int)((double)rate*rate/chipRateBase);
-    OPL3_Reset(&fm,44100);
+    const unsigned int downsampledRate=(unsigned int)((double)rate*49716.0/(double)chipRateBase);
+    OPL3_Reset(&fm,downsampledRate);
   } else {
     OPL3_Reset(&fm,rate);
   }
