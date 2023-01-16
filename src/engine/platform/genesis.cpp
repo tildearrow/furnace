@@ -1126,14 +1126,17 @@ void DivPlatformGenesis::forceIns() {
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     if (chan[i].active) {
-      chan[i].keyOn=true;
-      chan[i].freqChanged=true;
+      if (i<5 || !chan[i].dacMode) {
+        chan[i].keyOn=true;
+        chan[i].freqChanged=true;
+      }
     }
   }
+  rWrite(0x2b,0x00);
+  rWrite(0x2a,0x00);
   if (chan[5].dacMode) {
     chan[5].dacSample=-1;
     chan[6].dacSample=-1;
-    rWrite(0x2b,0x80);
   }
   immWrite(0x22,lfoValue);
   flushFirst=true;
