@@ -83,6 +83,7 @@ class DivPlatformFMBase: public DivDispatch {
 
     unsigned char lastBusy;
     int delay;
+    bool flushFirst;
 
     unsigned char regPool[512];
     short oldWrites[512];
@@ -103,7 +104,7 @@ class DivPlatformFMBase: public DivDispatch {
     }
     inline void urgentWrite(unsigned short a, unsigned char v) {
       if (!skipRegisterWrites) {
-        if (writes.empty()) {
+        if (writes.empty() || flushFirst) {
           writes.push_back(QueuedWrite(a,v));
         } else if (writes.size()>16 || writes.front().addrOrVal) {
           writes.push_back(QueuedWrite(a,v));
@@ -118,9 +119,11 @@ class DivPlatformFMBase: public DivDispatch {
 
     friend void putDispatchChan(void*,int,int);
   
-    DivPlatformFMBase():DivDispatch(),
-    lastBusy(0),
-    delay(0) {}
+    DivPlatformFMBase():
+      DivDispatch(),
+      lastBusy(0),
+      delay(0),
+      flushFirst(false) {}
 };
 
 #endif
