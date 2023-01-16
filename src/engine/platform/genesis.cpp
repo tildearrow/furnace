@@ -141,23 +141,26 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
 
     os[0]=0; os[1]=0;
     for (int i=0; i<6; i++) {
-      if (!writes.empty() && --delay<0) {
-        delay=0;
-        QueuedWrite& w=writes.front();
-        if (w.addrOrVal) {
-          OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
-          //printf("write: %x = %.2x\n",w.addr,w.val);
-          lastBusy=0;
-          regPool[w.addr&0x1ff]=w.val;
-          writes.pop_front();
-        } else {
-          lastBusy++;
-          if (fm.write_busy==0) {
-            //printf("busycounter: %d\n",lastBusy);
-            OPN2_Write(&fm,0x0+((w.addr>>8)<<1),w.addr);
-            w.addrOrVal=true;
+      if (!writes.empty()) {
+        if (--delay<0) {
+          delay=0;
+          QueuedWrite& w=writes.front();
+          if (w.addrOrVal) {
+            //logV("%.3x = %.2x",w.addr,w.val);
+            OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
+            lastBusy=0;
+            regPool[w.addr&0x1ff]=w.val;
+            writes.pop_front();
+          } else {
+            lastBusy++;
+            if (fm.write_busy==0) {
+              OPN2_Write(&fm,0x0+((w.addr>>8)<<1),w.addr);
+              w.addrOrVal=true;
+            }
           }
         }
+      } else {
+        flushFirst=false;
       }
       
       OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
@@ -207,6 +210,8 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
       regPool[w.addr&0x1ff]=w.val;
       writes.pop_front();
       lastBusy=1;
+    } else {
+      flushFirst=false;
     }
     
     if (ladder) {
@@ -1127,6 +1132,7 @@ void DivPlatformGenesis::forceIns() {
     rWrite(0x2b,0x80);
   }
   immWrite(0x22,lfoValue);
+  flushFirst=true;
 }
 
 void DivPlatformGenesis::toggleRegisterDump(bool enable) {
@@ -1180,6 +1186,7 @@ void DivPlatformGenesis::reset() {
   lfoValue=8;
   softPCMTimer=0;
   extMode=false;
+  flushFirst=false;
 
   if (softPCM) {
     chan[5].dacMode=true;
@@ -1282,6 +1289,7 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, const DivC
   dumpWrites=false;
   ladder=false;
   skipRegisterWrites=false;
+  flushFirst=false;
   for (int i=0; i<10; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
