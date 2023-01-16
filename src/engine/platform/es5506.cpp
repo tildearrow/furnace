@@ -214,7 +214,7 @@ void DivPlatformES5506::e_pin(bool state) {
   if (!queuedRead.empty()) {
     unsigned char ch=queuedRead.front()&0x1f;
     if (chan[ch].isReverseLoop) { // Reversed loop
-      pageWriteMask(0x00|ch,0x5f,0x00,(0x0040)|0x08,0x78);
+      pageWriteMask(0x00|ch,0x5f,0x00,(chan[ch].pcm.direction?0x0000:0x0040)|0x08,0x78);
       chan[ch].isReverseLoop=false;
     }
     queuedRead.pop();
