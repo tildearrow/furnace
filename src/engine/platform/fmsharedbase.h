@@ -103,8 +103,8 @@ class DivPlatformFMBase: public DivDispatch {
       }
     }
     inline void urgentWrite(unsigned short a, unsigned char v) {
-      if (!skipRegisterWrites) {
-        if (writes.empty() || flushFirst) {
+      if (!skipRegisterWrites && !flushFirst) {
+        if (writes.empty()) {
           writes.push_back(QueuedWrite(a,v));
         } else if (writes.size()>16 || writes.front().addrOrVal) {
           writes.push_back(QueuedWrite(a,v));

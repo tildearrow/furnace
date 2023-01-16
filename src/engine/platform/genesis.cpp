@@ -34,7 +34,7 @@ void DivYM2612Interface::ymfm_set_timer(uint32_t tnum, int32_t duration_in_clock
   } else if (tnum==0) {
     countA=duration_in_clocks;
   }
-  logV("ymfm_set_timer(%d,%d)",tnum,duration_in_clocks);
+  //logV("ymfm_set_timer(%d,%d)",tnum,duration_in_clocks);
 }
 
 void DivYM2612Interface::clock() {
@@ -1132,8 +1132,8 @@ void DivPlatformGenesis::forceIns() {
       }
     }
   }
-  rWrite(0x2b,0x00);
-  rWrite(0x2a,0x00);
+  immWrite(0x2b,0x00);
+  //rWrite(0x2a,0x00);
   if (chan[5].dacMode) {
     chan[5].dacSample=-1;
     chan[6].dacSample=-1;
