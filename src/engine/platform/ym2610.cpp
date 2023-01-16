@@ -478,6 +478,10 @@ void DivPlatformYM2610::tick(bool sysTick) {
       chan[i].state.ams=chan[i].std.ams.val;
       rWrite(chanOffs[i]+ADDR_LRAF,(isMuted[i]?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     }
+    if (chan[i].std.ex3.had) {
+      lfoValue=(chan[i].std.ex3.val>7)?0:(8|(chan[i].std.ex3.val&7));
+      rWrite(0x22,lfoValue);
+    }
     if (chan[i].std.ex4.had && chan[i].active) {
       chan[i].opMask=chan[i].std.ex4.val&15;
       chan[i].opMaskChanged=true;
