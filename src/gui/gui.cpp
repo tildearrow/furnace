@@ -5148,7 +5148,12 @@ bool FurnaceGUI::loop() {
     renderTimeDelta=renderTimeEnd-renderTimeBegin;
     eventTimeDelta=eventTimeEnd-eventTimeBegin;
 
-    if (--soloTimeout<0) soloTimeout=0;
+    soloTimeout-=ImGui::GetIO().DeltaTime;
+    if (soloTimeout<0) {
+      soloTimeout=0;
+    } else {
+      WAKE_UP;
+    }
 
     wheelX=0;
     wheelY=0;
@@ -5784,7 +5789,6 @@ FurnaceGUI::FurnaceGUI():
   editStep(1),
   exportLoops(0),
   soloChan(-1),
-  soloTimeout(0),
   orderEditMode(0),
   orderCursor(-1),
   loopOrder(-1),
@@ -5803,6 +5807,7 @@ FurnaceGUI::FurnaceGUI():
   dragDestinationY(0),
   oldBeat(-1),
   oldBar(-1),
+  soloTimeout(0.0f),
   exportFadeOut(5.0),
   editControlsOpen(true),
   ordersOpen(true),

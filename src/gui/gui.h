@@ -1294,6 +1294,7 @@ class FurnaceGUI {
     int exportLoops;
     double exportFadeOut;
     int macroLayout;
+    float doubleClickTime;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1428,6 +1429,7 @@ class FurnaceGUI {
       exportLoops(0),
       exportFadeOut(0.0),
       macroLayout(0),
+      doubleClickTime(0.3f),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1447,9 +1449,10 @@ class FurnaceGUI {
 
   DivInstrument* prevInsData;
 
-  int curIns, curWave, curSample, curOctave, curOrder, prevIns, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
+  int curIns, curWave, curSample, curOctave, curOrder, prevIns, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan,orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory, latchTarget;
   int wheelX, wheelY, dragSourceX, dragSourceY, dragDestinationX, dragDestinationY, oldBeat, oldBar;
+  float soloTimeout;
 
   double exportFadeOut;
 

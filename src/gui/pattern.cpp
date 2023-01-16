@@ -755,7 +755,7 @@ void FurnaceGUI::drawPattern() {
               soloTimeout=0;
             } else {
               e->toggleMute(i);
-              soloTimeout=20;
+              soloTimeout=settings.doubleClickTime;
               soloChan=i;
             }
           }

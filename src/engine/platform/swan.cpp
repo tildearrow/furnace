@@ -22,6 +22,7 @@
 #include <math.h>
 
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);}}
+#define postWrite(a,v) postDACWrites.emplace(a,v);
 
 #define CHIP_DIVIDER 32
 
@@ -186,7 +187,7 @@ void DivPlatformSwan::tick(bool sysTick) {
           }
         }
         dacRate=((double)chipClock/2)/MAX(1,off*chan[i].freq);
-        if (dumpWrites) addWrite(0xffff0001,dacRate);
+        if (dumpWrites) postWrite(0xffff0001,dacRate);
       }
       if (chan[i].freq>2048) chan[i].freq=2048;
       if (chan[i].freq<1) chan[i].freq=1;
@@ -217,6 +218,12 @@ void DivPlatformSwan::tick(bool sysTick) {
     }
   }
   rWrite(0x10,sndCtrl);
+
+  while (!postDACWrites.empty()) {
+    const DivRegWrite& w=postDACWrites.back();
+    if (dumpWrites) addWrite(w.addr,w.val);
+    postDACWrites.pop();
+  }
 }
 
 int DivPlatformSwan::dispatch(DivCommand c) {
@@ -237,11 +244,11 @@ int DivPlatformSwan::dispatch(DivCommand c) {
             if (c.value!=DIV_NOTE_NULL) dacSample=ins->amiga.getSample(c.value);
             if (dacSample<0 || dacSample>=parent->song.sampleLen) {
               dacSample=-1;
-              if (dumpWrites) addWrite(0xffff0002,0);
+              if (dumpWrites) postWrite(0xffff0002,0);
               break;
             } else {
               if (dumpWrites) {
-                addWrite(0xffff0000,dacSample);
+                postWrite(0xffff0000,dacSample);
               }
             }
             if (c.value!=DIV_NOTE_NULL) {
@@ -260,14 +267,14 @@ int DivPlatformSwan::dispatch(DivCommand c) {
             dacSample=12*sampleBank+chan[1].note%12;
             if (dacSample>=parent->song.sampleLen) {
               dacSample=-1;
-              if (dumpWrites) addWrite(0xffff0002,0);
+              if (dumpWrites) postWrite(0xffff0002,0);
               break;
             } else {
-              if (dumpWrites) addWrite(0xffff0000,dacSample);
+              if (dumpWrites) postWrite(0xffff0000,dacSample);
             }
             dacRate=parent->getSample(dacSample)->rate;
             if (dumpWrites) {
-              addWrite(0xffff0001,dacRate);
+              postWrite(0xffff0001,dacRate);
             }
             chan[1].active=true;
             chan[1].keyOn=true;
@@ -298,7 +305,7 @@ int DivPlatformSwan::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_OFF:
       if (c.chan==1&&pcm) {
         dacSample=-1;
-        if (dumpWrites) addWrite(0xffff0002,0);
+        if (dumpWrites) postWrite(0xffff0002,0);
         pcm=false;
       }
       chan[c.chan].active=false;
@@ -463,6 +470,7 @@ int DivPlatformSwan::getRegisterPoolSize() {
 
 void DivPlatformSwan::reset() {
   while (!writes.empty()) writes.pop();
+  while (!postDACWrites.empty()) postDACWrites.pop();
   memset(regPool,0,128);
   for (int i=0; i<4; i++) {
     chan[i]=Channel();
