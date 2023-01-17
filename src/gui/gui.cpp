@@ -3132,6 +3132,14 @@ bool FurnaceGUI::loop() {
           break;
         case SDL_DISPLAYEVENT: {
           switch (ev.display.event) {
+            case SDL_DISPLAYEVENT_CONNECTED:
+              logD("display %d connected!",ev.display.display);
+              updateWindow=true;
+              break;
+            case SDL_DISPLAYEVENT_DISCONNECTED:
+              logD("display %d disconnected!",ev.display.display);
+              updateWindow=true;
+              break;
             case SDL_DISPLAYEVENT_ORIENTATION:
               logD("display oriented to %d",ev.display.data1);
               updateWindow=true;
