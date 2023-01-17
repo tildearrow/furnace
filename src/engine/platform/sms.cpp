@@ -39,6 +39,10 @@ const char** DivPlatformSMS::getRegisterSheet() {
   return stereo?regCheatSheetGG:regCheatSheetSN;
 }
 
+float DivPlatformSMS::getPostAmp() {
+  return 1.5f;
+}
+
 void DivPlatformSMS::acquire_nuked(short** buf, size_t len) {
   int oL=0;
   int oR=0;

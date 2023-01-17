@@ -2574,6 +2574,32 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
+    // new YM2612/SN/X1-010 volumes
+    if (ds.version<137) {
+      for (int i=0; i<ds.systemLen; i++) {
+        switch (ds.system[i]) {
+          case DIV_SYSTEM_YM2612:
+          case DIV_SYSTEM_YM2612_EXT:
+          case DIV_SYSTEM_YM2612_DUALPCM:
+          case DIV_SYSTEM_YM2612_DUALPCM_EXT:
+          case DIV_SYSTEM_YM2612_CSM:
+            ds.systemVol[i]/=2.0;
+            break;
+          case DIV_SYSTEM_SMS:
+          case DIV_SYSTEM_T6W28:
+          case DIV_SYSTEM_OPLL:
+          case DIV_SYSTEM_OPLL_DRUMS:
+            ds.systemVol[i]/=1.5;
+            break;
+          case DIV_SYSTEM_X1_010:
+            ds.systemVol[i]/=4.0;
+            break;
+          default:
+            break;
+        }
+      }
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();

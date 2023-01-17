@@ -958,6 +958,10 @@ void DivPlatformOPLL::setYMFM(bool use) {
   useYMFM=use;
 }
 
+float DivPlatformOPLL::getPostAmp() {
+  return 1.5f;
+}
+
 void DivPlatformOPLL::setFlags(const DivConfig& flags) {
   int clockSel=flags.getInt("clockSel",0);
   if (clockSel==3) {

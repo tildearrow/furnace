@@ -1170,6 +1170,10 @@ int DivPlatformGenesis::getRegisterPoolSize() {
   return 512;
 }
 
+float DivPlatformGenesis::getPostAmp() {
+  return 2.0f;
+}
+
 void DivPlatformGenesis::reset() {
   while (!writes.empty()) writes.pop_front();
   memset(regPool,0,512);

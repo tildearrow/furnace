@@ -903,6 +903,10 @@ bool DivPlatformX1_010::keyOffAffectsArp(int ch) {
   return true;
 }
 
+float DivPlatformX1_010::getPostAmp() {
+  return 4.0f;
+}
+
 void DivPlatformX1_010::notifyWaveChange(int wave) {
   for (int i=0; i<16; i++) {
     if (chan[i].wave==wave) {
