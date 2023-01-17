@@ -214,7 +214,7 @@ void FurnaceGUI::drawCompatFlags() {
       e->song.delayBehavior=2;
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("no checks (like FamiTracker)");
+      ImGui::SetTooltip("no checks");
     }
 
     ImGui::Text("Simultaneous jump (0B+0D) treatment:");
