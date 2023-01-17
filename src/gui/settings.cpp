@@ -1602,6 +1602,11 @@ void FurnaceGUI::drawSettings() {
             settings.germanNotation=germanNotationB;
           }
 
+          bool oneDigitEffectsB=settings.oneDigitEffects;
+          if (ImGui::Checkbox("Single-digit effects for 00-0F",&oneDigitEffectsB)) {
+            settings.oneDigitEffects=oneDigitEffectsB;
+          }
+
           bool centerPatternB=settings.centerPattern;
           if (ImGui::Checkbox("Center pattern view",&centerPatternB)) {
             settings.centerPattern=centerPatternB;
@@ -2565,6 +2570,7 @@ void FurnaceGUI::syncSettings() {
   settings.exportFadeOut=e->getConfDouble("exportFadeOut",0.0);
   settings.macroLayout=e->getConfInt("macroLayout",0);
   settings.doubleClickTime=e->getConfFloat("doubleClickTime",0.3f);
+  settings.oneDigitEffects=e->getConfInt("oneDigitEffects",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2676,6 +2682,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.persistFadeOut,0,1);
   clampSetting(settings.macroLayout,0,4);
   clampSetting(settings.doubleClickTime,0.02,1.0);
+  clampSetting(settings.oneDigitEffects,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -2880,6 +2887,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("exportFadeOut",settings.exportFadeOut);
   e->setConf("macroLayout",settings.macroLayout);
   e->setConf("doubleClickTime",settings.doubleClickTime);
+  e->setConf("oneDigitEffects",settings.oneDigitEffects);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
