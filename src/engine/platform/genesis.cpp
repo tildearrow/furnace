@@ -463,6 +463,10 @@ void DivPlatformGenesis::tick(bool sysTick) {
 
   for (int i=0; i<512; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
+      if (i==0x2b && pendingWrites[i]!=0 && !parent->song.brokenDACMode) {
+        if (chan[5].keyOn) chan[5].keyOn=false;
+        chan[5].keyOff=true;
+      }
       immWrite(i,pendingWrites[i]&0xff);
       oldWrites[i]=pendingWrites[i];
     }
