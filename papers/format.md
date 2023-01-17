@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 138: Furnace dev138
 - 137: Furnace dev137
 - 136: Furnace dev136
 - 135: Furnace dev135
@@ -399,6 +400,9 @@ size | description
  4?? | patchbay
      | - see next section for more details.
   1  | automatic patchbay (>=136)
+ --- | **a couple more compat flags** (>=138)
+  1  | broken portamento during legato
+  7  | reserved
 ```
 
 # patchbay

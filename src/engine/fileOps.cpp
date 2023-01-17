@@ -1716,6 +1716,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<130) {
       ds.oldArpStrategy=true;
     }
+    if (ds.version<138) {
+      ds.brokenPortaLegato=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -2220,6 +2223,13 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
 
     if (ds.version>=136) song.patchbayAuto=reader.readC();
+
+    if (ds.version>=138) {
+      ds.brokenPortaArp=reader.readC();
+      for (int i=0; i<7; i++) {
+        reader.readC();
+      }
+    }
 
     // read system flags
     if (ds.version>=119) {
@@ -4514,6 +4524,12 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeI(i);
   }
   w->writeC(song.patchbayAuto);
+
+  // even more compat flags
+  w->writeC(song.brokenPortaLegato);
+  for (int i=0; i<7; i++) {
+    w->writeC(0);
+  }
 
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);
