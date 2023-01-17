@@ -2225,7 +2225,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version>=136) song.patchbayAuto=reader.readC();
 
     if (ds.version>=138) {
-      ds.brokenPortaArp=reader.readC();
+      ds.brokenPortaLegato=reader.readC();
       for (int i=0; i<7; i++) {
         reader.readC();
       }
