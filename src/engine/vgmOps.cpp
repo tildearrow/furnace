@@ -1685,7 +1685,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     w->writeI(hasX1);
     w->writeI(hasC352);
     w->writeI(hasGA20);
-    w->writeI(hasLynx);
+    w->writeI(version>=0x172?hasLynx:0);  //Mikey introduced in 1.72
   } else {
     w->writeI(0);
     w->writeI(0);
