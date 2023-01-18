@@ -11,9 +11,7 @@
 #include <atomic>
 #include <thread>
 
-#ifdef __APPLE__
 #define NFD_NON_THREADED
-#endif
 
 #elif defined(ANDROID)
 #include <jni.h>
