@@ -6148,8 +6148,11 @@ FurnaceGUI::FurnaceGUI():
   waveGenTL[0]=0.0f;
   waveGenTL[1]=0.0f;
   waveGenTL[2]=0.0f;
-  fmWaveform[4]=0;
   waveGenTL[3]=1.0f;
+  fmWaveform[0]=0;
+  fmWaveform[1]=0;
+  fmWaveform[2]=0;
+  fmWaveform[3]=0;
   waveGenMult[0]=1;
   waveGenMult[1]=1;
   waveGenMult[2]=1;
