@@ -1238,6 +1238,9 @@ void DivPlatformGenesis::notifyInsChange(int ins) {
 }
 
 void DivPlatformGenesis::notifyInsDeletion(void* ins) {
+  for (int i=0; i<10; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
 }
 
 void DivPlatformGenesis::poke(unsigned int addr, unsigned short val) {
