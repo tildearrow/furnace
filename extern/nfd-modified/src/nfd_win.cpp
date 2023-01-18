@@ -422,7 +422,7 @@ nfdresult_t NFD_OpenDialog( const std::vector<std::string>& filterList,
                             nfdselcallback_t selCallback )
 {
     nfdresult_t nfdResult = NFD_ERROR;
-    NFDWinEvents* winEvents;
+    //NFDWinEvents* winEvents;
     bool hasEvents=true;
     DWORD eventID=0;
     
@@ -458,14 +458,14 @@ nfdresult_t NFD_OpenDialog( const std::vector<std::string>& filterList,
     }
 
     // Pass the callback
-    winEvents=new NFDWinEvents(selCallback);
+    /*winEvents=new NFDWinEvents(selCallback);
     if ( !SUCCEEDED(fileOpenDialog->Advise(winEvents,&eventID)) ) {
       // error... ignore
       hasEvents=false;
       winEvents->Release();
     } else {
       winEvents->Release();
-    }
+    }*/
 
     // Show the dialog.
     // TODO: pass the Furnace window here
