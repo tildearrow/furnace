@@ -58,7 +58,7 @@ bool TAMidiInRtMidi::gather() {
       if (m.type!=TA_MIDI_SYSEX && msg.size()>1) {
         memcpy(m.data,msg.data()+1,MIN(msg.size()-1,7));
       } else if (m.type==TA_MIDI_SYSEX) {
-        m.sysExData.reset(new unsigned char[msg.size()]);
+        m.sysExData=std::shared_ptr<unsigned char>(new unsigned char[msg.size()],std::default_delete<unsigned char[]>());
         m.sysExLen=msg.size();
         logD("got a SysEx of length %ld!",msg.size());
         memcpy(m.sysExData.get(),msg.data(),msg.size());

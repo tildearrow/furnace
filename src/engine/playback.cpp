@@ -896,7 +896,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       chan[i].vibratoPos=0;
     }
     dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
-    if (chan[i].legato) {
+    if (chan[i].legato && (!chan[i].inPorta || song.brokenPortaLegato)) {
       dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
       dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
     } else {

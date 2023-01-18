@@ -1716,6 +1716,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<130) {
       ds.oldArpStrategy=true;
     }
+    if (ds.version<138) {
+      ds.brokenPortaLegato=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -2221,6 +2224,13 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     if (ds.version>=136) song.patchbayAuto=reader.readC();
 
+    if (ds.version>=138) {
+      ds.brokenPortaLegato=reader.readC();
+      for (int i=0; i<7; i++) {
+        reader.readC();
+      }
+    }
+
     // read system flags
     if (ds.version>=119) {
       logD("reading chip flags...");
@@ -2570,6 +2580,32 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         if (ds.system[i]==DIV_SYSTEM_OPL3 ||
             ds.system[i]==DIV_SYSTEM_OPL3_DRUMS) {
           ds.systemFlags[i].set("compatPan",true);
+        }
+      }
+    }
+
+    // new YM2612/SN/X1-010 volumes
+    if (ds.version<137) {
+      for (int i=0; i<ds.systemLen; i++) {
+        switch (ds.system[i]) {
+          case DIV_SYSTEM_YM2612:
+          case DIV_SYSTEM_YM2612_EXT:
+          case DIV_SYSTEM_YM2612_DUALPCM:
+          case DIV_SYSTEM_YM2612_DUALPCM_EXT:
+          case DIV_SYSTEM_YM2612_CSM:
+            ds.systemVol[i]/=2.0;
+            break;
+          case DIV_SYSTEM_SMS:
+          case DIV_SYSTEM_T6W28:
+          case DIV_SYSTEM_OPLL:
+          case DIV_SYSTEM_OPLL_DRUMS:
+            ds.systemVol[i]/=1.5;
+            break;
+          case DIV_SYSTEM_X1_010:
+            ds.systemVol[i]/=4.0;
+            break;
+          default:
+            break;
         }
       }
     }
@@ -4488,6 +4524,12 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeI(i);
   }
   w->writeC(song.patchbayAuto);
+
+  // even more compat flags
+  w->writeC(song.brokenPortaLegato);
+  for (int i=0; i<7; i++) {
+    w->writeC(0);
+  }
 
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);

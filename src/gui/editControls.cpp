@@ -506,7 +506,9 @@ void FurnaceGUI::drawMobileControls() {
           ImGui::SameLine();
           ImGui::Button("Legacy .dmf");
           ImGui::SameLine();
-          ImGui::Button("Export Audio");
+          if (ImGui::Button("Export Audio")) {
+            openFileDialog(GUI_FILE_EXPORT_AUDIO_ONE);
+          }
           ImGui::SameLine();
           if (ImGui::Button("Export VGM")) {
             openFileDialog(GUI_FILE_EXPORT_VGM);

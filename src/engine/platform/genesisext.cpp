@@ -677,6 +677,8 @@ void DivPlatformGenesisExt::forceIns() {
     }
   }
   if (chan[5].dacMode) {
+    chan[5].dacSample=-1;
+    chan[6].dacSample=-1;
     rWrite(0x2b,0x80);
   }
   immWrite(0x22,lfoValue);

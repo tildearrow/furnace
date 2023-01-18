@@ -81,6 +81,7 @@ class DivPlatformSMS: public DivDispatch {
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    float getPostAmp();
     int getPortaFloor(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);

@@ -163,7 +163,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_TX81Z_REQUEST: {
       TAMidiMessage msg;
       msg.type=TA_MIDI_SYSEX;
-      msg.sysExData.reset(new unsigned char[15]);
+      msg.sysExData.reset(new unsigned char[15],std::default_delete<unsigned char[]>());
       msg.sysExLen=15;
       memcpy(msg.sysExData.get(),avRequest,15);
       if (!e->sendMidiMessage(msg)) {

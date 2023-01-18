@@ -34,7 +34,7 @@ void DivYM2612Interface::ymfm_set_timer(uint32_t tnum, int32_t duration_in_clock
   } else if (tnum==0) {
     countA=duration_in_clocks;
   }
-  logV("ymfm_set_timer(%d,%d)",tnum,duration_in_clocks);
+  //logV("ymfm_set_timer(%d,%d)",tnum,duration_in_clocks);
 }
 
 void DivYM2612Interface::clock() {
@@ -141,23 +141,26 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
 
     os[0]=0; os[1]=0;
     for (int i=0; i<6; i++) {
-      if (!writes.empty() && --delay<0) {
-        delay=0;
-        QueuedWrite& w=writes.front();
-        if (w.addrOrVal) {
-          OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
-          //printf("write: %x = %.2x\n",w.addr,w.val);
-          lastBusy=0;
-          regPool[w.addr&0x1ff]=w.val;
-          writes.pop_front();
-        } else {
-          lastBusy++;
-          if (fm.write_busy==0) {
-            //printf("busycounter: %d\n",lastBusy);
-            OPN2_Write(&fm,0x0+((w.addr>>8)<<1),w.addr);
-            w.addrOrVal=true;
+      if (!writes.empty()) {
+        if (--delay<0) {
+          delay=0;
+          QueuedWrite& w=writes.front();
+          if (w.addrOrVal) {
+            //logV("%.3x = %.2x",w.addr,w.val);
+            OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
+            lastBusy=0;
+            regPool[w.addr&0x1ff]=w.val;
+            writes.pop_front();
+          } else {
+            lastBusy++;
+            if (fm.write_busy==0) {
+              OPN2_Write(&fm,0x0+((w.addr>>8)<<1),w.addr);
+              w.addrOrVal=true;
+            }
           }
         }
+      } else {
+        flushFirst=false;
       }
       
       OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
@@ -207,6 +210,8 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
       regPool[w.addr&0x1ff]=w.val;
       writes.pop_front();
       lastBusy=1;
+    } else {
+      flushFirst=false;
     }
     
     if (ladder) {
@@ -389,6 +394,10 @@ void DivPlatformGenesis::tick(bool sysTick) {
       chan[i].state.ams=chan[i].std.ams.val;
       rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     }
+    if (chan[i].std.ex3.had) {
+      lfoValue=(chan[i].std.ex3.val>7)?0:(8|(chan[i].std.ex3.val&7));
+      rWrite(0x22,lfoValue);
+    }
     if (chan[i].std.ex4.had && chan[i].active) {
       chan[i].opMask=chan[i].std.ex4.val&15;
       chan[i].opMaskChanged=true;
@@ -454,6 +463,10 @@ void DivPlatformGenesis::tick(bool sysTick) {
 
   for (int i=0; i<512; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
+      if (i==0x2b && pendingWrites[i]!=0 && !parent->song.brokenDACMode) {
+        if (chan[5].keyOn) chan[5].keyOn=false;
+        chan[5].keyOff=true;
+      }
       immWrite(i,pendingWrites[i]&0xff);
       oldWrites[i]=pendingWrites[i];
     }
@@ -586,7 +599,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
         }
       }
       if (c.chan>=5 && chan[c.chan].dacMode) {
-        if (skipRegisterWrites) break;
+        //if (skipRegisterWrites) break;
         if (ins->type==DIV_INS_AMIGA) { // Furnace mode
           if (c.value!=DIV_NOTE_NULL) chan[c.chan].dacSample=ins->amiga.getSample(c.value);
           if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
@@ -1117,14 +1130,20 @@ void DivPlatformGenesis::forceIns() {
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     if (chan[i].active) {
-      chan[i].keyOn=true;
-      chan[i].freqChanged=true;
+      if (i<5 || !chan[i].dacMode) {
+        chan[i].keyOn=true;
+        chan[i].freqChanged=true;
+      }
     }
   }
+  immWrite(0x2b,0x00);
+  //rWrite(0x2a,0x00);
   if (chan[5].dacMode) {
-    rWrite(0x2b,0x80);
+    chan[5].dacSample=-1;
+    chan[6].dacSample=-1;
   }
   immWrite(0x22,lfoValue);
+  flushFirst=true;
 }
 
 void DivPlatformGenesis::toggleRegisterDump(bool enable) {
@@ -1149,6 +1168,10 @@ unsigned char* DivPlatformGenesis::getRegisterPool() {
 
 int DivPlatformGenesis::getRegisterPoolSize() {
   return 512;
+}
+
+float DivPlatformGenesis::getPostAmp() {
+  return 2.0f;
 }
 
 void DivPlatformGenesis::reset() {
@@ -1178,6 +1201,7 @@ void DivPlatformGenesis::reset() {
   lfoValue=8;
   softPCMTimer=0;
   extMode=false;
+  flushFirst=false;
 
   if (softPCM) {
     chan[5].dacMode=true;
@@ -1280,6 +1304,7 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, const DivC
   dumpWrites=false;
   ladder=false;
   skipRegisterWrites=false;
+  flushFirst=false;
   for (int i=0; i<10; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;

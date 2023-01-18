@@ -114,6 +114,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void setYMFM(bool use);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    float getPostAmp();
     void toggleRegisterDump(bool enable);
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
