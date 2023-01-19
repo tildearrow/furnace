@@ -57,6 +57,7 @@ class DivPlatformArcade: public DivPlatformOPM {
 
     int octave(int freq);
     int toFreq(int freq);
+    void commitState(int ch, DivInstrument* ins);
 
     void acquire_nuked(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);
@@ -76,6 +77,7 @@ class DivPlatformArcade: public DivPlatformOPM {
     void muteChannel(int ch, bool mute);
     DivMacroInt* getChanMacroInt(int ch);
     void notifyInsChange(int ins);
+    void notifyInsDeletion(void* ins);
     void setFlags(const DivConfig& flags);
     int getOutputCount();
     void setYMFM(bool use);

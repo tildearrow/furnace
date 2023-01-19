@@ -135,7 +135,7 @@ void DivPlatformTIA::tick(bool sysTick) {
       int bf=chan[i].baseFreq;
       if (!parent->song.oldArpStrategy) {
         if (!chan[i].fixedArp) {
-          bf+=chan[i].baseFreq+chan[i].arpOff;
+          bf+=chan[i].arpOff;
         }
       }
       chan[i].freq=dealWithFreq(chan[i].shape,bf,chan[i].pitch)+chan[i].pitch2;

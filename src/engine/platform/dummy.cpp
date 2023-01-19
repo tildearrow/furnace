@@ -131,6 +131,10 @@ int DivPlatformDummy::dispatch(DivCommand c) {
   return 1;
 }
 
+void DivPlatformDummy::notifyInsDeletion(void* ins) {
+  // nothing
+}
+
 void DivPlatformDummy::reset() {
   for (int i=0; i<chans; i++) {
     chan[i]=DivPlatformDummy::Channel();

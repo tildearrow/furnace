@@ -679,6 +679,13 @@ void DivPlatformYM2608Ext::notifyInsChange(int ins) {
   }
 }
 
+void DivPlatformYM2608Ext::notifyInsDeletion(void* ins) {
+  DivPlatformYM2608::notifyInsDeletion(ins);
+  for (int i=0; i<4; i++) {
+    opChan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
 int DivPlatformYM2608Ext::init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) {
   DivPlatformYM2608::init(parent,channels,sugRate,flags);
   for (int i=0; i<4; i++) {

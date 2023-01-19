@@ -1086,7 +1086,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_SMS:
         if (!hasSN) {
           hasSN=disCont[i].dispatch->chipClock;
-          CHIP_VOL(0,2.0);
+          CHIP_VOL(0,4.0);
           willExport[i]=true;
           switch (song.systemFlags[i].getInt("chipType",0)) {
             case 1: // real SN
@@ -1105,7 +1105,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         } else if (!(hasSN&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
-          CHIP_VOL_SECOND(0,2.0);
+          CHIP_VOL_SECOND(0,4.0);
           hasSN|=0x40000000;
           howManyChips++;
         }
@@ -1170,12 +1170,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_X1_010:
         if (!hasX1) {
           hasX1=disCont[i].dispatch->chipClock;
-          CHIP_VOL(38,0.5);
+          CHIP_VOL(38,2.0);
           willExport[i]=true;
           writeX1010[0]=disCont[i].dispatch;
         } else if (!(hasX1&0x40000000)) {
           isSecond[i]=true;
-          CHIP_VOL_SECOND(38,0.5);
+          CHIP_VOL_SECOND(38,2.0);
           willExport[i]=true;
           writeX1010[1]=disCont[i].dispatch;
           hasX1|=0x40000000;
@@ -1272,12 +1272,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_YM2612_DUALPCM_EXT:
         if (!hasOPN2) {
           hasOPN2=disCont[i].dispatch->chipClock;
-          CHIP_VOL(2,0.8);
+          CHIP_VOL(2,1.6);
           willExport[i]=true;
           writeDACSamples=true;
         } else if (!(hasOPN2&0x40000000)) {
           isSecond[i]=true;
-          CHIP_VOL_SECOND(2,0.8);
+          CHIP_VOL_SECOND(2,1.6);
           willExport[i]=true;
           hasOPN2|=0x40000000;
           howManyChips++;
@@ -1336,11 +1336,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_VRC7:
         if (!hasOPLL) {
           hasOPLL=disCont[i].dispatch->chipClock;
-          CHIP_VOL(1,1.6);
+          CHIP_VOL(1,3.2);
           willExport[i]=true;
         } else if (!(hasOPLL&0x40000000)) {
           isSecond[i]=true;
-          CHIP_VOL_SECOND(1,1.6);
+          CHIP_VOL_SECOND(1,3.2);
           willExport[i]=true;
           hasOPLL|=0x40000000;
           howManyChips++;

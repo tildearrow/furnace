@@ -73,6 +73,7 @@ class DivPlatformOPLL: public DivDispatch {
 
     int octave(int freq);
     int toFreq(int freq);
+    void commitState(int ch, DivInstrument* ins);
 
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
@@ -95,6 +96,7 @@ class DivPlatformOPLL: public DivDispatch {
     void setYMFM(bool use);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    float getPostAmp();
     void toggleRegisterDump(bool enable);
     void setVRC7(bool vrc);
     void setProperDrums(bool pd);

@@ -1000,6 +1000,9 @@ float FurnaceGUI::calcBPM(int s1, int s2, float hz, int vN, int vD) {
 }
 
 void FurnaceGUI::play(int row) {
+  memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
   e->walkSong(loopOrder,loopRow,loopEnd);
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
   if (!followPattern) e->setOrder(curOrder);
@@ -1026,6 +1029,9 @@ void FurnaceGUI::stop() {
   curNibble=false;
   orderNibble=false;
   activeNotes.clear();
+  memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
 }
 
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
@@ -3132,6 +3138,14 @@ bool FurnaceGUI::loop() {
           break;
         case SDL_DISPLAYEVENT: {
           switch (ev.display.event) {
+            case SDL_DISPLAYEVENT_CONNECTED:
+              logD("display %d connected!",ev.display.display);
+              updateWindow=true;
+              break;
+            case SDL_DISPLAYEVENT_DISCONNECTED:
+              logD("display %d disconnected!",ev.display.display);
+              updateWindow=true;
+              break;
             case SDL_DISPLAYEVENT_ORIENTATION:
               logD("display oriented to %d",ev.display.data1);
               updateWindow=true;

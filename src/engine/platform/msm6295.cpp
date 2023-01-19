@@ -326,6 +326,9 @@ void DivPlatformMSM6295::notifyInsChange(int ins) {
 }
 
 void DivPlatformMSM6295::notifyInsDeletion(void* ins) {
+  for (int i=0; i<4; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
 }
 
 const void* DivPlatformMSM6295::getSampleMem(int index) {

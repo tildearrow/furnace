@@ -18,6 +18,7 @@
  */
 
 #include "../dispatch.h"
+#include "../../ta-log.h"
 
 void DivDispatch::acquire(short** buf, size_t len) {
 }
@@ -121,7 +122,8 @@ void DivDispatch::notifyWaveChange(int ins) {
 }
 
 void DivDispatch::notifyInsDeletion(void* ins) {
-
+  logE("notifyInsDeletion NOT implemented!");
+  abort();
 }
 
 void DivDispatch::notifyPlaybackStop() {

@@ -100,6 +100,7 @@ class DivPlatformOPL: public DivDispatch {
     int octave(int freq);
     int toFreq(int freq);
     double NOTE_ADPCMB(int note);
+    void commitState(int ch, DivInstrument* ins);
 
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);

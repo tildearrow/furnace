@@ -40,6 +40,7 @@ class DivPlatformDummy: public DivDispatch {
     void acquire(short** buf, size_t len);
     void muteChannel(int ch, bool mute);
     int dispatch(DivCommand c);
+    void notifyInsDeletion(void* ins);
     void* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     void reset();

@@ -38,6 +38,8 @@ class DivPlatformYM2610: public DivPlatformYM2610Base {
 
     friend void putDispatchChip(void*,int);
 
+    void commitState(int ch, DivInstrument* ins);
+
     void acquire_combo(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);
     
@@ -56,7 +58,7 @@ class DivPlatformYM2610: public DivPlatformYM2610Base {
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
-    void notifyInsDeletion(void* ins);
+    virtual void notifyInsDeletion(void* ins);
     void setSkipRegisterWrites(bool val);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);

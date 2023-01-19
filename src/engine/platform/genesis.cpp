@@ -34,7 +34,7 @@ void DivYM2612Interface::ymfm_set_timer(uint32_t tnum, int32_t duration_in_clock
   } else if (tnum==0) {
     countA=duration_in_clocks;
   }
-  logV("ymfm_set_timer(%d,%d)",tnum,duration_in_clocks);
+  //logV("ymfm_set_timer(%d,%d)",tnum,duration_in_clocks);
 }
 
 void DivYM2612Interface::clock() {
@@ -141,23 +141,26 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
 
     os[0]=0; os[1]=0;
     for (int i=0; i<6; i++) {
-      if (!writes.empty() && --delay<0) {
-        delay=0;
-        QueuedWrite& w=writes.front();
-        if (w.addrOrVal) {
-          OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
-          //printf("write: %x = %.2x\n",w.addr,w.val);
-          lastBusy=0;
-          regPool[w.addr&0x1ff]=w.val;
-          writes.pop_front();
-        } else {
-          lastBusy++;
-          if (fm.write_busy==0) {
-            //printf("busycounter: %d\n",lastBusy);
-            OPN2_Write(&fm,0x0+((w.addr>>8)<<1),w.addr);
-            w.addrOrVal=true;
+      if (!writes.empty()) {
+        if (--delay<0) {
+          delay=0;
+          QueuedWrite& w=writes.front();
+          if (w.addrOrVal) {
+            //logV("%.3x = %.2x",w.addr,w.val);
+            OPN2_Write(&fm,0x1+((w.addr>>8)<<1),w.val);
+            lastBusy=0;
+            regPool[w.addr&0x1ff]=w.val;
+            writes.pop_front();
+          } else {
+            lastBusy++;
+            if (fm.write_busy==0) {
+              OPN2_Write(&fm,0x0+((w.addr>>8)<<1),w.addr);
+              w.addrOrVal=true;
+            }
           }
         }
+      } else {
+        flushFirst=false;
       }
       
       OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
@@ -207,6 +210,8 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
       regPool[w.addr&0x1ff]=w.val;
       writes.pop_front();
       lastBusy=1;
+    } else {
+      flushFirst=false;
     }
     
     if (ladder) {
@@ -389,6 +394,10 @@ void DivPlatformGenesis::tick(bool sysTick) {
       chan[i].state.ams=chan[i].std.ams.val;
       rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     }
+    if (chan[i].std.ex3.had) {
+      lfoValue=(chan[i].std.ex3.val>7)?0:(8|(chan[i].std.ex3.val&7));
+      rWrite(0x22,lfoValue);
+    }
     if (chan[i].std.ex4.had && chan[i].active) {
       chan[i].opMask=chan[i].std.ex4.val&15;
       chan[i].opMaskChanged=true;
@@ -454,6 +463,10 @@ void DivPlatformGenesis::tick(bool sysTick) {
 
   for (int i=0; i<512; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
+      if (i==0x2b && pendingWrites[i]!=0 && !parent->song.brokenDACMode) {
+        if (chan[5].keyOn) chan[5].keyOn=false;
+        chan[5].keyOff=true;
+      }
       immWrite(i,pendingWrites[i]&0xff);
       oldWrites[i]=pendingWrites[i];
     }
@@ -556,6 +569,47 @@ void DivPlatformGenesis::muteChannel(int ch, bool mute) {
   rWrite(chanOffs[ch]+ADDR_LRAF,(IS_REALLY_MUTED(ch)?0:(chan[ch].pan<<6))|(chan[ch].state.fms&7)|((chan[ch].state.ams&3)<<4));
 }
 
+void DivPlatformGenesis::commitState(int ch, DivInstrument* ins) {
+  if (chan[ch].insChanged) {
+    chan[ch].state=ins->fm;
+    chan[ch].opMask=
+      (chan[ch].state.op[0].enable?1:0)|
+      (chan[ch].state.op[2].enable?2:0)|
+      (chan[ch].state.op[1].enable?4:0)|
+      (chan[ch].state.op[3].enable?8:0);
+  }
+  
+  for (int i=0; i<4; i++) {
+    unsigned short baseAddr=chanOffs[ch]|opOffs[i];
+    DivInstrumentFM::Operator& op=chan[ch].state.op[i];
+    if (isMuted[ch]) {
+      rWrite(baseAddr+ADDR_TL,127);
+    } else {
+      if (KVS(ch,i)) {
+        if (!chan[ch].active || chan[ch].insChanged) {
+          rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[ch].outVol&0x7f,127));
+        }
+      } else {
+        if (chan[ch].insChanged) {
+          rWrite(baseAddr+ADDR_TL,op.tl);
+        }
+      }
+    }
+    if (chan[ch].insChanged) {
+      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+      rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+      rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+      rWrite(baseAddr+ADDR_DT2_D2R,op.d2r&31);
+      rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+      rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
+    }
+  }
+  if (chan[ch].insChanged) {
+    rWrite(chanOffs[ch]+ADDR_FB_ALG,(chan[ch].state.alg&7)|(chan[ch].state.fb<<3));
+    rWrite(chanOffs[ch]+ADDR_LRAF,(IS_REALLY_MUTED(ch)?0:(chan[ch].pan<<6))|(chan[ch].state.fms&7)|((chan[ch].state.ams&3)<<4));
+  }
+}
+
 int DivPlatformGenesis::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
@@ -641,49 +695,12 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       }
       if (c.chan>=6) break;
 
-      if (chan[c.chan].insChanged) {
-        chan[c.chan].state=ins->fm;
-        chan[c.chan].opMask=
-          (chan[c.chan].state.op[0].enable?1:0)|
-          (chan[c.chan].state.op[2].enable?2:0)|
-          (chan[c.chan].state.op[1].enable?4:0)|
-          (chan[c.chan].state.op[3].enable?8:0);
-      }
-
       chan[c.chan].macroInit(ins);
       if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
-      
-      for (int i=0; i<4; i++) {
-        unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
-        DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
-        if (isMuted[c.chan]) {
-          rWrite(baseAddr+ADDR_TL,127);
-        } else {
-          if (KVS(c.chan,i)) {
-            if (!chan[c.chan].active || chan[c.chan].insChanged) {
-              rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127));
-            }
-          } else {
-            if (chan[c.chan].insChanged) {
-              rWrite(baseAddr+ADDR_TL,op.tl);
-            }
-          }
-        }
-        if (chan[c.chan].insChanged) {
-          rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
-          rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
-          rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
-          rWrite(baseAddr+ADDR_DT2_D2R,op.d2r&31);
-          rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
-          rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
-        }
-      }
-      if (chan[c.chan].insChanged) {
-        rWrite(chanOffs[c.chan]+ADDR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
-        rWrite(chanOffs[c.chan]+ADDR_LRAF,(IS_REALLY_MUTED(c.chan)?0:(chan[c.chan].pan<<6))|(chan[c.chan].state.fms&7)|((chan[c.chan].state.ams&3)<<4));
-      }
+
+      commitState(c.chan,ins);
       chan[c.chan].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
@@ -866,6 +883,11 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       } else if (c.chan>=5 && chan[c.chan].furnaceDac && chan[c.chan].dacMode) {
         chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
       } else {
+        if (chan[c.chan].insChanged) {
+          DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
+          commitState(c.chan,ins);
+          chan[c.chan].insChanged=false;
+        }
         chan[c.chan].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
       }
       chan[c.chan].note=c.value;
@@ -1120,16 +1142,20 @@ void DivPlatformGenesis::forceIns() {
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     if (chan[i].active) {
-      chan[i].keyOn=true;
-      chan[i].freqChanged=true;
+      if (i<5 || !chan[i].dacMode) {
+        chan[i].keyOn=true;
+        chan[i].freqChanged=true;
+      }
     }
   }
+  immWrite(0x2b,0x00);
+  //rWrite(0x2a,0x00);
   if (chan[5].dacMode) {
     chan[5].dacSample=-1;
     chan[6].dacSample=-1;
-    rWrite(0x2b,0x80);
   }
   immWrite(0x22,lfoValue);
+  flushFirst=true;
 }
 
 void DivPlatformGenesis::toggleRegisterDump(bool enable) {
@@ -1154,6 +1180,10 @@ unsigned char* DivPlatformGenesis::getRegisterPool() {
 
 int DivPlatformGenesis::getRegisterPoolSize() {
   return 512;
+}
+
+float DivPlatformGenesis::getPostAmp() {
+  return 2.0f;
 }
 
 void DivPlatformGenesis::reset() {
@@ -1183,6 +1213,7 @@ void DivPlatformGenesis::reset() {
   lfoValue=8;
   softPCMTimer=0;
   extMode=false;
+  flushFirst=false;
 
   if (softPCM) {
     chan[5].dacMode=true;
@@ -1219,6 +1250,9 @@ void DivPlatformGenesis::notifyInsChange(int ins) {
 }
 
 void DivPlatformGenesis::notifyInsDeletion(void* ins) {
+  for (int i=0; i<10; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
 }
 
 void DivPlatformGenesis::poke(unsigned int addr, unsigned short val) {
@@ -1285,6 +1319,7 @@ int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, const DivC
   dumpWrites=false;
   ladder=false;
   skipRegisterWrites=false;
+  flushFirst=false;
   for (int i=0; i<10; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;

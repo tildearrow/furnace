@@ -287,9 +287,13 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           if (pat->data[i][index]>0xff) {
             snprintf(id,63,"??##PE%d_%d_%d",k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-          } else {
+          } else if (pat->data[i][index]>0x10 || settings.oneDigitEffects==0) {
             const unsigned char data=pat->data[i][index];
             snprintf(id,63,"%.2X##PE%d_%d_%d",data,k,i,j);
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
+          } else {
+            const unsigned char data=pat->data[i][index];
+            snprintf(id,63," %.1X##PE%d_%d_%d",data,k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
           }
         }

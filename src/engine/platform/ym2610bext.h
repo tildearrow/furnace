@@ -39,6 +39,7 @@ class DivPlatformYM2610BExt: public DivPlatformYM2610B {
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
+    void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformYM2610BExt();
