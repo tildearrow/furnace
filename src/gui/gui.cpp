@@ -1000,6 +1000,9 @@ float FurnaceGUI::calcBPM(int s1, int s2, float hz, int vN, int vD) {
 }
 
 void FurnaceGUI::play(int row) {
+  memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
   e->walkSong(loopOrder,loopRow,loopEnd);
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
   if (!followPattern) e->setOrder(curOrder);
