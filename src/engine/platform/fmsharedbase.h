@@ -83,6 +83,7 @@ class DivPlatformFMBase: public DivDispatch {
 
     unsigned char lastBusy;
     int delay;
+    unsigned int hardResetCycles;
     bool flushFirst;
 
     unsigned char regPool[512];
@@ -123,6 +124,7 @@ class DivPlatformFMBase: public DivDispatch {
       DivDispatch(),
       lastBusy(0),
       delay(0),
+      hardResetCycles(0),
       flushFirst(false) {}
 };
 
