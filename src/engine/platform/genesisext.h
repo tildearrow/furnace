@@ -29,6 +29,7 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
   bool isOpMuted[4];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
+  inline void commitStateExt(int ch, DivInstrument* ins);
   public:
     int dispatch(DivCommand c);
     void* getChanState(int chan);

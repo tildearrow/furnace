@@ -28,6 +28,7 @@ class DivPlatformYM2610Ext: public DivPlatformYM2610 {
   OPNOpChannelStereo opChan[4];
   bool isOpMuted[4];
   friend void putDispatchChip(void*,int);
+  inline void commitStateExt(int ch, DivInstrument* ins);
   public:
     int dispatch(DivCommand c);
     void* getChanState(int chan);
