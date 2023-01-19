@@ -39,6 +39,7 @@ class DivPlatformYM2203Ext: public DivPlatformYM2203 {
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
+    void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformYM2203Ext();

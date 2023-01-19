@@ -1477,6 +1477,12 @@ void DivPlatformYM2610B::notifyInsChange(int ins) {
 
 void DivPlatformYM2610B::notifyInsDeletion(void* ins) {
   ay->notifyInsDeletion(ins);
+  for (int i=0; i<psgChanOffs; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+  for (int i=adpcmAChanOffs; i<chanNum; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
 }
 
 void DivPlatformYM2610B::setSkipRegisterWrites(bool value) {

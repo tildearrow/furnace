@@ -986,6 +986,9 @@ void DivPlatformYM2203::notifyInsChange(int ins) {
 
 void DivPlatformYM2203::notifyInsDeletion(void* ins) {
   ay->notifyInsDeletion(ins);
+  for (int i=0; i<3; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
 }
 
 void DivPlatformYM2203::setSkipRegisterWrites(bool value) {

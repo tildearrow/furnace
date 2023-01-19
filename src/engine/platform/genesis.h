@@ -118,7 +118,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void toggleRegisterDump(bool enable);
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
-    void notifyInsDeletion(void* ins);
+    virtual void notifyInsDeletion(void* ins);
     void setSoftPCM(bool value);
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);

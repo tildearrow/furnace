@@ -406,6 +406,12 @@ void DivPlatformSegaPCM::notifyInsChange(int ins) {
   }
 }
 
+void DivPlatformSegaPCM::notifyInsDeletion(void* ins) {
+  for (int i=0; i<16; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
 void* DivPlatformSegaPCM::getChanState(int ch) {
   return &chan[ch];
 }

@@ -746,6 +746,13 @@ void DivPlatformGenesisExt::notifyInsChange(int ins) {
   }
 }
 
+void DivPlatformGenesisExt::notifyInsDeletion(void* ins) {
+  DivPlatformGenesis::notifyInsDeletion(ins);
+  for (int i=0; i<4; i++) {
+    opChan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
 int DivPlatformGenesisExt::getPortaFloor(int ch) {
   return (ch>8)?12:0;
 }

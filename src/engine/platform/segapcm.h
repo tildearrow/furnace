@@ -89,6 +89,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void notifyInsChange(int ins);
+    void notifyInsDeletion(void* ins);
     void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
     int getOutputCount();

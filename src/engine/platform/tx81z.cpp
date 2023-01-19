@@ -873,6 +873,12 @@ void DivPlatformTX81Z::notifyInsChange(int ins) {
   }
 }
 
+void DivPlatformTX81Z::notifyInsDeletion(void* ins) {
+  for (int i=0; i<8; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
 void* DivPlatformTX81Z::getChanState(int ch) {
   return &chan[ch];
 }

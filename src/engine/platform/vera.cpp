@@ -411,7 +411,7 @@ int DivPlatformVERA::getOutputCount() {
 }
 
 void DivPlatformVERA::notifyInsDeletion(void* ins) {
-  for (int i=0; i<2; i++) {
+  for (int i=0; i<17; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }

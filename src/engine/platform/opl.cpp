@@ -1640,6 +1640,9 @@ void DivPlatformOPL::notifyInsChange(int ins) {
 }
 
 void DivPlatformOPL::notifyInsDeletion(void* ins) {
+  for (int i=0; i<totalChans; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
 }
 
 void DivPlatformOPL::poke(unsigned int addr, unsigned short val) {

@@ -72,6 +72,7 @@ class DivPlatformTX81Z: public DivPlatformOPM {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void notifyInsChange(int ins);
+    void notifyInsDeletion(void* ins);
     void setFlags(const DivConfig& flags);
     int getOutputCount();
     void poke(unsigned int addr, unsigned short val);

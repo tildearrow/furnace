@@ -353,6 +353,9 @@ void DivPlatformMSM6258::notifyInsChange(int ins) {
 }
 
 void DivPlatformMSM6258::notifyInsDeletion(void* ins) {
+  for (int i=0; i<1; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
 }
 
 void DivPlatformMSM6258::setFlags(const DivConfig& flags) {

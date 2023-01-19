@@ -800,6 +800,12 @@ void DivPlatformArcade::notifyInsChange(int ins) {
   }
 }
 
+void DivPlatformArcade::notifyInsDeletion(void* ins) {
+  for (int i=0; i<8; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
 void* DivPlatformArcade::getChanState(int ch) {
   return &chan[ch];
 }
