@@ -92,6 +92,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     friend void putDispatchChan(void*,int,int);
 
     inline void processDAC(int iRate);
+    inline void commitState(int ch, DivInstrument* ins);
     void acquire_nuked(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);
   

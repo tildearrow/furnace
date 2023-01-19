@@ -34,6 +34,8 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
 
     friend void putDispatchChip(void*,int);
 
+    void commitState(int ch, DivInstrument* ins);
+
     void acquire_combo(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);
 

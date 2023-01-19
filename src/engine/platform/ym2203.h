@@ -55,6 +55,8 @@ class DivPlatformYM2203: public DivPlatformOPN {
 
     friend void putDispatchChip(void*,int);
 
+    inline void commitState(int ch, DivInstrument* ins);
+
     void acquire_combo(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);
 
