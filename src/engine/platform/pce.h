@@ -34,7 +34,7 @@ class DivPlatformPCE: public DivDispatch {
     unsigned char pan;
     bool noise, pcm, furnaceDac, deferredWaveUpdate;
     signed short wave;
-    int macroVolMul;
+    int macroVolMul, noiseSeek;
     DivWaveSynth ws;
     Channel():
       SharedChannel<signed char>(31),
@@ -51,7 +51,8 @@ class DivPlatformPCE: public DivDispatch {
       furnaceDac(false),
       deferredWaveUpdate(false),
       wave(-1),
-      macroVolMul(31) {}
+      macroVolMul(31),
+      noiseSeek(0) {}
   };
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];
