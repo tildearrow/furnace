@@ -659,7 +659,7 @@ void DivPlatformYM2610B::tick(bool sysTick) {
       hardResetElapsed+=2;
       chan[i].freqChanged=false;
     }
-    if (chan[i].keyOn || chan[i].opMaskChanged) {
+    if ((chan[i].keyOn || chan[i].opMaskChanged) && !chan[i].hardReset) {
       immWrite(0x28,(chan[i].opMask<<4)|konOffs[i]);
       hardResetElapsed++;
       chan[i].opMaskChanged=false;
