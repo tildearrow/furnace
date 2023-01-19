@@ -1026,6 +1026,9 @@ void FurnaceGUI::stop() {
   curNibble=false;
   orderNibble=false;
   activeNotes.clear();
+  memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
 }
 
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
