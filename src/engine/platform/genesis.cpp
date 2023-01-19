@@ -549,6 +549,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
       immWrite(0xf0,i&0xff);
     }
     for (int i=0; i<csmChan; i++) {
+      if (i==2 && extMode) continue;
       if ((chan[i].keyOn || chan[i].opMaskChanged) && chan[i].hardReset) {
         if (i<6) {
           immWrite(0x28,(chan[i].opMask<<4)|konOffs[i]);
@@ -1320,8 +1321,6 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
   } else {
     rate=chipClock/36;
   }
-  // 2ms
-  hardResetCycles=(chipClock/144)/500;
   for (int i=0; i<10; i++) {
     oscBuf[i]->rate=rate;
   }
