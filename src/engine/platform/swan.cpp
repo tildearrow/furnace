@@ -217,6 +217,26 @@ void DivPlatformSwan::tick(bool sysTick) {
       }
     }
   }
+  if (chan[3].std.phaseReset.had) {
+    if (noise>0) {
+      rWrite(0x0e,((noise-1)&0x07)|0x18);
+      sndCtrl|=0x80;
+    } else {
+      sndCtrl&=~0x80;
+    }
+  }
+  unsigned char origSndCtrl=sndCtrl;
+  bool phaseResetHappens=false;
+  for (int i=0; i<4; i++) {
+    if (chan[i].std.phaseReset.had) {
+      phaseResetHappens=true;
+      sndCtrl&=~(1<<i);
+    }
+  }
+  if (phaseResetHappens) {
+    rWrite(0x10,sndCtrl);
+    sndCtrl=origSndCtrl;
+  }
   rWrite(0x10,sndCtrl);
 
   while (!postDACWrites.empty()) {
