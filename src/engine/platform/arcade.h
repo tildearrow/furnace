@@ -57,6 +57,7 @@ class DivPlatformArcade: public DivPlatformOPM {
 
     int octave(int freq);
     int toFreq(int freq);
+    void commitState(int ch, DivInstrument* ins);
 
     void acquire_nuked(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);

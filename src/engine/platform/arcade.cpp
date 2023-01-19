@@ -382,53 +382,57 @@ void DivPlatformArcade::muteChannel(int ch, bool mute) {
   }
 }
 
+void DivPlatformArcade::commitState(int ch, DivInstrument* ins) {
+  if (chan[ch].insChanged) {
+    chan[ch].state=ins->fm;
+    chan[ch].opMask=
+      (chan[ch].state.op[0].enable?1:0)|
+      (chan[ch].state.op[2].enable?2:0)|
+      (chan[ch].state.op[1].enable?4:0)|
+      (chan[ch].state.op[3].enable?8:0);
+  }
+
+  for (int i=0; i<4; i++) {
+    unsigned short baseAddr=chanOffs[ch]|opOffs[i];
+    DivInstrumentFM::Operator op=chan[ch].state.op[i];
+    if (KVS(ch,i)) {
+      if (!chan[ch].active || chan[ch].insChanged) {
+        rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[ch].outVol&0x7f,127));
+      }
+    } else {
+      if (chan[ch].insChanged) {
+        rWrite(baseAddr+ADDR_TL,op.tl);
+      }
+    }
+    if (chan[ch].insChanged) {
+      rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
+      rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
+      rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
+      rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
+      rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+    }
+  }
+  if (chan[ch].insChanged) {
+    if (isMuted[ch]) {
+      rWrite(chanOffs[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&7)|(chan[ch].state.fb<<3));
+    } else {
+      rWrite(chanOffs[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&7)|(chan[ch].state.fb<<3)|((chan[ch].chVolL&1)<<6)|((chan[ch].chVolR&1)<<7));
+    }
+    rWrite(chanOffs[ch]+ADDR_FMS_AMS,((chan[ch].state.fms&7)<<4)|(chan[ch].state.ams&3));
+  }
+}
+
 int DivPlatformArcade::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_FM);
-
-      if (chan[c.chan].insChanged) {
-        chan[c.chan].state=ins->fm;
-        chan[c.chan].opMask=
-          (chan[c.chan].state.op[0].enable?1:0)|
-          (chan[c.chan].state.op[2].enable?2:0)|
-          (chan[c.chan].state.op[1].enable?4:0)|
-          (chan[c.chan].state.op[3].enable?8:0);
-      }
 
       chan[c.chan].macroInit(ins);
       if (!chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
 
-      for (int i=0; i<4; i++) {
-        unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
-        DivInstrumentFM::Operator op=chan[c.chan].state.op[i];
-        if (KVS(c.chan,i)) {
-          if (!chan[c.chan].active || chan[c.chan].insChanged) {
-            rWrite(baseAddr+ADDR_TL,127-VOL_SCALE_LOG_BROKEN(127-op.tl,chan[c.chan].outVol&0x7f,127));
-          }
-        } else {
-          if (chan[c.chan].insChanged) {
-            rWrite(baseAddr+ADDR_TL,op.tl);
-          }
-        }
-        if (chan[c.chan].insChanged) {
-          rWrite(baseAddr+ADDR_MULT_DT,(op.mult&15)|(dtTable[op.dt&7]<<4));
-          rWrite(baseAddr+ADDR_RS_AR,(op.ar&31)|(op.rs<<6));
-          rWrite(baseAddr+ADDR_AM_DR,(op.dr&31)|(op.am<<7));
-          rWrite(baseAddr+ADDR_DT2_D2R,(op.d2r&31)|(op.dt2<<6));
-          rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
-        }
-      }
-      if (chan[c.chan].insChanged) {
-        if (isMuted[c.chan]) {
-          rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
-        } else {
-          rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
-        }
-        rWrite(chanOffs[c.chan]+ADDR_FMS_AMS,((chan[c.chan].state.fms&7)<<4)|(chan[c.chan].state.ams&3));
-      }
+      commitState(c.chan,ins);
       chan[c.chan].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
@@ -521,6 +525,11 @@ int DivPlatformArcade::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
+      if (chan[c.chan].insChanged) {
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_OPM);
+        commitState(c.chan,ins);
+        chan[c.chan].insChanged=false;
+      }
       chan[c.chan].baseFreq=NOTE_LINEAR(c.value);
       chan[c.chan].freqChanged=true;
       break;
