@@ -73,6 +73,7 @@ class DivPlatformOPLL: public DivDispatch {
 
     int octave(int freq);
     int toFreq(int freq);
+    void commitState(int ch, DivInstrument* ins);
 
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
