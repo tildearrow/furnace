@@ -3423,7 +3423,7 @@ bool FurnaceGUI::loop() {
     if (vp==NULL) {
       logE("NULL MAN");
     } else {
-      logV("viewport size: %fx%f",vp->Size.x,vp->Size.y);
+      logV("viewport size: %dx%d",vp->Size.x,vp->Size.y);
     }
 
     curWindowLast=curWindow;
