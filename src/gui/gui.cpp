@@ -3419,6 +3419,13 @@ bool FurnaceGUI::loop() {
     ImGui_ImplSDL2_NewFrame(sdlWin);
     ImGui::NewFrame();
 
+    ImGuiViewport* vp=ImGui::GetMainViewport();
+    if (vp==NULL) {
+      logE("NULL MAN");
+    } else {
+      logV("viewport size: %dx%d",vp->Size.x,vp->Size.y);
+    }
+
     curWindowLast=curWindow;
     curWindow=GUI_WINDOW_NOTHING;
     editOptsVisible=false;
