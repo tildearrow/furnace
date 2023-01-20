@@ -306,4 +306,4 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-despite the fact this program works with the .dmf file format, it is NOT affiliated with Delek or DefleMask in any way, nor it is a replacement for the original program.
+despite the fact this program works with the .dmf, .dmp and .dmw file formats (besides its native .fur format), it is NOT affiliated with Delek or DefleMask in any way, nor it is a replacement for the original program.
