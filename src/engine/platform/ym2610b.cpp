@@ -626,7 +626,6 @@ void DivPlatformYM2610B::tick(bool sysTick) {
         mustHardReset=true;
         for (int j=0; j<4; j++) {
           unsigned short baseAddr=chanOffs[i]|opOffs[j];
-          oldWrites[baseAddr+ADDR_SL_RR]=-1;
           immWrite(baseAddr+ADDR_SL_RR,0x0f);
           hardResetElapsed++;
         }
@@ -807,6 +806,13 @@ void DivPlatformYM2610B::tick(bool sysTick) {
     for (int i=0; i<psgChanOffs; i++) {
       if (i==2 && extMode) continue;
       if ((chan[i].keyOn || chan[i].opMaskChanged) && chan[i].hardReset) {
+        // restore SL/RR
+        for (int j=0; j<4; j++) {
+          unsigned short baseAddr=chanOffs[i]|opOffs[j];
+          DivInstrumentFM::Operator& op=chan[i].state.op[j];
+          immWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+        }
+        
         immWrite(0x28,(chan[i].opMask<<4)|konOffs[i]);
         chan[i].opMaskChanged=false;
         chan[i].keyOn=false;
