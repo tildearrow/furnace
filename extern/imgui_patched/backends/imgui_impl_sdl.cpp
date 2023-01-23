@@ -65,6 +65,7 @@
 
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
+#include "../../../src/ta-log.h"
 #include <stdio.h>
 #include <cmath>
 
@@ -658,11 +659,15 @@ static void ImGui_ImplSDL2_UpdateMonitors()
         SDL_GetDisplayBounds(n, &r);
         monitor.MainPos = monitor.WorkPos = ImVec2((float)r.x, (float)r.y);
         monitor.MainSize = monitor.WorkSize = ImVec2((float)r.w, (float)r.h);
+        logI("MainPos: %f, %f",monitor.MainPos.x,monitor.MainPos.y);
+        logI("MainSize: %f, %f",monitor.MainSize.x,monitor.MainSize.y);
 #if SDL_HAS_USABLE_DISPLAY_BOUNDS
         SDL_GetDisplayUsableBounds(n, &r);
         monitor.WorkPos = ImVec2((float)r.x, (float)r.y);
         monitor.WorkSize = ImVec2((float)r.w, (float)r.h);
 #endif
+        logI("WorkPos: %f, %f",monitor.WorkPos.x,monitor.WorkPos.y);
+        logI("WorkSize: %f, %f",monitor.WorkSize.x,monitor.WorkSize.y);
 #if SDL_HAS_PER_MONITOR_DPI
         monitor.DpiScale = 1.0f;
 #endif
@@ -704,6 +709,9 @@ void ImGui_ImplSDL2_NewFrame()
         //printf("write %d/%d to DpiScale\n",display_w,w);
         platform_io.Monitors[0].DpiScale=(float)display_w/(float)w;
     }
+
+    logV("io.DisplaySize: %f, %f",io.DisplaySize.x,io.DisplaySize.y);
+    logV("io.DisplayFramebufferScale: %f, %f",io.DisplayFramebufferScale.x,io.DisplayFramebufferScale.y);
 
     // Setup time step (we don't use SDL_GetTicks() because it is using millisecond resolution)
     static Uint64 frequency = SDL_GetPerformanceFrequency();
