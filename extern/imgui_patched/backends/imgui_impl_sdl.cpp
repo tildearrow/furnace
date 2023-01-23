@@ -710,9 +710,6 @@ void ImGui_ImplSDL2_NewFrame()
         platform_io.Monitors[0].DpiScale=(float)display_w/(float)w;
     }
 
-    logV("io.DisplaySize: %f, %f",io.DisplaySize.x,io.DisplaySize.y);
-    logV("io.DisplayFramebufferScale: %f, %f",io.DisplayFramebufferScale.x,io.DisplayFramebufferScale.y);
-
     // Setup time step (we don't use SDL_GetTicks() because it is using millisecond resolution)
     static Uint64 frequency = SDL_GetPerformanceFrequency();
     Uint64 current_time = SDL_GetPerformanceCounter();
