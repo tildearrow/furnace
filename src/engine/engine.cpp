@@ -110,8 +110,6 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "EDxx: Note delay";
     case 0xee:
       return "EExx: Send external command";
-    case 0xef:
-      return "EFxx: Set global tuning (quirky!)";
     case 0xf0:
       return "F0xx: Set tick rate (bpm)";
     case 0xf1:

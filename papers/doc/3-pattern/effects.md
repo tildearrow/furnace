@@ -57,9 +57,6 @@ however, effects are continuous, which means you only need to type it once and t
 - `EDxx`: delay note by `xx` ticks.
 - `EExx`: send external command.
   - this effect is currently incomplete.
-- `EFxx`: add or subtract global pitch.
-  - this effect is rather weird. use with caution.
-  - `80` is center.
 - `F0xx`: change song Hz by BPM value.
 - `F1xx`: single tick slide up.
 - `F2xx`: single tick slide down.
