@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -606,35 +606,31 @@ void DivPlatformYM2610B::tick(bool sysTick) {
         rWrite(baseAddr+ADDR_SSG,op.ssgEnv&15);
       }
     }
-
-    if (chan[i].keyOn || chan[i].keyOff) {
-      if (chan[i].hardReset && chan[i].keyOn) {
-        for (int j=0; j<4; j++) {
-          unsigned short baseAddr=chanOffs[i]|opOffs[j];
-          immWrite(baseAddr+ADDR_SL_RR,0x0f);
-          immWrite(baseAddr+ADDR_TL,0x7f);
-          oldWrites[baseAddr+ADDR_SL_RR]=-1;
-          oldWrites[baseAddr+ADDR_TL]=-1;
-          //rWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
-        }
-      }
-      immWrite(0x28,0x00|konOffs[i]);
-      if (chan[i].hardReset && chan[i].keyOn) {
-        for (int j=0; j<4; j++) {
-          unsigned short baseAddr=chanOffs[i]|opOffs[j];
-          for (int k=0; k<100; k++) {
-            immWrite(baseAddr+ADDR_SL_RR,0x0f);
-          }
-        }
-      }
-      chan[i].keyOff=false;
-    }
   }
 
   for (int i=16; i<512; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
       immWrite(i,pendingWrites[i]&0xff);
       oldWrites[i]=pendingWrites[i];
+    }
+  }
+
+  int hardResetElapsed=0;
+  bool mustHardReset=false;
+
+  for (int i=0; i<psgChanOffs; i++) {
+    if (i==2 && extMode) continue;
+    if (chan[i].keyOn || chan[i].keyOff) {
+      immWrite(0x28,0x00|konOffs[i]);
+      if (chan[i].hardReset && chan[i].keyOn) {
+        mustHardReset=true;
+        for (int j=0; j<4; j++) {
+          unsigned short baseAddr=chanOffs[i]|opOffs[j];
+          immWrite(baseAddr+ADDR_SL_RR,0x0f);
+          hardResetElapsed++;
+        }
+      }
+      chan[i].keyOff=false;
     }
   }
 
@@ -659,10 +655,12 @@ void DivPlatformYM2610B::tick(bool sysTick) {
       if (chan[i].freq>0x3fff) chan[i].freq=0x3fff;
       immWrite(chanOffs[i]+ADDR_FREQH,chan[i].freq>>8);
       immWrite(chanOffs[i]+ADDR_FREQ,chan[i].freq&0xff);
+      hardResetElapsed+=2;
       chan[i].freqChanged=false;
     }
-    if (chan[i].keyOn || chan[i].opMaskChanged) {
+    if ((chan[i].keyOn || chan[i].opMaskChanged) && !chan[i].hardReset) {
       immWrite(0x28,(chan[i].opMask<<4)|konOffs[i]);
+      hardResetElapsed++;
       chan[i].opMaskChanged=false;
       chan[i].keyOn=false;
     }
@@ -679,6 +677,7 @@ void DivPlatformYM2610B::tick(bool sysTick) {
         if (globalADPCMAVolume!=(chan[i].std.duty.val&0x3f)) {
           globalADPCMAVolume=chan[i].std.duty.val&0x3f;
           immWrite(0x101,globalADPCMAVolume);
+          hardResetElapsed++;
         }
       }
       if (chan[i].std.panL.had) {
@@ -691,6 +690,7 @@ void DivPlatformYM2610B::tick(bool sysTick) {
       }
       if (!isMuted[i] && (chan[i].std.vol.had || chan[i].std.panL.had)) {
         immWrite(0x108+(i-adpcmAChanOffs),isMuted[i]?0:((chan[i].pan<<6)|chan[i].outVol));
+        hardResetElapsed++;
       }
     }
     if (chan[i].keyOff) {
@@ -711,6 +711,7 @@ void DivPlatformYM2610B::tick(bool sysTick) {
     if (chan[adpcmBChanOffs].std.vol.had) {
       chan[adpcmBChanOffs].outVol=(chan[adpcmBChanOffs].vol*MIN(chan[adpcmBChanOffs].macroVolMul,chan[adpcmBChanOffs].std.vol.val))/chan[adpcmBChanOffs].macroVolMul;
       immWrite(0x1b,chan[adpcmBChanOffs].outVol);
+      hardResetElapsed++;
     }
 
     if (NEW_ARP_STRAT) {
@@ -737,6 +738,7 @@ void DivPlatformYM2610B::tick(bool sysTick) {
         chan[adpcmBChanOffs].pan=chan[adpcmBChanOffs].std.panL.val&3;
         if (!isMuted[adpcmBChanOffs]) {
           immWrite(0x11,(isMuted[adpcmBChanOffs]?0:(chan[adpcmBChanOffs].pan<<6)));
+          hardResetElapsed++;
         }
       }
     }
@@ -756,13 +758,16 @@ void DivPlatformYM2610B::tick(bool sysTick) {
       }
       immWrite(0x19,chan[adpcmBChanOffs].freq&0xff);
       immWrite(0x1a,(chan[adpcmBChanOffs].freq>>8)&0xff);
+      hardResetElapsed+=2;
     }
     if (chan[adpcmBChanOffs].keyOn || chan[adpcmBChanOffs].keyOff) {
       immWrite(0x10,0x01); // reset
+      hardResetElapsed++;
       if (chan[adpcmBChanOffs].active && chan[adpcmBChanOffs].keyOn && !chan[adpcmBChanOffs].keyOff) {
         if (chan[adpcmBChanOffs].sample>=0 && chan[adpcmBChanOffs].sample<parent->song.sampleLen) {
           DivSample* s=parent->getSample(chan[adpcmBChanOffs].sample);
           immWrite(0x10,(s->isLoopable())?0x90:0x80); // start/repeat
+          hardResetElapsed++;
         }
       }
       chan[adpcmBChanOffs].keyOn=false;
@@ -773,11 +778,13 @@ void DivPlatformYM2610B::tick(bool sysTick) {
 
   if (writeADPCMAOff) {
     immWrite(0x100,0x80|writeADPCMAOff);
+    hardResetElapsed++;
     writeADPCMAOff=0;
   }
 
   if (writeADPCMAOn) {
     immWrite(0x100,writeADPCMAOn);
+    hardResetElapsed++;
     writeADPCMAOn=0;
   }
 
@@ -787,8 +794,31 @@ void DivPlatformYM2610B::tick(bool sysTick) {
   for (DivRegWrite& i: ay->getRegisterWrites()) {
     if (i.addr>15) continue;
     immWrite(i.addr&15,i.val);
+    hardResetElapsed++;
   }
   ay->getRegisterWrites().clear();
+
+  // hard reset handling
+  if (mustHardReset) {
+    for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
+      immWrite(0xf0,i&0xff);
+    }
+    for (int i=0; i<psgChanOffs; i++) {
+      if (i==2 && extMode) continue;
+      if ((chan[i].keyOn || chan[i].opMaskChanged) && chan[i].hardReset) {
+        // restore SL/RR
+        for (int j=0; j<4; j++) {
+          unsigned short baseAddr=chanOffs[i]|opOffs[j];
+          DivInstrumentFM::Operator& op=chan[i].state.op[j];
+          immWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+        }
+        
+        immWrite(0x28,(chan[i].opMask<<4)|konOffs[i]);
+        chan[i].opMaskChanged=false;
+        chan[i].keyOn=false;
+      }
+    }
+  }
 }
 
 void DivPlatformYM2610B::commitState(int ch, DivInstrument* ins) {

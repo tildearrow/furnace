@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1408,7 +1408,7 @@ void DivEngine::registerSystems() {
   }
 
   sysDefs[DIV_SYSTEM_LYNX]=new DivSysDef(
-    "Atari Lynx", NULL, 0xa8, 0, 4, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Atari Lynx", NULL, 0xa8, 0, 4, false, true, 0x172, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "a portable console made by Atari. it has all of Atari's trademark waveforms.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},

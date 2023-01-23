@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -446,35 +446,34 @@ void DivPlatformOPL::tick(bool sysTick) {
         }
       }
     }
+  }
 
-    if (i<melodicChans) {
-      if (chan[i].hardReset && chan[i].keyOn) {
-        for (int j=0; j<ops; j++) {
-          unsigned char slot=slots[j][i];
-          if (slot==255) continue;
-          unsigned short baseAddr=slotMap[slot];
-          DivInstrumentFM::Operator& op=chan[i].state.op[(ops==4)?orderedOpsL[j]:j];
-          immWrite(baseAddr+ADDR_SL_RR,0x0f);
-          immWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
-          oldWrites[baseAddr+ADDR_SL_RR]=-1;
-          oldWrites[baseAddr+ADDR_KSL_TL]=-1;
+  int hardResetElapsed=0;
+  bool mustHardReset=false;
+  bool weWillWriteRRLater[64];
+
+  memset(weWillWriteRRLater,0,64*sizeof(bool));
+
+  for (int i=0; i<melodicChans; i++) {
+    int ops=(slots[3][i]!=255 && chan[i].state.ops==4 && oplType==3)?4:2;
+
+    if (chan[i].keyOn || chan[i].keyOff) {
+      immWrite(chanMap[i]+ADDR_FREQH,0x00|(chan[i].freqH&31));
+      chan[i].keyOff=false;
+    }
+    if (chan[i].hardReset && chan[i].keyOn) {
+      mustHardReset=true;
+      for (int j=0; j<ops; j++) {
+        unsigned char slot=slots[j][i];
+        if (slot==255) continue;
+        unsigned short baseAddr=slotMap[slot];
+        if (baseAddr>0x100) {
+          weWillWriteRRLater[(baseAddr&0xff)|32]=true;
+        } else {
+          weWillWriteRRLater[(baseAddr&0xff)]=true;
         }
-      }
-      if (chan[i].keyOn || chan[i].keyOff) {
-        immWrite(chanMap[i]+ADDR_FREQH,0x00|(chan[i].freqH&31));
-        chan[i].keyOff=false;
-      }
-      if (chan[i].hardReset && chan[i].keyOn) {
-        for (int j=0; j<ops; j++) {
-          unsigned char slot=slots[j][i];
-          if (slot==255) continue;
-          unsigned short baseAddr=slotMap[slot];
-          DivInstrumentFM::Operator& op=chan[i].state.op[(ops==4)?orderedOpsL[j]:j];
-          for (int k=0; k<5; k++) {
-            immWrite(baseAddr+ADDR_SL_RR,0x0f);
-            immWrite(baseAddr+ADDR_KSL_TL,63|(op.ksl<<6));
-          }
-        }
+        immWrite(baseAddr+ADDR_SL_RR,0x0f);
+        hardResetElapsed++;
       }
     }
   }
@@ -562,6 +561,11 @@ void DivPlatformOPL::tick(bool sysTick) {
 
   for (int i=0; i<512; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
+      if ((i>=0x80 && i<0xa0)) {
+        if (weWillWriteRRLater[i-0x80]) continue;
+      } else if ((i>=0x180 && i<0x1a0)) {
+        if (weWillWriteRRLater[32|(i-0x180)]) continue;
+      }
       immWrite(i,pendingWrites[i]&0xff);
       oldWrites[i]=pendingWrites[i];
     }
@@ -580,11 +584,15 @@ void DivPlatformOPL::tick(bool sysTick) {
       immWrite(chanMap[i]+ADDR_FREQ,chan[i].freqL);
     }
     if (i<melodicChans) {
-      if (chan[i].keyOn) {
+      if (chan[i].keyOn && !chan[i].hardReset) {
         immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH|(0x20));
         chan[i].keyOn=false;
       } else if (chan[i].freqChanged) {
-        immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH|(chan[i].active<<5));
+        if (chan[i].keyOn && chan[i].hardReset) {
+          immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH|0);
+        } else {
+          immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH|(chan[i].active<<5));
+        }
       }
     } else {
       if (chan[i].keyOn) {
@@ -601,6 +609,35 @@ void DivPlatformOPL::tick(bool sysTick) {
 
   if (updateDrums) {
     immWrite(0xbd,(dam<<7)|(dvb<<6)|(properDrums<<5)|drumState);
+  }
+
+  // hard reset handling
+  if (mustHardReset) {
+    for (unsigned int i=hardResetElapsed; i<128; i++) {
+      immWrite(0x3f,i&0xff);
+    }
+    for (int i=0x80; i<0xa0; i++) {
+      if (weWillWriteRRLater[i-0x80]) {
+        immWrite(i,pendingWrites[i]&0xff);
+        oldWrites[i]=pendingWrites[i];
+      }
+    }
+    for (int i=0x180; i<0x1a0; i++) {
+      if (weWillWriteRRLater[32|(i-0x180)]) {
+        immWrite(i,pendingWrites[i]&0xff);
+        oldWrites[i]=pendingWrites[i];
+      }
+    }
+    for (int i=0; i<melodicChans; i++) {
+      if (chan[i].hardReset) {
+        if (chan[i].keyOn) {
+          immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH|(0x20));
+          chan[i].keyOn=false;
+        } else if (chan[i].freqChanged) {
+          immWrite(chanMap[i]+ADDR_FREQH,chan[i].freqH|(chan[i].active<<5));
+        }
+      }
+    }
   }
 }
 

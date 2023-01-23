@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -341,14 +341,14 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         }
         break;
       case DIV_SYSTEM_LYNX:
-        w->writeC(0x4e);
+        w->writeC(0x40);
         w->writeC(0x44);
         w->writeC(0xff); //stereo attenuation select
-        w->writeC(0x4e);
+        w->writeC(0x40);
         w->writeC(0x50);
         w->writeC(0x00); //stereo channel disable
         for (int i=0; i<4; i++) { //stereo attenuation value
-          w->writeC(0x4e);
+          w->writeC(0x40);
           w->writeC(0x40+i);
           w->writeC(0xff);
         }
@@ -765,7 +765,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(write.val&0xff);
       break;
     case DIV_SYSTEM_LYNX:
-      w->writeC(0x4e);
+      w->writeC(0x40);
       w->writeC(write.addr&0xff);
       w->writeC(write.val&0xff);
       break;
@@ -1739,7 +1739,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     w->writeI(hasX1);
     w->writeI(hasC352);
     w->writeI(hasGA20);
-    w->writeI(hasLynx);
+    w->writeI(version>=0x172?hasLynx:0);  //Mikey introduced in 1.72
   } else {
     w->writeI(0);
     w->writeI(0);

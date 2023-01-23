@@ -2,7 +2,7 @@
 // OK, sorry for inserting the define here but I'm so tired of this extension
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -3413,6 +3413,12 @@ bool FurnaceGUI::loop() {
 
     eventTimeEnd=SDL_GetPerformanceCounter();
 
+    if (SDL_GetWindowFlags(sdlWin)&SDL_WINDOW_MINIMIZED) {
+      SDL_Delay(30);
+      drawHalt=0;
+      continue;
+    }
+
     layoutTimeBegin=SDL_GetPerformanceCounter();
 
     ImGui_ImplSDLRenderer_NewFrame();
@@ -3507,7 +3513,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::BeginMenu("export VGM...")) {
           ImGui::Text("settings:");
           if (ImGui::BeginCombo("format version",fmt::sprintf("%d.%.2x",vgmExportVersion>>8,vgmExportVersion&0xff).c_str())) {
-            for (int i=0; i<6; i++) {
+            for (int i=0; i<7; i++) {
               if (ImGui::Selectable(fmt::sprintf("%d.%.2x",vgmVersions[i]>>8,vgmVersions[i]&0xff).c_str(),vgmExportVersion==vgmVersions[i])) {
                 vgmExportVersion=vgmVersions[i];
               }
