@@ -3414,7 +3414,8 @@ bool FurnaceGUI::loop() {
     eventTimeEnd=SDL_GetPerformanceCounter();
 
     if (SDL_GetWindowFlags(sdlWin)&SDL_WINDOW_MINIMIZED) {
-      SDL_Delay(100);
+      SDL_Delay(30);
+      drawHalt=0;
       continue;
     }
 
