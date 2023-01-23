@@ -65,7 +65,6 @@
 
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
-#include "../../../src/ta-log.h"
 #include <stdio.h>
 #include <cmath>
 
@@ -659,15 +658,11 @@ static void ImGui_ImplSDL2_UpdateMonitors()
         SDL_GetDisplayBounds(n, &r);
         monitor.MainPos = monitor.WorkPos = ImVec2((float)r.x, (float)r.y);
         monitor.MainSize = monitor.WorkSize = ImVec2((float)r.w, (float)r.h);
-        logI("MainPos: %f, %f",monitor.MainPos.x,monitor.MainPos.y);
-        logI("MainSize: %f, %f",monitor.MainSize.x,monitor.MainSize.y);
 #if SDL_HAS_USABLE_DISPLAY_BOUNDS
         SDL_GetDisplayUsableBounds(n, &r);
         monitor.WorkPos = ImVec2((float)r.x, (float)r.y);
         monitor.WorkSize = ImVec2((float)r.w, (float)r.h);
 #endif
-        logI("WorkPos: %f, %f",monitor.WorkPos.x,monitor.WorkPos.y);
-        logI("WorkSize: %f, %f",monitor.WorkSize.x,monitor.WorkSize.y);
 #if SDL_HAS_PER_MONITOR_DPI
         monitor.DpiScale = 1.0f;
 #endif
