@@ -89,6 +89,7 @@ class DivPlatformSoundUnit: public DivDispatch {
   short tempR;
   unsigned char sampleBank, lfoMode, lfoSpeed;
   SoundUnit* su;
+  unsigned char* sampleMem;
   size_t sampleMemLen;
   unsigned char regPool[128];
   double NOTE_SU(int ch, int note);
