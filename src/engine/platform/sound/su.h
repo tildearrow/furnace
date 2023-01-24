@@ -25,7 +25,6 @@ class SoundUnit {
   signed char ilFeedback0;
   signed char ilFeedback1;
   unsigned short oldfreq[8];
-  unsigned short oldflags[8];
   unsigned int pcmSize;
   bool dsOut;
   short dsCounterL, dsCounterR;
@@ -44,12 +43,17 @@ class SoundUnit {
       signed char vol;
       signed char pan;
       union {
-        unsigned short flags;
+        unsigned char val;
         struct {
           unsigned char shape: 3;
           unsigned char pcm: 1;
           unsigned char ring: 1;
           unsigned char fmode: 3;
+        };
+      } flags0;
+      union {
+        unsigned char val;
+        struct {
           unsigned char resosc: 1;
           unsigned char resfilt: 1;
           unsigned char pcmloop: 1;
@@ -59,7 +63,7 @@ class SoundUnit {
           unsigned char swcut: 1;
           unsigned char padding: 1;
         };
-      } flags;
+      } flags1;
       unsigned short cutoff;
       unsigned char duty;
       unsigned char reson;

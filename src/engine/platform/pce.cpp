@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,8 +53,8 @@ const char** DivPlatformPCE::getRegisterSheet() {
   return regCheatSheetPCE;
 }
 
-void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformPCE::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     // PCM part
     for (int i=0; i<6; i++) {
       if (chan[i].pcm && chan[i].dacSample!=-1) {
@@ -113,8 +113,8 @@ void DivPlatformPCE::acquire(short* bufL, short* bufR, size_t start, size_t len)
     if (tempR[0]>32767) tempR[0]=32767;
     
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
-    bufL[h]=tempL[0];
-    bufR[h]=tempR[0];
+    buf[0][h]=tempL[0];
+    buf[1][h]=tempR[0];
   }
 }
 
@@ -163,21 +163,15 @@ void DivPlatformPCE::tick(bool sysTick) {
     if (chan[i].std.duty.had && i>=4) {
       chan[i].noise=chan[i].std.duty.val;
       chan[i].freqChanged=true;
-      int noiseSeek=chan[i].note;
-      if (noiseSeek<0) noiseSeek=0;
-      chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
-      int noiseSeek=chan[i].fixedArp?chan[i].baseNoteOverride:(chan[i].note+chan[i].arpOff);
-      if (noiseSeek<0) noiseSeek=0;
-      chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
     } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         chan[i].baseFreq=NOTE_PERIODIC(noiseSeek);
         if (noiseSeek<0) noiseSeek=0;
-        chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
+        chan[i].noiseSeek=noiseSeek;
       }
       chan[i].freqChanged=true;
     }
@@ -242,9 +236,19 @@ void DivPlatformPCE::tick(bool sysTick) {
         chan[i].dacRate=((double)chipClock/2)/MAX(1,off*chan[i].freq);
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dacRate);
       }
+      if (chan[i].freq<1) chan[i].freq=1;
       if (chan[i].freq>4095) chan[i].freq=4095;
       chWrite(i,0x02,chan[i].freq&0xff);
       chWrite(i,0x03,chan[i].freq>>8);
+
+      if (i>=4) {
+        int noiseSeek=(chan[i].fixedArp?chan[i].baseNoteOverride:(chan[i].note+chan[i].arpOff))+chan[i].pitch2;
+        if (!parent->song.properNoiseLayout && noiseSeek<0) noiseSeek=0;
+        if (!NEW_ARP_STRAT) {
+          noiseSeek=chan[i].noiseSeek;
+        }
+        chWrite(i,0x07,chan[i].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
+      }
       if (chan[i].keyOn) {
         //rWrite(16+i*5,0x80);
         //chWrite(i,0x04,0x80|chan[i].vol);
@@ -330,9 +334,8 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
-        int noiseSeek=chan[c.chan].note;
-        if (noiseSeek<0) noiseSeek=0;
-        chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|(parent->song.properNoiseLayout?(noiseSeek&31):noiseFreq[noiseSeek%12])):0);
+        chan[c.chan].noiseSeek=c.value;
+        if (chan[c.chan].noiseSeek<0) chan[c.chan].noiseSeek=0;
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
@@ -430,7 +433,7 @@ int DivPlatformPCE::dispatch(DivCommand c) {
     }
     case DIV_CMD_STD_NOISE_MODE:
       chan[c.chan].noise=c.value;
-      chWrite(c.chan,0x07,chan[c.chan].noise?(0x80|chan[c.chan].note):0);
+      chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_SAMPLE_MODE:
       chan[c.chan].pcm=c.value;
@@ -547,8 +550,8 @@ void DivPlatformPCE::reset() {
   delay=500;
 }
 
-bool DivPlatformPCE::isStereo() {
-  return true;
+int DivPlatformPCE::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformPCE::keyOffAffectsArp(int ch) {

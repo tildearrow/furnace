@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,14 +63,17 @@ const char* aboutLine[]={
   "akumanatt",
   "AmigaX",
   "AURORA*FIELDS",
+  "battybeats",
   "BlueElectric05",
   "breakthetargets",
   "brickblock369",
   "Burnt Fishy",
   "CaptainMalware",
+  "Clingojam",
   "DeMOSic",
   "DevEd",
   "Dippy",
+  "djtuBIG-MaliceX",
   "dumbut",
   "FΛDE",
   "Forte",
@@ -99,6 +102,7 @@ const char* aboutLine[]={
   "SuperJet Spade",
   "SwapXFO",
   "TakuikaNinja",
+  "TCORPStudios",
   "The Blender Fiddler",
   "TheDuccinator",
   "theloredev",
@@ -170,7 +174,7 @@ const char* aboutLine[]={
   "NEOART Costa Rica",
   "all members of Deflers of Noice!",
   "",
-  "copyright © 2021-2022 tildearrow",
+  "copyright © 2021-2023 tildearrow",
   "(and contributors).",
   "licensed under GPLv2+! see",
   "LICENSE for more information.",
@@ -205,7 +209,13 @@ void FurnaceGUI::drawAbout() {
     float r=0;
     float g=0;
     float b=0;
-    float peakMix=settings.partyTime?((peak[0]+peak[1])*0.5):0.3;
+    float peakMix=settings.partyTime?0:0.3;
+    if (settings.partyTime) {
+      for (int j=0; j<e->getAudioDescGot().outChans; j++) {
+        peakMix+=peak[j];
+      }
+      peakMix/=e->getAudioDescGot().outChans;
+    }
     ImGui::ColorConvertHSVtoRGB(aboutHue,1.0,0.25+MIN(0.75f,peakMix*0.75f),r,g,b);
     dl->AddRectFilled(ImVec2(0,0),ImVec2(canvasW,canvasH),0xff000000);
     bool skip=false;

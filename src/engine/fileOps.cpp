@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -939,13 +939,13 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemLen=2;
       ds.system[0]=DIV_SYSTEM_YM2612;
       ds.system[1]=DIV_SYSTEM_SMS;
-      ds.systemVol[1]=32;
+      ds.systemVol[1]=0.5f;
     }
     if (ds.system[0]==DIV_SYSTEM_GENESIS_EXT) {
       ds.systemLen=2;
       ds.system[0]=DIV_SYSTEM_YM2612_EXT;
       ds.system[1]=DIV_SYSTEM_SMS;
-      ds.systemVol[1]=32;
+      ds.systemVol[1]=0.5f;
     }
     if (ds.system[0]==DIV_SYSTEM_ARCADE) {
       ds.systemLen=2;
@@ -1716,6 +1716,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<130) {
       ds.oldArpStrategy=true;
     }
+    if (ds.version<138) {
+      ds.brokenPortaLegato=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -1830,14 +1833,18 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     // system volume
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
-      ds.systemVol[i]=reader.readC();
+      signed char oldSysVol=reader.readC();
+      ds.systemVol[i]=(float)oldSysVol/64.0f;
       if (ds.version<59 && ds.system[i]==DIV_SYSTEM_NES) {
         ds.systemVol[i]/=4;
       }
     }
 
     // system panning
-    for (int i=0; i<DIV_MAX_CHIPS; i++) ds.systemPan[i]=reader.readC();
+    for (int i=0; i<DIV_MAX_CHIPS; i++) {
+      signed char oldSysPan=reader.readC();
+      ds.systemPan[i]=(float)oldSysPan/127.0f;
+    }
 
     // system props
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
@@ -1860,14 +1867,14 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
           ds.system[i]=DIV_SYSTEM_YM2612;
           if (i<31) {
             ds.system[i+1]=DIV_SYSTEM_SMS;
-            ds.systemVol[i+1]=(((ds.systemVol[i]&127)*3)>>3)|(ds.systemVol[i]&128);
+            ds.systemVol[i+1]=ds.systemVol[i]*0.375f;
           }
         }
         if (ds.system[i]==DIV_SYSTEM_GENESIS_EXT) {
           ds.system[i]=DIV_SYSTEM_YM2612_EXT;
           if (i<31) {
             ds.system[i+1]=DIV_SYSTEM_SMS;
-            ds.systemVol[i+1]=(((ds.systemVol[i]&127)*3)>>3)|(ds.systemVol[i]&128);
+            ds.systemVol[i+1]=ds.systemVol[i]*0.375f;
           }
         }
         if (ds.system[i]==DIV_SYSTEM_ARCADE) {
@@ -2198,6 +2205,30 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     } else {
       ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
       ds.autoSystem=true;
+    }
+
+    // system output config
+    if (ds.version>=135) {
+      for (int i=0; i<ds.systemLen; i++) {
+        ds.systemVol[i]=reader.readF();
+        ds.systemPan[i]=reader.readF();
+        ds.systemPanFR[i]=reader.readF();
+      }
+
+      // patchbay
+      unsigned int conns=reader.readI();
+      for (unsigned int i=0; i<conns; i++) {
+        ds.patchbay.push_back((unsigned int)reader.readI());
+      }
+    }
+
+    if (ds.version>=136) song.patchbayAuto=reader.readC();
+
+    if (ds.version>=138) {
+      ds.brokenPortaLegato=reader.readC();
+      for (int i=0; i<7; i++) {
+        reader.readC();
+      }
     }
 
     // read system flags
@@ -2539,6 +2570,42 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         if (ds.system[i]==DIV_SYSTEM_SMS ||
             ds.system[i]==DIV_SYSTEM_T6W28) {
           ds.systemFlags[i].set("noEasyNoise",true);
+        }
+      }
+    }
+
+    // OPL3 pan compat
+    if (ds.version<134) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_OPL3 ||
+            ds.system[i]==DIV_SYSTEM_OPL3_DRUMS) {
+          ds.systemFlags[i].set("compatPan",true);
+        }
+      }
+    }
+
+    // new YM2612/SN/X1-010 volumes
+    if (ds.version<137) {
+      for (int i=0; i<ds.systemLen; i++) {
+        switch (ds.system[i]) {
+          case DIV_SYSTEM_YM2612:
+          case DIV_SYSTEM_YM2612_EXT:
+          case DIV_SYSTEM_YM2612_DUALPCM:
+          case DIV_SYSTEM_YM2612_DUALPCM_EXT:
+          case DIV_SYSTEM_YM2612_CSM:
+            ds.systemVol[i]/=2.0;
+            break;
+          case DIV_SYSTEM_SMS:
+          case DIV_SYSTEM_T6W28:
+          case DIV_SYSTEM_OPLL:
+          case DIV_SYSTEM_OPLL_DRUMS:
+            ds.systemVol[i]/=1.5;
+            break;
+          case DIV_SYSTEM_X1_010:
+            ds.systemVol[i]/=4.0;
+            break;
+          default:
+            break;
         }
       }
     }
@@ -3147,7 +3214,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
 
     ds.systemLen=1;
     ds.system[0]=DIV_SYSTEM_AMIGA;
-    ds.systemVol[0]=64;
+    ds.systemVol[0]=1.0f;
     ds.systemPan[0]=0;
     ds.systemFlags[0].set("clockSel",1); // PAL
     ds.systemFlags[0].set("stereoSep",80);
@@ -4298,11 +4365,11 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   }
 
   for (int i=0; i<DIV_MAX_CHIPS; i++) {
-    w->writeC(song.systemVol[i]);
+    w->writeC(song.systemVol[i]*64.0f);
   }
 
   for (int i=0; i<DIV_MAX_CHIPS; i++) {
-    w->writeC(song.systemPan[i]);
+    w->writeC(song.systemPan[i]*127.0f);
   }
 
   // chip flags (we'll seek here later)
@@ -4445,6 +4512,24 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->writeString(song.authorJ,false);
   w->writeString(song.systemNameJ,false);
   w->writeString(song.categoryJ,false);
+
+  // system output config
+  for (int i=0; i<song.systemLen; i++) {
+    w->writeF(song.systemVol[i]);
+    w->writeF(song.systemPan[i]);
+    w->writeF(song.systemPanFR[i]);
+  }
+  w->writeI(song.patchbay.size());
+  for (unsigned int i: song.patchbay) {
+    w->writeI(i);
+  }
+  w->writeC(song.patchbayAuto);
+
+  // even more compat flags
+  w->writeC(song.brokenPortaLegato);
+  for (int i=0; i<7; i++) {
+    w->writeC(0);
+  }
 
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);

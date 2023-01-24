@@ -2,7 +2,7 @@
 // OK, sorry for inserting the define here but I'm so tired of this extension
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -1000,6 +1000,9 @@ float FurnaceGUI::calcBPM(int s1, int s2, float hz, int vN, int vD) {
 }
 
 void FurnaceGUI::play(int row) {
+  memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
   e->walkSong(loopOrder,loopRow,loopEnd);
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
   if (!followPattern) e->setOrder(curOrder);
@@ -1026,6 +1029,9 @@ void FurnaceGUI::stop() {
   curNibble=false;
   orderNibble=false;
   activeNotes.clear();
+  memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
 }
 
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
@@ -3132,6 +3138,14 @@ bool FurnaceGUI::loop() {
           break;
         case SDL_DISPLAYEVENT: {
           switch (ev.display.event) {
+            case SDL_DISPLAYEVENT_CONNECTED:
+              logD("display %d connected!",ev.display.display);
+              updateWindow=true;
+              break;
+            case SDL_DISPLAYEVENT_DISCONNECTED:
+              logD("display %d disconnected!",ev.display.display);
+              updateWindow=true;
+              break;
             case SDL_DISPLAYEVENT_ORIENTATION:
               logD("display oriented to %d",ev.display.data1);
               updateWindow=true;
@@ -3399,6 +3413,12 @@ bool FurnaceGUI::loop() {
 
     eventTimeEnd=SDL_GetPerformanceCounter();
 
+    if (SDL_GetWindowFlags(sdlWin)&SDL_WINDOW_MINIMIZED) {
+      SDL_Delay(30);
+      drawHalt=0;
+      continue;
+    }
+
     layoutTimeBegin=SDL_GetPerformanceCounter();
 
     ImGui_ImplSDLRenderer_NewFrame();
@@ -3493,7 +3513,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::BeginMenu("export VGM...")) {
           ImGui::Text("settings:");
           if (ImGui::BeginCombo("format version",fmt::sprintf("%d.%.2x",vgmExportVersion>>8,vgmExportVersion&0xff).c_str())) {
-            for (int i=0; i<6; i++) {
+            for (int i=0; i<7; i++) {
               if (ImGui::Selectable(fmt::sprintf("%d.%.2x",vgmVersions[i]>>8,vgmVersions[i]&0xff).c_str(),vgmExportVersion==vgmVersions[i])) {
                 vgmExportVersion=vgmVersions[i];
               }
@@ -3862,6 +3882,11 @@ bool FurnaceGUI::loop() {
           sysManagerOpen=true;
           curWindow=GUI_WINDOW_SYS_MANAGER;
           drawSysManager();
+          break;
+        case GUI_SCENE_MIXER:
+          mixerOpen=true;
+          curWindow=GUI_WINDOW_MIXER;
+          drawMixer();
           break;
         default:
           patternOpen=true;
@@ -5143,7 +5168,12 @@ bool FurnaceGUI::loop() {
     renderTimeDelta=renderTimeEnd-renderTimeBegin;
     eventTimeDelta=eventTimeEnd-eventTimeBegin;
 
-    if (--soloTimeout<0) soloTimeout=0;
+    soloTimeout-=ImGui::GetIO().DeltaTime;
+    if (soloTimeout<0) {
+      soloTimeout=0;
+    } else {
+      WAKE_UP;
+    }
 
     wheelX=0;
     wheelY=0;
@@ -5779,7 +5809,6 @@ FurnaceGUI::FurnaceGUI():
   editStep(1),
   exportLoops(0),
   soloChan(-1),
-  soloTimeout(0),
   orderEditMode(0),
   orderCursor(-1),
   loopOrder(-1),
@@ -5798,6 +5827,7 @@ FurnaceGUI::FurnaceGUI():
   dragDestinationY(0),
   oldBeat(-1),
   oldBar(-1),
+  soloTimeout(0.0f),
   exportFadeOut(5.0),
   editControlsOpen(true),
   ordersOpen(true),
@@ -6016,6 +6046,14 @@ FurnaceGUI::FurnaceGUI():
   openSampleAmplifyOpt(false),
   openSampleSilenceOpt(false),
   openSampleFilterOpt(false),
+  selectedPortSet(0x1fff),
+  selectedSubPort(-1),
+  hoveredPortSet(0x1fff),
+  hoveredSubPort(-1),
+  portDragActive(false),
+  displayHiddenPorts(false),
+  displayInternalPorts(false),
+  subPortPos(0.0f,0.0f),
   oscTotal(0),
   oscZoom(0.5f),
   oscWindowSize(20.0f),
@@ -6095,8 +6133,7 @@ FurnaceGUI::FurnaceGUI():
 
   memset(willExport,1,DIV_MAX_CHIPS*sizeof(bool));
 
-  peak[0]=0;
-  peak[1]=0;
+  memset(peak,0,DIV_MAX_OUTPUTS*sizeof(float));
 
   opMaskTransposeNote.note=true;
   opMaskTransposeNote.ins=false;

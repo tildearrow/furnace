@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -130,8 +130,8 @@ const char** DivPlatformLynx::getRegisterSheet() {
   return regCheatSheetLynx;
 }
 
-void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformLynx::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     for (int i=0; i<4; i++) {
       if (chan[i].pcm && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
         chan[i].sampleAccum-=chan[i].sampleFreq;
@@ -156,7 +156,7 @@ void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len
       }
     }
 
-    mikey->sampleAudio( bufL + h, bufR + h, 1, oscBuf );
+    mikey->sampleAudio(buf[0]+h,buf[1]+h,1,oscBuf);
   }
 }
 
@@ -393,8 +393,8 @@ void DivPlatformLynx::muteChannel(int ch, bool mute) {
   if (chan[ch].active) WRITE_VOLUME(ch,(isMuted[ch]?0:(chan[ch].outVol&127)));
 }
 
-bool DivPlatformLynx::isStereo() {
-  return true;
+int DivPlatformLynx::getOutputCount() {
+  return 2;
 }
 
 void DivPlatformLynx::forceIns() {
@@ -509,12 +509,12 @@ DivPlatformLynx::MikeyFreqDiv::MikeyFreqDiv(int frequency) {
   if (top>7)
   {
     clockDivider=top-7;
-    backup=frequency>>(top-7);
+    backup=clamped>>(top-7);
   }
   else
   {
     clockDivider=0;
-    backup=frequency;
+    backup=clamped;
   }
 }
 

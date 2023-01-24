@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,13 +29,14 @@ int logLevel=LOGLEVEL_INFO;
 
 FILE* logFile;
 char* logFileBuf;
+char* logFileWriteBuf;
 unsigned int logFilePosI;
 unsigned int logFilePosO;
 std::thread* logFileThread;
 std::mutex logFileLock;
 std::mutex logFileLockI;
 std::condition_variable logFileNotify;
-bool logFileAvail=false;
+std::atomic<bool> logFileAvail(false);
 
 std::atomic<unsigned short> logPosition;
 
@@ -157,8 +158,8 @@ void _logFileThread() {
       }
     } else {
       // wait
-      if (!logFileAvail) break;
       fflush(logFile);
+      if (!logFileAvail) break;
       logFileNotify.wait(lock);
     }
   }
@@ -177,6 +178,7 @@ bool startLogFile(const char* path) {
   }
 
   logFileBuf=new char[TA_LOGFILE_BUF_SIZE];
+  logFileWriteBuf=new char[TA_LOGFILE_BUF_SIZE];
   logFilePosI=0;
   logFilePosO=0;
   logFileAvail=true;

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -74,7 +74,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
   void chWrite(unsigned char ch, unsigned int addr, unsigned char val);
   public:
     virtual u8 read_byte(u32 address) override;
-    virtual void acquire(short* bufL, short* bufR, size_t start, size_t len) override;
+    virtual void acquire(short** buf, size_t len) override;
     virtual int dispatch(DivCommand c) override;
     virtual void* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
@@ -85,7 +85,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
     virtual void forceIns() override;
     virtual void tick(bool sysTick=true) override;
     virtual void muteChannel(int ch, bool mute) override;
-    virtual bool isStereo() override;
+    virtual int getOutputCount() override;
     virtual void notifyInsChange(int ins) override;
     virtual void notifyWaveChange(int wave) override;
     virtual void notifyInsDeletion(void* ins) override;

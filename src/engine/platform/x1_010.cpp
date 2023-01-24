@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -205,8 +205,8 @@ const char** DivPlatformX1_010::getRegisterSheet() {
   return regCheatSheetX1_010;
 }
 
-void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformX1_010::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     x1_010.tick();
 
     signed int tempL=x1_010.output(0);
@@ -218,8 +218,8 @@ void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t l
     if (tempR>32767) tempR=32767;
 
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
-    bufL[h]=stereo?tempL:((tempL+tempR)>>1);
-    bufR[h]=stereo?tempR:bufL[h];
+    buf[0][h]=stereo?tempL:((tempL+tempR)>>1);
+    if (stereo) buf[1][h]=tempR;
 
     for (int i=0; i<16; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=(x1_010.voice_out(i,0)+x1_010.voice_out(i,1))>>1;
@@ -362,7 +362,7 @@ void DivPlatformX1_010::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+        CLAMP_VAR(chan[i].pitch2,-65535,65535);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -484,6 +484,7 @@ void DivPlatformX1_010::tick(bool sysTick) {
         if (chan[i].freq>255) chan[i].freq=255;
         chWrite(i,2,chan[i].freq&0xff);
       } else {
+        if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>65535) chan[i].freq=65535;
         chWrite(i,2,chan[i].freq&0xff);
         chWrite(i,3,(chan[i].freq>>8)&0xff);
@@ -894,12 +895,16 @@ void DivPlatformX1_010::reset() {
   }
 }
 
-bool DivPlatformX1_010::isStereo() {
-  return stereo;
+int DivPlatformX1_010::getOutputCount() {
+  return stereo?2:1;
 }
 
 bool DivPlatformX1_010::keyOffAffectsArp(int ch) {
   return true;
+}
+
+float DivPlatformX1_010::getPostAmp() {
+  return 4.0f;
 }
 
 void DivPlatformX1_010::notifyWaveChange(int wave) {

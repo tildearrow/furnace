@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,8 +61,8 @@ const char** DivPlatformGB::getRegisterSheet() {
   return regCheatSheetGB;
 }
 
-void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t i=start; i<start+len; i++) {
+void DivPlatformGB::acquire(short** buf, size_t len) {
+  for (size_t i=0; i<len; i++) {
     if (!writes.empty()) {
       QueuedWrite& w=writes.front();
       GB_apu_write(gb,w.addr,w.val);
@@ -70,8 +70,8 @@ void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) 
     }
 
     GB_advance_cycles(gb,16);
-    bufL[i]=gb->apu_output.final_sample.left;
-    bufR[i]=gb->apu_output.final_sample.right;
+    buf[0][i]=gb->apu_output.final_sample.left;
+    buf[1][i]=gb->apu_output.final_sample.right;
 
     for (int i=0; i<4; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=(gb->apu_output.current_sample[i].left+gb->apu_output.current_sample[i].right)<<6;
@@ -284,14 +284,14 @@ void DivPlatformGB::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
-        int ntPos=chan[i].baseFreq;
+        int ntPos=chan[i].baseFreq+chan[i].pitch2;
         if (ntPos<0) ntPos=0;
         if (ntPos>255) ntPos=255;
         chan[i].freq=noiseTable[ntPos];
       } else {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
         if (chan[i].freq>2047) chan[i].freq=2047;
-        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq<1) chan[i].freq=1;
       }
       if (chan[i].keyOn) {
         if (i==2) { // wave
@@ -604,8 +604,8 @@ int DivPlatformGB::getPortaFloor(int ch) {
   return 24;
 }
 
-bool DivPlatformGB::isStereo() {
-  return true;
+int DivPlatformGB::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformGB::getDCOffRequired() {

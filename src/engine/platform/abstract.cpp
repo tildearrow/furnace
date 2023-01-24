@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,9 @@
  */
 
 #include "../dispatch.h"
+#include "../../ta-log.h"
 
-void DivDispatch::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivDispatch::acquire(short** buf, size_t len) {
 }
 
 void DivDispatch::fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
@@ -69,8 +70,8 @@ int DivDispatch::dispatch(DivCommand c) {
 void DivDispatch::reset() {
 }
 
-bool DivDispatch::isStereo() {
-  return false;
+int DivDispatch::getOutputCount() {
+  return 1;
 }
 
 bool DivDispatch::keyOffAffectsArp(int ch) {
@@ -121,7 +122,8 @@ void DivDispatch::notifyWaveChange(int ins) {
 }
 
 void DivDispatch::notifyInsDeletion(void* ins) {
-
+  logE("notifyInsDeletion NOT implemented!");
+  abort();
 }
 
 void DivDispatch::notifyPlaybackStop() {

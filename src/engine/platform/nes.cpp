@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -100,8 +100,8 @@ void DivPlatformNES::doWrite(unsigned short addr, unsigned char data) {
     } \
   }
 
-void DivPlatformNES::acquire_puNES(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t i=start; i<start+len; i++) {
+void DivPlatformNES::acquire_puNES(short** buf, size_t len) {
+  for (size_t i=0; i<len; i++) {
     doPCM;
   
     apu_tick(nes,NULL);
@@ -112,7 +112,7 @@ void DivPlatformNES::acquire_puNES(short* bufL, short* bufR, size_t start, size_
     int sample=(pulse_output(nes)+tnd_output(nes))<<6;
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
-    bufL[i]=sample;
+    buf[0][i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
       oscBuf[0]->data[oscBuf[0]->needle++]=isMuted[0]?0:(nes->S1.output<<11);
@@ -124,10 +124,10 @@ void DivPlatformNES::acquire_puNES(short* bufL, short* bufR, size_t start, size_
   }
 }
 
-void DivPlatformNES::acquire_NSFPlay(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformNES::acquire_NSFPlay(short** buf, size_t len) {
   int out1[2];
   int out2[2];
-  for (size_t i=start; i<start+len; i++) {
+  for (size_t i=0; i<len; i++) {
     doPCM;
   
     nes1_NP->Tick(1);
@@ -139,7 +139,7 @@ void DivPlatformNES::acquire_NSFPlay(short* bufL, short* bufR, size_t start, siz
     int sample=(out1[0]+out1[1]+out2[0]+out2[1])<<1;
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
-    bufL[i]=sample;
+    buf[0][i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
       oscBuf[0]->data[oscBuf[0]->needle++]=nes1_NP->out[0]<<11;
@@ -151,11 +151,11 @@ void DivPlatformNES::acquire_NSFPlay(short* bufL, short* bufR, size_t start, siz
   }
 }
 
-void DivPlatformNES::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformNES::acquire(short** buf, size_t len) {
   if (useNP) {
-    acquire_NSFPlay(bufL,bufR,start,len);
+    acquire_NSFPlay(buf,len);
   } else {
-    acquire_puNES(bufL,bufR,start,len);
+    acquire_puNES(buf,len);
   }
 }
 
@@ -278,6 +278,7 @@ void DivPlatformNES::tick(bool sysTick) {
             ntPos+=chan[i].arpOff;
           }
         }
+        ntPos+=chan[i].pitch2;
         if (parent->song.properNoiseLayout) {
           chan[i].freq=15-(ntPos&15);
         } else {

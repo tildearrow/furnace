@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,10 +66,10 @@ class DivPlatformSMS: public DivDispatch {
   double NOTE_SN(int ch, int note);
   int snCalcFreq(int ch);
 
-  void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
-  void acquire_mame(short* bufL, short* bufR, size_t start, size_t len);
+  void acquire_nuked(short** buf, size_t len);
+  void acquire_mame(short** buf, size_t len);
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -78,9 +78,10 @@ class DivPlatformSMS: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    int getOutputCount();
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    float getPostAmp();
     int getPortaFloor(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);

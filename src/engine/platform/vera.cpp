@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -53,11 +53,11 @@ const char** DivPlatformVERA::getRegisterSheet() {
   return regCheatSheetVERA;
 }
 
-void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformVERA::acquire(short** buf, size_t len) {
   // both PSG part and PCM part output a full 16-bit range, putting bufL/R
   // argument right into both could cause an overflow
-  short buf[4][128];
-  size_t pos=start;
+  short whyCallItBuf[4][128];
+  size_t pos=0;
   DivSample* s=parent->getSample(chan[16].pcm.sample);
   while (len>0) {
     if (s->samples>0) {
@@ -98,18 +98,18 @@ void DivPlatformVERA::acquire(short* bufL, short* bufR, size_t start, size_t len
       chan[16].pcm.sample=-1;
     }
     int curLen=MIN(len,128);
-    memset(buf,0,sizeof(buf));
-    pcm_render(pcm,buf[2],buf[3],curLen);
+    memset(whyCallItBuf,0,sizeof(whyCallItBuf));
+    pcm_render(pcm,whyCallItBuf[2],whyCallItBuf[3],curLen);
     for (int i=0; i<curLen; i++) {
-      psg_render(psg,&buf[0][i],&buf[1][i],1);
-      bufL[pos]=(short)(((int)buf[0][i]+buf[2][i])/2);
-      bufR[pos]=(short)(((int)buf[1][i]+buf[3][i])/2);
+      psg_render(psg,&whyCallItBuf[0][i],&whyCallItBuf[1][i],1);
+      buf[0][pos]=(short)(((int)whyCallItBuf[0][i]+whyCallItBuf[2][i])/2);
+      buf[1][pos]=(short)(((int)whyCallItBuf[1][i]+whyCallItBuf[3][i])/2);
       pos++;
 
       for (int i=0; i<16; i++) {
         oscBuf[i]->data[oscBuf[i]->needle++]=psg->channels[i].lastOut<<4;
       }
-      int pcmOut=buf[2][i]+buf[3][i];
+      int pcmOut=whyCallItBuf[2][i]+whyCallItBuf[3][i];
       if (pcmOut<-32768) pcmOut=-32768;
       if (pcmOut>32767) pcmOut=32767;
       oscBuf[16]->data[oscBuf[16]->needle++]=pcmOut;
@@ -406,12 +406,12 @@ float DivPlatformVERA::getPostAmp() {
   return 4.0f;
 }
 
-bool DivPlatformVERA::isStereo() {
-  return true;
+int DivPlatformVERA::getOutputCount() {
+  return 2;
 }
 
 void DivPlatformVERA::notifyInsDeletion(void* ins) {
-  for (int i=0; i<2; i++) {
+  for (int i=0; i<17; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,14 +61,14 @@ class DivPlatformPCSpeaker: public DivDispatch {
 
   void beepFreq(int freq, int delay=0);
 
-  void acquire_unfilt(short* bufL, short* bufR, size_t start, size_t len);
-  void acquire_cone(short* bufL, short* bufR, size_t start, size_t len);
-  void acquire_piezo(short* bufL, short* bufR, size_t start, size_t len);
-  void acquire_real(short* bufL, short* bufR, size_t start, size_t len);
+  void acquire_unfilt(short** buf, size_t len);
+  void acquire_cone(short** buf, size_t len);
+  void acquire_piezo(short** buf, size_t len);
+  void acquire_real(short** buf, size_t len);
 
   public:
     void pcSpeakerThread();
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);

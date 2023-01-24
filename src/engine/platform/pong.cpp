@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,19 +23,19 @@
 
 #define CHIP_DIVIDER 1024
 
-void DivPlatformPong::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformPong::acquire(short** buf, size_t len) {
   int out=0;
-  for (size_t i=start; i<start+len; i++) {
+  for (size_t i=0; i<len; i++) {
     if (on) {
       if (--pos<=0) {
         pos=(freq?2:1)<<4;
         flip=!flip;
       }
       out=(flip && !isMuted[0])?32767:0;
-      bufL[i]=out;
+      buf[0][i]=out;
       oscBuf->data[oscBuf->needle++]=out;
     } else {
-      bufL[i]=0;
+      buf[0][i]=0;
       oscBuf->data[oscBuf->needle++]=0;
       flip=false;
     }

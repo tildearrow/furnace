@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -164,7 +164,7 @@ void DivPlatformAY8930::checkWrites() {
   }
 }
 
-void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformAY8930::acquire(short** buf, size_t len) {
   if (ayBufLen<len) {
     ayBufLen=len;
     for (int i=0; i<3; i++) {
@@ -179,11 +179,11 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
 
     ay->sound_stream_update(ayBuf,1);
     if (stereo) {
-      bufL[i+start]=ayBuf[0][0]+ayBuf[1][0]+((ayBuf[2][0]*stereoSep)>>8);
-      bufR[i+start]=((ayBuf[0][0]*stereoSep)>>8)+ayBuf[1][0]+ayBuf[2][0];
+      buf[0][i]=ayBuf[0][0]+ayBuf[1][0]+((ayBuf[2][0]*stereoSep)>>8);
+      buf[1][i]=((ayBuf[0][0]*stereoSep)>>8)+ayBuf[1][0]+ayBuf[2][0];
     } else {
-      bufL[i+start]=ayBuf[0][0]+ayBuf[1][0]+ayBuf[2][0];
-      bufR[i+start]=bufL[i+start];
+      buf[0][i]=ayBuf[0][0]+ayBuf[1][0]+ayBuf[2][0];
+      buf[1][i]=buf[0][i];
     }
 
     oscBuf[0]->data[oscBuf[0]->needle++]=ayBuf[0][0]<<2;
@@ -270,7 +270,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+        CLAMP_VAR(chan[i].pitch2,-65535,65535);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -297,7 +297,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
       }
     }
     if (chan[i].std.ex1.had) { // duty
-      rWrite(0x16+i,chan[i].std.ex1.val);
+      immWrite(0x16+i,chan[i].std.ex1.val);
     }
     if (chan[i].std.ex2.had) {
       chan[i].envelope.mode=chan[i].std.ex2.val;
@@ -336,6 +336,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
         chan[i].dac.rate=((double)chipClock*4.0)/(double)(MAX(1,off*chan[i].freq));
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dac.rate);
       }
+      if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {
         if (!chan[i].nextPSGMode.dac) {
@@ -747,8 +748,8 @@ void DivPlatformAY8930::reset() {
   immWrite(0x1a,0x00); // or mask
 }
 
-bool DivPlatformAY8930::isStereo() {
-  return true;
+int DivPlatformAY8930::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformAY8930::keyOffAffectsArp(int ch) {
@@ -807,6 +808,12 @@ void DivPlatformAY8930::setFlags(const DivConfig& flags) {
       break;
     case 12:
       chipClock=3600000;
+      break;
+    case 13:
+      chipClock=20000000/16;
+      break;
+    case 14:
+      chipClock=1536000;
       break;
     default:
       chipClock=COLOR_NTSC/2.0;

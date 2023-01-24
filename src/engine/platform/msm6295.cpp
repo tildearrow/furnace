@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,8 +37,8 @@ u8 DivPlatformMSM6295::read_byte(u32 address) {
   return adpcmMem[address&0x3ffff];
 }
 
-void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformMSM6295::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     if (delay<=0) {
       if (!writes.empty()) {
         QueuedWrite& w=writes.front();
@@ -75,7 +75,7 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
     msm.tick();
     msm.tick();
   
-    bufL[h]=msm.out()<<4;
+    buf[0][h]=msm.out()<<4;
 
     if (++updateOsc>=22) {
       updateOsc=0;
@@ -326,6 +326,9 @@ void DivPlatformMSM6295::notifyInsChange(int ins) {
 }
 
 void DivPlatformMSM6295::notifyInsDeletion(void* ins) {
+  for (int i=0; i<4; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
 }
 
 const void* DivPlatformMSM6295::getSampleMem(int index) {

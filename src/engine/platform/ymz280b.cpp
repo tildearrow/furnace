@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,13 +60,13 @@ const char** DivPlatformYMZ280B::getRegisterSheet() {
   return regCheatSheetYMZ280B;
 }
 
-void DivPlatformYMZ280B::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  short buf[16][256];
+void DivPlatformYMZ280B::acquire(short** buf, size_t len) {
+  short why[16][256];
   short *bufPtrs[16]={
-    buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7],
-    buf[8],buf[9],buf[10],buf[11],buf[12],buf[13],buf[14],buf[15]
+    why[0],why[1],why[2],why[3],why[4],why[5],why[6],why[7],
+    why[8],why[9],why[10],why[11],why[12],why[13],why[14],why[15]
   };
-  size_t pos=start;
+  size_t pos=0;
   while (len > 0) {
     size_t blockLen = MIN(len, 256);
     ymz280b.sound_stream_update(bufPtrs, blockLen);
@@ -74,12 +74,12 @@ void DivPlatformYMZ280B::acquire(short* bufL, short* bufR, size_t start, size_t 
       int dataL=0;
       int dataR=0;
       for (int j=0; j<8; j++) {
-        dataL+=buf[j*2][i];
-        dataR+=buf[j*2+1][i];
-        oscBuf[j]->data[oscBuf[j]->needle++]=(short)(((int)buf[j*2][i]+buf[j*2+1][i])/2);
+        dataL+=why[j*2][i];
+        dataR+=why[j*2+1][i];
+        oscBuf[j]->data[oscBuf[j]->needle++]=(short)(((int)why[j*2][i]+why[j*2+1][i])/2);
       }
-      bufL[pos]=(short)(dataL/8);
-      bufR[pos]=(short)(dataR/8);
+      buf[0][pos]=(short)(dataL/8);
+      buf[1][pos]=(short)(dataR/8);
       pos++;
     }
     len-=blockLen;
@@ -372,8 +372,8 @@ void DivPlatformYMZ280B::reset() {
   }
 }
 
-bool DivPlatformYMZ280B::isStereo() {
-  return true;
+int DivPlatformYMZ280B::getOutputCount() {
+  return 2;
 }
 
 void DivPlatformYMZ280B::notifyInsChange(int ins) {

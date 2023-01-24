@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -265,11 +265,11 @@ const char** DivPlatformQSound::getRegisterSheet() {
   return regCheatSheetQSound;
 }
 
-void DivPlatformQSound::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformQSound::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     qsound_update(&chip);
-    bufL[h]=chip.out[0];
-    bufR[h]=chip.out[1];
+    buf[0][h]=chip.out[0];
+    buf[1][h]=chip.out[1];
 
     for (int i=0; i<19; i++) {
       int data=chip.voice_output[i]<<2;
@@ -606,7 +606,7 @@ void DivPlatformQSound::forceIns() {
   for (int i=0; i<19; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
-    chan[i].sample=-1;
+    //chan[i].sample=-1;
   }
 }
 
@@ -636,8 +636,8 @@ void DivPlatformQSound::reset() {
   immWrite(Q1_ECHO_FEEDBACK, echoFeedback << 6);
 }
 
-bool DivPlatformQSound::isStereo() {
-  return true;
+int DivPlatformQSound::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformQSound::keyOffAffectsArp(int ch) {
@@ -645,7 +645,7 @@ bool DivPlatformQSound::keyOffAffectsArp(int ch) {
 }
 
 void DivPlatformQSound::notifyInsChange(int ins) {
-  for (int i=0; i<4; i++) {
+  for (int i=0; i<19; i++) {
     if (chan[i].ins==ins) {
       chan[i].insChanged=true;
     }
@@ -657,7 +657,7 @@ void DivPlatformQSound::notifyWaveChange(int wave) {
 }
 
 void DivPlatformQSound::notifyInsDeletion(void* ins) {
-  for (int i=0; i<4; i++) {
+  for (int i=0; i<19; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
@@ -707,11 +707,11 @@ const void* DivPlatformQSound::getSampleMem(int index) {
 }
 
 size_t DivPlatformQSound::getSampleMemCapacity(int index) {
-  return (index == 0 || index == 1) ? 16777216 : 0;
+  return index == 0 ? 16777216 : index == 1 ? (sampleMemUsage>=16777216?1:(16777216 - sampleMemUsage)) : 0;
 }
 
 size_t DivPlatformQSound::getSampleMemUsage(int index) {
-  return index == 0 ? sampleMemLen : index == 1 ? sampleMemLenBS : 0;
+  return index == 0 ? sampleMemLen : index == 1 ? ((sampleMemUsage>=sampleMemLenBS)?0:(sampleMemLenBS - sampleMemUsage)) : 0;
 }
 
 bool DivPlatformQSound::isSampleLoaded(int index, int sample) {
@@ -766,6 +766,7 @@ void DivPlatformQSound::renderSamples(int sysID) {
   sampleMemLen=memPos+256;
 
   memPos=(memPos+0xffff)&0xff0000;
+  sampleMemUsage=memPos;
 
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
@@ -818,6 +819,7 @@ int DivPlatformQSound::init(DivEngine* p, int channels, int sugRate, const DivCo
   sampleMem=new unsigned char[getSampleMemCapacity()];
   sampleMemLen=0;
   sampleMemLenBS=0;
+  sampleMemUsage=0;
   chip.rom_data=sampleMem;
   chip.rom_mask=0xffffff;
   reset();

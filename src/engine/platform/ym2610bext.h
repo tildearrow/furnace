@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,6 +28,7 @@ class DivPlatformYM2610BExt: public DivPlatformYM2610B {
   OPNOpChannelStereo opChan[4];
   bool isOpMuted[4];
   friend void putDispatchChip(void*,int);
+  inline void commitStateExt(int ch, DivInstrument* ins);
   public:
     int dispatch(DivCommand c);
     void* getChanState(int chan);
@@ -39,6 +40,7 @@ class DivPlatformYM2610BExt: public DivPlatformYM2610B {
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
+    void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformYM2610BExt();

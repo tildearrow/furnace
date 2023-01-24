@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,10 @@
 #include <windows.h>
 #include <combaseapi.h>
 #include <shellapi.h>
+
+#include "gui/shellScalingStub.h"
+
+typedef HRESULT (WINAPI *SPDA)(PROCESS_DPI_AWARENESS);
 #else
 #include <unistd.h>
 #endif
@@ -148,7 +152,7 @@ TAParamResult pLogLevel(String val) {
 
 TAParamResult pVersion(String) {
   printf("Furnace version " DIV_VERSION ".\n\n");
-  printf("copyright (C) 2021-2022 tildearrow and contributors.\n");
+  printf("copyright (C) 2021-2023 tildearrow and contributors.\n");
   printf("licensed under the GNU General Public License version 2 or later\n");
   printf("<https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n\n");
   printf("this is free software with ABSOLUTELY NO WARRANTY.\n");
@@ -339,6 +343,22 @@ void reportError(String what) {
 int main(int argc, char** argv) {
   initLog();
 #ifdef _WIN32
+  // set DPI awareness
+  HMODULE shcore=LoadLibraryW(L"shcore.dll");
+  if (shcore!=NULL) {
+    SPDA ta_SetProcessDpiAwareness=(SPDA)GetProcAddress(shcore,"SetProcessDpiAwareness");
+    if (ta_SetProcessDpiAwareness!=NULL) {
+      HRESULT result=ta_SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+      if (result!=S_OK) {
+        // ???
+      }
+    }
+    if (!FreeLibrary(shcore)) {
+      // ???
+    }
+  }
+
+  // co initialize ex
   HRESULT coResult=CoInitializeEx(NULL,COINIT_MULTITHREADED);
   if (coResult!=S_OK) {
     logE("CoInitializeEx failed!");
@@ -613,7 +633,3 @@ int main(int argc, char** argv) {
 #endif
   return 0;
 }
-
-#ifdef _WIN32
-#include "winMain.cpp"
-#endif

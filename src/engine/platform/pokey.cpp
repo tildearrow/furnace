@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,16 +64,16 @@ const char** DivPlatformPOKEY::getRegisterSheet() {
   return regCheatSheetPOKEY;
 }
 
-void DivPlatformPOKEY::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformPOKEY::acquire(short** buf, size_t len) {
   if (useAltASAP) {
-    acquireASAP(bufL, start, len);
+    acquireASAP(buf[0],len);
   } else {
-    acquireMZ(bufL, start, len);
+    acquireMZ(buf[0],len);
   }
 }
 
-void DivPlatformPOKEY::acquireMZ(short* buf, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformPOKEY::acquireMZ(short* buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
       Update_pokey_sound_mz(&pokey,w.addr,w.val,0);
@@ -93,14 +93,14 @@ void DivPlatformPOKEY::acquireMZ(short* buf, size_t start, size_t len) {
   }
 }
 
-void DivPlatformPOKEY::acquireASAP(short* buf, size_t start, size_t len) {
+void DivPlatformPOKEY::acquireASAP(short* buf, size_t len) {
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     altASAP.write(w.addr, w.val);
     writes.pop();
   }
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     if (++oscBufDelay>=2) {
       oscBufDelay=0;
       buf[h]=altASAP.sampleAudio(oscBuf);

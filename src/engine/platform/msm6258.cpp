@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,12 +30,12 @@ const char** DivPlatformMSM6258::getRegisterSheet() {
   return NULL;
 }
 
-void DivPlatformMSM6258::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformMSM6258::acquire(short** buf, size_t len) {
   short* outs[2]={
     &msmOut,
     NULL
   };
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     if (--msmClockCount<0) {
       if (--msmDividerCount<=0) {
         if (!writes.empty()) {
@@ -78,12 +78,12 @@ void DivPlatformMSM6258::acquire(short* bufL, short* bufR, size_t start, size_t 
     }
     
     if (isMuted[0]) {
-      bufL[h]=0;
-      bufR[h]=0;
+      buf[0][h]=0;
+      buf[1][h]=0;
       oscBuf[0]->data[oscBuf[0]->needle++]=0;
     } else {
-      bufL[h]=(msmPan&2)?msmOut:0;
-      bufR[h]=(msmPan&1)?msmOut:0;
+      buf[0][h]=(msmPan&2)?msmOut:0;
+      buf[1][h]=(msmPan&1)?msmOut:0;
       oscBuf[0]->data[oscBuf[0]->needle++]=msmPan?msmOut:0;
     }
   }
@@ -336,8 +336,8 @@ void DivPlatformMSM6258::reset() {
   delay=0;
 }
 
-bool DivPlatformMSM6258::isStereo() {
-  return true;
+int DivPlatformMSM6258::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformMSM6258::keyOffAffectsArp(int ch) {
@@ -353,6 +353,9 @@ void DivPlatformMSM6258::notifyInsChange(int ins) {
 }
 
 void DivPlatformMSM6258::notifyInsDeletion(void* ins) {
+  for (int i=0; i<1; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
 }
 
 void DivPlatformMSM6258::setFlags(const DivConfig& flags) {

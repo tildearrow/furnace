@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -43,8 +43,8 @@ const char** DivPlatformMMC5::getRegisterSheet() {
   return regCheatSheetMMC5;
 }
 
-void DivPlatformMMC5::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t i=start; i<start+len; i++) {
+void DivPlatformMMC5::acquire(short** buf, size_t len) {
+  for (size_t i=0; i<len; i++) {
     if (dacSample!=-1) {
       dacPeriod+=dacRate;
       if (dacPeriod>=rate) {
@@ -81,7 +81,7 @@ void DivPlatformMMC5::acquire(short* bufL, short* bufR, size_t start, size_t len
     }
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
-    bufL[i]=sample;
+    buf[0][i]=sample;
 
     if (++writeOscBuf>=32) {
       writeOscBuf=0;

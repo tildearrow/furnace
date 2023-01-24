@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,10 +26,10 @@
 //#define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 //#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSegaPCM::acquire(short** buf, size_t len) {
   static int os[2];
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     // do a PCM cycle
     pcmL=0; pcmR=0;
@@ -67,8 +67,8 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
   }
 }
 
@@ -406,6 +406,12 @@ void DivPlatformSegaPCM::notifyInsChange(int ins) {
   }
 }
 
+void DivPlatformSegaPCM::notifyInsDeletion(void* ins) {
+  for (int i=0; i<16; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
 void* DivPlatformSegaPCM::getChanState(int ch) {
   return &chan[ch];
 }
@@ -502,8 +508,8 @@ void DivPlatformSegaPCM::setFlags(const DivConfig& flags) {
   }
 }
 
-bool DivPlatformSegaPCM::isStereo() {
-  return true;
+int DivPlatformSegaPCM::getOutputCount() {
+  return 2;
 }
 
 int DivPlatformSegaPCM::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

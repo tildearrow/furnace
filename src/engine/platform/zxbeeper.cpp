@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,9 +27,9 @@ const char** DivPlatformZXBeeper::getRegisterSheet() {
   return NULL;
 }
 
-void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformZXBeeper::acquire(short** buf, size_t len) {
   bool o=false;
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     // clock here
     if (curSample>=0 && curSample<parent->song.sampleLen) {
       if (--curSamplePeriod<0) {
@@ -46,7 +46,7 @@ void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t
         }
       }
       o=sampleOut;
-      bufL[h]=o?16384:0;
+      buf[0][h]=o?16384:0;
       oscBuf[0]->data[oscBuf[0]->needle++]=o?16384:-16384;
       continue;
     }
@@ -64,7 +64,7 @@ void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t
     }
     if (++curChan>=6) curChan=0;
     
-    bufL[h]=o?16384:0;
+    buf[0][h]=o?16384:0;
     oscBuf[0]->data[oscBuf[0]->needle++]=o?16384:-16384;
   }
 }
@@ -90,7 +90,7 @@ void DivPlatformZXBeeper::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+        CLAMP_VAR(chan[i].pitch2,-65535,65535);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -99,6 +99,7 @@ void DivPlatformZXBeeper::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].active) {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+        if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>65535) chan[i].freq=65535;
       }
       if (chan[i].keyOn) {

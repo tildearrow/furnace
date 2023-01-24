@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,10 +65,10 @@ const char** DivPlatformSNES::getRegisterSheet() {
   return regCheatSheetSNESDSP;
 }
 
-void DivPlatformSNES::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSNES::acquire(short** buf, size_t len) {
   short out[2];
   short chOut[16];
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     if (--delay<=0) {
       delay=0;
       if (!writes.empty()) {
@@ -82,8 +82,8 @@ void DivPlatformSNES::acquire(short* bufL, short* bufR, size_t start, size_t len
     dsp.set_output(out,1);
     dsp.run(32);
     dsp.get_voice_outputs(chOut);
-    bufL[h]=out[0];
-    bufR[h]=out[1];
+    buf[0][h]=out[0];
+    buf[1][h]=out[1];
     for (int i=0; i<8; i++) {
       int next=(3*(chOut[i*2]+chOut[i*2+1]))>>2;
       if (next<-32768) next=-32768;
@@ -768,8 +768,8 @@ void DivPlatformSNES::reset() {
   initEcho();
 }
 
-bool DivPlatformSNES::isStereo() {
-  return true;
+int DivPlatformSNES::getOutputCount() {
+  return 2;
 }
 
 void DivPlatformSNES::notifyInsChange(int ins) {
@@ -811,7 +811,7 @@ const void* DivPlatformSNES::getSampleMem(int index) {
 
 size_t DivPlatformSNES::getSampleMemCapacity(int index) {
   // TODO change it based on current echo buffer size
-  return index == 0 ? 65536 : 0;
+  return index == 0 ? (65536-echoDelay*2048) : 0;
 }
 
 size_t DivPlatformSNES::getSampleMemUsage(int index) {
@@ -825,7 +825,7 @@ bool DivPlatformSNES::isSampleLoaded(int index, int sample) {
 }
 
 void DivPlatformSNES::renderSamples(int sysID) {
-  memset(copyOfSampleMem,0,getSampleMemCapacity());
+  memset(copyOfSampleMem,0,65536);
   memset(sampleOff,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
 

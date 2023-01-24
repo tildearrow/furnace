@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,25 +54,27 @@ void DivPlatformRF5C68::chWrite(unsigned char ch, unsigned int addr, unsigned ch
   }
 }
 
-void DivPlatformRF5C68::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  short buf[16][256];
+// TODO: this code is weird
+//       make sure newDispatch didn't break it up
+void DivPlatformRF5C68::acquire(short** buf, size_t len) {
+  short bufC[16][256];
   short* chBufPtrs[16]={
-    buf[0],buf[1],buf[2],buf[3],buf[4],buf[5],buf[6],buf[7],
-    buf[8],buf[9],buf[10],buf[11],buf[12],buf[13],buf[14],buf[15]
+    bufC[0],bufC[1],bufC[2],bufC[3],bufC[4],bufC[5],bufC[6],bufC[7],
+    bufC[8],bufC[9],bufC[10],bufC[11],bufC[12],bufC[13],bufC[14],bufC[15]
   };
-  size_t pos=start;
+  size_t pos=0;
 
   for (int i=0; i<16; i++) {
-    memset(buf[i],0,256*sizeof(short));
+    memset(bufC[i],0,256*sizeof(short));
   }
 
   while (len > 0) {
     size_t blockLen=MIN(len,256);
-    short* bufPtrs[2]={&bufL[pos],&bufR[pos]};
+    short* bufPtrs[2]={&buf[0][pos],&buf[1][pos]};
     rf5c68.sound_stream_update(bufPtrs,chBufPtrs,blockLen);
     for (int i=0; i<8; i++) {
       for (size_t j=0; j<blockLen; j++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=buf[i*2][j]+buf[i*2+1][j];
+        oscBuf[i]->data[oscBuf[i]->needle++]=bufC[i*2][j]+bufC[i*2+1][j];
       }
     }
     pos+=blockLen;
@@ -332,8 +334,8 @@ void DivPlatformRF5C68::reset() {
   }
 }
 
-bool DivPlatformRF5C68::isStereo() {
-  return true;
+int DivPlatformRF5C68::getOutputCount() {
+  return 2;
 }
 
 void DivPlatformRF5C68::notifyInsChange(int ins) {

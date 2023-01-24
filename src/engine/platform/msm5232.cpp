@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,8 +45,8 @@ const char** DivPlatformMSM5232::getRegisterSheet() {
   return regCheatSheetMSM5232;
 }
 
-void DivPlatformMSM5232::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformMSM5232::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
       msm->write(w.addr,w.val);
@@ -75,9 +75,9 @@ void DivPlatformMSM5232::acquire(short* bufL, short* bufR, size_t start, size_t 
     }
     
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
-    bufL[h]=0;
+    buf[0][h]=0;
     for (int i=0; i<8; i++) {
-      bufL[h]+=(temp[i]*partVolume[i])>>8;
+      buf[0][h]+=(temp[i]*partVolume[i])>>8;
     }
   }
 }
@@ -371,8 +371,8 @@ void DivPlatformMSM5232::reset() {
   }
 }
 
-bool DivPlatformMSM5232::isStereo() {
-  return false;
+int DivPlatformMSM5232::getOutputCount() {
+  return 1;
 }
 
 bool DivPlatformMSM5232::keyOffAffectsArp(int ch) {
