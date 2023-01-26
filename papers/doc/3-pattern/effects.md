@@ -57,9 +57,6 @@ however, effects are continuous, which means you only need to type it once and t
 - `EDxx`: delay note by `xx` ticks.
 - `EExx`: send external command.
   - this effect is currently incomplete.
-- `EFxx`: add or subtract global pitch.
-  - this effect is rather weird. use with caution.
-  - `80` is center.
 - `F0xx`: change song Hz by BPM value.
 - `F1xx`: single tick slide up.
 - `F2xx`: single tick slide down.
@@ -135,7 +132,7 @@ ex | FM     | OPM       | OPZ       | OPLL  | AY-3-8910  | AY8930     | Lynx    
  W |        | LFO Shape | LFO Shape | Patch | Waveform   | Waveform   |          | Waveform   | Waveform | Waveform   | Waveform   | Waveform  | Waveform   |           |          |              | Waveform  |           |
  1 |        | AMD       | AMD       |       |            | Duty       |          | FilterMode | Envelope | EnvMode    | WaveLen    | Mod Depth | Cutoff     | Filter K1 | ClockDiv | EchoFeedback | Special   | GroupAtk  |
  2 |        | PMD       | PMD       |       | Envelope   | Envelope   |          | Resonance  |          | Envelope   | WaveUpdate | Mod Speed | Resonance  | Filter K2 |          | Echo Length  | Gain      | GroupDec  |
- 3 |        | LFO Speed | LFO Speed |       | AutoEnvNum | AutoEnvNum |          | Special    |          | AutoEnvNum | WaveLoad W |           | Control    | Env Count |          |              |           | Noise     |
+ 3 | LFOSpd | LFO Speed | LFO Speed |       | AutoEnvNum | AutoEnvNum |          | Special    |          | AutoEnvNum | WaveLoad W |           | Control    | Env Count |          |              |           | Noise     |
  A | ALG    | ALG       | ALG       |       | AutoEnvDen | AutoEnvDen |          |            |          | AutoEnvDen | WaveLoad P |           |            | Control   |          |              |           |           |
  B | FB     | FB        | FB        |       |            | Noise AND  |          |            |          |            | WaveLoad L |           |            |           |          |              |           |           |
  C | FMS    | FMS       | FMS       |       |            | Noise OR   |          |            |          |            | WaveLoad T |           |            |           |          |              |           |           |

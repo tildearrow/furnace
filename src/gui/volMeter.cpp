@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,7 +51,8 @@ void FurnaceGUI::drawVolMeter() {
     ImU32 lowColor=ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_LOW]);
     if (ImGui::ItemAdd(rect,ImGui::GetID("volMeter"))) {
       ImGui::RenderFrame(rect.Min,rect.Max,ImGui::GetColorU32(ImGuiCol_FrameBg),true,style.FrameRounding);
-      for (int i=0; i<2; i++) {
+      int outChans=e->getAudioDescGot().outChans;
+      for (int i=0; i<outChans; i++) {
         float logPeak=(20*log10(peak[i])/36.0);
         if (logPeak==NAN) logPeak=0.0;
         if (logPeak<-1.0) logPeak=-1.0;
@@ -66,10 +67,10 @@ void FurnaceGUI::drawVolMeter() {
         ImRect s;
         if (aspectRatio) {
           s=ImRect(
-            ImLerp(rect.Min,rect.Max,ImVec2(0,float(i)*0.5)),
-            ImLerp(rect.Min,rect.Max,ImVec2(logPeak,float(i+1)*0.5))
+            ImLerp(rect.Min,rect.Max,ImVec2(0,float(i)/outChans)),
+            ImLerp(rect.Min,rect.Max,ImVec2(logPeak,float(i+1)/outChans))
           );
-          if (i==0) s.Max.y-=dpiScale;
+          if (i!=(outChans-1)) s.Max.y-=dpiScale;
           if (isClipping) {
             dl->AddRectFilled(s.Min,s.Max,ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_PEAK]));
           } else {
@@ -77,10 +78,10 @@ void FurnaceGUI::drawVolMeter() {
           }
         } else {
           s=ImRect(
-            ImLerp(rect.Min,rect.Max,ImVec2(float(i)*0.5,1.0-logPeak)),
-            ImLerp(rect.Min,rect.Max,ImVec2(float(i+1)*0.5,1.0))
+            ImLerp(rect.Min,rect.Max,ImVec2(float(i)/outChans,1.0-logPeak)),
+            ImLerp(rect.Min,rect.Max,ImVec2(float(i+1)/outChans,1.0))
           );
-          if (i==0) s.Max.x-=dpiScale;
+          if (i!=(outChans-1)) s.Max.x-=dpiScale;
           if (isClipping) {
             dl->AddRectFilled(s.Min,s.Max,ImGui::GetColorU32(uiColors[GUI_COLOR_VOLMETER_PEAK]));
           } else {

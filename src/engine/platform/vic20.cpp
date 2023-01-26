@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,13 +39,13 @@ const char** DivPlatformVIC20::getRegisterSheet() {
   return regCheatSheetVIC;
 }
 
-void DivPlatformVIC20::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformVIC20::acquire(short** buf, size_t len) {
   const unsigned char loadFreq[3] = {0x7e, 0x7d, 0x7b};
   const unsigned char wavePatterns[16] = {
     0b0,     0b10,    0b100,   0b110,   0b1000,  0b1010,   0b1011,   0b1110,
     0b10010, 0b10100, 0b10110, 0b11000, 0b11010, 0b100100, 0b101010, 0b101100
   };
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     if (hasWaveWrite) {
       hasWaveWrite=false;
       for (int i=0; i<3; i++) {
@@ -66,8 +66,7 @@ void DivPlatformVIC20::acquire(short* bufL, short* bufR, size_t start, size_t le
     }
     short samp;
     vic_sound_machine_calculate_samples(vic,&samp,1,1,0,SAMP_DIVIDER);
-    bufL[h]=samp;
-    bufR[h]=samp;
+    buf[0][h]=samp;
     for (int i=0; i<4; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=vic->ch[i].out?(vic->volume<<11):0;
     }
@@ -299,8 +298,8 @@ void DivPlatformVIC20::reset() {
   vic_sound_clock(vic,4);
 }
 
-bool DivPlatformVIC20::isStereo() {
-  return false;
+int DivPlatformVIC20::getOutputCount() {
+  return 1;
 }
 
 void DivPlatformVIC20::notifyInsDeletion(void* ins) {

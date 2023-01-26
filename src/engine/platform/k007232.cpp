@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -54,8 +54,8 @@ inline void DivPlatformK007232::chWrite(unsigned char ch, unsigned int addr, uns
   }
 }
 
-void DivPlatformK007232::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformK007232::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     if ((--delay)<=0) {
       delay=MAX(0,delay);
       if (!writes.empty()) {
@@ -76,15 +76,15 @@ void DivPlatformK007232::acquire(short* bufL, short* bufR, size_t start, size_t 
       const unsigned char vol1=regPool[0x10],vol2=regPool[0x11];
       const signed int lout[2]={(k007232.output(0)*(vol1&0xf)),(k007232.output(1)*(vol2&0xf))};
       const signed int rout[2]={(k007232.output(0)*((vol1>>4)&0xf)),(k007232.output(1)*((vol2>>4)&0xf))};
-      bufL[h]=(lout[0]+lout[1])<<4;
-      bufR[h]=(rout[0]+rout[1])<<4;
+      buf[0][h]=(lout[0]+lout[1])<<4;
+      buf[1][h]=(rout[0]+rout[1])<<4;
       for (int i=0; i<2; i++) {
         oscBuf[i]->data[oscBuf[i]->needle++]=(lout[i]+rout[i])<<4;
       }
     } else {
       const unsigned char vol=regPool[0xc];
       const signed int out[2]={(k007232.output(0)*(vol&0xf)),(k007232.output(1)*((vol>>4)&0xf))};
-      bufL[h]=bufR[h]=(out[0]+out[1])<<4;
+      buf[0][h]=(out[0]+out[1])<<4;
       for (int i=0; i<2; i++) {
         oscBuf[i]->data[oscBuf[i]->needle++]=out[i]<<5;
       }
@@ -274,7 +274,7 @@ int DivPlatformK007232::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:15;
-      chan[c.chan].sample=ins->amiga.getSample(c.value);
+      if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
       }
@@ -448,8 +448,8 @@ void DivPlatformK007232::reset() {
   }
 }
 
-bool DivPlatformK007232::isStereo() {
-  return stereo;
+int DivPlatformK007232::getOutputCount() {
+  return stereo?2:1;
 }
 
 void DivPlatformK007232::notifyInsChange(int ins) {
@@ -529,10 +529,10 @@ void DivPlatformK007232::renderSamples(int sysID) {
     }
 
     const int length=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
-    int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-1,length);
+    int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-2,length);
     if (actualLength>0) {
-      if (actualLength>131072-1) {
-        actualLength=131072-1;
+      if (actualLength>131072-2) {
+        actualLength=131072-2;
       }
       if ((memPos&0xfe0000)!=((memPos+actualLength+1)&0xfe0000)) {
         memPos=(memPos+0x1ffff)&0xfe0000;

@@ -32,6 +32,14 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 138: Furnace dev138
+- 137: Furnace dev137
+- 136: Furnace dev136
+- 135: Furnace dev135
+- 134: Furnace dev134
+- 133: Furnace 0.6pre3
+- 132: Furnace 0.6pre2
+- 131: Furnace dev131
 - 130: Furnace dev130
 - 129: Furnace dev129
 - 128: Furnace dev128
@@ -215,8 +223,8 @@ size | description
      |   - 0x8a: FDS - 1 channel
      |   - 0x8b: MMC5 - 3 channels
      |   - 0x8c: Namco 163 - 8 channels
-     |   - 0x8d: OPN (YM2203) - 6 channels
-     |   - 0x8e: PC-98 (YM2608) - 16 channels
+     |   - 0x8d: YM2203 - 6 channels
+     |   - 0x8e: YM2608 - 16 channels
      |   - 0x8f: OPL (YM3526) - 9 channels
      |   - 0x90: OPL2 (YM3812) - 9 channels
      |   - 0x91: OPL3 (YMF262) - 18 channels
@@ -256,8 +264,8 @@ size | description
      |   - 0xb3: Yamaha Y8950 drums - 12 channels
      |   - 0xb4: Konami SCC+ - 5 channels
      |   - 0xb5: tildearrow Sound Unit - 8 channels
-     |   - 0xb6: OPN extended - 9 channels
-     |   - 0xb7: PC-98 extended - 19 channels
+     |   - 0xb6: YM2203 extended - 9 channels
+     |   - 0xb7: YM2608 extended - 19 channels
      |   - 0xb8: YMZ280B - 8 channels
      |   - 0xb9: Namco WSG - 3 channels
      |   - 0xba: Namco 15xx - 8 channels
@@ -269,8 +277,8 @@ size | description
      |   - 0xc0: PCM DAC - 1 channel
      |   - 0xc1: YM2612 CSM - 10 channels
      |   - 0xc2: Neo Geo CSM (YM2610) - 18 channels
-     |   - 0xc3: OPN CSM - 10 channels
-     |   - 0xc4: PC-98 CSM - 20 channels
+     |   - 0xc3: YM2203 CSM - 10 channels
+     |   - 0xc4: YM2608 CSM - 20 channels
      |   - 0xc5: YM2610B CSM - 20 channels
      |   - 0xc6: K007232 - 2 channels
      |   - 0xc7: GA20 - 4 channels
@@ -383,7 +391,44 @@ size | description
  STR | song author (Japanese)
  STR | system name (Japanese)
  STR | album/category/game name (Japanese)
+ --- | **extra chip output settings (× chipCount)** (>=135)
+  4f | chip volume
+  4f | chip panning
+  4f | chip front/rear balance
+ --- | **patchbay** (>=135)
+  4  | patchbay connection count
+ 4?? | patchbay
+     | - see next section for more details.
+  1  | automatic patchbay (>=136)
+ --- | **a couple more compat flags** (>=138)
+  1  | broken portamento during legato
+  7  | reserved
 ```
+
+# patchbay
+
+Furnace dev135 adds a "patchbay" which allows for arbitrary connection of chip outputs to system outputs.
+it eventually will allow connecting outputs to effects and so on.
+
+a connection is represented as an unsigned int in the following format:
+
+- bit 16-31: source port
+- bit 0-15: destination port
+
+a port is in the following format (hexadecimal): `xxxy`
+
+- `xxx` (bit 4 to 15) represents a portset.
+- `y` (bit 0 to 3) is the port in that portset.
+
+reserved input portsets:
+- `000`: system outputs
+- `FFF`: "null" portset
+
+reserved output portsets:
+- `000` through `01F`: chip outputs
+- `FFD`: wave/sample preview
+- `FFE`: metronome
+- `FFF`: "null" portset
 
 # subsong
 
@@ -1441,7 +1486,7 @@ chips which aren't on this list don't have any flags.
 - bit 4-6: channels (int)
 - bit 7: multiplex (bool)
 
-## 0x8d: OPN (YM2203) and 0xb6: OPN extended
+## 0x8d: YM2203 and 0xb6: YM2203 extended
 
 - bit 0-4: clockSel (int)
   - 0: NTSC
@@ -1455,7 +1500,7 @@ chips which aren't on this list don't have any flags.
   - 1: /3
   - 2: /2
 
-## 0x8e: PC-98 (YM2608) and 0xb7: PC-98 extended
+## 0x8e: YM2608 and 0xb7: YM2608 extended
 
 - bit 0-4: clockSel (int)
   - 0: 8MHz

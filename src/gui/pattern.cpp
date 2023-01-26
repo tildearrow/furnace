@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -287,9 +287,13 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           if (pat->data[i][index]>0xff) {
             snprintf(id,63,"??##PE%d_%d_%d",k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-          } else {
+          } else if (pat->data[i][index]>0x10 || settings.oneDigitEffects==0) {
             const unsigned char data=pat->data[i][index];
             snprintf(id,63,"%.2X##PE%d_%d_%d",data,k,i,j);
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
+          } else {
+            const unsigned char data=pat->data[i][index];
+            snprintf(id,63," %.1X##PE%d_%d_%d",data,k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
           }
         }
@@ -619,7 +623,7 @@ void FurnaceGUI::drawPattern() {
             ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
             if (ImGui::ItemAdd(rect,ImGui::GetID(chanID))) {
               bool hovered=ImGui::ItemHoverable(rect,ImGui::GetID(chanID));
-              ImU32 col=(hovered || (!mobileUI && ImGui::IsMouseDown(ImGuiMouseButton_Left)))?ImGui::GetColorU32(ImGuiCol_HeaderHovered):ImGui::GetColorU32(ImGuiCol_Header);
+              ImU32 col=(hovered || (mobileUI && ImGui::IsMouseDown(ImGuiMouseButton_Left)))?ImGui::GetColorU32(ImGuiCol_HeaderHovered):ImGui::GetColorU32(ImGuiCol_Header);
               dl->AddRectFilled(rect.Min,rect.Max,col);
               dl->AddText(ImVec2(minLabelArea.x,rect.Min.y),ImGui::GetColorU32(channelTextColor(i)),chanID);
             }
@@ -755,7 +759,7 @@ void FurnaceGUI::drawPattern() {
               soloTimeout=0;
             } else {
               e->toggleMute(i);
-              soloTimeout=20;
+              soloTimeout=settings.doubleClickTime;
               soloChan=i;
             }
           }
@@ -965,7 +969,7 @@ void FurnaceGUI::drawPattern() {
 
       // overflow changes order
       // TODO: this is very unreliable and sometimes it can warp you out of the song
-      if (settings.scrollChangesOrder && !e->isPlaying()) {
+      if (settings.scrollChangesOrder && !e->isPlaying() && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
         if (wheelY!=0) {
           if (wheelY>0) {
             if (ImGui::GetScrollY()<=0) {

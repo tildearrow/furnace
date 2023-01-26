@@ -66,6 +66,7 @@ option(SYSTEM_LIBSNDFILE "Use a system-installed version of libsndfile instead o
 option(SYSTEM_RTMIDI "Use a system-installed version of RtMidi instead of the vendored one" OFF)
 option(SYSTEM_ZLIB "Use a system-installed version of zlib instead of the vendored one" OFF)
 option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendored one" ${SYSTEM_SDL2_DEFAULT})
+option(SUPPORT_XP "Build a Windows XP-compatible binary" OFF)
 option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be treated as errors" OFF)
 option(WITH_DEMOS "Install demo songs" ON)
 option(WITH_INSTRUMENTS "Install instruments" ON)
@@ -264,6 +265,9 @@ if (USE_SDL2)
     if (MSVC)
       list(APPEND DEPENDENCIES_COMPILE_OPTIONS "/DHAVE_LIBC")
     endif()
+    if (WIN32)
+      list(APPEND DEPENDENCIES_LIBRARIES SDL2main)
+    endif()
     message(STATUS "Using vendored SDL2")
   endif()
 else()
@@ -352,7 +356,7 @@ extern/adpcm/yma_codec.c
 extern/adpcm/ymb_codec.c
 extern/adpcm/ymz_codec.c
 
-extern/Nuked-OPN2/ym3438.c
+extern/opn/ym3438.c
 extern/Nuked-PSG/ympsg.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
@@ -425,6 +429,7 @@ src/engine/platform/sound/ymfm/ymfm_ssg.cpp
 src/engine/platform/sound/lynx/Mikey.cpp
 
 src/engine/platform/sound/pokey/mzpokeysnd.c
+src/engine/platform/sound/pokey/AltASAP.cpp
 
 src/engine/platform/sound/qsound.c
 
@@ -621,15 +626,13 @@ src/gui/volMeter.cpp
 src/gui/gui.cpp
 )
 
-if (WIN32 OR APPLE)
+if (WIN32 AND NOT SUPPORT_XP)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.cpp)
-endif()
-
-if (WIN32)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_win.cpp)
 endif()
 
 if (APPLE)
+  list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.cpp)
   list(APPEND GUI_SOURCES src/gui/macstuff.m)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_cocoa.mm)
 endif()
@@ -707,6 +710,10 @@ if (WIN32)
   if (NOT MSVC)
     list(APPEND DEPENDENCIES_LIBRARIES -static)
   endif()
+  # support Windows XP
+  if (SUPPORT_XP)
+    list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0501")
+  endif()
 elseif (APPLE)
   find_library(COCOA Cocoa REQUIRED)
   list(APPEND DEPENDENCIES_LIBRARIES ${COCOA})
@@ -749,7 +756,7 @@ if (WARNINGS_ARE_ERRORS)
   )
 endif()
 
-if (MSVC)
+if (WIN32)
   add_executable(furnace WIN32 ${USED_SOURCES})
 elseif(ANDROID AND NOT TERMUX)
   add_library(furnace SHARED ${USED_SOURCES})

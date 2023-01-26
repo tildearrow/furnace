@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -214,7 +214,7 @@ void FurnaceGUI::drawCompatFlags() {
       e->song.delayBehavior=2;
     }
     if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("no checks (like FamiTracker)");
+      ImGui::SetTooltip("no checks");
     }
 
     ImGui::Text("Simultaneous jump (0B+0D) treatment:");
@@ -292,6 +292,10 @@ void FurnaceGUI::drawCompatFlags() {
     ImGui::Checkbox("Old arpeggio macro + pitch slide strategy",&e->song.oldArpStrategy);
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("behavior changed in 0.6pre2");
+    }
+    ImGui::Checkbox("Broken portamento during legato",&e->song.brokenPortaLegato);
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("behavior changed in 0.6pre4");
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_COMPAT_FLAGS;

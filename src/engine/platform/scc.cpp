@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -80,13 +80,13 @@ const char** DivPlatformSCC::getRegisterSheet() {
   return isPlus ? regCheatSheetSCCPlus : regCheatSheetSCC;
 }
 
-void DivPlatformSCC::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformSCC::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     for (int i=0; i<16; i++) {
       scc->tick();
     }
     short out=(short)scc->out()<<5;
-    bufL[h]=bufR[h]=out;
+    buf[0][h]=out;
 
     for (int i=0; i<5; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=scc->voice_out(i)<<7;
@@ -335,8 +335,8 @@ void DivPlatformSCC::reset() {
   lastUpdated34=0;
 }
 
-bool DivPlatformSCC::isStereo() {
-  return false;
+int DivPlatformSCC::getOutputCount() {
+  return 1;
 }
 
 void DivPlatformSCC::notifyWaveChange(int wave) {

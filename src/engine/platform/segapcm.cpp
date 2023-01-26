@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -26,10 +26,10 @@
 //#define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
 //#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSegaPCM::acquire(short** buf, size_t len) {
   static int os[2];
 
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     os[0]=0; os[1]=0;
     // do a PCM cycle
     pcmL=0; pcmR=0;
@@ -45,6 +45,8 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
           oscBuf[i]->data[oscBuf[i]->needle++]=s->data8[chan[i].pcm.pos>>8]*(chan[i].chVolL+chan[i].chVolR)>>1;
           pcmL+=(s->data8[chan[i].pcm.pos>>8]*chan[i].chVolL);
           pcmR+=(s->data8[chan[i].pcm.pos>>8]*chan[i].chVolR);
+        } else {
+          oscBuf[i]->data[oscBuf[i]->needle++]=0;
         }
         chan[i].pcm.pos+=chan[i].pcm.freq;
         if (s->isLoopable() && chan[i].pcm.pos>=((unsigned int)s->loopEnd<<8)) {
@@ -65,8 +67,8 @@ void DivPlatformSegaPCM::acquire(short* bufL, short* bufR, size_t start, size_t 
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
-    bufL[h]=os[0];
-    bufR[h]=os[1];
+    buf[0][h]=os[0];
+    buf[1][h]=os[1];
   }
 }
 
@@ -131,9 +133,9 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
       chan[i].freq=chan[i].baseFreq+(chan[i].pitch>>1)-64;
       if (!parent->song.oldArpStrategy) {
         if (chan[i].fixedArp) {
-          chan[i].freq=(chan[i].baseNoteOverride<<7)+(chan[i].pitch>>1)-64+chan[i].pitch2;
+          chan[i].freq=(chan[i].baseNoteOverride<<6)+(chan[i].pitch>>1)-64+chan[i].pitch2;
         } else {
-          chan[i].freq+=chan[i].arpOff<<7;
+          chan[i].freq+=chan[i].arpOff<<6;
         }
       }
       if (chan[i].furnacePCM) {
@@ -214,7 +216,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SEGAPCM) {
         chan[c.chan].macroVolMul=(ins->type==DIV_INS_AMIGA)?64:127;
         chan[c.chan].isNewSegaPCM=(ins->type==DIV_INS_SEGAPCM);
-        chan[c.chan].pcm.sample=ins->amiga.getSample(c.value);
+        if (c.value!=DIV_NOTE_NULL) chan[c.chan].pcm.sample=ins->amiga.getSample(c.value);
         if (chan[c.chan].pcm.sample<0 || chan[c.chan].pcm.sample>=parent->song.sampleLen) {
           chan[c.chan].pcm.sample=-1;
           if (dumpWrites) {
@@ -404,6 +406,12 @@ void DivPlatformSegaPCM::notifyInsChange(int ins) {
   }
 }
 
+void DivPlatformSegaPCM::notifyInsDeletion(void* ins) {
+  for (int i=0; i<16; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
 void* DivPlatformSegaPCM::getChanState(int ch) {
   return &chan[ch];
 }
@@ -500,8 +508,8 @@ void DivPlatformSegaPCM::setFlags(const DivConfig& flags) {
   }
 }
 
-bool DivPlatformSegaPCM::isStereo() {
-  return true;
+int DivPlatformSegaPCM::getOutputCount() {
+  return 2;
 }
 
 int DivPlatformSegaPCM::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {

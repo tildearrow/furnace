@@ -2,7 +2,7 @@
 // OK, sorry for inserting the define here but I'm so tired of this extension
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -592,12 +592,14 @@ void FurnaceGUI::updateWindowTitle() {
 
 void FurnaceGUI::autoDetectSystem() {
   std::map<DivSystem,int> sysCountMap;
+  std::map<DivSystem,DivConfig> sysConfMap;
   for (int i=0; i<e->song.systemLen; i++) {
     try {
       sysCountMap.at(e->song.system[i])++;
     } catch (std::exception& ex) {
       sysCountMap[e->song.system[i]]=1;
     }
+    sysConfMap[e->song.system[i]]=e->song.systemFlags[i];
   }
 
   logV("sysCountMap:");
@@ -607,29 +609,45 @@ void FurnaceGUI::autoDetectSystem() {
 
   bool isMatch=false;
   std::map<DivSystem,int> defCountMap;
+  std::map<DivSystem,DivConfig> defConfMap;
   for (FurnaceGUISysCategory& i: sysCategories) {
     for (FurnaceGUISysDef& j: i.systems) {
       defCountMap.clear();
-      for (size_t k=0; k<j.definition.size(); k+=4) {
-        if (j.definition[k]==0) break;
+      defConfMap.clear();
+      for (FurnaceGUISysDefChip& k: j.orig) {
         try {
-          defCountMap.at((DivSystem)j.definition[k])++;
+          defCountMap.at(k.sys)++;
         } catch (std::exception& ex) {
-          defCountMap[(DivSystem)j.definition[k]]=1;
+          defCountMap[k.sys]=1;
         }
+        DivConfig dc;
+        dc.loadFromMemory(k.flags);
+        defConfMap[k.sys]=dc;
       }
       if (defCountMap.size()!=sysCountMap.size()) continue;
       isMatch=true;
-      logV("trying on defCountMap: %s",j.name);
+      /*logV("trying on defCountMap: %s",j.name);
       for (std::pair<DivSystem,int> k: defCountMap) {
         logV("- %s: %d",e->getSystemName(k.first),k.second);
-      }
+      }*/
       for (std::pair<DivSystem,int> k: defCountMap) {
         try {
           if (sysCountMap.at(k.first)!=k.second) {
             isMatch=false;
             break;
           }
+          DivConfig& sysDC=sysConfMap.at(k.first);
+          for (std::pair<String,String> l: defConfMap.at(k.first).configMap()) {
+            if (!sysDC.has(l.first)) {
+              isMatch=false;
+              break;
+            }
+            if (sysDC.getString(l.first,"")!=l.second) {
+              isMatch=false;
+              break;
+            }
+          }
+          if (!isMatch) break;
         } catch (std::exception& ex) {
           isMatch=false;
           break;
@@ -982,6 +1000,9 @@ float FurnaceGUI::calcBPM(int s1, int s2, float hz, int vN, int vD) {
 }
 
 void FurnaceGUI::play(int row) {
+  memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
   e->walkSong(loopOrder,loopRow,loopEnd);
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
   if (!followPattern) e->setOrder(curOrder);
@@ -1008,6 +1029,9 @@ void FurnaceGUI::stop() {
   curNibble=false;
   orderNibble=false;
   activeNotes.clear();
+  memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
 }
 
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
@@ -1825,6 +1849,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
 
 int FurnaceGUI::save(String path, int dmfVersion) {
   SafeWriter* w;
+  logD("saving file...");
   if (dmfVersion) {
     if (dmfVersion<24) dmfVersion=24;
     w=e->saveDMF(dmfVersion);
@@ -1833,11 +1858,14 @@ int FurnaceGUI::save(String path, int dmfVersion) {
   }
   if (w==NULL) {
     lastError=e->getLastError();
+    logE("couldn't save! %s",lastError);
     return 3;
   }
+  logV("opening file for writing...");
   FILE* outFile=ps_fopen(path.c_str(),"wb");
   if (outFile==NULL) {
     lastError=strerror(errno);
+    logE("couldn't save! %s",lastError);
     w->finish();
     return 1;
   }
@@ -1918,6 +1946,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
     showWarning(e->getWarnings(),GUI_WARN_GENERIC);
   }
   pushRecentFile(path);
+  logD("save complete.");
   return 0;
 }
 
@@ -3078,19 +3107,45 @@ bool FurnaceGUI::loop() {
               scrX=ev.window.data1;
               scrY=ev.window.data2;
               updateWindow=true;
+              logV("window moved to %dx%d",scrX,scrY);
+              break;
+            case SDL_WINDOWEVENT_SIZE_CHANGED:
+              logV("window size changed to %dx%d",ev.window.data1,ev.window.data2);
+              break;
+            case SDL_WINDOWEVENT_MINIMIZED:
+              logV("window minimized");
               break;
             case SDL_WINDOWEVENT_MAXIMIZED:
               scrMax=true;
               updateWindow=true;
+              logV("window maximized");
               break;
             case SDL_WINDOWEVENT_RESTORED:
               scrMax=false;
               updateWindow=true;
+              logV("window restored");
+              break;
+            case SDL_WINDOWEVENT_SHOWN:
+              logV("window shown");
+              break;
+            case SDL_WINDOWEVENT_HIDDEN:
+              logV("window hidden");
+              break;
+            case SDL_WINDOWEVENT_EXPOSED:
+              logV("window exposed");
               break;
           }
           break;
         case SDL_DISPLAYEVENT: {
           switch (ev.display.event) {
+            case SDL_DISPLAYEVENT_CONNECTED:
+              logD("display %d connected!",ev.display.display);
+              updateWindow=true;
+              break;
+            case SDL_DISPLAYEVENT_DISCONNECTED:
+              logD("display %d disconnected!",ev.display.display);
+              updateWindow=true;
+              break;
             case SDL_DISPLAYEVENT_ORIENTATION:
               logD("display oriented to %d",ev.display.data1);
               updateWindow=true;
@@ -3173,7 +3228,12 @@ bool FurnaceGUI::loop() {
     } else {
       //logV("updateWindow: canvas size %dx%d",canvasW,canvasH);
       // and therefore window size
+      int prevScrW=scrW;
+      int prevScrH=scrH;
       SDL_GetWindowSize(sdlWin,&scrW,&scrH);
+      if (prevScrW!=scrW || prevScrH!=scrH) {
+        logV("size change 2: %dx%d (from %dx%d)",scrW,scrH,prevScrW,prevScrH);
+      }
     }
 
     wantCaptureKeyboard=ImGui::GetIO().WantTextInput;
@@ -3353,6 +3413,12 @@ bool FurnaceGUI::loop() {
 
     eventTimeEnd=SDL_GetPerformanceCounter();
 
+    if (SDL_GetWindowFlags(sdlWin)&SDL_WINDOW_MINIMIZED) {
+      SDL_Delay(30);
+      drawHalt=0;
+      continue;
+    }
+
     layoutTimeBegin=SDL_GetPerformanceCounter();
 
     ImGui_ImplSDLRenderer_NewFrame();
@@ -3447,7 +3513,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::BeginMenu("export VGM...")) {
           ImGui::Text("settings:");
           if (ImGui::BeginCombo("format version",fmt::sprintf("%d.%.2x",vgmExportVersion>>8,vgmExportVersion&0xff).c_str())) {
-            for (int i=0; i<6; i++) {
+            for (int i=0; i<7; i++) {
               if (ImGui::Selectable(fmt::sprintf("%d.%.2x",vgmVersions[i]>>8,vgmVersions[i]&0xff).c_str(),vgmExportVersion==vgmVersions[i])) {
                 vgmExportVersion=vgmVersions[i];
               }
@@ -3817,6 +3883,11 @@ bool FurnaceGUI::loop() {
           curWindow=GUI_WINDOW_SYS_MANAGER;
           drawSysManager();
           break;
+        case GUI_SCENE_MIXER:
+          mixerOpen=true;
+          curWindow=GUI_WINDOW_MIXER;
+          drawMixer();
+          break;
         default:
           patternOpen=true;
           curWindow=GUI_WINDOW_PATTERN;
@@ -3833,6 +3904,7 @@ bool FurnaceGUI::loop() {
       drawSettings();
       drawDebug();
       drawLog();
+      drawCompatFlags();
       drawStats();
     } else {
       globalWinFlags=0;
@@ -4070,7 +4142,6 @@ bool FurnaceGUI::loop() {
               }
               break;
             case GUI_FILE_SAVE: {
-              logD("saving: %s",copyOfName.c_str());
               bool saveWasSuccessful=true;
               if (save(copyOfName,0)>0) {
                 showError(fmt::sprintf("Error while saving file! (%s)",lastError));
@@ -5057,6 +5128,7 @@ bool FurnaceGUI::loop() {
             }
             logD("saving backup...");
             SafeWriter* w=e->saveFur(true);
+            logV("writing file...");
 
             if (w!=NULL) {
               FILE* outFile=ps_fopen(backupPath.c_str(),"wb");
@@ -5071,6 +5143,7 @@ bool FurnaceGUI::loop() {
                 w->finish();
               }
             }
+            logD("backup saved.");
             backupTimer=30.0;
             return true;
           });
@@ -5095,7 +5168,12 @@ bool FurnaceGUI::loop() {
     renderTimeDelta=renderTimeEnd-renderTimeBegin;
     eventTimeDelta=eventTimeEnd-eventTimeBegin;
 
-    if (--soloTimeout<0) soloTimeout=0;
+    soloTimeout-=ImGui::GetIO().DeltaTime;
+    if (soloTimeout<0) {
+      soloTimeout=0;
+    } else {
+      WAKE_UP;
+    }
 
     wheelX=0;
     wheelY=0;
@@ -5731,7 +5809,6 @@ FurnaceGUI::FurnaceGUI():
   editStep(1),
   exportLoops(0),
   soloChan(-1),
-  soloTimeout(0),
   orderEditMode(0),
   orderCursor(-1),
   loopOrder(-1),
@@ -5750,6 +5827,7 @@ FurnaceGUI::FurnaceGUI():
   dragDestinationY(0),
   oldBeat(-1),
   oldBar(-1),
+  soloTimeout(0.0f),
   exportFadeOut(5.0),
   editControlsOpen(true),
   ordersOpen(true),
@@ -5968,6 +6046,14 @@ FurnaceGUI::FurnaceGUI():
   openSampleAmplifyOpt(false),
   openSampleSilenceOpt(false),
   openSampleFilterOpt(false),
+  selectedPortSet(0x1fff),
+  selectedSubPort(-1),
+  hoveredPortSet(0x1fff),
+  hoveredSubPort(-1),
+  portDragActive(false),
+  displayHiddenPorts(false),
+  displayInternalPorts(false),
+  subPortPos(0.0f,0.0f),
   oscTotal(0),
   oscZoom(0.5f),
   oscWindowSize(20.0f),
@@ -6047,8 +6133,7 @@ FurnaceGUI::FurnaceGUI():
 
   memset(willExport,1,DIV_MAX_CHIPS*sizeof(bool));
 
-  peak[0]=0;
-  peak[1]=0;
+  memset(peak,0,DIV_MAX_OUTPUTS*sizeof(float));
 
   opMaskTransposeNote.note=true;
   opMaskTransposeNote.ins=false;

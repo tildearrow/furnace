@@ -3,7 +3,7 @@
 #include <functional>
 #include <vector>
 
-#if defined(_WIN32) || defined(__APPLE__)
+#if defined(_WIN64) || defined(__APPLE__)
 #define USE_NFD
 #endif
 

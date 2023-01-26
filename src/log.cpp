@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,13 +29,14 @@ int logLevel=LOGLEVEL_INFO;
 
 FILE* logFile;
 char* logFileBuf;
-unsigned int logFilePosI=0;
-unsigned int logFilePosO=0;
+char* logFileWriteBuf;
+unsigned int logFilePosI;
+unsigned int logFilePosO;
 std::thread* logFileThread;
 std::mutex logFileLock;
 std::mutex logFileLockI;
 std::condition_variable logFileNotify;
-bool logFileAvail=false;
+std::atomic<bool> logFileAvail(false);
 
 std::atomic<unsigned short> logPosition;
 
@@ -52,11 +53,22 @@ const char* logTypes[5]={
   "trace"
 };
 
-void appendLogBuf(const char* msg, size_t len) {
+void appendLogBuf(const LogEntry& entry) {
   logFileLockI.lock();
 
-  int remaining=logFilePosO-logFilePosI;
-  if (remaining<=0) remaining+=TA_LOGFILE_BUF_SIZE;
+  std::string toWrite=fmt::sprintf(
+    "%02d:%02d:%02d [%s] %s\n",
+    entry.time.tm_hour,
+    entry.time.tm_min,
+    entry.time.tm_sec,
+    logTypes[entry.loglevel],
+    entry.text
+  );
+
+  const char* msg=toWrite.c_str();
+  size_t len=toWrite.size();
+
+  int remaining=(logFilePosO-logFilePosI-1)&TA_LOGFILE_BUF_SIZE;
 
   if (len>=(unsigned int)remaining) {
     printf("line too long to fit in log buffer!\n");
@@ -78,10 +90,9 @@ void appendLogBuf(const char* msg, size_t len) {
 
 int writeLog(int level, const char* msg, fmt::printf_args args) {
   time_t thisMakesNoSense=time(NULL);
-  int pos=logPosition;
-  logPosition=(logPosition+1)&TA_LOG_MASK;
+  int pos=(logPosition.fetch_add(1))&TA_LOG_MASK;
 
-  logEntries[pos].text=fmt::vsprintf(msg,args);
+  logEntries[pos].text.assign(fmt::vsprintf(msg,args));
   // why do I have to pass a pointer
   // can't I just pass the time_t directly?!
 #ifdef _WIN32
@@ -101,15 +112,7 @@ int writeLog(int level, const char* msg, fmt::printf_args args) {
 
   // write to log file
   if (logFileAvail) {
-    std::string toWrite=fmt::sprintf(
-      "%02d:%02d:%02d [%s] %s\n",
-      logEntries[pos].time.tm_hour,
-      logEntries[pos].time.tm_min,
-      logEntries[pos].time.tm_sec,
-      logTypes[logEntries[pos].loglevel],
-      logEntries[pos].text
-    );
-    appendLogBuf(toWrite.c_str(),toWrite.size());
+    appendLogBuf(logEntries[pos]);
     logFileNotify.notify_one();
   }
 
@@ -151,12 +154,12 @@ void _logFileThread() {
         logFilePosO=0;
       } else {
         fwrite(logFileBuf+logFilePosO,1,logFilePosICopy-logFilePosO,logFile);
-        logFilePosO=logFilePosICopy;
+        logFilePosO=logFilePosICopy&TA_LOGFILE_BUF_MASK;
       }
     } else {
       // wait
-      if (!logFileAvail) break;
       fflush(logFile);
+      if (!logFileAvail) break;
       logFileNotify.wait(lock);
     }
   }
@@ -175,6 +178,7 @@ bool startLogFile(const char* path) {
   }
 
   logFileBuf=new char[TA_LOGFILE_BUF_SIZE];
+  logFileWriteBuf=new char[TA_LOGFILE_BUF_SIZE];
   logFilePosI=0;
   logFilePosO=0;
   logFileAvail=true;

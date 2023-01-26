@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,9 +63,9 @@ const char** DivPlatformC64::getRegisterSheet() {
   return regCheatSheetSID;
 }
 
-void DivPlatformC64::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformC64::acquire(short** buf, size_t len) {
   int dcOff=isFP?0:sid.get_dc(0);
-  for (size_t i=start; i<start+len; i++) {
+  for (size_t i=0; i<len; i++) {
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
       if (isFP) {
@@ -77,7 +77,7 @@ void DivPlatformC64::acquire(short* bufL, short* bufR, size_t start, size_t len)
       writes.pop();
     }
     if (isFP) {
-      sid_fp.clock(4,&bufL[i]);
+      sid_fp.clock(4,&buf[0][i]);
       if (++writeOscBuf>=4) {
         writeOscBuf=0;
         oscBuf[0]->data[oscBuf[0]->needle++]=(sid_fp.lastChanOut[0]-dcOff)>>5;
@@ -86,7 +86,7 @@ void DivPlatformC64::acquire(short* bufL, short* bufR, size_t start, size_t len)
       }
     } else {
       sid.clock();
-      bufL[i]=sid.output();
+      buf[0][i]=sid.output();
       if (++writeOscBuf>=16) {
         writeOscBuf=0;
         oscBuf[0]->data[oscBuf[0]->needle++]=(sid.last_chan_out[0]-dcOff)>>5;
@@ -148,7 +148,7 @@ void DivPlatformC64::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+        CLAMP_VAR(chan[i].pitch2,-65535,65535);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -188,6 +188,7 @@ void DivPlatformC64::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,8,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0xffff) chan[i].freq=0xffff;
       if (chan[i].keyOn) {
         rWrite(i*7+5,(chan[i].attack<<4)|(chan[i].decay));

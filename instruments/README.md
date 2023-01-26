@@ -46,5 +46,7 @@ you may submit your own instruments by creating a pull request or contacting me!
 
 - any format Furnace is able to load is accepted.
 - I (strongly) prefer original instruments.
+- your instruments have to be free of restrictions (these may be used in any project).
+  - be careful if your instrument contains samples.
 
 thanks for your contribution!

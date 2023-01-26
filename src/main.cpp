@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,10 @@
 #include <windows.h>
 #include <combaseapi.h>
 #include <shellapi.h>
+
+#include "gui/shellScalingStub.h"
+
+typedef HRESULT (WINAPI *SPDA)(PROCESS_DPI_AWARENESS);
 #else
 #include <unistd.h>
 #endif
@@ -148,7 +152,7 @@ TAParamResult pLogLevel(String val) {
 
 TAParamResult pVersion(String) {
   printf("Furnace version " DIV_VERSION ".\n\n");
-  printf("copyright (C) 2021-2022 tildearrow and contributors.\n");
+  printf("copyright (C) 2021-2023 tildearrow and contributors.\n");
   printf("licensed under the GNU General Public License version 2 or later\n");
   printf("<https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n\n");
   printf("this is free software with ABSOLUTELY NO WARRANTY.\n");
@@ -180,6 +184,7 @@ TAParamResult pVersion(String) {
   printf("- MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya (GPLv2)\n");
   printf("- MAME MSM6258 core by Barry Rodewald (BSD 3-clause)\n");
   printf("- MAME YMZ280B core by Aaron Giles (BSD 3-clause)\n");
+  printf("- MAME GA20 core by Acho A. Tang and R. Belmont (BSD 3-clause)\n");
   printf("- QSound core by superctr (BSD 3-clause)\n");
   printf("- VICE VIC-20 by Rami Rasanen and viznut (GPLv2)\n");
   printf("- VERA core by Frank van den Hoef (BSD 2-clause)\n");
@@ -195,6 +200,8 @@ TAParamResult pVersion(String) {
   printf("- Stella by Stella Team (GPLv2)\n");
   printf("- vgsound_emu (second version, modified version) by cam900 (zlib license)\n");
   printf("- MAME GA20 core by Acho A. Tang, R. Belmont, Valley Bell (BSD 3-clause)\n");
+  printf("- Atari800 mzpokeysnd POKEY emulator by Michael Borisov (GPLv2)\n");
+  printf("- ASAP POKEY emulator by Piotr Fusik ported to C++ by laoo (GPLv2)\n");
   return TA_PARAM_QUIT;
 }
 
@@ -336,6 +343,22 @@ void reportError(String what) {
 int main(int argc, char** argv) {
   initLog();
 #ifdef _WIN32
+  // set DPI awareness
+  HMODULE shcore=LoadLibraryW(L"shcore.dll");
+  if (shcore!=NULL) {
+    SPDA ta_SetProcessDpiAwareness=(SPDA)GetProcAddress(shcore,"SetProcessDpiAwareness");
+    if (ta_SetProcessDpiAwareness!=NULL) {
+      HRESULT result=ta_SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+      if (result!=S_OK) {
+        // ???
+      }
+    }
+    if (!FreeLibrary(shcore)) {
+      // ???
+    }
+  }
+
+  // co initialize ex
   HRESULT coResult=CoInitializeEx(NULL,COINIT_MULTITHREADED);
   if (coResult!=S_OK) {
     logE("CoInitializeEx failed!");
@@ -426,17 +449,20 @@ int main(int argc, char** argv) {
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
       reportError(fmt::sprintf("couldn't open file! (%s)",strerror(errno)));
+      finishLogFile();
       return 1;
     }
     if (fseek(f,0,SEEK_END)<0) {
       reportError(fmt::sprintf("couldn't open file! (couldn't get file size: %s)",strerror(errno)));
       fclose(f);
+      finishLogFile();
       return 1;
     }
     ssize_t len=ftell(f);
     if (len==(SIZE_MAX>>1)) {
       reportError(fmt::sprintf("couldn't open file! (couldn't get file length: %s)",strerror(errno)));
       fclose(f);
+      finishLogFile();
       return 1;
     }
     if (len<1) {
@@ -446,6 +472,7 @@ int main(int argc, char** argv) {
         reportError(fmt::sprintf("couldn't open file! (tell error: %s)",strerror(errno)));
       }
       fclose(f);
+      finishLogFile();
       return 1;
     }
     unsigned char* file=new unsigned char[len];
@@ -453,23 +480,27 @@ int main(int argc, char** argv) {
       reportError(fmt::sprintf("couldn't open file! (size error: %s)",strerror(errno)));
       fclose(f);
       delete[] file;
+      finishLogFile();
       return 1;
     }
     if (fread(file,1,(size_t)len,f)!=(size_t)len) {
       reportError(fmt::sprintf("couldn't open file! (read error: %s)",strerror(errno)));
       fclose(f);
       delete[] file;
+      finishLogFile();
       return 1;
     }
     fclose(f);
     if (!e.load(file,(size_t)len)) {
       reportError(fmt::sprintf("could not open file! (%s)",e.getLastError()));
+      finishLogFile();
       return 1;
     }
   }
   if (!e.init()) {
     if (consoleMode) {
       reportError("could not initialize engine!");
+      finishLogFile();
       return 1;
     } else {
       logE("could not initialize engine!");
@@ -483,6 +514,7 @@ int main(int argc, char** argv) {
     } else {
       e.benchmarkPlayback();
     }
+    finishLogFile();
     return 0;
   }
   if (outName!="" || vgmOutName!="" || cmdOutName!="") {
@@ -523,6 +555,7 @@ int main(int argc, char** argv) {
       e.saveAudio(outName.c_str(),loops,outMode);
       e.waitAudioFile();
     }
+    finishLogFile();
     return 0;
   }
 
@@ -540,6 +573,7 @@ int main(int argc, char** argv) {
       cli.loop();
       cli.finish();
       e.quit();
+      finishLogFile();
       return 0;
     } else {
 #ifdef HAVE_SDL2
@@ -549,6 +583,7 @@ int main(int argc, char** argv) {
         if (ev.type==SDL_QUIT) break;
       }
       e.quit();
+      finishLogFile();
       return 0;
 #else
       while (true) {
@@ -566,6 +601,7 @@ int main(int argc, char** argv) {
   g.bindEngine(&e);
   if (!g.init()) {
     reportError(g.getLastError());
+    finishLogFile();
     return 1;
   }
 
@@ -597,7 +633,3 @@ int main(int argc, char** argv) {
 #endif
   return 0;
 }
-
-#ifdef _WIN32
-#include "winMain.cpp"
-#endif

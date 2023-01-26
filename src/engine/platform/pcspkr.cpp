@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -193,9 +193,9 @@ const char** DivPlatformPCSpeaker::getRegisterSheet() {
 const float cut=0.05;
 const float reso=0.06;
 
-void DivPlatformPCSpeaker::acquire_unfilt(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformPCSpeaker::acquire_unfilt(short** buf, size_t len) {
   int out=0;
-  for (size_t i=start; i<start+len; i++) {
+  for (size_t i=0; i<len; i++) {
     if (on) {
       pos-=PCSPKR_DIVIDER;
       if (pos>freq) pos=freq;
@@ -207,17 +207,17 @@ void DivPlatformPCSpeaker::acquire_unfilt(short* bufL, short* bufR, size_t start
         }
       }
       out=(pos>(freq>>1) && !isMuted[0])?32767:0;
-      bufL[i]=out;
+      buf[0][i]=out;
       oscBuf->data[oscBuf->needle++]=out;
     } else {
-      bufL[i]=0;
+      buf[0][i]=0;
       oscBuf->data[oscBuf->needle++]=0;
     }
   }
 }
 
-void DivPlatformPCSpeaker::acquire_cone(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t i=start; i<start+len; i++) {
+void DivPlatformPCSpeaker::acquire_cone(short** buf, size_t len) {
+  for (size_t i=0; i<len; i++) {
     if (on) {
       pos-=PCSPKR_DIVIDER;
       if (pos>freq) pos=freq;
@@ -234,17 +234,17 @@ void DivPlatformPCSpeaker::acquire_cone(short* bufL, short* bufR, size_t start, 
       float out=(low+band)*0.75;
       if (out>1.0) out=1.0;
       if (out<-1.0) out=-1.0;
-      bufL[i]=out*32767;
+      buf[0][i]=out*32767;
       oscBuf->data[oscBuf->needle++]=out*32767;
     } else {
-      bufL[i]=0;
+      buf[0][i]=0;
       oscBuf->data[oscBuf->needle++]=0;
     }
   }
 }
 
-void DivPlatformPCSpeaker::acquire_piezo(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t i=start; i<start+len; i++) {
+void DivPlatformPCSpeaker::acquire_piezo(short** buf, size_t len) {
+  for (size_t i=0; i<len; i++) {
     if (on) {
       pos-=PCSPKR_DIVIDER;
       if (pos>freq) pos=freq;
@@ -261,10 +261,10 @@ void DivPlatformPCSpeaker::acquire_piezo(short* bufL, short* bufR, size_t start,
       float out=band*0.15-(next-low)*0.06;
       if (out>1.0) out=1.0;
       if (out<-1.0) out=-1.0;
-      bufL[i]=out*32767;
+      buf[0][i]=out*32767;
       oscBuf->data[oscBuf->needle++]=out*32767;
     } else {
-      bufL[i]=0;
+      buf[0][i]=0;
       oscBuf->data[oscBuf->needle++]=0;
     }
   }
@@ -274,7 +274,7 @@ void DivPlatformPCSpeaker::beepFreq(int freq, int delay) {
   realQueueLock.lock();
 #ifdef __linux__
   struct timespec ts;
-  double addition=1000000000.0*(double)delay/(double)rate;
+  double addition=1000000000.0*(double)delay/parent->getAudioDescGot().rate;
   addition+=1500000000.0*((double)parent->getAudioDescGot().bufsize/parent->getAudioDescGot().rate);
   if (clock_gettime(CLOCK_MONOTONIC,&ts)<0) {
     ts.tv_sec=0;
@@ -294,14 +294,14 @@ void DivPlatformPCSpeaker::beepFreq(int freq, int delay) {
   realOutCond.notify_one();
 }
 
-void DivPlatformPCSpeaker::acquire_real(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformPCSpeaker::acquire_real(short** buf, size_t len) {
   int out=0;
   if (lastOn!=on || lastFreq!=freq) {
     lastOn=on;
     lastFreq=freq;
-    beepFreq((on && !isMuted[0])?freq:0,start);
+    beepFreq((on && !isMuted[0])?freq:0,parent->getBufferPos());
   }
-  for (size_t i=start; i<start+len; i++) {
+  for (size_t i=0; i<len; i++) {
     if (on) {
       pos-=PCSPKR_DIVIDER;
       if (pos>freq) pos=freq;
@@ -317,23 +317,23 @@ void DivPlatformPCSpeaker::acquire_real(short* bufL, short* bufR, size_t start, 
     } else {
       oscBuf->data[oscBuf->needle++]=0;
     }
-    bufL[i]=0;
+    buf[0][i]=0;
   }
 }
 
-void DivPlatformPCSpeaker::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformPCSpeaker::acquire(short** buf, size_t len) {
   switch (speakerType) {
     case 0:
-      acquire_unfilt(bufL,bufR,start,len);
+      acquire_unfilt(buf,len);
       break;
     case 1:
-      acquire_cone(bufL,bufR,start,len);
+      acquire_cone(buf,len);
       break;
     case 2:
-      acquire_piezo(bufL,bufR,start,len);
+      acquire_piezo(buf,len);
       break;
     case 3:
-      acquire_real(bufL,bufR,start,len);
+      acquire_real(buf,len);
       break;
   }
 }

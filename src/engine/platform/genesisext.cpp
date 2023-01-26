@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,44 @@
 #define CHIP_DIVIDER fmDivBase
 
 #define IS_REALLY_MUTED(x) (isMuted[x] && (x<5 || !softPCM || (isMuted[5] && isMuted[6])))
-#define IS_EXTCH_MUTED (isOpMuted[0] && isOpMuted[1] && isOpMuted[2] && isOpMuted[3])
+
+void DivPlatformGenesisExt::commitStateExt(int ch, DivInstrument* ins) {
+  int ordch=orderedOps[ch];
+
+  if (opChan[ch].insChanged) {
+    chan[2].state.alg=ins->fm.alg;
+    if (ch==0 || fbAllOps) {
+      chan[2].state.fb=ins->fm.fb;
+    }
+    chan[2].state.fms=ins->fm.fms;
+    chan[2].state.ams=ins->fm.ams;
+    chan[2].state.op[ordch]=ins->fm.op[ordch];
+  }
+  
+  unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
+  DivInstrumentFM::Operator& op=chan[2].state.op[ordch];
+  // TODO: how does this work?!
+  if (isOpMuted[ch]) {
+    rWrite(baseAddr+0x40,127);
+  } else {
+    if (opChan[ch].insChanged) {
+      rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].outVol&0x7f,127));
+    }
+  }
+  if (opChan[ch].insChanged) {
+    rWrite(baseAddr+0x30,(op.mult&15)|(dtTable[op.dt&7]<<4));
+    rWrite(baseAddr+0x50,(op.ar&31)|(op.rs<<6));
+    rWrite(baseAddr+0x60,(op.dr&31)|(op.am<<7));
+    rWrite(baseAddr+0x70,op.d2r&31);
+    rWrite(baseAddr+0x80,(op.rr&15)|(op.sl<<4));
+    rWrite(baseAddr+0x90,op.ssgEnv&15);
+    opChan[ch].mask=op.enable;
+  }
+  if (opChan[ch].insChanged) { // TODO how does this work?
+    rWrite(chanOffs[2]+0xb0,(chan[2].state.alg&7)|(chan[2].state.fb<<3));
+    rWrite(chanOffs[2]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
+  }
+}
 
 int DivPlatformGenesisExt::dispatch(DivCommand c) {
   if (c.chan<2) {
@@ -45,14 +82,6 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
 
-      if (opChan[ch].insChanged) {
-        chan[2].state.alg=ins->fm.alg;
-        chan[2].state.fb=ins->fm.fb;
-        chan[2].state.fms=ins->fm.fms;
-        chan[2].state.ams=ins->fm.ams;
-        chan[2].state.op[ordch]=ins->fm.op[ordch];
-      }
-
       if (noExtMacros) {
         opChan[ch].macroInit(NULL);
       } else {
@@ -61,30 +90,8 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       if (!opChan[ch].std.vol.will) {
         opChan[ch].outVol=opChan[ch].vol;
       }
-      
-      unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
-      DivInstrumentFM::Operator& op=chan[2].state.op[ordch];
-      // TODO: how does this work?!
-      if (isOpMuted[ch]) {
-        rWrite(baseAddr+0x40,127);
-      } else {
-        if (opChan[ch].insChanged) {
-          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].outVol&0x7f,127));
-        }
-      }
-      if (opChan[ch].insChanged) {
-        rWrite(baseAddr+0x30,(op.mult&15)|(dtTable[op.dt&7]<<4));
-        rWrite(baseAddr+0x50,(op.ar&31)|(op.rs<<6));
-        rWrite(baseAddr+0x60,(op.dr&31)|(op.am<<7));
-        rWrite(baseAddr+0x70,op.d2r&31);
-        rWrite(baseAddr+0x80,(op.rr&15)|(op.sl<<4));
-        rWrite(baseAddr+0x90,op.ssgEnv&15);
-        opChan[ch].mask=op.enable;
-      }
-      if (opChan[ch].insChanged) { // TODO how does this work?
-        rWrite(chanOffs[2]+0xb0,(chan[2].state.alg&7)|(chan[2].state.fb<<3));
-        rWrite(chanOffs[2]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch].pan<<6))|(chan[2].state.fms&7)|((chan[2].state.ams&3)<<4));
-      }
+
+      commitStateExt(ch,ins);
       opChan[ch].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
@@ -201,6 +208,11 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_LEGATO: {
+      if (opChan[ch].insChanged) {
+        DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
+        commitStateExt(ch,ins);
+        opChan[ch].insChanged=false;
+      }
       opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
       opChan[ch].freqChanged=true;
       break;
@@ -220,14 +232,14 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       rWrite(chanOffs[2]+ADDR_FB_ALG,(chan[2].state.alg&7)|(chan[2].state.fb<<3));
       break;
     }
-    case DIV_CMD_FM_MULT: { // TODO
+    case DIV_CMD_FM_MULT: {
       unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[c.value]];
       op.mult=c.value2&15;
       rWrite(baseAddr+0x30,(op.mult&15)|(dtTable[op.dt&7]<<4));
       break;
     }
-    case DIV_CMD_FM_TL: { // TODO
+    case DIV_CMD_FM_TL: {
       unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[c.value]];
       op.tl=c.value2;
@@ -454,7 +466,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
       }
     }
     if (writeSomething) {
-      if (chan[7].active) { // CSM
+      if (chan[csmChan].active) { // CSM
         writeMask^=0xf0;
       }
       /*printf(
@@ -492,7 +504,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
     if (opChan[i].std.pitch.had) {
       if (opChan[i].std.pitch.mode) {
         opChan[i].pitch2+=opChan[i].std.pitch.val;
-        CLAMP_VAR(opChan[i].pitch2,-32768,32767);
+        CLAMP_VAR(opChan[i].pitch2,-1048576,1048575);
       } else {
         opChan[i].pitch2=opChan[i].std.pitch.val;
       }
@@ -588,18 +600,18 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
     }
   }
 
-  if (extMode && softPCM) {
-    if (chan[7].freqChanged) {
-      chan[7].freq=parent->calcFreq(chan[7].baseFreq,chan[7].pitch,chan[7].fixedArp?chan[7].baseNoteOverride:chan[7].arpOff,chan[7].fixedArp,true,0,chan[7].pitch2,chipClock,CHIP_DIVIDER);
-      if (chan[7].freq<1) chan[7].freq=1;
-      if (chan[7].freq>1024) chan[7].freq=1024;
-      int wf=0x400-chan[7].freq;
+  if (extMode) {
+    if (chan[csmChan].freqChanged) {
+      chan[csmChan].freq=parent->calcFreq(chan[csmChan].baseFreq,chan[csmChan].pitch,chan[csmChan].fixedArp?chan[csmChan].baseNoteOverride:chan[csmChan].arpOff,chan[csmChan].fixedArp,true,0,chan[csmChan].pitch2,chipClock,CHIP_DIVIDER);
+      if (chan[csmChan].freq<1) chan[csmChan].freq=1;
+      if (chan[csmChan].freq>1024) chan[csmChan].freq=1024;
+      int wf=0x400-chan[csmChan].freq;
       immWrite(0x24,wf>>2);
       immWrite(0x25,wf&3);
-      chan[7].freqChanged=false;
+      chan[csmChan].freqChanged=false;
     }
 
-    if (chan[7].keyOff || chan[7].keyOn) {
+    if (chan[csmChan].keyOff || chan[csmChan].keyOn) {
       writeNoteOn=true;
       for (int i=0; i<4; i++) {
         writeMask|=opChan[i].active<<(4+i);
@@ -608,7 +620,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
   }
 
   if (writeNoteOn) {
-    if (chan[7].active) { // CSM
+    if (chan[csmChan].active) { // CSM
       writeMask^=0xf0;
     }
     /*printf(
@@ -621,14 +633,14 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
     immWrite(0x28,writeMask);
   }
 
-  if (extMode && softPCM) {
-    if (chan[7].keyOn) {
+  if (extMode) {
+    if (chan[csmChan].keyOn) {
       immWrite(0x27,0x81);
-      chan[7].keyOn=false;
+      chan[csmChan].keyOn=false;
     }
-    if (chan[7].keyOff) {
+    if (chan[csmChan].keyOff) {
       immWrite(0x27,0x40);
-      chan[7].keyOff=false;
+      chan[csmChan].keyOff=false;
     }
   }
 }
@@ -639,10 +651,10 @@ void DivPlatformGenesisExt::forceIns() {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
       if (i==2 && extMode) { // extended channel
-        if (isOpMuted[j]) {
+        if (isOpMuted[orderedOps[j]]) {
           rWrite(baseAddr+0x40,127);
         } else if (KVS(i,j)) {
-          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[j].outVol&0x7f,127));
+          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[orderedOps[j]].outVol&0x7f,127));
         } else {
           rWrite(baseAddr+0x40,op.tl);
         }
@@ -676,6 +688,8 @@ void DivPlatformGenesisExt::forceIns() {
     }
   }
   if (chan[5].dacMode) {
+    chan[5].dacSample=-1;
+    chan[6].dacSample=-1;
     rWrite(0x2b,0x80);
   }
   immWrite(0x22,lfoValue);
@@ -686,10 +700,10 @@ void DivPlatformGenesisExt::forceIns() {
       opChan[i].freqChanged=true;
     }
   }
-  if (extMode && softPCM && chan[7].active) { // CSM
-    chan[7].insChanged=true;
-    chan[7].freqChanged=true;
-    chan[7].keyOn=true;
+  if (extMode && chan[csmChan].active) { // CSM
+    chan[csmChan].insChanged=true;
+    chan[csmChan].freqChanged=true;
+    chan[csmChan].keyOn=true;
   }
 }
 
@@ -701,7 +715,7 @@ void* DivPlatformGenesisExt::getChanState(int ch) {
 
 DivMacroInt* DivPlatformGenesisExt::getChanMacroInt(int ch) {
   if (ch>=6) return &chan[ch-3].std;
-  if (ch>=2) return NULL; // currently not implemented
+  if (ch>=2) return &opChan[ch-2].std;
   return &chan[ch].std;
 }
 
@@ -743,8 +757,19 @@ void DivPlatformGenesisExt::notifyInsChange(int ins) {
   }
 }
 
+void DivPlatformGenesisExt::notifyInsDeletion(void* ins) {
+  DivPlatformGenesis::notifyInsDeletion(ins);
+  for (int i=0; i<4; i++) {
+    opChan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
 int DivPlatformGenesisExt::getPortaFloor(int ch) {
   return (ch>8)?12:0;
+}
+
+void DivPlatformGenesisExt::setCSMChannel(unsigned char ch) {
+  csmChan=ch;
 }
 
 int DivPlatformGenesisExt::init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) {

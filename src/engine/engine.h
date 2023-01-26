@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,8 +47,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev130"
-#define DIV_ENGINE_VERSION 130
+#define DIV_VERSION "dev138"
+#define DIV_ENGINE_VERSION 138
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -97,7 +97,7 @@ struct DivChannelState {
   int delayOrder, delayRow, retrigSpeed, retrigTick;
   int vibratoDepth, vibratoRate, vibratoPos, vibratoPosGiant, vibratoDir, vibratoFine;
   int tremoloDepth, tremoloRate, tremoloPos;
-  unsigned char arp, arpStage, arpTicks, panL, panR;
+  unsigned char arp, arpStage, arpTicks, panL, panR, panRL, panRR;
   bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff;
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, wasShorthandPorta, noteOnInhibit, resetArp;
 
@@ -135,6 +135,8 @@ struct DivChannelState {
     arpTicks(1),
     panL(255),
     panR(255),
+    panRL(0),
+    panRR(0),
     doNote(false),
     legato(false),
     portaStop(false),
@@ -170,15 +172,18 @@ struct DivNoteEvent {
 
 struct DivDispatchContainer {
   DivDispatch* dispatch;
-  blip_buffer_t* bb[2];
+  blip_buffer_t* bb[DIV_MAX_OUTPUTS];
   size_t bbInLen, runtotal, runLeft, runPos, lastAvail;
-  int temp[2], prevSample[2];
-  short* bbIn[2];
-  short* bbOut[2];
+  int temp[DIV_MAX_OUTPUTS], prevSample[DIV_MAX_OUTPUTS];
+  short* bbInMapped[DIV_MAX_OUTPUTS];
+  short* bbIn[DIV_MAX_OUTPUTS];
+  short* bbOut[DIV_MAX_OUTPUTS];
   bool lowQuality, dcOffCompensation;
+  double rateMemory;
 
   void setRates(double gotRate);
   void setQuality(bool lowQual);
+  void grow(size_t size);
   void acquire(size_t offset, size_t count);
   void flush(size_t count);
   void fillBuf(size_t runtotal, size_t offset, size_t size);
@@ -187,18 +192,21 @@ struct DivDispatchContainer {
   void quit();
   DivDispatchContainer():
     dispatch(NULL),
-    bb{NULL,NULL},
     bbInLen(0),
     runtotal(0),
     runLeft(0),
     runPos(0),
     lastAvail(0),
-    temp{0,0},
-    prevSample{0,0},
-    bbIn{NULL,NULL},
-    bbOut{NULL,NULL},
     lowQuality(false),
-    dcOffCompensation(false) {}
+    dcOffCompensation(false),
+    rateMemory(0.0) {
+    memset(bb,0,DIV_MAX_OUTPUTS*sizeof(blip_buffer_t*));
+    memset(temp,0,DIV_MAX_OUTPUTS*sizeof(int));
+    memset(prevSample,0,DIV_MAX_OUTPUTS*sizeof(int));
+    memset(bbIn,0,DIV_MAX_OUTPUTS*sizeof(short*));
+    memset(bbInMapped,0,DIV_MAX_OUTPUTS*sizeof(short*));
+    memset(bbOut,0,DIV_MAX_OUTPUTS*sizeof(short*));
+  }
 };
 
 typedef int EffectValConversion(unsigned char,unsigned char);
@@ -353,6 +361,7 @@ class DivEngine {
   int softLockCount;
   int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed, elapsedBars, elapsedBeats;
   size_t curSubSongIndex;
+  size_t bufferPos;
   double divider;
   int cycles;
   double clockDrift;
@@ -418,6 +427,8 @@ class DivEngine {
   short* samp_bbOut;
   unsigned char* metroTick;
   size_t metroTickLen;
+  float* metroBuf;
+  size_t metroBufLen;
   float metroFreq, metroPos;
   float metroAmp;
   float metroVol;
@@ -431,7 +442,7 @@ class DivEngine {
   void processRow(int i, bool afterDelay);
   void nextOrder();
   void nextRow();
-  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, bool directStream);
+  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, bool directStream);
   // returns true if end of song.
   bool nextTick(bool noAccum=false, bool inhibitLowLat=false);
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
@@ -467,7 +478,7 @@ class DivEngine {
   bool deinitAudioBackend(bool dueToSwitchMaster=false);
 
   void registerSystems();
-  void initSongWithDesc(const char* description, bool inBase64=true);
+  void initSongWithDesc(const char* description, bool inBase64=true, bool oldVol=false);
 
   void exchangeIns(int one, int two);
   void swapChannels(int src, int dest);
@@ -486,7 +497,7 @@ class DivEngine {
     int dispatchOfChan[DIV_MAX_CHANS];
     int dispatchChanOfChan[DIV_MAX_CHANS];
     bool keyHit[DIV_MAX_CHANS];
-    float* oscBuf[2];
+    float* oscBuf[DIV_MAX_OUTPUTS];
     float oscSize;
     int oscReadPos, oscWritePos;
     int tickMult;
@@ -826,6 +837,21 @@ class DivEngine {
     bool moveWaveDown(int which);
     bool moveSampleDown(int which);
 
+    // automatic patchbay
+    void autoPatchbay();
+    void autoPatchbayP();
+
+    // connect in patchbay
+    // returns false if connection already made
+    bool patchConnect(unsigned int src, unsigned int dest);
+
+    // disconnect in patchbay
+    // returns false if connection doesn't exist
+    bool patchDisconnect(unsigned int src, unsigned int dest);
+
+    // disconnect all in patchbay
+    void patchDisconnectAll(unsigned int portSet);
+
     // play note
     void noteOn(int chan, int ins, int note, int vol=-1);
 
@@ -901,6 +927,9 @@ class DivEngine {
 
     // set metronome volume (1.0 = 100%)
     void setMetronomeVol(float vol);
+
+    // get buffer position
+    int getBufferPos();
 
     // halt now
     void halt();
@@ -1070,6 +1099,7 @@ class DivEngine {
       elapsedBars(0),
       elapsedBeats(0),
       curSubSongIndex(0),
+      bufferPos(0),
       divider(60),
       cycles(0),
       clockDrift(0),
@@ -1104,6 +1134,8 @@ class DivEngine {
       samp_bbOut(NULL),
       metroTick(NULL),
       metroTickLen(0),
+      metroBuf(NULL),
+      metroBufLen(0),
       metroFreq(0),
       metroPos(0),
       metroAmp(0.0f),
@@ -1112,7 +1144,6 @@ class DivEngine {
       curOrders(NULL),
       curPat(NULL),
       tempIns(NULL),
-      oscBuf{NULL,NULL},
       oscSize(1),
       oscReadPos(0),
       oscWritePos(0),
@@ -1131,6 +1162,7 @@ class DivEngine {
       memset(pitchTable,0,4096*sizeof(int));
       memset(sysDefs,0,256*sizeof(void*));
       memset(walked,0,8192);
+      memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
 
       for (int i=0; i<256; i++) {
         sysFileMapFur[i]=DIV_SYSTEM_NULL;

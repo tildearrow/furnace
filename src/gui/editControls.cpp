@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -449,6 +449,10 @@ void FurnaceGUI::drawMobileControls() {
         mobScene=GUI_SCENE_CHIPS;
       }
       ImGui::TableNextColumn();
+      if (ImGui::Button("Mixer",buttonSize)) {
+        mobScene=GUI_SCENE_MIXER;
+      }
+      ImGui::TableNextColumn();
       if (ImGui::Button("Other",buttonSize)) {
         mobScene=GUI_SCENE_OTHER;
       }
@@ -502,7 +506,9 @@ void FurnaceGUI::drawMobileControls() {
           ImGui::SameLine();
           ImGui::Button("Legacy .dmf");
           ImGui::SameLine();
-          ImGui::Button("Export Audio");
+          if (ImGui::Button("Export Audio")) {
+            openFileDialog(GUI_FILE_EXPORT_AUDIO_ONE);
+          }
           ImGui::SameLine();
           if (ImGui::Button("Export VGM")) {
             openFileDialog(GUI_FILE_EXPORT_VGM);
@@ -521,6 +527,9 @@ void FurnaceGUI::drawMobileControls() {
         case GUI_SCENE_CHIPS:
           ImGui::Text("Chips here...");
           break;
+        case GUI_SCENE_MIXER:
+          ImGui::Text("What the hell...");
+          break;
         case GUI_SCENE_OTHER: {
           if (ImGui::Button("Osc")) {
             oscOpen=!oscOpen;
@@ -536,6 +545,9 @@ void FurnaceGUI::drawMobileControls() {
           ImGui::SameLine();
           if (ImGui::Button("Stats")) {
             statsOpen=!statsOpen;
+          }
+          if (ImGui::Button("Compat Flags")) {
+            compatFlagsOpen=!compatFlagsOpen;
           }
 
           ImGui::Separator();

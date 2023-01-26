@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #define _FMSHARED_OPN_H
 
 #include "fmsharedbase.h"
+#include "../../../extern/opn/ym3438.h"
 
 #define PLEASE_HELP_ME(_targetChan) \
   int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false); \
@@ -83,6 +84,8 @@
     return 2; \
   }
 
+#define IS_EXTCH_MUTED (isOpMuted[0] && isOpMuted[1] && isOpMuted[2] && isOpMuted[3])
+
 class DivPlatformOPN: public DivPlatformFMBase {
   protected:
     const unsigned short ADDR_MULT_DT=0x30;
@@ -144,22 +147,38 @@ class DivPlatformOPN: public DivPlatformFMBase {
         pan(3) {}
     };
 
+    const int extChanOffs, psgChanOffs, adpcmAChanOffs, adpcmBChanOffs, chanNum;
+
     double fmFreqBase;
     unsigned int fmDivBase;
     unsigned int ayDiv;
-    bool extSys;
+    unsigned char csmChan;
+    unsigned char lfoValue;
+    bool extSys, useCombo, fbAllOps;
 
     DivConfig ayFlags;
 
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
-    DivPlatformOPN(double f=9440540.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false):
+    DivPlatformOPN(int ext, int psg, int adpcmA, int adpcmB, int chanCount, double f=9440540.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false, unsigned char cc=255):
       DivPlatformFMBase(),
+      extChanOffs(ext),
+      psgChanOffs(psg),
+      adpcmAChanOffs(adpcmA),
+      adpcmBChanOffs(adpcmB),
+      chanNum(chanCount),
       fmFreqBase(f),
       fmDivBase(d),
       ayDiv(a),
-      extSys(isExtSys) {}
-
+      csmChan(cc),
+      lfoValue(0),
+      extSys(isExtSys),
+      useCombo(false),
+      fbAllOps(false) {}
+  public:
+    void setCombo(bool combo) {
+      useCombo=combo;
+    }
 };
 
 #endif

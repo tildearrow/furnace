@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,6 +27,9 @@ extern "C" {
 #include "sound/pokey/mzpokeysnd.h"
 }
 
+#include "sound/pokey/AltASAP.hpp"
+
+
 class DivPlatformPOKEY: public DivDispatch {
   struct Channel: public SharedChannel<int> {
     unsigned char wave;
@@ -47,12 +50,17 @@ class DivPlatformPOKEY: public DivDispatch {
   std::queue<QueuedWrite> writes;
   unsigned char audctl;
   bool audctlChanged;
+  unsigned char oscBufDelay;
   PokeyState pokey;
+  AltASAP::Pokey altASAP;
+  bool useAltASAP;
   unsigned char regPool[16];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
+    void acquireMZ(short* buf, size_t len);
+    void acquireASAP(short* buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -72,6 +80,7 @@ class DivPlatformPOKEY: public DivDispatch {
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+    void setAltASAP(bool useAltASAP);
     ~DivPlatformPOKEY();
 };
 

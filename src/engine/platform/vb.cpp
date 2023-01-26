@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,8 +93,8 @@ const char** DivPlatformVB::getRegisterSheet() {
   return regCheatSheetVB;
 }
 
-void DivPlatformVB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformVB::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     cycles=0;
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -117,8 +117,8 @@ void DivPlatformVB::acquire(short* bufL, short* bufR, size_t start, size_t len) 
     if (tempR<-32768) tempR=-32768;
     if (tempR>32767) tempR=32767;
     
-    bufL[h]=tempL;
-    bufR[h]=tempR;
+    buf[0][h]=tempL;
+    buf[1][h]=tempR;
   }
 }
 
@@ -465,8 +465,8 @@ void DivPlatformVB::reset() {
   delay=500;
 }
 
-bool DivPlatformVB::isStereo() {
-  return true;
+int DivPlatformVB::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformVB::keyOffAffectsArp(int ch) {

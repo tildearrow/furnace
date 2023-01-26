@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -108,13 +108,13 @@ const char** DivPlatformN163::getRegisterSheet() {
   return regCheatSheetN163;
 }
 
-void DivPlatformN163::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t i=start; i<start+len; i++) {
+void DivPlatformN163::acquire(short** buf, size_t len) {
+  for (size_t i=0; i<len; i++) {
     n163.tick();
     int out=(n163.out()<<6)*2; // scale to 16 bit
     if (out>32767) out=32767;
     if (out<-32768) out=-32768;
-    bufL[i]=bufR[i]=out;
+    buf[0][i]=out;
 
     if (n163.voice_cycle()==0x78) for (int i=0; i<8; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=n163.voice_out(i)<<7;

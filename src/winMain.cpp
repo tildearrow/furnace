@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,10 +22,6 @@
 typedef HRESULT (*SPDA)(int);
 
 int WINAPI WinMain(HINSTANCE inst, HINSTANCE prevInst, PSTR args, int state) {
-  if (AttachConsole(ATTACH_PARENT_PROCESS)==0) {
-    if (GetLastError()==ERROR_ACCESS_DENIED) FreeConsole();
-  }
-
   int argc=0;
   wchar_t** argw=CommandLineToArgvW(GetCommandLineW(),&argc);
   char** argv=new char*[argc+1];

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -136,7 +136,9 @@ float SafeReader::readF() {
   memcpy(&ret,&buf[curSeek],4);
   curSeek+=4;
   ret=((ret>>24)|((ret&0xff0000)>>8)|((ret&0xff00)<<8)|((ret&0xff)<<24));
-  return *((float*)(&ret));
+  float realRet;
+  memcpy(&realRet,&ret,4);
+  return realRet;
 }
 
 double SafeReader::readD() {
@@ -153,7 +155,9 @@ double SafeReader::readD() {
   retB[5]=ret[2];
   retB[6]=ret[1];
   retB[7]=ret[0];
-  return *((double*)retB);
+  double realRet;
+  memcpy(&realRet,retB,8);
+  return realRet;
 }
 #else
 short SafeReader::readS() {

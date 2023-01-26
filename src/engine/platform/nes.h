@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,11 +68,11 @@ class DivPlatformNES: public DivDispatch {
 
   void doWrite(unsigned short addr, unsigned char data);
   unsigned char calcDPCMRate(int inRate);
-  void acquire_puNES(short* bufL, short* bufR, size_t start, size_t len);
-  void acquire_NSFPlay(short* bufL, short* bufR, size_t start, size_t len);
+  void acquire_puNES(short** buf, size_t len);
+  void acquire_NSFPlay(short** buf, size_t len);
 
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);

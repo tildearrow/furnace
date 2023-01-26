@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -64,8 +64,16 @@ const char** DivPlatformPOKEY::getRegisterSheet() {
   return regCheatSheetPOKEY;
 }
 
-void DivPlatformPOKEY::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformPOKEY::acquire(short** buf, size_t len) {
+  if (useAltASAP) {
+    acquireASAP(buf[0],len);
+  } else {
+    acquireMZ(buf[0],len);
+  }
+}
+
+void DivPlatformPOKEY::acquireMZ(short* buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
       Update_pokey_sound_mz(&pokey,w.addr,w.val,0);
@@ -73,7 +81,32 @@ void DivPlatformPOKEY::acquire(short* bufL, short* bufR, size_t start, size_t le
       writes.pop();
     }
 
-    mzpokeysnd_process_16(&pokey,&bufL[h],1);
+    mzpokeysnd_process_16(&pokey,&buf[h],1);
+
+    if (++oscBufDelay>=14) {
+      oscBufDelay=0;
+      oscBuf[0]->data[oscBuf[0]->needle++]=pokey.outvol_0<<11;
+      oscBuf[1]->data[oscBuf[1]->needle++]=pokey.outvol_1<<11;
+      oscBuf[2]->data[oscBuf[2]->needle++]=pokey.outvol_2<<11;
+      oscBuf[3]->data[oscBuf[3]->needle++]=pokey.outvol_3<<11;
+    }
+  }
+}
+
+void DivPlatformPOKEY::acquireASAP(short* buf, size_t len) {
+  while (!writes.empty()) {
+    QueuedWrite w=writes.front();
+    altASAP.write(w.addr, w.val);
+    writes.pop();
+  }
+
+  for (size_t h=0; h<len; h++) {
+    if (++oscBufDelay>=2) {
+      oscBufDelay=0;
+      buf[h]=altASAP.sampleAudio(oscBuf);
+    } else {
+      buf[h]=altASAP.sampleAudio();
+    }
   }
 }
 
@@ -208,7 +241,7 @@ void DivPlatformPOKEY::tick(bool sysTick) {
       chan[i].ctlChanged=false;
       if ((i==1 && audctl&16) || (i==3 && audctl&8)) {
         // ignore - channel is paired
-      } else if ((i==0 && audctl&16) || (i==0 && audctl&8)) {
+      } else if ((i==0 && audctl&16) || (i==2 && audctl&8)) {
         rWrite(1+(i<<1),0);
         rWrite(3+(i<<1),val);
       } else {
@@ -346,6 +379,7 @@ void DivPlatformPOKEY::forceIns() {
     chan[i].ctlChanged=true;
     chan[i].freqChanged=true;
   }
+  audctlChanged=true;
 }
 
 void* DivPlatformPOKEY::getChanState(int ch) {
@@ -361,7 +395,11 @@ DivDispatchOscBuffer* DivPlatformPOKEY::getOscBuffer(int ch) {
 }
 
 unsigned char* DivPlatformPOKEY::getRegisterPool() {
-  return regPool;
+  if (useAltASAP) {
+    return const_cast<unsigned char*>(altASAP.getRegisterPool());
+  } else {
+    return regPool;
+  }
 }
 
 int DivPlatformPOKEY::getRegisterPoolSize() {
@@ -379,7 +417,11 @@ void DivPlatformPOKEY::reset() {
     addWrite(0xffffffff,0);
   }
 
-  ResetPokeyState(&pokey);
+  if (useAltASAP) {
+    altASAP.reset();
+  } else {
+    ResetPokeyState(&pokey);
+  }
 
   audctl=0;
   audctlChanged=true;
@@ -406,9 +448,19 @@ void DivPlatformPOKEY::setFlags(const DivConfig& flags) {
     chipClock=COLOR_NTSC/2.0;
   }
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock;
-  for (int i=0; i<4; i++) {
-    oscBuf[i]->rate=rate/16;
+
+  if (useAltASAP) {
+    rate=chipClock/7;
+    for (int i=0; i<4; i++) {
+      oscBuf[i]->rate=rate/2;
+    }
+    altASAP.init(chipClock,rate);
+    altASAP.reset();
+  } else {
+    rate=chipClock;
+    for (int i=0; i<4; i++) {
+      oscBuf[i]->rate=rate/14;
+    }
   }
 }
 
@@ -424,13 +476,16 @@ int DivPlatformPOKEY::init(DivEngine* p, int channels, int sugRate, const DivCon
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  oscBufDelay=0;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
 
-  MZPOKEYSND_Init(&pokey);
-  
+  if (!useAltASAP) {
+    MZPOKEYSND_Init(&pokey);
+  }
+
   setFlags(flags);
   reset();
   return 6;
@@ -440,6 +495,10 @@ void DivPlatformPOKEY::quit() {
   for (int i=0; i<4; i++) {
     delete oscBuf[i];
   }
+}
+
+void DivPlatformPOKEY::setAltASAP(bool value) {
+  useAltASAP=value;
 }
 
 DivPlatformPOKEY::~DivPlatformPOKEY() {

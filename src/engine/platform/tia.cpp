@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,16 +38,16 @@ const char** DivPlatformTIA::getRegisterSheet() {
   return regCheatSheetTIA;
 }
 
-void DivPlatformTIA::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformTIA::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     tia.tick();
     if (mixingType==2) {
-      bufL[h]=tia.myCurrentSample[0];
-      bufR[h]=tia.myCurrentSample[1];
+      buf[0][h]=tia.myCurrentSample[0];
+      buf[1][h]=tia.myCurrentSample[1];
     } else if (mixingType==1) {
-      bufL[h]=(tia.myCurrentSample[0]+tia.myCurrentSample[1])>>1;
+      buf[0][h]=(tia.myCurrentSample[0]+tia.myCurrentSample[1])>>1;
     } else {
-      bufL[h]=tia.myCurrentSample[0];
+      buf[0][h]=tia.myCurrentSample[0];
     }
     if (++chanOscCounter>=114) {
       chanOscCounter=0;
@@ -135,7 +135,7 @@ void DivPlatformTIA::tick(bool sysTick) {
       int bf=chan[i].baseFreq;
       if (!parent->song.oldArpStrategy) {
         if (!chan[i].fixedArp) {
-          bf+=chan[i].baseFreq+chan[i].arpOff;
+          bf+=chan[i].arpOff;
         }
       }
       chan[i].freq=dealWithFreq(chan[i].shape,bf,chan[i].pitch)+chan[i].pitch2;
@@ -342,8 +342,8 @@ float DivPlatformTIA::getPostAmp() {
   return 0.5f;
 }
 
-bool DivPlatformTIA::isStereo() {
-  return (mixingType==2);
+int DivPlatformTIA::getOutputCount() {
+  return (mixingType==2)?2:1;
 }
 
 bool DivPlatformTIA::keyOffAffectsArp(int ch) {

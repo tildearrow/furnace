@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,8 +35,8 @@ const char** DivPlatformT6W28::getRegisterSheet() {
   return regCheatSheetT6W28;
 }
 
-void DivPlatformT6W28::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformT6W28::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     cycles=0;
     while (!writes.empty() && cycles<16) {
       QueuedWrite w=writes.front();
@@ -64,8 +64,8 @@ void DivPlatformT6W28::acquire(short* bufL, short* bufR, size_t start, size_t le
     if (tempR<-32768) tempR=-32768;
     if (tempR>32767) tempR=32767;
     
-    bufL[h]=tempL;
-    bufR[h]=tempR;
+    buf[0][h]=tempL;
+    buf[1][h]=tempR;
   }
 }
 
@@ -146,6 +146,7 @@ void DivPlatformT6W28::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=snCalcFreq(i);
+      if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>1023) chan[i].freq=1023;
       if (i==3) {
         rWrite(1,0x80|(2<<5)|(chan[3].freq&15));
@@ -288,6 +289,7 @@ void DivPlatformT6W28::forceIns() {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
   }
+  rWrite(1,0xe0+chan[3].duty);
 }
 
 void* DivPlatformT6W28::getChanState(int ch) {
@@ -335,8 +337,8 @@ void DivPlatformT6W28::reset() {
   rWrite(1,0xe7);
 }
 
-bool DivPlatformT6W28::isStereo() {
-  return true;
+int DivPlatformT6W28::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformT6W28::keyOffAffectsArp(int ch) {

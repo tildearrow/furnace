@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,9 +24,9 @@
 
 #define CHIP_FREQBASE 2048
 
-void DivPlatformDummy::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformDummy::acquire(short** buf, size_t len) {
   int chanOut;
-  for (size_t i=start; i<start+len; i++) {
+  for (size_t i=0; i<len; i++) {
     int out=0;
     for (unsigned char j=0; j<chans; j++) {
       if (chan[j].active) {
@@ -44,7 +44,7 @@ void DivPlatformDummy::acquire(short* bufL, short* bufR, size_t start, size_t le
     }
     if (out<-32768) out=-32768;
     if (out>32767) out=32767;
-    bufL[i]=out;
+    buf[0][i]=out;
   }
 }
 
@@ -129,6 +129,10 @@ int DivPlatformDummy::dispatch(DivCommand c) {
       break;
   }
   return 1;
+}
+
+void DivPlatformDummy::notifyInsDeletion(void* ins) {
+  // nothing
 }
 
 void DivPlatformDummy::reset() {

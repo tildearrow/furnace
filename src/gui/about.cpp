@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,14 +63,18 @@ const char* aboutLine[]={
   "akumanatt",
   "AmigaX",
   "AURORA*FIELDS",
+  "battybeats",
   "BlueElectric05",
   "breakthetargets",
   "brickblock369",
   "Burnt Fishy",
   "CaptainMalware",
+  "Clingojam",
   "DeMOSic",
   "DevEd",
   "Dippy",
+  "djtuBIG-MaliceX",
+  "dumbut",
   "EpicTyphlosion",
   "FΛDE",
   "Forte",
@@ -79,6 +83,7 @@ const char* aboutLine[]={
   "iyatemu",
   "JayBOB18",
   "Jimmy-DS",
+  "Kagamiin~",
   "kleeder",
   "jaezu",
   "Laggy",
@@ -87,6 +92,8 @@ const char* aboutLine[]={
   "Lunathir",
   "LVintageNerd",
   "Mahbod Karamoozian",
+  "Martin Demsky",
+  "MelonadeM",
   "Miker",
   "nicco1690",
   "<nk>",
@@ -97,6 +104,7 @@ const char* aboutLine[]={
   "SuperJet Spade",
   "SwapXFO",
   "TakuikaNinja",
+  "TCORPStudios",
   "The Blender Fiddler",
   "TheDuccinator",
   "theloredev",
@@ -140,6 +148,7 @@ const char* aboutLine[]={
   "MAME MSM5232 core by Jarek Burczynski and Hiromitsu Shioya",
   "MAME MSM6258 core by Barry Rodewald",
   "MAME YMZ280B core by Aaron Giles",
+  "MAME GA20 core by Acho A. Tang and R. Belmont",
   "SAASound by Dave Hooper and Simon Owen",
   "SameBoy by Lior Halphon",
   "Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores",
@@ -153,6 +162,9 @@ const char* aboutLine[]={
   "QSound emulator by superctr and Valley Bell",
   "VICE VIC-20 sound core by Rami Rasanen and viznut",
   "VERA sound core by Frank van den Hoef",
+  "mzpokeysnd POKEY emulator by Michael Borisov",
+  "ASAP POKEY emulator by Piotr Fusik",
+  "ported by laoo to C++",
   "K005289 emulator by cam900",
   "Namco 163 emulator by cam900",
   "Seta X1-010 emulator by cam900",
@@ -164,7 +176,7 @@ const char* aboutLine[]={
   "NEOART Costa Rica",
   "all members of Deflers of Noice!",
   "",
-  "copyright © 2021-2022 tildearrow",
+  "copyright © 2021-2023 tildearrow",
   "(and contributors).",
   "licensed under GPLv2+! see",
   "LICENSE for more information.",
@@ -199,7 +211,13 @@ void FurnaceGUI::drawAbout() {
     float r=0;
     float g=0;
     float b=0;
-    float peakMix=settings.partyTime?((peak[0]+peak[1])*0.5):0.3;
+    float peakMix=settings.partyTime?0:0.3;
+    if (settings.partyTime) {
+      for (int j=0; j<e->getAudioDescGot().outChans; j++) {
+        peakMix+=peak[j];
+      }
+      peakMix/=e->getAudioDescGot().outChans;
+    }
     ImGui::ColorConvertHSVtoRGB(aboutHue,1.0,0.25+MIN(0.75f,peakMix*0.75f),r,g,b);
     dl->AddRectFilled(ImVec2(0,0),ImVec2(canvasW,canvasH),0xff000000);
     bool skip=false;

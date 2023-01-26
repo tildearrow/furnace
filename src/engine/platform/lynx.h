@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,7 +68,7 @@ class DivPlatformLynx: public DivDispatch {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -79,7 +79,7 @@ class DivPlatformLynx: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    int getOutputCount();
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     //int getPortaFloor(int ch);

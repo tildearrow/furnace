@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,14 +55,14 @@ void DivPlatformPET::rWrite(unsigned int addr, unsigned char val) {
   regPool[addr]=val;
 }
 
-void DivPlatformPET::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformPET::acquire(short** buf, size_t len) {
   bool hwSROutput=((regPool[11]>>2)&7)==4;
   if (chan[0].enable) {
     int reload=regPool[8]*2+4;
     if (!hwSROutput) {
       reload+=regPool[9]*512;
     }
-    for (size_t h=start; h<start+len; h++) {
+    for (size_t h=0; h<len; h++) {
       if (SAMP_DIVIDER>chan[0].cnt) {
         chan[0].out=(chan[0].sreg&1)*32767;
         chan[0].sreg=(chan[0].sreg>>1)|((chan[0].sreg&1)<<7);
@@ -70,17 +70,15 @@ void DivPlatformPET::acquire(short* bufL, short* bufR, size_t start, size_t len)
       } else {
         chan[0].cnt-=SAMP_DIVIDER;
       }
-      bufL[h]=chan[0].out;
-      bufR[h]=chan[0].out;
+      buf[0][h]=chan[0].out;
       oscBuf->data[oscBuf->needle++]=chan[0].out;
     }
     // emulate driver writes to PCR
     if (!hwSROutput) regPool[12]=chan[0].out?0xe0:0xc0;
   } else {
     chan[0].out=0;
-    for (size_t h=start; h<start+len; h++) {
-      bufL[h]=0;
-      bufR[h]=0;
+    for (size_t h=0; h<len; h++) {
+      buf[0][h]=0;
       oscBuf->data[oscBuf->needle++]=0;
     }
   }
@@ -287,8 +285,8 @@ void DivPlatformPET::reset() {
   chan[0].std.setEngine(parent);
 }
 
-bool DivPlatformPET::isStereo() {
-  return false;
+int DivPlatformPET::getOutputCount() {
+  return 1;
 }
 
 void DivPlatformPET::notifyInsDeletion(void* ins) {

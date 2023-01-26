@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -270,6 +270,13 @@ enum FurnaceGUIColors {
   GUI_COLOR_CLOCK_BEAT_LOW,
   GUI_COLOR_CLOCK_BEAT_HIGH,
 
+  GUI_COLOR_PATCHBAY_PORTSET,
+  GUI_COLOR_PATCHBAY_PORT,
+  GUI_COLOR_PATCHBAY_PORT_HIDDEN,
+  GUI_COLOR_PATCHBAY_CONNECTION,
+  GUI_COLOR_PATCHBAY_CONNECTION_BG,
+  GUI_COLOR_PATCHBAY_CONNECTION_HI,
+
   GUI_COLOR_LOGLEVEL_ERROR,
   GUI_COLOR_LOGLEVEL_WARNING,
   GUI_COLOR_LOGLEVEL_INFO,
@@ -325,6 +332,7 @@ enum FurnaceGUIMobileScenes {
   GUI_SCENE_SONG,
   GUI_SCENE_CHANNELS,
   GUI_SCENE_CHIPS,
+  GUI_SCENE_MIXER,
   GUI_SCENE_OTHER,
 };
 
@@ -935,9 +943,9 @@ struct Gradient2D {
 
 struct FurnaceGUISysDefChip {
   DivSystem sys;
-  int vol, pan;
+  float vol, pan;
   const char* flags;
-  FurnaceGUISysDefChip(DivSystem s, int v, int p, const char* f):
+  FurnaceGUISysDefChip(DivSystem s, float v, float p, const char* f):
     sys(s),
     vol(v),
     pan(p),
@@ -948,6 +956,7 @@ struct FurnaceGUISysDef {
   const char* name;
   const char* extra;
   String definition;
+  std::vector<FurnaceGUISysDefChip> orig;
   FurnaceGUISysDef(const char* n, std::initializer_list<FurnaceGUISysDefChip> def, const char* e=NULL);
 };
 
@@ -1171,12 +1180,15 @@ class FurnaceGUI {
     int mainFontSize, patFontSize, iconSize;
     int audioEngine;
     int audioQuality;
+    int audioChans;
     int arcadeCore;
     int ym2612Core;
     int snCore;
     int nesCore;
     int fdsCore;
     int c64Core;
+    int pokeyCore;
+    int opnCore;
     int pcSpeakerOutMethod;
     String yrw801Path;
     String tg100Path;
@@ -1282,6 +1294,8 @@ class FurnaceGUI {
     int exportLoops;
     double exportFadeOut;
     int macroLayout;
+    float doubleClickTime;
+    int oneDigitEffects;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1303,12 +1317,15 @@ class FurnaceGUI {
       iconSize(16),
       audioEngine(DIV_AUDIO_SDL),
       audioQuality(0),
+      audioChans(2),
       arcadeCore(0),
       ym2612Core(0),
       snCore(0),
       nesCore(0),
       fdsCore(0),
       c64Core(1),
+      pokeyCore(1),
+      opnCore(1),
       pcSpeakerOutMethod(0),
       yrw801Path(""),
       tg100Path(""),
@@ -1413,6 +1430,8 @@ class FurnaceGUI {
       exportLoops(0),
       exportFadeOut(0.0),
       macroLayout(0),
+      doubleClickTime(0.3f),
+      oneDigitEffects(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1432,9 +1451,10 @@ class FurnaceGUI {
 
   DivInstrument* prevInsData;
 
-  int curIns, curWave, curSample, curOctave, curOrder, prevIns, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan, soloTimeout, orderEditMode, orderCursor;
+  int curIns, curWave, curSample, curOctave, curOrder, prevIns, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan,orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory, latchTarget;
   int wheelX, wheelY, dragSourceX, dragSourceY, dragDestinationX, dragDestinationY, oldBeat, oldBar;
+  float soloTimeout;
 
   double exportFadeOut;
 
@@ -1453,7 +1473,7 @@ class FurnaceGUI {
   bool keepLoopAlive, orderScrollLocked, orderScrollTolerance, dragMobileMenu, dragMobileEditButton;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   std::atomic<FurnaceGUIWindows> curWindowThreadSafe;
-  float peak[2];
+  float peak[DIV_MAX_OUTPUTS];
   float patChanX[DIV_MAX_CHANS+1];
   float patChanSlideY[DIV_MAX_CHANS+1];
   float lastPatternWidth, longThreshold;
@@ -1644,6 +1664,17 @@ class FurnaceGUI {
   size_t sampleClipboardLen;
   bool openSampleResizeOpt, openSampleResampleOpt, openSampleAmplifyOpt, openSampleSilenceOpt, openSampleFilterOpt;
 
+  // mixer
+  // 0xxx: output
+  // 1xxx: input
+  unsigned int selectedPortSet;
+  // any value not between 0 and 15 are "none"
+  int selectedSubPort;
+  unsigned int hoveredPortSet;
+  int hoveredSubPort;
+  bool portDragActive, displayHiddenPorts, displayInternalPorts;
+  ImVec2 subPortPos;
+
   // oscilloscope
   int oscTotal;
   float oscValues[512];
@@ -1751,6 +1782,10 @@ class FurnaceGUI {
 
   // inverted checkbox
   bool InvCheckbox(const char* label, bool* value);
+
+  // mixer stuff
+  ImVec2 calcPortSetSize(String label, int ins, int outs);
+  bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos);
 
   void updateWindowTitle();
   void autoDetectSystem();
