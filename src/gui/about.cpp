@@ -75,6 +75,7 @@ const char* aboutLine[]={
   "Dippy",
   "djtuBIG-MaliceX",
   "dumbut",
+  "EpicTyphlosion",
   "FΛDE",
   "Forte",
   "Fragmare",
