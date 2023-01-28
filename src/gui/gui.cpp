@@ -1427,7 +1427,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Open File",
         {"compatible files", "*.fur *.dmf *.mod *.fc13 *.fc14 *.smod *.fc",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.fur,.dmf,.mod,.fc13,.fc14,.smod,.fc},.*",
         workingDirSong,
         dpiScale
@@ -1493,7 +1493,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
          "VOPM preset bank", "*.opm",
          "Wohlstand WOPL bank", "*.wopl",
          "Wohlstand WOPN bank", "*.wopn",
-         "all files", ".*"},
+         "all files", "*"},
         "all compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi,.opli,.opni,.y12,.bnk,.ff,.gyb,.opm,.wopl,.wopn},.*",
         workingDirIns,
         dpiScale,
@@ -1560,7 +1560,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Load Wavetable",
         {"compatible files", "*.fuw *.dmw",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.fuw,.dmw},.*",
         workingDirWave,
         dpiScale,
@@ -1604,7 +1604,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Load Sample",
         {"compatible files", "*.wav *.dmc *.brr",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.wav,.dmc,.brr},.*",
         workingDirSample,
         dpiScale,
@@ -1617,7 +1617,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Raw Sample",
-        {"all files", ".*"},
+        {"all files", "*"},
         ".*",
         workingDirSample,
         dpiScale
@@ -1784,7 +1784,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Load ROM",
         {"compatible files", "*.rom *.bin",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.rom,.bin},.*",
         workingDirROM,
         dpiScale
@@ -1796,7 +1796,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Open Test",
         {"compatible files", "*.fur *.dmf *.mod",
          "another option", "*.wav *.ttf",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
         workingDirTest,
         dpiScale,
@@ -1815,7 +1815,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Open Test (Multi)",
         {"compatible files", "*.fur *.dmf *.mod",
          "another option", "*.wav *.ttf",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
         workingDirTest,
         dpiScale,
