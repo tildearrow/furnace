@@ -45,6 +45,10 @@ void scc_core::voice_t::tick(const int cycles)
 		{
 			m_addr	  = bitfield(m_addr + 1, 0, 5);
 			m_counter = m_pitch - ((temp<cycles)?(cycles-temp-1):0);
+                        while (m_counter>m_pitch) {
+			  m_addr	  = bitfield(m_addr + 1, 0, 5);
+                          m_counter+=m_pitch-1;
+                        }
 		}
 	}
 	// get output
