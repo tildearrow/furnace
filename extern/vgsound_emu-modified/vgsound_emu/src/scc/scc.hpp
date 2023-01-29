@@ -41,7 +41,7 @@ class scc_core : public vgsound_emu_core
 
 				// internal state
 				void reset();
-				void tick();
+				void tick(const int cycles=1);
 
 				// accessors
 				inline void reset_addr() { m_addr = 0; }
@@ -151,7 +151,7 @@ class scc_core : public vgsound_emu_core
 
 		// internal state
 		virtual void reset();
-		void tick();
+		void tick(const int cycles=1);
 
 		// getters
 		inline s32 out() { return m_out; }	// output to DA0...DA10 pin
