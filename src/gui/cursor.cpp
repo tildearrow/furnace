@@ -50,8 +50,10 @@ void FurnaceGUI::startSelection(int xCoarse, int xFine, int y, bool fullRow) {
       selecting=true;
       selectingFull=false;
       dragSourceX=xCoarse;
+      dragSourceXFine=xFine;
       dragSourceY=y;
       dragDestinationX=xCoarse;
+      dragDestinationXFine=xFine;
       dragDestinationY=y;
       dragStart=selStart;
       dragEnd=selEnd;
@@ -86,6 +88,7 @@ void FurnaceGUI::updateSelection(int xCoarse, int xFine, int y, bool fullRow) {
   if (!selecting) return;
   if (dragging) {
     dragDestinationX=xCoarse;
+    if (dragStart.xFine>=3) dragDestinationXFine=(xFine|1);
     dragDestinationY=y;
     cursorDrag.xCoarse=xCoarse;
     cursorDrag.xFine=xFine;
@@ -104,6 +107,14 @@ void FurnaceGUI::updateSelection(int xCoarse, int xFine, int y, bool fullRow) {
       dragDestinationX=lastChannel-(dragEnd.xCoarse-dragSourceX)-1;
     }
 
+    if (dragStart.xFine>=3) {
+      logV("ddd: %d",dragStart.xFine+(dragDestinationXFine-dragSourceXFine));
+      if (dragStart.xFine+(dragDestinationXFine-dragSourceXFine)<3) {
+        dragDestinationXFine=dragStart.xFine+dragSourceXFine-3;
+      }
+      logV("ddxf: %d",dragDestinationXFine);
+    }
+
     if (dragStart.y+(dragDestinationY-dragSourceY)<0) {
       dragDestinationY=dragSourceY-dragStart.y;
     }
@@ -113,10 +124,10 @@ void FurnaceGUI::updateSelection(int xCoarse, int xFine, int y, bool fullRow) {
     }
 
     selStart.xCoarse=dragStart.xCoarse+(dragDestinationX-dragSourceX);
-    selStart.xFine=dragStart.xFine;
+    selStart.xFine=dragStart.xFine+(dragDestinationXFine-dragSourceXFine);
     selStart.y=dragStart.y+(dragDestinationY-dragSourceY);
     selEnd.xCoarse=dragEnd.xCoarse+(dragDestinationX-dragSourceX);
-    selEnd.xFine=dragEnd.xFine;
+    selEnd.xFine=dragEnd.xFine+(dragDestinationXFine-dragSourceXFine);
     selEnd.y=dragEnd.y+(dragDestinationY-dragSourceY);
   } else {
     if (selectingFull) {
