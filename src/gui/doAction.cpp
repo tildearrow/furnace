@@ -386,10 +386,10 @@ void FurnaceGUI::doAction(int what) {
       doSelectAll();
       break;
     case GUI_ACTION_PAT_CUT:
-      doCopy(true);
+      doCopy(true,true,selStart,selEnd);
       break;
     case GUI_ACTION_PAT_COPY:
-      doCopy(false);
+      doCopy(false,true,selStart,selEnd);
       break;
     case GUI_ACTION_PAT_PASTE:
       doPaste();

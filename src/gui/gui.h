@@ -1889,8 +1889,8 @@ class FurnaceGUI {
   void doPullDelete();
   void doInsert();
   void doTranspose(int amount, OperationMask& mask);
-  void doCopy(bool cut);
-  void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL, int arg=0);
+  String doCopy(bool cut, bool writeClipboard, const SelectionPoint& sStart, const SelectionPoint& sEnd);
+  void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL, int arg=0, bool readClipboard=true, String clipb="");
   void doChangeIns(int ins);
   void doInterpolate();
   void doFade(int p0, int p1, bool mode);
