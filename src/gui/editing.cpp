@@ -947,6 +947,8 @@ void FurnaceGUI::doDrag() {
   // copy and clear
   String c=doCopy(true,false,dragStart,dragEnd);
 
+  logV("copy: %s",c);
+
   // replace
   cursor=selStart;
   doPaste(GUI_PASTE_MODE_NORMAL,0,false,c);
