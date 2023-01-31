@@ -168,7 +168,7 @@ void FurnaceGUI::finishSelection() {
   selectingFull=false;
 
   if (dragging) {
-    if (dragSourceX==dragDestinationX && dragSourceY==dragDestinationY) {
+    if (dragSourceX==dragDestinationX && dragSourceY==dragDestinationY && dragSourceXFine==dragDestinationXFine) {
       cursor=cursorDrag;
       selStart=cursorDrag;
       selEnd=cursorDrag;
