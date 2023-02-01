@@ -1782,13 +1782,19 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
         ImGui::TableNextColumn();
         float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace;
         int totalFit=MIN(255,availableWidth/MAX(1,macroPointSize*dpiScale));
-        if (macroDragScroll>255-totalFit) {
-          macroDragScroll=255-totalFit;
+        int scrollMax=0;
+        for (FurnaceGUIMacroDesc& i: macros) {
+          if (i.macro->len>scrollMax) scrollMax=i.macro->len;
+        }
+        scrollMax-=totalFit;
+        if (scrollMax<0) scrollMax=0;
+        if (macroDragScroll>scrollMax) {
+          macroDragScroll=scrollMax;
         }
         ImGui::SetNextItemWidth(availableWidth);
-        if (CWSliderInt("##MacroScroll",&macroDragScroll,0,255-totalFit,"")) {
+        if (CWSliderInt("##MacroScroll",&macroDragScroll,0,scrollMax,"")) {
           if (macroDragScroll<0) macroDragScroll=0;
-          if (macroDragScroll>255-totalFit) macroDragScroll=255-totalFit;
+          if (macroDragScroll>scrollMax) macroDragScroll=scrollMax;
         }
 
         // draw macros
@@ -1839,9 +1845,9 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
         ImGui::TableNextColumn();
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(availableWidth);
-        if (CWSliderInt("##MacroScroll",&macroDragScroll,0,255-totalFit,"")) {
+        if (CWSliderInt("##MacroScroll",&macroDragScroll,0,scrollMax,"")) {
           if (macroDragScroll<0) macroDragScroll=0;
-          if (macroDragScroll>255-totalFit) macroDragScroll=255-totalFit;
+          if (macroDragScroll>scrollMax) macroDragScroll=scrollMax;
         }
         ImGui::EndTable();
       }
