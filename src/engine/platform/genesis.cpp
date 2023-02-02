@@ -225,6 +225,9 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
     //OPN2_Write(&fm,0,0);
 
     for (int i=0; i<6; i++) {
+      int chOut=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1))<<6;
+      if (chOut<-32768) chOut=-32768;
+      if (chOut>32767) chOut=32767;
       if (i==5) {
         if (fm_ymfm->debug_dac_enable()) {
           if (softPCM) {
@@ -234,10 +237,10 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
             oscBuf[i]->data[oscBuf[i]->needle++]=fm_ymfm->debug_dac_data()<<7;
           }
         } else {
-          oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1))<<6;
+          oscBuf[i]->data[oscBuf[i]->needle++]=chOut;
         }
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1))<<6;
+        oscBuf[i]->data[oscBuf[i]->needle++]=chOut;
       }
     }
     
