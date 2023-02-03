@@ -5357,6 +5357,10 @@ bool FurnaceGUI::init() {
     logD("auto-detecting UI scale factor.");
     dpiScale=getScaleFactor(videoBackend);
     logD("scale factor: %f",dpiScale);
+    if (dpiScale<0.1f) {
+      logW("scale what?");
+      dpiScale=1.0f;
+    }
   }
 
 #if !(defined(__APPLE__) || defined(_WIN32))
