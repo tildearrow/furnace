@@ -26,6 +26,8 @@
 #define ADDR_WS_FINE 0x100
 // actually 0xc0 but bit 5 of data selects address
 #define ADDR_EGS_REV 0x120
+// actually 0x38 but bits 7 and 2 select address
+#define ADDR_FMS2_AMS2 0x140
 
 const char* regCheatSheetOPZ[]={
   "Test", "00",
@@ -139,7 +141,8 @@ void DivPlatformTX81Z::tick(bool sysTick) {
     }
 
     if (chan[i].std.wave.had) {
-      rWrite(0x1b,chan[i].std.wave.val&3);
+      lfoShape=chan[i].std.wave.val&3;
+      immWrite(0x1b,lfoShape|(lfoShape2<<2));
     }
 
     if (chan[i].std.pitch.had) {
@@ -177,7 +180,28 @@ void DivPlatformTX81Z::tick(bool sysTick) {
     }
 
     if (chan[i].std.ex3.had) {
-      immWrite(0x18,chan[i].std.ex3.val);
+      lfoValue=chan[i].std.ex3.val;
+      immWrite(0x18,lfoValue);
+    }
+
+    if (chan[i].std.ex5.had) {
+      amDepth2=chan[i].std.ex5.val;
+      immWrite(0x17,amDepth2);
+    }
+
+    if (chan[i].std.ex6.had) {
+      pmDepth2=chan[i].std.ex6.val;
+      immWrite(0x17,0x80|pmDepth2);
+    }
+
+    if (chan[i].std.ex7.had) {
+      lfoValue2=chan[i].std.ex7.val;
+      immWrite(0x16,lfoValue2);
+    }
+
+    if (chan[i].std.ex8.had) {
+      lfoShape2=chan[i].std.ex8.val&3;
+      immWrite(0x1b,lfoShape|(lfoShape2<<2));
     }
 
     if (chan[i].std.alg.had) {
@@ -283,6 +307,12 @@ void DivPlatformTX81Z::tick(bool sysTick) {
   for (int i=288; i<320; i++) {
     if (pendingWrites[i]!=oldWrites[i]) {
       immWrite(0xc0+(i&0x1f),0x20|(pendingWrites[i]&0xdf));
+      oldWrites[i]=pendingWrites[i];
+    }
+  }
+  for (int i=320; i<328; i++) {
+    if (pendingWrites[i]!=oldWrites[i]) {
+      immWrite(0x38+(i&7),(0x84|pendingWrites[i]));
       oldWrites[i]=pendingWrites[i];
     }
   }
@@ -405,7 +435,7 @@ void DivPlatformTX81Z::commitState(int ch, DivInstrument* ins) {
       rWrite(chanOffs[ch]+ADDR_LR_FB_ALG,(chan[ch].state.alg&7)|(chan[ch].state.fb<<3)|((chan[ch].chVolL&1)<<6)|((chan[ch].chVolR&1)<<7));
     }*/
     rWrite(chanOffs[ch]+ADDR_FMS_AMS,((chan[ch].state.fms&7)<<4)|(chan[ch].state.ams&3));
-    //rWrite(chanOffs[ch]+ADDR_FMS_AMS,0x84|((chan[ch].state.fms2&7)<<4)|(chan[ch].state.ams2&3));
+    rWrite(chanOffs[ch]+ADDR_FMS2_AMS2,((chan[ch].state.fms2&7)<<4)|(chan[ch].state.ams2&3));
   }
 }
 
@@ -528,11 +558,23 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_FM_LFO: {
-      rWrite(0x18,c.value);
+      lfoValue=c.value;
+      immWrite(0x18,lfoValue);
       break;
     }
     case DIV_CMD_FM_LFO_WAVE: {
-      rWrite(0x1b,c.value&3);
+      lfoShape=c.value&3;
+      immWrite(0x1b,lfoShape|(lfoShape2<<2));
+      break;
+    }
+    case DIV_CMD_FM_LFO2: {
+      lfoValue2=c.value;
+      immWrite(0x16,lfoValue2);
+      break;
+    }
+    case DIV_CMD_FM_LFO2_WAVE: {
+      lfoShape2=c.value&3;
+      immWrite(0x1b,lfoShape|(lfoShape2<<2));
       break;
     }
     case DIV_CMD_FM_FB: {
@@ -810,6 +852,16 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       immWrite(0x19,0x80|pmDepth);
       break;
     }
+    case DIV_CMD_FM_AM2_DEPTH: {
+      amDepth2=c.value;
+      immWrite(0x17,amDepth);
+      break;
+    }
+    case DIV_CMD_FM_PM2_DEPTH: {
+      pmDepth2=c.value;
+      immWrite(0x17,0x80|pmDepth);
+      break;
+    }
     case DIV_CMD_FM_HARD_RESET:
       chan[c.chan].hardReset=c.value;
       break;
@@ -880,7 +932,7 @@ void DivPlatformTX81Z::forceIns() {
       rWrite(chanOffs[i]+ADDR_LR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3)|((chan[i].chVolL&1)<<6)|((chan[i].chVolR&1)<<7));
     }*/
     rWrite(chanOffs[i]+ADDR_FMS_AMS,((chan[i].state.fms&7)<<4)|(chan[i].state.ams&3));
-    //rWrite(chanOffs[i]+ADDR_FMS_AMS,0x84|((chan[i].state.fms2&7)<<4)|(chan[i].state.ams2&3));
+    rWrite(chanOffs[i]+ADDR_FMS2_AMS2,((chan[i].state.fms2&7)<<4)|(chan[i].state.ams2&3));
     if (chan[i].active) {
       chan[i].keyOn=true;
       chan[i].freqChanged=true;
@@ -888,6 +940,11 @@ void DivPlatformTX81Z::forceIns() {
   }
   immWrite(0x19,amDepth);
   immWrite(0x19,0x80|pmDepth);
+  immWrite(0x17,amDepth2);
+  immWrite(0x17,0x80|pmDepth2);
+  immWrite(0x18,lfoValue);
+  immWrite(0x16,lfoValue2);
+  immWrite(0x1b,lfoShape|(lfoShape2<<2));
 }
 
 void DivPlatformTX81Z::notifyInsChange(int ins) {
@@ -958,12 +1015,19 @@ void DivPlatformTX81Z::reset() {
   delay=0;
   amDepth=0x7f;
   pmDepth=0x7f;
+  amDepth2=0x7f;
+  pmDepth2=0x7f;
+  lfoValue=0;
+  lfoValue2=0;
+  lfoShape=0;
+  lfoShape2=0;
 
-  //rWrite(0x18,0x10);
   immWrite(0x18,0x00); // LFO Freq Off
+  immWrite(0x16,0x00);
   immWrite(0x19,amDepth);
   immWrite(0x19,0x80|pmDepth);
-  //rWrite(0x1b,0x00);
+  immWrite(0x17,amDepth2);
+  immWrite(0x17,0x80|pmDepth2);
 
   extMode=false;
 }

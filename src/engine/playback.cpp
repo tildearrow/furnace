@@ -103,9 +103,8 @@ const char* cmdName[]={
   "FM_AM_DEPTH",
   "FM_PM_DEPTH",
 
-  "GENESIS_LFO",
-  
-  "ARCADE_LFO",
+  "FM_LFO2",
+  "FM_LFO2_WAVE",
 
   "STD_NOISE_FREQ",
   "STD_NOISE_MODE",
@@ -214,6 +213,9 @@ const char* cmdName[]={
   "MACRO_ON",
 
   "SURROUND_PANNING",
+
+  "FM_AM2_DEPTH",
+  "FM_PM2_DEPTH",
 
   "ALWAYS_SET_VOLUME"
 };

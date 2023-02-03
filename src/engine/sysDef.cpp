@@ -504,6 +504,10 @@ void DivEngine::registerSystems() {
 
   EffectHandlerMap fmOPZPostEffectHandlerMap(fmOPMPostEffectHandlerMap);
   fmOPZPostEffectHandlerMap.insert({
+    {0x24, {DIV_CMD_FM_LFO2, "24xx: Set LFO 2 speed"}},
+    {0x25, {DIV_CMD_FM_LFO2_WAVE, "25xx: Set LFO 2 waveform (0 saw, 1 square, 2 triangle, 3 noise)"}},
+    {0x26, {DIV_CMD_FM_AM2_DEPTH, "26xx: Set AM 2 depth (0 to 7F)", effectValAnd<127>}},
+    {0x27, {DIV_CMD_FM_PM2_DEPTH, "27xx: Set PM 2 depth (0 to 7F)", effectValAnd<127>}},
     {0x28, {DIV_CMD_FM_REV, "28xy: Set reverb (x: operator from 1 to 4 (0 for all ops); y: reverb from 0 to 7)", effectOpVal<4>, effectValAnd<7>}},
     {0x2a, {DIV_CMD_FM_WS, "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 7)", effectOpVal<4>, effectValAnd<7>}},
     {0x2b, {DIV_CMD_FM_EG_SHIFT, "2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); y: shift from 0 to 3)", effectOpVal<4>, effectValAnd<3>}},
