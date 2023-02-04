@@ -413,6 +413,7 @@ class DivEngine {
   } sPreview;
 
   short vibTable[64];
+  short tremTable[128];
   int reversePitchTable[4096];
   int pitchTable[4096];
   char c163NameCS[1024];
@@ -1158,6 +1159,7 @@ class DivEngine {
       memset(dispatchOfChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(sysOfChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(vibTable,0,64*sizeof(short));
+      memset(tremTable,0,128*sizeof(short));
       memset(reversePitchTable,0,4096*sizeof(int));
       memset(pitchTable,0,4096*sizeof(int));
       memset(sysDefs,0,256*sizeof(void*));

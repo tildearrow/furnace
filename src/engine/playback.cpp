@@ -689,6 +689,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
         // - then a volume slide down starts to the low boundary, and then when this is reached a volume slide up begins
         // - this process repeats until 0700 or 0Axy are found
         // - note that a volume value does not stop tremolo - instead it glitches this whole thing up
+        if (chan[i].tremoloDepth==0) {
+          chan[i].tremoloPos=0;
+        }
+        chan[i].tremoloDepth=effectVal&15;
+        chan[i].tremoloRate=effectVal>>4;
+        // tremolo and vol slides are incompatiblw
+        chan[i].volSpeed=0;
         break;
       case 0x0a: // volume ramp
         // TODO: non-0x-or-x0 value should be treated as 00
@@ -698,6 +705,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
           } else {
             chan[i].volSpeed=(effectVal>>4)*64;
           }
+          // tremolo and vol slides are incompatible
+          chan[i].tremoloDepth=0;
+          chan[i].tremoloRate=0;
         } else {
           chan[i].volSpeed=0;
         }
@@ -838,10 +848,16 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         break;
       case 0xf3: // fine volume ramp up
+        // tremolo and vol slides are incompatible
+        chan[i].tremoloDepth=0;
+        chan[i].tremoloRate=0;
         chan[i].volSpeed=effectVal;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
       case 0xf4: // fine volume ramp down
+        // tremolo and vol slides are incompatible
+        chan[i].tremoloDepth=0;
+        chan[i].tremoloRate=0;
         chan[i].volSpeed=-effectVal;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
@@ -868,6 +884,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
           } else {
             chan[i].volSpeed=(effectVal>>4)*256;
           }
+          // tremolo and vol slides are incompatible
+          chan[i].tremoloDepth=0;
+          chan[i].tremoloRate=0;
         } else {
           chan[i].volSpeed=0;
         }
@@ -1239,6 +1258,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             } else {
               dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
             }
+          } else if (chan[i].tremoloDepth>0) {
+            chan[i].tremoloPos+=chan[i].tremoloRate;
+            chan[i].tremoloPos&=127;
+            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,MAX(0,chan[i].volume-(tremTable[chan[i].tremoloPos]*chan[i].tremoloDepth))>>8));
           }
         }
         if (chan[i].vibratoDepth>0) {
