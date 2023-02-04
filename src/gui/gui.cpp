@@ -3729,6 +3729,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::BeginMenu("window")) {
         if (ImGui::MenuItem("song information",BIND_FOR(GUI_ACTION_WINDOW_SONG_INFO),songInfoOpen)) songInfoOpen=!songInfoOpen;
         if (ImGui::MenuItem("subsongs",BIND_FOR(GUI_ACTION_WINDOW_SUBSONGS),subSongsOpen)) subSongsOpen=!subSongsOpen;
+        if (ImGui::MenuItem("speed",BIND_FOR(GUI_ACTION_WINDOW_SPEED),speedOpen)) speedOpen=!speedOpen;
         if (settings.unifiedDataView) {
           if (ImGui::MenuItem("assets",BIND_FOR(GUI_ACTION_WINDOW_INS_LIST),insListOpen)) insListOpen=!insListOpen;
         } else {
@@ -3915,6 +3916,7 @@ bool FurnaceGUI::loop() {
       drawSpoiler();
       drawPattern();
       drawEditControls();
+      drawSpeed();
       drawSongInfo();
       drawOrders();
       drawSampleList();
@@ -5245,6 +5247,7 @@ bool FurnaceGUI::init() {
   patManagerOpen=e->getConfBool("patManagerOpen",false);
   sysManagerOpen=e->getConfBool("sysManagerOpen",false);
   clockOpen=e->getConfBool("clockOpen",false);
+  speedOpen=e->getConfBool("speedOpen",true);
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",false);
@@ -5619,6 +5622,7 @@ void FurnaceGUI::commitState() {
   e->setConf("patManagerOpen",patManagerOpen);
   e->setConf("sysManagerOpen",sysManagerOpen);
   e->setConf("clockOpen",clockOpen);
+  e->setConf("speedOpen",speedOpen);
   e->setConf("regViewOpen",regViewOpen);
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
@@ -5865,6 +5869,7 @@ FurnaceGUI::FurnaceGUI():
   patManagerOpen(false),
   sysManagerOpen(false),
   clockOpen(false),
+  speedOpen(true),
   clockShowReal(true),
   clockShowRow(true),
   clockShowBeat(true),

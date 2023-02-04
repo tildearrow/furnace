@@ -292,6 +292,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_NOTHING=0,
   GUI_WINDOW_EDIT_CONTROLS,
   GUI_WINDOW_SONG_INFO,
+  GUI_WINDOW_SPEED,
   GUI_WINDOW_ORDERS,
   GUI_WINDOW_INS_LIST,
   GUI_WINDOW_PATTERN,
@@ -439,6 +440,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_INS_LIST,
   GUI_ACTION_WINDOW_INS_EDIT,
   GUI_ACTION_WINDOW_SONG_INFO,
+  GUI_ACTION_WINDOW_SPEED,
   GUI_ACTION_WINDOW_PATTERN,
   GUI_ACTION_WINDOW_WAVE_LIST,
   GUI_ACTION_WINDOW_WAVE_EDIT,
@@ -1462,7 +1464,7 @@ class FurnaceGUI {
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
-  bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen;
+  bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
 
   bool clockShowReal, clockShowRow, clockShowBeat, clockShowMetro, clockShowTime;
   float clockMetroTick[16];
@@ -1818,6 +1820,7 @@ class FurnaceGUI {
   void drawMobileOrderSel();
   void drawEditControls();
   void drawSongInfo(bool asChild=false);
+  void drawSpeed(bool asChild=false);
   void drawOrders();
   void drawPattern();
   void drawInsList(bool asChild=false);

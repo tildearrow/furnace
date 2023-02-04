@@ -494,6 +494,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_INS_LIST", "Instrument List", 0),
   D("WINDOW_INS_EDIT", "Instrument Editor", 0),
   D("WINDOW_SONG_INFO", "Song Information", 0),
+  D("WINDOW_SPEED", "Speed", 0),
   D("WINDOW_PATTERN", "Pattern", 0),
   D("WINDOW_WAVE_LIST", "Wavetable List", 0),
   D("WINDOW_WAVE_EDIT", "Wavetable Editor", 0),
