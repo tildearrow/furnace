@@ -31,19 +31,26 @@ void FurnaceGUI::drawSpeed(bool asChild) {
   if (!speedOpen && !asChild) return;
   bool began=asChild?ImGui::BeginChild("Speed"):ImGui::Begin("Speed",&speedOpen,globalWinFlags);
   if (began) {
-    if (ImGui::BeginTable("Props",3,ImGuiTableFlags_SizingStretchProp)) {
+    if (ImGui::BeginTable("Props",2,ImGuiTableFlags_SizingStretchProp)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
-      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      if (ImGui::Selectable(tempoView?"Base Tempo##TempoOrHz":"Tick Rate##TempoOrHz")) {
+      if (ImGui::SmallButton(tempoView?"Base Tempo##TempoOrHz":"Tick Rate##TempoOrHz")) {
         tempoView=!tempoView;
+      }
+      if (ImGui::IsItemHovered()) {
+        if (tempoView) {
+          ImGui::SetTooltip("click to display tick rate");
+        } else {
+          ImGui::SetTooltip("click to display base tempo");
+        }
       }
       ImGui::TableNextColumn();
       float avail=ImGui::GetContentRegionAvail().x;
-      ImGui::SetNextItemWidth(avail);
+      float halfAvail=(avail-ImGui::GetStyle().ItemSpacing.x)*0.5;
+      ImGui::SetNextItemWidth(halfAvail);
       float setHz=tempoView?e->curSubSong->hz*2.5:e->curSubSong->hz;
       if (ImGui::InputFloat("##Rate",&setHz,1.0f,1.0f,"%g")) { MARK_MODIFIED
         if (tempoView) setHz/=2.5;
@@ -52,40 +59,112 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         e->setSongRate(setHz,setHz<52);
       }
       if (tempoView) {
-        ImGui::TableNextColumn();
+        ImGui::SameLine();
         ImGui::Text("= %gHz",e->curSubSong->hz);
       } else {
         if (e->curSubSong->hz>=49.98 && e->curSubSong->hz<=50.02) {
-          ImGui::TableNextColumn();
+          ImGui::SameLine();
           ImGui::Text("PAL");
         }
         if (e->curSubSong->hz>=59.9 && e->curSubSong->hz<=60.11) {
-          ImGui::TableNextColumn();
+          ImGui::SameLine();
           ImGui::Text("NTSC");
         }
       }
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      ImGui::Text("Speed");
-      ImGui::TableNextColumn();
-      ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputScalar("##Speed1",ImGuiDataType_U8,&e->curSubSong->speed1,&_ONE,&_THREE)) { MARK_MODIFIED
-        if (e->curSubSong->speed1<1) e->curSubSong->speed1=1;
-        if (e->isPlaying()) play();
+      if (keepGrooveAlive || e->curSubSong->speeds.len>2) {
+        if (ImGui::SmallButton("Groove")) {
+          e->lockEngine([this]() {
+            e->curSubSong->speeds.len=1;
+          });
+          if (e->isPlaying()) play();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("click for one speed");
+        }
+      } else if (e->curSubSong->speeds.len>1) {
+        if (ImGui::SmallButton("Speeds")) {
+          e->lockEngine([this]() {
+            e->curSubSong->speeds.len=4;
+            e->curSubSong->speeds.val[2]=e->curSubSong->speeds.val[0];
+            e->curSubSong->speeds.val[3]=e->curSubSong->speeds.val[1];
+          });
+          if (e->isPlaying()) play();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("click for groove pattern");
+        }
+      } else {
+        if (ImGui::SmallButton("Speed")) {
+          e->lockEngine([this]() {
+            e->curSubSong->speeds.len=2;
+            e->curSubSong->speeds.val[1]=e->curSubSong->speeds.val[0];
+          });
+          if (e->isPlaying()) play();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("click for two (alternating) speeds");
+        }
       }
       ImGui::TableNextColumn();
-      ImGui::SetNextItemWidth(avail);
-      if (ImGui::InputScalar("##Speed2",ImGuiDataType_U8,&e->curSubSong->speed2,&_ONE,&_THREE)) { MARK_MODIFIED
-        if (e->curSubSong->speed2<1) e->curSubSong->speed2=1;
-        if (e->isPlaying()) play();
+      if (keepGrooveAlive || e->curSubSong->speeds.len>2) {
+        int intVersion[256];
+        unsigned char intVersionLen=e->curSubSong->speeds.len;
+        unsigned char ignoredLoop=0;
+        unsigned char ignoredRel=0;
+        memset(intVersion,0,sizeof(int));
+        for (int i=0; i<16; i++) {
+          intVersion[i]=e->curSubSong->speeds.val[i];
+        }
+        if (intVersionLen>16) intVersionLen=16;
+
+        keepGrooveAlive=false;
+
+        ImGui::SetNextItemWidth(avail);
+        if (ImGui::InputText("##SpeedG",&grooveString)) {
+          decodeMMLStr(grooveString,intVersion,intVersionLen,ignoredLoop,1,255,ignoredRel);
+          if (intVersionLen<1) {
+            intVersionLen=1;
+            intVersion[0]=6;
+          }
+          if (intVersionLen>16) intVersionLen=16;
+          e->lockEngine([this,intVersion,intVersionLen]() {
+            e->curSubSong->speeds.len=intVersionLen;
+            for (int i=0; i<16; i++) {
+              e->curSubSong->speeds.val[i]=intVersion[i];
+            }
+          });
+          if (e->isPlaying()) play();
+          MARK_MODIFIED;
+        }
+        if (!ImGui::IsItemActive()) {
+          encodeMMLStr(grooveString,intVersion,intVersionLen,-1,-1,false);
+        } else {
+          keepGrooveAlive=true;
+        }
+      } else {
+        ImGui::SetNextItemWidth(halfAvail);
+        if (ImGui::InputScalar("##Speed1",ImGuiDataType_U8,&e->curSubSong->speeds.val[0],&_ONE,&_THREE)) { MARK_MODIFIED
+          if (e->curSubSong->speeds.val[0]<1) e->curSubSong->speeds.val[0]=1;
+          if (e->isPlaying()) play();
+        }
+        if (e->curSubSong->speeds.len>1) {
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(halfAvail);
+          if (ImGui::InputScalar("##Speed2",ImGuiDataType_U8,&e->curSubSong->speeds.val[1],&_ONE,&_THREE)) { MARK_MODIFIED
+            if (e->curSubSong->speeds.val[1]<1) e->curSubSong->speeds.val[1]=1;
+            if (e->isPlaying()) play();
+          }
+        }
       }
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Virtual Tempo");
       ImGui::TableNextColumn();
-      ImGui::SetNextItemWidth(avail);
+      ImGui::SetNextItemWidth(halfAvail);
       if (ImGui::InputScalar("##VTempoN",ImGuiDataType_S16,&e->curSubSong->virtualTempoN,&_ONE,&_THREE)) { MARK_MODIFIED
         if (e->curSubSong->virtualTempoN<1) e->curSubSong->virtualTempoN=1;
         if (e->curSubSong->virtualTempoN>255) e->curSubSong->virtualTempoN=255;
@@ -93,8 +172,8 @@ void FurnaceGUI::drawSpeed(bool asChild) {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Numerator");
       }
-      ImGui::TableNextColumn();
-      ImGui::SetNextItemWidth(avail);
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(halfAvail);
       if (ImGui::InputScalar("##VTempoD",ImGuiDataType_S16,&e->curSubSong->virtualTempoD,&_ONE,&_THREE)) { MARK_MODIFIED
         if (e->curSubSong->virtualTempoD<1) e->curSubSong->virtualTempoD=1;
         if (e->curSubSong->virtualTempoD>255) e->curSubSong->virtualTempoD=255;
@@ -105,28 +184,28 @@ void FurnaceGUI::drawSpeed(bool asChild) {
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
-      ImGui::Text("TimeBase");
+      ImGui::Text("Divider");
       ImGui::TableNextColumn();
-      ImGui::SetNextItemWidth(avail);
+      ImGui::SetNextItemWidth(halfAvail);
       unsigned char realTB=e->curSubSong->timeBase+1;
       if (ImGui::InputScalar("##TimeBase",ImGuiDataType_U8,&realTB,&_ONE,&_THREE)) { MARK_MODIFIED
         if (realTB<1) realTB=1;
         if (realTB>16) realTB=16;
         e->curSubSong->timeBase=realTB-1;
       }
-      ImGui::TableNextColumn();
-      ImGui::Text("%.2f BPM",calcBPM(e->curSubSong->speed1,e->curSubSong->speed2,e->curSubSong->hz,e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD));
+      ImGui::SameLine();
+      ImGui::Text("%.2f BPM",calcBPM(e->curSubSong->speeds,e->curSubSong->hz,e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD));
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
       ImGui::Text("Highlight");
       ImGui::TableNextColumn();
-      ImGui::SetNextItemWidth(avail);
+      ImGui::SetNextItemWidth(halfAvail);
       if (ImGui::InputScalar("##Highlight1",ImGuiDataType_U8,&e->curSubSong->hilightA,&_ONE,&_THREE)) {
         MARK_MODIFIED;
       }
-      ImGui::TableNextColumn();
-      ImGui::SetNextItemWidth(avail);
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(halfAvail);
       if (ImGui::InputScalar("##Highlight2",ImGuiDataType_U8,&e->curSubSong->hilightB,&_ONE,&_THREE)) {
         MARK_MODIFIED;
       }

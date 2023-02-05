@@ -988,15 +988,19 @@ void FurnaceGUI::prepareLayout() {
   fclose(check);
 }
 
-float FurnaceGUI::calcBPM(int s1, int s2, float hz, int vN, int vD) {
+float FurnaceGUI::calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD) {
   float hl=e->curSubSong->hilightA;
   if (hl<=0.0f) hl=4.0f;
   float timeBase=e->curSubSong->timeBase+1;
-  float speedSum=s1+s2;
+  float speedSum=0;
+  for (int i=0; i<MIN(16,speeds.len); i++) {
+    speedSum+=speeds.val[i];
+  }
+  speedSum/=MAX(1,speeds.len);
   if (timeBase<1.0f) timeBase=1.0f;
   if (speedSum<1.0f) speedSum=1.0f;
   if (vD<1) vD=1;
-  return (120.0f*hz/(timeBase*hl*speedSum))*(float)vN/(float)vD;
+  return (60.0f*hz/(timeBase*hl*speedSum))*(float)vN/(float)vD;
 }
 
 void FurnaceGUI::play(int row) {
@@ -3740,6 +3744,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("orders",BIND_FOR(GUI_ACTION_WINDOW_ORDERS),ordersOpen)) ordersOpen=!ordersOpen;
         if (ImGui::MenuItem("pattern",BIND_FOR(GUI_ACTION_WINDOW_PATTERN),patternOpen)) patternOpen=!patternOpen;
         if (ImGui::MenuItem("mixer",BIND_FOR(GUI_ACTION_WINDOW_MIXER),mixerOpen)) mixerOpen=!mixerOpen;
+        if (ImGui::MenuItem("grooves",BIND_FOR(GUI_ACTION_WINDOW_GROOVES),groovesOpen)) groovesOpen=!groovesOpen;
         if (ImGui::MenuItem("channels",BIND_FOR(GUI_ACTION_WINDOW_CHANNELS),channelsOpen)) channelsOpen=!channelsOpen;
         if (ImGui::MenuItem("pattern manager",BIND_FOR(GUI_ACTION_WINDOW_PAT_MANAGER),patManagerOpen)) patManagerOpen=!patManagerOpen;
         if (ImGui::MenuItem("chip manager",BIND_FOR(GUI_ACTION_WINDOW_SYS_MANAGER),sysManagerOpen)) sysManagerOpen=!sysManagerOpen;
@@ -3778,7 +3783,21 @@ bool FurnaceGUI::loop() {
       if (e->isPlaying()) {
         int totalTicks=e->getTotalTicks();
         int totalSeconds=e->getTotalSeconds();
-        ImGui::Text("| Speed %d:%d @ %gHz (%g BPM) | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getSpeed1(),e->getSpeed2(),e->getCurHz(),calcBPM(e->getSpeed1(),e->getSpeed2(),e->getCurHz(),e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD),e->getOrder(),e->curSubSong->ordersLen,e->getRow(),e->curSubSong->patLen,totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+
+        String info;
+
+        DivGroovePattern gp=e->getSpeeds();
+        if (gp.len==2) {
+          info=fmt::sprintf("| Speed %d:%d",gp.val[0],gp.val[1]);
+        } else if (gp.len==1) {
+          info=fmt::sprintf("| Speed %d",gp.val[0]);
+        } else {
+          info="| Groove";
+        }
+
+        info+=fmt::sprintf(" @ %gHz (%g BPM) | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD),e->getOrder(),e->curSubSong->ordersLen,e->getRow(),e->curSubSong->patLen,totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+
+        ImGui::TextUnformatted(info.c_str());
       } else {
         bool hasInfo=false;
         String info;
@@ -3917,6 +3936,7 @@ bool FurnaceGUI::loop() {
       drawPattern();
       drawEditControls();
       drawSpeed();
+      drawGrooves();
       drawSongInfo();
       drawOrders();
       drawSampleList();
@@ -5248,6 +5268,7 @@ bool FurnaceGUI::init() {
   sysManagerOpen=e->getConfBool("sysManagerOpen",false);
   clockOpen=e->getConfBool("clockOpen",false);
   speedOpen=e->getConfBool("speedOpen",true);
+  groovesOpen=e->getConfBool("groovesOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",false);
@@ -5623,6 +5644,7 @@ void FurnaceGUI::commitState() {
   e->setConf("sysManagerOpen",sysManagerOpen);
   e->setConf("clockOpen",clockOpen);
   e->setConf("speedOpen",speedOpen);
+  e->setConf("groovesOpen",groovesOpen);
   e->setConf("regViewOpen",regViewOpen);
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
@@ -5835,6 +5857,7 @@ FurnaceGUI::FurnaceGUI():
   dragDestinationY(0),
   oldBeat(-1),
   oldBar(-1),
+  curGroove(-1),
   soloTimeout(0.0f),
   exportFadeOut(5.0),
   editControlsOpen(true),
@@ -5870,6 +5893,7 @@ FurnaceGUI::FurnaceGUI():
   sysManagerOpen(false),
   clockOpen(false),
   speedOpen(true),
+  groovesOpen(false),
   clockShowReal(true),
   clockShowRow(true),
   clockShowBeat(true),
@@ -5898,10 +5922,12 @@ FurnaceGUI::FurnaceGUI():
   latchNibble(false),
   nonLatchNibble(false),
   keepLoopAlive(false),
+  keepGrooveAlive(false),
   orderScrollLocked(false),
   orderScrollTolerance(false),
   dragMobileMenu(false),
   dragMobileEditButton(false),
+  wantGrooveListFocus(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),

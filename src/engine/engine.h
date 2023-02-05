@@ -47,8 +47,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev138"
-#define DIV_ENGINE_VERSION 138
+#define DIV_VERSION "dev139"
+#define DIV_ENGINE_VERSION 139
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -337,7 +337,6 @@ class DivEngine {
   bool playing;
   bool freelance;
   bool shallStop, shallStopSched;
-  bool speedAB;
   bool endOfSong;
   bool consoleMode;
   bool extValuePresent;
@@ -359,7 +358,7 @@ class DivEngine {
   bool midiOutClock;
   int midiOutMode;
   int softLockCount;
-  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed, elapsedBars, elapsedBeats;
+  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
   size_t curSubSongIndex;
   size_t bufferPos;
   double divider;
@@ -368,7 +367,7 @@ class DivEngine {
   int stepPlay;
   int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
   unsigned char extValue, pendingMetroTick;
-  unsigned char speed1, speed2;
+  DivGroovePattern speeds;
   short tempoAccum;
   DivStatusView view;
   DivHaltPositions haltOn;
@@ -730,11 +729,8 @@ class DivEngine {
     // get current subsong
     size_t getCurrentSubSong();
 
-    // get speed 1
-    unsigned char getSpeed1();
-
-    // get speed 2
-    unsigned char getSpeed2();
+    // get speeds
+    const DivGroovePattern& getSpeeds();
 
     // get Hz
     float getHz();
@@ -1065,7 +1061,6 @@ class DivEngine {
       freelance(false),
       shallStop(false),
       shallStopSched(false),
-      speedAB(false),
       endOfSong(false),
       consoleMode(false),
       extValuePresent(false),
@@ -1099,6 +1094,7 @@ class DivEngine {
       nextSpeed(3),
       elapsedBars(0),
       elapsedBeats(0),
+      curSpeed(0),
       curSubSongIndex(0),
       bufferPos(0),
       divider(60),
@@ -1116,8 +1112,6 @@ class DivEngine {
       globalPitch(0),
       extValue(0),
       pendingMetroTick(0),
-      speed1(3),
-      speed2(3),
       tempoAccum(0),
       view(DIV_STATUS_NOTHING),
       haltOn(DIV_HALT_NONE),

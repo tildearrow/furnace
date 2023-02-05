@@ -265,6 +265,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_FIND:
       nextWindow=GUI_WINDOW_FIND;
       break;
+    case GUI_ACTION_WINDOW_GROOVES:
+      nextWindow=GUI_WINDOW_GROOVES;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -357,6 +360,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_FIND:
           findOpen=false;
+          break;
+        case GUI_WINDOW_GROOVES:
+          groovesOpen=false;
           break;
         default:
           break;
