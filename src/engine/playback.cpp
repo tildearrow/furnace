@@ -212,6 +212,11 @@ const char* cmdName[]={
   "MACRO_OFF",
   "MACRO_ON",
 
+  "SURROUND_PANNING",
+
+  "FM_AM2_DEPTH",
+  "FM_PM2_DEPTH",
+
   "ES5506_FILTER_MODE",
   "ES5506_FILTER_K1",
   "ES5506_FILTER_K2",
@@ -223,11 +228,6 @@ const char* cmdName[]={
   "ES5506_ENVELOPE_K1RAMP",
   "ES5506_ENVELOPE_K2RAMP",
   "ES5506_PAUSE",
-
-  "SURROUND_PANNING",
-
-  "FM_AM2_DEPTH",
-  "FM_PM2_DEPTH",
 
   "ALWAYS_SET_VOLUME"
 };

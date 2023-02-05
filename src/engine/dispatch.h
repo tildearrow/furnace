@@ -212,6 +212,11 @@ enum DivDispatchCmds {
   DIV_CMD_MACRO_OFF, // (which)
   DIV_CMD_MACRO_ON, // (which)
 
+  DIV_CMD_SURROUND_PANNING, // (out, val)
+
+  DIV_CMD_FM_AM2_DEPTH, // (depth)
+  DIV_CMD_FM_PM2_DEPTH, // (depth)
+
   DIV_CMD_ES5506_FILTER_MODE, // (value)
   DIV_CMD_ES5506_FILTER_K1, // (value, mask)
   DIV_CMD_ES5506_FILTER_K2, // (value, mask)
@@ -223,11 +228,6 @@ enum DivDispatchCmds {
   DIV_CMD_ES5506_ENVELOPE_K1RAMP, // (ramp, slowdown)
   DIV_CMD_ES5506_ENVELOPE_K2RAMP, // (ramp, slowdown)
   DIV_CMD_ES5506_PAUSE, // (value)
-
-  DIV_CMD_SURROUND_PANNING, // (out, val)
-
-  DIV_CMD_FM_AM2_DEPTH, // (depth)
-  DIV_CMD_FM_PM2_DEPTH, // (depth)
 
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
