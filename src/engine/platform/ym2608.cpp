@@ -374,15 +374,17 @@ void DivPlatformYM2608::acquire_combo(short** buf, size_t len) {
 
     os[0]>>=1;
     os[1]>>=1;
+    os[0]=(os[0]*fmVol)>>8;
+    os[1]=(os[1]*fmVol)>>8;
 
     // ymfm part
     fm->generate(&fmout);
 
-    os[0]+=fmout.data[0]+(fmout.data[2]>>1);
+    os[0]+=((fmout.data[0]*fmVol)>>8)+((fmout.data[2]*ssgVol)>>8);
     if (os[0]<-32768) os[0]=-32768;
     if (os[0]>32767) os[0]=32767;
 
-    os[1]+=fmout.data[1]+(fmout.data[2]>>1);
+    os[1]+=((fmout.data[1]*fmVol)>>8)+((fmout.data[2]*ssgVol)>>8);
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
@@ -439,11 +441,11 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
     
     fm->generate(&fmout);
 
-    os[0]=fmout.data[0]+(fmout.data[2]>>1);
+    os[0]=((fmout.data[0]*fmVol)>>8)+((fmout.data[2]*ssgVol)>>8);
     if (os[0]<-32768) os[0]=-32768;
     if (os[0]>32767) os[0]=32767;
 
-    os[1]=fmout.data[1]+(fmout.data[2]>>1);
+    os[1]=((fmout.data[1]*fmVol)>>8)+((fmout.data[2]*ssgVol)>>8);
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
@@ -1603,6 +1605,8 @@ void DivPlatformYM2608::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   noExtMacros=flags.getBool("noExtMacros",false);
   fbAllOps=flags.getBool("fbAllOps",false);
+  ssgVol=flags.getInt("ssgVol",128);
+  fmVol=flags.getInt("fmVol",256);
   rate=fm->sample_rate(chipClock);
   for (int i=0; i<16; i++) {
     oscBuf[i]->rate=rate;
