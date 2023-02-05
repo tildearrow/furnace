@@ -222,7 +222,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       CHECK_CUSTOM_CLOCK;
       noExtMacros=flags.getBool("noExtMacros",false);
       fbAllOps=flags.getBool("fbAllOps",false);
-      ssgVol=flags.getInt("ssgVol",256);
+      ssgVol=flags.getInt("ssgVol",128);
       fmVol=flags.getInt("fmVol",256);
       rate=fm->sample_rate(chipClock);
       for (int i=0; i<16; i++) {
