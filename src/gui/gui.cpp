@@ -5488,10 +5488,32 @@ bool FurnaceGUI::init() {
   }
 #endif
 
+  int numDrivers=SDL_GetNumRenderDrivers();
+  if (numDrivers<0) {
+    logW("could not list render drivers! %s",SDL_GetError());
+  } else {
+    SDL_RendererInfo ri;
+    for (int i=0; i<numDrivers; i++) {
+      int r=SDL_GetRenderDriverInfo(i,&ri);
+      if (r!=0) continue;
+      availRenderDrivers.push_back(String(ri.name));
+    }
+  }
+
+  if (!settings.renderDriver.empty()) {
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER,settings.renderDriver.c_str());
+  }
+
   sdlRend=SDL_CreateRenderer(sdlWin,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC|SDL_RENDERER_TARGETTEXTURE);
 
   if (sdlRend==NULL) {
     lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
+    if (!settings.renderDriver.empty()) {
+      settings.renderDriver="";
+      e->setConf("renderDriver","");
+      e->saveConf();
+      lastError=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
+    }
     return false;
   }
 

@@ -1105,7 +1105,7 @@ class FurnaceGUI {
   std::vector<FurnaceGUISysDef> newSongSearchResults;
   std::deque<String> recentFile;
   std::vector<DivInstrumentType> makeInsTypeList;
-
+  std::vector<String> availRenderDrivers;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
   bool vgmExportDirectStream, displayInsTypeList;
@@ -1307,6 +1307,7 @@ class FurnaceGUI {
     String midiInDevice;
     String midiOutDevice;
     String c163Name;
+    String renderDriver;
     String initialSysName;
     String noteOffLabel;
     String noteRelLabel;
@@ -1443,6 +1444,7 @@ class FurnaceGUI {
       midiInDevice(""),
       midiOutDevice(""),
       c163Name(""),
+      renderDriver(""),
       initialSysName("Sega Genesis/Mega Drive"),
       noteOffLabel("OFF"),
       noteRelLabel("==="),
