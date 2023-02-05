@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -163,7 +163,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_TX81Z_REQUEST: {
       TAMidiMessage msg;
       msg.type=TA_MIDI_SYSEX;
-      msg.sysExData.reset(new unsigned char[15]);
+      msg.sysExData.reset(new unsigned char[15],std::default_delete<unsigned char[]>());
       msg.sysExLen=15;
       memcpy(msg.sysExData.get(),avRequest,15);
       if (!e->sendMidiMessage(msg)) {
@@ -192,6 +192,9 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_WINDOW_SONG_INFO:
       nextWindow=GUI_WINDOW_SONG_INFO;
+      break;
+    case GUI_ACTION_WINDOW_SPEED:
+      nextWindow=GUI_WINDOW_SPEED;
       break;
     case GUI_ACTION_WINDOW_PATTERN:
       nextWindow=GUI_WINDOW_PATTERN;
@@ -262,6 +265,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_FIND:
       nextWindow=GUI_WINDOW_FIND;
       break;
+    case GUI_ACTION_WINDOW_GROOVES:
+      nextWindow=GUI_WINDOW_GROOVES;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -273,6 +279,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_SONG_INFO:
           songInfoOpen=false;
+          break;
+        case GUI_WINDOW_SPEED:
+          speedOpen=false;
           break;
         case GUI_WINDOW_ORDERS:
           ordersOpen=false;
@@ -352,6 +361,9 @@ void FurnaceGUI::doAction(int what) {
         case GUI_WINDOW_FIND:
           findOpen=false;
           break;
+        case GUI_WINDOW_GROOVES:
+          groovesOpen=false;
+          break;
         default:
           break;
       }
@@ -386,10 +398,10 @@ void FurnaceGUI::doAction(int what) {
       doSelectAll();
       break;
     case GUI_ACTION_PAT_CUT:
-      doCopy(true);
+      doCopy(true,true,selStart,selEnd);
       break;
     case GUI_ACTION_PAT_COPY:
-      doCopy(false);
+      doCopy(false,true,selStart,selEnd);
       break;
     case GUI_ACTION_PAT_PASTE:
       doPaste();

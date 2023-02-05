@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,8 +47,8 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "dev136"
-#define DIV_ENGINE_VERSION 136
+#define DIV_VERSION "dev139"
+#define DIV_ENGINE_VERSION 139
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -337,7 +337,6 @@ class DivEngine {
   bool playing;
   bool freelance;
   bool shallStop, shallStopSched;
-  bool speedAB;
   bool endOfSong;
   bool consoleMode;
   bool extValuePresent;
@@ -359,7 +358,7 @@ class DivEngine {
   bool midiOutClock;
   int midiOutMode;
   int softLockCount;
-  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed, elapsedBars, elapsedBeats;
+  int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
   size_t curSubSongIndex;
   size_t bufferPos;
   double divider;
@@ -368,7 +367,7 @@ class DivEngine {
   int stepPlay;
   int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
   unsigned char extValue, pendingMetroTick;
-  unsigned char speed1, speed2;
+  DivGroovePattern speeds;
   short tempoAccum;
   DivStatusView view;
   DivHaltPositions haltOn;
@@ -391,9 +390,9 @@ class DivEngine {
   std::vector<String> midiOuts;
   std::vector<DivCommand> cmdStream;
   std::vector<DivInstrumentType> possibleInsTypes;
-  static DivSysDef* sysDefs[256];
-  static DivSystem sysFileMapFur[256];
-  static DivSystem sysFileMapDMF[256];
+  static DivSysDef* sysDefs[DIV_MAX_CHIP_DEFS];
+  static DivSystem sysFileMapFur[DIV_MAX_CHIP_DEFS];
+  static DivSystem sysFileMapDMF[DIV_MAX_CHIP_DEFS];
 
   struct SamplePreview {
     double rate;
@@ -413,6 +412,7 @@ class DivEngine {
   } sPreview;
 
   short vibTable[64];
+  short tremTable[128];
   int reversePitchTable[4096];
   int pitchTable[4096];
   char c163NameCS[1024];
@@ -442,7 +442,7 @@ class DivEngine {
   void processRow(int i, bool afterDelay);
   void nextOrder();
   void nextRow();
-  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, bool directStream);
+  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, bool directStream);
   // returns true if end of song.
   bool nextTick(bool noAccum=false, bool inhibitLowLat=false);
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
@@ -729,11 +729,8 @@ class DivEngine {
     // get current subsong
     size_t getCurrentSubSong();
 
-    // get speed 1
-    unsigned char getSpeed1();
-
-    // get speed 2
-    unsigned char getSpeed2();
+    // get speeds
+    const DivGroovePattern& getSpeeds();
 
     // get Hz
     float getHz();
@@ -1064,7 +1061,6 @@ class DivEngine {
       freelance(false),
       shallStop(false),
       shallStopSched(false),
-      speedAB(false),
       endOfSong(false),
       consoleMode(false),
       extValuePresent(false),
@@ -1098,6 +1094,7 @@ class DivEngine {
       nextSpeed(3),
       elapsedBars(0),
       elapsedBeats(0),
+      curSpeed(0),
       curSubSongIndex(0),
       bufferPos(0),
       divider(60),
@@ -1115,8 +1112,6 @@ class DivEngine {
       globalPitch(0),
       extValue(0),
       pendingMetroTick(0),
-      speed1(3),
-      speed2(3),
       tempoAccum(0),
       view(DIV_STATUS_NOTHING),
       haltOn(DIV_HALT_NONE),
@@ -1158,13 +1153,14 @@ class DivEngine {
       memset(dispatchOfChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(sysOfChan,0,DIV_MAX_CHANS*sizeof(int));
       memset(vibTable,0,64*sizeof(short));
+      memset(tremTable,0,128*sizeof(short));
       memset(reversePitchTable,0,4096*sizeof(int));
       memset(pitchTable,0,4096*sizeof(int));
-      memset(sysDefs,0,256*sizeof(void*));
+      memset(sysDefs,0,DIV_MAX_CHIP_DEFS*sizeof(void*));
       memset(walked,0,8192);
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
 
-      for (int i=0; i<256; i++) {
+      for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
         sysFileMapFur[i]=DIV_SYSTEM_NULL;
         sysFileMapDMF[i]=DIV_SYSTEM_NULL;
       }

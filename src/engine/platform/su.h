@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -89,6 +89,7 @@ class DivPlatformSoundUnit: public DivDispatch {
   short tempR;
   unsigned char sampleBank, lfoMode, lfoSpeed;
   SoundUnit* su;
+  unsigned char* sampleMem;
   size_t sampleMemLen;
   unsigned char regPool[128];
   double NOTE_SU(int ch, int note);

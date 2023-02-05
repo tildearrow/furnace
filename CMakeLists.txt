@@ -265,6 +265,9 @@ if (USE_SDL2)
     if (MSVC)
       list(APPEND DEPENDENCIES_COMPILE_OPTIONS "/DHAVE_LIBC")
     endif()
+    if (WIN32)
+      list(APPEND DEPENDENCIES_LIBRARIES SDL2main)
+    endif()
     message(STATUS "Using vendored SDL2")
   endif()
 else()
@@ -593,6 +596,7 @@ src/gui/editControls.cpp
 src/gui/effectList.cpp
 src/gui/findReplace.cpp
 src/gui/gradient.cpp
+src/gui/grooves.cpp
 src/gui/insEdit.cpp
 src/gui/log.cpp
 src/gui/mixer.cpp
@@ -610,6 +614,7 @@ src/gui/scaling.cpp
 src/gui/settings.cpp
 src/gui/songInfo.cpp
 src/gui/songNotes.cpp
+src/gui/speed.cpp
 src/gui/spoiler.cpp
 src/gui/stats.cpp
 src/gui/subSongs.cpp

@@ -32,6 +32,9 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 139: Furnace dev139
+- 138: Furnace dev138
+- 137: Furnace dev137
 - 136: Furnace dev136
 - 135: Furnace dev135
 - 134: Furnace dev134
@@ -398,6 +401,17 @@ size | description
  4?? | patchbay
      | - see next section for more details.
   1  | automatic patchbay (>=136)
+ --- | **a couple more compat flags** (>=138)
+  1  | broken portamento during legato
+  7  | reserved
+ --- | **speed pattern of first song** (>=139)
+  1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
+ 16  | speed pattern (this overrides speed 1 and speed 2 settings)
+ --- | **groove list** (>=139)
+  1  | number of entries
+ ??? | groove entries. the format is:
+     | - 1 byte: length of groove
+     | - 16 bytes: groove pattern
 ```
 
 # patchbay
@@ -467,6 +481,9 @@ size | description
      | - a list of channelCount C strings
  S?? | channel short names
      | - same as above
+ --- | **speed pattern** (>=139)
+  1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
+ 16  | speed pattern (this overrides speed 1 and speed 2 settings)
 ```
 
 # chip flags

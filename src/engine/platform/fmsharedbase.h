@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,6 +47,8 @@ class DivPlatformFMBase: public DivDispatch {
       0,2,1,3
     };
 
+    const unsigned int hardResetCycles=127;
+
     struct FMChannel: public SharedChannel<int> {
       DivInstrumentFM state;
       unsigned char freqH, freqL;
@@ -83,6 +85,7 @@ class DivPlatformFMBase: public DivDispatch {
 
     unsigned char lastBusy;
     int delay;
+    bool flushFirst;
 
     unsigned char regPool[512];
     short oldWrites[512];
@@ -102,7 +105,7 @@ class DivPlatformFMBase: public DivDispatch {
       }
     }
     inline void urgentWrite(unsigned short a, unsigned char v) {
-      if (!skipRegisterWrites) {
+      if (!skipRegisterWrites && !flushFirst) {
         if (writes.empty()) {
           writes.push_back(QueuedWrite(a,v));
         } else if (writes.size()>16 || writes.front().addrOrVal) {
@@ -118,9 +121,11 @@ class DivPlatformFMBase: public DivDispatch {
 
     friend void putDispatchChan(void*,int,int);
   
-    DivPlatformFMBase():DivDispatch(),
-    lastBusy(0),
-    delay(0) {}
+    DivPlatformFMBase():
+      DivDispatch(),
+      lastBusy(0),
+      delay(0),
+      flushFirst(false) {}
 };
 
 #endif

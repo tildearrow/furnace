@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -69,11 +69,13 @@ const char* aboutLine[]={
   "brickblock369",
   "Burnt Fishy",
   "CaptainMalware",
+  "Clingojam",
   "DeMOSic",
   "DevEd",
   "Dippy",
   "djtuBIG-MaliceX",
   "dumbut",
+  "EpicTyphlosion",
   "FΛDE",
   "Forte",
   "Fragmare",
@@ -91,6 +93,7 @@ const char* aboutLine[]={
   "LVintageNerd",
   "Mahbod Karamoozian",
   "Martin Demsky",
+  "MelonadeM",
   "Miker",
   "nicco1690",
   "<nk>",
@@ -173,7 +176,7 @@ const char* aboutLine[]={
   "NEOART Costa Rica",
   "all members of Deflers of Noice!",
   "",
-  "copyright © 2021-2022 tildearrow",
+  "copyright © 2021-2023 tildearrow",
   "(and contributors).",
   "licensed under GPLv2+! see",
   "LICENSE for more information.",

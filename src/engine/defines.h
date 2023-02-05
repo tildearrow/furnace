@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,7 @@
 #define DIV_MAX_CHIPS 32
 #define DIV_MAX_CHANS 128
 #define DIV_MAX_PATTERNS 256
+#define DIV_MAX_CHIP_DEFS 256
 
 // in-pattern
 #define DIV_MAX_ROWS 256

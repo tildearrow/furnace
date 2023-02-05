@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -350,6 +350,10 @@ const int detuneMap[2][8]={
 const int detuneUnmap[2][11]={
   {0, 1, 2, 3, 4, 5, 6, 7, 0, 0, 0},
   {0, 0, 0, 3, 4, 5, 6, 7, 2, 1, 0}
+};
+
+const int kslMap[4]={
+  0, 2, 1, 3
 };
 
 // do not change these!
@@ -1778,14 +1782,22 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
         ImGui::TableNextColumn();
         float availableWidth=ImGui::GetContentRegionAvail().x-reservedSpace;
         int totalFit=MIN(255,availableWidth/MAX(1,macroPointSize*dpiScale));
-        if (macroDragScroll>255-totalFit) {
-          macroDragScroll=255-totalFit;
+        int scrollMax=0;
+        for (FurnaceGUIMacroDesc& i: macros) {
+          if (i.macro->len>scrollMax) scrollMax=i.macro->len;
         }
+        scrollMax-=totalFit;
+        if (scrollMax<0) scrollMax=0;
+        if (macroDragScroll>scrollMax) {
+          macroDragScroll=scrollMax;
+        }
+        ImGui::BeginDisabled(scrollMax<1);
         ImGui::SetNextItemWidth(availableWidth);
-        if (CWSliderInt("##MacroScroll",&macroDragScroll,0,255-totalFit,"")) {
+        if (CWSliderInt("##MacroScroll",&macroDragScroll,0,scrollMax,"")) {
           if (macroDragScroll<0) macroDragScroll=0;
-          if (macroDragScroll>255-totalFit) macroDragScroll=255-totalFit;
+          if (macroDragScroll>scrollMax) macroDragScroll=scrollMax;
         }
+        ImGui::EndDisabled();
 
         // draw macros
         for (FurnaceGUIMacroDesc& i: macros) {
@@ -1834,11 +1846,13 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TableNextColumn();
+        ImGui::BeginDisabled(scrollMax<1);
         ImGui::SetNextItemWidth(availableWidth);
-        if (CWSliderInt("##MacroScroll",&macroDragScroll,0,255-totalFit,"")) {
+        if (CWSliderInt("##MacroScroll",&macroDragScroll,0,scrollMax,"")) {
           if (macroDragScroll<0) macroDragScroll=0;
-          if (macroDragScroll>255-totalFit) macroDragScroll=255-totalFit;
+          if (macroDragScroll>scrollMax) macroDragScroll=scrollMax;
         }
+        ImGui::EndDisabled();
         ImGui::EndTable();
       }
       break;
@@ -2778,7 +2792,11 @@ void FurnaceGUI::drawInsEdit() {
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     P(CWVSliderScalar("##RS",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE));
                   } else {
-                    P(CWVSliderScalar("##KSL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ksl,&_ZERO,&_THREE));
+                    int ksl=ins->type==DIV_INS_OPLL?op.ksl:kslMap[op.ksl&3];
+                    if (CWVSliderInt("##KSL",ImVec2(20.0f*dpiScale,sliderHeight),&ksl,0,3)) {
+                      op.ksl=(ins->type==DIV_INS_OPLL?ksl:kslMap[ksl&3]);
+                      PARAMETER;
+                    }
                   }
 
                   if (ins->type==DIV_INS_OPZ) {
@@ -3226,7 +3244,7 @@ void FurnaceGUI::drawInsEdit() {
 
                         break;
                       case DIV_INS_OPL:
-                      case DIV_INS_OPL_DRUMS:
+                      case DIV_INS_OPL_DRUMS: {
                         // waveform
                         drawWaveform(op.ws&7,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -3268,9 +3286,14 @@ void FurnaceGUI::drawInsEdit() {
 
                         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
                         snprintf(tempID,1024,"%s: %%d",FM_NAME(FM_KSL));
-                        P(CWSliderScalar("##KSL",ImGuiDataType_U8,&op.ksl,&_ZERO,&_THREE,tempID)); rightClickable
+                        int ksl=kslMap[op.ksl&3];
+                        if (CWSliderInt("##KSL",&ksl,0,3,tempID)) {
+                          op.ksl=kslMap[ksl&3];
+                          PARAMETER;
+                        } rightClickable
 
                         break;
+                      }
                       case DIV_INS_OPZ: {
                         // waveform
                         drawWaveform(op.ws&7,ins->type==DIV_INS_OPZ,ImVec2(waveWidth,waveHeight));
@@ -3613,7 +3636,11 @@ void FurnaceGUI::drawInsEdit() {
                       ImGui::TableNextColumn();
                       ImGui::Text("%s",FM_NAME(FM_RS));
                     } else {
-                      P(CWSliderScalar("##KSL",ImGuiDataType_U8,&op.ksl,&_ZERO,&_THREE)); rightClickable
+                      int ksl=ins->type==DIV_INS_OPLL?op.ksl:kslMap[op.ksl&3];
+                      if (CWSliderInt("##KSL",&ksl,0,3)) {
+                        op.ksl=(ins->type==DIV_INS_OPLL?ksl:kslMap[ksl&3]);
+                        PARAMETER;
+                      } rightClickable
                       ImGui::TableNextColumn();
                       ImGui::Text("%s",FM_NAME(FM_KSL));
                     }
@@ -3779,6 +3806,9 @@ void FurnaceGUI::drawInsEdit() {
               }
             }
             
+            if (ins->type==DIV_INS_FM) {
+              macroList.push_back(FurnaceGUIMacroDesc("LFO Speed",&ins->std.ex3Macro,0,8,96,uiColors[GUI_COLOR_MACRO_OTHER]));
+            }
             if (ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
               macroList.push_back(FurnaceGUIMacroDesc("AM Depth",&ins->std.ex1Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));
               macroList.push_back(FurnaceGUIMacroDesc("PM Depth",&ins->std.ex2Macro,0,127,128,uiColors[GUI_COLOR_MACRO_OTHER]));

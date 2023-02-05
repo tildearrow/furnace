@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,9 +23,9 @@
 #include "song.h"
 #include "../ta-log.h"
 
-DivSysDef* DivEngine::sysDefs[256];
-DivSystem DivEngine::sysFileMapFur[256];
-DivSystem DivEngine::sysFileMapDMF[256];
+DivSysDef* DivEngine::sysDefs[DIV_MAX_CHIP_DEFS];
+DivSystem DivEngine::sysFileMapFur[DIV_MAX_CHIP_DEFS];
+DivSystem DivEngine::sysFileMapDMF[DIV_MAX_CHIP_DEFS];
 
 DivSystem DivEngine::systemFromFileFur(unsigned char val) {
   return sysFileMapFur[val];
@@ -504,6 +504,10 @@ void DivEngine::registerSystems() {
 
   EffectHandlerMap fmOPZPostEffectHandlerMap(fmOPMPostEffectHandlerMap);
   fmOPZPostEffectHandlerMap.insert({
+    {0x24, {DIV_CMD_FM_LFO2, "24xx: Set LFO 2 speed"}},
+    {0x25, {DIV_CMD_FM_LFO2_WAVE, "25xx: Set LFO 2 waveform (0 saw, 1 square, 2 triangle, 3 noise)"}},
+    {0x26, {DIV_CMD_FM_AM2_DEPTH, "26xx: Set AM 2 depth (0 to 7F)", effectValAnd<127>}},
+    {0x27, {DIV_CMD_FM_PM2_DEPTH, "27xx: Set PM 2 depth (0 to 7F)", effectValAnd<127>}},
     {0x28, {DIV_CMD_FM_REV, "28xy: Set reverb (x: operator from 1 to 4 (0 for all ops); y: reverb from 0 to 7)", effectOpVal<4>, effectValAnd<7>}},
     {0x2a, {DIV_CMD_FM_WS, "2Axy: Set waveform (x: operator from 1 to 4 (0 for all ops); y: waveform from 0 to 7)", effectOpVal<4>, effectValAnd<7>}},
     {0x2b, {DIV_CMD_FM_EG_SHIFT, "2Bxy: Set envelope generator shift (x: operator from 1 to 4 (0 for all ops); y: shift from 0 to 3)", effectOpVal<4>, effectValAnd<3>}},
@@ -1400,7 +1404,7 @@ void DivEngine::registerSystems() {
   }
 
   sysDefs[DIV_SYSTEM_LYNX]=new DivSysDef(
-    "Atari Lynx", NULL, 0xa8, 0, 4, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Atari Lynx", NULL, 0xa8, 0, 4, false, true, 0x172, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "a portable console made by Atari. it has all of Atari's trademark waveforms.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
@@ -1787,7 +1791,7 @@ void DivEngine::registerSystems() {
     {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}
   );
 
-  for (int i=0; i<256; i++) {
+  for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
     if (sysDefs[i]==NULL) continue;
     if (sysDefs[i]->id!=0) {
       sysFileMapFur[sysDefs[i]->id]=(DivSystem)i;

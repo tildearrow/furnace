@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -92,6 +92,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     friend void putDispatchChan(void*,int,int);
 
     inline void processDAC(int iRate);
+    inline void commitState(int ch, DivInstrument* ins);
     void acquire_nuked(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);
   
@@ -114,10 +115,11 @@ class DivPlatformGenesis: public DivPlatformOPN {
     void setYMFM(bool use);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    float getPostAmp();
     void toggleRegisterDump(bool enable);
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
-    void notifyInsDeletion(void* ins);
+    virtual void notifyInsDeletion(void* ins);
     void setSoftPCM(bool value);
     int getPortaFloor(int ch);
     void poke(unsigned int addr, unsigned short val);
