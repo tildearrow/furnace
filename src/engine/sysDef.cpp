@@ -23,9 +23,9 @@
 #include "song.h"
 #include "../ta-log.h"
 
-DivSysDef* DivEngine::sysDefs[256];
-DivSystem DivEngine::sysFileMapFur[256];
-DivSystem DivEngine::sysFileMapDMF[256];
+DivSysDef* DivEngine::sysDefs[DIV_MAX_CHIP_DEFS];
+DivSystem DivEngine::sysFileMapFur[DIV_MAX_CHIP_DEFS];
+DivSystem DivEngine::sysFileMapDMF[DIV_MAX_CHIP_DEFS];
 
 DivSystem DivEngine::systemFromFileFur(unsigned char val) {
   return sysFileMapFur[val];
@@ -1791,7 +1791,7 @@ void DivEngine::registerSystems() {
     {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD}
   );
 
-  for (int i=0; i<256; i++) {
+  for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
     if (sysDefs[i]==NULL) continue;
     if (sysDefs[i]->id!=0) {
       sysFileMapFur[sysDefs[i]->id]=(DivSystem)i;
