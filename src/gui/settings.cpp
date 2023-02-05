@@ -1811,7 +1811,8 @@ void FurnaceGUI::drawSettings() {
             }
             if (ImGui::TreeNode("Orders")) {
               UI_COLOR_CONFIG(GUI_COLOR_ORDER_ROW_INDEX,"Order number");
-              UI_COLOR_CONFIG(GUI_COLOR_ORDER_ACTIVE,"Current order background");
+              UI_COLOR_CONFIG(GUI_COLOR_ORDER_ACTIVE,"Playing order background");
+              UI_COLOR_CONFIG(GUI_COLOR_ORDER_SELECTED,"Selected order");
               UI_COLOR_CONFIG(GUI_COLOR_ORDER_SIMILAR,"Similar patterns");
               UI_COLOR_CONFIG(GUI_COLOR_ORDER_INACTIVE,"Inactive patterns");
               ImGui::TreePop();

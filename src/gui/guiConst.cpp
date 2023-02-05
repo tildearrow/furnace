@@ -742,6 +742,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
 
   D(GUI_COLOR_ORDER_ROW_INDEX,"",ImVec4(0.5f,0.8f,1.0f,1.0f)),
   D(GUI_COLOR_ORDER_ACTIVE,"",ImVec4(0.4f,0.7f,1.0f,0.25f)),
+  D(GUI_COLOR_ORDER_SELECTED,"",ImVec4(0.6f,0.8f,1.0f,0.75f)),
   D(GUI_COLOR_ORDER_SIMILAR,"",ImVec4(0.5f,1.0f,1.0f,1.0f)),
   D(GUI_COLOR_ORDER_INACTIVE,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
 
