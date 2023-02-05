@@ -30,17 +30,26 @@
 
 void DivYM2612Interface::ymfm_set_timer(uint32_t tnum, int32_t duration_in_clocks) {
   if (tnum==1) {
-    countB=duration_in_clocks;
+    setB=duration_in_clocks;
   } else if (tnum==0) {
-    countA=duration_in_clocks;
+    setA=duration_in_clocks;
   }
-  //logV("ymfm_set_timer(%d,%d)",tnum,duration_in_clocks);
 }
 
 void DivYM2612Interface::clock() {
-  if (countA>=0) {
+  if (setA>=0) {
     countA-=144;
-    if (countA<0) m_engine->engine_timer_expired(0);
+    if (countA<0) {
+      m_engine->engine_timer_expired(0);
+      countA+=setA;
+    }
+  }
+  if (setB>=0) {
+    countB-=144;
+    if (countB<0) {
+      m_engine->engine_timer_expired(1);
+      countB+=setB;
+    }
   }
 }
 
