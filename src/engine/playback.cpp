@@ -412,11 +412,22 @@ void DivEngine::processRow(int i, bool afterDelay) {
       if (effectVal==-1) effectVal=0;
 
       switch (effect) {
-        case 0x09: // speed 1
-          if (effectVal>0) speed1=effectVal;
+        case 0x09: // select groove pattern/speed 1
+          if (song.grooves.empty()) {
+            if (effectVal>0) speeds.val[0]=effectVal;
+          } else {
+            if (effectVal<(short)song.grooves.size()) {
+              speeds=song.grooves[effectVal];
+              curSpeed=0;
+            }
+          }
           break;
-        case 0x0f: // speed 2
-          if (effectVal>0) speed2=effectVal;
+        case 0x0f: // speed 1/speed 2
+          if (speeds.len==2 && song.grooves.empty()) {
+            if (effectVal>0) speeds.val[1]=effectVal;
+          } else {
+            if (effectVal>0) speeds.val[0]=effectVal;
+          }
           break;
         case 0x0b: // change order
           if (changeOrd==-1 || song.jumpTreatment==0) {
@@ -1083,6 +1094,9 @@ void DivEngine::nextRow() {
   }
 
   if (song.brokenSpeedSel) {
+    unsigned char speed2=(speeds.len>=2)?speeds.val[1]:speeds.val[0];
+    unsigned char speed1=speeds.val[0];
+    
     if ((curSubSong->patLen&1) && curOrder&1) {
       ticks=((curRow&1)?speed2:speed1)*(curSubSong->timeBase+1);
       nextSpeed=(curRow&1)?speed1:speed2;
@@ -1091,14 +1105,10 @@ void DivEngine::nextRow() {
       nextSpeed=(curRow&1)?speed2:speed1;
     }
   } else {
-    if (speedAB) {
-      ticks=speed2*(curSubSong->timeBase+1);
-      nextSpeed=speed1;
-    } else {
-      ticks=speed1*(curSubSong->timeBase+1);
-      nextSpeed=speed2;
-    }
-    speedAB=!speedAB;
+    ticks=speeds.val[curSpeed]*(curSubSong->timeBase+1);
+    curSpeed++;
+    if (curSpeed>=speeds.len) curSpeed=0;
+    nextSpeed=speeds.val[curSpeed];
   }
 
   // post row details

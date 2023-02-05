@@ -1207,6 +1207,18 @@ void FurnaceGUI::drawSettings() {
         ImVec2 settingsViewSize=ImGui::GetContentRegionAvail();
         settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
         if (ImGui::BeginChild("SettingsView",settingsViewSize)) {
+          if (ImGui::BeginCombo("Render driver",settings.renderDriver.empty()?"Automatic":settings.renderDriver.c_str())) {
+            if (ImGui::Selectable("Automatic",settings.renderDriver.empty())) {
+              settings.renderDriver="";
+            }
+            for (String& i: availRenderDrivers) {
+              if (ImGui::Selectable(i.c_str(),i==settings.renderDriver)) {
+                settings.renderDriver=i;
+              }
+            }
+            ImGui::EndCombo();
+          }
+
           bool dpiScaleAuto=(settings.dpiScale<0.5f);
           if (ImGui::Checkbox("Automatic UI scaling factor",&dpiScaleAuto)) {
             if (dpiScaleAuto) {
@@ -1799,7 +1811,8 @@ void FurnaceGUI::drawSettings() {
             }
             if (ImGui::TreeNode("Orders")) {
               UI_COLOR_CONFIG(GUI_COLOR_ORDER_ROW_INDEX,"Order number");
-              UI_COLOR_CONFIG(GUI_COLOR_ORDER_ACTIVE,"Current order background");
+              UI_COLOR_CONFIG(GUI_COLOR_ORDER_ACTIVE,"Playing order background");
+              UI_COLOR_CONFIG(GUI_COLOR_ORDER_SELECTED,"Selected order");
               UI_COLOR_CONFIG(GUI_COLOR_ORDER_SIMILAR,"Similar patterns");
               UI_COLOR_CONFIG(GUI_COLOR_ORDER_INACTIVE,"Inactive patterns");
               ImGui::TreePop();
@@ -2447,6 +2460,7 @@ void FurnaceGUI::syncSettings() {
   settings.midiInDevice=e->getConfString("midiInDevice","");
   settings.midiOutDevice=e->getConfString("midiOutDevice","");
   settings.c163Name=e->getConfString("c163Name",DIV_C163_DEFAULT_NAME);
+  settings.renderDriver=e->getConfString("renderDriver","");
   settings.audioQuality=e->getConfInt("audioQuality",0);
   settings.audioBufSize=e->getConfInt("audioBufSize",1024);
   settings.audioRate=e->getConfInt("audioRate",44100);
@@ -2762,6 +2776,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("midiInDevice",settings.midiInDevice);
   e->setConf("midiOutDevice",settings.midiOutDevice);
   e->setConf("c163Name",settings.c163Name);
+  e->setConf("renderDriver",settings.renderDriver);
   e->setConf("audioQuality",settings.audioQuality);
   e->setConf("audioBufSize",settings.audioBufSize);
   e->setConf("audioRate",settings.audioRate);

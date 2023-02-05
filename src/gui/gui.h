@@ -113,6 +113,7 @@ enum FurnaceGUIColors {
 
   GUI_COLOR_ORDER_ROW_INDEX,
   GUI_COLOR_ORDER_ACTIVE,
+  GUI_COLOR_ORDER_SELECTED,
   GUI_COLOR_ORDER_SIMILAR,
   GUI_COLOR_ORDER_INACTIVE,
 
@@ -321,6 +322,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_SUBSONGS,
   GUI_WINDOW_FIND,
   GUI_WINDOW_CLOCK,
+  GUI_WINDOW_GROOVES,
   GUI_WINDOW_SPOILER
 };
 
@@ -466,6 +468,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_SUBSONGS,
   GUI_ACTION_WINDOW_FIND,
   GUI_ACTION_WINDOW_CLOCK,
+  GUI_ACTION_WINDOW_GROOVES,
 
   GUI_ACTION_COLLAPSE_WINDOW,
   GUI_ACTION_CLOSE_WINDOW,
@@ -1097,13 +1100,13 @@ class FurnaceGUI {
   String workingDirVGMExport, workingDirZSMExport, workingDirROMExport, workingDirFont, workingDirColors, workingDirKeybinds;
   String workingDirLayout, workingDirROM, workingDirTest;
   String mmlString[32];
-  String mmlStringW, mmlStringSNES;
+  String mmlStringW, mmlStringSNES, grooveString, grooveListString;
 
   std::vector<DivSystem> sysSearchResults;
   std::vector<FurnaceGUISysDef> newSongSearchResults;
   std::deque<String> recentFile;
   std::vector<DivInstrumentType> makeInsTypeList;
-
+  std::vector<String> availRenderDrivers;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
   bool vgmExportDirectStream, displayInsTypeList;
@@ -1305,6 +1308,7 @@ class FurnaceGUI {
     String midiInDevice;
     String midiOutDevice;
     String c163Name;
+    String renderDriver;
     String initialSysName;
     String noteOffLabel;
     String noteRelLabel;
@@ -1441,6 +1445,7 @@ class FurnaceGUI {
       midiInDevice(""),
       midiOutDevice(""),
       c163Name(""),
+      renderDriver(""),
       initialSysName("Sega Genesis/Mega Drive"),
       noteOffLabel("OFF"),
       noteRelLabel("==="),
@@ -1456,6 +1461,7 @@ class FurnaceGUI {
   int curIns, curWave, curSample, curOctave, curOrder, prevIns, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan,orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory, latchTarget;
   int wheelX, wheelY, dragSourceX, dragSourceXFine, dragSourceY, dragDestinationX, dragDestinationXFine, dragDestinationY, oldBeat, oldBar;
+  int curGroove;
   float soloTimeout;
 
   double exportFadeOut;
@@ -1465,6 +1471,7 @@ class FurnaceGUI {
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
+  bool groovesOpen;
 
   bool clockShowReal, clockShowRow, clockShowBeat, clockShowMetro, clockShowTime;
   float clockMetroTick[16];
@@ -1472,7 +1479,7 @@ class FurnaceGUI {
   SelectionPoint selStart, selEnd, cursor, cursorDrag, dragStart, dragEnd;
   bool selecting, selectingFull, dragging, curNibble, orderNibble, followOrders, followPattern, changeAllOrders, mobileUI;
   bool collapseWindow, demandScrollX, fancyPattern, wantPatName, firstFrame, tempoView, waveHex, waveSigned, waveGenVisible, lockLayout, editOptsVisible, latchNibble, nonLatchNibble;
-  bool keepLoopAlive, orderScrollLocked, orderScrollTolerance, dragMobileMenu, dragMobileEditButton;
+  bool keepLoopAlive, keepGrooveAlive, orderScrollLocked, orderScrollTolerance, dragMobileMenu, dragMobileEditButton, wantGrooveListFocus;
   FurnaceGUIWindows curWindow, nextWindow, curWindowLast;
   std::atomic<FurnaceGUIWindows> curWindowThreadSafe;
   float peak[DIV_MAX_OUTPUTS];
@@ -1801,7 +1808,7 @@ class FurnaceGUI {
   void pushAccentColors(const ImVec4& one, const ImVec4& two, const ImVec4& border, const ImVec4& borderShadow);
   void popAccentColors();
 
-  float calcBPM(int s1, int s2, float hz, int vN, int vD);
+  float calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD);
 
   void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel);
 
@@ -1821,6 +1828,7 @@ class FurnaceGUI {
   void drawEditControls();
   void drawSongInfo(bool asChild=false);
   void drawSpeed(bool asChild=false);
+  void drawGrooves();
   void drawOrders();
   void drawPattern();
   void drawInsList(bool asChild=false);

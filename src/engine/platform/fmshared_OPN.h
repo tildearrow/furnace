@@ -154,6 +154,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
     unsigned int ayDiv;
     unsigned char csmChan;
     unsigned char lfoValue;
+    unsigned short ssgVol;
+    unsigned short fmVol;
     bool extSys, useCombo, fbAllOps;
 
     DivConfig ayFlags;
@@ -172,6 +174,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
       ayDiv(a),
       csmChan(cc),
       lfoValue(0),
+      ssgVol(128),
+      fmVol(256),
       extSys(isExtSys),
       useCombo(false),
       fbAllOps(false) {}

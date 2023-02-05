@@ -127,10 +127,20 @@ enum DivSystem {
   DIV_SYSTEM_YM2608_CSM
 };
 
+struct DivGroovePattern {
+  unsigned char val[16];
+  unsigned char len;
+  DivGroovePattern():
+    len(1) {
+      memset(val,6,16);
+    }
+};
+
 struct DivSubSong {
   String name, notes;
   unsigned char hilightA, hilightB;
-  unsigned char timeBase, speed1, speed2, arpLen;
+  unsigned char timeBase, arpLen;
+  DivGroovePattern speeds;
   short virtualTempoN, virtualTempoD;
   bool pal;
   bool customTempo;
@@ -153,8 +163,6 @@ struct DivSubSong {
     hilightA(4),
     hilightB(16),
     timeBase(0),
-    speed1(6),
-    speed2(6),
     arpLen(1),
     virtualTempoN(150),
     virtualTempoD(150),
@@ -338,6 +346,7 @@ struct DivSong {
 
   std::vector<DivSubSong*> subsong;
   std::vector<unsigned int> patchbay;
+  std::vector<DivGroovePattern> grooves;
 
   DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsOPLDrums, nullInsQSound;
   DivWavetable nullWave;

@@ -60,7 +60,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0x08:
       return "08xy: Set panning (x: left; y: right)";
     case 0x09:
-      return "09xx: Set speed 1";
+      return "09xx: Set groove pattern (speed 1 if no grooves exist)";
     case 0x0a:
       return "0Axy: Volume slide (0y: down; x0: up)";
     case 0x0b:
@@ -70,7 +70,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0x0d:
       return "0Dxx: Jump to next pattern";
     case 0x0f:
-      return "0Fxx: Set speed 2";
+      return "0Fxx: Set speed (speed 2 if no grooves exist)";
     case 0x80:
       return "80xx: Set panning (00: left; 80: center; FF: right)";
     case 0x81:
@@ -1959,14 +1959,12 @@ String DivEngine::getPlaybackDebugInfo() {
     "cmdsPerSecond: %d\n"
     "globalPitch: %d\n"
     "extValue: %d\n"
-    "speed1: %d\n"
-    "speed2: %d\n"
     "tempoAccum: %d\n"
     "totalProcessed: %d\n"
     "bufferPos: %d\n",
     curOrder,prevOrder,curRow,prevRow,ticks,subticks,totalLoops,lastLoopPos,nextSpeed,divider,cycles,clockDrift,
     changeOrd,changePos,totalSeconds,totalTicks,totalTicksR,totalCmds,lastCmds,cmdsPerSecond,globalPitch,
-    (int)extValue,(int)speed1,(int)speed2,(int)tempoAccum,(int)totalProcessed,(int)bufferPos
+    (int)extValue,(int)tempoAccum,(int)totalProcessed,(int)bufferPos
   );
 }
 
@@ -2091,7 +2089,8 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
     lastLoopPos=-1;
   }
   endOfSong=false;
-  speedAB=false;
+  // whaaaaa?
+  curSpeed=0;
   playing=true;
   skipping=true;
   memset(walked,0,8192);
@@ -2439,15 +2438,14 @@ void DivEngine::reset() {
   }
   extValue=0;
   extValuePresent=0;
-  speed1=curSubSong->speed1;
-  speed2=curSubSong->speed2;
+  speeds=curSubSong->speeds;
   firstTick=false;
   shallStop=false;
   shallStopSched=false;
   pendingMetroTick=0;
   elapsedBars=0;
   elapsedBeats=0;
-  nextSpeed=speed1;
+  nextSpeed=speeds.val[0];
   divider=60;
   if (curSubSong->customTempo) {
     divider=curSubSong->hz;
@@ -2649,12 +2647,8 @@ size_t DivEngine::getCurrentSubSong() {
   return curSubSongIndex;
 }
 
-unsigned char DivEngine::getSpeed1() {
-  return speed1;
-}
-
-unsigned char DivEngine::getSpeed2() {
-  return speed2;
+const DivGroovePattern& DivEngine::getSpeeds() {
+  return speeds;
 }
 
 float DivEngine::getHz() {
@@ -4236,7 +4230,7 @@ void DivEngine::quitDispatch() {
   clockDrift=0;
   chans=0;
   playing=false;
-  speedAB=false;
+  curSpeed=0;
   endOfSong=false;
   ticks=0;
   tempoAccum=0;

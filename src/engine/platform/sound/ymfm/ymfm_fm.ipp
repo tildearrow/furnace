@@ -431,6 +431,12 @@ bool fm_operator<RegisterType>::prepare()
 
 	// clock the key state
 	clock_keystate(uint32_t(m_keyon_live != 0));
+        if (m_keyon_live & (1<<KEYON_CSM)) {
+          if (!(m_keyon_live & (1<<KEYON_NORMAL))) {
+            clock_keystate(0);
+          } else {
+          }
+        }
 	m_keyon_live &= ~(1 << KEYON_CSM);
 
 	// we're active until we're quiet after the release
