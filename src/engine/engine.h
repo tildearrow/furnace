@@ -390,9 +390,9 @@ class DivEngine {
   std::vector<String> midiOuts;
   std::vector<DivCommand> cmdStream;
   std::vector<DivInstrumentType> possibleInsTypes;
-  static DivSysDef* sysDefs[256];
-  static DivSystem sysFileMapFur[256];
-  static DivSystem sysFileMapDMF[256];
+  static DivSysDef* sysDefs[DIV_MAX_CHIP_DEFS];
+  static DivSystem sysFileMapFur[DIV_MAX_CHIP_DEFS];
+  static DivSystem sysFileMapDMF[DIV_MAX_CHIP_DEFS];
 
   struct SamplePreview {
     double rate;
@@ -1156,11 +1156,11 @@ class DivEngine {
       memset(tremTable,0,128*sizeof(short));
       memset(reversePitchTable,0,4096*sizeof(int));
       memset(pitchTable,0,4096*sizeof(int));
-      memset(sysDefs,0,256*sizeof(void*));
+      memset(sysDefs,0,DIV_MAX_CHIP_DEFS*sizeof(void*));
       memset(walked,0,8192);
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
 
-      for (int i=0; i<256; i++) {
+      for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
         sysFileMapFur[i]=DIV_SYSTEM_NULL;
         sysFileMapDMF[i]=DIV_SYSTEM_NULL;
       }
