@@ -4472,6 +4472,9 @@ bool DivEngine::init() {
   for (int i=0; i<64; i++) {
     vibTable[i]=127*sin(((double)i/64.0)*(2*M_PI));
   }
+  for (int i=0; i<128; i++) {
+    tremTable[i]=255*0.5*(1.0-cos(((double)i/128.0)*(2*M_PI)));
+  }
   for (int i=0; i<4096; i++) {
     reversePitchTable[i]=round(1024.0*pow(2.0,(2048.0-(double)i)/(12.0*128.0)));
     pitchTable[i]=round(1024.0*pow(2.0,((double)i-2048.0)/(12.0*128.0)));

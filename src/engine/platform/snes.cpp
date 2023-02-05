@@ -811,7 +811,7 @@ const void* DivPlatformSNES::getSampleMem(int index) {
 
 size_t DivPlatformSNES::getSampleMemCapacity(int index) {
   // TODO change it based on current echo buffer size
-  return index == 0 ? 65536 : 0;
+  return index == 0 ? (65536-echoDelay*2048) : 0;
 }
 
 size_t DivPlatformSNES::getSampleMemUsage(int index) {
@@ -825,7 +825,7 @@ bool DivPlatformSNES::isSampleLoaded(int index, int sample) {
 }
 
 void DivPlatformSNES::renderSamples(int sysID) {
-  memset(copyOfSampleMem,0,getSampleMemCapacity());
+  memset(copyOfSampleMem,0,65536);
   memset(sampleOff,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
 

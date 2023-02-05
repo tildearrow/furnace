@@ -138,14 +138,14 @@ void DivPlatformTIA::tick(bool sysTick) {
           bf+=chan[i].arpOff;
         }
       }
-      chan[i].freq=dealWithFreq(chan[i].shape,bf,chan[i].pitch)+chan[i].pitch2;
+      chan[i].freq=dealWithFreq(chan[i].shape,bf,chan[i].pitch+chan[i].pitch2);
       if ((chan[i].shape==4 || chan[i].shape==5) && !(chan[i].baseFreq&0x80000000 && ((chan[i].baseFreq&0x7fffffff)<32))) {
         if (bf<39*256) {
           rWrite(0x15+i,6);
-          chan[i].freq=dealWithFreq(6,bf,chan[i].pitch)+chan[i].pitch2;
+          chan[i].freq=dealWithFreq(6,bf,chan[i].pitch+chan[i].pitch2);
         } else if (bf<59*256) {
           rWrite(0x15+i,12);
-          chan[i].freq=dealWithFreq(12,bf,chan[i].pitch)+chan[i].pitch2;
+          chan[i].freq=dealWithFreq(12,bf,chan[i].pitch+chan[i].pitch2);
         } else {
           rWrite(0x15+i,chan[i].shape);
         }

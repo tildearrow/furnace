@@ -292,6 +292,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_NOTHING=0,
   GUI_WINDOW_EDIT_CONTROLS,
   GUI_WINDOW_SONG_INFO,
+  GUI_WINDOW_SPEED,
   GUI_WINDOW_ORDERS,
   GUI_WINDOW_INS_LIST,
   GUI_WINDOW_PATTERN,
@@ -439,6 +440,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WINDOW_INS_LIST,
   GUI_ACTION_WINDOW_INS_EDIT,
   GUI_ACTION_WINDOW_SONG_INFO,
+  GUI_ACTION_WINDOW_SPEED,
   GUI_ACTION_WINDOW_PATTERN,
   GUI_ACTION_WINDOW_WAVE_LIST,
   GUI_ACTION_WINDOW_WAVE_EDIT,
@@ -1453,7 +1455,7 @@ class FurnaceGUI {
 
   int curIns, curWave, curSample, curOctave, curOrder, prevIns, oldRow, oldOrder, oldOrder1, editStep, exportLoops, soloChan,orderEditMode, orderCursor;
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, patNameTarget, newSongCategory, latchTarget;
-  int wheelX, wheelY, dragSourceX, dragSourceY, dragDestinationX, dragDestinationY, oldBeat, oldBar;
+  int wheelX, wheelY, dragSourceX, dragSourceXFine, dragSourceY, dragDestinationX, dragDestinationXFine, dragDestinationY, oldBeat, oldBar;
   float soloTimeout;
 
   double exportFadeOut;
@@ -1462,7 +1464,7 @@ class FurnaceGUI {
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
-  bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen;
+  bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
 
   bool clockShowReal, clockShowRow, clockShowBeat, clockShowMetro, clockShowTime;
   float clockMetroTick[16];
@@ -1818,6 +1820,7 @@ class FurnaceGUI {
   void drawMobileOrderSel();
   void drawEditControls();
   void drawSongInfo(bool asChild=false);
+  void drawSpeed(bool asChild=false);
   void drawOrders();
   void drawPattern();
   void drawInsList(bool asChild=false);
@@ -1889,8 +1892,8 @@ class FurnaceGUI {
   void doPullDelete();
   void doInsert();
   void doTranspose(int amount, OperationMask& mask);
-  void doCopy(bool cut);
-  void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL, int arg=0);
+  String doCopy(bool cut, bool writeClipboard, const SelectionPoint& sStart, const SelectionPoint& sEnd);
+  void doPaste(PasteMode mode=GUI_PASTE_MODE_NORMAL, int arg=0, bool readClipboard=true, String clipb="");
   void doChangeIns(int ins);
   void doInterpolate();
   void doFade(int p0, int p1, bool mode);

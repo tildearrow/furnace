@@ -558,10 +558,10 @@ void DivPlatformYM2203Ext::forceIns() {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
       if (i==2 && extMode) { // extended channel
-        if (isOpMuted[j]) {
+        if (isOpMuted[orderedOps[j]]) {
           rWrite(baseAddr+0x40,127);
         } else if (KVS(i,j)) {
-          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[j].outVol&0x7f,127));
+          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[orderedOps[j]].outVol&0x7f,127));
         } else {
           rWrite(baseAddr+0x40,op.tl);
         }

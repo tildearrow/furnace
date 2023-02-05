@@ -103,9 +103,8 @@ enum DivDispatchCmds {
   DIV_CMD_FM_AM_DEPTH, // (depth)
   DIV_CMD_FM_PM_DEPTH, // (depth)
 
-  DIV_CMD_GENESIS_LFO, // unused?
-  
-  DIV_CMD_ARCADE_LFO, // unused?
+  DIV_CMD_FM_LFO2, // (speed)
+  DIV_CMD_FM_LFO2_WAVE, // (waveform)
 
   DIV_CMD_STD_NOISE_FREQ, // (freq)
   DIV_CMD_STD_NOISE_MODE, // (mode)
@@ -226,6 +225,9 @@ enum DivDispatchCmds {
   DIV_CMD_ES5506_PAUSE, // (value)
 
   DIV_CMD_SURROUND_PANNING, // (out, val)
+
+  DIV_CMD_FM_AM2_DEPTH, // (depth)
+  DIV_CMD_FM_PM2_DEPTH, // (depth)
 
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 

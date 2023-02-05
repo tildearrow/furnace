@@ -29,6 +29,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   unsigned char baseAddr2=isSecond?0x80:0;
   unsigned short baseAddr2S=isSecond?0x8000:0;
   unsigned char smsAddr=isSecond?0x30:0x50;
+  unsigned char ggAddr=isSecond?0x3f:0x4f;
   unsigned char rf5c68Addr=isSecond?0xb1:0xb0;
   if (write.addr==0xffffffff) { // Furnace fake reset
     switch (sys) {
@@ -647,7 +648,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       }
       break;
     case DIV_SYSTEM_SMS:
-      w->writeC(smsAddr);
+      if (write.addr==1) {
+        w->writeC(ggAddr);
+      } else {
+        w->writeC(smsAddr);
+      }
       w->writeC(write.val);
       break;
     case DIV_SYSTEM_T6W28:

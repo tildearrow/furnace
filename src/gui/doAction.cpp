@@ -193,6 +193,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_SONG_INFO:
       nextWindow=GUI_WINDOW_SONG_INFO;
       break;
+    case GUI_ACTION_WINDOW_SPEED:
+      nextWindow=GUI_WINDOW_SPEED;
+      break;
     case GUI_ACTION_WINDOW_PATTERN:
       nextWindow=GUI_WINDOW_PATTERN;
       break;
@@ -273,6 +276,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_SONG_INFO:
           songInfoOpen=false;
+          break;
+        case GUI_WINDOW_SPEED:
+          speedOpen=false;
           break;
         case GUI_WINDOW_ORDERS:
           ordersOpen=false;
@@ -386,10 +392,10 @@ void FurnaceGUI::doAction(int what) {
       doSelectAll();
       break;
     case GUI_ACTION_PAT_CUT:
-      doCopy(true);
+      doCopy(true,true,selStart,selEnd);
       break;
     case GUI_ACTION_PAT_COPY:
-      doCopy(false);
+      doCopy(false,true,selStart,selEnd);
       break;
     case GUI_ACTION_PAT_PASTE:
       doPaste();

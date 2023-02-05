@@ -1427,7 +1427,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Open File",
         {"compatible files", "*.fur *.dmf *.mod *.fc13 *.fc14 *.smod *.fc",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.fur,.dmf,.mod,.fc13,.fc14,.smod,.fc},.*",
         workingDirSong,
         dpiScale
@@ -1493,7 +1493,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
          "VOPM preset bank", "*.opm",
          "Wohlstand WOPL bank", "*.wopl",
          "Wohlstand WOPN bank", "*.wopn",
-         "all files", ".*"},
+         "all files", "*"},
         "all compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi,.opli,.opni,.y12,.bnk,.ff,.gyb,.opm,.wopl,.wopn},.*",
         workingDirIns,
         dpiScale,
@@ -1560,7 +1560,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Load Wavetable",
         {"compatible files", "*.fuw *.dmw",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.fuw,.dmw},.*",
         workingDirWave,
         dpiScale,
@@ -1604,7 +1604,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Load Sample",
         {"compatible files", "*.wav *.dmc *.brr",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.wav,.dmc,.brr},.*",
         workingDirSample,
         dpiScale,
@@ -1617,7 +1617,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Raw Sample",
-        {"all files", ".*"},
+        {"all files", "*"},
         ".*",
         workingDirSample,
         dpiScale
@@ -1784,7 +1784,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Load ROM",
         {"compatible files", "*.rom *.bin",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.rom,.bin},.*",
         workingDirROM,
         dpiScale
@@ -1796,7 +1796,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Open Test",
         {"compatible files", "*.fur *.dmf *.mod",
          "another option", "*.wav *.ttf",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
         workingDirTest,
         dpiScale,
@@ -1815,7 +1815,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Open Test (Multi)",
         {"compatible files", "*.fur *.dmf *.mod",
          "another option", "*.wav *.ttf",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
         workingDirTest,
         dpiScale,
@@ -2303,8 +2303,8 @@ void FurnaceGUI::editOptions(bool topMenu) {
   char id[4096];
   editOptsVisible=true;
 
-  if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);
-  if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false);
+  if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true,true,selStart,selEnd);
+  if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false,true,selStart,selEnd);
   if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
   if (ImGui::BeginMenu("paste special...")) {
     if (ImGui::MenuItem("paste mix",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX))) doPaste(GUI_PASTE_MODE_MIX_FG);
@@ -3729,6 +3729,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::BeginMenu("window")) {
         if (ImGui::MenuItem("song information",BIND_FOR(GUI_ACTION_WINDOW_SONG_INFO),songInfoOpen)) songInfoOpen=!songInfoOpen;
         if (ImGui::MenuItem("subsongs",BIND_FOR(GUI_ACTION_WINDOW_SUBSONGS),subSongsOpen)) subSongsOpen=!subSongsOpen;
+        if (ImGui::MenuItem("speed",BIND_FOR(GUI_ACTION_WINDOW_SPEED),speedOpen)) speedOpen=!speedOpen;
         if (settings.unifiedDataView) {
           if (ImGui::MenuItem("assets",BIND_FOR(GUI_ACTION_WINDOW_INS_LIST),insListOpen)) insListOpen=!insListOpen;
         } else {
@@ -3915,6 +3916,7 @@ bool FurnaceGUI::loop() {
       drawSpoiler();
       drawPattern();
       drawEditControls();
+      drawSpeed();
       drawSongInfo();
       drawOrders();
       drawSampleList();
@@ -5245,6 +5247,7 @@ bool FurnaceGUI::init() {
   patManagerOpen=e->getConfBool("patManagerOpen",false);
   sysManagerOpen=e->getConfBool("sysManagerOpen",false);
   clockOpen=e->getConfBool("clockOpen",false);
+  speedOpen=e->getConfBool("speedOpen",true);
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",false);
@@ -5357,6 +5360,10 @@ bool FurnaceGUI::init() {
     logD("auto-detecting UI scale factor.");
     dpiScale=getScaleFactor(videoBackend);
     logD("scale factor: %f",dpiScale);
+    if (dpiScale<0.1f) {
+      logW("scale what?");
+      dpiScale=1.0f;
+    }
   }
 
 #if !(defined(__APPLE__) || defined(_WIN32))
@@ -5615,6 +5622,7 @@ void FurnaceGUI::commitState() {
   e->setConf("patManagerOpen",patManagerOpen);
   e->setConf("sysManagerOpen",sysManagerOpen);
   e->setConf("clockOpen",clockOpen);
+  e->setConf("speedOpen",speedOpen);
   e->setConf("regViewOpen",regViewOpen);
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
@@ -5861,6 +5869,7 @@ FurnaceGUI::FurnaceGUI():
   patManagerOpen(false),
   sysManagerOpen(false),
   clockOpen(false),
+  speedOpen(true),
   clockShowReal(true),
   clockShowRow(true),
   clockShowBeat(true),
