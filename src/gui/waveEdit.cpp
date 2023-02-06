@@ -509,13 +509,15 @@ void FurnaceGUI::drawWaveEdit() {
         ImGui::SameLine();
         ImGui::Text("Height");
         if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("use a height of:\n- 15 for Game Boy, WonderSwan, Namco WSG, Konami Bubble System, X1-010 Envelope shape and N163\n- 31 for PC Engine\n- 63 for FDS and Virtual Boy\n- 255 for X1-010 and SCC\nany other heights will be scaled during playback.");
+          ImGui::SetTooltip("use a height of:\n- 16 for Game Boy, WonderSwan, Namco WSG, Konami Bubble System, X1-010 Envelope shape and N163\n- 32 for PC Engine\n- 64 for FDS and Virtual Boy\n- 256 for X1-010 and SCC\nany other heights will be scaled during playback.");
         }
         ImGui::SameLine();
         ImGui::SetNextItemWidth(96.0f*dpiScale);
-        if (ImGui::InputInt("##_WTH",&wave->max,1,2)) {
-          if (wave->max>255) wave->max=255;
-          if (wave->max<1) wave->max=1;
+        int realMax=wave->max+1;
+        if (ImGui::InputInt("##_WTH",&realMax,1,2)) {
+          if (realMax>256) realMax=256;
+          if (realMax<2) realMax=2;
+          wave->max=realMax-1;
           e->notifyWaveChange(curWave);
           MARK_MODIFIED;
         }
@@ -948,7 +950,7 @@ void FurnaceGUI::drawWaveEdit() {
                   if (ImGui::Button("Scale Y")) {
                     if (waveGenScaleY>0 && wave->max!=(waveGenScaleY-1)) e->lockEngine([this,wave]() {
                       for (int i=0; i<wave->len; i++) {
-                        wave->data[i]=(wave->data[i]*(waveGenScaleY+1))/(wave->max+1);
+                        wave->data[i]=(wave->data[i]*(waveGenScaleY))/(wave->max+1);
                       }
                       wave->max=waveGenScaleY-1;
                       MARK_MODIFIED;

@@ -6154,7 +6154,7 @@ FurnaceGUI::FurnaceGUI():
   waveGenPower(1),
   waveGenInvertPoint(1.0f),
   waveGenScaleX(32),
-  waveGenScaleY(31),
+  waveGenScaleY(32),
   waveGenOffsetX(0),
   waveGenOffsetY(0),
   waveGenSmooth(1),
