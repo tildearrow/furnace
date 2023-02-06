@@ -810,19 +810,19 @@ class DivEngine {
     void delSample(int index);
 
     // add order
-    void addOrder(bool duplicate, bool where);
+    void addOrder(int pos, bool duplicate, bool where);
 
     // deep clone orders
-    void deepCloneOrder(bool where);
+    void deepCloneOrder(int pos, bool where);
 
     // delete order
-    void deleteOrder();
+    void deleteOrder(int pos);
 
     // move order up
-    void moveOrderUp();
+    void moveOrderUp(int& pos);
 
     // move order down
-    void moveOrderDown();
+    void moveOrderDown(int& pos);
 
     // move thing up
     bool moveInsUp(int which);

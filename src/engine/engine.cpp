@@ -3544,14 +3544,14 @@ void DivEngine::delSample(int index) {
   BUSY_END;
 }
 
-void DivEngine::addOrder(bool duplicate, bool where) {
+void DivEngine::addOrder(int pos, bool duplicate, bool where) {
   unsigned char order[DIV_MAX_CHANS];
   if (curSubSong->ordersLen>=(DIV_MAX_PATTERNS-1)) return;
   memset(order,0,DIV_MAX_CHANS);
   BUSY_BEGIN_SOFT;
   if (duplicate) {
     for (int i=0; i<DIV_MAX_CHANS; i++) {
-      order[i]=curOrders->ord[i][curOrder];
+      order[i]=curOrders->ord[i][pos];
     }
   } else {
     bool used[DIV_MAX_PATTERNS];
@@ -3579,14 +3579,14 @@ void DivEngine::addOrder(bool duplicate, bool where) {
   } else { // after current order
     saveLock.lock();
     for (int i=0; i<DIV_MAX_CHANS; i++) {
-      for (int j=curSubSong->ordersLen; j>curOrder; j--) {
+      for (int j=curSubSong->ordersLen; j>pos; j--) {
         curOrders->ord[i][j]=curOrders->ord[i][j-1];
       }
-      curOrders->ord[i][curOrder+1]=order[i];
+      curOrders->ord[i][pos+1]=order[i];
     }
     curSubSong->ordersLen++;
     saveLock.unlock();
-    curOrder++;
+    if (pos<=curOrder) curOrder++;
     if (playing && !freelance) {
       playSub(false);
     }
@@ -3594,7 +3594,7 @@ void DivEngine::addOrder(bool duplicate, bool where) {
   BUSY_END;
 }
 
-void DivEngine::deepCloneOrder(bool where) {
+void DivEngine::deepCloneOrder(int pos, bool where) {
   unsigned char order[DIV_MAX_CHANS];
   if (curSubSong->ordersLen>=(DIV_MAX_PATTERNS-1)) return;
   warnings="";
@@ -3602,7 +3602,7 @@ void DivEngine::deepCloneOrder(bool where) {
   for (int i=0; i<chans; i++) {
     bool didNotFind=true;
     logD("channel %d",i);
-    order[i]=curOrders->ord[i][curOrder];
+    order[i]=curOrders->ord[i][pos];
     // find free slot
     for (int j=0; j<DIV_MAX_PATTERNS; j++) {
       logD("finding free slot in %d...",j);
@@ -3631,14 +3631,14 @@ void DivEngine::deepCloneOrder(bool where) {
   } else { // after current order
     saveLock.lock();
     for (int i=0; i<chans; i++) {
-      for (int j=curSubSong->ordersLen; j>curOrder; j--) {
+      for (int j=curSubSong->ordersLen; j>pos; j--) {
         curOrders->ord[i][j]=curOrders->ord[i][j-1];
       }
-      curOrders->ord[i][curOrder+1]=order[i];
+      curOrders->ord[i][pos+1]=order[i];
     }
     curSubSong->ordersLen++;
     saveLock.unlock();
-    curOrder++;
+    if (pos<=curOrder) curOrder++;
     if (playing && !freelance) {
       playSub(false);
     }
@@ -3646,17 +3646,18 @@ void DivEngine::deepCloneOrder(bool where) {
   BUSY_END;
 }
 
-void DivEngine::deleteOrder() {
+void DivEngine::deleteOrder(int pos) {
   if (curSubSong->ordersLen<=1) return;
   BUSY_BEGIN_SOFT;
   saveLock.lock();
   for (int i=0; i<DIV_MAX_CHANS; i++) {
-    for (int j=curOrder; j<curSubSong->ordersLen; j++) {
+    for (int j=pos; j<curSubSong->ordersLen; j++) {
       curOrders->ord[i][j]=curOrders->ord[i][j+1];
     }
   }
   curSubSong->ordersLen--;
   saveLock.unlock();
+  if (curOrder>pos) curOrder--;
   if (curOrder>=curSubSong->ordersLen) curOrder=curSubSong->ordersLen-1;
   if (playing && !freelance) {
     playSub(false);
@@ -3664,40 +3665,46 @@ void DivEngine::deleteOrder() {
   BUSY_END;
 }
 
-void DivEngine::moveOrderUp() {
+void DivEngine::moveOrderUp(int& pos) {
   BUSY_BEGIN_SOFT;
-  if (curOrder<1) {
+  if (pos<1) {
     BUSY_END;
     return;
   }
   saveLock.lock();
   for (int i=0; i<DIV_MAX_CHANS; i++) {
-    curOrders->ord[i][curOrder]^=curOrders->ord[i][curOrder-1];
-    curOrders->ord[i][curOrder-1]^=curOrders->ord[i][curOrder];
-    curOrders->ord[i][curOrder]^=curOrders->ord[i][curOrder-1];
+    curOrders->ord[i][pos]^=curOrders->ord[i][pos-1];
+    curOrders->ord[i][pos-1]^=curOrders->ord[i][pos];
+    curOrders->ord[i][pos]^=curOrders->ord[i][pos-1];
   }
   saveLock.unlock();
-  curOrder--;
+  if (curOrder==pos) {
+    curOrder--;
+  }
+  pos--;
   if (playing && !freelance) {
     playSub(false);
   }
   BUSY_END;
 }
 
-void DivEngine::moveOrderDown() {
+void DivEngine::moveOrderDown(int& pos) {
   BUSY_BEGIN_SOFT;
-  if (curOrder>=curSubSong->ordersLen-1) {
+  if (pos>=curSubSong->ordersLen-1) {
     BUSY_END;
     return;
   }
   saveLock.lock();
   for (int i=0; i<DIV_MAX_CHANS; i++) {
-    curOrders->ord[i][curOrder]^=curOrders->ord[i][curOrder+1];
-    curOrders->ord[i][curOrder+1]^=curOrders->ord[i][curOrder];
-    curOrders->ord[i][curOrder]^=curOrders->ord[i][curOrder+1];
+    curOrders->ord[i][pos]^=curOrders->ord[i][pos+1];
+    curOrders->ord[i][pos+1]^=curOrders->ord[i][pos];
+    curOrders->ord[i][pos]^=curOrders->ord[i][pos+1];
   }
   saveLock.unlock();
-  curOrder++;
+  if (curOrder==pos) {
+    curOrder++;
+  }
+  pos++;
   if (playing && !freelance) {
     playSub(false);
   }

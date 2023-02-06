@@ -1471,17 +1471,17 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_ORDERS_ADD:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->addOrder(false,false);
+      e->addOrder(curOrder,false,false);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_DUPLICATE:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->addOrder(true,false);
+      e->addOrder(curOrder,true,false);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_DEEP_CLONE:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->deepCloneOrder(false);
+      e->deepCloneOrder(curOrder,false);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       if (!e->getWarnings().empty()) {
         showWarning(e->getWarnings(),GUI_WARN_GENERIC);
@@ -1489,12 +1489,12 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_ORDERS_DUPLICATE_END:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->addOrder(true,true);
+      e->addOrder(curOrder,true,true);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_DEEP_CLONE_END:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->deepCloneOrder(true);
+      e->deepCloneOrder(curOrder,true);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       if (!e->getWarnings().empty()) {
         showWarning(e->getWarnings(),GUI_WARN_GENERIC);
@@ -1502,7 +1502,7 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_ORDERS_REMOVE:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->deleteOrder();
+      e->deleteOrder(curOrder);
       if (curOrder>=e->curSubSong->ordersLen) {
         curOrder=e->curSubSong->ordersLen-1;
         oldOrder=curOrder;
@@ -1513,12 +1513,12 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_ORDERS_MOVE_UP:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->moveOrderUp();
+      e->moveOrderUp(curOrder);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_MOVE_DOWN:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->moveOrderDown();
+      e->moveOrderDown(curOrder);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_REPLAY:
