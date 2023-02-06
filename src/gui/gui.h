@@ -1765,13 +1765,16 @@ class FurnaceGUI {
   float waveGenAmp[16];
   float waveGenPhase[16];
   float waveGenTL[4];
+  int fmWaveform[4];
   int waveGenMult[4];
   int waveGenFB[4];
   int waveGenScaleX, waveGenScaleY, waveGenOffsetX, waveGenOffsetY, waveGenSmooth;
   float waveGenAmplify;
-  bool waveGenFMCon1[4];
-  bool waveGenFMCon2[3];
-  bool waveGenFMCon3[2];
+  bool waveGenFMCon0[5];
+  bool waveGenFMCon1[5];
+  bool waveGenFMCon2[5];
+  bool waveGenFMCon3[5];
+  bool waveGenFMCon4[5];
   bool waveGenFM;
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);

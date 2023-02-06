@@ -6226,19 +6226,32 @@ FurnaceGUI::FurnaceGUI():
   waveGenTL[1]=0.0f;
   waveGenTL[2]=0.0f;
   waveGenTL[3]=1.0f;
+  fmWaveform[0]=0;
+  fmWaveform[1]=0;
+  fmWaveform[2]=0;
+  fmWaveform[3]=0;
   waveGenMult[0]=1;
   waveGenMult[1]=1;
   waveGenMult[2]=1;
   waveGenMult[3]=1;
   memset(waveGenFB,0,sizeof(int)*4);
-  memset(waveGenFMCon1,0,sizeof(bool)*4);
-  memset(waveGenFMCon2,0,sizeof(bool)*3);
-  memset(waveGenFMCon3,0,sizeof(bool)*2);
+  memset(waveGenFMCon0,0,sizeof(bool)*5);
+  memset(waveGenFMCon1,0,sizeof(bool)*5);
+  memset(waveGenFMCon2,0,sizeof(bool)*5);
+  memset(waveGenFMCon3, 0, sizeof(bool) * 5);
+  memset(waveGenFMCon4,0,sizeof(bool)*5);
 
   waveGenAmp[0]=1.0f;
-  waveGenFMCon1[0]=true;
-  waveGenFMCon2[0]=true;
-  waveGenFMCon3[0]=true;
+  waveGenFMCon0[0]=false;
+  waveGenFMCon1[0]= true;
+  waveGenFMCon2[1]= true;
+  waveGenFMCon3[2] = true;
+  waveGenFMCon4[0]= false;
+
+  waveGenFMCon0[4] = false;
+  waveGenFMCon1[4] = false;
+  waveGenFMCon2[4] = false;
+  waveGenFMCon3[4] = true;
 
   memset(keyHit,0,sizeof(float)*DIV_MAX_CHANS);
   memset(keyHit1,0,sizeof(float)*DIV_MAX_CHANS);
