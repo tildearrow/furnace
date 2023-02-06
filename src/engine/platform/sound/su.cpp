@@ -160,15 +160,15 @@ void SoundUnit::NextSample(short* l, short* r) {
     if (chan[i].flags1&32) {
       if (--swvolt[i]<=0) {
         swvolt[i]=chan[i].swvol.speed;
-        if (chan[i].swvol.dir) {
-          chan[i].vol+=chan[i].swvol.amt;
-          if (chan[i].vol>chan[i].swvol.bound && !chan[i].swvol.loop) {
+        if (chan[i].swvol.amt&32) {
+          chan[i].vol+=chan[i].swvol.amt&31;
+          if (chan[i].vol>chan[i].swvol.bound && !(chan[i].swvol.amt&64)) {
             chan[i].vol=chan[i].swvol.bound;
           }
           if (chan[i].vol&0x80) {
-            if (chan[i].swvol.loop) {
-              if (chan[i].swvol.loopi) {
-                chan[i].swvol.dir=!chan[i].swvol.dir;
+            if (chan[i].swvol.amt&64) {
+              if (chan[i].swvol.amt&128) {
+                chan[i].swvol.amt^=32;
                 chan[i].vol=0xff-chan[i].vol;
               } else {
                 chan[i].vol&=~0x80;
@@ -178,11 +178,11 @@ void SoundUnit::NextSample(short* l, short* r) {
             }
           }
         } else {
-          chan[i].vol-=chan[i].swvol.amt;
+          chan[i].vol-=chan[i].swvol.amt&31;
           if (chan[i].vol&0x80) {
-            if (chan[i].swvol.loop) {
-              if (chan[i].swvol.loopi) {
-                chan[i].swvol.dir=!chan[i].swvol.dir;
+            if (chan[i].swvol.amt&64) {
+              if (chan[i].swvol.amt&128) {
+                chan[i].swvol.amt^=32;
                 chan[i].vol=-chan[i].vol;
               } else {
                 chan[i].vol&=~0x80;
@@ -191,7 +191,7 @@ void SoundUnit::NextSample(short* l, short* r) {
               chan[i].vol=0x0;
             }
           }
-          if (chan[i].vol<chan[i].swvol.bound && !chan[i].swvol.loop) {
+          if (chan[i].vol<chan[i].swvol.bound && !(chan[i].swvol.amt&64)) {
             chan[i].vol=chan[i].swvol.bound;
           }
         }
@@ -200,20 +200,20 @@ void SoundUnit::NextSample(short* l, short* r) {
     if (chan[i].flags1&16) {
       if (--swfreqt[i]<=0) {
         swfreqt[i]=chan[i].swfreq.speed;
-        if (chan[i].swfreq.dir) {
-          if (chan[i].freq>(0xffff-chan[i].swfreq.amt)) {
+        if (chan[i].swfreq.amt&128) {
+          if (chan[i].freq>(0xffff-(chan[i].swfreq.amt&127))) {
             chan[i].freq=0xffff;
           } else {
-            chan[i].freq=(chan[i].freq*(0x80+chan[i].swfreq.amt))>>7;
+            chan[i].freq=(chan[i].freq*(0x80+(chan[i].swfreq.amt&127)))>>7;
             if ((chan[i].freq>>8)>chan[i].swfreq.bound) {
               chan[i].freq=chan[i].swfreq.bound<<8;
             }
           }
         } else {
-          if (chan[i].freq<chan[i].swfreq.amt) {
+          if (chan[i].freq<(chan[i].swfreq.amt&127)) {
             chan[i].freq=0;
           } else {
-            chan[i].freq=(chan[i].freq*(0xff-chan[i].swfreq.amt))>>8;
+            chan[i].freq=(chan[i].freq*(0xff-(chan[i].swfreq.amt&127)))>>8;
             if ((chan[i].freq>>8)<chan[i].swfreq.bound) {
               chan[i].freq=chan[i].swfreq.bound<<8;
             }
@@ -224,20 +224,20 @@ void SoundUnit::NextSample(short* l, short* r) {
     if (chan[i].flags1&64) {
       if (--swcutt[i]<=0) {
         swcutt[i]=chan[i].swcut.speed;
-        if (chan[i].swcut.dir) {
-          if (chan[i].cutoff>(0xffff-chan[i].swcut.amt)) {
+        if (chan[i].swcut.amt&128) {
+          if (chan[i].cutoff>(0xffff-(chan[i].swcut.amt&127))) {
             chan[i].cutoff=0xffff;
           } else {
-            chan[i].cutoff+=chan[i].swcut.amt;
+            chan[i].cutoff+=chan[i].swcut.amt&127;
             if ((chan[i].cutoff>>8)>chan[i].swcut.bound) {
               chan[i].cutoff=chan[i].swcut.bound<<8;
             }
           }
         } else {
-          if (chan[i].cutoff<chan[i].swcut.amt) {
+          if (chan[i].cutoff<(chan[i].swcut.amt&127)) {
             chan[i].cutoff=0;
           } else {
-            chan[i].cutoff=((2048-(unsigned int)chan[i].swcut.amt)*(unsigned int)chan[i].cutoff)>>11;
+            chan[i].cutoff=((2048-(unsigned int)(chan[i].swcut.amt&127))*(unsigned int)chan[i].cutoff)>>11;
             if ((chan[i].cutoff>>8)<chan[i].swcut.bound) {
               chan[i].cutoff=chan[i].swcut.bound<<8;
             }

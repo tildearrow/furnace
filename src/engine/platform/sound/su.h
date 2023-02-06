@@ -72,22 +72,17 @@ class SoundUnit {
       unsigned short pcmrst;
       struct {
         unsigned short speed;
-        unsigned char amt: 7;
-        unsigned char dir: 1;
+        unsigned char amt;
         unsigned char bound;
       } swfreq;
       struct {
         unsigned short speed;
-        unsigned char amt: 5;
-        unsigned char dir: 1;
-        unsigned char loop: 1;
-        unsigned char loopi: 1;
+        unsigned char amt;
         unsigned char bound;
       } swvol;
       struct {
         unsigned short speed;
-        unsigned char amt: 7;
-        unsigned char dir: 1;
+        unsigned char amt;
         unsigned char bound;
       } swcut;
       unsigned char special1C;
