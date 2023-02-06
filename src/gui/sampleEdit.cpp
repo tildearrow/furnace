@@ -248,7 +248,6 @@ void FurnaceGUI::drawSampleEdit() {
             }
             ImGui::EndCombo();
           }
-          ImGui::Text("Length: %d",sample->samples);
 
           bool isThereSNES=false;
           for (int i=0; i<e->song.systemLen; i++) {

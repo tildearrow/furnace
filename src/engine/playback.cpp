@@ -217,18 +217,6 @@ const char* cmdName[]={
   "FM_AM2_DEPTH",
   "FM_PM2_DEPTH",
 
-  "ES5506_FILTER_MODE",
-  "ES5506_FILTER_K1",
-  "ES5506_FILTER_K2",
-  "ES5506_FILTER_K1_SLIDE",
-  "ES5506_FILTER_K2_SLIDE",
-  "ES5506_ENVELOPE_COUNT",
-  "ES5506_ENVELOPE_LVRAMP",
-  "ES5506_ENVELOPE_RVRAMP",
-  "ES5506_ENVELOPE_K1RAMP",
-  "ES5506_ENVELOPE_K2RAMP",
-  "ES5506_PAUSE",
-
   "ALWAYS_SET_VOLUME"
 };
 
@@ -1520,7 +1508,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           samp_temp=s->data16[sPreview.pos];
           if (sPreview.dir) {
             sPreview.pos--;
-          } else {
+          }
+          else {
             sPreview.pos++;
           }
         }

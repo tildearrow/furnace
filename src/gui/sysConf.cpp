@@ -845,7 +845,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
       ImGui::Text("Initial channel limit:");
-      if (CWSliderInt("##N163_InitialChannelLimit",&channels,1,8)) {
+      if (CWSliderInt("##InitialChannelLimit",&channels,1,8)) {
         if (channels<1) channels=1;
         if (channels>8) channels=8;
         altered=true;
@@ -859,22 +859,6 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           flags.set("clockSel",clockSel);
           flags.set("channels",channels-1);
           flags.set("multiplex",multiplex);
-        });
-      }
-      break;
-    }
-    case DIV_SYSTEM_ES5506: {
-      int channels=flags.getInt("channels",0x1f)+1;
-      ImGui::Text("Initial channel limit:");
-      if (CWSliderInt("##OTTO_InitialChannelLimit",&channels,5,32)) {
-        if (channels<5) channels=5;
-        if (channels>32) channels=32;
-        altered=true;
-      } rightClickable
-
-      if (altered) {
-        e->lockSave([&]() {
-          flags.set("channels",channels-1);
         });
       }
       break;

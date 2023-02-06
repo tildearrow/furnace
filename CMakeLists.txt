@@ -530,7 +530,6 @@ src/engine/platform/pokemini.cpp
 src/engine/platform/pong.cpp
 src/engine/platform/vic20.cpp
 src/engine/platform/vrc6.cpp
-src/engine/platform/es5506.cpp
 src/engine/platform/scc.cpp
 src/engine/platform/ymz280b.cpp
 src/engine/platform/namcowsg.cpp

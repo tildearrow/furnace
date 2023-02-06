@@ -217,18 +217,6 @@ enum DivDispatchCmds {
   DIV_CMD_FM_AM2_DEPTH, // (depth)
   DIV_CMD_FM_PM2_DEPTH, // (depth)
 
-  DIV_CMD_ES5506_FILTER_MODE, // (value)
-  DIV_CMD_ES5506_FILTER_K1, // (value, mask)
-  DIV_CMD_ES5506_FILTER_K2, // (value, mask)
-  DIV_CMD_ES5506_FILTER_K1_SLIDE, // (value, negative)
-  DIV_CMD_ES5506_FILTER_K2_SLIDE, // (value, negative)
-  DIV_CMD_ES5506_ENVELOPE_COUNT, // (count)
-  DIV_CMD_ES5506_ENVELOPE_LVRAMP, // (ramp)
-  DIV_CMD_ES5506_ENVELOPE_RVRAMP, // (ramp)
-  DIV_CMD_ES5506_ENVELOPE_K1RAMP, // (ramp, slowdown)
-  DIV_CMD_ES5506_ENVELOPE_K2RAMP, // (ramp, slowdown)
-  DIV_CMD_ES5506_PAUSE, // (value)
-
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
   DIV_CMD_MAX
@@ -646,8 +634,8 @@ class DivDispatch {
 #define COLOR_PAL (283.75*15625.0+25.0)
 
 #define CLAMP_VAR(x,xMin,xMax) \
-  if ((x)<(xMin)) (x)=(xMin); \
-  if ((x)>(xMax)) (x)=(xMax);
+  if (x<xMin) x=xMin; \
+  if (x>xMax) x=xMax;
 
 #define NEW_ARP_STRAT (parent->song.linearPitch==2 && !parent->song.oldArpStrategy)
 #define HACKY_LEGATO_MESS chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode && !NEW_ARP_STRAT
