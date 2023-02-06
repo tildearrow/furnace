@@ -20,8 +20,6 @@
 #ifndef _ES5506_H
 #define _ES5506_H
 
-#pragma once
-
 #include "../dispatch.h"
 #include "../engine.h"
 #include <queue>
