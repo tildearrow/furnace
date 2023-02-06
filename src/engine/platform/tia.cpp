@@ -58,36 +58,38 @@ void DivPlatformTIA::acquire(short** buf, size_t len) {
 }
 
 unsigned char DivPlatformTIA::dealWithFreq(unsigned char shape, int base, int pitch) {
-  if (base&0x80000000 && ((base&0x7fffffff)<32)) {
-    return base&0x1f;
-  }
   int bp=base+pitch;
   double mult=0.25*(parent->song.tuning*0.0625)*pow(2.0,double(768+bp)/(256.0*12.0));
   if (mult<0.5) mult=0.5;
+  int ret=0;
   switch (shape) {
     case 1: // buzzy
-      return ceil(31400/(30.6*mult))-1;
+      ret=ceil(31400/(30.6*mult))-1;
       break;
     case 2: // low buzzy
-      return ceil(31400/(480*mult))-1;
+      ret=ceil(31400/(480*mult))-1;
       break;
     case 3: // flangy
-      return ceil(31400/(60*mult))-1;
+      ret=ceil(31400/(60*mult))-1;
       break;
     case 4: case 5: // square
-      return ceil(31400/(4.05*mult))-1;
+      ret=ceil(31400/(4.05*mult))-1;
       break;
     case 6: case 7: case 8: case 9: case 10: // pure buzzy/reedy/noise
-      return ceil(31400/(63*mult))-1;
+      ret=ceil(31400/(63*mult))-1;
       break;
     case 12: case 13: // low square
-      return round(31400/(4.0*3*mult))-1;
+      ret=round(31400/(4.0*3*mult))-1;
       break;
     case 14: case 15: // low pure buzzy/reedy
-      return ceil(31400/(3*63*mult))-1;
+      ret=ceil(31400/(3*63*mult))-1;
       break;
   }
-  return 0;
+
+  if (ret<0) ret=0;
+  if (ret>31) ret=31;
+
+  return ret;
 }
 
 void DivPlatformTIA::tick(bool sysTick) {
@@ -102,21 +104,7 @@ void DivPlatformTIA::tick(bool sysTick) {
         rWrite(0x19+i,chan[i].outVol&15);
       }
     }
-    // TODO: the way arps work on TIA is really weird
-    if (NEW_ARP_STRAT) {
-      chan[i].handleArp();
-    } else if (chan[i].std.arp.had) {
-      if (!chan[i].inPorta) {
-        if (chan[i].std.arp.val<0 && (!(chan[i].std.arp.val&0x40000000))) {
-          chan[i].baseFreq=0x80000000|(chan[i].std.arp.val|0x40000000);
-        } else if (chan[i].std.arp.val>=0 && chan[i].std.arp.val&0x40000000) {
-          chan[i].baseFreq=0x80000000|(chan[i].std.arp.val&(~0x40000000));
-        } else {
-          chan[i].baseFreq=(chan[i].note+chan[i].std.arp.val)<<8;
-        }
-      }
-      chan[i].freqChanged=true;
-    }
+    chan[i].handleArp();
     if (chan[i].std.wave.had) {
       chan[i].shape=chan[i].std.wave.val&15;
       rWrite(0x15+i,chan[i].shape);
@@ -142,7 +130,7 @@ void DivPlatformTIA::tick(bool sysTick) {
         chan[i].freq=chan[i].baseNoteOverride&31;
       } else {
         chan[i].freq=dealWithFreq(chan[i].shape,bf,chan[i].pitch+chan[i].pitch2);
-        if ((chan[i].shape==4 || chan[i].shape==5) && !(chan[i].baseFreq&0x80000000 && ((chan[i].baseFreq&0x7fffffff)<32))) {
+        if (chan[i].shape==4 || chan[i].shape==5) {
           if (bf<39*256) {
             rWrite(0x15+i,6);
             chan[i].freq=dealWithFreq(6,bf,chan[i].pitch+chan[i].pitch2);
@@ -282,7 +270,6 @@ int DivPlatformTIA::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_TIA));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=(chan[c.chan].note<<8);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
