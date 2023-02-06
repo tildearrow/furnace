@@ -158,7 +158,7 @@ const char* sampleDepths[DIV_SAMPLE_DEPTH_MAX]={
   "16-bit PCM"
 };
 
-const char* resampleStrats[DIV_RESAMPLE_MAX]={
+const char* resampleStrats[]={
   "none",
   "linear",
   "cubic spline",

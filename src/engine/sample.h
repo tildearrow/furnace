@@ -53,8 +53,7 @@ enum DivResampleFilters {
   DIV_RESAMPLE_CUBIC,
   DIV_RESAMPLE_BLEP,
   DIV_RESAMPLE_SINC,
-  DIV_RESAMPLE_BEST,
-  DIV_RESAMPLE_MAX // for identify boundary
+  DIV_RESAMPLE_BEST
 };
 
 struct DivSampleHistory {

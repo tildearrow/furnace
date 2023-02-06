@@ -4384,7 +4384,7 @@ void FurnaceGUI::drawInsEdit() {
                     sName=e->song.sample[sampleMap.map]->name;
                   }
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::BeginCombo(fmt::sprintf("##SampleMap_Index_%d",i).c_str(),sName.c_str())) {
+                  if (ImGui::BeginCombo("##SM",sName.c_str())) {
                     String id;
                     if (ImGui::Selectable("-- empty --",sampleMap.map==-1)) { PARAMETER
                       sampleMap.map=-1;
@@ -4400,11 +4400,10 @@ void FurnaceGUI::drawInsEdit() {
                   }
                   /*ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::InputInt(fmt::sprintf("##SampleMap_Freq_%d",i).c_str(),&sampleMap.freq,50,500)) { PARAMETER
+                  if (ImGui::InputInt("##SF",&sampleMap.freq,50,500)) { PARAMETER
                     if (sampleMap.freq<0) sampleMap.freq=0;
                     if (sampleMap.freq>262144) sampleMap.freq=262144;
-                  }
-                  */
+                  }*/
                   ImGui::PopID();
                 }
                 ImGui::EndTable();
@@ -5146,23 +5145,6 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_SAA1099) waveMax=2;
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) waveMax=0;
           if (ins->type==DIV_INS_MIKEY) waveMax=0;
-          if ((ins->type==DIV_INS_AMIGA && !ins->amiga.useWave) || ins->type==DIV_INS_ES5506) {
-            if (!ins->amiga.useWave) {
-              waveLabel="Sample index";
-              waveMax=ins->amiga.useNoteMap?120:MAX(0,(int)(e->song.sampleLen)-1);
-            } else {
-              waveMax=MAX(0,(int)(e->song.waveLen)-1);
-            }
-          } else if (ins->type==DIV_INS_GB ||
-            (ins->type==DIV_INS_AMIGA && ins->amiga.useWave) ||
-            ins->type==DIV_INS_X1_010 ||
-            ins->type==DIV_INS_N163 ||
-            ins->type==DIV_INS_FDS ||
-            ins->type==DIV_INS_SWAN ||
-            ins->type==DIV_INS_PCE ||
-            ins->type==DIV_INS_SCC) {
-            waveMax=MAX(0,(int)(e->song.waveLen)-1);
-          }
           if (ins->type==DIV_INS_MULTIPCM) waveMax=0;
           if (ins->type==DIV_INS_ADPCMA) waveMax=0;
           if (ins->type==DIV_INS_ADPCMB) waveMax=0;

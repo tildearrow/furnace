@@ -185,17 +185,6 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     signed int oscOut;
     DivInstrumentES5506::Filter filter;
     DivInstrumentES5506::Envelope envelope;
-    virtual void macroInit(DivInstrument* which) override {
-      SharedChannel<unsigned int>::macroInit(which);
-      if (std.ex1.mode==2) {
-        k1Offs=0;
-      }
-      if (std.ex1.mode==2) {
-        k2Offs=0;
-      }
-      k1Prev=0xffff;
-      k2Prev=0xffff;
-    }
     Channel():
       SharedChannel<unsigned int>(0xff),
       pcm(PCM()),

@@ -820,7 +820,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(0x12,(sampleOffB[chan[c.chan].sample]>>8)&0xff);
             immWrite(0x13,sampleOffB[chan[c.chan].sample]>>16);
-            int end=((sampleOffB[chan[c.chan].sample]+s->lengthB+0xff)&~0xff)-1;
+            int end=sampleOffB[chan[c.chan].sample]+s->lengthB-1;
             immWrite(0x14,(end>>8)&0xff);
             immWrite(0x15,end>>16);
             immWrite(0x11,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
@@ -851,7 +851,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
             DivSample* s=parent->getSample(12*sampleBank+c.value%12);
             immWrite(0x12,(sampleOffB[chan[c.chan].sample]>>8)&0xff);
             immWrite(0x13,sampleOffB[chan[c.chan].sample]>>16);
-            int end=((sampleOffB[chan[c.chan].sample]+s->lengthB+0xff)&~0xff)-1;
+            int end=sampleOffB[chan[c.chan].sample]+s->lengthB-1;
             immWrite(0x14,(end>>8)&0xff);
             immWrite(0x15,end>>16);
             immWrite(0x11,isMuted[c.chan]?0:(chan[c.chan].pan<<6));
@@ -891,7 +891,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(0x110+c.chan-adpcmAChanOffs,(sampleOffA[chan[c.chan].sample]>>8)&0xff);
             immWrite(0x118+c.chan-adpcmAChanOffs,sampleOffA[chan[c.chan].sample]>>16);
-            int end=((sampleOffA[chan[c.chan].sample]+s->lengthA+0xff)&~0xff)-1;
+            int end=sampleOffA[chan[c.chan].sample]+s->lengthA-1;
             immWrite(0x120+c.chan-adpcmAChanOffs,(end>>8)&0xff);
             immWrite(0x128+c.chan-adpcmAChanOffs,end>>16);
             immWrite(0x108+c.chan-adpcmAChanOffs,isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].outVol));
@@ -922,7 +922,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
             DivSample* s=parent->getSample(12*sampleBank+c.value%12);
             immWrite(0x110+c.chan-adpcmAChanOffs,(sampleOffA[chan[c.chan].sample]>>8)&0xff);
             immWrite(0x118+c.chan-adpcmAChanOffs,sampleOffA[chan[c.chan].sample]>>16);
-            int end=((sampleOffA[chan[c.chan].sample]+s->lengthA+0xff)&~0xff)-1;
+            int end=sampleOffA[chan[c.chan].sample]+s->lengthA-1;
             immWrite(0x120+c.chan-adpcmAChanOffs,(end>>8)&0xff);
             immWrite(0x128+c.chan-adpcmAChanOffs,end>>16);
             immWrite(0x108+c.chan-adpcmAChanOffs,isMuted[c.chan]?0:((chan[c.chan].pan<<6)|chan[c.chan].outVol));

@@ -55,7 +55,7 @@ template<typename T> struct SharedChannel {
       freqChanged=true;
     }
   }
-  virtual void macroInit(DivInstrument* which) {
+  void macroInit(DivInstrument* which) {
     std.init(which);
     pitch2=0;
     arpOff=0;
