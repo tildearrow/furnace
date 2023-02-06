@@ -114,7 +114,7 @@ const char** DivPlatformES5506::getRegisterSheet() {
 
 void DivPlatformES5506::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
-    for (int i=31; i>chanMax; i--) {
+    for (int i=31; i>(int)chanMax; i--) {
       oscBuf[i]->data[oscBuf[i]->needle++]=0;
     }
     // convert 32 bit access to 8 bit host interface
