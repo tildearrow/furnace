@@ -376,6 +376,40 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(0xd6+i);
         }
         break;
+      case DIV_SYSTEM_ES5506:
+        for (int i=0; i<32; i++) {
+          for (int b=0; b<4; b++) {
+            w->writeC(0xbe);
+            w->writeC((0xf<<2)+b);
+            w->writeC(i);
+          }
+          unsigned int init_cr=0x0303;
+          for (int b=0; b<4; b++) {
+            w->writeC(0xbe);
+            w->writeC(b);
+            w->writeC(init_cr>>(24-(b<<3)));
+          }
+          for (int r=1; r<11; r++) {
+            for (int b=0; b<4; b++) {
+              w->writeC(0xbe);
+              w->writeC((r<<2)+b);
+              w->writeC(((r==7 || r==9) && b&2)?0xff:0);
+            }
+          }
+          for (int b=0; b<4; b++) {
+            w->writeC(0xbe);
+            w->writeC((0xf<<2)+b);
+            w->writeC(0x20|i);
+          }
+          for (int r=1; r<10; r++) {
+            for (int b=0; b<4; b++) {
+              w->writeC(0xbe);
+              w->writeC((r<<2)+b);
+              w->writeC(0);
+            }
+          }
+        }
+        break;
       case DIV_SYSTEM_OPL:
       case DIV_SYSTEM_OPL_DRUMS:
         // disable envelope
@@ -758,6 +792,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(write.val&0xff);
       }
       break;
+    case DIV_SYSTEM_ES5506:
+      w->writeC(0xbe);
+      w->writeC(write.addr&0xff);
+      w->writeC(write.val&0xff);
+      break;
     case DIV_SYSTEM_VBOY:
       w->writeC(0xc7);
       w->writeS_BE(baseAddr2S|(write.addr>>2));
@@ -1034,6 +1073,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   int writeSegaPCM=0;
   DivDispatch* writeX1010[2]={NULL,NULL};
   DivDispatch* writeQSound[2]={NULL,NULL};
+  DivDispatch* writeES5506[2]={NULL,NULL};
   DivDispatch* writeZ280[2]={NULL,NULL};
   DivDispatch* writeRF5C68[2]={NULL,NULL};
   DivDispatch* writeMSM6295[2]={NULL,NULL};
@@ -1383,6 +1423,20 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           howManyChips++;
         }
         break;
+      case DIV_SYSTEM_ES5506:
+        if (!hasES5505) {
+          // VGM identifies ES5506 if highest bit sets, otherwise ES5505
+          hasES5505=0x80000000|disCont[i].dispatch->chipClock;
+          willExport[i]=true;
+          writeES5506[0]=disCont[i].dispatch;
+        } else if (!(hasES5505&0x40000000)) {
+          isSecond[i]=true;
+          willExport[i]=false;
+          hasES5505|=0xc0000000;
+          writeES5506[1]=disCont[i].dispatch;
+          howManyChips++;
+        }
+        break;
       case DIV_SYSTEM_VBOY:
         if (!hasVSU) {
           hasVSU=disCont[i].dispatch->chipClock;
@@ -1684,7 +1738,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     w->writeI(hasES5503);
     w->writeI(hasES5505);
     w->writeC(0); // 5503 chans
-    w->writeC(0); // 5505 chans
+    w->writeC(hasES5505?1:0); // 5505 chans
     w->writeC(0); // C352 clock divider
     w->writeC(0); // reserved
     w->writeI(hasX1);
@@ -1807,7 +1861,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       if (memPos>=16777216) break;
     }
 
-    for (int i=0; i<writeSegaPCM; i++) {
+    for (unsigned char i=0; i<writeSegaPCM; i++) {
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x80);
@@ -1930,6 +1984,19 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->writeI(writeGA20[i]->getSampleMemCapacity());
       w->writeI(0);
       w->write(writeGA20[i]->getSampleMem(),writeGA20[i]->getSampleMemUsage());
+    }
+  }
+
+  // TODO
+  for (int i=0; i<2; i++) {
+    if (writeES5506[i]!=NULL && writeES5506[i]->getSampleMemUsage()>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x8F);
+      w->writeI((writeES5506[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(writeES5506[i]->getSampleMemCapacity());
+      w->writeI(0);
+      w->write(writeES5506[i]->getSampleMem(),writeES5506[i]->getSampleMemUsage());
     }
   }
 

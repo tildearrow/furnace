@@ -2515,6 +2515,8 @@ int DivEngine::getEffectiveSampleRate(int rate) {
       return (48828*MIN(128,(rate*128/48828)))/128;
     case DIV_SYSTEM_X1_010:
       return (31250*MIN(255,(rate*16/31250)))/16; // TODO: support variable clock case
+    case DIV_SYSTEM_ES5506:
+      return (31250*MIN(131071,(rate*2048/31250)))/2048; // TODO: support variable clock, channel limit case
     default:
       break;
   }

@@ -407,6 +407,10 @@ template<const int mask> int effectValAnd(unsigned char, unsigned char val) {
   return val&mask;
 };
 
+template<const int shift> int effectValShift(unsigned char, unsigned char val) {
+  return val<<shift;
+};
+
 template<const int maxOp> int effectOpVal(unsigned char, unsigned char val) {
   if ((val>>4)>maxOp) throw DivDoNotHandleEffect();
   return (val>>4)-1;
@@ -419,6 +423,10 @@ template<const int maxOp> int effectOpValNoZero(unsigned char, unsigned char val
 
 template<const int bits> int effectValLong(unsigned char cmd, unsigned char val) {
   return ((((unsigned int)cmd)&((1<<(bits-8))-1))<<8)|((unsigned int)val);
+};
+
+template<const int bits, const int shift> int effectValLongShift(unsigned char cmd, unsigned char val) {
+  return (((((unsigned int)cmd)&((1<<(bits-8))-1))<<8)|((unsigned int)val))<<shift;
 };
 
 void DivEngine::registerSystems() {
@@ -1542,14 +1550,46 @@ void DivEngine::registerSystems() {
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM, DIV_INS_MULTIPCM}
   );
 
-  // TODO: not sure about sample formats
+  EffectHandlerMap es5506PreEffectHandlerMap={
+      {0x10, {DIV_CMD_WAVE, "10xx: Change waveform or sample (00 to FF)",effectVal}},
+      {0x11, {DIV_CMD_ES5506_FILTER_MODE, "11xx: Set filter mode (00 to 03)",effectValAnd<3>}},
+      {0x14, {DIV_CMD_ES5506_FILTER_K1, "14xx: Set filter coefficient K1 low byte (00 to FF)",effectValShift<0>,constVal<0x00ff>}},
+      {0x15, {DIV_CMD_ES5506_FILTER_K1, "15xx: Set filter coefficient K1 high byte (00 to FF)",effectValShift<8>,constVal<0xff00>}},
+      {0x16, {DIV_CMD_ES5506_FILTER_K2, "16xx: Set filter coefficient K2 low byte (00 to FF)",effectValShift<0>,constVal<0x00ff>}},
+      {0x17, {DIV_CMD_ES5506_FILTER_K2, "17xx: Set filter coefficient K2 high byte (00 to FF)",effectValShift<8>,constVal<0xff00>}},
+      {0x18, {DIV_CMD_ES5506_FILTER_K1_SLIDE, "18xx: Set filter coefficient K1 slide up (00 to FF)",effectVal,constVal<0>}},
+      {0x19, {DIV_CMD_ES5506_FILTER_K1_SLIDE, "19xx: Set filter coefficient K1 slide down (00 to FF)",effectVal,constVal<1>}},
+      {0x1a, {DIV_CMD_ES5506_FILTER_K2_SLIDE, "1Axx: Set filter coefficient K2 slide up (00 to FF)",effectVal,constVal<0>}},
+      {0x1b, {DIV_CMD_ES5506_FILTER_K2_SLIDE, "1Bxx: Set filter coefficient K2 slide down (00 to FF)",effectVal,constVal<1>}},
+      {0x22, {DIV_CMD_ES5506_ENVELOPE_LVRAMP, "22xx: Set envelope left volume ramp (signed) (00 to FF)",effectVal}},
+      {0x23, {DIV_CMD_ES5506_ENVELOPE_RVRAMP, "23xx: Set envelope right volume ramp (signed) (00 to FF)",effectVal}},
+      {0x24, {DIV_CMD_ES5506_ENVELOPE_K1RAMP, "24xx: Set envelope filter coefficient k1 ramp (signed) (00 to FF)",effectVal,constVal<0>}},
+      {0x25, {DIV_CMD_ES5506_ENVELOPE_K1RAMP, "25xx: Set envelope filter coefficient k1 ramp (signed, slower) (00 to FF)",effectVal,constVal<1>}},
+      {0x26, {DIV_CMD_ES5506_ENVELOPE_K2RAMP, "26xx: Set envelope filter coefficient k2 ramp (signed) (00 to FF)",effectVal,constVal<0>}},
+      {0x27, {DIV_CMD_ES5506_ENVELOPE_K2RAMP, "27xx: Set envelope filter coefficient k2 ramp (signed, slower) (00 to FF)",effectVal,constVal<1>}},
+      {0xdf, {DIV_CMD_SAMPLE_DIR, "DFxx: Set sample playback direction (0: normal; 1: reverse)"}}
+  };
+  EffectHandlerMap es5506PostEffectHandlerMap={
+      {0x12, {DIV_CMD_ES5506_PAUSE, "120x: Set pause (bit 0)",effectValAnd<1>}}
+  };
+  const EffectHandler es5506ECountHandler(DIV_CMD_ES5506_ENVELOPE_COUNT, "2xxx: Set envelope count (000 to 1FF)", effectValLong<9>);
+  const EffectHandler es5506K1Handler(DIV_CMD_ES5506_FILTER_K1, "3xxx: Set filter coefficient K1 (000 to FFF)", effectValLongShift<12,4>,constVal<0xfff0>);
+  const EffectHandler es5506K2Handler(DIV_CMD_ES5506_FILTER_K2, "4xxx: Set filter coefficient K2 (000 to FFF)", effectValLongShift<12,4>,constVal<0xfff0>);
+  for (int i=0; i<2; i++) es5506PreEffectHandlerMap.emplace(0x20+i,es5506ECountHandler);
+  for (int i=0; i<16; i++) es5506PreEffectHandlerMap.emplace(0x30+i, es5506K1Handler);
+  for (int i=0; i<16; i++) es5506PreEffectHandlerMap.emplace(0x40+i, es5506K2Handler);
+
+  // TODO: custom sample format
   sysDefs[DIV_SYSTEM_ES5506]=new DivSysDef(
-    "Ensoniq ES5506", NULL, 0xb1, 0, 32, false, true, 0, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT),
+    "Ensoniq ES5506", NULL, 0xb1, 0, 32, false, true, 0/*0x171*/, false, (1U<<DIV_SAMPLE_DEPTH_8BIT)|(1U<<DIV_SAMPLE_DEPTH_16BIT),
     "a sample chip used in the Ensoniq's unique TransWave synthesizers, and SoundScape series PC ISA soundcards (which are yet another (partially) Sound Blaster compatible ones with emulated OPL3 and MIDI ROMpler).",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "Channel 17", "Channel 18", "Channel 19", "Channel 20", "Channel 21", "Channel 22", "Channel 23", "Channel 24", "Channel 25", "Channel 26", "Channel 27", "Channel 28", "Channel 29", "Channel 30", "Channel 31", "Channel 32"},
     {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
-    {DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506}
+    {DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506, DIV_INS_ES5506},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    es5506PreEffectHandlerMap,
+    es5506PostEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_Y8950]=new DivSysDef(

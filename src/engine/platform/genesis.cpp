@@ -681,7 +681,10 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
             break;
           } else {
             rWrite(0x2b,1<<7);
-            if (dumpWrites) addWrite(0xffff0000,chan[c.chan].dacSample);
+            if (dumpWrites) {
+              addWrite(0xffff0000,chan[c.chan].dacSample);
+              addWrite(0xffff0003,chan[c.chan].dacDirection);
+            }
           }
           chan[c.chan].dacPos=0;
           chan[c.chan].dacPeriod=0;
