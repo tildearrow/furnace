@@ -869,7 +869,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           sample->depth=DIV_SAMPLE_DEPTH_YMZ_ADPCM;
         }
       }
-      if (ds.version>=0x1a) {
+      if (ds.version>=0x1b) {
         // what the hell man...
         cutStart=reader.readI();
         cutEnd=reader.readI();
@@ -903,7 +903,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             reader.read(data,length*2);
           }
 
-          if (ds.version>0x1a) {
+          if (ds.version>0x1b) {
             if (cutStart!=0 || cutEnd!=length) {
               // cut data
               short* newData=new short[cutEnd-cutStart];

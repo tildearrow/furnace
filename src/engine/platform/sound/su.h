@@ -62,28 +62,8 @@ class SoundUnit {
       unsigned short freq;
       signed char vol;
       signed char pan;
-      union {
-        unsigned char val;
-        struct {
-          unsigned char shape: 3;
-          unsigned char pcm: 1;
-          unsigned char ring: 1;
-          unsigned char fmode: 3;
-        };
-      } flags0;
-      union {
-        unsigned char val;
-        struct {
-          unsigned char resosc: 1;
-          unsigned char resfilt: 1;
-          unsigned char pcmloop: 1;
-          unsigned char restim: 1;
-          unsigned char swfreq: 1;
-          unsigned char swvol: 1;
-          unsigned char swcut: 1;
-          unsigned char padding: 1;
-        };
-      } flags1;
+      unsigned char flags0;
+      unsigned char flags1;
       unsigned short cutoff;
       unsigned char duty;
       unsigned char reson;
