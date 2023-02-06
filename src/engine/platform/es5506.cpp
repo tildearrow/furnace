@@ -302,15 +302,6 @@ void DivPlatformES5506::tick(bool sysTick) {
             chan[i].filterChanged.k1=1;
           }
           break;
-        /*case 2: { // delta
-          const signed int next_k1=CLAMP(chan[i].k1Offs+chan[i].std.ex1.val,-65535,65535);
-          if (chan[i].k1Offs!=next_k1) {
-            chan[i].k1Offs=next_k1;
-            chan[i].filterChanged.k1=1;
-          }
-          break;
-        }
-        */
         default:
           break;
       }
@@ -329,15 +320,6 @@ void DivPlatformES5506::tick(bool sysTick) {
             chan[i].filterChanged.k2=1;
           }
           break;
-        /*case 2: { // delta
-          const signed int next_k2=CLAMP(chan[i].k2Offs+chan[i].std.ex2.val,-65535,65535);
-          if (chan[i].k2Offs!=next_k2) {
-            chan[i].k2Offs=next_k2;
-            chan[i].filterChanged.k2=1;
-          }
-          break;
-        }
-        */
         default:
           break;
       }
