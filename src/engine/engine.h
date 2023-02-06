@@ -581,6 +581,9 @@ class DivEngine {
     void setConf(String key, const char* value);
     void setConf(String key, String value);
 
+    // get whether config value exists
+    bool hasConf(String key);
+
     // calculate base frequency/period
     double calcBaseFreq(double clock, double divider, int note, bool period);
 

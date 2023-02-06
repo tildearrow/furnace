@@ -160,41 +160,43 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         }
       }
 
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("Virtual Tempo");
-      ImGui::TableNextColumn();
-      ImGui::SetNextItemWidth(halfAvail);
-      if (ImGui::InputScalar("##VTempoN",ImGuiDataType_S16,&e->curSubSong->virtualTempoN,&_ONE,&_THREE)) { MARK_MODIFIED
-        if (e->curSubSong->virtualTempoN<1) e->curSubSong->virtualTempoN=1;
-        if (e->curSubSong->virtualTempoN>255) e->curSubSong->virtualTempoN=255;
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Numerator");
-      }
-      ImGui::SameLine();
-      ImGui::SetNextItemWidth(halfAvail);
-      if (ImGui::InputScalar("##VTempoD",ImGuiDataType_S16,&e->curSubSong->virtualTempoD,&_ONE,&_THREE)) { MARK_MODIFIED
-        if (e->curSubSong->virtualTempoD<1) e->curSubSong->virtualTempoD=1;
-        if (e->curSubSong->virtualTempoD>255) e->curSubSong->virtualTempoD=255;
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Denominator (set to base tempo)");
-      }
+      if (!basicMode) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Virtual Tempo");
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(halfAvail);
+        if (ImGui::InputScalar("##VTempoN",ImGuiDataType_S16,&e->curSubSong->virtualTempoN,&_ONE,&_THREE)) { MARK_MODIFIED
+          if (e->curSubSong->virtualTempoN<1) e->curSubSong->virtualTempoN=1;
+          if (e->curSubSong->virtualTempoN>255) e->curSubSong->virtualTempoN=255;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Numerator");
+        }
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(halfAvail);
+        if (ImGui::InputScalar("##VTempoD",ImGuiDataType_S16,&e->curSubSong->virtualTempoD,&_ONE,&_THREE)) { MARK_MODIFIED
+          if (e->curSubSong->virtualTempoD<1) e->curSubSong->virtualTempoD=1;
+          if (e->curSubSong->virtualTempoD>255) e->curSubSong->virtualTempoD=255;
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Denominator (set to base tempo)");
+        }
 
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("Divider");
-      ImGui::TableNextColumn();
-      ImGui::SetNextItemWidth(halfAvail);
-      unsigned char realTB=e->curSubSong->timeBase+1;
-      if (ImGui::InputScalar("##TimeBase",ImGuiDataType_U8,&realTB,&_ONE,&_THREE)) { MARK_MODIFIED
-        if (realTB<1) realTB=1;
-        if (realTB>16) realTB=16;
-        e->curSubSong->timeBase=realTB-1;
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Divider");
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(halfAvail);
+        unsigned char realTB=e->curSubSong->timeBase+1;
+        if (ImGui::InputScalar("##TimeBase",ImGuiDataType_U8,&realTB,&_ONE,&_THREE)) { MARK_MODIFIED
+          if (realTB<1) realTB=1;
+          if (realTB>16) realTB=16;
+          e->curSubSong->timeBase=realTB-1;
+        }
+        ImGui::SameLine();
+        ImGui::Text("%.2f BPM",calcBPM(e->curSubSong->speeds,e->curSubSong->hz,e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD));
       }
-      ImGui::SameLine();
-      ImGui::Text("%.2f BPM",calcBPM(e->curSubSong->speeds,e->curSubSong->hz,e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD));
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
@@ -231,18 +233,20 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         e->curSubSong->patLen=patLen;
       }
 
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("Song Length");
-      ImGui::TableNextColumn();
-      ImGui::SetNextItemWidth(avail);
-      int ordLen=e->curSubSong->ordersLen;
-      if (ImGui::InputInt("##OrdLength",&ordLen,1,3)) { MARK_MODIFIED
-        if (ordLen<1) ordLen=1;
-        if (ordLen>DIV_MAX_PATTERNS) ordLen=DIV_MAX_PATTERNS;
-        e->curSubSong->ordersLen=ordLen;
-        if (curOrder>=ordLen) {
-          setOrder(ordLen-1);
+      if (!basicMode) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("Song Length");
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(avail);
+        int ordLen=e->curSubSong->ordersLen;
+        if (ImGui::InputInt("##OrdLength",&ordLen,1,3)) { MARK_MODIFIED
+          if (ordLen<1) ordLen=1;
+          if (ordLen>DIV_MAX_PATTERNS) ordLen=DIV_MAX_PATTERNS;
+          e->curSubSong->ordersLen=ordLen;
+          if (curOrder>=ordLen) {
+            setOrder(ordLen-1);
+          }
         }
       }
 

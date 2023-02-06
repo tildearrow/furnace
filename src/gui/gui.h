@@ -397,6 +397,7 @@ enum FurnaceGUIWarnings {
   GUI_WARN_SUBSONG_DEL,
   GUI_WARN_SYSTEM_DEL,
   GUI_WARN_CLEAR_HISTORY,
+  GUI_WARN_BASIC_MODE,
   GUI_WARN_GENERIC
 };
 
@@ -1472,6 +1473,8 @@ class FurnaceGUI {
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
   bool groovesOpen;
+
+  bool basicMode;
 
   bool clockShowReal, clockShowRow, clockShowBeat, clockShowMetro, clockShowTime;
   float clockMetroTick[16];

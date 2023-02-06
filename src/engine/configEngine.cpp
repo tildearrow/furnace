@@ -161,3 +161,7 @@ void DivEngine::setConf(String key, const char* value) {
 void DivEngine::setConf(String key, String value) {
   conf.set(key,value);
 }
+
+bool DivEngine::hasConf(String key) {
+  return conf.has(key);
+}

@@ -74,33 +74,39 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
       if (ImGui::InputText("##Category",&e->song.category,ImGuiInputTextFlags_UndoRedo)) {
         MARK_MODIFIED;
       }
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
-      ImGui::Text("System");
-      ImGui::TableNextColumn();
-      ImGui::SetNextItemWidth(MAX(16.0f*dpiScale,avail-autoButtonSize-ImGui::GetStyle().ItemSpacing.x));
-      if (ImGui::InputText("##SystemName",&e->song.systemName,ImGuiInputTextFlags_UndoRedo)) {
-        MARK_MODIFIED;
-        updateWindowTitle();
-        e->song.autoSystem=false;
-      }
-      ImGui::SameLine();
-      pushToggleColors(e->song.autoSystem);
-      if (ImGui::Button("Auto")) {
-        e->song.autoSystem=!e->song.autoSystem;
-        if (e->song.autoSystem) {
-          autoDetectSystem();
+      if (!basicMode) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::Text("System");
+        ImGui::TableNextColumn();
+        ImGui::SetNextItemWidth(MAX(16.0f*dpiScale,avail-autoButtonSize-ImGui::GetStyle().ItemSpacing.x));
+        if (ImGui::InputText("##SystemName",&e->song.systemName,ImGuiInputTextFlags_UndoRedo)) {
+          MARK_MODIFIED;
           updateWindowTitle();
+          e->song.autoSystem=false;
         }
-        MARK_MODIFIED;
+        ImGui::SameLine();
+        pushToggleColors(e->song.autoSystem);
+        if (ImGui::Button("Auto")) {
+          e->song.autoSystem=!e->song.autoSystem;
+          if (e->song.autoSystem) {
+            autoDetectSystem();
+            updateWindowTitle();
+          }
+          MARK_MODIFIED;
+        }
+        popToggleColors();
+        autoButtonSize=ImGui::GetItemRectSize().x;
       }
-      popToggleColors();
-      autoButtonSize=ImGui::GetItemRectSize().x;
 
       ImGui::EndTable();
     }
 
-    if (ImGui::BeginTable("OtherProps",2,ImGuiTableFlags_SizingStretchProp)) {
+    if (basicMode) {
+      if (e->song.tuning<435.8 || e->song.tuning>444) {
+        ImGui::TextWrapped("Tuning changed - disable Basic Mode to edit.");
+      }
+    } else if (ImGui::BeginTable("OtherProps",2,ImGuiTableFlags_SizingStretchProp)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,0.0);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
 
