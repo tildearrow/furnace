@@ -2433,12 +2433,6 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "Commodore PET (pseudo-wavetable)", {
-      CH(DIV_SYSTEM_PET, 1.0f, 0, "")
-    },
-    "tickRate=50"
-  );
-  ENTRY(
     "Konami Bubble System WSG", {
       CH(DIV_SYSTEM_BUBSYS_WSG, 1.0f, 0, "")
     }
@@ -2509,6 +2503,22 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_C64_8580, 1.0f, 0, "clockSel=1")
     },
     "tickRate=50.1245421"
+  );
+  ENTRY(
+    "Commodore PET (pseudo-wavetable)", {
+      CH(DIV_SYSTEM_PET, 1.0f, 0, "")
+    },
+    "tickRate=50"
+  );
+  ENTRY(
+    "Konami VRC6", {
+      CH(DIV_SYSTEM_VRC6, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "MMC5", {
+      CH(DIV_SYSTEM_MMC5, 1.0f, 0, "")
+    }
   );
   ENTRY(
     "Microchip AY8930", {
