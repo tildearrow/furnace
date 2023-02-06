@@ -314,9 +314,9 @@ class es5506_core : public es550x_shared_core
 		inline bool bclk_falling_edge() { return m_bclk.falling_edge(); }
 
 		// 6 stereo output channels
-		inline s32 lout(u8 ch) { return m_output[std::min<u8>(5, ch & 0x7)].left(); }
+		inline s32 lout(u8 ch) { return m_output[ch&7].left(); }
 
-		inline s32 rout(u8 ch) { return m_output[std::min<u8>(5, ch & 0x7)].right(); }
+		inline s32 rout(u8 ch) { return m_output[ch&7].right(); }
 
 		//-----------------------------------------------------------------
 		//
@@ -374,7 +374,7 @@ class es5506_core : public es550x_shared_core
 		bool m_wclk_lr	= false;				 // WCLK, L/R output select
 		s8 m_output_bit = 0;					 // Bit position in output
 		output_t m_ch[6];			 // 6 stereo output channels
-		output_t m_output[6];		 // Serial outputs
+		output_t m_output[8];		 // Serial outputs
 		output_t m_output_temp[6];	 // temporary signal for serial output
 		output_t m_output_latch[6];	 // output latch
 };

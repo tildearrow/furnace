@@ -170,14 +170,6 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformES5506::e_pin(bool state) {
-  /*
-  if (es5506.e_falling_edge()) { // get channel outputs
-    if (es5506.voice_update()) {
-      const signed int lOut=es5506.voice_lout(prevChanCycle);
-      const signed int rOut=es5506.voice_rout(prevChanCycle);
-      chan[prevChanCycle].oscOut=CLAMP((lOut+rOut)>>5,-32768,32767);
-    }
-  }*/
   if (state) { // host interface
     if (cycle) { // wait until delay
       cycle--;
