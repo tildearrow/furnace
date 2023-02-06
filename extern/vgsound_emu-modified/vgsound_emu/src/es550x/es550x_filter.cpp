@@ -14,10 +14,7 @@ void es550x_shared_core::es550x_voice_t::es550x_filter_t::reset()
 	m_lp = 0;
 	m_k2 = 0;
 	m_k1 = 0;
-	for (std::array<s32, 2> &elem : m_o)
-	{
-		std::fill(elem.begin(), elem.end(), 0);
-	}
+	memset(m_o,0,2*5*sizeof(s32));
 }
 
 void es550x_shared_core::es550x_voice_t::es550x_filter_t::tick(s32 in)

@@ -145,10 +145,9 @@ class es5506_core : public es550x_shared_core
 					, m_k2ramp(filter_ramp_t())
 					, m_k1ramp(filter_ramp_t())
 					, m_filtcount(0)
-					, m_ch(output_t())
 					, m_mute(false)
+          , m_output{0,0}
 				{
-					m_output.fill(0);
 				}
 
 				// internal state
@@ -211,7 +210,7 @@ class es5506_core : public es550x_shared_core
 				u8 m_filtcount = 0;			  // Internal counter for slow mode
 				output_t m_ch;				  // channel output
 				bool m_mute = false;		  // mute flag (for debug purpose)
-				std::array<s32, 2> m_output;  // output preview (for debug purpose)
+				s32 m_output[2];  // output preview (for debug purpose)
 		};
 
 		// 5 bit mode
@@ -352,7 +351,7 @@ class es5506_core : public es550x_shared_core
 		virtual void voice_tick() override;
 
 	private:
-		std::array<voice_t, 32> m_voice;  // 32 voices
+		voice_t m_voice[32];  // 32 voices
 
 		// Host interfaces
 		u32 m_read_latch  = 0;	// 32 bit register latch for host read
@@ -372,10 +371,10 @@ class es5506_core : public es550x_shared_core
 		s16 m_wclk		= 0;					 // WCLK
 		bool m_wclk_lr	= false;				 // WCLK, L/R output select
 		s8 m_output_bit = 0;					 // Bit position in output
-		std::array<output_t, 6> m_ch;			 // 6 stereo output channels
-		std::array<output_t, 6> m_output;		 // Serial outputs
-		std::array<output_t, 6> m_output_temp;	 // temporary signal for serial output
-		std::array<output_t, 6> m_output_latch;	 // output latch
+		output_t m_ch[6];			 // 6 stereo output channels
+		output_t m_output[6];		 // Serial outputs
+		output_t m_output_temp[6];	 // temporary signal for serial output
+		output_t m_output_latch[6];	 // output latch
 };
 
 #endif

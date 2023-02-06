@@ -9,6 +9,8 @@
 #include "es5506.hpp"
 
 // Internal functions
+
+// DO NOT USE THIS ONE!
 void es5506_core::tick()
 {
 	// CLKIN
@@ -216,18 +218,8 @@ void es5506_core::tick_perf()
 	m_intf.e_pin(false);
 	m_host_intf.clear_host_access();
 	m_host_intf.clear_strobe();
-	m_voice[m_voice_cycle].fetch(m_voice_cycle, m_voice_fetch);
-	voice_tick();
-	// rising edge
-	m_e.edge().set(true);
-	m_intf.e_pin(true);
-	m_host_intf.update_strobe();
-	// falling edge
-	m_e.edge().set(false);
-	m_intf.e_pin(false);
-	m_host_intf.clear_host_access();
-	m_host_intf.clear_strobe();
-	m_voice[m_voice_cycle].fetch(m_voice_cycle, m_voice_fetch);
+	m_voice[m_voice_cycle].fetch(m_voice_cycle, 0);
+  m_voice[m_voice_cycle].fetch(m_voice_cycle, 1);
 	voice_tick();
 	// rising edge
 	m_e.edge().set(true);
@@ -238,38 +230,33 @@ void es5506_core::tick_perf()
 void es5506_core::voice_tick()
 {
 	// Voice updates every 2 E clock cycle (or 4 BCLK clock cycle)
-	m_voice_update = bitfield(m_voice_fetch++, 0);
-	if (m_voice_update)
-	{
-		// Update voice
-		m_voice[m_voice_cycle].tick(m_voice_cycle);
+  // Update voice
+  m_voice[m_voice_cycle].tick(m_voice_cycle);
 
-		// Refresh output
-		if ((++m_voice_cycle) > clamp<u8>(m_active, 4, 31))	 // 5 ~ 32 voices
-		{
-			m_voice_end	  = true;
-			m_voice_cycle = 0;
-			for (output_t &elem : m_ch)
-			{
-				elem.reset();
-			}
+  // Refresh output
+  if ((++m_voice_cycle) > clamp<u8>(m_active, 4, 31))	 // 5 ~ 32 voices
+  {
+    m_voice_end	  = true;
+    m_voice_cycle = 0;
+    for (output_t &elem : m_ch)
+    {
+      elem.reset();
+    }
 
-			for (voice_t &elem : m_voice)
-			{
-				const u8 ca = bitfield<u8>(elem.cr().ca(), 0, 3);
-				if (ca < 6)
-				{
-					m_ch[ca] += elem.ch();
-				}
-				elem.ch().reset();
-			}
-		}
-		else
-		{
-			m_voice_end = false;
-		}
-		m_voice_fetch = 0;
-	}
+    for (voice_t &elem : m_voice)
+    {
+      const u8 ca = bitfield<u8>(elem.cr().ca(), 0, 3);
+      if (ca < 6)
+      {
+        m_ch[ca] += elem.ch();
+      }
+      elem.ch().reset();
+    }
+  }
+  else
+  {
+    m_voice_end = false;
+  }
 }
 
 void es5506_core::voice_t::fetch(u8 voice, u8 cycle)

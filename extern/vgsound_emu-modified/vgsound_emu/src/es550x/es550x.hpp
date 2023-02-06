@@ -14,6 +14,8 @@
 #include "../core/core.hpp"
 #include "../core/util/clock_pulse.hpp"
 
+#include <string.h>
+
 using namespace vgsound_emu;
 
 // ES5504/ES5505/ES5506 interface
@@ -166,8 +168,8 @@ class es550x_shared_core : public vgsound_emu_core
 							, m_start(0)
 							, m_end(0)
 							, m_accum(0)
+              , m_sample{0,0}
 						{
-							m_sample.fill(0);
 						}
 
 						// configurations
@@ -367,7 +369,7 @@ class es550x_shared_core : public vgsound_emu_core
 						// 21 integer, 11 fraction for ES5506
 						u32 m_accum = 0;
 						// Samples
-						std::array<s32, 2> m_sample;
+						s32 m_sample[2];
 				};
 
 				// Filter
@@ -380,10 +382,7 @@ class es550x_shared_core : public vgsound_emu_core
 							, m_k2(0)
 							, m_k1(0)
 						{
-							for (std::array<s32, 2> &elem : m_o)
-							{
-								std::fill(elem.begin(), elem.end(), 0);
-							}
+							memset(m_o,0,2*5*sizeof(s32));
 						}
 
 						void reset();
@@ -441,7 +440,7 @@ class es550x_shared_core : public vgsound_emu_core
 						s32 m_k1 = 0;  // Filter coefficient 1
 
 						// Filter storage registers
-						std::array<std::array<s32, 2>, 5> m_o;
+						s32 m_o[5][2];
 				};
 
 			public:

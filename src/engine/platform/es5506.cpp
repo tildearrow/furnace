@@ -113,7 +113,21 @@ const char** DivPlatformES5506::getRegisterSheet() {
 }
 
 void DivPlatformES5506::acquire(short** buf, size_t len) {
+  int coL[6], coR[6];
   for (size_t h=0; h<len; h++) {
+    coL[0]=0;
+    coL[1]=0;
+    coL[2]=0;
+    coL[3]=0;
+    coL[4]=0;
+    coL[5]=0;
+    coR[0]=0;
+    coR[1]=0;
+    coR[2]=0;
+    coR[3]=0;
+    coR[4]=0;
+    coR[5]=0;
+
     for (int i=31; i>(int)chanMax; i--) {
       oscBuf[i]->data[oscBuf[i]->needle++]=0;
     }
@@ -133,11 +147,21 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
       }
       hostIntf32.pop();
     }
-    prevChanCycle=es5506.voice_cycle();
-    es5506.tick_perf();
+    for (int i=0; i<32; i++) {
+      prevChanCycle=es5506.voice_cycle();
+      es5506.tick_perf();
+      for (int o=0; o<6; o++) {
+        coL[o]+=es5506.lout(o);
+        coR[o]+=es5506.rout(o);
+      }
+    }
     for (int o=0; o<6; o++) {
-      buf[(o<<1)|0][h]=es5506.lout(o);
-      buf[(o<<1)|1][h]=es5506.rout(o);
+      coL[o]>>=3;
+      coR[o]>>=3;
+    }
+    for (int o=0; o<6; o++) {
+      buf[(o<<1)|0][h]=coL[o];
+      buf[(o<<1)|1][h]=coR[o];
     }
     for (int i=chanMax; i>=0; i--) {
       oscBuf[i]->data[oscBuf[i]->needle++]=(short)(chan[i].oscOut&0xffff);
@@ -146,14 +170,15 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformES5506::e_pin(bool state) {
+  /*
   if (es5506.e_falling_edge()) { // get channel outputs
     if (es5506.voice_update()) {
       const signed int lOut=es5506.voice_lout(prevChanCycle);
       const signed int rOut=es5506.voice_rout(prevChanCycle);
       chan[prevChanCycle].oscOut=CLAMP((lOut+rOut)>>5,-32768,32767);
     }
-  }
-  if (es5506.e_rising_edge()) { // host interface
+  }*/
+  if (state) { // host interface
     if (cycle) { // wait until delay
       cycle--;
     } else if (!hostIntf8.empty()) {
@@ -1196,7 +1221,7 @@ void DivPlatformES5506::notifyInsDeletion(void* ins) {
 void DivPlatformES5506::setFlags(const DivConfig& flags) {
   chipClock=16000000;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/16; // 2 E clock tick (16 CLKIN tick) per voice
+  rate=chipClock/512; // 2 E clock tick (16 CLKIN tick) per voice / 4
   for (int i=0; i<32; i++) {
     oscBuf[i]->rate=rate;
   }
