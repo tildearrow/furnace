@@ -148,13 +148,6 @@ void DivPlatformES5506::e_pin(bool state) {
       const signed int lOut=es5506.voice_lout(prevChanCycle);
       const signed int rOut=es5506.voice_rout(prevChanCycle);
       chan[prevChanCycle].oscOut=CLAMP((lOut+rOut)>>5,-32768,32767);
-      if (es5506.voice_end()) {
-        if (prevChanCycle<31) {
-          for (int c=31; c>prevChanCycle; c--) {
-            chan[c].oscOut=0;
-          }
-        }
-      }
     }
   }
   if (es5506.e_rising_edge()) { // host interface
