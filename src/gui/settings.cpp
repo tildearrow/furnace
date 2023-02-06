@@ -2516,7 +2516,7 @@ void FurnaceGUI::syncSettings() {
   settings.loadChinese=e->getConfInt("loadChinese",0);
   settings.loadChineseTraditional=e->getConfInt("loadChineseTraditional",0);
   settings.loadKorean=e->getConfInt("loadKorean",0);
-  settings.fmLayout=e->getConfInt("fmLayout",0);
+  settings.fmLayout=e->getConfInt("fmLayout",4);
   settings.sampleLayout=e->getConfInt("sampleLayout",0);
   settings.waveLayout=e->getConfInt("waveLayout",0);
   settings.susPosition=e->getConfInt("susPosition",0);

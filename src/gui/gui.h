@@ -1377,7 +1377,7 @@ class FurnaceGUI {
       loadChinese(0),
       loadChineseTraditional(0),
       loadKorean(0),
-      fmLayout(0),
+      fmLayout(4),
       sampleLayout(0),
       waveLayout(0),
       susPosition(0),
