@@ -41,207 +41,195 @@ const char* waveInterpolations[4]={
 };
 
 double sinus(double x) {
-    return sin(x);
+  return sin(x);
 }
 double rectSin(double x) {
-    return sin(x) > 0 ? sin(x) : 0;
+  return sin(x) > 0 ? sin(x) : 0;
 }
 double absSin(double x) {
-    return abs(sin(x));
+  return fabs(sin(x));
 }
 
 double square(double x) {
-    return fmod(x, (2 * M_PI)) >= M_PI ? -1 : 1;
+  return fmod(x, (2 * M_PI)) >= M_PI ? -1 : 1;
 }
 double rectSquare(double x) {
-    return square(x) > 0 ? square(x) : 0;
+  return square(x) > 0 ? square(x) : 0;
 }
 
 double quartSin(double x) {
-    //if (x < M_PI / 2 || (x >= M_PI && x < (M_PI + M_PI / 2)))
-    //    return absSin(x);
-    //return 0;
-    return absSin(x) * rectSquare(2 * x);
+  return absSin(x) * rectSquare(2 * x);
 }
 double squiSin(double x) {
-    return sin(x) >= 0 ? sin(2 * x) : 0;
+  return sin(x) >= 0 ? sin(2 * x) : 0;
 }
 double squiAbsSin(double x) {
-    return abs(squiSin(x));
+  return fabs(squiSin(x));
 }
-
-
-
-
 
 double saw(double x) {
-    return atan(tan(x / 2)) / (M_PI / 2);
+  return atan(tan(x / 2)) / (M_PI / 2);
 }
 double rectSaw(double x) {
-    return saw(x) > 0 ? saw(x) : 0;
+  return saw(x) > 0 ? saw(x) : 0;
 }
 double absSaw(double x) {
-    return saw(x) < 0 ? saw(x) + 1 : saw(x);
+  return saw(x) < 0 ? saw(x) + 1 : saw(x);
 }
 
 
 double cubSaw(double x) {
-    return pow(saw(x), 3);
+  return pow(saw(x), 3);
 }
 double rectCubSaw(double x) {
-    return pow(rectSaw(x), 3);
+  return pow(rectSaw(x), 3);
 }
 double absCubSaw(double x) {
-    return pow(absSaw(x), 3);
+  return pow(absSaw(x), 3);
 }
-
 
 double cubSine(double x) {
-    return pow(sin(x), 3);
+  return pow(sin(x), 3);
 }
 double rectCubSin(double x) {
-    return pow(rectSin(x), 3);
+  return pow(rectSin(x), 3);
 }
 double absCubSin(double x) {
-    return pow(absSin(x), 3);
+  return pow(absSin(x), 3);
 }
 double quartCubSin(double x) {
-    return pow(quartSin(x), 3);
+  return pow(quartSin(x), 3);
 }
 double squishCubSin(double x) {
-    return pow(squiSin(x), 3);
+  return pow(squiSin(x), 3);
 }
 double squishAbsCubSin(double x) {
-    return pow(squiAbsSin(x), 3);
+  return pow(squiAbsSin(x), 3);
 }
-
 
 double triangle(double x) {
-    return asin(sin(x)) / (M_PI / 2);
+  return asin(sin(x)) / (M_PI / 2);
 }
 double rectTri(double x) {
-    return triangle(x) > 0 ? triangle(x) : 0;
+  return triangle(x) > 0 ? triangle(x) : 0;
 }
 double absTri(double x) {
-    return abs(triangle(x));
+  return fabs(triangle(x));
 }
 double quartTri(double x) {
-    //if (x < M_PI / 2 || (x >= M_PI && x < (M_PI + M_PI / 2)))
-    //    return absTri(x);
-    //return 0;
-    return absTri(x) * rectSquare(2 * x);
+  return absTri(x) * rectSquare(2 * x);
 }
 double squiTri(double x) {
-    return sin(x) >= 0 ? triangle(2 * x) : 0;
+  return sin(x) >= 0 ? triangle(2 * x) : 0;
 }
 double absSquiTri(double x) {
-    return abs(squiTri(x));
+  return fabs(squiTri(x));
 }
-
 
 double cubTriangle(double x) {
-    return pow(triangle(x), 3);
+  return pow(triangle(x), 3);
 }
 double cubRectTri(double x) {
-    return pow(rectTri(x), 3);
+  return pow(rectTri(x), 3);
 }
 double cubAbsTri(double x) {
-    return pow(absTri(x), 3);
+  return pow(absTri(x), 3);
 }
 double cubQuartTri(double x) {
-    return pow(quartTri(x), 3);
+  return pow(quartTri(x), 3);
 }
 double cubSquiTri(double x) {
-    return pow(squiTri(x), 3);
+  return pow(squiTri(x), 3);
 }
 double absCubSquiTri(double x) {
-    return abs(cubSquiTri(x));
+  return fabs(cubSquiTri(x));
 }
-
 
 typedef double (*WaveFunc) (double a);
 
-WaveFunc waveFuncs[] = {
-    sinus,
-    rectSin,
-    absSin,
-    quartSin,
-    squiSin,
-    squiAbsSin,
+WaveFunc waveFuncs[]={
+  sinus,
+  rectSin,
+  absSin,
+  quartSin,
+  squiSin,
+  squiAbsSin,
 
-    square,
-    rectSquare,
-    
-    saw,
-    rectSaw,
-    absSaw,
-    
-    cubSaw,
-    rectCubSaw,
-    absCubSaw,
-    
-    cubSine,
-    rectCubSin,
-    absCubSin,
-    quartCubSin,
-    squishCubSin,
-    squishAbsCubSin,
-    
-    triangle,
-    rectTri,
-    absTri,
-    quartTri,
-    squiTri,
-    absSquiTri,
+  square,
+  rectSquare,
+  
+  saw,
+  rectSaw,
+  absSaw,
+  
+  cubSaw,
+  rectCubSaw,
+  absCubSaw,
+  
+  cubSine,
+  rectCubSin,
+  absCubSin,
+  quartCubSin,
+  squishCubSin,
+  squishAbsCubSin,
+  
+  triangle,
+  rectTri,
+  absTri,
+  quartTri,
+  squiTri,
+  absSquiTri,
 
-    cubTriangle,
-    cubRectTri,
-    cubAbsTri,
-    cubQuartTri,
-    cubSquiTri,
-    absCubSquiTri
+  cubTriangle,
+  cubRectTri,
+  cubAbsTri,
+  cubQuartTri,
+  cubSquiTri,
+  absCubSquiTri
 };
 
 const char* fmWaveforms[] = {
-    "Sine",
-    "Rect. Sine",
-    "Abs. Sine",
-    "Quart. Sine",
-    "Squish. Sine",
-    "Abs. Squish. Sine",
+  "Sine",
+  "Rect. Sine",
+  "Abs. Sine",
+  "Quart. Sine",
+  "Squish. Sine",
+  "Abs. Squish. Sine",
 
-    "Square",
-    "rectSquare",
+  "Square",
+  "rectSquare",
 
-    "Saw",
-    "Rect. Saw",
-    "Abs. Saw",
+  "Saw",
+  "Rect. Saw",
+  "Abs. Saw",
 
-    "Cubed Saw",
-    "Rect. Cubed Saw",
-    "Abs. Cubed Saw",
+  "Cubed Saw",
+  "Rect. Cubed Saw",
+  "Abs. Cubed Saw",
 
-    "Cubed Sine",
-    "Rect. Cubed Sine",
-    "Abs. Cubed Sine",
-    "Quart. Cubed Sine",
-    "Squish. Cubed Sine",
-    "Squish. Abs. Cub. Sine",
+  "Cubed Sine",
+  "Rect. Cubed Sine",
+  "Abs. Cubed Sine",
+  "Quart. Cubed Sine",
+  "Squish. Cubed Sine",
+  "Squish. Abs. Cub. Sine",
 
-    "Triangle",
-    "Rect. Triangle",
-    "Abs. Triangle",
-    "Quart. Triangle",
-    "Squish. Triangle",
-    "Abs. Squish. Triangle",
+  "Triangle",
+  "Rect. Triangle",
+  "Abs. Triangle",
+  "Quart. Triangle",
+  "Squish. Triangle",
+  "Abs. Squish. Triangle",
 
-    "Cubed Triangle",
-    "Rect. Cubed Triangle",
-    "Abs. Cubed Triangle",
-    "Quart. Cubed Triangle",
-    "Squish. Cubed Triangle",
-    "Squish. Abs. Cub. Triangle",
+  "Cubed Triangle",
+  "Rect. Cubed Triangle",
+  "Abs. Cubed Triangle",
+  "Quart. Cubed Triangle",
+  "Squish. Cubed Triangle",
+  "Squish. Abs. Cub. Triangle",
 };
+
+const size_t fmWaveformsLen=sizeof(fmWaveforms)/sizeof(fmWaveforms[0]);
 
 const float multFactors[17]={
   M_PI,
@@ -263,8 +251,6 @@ const float multFactors[17]={
   32*M_PI,
 };
 
-
-
 void FurnaceGUI::doGenerateWave() {
   float finalResult[256];
   if (curWave<0 || curWave>=(int)e->song.wave.size()) return;
@@ -284,53 +270,50 @@ void FurnaceGUI::doGenerateWave() {
     float s3fb0=0;
     float s3fb1=0;
 
-    float s0 = 0;
-    float s1 = 0;
-    float s2 = 0;
-    float s3 = 1;
+    float s0=0;
+    float s1=0;
+    float s2=0;
+    float s3=1;
 
     for (int i=0; i<wave->len; i++) {
       float pos=(float)i/(float)wave->len;
       
-      s0 = waveFuncs[fmWaveform[0]]((pos +
-          (waveGenFB[0] ? ((s0fb0 + s0fb1) * pow(2.0f, waveGenFB[0] - 8)) : 0.0f) +
-          (waveGenFMCon0[3] ? s3 : 0.0f) +
-          (waveGenFMCon0[2] ? s2 : 0.0f) +
-          (waveGenFMCon0[1] ? s1 : 0.0f) +
-          (waveGenFMCon0[0] ? s0 : 0.0f))* multFactors[waveGenMult[0]]) * waveGenTL[0];
-      
+      s0=waveFuncs[fmWaveform[0]]((pos +
+         (waveGenFB[0] ? ((s0fb0 + s0fb1) * pow(2.0f, waveGenFB[0] - 8)) : 0.0f) +
+         (waveGenFMCon0[3] ? s3 : 0.0f) +
+         (waveGenFMCon0[2] ? s2 : 0.0f) +
+         (waveGenFMCon0[1] ? s1 : 0.0f) +
+         (waveGenFMCon0[0] ? s0 : 0.0f))* multFactors[waveGenMult[0]]) * waveGenTL[0];
+       
       s0fb0=s0fb1;
       s0fb1=s0;
       
-      
-      s1 = waveFuncs[fmWaveform[1]]((pos +
-          (waveGenFB[1] ? ((s1fb0 + s1fb1) * pow(2.0f, waveGenFB[1] - 8)) : 0.0f) +
-          (waveGenFMCon1[3] ? s3 : 0.0f) +
-          (waveGenFMCon1[2] ? s2 : 0.0f) +
-          (waveGenFMCon1[1] ? s1 : 0.0f) +
-          (waveGenFMCon1[0] ? s0 : 0.0f))* multFactors[waveGenMult[1]]) * waveGenTL[1];
+      s1=waveFuncs[fmWaveform[1]]((pos +
+         (waveGenFB[1] ? ((s1fb0 + s1fb1) * pow(2.0f, waveGenFB[1] - 8)) : 0.0f) +
+         (waveGenFMCon1[3] ? s3 : 0.0f) +
+         (waveGenFMCon1[2] ? s2 : 0.0f) +
+         (waveGenFMCon1[1] ? s1 : 0.0f) +
+         (waveGenFMCon1[0] ? s0 : 0.0f))* multFactors[waveGenMult[1]]) * waveGenTL[1];
       
       s1fb0=s1fb1;
       s1fb1=s1;
-      
 
-      s2 = waveFuncs[fmWaveform[2]]((pos +
-          (waveGenFB[2] ? ((s2fb0 + s2fb1) * pow(2.0f, waveGenFB[2] - 8)) : 0.0f) +
-          (waveGenFMCon2[3] ? s3 : 0.0f) +
-          (waveGenFMCon2[2] ? s2 : 0.0f) +
-          (waveGenFMCon2[1] ? s1 : 0.0f) +
-          (waveGenFMCon2[0] ? s0 : 0.0f))* multFactors[waveGenMult[2]]) * waveGenTL[2];
+      s2=waveFuncs[fmWaveform[2]]((pos +
+         (waveGenFB[2] ? ((s2fb0 + s2fb1) * pow(2.0f, waveGenFB[2] - 8)) : 0.0f) +
+         (waveGenFMCon2[3] ? s3 : 0.0f) +
+         (waveGenFMCon2[2] ? s2 : 0.0f) +
+         (waveGenFMCon2[1] ? s1 : 0.0f) +
+         (waveGenFMCon2[0] ? s0 : 0.0f))* multFactors[waveGenMult[2]]) * waveGenTL[2];
       
       s2fb0=s2fb1;
       s2fb1=s2;
 
-
-      s3 = waveFuncs[fmWaveform[3]]((pos +
-          (waveGenFB[3] ? ((s3fb0 + s3fb1) * pow(2.0f, waveGenFB[3] - 8)) : 0.0f) +
-          (waveGenFMCon3[3] ? s3 : 0.0f) +
-          (waveGenFMCon3[2] ? s2 : 0.0f) +
-          (waveGenFMCon3[1] ? s1 : 0.0f) +
-          (waveGenFMCon3[0] ? s0 : 0.0f)) * multFactors[waveGenMult[3]])* waveGenTL[3];
+      s3=waveFuncs[fmWaveform[3]]((pos +
+         (waveGenFB[3] ? ((s3fb0 + s3fb1) * pow(2.0f, waveGenFB[3] - 8)) : 0.0f) +
+         (waveGenFMCon3[3] ? s3 : 0.0f) +
+         (waveGenFMCon3[2] ? s2 : 0.0f) +
+         (waveGenFMCon3[1] ? s1 : 0.0f) +
+         (waveGenFMCon3[0] ? s0 : 0.0f)) * multFactors[waveGenMult[3]])* waveGenTL[3];
       
       s3fb0=s3fb1;
       s3fb1=s3;
@@ -339,7 +322,6 @@ void FurnaceGUI::doGenerateWave() {
       if (waveGenFMCon1[4]) finalResult[i]+=s1;
       if (waveGenFMCon2[4]) finalResult[i]+=s2;
       if (waveGenFMCon3[4]) finalResult[i]+=s3;
-      //finalResult[i]+=s3;
     }
   } else {
     switch (waveGenBaseShape) {
@@ -405,14 +387,8 @@ void FurnaceGUI::doGenerateWave() {
   MARK_MODIFIED;
 }
 
-
-
 #define CENTER_TEXT(text) \
   ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
-
-
-//int lengthArray()
-
 
 void FurnaceGUI::drawWaveEdit() {
   if (nextWindow==GUI_WINDOW_WAVE_EDIT) {
@@ -733,231 +709,148 @@ void FurnaceGUI::drawWaveEdit() {
                 ImGui::EndTable();
               }
 
+              if (ImGui::BeginTable("WGFMWAVE",2)) {
+                ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed,ImGui::CalcTextSize("Op").x);
+                ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,1);
 
+                ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+                ImGui::TableNextColumn();
+                ImGui::Text("Op");
+                ImGui::TableNextColumn();
+                ImGui::Text("Waveform");
 
-              if (ImGui::BeginTable("WGFMWAVE", 2)) {
-                  ImGui::TableSetupColumn("c0", ImGuiTableColumnFlags_WidthFixed, ImGui::CalcTextSize("Op").x);
-                  ImGui::TableSetupColumn("c1", ImGuiTableColumnFlags_WidthStretch, 1);
-
-                  ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+                for (int i=0; i<4; i++) {
+                  ImGui::TableNextRow();
                   ImGui::TableNextColumn();
-                  ImGui::Text("Op");
+                  ImGui::Text("%d",i+1);
+
                   ImGui::TableNextColumn();
-                  ImGui::Text("Waveform");
-
-                  for (int i = 0; i < 4; i++) {
-                      ImGui::TableNextRow();
-                      ImGui::TableNextColumn();
-                      ImGui::Text("%d", i + 1);
-
-                      ImGui::TableNextColumn();
-                      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                      ImGui::PushID(i);
-                      if (CWSliderInt("##WGWAVEFORM", &fmWaveform[i], 0, _countof(fmWaveforms)-1, fmWaveforms[fmWaveform[i]])) {
-                          doGenerateWave();
-                      }
-                      ImGui::PopID();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  ImGui::PushID(i);
+                  if (CWSliderInt("##WGWAVEFORM",&fmWaveform[i],0,fmWaveformsLen-1,fmWaveforms[fmWaveform[i]])) {
+                    doGenerateWave();
                   }
-
-                  ImGui::EndTable();
+                  ImGui::PopID();
+                }
+                ImGui::EndTable();
               }
-
-
 
               CENTER_TEXT("Connection Diagram");
               ImGui::Text("Connection Diagram");
 
-              //if (ImGui::BeginTable("WGFMCon",5)) {
-              //  ImGui::TableNextRow();
-              //  ImGui::TableNextColumn();
-              //  ImGui::Text(">>");
-              //  ImGui::TableNextColumn();
-              //  ImGui::Text("2");
-              //  ImGui::TableNextColumn();
-              //  ImGui::Text("3");
-              //  ImGui::TableNextColumn();
-              //  ImGui::Text("4");
-              //  ImGui::TableNextColumn();
-              //  ImGui::Text("Out");
+              if (ImGui::BeginTable("WGFMCon",6)) {
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text(">>");
+                ImGui::TableNextColumn();
+                ImGui::Text("1");
+                ImGui::TableNextColumn();
+                ImGui::Text("2");
+                ImGui::TableNextColumn();
+                ImGui::Text("3");
+                ImGui::TableNextColumn();
+                ImGui::Text("4");
+                ImGui::TableNextColumn();
+                ImGui::Text("Out");
 
-              //  ImGui::TableNextRow();
-              //  ImGui::TableNextColumn();
-              //  ImGui::Text("1");
-              //  ImGui::TableNextColumn();
-              //  if (ImGui::Checkbox("##Con12",&waveGenFMCon1[0])) {
-              //    doGenerateWave();
-              //  }
-              //  ImGui::TableNextColumn();
-              //  if (ImGui::Checkbox("##Con13",&waveGenFMCon1[1])) {
-              //    doGenerateWave();
-              //  }
-              //  ImGui::TableNextColumn();
-              //  if (ImGui::Checkbox("##Con14",&waveGenFMCon1[2])) {
-              //    doGenerateWave();
-              //  }
-              //  ImGui::TableNextColumn();
-              //  if (ImGui::Checkbox("##Con1O",&waveGenFMCon1[3])) {
-              //    doGenerateWave();
-              //  }
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("1");
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##ConO1",&waveGenFMCon0[0])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##ConO2",&waveGenFMCon0[1])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##ConO3",&waveGenFMCon0[2])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##ConO4",&waveGenFMCon0[3])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##ConOO",&waveGenFMCon0[4])) {
+                  doGenerateWave();
+                }
+                
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("2");
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con11",&waveGenFMCon1[0])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con12",&waveGenFMCon1[1])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con13",&waveGenFMCon1[2])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con14",&waveGenFMCon1[3])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con1O",&waveGenFMCon1[4])) {
+                  doGenerateWave();
+                }
 
-              //  ImGui::TableNextRow();
-              //  ImGui::TableNextColumn();
-              //  ImGui::Text("2");
-              //  ImGui::TableNextColumn();
-              //  // blank
-              //  ImGui::TableNextColumn();
-              //  if (ImGui::Checkbox("##Con23",&waveGenFMCon2[0])) {
-              //    doGenerateWave();
-              //  }
-              //  ImGui::TableNextColumn();
-              //  if (ImGui::Checkbox("##Con24",&waveGenFMCon2[1])) {
-              //    doGenerateWave();
-              //  }
-              //  ImGui::TableNextColumn();
-              //  if (ImGui::Checkbox("##Con2O",&waveGenFMCon2[2])) {
-              //    doGenerateWave();
-              //  }
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("3");
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con21",&waveGenFMCon2[0])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con22",&waveGenFMCon2[1])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con23",&waveGenFMCon2[2])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con24",&waveGenFMCon2[3])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con2O",&waveGenFMCon2[4])) {
+                  doGenerateWave();
+                }
 
-              //  ImGui::TableNextRow();
-              //  ImGui::TableNextColumn();
-              //  ImGui::Text("3");
-              //  ImGui::TableNextColumn();
-              //  // blank
-              //  ImGui::TableNextColumn();
-              //  // blank
-              //  ImGui::TableNextColumn();
-              //  if (ImGui::Checkbox("##Con34",&waveGenFMCon3[0])) {
-              //    doGenerateWave();
-              //  }
-              //  ImGui::TableNextColumn();
-              //  if (ImGui::Checkbox("##Con3O",&waveGenFMCon3[1])) {
-              //    doGenerateWave();
-              //  }
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Text("4");
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con31",&waveGenFMCon3[0])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con32",&waveGenFMCon3[1])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con33",&waveGenFMCon3[2])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con34",&waveGenFMCon3[3])) {
+                  doGenerateWave();
+                }
+                ImGui::TableNextColumn();
+                if (ImGui::Checkbox("##Con3O",&waveGenFMCon3[4])) {
+                  doGenerateWave();
+                }
 
-              //  ImGui::EndTable();
-              //}
-
-
-
-              if (ImGui::BeginTable("WGFMCon", 6)) {
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  ImGui::Text(">>");
-                  ImGui::TableNextColumn();
-                  ImGui::Text("1");
-                  ImGui::TableNextColumn();
-                  ImGui::Text("2");
-                  ImGui::TableNextColumn();
-                  ImGui::Text("3");
-                  ImGui::TableNextColumn();
-                  ImGui::Text("4");
-                  ImGui::TableNextColumn();
-                  //ImGui::Text("4");
-                  //ImGui::TableNextColumn();
-                  ImGui::Text("Out");
-
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  ImGui::Text("1");
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##ConO1", &waveGenFMCon0[0])) {
-                      doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##ConO2", &waveGenFMCon0[1])) {
-                      doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##ConO3", &waveGenFMCon0[2])) {
-                      doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##ConO4", &waveGenFMCon0[3])) {
-                      doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##ConOO", &waveGenFMCon0[4])) {
-                      doGenerateWave();
-                  }
-
-                  
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  ImGui::Text("2");
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con11", &waveGenFMCon1[0])) {
-                      doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con12", &waveGenFMCon1[1])) {
-                      doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con13", &waveGenFMCon1[2])) {
-                      doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con14", &waveGenFMCon1[3])) {
-                      doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con1O", &waveGenFMCon1[4])) {
-                      doGenerateWave();
-                  }
-
-
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  ImGui::Text("3");
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con21", &waveGenFMCon2[0])) {
-                      doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con22", &waveGenFMCon2[1])) {
-                      doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con23", &waveGenFMCon2[2])) {
-                      doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con24", &waveGenFMCon2[3])) {
-                      doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con2O", &waveGenFMCon2[4])) {
-                      doGenerateWave();
-                  }
-
-
-                  ImGui::TableNextRow();
-                  ImGui::TableNextColumn();
-                  ImGui::Text("4");
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con31", &waveGenFMCon3[0])) {
-                      doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con32", &waveGenFMCon3[1])) {
-                      doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con33", &waveGenFMCon3[2])) {
-                      doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con34", &waveGenFMCon3[3])) {
-                      doGenerateWave();
-                  }
-                  ImGui::TableNextColumn();
-                  if (ImGui::Checkbox("##Con3O", &waveGenFMCon3[4])) {
-                      doGenerateWave();
-                  }
-
-                  ImGui::EndTable();
+                ImGui::EndTable();
               }
-
 
               ImGui::EndTabItem();
             }
