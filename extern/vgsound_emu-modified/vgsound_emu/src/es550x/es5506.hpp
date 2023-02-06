@@ -27,7 +27,7 @@ class es5506_core : public es550x_shared_core
 				{
 				}
 
-				void reset()
+				inline void reset()
 				{
 					m_left	= 0;
 					m_right = 0;
@@ -180,6 +180,8 @@ class es5506_core : public es550x_shared_core
 				inline filter_ramp_t &k2ramp() { return m_k2ramp; }
 
 				inline filter_ramp_t &k1ramp() { return m_k1ramp; }
+
+        inline bool muted() { return m_mute; }
 
 				output_t &ch() { return m_ch; }
 

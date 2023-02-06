@@ -283,8 +283,8 @@ void es5506_core::voice_t::tick(u8 voice)
 	if (m_alu.busy())
 	{
 		// Send to output
-		m_output[0] = volume_calc(m_lvol, sign_ext<s32>(m_filter.o4_1(), 16));
-		m_output[1] = volume_calc(m_rvol, sign_ext<s32>(m_filter.o4_1(), 16));
+		m_output[0] = m_mute ? 0 : volume_calc(m_lvol, sign_ext<s32>(m_filter.o4_1(), 16));
+		m_output[1] = m_mute ? 0 : volume_calc(m_rvol, sign_ext<s32>(m_filter.o4_1(), 16));
 
 		m_ch.set_left(m_output[0]);
 		m_ch.set_right(m_output[1]);
