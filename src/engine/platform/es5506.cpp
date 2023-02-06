@@ -258,28 +258,22 @@ void DivPlatformES5506::tick(bool sysTick) {
       const unsigned int nextVol=VOL_SCALE_LOG((0xffff*chan[i].vol)/0xff,(0xffff*(unsigned int)chan[i].std.vol.val)/chan[i].volMacroMax,0xffff);
       if (chan[i].outVol!=nextVol) {
         chan[i].outVol=nextVol;
-        if (!isMuted[i]) {
-          chan[i].volChanged.lVol=1;
-          chan[i].volChanged.rVol=1;
-        }
+        chan[i].volChanged.lVol=1;
+        chan[i].volChanged.rVol=1;
       }
     }
     if (chan[i].std.panL.had) {
       const unsigned int nextLVol=VOL_SCALE_LOG((0xffff*chan[i].lVol)/0xff,(0xffff*(unsigned int)chan[i].std.panL.val)/chan[i].panMacroMax,0xffff);
       if (chan[i].outLVol!=nextLVol) {
         chan[i].outLVol=nextLVol;
-        if (!isMuted[i]) {
-          chan[i].volChanged.lVol=1;
-        }
+        chan[i].volChanged.lVol=1;
       }
     }
     if (chan[i].std.panR.had) {
       const unsigned int nextRVol=VOL_SCALE_LOG((0xffff*chan[i].rVol)/0xff,(0xffff*(unsigned int)chan[i].std.panR.val)/chan[i].panMacroMax,0xffff);
       if (chan[i].outRVol!=nextRVol) {
         chan[i].outRVol=nextRVol;
-        if (!isMuted[i]) {
-          chan[i].volChanged.rVol=1;
-        }
+        chan[i].volChanged.rVol=1;
       }
     }
     // arpeggio/pitch macros, frequency related
@@ -454,25 +448,21 @@ void DivPlatformES5506::tick(bool sysTick) {
     }
     // update registers
     if (chan[i].volChanged.changed) {
-      if (!isMuted[i]) { // calculate volume (16 bit)
-        if (chan[i].volChanged.lVol) {
-          chan[i].resLVol=VOL_SCALE_LOG(chan[i].outVol,chan[i].outLVol,0xffff);
-          if (!chan[i].keyOn && chan[i].active) {
-            pageWrite(0x00|i,0x02,chan[i].resLVol);
-          }
+      // calculate volume (16 bit)
+      if (chan[i].volChanged.lVol) {
+        chan[i].resLVol=VOL_SCALE_LOG(chan[i].outVol,chan[i].outLVol,0xffff);
+        if (!chan[i].keyOn && chan[i].active) {
+          pageWrite(0x00|i,0x02,chan[i].resLVol);
         }
-        if (chan[i].volChanged.rVol) {
-          chan[i].resRVol=VOL_SCALE_LOG(chan[i].outVol,chan[i].outRVol,0xffff);
-          if (!chan[i].keyOn && chan[i].active) {
-            pageWrite(0x00|i,0x04,chan[i].resRVol);
-          }
+      }
+      if (chan[i].volChanged.rVol) {
+        chan[i].resRVol=VOL_SCALE_LOG(chan[i].outVol,chan[i].outRVol,0xffff);
+        if (!chan[i].keyOn && chan[i].active) {
+          pageWrite(0x00|i,0x04,chan[i].resRVol);
         }
-        if (chan[i].volChanged.ca) {
-          pageWriteMask(0x00|i,0x5f,0x00,(chan[i].ca<<10),0x1c00);
-        }
-      } else { // mute
-        pageWrite(0x00|i,0x02,0);
-        pageWrite(0x00|i,0x04,0);
+      }
+      if (chan[i].volChanged.ca) {
+        pageWriteMask(0x00|i,0x5f,0x00,(chan[i].ca<<10),0x1c00);
       }
       chan[i].volChanged.changed=0;
     }
@@ -850,9 +840,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=(0xffff*c.value)/0xff;
-          if (!isMuted[c.chan]) {
-            chan[c.chan].volChanged.changed=0xff;
-          }
+          chan[c.chan].volChanged.changed=0xff;
         }
       }
       break;
@@ -872,9 +860,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         chan[c.chan].lVol=c.value;
         if (!chan[c.chan].std.panL.has) {
           chan[c.chan].outLVol=(0xffff*c.value)/0xff;
-          if (!isMuted[c.chan]) {
-            chan[c.chan].volChanged.lVol=1;
-          }
+          chan[c.chan].volChanged.lVol=1;
         }
       }
       // Right volume
@@ -882,9 +868,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         chan[c.chan].rVol=c.value2;
         if (!chan[c.chan].std.panR.has) {
           chan[c.chan].outRVol=(0xffff*c.value2)/0xff;
-          if (!isMuted[c.chan]) {
-            chan[c.chan].volChanged.rVol=1;
-          }
+          chan[c.chan].volChanged.rVol=1;
         }
       }
       break;
@@ -901,9 +885,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
           chan[c.chan].lVol=c.value2;
           if (!chan[c.chan].std.panL.has) {
             chan[c.chan].outLVol=(0xffff*c.value2)/0xff;
-            if (!isMuted[c.chan]) {
-              chan[c.chan].volChanged.lVol=1;
-            }
+            chan[c.chan].volChanged.lVol=1;
           }
         }
       }
@@ -913,9 +895,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
           chan[c.chan].rVol=c.value2;
           if (!chan[c.chan].std.panR.has) {
             chan[c.chan].outRVol=(0xffff*c.value2)/0xff;
-            if (!isMuted[c.chan]) {
-              chan[c.chan].volChanged.rVol=1;
-            }
+            chan[c.chan].volChanged.rVol=1;
           }
         }
       }
