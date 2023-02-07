@@ -150,6 +150,11 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
     for (int i=0; i<32; i++) {
       prevChanCycle=es5506.voice_cycle();
       es5506.tick_perf();
+      if (es5506.voice_end()) {
+        for (int i=chanMax; i>=0; i--) {
+          oscBuf[i]->data[oscBuf[i]->needle++]=(es5506.voice_lout(i)+es5506.voice_rout(i))>>5;
+        }
+      }
       for (int o=0; o<6; o++) {
         coL[o]+=es5506.lout(o);
         coR[o]+=es5506.rout(o);
@@ -162,9 +167,6 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
     for (int o=0; o<6; o++) {
       buf[(o<<1)|0][h]=coL[o];
       buf[(o<<1)|1][h]=coR[o];
-    }
-    for (int i=chanMax; i>=0; i--) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(short)(chan[i].oscOut&0xffff);
     }
   }
 }
@@ -236,8 +238,10 @@ void DivPlatformES5506::e_pin(bool state) {
 }
 
 void DivPlatformES5506::irqb(bool state) {
+  /*
   rRead(0x0e,0x80,&irqv,0x9f);
   irqTrigger=true;
+  */
 }
 
 void DivPlatformES5506::tick(bool sysTick) {
@@ -552,10 +556,12 @@ void DivPlatformES5506::tick(bool sysTick) {
             case DIV_SAMPLE_LOOP_FORWARD: // Forward loop
               loopFlag|=0x0008;
               break;
+            /*
             case DIV_SAMPLE_LOOP_BACKWARD: // Backward loop: IRQ enable
               loopFlag|=0x0038;
               chan[i].isReverseLoop=true;
               break;
+            */
             case DIV_SAMPLE_LOOP_PINGPONG: // Pingpong loop: Hardware support
               loopFlag|=0x0018;
               break;
@@ -721,10 +727,12 @@ void DivPlatformES5506::tick(bool sysTick) {
             case DIV_SAMPLE_LOOP_FORWARD: // Forward loop
               loopFlag|=0x0008;
               break;
+            /*
             case DIV_SAMPLE_LOOP_BACKWARD: // Backward loop: IRQ enable
               loopFlag|=0x0038;
               chan[i].isReverseLoop=true;
               break;
+            */
             case DIV_SAMPLE_LOOP_PINGPONG: // Pingpong loop: Hardware support
               loopFlag|=0x0018;
               break;
