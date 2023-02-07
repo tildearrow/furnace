@@ -530,8 +530,8 @@ void DivPlatformES5506::tick(bool sysTick) {
             double loopStart=(double)s->loopStart;
             double loopEnd=(double)s->loopEnd;
             const unsigned int start=sampleOffES5506[chan[i].pcm.index]<<10;
-            const unsigned int nextLoopStart=(start+(unsigned int)(loopStart*2048.0))&0xfffff800;
-            const unsigned int nextLoopEnd=(start+(unsigned int)((loopEnd-1.0)*2048.0))&0xffffff80;
+            const unsigned int nextLoopStart=(start+(s->loopStart<<11))&0xfffff800;
+            const unsigned int nextLoopEnd=(start+((s->loopEnd-1)<<11))&0xffffff80;
             if ((chan[i].pcm.loopStart!=nextLoopStart) || (chan[i].pcm.loopEnd!=nextLoopEnd)) {
               chan[i].pcm.loopStart=nextLoopStart;
               chan[i].pcm.loopEnd=nextLoopEnd;
@@ -649,6 +649,9 @@ void DivPlatformES5506::tick(bool sysTick) {
       chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs),0,0x1ffff);
       if (chan[i].keyOn) {
         if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
+          DivSample* s=parent->getSample(chan[i].pcm.index);
+          chan[i].pcm.loopStart=(chan[i].pcm.start+(s->loopStart<<11))&0xfffff800;
+          chan[i].pcm.loopEnd=(chan[i].pcm.start+((s->loopEnd-1)<<11))&0xffffff80;
           unsigned int startPos=chan[i].pcm.direction?chan[i].pcm.end:chan[i].pcm.start;
           if (chan[i].pcm.nextPos) {
             const unsigned int start=chan[i].pcm.start;
