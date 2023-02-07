@@ -649,7 +649,6 @@ void DivPlatformES5506::tick(bool sysTick) {
         if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
           const int ind=chan[i].pcm.index;
           DivSample* s=parent->getSample(ind);
-          DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[ind];
           // get frequency offset
           double off=1.0;
           double center=(double)s->centerRate;
@@ -659,8 +658,8 @@ void DivPlatformES5506::tick(bool sysTick) {
             off=(double)center/8363.0;
           }
           if (ins->amiga.useNoteMap) {
-            off*=(double)noteMapind.freq/((double)MAX(1,center)*pow(2.0,((double)ind-48.0)/12.0));
-            chan[i].pcm.note=ind;
+            DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[chan[i].pcm.note];
+            off*=(double)noteMapind.freq/((double)MAX(1,center)*pow(2.0,((double)chan[i].pcm.note-48.0)/12.0));
           }
           chan[i].pcm.loopStart=(chan[i].pcm.start+(s->loopStart<<11))&0xfffff800;
           chan[i].pcm.loopEnd=(chan[i].pcm.start+((s->loopEnd-1)<<11))&0xffffff80;
