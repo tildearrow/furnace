@@ -527,8 +527,6 @@ void DivPlatformES5506::tick(bool sysTick) {
           if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
             // get loop mode
             DivSample* s=parent->getSample(chan[i].pcm.index);
-            double loopStart=(double)s->loopStart;
-            double loopEnd=(double)s->loopEnd;
             const unsigned int start=sampleOffES5506[chan[i].pcm.index]<<10;
             const unsigned int nextLoopStart=(start+(s->loopStart<<11))&0xfffff800;
             const unsigned int nextLoopEnd=(start+((s->loopEnd-1)<<11))&0xffffff80;
