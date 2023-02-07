@@ -650,10 +650,6 @@ void DivPlatformES5506::tick(bool sysTick) {
           const int ind=chan[i].pcm.index;
           DivSample* s=parent->getSample(ind);
           DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[ind];
-          int sample=ind;
-          if (ins->amiga.useNoteMap) {
-            sample=noteMapind.map;
-          }
           // get frequency offset
           double off=1.0;
           double center=(double)s->centerRate;
