@@ -984,7 +984,7 @@ const int availableSystems[]={
   DIV_SYSTEM_VRC6,
   DIV_SYSTEM_FDS,
   DIV_SYSTEM_MMC5,
-  DIV_SYSTEM_ES5506,
+//  DIV_SYSTEM_ES5506,
   DIV_SYSTEM_SCC,
   DIV_SYSTEM_SCC_PLUS,
   DIV_SYSTEM_YMZ280B,
@@ -1102,7 +1102,7 @@ const int chipsSample[]={
   DIV_SYSTEM_K007232,
   DIV_SYSTEM_GA20,
   DIV_SYSTEM_PCM_DAC,
-  DIV_SYSTEM_ES5506,
+//  DIV_SYSTEM_ES5506,
   0 // don't remove this last one!
 };
 
