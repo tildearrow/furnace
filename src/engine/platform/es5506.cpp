@@ -128,9 +128,9 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
     coR[4]=0;
     coR[5]=0;
 
-    for (int i=31; i>(int)chanMax; i--) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=0;
-    }
+      for (int i=31; i>(int)chanMax; i--) {
+        oscBuf[i]->data[oscBuf[i]->needle++]=0;
+      }
     // convert 32 bit access to 8 bit host interface
     while (!hostIntf32.empty()) {
       QueuedHostIntf w=hostIntf32.front();
@@ -151,8 +151,8 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
       prevChanCycle=es5506.voice_cycle();
       es5506.tick_perf();
       if (es5506.voice_end()) {
-        for (int i=chanMax; i>=0; i--) {
-          oscBuf[i]->data[oscBuf[i]->needle++]=(es5506.voice_lout(i)+es5506.voice_rout(i))>>5;
+        for (int j=chanMax; j>=0; j--) {
+          oscBuf[j]->data[oscBuf[j]->needle++]=(es5506.voice_lout(j)+es5506.voice_rout(j))>>5;
         }
       }
       for (int o=0; o<6; o++) {
@@ -649,9 +649,28 @@ void DivPlatformES5506::tick(bool sysTick) {
       chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs),0,0x1ffff);
       if (chan[i].keyOn) {
         if (chan[i].pcm.index>=0 && chan[i].pcm.index<parent->song.sampleLen) {
-          DivSample* s=parent->getSample(chan[i].pcm.index);
+          const int ind=chan[i].pcm.index;
+          DivSample* s=parent->getSample(ind);
+          DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[ind];
+          int sample=ind;
+          if (ins->amiga.useNoteMap) {
+            sample=noteMapind.map;
+          }
+          // get frequency offset
+          double off=1.0;
+          double center=(double)s->centerRate;
+          if (center<1) {
+            off=1.0;
+          } else {
+            off=(double)center/8363.0;
+          }
+          if (ins->amiga.useNoteMap) {
+            off*=(double)noteMapind.freq/((double)MAX(1,center)*pow(2.0,((double)ind-48.0)/12.0));
+            chan[i].pcm.note=ind;
+          }
           chan[i].pcm.loopStart=(chan[i].pcm.start+(s->loopStart<<11))&0xfffff800;
           chan[i].pcm.loopEnd=(chan[i].pcm.start+((s->loopEnd-1)<<11))&0xffffff80;
+          chan[i].pcm.freqOffs=PITCH_OFFSET*off;
           unsigned int startPos=chan[i].pcm.direction?chan[i].pcm.end:chan[i].pcm.start;
           if (chan[i].pcm.nextPos) {
             const unsigned int start=chan[i].pcm.start;
