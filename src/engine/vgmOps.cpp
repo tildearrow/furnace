@@ -1054,6 +1054,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   std::vector<unsigned int> chipVol;
   std::vector<DivDelayedWrite> delayedWrites[DIV_MAX_CHIPS];
   std::vector<std::pair<int,DivDelayedWrite>> sortedWrites;
+  std::vector<unsigned int> tickPos;
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     loopTimer[i]=0;
