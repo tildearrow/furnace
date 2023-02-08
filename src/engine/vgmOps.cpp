@@ -130,7 +130,15 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           w->writeC(i);
           w->writeC(0xb9);
           w->writeC(4|baseAddr2);
-          w->writeC(0);
+          w->writeC(0x5f);
+          w->writeC(0xb9);
+          w->writeC(4|baseAddr2);
+          w->writeC(0x1f);
+          for (int j=0; j<32; j++) {
+            w->writeC(0xb9);
+            w->writeC(6|baseAddr2);
+            w->writeC(0);
+          }
         }
         break;
       case DIV_SYSTEM_NES:
@@ -1054,7 +1062,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   std::vector<unsigned int> chipVol;
   std::vector<DivDelayedWrite> delayedWrites[DIV_MAX_CHIPS];
   std::vector<std::pair<int,DivDelayedWrite>> sortedWrites;
-  std::vector<unsigned int> tickPos;
+  std::vector<size_t> tickPos;
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     loopTimer[i]=0;
@@ -2107,6 +2115,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         writeLoop=true;
       }
     }
+    tickPos.push_back(w->tell());
     if (nextTick(false,true) || !playing) {
       done=true;
       if (!loop) {
