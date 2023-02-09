@@ -121,8 +121,12 @@ void DivPlatformGA20::tick(bool sysTick) {
       }
     }
     if (chan[i].volumeChanged) {
-      chan[i].resVol=(chan[i].active && isMuted[i])?0:chan[i].outVol&0xff;
-      chWrite(i,0x5,chan[i].resVol);
+      if (isMuted[i]) {
+        chWrite(i,0x5,0);
+      } else {
+        chan[i].resVol=(isMuted[i])?0:chan[i].outVol&0xff;
+        chWrite(i,0x5,chan[i].resVol);
+      }
       chan[i].volumeChanged=false;
     }
     if (chan[i].setPos) {
@@ -320,6 +324,7 @@ int DivPlatformGA20::dispatch(DivCommand c) {
 
 void DivPlatformGA20::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+  ga20.set_mute(ch,mute);
   chan[ch].volumeChanged=true;
 }
 

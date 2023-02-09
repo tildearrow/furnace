@@ -104,7 +104,7 @@ void iremga20_device::sound_stream_update(short** outputs, int len)
 					ch.play = false;
 				else
 				{
-					sampleout = (sample - 0x80) * (s32)ch.volume;
+					sampleout = ch.mute ? 0 : (sample - 0x80) * (s32)ch.volume;
 					ch.counter--;
 					if (ch.counter <= ch.rate)
 					{
