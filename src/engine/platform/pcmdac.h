@@ -29,6 +29,7 @@ class DivPlatformPCMDAC: public DivDispatch {
     bool audDir;
     unsigned int audLoc;
     unsigned short audLen;
+    short audDat[8];
     int audPos;
     int audSub;
     int sample, wave;
@@ -41,6 +42,7 @@ class DivPlatformPCMDAC: public DivDispatch {
       audDir(false),
       audLoc(0),
       audLen(0),
+      audDat{0,0,0,0,0,0,0,0},
       audPos(0),
       audSub(0),
       sample(-1),

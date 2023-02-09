@@ -111,7 +111,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
-        if (isMuted[i]) {
+        if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
           if (KVS(i,j)) {
@@ -210,7 +210,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
-        if (isMuted[i]) {
+        if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
           if (KVS(i,j)) {
@@ -263,7 +263,7 @@ void DivPlatformTX81Z::tick(bool sysTick) {
       }
       if (m.tl.had) {
         op.tl=127-m.tl.val;
-        if (isMuted[i]) {
+        if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
           if (KVS(i,j)) {
@@ -384,7 +384,7 @@ void DivPlatformTX81Z::muteChannel(int ch, bool mute) {
   for (int i=0; i<4; i++) {
     unsigned short baseAddr=chanOffs[ch]|opOffs[i];
     DivInstrumentFM::Operator op=chan[ch].state.op[i];
-    if (isMuted[ch]) {
+    if (isMuted[ch] || !op.enable) {
       rWrite(baseAddr+ADDR_TL,127);
     } else {
       if (KVS(ch,i)) {
@@ -404,7 +404,7 @@ void DivPlatformTX81Z::commitState(int ch, DivInstrument* ins) {
   for (int i=0; i<4; i++) {
     unsigned short baseAddr=chanOffs[ch]|opOffs[i];
     DivInstrumentFM::Operator op=chan[ch].state.op[i];
-    if (isMuted[ch]) {
+    if (isMuted[ch] || !op.enable) {
       rWrite(baseAddr+ADDR_TL,127);
     } else {
       if (KVS(ch,i)) {
@@ -483,7 +483,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
-        if (isMuted[c.chan]) {
+        if (isMuted[c.chan] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
           if (KVS(c.chan,i)) {
@@ -600,7 +600,7 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.tl=c.value2;
-      if (isMuted[c.chan]) {
+      if (isMuted[c.chan] || !op.enable) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
         if (KVS(c.chan,c.value)) {
@@ -908,7 +908,7 @@ void DivPlatformTX81Z::forceIns() {
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator op=chan[i].state.op[j];
-      if (isMuted[i]) {
+      if (isMuted[i] || !op.enable) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
         if (KVS(i,j)) {
