@@ -92,7 +92,7 @@ void DivPlatformGA20::tick(bool sysTick) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       const signed char macroVol=VOL_SCALE_LOG((chan[i].vol&0xff),(0xff*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/chan[i].macroVolMul,0xff);
-      if ((!isMuted[i]) && (macroVol!=chan[i].outVol)) {
+      if (macroVol!=chan[i].outVol) {
         chan[i].outVol=macroVol;
         chan[i].volumeChanged=true;
       }
@@ -121,12 +121,8 @@ void DivPlatformGA20::tick(bool sysTick) {
       }
     }
     if (chan[i].volumeChanged) {
-      if (isMuted[i]) {
-        chWrite(i,0x5,0);
-      } else {
-        chan[i].resVol=(isMuted[i])?0:chan[i].outVol&0xff;
-        chWrite(i,0x5,chan[i].resVol);
-      }
+      chan[i].resVol=chan[i].outVol&0xff;
+      chWrite(i,0x5,chan[i].resVol);
       chan[i].volumeChanged=false;
     }
     if (chan[i].setPos) {
@@ -179,9 +175,7 @@ void DivPlatformGA20::tick(bool sysTick) {
         chWrite(i,6,2);
         if (!chan[i].std.vol.had) {
           chan[i].outVol=chan[i].vol;
-          if (!isMuted[i]) {
-            chan[i].volumeChanged=true;
-          }
+          chan[i].volumeChanged=true;
         }
         chan[i].keyOn=false;
       }
@@ -222,9 +216,7 @@ int DivPlatformGA20::dispatch(DivCommand c) {
       chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
-        if (!isMuted[c.chan]) {
-          chan[c.chan].volumeChanged=true;
-        }
+        chan[c.chan].volumeChanged=true;
       }
       break;
     }
@@ -248,9 +240,7 @@ int DivPlatformGA20::dispatch(DivCommand c) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
           chan[c.chan].outVol=c.value;
-          if (!isMuted[c.chan]) {
-            chan[c.chan].volumeChanged=true;
-          }
+          chan[c.chan].volumeChanged=true;
         }
       }
       break;
@@ -363,6 +353,7 @@ void DivPlatformGA20::reset() {
     // keyoff all channels
     chWrite(i,5,0);
     chWrite(i,6,0);
+    if (isMuted[i]) ga20.set_mute(i,true);
   }
 }
 
