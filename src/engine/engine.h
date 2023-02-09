@@ -100,6 +100,7 @@ struct DivChannelState {
   unsigned char arp, arpStage, arpTicks, panL, panR, panRL, panRR;
   bool doNote, legato, portaStop, keyOn, keyOff, nowYouCanStop, stopOnOff;
   bool arpYield, delayLocked, inPorta, scheduledSlideReset, shorthandPorta, wasShorthandPorta, noteOnInhibit, resetArp;
+  bool wentThroughNote, goneThroughNote;
 
   int midiNote, curMidiNote, midiPitch;
   size_t midiAge;
@@ -152,6 +153,8 @@ struct DivChannelState {
     wasShorthandPorta(false),
     noteOnInhibit(false),
     resetArp(false),
+    wentThroughNote(false),
+    goneThroughNote(false),
     midiNote(-1),
     curMidiNote(-1),
     midiPitch(-1),
@@ -524,7 +527,12 @@ class DivEngine {
     // specify system to build ROM for.
     SafeWriter* buildROM(int sys);
     // dump to VGM.
-    SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false, bool directStream=false);
+    // set trailingTicks to:
+    // - 0 to add one tick of trailing
+    // - x to add x+1 ticks of trailing
+    // - -1 to auto-determine trailing
+    // - -2 to add a whole loop of trailing
+    SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false, bool directStream=false, int trailingTicks=-1);
     // dump to ZSM.
     SafeWriter* saveZSM(unsigned int zsmrate=60, bool loop=true);
     // dump command stream.

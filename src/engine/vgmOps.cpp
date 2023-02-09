@@ -952,7 +952,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
   chipVol.push_back((_id)|(0x80000100)|(((unsigned int)_vol)<<16)); \
 }
 
-SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool patternHints, bool directStream) {
+SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool patternHints, bool directStream, int trailingTicks) {
   if (version<0x150) {
     lastError="VGM version is too low";
     return NULL;
@@ -1037,7 +1037,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   int chipAccounting=0;
 
   int loopPos=-1;
-  int loopTick=-1;
+  int loopTickSong=-1;
+  int songTick=0;
 
   unsigned int sampleOff8[256];
   unsigned int sampleOffSegaPCM[256];
@@ -1063,6 +1064,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   std::vector<DivDelayedWrite> delayedWrites[DIV_MAX_CHIPS];
   std::vector<std::pair<int,DivDelayedWrite>> sortedWrites;
   std::vector<size_t> tickPos;
+  std::vector<int> tickSample;
+
+  bool trailing=false;
+  bool beenOneLoopAlready=false;
+  int countDown=MAX(0,trailingTicks)+1;
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     loopTimer[i]=0;
@@ -2103,11 +2109,14 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   playSub(false);
   size_t tickCount=0;
   bool writeLoop=false;
+  bool alreadyWroteLoop=false;
   int ord=-1;
   int exportChans=0;
   for (int i=0; i<chans; i++) {
     if (!willExport[dispatchOfChan[i]]) continue;
     exportChans++;
+    chan[i].wentThroughNote=false;
+    chan[i].goneThroughNote=false;
   }
   while (!done) {
     if (loopPos==-1) {
@@ -2115,8 +2124,45 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         writeLoop=true;
       }
     }
+    songTick++;
     tickPos.push_back(w->tell());
-    if (nextTick(false,true) || !playing) {
+    tickSample.push_back(tickCount);
+    if (nextTick(false,true)) {
+      if (trailing) beenOneLoopAlready=true;
+      trailing=true;
+      for (int i=0; i<chans; i++) {
+        if (!willExport[dispatchOfChan[i]]) continue;
+        chan[i].wentThroughNote=false;
+      }
+    }
+    if (trailing) {
+      switch (trailingTicks) {
+        case -1: { // automatic
+          bool stillHaveTo=false;
+          for (int i=0; i<chans; i++) {
+            if (!willExport[dispatchOfChan[i]]) continue;
+            if (!chan[i].goneThroughNote) continue;
+            if (!chan[i].wentThroughNote) {
+              stillHaveTo=true;
+              break;
+            }
+          }
+          if (!stillHaveTo) countDown=0;
+          break;
+        }
+        case -2: // one loop
+          break;
+        default: // custom
+          countDown--;
+          break;
+      }
+      if (song.loopModality!=2) countDown=0;
+
+      if (countDown>0 && !beenOneLoopAlready) {
+        loopTickSong++;
+      }
+    }
+    if (countDown<=0 || !playing || beenOneLoopAlready) {
       done=true;
       if (!loop) {
         for (int i=0; i<song.systemLen; i++) {
@@ -2275,10 +2321,11 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       }
       tickCount+=totalWait;
     }
-    if (writeLoop) {
+    if (writeLoop && !alreadyWroteLoop) {
       writeLoop=false;
+      alreadyWroteLoop=true;
       loopPos=w->tell();
-      loopTick=tickCount;
+      loopTickSong=songTick;
     }
   }
   // end of song
@@ -2333,9 +2380,16 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     if (loopPos==-1) {
       w->writeI(0);
       w->writeI(0);
+    } else if (loopTickSong<0 || loopTickSong>(int)tickPos.size()) {
+      logW("loopTickSong out of range! %d>%d",loopTickSong,(int)tickPos.size());
+      w->writeI(0);
+      w->writeI(0);
     } else {
-      w->writeI(loopPos-0x1c);
-      w->writeI(tickCount-loopTick);
+      int realLoopTick=tickSample[loopTickSong];
+      int realLoopPos=tickPos[loopTickSong];
+      logI("tickCount-realLoopTick: %d. realLoopPos: %d",tickCount-realLoopTick,realLoopPos);
+      w->writeI(realLoopPos-0x1c);
+      w->writeI(tickCount-realLoopTick);
     }
   } else {
     w->writeI(0);

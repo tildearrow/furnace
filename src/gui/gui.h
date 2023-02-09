@@ -1118,6 +1118,7 @@ class FurnaceGUI {
   bool mobileEdit;
   bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;
+  int vgmExportTrailingTicks;
   int drawHalt;
   int zsmExportTickRate;
   int macroPointSize;

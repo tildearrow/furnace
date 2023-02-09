@@ -3530,6 +3530,24 @@ bool FurnaceGUI::loop() {
             ImGui::EndCombo();
           }
           ImGui::Checkbox("loop",&vgmExportLoop);
+          if (vgmExportLoop && e->song.loopModality==2) {
+            ImGui::Text("trailing ticks:");
+            if (ImGui::RadioButton("auto-detect",vgmExportTrailingTicks==-1)) {
+              vgmExportTrailingTicks=-1;
+            }
+            if (ImGui::RadioButton("one loop",vgmExportTrailingTicks==-2)) {
+              vgmExportTrailingTicks=-2;
+            }
+            if (ImGui::RadioButton("custom",vgmExportTrailingTicks>=0)) {
+              vgmExportTrailingTicks=0;
+            }
+            if (vgmExportTrailingTicks>=0) {
+              ImGui::SameLine();
+              if (ImGui::InputInt("##TrailTicks",&vgmExportTrailingTicks,1,100)) {
+                if (vgmExportTrailingTicks<0) vgmExportTrailingTicks=0;
+              }
+            }
+          }
           ImGui::Checkbox("add pattern change hints",&vgmExportPatternHints);
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip(
@@ -4463,7 +4481,7 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_EXPORT_VGM: {
-              SafeWriter* w=e->saveVGM(willExport,vgmExportLoop,vgmExportVersion,vgmExportPatternHints,vgmExportDirectStream);
+              SafeWriter* w=e->saveVGM(willExport,vgmExportLoop,vgmExportVersion,vgmExportPatternHints,vgmExportDirectStream,vgmExportTrailingTicks);
               if (w!=NULL) {
                 FILE* f=ps_fopen(copyOfName.c_str(),"wb");
                 if (f!=NULL) {
@@ -5837,6 +5855,7 @@ FurnaceGUI::FurnaceGUI():
   snesFilterHex(false),
   mobileEdit(false),
   vgmExportVersion(0x171),
+  vgmExportTrailingTicks(-1),
   drawHalt(10),
   zsmExportTickRate(60),
   macroPointSize(16),
