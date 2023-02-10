@@ -183,7 +183,6 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("centerRate: %d",sample->centerRate);
           ImGui::Text("loopStart: %d",sample->loopStart);
           ImGui::Text("loopEnd: %d", sample->loopEnd);
-          ImGui::Text("loopOffP: %d",sample->loopOffP);
           ImGui::Text(sample->loop?"loop: Enabled":"loop: Disabled");
           if (sampleLoopModes[sample->loopMode]!=NULL) {
             ImGui::Text("loopMode: %d (%s)",(unsigned char)sample->loopMode,sampleLoopModes[sample->loopMode]);

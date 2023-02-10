@@ -1085,7 +1085,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   DivDispatch* writeADPCM_OPNA[2]={NULL,NULL};
   DivDispatch* writeADPCM_OPNB[2]={NULL,NULL};
   DivDispatch* writeADPCM_Y8950[2]={NULL,NULL};
-  int writeSegaPCM=0;
+  DivDispatch* writeSegaPCM[2]={NULL,NULL};
   DivDispatch* writeX1010[2]={NULL,NULL};
   DivDispatch* writeQSound[2]={NULL,NULL};
   DivDispatch* writeES5506[2]={NULL,NULL};
@@ -1177,12 +1177,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           hasSegaPCM=4000000;
           CHIP_VOL(4,0.67);
           willExport[i]=true;
-          writeSegaPCM=1;
+          writeSegaPCM[0]=disCont[i].dispatch;
         } else if (!(hasSegaPCM&0x40000000)) {
           isSecond[i]=true;
           CHIP_VOL_SECOND(4,0.67);
           willExport[i]=true;
-          writeSegaPCM=2;
+          writeSegaPCM[1]=disCont[i].dispatch;
           hasSegaPCM|=0x40000000;
           howManyChips++;
         }
@@ -1843,53 +1843,17 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     }
   }
 
-  if (writeSegaPCM>0) {
-    unsigned char* pcmMem=new unsigned char[16777216];
-
-    size_t memPos=0;
-    for (int i=0; i<song.sampleLen; i++) {
-      DivSample* sample=song.sample[i];
-      unsigned int alignedSize=(sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)+0xff)&(~0xff);
-      if (alignedSize>65536) alignedSize=65536;
-      if ((memPos&0xff0000)!=((memPos+alignedSize)&0xff0000)) {
-        memPos=(memPos+0xffff)&0xff0000;
-      }
-      logV("- sample %d will be at %x with length %x",i,memPos,alignedSize);
-      if (memPos>=16777216) break;
-      sampleOffSegaPCM[i]=memPos;
-      unsigned int readPos=0;
-      for (unsigned int j=0; j<alignedSize; j++) {
-        if (readPos>=(unsigned int)sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
-          if (sample->isLoopable()) {
-            readPos=sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT);
-            pcmMem[memPos++]=((unsigned char)sample->data8[readPos]+0x80);
-          } else {
-            pcmMem[memPos++]=0x80;
-          }
-        } else {
-          pcmMem[memPos++]=((unsigned char)sample->data8[readPos]+0x80);
-        }
-        readPos++;
-        if (memPos>=16777216) break;
-      }
-      sample->loopOffP=readPos-sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT);
-      if (memPos>=16777216) break;
-    }
-
-    for (unsigned char i=0; i<writeSegaPCM; i++) {
+  for (int i=0; i<2; i++) {
+    // SegaPCM
+    if (writeSegaPCM[i]!=NULL && writeSegaPCM[i]->getSampleMemUsage(0)>0) {
       w->writeC(0x67);
       w->writeC(0x66);
-      w->writeC(0x80);
-      w->writeI((memPos+8)|(i*0x80000000));
-      w->writeI(memPos);
+      w->writeC(0x81);
+      w->writeI((writeSegaPCM[i]->getSampleMemUsage(0)+8)|(i*0x80000000));
+      w->writeI(writeSegaPCM[i]->getSampleMemCapacity(0));
       w->writeI(0);
-      w->write(pcmMem,memPos);
+      w->write(writeSegaPCM[i]->getSampleMem(0),writeSegaPCM[i]->getSampleMemUsage(0));
     }
-
-    delete[] pcmMem;
-  }
-
-  for (int i=0; i<2; i++) {
     // ADPCM (OPNA)
     if (writeADPCM_OPNA[i]!=NULL && writeADPCM_OPNA[i]->getSampleMemUsage(0)>0) {
       w->writeC(0x67);

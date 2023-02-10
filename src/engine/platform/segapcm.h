@@ -53,6 +53,8 @@ class DivPlatformSegaPCM: public DivDispatch {
     };
     Channel chan[16];
     DivDispatchOscBuffer* oscBuf[16];
+    unsigned char* sampleMem;
+    size_t sampleMemLen;
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -74,6 +76,8 @@ class DivPlatformSegaPCM: public DivDispatch {
     short pendingWrites[256];
 
     unsigned int sampleOffSegaPCM[256];
+    unsigned int sampleLoopOff[256];
+    bool sampleLoaded[256];
   
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
@@ -97,6 +101,10 @@ class DivPlatformSegaPCM: public DivDispatch {
     int getOutputCount();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    const void* getSampleMem(int index=0);
+    size_t getSampleMemCapacity(int index=0);
+    size_t getSampleMemUsage(int index=0);
+    bool isSampleLoaded(int index, int sample);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformSegaPCM();

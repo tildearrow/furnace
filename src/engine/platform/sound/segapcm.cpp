@@ -16,6 +16,7 @@ segapcm_device::segapcm_device()
 	: m_bankshift(12)
 	, m_bankmask(0x70)
 {
+  memset(m_muted,0,16*sizeof(bool));
 }
 
 
@@ -94,8 +95,13 @@ void segapcm_device::sound_stream_update(int* outputs)
                                 v = read_byte(offset + (addr >> 8)) - 0x80;
 
                                 /* apply panning and advance */
-                                lastOut[ch][0]=v * (regs[2] & 0x7f);
-                                lastOut[ch][1]=v * (regs[3] & 0x7f);
+                                if (m_muted[ch]) {
+                                  lastOut[ch][0]=0;
+                                  lastOut[ch][1]=0;
+                                } else {
+                                  lastOut[ch][0]=v * (regs[2] & 0x7f);
+                                  lastOut[ch][1]=v * (regs[3] & 0x7f);
+                                }
                                 outputs[0]+=lastOut[ch][0];
                                 outputs[1]+=lastOut[ch][1];
                                 addr = (addr + regs[7]) & 0xffffff;
@@ -122,4 +128,12 @@ void segapcm_device::write(unsigned int offset, uint8_t data)
 uint8_t segapcm_device::read(unsigned int offset)
 {
 	return m_ram[offset & 0x07ff];
+}
+
+uint8_t* segapcm_device::get_ram() {
+  return m_ram;
+}
+
+void segapcm_device::mute(int ch, bool doMute) {
+  m_muted[ch&15]=doMute;
 }

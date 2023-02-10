@@ -7,6 +7,7 @@
 #ifndef MAMESOUND_SEGAPCM_H
 #define MAMESOUND_SEGAPCM_H
 
+#include <stdint.h>
 #include <functional>
 
 //**************************************************************************
@@ -22,7 +23,7 @@ public:
 	static constexpr int BANK_MASKF  = 0xf0 << 16;
 	static constexpr int BANK_MASKF8 = 0xf8 << 16;
 
-        short lastOut[16][2];
+  short lastOut[16][2];
 
 	segapcm_device();
 
@@ -32,6 +33,8 @@ public:
 
 	void write(unsigned int offset, uint8_t data);
 	uint8_t read(unsigned int offset);
+  uint8_t* get_ram();
+  void mute(int ch, bool doMute);
 
 	// device-level overrides
 	void device_start();
@@ -42,6 +45,7 @@ public:
 private:
 	uint8_t m_ram[0x800];
 	uint8_t m_low[16];
+  bool m_muted[16];
 	int m_bankshift;
 	int m_bankmask;
         std::function<unsigned char(unsigned int)> read_byte;
