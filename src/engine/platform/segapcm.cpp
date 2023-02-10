@@ -47,6 +47,10 @@ void DivPlatformSegaPCM::acquire(short** buf, size_t len) {
   
     buf[0][h]=os[0];
     buf[1][h]=os[1];
+
+    for (int i=0; i<16; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=pcm.lastOut[i][0]+pcm.lastOut[i][1];
+    }
   }
 }
 
