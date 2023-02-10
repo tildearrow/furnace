@@ -258,11 +258,17 @@ void SoundUnit::NextSample(short* l, short* r) {
   }
 
   // mix
-  tnsL=(nsL[0]+nsL[1]+nsL[2]+nsL[3]+nsL[4]+nsL[5]+nsL[6]+nsL[7])>>2;
-  tnsR=(nsR[0]+nsR[1]+nsR[2]+nsR[3]+nsR[4]+nsR[5]+nsR[6]+nsR[7])>>2;
+  if (dsOut) {
+    tnsL=nsL[dsChannel]<<1;
+    tnsR=nsR[dsChannel]<<1;
+    dsChannel=(dsChannel+1)&7;
+  } else {
+    tnsL=(nsL[0]+nsL[1]+nsL[2]+nsL[3]+nsL[4]+nsL[5]+nsL[6]+nsL[7])>>2;
+    tnsR=(nsR[0]+nsR[1]+nsR[2]+nsR[3]+nsR[4]+nsR[5]+nsR[6]+nsR[7])>>2;
 
-  IL1=minval(32767,maxval(-32767,tnsL))>>8;
-  IL2=minval(32767,maxval(-32767,tnsR))>>8;
+    IL1=minval(32767,maxval(-32767,tnsL))>>8;
+    IL2=minval(32767,maxval(-32767,tnsR))>>8;
+  }
 
   // write input lines to sample memory
   if (ILSIZE&64) {
@@ -324,36 +330,8 @@ void SoundUnit::NextSample(short* l, short* r) {
   }
 
   if (dsOut) {
-    tnsL=minval(32767,maxval(-32767,tnsL<<1));
-    tnsR=minval(32767,maxval(-32767,tnsR<<1));
-
-    short accumL=0;
-    short accumR=0;
-
-    for (int i=0; i<4; i++) {
-      if ((tnsL>>8)==0 && dsCounterL>0) dsCounterL=0;
-      dsCounterL+=tnsL>>8;
-      if (dsCounterL>=0) {
-        accumL+=4095;
-        dsCounterL-=127;
-      } else {
-        accumL+=-4095;
-        dsCounterL+=127;
-      }
-
-      if ((tnsR>>8)==0 && dsCounterR>0) dsCounterR=0;
-      dsCounterR+=tnsR>>8;
-      if (dsCounterR>=0) {
-        accumR+=4095;
-        dsCounterR-=127;
-      } else {
-        accumR+=-4095;
-        dsCounterR+=127;
-      }
-    }
-
-    *l=accumL;
-    *r=accumR;
+    *l=minval(32767,maxval(-32767,tnsL))&0xff00;
+    *r=minval(32767,maxval(-32767,tnsR))&0xff00;
   } else {
     *l=minval(32767,maxval(-32767,tnsL));
     *r=minval(32767,maxval(-32767,tnsR));
@@ -402,8 +380,7 @@ void SoundUnit::Reset() {
     oldfreq[i]=0;
     pcmdec[i]=0;
   }
-  dsCounterL=0;
-  dsCounterR=0;
+  dsChannel=0;
   tnsL=0;
   tnsR=0;
   ilBufPos=0;

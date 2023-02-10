@@ -239,7 +239,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         pdm=false;
         altered=true;
       }
-      if (ImGui::RadioButton("1-bit PDM (rev C/E)",pdm==1)) {
+      if (ImGui::RadioButton("8-bit + TDM (rev C/E)",pdm==1)) {
         pdm=true;
         altered=true;
       }

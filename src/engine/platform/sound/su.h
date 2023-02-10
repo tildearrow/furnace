@@ -47,7 +47,7 @@ class SoundUnit {
   unsigned short oldfreq[8];
   unsigned int pcmSize;
   bool dsOut;
-  short dsCounterL, dsCounterR;
+  unsigned char dsChannel;
   public:
     unsigned short resetfreq[8];
     unsigned short voldcycles[8];
