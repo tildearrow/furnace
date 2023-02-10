@@ -1848,7 +1848,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     if (writeSegaPCM[i]!=NULL && writeSegaPCM[i]->getSampleMemUsage(0)>0) {
       w->writeC(0x67);
       w->writeC(0x66);
-      w->writeC(0x81);
+      w->writeC(0x80);
       w->writeI((writeSegaPCM[i]->getSampleMemUsage(0)+8)|(i*0x80000000));
       w->writeI(writeSegaPCM[i]->getSampleMemCapacity(0));
       w->writeI(0);
