@@ -183,10 +183,10 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
             oscBuf[i]->data[oscBuf[i]->needle++]=fm.dacdata<<7;
           }
         } else {
-          oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<7;
+          oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<(chipType==2?2:7);
         }
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<7;
+        oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<(chipType==2?2:7);
       }
     }
     
