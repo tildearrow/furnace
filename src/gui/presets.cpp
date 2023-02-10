@@ -2152,27 +2152,27 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Yamaha YM2612 (OPN2)", {
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "ladderEffect=true")
+      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "chipType=1")
     }
   );
   ENTRY(
     "Yamaha YM2612 (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "ladderEffect=true")
+      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "chipType=1")
     }
   );
   ENTRY(
     "Yamaha YM2612 (OPN2) CSM", {
-      CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "ladderEffect=true")
+      CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "chipType=1")
     }
   );
   ENTRY(
     "Yamaha YM2612 (OPN2) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "ladderEffect=true")
+      CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "chipType=1")
     }
   );
   ENTRY(
     "Yamaha YM2612 (extended channel 3) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "ladderEffect=true")
+      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "chipType=1")
     }
   );
   ENTRY(

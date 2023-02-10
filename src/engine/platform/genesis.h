@@ -85,7 +85,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     int softPCMTimer;
 
     bool extMode, softPCM, noExtMacros, useYMFM;
-    bool ladder;
+    unsigned char chipType;
   
     unsigned char dacVolTable[128];
   

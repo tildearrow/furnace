@@ -190,11 +190,11 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
       }
     }
     
-    os[0]=(os[0]<<5);
+    if (chipType!=2) os[0]=(os[0]<<5);
     if (os[0]<-32768) os[0]=-32768;
     if (os[0]>32767) os[0]=32767;
 
-    os[1]=(os[1]<<5);
+    if (chipType!=2) os[1]=(os[1]<<5);
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
@@ -223,7 +223,7 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
       flushFirst=false;
     }
     
-    if (ladder) {
+    if (chipType==1) {
       fm_ymfm->generate(&out_ymfm);
     } else {
       ((ymfm::ym3438*)fm_ymfm)->generate(&out_ymfm);
@@ -1225,7 +1225,17 @@ void DivPlatformGenesis::reset() {
     fm_ymfm->reset();
   }
   OPN2_Reset(&fm);
-  OPN2_SetChipType(&fm,ladder?ym3438_mode_ym2612:0);
+  switch (chipType) {
+    case 1: // YM2612
+      OPN2_SetChipType(&fm,ym3438_mode_ym2612);
+      break;
+    case 2: // YMF276
+      OPN2_SetChipType(&fm,ym3438_mode_opn);
+      break;
+    default: // YM3438
+      OPN2_SetChipType(&fm,0);
+      break;
+  }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
@@ -1325,14 +1335,28 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
       chipClock=COLOR_NTSC*15.0/7.0;
       break;
   }
-  ladder=flags.getBool("ladderEffect",false);
+  if (flags.has("chipType")) {
+    chipType=flags.getInt("chipType",0);
+  } else {
+    chipType=flags.getBool("ladderEffect",false)?1:0;
+  }
   noExtMacros=flags.getBool("noExtMacros",false);
   fbAllOps=flags.getBool("fbAllOps",false);
-  OPN2_SetChipType(&fm,ladder?ym3438_mode_ym2612:0);
+  switch (chipType) {
+    case 1: // YM2612
+      OPN2_SetChipType(&fm,ym3438_mode_ym2612);
+      break;
+    case 2: // YMF276
+      OPN2_SetChipType(&fm,ym3438_mode_opn);
+      break;
+    default: // YM3438
+      OPN2_SetChipType(&fm,0);
+      break;
+  }
   CHECK_CUSTOM_CLOCK;
   if (useYMFM) {
     if (fm_ymfm!=NULL) delete fm_ymfm;
-    if (ladder) {
+    if (chipType==1) {
       fm_ymfm=new ymfm::ym2612(iface);
     } else {
       fm_ymfm=new ymfm::ym3438(iface);
@@ -1349,7 +1373,7 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
 int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
-  ladder=false;
+  chipType=0;
   skipRegisterWrites=false;
   flushFirst=false;
   for (int i=0; i<10; i++) {

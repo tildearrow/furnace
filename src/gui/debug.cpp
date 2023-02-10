@@ -94,7 +94,6 @@
   ImGui::TextColored(ch->extMode?colorOn:colorOff,">> ExtMode"); \
   ImGui::TextColored(ch->softPCM?colorOn:colorOff,">> SoftPCM"); \
   ImGui::TextColored(ch->useYMFM?colorOn:colorOff,">> UseYMFM"); \
-  ImGui::TextColored(ch->ladder?colorOn:colorOff,">> Ladder");
 
 #define OPNB_CHIP_DEBUG \
   FM_OPN_CHIP_DEBUG; \

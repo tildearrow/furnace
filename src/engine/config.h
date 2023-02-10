@@ -46,7 +46,7 @@ class DivConfig {
     String getString(String key, String fallback) const;
 
     // check for existence
-    bool has(String key);
+    bool has(String key) const;
 
     // set a config value
     void set(String key, bool value);

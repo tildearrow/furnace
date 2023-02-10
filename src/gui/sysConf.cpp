@@ -34,10 +34,16 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_YM2612_DUALPCM_EXT:
     case DIV_SYSTEM_YM2612_CSM: {
       int clockSel=flags.getInt("clockSel",0);
-      bool ladder=flags.getBool("ladderEffect",0);
+      int chipType=0;
+      if (flags.has("chipType")) {
+        chipType=flags.getInt("chipType",0);
+      } else {
+        chipType=flags.getBool("ladderEffect",0)?1:0;
+      }
       bool noExtMacros=flags.getBool("noExtMacros",false);
       bool fbAllOps=flags.getBool("fbAllOps",false);
 
+      ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("NTSC (7.67MHz)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -58,9 +64,21 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=4;
         altered=true;
       }
-      if (ImGui::Checkbox("Enable DAC distortion",&ladder)) {
+
+      ImGui::Text("Chip type:");
+      if (ImGui::RadioButton("YM3438 (9-bit DAC)",chipType==0)) {
+        chipType=0;
         altered=true;
       }
+      if (ImGui::RadioButton("YM2612 (9-bit DAC with distortion)",chipType==1)) {
+        chipType=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton("YMF276 (external DAC)",chipType==2)) {
+        chipType=2;
+        altered=true;
+      }
+
       if (type==DIV_SYSTEM_YM2612_EXT || type==DIV_SYSTEM_YM2612_DUALPCM_EXT || type==DIV_SYSTEM_YM2612_CSM) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
           altered=true;
@@ -73,7 +91,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
-          flags.set("ladderEffect",ladder);
+          flags.set("chipType",chipType);
           flags.set("noExtMacros",noExtMacros);
           flags.set("fbAllOps",fbAllOps);
         });
