@@ -27,7 +27,7 @@
 #define NOTE_ES5506(c,note) (parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
 
 #define rWrite(a,...) {if(!skipRegisterWrites) {hostIntf32.emplace(4,(a),__VA_ARGS__); }}
-#define rRead(a,st,...) {hostIntf32.emplace(st,4,(a),__VA_ARGS__);}
+//#define rRead(a,st,...) {hostIntf32.emplace(st,4,(a),__VA_ARGS__);}
 #define immWrite(a,...) {hostIntf32.emplace(4,(a),__VA_ARGS__);}
 #define pageWrite(p,a,...) \
   if (!skipRegisterWrites) { \
@@ -179,19 +179,9 @@ void DivPlatformES5506::e_pin(bool state) {
       QueuedHostIntf w=hostIntf8.front();
       unsigned char shift=24-(w.step<<3);
       if (w.isRead) {
-        *w.read=((*w.read)&(~((0xff<<shift)&w.mask)))|((es5506.host_r((w.addr<<2)+w.step)<<shift)&w.mask);
-        if (w.step==3) {
-          if (w.delay>0) {
-            cycle+=w.delay;
-          }
-          queuedReadState.emplace(w.read,w.state);
-          isReaded=true;
-        } else {
-          isReaded=false;
-        }
+        logE("READING?!");
         hostIntf8.pop();
       } else {
-        isReaded=false;
         unsigned int mask=(w.mask>>shift)&0xff;
         if ((mask==0xff) || isMasked) {
           if (mask==0xff) {
@@ -213,28 +203,6 @@ void DivPlatformES5506::e_pin(bool state) {
       }
     }
   }
-  if (!queuedReadState.empty()) {
-    QueuedReadState w=queuedReadState.front();
-    const unsigned char state=w.state;
-    if (state&0x80) {
-      if (irqTrigger) {
-        if ((irqv&0x80)==0) {
-          queuedRead.emplace(irqv&0x1f);
-        }
-        irqTrigger=false;
-      }
-    }
-    queuedReadState.pop();
-  }
-  if (!queuedRead.empty()) {
-    unsigned char ch=queuedRead.front()&0x1f;
-    if (chan[ch].isReverseLoop) { // Reversed loop
-      pageWriteMask(0x00|ch,0x5f,0x00,(chan[ch].pcm.direction?0x0000:0x0040)|0x08,0x78);
-      chan[ch].isReverseLoop=false;
-    }
-    queuedRead.pop();
-  }
-  isReaded=false;
 }
 
 void DivPlatformES5506::irqb(bool state) {
@@ -1172,7 +1140,6 @@ void DivPlatformES5506::reset() {
   maskedVal=0;
   irqv=0x80;
   isMasked=false;
-  isReaded=false;
   irqTrigger=false;
   prevChanCycle=0;
   chanMax=initChanMax;
