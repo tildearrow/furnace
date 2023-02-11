@@ -113,7 +113,6 @@ const char** DivPlatformES5506::getRegisterSheet() {
 }
 
 void DivPlatformES5506::acquire(short** buf, size_t len) {
-  int coL[6], coR[6];
   for (size_t h=0; h<len; h++) {
     // convert 32 bit access to 8 bit host interface
     while (!hostIntf32.empty()) {
@@ -133,12 +132,8 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
     }
     es5506.tick_perf();
     for (int o=0; o<6; o++) {
-      coL[o]=es5506.lout(o);
-      coR[o]=es5506.rout(o);
-    }
-    for (int o=0; o<6; o++) {
-      buf[(o<<1)|0][h]=coL[o];
-      buf[(o<<1)|1][h]=coR[o];
+      buf[(o<<1)|0][h]=es5506.lout(o);
+      buf[(o<<1)|1][h]=es5506.rout(o);
     }
     for (int i=chanMax; i>=0; i--) {
       oscBuf[i]->data[oscBuf[i]->needle++]=(es5506.voice_lout(i)+es5506.voice_rout(i))>>5;
