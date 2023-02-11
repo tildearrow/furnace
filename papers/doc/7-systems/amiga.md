@@ -1,4 +1,6 @@
-# Commodore Amiga
+# Commodore Amiga 
+
+the chip name is Paula (originally Portia)
 
 a computer with a desktop OS, lifelike graphics and 4 channels of PCM sound in 1985? no way!
 
