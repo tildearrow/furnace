@@ -55,6 +55,8 @@ const char* aboutLine[]={
   "nicco1690",
   "DeMOSic",
   "cam900",
+  "host12prog",
+  "WindowxDeveloper",
   "",
   "-- demo songs --",
   "0x5066",
