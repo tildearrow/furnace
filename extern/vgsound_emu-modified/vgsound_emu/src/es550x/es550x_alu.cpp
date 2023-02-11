@@ -101,14 +101,14 @@ void es550x_shared_core::es550x_voice_t::es550x_alu_t::loop_exec()
 s32 es550x_shared_core::es550x_voice_t::es550x_alu_t::interpolation()
 {
 	// SF = S1 + ACCfr * (S2 - S1)
-	return m_sample[0] + ((bitfield<s32>(m_accum, m_fraction_m9, 9) *
+	return m_sample[0] + (((((int)m_accum>>(int)2)&(int)511) *
 						   (m_sample[1] - m_sample[0])) >>
 						  9);
 }
 
 u32 es550x_shared_core::es550x_voice_t::es550x_alu_t::get_accum_integer()
 {
-	return bitfield(m_accum, m_fraction, m_integer);
+	return (m_accum>>m_fraction)&((1<<m_integer)-1);
 }
 
 void es550x_shared_core::es550x_voice_t::es550x_alu_t::irq_exec(es550x_intf &intf,

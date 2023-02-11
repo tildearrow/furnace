@@ -41,7 +41,7 @@ class es550x_intf : public vgsound_emu_core
 
 		virtual void adc_w(u16 data) {}	 // ADC output
 
-		virtual s16 read_sample(u8 voice, u8 bank, u32 address) { return 0; }
+		virtual s16 read_sample(u8 bank, u32 address) { return 0; }
 };
 
 // Shared functions for ES5504/ES5505/ES5506
@@ -137,7 +137,7 @@ class es550x_shared_core : public vgsound_emu_core
 
 						inline bool cmpd() { return m_cmpd; }
 
-					protected:
+					public:
 						// Channel assign -
 						// 4 bit (16 channel or Bank) for ES5504
 						// 2 bit (4 stereo channels) for ES5505
@@ -456,7 +456,7 @@ class es550x_shared_core : public vgsound_emu_core
 
 				// internal state
 				virtual void reset();
-				virtual void fetch(u8 voice, u8 cycle) = 0;
+				virtual void fetch(u8 cycle) = 0;
 				virtual void tick(u8 voice)			   = 0;
 
 				void irq_update(es550x_intf &intf, es550x_irq_t &irqv)

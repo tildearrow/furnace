@@ -134,7 +134,7 @@ void es5506_core::tick()
 						// sample
 						if (m_mode.master())
 						{
-							m_voice[m_voice_cycle].fetch(m_voice_cycle, m_voice_fetch);
+							m_voice[m_voice_cycle].fetch(m_voice_fetch);
 						}
 					}
 					else if (m_e.current_edge())
@@ -142,7 +142,7 @@ void es5506_core::tick()
 						// dual OTTO slave mode, /CAS low, E high: fetch sample
 						if (m_mode.dual() && (!m_mode.master()))
 						{  // Dual OTTO, slave mode
-							m_voice[m_voice_cycle].fetch(m_voice_cycle, m_voice_fetch);
+							m_voice[m_voice_cycle].fetch(m_voice_fetch);
 						}
 					}
 				}
@@ -228,8 +228,7 @@ void es5506_core::tick_perf()
 	m_host_intf.clear_host_access();
 	m_host_intf.clear_strobe();
         }
-	m_voice[m_voice_cycle].fetch(m_voice_cycle, 0);
-  m_voice[m_voice_cycle].fetch(m_voice_cycle, 1);
+	m_voice[m_voice_cycle].fetch(0);
 	voice_tick();
         if (bounce) {
 	// rising edge
@@ -250,19 +249,19 @@ void es5506_core::voice_tick()
   {
     m_voice_end	  = true;
     m_voice_cycle = 0;
-    for (output_t &elem : m_ch)
+    for (int i=0; i<6; i++)
     {
-      elem.reset();
+      m_ch[i].reset();
     }
 
-    for (voice_t &elem : m_voice)
+    for (int i=0; i<32; i++)
     {
-      const u8 ca = elem.cr().ca()&7;
+      const u8 ca = m_voice[i].cr().ca()&7;
       if (ca < 6)
       {
-        m_ch[ca] += elem.ch();
+        m_ch[ca] += m_voice[i].ch();
       }
-      elem.ch().reset();
+      m_voice[i].ch().reset();
     }
   }
   else
@@ -271,16 +270,24 @@ void es5506_core::voice_tick()
   }
 }
 
-void es5506_core::voice_t::fetch(u8 voice, u8 cycle)
+void es5506_core::voice_t::fetch(u8 cycle)
 {
 	m_alu.set_sample(
-	  cycle,
-	  m_host.m_intf.read_sample(voice,
-								m_cr.bs(),
-								(m_alu.get_accum_integer() + cycle)&((1<<m_alu.m_integer)-1)));
+	  0,
+	  m_host.m_intf.read_sample(m_cr.m_bs,
+								(m_alu.get_accum_integer())&((1<<m_alu.m_integer)-1)));
 	if (m_cr.cmpd())
 	{  // Decompress (Upper 8 bit is used for compressed format)
-		m_alu.set_sample(cycle, decompress((m_alu.sample(cycle)>>8)&255));
+		m_alu.set_sample(0, decompress((m_alu.sample(0)>>8)&255));
+	}
+
+  m_alu.set_sample(
+	  1,
+	  m_host.m_intf.read_sample(m_cr.m_bs,
+								(m_alu.get_accum_integer() + 1)&((1<<m_alu.m_integer)-1)));
+	if (m_cr.cmpd())
+	{  // Decompress (Upper 8 bit is used for compressed format)
+		m_alu.set_sample(1, decompress((m_alu.sample(1)>>8)&255));
 	}
 }
 
