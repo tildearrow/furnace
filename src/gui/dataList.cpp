@@ -756,6 +756,7 @@ void FurnaceGUI::actualWaveList() {
     if (ImGui::IsItemHovered()) {
       if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         waveEditOpen=true;
+        nextWindow=GUI_WINDOW_WAVE_EDIT;
       }
     }
     ImGui::SameLine();
@@ -794,6 +795,7 @@ void FurnaceGUI::actualSampleList() {
       ImGui::SetTooltip("Bank %d: %s",i/12,sampleNote[i%12]);
       if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         sampleEditOpen=true;
+        nextWindow=GUI_WINDOW_SAMPLE_EDIT;
       }
       ImGui::PopStyleColor();
     }
