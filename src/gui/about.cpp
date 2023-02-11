@@ -116,6 +116,7 @@ const char* aboutLine[]={
   "Ultraprogramer",
   "UserSniper",
   "Weeppiko",
+  "Zaxolotl",
   "ZoomTen (Zumi)",
   "",
   "-- additional feedback/fixes --",
