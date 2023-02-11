@@ -1694,6 +1694,20 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
+    case DIV_SYSTEM_SM8521:  {
+      bool noAntiClick=flags.getBool("noAntiClick",false);
+
+      if (ImGui::Checkbox("Disable anti-click",&noAntiClick)) {
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("noAntiClick",noAntiClick);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:
