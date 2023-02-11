@@ -924,6 +924,10 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
         break;
       case DIV_INS_POKEMINI:
         break;
+      case DIV_INS_SM8521:
+        checkForWL=true;
+        if (ws.enabled) featureWS=true;
+        break;
       
       case DIV_INS_MAX:
         break;

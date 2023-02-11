@@ -4762,11 +4762,13 @@ void FurnaceGUI::drawInsEdit() {
             (ins->type==DIV_INS_VBOY) ||
             ins->type==DIV_INS_SCC ||
             ins->type==DIV_INS_SNES ||
-            ins->type==DIV_INS_NAMCO) {
+            ins->type==DIV_INS_NAMCO ||
+            ins->type==DIV_INS_SM8521) {
           if (ImGui::BeginTabItem("Wavetable")) {
             switch (ins->type) {
               case DIV_INS_GB:
               case DIV_INS_NAMCO:
+              case DIV_INS_SM8521:
               case DIV_INS_SWAN:
                 wavePreviewLen=32;
                 wavePreviewHeight=15;
@@ -4968,7 +4970,7 @@ void FurnaceGUI::drawInsEdit() {
               }
             }
           }
-          if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930) {
+          if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_AY8930 || ins->type==DIV_INS_SM8521) {
             volMax=31;
           }
           if (ins->type==DIV_INS_OPL || ins->type==DIV_INS_OPL_DRUMS || ins->type==DIV_INS_VERA || ins->type==DIV_INS_VRC6_SAW) {
@@ -5067,7 +5069,8 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC ||
               ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC || ins->type==DIV_INS_SEGAPCM ||
-              ins->type==DIV_INS_FM || ins->type==DIV_INS_K007232 || ins->type==DIV_INS_GA20) {
+              ins->type==DIV_INS_FM || ins->type==DIV_INS_K007232 || ins->type==DIV_INS_GA20 ||
+              ins->type==DIV_INS_SM8521) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VBOY) {

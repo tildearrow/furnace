@@ -430,6 +430,10 @@ void FurnaceGUI::drawInsList(bool asChild) {
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_POKEMINI]);
               name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
               break;
+            case DIV_INS_SM8521:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SM8521]);
+              name=fmt::sprintf(ICON_FA_PIE_CHART "##_INS%d",i);
+              break;
             default:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
               name=fmt::sprintf(ICON_FA_QUESTION "##_INS%d",i);

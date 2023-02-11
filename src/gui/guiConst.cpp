@@ -129,6 +129,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   "K007232",
   "GA20",
   "Pokémon Mini",
+  "SM8521",
   NULL
 };
 
@@ -818,6 +819,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_K007232,"",ImVec4(1.0f,0.8f,0.1f,1.0f)),
   D(GUI_COLOR_INSTR_GA20,"",ImVec4(0.1f,1.0f,0.4f,1.0f)),
   D(GUI_COLOR_INSTR_POKEMINI,"",ImVec4(1.0f,1.0f,0.3f,1.0f)),
+  D(GUI_COLOR_INSTR_SM8521,"",ImVec4(1.0f,1.0f,0.0f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_BG,"",ImVec4(0.4f,0.6f,0.8f,1.0f)),

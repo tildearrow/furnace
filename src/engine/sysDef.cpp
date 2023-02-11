@@ -1828,7 +1828,7 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Noise"},
     {"CH1", "CH2", "NOI"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_NOISE},
-    {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
+    {DIV_INS_SM8521, DIV_INS_SM8521, DIV_INS_SM8521},
     {},
     namcoEffectHandlerMap
   );
