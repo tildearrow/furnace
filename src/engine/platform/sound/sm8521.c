@@ -11,7 +11,7 @@ This file is licensed under zlib license.
 
 zlib License
 
-(C) 2022-present cam900 and contributors
+(C) 2023-present cam900 and contributors
 
 This software is provided 'as-is', without any express or implied
 warranty.  In no event will the authors be held liable for any damages
