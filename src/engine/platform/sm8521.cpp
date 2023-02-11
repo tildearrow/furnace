@@ -72,7 +72,9 @@ void DivPlatformSM8521::updateWave(int ch) {
       int nibble2=15-chan[ch].ws.output[((1+(i<<1))+chan[ch].antiClickWavePos-1)&31];
       rWrite(0x60+i+(ch*16),(nibble2<<4)|nibble1);
     }
-    rWrite(0x40,temp|(1<<ch));
+    if (chan[ch].active) {
+      rWrite(0x40,temp|(1<<ch));
+    }
     chan[ch].antiClickWavePos&=31;
   }
 }
@@ -124,6 +126,10 @@ void DivPlatformSM8521::tick(bool sysTick) {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
       chan[i].freqChanged=true;
+    }
+    if (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1) {
+      chan[i].antiClickWavePos=0;
+      chan[i].antiClickPeriodCount=0;
     }
     if (chan[i].active) {
       if (chan[i].ws.tick() || (chan[i].std.phaseReset.had && chan[i].std.phaseReset.val==1)) {
@@ -343,6 +349,7 @@ void DivPlatformSM8521::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformSM8521::setFlags(const DivConfig& flags) {
+  antiClickEnabled=!flags.getBool("noAntiClick",false);
   chipClock=10000000;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
