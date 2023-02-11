@@ -50,7 +50,7 @@ void es550x_shared_core::es550x_voice_t::es550x_filter_t::tick(s32 in)
 	}
 }
 
-void es550x_shared_core::es550x_voice_t::es550x_filter_t::lp_exec(s32 coeff, s32 in, s32 out)
+void es550x_shared_core::es550x_voice_t::es550x_filter_t::lp_exec(s32 coeff, const s32 in, const s32 out)
 {
 	// Store previous filter data
 	m_o[out][1] = m_o[out][0];
@@ -59,7 +59,7 @@ void es550x_shared_core::es550x_voice_t::es550x_filter_t::lp_exec(s32 coeff, s32
 	m_o[out][0] = ((coeff * (m_o[in][0] - m_o[out][0])) / 4096) + m_o[out][0];
 }
 
-void es550x_shared_core::es550x_voice_t::es550x_filter_t::hp_exec(s32 coeff, s32 in, s32 out)
+void es550x_shared_core::es550x_voice_t::es550x_filter_t::hp_exec(s32 coeff, const s32 in, const s32 out)
 {
 	// Store previous filter data
 	m_o[out][1] = m_o[out][0];

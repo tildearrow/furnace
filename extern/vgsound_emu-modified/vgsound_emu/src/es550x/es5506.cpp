@@ -55,7 +55,6 @@ void es5506_core::voice_tick()
 	// Voice updates every 2 E clock cycle (or 4 BCLK clock cycle)
   // Update voice
   for (int i=0; i<VGS_CLAMP(m_active,4,31); i++) {
-    m_voice[i].fetch(0);
     m_voice[i].tick(i);
   }
 
@@ -105,10 +104,11 @@ void es5506_core::voice_t::tick(u8 voice)
 	m_ch.reset();
 
 	// Filter execute
-	m_filter.tick(m_alu.interpolation());
 
 	if (m_alu.busy())
 	{
+                fetch(0);
+         	m_filter.tick(m_alu.interpolation());
 		// Send to output
 		m_output[0] = m_mute ? 0 : volume_calc(m_lvol, (short)m_filter.o4_1());
 		m_output[1] = m_mute ? 0 : volume_calc(m_rvol, (short)m_filter.o4_1());
@@ -121,7 +121,9 @@ void es5506_core::voice_t::tick(u8 voice)
 		{
 			m_alu.loop_exec();
 		}
-	}
+	} else {
+         	m_filter.tick(m_alu.interpolation());
+        }
 	// Envelope
 	if (m_ecount != 0)
 	{
