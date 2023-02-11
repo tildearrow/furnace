@@ -500,7 +500,6 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text("- maskedVal: %.2x",ch->maskedVal);
       ImGui::Text("- irqv: %.2x",ch->irqv);
       ImGui::Text("- curCR: %.8x",ch->curCR);
-      ImGui::Text("- prevChanCycle: %d",ch->prevChanCycle);
       ImGui::Text("- initChanMax: %d",ch->initChanMax);
       ImGui::Text("- chanMax: %d",ch->chanMax);
       COMMON_CHIP_DEBUG_BOOL;
