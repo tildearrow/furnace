@@ -69,8 +69,8 @@ void DivPlatformSM8521::updateWave(int ch) {
     const unsigned char temp=regPool[0x40];
     rWrite(0x40,temp&~(1<<ch));
     for (int i=0; i<16; i++) {
-      int nibble1=15-chan[ch].ws.output[((i<<1)+chan[ch].antiClickWavePos-1)&31];
-      int nibble2=15-chan[ch].ws.output[((1+(i<<1))+chan[ch].antiClickWavePos-1)&31];
+      int nibble1=(chan[ch].ws.output[((i<<1)+chan[ch].antiClickWavePos-1)&31]-8)&0xf;
+      int nibble2=(chan[ch].ws.output[((1+(i<<1))+chan[ch].antiClickWavePos-1)&31]-8)&0xf;
       rWrite(0x60+i+(ch*16),(nibble2<<4)|nibble1);
     }
     if (chan[ch].active) {
