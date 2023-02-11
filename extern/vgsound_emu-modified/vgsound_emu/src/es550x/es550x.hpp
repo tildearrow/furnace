@@ -429,8 +429,6 @@ class es550x_shared_core : public vgsound_emu_core
 						inline s32 o4_1() { return m_o[4][0]; }
 
 					private:
-						void lp_exec(s32 coeff, const s32 in, const s32 out);
-						void hp_exec(s32 coeff, const s32 in, const s32 out);
 
 						// Registers
 						u8 m_lp = 0;  // Filter mode
