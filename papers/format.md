@@ -284,6 +284,7 @@ size | description
      |   - 0xc5: YM2610B CSM - 20 channels
      |   - 0xc6: K007232 - 2 channels
      |   - 0xc7: GA20 - 4 channels
+     |   - 0xc8: SM8521 - 3 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfc: Pong - 1 channel

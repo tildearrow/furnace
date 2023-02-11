@@ -1824,9 +1824,9 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_SM8521]=new DivSysDef(
     "Sharp SM8521", NULL, 0xc8, 0, 3, false, true, 0, false, 0,
-    "a SoC with wavetable sound hardware",
+    "a SoC with wavetable sound hardware.",
     {"Channel 1", "Channel 2", "Noise"},
-    {"CH1", "CH2", "NOI"},
+    {"CH1", "CH2", "NS"},
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_NOISE},
     {DIV_INS_SM8521, DIV_INS_SM8521, DIV_INS_SM8521},
     {},
