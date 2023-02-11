@@ -365,7 +365,7 @@ void DivPlatformSM8521::setFlags(const DivConfig& flags) {
   antiClickEnabled=!flags.getBool("noAntiClick",false);
   chipClock=11059200;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/4/8;
+  rate=chipClock/4/8; // CKIN -> fCLK(/2) -> Function blocks (/2)
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate;
   }
