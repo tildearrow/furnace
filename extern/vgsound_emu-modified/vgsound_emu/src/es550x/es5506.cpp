@@ -52,12 +52,6 @@ void es5506_core::tick_perf()
 
 void es5506_core::voice_tick()
 {
-	// Voice updates every 2 E clock cycle (or 4 BCLK clock cycle)
-  // Update voice
-  for (int i=0; i<VGS_CLAMP(m_active,4,31); i++) {
-    m_voice[i].tick(i);
-  }
-
   // Refresh output
   m_voice_end	  = true;
   m_voice_cycle = 0;
@@ -65,9 +59,10 @@ void es5506_core::voice_tick()
   {
     m_ch[i].reset();
   }
+  // Update voice
+  for (int i=0; i<VGS_CLAMP(m_active,4,31); i++) {
+    m_voice[i].tick(i);
 
-  for (int i=0; i<32; i++)
-  {
     const u8 ca = m_voice[i].cr().ca()&7;
     if (ca < 6)
     {
