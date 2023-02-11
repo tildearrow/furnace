@@ -60,7 +60,8 @@ void es5506_core::voice_tick()
     m_ch[i].reset();
   }
   // Update voice
-  for (int i=0; i<(VGS_CLAMP(m_active,4,31)+1); i++) {
+  const int total=VGS_CLAMP(m_active,4,31);
+  for (int i=0; i<=total; i++) {
     m_voice[i].tick(i);
 
     const u8 ca = m_voice[i].cr().ca()&7;
