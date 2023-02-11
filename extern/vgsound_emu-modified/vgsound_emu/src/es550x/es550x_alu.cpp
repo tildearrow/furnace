@@ -41,11 +41,6 @@ bool es550x_shared_core::es550x_voice_t::es550x_alu_t::tick()
 
 void es550x_shared_core::es550x_voice_t::es550x_alu_t::loop_exec()
 {
-	if (m_cr.irqe())
-	{  // Set IRQ
-		m_cr.set_irq(true);
-	}
-
 	if (m_cr.dir())	 // Reverse playback
 	{
 		if (m_cr.lpe())	 // Loop enable

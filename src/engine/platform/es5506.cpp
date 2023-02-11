@@ -115,22 +115,6 @@ const char** DivPlatformES5506::getRegisterSheet() {
 void DivPlatformES5506::acquire(short** buf, size_t len) {
   int coL[6], coR[6];
   for (size_t h=0; h<len; h++) {
-    coL[0]=0;
-    coL[1]=0;
-    coL[2]=0;
-    coL[3]=0;
-    coL[4]=0;
-    coL[5]=0;
-    coR[0]=0;
-    coR[1]=0;
-    coR[2]=0;
-    coR[3]=0;
-    coR[4]=0;
-    coR[5]=0;
-
-      for (int i=31; i>(int)chanMax; i--) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=0;
-      }
     // convert 32 bit access to 8 bit host interface
     while (!hostIntf32.empty()) {
       QueuedHostIntf w=hostIntf32.front();
@@ -147,35 +131,26 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
       }
       hostIntf32.pop();
     }
-    for (int i=0; i<32; i++) {
-      prevChanCycle=es5506.voice_cycle();
-      es5506.tick_perf();
-      if (es5506.voice_end()) {
-        for (int j=chanMax; j>=0; j--) {
-          oscBuf[j]->data[oscBuf[j]->needle++]=(es5506.voice_lout(j)+es5506.voice_rout(j))>>5;
-        }
-      }
-      for (int o=0; o<6; o++) {
-        coL[o]+=es5506.lout(o);
-        coR[o]+=es5506.rout(o);
-      }
-    }
+    es5506.tick_perf();
     for (int o=0; o<6; o++) {
-      coL[o]>>=3;
-      coR[o]>>=3;
+      coL[o]=es5506.lout(o);
+      coR[o]=es5506.rout(o);
     }
     for (int o=0; o<6; o++) {
       buf[(o<<1)|0][h]=coL[o];
       buf[(o<<1)|1][h]=coR[o];
+    }
+    for (int i=chanMax; i>=0; i--) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=(es5506.voice_lout(i)+es5506.voice_rout(i))>>5;
     }
   }
 }
 
 void DivPlatformES5506::e_pin(bool state) {
   if (state) { // host interface
-    if (cycle) { // wait until delay
-      cycle--;
-    } else if (!hostIntf8.empty()) {
+    if (cycle>0) { // wait until delay
+      cycle-=2;
+    } else while (!hostIntf8.empty()) {
       QueuedHostIntf w=hostIntf8.front();
       unsigned char shift=24-(w.step<<3);
       if (w.isRead) {
@@ -200,6 +175,7 @@ void DivPlatformES5506::e_pin(bool state) {
           maskedVal=((w.val>>shift)&mask)|(es5506.host_r((w.addr<<2)+w.step)&~mask);
           isMasked=true;
         }
+        if (cycle>0) break;
       }
     }
   }
@@ -1141,7 +1117,6 @@ void DivPlatformES5506::reset() {
   irqv=0x80;
   isMasked=false;
   irqTrigger=false;
-  prevChanCycle=0;
   chanMax=initChanMax;
 
   pageWriteMask(0x00,0x60,0x0b,chanMax);
