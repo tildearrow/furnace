@@ -39,7 +39,7 @@ class es5506_core : public es550x_shared_core
 					m_right = src.right();
 				}
 
-				inline s32 clamp20(s32 in) { return clamp(in, -0x80000, 0x7ffff); }
+				inline s32 clamp20(s32 in) { return VGS_CLAMP(in, -0x80000, 0x7ffff); }
 
 				inline void clamp20(output_t &src)
 				{
@@ -89,7 +89,7 @@ class es5506_core : public es550x_shared_core
 					return *this;
 				}
 
-			private:
+			public: // oh my...
 				s32 m_left	= 0;
 				s32 m_right = 0;
 		};

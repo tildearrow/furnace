@@ -195,12 +195,18 @@ void es5506_core::tick_perf()
 	// output
 	if (((!m_mode.lrclk_en()) && (!m_mode.bclk_en()) && (!m_mode.wclk_en())) && (m_w_st < m_w_end))
 	{
-		const int output_bits = 20 - (m_w_end - m_w_st);
+		const int output_bits = (20 - (m_w_end - m_w_st)) * 2;
 		if (output_bits < 20)
 		{
 			for (int c = 0; c < 6; c++)
 			{
-				m_output[c].clamp20(m_ch[c] >> output_bits);
+        m_output[c].m_left=m_ch[c].m_left>>output_bits;
+        if (m_output[c].m_left<-0x80000) m_output[c].m_left=-0x80000;
+        if (m_output[c].m_left>0x7ffff) m_output[c].m_left=0x7ffff;
+
+        m_output[c].m_right=m_ch[c].m_right>>output_bits;
+        if (m_output[c].m_right<-0x80000) m_output[c].m_right=-0x80000;
+        if (m_output[c].m_right>0x7ffff) m_output[c].m_right=0x7ffff;
 			}
 		}
 	}
@@ -240,7 +246,7 @@ void es5506_core::voice_tick()
   m_voice[m_voice_cycle].tick(m_voice_cycle);
 
   // Refresh output
-  if ((++m_voice_cycle) > clamp<u8>(m_active, 4, 31))	 // 5 ~ 32 voices
+  if ((++m_voice_cycle) > VGS_CLAMP(m_active, 4, 31))	 // 5 ~ 32 voices
   {
     m_voice_end	  = true;
     m_voice_cycle = 0;
@@ -251,7 +257,7 @@ void es5506_core::voice_tick()
 
     for (voice_t &elem : m_voice)
     {
-      const u8 ca = bitfield<u8>(elem.cr().ca(), 0, 3);
+      const u8 ca = elem.cr().ca()&7;
       if (ca < 6)
       {
         m_ch[ca] += elem.ch();
@@ -271,10 +277,10 @@ void es5506_core::voice_t::fetch(u8 voice, u8 cycle)
 	  cycle,
 	  m_host.m_intf.read_sample(voice,
 								m_cr.bs(),
-								bitfield(m_alu.get_accum_integer() + cycle, 0, m_alu.m_integer)));
+								(m_alu.get_accum_integer() + cycle)&((1<<m_alu.m_integer)-1)));
 	if (m_cr.cmpd())
 	{  // Decompress (Upper 8 bit is used for compressed format)
-		m_alu.set_sample(cycle, decompress(bitfield(m_alu.sample(cycle), 8, 8)));
+		m_alu.set_sample(cycle, decompress((m_alu.sample(cycle)>>8)&255));
 	}
 }
 
@@ -307,11 +313,11 @@ void es5506_core::voice_t::tick(u8 voice)
 		// Left and Right volume
 		if (bitfield(m_lvramp, 0, 8) != 0)
 		{
-			m_lvol = clamp<s32>(m_lvol + sign_ext<s32>(bitfield(m_lvramp, 0, 8), 8), 0, 0xffff);
+			m_lvol = VGS_CLAMP(m_lvol + sign_ext<s32>(bitfield(m_lvramp, 0, 8), 8), 0, 0xffff);
 		}
 		if (bitfield(m_rvramp, 0, 8) != 0)
 		{
-			m_rvol = clamp<s32>(m_rvol + sign_ext<s32>(bitfield(m_rvramp, 0, 8), 8), 0, 0xffff);
+			m_rvol = VGS_CLAMP(m_rvol + sign_ext<s32>(bitfield(m_rvramp, 0, 8), 8), 0, 0xffff);
 		}
 
 		// Filter coeffcient
@@ -319,13 +325,13 @@ void es5506_core::voice_t::tick(u8 voice)
 			((m_k1ramp.slow() == 0) || (bitfield(m_filtcount, 0, 3) == 0)))
 		{
 			m_filter.set_k1(
-			  clamp<s32>(m_filter.k1() + sign_ext<s32>(m_k1ramp.ramp(), 8), 0, 0xffff));
+			  VGS_CLAMP(m_filter.k1() + sign_ext<s32>(m_k1ramp.ramp(), 8), 0, 0xffff));
 		}
 		if ((m_k2ramp.ramp() != 0) &&
 			((m_k2ramp.slow() == 0) || (bitfield(m_filtcount, 0, 3) == 0)))
 		{
 			m_filter.set_k2(
-			  clamp<s32>(m_filter.k2() + sign_ext<s32>(m_k2ramp.ramp(), 8), 0, 0xffff));
+			  VGS_CLAMP(m_filter.k2() + sign_ext<s32>(m_k2ramp.ramp(), 8), 0, 0xffff));
 		}
 
 		m_ecount--;
