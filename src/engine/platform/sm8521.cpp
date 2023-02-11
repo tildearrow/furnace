@@ -363,7 +363,7 @@ void DivPlatformSM8521::notifyInsDeletion(void* ins) {
 
 void DivPlatformSM8521::setFlags(const DivConfig& flags) {
   antiClickEnabled=!flags.getBool("noAntiClick",false);
-  chipClock=10000000;
+  chipClock=11059200;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/4/8;
   for (int i=0; i<3; i++) {
