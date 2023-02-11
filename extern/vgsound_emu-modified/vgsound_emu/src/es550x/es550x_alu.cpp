@@ -19,7 +19,7 @@ void es550x_shared_core::es550x_voice_t::es550x_alu_t::reset()
 	m_sample[0] = m_sample[1] = 0;
 }
 
-bool es550x_shared_core::es550x_voice_t::es550x_alu_t::busy() { return m_cr.stop() == 0; }
+bool es550x_shared_core::es550x_voice_t::es550x_alu_t::busy() { return !(m_cr.m_stop0 || m_cr.m_stop1); }
 
 bool es550x_shared_core::es550x_voice_t::es550x_alu_t::tick()
 {

@@ -68,7 +68,6 @@ void es5506_core::voice_tick()
     {
       m_ch[ca] += m_voice[i].ch();
     }
-    m_voice[i].ch().reset();
   }
 }
 
@@ -95,9 +94,6 @@ void es5506_core::voice_t::fetch(u8 cycle)
 
 void es5506_core::voice_t::tick(u8 voice)
 {
-	m_output[0] = m_output[1] = 0;
-	m_ch.reset();
-
 	// Filter execute
 
 	if (m_alu.busy())
@@ -118,6 +114,9 @@ void es5506_core::voice_t::tick(u8 voice)
 		}
 	} else {
          	m_filter.tick(m_alu.interpolation());
+	        m_output[0] = m_output[1] = 0;
+         	m_ch.reset();
+
         }
 	// Envelope
 	if (m_ecount != 0)
