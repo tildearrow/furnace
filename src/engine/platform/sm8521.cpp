@@ -144,10 +144,8 @@ void DivPlatformSM8521::tick(bool sysTick) {
       rWrite(freqMap[i][1],chan[i].freq&0xff);
       const unsigned char temp=regPool[0x40];
       if (chan[i].keyOn) {
-        rWrite(0x40,temp|(1<<i));
       }
       if (chan[i].keyOff) {
-        rWrite(0x40,temp&~(1<<i));
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
@@ -171,6 +169,9 @@ int DivPlatformSM8521::dispatch(DivCommand c) {
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
+      if (!isMuted[c.chan]) {
+        rWrite(0x40,regPool[0x40]|0x80|(1<<c.chan));
+      }
       if (chan[c.chan].wave<0) {
         chan[c.chan].wave=0;
         chan[c.chan].ws.changeWave1(chan[c.chan].wave);
@@ -186,6 +187,7 @@ int DivPlatformSM8521::dispatch(DivCommand c) {
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].macroInit(NULL);
+      rWrite(0x40,regPool[0x40]&~(1<<c.chan));
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -279,6 +281,11 @@ int DivPlatformSM8521::dispatch(DivCommand c) {
 void DivPlatformSM8521::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   chan[ch].volumeChanged=true;
+  if (mute) {
+    rWrite(0x40,regPool[0x40]&~(1<<ch));
+  } else if (chan[ch].active) {
+    rWrite(0x40,regPool[0x40]|0x80|(1<<ch));
+  }
 }
 
 void DivPlatformSM8521::forceIns() {
@@ -322,7 +329,7 @@ void DivPlatformSM8521::reset() {
     addWrite(0xffffffff,0);
   }
   sm8521_reset(&sm8521);
-  sm8521_write(&sm8521,0x40,0x80); // initialize SGC
+  rWrite(0x40,0x80); // initialize SGC
 }
 
 int DivPlatformSM8521::getOutputCount() {

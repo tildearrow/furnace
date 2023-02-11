@@ -998,6 +998,7 @@ const int availableSystems[]={
   DIV_SYSTEM_MSM5232,
   DIV_SYSTEM_K007232,
   DIV_SYSTEM_GA20,
+  DIV_SYSTEM_SM8521,
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_PONG,
   0 // don't remove this last one!
@@ -1084,6 +1085,7 @@ const int chipsSpecial[]={
   DIV_SYSTEM_PET,
   DIV_SYSTEM_VRC6,
   DIV_SYSTEM_MMC5,
+  DIV_SYSTEM_SM8521,
   0 // don't remove this last one!
 };
 

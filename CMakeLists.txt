@@ -455,6 +455,8 @@ src/engine/platform/sound/snes/SPC_DSP.cpp
 
 src/engine/platform/sound/ga20/iremga20.cpp
 
+src/engine/platform/sound/sm8521.c
+
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
@@ -539,6 +541,7 @@ src/engine/platform/rf5c68.cpp
 src/engine/platform/snes.cpp
 src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
+src/engine/platform/sm8521.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 )

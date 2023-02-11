@@ -17,8 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _NAMCOWSG_H
-#define _NAMCOWSG_H
+#ifndef _SM8521_H
+#define _SM8521_H
 
 #include "../dispatch.h"
 #include <queue>
@@ -26,8 +26,8 @@
 #include "sound/sm8521.h"
 
 class DivPlatformSM8521: public DivDispatch {
-
   const unsigned char volMap[3]={0x42,0x44,0x4a};
+
   const unsigned char freqMap[3][2]={{0x46,0x47},{0x48,0x49},{0x4c,0x4d}};
 
   struct Channel: public SharedChannel<signed char> {
@@ -36,7 +36,7 @@ class DivPlatformSM8521: public DivDispatch {
     bool volumeChanged;
     DivWaveSynth ws;
     Channel():
-      SharedChannel<signed char>(15),
+      SharedChannel<signed char>(31),
       antiClickPeriodCount(0),
       antiClickWavePos(0),
       wave(-1),

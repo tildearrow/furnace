@@ -1822,6 +1822,17 @@ void DivEngine::registerSystems() {
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
   );
 
+  sysDefs[DIV_SYSTEM_SM8521]=new DivSysDef(
+    "Sharp SM8521", NULL, 0xc8, 0, 3, false, true, 0, false, 0,
+    "a SoC with wavetable sound hardware",
+    {"Channel 1", "Channel 2", "Noise"},
+    {"CH1", "CH2", "NOI"},
+    {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_NOISE},
+    {DIV_INS_NAMCO, DIV_INS_NAMCO, DIV_INS_NAMCO},
+    {},
+    namcoEffectHandlerMap
+  );
+
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
     "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false, 0,
     "this is a system designed for testing purposes.",
