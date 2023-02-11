@@ -516,16 +516,12 @@ class es550x_shared_core : public vgsound_emu_core
 					m_host_access = m_host_access_strobe;
 				}
 
-				// Getters
-				bool host_access() { return m_host_access; }
 
-				bool rw() { return m_rw; }
-
-			private:
-				u8 m_host_access		: 1;  // Host access trigger
-				u8 m_host_access_strobe : 1;  // Host access strobe
-				u8 m_rw					: 1;  // R/W state
-				u8 m_rw_strobe			: 1;  // R/W strobe
+			public:
+				u8 m_host_access		;  // Host access trigger
+				u8 m_host_access_strobe ;  // Host access strobe
+				u8 m_rw					;  // R/W state
+				u8 m_rw_strobe			;  // R/W strobe
 		};
 
 	public:

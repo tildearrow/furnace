@@ -117,14 +117,14 @@ void es5505_core::tick()
 				}
 				if (m_e.current_edge())	 // Host interface
 				{
-					if (m_host_intf.host_access())
+					if (m_host_intf.m_host_access)
 					{
-						if (m_host_intf.rw() && (m_e.cycle() == 2))	 // Read
+						if (m_host_intf.m_rw && (m_e.cycle() == 2))	 // Read
 						{
 							m_hd = read(m_ha);
 							m_host_intf.clear_host_access();
 						}
-						else if ((!m_host_intf.rw()) && (m_e.cycle() == 2))
+						else if ((!m_host_intf.m_rw) && (m_e.cycle() == 2))
 						{  // Write
 							write(m_ha, m_hd);
 						}
@@ -301,7 +301,7 @@ void es5505_core::voice_t::reset()
 // Accessors
 u16 es5505_core::host_r(u8 address)
 {
-	if (!m_host_intf.host_access())
+	if (!m_host_intf.m_host_access)
 	{
 		m_ha = address;
 		if (m_e.rising_edge())
@@ -318,7 +318,7 @@ u16 es5505_core::host_r(u8 address)
 
 void es5505_core::host_w(u8 address, u16 data)
 {
-	if (!m_host_intf.host_access())
+	if (!m_host_intf.m_host_access)
 	{
 		m_ha = address;
 		m_hd = data;
