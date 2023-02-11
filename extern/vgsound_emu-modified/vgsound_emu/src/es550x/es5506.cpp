@@ -171,9 +171,7 @@ s16 es5506_core::voice_t::decompress(u8 sample)
 // volume calculation
 s32 es5506_core::voice_t::volume_calc(u16 volume, s32 in)
 {
-	u8 exponent = bitfield(volume, 12, 4);
-	u8 mantissa = bitfield(volume, 4, 8);
-	return (in * s32(0x100 | mantissa)) >> (20 - exponent);
+	return (in * s32(0x100 | ((volume>>4)&255))) >> (20 - ((volume>>12)&15));
 }
 
 void es5506_core::reset()
