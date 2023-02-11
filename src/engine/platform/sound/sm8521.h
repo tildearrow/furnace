@@ -48,7 +48,7 @@ struct sm8521_sg_t
 {
 	unsigned short t; // Time constant register
 	unsigned char level; // Output level control register
-	unsigned short out; // output
+	signed short out; // output
 	int counter; // clock counter
 };
 

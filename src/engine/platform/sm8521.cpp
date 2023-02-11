@@ -24,7 +24,7 @@
 //#define rWrite(a,v) pendingWrites[a]=v;
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
-#define CHIP_DIVIDER 16
+#define CHIP_DIVIDER 64
 
 const char* regCheatSheetSM8521[]={
   "SGC", "40",
@@ -55,11 +55,12 @@ void DivPlatformSM8521::acquire(short** buf, size_t len) {
     writes.pop();
   }
   for (size_t h=0; h<len; h++) {
-    sm8521_sound_tick(&sm8521,1);
+    sm8521_sound_tick(&sm8521,8);
+    buf[0][h]=sm8521.out<<6;
     for (int i=0; i<2; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=sm8521.sg[i].base.out;
+      oscBuf[i]->data[oscBuf[i]->needle++]=sm8521.sg[i].base.out<<6;
     }
-    oscBuf[2]->data[oscBuf[2]->needle++]=sm8521.noise.base.out;
+    oscBuf[2]->data[oscBuf[2]->needle++]=sm8521.noise.base.out<<6;
   }
 }
 
@@ -80,6 +81,7 @@ void DivPlatformSM8521::updateWave(int ch) {
 }
 
 void DivPlatformSM8521::tick(bool sysTick) {
+  unsigned char keyState=0x80;
   for (int i=0; i<3; i++) {
     // anti-click
     if (antiClickEnabled && sysTick && chan[i].freq>0) {
@@ -151,6 +153,15 @@ void DivPlatformSM8521::tick(bool sysTick) {
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
     }
+    if (!isMuted[i] && chan[i].active) {
+      keyState|=(1<<i);
+    } else {
+      keyState&=~(1<<i);
+    }
+  }
+  if (regPool[0x40]!=keyState) {
+    rWrite(0x40,keyState);
+    regPool[0x40]=keyState;
   }
 }
 
@@ -169,9 +180,6 @@ int DivPlatformSM8521::dispatch(DivCommand c) {
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
-      if (!isMuted[c.chan]) {
-        rWrite(0x40,regPool[0x40]|0x80|(1<<c.chan));
-      }
       if (chan[c.chan].wave<0) {
         chan[c.chan].wave=0;
         chan[c.chan].ws.changeWave1(chan[c.chan].wave);
@@ -187,7 +195,6 @@ int DivPlatformSM8521::dispatch(DivCommand c) {
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].macroInit(NULL);
-      rWrite(0x40,regPool[0x40]&~(1<<c.chan));
       break;
     case DIV_CMD_NOTE_OFF_ENV:
     case DIV_CMD_ENV_RELEASE:
@@ -359,7 +366,7 @@ void DivPlatformSM8521::setFlags(const DivConfig& flags) {
   antiClickEnabled=!flags.getBool("noAntiClick",false);
   chipClock=10000000;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/4;
+  rate=chipClock/4/8;
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate;
   }
