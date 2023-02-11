@@ -144,7 +144,6 @@ void DivPlatformSM8521::tick(bool sysTick) {
       if (chan[i].freq>4095) chan[i].freq=4095;
       rWrite(freqMap[i][0],chan[i].freq>>8);
       rWrite(freqMap[i][1],chan[i].freq&0xff);
-      const unsigned char temp=regPool[0x40];
       if (chan[i].keyOn) {
       }
       if (chan[i].keyOff) {
