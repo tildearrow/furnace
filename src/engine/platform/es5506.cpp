@@ -811,7 +811,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (chan[c.chan].std.vol.has) {
         return chan[c.chan].vol;
       }
-      return chan[c.chan].outVol;
+      return chan[c.chan].outVol/0xff;
       break;
     case DIV_CMD_PANNING: {
       if (chan[c.chan].ca!=0) {
