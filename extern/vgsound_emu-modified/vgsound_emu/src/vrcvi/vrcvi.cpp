@@ -14,10 +14,8 @@ void vrcvi_core::tick()
 	if (!m_control.halt())	// Halt flag
 	{
 		// tick per each clock
-		for (auto &elem : m_pulse)
-		{
-			m_out += elem.get_output();	 // add 4 bit pulse output
-		}
+		m_out += m_pulse[0].get_output();	 // add 4 bit pulse output
+    m_out += m_pulse[1].get_output();
 		m_out += m_sawtooth.get_output();  // add 5 bit sawtooth output
 	}
 	if (m_timer.tick())
@@ -28,11 +26,8 @@ void vrcvi_core::tick()
 
 void vrcvi_core::reset()
 {
-	for (auto &elem : m_pulse)
-	{
-		elem.reset();
-	}
-
+	m_pulse[0].reset();
+  m_pulse[1].reset();
 	m_sawtooth.reset();
 	m_timer.reset();
 	m_control.reset();

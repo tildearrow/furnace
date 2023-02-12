@@ -398,7 +398,7 @@ class vrcvi_core : public vgsound_emu_core
 	private:
 		vrcvi_intf &m_intf;
 
-		std::array<pulse_t, 2> m_pulse;	 // 2 pulse channels
+		pulse_t m_pulse[2];	 // 2 pulse channels
 		sawtooth_t m_sawtooth;			 // sawtooth channel
 		timer_t m_timer;				 // internal timer
 		global_control_t m_control;		 // control
