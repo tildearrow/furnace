@@ -191,7 +191,6 @@ void DivPlatformES5506::tick(bool sysTick) {
     // volume/panning macros
     if (chan[i].std.vol.had) {
       const int nextVol=VOL_SCALE_LOG((0xfff*chan[i].vol)/0xff,(0xfff*chan[i].std.vol.val)/chan[i].volMacroMax,0xfff);
-      logV("nextVol[%d]: %d (%d,%d,%d)",i,nextVol,chan[i].vol,chan[i].std.vol.val,chan[i].volMacroMax);
       if (chan[i].outVol!=nextVol) {
         chan[i].outVol=nextVol;
         chan[i].volChanged.lVol=1;
