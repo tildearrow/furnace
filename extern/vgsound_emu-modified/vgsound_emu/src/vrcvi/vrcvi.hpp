@@ -359,9 +359,9 @@ class vrcvi_core : public vgsound_emu_core
 
 				inline u8 shift() { return m_shift; }
 
-			private:
-				u8 m_halt  : 1;	 // halt sound
-				u8 m_shift : 2;	 // 4/8 bit right shift
+			public:
+				u8 m_halt;	 // halt sound
+				u8 m_shift;	 // 4/8 bit right shift
 		};
 
 	public:

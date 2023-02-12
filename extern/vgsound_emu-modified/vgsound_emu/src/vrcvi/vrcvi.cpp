@@ -40,19 +40,19 @@ bool vrcvi_core::alu_t::tick()
 	{
 		const u16 temp = m_counter;
 		// post decrement
-		if (bitfield(m_host.m_control.shift(), 1))
+		if (m_host.m_control.m_shift&2)
 		{
 			m_counter = (m_counter & 0x0ff) | (bitfield(bitfield(m_counter, 8, 4) - 1, 0, 4) << 8);
 			m_counter = (m_counter & 0xf00) | (bitfield(bitfield(m_counter, 0, 8) - 1, 0, 8) << 0);
 		}
-		else if (bitfield(m_host.m_control.shift(), 0))
+		else if (m_host.m_control.m_shift&1)
 		{
 			m_counter = (m_counter & 0x00f) | (bitfield(bitfield(m_counter, 4, 8) - 1, 0, 8) << 4);
 			m_counter = (m_counter & 0xff0) | (bitfield(bitfield(m_counter, 0, 4) - 1, 0, 4) << 0);
 		}
 		else
 		{
-			m_counter = bitfield(bitfield(m_counter, 0, 12) - 1, 0, 12);
+			m_counter = (m_counter-1)&0xfff; //bitfield(bitfield(m_counter, 0, 12) - 1, 0, 12);
 		}
 
 		// carry handling
