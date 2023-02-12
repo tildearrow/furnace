@@ -4998,7 +4998,7 @@ void FurnaceGUI::drawInsEdit() {
             volMax=32;
           }
           if (ins->type==DIV_INS_ES5506) {
-            volMax=65535;
+            volMax=4095;
           }
           if (ins->type==DIV_INS_MSM6258) {
             volMax=0;
@@ -5288,7 +5288,7 @@ void FurnaceGUI::drawInsEdit() {
             panMax=127;
           }
           if (ins->type==DIV_INS_ES5506) {
-            panMax=65535;
+            panMax=4095;
           }
 
           if (volMax>0) {

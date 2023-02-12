@@ -28,7 +28,7 @@
 #include "vgsound_emu/src/es550x/es5506.hpp"
 
 class DivPlatformES5506: public DivDispatch, public es550x_intf {
-  struct Channel : public SharedChannel<unsigned int> {
+  struct Channel : public SharedChannel<int> {
     struct PCM {
       bool isNoteMap;
       int index, next;
@@ -63,7 +63,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         loopMode(DIV_SAMPLE_LOOP_MAX) {}
     } pcm;
     int nextFreq, nextNote, currNote, wave;
-    unsigned int volMacroMax, panMacroMax;
+    int volMacroMax, panMacroMax;
     bool useWave, isReverseLoop;
     unsigned int cr;
 
@@ -177,21 +177,21 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     signed int k1Offs, k2Offs;
     signed int k1Slide, k2Slide;
     signed int k1Prev, k2Prev;
-    unsigned int lVol, rVol;
-    unsigned int outLVol, outRVol;
-    unsigned int resLVol, resRVol;
+    int lVol, rVol;
+    int outLVol, outRVol;
+    int resLVol, resRVol;
     signed int oscOut;
     DivInstrumentES5506::Filter filter;
     DivInstrumentES5506::Envelope envelope;
     Channel():
-      SharedChannel<unsigned int>(0xff),
+      SharedChannel<int>(0xff),
       pcm(PCM()),
       nextFreq(0),
       nextNote(0),
       currNote(0),
       wave(-1),
-      volMacroMax(0xffff),
-      panMacroMax(0xffff),
+      volMacroMax(0xfff),
+      panMacroMax(0xfff),
       useWave(false),
       isReverseLoop(false),
       cr(0),
@@ -210,14 +210,14 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       k2Prev(0xffff),
       lVol(0xff),
       rVol(0xff),
-      outLVol(0xffff),
-      outRVol(0xffff),
-      resLVol(0xffff),
-      resRVol(0xffff),
+      outLVol(0xfff),
+      outRVol(0xfff),
+      resLVol(0xfff),
+      resRVol(0xfff),
       oscOut(0),
       filter(DivInstrumentES5506::Filter()),
       envelope(DivInstrumentES5506::Envelope()) {
-        outVol=0xffff;
+        outVol=0xfff;
       }
   };
   Channel chan[32];
@@ -266,7 +266,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   std::queue<QueuedHostIntf> hostIntf8;
   std::queue<unsigned char> queuedRead;
   std::queue<QueuedReadState> queuedReadState;
-  int cycle, curPage;
+  int cycle, curPage, volScale;
   unsigned char maskedVal;
   unsigned int irqv;
   bool isMasked, isReaded;
