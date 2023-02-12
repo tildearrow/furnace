@@ -190,7 +190,7 @@ void DivPlatformES5506::tick(bool sysTick) {
     signed int k1=chan[i].k1Prev,k2=chan[i].k2Prev;
     // volume/panning macros
     if (chan[i].std.vol.had) {
-      const unsigned int nextVol=VOL_SCALE_LOG((0xffff*chan[i].vol)/0xff,(0xffff*(unsigned int)chan[i].std.vol.val)/chan[i].volMacroMax,0xffff);
+      const unsigned int nextVol=VOL_SCALE_LOG(VOL_CALC(chan[i].vol),(0xffff*(unsigned int)chan[i].std.vol.val)/chan[i].volMacroMax,0xffff);
       if (chan[i].outVol!=nextVol) {
         chan[i].outVol=nextVol;
         chan[i].volChanged.lVol=1;
@@ -198,14 +198,14 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
     }
     if (chan[i].std.panL.had) {
-      const unsigned int nextLVol=VOL_SCALE_LOG((0xffff*chan[i].lVol)/0xff,(0xffff*(unsigned int)chan[i].std.panL.val)/chan[i].panMacroMax,0xffff);
+      const unsigned int nextLVol=VOL_SCALE_LOG(VOL_CALC(chan[i].lVol),(0xffff*(unsigned int)chan[i].std.panL.val)/chan[i].panMacroMax,0xffff);
       if (chan[i].outLVol!=nextLVol) {
         chan[i].outLVol=nextLVol;
         chan[i].volChanged.lVol=1;
       }
     }
     if (chan[i].std.panR.had) {
-      const unsigned int nextRVol=VOL_SCALE_LOG((0xffff*chan[i].rVol)/0xff,(0xffff*(unsigned int)chan[i].std.panR.val)/chan[i].panMacroMax,0xffff);
+      const unsigned int nextRVol=VOL_SCALE_LOG(VOL_CALC(chan[i].rVol),(0xffff*(unsigned int)chan[i].std.panR.val)/chan[i].panMacroMax,0xffff);
       if (chan[i].outRVol!=nextRVol) {
         chan[i].outRVol=nextRVol;
         chan[i].volChanged.rVol=1;
