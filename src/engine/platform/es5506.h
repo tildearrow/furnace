@@ -190,8 +190,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       nextNote(0),
       currNote(0),
       wave(-1),
-      volMacroMax(0xffff),
-      panMacroMax(0xffff),
+      volMacroMax(0xfff),
+      panMacroMax(0xfff),
       useWave(false),
       isReverseLoop(false),
       cr(0),
@@ -210,14 +210,14 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       k2Prev(0xffff),
       lVol(0xff),
       rVol(0xff),
-      outLVol(0xffff),
-      outRVol(0xffff),
-      resLVol(0xffff),
-      resRVol(0xffff),
+      outLVol(0xfff),
+      outRVol(0xfff),
+      resLVol(0xfff),
+      resRVol(0xfff),
       oscOut(0),
       filter(DivInstrumentES5506::Filter()),
       envelope(DivInstrumentES5506::Envelope()) {
-        outVol=0xffff;
+        outVol=0xfff;
       }
   };
   Channel chan[32];
