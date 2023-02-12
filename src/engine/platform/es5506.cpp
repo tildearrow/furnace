@@ -23,6 +23,7 @@
 #include <math.h>
 #include <map>
 
+#define VOL_CALC(vol) ((0xffff*(vol))/0xff)
 #define PITCH_OFFSET ((double)(16*2048*(chanMax+1)))
 #define NOTE_ES5506(c,note) (parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
 
