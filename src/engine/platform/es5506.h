@@ -43,6 +43,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       unsigned int loopStart;
       unsigned int loopEnd;
       unsigned int nextPos;
+      bool setPos;
       DivSampleLoopMode loopMode;
       PCM():
         isNoteMap(false),
@@ -60,6 +61,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         loopStart(0),
         loopEnd(0),
         nextPos(0),
+        setPos(false),
         loopMode(DIV_SAMPLE_LOOP_MAX) {}
     } pcm;
     int nextFreq, nextNote, currNote, wave;

@@ -588,6 +588,22 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
       chan[i].noteChanged.changed=0;
     }
+    if (chan[i].pcm.setPos) {
+      if (chan[i].active) {
+        const unsigned int start=chan[i].pcm.start;
+        const unsigned int end=chan[i].pcm.length;
+        const unsigned int pos=chan[i].pcm.direction?(end-chan[i].pcm.nextPos):chan[i].pcm.nextPos;
+        if ((chan[i].pcm.direction && pos>0) || ((!chan[i].pcm.direction) && pos<end)) {
+          pageWrite(0x20|i,0x03,start+(pos<<11));
+        }
+      } else {
+        // force keyon
+        chan[i].keyOn=true;
+      }
+      chan[i].pcm.setPos=false;
+    } else {
+      chan[i].pcm.nextPos=0;
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=CLAMP(parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,chan[i].pcm.freqOffs),0,0x1ffff);
       if (chan[i].keyOn) {
@@ -1029,20 +1045,8 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_POS: {
-      if (chan[c.chan].useWave) break;
-      if (chan[c.chan].active) {
-        const unsigned int start=chan[c.chan].pcm.start;
-        const unsigned int end=chan[c.chan].pcm.length;
-        const unsigned int pos=chan[c.chan].pcm.direction?(end-c.value):c.value;
-        if ((chan[c.chan].pcm.direction && pos>0) || ((!chan[c.chan].pcm.direction) && pos<end)) {
-          pageWrite(0x20|c.chan,0x03,start+(pos<<11));
-        }
-        break;
-      } else {
-        if (chan[c.chan].pcm.nextPos!=0) {
-          chan[c.chan].pcm.nextPos=c.value;
-        }
-      }
+      chan[c.chan].pcm.nextPos=c.value;
+      chan[c.chan].pcm.setPos=true;
       break;
     }
     case DIV_CMD_SAMPLE_DIR: {
