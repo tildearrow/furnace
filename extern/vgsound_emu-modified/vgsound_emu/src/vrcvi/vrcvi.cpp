@@ -88,7 +88,7 @@ bool vrcvi_core::pulse_t::tick()
 		m_cycle = (m_cycle+1)&15;
 	}
 
-	return m_control.mode() ? true : ((m_cycle > m_control.duty()) ? true : false);
+	return m_control.m_mode ? true : ((m_cycle > m_control.m_duty) ? true : false);
 }
 
 bool vrcvi_core::sawtooth_t::tick()
@@ -100,7 +100,7 @@ bool vrcvi_core::sawtooth_t::tick()
 
 	if (vrcvi_core::alu_t::tick())
 	{
-		if (bitfield(m_cycle++, 0))
+		if ((m_cycle++)&1)
 		{  // Even step only
 			m_accum += m_rate;
 		}
@@ -110,20 +110,20 @@ bool vrcvi_core::sawtooth_t::tick()
 			m_cycle = 0;
 		}
 	}
-	return (m_accum == 0) ? false : true;
+	return (m_accum != 0);
 }
 
 s8 vrcvi_core::pulse_t::get_output()
 {
 	// add 4 bit pulse output
-	m_out = tick() ? m_control.volume() : 0;
+	m_out = tick() ? m_control.m_volume : 0;
 	return m_out;
 }
 
 s8 vrcvi_core::sawtooth_t::get_output()
 {
 	// add 5 bit sawtooth output
-	m_out = tick() ? bitfield(m_accum, 3, 5) : 0;
+	m_out = tick() ? ((m_accum>>3)&31) : 0;
 	return m_out;
 }
 
