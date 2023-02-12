@@ -1153,14 +1153,15 @@ void DivPlatformES5506::notifyInsDeletion(void* ins) {
 void DivPlatformES5506::setFlags(const DivConfig& flags) {
   chipClock=16000000;
   CHECK_CUSTOM_CLOCK;
-  rate=chipClock/512; // 2 E clock tick (16 CLKIN tick) per voice / 4
-  for (int i=0; i<32; i++) {
-    oscBuf[i]->rate=rate;
-  }
 
   initChanMax=MAX(4,flags.getInt("channels",0x1f)&0x1f);
   chanMax=initChanMax;
   pageWriteMask(0x00,0x60,0x0b,chanMax);
+
+  rate=chipClock/(16*(initChanMax+1)); // 2 E clock tick (16 CLKIN tick) per voice / 4
+  for (int i=0; i<32; i++) {
+    oscBuf[i]->rate=rate;
+  }
 }
 
 void DivPlatformES5506::poke(unsigned int addr, unsigned short val) {

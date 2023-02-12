@@ -21,10 +21,14 @@
 #define SIDDEFS_FP_H
 
 // Compilation configuration.
-#define RESID_BRANCH_HINTS 0
+#define RESID_BRANCH_HINTS 1
 
 // Compiler specifics.
+#if defined(__GNUC__) && (__GNUC__ >= 4)
+#define HAVE_BUILTIN_EXPECT 1
+#else
 #define HAVE_BUILTIN_EXPECT 0
+#endif
 
 #ifndef M_PI
 #  define M_PI    3.14159265358979323846

@@ -169,6 +169,7 @@ class es550x_shared_core : public vgsound_emu_core
 							, m_start(0)
 							, m_end(0)
 							, m_accum(0)
+              , m_last_accum(0)
               , m_sample{0,0}
 						{
 						}
@@ -268,7 +269,7 @@ class es550x_shared_core : public vgsound_emu_core
 
 						inline s32 sample(u8 slot) { return m_sample[slot & 1]; }
 
-					private:
+					public:
 						class es550x_alu_cr_t : public vgsound_emu_core
 						{
 							public:
@@ -370,6 +371,7 @@ class es550x_shared_core : public vgsound_emu_core
 						// 20 integer, 9 fraction for ES5504/ES5505
 						// 21 integer, 11 fraction for ES5506
 						u32 m_accum = 0;
+            u32 m_last_accum = 0;
 						// Samples
 						s32 m_sample[2];
 				};

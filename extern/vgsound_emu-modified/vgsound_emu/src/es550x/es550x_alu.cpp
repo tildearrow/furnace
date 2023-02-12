@@ -16,6 +16,7 @@ void es550x_shared_core::es550x_voice_t::es550x_alu_t::reset()
 	m_start		= 0;
 	m_end		= 0;
 	m_accum		= 0;
+  m_last_accum=0;
 	m_sample[0] = m_sample[1] = 0;
 }
 
@@ -23,6 +24,7 @@ bool es550x_shared_core::es550x_voice_t::es550x_alu_t::busy() { return !(m_cr.m_
 
 bool es550x_shared_core::es550x_voice_t::es550x_alu_t::tick()
 {
+  m_last_accum = m_accum;
 	if (m_cr.dir())
 	{
 		m_accum -= m_fc;

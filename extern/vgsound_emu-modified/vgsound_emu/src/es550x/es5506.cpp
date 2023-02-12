@@ -99,7 +99,7 @@ void es5506_core::voice_t::tick(u8 voice)
 
 	if (m_alu.busy())
 	{
-                fetch(0);
+          if ((m_alu.m_last_accum&(~m_alu.m_fraction))!=(m_alu.m_accum&(~m_alu.m_fraction))) fetch(0);
          	m_filter.tick(m_alu.interpolation());
 		// Send to output
 		m_output[0] = m_mute ? 0 : volume_calc(m_lvol, (short)m_filter.o4_1());
