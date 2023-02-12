@@ -130,19 +130,8 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
       }
       hostIntf32.pop();
     }
-    es5506.tick_perf();
-    for (int o=0; o<6; o++) {
-      buf[(o<<1)|0][h]=es5506.lout(o);
-      buf[(o<<1)|1][h]=es5506.rout(o);
-    }
-    for (int i=chanMax; i>=0; i--) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(es5506.voice_lout(i)+es5506.voice_rout(i))>>5;
-    }
-  }
-}
 
-void DivPlatformES5506::e_pin(bool state) {
-  if (state) { // host interface
+    es5506.tick_perf();
     if (cycle>0) { // wait until delay
       cycle-=2;
     } else while (!hostIntf8.empty()) {
@@ -173,7 +162,18 @@ void DivPlatformES5506::e_pin(bool state) {
         if (cycle>0) break;
       }
     }
+    
+    for (int o=0; o<6; o++) {
+      buf[(o<<1)|0][h]=es5506.lout(o);
+      buf[(o<<1)|1][h]=es5506.rout(o);
+    }
+    for (int i=chanMax; i>=0; i--) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=(es5506.voice_lout(i)+es5506.voice_rout(i))>>5;
+    }
   }
+}
+
+void DivPlatformES5506::e_pin(bool state) {
 }
 
 void DivPlatformES5506::irqb(bool state) {
@@ -799,10 +799,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.vol.has) {
-        return chan[c.chan].vol;
-      }
-      return chan[c.chan].outVol;
+      return chan[c.chan].vol;
       break;
     case DIV_CMD_PANNING: {
       if (chan[c.chan].ca!=0) {
