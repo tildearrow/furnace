@@ -58,7 +58,7 @@ class vrcvi_core : public vgsound_emu_core
 
 						inline bool enable() { return m_enable; }
 
-					private:
+					public:
 						u16 m_divider : 12;	 // divider (pitch)
 						u16 m_enable  : 1;	 // channel disable flag
 				};

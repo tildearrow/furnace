@@ -11,7 +11,7 @@
 void vrcvi_core::tick()
 {
 	m_out = 0;
-	if (!m_control.halt())	// Halt flag
+	if (!m_control.m_halt)	// Halt flag
 	{
 		// tick per each clock
 		m_out += m_pulse[0].get_output();	 // add 4 bit pulse output
@@ -36,7 +36,7 @@ void vrcvi_core::reset()
 
 bool vrcvi_core::alu_t::tick()
 {
-	if (m_divider.enable())
+	if (m_divider.m_enable)
 	{
 		const u16 temp = m_counter;
 		// post decrement
@@ -44,42 +44,48 @@ bool vrcvi_core::alu_t::tick()
 		{
 			m_counter = (m_counter & 0x0ff) | (bitfield(bitfield(m_counter, 8, 4) - 1, 0, 4) << 8);
 			m_counter = (m_counter & 0xf00) | (bitfield(bitfield(m_counter, 0, 8) - 1, 0, 8) << 0);
+
+      if (bitfield(temp, 8, 4) == 0)
+      {
+        m_counter = m_divider.m_divider;
+        return true;
+      }
 		}
 		else if (m_host.m_control.m_shift&1)
 		{
 			m_counter = (m_counter & 0x00f) | (bitfield(bitfield(m_counter, 4, 8) - 1, 0, 8) << 4);
 			m_counter = (m_counter & 0xff0) | (bitfield(bitfield(m_counter, 0, 4) - 1, 0, 4) << 0);
+
+      if (bitfield(temp, 4, 8) == 0)
+      {
+        m_counter = m_divider.m_divider;
+        return true;
+      }
 		}
 		else
 		{
 			m_counter = (m_counter-1)&0xfff; //bitfield(bitfield(m_counter, 0, 12) - 1, 0, 12);
+      if (!(temp&0xfff)) {
+        m_counter = m_divider.m_divider;
+        return true;
+      }
 		}
 
-		// carry handling
-		const bool carry = bitfield(m_host.m_control.shift(), 1)
-						   ? (bitfield(temp, 8, 4) == 0)
-						   : (bitfield(m_host.m_control.shift(), 0) ? (bitfield(temp, 4, 8) == 0)
-																	: (bitfield(temp, 0, 12) == 0));
-		if (carry)
-		{
-			m_counter = m_divider.divider();
-		}
-
-		return carry;
+		return false;
 	}
 	return false;
 }
 
 bool vrcvi_core::pulse_t::tick()
 {
-	if (!m_divider.enable())
+	if (!m_divider.m_enable)
 	{
 		return false;
 	}
 
 	if (vrcvi_core::alu_t::tick())
 	{
-		m_cycle = bitfield(m_cycle + 1, 0, 4);
+		m_cycle = (m_cycle+1)&15;
 	}
 
 	return m_control.mode() ? true : ((m_cycle > m_control.duty()) ? true : false);
@@ -87,7 +93,7 @@ bool vrcvi_core::pulse_t::tick()
 
 bool vrcvi_core::sawtooth_t::tick()
 {
-	if (!m_divider.enable())
+	if (!m_divider.m_enable)
 	{
 		return false;
 	}
@@ -204,7 +210,7 @@ void vrcvi_core::pulse_w(u8 voice, u8 address, u8 data)
 			break;
 		case 0x02:	// Pitch MSB, Enable/Disable - 0x9002/0x9001 (Pulse 1), 0xa002/0xa001 (Pulse 2)
 			v.divider().write(true, data);
-			if (!v.divider().enable())
+			if (!v.divider().m_enable)
 			{  // Reset duty cycle
 				v.clear_cycle();
 			}
@@ -224,7 +230,7 @@ void vrcvi_core::saw_w(u8 address, u8 data)
 			break;
 		case 0x02:	// Pitch MSB, Enable/Disable - 0xb002/0xb001 (Sawtooth)
 			m_sawtooth.divider().write(true, data);
-			if (!m_sawtooth.divider().enable())
+			if (!m_sawtooth.divider().m_enable)
 			{  // Reset accumulator
 				m_sawtooth.clear_accum();
 			}
