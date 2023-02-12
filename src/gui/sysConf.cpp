@@ -883,6 +883,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     }
     case DIV_SYSTEM_ES5506: {
       int channels=flags.getInt("channels",0x1f)+1;
+      int volScale=flags.getInt("volScale",4095);
       ImGui::Text("Initial channel limit:");
       if (CWSliderInt("##OTTO_InitialChannelLimit",&channels,5,32)) {
         if (channels<5) channels=5;
@@ -890,9 +891,18 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       } rightClickable
 
+      ImGui::Text("Volume scale:");
+
+      if (CWSliderInt("##VolScaleO",&volScale,0,4095)) {
+        if (volScale<0) volScale=0;
+        if (volScale>4095) volScale=4095;
+        altered=true;
+      } rightClickable
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("channels",channels-1);
+          flags.set("volScale",volScale);
         });
       }
       break;

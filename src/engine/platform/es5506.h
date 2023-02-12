@@ -266,7 +266,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
   std::queue<QueuedHostIntf> hostIntf8;
   std::queue<unsigned char> queuedRead;
   std::queue<QueuedReadState> queuedReadState;
-  int cycle, curPage;
+  int cycle, curPage, volScale;
   unsigned char maskedVal;
   unsigned int irqv;
   bool isMasked, isReaded;

@@ -385,13 +385,19 @@ void DivPlatformES5506::tick(bool sysTick) {
     if (chan[i].volChanged.changed) {
       // calculate volume (16 bit)
       if (chan[i].volChanged.lVol) {
-        chan[i].resLVol=VOL_SCALE_LOG(chan[i].outVol,chan[i].outLVol,0xfff)<<4;
+        chan[i].resLVol=VOL_SCALE_LOG(chan[i].outVol,chan[i].outLVol,0xfff);
+        chan[i].resLVol-=volScale;
+        if (chan[i].resLVol<0) chan[i].resLVol=0;
+        chan[i].resLVol<<=4;
         if (!chan[i].keyOn && chan[i].active) {
           pageWrite(0x00|i,0x02,chan[i].resLVol);
         }
       }
       if (chan[i].volChanged.rVol) {
-        chan[i].resRVol=VOL_SCALE_LOG(chan[i].outVol,chan[i].outRVol,0xfff)<<4;
+        chan[i].resRVol=VOL_SCALE_LOG(chan[i].outVol,chan[i].outRVol,0xfff);
+        chan[i].resRVol-=volScale;
+        if (chan[i].resRVol<0) chan[i].resRVol=0;
+        chan[i].resRVol<<=4;
         if (!chan[i].keyOn && chan[i].active) {
           pageWrite(0x00|i,0x04,chan[i].resRVol);
         }
@@ -1152,6 +1158,7 @@ void DivPlatformES5506::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
 
   initChanMax=MAX(4,flags.getInt("channels",0x1f)&0x1f);
+  volScale=4095-flags.getInt("volScale",4095);
   chanMax=initChanMax;
   pageWriteMask(0x00,0x60,0x0b,chanMax);
 
@@ -1251,6 +1258,7 @@ int DivPlatformES5506::init(DivEngine* p, int channels, int sugRate, const DivCo
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  volScale=0;
 
   for (int i=0; i<32; i++) {
     isMuted[i]=false;
