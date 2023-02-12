@@ -497,6 +497,7 @@ void putDispatchChip(void* data, int type) {
       COMMON_CHIP_DEBUG;
       ImGui::Text("- cycle: %d",ch->cycle);
       ImGui::Text("- curPage: %d",ch->curPage);
+      ImGui::Text("- volScale: %d",ch->volScale);
       ImGui::Text("- maskedVal: %.2x",ch->maskedVal);
       ImGui::Text("- irqv: %.2x",ch->irqv);
       ImGui::Text("- curCR: %.8x",ch->curCR);
@@ -956,6 +957,7 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::TextColored(ch->pcm.isNoteMap?colorOn:colorOff,">> PCMIsNoteMap");
       ImGui::TextColored(ch->pcm.pause?colorOn:colorOff,">> PCMPause");
       ImGui::TextColored(ch->pcm.direction?colorOn:colorOff,">> PCMDirection");
+      ImGui::TextColored(ch->pcm.setPos?colorOn:colorOff,">> PCMSetPos");
       ImGui::TextColored(ch->envelope.k1Slow?colorOn:colorOff,">> EnvK1Slow");
       ImGui::TextColored(ch->envelope.k2Slow?colorOn:colorOff,">> EnvK2Slow");
       ImGui::TextColored(ch->overwrite.envelope.k1Slow?colorOn:colorOff,">> EnvK1SlowOverwrite");
