@@ -23,7 +23,6 @@
 #include <math.h>
 #include <map>
 
-#define VOL_CALC(vol) ((0xffff*(vol))/0xff)
 #define PITCH_OFFSET ((double)(16*2048*(chanMax+1)))
 #define NOTE_ES5506(c,note) (parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
 
@@ -131,19 +130,8 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
       }
       hostIntf32.pop();
     }
-    es5506.tick_perf();
-    for (int o=0; o<6; o++) {
-      buf[(o<<1)|0][h]=es5506.lout(o);
-      buf[(o<<1)|1][h]=es5506.rout(o);
-    }
-    for (int i=chanMax; i>=0; i--) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(es5506.voice_lout(i)+es5506.voice_rout(i))>>5;
-    }
-  }
-}
 
-void DivPlatformES5506::e_pin(bool state) {
-  if (state) { // host interface
+    es5506.tick_perf();
     if (cycle>0) { // wait until delay
       cycle-=2;
     } else while (!hostIntf8.empty()) {
@@ -174,7 +162,18 @@ void DivPlatformES5506::e_pin(bool state) {
         if (cycle>0) break;
       }
     }
+    
+    for (int o=0; o<6; o++) {
+      buf[(o<<1)|0][h]=es5506.lout(o);
+      buf[(o<<1)|1][h]=es5506.rout(o);
+    }
+    for (int i=chanMax; i>=0; i--) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=(es5506.voice_lout(i)+es5506.voice_rout(i))>>5;
+    }
   }
+}
+
+void DivPlatformES5506::e_pin(bool state) {
 }
 
 void DivPlatformES5506::irqb(bool state) {
@@ -191,7 +190,7 @@ void DivPlatformES5506::tick(bool sysTick) {
     signed int k1=chan[i].k1Prev,k2=chan[i].k2Prev;
     // volume/panning macros
     if (chan[i].std.vol.had) {
-      const unsigned int nextVol=VOL_SCALE_LOG(VOL_CALC(chan[i].vol),(0xffff*(unsigned int)chan[i].std.vol.val)/chan[i].volMacroMax,0xffff);
+      const unsigned int nextVol=VOL_SCALE_LOG((0xffff*chan[i].vol)/0xff,(0xffff*(unsigned int)chan[i].std.vol.val)/chan[i].volMacroMax,0xffff);
       if (chan[i].outVol!=nextVol) {
         chan[i].outVol=nextVol;
         chan[i].volChanged.lVol=1;
@@ -199,14 +198,14 @@ void DivPlatformES5506::tick(bool sysTick) {
       }
     }
     if (chan[i].std.panL.had) {
-      const unsigned int nextLVol=VOL_SCALE_LOG(VOL_CALC(chan[i].lVol),(0xffff*(unsigned int)chan[i].std.panL.val)/chan[i].panMacroMax,0xffff);
+      const unsigned int nextLVol=VOL_SCALE_LOG((0xffff*chan[i].lVol)/0xff,(0xffff*(unsigned int)chan[i].std.panL.val)/chan[i].panMacroMax,0xffff);
       if (chan[i].outLVol!=nextLVol) {
         chan[i].outLVol=nextLVol;
         chan[i].volChanged.lVol=1;
       }
     }
     if (chan[i].std.panR.had) {
-      const unsigned int nextRVol=VOL_SCALE_LOG(VOL_CALC(chan[i].rVol),(0xffff*(unsigned int)chan[i].std.panR.val)/chan[i].panMacroMax,0xffff);
+      const unsigned int nextRVol=VOL_SCALE_LOG((0xffff*chan[i].rVol)/0xff,(0xffff*(unsigned int)chan[i].std.panR.val)/chan[i].panMacroMax,0xffff);
       if (chan[i].outRVol!=nextRVol) {
         chan[i].outRVol=nextRVol;
         chan[i].volChanged.rVol=1;
@@ -387,13 +386,13 @@ void DivPlatformES5506::tick(bool sysTick) {
       // calculate volume (16 bit)
       if (chan[i].volChanged.lVol) {
         chan[i].resLVol=VOL_SCALE_LOG(chan[i].outVol,chan[i].outLVol,0xffff);
-        if (chan[i].active) {
+        if (!chan[i].keyOn && chan[i].active) {
           pageWrite(0x00|i,0x02,chan[i].resLVol);
         }
       }
       if (chan[i].volChanged.rVol) {
         chan[i].resRVol=VOL_SCALE_LOG(chan[i].outVol,chan[i].outRVol,0xffff);
-        if (chan[i].active) {
+        if (!chan[i].keyOn && chan[i].active) {
           pageWrite(0x00|i,0x04,chan[i].resRVol);
         }
       }
@@ -701,10 +700,6 @@ void DivPlatformES5506::tick(bool sysTick) {
           // Run sample
           pageWrite(0x00|i,0x06,chan[i].envelope.ecount); // Clear ECOUNT
           pageWriteMask(0x00|i,0x5f,0x00,loopFlag,0x3cff);
-          if (!chan[i].std.vol.had) {
-            chan[i].outVol=VOL_CALC(chan[i].vol);
-            chan[i].volChanged.changed=0xff;
-          }
         }
       }
       if (chan[i].keyOff) {
@@ -764,22 +759,18 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         chan[c.chan].noteChanged.changed=0xff;
         chan[c.chan].volChanged.changed=0xff;
       }
+      if (!chan[c.chan].std.vol.will) {
+        chan[c.chan].outVol=(0xffff*chan[c.chan].vol)/0xff;
+      }
+      if (!chan[c.chan].std.panL.will) {
+        chan[c.chan].outLVol=(0xffff*chan[c.chan].lVol)/0xff;
+      }
+      if (!chan[c.chan].std.panR.will) {
+        chan[c.chan].outRVol=(0xffff*chan[c.chan].rVol)/0xff;
+      }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
-      if (!chan[c.chan].std.vol.will) {
-        chan[c.chan].outVol=VOL_CALC(chan[c.chan].vol);
-        chan[c.chan].volChanged.lVol=1;
-        chan[c.chan].volChanged.rVol=1;
-      }
-      if (!chan[c.chan].std.panL.will) {
-        chan[c.chan].outLVol=VOL_CALC(chan[c.chan].lVol);
-        chan[c.chan].volChanged.lVol=1;
-      }
-      if (!chan[c.chan].std.panR.will) {
-        chan[c.chan].outRVol=VOL_CALC(chan[c.chan].rVol);
-        chan[c.chan].volChanged.rVol=1;
-      }
       break;
     }
     case DIV_CMD_NOTE_OFF:
@@ -802,16 +793,13 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (chan[c.chan].vol!=(unsigned int)(c.value)) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
-          chan[c.chan].outVol=VOL_CALC(chan[c.chan].vol);
+          chan[c.chan].outVol=(0xffff*c.value)/0xff;
           chan[c.chan].volChanged.changed=0xff;
         }
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.vol.has) {
-        return chan[c.chan].vol;
-      }
-      return chan[c.chan].outVol;
+      return chan[c.chan].vol;
       break;
     case DIV_CMD_PANNING: {
       if (chan[c.chan].ca!=0) {
@@ -822,7 +810,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (chan[c.chan].lVol!=(unsigned int)(c.value)) {
         chan[c.chan].lVol=c.value;
         if (!chan[c.chan].std.panL.has) {
-          chan[c.chan].outLVol=VOL_CALC(c.value);
+          chan[c.chan].outLVol=(0xffff*c.value)/0xff;
           chan[c.chan].volChanged.lVol=1;
         }
       }
@@ -830,7 +818,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (chan[c.chan].rVol!=(unsigned int)(c.value2)) {
         chan[c.chan].rVol=c.value2;
         if (!chan[c.chan].std.panR.has) {
-          chan[c.chan].outRVol=VOL_CALC(c.value2);
+          chan[c.chan].outRVol=(0xffff*c.value2)/0xff;
           chan[c.chan].volChanged.rVol=1;
         }
       }
@@ -847,7 +835,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         if (chan[c.chan].lVol!=(unsigned int)(c.value2)) {
           chan[c.chan].lVol=c.value2;
           if (!chan[c.chan].std.panL.has) {
-            chan[c.chan].outLVol=VOL_CALC(c.value2);
+            chan[c.chan].outLVol=(0xffff*c.value2)/0xff;
             chan[c.chan].volChanged.lVol=1;
           }
         }
@@ -857,7 +845,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
         if (chan[c.chan].rVol!=(unsigned int)(c.value2)) {
           chan[c.chan].rVol=c.value2;
           if (!chan[c.chan].std.panR.has) {
-            chan[c.chan].outRVol=VOL_CALC(c.value2);
+            chan[c.chan].outRVol=(0xffff*c.value2)/0xff;
             chan[c.chan].volChanged.rVol=1;
           }
         }

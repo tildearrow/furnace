@@ -45,9 +45,7 @@ void es5506_core::tick_perf()
 	}
 
 	// update
-        voice_tick();
-	// rising edge
-	m_intf.e_pin(true);
+  voice_tick();
 }
 
 void es5506_core::voice_tick()
