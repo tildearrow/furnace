@@ -2571,6 +2571,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_SFX_BEEPER, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "Sharp SM8521", {
+      CH(DIV_SYSTEM_SM8521, 1.0f, 0, "")
+    }
+  );
   if (settings.hiddenSystems) {
     ENTRY(
       "Dummy System", {
