@@ -190,7 +190,7 @@ void DivPlatformES5506::tick(bool sysTick) {
     signed int k1=chan[i].k1Prev,k2=chan[i].k2Prev;
     // volume/panning macros
     if (chan[i].std.vol.had) {
-      const unsigned int nextVol=VOL_SCALE_LOG(VOL_CALC(chan[i].vol),(0xffff*(unsigned int)chan[i].std.vol.val)/chan[i].volMacroMax,0xffff);
+      const unsigned int nextVol=VOL_SCALE_LOG((0xffff*chan[i].vol)/0xff,(0xffff*(unsigned int)chan[i].std.vol.val)/chan[i].volMacroMax,0xffff);
       if (chan[i].outVol!=nextVol) {
         chan[i].outVol=nextVol;
         chan[i].volChanged.lVol=1;
@@ -799,10 +799,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_GET_VOLUME:
-      if (chan[c.chan].std.vol.has) {
-        return chan[c.chan].vol;
-      }
-      return chan[c.chan].outVol;
+      return chan[c.chan].vol;
       break;
     case DIV_CMD_PANNING: {
       if (chan[c.chan].ca!=0) {
