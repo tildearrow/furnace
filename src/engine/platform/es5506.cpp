@@ -700,10 +700,6 @@ void DivPlatformES5506::tick(bool sysTick) {
           // Run sample
           pageWrite(0x00|i,0x06,chan[i].envelope.ecount); // Clear ECOUNT
           pageWriteMask(0x00|i,0x5f,0x00,loopFlag,0x3cff);
-          if (!chan[i].std.vol.had) {
-            chan[i].outVol=(0xffff*chan[i].vol)/0xff;
-            chan[i].volChanged.changed=0xff;
-          }
         }
       }
       if (chan[i].keyOff) {
@@ -775,19 +771,6 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
-      if (!chan[c.chan].std.vol.will) {
-        chan[c.chan].outVol=(0xffff*chan[c.chan].vol)/0xff;
-        chan[c.chan].volChanged.lVol=1;
-        chan[c.chan].volChanged.rVol=1;
-      }
-      if (!chan[c.chan].std.panL.will) {
-        chan[c.chan].outLVol=(0xffff*chan[c.chan].lVol)/0xff;
-        chan[c.chan].volChanged.lVol=1;
-      }
-      if (!chan[c.chan].std.panR.will) {
-        chan[c.chan].outRVol=(0xffff*chan[c.chan].rVol)/0xff;
-        chan[c.chan].volChanged.rVol=1;
-      }
       break;
     }
     case DIV_CMD_NOTE_OFF:
@@ -810,7 +793,7 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (chan[c.chan].vol!=(unsigned int)(c.value)) {
         chan[c.chan].vol=c.value;
         if (!chan[c.chan].std.vol.has) {
-          chan[c.chan].outVol=(0xffff*chan[c.chan].vol)/0xff;
+          chan[c.chan].outVol=(0xffff*c.value)/0xff;
           chan[c.chan].volChanged.changed=0xff;
         }
       }
