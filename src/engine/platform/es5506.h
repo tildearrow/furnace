@@ -28,7 +28,7 @@
 #include "vgsound_emu/src/es550x/es5506.hpp"
 
 class DivPlatformES5506: public DivDispatch, public es550x_intf {
-  struct Channel : public SharedChannel<unsigned int> {
+  struct Channel : public SharedChannel<int> {
     struct PCM {
       bool isNoteMap;
       int index, next;
@@ -184,7 +184,7 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
     DivInstrumentES5506::Filter filter;
     DivInstrumentES5506::Envelope envelope;
     Channel():
-      SharedChannel<unsigned int>(0xff),
+      SharedChannel<int>(0xff),
       pcm(PCM()),
       nextFreq(0),
       nextNote(0),
