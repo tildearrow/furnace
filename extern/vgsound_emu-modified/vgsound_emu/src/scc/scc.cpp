@@ -13,10 +13,10 @@
 void scc_core::tick(const int cycles)
 {
 	m_out = 0;
-	for (auto &elem : m_voice)
+	for (int elem=0; elem<5; elem++)
 	{
-		elem.tick(cycles);
-		m_out += elem.out();
+		m_voice[elem].tick(cycles);
+		m_out += m_voice[elem].out();
 	}
 }
 
@@ -64,19 +64,19 @@ void scc_core::voice_t::tick(const int cycles)
 
 void scc_core::reset()
 {
-	for (auto &elem : m_voice)
+	for (int elem=0; elem<5; elem++)
 	{
-		elem.reset();
+		m_voice[elem].reset();
 	}
 
 	m_test.reset();
 	m_out = 0;
-	std::fill(m_reg.begin(), m_reg.end(), 0);
+  memset(m_reg,0,256);
 }
 
 void scc_core::voice_t::reset()
 {
-	std::fill(m_wave.begin(), m_wave.end(), 0);
+	memset(m_wave,0,32);
 	m_enable  = false;
 	m_pitch	  = 0;
 	m_volume  = 0;
