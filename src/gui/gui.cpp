@@ -6029,7 +6029,7 @@ FurnaceGUI::FurnaceGUI():
   curQueryRangeY(0),
   curQueryEffectPos(0),
   queryReplaceEffectCount(0),
-  queryReplaceEffectPos(0),
+  queryReplaceEffectPos(1),
   queryReplaceNoteMode(0),
   queryReplaceInsMode(0),
   queryReplaceVolMode(0),

@@ -1073,16 +1073,20 @@ struct FurnaceGUIFindQuery {
 
 struct FurnaceGUIQueryResult {
   int subsong, order, x, y;
+  signed char effectPos[8];
   FurnaceGUIQueryResult():
     subsong(0),
     order(0),
     x(0),
-    y(0) {}
-  FurnaceGUIQueryResult(int ss, int o, int xPos, int yPos):
+    y(0),
+    effectPos{-1,-1,-1,-1,-1,-1,-1,-1} {}
+  FurnaceGUIQueryResult(int ss, int o, int xPos, int yPos, const signed char* fxPos):
     subsong(ss),
     order(o),
     x(xPos),
-    y(yPos) {}
+    y(yPos) {
+    memcpy(effectPos,fxPos,8);
+  }
 };
 
 class FurnaceGUI {
