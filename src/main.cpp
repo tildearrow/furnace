@@ -342,6 +342,14 @@ void reportError(String what) {
 // TODO: CoInitializeEx on Windows?
 // TODO: add crash log
 int main(int argc, char** argv) {
+  // Windows console thing - thanks MarioKart7z!
+#ifdef _WIN32
+  DWORD winPID;
+  HWND winConsole=GetConsoleWindow();
+  GetWindowThreadProcessId(winConsole,&winPID);
+  if (GetCurrentProcessId()==winPID) FreeConsole();
+#endif
+
   initLog();
 #ifdef _WIN32
   // set DPI awareness
