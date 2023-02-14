@@ -400,6 +400,7 @@ src/engine/platform/sound/c64/wave8580_PST.cc
 src/engine/platform/sound/c64/wave8580_P_T.cc
 src/engine/platform/sound/c64/wave8580__ST.cc
 
+src/engine/platform/sound/c64_fp/array.cpp
 src/engine/platform/sound/c64_fp/Dac.cpp
 src/engine/platform/sound/c64_fp/EnvelopeGenerator.cpp
 src/engine/platform/sound/c64_fp/ExternalFilter.cpp
@@ -763,9 +764,7 @@ if (WARNINGS_ARE_ERRORS)
   )
 endif()
 
-if (WIN32)
-  add_executable(furnace WIN32 ${USED_SOURCES})
-elseif(ANDROID AND NOT TERMUX)
+if(ANDROID AND NOT TERMUX)
   add_library(furnace SHARED ${USED_SOURCES})
 else()
   add_executable(furnace ${USED_SOURCES})

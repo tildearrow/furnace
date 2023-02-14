@@ -21,6 +21,10 @@
 #ifndef ARRAY_H
 #define ARRAY_H
 
+#include <mutex>
+
+extern std::mutex counterOps;
+
 /**
  * Counter.
  */
@@ -59,7 +63,7 @@ public:
         x(p.x),
         y(p.y) { count->increase(); }
 
-    ~matrix() { if (count->decrease() == 0) { delete count; delete [] data; } }
+    ~matrix() { counterOps.lock(); if (count->decrease() == 0) { delete count; delete [] data; } counterOps.unlock(); }
 
     unsigned int length() const { return x * y; }
 
