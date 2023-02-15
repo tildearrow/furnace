@@ -664,6 +664,12 @@ enum FurnaceGUIChanOscRef {
   GUI_OSCREF_MAX
 };
 
+enum FurnaceGUITutorials {
+  GUI_TUTORIAL_OVERVIEW=0,
+  
+  GUI_TUTORIAL_MAX
+};
+
 enum PasteMode {
   GUI_PASTE_MODE_NORMAL=0,
   GUI_PASTE_MODE_MIX_FG,
@@ -1460,6 +1466,17 @@ class FurnaceGUI {
       emptyLabel("..."),
       emptyLabel2("..") {}
   } settings;
+
+  struct Tutorial {
+    int userComesFrom;
+    bool introPlayed;
+    bool taken[GUI_TUTORIAL_MAX];
+    Tutorial():
+      userComesFrom(0),
+      introPlayed(0) {
+      memset(taken,0,GUI_TUTORIAL_MAX*sizeof(bool));
+    }
+  } tutorial;
 
   char finalLayoutPath[4096];
 
