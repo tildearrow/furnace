@@ -1473,7 +1473,7 @@ class FurnaceGUI {
     bool taken[GUI_TUTORIAL_MAX];
     Tutorial():
       userComesFrom(0),
-      introPlayed(0) {
+      introPlayed(false) {
       memset(taken,0,GUI_TUTORIAL_MAX*sizeof(bool));
     }
   } tutorial;
@@ -1803,6 +1803,9 @@ class FurnaceGUI {
   bool waveGenFMCon4[5];
   bool waveGenFM;
 
+  // intro
+  double introPos;
+
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
@@ -1879,6 +1882,7 @@ class FurnaceGUI {
   void drawSysManager();
   void drawRegView();
   void drawAbout();
+  void drawIntro();
   void drawSettings();
   void drawDebug();
   void drawNewSong();

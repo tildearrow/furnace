@@ -604,6 +604,7 @@ src/gui/findReplace.cpp
 src/gui/gradient.cpp
 src/gui/grooves.cpp
 src/gui/insEdit.cpp
+src/gui/intro.cpp
 src/gui/log.cpp
 src/gui/mixer.cpp
 src/gui/midiMap.cpp
@@ -645,7 +646,7 @@ if (APPLE)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_cocoa.mm)
 endif()
 
-if (NOT WIN32 AND NOT APPLE)
+if (NOT APPLE)
   list(APPEND GUI_SOURCES src/gui/icon.c)
 
   CHECK_INCLUDE_FILE(sys/io.h SYS_IO_FOUND)

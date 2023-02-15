@@ -5182,6 +5182,10 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    if (!tutorial.introPlayed) {
+      drawIntro();
+    }
+
     layoutTimeEnd=SDL_GetPerformanceCounter();
 
     // backup trigger
@@ -6214,7 +6218,8 @@ FurnaceGUI::FurnaceGUI():
   waveGenOffsetY(0),
   waveGenSmooth(1),
   waveGenAmplify(1.0f),
-  waveGenFM(false) {
+  waveGenFM(false),
+  introPos(0.0) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
