@@ -25,7 +25,6 @@
 
 #include "gui.h"
 #include "util.h"
-#include "icon.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
 #include "imgui.h"
@@ -5445,8 +5444,9 @@ bool FurnaceGUI::init() {
 
 #if !(defined(__APPLE__) || defined(_WIN32))
   // get the icon (on macOS and Windows the icon is bundled with the app)
-  unsigned char* furIcon=getFurnaceIcon();
-  SDL_Surface* icon=SDL_CreateRGBSurfaceFrom(furIcon,256,256,32,256*4,0xff,0xff00,0xff0000,0xff000000);
+  const FurnaceGUIImage* furIcon=getImage(GUI_IMAGE_ICON);
+  SDL_Surface* icon=NULL;
+  if (furIcon!=NULL) SDL_CreateRGBSurfaceFrom(furIcon->data,furIcon->width,furIcon->height,32,256*4,0xff,0xff00,0xff0000,0xff000000);
 #endif
 
 #ifdef IS_MOBILE
@@ -5538,7 +5538,6 @@ bool FurnaceGUI::init() {
   if (icon!=NULL) {
     SDL_SetWindowIcon(sdlWin,icon);
     SDL_FreeSurface(icon);
-    free(furIcon);
   } else {
     logW("could not create icon!");
   }

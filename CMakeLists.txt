@@ -572,6 +572,7 @@ extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
 extern/igfd/ImGuiFileDialog.cpp
 
 src/gui/plot_nolerp.cpp
+
 src/gui/font_exo.cpp
 src/gui/font_liberationSans.cpp
 src/gui/font_mononoki.cpp
@@ -582,6 +583,10 @@ src/gui/font_ptMono.cpp
 src/gui/font_unifont.cpp
 src/gui/font_icon.cpp
 src/gui/fonts.cpp
+
+src/gui/image_icon.cpp
+src/gui/image.cpp
+
 src/gui/debug.cpp
 src/gui/fileDialog.cpp
 
@@ -646,9 +651,7 @@ if (APPLE)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_cocoa.mm)
 endif()
 
-if (NOT APPLE)
-  list(APPEND GUI_SOURCES src/gui/icon.c)
-
+if (NOT WIN32 AND NOT APPLE)
   CHECK_INCLUDE_FILE(sys/io.h SYS_IO_FOUND)
   CHECK_INCLUDE_FILE(linux/input.h LINUX_INPUT_FOUND)
   CHECK_INCLUDE_FILE(linux/kd.h LINUX_KD_FOUND)

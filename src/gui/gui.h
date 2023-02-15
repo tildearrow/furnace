@@ -649,6 +649,12 @@ enum FurnaceGUIActions {
   GUI_ACTION_MAX
 };
 
+enum FurnaceGUIImages {
+  GUI_IMAGE_ICON=0,
+
+  GUI_IMAGE_MAX
+};
+
 enum FurnaceGUIChanOscRef {
   GUI_OSCREF_NONE=0,
   GUI_OSCREF_CENTER,
@@ -1093,6 +1099,16 @@ struct FurnaceGUIQueryResult {
     y(yPos) {
     memcpy(effectPos,fxPos,8);
   }
+};
+
+struct FurnaceGUIImage {
+  unsigned char* data;
+  int width, height, ch;
+  FurnaceGUIImage():
+   data(NULL),
+   width(0),
+   height(0),
+   ch(0) {}
 };
 
 class FurnaceGUI {
@@ -1658,6 +1674,8 @@ class FurnaceGUI {
   int renderTimeBegin, renderTimeEnd, renderTimeDelta;
   int eventTimeBegin, eventTimeEnd, eventTimeDelta;
 
+  std::map<FurnaceGUIImages,FurnaceGUIImage*> images;
+
   int chanToMove, sysToMove, sysToDelete, opToMove;
 
   ImVec2 patWindowPos, patWindowSize;
@@ -1854,6 +1872,8 @@ class FurnaceGUI {
 
   void pushToggleColors(bool status);
   void popToggleColors();
+
+  const FurnaceGUIImage* getImage(FurnaceGUIImages image);
 
   void drawMobileControls();
   void drawMobileOrderSel();

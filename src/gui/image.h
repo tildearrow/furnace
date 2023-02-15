@@ -17,10 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-unsigned char* getFurnaceIcon();
-#ifdef __cplusplus
-}
+#ifndef _IMAGE_H
+#define _IMAGE_H
+extern const unsigned char image_icon_data[];
+extern const unsigned int image_icon_size;
 #endif
