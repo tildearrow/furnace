@@ -5446,7 +5446,11 @@ bool FurnaceGUI::init() {
   // get the icon (on macOS and Windows the icon is bundled with the app)
   const FurnaceGUIImage* furIcon=getImage(GUI_IMAGE_ICON);
   SDL_Surface* icon=NULL;
-  if (furIcon!=NULL) SDL_CreateRGBSurfaceFrom(furIcon->data,furIcon->width,furIcon->height,32,256*4,0xff,0xff00,0xff0000,0xff000000);
+  if (furIcon!=NULL) {
+    SDL_CreateRGBSurfaceFrom(furIcon->data,furIcon->width,furIcon->height,32,256*4,0xff,0xff00,0xff0000,0xff000000);
+  } else {
+    logE("furIcon is NULL!");
+  }
 #endif
 
 #ifdef IS_MOBILE

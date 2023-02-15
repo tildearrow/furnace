@@ -1103,9 +1103,12 @@ struct FurnaceGUIQueryResult {
 
 struct FurnaceGUIImage {
   unsigned char* data;
+  SDL_Texture* tex;
   int width, height, ch;
+
   FurnaceGUIImage():
    data(NULL),
+   tex(NULL),
    width(0),
    height(0),
    ch(0) {}
@@ -1873,7 +1876,8 @@ class FurnaceGUI {
   void pushToggleColors(bool status);
   void popToggleColors();
 
-  const FurnaceGUIImage* getImage(FurnaceGUIImages image);
+  FurnaceGUIImage* getImage(FurnaceGUIImages image);
+  SDL_Texture* getTexture(FurnaceGUIImages image);
 
   void drawMobileControls();
   void drawMobileOrderSel();

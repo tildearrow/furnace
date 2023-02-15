@@ -37,7 +37,29 @@ const unsigned int imageLen[GUI_IMAGE_MAX]={
   image_icon_size
 };
 
-const FurnaceGUIImage* FurnaceGUI::getImage(FurnaceGUIImages image) {
+SDL_Texture* FurnaceGUI::getTexture(FurnaceGUIImages image) {
+  FurnaceGUIImage* img=getImage(image);
+
+  if (img==NULL) return NULL;
+  if (img->data==NULL) return NULL;
+  if (img->width<=0 || img->height<=0) return NULL;
+
+  if (img->tex==NULL) {
+    img->tex=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,SDL_TEXTUREACCESS_STATIC,img->width,img->height);
+    if (img->tex==NULL) {
+      logE("error while creating image %d texture! %s",(int)image,SDL_GetError());
+      return NULL;
+    }
+
+    if (SDL_UpdateTexture(img->tex,NULL,img->data,img->width*4)!=0) {
+      logE("error while updating texture of image %d! %s",(int)image,SDL_GetError());
+    }
+  }
+
+  return img->tex;
+}
+
+FurnaceGUIImage* FurnaceGUI::getImage(FurnaceGUIImages image) {
   FurnaceGUIImage* ret=NULL;
   auto retPos=images.find(image);
   if (retPos!=images.cend()) {

@@ -36,6 +36,13 @@ void FurnaceGUI::drawIntro() {
 
       dl->AddRectFilled(top,bottom,bgColor);
       dl->AddText(top,0xffffffff,"Furnace intro");
+
+      SDL_Texture* icon=getTexture(GUI_IMAGE_ICON);
+      if (icon!=NULL) {
+        dl->AddImage(icon,ImVec2(introPos*100,40),ImVec2(256+introPos*100,40+256));
+      } else {
+
+      }
     }
     ImGui::End();
   }
