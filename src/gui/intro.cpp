@@ -39,7 +39,7 @@ void FurnaceGUI::drawIntro() {
 
       SDL_Texture* icon=getTexture(GUI_IMAGE_ICON);
       if (icon!=NULL) {
-        dl->AddImage(icon,ImVec2(introPos*100,40),ImVec2(256+introPos*100,40+256));
+        dl->AddImage(icon,ImVec2(introPos*100,40),ImVec2(1024+introPos*100,40+1024));
       } else {
 
       }

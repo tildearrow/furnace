@@ -46,6 +46,7 @@ SDL_Texture* FurnaceGUI::getTexture(FurnaceGUIImages image) {
 
   if (img->tex==NULL) {
     img->tex=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,SDL_TEXTUREACCESS_STATIC,img->width,img->height);
+    SDL_SetTextureBlendMode(img->tex,SDL_BLENDMODE_BLEND);
     if (img->tex==NULL) {
       logE("error while creating image %d texture! %s",(int)image,SDL_GetError());
       return NULL;
