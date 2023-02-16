@@ -5238,7 +5238,7 @@ bool FurnaceGUI::loop() {
       SDL_RenderClear(sdlRend);
       mustClear--;
     } else {
-      if (initialScreenWipe>0.0f) {
+      if (initialScreenWipe>0.0f && !settings.disableFadeIn) {
         WAKE_UP;
         initialScreenWipe-=ImGui::GetIO().DeltaTime*5.0f;
         if (initialScreenWipe>0.0f) {

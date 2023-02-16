@@ -1336,6 +1336,7 @@ class FurnaceGUI {
     int macroLayout;
     float doubleClickTime;
     int oneDigitEffects;
+    int disableFadeIn;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1473,6 +1474,7 @@ class FurnaceGUI {
       macroLayout(0),
       doubleClickTime(0.3f),
       oneDigitEffects(0),
+      disableFadeIn(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
