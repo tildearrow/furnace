@@ -585,6 +585,9 @@ src/gui/font_icon.cpp
 src/gui/fonts.cpp
 
 src/gui/image_icon.cpp
+src/gui/image_talogo.cpp
+src/gui/image_tachip.cpp
+src/gui/image_logo.cpp
 src/gui/image.cpp
 
 src/gui/debug.cpp

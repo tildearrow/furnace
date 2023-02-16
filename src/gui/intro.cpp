@@ -20,6 +20,51 @@
 #include "gui.h"
 #include "imgui_internal.h"
 
+void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2& pos, const ImVec2& scale, double rotate, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& imgColor) {
+  FurnaceGUIImage* imgI=getImage(image);
+  SDL_Texture* img=getTexture(image);
+
+  ImVec2 rectMin=ImVec2(
+    -imgI->width*0.5*scale.x,
+    -imgI->height*0.5*scale.y
+  );
+  ImVec2 rectMax=ImVec2(
+    -rectMin.x,
+    -rectMin.y
+  );
+
+  ImVec2 posAbs=ImVec2(
+    pos.x*canvasW,
+    pos.y*canvasH
+  );
+
+  ImVec2 quad0=ImVec2(
+    posAbs.x+rectMin.x*cos(rotate)-rectMin.y*sin(rotate),
+    posAbs.y+rectMin.x*sin(rotate)+rectMin.y*cos(rotate)
+  );
+  ImVec2 quad1=ImVec2(
+    posAbs.x+rectMax.x*cos(rotate)-rectMin.y*sin(rotate),
+    posAbs.y+rectMax.x*sin(rotate)+rectMin.y*cos(rotate)
+  );
+  ImVec2 quad2=ImVec2(
+    posAbs.x+rectMax.x*cos(rotate)-rectMax.y*sin(rotate),
+    posAbs.y+rectMax.x*sin(rotate)+rectMax.y*cos(rotate)
+  );
+  ImVec2 quad3=ImVec2(
+    posAbs.x+rectMin.x*cos(rotate)-rectMax.y*sin(rotate),
+    posAbs.y+rectMin.x*sin(rotate)+rectMax.y*cos(rotate)
+  );
+
+  ImVec2 uv0=ImVec2(uvMin.x,uvMin.y);
+  ImVec2 uv1=ImVec2(uvMax.x,uvMin.y);
+  ImVec2 uv2=ImVec2(uvMax.x,uvMax.y);
+  ImVec2 uv3=ImVec2(uvMin.x,uvMax.y);
+
+  ImU32 colorConverted=ImGui::GetColorU32(imgColor);
+
+  dl->AddImageQuad(img,quad0,quad1,quad2,quad3,uv0,uv1,uv2,uv3,colorConverted);
+}
+
 void FurnaceGUI::drawIntro() {
   if (introPos<7.0) {
     WAKE_UP;
@@ -37,12 +82,7 @@ void FurnaceGUI::drawIntro() {
       dl->AddRectFilled(top,bottom,bgColor);
       dl->AddText(top,0xffffffff,"Furnace intro - work in progress");
 
-      SDL_Texture* icon=getTexture(GUI_IMAGE_ICON);
-      if (icon!=NULL) {
-        dl->AddImage(icon,ImVec2(introPos*100,40),ImVec2(1024+introPos*100,40+1024));
-      } else {
-
-      }
+      drawImage(dl,GUI_IMAGE_TALOGO,ImVec2(0.5,0.5),ImVec2(1.0,1.0),introPos,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,1.0));
     }
     ImGui::End();
   }

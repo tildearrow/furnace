@@ -21,4 +21,13 @@
 #define _IMAGE_H
 extern const unsigned char image_icon_data[];
 extern const unsigned int image_icon_size;
+
+extern const unsigned char image_talogo_data[];
+extern const unsigned int image_talogo_size;
+
+extern const unsigned char image_tachip_data[];
+extern const unsigned int image_tachip_size;
+
+extern const unsigned char image_logo_data[];
+extern const unsigned int image_logo_size;
 #endif
