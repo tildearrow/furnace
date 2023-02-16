@@ -33,26 +33,21 @@ void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2&
     -rectMin.y
   );
 
-  ImVec2 posAbs=ImVec2(
-    pos.x*canvasW,
-    pos.y*canvasH
-  );
-
   ImVec2 quad0=ImVec2(
-    posAbs.x+rectMin.x*cos(rotate)-rectMin.y*sin(rotate),
-    posAbs.y+rectMin.x*sin(rotate)+rectMin.y*cos(rotate)
+    pos.x+rectMin.x*cos(rotate)-rectMin.y*sin(rotate),
+    pos.y+rectMin.x*sin(rotate)+rectMin.y*cos(rotate)
   );
   ImVec2 quad1=ImVec2(
-    posAbs.x+rectMax.x*cos(rotate)-rectMin.y*sin(rotate),
-    posAbs.y+rectMax.x*sin(rotate)+rectMin.y*cos(rotate)
+    pos.x+rectMax.x*cos(rotate)-rectMin.y*sin(rotate),
+    pos.y+rectMax.x*sin(rotate)+rectMin.y*cos(rotate)
   );
   ImVec2 quad2=ImVec2(
-    posAbs.x+rectMax.x*cos(rotate)-rectMax.y*sin(rotate),
-    posAbs.y+rectMax.x*sin(rotate)+rectMax.y*cos(rotate)
+    pos.x+rectMax.x*cos(rotate)-rectMax.y*sin(rotate),
+    pos.y+rectMax.x*sin(rotate)+rectMax.y*cos(rotate)
   );
   ImVec2 quad3=ImVec2(
-    posAbs.x+rectMin.x*cos(rotate)-rectMax.y*sin(rotate),
-    posAbs.y+rectMin.x*sin(rotate)+rectMax.y*cos(rotate)
+    pos.x+rectMin.x*cos(rotate)-rectMax.y*sin(rotate),
+    pos.y+rectMin.x*sin(rotate)+rectMax.y*cos(rotate)
   );
 
   ImVec2 uv0=ImVec2(uvMin.x,uvMin.y);
@@ -69,7 +64,6 @@ void FurnaceGUI::drawIntro() {
   if (introPos<7.0) {
     WAKE_UP;
     nextWindow=GUI_WINDOW_NOTHING;
-    introPos+=ImGui::GetIO().DeltaTime;
     ImGui::SetNextWindowPos(ImVec2(0,0));
     ImGui::SetNextWindowSize(ImVec2(canvasW,canvasH));
     if (ImGui::Begin("Intro",NULL,ImGuiWindowFlags_Modal)) {
@@ -82,8 +76,12 @@ void FurnaceGUI::drawIntro() {
       dl->AddRectFilled(top,bottom,bgColor);
       dl->AddText(top,0xffffffff,"Furnace intro - work in progress");
 
-      drawImage(dl,GUI_IMAGE_TALOGO,ImVec2(0.5,0.5),ImVec2(1.0,1.0),introPos,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,1.0));
+      drawImage(dl,GUI_IMAGE_TALOGO,ImVec2(0.5*canvasW,0.5*canvasH),ImVec2(1.0,1.0),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,pow(MIN(1.0,introPos*2.0),0.8)));
     }
     ImGui::End();
+
+    if (mustClear<=0) {
+      introPos+=ImGui::GetIO().DeltaTime;
+    }
   }
 }

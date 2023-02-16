@@ -1495,7 +1495,7 @@ class FurnaceGUI {
     bool taken[GUI_TUTORIAL_MAX];
     Tutorial():
       userComesFrom(0),
-      introPlayed(false) {
+      introPlayed(true) {
       memset(taken,0,GUI_TUTORIAL_MAX*sizeof(bool));
     }
   } tutorial;
@@ -1829,6 +1829,8 @@ class FurnaceGUI {
 
   // intro
   double introPos;
+  int mustClear;
+  float initialScreenWipe;
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);

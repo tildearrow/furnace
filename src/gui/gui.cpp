@@ -5182,6 +5182,7 @@ bool FurnaceGUI::loop() {
     }
 
     if (!tutorial.introPlayed) {
+      initialScreenWipe=0;
       drawIntro();
     }
 
@@ -5233,6 +5234,20 @@ bool FurnaceGUI::loop() {
     ImGui::Render();
     renderTimeEnd=SDL_GetPerformanceCounter();
     ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
+    if (mustClear) {
+      SDL_RenderClear(sdlRend);
+      mustClear--;
+    } else {
+      if (initialScreenWipe>0.0f) {
+        WAKE_UP;
+        initialScreenWipe-=ImGui::GetIO().DeltaTime*5.0f;
+        if (initialScreenWipe>0.0f) {
+          SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_BLEND);
+          SDL_SetRenderDrawColor(sdlRend,0,0,0,255*initialScreenWipe);
+          SDL_RenderFillRect(sdlRend,NULL);
+        }
+      }
+    }
     SDL_RenderPresent(sdlRend);
 
     layoutTimeDelta=layoutTimeEnd-layoutTimeBegin;
@@ -6222,7 +6237,9 @@ FurnaceGUI::FurnaceGUI():
   waveGenSmooth(1),
   waveGenAmplify(1.0f),
   waveGenFM(false),
-  introPos(0.0) {
+  introPos(0.0),
+  mustClear(2),
+  initialScreenWipe(1.0f) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
