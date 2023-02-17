@@ -24,30 +24,40 @@ void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2&
   FurnaceGUIImage* imgI=getImage(image);
   SDL_Texture* img=getTexture(image);
 
+  float squareSize=MAX(canvasW,canvasH);
+  float uDiff=uvMax.x-uvMin.x;
+  float vDiff=uvMax.y-uvMin.y;
+
   ImVec2 rectMin=ImVec2(
-    -imgI->width*0.5*scale.x,
-    -imgI->height*0.5*scale.y
+    -imgI->width*0.5*scale.x*(squareSize/2048.0)*uDiff,
+    -imgI->height*0.5*scale.y*(squareSize/2048.0)*vDiff
   );
   ImVec2 rectMax=ImVec2(
     -rectMin.x,
     -rectMin.y
   );
 
+  ImVec2 posAbs=ImLerp(
+    ImVec2((canvasW-squareSize)*0.5,(canvasH-squareSize)*0.5),
+    ImVec2((canvasW+squareSize)*0.5,(canvasH+squareSize)*0.5),
+    pos
+  );
+
   ImVec2 quad0=ImVec2(
-    pos.x+rectMin.x*cos(rotate)-rectMin.y*sin(rotate),
-    pos.y+rectMin.x*sin(rotate)+rectMin.y*cos(rotate)
+    posAbs.x+rectMin.x*cos(rotate)-rectMin.y*sin(rotate),
+    posAbs.y+rectMin.x*sin(rotate)+rectMin.y*cos(rotate)
   );
   ImVec2 quad1=ImVec2(
-    pos.x+rectMax.x*cos(rotate)-rectMin.y*sin(rotate),
-    pos.y+rectMax.x*sin(rotate)+rectMin.y*cos(rotate)
+    posAbs.x+rectMax.x*cos(rotate)-rectMin.y*sin(rotate),
+    posAbs.y+rectMax.x*sin(rotate)+rectMin.y*cos(rotate)
   );
   ImVec2 quad2=ImVec2(
-    pos.x+rectMax.x*cos(rotate)-rectMax.y*sin(rotate),
-    pos.y+rectMax.x*sin(rotate)+rectMax.y*cos(rotate)
+    posAbs.x+rectMax.x*cos(rotate)-rectMax.y*sin(rotate),
+    posAbs.y+rectMax.x*sin(rotate)+rectMax.y*cos(rotate)
   );
   ImVec2 quad3=ImVec2(
-    pos.x+rectMin.x*cos(rotate)-rectMax.y*sin(rotate),
-    pos.y+rectMin.x*sin(rotate)+rectMax.y*cos(rotate)
+    posAbs.x+rectMin.x*cos(rotate)-rectMax.y*sin(rotate),
+    posAbs.y+rectMin.x*sin(rotate)+rectMax.y*cos(rotate)
   );
 
   ImVec2 uv0=ImVec2(uvMin.x,uvMin.y);
@@ -61,22 +71,72 @@ void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2&
 }
 
 void FurnaceGUI::drawIntro() {
-  if (introPos<7.0) {
+  if (introPos<9.0) {
     WAKE_UP;
     nextWindow=GUI_WINDOW_NOTHING;
     ImGui::SetNextWindowPos(ImVec2(0,0));
     ImGui::SetNextWindowSize(ImVec2(canvasW,canvasH));
-    if (ImGui::Begin("Intro",NULL,ImGuiWindowFlags_Modal)) {
+    ImGui::SetNextWindowFocus();
+    if (ImGui::Begin("Intro",NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground)) {
       ImDrawList* dl=ImGui::GetForegroundDrawList();
       ImVec2 top=ImVec2(0.0f,0.0f);
       ImVec2 bottom=ImVec2(canvasW,canvasH);
 
-      ImU32 bgColor=ImGui::GetColorU32(ImVec4(0.0f,0.0f,0.0f,1.0f));
+      // background
+      float bgAlpha=CLAMP(9.0-introPos,0.0,1.0);
+      bgAlpha=3.0*pow(bgAlpha,2.0)-2.0*pow(bgAlpha,3.0);
+      ImU32 bgColor=ImGui::GetColorU32(ImVec4(0.0f,0.0f,0.0f,bgAlpha));
 
       dl->AddRectFilled(top,bottom,bgColor);
       dl->AddText(top,0xffffffff,"Furnace intro - work in progress");
 
-      drawImage(dl,GUI_IMAGE_TALOGO,ImVec2(0.5*canvasW,0.5*canvasH),ImVec2(1.0,1.0),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,pow(MIN(1.0,introPos*2.0),0.8)));
+      // part 1 - talogo
+      if (introPos<2.3) {
+        drawImage(dl,GUI_IMAGE_TALOGO,ImVec2(0.5,0.5),ImVec2(0.7,0.7),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,MAX(0.01,1.0-pow(MAX(0.0,1.0-introPos*2.0),3.0))));
+
+        for (int i=0; i<16; i++) {
+          double chipCenter=0.2+pow(MAX(0.0,1.5-introPos*0.8-((double)i/36.0)),2.0);
+          ImVec2 chipPos=ImVec2(
+            0.5+chipCenter*cos(2.0*M_PI*(double)i/16.0-pow(introPos,2.0)),
+            0.5+chipCenter*sin(2.0*M_PI*(double)i/16.0-pow(introPos,2.0))
+          );
+          drawImage(dl,GUI_IMAGE_TACHIP,chipPos,ImVec2(0.25,0.25),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,0.5),ImVec4(1.0,1.0,1.0,1.0));
+        }
+      }
+
+      // transition
+      float transitionPos=CLAMP(introPos*4.0-8,-1.5,3.5);
+      dl->AddQuadFilled(
+        ImVec2(
+          (transitionPos-1.5)*canvasW,
+          0.0
+        ),
+        ImVec2(
+          (transitionPos)*canvasW,
+          0.0
+        ),
+        ImVec2(
+          (transitionPos-0.2)*canvasW,
+          canvasH
+        ),
+        ImVec2(
+          (transitionPos-1.7)*canvasW,
+          canvasH
+        ),
+        ImGui::GetColorU32(ImVec4(0.35,0.4,0.5,1.0))
+      );
+
+      // part 2 - falling patterns
+      if (introPos>2.3) {
+        
+      }
+
+      // part 3 - furnace box
+
+      // part 4 - logo end
+      if (introPos>5.0) {
+        drawImage(dl,GUI_IMAGE_LOGO,ImVec2(0.5,0.5+pow(1.0-CLAMP(introPos-5.0,0.0,1.0),3.0)),ImVec2(0.75,0.75),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,bgAlpha));
+      }
     }
     ImGui::End();
 

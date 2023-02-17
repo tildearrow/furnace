@@ -1497,7 +1497,7 @@ class FurnaceGUI {
     bool taken[GUI_TUTORIAL_MAX];
     Tutorial():
       userComesFrom(0),
-      introPlayed(true) {
+      introPlayed(false) {
       memset(taken,0,GUI_TUTORIAL_MAX*sizeof(bool));
     }
   } tutorial;
