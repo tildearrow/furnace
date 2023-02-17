@@ -588,6 +588,7 @@ src/gui/image_icon.cpp
 src/gui/image_talogo.cpp
 src/gui/image_tachip.cpp
 src/gui/image_logo.cpp
+src/gui/image_wordmark.cpp
 src/gui/image.cpp
 
 src/gui/debug.cpp

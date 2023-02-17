@@ -30,4 +30,7 @@ extern const unsigned int image_tachip_size;
 
 extern const unsigned char image_logo_data[];
 extern const unsigned int image_logo_size;
+
+extern const unsigned char image_wordmark_data[];
+extern const unsigned int image_wordmark_size;
 #endif

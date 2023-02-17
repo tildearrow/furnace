@@ -82,6 +82,11 @@ void FurnaceGUI::drawIntro() {
       ImVec2 top=ImVec2(0.0f,0.0f);
       ImVec2 bottom=ImVec2(canvasW,canvasH);
 
+      // preload textures
+      SDL_Texture* pt=getTexture(GUI_IMAGE_TALOGO);
+      pt=getTexture(GUI_IMAGE_TACHIP);
+      pt=getTexture(GUI_IMAGE_LOGO);
+
       // background
       float bgAlpha=CLAMP(9.0-introPos,0.0,1.0);
       bgAlpha=3.0*pow(bgAlpha,2.0)-2.0*pow(bgAlpha,3.0);
@@ -144,6 +149,16 @@ void FurnaceGUI::drawIntro() {
 
       // part 4 - logo end
       if (introPos>5.0) {
+        drawImage(
+          dl,
+          GUI_IMAGE_WORDMARK,
+          ImVec2(0.36+0.3*(1.0-pow(1.0-CLAMP(introPos-6.0,0.0,1.0),6.0)),0.5+pow(1.0-CLAMP(introPos-5.0,0.0,1.0),4.0)),
+          ImVec2(1.0,1.0),
+          0.0f,
+          ImVec2(pow(1.0-CLAMP(introPos-6.0,0.0,1.0),8.0),0.0),
+          ImVec2(1.0,1.0),
+          ImVec4(1.0,1.0,1.0,bgAlpha)
+        );
         drawImage(dl,GUI_IMAGE_LOGO,ImVec2(0.5-0.25*(1.0-pow(1.0-CLAMP(introPos-6.0,0.0,1.0),6.0)),0.5+pow(1.0-CLAMP(introPos-5.0,0.0,1.0),4.0)),ImVec2(0.67,0.67),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,bgAlpha));
       }
 

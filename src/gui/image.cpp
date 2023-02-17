@@ -33,14 +33,16 @@ const unsigned char* imageData[GUI_IMAGE_MAX]={
   image_icon_data,
   image_talogo_data,
   image_tachip_data,
-  image_logo_data
+  image_logo_data,
+  image_wordmark_data
 };
 
 const unsigned int imageLen[GUI_IMAGE_MAX]={
   image_icon_size,
   image_talogo_size,
   image_tachip_size,
-  image_logo_size
+  image_logo_size,
+  image_wordmark_size
 };
 
 SDL_Texture* FurnaceGUI::getTexture(FurnaceGUIImages image) {
