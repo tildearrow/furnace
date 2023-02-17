@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="205.65253mm"
+   height="85.955002mm"
+   viewBox="0 0 205.65253 85.955"
+   version="1.1"
+   id="svg5"
+   inkscape:export-filename="/tmp/furnaceword.png"
+   inkscape:export-xdpi="166.66396"
+   inkscape:export-ydpi="166.66396"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04, custom)"
+   sodipodi:docname="furnaceword.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#424242"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="true"
+     inkscape:document-units="mm"
+     showgrid="false"
+     fit-margin-top="32"
+     fit-margin-left="32"
+     fit-margin-right="32"
+     fit-margin-bottom="32"
+     inkscape:zoom="1.0935553"
+     inkscape:cx="414.70239"
+     inkscape:cy="225.86877"
+     inkscape:window-width="1920"
+     inkscape:window-height="1056"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <rect
+       x="6.4661274"
+       y="115.09706"
+       width="584.08398"
+       height="238.58037"
+       id="rect1970" />
+    <rect
+       x="6.4661274"
+       y="115.09706"
+       width="488.38528"
+       height="165.18983"
+       id="rect25170" />
+    <rect
+       x="6.4661274"
+       y="115.09706"
+       width="584.08398"
+       height="238.58037"
+       id="rect93388" />
+    <filter
+       inkscape:collect="always"
+       style="color-interpolation-filters:sRGB"
+       id="filter93390"
+       x="-0.053540562"
+       y="-0.35937083"
+       width="1.1070811"
+       height="1.7187417">
+      <feGaussianBlur
+         inkscape:collect="always"
+         stdDeviation="9.1033312"
+         id="feGaussianBlur93392" />
+    </filter>
+  </defs>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(30.4643,23.150964)">
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,-2.0565565,-29.517635)"
+       id="text93386"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:120px;line-height:1.25;font-family:'Averia Libre';-inkscape-font-specification:'Averia Libre Bold';letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect93388);fill:#75aae9;fill-opacity:1;stroke:#006bff;stroke-width:13.22834663;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.46923077;filter:url(#filter93390);opacity:1"><tspan
+         x="6.4667969"
+         y="226.09766"
+         id="tspan109265"><tspan
+           style="font-family:Xolonium;-inkscape-font-specification:'Xolonium Bold'"
+           id="tspan109263">Furnace</tspan></tspan></text>
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,-2.0565565,-29.517635)"
+       id="text1968"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:120px;line-height:1.25;font-family:'Averia Libre';-inkscape-font-specification:'Averia Libre Bold';letter-spacing:0px;word-spacing:0px;white-space:pre;shape-inside:url(#rect1970);fill:#8cf5ff;fill-opacity:1;stroke:#4dc4ff;stroke-width:3.77953;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.61758202"><tspan
+         x="6.4667969"
+         y="226.09766"
+         id="tspan109269"><tspan
+           style="font-family:Xolonium;-inkscape-font-specification:'Xolonium Bold'"
+           id="tspan109267">Furnace</tspan></tspan></text>
+  </g>
+</svg>

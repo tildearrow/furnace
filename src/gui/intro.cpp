@@ -88,17 +88,16 @@ void FurnaceGUI::drawIntro() {
       ImU32 bgColor=ImGui::GetColorU32(ImVec4(0.0f,0.0f,0.0f,bgAlpha));
 
       dl->AddRectFilled(top,bottom,bgColor);
-      dl->AddText(top,0xffffffff,"Furnace intro - work in progress");
 
       // part 1 - talogo
       if (introPos<2.3) {
         drawImage(dl,GUI_IMAGE_TALOGO,ImVec2(0.5,0.5),ImVec2(0.7,0.7),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,MAX(0.01,1.0-pow(MAX(0.0,1.0-introPos*2.0),3.0))));
 
         for (int i=0; i<16; i++) {
-          double chipCenter=0.2+pow(MAX(0.0,1.5-introPos*0.8-((double)i/36.0)),2.0);
+          double chipCenter=0.25+pow(MAX(0.0,1.5-introPos*0.8-((double)i/36.0)),2.0)+pow(sin(-introPos*2.2-(double)i*0.44),24)*0.05;
           ImVec2 chipPos=ImVec2(
-            0.5+chipCenter*cos(2.0*M_PI*(double)i/16.0-pow(introPos,2.0)),
-            0.5+chipCenter*sin(2.0*M_PI*(double)i/16.0-pow(introPos,2.0))
+            0.5+chipCenter*cos(2.0*M_PI*(double)i/16.0-pow(introPos,2.2)),
+            0.5+chipCenter*sin(2.0*M_PI*(double)i/16.0-pow(introPos,2.2))
           );
           drawImage(dl,GUI_IMAGE_TACHIP,chipPos,ImVec2(0.25,0.25),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,0.5),ImVec4(1.0,1.0,1.0,1.0));
         }
@@ -131,12 +130,24 @@ void FurnaceGUI::drawIntro() {
         
       }
 
-      // part 3 - furnace box
+      // part 3 - falling chips
+      if (introPos>3.0) {
+        for (int i=0; i<40; i++) {
+          float blah=(introPos-4.25)*1.3;
+          ImVec2 chipPos=ImVec2(
+            0.5+sin(i)*0.4,
+            0.1-(1.1*pow(blah,2.0)-1.3*pow(blah,2.0)+pow(blah,5.0))+i*0.02+((introPos-3.75)*1.3*(fabs(sin(i*1.3))*0.28))
+          );
+          drawImage(dl,GUI_IMAGE_TACHIP,chipPos,ImVec2(0.33,0.33),0.5*M_PI,ImVec2(0.0,0.0),ImVec2(1.0,0.5),ImVec4(1.0,1.0,1.0,1.0));
+        }
+      }
 
       // part 4 - logo end
       if (introPos>5.0) {
-        drawImage(dl,GUI_IMAGE_LOGO,ImVec2(0.5,0.5+pow(1.0-CLAMP(introPos-5.0,0.0,1.0),3.0)),ImVec2(0.75,0.75),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,bgAlpha));
+        drawImage(dl,GUI_IMAGE_LOGO,ImVec2(0.5-0.25*(1.0-pow(1.0-CLAMP(introPos-6.0,0.0,1.0),6.0)),0.5+pow(1.0-CLAMP(introPos-5.0,0.0,1.0),4.0)),ImVec2(0.67,0.67),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,bgAlpha));
       }
+
+      dl->AddText(top,ImGui::GetColorU32(ImVec4(1.0f,1.0f,1.0f,bgAlpha)),"Furnace intro - work in progress");
     }
     ImGui::End();
 
