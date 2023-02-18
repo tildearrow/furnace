@@ -83,9 +83,10 @@ void FurnaceGUI::drawIntro() {
       ImVec2 bottom=ImVec2(canvasW,canvasH);
 
       // preload textures
-      SDL_Texture* pt=getTexture(GUI_IMAGE_TALOGO);
-      pt=getTexture(GUI_IMAGE_TACHIP);
-      pt=getTexture(GUI_IMAGE_LOGO);
+      getTexture(GUI_IMAGE_TALOGO);
+      getTexture(GUI_IMAGE_TACHIP);
+      getTexture(GUI_IMAGE_LOGO);
+      getTexture(GUI_IMAGE_INTROBG,SDL_BLENDMODE_ADD);
 
       // background
       float bgAlpha=CLAMP(9.0-introPos,0.0,1.0);
@@ -106,6 +107,16 @@ void FurnaceGUI::drawIntro() {
           );
           drawImage(dl,GUI_IMAGE_TACHIP,chipPos,ImVec2(0.25,0.25),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,0.5),ImVec4(1.0,1.0,1.0,1.0));
         }
+      }
+
+      // background after part 1
+      if (introPos>2.3) {
+        float s1a=CLAMP((introPos-3.2)*1.3,0.0f,1.0f);
+        float s2a=CLAMP((introPos-4.5)*1.0,0.0f,1.0f);
+        float addition=(3*pow(s1a,2)-2*pow(s1a,3)+(3*pow(s2a,2)-2*pow(s2a,3))*1.5)*3.5;
+        drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.125,0.25-(introPos+addition)*0.07),ImVec2(18.0,18.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.4,0.1+0.7*s1a,1.0*s1a,0.5*bgAlpha));
+        drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.4,0.25-(introPos+addition)*0.08),ImVec2(18.0,18.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.5-0.4*s1a,0.8-0.6*s1a,1.0*s1a,0.6*bgAlpha));
+        drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.7,0.25-(introPos+addition)*0.05),ImVec2(20.0,20.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.4+0.3*s1a,1.0,0.7,(0.5-0.4*s1a)*bgAlpha));
       }
 
       // transition

@@ -34,7 +34,8 @@ const unsigned char* imageData[GUI_IMAGE_MAX]={
   image_talogo_data,
   image_tachip_data,
   image_logo_data,
-  image_wordmark_data
+  image_wordmark_data,
+  image_introbg_data
 };
 
 const unsigned int imageLen[GUI_IMAGE_MAX]={
@@ -42,10 +43,11 @@ const unsigned int imageLen[GUI_IMAGE_MAX]={
   image_talogo_size,
   image_tachip_size,
   image_logo_size,
-  image_wordmark_size
+  image_wordmark_size,
+  image_introbg_size
 };
 
-SDL_Texture* FurnaceGUI::getTexture(FurnaceGUIImages image) {
+SDL_Texture* FurnaceGUI::getTexture(FurnaceGUIImages image, SDL_BlendMode blendMode) {
   FurnaceGUIImage* img=getImage(image);
 
   if (img==NULL) return NULL;
@@ -54,11 +56,11 @@ SDL_Texture* FurnaceGUI::getTexture(FurnaceGUIImages image) {
 
   if (img->tex==NULL) {
     img->tex=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,SDL_TEXTUREACCESS_STATIC,img->width,img->height);
-    SDL_SetTextureBlendMode(img->tex,SDL_BLENDMODE_BLEND);
     if (img->tex==NULL) {
       logE("error while creating image %d texture! %s",(int)image,SDL_GetError());
       return NULL;
     }
+    SDL_SetTextureBlendMode(img->tex,blendMode);
 
     if (SDL_UpdateTexture(img->tex,NULL,img->data,img->width*4)!=0) {
       logE("error while updating texture of image %d! %s",(int)image,SDL_GetError());
