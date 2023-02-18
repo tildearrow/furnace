@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -164,7 +164,7 @@ void DivPlatformAY8930::checkWrites() {
   }
 }
 
-void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformAY8930::acquire(short** buf, size_t len) {
   if (ayBufLen<len) {
     ayBufLen=len;
     for (int i=0; i<3; i++) {
@@ -179,11 +179,11 @@ void DivPlatformAY8930::acquire(short* bufL, short* bufR, size_t start, size_t l
 
     ay->sound_stream_update(ayBuf,1);
     if (stereo) {
-      bufL[i+start]=ayBuf[0][0]+ayBuf[1][0]+((ayBuf[2][0]*stereoSep)>>8);
-      bufR[i+start]=((ayBuf[0][0]*stereoSep)>>8)+ayBuf[1][0]+ayBuf[2][0];
+      buf[0][i]=ayBuf[0][0]+ayBuf[1][0]+((ayBuf[2][0]*stereoSep)>>8);
+      buf[1][i]=((ayBuf[0][0]*stereoSep)>>8)+ayBuf[1][0]+ayBuf[2][0];
     } else {
-      bufL[i+start]=ayBuf[0][0]+ayBuf[1][0]+ayBuf[2][0];
-      bufR[i+start]=bufL[i+start];
+      buf[0][i]=ayBuf[0][0]+ayBuf[1][0]+ayBuf[2][0];
+      buf[1][i]=buf[0][i];
     }
 
     oscBuf[0]->data[oscBuf[0]->needle++]=ayBuf[0][0]<<2;
@@ -243,7 +243,9 @@ void DivPlatformAY8930::tick(bool sysTick) {
         }
       }
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -268,7 +270,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+        CLAMP_VAR(chan[i].pitch2,-65535,65535);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -295,7 +297,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
       }
     }
     if (chan[i].std.ex1.had) { // duty
-      rWrite(0x16+i,chan[i].std.ex1.val);
+      immWrite(0x16+i,chan[i].std.ex1.val);
     }
     if (chan[i].std.ex2.had) {
       chan[i].envelope.mode=chan[i].std.ex2.val;
@@ -320,7 +322,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
       immWrite(0x1a,ayNoiseOr);
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (chan[i].dac.furnaceDAC) {
         double off=1.0;
         if (chan[i].dac.sample>=0 && chan[i].dac.sample<parent->song.sampleLen) {
@@ -334,6 +336,7 @@ void DivPlatformAY8930::tick(bool sysTick) {
         chan[i].dac.rate=((double)chipClock*4.0)/(double)(MAX(1,off*chan[i].freq));
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dac.rate);
       }
+      if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].keyOn) {
         if (!chan[i].nextPSGMode.dac) {
@@ -403,7 +406,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       if (chan[c.chan].nextPSGMode.dac) {
         if (skipRegisterWrites) break;
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
-          chan[c.chan].dac.sample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) chan[c.chan].dac.sample=ins->amiga.getSample(c.value);
           if (chan[c.chan].dac.sample<0 || chan[c.chan].dac.sample>=parent->song.sampleLen) {
             chan[c.chan].dac.sample=-1;
             if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
@@ -635,6 +638,12 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
         sampleBank=parent->song.sample.size()/12;
       }
       break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -645,7 +654,7 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AY8930));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
@@ -739,8 +748,8 @@ void DivPlatformAY8930::reset() {
   immWrite(0x1a,0x00); // or mask
 }
 
-bool DivPlatformAY8930::isStereo() {
-  return true;
+int DivPlatformAY8930::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformAY8930::keyOffAffectsArp(int ch) {
@@ -800,10 +809,17 @@ void DivPlatformAY8930::setFlags(const DivConfig& flags) {
     case 12:
       chipClock=3600000;
       break;
+    case 13:
+      chipClock=20000000/16;
+      break;
+    case 14:
+      chipClock=1536000;
+      break;
     default:
       chipClock=COLOR_NTSC/2.0;
       break;
   }
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate;

@@ -57,8 +57,8 @@ class k053260_core : public vgsound_emu_core
 					, m_bitpos(4)
 					, m_data(0)
 					, m_adpcm_buf(0)
-					, m_out{0}
 				{
+					m_out.fill(0);
 				}
 
 				// internal state
@@ -112,7 +112,7 @@ class k053260_core : public vgsound_emu_core
 				u8 m_bitpos				 = 4;	 // bit position for ADPCM decoding
 				u8 m_data				 = 0;	 // current data
 				s8 m_adpcm_buf			 = 0;	 // ADPCM buffer
-				std::array<s32, 2> m_out = {0};	 // current output
+				std::array<s32, 2> m_out;	 // current output
 		};
 
 		class ctrl_t
@@ -156,15 +156,15 @@ class k053260_core : public vgsound_emu_core
 		{
 			public:
 				ym3012_t()
-					: m_in{0}
-					, m_out{0}
 				{
+					m_in.fill(0);
+					m_out.fill(0);
 				}
 
 				void reset()
 				{
-					std::fill(m_in.begin(), m_in.end(), 0);
-					std::fill(m_out.begin(), m_out.end(), 0);
+					m_in.fill(0);
+					m_out.fill(0);
 				}
 
 				void tick(u8 ch, s32 in)
@@ -174,8 +174,8 @@ class k053260_core : public vgsound_emu_core
 				}
 
 			private:
-				std::array<s32, 2> m_in	 = {0};
-				std::array<s32, 2> m_out = {0};
+				std::array<s32, 2> m_in;
+				std::array<s32, 2> m_out;
 		};
 
 		class dac_t
@@ -212,14 +212,14 @@ class k053260_core : public vgsound_emu_core
 			: vgsound_emu_core("k053260")
 			, m_voice{*this, *this, *this, *this}
 			, m_intf(intf)
-			, m_host2snd{0}
-			, m_snd2host{0}
 			, m_ctrl(ctrl_t())
 			, m_ym3012(ym3012_t())
 			, m_dac(dac_t())
-			, m_reg{0}
-			, m_out{0}
 		{
+			m_host2snd.fill(0);
+			m_snd2host.fill(0);
+			m_reg.fill(0);
+			m_out.fill(0);
 		}
 
 		// communications
@@ -249,16 +249,16 @@ class k053260_core : public vgsound_emu_core
 		std::array<voice_t, 4> m_voice;
 		k053260_intf &m_intf;  // common memory interface
 
-		std::array<u8, 2> m_host2snd = {0};
-		std::array<u8, 2> m_snd2host = {0};
+		std::array<u8, 2> m_host2snd;
+		std::array<u8, 2> m_snd2host;
 
 		ctrl_t m_ctrl;	// chip control
 
 		ym3012_t m_ym3012;	// YM3012 output
 		dac_t m_dac;		// YM3012 interface
 
-		std::array<u8, 64> m_reg = {0};	 // register pool
-		std::array<s32, 2> m_out = {0};	 // stereo output
+		std::array<u8, 64> m_reg;	 // register pool
+		std::array<s32, 2> m_out;	 // stereo output
 };
 
 #endif

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,25 +19,18 @@
 
 #ifndef _TIA_H
 #define _TIA_H
+
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include <queue>
 #include "sound/tia/Audio.h"
 
 class DivPlatformTIA: public DivDispatch {
   protected:
-    struct Channel {
-      int freq, baseFreq, pitch, pitch2, note, ins;
+    struct Channel: public SharedChannel<int> {
       unsigned char shape;
-      signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
-      int vol, outVol;
-      DivMacroInt std;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
-      Channel(): freq(0), baseFreq(0), pitch(0), pitch2(0), note(0), ins(-1), shape(4), active(false), insChanged(true), freqChanged(false), keyOn(false), keyOff(false), portaPause(false), inPorta(false), vol(0), outVol(15) {}
+      Channel():
+        SharedChannel<int>(15),
+        shape(4) {}
     };
     Channel chan[2];
     DivDispatchOscBuffer* oscBuf[2];
@@ -52,7 +45,7 @@ class DivPlatformTIA: public DivDispatch {
     unsigned char dealWithFreq(unsigned char shape, int base, int pitch);
   
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -65,7 +58,7 @@ class DivPlatformTIA: public DivDispatch {
     void muteChannel(int ch, bool mute);
     void setFlags(const DivConfig& flags);
     float getPostAmp();
-    bool isStereo();
+    int getOutputCount();
     bool keyOffAffectsArp(int ch);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);

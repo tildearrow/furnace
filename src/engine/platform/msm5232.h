@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,36 +22,14 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "sound/oki/msm5232.h"
 
 class DivPlatformMSM5232: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note;
-    int ins;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise;
-    signed char vol, outVol;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
+  struct Channel: public SharedChannel<signed char> {
+    bool noise;
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
-      ins(-1),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
-      noise(false),
-      vol(127),
-      outVol(127) {}
+      SharedChannel<signed char>(127),
+      noise(false) {}
   };
   Channel chan[8];
   DivDispatchOscBuffer* oscBuf[8];
@@ -82,7 +60,7 @@ class DivPlatformMSM5232: public DivDispatch {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -93,7 +71,7 @@ class DivPlatformMSM5232: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    int getOutputCount();
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);

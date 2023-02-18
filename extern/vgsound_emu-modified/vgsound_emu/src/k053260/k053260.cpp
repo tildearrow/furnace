@@ -59,6 +59,7 @@ void k053260_core::voice_t::tick()
 			{
 				m_bitpos -= 8;
 			}
+			m_counter = bitfield(m_pitch, 0, 12);
 		}
 		m_data = m_host.m_intf.read_sample(bitfield(m_addr, 0, 21));  // fetch ROM
 		if (update)
@@ -76,6 +77,7 @@ void k053260_core::voice_t::tick()
 			if (m_loop)
 			{
 				m_addr		= m_start;
+				m_remain	= m_length;
 				m_adpcm_buf = 0;
 			}
 			else

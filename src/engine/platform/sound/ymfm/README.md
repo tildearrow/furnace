@@ -4,7 +4,7 @@
 
 # modified version
 
-this is a modified version of ymfm with a small bug fix.
+this is a modified version which contains many fixes.
 
 ## Supported environments
 

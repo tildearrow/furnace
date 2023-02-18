@@ -1064,12 +1064,11 @@ void ay8910_device::sound_stream_update(short** outputs, int outLen)
 			tone = &m_tone[chan];
 			const int period = std::max<int>(1, tone->period) * (m_step_mul << 1);
 			tone->count += is_expanded_mode() ? 32 : ((m_feature & PSG_HAS_EXPANDED_MODE) ? 1 : 2);
-			while (tone->count >= period)
-			{
-				tone->duty_cycle = (tone->duty_cycle - 1) & 0x1f;
-				tone->output = is_expanded_mode() ? BIT(duty_cycle[tone_duty(tone)], tone->duty_cycle) : BIT(tone->duty_cycle, 0);
-				tone->count -= period;
-			}
+                        if (tone->count>=period) {
+                          tone->duty_cycle = (tone->duty_cycle - (tone->count/period)) & 0x1f;
+                          tone->output = is_expanded_mode() ? BIT(duty_cycle[tone_duty(tone)], tone->duty_cycle) : BIT(tone->duty_cycle, 0);
+                          tone->count = tone->count % period;
+                        }
 		}
 
 		const int period_noise = (int)(noise_period()) * m_step_mul;

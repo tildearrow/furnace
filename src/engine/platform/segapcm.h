@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,18 +19,16 @@
 
 #ifndef _SEGAPCM_H
 #define _SEGAPCM_H
+
 #include "../dispatch.h"
 #include "../instrument.h"
+#include "sound/segapcm.h"
 #include <queue>
-#include "../macroInt.h"
 
 class DivPlatformSegaPCM: public DivDispatch {
   protected:
-    struct Channel {
-      DivMacroInt std;
-      int freq, baseFreq, pitch, pitch2, note, ins;
-      bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM, isNewSegaPCM;
-      int vol, outVol;
+    struct Channel: public SharedChannel<int> {
+      bool furnacePCM, isNewSegaPCM;
       unsigned char chVolL, chVolR;
       unsigned char chPanL, chPanR;
       int macroVolMul;
@@ -42,28 +40,10 @@ class DivPlatformSegaPCM: public DivDispatch {
         unsigned char freq;
         PCMChannel(): sample(-1), pos(0), len(0), freq(0) {}
       } pcm;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
       Channel():
-        freq(0),
-        baseFreq(0),
-        pitch(0),
-        pitch2(0),
-        note(0),
-        ins(-1),
-        active(false),
-        insChanged(true),
-        freqChanged(false),
-        keyOn(false),
-        keyOff(false),
-        inPorta(false),
-        portaPause(false),
+        SharedChannel<int>(127),
         furnacePCM(false),
         isNewSegaPCM(false),
-        vol(0),
-        outVol(0),
         chVolL(127),
         chVolR(127),
         chPanL(127),
@@ -73,6 +53,8 @@ class DivPlatformSegaPCM: public DivDispatch {
     };
     Channel chan[16];
     DivDispatchOscBuffer* oscBuf[16];
+    unsigned char* sampleMem;
+    size_t sampleMemLen;
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -80,6 +62,7 @@ class DivPlatformSegaPCM: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     std::queue<QueuedWrite> writes;
+    segapcm_device pcm;
     int delay;
     int pcmL, pcmR, pcmCycles;
     unsigned char sampleBank;
@@ -93,12 +76,14 @@ class DivPlatformSegaPCM: public DivDispatch {
     short pendingWrites[256];
 
     unsigned int sampleOffSegaPCM[256];
+    unsigned int sampleLoopOff[256];
+    bool sampleLoaded[256];
   
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
   
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -110,11 +95,16 @@ class DivPlatformSegaPCM: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void notifyInsChange(int ins);
+    void notifyInsDeletion(void* ins);
     void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
-    bool isStereo();
+    int getOutputCount();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    const void* getSampleMem(int index=0);
+    size_t getSampleMemCapacity(int index=0);
+    size_t getSampleMemUsage(int index=0);
+    bool isSampleLoaded(int index, int sample);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformSegaPCM();

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -163,7 +163,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_TX81Z_REQUEST: {
       TAMidiMessage msg;
       msg.type=TA_MIDI_SYSEX;
-      msg.sysExData.reset(new unsigned char[15]);
+      msg.sysExData.reset(new unsigned char[15],std::default_delete<unsigned char[]>());
       msg.sysExLen=15;
       memcpy(msg.sysExData.get(),avRequest,15);
       if (!e->sendMidiMessage(msg)) {
@@ -173,6 +173,9 @@ void FurnaceGUI::doAction(int what) {
     }
     case GUI_ACTION_PANIC:
       e->syncReset();
+      break;
+    case GUI_ACTION_CLEAR:
+      showWarning("Are you sure you want to clear... (cannot be undone!)",GUI_WARN_CLEAR);
       break;
 
     case GUI_ACTION_WINDOW_EDIT_CONTROLS:
@@ -189,6 +192,9 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_WINDOW_SONG_INFO:
       nextWindow=GUI_WINDOW_SONG_INFO;
+      break;
+    case GUI_ACTION_WINDOW_SPEED:
+      nextWindow=GUI_WINDOW_SPEED;
       break;
     case GUI_ACTION_WINDOW_PATTERN:
       nextWindow=GUI_WINDOW_PATTERN;
@@ -259,6 +265,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_FIND:
       nextWindow=GUI_WINDOW_FIND;
       break;
+    case GUI_ACTION_WINDOW_GROOVES:
+      nextWindow=GUI_WINDOW_GROOVES;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -270,6 +279,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_SONG_INFO:
           songInfoOpen=false;
+          break;
+        case GUI_WINDOW_SPEED:
+          speedOpen=false;
           break;
         case GUI_WINDOW_ORDERS:
           ordersOpen=false;
@@ -349,6 +361,9 @@ void FurnaceGUI::doAction(int what) {
         case GUI_WINDOW_FIND:
           findOpen=false;
           break;
+        case GUI_WINDOW_GROOVES:
+          groovesOpen=false;
+          break;
         default:
           break;
       }
@@ -383,10 +398,10 @@ void FurnaceGUI::doAction(int what) {
       doSelectAll();
       break;
     case GUI_ACTION_PAT_CUT:
-      doCopy(true);
+      doCopy(true,true,selStart,selEnd);
       break;
     case GUI_ACTION_PAT_COPY:
-      doCopy(false);
+      doCopy(false,true,selStart,selEnd);
       break;
     case GUI_ACTION_PAT_PASTE:
       doPaste();
@@ -522,7 +537,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_PAT_INCREASE_COLUMNS:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
       e->curPat[cursor.xCoarse].effectCols++;
-              if (e->curPat[cursor.xCoarse].effectCols>8) e->curPat[cursor.xCoarse].effectCols=8;
+              if (e->curPat[cursor.xCoarse].effectCols>DIV_MAX_EFFECTS) e->curPat[cursor.xCoarse].effectCols=DIV_MAX_EFFECTS;
       break;
     case GUI_ACTION_PAT_DECREASE_COLUMNS:
       if (cursor.xCoarse<0 || cursor.xCoarse>=e->getTotalChannelCount()) break;
@@ -553,6 +568,10 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_PAT_EXPAND_SONG: // TODO
       break;
     case GUI_ACTION_PAT_LATCH: // TODO
+      break;
+    case GUI_ACTION_PAT_SCROLL_MODE: // TODO
+      break;
+    case GUI_ACTION_PAT_CLEAR_LATCH: // TODO
       break;
 
     case GUI_ACTION_INS_LIST_ADD:
@@ -1317,7 +1336,9 @@ void FurnaceGUI::doAction(int what) {
             i==DIV_INS_VRC6 ||
             i==DIV_INS_SU ||
             i==DIV_INS_SNES ||
-            i==DIV_INS_ES5506) {
+            i==DIV_INS_ES5506 ||
+            i==DIV_INS_K007232 ||
+            i==DIV_INS_GA20) {
           makeInsTypeList.push_back(i);
         }
       }
@@ -1450,17 +1471,17 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_ORDERS_ADD:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->addOrder(false,false);
+      e->addOrder(curOrder,false,false);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_DUPLICATE:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->addOrder(true,false);
+      e->addOrder(curOrder,true,false);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_DEEP_CLONE:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->deepCloneOrder(false);
+      e->deepCloneOrder(curOrder,false);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       if (!e->getWarnings().empty()) {
         showWarning(e->getWarnings(),GUI_WARN_GENERIC);
@@ -1468,12 +1489,12 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_ORDERS_DUPLICATE_END:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->addOrder(true,true);
+      e->addOrder(curOrder,true,true);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_DEEP_CLONE_END:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->deepCloneOrder(true);
+      e->deepCloneOrder(curOrder,true);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       if (!e->getWarnings().empty()) {
         showWarning(e->getWarnings(),GUI_WARN_GENERIC);
@@ -1481,7 +1502,7 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_ORDERS_REMOVE:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->deleteOrder();
+      e->deleteOrder(curOrder);
       if (curOrder>=e->curSubSong->ordersLen) {
         curOrder=e->curSubSong->ordersLen-1;
         oldOrder=curOrder;
@@ -1492,12 +1513,12 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_ORDERS_MOVE_UP:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->moveOrderUp();
+      e->moveOrderUp(curOrder);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_MOVE_DOWN:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->moveOrderDown();
+      e->moveOrderDown(curOrder);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_REPLAY:

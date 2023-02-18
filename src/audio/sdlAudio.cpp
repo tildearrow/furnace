@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -104,6 +104,13 @@ bool TAAudioSDL::init(TAAudioDesc& request, TAAudioDesc& response) {
       return false;
     }
     audioSysStarted=true;
+  }
+
+  const char* audioDriver=SDL_GetCurrentAudioDriver();
+  if (audioDriver==NULL) {
+    logD("SDL audio driver: NULL!");
+  } else {
+    logD("SDL audio driver: %s",audioDriver);
   }
 
   desc=request;

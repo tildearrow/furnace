@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,10 @@
 
 #ifndef _YM2610B_H
 #define _YM2610B_H
+
 #include "ym2610shared.h"
 
-class DivPlatformYM2610B: public DivPlatformYM2610Base<16> {
+class DivPlatformYM2610B: public DivPlatformYM2610Base {
   protected:
     const unsigned short chanOffs[6]={
       0x00, 0x01, 0x02, 0x100, 0x101, 0x102
@@ -32,10 +33,14 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base<16> {
     };
 
     friend void putDispatchChip(void*,int);
-    friend void putDispatchChan(void*,int,int);
+
+    void commitState(int ch, DivInstrument* ins);
+
+    void acquire_combo(short** buf, size_t len);
+    void acquire_ymfm(short** buf, size_t len);
 
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -46,10 +51,10 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base<16> {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    int getOutputCount();
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
-    void notifyInsDeletion(void* ins);
+    virtual void notifyInsDeletion(void* ins);
     void setSkipRegisterWrites(bool val);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
@@ -57,7 +62,7 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base<16> {
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     DivPlatformYM2610B():
-      DivPlatformYM2610Base<16>(2,6,9,15) {}
+      DivPlatformYM2610Base(2,6,9,15,16) {}
     ~DivPlatformYM2610B();
 };
 #endif

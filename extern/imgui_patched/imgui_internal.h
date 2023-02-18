@@ -815,7 +815,8 @@ enum ImGuiItemFlags_
     ImGuiItemFlags_SelectableDontClosePopup = 1 << 5,  // false     // Disable MenuItem/Selectable() automatically closing their popup window
     ImGuiItemFlags_MixedValue               = 1 << 6,  // false     // [BETA] Represent a mixed/indeterminate value, generally multi-selection where values differ. Currently only supported by Checkbox() (later should support all sorts of widgets)
     ImGuiItemFlags_ReadOnly                 = 1 << 7,  // false     // [ALPHA] Allow hovering interactions but underlying value is not changed.
-    ImGuiItemFlags_Inputable                = 1 << 8   // false     // [WIP] Auto-activate input mode when tab focused. Currently only used and supported by a few items before it becomes a generic feature.
+    ImGuiItemFlags_Inputable                = 1 << 8,  // false     // [WIP] Auto-activate input mode when tab focused. Currently only used and supported by a few items before it becomes a generic feature.
+    ImGuiItemFlags_NoInertialScroll         = 1 << 9   // false     // Disable inertial scroll when activated
 };
 
 // Storage for LastItem data
@@ -1935,6 +1936,11 @@ struct ImGuiContext
     float                   NavWindowingHighlightAlpha;
     bool                    NavWindowingToggleLayer;
 
+    // Inertial scroll
+    bool                    InertialScrollInhibited;            // Is inertial scroll inhibited? (e.g. by ImGuiItemFlags_NoInertialScroll)
+    bool                    InertialScroll;                     // Is any window being scrolled?
+    bool                    WasInertialScroll;                  // Was ^?
+
     // Render
     float                   DimBgRatio;                         // 0.0..1.0 animation when fading in a dimming background (for modal window and CTRL+TAB list)
     ImGuiMouseCursor        MouseCursor;
@@ -2144,6 +2150,8 @@ struct ImGuiContext
         NavWindowingTimer = NavWindowingHighlightAlpha = 0.0f;
         NavWindowingToggleLayer = false;
 
+        InertialScrollInhibited = false;
+
         DimBgRatio = 0.0f;
         MouseCursor = ImGuiMouseCursor_Arrow;
 
@@ -2293,6 +2301,7 @@ struct IMGUI_API ImGuiWindow
     ImVec2                  ScrollTargetCenterRatio;            // 0.0f = scroll so that target position is at top, 0.5f = scroll so that target position is centered
     ImVec2                  ScrollTargetEdgeSnapDist;           // 0.0f = no snapping, >0.0f snapping threshold
     ImVec2                  ScrollbarSizes;                     // Size taken by each scrollbars on their smaller axis. Pay attention! ScrollbarSizes.x == width of the vertical scrollbar, ScrollbarSizes.y = height of the horizontal scrollbar.
+    ImVec2                  InertialScrollSpeed;                // current speed of inertial scroll (AKA "swipe")
     bool                    ScrollbarX, ScrollbarY;             // Are scrollbars visible?
     bool                    ViewportOwned;
     bool                    Active;                             // Set to true on Begin(), unless Collapsed
@@ -2306,6 +2315,7 @@ struct IMGUI_API ImGuiWindow
     bool                    IsFallbackWindow;                   // Set on the "Debug##Default" window.
     bool                    IsExplicitChild;                    // Set when passed _ChildWindow, left to false by BeginDocked()
     bool                    HasCloseButton;                     // Set when the window has a close button (p_open != NULL)
+    bool                    InertialScroll;                     // Set when inertial scrolling is active
     signed char             ResizeBorderHeld;                   // Current border being held for resize (-1: none, otherwise 0-3)
     short                   BeginCount;                         // Number of Begin() during the current frame (generally 0 or 1, 1+ if appending via multiple Begin/End pairs)
     short                   BeginOrderWithinParent;             // Begin() order within immediate parent window, if we are a child window. Otherwise 0.

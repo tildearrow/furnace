@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -40,8 +40,9 @@
 #define POWER_SAVE_DEFAULT 0
 #endif
 
-#if defined(__HAIKU__) || defined(IS_MOBILE)
+#if defined(__HAIKU__) || defined(IS_MOBILE) || (defined(_WIN32) && !defined(_WIN64))
 // NFD doesn't support Haiku
+// NFD doesn't support Windows XP either
 #define SYS_FILE_DIALOG_DEFAULT 0
 #else
 #define SYS_FILE_DIALOG_DEFAULT 1
@@ -72,6 +73,22 @@ const char* audioBackends[]={
   "SDL"
 };
 
+const bool isProAudio[]={
+  true,
+  false
+};
+
+const char* nonProAudioOuts[]={
+  "Mono",
+  "Stereo",
+  "What?",
+  "Quadraphonic",
+  "What?",
+  "5.1 Surround",
+  "What?",
+  "7.1 Surround"
+};
+
 const char* audioQualities[]={
   "High",
   "Low"
@@ -100,6 +117,16 @@ const char* nesCores[]={
 const char* c64Cores[]={
   "reSID",
   "reSIDfp"
+};
+
+const char* pokeyCores[]={
+  "Atari800 (mzpokeysnd)",
+  "ASAP (C++ port)"
+};
+
+const char* opnCores[]={
+  "ymfm only",
+  "Nuked-OPN2 (FM) + ymfm (SSG/ADPCM)"
 };
 
 const char* pcspkrOutMethods[]={
@@ -179,6 +206,11 @@ const char* specificControls[18]={
 #define BUFFER_SIZE_SELECTABLE(x) \
   if (ImGui::Selectable(#x,settings.audioBufSize==x)) { \
     settings.audioBufSize=x; \
+  }
+
+#define CHANS_SELECTABLE(x) \
+  if (ImGui::Selectable(nonProAudioOuts[x-1],settings.audioChans==x)) { \
+    settings.audioChans=x; \
   }
 
 #define UI_COLOR_CONFIG(what,label) \
@@ -277,8 +309,9 @@ void FurnaceGUI::drawSettings() {
             settings.initialSys.clear();
             for (int i=0; i<e->song.systemLen; i++) {
               settings.initialSys.set(fmt::sprintf("id%d",i),e->systemToFileFur(e->song.system[i]));
-              settings.initialSys.set(fmt::sprintf("vol%d",i),(int)e->song.systemVol[i]);
-              settings.initialSys.set(fmt::sprintf("pan%d",i),(int)e->song.systemPan[i]);
+              settings.initialSys.set(fmt::sprintf("vol%d",i),(float)e->song.systemVol[i]);
+              settings.initialSys.set(fmt::sprintf("pan%d",i),(float)e->song.systemPan[i]);
+              settings.initialSys.set(fmt::sprintf("fr%d",i),(float)e->song.systemPanFR[i]);
               settings.initialSys.set(fmt::sprintf("flags%d",i),e->song.systemFlags[i].toBase64());
             }
             settings.initialSysName=e->song.systemName;
@@ -292,14 +325,16 @@ void FurnaceGUI::drawSettings() {
             if (totalAvailSys>0) {
               for (int i=0; i<howMany; i++) {
                 settings.initialSys.set(fmt::sprintf("id%d",i),e->systemToFileFur((DivSystem)availableSystems[rand()%totalAvailSys]));
-                settings.initialSys.set(fmt::sprintf("vol%d",i),64);
-                settings.initialSys.set(fmt::sprintf("pan%d",i),0);
+                settings.initialSys.set(fmt::sprintf("vol%d",i),1.0f);
+                settings.initialSys.set(fmt::sprintf("pan%d",i),0.0f);
+                settings.initialSys.set(fmt::sprintf("fr%d",i),0.0f);
                 settings.initialSys.set(fmt::sprintf("flags%d",i),"");
               }
             } else {
               settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_DUMMY));
-              settings.initialSys.set("vol0",64);
-              settings.initialSys.set("pan0",0);
+              settings.initialSys.set("vol0",1.0f);
+              settings.initialSys.set("pan0",0.0f);
+              settings.initialSys.set("fr0",0.0f);
               settings.initialSys.set("flags0","");
               howMany=1;
             }
@@ -334,12 +369,14 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::Button("Reset to defaults")) {
             settings.initialSys.clear();
             settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_YM2612));
-            settings.initialSys.set("vol0",64);
-            settings.initialSys.set("pan0",0);
+            settings.initialSys.set("vol0",1.0f);
+            settings.initialSys.set("pan0",0.0f);
+            settings.initialSys.set("fr0",0.0f);
             settings.initialSys.set("flags0","");
             settings.initialSys.set("id1",e->systemToFileFur(DIV_SYSTEM_SMS));
-            settings.initialSys.set("vol1",32);
-            settings.initialSys.set("pan1",0);
+            settings.initialSys.set("vol1",0.5f);
+            settings.initialSys.set("pan1",0.0f);
+            settings.initialSys.set("fr1",0.0f);
             settings.initialSys.set("flags1","");
             settings.initialSysName="Sega Genesis/Mega Drive";
           }
@@ -353,14 +390,15 @@ void FurnaceGUI::drawSettings() {
           int doRemove=-1;
           for (size_t i=0; settings.initialSys.getInt(fmt::sprintf("id%d",i),0); i++) {
             DivSystem sysID=e->systemFromFileFur(settings.initialSys.getInt(fmt::sprintf("id%d",i),0));
-            signed char sysVol=settings.initialSys.getInt(fmt::sprintf("vol%d",i),0);
-            signed char sysPan=settings.initialSys.getInt(fmt::sprintf("pan%d",i),0);
+            float sysVol=settings.initialSys.getFloat(fmt::sprintf("vol%d",i),0);
+            float sysPan=settings.initialSys.getFloat(fmt::sprintf("pan%d",i),0);
+            float sysPanFR=settings.initialSys.getFloat(fmt::sprintf("fr%d",i),0);
 
             sysCount=i+1;
 
             //bool doRemove=false;
-            bool doInvert=sysVol&128;
-            signed char vol=sysVol&127;
+            bool doInvert=(sysVol<0);
+            float vol=fabs(sysVol);
             ImGui::PushID(i);
 
             ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Invert").x-ImGui::GetFrameHeightWithSpacing()*2.0-ImGui::GetStyle().ItemSpacing.x);
@@ -377,8 +415,8 @@ void FurnaceGUI::drawSettings() {
 
             ImGui::SameLine();
             if (ImGui::Checkbox("Invert",&doInvert)) {
-              sysVol^=128;
-              settings.initialSys.set(fmt::sprintf("vol%d",i),(int)sysVol);
+              sysVol=-sysVol;
+              settings.initialSys.set(fmt::sprintf("vol%d",i),sysVol);
             }
             ImGui::SameLine();
             //ImGui::BeginDisabled(settings.initialSys.size()<=4);
@@ -386,14 +424,27 @@ void FurnaceGUI::drawSettings() {
               doRemove=i;
             }
             //ImGui::EndDisabled();
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
-            if (CWSliderScalar("Volume",ImGuiDataType_S8,&vol,&_ZERO,&_ONE_HUNDRED_TWENTY_SEVEN)) {
-              sysVol=(sysVol&128)|vol;
-              settings.initialSys.set(fmt::sprintf("vol%d",i),(int)sysVol);
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (CWSliderFloat("Volume",&vol,0.0f,3.0f)) {
+              if (doInvert) {
+                if (vol<0.0001) vol=0.0001;
+              }
+              if (vol<0) vol=0;
+              if (vol>10) vol=10;
+              sysVol=doInvert?-vol:vol;
+              settings.initialSys.set(fmt::sprintf("vol%d",i),(float)sysVol);
             } rightClickable
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(50.0f*dpiScale));
-            if (CWSliderScalar("Panning",ImGuiDataType_S8,&sysPan,&_MINUS_ONE_HUNDRED_TWENTY_SEVEN,&_ONE_HUNDRED_TWENTY_SEVEN)) {
-              settings.initialSys.set(fmt::sprintf("pan%d",i),(int)sysPan);
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (CWSliderFloat("Panning",&sysPan,-1.0f,1.0f)) {
+              if (sysPan<-1.0f) sysPan=-1.0f;
+              if (sysPan>1.0f) sysPan=1.0f;
+              settings.initialSys.set(fmt::sprintf("pan%d",i),(float)sysPan);
+            } rightClickable
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (CWSliderFloat("Front/Rear",&sysPanFR,-1.0f,1.0f)) {
+              if (sysPanFR<-1.0f) sysPanFR=-1.0f;
+              if (sysPanFR>1.0f) sysPanFR=1.0f;
+              settings.initialSys.set(fmt::sprintf("fr%d",i),(float)sysPanFR);
             } rightClickable
 
             // oh please MSVC don't cry
@@ -413,29 +464,40 @@ void FurnaceGUI::drawSettings() {
           if (doRemove>=0 && sysCount>1) {
             for (int i=doRemove; i<sysCount-1; i++) {
               int sysID=settings.initialSys.getInt(fmt::sprintf("id%d",i+1),0);
-              int sysVol=settings.initialSys.getInt(fmt::sprintf("vol%d",i+1),0);
-              int sysPan=settings.initialSys.getInt(fmt::sprintf("pan%d",i+1),0);
+              float sysVol=settings.initialSys.getFloat(fmt::sprintf("vol%d",i+1),0);
+              float sysPan=settings.initialSys.getFloat(fmt::sprintf("pan%d",i+1),0);
+              float sysPanFR=settings.initialSys.getFloat(fmt::sprintf("fr%d",i+1),0);
               String sysFlags=settings.initialSys.getString(fmt::sprintf("flags%d",i+1),"");
               settings.initialSys.set(fmt::sprintf("id%d",i),sysID);
               settings.initialSys.set(fmt::sprintf("vol%d",i),sysVol);
               settings.initialSys.set(fmt::sprintf("pan%d",i),sysPan);
+              settings.initialSys.set(fmt::sprintf("fr%d",i),sysPanFR);
               settings.initialSys.set(fmt::sprintf("flags%d",i),sysFlags);
             }
 
             settings.initialSys.remove(fmt::sprintf("id%d",sysCount-1));
             settings.initialSys.remove(fmt::sprintf("vol%d",sysCount-1));
             settings.initialSys.remove(fmt::sprintf("pan%d",sysCount-1));
+            settings.initialSys.remove(fmt::sprintf("fr%d",sysCount-1));
             settings.initialSys.remove(fmt::sprintf("flags%d",sysCount-1));
           }
 
           if (sysCount<32) if (ImGui::Button(ICON_FA_PLUS "##InitSysAdd")) {
             settings.initialSys.set(fmt::sprintf("id%d",sysCount),(int)e->systemToFileFur(DIV_SYSTEM_YM2612));
-            settings.initialSys.set(fmt::sprintf("vol%d",sysCount),64);
-            settings.initialSys.set(fmt::sprintf("pan%d",sysCount),0);
+            settings.initialSys.set(fmt::sprintf("vol%d",sysCount),1.0f);
+            settings.initialSys.set(fmt::sprintf("pan%d",sysCount),0.0f);
+            settings.initialSys.set(fmt::sprintf("fr%d",sysCount),0.0f);
             settings.initialSys.set(fmt::sprintf("flags%d",sysCount),"");
           }
 
           ImGui::Separator();
+
+          if (CWSliderFloat("Double-click time (seconds)",&settings.doubleClickTime,0.02,1.0,"%.2f")) {
+            if (settings.doubleClickTime<0.02) settings.doubleClickTime=0.02;
+            if (settings.doubleClickTime>1.0) settings.doubleClickTime=1.0;
+
+            applyUISettings(false);
+          }
 
           ImGui::Text("Toggle channel solo on:");
           if (ImGui::RadioButton("Right-click or double-click##soloA",settings.soloAction==0)) {
@@ -665,9 +727,16 @@ void FurnaceGUI::drawSettings() {
         ImVec2 settingsViewSize=ImGui::GetContentRegionAvail();
         settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
         if (ImGui::BeginChild("SettingsView",settingsViewSize)) {
+#ifdef HAVE_JACK
           ImGui::Text("Backend");
           ImGui::SameLine();
-          ImGui::Combo("##Backend",&settings.audioEngine,audioBackends,2);
+          int prevAudioEngine=settings.audioEngine;
+          if (ImGui::Combo("##Backend",&settings.audioEngine,audioBackends,2)) {
+            if (settings.audioEngine!=prevAudioEngine) {
+              if (!isProAudio[settings.audioEngine]) settings.audioChans=2;
+            }
+          }
+#endif
 
           ImGui::Text("Device");
           ImGui::SameLine();
@@ -698,6 +767,27 @@ void FurnaceGUI::drawSettings() {
             SAMPLE_RATE_SELECTABLE(96000);
             SAMPLE_RATE_SELECTABLE(192000);
             ImGui::EndCombo();
+          }
+
+          if (isProAudio[settings.audioEngine]) {
+            ImGui::Text("Outputs");
+            ImGui::SameLine();
+            if (ImGui::InputInt("##AudioChansI",&settings.audioChans,1,1)) {
+              if (settings.audioChans<1) settings.audioChans=1;
+              if (settings.audioChans>16) settings.audioChans=16;
+            }
+          } else {
+            ImGui::Text("Channels");
+            ImGui::SameLine();
+            String chStr=(settings.audioChans<1 || settings.audioChans>8)?"What?":nonProAudioOuts[settings.audioChans-1];
+            if (ImGui::BeginCombo("##AudioChans",chStr.c_str())) {
+              CHANS_SELECTABLE(1);
+              CHANS_SELECTABLE(2);
+              CHANS_SELECTABLE(4);
+              CHANS_SELECTABLE(6);
+              CHANS_SELECTABLE(8);
+              ImGui::EndCombo();
+            }
           }
 
           ImGui::Text("Buffer size");
@@ -746,8 +836,8 @@ void FurnaceGUI::drawSettings() {
           TAAudioDesc& audioWant=e->getAudioDescWant();
           TAAudioDesc& audioGot=e->getAudioDescGot();
 
-          ImGui::Text("want: %d samples @ %.0fHz",audioWant.bufsize,audioWant.rate);
-          ImGui::Text("got: %d samples @ %.0fHz",audioGot.bufsize,audioGot.rate);
+          ImGui::Text("want: %d samples @ %.0fHz (%d channels)",audioWant.bufsize,audioWant.rate,audioWant.outChans);
+          ImGui::Text("got: %d samples @ %.0fHz (%d channels)",audioGot.bufsize,audioGot.rate,audioWant.outChans);
 
           ImGui::Separator();
 
@@ -1069,6 +1159,14 @@ void FurnaceGUI::drawSettings() {
           ImGui::SameLine();
           ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,2);
 
+          ImGui::Text("POKEY core");
+          ImGui::SameLine();
+          ImGui::Combo("##POKEYCore",&settings.pokeyCore,pokeyCores,2);
+
+          ImGui::Text("OPN/OPNA/OPNB cores");
+          ImGui::SameLine();
+          ImGui::Combo("##OPNCore",&settings.opnCore,opnCores,2);
+
           ImGui::Separator();
 
           ImGui::Text("PC Speaker strategy");
@@ -1109,6 +1207,18 @@ void FurnaceGUI::drawSettings() {
         ImVec2 settingsViewSize=ImGui::GetContentRegionAvail();
         settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
         if (ImGui::BeginChild("SettingsView",settingsViewSize)) {
+          if (ImGui::BeginCombo("Render driver",settings.renderDriver.empty()?"Automatic":settings.renderDriver.c_str())) {
+            if (ImGui::Selectable("Automatic",settings.renderDriver.empty())) {
+              settings.renderDriver="";
+            }
+            for (String& i: availRenderDrivers) {
+              if (ImGui::Selectable(i.c_str(),i==settings.renderDriver)) {
+                settings.renderDriver=i;
+              }
+            }
+            ImGui::EndCombo();
+          }
+
           bool dpiScaleAuto=(settings.dpiScale<0.5f);
           if (ImGui::Checkbox("Automatic UI scaling factor",&dpiScaleAuto)) {
             if (dpiScaleAuto) {
@@ -1504,6 +1614,11 @@ void FurnaceGUI::drawSettings() {
             settings.germanNotation=germanNotationB;
           }
 
+          bool oneDigitEffectsB=settings.oneDigitEffects;
+          if (ImGui::Checkbox("Single-digit effects for 00-0F",&oneDigitEffectsB)) {
+            settings.oneDigitEffects=oneDigitEffectsB;
+          }
+
           bool centerPatternB=settings.centerPattern;
           if (ImGui::Checkbox("Center pattern view",&centerPatternB)) {
             settings.centerPattern=centerPatternB;
@@ -1563,6 +1678,11 @@ void FurnaceGUI::drawSettings() {
           bool frameBordersB=settings.frameBorders;
           if (ImGui::Checkbox("Borders around widgets",&frameBordersB)) {
             settings.frameBorders=frameBordersB;
+          }
+
+          bool disableFadeInB=settings.disableFadeIn;
+          if (ImGui::Checkbox("Disable fade-in during startup",&disableFadeInB)) {
+            settings.disableFadeIn=disableFadeInB;
           }
 
           ImGui::Separator();
@@ -1696,7 +1816,8 @@ void FurnaceGUI::drawSettings() {
             }
             if (ImGui::TreeNode("Orders")) {
               UI_COLOR_CONFIG(GUI_COLOR_ORDER_ROW_INDEX,"Order number");
-              UI_COLOR_CONFIG(GUI_COLOR_ORDER_ACTIVE,"Current order background");
+              UI_COLOR_CONFIG(GUI_COLOR_ORDER_ACTIVE,"Playing order background");
+              UI_COLOR_CONFIG(GUI_COLOR_ORDER_SELECTED,"Selected order");
               UI_COLOR_CONFIG(GUI_COLOR_ORDER_SIMILAR,"Similar patterns");
               UI_COLOR_CONFIG(GUI_COLOR_ORDER_INACTIVE,"Inactive patterns");
               ImGui::TreePop();
@@ -1787,6 +1908,11 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_QSOUND,"QSound");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_YMZ280B,"YMZ280B");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_RF5C68,"RF5C68");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_MSM5232,"MSM5232");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_K007232,"K007232");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_GA20,"GA20");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_POKEMINI,"Pokémon Mini");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_SM8521,"SM8521");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
               ImGui::TreePop();
             }
@@ -1875,6 +2001,22 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_BOTTOM,"Lower key");
               UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_BOTTOM_HIT,"Lower key (feedback)");
               UI_COLOR_CONFIG(GUI_COLOR_PIANO_KEY_BOTTOM_ACTIVE,"Lower key (pressed)");
+              ImGui::TreePop();
+            }
+            if (ImGui::TreeNode("Clock")) {
+              UI_COLOR_CONFIG(GUI_COLOR_CLOCK_TEXT,"Clock text");
+              UI_COLOR_CONFIG(GUI_COLOR_CLOCK_BEAT_LOW,"Beat (off)");
+              UI_COLOR_CONFIG(GUI_COLOR_CLOCK_BEAT_HIGH,"Beat (on)");
+
+              ImGui::TreePop();
+            }
+            if (ImGui::TreeNode("Patchbay")) {
+              UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_PORTSET,"PortSet");
+              UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_PORT,"Port");
+              UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_PORT_HIDDEN,"Port (hidden/unavailable)");
+              UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_CONNECTION,"Connection (selected)");
+              UI_COLOR_CONFIG(GUI_COLOR_PATCHBAY_CONNECTION_BG,"Connection (other)");
+
               ImGui::TreePop();
             }
             if (ImGui::TreeNode("Log Viewer")) {
@@ -2320,9 +2462,11 @@ void FurnaceGUI::syncSettings() {
   settings.iconSize=e->getConfInt("iconSize",16);
   settings.audioEngine=(e->getConfString("audioEngine","SDL")=="SDL")?1:0;
   settings.audioDevice=e->getConfString("audioDevice","");
+  settings.audioChans=e->getConfInt("audioChans",2);
   settings.midiInDevice=e->getConfString("midiInDevice","");
   settings.midiOutDevice=e->getConfString("midiOutDevice","");
   settings.c163Name=e->getConfString("c163Name",DIV_C163_DEFAULT_NAME);
+  settings.renderDriver=e->getConfString("renderDriver","");
   settings.audioQuality=e->getConfInt("audioQuality",0);
   settings.audioBufSize=e->getConfInt("audioBufSize",1024);
   settings.audioRate=e->getConfInt("audioRate",44100);
@@ -2332,6 +2476,8 @@ void FurnaceGUI::syncSettings() {
   settings.nesCore=e->getConfInt("nesCore",0);
   settings.fdsCore=e->getConfInt("fdsCore",0);
   settings.c64Core=e->getConfInt("c64Core",1);
+  settings.pokeyCore=e->getConfInt("pokeyCore",1);
+  settings.opnCore=e->getConfInt("opnCore",1);
   settings.pcSpeakerOutMethod=e->getConfInt("pcSpeakerOutMethod",0);
   settings.yrw801Path=e->getConfString("yrw801Path","");
   settings.tg100Path=e->getConfString("tg100Path","");
@@ -2376,7 +2522,7 @@ void FurnaceGUI::syncSettings() {
   settings.loadChinese=e->getConfInt("loadChinese",0);
   settings.loadChineseTraditional=e->getConfInt("loadChineseTraditional",0);
   settings.loadKorean=e->getConfInt("loadKorean",0);
-  settings.fmLayout=e->getConfInt("fmLayout",0);
+  settings.fmLayout=e->getConfInt("fmLayout",4);
   settings.sampleLayout=e->getConfInt("sampleLayout",0);
   settings.waveLayout=e->getConfInt("waveLayout",0);
   settings.susPosition=e->getConfInt("susPosition",0);
@@ -2443,6 +2589,9 @@ void FurnaceGUI::syncSettings() {
   settings.exportLoops=e->getConfInt("exportLoops",0);
   settings.exportFadeOut=e->getConfDouble("exportFadeOut",0.0);
   settings.macroLayout=e->getConfInt("macroLayout",0);
+  settings.doubleClickTime=e->getConfFloat("doubleClickTime",0.3f);
+  settings.oneDigitEffects=e->getConfInt("oneDigitEffects",0);
+  settings.disableFadeIn=e->getConfInt("disableFadeIn",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2451,12 +2600,15 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.audioQuality,0,1);
   clampSetting(settings.audioBufSize,32,4096);
   clampSetting(settings.audioRate,8000,384000);
+  clampSetting(settings.audioChans,1,16);
   clampSetting(settings.arcadeCore,0,1);
   clampSetting(settings.ym2612Core,0,1);
   clampSetting(settings.snCore,0,1);
   clampSetting(settings.nesCore,0,1);
   clampSetting(settings.fdsCore,0,1);
   clampSetting(settings.c64Core,0,1);
+  clampSetting(settings.pokeyCore,0,1);
+  clampSetting(settings.opnCore,0,1);
   clampSetting(settings.pcSpeakerOutMethod,0,4);
   clampSetting(settings.mainFont,0,6);
   clampSetting(settings.patFont,0,6);
@@ -2550,26 +2702,45 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.ordersCursor,0,1);
   clampSetting(settings.persistFadeOut,0,1);
   clampSetting(settings.macroLayout,0,4);
+  clampSetting(settings.doubleClickTime,0.02,1.0);
+  clampSetting(settings.oneDigitEffects,0,1);
+  clampSetting(settings.disableFadeIn,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
 
   String initialSys2=e->getConfString("initialSys2","");
+  bool oldVol=e->getConfInt("configVersion",DIV_ENGINE_VERSION)<135;
   if (initialSys2.empty()) {
     initialSys2=e->decodeSysDesc(e->getConfString("initialSys",""));
+    oldVol=false;
   }
   settings.initialSys.clear();
   settings.initialSys.loadFromBase64(initialSys2.c_str());
   if (settings.initialSys.getInt("id0",0)==0) {
     settings.initialSys.clear();
     settings.initialSys.set("id0",e->systemToFileFur(DIV_SYSTEM_YM2612));
-    settings.initialSys.set("vol0",64);
-    settings.initialSys.set("pan0",0);
+    settings.initialSys.set("vol0",1.0f);
+    settings.initialSys.set("pan0",0.0f);
+    settings.initialSys.set("fr0",0.0f);
     settings.initialSys.set("flags0","");
     settings.initialSys.set("id1",e->systemToFileFur(DIV_SYSTEM_SMS));
-    settings.initialSys.set("vol1",64);
+    settings.initialSys.set("vol1",0.5f);
     settings.initialSys.set("pan1",0);
+    settings.initialSys.set("fr1",0);
     settings.initialSys.set("flags1","");
+  } else {
+    if (oldVol) {
+      for (int i=0; settings.initialSys.getInt(fmt::sprintf("id%d",i),0); i++) {
+        float newVol=settings.initialSys.getInt(fmt::sprintf("vol%d",i),64);
+        float newPan=settings.initialSys.getInt(fmt::sprintf("pan%d",i),0);
+        newVol/=64.0f;
+        newPan/=127.0f;
+        settings.initialSys.set(fmt::sprintf("vol%d",i),newVol);
+        settings.initialSys.set(fmt::sprintf("pan%d",i),newPan);
+      }
+      e->setConf("initialSys2",settings.initialSys.toBase64());
+    }
   }
 
   // keybinds
@@ -2594,6 +2765,17 @@ void FurnaceGUI::commitSettings() {
     settings.tg100Path!=e->getConfString("tg100Path","") ||
     settings.mu5Path!=e->getConfString("mu5Path","");
 
+  bool coresChanged=(
+    settings.arcadeCore!=e->getConfInt("arcadeCore",0) ||
+    settings.ym2612Core!=e->getConfInt("ym2612Core",0) ||
+    settings.snCore!=e->getConfInt("snCore",0) ||
+    settings.nesCore!=e->getConfInt("nesCore",0) ||
+    settings.fdsCore!=e->getConfInt("fdsCore",0) ||
+    settings.c64Core!=e->getConfInt("c64Core",1) ||
+    settings.pokeyCore!=e->getConfInt("pokeyCore",1) ||
+    settings.opnCore!=e->getConfInt("opnCore",1)
+  );
+
   e->setConf("mainFontSize",settings.mainFontSize);
   e->setConf("patFontSize",settings.patFontSize);
   e->setConf("iconSize",settings.iconSize);
@@ -2602,15 +2784,19 @@ void FurnaceGUI::commitSettings() {
   e->setConf("midiInDevice",settings.midiInDevice);
   e->setConf("midiOutDevice",settings.midiOutDevice);
   e->setConf("c163Name",settings.c163Name);
+  e->setConf("renderDriver",settings.renderDriver);
   e->setConf("audioQuality",settings.audioQuality);
   e->setConf("audioBufSize",settings.audioBufSize);
   e->setConf("audioRate",settings.audioRate);
+  e->setConf("audioChans",settings.audioChans);
   e->setConf("arcadeCore",settings.arcadeCore);
   e->setConf("ym2612Core",settings.ym2612Core);
   e->setConf("snCore",settings.snCore);
   e->setConf("nesCore",settings.nesCore);
   e->setConf("fdsCore",settings.fdsCore);
   e->setConf("c64Core",settings.c64Core);
+  e->setConf("pokeyCore",settings.pokeyCore);
+  e->setConf("opnCore",settings.opnCore);
   e->setConf("pcSpeakerOutMethod",settings.pcSpeakerOutMethod);
   e->setConf("yrw801Path",settings.yrw801Path);
   e->setConf("tg100Path",settings.tg100Path);
@@ -2723,6 +2909,9 @@ void FurnaceGUI::commitSettings() {
   e->setConf("exportLoops",settings.exportLoops);
   e->setConf("exportFadeOut",settings.exportFadeOut);
   e->setConf("macroLayout",settings.macroLayout);
+  e->setConf("doubleClickTime",settings.doubleClickTime);
+  e->setConf("oneDigitEffects",settings.oneDigitEffects);
+  e->setConf("disableFadeIn",settings.disableFadeIn);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -2754,7 +2943,7 @@ void FurnaceGUI::commitSettings() {
     }
   }
 
-  if (!e->switchMaster()) {
+  if (!e->switchMaster(coresChanged)) {
     showError("could not initialize audio!");
   }
 
@@ -3169,6 +3358,8 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     ImGui::StyleColorsDark(&sty);
   }
 
+  if (dpiScale<0.1) dpiScale=0.1;
+
   setupLabel(settings.noteOffLabel.c_str(),noteOffLabel,3);
   setupLabel(settings.noteRelLabel.c_str(),noteRelLabel,3);
   setupLabel(settings.macroRelLabel.c_str(),macroRelLabel,3);
@@ -3215,7 +3406,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   }
 
   ImVec4 secondaryActive=uiColors[GUI_COLOR_ACCENT_SECONDARY];
-  ImVec4 secondaryHover, secondary, secondarySemiActive;
+  ImVec4 secondaryHoverActual, secondaryHover, secondary, secondarySemiActive;
   secondarySemiActive.w=secondaryActive.w;
   secondaryHover.w=secondaryActive.w;
   secondary.w=secondaryActive.w;
@@ -3231,6 +3422,12 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     ImGui::ColorConvertHSVtoRGB(hue,sat*0.9,val*0.25,secondary.x,secondary.y,secondary.z);
   }
 
+  secondaryHoverActual=secondaryHover;
+
+  if (mobileUI) { // disable all hovered colors
+    primaryHover=primary;
+    secondaryHover=secondary;
+  }
 
   sty.Colors[ImGuiCol_WindowBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND];
   sty.Colors[ImGuiCol_ModalWindowDimBg]=uiColors[GUI_COLOR_MODAL_BACKDROP];
@@ -3257,7 +3454,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   sty.Colors[ImGuiCol_SliderGrabActive]=primaryActive;
   sty.Colors[ImGuiCol_TitleBgActive]=primary;
   sty.Colors[ImGuiCol_CheckMark]=primaryActive;
-  sty.Colors[ImGuiCol_TextSelectedBg]=secondaryHover;
+  sty.Colors[ImGuiCol_TextSelectedBg]=secondaryHoverActual;
   sty.Colors[ImGuiCol_PlotHistogram]=uiColors[GUI_COLOR_MACRO_OTHER];
   sty.Colors[ImGuiCol_PlotHistogramHovered]=uiColors[GUI_COLOR_MACRO_OTHER];
   sty.Colors[ImGuiCol_Border]=uiColors[GUI_COLOR_BORDER];
@@ -3280,12 +3477,18 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     sty.FrameShading=(float)settings.guiColorsShading/100.0f;
   }
 
+  if (mobileUI) {
+    sty.FramePadding=ImVec2(8.0f,6.0f);
+  }
+
   sty.ScaleAllSizes(dpiScale);
 
   ImGui::GetStyle()=sty;
 
   ImGui::GetIO().ConfigInputTrickleEventQueue=settings.eventDelay;
   ImGui::GetIO().ConfigWindowsMoveFromTitleBarOnly=settings.moveWindowTitle;
+  ImGui::GetIO().ConfigInertialScrollToleranceSqr=pow(dpiScale*4.0f,2.0f);
+  ImGui::GetIO().MouseDoubleClickTime=settings.doubleClickTime;
 
   for (int i=0; i<256; i++) {
     ImVec4& base=uiColors[GUI_COLOR_PATTERN_EFFECT_PITCH];
@@ -3362,21 +3565,21 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     fc1.MergeMode=true;
 
     if (settings.mainFont==6) { // custom font
-      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.mainFontPath.c_str(),e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.mainFontPath.c_str(),MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),NULL,fontRange))==NULL) {
         logW("could not load UI font! reverting to default font");
         settings.mainFont=0;
-        if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+        if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),NULL,fontRange))==NULL) {
           logE("could not load UI font! falling back to Proggy Clean.");
           mainFont=ImGui::GetIO().Fonts->AddFontDefault();
         }
       }
     } else if (settings.mainFont==5) { // system font
-      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_1,e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
-        if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_2,e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
-          if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_3,e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_1,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),NULL,fontRange))==NULL) {
+        if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_2,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),NULL,fontRange))==NULL) {
+          if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_3,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),NULL,fontRange))==NULL) {
             logW("could not load UI font! reverting to default font");
             settings.mainFont=0;
-            if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+            if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),NULL,fontRange))==NULL) {
               logE("could not load UI font! falling back to Proggy Clean.");
               mainFont=ImGui::GetIO().Fonts->AddFontDefault();
             }
@@ -3384,21 +3587,21 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
         }
       }
     } else {
-      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),NULL,fontRange))==NULL) {
         logE("could not load UI font! falling back to Proggy Clean.");
         mainFont=ImGui::GetIO().Fonts->AddFontDefault();
       }
     }
 
     // two fallback fonts
-    mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_liberationSans_compressed_data,font_liberationSans_compressed_size,e->getConfInt("mainFontSize",18)*dpiScale,&fc1,fontRange);
-    mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_unifont_compressed_data,font_unifont_compressed_size,e->getConfInt("mainFontSize",18)*dpiScale,&fc1,fontRange);
+    mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_liberationSans_compressed_data,font_liberationSans_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
+    mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
 
     ImFontConfig fc;
     fc.MergeMode=true;
     fc.GlyphMinAdvanceX=e->getConfInt("iconSize",16)*dpiScale;
     static const ImWchar fontRangeIcon[]={ICON_MIN_FA,ICON_MAX_FA,0};
-    if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,e->getConfInt("iconSize",16)*dpiScale,&fc,fontRangeIcon))==NULL) {
+    if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,MAX(1,e->getConfInt("iconSize",16)*dpiScale),&fc,fontRangeIcon))==NULL) {
       logE("could not load icon font!");
     }
 
@@ -3407,21 +3610,21 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       patFont=mainFont;
     } else {
       if (settings.patFont==6) { // custom font
-        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.patFontPath.c_str(),e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.patFontPath.c_str(),MAX(1,e->getConfInt("patFontSize",18)*dpiScale),NULL,upTo800))==NULL) {
           logW("could not load pattern font! reverting to default font");
           settings.patFont=0;
-          if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+          if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),NULL,upTo800))==NULL) {
             logE("could not load pattern font! falling back to Proggy Clean.");
             patFont=ImGui::GetIO().Fonts->AddFontDefault();
           }
         }
       } else if (settings.patFont==5) { // system font
-        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_1,e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
-          if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_2,e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
-            if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_3,e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_1,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),NULL,upTo800))==NULL) {
+          if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_2,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),NULL,upTo800))==NULL) {
+            if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_3,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),NULL,upTo800))==NULL) {
               logW("could not load pattern font! reverting to default font");
               settings.patFont=0;
-              if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+              if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),NULL,upTo800))==NULL) {
                 logE("could not load pattern font! falling back to Proggy Clean.");
                 patFont=ImGui::GetIO().Fonts->AddFontDefault();
               }
@@ -3429,7 +3632,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
           }
         }
       } else {
-        if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+        if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),NULL,upTo800))==NULL) {
           logE("could not load pattern font!");
           patFont=ImGui::GetIO().Fonts->AddFontDefault();
         }
@@ -3438,7 +3641,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
 
     // 0x39B = Λ
     static const ImWchar bigFontRange[]={0x20,0xFF,0x39b,0x39b,0};
-    if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale,NULL,bigFontRange))==NULL) {
+    if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,40*dpiScale),NULL,bigFontRange))==NULL) {
       logE("could not load big UI font!");
     }
 
@@ -3483,5 +3686,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   if (updateFonts) {
     if (fileDialog!=NULL) delete fileDialog;
     fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog);
+
+    fileDialog->mobileUI=mobileUI;
   }
 }

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -56,7 +56,7 @@ const char** DivPlatformSAA1099::getRegisterSheet() {
   return regCheatSheetSAA;
 }
 
-void DivPlatformSAA1099::acquire_saaSound(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSAA1099::acquire_saaSound(short** buf, size_t len) {
   if (saaBufLen<len*2) {
     saaBufLen=len*2;
     for (int i=0; i<2; i++) {
@@ -73,19 +73,19 @@ void DivPlatformSAA1099::acquire_saaSound(short* bufL, short* bufR, size_t start
   saa_saaSound->GenerateMany((unsigned char*)saaBuf[0],len,oscBuf);
 #ifdef TA_BIG_ENDIAN
   for (size_t i=0; i<len; i++) {
-    bufL[i+start]=(short)((((unsigned short)saaBuf[0][1+(i<<1)])<<8)|(((unsigned short)saaBuf[0][1+(i<<1)])>>8));
-    bufR[i+start]=(short)((((unsigned short)saaBuf[0][i<<1])<<8)|(((unsigned short)saaBuf[0][i<<1])>>8));
+    buf[0][i]=(short)((((unsigned short)saaBuf[0][i<<1])<<8)|(((unsigned short)saaBuf[0][i<<1])>>8));
+    buf[1][i]=(short)((((unsigned short)saaBuf[0][1+(i<<1)])<<8)|(((unsigned short)saaBuf[0][1+(i<<1)])>>8));
   }
 #else
   for (size_t i=0; i<len; i++) {
-    bufL[i+start]=saaBuf[0][i<<1];
-    bufR[i+start]=saaBuf[0][1+(i<<1)];
+    buf[0][i]=saaBuf[0][i<<1];
+    buf[1][i]=saaBuf[0][1+(i<<1)];
   }
 #endif
 }
 
-void DivPlatformSAA1099::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  acquire_saaSound(bufL,bufR,start,len);
+void DivPlatformSAA1099::acquire(short** buf, size_t len) {
+  acquire_saaSound(buf,len);
 }
 
 inline unsigned char applyPan(unsigned char vol, unsigned char pan) {
@@ -104,7 +104,9 @@ void DivPlatformSAA1099::tick(bool sysTick) {
         rWrite(i,applyPan(chan[i].outVol&15,chan[i].pan));
       }
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -151,7 +153,7 @@ void DivPlatformSAA1099::tick(bool sysTick) {
       rWrite(0x18+(i/3),saaEnv[i/3]);
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (chan[i].freq>65535) chan[i].freq=65535;
       if (chan[i].freq>=32768) {
         chan[i].freqH=7;
@@ -308,6 +310,12 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       saaEnv[c.chan/3]=c.value;
       rWrite(0x18+(c.chan/3),c.value);
       break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -318,7 +326,7 @@ int DivPlatformSAA1099::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SAA1099));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_PRE_NOTE:
@@ -411,8 +419,8 @@ void DivPlatformSAA1099::reset() {
   rWrite(0x1c,1);
 }
 
-bool DivPlatformSAA1099::isStereo() {
-  return true;
+int DivPlatformSAA1099::getOutputCount() {
+  return 2;
 }
 
 int DivPlatformSAA1099::getPortaFloor(int ch) {
@@ -438,6 +446,7 @@ void DivPlatformSAA1099::setFlags(const DivConfig& flags) {
   } else {
     chipClock=8000000;
   }
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/32;
 
   for (int i=0; i<6; i++) {

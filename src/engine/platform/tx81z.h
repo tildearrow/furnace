@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,9 +19,8 @@
 
 #ifndef _TX81Z_H
 #define _TX81Z_H
+
 #include "fmshared_OPM.h"
-#include "../macroInt.h"
-#include "../instrument.h"
 #include <queue>
 #include "sound/ymfm/ymfm_opz.h"
 
@@ -35,47 +34,18 @@ class DivPlatformTX81Z: public DivPlatformOPM {
       0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
     };
 
-    struct Channel {
-      DivInstrumentFM state;
-      DivMacroInt std;
-      unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, pitch2, note, ins;
-      signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, portaPause, furnacePCM, hardReset;
-      int vol, outVol;
+    struct Channel: public FMChannel {
       unsigned char chVolL, chVolR;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
       Channel():
-        freqH(0),
-        freqL(0),
-        freq(0),
-        baseFreq(0),
-        pitch(0),
-        pitch2(0),
-        note(0),
-        ins(-1),
-        active(false),
-        insChanged(true),
-        freqChanged(false),
-        keyOn(false),
-        keyOff(false),
-        inPorta(false),
-        portaPause(false),
-        furnacePCM(false),
-        hardReset(false),
-        vol(0),
-        outVol(0),
-        chVolL(127),
-        chVolR(127) {}
+        FMChannel(),
+        chVolL(1),
+        chVolR(1) {}
     };
     Channel chan[8];
     DivDispatchOscBuffer* oscBuf[8];
     int baseFreqOff;
     int pcmL, pcmR, pcmCycles;
-    unsigned char amDepth, pmDepth;
+    unsigned char amDepth, pmDepth, amDepth2, pmDepth2;
 
     ymfm::ym2414* fm_ymfm;
     ymfm::ym2414::output_data out_ymfm;
@@ -87,12 +57,11 @@ class DivPlatformTX81Z: public DivPlatformOPM {
   
     int octave(int freq);
     int toFreq(int freq);
-  
+    void commitState(int ch, DivInstrument* ins);
+
     friend void putDispatchChip(void*,int);
-    friend void putDispatchChan(void*,int,int);
-  
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -104,8 +73,9 @@ class DivPlatformTX81Z: public DivPlatformOPM {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void notifyInsChange(int ins);
+    void notifyInsDeletion(void* ins);
     void setFlags(const DivConfig& flags);
-    bool isStereo();
+    int getOutputCount();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

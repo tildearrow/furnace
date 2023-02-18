@@ -1178,6 +1178,9 @@ ImGuiIO::ImGuiIO()
     ConfigViewportsNoDecoration = true;
     ConfigViewportsNoDefaultParent = false;
 
+    // Inertial scrolling options (when ImGuiConfigFlags_InertialScrollEnable is set)
+    ConfigInertialScrollToleranceSqr = 36.0f;
+
     // Miscellaneous options
     MouseDrawCursor = false;
 #ifdef __APPLE__
@@ -3313,6 +3316,7 @@ ImGuiWindow::ImGuiWindow(ImGuiContext* context, const char* name) : DrawListInst
     TabId = GetID("#TAB");
     ScrollTarget = ImVec2(FLT_MAX, FLT_MAX);
     ScrollTargetCenterRatio = ImVec2(0.5f, 0.5f);
+    InertialScrollSpeed = ImVec2(0.0f, 0.0f);
     AutoFitFramesX = AutoFitFramesY = -1;
     AutoPosLastDirection = ImGuiDir_None;
     SetWindowPosAllowFlags = SetWindowSizeAllowFlags = SetWindowCollapsedAllowFlags = SetWindowDockAllowFlags = ImGuiCond_Always | ImGuiCond_Once | ImGuiCond_FirstUseEver | ImGuiCond_Appearing;
@@ -3443,6 +3447,10 @@ void ImGui::SetActiveID(ImGuiID id, ImGuiWindow* window)
     {
         g.ActiveIdIsAlive = id;
         g.ActiveIdSource = (g.NavActivateId == id || g.NavActivateInputId == id || g.NavJustMovedToId == id) ? (ImGuiInputSource)ImGuiInputSource_Nav : ImGuiInputSource_Mouse;
+        // TODO: check whether this works
+        if (g.LastItemData.InFlags & ImGuiItemFlags_NoInertialScroll) {
+          g.InertialScrollInhibited=true;
+        }
     }
 
     // Clear declaration of inputs claimed by the widget
@@ -3536,6 +3544,8 @@ bool ImGui::IsItemHovered(ImGuiHoveredFlags flags)
             return false;
         if (!IsItemFocused())
             return false;
+        if (window->InertialScroll)
+            return false;
     }
     else
     {
@@ -3567,6 +3577,10 @@ bool ImGui::IsItemHovered(ImGuiHoveredFlags flags)
 
         // Test if the item is disabled
         if ((g.LastItemData.InFlags & ImGuiItemFlags_Disabled) && !(flags & ImGuiHoveredFlags_AllowWhenDisabled))
+            return false;
+        
+        // Test for inertial scroll
+        if (window->InertialScroll)
             return false;
 
         // Special handling for calling after Begin() which represent the title bar or tab.
@@ -3605,8 +3619,9 @@ bool ImGui::ItemHoverable(const ImRect& bb, ImGuiID id)
         SetHoveredID(id);
 
     // When disabled we'll return false but still set HoveredId
+    // Same thing if swiping
     ImGuiItemFlags item_flags = (g.LastItemData.ID == id ? g.LastItemData.InFlags : g.CurrentItemFlags);
-    if (item_flags & ImGuiItemFlags_Disabled)
+    if (item_flags & ImGuiItemFlags_Disabled || window->InertialScroll)
     {
         // Release active id if turning disabled
         if (g.ActiveId == id)
@@ -3955,6 +3970,7 @@ void ImGui::UpdateMouseMovingWindowNewFrame()
             {
                 MarkIniSettingsDirty(moving_window);
                 SetWindowPos(moving_window, pos, ImGuiCond_Always);
+                g.InertialScrollInhibited=true;
                 if (moving_window->ViewportOwned) // Synchronize viewport immediately because some overlays may relies on clipping rectangle before we Begin() into the window.
                 {
                     moving_window->Viewport->Pos = pos;
@@ -4155,6 +4171,8 @@ static void ImGui::UpdateMouseInputs()
     // Round mouse position to avoid spreading non-rounded position (e.g. UpdateManualResize doesn't support them well)
     if (IsMousePosValid(&io.MousePos))
         io.MousePos = g.MouseLastValidPos = ImFloorSigned(io.MousePos);
+    
+    io.MouseDeltaPrev=io.MouseDelta;
 
     // If mouse just appeared or disappeared (usually denoted by -FLT_MAX components) we cancel out movement in MouseDelta
     if (IsMousePosValid(&io.MousePos) && IsMousePosValid(&io.MousePosPrev))
@@ -4165,6 +4183,18 @@ static void ImGui::UpdateMouseInputs()
     // If mouse moved we re-enable mouse hovering in case it was disabled by gamepad/keyboard. In theory should use a >0.0f threshold but would need to reset in everywhere we set this to true.
     if (io.MouseDelta.x != 0.0f || io.MouseDelta.y != 0.0f)
         g.NavDisableMouseHover = false;
+
+    // Update mouse speed
+    if (ImFabs(io.MouseDelta.x)>ImFabs(io.MouseDeltaPrev.x)) {
+      io.MouseSpeed.x=io.MouseDelta.x;
+    } else {
+      io.MouseSpeed.x=io.MouseDeltaPrev.x;
+    }
+    if (ImFabs(io.MouseDelta.y)>ImFabs(io.MouseDeltaPrev.y)) {
+      io.MouseSpeed.y=io.MouseDelta.y;
+    } else {
+      io.MouseSpeed.y=io.MouseDeltaPrev.y;
+    }
 
     io.MousePosPrev = io.MousePos;
     for (int i = 0; i < IM_ARRAYSIZE(io.MouseDown); i++)
@@ -4435,6 +4465,7 @@ void ImGui::NewFrame()
     g.FramerateSecPerFrameIdx = (g.FramerateSecPerFrameIdx + 1) % IM_ARRAYSIZE(g.FramerateSecPerFrame);
     g.FramerateSecPerFrameCount = ImMin(g.FramerateSecPerFrameCount + 1, IM_ARRAYSIZE(g.FramerateSecPerFrame));
     g.IO.Framerate = (g.FramerateSecPerFrameAccum > 0.0f) ? (1.0f / (g.FramerateSecPerFrameAccum / (float)g.FramerateSecPerFrameCount)) : FLT_MAX;
+    g.IO.IsSomethingHappening = false;
 
     UpdateViewportsNewFrame();
 
@@ -5067,6 +5098,11 @@ void ImGui::EndFrame()
         g.DragDropWithinSource = true;
         SetTooltip("...");
         g.DragDropWithinSource = false;
+    }
+
+    // Check for inertial scroll inhibit status
+    if (!g.IO.MouseDown[ImGuiMouseButton_Left]) {
+      g.InertialScrollInhibited=false;
     }
 
     // End frame
@@ -5990,6 +6026,7 @@ static bool ImGui::UpdateWindowManualResize(ImGuiWindow* window, const ImVec2& s
     if (size_target.x != FLT_MAX)
     {
         window->SizeFull = size_target;
+        g.InertialScrollInhibited=true;
         MarkIniSettingsDirty(window);
     }
     if (pos_target.x != FLT_MAX)
@@ -6893,6 +6930,74 @@ bool ImGui::Begin(const char* name, bool* p_open, ImGuiWindowFlags flags)
         window->ScrollMax.x = ImMax(0.0f, window->ContentSize.x + window->WindowPadding.x * 2.0f - window->InnerRect.GetWidth());
         window->ScrollMax.y = ImMax(0.0f, window->ContentSize.y + window->WindowPadding.y * 2.0f - window->InnerRect.GetHeight());
 
+        // Inertial scroll
+        if (g.IO.ConfigFlags & ImGuiConfigFlags_InertialScrollEnable) {
+          if ((g.NavWindowingTarget ? g.NavWindowingTarget : g.NavWindow) == window) {
+            if ((g.IO.MouseDown[ImGuiMouseButton_Left] || g.IO.MouseReleased[ImGuiMouseButton_Left]) &&
+                g.ActiveId!=GetWindowScrollbarID(window,ImGuiAxis_X) &&
+                g.ActiveId!=GetWindowScrollbarID(window,ImGuiAxis_Y) &&
+                !g.InertialScrollInhibited) {
+              // launch inertial scroll
+              if (g.IO.MouseClicked[ImGuiMouseButton_Left]) {
+                window->InertialScrollSpeed=ImVec2(0.0f,0.0f);
+                window->InertialScroll=false;
+                g.InertialScroll=false;
+                g.WasInertialScroll=false;
+              } else {
+                if (g.IO.MouseDragMaxDistanceSqr[ImGuiMouseButton_Left]>g.IO.ConfigInertialScrollToleranceSqr) {
+                  if (g.IO.MouseReleased[ImGuiMouseButton_Left]) {
+                    window->InertialScrollSpeed=ImVec2(window->ScrollbarX?-g.IO.MouseSpeed.x:0.0f,window->ScrollbarY?-g.IO.MouseSpeed.y:0.0f);
+                    window->InertialScroll=false;
+                    g.InertialScroll=false;
+                  } else {
+                    window->InertialScrollSpeed=ImVec2(window->ScrollbarX?-g.IO.MouseDelta.x:0.0f,window->ScrollbarY?-g.IO.MouseDelta.y:0.0f);
+                    if (window->ScrollbarX || window->ScrollbarY) {
+                      window->InertialScroll=true;
+                      g.InertialScroll=true;
+                      g.WasInertialScroll=true;
+                    }
+                  }
+                } else {
+                  window->InertialScrollSpeed=ImVec2(0.0f,0.0f);
+                  window->InertialScroll=false;
+                  g.InertialScroll=false;
+                }
+              }
+            } else if (g.InertialScrollInhibited) {
+              window->InertialScrollSpeed=ImVec2(0.0f,0.0f);
+              window->InertialScroll=false;
+              g.InertialScroll=false;
+            }
+          }
+
+          if (window->ScrollTarget.x == FLT_MAX && window->ScrollTarget.y == FLT_MAX) {
+            if (fabs(window->InertialScrollSpeed.x)>0.1f) {
+              window->Scroll.x=window->Scroll.x+window->InertialScrollSpeed.x;
+              window->InertialScrollSpeed.x*=0.95f;
+              g.IO.IsSomethingHappening = true;
+            } else {
+              window->InertialScrollSpeed.x=0.0f;
+            }
+            if (fabs(window->InertialScrollSpeed.y)>0.1f) {
+              window->Scroll.y=window->Scroll.y+window->InertialScrollSpeed.y;
+              window->InertialScrollSpeed.y*=0.95f;
+              g.IO.IsSomethingHappening = true;
+            } else {
+              window->InertialScrollSpeed.y=0.0f;
+            }
+          } else {
+            window->InertialScrollSpeed.x=0.0f;
+            window->InertialScrollSpeed.y=0.0f;
+            window->InertialScroll=false;
+            g.InertialScroll=false;
+          }
+
+          if (g.IO.MouseDown[ImGuiMouseButton_Left]) {
+            window->InertialScrollSpeed.x=0.0f;
+            window->InertialScrollSpeed.y=0.0f;
+          }
+        }
+
         // Apply scrolling
         window->Scroll = CalcNextScrollFromScrollTargetAndClamp(window);
         window->ScrollTarget = ImVec2(FLT_MAX, FLT_MAX);
@@ -7453,6 +7558,35 @@ void ImGui::EndDisabled()
     g.CurrentItemFlags = g.ItemFlagsStack.back();
     if (was_disabled && (g.CurrentItemFlags & ImGuiItemFlags_Disabled) == 0)
         g.Style.Alpha = g.DisabledAlphaBackup; //PopStyleVar();
+}
+
+// IsInertialScroll()
+
+bool ImGui::IsInertialScroll()
+{
+  /*
+  ImGuiWindow* window = GetCurrentWindow();
+  if (window==NULL) return false;
+  return window->InertialScroll;
+  */
+  ImGuiContext& g = *GImGui;
+  return g.InertialScroll;
+}
+
+// WasInertialScroll()
+
+bool ImGui::WasInertialScroll()
+{
+  ImGuiContext& g = *GImGui;
+  return g.WasInertialScroll;
+}
+
+// InhibitInertialScroll()
+
+void ImGui::InhibitInertialScroll()
+{
+  ImGuiContext& g = *GImGui;
+  g.InertialScrollInhibited=true;
 }
 
 // FIXME: Look into renaming this once we have settled the new Focus/Activation/TabStop system.
@@ -18612,8 +18746,9 @@ void ImGui::DebugNodeWindow(ImGuiWindow* window, const char* label)
         (flags & ImGuiWindowFlags_NoMouseInputs)? "NoMouseInputs":"", (flags & ImGuiWindowFlags_NoNavInputs) ? "NoNavInputs" : "", (flags & ImGuiWindowFlags_AlwaysAutoResize) ? "AlwaysAutoResize" : "");
     BulletText("WindowClassId: 0x%08X", window->WindowClass.ClassId);
     BulletText("Scroll: (%.2f/%.2f,%.2f/%.2f) Scrollbar:%s%s", window->Scroll.x, window->ScrollMax.x, window->Scroll.y, window->ScrollMax.y, window->ScrollbarX ? "X" : "", window->ScrollbarY ? "Y" : "");
+    BulletText("InertialScrollSpeed: %.2f,%.2f",window->InertialScrollSpeed.x,window->InertialScrollSpeed.y);
     BulletText("Active: %d/%d, WriteAccessed: %d, BeginOrderWithinContext: %d", window->Active, window->WasActive, window->WriteAccessed, (window->Active || window->WasActive) ? window->BeginOrderWithinContext : -1);
-    BulletText("Appearing: %d, Hidden: %d (CanSkip %d Cannot %d), SkipItems: %d", window->Appearing, window->Hidden, window->HiddenFramesCanSkipItems, window->HiddenFramesCannotSkipItems, window->SkipItems);
+    BulletText("Appearing: %d, Hidden: %d (CanSkip %d Cannot %d), SkipItems: %d, InertialScroll: %d", window->Appearing, window->Hidden, window->HiddenFramesCanSkipItems, window->HiddenFramesCannotSkipItems, window->SkipItems, window->InertialScroll);
     for (int layer = 0; layer < ImGuiNavLayer_COUNT; layer++)
     {
         ImRect r = window->NavRectRel[layer];

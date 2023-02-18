@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -61,8 +61,8 @@ const char** DivPlatformGB::getRegisterSheet() {
   return regCheatSheetGB;
 }
 
-void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t i=start; i<start+len; i++) {
+void DivPlatformGB::acquire(short** buf, size_t len) {
+  for (size_t i=0; i<len; i++) {
     if (!writes.empty()) {
       QueuedWrite& w=writes.front();
       GB_apu_write(gb,w.addr,w.val);
@@ -70,8 +70,8 @@ void DivPlatformGB::acquire(short* bufL, short* bufR, size_t start, size_t len) 
     }
 
     GB_advance_cycles(gb,16);
-    bufL[i]=gb->apu_output.final_sample.left;
-    bufR[i]=gb->apu_output.final_sample.right;
+    buf[0][i]=gb->apu_output.final_sample.left;
+    buf[1][i]=gb->apu_output.final_sample.right;
 
     for (int i=0; i<4; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=(gb->apu_output.current_sample[i].left+gb->apu_output.current_sample[i].right)<<6;
@@ -163,7 +163,9 @@ void DivPlatformGB::tick(bool sysTick) {
         }
       }
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT && i!=3) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (i==3) { // noise
         chan[i].baseFreq=parent->calcArp(chan[i].note,chan[i].std.arp.val,24);
         if (chan[i].baseFreq>255) chan[i].baseFreq=255;
@@ -282,14 +284,14 @@ void DivPlatformGB::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
-        int ntPos=chan[i].baseFreq;
+        int ntPos=chan[i].baseFreq+chan[i].pitch2;
         if (ntPos<0) ntPos=0;
         if (ntPos>255) ntPos=255;
         chan[i].freq=noiseTable[ntPos];
       } else {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
         if (chan[i].freq>2047) chan[i].freq=2047;
-        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq<1) chan[i].freq=1;
       }
       if (chan[i].keyOn) {
         if (i==2) { // wave
@@ -501,7 +503,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -509,7 +511,7 @@ int DivPlatformGB::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_GB));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GB_SWEEP_DIR:
@@ -528,6 +530,12 @@ int DivPlatformGB::dispatch(DivCommand c) {
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
@@ -596,8 +604,8 @@ int DivPlatformGB::getPortaFloor(int ch) {
   return 24;
 }
 
-bool DivPlatformGB::isStereo() {
-  return true;
+int DivPlatformGB::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformGB::getDCOffRequired() {
@@ -655,6 +663,7 @@ void DivPlatformGB::setFlags(const DivConfig& flags) {
 
 int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   chipClock=4194304;
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/16;
   for (int i=0; i<4; i++) {
     isMuted[i]=false;

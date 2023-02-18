@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,32 +22,22 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "../waveSynth.h"
 #include "sound/pce_psg.h"
 
 class DivPlatformPCE: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note, antiClickPeriodCount, antiClickWavePos;
+  struct Channel: public SharedChannel<signed char> {
+    int antiClickPeriodCount, antiClickWavePos;
     int dacPeriod, dacRate, dacOut;
     unsigned int dacPos;
-    int dacSample, ins;
+    int dacSample;
     unsigned char pan;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, noise, pcm, furnaceDac, deferredWaveUpdate;
-    signed char vol, outVol, wave;
-    int macroVolMul;
-    DivMacroInt std;
+    bool noise, pcm, furnaceDac, deferredWaveUpdate;
+    signed short wave;
+    int macroVolMul, noiseSeek;
     DivWaveSynth ws;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
+      SharedChannel<signed char>(31),
       antiClickPeriodCount(0),
       antiClickWavePos(0),
       dacPeriod(0),
@@ -55,22 +45,14 @@ class DivPlatformPCE: public DivDispatch {
       dacOut(0),
       dacPos(0),
       dacSample(-1),
-      ins(-1),
       pan(255),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       noise(false),
       pcm(false),
       furnaceDac(false),
       deferredWaveUpdate(false),
-      vol(31),
-      outVol(31),
       wave(-1),
-      macroVolMul(31) {}
+      macroVolMul(31),
+      noiseSeek(0) {}
   };
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];
@@ -95,7 +77,7 @@ class DivPlatformPCE: public DivDispatch {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -106,7 +88,7 @@ class DivPlatformPCE: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    int getOutputCount();
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyWaveChange(int wave);

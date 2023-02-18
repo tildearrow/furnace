@@ -1,10 +1,6 @@
-[submodule "extern/Nuked-OPN2"]
-	path = extern/Nuked-OPN2
-	url = https://github.com/nukeykt/Nuked-OPN2
 [submodule "extern/SDL"]
 	path = extern/SDL
 	url = https://github.com/libsdl-org/SDL.git
-	branch = 2.0.22
 [submodule "extern/libsndfile"]
 	path = extern/libsndfile
 	url = https://github.com/libsndfile/libsndfile.git

@@ -74,10 +74,13 @@ SOFTWARE.
 	#define IMGUI_DEFINE_MATH_OPERATORS
 #endif // IMGUI_DEFINE_MATH_OPERATORS
 #include "imgui_internal.h"
+#include <IconsFontAwesome4.h>
 
 #include <cstdlib>
 #include <algorithm>
 #include <iostream>
+
+#define DOUBLE_CLICKED ((singleClickSel && ImGui::IsMouseReleased(0)) || (!singleClickSel && ImGui::IsMouseDoubleClicked(0)))
 
 #ifdef USE_THUMBNAILS
 #ifndef DONT_DEFINE_AGAIN__STB_IMAGE_IMPLEMENTATION
@@ -117,7 +120,7 @@ namespace IGFD
 #endif // IMGUI_BUTTON
 // locales
 #ifndef createDirButtonString
-#define createDirButtonString "+"
+#define createDirButtonString ICON_FA_PLUS
 #endif // createDirButtonString
 #ifndef okButtonString
 #define okButtonString "OK"
@@ -126,13 +129,13 @@ namespace IGFD
 #define cancelButtonString "Cancel"
 #endif // cancelButtonString
 #ifndef resetButtonString
-#define resetButtonString "R"
+#define resetButtonString ICON_FA_REPEAT
 #endif // resetButtonString
 #ifndef drivesButtonString
 #define drivesButtonString "Drives"
 #endif // drivesButtonString
 #ifndef editPathButtonString
-#define editPathButtonString "E"
+#define editPathButtonString ICON_FA_PENCIL
 #endif // editPathButtonString
 #ifndef searchString
 #define searchString "Search"
@@ -147,10 +150,10 @@ namespace IGFD
 #define fileEntryString "[File]"
 #endif // fileEntryString
 #ifndef fileNameString
-#define fileNameString "File Name:"
+#define fileNameString "Name:"
 #endif // fileNameString
 #ifndef dirNameString
-#define dirNameString "Directory Path:"
+#define dirNameString "Path:"
 #endif // dirNameString
 #ifndef buttonResetSearchString
 #define buttonResetSearchString "Reset search"
@@ -3319,7 +3322,7 @@ namespace IGFD
 	//// FILE DIALOG CONSTRUCTOR / DESTRUCTOR ///////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////
 
-	IGFD::FileDialog::FileDialog() : BookMarkFeature(), KeyExplorerFeature(), ThumbnailFeature() {DpiScale=1.0f;}
+	IGFD::FileDialog::FileDialog() : BookMarkFeature(), KeyExplorerFeature(), ThumbnailFeature() {DpiScale=1.0f; singleClickSel=false; mobileMode=false;}
 	IGFD::FileDialog::~FileDialog() = default;
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3936,7 +3939,7 @@ namespace IGFD
 		vsnprintf(fdi.puVariadicBuffer, MAX_FILE_DIALOG_NAME_BUFFER, vFmt, args);
 		va_end(args);
 
-		float h = 0.0f;
+		float h = /*mobileMode?(ImGui::GetFontSize()+10.0f*DpiScale):*/0.0f;
 #ifdef USE_THUMBNAILS
 		if (prDisplayMode == DisplayModeEnum::THUMBNAILS_LIST)
 			h = DisplayMode_ThumbailsList_ImageHeight;
@@ -3972,7 +3975,7 @@ namespace IGFD
 				}
 				else // no nav system => classic behavior
 				{
-					if (ImGui::IsMouseDoubleClicked(0)) // 0 -> left mouse button double click
+					if (DOUBLE_CLICKED) // 0 -> left mouse button double click
 					{
             isSelectingDir=true;
 						fdi.puPathClicked = fdi.SelectDirectory(vInfos);
@@ -3987,7 +3990,7 @@ namespace IGFD
 			}
 			else
 			{
-        if (ImGui::IsMouseDoubleClicked(0)) {
+        if (DOUBLE_CLICKED) {
           fdi.SelectFileName(prFileDialogInternal, vInfos);
           prFileDialogInternal.puIsOk = true;
           return 2;

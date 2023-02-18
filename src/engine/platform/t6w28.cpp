@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,8 +35,8 @@ const char** DivPlatformT6W28::getRegisterSheet() {
   return regCheatSheetT6W28;
 }
 
-void DivPlatformT6W28::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformT6W28::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     cycles=0;
     while (!writes.empty() && cycles<16) {
       QueuedWrite w=writes.front();
@@ -64,8 +64,8 @@ void DivPlatformT6W28::acquire(short* bufL, short* bufR, size_t start, size_t le
     if (tempR<-32768) tempR=-32768;
     if (tempR>32767) tempR=32767;
     
-    bufL[h]=tempL;
-    bufR[h]=tempR;
+    buf[0][h]=tempL;
+    buf[1][h]=tempR;
   }
 }
 
@@ -88,7 +88,7 @@ double DivPlatformT6W28::NOTE_SN(int ch, int note) {
     return NOTE_PERIODIC(note);
   }
   if (note>107) {
-    return MAX(0,13-107);
+    return MAX(0,13-(note-107));
   }
   return NOTE_PERIODIC(note);
 }
@@ -99,7 +99,7 @@ int DivPlatformT6W28::snCalcFreq(int ch) {
     if (ret<0) ret=0;
     return ret;
   }
-  return parent->calcFreq(chan[ch].baseFreq,chan[ch].pitch,true,0,chan[ch].pitch2,chipClock,ch==3?15:16);
+  return parent->calcFreq(chan[ch].baseFreq,chan[ch].pitch,chan[ch].fixedArp?chan[ch].baseNoteOverride:chan[ch].arpOff,chan[ch].fixedArp,true,0,chan[ch].pitch2,chipClock,ch==3?15:16);
 }
 
 void DivPlatformT6W28::tick(bool sysTick) {
@@ -108,7 +108,9 @@ void DivPlatformT6W28::tick(bool sysTick) {
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         int noiseSeek=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         chan[i].baseFreq=NOTE_SN(i,noiseSeek);
@@ -144,6 +146,7 @@ void DivPlatformT6W28::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=snCalcFreq(i);
+      if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>1023) chan[i].freq=1023;
       if (i==3) {
         rWrite(1,0x80|(2<<5)|(chan[3].freq&15));
@@ -248,7 +251,7 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_SN(c.chan,c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_SN(c.chan,c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -256,11 +259,17 @@ int DivPlatformT6W28::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_T6W28));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_SN(c.chan,chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_SN(c.chan,chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
@@ -280,6 +289,7 @@ void DivPlatformT6W28::forceIns() {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
   }
+  rWrite(1,0xe0+chan[3].duty);
 }
 
 void* DivPlatformT6W28::getChanState(int ch) {
@@ -327,8 +337,8 @@ void DivPlatformT6W28::reset() {
   rWrite(1,0xe7);
 }
 
-bool DivPlatformT6W28::isStereo() {
-  return true;
+int DivPlatformT6W28::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformT6W28::keyOffAffectsArp(int ch) {
@@ -343,6 +353,7 @@ void DivPlatformT6W28::notifyInsDeletion(void* ins) {
 
 void DivPlatformT6W28::setFlags(const DivConfig& flags) {
   chipClock=3072000.0;
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/16;
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;

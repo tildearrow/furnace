@@ -66,6 +66,7 @@ option(SYSTEM_LIBSNDFILE "Use a system-installed version of libsndfile instead o
 option(SYSTEM_RTMIDI "Use a system-installed version of RtMidi instead of the vendored one" OFF)
 option(SYSTEM_ZLIB "Use a system-installed version of zlib instead of the vendored one" OFF)
 option(SYSTEM_SDL2 "Use a system-installed version of SDL2 instead of the vendored one" ${SYSTEM_SDL2_DEFAULT})
+option(SUPPORT_XP "Build a Windows XP-compatible binary" OFF)
 option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be treated as errors" OFF)
 option(WITH_DEMOS "Install demo songs" ON)
 option(WITH_INSTRUMENTS "Install instruments" ON)
@@ -264,6 +265,9 @@ if (USE_SDL2)
     if (MSVC)
       list(APPEND DEPENDENCIES_COMPILE_OPTIONS "/DHAVE_LIBC")
     endif()
+    if (WIN32)
+      list(APPEND DEPENDENCIES_LIBRARIES SDL2main)
+    endif()
     message(STATUS "Using vendored SDL2")
   endif()
 else()
@@ -352,7 +356,7 @@ extern/adpcm/yma_codec.c
 extern/adpcm/ymb_codec.c
 extern/adpcm/ymz_codec.c
 
-extern/Nuked-OPN2/ym3438.c
+extern/opn/ym3438.c
 extern/Nuked-PSG/ympsg.c
 extern/opm/opm.c
 extern/Nuked-OPLL/opll.c
@@ -361,6 +365,7 @@ src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/ay8910.cpp
 src/engine/platform/sound/saa1099.cpp
 src/engine/platform/sound/namco.cpp
+src/engine/platform/sound/segapcm.cpp
 src/engine/platform/sound/gb/apu.c
 src/engine/platform/sound/gb/timing.c
 src/engine/platform/sound/pce_psg.cpp
@@ -395,6 +400,7 @@ src/engine/platform/sound/c64/wave8580_PST.cc
 src/engine/platform/sound/c64/wave8580_P_T.cc
 src/engine/platform/sound/c64/wave8580__ST.cc
 
+src/engine/platform/sound/c64_fp/array.cpp
 src/engine/platform/sound/c64_fp/Dac.cpp
 src/engine/platform/sound/c64_fp/EnvelopeGenerator.cpp
 src/engine/platform/sound/c64_fp/ExternalFilter.cpp
@@ -424,6 +430,9 @@ src/engine/platform/sound/ymfm/ymfm_ssg.cpp
 
 src/engine/platform/sound/lynx/Mikey.cpp
 
+src/engine/platform/sound/pokey/mzpokeysnd.c
+src/engine/platform/sound/pokey/AltASAP.cpp
+
 src/engine/platform/sound/qsound.c
 
 src/engine/platform/sound/swan.cpp
@@ -444,6 +453,10 @@ src/engine/platform/sound/oki/msm5232.cpp
 src/engine/platform/sound/oki/okim6258.cpp
 
 src/engine/platform/sound/snes/SPC_DSP.cpp
+
+src/engine/platform/sound/ga20/iremga20.cpp
+
+src/engine/platform/sound/sm8521.c
 
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
@@ -506,6 +519,7 @@ src/engine/platform/pcspkr.cpp
 src/engine/platform/segapcm.cpp
 src/engine/platform/qsound.cpp
 src/engine/platform/x1_010.cpp
+src/engine/platform/pokey.cpp
 src/engine/platform/lynx.cpp
 src/engine/platform/su.cpp
 src/engine/platform/swan.cpp
@@ -516,14 +530,19 @@ src/engine/platform/zxbeeper.cpp
 src/engine/platform/bubsyswsg.cpp
 src/engine/platform/n163.cpp
 src/engine/platform/pet.cpp
+src/engine/platform/pokemini.cpp
 src/engine/platform/pong.cpp
 src/engine/platform/vic20.cpp
 src/engine/platform/vrc6.cpp
+src/engine/platform/es5506.cpp
 src/engine/platform/scc.cpp
 src/engine/platform/ymz280b.cpp
 src/engine/platform/namcowsg.cpp
 src/engine/platform/rf5c68.cpp
 src/engine/platform/snes.cpp
+src/engine/platform/k007232.cpp
+src/engine/platform/ga20.cpp
+src/engine/platform/sm8521.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 )
@@ -553,6 +572,7 @@ extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
 extern/igfd/ImGuiFileDialog.cpp
 
 src/gui/plot_nolerp.cpp
+
 src/gui/font_exo.cpp
 src/gui/font_liberationSans.cpp
 src/gui/font_mononoki.cpp
@@ -563,6 +583,15 @@ src/gui/font_ptMono.cpp
 src/gui/font_unifont.cpp
 src/gui/font_icon.cpp
 src/gui/fonts.cpp
+
+src/gui/image_icon.cpp
+src/gui/image_talogo.cpp
+src/gui/image_tachip.cpp
+src/gui/image_logo.cpp
+src/gui/image_wordmark.cpp
+src/gui/image_introbg.cpp
+src/gui/image.cpp
+
 src/gui/debug.cpp
 src/gui/fileDialog.cpp
 
@@ -583,7 +612,9 @@ src/gui/editControls.cpp
 src/gui/effectList.cpp
 src/gui/findReplace.cpp
 src/gui/gradient.cpp
+src/gui/grooves.cpp
 src/gui/insEdit.cpp
+src/gui/intro.cpp
 src/gui/log.cpp
 src/gui/mixer.cpp
 src/gui/midiMap.cpp
@@ -600,6 +631,7 @@ src/gui/scaling.cpp
 src/gui/settings.cpp
 src/gui/songInfo.cpp
 src/gui/songNotes.cpp
+src/gui/speed.cpp
 src/gui/spoiler.cpp
 src/gui/stats.cpp
 src/gui/subSongs.cpp
@@ -613,22 +645,18 @@ src/gui/volMeter.cpp
 src/gui/gui.cpp
 )
 
-if (WIN32 OR APPLE)
+if (WIN32 AND NOT SUPPORT_XP)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.cpp)
-endif()
-
-if (WIN32)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_win.cpp)
 endif()
 
 if (APPLE)
+  list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.cpp)
   list(APPEND GUI_SOURCES src/gui/macstuff.m)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_cocoa.mm)
 endif()
 
 if (NOT WIN32 AND NOT APPLE)
-  list(APPEND GUI_SOURCES src/gui/icon.c)
-
   CHECK_INCLUDE_FILE(sys/io.h SYS_IO_FOUND)
   CHECK_INCLUDE_FILE(linux/input.h LINUX_INPUT_FOUND)
   CHECK_INCLUDE_FILE(linux/kd.h LINUX_KD_FOUND)
@@ -699,6 +727,10 @@ if (WIN32)
   if (NOT MSVC)
     list(APPEND DEPENDENCIES_LIBRARIES -static)
   endif()
+  # support Windows XP
+  if (SUPPORT_XP)
+    list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0501")
+  endif()
 elseif (APPLE)
   find_library(COCOA Cocoa REQUIRED)
   list(APPEND DEPENDENCIES_LIBRARIES ${COCOA})
@@ -741,9 +773,7 @@ if (WARNINGS_ARE_ERRORS)
   )
 endif()
 
-if (MSVC)
-  add_executable(furnace WIN32 ${USED_SOURCES})
-elseif(ANDROID AND NOT TERMUX)
+if(ANDROID AND NOT TERMUX)
   add_library(furnace SHARED ${USED_SOURCES})
 else()
   add_executable(furnace ${USED_SOURCES})

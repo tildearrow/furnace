@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,6 +19,7 @@
 
 #include "debug.h"
 #include "imgui.h"
+#include "../engine/platform/fmsharedbase.h"
 #include "../engine/platform/genesis.h"
 #include "../engine/platform/genesisext.h"
 #include "../engine/platform/sms.h"
@@ -45,8 +46,11 @@
 #include "../engine/platform/x1_010.h"
 #include "../engine/platform/n163.h"
 #include "../engine/platform/vrc6.h"
+#include "../engine/platform/es5506.h"
 #include "../engine/platform/lynx.h"
 #include "../engine/platform/pcmdac.h"
+#include "../engine/platform/k007232.h"
+#include "../engine/platform/ga20.h"
 #include "../engine/platform/dummy.h"
 
 #define COMMON_CHIP_DEBUG \
@@ -62,7 +66,11 @@
   FM_CHIP_DEBUG; \
   ImGui::Text("- fmFreqBase: %.f",ch->fmFreqBase); \
   ImGui::Text("- fmDivBase: %d",ch->fmDivBase); \
-  ImGui::Text("- ayDiv: %d",ch->ayDiv);
+  ImGui::Text("- ayDiv: %d",ch->ayDiv); \
+  ImGui::Text("- extChanOffs: %d",ch->extChanOffs); \
+  ImGui::Text("- psgChanOffs: %d",ch->psgChanOffs); \
+  ImGui::Text("- adpcmAChanOffs: %d",ch->adpcmAChanOffs); \
+  ImGui::Text("- adpcmBChanOffs: %d",ch->adpcmBChanOffs); \
 
 #define COMMON_CHIP_DEBUG_BOOL \
   ImGui::TextColored(ch->skipRegisterWrites?colorOn:colorOff,">> SkipRegisterWrites"); \
@@ -86,7 +94,6 @@
   ImGui::TextColored(ch->extMode?colorOn:colorOff,">> ExtMode"); \
   ImGui::TextColored(ch->softPCM?colorOn:colorOff,">> SoftPCM"); \
   ImGui::TextColored(ch->useYMFM?colorOn:colorOff,">> UseYMFM"); \
-  ImGui::TextColored(ch->ladder?colorOn:colorOff,">> Ladder");
 
 #define OPNB_CHIP_DEBUG \
   FM_OPN_CHIP_DEBUG; \
@@ -94,11 +101,6 @@
   ImGui::Text("- writeADPCMAOff: %d",ch->writeADPCMAOff); \
   ImGui::Text("- writeADPCMAOn: %d",ch->writeADPCMAOn); \
   ImGui::Text("- globalADPCMAVolume: %d",ch->globalADPCMAVolume); \
-  ImGui::Text("- extChanOffs: %d",ch->extChanOffs); \
-  ImGui::Text("- psgChanOffs: %d",ch->psgChanOffs); \
-  ImGui::Text("- adpcmAChanOffs: %d",ch->adpcmAChanOffs); \
-  ImGui::Text("- adpcmBChanOffs: %d",ch->adpcmBChanOffs); \
-  ImGui::Text("- chanNum: %d",ch->chanNum); \
   FM_OPN_CHIP_DEBUG_BOOL; \
   ImGui::TextColored(ch->extMode?colorOn:colorOff,">> ExtMode");
 
@@ -122,14 +124,30 @@
   ImGui::TextColored(sms->nuked?colorOn:colorOff,">> Nuked");
 
 
-#define GENESIS_CHAN_DEBUG \
-  DivPlatformGenesis::Channel* ch=(DivPlatformGenesis::Channel*)data; \
-  ImGui::Text("> YM2612"); \
-  ImGui::Text("- freqHL: %.2x%.2x",ch->freqH,ch->freqL); \
+#define COMMON_CHAN_DEBUG \
   ImGui::Text("* freq: %d",ch->freq); \
   ImGui::Text(" - base: %d",ch->baseFreq); \
   ImGui::Text(" - pitch: %d",ch->pitch); \
   ImGui::Text(" - pitch2: %d",ch->pitch2); \
+  ImGui::Text("- note: %d",ch->note); \
+  ImGui::Text("- ins: %d",ch->ins); \
+  ImGui::Text("- vol: %.2x",ch->vol); \
+  ImGui::Text("- outVol: %.2x",ch->outVol);
+
+#define COMMON_CHAN_DEBUG_BOOL \
+  ImGui::TextColored(ch->active?colorOn:colorOff,">> Active"); \
+  ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged"); \
+  ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged"); \
+  ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn"); \
+  ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff"); \
+  ImGui::TextColored(ch->portaPause?colorOn:colorOff,">> PortaPause"); \
+  ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+
+#define GENESIS_CHAN_DEBUG \
+  DivPlatformGenesis::Channel* ch=(DivPlatformGenesis::Channel*)data; \
+  ImGui::Text("> YM2612"); \
+  ImGui::Text("- freqHL: %.2x%.2x",ch->freqH,ch->freqL); \
+  COMMON_CHAN_DEBUG; \
   ImGui::Text("- portaPauseFreq: %d",ch->portaPauseFreq); \
   ImGui::Text("* DAC:"); \
   ImGui::Text(" - period: %d",ch->dacPeriod); \
@@ -138,21 +156,11 @@
   ImGui::Text(" - sample: %d",ch->dacSample); \
   ImGui::Text(" - delay: %d",ch->dacDelay); \
   ImGui::Text(" - output: %d",ch->dacOutput); \
-  ImGui::Text("- note: %d",ch->note); \
-  ImGui::Text("- ins: %d",ch->ins); \
-  ImGui::Text("- vol: %.2x",ch->vol); \
-  ImGui::Text("- outVol: %.2x",ch->outVol); \
   ImGui::Text("- pan: %x",ch->pan); \
   ImGui::Text("- opMask: %x",ch->opMask); \
   ImGui::Text("- sampleBank: %d",ch->sampleBank); \
-  ImGui::TextColored(ch->active?colorOn:colorOff,">> Active"); \
-  ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged"); \
-  ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged"); \
-  ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn"); \
-  ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff"); \
-  ImGui::TextColored(ch->portaPause?colorOn:colorOff,">> PortaPause"); \
+  COMMON_CHAN_DEBUG_BOOL; \
   ImGui::TextColored(ch->furnaceDac?colorOn:colorOff,">> FurnaceDAC"); \
-  ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta"); \
   ImGui::TextColored(ch->hardReset?colorOn:colorOff,">> hardReset"); \
   ImGui::TextColored(ch->opMaskChanged?colorOn:colorOff,">> opMaskChanged"); \
   ImGui::TextColored(ch->dacMode?colorOn:colorOff,">> DACMode"); \
@@ -160,140 +168,70 @@
   ImGui::TextColored(ch->dacDirection?colorOn:colorOff,">> DACDirection");
 
 #define GENESIS_OPCHAN_DEBUG \
-  DivPlatformGenesisExt::OpChannel* ch=(DivPlatformGenesisExt::OpChannel*)data; \
+  DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data; \
   ImGui::Text("> YM2612 (per operator)"); \
   ImGui::Text("- freqHL: %.2x%.2x",ch->freqH,ch->freqL); \
-  ImGui::Text("* freq: %d",ch->freq); \
-  ImGui::Text(" - base: %d",ch->baseFreq); \
-  ImGui::Text(" - pitch: %d",ch->pitch); \
-  ImGui::Text(" - pitch2: %d",ch->pitch2); \
+  COMMON_CHAN_DEBUG; \
   ImGui::Text("- portaPauseFreq: %d",ch->portaPauseFreq); \
-  ImGui::Text("- ins: %d",ch->ins); \
-  ImGui::Text("- vol: %.2x",ch->vol); \
   ImGui::Text("- pan: %x",ch->pan); \
-  ImGui::TextColored(ch->active?colorOn:colorOff,">> Active"); \
-  ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged"); \
-  ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged"); \
-  ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn"); \
-  ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff"); \
-  ImGui::TextColored(ch->portaPause?colorOn:colorOff,">> PortaPause"); \
-  ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta"); \
+  COMMON_CHAN_DEBUG_BOOL; \
   ImGui::TextColored(ch->mask?colorOn:colorOff,">> Mask");
 
 #define SMS_CHAN_DEBUG \
   DivPlatformSMS::Channel* ch=(DivPlatformSMS::Channel*)data; \
   ImGui::Text("> SMS"); \
-  ImGui::Text("* freq: %d",ch->freq); \
-  ImGui::Text(" - base: %d",ch->baseFreq); \
-  ImGui::Text(" - pitch: %d",ch->pitch); \
-  ImGui::Text(" - pitch2: %d",ch->pitch2); \
-  ImGui::Text("- note: %d",ch->note); \
-  ImGui::Text("- ins: %d",ch->ins); \
-  ImGui::Text("- vol: %.2x",ch->vol); \
-  ImGui::Text("- outVol: %.2x",ch->outVol); \
-  ImGui::TextColored(ch->active?colorOn:colorOff,">> Active"); \
-  ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged"); \
-  ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged"); \
-  ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn"); \
-  ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
+  COMMON_CHAN_DEBUG; \
+  COMMON_CHAN_DEBUG_BOOL;
 
 #define OPN_CHAN_DEBUG \
-  DivPlatformYM2203::Channel* ch=(DivPlatformYM2203::Channel*)data; \
+  DivPlatformOPN::OPNChannel* ch=(DivPlatformOPN::OPNChannel*)data; \
   ImGui::Text("> YM2203"); \
   ImGui::Text("- freqHL: %.2x%.2x",ch->freqH,ch->freqL); \
-  ImGui::Text("* freq: %d",ch->freq); \
-  ImGui::Text(" - base: %d",ch->baseFreq); \
-  ImGui::Text(" - pitch: %d",ch->pitch); \
-  ImGui::Text(" - pitch2: %d",ch->pitch2); \
+  COMMON_CHAN_DEBUG; \
   ImGui::Text("- portaPauseFreq: %d",ch->portaPauseFreq); \
   ImGui::Text("* PSG:"); \
   ImGui::Text(" - psgMode: %d",ch->psgMode); \
   ImGui::Text(" - autoEnvNum: %d",ch->autoEnvNum); \
   ImGui::Text(" - autoEnvDen: %d",ch->autoEnvDen); \
   ImGui::Text("- sample: %d",ch->sample); \
-  ImGui::Text("- note: %d",ch->note); \
-  ImGui::Text("- ins: %d",ch->ins); \
-  ImGui::Text("- vol: %.2x",ch->vol); \
-  ImGui::Text("- outVol: %.2x",ch->outVol); \
   ImGui::Text("- opMask: %x",ch->opMask); \
-  ImGui::TextColored(ch->active?colorOn:colorOff,">> Active"); \
-  ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged"); \
-  ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged"); \
-  ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn"); \
-  ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff"); \
-  ImGui::TextColored(ch->portaPause?colorOn:colorOff,">> PortaPause"); \
-  ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta"); \
+  COMMON_CHAN_DEBUG_BOOL; \
   ImGui::TextColored(ch->hardReset?colorOn:colorOff,">> hardReset"); \
   ImGui::TextColored(ch->opMaskChanged?colorOn:colorOff,">> opMaskChanged"); \
   ImGui::TextColored(ch->furnacePCM?colorOn:colorOff,">> FurnacePCM");
 
 #define OPN_OPCHAN_DEBUG \
-  DivPlatformYM2203Ext::OpChannel* ch=(DivPlatformYM2203Ext::OpChannel*)data; \
+  DivPlatformOPN::OPNOpChannel* ch=(DivPlatformOPN::OPNOpChannel*)data; \
   ImGui::Text("> YM2203 (per operator)"); \
   ImGui::Text("- freqHL: %.2x%.2x",ch->freqH,ch->freqL); \
-  ImGui::Text("* freq: %d",ch->freq); \
-  ImGui::Text(" - base: %d",ch->baseFreq); \
-  ImGui::Text(" - pitch: %d",ch->pitch); \
-  ImGui::Text(" - pitch2: %d",ch->pitch2); \
+  COMMON_CHAN_DEBUG; \
   ImGui::Text("- portaPauseFreq: %d",ch->portaPauseFreq); \
-  ImGui::Text("- ins: %d",ch->ins); \
-  ImGui::Text("- vol: %.2x",ch->vol); \
-  ImGui::TextColored(ch->active?colorOn:colorOff,">> Active"); \
-  ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged"); \
-  ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged"); \
-  ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn"); \
-  ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff"); \
-  ImGui::TextColored(ch->portaPause?colorOn:colorOff,">> PortaPause"); \
-  ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta"); \
+  COMMON_CHAN_DEBUG_BOOL; \
   ImGui::TextColored(ch->mask?colorOn:colorOff,">> Mask");
 
 #define OPNB_CHAN_DEBUG \
   ImGui::Text("- freqHL: %.2x%.2x",ch->freqH,ch->freqL); \
-  ImGui::Text("* freq: %d",ch->freq); \
-  ImGui::Text(" - base: %d",ch->baseFreq); \
-  ImGui::Text(" - pitch: %d",ch->pitch); \
-  ImGui::Text(" - pitch2: %d",ch->pitch2); \
+  COMMON_CHAN_DEBUG; \
   ImGui::Text("- portaPauseFreq: %d",ch->portaPauseFreq); \
   ImGui::Text("* PSG:"); \
   ImGui::Text(" - psgMode: %d",ch->psgMode); \
   ImGui::Text(" - autoEnvNum: %d",ch->autoEnvNum); \
   ImGui::Text(" - autoEnvDen: %d",ch->autoEnvDen); \
   ImGui::Text("- sample: %d",ch->sample); \
-  ImGui::Text("- note: %d",ch->note); \
-  ImGui::Text("- ins: %d",ch->ins); \
-  ImGui::Text("- vol: %.2x",ch->vol); \
-  ImGui::Text("- outVol: %.2x",ch->outVol); \
   ImGui::Text("- pan: %x",ch->pan); \
   ImGui::Text("- opMask: %x",ch->opMask); \
   ImGui::Text("- macroVolMul: %x",ch->macroVolMul); \
-  ImGui::TextColored(ch->active?colorOn:colorOff,">> Active"); \
-  ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged"); \
-  ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged"); \
-  ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn"); \
-  ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff"); \
-  ImGui::TextColored(ch->portaPause?colorOn:colorOff,">> PortaPause"); \
-  ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta"); \
+  COMMON_CHAN_DEBUG_BOOL; \
   ImGui::TextColored(ch->hardReset?colorOn:colorOff,">> hardReset"); \
   ImGui::TextColored(ch->opMaskChanged?colorOn:colorOff,">> opMaskChanged"); \
   ImGui::TextColored(ch->furnacePCM?colorOn:colorOff,">> FurnacePCM");
 
 #define OPNB_OPCHAN_DEBUG \
   ImGui::Text("- freqHL: %.2x%.2x",ch->freqH,ch->freqL); \
-  ImGui::Text("* freq: %d",ch->freq); \
-  ImGui::Text(" - base: %d",ch->baseFreq); \
-  ImGui::Text(" - pitch: %d",ch->pitch); \
-  ImGui::Text(" - pitch2: %d",ch->pitch2); \
+  COMMON_CHAN_DEBUG; \
   ImGui::Text("- portaPauseFreq: %d",ch->portaPauseFreq); \
-  ImGui::Text("- ins: %d",ch->ins); \
-  ImGui::Text("- vol: %.2x",ch->vol); \
   ImGui::Text("- pan: %x",ch->pan); \
-  ImGui::TextColored(ch->active?colorOn:colorOff,">> Active"); \
-  ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged"); \
-  ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged"); \
-  ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn"); \
-  ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff"); \
-  ImGui::TextColored(ch->portaPause?colorOn:colorOff,">> PortaPause"); \
-  ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta"); \
+  COMMON_CHAN_DEBUG_BOOL; \
   ImGui::TextColored(ch->mask?colorOn:colorOff,">> Mask");
 
 void putDispatchChip(void* data, int type) {
@@ -302,8 +240,8 @@ void putDispatchChip(void* data, int type) {
   switch (type) {
     case DIV_SYSTEM_YM2612:
     case DIV_SYSTEM_YM2612_EXT:
-    case DIV_SYSTEM_YM2612_FRAC:
-    case DIV_SYSTEM_YM2612_FRAC_EXT: {
+    case DIV_SYSTEM_YM2612_DUALPCM:
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT: {
       GENESIS_CHIP_DEBUG;
       break;
     }
@@ -317,8 +255,8 @@ void putDispatchChip(void* data, int type) {
       SMS_CHIP_DEBUG;
       break;
     }
-    case DIV_SYSTEM_OPN:
-    case DIV_SYSTEM_OPN_EXT: {
+    case DIV_SYSTEM_YM2203:
+    case DIV_SYSTEM_YM2203_EXT: {
       DivPlatformYM2203* ch=(DivPlatformYM2203*)data;
       ImGui::Text("> YM2203");
       FM_OPN_CHIP_DEBUG;
@@ -328,8 +266,8 @@ void putDispatchChip(void* data, int type) {
       ImGui::TextColored(ch->extMode?colorOn:colorOff,">> ExtMode");
       break;
     }
-    case DIV_SYSTEM_PC98:
-    case DIV_SYSTEM_PC98_EXT: {
+    case DIV_SYSTEM_YM2608:
+    case DIV_SYSTEM_YM2608_EXT: {
       DivPlatformYM2608* ch=(DivPlatformYM2608*)data;
       ImGui::Text("> YM2608");
       FM_OPN_CHIP_DEBUG;
@@ -553,6 +491,43 @@ void putDispatchChip(void* data, int type) {
       ImGui::TextColored(ch->outStereo?colorOn:colorOff,">> OutStereo");
       break;
     }
+    case DIV_SYSTEM_ES5506: {
+      DivPlatformES5506* ch=(DivPlatformES5506*)data;
+      ImGui::Text("> ES5506");
+      COMMON_CHIP_DEBUG;
+      ImGui::Text("- cycle: %d",ch->cycle);
+      ImGui::Text("- curPage: %d",ch->curPage);
+      ImGui::Text("- volScale: %d",ch->volScale);
+      ImGui::Text("- maskedVal: %.2x",ch->maskedVal);
+      ImGui::Text("- irqv: %.2x",ch->irqv);
+      ImGui::Text("- curCR: %.8x",ch->curCR);
+      ImGui::Text("- initChanMax: %d",ch->initChanMax);
+      ImGui::Text("- chanMax: %d",ch->chanMax);
+      COMMON_CHIP_DEBUG_BOOL;
+      ImGui::TextColored(ch->isMasked?colorOn:colorOff,">> IsMasked");
+      ImGui::TextColored(ch->isReaded?colorOn:colorOff,">> isReaded");
+      ImGui::TextColored(ch->irqTrigger?colorOn:colorOff,">> IrqTrigger");
+      break;
+    }
+    case DIV_SYSTEM_K007232: {
+      DivPlatformK007232* ch=(DivPlatformK007232*)data;
+      ImGui::Text("> K007232");
+      COMMON_CHIP_DEBUG;
+      ImGui::Text("- delay: %.2x",ch->delay);
+      ImGui::Text("- lastLoop: %.2x",ch->lastLoop);
+      ImGui::Text("- lastVolume: %.2x",ch->lastVolume);
+      COMMON_CHIP_DEBUG_BOOL;
+      ImGui::TextColored(ch->stereo?colorOn:colorOff,">> Stereo");
+      break;
+    }
+    case DIV_SYSTEM_GA20: {
+      DivPlatformGA20* ch=(DivPlatformGA20*)data;
+      ImGui::Text("> GA20");
+      COMMON_CHIP_DEBUG;
+      ImGui::Text("- delay: %.2x",ch->delay);
+      COMMON_CHIP_DEBUG_BOOL;
+      break;
+    }
     default:
       ImGui::Text("Unimplemented chip! Help!");
       break;
@@ -574,21 +549,25 @@ void putDispatchChan(void* data, int chanNum, int type) {
       if (chanNum>8) {
         SMS_CHAN_DEBUG;
       } else if (chanNum>=2 && chanNum<=5) {
-        GENESIS_OPCHAN_DEBUG
+        DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data;
+        ImGui::Text("> YM2612 (per operator)");
+        OPNB_OPCHAN_DEBUG;
       } else {
         GENESIS_CHAN_DEBUG;
       }
       break;
     }
     case DIV_SYSTEM_YM2612:
-    case DIV_SYSTEM_YM2612_FRAC: {
+    case DIV_SYSTEM_YM2612_DUALPCM: {
       GENESIS_CHAN_DEBUG;
       break;
     }
     case DIV_SYSTEM_YM2612_EXT:
-    case DIV_SYSTEM_YM2612_FRAC_EXT: {
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT: {
       if (chanNum>=2 && chanNum<=5) {
-        GENESIS_OPCHAN_DEBUG
+        DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data;
+        ImGui::Text("> YM2612 (per operator)");
+        OPNB_OPCHAN_DEBUG;
       } else {
         GENESIS_CHAN_DEBUG;
       }
@@ -598,11 +577,11 @@ void putDispatchChan(void* data, int chanNum, int type) {
       SMS_CHAN_DEBUG;
       break;
     }
-    case DIV_SYSTEM_OPN: {
+    case DIV_SYSTEM_YM2203: {
       OPN_CHAN_DEBUG;
       break;
     }
-    case DIV_SYSTEM_OPN_EXT: {
+    case DIV_SYSTEM_YM2203_EXT: {
       if (chanNum>=2 && chanNum<=5) {
         OPN_OPCHAN_DEBUG;
       } else {
@@ -610,19 +589,19 @@ void putDispatchChan(void* data, int chanNum, int type) {
       }
       break;
     }
-    case DIV_SYSTEM_PC98: {
-      DivPlatformYM2608::Channel* ch=(DivPlatformYM2608::Channel*)data;
+    case DIV_SYSTEM_YM2608: {
+      DivPlatformOPN::OPNChannelStereo* ch=(DivPlatformOPN::OPNChannelStereo*)data;
       ImGui::Text("> YM2608");
       OPNB_CHAN_DEBUG;
       break;
     }
-    case DIV_SYSTEM_PC98_EXT: {
+    case DIV_SYSTEM_YM2608_EXT: {
       if (chanNum>=2 && chanNum<=5) {
-        DivPlatformYM2608Ext::OpChannel* ch=(DivPlatformYM2608Ext::OpChannel*)data;
+        DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data;
         ImGui::Text("> YM2608 (per operator)");
         OPNB_OPCHAN_DEBUG;
       } else {
-        DivPlatformYM2608Ext::Channel* ch=(DivPlatformYM2608Ext::Channel*)data;
+        DivPlatformOPN::OPNChannelStereo* ch=(DivPlatformOPN::OPNChannelStereo*)data;
         ImGui::Text("> YM2608");
         OPNB_CHAN_DEBUG;
       }
@@ -630,13 +609,13 @@ void putDispatchChan(void* data, int chanNum, int type) {
     }
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_FULL: {
-      DivPlatformYM2610::Channel* ch=(DivPlatformYM2610::Channel*)data;
+      DivPlatformOPN::OPNChannelStereo* ch=(DivPlatformOPN::OPNChannelStereo*)data;
       ImGui::Text("> YM2610");
       OPNB_CHAN_DEBUG;
       break;
     }
     case DIV_SYSTEM_YM2610B: {
-      DivPlatformYM2610B::Channel* ch=(DivPlatformYM2610B::Channel*)data;
+      DivPlatformOPN::OPNChannelStereo* ch=(DivPlatformOPN::OPNChannelStereo*)data;
       ImGui::Text("> YM2610B");
       OPNB_CHAN_DEBUG;
       break;
@@ -644,11 +623,11 @@ void putDispatchChan(void* data, int chanNum, int type) {
     case DIV_SYSTEM_YM2610_EXT:
     case DIV_SYSTEM_YM2610_FULL_EXT: {
       if (chanNum>=1 && chanNum<=4) {
-        DivPlatformYM2610Ext::OpChannel* ch=(DivPlatformYM2610Ext::OpChannel*)data;
+        DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data;
         ImGui::Text("> YM2610 (per operator)");
         OPNB_OPCHAN_DEBUG;
       } else {
-        DivPlatformYM2610Ext::Channel* ch=(DivPlatformYM2610Ext::Channel*)data;
+        DivPlatformOPN::OPNChannelStereo* ch=(DivPlatformOPN::OPNChannelStereo*)data;
         ImGui::Text("> YM2610");
         OPNB_CHAN_DEBUG;
       }
@@ -656,11 +635,11 @@ void putDispatchChan(void* data, int chanNum, int type) {
     }
     case DIV_SYSTEM_YM2610B_EXT: {
       if (chanNum>=2 && chanNum<=5) {
-        DivPlatformYM2610BExt::OpChannel* ch=(DivPlatformYM2610BExt::OpChannel*)data;
+        DivPlatformOPN::OPNOpChannelStereo* ch=(DivPlatformOPN::OPNOpChannelStereo*)data;
         ImGui::Text("> YM2610B (per operator)");
         OPNB_OPCHAN_DEBUG;
       } else {
-        DivPlatformYM2610BExt::Channel* ch=(DivPlatformYM2610BExt::Channel*)data;
+        DivPlatformOPN::OPNChannelStereo* ch=(DivPlatformOPN::OPNChannelStereo*)data;
         ImGui::Text("> YM2610B");
         OPNB_CHAN_DEBUG;
       }
@@ -669,52 +648,28 @@ void putDispatchChan(void* data, int chanNum, int type) {
     case DIV_SYSTEM_GB: {
       DivPlatformGB::Channel* ch=(DivPlatformGB::Channel*)data;
       ImGui::Text("> GameBoy");
-      ImGui::Text("* freq: %d",ch->freq);
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text(" - pitch2: %d",ch->pitch2);
-      ImGui::Text("- note: %d",ch->note);
-      ImGui::Text("- ins: %d",ch->ins);
+      COMMON_CHAN_DEBUG;
       ImGui::Text("- duty: %d",ch->duty);
       ImGui::Text("- sweep: %.2x",ch->sweep);
-      ImGui::Text("- vol: %.2x",ch->vol);
-      ImGui::Text("- outVol: %.2x",ch->outVol);
       ImGui::Text("- wave: %d",ch->wave);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
+      COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->sweepChanged?colorOn:colorOff,">> SweepChanged");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
-      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
       break;
     }
     case DIV_SYSTEM_PCE: {
       DivPlatformPCE::Channel* ch=(DivPlatformPCE::Channel*)data;
       ImGui::Text("> PCEngine");
-      ImGui::Text("* freq: %d",ch->freq);
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text(" - pitch2: %d",ch->pitch2);
-      ImGui::Text("- note: %d",ch->note);
+      COMMON_CHAN_DEBUG;
       ImGui::Text("* DAC:");
       ImGui::Text(" - period: %d",ch->dacPeriod);
       ImGui::Text(" - rate: %d",ch->dacRate);
       ImGui::Text(" - pos: %d",ch->dacPos);
       ImGui::Text(" - out: %d",ch->dacOut);
       ImGui::Text(" - sample: %d",ch->dacSample);
-      ImGui::Text("- ins: %d",ch->ins);
       ImGui::Text("- pan: %.2x",ch->pan);
-      ImGui::Text("- vol: %.2x",ch->vol);
-      ImGui::Text("- outVol: %.2x",ch->outVol);
       ImGui::Text("- wave: %d",ch->wave);
       ImGui::Text("- macroVolMul: %d",ch->macroVolMul);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
-      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+      COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->noise?colorOn:colorOff,">> Noise");
       ImGui::TextColored(ch->pcm?colorOn:colorOff,">> DAC");
       ImGui::TextColored(ch->furnaceDac?colorOn:colorOff,">> FurnaceDAC");
@@ -723,52 +678,27 @@ void putDispatchChan(void* data, int chanNum, int type) {
     case DIV_SYSTEM_NES: {
       DivPlatformNES::Channel* ch=(DivPlatformNES::Channel*)data;
       ImGui::Text("> NES");
-      ImGui::Text("* freq: %d",ch->freq);
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text(" - pitch2: %d",ch->pitch2);
+      COMMON_CHAN_DEBUG;
       ImGui::Text(" - prev: %d",ch->prevFreq);
-      ImGui::Text("- note: %d",ch->note);
-      ImGui::Text("- ins: %d",ch->ins);
       ImGui::Text("- duty: %d",ch->duty);
       ImGui::Text("- sweep: %.2x",ch->sweep);
-      ImGui::Text("- vol: %.2x",ch->vol);
-      ImGui::Text("- outVol: %.2x",ch->outVol);
-      ImGui::Text("- wave: %d",ch->wave);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
+      COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->sweepChanged?colorOn:colorOff,">> SweepChanged");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
-      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
       ImGui::TextColored(ch->furnaceDac?colorOn:colorOff,">> FurnaceDAC");
       break;
     }
     case DIV_SYSTEM_C64_6581: case DIV_SYSTEM_C64_8580: {
       DivPlatformC64::Channel* ch=(DivPlatformC64::Channel*)data;
       ImGui::Text("> C64");
-      ImGui::Text("* freq: %d",ch->freq);
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text(" - pitch2: %d",ch->pitch2);
-      ImGui::Text(" - prev: %d",ch->prevFreq);
+      COMMON_CHAN_DEBUG;
+      ImGui::Text("- prevFreq: %d",ch->prevFreq);
       ImGui::Text("- testWhen: %d",ch->testWhen);
-      ImGui::Text("- note: %d",ch->note);
-      ImGui::Text("- ins: %d",ch->ins);
       ImGui::Text("- duty: %d",ch->duty);
       ImGui::Text("- sweep: %.2x",ch->sweep);
       ImGui::Text("- wave: %.1x",ch->wave);
       ImGui::Text("- ADSR: %.1x %.1x %.1x %.1x",ch->attack,ch->decay,ch->sustain,ch->release);
-      ImGui::Text("- vol: %.2x",ch->vol);
-      ImGui::Text("- outVol: %.2x",ch->outVol);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
+      COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->sweepChanged?colorOn:colorOff,">> SweepChanged");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
-      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
       ImGui::TextColored(ch->filter?colorOn:colorOff,">> Filter");
       ImGui::TextColored(ch->resetMask?colorOn:colorOff,">> ResetMask");
       ImGui::TextColored(ch->resetFilter?colorOn:colorOff,">> ResetFilter");
@@ -782,68 +712,37 @@ void putDispatchChan(void* data, int chanNum, int type) {
       DivPlatformArcade::Channel* ch=(DivPlatformArcade::Channel*)data;
       ImGui::Text("> YM2151");
       ImGui::Text("- freqHL: %.2x%.2x",ch->freqH,ch->freqL);
-      ImGui::Text("* freq: %d",ch->freq);
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text(" - pitch2: %d",ch->pitch2);
-      ImGui::Text("- note: %d",ch->note);
-      ImGui::Text("- ins: %d",ch->ins);
+      COMMON_CHAN_DEBUG;
       ImGui::Text("- KOnCycles: %d",ch->konCycles);
-      ImGui::Text("- vol: %.2x",ch->vol);
-      ImGui::Text("- outVol: %.2x",ch->outVol);
       ImGui::Text("- chVolL: %.2x",ch->chVolL);
       ImGui::Text("- chVolR: %.2x",ch->chVolR);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
-      ImGui::TextColored(ch->portaPause?colorOn:colorOff,">> PortaPause");
-      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+      COMMON_CHAN_DEBUG_BOOL;
       break;
     }
     case DIV_SYSTEM_SEGAPCM:
     case DIV_SYSTEM_SEGAPCM_COMPAT: {
       DivPlatformSegaPCM::Channel* ch=(DivPlatformSegaPCM::Channel*)data;
       ImGui::Text("> SegaPCM");
-      ImGui::Text("* freq: %d",ch->freq);
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text(" - pitch2: %d",ch->pitch2);
-      ImGui::Text("- note: %d",ch->note);
-      ImGui::Text("- ins: %d",ch->ins);
+      COMMON_CHAN_DEBUG;
       ImGui::Text("* PCM:");
       ImGui::Text(" - sample: %d",ch->pcm.sample);
       ImGui::Text(" - pos: %d",ch->pcm.pos);
       ImGui::Text(" - len: %d",ch->pcm.len);
       ImGui::Text(" - freq: %d",ch->pcm.freq);
-      ImGui::Text("- vol: %.2x",ch->vol);
-      ImGui::Text("- outVol: %.2x",ch->outVol);
       ImGui::Text("- chVolL: %.2x",ch->chVolL);
       ImGui::Text("- chVolR: %.2x",ch->chVolR);
       ImGui::Text("- chPanL: %.2x",ch->chPanL);
       ImGui::Text("- chPanR: %.2x",ch->chPanR);
       ImGui::Text("- macroVolMul: %.2x",ch->macroVolMul);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
-      ImGui::TextColored(ch->portaPause?colorOn:colorOff,">> PortaPause");
+      COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->furnacePCM?colorOn:colorOff,">> FurnacePCM");
-      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
       ImGui::TextColored(ch->isNewSegaPCM?colorOn:colorOff,">> IsNewSegaPCM");
       break;
     }
     case DIV_SYSTEM_AY8910: {
       DivPlatformAY8910::Channel* ch=(DivPlatformAY8910::Channel*)data;
       ImGui::Text("> AY-3-8910");
-      ImGui::Text("* freq: %d",ch->freq);
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text(" - pitch2: %d",ch->pitch2);
-      ImGui::Text("- note: %d",ch->note);
-      ImGui::Text("- ins: %d",ch->ins);
+      COMMON_CHAN_DEBUG;
       ImGui::Text("* psgMode:");
       ImGui::Text(" * curr:");
       ImGui::Text("  - tone: %d",ch->curPSGMode.tone);
@@ -863,27 +762,14 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text(" - out: %d",ch->dac.out);
       ImGui::Text("- autoEnvNum: %.2x",ch->autoEnvNum);
       ImGui::Text("- autoEnvDen: %.2x",ch->autoEnvDen);
-      ImGui::Text("- vol: %.2x",ch->vol);
-      ImGui::Text("- outVol: %.2x",ch->outVol);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
-      ImGui::TextColored(ch->portaPause?colorOn:colorOff,">> PortaPause");
-      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+      COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->dac.furnaceDAC?colorOn:colorOff,">> furnaceDAC");
       break;
     }
     case DIV_SYSTEM_AY8930: {
       DivPlatformAY8930::Channel* ch=(DivPlatformAY8930::Channel*)data;
       ImGui::Text("> AY8930");
-      ImGui::Text("* freq: %d",ch->freq);
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text(" - pitch2: %d",ch->pitch2);
-      ImGui::Text("- note: %d",ch->note);
-      ImGui::Text("- ins: %d",ch->ins);
+      COMMON_CHAN_DEBUG;
       ImGui::Text("- duty: %d",ch->duty);
       ImGui::Text("* envelope:");
       ImGui::Text(" - mode: %d",ch->envelope.mode);
@@ -909,39 +795,19 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text(" - out: %d",ch->dac.out);
       ImGui::Text("- autoEnvNum: %.2x",ch->autoEnvNum);
       ImGui::Text("- autoEnvDen: %.2x",ch->autoEnvDen);
-      ImGui::Text("- vol: %.2x",ch->vol);
-      ImGui::Text("- outVol: %.2x",ch->outVol);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
-      ImGui::TextColored(ch->portaPause?colorOn:colorOff,">> PortaPause");
-      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+      COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->dac.furnaceDAC?colorOn:colorOff,">> furnaceDAC");
       break;
     }
     case DIV_SYSTEM_QSOUND: {
       DivPlatformQSound::Channel* ch=(DivPlatformQSound::Channel*)data;
       ImGui::Text("> QSound");
-      ImGui::Text("* freq: %d",ch->freq);
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text(" - pitch2: %d",ch->pitch2);
-      ImGui::Text("- note: %d",ch->note);
-      ImGui::Text("- ins: %d",ch->ins);
+      COMMON_CHAN_DEBUG;
       ImGui::Text("- sample: %d",ch->sample);
       ImGui::Text("- echo: %d",ch->echo);
       ImGui::Text("- panning: %d",ch->panning);
-      ImGui::Text("- vol: %.2x",ch->vol);
-      ImGui::Text("- outVol: %.2x",ch->outVol);
       ImGui::Text("- resVol: %.2x",ch->resVol);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
-      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+      COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->useWave?colorOn:colorOff,">> UseWave");
       ImGui::TextColored(ch->surround?colorOn:colorOff,">> Surround");
       ImGui::TextColored(ch->isNewQSound?colorOn:colorOff,">> IsNewQSound");
@@ -950,14 +816,9 @@ void putDispatchChan(void* data, int chanNum, int type) {
     case DIV_SYSTEM_X1_010: {
       DivPlatformX1_010::Channel* ch=(DivPlatformX1_010::Channel*)data;
       ImGui::Text("> X1-010");
-      ImGui::Text("* freq: %.4x",ch->freq);
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text(" - pitch2: %d",ch->pitch2);
-      ImGui::Text("- note: %d",ch->note);
+      COMMON_CHAN_DEBUG;
       ImGui::Text("- wave: %d",ch->wave);
       ImGui::Text("- sample: %d",ch->sample);
-      ImGui::Text("- ins: %d",ch->ins);
       ImGui::Text("- pan: %d",ch->pan);
       ImGui::Text("* envelope:");
       ImGui::Text(" - shape: %d",ch->env.shape);
@@ -968,17 +829,10 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text(" - autoEnvDen: %.2x",ch->autoEnvDen);
       ImGui::Text("- WaveBank: %d",ch->waveBank);
       ImGui::Text("- bankSlot: %d",ch->bankSlot);
-      ImGui::Text("- vol: %.2x",ch->vol);
-      ImGui::Text("- outVol: %.2x",ch->outVol);
       ImGui::Text("- Lvol: %.2x",ch->lvol);
       ImGui::Text("- Rvol: %.2x",ch->rvol);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
+      COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->envChanged?colorOn:colorOff,">> EnvChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
-      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
       ImGui::TextColored(ch->furnacePCM?colorOn:colorOff,">> FurnacePCM");
       ImGui::TextColored(ch->pcm?colorOn:colorOff,">> PCM");
       ImGui::TextColored(ch->env.flag.envEnable?colorOn:colorOff,">> EnvEnable");
@@ -993,11 +847,7 @@ void putDispatchChan(void* data, int chanNum, int type) {
     case DIV_SYSTEM_N163: {
       DivPlatformN163::Channel* ch=(DivPlatformN163::Channel*)data;
       ImGui::Text("> N163");
-      ImGui::Text("* freq: %.4x",ch->freq);
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text(" - pitch2: %d",ch->pitch2);
-      ImGui::Text("- note: %d",ch->note);
+      COMMON_CHAN_DEBUG;
       ImGui::Text("- wave: %d",ch->wave);
       ImGui::Text("- wavepos: %d",ch->wavePos);
       ImGui::Text("- wavelen: %d",ch->waveLen);
@@ -1006,92 +856,149 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("- loadpos: %d",ch->loadPos);
       ImGui::Text("- loadlen: %d",ch->loadLen);
       ImGui::Text("- loadmode: %d",ch->loadMode);
-      ImGui::Text("- ins: %d",ch->ins);
-      ImGui::Text("- vol: %.2x",ch->vol);
-      ImGui::Text("- outVol: %.2x",ch->outVol);
       ImGui::Text("- resVol: %.2x",ch->resVol);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
+      COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->volumeChanged?colorOn:colorOff,">> VolumeChanged");
       ImGui::TextColored(ch->waveChanged?colorOn:colorOff,">> WaveChanged");
       ImGui::TextColored(ch->waveUpdated?colorOn:colorOff,">> WaveUpdated");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
-      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
       break;
     }
     case DIV_SYSTEM_VRC6: {
       DivPlatformVRC6::Channel* ch=(DivPlatformVRC6::Channel*)data;
       ImGui::Text("> VRC6");
-      ImGui::Text("* freq: %d",ch->freq);
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text(" - pitch2: %d",ch->pitch2);
-      ImGui::Text("- note: %d",ch->note);
+      COMMON_CHAN_DEBUG;
       ImGui::Text("* DAC:");
       ImGui::Text(" - period: %d",ch->dacPeriod);
       ImGui::Text(" - rate: %d",ch->dacRate);
       ImGui::Text(" - out: %d",ch->dacOut);
       ImGui::Text(" - pos: %d",ch->dacPos);
       ImGui::Text(" - sample: %d",ch->dacSample);
-      ImGui::Text("- ins: %d",ch->ins);
       ImGui::Text("- duty: %d",ch->duty);
-      ImGui::Text("- vol: %.2x",ch->vol);
-      ImGui::Text("- outVol: %.2x",ch->outVol);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
-      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+      COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->pcm?colorOn:colorOff,">> DAC");
       ImGui::TextColored(ch->furnaceDac?colorOn:colorOff,">> FurnaceDAC");
+      break;
+    }
+    case DIV_SYSTEM_ES5506: {
+      DivPlatformES5506::Channel* ch=(DivPlatformES5506::Channel*)data;
+      ImGui::Text("> ES5506");
+      COMMON_CHAN_DEBUG;
+      ImGui::Text("- nextFreq: %d",ch->nextFreq);
+      ImGui::Text("- nextNote: %d",ch->nextNote);
+      ImGui::Text("- currNote: %d",ch->currNote);
+      ImGui::Text("- wave: %d",ch->wave);
+      ImGui::Text("- VolMacroMax: %d",ch->volMacroMax);
+      ImGui::Text("- PanMacroMax: %d",ch->panMacroMax);
+      ImGui::Text("* PCM:");
+      ImGui::Text(" * index: %d",ch->pcm.index);
+      ImGui::Text("  - next: %d",ch->pcm.next);
+      ImGui::Text(" - note: %d",ch->pcm.note);
+      ImGui::Text(" * freqOffs: %.6f",ch->pcm.freqOffs);
+      ImGui::Text("  - next: %.6f",ch->pcm.nextFreqOffs);
+      ImGui::Text(" - bank: %.2x",ch->pcm.bank);
+      ImGui::Text(" - start: %.8x",ch->pcm.start);
+      ImGui::Text(" - end: %.8x",ch->pcm.end);
+      ImGui::Text(" - length: %.8x",ch->pcm.length);
+      ImGui::Text(" - loopStart: %.8x",ch->pcm.loopStart);
+      ImGui::Text(" - loopEnd: %.8x",ch->pcm.loopEnd);
+      ImGui::Text(" - loopMode: %d",ch->pcm.loopMode);
+      ImGui::Text(" - nextPos: %d",ch->pcm.nextPos);
+      ImGui::Text("* Filter:");
+      ImGui::Text(" - Mode: %d",ch->filter.mode);
+      ImGui::Text(" - K1: %.4x",ch->filter.k1);
+      ImGui::Text(" - K2: %.4x",ch->filter.k2);
+      ImGui::Text("* Envelope:");
+      ImGui::Text(" - EnvCount: %.3x",ch->envelope.ecount);
+      ImGui::Text(" - LVRamp: %d",ch->envelope.lVRamp);
+      ImGui::Text(" - RVRamp: %d",ch->envelope.rVRamp);
+      ImGui::Text(" - K1Ramp: %d",ch->envelope.k1Ramp);
+      ImGui::Text(" - K2Ramp: %d",ch->envelope.k2Ramp);
+      ImGui::Text(" - K1Offs: %d",ch->k1Offs);
+      ImGui::Text(" - K2Offs: %d",ch->k2Offs);
+      ImGui::Text(" - K1Slide: %d",ch->k1Slide);
+      ImGui::Text(" - K2Slide: %d",ch->k2Slide);
+      ImGui::Text(" - K1Prev: %.4x",ch->k1Prev);
+      ImGui::Text(" - K2Prev: %.4x",ch->k2Prev);
+      ImGui::Text("* Overwrite:");
+      ImGui::Text(" * Filter:");
+      ImGui::Text("  - Mode: %d",ch->overwrite.filter.mode);
+      ImGui::Text("  - K1: %.4x",ch->overwrite.filter.k1);
+      ImGui::Text("  - K2: %.4x",ch->overwrite.filter.k2);
+      ImGui::Text(" * Envelope:");
+      ImGui::Text("  - EnvCount: %.3x",ch->overwrite.envelope.ecount);
+      ImGui::Text("  - LVRamp: %d",ch->overwrite.envelope.lVRamp);
+      ImGui::Text("  - RVRamp: %d",ch->overwrite.envelope.rVRamp);
+      ImGui::Text("  - K1Ramp: %d",ch->overwrite.envelope.k1Ramp);
+      ImGui::Text("  - K2Ramp: %d",ch->overwrite.envelope.k2Ramp);
+      ImGui::Text("- CA: %.2x",ch->ca);
+      ImGui::Text("- LVol: %.2x",ch->lVol);
+      ImGui::Text("- RVol: %.2x",ch->rVol);
+      ImGui::Text("- outLVol: %.2x",ch->outLVol);
+      ImGui::Text("- outRVol: %.2x",ch->outRVol);
+      ImGui::Text("- ResLVol: %.2x",ch->resLVol);
+      ImGui::Text("- ResRVol: %.2x",ch->resRVol);
+      ImGui::Text("- oscOut: %d",ch->oscOut);
+      COMMON_CHAN_DEBUG_BOOL;
+      ImGui::TextColored(ch->volChanged.lVol?colorOn:colorOff,">> LVolChanged");
+      ImGui::TextColored(ch->volChanged.rVol?colorOn:colorOff,">> RVolChanged");
+      ImGui::TextColored(ch->filterChanged.mode?colorOn:colorOff,">> FilterModeChanged");
+      ImGui::TextColored(ch->filterChanged.k1?colorOn:colorOff,">> FilterK1Changed");
+      ImGui::TextColored(ch->filterChanged.k2?colorOn:colorOff,">> FilterK2Changed");
+      ImGui::TextColored(ch->envChanged.ecount?colorOn:colorOff,">> EnvECountChanged");
+      ImGui::TextColored(ch->envChanged.lVRamp?colorOn:colorOff,">> EnvLVRampChanged");
+      ImGui::TextColored(ch->envChanged.rVRamp?colorOn:colorOff,">> EnvRVRampChanged");
+      ImGui::TextColored(ch->envChanged.k1Ramp?colorOn:colorOff,">> EnvK1RampChanged");
+      ImGui::TextColored(ch->envChanged.k2Ramp?colorOn:colorOff,">> EnvK2RampChanged");
+      ImGui::TextColored(ch->pcmChanged.index?colorOn:colorOff,">> PCMIndexChanged");
+      ImGui::TextColored(ch->pcmChanged.slice?colorOn:colorOff,">> PCMSliceChanged");
+      ImGui::TextColored(ch->pcmChanged.position?colorOn:colorOff,">> PCMPositionChanged");
+      ImGui::TextColored(ch->pcmChanged.loopBank?colorOn:colorOff,">> PCMLoopBankChanged");
+      ImGui::TextColored(ch->isReverseLoop?colorOn:colorOff,">> IsReverseLoop");
+      ImGui::TextColored(ch->pcm.isNoteMap?colorOn:colorOff,">> PCMIsNoteMap");
+      ImGui::TextColored(ch->pcm.pause?colorOn:colorOff,">> PCMPause");
+      ImGui::TextColored(ch->pcm.direction?colorOn:colorOff,">> PCMDirection");
+      ImGui::TextColored(ch->pcm.setPos?colorOn:colorOff,">> PCMSetPos");
+      ImGui::TextColored(ch->envelope.k1Slow?colorOn:colorOff,">> EnvK1Slow");
+      ImGui::TextColored(ch->envelope.k2Slow?colorOn:colorOff,">> EnvK2Slow");
+      ImGui::TextColored(ch->overwrite.envelope.k1Slow?colorOn:colorOff,">> EnvK1SlowOverwrite");
+      ImGui::TextColored(ch->overwrite.envelope.k2Slow?colorOn:colorOff,">> EnvK2SlowOverwrite");
+      ImGui::TextColored(ch->overwrite.state.mode?colorOn:colorOff,">> FilterModeOverwrited");
+      ImGui::TextColored(ch->overwrite.state.k1?colorOn:colorOff,">> FilterK1Overwrited");
+      ImGui::TextColored(ch->overwrite.state.k2?colorOn:colorOff,">> FilterK2Overwrited");
+      ImGui::TextColored(ch->overwrite.state.ecount?colorOn:colorOff,">> EnvECountOverwrited");
+      ImGui::TextColored(ch->overwrite.state.lVRamp?colorOn:colorOff,">> EnvLVRampOverwrited");
+      ImGui::TextColored(ch->overwrite.state.rVRamp?colorOn:colorOff,">> EnvRVRampOverwrited");
+      ImGui::TextColored(ch->overwrite.state.k1Ramp?colorOn:colorOff,">> EnvK1RampOverwrited");
+      ImGui::TextColored(ch->overwrite.state.k2Ramp?colorOn:colorOff,">> EnvK2RampOverwrited");
       break;
     }
     case DIV_SYSTEM_LYNX: {
       DivPlatformLynx::Channel* ch=(DivPlatformLynx::Channel*)data;
       ImGui::Text("> Lynx");
-      ImGui::Text("* freq:");
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text(" - pitch2: %d",ch->pitch2);
+      COMMON_CHAN_DEBUG;
       ImGui::Text("* FreqDiv:");
       ImGui::Text(" - clockDivider: %d",ch->fd.clockDivider);
       ImGui::Text(" - backup: %d",ch->fd.backup);
-      ImGui::Text("* note: %d",ch->note);
-      ImGui::Text(" - actualNote: %d",ch->actualNote);
+      ImGui::Text("- actualNote: %d",ch->actualNote);
       ImGui::Text("* Sample:");
       ImGui::Text(" - sample: %d",ch->sample);
       ImGui::Text(" - pos: %d",ch->samplePos);
       ImGui::Text(" - accum: %d",ch->sampleAccum);
       ImGui::Text(" * freq: %d",ch->sampleFreq);
       ImGui::Text("  - base: %d",ch->sampleBaseFreq);
-      ImGui::Text("- ins: %d",ch->ins);
       ImGui::Text("* duty:");
       ImGui::Text(" - int_feedback7: %d",ch->duty.int_feedback7);
       ImGui::Text(" - feedback: %d",ch->duty.feedback);
       ImGui::Text("- pan: %.2x",ch->pan);
-      ImGui::Text("- vol: %.2x",ch->vol);
-      ImGui::Text("- outVol: %.2x",ch->outVol);
       ImGui::Text("- macroVolMul: %.2x",ch->macroVolMul);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
-      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+      COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->pcm?colorOn:colorOff,">> DAC");
       break;
     }
     case DIV_SYSTEM_PCM_DAC: {
       DivPlatformPCMDAC::Channel* ch=(DivPlatformPCMDAC::Channel*)data;
       ImGui::Text("> PCM DAC");
-      ImGui::Text("* freq:");
-      ImGui::Text(" - base: %d",ch->baseFreq);
-      ImGui::Text(" - pitch: %d",ch->pitch);
-      ImGui::Text(" - pitch2: %d",ch->pitch2);
-      ImGui::Text("* note: %d",ch->note);
+      COMMON_CHAN_DEBUG;
       ImGui::Text("* Sample: %d",ch->sample);
       ImGui::Text(" - dir: %d",ch->audDir);
       ImGui::Text(" - loc: %d",ch->audLoc);
@@ -1099,18 +1006,44 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text(" * pos: %d",ch->audPos);
       ImGui::Text("  - sub: %d",ch->audSub);
       ImGui::Text("- wave: %d",ch->wave);
-      ImGui::Text("- ins: %d",ch->ins);
       ImGui::Text("- panL: %.2x",ch->panL);
       ImGui::Text("- panR: %.2x",ch->panR);
-      ImGui::Text("- vol: %.2x",ch->vol);
       ImGui::Text("- envVol: %.2x",ch->envVol);
-      ImGui::TextColored(ch->active?colorOn:colorOff,">> Active");
-      ImGui::TextColored(ch->insChanged?colorOn:colorOff,">> InsChanged");
-      ImGui::TextColored(ch->freqChanged?colorOn:colorOff,">> FreqChanged");
-      ImGui::TextColored(ch->keyOn?colorOn:colorOff,">> KeyOn");
-      ImGui::TextColored(ch->keyOff?colorOn:colorOff,">> KeyOff");
-      ImGui::TextColored(ch->inPorta?colorOn:colorOff,">> InPorta");
+      COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->useWave?colorOn:colorOff,">> UseWave");
+      ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
+      break;
+    }
+    case DIV_SYSTEM_K007232: {
+      DivPlatformK007232::Channel* ch=(DivPlatformK007232::Channel*)data;
+      ImGui::Text("> K007232");
+      COMMON_CHAN_DEBUG;
+      ImGui::Text("- prevFreq: %d",ch->prevFreq);
+      ImGui::Text("* Sample: %d",ch->sample);
+      ImGui::Text(" - pos: %d",ch->audPos);
+      ImGui::Text(" - prevBank: %d",ch->prevBank);
+      ImGui::Text("* panning: %d",ch->panning);
+      ImGui::Text(" - prev: %d",ch->prevPan);
+      ImGui::Text("- resVol: %.2x",ch->resVol);
+      ImGui::Text("- lvol: %.2x",ch->lvol);
+      ImGui::Text("- rvol: %.2x",ch->rvol);
+      ImGui::Text("- macroVolMul: %.2x",ch->macroVolMul);
+      COMMON_CHAN_DEBUG_BOOL;
+      ImGui::TextColored(ch->volumeChanged?colorOn:colorOff,">> VolumeChanged");
+      ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
+      break;
+    }
+    case DIV_SYSTEM_GA20: {
+      DivPlatformGA20::Channel* ch=(DivPlatformGA20::Channel*)data;
+      ImGui::Text("> GA20");
+      COMMON_CHAN_DEBUG;
+      ImGui::Text("- prevFreq: %d",ch->prevFreq);
+      ImGui::Text("* Sample: %d",ch->sample);
+      ImGui::Text(" - pos: %d",ch->audPos);
+      ImGui::Text("- resVol: %.2x",ch->resVol);
+      ImGui::Text("- macroVolMul: %.2x",ch->macroVolMul);
+      COMMON_CHAN_DEBUG_BOOL;
+      ImGui::TextColored(ch->volumeChanged?colorOn:colorOff,">> VolumeChanged");
       ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
       break;
     }

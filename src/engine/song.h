@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,8 +22,7 @@
 #include <stdio.h>
 #include <vector>
 
-#define DIV_MAX_CHANS 128
-
+#include "defines.h"
 #include "../ta-utils.h"
 #include "config.h"
 #include "orders.h"
@@ -65,10 +64,10 @@ enum DivSystem {
   DIV_SYSTEM_FDS,
   DIV_SYSTEM_MMC5,
   DIV_SYSTEM_N163,
-  DIV_SYSTEM_OPN,
-  DIV_SYSTEM_OPN_EXT,
-  DIV_SYSTEM_PC98,
-  DIV_SYSTEM_PC98_EXT,
+  DIV_SYSTEM_YM2203,
+  DIV_SYSTEM_YM2203_EXT,
+  DIV_SYSTEM_YM2608,
+  DIV_SYSTEM_YM2608_EXT,
   DIV_SYSTEM_OPL,
   DIV_SYSTEM_OPL2,
   DIV_SYSTEM_OPL3,
@@ -112,19 +111,37 @@ enum DivSystem {
   DIV_SYSTEM_NAMCO,
   DIV_SYSTEM_NAMCO_15XX,
   DIV_SYSTEM_NAMCO_CUS30,
-  DIV_SYSTEM_YM2612_FRAC,
-  DIV_SYSTEM_YM2612_FRAC_EXT,
+  DIV_SYSTEM_YM2612_DUALPCM,
+  DIV_SYSTEM_YM2612_DUALPCM_EXT,
   DIV_SYSTEM_MSM5232,
   DIV_SYSTEM_T6W28,
+  DIV_SYSTEM_K007232,
+  DIV_SYSTEM_GA20,
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_PONG,
-  DIV_SYSTEM_DUMMY
+  DIV_SYSTEM_DUMMY,
+  DIV_SYSTEM_YM2612_CSM,
+  DIV_SYSTEM_YM2610_CSM,
+  DIV_SYSTEM_YM2610B_CSM,
+  DIV_SYSTEM_YM2203_CSM,
+  DIV_SYSTEM_YM2608_CSM,
+  DIV_SYSTEM_SM8521
+};
+
+struct DivGroovePattern {
+  unsigned char val[16];
+  unsigned char len;
+  DivGroovePattern():
+    len(1) {
+      memset(val,6,16);
+    }
 };
 
 struct DivSubSong {
   String name, notes;
   unsigned char hilightA, hilightB;
-  unsigned char timeBase, speed1, speed2, arpLen;
+  unsigned char timeBase, arpLen;
+  DivGroovePattern speeds;
   short virtualTempoN, virtualTempoD;
   bool pal;
   bool customTempo;
@@ -147,8 +164,6 @@ struct DivSubSong {
     hilightA(4),
     hilightB(16),
     timeBase(0),
-    speed1(6),
-    speed2(6),
     arpLen(1),
     virtualTempoN(150),
     virtualTempoD(150),
@@ -230,11 +245,12 @@ struct DivSong {
   bool isDMF;
 
   // system
-  DivSystem system[32];
+  DivSystem system[DIV_MAX_CHIPS];
   unsigned char systemLen;
-  signed char systemVol[32];
-  signed char systemPan[32];
-  DivConfig systemFlags[32];
+  float systemVol[DIV_MAX_CHIPS];
+  float systemPan[DIV_MAX_CHIPS];
+  float systemPanFR[DIV_MAX_CHIPS];
+  DivConfig systemFlags[DIV_MAX_CHIPS];
 
   // song information
   String name, author, systemName;
@@ -321,12 +337,17 @@ struct DivSong {
   bool snNoLowPeriods;
   bool disableSampleMacro;
   bool autoSystem;
+  bool oldArpStrategy;
+  bool patchbayAuto;
+  bool brokenPortaLegato;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
   std::vector<DivSample*> sample;
 
   std::vector<DivSubSong*> subsong;
+  std::vector<unsigned int> patchbay;
+  std::vector<DivGroovePattern> grooves;
 
   DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsOPLDrums, nullInsQSound;
   DivWavetable nullWave;
@@ -427,11 +448,15 @@ struct DivSong {
     brokenPortaArp(false),
     snNoLowPeriods(false),
     disableSampleMacro(false),
-    autoSystem(true) {
-    for (int i=0; i<32; i++) {
+    autoSystem(true),
+    oldArpStrategy(false),
+    patchbayAuto(true),
+    brokenPortaLegato(false) {
+    for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
-      systemVol[i]=64;
-      systemPan[i]=0;
+      systemVol[i]=1.0;
+      systemPan[i]=0.0;
+      systemPanFR[i]=0.0;
     }
     subsong.push_back(new DivSubSong);
     system[0]=DIV_SYSTEM_YM2612;

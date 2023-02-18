@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,6 +30,14 @@ void FurnaceGUI::drawSysManager() {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!sysManagerOpen) return;
+  if (mobileUI) {
+    patWindowPos=(portrait?ImVec2(0.0f,(mobileMenuPos*-0.65*canvasH)):ImVec2((0.16*canvasH)+0.5*canvasW*mobileMenuPos,0.0f));
+    patWindowSize=(portrait?ImVec2(canvasW,canvasH-(0.16*canvasW)):ImVec2(canvasW-(0.16*canvasH),canvasH));
+    ImGui::SetNextWindowPos(patWindowPos);
+    ImGui::SetNextWindowSize(patWindowSize);
+  } else {
+    //ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
+  }
   if (ImGui::Begin("Chip Manager",&sysManagerOpen,globalWinFlags)) {
     ImGui::Checkbox("Preserve channel order",&preserveChanPos);
     if (ImGui::BeginTable("SystemList",3)) {
@@ -104,7 +112,7 @@ void FurnaceGUI::drawSysManager() {
         ImGui::EndDisabled();
         ImGui::PopID();
       }
-      if (e->song.systemLen<32) {
+      if (e->song.systemLen<DIV_MAX_CHIPS) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
         ImGui::TableNextColumn();

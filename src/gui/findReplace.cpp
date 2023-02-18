@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -117,11 +117,14 @@ void FurnaceGUI::doFind() {
 
   curQueryResults.clear();
 
+  signed char effectPos[8];
+
   for (int i=firstOrder; i<=lastOrder; i++) {
     for (int j=firstRow; j<=lastRow; j++) {
       for (int k=firstChan; k<=lastChan; k++) {
         DivPattern* p=e->curPat[k].getPattern(e->curOrders->ord[k][i],false);
         bool matched=false;
+        memset(effectPos,-1,8);
         for (FurnaceGUIFindQuery& l: curQuery) {
           if (matched) break;
 
@@ -139,6 +142,7 @@ void FurnaceGUI::doFind() {
                     if (!checkCondition(l.effectMode[m],l.effect[m],l.effectMax[m],p->data[j][4+n*2])) continue;
                     if (!checkCondition(l.effectValMode[m],l.effectVal[m],l.effectValMax[m],p->data[j][5+n*2])) continue;
                     allGood=true;
+                    effectPos[m]=n;
                     break;
                   }
                   if (!allGood) {
@@ -175,6 +179,7 @@ void FurnaceGUI::doFind() {
                     notMatched=true;
                     break;
                   }
+                  effectPos[m]=m+posOfFirst;
                 }
                 break;
               }
@@ -192,6 +197,7 @@ void FurnaceGUI::doFind() {
                       notMatched=true;
                       break;
                     }
+                    effectPos[m]=m;
                   }
                 }
                 break;
@@ -202,7 +208,7 @@ void FurnaceGUI::doFind() {
           matched=true;
         }
         if (matched) {
-          curQueryResults.push_back(FurnaceGUIQueryResult(e->getCurrentSubSong(),i,k,j));
+          curQueryResults.push_back(FurnaceGUIQueryResult(e->getCurrentSubSong(),i,k,j,effectPos));
         }
       }
     }
@@ -220,20 +226,20 @@ void FurnaceGUI::doReplace() {
   UndoStep us;
   us.type=GUI_UNDO_REPLACE;
 
-  short prevVal[32];
-  memset(prevVal,0,32*sizeof(short));
+  short prevVal[DIV_MAX_COLS];
+  memset(prevVal,0,DIV_MAX_COLS*sizeof(short));
 
   for (FurnaceGUIQueryResult& i: curQueryResults) {
     int patIndex=e->song.subsong[i.subsong]->orders.ord[i.x][i.order];
     DivPattern* p=e->song.subsong[i.subsong]->pat[i.x].getPattern(patIndex,true);
     if (touched[i.x]==NULL) {
-      touched[i.x]=new bool[256*256];
-      memset(touched[i.x],0,256*256*sizeof(bool));
+      touched[i.x]=new bool[DIV_MAX_PATTERNS*DIV_MAX_ROWS];
+      memset(touched[i.x],0,DIV_MAX_PATTERNS*DIV_MAX_ROWS*sizeof(bool));
     }
     if (touched[i.x][(patIndex<<8)|i.y]) continue;
     touched[i.x][(patIndex<<8)|i.y]=true;
 
-    memcpy(prevVal,p->data[i.y],32*sizeof(short));
+    memcpy(prevVal,p->data[i.y],DIV_MAX_COLS*sizeof(short));
 
     if (queryReplaceNoteDo) {
       switch (queryReplaceNoteMode) {
@@ -369,6 +375,9 @@ void FurnaceGUI::doReplace() {
         break;
       case 1: { // replace matches
         int placementIndex=0;
+        for (int j=0; j<8 && placementIndex<8 && i.effectPos[j]>=0; j++) {
+          effectOrder[placementIndex++]=i.effectPos[j];
+        }
         for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols; j++) {
           if (p->data[i.y][4+j*2]!=-1 || p->data[i.y][5+j*2]!=-1) {
             effectOrder[placementIndex++]=j;
@@ -378,6 +387,9 @@ void FurnaceGUI::doReplace() {
       }
       case 2: { // replace matches then free spaces
         int placementIndex=0;
+        for (int j=0; j<8 && placementIndex<8 && i.effectPos[j]>=0; j++) {
+          effectOrder[placementIndex++]=i.effectPos[j];
+        }
         for (int j=0; j<e->song.subsong[i.subsong]->pat[i.x].effectCols; j++) {
           if (p->data[i.y][4+j*2]!=-1 || p->data[i.y][5+j*2]!=-1) {
             effectOrder[placementIndex++]=j;
@@ -462,7 +474,7 @@ void FurnaceGUI::doReplace() {
     }
 
     // issue undo step
-    for (int j=0; j<32; j++) {
+    for (int j=0; j<DIV_MAX_COLS; j++) {
       if (p->data[i.y][j]!=prevVal[j]) {
         us.pat.push_back(UndoPatternData(i.subsong,i.x,patIndex,i.y,j,prevVal[j],p->data[i.y][j]));
       }
@@ -1094,14 +1106,14 @@ void FurnaceGUI::drawFindReplace() {
           ImGui::EndTable();
         }
         ImGui::Text("Effect replace mode:");
-        if (ImGui::RadioButton("Clear effects",queryReplaceEffectPos==0)) {
-          queryReplaceEffectPos=0;
-        }
         if (ImGui::RadioButton("Replace matches only",queryReplaceEffectPos==1)) {
           queryReplaceEffectPos=1;
         }
         if (ImGui::RadioButton("Replace matches, then free spaces",queryReplaceEffectPos==2)) {
           queryReplaceEffectPos=2;
+        }
+        if (ImGui::RadioButton("Clear effects",queryReplaceEffectPos==0)) {
+          queryReplaceEffectPos=0;
         }
         if (ImGui::RadioButton("Insert in free spaces",queryReplaceEffectPos==3)) {
           queryReplaceEffectPos=3;

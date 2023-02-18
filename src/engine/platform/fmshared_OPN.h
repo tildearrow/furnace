@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #define _FMSHARED_OPN_H
 
 #include "fmsharedbase.h"
+#include "../../../extern/opn/ym3438.h"
 
 #define PLEASE_HELP_ME(_targetChan) \
   int boundaryBottom=parent->calcBaseFreq(chipClock,CHIP_FREQBASE,0,false); \
@@ -83,6 +84,8 @@
     return 2; \
   }
 
+#define IS_EXTCH_MUTED (isOpMuted[0] && isOpMuted[1] && isOpMuted[2] && isOpMuted[3])
+
 class DivPlatformOPN: public DivPlatformFMBase {
   protected:
     const unsigned short ADDR_MULT_DT=0x30;
@@ -101,20 +104,85 @@ class DivPlatformOPN: public DivPlatformFMBase {
       0x00, 0x04, 0x08, 0x0c
     };
 
+    struct OPNChannel: public FMChannel {
+      unsigned char psgMode, autoEnvNum, autoEnvDen;
+      bool furnacePCM;
+      int sample, macroVolMul;
+
+      OPNChannel():
+        FMChannel(),
+        psgMode(1),
+        autoEnvNum(0),
+        autoEnvDen(0),
+        furnacePCM(false),
+        sample(-1),
+        macroVolMul(255) {}
+    };
+
+    struct OPNChannelStereo: public OPNChannel {
+      unsigned char pan;
+      OPNChannelStereo():
+        OPNChannel(),
+        pan(3) {}
+    };
+
+    struct OPNOpChannel: public SharedChannel<int> {
+      unsigned char freqH, freqL;
+      int portaPauseFreq;
+      signed char konCycles;
+      bool mask;
+      OPNOpChannel():
+        SharedChannel<int>(0),
+        freqH(0),
+        freqL(0),
+        portaPauseFreq(0),
+        konCycles(0),
+        mask(true) {}
+    };
+
+    struct OPNOpChannelStereo: public OPNOpChannel {
+    unsigned char pan;
+      OPNOpChannelStereo():
+        OPNOpChannel(),
+        pan(3) {}
+    };
+
+    const int extChanOffs, psgChanOffs, adpcmAChanOffs, adpcmBChanOffs, chanNum;
+
     double fmFreqBase;
     unsigned int fmDivBase;
     unsigned int ayDiv;
-    bool extSys;
+    unsigned char csmChan;
+    unsigned char lfoValue;
+    unsigned short ssgVol;
+    unsigned short fmVol;
+    bool extSys, useCombo, fbAllOps;
 
     DivConfig ayFlags;
 
-    DivPlatformOPN(double f=9440540.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false):
+    friend void putDispatchChip(void*,int);
+    friend void putDispatchChan(void*,int,int);
+    DivPlatformOPN(int ext, int psg, int adpcmA, int adpcmB, int chanCount, double f=9440540.0, unsigned int d=72, unsigned int a=32, bool isExtSys=false, unsigned char cc=255):
       DivPlatformFMBase(),
+      extChanOffs(ext),
+      psgChanOffs(psg),
+      adpcmAChanOffs(adpcmA),
+      adpcmBChanOffs(adpcmB),
+      chanNum(chanCount),
       fmFreqBase(f),
       fmDivBase(d),
       ayDiv(a),
-      extSys(isExtSys) {}
-
+      csmChan(cc),
+      lfoValue(0),
+      ssgVol(128),
+      fmVol(256),
+      extSys(isExtSys),
+      useCombo(false),
+      fbAllOps(false) {}
+  public:
+    void setCombo(bool combo) {
+      useCombo=combo;
+    }
 };
 
 #endif

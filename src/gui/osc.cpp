@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -49,14 +49,19 @@ void FurnaceGUI::readOsc() {
   int oscReadPos=(writePos-winSize)&0x7fff;
   for (int i=0; i<512; i++) {
     int pos=(oscReadPos+(i*winSize/512))&0x7fff;
-    oscValues[i]=(e->oscBuf[0][pos]+e->oscBuf[1][pos])*0.5f;
+    oscValues[i]=0;
+    for (int j=0; j<e->getAudioDescGot().outChans; j++) {
+      oscValues[i]+=e->oscBuf[j][pos];
+    }
+    oscValues[i]/=e->getAudioDescGot().outChans;
+
     if (oscValues[i]>0.001f || oscValues[i]<-0.001f) {
       WAKE_UP;
     }
   }
 
   float peakDecay=0.05f*60.0f*ImGui::GetIO().DeltaTime;
-  for (int i=0; i<2; i++) {
+  for (int i=0; i<e->getAudioDescGot().outChans; i++) {
     peak[i]*=1.0-peakDecay;
     if (peak[i]<0.0001) {
       peak[i]=0.0;

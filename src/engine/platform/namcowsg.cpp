@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -151,7 +151,7 @@ const char** DivPlatformNamcoWSG::getRegisterSheet() {
   return regCheatSheetNamcoWSG;
 }
 
-void DivPlatformNamcoWSG::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformNamcoWSG::acquire(short** buf, size_t len) {
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     switch (devType) {
@@ -171,11 +171,11 @@ void DivPlatformNamcoWSG::acquire(short* bufL, short* bufR, size_t start, size_t
     regPool[w.addr&0x3f]=w.val;
     writes.pop();
   }
-  for (size_t h=start; h<start+len; h++) {
-    short* buf[2]={
-      bufL+h, bufR+h
+  for (size_t h=0; h<len; h++) {
+    short* bufC[2]={
+      buf[0]+h, buf[1]+h
     };
-    namco->sound_stream_update(buf,1);
+    namco->sound_stream_update(bufC,1);
     for (int i=0; i<chans; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=namco->m_channel_list[i].last_out*chans;
     }
@@ -204,7 +204,9 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
       chan[i].noise=chan[i].std.duty.val;
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -228,7 +230,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+        CLAMP_VAR(chan[i].pitch2,-1048575,1048575);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -241,7 +243,8 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_PCE);
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>1048575) chan[i].freq=1048575;
       if (chan[i].keyOn) {
       }
@@ -413,7 +416,7 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -421,11 +424,17 @@ int DivPlatformNamcoWSG::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
@@ -484,13 +493,10 @@ void DivPlatformNamcoWSG::reset() {
   namco->set_voices(chans);
   namco->set_stereo((devType==2 || devType==30));
   namco->device_start(NULL);
-  lastPan=0xff;
-  cycles=0;
-  curChan=-1;
 }
 
-bool DivPlatformNamcoWSG::isStereo() {
-  return (devType==30);
+int DivPlatformNamcoWSG::getOutputCount() {
+  return (devType==30)?2:1;
 }
 
 bool DivPlatformNamcoWSG::keyOffAffectsArp(int ch) {
@@ -532,6 +538,7 @@ void DivPlatformNamcoWSG::setDeviceType(int type) {
 
 void DivPlatformNamcoWSG::setFlags(const DivConfig& flags) {
   chipClock=3072000;
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/32;
   namco->device_clock_changed(rate);
   for (int i=0; i<chans; i++) {

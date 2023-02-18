@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -65,10 +65,10 @@ const char** DivPlatformSNES::getRegisterSheet() {
   return regCheatSheetSNESDSP;
 }
 
-void DivPlatformSNES::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSNES::acquire(short** buf, size_t len) {
   short out[2];
   short chOut[16];
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     if (--delay<=0) {
       delay=0;
       if (!writes.empty()) {
@@ -82,8 +82,8 @@ void DivPlatformSNES::acquire(short* bufL, short* bufR, size_t start, size_t len
     dsp.set_output(out,1);
     dsp.run(32);
     dsp.get_voice_outputs(chOut);
-    bufL[h]=out[0];
-    bufR[h]=out[1];
+    buf[0][h]=out[0];
+    buf[1][h]=out[1];
     for (int i=0; i<8; i++) {
       int next=(3*(chOut[i*2]+chOut[i*2+1]))>>2;
       if (next<-32768) next=-32768;
@@ -106,7 +106,9 @@ void DivPlatformSNES::tick(bool sysTick) {
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&127,MIN(127,chan[i].std.vol.val),127);
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -204,7 +206,7 @@ void DivPlatformSNES::tick(bool sysTick) {
       DivSample* s=parent->getSample(chan[i].sample);
       double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
       if (chan[i].useWave) off=(double)chan[i].wtLen/32.0;
-      chan[i].freq=(unsigned int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
+      chan[i].freq=(unsigned int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
       if (chan[i].freq>16383) chan[i].freq=16383;
       if (chan[i].keyOn) {
         unsigned int start, end, loop;
@@ -214,13 +216,13 @@ void DivPlatformSNES::tick(bool sysTick) {
           loop=start;
         } else if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
           start=sampleOff[chan[i].sample];
-          end=MIN(start+MAX(s->lengthBRR,1),getSampleMemCapacity());
+          end=MIN(start+MAX(s->lengthBRR+((s->loop && s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0),1),getSampleMemCapacity());
           loop=MAX(start,end-1);
           if (chan[i].audPos>0) {
             start=start+MIN(chan[i].audPos,s->lengthBRR-1)/16*9;
           }
           if (s->loopStart>=0) {
-            loop=start+s->loopStart/16*9;
+            loop=((s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0)+start+((s->loopStart/16)*9);
           }
         } else {
           start=0;
@@ -334,7 +336,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
         }
         chan[c.chan].ws.init(ins,chan[c.chan].wtLen,15,chan[c.chan].insChanged);
       } else {
-        chan[c.chan].sample=ins->amiga.getSample(c.value);
+        if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
         chan[c.chan].useWave=false;
       }
       if (chan[c.chan].useWave || chan[c.chan].sample<0 || chan[c.chan].sample>=parent->song.sampleLen) {
@@ -435,7 +437,7 @@ int DivPlatformSNES::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=round(NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0))));
+      chan[c.chan].baseFreq=round(NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0))));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -561,6 +563,12 @@ int DivPlatformSNES::dispatch(DivCommand c) {
     case DIV_CMD_GET_VOLMAX:
       return 127;
       break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
+      break;
     default:
       break;
   }
@@ -599,10 +607,23 @@ void DivPlatformSNES::writeEnv(int ch) {
     if (chan[ch].state.sus) {
       if (chan[ch].active) {
         chWrite(ch,5,chan[ch].state.a|(chan[ch].state.d<<4)|0x80);
-        chWrite(ch,6,chan[ch].state.s<<5);
-      } else { // dec linear
-        chWrite(ch,7,0x80|chan[ch].state.r);
-        chWrite(ch,5,0);
+        chWrite(ch,6,(chan[ch].state.s<<5)|(chan[ch].state.d2&31));
+      } else {
+        switch (chan[ch].state.sus) {
+          case 1: // dec linear
+            chWrite(ch,7,0x80|chan[ch].state.r);
+            chWrite(ch,5,0);
+            break;
+          case 2: // dec exp
+            chWrite(ch,7,0xa0|chan[ch].state.r);
+            chWrite(ch,5,0);
+            break;
+          case 3: // update r
+            chWrite(ch,6,(chan[ch].state.s<<5)|(chan[ch].state.r&31));
+            break;
+          default: // what?
+            break;
+        }
       }
     } else {
       chWrite(ch,5,chan[ch].state.a|(chan[ch].state.d<<4)|0x80);
@@ -747,8 +768,8 @@ void DivPlatformSNES::reset() {
   initEcho();
 }
 
-bool DivPlatformSNES::isStereo() {
-  return true;
+int DivPlatformSNES::getOutputCount() {
+  return 2;
 }
 
 void DivPlatformSNES::notifyInsChange(int ins) {
@@ -790,7 +811,7 @@ const void* DivPlatformSNES::getSampleMem(int index) {
 
 size_t DivPlatformSNES::getSampleMemCapacity(int index) {
   // TODO change it based on current echo buffer size
-  return index == 0 ? 65536 : 0;
+  return index == 0 ? (65536-echoDelay*2048) : 0;
 }
 
 size_t DivPlatformSNES::getSampleMemUsage(int index) {
@@ -804,7 +825,7 @@ bool DivPlatformSNES::isSampleLoaded(int index, int sample) {
 }
 
 void DivPlatformSNES::renderSamples(int sysID) {
-  memset(copyOfSampleMem,0,getSampleMemCapacity());
+  memset(copyOfSampleMem,0,65536);
   memset(sampleOff,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
 
@@ -817,7 +838,7 @@ void DivPlatformSNES::renderSamples(int sysID) {
       continue;
     }
 
-    int length=s->lengthBRR;
+    int length=s->lengthBRR+((s->loop && s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0);
     int actualLength=MIN((int)(getSampleMemCapacity()-memPos)/9*9,length);
     if (actualLength>0) {
       sampleOff[i]=memPos;

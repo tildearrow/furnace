@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) {if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(0x200+a,v);}}}
+#define rWrite(a,v) {if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);}}}
 
 const char* regCheatSheetSN[]={
   "DATA", "0",
@@ -39,10 +39,14 @@ const char** DivPlatformSMS::getRegisterSheet() {
   return stereo?regCheatSheetGG:regCheatSheetSN;
 }
 
-void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_t len) {
+float DivPlatformSMS::getPostAmp() {
+  return 1.5f;
+}
+
+void DivPlatformSMS::acquire_nuked(short** buf, size_t len) {
   int oL=0;
   int oR=0;
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
       if (w.addr==0) {
@@ -73,8 +77,8 @@ void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_
     if (oL>32767) oL=32767;
     if (oR<-32768) oR=-32768;
     if (oR>32767) oR=32767;
-    bufL[h]=oL;
-    bufR[h]=oR;
+    buf[0][h]=oL;
+    if (stereo) buf[1][h]=oR;
     for (int i=0; i<4; i++) {
       if (isMuted[i]) {
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
@@ -85,7 +89,7 @@ void DivPlatformSMS::acquire_nuked(short* bufL, short* bufR, size_t start, size_
   }
 }
 
-void DivPlatformSMS::acquire_mame(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSMS::acquire_mame(short** buf, size_t len) {
   while (!writes.empty()) {
     QueuedWrite w=writes.front();
     if (stereo && (w.addr==1))
@@ -95,10 +99,10 @@ void DivPlatformSMS::acquire_mame(short* bufL, short* bufR, size_t start, size_t
     }
     writes.pop();
   }
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     short* outs[2]={
-      &bufL[h],
-      &bufR[h]
+      &buf[0][h],
+      stereo?(&buf[1][h]):NULL
     };
     sn->sound_stream_update(outs,1);
     for (int i=0; i<4; i++) {
@@ -111,11 +115,11 @@ void DivPlatformSMS::acquire_mame(short* bufL, short* bufR, size_t start, size_t
   }
 }
 
-void DivPlatformSMS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformSMS::acquire(short** buf, size_t len) {
   if (nuked) {
-    acquire_nuked(bufL,bufR,start,len);
+    acquire_nuked(buf,len);
   } else {
-    acquire_mame(bufL,bufR,start,len);
+    acquire_mame(buf,len);
   }
 }
 
@@ -125,37 +129,44 @@ double DivPlatformSMS::NOTE_SN(int ch, int note) {
   if (parent->song.linearPitch==2 || !easyNoise) {
     return NOTE_PERIODIC(note);
   }
+  int easyStartingPeriod=16;
+  int easyThreshold=round(12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-3;
   if (note>easyThreshold) {
-    return MAX(0,easyStartingPeriod-easyThreshold);
+    return MAX(0,easyStartingPeriod-(note-easyThreshold));
   }
   return NOTE_PERIODIC(note);
 }
 
 int DivPlatformSMS::snCalcFreq(int ch) {
-  if (parent->song.linearPitch==2 && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(easyThreshold<<7)) {
-    int ret=(((easyStartingPeriod<<7)+0x40)-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(easyThreshold<<7)))>>7;
+  double CHIP_DIVIDER=toneDivider;
+  if (ch==3) CHIP_DIVIDER=noiseDivider;
+  int easyStartingPeriod=16;
+  int easyThreshold=round(128.0*12.0*log((chipClock/(easyStartingPeriod*CHIP_DIVIDER))/(0.0625*parent->song.tuning))/log(2.0))-384+64;
+  if (parent->song.linearPitch==2 && easyNoise && chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2>(easyThreshold)) {
+    int ret=(((easyStartingPeriod<<7))-(chan[ch].baseFreq+chan[ch].pitch+chan[ch].pitch2-(easyThreshold)))>>7;
     if (ret<0) ret=0;
     return ret;
   }
-  return parent->calcFreq(chan[ch].baseFreq,chan[ch].pitch,true,0,chan[ch].pitch2,chipClock,ch==3?noiseDivider:toneDivider);
+  return parent->calcFreq(chan[ch].baseFreq,chan[ch].pitch,chan[ch].fixedArp?chan[ch].baseNoteOverride:chan[ch].arpOff,chan[ch].fixedArp,true,0,chan[ch].pitch2,chipClock,CHIP_DIVIDER);
 }
 
 void DivPlatformSMS::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].std.vol.val,chan[i].vol,15);
+      chan[i].outVol=VOL_SCALE_LOG(chan[i].std.vol.val,chan[i].vol,15);
       if (chan[i].outVol<0) chan[i].outVol=0;
       // old formula
       // ((chan[i].vol&15)*MIN(15,chan[i].std.vol.val))>>4;
       chan[i].writeVol=true;
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
-        // TODO: check whether this weird octave boundary thing applies to other systems as well
         // TODO: add compatibility flag. this is horrible.
         int areYouSerious=parent->calcArp(chan[i].note,chan[i].std.arp.val);
-        while (areYouSerious>0x60) areYouSerious-=12;
+        if (!easyNoise) while (areYouSerious>0x60) areYouSerious-=12;
         chan[i].baseFreq=NOTE_SN(i,areYouSerious);
         chan[i].actualNote=areYouSerious;
         chan[i].freqChanged=true;
@@ -216,11 +227,12 @@ void DivPlatformSMS::tick(bool sysTick) {
   }
   if (chan[3].freqChanged || updateSNMode) {
     chan[3].freq=snCalcFreq(3);
-    //parent->calcFreq(chan[3].baseFreq,chan[3].pitch,true,0,chan[3].pitch2,chipClock,noiseDivider);
+    //parent->calcFreq(chan[3].baseFreq,chan[3].pitch,chan[3].fixedArp?chan[3].baseNoteOverride:chan[3].arpOff,chan[3].fixedArp,true,0,chan[3].pitch2,chipClock,noiseDivider);
     if (chan[3].freq>1023) chan[3].freq=1023;
     if (parent->song.snNoLowPeriods) {
       if (chan[3].actualNote>0x5d) chan[3].freq=0x01;
     }
+    if (chan[3].freq<0) chan[3].freq=0;
     if (snNoiseMode&2) { // take period from channel 3
       if (updateSNMode || resetPhase) {
         if (snNoiseMode&1) {
@@ -239,6 +251,7 @@ void DivPlatformSMS::tick(bool sysTick) {
       }
     } else { // 3 fixed values
       unsigned char value;
+      // TODO: new arp?
       if (chan[3].std.arp.had) {
         value=parent->calcArp(chan[3].note,chan[3].std.arp.val)%12;
       } else { // pardon?
@@ -358,7 +371,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_SN(c.chan,c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_SN(c.chan,c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       chan[c.chan].actualNote=c.value;
@@ -367,11 +380,17 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_STD));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_SN(c.chan,chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_SN(c.chan,chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
@@ -422,7 +441,7 @@ void DivPlatformSMS::reset() {
   YMPSG_Init(&sn_nuked,isRealSN,12,isRealSN?13:15,isRealSN?16383:32767);
   snNoiseMode=3;
   rWrite(0,0xe7);
-  updateSNMode=false;
+  updateSNMode=true;
   oldValue=0xff;
   lastPan=0xff;
   if (stereo) {
@@ -430,8 +449,8 @@ void DivPlatformSMS::reset() {
   }
 }
 
-bool DivPlatformSMS::isStereo() {
-  return stereo;
+int DivPlatformSMS::getOutputCount() {
+  return stereo?2:1;
 }
 
 bool DivPlatformSMS::keyOffAffectsArp(int ch) {
@@ -464,40 +483,27 @@ void DivPlatformSMS::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
     case 1:
       chipClock=COLOR_PAL*4.0/5.0;
-      easyThreshold=84;
-      easyStartingPeriod=13;
       break;
     case 2:
       chipClock=4000000;
-      easyThreshold=86;
-      easyStartingPeriod=13;
       break;
     case 3:
       chipClock=COLOR_NTSC/2.0;
-      easyThreshold=72;
-      easyStartingPeriod=13;
       break;
     case 4:
       chipClock=3000000;
-      easyThreshold=81;
-      easyStartingPeriod=13;
       break;
     case 5:
       chipClock=2000000;
-      easyThreshold=74;
-      easyStartingPeriod=13;
       break;
     case 6:
       chipClock=COLOR_NTSC/8.0;
-      easyThreshold=48;
-      easyStartingPeriod=13;
       break;
     default:
       chipClock=COLOR_NTSC;
-      easyThreshold=84;
-      easyStartingPeriod=13;
       break;
   }
+  CHECK_CUSTOM_CLOCK;
   resetPhase=!flags.getBool("noPhaseReset",false);
   easyNoise=!flags.getBool("noEasyNoise",false);
   divider=16;
@@ -568,6 +574,7 @@ void DivPlatformSMS::setFlags(const DivConfig& flags) {
       stereo=false;
       break;
   }
+
   rate=chipClock/divider;
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;

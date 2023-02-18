@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,8 @@
 
 #ifndef _OPLL_H
 #define _OPLL_H
+
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include <queue>
 
 extern "C" {
@@ -29,37 +29,18 @@ extern "C" {
 
 class DivPlatformOPLL: public DivDispatch {
   protected:
-    struct Channel {
+    struct Channel: public SharedChannel<int> {
       DivInstrumentFM state;
-      DivMacroInt std;
       unsigned char freqH, freqL;
-      int freq, baseFreq, pitch, pitch2, note, ins, fixedFreq;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, furnaceDac, inPorta;
-      int vol, outVol;
+      int fixedFreq;
+      bool furnaceDac;
       unsigned char pan;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
       Channel():
+        SharedChannel<int>(0),
         freqH(0),
         freqL(0),
-        freq(0),
-        baseFreq(0),
-        pitch(0),
-        pitch2(0),
-        note(0),
-        ins(-1),
         fixedFreq(0),
-        active(false),
-        insChanged(true),
-        freqChanged(false),
-        keyOn(false),
-        keyOff(false),
-        portaPause(false),
         furnaceDac(false),
-        inPorta(false),
-        vol(0),
         pan(3) {}
     };
     Channel chan[11];
@@ -92,15 +73,16 @@ class DivPlatformOPLL: public DivDispatch {
 
     int octave(int freq);
     int toFreq(int freq);
+    void commitState(int ch, DivInstrument* ins);
 
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
 
-    void acquire_nuked(short* bufL, short* bufR, size_t start, size_t len);
-    void acquire_ymfm(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire_nuked(short** buf, size_t len);
+    void acquire_ymfm(short** buf, size_t len);
   
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -114,6 +96,7 @@ class DivPlatformOPLL: public DivDispatch {
     void setYMFM(bool use);
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
+    float getPostAmp();
     void toggleRegisterDump(bool enable);
     void setVRC7(bool vrc);
     void setProperDrums(bool pd);

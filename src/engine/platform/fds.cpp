@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -55,13 +55,13 @@ const char** DivPlatformFDS::getRegisterSheet() {
   return regCheatSheetFDS;
 }
 
-void DivPlatformFDS::acquire_puNES(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t i=start; i<start+len; i++) {
+void DivPlatformFDS::acquire_puNES(short* buf, size_t len) {
+  for (size_t i=0; i<len; i++) {
     extcl_apu_tick_FDS(fds);
     int sample=isMuted[0]?0:fds->snd.main.output;
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
-    bufL[i]=sample;
+    buf[i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
       oscBuf->data[oscBuf->needle++]=sample<<1;
@@ -69,15 +69,15 @@ void DivPlatformFDS::acquire_puNES(short* bufL, short* bufR, size_t start, size_
   }
 }
 
-void DivPlatformFDS::acquire_NSFPlay(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformFDS::acquire_NSFPlay(short* buf, size_t len) {
   int out[2];
-  for (size_t i=start; i<start+len; i++) {
+  for (size_t i=0; i<len; i++) {
     fds_NP->Tick(1);
     fds_NP->Render(out);
     int sample=isMuted[0]?0:(out[0]<<1);
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
-    bufL[i]=sample;
+    buf[i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
       oscBuf->data[oscBuf->needle++]=sample<<1;
@@ -93,11 +93,11 @@ void DivPlatformFDS::doWrite(unsigned short addr, unsigned char data) {
   }
 }
 
-void DivPlatformFDS::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformFDS::acquire(short** buf, size_t len) {
   if (useNP) {
-    acquire_NSFPlay(bufL,bufR,start,len);
+    acquire_NSFPlay(buf[0],len);
   } else {
-    acquire_puNES(bufL,bufR,start,len);
+    acquire_puNES(buf[0],len);
   }
 }
 
@@ -119,7 +119,9 @@ void DivPlatformFDS::tick(bool sysTick) {
       if (chan[i].outVol<0) chan[i].outVol=0;
       rWrite(0x4080,0x80|chan[i].outVol);
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -187,7 +189,7 @@ void DivPlatformFDS::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOn) {
@@ -365,7 +367,7 @@ int DivPlatformFDS::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -373,11 +375,17 @@ int DivPlatformFDS::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_FDS));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 32;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
@@ -454,13 +462,14 @@ void DivPlatformFDS::setNSFPlay(bool use) {
 void DivPlatformFDS::setFlags(const DivConfig& flags) {
   int clockSel=flags.getInt("clockSel",0);
   if (clockSel==2) { // Dendy
-    rate=COLOR_PAL*2.0/5.0;
+    chipClock=COLOR_PAL*2.0/5.0;
   } else if (clockSel==1) { // PAL
-    rate=COLOR_PAL*3.0/8.0;
+    chipClock=COLOR_PAL*3.0/8.0;
   } else { // NTSC
-    rate=COLOR_NTSC/2.0;
+    chipClock=COLOR_NTSC/2.0;
   }
-  chipClock=rate;
+  CHECK_CUSTOM_CLOCK;
+  rate=chipClock;
   oscBuf->rate=rate/32;
   if (useNP) {
     fds_NP->SetClock(rate);

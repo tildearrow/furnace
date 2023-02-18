@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #define _FMSHARED_BASE_H
 
 #include "../dispatch.h"
+#include "../instrument.h"
 #include <deque>
 
 #define KVS(x,y) ((chan[x].state.op[y].kvs==2 && isOutput[chan[x].state.alg][y]) || chan[x].state.op[y].kvs==1)
@@ -46,6 +47,34 @@ class DivPlatformFMBase: public DivDispatch {
       0,2,1,3
     };
 
+    const unsigned int hardResetCycles=127;
+
+    struct FMChannel: public SharedChannel<int> {
+      DivInstrumentFM state;
+      unsigned char freqH, freqL;
+      int portaPauseFreq;
+      unsigned char opMask;
+      signed char konCycles;
+      bool hardReset, opMaskChanged;
+
+      FMChannel():
+        SharedChannel<int>(0),
+        freqH(0),
+        freqL(0),
+        portaPauseFreq(0),
+        opMask(15),
+        konCycles(0),
+        hardReset(false),
+        opMaskChanged(false) {}
+    };
+
+    struct FMChannelStereo: public FMChannel {
+      unsigned char pan;
+      FMChannelStereo():
+        FMChannel(),
+        pan(3) {}
+    };
+
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -56,6 +85,7 @@ class DivPlatformFMBase: public DivDispatch {
 
     unsigned char lastBusy;
     int delay;
+    bool flushFirst;
 
     unsigned char regPool[512];
     short oldWrites[512];
@@ -75,7 +105,7 @@ class DivPlatformFMBase: public DivDispatch {
       }
     }
     inline void urgentWrite(unsigned short a, unsigned char v) {
-      if (!skipRegisterWrites) {
+      if (!skipRegisterWrites && !flushFirst) {
         if (writes.empty()) {
           writes.push_back(QueuedWrite(a,v));
         } else if (writes.size()>16 || writes.front().addrOrVal) {
@@ -89,10 +119,13 @@ class DivPlatformFMBase: public DivDispatch {
       }
     }
 
+    friend void putDispatchChan(void*,int,int);
+  
     DivPlatformFMBase():
-    DivDispatch(),
-    lastBusy(0),
-    delay(0) {}
+      DivDispatch(),
+      lastBusy(0),
+      delay(0),
+      flushFirst(false) {}
 };
 
 #endif

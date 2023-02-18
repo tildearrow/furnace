@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -205,8 +205,8 @@ const char** DivPlatformX1_010::getRegisterSheet() {
   return regCheatSheetX1_010;
 }
 
-void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformX1_010::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     x1_010.tick();
 
     signed int tempL=x1_010.output(0);
@@ -218,8 +218,8 @@ void DivPlatformX1_010::acquire(short* bufL, short* bufR, size_t start, size_t l
     if (tempR>32767) tempR=32767;
 
     //printf("tempL: %d tempR: %d\n",tempL,tempR);
-    bufL[h]=stereo?tempL:((tempL+tempR)>>1);
-    bufR[h]=stereo?tempR:bufL[h];
+    buf[0][h]=stereo?tempL:((tempL+tempR)>>1);
+    if (stereo) buf[1][h]=tempR;
 
     for (int i=0; i<16; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=(x1_010.voice_out(i,0)+x1_010.voice_out(i,1))>>1;
@@ -331,7 +331,9 @@ void DivPlatformX1_010::tick(bool sysTick) {
       }
     }
     if ((!chan[i].pcm) || chan[i].furnacePCM) {
-      if (chan[i].std.arp.had) {
+      if (NEW_ARP_STRAT) {
+        chan[i].handleArp();
+      } else if (chan[i].std.arp.had) {
         if (!chan[i].inPorta) {
           chan[i].baseFreq=NoteX1_010(i,parent->calcArp(chan[i].note,chan[i].std.arp.val));
         }
@@ -360,7 +362,7 @@ void DivPlatformX1_010::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+        CLAMP_VAR(chan[i].pitch2,-65535,65535);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -475,13 +477,14 @@ void DivPlatformX1_010::tick(bool sysTick) {
           }
         }
       }
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,chan[i].pcm?off:CHIP_FREQBASE);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,chan[i].pcm?off:CHIP_FREQBASE);
       if (chan[i].fixedFreq) chan[i].freq=chan[i].fixedFreq;
       if (chan[i].pcm) {
         if (chan[i].freq<1) chan[i].freq=1;
         if (chan[i].freq>255) chan[i].freq=255;
         chWrite(i,2,chan[i].freq&0xff);
       } else {
+        if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>65535) chan[i].freq=65535;
         chWrite(i,2,chan[i].freq&0xff);
         chWrite(i,3,(chan[i].freq>>8)&0xff);
@@ -537,7 +540,7 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
         if (chan[c.chan].furnacePCM) {
           chan[c.chan].pcm=true;
           chan[c.chan].macroInit(ins);
-          chan[c.chan].sample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             if (isBanked) {
@@ -725,14 +728,14 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO:
       chan[c.chan].note=c.value;
-      chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note+((chan[c.chan].std.arp.will&&!chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_X1_010));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NoteX1_010(c.chan,chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_SAMPLE_FREQ:
@@ -819,6 +822,12 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
     case DIV_CMD_GET_VOLMAX:
       return 15;
       break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
       break;
@@ -886,12 +895,16 @@ void DivPlatformX1_010::reset() {
   }
 }
 
-bool DivPlatformX1_010::isStereo() {
-  return stereo;
+int DivPlatformX1_010::getOutputCount() {
+  return stereo?2:1;
 }
 
 bool DivPlatformX1_010::keyOffAffectsArp(int ch) {
   return true;
+}
+
+float DivPlatformX1_010::getPostAmp() {
+  return 4.0f;
 }
 
 void DivPlatformX1_010::notifyWaveChange(int wave) {
@@ -922,6 +935,7 @@ void DivPlatformX1_010::setFlags(const DivConfig& flags) {
       chipClock=16000000;
       break;
   }
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/512;
   stereo=flags.getBool("stereo",false);
   for (int i=0; i<16; i++) {

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,6 +52,10 @@ String DivConfig::toString() {
 String DivConfig::toBase64() {
   String data=toString();
   return taEncodeBase64(data);
+}
+
+const std::map<String,String>& DivConfig::configMap() {
+  return conf;
 }
 
 void DivConfig::parseLine(const char* line) {
@@ -169,6 +173,15 @@ String DivConfig::getString(String key, String fallback) const {
   } catch (std::out_of_range& e) {
   }
   return fallback;
+}
+
+bool DivConfig::has(String key) const {
+  try {
+    String test=conf.at(key);
+  } catch (std::out_of_range& e) {
+    return false;
+  }
+  return true;
 }
 
 void DivConfig::set(String key, bool value) {

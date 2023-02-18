@@ -16,13 +16,15 @@ void es550x_shared_core::es550x_voice_t::es550x_alu_t::reset()
 	m_start		= 0;
 	m_end		= 0;
 	m_accum		= 0;
+  m_last_accum=0;
 	m_sample[0] = m_sample[1] = 0;
 }
 
-bool es550x_shared_core::es550x_voice_t::es550x_alu_t::busy() { return m_cr.stop() == 0; }
+bool es550x_shared_core::es550x_voice_t::es550x_alu_t::busy() { return !(m_cr.m_stop0 || m_cr.m_stop1); }
 
 bool es550x_shared_core::es550x_voice_t::es550x_alu_t::tick()
 {
+  m_last_accum = m_accum;
 	if (m_cr.dir())
 	{
 		m_accum -= m_fc;
@@ -33,24 +35,19 @@ bool es550x_shared_core::es550x_voice_t::es550x_alu_t::tick()
 	}
 
 	m_accum &= m_accum_mask;
-	return ((!m_cr.lei()) &&
-			(((m_cr.dir()) && (m_accum < m_start)) || ((!m_cr.dir()) && (m_accum > m_end))))
+	return ((!m_cr.m_lei) &&
+			(((m_cr.m_dir) && (m_accum < m_start)) || ((!m_cr.m_dir) && (m_accum > m_end))))
 		   ? true
 		   : false;
 }
 
 void es550x_shared_core::es550x_voice_t::es550x_alu_t::loop_exec()
 {
-	if (m_cr.irqe())
-	{  // Set IRQ
-		m_cr.set_irq(true);
-	}
-
-	if (m_cr.dir())	 // Reverse playback
+	if (m_cr.m_dir)	 // Reverse playback
 	{
-		if (m_cr.lpe())	 // Loop enable
+		if (m_cr.m_lpe)	 // Loop enable
 		{
-			if (m_cr.ble())	 // Bidirectional
+			if (m_cr.m_ble)	 // Bidirectional
 			{
 				m_cr.set_dir(false);
 				m_accum = m_start + (m_start - m_accum);
@@ -60,7 +57,7 @@ void es550x_shared_core::es550x_voice_t::es550x_alu_t::loop_exec()
 				m_accum = m_end - (m_start - m_accum);
 			}
 		}
-		else if (m_cr.ble() && m_transwave)	 // m_transwave
+		else if (m_cr.m_ble && m_transwave)	 // m_transwave
 		{
 			m_cr.set_loop(0);
 			m_cr.set_lei(true);	 // Loop end ignore
@@ -73,9 +70,9 @@ void es550x_shared_core::es550x_voice_t::es550x_alu_t::loop_exec()
 	}
 	else
 	{
-		if (m_cr.lpe())	 // Loop enable
+		if (m_cr.m_lpe)	 // Loop enable
 		{
-			if (m_cr.ble())	 // Bidirectional
+			if (m_cr.m_ble)	 // Bidirectional
 			{
 				m_cr.set_dir(true);
 				m_accum = m_end - (m_end - m_accum);
@@ -85,7 +82,7 @@ void es550x_shared_core::es550x_voice_t::es550x_alu_t::loop_exec()
 				m_accum = (m_accum - m_end) + m_start;
 			}
 		}
-		else if (m_cr.ble() && m_transwave)	 // m_transwave
+		else if (m_cr.m_ble && m_transwave)	 // m_transwave
 		{
 			m_cr.set_loop(0);
 			m_cr.set_lei(true);	 // Loop end ignore
@@ -101,14 +98,14 @@ void es550x_shared_core::es550x_voice_t::es550x_alu_t::loop_exec()
 s32 es550x_shared_core::es550x_voice_t::es550x_alu_t::interpolation()
 {
 	// SF = S1 + ACCfr * (S2 - S1)
-	return m_sample[0] + ((bitfield<s32>(m_accum, std::max<s8>(0, m_fraction - 9), 9) *
+	return m_sample[0] + (((((int)m_accum>>(int)2)&(int)511) *
 						   (m_sample[1] - m_sample[0])) >>
 						  9);
 }
 
 u32 es550x_shared_core::es550x_voice_t::es550x_alu_t::get_accum_integer()
 {
-	return bitfield(m_accum, m_fraction, m_integer);
+	return (m_accum>>m_fraction)&((1<<m_integer)-1);
 }
 
 void es550x_shared_core::es550x_voice_t::es550x_alu_t::irq_exec(es550x_intf &intf,

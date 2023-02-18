@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -130,8 +130,8 @@ const char** DivPlatformLynx::getRegisterSheet() {
   return regCheatSheetLynx;
 }
 
-void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformLynx::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     for (int i=0; i<4; i++) {
       if (chan[i].pcm && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
         chan[i].sampleAccum-=chan[i].sampleFreq;
@@ -156,7 +156,7 @@ void DivPlatformLynx::acquire(short* bufL, short* bufR, size_t start, size_t len
       }
     }
 
-    mikey->sampleAudio( bufL + h, bufR + h, 1, oscBuf );
+    mikey->sampleAudio(buf[0]+h,buf[1]+h,1,oscBuf);
   }
 }
 
@@ -171,7 +171,9 @@ void DivPlatformLynx::tick(bool sysTick) {
       }
       WRITE_VOLUME(i,(isMuted[i]?0:(chan[i].outVol&127)));
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].actualNote=parent->calcArp(chan[i].note,chan[i].std.arp.val);
         chan[i].baseFreq=NOTE_PERIODIC(chan[i].actualNote);
@@ -226,14 +228,14 @@ void DivPlatformLynx::tick(bool sysTick) {
             off=(double)s->centerRate/8363.0;
           }
         }
-        chan[i].sampleFreq=off*parent->calcFreq(chan[i].sampleBaseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+        chan[i].sampleFreq=off*parent->calcFreq(chan[i].sampleBaseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
       } else {
         if (chan[i].lfsr >= 0) {
           WRITE_LFSR(i, (chan[i].lfsr&0xff));
           WRITE_OTHER(i, ((chan[i].lfsr&0xf00)>>4));
           chan[i].lfsr=-1;
         }
-        chan[i].fd=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+        chan[i].fd=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
         if (chan[i].std.duty.had) {
           chan[i].duty=chan[i].std.duty.val;
           WRITE_FEEDBACK(i, chan[i].duty.feedback);
@@ -262,7 +264,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         if (chan[c.chan].pcm) {
           chan[c.chan].sampleBaseFreq=NOTE_FREQUENCY(c.value);
-          chan[c.chan].sample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
           chan[c.chan].sampleAccum=0;
           chan[c.chan].samplePos=0;
         }
@@ -351,7 +353,7 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      int whatAMess=c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0));
+      int whatAMess=c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0));
       chan[c.chan].baseFreq=NOTE_PERIODIC(whatAMess);
       if (chan[c.chan].pcm) {
         chan[c.chan].sampleBaseFreq=NOTE_FREQUENCY(whatAMess);
@@ -365,11 +367,17 @@ int DivPlatformLynx::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_MIKEY));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
@@ -385,8 +393,8 @@ void DivPlatformLynx::muteChannel(int ch, bool mute) {
   if (chan[ch].active) WRITE_VOLUME(ch,(isMuted[ch]?0:(chan[ch].outVol&127)));
 }
 
-bool DivPlatformLynx::isStereo() {
-  return true;
+int DivPlatformLynx::getOutputCount() {
+  return 2;
 }
 
 void DivPlatformLynx::forceIns() {
@@ -471,6 +479,7 @@ int DivPlatformLynx::init(DivEngine* p, int channels, int sugRate, const DivConf
   }
 
   chipClock = 16000000;
+  CHECK_CUSTOM_CLOCK;
   rate = chipClock/128;
 
   for (int i=0; i<4; i++) {
@@ -500,12 +509,12 @@ DivPlatformLynx::MikeyFreqDiv::MikeyFreqDiv(int frequency) {
   if (top>7)
   {
     clockDivider=top-7;
-    backup=frequency>>(top-7);
+    backup=clamped>>(top-7);
   }
   else
   {
     clockDivider=0;
-    backup=frequency;
+    backup=clamped;
   }
 }
 

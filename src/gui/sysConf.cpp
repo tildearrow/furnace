@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "../engine/chipUtils.h"
 #include "gui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
@@ -24,16 +25,25 @@
 bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange) {
   bool altered=false;
   bool restart=settings.restartOnFlagChange && modifyOnChange;
+  bool supportsCustomRate=true;
 
   switch (type) {
     case DIV_SYSTEM_YM2612:
     case DIV_SYSTEM_YM2612_EXT: 
-    case DIV_SYSTEM_YM2612_FRAC:
-    case DIV_SYSTEM_YM2612_FRAC_EXT: {
+    case DIV_SYSTEM_YM2612_DUALPCM:
+    case DIV_SYSTEM_YM2612_DUALPCM_EXT:
+    case DIV_SYSTEM_YM2612_CSM: {
       int clockSel=flags.getInt("clockSel",0);
-      bool ladder=flags.getBool("ladderEffect",0);
+      int chipType=0;
+      if (flags.has("chipType")) {
+        chipType=flags.getInt("chipType",0);
+      } else {
+        chipType=flags.getBool("ladderEffect",0)?1:0;
+      }
       bool noExtMacros=flags.getBool("noExtMacros",false);
+      bool fbAllOps=flags.getBool("fbAllOps",false);
 
+      ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("NTSC (7.67MHz)",clockSel==0)) {
         clockSel=0;
         altered=true;
@@ -54,11 +64,26 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=4;
         altered=true;
       }
-      if (ImGui::Checkbox("Enable DAC distortion",&ladder)) {
+
+      ImGui::Text("Chip type:");
+      if (ImGui::RadioButton("YM3438 (9-bit DAC)",chipType==0)) {
+        chipType=0;
         altered=true;
       }
-      if (type==DIV_SYSTEM_YM2612_EXT || type==DIV_SYSTEM_YM2612_FRAC_EXT) {
+      if (ImGui::RadioButton("YM2612 (9-bit DAC with distortion)",chipType==1)) {
+        chipType=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton("YMF276 (external DAC)",chipType==2)) {
+        chipType=2;
+        altered=true;
+      }
+
+      if (type==DIV_SYSTEM_YM2612_EXT || type==DIV_SYSTEM_YM2612_DUALPCM_EXT || type==DIV_SYSTEM_YM2612_CSM) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
+          altered=true;
+        }
+        if (ImGui::Checkbox("Ins change in ExtCh operator 2-4 affects FB (compatibility)",&fbAllOps)) {
           altered=true;
         }
       }
@@ -66,8 +91,9 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
-          flags.set("ladderEffect",ladder);
+          flags.set("chipType",chipType);
           flags.set("noExtMacros",noExtMacros);
+          flags.set("fbAllOps",fbAllOps);
         });
       }
       break;
@@ -231,7 +257,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         pdm=false;
         altered=true;
       }
-      if (ImGui::RadioButton("1-bit PDM (rev C/E)",pdm==1)) {
+      if (ImGui::RadioButton("8-bit + TDM (rev C/E)",pdm==1)) {
         pdm=true;
         altered=true;
       }
@@ -455,12 +481,17 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     }
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_EXT:
+    case DIV_SYSTEM_YM2610_CSM:
     case DIV_SYSTEM_YM2610_FULL:
     case DIV_SYSTEM_YM2610_FULL_EXT:
     case DIV_SYSTEM_YM2610B:
-    case DIV_SYSTEM_YM2610B_EXT: {
+    case DIV_SYSTEM_YM2610B_EXT:
+    case DIV_SYSTEM_YM2610B_CSM: {
       int clockSel=flags.getInt("clockSel",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
+      bool fbAllOps=flags.getBool("fbAllOps",false);
+      int ssgVol=flags.getInt("ssgVol",128);
+      int fmVol=flags.getInt("fmVol",256);
 
       if (ImGui::RadioButton("8MHz (Neo Geo MVS)",clockSel==0)) {
         clockSel=0;
@@ -471,16 +502,34 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
-      if (type==DIV_SYSTEM_YM2610_EXT || type==DIV_SYSTEM_YM2610_FULL_EXT || type==DIV_SYSTEM_YM2610B_EXT) {
+      if (type==DIV_SYSTEM_YM2610_EXT || type==DIV_SYSTEM_YM2610_FULL_EXT || type==DIV_SYSTEM_YM2610B_EXT || type==DIV_SYSTEM_YM2610_CSM || type==DIV_SYSTEM_YM2610B_CSM) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
           altered=true;
         }
+        if (ImGui::Checkbox("Ins change in ExtCh operator 2-4 affects FB (compatibility)",&fbAllOps)) {
+          altered=true;
+        }
       }
+
+      if (CWSliderInt("SSG Volume",&ssgVol,0,256)) {
+        if (ssgVol<0) ssgVol=0;
+        if (ssgVol>256) ssgVol=256;
+        altered=true;
+      } rightClickable
+
+      if (CWSliderInt("FM/ADPCM Volume",&fmVol,0,256)) {
+        if (fmVol<0) fmVol=0;
+        if (fmVol>256) fmVol=256;
+        altered=true;
+      } rightClickable
 
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("noExtMacros",noExtMacros);
+          flags.set("fbAllOps",fbAllOps);
+          flags.set("ssgVol",ssgVol);
+          flags.set("fmVol",fmVol);
         });
       }
       break;
@@ -765,6 +814,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           flags.set("echoFeedback",echoFeedback);
         });
       }
+
+      supportsCustomRate=false;
       break;
     }
     case DIV_SYSTEM_X1_010: {
@@ -812,7 +863,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
       ImGui::Text("Initial channel limit:");
-      if (CWSliderInt("##InitialChannelLimit",&channels,1,8)) {
+      if (CWSliderInt("##N163_InitialChannelLimit",&channels,1,8)) {
         if (channels<1) channels=1;
         if (channels>8) channels=8;
         altered=true;
@@ -830,11 +881,41 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
-    case DIV_SYSTEM_OPN:
-    case DIV_SYSTEM_OPN_EXT: {
+    case DIV_SYSTEM_ES5506: {
+      int channels=flags.getInt("channels",0x1f)+1;
+      int volScale=flags.getInt("volScale",4095);
+      ImGui::Text("Initial channel limit:");
+      if (CWSliderInt("##OTTO_InitialChannelLimit",&channels,5,32)) {
+        if (channels<5) channels=5;
+        if (channels>32) channels=32;
+        altered=true;
+      } rightClickable
+
+      ImGui::Text("Volume scale:");
+
+      if (CWSliderInt("##VolScaleO",&volScale,0,4095)) {
+        if (volScale<0) volScale=0;
+        if (volScale>4095) volScale=4095;
+        altered=true;
+      } rightClickable
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("channels",channels-1);
+          flags.set("volScale",volScale);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_YM2203:
+    case DIV_SYSTEM_YM2203_EXT:
+    case DIV_SYSTEM_YM2203_CSM: {
       int clockSel=flags.getInt("clockSel",0);
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
+      bool fbAllOps=flags.getBool("fbAllOps",false);
+      int ssgVol=flags.getInt("ssgVol",128);
+      int fmVol=flags.getInt("fmVol",256);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("3.58MHz (NTSC)",clockSel==0)) {
@@ -875,8 +956,23 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
-      if (type==DIV_SYSTEM_OPN_EXT) {
+      if (CWSliderInt("SSG Volume",&ssgVol,0,256)) {
+        if (ssgVol<0) ssgVol=0;
+        if (ssgVol>256) ssgVol=256;
+        altered=true;
+      } rightClickable
+
+      if (CWSliderInt("FM Volume",&fmVol,0,256)) {
+        if (fmVol<0) fmVol=0;
+        if (fmVol>256) fmVol=256;
+        altered=true;
+      } rightClickable
+
+      if (type==DIV_SYSTEM_YM2203_EXT || type==DIV_SYSTEM_YM2203_CSM) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
+          altered=true;
+        }
+        if (ImGui::Checkbox("Ins change in ExtCh operator 2-4 affects FB (compatibility)",&fbAllOps)) {
           altered=true;
         }
       }
@@ -886,15 +982,22 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           flags.set("clockSel",clockSel);
           flags.set("prescale",prescale);
           flags.set("noExtMacros",noExtMacros);
+          flags.set("fbAllOps",fbAllOps);
+          flags.set("ssgVol",ssgVol);
+          flags.set("fmVol",fmVol);
         });
       }
       break;
     }
-    case DIV_SYSTEM_PC98:
-    case DIV_SYSTEM_PC98_EXT: {
+    case DIV_SYSTEM_YM2608:
+    case DIV_SYSTEM_YM2608_EXT:
+    case DIV_SYSTEM_YM2608_CSM: {
       int clockSel=flags.getInt("clockSel",0);
       int prescale=flags.getInt("prescale",0);
       bool noExtMacros=flags.getBool("noExtMacros",false);
+      bool fbAllOps=flags.getBool("fbAllOps",false);
+      int ssgVol=flags.getInt("ssgVol",128);
+      int fmVol=flags.getInt("fmVol",256);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("8MHz (Arcade)",clockSel==0)) {
@@ -919,8 +1022,23 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
-      if (type==DIV_SYSTEM_PC98_EXT) {
+      if (CWSliderInt("SSG Volume",&ssgVol,0,256)) {
+        if (ssgVol<0) ssgVol=0;
+        if (ssgVol>256) ssgVol=256;
+        altered=true;
+      } rightClickable
+
+      if (CWSliderInt("FM/ADPCM Volume",&fmVol,0,256)) {
+        if (fmVol<0) fmVol=0;
+        if (fmVol>256) fmVol=256;
+        altered=true;
+      } rightClickable
+
+      if (type==DIV_SYSTEM_YM2608_EXT || type==DIV_SYSTEM_YM2608_CSM) {
         if (ImGui::Checkbox("Disable ExtCh FM macros (compatibility)",&noExtMacros)) {
+          altered=true;
+        }
+        if (ImGui::Checkbox("Ins change in ExtCh operator 2-4 affects FB (compatibility)",&fbAllOps)) {
           altered=true;
         }
       }
@@ -930,6 +1048,9 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           flags.set("clockSel",clockSel);
           flags.set("prescale",prescale);
           flags.set("noExtMacros",noExtMacros);
+          flags.set("fbAllOps",fbAllOps);
+          flags.set("ssgVol",ssgVol);
+          flags.set("fmVol",fmVol);
         });
       }
       break;
@@ -1153,6 +1274,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_OPL3:
     case DIV_SYSTEM_OPL3_DRUMS: {
       int clockSel=flags.getInt("clockSel",0);
+      bool compatPan=flags.getBool("compatPan",false);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("14.32MHz (NTSC)",clockSel==0)) {
@@ -1176,9 +1298,14 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
+      if (ImGui::Checkbox("Compatible panning (0800)",&compatPan)) {
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
+          flags.set("compatPan",compatPan);
         });
       }
       break;
@@ -1223,6 +1350,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       // default to 44100Hz 16-bit stereo
       int sampRate=flags.getInt("rate",44100);
       int bitDepth=flags.getInt("outDepth",15)+1;
+      int interpolation=flags.getInt("interpolation",0);
       bool stereo=flags.getBool("stereo",false);
 
       ImGui::Text("Output rate:");
@@ -1241,11 +1369,30 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
+      ImGui::Text("Interpolation:");
+      if (ImGui::RadioButton("None",interpolation==0)) {
+        interpolation=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Linear",interpolation==1)) {
+        interpolation=1;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Cubic",interpolation==2)) {
+        interpolation=2;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Sinc",interpolation==3)) {
+        interpolation=3;
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("rate",sampRate);
           flags.set("outDepth",bitDepth-1);
           flags.set("stereo",stereo);
+          flags.set("interpolation",interpolation);
         });
       }
       break;
@@ -1401,6 +1548,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         });
       }
 
+      supportsCustomRate=false;
+
       break;
     }
     case DIV_SYSTEM_MSM5232: {
@@ -1448,7 +1597,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       
       ImGui::Text("Initial part volume (channel 1-4):");
       for (int i=0; i<4; i++) {
-        snprintf(temp,63,"%d'##GRPV%d",16>>i,i);
+        snprintf(temp,63,"%d'##GRPV%d",2<<i,i);
         if (CWSliderInt(temp,&groupVol[i],0,255)) {
           if (groupVol[i]<0) groupVol[i]=0;
           if (groupVol[i]>255) groupVol[i]=255;
@@ -1458,7 +1607,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
 
       ImGui::Text("Initial part volume (channel 5-8):");
       for (int i=4; i<8; i++) {
-        snprintf(temp,63,"%d'##GRPV%d",16>>(i-4),i);
+        snprintf(temp,63,"%d'##GRPV%d",2<<(i-4),i);
         if (CWSliderInt(temp,&groupVol[i],0,255)) {
           if (groupVol[i]<0) groupVol[i]=0;
           if (groupVol[i]>255) groupVol[i]=255;
@@ -1541,13 +1690,44 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
+    case DIV_SYSTEM_K007232: {
+      bool stereo=flags.getBool("stereo",false);
+
+      if (ImGui::Checkbox("Stereo",&stereo)) {
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("stereo",stereo);
+        });
+      }
+      break;
+    }
+    case DIV_SYSTEM_SM8521:  {
+      bool noAntiClick=flags.getBool("noAntiClick",false);
+
+      if (ImGui::Checkbox("Disable anti-click",&noAntiClick)) {
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("noAntiClick",noAntiClick);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
-    case DIV_SYSTEM_VERA:
     case DIV_SYSTEM_BUBSYS_WSG:
-    case DIV_SYSTEM_YMU759:
     case DIV_SYSTEM_PET:
     case DIV_SYSTEM_VBOY:
+    case DIV_SYSTEM_GA20:
       ImGui::Text("nothing to configure");
+      break;
+    case DIV_SYSTEM_VERA:
+    case DIV_SYSTEM_YMU759:
+      supportsCustomRate=false;
       break;
     default: {
       bool sysPal=flags.getInt("clockSel",0);
@@ -1562,6 +1742,32 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         });
       }
       break;
+    }
+  }
+
+  if (supportsCustomRate) {
+    ImGui::Separator();
+    int customClock=flags.getInt("customClock",0);
+    bool usingCustomClock=customClock>=MIN_CUSTOM_CLOCK;
+
+    if (ImGui::Checkbox("Custom clock rate",&usingCustomClock)) {
+      if (usingCustomClock) {
+        customClock=MIN_CUSTOM_CLOCK;
+      } else {
+        customClock=0;
+      }
+      altered=true;
+    }
+    if (ImGui::InputInt("Hz",&customClock)) {
+      if (customClock<MIN_CUSTOM_CLOCK) customClock=0;
+      if (customClock>MAX_CUSTOM_CLOCK) customClock=MAX_CUSTOM_CLOCK;
+      altered=true;
+    }
+
+    if (altered) {
+      e->lockSave([&]() {
+        flags.set("customClock",customClock);
+      });
     }
   }
 

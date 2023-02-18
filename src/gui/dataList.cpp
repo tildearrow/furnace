@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,6 +47,9 @@ void FurnaceGUI::drawInsList(bool asChild) {
     if (ImGui::Button(ICON_FA_PLUS "##InsAdd")) {
       if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_ADD);
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Add");
+    }
     if (settings.unifiedDataView) {
       if (ImGui::BeginPopupContextItem("UnifiedAdd",ImGuiMouseButton_Left)) {
         if (ImGui::MenuItem("instrument")) {
@@ -70,6 +73,9 @@ void FurnaceGUI::drawInsList(bool asChild) {
     if (ImGui::Button(ICON_FA_FILES_O "##InsClone")) {
       if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_DUPLICATE);
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Duplicate");
+    }
     if (settings.unifiedDataView) {
       if (ImGui::BeginPopupContextItem("UnifiedClone",ImGuiMouseButton_Left)) {
         if (ImGui::MenuItem("instrument")) {
@@ -87,6 +93,9 @@ void FurnaceGUI::drawInsList(bool asChild) {
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##InsLoad")) {
       if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_OPEN);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Open");
     }
     if (settings.unifiedDataView) {
       if (ImGui::BeginPopupContextItem("UnifiedLoad",ImGuiMouseButton_Left)) {
@@ -127,6 +136,9 @@ void FurnaceGUI::drawInsList(bool asChild) {
     if (ImGui::Button(ICON_FA_FLOPPY_O "##InsSave")) {
       if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_SAVE);
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Save");
+    }
     if (settings.unifiedDataView) {
       if (ImGui::BeginPopupContextItem("UnifiedSave",ImGuiMouseButton_Left)) {
         if (ImGui::MenuItem("instrument")) {
@@ -166,14 +178,23 @@ void FurnaceGUI::drawInsList(bool asChild) {
       if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
         doAction(GUI_ACTION_INS_LIST_MOVE_UP);
       }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Move up");
+      }
       ImGui::SameLine();
       if (ImGui::ArrowButton("InsDown",ImGuiDir_Down)) {
         doAction(GUI_ACTION_INS_LIST_MOVE_DOWN);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Move down");
       }
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##InsDelete")) {
       if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_DELETE);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Delete");
     }
     if (settings.unifiedDataView) {
       if (ImGui::BeginPopupContextItem("UnifiedDelete",ImGuiMouseButton_Left)) {
@@ -397,6 +418,22 @@ void FurnaceGUI::drawInsList(bool asChild) {
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_T6W28]);
               name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
               break;
+            case DIV_INS_K007232:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_K007232]);
+              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+              break;
+            case DIV_INS_GA20:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_GA20]);
+              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+              break;
+            case DIV_INS_POKEMINI:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_POKEMINI]);
+              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+              break;
+            case DIV_INS_SM8521:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SM8521]);
+              name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
+              break;
             default:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
               name=fmt::sprintf(ICON_FA_QUESTION "##_INS%d",i);
@@ -521,13 +558,22 @@ void FurnaceGUI::drawWaveList(bool asChild) {
     if (ImGui::Button(ICON_FA_PLUS "##WaveAdd")) {
       doAction(GUI_ACTION_WAVE_LIST_ADD);
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Add");
+    }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FILES_O "##WaveClone")) {
       doAction(GUI_ACTION_WAVE_LIST_DUPLICATE);
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Duplicate");
+    }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##WaveLoad")) {
       doAction(GUI_ACTION_WAVE_LIST_OPEN);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Open");
     }
     if (ImGui::BeginPopupContextItem("WaveOpenOpt")) {
       if (ImGui::MenuItem("replace...")) {
@@ -538,6 +584,9 @@ void FurnaceGUI::drawWaveList(bool asChild) {
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FLOPPY_O "##WaveSave")) {
       doAction(GUI_ACTION_WAVE_LIST_SAVE);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Save");
     }
     if (!settings.unifiedDataView) {
       if (ImGui::BeginPopupContextItem("WaveSaveFormats",ImGuiMouseButton_Right)) {
@@ -554,13 +603,22 @@ void FurnaceGUI::drawWaveList(bool asChild) {
     if (ImGui::ArrowButton("WaveUp",ImGuiDir_Up)) {
       doAction(GUI_ACTION_WAVE_LIST_MOVE_UP);
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Move up");
+    }
     ImGui::SameLine();
     if (ImGui::ArrowButton("WaveDown",ImGuiDir_Down)) {
       doAction(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Move down");
+    }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##WaveDelete")) {
       doAction(GUI_ACTION_WAVE_LIST_DELETE);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Delete");
     }
     ImGui::Separator();
     if (ImGui::BeginTable("WaveListScroll",1,ImGuiTableFlags_ScrollY)) {
@@ -598,13 +656,22 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     if (ImGui::Button(ICON_FA_FILE "##SampleAdd")) {
       doAction(GUI_ACTION_SAMPLE_LIST_ADD);
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Add");
+    }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FILES_O "##SampleClone")) {
       doAction(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Duplicate");
+    }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##SampleLoad")) {
       doAction(GUI_ACTION_SAMPLE_LIST_OPEN);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Open");
     }
     if (ImGui::BeginPopupContextItem("SampleOpenOpt")) {
       if (ImGui::MenuItem("replace...")) {
@@ -623,25 +690,43 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     if (ImGui::Button(ICON_FA_FLOPPY_O "##SampleSave")) {
       doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Save");
+    }
     ImGui::SameLine();
     if (ImGui::ArrowButton("SampleUp",ImGuiDir_Up)) {
       doAction(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Move up");
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("SampleDown",ImGuiDir_Down)) {
       doAction(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Move down");
+    }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##SampleDelete")) {
       doAction(GUI_ACTION_SAMPLE_LIST_DELETE);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Delete");
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSampleL")) {
       doAction(GUI_ACTION_SAMPLE_LIST_PREVIEW);
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Preview");
+    }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_VOLUME_OFF "##StopSampleL")) {
       doAction(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW);
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Stop preview");
     }
     ImGui::Separator();
     if (ImGui::BeginTable("SampleListScroll",1,ImGuiTableFlags_ScrollY)) {
@@ -675,6 +760,7 @@ void FurnaceGUI::actualWaveList() {
     if (ImGui::IsItemHovered()) {
       if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         waveEditOpen=true;
+        nextWindow=GUI_WINDOW_WAVE_EDIT;
       }
     }
     ImGui::SameLine();
@@ -684,20 +770,49 @@ void FurnaceGUI::actualWaveList() {
 
 void FurnaceGUI::actualSampleList() {
   for (int i=0; i<(int)e->song.sample.size(); i++) {
+    bool memWarning=false;
+
     DivSample* sample=e->song.sample[i];
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
+    for (int j=0; j<e->song.systemLen; j++) {
+      DivDispatch* dispatch=e->getDispatch(j);
+      if (dispatch==NULL) continue;
+
+      for (int k=0; k<DIV_MAX_SAMPLE_TYPE; k++) {
+        if (dispatch->getSampleMemCapacity(k)==0) continue;
+        if (!dispatch->isSampleLoaded(k,i) && sample->renderOn[k][j]) {
+          memWarning=true;
+          break;
+        }
+      }
+      if (memWarning) break;
+    }
+    if (memWarning) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_SAMPLE_CHIP_WARNING]);
     if (ImGui::Selectable(fmt::sprintf("%d: %s##_SAM%d",i,sample->name,i).c_str(),curSample==i)) {
       curSample=i;
       samplePos=0;
       updateSampleTex=true;
     }
-    if (wantScrollList && curSample==i) ImGui::SetScrollHereY();
     if (ImGui::IsItemHovered() && !mobileUI) {
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
       ImGui::SetTooltip("Bank %d: %s",i/12,sampleNote[i%12]);
       if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         sampleEditOpen=true;
+        nextWindow=GUI_WINDOW_SAMPLE_EDIT;
       }
+      ImGui::PopStyleColor();
     }
+    if (memWarning) {
+      ImGui::SameLine();
+      ImGui::Text(ICON_FA_EXCLAMATION_TRIANGLE);
+      if (ImGui::IsItemHovered() && !mobileUI) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+        ImGui::SetTooltip("out of memory for this sample!");
+        ImGui::PopStyleColor();
+      }
+      ImGui::PopStyleColor();
+    }
+    if (wantScrollList && curSample==i) ImGui::SetScrollHereY();
   }
 }

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,44 +21,23 @@
 #define _NES_H
 
 #include "../dispatch.h"
-#include "../macroInt.h"
 
 #include "sound/nes_nsfplay/nes_apu.h"
 
 class DivPlatformNES: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, prevFreq, note, ins;
+  struct Channel: public SharedChannel<signed char> {
+    int prevFreq;
     unsigned char duty, sweep, envMode, len;
-    bool active, insChanged, freqChanged, sweepChanged, keyOn, keyOff, inPorta, furnaceDac;
-    signed char vol, outVol, wave;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
+    bool sweepChanged, furnaceDac;
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
+      SharedChannel<signed char>(15),
       prevFreq(65535),
-      note(0),
-      ins(-1),
       duty(0),
       sweep(8),
       envMode(3),
       len(0x1f),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
       sweepChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
-      furnaceDac(false),
-      vol(15),
-      outVol(15),
-      wave(-1) {}
+      furnaceDac(false) {}
   };
   Channel chan[5];
   DivDispatchOscBuffer* oscBuf[5];
@@ -89,11 +68,11 @@ class DivPlatformNES: public DivDispatch {
 
   void doWrite(unsigned short addr, unsigned char data);
   unsigned char calcDPCMRate(int inRate);
-  void acquire_puNES(short* bufL, short* bufR, size_t start, size_t len);
-  void acquire_NSFPlay(short* bufL, short* bufR, size_t start, size_t len);
+  void acquire_puNES(short** buf, size_t len);
+  void acquire_NSFPlay(short** buf, size_t len);
 
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);

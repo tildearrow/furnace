@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -35,12 +35,18 @@ class DivConfig {
     String toBase64();
     bool save(const char* path);
 
+    // get the map
+    const std::map<String,String>& configMap();
+
     // get a config value
     bool getBool(String key, bool fallback) const;
     int getInt(String key, int fallback) const;
     float getFloat(String key, float fallback) const;
     double getDouble(String key, double fallback) const;
     String getString(String key, String fallback) const;
+
+    // check for existence
+    bool has(String key) const;
 
     // set a config value
     void set(String key, bool value);

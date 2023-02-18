@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -245,15 +245,31 @@ const unsigned char q1_reg_map[Q1V_REG_COUNT][16] = {
   {0x06,0x0e,0x16,0x1e,0x26,0x2e,0x36,0x3e,0x46,0x4e,0x56,0x5e,0x66,0x6e,0x76,0x7e},
 };
 
+const unsigned char q1a_start_map[3]={
+  0xca, 0xce, 0xd2
+};
+
+const unsigned char q1a_end_map[3]={
+  0xcb, 0xcf, 0xd3
+};
+
+const unsigned char q1a_bank_map[3]={
+  0xcc, 0xd0, 0xd4
+};
+
+const unsigned char q1a_vol_map[3]={
+  0xcd, 0xd1, 0xd5
+};
+
 const char** DivPlatformQSound::getRegisterSheet() {
   return regCheatSheetQSound;
 }
 
-void DivPlatformQSound::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformQSound::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     qsound_update(&chip);
-    bufL[h]=chip.out[0];
-    bufR[h]=chip.out[1];
+    buf[0][h]=chip.out[0];
+    buf[1][h]=chip.out[1];
 
     for (int i=0; i<19; i++) {
       int data=chip.voice_output[i]<<2;
@@ -265,7 +281,7 @@ void DivPlatformQSound::acquire(short* bufL, short* bufR, size_t start, size_t l
 }
 
 void DivPlatformQSound::tick(bool sysTick) {
-  for (int i=0; i<16; i++) {
+  for (int i=0; i<19; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       if (chan[i].isNewQSound) {
@@ -277,7 +293,11 @@ void DivPlatformQSound::tick(bool sysTick) {
       }
       // Check if enabled and write volume
       if (chan[i].active) {
-        rWrite(q1_reg_map[Q1V_VOL][i],chan[i].resVol);
+        if (i<16) {
+          rWrite(q1_reg_map[Q1V_VOL][i],chan[i].resVol);
+        } else {
+          rWrite(q1a_vol_map[i-16],chan[i].resVol);
+        }
       }
     }
     uint16_t qsound_bank = 0;
@@ -286,8 +306,13 @@ void DivPlatformQSound::tick(bool sysTick) {
     uint16_t qsound_end = 0;
     if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
       DivSample* s=parent->getSample(chan[i].sample);
-      qsound_bank = 0x8000 | (offPCM[chan[i].sample] >> 16);
-      qsound_addr = offPCM[chan[i].sample] & 0xffff;
+      if (i<16) {
+        qsound_bank = 0x8000 | (offPCM[chan[i].sample] >> 16);
+        qsound_addr = offPCM[chan[i].sample] & 0xffff;
+      } else {
+        qsound_bank = 0x8000 | (offBS[chan[i].sample] >> 16);
+        qsound_addr = offBS[chan[i].sample] & 0xffff;
+      }
 
       int loopStart=s->loopStart;
       int length = s->loopEnd;
@@ -295,14 +320,24 @@ void DivPlatformQSound::tick(bool sysTick) {
         length = 65536 - 16;
       }
       if (loopStart == -1 || loopStart >= length) {
-        qsound_end = offPCM[chan[i].sample] + length + 15;
+        if (i<16) {
+          qsound_end = offPCM[chan[i].sample] + length + 15;
+        } else {
+          qsound_end = offBS[chan[i].sample] + (length>>1) + 15;
+        }
         qsound_loop = 15;
       } else {
-        qsound_end = offPCM[chan[i].sample] + length;
+        if (i<16) {
+          qsound_end = offPCM[chan[i].sample] + length;
+        } else {
+          qsound_end = offBS[chan[i].sample] + (length>>1);
+        }
         qsound_loop = length - loopStart;
       }
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=QS_NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -310,7 +345,9 @@ void DivPlatformQSound::tick(bool sysTick) {
     }
     if (chan[i].isNewQSound && chan[i].std.duty.had) {
       chan[i].echo=CLAMP(chan[i].std.duty.val,0,32767);
-      immWrite(Q1_ECHO+i,chan[i].echo&0x7fff);
+      if (i<16) {
+        immWrite(Q1_ECHO+i,chan[i].echo&0x7fff);
+      }
     }
     if (chan[i].isNewQSound && chan[i].std.ex1.had) {
       immWrite(Q1_ECHO_FEEDBACK,chan[i].std.ex1.val&0x3fff);
@@ -352,14 +389,22 @@ void DivPlatformQSound::tick(bool sysTick) {
           off=(double)s->centerRate/24038.0/16.0;
         }
       }
-      chan[i].freq=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,440.0,4096.0);
+      chan[i].freq=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,440.0,4096.0);
       if (chan[i].freq>0xefff) chan[i].freq=0xefff;
       if (chan[i].keyOn) {
-        rWrite(q1_reg_map[Q1V_BANK][i], qsound_bank);
-        rWrite(q1_reg_map[Q1V_END][i], qsound_end);
-        rWrite(q1_reg_map[Q1V_LOOP][i], qsound_loop);
-        rWrite(q1_reg_map[Q1V_START][i], qsound_addr);
-        rWrite(q1_reg_map[Q1V_PHASE][i], 0x8000);
+        if (i<16) {
+          rWrite(q1_reg_map[Q1V_BANK][i], qsound_bank);
+          rWrite(q1_reg_map[Q1V_END][i], qsound_end);
+          rWrite(q1_reg_map[Q1V_LOOP][i], qsound_loop);
+          rWrite(q1_reg_map[Q1V_START][i], qsound_addr);
+          rWrite(q1_reg_map[Q1V_PHASE][i], 0x8000);
+        } else {
+          rWrite(Q1A_KEYON+(i-16),0);
+          rWrite(q1a_bank_map[i-16], qsound_bank);
+          rWrite(q1a_end_map[i-16], qsound_end);
+          rWrite(q1a_start_map[i-16], qsound_addr);
+          rWrite(Q1A_KEYON+(i-16),1);
+        }
         //logV("ch %d bank=%04x, addr=%04x, end=%04x, loop=%04x!",i,qsound_bank,qsound_addr,qsound_end,qsound_loop);
         // Write sample address. Enable volume
         if (!chan[i].std.vol.had) {
@@ -368,16 +413,30 @@ void DivPlatformQSound::tick(bool sysTick) {
           } else {
             chan[i].resVol=chan[i].vol<<4;
           }
-          rWrite(q1_reg_map[Q1V_VOL][i],chan[i].resVol);
+          if (i<16) {
+            rWrite(q1_reg_map[Q1V_VOL][i],chan[i].resVol);
+          } else {
+            rWrite(q1a_vol_map[i-16],chan[i].resVol);
+          }
         }
       }
       if (chan[i].keyOff) {
         // Disable volume
-        rWrite(q1_reg_map[Q1V_VOL][i],0);
-        rWrite(q1_reg_map[Q1V_FREQ][i],0);
+        if (i<16) {
+          rWrite(q1_reg_map[Q1V_VOL][i],0);
+          rWrite(q1_reg_map[Q1V_FREQ][i],0);
+        } else {
+          rWrite(q1a_vol_map[i-16],0);
+          rWrite(Q1A_KEYON+(i-16),0);
+          rWrite(q1a_end_map[i-16], 1);
+          rWrite(q1a_start_map[i-16], 0);
+          rWrite(Q1A_KEYON+(i-16),1);
+        }
       } else if (chan[i].active) {
         //logV("ch %d frequency set to %04x, off=%f, note=%d, %04x!",i,chan[i].freq,off,chan[i].note,QS_NOTE_FREQUENCY(chan[i].note));
-        rWrite(q1_reg_map[Q1V_FREQ][i],chan[i].freq);
+        if (i<16) {
+          rWrite(q1_reg_map[Q1V_FREQ][i],chan[i].freq);
+        }
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
@@ -391,7 +450,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       chan[c.chan].isNewQSound=(ins->type==DIV_INS_QSOUND);
-      chan[c.chan].sample=ins->amiga.getSample(c.value);
+      if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(c.value);
       }
@@ -441,8 +500,12 @@ int DivPlatformQSound::dispatch(DivCommand c) {
           } else {
             chan[c.chan].resVol=chan[c.chan].outVol<<4;
           }
-          if (chan[c.chan].active && c.chan<16) {
-            rWrite(q1_reg_map[Q1V_VOL][c.chan],chan[c.chan].resVol);
+          if (chan[c.chan].active) {
+            if (c.chan<16) {
+              rWrite(q1_reg_map[Q1V_VOL][c.chan],chan[c.chan].resVol);
+            } else {
+              rWrite(q1a_vol_map[c.chan-16],chan[c.chan].resVol);
+            }
           }
         }
       }
@@ -459,6 +522,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       break;
     case DIV_CMD_QSOUND_ECHO_LEVEL:
       chan[c.chan].echo=c.value<<7;
+      if (c.chan>=16) break;
       immWrite(Q1_ECHO+c.chan,chan[c.chan].echo&0x7fff);
       break;
     case DIV_CMD_QSOUND_ECHO_FEEDBACK:
@@ -499,7 +563,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
-      chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val-12):(0)));
+      chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val-12):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -508,11 +572,17 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=QS_NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 255;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
@@ -532,10 +602,11 @@ void DivPlatformQSound::muteChannel(int ch, bool mute) {
 }
 
 void DivPlatformQSound::forceIns() {
-  for (int i=0; i<4; i++) {
+  // TODO: what?
+  for (int i=0; i<19; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
-    chan[i].sample=-1;
+    //chan[i].sample=-1;
   }
 }
 
@@ -552,7 +623,7 @@ DivDispatchOscBuffer* DivPlatformQSound::getOscBuffer(int ch) {
 }
 
 void DivPlatformQSound::reset() {
-  for (int i=0; i<16; i++) {
+  for (int i=0; i<19; i++) {
     chan[i]=DivPlatformQSound::Channel();
     chan[i].std.setEngine(parent);
   }
@@ -565,8 +636,8 @@ void DivPlatformQSound::reset() {
   immWrite(Q1_ECHO_FEEDBACK, echoFeedback << 6);
 }
 
-bool DivPlatformQSound::isStereo() {
-  return true;
+int DivPlatformQSound::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformQSound::keyOffAffectsArp(int ch) {
@@ -574,7 +645,7 @@ bool DivPlatformQSound::keyOffAffectsArp(int ch) {
 }
 
 void DivPlatformQSound::notifyInsChange(int ins) {
-  for (int i=0; i<4; i++) {
+  for (int i=0; i<19; i++) {
     if (chan[i].ins==ins) {
       chan[i].insChanged=true;
     }
@@ -582,12 +653,11 @@ void DivPlatformQSound::notifyInsChange(int ins) {
 }
 
 void DivPlatformQSound::notifyWaveChange(int wave) {
-  // TODO when wavetables are added
-  // TODO they probably won't be added unless the samples reside in RAM
+  // yeah won't add wavetables
 }
 
 void DivPlatformQSound::notifyInsDeletion(void* ins) {
-  for (int i=0; i<4; i++) {
+  for (int i=0; i<19; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
@@ -633,27 +703,32 @@ int DivPlatformQSound::getRegisterPoolDepth() {
 }
 
 const void* DivPlatformQSound::getSampleMem(int index) {
-  return index == 0 ? sampleMem : NULL;
+  return (index == 0 || index == 1) ? sampleMem : NULL;
 }
 
 size_t DivPlatformQSound::getSampleMemCapacity(int index) {
-  return index == 0 ? 16777216 : 0;
+  return index == 0 ? 16777216 : index == 1 ? (sampleMemUsage>=16777216?1:(16777216 - sampleMemUsage)) : 0;
 }
 
 size_t DivPlatformQSound::getSampleMemUsage(int index) {
-  return index == 0 ? sampleMemLen : 0;
+  return index == 0 ? sampleMemLen : index == 1 ? ((sampleMemUsage>=sampleMemLenBS)?0:(sampleMemLenBS - sampleMemUsage)) : 0;
 }
 
 bool DivPlatformQSound::isSampleLoaded(int index, int sample) {
-  if (index!=0) return false;
+  if (index<0 || index>1) return false;
   if (sample<0 || sample>255) return false;
+  if (index==1) return sampleLoadedBS[sample];
   return sampleLoaded[sample];
 }
 
-// TODO: ADPCM... come on...
+const char* DivPlatformQSound::getSampleMemName(int index) {
+  return index == 0 ? "PCM" : index == 1 ? "ADPCM" : NULL;
+}
+
 void DivPlatformQSound::renderSamples(int sysID) {
   memset(sampleMem,0,getSampleMemCapacity());
   memset(sampleLoaded,0,256*sizeof(bool));
+  memset(sampleLoadedBS,0,256*sizeof(bool));
 
   size_t memPos=0;
   for (int i=0; i<parent->song.sampleLen; i++) {
@@ -689,6 +764,43 @@ void DivPlatformQSound::renderSamples(int sysID) {
     memPos+=length+16;
   }
   sampleMemLen=memPos+256;
+
+  memPos=(memPos+0xffff)&0xff0000;
+  sampleMemUsage=memPos;
+
+  for (int i=0; i<parent->song.sampleLen; i++) {
+    DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[1][sysID]) {
+      offBS[i]=0;
+      continue;
+    }
+
+    int length=s->lengthQSoundA;
+    if (length>65536) {
+      length=65536;
+    }
+    if ((memPos&0xff0000)!=((memPos+length)&0xff0000)) {
+      memPos=(memPos+0xffff)&0xff0000;
+    }
+    if (memPos>=getSampleMemCapacity()) {
+      logW("out of QSound ADPCM memory for sample %d!",i);
+      break;
+    }
+    if (memPos+length>=getSampleMemCapacity()) {
+      for (unsigned int i=0; i<getSampleMemCapacity()-(memPos+length); i++) {
+        sampleMem[(memPos+i)]=s->dataQSoundA[i];
+      }
+      logW("out of QSound ADPCM memory for sample %d!",i);
+    } else {
+      for (int i=0; i<length; i++) {
+        sampleMem[(memPos+i)]=s->dataQSoundA[i];
+      }
+      sampleLoadedBS[i]=true;
+    }
+    offBS[i]=memPos;
+    memPos+=length+16;
+  }
+  sampleMemLenBS=memPos+256;
 }
 
 int DivPlatformQSound::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
@@ -706,6 +818,8 @@ int DivPlatformQSound::init(DivEngine* p, int channels, int sugRate, const DivCo
   rate = qsound_start(&chip, chipClock);
   sampleMem=new unsigned char[getSampleMemCapacity()];
   sampleMemLen=0;
+  sampleMemLenBS=0;
+  sampleMemUsage=0;
   chip.rom_data=sampleMem;
   chip.rom_mask=0xffffff;
   reset();

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@
 #ifndef _AY_H
 #define _AY_H
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include <queue>
 #include "sound/ay8910.h"
 
@@ -30,7 +29,7 @@ class DivPlatformAY8910: public DivDispatch {
       0,4,1,5,2,6,9,8,11,12,13,3,7,10,14,15
     };
     inline unsigned char regRemap(unsigned char reg) { return intellivision?AY8914RegRemap[reg&0x0f]:reg&0x0f; }
-    struct Channel {
+    struct Channel: public SharedChannel<int> {
       struct PSGMode {
         union {
           struct {
@@ -73,38 +72,16 @@ class DivPlatformAY8910: public DivDispatch {
           furnaceDAC(0) {}
       } dac;
 
-      int freq, baseFreq, note, pitch, pitch2;
-      int ins;
       unsigned char autoEnvNum, autoEnvDen;
       signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta;
-      int vol, outVol;
-      DivMacroInt std;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-        pitch2=0;
-      }
       Channel():
+        SharedChannel<int>(15),
         curPSGMode(PSGMode(0)),
         nextPSGMode(PSGMode(1)),
         dac(DAC()),
-        freq(0),
-        baseFreq(0),
-        note(0),
-        pitch(0),
-        pitch2(0),
-        ins(-1),
         autoEnvNum(0),
         autoEnvDen(0),
-        active(false),
-        insChanged(true),
-        freqChanged(false),
-        keyOn(false),
-        keyOff(false),
-        portaPause(false),
-        inPorta(false),
-        vol(0),
-        outVol(15) {}
+        konCycles(0) {}
     };
     Channel chan[3];
     bool isMuted[3];
@@ -151,7 +128,7 @@ class DivPlatformAY8910: public DivDispatch {
   
   public:
     void setExtClockDiv(unsigned int eclk=COLOR_NTSC, unsigned char ediv=8);
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -163,7 +140,7 @@ class DivPlatformAY8910: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void setFlags(const DivConfig& flags);
-    bool isStereo();
+    int getOutputCount();
     bool keyOffAffectsArp(int ch);
     DivMacroInt* getChanMacroInt(int ch);
     bool getDCOffRequired();

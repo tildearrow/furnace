@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,78 @@
  */
 
 #include "gui.h"
-#include "IconsFontAwesome4.h"
+#include <fmt/printf.h>
 #include <imgui.h>
+#include "IconsFontAwesome4.h"
+#include "imgui_internal.h"
+#include "../ta-log.h"
+
+void FurnaceGUI::drawMobileOrderSel() {
+  if (!portrait) return;
+
+  if (!orderScrollLocked) {
+    if (orderScroll>(float)curOrder-0.005f && orderScroll<(float)curOrder+0.005f) {
+      orderScroll=curOrder;
+    } else if (orderScroll<curOrder) {
+      orderScroll+=MAX(0.05f,(curOrder-orderScroll)*0.2f);
+      if (orderScroll>curOrder) orderScroll=curOrder;
+      WAKE_UP;
+    } else {
+      orderScroll-=MAX(0.05f,(orderScroll-curOrder)*0.2f);
+      if (orderScroll<curOrder) orderScroll=curOrder;
+      WAKE_UP;
+    }
+  }
+
+  ImGui::SetNextWindowPos(ImVec2(0.0f,mobileMenuPos*-0.65*canvasH));
+  ImGui::SetNextWindowSize(ImVec2(canvasW,0.12*canvasW));
+  if (ImGui::Begin("OrderSel",NULL,globalWinFlags)) {
+    ImDrawList* dl=ImGui::GetWindowDrawList();
+    ImGuiWindow* window=ImGui::GetCurrentWindow();
+    ImGuiStyle& style=ImGui::GetStyle();
+
+    ImVec2 size=ImGui::GetContentRegionAvail();
+
+    ImVec2 minArea=window->DC.CursorPos;
+    ImVec2 maxArea=ImVec2(
+      minArea.x+size.x,
+      minArea.y+size.y
+    );
+    ImRect rect=ImRect(minArea,maxArea);
+    ImGui::ItemSize(size,style.FramePadding.y);
+    if (ImGui::ItemAdd(rect,ImGui::GetID("OrderSelW"))) {
+      ImVec2 centerPos=ImLerp(minArea,maxArea,ImVec2(0.5,0.5));
+      
+      for (int i=0; i<e->curSubSong->ordersLen; i++) {
+        ImVec2 pos=centerPos;
+        ImVec4 color=uiColors[GUI_COLOR_TEXT];
+        pos.x+=(i-orderScroll)*40.0*dpiScale;
+        if (pos.x<-200.0*dpiScale) continue;
+        if (pos.x>canvasW+200.0*dpiScale) break;
+        String text=fmt::sprintf("%.2X",i);
+        float targetSize=size.y-fabs(i-orderScroll)*2.0*dpiScale;
+        if (targetSize<8.0*dpiScale) targetSize=8.0*dpiScale;
+        color.w*=CLAMP(2.0f*(targetSize/size.y-0.5f),0.0f,1.0f);
+
+        ImGui::PushFont(bigFont);
+        ImVec2 textSize=ImGui::CalcTextSize(text.c_str());
+        ImGui::PopFont();
+
+        pos.x-=textSize.x*0.5*(targetSize/textSize.y);
+        pos.y-=targetSize*0.5;
+
+        dl->AddText(bigFont,targetSize,pos,ImGui::GetColorU32(color),text.c_str());
+      }
+    }
+    if (ImGui::IsItemClicked()) {
+      orderScrollSlideOrigin=ImGui::GetMousePos().x+orderScroll*40.0f*dpiScale;
+      orderScrollRealOrigin=ImGui::GetMousePos();
+      orderScrollLocked=true;
+      orderScrollTolerance=true;
+    }
+  }
+  ImGui::End();
+}
 
 void FurnaceGUI::drawOrders() {
   static char selID[4096];
@@ -61,6 +131,7 @@ void FurnaceGUI::drawOrders() {
         }
       }
       ImGui::TableNextRow(0,lineHeight);
+      ImVec2 ra=ImGui::GetContentRegionAvail();
       ImGui::TableNextColumn();
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ORDER_ROW_INDEX]);
       for (int i=0; i<e->getTotalChannelCount(); i++) {
@@ -73,6 +144,14 @@ void FurnaceGUI::drawOrders() {
         ImGui::TableNextRow(0,lineHeight);
         if (oldOrder1==i) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_ORDER_ACTIVE]));
         ImGui::TableNextColumn();
+        if ((!followPattern && curOrder==i) || (followPattern && oldOrder1==i)) {
+          // draw a border
+          ImDrawList* dl=ImGui::GetWindowDrawList();
+          ImVec2 rBegin=ImGui::GetCursorScreenPos();
+          rBegin.y-=ImGui::GetStyle().CellPadding.y;
+          ImVec2 rEnd=ImVec2(rBegin.x+ra.x,rBegin.y+lineHeight);
+          dl->AddRect(rBegin,rEnd,ImGui::GetColorU32(uiColors[GUI_COLOR_ORDER_SELECTED]),2.0f*dpiScale);
+        }
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ORDER_ROW_INDEX]);
         bool highlightLoop=(i>=loopOrder && i<=loopEnd);
         if (highlightLoop) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_SONG_LOOP]));
@@ -109,10 +188,10 @@ void FurnaceGUI::drawOrders() {
                 e->lockSave([this,i,j]() {
                   if (changeAllOrders) {
                     for (int k=0; k<e->getTotalChannelCount(); k++) {
-                      if (e->curOrders->ord[k][i]<0xff) e->curOrders->ord[k][i]++;
+                      if (e->curOrders->ord[k][i]<(unsigned char)(DIV_MAX_PATTERNS-1)) e->curOrders->ord[k][i]++;
                     }
                   } else {
-                    if (e->curOrders->ord[j][i]<0xff) e->curOrders->ord[j][i]++;
+                    if (e->curOrders->ord[j][i]<(unsigned char)(DIV_MAX_PATTERNS-1)) e->curOrders->ord[j][i]++;
                   }
                 });
                 e->walkSong(loopOrder,loopRow,loopEnd);

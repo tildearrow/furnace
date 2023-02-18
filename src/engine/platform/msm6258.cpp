@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,12 +30,12 @@ const char** DivPlatformMSM6258::getRegisterSheet() {
   return NULL;
 }
 
-void DivPlatformMSM6258::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformMSM6258::acquire(short** buf, size_t len) {
   short* outs[2]={
     &msmOut,
     NULL
   };
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     if (--msmClockCount<0) {
       if (--msmDividerCount<=0) {
         if (!writes.empty()) {
@@ -78,12 +78,12 @@ void DivPlatformMSM6258::acquire(short* bufL, short* bufR, size_t start, size_t 
     }
     
     if (isMuted[0]) {
-      bufL[h]=0;
-      bufR[h]=0;
+      buf[0][h]=0;
+      buf[1][h]=0;
       oscBuf[0]->data[oscBuf[0]->needle++]=0;
     } else {
-      bufL[h]=(msmPan&2)?msmOut:0;
-      bufR[h]=(msmPan&1)?msmOut:0;
+      buf[0][h]=(msmPan&2)?msmOut:0;
+      buf[1][h]=(msmPan&1)?msmOut:0;
       oscBuf[0]->data[oscBuf[0]->needle++]=msmPan?msmOut:0;
     }
   }
@@ -150,13 +150,12 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
         if (!chan[c.chan].std.vol.will) {
           chan[c.chan].outVol=chan[c.chan].vol;
         }
-        sample=ins->amiga.getSample(c.value);
+        if (c.value!=DIV_NOTE_NULL) sample=ins->amiga.getSample(c.value);
         samplePos=0;
         if (sample>=0 && sample<parent->song.sampleLen) {
           //DivSample* s=parent->getSample(chan[c.chan].sample);
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
-            chan[c.chan].freqChanged=true;
           }
           chan[c.chan].active=true;
           chan[c.chan].keyOn=true;
@@ -242,6 +241,12 @@ int DivPlatformMSM6258::dispatch(DivCommand c) {
     case DIV_CMD_LEGATO: {
       break;
     }
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -331,8 +336,8 @@ void DivPlatformMSM6258::reset() {
   delay=0;
 }
 
-bool DivPlatformMSM6258::isStereo() {
-  return true;
+int DivPlatformMSM6258::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformMSM6258::keyOffAffectsArp(int ch) {
@@ -348,53 +353,9 @@ void DivPlatformMSM6258::notifyInsChange(int ins) {
 }
 
 void DivPlatformMSM6258::notifyInsDeletion(void* ins) {
-}
-
-const void* DivPlatformMSM6258::getSampleMem(int index) {
-  return index == 0 ? adpcmMem : NULL;
-}
-
-size_t DivPlatformMSM6258::getSampleMemCapacity(int index) {
-  return index == 0 ? 262144 : 0;
-}
-
-size_t DivPlatformMSM6258::getSampleMemUsage(int index) {
-  return index == 0 ? adpcmMemLen : 0;
-}
-
-bool DivPlatformMSM6258::isSampleLoaded(int index, int sample) {
-  if (index!=0) return false;
-  if (sample<0 || sample>255) return false;
-  return sampleLoaded[sample];
-}
-
-void DivPlatformMSM6258::renderSamples(int sysID) {
-  memset(adpcmMem,0,getSampleMemCapacity(0));
-  memset(sampleLoaded,0,256*sizeof(bool));
-
-  // sample data
-  size_t memPos=0;
-  int sampleCount=parent->song.sampleLen;
-  if (sampleCount>128) sampleCount=128;
-  for (int i=0; i<sampleCount; i++) {
-    DivSample* s=parent->song.sample[i];
-    if (!s->renderOn[0][sysID]) continue;
-
-    int paddedLen=s->lengthVOX;
-    if (memPos>=getSampleMemCapacity(0)) {
-      logW("out of ADPCM memory for sample %d!",i);
-      break;
-    }
-    if (memPos+paddedLen>=getSampleMemCapacity(0)) {
-      memcpy(adpcmMem+memPos,s->dataVOX,getSampleMemCapacity(0)-memPos);
-      logW("out of ADPCM memory for sample %d!",i);
-    } else {
-      memcpy(adpcmMem+memPos,s->dataVOX,paddedLen);
-      sampleLoaded[i]=true;
-    }
-    memPos+=paddedLen;
+  for (int i=0; i<1; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
-  adpcmMemLen=memPos+256;
 }
 
 void DivPlatformMSM6258::setFlags(const DivConfig& flags) {
@@ -412,6 +373,7 @@ void DivPlatformMSM6258::setFlags(const DivConfig& flags) {
       chipClock=4000000;
       break;
   }
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/256;
   for (int i=0; i<1; i++) {
     oscBuf[i]->rate=rate;
@@ -420,8 +382,6 @@ void DivPlatformMSM6258::setFlags(const DivConfig& flags) {
 
 int DivPlatformMSM6258::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
-  adpcmMem=new unsigned char[getSampleMemCapacity(0)];
-  adpcmMemLen=0;
   dumpWrites=false;
   skipRegisterWrites=false;
   updateOsc=0;
@@ -441,7 +401,6 @@ void DivPlatformMSM6258::quit() {
     delete oscBuf[i];
   }
   delete msm;
-  delete[] adpcmMem;
 }
 
 DivPlatformMSM6258::~DivPlatformMSM6258() {

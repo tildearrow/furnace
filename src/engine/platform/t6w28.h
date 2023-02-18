@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,39 +22,16 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "sound/t6w28/T6W28_Apu.h"
 
 class DivPlatformT6W28: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note;
-    int ins;
+  struct Channel: public SharedChannel<signed char> {
     unsigned char panL, panR, duty;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
-    signed char vol, outVol;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
-      ins(-1),
+      SharedChannel<signed char>(15),
       panL(15),
       panR(15),
-      duty(7),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
-      vol(15),
-      outVol(15) {}
+      duty(7) {}
   };
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];
@@ -82,7 +59,7 @@ class DivPlatformT6W28: public DivDispatch {
   
   void writeOutVol(int ch);
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -93,7 +70,7 @@ class DivPlatformT6W28: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    int getOutputCount();
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);

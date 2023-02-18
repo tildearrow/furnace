@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,8 +37,8 @@ u8 DivPlatformMSM6295::read_byte(u32 address) {
   return adpcmMem[address&0x3ffff];
 }
 
-void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformMSM6295::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     if (delay<=0) {
       if (!writes.empty()) {
         QueuedWrite& w=writes.front();
@@ -75,7 +75,7 @@ void DivPlatformMSM6295::acquire(short* bufL, short* bufR, size_t start, size_t 
     msm.tick();
     msm.tick();
   
-    bufL[h]=msm.out()<<4;
+    buf[0][h]=msm.out()<<4;
 
     if (++updateOsc>=22) {
       updateOsc=0;
@@ -139,12 +139,11 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
         if (!chan[c.chan].std.vol.will) {
           chan[c.chan].outVol=chan[c.chan].vol;
         }
-        chan[c.chan].sample=ins->amiga.getSample(c.value);
+        if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
         if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
           //DivSample* s=parent->getSample(chan[c.chan].sample);
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].note=c.value;
-            chan[c.chan].freqChanged=true;
           }
           chan[c.chan].active=true;
           chan[c.chan].keyOn=true;
@@ -222,6 +221,12 @@ int DivPlatformMSM6295::dispatch(DivCommand c) {
     case DIV_CMD_LEGATO: {
       break;
     }
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -321,6 +326,9 @@ void DivPlatformMSM6295::notifyInsChange(int ins) {
 }
 
 void DivPlatformMSM6295::notifyInsDeletion(void* ins) {
+  for (int i=0; i<4; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
 }
 
 const void* DivPlatformMSM6295::getSampleMem(int index) {
@@ -351,7 +359,7 @@ void DivPlatformMSM6295::renderSamples(int sysID) {
   // sample data
   size_t memPos=128*8;
   int sampleCount=parent->song.sampleLen;
-  if (sampleCount>128) sampleCount=128;
+  if (sampleCount>127) sampleCount=127;
   for (int i=0; i<sampleCount; i++) {
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[0][sysID]) {
@@ -438,6 +446,7 @@ void DivPlatformMSM6295::setFlags(const DivConfig& flags) {
       chipClock=4000000/4;
       break;
   }
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/3;
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate/22;

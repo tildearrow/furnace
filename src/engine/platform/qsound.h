@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,45 +22,25 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "sound/qsound.h"
 
 class DivPlatformQSound: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2;
-    int sample, wave, ins;
-    int note;
+  struct Channel: public SharedChannel<int> {
+    int resVol;
+    int sample, wave;
     int panning;
     int echo;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, surround, isNewQSound;
-    int vol, outVol, resVol;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
+    bool useWave, surround, isNewQSound;
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
+      SharedChannel<int>(255),
+      resVol(4095),
       sample(-1),
-      ins(-1),
-      note(0),
+      wave(-1),
       panning(0x10),
       echo(0),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       useWave(false),
       surround(true),
-      isNewQSound(false),
-      vol(255),
-      outVol(255),
-      resVol(4096) {}
+      isNewQSound(false) {}
   };
   Channel chan[19];
   DivDispatchOscBuffer* oscBuf[19];
@@ -69,7 +49,10 @@ class DivPlatformQSound: public DivDispatch {
 
   unsigned char* sampleMem;
   size_t sampleMemLen;
+  size_t sampleMemLenBS;
+  size_t sampleMemUsage;
   bool sampleLoaded[256];
+  bool sampleLoadedBS[256];
   struct qsound_chip chip;
   unsigned short regPool[512];
 
@@ -80,7 +63,7 @@ class DivPlatformQSound: public DivDispatch {
   friend void putDispatchChan(void*,int,int);
 
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -92,7 +75,7 @@ class DivPlatformQSound: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    int getOutputCount();
     bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
@@ -102,6 +85,7 @@ class DivPlatformQSound: public DivDispatch {
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const void* getSampleMem(int index = 0);
+    const char* getSampleMemName(int index=0);
     size_t getSampleMemCapacity(int index = 0);
     size_t getSampleMemUsage(int index = 0);
     bool isSampleLoaded(int index, int sample);

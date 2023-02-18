@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,8 +30,8 @@ void FurnaceGUI::drawPatManager() {
   }
   if (!patManagerOpen) return;
   char id[1024];
-  unsigned char isUsed[256];
-  bool isNull[256];
+  unsigned char isUsed[DIV_MAX_PATTERNS];
+  bool isNull[DIV_MAX_PATTERNS];
   if (ImGui::Begin("Pattern Manager",&patManagerOpen,globalWinFlags)) {
     ImGui::Text("Global Tasks");
 
@@ -52,19 +52,19 @@ void FurnaceGUI::drawPatManager() {
 
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         ImGui::TableNextRow();
-        memset(isUsed,0,256);
-        memset(isNull,0,256*sizeof(bool));
+        memset(isUsed,0,DIV_MAX_PATTERNS);
+        memset(isNull,0,DIV_MAX_PATTERNS*sizeof(bool));
         for (int j=0; j<e->curSubSong->ordersLen; j++) {
           isUsed[e->curSubSong->orders.ord[i][j]]++;
         }
-        for (int j=0; j<256; j++) {
+        for (int j=0; j<DIV_MAX_PATTERNS; j++) {
           isNull[j]=(e->curSubSong->pat[i].data[j]==NULL);
         }
         ImGui::TableNextColumn();
         ImGui::Text("%s",e->getChannelShortName(i));
 
         ImGui::PushID(1000+i);
-        for (int k=0; k<256; k++) {
+        for (int k=0; k<DIV_MAX_PATTERNS; k++) {
           ImGui::TableNextColumn();
 
           snprintf(id,1023,"%.2X",k);

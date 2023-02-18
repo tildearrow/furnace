@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,8 +46,8 @@ const char** DivPlatformVRC6::getRegisterSheet() {
   return regCheatSheetVRC6;
 }
 
-void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t i=start; i<start+len; i++) {
+void DivPlatformVRC6::acquire(short** buf, size_t len) {
+  for (size_t i=0; i<len; i++) {
     // PCM part
     for (int i=0; i<2; i++) {
       if (chan[i].pcm && chan[i].dacSample!=-1) {
@@ -81,7 +81,7 @@ void DivPlatformVRC6::acquire(short* bufL, short* bufR, size_t start, size_t len
     int sample=vrc6.out()<<9; // scale to 16 bit
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
-    bufL[i]=bufR[i]=sample;
+    buf[0][i]=sample;
 
     // Oscilloscope buffer part
     if (++writeOscBuf>=32) {
@@ -152,7 +152,9 @@ void DivPlatformVRC6::tick(bool sysTick) {
         }
       }
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -194,9 +196,9 @@ void DivPlatformVRC6::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==2) { // sawtooth
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,14)-1;
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,14)-1;
       } else { // pulse
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,16)-1;
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,16)-1;
         if (chan[i].furnaceDac) {
           double off=1.0;
           if (chan[i].dacSample>=0 && chan[i].dacSample<parent->song.sampleLen) {
@@ -240,7 +242,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
         if (chan[c.chan].pcm) {
           if (skipRegisterWrites) break;
           if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
-            chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+            if (c.value!=DIV_NOTE_NULL) chan[c.chan].dacSample=ins->amiga.getSample(c.value);
             if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
               chan[c.chan].dacSample=-1;
               if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
@@ -388,7 +390,7 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       }
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -396,12 +398,18 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VRC6));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       if (c.chan==2) return 63; // sawtooth has 6 bit volume
       return 15; // pulse has 4 bit volume
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
@@ -482,13 +490,14 @@ bool DivPlatformVRC6::keyOffAffectsArp(int ch) {
 void DivPlatformVRC6::setFlags(const DivConfig& flags) {
   int clockSel=flags.getInt("clockSel",0);
   if (clockSel==2) { // Dendy
-    rate=COLOR_PAL*2.0/5.0;
+    chipClock=COLOR_PAL*2.0/5.0;
   } else if (clockSel==1) { // PAL
-    rate=COLOR_PAL*3.0/8.0;
+    chipClock=COLOR_PAL*3.0/8.0;
   } else { // NTSC
-    rate=COLOR_NTSC/2.0;
+    chipClock=COLOR_NTSC/2.0;
   }
-  chipClock=rate;
+  CHECK_CUSTOM_CLOCK;
+  rate=chipClock;
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate/32;
   }

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,46 +21,26 @@
 #define _SNES_H
 
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include "../waveSynth.h"
 #include <queue>
 #include "sound/snes/SPC_DSP.h"
 
 class DivPlatformSNES: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2;
+  struct Channel: public SharedChannel<int> {
     unsigned int audPos;
-    int sample, wave, ins;
-    int note;
+    int sample, wave;
     int panL, panR;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta, useWave, setPos, noise, echo, pitchMod, invertL, invertR, shallWriteVol, shallWriteEnv;
-    int vol, outVol;
+    bool useWave, setPos, noise, echo, pitchMod, invertL, invertR, shallWriteVol, shallWriteEnv;
     int wtLen;
     DivInstrumentSNES state;
-    DivMacroInt std;
     DivWaveSynth ws;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
+      SharedChannel<int>(127),
       audPos(0),
       sample(-1),
       wave(-1),
-      ins(-1),
-      note(0),
       panL(127),
       panR(127),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
       useWave(false),
       setPos(false),
       noise(false),
@@ -70,8 +50,6 @@ class DivPlatformSNES: public DivDispatch {
       invertR(false),
       shallWriteVol(false),
       shallWriteEnv(false),
-      vol(127),
-      outVol(127),
       wtLen(16) {} 
   };
   Channel chan[8];
@@ -115,7 +93,7 @@ class DivPlatformSNES: public DivDispatch {
   friend void putDispatchChan(void*,int,int);
 
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -126,7 +104,7 @@ class DivPlatformSNES: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    int getOutputCount();
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void setFlags(const DivConfig& flags);

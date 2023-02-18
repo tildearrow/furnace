@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,21 +21,21 @@
 #include "../engine.h"
 #include "../../ta-log.h"
 
-#define CHIP_DIVIDER 16
+#define CHIP_DIVIDER 1024
 
-void DivPlatformPong::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformPong::acquire(short** buf, size_t len) {
   int out=0;
-  for (size_t i=start; i<start+len; i++) {
+  for (size_t i=0; i<len; i++) {
     if (on) {
       if (--pos<=0) {
         pos=(freq?2:1)<<4;
         flip=!flip;
       }
       out=(flip && !isMuted[0])?32767:0;
-      bufL[i]=out;
+      buf[0][i]=out;
       oscBuf->data[oscBuf->needle++]=out;
     } else {
-      bufL[i]=0;
+      buf[0][i]=0;
       oscBuf->data[oscBuf->needle++]=0;
       flip=false;
     }
@@ -49,7 +49,9 @@ void DivPlatformPong::tick(bool sysTick) {
       chan[i].outVol=(chan[i].vol && chan[i].std.vol.val);
       on=chan[i].outVol;
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -69,7 +71,7 @@ void DivPlatformPong::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>1) chan[i].freq=1;
       if (chan[i].keyOn) {
@@ -158,7 +160,7 @@ int DivPlatformPong::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO:
       if (c.chan==3) break;
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -166,11 +168,17 @@ int DivPlatformPong::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_BEEPER));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 1;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
@@ -226,8 +234,9 @@ bool DivPlatformPong::keyOffAffectsArp(int ch) {
 }
 
 void DivPlatformPong::setFlags(const DivConfig& flags) {
-  chipClock=15625;
-  rate=chipClock;
+  chipClock=1000000;
+  CHECK_CUSTOM_CLOCK;
+  rate=chipClock/64;
   oscBuf->rate=rate;
 }
 

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -39,13 +39,13 @@ const char** DivPlatformVIC20::getRegisterSheet() {
   return regCheatSheetVIC;
 }
 
-void DivPlatformVIC20::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformVIC20::acquire(short** buf, size_t len) {
   const unsigned char loadFreq[3] = {0x7e, 0x7d, 0x7b};
   const unsigned char wavePatterns[16] = {
     0b0,     0b10,    0b100,   0b110,   0b1000,  0b1010,   0b1011,   0b1110,
     0b10010, 0b10100, 0b10110, 0b11000, 0b11010, 0b100100, 0b101010, 0b101100
   };
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     if (hasWaveWrite) {
       hasWaveWrite=false;
       for (int i=0; i<3; i++) {
@@ -66,8 +66,7 @@ void DivPlatformVIC20::acquire(short* bufL, short* bufR, size_t start, size_t le
     }
     short samp;
     vic_sound_machine_calculate_samples(vic,&samp,1,1,0,SAMP_DIVIDER);
-    bufL[h]=samp;
-    bufR[h]=samp;
+    buf[0][h]=samp;
     for (int i=0; i<4; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=vic->ch[i].out?(vic->volume<<11):0;
     }
@@ -80,7 +79,7 @@ void DivPlatformVIC20::calcAndWriteOutVol(int ch, int env) {
 }
 
 void DivPlatformVIC20::writeOutVol(int ch) {
-  if (!isMuted[ch]) {
+  if (!isMuted[ch] && chan[ch].active) {
     rWrite(14,chan[ch].outVol);
   }
 }
@@ -92,7 +91,9 @@ void DivPlatformVIC20::tick(bool sysTick) {
       int env=chan[i].std.vol.val;
       calcAndWriteOutVol(i,env);
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -114,7 +115,7 @@ void DivPlatformVIC20::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (i<3) {
         chan[i].freq>>=(2-i);
       } else {
@@ -217,7 +218,7 @@ int DivPlatformVIC20::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -225,11 +226,17 @@ int DivPlatformVIC20::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VIC));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
@@ -291,8 +298,8 @@ void DivPlatformVIC20::reset() {
   vic_sound_clock(vic,4);
 }
 
-bool DivPlatformVIC20::isStereo() {
-  return false;
+int DivPlatformVIC20::getOutputCount() {
+  return 1;
 }
 
 void DivPlatformVIC20::notifyInsDeletion(void* ins) {
@@ -307,6 +314,7 @@ void DivPlatformVIC20::setFlags(const DivConfig& flags) {
   } else {
     chipClock=COLOR_NTSC*2.0/7.0;
   }
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;

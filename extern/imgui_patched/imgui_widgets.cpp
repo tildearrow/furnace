@@ -998,7 +998,7 @@ bool ImGui::ScrollbarEx(const ImRect& bb_frame, ImGuiID id, ImGuiAxis axis, ImS6
 
     // Render
     const ImU32 bg_col = GetColorU32(ImGuiCol_ScrollbarBg);
-    const ImU32 grab_col = GetColorU32(held ? ImGuiCol_ScrollbarGrabActive : hovered ? ImGuiCol_ScrollbarGrabHovered : ImGuiCol_ScrollbarGrab, alpha);
+    const ImU32 grab_col = GetColorU32(held ? ImGuiCol_ScrollbarGrabActive : (hovered && !(g.IO.ConfigFlags&ImGuiConfigFlags_NoHoverColors)) ? ImGuiCol_ScrollbarGrabHovered : ImGuiCol_ScrollbarGrab, alpha);
     window->DrawList->AddRectFilled(bb_frame.Min, bb_frame.Max, bg_col, window->WindowRounding, flags);
     ImRect grab_rect;
     if (axis == ImGuiAxis_X)
@@ -2949,7 +2949,7 @@ bool ImGui::SliderScalar(const char* label, ImGuiDataType data_type, void* p_dat
 
     const bool temp_input_allowed = (flags & ImGuiSliderFlags_NoInput) == 0;
     ItemSize(total_bb, style.FramePadding.y);
-    if (!ItemAdd(total_bb, id, &frame_bb, temp_input_allowed ? ImGuiItemFlags_Inputable : 0))
+    if (!ItemAdd(total_bb, id, &frame_bb, (temp_input_allowed ? ImGuiItemFlags_Inputable : 0) | ImGuiItemFlags_NoInertialScroll))
         return false;
 
     // Default format string when passing NULL
@@ -3113,7 +3113,7 @@ bool ImGui::VSliderScalar(const char* label, const ImVec2& size, ImGuiDataType d
     const ImRect bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0.0f));
 
     ItemSize(bb, style.FramePadding.y);
-    if (!ItemAdd(frame_bb, id))
+    if (!ItemAdd(frame_bb, id, NULL, ImGuiItemFlags_NoInertialScroll))
         return false;
 
     // Default format string when passing NULL
@@ -6329,9 +6329,9 @@ bool ImGui::Selectable(const char* label, bool selected, ImGuiSelectableFlags fl
     // Render
     if (held && (flags & ImGuiSelectableFlags_DrawHoveredWhenHeld))
         hovered = true;
-    if (hovered || selected)
+    if ((hovered && !(g.IO.ConfigFlags&ImGuiConfigFlags_NoHoverColors)) || selected)
     {
-        const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : hovered ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
+        const ImU32 col = GetColorU32((held && hovered) ? ImGuiCol_HeaderActive : (hovered && !(g.IO.ConfigFlags&ImGuiConfigFlags_NoHoverColors)) ? ImGuiCol_HeaderHovered : ImGuiCol_Header);
         RenderFrame(bb.Min, bb.Max, col, false, 0.0f);
     }
     RenderNavHighlight(bb, id, ImGuiNavHighlightFlags_TypeThin | ImGuiNavHighlightFlags_NoRounding);

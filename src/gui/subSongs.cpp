@@ -50,9 +50,15 @@ void FurnaceGUI::drawSubSongs() {
           if (ImGui::SmallButton(ICON_FA_ARROW_UP "##SubUp")) {
             e->moveSubSongUp(i);
           }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Move up");
+          }
           ImGui::SameLine();
           if (ImGui::SmallButton(ICON_FA_ARROW_DOWN "##SubDown")) {
             e->moveSubSongDown(i);
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("Move down");
           }
           ImGui::PopID();
         }
@@ -79,6 +85,9 @@ void FurnaceGUI::drawSubSongs() {
         MARK_MODIFIED;
       }
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Add");
+    }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_MINUS "##SubSongDel")) {
       if (e->song.subsong.size()<=1) {
@@ -87,12 +96,21 @@ void FurnaceGUI::drawSubSongs() {
         showWarning("are you sure you want to remove this subsong?",GUI_WARN_SUBSONG_DEL);
       }
     }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Remove");
+    }
 
     ImGui::Text("Name");
     ImGui::SameLine();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     if (ImGui::InputText("##SubSongName",&e->curSubSong->name,ImGuiInputTextFlags_UndoRedo)) {
       MARK_MODIFIED;
+    }
+
+    if (ImGui::GetContentRegionAvail().y>(10.0f*dpiScale)) {
+      if (ImGui::InputTextMultiline("##SubSongNotes",&e->curSubSong->notes,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_UndoRedo)) {
+        MARK_MODIFIED;
+      }
     }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SUBSONGS;

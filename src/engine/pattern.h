@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 
 struct DivPattern {
   String name;
-  short data[256][32];
+  short data[DIV_MAX_ROWS][DIV_MAX_COLS];
 
   /**
    * copy this pattern to another.
@@ -42,7 +42,7 @@ struct DivChannelData {
   // 3: volume
   // 4-5+: effect/effect value
   // do NOT access directly unless you know what you're doing!
-  DivPattern* data[256];
+  DivPattern* data[DIV_MAX_PATTERNS];
 
   /**
    * get a pattern from this channel, or the empty pattern if not initialized.

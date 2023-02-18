@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,36 +22,13 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 
 class DivPlatformZXBeeper: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note;
-    int ins;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
-    signed char vol, outVol;
+  struct Channel: public SharedChannel<signed char> {
     unsigned short sPosition;
     unsigned char duty;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
-      ins(-1),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
-      vol(1),
-      outVol(1),
+      SharedChannel<signed char>(1),
       sPosition(0),
       duty(64) {}
   };
@@ -75,7 +52,7 @@ class DivPlatformZXBeeper: public DivDispatch {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);

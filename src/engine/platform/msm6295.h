@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,35 +19,19 @@
 
 #ifndef _MSM6295_H
 #define _MSM6295_H
+
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include <queue>
 #include "vgsound_emu/src/msm6295/msm6295.hpp"
 
 class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
   protected:
-    struct Channel {
-      int note, ins;
-      signed char konCycles;
-      bool active, insChanged, freqChanged, keyOn, keyOff, furnacePCM, hardReset;
-      int vol, outVol;
+    struct Channel: public SharedChannel<int> {
+      bool furnacePCM;
       int sample;
-      DivMacroInt std;
-      void macroInit(DivInstrument* which) {
-        std.init(which);
-      }
       Channel():
-        note(0),
-        ins(-1),
-        active(false),
-        insChanged(true),
-        freqChanged(false),
-        keyOn(false),
-        keyOff(false),
+        SharedChannel<int>(8),
         furnacePCM(false),
-        hardReset(false),
-        vol(8),
-        outVol(8),
         sample(-1) {}
     };
     Channel chan[4];
@@ -80,7 +64,7 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
   
   public:
     virtual u8 read_byte(u32 address) override;
-    virtual void acquire(short* bufL, short* bufR, size_t start, size_t len) override;
+    virtual void acquire(short** buf, size_t len) override;
     virtual int dispatch(DivCommand c) override;
     virtual void* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;

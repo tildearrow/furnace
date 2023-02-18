@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ int PlotNoLerpEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
     const ImRect inner_bb(frame_bb.Min + style.FramePadding, frame_bb.Max - style.FramePadding);
     const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0));
     ImGui::ItemSize(total_bb, style.FramePadding.y);
-    if (!ImGui::ItemAdd(total_bb, 0, &frame_bb))
+    if (!ImGui::ItemAdd(total_bb, 0, &frame_bb, ImGuiItemFlags_NoInertialScroll))
         return -1;
     const bool hovered = ImGui::ItemHoverable(frame_bb, id);
 
@@ -203,7 +203,7 @@ int PlotBitfieldEx(const char* label, int (*values_getter)(void* data, int idx),
     const ImRect inner_bb(frame_bb.Min + style.FramePadding, frame_bb.Max - style.FramePadding);
     const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0));
     ImGui::ItemSize(total_bb, style.FramePadding.y);
-    if (!ImGui::ItemAdd(total_bb, 0, &frame_bb))
+    if (!ImGui::ItemAdd(total_bb, 0, &frame_bb, ImGuiItemFlags_NoInertialScroll))
         return -1;
     const bool hovered = ImGui::ItemHoverable(frame_bb, id);
 
@@ -313,7 +313,7 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
     const ImRect inner_bb(frame_bb.Min + style.FramePadding, frame_bb.Max - style.FramePadding);
     const ImRect total_bb(frame_bb.Min, frame_bb.Max + ImVec2(label_size.x > 0.0f ? style.ItemInnerSpacing.x + label_size.x : 0.0f, 0));
     ImGui::ItemSize(total_bb, style.FramePadding.y);
-    if (!ImGui::ItemAdd(total_bb, 0, &frame_bb))
+    if (!ImGui::ItemAdd(total_bb, 0, &frame_bb, ImGuiItemFlags_NoInertialScroll))
         return -1;
     const bool hovered = ImGui::ItemHoverable(frame_bb, id);
 
@@ -367,7 +367,7 @@ int PlotCustomEx(ImGuiPlotType plot_type, const char* label, float (*values_gett
               if (plot_type == ImGuiPlotType_Lines)
                   ImGui::SetTooltip("%d: %8.4g\n%d: %8.4g", v_idx, v0, v_idx + 1, v1);
               else if (plot_type == ImGuiPlotType_Histogram)
-                  ImGui::SetTooltip("%d: %8.4g", v_idx+values_display_offset, v0);
+                  ImGui::SetTooltip("%d: %d", v_idx+values_display_offset, (int)v0);
             }
             idx_hovered = v_idx;
         }

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,37 +21,14 @@
 #define _VIC20_H
 
 #include "../dispatch.h"
-#include "../macroInt.h"
 #include "sound/vic20sound.h"
 #include <queue>
 
 class DivPlatformVIC20: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note, ins;
-    unsigned char pan;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
-    int vol, outVol, wave, waveWriteCycle;
-    DivMacroInt std;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
+  struct Channel: public SharedChannel<int> {
+    int wave, waveWriteCycle;
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
-      ins(-1),
-      pan(255),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
-      vol(15),
-      outVol(15),
+      SharedChannel<int>(15),
       wave(0),
       waveWriteCycle(-1) {}
   };
@@ -66,7 +43,7 @@ class DivPlatformVIC20: public DivDispatch {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
@@ -79,7 +56,7 @@ class DivPlatformVIC20: public DivDispatch {
     void muteChannel(int ch, bool mute);
     void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
-    bool isStereo();
+    int getOutputCount();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();

@@ -2,7 +2,7 @@
 // OK, sorry for inserting the define here but I'm so tired of this extension
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,7 +25,6 @@
 
 #include "gui.h"
 #include "util.h"
-#include "icon.h"
 #include "../ta-log.h"
 #include "../fileutils.h"
 #include "imgui.h"
@@ -592,12 +591,14 @@ void FurnaceGUI::updateWindowTitle() {
 
 void FurnaceGUI::autoDetectSystem() {
   std::map<DivSystem,int> sysCountMap;
+  std::map<DivSystem,DivConfig> sysConfMap;
   for (int i=0; i<e->song.systemLen; i++) {
     try {
       sysCountMap.at(e->song.system[i])++;
     } catch (std::exception& ex) {
       sysCountMap[e->song.system[i]]=1;
     }
+    sysConfMap[e->song.system[i]]=e->song.systemFlags[i];
   }
 
   logV("sysCountMap:");
@@ -607,29 +608,45 @@ void FurnaceGUI::autoDetectSystem() {
 
   bool isMatch=false;
   std::map<DivSystem,int> defCountMap;
+  std::map<DivSystem,DivConfig> defConfMap;
   for (FurnaceGUISysCategory& i: sysCategories) {
     for (FurnaceGUISysDef& j: i.systems) {
       defCountMap.clear();
-      for (size_t k=0; k<j.definition.size(); k+=4) {
-        if (j.definition[k]==0) break;
+      defConfMap.clear();
+      for (FurnaceGUISysDefChip& k: j.orig) {
         try {
-          defCountMap.at((DivSystem)j.definition[k])++;
+          defCountMap.at(k.sys)++;
         } catch (std::exception& ex) {
-          defCountMap[(DivSystem)j.definition[k]]=1;
+          defCountMap[k.sys]=1;
         }
+        DivConfig dc;
+        dc.loadFromMemory(k.flags);
+        defConfMap[k.sys]=dc;
       }
       if (defCountMap.size()!=sysCountMap.size()) continue;
       isMatch=true;
-      logV("trying on defCountMap: %s",j.name);
+      /*logV("trying on defCountMap: %s",j.name);
       for (std::pair<DivSystem,int> k: defCountMap) {
         logV("- %s: %d",e->getSystemName(k.first),k.second);
-      }
+      }*/
       for (std::pair<DivSystem,int> k: defCountMap) {
         try {
           if (sysCountMap.at(k.first)!=k.second) {
             isMatch=false;
             break;
           }
+          DivConfig& sysDC=sysConfMap.at(k.first);
+          for (std::pair<String,String> l: defConfMap.at(k.first).configMap()) {
+            if (!sysDC.has(l.first)) {
+              isMatch=false;
+              break;
+            }
+            if (sysDC.getString(l.first,"")!=l.second) {
+              isMatch=false;
+              break;
+            }
+          }
+          if (!isMatch) break;
         } catch (std::exception& ex) {
           isMatch=false;
           break;
@@ -970,18 +987,25 @@ void FurnaceGUI::prepareLayout() {
   fclose(check);
 }
 
-float FurnaceGUI::calcBPM(int s1, int s2, float hz, int vN, int vD) {
+float FurnaceGUI::calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD) {
   float hl=e->curSubSong->hilightA;
   if (hl<=0.0f) hl=4.0f;
   float timeBase=e->curSubSong->timeBase+1;
-  float speedSum=s1+s2;
+  float speedSum=0;
+  for (int i=0; i<MIN(16,speeds.len); i++) {
+    speedSum+=speeds.val[i];
+  }
+  speedSum/=MAX(1,speeds.len);
   if (timeBase<1.0f) timeBase=1.0f;
   if (speedSum<1.0f) speedSum=1.0f;
   if (vD<1) vD=1;
-  return (120.0f*hz/(timeBase*hl*speedSum))*(float)vN/(float)vD;
+  return (60.0f*hz/(timeBase*hl*speedSum))*(float)vN/(float)vD;
 }
 
 void FurnaceGUI::play(int row) {
+  memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
   e->walkSong(loopOrder,loopRow,loopEnd);
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
   if (!followPattern) e->setOrder(curOrder);
@@ -1008,6 +1032,9 @@ void FurnaceGUI::stop() {
   curNibble=false;
   orderNibble=false;
   activeNotes.clear();
+  memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
+  memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
 }
 
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
@@ -1040,13 +1067,13 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
 
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
 
-  if (key==100) { // note off
+  if (key==GUI_NOTE_OFF) { // note off
     pat->data[cursor.y][0]=100;
     pat->data[cursor.y][1]=0;
-  } else if (key==101) { // note off + env release
+  } else if (key==GUI_NOTE_OFF_RELEASE) { // note off + env release
     pat->data[cursor.y][0]=101;
     pat->data[cursor.y][1]=0;
-  } else if (key==102) { // env release only
+  } else if (key==GUI_NOTE_RELEASE) { // env release only
     pat->data[cursor.y][0]=102;
     pat->data[cursor.y][1]=0;
   } else {
@@ -1403,7 +1430,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Open File",
         {"compatible files", "*.fur *.dmf *.mod *.fc13 *.fc14 *.smod *.fc",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.fur,.dmf,.mod,.fc13,.fc14,.smod,.fc},.*",
         workingDirSong,
         dpiScale
@@ -1469,7 +1496,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
          "VOPM preset bank", "*.opm",
          "Wohlstand WOPL bank", "*.wopl",
          "Wohlstand WOPN bank", "*.wopn",
-         "all files", ".*"},
+         "all files", "*"},
         "all compatible files{.fui,.dmp,.tfi,.vgi,.s3i,.sbi,.opli,.opni,.y12,.bnk,.ff,.gyb,.opm,.wopl,.wopn},.*",
         workingDirIns,
         dpiScale,
@@ -1536,7 +1563,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Load Wavetable",
         {"compatible files", "*.fuw *.dmw",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.fuw,.dmw},.*",
         workingDirWave,
         dpiScale,
@@ -1580,7 +1607,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Load Sample",
         {"compatible files", "*.wav *.dmc *.brr",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.wav,.dmc,.brr},.*",
         workingDirSample,
         dpiScale,
@@ -1593,7 +1620,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Load Raw Sample",
-        {"all files", ".*"},
+        {"all files", "*"},
         ".*",
         workingDirSample,
         dpiScale
@@ -1760,7 +1787,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       hasOpened=fileDialog->openLoad(
         "Load ROM",
         {"compatible files", "*.rom *.bin",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.rom,.bin},.*",
         workingDirROM,
         dpiScale
@@ -1772,7 +1799,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Open Test",
         {"compatible files", "*.fur *.dmf *.mod",
          "another option", "*.wav *.ttf",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
         workingDirTest,
         dpiScale,
@@ -1791,7 +1818,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Open Test (Multi)",
         {"compatible files", "*.fur *.dmf *.mod",
          "another option", "*.wav *.ttf",
-         "all files", ".*"},
+         "all files", "*"},
         "compatible files{.fur,.dmf,.mod},another option{.wav,.ttf},.*",
         workingDirTest,
         dpiScale,
@@ -1825,6 +1852,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
 
 int FurnaceGUI::save(String path, int dmfVersion) {
   SafeWriter* w;
+  logD("saving file...");
   if (dmfVersion) {
     if (dmfVersion<24) dmfVersion=24;
     w=e->saveDMF(dmfVersion);
@@ -1833,11 +1861,14 @@ int FurnaceGUI::save(String path, int dmfVersion) {
   }
   if (w==NULL) {
     lastError=e->getLastError();
+    logE("couldn't save! %s",lastError);
     return 3;
   }
+  logV("opening file for writing...");
   FILE* outFile=ps_fopen(path.c_str(),"wb");
   if (outFile==NULL) {
     lastError=strerror(errno);
+    logE("couldn't save! %s",lastError);
     w->finish();
     return 1;
   }
@@ -1918,6 +1949,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
     showWarning(e->getWarnings(),GUI_WARN_GENERIC);
   }
   pushRecentFile(path);
+  logD("save complete.");
   return 0;
 }
 
@@ -2197,6 +2229,12 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
       sampleSelEnd=x;
     }
   }
+  if (orderScrollLocked) {
+    if (fabs(orderScrollRealOrigin.x-dragX)>2.0f*dpiScale || fabs(orderScrollRealOrigin.y-dragY)>2.0f*dpiScale) orderScrollTolerance=false;
+    orderScroll=(orderScrollSlideOrigin-dragX)/(40.0*dpiScale);
+    if (orderScroll<0.0f) orderScroll=0.0f;
+    if (orderScroll>(float)e->curSubSong->ordersLen-1) orderScroll=e->curSubSong->ordersLen-1;
+  }
 }
 
 #define checkExtension(x) \
@@ -2268,10 +2306,10 @@ void FurnaceGUI::editOptions(bool topMenu) {
   char id[4096];
   editOptsVisible=true;
 
-  if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true);
-  if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false);
+  if (ImGui::MenuItem("cut",BIND_FOR(GUI_ACTION_PAT_CUT))) doCopy(true,true,selStart,selEnd);
+  if (ImGui::MenuItem("copy",BIND_FOR(GUI_ACTION_PAT_COPY))) doCopy(false,true,selStart,selEnd);
   if (ImGui::MenuItem("paste",BIND_FOR(GUI_ACTION_PAT_PASTE))) doPaste();
-  if (ImGui::BeginMenu("paste special...")) {
+  if (!basicMode) if (ImGui::BeginMenu("paste special...")) {
     if (ImGui::MenuItem("paste mix",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX))) doPaste(GUI_PASTE_MODE_MIX_FG);
     if (ImGui::MenuItem("paste mix (background)",BIND_FOR(GUI_ACTION_PAT_PASTE_MIX_BG))) doPaste(GUI_PASTE_MODE_MIX_BG);
     if (ImGui::BeginMenu("paste with ins (foreground)")) {
@@ -2308,162 +2346,164 @@ void FurnaceGUI::editOptions(bool topMenu) {
   }
   ImGui::Separator();
 
-  if (ImGui::BeginMenu("operation mask...")) {
-    drawOpMask(opMaskDelete);
-    ImGui::SameLine();
-    ImGui::Text("delete");
+  if (!basicMode) {
+    if (ImGui::BeginMenu("operation mask...")) {
+      drawOpMask(opMaskDelete);
+      ImGui::SameLine();
+      ImGui::Text("delete");
 
-    drawOpMask(opMaskPullDelete);
-    ImGui::SameLine();
-    ImGui::Text("pull delete");
+      drawOpMask(opMaskPullDelete);
+      ImGui::SameLine();
+      ImGui::Text("pull delete");
 
-    drawOpMask(opMaskInsert);
-    ImGui::SameLine();
-    ImGui::Text("insert");
+      drawOpMask(opMaskInsert);
+      ImGui::SameLine();
+      ImGui::Text("insert");
 
-    drawOpMask(opMaskPaste);
-    ImGui::SameLine();
-    ImGui::Text("paste");
+      drawOpMask(opMaskPaste);
+      ImGui::SameLine();
+      ImGui::Text("paste");
 
-    drawOpMask(opMaskTransposeNote);
-    ImGui::SameLine();
-    ImGui::Text("transpose (note)");
+      drawOpMask(opMaskTransposeNote);
+      ImGui::SameLine();
+      ImGui::Text("transpose (note)");
 
-    drawOpMask(opMaskTransposeValue);
-    ImGui::SameLine();
-    ImGui::Text("transpose (value)");
+      drawOpMask(opMaskTransposeValue);
+      ImGui::SameLine();
+      ImGui::Text("transpose (value)");
 
-    drawOpMask(opMaskInterpolate);
-    ImGui::SameLine();
-    ImGui::Text("interpolate");
+      drawOpMask(opMaskInterpolate);
+      ImGui::SameLine();
+      ImGui::Text("interpolate");
 
-    drawOpMask(opMaskFade);
-    ImGui::SameLine();
-    ImGui::Text("fade");
+      drawOpMask(opMaskFade);
+      ImGui::SameLine();
+      ImGui::Text("fade");
 
-    drawOpMask(opMaskInvertVal);
-    ImGui::SameLine();
-    ImGui::Text("invert values");
+      drawOpMask(opMaskInvertVal);
+      ImGui::SameLine();
+      ImGui::Text("invert values");
 
-    drawOpMask(opMaskScale);
-    ImGui::SameLine();
-    ImGui::Text("scale");
+      drawOpMask(opMaskScale);
+      ImGui::SameLine();
+      ImGui::Text("scale");
 
-    drawOpMask(opMaskRandomize);
-    ImGui::SameLine();
-    ImGui::Text("randomize");
+      drawOpMask(opMaskRandomize);
+      ImGui::SameLine();
+      ImGui::Text("randomize");
 
-    drawOpMask(opMaskFlip);
-    ImGui::SameLine();
-    ImGui::Text("flip");
+      drawOpMask(opMaskFlip);
+      ImGui::SameLine();
+      ImGui::Text("flip");
 
-    drawOpMask(opMaskCollapseExpand);
-    ImGui::SameLine();
-    ImGui::Text("collapse/expand");
+      drawOpMask(opMaskCollapseExpand);
+      ImGui::SameLine();
+      ImGui::Text("collapse/expand");
 
-    ImGui::EndMenu();
-  }
-
-  ImGui::Text("input latch");
-  ImGui::PushFont(patFont);
-  if (ImGui::BeginTable("inputLatchTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
-    static char id[64];
-    ImGui::TableNextRow();
-    ImGui::TableNextColumn();
-    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
-    ImGui::Text("C-4");
-    ImGui::PopStyleColor();
-    ImGui::TableNextColumn();
-    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
-    if (latchIns==-2) {
-      strcpy(id,"&&##LatchIns");
-    } else if (latchIns==-1) {
-      strcpy(id,"..##LatchIns");
-    } else {
-      snprintf(id,63,"%.2x##LatchIns",latchIns&0xff);
+      ImGui::EndMenu();
     }
-    if (ImGui::Selectable(id,latchTarget==1,ImGuiSelectableFlags_DontClosePopups)) {
-      latchTarget=1;
-      latchNibble=false;
-    }
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-      latchIns=-2;
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-      ImGui::SetTooltip("&&: selected instrument\n..: no instrument");
+
+    ImGui::Text("input latch");
+    ImGui::PushFont(patFont);
+    if (ImGui::BeginTable("inputLatchTable",5,ImGuiTableFlags_Borders|ImGuiTableFlags_SizingFixedFit|ImGuiTableFlags_NoHostExtendX)) {
+      static char id[64];
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_ACTIVE]);
+      ImGui::Text("C-4");
       ImGui::PopStyleColor();
-    }
-    ImGui::PopStyleColor();
-    ImGui::TableNextColumn();
-    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]);
-    if (latchVol==-1) {
-      strcpy(id,"..##LatchVol");
-    } else {
-      snprintf(id,63,"%.2x##LatchVol",latchVol&0xff);
-    }
-    if (ImGui::Selectable(id,latchTarget==2,ImGuiSelectableFlags_DontClosePopups)) {
-      latchTarget=2;
-      latchNibble=false;
-    }
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-      latchVol=-1;
-    }
-    ImGui::PopStyleColor();
-    ImGui::TableNextColumn();
-    if (latchEffect==-1) {
-      strcpy(id,"..##LatchFX");
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
-    } else {
-      const unsigned char data=latchEffect;
-      snprintf(id,63,"%.2x##LatchFX",data);
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
-    }
+      ImGui::TableNextColumn();
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INS]);
+      if (latchIns==-2) {
+        strcpy(id,"&&##LatchIns");
+      } else if (latchIns==-1) {
+        strcpy(id,"..##LatchIns");
+      } else {
+        snprintf(id,63,"%.2x##LatchIns",latchIns&0xff);
+      }
+      if (ImGui::Selectable(id,latchTarget==1,ImGuiSelectableFlags_DontClosePopups)) {
+        latchTarget=1;
+        latchNibble=false;
+      }
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        latchIns=-2;
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+        ImGui::SetTooltip("&&: selected instrument\n..: no instrument");
+        ImGui::PopStyleColor();
+      }
+      ImGui::PopStyleColor();
+      ImGui::TableNextColumn();
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_VOLUME_MAX]);
+      if (latchVol==-1) {
+        strcpy(id,"..##LatchVol");
+      } else {
+        snprintf(id,63,"%.2x##LatchVol",latchVol&0xff);
+      }
+      if (ImGui::Selectable(id,latchTarget==2,ImGuiSelectableFlags_DontClosePopups)) {
+        latchTarget=2;
+        latchNibble=false;
+      }
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        latchVol=-1;
+      }
+      ImGui::PopStyleColor();
+      ImGui::TableNextColumn();
+      if (latchEffect==-1) {
+        strcpy(id,"..##LatchFX");
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_INACTIVE]);
+      } else {
+        const unsigned char data=latchEffect;
+        snprintf(id,63,"%.2x##LatchFX",data);
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
+      }
 
-    if (ImGui::Selectable(id,latchTarget==3,ImGuiSelectableFlags_DontClosePopups)) {
-      latchTarget=3;
+      if (ImGui::Selectable(id,latchTarget==3,ImGuiSelectableFlags_DontClosePopups)) {
+        latchTarget=3;
+        latchNibble=false;
+      }
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        latchEffect=-1;
+      }
+      ImGui::TableNextColumn();
+      if (latchEffectVal==-1) {
+        strcpy(id,"..##LatchFXV");
+      } else {
+        snprintf(id,63,"%.2x##LatchFXV",latchEffectVal&0xff);
+      }
+      if (ImGui::Selectable(id,latchTarget==4,ImGuiSelectableFlags_DontClosePopups)) {
+        latchTarget=4;
+        latchNibble=false;
+      }
+      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+        latchEffectVal=-1;
+      }
+      ImGui::PopStyleColor();
+      ImGui::EndTable();
+    }
+    ImGui::PopFont();
+    ImGui::SameLine();
+    if (ImGui::Button("Set")) {
+      DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
+      latchIns=pat->data[cursor.y][2];
+      latchVol=pat->data[cursor.y][3];
+      latchEffect=pat->data[cursor.y][4];
+      latchEffectVal=pat->data[cursor.y][5];
+      latchTarget=0;
       latchNibble=false;
     }
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+    ImGui::SameLine();
+    if (ImGui::Button("Reset")) {
+      latchIns=-2;
+      latchVol=-1;
       latchEffect=-1;
-    }
-    ImGui::TableNextColumn();
-    if (latchEffectVal==-1) {
-      strcpy(id,"..##LatchFXV");
-    } else {
-      snprintf(id,63,"%.2x##LatchFXV",latchEffectVal&0xff);
-    }
-    if (ImGui::Selectable(id,latchTarget==4,ImGuiSelectableFlags_DontClosePopups)) {
-      latchTarget=4;
+      latchEffectVal=-1;
+      latchTarget=0;
       latchNibble=false;
     }
-    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-      latchEffectVal=-1;
-    }
-    ImGui::PopStyleColor();
-    ImGui::EndTable();
+    ImGui::Separator();
   }
-  ImGui::PopFont();
-  ImGui::SameLine();
-  if (ImGui::Button("Set")) {
-    DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
-    latchIns=pat->data[cursor.y][2];
-    latchVol=pat->data[cursor.y][3];
-    latchEffect=pat->data[cursor.y][4];
-    latchEffectVal=pat->data[cursor.y][5];
-    latchTarget=0;
-    latchNibble=false;
-  }
-  ImGui::SameLine();
-  if (ImGui::Button("Reset")) {
-    latchIns=-2;
-    latchVol=-1;
-    latchEffect=-1;
-    latchEffectVal=-1;
-    latchTarget=0;
-    latchNibble=false;
-  }
-  ImGui::Separator();
 
   if (ImGui::MenuItem("note up",BIND_FOR(GUI_ACTION_PAT_NOTE_UP))) doTranspose(1,opMaskTransposeNote);
   if (ImGui::MenuItem("note down",BIND_FOR(GUI_ACTION_PAT_NOTE_DOWN))) doTranspose(-1,opMaskTransposeNote);
@@ -2507,99 +2547,102 @@ void FurnaceGUI::editOptions(bool topMenu) {
     }
     ImGui::EndMenu();
   }
-  if (ImGui::BeginMenu("gradient/fade...")) {
-    if (ImGui::InputInt("Start",&fadeMin,1,1)) {
-      if (fadeMin<0) fadeMin=0;
-      if (fadeMode) {
-        if (fadeMin>15) fadeMin=15;
-      } else {
-        if (fadeMin>255) fadeMin=255;
-      }
-    }
-    if (ImGui::InputInt("End",&fadeMax,1,1)) {
-      if (fadeMax<0) fadeMax=0;
-      if (fadeMode) {
-        if (fadeMax>15) fadeMax=15;
-      } else {
-        if (fadeMax>255) fadeMax=255;
-      }
-    }
-    if (ImGui::Checkbox("Nibble mode",&fadeMode)) {
-      if (fadeMode) {
-        if (fadeMin>15) fadeMin=15;
-        if (fadeMax>15) fadeMax=15;
-      } else {
-        if (fadeMin>255) fadeMin=255;
-        if (fadeMax>255) fadeMax=255;
-      }
-    }
-    if (ImGui::Button("Go ahead")) {
-      doFade(fadeMin,fadeMax,fadeMode);
-      ImGui::CloseCurrentPopup();
-    }
-    ImGui::EndMenu();
-  }
-  if (ImGui::BeginMenu("scale...")) {
-    if (ImGui::InputFloat("##ScaleMax",&scaleMax,1,1,"%.1f%%")) {
-      if (scaleMax<0.0f) scaleMax=0.0f;
-      if (scaleMax>25600.0f) scaleMax=25600.0f;
-    }
-    if (ImGui::Button("Scale")) {
-      doScale(scaleMax);
-      ImGui::CloseCurrentPopup();
-    }
-    ImGui::EndMenu();
-  }
-  if (ImGui::BeginMenu("randomize...")) {
-    if (ImGui::InputInt("Minimum",&randomizeMin,1,1)) {
-      if (randomizeMin<0) randomizeMin=0;
-      if (randomMode) {
-        if (randomizeMin>15) randomizeMin=15;
-      } else {
-        if (randomizeMin>255) randomizeMin=255;
-      }
-      if (randomizeMin>randomizeMax) randomizeMin=randomizeMax;
-    }
-    if (ImGui::InputInt("Maximum",&randomizeMax,1,1)) {
-      if (randomizeMax<0) randomizeMax=0;
-      if (randomizeMax<randomizeMin) randomizeMax=randomizeMin;
-      if (randomMode) {
-        if (randomizeMax>15) randomizeMax=15;
-      } else {
-        if (randomizeMax>255) randomizeMax=255;
-      }
-    }
-    if (ImGui::Checkbox("Nibble mode",&randomMode)) {
-      if (randomMode) {
-        if (randomizeMin>15) randomizeMin=15;
-        if (randomizeMax>15) randomizeMax=15;
-      } else {
-        if (randomizeMin>255) randomizeMin=255;
-        if (randomizeMax>255) randomizeMax=255;
-      }
-    }
-    // TODO: add an option to set effect to specific value?
-    if (ImGui::Button("Randomize")) {
-      doRandomize(randomizeMin,randomizeMax,randomMode);
-      ImGui::CloseCurrentPopup();
-    }
-    ImGui::EndMenu();
-  }
-  if (ImGui::MenuItem("invert values",BIND_FOR(GUI_ACTION_PAT_INVERT_VALUES))) doInvertValues();
 
-  ImGui::Separator();
+  if (!basicMode) {
+    if (ImGui::BeginMenu("gradient/fade...")) {
+      if (ImGui::InputInt("Start",&fadeMin,1,1)) {
+        if (fadeMin<0) fadeMin=0;
+        if (fadeMode) {
+          if (fadeMin>15) fadeMin=15;
+        } else {
+          if (fadeMin>255) fadeMin=255;
+        }
+      }
+      if (ImGui::InputInt("End",&fadeMax,1,1)) {
+        if (fadeMax<0) fadeMax=0;
+        if (fadeMode) {
+          if (fadeMax>15) fadeMax=15;
+        } else {
+          if (fadeMax>255) fadeMax=255;
+        }
+      }
+      if (ImGui::Checkbox("Nibble mode",&fadeMode)) {
+        if (fadeMode) {
+          if (fadeMin>15) fadeMin=15;
+          if (fadeMax>15) fadeMax=15;
+        } else {
+          if (fadeMin>255) fadeMin=255;
+          if (fadeMax>255) fadeMax=255;
+        }
+      }
+      if (ImGui::Button("Go ahead")) {
+        doFade(fadeMin,fadeMax,fadeMode);
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("scale...")) {
+      if (ImGui::InputFloat("##ScaleMax",&scaleMax,1,1,"%.1f%%")) {
+        if (scaleMax<0.0f) scaleMax=0.0f;
+        if (scaleMax>25600.0f) scaleMax=25600.0f;
+      }
+      if (ImGui::Button("Scale")) {
+        doScale(scaleMax);
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndMenu();
+    }
+    if (ImGui::BeginMenu("randomize...")) {
+      if (ImGui::InputInt("Minimum",&randomizeMin,1,1)) {
+        if (randomizeMin<0) randomizeMin=0;
+        if (randomMode) {
+          if (randomizeMin>15) randomizeMin=15;
+        } else {
+          if (randomizeMin>255) randomizeMin=255;
+        }
+        if (randomizeMin>randomizeMax) randomizeMin=randomizeMax;
+      }
+      if (ImGui::InputInt("Maximum",&randomizeMax,1,1)) {
+        if (randomizeMax<0) randomizeMax=0;
+        if (randomizeMax<randomizeMin) randomizeMax=randomizeMin;
+        if (randomMode) {
+          if (randomizeMax>15) randomizeMax=15;
+        } else {
+          if (randomizeMax>255) randomizeMax=255;
+        }
+      }
+      if (ImGui::Checkbox("Nibble mode",&randomMode)) {
+        if (randomMode) {
+          if (randomizeMin>15) randomizeMin=15;
+          if (randomizeMax>15) randomizeMax=15;
+        } else {
+          if (randomizeMin>255) randomizeMin=255;
+          if (randomizeMax>255) randomizeMax=255;
+        }
+      }
+      // TODO: add an option to set effect to specific value?
+      if (ImGui::Button("Randomize")) {
+        doRandomize(randomizeMin,randomizeMax,randomMode);
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndMenu();
+    }
+    if (ImGui::MenuItem("invert values",BIND_FOR(GUI_ACTION_PAT_INVERT_VALUES))) doInvertValues();
 
-  if (ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION))) doFlip();
-  if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(2);
-  if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(2);
-
-  if (topMenu) {
     ImGui::Separator();
-    if (ImGui::MenuItem("find/replace",BIND_FOR(GUI_ACTION_WINDOW_FIND),findOpen)) {
-      if (findOpen) {
-        findOpen=false;
-      } else {
-        nextWindow=GUI_WINDOW_FIND;
+
+    if (ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION))) doFlip();
+    if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(2);
+    if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(2);
+
+    if (topMenu) {
+      ImGui::Separator();
+      if (ImGui::MenuItem("find/replace",BIND_FOR(GUI_ACTION_WINDOW_FIND),findOpen)) {
+        if (findOpen) {
+          findOpen=false;
+        } else {
+          nextWindow=GUI_WINDOW_FIND;
+        }
       }
     }
   }
@@ -2623,9 +2666,15 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
     mobileUI=enable;
     if (mobileUI) {
       ImGui::GetIO().IniFilename=NULL;
+      ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_InertialScrollEnable;
+      ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NoHoverColors;
+      fileDialog->mobileUI=true;
     } else {
       ImGui::GetIO().IniFilename=NULL;
       ImGui::LoadIniSettingsFromDisk(finalLayoutPath);
+      ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_InertialScrollEnable;
+      ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NoHoverColors;
+      fileDialog->mobileUI=false;
     }
   }
 }
@@ -2633,14 +2682,16 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
 void FurnaceGUI::pushToggleColors(bool status) {
   ImVec4 toggleColor=status?uiColors[GUI_COLOR_TOGGLE_ON]:uiColors[GUI_COLOR_TOGGLE_OFF];
   ImGui::PushStyleColor(ImGuiCol_Button,toggleColor);
-  if (settings.guiColorsBase) {
-    toggleColor.x*=0.8f;
-    toggleColor.y*=0.8f;
-    toggleColor.z*=0.8f;
-  } else {
-    toggleColor.x=CLAMP(toggleColor.x*1.3f,0.0f,1.0f);
-    toggleColor.y=CLAMP(toggleColor.y*1.3f,0.0f,1.0f);
-    toggleColor.z=CLAMP(toggleColor.z*1.3f,0.0f,1.0f);
+  if (!mobileUI) {
+    if (settings.guiColorsBase) {
+      toggleColor.x*=0.8f;
+      toggleColor.y*=0.8f;
+      toggleColor.z*=0.8f;
+    } else {
+      toggleColor.x=CLAMP(toggleColor.x*1.3f,0.0f,1.0f);
+      toggleColor.y=CLAMP(toggleColor.y*1.3f,0.0f,1.0f);
+      toggleColor.z=CLAMP(toggleColor.z*1.3f,0.0f,1.0f);
+    }
   }
   ImGui::PushStyleColor(ImGuiCol_ButtonHovered,toggleColor);
   if (settings.guiColorsBase) {
@@ -2906,14 +2957,38 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
     }
   }
   sampleDragActive=false;
+  if (orderScrollLocked) {
+    int targetOrder=round(orderScroll);
+    if (orderScrollTolerance) {
+      targetOrder=round(orderScroll+(orderScrollRealOrigin.x-((float)canvasW/2.0f))/(40.0f*dpiScale));
+    }
+    if (targetOrder<0) targetOrder=0;
+    if (targetOrder>e->curSubSong->ordersLen-1) targetOrder=e->curSubSong->ordersLen-1;
+    if (curOrder!=targetOrder) setOrder(targetOrder);
+  }
+  orderScrollLocked=false;
+  orderScrollTolerance=false;
+  if (dragMobileMenu) {
+    dragMobileMenu=false;
+    if (mobileMenuOpen) {
+      mobileMenuOpen=(mobileMenuPos>=0.85f);
+    } else {
+      mobileMenuOpen=(mobileMenuPos>=0.15f);
+    }
+  }
+  if (dragMobileEditButton) {
+    dragMobileEditButton=false;
+  }
   if (selecting) {
     if (!selectingFull) cursor=selEnd;
     finishSelection();
-    demandScrollX=true;
-    if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
-        cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
-      if (!settings.cursorMoveNoScroll) {
-        updateScroll(cursor.y);
+    if (!mobileUI) {
+      demandScrollX=true;
+      if (cursor.xCoarse==selStart.xCoarse && cursor.xFine==selStart.xFine && cursor.y==selStart.y &&
+          cursor.xCoarse==selEnd.xCoarse && cursor.xFine==selEnd.xFine && cursor.y==selEnd.y) {
+        if (!settings.cursorMoveNoScroll) {
+          updateScroll(cursor.y);
+        }
       }
     }
   }
@@ -2929,7 +3004,7 @@ void FurnaceGUI::pointMotion(int x, int y, int xrel, int yrel) {
       addScroll(1);
     }
   }
-  if (macroDragActive || macroLoopDragActive || waveDragActive || sampleDragActive) {
+  if (macroDragActive || macroLoopDragActive || waveDragActive || sampleDragActive || orderScrollLocked) {
     int distance=fabs((double)xrel);
     if (distance<1) distance=1;
     float start=x-xrel;
@@ -3040,19 +3115,45 @@ bool FurnaceGUI::loop() {
               scrX=ev.window.data1;
               scrY=ev.window.data2;
               updateWindow=true;
+              logV("window moved to %dx%d",scrX,scrY);
+              break;
+            case SDL_WINDOWEVENT_SIZE_CHANGED:
+              logV("window size changed to %dx%d",ev.window.data1,ev.window.data2);
+              break;
+            case SDL_WINDOWEVENT_MINIMIZED:
+              logV("window minimized");
               break;
             case SDL_WINDOWEVENT_MAXIMIZED:
               scrMax=true;
               updateWindow=true;
+              logV("window maximized");
               break;
             case SDL_WINDOWEVENT_RESTORED:
               scrMax=false;
               updateWindow=true;
+              logV("window restored");
+              break;
+            case SDL_WINDOWEVENT_SHOWN:
+              logV("window shown");
+              break;
+            case SDL_WINDOWEVENT_HIDDEN:
+              logV("window hidden");
+              break;
+            case SDL_WINDOWEVENT_EXPOSED:
+              logV("window exposed");
               break;
           }
           break;
         case SDL_DISPLAYEVENT: {
           switch (ev.display.event) {
+            case SDL_DISPLAYEVENT_CONNECTED:
+              logD("display %d connected!",ev.display.display);
+              updateWindow=true;
+              break;
+            case SDL_DISPLAYEVENT_DISCONNECTED:
+              logD("display %d disconnected!",ev.display.display);
+              updateWindow=true;
+              break;
             case SDL_DISPLAYEVENT_ORIENTATION:
               logD("display oriented to %d",ev.display.data1);
               updateWindow=true;
@@ -3135,7 +3236,12 @@ bool FurnaceGUI::loop() {
     } else {
       //logV("updateWindow: canvas size %dx%d",canvasW,canvasH);
       // and therefore window size
+      int prevScrW=scrW;
+      int prevScrH=scrH;
       SDL_GetWindowSize(sdlWin,&scrW,&scrH);
+      if (prevScrW!=scrW || prevScrH!=scrH) {
+        logV("size change 2: %dx%d (from %dx%d)",scrW,scrH,prevScrW,prevScrH);
+      }
     }
 
     wantCaptureKeyboard=ImGui::GetIO().WantTextInput;
@@ -3152,6 +3258,11 @@ bool FurnaceGUI::loop() {
     if (wantCaptureKeyboard) {
       WAKE_UP;
     }
+
+    if (ImGui::GetIO().IsSomethingHappening) {
+      WAKE_UP;
+    }
+
     if (ImGui::GetIO().MouseDown[0] || ImGui::GetIO().MouseDown[1] || ImGui::GetIO().MouseDown[2] || ImGui::GetIO().MouseDown[3] || ImGui::GetIO().MouseDown[4]) {
       WAKE_UP;
     }
@@ -3310,6 +3421,12 @@ bool FurnaceGUI::loop() {
 
     eventTimeEnd=SDL_GetPerformanceCounter();
 
+    if (SDL_GetWindowFlags(sdlWin)&SDL_WINDOW_MINIMIZED) {
+      SDL_Delay(30);
+      drawHalt=0;
+      continue;
+    }
+
     layoutTimeBegin=SDL_GetPerformanceCounter();
 
     ImGui_ImplSDLRenderer_NewFrame();
@@ -3404,7 +3521,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::BeginMenu("export VGM...")) {
           ImGui::Text("settings:");
           if (ImGui::BeginCombo("format version",fmt::sprintf("%d.%.2x",vgmExportVersion>>8,vgmExportVersion&0xff).c_str())) {
-            for (int i=0; i<6; i++) {
+            for (int i=0; i<7; i++) {
               if (ImGui::Selectable(fmt::sprintf("%d.%.2x",vgmVersions[i]>>8,vgmVersions[i]&0xff).c_str(),vgmExportVersion==vgmVersions[i])) {
                 vgmExportVersion=vgmVersions[i];
               }
@@ -3412,6 +3529,24 @@ bool FurnaceGUI::loop() {
             ImGui::EndCombo();
           }
           ImGui::Checkbox("loop",&vgmExportLoop);
+          if (vgmExportLoop && e->song.loopModality==2) {
+            ImGui::Text("trailing ticks:");
+            if (ImGui::RadioButton("auto-detect",vgmExportTrailingTicks==-1)) {
+              vgmExportTrailingTicks=-1;
+            }
+            if (ImGui::RadioButton("one loop",vgmExportTrailingTicks==-2)) {
+              vgmExportTrailingTicks=-2;
+            }
+            if (ImGui::RadioButton("custom",vgmExportTrailingTicks>=0)) {
+              vgmExportTrailingTicks=0;
+            }
+            if (vgmExportTrailingTicks>=0) {
+              ImGui::SameLine();
+              if (ImGui::InputInt("##TrailTicks",&vgmExportTrailingTicks,1,100)) {
+                if (vgmExportTrailingTicks<0) vgmExportTrailingTicks=0;
+              }
+            }
+          }
           ImGui::Checkbox("add pattern change hints",&vgmExportPatternHints);
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip(
@@ -3499,67 +3634,69 @@ bool FurnaceGUI::loop() {
           }
           ImGui::EndMenu();
         }
-        ImGui::Separator();
-        if (ImGui::BeginMenu("add chip...")) {
-          DivSystem picked=systemPicker();
-          if (picked!=DIV_SYSTEM_NULL) {
-            if (!e->addSystem(picked)) {
-              showError("cannot add chip! ("+e->getLastError()+")");
-            } else {
-              MARK_MODIFIED;
-            }
-            ImGui::CloseCurrentPopup();
-            if (e->song.autoSystem) {
-              autoDetectSystem();
-            }
-            updateWindowTitle();
-          }
-          ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("configure chip...")) {
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSP%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-              drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true);
-              ImGui::TreePop();
-            }
-          }
-          ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("change chip...")) {
-          ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-              DivSystem picked=systemPicker();
-              if (picked!=DIV_SYSTEM_NULL) {
-                e->changeSystem(i,picked,preserveChanPos);
-                MARK_MODIFIED;
-                if (e->song.autoSystem) {
-                  autoDetectSystem();
-                }
-                updateWindowTitle();
-                ImGui::CloseCurrentPopup();
-              }
-              ImGui::EndMenu();
-            }
-          }
-          ImGui::EndMenu();
-        }
-        if (ImGui::BeginMenu("remove chip...")) {
-          ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
-          for (int i=0; i<e->song.systemLen; i++) {
-            if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-              if (!e->removeSystem(i,preserveChanPos)) {
-                showError("cannot remove chip! ("+e->getLastError()+")");
+        if (!basicMode) {
+          ImGui::Separator();
+          if (ImGui::BeginMenu("add chip...")) {
+            DivSystem picked=systemPicker();
+            if (picked!=DIV_SYSTEM_NULL) {
+              if (!e->addSystem(picked)) {
+                showError("cannot add chip! ("+e->getLastError()+")");
               } else {
                 MARK_MODIFIED;
               }
+              ImGui::CloseCurrentPopup();
               if (e->song.autoSystem) {
                 autoDetectSystem();
-                updateWindowTitle();
+              }
+              updateWindowTitle();
+            }
+            ImGui::EndMenu();
+          }
+          if (ImGui::BeginMenu("configure chip...")) {
+            for (int i=0; i<e->song.systemLen; i++) {
+              if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSP%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
+                drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true);
+                ImGui::TreePop();
               }
             }
+            ImGui::EndMenu();
           }
-          ImGui::EndMenu();
+          if (ImGui::BeginMenu("change chip...")) {
+            ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
+            for (int i=0; i<e->song.systemLen; i++) {
+              if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
+                DivSystem picked=systemPicker();
+                if (picked!=DIV_SYSTEM_NULL) {
+                  e->changeSystem(i,picked,preserveChanPos);
+                  MARK_MODIFIED;
+                  if (e->song.autoSystem) {
+                    autoDetectSystem();
+                  }
+                  updateWindowTitle();
+                  ImGui::CloseCurrentPopup();
+                }
+                ImGui::EndMenu();
+              }
+            }
+            ImGui::EndMenu();
+          }
+          if (ImGui::BeginMenu("remove chip...")) {
+            ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
+            for (int i=0; i<e->song.systemLen; i++) {
+              if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
+                if (!e->removeSystem(i,preserveChanPos)) {
+                  showError("cannot remove chip! ("+e->getLastError()+")");
+                } else {
+                  MARK_MODIFIED;
+                }
+                if (e->song.autoSystem) {
+                  autoDetectSystem();
+                  updateWindowTitle();
+                }
+              }
+            }
+            ImGui::EndMenu();
+          }
         }
         ImGui::Separator();
         if (ImGui::MenuItem("restore backup",BIND_FOR(GUI_ACTION_OPEN_BACKUP))) {
@@ -3584,7 +3721,7 @@ bool FurnaceGUI::loop() {
         editOptions(true);
         ImGui::Separator();
         if (ImGui::MenuItem("clear...")) {
-          showWarning("Are you sure you want to clear... (cannot be undone!)",GUI_WARN_CLEAR);
+          doAction(GUI_ACTION_CLEAR);
         }
         ImGui::EndMenu();
       }
@@ -3596,6 +3733,13 @@ bool FurnaceGUI::loop() {
   #endif
         if (ImGui::MenuItem("lock layout",NULL,lockLayout)) {
           lockLayout=!lockLayout;
+        }
+        if (ImGui::MenuItem("basic mode",NULL,basicMode)) {
+          if (basicMode) {
+            showWarning("prepare to unlock the full power of Furnace!",GUI_WARN_BASIC_MODE);
+          } else {
+            showWarning("are you sure? this will disable several things.",GUI_WARN_BASIC_MODE);
+          }
         }
         if (ImGui::MenuItem("visualizer",NULL,fancyPattern)) {
           fancyPattern=!fancyPattern;
@@ -3620,6 +3764,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::BeginMenu("window")) {
         if (ImGui::MenuItem("song information",BIND_FOR(GUI_ACTION_WINDOW_SONG_INFO),songInfoOpen)) songInfoOpen=!songInfoOpen;
         if (ImGui::MenuItem("subsongs",BIND_FOR(GUI_ACTION_WINDOW_SUBSONGS),subSongsOpen)) subSongsOpen=!subSongsOpen;
+        if (ImGui::MenuItem("speed",BIND_FOR(GUI_ACTION_WINDOW_SPEED),speedOpen)) speedOpen=!speedOpen;
         if (settings.unifiedDataView) {
           if (ImGui::MenuItem("assets",BIND_FOR(GUI_ACTION_WINDOW_INS_LIST),insListOpen)) insListOpen=!insListOpen;
         } else {
@@ -3629,11 +3774,14 @@ bool FurnaceGUI::loop() {
         }
         if (ImGui::MenuItem("orders",BIND_FOR(GUI_ACTION_WINDOW_ORDERS),ordersOpen)) ordersOpen=!ordersOpen;
         if (ImGui::MenuItem("pattern",BIND_FOR(GUI_ACTION_WINDOW_PATTERN),patternOpen)) patternOpen=!patternOpen;
-        if (ImGui::MenuItem("mixer",BIND_FOR(GUI_ACTION_WINDOW_MIXER),mixerOpen)) mixerOpen=!mixerOpen;
-        if (ImGui::MenuItem("channels",BIND_FOR(GUI_ACTION_WINDOW_CHANNELS),channelsOpen)) channelsOpen=!channelsOpen;
-        if (ImGui::MenuItem("pattern manager",BIND_FOR(GUI_ACTION_WINDOW_PAT_MANAGER),patManagerOpen)) patManagerOpen=!patManagerOpen;
-        if (ImGui::MenuItem("chip manager",BIND_FOR(GUI_ACTION_WINDOW_SYS_MANAGER),sysManagerOpen)) sysManagerOpen=!sysManagerOpen;
-        if (ImGui::MenuItem("compatibility flags",BIND_FOR(GUI_ACTION_WINDOW_COMPAT_FLAGS),compatFlagsOpen)) compatFlagsOpen=!compatFlagsOpen;
+        if (!basicMode) {
+          if (ImGui::MenuItem("mixer",BIND_FOR(GUI_ACTION_WINDOW_MIXER),mixerOpen)) mixerOpen=!mixerOpen;
+          if (ImGui::MenuItem("grooves",BIND_FOR(GUI_ACTION_WINDOW_GROOVES),groovesOpen)) groovesOpen=!groovesOpen;
+          if (ImGui::MenuItem("channels",BIND_FOR(GUI_ACTION_WINDOW_CHANNELS),channelsOpen)) channelsOpen=!channelsOpen;
+          if (ImGui::MenuItem("pattern manager",BIND_FOR(GUI_ACTION_WINDOW_PAT_MANAGER),patManagerOpen)) patManagerOpen=!patManagerOpen;
+          if (ImGui::MenuItem("chip manager",BIND_FOR(GUI_ACTION_WINDOW_SYS_MANAGER),sysManagerOpen)) sysManagerOpen=!sysManagerOpen;
+          if (ImGui::MenuItem("compatibility flags",BIND_FOR(GUI_ACTION_WINDOW_COMPAT_FLAGS),compatFlagsOpen)) compatFlagsOpen=!compatFlagsOpen;
+        }
         if (ImGui::MenuItem("song comments",BIND_FOR(GUI_ACTION_WINDOW_NOTES),notesOpen)) notesOpen=!notesOpen;
         ImGui::Separator();
         if (ImGui::MenuItem("instrument editor",BIND_FOR(GUI_ACTION_WINDOW_INS_EDIT),insEditOpen)) insEditOpen=!insEditOpen;
@@ -3656,6 +3804,7 @@ bool FurnaceGUI::loop() {
       if (ImGui::BeginMenu("help")) {
         if (ImGui::MenuItem("effect list",BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
         if (ImGui::MenuItem("debug menu",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
+        if (ImGui::MenuItem("inspector",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) inspectorOpen=!inspectorOpen;
         if (ImGui::MenuItem("panic",BIND_FOR(GUI_ACTION_PANIC))) e->syncReset();
         if (ImGui::MenuItem("about...",BIND_FOR(GUI_ACTION_WINDOW_ABOUT))) {
           aboutOpen=true;
@@ -3667,7 +3816,21 @@ bool FurnaceGUI::loop() {
       if (e->isPlaying()) {
         int totalTicks=e->getTotalTicks();
         int totalSeconds=e->getTotalSeconds();
-        ImGui::Text("| Speed %d:%d @ %gHz (%g BPM) | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getSpeed1(),e->getSpeed2(),e->getCurHz(),calcBPM(e->getSpeed1(),e->getSpeed2(),e->getCurHz(),e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD),e->getOrder(),e->curSubSong->ordersLen,e->getRow(),e->curSubSong->patLen,totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+
+        String info;
+
+        DivGroovePattern gp=e->getSpeeds();
+        if (gp.len==2) {
+          info=fmt::sprintf("| Speed %d:%d",gp.val[0],gp.val[1]);
+        } else if (gp.len==1) {
+          info=fmt::sprintf("| Speed %d",gp.val[0]);
+        } else {
+          info="| Groove";
+        }
+
+        info+=fmt::sprintf(" @ %gHz (%g BPM) | Order %d/%d | Row %d/%d | %d:%.2d:%.2d.%.2d",e->getCurHz(),calcBPM(e->getSpeeds(),e->getCurHz(),e->curSubSong->virtualTempoN,e->curSubSong->virtualTempoD),e->getOrder(),e->curSubSong->ordersLen,e->getRow(),e->curSubSong->patLen,totalSeconds/3600,(totalSeconds/60)%60,totalSeconds%60,totalTicks/10000);
+
+        ImGui::TextUnformatted(info.c_str());
       } else {
         bool hasInfo=false;
         String info;
@@ -3738,7 +3901,6 @@ bool FurnaceGUI::loop() {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
       //globalWinFlags=ImGuiWindowFlags_NoTitleBar;
       // scene handling goes here!
-      pianoOpen=true;
       drawMobileControls();
       switch (mobScene) {
         case GUI_SCENE_ORDERS:
@@ -3764,11 +3926,30 @@ bool FurnaceGUI::loop() {
           drawSampleEdit();
           drawPiano();
           break;
+        case GUI_SCENE_CHANNELS:
+          channelsOpen=true;
+          curWindow=GUI_WINDOW_CHANNELS;
+          drawChannels();
+          break;
+        case GUI_SCENE_CHIPS:
+          sysManagerOpen=true;
+          curWindow=GUI_WINDOW_SYS_MANAGER;
+          drawSysManager();
+          break;
+        case GUI_SCENE_MIXER:
+          mixerOpen=true;
+          curWindow=GUI_WINDOW_MIXER;
+          drawMixer();
+          break;
         default:
           patternOpen=true;
           curWindow=GUI_WINDOW_PATTERN;
           drawPattern();
           drawPiano();
+          drawMobileOrderSel();
+
+          globalWinFlags=0;
+          drawFindReplace();
           break;
       }
 
@@ -3776,6 +3957,8 @@ bool FurnaceGUI::loop() {
       drawSettings();
       drawDebug();
       drawLog();
+      drawCompatFlags();
+      drawStats();
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -3785,6 +3968,8 @@ bool FurnaceGUI::loop() {
       drawSpoiler();
       drawPattern();
       drawEditControls();
+      drawSpeed();
+      if (!basicMode) drawGrooves();
       drawSongInfo();
       drawOrders();
       drawSampleList();
@@ -3793,7 +3978,7 @@ bool FurnaceGUI::loop() {
       drawWaveEdit();
       drawInsList();
       drawInsEdit();
-      drawMixer();
+      if (!basicMode) drawMixer();
 
       readOsc();
 
@@ -3803,12 +3988,14 @@ bool FurnaceGUI::loop() {
       drawSettings();
       drawDebug();
       drawStats();
-      drawCompatFlags();
+      if (!basicMode) drawCompatFlags();
       drawPiano();
       drawNotes();
-      drawChannels();
-      drawPatManager();
-      drawSysManager();
+      if (!basicMode) {
+        drawChannels();
+        drawPatManager();
+        drawSysManager();
+      }
       drawClock();
       drawRegView();
       drawLog();
@@ -4012,7 +4199,6 @@ bool FurnaceGUI::loop() {
               }
               break;
             case GUI_FILE_SAVE: {
-              logD("saving: %s",copyOfName.c_str());
               bool saveWasSuccessful=true;
               if (save(copyOfName,0)>0) {
                 showError(fmt::sprintf("Error while saving file! (%s)",lastError));
@@ -4294,7 +4480,7 @@ bool FurnaceGUI::loop() {
               break;
             }
             case GUI_FILE_EXPORT_VGM: {
-              SafeWriter* w=e->saveVGM(willExport,vgmExportLoop,vgmExportVersion,vgmExportPatternHints,vgmExportDirectStream);
+              SafeWriter* w=e->saveVGM(willExport,vgmExportLoop,vgmExportVersion,vgmExportPatternHints,vgmExportDirectStream,vgmExportTrailingTicks);
               if (w!=NULL) {
                 FILE* f=ps_fopen(copyOfName.c_str(),"wb");
                 if (f!=NULL) {
@@ -4711,7 +4897,7 @@ bool FurnaceGUI::loop() {
           if (ImGui::Button("Orders")) {
             stop();
             e->lockEngine([this]() {
-              memset(e->curOrders->ord,0,DIV_MAX_CHANS*256);
+              memset(e->curOrders->ord,0,DIV_MAX_CHANS*DIV_MAX_PATTERNS);
               e->curSubSong->ordersLen=1;
             });
             e->setOrder(0);
@@ -4727,8 +4913,8 @@ bool FurnaceGUI::loop() {
             e->lockEngine([this]() {
               for (int i=0; i<e->getTotalChannelCount(); i++) {
                 DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][curOrder],true);
-                memset(pat->data,-1,256*32*sizeof(short));
-                for (int j=0; j<256; j++) {
+                memset(pat->data,-1,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
+                for (int j=0; j<DIV_MAX_ROWS; j++) {
                   pat->data[j][0]=0;
                   pat->data[j][1]=0;
                 }
@@ -4813,6 +4999,16 @@ bool FurnaceGUI::loop() {
         case GUI_WARN_CLEAR_HISTORY:
           if (ImGui::Button("Yes")) {
             recentFile.clear();
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("No")) {
+            ImGui::CloseCurrentPopup();
+          }
+          break;
+        case GUI_WARN_BASIC_MODE:
+          if (ImGui::Button("Yes")) {
+            basicMode=!basicMode;
             ImGui::CloseCurrentPopup();
           }
           ImGui::SameLine();
@@ -4961,8 +5157,12 @@ bool FurnaceGUI::loop() {
       ImGui::Checkbox("Big endian",&pendingRawSampleBigEndian);
       ImGui::EndDisabled();
 
+      ImGui::BeginDisabled(pendingRawSampleDepth==DIV_SAMPLE_DEPTH_16BIT);
+      ImGui::Checkbox("Swap nibbles",&pendingRawSampleSwapNibbles);
+      ImGui::EndDisabled();
+
       if (ImGui::Button("OK")) {
-        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned);
+        DivSample* s=e->sampleFromFileRaw(pendingRawSample.c_str(),(DivSampleDepth)pendingRawSampleDepth,pendingRawSampleChannels,pendingRawSampleBigEndian,pendingRawSampleUnsigned,pendingRawSampleSwapNibbles);
         if (s==NULL) {
           showError(e->getLastError());
         } else {
@@ -4981,6 +5181,11 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    if (!tutorial.introPlayed) {
+      initialScreenWipe=0;
+      drawIntro();
+    }
+
     layoutTimeEnd=SDL_GetPerformanceCounter();
 
     // backup trigger
@@ -4995,6 +5200,7 @@ bool FurnaceGUI::loop() {
             }
             logD("saving backup...");
             SafeWriter* w=e->saveFur(true);
+            logV("writing file...");
 
             if (w!=NULL) {
               FILE* outFile=ps_fopen(backupPath.c_str(),"wb");
@@ -5009,6 +5215,7 @@ bool FurnaceGUI::loop() {
                 w->finish();
               }
             }
+            logD("backup saved.");
             backupTimer=30.0;
             return true;
           });
@@ -5027,13 +5234,32 @@ bool FurnaceGUI::loop() {
     ImGui::Render();
     renderTimeEnd=SDL_GetPerformanceCounter();
     ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
+    if (mustClear) {
+      SDL_RenderClear(sdlRend);
+      mustClear--;
+    } else {
+      if (initialScreenWipe>0.0f && !settings.disableFadeIn) {
+        WAKE_UP;
+        initialScreenWipe-=ImGui::GetIO().DeltaTime*5.0f;
+        if (initialScreenWipe>0.0f) {
+          SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_BLEND);
+          SDL_SetRenderDrawColor(sdlRend,0,0,0,255*initialScreenWipe);
+          SDL_RenderFillRect(sdlRend,NULL);
+        }
+      }
+    }
     SDL_RenderPresent(sdlRend);
 
     layoutTimeDelta=layoutTimeEnd-layoutTimeBegin;
     renderTimeDelta=renderTimeEnd-renderTimeBegin;
     eventTimeDelta=eventTimeEnd-eventTimeBegin;
 
-    if (--soloTimeout<0) soloTimeout=0;
+    soloTimeout-=ImGui::GetIO().DeltaTime;
+    if (soloTimeout<0) {
+      soloTimeout=0;
+    } else {
+      WAKE_UP;
+    }
 
     wheelX=0;
     wheelY=0;
@@ -5095,18 +5321,30 @@ bool FurnaceGUI::init() {
   volMeterOpen=e->getConfBool("volMeterOpen",true);
   statsOpen=e->getConfBool("statsOpen",false);
   compatFlagsOpen=e->getConfBool("compatFlagsOpen",false);
+#ifdef IS_MOBILE
+  pianoOpen=e->getConfBool("pianoOpen",true);
+#else
   pianoOpen=e->getConfBool("pianoOpen",false);
+#endif
   notesOpen=e->getConfBool("notesOpen",false);
   channelsOpen=e->getConfBool("channelsOpen",false);
   patManagerOpen=e->getConfBool("patManagerOpen",false);
   sysManagerOpen=e->getConfBool("sysManagerOpen",false);
   clockOpen=e->getConfBool("clockOpen",false);
+  speedOpen=e->getConfBool("speedOpen",true);
+  groovesOpen=e->getConfBool("groovesOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",false);
   subSongsOpen=e->getConfBool("subSongsOpen",true);
   findOpen=e->getConfBool("findOpen",false);
   spoilerOpen=e->getConfBool("spoilerOpen",false);
+
+  if (e->hasConf("lastDir")) {
+    basicMode=e->getConfBool("basicMode",false);
+  } else {
+    basicMode=true;
+  }
 
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
@@ -5188,7 +5426,7 @@ bool FurnaceGUI::init() {
 #endif
 
   // initialize SDL
-  SDL_Init(SDL_INIT_VIDEO);
+  SDL_Init(SDL_INIT_VIDEO|SDL_INIT_HAPTIC);
 
   const char* videoBackend=SDL_GetCurrentVideoDriver();
   if (videoBackend!=NULL) {
@@ -5213,12 +5451,21 @@ bool FurnaceGUI::init() {
     logD("auto-detecting UI scale factor.");
     dpiScale=getScaleFactor(videoBackend);
     logD("scale factor: %f",dpiScale);
+    if (dpiScale<0.1f) {
+      logW("scale what?");
+      dpiScale=1.0f;
+    }
   }
 
 #if !(defined(__APPLE__) || defined(_WIN32))
   // get the icon (on macOS and Windows the icon is bundled with the app)
-  unsigned char* furIcon=getFurnaceIcon();
-  SDL_Surface* icon=SDL_CreateRGBSurfaceFrom(furIcon,256,256,32,256*4,0xff,0xff00,0xff0000,0xff000000);
+  const FurnaceGUIImage* furIcon=getImage(GUI_IMAGE_ICON);
+  SDL_Surface* icon=NULL;
+  if (furIcon!=NULL) {
+    icon=SDL_CreateRGBSurfaceFrom(furIcon->data,furIcon->width,furIcon->height,32,256*4,0xff,0xff00,0xff0000,0xff000000);
+  } else {
+    logE("furIcon is NULL!");
+  }
 #endif
 
 #ifdef IS_MOBILE
@@ -5310,16 +5557,37 @@ bool FurnaceGUI::init() {
   if (icon!=NULL) {
     SDL_SetWindowIcon(sdlWin,icon);
     SDL_FreeSurface(icon);
-    free(furIcon);
   } else {
     logW("could not create icon!");
   }
 #endif
 
+  int numDrivers=SDL_GetNumRenderDrivers();
+  if (numDrivers<0) {
+    logW("could not list render drivers! %s",SDL_GetError());
+  } else {
+    SDL_RendererInfo ri;
+    for (int i=0; i<numDrivers; i++) {
+      int r=SDL_GetRenderDriverInfo(i,&ri);
+      if (r!=0) continue;
+      availRenderDrivers.push_back(String(ri.name));
+    }
+  }
+
+  if (!settings.renderDriver.empty()) {
+    SDL_SetHint(SDL_HINT_RENDER_DRIVER,settings.renderDriver.c_str());
+  }
+
   sdlRend=SDL_CreateRenderer(sdlWin,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC|SDL_RENDERER_TARGETTEXTURE);
 
   if (sdlRend==NULL) {
     lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
+    if (!settings.renderDriver.empty()) {
+      settings.renderDriver="";
+      e->setConf("renderDriver","");
+      e->saveConf();
+      lastError=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
+    }
     return false;
   }
 
@@ -5411,6 +5679,17 @@ bool FurnaceGUI::init() {
     return curIns;
   });
 
+  vibrator=SDL_HapticOpen(0);
+  if (vibrator==NULL) {
+    logD("could not open vibration device: %s",SDL_GetError());
+  } else {
+    if (SDL_HapticRumbleInit(vibrator)==0) {
+      vibratorAvailable=true;
+    } else {
+      logD("vibration not available: %s",SDL_GetError());
+    }
+  }
+
   return true;
 }
 
@@ -5460,12 +5739,15 @@ void FurnaceGUI::commitState() {
   e->setConf("patManagerOpen",patManagerOpen);
   e->setConf("sysManagerOpen",sysManagerOpen);
   e->setConf("clockOpen",clockOpen);
+  e->setConf("speedOpen",speedOpen);
+  e->setConf("groovesOpen",groovesOpen);
   e->setConf("regViewOpen",regViewOpen);
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
   e->setConf("subSongsOpen",subSongsOpen);
   e->setConf("findOpen",findOpen);
   e->setConf("spoilerOpen",spoilerOpen);
+  e->setConf("basicMode",basicMode);
 
   // commit last window size
   e->setConf("lastWindowWidth",scrConfW);
@@ -5541,6 +5823,10 @@ bool FurnaceGUI::finish() {
   SDL_DestroyRenderer(sdlRend);
   SDL_DestroyWindow(sdlWin);
 
+  if (vibrator) {
+    SDL_HapticClose(vibrator);
+  }
+
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
   }
@@ -5556,6 +5842,8 @@ FurnaceGUI::FurnaceGUI():
   e(NULL),
   sdlWin(NULL),
   sdlRend(NULL),
+  vibrator(NULL),
+  vibratorAvailable(false),
   sampleTex(NULL),
   sampleTexW(0),
   sampleTexH(0),
@@ -5587,19 +5875,26 @@ FurnaceGUI::FurnaceGUI():
   pendingInsSingle(false),
   displayPendingRawSample(false),
   snesFilterHex(false),
+  mobileEdit(false),
   vgmExportVersion(0x171),
+  vgmExportTrailingTicks(-1),
   drawHalt(10),
   zsmExportTickRate(60),
   macroPointSize(16),
   waveEditStyle(0),
   displayInsTypeListMakeInsSample(-1),
+  mobileEditPage(0),
   mobileMenuPos(0.0f),
   autoButtonSize(0.0f),
+  mobileEditAnim(0.0f),
+  mobileEditButtonPos(0.7f,0.7f),
+  mobileEditButtonSize(60.0f,60.0f),
   curSysSection(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),
   pendingRawSampleUnsigned(false),
   pendingRawSampleBigEndian(false),
+  pendingRawSampleSwapNibbles(false),
   globalWinFlags(0),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
@@ -5642,7 +5937,6 @@ FurnaceGUI::FurnaceGUI():
   editStep(1),
   exportLoops(0),
   soloChan(-1),
-  soloTimeout(0),
   orderEditMode(0),
   orderCursor(-1),
   loopOrder(-1),
@@ -5661,6 +5955,8 @@ FurnaceGUI::FurnaceGUI():
   dragDestinationY(0),
   oldBeat(-1),
   oldBar(-1),
+  curGroove(-1),
+  soloTimeout(0.0f),
   exportFadeOut(5.0),
   editControlsOpen(true),
   ordersOpen(true),
@@ -5694,6 +5990,9 @@ FurnaceGUI::FurnaceGUI():
   patManagerOpen(false),
   sysManagerOpen(false),
   clockOpen(false),
+  speedOpen(true),
+  groovesOpen(false),
+  basicMode(true),
   clockShowReal(true),
   clockShowRow(true),
   clockShowBeat(true),
@@ -5722,11 +6021,19 @@ FurnaceGUI::FurnaceGUI():
   latchNibble(false),
   nonLatchNibble(false),
   keepLoopAlive(false),
+  keepGrooveAlive(false),
+  orderScrollLocked(false),
+  orderScrollTolerance(false),
+  dragMobileMenu(false),
+  dragMobileEditButton(false),
+  wantGrooveListFocus(false),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),
   curWindowThreadSafe(GUI_WINDOW_NOTHING),
   lastPatternWidth(0.0f),
+  longThreshold(0.48f),
+  buttonLongThreshold(0.20f),
   latchNote(-1),
   latchIns(-2),
   latchVol(-1),
@@ -5744,7 +6051,7 @@ FurnaceGUI::FurnaceGUI():
   curQueryRangeY(0),
   curQueryEffectPos(0),
   queryReplaceEffectCount(0),
-  queryReplaceEffectPos(0),
+  queryReplaceEffectPos(1),
   queryReplaceNoteMode(0),
   queryReplaceInsMode(0),
   queryReplaceVolMode(0),
@@ -5810,6 +6117,10 @@ FurnaceGUI::FurnaceGUI():
   bindSetPending(false),
   nextScroll(-1.0f),
   nextAddScroll(0.0f),
+  orderScroll(0.0f),
+  orderScrollSlideOrigin(0.0f),
+  orderScrollRealOrigin(0.0f,0.0f),
+  dragMobileMenuOrigin(0.0f,0.0f),
   layoutTimeBegin(0),
   layoutTimeEnd(0),
   layoutTimeDelta(0),
@@ -5846,6 +6157,7 @@ FurnaceGUI::FurnaceGUI():
   sampleSelStart(-1),
   sampleSelEnd(-1),
   sampleInfo(true),
+  sampleCompatRate(false),
   sampleDragActive(false),
   sampleDragMode(false),
   sampleDrag16(false),
@@ -5868,6 +6180,14 @@ FurnaceGUI::FurnaceGUI():
   openSampleAmplifyOpt(false),
   openSampleSilenceOpt(false),
   openSampleFilterOpt(false),
+  selectedPortSet(0x1fff),
+  selectedSubPort(-1),
+  hoveredPortSet(0x1fff),
+  hoveredSubPort(-1),
+  portDragActive(false),
+  displayHiddenPorts(false),
+  displayInternalPorts(false),
+  subPortPos(0.0f,0.0f),
   oscTotal(0),
   oscZoom(0.5f),
   oscWindowSize(20.0f),
@@ -5892,8 +6212,8 @@ FurnaceGUI::FurnaceGUI():
   pianoOptionsSet(false),
   pianoOffset(6),
   pianoOffsetEdit(9),
-  pianoView(2),
-  pianoInputPadMode(2),
+  pianoView(PIANO_LAYOUT_AUTOMATIC),
+  pianoInputPadMode(PIANO_INPUT_PAD_SPLIT_AUTO),
 #else
   pianoOctaves(7),
   pianoOctavesEdit(4),
@@ -5901,8 +6221,8 @@ FurnaceGUI::FurnaceGUI():
   pianoSharePosition(true),
   pianoOffset(6),
   pianoOffsetEdit(6),
-  pianoView(0),
-  pianoInputPadMode(0),
+  pianoView(PIANO_LAYOUT_STANDARD),
+  pianoInputPadMode(PIANO_INPUT_PAD_DISABLE),
 #endif
   hasACED(false),
   waveGenBaseShape(0),
@@ -5911,12 +6231,15 @@ FurnaceGUI::FurnaceGUI():
   waveGenPower(1),
   waveGenInvertPoint(1.0f),
   waveGenScaleX(32),
-  waveGenScaleY(31),
+  waveGenScaleY(32),
   waveGenOffsetX(0),
   waveGenOffsetY(0),
   waveGenSmooth(1),
   waveGenAmplify(1.0f),
-  waveGenFM(false) {
+  waveGenFM(false),
+  introPos(0.0),
+  mustClear(2),
+  initialScreenWipe(1.0f) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
@@ -5945,10 +6268,9 @@ FurnaceGUI::FurnaceGUI():
   valueKeys[SDLK_KP_8]=8;
   valueKeys[SDLK_KP_9]=9;
 
-  memset(willExport,1,32*sizeof(bool));
+  memset(willExport,1,DIV_MAX_CHIPS*sizeof(bool));
 
-  peak[0]=0;
-  peak[1]=0;
+  memset(peak,0,DIV_MAX_OUTPUTS*sizeof(float));
 
   opMaskTransposeNote.note=true;
   opMaskTransposeNote.ins=false;
@@ -5984,19 +6306,32 @@ FurnaceGUI::FurnaceGUI():
   waveGenTL[1]=0.0f;
   waveGenTL[2]=0.0f;
   waveGenTL[3]=1.0f;
+  fmWaveform[0]=0;
+  fmWaveform[1]=0;
+  fmWaveform[2]=0;
+  fmWaveform[3]=0;
   waveGenMult[0]=1;
   waveGenMult[1]=1;
   waveGenMult[2]=1;
   waveGenMult[3]=1;
   memset(waveGenFB,0,sizeof(int)*4);
-  memset(waveGenFMCon1,0,sizeof(bool)*4);
-  memset(waveGenFMCon2,0,sizeof(bool)*3);
-  memset(waveGenFMCon3,0,sizeof(bool)*2);
+  memset(waveGenFMCon0,0,sizeof(bool)*5);
+  memset(waveGenFMCon1,0,sizeof(bool)*5);
+  memset(waveGenFMCon2,0,sizeof(bool)*5);
+  memset(waveGenFMCon3, 0, sizeof(bool) * 5);
+  memset(waveGenFMCon4,0,sizeof(bool)*5);
 
   waveGenAmp[0]=1.0f;
-  waveGenFMCon1[0]=true;
-  waveGenFMCon2[0]=true;
-  waveGenFMCon3[0]=true;
+  waveGenFMCon0[0]=false;
+  waveGenFMCon1[0]= true;
+  waveGenFMCon2[1]= true;
+  waveGenFMCon3[2] = true;
+  waveGenFMCon4[0]= false;
+
+  waveGenFMCon0[4] = false;
+  waveGenFMCon1[4] = false;
+  waveGenFMCon2[4] = false;
+  waveGenFMCon3[4] = true;
 
   memset(keyHit,0,sizeof(float)*DIV_MAX_CHANS);
   memset(keyHit1,0,sizeof(float)*DIV_MAX_CHANS);

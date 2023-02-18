@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -93,8 +93,8 @@ const char** DivPlatformVB::getRegisterSheet() {
   return regCheatSheetVB;
 }
 
-void DivPlatformVB::acquire(short* bufL, short* bufR, size_t start, size_t len) {
-  for (size_t h=start; h<start+len; h++) {
+void DivPlatformVB::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
     cycles=0;
     while (!writes.empty()) {
       QueuedWrite w=writes.front();
@@ -117,8 +117,8 @@ void DivPlatformVB::acquire(short* bufL, short* bufR, size_t start, size_t len) 
     if (tempR<-32768) tempR=-32768;
     if (tempR>32767) tempR=32767;
     
-    bufL[h]=tempL;
-    bufR[h]=tempR;
+    buf[0][h]=tempL;
+    buf[1][h]=tempR;
   }
 }
 
@@ -144,7 +144,9 @@ void DivPlatformVB::tick(bool sysTick) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
       writeEnv(i);
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -193,7 +195,7 @@ void DivPlatformVB::tick(bool sysTick) {
       }
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
       if (chan[i].freq<1) chan[i].freq=1;
       if (chan[i].freq>2047) chan[i].freq=2047;
       chan[i].freq=2048-chan[i].freq;
@@ -366,7 +368,7 @@ int DivPlatformVB::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -374,11 +376,17 @@ int DivPlatformVB::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 15;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
@@ -457,8 +465,8 @@ void DivPlatformVB::reset() {
   delay=500;
 }
 
-bool DivPlatformVB::isStereo() {
-  return true;
+int DivPlatformVB::getOutputCount() {
+  return 2;
 }
 
 bool DivPlatformVB::keyOffAffectsArp(int ch) {
@@ -486,6 +494,7 @@ void DivPlatformVB::notifyInsDeletion(void* ins) {
 
 void DivPlatformVB::setFlags(const DivConfig& flags) {
   chipClock=5000000.0;
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/16;
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;

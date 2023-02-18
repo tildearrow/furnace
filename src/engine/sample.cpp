@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -52,13 +52,17 @@ void DivSample::putSampleData(SafeWriter* w) {
   w->writeI(centerRate);
   w->writeC(depth);
   w->writeC(loopMode);
+  w->writeC(brrEmphasis);
   w->writeC(0); // reserved
-  w->writeC(0);
   w->writeI(loop?loopStart:-1);
   w->writeI(loop?loopEnd:-1);
 
-  for (int i=0; i<4; i++) {
-    w->writeI(0xffffffff);
+  for (int i=0; i<DIV_MAX_SAMPLE_TYPE; i++) {
+    unsigned int out=0;
+    for (int j=0; j<DIV_MAX_CHIPS; j++) {
+      if (renderOn[i][j]) out|=1<<j;
+    }
+    w->writeI(out);
   }
 
 #ifdef TA_BIG_ENDIAN
@@ -121,16 +125,23 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
       reader.readC();
     }
 
+    if (version>=129) {
+      brrEmphasis=reader.readC();
+    } else {
+      reader.readC();
+    }
     // reserved
-    reader.readC();
     reader.readC();
 
     loopStart=reader.readI();
     loopEnd=reader.readI();
     loop=(loopStart>=0)&&(loopEnd>=0);
 
-    for (int i=0; i<4; i++) {
-      reader.readI();
+    for (int i=0; i<DIV_MAX_SAMPLE_TYPE; i++) {
+      unsigned int outMask=(unsigned int)reader.readI();
+      for (int j=0; j<DIV_MAX_CHIPS; j++) {
+        renderOn[i][j]=outMask&(1<<j);
+      }
     }
   } else {
     if (version<58) {
@@ -483,8 +494,8 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
     case DIV_SAMPLE_DEPTH_BRR: // BRR
       if (dataBRR!=NULL) delete[] dataBRR;
       lengthBRR=9*((count+15)/16);
-      dataBRR=new unsigned char[lengthBRR];
-      memset(dataBRR,0,lengthBRR);
+      dataBRR=new unsigned char[lengthBRR+9];
+      memset(dataBRR,0,lengthBRR+9);
       break;
     case DIV_SAMPLE_DEPTH_VOX: // VOX
       if (dataVOX!=NULL) delete[] dataVOX;
@@ -816,18 +827,15 @@ bool DivSample::resampleBlep(double r) {
   unsigned int posInt=0;
   double factor=r/(double)rate;
   float* sincITable=DivFilterTables::getSincIntegralTable();
-  float s[16];
 
-  memset(s,0,16*sizeof(float));
+  float* floatData=new float[finalCount];
+  memset(floatData,0,finalCount*sizeof(float));
 
   if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     memset(data16,0,finalCount*sizeof(short));
     for (int i=0; i<finalCount; i++) {
       if (posInt<samples) {
-        int result=data16[i]+oldData16[posInt];
-        if (result<-32768) result=-32768;
-        if (result>32767) result=32767;
-        data16[i]=result;
+        data16[i]=oldData16[posInt];
       }
       
       posFrac+=1.0;
@@ -842,28 +850,25 @@ bool DivSample::resampleBlep(double r) {
 
         for (int j=0; j<8; j++) {
           if (i-j>0) {
-            float result=data16[i-j]+t1[j]*-delta;
-            if (result<-32768) result=-32768;
-            if (result>32767) result=32767;
-            data16[i-j]=result;
+            floatData[i-j]+=t1[j]*-delta;
           }
           if (i+j+1<finalCount) {
-            float result=data16[i+j+1]+t2[j]*delta;
-            if (result<-32768) result=-32768;
-            if (result>32767) result=32767;
-            data16[i+j+1]=result;
+            floatData[i+j+1]+=t2[j]*delta;
           }
         }
       }
+    }
+    for (int i=0; i<finalCount; i++) {
+      float result=floatData[i]+data16[i];
+      if (result<-32768) result=-32768;
+      if (result>32767) result=32767;
+      data16[i]=round(result);
     }
   } else if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     memset(data8,0,finalCount);
     for (int i=0; i<finalCount; i++) {
       if (posInt<samples) {
-        int result=data8[i]+oldData8[posInt];
-        if (result<-128) result=-128;
-        if (result>127) result=127;
-        data8[i]=result;
+        data8[i]=oldData8[posInt];
       }
       
       posFrac+=1.0;
@@ -878,21 +883,22 @@ bool DivSample::resampleBlep(double r) {
 
         for (int j=0; j<8; j++) {
           if (i-j>0) {
-            float result=data8[i-j]+t1[j]*-delta;
-            if (result<-128) result=-128;
-            if (result>127) result=127;
-            data8[i-j]=result;
+            floatData[i-j]+=t1[j]*-delta;
           }
           if (i+j+1<finalCount) {
-            float result=data8[i+j+1]+t2[j]*delta;
-            if (result<-128) result=-128;
-            if (result>127) result=127;
-            data8[i+j+1]=result;
+            floatData[i+j+1]+=t2[j]*delta;
           }
         }
       }
     }
+    for (int i=0; i<finalCount; i++) {
+      float result=floatData[i]+data16[i];
+      if (result<-128) result=-128;
+      if (result>127) result=127;
+      data16[i]=round(result);
+    }
   }
+  delete[] floatData;
 
   RESAMPLE_END;
   return true;
@@ -1034,7 +1040,7 @@ void DivSample::render(unsigned int formatMask) {
         }
         break;
       case DIV_SAMPLE_DEPTH_BRR: // BRR
-        brrDecode(dataBRR,data16,lengthBRR);
+        brrDecode(dataBRR,data16,lengthBRR,brrEmphasis);
         break;
       case DIV_SAMPLE_DEPTH_VOX: // VOX
         oki_decode(dataVOX,data16,samples);
@@ -1093,7 +1099,7 @@ void DivSample::render(unsigned int formatMask) {
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_BRR)) { // BRR
     if (!initInternal(DIV_SAMPLE_DEPTH_BRR,samples)) return;
-    brrEncode(data16,dataBRR,(samples+15)&(~15),loop?loopStart:-1);
+    brrEncode(data16,dataBRR,samples,loop?loopStart:-1,brrEmphasis);
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_VOX)) { // VOX
     if (!initInternal(DIV_SAMPLE_DEPTH_VOX,samples)) return;
@@ -1167,9 +1173,9 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       duplicate=new unsigned char[getCurBufLen()];
       memcpy(duplicate,getCurBuf(),getCurBufLen());
     }
-    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,loopMode);
+    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,loopMode);
   } else {
-    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,loopMode);
+    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,loopMode);
   }
   if (!doNotPush) {
     while (!redoHist.empty()) {

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,9 +27,9 @@ const char** DivPlatformZXBeeper::getRegisterSheet() {
   return NULL;
 }
 
-void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t len) {
+void DivPlatformZXBeeper::acquire(short** buf, size_t len) {
   bool o=false;
-  for (size_t h=start; h<start+len; h++) {
+  for (size_t h=0; h<len; h++) {
     // clock here
     if (curSample>=0 && curSample<parent->song.sampleLen) {
       if (--curSamplePeriod<0) {
@@ -46,7 +46,7 @@ void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t
         }
       }
       o=sampleOut;
-      bufL[h]=o?16384:0;
+      buf[0][h]=o?16384:0;
       oscBuf[0]->data[oscBuf[0]->needle++]=o?16384:-16384;
       continue;
     }
@@ -64,7 +64,7 @@ void DivPlatformZXBeeper::acquire(short* bufL, short* bufR, size_t start, size_t
     }
     if (++curChan>=6) curChan=0;
     
-    bufL[h]=o?16384:0;
+    buf[0][h]=o?16384:0;
     oscBuf[0]->data[oscBuf[0]->needle++]=o?16384:-16384;
   }
 }
@@ -79,7 +79,9 @@ void DivPlatformZXBeeper::tick(bool sysTick) {
       chan[i].duty=chan[i].std.duty.val;
       chan[i].freqChanged=true;
     }
-    if (chan[i].std.arp.had) {
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
       if (!chan[i].inPorta) {
         chan[i].baseFreq=NOTE_FREQUENCY(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
@@ -88,7 +90,7 @@ void DivPlatformZXBeeper::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+        CLAMP_VAR(chan[i].pitch2,-65535,65535);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -96,7 +98,8 @@ void DivPlatformZXBeeper::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (chan[i].active) {
-        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+        chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
+        if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>65535) chan[i].freq=65535;
       }
       if (chan[i].keyOn) {
@@ -195,7 +198,7 @@ int DivPlatformZXBeeper::dispatch(DivCommand c) {
       curSamplePeriod=0;
       break;
     case DIV_CMD_LEGATO:
-      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
       chan[c.chan].freqChanged=true;
       chan[c.chan].note=c.value;
       break;
@@ -203,11 +206,17 @@ int DivPlatformZXBeeper::dispatch(DivCommand c) {
       if (chan[c.chan].active && c.value2) {
         if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_BEEPER));
       }
-      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 1;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 1;
@@ -293,6 +302,7 @@ void DivPlatformZXBeeper::setFlags(const DivConfig& flags) {
   } else {
     chipClock=COLOR_NTSC;
   }
+  CHECK_CUSTOM_CLOCK;
   rate=chipClock/4;
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;

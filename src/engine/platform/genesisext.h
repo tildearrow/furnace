@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,49 +17,19 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#ifndef _GENESISEXT_H
+#define _GENESISEXT_H
+
 #include "../dispatch.h"
 
 #include "genesis.h"
 
 class DivPlatformGenesisExt: public DivPlatformGenesis {
-  struct OpChannel {
-    DivMacroInt std;
-    unsigned char freqH, freqL;
-    int freq, baseFreq, pitch, pitch2, portaPauseFreq, ins, note;
-    signed char konCycles;
-    bool active, insChanged, freqChanged, keyOn, keyOff, portaPause, inPorta, mask;
-    int vol, outVol;
-    unsigned char pan;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
-    OpChannel():
-      freqH(0),
-      freqL(0),
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      portaPauseFreq(0),
-      ins(-1),
-      note(0),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      portaPause(false),
-      inPorta(false),
-      mask(true),
-      vol(0),
-      outVol(0),
-      pan(3) {}
-  };
-  OpChannel opChan[4];
+  OPNOpChannelStereo opChan[4];
   bool isOpMuted[4];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
+  inline void commitStateExt(int ch, DivInstrument* ins);
   public:
     int dispatch(DivCommand c);
     void* getChanState(int chan);
@@ -72,8 +42,12 @@ class DivPlatformGenesisExt: public DivPlatformGenesis {
     bool keyOffAffectsArp(int ch);
     bool keyOffAffectsPorta(int ch);
     void notifyInsChange(int ins);
+    void notifyInsDeletion(void* ins);
     int getPortaFloor(int ch);
+    void setCSMChannel(unsigned char ch);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformGenesisExt();
 };
+
+#endif

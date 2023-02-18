@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,9 @@
 
 // this has to be a power of 2
 #define TA_LOG_SIZE 2048
+
+// this as well
+#define TA_LOGFILE_BUF_SIZE 65536
 
 extern int logLevel;
 
@@ -76,4 +79,6 @@ template<typename... T> int logE(const char* msg, const T&... args) {
 }
 
 void initLog();
+bool startLogFile(const char* path);
+bool finishLogFile();
 #endif

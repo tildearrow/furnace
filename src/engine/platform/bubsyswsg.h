@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,37 +22,16 @@
 
 #include "../dispatch.h"
 #include <queue>
-#include "../macroInt.h"
 #include "../waveSynth.h"
 #include "vgsound_emu/src/k005289/k005289.hpp"
 
 class DivPlatformBubSysWSG: public DivDispatch {
-  struct Channel {
-    int freq, baseFreq, pitch, pitch2, note, ins;
-    bool active, insChanged, freqChanged, keyOn, keyOff, inPorta;
-    signed char vol, outVol, wave;
+  struct Channel: public SharedChannel<signed char> {
+    signed short wave;
     signed char waveROM[32] = {0}; // 4 bit PROM per channel on bubble system
-    DivMacroInt std;
     DivWaveSynth ws;
-    void macroInit(DivInstrument* which) {
-      std.init(which);
-      pitch2=0;
-    }
     Channel():
-      freq(0),
-      baseFreq(0),
-      pitch(0),
-      pitch2(0),
-      note(0),
-      ins(-1),
-      active(false),
-      insChanged(true),
-      freqChanged(false),
-      keyOn(false),
-      keyOff(false),
-      inPorta(false),
-      vol(15),
-      outVol(15),
+      SharedChannel<signed char>(15),
       wave(-1) {}
   };
   Channel chan[2];
@@ -66,7 +45,7 @@ class DivPlatformBubSysWSG: public DivDispatch {
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:
-    void acquire(short* bufL, short* bufR, size_t start, size_t len);
+    void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
@@ -77,7 +56,7 @@ class DivPlatformBubSysWSG: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
-    bool isStereo();
+    int getOutputCount();
     bool keyOffAffectsArp(int ch);
     DivMacroInt* getChanMacroInt(int ch);
     void setFlags(const DivConfig& flags);

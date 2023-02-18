@@ -1142,6 +1142,8 @@ namespace IGFD
 	public:
 		bool puAnyWindowsHovered = false;							// not remember why haha :) todo : to check if we can remove
     double DpiScale;
+    bool singleClickSel;
+    bool mobileMode;
 
 	public:
 		static FileDialog* Instance()								// Singleton for easier accces form anywhere but only one dialog at a time

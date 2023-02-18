@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,13 +70,14 @@ const int altValues[24]={
   0, 10, 1, 11, 2, 3, 12, 4, 13, 5, 14, 6, 7, 15, 8, -1, 9, -1, -1, -1, -1, -1, -1, -1
 };
 
-const int vgmVersions[6]={
+const int vgmVersions[7]={
   0x150,
   0x151,
   0x160,
   0x161,
   0x170,
-  0x171
+  0x171,
+  0x172
 };
 
 const char* insTypes[DIV_INS_MAX+1]={
@@ -125,6 +126,10 @@ const char* insTypes[DIV_INS_MAX+1]={
   "RF5C68",
   "MSM5232",
   "T6W28",
+  "K007232",
+  "GA20",
+  "Pokémon Mini",
+  "SM8521",
   NULL
 };
 
@@ -316,9 +321,9 @@ const FurnaceGUIColors fxColors[256]={
   GUI_COLOR_PATTERN_EFFECT_INVALID,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
-  GUI_COLOR_PATTERN_EFFECT_INVALID,
-  GUI_COLOR_PATTERN_EFFECT_INVALID,
-  GUI_COLOR_PATTERN_EFFECT_INVALID,
+  GUI_COLOR_PATTERN_EFFECT_PANNING,
+  GUI_COLOR_PATTERN_EFFECT_PANNING,
+  GUI_COLOR_PATTERN_EFFECT_PANNING,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
   GUI_COLOR_PATTERN_EFFECT_INVALID,
@@ -437,8 +442,8 @@ const FurnaceGUIColors fxColors[256]={
   GUI_COLOR_PATTERN_EFFECT_PITCH, // F2
   GUI_COLOR_PATTERN_EFFECT_VOLUME, // F3
   GUI_COLOR_PATTERN_EFFECT_VOLUME, // F4
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // F5
-  GUI_COLOR_PATTERN_EFFECT_INVALID, // F6
+  GUI_COLOR_PATTERN_EFFECT_MISC, // F5
+  GUI_COLOR_PATTERN_EFFECT_MISC, // F6
   GUI_COLOR_PATTERN_EFFECT_INVALID, // F7
   GUI_COLOR_PATTERN_EFFECT_VOLUME, // F8
   GUI_COLOR_PATTERN_EFFECT_VOLUME, // F9
@@ -483,12 +488,14 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("FULLSCREEN", "Toggle full-screen", SDLK_F11),
   D("TX81Z_REQUEST", "Request voice from TX81Z", 0),
   D("PANIC", "Panic", SDLK_F12),
+  D("CLEAR", "Clear song data", 0),
 
   D("WINDOW_EDIT_CONTROLS", "Edit Controls", 0),
   D("WINDOW_ORDERS", "Orders", 0),
   D("WINDOW_INS_LIST", "Instrument List", 0),
   D("WINDOW_INS_EDIT", "Instrument Editor", 0),
   D("WINDOW_SONG_INFO", "Song Information", 0),
+  D("WINDOW_SPEED", "Speed", 0),
   D("WINDOW_PATTERN", "Pattern", 0),
   D("WINDOW_WAVE_LIST", "Wavetable List", 0),
   D("WINDOW_WAVE_EDIT", "Wavetable Editor", 0),
@@ -514,6 +521,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_SUBSONGS", "Subsongs", 0),
   D("WINDOW_FIND", "Find/Replace", FURKMOD_CMD|SDLK_f),
   D("WINDOW_CLOCK", "Clock", 0),
+  D("WINDOW_GROOVES", "Grooves", 0),
 
   D("COLLAPSE_WINDOW", "Collapse/expand current window", 0),
   D("CLOSE_WINDOW", "Close current window", FURKMOD_SHIFT|SDLK_ESCAPE),
@@ -582,6 +590,8 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("PAT_COLLAPSE_SONG", "Collapse song", 0),
   D("PAT_EXPAND_SONG", "Expand song", 0),
   D("PAT_LATCH", "Set note input latch", 0),
+  D("PAT_SCROLL_MODE", "Change mobile scroll mode", 0),
+  D("PAT_CLEAR_LATCH", "Clear note input latch", 0),
   D("PAT_MAX", "", NOT_AN_ACTION),
 
   D("INS_LIST_MIN", "---Instrument list", NOT_AN_ACTION),
@@ -733,6 +743,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
 
   D(GUI_COLOR_ORDER_ROW_INDEX,"",ImVec4(0.5f,0.8f,1.0f,1.0f)),
   D(GUI_COLOR_ORDER_ACTIVE,"",ImVec4(0.4f,0.7f,1.0f,0.25f)),
+  D(GUI_COLOR_ORDER_SELECTED,"",ImVec4(0.6f,0.8f,1.0f,0.75f)),
   D(GUI_COLOR_ORDER_SIMILAR,"",ImVec4(0.5f,1.0f,1.0f,1.0f)),
   D(GUI_COLOR_ORDER_INACTIVE,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
 
@@ -805,6 +816,10 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_RF5C68,"",ImVec4(1.0f,0.3f,0.3f,1.0f)),
   D(GUI_COLOR_INSTR_MSM5232,"",ImVec4(0.5f,0.9f,1.0f,1.0f)),
   D(GUI_COLOR_INSTR_T6W28,"",ImVec4(1.0f,0.8f,0.1f,1.0f)),
+  D(GUI_COLOR_INSTR_K007232,"",ImVec4(1.0f,0.8f,0.1f,1.0f)),
+  D(GUI_COLOR_INSTR_GA20,"",ImVec4(0.1f,1.0f,0.4f,1.0f)),
+  D(GUI_COLOR_INSTR_POKEMINI,"",ImVec4(1.0f,1.0f,0.3f,1.0f)),
+  D(GUI_COLOR_INSTR_SM8521,"",ImVec4(0.5f,0.55f,0.6f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_BG,"",ImVec4(0.4f,0.6f,0.8f,1.0f)),
@@ -887,6 +902,13 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_CLOCK_BEAT_LOW,"",ImVec4(0.1f,0.13f,0.25f,1.0f)),
   D(GUI_COLOR_CLOCK_BEAT_HIGH,"",ImVec4(0.5f,0.8f,1.0f,1.0f)),
 
+  D(GUI_COLOR_PATCHBAY_PORTSET,"",ImVec4(0.25f,0.25f,0.25f,1.0f)),
+  D(GUI_COLOR_PATCHBAY_PORT,"",ImVec4(0.3f,0.4f,0.6f,1.0f)),
+  D(GUI_COLOR_PATCHBAY_PORT_HIDDEN,"",ImVec4(0.4f,0.4f,0.4f,1.0f)),
+  D(GUI_COLOR_PATCHBAY_CONNECTION,"",ImVec4(0.3f,0.55f,0.8f,1.0f)),
+  D(GUI_COLOR_PATCHBAY_CONNECTION_BG,"",ImVec4(0.1f,0.25f,0.3f,1.0f)),
+  D(GUI_COLOR_PATCHBAY_CONNECTION_HI,"",ImVec4(0.2f,1.0f,1.0f,1.0f)),
+
   D(GUI_COLOR_LOGLEVEL_ERROR,"",ImVec4(1.0f,0.2f,0.2f,1.0f)),
   D(GUI_COLOR_LOGLEVEL_WARNING,"",ImVec4(1.0f,1.0f,0.2f,1.0f)),
   D(GUI_COLOR_LOGLEVEL_INFO,"",ImVec4(0.4f,1.0f,0.4f,1.0f)),
@@ -904,8 +926,9 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
 const int availableSystems[]={
   DIV_SYSTEM_YM2612,
   DIV_SYSTEM_YM2612_EXT,
-  DIV_SYSTEM_YM2612_FRAC,
-  DIV_SYSTEM_YM2612_FRAC_EXT,
+  DIV_SYSTEM_YM2612_CSM,
+  DIV_SYSTEM_YM2612_DUALPCM,
+  DIV_SYSTEM_YM2612_DUALPCM_EXT,
   DIV_SYSTEM_SMS,
   DIV_SYSTEM_GB,
   DIV_SYSTEM_PCE,
@@ -925,14 +948,15 @@ const int availableSystems[]={
   DIV_SYSTEM_AY8910,
   DIV_SYSTEM_AMIGA,
   DIV_SYSTEM_PCSPKR,
+  DIV_SYSTEM_POKEMINI,
   DIV_SYSTEM_SFX_BEEPER,
   DIV_SYSTEM_YMU759,
   DIV_SYSTEM_DUMMY,
   DIV_SYSTEM_SOUND_UNIT,
-  DIV_SYSTEM_OPN,
-  DIV_SYSTEM_OPN_EXT,
-  DIV_SYSTEM_PC98,
-  DIV_SYSTEM_PC98_EXT,
+  DIV_SYSTEM_YM2203,
+  DIV_SYSTEM_YM2203_EXT,
+  DIV_SYSTEM_YM2608,
+  DIV_SYSTEM_YM2608_EXT,
   DIV_SYSTEM_OPLL,
   DIV_SYSTEM_OPLL_DRUMS,
   DIV_SYSTEM_VRC7,
@@ -948,6 +972,7 @@ const int availableSystems[]={
   DIV_SYSTEM_TIA,
   DIV_SYSTEM_SAA1099,
   DIV_SYSTEM_AY8930,
+  DIV_SYSTEM_POKEY,
   DIV_SYSTEM_LYNX,
   DIV_SYSTEM_QSOUND,
   DIV_SYSTEM_X1_010,
@@ -961,6 +986,7 @@ const int availableSystems[]={
   DIV_SYSTEM_VRC6,
   DIV_SYSTEM_FDS,
   DIV_SYSTEM_MMC5,
+  DIV_SYSTEM_ES5506,
   DIV_SYSTEM_SCC,
   DIV_SYSTEM_SCC_PLUS,
   DIV_SYSTEM_YMZ280B,
@@ -972,6 +998,9 @@ const int availableSystems[]={
   DIV_SYSTEM_RF5C68,
   DIV_SYSTEM_SNES,
   DIV_SYSTEM_MSM5232,
+  DIV_SYSTEM_K007232,
+  DIV_SYSTEM_GA20,
+  DIV_SYSTEM_SM8521,
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_PONG,
   0 // don't remove this last one!
@@ -981,8 +1010,9 @@ const int availableSystems[]={
 const int chipsFM[]={
   DIV_SYSTEM_YM2612,
   DIV_SYSTEM_YM2612_EXT,
-  DIV_SYSTEM_YM2612_FRAC,
-  DIV_SYSTEM_YM2612_FRAC_EXT,
+  DIV_SYSTEM_YM2612_CSM,
+  DIV_SYSTEM_YM2612_DUALPCM,
+  DIV_SYSTEM_YM2612_DUALPCM_EXT,
   DIV_SYSTEM_YM2151,
   DIV_SYSTEM_YM2610,
   DIV_SYSTEM_YM2610_EXT,
@@ -991,10 +1021,10 @@ const int chipsFM[]={
   DIV_SYSTEM_YM2610B,
   DIV_SYSTEM_YM2610B_EXT,
   DIV_SYSTEM_YMU759,
-  DIV_SYSTEM_OPN,
-  DIV_SYSTEM_OPN_EXT,
-  DIV_SYSTEM_PC98,
-  DIV_SYSTEM_PC98_EXT,
+  DIV_SYSTEM_YM2203,
+  DIV_SYSTEM_YM2203_EXT,
+  DIV_SYSTEM_YM2608,
+  DIV_SYSTEM_YM2608_EXT,
   DIV_SYSTEM_OPLL,
   DIV_SYSTEM_OPLL_DRUMS,
   DIV_SYSTEM_VRC7,
@@ -1015,6 +1045,7 @@ const int chipsSquare[]={
   DIV_SYSTEM_SMS,
   DIV_SYSTEM_AY8910,
   DIV_SYSTEM_PCSPKR,
+  DIV_SYSTEM_POKEMINI,
   DIV_SYSTEM_SAA1099,
   DIV_SYSTEM_VIC20,
   DIV_SYSTEM_MSM5232,
@@ -1050,11 +1081,13 @@ const int chipsSpecial[]={
   DIV_SYSTEM_SOUND_UNIT,
   DIV_SYSTEM_TIA,
   DIV_SYSTEM_AY8930,
+  DIV_SYSTEM_POKEY,
   DIV_SYSTEM_LYNX,
   DIV_SYSTEM_VERA,
   DIV_SYSTEM_PET,
   DIV_SYSTEM_VRC6,
   DIV_SYSTEM_MMC5,
+  DIV_SYSTEM_SM8521,
   0 // don't remove this last one!
 };
 
@@ -1070,7 +1103,10 @@ const int chipsSample[]={
   DIV_SYSTEM_MSM6295,
   DIV_SYSTEM_RF5C68,
   DIV_SYSTEM_SNES,
+  DIV_SYSTEM_K007232,
+  DIV_SYSTEM_GA20,
   DIV_SYSTEM_PCM_DAC,
+  DIV_SYSTEM_ES5506,
   0 // don't remove this last one!
 };
 

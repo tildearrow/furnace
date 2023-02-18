@@ -1892,9 +1892,9 @@ void OPM_Clock(opm_t *chip, int32_t *output, uint8_t *sh1, uint8_t *sh2, uint8_t
     OPM_PhaseCalcIncrement(chip);
     OPM_PhaseCalcFNumBlock(chip);
 
-    /*OPM_DoTimerIRQ(chip);
+    OPM_DoTimerIRQ(chip);
     OPM_DoTimerA(chip);
-    OPM_DoTimerB(chip);*/
+    OPM_DoTimerB(chip);
     OPM_DoLFOMult(chip);
     OPM_DoLFO1(chip);
     OPM_Noise(chip);
@@ -1904,10 +1904,10 @@ void OPM_Clock(opm_t *chip, int32_t *output, uint8_t *sh1, uint8_t *sh2, uint8_t
     OPM_NoiseTimer(chip);
     OPM_KeyOn1(chip);
     OPM_DoIO(chip);
-    /*OPM_DoTimerA2(chip);
-    OPM_DoTimerB2(chip);*/
+    OPM_DoTimerA2(chip);
+    OPM_DoTimerB2(chip);
     OPM_DoLFO2(chip);
-    //OPM_CSM(chip);
+    OPM_CSM(chip);
     OPM_NoiseChannel(chip);
     OPM_Output(chip);
     OPM_DAC(chip);

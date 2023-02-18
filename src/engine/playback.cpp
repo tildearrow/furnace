@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -103,9 +103,8 @@ const char* cmdName[]={
   "FM_AM_DEPTH",
   "FM_PM_DEPTH",
 
-  "GENESIS_LFO",
-  
-  "ARCADE_LFO",
+  "FM_LFO2",
+  "FM_LFO2_WAVE",
 
   "STD_NOISE_FREQ",
   "STD_NOISE_MODE",
@@ -206,9 +205,29 @@ const char* cmdName[]={
   "SNES_ECHO_FEEDBACK",
   "SNES_ECHO_FIR",
 
-  "DIV_CMD_NES_ENV_MODE",
-  "DIV_CMD_NES_LENGTH",
-  "DIV_CMD_NES_COUNT_MODE",
+  "NES_ENV_MODE",
+  "NES_LENGTH",
+  "NES_COUNT_MODE",
+
+  "MACRO_OFF",
+  "MACRO_ON",
+
+  "SURROUND_PANNING",
+
+  "FM_AM2_DEPTH",
+  "FM_PM2_DEPTH",
+
+  "ES5506_FILTER_MODE",
+  "ES5506_FILTER_K1",
+  "ES5506_FILTER_K2",
+  "ES5506_FILTER_K1_SLIDE",
+  "ES5506_FILTER_K2_SLIDE",
+  "ES5506_ENVELOPE_COUNT",
+  "ES5506_ENVELOPE_LVRAMP",
+  "ES5506_ENVELOPE_RVRAMP",
+  "ES5506_ENVELOPE_K1RAMP",
+  "ES5506_ENVELOPE_K2RAMP",
+  "ES5506_PAUSE",
 
   "ALWAYS_SET_VOLUME"
 };
@@ -393,11 +412,22 @@ void DivEngine::processRow(int i, bool afterDelay) {
       if (effectVal==-1) effectVal=0;
 
       switch (effect) {
-        case 0x09: // speed 1
-          if (effectVal>0) speed1=effectVal;
+        case 0x09: // select groove pattern/speed 1
+          if (song.grooves.empty()) {
+            if (effectVal>0) speeds.val[0]=effectVal;
+          } else {
+            if (effectVal<(short)song.grooves.size()) {
+              speeds=song.grooves[effectVal];
+              curSpeed=0;
+            }
+          }
           break;
-        case 0x0f: // speed 2
-          if (effectVal>0) speed2=effectVal;
+        case 0x0f: // speed 1/speed 2
+          if (speeds.len==2 && song.grooves.empty()) {
+            if (effectVal>0) speeds.val[1]=effectVal;
+          } else {
+            if (effectVal>0) speeds.val[0]=effectVal;
+          }
           break;
         case 0x0b: // change order
           if (changeOrd==-1 || song.jumpTreatment==0) {
@@ -552,6 +582,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
   short lastSlide=-1;
   bool calledPorta=false;
   bool panChanged=false;
+  bool surroundPanChanged=false;
 
   // effects
   for (int j=0; j<curPat[i].effectCols; j++) {
@@ -581,6 +612,19 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0x82: // panning right (split 8-bit)
         chan[i].panR=effectVal;
         panChanged=true;
+        break;
+      case 0x88: // panning rear (split 4-bit)
+        chan[i].panRL=(effectVal>>4)|(effectVal&0xf0);
+        chan[i].panRR=(effectVal&15)|((effectVal&15)<<4);
+        surroundPanChanged=true;
+        break;
+      case 0x89: // panning left (split 8-bit)
+        chan[i].panRL=effectVal;
+        surroundPanChanged=true;
+        break;
+      case 0x8a: // panning right (split 8-bit)
+        chan[i].panRR=effectVal;
+        surroundPanChanged=true;
         break;
       case 0x01: // ramp up
         if (song.ignoreDuplicateSlides && (lastSlide==0x01 || lastSlide==0x1337)) break;
@@ -668,6 +712,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
         // - then a volume slide down starts to the low boundary, and then when this is reached a volume slide up begins
         // - this process repeats until 0700 or 0Axy are found
         // - note that a volume value does not stop tremolo - instead it glitches this whole thing up
+        if (chan[i].tremoloDepth==0) {
+          chan[i].tremoloPos=0;
+        }
+        chan[i].tremoloDepth=effectVal&15;
+        chan[i].tremoloRate=effectVal>>4;
+        // tremolo and vol slides are incompatiblw
+        chan[i].volSpeed=0;
         break;
       case 0x0a: // volume ramp
         // TODO: non-0x-or-x0 value should be treated as 00
@@ -677,6 +728,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
           } else {
             chan[i].volSpeed=(effectVal>>4)*64;
           }
+          // tremolo and vol slides are incompatible
+          chan[i].tremoloDepth=0;
+          chan[i].tremoloRate=0;
         } else {
           chan[i].volSpeed=0;
         }
@@ -817,12 +871,24 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         break;
       case 0xf3: // fine volume ramp up
+        // tremolo and vol slides are incompatible
+        chan[i].tremoloDepth=0;
+        chan[i].tremoloRate=0;
         chan[i].volSpeed=effectVal;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
       case 0xf4: // fine volume ramp down
+        // tremolo and vol slides are incompatible
+        chan[i].tremoloDepth=0;
+        chan[i].tremoloRate=0;
         chan[i].volSpeed=-effectVal;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
+        break;
+      case 0xf5: // disable macro
+        dispatchCmd(DivCommand(DIV_CMD_MACRO_OFF,i,effectVal&0xff));
+        break;
+      case 0xf6: // enable macro
+        dispatchCmd(DivCommand(DIV_CMD_MACRO_ON,i,effectVal&0xff));
         break;
       case 0xf8: // single volume ramp up
         chan[i].volume=MIN(chan[i].volume+effectVal*256,chan[i].volMax);
@@ -841,6 +907,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
           } else {
             chan[i].volSpeed=(effectVal>>4)*256;
           }
+          // tremolo and vol slides are incompatible
+          chan[i].tremoloDepth=0;
+          chan[i].tremoloRate=0;
         } else {
           chan[i].volSpeed=0;
         }
@@ -857,6 +926,10 @@ void DivEngine::processRow(int i, bool afterDelay) {
   if (panChanged) {
     dispatchCmd(DivCommand(DIV_CMD_PANNING,i,chan[i].panL,chan[i].panR));
   }
+  if (surroundPanChanged) {
+    dispatchCmd(DivCommand(DIV_CMD_SURROUND_PANNING,i,2,chan[i].panRL));
+    dispatchCmd(DivCommand(DIV_CMD_SURROUND_PANNING,i,3,chan[i].panRR));
+  }
 
   if (insChanged && (chan[i].inPorta || calledPorta) && song.newInsTriggersInPorta) {
     dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
@@ -867,7 +940,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       chan[i].vibratoPos=0;
     }
     dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
-    if (chan[i].legato) {
+    if (chan[i].legato && (!chan[i].inPorta || song.brokenPortaLegato)) {
       dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
       dispatchCmd(DivCommand(DIV_CMD_HINT_LEGATO,i,chan[i].note));
     } else {
@@ -884,6 +957,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
       } else if (!chan[i].noteOnInhibit) {
         dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
+        chan[i].goneThroughNote=true;
+        chan[i].wentThroughNote=true;
         keyHit[i]=true;
       }
     }
@@ -1021,6 +1096,9 @@ void DivEngine::nextRow() {
   }
 
   if (song.brokenSpeedSel) {
+    unsigned char speed2=(speeds.len>=2)?speeds.val[1]:speeds.val[0];
+    unsigned char speed1=speeds.val[0];
+    
     if ((curSubSong->patLen&1) && curOrder&1) {
       ticks=((curRow&1)?speed2:speed1)*(curSubSong->timeBase+1);
       nextSpeed=(curRow&1)?speed1:speed2;
@@ -1029,14 +1107,10 @@ void DivEngine::nextRow() {
       nextSpeed=(curRow&1)?speed2:speed1;
     }
   } else {
-    if (speedAB) {
-      ticks=speed2*(curSubSong->timeBase+1);
-      nextSpeed=speed1;
-    } else {
-      ticks=speed1*(curSubSong->timeBase+1);
-      nextSpeed=speed2;
-    }
-    speedAB=!speedAB;
+    ticks=speeds.val[curSpeed]*(curSubSong->timeBase+1);
+    curSpeed++;
+    if (curSpeed>=speeds.len) curSpeed=0;
+    nextSpeed=speeds.val[curSpeed];
   }
 
   // post row details
@@ -1045,8 +1119,10 @@ void DivEngine::nextRow() {
     if (!(pat->data[curRow][0]==0 && pat->data[curRow][1]==0)) {
       if (pat->data[curRow][0]!=100 && pat->data[curRow][0]!=101 && pat->data[curRow][0]!=102) {
         if (!chan[i].legato) {
+          bool wantPreNote=false;
           if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
-            if (disCont[dispatchOfChan[i]].dispatch->getWantPreNote()) dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks));
+            wantPreNote=disCont[dispatchOfChan[i]].dispatch->getWantPreNote();
+            if (wantPreNote) dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks));
           }
 
           if (song.oneTickCut) {
@@ -1064,7 +1140,7 @@ void DivEngine::nextRow() {
                 }
               }
             }
-            if (doPrepareCut) chan[i].cut=ticks;
+            if (doPrepareCut && !wantPreNote && chan[i].cut<=0) chan[i].cut=ticks;
           }
         }
       }
@@ -1206,6 +1282,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             } else {
               dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
             }
+          } else if (chan[i].tremoloDepth>0) {
+            chan[i].tremoloPos+=chan[i].tremoloRate;
+            chan[i].tremoloPos&=127;
+            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,MAX(0,chan[i].volume-(tremTable[chan[i].tremoloPos]*chan[i].tremoloDepth))>>8));
           }
         }
         if (chan[i].vibratoDepth>0) {
@@ -1348,12 +1428,17 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
   return ret;
 }
 
+int DivEngine::getBufferPos() {
+  return bufferPos>>MASTER_CLOCK_PREC;
+}
+
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
   lastLoopPos=-1;
 
   if (out!=NULL) {
-    memset(out[0],0,size*sizeof(float));
-    memset(out[1],0,size*sizeof(float));
+    for (int i=0; i<outChans; i++) {
+      memset(out[i],0,size*sizeof(float));
+    }
   }
 
   if (softLocked) {
@@ -1417,7 +1502,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
   }
   
   // process audio
-  if (out!=NULL && ((sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) || (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size()))) {
+  if ((sPreview.sample>=0 && sPreview.sample<(int)song.sample.size()) || (sPreview.wave>=0 && sPreview.wave<(int)song.wave.size())) {
     unsigned int samp_bbOff=0;
     unsigned int prevAvail=blip_samples_avail(samp_bb);
     if (prevAvail>size) prevAvail=size;
@@ -1437,8 +1522,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           samp_temp=s->data16[sPreview.pos];
           if (sPreview.dir) {
             sPreview.pos--;
-          }
-          else {
+          } else {
             sPreview.pos++;
           }
         }
@@ -1554,182 +1638,232 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
 
     blip_end_frame(samp_bb,prevtotal);
     blip_read_samples(samp_bb,samp_bbOut+samp_bbOff,size-samp_bbOff,0);
-    for (size_t i=0; i<size; i++) {
-      out[0][i]+=(float)samp_bbOut[i]/32768.0;
-      out[1][i]+=(float)samp_bbOut[i]/32768.0;
-    }
+  } else {
+    memset(samp_bbOut,0,size*sizeof(short));
   }
 
-  if (!playing) {
-    if (out!=NULL) {
-      for (unsigned int i=0; i<size; i++) {
-        oscBuf[0][oscWritePos]=out[0][i];
-        oscBuf[1][oscWritePos]=out[1][i];
-        if (++oscWritePos>=32768) oscWritePos=0;
+  if (playing && !halted) {
+    // logic starts here
+    for (int i=0; i<song.systemLen; i++) {
+      // TODO: we may have a problem here
+      disCont[i].lastAvail=blip_samples_avail(disCont[i].bb[0]);
+      if (disCont[i].lastAvail>0) {
+        disCont[i].flush(disCont[i].lastAvail);
       }
-      oscSize=size;
+      if (size<disCont[i].lastAvail) {
+        disCont[i].runtotal=0;
+      } else {
+        disCont[i].runtotal=blip_clocks_needed(disCont[i].bb[0],size-disCont[i].lastAvail);
+      }
+      if (disCont[i].runtotal>disCont[i].bbInLen) {
+        logD("growing dispatch %d bbIn to %d",i,disCont[i].runtotal+256);
+        disCont[i].grow(disCont[i].runtotal+256);
+      }
+      disCont[i].runLeft=disCont[i].runtotal;
+      disCont[i].runPos=0;
     }
-    isBusy.unlock();
-    return;
-  }
 
-  // logic starts here
-  for (int i=0; i<song.systemLen; i++) {
-    disCont[i].lastAvail=blip_samples_avail(disCont[i].bb[0]);
-    if (disCont[i].lastAvail>0) {
-      disCont[i].flush(disCont[i].lastAvail);
+    if (metroTickLen<size) {
+      if (metroTick!=NULL) delete[] metroTick;
+      metroTick=new unsigned char[size];
+      metroTickLen=size;
     }
-    disCont[i].runtotal=blip_clocks_needed(disCont[i].bb[0],size-disCont[i].lastAvail);
-    if (disCont[i].runtotal>disCont[i].bbInLen) {
-      logV("growing dispatch %d bbIn to %d",i,disCont[i].runtotal+256);
-      delete[] disCont[i].bbIn[0];
-      delete[] disCont[i].bbIn[1];
-      disCont[i].bbIn[0]=new short[disCont[i].runtotal+256];
-      disCont[i].bbIn[1]=new short[disCont[i].runtotal+256];
-      disCont[i].bbInLen=disCont[i].runtotal+256;
-    }
-    disCont[i].runLeft=disCont[i].runtotal;
-    disCont[i].runPos=0;
-  }
 
-  if (metroTickLen<size) {
-    if (metroTick!=NULL) delete[] metroTick;
-    metroTick=new unsigned char[size];
-    metroTickLen=size;
-  }
+    memset(metroTick,0,size);
 
-  memset(metroTick,0,size);
+    int attempts=0;
+    int runLeftG=size<<MASTER_CLOCK_PREC;
+    while (++attempts<(int)size) {
+      // -1. set bufferPos
+      bufferPos=(size<<MASTER_CLOCK_PREC)-runLeftG;
 
-  int attempts=0;
-  int runLeftG=size<<MASTER_CLOCK_PREC;
-  while (++attempts<(int)size) {
-    // 0. check if we've halted
-    if (halted) break;
-    // 1. check whether we are done with all buffers
-    if (runLeftG<=0) break;
+      // 0. check if we've halted
+      if (halted) break;
+      // 1. check whether we are done with all buffers
+      if (runLeftG<=0) break;
 
-    // 2. check whether we gonna tick
-    if (cycles<=0) {
-      // we have to tick
-      if (nextTick()) {
-        lastLoopPos=size-(runLeftG>>MASTER_CLOCK_PREC);
-        logD("last loop pos: %d for a size of %d and runLeftG of %d",lastLoopPos,size,runLeftG);
-        totalLoops++;
-        if (remainingLoops>0) {
-          remainingLoops--;
-          if (!remainingLoops) {
-            logI("end of song!");
-            remainingLoops=-1;
-            playing=false;
-            freelance=false;
-            extValuePresent=false;
-            break;
+      // 2. check whether we gonna tick
+      if (cycles<=0) {
+        // we have to tick
+        if (nextTick()) {
+          lastLoopPos=size-(runLeftG>>MASTER_CLOCK_PREC);
+          logD("last loop pos: %d for a size of %d and runLeftG of %d",lastLoopPos,size,runLeftG);
+          totalLoops++;
+          if (remainingLoops>0) {
+            remainingLoops--;
+            if (!remainingLoops) {
+              logI("end of song!");
+              remainingLoops=-1;
+              playing=false;
+              freelance=false;
+              extValuePresent=false;
+              break;
+            }
+          }
+        }
+        if (pendingMetroTick) {
+          unsigned int realPos=size-(runLeftG>>MASTER_CLOCK_PREC);
+          if (realPos>=size) realPos=size-1;
+          metroTick[realPos]=pendingMetroTick;
+          pendingMetroTick=0;
+        }
+      } else {
+        // 3. tick the clock and fill buffers as needed
+        if (cycles<runLeftG) {
+          for (int i=0; i<song.systemLen; i++) {
+            int total=(cycles*disCont[i].runtotal)/(size<<MASTER_CLOCK_PREC);
+            disCont[i].acquire(disCont[i].runPos,total);
+            disCont[i].runLeft-=total;
+            disCont[i].runPos+=total;
+          }
+          runLeftG-=cycles;
+          cycles=0;
+        } else {
+          cycles-=runLeftG;
+          runLeftG=0;
+          for (int i=0; i<song.systemLen; i++) {
+            disCont[i].acquire(disCont[i].runPos,disCont[i].runLeft);
+            disCont[i].runLeft=0;
           }
         }
       }
-      if (pendingMetroTick) {
-        unsigned int realPos=size-(runLeftG>>MASTER_CLOCK_PREC);
-        if (realPos>=size) realPos=size-1;
-        metroTick[realPos]=pendingMetroTick;
-        pendingMetroTick=0;
+    }
+
+    //logD("attempts: %d",attempts);
+    if (attempts>=(int)size) {
+      logE("hang detected! stopping! at %d seconds %d micro",totalSeconds,totalTicks);
+      freelance=false;
+      playing=false;
+      extValuePresent=false;
+    }
+    totalProcessed=size-(runLeftG>>MASTER_CLOCK_PREC);
+
+    for (int i=0; i<song.systemLen; i++) {
+      if (size<disCont[i].lastAvail) {
+        logW("%d: size<lastAvail! %d<%d",i,size,disCont[i].lastAvail);
+        continue;
       }
-    } else {
-      // 3. tick the clock and fill buffers as needed
-      if (cycles<runLeftG) {
-        for (int i=0; i<song.systemLen; i++) {
-          int total=(cycles*disCont[i].runtotal)/(size<<MASTER_CLOCK_PREC);
-          disCont[i].acquire(disCont[i].runPos,total);
-          disCont[i].runLeft-=total;
-          disCont[i].runPos+=total;
+      disCont[i].fillBuf(disCont[i].runtotal,disCont[i].lastAvail,size-disCont[i].lastAvail);
+    }
+  }
+
+  if (metroBufLen<size || metroBuf==NULL) {
+    if (metroBuf!=NULL) delete[] metroBuf;
+    metroBuf=new float[size];
+    metroBufLen=size;
+  }
+
+  memset(metroBuf,0,metroBufLen*sizeof(float));
+
+  if (playing && !halted && metronome) {
+    for (size_t i=0; i<size; i++) {
+      if (metroTick[i]) {
+        if (metroTick[i]==2) {
+          metroFreq=1400/got.rate;
+        } else {
+          metroFreq=1050/got.rate;
         }
-        runLeftG-=cycles;
-        cycles=0;
-      } else {
-        cycles-=runLeftG;
-        runLeftG=0;
-        for (int i=0; i<song.systemLen; i++) {
-          disCont[i].acquire(disCont[i].runPos,disCont[i].runLeft);
-          disCont[i].runLeft=0;
+        metroPos=0;
+        metroAmp=0.7f;
+      }
+      if (metroAmp>0.0f) {
+        for (int j=0; j<outChans; j++) {
+          metroBuf[i]=(sin(metroPos*2*M_PI))*metroAmp*metroVol;
         }
       }
+      metroAmp-=0.0003f;
+      if (metroAmp<0.0f) metroAmp=0.0f;
+      metroPos+=metroFreq;
+      while (metroPos>=1) metroPos--;
     }
   }
 
-  if (out==NULL || halted) {
-    isBusy.unlock();
-    return;
-  }
+  // resolve patchbay
+  for (unsigned int i: song.patchbay) {
+    const unsigned short srcPort=i>>16;
+    const unsigned short destPort=i&0xffff;
 
-  //logD("attempts: %d",attempts);
-  if (attempts>=(int)size) {
-    logE("hang detected! stopping! at %d seconds %d micro",totalSeconds,totalTicks);
-    freelance=false;
-    playing=false;
-    extValuePresent=false;
-  }
-  totalProcessed=size-(runLeftG>>MASTER_CLOCK_PREC);
+    const unsigned short srcPortSet=srcPort>>4;
+    const unsigned short destPortSet=destPort>>4;
+    const unsigned char srcSubPort=srcPort&15;
+    const unsigned char destSubPort=destPort&15;
 
-  for (int i=0; i<song.systemLen; i++) {
-    disCont[i].fillBuf(disCont[i].runtotal,disCont[i].lastAvail,size-disCont[i].lastAvail);
-  }
+    // null portset
+    if (destPortSet==0xfff) continue;
 
-  for (int i=0; i<song.systemLen; i++) {
-    float volL=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127-(int)song.systemPan[i])/127.0f)*song.masterVol;
-    float volR=((float)song.systemVol[i]/64.0f)*((float)MIN(127,127+(int)song.systemPan[i])/127.0f)*song.masterVol;
-    volL*=disCont[i].dispatch->getPostAmp();
-    volR*=disCont[i].dispatch->getPostAmp();
-    if (disCont[i].dispatch->isStereo()) {
-      for (size_t j=0; j<size; j++) {
-        out[0][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*volL;
-        out[1][j]+=((float)disCont[i].bbOut[1][j]/32768.0)*volR;
+    // system outputs
+    if (destPortSet==0x000) {
+      if (destSubPort>=outChans) continue;
+
+      // chip outputs
+      if (srcPortSet<song.systemLen && playing && !halted) {
+        if (srcSubPort<disCont[srcPortSet].dispatch->getOutputCount()) {
+          float vol=song.systemVol[srcPortSet]*disCont[srcPortSet].dispatch->getPostAmp()*song.masterVol;
+
+          switch (destSubPort&3) {
+            case 0:
+              vol*=MIN(1.0f,1.0f-song.systemPan[srcPortSet])*MIN(1.0f,1.0f+song.systemPanFR[srcPortSet]);
+              break;
+            case 1:
+              vol*=MIN(1.0f,1.0f+song.systemPan[srcPortSet])*MIN(1.0f,1.0f+song.systemPanFR[srcPortSet]);
+              break;
+            case 2:
+              vol*=MIN(1.0f,1.0f-song.systemPan[srcPortSet])*MIN(1.0f,1.0f-song.systemPanFR[srcPortSet]);
+              break;
+            case 3:
+              vol*=MIN(1.0f,1.0f+song.systemPan[srcPortSet])*MIN(1.0f,1.0f-song.systemPanFR[srcPortSet]);
+              break;
+          }
+
+          for (size_t j=0; j<size; j++) {
+            out[destSubPort][j]+=((float)disCont[srcPortSet].bbOut[srcSubPort][j]/32768.0)*vol;
+          }
+        }
+      } else if (srcPortSet==0xffd) {
+        // sample preview
+        for (size_t j=0; j<size; j++) {
+          out[destSubPort][j]+=samp_bbOut[j]/32768.0;
+        }
+      } else if (srcPortSet==0xffe && playing && !halted) {
+        // metronome
+        for (size_t j=0; j<size; j++) {
+          out[destSubPort][j]+=metroBuf[j];
+        }
       }
-    } else {
-      for (size_t j=0; j<size; j++) {
-        out[0][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*volL;
-        out[1][j]+=((float)disCont[i].bbOut[0][j]/32768.0)*volR;
-      }
-    }
-  }
 
-  if (metronome) for (size_t i=0; i<size; i++) {
-    if (metroTick[i]) {
-      if (metroTick[i]==2) {
-        metroFreq=1400/got.rate;
-      } else {
-        metroFreq=1050/got.rate;
-      }
-      metroPos=0;
-      metroAmp=0.7f;
+      // nothing/invalid
     }
-    if (metroAmp>0.0f) {
-      out[0][i]+=(sin(metroPos*2*M_PI))*metroAmp*metroVol;
-      out[1][i]+=(sin(metroPos*2*M_PI))*metroAmp*metroVol;
-    }
-    metroAmp-=0.0003f;
-    if (metroAmp<0.0f) metroAmp=0.0f;
-    metroPos+=metroFreq;
-    while (metroPos>=1) metroPos--;
+
+    // nothing/invalid
   }
 
   for (unsigned int i=0; i<size; i++) {
-    oscBuf[0][oscWritePos]=out[0][i];
-    oscBuf[1][oscWritePos]=out[1][i];
+    for (int j=0; j<outChans; j++) {
+      if (oscBuf[j]==NULL) continue;
+      oscBuf[j][oscWritePos]=out[j][i];
+    }
     if (++oscWritePos>=32768) oscWritePos=0;
   }
   oscSize=size;
 
-  if (forceMono) {
+  if (forceMono && outChans>1) {
     for (size_t i=0; i<size; i++) {
-      out[0][i]=(out[0][i]+out[1][i])*0.5;
-      out[1][i]=out[0][i];
+      float chanSum=out[0][i];
+      for (int j=1; j<outChans; j++) {
+        chanSum=out[j][i];
+      }
+      out[0][i]=chanSum/outChans;
+      for (int j=1; j<outChans; j++) {
+        out[j][i]=out[0][i];
+      }
     }
   }
   if (clampSamples) {
     for (size_t i=0; i<size; i++) {
-      if (out[0][i]<-1.0) out[0][i]=-1.0;
-      if (out[0][i]>1.0) out[0][i]=1.0;
-      if (out[1][i]<-1.0) out[1][i]=-1.0;
-      if (out[1][i]>1.0) out[1][i]=1.0;
+      for (int j=0; j<outChans; j++) {
+        if (out[j][i]<-1.0) out[j][i]=-1.0;
+        if (out[j][i]>1.0) out[j][i]=1.0;
+      }
     }
   }
   isBusy.unlock();

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,15 +17,18 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#ifndef _YM2610EXT_H
+#define _YM2610EXT_H
+
 #include "../dispatch.h"
 
 #include "ym2610.h"
 
 class DivPlatformYM2610Ext: public DivPlatformYM2610 {
-  DivPlatformYM2610Base::OpChannel opChan[4];
+  OPNOpChannelStereo opChan[4];
   bool isOpMuted[4];
   friend void putDispatchChip(void*,int);
-  friend void putDispatchChan(void*,int,int);
+  inline void commitStateExt(int ch, DivInstrument* ins);
   public:
     int dispatch(DivCommand c);
     void* getChanState(int chan);
@@ -37,7 +40,10 @@ class DivPlatformYM2610Ext: public DivPlatformYM2610 {
     void muteChannel(int ch, bool mute);
     bool keyOffAffectsArp(int ch);
     void notifyInsChange(int ins);
+    void notifyInsDeletion(void* ins);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformYM2610Ext();
 };
+
+#endif

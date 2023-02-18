@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,8 +50,10 @@ void FurnaceGUI::startSelection(int xCoarse, int xFine, int y, bool fullRow) {
       selecting=true;
       selectingFull=false;
       dragSourceX=xCoarse;
+      dragSourceXFine=xFine;
       dragSourceY=y;
       dragDestinationX=xCoarse;
+      dragDestinationXFine=xFine;
       dragDestinationY=y;
       dragStart=selStart;
       dragEnd=selEnd;
@@ -86,6 +88,7 @@ void FurnaceGUI::updateSelection(int xCoarse, int xFine, int y, bool fullRow) {
   if (!selecting) return;
   if (dragging) {
     dragDestinationX=xCoarse;
+    if (dragStart.xFine>=3 && dragStart.xCoarse==dragEnd.xCoarse) dragDestinationXFine=(dragSourceXFine&1)?((xFine-1)|1):((xFine+1)&(~1));
     dragDestinationY=y;
     cursorDrag.xCoarse=xCoarse;
     cursorDrag.xFine=xFine;
@@ -104,6 +107,15 @@ void FurnaceGUI::updateSelection(int xCoarse, int xFine, int y, bool fullRow) {
       dragDestinationX=lastChannel-(dragEnd.xCoarse-dragSourceX)-1;
     }
 
+    if (dragStart.xFine>=3 && dragStart.xCoarse==dragEnd.xCoarse) {
+      if (dragEnd.xFine+(dragDestinationXFine-dragSourceXFine)>(2+e->curPat[dragDestinationX].effectCols*2)) {
+        dragDestinationXFine=(2+e->curPat[dragDestinationX].effectCols*2)-dragEnd.xFine+dragSourceXFine;
+      }
+      if (dragStart.xFine+(dragDestinationXFine-dragSourceXFine)<3) {
+        dragDestinationXFine=3-dragStart.xFine+dragSourceXFine;
+      } 
+    }
+
     if (dragStart.y+(dragDestinationY-dragSourceY)<0) {
       dragDestinationY=dragSourceY-dragStart.y;
     }
@@ -113,10 +125,10 @@ void FurnaceGUI::updateSelection(int xCoarse, int xFine, int y, bool fullRow) {
     }
 
     selStart.xCoarse=dragStart.xCoarse+(dragDestinationX-dragSourceX);
-    selStart.xFine=dragStart.xFine;
+    selStart.xFine=dragStart.xFine+(dragDestinationXFine-dragSourceXFine);
     selStart.y=dragStart.y+(dragDestinationY-dragSourceY);
     selEnd.xCoarse=dragEnd.xCoarse+(dragDestinationX-dragSourceX);
-    selEnd.xFine=dragEnd.xFine;
+    selEnd.xFine=dragEnd.xFine+(dragDestinationXFine-dragSourceXFine);
     selEnd.y=dragEnd.y+(dragDestinationY-dragSourceY);
   } else {
     if (selectingFull) {
@@ -156,7 +168,7 @@ void FurnaceGUI::finishSelection() {
   selectingFull=false;
 
   if (dragging) {
-    if (dragSourceX==dragDestinationX && dragSourceY==dragDestinationY) {
+    if (dragSourceX==dragDestinationX && dragSourceY==dragDestinationY && dragSourceXFine==dragDestinationXFine) {
       cursor=cursorDrag;
       selStart=cursorDrag;
       selEnd=cursorDrag;

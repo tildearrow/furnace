@@ -45,6 +45,16 @@ no plans have been made for TX81Z MIDI passthrough, because:
 - `1Bxx`: set attack of operator 2.
 - `1Cxx`: set attack of operator 3.
 - `1Dxx`: set attack of operator 4.
+- `1Exx`: set LFO AM depth.
+- `1Fxx`: set LFO PM depth.
+- `24xx`: set LFO 2 speed.
+- `25xx`: set LFO 2 waveform. `xx` may be one of the following:
+  - `00`: saw
+  - `01`: square
+  - `02`: triangle
+  - `03`: noise
+- `26xx`: set LFO 2 AM depth.
+- `27xx`: set LFO 2 PM depth.
 - `28xy`: set reverb of operator.
   - `x` is the operator (1-4). a value of 0 means "all operators".
   - `y` is the value.
