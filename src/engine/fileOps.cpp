@@ -1440,6 +1440,7 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
       }
       break;
     case DIV_SYSTEM_SFX_BEEPER:
+    case DIV_SYSTEM_SFX_BEEPER_QT:
       newFlags.set("clockSel",(int)(oldFlags&1));
       break;
     case DIV_SYSTEM_SCC:

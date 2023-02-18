@@ -1778,6 +1778,19 @@ void DivEngine::registerSystems() {
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA}
   );
 
+  sysDefs[DIV_SYSTEM_SFX_BEEPER_QT]=new DivSysDef(
+    "ZX Spectrum Beeper (QuadTone Engine)", NULL, 0xc8, 0, 5, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Another ZX Spectrum beeper system with full PWM pulses and 3-level volume per channel. It also has a pitchable overlay sample channel.",
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "PCM"},
+    {"CH1", "CH2", "CH3", "CH4", "PCM"},
+    {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM},
+    {DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_AMIGA},
+    {},
+    {
+      {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set pulse width"}}
+    }
+  );
+
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
     "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false, 0,
     "this is a system designed for testing purposes.",
