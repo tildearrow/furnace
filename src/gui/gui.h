@@ -324,6 +324,7 @@ enum FurnaceGUIWindows {
   GUI_WINDOW_FIND,
   GUI_WINDOW_CLOCK,
   GUI_WINDOW_GROOVES,
+  GUI_WINDOW_INTRO_MON,
   GUI_WINDOW_SPOILER
 };
 
@@ -1524,7 +1525,7 @@ class FurnaceGUI {
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
-  bool groovesOpen;
+  bool groovesOpen, introMonOpen;
 
   bool basicMode, shortIntro;
 
@@ -1839,7 +1840,8 @@ class FurnaceGUI {
   double introSkip;
   int mustClear;
   float initialScreenWipe;
-  bool introSkipDo;
+  bool introSkipDo, teWarn;
+  ImVec2 introMin, introMax;
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
@@ -1921,7 +1923,7 @@ class FurnaceGUI {
   void drawSysManager();
   void drawRegView();
   void drawAbout();
-  void drawIntro();
+  void drawIntro(double introTime, bool monitor=false);
   void drawSettings();
   void drawDebug();
   void drawNewSong();

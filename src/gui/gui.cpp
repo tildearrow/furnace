@@ -3774,6 +3774,7 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("song information",BIND_FOR(GUI_ACTION_WINDOW_SONG_INFO),songInfoOpen)) songInfoOpen=!songInfoOpen;
         if (ImGui::MenuItem("subsongs",BIND_FOR(GUI_ACTION_WINDOW_SUBSONGS),subSongsOpen)) subSongsOpen=!subSongsOpen;
         if (ImGui::MenuItem("speed",BIND_FOR(GUI_ACTION_WINDOW_SPEED),speedOpen)) speedOpen=!speedOpen;
+        if (ImGui::MenuItem("---> IntroMon X <---",NULL,introMonOpen)) introMonOpen=!introMonOpen;
         if (settings.unifiedDataView) {
           if (ImGui::MenuItem("assets",BIND_FOR(GUI_ACTION_WINDOW_INS_LIST),insListOpen)) insListOpen=!insListOpen;
         } else {
@@ -3981,6 +3982,11 @@ bool FurnaceGUI::loop() {
       if (!basicMode) drawGrooves();
       drawSongInfo();
       drawOrders();
+      if (introMonOpen) {
+        int totalTicks=e->getTotalTicks();
+        int totalSeconds=e->getTotalSeconds();
+        drawIntro(totalSeconds+((double)totalTicks/1000000.0),true);
+      }
       drawSampleList();
       drawSampleEdit();
       drawWaveList();
@@ -5195,7 +5201,7 @@ bool FurnaceGUI::loop() {
       if (settings.alwaysPlayIntro==1) {
         shortIntro=true;
       }
-      drawIntro();
+      drawIntro(introPos);
     } else {
       introPos=10.0;
     }
@@ -5251,6 +5257,10 @@ bool FurnaceGUI::loop() {
     if (mustClear) {
       SDL_RenderClear(sdlRend);
       mustClear--;
+      if (mustClear==0 && !teWarn) {
+        showWarning("welcome to Furnace Tournament Edition!\n\nthis version of Furnace is specifically designed for the\nIntro Tune Contest of February 2023.\n\ngo to window > IntroMon X to enable something that will be\nuseful during the making of your intro tune!\nsee the #intro-tune-contest channel in the Furnace Discord for more info.",GUI_WARN_GENERIC);
+        teWarn=true;
+      }
     } else {
       if (initialScreenWipe>0.0f && !settings.disableFadeIn) {
         WAKE_UP;
@@ -5347,6 +5357,7 @@ bool FurnaceGUI::init() {
   clockOpen=e->getConfBool("clockOpen",false);
   speedOpen=e->getConfBool("speedOpen",true);
   groovesOpen=e->getConfBool("groovesOpen",false);
+  introMonOpen=e->getConfBool("introMonOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",false);
@@ -5756,6 +5767,7 @@ void FurnaceGUI::commitState() {
   e->setConf("clockOpen",clockOpen);
   e->setConf("speedOpen",speedOpen);
   e->setConf("groovesOpen",groovesOpen);
+  e->setConf("introMonOpen",introMonOpen);
   e->setConf("regViewOpen",regViewOpen);
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
@@ -6008,6 +6020,7 @@ FurnaceGUI::FurnaceGUI():
   clockOpen(false),
   speedOpen(true),
   groovesOpen(false),
+  introMonOpen(false),
   basicMode(true),
   clockShowReal(true),
   clockShowRow(true),
@@ -6257,7 +6270,8 @@ FurnaceGUI::FurnaceGUI():
   introSkip(0.0),
   mustClear(2),
   initialScreenWipe(1.0f),
-  introSkipDo(false) {
+  introSkipDo(false),
+  teWarn(false) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
