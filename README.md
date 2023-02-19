@@ -214,6 +214,7 @@ Available options:
 | `WARNINGS_ARE_ERRORS` | `OFF` (but consider enabling this & reporting any errors that arise from it!) | Whether warnings in furnace's C++ code should be treated as errors |
 | `WITH_DEMOS` | `ON` | Install demo songs on `make install` |
 | `WITH_INSTRUMENTS` | `ON` | Install demo instruments on `make install` |
+| `WITH_WAVETABLES` | `ON` | Install wavetables on `make install` |
 
 ## console usage
 

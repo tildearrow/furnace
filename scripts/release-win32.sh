@@ -30,8 +30,9 @@ cp ../../README.md README.txt || exit 1
 cp -r ../../papers papers || exit 1
 cp -r ../../demos demos || exit 1
 cp -r ../../instruments instruments || exit 1
+cp -r ../../wavetables wavetables || exit 1
 
-zip -r furnace.zip LICENSE.txt furnace.exe README.txt papers demos instruments
+zip -r furnace.zip LICENSE.txt furnace.exe README.txt papers demos instruments wavetables
 
 furName=$(git describe --tags | sed "s/v0/0/")
 
