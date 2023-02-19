@@ -112,10 +112,10 @@ void FurnaceGUI::drawIntro() {
 
           // part 1 - talogo
           if (introPos<2.3) {
-            drawImage(dl,GUI_IMAGE_TALOGO,ImVec2(0.5,0.5),ImVec2(0.7,0.7),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,MAX(0.01,1.0-pow(MAX(0.0,1.0-introPos*2.0),3.0))));
+            drawImage(dl,GUI_IMAGE_TALOGO,ImVec2(0.5,0.5),ImVec2(0.67,0.67),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,MAX(0.01,1.0-pow(MAX(0.0,1.0-introPos*2.0),3.0))));
 
             for (int i=0; i<16; i++) {
-              double chipCenter=0.25+pow(MAX(0.0,1.5-introPos*0.8-((double)i/36.0)),2.0)+pow(sin(-introPos*2.2-(double)i*0.44),24)*0.05;
+              double chipCenter=0.22+pow(MAX(0.0,1.5-introPos*0.8-((double)i/36.0)),2.0)+pow(sin(-introPos*2.2-(double)i*0.44),24)*0.05;
               ImVec2 chipPos=ImVec2(
                 0.5+chipCenter*cos(2.0*M_PI*(double)i/16.0-pow(introPos,2.2)),
                 0.5+chipCenter*sin(2.0*M_PI*(double)i/16.0-pow(introPos,2.2))
@@ -239,7 +239,8 @@ void FurnaceGUI::drawIntro() {
 
     if (mustClear<=0) {
       introPos+=ImGui::GetIO().DeltaTime;
-      if (introPos>=9.0) {
+      if (introPos>=(shortIntro?1.0:9.0)) {
+        introPos=10.0;
         tutorial.introPlayed=true;
         commitTutorial();
       }

@@ -1200,6 +1200,7 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
   }
 
 void FurnaceGUI::keyDown(SDL_Event& ev) {
+  if (introPos<9.0 && !shortIntro) return;
   if (ImGuiFileDialog::Instance()->IsOpened()) return;
   if (aboutOpen) return;
 
@@ -2716,6 +2717,7 @@ int _processEvent(void* instance, SDL_Event* event) {
 }
 
 int FurnaceGUI::processEvent(SDL_Event* ev) {
+  if (introPos<9.0 && !shortIntro) return 1;
 #ifdef IS_MOBILE
   if (ev->type==SDL_APP_TERMINATING) {
     // TODO: save last song state here
@@ -2928,7 +2930,7 @@ void FurnaceGUI::pointDown(int x, int y, int button) {
     bindSetTarget=0;
     bindSetPrevValue=0;
   }
-  if (introPos<9.0) {
+  if (introPos<9.0 && !shortIntro) {
     introSkipDo=true;
   }
 }
@@ -2948,7 +2950,7 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   macroDragLastY=-1;
   macroLoopDragActive=false;
   waveDragActive=false;
-  if (introPos<9.0 && introSkip<0.5) {
+  if (introPos<9.0 && introSkip<0.5 && !shortIntro) {
     introSkipDo=false;
   }
   if (sampleDragActive) {
