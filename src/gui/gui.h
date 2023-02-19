@@ -1841,7 +1841,7 @@ class FurnaceGUI {
   double monitorPos;
   int mustClear;
   float initialScreenWipe;
-  bool introSkipDo, teWarn;
+  bool introSkipDo;
   ImVec2 introMin, introMax;
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);

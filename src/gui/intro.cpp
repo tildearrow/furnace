@@ -265,7 +265,6 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
             introSkip+=ImGui::GetIO().DeltaTime;
             if (introSkip>=0.5) {
               introPos=0.1;
-              if (e->isPlaying()) stop();
               if (introSkip>=0.75) introPos=9.1;
             }
           } else {
@@ -287,17 +286,10 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
 
     if (mustClear<=0 && !monitor) {
       introPos+=ImGui::GetIO().DeltaTime;
-      if (e->isPlaying() && introPos>=8.0) {
-        stop();
-      }
       if (introPos>=(shortIntro?1.0:9.0)) {
         introPos=10.0;
         tutorial.introPlayed=true;
         commitTutorial();
-        if (!teWarn) {
-          showWarning("welcome to Furnace Tournament Edition!\n\nthis version of Furnace is specifically designed for the\nIntro Tune Contest of February 2023.\n\ngo to window > IntroMon X to enable something that will be\nuseful during the making of your intro tune!\nsee the #intro-tune-contest channel in the Furnace Discord for more info.",GUI_WARN_GENERIC);
-          teWarn=true;
-        }
       }
     }
   }

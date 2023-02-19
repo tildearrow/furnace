@@ -3774,7 +3774,6 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("song information",BIND_FOR(GUI_ACTION_WINDOW_SONG_INFO),songInfoOpen)) songInfoOpen=!songInfoOpen;
         if (ImGui::MenuItem("subsongs",BIND_FOR(GUI_ACTION_WINDOW_SUBSONGS),subSongsOpen)) subSongsOpen=!subSongsOpen;
         if (ImGui::MenuItem("speed",BIND_FOR(GUI_ACTION_WINDOW_SPEED),speedOpen)) speedOpen=!speedOpen;
-        if (ImGui::MenuItem("---> IntroMon X <---",NULL,introMonOpen)) introMonOpen=!introMonOpen;
         if (settings.unifiedDataView) {
           if (ImGui::MenuItem("assets",BIND_FOR(GUI_ACTION_WINDOW_INS_LIST),insListOpen)) insListOpen=!insListOpen;
         } else {
@@ -5263,10 +5262,6 @@ bool FurnaceGUI::loop() {
     if (mustClear) {
       SDL_RenderClear(sdlRend);
       mustClear--;
-      if (mustClear==0 && !teWarn) {
-        showWarning("welcome to Furnace Tournament Edition!\n\nthis version of Furnace is specifically designed for the\nIntro Tune Contest of February 2023.\n\ngo to window > IntroMon X to enable something that will be\nuseful during the making of your intro tune!\nsee the #intro-tune-contest channel in the Furnace Discord for more info.",GUI_WARN_GENERIC);
-        teWarn=true;
-      }
     } else {
       if (initialScreenWipe>0.0f && !settings.disableFadeIn) {
         WAKE_UP;
@@ -6277,8 +6272,7 @@ FurnaceGUI::FurnaceGUI():
   monitorPos(0.0),
   mustClear(2),
   initialScreenWipe(1.0f),
-  introSkipDo(false),
-  teWarn(false) {
+  introSkipDo(false) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
