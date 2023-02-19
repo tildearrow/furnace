@@ -1137,7 +1137,7 @@ class FurnaceGUI {
   String workingDirVGMExport, workingDirZSMExport, workingDirROMExport, workingDirFont, workingDirColors, workingDirKeybinds;
   String workingDirLayout, workingDirROM, workingDirTest;
   String mmlString[32];
-  String mmlStringW, mmlStringSNES, grooveString, grooveListString;
+  String mmlStringW, mmlStringSNES, grooveString, grooveListString, mmlStringModTable;
 
   std::vector<DivSystem> sysSearchResults;
   std::vector<FurnaceGUISysDef> newSongSearchResults;
@@ -1150,7 +1150,7 @@ class FurnaceGUI {
   bool portrait, injectBackUp, mobileMenuOpen;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
-  bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex;
+  bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex;
   bool mobileEdit;
   bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;

@@ -5875,6 +5875,7 @@ FurnaceGUI::FurnaceGUI():
   pendingInsSingle(false),
   displayPendingRawSample(false),
   snesFilterHex(false),
+  modTableHex(false),
   mobileEdit(false),
   vgmExportVersion(0x171),
   vgmExportTrailingTicks(-1),

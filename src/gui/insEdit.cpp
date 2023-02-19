@@ -4441,6 +4441,7 @@ void FurnaceGUI::drawInsEdit() {
         }
         if (ins->type==DIV_INS_FDS) if (ImGui::BeginTabItem("FDS")) {
           float modTable[32];
+          int modTableInt[256];
           ImGui::Checkbox("Compatibility mode",&ins->fds.initModTableWithFirstWave);
           if (ImGui::IsItemHovered()) {
             ImGui::SetTooltip("only use for compatibility with .dmf modules!\n- initializes modulation table with first wavetable\n- does not alter modulation parameters on instrument change");
@@ -4456,6 +4457,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::Text("Modulation table");
           for (int i=0; i<32; i++) {
             modTable[i]=ins->fds.modTable[i];
+            modTableInt[i]=ins->fds.modTable[i];
           }
           ImVec2 modTableSize=ImVec2(ImGui::GetContentRegionAvail().x,96.0f*dpiScale);
           PlotCustom("ModTable",modTable,32,0,NULL,-4,3,modTableSize,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,NULL,true);
@@ -4477,15 +4479,37 @@ void FurnaceGUI::drawInsEdit() {
             processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
             ImGui::InhibitInertialScroll();
           }
+
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); // wavetable text input size found here
+          if (ImGui::InputText("##MMLModTable",&mmlStringModTable)) {
+            int discardIt=0;
+            memset(modTableInt,0,256*sizeof(int));
+            decodeMMLStrW(mmlStringModTable,modTableInt,discardIt,-4,3,false);
+            for (int i=0; i<32; i++) {
+              if (i>=discardIt) {
+                modTableInt[i]=0;
+              } else {
+                if (modTableInt[i]<-4) modTableInt[i]=-4;
+                if (modTableInt[i]>3) modTableInt[i]=3;
+              }
+              ins->fds.modTable[i]=modTableInt[i];
+            }
+            MARK_MODIFIED;
+          }
+          if (!ImGui::IsItemActive()) {
+            encodeMMLStr(mmlStringModTable,modTableInt,32,-1,-1,false);
+          }
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_VBOY) if (ImGui::BeginTabItem("Virtual Boy")) {
           float modTable[32];
+          int modTableInt[256];
           P(ImGui::Checkbox("Set modulation table (channel 5 only)",&ins->fds.initModTableWithFirstWave));
 
           ImGui::BeginDisabled(!ins->fds.initModTableWithFirstWave);
           for (int i=0; i<32; i++) {
             modTable[i]=ins->fds.modTable[i];
+            modTableInt[i]=modTableHex?((unsigned char)ins->fds.modTable[i]):ins->fds.modTable[i];
           }
           ImVec2 modTableSize=ImVec2(ImGui::GetContentRegionAvail().x,256.0f*dpiScale);
           PlotCustom("ModTable",modTable,32,0,NULL,-128,127,modTableSize,sizeof(float),ImVec4(1.0f,1.0f,1.0f,1.0f),0,NULL,NULL,true);
@@ -4507,6 +4531,30 @@ void FurnaceGUI::drawInsEdit() {
             processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
             ImGui::InhibitInertialScroll();
           }
+          
+          if (ImGui::Button(modTableHex?"Hex##MTHex":"Dec##MTHex")) {
+            modTableHex=!modTableHex;
+          }
+          ImGui::SameLine();
+          ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x); // wavetable text input size found here
+          if (ImGui::InputText("##MMLModTable",&mmlStringModTable)) {
+            int discardIt=0;
+            memset(modTableInt,0,256*sizeof(int));
+            decodeMMLStrW(mmlStringModTable,modTableInt,discardIt,modTableHex?0:-128,modTableHex?255:127,modTableHex);
+            for (int i=0; i<32; i++) {
+              if (i>=discardIt) {
+                modTableInt[i]=0;
+              } else {
+                if (modTableInt[i]>=128) modTableInt[i]-=256;
+              }
+              ins->fds.modTable[i]=modTableInt[i];
+            }
+            MARK_MODIFIED;
+          }
+          if (!ImGui::IsItemActive()) {
+            encodeMMLStr(mmlStringModTable,modTableInt,32,-1,-1,modTableHex);
+          }
+          ImGui::SameLine();
 
           ImGui::EndDisabled();
           ImGui::EndTabItem();
