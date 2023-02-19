@@ -1340,6 +1340,7 @@ class FurnaceGUI {
     float doubleClickTime;
     int oneDigitEffects;
     int disableFadeIn;
+    int alwaysPlayIntro;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1478,6 +1479,7 @@ class FurnaceGUI {
       doubleClickTime(0.3f),
       oneDigitEffects(0),
       disableFadeIn(0),
+      alwaysPlayIntro(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1524,7 +1526,7 @@ class FurnaceGUI {
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
   bool groovesOpen;
 
-  bool basicMode;
+  bool basicMode, shortIntro;
 
   bool clockShowReal, clockShowRow, clockShowBeat, clockShowMetro, clockShowTime;
   float clockMetroTick[16];
@@ -1834,8 +1836,10 @@ class FurnaceGUI {
 
   // intro
   double introPos;
+  double introSkip;
   int mustClear;
   float initialScreenWipe;
+  bool introSkipDo;
 
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
@@ -1946,6 +1950,8 @@ class FurnaceGUI {
 
   void syncSettings();
   void commitSettings();
+  void syncTutorial();
+  void commitTutorial();
   void commitState();
   void processDrags(int dragX, int dragY);
   void processPoint(SDL_Event& ev);

@@ -542,6 +542,7 @@ void FurnaceGUI::setFileName(String name) {
 #endif
   updateWindowTitle();
   pushRecentFile(curFileName);
+  if (settings.alwaysPlayIntro==2) shortIntro=true;
 }
 
 void FurnaceGUI::updateWindowTitle() {
@@ -2927,6 +2928,9 @@ void FurnaceGUI::pointDown(int x, int y, int button) {
     bindSetTarget=0;
     bindSetPrevValue=0;
   }
+  if (introPos<9.0) {
+    introSkipDo=true;
+  }
 }
 
 void FurnaceGUI::pointUp(int x, int y, int button) {
@@ -2944,6 +2948,9 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   macroDragLastY=-1;
   macroLoopDragActive=false;
   waveDragActive=false;
+  if (introPos<9.0 && introSkip<0.5) {
+    introSkipDo=false;
+  }
   if (sampleDragActive) {
     logD("stopping sample drag");
     if (sampleDragMode) {
@@ -5181,9 +5188,14 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    if (!tutorial.introPlayed) {
+    if (!tutorial.introPlayed || settings.alwaysPlayIntro!=0) {
       initialScreenWipe=0;
+      if (settings.alwaysPlayIntro==1) {
+        shortIntro=true;
+      }
       drawIntro();
+    } else {
+      introPos=10.0;
     }
 
     layoutTimeEnd=SDL_GetPerformanceCounter();
@@ -5243,7 +5255,7 @@ bool FurnaceGUI::loop() {
         initialScreenWipe-=ImGui::GetIO().DeltaTime*5.0f;
         if (initialScreenWipe>0.0f) {
           SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_BLEND);
-          SDL_SetRenderDrawColor(sdlRend,0,0,0,255*initialScreenWipe);
+          SDL_SetRenderDrawColor(sdlRend,0,0,0,255*pow(initialScreenWipe,2.0f));
           SDL_RenderFillRect(sdlRend,NULL);
         }
       }
@@ -5399,6 +5411,7 @@ bool FurnaceGUI::init() {
   chanOscGrad.render();
 
   syncSettings();
+  syncTutorial();
 
   if (!settings.persistFadeOut) {
     exportLoops=settings.exportLoops;
@@ -6239,8 +6252,10 @@ FurnaceGUI::FurnaceGUI():
   waveGenAmplify(1.0f),
   waveGenFM(false),
   introPos(0.0),
+  introSkip(0.0),
   mustClear(2),
-  initialScreenWipe(1.0f) {
+  initialScreenWipe(1.0f),
+  introSkipDo(false) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;

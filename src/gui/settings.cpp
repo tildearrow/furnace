@@ -492,6 +492,22 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::Separator();
 
+          ImGui::Text("Play intro on start-up:");
+          if (ImGui::RadioButton("No##pis0",settings.alwaysPlayIntro==0)) {
+            settings.alwaysPlayIntro=0;
+          }
+          if (ImGui::RadioButton("Short##pis1",settings.alwaysPlayIntro==1)) {
+            settings.alwaysPlayIntro=1;
+          }
+          if (ImGui::RadioButton("Full (short when loading song)##pis2",settings.alwaysPlayIntro==2)) {
+            settings.alwaysPlayIntro=2;
+          }
+          if (ImGui::RadioButton("Full (always)##pis3",settings.alwaysPlayIntro==3)) {
+            settings.alwaysPlayIntro=3;
+          }
+
+          ImGui::Separator();
+
           if (CWSliderFloat("Double-click time (seconds)",&settings.doubleClickTime,0.02,1.0,"%.2f")) {
             if (settings.doubleClickTime<0.02) settings.doubleClickTime=0.02;
             if (settings.doubleClickTime>1.0) settings.doubleClickTime=1.0;
@@ -622,7 +638,7 @@ void FurnaceGUI::drawSettings() {
             settings.saveWindowPos=saveWindowPosB;
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("remembers the window's last position on startup.");
+            ImGui::SetTooltip("remembers the window's last position on start-up.");
           }
 #endif
 
@@ -1681,7 +1697,7 @@ void FurnaceGUI::drawSettings() {
           }
 
           bool disableFadeInB=settings.disableFadeIn;
-          if (ImGui::Checkbox("Disable fade-in during startup",&disableFadeInB)) {
+          if (ImGui::Checkbox("Disable fade-in during start-up",&disableFadeInB)) {
             settings.disableFadeIn=disableFadeInB;
           }
 
@@ -2592,6 +2608,7 @@ void FurnaceGUI::syncSettings() {
   settings.doubleClickTime=e->getConfFloat("doubleClickTime",0.3f);
   settings.oneDigitEffects=e->getConfInt("oneDigitEffects",0);
   settings.disableFadeIn=e->getConfInt("disableFadeIn",0);
+  settings.alwaysPlayIntro=e->getConfInt("alwaysPlayIntro",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2705,6 +2722,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.doubleClickTime,0.02,1.0);
   clampSetting(settings.oneDigitEffects,0,1);
   clampSetting(settings.disableFadeIn,0,1);
+  clampSetting(settings.alwaysPlayIntro,0,3);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -2912,6 +2930,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("doubleClickTime",settings.doubleClickTime);
   e->setConf("oneDigitEffects",settings.oneDigitEffects);
   e->setConf("disableFadeIn",settings.disableFadeIn);
+  e->setConf("alwaysPlayIntro",settings.alwaysPlayIntro);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

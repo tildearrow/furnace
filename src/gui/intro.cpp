@@ -71,7 +71,7 @@ void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2&
 }
 
 void FurnaceGUI::drawIntro() {
-  if (introPos<9.0) {
+  if (introPos<(shortIntro?1.0:9.0)) {
     WAKE_UP;
     nextWindow=GUI_WINDOW_NOTHING;
     ImGui::SetNextWindowPos(ImVec2(0,0));
@@ -82,131 +82,167 @@ void FurnaceGUI::drawIntro() {
       ImVec2 top=ImVec2(0.0f,0.0f);
       ImVec2 bottom=ImVec2(canvasW,canvasH);
 
-      // preload textures
-      getTexture(GUI_IMAGE_TALOGO);
-      getTexture(GUI_IMAGE_TACHIP);
-      getTexture(GUI_IMAGE_LOGO);
-      getTexture(GUI_IMAGE_INTROBG,SDL_BLENDMODE_ADD);
+      if (shortIntro) {
+        // background
+        float bgAlpha=CLAMP((1.0-introPos)*4.0,0.0,1.0);
+        bgAlpha=3.0*pow(bgAlpha,2.0)-2.0*pow(bgAlpha,3.0);
+        ImU32 bgColor=ImGui::GetColorU32(ImVec4(0.0f,0.0f,0.0f,bgAlpha));
 
-      // background
-      float bgAlpha=CLAMP(9.0-introPos,0.0,1.0);
-      bgAlpha=3.0*pow(bgAlpha,2.0)-2.0*pow(bgAlpha,3.0);
-      ImU32 bgColor=ImGui::GetColorU32(ImVec4(0.0f,0.0f,0.0f,bgAlpha));
+        dl->AddRectFilled(top,bottom,bgColor);
 
-      dl->AddRectFilled(top,bottom,bgColor);
+        drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.125,0.25-(introPos)*0.05),ImVec2(18.0,18.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.4,0.8,1.0,0.4*CLAMP(introPos*2.0,0.0,1.0)*bgAlpha));
+        drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.4,0.25-(introPos)*0.08),ImVec2(18.0,18.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.1,0.2,1.0,0.2*CLAMP(introPos*3.0,0.0,1.0)*bgAlpha));
+        drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.7,0.25-(introPos)*0.03),ImVec2(20.0,20.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.7,1.0,0.7,0.1*CLAMP(introPos*3.0,0.0,1.0)*bgAlpha));
 
-      // part 1 - talogo
-      if (introPos<2.3) {
-        drawImage(dl,GUI_IMAGE_TALOGO,ImVec2(0.5,0.5),ImVec2(0.7,0.7),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,MAX(0.01,1.0-pow(MAX(0.0,1.0-introPos*2.0),3.0))));
+        drawImage(dl,GUI_IMAGE_LOGO,ImVec2(0.5,0.5+pow(1.0-CLAMP(introPos*2.0,0.0,1.0),4.0)*0.125),ImVec2(0.67,0.67),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,CLAMP(introPos*3.0,0.0,1.0)*bgAlpha));
+      } else {
+        // preload textures
+        getTexture(GUI_IMAGE_TALOGO);
+        getTexture(GUI_IMAGE_TACHIP);
+        getTexture(GUI_IMAGE_LOGO);
+        getTexture(GUI_IMAGE_INTROBG,SDL_BLENDMODE_ADD);
 
-        for (int i=0; i<16; i++) {
-          double chipCenter=0.25+pow(MAX(0.0,1.5-introPos*0.8-((double)i/36.0)),2.0)+pow(sin(-introPos*2.2-(double)i*0.44),24)*0.05;
-          ImVec2 chipPos=ImVec2(
-            0.5+chipCenter*cos(2.0*M_PI*(double)i/16.0-pow(introPos,2.2)),
-            0.5+chipCenter*sin(2.0*M_PI*(double)i/16.0-pow(introPos,2.2))
+        if (introSkip<0.5) {
+          // background
+          float bgAlpha=CLAMP(9.0-introPos,0.0,1.0);
+          bgAlpha=3.0*pow(bgAlpha,2.0)-2.0*pow(bgAlpha,3.0);
+          ImU32 bgColor=ImGui::GetColorU32(ImVec4(0.0f,0.0f,0.0f,bgAlpha));
+
+          dl->AddRectFilled(top,bottom,bgColor);
+
+          // part 1 - talogo
+          if (introPos<2.3) {
+            drawImage(dl,GUI_IMAGE_TALOGO,ImVec2(0.5,0.5),ImVec2(0.7,0.7),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,MAX(0.01,1.0-pow(MAX(0.0,1.0-introPos*2.0),3.0))));
+
+            for (int i=0; i<16; i++) {
+              double chipCenter=0.25+pow(MAX(0.0,1.5-introPos*0.8-((double)i/36.0)),2.0)+pow(sin(-introPos*2.2-(double)i*0.44),24)*0.05;
+              ImVec2 chipPos=ImVec2(
+                0.5+chipCenter*cos(2.0*M_PI*(double)i/16.0-pow(introPos,2.2)),
+                0.5+chipCenter*sin(2.0*M_PI*(double)i/16.0-pow(introPos,2.2))
+              );
+              drawImage(dl,GUI_IMAGE_TACHIP,chipPos,ImVec2(0.25,0.25),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,0.5),ImVec4(1.0,1.0,1.0,1.0));
+            }
+          }
+
+          // background after part 1
+          if (introPos>2.3) {
+            float s1a=CLAMP((introPos-3.2)*1.3,0.0f,1.0f);
+            float s2a=CLAMP((introPos-4.5)*1.0,0.0f,1.0f);
+            float addition=(3*pow(s1a,2)-2*pow(s1a,3)+(3*pow(s2a,2)-2*pow(s2a,3))*1.5)*3.5;
+            drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.125,0.25-(introPos+addition)*0.05),ImVec2(18.0,18.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.4,0.1+0.7*s1a,1.0*s1a,0.5*bgAlpha));
+            drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.4,0.25-(introPos+addition)*0.08),ImVec2(18.0,18.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.5-0.4*s1a,0.8-0.6*s1a,1.0*s1a,0.6*bgAlpha));
+            drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.7,0.25-(introPos+addition)*0.03),ImVec2(20.0,20.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.4+0.3*s1a,1.0,0.7,(0.5-0.4*s1a)*bgAlpha));
+          }
+
+          const double fallPatX[]={
+            0.0,
+            272.0,
+            470.0,
+            742.0,
+            1013.0
+          };
+
+          // part 2 - falling patterns
+          if (introPos>2.3 && introPos<4.5) {
+            for (int i=0; i<48; i++) {
+              ImVec2 uv0=ImVec2(
+                fallPatX[i&3],
+                (double)(i>>2)*36.0
+              );
+              ImVec2 uv1=ImVec2(
+                fallPatX[1+(i&3)]-2.0,
+                uv0.y+36.0
+              );
+              uv0.x/=1024.0;
+              uv0.y/=512.0;
+              uv1.x/=1024.0;
+              uv1.y/=512.0;
+
+              bool left=(i%6)>=3;
+              double t=(introPos-2.5)*(0.77+(cos(i+7)*0.05));
+              double alteration=pow(t,0.4)-(0.55*t)+0.55*pow(t,6.0);
+
+              drawImage(dl,GUI_IMAGE_PAT,ImVec2((left?0:1)+sin(cos(i*3.67))*0.35+((alteration+((introPos-2.3)*(0.08*(double)(1+(i&3)))))*(left?1.0:-1.0)),0.5+sin(i*6.74)*0.3-pow(CLAMP(introPos-3.0,0.0,1.0),4.0)*1.5),ImVec2(1.5,1.5),0.0f,uv0,uv1,ImVec4(1.0,1.0,1.0,1.0));
+            }
+          }
+
+          // transition
+          float transitionPos=CLAMP(introPos*4.0-8,-1.5,3.5);
+          dl->AddQuadFilled(
+            ImVec2(
+              (transitionPos-1.5)*canvasW,
+              0.0
+            ),
+            ImVec2(
+              (transitionPos)*canvasW,
+              0.0
+            ),
+            ImVec2(
+              (transitionPos-0.2)*canvasW,
+              canvasH
+            ),
+            ImVec2(
+              (transitionPos-1.7)*canvasW,
+              canvasH
+            ),
+            ImGui::GetColorU32(ImVec4(0.35,0.4,0.5,1.0))
           );
-          drawImage(dl,GUI_IMAGE_TACHIP,chipPos,ImVec2(0.25,0.25),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,0.5),ImVec4(1.0,1.0,1.0,1.0));
+
+          // part 3 - falling chips
+          if (introPos>3.0 && introPos<6.0) {
+            for (int i=0; i<40; i++) {
+              float blah=(introPos-4.25)*1.3;
+              ImVec2 chipPos=ImVec2(
+                0.5+sin(i)*0.4,
+                0.1-(1.1*pow(blah,2.0)-1.3*pow(blah,2.0)+pow(blah,5.0))+i*0.02+((introPos-3.75)*1.3*(fabs(sin(i*1.3))*0.28))
+              );
+              drawImage(dl,GUI_IMAGE_TACHIP,chipPos,ImVec2(0.33,0.33),0.5*M_PI,ImVec2(0.0,0.0),ImVec2(1.0,0.5),ImVec4(1.0,1.0,1.0,1.0));
+            }
+          }
+
+          // part 4 - logo end
+          if (introPos>5.0) {
+            drawImage(
+              dl,
+              GUI_IMAGE_WORDMARK,
+              ImVec2(0.36+0.3*(1.0-pow(1.0-CLAMP(introPos-6.0,0.0,1.0),6.0)),0.5+pow(1.0-CLAMP(introPos-5.0,0.0,1.0),4.0)),
+              ImVec2(1.0,1.0),
+              0.0f,
+              ImVec2(pow(1.0-CLAMP(introPos-6.0,0.0,1.0),8.0),0.0),
+              ImVec2(1.0,1.0),
+              ImVec4(1.0,1.0,1.0,bgAlpha)
+            );
+            drawImage(dl,GUI_IMAGE_LOGO,ImVec2(0.5-0.25*(1.0-pow(1.0-CLAMP(introPos-6.0,0.0,1.0),6.0)),0.5+pow(1.0-CLAMP(introPos-5.0,0.0,1.0),4.0)),ImVec2(0.67,0.67),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,bgAlpha));
+          }
         }
-      }
 
-      // background after part 1
-      if (introPos>2.3) {
-        float s1a=CLAMP((introPos-3.2)*1.3,0.0f,1.0f);
-        float s2a=CLAMP((introPos-4.5)*1.0,0.0f,1.0f);
-        float addition=(3*pow(s1a,2)-2*pow(s1a,3)+(3*pow(s2a,2)-2*pow(s2a,3))*1.5)*3.5;
-        drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.125,0.25-(introPos+addition)*0.05),ImVec2(18.0,18.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.4,0.1+0.7*s1a,1.0*s1a,0.5*bgAlpha));
-        drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.4,0.25-(introPos+addition)*0.08),ImVec2(18.0,18.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.5-0.4*s1a,0.8-0.6*s1a,1.0*s1a,0.6*bgAlpha));
-        drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.7,0.25-(introPos+addition)*0.03),ImVec2(20.0,20.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.4+0.3*s1a,1.0,0.7,(0.5-0.4*s1a)*bgAlpha));
-      }
-
-      const double fallPatX[]={
-        0.0,
-        272.0,
-        470.0,
-        742.0,
-        1013.0
-      };
-
-      // part 2 - falling patterns
-      if (introPos>2.3 && introPos<4.5) {
-        for (int i=0; i<48; i++) {
-          ImVec2 uv0=ImVec2(
-            fallPatX[i&3],
-            (double)(i>>2)*36.0
-          );
-          ImVec2 uv1=ImVec2(
-            fallPatX[1+(i&3)]-2.0,
-            uv0.y+36.0
-          );
-          uv0.x/=1024.0;
-          uv0.y/=512.0;
-          uv1.x/=1024.0;
-          uv1.y/=512.0;
-
-          bool left=(i%6)>=3;
-          double t=(introPos-2.5)*(0.77+(cos(i+7)*0.05));
-          double alteration=pow(t,0.4)-(0.55*t)+0.55*pow(t,6.0);
-
-          drawImage(dl,GUI_IMAGE_PAT,ImVec2((left?0:1)+sin(cos(i*3.67))*0.35+((alteration+((introPos-2.3)*(0.08*(double)(1+(i&3)))))*(left?1.0:-1.0)),0.5+sin(i*6.74)*0.3-pow(CLAMP(introPos-3.0,0.0,1.0),4.0)*1.5),ImVec2(1.5,1.5),0.0f,uv0,uv1,ImVec4(1.0,1.0,1.0,1.0));
+        // intro skip fade
+        if (introSkipDo) {
+          introSkip+=ImGui::GetIO().DeltaTime;
+          if (introSkip>=0.5) {
+            introPos=0.1;
+            if (introSkip>=0.75) introPos=9.1;
+          }
+        } else {
+          introSkip-=ImGui::GetIO().DeltaTime*4.0f;
+          if (introSkip<0.0) introSkip=0.0;
         }
+
+        dl->AddRectFilled(top,bottom,ImGui::GetColorU32(ImVec4(0.0,0.0,0.0,CLAMP(introSkip*2.0,0.0,1.0)-CLAMP((introSkip-0.5)*4,0.0,1.0))));
+        if (introSkip<0.5) dl->AddText(ImVec2(8.0*dpiScale,8.0*dpiScale),ImGui::GetColorU32(ImVec4(1.0,1.0,1.0,CLAMP(introSkip*8.0,0.0,1.0))),"hold to skip");
       }
 
-
-      // transition
-      float transitionPos=CLAMP(introPos*4.0-8,-1.5,3.5);
-      dl->AddQuadFilled(
-        ImVec2(
-          (transitionPos-1.5)*canvasW,
-          0.0
-        ),
-        ImVec2(
-          (transitionPos)*canvasW,
-          0.0
-        ),
-        ImVec2(
-          (transitionPos-0.2)*canvasW,
-          canvasH
-        ),
-        ImVec2(
-          (transitionPos-1.7)*canvasW,
-          canvasH
-        ),
-        ImGui::GetColorU32(ImVec4(0.35,0.4,0.5,1.0))
-      );
-
-      // part 3 - falling chips
-      if (introPos>3.0) {
-        for (int i=0; i<40; i++) {
-          float blah=(introPos-4.25)*1.3;
-          ImVec2 chipPos=ImVec2(
-            0.5+sin(i)*0.4,
-            0.1-(1.1*pow(blah,2.0)-1.3*pow(blah,2.0)+pow(blah,5.0))+i*0.02+((introPos-3.75)*1.3*(fabs(sin(i*1.3))*0.28))
-          );
-          drawImage(dl,GUI_IMAGE_TACHIP,chipPos,ImVec2(0.33,0.33),0.5*M_PI,ImVec2(0.0,0.0),ImVec2(1.0,0.5),ImVec4(1.0,1.0,1.0,1.0));
-        }
-      }
-
-      // part 4 - logo end
-      if (introPos>5.0) {
-        drawImage(
-          dl,
-          GUI_IMAGE_WORDMARK,
-          ImVec2(0.36+0.3*(1.0-pow(1.0-CLAMP(introPos-6.0,0.0,1.0),6.0)),0.5+pow(1.0-CLAMP(introPos-5.0,0.0,1.0),4.0)),
-          ImVec2(1.0,1.0),
-          0.0f,
-          ImVec2(pow(1.0-CLAMP(introPos-6.0,0.0,1.0),8.0),0.0),
-          ImVec2(1.0,1.0),
-          ImVec4(1.0,1.0,1.0,bgAlpha)
-        );
-        drawImage(dl,GUI_IMAGE_LOGO,ImVec2(0.5-0.25*(1.0-pow(1.0-CLAMP(introPos-6.0,0.0,1.0),6.0)),0.5+pow(1.0-CLAMP(introPos-5.0,0.0,1.0),4.0)),ImVec2(0.67,0.67),0.0f,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(1.0,1.0,1.0,bgAlpha));
-      }
-
-      dl->AddText(top,ImGui::GetColorU32(ImVec4(1.0f,1.0f,1.0f,bgAlpha)),"Furnace intro - work in progress");
+      // workaround to texture issue
+      dl->AddText(ImVec2(canvasW-1,canvasH-1),ImGui::ColorConvertFloat4ToU32(ImVec4(0.0,0.0,0.1,0.01)),"A");
     }
     ImGui::End();
 
     if (mustClear<=0) {
       introPos+=ImGui::GetIO().DeltaTime;
+      if (introPos>=9.0) {
+        tutorial.introPlayed=true;
+        commitTutorial();
+      }
     }
   }
 }
