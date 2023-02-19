@@ -3985,7 +3985,13 @@ bool FurnaceGUI::loop() {
       if (introMonOpen) {
         int totalTicks=e->getTotalTicks();
         int totalSeconds=e->getTotalSeconds();
-        drawIntro(totalSeconds+((double)totalTicks/1000000.0),true);
+        double newMonitorPos=totalSeconds+((double)totalTicks/1000000.0);
+
+        if (fabs(newMonitorPos-monitorPos)>0.08) monitorPos=newMonitorPos;
+
+        drawIntro(monitorPos,true);
+
+        if (e->isPlaying()) monitorPos+=ImGui::GetIO().DeltaTime;
       }
       drawSampleList();
       drawSampleEdit();
@@ -6268,6 +6274,7 @@ FurnaceGUI::FurnaceGUI():
   waveGenFM(false),
   introPos(0.0),
   introSkip(0.0),
+  monitorPos(0.0),
   mustClear(2),
   initialScreenWipe(1.0f),
   introSkipDo(false),

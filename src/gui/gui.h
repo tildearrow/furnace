@@ -1838,6 +1838,7 @@ class FurnaceGUI {
   // intro
   double introPos;
   double introSkip;
+  double monitorPos;
   int mustClear;
   float initialScreenWipe;
   bool introSkipDo, teWarn;
