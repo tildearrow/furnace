@@ -35,7 +35,8 @@ const unsigned char* imageData[GUI_IMAGE_MAX]={
   image_tachip_data,
   image_logo_data,
   image_wordmark_data,
-  image_introbg_data
+  image_introbg_data,
+  image_pat_data
 };
 
 const unsigned int imageLen[GUI_IMAGE_MAX]={
@@ -44,7 +45,8 @@ const unsigned int imageLen[GUI_IMAGE_MAX]={
   image_tachip_size,
   image_logo_size,
   image_wordmark_size,
-  image_introbg_size
+  image_introbg_size,
+  image_pat_size
 };
 
 SDL_Texture* FurnaceGUI::getTexture(FurnaceGUIImages image, SDL_BlendMode blendMode) {

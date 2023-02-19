@@ -36,4 +36,7 @@ extern const unsigned int image_wordmark_size;
 
 extern const unsigned char image_introbg_data[];
 extern const unsigned int image_introbg_size;
+
+extern const unsigned char image_pat_data[];
+extern const unsigned int image_pat_size;
 #endif

@@ -119,6 +119,39 @@ void FurnaceGUI::drawIntro() {
         drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.7,0.25-(introPos+addition)*0.03),ImVec2(20.0,20.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.4+0.3*s1a,1.0,0.7,(0.5-0.4*s1a)*bgAlpha));
       }
 
+      const double fallPatX[]={
+        0.0,
+        272.0,
+        470.0,
+        742.0,
+        1013.0
+      };
+
+      // part 2 - falling patterns
+      if (introPos>2.3 && introPos<4.5) {
+        for (int i=0; i<48; i++) {
+          ImVec2 uv0=ImVec2(
+            fallPatX[i&3],
+            (double)(i>>2)*36.0
+          );
+          ImVec2 uv1=ImVec2(
+            fallPatX[1+(i&3)]-2.0,
+            uv0.y+36.0
+          );
+          uv0.x/=1024.0;
+          uv0.y/=512.0;
+          uv1.x/=1024.0;
+          uv1.y/=512.0;
+
+          bool left=(i%6)>=3;
+          double t=(introPos-2.5)*(0.77+(cos(i+7)*0.05));
+          double alteration=pow(t,0.4)-(0.55*t)+0.55*pow(t,6.0);
+
+          drawImage(dl,GUI_IMAGE_PAT,ImVec2((left?0:1)+sin(cos(i*3.67))*0.35+((alteration+((introPos-2.3)*(0.08*(double)(1+(i&3)))))*(left?1.0:-1.0)),0.5+sin(i*6.74)*0.3-pow(CLAMP(introPos-3.0,0.0,1.0),4.0)*1.5),ImVec2(1.5,1.5),0.0f,uv0,uv1,ImVec4(1.0,1.0,1.0,1.0));
+        }
+      }
+
+
       // transition
       float transitionPos=CLAMP(introPos*4.0-8,-1.5,3.5);
       dl->AddQuadFilled(
@@ -140,11 +173,6 @@ void FurnaceGUI::drawIntro() {
         ),
         ImGui::GetColorU32(ImVec4(0.35,0.4,0.5,1.0))
       );
-
-      // part 2 - falling patterns
-      if (introPos>2.3) {
-        
-      }
 
       // part 3 - falling chips
       if (introPos>3.0) {
