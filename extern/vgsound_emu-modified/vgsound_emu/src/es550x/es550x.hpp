@@ -14,6 +14,8 @@
 #include "../core/core.hpp"
 #include "../core/util/clock_pulse.hpp"
 
+#include <string.h>
+
 using namespace vgsound_emu;
 
 // ES5504/ES5505/ES5506 interface
@@ -39,7 +41,7 @@ class es550x_intf : public vgsound_emu_core
 
 		virtual void adc_w(u16 data) {}	 // ADC output
 
-		virtual s16 read_sample(u8 voice, u8 bank, u32 address) { return 0; }
+		virtual s16 read_sample(u8 bank, u32 address) { return 0; }
 };
 
 // Shared functions for ES5504/ES5505/ES5506
@@ -135,7 +137,7 @@ class es550x_shared_core : public vgsound_emu_core
 
 						inline bool cmpd() { return m_cmpd; }
 
-					protected:
+					public:
 						// Channel assign -
 						// 4 bit (16 channel or Bank) for ES5504
 						// 2 bit (4 stereo channels) for ES5505
@@ -158,6 +160,7 @@ class es550x_shared_core : public vgsound_emu_core
 							: vgsound_emu_core("es550x_voice_alu")
 							, m_integer(integer)
 							, m_fraction(fraction)
+              , m_fraction_m9(std::max<s8>(0, m_fraction - 9))
 							, m_total_bits(integer + fraction)
 							, m_accum_mask(
 								u32(std::min<u64>(~0, u64(u64(1) << u64(integer + fraction)) - 1)))
@@ -166,13 +169,15 @@ class es550x_shared_core : public vgsound_emu_core
 							, m_start(0)
 							, m_end(0)
 							, m_accum(0)
+              , m_last_accum(0)
+              , m_sample{0,0}
 						{
-							m_sample.fill(0);
 						}
 
 						// configurations
 						const u8 m_integer	   = 21;
 						const u8 m_fraction	   = 11;
+            const u8 m_fraction_m9 = 2;
 						const u8 m_total_bits  = 32;
 						const u32 m_accum_mask = 0xffffffff;
 						const bool m_transwave = true;
@@ -264,7 +269,7 @@ class es550x_shared_core : public vgsound_emu_core
 
 						inline s32 sample(u8 slot) { return m_sample[slot & 1]; }
 
-					private:
+					public:
 						class es550x_alu_cr_t : public vgsound_emu_core
 						{
 							public:
@@ -343,7 +348,7 @@ class es550x_shared_core : public vgsound_emu_core
 
 								inline u8 loop() { return (m_lpe << 0) | (m_ble << 1); }
 
-							private:
+							public:
 								u8 m_stop0 : 1;	 // Stop with ALU
 								u8 m_stop1 : 1;	 // Stop with processor
 								u8 m_lpe   : 1;	 // Loop enable
@@ -366,8 +371,9 @@ class es550x_shared_core : public vgsound_emu_core
 						// 20 integer, 9 fraction for ES5504/ES5505
 						// 21 integer, 11 fraction for ES5506
 						u32 m_accum = 0;
+            u32 m_last_accum = 0;
 						// Samples
-						std::array<s32, 2> m_sample;
+						s32 m_sample[2];
 				};
 
 				// Filter
@@ -380,10 +386,7 @@ class es550x_shared_core : public vgsound_emu_core
 							, m_k2(0)
 							, m_k1(0)
 						{
-							for (std::array<s32, 2> &elem : m_o)
-							{
-								std::fill(elem.begin(), elem.end(), 0);
-							}
+							memset(m_o,0,2*5*sizeof(s32));
 						}
 
 						void reset();
@@ -428,8 +431,6 @@ class es550x_shared_core : public vgsound_emu_core
 						inline s32 o4_1() { return m_o[4][0]; }
 
 					private:
-						void lp_exec(s32 coeff, s32 in, s32 out);
-						void hp_exec(s32 coeff, s32 in, s32 out);
 
 						// Registers
 						u8 m_lp = 0;  // Filter mode
@@ -441,7 +442,7 @@ class es550x_shared_core : public vgsound_emu_core
 						s32 m_k1 = 0;  // Filter coefficient 1
 
 						// Filter storage registers
-						std::array<std::array<s32, 2>, 5> m_o;
+						s32 m_o[5][2];
 				};
 
 			public:
@@ -455,7 +456,7 @@ class es550x_shared_core : public vgsound_emu_core
 
 				// internal state
 				virtual void reset();
-				virtual void fetch(u8 voice, u8 cycle) = 0;
+				virtual void fetch(u8 cycle) = 0;
 				virtual void tick(u8 voice)			   = 0;
 
 				void irq_update(es550x_intf &intf, es550x_irq_t &irqv)
@@ -515,16 +516,12 @@ class es550x_shared_core : public vgsound_emu_core
 					m_host_access = m_host_access_strobe;
 				}
 
-				// Getters
-				bool host_access() { return m_host_access; }
 
-				bool rw() { return m_rw; }
-
-			private:
-				u8 m_host_access		: 1;  // Host access trigger
-				u8 m_host_access_strobe : 1;  // Host access strobe
-				u8 m_rw					: 1;  // R/W state
-				u8 m_rw_strobe			: 1;  // R/W strobe
+			public:
+				u8 m_host_access		;  // Host access trigger
+				u8 m_host_access_strobe ;  // Host access strobe
+				u8 m_rw					;  // R/W state
+				u8 m_rw_strobe			;  // R/W strobe
 		};
 
 	public:

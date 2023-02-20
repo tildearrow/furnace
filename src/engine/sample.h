@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -95,8 +95,7 @@ struct DivSampleHistory {
 
 struct DivSample {
   String name;
-  // TODO: get rid of loopOffP
-  int rate, centerRate, loopStart, loopEnd, loopOffP;
+  int rate, centerRate, loopStart, loopEnd;
   // valid values are:
   // - 0: ZX Spectrum overlay drum (1-bit)
   // - 1: 1-bit NES DPCM (1-bit)
@@ -306,7 +305,6 @@ struct DivSample {
     centerRate(8363),
     loopStart(-1),
     loopEnd(-1),
-    loopOffP(0),
     depth(DIV_SAMPLE_DEPTH_16BIT),
     loop(false),
     brrEmphasis(true),

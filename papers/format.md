@@ -32,6 +32,12 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 142: Furnace dev142
+- 141: Furnace Tournament Edition (for intro tune contest)
+- 140: Furnace dev140
+- 139: Furnace dev139
+- 138: Furnace dev138
+- 137: Furnace dev137
 - 136: Furnace dev136
 - 135: Furnace dev135
 - 134: Furnace dev134
@@ -280,6 +286,7 @@ size | description
      |   - 0xc5: YM2610B CSM - 20 channels
      |   - 0xc6: K007232 - 2 channels
      |   - 0xc7: GA20 - 4 channels
+     |   - 0xc8: SM8521 - 3 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfc: Pong - 1 channel
@@ -398,6 +405,17 @@ size | description
  4?? | patchbay
      | - see next section for more details.
   1  | automatic patchbay (>=136)
+ --- | **a couple more compat flags** (>=138)
+  1  | broken portamento during legato
+  7  | reserved
+ --- | **speed pattern of first song** (>=139)
+  1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
+ 16  | speed pattern (this overrides speed 1 and speed 2 settings)
+ --- | **groove list** (>=139)
+  1  | number of entries
+ ??? | groove entries. the format is:
+     | - 1 byte: length of groove
+     | - 16 bytes: groove pattern
 ```
 
 # patchbay
@@ -467,6 +485,9 @@ size | description
      | - a list of channelCount C strings
  S?? | channel short names
      | - same as above
+ --- | **speed pattern** (>=139)
+  1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
+ 16  | speed pattern (this overrides speed 1 and speed 2 settings)
 ```
 
 # chip flags
@@ -1639,6 +1660,10 @@ chips which aren't on this list don't have any flags.
   - 0: 16MHz
   - 1: 16.67MHz
 - bit 4: stereo (bool)
+
+## 0xb1: Ensoniq ES5506
+
+- bit 0-4: channels (int)
 
 ## 0xb5: tildearrow Sound Unit
 

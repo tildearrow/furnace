@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@ class DivPlatformPCE: public DivDispatch {
     unsigned char pan;
     bool noise, pcm, furnaceDac, deferredWaveUpdate;
     signed short wave;
-    int macroVolMul;
+    int macroVolMul, noiseSeek;
     DivWaveSynth ws;
     Channel():
       SharedChannel<signed char>(31),
@@ -51,7 +51,8 @@ class DivPlatformPCE: public DivDispatch {
       furnaceDac(false),
       deferredWaveUpdate(false),
       wave(-1),
-      macroVolMul(31) {}
+      macroVolMul(31),
+      noiseSeek(0) {}
   };
   Channel chan[6];
   DivDispatchOscBuffer* oscBuf[6];

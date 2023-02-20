@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) {if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(0x200+a,v);}}}
+#define rWrite(a,v) {if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);}}}
 
 const char* regCheatSheetSN[]={
   "DATA", "0",
@@ -37,6 +37,10 @@ const char* regCheatSheetGG[]={
 
 const char** DivPlatformSMS::getRegisterSheet() {
   return stereo?regCheatSheetGG:regCheatSheetSN;
+}
+
+float DivPlatformSMS::getPostAmp() {
+  return 1.5f;
 }
 
 void DivPlatformSMS::acquire_nuked(short** buf, size_t len) {

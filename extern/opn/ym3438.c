@@ -981,6 +981,9 @@ static void OPN2_ChOutput(ym3438_t *chip)
     {
         out = (Bit16s)chip->dacdata;
         out = SIGN_EXTEND(8, out);
+        if (chip->chip_type & ym3438_mode_opn) {
+          out <<=5;
+        }
     }
     else
     {

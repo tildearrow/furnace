@@ -350,7 +350,7 @@ public:
 		{
 			// create file
 			char name[20];
-			sprintf(name, "wavlog-%02d.wav", m_index);
+			snprintf(name, 20, "wavlog-%02d.wav", m_index);
 			FILE *out = fopen(name, "wb");
 
 			// make the wav file header

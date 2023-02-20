@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -606,7 +606,7 @@ void DivPlatformQSound::forceIns() {
   for (int i=0; i<19; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
-    chan[i].sample=-1;
+    //chan[i].sample=-1;
   }
 }
 
@@ -645,7 +645,7 @@ bool DivPlatformQSound::keyOffAffectsArp(int ch) {
 }
 
 void DivPlatformQSound::notifyInsChange(int ins) {
-  for (int i=0; i<4; i++) {
+  for (int i=0; i<19; i++) {
     if (chan[i].ins==ins) {
       chan[i].insChanged=true;
     }
@@ -657,7 +657,7 @@ void DivPlatformQSound::notifyWaveChange(int wave) {
 }
 
 void DivPlatformQSound::notifyInsDeletion(void* ins) {
-  for (int i=0; i<4; i++) {
+  for (int i=0; i<19; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }

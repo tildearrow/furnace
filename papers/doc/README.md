@@ -20,6 +20,7 @@ writers:
 - DeMOSic
 - cam900
 - host12prog
+- WindowxDeveloper
 
 other:
 
