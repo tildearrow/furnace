@@ -1140,7 +1140,7 @@ void FurnaceGUI::drawPattern() {
 
         for (int j=0; j<num; j++) {
           ImVec2 partPos=ImVec2(
-            off.x+patChanX[i.chan]+fmod(rand(),width)-scrollX,
+            off.x+patChanX[i.chan]+fmod(rand(),width),
             off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,patFont->FontSize)
           );
 
@@ -1174,7 +1174,7 @@ void FurnaceGUI::drawPattern() {
           float width=patChanX[i+1]-patChanX[i];
 
           ImVec2 partPos=ImVec2(
-            off.x+patChanX[i]+fmod(rand(),width)-scrollX,
+            off.x+patChanX[i]+fmod(rand(),width),
             off.y+fmod(rand(),MAX(1,ImGui::GetWindowHeight()))
           );
 
@@ -1231,7 +1231,7 @@ void FurnaceGUI::drawPattern() {
           float width=patChanX[i+1]-patChanX[i];
 
           ImVec2 partPos=ImVec2(
-            off.x+patChanX[i]+(width*0.5+0.5*sin(M_PI*(float)ch->vibratoPosGiant/64.0f)*width)-scrollX,
+            off.x+patChanX[i]+(width*0.5+0.5*sin(M_PI*(float)ch->vibratoPosGiant/64.0f)*width),
             off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,patFont->FontSize)
           );
 
