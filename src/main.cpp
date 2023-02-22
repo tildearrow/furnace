@@ -449,8 +449,6 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  logI("Furnace version " DIV_VERSION ".");
-
   e.preInit();
 
   if (!fileName.empty()) {

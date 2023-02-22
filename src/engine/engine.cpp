@@ -4416,6 +4416,8 @@ void DivEngine::preInit() {
 
   String logPath=configPath+DIR_SEPARATOR_STR+"furnace.log";
   startLogFile(logPath.c_str());
+
+  logI("Furnace version " DIV_VERSION ".");
   
   loadConf();
 }
