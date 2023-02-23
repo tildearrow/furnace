@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,13 +37,12 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
       continue;
     }
     if (chan[0].useWave || (chan[0].sample>=0 && chan[0].sample<parent->song.sampleLen)) {
-      chan[0].audPos+=((!chan[0].useWave) && chan[0].audDir)?-(chan[0].freq>>16):(chan[0].freq>>16);
-      chan[0].audSub+=(chan[0].freq&0xffff);
-      if (chan[0].audSub>=0x10000) {
-        chan[0].audSub-=0x10000;
-        chan[0].audPos+=((!chan[0].useWave) && chan[0].audDir)?-1:1;
-      }
+      chan[0].audSub+=chan[0].freq;
       if (chan[0].useWave) {
+        while (chan[0].audSub>=0x10000) {
+          chan[0].audSub-=0x10000;
+          chan[0].audPos+=((!chan[0].useWave) && chan[0].audDir)?-1:1;
+        }
         if (chan[0].audPos>=(int)chan[0].audLen) {
           chan[0].audPos%=chan[0].audLen;
           chan[0].audDir=false;
@@ -52,105 +51,123 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
       } else {
         DivSample* s=parent->getSample(chan[0].sample);
         if (s->samples>0) {
-          if (chan[0].audDir) {
-            if (s->isLoopable()) {
-              switch (s->loopMode) {
-                case DIV_SAMPLE_LOOP_FORWARD:
-                case DIV_SAMPLE_LOOP_PINGPONG:
-                  if (chan[0].audPos<s->loopStart) {
-                    chan[0].audPos=s->loopStart+(s->loopStart-chan[0].audPos);
-                    chan[0].audDir=false;
-                  }
-                  break;
-                case DIV_SAMPLE_LOOP_BACKWARD:
-                  if (chan[0].audPos<s->loopStart) {
-                    chan[0].audPos=s->loopEnd-1-(s->loopStart-chan[0].audPos);
-                    chan[0].audDir=true;
-                  }
-                  break;
-                default:
-                  if (chan[0].audPos<0) {
-                    chan[0].sample=-1;
-                  }
-                  break;
+          while (chan[0].audSub>=0x10000) {
+            chan[0].audSub-=0x10000;
+            chan[0].audPos+=((!chan[0].useWave) && chan[0].audDir)?-1:1;
+            if (chan[0].audDir) {
+              if (s->isLoopable()) {
+                switch (s->loopMode) {
+                  case DIV_SAMPLE_LOOP_FORWARD:
+                  case DIV_SAMPLE_LOOP_PINGPONG:
+                    if (chan[0].audPos<s->loopStart) {
+                      chan[0].audPos=s->loopStart+(s->loopStart-chan[0].audPos);
+                      chan[0].audDir=false;
+                    }
+                    break;
+                  case DIV_SAMPLE_LOOP_BACKWARD:
+                    if (chan[0].audPos<s->loopStart) {
+                      chan[0].audPos=s->loopEnd-1-(s->loopStart-chan[0].audPos);
+                      chan[0].audDir=true;
+                    }
+                    break;
+                  default:
+                    if (chan[0].audPos<0) {
+                      chan[0].sample=-1;
+                    }
+                    break;
+                }
+              } else if (chan[0].audPos>=(int)s->samples) {
+                chan[0].sample=-1;
               }
-            } else if (chan[0].audPos>=(int)s->samples) {
-              chan[0].sample=-1;
+            } else {
+              if (s->isLoopable()) {
+                switch (s->loopMode) {
+                  case DIV_SAMPLE_LOOP_FORWARD:
+                    if (chan[0].audPos>=s->loopEnd) {
+                      chan[0].audPos=(chan[0].audPos+s->loopStart)-s->loopEnd;
+                      chan[0].audDir=false;
+                    }
+                    break;
+                  case DIV_SAMPLE_LOOP_BACKWARD:
+                  case DIV_SAMPLE_LOOP_PINGPONG:
+                    if (chan[0].audPos>=s->loopEnd) {
+                      chan[0].audPos=s->loopEnd-1-(s->loopEnd-1-chan[0].audPos);
+                      chan[0].audDir=true;
+                    }
+                    break;
+                  default:
+                    if (chan[0].audPos>=(int)s->samples) {
+                      chan[0].sample=-1;
+                    }
+                    break;
+                }
+              } else if (chan[0].audPos>=(int)s->samples) {
+                chan[0].sample=-1;
+              }
             }
-          } else {
-            if (s->isLoopable()) {
-              switch (s->loopMode) {
-                case DIV_SAMPLE_LOOP_FORWARD:
-                  if (chan[0].audPos>=s->loopEnd) {
-                    chan[0].audPos=(chan[0].audPos+s->loopStart)-s->loopEnd;
-                    chan[0].audDir=false;
-                  }
-                  break;
-                case DIV_SAMPLE_LOOP_BACKWARD:
-                case DIV_SAMPLE_LOOP_PINGPONG:
-                  if (chan[0].audPos>=s->loopEnd) {
-                    chan[0].audPos=s->loopEnd-1-(s->loopEnd-1-chan[0].audPos);
-                    chan[0].audDir=true;
-                  }
-                  break;
-                default:
-                  if (chan[0].audPos>=(int)s->samples) {
-                    chan[0].sample=-1;
-                  }
-                  break;
-              }
-            } else if (chan[0].audPos>=(int)s->samples) {
-              chan[0].sample=-1;
-            }
-          }
-          if (chan[0].audPos>=0 && chan[0].audPos<(int)s->samples) {
-            int s_4=((chan[0].audPos-4)>=0)?s->data16[chan[0].audPos-4]:0;
-            int s_3=((chan[0].audPos-3)>=0)?s->data16[chan[0].audPos-3]:0;
-            int s_2=((chan[0].audPos-2)>=0)?s->data16[chan[0].audPos-2]:0;
-            int s_1=((chan[0].audPos-1)>=0)?s->data16[chan[0].audPos-1]:0;
-            int s0=s->data16[chan[0].audPos];
-            int s1=((chan[0].audPos+1)<(int)s->samples)?s->data16[chan[0].audPos+1]:0;
-            int s2=((chan[0].audPos+2)<(int)s->samples)?s->data16[chan[0].audPos+2]:0;
-            int s3=((chan[0].audPos+3)<(int)s->samples)?s->data16[chan[0].audPos+3]:0;
-            switch (interp) {
-              case 1: // linear
-                output=s0+((s1-s0)*(chan[0].audSub&0xffff)>>16);
-                break;
-              case 2: { // cubic
-                float* cubicTable=DivFilterTables::getCubicTable();
-                float* t=&cubicTable[((chan[0].audSub&0xffff)>>6)<<2];
-                float result=(float)s_1*t[0]+(float)s0*t[1]+(float)s1*t[2]+(float)s2*t[3];
-                if (result<-32768) result=-32768;
-                if (result>32767) result=32767;
-                output=result;
-                break;
-              }
-              case 3: { // sinc
-                float* sincTable=DivFilterTables::getSincTable8();
-                float* t1=&sincTable[(8191-((chan[0].audSub&0xffff)>>3))<<2];
-                float* t2=&sincTable[((chan[0].audSub&0xffff)>>3)<<2];
-                float result=(
-                  s_4*t2[3]+
-                  s_3*t2[2]+
-                  s_2*t2[1]+
-                  s_1*t2[0]+
-                  s0*t1[0]+
-                  s1*t1[1]+
-                  s2*t1[2]+
-                  s3*t1[3]
-                );
-                if (result<-32768) result=-32768;
-                if (result>32767) result=32767;
-                output=result;
-                break;
-              }
-              default: // none
-                output=s0;
-                break;
+            chan[0].audDat[0]=chan[0].audDat[1];
+            chan[0].audDat[1]=chan[0].audDat[2];
+            chan[0].audDat[2]=chan[0].audDat[3];
+            chan[0].audDat[3]=chan[0].audDat[4];
+            chan[0].audDat[4]=chan[0].audDat[5];
+            chan[0].audDat[5]=chan[0].audDat[6];
+            chan[0].audDat[6]=chan[0].audDat[7];
+            if (chan[0].audPos>=0 && chan[0].audPos<(int)s->samples) {
+              chan[0].audDat[7]=s->data16[chan[0].audPos];
+            } else {
+              chan[0].audDat[7]=0;
             }
           }
         } else {
           chan[0].sample=-1;
+          chan[0].audSub=0;
+          chan[0].audPos=0;
+        }
+
+        const short s0=chan[0].audDat[0];
+        const short s1=chan[0].audDat[1];
+        const short s2=chan[0].audDat[2];
+        const short s3=chan[0].audDat[3];
+        const short s4=chan[0].audDat[4];
+        const short s5=chan[0].audDat[5];
+        const short s6=chan[0].audDat[6];
+        const short s7=chan[0].audDat[7];
+
+        switch (interp) {
+          case 1: // linear
+            output=s6+((s7-s6)*(chan[0].audSub&0xffff)>>16);
+            break;
+          case 2: { // cubic
+            float* cubicTable=DivFilterTables::getCubicTable();
+            float* t=&cubicTable[((chan[0].audSub&0xffff)>>6)<<2];
+            float result=(float)s4*t[0]+(float)s5*t[1]+(float)s6*t[2]+(float)s7*t[3];
+            if (result<-32768) result=-32768;
+            if (result>32767) result=32767;
+            output=result;
+            break;
+          }
+          case 3: { // sinc
+            float* sincTable=DivFilterTables::getSincTable8();
+            float* t1=&sincTable[(8191-((chan[0].audSub&0xffff)>>3))<<2];
+            float* t2=&sincTable[((chan[0].audSub&0xffff)>>3)<<2];
+            float result=(
+              s0*t2[3]+
+              s1*t2[2]+
+              s2*t2[1]+
+              s3*t2[0]+
+              s4*t1[0]+
+              s5*t1[1]+
+              s6*t1[2]+
+              s7*t1[3]
+            );
+            if (result<-32768) result=-32768;
+            if (result>32767) result=32767;
+            output=result;
+            break;
+          }
+          default: // none
+            output=s7;
+            break;
         }
       }
     }
@@ -266,6 +283,7 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
         chan[0].audPos=0;
       }
       chan[0].audSub=0;
+      memset(chan[0].audDat,0,8*sizeof(short));
       if (c.value!=DIV_NOTE_NULL) {
         chan[0].freqChanged=true;
         chan[0].note=c.value;
@@ -408,6 +426,7 @@ void DivPlatformPCMDAC::reset() {
   chan[0].std.setEngine(parent);
   chan[0].ws.setEngine(parent);
   chan[0].ws.init(NULL,32,255);
+  memset(chan[0].audDat,0,8*sizeof(short));
 }
 
 int DivPlatformPCMDAC::getOutputCount() {

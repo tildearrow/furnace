@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -89,7 +89,7 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
         chan[i].audSub-=AMIGA_DIVIDER;
         if (chan[i].audSub<0) {
           if (chan[i].useWave) {
-            writeAudDat(chan[i].ws.output[chan[i].audPos++]^0x80);
+            writeAudDat(chan[i].ws.output[(chan[i].audPos++)&255]^0x80);
             if (chan[i].audPos>=(unsigned int)(chan[i].audLen<<1)) {
               chan[i].audPos=0;
             }

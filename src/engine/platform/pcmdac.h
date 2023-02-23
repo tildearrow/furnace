@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,6 +29,7 @@ class DivPlatformPCMDAC: public DivDispatch {
     bool audDir;
     unsigned int audLoc;
     unsigned short audLen;
+    short audDat[8];
     int audPos;
     int audSub;
     int sample, wave;
@@ -41,6 +42,7 @@ class DivPlatformPCMDAC: public DivDispatch {
       audDir(false),
       audLoc(0),
       audLen(0),
+      audDat{0,0,0,0,0,0,0,0},
       audPos(0),
       audSub(0),
       sample(-1),

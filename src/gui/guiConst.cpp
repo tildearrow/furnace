@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -70,13 +70,14 @@ const int altValues[24]={
   0, 10, 1, 11, 2, 3, 12, 4, 13, 5, 14, 6, 7, 15, 8, -1, 9, -1, -1, -1, -1, -1, -1, -1
 };
 
-const int vgmVersions[6]={
+const int vgmVersions[7]={
   0x150,
   0x151,
   0x160,
   0x161,
   0x170,
-  0x171
+  0x171,
+  0x172
 };
 
 const char* insTypes[DIV_INS_MAX+1]={
@@ -128,6 +129,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   "K007232",
   "GA20",
   "Pokémon Mini",
+  "SM8521",
   NULL
 };
 
@@ -493,6 +495,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_INS_LIST", "Instrument List", 0),
   D("WINDOW_INS_EDIT", "Instrument Editor", 0),
   D("WINDOW_SONG_INFO", "Song Information", 0),
+  D("WINDOW_SPEED", "Speed", 0),
   D("WINDOW_PATTERN", "Pattern", 0),
   D("WINDOW_WAVE_LIST", "Wavetable List", 0),
   D("WINDOW_WAVE_EDIT", "Wavetable Editor", 0),
@@ -518,6 +521,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_SUBSONGS", "Subsongs", 0),
   D("WINDOW_FIND", "Find/Replace", FURKMOD_CMD|SDLK_f),
   D("WINDOW_CLOCK", "Clock", 0),
+  D("WINDOW_GROOVES", "Grooves", 0),
 
   D("COLLAPSE_WINDOW", "Collapse/expand current window", 0),
   D("CLOSE_WINDOW", "Close current window", FURKMOD_SHIFT|SDLK_ESCAPE),
@@ -739,6 +743,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
 
   D(GUI_COLOR_ORDER_ROW_INDEX,"",ImVec4(0.5f,0.8f,1.0f,1.0f)),
   D(GUI_COLOR_ORDER_ACTIVE,"",ImVec4(0.4f,0.7f,1.0f,0.25f)),
+  D(GUI_COLOR_ORDER_SELECTED,"",ImVec4(0.6f,0.8f,1.0f,0.75f)),
   D(GUI_COLOR_ORDER_SIMILAR,"",ImVec4(0.5f,1.0f,1.0f,1.0f)),
   D(GUI_COLOR_ORDER_INACTIVE,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
 
@@ -814,6 +819,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_K007232,"",ImVec4(1.0f,0.8f,0.1f,1.0f)),
   D(GUI_COLOR_INSTR_GA20,"",ImVec4(0.1f,1.0f,0.4f,1.0f)),
   D(GUI_COLOR_INSTR_POKEMINI,"",ImVec4(1.0f,1.0f,0.3f,1.0f)),
+  D(GUI_COLOR_INSTR_SM8521,"",ImVec4(0.5f,0.55f,0.6f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_BG,"",ImVec4(0.4f,0.6f,0.8f,1.0f)),
@@ -980,6 +986,7 @@ const int availableSystems[]={
   DIV_SYSTEM_VRC6,
   DIV_SYSTEM_FDS,
   DIV_SYSTEM_MMC5,
+  DIV_SYSTEM_ES5506,
   DIV_SYSTEM_SCC,
   DIV_SYSTEM_SCC_PLUS,
   DIV_SYSTEM_YMZ280B,
@@ -993,6 +1000,7 @@ const int availableSystems[]={
   DIV_SYSTEM_MSM5232,
   DIV_SYSTEM_K007232,
   DIV_SYSTEM_GA20,
+  DIV_SYSTEM_SM8521,
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_PONG,
   0 // don't remove this last one!
@@ -1079,6 +1087,7 @@ const int chipsSpecial[]={
   DIV_SYSTEM_PET,
   DIV_SYSTEM_VRC6,
   DIV_SYSTEM_MMC5,
+  DIV_SYSTEM_SM8521,
   0 // don't remove this last one!
 };
 
@@ -1097,6 +1106,7 @@ const int chipsSample[]={
   DIV_SYSTEM_K007232,
   DIV_SYSTEM_GA20,
   DIV_SYSTEM_PCM_DAC,
+  DIV_SYSTEM_ES5506,
   0 // don't remove this last one!
 };
 

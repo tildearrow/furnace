@@ -10,17 +10,17 @@
 #include "scc.hpp"
 
 // shared SCC features
-void scc_core::tick()
+void scc_core::tick(const int cycles)
 {
 	m_out = 0;
-	for (auto &elem : m_voice)
+	for (int elem=0; elem<5; elem++)
 	{
-		elem.tick();
-		m_out += elem.out();
+		m_voice[elem].tick(cycles);
+		m_out += m_voice[elem].out();
 	}
 }
 
-void scc_core::voice_t::tick()
+void scc_core::voice_t::tick(const int cycles)
 {
 	if (m_pitch >= 9)  // or voice is halted
 	{
@@ -28,23 +28,27 @@ void scc_core::voice_t::tick()
 		const u16 temp = m_counter;
 		if (m_host.m_test.freq_4bit())	// 4 bit frequency mode
 		{
-			m_counter = (m_counter & ~0x0ff) | (bitfield(bitfield(m_counter, 0, 8) - 1, 0, 8) << 0);
-			m_counter = (m_counter & ~0xf00) | (bitfield(bitfield(m_counter, 8, 4) - 1, 0, 4) << 8);
+			m_counter = (m_counter & ~0x0ff) | (bitfield(bitfield(m_counter, 0, 8) - cycles, 0, 8) << 0);
+			m_counter = (m_counter & ~0xf00) | (bitfield(bitfield(m_counter, 8, 4) - cycles, 0, 4) << 8);
 		}
 		else
 		{
-			m_counter = bitfield(m_counter - 1, 0, 12);
+			m_counter = bitfield(m_counter - cycles, 0, 12);
 		}
 
 		// handle counter carry
-		const bool carry = m_host.m_test.freq_8bit()
+		const bool carry = (temp<cycles) || (m_host.m_test.freq_8bit()
 						   ? (bitfield(temp, 0, 8) == 0)
 						   : (m_host.m_test.freq_4bit() ? (bitfield(temp, 8, 4) == 0)
-														: (bitfield(temp, 0, 12) == 0));
+														: (bitfield(temp, 0, 12) == 0)));
 		if (carry)
 		{
 			m_addr	  = bitfield(m_addr + 1, 0, 5);
-			m_counter = m_pitch;
+			m_counter = m_pitch - ((temp<cycles)?(cycles-temp-1):0);
+                        while (m_counter>m_pitch) {
+			  m_addr	  = bitfield(m_addr + 1, 0, 5);
+                          m_counter+=m_pitch-1;
+                        }
 		}
 	}
 	// get output
@@ -60,19 +64,19 @@ void scc_core::voice_t::tick()
 
 void scc_core::reset()
 {
-	for (auto &elem : m_voice)
+	for (int elem=0; elem<5; elem++)
 	{
-		elem.reset();
+		m_voice[elem].reset();
 	}
 
 	m_test.reset();
 	m_out = 0;
-	std::fill(m_reg.begin(), m_reg.end(), 0);
+  memset(m_reg,0,256);
 }
 
 void scc_core::voice_t::reset()
 {
-	std::fill(m_wave.begin(), m_wave.end(), 0);
+	memset(m_wave,0,32);
 	m_enable  = false;
 	m_pitch	  = 0;
 	m_volume  = 0;

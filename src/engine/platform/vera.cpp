@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -411,7 +411,7 @@ int DivPlatformVERA::getOutputCount() {
 }
 
 void DivPlatformVERA::notifyInsDeletion(void* ins) {
-  for (int i=0; i<2; i++) {
+  for (int i=0; i<17; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }

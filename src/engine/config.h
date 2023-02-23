@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@ class DivConfig {
     String getString(String key, String fallback) const;
 
     // check for existence
-    bool has(String key);
+    bool has(String key) const;
 
     // set a config value
     void set(String key, bool value);

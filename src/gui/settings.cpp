@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -492,6 +492,22 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::Separator();
 
+          ImGui::Text("Play intro on start-up:");
+          if (ImGui::RadioButton("No##pis0",settings.alwaysPlayIntro==0)) {
+            settings.alwaysPlayIntro=0;
+          }
+          if (ImGui::RadioButton("Short##pis1",settings.alwaysPlayIntro==1)) {
+            settings.alwaysPlayIntro=1;
+          }
+          if (ImGui::RadioButton("Full (short when loading song)##pis2",settings.alwaysPlayIntro==2)) {
+            settings.alwaysPlayIntro=2;
+          }
+          if (ImGui::RadioButton("Full (always)##pis3",settings.alwaysPlayIntro==3)) {
+            settings.alwaysPlayIntro=3;
+          }
+
+          ImGui::Separator();
+
           if (CWSliderFloat("Double-click time (seconds)",&settings.doubleClickTime,0.02,1.0,"%.2f")) {
             if (settings.doubleClickTime<0.02) settings.doubleClickTime=0.02;
             if (settings.doubleClickTime>1.0) settings.doubleClickTime=1.0;
@@ -622,7 +638,7 @@ void FurnaceGUI::drawSettings() {
             settings.saveWindowPos=saveWindowPosB;
           }
           if (ImGui::IsItemHovered()) {
-            ImGui::SetTooltip("remembers the window's last position on startup.");
+            ImGui::SetTooltip("remembers the window's last position on start-up.");
           }
 #endif
 
@@ -1207,6 +1223,18 @@ void FurnaceGUI::drawSettings() {
         ImVec2 settingsViewSize=ImGui::GetContentRegionAvail();
         settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
         if (ImGui::BeginChild("SettingsView",settingsViewSize)) {
+          if (ImGui::BeginCombo("Render driver",settings.renderDriver.empty()?"Automatic":settings.renderDriver.c_str())) {
+            if (ImGui::Selectable("Automatic",settings.renderDriver.empty())) {
+              settings.renderDriver="";
+            }
+            for (String& i: availRenderDrivers) {
+              if (ImGui::Selectable(i.c_str(),i==settings.renderDriver)) {
+                settings.renderDriver=i;
+              }
+            }
+            ImGui::EndCombo();
+          }
+
           bool dpiScaleAuto=(settings.dpiScale<0.5f);
           if (ImGui::Checkbox("Automatic UI scaling factor",&dpiScaleAuto)) {
             if (dpiScaleAuto) {
@@ -1602,6 +1630,11 @@ void FurnaceGUI::drawSettings() {
             settings.germanNotation=germanNotationB;
           }
 
+          bool oneDigitEffectsB=settings.oneDigitEffects;
+          if (ImGui::Checkbox("Single-digit effects for 00-0F",&oneDigitEffectsB)) {
+            settings.oneDigitEffects=oneDigitEffectsB;
+          }
+
           bool centerPatternB=settings.centerPattern;
           if (ImGui::Checkbox("Center pattern view",&centerPatternB)) {
             settings.centerPattern=centerPatternB;
@@ -1661,6 +1694,11 @@ void FurnaceGUI::drawSettings() {
           bool frameBordersB=settings.frameBorders;
           if (ImGui::Checkbox("Borders around widgets",&frameBordersB)) {
             settings.frameBorders=frameBordersB;
+          }
+
+          bool disableFadeInB=settings.disableFadeIn;
+          if (ImGui::Checkbox("Disable fade-in during start-up",&disableFadeInB)) {
+            settings.disableFadeIn=disableFadeInB;
           }
 
           ImGui::Separator();
@@ -1794,7 +1832,8 @@ void FurnaceGUI::drawSettings() {
             }
             if (ImGui::TreeNode("Orders")) {
               UI_COLOR_CONFIG(GUI_COLOR_ORDER_ROW_INDEX,"Order number");
-              UI_COLOR_CONFIG(GUI_COLOR_ORDER_ACTIVE,"Current order background");
+              UI_COLOR_CONFIG(GUI_COLOR_ORDER_ACTIVE,"Playing order background");
+              UI_COLOR_CONFIG(GUI_COLOR_ORDER_SELECTED,"Selected order");
               UI_COLOR_CONFIG(GUI_COLOR_ORDER_SIMILAR,"Similar patterns");
               UI_COLOR_CONFIG(GUI_COLOR_ORDER_INACTIVE,"Inactive patterns");
               ImGui::TreePop();
@@ -1889,6 +1928,7 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_K007232,"K007232");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_GA20,"GA20");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_POKEMINI,"Pokémon Mini");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_SM8521,"SM8521");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
               ImGui::TreePop();
             }
@@ -2442,6 +2482,7 @@ void FurnaceGUI::syncSettings() {
   settings.midiInDevice=e->getConfString("midiInDevice","");
   settings.midiOutDevice=e->getConfString("midiOutDevice","");
   settings.c163Name=e->getConfString("c163Name",DIV_C163_DEFAULT_NAME);
+  settings.renderDriver=e->getConfString("renderDriver","");
   settings.audioQuality=e->getConfInt("audioQuality",0);
   settings.audioBufSize=e->getConfInt("audioBufSize",1024);
   settings.audioRate=e->getConfInt("audioRate",44100);
@@ -2497,7 +2538,7 @@ void FurnaceGUI::syncSettings() {
   settings.loadChinese=e->getConfInt("loadChinese",0);
   settings.loadChineseTraditional=e->getConfInt("loadChineseTraditional",0);
   settings.loadKorean=e->getConfInt("loadKorean",0);
-  settings.fmLayout=e->getConfInt("fmLayout",0);
+  settings.fmLayout=e->getConfInt("fmLayout",4);
   settings.sampleLayout=e->getConfInt("sampleLayout",0);
   settings.waveLayout=e->getConfInt("waveLayout",0);
   settings.susPosition=e->getConfInt("susPosition",0);
@@ -2565,6 +2606,9 @@ void FurnaceGUI::syncSettings() {
   settings.exportFadeOut=e->getConfDouble("exportFadeOut",0.0);
   settings.macroLayout=e->getConfInt("macroLayout",0);
   settings.doubleClickTime=e->getConfFloat("doubleClickTime",0.3f);
+  settings.oneDigitEffects=e->getConfInt("oneDigitEffects",0);
+  settings.disableFadeIn=e->getConfInt("disableFadeIn",0);
+  settings.alwaysPlayIntro=e->getConfInt("alwaysPlayIntro",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2676,6 +2720,9 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.persistFadeOut,0,1);
   clampSetting(settings.macroLayout,0,4);
   clampSetting(settings.doubleClickTime,0.02,1.0);
+  clampSetting(settings.oneDigitEffects,0,1);
+  clampSetting(settings.disableFadeIn,0,1);
+  clampSetting(settings.alwaysPlayIntro,0,3);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -2755,6 +2802,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("midiInDevice",settings.midiInDevice);
   e->setConf("midiOutDevice",settings.midiOutDevice);
   e->setConf("c163Name",settings.c163Name);
+  e->setConf("renderDriver",settings.renderDriver);
   e->setConf("audioQuality",settings.audioQuality);
   e->setConf("audioBufSize",settings.audioBufSize);
   e->setConf("audioRate",settings.audioRate);
@@ -2880,6 +2928,9 @@ void FurnaceGUI::commitSettings() {
   e->setConf("exportFadeOut",settings.exportFadeOut);
   e->setConf("macroLayout",settings.macroLayout);
   e->setConf("doubleClickTime",settings.doubleClickTime);
+  e->setConf("oneDigitEffects",settings.oneDigitEffects);
+  e->setConf("disableFadeIn",settings.disableFadeIn);
+  e->setConf("alwaysPlayIntro",settings.alwaysPlayIntro);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -3326,6 +3377,8 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     ImGui::StyleColorsDark(&sty);
   }
 
+  if (dpiScale<0.1) dpiScale=0.1;
+
   setupLabel(settings.noteOffLabel.c_str(),noteOffLabel,3);
   setupLabel(settings.noteRelLabel.c_str(),noteRelLabel,3);
   setupLabel(settings.macroRelLabel.c_str(),macroRelLabel,3);
@@ -3531,21 +3584,21 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     fc1.MergeMode=true;
 
     if (settings.mainFont==6) { // custom font
-      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.mainFontPath.c_str(),e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.mainFontPath.c_str(),MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),NULL,fontRange))==NULL) {
         logW("could not load UI font! reverting to default font");
         settings.mainFont=0;
-        if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+        if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),NULL,fontRange))==NULL) {
           logE("could not load UI font! falling back to Proggy Clean.");
           mainFont=ImGui::GetIO().Fonts->AddFontDefault();
         }
       }
     } else if (settings.mainFont==5) { // system font
-      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_1,e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
-        if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_2,e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
-          if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_3,e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_1,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),NULL,fontRange))==NULL) {
+        if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_2,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),NULL,fontRange))==NULL) {
+          if ((mainFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_FONT_PATH_3,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),NULL,fontRange))==NULL) {
             logW("could not load UI font! reverting to default font");
             settings.mainFont=0;
-            if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+            if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),NULL,fontRange))==NULL) {
               logE("could not load UI font! falling back to Proggy Clean.");
               mainFont=ImGui::GetIO().Fonts->AddFontDefault();
             }
@@ -3553,21 +3606,21 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
         }
       }
     } else {
-      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],e->getConfInt("mainFontSize",18)*dpiScale,NULL,fontRange))==NULL) {
+      if ((mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.mainFont],builtinFontLen[settings.mainFont],MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),NULL,fontRange))==NULL) {
         logE("could not load UI font! falling back to Proggy Clean.");
         mainFont=ImGui::GetIO().Fonts->AddFontDefault();
       }
     }
 
     // two fallback fonts
-    mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_liberationSans_compressed_data,font_liberationSans_compressed_size,e->getConfInt("mainFontSize",18)*dpiScale,&fc1,fontRange);
-    mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_unifont_compressed_data,font_unifont_compressed_size,e->getConfInt("mainFontSize",18)*dpiScale,&fc1,fontRange);
+    mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_liberationSans_compressed_data,font_liberationSans_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
+    mainFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_unifont_compressed_data,font_unifont_compressed_size,MAX(1,e->getConfInt("mainFontSize",18)*dpiScale),&fc1,fontRange);
 
     ImFontConfig fc;
     fc.MergeMode=true;
     fc.GlyphMinAdvanceX=e->getConfInt("iconSize",16)*dpiScale;
     static const ImWchar fontRangeIcon[]={ICON_MIN_FA,ICON_MAX_FA,0};
-    if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,e->getConfInt("iconSize",16)*dpiScale,&fc,fontRangeIcon))==NULL) {
+    if ((iconFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(iconFont_compressed_data,iconFont_compressed_size,MAX(1,e->getConfInt("iconSize",16)*dpiScale),&fc,fontRangeIcon))==NULL) {
       logE("could not load icon font!");
     }
 
@@ -3576,21 +3629,21 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       patFont=mainFont;
     } else {
       if (settings.patFont==6) { // custom font
-        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.patFontPath.c_str(),e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.patFontPath.c_str(),MAX(1,e->getConfInt("patFontSize",18)*dpiScale),NULL,upTo800))==NULL) {
           logW("could not load pattern font! reverting to default font");
           settings.patFont=0;
-          if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+          if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),NULL,upTo800))==NULL) {
             logE("could not load pattern font! falling back to Proggy Clean.");
             patFont=ImGui::GetIO().Fonts->AddFontDefault();
           }
         }
       } else if (settings.patFont==5) { // system font
-        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_1,e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
-          if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_2,e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
-            if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_3,e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+        if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_1,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),NULL,upTo800))==NULL) {
+          if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_2,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),NULL,upTo800))==NULL) {
+            if ((patFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_PAT_FONT_PATH_3,MAX(1,e->getConfInt("patFontSize",18)*dpiScale),NULL,upTo800))==NULL) {
               logW("could not load pattern font! reverting to default font");
               settings.patFont=0;
-              if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+              if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),NULL,upTo800))==NULL) {
                 logE("could not load pattern font! falling back to Proggy Clean.");
                 patFont=ImGui::GetIO().Fonts->AddFontDefault();
               }
@@ -3598,7 +3651,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
           }
         }
       } else {
-        if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],e->getConfInt("patFontSize",18)*dpiScale,NULL,upTo800))==NULL) {
+        if ((patFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFontM[settings.patFont],builtinFontMLen[settings.patFont],MAX(1,e->getConfInt("patFontSize",18)*dpiScale),NULL,upTo800))==NULL) {
           logE("could not load pattern font!");
           patFont=ImGui::GetIO().Fonts->AddFontDefault();
         }
@@ -3607,7 +3660,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
 
     // 0x39B = Λ
     static const ImWchar bigFontRange[]={0x20,0xFF,0x39b,0x39b,0};
-    if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,40*dpiScale,NULL,bigFontRange))==NULL) {
+    if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,40*dpiScale),NULL,bigFontRange))==NULL) {
       logE("could not load big UI font!");
     }
 

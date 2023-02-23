@@ -14,6 +14,7 @@
 
 #include "../core/core.hpp"
 #include "../core/util/mem_intf.hpp"
+#include <string.h>
 
 using namespace vgsound_emu;
 
@@ -36,12 +37,12 @@ class scc_core : public vgsound_emu_core
 					, m_counter(0)
 					, m_out(0)
 				{
-					m_wave.fill(0);
+					memset(m_wave,0,32);
 				}
 
 				// internal state
 				void reset();
-				void tick();
+				void tick(const int cycles=1);
 
 				// accessors
 				inline void reset_addr() { m_addr = 0; }
@@ -69,7 +70,7 @@ class scc_core : public vgsound_emu_core
 			private:
 				// registers
 				scc_core &m_host;
-				std::array<s8, 32> m_wave;	// internal waveform
+				s8 m_wave[32];	// internal waveform
 				bool m_enable			  = false;	// output enable flag
 				u16 m_pitch	 : 12;					// pitch
 				u16 m_volume : 4;					// volume
@@ -139,7 +140,7 @@ class scc_core : public vgsound_emu_core
 			, m_test(test_t())
 			, m_out(0)
 		{
-			m_reg.fill(0);
+			memset(m_reg,0,256);
 		}
 
 		// destructor
@@ -151,7 +152,7 @@ class scc_core : public vgsound_emu_core
 
 		// internal state
 		virtual void reset();
-		void tick();
+		void tick(const int cycles=1);
 
 		// getters
 		inline s32 out() { return m_out; }	// output to DA0...DA10 pin
@@ -168,12 +169,12 @@ class scc_core : public vgsound_emu_core
 		void freq_vol_enable_w(u8 address, u8 data);
 
 		// internal values
-		std::array<voice_t, 5> m_voice;	 // 5 voices
+		voice_t m_voice[5];	 // 5 voices
 
 		test_t m_test;					// test register
 		s32 m_out				  = 0;	// output to DA0...10
 
-		std::array<u8, 256> m_reg;  // register pool
+		u8 m_reg[256];  // register pool
 };
 
 // SCC core

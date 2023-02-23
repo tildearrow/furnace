@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,6 +24,41 @@
 #define CHIP_FREQBASE fmFreqBase
 #define CHIP_DIVIDER fmDivBase
 
+void DivPlatformYM2203Ext::commitStateExt(int ch, DivInstrument* ins) {
+  int ordch=orderedOps[ch];
+  
+  if (opChan[ch].insChanged) {
+    chan[2].state.alg=ins->fm.alg;
+    if (ch==0 || fbAllOps) {
+      chan[2].state.fb=ins->fm.fb;
+    }
+    chan[2].state.op[ordch]=ins->fm.op[ordch];
+  }
+  
+  unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
+  DivInstrumentFM::Operator& op=chan[2].state.op[ordch];
+  // TODO: how does this work?!
+  if (isOpMuted[ch] || !op.enable) {
+    rWrite(baseAddr+0x40,127);
+  } else {
+    if (opChan[ch].insChanged) {
+      rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].outVol&0x7f,127));
+    }
+  }
+  if (opChan[ch].insChanged) {
+    rWrite(baseAddr+0x30,(op.mult&15)|(dtTable[op.dt&7]<<4));
+    rWrite(baseAddr+0x50,(op.ar&31)|(op.rs<<6));
+    rWrite(baseAddr+0x60,(op.dr&31)|(op.am<<7));
+    rWrite(baseAddr+0x70,op.d2r&31);
+    rWrite(baseAddr+0x80,(op.rr&15)|(op.sl<<4));
+    rWrite(baseAddr+0x90,op.ssgEnv&15);
+    opChan[ch].mask=op.enable;
+  }
+  if (opChan[ch].insChanged) { // TODO how does this work?
+    rWrite(chanOffs[2]+0xb0,(chan[2].state.alg&7)|(chan[2].state.fb<<3));
+  }
+}
+
 int DivPlatformYM2203Ext::dispatch(DivCommand c) {
   if (c.chan<2) {
     return DivPlatformYM2203::dispatch(c);
@@ -42,14 +77,6 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
 
-      if (opChan[ch].insChanged) {
-        chan[2].state.alg=ins->fm.alg;
-        if (ch==0 || fbAllOps) {
-          chan[2].state.fb=ins->fm.fb;
-        }
-        chan[2].state.op[ordch]=ins->fm.op[ordch];
-      }
-
       if (noExtMacros) {
         opChan[ch].macroInit(NULL);
       } else {
@@ -58,29 +85,8 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       if (!opChan[ch].std.vol.will) {
         opChan[ch].outVol=opChan[ch].vol;
       }
-      
-      unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
-      DivInstrumentFM::Operator& op=chan[2].state.op[ordch];
-      // TODO: how does this work?!
-      if (isOpMuted[ch]) {
-        rWrite(baseAddr+0x40,127);
-      } else {
-        if (opChan[ch].insChanged) {
-          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].outVol&0x7f,127));
-        }
-      }
-      if (opChan[ch].insChanged) {
-        rWrite(baseAddr+0x30,(op.mult&15)|(dtTable[op.dt&7]<<4));
-        rWrite(baseAddr+0x50,(op.ar&31)|(op.rs<<6));
-        rWrite(baseAddr+0x60,(op.dr&31)|(op.am<<7));
-        rWrite(baseAddr+0x70,op.d2r&31);
-        rWrite(baseAddr+0x80,(op.rr&15)|(op.sl<<4));
-        rWrite(baseAddr+0x90,op.ssgEnv&15);
-        opChan[ch].mask=op.enable;
-      }
-      if (opChan[ch].insChanged) { // TODO how does this work?
-        rWrite(chanOffs[2]+0xb0,(chan[2].state.alg&7)|(chan[2].state.fb<<3));
-      }
+
+      commitStateExt(ch,ins);
       opChan[ch].insChanged=false;
 
       if (c.value!=DIV_NOTE_NULL) {
@@ -116,7 +122,7 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       }
       unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
       DivInstrumentFM::Operator& op=chan[2].state.op[ordch];
-      if (isOpMuted[ch]) {
+      if (isOpMuted[ch] || !op.enable) {
         rWrite(baseAddr+0x40,127);
       } else {
         rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].outVol&0x7f,127));
@@ -166,6 +172,11 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       break;
     }
     case DIV_CMD_LEGATO: {
+      if (opChan[ch].insChanged) {
+        DivInstrument* ins=parent->getIns(opChan[ch].ins,DIV_INS_FM);
+        commitStateExt(ch,ins);
+        opChan[ch].insChanged=false;
+      }
       opChan[ch].baseFreq=NOTE_FNUM_BLOCK(c.value,11);
       opChan[ch].freqChanged=true;
       break;
@@ -191,7 +202,7 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[c.value]];
       op.tl=c.value2;
-      if (isOpMuted[ch]) {
+      if (isOpMuted[ch] || !op.enable) {
         rWrite(baseAddr+0x40,127);
       } else if (KVS(2,c.value)) {
         rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].outVol&0x7f,127));
@@ -529,7 +540,7 @@ void DivPlatformYM2203Ext::muteChannel(int ch, bool mute) {
   int ordch=orderedOps[ch-2];
   unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
   DivInstrumentFM::Operator op=chan[2].state.op[ordch];
-  if (isOpMuted[ch-2]) {
+  if (isOpMuted[ch-2] || !op.enable) {
     rWrite(baseAddr+0x40,127);
     immWrite(baseAddr+0x40,127);
   } else if (KVS(2,ordch)) {
@@ -547,10 +558,10 @@ void DivPlatformYM2203Ext::forceIns() {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
       if (i==2 && extMode) { // extended channel
-        if (isOpMuted[j]) {
+        if (isOpMuted[orderedOps[j]] || !op.enable) {
           rWrite(baseAddr+0x40,127);
         } else if (KVS(i,j)) {
-          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[j].outVol&0x7f,127));
+          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[orderedOps[j]].outVol&0x7f,127));
         } else {
           rWrite(baseAddr+0x40,op.tl);
         }
@@ -638,6 +649,13 @@ void DivPlatformYM2203Ext::notifyInsChange(int ins) {
     if (opChan[i].ins==ins) {
       opChan[i].insChanged=true;
     }
+  }
+}
+
+void DivPlatformYM2203Ext::notifyInsDeletion(void* ins) {
+  DivPlatformYM2203::notifyInsDeletion(ins);
+  for (int i=0; i<4; i++) {
+    opChan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
 

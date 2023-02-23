@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -901,6 +901,10 @@ int DivPlatformX1_010::getOutputCount() {
 
 bool DivPlatformX1_010::keyOffAffectsArp(int ch) {
   return true;
+}
+
+float DivPlatformX1_010::getPostAmp() {
+  return 4.0f;
 }
 
 void DivPlatformX1_010::notifyWaveChange(int wave) {

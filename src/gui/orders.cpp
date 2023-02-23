@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -19,8 +19,10 @@
 
 #include "gui.h"
 #include <fmt/printf.h>
+#include <imgui.h>
 #include "IconsFontAwesome4.h"
 #include "imgui_internal.h"
+#include "../ta-log.h"
 
 void FurnaceGUI::drawMobileOrderSel() {
   if (!portrait) return;
@@ -129,6 +131,7 @@ void FurnaceGUI::drawOrders() {
         }
       }
       ImGui::TableNextRow(0,lineHeight);
+      ImVec2 ra=ImGui::GetContentRegionAvail();
       ImGui::TableNextColumn();
       ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ORDER_ROW_INDEX]);
       for (int i=0; i<e->getTotalChannelCount(); i++) {
@@ -141,6 +144,14 @@ void FurnaceGUI::drawOrders() {
         ImGui::TableNextRow(0,lineHeight);
         if (oldOrder1==i) ImGui::TableSetBgColor(ImGuiTableBgTarget_RowBg0,ImGui::GetColorU32(uiColors[GUI_COLOR_ORDER_ACTIVE]));
         ImGui::TableNextColumn();
+        if ((!followPattern && curOrder==i) || (followPattern && oldOrder1==i)) {
+          // draw a border
+          ImDrawList* dl=ImGui::GetWindowDrawList();
+          ImVec2 rBegin=ImGui::GetCursorScreenPos();
+          rBegin.y-=ImGui::GetStyle().CellPadding.y;
+          ImVec2 rEnd=ImVec2(rBegin.x+ra.x,rBegin.y+lineHeight);
+          dl->AddRect(rBegin,rEnd,ImGui::GetColorU32(uiColors[GUI_COLOR_ORDER_SELECTED]),2.0f*dpiScale);
+        }
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_ORDER_ROW_INDEX]);
         bool highlightLoop=(i>=loopOrder && i<=loopEnd);
         if (highlightLoop) ImGui::TableSetBgColor(ImGuiTableBgTarget_CellBg,ImGui::GetColorU32(uiColors[GUI_COLOR_SONG_LOOP]));

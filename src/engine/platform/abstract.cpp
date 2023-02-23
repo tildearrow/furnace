@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@
  */
 
 #include "../dispatch.h"
+#include "../../ta-log.h"
 
 void DivDispatch::acquire(short** buf, size_t len) {
 }
@@ -121,7 +122,8 @@ void DivDispatch::notifyWaveChange(int ins) {
 }
 
 void DivDispatch::notifyInsDeletion(void* ins) {
-
+  logE("notifyInsDeletion NOT implemented!");
+  abort();
 }
 
 void DivDispatch::notifyPlaybackStop() {

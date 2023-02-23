@@ -115,6 +115,7 @@ the following instrument types are available:
 - 45: K007232
 - 46: GA20
 - 47: Pokémon Mini
+- 48: SM8521
 
 the following feature codes are recognized:
 

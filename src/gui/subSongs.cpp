@@ -106,6 +106,12 @@ void FurnaceGUI::drawSubSongs() {
     if (ImGui::InputText("##SubSongName",&e->curSubSong->name,ImGuiInputTextFlags_UndoRedo)) {
       MARK_MODIFIED;
     }
+
+    if (ImGui::GetContentRegionAvail().y>(10.0f*dpiScale)) {
+      if (ImGui::InputTextMultiline("##SubSongNotes",&e->curSubSong->notes,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_UndoRedo)) {
+        MARK_MODIFIED;
+      }
+    }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SUBSONGS;
   ImGui::End();
