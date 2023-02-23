@@ -84,11 +84,13 @@ void DivPlatformSM8521::tick(bool sysTick) {
   unsigned char keyState=0x80;
   for (int i=0; i<3; i++) {
     // anti-click
+    /*
     if (antiClickEnabled && sysTick && chan[i].freq>0) {
       chan[i].antiClickPeriodCount+=(chipClock/MAX(parent->getCurHz(),1.0f));
       chan[i].antiClickWavePos+=chan[i].antiClickPeriodCount/chan[i].freq;
       chan[i].antiClickPeriodCount%=chan[i].freq;
     }
+    */
 
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -362,9 +364,9 @@ void DivPlatformSM8521::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformSM8521::setFlags(const DivConfig& flags) {
-  antiClickEnabled=!flags.getBool("noAntiClick",false);
   chipClock=11059200;
   CHECK_CUSTOM_CLOCK;
+  antiClickEnabled=!flags.getBool("noAntiClick",false);
   rate=chipClock/4/8; // CKIN -> fCLK(/2) -> Function blocks (/2)
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate;
