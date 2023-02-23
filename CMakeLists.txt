@@ -600,6 +600,8 @@ src/gui/fileDialog.cpp
 src/gui/intConst.cpp
 src/gui/guiConst.cpp
 
+src/gui/introTune.cpp
+
 src/gui/about.cpp
 src/gui/channels.cpp
 src/gui/chanOsc.cpp

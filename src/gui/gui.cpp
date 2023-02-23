@@ -38,6 +38,7 @@
 #include "guiConst.h"
 #include "intConst.h"
 #include "scaling.h"
+#include "introTune.h"
 #include <stdint.h>
 #include <zlib.h>
 #include <fmt/printf.h>
@@ -5663,6 +5664,12 @@ bool FurnaceGUI::init() {
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     oldPat[i]=new DivPattern;
+  }
+
+  if ((!tutorial.introPlayed || settings.alwaysPlayIntro>=2) && curFileName.empty()) {
+    unsigned char* introTemp=new unsigned char[intro_fur_len];
+    memcpy(introTemp,intro_fur,intro_fur_len);
+    e->load(introTemp,intro_fur_len);
   }
 
   firstFrame=true;

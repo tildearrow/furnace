@@ -1469,6 +1469,42 @@ void DivEngine::createNew(const char* description, String sysName, bool inBase64
   BUSY_END;
 }
 
+void DivEngine::createNewFromDefaults() {
+  quitDispatch();
+  BUSY_BEGIN;
+  saveLock.lock();
+  song.unload();
+  song=DivSong();
+  changeSong(0);
+
+  String preset=getConfString("initialSys2","");
+  bool oldVol=getConfInt("configVersion",DIV_ENGINE_VERSION)<135;
+  if (preset.empty()) {
+    // try loading old preset
+    preset=decodeSysDesc(getConfString("initialSys",""));
+    oldVol=false;
+  }
+  logD("preset size %ld",preset.size());
+  if (preset.size()>0 && (preset.size()&3)==0) {
+    initSongWithDesc(preset.c_str(),true,oldVol);
+  }
+  String sysName=getConfString("initialSysName","");
+  if (sysName=="") {
+    song.systemName=getSongSystemLegacyName(song,!getConfInt("noMultiSystem",0));
+  } else {
+    song.systemName=sysName;
+  }
+
+  recalcChans();
+  saveLock.unlock();
+  BUSY_END;
+  initDispatch();
+  BUSY_BEGIN;
+  renderSamples();
+  reset();
+  BUSY_END;
+}
+
 void DivEngine::swapChannels(int src, int dest) {
   logV("swapping channel %d with %d",src,dest);
   if (src==dest) {

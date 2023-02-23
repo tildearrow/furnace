@@ -71,6 +71,11 @@ void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2&
   dl->AddImageQuad(img,quad0,quad1,quad2,quad3,uv0,uv1,uv2,uv3,colorConverted);
 }
 
+void FurnaceGUI::endIntroTune() {
+  stop();
+  e->createNewFromDefaults();
+}
+
 void FurnaceGUI::drawIntro(double introTime, bool monitor) {
   if (monitor) {
     if (introTime<0.0) introTime=0.0;
@@ -264,6 +269,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
           if (introSkipDo) {
             introSkip+=ImGui::GetIO().DeltaTime;
             if (introSkip>=0.5) {
+              if (e->isPlaying()) endIntroTune();
               introPos=0.1;
               if (introSkip>=0.75) introPos=9.1;
             }
@@ -285,6 +291,12 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
     ImGui::End();
 
     if (mustClear<=0 && !monitor) {
+      if (!shortIntro && introPos<=0.0) {
+        e->setOrder(0);
+        e->setRepeatPattern(false);
+        play();
+      }
+      if (e->isPlaying() && introPos>=8.0 && !shortIntro) endIntroTune();
       introPos+=ImGui::GetIO().DeltaTime;
       if (introPos>=(shortIntro?1.0:9.0)) {
         introPos=10.0;

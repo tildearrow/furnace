@@ -2006,6 +2006,7 @@ class FurnaceGUI {
   void play(int row=0);
   void setOrder(unsigned char order, bool forced=false);
   void stop();
+  void endIntroTune();
 
   void previewNote(int refChan, int note, bool autoNote=false);
   void stopPreviewNote(SDL_Scancode scancode, bool autoNote=false);

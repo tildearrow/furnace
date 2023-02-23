@@ -516,6 +516,7 @@ class DivEngine {
     String decodeSysDesc(String desc);
     // start fresh
     void createNew(const char* description, String sysName, bool inBase64=true);
+    void createNewFromDefaults();
     // load a file.
     bool load(unsigned char* f, size_t length);
     // save as .dmf.
