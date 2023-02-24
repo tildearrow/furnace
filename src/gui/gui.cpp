@@ -4639,12 +4639,12 @@ bool FurnaceGUI::loop() {
       }
     }
 
-    if (warnQuit && introPos<9.0) {
+    if (warnQuit && introPos>=9.0) {
       warnQuit=false;
       ImGui::OpenPopup("Warning");
     }
 
-    if (displayError && introPos<9.0) {
+    if (displayError && introPos>=9.0) {
       displayError=false;
       ImGui::OpenPopup("Error");
     }
