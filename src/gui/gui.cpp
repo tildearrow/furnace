@@ -3652,69 +3652,67 @@ bool FurnaceGUI::loop() {
           }
           ImGui::EndMenu();
         }
-        if (!basicMode) {
-          ImGui::Separator();
-          if (ImGui::BeginMenu("add chip...")) {
-            DivSystem picked=systemPicker();
-            if (picked!=DIV_SYSTEM_NULL) {
-              if (!e->addSystem(picked)) {
-                showError("cannot add chip! ("+e->getLastError()+")");
+        ImGui::Separator();
+        if (ImGui::BeginMenu("add chip...")) {
+          DivSystem picked=systemPicker();
+          if (picked!=DIV_SYSTEM_NULL) {
+            if (!e->addSystem(picked)) {
+              showError("cannot add chip! ("+e->getLastError()+")");
+            } else {
+              MARK_MODIFIED;
+            }
+            ImGui::CloseCurrentPopup();
+            if (e->song.autoSystem) {
+              autoDetectSystem();
+            }
+            updateWindowTitle();
+          }
+          ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("configure chip...")) {
+          for (int i=0; i<e->song.systemLen; i++) {
+            if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSP%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
+              drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true);
+              ImGui::TreePop();
+            }
+          }
+          ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("change chip...")) {
+          ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
+          for (int i=0; i<e->song.systemLen; i++) {
+            if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
+              DivSystem picked=systemPicker();
+              if (picked!=DIV_SYSTEM_NULL) {
+                e->changeSystem(i,picked,preserveChanPos);
+                MARK_MODIFIED;
+                if (e->song.autoSystem) {
+                  autoDetectSystem();
+                }
+                updateWindowTitle();
+                ImGui::CloseCurrentPopup();
+              }
+              ImGui::EndMenu();
+            }
+          }
+          ImGui::EndMenu();
+        }
+        if (ImGui::BeginMenu("remove chip...")) {
+          ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
+          for (int i=0; i<e->song.systemLen; i++) {
+            if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
+              if (!e->removeSystem(i,preserveChanPos)) {
+                showError("cannot remove chip! ("+e->getLastError()+")");
               } else {
                 MARK_MODIFIED;
               }
-              ImGui::CloseCurrentPopup();
               if (e->song.autoSystem) {
                 autoDetectSystem();
-              }
-              updateWindowTitle();
-            }
-            ImGui::EndMenu();
-          }
-          if (ImGui::BeginMenu("configure chip...")) {
-            for (int i=0; i<e->song.systemLen; i++) {
-              if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSP%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-                drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true);
-                ImGui::TreePop();
+                updateWindowTitle();
               }
             }
-            ImGui::EndMenu();
           }
-          if (ImGui::BeginMenu("change chip...")) {
-            ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
-            for (int i=0; i<e->song.systemLen; i++) {
-              if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-                DivSystem picked=systemPicker();
-                if (picked!=DIV_SYSTEM_NULL) {
-                  e->changeSystem(i,picked,preserveChanPos);
-                  MARK_MODIFIED;
-                  if (e->song.autoSystem) {
-                    autoDetectSystem();
-                  }
-                  updateWindowTitle();
-                  ImGui::CloseCurrentPopup();
-                }
-                ImGui::EndMenu();
-              }
-            }
-            ImGui::EndMenu();
-          }
-          if (ImGui::BeginMenu("remove chip...")) {
-            ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
-            for (int i=0; i<e->song.systemLen; i++) {
-              if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-                if (!e->removeSystem(i,preserveChanPos)) {
-                  showError("cannot remove chip! ("+e->getLastError()+")");
-                } else {
-                  MARK_MODIFIED;
-                }
-                if (e->song.autoSystem) {
-                  autoDetectSystem();
-                  updateWindowTitle();
-                }
-              }
-            }
-            ImGui::EndMenu();
-          }
+          ImGui::EndMenu();
         }
         ImGui::Separator();
         if (ImGui::MenuItem("restore backup",BIND_FOR(GUI_ACTION_OPEN_BACKUP))) {
@@ -3792,11 +3790,13 @@ bool FurnaceGUI::loop() {
         }
         if (ImGui::MenuItem("orders",BIND_FOR(GUI_ACTION_WINDOW_ORDERS),ordersOpen)) ordersOpen=!ordersOpen;
         if (ImGui::MenuItem("pattern",BIND_FOR(GUI_ACTION_WINDOW_PATTERN),patternOpen)) patternOpen=!patternOpen;
+        if (ImGui::MenuItem("mixer",BIND_FOR(GUI_ACTION_WINDOW_MIXER),mixerOpen)) mixerOpen=!mixerOpen;
         if (!basicMode) {
-          if (ImGui::MenuItem("mixer",BIND_FOR(GUI_ACTION_WINDOW_MIXER),mixerOpen)) mixerOpen=!mixerOpen;
           if (ImGui::MenuItem("grooves",BIND_FOR(GUI_ACTION_WINDOW_GROOVES),groovesOpen)) groovesOpen=!groovesOpen;
           if (ImGui::MenuItem("channels",BIND_FOR(GUI_ACTION_WINDOW_CHANNELS),channelsOpen)) channelsOpen=!channelsOpen;
-          if (ImGui::MenuItem("pattern manager",BIND_FOR(GUI_ACTION_WINDOW_PAT_MANAGER),patManagerOpen)) patManagerOpen=!patManagerOpen;
+        }
+        if (ImGui::MenuItem("pattern manager",BIND_FOR(GUI_ACTION_WINDOW_PAT_MANAGER),patManagerOpen)) patManagerOpen=!patManagerOpen;
+        if (!basicMode) {
           if (ImGui::MenuItem("chip manager",BIND_FOR(GUI_ACTION_WINDOW_SYS_MANAGER),sysManagerOpen)) sysManagerOpen=!sysManagerOpen;
           if (ImGui::MenuItem("compatibility flags",BIND_FOR(GUI_ACTION_WINDOW_COMPAT_FLAGS),compatFlagsOpen)) compatFlagsOpen=!compatFlagsOpen;
         }
@@ -4007,7 +4007,7 @@ bool FurnaceGUI::loop() {
       drawWaveEdit();
       drawInsList();
       drawInsEdit();
-      if (!basicMode) drawMixer();
+      drawMixer();
 
       readOsc();
 
@@ -4022,7 +4022,9 @@ bool FurnaceGUI::loop() {
       drawNotes();
       if (!basicMode) {
         drawChannels();
-        drawPatManager();
+      }
+      drawPatManager();
+      if (!basicMode) {
         drawSysManager();
       }
       drawClock();
