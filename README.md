@@ -45,7 +45,7 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
     - Yamaha YMZ280B (PCMD8) used in several arcades
     - Ricoh RF5C68 used in Sega CD and FM Towns
     - OKI MSM6258 used in Sharp X68000 
-	- OKI MSM6295 used in various arcades
+    - OKI MSM6295 used in various arcades
     - Konami K007232 used in several Konami arcades
     - Irem GA20 used in several Irem arcades
     - Ensoniq ES5506 used in several arcades and Soundscape PC sound cards
