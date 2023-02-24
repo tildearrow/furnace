@@ -17,22 +17,22 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
 
 - over 50 sound chips - and counting:
   - Yamaha FM chips:
-    - YM2151 (OPM)
-    - YM2203 (OPN)
-    - YM2413 (OPLL)
+    - YM2151 (OPM) used in Sharp X68000 and various arcades
+    - YM2203 (OPN) used in PC-88 and various arcades
+    - YM2413 (OPLL) used in Japanese Sega Master System 
     - YM2414 (OPZ) used in Yamaha TX81Z
     - YM2608 (OPNA) used in PC-98
     - YM2610 (OPNB) used in Neo Geo
-    - YM2610B (OPNB2)
+    - YM2610B (OPNB2) used in late 1980s Taito arcades
     - YM2612 (OPN2) used in Sega Genesis and FM Towns
     - YM3526 (OPL) used in C64 Sound Expander
-    - YM3812 (OPL2)
+    - YM3812 (OPL2) used in Adlib and early Sound Blasters
     - YMF262 (OPL3) with full 4-op support!
-    - Y8950 (OPL with ADPCM)
+    - Y8950 (OPL with ADPCM) used in MSX-AUDIO expansion cards
   - square wave chips:
     - AY-3-8910/YM2149(F) used in several computers and game consoles
     - Commodore VIC used in the VIC-20
-    - Microchip AY8930
+    - Microchip AY8930 used in Covox Sound Master 
     - TI SN76489 used in Sega Master System and BBC Micro
     - PC Speaker
     - Philips SAA1099 used in SAM Coupé
@@ -41,17 +41,18 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
     - SNES
     - Amiga
     - SegaPCM - all 16 channels
-    - Capcom QSound
-    - Yamaha YMZ280B (PCMD8)
+    - Capcom QSound used in CPS-2
+    - Yamaha YMZ280B (PCMD8) used in several arcades
     - Ricoh RF5C68 used in Sega CD and FM Towns
-    - OKI MSM6258 and MSM6295
-    - Konami K007232
-    - Irem GA20
-    - Ensoniq ES5506
+    - OKI MSM6258 used in Sharp X68000 
+	- OKI MSM6295 used in various arcades
+    - Konami K007232 used in several Konami arcades
+    - Irem GA20 used in several Irem arcades
+    - Ensoniq ES5506 used in several arcades and Soundscape PC sound cards
   - wavetable chips:
     - HuC6280 used in PC Engine
     - Konami Bubble System WSG
-    - Konami SCC/SCC+
+    - Konami SCC/SCC+ used in Konami's MSX games
     - Namco arcade chips (WSG/C15/C30)
     - WonderSwan
     - Seta/Allumer X1-010
