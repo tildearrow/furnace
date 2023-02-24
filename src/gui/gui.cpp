@@ -719,7 +719,7 @@ Size=1280,776\n\
 Collapsed=0\n\
 \n\
 [Window][Debug##Default]\n\
-Pos=54,19\n\
+Pos=54,43\n\
 Size=400,400\n\
 Collapsed=0\n\
 \n\
@@ -760,13 +760,13 @@ DockId=0x00000006,2\n\
 \n\
 [Window][Pattern]\n\
 Pos=0,243\n\
-Size=1246,557\n\
+Size=939,557\n\
 Collapsed=0\n\
-DockId=0x00000013,0\n\
+DockId=0x00000017,0\n\
 \n\
 [Window][Instrument Editor]\n\
-Pos=372,102\n\
-Size=682,604\n\
+Pos=229,126\n\
+Size=856,652\n\
 Collapsed=0\n\
 \n\
 [Window][Warning]\n\
@@ -775,8 +775,8 @@ Size=264,86\n\
 Collapsed=0\n\
 \n\
 [Window][Sample Editor]\n\
-Pos=531,176\n\
-Size=613,416\n\
+Pos=47,216\n\
+Size=1075,525\n\
 Collapsed=0\n\
 \n\
 [Window][About Furnace]\n\
@@ -795,7 +795,7 @@ Collapsed=0\n\
 \n\
 [Window][Settings]\n\
 Pos=655,224\n\
-Size=601,508\n\
+Size=1280,941\n\
 Collapsed=0\n\
 \n\
 [Window][Error]\n\
@@ -856,9 +856,10 @@ Size=500,71\n\
 Collapsed=0\n\
 \n\
 [Window][Statistics]\n\
-Pos=596,307\n\
-Size=512,219\n\
+Pos=0,581\n\
+Size=1246,219\n\
 Collapsed=0\n\
+DockId=0x00000016,0\n\
 \n\
 [Window][Warning##Export VGMFileDialogOverWriteDialog]\n\
 Pos=390,351\n\
@@ -866,8 +867,8 @@ Size=500,71\n\
 Collapsed=0\n\
 \n\
 [Window][Compatibility Flags]\n\
-Pos=682,287\n\
-Size=347,262\n\
+Pos=388,132\n\
+Size=580,641\n\
 Collapsed=0\n\
 \n\
 [Window][Song Comments]\n\
@@ -914,10 +915,10 @@ Collapsed=0\n\
 DockId=0x0000000A,0\n\
 \n\
 [Window][Subsongs]\n\
-Pos=978,205\n\
-Size=302,36\n\
+Pos=978,24\n\
+Size=302,217\n\
 Collapsed=0\n\
-DockId=0x00000010,0\n\
+DockId=0x00000010,1\n\
 \n\
 [Window][Oscilloscope (per-channel)]\n\
 Pos=1095,243\n\
@@ -945,6 +946,44 @@ Pos=60,60\n\
 Size=490,407\n\
 Collapsed=0\n\
 \n\
+[Window][Speed]\n\
+Pos=978,24\n\
+Size=302,217\n\
+Collapsed=0\n\
+DockId=0x00000010,2\n\
+\n\
+[Window][Song Info##Song Information]\n\
+Pos=978,24\n\
+Size=302,217\n\
+Collapsed=0\n\
+DockId=0x00000010,0\n\
+\n\
+[Window][Effect List]\n\
+Pos=941,243\n\
+Size=305,557\n\
+Collapsed=0\n\
+DockId=0x00000018,0\n\
+\n\
+[Window][Intro]\n\
+Pos=0,0\n\
+Size=2560,1600\n\
+Collapsed=0\n\
+\n\
+[Window][Welcome]\n\
+Pos=944,666\n\
+Size=672,268\n\
+Collapsed=0\n\
+\n\
+[Window][Grooves]\n\
+Pos=416,314\n\
+Size=463,250\n\
+Collapsed=0\n\
+\n\
+[Window][Clock]\n\
+Pos=60,60\n\
+Size=145,184\n\
+Collapsed=0\n\
+\n\
 [Docking][Data]\n\
 DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,776 Split=Y Selected=0x6C01C512\n\
   DockNode            ID=0x00000001 Parent=0x8B93E3BD SizeRef=1280,217 Split=X Selected=0xF3094A52\n\
@@ -956,14 +995,18 @@ DockSpace             ID=0x8B93E3BD Window=0xA787BDB4 Pos=0,24 Size=1280,776 Spl
             DockNode  ID=0x0000000D Parent=0x00000009 SizeRef=292,68 HiddenTabBar=1 Selected=0xE57B1A9D\n\
             DockNode  ID=0x0000000E Parent=0x00000009 SizeRef=292,105 HiddenTabBar=1 Selected=0x6D682373\n\
           DockNode    ID=0x0000000A Parent=0x00000005 SizeRef=292,40 HiddenTabBar=1 Selected=0x0DE44CFF\n\
-        DockNode      ID=0x00000006 Parent=0x00000008 SizeRef=323,406 Selected=0xD2AD486B\n\
+        DockNode      ID=0x00000006 Parent=0x00000008 SizeRef=323,406 Selected=0xB75D68C7\n\
     DockNode          ID=0x00000004 Parent=0x00000001 SizeRef=302,231 Split=Y Selected=0x60B9D088\n\
       DockNode        ID=0x0000000F Parent=0x00000004 SizeRef=302,179 Selected=0x60B9D088\n\
-      DockNode        ID=0x00000010 Parent=0x00000004 SizeRef=302,36 HiddenTabBar=1 Selected=0x723A6369\n\
+      DockNode        ID=0x00000010 Parent=0x00000004 SizeRef=302,36 Selected=0x82BEE2E5\n\
   DockNode            ID=0x00000002 Parent=0x8B93E3BD SizeRef=1280,512 Split=X Selected=0x6C01C512\n\
     DockNode          ID=0x0000000B Parent=0x00000002 SizeRef=1246,503 Split=X Selected=0xB9ADD0D5\n\
       DockNode        ID=0x00000011 Parent=0x0000000B SizeRef=1093,557 Split=X Selected=0xB9ADD0D5\n\
-        DockNode      ID=0x00000013 Parent=0x00000011 SizeRef=827,557 CentralNode=1 HiddenTabBar=1 Selected=0xB9ADD0D5\n\
+        DockNode      ID=0x00000013 Parent=0x00000011 SizeRef=827,557 Split=Y Selected=0xB9ADD0D5\n\
+          DockNode    ID=0x00000015 Parent=0x00000013 SizeRef=1246,336 Split=X Selected=0xB9ADD0D5\n\
+            DockNode  ID=0x00000017 Parent=0x00000015 SizeRef=939,557 CentralNode=1 HiddenTabBar=1 Selected=0xB9ADD0D5\n\
+            DockNode  ID=0x00000018 Parent=0x00000015 SizeRef=305,557 Selected=0xB94874DD\n\
+          DockNode    ID=0x00000016 Parent=0x00000013 SizeRef=1246,219 Selected=0xAD8E88F2\n\
         DockNode      ID=0x00000014 Parent=0x00000011 SizeRef=417,557 Selected=0x425428FB\n\
       DockNode        ID=0x00000012 Parent=0x0000000B SizeRef=151,557 HiddenTabBar=1 Selected=0x4C07BC58\n\
     DockNode          ID=0x0000000C Parent=0x00000002 SizeRef=32,503 HiddenTabBar=1 Selected=0x644DA2C1\n";
@@ -5374,7 +5417,7 @@ bool FurnaceGUI::init() {
   introMonOpen=e->getConfBool("introMonOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
-  effectListOpen=e->getConfBool("effectListOpen",false);
+  effectListOpen=e->getConfBool("effectListOpen",true);
   subSongsOpen=e->getConfBool("subSongsOpen",true);
   findOpen=e->getConfBool("findOpen",false);
   spoilerOpen=e->getConfBool("spoilerOpen",false);
