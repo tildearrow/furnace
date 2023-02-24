@@ -1201,7 +1201,7 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
   }
 
 void FurnaceGUI::keyDown(SDL_Event& ev) {
-  if (introPos<9.0 && !shortIntro) return;
+  if (introPos<11.0 && !shortIntro) return;
   if (ImGuiFileDialog::Instance()->IsOpened()) return;
   if (aboutOpen) return;
 
@@ -2718,7 +2718,7 @@ int _processEvent(void* instance, SDL_Event* event) {
 }
 
 int FurnaceGUI::processEvent(SDL_Event* ev) {
-  if (introPos<9.0 && !shortIntro) return 1;
+  if (introPos<11.0 && !shortIntro) return 1;
 #ifdef IS_MOBILE
   if (ev->type==SDL_APP_TERMINATING) {
     // TODO: save last song state here
@@ -2931,7 +2931,7 @@ void FurnaceGUI::pointDown(int x, int y, int button) {
     bindSetTarget=0;
     bindSetPrevValue=0;
   }
-  if (introPos<9.0 && !shortIntro) {
+  if (introPos<11.0 && !shortIntro) {
     introSkipDo=true;
   }
 }
@@ -2951,7 +2951,7 @@ void FurnaceGUI::pointUp(int x, int y, int button) {
   macroDragLastY=-1;
   macroLoopDragActive=false;
   waveDragActive=false;
-  if (introPos<9.0 && introSkip<0.5 && !shortIntro) {
+  if (introPos<11.0 && introSkip<0.5 && !shortIntro) {
     introSkipDo=false;
   }
   if (sampleDragActive) {
@@ -4639,12 +4639,12 @@ bool FurnaceGUI::loop() {
       }
     }
 
-    if (warnQuit && introPos>=9.0) {
+    if (warnQuit && introPos>=11.0) {
       warnQuit=false;
       ImGui::OpenPopup("Warning");
     }
 
-    if (displayError && introPos>=9.0) {
+    if (displayError && introPos>=11.0) {
       displayError=false;
       ImGui::OpenPopup("Error");
     }
@@ -5217,7 +5217,7 @@ bool FurnaceGUI::loop() {
       }
       drawIntro(introPos);
     } else {
-      introPos=10.0;
+      introPos=12.0;
     }
 
     layoutTimeEnd=SDL_GetPerformanceCounter();
@@ -5678,7 +5678,7 @@ bool FurnaceGUI::init() {
 
   // TODO: MIDI mapping time!
   e->setMidiCallback([this](const TAMidiMessage& msg) -> int {
-    if (introPos<9.0) return -2;
+    if (introPos<11.0) return -2;
     midiLock.lock();
     midiQueue.push(msg);
     midiLock.unlock();

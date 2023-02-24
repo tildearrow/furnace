@@ -100,11 +100,11 @@ void FurnaceGUI::endIntroTune() {
 void FurnaceGUI::drawIntro(double introTime, bool monitor) {
   if (monitor) {
     if (introTime<0.0) introTime=0.0;
-    if (introTime>9.0) introTime=9.0;
+    if (introTime>11.0) introTime=11.0;
     if (!introMonOpen) return;
-    if (introPos<(shortIntro?1.0:9.0)) return;
+    if (introPos<(shortIntro?1.0:11.0)) return;
   }
-  if (introPos<(shortIntro?1.0:9.0) || monitor) {
+  if (introPos<(shortIntro?1.0:11.0) || monitor) {
     if (!monitor) {
       WAKE_UP;
       nextWindow=GUI_WINDOW_NOTHING;
@@ -125,10 +125,10 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
           play();
         }
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(1.0,introTime<8.0?1.0:0.0,introTime<8.0?1.0:0.0,1.0),"%.2f",introTime);
+        ImGui::TextColored(ImVec4(1.0,introTime<10.0?1.0:0.0,introTime<10.0?1.0:0.0,1.0),"%.2f",introTime);
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        ImGui::ProgressBar(introTime/9.0,ImVec2(-FLT_MIN,0),"##IntroP");
+        ImGui::ProgressBar(introTime/11.0,ImVec2(-FLT_MIN,0),"##IntroP");
       }
 
       ImDrawList* dl=monitor?ImGui::GetWindowDrawList():ImGui::GetForegroundDrawList();
@@ -173,7 +173,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
 
         if (introSkip<0.5 || monitor) {
           // background
-          float bgAlpha=CLAMP(9.0-introTime,0.0,1.0);
+          float bgAlpha=CLAMP(11.0-introTime,0.0,1.0);
           bgAlpha=3.0*pow(bgAlpha,2.0)-2.0*pow(bgAlpha,3.0);
           ImU32 bgColor=ImGui::GetColorU32(ImVec4(0.0f,0.0f,0.0f,bgAlpha));
 
@@ -292,7 +292,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
             if (introSkip>=0.5) {
               if (e->isPlaying()) endIntroTune();
               introPos=0.1;
-              if (introSkip>=0.75) introPos=9.1;
+              if (introSkip>=0.75) introPos=12.0;
             }
           } else {
             introSkip-=ImGui::GetIO().DeltaTime*4.0f;
@@ -317,10 +317,10 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
         e->setRepeatPattern(false);
         play();
       }
-      if (e->isPlaying() && introPos>=8.0 && !shortIntro) endIntroTune();
+      if (e->isPlaying() && introPos>=10.0 && !shortIntro) endIntroTune();
       introPos+=ImGui::GetIO().DeltaTime;
-      if (introPos>=(shortIntro?1.0:9.0)) {
-        introPos=10.0;
+      if (introPos>=(shortIntro?1.0:11.0)) {
+        introPos=12.0;
         tutorial.introPlayed=true;
         commitTutorial();
       }
