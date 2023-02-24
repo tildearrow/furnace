@@ -4639,12 +4639,12 @@ bool FurnaceGUI::loop() {
       }
     }
 
-    if (warnQuit) {
+    if (warnQuit && introPos<9.0) {
       warnQuit=false;
       ImGui::OpenPopup("Warning");
     }
 
-    if (displayError) {
+    if (displayError && introPos<9.0) {
       displayError=false;
       ImGui::OpenPopup("Error");
     }
@@ -5678,6 +5678,7 @@ bool FurnaceGUI::init() {
 
   // TODO: MIDI mapping time!
   e->setMidiCallback([this](const TAMidiMessage& msg) -> int {
+    if (introPos<9.0) return -2;
     midiLock.lock();
     midiQueue.push(msg);
     midiLock.unlock();
