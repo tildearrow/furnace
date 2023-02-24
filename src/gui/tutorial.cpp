@@ -58,7 +58,7 @@ void FurnaceGUI::drawTutorial() {
       "- click on the pattern or use arrow keys to move the cursor\n"
       "- values (instrument, volume, effects and effect values) are in hexadecimal\n"
       "- hit enter to play/stop the song\n"
-      "- extend the song hy adding more orders in the Orders window\n"
+      "- extend the song by adding more orders in the Orders window\n"
       "- click on the Orders matrix to change the patterns of a channel (left click increases; right click decreases)"
     );
 
