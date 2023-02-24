@@ -198,9 +198,9 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
             float s1a=CLAMP((introTime-3.2)*1.3,0.0f,1.0f);
             float s2a=CLAMP((introTime-4.5)*1.0,0.0f,1.0f);
             float addition=(3*pow(s1a,2)-2*pow(s1a,3)+(3*pow(s2a,2)-2*pow(s2a,3))*1.5)*3.5;
-            drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.125,0.25-(introTime+addition)*0.05),ImVec2(18.0,18.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.4,0.1+0.7*s1a,1.0*s1a,0.5*bgAlpha));
-            drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.4,0.25-(introTime+addition)*0.08),ImVec2(18.0,18.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.5-0.4*s1a,0.8-0.6*s1a,1.0*s1a,0.6*bgAlpha));
-            drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.7,0.25-(introTime+addition)*0.03),ImVec2(20.0,20.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.4+0.3*s1a,1.0,0.7,(0.5-0.4*s1a)*bgAlpha));
+            drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.125,0.25-(introTime+addition)*0.05),ImVec2(18.0,18.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.2,0.1+0.7*s1a,1.0*s1a,0.5*bgAlpha));
+            drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.4,0.25-(introTime+addition)*0.08),ImVec2(18.0,18.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.1*s1a,0.2+0.4*s1a,1.0*s1a,0.6*bgAlpha));
+            drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.7,0.25-(introTime+addition)*0.03),ImVec2(20.0,20.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.2+0.5*s1a,0.2,0.7,(0.5-0.4*s1a)*bgAlpha));
           }
 
           const double fallPatX[]={
