@@ -136,11 +136,11 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
             rWrite(0x86+(i<<3),3+((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
             rWrite(0x84+(i<<3),(sampleOffSegaPCM[chan[i].pcm.sample])&0xff);
             rWrite(0x85+(i<<3),(sampleOffSegaPCM[chan[i].pcm.sample]>>8)&0xff);
-            rWrite(6+(i<<3),MIN(255,((sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+actualLength-1)>>8));
+            rWrite(6+(i<<3),MIN(255,((sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+actualLength-2)>>8));
             if (loopStart<0 || loopStart>=actualLength) {
               rWrite(0x86+(i<<3),2+((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
             } else {
-              int loopPos=(sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+loopStart+sampleLoopOff[chan[i].pcm.sample];
+              int loopPos=(sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+loopStart;
               rWrite(4+(i<<3),loopPos&0xff);
               rWrite(5+(i<<3),(loopPos>>8)&0xff);
               rWrite(0x86+(i<<3),((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
@@ -153,11 +153,11 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
             rWrite(0x86+(i<<3),3+((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
             rWrite(0x84+(i<<3),(sampleOffSegaPCM[chan[i].pcm.sample])&0xff);
             rWrite(0x85+(i<<3),(sampleOffSegaPCM[chan[i].pcm.sample]>>8)&0xff);
-            rWrite(6+(i<<3),MIN(255,((sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+actualLength-1)>>8));
+            rWrite(6+(i<<3),MIN(255,((sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+actualLength-2)>>8));
             if (loopStart<0 || loopStart>=actualLength) {
               rWrite(0x86+(i<<3),2+((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
             } else {
-              int loopPos=(sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+loopStart+sampleLoopOff[chan[i].pcm.sample];
+              int loopPos=(sampleOffSegaPCM[chan[i].pcm.sample]&0xffff)+loopStart;
               rWrite(4+(i<<3),loopPos&0xff);
               rWrite(5+(i<<3),(loopPos>>8)&0xff);
               rWrite(0x86+(i<<3),((sampleOffSegaPCM[chan[i].pcm.sample]>>16)<<3));
@@ -458,27 +458,20 @@ void DivPlatformSegaPCM::reset() {
     if ((memPos&0xff0000)!=((memPos+alignedSize)&0xff0000)) {
       memPos=(memPos+0xffff)&0xff0000;
     }
+    if (alignedSize&(~0xff)) {
+      memPos+=256-(alignedSize&0xff);
+    }
     logV("- sample %d will be at %x with length %x",i,memPos,alignedSize);
     sampleLoaded[i]=true;
     if (memPos>=16777216) break;
     sampleOffSegaPCM[i]=memPos;
-    unsigned int readPos=0;
     for (unsigned int j=0; j<alignedSize; j++) {
-      if (readPos>=(unsigned int)sample->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)) {
-        if (sample->isLoopable()) {
-          readPos=sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT);
-          sampleMem[memPos++]=((unsigned char)sample->data8[readPos]+0x80);
-        } else {
-          sampleMem[memPos++]=0x80;
-        }
-      } else {
-        sampleMem[memPos++]=((unsigned char)sample->data8[readPos]+0x80);
-      }
-      readPos++;
+      sampleMem[memPos++]=((unsigned char)sample->data8[j]+0x80);
       if (memPos>=16777216) break;
     }
-    sampleLoopOff[i]=readPos-sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT);
     if (memPos>=16777216) break;
+
+    memPos&=~0xff;
   }
   sampleMemLen=memPos;
 }

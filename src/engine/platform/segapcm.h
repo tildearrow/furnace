@@ -76,7 +76,6 @@ class DivPlatformSegaPCM: public DivDispatch {
     short pendingWrites[256];
 
     unsigned int sampleOffSegaPCM[256];
-    unsigned int sampleLoopOff[256];
     bool sampleLoaded[256];
   
     friend void putDispatchChip(void*,int);
