@@ -1500,10 +1500,12 @@ class FurnaceGUI {
   struct Tutorial {
     int userComesFrom;
     bool introPlayed;
+    bool protoWelcome;
     bool taken[GUI_TUTORIAL_MAX];
     Tutorial():
       userComesFrom(0),
-      introPlayed(false) {
+      introPlayed(false),
+      protoWelcome(false) {
       memset(taken,0,GUI_TUTORIAL_MAX*sizeof(bool));
     }
   } tutorial;
@@ -1934,6 +1936,7 @@ class FurnaceGUI {
   void drawFindReplace();
   void drawSpoiler();
   void drawClock();
+  void drawTutorial();
 
   void parseKeybinds();
   void promptKey(int which);

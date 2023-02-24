@@ -18,13 +18,48 @@
  */
 
 #include "gui.h"
+#include <imgui.h>
 
 void FurnaceGUI::syncTutorial() {
   tutorial.userComesFrom=e->getConfInt("tutUserComesFrom",0);
   tutorial.introPlayed=e->getConfBool("tutIntroPlayed",false);
+  tutorial.protoWelcome=e->getConfBool("tutProtoWelcome",false);
 }
 
 void FurnaceGUI::commitTutorial() {
   e->setConf("tutUserComesFrom",tutorial.userComesFrom);
   e->setConf("tutIntroPlayed",tutorial.introPlayed);
+  e->setConf("tutProtoWelcome",tutorial.protoWelcome);
+}
+
+void FurnaceGUI::drawTutorial() {
+  if (!tutorial.protoWelcome) {
+    ImGui::OpenPopup("Welcome");
+  }
+  if (ImGui::BeginPopupModal("Welcome",NULL,ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoTitleBar)) {
+    ImGui::PushFont(bigFont);
+    ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Welcome!").x)*0.5);
+    ImGui::Text("Welcome!");
+    ImGui::PopFont();
+
+    ImGui::Text("Hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi hi");
+    if (ImGui::Button("Start in Basic Mode")) {
+      basicMode=true;
+      tutorial.protoWelcome=true;
+      commitTutorial();
+      ImGui::CloseCurrentPopup();
+    }
+    if (ImGui::Button("Start in Advanced Mode")) {
+      basicMode=false;
+      tutorial.protoWelcome=true;
+      commitTutorial();
+      ImGui::CloseCurrentPopup();
+    }
+
+    ImGui::SetWindowPos(ImVec2(
+      (canvasW-ImGui::GetWindowSize().x)*0.5,
+      (canvasH-ImGui::GetWindowSize().y)*0.5
+    ));
+    ImGui::EndPopup();
+  }
 }
