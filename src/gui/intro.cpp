@@ -20,6 +20,7 @@
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "imgui_internal.h"
+#include <fmt/printf.h>
 
 void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2& pos, const ImVec2& scale, double rotate, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& imgColor) {
   FurnaceGUIImage* imgI=getImage(image);
@@ -73,7 +74,27 @@ void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2&
 
 void FurnaceGUI::endIntroTune() {
   stop();
-  e->createNewFromDefaults();
+  if (curFileName.empty()) {
+    e->createNewFromDefaults();
+  } else { // load pending song
+    if (load(curFileName)>0) {
+      showError(fmt::sprintf("Error while loading file! (%s)",lastError));
+      curFileName="";
+      e->createNewFromDefaults();
+    }
+  }
+  undoHist.clear();
+  redoHist.clear();
+  modified=false;
+  curNibble=false;
+  orderNibble=false;
+  orderCursor=-1;
+  samplePos=0;
+  updateSampleTex=true;
+  selStart=SelectionPoint();
+  selEnd=SelectionPoint();
+  cursor=SelectionPoint();
+  updateWindowTitle();
 }
 
 void FurnaceGUI::drawIntro(double introTime, bool monitor) {
@@ -89,7 +110,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
       nextWindow=GUI_WINDOW_NOTHING;
       ImGui::SetNextWindowPos(ImVec2(0,0));
       ImGui::SetNextWindowSize(ImVec2(canvasW,canvasH));
-      ImGui::SetNextWindowFocus();
+      if (introPos<0.1) ImGui::SetNextWindowFocus();
     }
     if (ImGui::Begin(monitor?"IntroMon X":"Intro",monitor?(&introMonOpen):NULL,monitor?globalWinFlags:(ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground))) {
       if (monitor) {

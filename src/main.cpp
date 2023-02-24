@@ -451,7 +451,7 @@ int main(int argc, char** argv) {
 
   e.preInit();
 
-  if (!fileName.empty()) {
+  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",false)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
     logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
