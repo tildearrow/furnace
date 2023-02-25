@@ -998,6 +998,29 @@ struct FurnaceGUISysCategory {
     description(NULL) {}
 };
 
+typedef std::function<void()> TutorialFunc;
+
+struct FurnaceGUITutorialStep {
+  const char* text;
+  int waitForTrigger;
+  TutorialFunc run;
+  TutorialFunc runAfter;
+  
+  FurnaceGUITutorialStep(const char* t, int trigger=-1, TutorialFunc activeFunc=NULL, TutorialFunc endFunc=NULL):
+    text(t),
+    waitForTrigger(trigger),
+    run(activeFunc),
+    runAfter(endFunc) {}
+};
+
+struct FurnaceGUITutorialDef {
+  const char* name;
+  std::vector<FurnaceGUITutorialStep> steps;
+  FurnaceGUITutorialDef():
+    name("Help!") {}
+  FurnaceGUITutorialDef(const char* n, std::initializer_list<FurnaceGUITutorialStep> step);
+};
+
 struct FurnaceGUIMacroDesc {
   DivInstrumentMacro* macro;
   int min, max;
@@ -1615,6 +1638,7 @@ class FurnaceGUI {
   std::vector<std::pair<DivInstrument*,bool>> pendingIns;
 
   std::vector<FurnaceGUISysCategory> sysCategories;
+  FurnaceGUITutorialDef tutorials[GUI_TUTORIAL_MAX];
 
   bool wavePreviewOn;
   SDL_Scancode wavePreviewKey;
@@ -1846,6 +1870,9 @@ class FurnaceGUI {
   bool introSkipDo;
   ImVec2 introMin, introMax;
 
+  // tutorial
+  int curTutorial, curTutorialStep;
+
   void drawSSGEnv(unsigned char type, const ImVec2& size);
   void drawWaveform(unsigned char type, bool opz, const ImVec2& size);
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
@@ -2031,6 +2058,7 @@ class FurnaceGUI {
 
   void applyUISettings(bool updateFonts=true);
   void initSystemPresets();
+  void initTutorial();
 
   void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex=false, bool bit30=false);
   void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, unsigned char& macroLoop, int macroMin, int macroMax, unsigned char& macroRel, bool bit30=false);

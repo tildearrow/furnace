@@ -20,6 +20,16 @@
 #include "gui.h"
 #include <imgui.h>
 
+#define TS FurnaceGUITutorialStep
+
+void FurnaceGUI::initTutorial() {
+  tutorials[GUI_TUTORIAL_OVERVIEW]=FurnaceGUITutorialDef("Overview",{
+    TS("step 1"),
+    TS("step 2"),
+    TS("step 3")
+  });
+}
+
 void FurnaceGUI::syncTutorial() {
   tutorial.userComesFrom=e->getConfInt("tutUserComesFrom",0);
   tutorial.introPlayed=e->getConfBool("tutIntroPlayed",false);
@@ -101,4 +111,9 @@ void FurnaceGUI::drawTutorial() {
     ));
     ImGui::EndPopup();
   }
+}
+
+FurnaceGUITutorialDef::FurnaceGUITutorialDef(const char* n, std::initializer_list<FurnaceGUITutorialStep> step):
+  name(n) {
+  steps=step;
 }

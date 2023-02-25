@@ -5496,6 +5496,7 @@ bool FurnaceGUI::init() {
   }
 
   initSystemPresets();
+  initTutorial();
 
   e->setAutoNotePoly(noteInputPoly);
 
@@ -6329,7 +6330,9 @@ FurnaceGUI::FurnaceGUI():
   monitorPos(0.0),
   mustClear(2),
   initialScreenWipe(1.0f),
-  introSkipDo(false) {
+  introSkipDo(false),
+  curTutorial(-1),
+  curTutorialStep(0) {
   // value keys
   valueKeys[SDLK_0]=0;
   valueKeys[SDLK_1]=1;
