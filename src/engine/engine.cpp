@@ -1481,6 +1481,7 @@ void DivEngine::createNewFromDefaults() {
   bool oldVol=getConfInt("configVersion",DIV_ENGINE_VERSION)<135;
   if (preset.empty()) {
     // try loading old preset
+    logD("trying to load old preset");
     preset=decodeSysDesc(getConfString("initialSys",""));
     oldVol=false;
   }
@@ -4468,6 +4469,7 @@ bool DivEngine::init() {
     bool oldVol=getConfInt("configVersion",DIV_ENGINE_VERSION)<135;
     if (preset.empty()) {
       // try loading old preset
+      logD("trying to load old preset");
       preset=decodeSysDesc(getConfString("initialSys",""));
       oldVol=false;
     }

@@ -2758,6 +2758,7 @@ void FurnaceGUI::syncSettings() {
         settings.initialSys.set(fmt::sprintf("pan%d",i),newPan);
       }
       e->setConf("initialSys2",settings.initialSys.toBase64());
+      e->setConf("configVersion",DIV_ENGINE_VERSION);
     }
   }
 
