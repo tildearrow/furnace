@@ -780,6 +780,8 @@ endif()
 
 if(ANDROID AND NOT TERMUX)
   add_library(furnace SHARED ${USED_SOURCES})
+elseif(WIN32)
+  add_executable(furnace WIN32 ${USED_SOURCES})
 else()
   add_executable(furnace ${USED_SOURCES})
 endif()
