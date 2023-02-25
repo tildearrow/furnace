@@ -509,12 +509,8 @@ int DivPlatformTX81Z::dispatch(DivCommand c) {
       chan[c.chan].chVolL=(c.value>0);
       chan[c.chan].chVolR=(c.value2>0);
       chan[c.chan].freqChanged=true;
-      /*
-      if (isMuted[c.chan]) {
-        rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3));
-      } else {
-        rWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|((chan[c.chan].chVolL&1)<<6)|((chan[c.chan].chVolR&1)<<7));
-      }*/
+
+      immWrite(chanOffs[c.chan]+ADDR_LR_FB_ALG,(chan[c.chan].state.alg&7)|(chan[c.chan].state.fb<<3)|(chan[c.chan].active?0x40:0)|(chan[c.chan].chVolR<<7));
       break;
     }
     case DIV_CMD_PITCH: {
