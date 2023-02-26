@@ -296,10 +296,12 @@ size | description
      |   - 0xff: reserved for development
      | - (compound!) means that the system is composed of two or more chips,
      |   and has to be flattened.
- 32  | sound chip volumes
+ 32  | sound chip volumes (<135) or reserved
      | - signed char, 64=1.0, 127=~2.0
- 32  | sound chip panning
+     | - as of version 135 these fields only exist for compatibility reasons.
+ 32  | sound chip panning (<135) or reserved
      | - signed char, -128=left, 127=right
+     | - as of version 135 these fields only exist for compatibility reasons.
  128 | sound chip flag pointers (>=119) or sound chip flags
      | - before 118, these were 32-bit flags.
      | - for conversion details, see the "converting from old flags" section.

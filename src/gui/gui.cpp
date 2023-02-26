@@ -4076,6 +4076,8 @@ bool FurnaceGUI::loop() {
       drawEffectList();
     }
 
+    activateTutorial(GUI_TUTORIAL_OVERVIEW);
+
     if (inspectorOpen) ImGui::ShowMetricsWindow(&inspectorOpen);
 
     if (firstFrame) {

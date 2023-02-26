@@ -19,6 +19,7 @@
 
 #include "gui.h"
 #include <imgui.h>
+#include "../ta-log.h"
 
 #define TS FurnaceGUITutorialStep
 
@@ -44,6 +45,7 @@ void FurnaceGUI::commitTutorial() {
 
 void FurnaceGUI::activateTutorial(FurnaceGUITutorials which) {
   if (tutorial.welcome && !tutorial.taken[which] && !ImGui::IsPopupOpen(NULL,ImGuiPopupFlags_AnyPopupId|ImGuiPopupFlags_AnyPopupLevel) && curTutorial==-1 && introPos>=10.0) {
+    logV("activating tutorial %d.",which);
     curTutorial=which;
     curTutorialStep=0;
   }
