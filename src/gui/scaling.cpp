@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,7 +24,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
-typedef HRESULT (*GDFM)(HMONITOR,int,UINT*,UINT*);
+#include "shellScalingStub.h"
+typedef HRESULT (WINAPI *GDFM)(HMONITOR,MONITOR_DPI_TYPE,UINT*,UINT*);
 #endif
 
 #ifdef __APPLE__
@@ -71,9 +72,9 @@ double getScaleFactor(const char* driverHint) {
     return 1.0;
   }
 
-  unsigned int dpiX=96;
-  unsigned int dpiY=96;
-  HRESULT result=ta_GetDpiForMonitor(disp,0,&dpiX,&dpiY);
+  UINT dpiX=96;
+  UINT dpiY=96;
+  HRESULT result=ta_GetDpiForMonitor(disp,MDT_EFFECTIVE_DPI,&dpiX,&dpiY);
   if (result!=S_OK) {
     logW("GetDpiForMonitor failure (%.8x) - no scaling detection available!",result);
 

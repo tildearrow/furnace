@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -154,6 +154,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
     unsigned int ayDiv;
     unsigned char csmChan;
     unsigned char lfoValue;
+    unsigned short ssgVol;
+    unsigned short fmVol;
     bool extSys, useCombo, fbAllOps;
 
     DivConfig ayFlags;
@@ -172,6 +174,8 @@ class DivPlatformOPN: public DivPlatformFMBase {
       ayDiv(a),
       csmChan(cc),
       lfoValue(0),
+      ssgVol(128),
+      fmVol(256),
       extSys(isExtSys),
       useCombo(false),
       fbAllOps(false) {}

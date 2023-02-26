@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -827,18 +827,15 @@ bool DivSample::resampleBlep(double r) {
   unsigned int posInt=0;
   double factor=r/(double)rate;
   float* sincITable=DivFilterTables::getSincIntegralTable();
-  float s[16];
 
-  memset(s,0,16*sizeof(float));
+  float* floatData=new float[finalCount];
+  memset(floatData,0,finalCount*sizeof(float));
 
   if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     memset(data16,0,finalCount*sizeof(short));
     for (int i=0; i<finalCount; i++) {
       if (posInt<samples) {
-        int result=data16[i]+oldData16[posInt];
-        if (result<-32768) result=-32768;
-        if (result>32767) result=32767;
-        data16[i]=result;
+        data16[i]=oldData16[posInt];
       }
       
       posFrac+=1.0;
@@ -853,28 +850,25 @@ bool DivSample::resampleBlep(double r) {
 
         for (int j=0; j<8; j++) {
           if (i-j>0) {
-            float result=data16[i-j]+t1[j]*-delta;
-            if (result<-32768) result=-32768;
-            if (result>32767) result=32767;
-            data16[i-j]=result;
+            floatData[i-j]+=t1[j]*-delta;
           }
           if (i+j+1<finalCount) {
-            float result=data16[i+j+1]+t2[j]*delta;
-            if (result<-32768) result=-32768;
-            if (result>32767) result=32767;
-            data16[i+j+1]=result;
+            floatData[i+j+1]+=t2[j]*delta;
           }
         }
       }
+    }
+    for (int i=0; i<finalCount; i++) {
+      float result=floatData[i]+data16[i];
+      if (result<-32768) result=-32768;
+      if (result>32767) result=32767;
+      data16[i]=round(result);
     }
   } else if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     memset(data8,0,finalCount);
     for (int i=0; i<finalCount; i++) {
       if (posInt<samples) {
-        int result=data8[i]+oldData8[posInt];
-        if (result<-128) result=-128;
-        if (result>127) result=127;
-        data8[i]=result;
+        data8[i]=oldData8[posInt];
       }
       
       posFrac+=1.0;
@@ -889,21 +883,22 @@ bool DivSample::resampleBlep(double r) {
 
         for (int j=0; j<8; j++) {
           if (i-j>0) {
-            float result=data8[i-j]+t1[j]*-delta;
-            if (result<-128) result=-128;
-            if (result>127) result=127;
-            data8[i-j]=result;
+            floatData[i-j]+=t1[j]*-delta;
           }
           if (i+j+1<finalCount) {
-            float result=data8[i+j+1]+t2[j]*delta;
-            if (result<-128) result=-128;
-            if (result>127) result=127;
-            data8[i+j+1]=result;
+            floatData[i+j+1]+=t2[j]*delta;
           }
         }
       }
     }
+    for (int i=0; i<finalCount; i++) {
+      float result=floatData[i]+data16[i];
+      if (result<-128) result=-128;
+      if (result>127) result=127;
+      data16[i]=round(result);
+    }
   }
+  delete[] floatData;
 
   RESAMPLE_END;
   return true;

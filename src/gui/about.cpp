@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -34,6 +34,7 @@ const char* aboutLine[]={
   "",
   "-- program --",
   "tildearrow",
+  "A M 4 N (intro tune)",
   "akumanatt",
   "cam900",
   "djtuBIG-MaliceX",
@@ -55,6 +56,8 @@ const char* aboutLine[]={
   "nicco1690",
   "DeMOSic",
   "cam900",
+  "host12prog",
+  "WindowxDeveloper",
   "",
   "-- demo songs --",
   "0x5066",
@@ -69,10 +72,13 @@ const char* aboutLine[]={
   "brickblock369",
   "Burnt Fishy",
   "CaptainMalware",
+  "Clingojam",
   "DeMOSic",
   "DevEd",
   "Dippy",
+  "djtuBIG-MaliceX",
   "dumbut",
+  "EpicTyphlosion",
   "FΛDE",
   "Forte",
   "Fragmare",
@@ -90,6 +96,7 @@ const char* aboutLine[]={
   "LVintageNerd",
   "Mahbod Karamoozian",
   "Martin Demsky",
+  "MelonadeM",
   "Miker",
   "nicco1690",
   "<nk>",
@@ -100,6 +107,7 @@ const char* aboutLine[]={
   "SuperJet Spade",
   "SwapXFO",
   "TakuikaNinja",
+  "TCORPStudios",
   "The Blender Fiddler",
   "TheDuccinator",
   "theloredev",
@@ -109,6 +117,7 @@ const char* aboutLine[]={
   "Ultraprogramer",
   "UserSniper",
   "Weeppiko",
+  "Zaxolotl",
   "ZoomTen (Zumi)",
   "",
   "-- additional feedback/fixes --",
@@ -144,6 +153,7 @@ const char* aboutLine[]={
   "MAME MSM6258 core by Barry Rodewald",
   "MAME YMZ280B core by Aaron Giles",
   "MAME GA20 core by Acho A. Tang and R. Belmont",
+  "MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert",
   "SAASound by Dave Hooper and Simon Owen",
   "SameBoy by Lior Halphon",
   "Mednafen PCE, WonderSwan, T6W28 and Virtual Boy audio cores",
@@ -171,7 +181,7 @@ const char* aboutLine[]={
   "NEOART Costa Rica",
   "all members of Deflers of Noice!",
   "",
-  "copyright © 2021-2022 tildearrow",
+  "copyright © 2021-2023 tildearrow",
   "(and contributors).",
   "licensed under GPLv2+! see",
   "LICENSE for more information.",

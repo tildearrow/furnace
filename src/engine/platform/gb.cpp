@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -284,14 +284,14 @@ void DivPlatformGB::tick(bool sysTick) {
 
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       if (i==3) { // noise
-        int ntPos=chan[i].baseFreq;
+        int ntPos=chan[i].baseFreq+chan[i].pitch2;
         if (ntPos<0) ntPos=0;
         if (ntPos>255) ntPos=255;
         chan[i].freq=noiseTable[ntPos];
       } else {
         chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
         if (chan[i].freq>2047) chan[i].freq=2047;
-        if (chan[i].freq<0) chan[i].freq=0;
+        if (chan[i].freq<1) chan[i].freq=1;
       }
       if (chan[i].keyOn) {
         if (i==2) { // wave

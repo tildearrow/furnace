@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,6 +50,7 @@ class DivPlatformQSound: public DivDispatch {
   unsigned char* sampleMem;
   size_t sampleMemLen;
   size_t sampleMemLenBS;
+  size_t sampleMemUsage;
   bool sampleLoaded[256];
   bool sampleLoadedBS[256];
   struct qsound_chip chip;

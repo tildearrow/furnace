@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@ void DivPlatformVRC6::acquire(short** buf, size_t len) {
     int sample=vrc6.out()<<9; // scale to 16 bit
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
-    buf[0][i]=buf[1][i]=sample;
+    buf[0][i]=sample;
 
     // Oscilloscope buffer part
     if (++writeOscBuf>=32) {

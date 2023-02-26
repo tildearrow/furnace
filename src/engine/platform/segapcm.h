@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,7 @@
 
 #include "../dispatch.h"
 #include "../instrument.h"
+#include "sound/segapcm.h"
 #include <queue>
 
 class DivPlatformSegaPCM: public DivDispatch {
@@ -52,6 +53,8 @@ class DivPlatformSegaPCM: public DivDispatch {
     };
     Channel chan[16];
     DivDispatchOscBuffer* oscBuf[16];
+    unsigned char* sampleMem;
+    size_t sampleMemLen;
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
@@ -59,6 +62,7 @@ class DivPlatformSegaPCM: public DivDispatch {
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
     std::queue<QueuedWrite> writes;
+    segapcm_device pcm;
     int delay;
     int pcmL, pcmR, pcmCycles;
     unsigned char sampleBank;
@@ -72,6 +76,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     short pendingWrites[256];
 
     unsigned int sampleOffSegaPCM[256];
+    bool sampleLoaded[256];
   
     friend void putDispatchChip(void*,int);
     friend void putDispatchChan(void*,int,int);
@@ -89,11 +94,16 @@ class DivPlatformSegaPCM: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     void notifyInsChange(int ins);
+    void notifyInsDeletion(void* ins);
     void renderSamples(int chipID);
     void setFlags(const DivConfig& flags);
     int getOutputCount();
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
+    const void* getSampleMem(int index=0);
+    size_t getSampleMemCapacity(int index=0);
+    size_t getSampleMemUsage(int index=0);
+    bool isSampleLoaded(int index, int sample);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformSegaPCM();

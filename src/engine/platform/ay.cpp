@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -337,6 +337,7 @@ void DivPlatformAY8910::tick(bool sysTick) {
         chan[i].dac.rate=((double)rate*((sunsoft||clockSel)?8.0:16.0))/(double)(MAX(1,off*chan[i].freq));
         if (dumpWrites) addWrite(0xffff0001+(i<<8),chan[i].dac.rate);
       }
+      if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].keyOn) {
         //rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(ins->gb.soundLen&63)));

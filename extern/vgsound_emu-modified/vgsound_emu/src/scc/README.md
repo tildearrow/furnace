@@ -1,5 +1,9 @@
 # Konami SCC
 
+## modified
+
+the emulation core has been modified for optimization.
+
 ## Summary
 
 - 5 voice wavetable

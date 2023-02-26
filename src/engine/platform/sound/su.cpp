@@ -1,3 +1,25 @@
+/* su.cpp/su.h - Sound Unit emulator
+ * Copyright (C) 2015-2023 tildearrow
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 #define _USE_MATH_DEFINES
 #include "su.h"
 #include <string.h>
@@ -17,13 +39,13 @@
 void SoundUnit::NextSample(short* l, short* r) {
   // run channels
   for (int i=0; i<8; i++) {
-    if (chan[i].vol==0 && !chan[i].flags.swvol) {
+    if (chan[i].vol==0 && !(chan[i].flags1&32)) {
       fns[i]=0;
       continue;
     }
-    if (chan[i].flags.pcm) {
+    if (chan[i].flags0&8) {
       ns[i]=pcm[chan[i].pcmpos];
-    } else switch (chan[i].flags.shape) {
+    } else switch (chan[i].flags0&7) {
       case 0:
         ns[i]=(((cycle[i]>>15)&127)>chan[i].duty)*127;
         break;
@@ -47,11 +69,13 @@ void SoundUnit::NextSample(short* l, short* r) {
         break;
     }
 
-    if (chan[i].flags.ring) {
+    // ring mod
+    if (chan[i].flags0&16) {
       ns[i]=(ns[i]*ns[(i+1)&7])>>7;
     }
     
-    if (chan[i].flags.pcm) {
+    // PCM
+    if (chan[i].flags0&8) {
       if (chan[i].freq>0x8000) {
         pcmdec[i]+=0x8000;
       } else {
@@ -62,18 +86,18 @@ void SoundUnit::NextSample(short* l, short* r) {
         if (chan[i].pcmpos<chan[i].pcmbnd) {
           chan[i].pcmpos++;
           if (chan[i].pcmpos==chan[i].pcmbnd) {
-            if (chan[i].flags.pcmloop) {
+            if (chan[i].flags1&4) {
               chan[i].pcmpos=chan[i].pcmrst;
             }
           }
           chan[i].pcmpos&=(pcmSize-1);
-        } else if (chan[i].flags.pcmloop) {
+        } else if (chan[i].flags1&4) {
           chan[i].pcmpos=chan[i].pcmrst;
         }
       }
     } else {
       ocycle[i]=cycle[i];
-      if (chan[i].flags.shape==5) {
+      if ((chan[i].flags0&7)==5) {
         switch ((chan[i].duty>>4)&3) {
           case 0:
             cycle[i]+=chan[i].freq*1-(chan[i].freq>>3);
@@ -92,7 +116,7 @@ void SoundUnit::NextSample(short* l, short* r) {
         cycle[i]+=chan[i].freq;
       }
       if ((cycle[i]&0xf80000)!=(ocycle[i]&0xf80000)) {
-        if (chan[i].flags.shape==4) {
+        if ((chan[i].flags0&7)==4) {
           lfsr[i]=(lfsr[i]>>1|(((lfsr[i]) ^ (lfsr[i] >> 2) ^ (lfsr[i] >> 3) ^ (lfsr[i] >> 5) ) & 1)<<31);
         } else {
           switch ((chan[i].duty>>4)&3) {
@@ -114,7 +138,7 @@ void SoundUnit::NextSample(short* l, short* r) {
           }
         }
       }
-      if (chan[i].flags.restim) {
+      if (chan[i].flags1&8) {
         if (--rcycle[i]<=0) {
           cycle[i]=0;
           rcycle[i]=chan[i].restimer;
@@ -122,30 +146,29 @@ void SoundUnit::NextSample(short* l, short* r) {
         }
       }
     }
-    fns[i]=ns[i]*chan[i].vol*(chan[i].flags.pcm?4:2);
-    if (chan[i].flags.fmode!=0) {
+    fns[i]=ns[i]*chan[i].vol*((chan[i].flags0&8)?4:2);
+    if ((chan[i].flags0&0xe0)!=0) {
       int ff=chan[i].cutoff;
       nslow[i]=nslow[i]+(((ff)*nsband[i])>>16);
       nshigh[i]=fns[i]-nslow[i]-(((256-chan[i].reson)*nsband[i])>>8);
       nsband[i]=(((ff)*nshigh[i])>>16)+nsband[i];
-      fns[i]=(((chan[i].flags.fmode&1)?(nslow[i]):(0))+((chan[i].flags.fmode&2)?(nshigh[i]):(0))+((chan[i].flags.fmode&4)?(nsband[i]):(0)));
+      fns[i]=(((chan[i].flags0&32)?(nslow[i]):(0))+((chan[i].flags0&64)?(nshigh[i]):(0))+((chan[i].flags0&128)?(nsband[i]):(0)));
     }
     nsL[i]=(fns[i]*SCpantabL[(unsigned char)chan[i].pan])>>8;
     nsR[i]=(fns[i]*SCpantabR[(unsigned char)chan[i].pan])>>8;
     oldfreq[i]=chan[i].freq;
-    oldflags[i]=chan[i].flags.flags;
-    if (chan[i].flags.swvol) {
+    if (chan[i].flags1&32) {
       if (--swvolt[i]<=0) {
         swvolt[i]=chan[i].swvol.speed;
-        if (chan[i].swvol.dir) {
-          chan[i].vol+=chan[i].swvol.amt;
-          if (chan[i].vol>chan[i].swvol.bound && !chan[i].swvol.loop) {
+        if (chan[i].swvol.amt&32) {
+          chan[i].vol+=chan[i].swvol.amt&31;
+          if (chan[i].vol>chan[i].swvol.bound && !(chan[i].swvol.amt&64)) {
             chan[i].vol=chan[i].swvol.bound;
           }
           if (chan[i].vol&0x80) {
-            if (chan[i].swvol.loop) {
-              if (chan[i].swvol.loopi) {
-                chan[i].swvol.dir=!chan[i].swvol.dir;
+            if (chan[i].swvol.amt&64) {
+              if (chan[i].swvol.amt&128) {
+                chan[i].swvol.amt^=32;
                 chan[i].vol=0xff-chan[i].vol;
               } else {
                 chan[i].vol&=~0x80;
@@ -155,11 +178,11 @@ void SoundUnit::NextSample(short* l, short* r) {
             }
           }
         } else {
-          chan[i].vol-=chan[i].swvol.amt;
+          chan[i].vol-=chan[i].swvol.amt&31;
           if (chan[i].vol&0x80) {
-            if (chan[i].swvol.loop) {
-              if (chan[i].swvol.loopi) {
-                chan[i].swvol.dir=!chan[i].swvol.dir;
+            if (chan[i].swvol.amt&64) {
+              if (chan[i].swvol.amt&128) {
+                chan[i].swvol.amt^=32;
                 chan[i].vol=-chan[i].vol;
               } else {
                 chan[i].vol&=~0x80;
@@ -168,29 +191,29 @@ void SoundUnit::NextSample(short* l, short* r) {
               chan[i].vol=0x0;
             }
           }
-          if (chan[i].vol<chan[i].swvol.bound && !chan[i].swvol.loop) {
+          if (chan[i].vol<chan[i].swvol.bound && !(chan[i].swvol.amt&64)) {
             chan[i].vol=chan[i].swvol.bound;
           }
         }
       }
     }
-    if (chan[i].flags.swfreq) {
+    if (chan[i].flags1&16) {
       if (--swfreqt[i]<=0) {
         swfreqt[i]=chan[i].swfreq.speed;
-        if (chan[i].swfreq.dir) {
-          if (chan[i].freq>(0xffff-chan[i].swfreq.amt)) {
+        if (chan[i].swfreq.amt&128) {
+          if (chan[i].freq>(0xffff-(chan[i].swfreq.amt&127))) {
             chan[i].freq=0xffff;
           } else {
-            chan[i].freq=(chan[i].freq*(0x80+chan[i].swfreq.amt))>>7;
+            chan[i].freq=(chan[i].freq*(0x80+(chan[i].swfreq.amt&127)))>>7;
             if ((chan[i].freq>>8)>chan[i].swfreq.bound) {
               chan[i].freq=chan[i].swfreq.bound<<8;
             }
           }
         } else {
-          if (chan[i].freq<chan[i].swfreq.amt) {
+          if (chan[i].freq<(chan[i].swfreq.amt&127)) {
             chan[i].freq=0;
           } else {
-            chan[i].freq=(chan[i].freq*(0xff-chan[i].swfreq.amt))>>8;
+            chan[i].freq=(chan[i].freq*(0xff-(chan[i].swfreq.amt&127)))>>8;
             if ((chan[i].freq>>8)<chan[i].swfreq.bound) {
               chan[i].freq=chan[i].swfreq.bound<<8;
             }
@@ -198,23 +221,23 @@ void SoundUnit::NextSample(short* l, short* r) {
         }
       }
     }
-    if (chan[i].flags.swcut) {
+    if (chan[i].flags1&64) {
       if (--swcutt[i]<=0) {
         swcutt[i]=chan[i].swcut.speed;
-        if (chan[i].swcut.dir) {
-          if (chan[i].cutoff>(0xffff-chan[i].swcut.amt)) {
+        if (chan[i].swcut.amt&128) {
+          if (chan[i].cutoff>(0xffff-(chan[i].swcut.amt&127))) {
             chan[i].cutoff=0xffff;
           } else {
-            chan[i].cutoff+=chan[i].swcut.amt;
+            chan[i].cutoff+=chan[i].swcut.amt&127;
             if ((chan[i].cutoff>>8)>chan[i].swcut.bound) {
               chan[i].cutoff=chan[i].swcut.bound<<8;
             }
           }
         } else {
-          if (chan[i].cutoff<chan[i].swcut.amt) {
+          if (chan[i].cutoff<(chan[i].swcut.amt&127)) {
             chan[i].cutoff=0;
           } else {
-            chan[i].cutoff=((2048-(unsigned int)chan[i].swcut.amt)*(unsigned int)chan[i].cutoff)>>11;
+            chan[i].cutoff=((2048-(unsigned int)(chan[i].swcut.amt&127))*(unsigned int)chan[i].cutoff)>>11;
             if ((chan[i].cutoff>>8)<chan[i].swcut.bound) {
               chan[i].cutoff=chan[i].swcut.bound<<8;
             }
@@ -222,11 +245,11 @@ void SoundUnit::NextSample(short* l, short* r) {
         }
       }
     }
-    if (chan[i].flags.resosc) {
+    if (chan[i].flags1&1) {
       cycle[i]=0;
       rcycle[i]=chan[i].restimer;
       ocycle[i]=0;
-      chan[i].flags.resosc=0;
+      chan[i].flags1&=~1;
     }
     if (muted[i]) {
       nsL[i]=0;
@@ -235,11 +258,17 @@ void SoundUnit::NextSample(short* l, short* r) {
   }
 
   // mix
-  tnsL=(nsL[0]+nsL[1]+nsL[2]+nsL[3]+nsL[4]+nsL[5]+nsL[6]+nsL[7])>>2;
-  tnsR=(nsR[0]+nsR[1]+nsR[2]+nsR[3]+nsR[4]+nsR[5]+nsR[6]+nsR[7])>>2;
+  if (dsOut) {
+    tnsL=nsL[dsChannel]<<1;
+    tnsR=nsR[dsChannel]<<1;
+    dsChannel=(dsChannel+1)&7;
+  } else {
+    tnsL=(nsL[0]+nsL[1]+nsL[2]+nsL[3]+nsL[4]+nsL[5]+nsL[6]+nsL[7])>>2;
+    tnsR=(nsR[0]+nsR[1]+nsR[2]+nsR[3]+nsR[4]+nsR[5]+nsR[6]+nsR[7])>>2;
 
-  IL1=minval(32767,maxval(-32767,tnsL))>>8;
-  IL2=minval(32767,maxval(-32767,tnsR))>>8;
+    IL1=minval(32767,maxval(-32767,tnsL))>>8;
+    IL2=minval(32767,maxval(-32767,tnsR))>>8;
+  }
 
   // write input lines to sample memory
   if (ILSIZE&64) {
@@ -301,36 +330,8 @@ void SoundUnit::NextSample(short* l, short* r) {
   }
 
   if (dsOut) {
-    tnsL=minval(32767,maxval(-32767,tnsL<<1));
-    tnsR=minval(32767,maxval(-32767,tnsR<<1));
-
-    short accumL=0;
-    short accumR=0;
-
-    for (int i=0; i<4; i++) {
-      if ((tnsL>>8)==0 && dsCounterL>0) dsCounterL=0;
-      dsCounterL+=tnsL>>8;
-      if (dsCounterL>=0) {
-        accumL+=4095;
-        dsCounterL-=127;
-      } else {
-        accumL+=-4095;
-        dsCounterL+=127;
-      }
-
-      if ((tnsR>>8)==0 && dsCounterR>0) dsCounterR=0;
-      dsCounterR+=tnsR>>8;
-      if (dsCounterR>=0) {
-        accumR+=4095;
-        dsCounterR-=127;
-      } else {
-        accumR+=-4095;
-        dsCounterR+=127;
-      }
-    }
-
-    *l=accumL;
-    *r=accumR;
+    *l=minval(32767,maxval(-32767,tnsL))&0xff00;
+    *r=minval(32767,maxval(-32767,tnsR))&0xff00;
   } else {
     *l=minval(32767,maxval(-32767,tnsL));
     *r=minval(32767,maxval(-32767,tnsR));
@@ -377,11 +378,9 @@ void SoundUnit::Reset() {
     swcutt[i]=1;
     lfsr[i]=0xaaaa;
     oldfreq[i]=0;
-    oldflags[i]=0;
     pcmdec[i]=0;
   }
-  dsCounterL=0;
-  dsCounterR=0;
+  dsChannel=0;
   tnsL=0;
   tnsR=0;
   ilBufPos=0;
@@ -393,7 +392,7 @@ void SoundUnit::Reset() {
 
 #ifdef TA_BIG_ENDIAN
 const unsigned char suBERemap[32]={
-  0x01, 0x00, 0x02, 0x03, 0x05, 0x04, 0x07, 0x06, 0x08, 0x09, 0x0b, 0x0a, 0x0d, 0x0c, 0x0f, 0x0e,
+  0x01, 0x00, 0x02, 0x03, 0x04, 0x05, 0x07, 0x06, 0x08, 0x09, 0x0b, 0x0a, 0x0d, 0x0c, 0x0f, 0x0e,
   0x11, 0x10, 0x12, 0x13, 0x15, 0x14, 0x16, 0x17, 0x19, 0x18, 0x1a, 0x1b, 0x1c, 0x1d, 0x1f, 0x1e
 };
 #endif

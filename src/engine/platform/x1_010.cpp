@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -362,7 +362,7 @@ void DivPlatformX1_010::tick(bool sysTick) {
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
         chan[i].pitch2+=chan[i].std.pitch.val;
-        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+        CLAMP_VAR(chan[i].pitch2,-65535,65535);
       } else {
         chan[i].pitch2=chan[i].std.pitch.val;
       }
@@ -484,6 +484,7 @@ void DivPlatformX1_010::tick(bool sysTick) {
         if (chan[i].freq>255) chan[i].freq=255;
         chWrite(i,2,chan[i].freq&0xff);
       } else {
+        if (chan[i].freq<0) chan[i].freq=0;
         if (chan[i].freq>65535) chan[i].freq=65535;
         chWrite(i,2,chan[i].freq&0xff);
         chWrite(i,3,(chan[i].freq>>8)&0xff);
@@ -900,6 +901,10 @@ int DivPlatformX1_010::getOutputCount() {
 
 bool DivPlatformX1_010::keyOffAffectsArp(int ch) {
   return true;
+}
+
+float DivPlatformX1_010::getPostAmp() {
+  return 4.0f;
 }
 
 void DivPlatformX1_010::notifyWaveChange(int wave) {

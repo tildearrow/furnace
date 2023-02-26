@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,9 +82,7 @@ const char** DivPlatformSCC::getRegisterSheet() {
 
 void DivPlatformSCC::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
-    for (int i=0; i<16; i++) {
-      scc->tick();
-    }
+    scc->tick(16);
     short out=(short)scc->out()<<5;
     buf[0][h]=out;
 

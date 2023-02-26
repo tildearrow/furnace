@@ -32,7 +32,7 @@ class k005289_core : public vgsound_emu_core
 
 				// internal state
 				void reset();
-				void tick();
+				void tick(const unsigned int cycles=1);
 
 				// accessors
 				// Replace current frequency to lastest loaded pitch
@@ -63,7 +63,7 @@ class k005289_core : public vgsound_emu_core
 
 		// internal state
 		void reset();
-		void tick();
+		void tick(const unsigned int cycles);
 
 		// accessors
 		// TG1/2 pin

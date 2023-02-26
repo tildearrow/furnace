@@ -8,16 +8,24 @@
 
 #include "es550x.hpp"
 
+
+// Yn = K*(Xn - Yn-1) + Yn-1
+#define lp_exec(coeff,in,out) \
+  m_o[out][1] = m_o[out][0]; \
+  m_o[out][0] = ((coeff * (m_o[in][0] - m_o[out][0])) / 4096) + m_o[out][0];
+
+// Yn = Xn - Xn-1 + K*Yn-1
+#define hp_exec(coeff,in,out) \
+  m_o[out][1] = m_o[out][0]; \
+  m_o[out][0] = m_o[in][0] - m_o[in][1] + ((coeff * m_o[out][0]) / 8192) + (m_o[out][0] / 2);
+
 // Filter functions
 void es550x_shared_core::es550x_voice_t::es550x_filter_t::reset()
 {
 	m_lp = 0;
 	m_k2 = 0;
 	m_k1 = 0;
-	for (std::array<s32, 2> &elem : m_o)
-	{
-		std::fill(elem.begin(), elem.end(), 0);
-	}
+	memset(m_o,0,2*5*sizeof(s32));
 }
 
 void es550x_shared_core::es550x_voice_t::es550x_filter_t::tick(s32 in)
@@ -51,22 +59,4 @@ void es550x_shared_core::es550x_voice_t::es550x_filter_t::tick(s32 in)
 			lp_exec(coeff_k2, 3, 4);
 			break;
 	}
-}
-
-void es550x_shared_core::es550x_voice_t::es550x_filter_t::lp_exec(s32 coeff, s32 in, s32 out)
-{
-	// Store previous filter data
-	m_o[out][1] = m_o[out][0];
-
-	// Yn = K*(Xn - Yn-1) + Yn-1
-	m_o[out][0] = ((coeff * (m_o[in][0] - m_o[out][0])) / 4096) + m_o[out][0];
-}
-
-void es550x_shared_core::es550x_voice_t::es550x_filter_t::hp_exec(s32 coeff, s32 in, s32 out)
-{
-	// Store previous filter data
-	m_o[out][1] = m_o[out][0];
-
-	// Yn = Xn - Xn-1 + K*Yn-1
-	m_o[out][0] = m_o[in][0] - m_o[in][1] + ((coeff * m_o[out][0]) / 8192) + (m_o[out][0] / 2);
 }

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -32,6 +32,10 @@
 #include <windows.h>
 #include <combaseapi.h>
 #include <shellapi.h>
+
+#include "gui/shellScalingStub.h"
+
+typedef HRESULT (WINAPI *SPDA)(PROCESS_DPI_AWARENESS);
 #else
 #include <unistd.h>
 #endif
@@ -148,7 +152,7 @@ TAParamResult pLogLevel(String val) {
 
 TAParamResult pVersion(String) {
   printf("Furnace version " DIV_VERSION ".\n\n");
-  printf("copyright (C) 2021-2022 tildearrow and contributors.\n");
+  printf("copyright (C) 2021-2023 tildearrow and contributors.\n");
   printf("licensed under the GNU General Public License version 2 or later\n");
   printf("<https://www.gnu.org/licenses/old-licenses/gpl-2.0.html>.\n\n");
   printf("this is free software with ABSOLUTELY NO WARRANTY.\n");
@@ -181,6 +185,7 @@ TAParamResult pVersion(String) {
   printf("- MAME MSM6258 core by Barry Rodewald (BSD 3-clause)\n");
   printf("- MAME YMZ280B core by Aaron Giles (BSD 3-clause)\n");
   printf("- MAME GA20 core by Acho A. Tang and R. Belmont (BSD 3-clause)\n");
+  printf("- MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert (BSD 3-clause)\n");
   printf("- QSound core by superctr (BSD 3-clause)\n");
   printf("- VICE VIC-20 by Rami Rasanen and viznut (GPLv2)\n");
   printf("- VERA core by Frank van den Hoef (BSD 2-clause)\n");
@@ -337,8 +342,34 @@ void reportError(String what) {
 // TODO: CoInitializeEx on Windows?
 // TODO: add crash log
 int main(int argc, char** argv) {
+  // Windows console thing - thanks dj.tuBIG/MaliceX
+#ifdef _WIN32
+
+  if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+    freopen("CONIN$", "r", stdin);
+  }
+#endif
+
   initLog();
 #ifdef _WIN32
+  // set DPI awareness
+  HMODULE shcore=LoadLibraryW(L"shcore.dll");
+  if (shcore!=NULL) {
+    SPDA ta_SetProcessDpiAwareness=(SPDA)GetProcAddress(shcore,"SetProcessDpiAwareness");
+    if (ta_SetProcessDpiAwareness!=NULL) {
+      HRESULT result=ta_SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
+      if (result!=S_OK) {
+        // ???
+      }
+    }
+    if (!FreeLibrary(shcore)) {
+      // ???
+    }
+  }
+
+  // co initialize ex
   HRESULT coResult=CoInitializeEx(NULL,COINIT_MULTITHREADED);
   if (coResult!=S_OK) {
     logE("CoInitializeEx failed!");
@@ -420,11 +451,9 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  logI("Furnace version " DIV_VERSION ".");
-
   e.preInit();
 
-  if (!fileName.empty()) {
+  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",false)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
     logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {
@@ -613,7 +642,3 @@ int main(int argc, char** argv) {
 #endif
   return 0;
 }
-
-#ifdef _WIN32
-#include "winMain.cpp"
-#endif

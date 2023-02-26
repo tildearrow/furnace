@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -278,6 +278,7 @@ void DivPlatformNES::tick(bool sysTick) {
             ntPos+=chan[i].arpOff;
           }
         }
+        ntPos+=chan[i].pitch2;
         if (parent->song.properNoiseLayout) {
           chan[i].freq=15-(ntPos&15);
         } else {

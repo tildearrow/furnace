@@ -32,7 +32,7 @@ class es5504_core : public es550x_shared_core
 
 				// internal state
 				virtual void reset() override;
-				virtual void fetch(u8 voice, u8 cycle) override;
+				virtual void fetch(u8 cycle) override;
 				virtual void tick(u8 voice) override;
 
 				// setters

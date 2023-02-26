@@ -30,6 +30,9 @@
 // hack I know
 #include "../../../src/utfutils.h"
 
+// hack 2...
+#include "../../../src/ta-log.h"
+
 class NFDWinEvents: public IFileDialogEvents {
   nfdselcallback_t selCallback;
   size_t refCount;
@@ -38,21 +41,21 @@ class NFDWinEvents: public IFileDialogEvents {
   }
   public:
     IFACEMETHODIMP QueryInterface(REFIID riid, void** ppv) {
-      printf("QueryInterface called DAMN IT\n");
+      logV("%p: QueryInterface called DAMN IT",(const void*)this);
       *ppv=NULL;
       return E_NOTIMPL;
     }
 
     IFACEMETHODIMP_(ULONG) AddRef() {
-      printf("AddRef() called\n");
+      logV("%p: AddRef() called",(const void*)this);
       return InterlockedIncrement(&refCount);
     }
 
     IFACEMETHODIMP_(ULONG) Release() {
-      printf("Release() called\n");
+      logV("%p: Release() called",(const void*)this);
       LONG ret=InterlockedDecrement(&refCount);
       if (ret==0) {
-        printf("Destroying the final object.\n");
+        logV("%p: Destroying the final object.",(const void*)this);
         delete this;
       }
       return ret;
@@ -67,30 +70,40 @@ class NFDWinEvents: public IFileDialogEvents {
 
     IFACEMETHODIMP OnSelectionChange(IFileDialog* dialog) {
       // Get the file name
+      logV("%p: OnSelectionChange() called",(const void*)this);
       ::IShellItem *shellItem(NULL);
+      logV("%p: GetCurrentSelection",(const void*)this);
       HRESULT result = dialog->GetCurrentSelection(&shellItem);
       if ( !SUCCEEDED(result) )
       {
-        printf("failure!\n");
+        logV("%p: failure!",(const void*)this);
         return S_OK;
       }
       wchar_t *filePath(NULL);
       result = shellItem->GetDisplayName(::SIGDN_FILESYSPATH, &filePath);
       if ( !SUCCEEDED(result) )
       {
-          printf("GDN failure!\n");
+          logV("%p: GDN failure!",(const void*)this);
           shellItem->Release();
           return S_OK;
       }
       std::string utf8FilePath=utf16To8(filePath);
-      if (selCallback!=NULL) selCallback(utf8FilePath.c_str());
-      printf("I got you for a value of %s\n",utf8FilePath.c_str());
+      if (selCallback!=NULL) {
+        logV("%p: calling back.",(const void*)this);
+        selCallback(utf8FilePath.c_str());
+        logV("%p: end of callback",(const void*)this);
+      } else {
+        logV("%p: no callback.",(const void*)this);
+      }
+      logV("%p: I got you for a value of %s",(const void*)this,utf8FilePath.c_str());
       shellItem->Release();
+      logV("%p: shellItem->Release()",(const void*)this);
       return S_OK;
     }
     NFDWinEvents(nfdselcallback_t callback):
       selCallback(callback),
       refCount(1) {
+        logV("%p: CONSTRUCT!",(const void*)this);
     }
 };
 

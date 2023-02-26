@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -287,9 +287,13 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
           if (pat->data[i][index]>0xff) {
             snprintf(id,63,"??##PE%d_%d_%d",k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_PATTERN_EFFECT_INVALID]);
-          } else {
+          } else if (pat->data[i][index]>0x10 || settings.oneDigitEffects==0) {
             const unsigned char data=pat->data[i][index];
             snprintf(id,63,"%.2X##PE%d_%d_%d",data,k,i,j);
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
+          } else {
+            const unsigned char data=pat->data[i][index];
+            snprintf(id,63," %.1X##PE%d_%d_%d",data,k,i,j);
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColors[data]]);
           }
         }
@@ -755,7 +759,7 @@ void FurnaceGUI::drawPattern() {
               soloTimeout=0;
             } else {
               e->toggleMute(i);
-              soloTimeout=20;
+              soloTimeout=settings.doubleClickTime;
               soloChan=i;
             }
           }
@@ -965,7 +969,7 @@ void FurnaceGUI::drawPattern() {
 
       // overflow changes order
       // TODO: this is very unreliable and sometimes it can warp you out of the song
-      if (settings.scrollChangesOrder && !e->isPlaying()) {
+      if (settings.scrollChangesOrder && !e->isPlaying() && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
         if (wheelY!=0) {
           if (wheelY>0) {
             if (ImGui::GetScrollY()<=0) {
@@ -1007,6 +1011,12 @@ void FurnaceGUI::drawPattern() {
       e->getCommandStream(cmdStream);
       ImDrawList* dl=ImGui::GetWindowDrawList();
       ImVec2 off=ImVec2(0.0f,ImGui::GetWindowPos().y);
+
+      ImVec2 winMin=ImGui::GetWindowPos();
+      ImVec2 winMax=ImVec2(
+        winMin.x+ImGui::GetWindowSize().x,
+        winMin.y+ImGui::GetWindowSize().y
+      );
       
       // commands
       for (DivCommand& i: cmdStream) {
@@ -1129,11 +1139,18 @@ void FurnaceGUI::drawPattern() {
         }
 
         for (int j=0; j<num; j++) {
+          ImVec2 partPos=ImVec2(
+            off.x+patChanX[i.chan]+fmod(rand(),width),
+            off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,patFont->FontSize)
+          );
+
+          if (partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y) continue;
+
           particles.push_back(Particle(
             color,
             partIcon,
-            off.x+patChanX[i.chan]+fmod(rand(),width)-scrollX,
-            off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,patFont->FontSize),
+            partPos.x,
+            partPos.y,
             (speedX+randRange(-spread,spread))*0.5*dpiScale,
             (speedY+randRange(-spread,spread))*0.5*dpiScale,
             grav,
@@ -1156,18 +1173,25 @@ void FurnaceGUI::drawPattern() {
           col.w*=0.2;
           float width=patChanX[i+1]-patChanX[i];
 
-          particles.push_back(Particle(
-            pitchGrad,
-            (ch->portaNote<=ch->note)?ICON_FA_CHEVRON_DOWN:ICON_FA_CHEVRON_UP,
-            off.x+patChanX[i]+fmod(rand(),width)-scrollX,
-            off.y+fmod(rand(),MAX(1,ImGui::GetWindowHeight())),
-            0.0f,
-            (7.0f+(rand()%5)+pow(ch->portaSpeed,0.7f))*((ch->portaNote<=ch->note)?1:-1),
-            0.0f,
-            1.0f,
-            255.0f,
-            15.0f
-          ));
+          ImVec2 partPos=ImVec2(
+            off.x+patChanX[i]+fmod(rand(),width),
+            off.y+fmod(rand(),MAX(1,ImGui::GetWindowHeight()))
+          );
+
+          if (!(partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y)) {
+            particles.push_back(Particle(
+              pitchGrad,
+              (ch->portaNote<=ch->note)?ICON_FA_CHEVRON_DOWN:ICON_FA_CHEVRON_UP,
+              partPos.x,
+              partPos.y,
+              0.0f,
+              (7.0f+(rand()%5)+pow(ch->portaSpeed,0.7f))*((ch->portaNote<=ch->note)?1:-1),
+              0.0f,
+              1.0f,
+              255.0f,
+              15.0f
+            ));
+          }
 
           if (width>0.1) for (float j=-patChanSlideY[i]; j<ImGui::GetWindowHeight(); j+=width*0.7) {
             ImVec2 tMin=ImVec2(off.x+patChanX[i]-scrollX,off.y+j);
@@ -1206,18 +1230,25 @@ void FurnaceGUI::drawPattern() {
           col.w*=0.2;
           float width=patChanX[i+1]-patChanX[i];
 
-          particles.push_back(Particle(
-            pitchGrad,
-            ICON_FA_GLASS,
-            off.x+patChanX[i]+(width*0.5+0.5*sin(M_PI*(float)ch->vibratoPosGiant/64.0f)*width)-scrollX,
-            off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,patFont->FontSize),
-            randRange(-4.0f,4.0f),
-            2.0f*(3.0f+(rand()%5)+ch->vibratoRate),
-            0.4f,
-            1.0f,
-            128.0f,
-            4.0f
-          ));
+          ImVec2 partPos=ImVec2(
+            off.x+patChanX[i]+(width*0.5+0.5*sin(M_PI*(float)ch->vibratoPosGiant/64.0f)*width),
+            off.y+(ImGui::GetWindowHeight()*0.5f)+randRange(0,patFont->FontSize)
+          );
+
+          if (!(partPos.x<winMin.x || partPos.y<winMin.y || partPos.x>winMax.x || partPos.y>winMax.y)) {
+            particles.push_back(Particle(
+              pitchGrad,
+              ICON_FA_GLASS,
+              partPos.x,
+              partPos.y,
+              randRange(-4.0f,4.0f),
+              2.0f*(3.0f+(rand()%5)+ch->vibratoRate),
+              0.4f,
+              1.0f,
+              128.0f,
+              4.0f
+            ));
+          }
         }
       }
 

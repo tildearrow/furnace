@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -51,6 +51,7 @@ class DivPlatformSwan: public DivDispatch {
       QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   std::queue<QueuedWrite> writes;
+  std::queue<DivRegWrite> postDACWrites;
   WSwan* ws;
   void updateWave(int ch);
   friend void putDispatchChip(void*,int);
