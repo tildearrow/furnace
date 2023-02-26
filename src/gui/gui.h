@@ -1523,12 +1523,12 @@ class FurnaceGUI {
   struct Tutorial {
     int userComesFrom;
     bool introPlayed;
-    bool protoWelcome;
+    bool welcome;
     bool taken[GUI_TUTORIAL_MAX];
     Tutorial():
       userComesFrom(0),
       introPlayed(false),
-      protoWelcome(false) {
+      welcome(false) {
       memset(taken,0,GUI_TUTORIAL_MAX*sizeof(bool));
     }
   } tutorial;
@@ -2059,6 +2059,7 @@ class FurnaceGUI {
   void applyUISettings(bool updateFonts=true);
   void initSystemPresets();
   void initTutorial();
+  void activateTutorial(FurnaceGUITutorials which);
 
   void encodeMMLStr(String& target, int* macro, int macroLen, int macroLoop, int macroRel, bool hex=false, bool bit30=false);
   void decodeMMLStr(String& source, int* macro, unsigned char& macroLen, unsigned char& macroLoop, int macroMin, int macroMax, unsigned char& macroRel, bool bit30=false);

@@ -31,19 +31,27 @@ void FurnaceGUI::initTutorial() {
 }
 
 void FurnaceGUI::syncTutorial() {
-  tutorial.userComesFrom=e->getConfInt("tutUserComesFrom",0);
+//  tutorial.userComesFrom=e->getConfInt("tutUserComesFrom",0);
   tutorial.introPlayed=e->getConfBool("tutIntroPlayed",false);
-  tutorial.protoWelcome=e->getConfBool("tutProtoWelcome",false);
+//  tutorial.welcome=e->getConfBool("tutWelcome",false);
 }
 
 void FurnaceGUI::commitTutorial() {
-  e->setConf("tutUserComesFrom",tutorial.userComesFrom);
+//  e->setConf("tutUserComesFrom",tutorial.userComesFrom);
   e->setConf("tutIntroPlayed",tutorial.introPlayed);
-  e->setConf("tutProtoWelcome",tutorial.protoWelcome);
+//  e->setConf("tutWelcome",tutorial.welcome);
+}
+
+void FurnaceGUI::activateTutorial(FurnaceGUITutorials which) {
+  if (tutorial.welcome && !tutorial.taken[which] && !ImGui::IsPopupOpen(NULL,ImGuiPopupFlags_AnyPopupId|ImGuiPopupFlags_AnyPopupLevel) && curTutorial==-1 && introPos>=10.0) {
+    curTutorial=which;
+    curTutorialStep=0;
+  }
 }
 
 void FurnaceGUI::drawTutorial() {
-  if (!tutorial.protoWelcome) {
+  // welcome
+  if (!tutorial.welcome) {
     ImGui::OpenPopup("Welcome");
   }
   if (ImGui::BeginPopupModal("Welcome",NULL,ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoTitleBar)) {
@@ -54,35 +62,7 @@ void FurnaceGUI::drawTutorial() {
 
     ImGui::Text("welcome to Furnace, the biggest open-source chiptune tracker!");
 
-    ImGui::TextWrapped("this welcome screen is temporary. 0.6pre5 will feature a tutorial.");
-
-    ImGui::Separator();
-
-    ImGui::TextWrapped("here are some tips to get you started:");
-    
-    ImGui::TextWrapped(
-      "- add an instrument by clicking on + in Instruments\n"
-      "- click on the pattern view to focus it\n"
-      "- channel columns have the following, in this order: note, instrument, volume and effects\n"
-      "- hit space bar while on the pattern to toggle Edit Mode\n"
-      "- click on the pattern or use arrow keys to move the cursor\n"
-      "- values (instrument, volume, effects and effect values) are in hexadecimal\n"
-      "- hit enter to play/stop the song\n"
-      "- extend the song by adding more orders in the Orders window\n"
-      "- click on the Orders matrix to change the patterns of a channel (left click increases; right click decreases)"
-    );
-
-    ImGui::TextWrapped(
-      "if you need help, you may:\n"
-      "- read the (incomplete) manual: https://github.com/tildearrow/furnace/blob/master/papers/doc/README.md\n"
-      "- ask for help in Discussions (https://github.com/tildearrow/furnace/discussions) or the Furnace Discord (https://discord.gg/EfrwT2wq7z)"
-    );
-
-    ImGui::Separator();
-
-    ImGui::TextWrapped("if you find any issues, be sure to report them! the issue tracker is here: https://github.com/tildearrow/furnace/issues");
-
-    ImGui::Separator();
+    ImGui::TextWrapped("get ready for the tutorial, which will teach you how to use it.");
 
     ImGui::TextWrapped(
       "there are two interface modes: Basic, and Advanced.\n"
@@ -94,22 +74,33 @@ void FurnaceGUI::drawTutorial() {
 
     if (ImGui::Button("Start in Basic Mode")) {
       basicMode=true;
-      tutorial.protoWelcome=true;
+      tutorial.welcome=true;
       commitTutorial();
       ImGui::CloseCurrentPopup();
     }
     if (ImGui::Button("Start in Advanced Mode")) {
       basicMode=false;
-      tutorial.protoWelcome=true;
+      tutorial.welcome=true;
       commitTutorial();
       ImGui::CloseCurrentPopup();
     }
+
+    ImGui::TextWrapped("if you find any issues, be sure to report them! the issue tracker is here: https://github.com/tildearrow/furnace/issues");
+
 
     ImGui::SetWindowPos(ImVec2(
       (canvasW-ImGui::GetWindowSize().x)*0.5,
       (canvasH-ImGui::GetWindowSize().y)*0.5
     ));
     ImGui::EndPopup();
+  }
+
+  // tutorial
+  if (curTutorial>=0 && curTutorial<GUI_TUTORIAL_MAX) {
+    if (ImGui::Begin("Tutorial",NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoTitleBar)) {
+      ImGui::Text("Tutorial...");
+    }
+    ImGui::End();
   }
 }
 
