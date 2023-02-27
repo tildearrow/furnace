@@ -100,7 +100,8 @@ void FurnaceGUI::drawTutorial() {
   // tutorial
   if (curTutorial>=0 && curTutorial<GUI_TUTORIAL_MAX) {
     if (ImGui::Begin("Tutorial",NULL,ImGuiWindowFlags_NoResize|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar)) {
-      ImGui::Text("Tutorial text goes here...");
+      FurnaceGUITutorialStep& step=tutorials[curTutorial].steps[curTutorialStep];
+      ImGui::TextWrapped("%s",step.text);
     }
     ImGui::End();
   }
