@@ -18,8 +18,8 @@
  */
 
 #include "gui.h"
-#include <imgui.h>
 #include "../ta-log.h"
+#include "IconsFontAwesome4.h"
 
 #define TS FurnaceGUITutorialStep
 
@@ -101,7 +101,18 @@ void FurnaceGUI::drawTutorial() {
   if (curTutorial>=0 && curTutorial<GUI_TUTORIAL_MAX) {
     if (ImGui::Begin("Tutorial",NULL,ImGuiWindowFlags_NoResize|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar)) {
       FurnaceGUITutorialStep& step=tutorials[curTutorial].steps[curTutorialStep];
+      ImGui::Dummy(ImVec2(200.0*dpiScale,1.0));
       ImGui::TextWrapped("%s",step.text);
+
+      if (ImGui::Button(ICON_FA_CHEVRON_RIGHT)) {
+        curTutorialStep++;
+        if (step.runAfter!=NULL) step.runAfter();
+        if (curTutorialStep>=(int)tutorials[curTutorial].steps.size()) {
+          tutorial.taken[curTutorial]=true;
+          curTutorial=-1;
+          curTutorialStep=0;
+        }
+      }
     }
     ImGui::End();
   }
