@@ -1834,7 +1834,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_SFX_BEEPER_QT]=new DivSysDef(
-    "ZX Spectrum Beeper (QuadTone Engine)", NULL, 0xc9, 0, 5, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "ZX Spectrum Beeper (QuadTone Engine)", NULL, 0xfe, 0, 5, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
     "Another ZX Spectrum beeper system with full PWM pulses and 3-level volume per channel. It also has a pitchable overlay sample channel.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "PCM"},
     {"CH1", "CH2", "CH3", "CH4", "PCM"},
