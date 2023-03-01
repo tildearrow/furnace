@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -103,9 +103,8 @@ const char* cmdName[]={
   "FM_AM_DEPTH",
   "FM_PM_DEPTH",
 
-  "GENESIS_LFO",
-  
-  "ARCADE_LFO",
+  "FM_LFO2",
+  "FM_LFO2_WAVE",
 
   "STD_NOISE_FREQ",
   "STD_NOISE_MODE",
@@ -214,6 +213,21 @@ const char* cmdName[]={
   "MACRO_ON",
 
   "SURROUND_PANNING",
+
+  "FM_AM2_DEPTH",
+  "FM_PM2_DEPTH",
+
+  "ES5506_FILTER_MODE",
+  "ES5506_FILTER_K1",
+  "ES5506_FILTER_K2",
+  "ES5506_FILTER_K1_SLIDE",
+  "ES5506_FILTER_K2_SLIDE",
+  "ES5506_ENVELOPE_COUNT",
+  "ES5506_ENVELOPE_LVRAMP",
+  "ES5506_ENVELOPE_RVRAMP",
+  "ES5506_ENVELOPE_K1RAMP",
+  "ES5506_ENVELOPE_K2RAMP",
+  "ES5506_PAUSE",
 
   "ALWAYS_SET_VOLUME"
 };
@@ -398,11 +412,22 @@ void DivEngine::processRow(int i, bool afterDelay) {
       if (effectVal==-1) effectVal=0;
 
       switch (effect) {
-        case 0x09: // speed 1
-          if (effectVal>0) speed1=effectVal;
+        case 0x09: // select groove pattern/speed 1
+          if (song.grooves.empty()) {
+            if (effectVal>0) speeds.val[0]=effectVal;
+          } else {
+            if (effectVal<(short)song.grooves.size()) {
+              speeds=song.grooves[effectVal];
+              curSpeed=0;
+            }
+          }
           break;
-        case 0x0f: // speed 2
-          if (effectVal>0) speed2=effectVal;
+        case 0x0f: // speed 1/speed 2
+          if (speeds.len==2 && song.grooves.empty()) {
+            if (effectVal>0) speeds.val[1]=effectVal;
+          } else {
+            if (effectVal>0) speeds.val[0]=effectVal;
+          }
           break;
         case 0x0b: // change order
           if (changeOrd==-1 || song.jumpTreatment==0) {
@@ -687,6 +712,13 @@ void DivEngine::processRow(int i, bool afterDelay) {
         // - then a volume slide down starts to the low boundary, and then when this is reached a volume slide up begins
         // - this process repeats until 0700 or 0Axy are found
         // - note that a volume value does not stop tremolo - instead it glitches this whole thing up
+        if (chan[i].tremoloDepth==0) {
+          chan[i].tremoloPos=0;
+        }
+        chan[i].tremoloDepth=effectVal&15;
+        chan[i].tremoloRate=effectVal>>4;
+        // tremolo and vol slides are incompatiblw
+        chan[i].volSpeed=0;
         break;
       case 0x0a: // volume ramp
         // TODO: non-0x-or-x0 value should be treated as 00
@@ -696,6 +728,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
           } else {
             chan[i].volSpeed=(effectVal>>4)*64;
           }
+          // tremolo and vol slides are incompatible
+          chan[i].tremoloDepth=0;
+          chan[i].tremoloRate=0;
         } else {
           chan[i].volSpeed=0;
         }
@@ -836,10 +871,16 @@ void DivEngine::processRow(int i, bool afterDelay) {
         if (!song.arpNonPorta) dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         break;
       case 0xf3: // fine volume ramp up
+        // tremolo and vol slides are incompatible
+        chan[i].tremoloDepth=0;
+        chan[i].tremoloRate=0;
         chan[i].volSpeed=effectVal;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
       case 0xf4: // fine volume ramp down
+        // tremolo and vol slides are incompatible
+        chan[i].tremoloDepth=0;
+        chan[i].tremoloRate=0;
         chan[i].volSpeed=-effectVal;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
@@ -866,6 +907,9 @@ void DivEngine::processRow(int i, bool afterDelay) {
           } else {
             chan[i].volSpeed=(effectVal>>4)*256;
           }
+          // tremolo and vol slides are incompatible
+          chan[i].tremoloDepth=0;
+          chan[i].tremoloRate=0;
         } else {
           chan[i].volSpeed=0;
         }
@@ -913,6 +957,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
       } else if (!chan[i].noteOnInhibit) {
         dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,chan[i].note,chan[i].volume>>8));
+        chan[i].goneThroughNote=true;
+        chan[i].wentThroughNote=true;
         keyHit[i]=true;
       }
     }
@@ -1050,6 +1096,9 @@ void DivEngine::nextRow() {
   }
 
   if (song.brokenSpeedSel) {
+    unsigned char speed2=(speeds.len>=2)?speeds.val[1]:speeds.val[0];
+    unsigned char speed1=speeds.val[0];
+    
     if ((curSubSong->patLen&1) && curOrder&1) {
       ticks=((curRow&1)?speed2:speed1)*(curSubSong->timeBase+1);
       nextSpeed=(curRow&1)?speed1:speed2;
@@ -1058,14 +1107,10 @@ void DivEngine::nextRow() {
       nextSpeed=(curRow&1)?speed2:speed1;
     }
   } else {
-    if (speedAB) {
-      ticks=speed2*(curSubSong->timeBase+1);
-      nextSpeed=speed1;
-    } else {
-      ticks=speed1*(curSubSong->timeBase+1);
-      nextSpeed=speed2;
-    }
-    speedAB=!speedAB;
+    ticks=speeds.val[curSpeed]*(curSubSong->timeBase+1);
+    curSpeed++;
+    if (curSpeed>=speeds.len) curSpeed=0;
+    nextSpeed=speeds.val[curSpeed];
   }
 
   // post row details
@@ -1237,6 +1282,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
             } else {
               dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
             }
+          } else if (chan[i].tremoloDepth>0) {
+            chan[i].tremoloPos+=chan[i].tremoloRate;
+            chan[i].tremoloPos&=127;
+            dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,MAX(0,chan[i].volume-(tremTable[chan[i].tremoloPos]*chan[i].tremoloDepth))>>8));
           }
         }
         if (chan[i].vibratoDepth>0) {
@@ -1473,8 +1522,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           samp_temp=s->data16[sPreview.pos];
           if (sPreview.dir) {
             sPreview.pos--;
-          }
-          else {
+          } else {
             sPreview.pos++;
           }
         }
@@ -1638,6 +1686,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       if (cycles<=0) {
         // we have to tick
         if (nextTick()) {
+          totalTicks=0;
+          totalSeconds=0;
           lastLoopPos=size-(runLeftG>>MASTER_CLOCK_PREC);
           logD("last loop pos: %d for a size of %d and runLeftG of %d",lastLoopPos,size,runLeftG);
           totalLoops++;

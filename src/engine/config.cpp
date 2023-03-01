@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -175,7 +175,7 @@ String DivConfig::getString(String key, String fallback) const {
   return fallback;
 }
 
-bool DivConfig::has(String key) {
+bool DivConfig::has(String key) const {
   try {
     String test=conf.at(key);
   } catch (std::out_of_range& e) {

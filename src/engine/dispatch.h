@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -103,9 +103,8 @@ enum DivDispatchCmds {
   DIV_CMD_FM_AM_DEPTH, // (depth)
   DIV_CMD_FM_PM_DEPTH, // (depth)
 
-  DIV_CMD_GENESIS_LFO, // unused?
-  
-  DIV_CMD_ARCADE_LFO, // unused?
+  DIV_CMD_FM_LFO2, // (speed)
+  DIV_CMD_FM_LFO2_WAVE, // (waveform)
 
   DIV_CMD_STD_NOISE_FREQ, // (freq)
   DIV_CMD_STD_NOISE_MODE, // (mode)
@@ -214,6 +213,21 @@ enum DivDispatchCmds {
   DIV_CMD_MACRO_ON, // (which)
 
   DIV_CMD_SURROUND_PANNING, // (out, val)
+
+  DIV_CMD_FM_AM2_DEPTH, // (depth)
+  DIV_CMD_FM_PM2_DEPTH, // (depth)
+
+  DIV_CMD_ES5506_FILTER_MODE, // (value)
+  DIV_CMD_ES5506_FILTER_K1, // (value, mask)
+  DIV_CMD_ES5506_FILTER_K2, // (value, mask)
+  DIV_CMD_ES5506_FILTER_K1_SLIDE, // (value, negative)
+  DIV_CMD_ES5506_FILTER_K2_SLIDE, // (value, negative)
+  DIV_CMD_ES5506_ENVELOPE_COUNT, // (count)
+  DIV_CMD_ES5506_ENVELOPE_LVRAMP, // (ramp)
+  DIV_CMD_ES5506_ENVELOPE_RVRAMP, // (ramp)
+  DIV_CMD_ES5506_ENVELOPE_K1RAMP, // (ramp, slowdown)
+  DIV_CMD_ES5506_ENVELOPE_K2RAMP, // (ramp, slowdown)
+  DIV_CMD_ES5506_PAUSE, // (value)
 
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
@@ -632,8 +646,8 @@ class DivDispatch {
 #define COLOR_PAL (283.75*15625.0+25.0)
 
 #define CLAMP_VAR(x,xMin,xMax) \
-  if (x<xMin) x=xMin; \
-  if (x>xMax) x=xMax;
+  if ((x)<(xMin)) (x)=(xMin); \
+  if ((x)>(xMax)) (x)=(xMax);
 
 #define NEW_ARP_STRAT (parent->song.linearPitch==2 && !parent->song.oldArpStrategy)
 #define HACKY_LEGATO_MESS chan[c.chan].std.arp.will && !chan[c.chan].std.arp.mode && !NEW_ARP_STRAT

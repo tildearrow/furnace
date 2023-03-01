@@ -58,7 +58,7 @@ class vrcvi_core : public vgsound_emu_core
 
 						inline bool enable() { return m_enable; }
 
-					private:
+					public:
 						u16 m_divider : 12;	 // divider (pitch)
 						u16 m_enable  : 1;	 // channel disable flag
 				};
@@ -141,7 +141,7 @@ class vrcvi_core : public vgsound_emu_core
 
 						inline u8 volume() { return m_volume; }
 
-					private:
+					public:
 						u8 m_mode	: 1;  // duty toggle flag
 						u8 m_duty	: 3;  // 3 bit duty cycle
 						u8 m_volume : 4;  // 4 bit volume
@@ -359,9 +359,9 @@ class vrcvi_core : public vgsound_emu_core
 
 				inline u8 shift() { return m_shift; }
 
-			private:
-				u8 m_halt  : 1;	 // halt sound
-				u8 m_shift : 2;	 // 4/8 bit right shift
+			public:
+				u8 m_halt;	 // halt sound
+				u8 m_shift;	 // 4/8 bit right shift
 		};
 
 	public:
@@ -398,7 +398,7 @@ class vrcvi_core : public vgsound_emu_core
 	private:
 		vrcvi_intf &m_intf;
 
-		std::array<pulse_t, 2> m_pulse;	 // 2 pulse channels
+		pulse_t m_pulse[2];	 // 2 pulse channels
 		sawtooth_t m_sawtooth;			 // sawtooth channel
 		timer_t m_timer;				 // internal timer
 		global_control_t m_control;		 // control

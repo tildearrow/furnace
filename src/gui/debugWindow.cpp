@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -183,7 +183,6 @@ void FurnaceGUI::drawDebug() {
           ImGui::Text("centerRate: %d",sample->centerRate);
           ImGui::Text("loopStart: %d",sample->loopStart);
           ImGui::Text("loopEnd: %d", sample->loopEnd);
-          ImGui::Text("loopOffP: %d",sample->loopOffP);
           ImGui::Text(sample->loop?"loop: Enabled":"loop: Disabled");
           if (sampleLoopModes[sample->loopMode]!=NULL) {
             ImGui::Text("loopMode: %d (%s)",(unsigned char)sample->loopMode,sampleLoopModes[sample->loopMode]);
@@ -191,6 +190,7 @@ void FurnaceGUI::drawDebug() {
             ImGui::Text("loopMode: %d (<NULL!>)",(unsigned char)sample->loopMode);
           }
 
+          ImGui::Text("depth: %d",(unsigned char)sample->depth);
           ImGui::Text("length8: %d",sample->length8);
           ImGui::Text("length16: %d",sample->length16);
           ImGui::Text("length1: %d",sample->length1);

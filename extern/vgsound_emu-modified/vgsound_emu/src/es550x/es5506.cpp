@@ -9,182 +9,10 @@
 #include "es5506.hpp"
 
 // Internal functions
+
+// DO NOT USE THIS ONE!
 void es5506_core::tick()
 {
-	// CLKIN
-	if (m_clkin.tick())
-	{
-		// BCLK
-		if (m_clkin.edge().changed() && (!m_mode.bclk_en()))  // BCLK is freely running clock
-		{
-			if (m_bclk.tick())
-			{
-				m_intf.bclk(m_bclk.current_edge());
-				// Serial output
-				if (!m_mode.lrclk_en())
-				{
-					if (m_bclk.falling_edge())
-					{
-						// LRCLK
-						if (m_lrclk.tick())
-						{
-							m_intf.lrclk(m_lrclk.current_edge());
-							if (m_lrclk.rising_edge())
-							{
-								m_w_st_curr	 = m_w_st;
-								m_w_end_curr = m_w_end;
-							}
-							if (m_lrclk.falling_edge())
-							{  // update width
-								m_lrclk.set_width_latch(m_lr_end);
-							}
-						}
-					}
-				}
-				// WCLK
-				if (!m_mode.wclk_en())
-				{
-					if (!m_mode.lrclk_en())
-					{
-						if (m_lrclk.edge().changed())
-						{
-							m_wclk = 0;
-						}
-					}
-					if (m_bclk.falling_edge())
-					{
-						if (m_wclk == m_w_st_curr)
-						{
-							m_intf.wclk(true);
-							if (m_lrclk.current_edge())
-							{
-								for (int i = 0; i < 6; i++)
-								{
-									// copy output
-									m_output[i].copy_output(m_output_temp[i]);
-									// clamp to 20 bit (upper 3 bits are
-									// overflow guard bits)
-									m_output_latch[i].clamp20(m_ch[i]);
-									m_output_temp[i].reset();
-									m_output_latch[i].clamp20();
-									// set signed
-									if (m_output_latch[i].left() < 0)
-									{
-										m_output_temp[i].set_left(-1);
-									}
-									if (m_output_latch[i].right() < 0)
-									{
-										m_output_temp[i].set_right(-1);
-									}
-								}
-							}
-							m_wclk_lr	 = m_lrclk.current_edge();
-							m_output_bit = 20;
-						}
-						if (m_wclk < m_w_end_curr)
-						{
-							s8 output_bit = --m_output_bit;
-							if (m_output_bit >= 0)
-							{
-								for (int i = 0; i < 6; i++)
-								{
-									if (m_wclk_lr)
-									{
-										// Right output
-										m_output_temp[i].serial_in(
-										  m_wclk_lr,
-										  bitfield(m_output_latch[i].right(), output_bit));
-									}
-									else
-									{
-										// Left output
-										m_output_temp[i].serial_in(
-										  m_wclk_lr,
-										  bitfield(m_output_latch[i].left(), output_bit));
-									}
-								}
-							}
-						}
-						if (m_wclk == m_w_end_curr)
-						{
-							m_intf.wclk(false);
-						}
-
-						m_wclk++;
-					}
-				}
-			}
-		}
-		// /CAS, E
-		if (m_clkin.falling_edge())	 // falling edge triggers /CAS, E clock
-		{
-			// /CAS
-			if (m_cas.tick())
-			{
-				// single OTTO master mode, /CAS high, E low: get sample address
-				// single OTTO early mode, /CAS falling, E high: get sample
-				// address
-				if (m_cas.falling_edge())
-				{
-					if (!m_e.current_edge())
-					{
-						// single OTTO master mode, /CAS low, E low: fetch
-						// sample
-						if (m_mode.master())
-						{
-							m_voice[m_voice_cycle].fetch(m_voice_cycle, m_voice_fetch);
-						}
-					}
-					else if (m_e.current_edge())
-					{
-						// dual OTTO slave mode, /CAS low, E high: fetch sample
-						if (m_mode.dual() && (!m_mode.master()))
-						{  // Dual OTTO, slave mode
-							m_voice[m_voice_cycle].fetch(m_voice_cycle, m_voice_fetch);
-						}
-					}
-				}
-			}
-			// E
-			if (m_e.tick())
-			{
-				m_intf.e_pin(m_e.current_edge());
-				if (m_e.rising_edge())
-				{
-					m_host_intf.update_strobe();
-				}
-				else if (m_e.falling_edge())
-				{
-					m_host_intf.clear_host_access();
-					voice_tick();
-				}
-				if (m_e.current_edge())	 // Host interface
-				{
-					if (m_host_intf.host_access())
-					{
-						if (m_host_intf.rw() && (m_e.cycle() == 0))	 // Read
-						{
-							m_hd = read(m_ha);
-							m_host_intf.clear_host_access();
-						}
-						else if ((!m_host_intf.rw()) && (m_e.cycle() == 2))
-						{  // Write
-							write(m_ha, m_hd);
-						}
-					}
-				}
-				else if (!m_e.current_edge())
-				{
-					if (m_e.cycle() == 2)
-					{
-						// reset host access state
-						m_hd = 0;
-						m_host_intf.clear_strobe();
-					}
-				}
-			}
-		}
-	}
 }
 
 // less cycle accurate, but less CPU heavy routine
@@ -193,12 +21,18 @@ void es5506_core::tick_perf()
 	// output
 	if (((!m_mode.lrclk_en()) && (!m_mode.bclk_en()) && (!m_mode.wclk_en())) && (m_w_st < m_w_end))
 	{
-		const int output_bits = 20 - (m_w_end - m_w_st);
+		const int output_bits = (20 - (m_w_end - m_w_st));
 		if (output_bits < 20)
 		{
 			for (int c = 0; c < 6; c++)
 			{
-				m_output[c].clamp20(m_ch[c] >> output_bits);
+        m_output[c].m_left=m_ch[c].m_left>>output_bits;
+        if (m_output[c].m_left<-0x80000) m_output[c].m_left=-0x80000;
+        if (m_output[c].m_left>0x7ffff) m_output[c].m_left=0x7ffff;
+
+        m_output[c].m_right=m_ch[c].m_right>>output_bits;
+        if (m_output[c].m_right<-0x80000) m_output[c].m_right=-0x80000;
+        if (m_output[c].m_right>0x7ffff) m_output[c].m_right=0x7ffff;
 			}
 		}
 	}
@@ -211,93 +45,63 @@ void es5506_core::tick_perf()
 	}
 
 	// update
-	// falling edge
-	m_e.edge().set(false);
-	m_intf.e_pin(false);
-	m_host_intf.clear_host_access();
-	m_host_intf.clear_strobe();
-	m_voice[m_voice_cycle].fetch(m_voice_cycle, m_voice_fetch);
-	voice_tick();
-	// rising edge
-	m_e.edge().set(true);
-	m_intf.e_pin(true);
-	m_host_intf.update_strobe();
-	// falling edge
-	m_e.edge().set(false);
-	m_intf.e_pin(false);
-	m_host_intf.clear_host_access();
-	m_host_intf.clear_strobe();
-	m_voice[m_voice_cycle].fetch(m_voice_cycle, m_voice_fetch);
-	voice_tick();
-	// rising edge
-	m_e.edge().set(true);
-	m_intf.e_pin(true);
-	m_host_intf.update_strobe();
+  voice_tick();
 }
 
 void es5506_core::voice_tick()
 {
-	// Voice updates every 2 E clock cycle (or 4 BCLK clock cycle)
-	m_voice_update = bitfield(m_voice_fetch++, 0);
-	if (m_voice_update)
-	{
-		// Update voice
-		m_voice[m_voice_cycle].tick(m_voice_cycle);
+  // Refresh output
+  m_voice_end	  = true;
+  m_voice_cycle = 0;
+  for (int i=0; i<6; i++)
+  {
+    m_ch[i].reset();
+  }
+  // Update voice
+  const int total=VGS_CLAMP(m_active,4,31);
+  for (int i=0; i<=total; i++) {
+    m_voice[i].tick(i);
 
-		// Refresh output
-		if ((++m_voice_cycle) > clamp<u8>(m_active, 4, 31))	 // 5 ~ 32 voices
-		{
-			m_voice_end	  = true;
-			m_voice_cycle = 0;
-			for (output_t &elem : m_ch)
-			{
-				elem.reset();
-			}
-
-			for (voice_t &elem : m_voice)
-			{
-				const u8 ca = bitfield<u8>(elem.cr().ca(), 0, 3);
-				if (ca < 6)
-				{
-					m_ch[ca] += elem.ch();
-				}
-				elem.ch().reset();
-			}
-		}
-		else
-		{
-			m_voice_end = false;
-		}
-		m_voice_fetch = 0;
-	}
+    const u8 ca = m_voice[i].cr().ca()&7;
+    if (ca < 6)
+    {
+      m_ch[ca] += m_voice[i].ch();
+    }
+  }
 }
 
-void es5506_core::voice_t::fetch(u8 voice, u8 cycle)
+void es5506_core::voice_t::fetch(u8 cycle)
 {
 	m_alu.set_sample(
-	  cycle,
-	  m_host.m_intf.read_sample(voice,
-								m_cr.bs(),
-								bitfield(m_alu.get_accum_integer() + cycle, 0, m_alu.m_integer)));
+	  0,
+	  m_host.m_intf.read_sample(m_cr.m_bs,
+								(m_alu.get_accum_integer())&((1<<m_alu.m_integer)-1)));
 	if (m_cr.cmpd())
 	{  // Decompress (Upper 8 bit is used for compressed format)
-		m_alu.set_sample(cycle, decompress(bitfield(m_alu.sample(cycle), 8, 8)));
+		m_alu.set_sample(0, decompress((m_alu.sample(0)>>8)&255));
+	}
+
+  m_alu.set_sample(
+	  1,
+	  m_host.m_intf.read_sample(m_cr.m_bs,
+								(m_alu.get_accum_integer() + 1)&((1<<m_alu.m_integer)-1)));
+	if (m_cr.cmpd())
+	{  // Decompress (Upper 8 bit is used for compressed format)
+		m_alu.set_sample(1, decompress((m_alu.sample(1)>>8)&255));
 	}
 }
 
 void es5506_core::voice_t::tick(u8 voice)
 {
-	m_output[0] = m_output[1] = 0;
-	m_ch.reset();
-
 	// Filter execute
-	m_filter.tick(m_alu.interpolation());
 
 	if (m_alu.busy())
 	{
+          if ((m_alu.m_last_accum&(~m_alu.m_fraction))!=(m_alu.m_accum&(~m_alu.m_fraction))) fetch(0);
+         	m_filter.tick(m_alu.interpolation());
 		// Send to output
-		m_output[0] = volume_calc(m_lvol, sign_ext<s32>(m_filter.o4_1(), 16));
-		m_output[1] = volume_calc(m_rvol, sign_ext<s32>(m_filter.o4_1(), 16));
+		m_output[0] = m_mute ? 0 : volume_calc(m_lvol, (short)m_filter.o4_1());
+		m_output[1] = m_mute ? 0 : volume_calc(m_rvol, (short)m_filter.o4_1());
 
 		m_ch.set_left(m_output[0]);
 		m_ch.set_right(m_output[1]);
@@ -307,18 +111,23 @@ void es5506_core::voice_t::tick(u8 voice)
 		{
 			m_alu.loop_exec();
 		}
-	}
+	} else {
+         	m_filter.tick(m_alu.interpolation());
+	        m_output[0] = m_output[1] = 0;
+         	m_ch.reset();
+
+        }
 	// Envelope
 	if (m_ecount != 0)
 	{
 		// Left and Right volume
 		if (bitfield(m_lvramp, 0, 8) != 0)
 		{
-			m_lvol = clamp<s32>(m_lvol + sign_ext<s32>(bitfield(m_lvramp, 0, 8), 8), 0, 0xffff);
+			m_lvol = VGS_CLAMP(m_lvol + sign_ext<s32>(bitfield(m_lvramp, 0, 8), 8), 0, 0xffff);
 		}
 		if (bitfield(m_rvramp, 0, 8) != 0)
 		{
-			m_rvol = clamp<s32>(m_rvol + sign_ext<s32>(bitfield(m_rvramp, 0, 8), 8), 0, 0xffff);
+			m_rvol = VGS_CLAMP(m_rvol + sign_ext<s32>(bitfield(m_rvramp, 0, 8), 8), 0, 0xffff);
 		}
 
 		// Filter coeffcient
@@ -326,13 +135,13 @@ void es5506_core::voice_t::tick(u8 voice)
 			((m_k1ramp.slow() == 0) || (bitfield(m_filtcount, 0, 3) == 0)))
 		{
 			m_filter.set_k1(
-			  clamp<s32>(m_filter.k1() + sign_ext<s32>(m_k1ramp.ramp(), 8), 0, 0xffff));
+			  VGS_CLAMP(m_filter.k1() + sign_ext<s32>(m_k1ramp.ramp(), 8), 0, 0xffff));
 		}
 		if ((m_k2ramp.ramp() != 0) &&
 			((m_k2ramp.slow() == 0) || (bitfield(m_filtcount, 0, 3) == 0)))
 		{
 			m_filter.set_k2(
-			  clamp<s32>(m_filter.k2() + sign_ext<s32>(m_k2ramp.ramp(), 8), 0, 0xffff));
+			  VGS_CLAMP(m_filter.k2() + sign_ext<s32>(m_k2ramp.ramp(), 8), 0, 0xffff));
 		}
 
 		m_ecount--;
@@ -340,7 +149,7 @@ void es5506_core::voice_t::tick(u8 voice)
 	m_filtcount = bitfield(m_filtcount + 1, 0, 3);
 
 	// Update IRQ
-	m_alu.irq_exec(m_host.m_intf, m_host.m_irqv, voice);
+	//m_alu.irq_exec(m_host.m_intf, m_host.m_irqv, voice);
 }
 
 // Compressed format
@@ -357,9 +166,7 @@ s16 es5506_core::voice_t::decompress(u8 sample)
 // volume calculation
 s32 es5506_core::voice_t::volume_calc(u16 volume, s32 in)
 {
-	u8 exponent = bitfield(volume, 12, 4);
-	u8 mantissa = bitfield(volume, 4, 8);
-	return (in * s32(0x100 | mantissa)) >> (20 - exponent);
+	return (in * s32(0x100 | ((volume>>4)&255))) >> (20 - ((volume>>12)&15));
 }
 
 void es5506_core::reset()
@@ -420,36 +227,16 @@ void es5506_core::voice_t::reset()
 // Accessors
 u8 es5506_core::host_r(u8 address)
 {
-	if (!m_host_intf.host_access())
-	{
 		m_ha = address;
-		if (m_e.rising_edge())
-		{  // update directly
 			m_hd = read(m_ha, true);
-		}
-		else
-		{
-			m_host_intf.set_strobe(true);
-		}
-	}
 	return m_hd;
 }
 
 void es5506_core::host_w(u8 address, u8 data)
 {
-	if (!m_host_intf.host_access())
-	{
 		m_ha = address;
 		m_hd = data;
-		if (m_e.rising_edge())
-		{  // update directly
 			write(m_ha, m_hd);
-		}
-		else
-		{
-			m_host_intf.set_strobe(false);
-		}
-	}
 }
 
 u8 es5506_core::read(u8 address, bool cpu_access)

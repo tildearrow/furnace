@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -68,6 +68,7 @@
 #include "platform/vrc6.h"
 #include "platform/fds.h"
 #include "platform/mmc5.h"
+#include "platform/es5506.h"
 #include "platform/scc.h"
 #include "platform/ymz280b.h"
 #include "platform/rf5c68.h"
@@ -75,6 +76,7 @@
 #include "platform/vb.h"
 #include "platform/k007232.h"
 #include "platform/ga20.h"
+#include "platform/sm8521.h"
 #include "platform/pcmdac.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
@@ -440,6 +442,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_MMC5:
       dispatch=new DivPlatformMMC5;
       break;
+    case DIV_SYSTEM_ES5506:
+      dispatch=new DivPlatformES5506;
+      break;
     case DIV_SYSTEM_SCC:
       dispatch=new DivPlatformSCC;
       ((DivPlatformSCC*)dispatch)->setChipModel(false);
@@ -488,6 +493,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_GA20:
       dispatch=new DivPlatformGA20;
+      break;
+    case DIV_SYSTEM_SM8521:
+      dispatch=new DivPlatformSM8521;
       break;
     case DIV_SYSTEM_PCM_DAC:
       dispatch=new DivPlatformPCMDAC;

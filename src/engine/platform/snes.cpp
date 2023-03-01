@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -811,7 +811,7 @@ const void* DivPlatformSNES::getSampleMem(int index) {
 
 size_t DivPlatformSNES::getSampleMemCapacity(int index) {
   // TODO change it based on current echo buffer size
-  return index == 0 ? 65536 : 0;
+  return index == 0 ? (65536-echoDelay*2048) : 0;
 }
 
 size_t DivPlatformSNES::getSampleMemUsage(int index) {
@@ -825,7 +825,7 @@ bool DivPlatformSNES::isSampleLoaded(int index, int sample) {
 }
 
 void DivPlatformSNES::renderSamples(int sysID) {
-  memset(copyOfSampleMem,0,getSampleMemCapacity());
+  memset(copyOfSampleMem,0,65536);
   memset(sampleOff,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
 

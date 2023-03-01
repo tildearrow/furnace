@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -497,6 +497,9 @@ void DivPlatformSoundUnit::reset() {
   rWrite(0x9d,ilCtrl);
   rWrite(0xbc,ilSize);
   rWrite(0xbd,fil1);
+  
+  // copy sample memory
+  memcpy(su->pcm,sampleMem,sampleMemSize?65536:8192);
 }
 
 int DivPlatformSoundUnit::getOutputCount() {
@@ -545,7 +548,7 @@ void DivPlatformSoundUnit::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 const void* DivPlatformSoundUnit::getSampleMem(int index) {
-  return (index==0)?su->pcm:NULL;
+  return (index==0)?sampleMem:NULL;
 }
 
 size_t DivPlatformSoundUnit::getSampleMemCapacity(int index) {
@@ -563,7 +566,7 @@ bool DivPlatformSoundUnit::isSampleLoaded(int index, int sample) {
 }
 
 void DivPlatformSoundUnit::renderSamples(int sysID) {
-  memset(su->pcm,0,getSampleMemCapacity(0));
+  memset(sampleMem,0,sampleMemSize?65536:8192);
   memset(sampleOffSU,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
 
@@ -582,10 +585,10 @@ void DivPlatformSoundUnit::renderSamples(int sysID) {
       break;
     }
     if (memPos+paddedLen>=getSampleMemCapacity(0)) {
-      memcpy(su->pcm+memPos,s->data8,getSampleMemCapacity(0)-memPos);
+      memcpy(sampleMem+memPos,s->data8,getSampleMemCapacity(0)-memPos);
       logW("out of PCM memory for sample %d!",i);
     } else {
-      memcpy(su->pcm+memPos,s->data8,paddedLen);
+      memcpy(sampleMem+memPos,s->data8,paddedLen);
       sampleLoaded[i]=true;
     }
     sampleOffSU[i]=memPos;
@@ -593,6 +596,8 @@ void DivPlatformSoundUnit::renderSamples(int sysID) {
   }
   sampleMemLen=memPos;
   sysIDCache=sysID;
+
+  memcpy(su->pcm,sampleMem,sampleMemSize?65536:8192);
 }
 
 int DivPlatformSoundUnit::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
@@ -604,6 +609,8 @@ int DivPlatformSoundUnit::init(DivEngine* p, int channels, int sugRate, const Di
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   su=new SoundUnit();
+  sampleMem=new unsigned char[65536];
+  memset(sampleMem,0,65536);
   sysIDCache=0;
   setFlags(flags);
   reset();
@@ -615,6 +622,7 @@ void DivPlatformSoundUnit::quit() {
     delete oscBuf[i];
   }
   delete su;
+  delete sampleMem;
 }
 
 DivPlatformSoundUnit::~DivPlatformSoundUnit() {

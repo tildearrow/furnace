@@ -8,11 +8,11 @@
 
 #include "k005289.hpp"
 
-void k005289_core::tick()
+void k005289_core::tick(const unsigned int cycles)
 {
 	for (timer_t &elem : m_timer)
 	{
-		elem.tick();
+		elem.tick(cycles);
 	}
 }
 
@@ -24,12 +24,12 @@ void k005289_core::reset()
 	}
 }
 
-void k005289_core::timer_t::tick()
-{
-	if (bitfield(++m_counter, 0, 12) == 0)
+void k005289_core::timer_t::tick(const unsigned int cycles) {
+        m_counter-=cycles;
+	while (m_counter < 0)
 	{
 		m_addr	  = bitfield(m_addr + 1, 0, 5);
-		m_counter = m_freq;
+		m_counter += 0x1000-(m_freq&0xfff);
 	}
 }
 

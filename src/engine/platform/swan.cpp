@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -216,6 +216,26 @@ void DivPlatformSwan::tick(bool sysTick) {
         sndCtrl&=~0x80;
       }
     }
+  }
+  if (chan[3].std.phaseReset.had) {
+    if (noise>0) {
+      rWrite(0x0e,((noise-1)&0x07)|0x18);
+      sndCtrl|=0x80;
+    } else {
+      sndCtrl&=~0x80;
+    }
+  }
+  unsigned char origSndCtrl=sndCtrl;
+  bool phaseResetHappens=false;
+  for (int i=0; i<4; i++) {
+    if (chan[i].std.phaseReset.had) {
+      phaseResetHappens=true;
+      sndCtrl&=~(1<<i);
+    }
+  }
+  if (phaseResetHappens) {
+    rWrite(0x10,sndCtrl);
+    sndCtrl=origSndCtrl;
   }
   rWrite(0x10,sndCtrl);
 

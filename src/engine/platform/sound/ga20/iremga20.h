@@ -38,6 +38,8 @@ public:
 	void write(u32 offset, u8 data);
 	u8 read(u32 offset);
 
+	inline void set_mute(const int ch, const bool mute) { m_channel[ch & 3].mute = mute; }
+
 	// device-level overrides
 	void device_reset();
 
@@ -53,7 +55,8 @@ private:
 			counter(0),
 			end(0),
 			volume(0),
-			play(0)
+			play(0),
+			mute(false)
 		{
 		}
 
@@ -63,6 +66,7 @@ private:
 		u32 end;
 		u32 volume;
 		bool play;
+		bool mute;
 	};
 
 	u8 m_regs[0x20];

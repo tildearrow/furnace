@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -33,6 +33,8 @@ class DivPlatformYM2610B: public DivPlatformYM2610Base {
     };
 
     friend void putDispatchChip(void*,int);
+
+    void commitState(int ch, DivInstrument* ins);
 
     void acquire_combo(short** buf, size_t len);
     void acquire_ymfm(short** buf, size_t len);

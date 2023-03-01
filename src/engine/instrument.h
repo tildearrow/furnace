@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -78,6 +78,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_K007232=45,
   DIV_INS_GA20=46,
   DIV_INS_POKEMINI=47,
+  DIV_INS_SM8521=48,
   DIV_INS_MAX,
   DIV_INS_NULL
 };

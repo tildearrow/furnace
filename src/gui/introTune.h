@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,10 +17,10 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-unsigned char* getFurnaceIcon();
-#ifdef __cplusplus
-}
+#ifndef _INTRO_TUNE_H
+#define _INTRO_TUNE_H
+
+extern const unsigned char intro_fur[];
+extern const unsigned int intro_fur_len;
+
 #endif

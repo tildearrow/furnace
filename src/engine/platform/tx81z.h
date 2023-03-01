@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ class DivPlatformTX81Z: public DivPlatformOPM {
     DivDispatchOscBuffer* oscBuf[8];
     int baseFreqOff;
     int pcmL, pcmR, pcmCycles;
-    unsigned char amDepth, pmDepth;
+    unsigned char amDepth, pmDepth, amDepth2, pmDepth2;
 
     ymfm::ym2414* fm_ymfm;
     ymfm::ym2414::output_data out_ymfm;
@@ -57,6 +57,7 @@ class DivPlatformTX81Z: public DivPlatformOPM {
   
     int octave(int freq);
     int toFreq(int freq);
+    void commitState(int ch, DivInstrument* ins);
 
     friend void putDispatchChip(void*,int);
   public:

@@ -1,6 +1,6 @@
 /**
  * Furnace Tracker - multi-system chiptune tracker
- * Copyright (C) 2021-2022 tildearrow and contributors
+ * Copyright (C) 2021-2023 tildearrow and contributors
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -89,7 +89,7 @@ const int mobileButtonActions[32]={
   GUI_ACTION_PAT_PASTE,
   GUI_ACTION_PAT_DELETE,
   GUI_ACTION_PAT_SELECT_ALL,
-  0,
+  GUI_ACTION_WINDOW_PIANO,
   GUI_ACTION_UNDO,
   GUI_ACTION_REDO,
 
