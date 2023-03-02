@@ -217,7 +217,7 @@ void FurnaceGUI::drawTutorial() {
   if (curTutorial>=0 && curTutorial<GUI_TUTORIAL_MAX) {
     if (ImGui::Begin("Tutorial",NULL,ImGuiWindowFlags_NoResize|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar)) {
       FurnaceGUITutorialStep& step=tutorials[curTutorial].steps[curTutorialStep];
-      ImGui::Dummy(ImVec2(200.0*dpiScale,1.0));
+      ImGui::Dummy(ImVec2(400.0*dpiScale,1.0));
       ImGui::TextWrapped("%s",step.text);
 
       if (ImGui::Button(ICON_FA_CHEVRON_RIGHT)) {
