@@ -25,9 +25,125 @@
 
 void FurnaceGUI::initTutorial() {
   tutorials[GUI_TUTORIAL_OVERVIEW]=FurnaceGUITutorialDef("Overview",{
-    TS("step 1"),
-    TS("step 2"),
-    TS("step 3")
+    TS(
+      "hello! this is the Furnace tutorial!\n"
+      "I will teach you how to use Furnace.\n"
+      "if you wish to skip these tutorials, click on one of the Skip buttons. otherwise, click the " ICON_FA_CHEVRON_RIGHT " icon to continue."
+    ),
+    TS(
+      "Furnace is a chiptune tracker!\n"
+      "in a tracker, the song is written down in patterns, which are lists of notes, instruments and effects to play.\n"
+      "a playhead scrolls down through these patterns, and plays the notes that are written in them as it moves.\n"
+      "think of it as a piano roll, but replace the dots in the position of notes with note names (e.g. A-4)."
+    ),
+    TS(
+      "these are called \"patterns\" because they may appear more than once in the song.\n"
+      "this is useful for (in example) percussion, avoiding duplication.\n"
+      "the order in which these patterns appear is determined by an order list which also scrolls down as the playhead moves between patterns."
+    ),
+    TS(
+      "this is the Pattern window. it displays a pattern (which contains the notes and stuff)."
+    ),
+    TS(
+      "this is the Orders window. it displays which patterns are going to play."
+    ),
+    TS(
+      "this is the Instruments window. it shows a list of instruments (sounds) in the song."
+    ),
+    TS(
+      "this is the Song Information window, which allows you to change some song properties."
+    ),
+    TS(
+      "this is the Speed window, which contains speed parameters."
+    ),
+    TS(
+      "and here are the Play Controls. you can use these to play the song and do some other things.\n"
+      "now that I am done explaining the interface, let's make a song!"
+    ),
+    TS(
+      "we'll start by creating an instrument.\n"
+      "while it's possible to work without instruments, we would be stuck with the default sound!\n"
+      "so let's create one... for that you click on the " ICON_FA_PLUS " button in the Instruments window."
+    ),
+    TS(
+      ""
+    ),
+    TS(
+      "now let's type in some notes!\n"
+      "first, enable Edit Mode with the Space key.\n"
+      "after that, click on the pattern editor to focus it (the first empty column to be specific).\n"
+    ),
+    TS(
+      "the keyboard layout for inserting notes resembles that of a piano:\n"
+      "- Z-M: low octave\n"
+      "- Q-U: mid octave\n"
+      "- I-P and beyond: high octave\n"
+      "the keys one row above the mentioned octaves are the upper keys of a piano.\n"
+      "let's press some of these keys to insert notes!"
+    ),
+    TS(
+      ""
+    ),
+    TS(
+      "and now, let's play the song! hit Enter to play it (and press it while playing to stop)."
+    ),
+    TS(
+      ""
+    ),
+    TS(
+      "great!\n"
+      "by the way, you can move around the pattern view using the arrow keys or by clicking in the pattern."
+    ),
+    TS(
+      "now let me teach you about these columns in the pattern editor.\n"
+      "each big column represents a channel.\n"
+      "a channel consists of five (or more) smaller columns:\n"
+      "- the first column contains notes.\n"
+      "- the second one represents the instruments to play (these will be filled in automatically when you have an instrument selected).\n"
+      "- the third one has volume changes (will explain these later).\n"
+      "- the last two ones are effects and effect values (you can have multiple effect columns, but that's something I will be covering later as well.)\n"
+      "the instrument, volume and effect columns are continuous. this means that if nothing is specified, the last value will be used."
+    ),
+    TS(
+      "let's add some volume changes to show you what I mean."
+    ),
+    TS(
+      ""
+    ),
+    TS(
+      "as you can hear, volume changes affects all notes which are placed next to, or after it.\n"
+      "let's place some bass notes."
+    ),
+    TS(
+      ""
+    ),
+    TS(
+      "oh wait! the keyboard layout only contains 2 octaves!\n"
+      "however, we can change the octave range by using the Octave setting in the play/edit controls."
+    ),
+    TS(
+      ""
+    ),
+    TS(
+      "now let's type in the notes..."
+    ),
+    TS(
+      ""
+    ),
+    TS(
+      "...and play this?"
+    ),
+    TS(
+      ""
+    ),
+    TS(
+      "cool, huh? but we're running out of space here.\n"
+      "let's expand the song."
+    ),
+    TS(
+      "for that we go in the Orders window, which contains the order these patterns will appear in.\n"
+      "aaaaa"
+    )
   });
 }
 
