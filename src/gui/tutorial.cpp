@@ -142,7 +142,37 @@ void FurnaceGUI::initTutorial() {
     ),
     TS(
       "for that we go in the Orders window, which contains the order these patterns will appear in.\n"
-      "aaaaa"
+      "the first column is position while the other columns contain pattern numbers of every channel."
+    ),
+    TS(
+      "clicking on the " ICON_FA_PLUS " button adds one row to the orders..."
+    )
+    TS(
+      ""
+    ),
+    TS(
+      "and then clicking on a cell of the first column takes us there."
+    ),
+    TS(
+      ""
+    ),
+    TS(
+      "now let's add more to the song."
+    ),
+    TS(
+      ""
+    ),
+    TS(
+      "and after that, let's hear it!\n"
+      "note that playing the song by pressing Enter will play from the current position in the Orders view - that is, order 1!\n"
+      "we want to play from order 0 (the first order), so we go back to it first and then hit Enter."
+    ),
+    TS(
+      ""
+    ),
+    TS(
+      "congratulations! you made it\n"
+      "what else?"
     )
   });
 }
