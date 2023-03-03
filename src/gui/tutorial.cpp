@@ -146,7 +146,7 @@ void FurnaceGUI::initTutorial() {
     ),
     TS(
       "clicking on the " ICON_FA_PLUS " button adds one row to the orders..."
-    )
+    ),
     TS(
       ""
     ),
