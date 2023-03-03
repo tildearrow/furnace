@@ -246,7 +246,7 @@ size | description
      |   - 0x9c: Virtual Boy - 6 channels
      |   - 0x9d: VRC7 - 6 channels
      |   - 0x9e: YM2610B - 16 channels
-     |   - 0x9f: ZX Spectrum (beeper) - 6 channels
+     |   - 0x9f: ZX Spectrum (beeper, tildearrow engine) - 6 channels
      |   - 0xa0: YM2612 extended - 9 channels
      |   - 0xa1: Konami SCC - 5 channels
      |   - 0xa2: OPL drums (YM3526) - 11 channels
@@ -288,6 +288,8 @@ size | description
      |   - 0xc6: K007232 - 2 channels
      |   - 0xc7: GA20 - 4 channels
      |   - 0xc8: SM8521 - 3 channels
+     |   - 0xc9: M114S - 16 channels
+     |   - 0xca: ZX Spectrum (beeper, QuadTone engine) - 5 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfc: Pong - 1 channel
