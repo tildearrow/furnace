@@ -30,7 +30,6 @@
  *         - Maybe also low pass filter heavily/some channels only?? (some channels sound too high frequency heavy (clicks, pops), for example on Dakar)
  **********************************************************************************************/
 
-#include "driver.h"
 #include "m114s.h"
 #include <stdbool.h>
 
@@ -39,9 +38,6 @@
 #endif
 
 #define SAMPLE_RATE 48000
-
-// by default mix all 4 HW channels into 1 stream for efficiency reasons:
-#define M114S_OUTPUT_CHANNELS 1/*4*//*16*/ // HW uses 4, but if set to 16 instead, we simply output each (internal) channel independently (which is not how the real chip works, as that one mixes the 16 down to 4 outputs)
 
 #define USE_FREQTABLE_FROM_MANUAL // undef to use a generated freqtable with 'correct' semitones (i.e. unlike the real chip) for the M114A 4MHz
 
@@ -68,89 +64,15 @@
 
 ***********************************************************************************************/
 
-#define M114S_CHANNELS			16				// Chip has 16 internal channels for sound output
-
 #define FRAC_BITS				16
 #define FRAC_ONE				(1 << FRAC_BITS)
 #define FRAC_MASK				(FRAC_ONE - 1)
 
 /**********************************************************************************************
 
-     INTERNAL DATA STRUCTURES
-
-***********************************************************************************************/
-
-/* struct describing a single table */
-struct M114STable
-{
-		UINT8			reread;						/* # of times to re-read each byte from table */
-		//UINT32			position;					/* current reading position for table */
-		UINT32			start_address;				/* start address (offset into ROM) for table */
-		//UINT32			stop_address;				/* stop address (offset into ROM) for table */
-		UINT16			length;						/* length in bytes of the table */
-		UINT16			total_length;				/* total length in bytes of the table (including repetitions) */
-};
-
-/* struct describing the registers for a single channel */
-struct M114SChannelRegs
-{
-		UINT8			atten;							/* Attenuation Register */
-		UINT8			outputs;						/* Output Pin Register */
-		UINT8			table1_addr;					/* Table 1 MSB Starting Address Register */
-		UINT8			table2_addr;					/* Table 2 MSB Starting Address Register */
-		UINT8			table_len;						/* Table Length Register */
-		UINT8			read_meth;						/* Read Method Register */
-		UINT8			interp;							/* Interpolation Register */
-		bool			env_enable;						/* Envelope Enable Register */
-		bool			oct_divisor;					/* Octave Divisor Register */
-		UINT8			frequency;						/* Frequency Register */
-};
-
-/* struct describing a single playing channel */
-struct M114SChannel
-{
-	/* registers */
-		struct M114SChannelRegs regs;					/* register data for the channel */
-	/* internal state */
-		bool			active;							/* is the channel active */
-		INT16			output[4096];					/* Holds output samples mixed from table 1 & 2 */
-		UINT32			outpos;							/* Index into output samples */
-		int				prev_volume;					/* Holds the last volume code set for the channel */
-		int				current_volume;					/* Volume to apply to each sample output */
-		int				target_volume;					/* Target to match for volume envelope */
-		int				step_rate_volume_env;			/* Volume step for volume envelope */
-		//int				end_of_table;					/* End of Table Flag */
-		struct M114STable table1;						/* Table 1 Data */
-		struct M114STable table2;						/* Table 2 Data */
-		UINT32			incr;							/* Current Sample Rate/Step size increase to play back table */
-};
-
-/* struct describing the entire M114S chip */
-struct M114SChip
-{
-	/* vars to be reset when the chip is reset */
-	int							bytes_read;					/* # of bytes read */
-	int							channel;					/* Which channel is being programmed via the data bus */
-	struct M114SChannelRegs		tempch_regs;				/* temporary channel register data for gathering the data programming */
-	struct M114SChannel			channels[M114S_CHANNELS];	/* All the chip's internal channels */
-	int							channel_volume[4];			/* scale for the HW/chip outputs */
-	/* static vars, ie do not reset values */
-	int							stream;						/* which stream are we using */
-	INT8 *						region_base;				/* pointer to the base of the ROM region */
-	struct M114Sinterface*		intf;						/* Pointer to the interface */
-	double						reset_cycles;				/* # of cycles that must pass between programming bytes to auto reset the chip */
-	int							cpu_num;					/* # of the cpu controlling the M114S */
-	bool 						is_M114A;					/* M114A 4MHz or M114AF 6MHz */
-};
-
-
-
-/**********************************************************************************************
-
      GLOBALS
 
 ***********************************************************************************************/
-static struct M114SChip m114schip[MAX_M114S];		//Each M114S chip
 
 /* Table 1 & Table 2 Repetition Values based on Mode */
 static const int mode_to_rep[8][2] = {
@@ -321,17 +243,17 @@ static const double freqtable4Mhz[256] = {
 	 as necessary to match the Machine driver's output sample rate.
 
 ***********************************************************************************************/
-static INT16 read_sample(struct M114SChannel * const channel, const UINT32 length)
+int16_t read_sample(struct M114SChannel * const channel, const uint32_t length)
 {
-	const UINT32 pos = channel->outpos >> FRAC_BITS;
+	const uint32_t pos = channel->outpos >> FRAC_BITS;
 	if (pos < length)
 	{
-		const INT32 frac = channel->outpos & FRAC_MASK;
+		const int32_t frac = channel->outpos & FRAC_MASK;
 
 		// interpolate
-		const INT16 val1 = channel->output[pos];
-		const INT16 val2 = channel->output[pos+1 < length ? pos : 0]; // wrap around to 0 (see code below!)?
-		const INT16 sample = (val1 * ((INT32)FRAC_ONE - frac) + val2 * frac) >> FRAC_BITS;
+		const int16_t val1 = channel->output[pos];
+		const int16_t val2 = channel->output[pos+1 < length ? pos : 0]; // wrap around to 0 (see code below!)?
+		const int16_t sample = (val1 * ((int32_t)FRAC_ONE - frac) + val2 * frac) >> FRAC_BITS;
 
 		channel->outpos += channel->incr;
 		return sample;
@@ -354,13 +276,13 @@ static INT16 read_sample(struct M114SChannel * const channel, const UINT32 lengt
 	 Note: Eventually this should flag an End of Table, and should process new table data
 
 ***********************************************************************************************/
-static void read_table(struct M114SChip * const chip, struct M114SChannel * const channel) // get rid of this and write directly to output buffer?!
+void read_table(struct M114SChip * const chip, struct M114SChannel * const channel) // get rid of this and write directly to output buffer?!
 {
 	int i;
 #ifndef USE_LERP_FOR_REPEATED_SAMPLES
 	int j;
 #endif
-	const INT8 * const rom = &chip->region_base[0];
+	const int8_t * const rom = &chip->region_base[0];
 	const int t1start = channel->table1.start_address;
 	const int t2start = channel->table2.start_address;
 	const int lent1 = channel->table1.length;
@@ -369,8 +291,8 @@ static void read_table(struct M114SChip * const chip, struct M114SChannel * cons
 	const int rep2 = channel->table2.reread;
 	const int intp = channel->regs.interp;
 
-	INT8 tb1[4096];	// Temp copy buffer for Table 1 // long enough to hold max sizes of 2048*2 or 1024*4
-	INT8 tb2[4096];	// Temp copy buffer for Table 2 // dto.
+	int8_t tb1[4096];	// Temp copy buffer for Table 1 // long enough to hold max sizes of 2048*2 or 1024*4
+	int8_t tb2[4096];	// Temp copy buffer for Table 2 // dto.
 	memset(&tb1,0,sizeof(tb1));
 	memset(&tb2,0,sizeof(tb2));
 
@@ -453,10 +375,10 @@ static void read_table(struct M114SChip * const chip, struct M114SChannel * cons
 		//write to output buffer
 #ifdef DO_FULL_PRECISION_MIXING
 		l = (int)tb1[i] * (intp + 1) + (int)tb2[i] * (15 - intp);
-		channel->output[i] = (INT16)(0x6f * l * (channel->current_volume + 1) / (1024*16)); // Max Volume would be 256 for an INT16 value (so why was 0x6f chosen??)
+		channel->output[i] = (int16_t)(0x6f * l * (channel->current_volume + 1) / (1024*16)); // Max Volume would be 256 for an int16_t value (so why was 0x6f chosen??)
 #else
 		l = ((int)tb1[i] * (intp + 1) / 16) + ((int)tb2[i] * (15 - intp) / 16); // formula seen in datasheet, but unclear what this means precision wise (i.e. is this only meant as real number pseudo code?)
-		channel->output[i] = (INT16)(0x6f * l * (channel->current_volume + 1) / 1024); // Max Volume would be 256 for an INT16 value (so why was 0x6f chosen??) //!! do 0x6f scale AFTER division??
+		channel->output[i] = (int16_t)(0x6f * l * (channel->current_volume + 1) / 1024); // Max Volume would be 256 for an int16_t value (so why was 0x6f chosen??) //!! do 0x6f scale AFTER division??
 #endif
 	}
 }
@@ -467,22 +389,17 @@ static void read_table(struct M114SChip * const chip, struct M114SChannel * cons
 
 ***********************************************************************************************/
 //Seems this sometimes still produces some static, but I don't know why!
-static void m114s_update(int num,
-#if M114S_OUTPUT_CHANNELS == 1
-	INT16 *buffer,
-#else
-	INT16 **buffer,
-#endif
+void m114s_update(struct M114SChip* chip,
+	int16_t **buffer,
 	int samples)
 {
-	struct M114SChip * const chip = &m114schip[num];
 
 	while (samples > 0)
 	{
 #if M114S_OUTPUT_CHANNELS == 1
-		INT32 accum = 0;
+		int32_t accum = 0;
 #else
-		INT32 accum[M114S_OUTPUT_CHANNELS];
+		int32_t accum[M114S_OUTPUT_CHANNELS];
 #endif
 		int c;
 
@@ -500,7 +417,7 @@ static void m114s_update(int num,
 			if (channel->active)
 			{
 				//We use Table 1 to drive everything, as Table 2 is really for mixing into Table 1..
-				INT32 sample = read_sample(channel, channel->table1.total_length); //!! INT16 if MR_GAME_VOLUME_HACK would be off
+				int32_t sample = read_sample(channel, channel->table1.total_length); //!! int16_t if MR_GAME_VOLUME_HACK would be off
 
 #ifdef MR_GAME_VOLUME_HACK
 				sample = sample*chip->channel_volume[channel->regs.outputs] / 100; // boost percussion on Dakar, penalty some of the other instruments
@@ -519,7 +436,7 @@ static void m114s_update(int num,
 
 		/* Update the buffer & Ensure we don't clip */
 #if M114S_OUTPUT_CHANNELS == 1
-		accum /= (INT32)4;
+		accum /= (int32_t)4;
 		*buffer++ = (accum < -32768) ? -32768 : ((accum > 32767) ? 32767 : accum);
 #else
 		for (c = 0; c < M114S_OUTPUT_CHANNELS; c++)
@@ -568,10 +485,7 @@ int M114S_sh_start(const struct MachineSound *msound)
 {
 	const struct M114Sinterface *intf = msound->sound_interface;
 #if M114S_OUTPUT_CHANNELS == 1 
-	char stream_name[40];
 #else
-	char stream_name[M114S_OUTPUT_CHANNELS][40];
-	const char *stream_name_ptrs[M114S_OUTPUT_CHANNELS];
 	int vol[M114S_OUTPUT_CHANNELS];
 #endif
 	int i,j;
@@ -599,24 +513,9 @@ int M114S_sh_start(const struct MachineSound *msound)
 				return 1;
 		}
 
-		/* generate the name and create the stream */
-#if M114S_OUTPUT_CHANNELS == 1
-		sprintf(stream_name, "%s #%d", sound_name(msound), i);
-		m114schip[i].stream = stream_init(stream_name, 100, SAMPLE_RATE, i, m114s_update);
-#else
-		for (j = 0; j<M114S_OUTPUT_CHANNELS; j++) {
-			sprintf(stream_name[j], "%s #%d Ch%d", sound_name(msound), i, j);
-			stream_name_ptrs[j] = stream_name[j];
-			vol[j] = 100 / 4;
-		}
-		m114schip[i].stream = stream_init_multi(M114S_OUTPUT_CHANNELS, stream_name_ptrs, vol, SAMPLE_RATE, i, m114s_update);
-#endif
-		if (m114schip[i].stream == -1)
-			return 1;
-
 		/* initialize the region & interface info */
 		m114schip[i].cpu_num = intf->cpunum[i];
-		m114schip[i].region_base = (INT8 *)memory_region(intf->region[i]);
+		m114schip[i].region_base = (int8_t *)memory_region(intf->region[i]);
 		m114schip[i].intf = (struct M114Sinterface *)intf;
 
 		/* init the channels */
@@ -648,7 +547,7 @@ void M114S_sh_stop(void)
 void M114S_sh_reset(void)
 {
 	int i;
-	for (i = 0; i < MAX_M114S; i++) {
+	for (i = 0; i < 1; i++) {
 		/* reset all channels */
 		init_all_channels(&m114schip[i]);
 	}
@@ -659,7 +558,7 @@ void M114S_sh_reset(void)
      process_freq_codes -- There are up to 16 special values for frequency that signify a code
 
 ***********************************************************************************************/
-static void process_freq_codes(struct M114SChip * const chip)
+void process_freq_codes(struct M114SChip * const chip)
 {
 	//Grab pointer to channel being programmed
 	struct M114SChannel * const channel = &chip->channels[chip->channel];
@@ -705,13 +604,10 @@ static void process_freq_codes(struct M114SChip * const chip)
 
 ***********************************************************************************************/
 
-static void process_channel_data(struct M114SChip * const chip)
+void process_channel_data(struct M114SChip * const chip)
 {
 	//Grab pointer to channel being programmed
 	struct M114SChannel * const channel = &chip->channels[chip->channel];
-
-	/* Force stream to update */
-	stream_update(chip->stream, 0);
 
 	//Reset # of bytes for next group
 	chip->bytes_read = 0;
@@ -763,7 +659,7 @@ static void process_channel_data(struct M114SChip * const chip)
 		channel->active = 1;
 
 		// Setup Sample Rate/Step size increase
-		channel->incr = (UINT32)(freq * ((double)(16u << FRAC_BITS) / SAMPLE_RATE));
+		channel->incr = (uint32_t)(freq * ((double)(16u << FRAC_BITS) / SAMPLE_RATE));
 
 		//Assign start & stop address offsets to ROM
 		channel->table1.start_address = t1start;
@@ -835,7 +731,7 @@ if(channel->regs.outputs == 2) {
 	 - thus 48 bits of programming! All data must be fed in order, so we make a few assumptions.
 
 ***********************************************************************************************/
-static void m114s_data_write(struct M114SChip * const chip, data8_t data)
+void m114s_data_write(struct M114SChip* chip, data8_t data)
 {
 	/* Check if the chip needs to 'auto-reset' - this occurs if during the programming sequence (ie before all 8 bytes read)
 	   a certain amount of time elapses without receiving another byte of programming...
@@ -922,14 +818,3 @@ static void m114s_data_write(struct M114SChip * const chip, data8_t data)
 	}
 }
 
-
-
-/**********************************************************************************************
-
-     M114S_data_0_w -- handle a write to the current register
-
-***********************************************************************************************/
-WRITE_HANDLER( M114S_data_w )
-{
-	m114s_data_write(&m114schip[offset], data);
-}
