@@ -2365,6 +2365,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_PONG, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "NEC D65010G031", {
+      CH(DIV_SYSTEM_D65010G031, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Sample","chips/systems which use PCM or ADPCM samples for sound synthesis.");

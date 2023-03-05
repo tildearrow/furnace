@@ -1723,6 +1723,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_PET:
     case DIV_SYSTEM_VBOY:
     case DIV_SYSTEM_GA20:
+    case DIV_SYSTEM_D65010G031:
       ImGui::Text("nothing to configure");
       break;
     case DIV_SYSTEM_VERA:

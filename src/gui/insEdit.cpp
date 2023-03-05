@@ -5048,7 +5048,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ES5506) {
             volMax=4095;
           }
-          if (ins->type==DIV_INS_MSM6258) {
+          if (ins->type==DIV_INS_MSM6258 || ins->type==DIV_INS_D65010G031) {
             volMax=0;
           }
           if (ins->type==DIV_INS_MSM6295) {
@@ -5118,7 +5118,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC ||
               ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC || ins->type==DIV_INS_SEGAPCM ||
               ins->type==DIV_INS_FM || ins->type==DIV_INS_K007232 || ins->type==DIV_INS_GA20 ||
-              ins->type==DIV_INS_SM8521) {
+              ins->type==DIV_INS_SM8521 || ins->type==DIV_INS_D65010G031) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VBOY) {
@@ -5190,7 +5190,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_C64 || ins->type==DIV_INS_SAA1099) {
             waveBitMode=true;
           }
-          if (ins->type==DIV_INS_STD || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_NES || ins->type==DIV_INS_T6W28) waveMax=0;
+          if (ins->type==DIV_INS_STD || ins->type==DIV_INS_VRC6_SAW || ins->type==DIV_INS_NES ||
+              ins->type==DIV_INS_T6W28 || ins->type==DIV_INS_D65010G031)
+              waveMax=0;
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_VIC || ins->type==DIV_INS_OPLL) waveMax=15;
           if (ins->type==DIV_INS_C64) waveMax=4;
           if (ins->type==DIV_INS_SAA1099) waveMax=2;

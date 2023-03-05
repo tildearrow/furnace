@@ -1,0 +1,270 @@
+/**
+ * Furnace Tracker - multi-system chiptune tracker
+ * Copyright (C) 2021-2023 tildearrow and contributors
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along
+ * with this program; if not, write to the Free Software Foundation, Inc.,
+ * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ */
+
+#include "d65010g031.h"
+#include "../engine.h"
+#include <math.h>
+
+#define rWrite(a,v) {regPool[(a)]=(v)&0xff; d65010g031_write(&d65010g031,a,v);}
+
+#define CHIP_DIVIDER 1024
+
+const char* regCheatSheetD65010G031[]={
+  "CH1_Pitch", "00",
+  "CH2_Pitch", "01",
+  "CH3_Pitch", "02",
+  NULL
+};
+
+const char** DivPlatformD65010G031::getRegisterSheet() {
+  return regCheatSheetD65010G031;
+}
+
+void DivPlatformD65010G031::acquire(short** buf, size_t len) {
+  for (size_t h=0; h<len; h++) {
+    short samp;
+    samp=d65010g031_sound_tick(&d65010g031,1);
+    buf[0][h]=samp<<12;
+    for (int i=0; i<3; i++) {
+      oscBuf[i]->data[oscBuf[i]->needle++]=(d65010g031.square[i].out<<12);
+    }
+  }
+}
+
+void DivPlatformD65010G031::tick(bool sysTick) {
+  for (int i=0; i<3; i++) {
+    chan[i].std.next();
+    if (NEW_ARP_STRAT) {
+      chan[i].handleArp();
+    } else if (chan[i].std.arp.had) {
+      if (!chan[i].inPorta) {
+        chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
+      }
+      chan[i].freqChanged=true;
+    }
+    if (chan[i].std.pitch.had) {
+      if (chan[i].std.pitch.mode) {
+        chan[i].pitch2+=chan[i].std.pitch.val;
+        CLAMP_VAR(chan[i].pitch2,-32768,32767);
+      } else {
+        chan[i].pitch2=chan[i].std.pitch.val;
+      }
+      chan[i].freqChanged=true;
+    }
+    if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
+      chan[i].freq=0x3f-parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+      if (chan[i].freq<1) chan[i].freq=1;
+      if (chan[i].freq>62) chan[i].freq=62;
+      if (isMuted[i]) chan[i].keyOn=false;
+      if (chan[i].keyOn) {
+        rWrite(i,chan[i].freq);
+        chan[i].keyOn=false;
+      } else if (chan[i].freqChanged && chan[i].active && !isMuted[i]) {
+        rWrite(i,chan[i].freq);
+      }
+      if (chan[i].keyOff) {
+        rWrite(i,0);
+        chan[i].keyOff=false;
+      }
+      chan[i].freqChanged=false;
+    }
+  }
+}
+
+int DivPlatformD65010G031::dispatch(DivCommand c) {
+  switch (c.cmd) {
+    case DIV_CMD_NOTE_ON: {
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_VIC);
+      if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
+        chan[c.chan].freqChanged=true;
+        chan[c.chan].note=c.value;
+      }
+      chan[c.chan].active=true;
+      chan[c.chan].keyOn=true;
+      chan[c.chan].macroInit(ins);
+      break;
+    }
+    case DIV_CMD_NOTE_OFF:
+      chan[c.chan].active=false;
+      chan[c.chan].keyOff=true;
+      chan[c.chan].macroInit(NULL);
+      break;
+    case DIV_CMD_NOTE_OFF_ENV:
+    case DIV_CMD_ENV_RELEASE:
+      chan[c.chan].std.release();
+      break;
+    case DIV_CMD_INSTRUMENT:
+      if (chan[c.chan].ins!=c.value || c.value2==1) {
+        chan[c.chan].ins=c.value;
+      }
+      break;
+    case DIV_CMD_GET_VOLUME:
+      return chan[c.chan].vol;
+      break;
+    case DIV_CMD_PITCH:
+      chan[c.chan].pitch=c.value;
+      chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_NOTE_PORTA: {
+      int destFreq=NOTE_PERIODIC(c.value2);
+      bool return2=false;
+      if (destFreq>chan[c.chan].baseFreq) {
+        chan[c.chan].baseFreq+=c.value;
+        if (chan[c.chan].baseFreq>=destFreq) {
+          chan[c.chan].baseFreq=destFreq;
+          return2=true;
+        }
+      } else {
+        chan[c.chan].baseFreq-=c.value;
+        if (chan[c.chan].baseFreq<=destFreq) {
+          chan[c.chan].baseFreq=destFreq;
+          return2=true;
+        }
+      }
+      chan[c.chan].freqChanged=true;
+      if (return2) {
+        chan[c.chan].inPorta=false;
+        return 2;
+      }
+      break;
+    }
+    case DIV_CMD_LEGATO:
+      chan[c.chan].baseFreq=NOTE_PERIODIC(c.value+((HACKY_LEGATO_MESS)?(chan[c.chan].std.arp.val):(0)));
+      chan[c.chan].freqChanged=true;
+      chan[c.chan].note=c.value;
+      break;
+    case DIV_CMD_PRE_PORTA:
+      if (chan[c.chan].active && c.value2) {
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_VIC));
+      }
+      if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
+      chan[c.chan].inPorta=c.value;
+      break;
+    case DIV_CMD_GET_VOLMAX:
+      return 15;
+      break;
+    case DIV_CMD_MACRO_OFF:
+      chan[c.chan].std.mask(c.value,true);
+      break;
+    case DIV_CMD_MACRO_ON:
+      chan[c.chan].std.mask(c.value,false);
+      break;
+    case DIV_ALWAYS_SET_VOLUME:
+      return 1;
+      break;
+    default:
+      break;
+  }
+  return 1;
+}
+
+void DivPlatformD65010G031::muteChannel(int ch, bool mute) {
+  isMuted[ch]=mute;
+  if (mute) {
+    chan[ch].keyOff=true;
+  } else if (chan[ch].active) {
+    chan[ch].keyOn=true;
+  }
+}
+
+void DivPlatformD65010G031::forceIns() {
+  for (int i=0; i<3; i++) {
+    chan[i].insChanged=true;
+    chan[i].freqChanged=true;
+  }
+}
+
+void* DivPlatformD65010G031::getChanState(int ch) {
+  return &chan[ch];
+}
+
+DivMacroInt* DivPlatformD65010G031::getChanMacroInt(int ch) {
+  return &chan[ch].std;
+}
+
+DivDispatchOscBuffer* DivPlatformD65010G031::getOscBuffer(int ch) {
+  return oscBuf[ch];
+}
+
+unsigned char* DivPlatformD65010G031::getRegisterPool() {
+  return regPool;
+}
+
+int DivPlatformD65010G031::getRegisterPoolSize() {
+  return 3;
+}
+
+void DivPlatformD65010G031::reset() {
+  memset(regPool,0,3);
+  for (int i=0; i<3; i++) {
+    chan[i]=Channel();
+    chan[i].std.setEngine(parent);
+  }
+  d65010g031_reset(&d65010g031);
+}
+
+int DivPlatformD65010G031::getOutputCount() {
+  return 1;
+}
+
+void DivPlatformD65010G031::notifyInsDeletion(void* ins) {
+  for (int i=0; i<3; i++) {
+    chan[i].std.notifyInsDeletion((DivInstrument*)ins);
+  }
+}
+
+void DivPlatformD65010G031::setFlags(const DivConfig& flags) {
+  chipClock=COLOR_NTSC*5.0;
+  CHECK_CUSTOM_CLOCK;
+  rate=chipClock/1024;
+  for (int i=0; i<3; i++) {
+    oscBuf[i]->rate=rate;
+  }
+}
+
+void DivPlatformD65010G031::poke(unsigned int addr, unsigned short val) {
+  rWrite(addr,val);
+}
+
+void DivPlatformD65010G031::poke(std::vector<DivRegWrite>& wlist) {
+  for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
+}
+
+int DivPlatformD65010G031::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
+  parent=p;
+  dumpWrites=false;
+  skipRegisterWrites=false;
+  for (int i=0; i<3; i++) {
+    isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
+  }
+  setFlags(flags);
+  reset();
+  return 4;
+}
+
+void DivPlatformD65010G031::quit() {
+  for (int i=0; i<3; i++) {
+    delete oscBuf[i];
+  }
+}
+
+DivPlatformD65010G031::~DivPlatformD65010G031() {
+}
