@@ -17,12 +17,12 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _ZXBEEPERQT_H
-#define _ZXBEEPERQT_H
+#ifndef _ZXBEEPERQUADTONE_H
+#define _ZXBEEPERQUADTONE_H
 
 #include "../dispatch.h"
 
-class DivPlatformZXBeeperQT: public DivDispatch {
+class DivPlatformZXBeeperQuadTone: public DivDispatch {
   struct Channel: public SharedChannel<unsigned char> {
     unsigned short sPosition;
     unsigned char duty;
@@ -65,7 +65,7 @@ class DivPlatformZXBeeperQT: public DivDispatch {
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
-    ~DivPlatformZXBeeperQT();
+    ~DivPlatformZXBeeperQuadTone();
   private:
     void writeOutVol(int ch);
 };

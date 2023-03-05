@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "zxbeeperqt.h"
+#include "zxbeeperquadtone.h"
 #include "../engine.h"
 #include <math.h>
 
@@ -25,11 +25,11 @@
 #define CHIP_FREQBASE 2048*320
 #define CHIP_DIVIDER 16*13
 
-const char** DivPlatformZXBeeperQT::getRegisterSheet() {
+const char** DivPlatformZXBeeperQuadTone::getRegisterSheet() {
   return NULL;
 }
 
-void DivPlatformZXBeeperQT::acquire(short** buf, size_t len) {
+void DivPlatformZXBeeperQuadTone::acquire(short** buf, size_t len) {
   bool o=false;
   for (size_t h=0; h<len; h++) {
     if (curSample>=0 && curSample<parent->song.sampleLen) {
@@ -72,7 +72,7 @@ void DivPlatformZXBeeperQT::acquire(short** buf, size_t len) {
   }
 }
 
-void DivPlatformZXBeeperQT::tick(bool sysTick) {
+void DivPlatformZXBeeperQuadTone::tick(bool sysTick) {
   for (int i=0; i<4; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -148,7 +148,7 @@ void DivPlatformZXBeeperQT::tick(bool sysTick) {
   }
 }
 
-int DivPlatformZXBeeperQT::dispatch(DivCommand c) {
+int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan<4) {
@@ -279,48 +279,48 @@ int DivPlatformZXBeeperQT::dispatch(DivCommand c) {
   return 1;
 }
 
-void DivPlatformZXBeeperQT::writeOutVol(int ch) {
+void DivPlatformZXBeeperQuadTone::writeOutVol(int ch) {
   if (ch>=4) return;
   unsigned char val=(chan[ch].outVol>=1)?((chan[ch].outVol>=2)?31:7):0;
   rWrite(3+ch*4,(!isMuted[ch]&&chan[ch].active)?val:0);
 }
 
-void DivPlatformZXBeeperQT::muteChannel(int ch, bool mute) {
+void DivPlatformZXBeeperQuadTone::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   writeOutVol(ch);
 }
 
-void DivPlatformZXBeeperQT::forceIns() {
+void DivPlatformZXBeeperQuadTone::forceIns() {
   for (int i=0; i<5; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
   }
 }
 
-void* DivPlatformZXBeeperQT::getChanState(int ch) {
+void* DivPlatformZXBeeperQuadTone::getChanState(int ch) {
   return &chan[ch];
 }
 
-DivMacroInt* DivPlatformZXBeeperQT::getChanMacroInt(int ch) {
+DivMacroInt* DivPlatformZXBeeperQuadTone::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
-DivDispatchOscBuffer* DivPlatformZXBeeperQT::getOscBuffer(int ch) {
+DivDispatchOscBuffer* DivPlatformZXBeeperQuadTone::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
-unsigned char* DivPlatformZXBeeperQT::getRegisterPool() {
+unsigned char* DivPlatformZXBeeperQuadTone::getRegisterPool() {
   return regPool;
 }
 
-int DivPlatformZXBeeperQT::getRegisterPoolSize() {
+int DivPlatformZXBeeperQuadTone::getRegisterPoolSize() {
   return 16;
 }
 
-void DivPlatformZXBeeperQT::reset() {
+void DivPlatformZXBeeperQuadTone::reset() {
   memset(regPool,0,16);
   for (int i=0; i<5; i++) {
-    chan[i]=DivPlatformZXBeeperQT::Channel();
+    chan[i]=DivPlatformZXBeeperQuadTone::Channel();
     chan[i].std.setEngine(parent);
     if (i<4) rWrite(2+i*4,128);
   }
@@ -334,20 +334,20 @@ void DivPlatformZXBeeperQT::reset() {
   outputClock=0;
 }
 
-bool DivPlatformZXBeeperQT::keyOffAffectsArp(int ch) {
+bool DivPlatformZXBeeperQuadTone::keyOffAffectsArp(int ch) {
   return true;
 }
 
-void DivPlatformZXBeeperQT::notifyWaveChange(int wave) {
+void DivPlatformZXBeeperQuadTone::notifyWaveChange(int wave) {
 }
 
-void DivPlatformZXBeeperQT::notifyInsDeletion(void* ins) {
+void DivPlatformZXBeeperQuadTone::notifyInsDeletion(void* ins) {
   for (int i=0; i<5; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
 
-void DivPlatformZXBeeperQT::setFlags(const DivConfig& flags) {
+void DivPlatformZXBeeperQuadTone::setFlags(const DivConfig& flags) {
   if (flags.getInt("clockSel",0)) {
     chipClock=COLOR_PAL*4.0/5.0;
   } else {
@@ -360,15 +360,15 @@ void DivPlatformZXBeeperQT::setFlags(const DivConfig& flags) {
   }
 }
 
-void DivPlatformZXBeeperQT::poke(unsigned int addr, unsigned short val) {
+void DivPlatformZXBeeperQuadTone::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }
 
-void DivPlatformZXBeeperQT::poke(std::vector<DivRegWrite>& wlist) {
+void DivPlatformZXBeeperQuadTone::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformZXBeeperQT::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
+int DivPlatformZXBeeperQuadTone::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   for (int i=0; i<5; i++) {
     isMuted[i]=false;
@@ -379,11 +379,11 @@ int DivPlatformZXBeeperQT::init(DivEngine* p, int channels, int sugRate, const D
   return 5;
 }
 
-void DivPlatformZXBeeperQT::quit() {
+void DivPlatformZXBeeperQuadTone::quit() {
   for (int i=0; i<5; i++) {
     delete oscBuf[i];
   }
 }
 
-DivPlatformZXBeeperQT::~DivPlatformZXBeeperQT() {
+DivPlatformZXBeeperQuadTone::~DivPlatformZXBeeperQuadTone() {
 }
