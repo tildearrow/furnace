@@ -256,6 +256,16 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_POKEMINI, 0.5f, 0, "")
     }
   );
+  ENTRY(
+    "Tiger Game.com", {
+      CH(DIV_SYSTEM_SM8521, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Casio PV-1000", {
+      CH(DIV_SYSTEM_D65010G031, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Computers","let's get to work on chiptune today.");
