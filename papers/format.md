@@ -290,6 +290,7 @@ size | description
      |   - 0xc8: SM8521 - 3 channels
      |   - 0xc9: M114S - 16 channels
      |   - 0xca: ZX Spectrum (beeper, QuadTone engine) - 5 channels
+     |   - 0xcb: Casio PV-1000 - 3 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfc: Pong - 1 channel
