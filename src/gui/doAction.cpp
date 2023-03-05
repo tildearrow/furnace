@@ -1514,11 +1514,17 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_ORDERS_MOVE_UP:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->moveOrderUp(curOrder);
+      if (settings.cursorFollowsOrder) {
+        e->setOrder(curOrder);
+      }
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_MOVE_DOWN:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->moveOrderDown(curOrder);
+      if (settings.cursorFollowsOrder) {
+        e->setOrder(curOrder);
+      }
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_REPLAY:

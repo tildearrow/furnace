@@ -652,6 +652,14 @@ void FurnaceGUI::drawSettings() {
             settings.saveUnusedPatterns=saveUnusedPatternsB;
           }
 
+          bool cursorFollowsOrderB=settings.cursorFollowsOrder;
+          if (ImGui::Checkbox("Cursor follows current order when moving it",&cursorFollowsOrderB)) {
+            settings.cursorFollowsOrder=cursorFollowsOrderB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("applies when playback is stopped.");
+          }
+
           ImGui::Text("Audio export loop/fade out time:");
           if (ImGui::RadioButton("Set to these values on start-up:##fot0",settings.persistFadeOut==0)) {
             settings.persistFadeOut=0;
@@ -2609,6 +2617,7 @@ void FurnaceGUI::syncSettings() {
   settings.oneDigitEffects=e->getConfInt("oneDigitEffects",0);
   settings.disableFadeIn=e->getConfInt("disableFadeIn",0);
   settings.alwaysPlayIntro=e->getConfInt("alwaysPlayIntro",0);
+  settings.cursorFollowsOrder=e->getConfInt("cursorFollowsOrder",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2932,6 +2941,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("oneDigitEffects",settings.oneDigitEffects);
   e->setConf("disableFadeIn",settings.disableFadeIn);
   e->setConf("alwaysPlayIntro",settings.alwaysPlayIntro);
+  e->setConf("cursorFollowsOrder", settings.cursorFollowsOrder);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
