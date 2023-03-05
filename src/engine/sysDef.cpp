@@ -1834,7 +1834,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_D65010G031]=new DivSysDef(
-    "NEC D65010G031", NULL, 0xfe/*placeholder*/, 0, 3, false, true, 0, false, 0,
+    "NEC D65010G031", NULL, 0xcb, 0, 3, false, true, 0, false, 0,
     "Used at Casio PV1000, Nothing but 3 square wave channels.",
     {"Channel 1", "Channel 2", "Channel 3"},
     {"CH1", "CH2", "CH3"},
