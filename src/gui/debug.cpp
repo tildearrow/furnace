@@ -51,6 +51,7 @@
 #include "../engine/platform/pcmdac.h"
 #include "../engine/platform/k007232.h"
 #include "../engine/platform/ga20.h"
+#include "../engine/platform/sm8521.h"
 #include "../engine/platform/dummy.h"
 
 #define COMMON_CHIP_DEBUG \
@@ -526,6 +527,14 @@ void putDispatchChip(void* data, int type) {
       COMMON_CHIP_DEBUG;
       ImGui::Text("- delay: %.2x",ch->delay);
       COMMON_CHIP_DEBUG_BOOL;
+      break;
+    }
+    case DIV_SYSTEM_SM8521: {
+      DivPlatformSM8521* ch=(DivPlatformSM8521*)data;
+      ImGui::Text("> SM8521");
+      COMMON_CHIP_DEBUG;
+      COMMON_CHIP_DEBUG_BOOL;
+      ImGui::TextColored(ch->antiClickEnabled?colorOn:colorOff,">> AntiClickEnabled");
       break;
     }
     default:
@@ -1045,6 +1054,18 @@ void putDispatchChan(void* data, int chanNum, int type) {
       COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->volumeChanged?colorOn:colorOff,">> VolumeChanged");
       ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
+      break;
+    }
+    case DIV_SYSTEM_SM8521: {
+      DivPlatformSM8521::Channel* ch=(DivPlatformSM8521::Channel*)data;
+      ImGui::Text("> SM8521");
+      COMMON_CHAN_DEBUG;
+      ImGui::Text("* AntiClick:");
+      ImGui::Text(" - periodCount: %d",ch->antiClickPeriodCount);
+      ImGui::Text(" - wavePos: %d",ch->antiClickWavePos);
+      ImGui::Text("- wave: %d",ch->wave);
+      COMMON_CHAN_DEBUG_BOOL;
+      ImGui::TextColored(ch->volumeChanged?colorOn:colorOff,">> VolumeChanged");
       break;
     }
     default:
