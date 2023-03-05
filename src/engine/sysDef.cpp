@@ -1830,7 +1830,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_NOISE},
     {DIV_INS_SM8521, DIV_INS_SM8521, DIV_INS_SM8521},
     {},
-    namcoEffectHandlerMap
+    waveOnlyEffectHandlerMap
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
