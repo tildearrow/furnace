@@ -1833,13 +1833,13 @@ void DivEngine::registerSystems() {
     waveOnlyEffectHandlerMap
   );
 
-  sysDefs[DIV_SYSTEM_D65010G031]=new DivSysDef(
-    "NEC D65010G031", NULL, 0xcb, 0, 3, false, true, 0, false, 0,
-    "Used at Casio PV1000, Nothing but 3 square wave channels.",
-    {"Channel 1", "Channel 2", "Channel 3"},
-    {"CH1", "CH2", "CH3"},
+  sysDefs[DIV_SYSTEM_PV1000]=new DivSysDef(
+    "Casio PV-1000", NULL, 0xcb, 0, 3, false, true, 0, false, 0,
+    "a game console with 3 channels of square wave. it's what happens after fusing TIA and VIC together.",
+    {"Square 1", "Square 2", "Square 3"},
+    {"S1", "S2", "S3"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
-    {DIV_INS_D65010G031, DIV_INS_D65010G031, DIV_INS_D65010G031}
+    {DIV_INS_PV1000, DIV_INS_PV1000, DIV_INS_PV1000}
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(

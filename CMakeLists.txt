@@ -546,7 +546,7 @@ src/engine/platform/snes.cpp
 src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
 src/engine/platform/sm8521.cpp
-src/engine/platform/d65010g031.cpp
+src/engine/platform/pv1000.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 )

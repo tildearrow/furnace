@@ -17,14 +17,14 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _D65010G031_H
-#define _D65010G031_H
+#ifndef _PV1000_H
+#define _PV1000_H
 
 #include "../dispatch.h"
 #include "sound/d65010g031.h"
 #include <queue>
 
-class DivPlatformD65010G031: public DivDispatch {
+class DivPlatformPV1000: public DivDispatch {
   struct Channel: public SharedChannel<int> {
     Channel():
       SharedChannel<int>(15) {}
@@ -57,7 +57,7 @@ class DivPlatformD65010G031: public DivDispatch {
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
-    ~DivPlatformD65010G031();
+    ~DivPlatformPV1000();
 };
 
 #endif

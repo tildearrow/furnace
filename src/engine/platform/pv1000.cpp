@@ -17,7 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "d65010g031.h"
+#include "pv1000.h"
 #include "../engine.h"
 #include <math.h>
 
@@ -25,18 +25,18 @@
 
 #define CHIP_DIVIDER 1024
 
-const char* regCheatSheetD65010G031[]={
+const char* regCheatSheetPV1000[]={
   "CH1_Pitch", "00",
   "CH2_Pitch", "01",
   "CH3_Pitch", "02",
   NULL
 };
 
-const char** DivPlatformD65010G031::getRegisterSheet() {
-  return regCheatSheetD65010G031;
+const char** DivPlatformPV1000::getRegisterSheet() {
+  return regCheatSheetPV1000;
 }
 
-void DivPlatformD65010G031::acquire(short** buf, size_t len) {
+void DivPlatformPV1000::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     short samp;
     samp=d65010g031_sound_tick(&d65010g031,1);
@@ -47,7 +47,7 @@ void DivPlatformD65010G031::acquire(short** buf, size_t len) {
   }
 }
 
-void DivPlatformD65010G031::tick(bool sysTick) {
+void DivPlatformPV1000::tick(bool sysTick) {
   for (int i=0; i<3; i++) {
     chan[i].std.next();
     if (NEW_ARP_STRAT) {
@@ -87,7 +87,7 @@ void DivPlatformD65010G031::tick(bool sysTick) {
   }
 }
 
-int DivPlatformD65010G031::dispatch(DivCommand c) {
+int DivPlatformPV1000::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_VIC);
@@ -175,7 +175,7 @@ int DivPlatformD65010G031::dispatch(DivCommand c) {
   return 1;
 }
 
-void DivPlatformD65010G031::muteChannel(int ch, bool mute) {
+void DivPlatformPV1000::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (mute) {
     chan[ch].keyOff=true;
@@ -184,34 +184,34 @@ void DivPlatformD65010G031::muteChannel(int ch, bool mute) {
   }
 }
 
-void DivPlatformD65010G031::forceIns() {
+void DivPlatformPV1000::forceIns() {
   for (int i=0; i<3; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
   }
 }
 
-void* DivPlatformD65010G031::getChanState(int ch) {
+void* DivPlatformPV1000::getChanState(int ch) {
   return &chan[ch];
 }
 
-DivMacroInt* DivPlatformD65010G031::getChanMacroInt(int ch) {
+DivMacroInt* DivPlatformPV1000::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
-DivDispatchOscBuffer* DivPlatformD65010G031::getOscBuffer(int ch) {
+DivDispatchOscBuffer* DivPlatformPV1000::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
-unsigned char* DivPlatformD65010G031::getRegisterPool() {
+unsigned char* DivPlatformPV1000::getRegisterPool() {
   return regPool;
 }
 
-int DivPlatformD65010G031::getRegisterPoolSize() {
+int DivPlatformPV1000::getRegisterPoolSize() {
   return 3;
 }
 
-void DivPlatformD65010G031::reset() {
+void DivPlatformPV1000::reset() {
   memset(regPool,0,3);
   for (int i=0; i<3; i++) {
     chan[i]=Channel();
@@ -220,17 +220,17 @@ void DivPlatformD65010G031::reset() {
   d65010g031_reset(&d65010g031);
 }
 
-int DivPlatformD65010G031::getOutputCount() {
+int DivPlatformPV1000::getOutputCount() {
   return 1;
 }
 
-void DivPlatformD65010G031::notifyInsDeletion(void* ins) {
+void DivPlatformPV1000::notifyInsDeletion(void* ins) {
   for (int i=0; i<3; i++) {
     chan[i].std.notifyInsDeletion((DivInstrument*)ins);
   }
 }
 
-void DivPlatformD65010G031::setFlags(const DivConfig& flags) {
+void DivPlatformPV1000::setFlags(const DivConfig& flags) {
   chipClock=COLOR_NTSC*5.0;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/1024;
@@ -239,15 +239,15 @@ void DivPlatformD65010G031::setFlags(const DivConfig& flags) {
   }
 }
 
-void DivPlatformD65010G031::poke(unsigned int addr, unsigned short val) {
+void DivPlatformPV1000::poke(unsigned int addr, unsigned short val) {
   rWrite(addr,val);
 }
 
-void DivPlatformD65010G031::poke(std::vector<DivRegWrite>& wlist) {
+void DivPlatformPV1000::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformD65010G031::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
+int DivPlatformPV1000::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
@@ -260,11 +260,11 @@ int DivPlatformD65010G031::init(DivEngine* p, int channels, int sugRate, const D
   return 4;
 }
 
-void DivPlatformD65010G031::quit() {
+void DivPlatformPV1000::quit() {
   for (int i=0; i<3; i++) {
     delete oscBuf[i];
   }
 }
 
-DivPlatformD65010G031::~DivPlatformD65010G031() {
+DivPlatformPV1000::~DivPlatformPV1000() {
 }

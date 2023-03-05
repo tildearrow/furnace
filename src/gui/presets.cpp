@@ -263,7 +263,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Casio PV-1000", {
-      CH(DIV_SYSTEM_D65010G031, 1.0f, 0, "")
+      CH(DIV_SYSTEM_PV1000, 1.0f, 0, "")
     }
   );
   CATEGORY_END;
@@ -2377,7 +2377,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "NEC D65010G031", {
-      CH(DIV_SYSTEM_D65010G031, 1.0f, 0, "")
+      CH(DIV_SYSTEM_PV1000, 1.0f, 0, "")
     }
   );
   CATEGORY_END;
