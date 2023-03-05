@@ -50,6 +50,11 @@ void DivPlatformPV1000::acquire(short** buf, size_t len) {
 void DivPlatformPV1000::tick(bool sysTick) {
   for (int i=0; i<3; i++) {
     chan[i].std.next();
+    if (chan[i].std.vol.had) {
+      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].std.vol.val,chan[i].vol,1);
+      if (chan[i].outVol<0) chan[i].outVol=0;
+      chan[i].writeVol=true;
+    }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
     } else if (chan[i].std.arp.had) {
@@ -73,16 +78,22 @@ void DivPlatformPV1000::tick(bool sysTick) {
       if (chan[i].freq>62) chan[i].freq=62;
       if (isMuted[i]) chan[i].keyOn=false;
       if (chan[i].keyOn) {
-        rWrite(i,chan[i].freq);
+        rWrite(i,(isMuted[i] || (chan[i].outVol<=0)) ? 0 : chan[i].freq);
         chan[i].keyOn=false;
       } else if (chan[i].freqChanged && chan[i].active && !isMuted[i]) {
-        rWrite(i,chan[i].freq);
+        rWrite(i,(isMuted[i] || (chan[i].outVol<=0)) ? 0 : chan[i].freq);
       }
       if (chan[i].keyOff) {
         rWrite(i,0);
         chan[i].keyOff=false;
       }
       chan[i].freqChanged=false;
+    }
+  }
+  for (int i=0; i<3; i++) {
+    if (chan[i].writeVol) {
+      rWrite(i,(isMuted[i] || (chan[i].outVol<=0)) ? 0 : chan[i].freq);
+      chan[i].writeVol=false;
     }
   }
 }
@@ -97,6 +108,7 @@ int DivPlatformPV1000::dispatch(DivCommand c) {
         chan[c.chan].note=c.value;
       }
       chan[c.chan].active=true;
+      chan[c.chan].writeVol=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
       break;
@@ -113,6 +125,17 @@ int DivPlatformPV1000::dispatch(DivCommand c) {
     case DIV_CMD_INSTRUMENT:
       if (chan[c.chan].ins!=c.value || c.value2==1) {
         chan[c.chan].ins=c.value;
+      }
+      break;
+    case DIV_CMD_VOLUME:
+      if (chan[c.chan].vol!=c.value) {
+        chan[c.chan].vol=c.value;
+        if (!chan[c.chan].std.vol.has) {
+          chan[c.chan].outVol=c.value;
+        }
+        if (chan[c.chan].active) {
+          chan[c.chan].writeVol=true;
+        }
       }
       break;
     case DIV_CMD_GET_VOLUME:
@@ -158,7 +181,7 @@ int DivPlatformPV1000::dispatch(DivCommand c) {
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
-      return 15;
+      return 1;
       break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
@@ -181,6 +204,7 @@ void DivPlatformPV1000::muteChannel(int ch, bool mute) {
     chan[ch].keyOff=true;
   } else if (chan[ch].active) {
     chan[ch].keyOn=true;
+    chan[ch].writeVol=true;
   }
 }
 

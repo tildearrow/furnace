@@ -26,8 +26,10 @@
 
 class DivPlatformPV1000: public DivDispatch {
   struct Channel: public SharedChannel<int> {
+    bool writeVol;
     Channel():
-      SharedChannel<int>(15) {}
+      SharedChannel<int>(1),
+      writeVol(false) {}
   };
   Channel chan[3];
   DivDispatchOscBuffer* oscBuf[3];
