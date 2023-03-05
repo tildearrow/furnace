@@ -5039,7 +5039,7 @@ void FurnaceGUI::drawInsEdit() {
               volMax=0;
             }
           }
-          if (ins->type==DIV_INS_PET || ins->type==DIV_INS_BEEPER) {
+          if (ins->type==DIV_INS_PET || ins->type==DIV_INS_BEEPER || ins->type==DIV_INS_PV1000) {
             volMax=1;
           }
           if (ins->type==DIV_INS_FDS) {
@@ -5048,7 +5048,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_ES5506) {
             volMax=4095;
           }
-          if (ins->type==DIV_INS_MSM6258 || ins->type==DIV_INS_PV1000) {
+          if (ins->type==DIV_INS_MSM6258) {
             volMax=0;
           }
           if (ins->type==DIV_INS_MSM6295) {
