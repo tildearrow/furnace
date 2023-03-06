@@ -261,6 +261,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_SM8521, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "Casio PV-1000", {
+      CH(DIV_SYSTEM_PV1000, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Computers","let's get to work on chiptune today.");
@@ -2368,6 +2373,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Pong", {
       CH(DIV_SYSTEM_PONG, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "NEC D65010G031", {
+      CH(DIV_SYSTEM_PV1000, 1.0f, 0, "")
     }
   );
   CATEGORY_END;

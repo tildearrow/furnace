@@ -52,6 +52,7 @@
 #include "../engine/platform/k007232.h"
 #include "../engine/platform/ga20.h"
 #include "../engine/platform/sm8521.h"
+#include "../engine/platform/pv1000.h"
 #include "../engine/platform/dummy.h"
 
 #define COMMON_CHIP_DEBUG \
@@ -535,6 +536,13 @@ void putDispatchChip(void* data, int type) {
       COMMON_CHIP_DEBUG;
       COMMON_CHIP_DEBUG_BOOL;
       ImGui::TextColored(ch->antiClickEnabled?colorOn:colorOff,">> AntiClickEnabled");
+      break;
+    }
+    case DIV_SYSTEM_PV1000: {
+      DivPlatformPV1000* ch=(DivPlatformPV1000*)data;
+      ImGui::Text("> PV1000");
+      COMMON_CHIP_DEBUG;
+      COMMON_CHIP_DEBUG_BOOL;
       break;
     }
     default:
@@ -1066,6 +1074,13 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("- wave: %d",ch->wave);
       COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->volumeChanged?colorOn:colorOff,">> VolumeChanged");
+      break;
+    }
+    case DIV_SYSTEM_PV1000: {
+      DivPlatformPV1000::Channel* ch=(DivPlatformPV1000::Channel*)data;
+      ImGui::Text("> PV1000");
+      COMMON_CHAN_DEBUG;
+      COMMON_CHAN_DEBUG_BOOL;
       break;
     }
     default:

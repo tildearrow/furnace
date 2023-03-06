@@ -928,6 +928,8 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
         checkForWL=true;
         if (ws.enabled) featureWS=true;
         break;
+      case DIV_INS_PV1000:
+        break;
       
       case DIV_INS_MAX:
         break;

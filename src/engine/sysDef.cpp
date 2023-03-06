@@ -1833,6 +1833,15 @@ void DivEngine::registerSystems() {
     waveOnlyEffectHandlerMap
   );
 
+  sysDefs[DIV_SYSTEM_PV1000]=new DivSysDef(
+    "Casio PV-1000", NULL, 0xcb, 0, 3, false, true, 0, false, 0,
+    "a game console with 3 channels of square wave. it's what happens after fusing TIA and VIC together.",
+    {"Square 1", "Square 2", "Square 3"},
+    {"S1", "S2", "S3"},
+    {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
+    {DIV_INS_PV1000, DIV_INS_PV1000, DIV_INS_PV1000}
+  );
+
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
     "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false, 0,
     "this is a system designed for testing purposes.",

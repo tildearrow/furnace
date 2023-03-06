@@ -1929,6 +1929,7 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_GA20,"GA20");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_POKEMINI,"Pokémon Mini");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_SM8521,"SM8521");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_PV1000,"PV-1000");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
               ImGui::TreePop();
             }
