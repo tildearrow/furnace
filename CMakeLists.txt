@@ -530,6 +530,7 @@ src/engine/platform/t6w28.cpp
 src/engine/platform/vb.cpp
 src/engine/platform/vera.cpp
 src/engine/platform/zxbeeper.cpp
+src/engine/platform/zxbeeperquadtone.cpp
 src/engine/platform/bubsyswsg.cpp
 src/engine/platform/n163.cpp
 src/engine/platform/pet.cpp

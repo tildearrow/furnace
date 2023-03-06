@@ -59,6 +59,7 @@
 #include "platform/lynx.h"
 #include "platform/pokey.h"
 #include "platform/zxbeeper.h"
+#include "platform/zxbeeperquadtone.h"
 #include "platform/bubsyswsg.h"
 #include "platform/n163.h"
 #include "platform/pet.h"
@@ -388,6 +389,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SFX_BEEPER:
       dispatch=new DivPlatformZXBeeper;
+      break;
+    case DIV_SYSTEM_SFX_BEEPER_QUADTONE:
+      dispatch=new DivPlatformZXBeeperQuadTone;
       break;
     case DIV_SYSTEM_LYNX:
       dispatch=new DivPlatformLynx;
