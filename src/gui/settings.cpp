@@ -2617,7 +2617,7 @@ void FurnaceGUI::syncSettings() {
   settings.oneDigitEffects=e->getConfInt("oneDigitEffects",0);
   settings.disableFadeIn=e->getConfInt("disableFadeIn",0);
   settings.alwaysPlayIntro=e->getConfInt("alwaysPlayIntro",0);
-  settings.cursorFollowsOrder=e->getConfInt("cursorFollowsOrder",0);
+  settings.cursorFollowsOrder=e->getConfInt("cursorFollowsOrder",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);

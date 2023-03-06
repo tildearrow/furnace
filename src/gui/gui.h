@@ -1481,7 +1481,7 @@ class FurnaceGUI {
       doubleClickColumn(1),
       blankIns(0),
       dragMovesSelection(1),
-      cursorFollowsOrder(0),
+      cursorFollowsOrder(1),
       unsignedDetune(0),
       noThreadedInput(0),
       clampSamples(0),
