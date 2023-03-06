@@ -90,7 +90,7 @@ void DivPlatformPV1000::tick(bool sysTick) {
 int DivPlatformPV1000::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_VIC);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PV1000);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
@@ -113,6 +113,12 @@ int DivPlatformPV1000::dispatch(DivCommand c) {
     case DIV_CMD_INSTRUMENT:
       if (chan[c.chan].ins!=c.value || c.value2==1) {
         chan[c.chan].ins=c.value;
+      }
+      break;
+    case DIV_CMD_VOLUME:
+      if (chan[c.chan].vol!=c.value) {
+        chan[c.chan].vol=c.value;
+        chan[c.chan].freqChanged=true;
       }
       break;
     case DIV_CMD_GET_VOLUME:
@@ -158,7 +164,7 @@ int DivPlatformPV1000::dispatch(DivCommand c) {
       chan[c.chan].inPorta=c.value;
       break;
     case DIV_CMD_GET_VOLMAX:
-      return 15;
+      return 1;
       break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
