@@ -51,8 +51,7 @@ void DivPlatformPV1000::tick(bool sysTick) {
   for (int i=0; i<3; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
-      chan[i].outVol=VOL_SCALE_LINEAR(chan[i].std.vol.val,chan[i].vol,1);
-      if (chan[i].outVol<0) chan[i].outVol=0;
+      chan[i].outVol=(chan[i].vol && chan[i].std.vol.val);
       chan[i].freqChanged=true;
     }
     if (NEW_ARP_STRAT) {
