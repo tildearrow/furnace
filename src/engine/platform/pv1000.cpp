@@ -53,7 +53,7 @@ void DivPlatformPV1000::tick(bool sysTick) {
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LINEAR(chan[i].std.vol.val,chan[i].vol,1);
       if (chan[i].outVol<0) chan[i].outVol=0;
-      chan[i].writeVol=true;
+      chan[i].freqChanged=true;
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
@@ -90,12 +90,6 @@ void DivPlatformPV1000::tick(bool sysTick) {
       chan[i].freqChanged=false;
     }
   }
-  for (int i=0; i<3; i++) {
-    if (chan[i].writeVol) {
-      rWrite(i,(isMuted[i] || (chan[i].outVol<=0)) ? 0 : chan[i].freq);
-      chan[i].writeVol=false;
-    }
-  }
 }
 
 int DivPlatformPV1000::dispatch(DivCommand c) {
@@ -108,7 +102,6 @@ int DivPlatformPV1000::dispatch(DivCommand c) {
         chan[c.chan].note=c.value;
       }
       chan[c.chan].active=true;
-      chan[c.chan].writeVol=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);
       break;
@@ -134,7 +127,7 @@ int DivPlatformPV1000::dispatch(DivCommand c) {
           chan[c.chan].outVol=c.value;
         }
         if (chan[c.chan].active) {
-          chan[c.chan].writeVol=true;
+          chan[c.chan].freqChanged=true;
         }
       }
       break;
@@ -204,7 +197,7 @@ void DivPlatformPV1000::muteChannel(int ch, bool mute) {
     chan[ch].keyOff=true;
   } else if (chan[ch].active) {
     chan[ch].keyOn=true;
-    chan[ch].writeVol=true;
+    chan[ch].freqChanged=true;
   }
 }
 

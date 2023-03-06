@@ -1081,7 +1081,6 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("> PV1000");
       COMMON_CHAN_DEBUG;
       COMMON_CHAN_DEBUG_BOOL;
-      ImGui::TextColored(ch->writeVol?colorOn:colorOff,">> WriteVol");
       break;
     }
     default:
