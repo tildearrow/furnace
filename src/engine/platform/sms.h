@@ -42,6 +42,8 @@ class DivPlatformSMS: public DivDispatch {
   unsigned char lastPan;
   unsigned char oldValue; 
   unsigned char snNoiseMode;
+  unsigned char regPool[16];
+  unsigned char chanLatch;
   int divider=16;
   double toneDivider=64.0;
   double noiseDivider=64.0;
@@ -65,6 +67,7 @@ class DivPlatformSMS: public DivDispatch {
 
   double NOTE_SN(int ch, int note);
   int snCalcFreq(int ch);
+  void poolWrite(unsigned short a, unsigned char v);
 
   void acquire_nuked(short** buf, size_t len);
   void acquire_mame(short** buf, size_t len);
@@ -74,6 +77,8 @@ class DivPlatformSMS: public DivDispatch {
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    unsigned char* getRegisterPool();
+    int getRegisterPoolSize();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
