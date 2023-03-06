@@ -1848,7 +1848,7 @@ void DivEngine::registerSystems() {
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "PCM"},
     {"CH1", "CH2", "CH3", "CH4", "PCM"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM},
-    {DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_AMIGA},
+    {DIV_INS_POKEMINI, DIV_INS_POKEMINI, DIV_INS_POKEMINI, DIV_INS_POKEMINI, DIV_INS_AMIGA},
     {},
     {
       {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set pulse width"}}

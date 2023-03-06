@@ -152,7 +152,7 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       if (c.chan<4) {
-        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_BEEPER);
+        DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_POKEMINI);
         if (c.value!=DIV_NOTE_NULL) {
           chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
           chan[c.chan].freqChanged=true;
@@ -256,7 +256,7 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_BEEPER));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_POKEMINI));
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_FREQUENCY(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;

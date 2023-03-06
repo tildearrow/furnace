@@ -128,7 +128,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   "T6W28",
   "K007232",
   "GA20",
-  "Pokémon Mini",
+  "Pokémon Mini/QuadTone",
   "SM8521",
   "PV-1000",
   NULL
