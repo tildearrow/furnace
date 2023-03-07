@@ -20,6 +20,7 @@
 #include "gui.h"
 #include "../ta-log.h"
 #include "IconsFontAwesome4.h"
+#include "imgui_internal.h"
 
 #define TS FurnaceGUITutorialStep
 
@@ -42,7 +43,12 @@ void FurnaceGUI::initTutorial() {
       "the order in which these patterns appear is determined by an order list which also scrolls down as the playhead moves between patterns."
     ),
     TS(
-      "this is the Pattern window. it displays a pattern (which contains the notes and stuff)."
+      "this is the Pattern window. it displays a pattern (which contains the notes and stuff).",
+      -1,
+      [this]() {
+        nextWindow=GUI_WINDOW_PATTERN;
+        highlightWindow("Pattern");
+      }
     ),
     TS(
       "this is the Orders window. it displays which patterns are going to play."
@@ -190,7 +196,7 @@ void FurnaceGUI::commitTutorial() {
 }
 
 void FurnaceGUI::activateTutorial(FurnaceGUITutorials which) {
-  if (tutorial.welcome && !tutorial.taken[which] && !ImGui::IsPopupOpen(NULL,ImGuiPopupFlags_AnyPopupId|ImGuiPopupFlags_AnyPopupLevel) && curTutorial==-1 && introPos>=10.0) {
+  if (tutorial.welcome && !tutorial.taken[which] && !ImGui::IsPopupOpen((const char*)NULL,ImGuiPopupFlags_AnyPopupId|ImGuiPopupFlags_AnyPopupLevel) && curTutorial==-1 && introPos>=10.0) {
     logV("activating tutorial %d.",which);
     curTutorial=which;
     curTutorialStep=0;
@@ -247,6 +253,7 @@ void FurnaceGUI::drawTutorial() {
   if (curTutorial>=0 && curTutorial<GUI_TUTORIAL_MAX) {
     if (ImGui::Begin("Tutorial",NULL,ImGuiWindowFlags_NoResize|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoDocking)) {
       FurnaceGUITutorialStep& step=tutorials[curTutorial].steps[curTutorialStep];
+      if (step.run!=NULL) step.run();
       ImGui::Dummy(ImVec2(400.0*dpiScale,1.0));
       ImGui::TextWrapped("%s",step.text);
 
@@ -261,6 +268,51 @@ void FurnaceGUI::drawTutorial() {
       }
     }
     ImGui::End();
+  }
+}
+
+// helper functions
+
+void FurnaceGUI::highlightWindow(const char* winName) {
+  ImDrawList* dl=ImGui::GetForegroundDrawList();
+  ImU32 col=ImGui::GetColorU32(uiColors[GUI_COLOR_MODAL_BACKDROP]);
+
+  ImGuiWindow* win=ImGui::FindWindowByName(winName);
+  if (win!=NULL) {
+    ImVec2 start=win->Pos;
+    ImVec2 end=ImVec2(
+      start.x+win->Size.x,
+      start.y+win->Size.y
+    );
+
+    dl->AddRectFilled(
+      ImVec2(0,0),
+      ImVec2(start.x,canvasH),
+      col
+    );
+    dl->AddRectFilled(
+      ImVec2(start.x,0),
+      ImVec2(canvasW,start.y),
+      col
+    );
+    dl->AddRectFilled(
+      ImVec2(end.x,start.y),
+      ImVec2(canvasW,canvasH),
+      col
+    );
+    dl->AddRectFilled(
+      ImVec2(start.x,end.y),
+      ImVec2(end.x,canvasH),
+      col
+    );
+
+    dl->AddRect(start,end,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),0,0,3.0f*dpiScale);
+  } else {
+    dl->AddRectFilled(
+      ImVec2(0,0),
+      ImVec2(canvasW,canvasH),
+      col
+    );
   }
 }
 
