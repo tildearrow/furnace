@@ -1923,6 +1923,8 @@ class FurnaceGUI {
   void pushToggleColors(bool status);
   void popToggleColors();
 
+  void highlightWindow(const char* winName);
+
   FurnaceGUIImage* getImage(FurnaceGUIImages image);
   SDL_Texture* getTexture(FurnaceGUIImages image, SDL_BlendMode blendMode=SDL_BLENDMODE_BLEND);
   void drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2& pos, const ImVec2& scale, double rotate, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& imgColor);
