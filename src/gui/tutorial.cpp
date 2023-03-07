@@ -46,25 +46,62 @@ void FurnaceGUI::initTutorial() {
       "this is the Pattern window. it displays a pattern (which contains the notes and stuff).",
       -1,
       [this]() {
-        nextWindow=GUI_WINDOW_PATTERN;
         highlightWindow("Pattern");
+      },
+      [this]() {
+        nextWindow=GUI_WINDOW_PATTERN;
       }
     ),
     TS(
-      "this is the Orders window. it displays which patterns are going to play."
+      "this is the Orders window. it displays which patterns are going to play.",
+      -1,
+      [this]() {
+        highlightWindow("Orders");
+      },
+      [this]() {
+        nextWindow=GUI_WINDOW_ORDERS;
+      }
     ),
     TS(
-      "this is the Instruments window. it shows a list of instruments (sounds) in the song."
+      "this is the Instruments window. it shows a list of instruments (sounds) in the song.",
+      -1,
+      [this]() {
+        highlightWindow("Instruments");
+      },
+      [this]() {
+        nextWindow=GUI_WINDOW_INS_LIST;
+      }
     ),
     TS(
-      "this is the Song Information window, which allows you to change some song properties."
+      "this is the Song Information window, which allows you to change some song properties.",
+      -1,
+      [this]() {
+        highlightWindow("Song Info");
+      },
+      [this]() {
+        nextWindow=GUI_WINDOW_SONG_INFO;
+      }
     ),
     TS(
-      "this is the Speed window, which contains speed parameters."
+      "this is the Speed window, which contains speed parameters.",
+      -1,
+      [this]() {
+        highlightWindow("Speed");
+      },
+      [this]() {
+        nextWindow=GUI_WINDOW_SPEED;
+      }
     ),
     TS(
       "and here are the Play Controls. you can use these to play the song and do some other things.\n"
-      "now that I am done explaining the interface, let's make a song!"
+      "now that I am done explaining the interface, let's make a song!",
+      -1,
+      [this]() {
+        highlightWindow("Play Controls");
+      },
+      [this]() {
+        nextWindow=GUI_WINDOW_EDIT_CONTROLS;
+      }
     ),
     TS(
       "we'll start by creating an instrument.\n"
@@ -251,23 +288,27 @@ void FurnaceGUI::drawTutorial() {
 
   // tutorial
   if (curTutorial>=0 && curTutorial<GUI_TUTORIAL_MAX) {
-    if (ImGui::Begin("Tutorial",NULL,ImGuiWindowFlags_NoResize|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoDocking)) {
-      FurnaceGUITutorialStep& step=tutorials[curTutorial].steps[curTutorialStep];
-      if (step.run!=NULL) step.run();
-      ImGui::Dummy(ImVec2(400.0*dpiScale,1.0));
-      ImGui::TextWrapped("%s",step.text);
+    FurnaceGUITutorialStep& step=tutorials[curTutorial].steps[curTutorialStep];
+    if (step.run!=NULL) step.run();
+    if (step.text[0]) {
+      if (ImGui::Begin("Tutorial",NULL,ImGuiWindowFlags_NoResize|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoDocking)) {
+        ImGui::Dummy(ImVec2(400.0*dpiScale,1.0));
+        ImGui::TextWrapped("%s",step.text);
 
-      if (ImGui::Button(ICON_FA_CHEVRON_RIGHT)) {
-        curTutorialStep++;
-        if (step.runAfter!=NULL) step.runAfter();
-        if (curTutorialStep>=(int)tutorials[curTutorial].steps.size()) {
-          tutorial.taken[curTutorial]=true;
-          curTutorial=-1;
-          curTutorialStep=0;
+        if (ImGui::Button(ICON_FA_CHEVRON_RIGHT)) {
+          curTutorialStep++;
+          if (step.runAfter!=NULL) step.runAfter();
+          if (curTutorialStep>=(int)tutorials[curTutorial].steps.size()) {
+            tutorial.taken[curTutorial]=true;
+            curTutorial=-1;
+            curTutorialStep=0;
+          } else {
+            if (tutorials[curTutorial].steps[curTutorialStep].runBefore) tutorials[curTutorial].steps[curTutorialStep].runBefore();
+          }
         }
       }
+      ImGui::End();
     }
-    ImGui::End();
   }
 }
 

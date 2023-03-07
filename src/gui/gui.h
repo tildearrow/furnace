@@ -1005,12 +1005,14 @@ struct FurnaceGUITutorialStep {
   const char* text;
   int waitForTrigger;
   TutorialFunc run;
+  TutorialFunc runBefore;
   TutorialFunc runAfter;
   
-  FurnaceGUITutorialStep(const char* t, int trigger=-1, TutorialFunc activeFunc=NULL, TutorialFunc endFunc=NULL):
+  FurnaceGUITutorialStep(const char* t, int trigger=-1, TutorialFunc activeFunc=NULL, TutorialFunc beginFunc=NULL, TutorialFunc endFunc=NULL):
     text(t),
     waitForTrigger(trigger),
     run(activeFunc),
+    runBefore(beginFunc),
     runAfter(endFunc) {}
 };
 
