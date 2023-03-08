@@ -4740,7 +4740,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    drawTutorial();
+    //drawTutorial();
 
     ImVec2 newSongMinSize=mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(400.0f*dpiScale,200.0f*dpiScale);
     ImVec2 newSongMaxSize=ImVec2(canvasW-((mobileUI && !portrait)?(60.0*dpiScale):0),canvasH-(mobileUI?(60.0*dpiScale):0));
