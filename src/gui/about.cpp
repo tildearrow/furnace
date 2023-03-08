@@ -112,6 +112,7 @@ const char* aboutLine[]={
   "The Blender Fiddler",
   "TheDuccinator",
   "theloredev",
+  "The Beesh-Spweesh!",
   "TheRealHedgehogSonic",
   "tildearrow",
   "Uhrwerk Klockwerx",
