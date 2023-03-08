@@ -289,33 +289,58 @@ void FurnaceGUI::drawTutorial() {
   // tutorial
   if (curTutorial>=0 && curTutorial<GUI_TUTORIAL_MAX) {
     FurnaceGUITutorialStep& step=tutorials[curTutorial].steps[curTutorialStep];
-    if (step.run!=NULL) step.run();
-    if (step.text[0]) {
-      if (ImGui::Begin("Tutorial",NULL,ImGuiWindowFlags_NoResize|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoDocking)) {
-        ImGui::Dummy(ImVec2(400.0*dpiScale,1.0));
-        ImGui::TextWrapped("%s",step.text);
+    ImGui::SetNextWindowPos(ImVec2(0,0));
+    ImGui::SetNextWindowSize(ImVec2(canvasW,canvasH));
+    if (ImGui::Begin("Tutorial",NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground|ImGuiWindowFlags_NoDocking)) {
+      if (step.run!=NULL) {
+        step.run();
+      } else {
+        ImDrawList* dl=ImGui::GetWindowDrawList();
+        ImU32 col=ImGui::GetColorU32(uiColors[GUI_COLOR_MODAL_BACKDROP]);
+        dl->AddRectFilled(
+          ImVec2(0,0),
+          ImVec2(canvasW,canvasH),
+          col
+        );
+      }
+      if (step.text[0]) {
+        ImVec2 avail=ImGui::GetContentRegionAvail();
+        ImVec2 textSize=ImGui::CalcTextSize(step.text,NULL,false,avail.x);
+        textSize.y+=ImGui::GetFrameHeightWithSpacing();
+        if (textSize.x>avail.x) textSize.x=avail.x;
+        if (textSize.y>avail.y) textSize.y=avail.y;
 
-        if (ImGui::Button(ICON_FA_CHEVRON_RIGHT)) {
-          curTutorialStep++;
-          if (step.runAfter!=NULL) step.runAfter();
-          if (curTutorialStep>=(int)tutorials[curTutorial].steps.size()) {
-            tutorial.taken[curTutorial]=true;
-            curTutorial=-1;
-            curTutorialStep=0;
-          } else {
-            if (tutorials[curTutorial].steps[curTutorialStep].runBefore) tutorials[curTutorial].steps[curTutorialStep].runBefore();
+        ImGui::SetCursorPos(ImVec2(
+          (canvasW-textSize.x)*0.5,
+          (canvasH-textSize.y)*0.5
+        ));
+
+        if (ImGui::BeginChild("TutText",textSize,true,ImGuiWindowFlags_NoScrollbar)) {
+          ImGui::TextWrapped("%s",step.text);
+
+          if (ImGui::Button(ICON_FA_CHEVRON_RIGHT)) {
+            curTutorialStep++;
+            if (step.runAfter!=NULL) step.runAfter();
+            if (curTutorialStep>=(int)tutorials[curTutorial].steps.size()) {
+              tutorial.taken[curTutorial]=true;
+              curTutorial=-1;
+              curTutorialStep=0;
+            } else {
+              if (tutorials[curTutorial].steps[curTutorialStep].runBefore) tutorials[curTutorial].steps[curTutorialStep].runBefore();
+            }
           }
         }
+        ImGui::EndChild();
       }
-      ImGui::End();
     }
+    ImGui::End();
   }
 }
 
 // helper functions
 
 void FurnaceGUI::highlightWindow(const char* winName) {
-  ImDrawList* dl=ImGui::GetForegroundDrawList();
+  ImDrawList* dl=ImGui::GetWindowDrawList();
   ImU32 col=ImGui::GetColorU32(uiColors[GUI_COLOR_MODAL_BACKDROP]);
 
   ImGuiWindow* win=ImGui::FindWindowByName(winName);
