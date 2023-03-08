@@ -2732,6 +2732,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.oneDigitEffects,0,1);
   clampSetting(settings.disableFadeIn,0,1);
   clampSetting(settings.alwaysPlayIntro,0,3);
+  clampSetting(settings.cursorFollowsOrder,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
