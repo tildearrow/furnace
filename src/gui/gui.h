@@ -1343,6 +1343,7 @@ class FurnaceGUI {
     int doubleClickColumn;
     int blankIns;
     int dragMovesSelection;
+    int cursorFollowsOrder;
     int unsignedDetune;
     int noThreadedInput;
     int saveWindowPos;
@@ -1483,6 +1484,7 @@ class FurnaceGUI {
       doubleClickColumn(1),
       blankIns(0),
       dragMovesSelection(1),
+      cursorFollowsOrder(1),
       unsignedDetune(0),
       noThreadedInput(0),
       clampSamples(0),
