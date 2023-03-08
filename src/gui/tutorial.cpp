@@ -76,7 +76,7 @@ void FurnaceGUI::initTutorial() {
       "this is the Song Information window, which allows you to change some song properties.",
       -1,
       [this]() {
-        highlightWindow("Song Info");
+        highlightWindow("Song Info##Song Information");
       },
       [this]() {
         nextWindow=GUI_WINDOW_SONG_INFO;
@@ -292,10 +292,10 @@ void FurnaceGUI::drawTutorial() {
     ImGui::SetNextWindowPos(ImVec2(0,0));
     ImGui::SetNextWindowSize(ImVec2(canvasW,canvasH));
     if (ImGui::Begin("Tutorial",NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground|ImGuiWindowFlags_NoDocking)) {
+      ImDrawList* dl=ImGui::GetWindowDrawList();
       if (step.run!=NULL) {
         step.run();
       } else {
-        ImDrawList* dl=ImGui::GetWindowDrawList();
         ImU32 col=ImGui::GetColorU32(uiColors[GUI_COLOR_MODAL_BACKDROP]);
         dl->AddRectFilled(
           ImVec2(0,0),
@@ -306,7 +306,8 @@ void FurnaceGUI::drawTutorial() {
       if (step.text[0]) {
         ImVec2 avail=ImGui::GetContentRegionAvail();
         ImVec2 textSize=ImGui::CalcTextSize(step.text,NULL,false,avail.x);
-        textSize.y+=ImGui::GetFrameHeightWithSpacing();
+        textSize.x+=ImGui::GetStyle().WindowPadding.y*2.0f;
+        textSize.y+=ImGui::GetStyle().WindowPadding.y*2.0f+ImGui::GetFrameHeightWithSpacing();
         if (textSize.x>avail.x) textSize.x=avail.x;
         if (textSize.y>avail.y) textSize.y=avail.y;
 
@@ -315,9 +316,24 @@ void FurnaceGUI::drawTutorial() {
           (canvasH-textSize.y)*0.5
         ));
 
-        if (ImGui::BeginChild("TutText",textSize,true,ImGuiWindowFlags_NoScrollbar)) {
+        dl->AddRectFilled(
+          ImGui::GetCursorPos(),
+          ImVec2(
+            ImGui::GetCursorPos().x+textSize.x,
+            ImGui::GetCursorPos().y+textSize.y
+          ),
+          ImGui::GetColorU32(ImGuiCol_PopupBg)
+        );
+
+        if (ImGui::BeginChild("TutText",textSize,true,ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse)) {
           ImGui::TextWrapped("%s",step.text);
 
+          if (ImGui::Button("Skip")) {
+            tutorial.taken[curTutorial]=true;
+            curTutorial=-1;
+            curTutorialStep=0;
+          }
+          ImGui::SameLine();
           if (ImGui::Button(ICON_FA_CHEVRON_RIGHT)) {
             curTutorialStep++;
             if (step.runAfter!=NULL) step.runAfter();
