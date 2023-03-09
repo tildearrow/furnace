@@ -31,6 +31,7 @@ class DivPlatformAmiga: public DivDispatch {
     unsigned int audPos;
     int audSub;
     signed char audDat;
+    unsigned char volPos;
     int sample, wave;
     int busClock;
     bool useWave, setPos, useV, useP;
@@ -42,6 +43,7 @@ class DivPlatformAmiga: public DivDispatch {
       audPos(0),
       audSub(0),
       audDat(0),
+      volPos(0),
       sample(-1),
       wave(-1),
       busClock(0),
@@ -60,6 +62,8 @@ class DivPlatformAmiga: public DivDispatch {
   int filter[2][4];
   int filtConst;
   int filtConstOff, filtConstOn;
+
+  unsigned char volTable[64][64];
 
   int sep1, sep2;
 

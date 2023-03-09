@@ -23,6 +23,7 @@
 #include <math.h>
 
 #define AMIGA_DIVIDER 8
+#define AMIGA_VPMASK 7
 #define CHIP_DIVIDER 16
 
 const char* regCheatSheetAmiga[]={
@@ -81,6 +82,7 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
     outL=0;
     outR=0;
     for (int i=0; i<4; i++) {
+      chan[i].volPos=(chan[i].volPos+1)&AMIGA_VPMASK;
       if (!chan[i].active) {
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
         continue;
@@ -125,7 +127,13 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
         }
       }
       if (!isMuted[i]) {
-        output=chan[i].audDat*chan[i].outVol;
+        if (chan[i].outVol>=64) {
+          output=chan[i].audDat<<6;
+        } else if (chan[i].outVol<=0) {
+          output=0;
+        } else {
+          output=chan[i].audDat*volTable[chan[i].outVol][chan[i].volPos];
+        }
         if (i==0 || i==3) {
           outL+=(output*sep1)>>7;
           outR+=(output*sep2)>>7;
@@ -467,6 +475,16 @@ int DivPlatformAmiga::init(DivEngine* p, int channels, int sugRate, const DivCon
     oscBuf[i]=new DivDispatchOscBuffer;
     isMuted[i]=false;
   }
+
+  // Paula volume is implemented using PWM rather than a multiplication.
+  // source: https://www.youtube.com/watch?v=xyQlmsD7PAg
+  memset(volTable,0,64*64);
+  for (int i=0; i<64; i++) {
+    for (int j=0; j<64; j++) {
+      volTable[i][j/AMIGA_DIVIDER]+=(j<i)*(64/AMIGA_DIVIDER);
+    }
+  }
+
   setFlags(flags);
   reset();
   return 6;
