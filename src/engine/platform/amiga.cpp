@@ -477,7 +477,9 @@ int DivPlatformAmiga::init(DivEngine* p, int channels, int sugRate, const DivCon
   }
 
   // Paula volume is implemented using PWM rather than a multiplication.
-  // source: https://www.youtube.com/watch?v=xyQlmsD7PAg
+  // sources:
+  // - https://www.youtube.com/watch?v=xyQlmsD7PAg
+  // - https://linusakesson.net/music/paulimba/index.php
   memset(volTable,0,64*64);
   for (int i=0; i<64; i++) {
     for (int j=0; j<64; j++) {
