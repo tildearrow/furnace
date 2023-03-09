@@ -5487,10 +5487,10 @@ void FurnaceGUI::drawInsEdit() {
             macroList.push_back(FurnaceGUIMacroDesc("Noise OR Mask",&ins->std.fmsMacro,0,8,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ins->type==DIV_INS_N163) {
-            macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Wave",&ins->std.ex3Macro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
+            /*macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Wave",&ins->std.ex3Macro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Pos",&ins->std.algMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Len",&ins->std.fbMacro,0,252,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Trigger",&ins->std.fmsMacro,0,2,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,n163UpdateBits));
+            macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Trigger",&ins->std.fmsMacro,0,2,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,n163UpdateBits));*/
           }
           if (ins->type==DIV_INS_FDS) {
             macroList.push_back(FurnaceGUIMacroDesc("Mod Position",&ins->std.ex3Macro,0,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
