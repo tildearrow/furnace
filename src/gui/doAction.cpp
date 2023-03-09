@@ -1450,7 +1450,7 @@ void FurnaceGUI::doAction(int what) {
     }
     case GUI_ACTION_ORDERS_INCREASE: {
       if (orderCursor<0 || orderCursor>=e->getTotalChannelCount()) break;
-      if (e->curOrders->ord[orderCursor][curOrder]<0x7f) {
+      if (e->curOrders->ord[orderCursor][curOrder]<0xff) {
         e->curOrders->ord[orderCursor][curOrder]++;
       }
       break;
