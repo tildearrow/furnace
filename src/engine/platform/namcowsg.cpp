@@ -316,9 +316,16 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
           rWrite((i<<3)+0x100,0);
           rWrite((i<<3)+0x104,(chan[(i+1)&7].noise?0x80:0));
         }
-        rWrite((i<<3)+0x103,chan[i].freq&0xff);
-        rWrite((i<<3)+0x102,(chan[i].freq>>8)&0xff);
-        rWrite((i<<3)+0x101,((chan[i].freq>>16)&15)|(i<<4));
+        if (chan[i].noise && newNoise) {
+          int noiseFreq=chan[i].freq>>9;
+          if (noiseFreq<0) noiseFreq=0;
+          if (noiseFreq>255) noiseFreq=255;
+          rWrite((i<<3)+0x103,noiseFreq);
+        } else {
+          rWrite((i<<3)+0x103,chan[i].freq&0xff);
+          rWrite((i<<3)+0x102,(chan[i].freq>>8)&0xff);
+          rWrite((i<<3)+0x101,((chan[i].freq>>16)&15)|(i<<4));
+        }
       }
       break;
   }
@@ -544,6 +551,7 @@ void DivPlatformNamcoWSG::setFlags(const DivConfig& flags) {
   for (int i=0; i<chans; i++) {
     oscBuf[i]->rate=rate;
   }
+  newNoise=flags.getBool("newNoise",true);
 }
 
 void DivPlatformNamcoWSG::poke(unsigned int addr, unsigned short val) {

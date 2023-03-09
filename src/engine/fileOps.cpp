@@ -2678,6 +2678,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
+    // Namco C30 noise compat
+    if (ds.version<145) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_NAMCO_CUS30) {
+          ds.systemFlags[i].set("newNoise",false);
+        }
+      }
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
