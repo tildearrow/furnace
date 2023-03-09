@@ -446,7 +446,7 @@ void DivPlatformSegaPCM::reset() {
   }
 }
 
- void DivPlatformSegaPCM::renderSamples(int sysID) {
+void DivPlatformSegaPCM::renderSamples(int sysID) {
   size_t memPos=0;
 
   memset(sampleMem,0,16777216);

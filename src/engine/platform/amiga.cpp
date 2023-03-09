@@ -20,6 +20,7 @@
 #define _USE_MATH_DEFINES
 #include "amiga.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <math.h>
 
 #define AMIGA_DIVIDER 8
@@ -81,6 +82,10 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
     outL=0;
     outR=0;
+
+    // NEW CODE
+
+    // OLD CODE
     for (int i=0; i<4; i++) {
       chan[i].volPos=(chan[i].volPos+1)&AMIGA_VPMASK;
       if (!chan[i].active) {
@@ -457,6 +462,9 @@ void DivPlatformAmiga::setFlags(const DivConfig& flags) {
   sep1=sep+127;
   sep2=127-sep;
   amigaModel=flags.getInt("chipType",0);
+  chipMem=flags.getInt("chipMem",21);
+  if (chipMem<18) chipMem=18;
+  if (chipMem>21) chipMem=21;
   bypassLimits=flags.getBool("bypassLimits",false);
   if (amigaModel) {
     filtConstOff=4000;
@@ -465,6 +473,56 @@ void DivPlatformAmiga::setFlags(const DivConfig& flags) {
     filtConstOff=sin(M_PI*16000.0/(double)rate)*4096.0;
     filtConstOn=sin(M_PI*5500.0/(double)rate)*4096.0;
   }
+}
+
+const void* DivPlatformAmiga::getSampleMem(int index) {
+  return index == 0 ? sampleMem : NULL;
+}
+
+size_t DivPlatformAmiga::getSampleMemCapacity(int index) {
+  return index == 0 ? (1<<chipMem) : 0;
+}
+
+size_t DivPlatformAmiga::getSampleMemUsage(int index) {
+  return index == 0 ? sampleMemLen : 0;
+}
+
+bool DivPlatformAmiga::isSampleLoaded(int index, int sample) {
+  if (index!=0) return false;
+  if (sample<0 || sample>255) return false;
+  return sampleLoaded[sample];
+}
+
+void DivPlatformAmiga::renderSamples(int sysID) {
+  memset(sampleMem,0,2097152);
+  memset(sampleOff,0,256*sizeof(unsigned int));
+  memset(sampleLoaded,0,256*sizeof(bool));
+
+  size_t memPos=0;
+  for (int i=0; i<parent->song.sampleLen; i++) {
+    DivSample* s=parent->song.sample[i];
+    if (!s->renderOn[0][sysID]) {
+      sampleOff[i]=0;
+      continue;
+    }
+
+    if (memPos>=getSampleMemCapacity()) {
+      logW("out of Amiga memory for sample %d!",i);
+      break;
+    }
+
+    int length=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
+    int actualLength=MIN((int)(getSampleMemCapacity()-memPos),length);
+    if (actualLength>0) {
+      sampleOff[i]=memPos;
+      memcpy(&sampleMem[memPos],s->data8,actualLength);
+      memPos+=actualLength;
+    }
+    // align memPos to short
+    if (memPos&1) memPos++;
+    sampleLoaded[i]=true;
+  }
+  sampleMemLen=memPos;
 }
 
 int DivPlatformAmiga::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
@@ -487,12 +545,16 @@ int DivPlatformAmiga::init(DivEngine* p, int channels, int sugRate, const DivCon
     }
   }
 
+  sampleMem=new unsigned char[2097152];
+  sampleMemLen=0;
+
   setFlags(flags);
   reset();
   return 6;
 }
 
 void DivPlatformAmiga::quit() {
+  delete[] sampleMem;
   for (int i=0; i<4; i++) {
     delete oscBuf[i];
   }

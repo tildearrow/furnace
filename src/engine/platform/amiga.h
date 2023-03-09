@@ -29,20 +29,26 @@ class DivPlatformAmiga: public DivDispatch {
     unsigned int audLoc;
     unsigned short audLen;
     unsigned int audPos;
+    unsigned int dmaLoc;
+    unsigned short dmaLen;
     int audSub;
     signed char audDat;
+    signed char audDat2;
     unsigned char volPos;
     int sample, wave;
     int busClock;
-    bool useWave, setPos, useV, useP;
+    bool useWave, setPos, useV, useP, dmaOn, audDatClock;
     DivWaveSynth ws;
     Channel():
       SharedChannel<signed char>(64),
       audLoc(0),
       audLen(0),
       audPos(0),
+      dmaLoc(0),
+      dmaLen(0),
       audSub(0),
       audDat(0),
+      audDat2(0),
       volPos(0),
       sample(-1),
       wave(-1),
@@ -50,7 +56,9 @@ class DivPlatformAmiga: public DivDispatch {
       useWave(false),
       setPos(false),
       useV(false),
-      useP(false) {}
+      useP(false),
+      dmaOn(false),
+      audDatClock(false) {}
   };
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];
@@ -62,8 +70,15 @@ class DivPlatformAmiga: public DivDispatch {
   int filter[2][4];
   int filtConst;
   int filtConstOff, filtConstOn;
+  int chipMem;
 
   unsigned char volTable[64][64];
+
+  unsigned int sampleOff[256];
+  bool sampleLoaded[256];
+
+  unsigned char* sampleMem;
+  size_t sampleMemLen;
 
   int sep1, sep2;
 
@@ -86,7 +101,12 @@ class DivPlatformAmiga: public DivDispatch {
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
+    void renderSamples(int chipID);
     const char** getRegisterSheet();
+    const void* getSampleMem(int index=0);
+    size_t getSampleMemCapacity(int index=0);
+    size_t getSampleMemUsage(int index=0);
+    bool isSampleLoaded(int index, int sample);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
 };

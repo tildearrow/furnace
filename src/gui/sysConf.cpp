@@ -681,6 +681,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_AMIGA: {
       bool clockSel=flags.getInt("clockSel",0);
       int chipType=flags.getInt("chipType",0);
+      int chipMem=flags.getInt("chipMem",21);
       int stereoSep=flags.getInt("stereoSep",0);
       bool bypassLimits=flags.getBool("bypassLimits",false);
 
@@ -690,6 +691,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         if (stereoSep>127) stereoSep=127;
         altered=true;
       } rightClickable
+
+      ImGui::Text("Model:");
       if (ImGui::RadioButton("Amiga 500 (OCS)",chipType==0)) {
         chipType=0;
         altered=true;
@@ -698,6 +701,26 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         chipType=1;
         altered=true;
       }
+
+      ImGui::Text("Chip memory:");
+      if (ImGui::RadioButton("2MB (ECS/AGA max)",chipMem==21)) {
+        chipMem=21;
+        altered=true;
+      }
+      if (ImGui::RadioButton("1MB",chipMem==20)) {
+        chipMem=20;
+        altered=true;
+      }
+      if (ImGui::RadioButton("512KB (OCS max)",chipMem==19)) {
+        chipMem=19;
+        altered=true;
+      }
+      if (ImGui::RadioButton("256KB",chipMem==18)) {
+        chipMem=18;
+        altered=true;
+      }
+
+
       if (ImGui::Checkbox("PAL",&clockSel)) {
         altered=true;
       }
@@ -709,6 +732,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         e->lockSave([&]() {
           flags.set("clockSel",(int)clockSel);
           flags.set("chipType",chipType);
+          flags.set("chipMem",chipMem);
           flags.set("stereoSep",stereoSep);
           flags.set("bypassLimits",bypassLimits);
         });
