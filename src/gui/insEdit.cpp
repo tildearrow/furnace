@@ -5125,9 +5125,13 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Noise Length";
             dutyMax=7;
           }
-          if (ins->type==DIV_INS_PCE || ins->type==DIV_INS_NAMCO) {
+          if (ins->type==DIV_INS_PCE) {
             dutyLabel="Noise";
-            dutyMax=(ins->type==DIV_INS_PCE && !ins->amiga.useSample)?1:0;
+            dutyMax=(!ins->amiga.useSample)?1:0;
+          }
+          if (ins->type==DIV_INS_NAMCO) {
+            dutyLabel="Noise";
+            dutyMax=1;
           }
           if (ins->type==DIV_INS_SWAN) {
             dutyLabel="Noise";
