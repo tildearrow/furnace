@@ -1472,6 +1472,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_ORDERS_ADD:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->addOrder(curOrder,false,false);
+      curOrder=e->getOrder();
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_DUPLICATE:

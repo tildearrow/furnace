@@ -3625,7 +3625,8 @@ void DivEngine::addOrder(int pos, bool duplicate, bool where) {
     }
     curSubSong->ordersLen++;
     saveLock.unlock();
-    if (pos<=curOrder) curOrder++;
+    curOrder=pos+1;
+    prevOrder=curOrder;
     if (playing && !freelance) {
       playSub(false);
     }
