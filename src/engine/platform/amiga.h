@@ -96,6 +96,7 @@ class DivPlatformAmiga: public DivDispatch {
     bool incLoc[4]; // whether dmaLoc/dmaLen should be updated
     unsigned char volPos; // position of volume PWM
     unsigned short hPos; // horizontal position of beam
+    unsigned char state[4]; // current channel state
 
     Amiga() {
       memset(this,0,sizeof(*this));

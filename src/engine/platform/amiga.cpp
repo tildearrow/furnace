@@ -107,9 +107,6 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
               amiga.audDat[0][i]=sampleMem[(amiga.dmaLoc[i])&chipMask];
               amiga.audDat[1][i]=sampleMem[(amiga.dmaLoc[i]+1)&chipMask];
               amiga.incLoc[i]=true;
-            } else {
-              amiga.audDat[0][i]=0;
-              amiga.audDat[1][i]=0;
             }
 
             amiga.audWord[i]=!amiga.audWord[i];
