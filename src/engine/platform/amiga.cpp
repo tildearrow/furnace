@@ -82,26 +82,64 @@ const char** DivPlatformAmiga::getRegisterSheet() {
 void DivPlatformAmiga::acquire(short** buf, size_t len) {
   static int outL, outR, output;
   for (size_t h=0; h<len; h++) {
+    bool hsync=bypassLimits;
     outL=0;
     outR=0;
 
     // NEW CODE
     amiga.volPos=(amiga.volPos+1)&AMIGA_VPMASK;
+    if (!bypassLimits) {
+      amiga.hPos+=AMIGA_DIVIDER;
+      if (amiga.hPos>=228) {
+        amiga.hPos-=228;
+        hsync=true;
+      }
+    }
     for (int i=0; i<4; i++) {
       // run DMA
       if (amiga.dmaEn && amiga.audEn[i]) {
         amiga.audTick[i]-=AMIGA_DIVIDER;
         if (amiga.audTick[i]<0) {
-          if (bypassLimits) {
-            amiga.audTick[i]+=MAX(AMIGA_DIVIDER,amiga.audPer[i]);
-          } else {
-            amiga.audTick[i]+=MAX(114,amiga.audPer[i]);
-          }
+          amiga.audTick[i]+=MAX(AMIGA_DIVIDER,amiga.audPer[i]);
           if (amiga.audByte[i]) {
             // read next samples
-            amiga.audDat[0][i]=sampleMem[(amiga.dmaLoc[i]++)&chipMask];
-            amiga.audDat[1][i]=sampleMem[(amiga.dmaLoc[i]++)&chipMask];
+            if (!amiga.incLoc[i]) {
+              amiga.audDat[0][i]=sampleMem[(amiga.dmaLoc[i])&chipMask];
+              amiga.audDat[1][i]=sampleMem[(amiga.dmaLoc[i]+1)&chipMask];
+              amiga.incLoc[i]=true;
+            } else {
+              amiga.audDat[0][i]=0;
+              amiga.audDat[1][i]=0;
+            }
 
+            amiga.audWord[i]=!amiga.audWord[i];
+          }
+
+          amiga.audByte[i]=!amiga.audByte[i];
+          if (!amiga.audByte[i] && (amiga.useV[i] || amiga.useP[i])) {
+            amiga.nextOut2[i]=((unsigned char)amiga.audDat[0][i])<<8|((unsigned char)amiga.audDat[1][i]);
+            if (i<3) {
+              if (amiga.useV[i] && amiga.useP[i]) {
+                if (amiga.audWord[i]) {
+                  amiga.audPer[i+1]=amiga.nextOut2[i];
+                } else {
+                  amiga.audVol[i+1]=amiga.nextOut2[i];
+                }
+              } else if (amiga.useV[i]) {
+                amiga.audVol[i+1]=amiga.nextOut2[i];
+              } else {
+                amiga.audPer[i+1]=amiga.nextOut2[i];
+              }
+            }
+          } else {
+            amiga.nextOut[i]=amiga.audDat[amiga.audByte[i]][i];
+          }
+        }
+
+        if (hsync) {
+          if (amiga.incLoc[i]) {
+            amiga.incLoc[i]=false;
+            amiga.dmaLoc[i]+=2;
             // check for length
             if ((--amiga.dmaLen[i])==0) {
               if (amiga.audInt[i]) irq(i);
@@ -109,19 +147,17 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
               amiga.dmaLen[i]=amiga.audLen[i];
             }
           }
-
-          amiga.audByte[i]=!amiga.audByte[i];
         }
       }
 
       // output
       if (!isMuted[i]) {
         if (amiga.audVol[i]>=64) {
-          output=amiga.audDat[amiga.audByte[i]][i]<<6;
+          output=amiga.nextOut[i]<<6;
         } else if (amiga.audVol[i]<=0) {
           output=0;
         } else {
-          output=amiga.audDat[amiga.audByte[i]][i]*volTable[amiga.audVol[i]][amiga.volPos];
+          output=amiga.nextOut[i]*volTable[amiga.audVol[i]][amiga.volPos];
         }
         if (i==0 || i==3) {
           outL+=(output*sep1)>>7;
@@ -130,7 +166,7 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
           outL+=(output*sep2)>>7;
           outR+=(output*sep1)>>7;
         }
-        oscBuf[i]->data[oscBuf[i]->needle++]=amiga.audDat[amiga.audByte[i]][i]*MIN(64,amiga.audVol[i]);
+        oscBuf[i]->data[oscBuf[i]->needle++]=amiga.nextOut[i]*MIN(64,amiga.audVol[i]);
       } else {
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
       }

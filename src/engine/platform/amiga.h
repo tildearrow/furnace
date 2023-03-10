@@ -82,6 +82,8 @@ class DivPlatformAmiga: public DivDispatch {
     unsigned short audPer[4]; // period
     unsigned char audVol[4]; // volume
     signed char audDat[2][4]; // data
+    signed char nextOut[4];
+    unsigned short nextOut2[4];
     
 
     // internal state
@@ -90,7 +92,10 @@ class DivPlatformAmiga: public DivDispatch {
     unsigned short dmaLen[4]; // position
 
     bool audByte[4]; // which byte of audDat to output
+    bool audWord[4]; // for P/V
+    bool incLoc[4]; // whether dmaLoc/dmaLen should be updated
     unsigned char volPos; // position of volume PWM
+    unsigned short hPos; // horizontal position of beam
 
     Amiga() {
       memset(this,0,sizeof(*this));
