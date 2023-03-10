@@ -37,7 +37,7 @@ class DivPlatformAmiga: public DivDispatch {
     unsigned char volPos;
     int sample, wave;
     int busClock;
-    bool useWave, setPos, useV, useP, dmaOn, audDatClock;
+    bool useWave, setPos, useV, useP, dmaOn, audDatClock, writeVol;
     DivWaveSynth ws;
     Channel():
       SharedChannel<signed char>(64),
@@ -58,7 +58,8 @@ class DivPlatformAmiga: public DivDispatch {
       useV(false),
       useP(false),
       dmaOn(false),
-      audDatClock(false) {}
+      audDatClock(false),
+      writeVol(true) {}
   };
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];
@@ -72,7 +73,9 @@ class DivPlatformAmiga: public DivDispatch {
     bool audInt[4]; // interrupt on
     bool audEn[4]; // audio DMA on
     bool useP[4]; // period modulation
-    bool useV[4]; // volume modulatiom
+    bool useV[4]; // volume modulation
+
+    bool dmaEn;
 
     unsigned int audLoc[4]; // address
     unsigned short audLen[4]; // length
@@ -84,7 +87,7 @@ class DivPlatformAmiga: public DivDispatch {
     // internal state
     int audTick[4]; // tick of period
     unsigned int dmaLoc[4]; // address
-    unsigned short dmaPos[4]; // position
+    unsigned short dmaLen[4]; // position
 
     bool audByte[4]; // which byte of audDat to output
     unsigned char volPos; // position of volume PWM
@@ -104,6 +107,8 @@ class DivPlatformAmiga: public DivDispatch {
   unsigned int sampleOff[256];
   bool sampleLoaded[256];
 
+  unsigned short regPool[256];
+
   unsigned char* sampleMem;
   size_t sampleMemLen;
 
@@ -113,12 +118,17 @@ class DivPlatformAmiga: public DivDispatch {
   friend void putDispatchChan(void*,int,int);
 
   void irq(int ch);
+  void rWrite(unsigned short addr, unsigned short val);
+  void updateWave(int ch);
 
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivDispatchOscBuffer* getOscBuffer(int chan);
+    unsigned char* getRegisterPool();
+    int getRegisterPoolSize();
+    int getRegisterPoolDepth();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);
@@ -131,6 +141,8 @@ class DivPlatformAmiga: public DivDispatch {
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
     void renderSamples(int chipID);
+    void poke(unsigned int addr, unsigned short val);
+    void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     const void* getSampleMem(int index=0);
     size_t getSampleMemCapacity(int index=0);
