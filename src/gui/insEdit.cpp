@@ -4423,9 +4423,14 @@ void FurnaceGUI::drawInsEdit() {
             if (ins->n163.wavePos>236) ins->n163.wavePos=236;
           }
           if (ImGui::InputInt("Length##WAVELEN",&ins->n163.waveLen,4,16)) { PARAMETER
+             int n163origLen = ins->n163.waveLen;
             if (ins->n163.waveLen<0) ins->n163.waveLen=0;
             if (ins->n163.waveLen>240) ins->n163.waveLen=240;
-            ins->n163.waveLen&=0xfc;
+                 if (ins->n163.waveLen > n163origLen) {
+                ins->n163.waveLen =  ((ins->n163.waveLen+3)&~2);
+            }
+                else ins->n163.waveLen = (ins->n163.waveLen & (~2));
+            //ins->n163.waveLen&=0xfc;
           }
 
           bool preLoad=ins->n163.waveMode&0x1;
