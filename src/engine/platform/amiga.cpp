@@ -130,7 +130,7 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
           outL+=(output*sep2)>>7;
           outR+=(output*sep1)>>7;
         }
-        oscBuf[i]->data[oscBuf[i]->needle++]=output<<2;
+        oscBuf[i]->data[oscBuf[i]->needle++]=amiga.audDat[amiga.audByte[i]][i]*MIN(64,amiga.audVol[i]);
       } else {
         oscBuf[i]->data[oscBuf[i]->needle++]=0;
       }
