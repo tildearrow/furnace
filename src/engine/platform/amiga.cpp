@@ -84,6 +84,52 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
     outR=0;
 
     // NEW CODE
+    for (int i=0; i<4; i++) {
+      amiga.volPos=(amiga.volPos+1)&AMIGA_VPMASK;
+
+      // run DMA
+      if (amiga.audEn[i]) {
+        amiga.audTick[i]-=AMIGA_DIVIDER;
+        if (amiga.audTick[i]<0) {
+          if (amiga.audByte[i]) {
+            // read next samples
+            amiga.audDat[0][i]=sampleMem[((amiga.dmaLoc[i]+amiga.dmaPos[i])<<1)&chipMask];
+            amiga.audDat[1][i]=sampleMem[(1+((amiga.dmaLoc[i]+amiga.dmaPos[i])<<1))&chipMask];
+
+            // check for length
+            if (amiga.dmaPos[i]>amiga.dmaLen[i]) {
+              if (amiga.audInt[i]) irq(i);
+              amiga.dmaLoc[i]=amiga.audLoc[i];
+              amiga.dmaPos[i]=0;
+              amiga.dmaLen[i]=amiga.audLen[i];
+            }
+          }
+
+          amiga.audByte[i]=!amiga.audByte[i];
+        }
+      }
+
+      // output
+      if (!isMuted[i]) {
+        if (amiga.audVol[i]>=64) {
+          output=amiga.audDat[amiga.audByte[i]][i]<<6;
+        } else if (amiga.audVol[i]<=0) {
+          output=0;
+        } else {
+          output=amiga.audDat[amiga.audByte[i]][i]*volTable[amiga.audVol[i]][amiga.volPos];
+        }
+        if (i==0 || i==3) {
+          outL+=(output*sep1)>>7;
+          outR+=(output*sep2)>>7;
+        } else {
+          outL+=(output*sep2)>>7;
+          outR+=(output*sep1)>>7;
+        }
+        oscBuf[i]->data[oscBuf[i]->needle++]=output<<2;
+      } else {
+        oscBuf[i]->data[oscBuf[i]->needle++]=0;
+      }
+    }
 
     // OLD CODE
     for (int i=0; i<4; i++) {
@@ -498,7 +544,8 @@ void DivPlatformAmiga::renderSamples(int sysID) {
   memset(sampleOff,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
 
-  size_t memPos=0;
+  // first 1024 bytes reserved for wavetable
+  size_t memPos=1024;
   for (int i=0; i<parent->song.sampleLen; i++) {
     DivSample* s=parent->song.sample[i];
     if (!s->renderOn[0][sysID]) {

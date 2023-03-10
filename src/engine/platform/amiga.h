@@ -67,10 +67,37 @@ class DivPlatformAmiga: public DivDispatch {
   bool amigaModel;
   bool filterOn;
 
+  struct Amiga {
+    // register state
+    bool audInt[4]; // interrupt on
+    bool audEn[4]; // audio DMA on
+    bool useP[4]; // period modulation
+    bool useV[4]; // volume modulatiom
+
+    unsigned int audLoc[4]; // address
+    unsigned short audLen[4]; // length
+    unsigned short audPer[4]; // period
+    unsigned char audVol[4]; // volume
+    signed char audDat[2][4]; // data
+    
+
+    // internal state
+    int audTick[4]; // tick of period
+    unsigned int dmaLoc[4]; // address
+    unsigned short dmaPos[4]; // position
+
+    bool audByte[4]; // which byte of audDat to output
+    unsigned char volPos; // position of volume PWM
+
+    Amiga() {
+      memset(this,0,sizeof(*this));
+    }
+  } amiga;
+
   int filter[2][4];
   int filtConst;
   int filtConstOff, filtConstOn;
-  int chipMem;
+  int chipMem, chipMask;
 
   unsigned char volTable[64][64];
 
@@ -84,6 +111,8 @@ class DivPlatformAmiga: public DivDispatch {
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
+
+  void irq(int ch);
 
   public:
     void acquire(short** buf, size_t len);
