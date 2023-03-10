@@ -86,9 +86,8 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
     outR=0;
 
     // NEW CODE
+    amiga.volPos=(amiga.volPos+1)&AMIGA_VPMASK;
     for (int i=0; i<4; i++) {
-      amiga.volPos=(amiga.volPos+1)&AMIGA_VPMASK;
-
       // run DMA
       if (amiga.dmaEn && amiga.audEn[i]) {
         amiga.audTick[i]-=AMIGA_DIVIDER;
@@ -104,7 +103,7 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
             amiga.audDat[1][i]=sampleMem[(amiga.dmaLoc[i]++)&chipMask];
 
             // check for length
-            if ((--amiga.dmaLen[i])==0xffff) {
+            if ((--amiga.dmaLen[i])==0) {
               if (amiga.audInt[i]) irq(i);
               amiga.dmaLoc[i]=amiga.audLoc[i];
               amiga.dmaLen[i]=amiga.audLen[i];
@@ -137,65 +136,6 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
       }
     }
 
-    // OLD CODE
-    /*
-    for (int i=0; i<4; i++) {
-      chan[i].volPos=(chan[i].volPos+1)&AMIGA_VPMASK;
-      if (!chan[i].active) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=0;
-        continue;
-      }
-      if (chan[i].useWave || (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen)) {
-        chan[i].audSub-=AMIGA_DIVIDER;
-        if (chan[i].audSub<0) {
-          if (chan[i].useWave) {
-            writeAudDat(chan[i].ws.output[(chan[i].audPos++)&255]^0x80);
-            if (chan[i].audPos>=(unsigned int)(chan[i].audLen<<1)) {
-              chan[i].audPos=0;
-            }
-          } else {
-            DivSample* s=parent->getSample(chan[i].sample);
-            if (s->samples>0) {
-              if (chan[i].audPos<s->samples) {
-                writeAudDat(s->data8[chan[i].audPos++]);
-              }
-              if (s->isLoopable() && chan[i].audPos>=MIN(131071,(unsigned int)s->loopEnd)) {
-                chan[i].audPos=s->loopStart;
-              } else if (chan[i].audPos>=MIN(131071,s->samples)) {
-                chan[i].sample=-1;
-              }
-            } else {
-              chan[i].sample=-1;
-            }
-          }
-          if (bypassLimits) {
-            chan[i].audSub+=MAX(AMIGA_DIVIDER,chan[i].freq);
-          } else {
-            chan[i].audSub+=MAX(114,chan[i].freq);
-          }
-        }
-      }
-      if (!isMuted[i]) {
-        if (chan[i].outVol>=64) {
-          output=chan[i].audDat<<6;
-        } else if (chan[i].outVol<=0) {
-          output=0;
-        } else {
-          output=chan[i].audDat*volTable[chan[i].outVol][chan[i].volPos];
-        }
-        if (i==0 || i==3) {
-          outL+=(output*sep1)>>7;
-          outR+=(output*sep2)>>7;
-        } else {
-          outL+=(output*sep2)>>7;
-          outR+=(output*sep1)>>7;
-        }
-        oscBuf[i]->data[oscBuf[i]->needle++]=output<<2;
-      } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=0;
-      }
-    }
-    */
     filter[0][0]+=(filtConst*(outL-filter[0][0]))>>12;
     filter[0][1]+=(filtConst*(filter[0][0]-filter[0][1]))>>12;
     filter[1][0]+=(filtConst*(outR-filter[1][0]))>>12;
@@ -398,7 +338,7 @@ void DivPlatformAmiga::tick(bool sysTick) {
         if (chan[i].useWave) {
           chWrite(i,0,0);
           chWrite(i,2,i<<8);
-          chWrite(i,4,chan[i].audLen-1);
+          chWrite(i,4,chan[i].audLen);
           rWrite(0x96,0x8000|(1<<i));
         } else {
           if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
@@ -416,12 +356,12 @@ void DivPlatformAmiga::tick(bool sysTick) {
             } else {
               chWrite(i,0,0);
               chWrite(i,2,i<<8);
-              chWrite(i,4,0);
+              chWrite(i,4,1);
             }
           } else {
             chWrite(i,0,0);
             chWrite(i,2,i<<8);
-            chWrite(i,4,0);
+            chWrite(i,4,1);
           }
         }
       }
