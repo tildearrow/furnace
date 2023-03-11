@@ -59,6 +59,7 @@ class DivPlatformAmiga: public DivDispatch {
   bool bypassLimits;
   bool amigaModel;
   bool filterOn;
+  bool updateADKCon;
 
   struct Amiga {
     // register state

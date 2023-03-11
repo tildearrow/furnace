@@ -86,7 +86,9 @@ void DivPlatformAmiga::acquire(short** buf, size_t len) {
     outL=0;
     outR=0;
 
-    // NEW CODE
+    // TODO:
+    // - improve DMA overrun behavior
+    // - does V/P mod really work like that?
     amiga.volPos=(amiga.volPos+1)&AMIGA_VPMASK;
     if (!bypassLimits) {
       amiga.hPos+=AMIGA_DIVIDER;
@@ -475,6 +477,22 @@ void DivPlatformAmiga::tick(bool sysTick) {
       updateWave(i);
     }
   }
+
+  if (updateADKCon) {
+    updateADKCon=false;
+    rWrite(0x9e,0xff);
+    rWrite(0x9e,(
+      0x8000|
+      (chan[0].useV?1:0)|
+      (chan[1].useV?2:0)|
+      (chan[2].useV?4:0)|
+      (chan[3].useV?8:0)|
+      (chan[0].useP?16:0)|
+      (chan[1].useP?32:0)|
+      (chan[2].useP?64:0)|
+      (chan[3].useP?128:0)
+    ));
+  }
 }
 
 int DivPlatformAmiga::dispatch(DivCommand c) {
@@ -618,9 +636,11 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       break;
     case DIV_CMD_AMIGA_AM:
       chan[c.chan].useV=c.value;
+      updateADKCon=true;
       break;
     case DIV_CMD_AMIGA_PM:
       chan[c.chan].useP=c.value;
+      updateADKCon=true;
       break;
     case DIV_CMD_GET_VOLMAX:
       return 64;
@@ -677,6 +697,7 @@ void DivPlatformAmiga::reset() {
   }
   filterOn=false;
   filtConst=filterOn?filtConstOn:filtConstOff;
+  updateADKCon=true;
 
   amiga=Amiga();
   // enable DMA
