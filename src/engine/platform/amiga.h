@@ -26,7 +26,7 @@
 
 class DivPlatformAmiga: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
-    unsigned short audLen;
+    unsigned short audLen, irLocL, irLocH, irLen;
     unsigned int audPos;
     int audSub;
     unsigned char volPos;
@@ -36,6 +36,9 @@ class DivPlatformAmiga: public DivDispatch {
     Channel():
       SharedChannel<signed char>(64),
       audLen(0),
+      irLocL(0),
+      irLocH(0),
+      irLen(2),
       audPos(0),
       audSub(0),
       volPos(0),
@@ -59,6 +62,7 @@ class DivPlatformAmiga: public DivDispatch {
   struct Amiga {
     // register state
     bool audInt[4]; // interrupt on
+    bool audIr[4]; // interrupt request
     bool audEn[4]; // audio DMA on
     bool useP[4]; // period modulation
     bool useV[4]; // volume modulation
