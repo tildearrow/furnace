@@ -931,6 +931,10 @@ void DivPlatformX1_010::setFlags(const DivConfig& flags) {
       chipClock=50000000.0/3.0;
       break;
     // Other clock is used
+    case 2: // NTSC clock * 4
+    // (see https://github.com/mamedev/mame/blob/master/src/mame/taito/champbwl.cpp#L620)
+      chipClock=COLOR_NTSC*4.0;
+      break;
     default:
       chipClock=16000000;
       break;
@@ -938,6 +942,7 @@ void DivPlatformX1_010::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/512;
   stereo=flags.getBool("stereo",false);
+  isBanked=flags.getBool("isBanked",false);
   for (int i=0; i<16; i++) {
     oscBuf[i]->rate=rate;
   }
@@ -970,7 +975,7 @@ bool DivPlatformX1_010::isSampleLoaded(int index, int sample) {
 }
 
 void DivPlatformX1_010::renderSamples(int sysID) {
-  memset(sampleMem,0,getSampleMemCapacity());
+  memset(sampleMem,0,16777216);
   memset(sampleOffX1,0,256*sizeof(unsigned int));
   memset(sampleLoaded,0,256*sizeof(bool));
 
@@ -1023,7 +1028,7 @@ int DivPlatformX1_010::init(DivEngine* p, int channels, int sugRate, const DivCo
     oscBuf[i]=new DivDispatchOscBuffer;
   }
   setFlags(flags);
-  sampleMem=new unsigned char[getSampleMemCapacity()];
+  sampleMem=new unsigned char[16777216];
   sampleMemLen=0;
   x1_010.reset();
   reset();

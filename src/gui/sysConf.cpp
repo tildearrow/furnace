@@ -845,6 +845,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_X1_010: {
       int clockSel=flags.getInt("clockSel",0);
       bool stereo=flags.getBool("stereo",false);
+      bool isBanked=flags.getBool("isBanked",false);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("16MHz (Seta 1)",clockSel==0)) {
@@ -855,8 +856,16 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=1;
         altered=true;
       }
+      if (ImGui::RadioButton("14.32MHz (NTSC)",clockSel==2)) {
+        clockSel=2;
+        altered=true;
+      }
 
       if (ImGui::Checkbox("Stereo",&stereo)) {
+        altered=true;
+      }
+
+      if (ImGui::Checkbox("Bankswitched (Seta 2)",&isBanked)) {
         altered=true;
       }
 
@@ -864,6 +873,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("stereo",stereo);
+          flags.set("isBanked",isBanked);
         });
       }
       break;
