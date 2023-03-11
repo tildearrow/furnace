@@ -338,7 +338,6 @@ void DivPlatformAmiga::tick(bool sysTick) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
         chan[i].wave=chan[i].std.wave.val;
         chan[i].ws.changeWave1(chan[i].wave);
-        if (!chan[i].keyOff) chan[i].keyOn=true;
       }
     }
     if (chan[i].useWave && chan[i].active) {
@@ -585,7 +584,8 @@ void DivPlatformAmiga::forceIns() {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
     chan[i].audPos=131072;
-    chan[i].audDat=0;
+    chan[i].keyOn=false;
+    chan[i].keyOff=false;
     chan[i].sample=-1;
   }
 }

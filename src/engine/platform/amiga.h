@@ -26,33 +26,21 @@
 
 class DivPlatformAmiga: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
-    unsigned int audLoc;
     unsigned short audLen;
     unsigned int audPos;
-    unsigned int dmaLoc;
-    unsigned short dmaLen;
     int audSub;
-    signed char audDat;
-    signed char audDat2;
     unsigned char volPos;
     int sample, wave;
-    int busClock;
     bool useWave, setPos, useV, useP, dmaOn, audDatClock, writeVol;
     DivWaveSynth ws;
     Channel():
       SharedChannel<signed char>(64),
-      audLoc(0),
       audLen(0),
       audPos(0),
-      dmaLoc(0),
-      dmaLen(0),
       audSub(0),
-      audDat(0),
-      audDat2(0),
       volPos(0),
       sample(-1),
       wave(-1),
-      busClock(0),
       useWave(false),
       setPos(false),
       useV(false),
