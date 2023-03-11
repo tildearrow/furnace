@@ -344,13 +344,8 @@ void DivPlatformAmiga::rWrite(unsigned short addr, unsigned short val) {
 }
 
 void DivPlatformAmiga::updateWave(int ch) {
-  if (chan[ch].useWave) {
-    for (int i=0; i<MIN(256,(chan[ch].audLen<<1)); i++) {
-      sampleMem[(ch<<8)|i]=chan[ch].ws.output[i]^0x80;
-    }
-  } else {
-    sampleMem[(ch<<8)]=0;
-    sampleMem[(ch<<8)|1]=0;
+  for (int i=0; i<MIN(256,(chan[ch].audLen<<1)); i++) {
+    sampleMem[(ch<<8)|i]=chan[ch].ws.output[i]^0x80;
   }
 }
 
@@ -381,10 +376,13 @@ void DivPlatformAmiga::tick(bool sysTick) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
         chan[i].wave=chan[i].std.wave.val;
         chan[i].ws.changeWave1(chan[i].wave);
+        chan[i].updateWave=true;
       }
     }
     if (chan[i].useWave && chan[i].active) {
-      chan[i].ws.tick();
+      if (chan[i].ws.tick()) {
+        chan[i].updateWave=true;
+      }
     }
     if (chan[i].std.pitch.had) {
       if (chan[i].std.pitch.mode) {
@@ -472,7 +470,10 @@ void DivPlatformAmiga::tick(bool sysTick) {
       chan[i].writeVol=false;
       chWrite(i,8,chan[i].outVol);
     }
-    updateWave(i);
+    if (chan[i].updateWave) {
+      chan[i].updateWave=false;
+      updateWave(i);
+    }
   }
 }
 
@@ -488,6 +489,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
             chan[c.chan].wave=0;
             chan[c.chan].ws.setWidth(chan[c.chan].audLen<<1);
             chan[c.chan].ws.changeWave1(chan[c.chan].wave);
+            chan[c.chan].updateWave=true;
           }
         }
       } else {
@@ -519,6 +521,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       }
       if (chan[c.chan].useWave) {
         chan[c.chan].ws.init(ins,chan[c.chan].audLen<<1,255,chan[c.chan].insChanged);
+        chan[c.chan].updateWave=true;
       }
       chan[c.chan].insChanged=false;
       break;
@@ -563,6 +566,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
       chan[c.chan].wave=c.value;
       chan[c.chan].keyOn=true;
       chan[c.chan].ws.changeWave1(chan[c.chan].wave);
+      chan[c.chan].updateWave=true;
       break;
     case DIV_CMD_NOTE_PORTA: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
@@ -703,6 +707,7 @@ void DivPlatformAmiga::notifyWaveChange(int wave) {
   for (int i=0; i<4; i++) {
     if (chan[i].useWave && chan[i].wave==wave) {
       chan[i].ws.changeWave1(wave);
+      chan[i].updateWave=true;
     }
   }
 }

@@ -31,7 +31,7 @@ class DivPlatformAmiga: public DivDispatch {
     int audSub;
     unsigned char volPos;
     int sample, wave;
-    bool useWave, setPos, useV, useP, dmaOn, audDatClock, writeVol;
+    bool useWave, setPos, useV, useP, dmaOn, audDatClock, writeVol, updateWave;
     DivWaveSynth ws;
     Channel():
       SharedChannel<signed char>(64),
@@ -50,7 +50,8 @@ class DivPlatformAmiga: public DivDispatch {
       useP(false),
       dmaOn(false),
       audDatClock(false),
-      writeVol(true) {}
+      writeVol(true),
+      updateWave(true) {}
   };
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];
