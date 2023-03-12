@@ -856,6 +856,10 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         clockSel=1;
         altered=true;
       }
+      if (ImGui::RadioButton("14.32MHz (NTSC)",clockSel==2)) {
+        clockSel=2;
+        altered=true;
+      }
 
       if (ImGui::Checkbox("Stereo",&stereo)) {
         altered=true;

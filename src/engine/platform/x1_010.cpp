@@ -924,14 +924,14 @@ void DivPlatformX1_010::notifyInsDeletion(void* ins) {
 
 void DivPlatformX1_010::setFlags(const DivConfig& flags) {
   switch (flags.getInt("clockSel",0)) {
-    case 0: // 16MHz (earlier hardwares)
-      chipClock=16000000;
-      break;
     case 1: // 16.67MHz (later hardwares)
       chipClock=50000000.0/3.0;
       break;
+    case 2: // 14.32MHz (see https://github.com/mamedev/mame/blob/master/src/mame/taito/champbwl.cpp#L620)
+      chipClock=COLOR_NTSC*4.0;
+      break;
     // Other clock is used
-    default:
+    default: // 16MHz (earlier hardwares)
       chipClock=16000000;
       break;
   }
