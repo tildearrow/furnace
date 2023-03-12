@@ -608,6 +608,10 @@ namespace IGFD
 				res.ext = pfn.substr(lastPoint + 1);
 				IGFD::Utils::ReplaceString(res.name, "." + res.ext, "");
 			}
+      
+      if (res.path.empty()) {
+        res.path=separator;
+      }
 
 			if (!res.isOk)
 			{
