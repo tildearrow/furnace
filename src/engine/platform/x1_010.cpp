@@ -931,10 +931,6 @@ void DivPlatformX1_010::setFlags(const DivConfig& flags) {
       chipClock=50000000.0/3.0;
       break;
     // Other clock is used
-    case 2: // NTSC clock * 4
-    // (see https://github.com/mamedev/mame/blob/master/src/mame/taito/champbwl.cpp#L620)
-      chipClock=COLOR_NTSC*4.0;
-      break;
     default:
       chipClock=16000000;
       break;
