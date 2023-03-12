@@ -1588,7 +1588,7 @@ void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
   // get unsorted directory
   DivAssetDir* unsortedDir=NULL;
   for (DivAssetDir& i: dir) {
-    if (i.name=="Unsorted") {
+    if (i.name.empty()) {
       unsortedDir=&i;
       break;
     }
@@ -1596,7 +1596,7 @@ void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
 
   // create unsorted directory if it doesn't exist
   if (unsortedDir==NULL) {
-    dir.push_back(DivAssetDir("Unsorted"));
+    dir.push_back(DivAssetDir(""));
     unsortedDir=&(*dir.rbegin());
   }
 
@@ -2497,6 +2497,10 @@ void DivEngine::recalcChans() {
   for (int i=0; i<DIV_INS_MAX; i++) {
     if (isInsTypePossible[i]) possibleInsTypes.push_back((DivInstrumentType)i);
   }
+
+  checkAssetDir(song.insDir,song.ins.size());
+  checkAssetDir(song.waveDir,song.wave.size());
+  checkAssetDir(song.sampleDir,song.sample.size());
 
   hasLoadedSomething=true;
 }
