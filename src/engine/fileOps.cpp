@@ -2935,6 +2935,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     size_t pos=reader.tell();
     logD("reading sample data...");
     for (int i=0; i<insCount; i++) {
+      logV("- %d: %d %d %d",i,pos,ds.sample[i]->samples,sampLens[i]);
       if (!reader.seek(pos,SEEK_SET)) {
         logD("%d: couldn't seek to %d",i,pos);
         throw EndOfFileException(&reader,reader.tell());
@@ -2944,6 +2945,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     }
 
     // convert effects
+    logD("converting module...");
     for (int ch=0; ch<=chCount; ch++) {
       unsigned char fxCols=1;
       for (int pat=0; pat<=patMax; pat++) {

@@ -411,6 +411,7 @@ void DivPlatformAmiga::tick(bool sysTick) {
       if (chan[i].keyOn) {
         rWrite(0x96,1<<i);
         if (chan[i].useWave) {
+          rWrite(0x9a,(128<<i));
           chWrite(i,0,0);
           chWrite(i,2,i<<8);
           chWrite(i,4,chan[i].audLen);
@@ -500,6 +501,7 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       if (ins->amiga.useWave) {
+        if (!chan[c.chan].useWave) chan[c.chan].updateWave=true;
         chan[c.chan].useWave=true;
         chan[c.chan].audLen=(ins->amiga.waveLen+1)>>1;
         if (chan[c.chan].insChanged) {

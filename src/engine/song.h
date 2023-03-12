@@ -181,6 +181,16 @@ struct DivSubSong {
   }
 };
 
+struct DivAssetDir {
+  String name;
+  std::vector<int> entries;
+
+  DivAssetDir():
+    name("New Directory") {}
+  DivAssetDir(String n):
+    name(n) {}
+};
+
 struct DivSong {
   // version number used for saving the song.
   // Furnace will save using the latest possible version,
@@ -350,6 +360,10 @@ struct DivSong {
   std::vector<DivSubSong*> subsong;
   std::vector<unsigned int> patchbay;
   std::vector<DivGroovePattern> grooves;
+
+  std::vector<DivAssetDir> insDir;
+  std::vector<DivAssetDir> waveDir;
+  std::vector<DivAssetDir> sampleDir;
 
   DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsOPLDrums, nullInsQSound;
   DivWavetable nullWave;
