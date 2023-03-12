@@ -4420,11 +4420,11 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ImGui::InputInt("Offset##WAVEPOS",&ins->n163.wavePos,1,16)) { PARAMETER
             if (ins->n163.wavePos<0) ins->n163.wavePos=0;
-            if (ins->n163.wavePos>236) ins->n163.wavePos=236;
+            if (ins->n163.wavePos>255) ins->n163.wavePos=255;
           }
           if (ImGui::InputInt("Length##WAVELEN",&ins->n163.waveLen,4,16)) { PARAMETER
             if (ins->n163.waveLen<0) ins->n163.waveLen=0;
-            if (ins->n163.waveLen>240) ins->n163.waveLen=240;
+            if (ins->n163.waveLen>252) ins->n163.waveLen=252;
             ins->n163.waveLen&=0xfc;
           }
 
