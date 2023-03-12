@@ -1197,7 +1197,7 @@ namespace IGFD
 		if (puDLGDirectoryMode) // directory mode
 			SetDefaultFileName(".");
 		else
-			SetDefaultFileName(puDLGDefaultFileName);
+			SetDefaultFileName("");
 		ScanDir(vFileDialogInternal, GetCurrentPath());
 	}
 
@@ -3417,7 +3417,7 @@ namespace IGFD
 		if (ps.isOk)
 		{
 			prFileDialogInternal.puFileManager.puDLGpath = ps.path;
-			prFileDialogInternal.puFileManager.SetDefaultFileName(vFilePathName);
+			prFileDialogInternal.puFileManager.SetDefaultFileName("");
 			prFileDialogInternal.puFilterManager.puDLGdefaultExt = "." + ps.ext;
 		}
 		else
