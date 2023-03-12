@@ -1567,6 +1567,49 @@ void DivEngine::changeSong(size_t songIndex) {
   prevRow=0;
 }
 
+void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
+  bool* inAssetDir=new bool[entries];
+  memset(inAssetDir,0,entries*sizeof(bool));
+
+  for (DivAssetDir& i: dir) {
+    for (size_t j=0; j<i.entries.size(); j++) {
+      // erase invalid entry
+      if (i.entries[j]<0 || i.entries[j]>=(int)entries) {
+        i.entries.erase(i.entries.begin()+j);
+        j--;
+        continue;
+      }
+      
+      // mark entry as present
+      inAssetDir[j]=true;
+    }
+  }
+
+  // get unsorted directory
+  DivAssetDir* unsortedDir=NULL;
+  for (DivAssetDir& i: dir) {
+    if (i.name=="Unsorted") {
+      unsortedDir=&i;
+      break;
+    }
+  }
+
+  // create unsorted directory if it doesn't exist
+  if (unsortedDir==NULL) {
+    dir.push_back(DivAssetDir("Unsorted"));
+    unsortedDir=&(*dir.rbegin());
+  }
+
+  // add missing items to unsorted directory
+  for (size_t i=0; i<entries; i++) {
+    if (!inAssetDir[i]) {
+      unsortedDir->entries.push_back(i);
+    }
+  }
+
+  delete[] inAssetDir;
+}
+
 void DivEngine::swapChannelsP(int src, int dest) {
   if (src<0 || src>=chans) return;
   if (dest<0 || dest>=chans) return;

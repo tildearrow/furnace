@@ -490,6 +490,9 @@ class DivEngine {
   // change song (UNSAFE)
   void changeSong(size_t songIndex);
 
+  // check whether an asset directory is complete
+  void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries);
+
   public:
     DivSong song;
     DivOrders* curOrders;
