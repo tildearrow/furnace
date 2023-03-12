@@ -132,8 +132,11 @@ namespace IGFD
 #define resetButtonString ICON_FA_REPEAT
 #endif // resetButtonString
 #ifndef drivesButtonString
-#define drivesButtonString "Drives"
+#define drivesButtonString ICON_FA_HDD_O
 #endif // drivesButtonString
+#ifndef parentDirString
+#define parentDirString ICON_FA_CHEVRON_UP
+#endif // parentDirString
 #ifndef editPathButtonString
 #define editPathButtonString ICON_FA_PENCIL
 #endif // editPathButtonString
@@ -167,6 +170,9 @@ namespace IGFD
 #ifndef buttonResetPathString
 #define buttonResetPathString "Reset to current directory"
 #endif // buttonResetPathString
+#ifndef buttonParentDirString
+#define buttonParentDirString "Go to parent directory"
+#endif
 #ifndef buttonCreateDirString
 #define buttonCreateDirString "Create Directory"
 #endif // buttonCreateDirString
@@ -1475,7 +1481,7 @@ namespace IGFD
 		infos->fileNameExt_optimized = prOptimizeFilenameForSearchOperations(infos->fileNameExt);
 		infos->fileType = vFileType;
 
-		if (infos->fileNameExt.empty() || (infos->fileNameExt == "." && !vFileDialogInternal.puFilterManager.puDLGFilters.empty())) return; // filename empty or filename is the current dir '.' //-V807
+		if (infos->fileNameExt.empty() || ((infos->fileNameExt == "." || infos->fileNameExt == "..") && !vFileDialogInternal.puFilterManager.puDLGFilters.empty())) return; // filename empty or filename is the current dir '.' //-V807
 		if (infos->fileNameExt != ".." && (vFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_DontShowHiddenFiles) && infos->fileNameExt[0] == '.') // dont show hidden files
 			if (!vFileDialogInternal.puFilterManager.puDLGFilters.empty() || (vFileDialogInternal.puFilterManager.puDLGFilters.empty() && infos->fileNameExt != ".")) // except "." if in directory mode //-V728
 				return;
@@ -2216,6 +2222,16 @@ namespace IGFD
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(buttonResetPathString);
+
+    ImGui::SameLine();
+    if (IMGUI_BUTTON(parentDirString))
+		{
+			if (SetPathOnParentDirectoryIfAny()) {
+			  OpenCurrentPath(vFileDialogInternal);
+      }
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(buttonParentDirString);
 
 #ifdef WIN32
 		ImGui::SameLine();
