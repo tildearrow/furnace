@@ -23,6 +23,7 @@
 #include "instrument.h"
 #include "song.h"
 #include "dispatch.h"
+#include "export.h"
 #include "dataErrors.h"
 #include "safeWriter.h"
 #include "../audio/taAudio.h"
@@ -531,7 +532,7 @@ class DivEngine {
     SafeWriter* saveFur(bool notPrimary=false);
     // build a ROM file (TODO).
     // specify system to build ROM for.
-    SafeWriter* buildROM(int sys);
+    std::vector<DivROMExportOutput> buildROM(int sys);
     // dump to VGM.
     // set trailingTicks to:
     // - 0 to add one tick of trailing

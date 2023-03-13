@@ -9,12 +9,12 @@ do not assume this is the actual ROM export! it is nothing more than a register 
 enable the setting in Furnace to unlock the export option by adding this to furnace.cfg:
 
 ```
-iCannotWait=true
+iCannotWait=1
 ```
 
 go to file > export Amiga validation data...
 
-put sample.bin and seq.bin in this directory.
+put sample.bin, seq.bin and wave.bin in this directory.
 
 compile with vasm:
 

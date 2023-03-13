@@ -213,6 +213,10 @@ void DivPlatformAmiga::rWrite(unsigned short addr, unsigned short val) {
   //logV("%.3x = %.4x",addr,val);
   regPool[addr>>1]=val;
 
+  if (!skipRegisterWrites && dumpWrites) {
+    addWrite(addr,val);
+  }
+
   switch (addr&0x1fe) {
     case 0x96: { // DMACON
       if (val&32768) {

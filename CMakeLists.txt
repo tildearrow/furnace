@@ -488,6 +488,7 @@ src/engine/waveSynth.cpp
 src/engine/vgmOps.cpp
 src/engine/zsmOps.cpp
 src/engine/zsm.cpp
+
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
 src/engine/platform/genesisext.cpp
@@ -550,6 +551,8 @@ src/engine/platform/sm8521.cpp
 src/engine/platform/pv1000.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
+
+src/engine/export/abstract.cpp
 )
 
 if (USE_SNDFILE)
