@@ -3322,18 +3322,24 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
 
     reader.read(chanSettings,32);
 
+    logD("reading orders...");
     for (int i=0; i<ordersLen; i++) {
       ord[i]=reader.readC();
+      logV("- %.2x",ord[i]);
     }
     // should be even
     if (ordersLen&1) reader.readC();
 
+    logD("reading ins pointers...");
     for (int i=0; i<ds.insLen; i++) {
       insPtr[i]=reader.readS();
+      logV("- %.2x",insPtr[i]);
     }
 
+    logD("reading pat pointers...");
     for (int i=0; i<patCount; i++) {
       patPtr[i]=reader.readS();
+      logV("- %.2x",patPtr[i]);
     }
 
     if (defaultPan) {
@@ -3412,6 +3418,8 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         memSeg=(unsigned char)reader.readC();
         memSeg|=((unsigned short)reader.readS())<<8;
 
+        logV("memSeg: %d",memSeg);
+
         unsigned int length=reader.readI();
 
         DivSample* s=new DivSample;
@@ -3421,6 +3429,8 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
         s->loopStart=reader.readI();
         s->loopEnd=reader.readI();
         defVol[i]=reader.readC();
+        
+        logV("defVol: %d",defVol[i]);
 
         reader.readC(); // x
       } else {
