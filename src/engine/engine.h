@@ -52,6 +52,7 @@
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
+#define DIV_VERSION_S3M 0xff03
 
 // "Namco C163"
 #define DIV_C163_DEFAULT_NAME "Namco 163"
@@ -457,6 +458,7 @@ class DivEngine {
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
   bool loadMod(unsigned char* file, size_t len);
+  bool loadS3M(unsigned char* file, size_t len);
   bool loadFTM(unsigned char* file, size_t len);
   bool loadFC(unsigned char* file, size_t len);
 
