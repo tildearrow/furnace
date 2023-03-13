@@ -1369,6 +1369,7 @@ class FurnaceGUI {
     int oneDigitEffects;
     int disableFadeIn;
     int alwaysPlayIntro;
+    int iCannotWait;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1509,6 +1510,7 @@ class FurnaceGUI {
       oneDigitEffects(0),
       disableFadeIn(0),
       alwaysPlayIntro(0),
+      iCannotWait(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
