@@ -20,7 +20,7 @@
 #include "../export.h"
 #include "../../ta-log.h"
 
-std::vector<DivROMExportOutput> go(DivEngine* e) {
+std::vector<DivROMExportOutput> DivROMExport::go(DivEngine* e) {
   logW("what's this? the null ROM export?");
   return std::vector<DivROMExportOutput>();
 }

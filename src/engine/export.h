@@ -21,6 +21,7 @@
 #define _EXPORT_H
 
 #include "song.h"
+#include <initializer_list>
 #include <vector>
 
 class DivEngine;
@@ -45,6 +46,12 @@ struct DivROMExportOutput {
 };
 
 class DivROMExport {
+  public:
+    virtual std::vector<DivROMExportOutput> go(DivEngine* e);
+    virtual ~DivROMExport() {}
+};
+
+struct DivROMExportDef {
   const char* name;
   const char* author;
   const char* description;
@@ -52,12 +59,17 @@ class DivROMExport {
   int requisitesLen;
   bool multiOutput;
 
-  public:
-    virtual std::vector<DivROMExportOutput> go(DivEngine* e);
-    DivROMExport(const char* n, const char* auth, const char* desc):
-      name(n),
-      author(auth),
-      description(desc) {}
+  DivROMExportDef(const char* n, const char* a, const char* d, std::initializer_list<DivSystem> req, bool multiOut):
+    name(n),
+    author(a),
+    description(d),
+    multiOutput(multiOut) {
+    requisitesLen=0;
+    memset(requisites,0,32*sizeof(DivSystem));
+    for (DivSystem i: req) {
+      requisites[requisitesLen++]=i;
+    }
+  }
 };
 
 #endif

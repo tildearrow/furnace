@@ -2580,6 +2580,10 @@ int DivEngine::divToFileRate(int drate) {
   return 4;
 }
 
+void DivEngine::testFunction() {
+  logI("it works!");
+}
+
 int DivEngine::getEffectiveSampleRate(int rate) {
   if (rate<1) return 0;
   switch (song.system[0]) {

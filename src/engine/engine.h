@@ -456,6 +456,8 @@ class DivEngine {
   void reset();
   void playSub(bool preserveDrift, int goalRow=0);
 
+  void testFunction();
+
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
   bool loadMod(unsigned char* file, size_t len);
@@ -496,6 +498,10 @@ class DivEngine {
   // check whether an asset directory is complete
   void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries);
 
+  // add every export method here
+  friend class DivROMExport;
+  friend class DivExportAmigaValidation;
+
   public:
     DivSong song;
     DivOrders* curOrders;
@@ -532,7 +538,7 @@ class DivEngine {
     SafeWriter* saveFur(bool notPrimary=false);
     // build a ROM file (TODO).
     // specify system to build ROM for.
-    std::vector<DivROMExportOutput> buildROM(int sys);
+    std::vector<DivROMExportOutput> buildROM(DivROMExportOptions sys);
     // dump to VGM.
     // set trailingTicks to:
     // - 0 to add one tick of trailing

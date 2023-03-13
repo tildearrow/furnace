@@ -17,11 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "amigaValidation.h"
-#include "../engine.h"
+#include "engine.h"
 
-std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
-  e->testFunction();
+#include "export/amigaValidation.h"
 
-  return std::vector<DivROMExportOutput>();
+std::vector<DivROMExportOutput> DivEngine::buildROM(DivROMExportOptions sys) {
+  DivROMExport* exporter=NULL;
+  switch (sys) {
+    case DIV_ROM_AMIGA_VALIDATION:
+      exporter=new DivExportAmigaValidation;
+      break;
+    default:
+      exporter=new DivROMExport;
+      break;
+  }
+  std::vector<DivROMExportOutput> ret=exporter->go(this);
+  delete exporter;
+  return ret;
 }
