@@ -3237,7 +3237,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
   unsigned char chanSettings[32];
   unsigned char ord[256];
   unsigned short insPtr[256];
-  unsigned short panPtr[256];
+  unsigned short patPtr[256];
   unsigned char chanPan[16];
   unsigned char defVol[256];
 
@@ -3309,6 +3309,10 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
 
     unsigned char masterVol=reader.readC();
 
+    logV("masterVol: %d",masterVol);
+    logV("signedSamples: %d",signedSamples);
+    logV("globalVol: %d",globalVol);
+
     reader.readC(); // UC
     bool defaultPan=(((unsigned char)reader.readC())==252);
 
@@ -3324,11 +3328,11 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     // should be even
     if (ordersLen&1) reader.readC();
 
-    for (int i=0: i<ds.insLen; i++) {
+    for (int i=0; i<ds.insLen; i++) {
       insPtr[i]=reader.readS();
     }
 
-    for (int i=0: i<patCount; i++) {
+    for (int i=0; i<patCount; i++) {
       patPtr[i]=reader.readS();
     }
 
