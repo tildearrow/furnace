@@ -48,6 +48,10 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
+#define EXTERN_BUSY_BEGIN e->softLocked=false; e->isBusy.lock();
+#define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
+#define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
+
 #define DIV_VERSION "dev145"
 #define DIV_ENGINE_VERSION 145
 // for imports

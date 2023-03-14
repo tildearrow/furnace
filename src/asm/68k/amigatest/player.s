@@ -5,9 +5,34 @@
 
 VPOSR = $dff004
 COLOR00 = $dff180
+DMACONR = $dff002
+DMACON = $dff096
+AUD0LCH = $dff0a0
+AUD0LCL = $dff0a2
+AUD0LEN = $dff0a4
+AUD0PER = $dff0a6
+AUD0VOL = $dff0a8
+AUD0DAT = $dff0aa
 
 cseg
-  move.l #0,d0
+  move.w #15,d0
+  move.w d0,DMACON
+
+testDMACon:
+  move.w DMACON,d0
+  btst #0,d0
+  bne testDMACon
+
+  lea sampleData(pc),a0
+  move.l a0,AUD0LCH
+  move.w #$2000,d0
+  move.w d0,AUD0LEN
+  move.w #$a0,d0
+  move.w d0,AUD0PER
+  move.w #$40,d0
+  move.w d0,AUD0VOL
+  move.l #$8201,d0
+  move.w d0,DMACON
 
 main:
   jsr waitVBlank
@@ -30,3 +55,14 @@ data_c
 
 curColor:
   dc.w 0
+
+sampleData:
+  incbin "sample.bin"
+
+data_f
+
+sequence:
+  incbin "seq.bin"
+
+wavetable:
+  incbin "wave.bin"

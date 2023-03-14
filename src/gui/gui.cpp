@@ -3697,6 +3697,7 @@ bool FurnaceGUI::loop() {
             ImGui::SameLine();
             ImGui::InputText("##AVDPath",&workingDirROMExport);
             if (ImGui::Button("Bake Data")) {
+              std::vector<DivROMExportOutput> out=e->buildROM(DIV_ROM_AMIGA_VALIDATION);
               ImGui::CloseCurrentPopup();
             }
             ImGui::EndMenu();

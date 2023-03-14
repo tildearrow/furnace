@@ -419,6 +419,10 @@ void DivPlatformAmiga::tick(bool sysTick) {
           chWrite(i,0,0);
           chWrite(i,2,i<<8);
           chWrite(i,4,chan[i].audLen);
+          if (dumpWrites) {
+            addWrite(0x200+i,i<<8);
+            addWrite(0x204+i,chan[i].audLen);
+          }
           rWrite(0x96,0x8000|(1<<i));
         } else {
           if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
@@ -436,10 +440,18 @@ void DivPlatformAmiga::tick(bool sysTick) {
               chWrite(i,0,0);
               chWrite(i,2,0x400);
               chWrite(i,4,1);
+              if (dumpWrites) {
+                addWrite(0x200+i,0x400);
+                addWrite(0x204+i,1);
+              }
             } else {
               chWrite(i,0,start>>16);
               chWrite(i,2,start);
               chWrite(i,4,len);
+              if (dumpWrites) {
+                addWrite(0x200+i,start);
+                addWrite(0x204+i,len);
+              }
             }
 
             rWrite(0x96,0x8000|(1<<i));
@@ -454,11 +466,19 @@ void DivPlatformAmiga::tick(bool sysTick) {
               chan[i].irLocL=0x400;
               chan[i].irLen=1;
             }
+            if (dumpWrites) {
+              addWrite(0x200+i,(chan[i].irLocH<<16)|chan[i].irLocL);
+              addWrite(0x204+i,chan[i].irLen);
+            }
             rWrite(0x9a,0x8000|(128<<i));
           } else {
             chWrite(i,0,0);
             chWrite(i,2,0x400);
             chWrite(i,4,1);
+            if (dumpWrites) {
+              addWrite(0x200+i,0x400);
+              addWrite(0x204+i,1);
+            }
           }
         }
       }

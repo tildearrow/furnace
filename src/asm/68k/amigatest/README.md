@@ -26,24 +26,23 @@ run a.out on Amiga. it should play the exported song.
 
 # sequence format
 
-## 00-0F: global
+## 00-0F: per-channel (00, 10, 20, 30)
 
-- 00: do nothing
-- 01: next tick
-- 02 xx: wait
-- 03 xxxx: wait
-- 06 xxxx: write to DMACON
-- 0a xxxx: write to INTENA
-- 0e xxxx: write to ADKCON
-
-## 10-1F: per-channel (10, 20, 30, 40)
-
-- 10 xxxxxx yyyy zzzzzz wwww: set loc/len
+- 00 xxxxxx yyyy: set loc/len
   - x: loc
   - y: len
-  - z: loc after interrupt
-  - w: len after interrupt
-- 12 xxxx yy: initialize wavetable (xxxx: pos; yy: length)
-- 16 xxxx: set period
-- 18 xx: set volume
-- 1a xxxx: set data
+- 01 xxxx yy: initialize wavetable (xxxx: pos; yy: length)
+- 06 xxxx: set period
+- 08 xx: set volume
+- 0a xxxx: set data
+
+## F0-FF: global
+
+- f0: do nothing
+- f1: next tick
+- f2 xx: wait
+- f3 xxxx: wait
+- f6 xxxx: write to DMACON
+- fa xxxx: write to INTENA
+- fe xxxx: write to ADKCON
+- ff: end of song
