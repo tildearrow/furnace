@@ -58,7 +58,7 @@ std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
   SafeWriter* wave=new SafeWriter;
   wave->init();
   for (int i=0; i<32; i++) {
-    sample->writeC(i<<3);
+    wave->writeC(i<<3);
   }
 
   // seq.bin

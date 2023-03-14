@@ -14,7 +14,7 @@ AUD0PER = $dff0a6
 AUD0VOL = $dff0a8
 AUD0DAT = $dff0aa
 
-cseg
+code_c
   move.w #15,d0
   move.w d0,DMACON
 
