@@ -3698,6 +3698,20 @@ bool FurnaceGUI::loop() {
             ImGui::InputText("##AVDPath",&workingDirROMExport);
             if (ImGui::Button("Bake Data")) {
               std::vector<DivROMExportOutput> out=e->buildROM(DIV_ROM_AMIGA_VALIDATION);
+              if (workingDirROMExport.size()>0) {
+                if (workingDirROMExport[workingDirROMExport.size()-1]!=DIR_SEPARATOR) workingDirROMExport+=DIR_SEPARATOR_STR;
+              }
+              for (DivROMExportOutput& i: out) {
+                String path=workingDirROMExport+i.name;
+                FILE* outFile=ps_fopen(path.c_str(),"wb");
+                if (outFile!=NULL) {
+                  fwrite(i.data->getFinalBuf(),1,i.data->size(),outFile);
+                  fclose(outFile);
+                }
+                i.data->finish();
+                delete i.data;
+              }
+              showError(fmt::sprintf("Done! Baked %d files.",(int)out.size()));
               ImGui::CloseCurrentPopup();
             }
             ImGui::EndMenu();

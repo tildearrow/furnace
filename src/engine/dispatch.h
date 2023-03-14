@@ -280,15 +280,15 @@ struct DivRegWrite {
    * - 0xffffffff: reset
    */
   unsigned int addr;
-  unsigned short val;
-  DivRegWrite(unsigned int a, unsigned short v):
+  unsigned int val;
+  DivRegWrite(unsigned int a, unsigned int v):
     addr(a), val(v) {}
 };
 
 struct DivDelayedWrite {
   int time;
   DivRegWrite write;
-  DivDelayedWrite(int t, unsigned int a, unsigned short v):
+  DivDelayedWrite(int t, unsigned int a, unsigned int v):
     time(t),
     write(a,v) {}
 };

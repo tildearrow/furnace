@@ -583,8 +583,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       logD("writing stream command %x:%x with stream ID %d",write.addr,write.val,streamID);
       switch (write.addr&0xff) {
         case 0: // play sample
-          if (write.val<song.sampleLen) {
-            if (playingSample[streamID]!=write.val) {
+          if (write.val<(unsigned int)song.sampleLen) {
+            if (playingSample[streamID]!=(int)write.val) {
               pendingFreq[streamID]=write.val;
             } else {
               DivSample* sample=song.sample[write.val];
