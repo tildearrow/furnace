@@ -71,7 +71,7 @@ std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
   e->playSub(false);
   size_t songTick=0;
   size_t lastTick=0;
-  bool writeLoop=false;
+  //bool writeLoop=false;
   int loopPos=-1;
   for (int i=0; i<e->chans; i++) {
     e->chan[i].wentThroughNote=false;
@@ -80,7 +80,7 @@ std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
   while (!done) {
     if (loopPos==-1) {
       if (loopOrder==e->curOrder && loopRow==e->curRow && e->ticks==1) {
-        writeLoop=true;
+        //writeLoop=true;
       }
     }
     if (e->nextTick(false,true)) {
