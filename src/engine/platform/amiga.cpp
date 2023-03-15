@@ -415,7 +415,7 @@ void DivPlatformAmiga::tick(bool sysTick) {
     }
   }
 
-  rWrite(0x96,dmaOff);
+  if (dmaOff) rWrite(0x96,dmaOff);
 
   for (int i=0; i<4; i++) {
     double off=1.0;
@@ -506,7 +506,7 @@ void DivPlatformAmiga::tick(bool sysTick) {
     }
   }
 
-  rWrite(0x96,0x8000|dmaOn);
+  if (dmaOn) rWrite(0x96,0x8000|dmaOn);
 
   for (int i=0; i<4; i++) {
     if ((dmaOn&(1<<i)) && dumpWrites) {
