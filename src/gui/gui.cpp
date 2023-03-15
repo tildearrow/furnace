@@ -5470,6 +5470,7 @@ bool FurnaceGUI::init() {
   waveSigned=e->getConfBool("waveSigned",false);
   waveGenVisible=e->getConfBool("waveGenVisible",false);
   waveEditStyle=e->getConfInt("waveEditStyle",0);
+  extraChannelButtons=e->getConfInt("extraChannelButtons",0);
   lockLayout=e->getConfBool("lockLayout",false);
 #ifdef IS_MOBILE
   fullScreen=true;
@@ -5884,6 +5885,7 @@ void FurnaceGUI::commitState() {
   e->setConf("waveSigned",waveSigned);
   e->setConf("waveGenVisible",waveGenVisible);
   e->setConf("waveEditStyle",waveEditStyle);
+  e->setConf("extraChannelButtons",extraChannelButtons);
   e->setConf("lockLayout",lockLayout);
   e->setConf("fullScreen",fullScreen);
   e->setConf("mobileUI",mobileUI);
