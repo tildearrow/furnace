@@ -170,7 +170,7 @@ testChannel:
   or.b (a2)+,d2
   lsl.l #8,d2
   or.b (a2)+,d2
-  lea sampleData(pc),a0
+  lea sampleData,a0
   add.l a0,d2
   lea chipBase,a0
   move.b d1,d0

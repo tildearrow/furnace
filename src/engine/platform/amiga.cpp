@@ -404,6 +404,29 @@ void DivPlatformAmiga::tick(bool sysTick) {
         chan[i].keyOn=true;
       }
     }
+  }
+
+  unsigned short dmaOff=0;
+  unsigned short dmaOn=0;
+  for (int i=0; i<4; i++) {
+    if (chan[i].keyOn || chan[i].keyOff) {
+      chWrite(i,6,1);
+      dmaOff|=1<<i;
+    }
+  }
+
+  rWrite(0x96,dmaOff);
+
+  for (int i=0; i<4; i++) {
+    double off=1.0;
+    if (!chan[i].useWave && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+      DivSample* s=parent->getSample(chan[i].sample);
+      if (s->centerRate<1) {
+        off=1.0;
+      } else {
+        off=8363.0/(double)s->centerRate;
+      }
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AMIGA);
       chan[i].freq=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
@@ -413,7 +436,6 @@ void DivPlatformAmiga::tick(bool sysTick) {
       chWrite(i,6,chan[i].freq);
 
       if (chan[i].keyOn) {
-        rWrite(0x96,1<<i);
         if (chan[i].useWave) {
           rWrite(0x9a,(128<<i));
           chWrite(i,0,0);
@@ -423,7 +445,7 @@ void DivPlatformAmiga::tick(bool sysTick) {
             addWrite(0x200+i,i<<8);
             addWrite(0x204+i,chan[i].audLen);
           }
-          rWrite(0x96,0x8000|(1<<i));
+          dmaOn|=1<<i;
         } else {
           if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[i].sample);
@@ -454,7 +476,7 @@ void DivPlatformAmiga::tick(bool sysTick) {
               }
             }
 
-            rWrite(0x96,0x8000|(1<<i));
+            dmaOn|=1<<i;
             if (s->isLoopable()) {
               int loopPos=(sampleOff[chan[i].sample]+s->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT))&(~1);
               int loopEnd=(s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)-s->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT))>>1;
@@ -465,10 +487,6 @@ void DivPlatformAmiga::tick(bool sysTick) {
               chan[i].irLocH=0;
               chan[i].irLocL=0x400;
               chan[i].irLen=1;
-            }
-            if (dumpWrites) {
-              addWrite(0x200+i,(chan[i].irLocH<<16)|chan[i].irLocL);
-              addWrite(0x204+i,chan[i].irLen);
             }
             rWrite(0x9a,0x8000|(128<<i));
           } else {
@@ -482,13 +500,18 @@ void DivPlatformAmiga::tick(bool sysTick) {
           }
         }
       }
-
-      if (chan[i].keyOff) {
-        rWrite(0x96,1<<i);
-      }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
+    }
+  }
+
+  rWrite(0x96,0x8000|dmaOn);
+
+  for (int i=0; i<4; i++) {
+    if ((dmaOn&(1<<i)) && dumpWrites) {
+      addWrite(0x200+i,(chan[i].irLocH<<16)|chan[i].irLocL);
+      addWrite(0x204+i,chan[i].irLen);
     }
   }
 
