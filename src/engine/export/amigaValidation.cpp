@@ -97,10 +97,10 @@ std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
           seq->writeC(0xf1);
         } else if (delta<256) {
           seq->writeC(0xf2);
-          seq->writeC(delta);
-        } else if (delta<65536) {
+          seq->writeC(delta-1);
+        } else if (delta<32768) {
           seq->writeC(0xf3);
-          seq->writeS_BE(delta);
+          seq->writeS_BE(delta-1);
         }
         lastTick=songTick;
       }
