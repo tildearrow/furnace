@@ -43,6 +43,5 @@ run a.out on Amiga. it should play the exported song.
 - f2 xx: wait
 - f3 xxxx: wait
 - f6 xxxx: write to DMACON
-- fa xxxx: write to INTENA
 - fe xxxx: write to ADKCON
 - ff: end of song
