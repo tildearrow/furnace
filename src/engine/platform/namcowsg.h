@@ -50,8 +50,10 @@ class DivPlatformNamcoWSG: public DivDispatch {
   namco_audio_device* namco;
   int devType, chans;
   bool newNoise;
+  bool romMode;
   unsigned char regPool[512];
   void updateWave(int ch);
+  void updateROMWaves();
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
   public:

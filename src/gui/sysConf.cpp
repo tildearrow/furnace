@@ -1735,6 +1735,27 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
+    case DIV_SYSTEM_NAMCO:
+    case DIV_SYSTEM_NAMCO_15XX: {
+      bool romMode=flags.getBool("romMode",false);
+
+      ImGui::Text("Waveform storage mode:");
+      if (ImGui::RadioButton("RAM",!romMode)) {
+        romMode=false;
+        altered=true;
+      }
+      if (ImGui::RadioButton("ROM (up to 8 waves)",romMode)) {
+        romMode=true;
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("romMode",romMode);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_NAMCO_CUS30: {
       bool newNoise=flags.getBool("newNoise",true);
 
@@ -1769,10 +1790,6 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_VBOY:
     case DIV_SYSTEM_GA20:
     case DIV_SYSTEM_PV1000:
-    case DIV_SYSTEM_NAMCO:
-    case DIV_SYSTEM_NAMCO_15XX:
-      ImGui::Text("nothing to configure");
-      break;
     case DIV_SYSTEM_VERA:
     case DIV_SYSTEM_YMU759:
       supportsCustomRate=false;
