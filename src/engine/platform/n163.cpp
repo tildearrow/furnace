@@ -347,7 +347,6 @@ int DivPlatformN163::dispatch(DivCommand c) {
         if (chan[c.chan].waveMode&0x3 || ins->ws.enabled) {
           chan[c.chan].waveUpdated=true;
         }
-        chan[c.chan].insChanged=false;
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
@@ -362,6 +361,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
       }
       chan[c.chan].macroInit(ins);
       chan[c.chan].ws.init(ins,chan[c.chan].waveLen,15,chan[c.chan].insChanged);
+      chan[c.chan].insChanged=false;
       break;
     }
     case DIV_CMD_NOTE_OFF:
