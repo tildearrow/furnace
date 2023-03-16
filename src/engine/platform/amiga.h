@@ -116,6 +116,7 @@ class DivPlatformAmiga: public DivDispatch {
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
+  friend class DivExportAmigaValidation;
 
   void irq(int ch);
   void rWrite(unsigned short addr, unsigned short val);

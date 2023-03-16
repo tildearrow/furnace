@@ -21,8 +21,23 @@
 #include "../engine.h"
 #include "../platform/amiga.h"
 
+struct WaveEntry {
+  unsigned int pos;
+  short width;
+  signed char data[256];
+  WaveEntry():
+    pos(0),
+    width(32) {
+    memset(data,0,256);
+  }
+};
+
 std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
   std::vector<DivROMExportOutput> ret;
+  std::vector<WaveEntry> waves;
+  unsigned int wavesDataPtr=0;
+  WaveEntry curWaveState[4];
+
   DivPlatformAmiga* amiga=(DivPlatformAmiga*)e->getDispatch(0);
 
   e->stop();
@@ -54,13 +69,6 @@ std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
   sample->write(&((const unsigned char*)amiga->getSampleMem(0))[0x400],amiga->getSampleMemUsage(0)-0x400);
   if (sample->tell()&1) sample->writeC(0);
 
-  // wave.bin
-  SafeWriter* wave=new SafeWriter;
-  wave->init();
-  for (int i=0; i<32; i++) {
-    wave->writeC(i<<3);
-  }
-
   // seq.bin
   SafeWriter* seq=new SafeWriter;
   seq->init();
@@ -86,8 +94,54 @@ std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
     if (e->nextTick(false,true)) {
       done=true;
       amiga->getRegisterWrites().clear();
+      if (lastTick!=songTick) {
+        int delta=songTick-lastTick;
+        if (delta==1) {
+          seq->writeC(0xf1);
+        } else if (delta<256) {
+          seq->writeC(0xf2);
+          seq->writeC(delta-1);
+        } else if (delta<32768) {
+          seq->writeC(0xf3);
+          seq->writeS_BE(delta-1);
+        }
+        lastTick=songTick;
+      }
       break;
     }
+    // check wavetable changes
+    for (int i=0; i<4; i++) {
+      if (amiga->chan[i].useWave) {
+        if ((amiga->chan[i].audLen*2)!=curWaveState[i].width || memcmp(curWaveState[i].data,&(((signed char*)amiga->getSampleMem())[i<<8]),amiga->chan[i].audLen*2)!=0) {
+          curWaveState[i].width=amiga->chan[i].audLen*2;
+          memcpy(curWaveState[i].data,&(((signed char*)amiga->getSampleMem())[i<<8]),amiga->chan[i].audLen*2);
+
+          int waveNum=-1;
+          for (size_t j=0; j<waves.size(); j++) {
+            if (waves[j].width!=curWaveState[i].width) continue;
+            if (memcmp(waves[j].data,curWaveState[i].data,curWaveState[i].width)==0) {
+              waveNum=j;
+              break;
+            }
+          }
+          
+          if (waveNum==-1) {
+            // write new wavetable
+            waveNum=(int)waves.size();
+            curWaveState[i].pos=wavesDataPtr;
+            waves.push_back(curWaveState[i]);
+            wavesDataPtr+=curWaveState[i].width;
+          }
+
+          seq->writeC((i<<4)|1);
+          seq->writeC(waves[waveNum].pos>>16);
+          seq->writeC(waves[waveNum].pos>>8);
+          seq->writeC(waves[waveNum].pos);
+          seq->writeS_BE(waves[waveNum].width);
+        }
+      }
+    }
+
     // get register writes
     std::vector<DivRegWrite>& writes=amiga->getRegisterWrites();
     for (DivRegWrite& j: writes) {
@@ -143,6 +197,13 @@ std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
   e->extValuePresent=false;
 
   EXTERN_BUSY_END;
+
+  // wave.bin
+  SafeWriter* wave=new SafeWriter;
+  wave->init();
+  for (WaveEntry& i: waves) {
+    wave->write(i.data,i.width);
+  }
 
   // finish
   ret.push_back(DivROMExportOutput("sample.bin",sample));

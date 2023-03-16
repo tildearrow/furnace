@@ -509,7 +509,7 @@ void DivPlatformAmiga::tick(bool sysTick) {
   if (dmaOn) rWrite(0x96,0x8000|dmaOn);
 
   for (int i=0; i<4; i++) {
-    if ((dmaOn&(1<<i)) && dumpWrites) {
+    if ((dmaOn&(1<<i)) && !chan[i].useWave && dumpWrites) {
       addWrite(0x200+i,(chan[i].irLocH<<16)|chan[i].irLocL);
       addWrite(0x204+i,chan[i].irLen);
     }

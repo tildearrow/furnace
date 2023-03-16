@@ -10,6 +10,7 @@ COLOR00 = $dff180
 chipBase=$dff000
 
 DMACONR = $02
+POTGOR = $16
 DMACON = $96
 ADKCON = $9e
 AUDBASE = $a0
@@ -25,6 +26,7 @@ AUD3VOL = $d8
 
 code_c
 init:
+  move.b #2,$bfe001
   lea chipBase,a0
   move.w #15,DMACON(a0)
 waitCon:
@@ -43,24 +45,37 @@ waitCon:
 main:
   bsr waitVBlank
 
-  ;move.w curColor,d0
-  ;move.w d0,COLOR00
-  ;addi.w #1,d0
-  ;move.w d0,curColor
+  move.w #$000,d4
+  move.w d4,COLOR00
 
+  lea chipBase,a0
+  btst.b #2,POTGOR(a0)
+  bne next
+
+  lea state(pc),a0
+  move.w #1,2(a0)
+
+next:
   bsr nextTick
 
-  bra main
+  lea state(pc),a0
+  tst.w 2(a0)
+  beq main
+finish:
+  lea chipBase,a0
+  move.w #15,DMACON(a0)
+  clr.l d0
+  rts
 
 waitVBlank:
   move.l (VPOSR),d0
   and.l #$1ff00,d0
-  cmp.l #$8c00,d0
+  cmp.l #$bc00,d0
   bne waitVBlank
 waitVBlank2:
   move.l (VPOSR),d0
   and.l #$1ff00,d0
-  cmp.l #$8d00,d0
+  cmp.l #$bd00,d0
   bne waitVBlank2
   rts
 
@@ -146,9 +161,7 @@ testFF:
   cmp.b #$ff,d0
   bne testOther
 theEnd:
-  move.w #$fff,d4
-  move.w d4,COLOR00
-  bra theEnd
+  lea sequence(pc),a2
 testOther:
   ; something else
   bra nextTick1
@@ -187,11 +200,44 @@ testChannel:
 chanNotZero:
   ; check for 8 (VOL)
   cmp.b #8,d0
-  bne chanOther
+  bne chanWaveChange
   ; write volume
   clr.w d2
   move.b (a2)+,d2
   bra chanWrite
+chanWaveChange:
+  ; check for 1 (wave change)
+  cmp.b #1,d0
+  bne chanOther
+  ; copy wave
+  clr.l d2
+  move.b (a2)+,d2
+  lsl.l #8,d2
+  or.b (a2)+,d2
+  lsl.l #8,d2
+  or.b (a2)+,d2
+  add.l #wavetable,d2
+  move.l d2,a0
+
+  lea sampleData,a1
+  andi.l #$30,d1
+  lsl.l #4,d1
+  adda.l d1,a1
+
+  clr.l d2
+  move.b (a2)+,d2
+  lsl.l #8,d2
+  or.b (a2)+,d2
+
+  ; don't copy a zero-length wave
+  tst.l d2
+  beq nextTick1
+copyWave:
+  move.w (a0)+,(a1)+
+  subq.l #2,d2
+  bne copyWave
+
+  bra nextTick1
 chanOther:
   ; get value and write
   clr.w d2
@@ -225,6 +271,7 @@ curColor:
 
 state:
   dc.w 0 ; ticks
+  dc.w 0 ; quit
 
   cnop 0,4
 
@@ -241,7 +288,8 @@ sequence:
 sampleData:
   incbin "sample.bin"
 
-;data_f
+  cnop 0,4
 
 wavetable:
   incbin "wave.bin"
+

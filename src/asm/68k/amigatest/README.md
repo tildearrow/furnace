@@ -16,13 +16,14 @@ go to file > export Amiga validation data...
 
 put sample.bin, seq.bin and wave.bin in this directory.
 
-compile with vasm:
+type `make`. you need vasm (68000 with Mot syntax) in order for it to work.
+alternatively, type:
 
 ```
-vasmm68k_mot -Fhunkexe -kick1hunks player.s
+vasmm68k_mot -Fhunkexe -kick1hunks -nosym -o player player.s
 ```
 
-run a.out on Amiga. it should play the exported song.
+run `player` on Amiga. it should play the exported song.
 
 # sequence format
 
@@ -31,7 +32,7 @@ run a.out on Amiga. it should play the exported song.
 - 00 xxxxxx yyyy: set loc/len
   - x: loc
   - y: len
-- 01 xxxx yy: initialize wavetable (xxxx: pos; yy: length)
+- 01 xxxxxx yyyy: initialize wavetable (xxxx: pos; yy: length)
 - 06 xxxx: set period
 - 08 xx: set volume
 - 0a xxxx: set data
