@@ -621,6 +621,9 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           chipType=3;
           altered=true;
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("note: AY-3-8914 is not supported by the VGM format!");
+        }
       }
       ImGui::BeginDisabled(type==DIV_SYSTEM_AY8910 && chipType==2);
       if (ImGui::Checkbox("Stereo##_AY_STEREO",&stereo)) {
