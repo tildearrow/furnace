@@ -32,11 +32,21 @@ struct WaveEntry {
   }
 };
 
+struct SampleBookEntry {
+  unsigned int loc;
+  unsigned short len;
+  SampleBookEntry():
+    loc(0),
+    len(0) {}
+};
+
 std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
   std::vector<DivROMExportOutput> ret;
   std::vector<WaveEntry> waves;
+  std::vector<SampleBookEntry> sampleBook;
   unsigned int wavesDataPtr=0;
   WaveEntry curWaveState[4];
+  unsigned int sampleBookLoc=0;
 
   DivPlatformAmiga* amiga=(DivPlatformAmiga*)e->getDispatch(0);
 
@@ -133,11 +143,19 @@ std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
             wavesDataPtr+=curWaveState[i].width;
           }
 
-          seq->writeC((i<<4)|1);
-          seq->writeC(waves[waveNum].pos>>16);
-          seq->writeC(waves[waveNum].pos>>8);
-          seq->writeC(waves[waveNum].pos);
-          seq->writeS_BE(waves[waveNum].width);
+          if (waveNum<256) {
+            seq->writeC((i<<4)|3);
+            seq->writeC(waveNum);
+          } else if (waveNum<65536) {
+            seq->writeC((i<<4)|4);
+            seq->writeS_BE(waveNum);
+          } else{
+            seq->writeC((i<<4)|1);
+            seq->writeC(waves[waveNum].pos>>16);
+            seq->writeC(waves[waveNum].pos>>8);
+            seq->writeC(waves[waveNum].pos);
+            seq->writeS_BE(waves[waveNum].width);
+          }
         }
       }
     }
@@ -160,12 +178,35 @@ std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
       }
       if (j.addr>=0x200) { // direct loc/len change
         if (j.addr&4) { // len
-          seq->writeS_BE(j.val);
+          int sampleBookIndex=-1;
+          for (size_t i=0; i<sampleBook.size(); i++) {
+            if (sampleBook[i].loc==sampleBookLoc && sampleBook[i].len==(j.val&0xffff)) {
+              sampleBookIndex=i;
+              break;
+            }
+          }
+          if (sampleBookIndex==-1) {
+            if (sampleBook.size()<256) {
+              SampleBookEntry e;
+              e.loc=sampleBookLoc;
+              e.len=j.val&0xffff;
+              sampleBookIndex=sampleBook.size();
+              sampleBook.push_back(e);
+            }
+          }
+
+          if (sampleBookIndex==-1) {
+            seq->writeC((j.addr&3)<<4);
+            seq->writeC(sampleBookLoc>>16);
+            seq->writeC(sampleBookLoc>>8);
+            seq->writeC(sampleBookLoc);
+            seq->writeS_BE(j.val);
+          } else {
+            seq->writeC(((j.addr&3)<<4)|2);
+            seq->writeC(sampleBookIndex);
+          }
         } else { // loc
-          seq->writeC((j.addr&3)<<4);
-          seq->writeC(j.val>>16);
-          seq->writeC(j.val>>8);
-          seq->writeC(j.val);
+          sampleBookLoc=j.val;
         }
       } else if (j.addr<0xa0) {
         // don't write INTENA
@@ -204,8 +245,29 @@ std::vector<DivROMExportOutput> DivExportAmigaValidation::go(DivEngine* e) {
   for (WaveEntry& i: waves) {
     wave->write(i.data,i.width);
   }
+  
+  // sbook.bin
+  SafeWriter* sbook=new SafeWriter;
+  sbook->init();
+  for (SampleBookEntry& i: sampleBook) {
+    // 8 bytes per entry
+    sbook->writeI_BE(i.loc);
+    sbook->writeI_BE(i.len);
+  }
+
+  // wbook.bin
+  SafeWriter* wbook=new SafeWriter;
+  wbook->init();
+  for (WaveEntry& i: waves) {
+    wbook->writeC(i.width);
+    wbook->writeC(i.pos>>16);
+    wbook->writeC(i.pos>>8);
+    wbook->writeC(i.pos);
+  }
 
   // finish
+  ret.push_back(DivROMExportOutput("sbook.bin",sbook));
+  ret.push_back(DivROMExportOutput("wbook.bin",wbook));
   ret.push_back(DivROMExportOutput("sample.bin",sample));
   ret.push_back(DivROMExportOutput("wave.bin",wave));
   ret.push_back(DivROMExportOutput("seq.bin",seq));

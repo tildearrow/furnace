@@ -33,6 +33,9 @@ run `player` on Amiga. it should play the exported song.
   - x: loc
   - y: len
 - 01 xxxxxx yyyy: initialize wavetable (xxxx: pos; yy: length)
+- 02 xx: set loc/len from sample book
+- 03 xx: initialize wavetable from wave book
+- 04 xxxx: initialize wavetable from wave book (short)
 - 06 xxxx: set period
 - 08 xx: set volume
 - 0a xxxx: set data
