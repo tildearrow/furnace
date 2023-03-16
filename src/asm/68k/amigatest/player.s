@@ -1,8 +1,6 @@
 ; Furnace validation player code
 ; this is NOT the ROM export you're looking for!
 
-; incomplete!
-
 VPOSR = $dff004
 VHPOSR = $dff006
 COLOR00 = $dff180

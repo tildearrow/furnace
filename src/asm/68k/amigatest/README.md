@@ -14,7 +14,7 @@ iCannotWait=1
 
 go to file > export Amiga validation data...
 
-put sample.bin, seq.bin and wave.bin in this directory.
+put sample.bin, sbook.bin, seq.bin, wave.bin and wbook.bin in this directory.
 
 type `make`. you need vasm (68000 with Mot syntax) in order for it to work.
 alternatively, type:
@@ -24,6 +24,11 @@ vasmm68k_mot -Fhunkexe -kick1hunks -nosym -o player player.s
 ```
 
 run `player` on Amiga. it should play the exported song.
+
+# notes
+
+may not work correctly if you have slow/fast memory!
+sequence and wave data should reside in fast memory but I haven't figured out how to...
 
 # sequence format
 
