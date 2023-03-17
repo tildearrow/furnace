@@ -79,7 +79,7 @@ void DivPlatformVIC20::calcAndWriteOutVol(int ch, int env) {
 }
 
 void DivPlatformVIC20::writeOutVol(int ch) {
-  if (!isMuted[ch] && chan[ch].active) {
+  if (chan[ch].active) {
     rWrite(14,chan[ch].outVol);
   }
 }
@@ -98,6 +98,20 @@ void DivPlatformVIC20::tick(bool sysTick) {
         chan[i].baseFreq=NOTE_PERIODIC(parent->calcArp(chan[i].note,chan[i].std.arp.val));
       }
       chan[i].freqChanged=true;
+    }
+    if (chan[i].std.duty.had) {
+      if (chan[i].onOff!=chan[i].std.duty.val) {
+        chan[i].onOff=chan[i].std.duty.val;
+        if (chan[i].active) {
+          if (chan[i].onOff) {
+            chan[i].keyOn=true;
+            chan[i].keyOff=false;
+          } else {
+            chan[i].keyOn=false;
+            chan[i].keyOff=true;
+          }
+        }
+      }
     }
     if (chan[i].std.wave.had) {
       if (chan[i].wave!=chan[i].std.wave.val) {
@@ -156,6 +170,7 @@ int DivPlatformVIC20::dispatch(DivCommand c) {
         chan[c.chan].freqChanged=true;
         chan[c.chan].note=c.value;
       }
+      chan[c.chan].onOff=true;
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
       chan[c.chan].macroInit(ins);

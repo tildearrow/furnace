@@ -5125,7 +5125,7 @@ void FurnaceGUI::drawInsEdit() {
             dutyMax=ins->amiga.useSample?0:255;
           }
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC ||
-              ins->type==DIV_INS_PET || ins->type==DIV_INS_VIC || ins->type==DIV_INS_SEGAPCM ||
+              ins->type==DIV_INS_PET || ins->type==DIV_INS_SEGAPCM ||
               ins->type==DIV_INS_FM || ins->type==DIV_INS_K007232 || ins->type==DIV_INS_GA20 ||
               ins->type==DIV_INS_SM8521 || ins->type==DIV_INS_PV1000) {
             dutyMax=0;
@@ -5140,6 +5140,10 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_NAMCO) {
             dutyLabel="Noise";
+            dutyMax=1;
+          }
+          if (ins->type==DIV_INS_VIC) {
+            dutyLabel="On/Off";
             dutyMax=1;
           }
           if (ins->type==DIV_INS_SWAN) {
