@@ -172,7 +172,14 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
         flushFirst=false;
       }
       
-      OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
+      OPN2_Clock(&fm,o);
+      if (chipType==2) {
+        os[0]+=CLAMP(o[0],-8192,8191);
+        os[1]+=CLAMP(o[1],-8192,8191);
+      } else {
+        os[0]+=o[0];
+        os[1]+=o[1];
+      }
       //OPN2_Write(&fm,0,0);
       if (i==5) {
         if (fm.dacen) {
