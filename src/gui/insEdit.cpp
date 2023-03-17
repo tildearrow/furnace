@@ -4262,9 +4262,18 @@ void FurnaceGUI::drawInsEdit() {
           }
           popToggleColors();
 
-          P(ImGui::Checkbox("Volume Macro is Cutoff Macro",&ins->c64.volIsCutoff));
-          P(ImGui::Checkbox("Absolute Cutoff Macro",&ins->c64.filterIsAbs));
-          P(ImGui::Checkbox("Absolute Duty Macro",&ins->c64.dutyIsAbs));
+          if (ImGui::Checkbox("Volume Macro is Cutoff Macro",&ins->c64.volIsCutoff)) {
+            ins->std.volMacro.vZoom=-1;
+            PARAMETER;
+          }
+          if (ImGui::Checkbox("Absolute Cutoff Macro",&ins->c64.filterIsAbs)) {
+            ins->std.volMacro.vZoom=-1;
+            PARAMETER;
+          }
+          if (ImGui::Checkbox("Absolute Duty Macro",&ins->c64.dutyIsAbs)) {
+            ins->std.dutyMacro.vZoom=-1;
+            PARAMETER;
+          }
           P(ImGui::Checkbox("Don't test/gate before new note",&ins->c64.noTest));
           ImGui::EndTabItem();
         }
