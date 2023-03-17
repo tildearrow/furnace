@@ -19,6 +19,7 @@
 
 #include "vic20.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <math.h>
 
 #define rWrite(a,v) {regPool[(a)]=(v)&0xff; vic_sound_machine_store(vic,a,(v)&0xff);}
@@ -80,6 +81,7 @@ void DivPlatformVIC20::calcAndWriteOutVol(int ch, int env) {
 
 void DivPlatformVIC20::writeOutVol(int ch) {
   if (chan[ch].active) {
+    logV("writeOutVol (%d): %d",ch,chan[ch].outVol);
     rWrite(14,chan[ch].outVol);
   }
 }
@@ -100,8 +102,8 @@ void DivPlatformVIC20::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.duty.had) {
-      if (chan[i].onOff!=chan[i].std.duty.val) {
-        chan[i].onOff=chan[i].std.duty.val;
+      if (chan[i].onOff!=(bool)chan[i].std.duty.val) {
+        chan[i].onOff=(bool)chan[i].std.duty.val;
         if (chan[i].active) {
           if (chan[i].onOff) {
             chan[i].keyOn=true;
