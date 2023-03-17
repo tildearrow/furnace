@@ -75,15 +75,13 @@ void DivPlatformVIC20::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformVIC20::calcAndWriteOutVol(int ch, int env) {
+  logV("calcAndWriteOutVol (%d, %d)",ch,env);
   chan[ch].outVol=MIN(chan[ch].vol*env/15,15);
   writeOutVol(ch);
 }
 
 void DivPlatformVIC20::writeOutVol(int ch) {
-  if (chan[ch].active) {
-    logV("writeOutVol (%d): %d",ch,chan[ch].outVol);
-    rWrite(14,chan[ch].outVol);
-  }
+  rWrite(14,chan[ch].outVol);
 }
 
 void DivPlatformVIC20::tick(bool sysTick) {
