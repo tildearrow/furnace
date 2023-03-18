@@ -21,7 +21,7 @@
 #define _PV1000_H
 
 #include "../dispatch.h"
-#include "sound/d65010g031.h"
+#include "sound/d65modified.h"
 #include <queue>
 
 class DivPlatformPV1000: public DivDispatch {

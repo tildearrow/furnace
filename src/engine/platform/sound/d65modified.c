@@ -34,9 +34,31 @@ freely, subject to the following restrictions:
 TODO:
 - needs hardware test
 
+ALTERED VERSION!!!
+ALTERED VERSION!!!
+ALTERED VERSION!!!
+ALTERED VERSION!!!
+ALTERED VERSION!!!
+ALTERED VERSION!!!
+ALTERED VERSION!!!
+ALTERED VERSION!!!
+ALTERED VERSION!!!
+ALTERED VERSION!!!
+ALTERED VERSION!!!
+ALTERED VERSION!!!
+ALTERED VERSION!!!
+ALTERED VERSION!!!
+
+
+THIS IS **NOT** NOT NOT NOT!!!! THE ORIGINAL SOFTWARE
+IT ISN'T
+THE MODIFICATIONS THAT WERE MADE ARE:
+
+1. FIX VOLUMES - APPARENTLY THE SQUARES HAVE DIFFERENT VOLUMES (thanks forple)
+
 */
 
-#include "d65010g031.h"
+#include "d65modified.h"
 #include <stdlib.h>
 
 static int d65010g031_max(int a, int b) { return (a > b) ? a : b; }
@@ -57,12 +79,20 @@ int d65010g031_square_tick(struct d65010g031_square_t *square, const int cycle)
 	return 0;
 }
 
+// this is the bit I altered
+// THIS IS **NOT** THE ORIGINAL SOFTWARE! I am plainly marking it as such!
+const int d65Volumes[3]={
+  3840,
+  5120,
+  8192
+};
+
 int d65010g031_sound_tick(struct d65010g031_t *d65010g031, const int cycle)
 {
 	int out = 0;
 	for (int i = 0; i < 3; i++)
 	{
-		out += d65010g031_square_tick(&d65010g031->square[i], cycle);
+		out += d65010g031_square_tick(&d65010g031->square[i], cycle)?d65Volumes[i]:-d65Volumes[i];
 	}
 	return out;
 }

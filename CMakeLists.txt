@@ -459,7 +459,7 @@ src/engine/platform/sound/ga20/iremga20.cpp
 
 src/engine/platform/sound/sm8521.c
 
-src/engine/platform/sound/d65010g031.c
+src/engine/platform/sound/d65modified.c
 
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
