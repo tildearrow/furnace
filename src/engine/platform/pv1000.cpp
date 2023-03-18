@@ -263,6 +263,10 @@ void DivPlatformPV1000::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
+bool DivPlatformPV1000::getDCOffRequired() {
+  return true;
+}
+
 int DivPlatformPV1000::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
