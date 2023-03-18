@@ -520,10 +520,6 @@ void FurnaceGUI::drawDebug() {
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("FM Preview")) {
-      if (ImGui::Button("Generate")) {
-        DivInstrument* ins=e->getIns(curIns);
-        if (ins!=NULL) renderFMPreview(ins->fm);
-      }
       float asFloat[FM_PREVIEW_SIZE];
       for (int i=0; i<FM_PREVIEW_SIZE; i++) {
         asFloat[i]=(float)fmPreview[i]/8192.0f;

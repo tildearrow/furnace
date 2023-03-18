@@ -127,6 +127,7 @@ void FurnaceGUI::doAction(int what) {
       }
       wavePreviewInit=true;
       wantScrollList=true;
+      updateFMPreview=true;
       break;
     case GUI_ACTION_INS_DOWN:
       if (++curIns>=(int)e->song.ins.size()) {
@@ -134,6 +135,7 @@ void FurnaceGUI::doAction(int what) {
       }
       wavePreviewInit=true;
       wantScrollList=true;
+      updateFMPreview=true;
       break;
     case GUI_ACTION_STEP_UP:
       if (++editStep>64) editStep=64;
@@ -593,6 +595,7 @@ void FurnaceGUI::doAction(int what) {
         wantScrollList=true;
         MARK_MODIFIED;
         wavePreviewInit=true;
+        updateFMPreview=true;
       }
       break;
     case GUI_ACTION_INS_LIST_DUPLICATE:
@@ -606,6 +609,7 @@ void FurnaceGUI::doAction(int what) {
           wantScrollList=true;
           MARK_MODIFIED;
           wavePreviewInit=true;
+          updateFMPreview=true;
         }
       }
       break;
@@ -653,11 +657,13 @@ void FurnaceGUI::doAction(int what) {
       if (--curIns<0) curIns=0;
       wantScrollList=true;
       wavePreviewInit=true;
+      updateFMPreview=true;
       break;
     case GUI_ACTION_INS_LIST_DOWN:
       if (++curIns>=(int)e->song.ins.size()) curIns=((int)e->song.ins.size())-1;
       wantScrollList=true;
       wavePreviewInit=true;
+      updateFMPreview=true;
       break;
     
     case GUI_ACTION_WAVE_LIST_ADD:
@@ -1366,6 +1372,7 @@ void FurnaceGUI::doAction(int what) {
         nextWindow=GUI_WINDOW_INS_EDIT;
         MARK_MODIFIED;
         wavePreviewInit=true;
+        updateFMPreview=true;
       }
       break;
     }

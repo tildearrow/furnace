@@ -455,12 +455,14 @@ void FurnaceGUI::drawInsList(bool asChild) {
         if (ImGui::Selectable(name.c_str(),(i==-1)?(curIns<0 || curIns>=e->song.insLen):(curIns==i))) {
           curIns=i;
           wavePreviewInit=true;
+          updateFMPreview=true;
         }
         if (wantScrollList && curIns==i) ImGui::SetScrollHereY();
         if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
           nextWindow=GUI_WINDOW_PATTERN;
           curIns=i;
           wavePreviewInit=true;
+          updateFMPreview=true;
         }
         if (ImGui::IsItemHovered() && i>=0 && !mobileUI) {
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
@@ -474,6 +476,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
         if (i>=0) {
           if (ImGui::BeginPopupContextItem("InsRightMenu")) {
             curIns=i;
+            updateFMPreview=true;
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
             if (ImGui::MenuItem("replace...")) {
               doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);

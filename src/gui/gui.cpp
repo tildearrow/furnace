@@ -1175,6 +1175,7 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
     if (settings.absorbInsInput) {
       curIns=pat->data[cursor.y][target];
       wavePreviewInit=true;
+      updateFMPreview=true;
     }
     makeUndo(GUI_UNDO_PATTERN_EDIT);
     if (direct) {
@@ -3404,6 +3405,7 @@ bool FurnaceGUI::loop() {
               curIns=msg.data[0];
               if (curIns>=(int)e->song.ins.size()) curIns=e->song.ins.size()-1;
               wavePreviewInit=true;
+              updateFMPreview=true;
             }
             break;
           case TA_MIDI_CONTROL:
@@ -4158,6 +4160,7 @@ bool FurnaceGUI::loop() {
         } else {
           curIns=prevIns;
           wavePreviewInit=true;
+          updateFMPreview=true;
         }
         prevIns=-3;
       }
@@ -5155,6 +5158,7 @@ bool FurnaceGUI::loop() {
               if (i!=DIV_INS_AMIGA) e->song.ins[curIns]->amiga.useSample=true;
               nextWindow=GUI_WINDOW_INS_EDIT;
               wavePreviewInit=true;
+              updateFMPreview=true;
             }
             MARK_MODIFIED;
           }
@@ -6016,6 +6020,10 @@ FurnaceGUI::FurnaceGUI():
   mobileEditButtonPos(0.7f,0.7f),
   mobileEditButtonSize(60.0f,60.0f),
   curSysSection(NULL),
+  updateFMPreview(true),
+  fmPreviewOn(false),
+  fmPreviewPaused(false),
+  fmPreviewOPN(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),
   pendingRawSampleUnsigned(false),

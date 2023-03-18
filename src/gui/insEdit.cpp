@@ -1259,9 +1259,10 @@ void FurnaceGUI::drawGBEnv(unsigned char vol, unsigned char len, unsigned char s
 #define P(x) if (x) { \
   MARK_MODIFIED; \
   e->notifyInsChange(curIns); \
+  updateFMPreview=true; \
 }
 
-#define PARAMETER MARK_MODIFIED; e->notifyInsChange(curIns);
+#define PARAMETER MARK_MODIFIED; e->notifyInsChange(curIns); updateFMPreview=true;
 
 String genericGuide(float value) {
   return fmt::sprintf("%d",(int)value);
@@ -1279,42 +1280,67 @@ inline bool enBit30(const int val) {
 
 
 void FurnaceGUI::kvsConfig(DivInstrument* ins) {
-  if (ImGui::IsItemHovered()) {
-    ImGui::SetTooltip("(click to configure TL scaling)");
-  }
-  int opCount=4;
-  if (ins->type==DIV_INS_OPLL) opCount=2;
-  if (ins->type==DIV_INS_OPL) opCount=(ins->fm.ops==4)?4:2;
-  if (ImGui::BeginPopupContextItem("IKVSOpt",ImGuiPopupFlags_MouseButtonLeft)) {
-    ImGui::Text("operator level changes with volume?");
-    if (ImGui::BeginTable("KVSTable",4,ImGuiTableFlags_BordersInner)) {
-      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
-      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
-      ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
-      ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
-      for (int i=0; i<4; i++) {
-        int o=(opCount==4)?orderedOps[i]:i;
-        if (!(i&1)) ImGui::TableNextRow();
-        const char* label="AUTO##OPKVS";
-        if (ins->fm.op[o].kvs==0) {
-          label="NO##OPKVS";
-        } else if (ins->fm.op[o].kvs==1) {
-          label="YES##OPKVS";
-        }
-        ImGui::TableNextColumn();
-        ImGui::Text("%d",i+1);
-        ImGui::TableNextColumn();
-        ImGui::PushID(o);
-        if (ImGui::Button(label,ImVec2(ImGui::GetContentRegionAvail().x,0.0f))) {
-          if (++ins->fm.op[o].kvs>2) ins->fm.op[o].kvs=0;
-          PARAMETER;
-        }
-        ImGui::PopID();
-      }
-      ImGui::EndTable();
+  if (ins->type==DIV_INS_FM && fmPreviewOn) {
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("left click to restart\nmiddle click to pause\nright click to see algorithm");
     }
-    ImGui::EndPopup();
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+      updateFMPreview=true;
+    }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
+      fmPreviewPaused=!fmPreviewPaused;
+    }
+  } else {
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("left click to configure TL scaling\nright click to see FM preview");
+    }
   }
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Right) && ins->type==DIV_INS_FM) {
+    fmPreviewOn=!fmPreviewOn;
+  }
+  if (!fmPreviewOn || ins->type!=DIV_INS_FM) {
+    int opCount=4;
+    if (ins->type==DIV_INS_OPLL) opCount=2;
+    if (ins->type==DIV_INS_OPL) opCount=(ins->fm.ops==4)?4:2;
+    if (ImGui::BeginPopupContextItem("IKVSOpt",ImGuiPopupFlags_MouseButtonLeft)) {
+      ImGui::Text("operator level changes with volume?");
+      if (ImGui::BeginTable("KVSTable",4,ImGuiTableFlags_BordersInner)) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
+        for (int i=0; i<4; i++) {
+          int o=(opCount==4)?orderedOps[i]:i;
+          if (!(i&1)) ImGui::TableNextRow();
+          const char* label="AUTO##OPKVS";
+          if (ins->fm.op[o].kvs==0) {
+            label="NO##OPKVS";
+          } else if (ins->fm.op[o].kvs==1) {
+            label="YES##OPKVS";
+          }
+          ImGui::TableNextColumn();
+          ImGui::Text("%d",i+1);
+          ImGui::TableNextColumn();
+          ImGui::PushID(o);
+          if (ImGui::Button(label,ImVec2(ImGui::GetContentRegionAvail().x,0.0f))) {
+            if (++ins->fm.op[o].kvs>2) ins->fm.op[o].kvs=0;
+            PARAMETER;
+          }
+          ImGui::PopID();
+        }
+        ImGui::EndTable();
+      }
+      ImGui::EndPopup();
+    }
+  }
+}
+
+void FurnaceGUI::drawFMPreview(const ImVec2& size) {
+  float asFloat[FM_PREVIEW_SIZE];
+  for (int i=0; i<FM_PREVIEW_SIZE; i++) {
+    asFloat[i]=(float)fmPreview[i]/8192.0f;
+  }
+  ImGui::PlotLines("##DebugFMPreview",asFloat,FM_PREVIEW_SIZE,0,NULL,-1.0,1.0,size);
 }
 
 void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index) {
@@ -2125,6 +2151,7 @@ void FurnaceGUI::drawInsEdit() {
               if (ImGui::Selectable(name.c_str(),curIns==(int)i)) {
                 curIns=i;
                 wavePreviewInit=true;
+                updateFMPreview=true;
               }
             }
             ImGui::EndCombo();
@@ -2148,6 +2175,10 @@ void FurnaceGUI::drawInsEdit() {
       }
     } else {
       DivInstrument* ins=e->song.ins[curIns];
+      if (updateFMPreview) {
+        renderFMPreview(ins->fm);
+        updateFMPreview=false;
+      }
       if (settings.insEditColorize) {
         pushAccentColors(uiColors[GUI_COLOR_INSTR_STD+ins->type],uiColors[GUI_COLOR_INSTR_STD+ins->type],uiColors[GUI_COLOR_INSTR_STD+ins->type],ImVec4(0.0f,0.0f,0.0f,0.0f));
       }
@@ -2167,6 +2198,7 @@ void FurnaceGUI::drawInsEdit() {
               curIns=i;
               ins=e->song.ins[curIns];
               wavePreviewInit=true;
+              updateFMPreview=true;
             }
           }
           ImGui::EndCombo();
@@ -2306,7 +2338,15 @@ void FurnaceGUI::drawInsEdit() {
                   P(CWSliderScalar(FM_NAME(FM_ALG),ImGuiDataType_U8,&ins->fm.alg,&_ZERO,&_SEVEN)); rightClickable
                   P(CWSliderScalar(FM_NAME(FM_AMS),ImGuiDataType_U8,&ins->fm.ams,&_ZERO,&_THREE)); rightClickable
                   ImGui::TableNextColumn();
-                  drawAlgorithm(ins->fm.alg,FM_ALGS_4OP,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  if (ins->type==DIV_INS_FM && fmPreviewOn) {
+                    drawFMPreview(ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                    if (!fmPreviewPaused) {
+                      renderFMPreview(ins->fm,1);
+                      WAKE_UP;
+                    }
+                  } else {
+                    drawAlgorithm(ins->fm.alg,FM_ALGS_4OP,ImVec2(ImGui::GetContentRegionAvail().x,48.0*dpiScale));
+                  }
                   kvsConfig(ins);
                   break;
                 case DIV_INS_OPZ:

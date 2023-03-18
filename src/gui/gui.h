@@ -68,7 +68,7 @@
 
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
 
-#define FM_PREVIEW_SIZE 1024
+#define FM_PREVIEW_SIZE 512
 
 // TODO:
 // - add colors for FM envelope and waveform
@@ -1195,6 +1195,8 @@ class FurnaceGUI {
   const int* curSysSection;
   DivInstrumentFM opllPreview;
   short fmPreview[FM_PREVIEW_SIZE];
+  bool updateFMPreview, fmPreviewOn, fmPreviewPaused;
+  void* fmPreviewOPN;
 
   String pendingRawSample;
   int pendingRawSampleDepth, pendingRawSampleChannels;
@@ -1890,6 +1892,7 @@ class FurnaceGUI {
   void drawGBEnv(unsigned char vol, unsigned char len, unsigned char sLen, bool dir, const ImVec2& size);
   bool drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange);
   void kvsConfig(DivInstrument* ins);
+  void drawFMPreview(const ImVec2& size);
   void renderFMPreview(const DivInstrumentFM& params, int pos=0);
 
   // these ones offer ctrl-wheel fine value changes.
