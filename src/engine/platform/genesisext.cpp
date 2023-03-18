@@ -42,7 +42,7 @@ void DivPlatformGenesisExt::commitStateExt(int ch, DivInstrument* ins) {
   unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
   DivInstrumentFM::Operator& op=chan[2].state.op[ordch];
   // TODO: how does this work?!
-  if (isOpMuted[ch]) {
+  if (isOpMuted[ch] || !op.enable) {
     rWrite(baseAddr+0x40,127);
   } else {
     if (opChan[ch].insChanged) {
@@ -127,7 +127,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       }
       unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
       DivInstrumentFM::Operator& op=chan[2].state.op[ordch];
-      if (isOpMuted[ch]) {
+      if (isOpMuted[ch] || !op.enable) {
         rWrite(baseAddr+0x40,127);
       } else {
         rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].outVol&0x7f,127));
@@ -243,7 +243,7 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[c.value]];
       op.tl=c.value2;
-      if (isOpMuted[ch]) {
+      if (isOpMuted[ch] || !op.enable) {
         rWrite(baseAddr+0x40,127);
       } else if (KVS(2,c.value)) {
         rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].outVol&0x7f,127));
@@ -431,7 +431,7 @@ void DivPlatformGenesisExt::muteChannel(int ch, bool mute) {
   int ordch=orderedOps[ch-2];
   unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
   DivInstrumentFM::Operator op=chan[2].state.op[ordch];
-  if (isOpMuted[ch-2]) {
+  if (isOpMuted[ch-2] || !op.enable) {
     rWrite(baseAddr+0x40,127);
     immWrite(baseAddr+0x40,127);
   } else if (KVS(2,ordch)) {
@@ -589,6 +589,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
       if (opChan[i].freq>0x3fff) opChan[i].freq=0x3fff;
       immWrite(opChanOffsH[i],opChan[i].freq>>8);
       immWrite(opChanOffsL[i],opChan[i].freq&0xff);
+      opChan[i].freqChanged=false;
     }
     writeMask|=(unsigned char)(opChan[i].mask && opChan[i].active)<<(4+i);
     if (opChan[i].keyOn) {
@@ -651,7 +652,7 @@ void DivPlatformGenesisExt::forceIns() {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
       if (i==2 && extMode) { // extended channel
-        if (isOpMuted[orderedOps[j]]) {
+        if (isOpMuted[orderedOps[j]] || !op.enable) {
           rWrite(baseAddr+0x40,127);
         } else if (KVS(i,j)) {
           rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[orderedOps[j]].outVol&0x7f,127));

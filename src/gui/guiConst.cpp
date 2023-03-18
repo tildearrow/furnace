@@ -128,7 +128,9 @@ const char* insTypes[DIV_INS_MAX+1]={
   "T6W28",
   "K007232",
   "GA20",
-  "Pokémon Mini",
+  "Pokémon Mini/QuadTone",
+  "SM8521",
+  "PV-1000",
   NULL
 };
 
@@ -494,6 +496,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_INS_LIST", "Instrument List", 0),
   D("WINDOW_INS_EDIT", "Instrument Editor", 0),
   D("WINDOW_SONG_INFO", "Song Information", 0),
+  D("WINDOW_SPEED", "Speed", 0),
   D("WINDOW_PATTERN", "Pattern", 0),
   D("WINDOW_WAVE_LIST", "Wavetable List", 0),
   D("WINDOW_WAVE_EDIT", "Wavetable Editor", 0),
@@ -519,6 +522,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_SUBSONGS", "Subsongs", 0),
   D("WINDOW_FIND", "Find/Replace", FURKMOD_CMD|SDLK_f),
   D("WINDOW_CLOCK", "Clock", 0),
+  D("WINDOW_GROOVES", "Grooves", 0),
 
   D("COLLAPSE_WINDOW", "Collapse/expand current window", 0),
   D("CLOSE_WINDOW", "Close current window", FURKMOD_SHIFT|SDLK_ESCAPE),
@@ -740,6 +744,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
 
   D(GUI_COLOR_ORDER_ROW_INDEX,"",ImVec4(0.5f,0.8f,1.0f,1.0f)),
   D(GUI_COLOR_ORDER_ACTIVE,"",ImVec4(0.4f,0.7f,1.0f,0.25f)),
+  D(GUI_COLOR_ORDER_SELECTED,"",ImVec4(0.6f,0.8f,1.0f,0.75f)),
   D(GUI_COLOR_ORDER_SIMILAR,"",ImVec4(0.5f,1.0f,1.0f,1.0f)),
   D(GUI_COLOR_ORDER_INACTIVE,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
 
@@ -815,6 +820,8 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_K007232,"",ImVec4(1.0f,0.8f,0.1f,1.0f)),
   D(GUI_COLOR_INSTR_GA20,"",ImVec4(0.1f,1.0f,0.4f,1.0f)),
   D(GUI_COLOR_INSTR_POKEMINI,"",ImVec4(1.0f,1.0f,0.3f,1.0f)),
+  D(GUI_COLOR_INSTR_SM8521,"",ImVec4(0.5f,0.55f,0.6f,1.0f)),
+  D(GUI_COLOR_INSTR_PV1000,"",ImVec4(0.4f,0.6f,0.7f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_BG,"",ImVec4(0.4f,0.6f,0.8f,1.0f)),
@@ -945,6 +952,7 @@ const int availableSystems[]={
   DIV_SYSTEM_PCSPKR,
   DIV_SYSTEM_POKEMINI,
   DIV_SYSTEM_SFX_BEEPER,
+  DIV_SYSTEM_SFX_BEEPER_QUADTONE,
   DIV_SYSTEM_YMU759,
   DIV_SYSTEM_DUMMY,
   DIV_SYSTEM_SOUND_UNIT,
@@ -981,6 +989,7 @@ const int availableSystems[]={
   DIV_SYSTEM_VRC6,
   DIV_SYSTEM_FDS,
   DIV_SYSTEM_MMC5,
+  DIV_SYSTEM_ES5506,
   DIV_SYSTEM_SCC,
   DIV_SYSTEM_SCC_PLUS,
   DIV_SYSTEM_YMZ280B,
@@ -994,6 +1003,8 @@ const int availableSystems[]={
   DIV_SYSTEM_MSM5232,
   DIV_SYSTEM_K007232,
   DIV_SYSTEM_GA20,
+  DIV_SYSTEM_SM8521,
+  DIV_SYSTEM_PV1000,
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_PONG,
   0 // don't remove this last one!
@@ -1043,6 +1054,7 @@ const int chipsSquare[]={
   DIV_SYSTEM_VIC20,
   DIV_SYSTEM_MSM5232,
   DIV_SYSTEM_T6W28,
+  DIV_SYSTEM_PV1000,
   0 // don't remove this last one!
 };
 
@@ -1070,6 +1082,7 @@ const int chipsSpecial[]={
   DIV_SYSTEM_C64_8580,
   DIV_SYSTEM_C64_6581,
   DIV_SYSTEM_SFX_BEEPER,
+  DIV_SYSTEM_SFX_BEEPER_QUADTONE,
   DIV_SYSTEM_DUMMY,
   DIV_SYSTEM_SOUND_UNIT,
   DIV_SYSTEM_TIA,
@@ -1080,6 +1093,7 @@ const int chipsSpecial[]={
   DIV_SYSTEM_PET,
   DIV_SYSTEM_VRC6,
   DIV_SYSTEM_MMC5,
+  DIV_SYSTEM_SM8521,
   0 // don't remove this last one!
 };
 
@@ -1098,6 +1112,7 @@ const int chipsSample[]={
   DIV_SYSTEM_K007232,
   DIV_SYSTEM_GA20,
   DIV_SYSTEM_PCM_DAC,
+  DIV_SYSTEM_ES5506,
   0 // don't remove this last one!
 };
 

@@ -41,8 +41,14 @@ class DivPlatformOPM: public DivPlatformFMBase {
       0x00, 0x08, 0x10, 0x18
     };
 
+    unsigned char lfoValue, lfoValue2, lfoShape, lfoShape2;
+
     DivPlatformOPM():
-      DivPlatformFMBase() {}
+      DivPlatformFMBase(),
+      lfoValue(0),
+      lfoValue2(0),
+      lfoShape(0),
+      lfoShape2(0) {}
 };
 
 #endif

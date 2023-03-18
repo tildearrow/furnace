@@ -127,6 +127,7 @@ void FurnaceGUI::doAction(int what) {
       }
       wavePreviewInit=true;
       wantScrollList=true;
+      updateFMPreview=true;
       break;
     case GUI_ACTION_INS_DOWN:
       if (++curIns>=(int)e->song.ins.size()) {
@@ -134,6 +135,7 @@ void FurnaceGUI::doAction(int what) {
       }
       wavePreviewInit=true;
       wantScrollList=true;
+      updateFMPreview=true;
       break;
     case GUI_ACTION_STEP_UP:
       if (++editStep>64) editStep=64;
@@ -192,6 +194,9 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_WINDOW_SONG_INFO:
       nextWindow=GUI_WINDOW_SONG_INFO;
+      break;
+    case GUI_ACTION_WINDOW_SPEED:
+      nextWindow=GUI_WINDOW_SPEED;
       break;
     case GUI_ACTION_WINDOW_PATTERN:
       nextWindow=GUI_WINDOW_PATTERN;
@@ -262,6 +267,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WINDOW_FIND:
       nextWindow=GUI_WINDOW_FIND;
       break;
+    case GUI_ACTION_WINDOW_GROOVES:
+      nextWindow=GUI_WINDOW_GROOVES;
+      break;
     
     case GUI_ACTION_COLLAPSE_WINDOW:
       collapseWindow=true;
@@ -273,6 +281,9 @@ void FurnaceGUI::doAction(int what) {
           break;
         case GUI_WINDOW_SONG_INFO:
           songInfoOpen=false;
+          break;
+        case GUI_WINDOW_SPEED:
+          speedOpen=false;
           break;
         case GUI_WINDOW_ORDERS:
           ordersOpen=false;
@@ -352,6 +363,9 @@ void FurnaceGUI::doAction(int what) {
         case GUI_WINDOW_FIND:
           findOpen=false;
           break;
+        case GUI_WINDOW_GROOVES:
+          groovesOpen=false;
+          break;
         default:
           break;
       }
@@ -386,10 +400,10 @@ void FurnaceGUI::doAction(int what) {
       doSelectAll();
       break;
     case GUI_ACTION_PAT_CUT:
-      doCopy(true);
+      doCopy(true,true,selStart,selEnd);
       break;
     case GUI_ACTION_PAT_COPY:
-      doCopy(false);
+      doCopy(false,true,selStart,selEnd);
       break;
     case GUI_ACTION_PAT_PASTE:
       doPaste();
@@ -581,6 +595,7 @@ void FurnaceGUI::doAction(int what) {
         wantScrollList=true;
         MARK_MODIFIED;
         wavePreviewInit=true;
+        updateFMPreview=true;
       }
       break;
     case GUI_ACTION_INS_LIST_DUPLICATE:
@@ -594,6 +609,7 @@ void FurnaceGUI::doAction(int what) {
           wantScrollList=true;
           MARK_MODIFIED;
           wavePreviewInit=true;
+          updateFMPreview=true;
         }
       }
       break;
@@ -641,11 +657,13 @@ void FurnaceGUI::doAction(int what) {
       if (--curIns<0) curIns=0;
       wantScrollList=true;
       wavePreviewInit=true;
+      updateFMPreview=true;
       break;
     case GUI_ACTION_INS_LIST_DOWN:
       if (++curIns>=(int)e->song.ins.size()) curIns=((int)e->song.ins.size())-1;
       wantScrollList=true;
       wavePreviewInit=true;
+      updateFMPreview=true;
       break;
     
     case GUI_ACTION_WAVE_LIST_ADD:
@@ -1354,6 +1372,7 @@ void FurnaceGUI::doAction(int what) {
         nextWindow=GUI_WINDOW_INS_EDIT;
         MARK_MODIFIED;
         wavePreviewInit=true;
+        updateFMPreview=true;
       }
       break;
     }
@@ -1438,7 +1457,7 @@ void FurnaceGUI::doAction(int what) {
     }
     case GUI_ACTION_ORDERS_INCREASE: {
       if (orderCursor<0 || orderCursor>=e->getTotalChannelCount()) break;
-      if (e->curOrders->ord[orderCursor][curOrder]<0x7f) {
+      if (e->curOrders->ord[orderCursor][curOrder]<0xff) {
         e->curOrders->ord[orderCursor][curOrder]++;
       }
       break;
@@ -1459,17 +1478,18 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_ORDERS_ADD:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->addOrder(false,false);
+      e->addOrder(curOrder,false,false);
+      curOrder=e->getOrder();
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_DUPLICATE:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->addOrder(true,false);
+      e->addOrder(curOrder,true,false);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_DEEP_CLONE:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->deepCloneOrder(false);
+      e->deepCloneOrder(curOrder,false);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       if (!e->getWarnings().empty()) {
         showWarning(e->getWarnings(),GUI_WARN_GENERIC);
@@ -1477,12 +1497,12 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_ORDERS_DUPLICATE_END:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->addOrder(true,true);
+      e->addOrder(curOrder,true,true);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_DEEP_CLONE_END:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->deepCloneOrder(true);
+      e->deepCloneOrder(curOrder,true);
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       if (!e->getWarnings().empty()) {
         showWarning(e->getWarnings(),GUI_WARN_GENERIC);
@@ -1490,7 +1510,7 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_ORDERS_REMOVE:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->deleteOrder();
+      e->deleteOrder(curOrder);
       if (curOrder>=e->curSubSong->ordersLen) {
         curOrder=e->curSubSong->ordersLen-1;
         oldOrder=curOrder;
@@ -1501,12 +1521,18 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_ORDERS_MOVE_UP:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->moveOrderUp();
+      e->moveOrderUp(curOrder);
+      if (settings.cursorFollowsOrder) {
+        e->setOrder(curOrder);
+      }
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_MOVE_DOWN:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
-      e->moveOrderDown();
+      e->moveOrderDown(curOrder);
+      if (settings.cursorFollowsOrder) {
+        e->setOrder(curOrder);
+      }
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_REPLAY:

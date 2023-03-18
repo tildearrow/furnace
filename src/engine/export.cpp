@@ -17,10 +17,21 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-unsigned char* getFurnaceIcon();
-#ifdef __cplusplus
+#include "engine.h"
+
+#include "export/amigaValidation.h"
+
+std::vector<DivROMExportOutput> DivEngine::buildROM(DivROMExportOptions sys) {
+  DivROMExport* exporter=NULL;
+  switch (sys) {
+    case DIV_ROM_AMIGA_VALIDATION:
+      exporter=new DivExportAmigaValidation;
+      break;
+    default:
+      exporter=new DivROMExport;
+      break;
+  }
+  std::vector<DivROMExportOutput> ret=exporter->go(this);
+  delete exporter;
+  return ret;
 }
-#endif

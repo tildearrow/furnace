@@ -82,9 +82,7 @@ const char** DivPlatformSCC::getRegisterSheet() {
 
 void DivPlatformSCC::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
-    for (int i=0; i<16; i++) {
-      scc->tick();
-    }
+    scc->tick(16);
     short out=(short)scc->out()<<5;
     buf[0][h]=out;
 

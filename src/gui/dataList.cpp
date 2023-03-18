@@ -430,6 +430,14 @@ void FurnaceGUI::drawInsList(bool asChild) {
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_POKEMINI]);
               name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
               break;
+            case DIV_INS_SM8521:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SM8521]);
+              name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
+              break;
+            case DIV_INS_PV1000:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_PV1000]);
+              name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
+              break;
             default:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
               name=fmt::sprintf(ICON_FA_QUESTION "##_INS%d",i);
@@ -447,12 +455,14 @@ void FurnaceGUI::drawInsList(bool asChild) {
         if (ImGui::Selectable(name.c_str(),(i==-1)?(curIns<0 || curIns>=e->song.insLen):(curIns==i))) {
           curIns=i;
           wavePreviewInit=true;
+          updateFMPreview=true;
         }
         if (wantScrollList && curIns==i) ImGui::SetScrollHereY();
         if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
           nextWindow=GUI_WINDOW_PATTERN;
           curIns=i;
           wavePreviewInit=true;
+          updateFMPreview=true;
         }
         if (ImGui::IsItemHovered() && i>=0 && !mobileUI) {
           ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
@@ -466,6 +476,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
         if (i>=0) {
           if (ImGui::BeginPopupContextItem("InsRightMenu")) {
             curIns=i;
+            updateFMPreview=true;
             ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
             if (ImGui::MenuItem("replace...")) {
               doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
@@ -756,6 +767,7 @@ void FurnaceGUI::actualWaveList() {
     if (ImGui::IsItemHovered()) {
       if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         waveEditOpen=true;
+        nextWindow=GUI_WINDOW_WAVE_EDIT;
       }
     }
     ImGui::SameLine();
@@ -794,6 +806,7 @@ void FurnaceGUI::actualSampleList() {
       ImGui::SetTooltip("Bank %d: %s",i/12,sampleNote[i%12]);
       if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
         sampleEditOpen=true;
+        nextWindow=GUI_WINDOW_SAMPLE_EDIT;
       }
       ImGui::PopStyleColor();
     }

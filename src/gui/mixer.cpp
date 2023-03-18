@@ -20,6 +20,7 @@
 #include "gui.h"
 #include "intConst.h"
 #include <fmt/printf.h>
+#include <imgui.h>
 #include "../ta-log.h"
 #include "imgui_internal.h"
 
@@ -223,208 +224,229 @@ void FurnaceGUI::drawMixer() {
     ImGui::SetNextWindowSizeConstraints(ImVec2(400.0f*dpiScale,200.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Mixer",&mixerOpen,globalWinFlags|(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking))) {
-    std::map<unsigned int,ImVec2> portPos;
-    if (ImGui::SliderFloat("Master Volume",&e->song.masterVol,0,3,"%.2fx")) {
-      if (e->song.masterVol<0) e->song.masterVol=0;
-      if (e->song.masterVol>3) e->song.masterVol=3;
-      MARK_MODIFIED;
-    } rightClickable
-    if (selectedPortSet<e->song.systemLen) {
-      if (ImGui::BeginTable("CurPortSet",2)) {
-        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
-        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
-
-        bool doInvert=e->song.systemVol[selectedPortSet]<0;
-        float vol=fabs(e->song.systemVol[selectedPortSet]);
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::Text("%d. %s",selectedPortSet+1,getSystemName(e->song.system[selectedPortSet]));
-        ImGui::TableNextColumn();
-        if (ImGui::Checkbox("Invert",&doInvert)) {
-          e->song.systemVol[selectedPortSet]=-e->song.systemVol[selectedPortSet];
-          MARK_MODIFIED;
-        }
-
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (CWSliderFloat("##Volume",&vol,0,2)) {
-          if (doInvert) {
-            if (vol<0.0001) vol=0.0001;
-          }
-          if (vol<0) vol=0;
-          if (vol>10) vol=10;
-          e->song.systemVol[selectedPortSet]=(doInvert)?-vol:vol;
+    if (ImGui::BeginTabBar("MixerView")) {
+      if (ImGui::BeginTabItem("Mixer")) {
+        if (ImGui::SliderFloat("Master Volume",&e->song.masterVol,0,3,"%.2fx")) {
+          if (e->song.masterVol<0) e->song.masterVol=0;
+          if (e->song.masterVol>3) e->song.masterVol=3;
           MARK_MODIFIED;
         } rightClickable
-        ImGui::TableNextColumn();
-        ImGui::Text("Volume");
 
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (CWSliderFloat("##Panning",&e->song.systemPan[selectedPortSet],-1.0f,1.0f)) {
-          if (e->song.systemPan[selectedPortSet]<-1.0f) e->song.systemPan[selectedPortSet]=-1.0f;
-          if (e->song.systemPan[selectedPortSet]>1.0f) e->song.systemPan[selectedPortSet]=1.0f;
-          MARK_MODIFIED;
-        } rightClickable
-        ImGui::TableNextColumn();
-        ImGui::Text("Panning");
+        if (ImGui::BeginTable("CurPortSet",2)) {
+          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
 
-        ImGui::TableNextRow();
-        ImGui::TableNextColumn();
-        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        if (CWSliderFloat("##FrontRear",&e->song.systemPanFR[selectedPortSet],-1.0f,1.0f)) {
-          if (e->song.systemPanFR[selectedPortSet]<-1.0f) e->song.systemPanFR[selectedPortSet]=-1.0f;
-          if (e->song.systemPanFR[selectedPortSet]>1.0f) e->song.systemPanFR[selectedPortSet]=1.0f;
-          MARK_MODIFIED;
-        } rightClickable
-        ImGui::TableNextColumn();
-        ImGui::Text("Front/Rear");
+          for (int i=0; i<e->song.systemLen; i++) {
+            bool doInvert=e->song.systemVol[i]<0;
+            float vol=fabs(e->song.systemVol[i]);
 
-        ImGui::EndTable();
-      }
-    } else {
-      if (ImGui::Checkbox("Automatic patchbay",&e->song.patchbayAuto)) {
-        if (e->song.patchbayAuto) e->autoPatchbayP();
-        MARK_MODIFIED;
-      }
-      ImGui::Checkbox("Display hidden ports",&displayHiddenPorts);
-      ImGui::Checkbox("Display internal",&displayInternalPorts);
-      ImGui::Dummy(ImVec2(1.0f,ImGui::GetFrameHeightWithSpacing()));
-    }
+            ImGui::PushID(i);
 
-    hoveredPortSet=0x1fff;
-    hoveredSubPort=-1;
-
-    if (ImGui::BeginChild("Patchbay",ImVec2(0,0),true)) {
-      ImDrawList* dl=ImGui::GetWindowDrawList();
-      ImVec2 topPos=ImGui::GetCursorPos();
-      ImVec2 sysSize=calcPortSetSize("System",displayHiddenPorts?DIV_MAX_OUTPUTS:e->getAudioDescGot().outChans,0);
-      topPos.x+=ImGui::GetContentRegionAvail().x-sysSize.x;
-      if (ImGui::GetContentRegionAvail().y>sysSize.y) topPos.y+=(ImGui::GetContentRegionAvail().y-sysSize.y)*0.5+ImGui::GetScrollY();
-
-      if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) selectedPortSet=0x1fff;
-
-      if (portDragActive) {
-        dl->AddLine(subPortPos,ImGui::GetMousePos(),ImGui::GetColorU32(uiColors[GUI_COLOR_PATCHBAY_CONNECTION]),2.0f*dpiScale);
-      }
-
-      for (int i=0; i<e->song.systemLen; i++) {
-        DivDispatch* dispatch=e->getDispatch(i);
-        if (dispatch==NULL) continue;
-        int outputs=dispatch->getOutputCount();
-        if (portSet(fmt::sprintf("%d. %s",i+1,getSystemName(e->song.system[i])),i,0,outputs,0,outputs,selectedSubPort,portPos)) {
-          selectedPortSet=i;
-          if (selectedSubPort>=0) {
-            portDragActive=true;
-            ImGui::InhibitInertialScroll();
-            try {
-              subPortPos=portPos.at((selectedPortSet<<4)|selectedSubPort);
-            } catch (std::out_of_range& e) {
-              portDragActive=false;
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("%d. %s",i+1,getSystemName(e->song.system[i]));
+            ImGui::TableNextColumn();
+            if (ImGui::Checkbox("Invert",&doInvert)) {
+              e->song.systemVol[i]=-e->song.systemVol[i];
+              MARK_MODIFIED;
             }
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (CWSliderFloat("##Volume",&vol,0,2)) {
+              if (doInvert) {
+                if (vol<0.0001) vol=0.0001;
+              }
+              if (vol<0) vol=0;
+              if (vol>10) vol=10;
+              e->song.systemVol[i]=(doInvert)?-vol:vol;
+              MARK_MODIFIED;
+            } rightClickable
+            ImGui::TableNextColumn();
+            ImGui::Text("Volume");
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (CWSliderFloat("##Panning",&e->song.systemPan[i],-1.0f,1.0f)) {
+              if (e->song.systemPan[i]<-1.0f) e->song.systemPan[i]=-1.0f;
+              if (e->song.systemPan[i]>1.0f) e->song.systemPan[i]=1.0f;
+              MARK_MODIFIED;
+            } rightClickable
+            ImGui::TableNextColumn();
+            ImGui::Text("Panning");
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+            if (CWSliderFloat("##FrontRear",&e->song.systemPanFR[i],-1.0f,1.0f)) {
+              if (e->song.systemPanFR[i]<-1.0f) e->song.systemPanFR[i]=-1.0f;
+              if (e->song.systemPanFR[i]>1.0f) e->song.systemPanFR[i]=1.0f;
+              MARK_MODIFIED;
+            } rightClickable
+            ImGui::TableNextColumn();
+            ImGui::Text("Front/Rear");
+
+            ImGui::PopID();
           }
+
+          ImGui::EndTable();
         }
+        ImGui::EndTabItem();
       }
+      if (!basicMode) if (ImGui::BeginTabItem("Patchbay")) {
+        std::map<unsigned int,ImVec2> portPos;
 
-      // metronome/sample preview
-      if (displayInternalPorts) {
-        if (portSet("Sample Preview",0xffd,0,1,0,1,selectedSubPort,portPos)) {
-          selectedPortSet=0xffd;
-          if (selectedSubPort>=0) {
-            portDragActive=true;
-            ImGui::InhibitInertialScroll();
-            try {
-              subPortPos=portPos.at((selectedPortSet<<4)|selectedSubPort);
-            } catch (std::out_of_range& e) {
-              portDragActive=false;
-            }
-          }
-        }
-        if (portSet("Metronome",0xffe,0,1,0,1,selectedSubPort,portPos)) {
-          selectedPortSet=0xffe;
-          if (selectedSubPort>=0) {
-            portDragActive=true;
-            ImGui::InhibitInertialScroll();
-            try {
-              subPortPos=portPos.at((selectedPortSet<<4)|selectedSubPort);
-            } catch (std::out_of_range& e) {
-              portDragActive=false;
-            }
-          }
-        }
-      }
-
-      ImGui::SetCursorPos(topPos);
-      if (portSet("System",0x1000,displayHiddenPorts?DIV_MAX_OUTPUTS:e->getAudioDescGot().outChans,0,e->getAudioDescGot().outChans,0,selectedSubPort,portPos)) {
-        selectedPortSet=0x1000;
-        if (selectedSubPort>=0) {
-          portDragActive=true;
-          ImGui::InhibitInertialScroll();
-          try {
-            subPortPos=portPos.at((selectedPortSet<<4)|selectedSubPort);
-          } catch (std::out_of_range& e) {
-            portDragActive=false;
-          }
-        }
-      }
-
-      if (portDragActive) {
-        if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-          portDragActive=false;
-          if (hoveredPortSet!=0x1fff && hoveredSubPort>=0 && selectedPortSet!=hoveredPortSet) {
-            unsigned int src=(selectedPortSet<<4)|selectedSubPort;
-            unsigned int dest=(hoveredPortSet<<4)|hoveredSubPort;
-
-            if (src&0x10000) {
-              src^=dest;
-              dest^=src;
-              src^=dest;
-            }
-
-            src&=0xffff;
-            dest&=0xffff;
-
-            if (!e->patchConnect(src,dest)) {
-              e->patchDisconnect(src,dest);
-            }
+        if (ImGui::BeginTable("PatchbayOptions",3)) {
+          ImGui::TableNextRow();
+          ImGui::TableNextColumn();
+          if (ImGui::Checkbox("Automatic patchbay",&e->song.patchbayAuto)) {
+            if (e->song.patchbayAuto) e->autoPatchbayP();
             MARK_MODIFIED;
           }
+          ImGui::TableNextColumn();
+          ImGui::Checkbox("Display hidden ports",&displayHiddenPorts);
+          ImGui::TableNextColumn();
+          ImGui::Checkbox("Display internal",&displayInternalPorts);
+          ImGui::EndTable();
         }
-      }
 
-      // draw connections
-      for (unsigned int i: e->song.patchbay) {
-        if ((i>>20)==selectedPortSet) continue;
-        try {
-          ImVec2 portSrc=portPos.at(i>>16);
-          ImVec2 portDest=portPos.at(0x10000|(i&0xffff));
-          dl->AddLine(portSrc,portDest,ImGui::GetColorU32(uiColors[GUI_COLOR_PATCHBAY_CONNECTION_BG]),2.0f*dpiScale);
-        } catch (std::out_of_range& e) {
-        }
-      }
+        hoveredPortSet=0x1fff;
+        hoveredSubPort=-1;
 
-      // foreground
-      for (unsigned int i: e->song.patchbay) {
-        if ((i>>20)!=selectedPortSet) continue;
-        try {
-          ImVec2 portSrc=portPos.at(i>>16);
-          ImVec2 portDest=portPos.at(0x10000|(i&0xffff));
-          dl->AddLine(portSrc,portDest,ImGui::GetColorU32(uiColors[GUI_COLOR_PATCHBAY_CONNECTION]),2.0f*dpiScale);
-        } catch (std::out_of_range& e) {
+        if (ImGui::BeginChild("Patchbay",ImVec2(0,0),true)) {
+          ImDrawList* dl=ImGui::GetWindowDrawList();
+          ImVec2 topPos=ImGui::GetCursorPos();
+          ImVec2 sysSize=calcPortSetSize("System",displayHiddenPorts?DIV_MAX_OUTPUTS:e->getAudioDescGot().outChans,0);
+          topPos.x+=ImGui::GetContentRegionAvail().x-sysSize.x;
+          if (ImGui::GetContentRegionAvail().y>sysSize.y) topPos.y+=(ImGui::GetContentRegionAvail().y-sysSize.y)*0.5+ImGui::GetScrollY();
+
+          if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) selectedPortSet=0x1fff;
+
+          if (portDragActive) {
+            dl->AddLine(subPortPos,ImGui::GetMousePos(),ImGui::GetColorU32(uiColors[GUI_COLOR_PATCHBAY_CONNECTION]),2.0f*dpiScale);
+          }
+
+          for (int i=0; i<e->song.systemLen; i++) {
+            DivDispatch* dispatch=e->getDispatch(i);
+            if (dispatch==NULL) continue;
+            int outputs=dispatch->getOutputCount();
+            if (portSet(fmt::sprintf("%d. %s",i+1,getSystemName(e->song.system[i])),i,0,outputs,0,outputs,selectedSubPort,portPos)) {
+              selectedPortSet=i;
+              if (selectedSubPort>=0) {
+                portDragActive=true;
+                ImGui::InhibitInertialScroll();
+                try {
+                  subPortPos=portPos.at((selectedPortSet<<4)|selectedSubPort);
+                } catch (std::out_of_range& e) {
+                  portDragActive=false;
+                }
+              }
+            }
+          }
+
+          // metronome/sample preview
+          if (displayInternalPorts) {
+            if (portSet("Sample Preview",0xffd,0,1,0,1,selectedSubPort,portPos)) {
+              selectedPortSet=0xffd;
+              if (selectedSubPort>=0) {
+                portDragActive=true;
+                ImGui::InhibitInertialScroll();
+                try {
+                  subPortPos=portPos.at((selectedPortSet<<4)|selectedSubPort);
+                } catch (std::out_of_range& e) {
+                  portDragActive=false;
+                }
+              }
+            }
+            if (portSet("Metronome",0xffe,0,1,0,1,selectedSubPort,portPos)) {
+              selectedPortSet=0xffe;
+              if (selectedSubPort>=0) {
+                portDragActive=true;
+                ImGui::InhibitInertialScroll();
+                try {
+                  subPortPos=portPos.at((selectedPortSet<<4)|selectedSubPort);
+                } catch (std::out_of_range& e) {
+                  portDragActive=false;
+                }
+              }
+            }
+          }
+
+          ImGui::SetCursorPos(topPos);
+          if (portSet("System",0x1000,displayHiddenPorts?DIV_MAX_OUTPUTS:e->getAudioDescGot().outChans,0,e->getAudioDescGot().outChans,0,selectedSubPort,portPos)) {
+            selectedPortSet=0x1000;
+            if (selectedSubPort>=0) {
+              portDragActive=true;
+              ImGui::InhibitInertialScroll();
+              try {
+                subPortPos=portPos.at((selectedPortSet<<4)|selectedSubPort);
+              } catch (std::out_of_range& e) {
+                portDragActive=false;
+              }
+            }
+          }
+
+          if (portDragActive) {
+            if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
+              portDragActive=false;
+              if (hoveredPortSet!=0x1fff && hoveredSubPort>=0 && selectedPortSet!=hoveredPortSet) {
+                unsigned int src=(selectedPortSet<<4)|selectedSubPort;
+                unsigned int dest=(hoveredPortSet<<4)|hoveredSubPort;
+
+                if (src&0x10000) {
+                  src^=dest;
+                  dest^=src;
+                  src^=dest;
+                }
+
+                src&=0xffff;
+                dest&=0xffff;
+
+                if (!e->patchConnect(src,dest)) {
+                  e->patchDisconnect(src,dest);
+                }
+                MARK_MODIFIED;
+              }
+            }
+          }
+
+          // draw connections
+          for (unsigned int i: e->song.patchbay) {
+            if ((i>>20)==selectedPortSet) continue;
+            try {
+              ImVec2 portSrc=portPos.at(i>>16);
+              ImVec2 portDest=portPos.at(0x10000|(i&0xffff));
+              dl->AddLine(portSrc,portDest,ImGui::GetColorU32(uiColors[GUI_COLOR_PATCHBAY_CONNECTION_BG]),2.0f*dpiScale);
+            } catch (std::out_of_range& e) {
+            }
+          }
+
+          // foreground
+          for (unsigned int i: e->song.patchbay) {
+            if ((i>>20)!=selectedPortSet) continue;
+            try {
+              ImVec2 portSrc=portPos.at(i>>16);
+              ImVec2 portDest=portPos.at(0x10000|(i&0xffff));
+              dl->AddLine(portSrc,portDest,ImGui::GetColorU32(uiColors[GUI_COLOR_PATCHBAY_CONNECTION]),2.0f*dpiScale);
+            } catch (std::out_of_range& e) {
+            }
+          }
         }
+        if (ImGui::BeginPopup("SubPortOptions",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+          if (ImGui::MenuItem("disconnect all")) {
+            e->patchDisconnectAll(selectedPortSet);
+            MARK_MODIFIED;
+          }
+          ImGui::EndPopup();
+        }
+        ImGui::EndChild();
+        ImGui::EndTabItem();
       }
+      ImGui::EndTabBar();
     }
-    if (ImGui::BeginPopup("SubPortOptions",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
-      if (ImGui::MenuItem("disconnect all")) {
-        e->patchDisconnectAll(selectedPortSet);
-        MARK_MODIFIED;
-      }
-      ImGui::EndPopup();
-    }
-    ImGui::EndChild();
+
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_MIXER;
   ImGui::End();

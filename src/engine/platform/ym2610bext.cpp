@@ -36,7 +36,7 @@ void DivPlatformYM2610BExt::commitStateExt(int ch, DivInstrument* ins) {
   unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[ordch];
   DivInstrumentFM::Operator& op=chan[extChanOffs].state.op[ordch];
   // TODO: how does this work?!
-  if (isOpMuted[ch]) {
+  if (isOpMuted[ch] || !op.enable) {
     rWrite(baseAddr+0x40,127);
   } else {
     if (opChan[ch].insChanged) {
@@ -121,7 +121,7 @@ int DivPlatformYM2610BExt::dispatch(DivCommand c) {
       }
       unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[ordch];
       DivInstrumentFM::Operator& op=chan[extChanOffs].state.op[ordch];
-      if (isOpMuted[ch]) {
+      if (isOpMuted[ch] || !op.enable) {
         rWrite(baseAddr+0x40,127);
       } else {
         rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].outVol&0x7f,127));
@@ -221,7 +221,7 @@ int DivPlatformYM2610BExt::dispatch(DivCommand c) {
       unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[extChanOffs].state.op[orderedOps[c.value]];
       op.tl=c.value2;
-      if (isOpMuted[ch]) {
+      if (isOpMuted[ch] || !op.enable) {
         rWrite(baseAddr+0x40,127);
       } else if (KVS(2,c.value)) {
         rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].outVol&0x7f,127));
@@ -558,7 +558,7 @@ void DivPlatformYM2610BExt::muteChannel(int ch, bool mute) {
   int ordch=orderedOps[ch-extChanOffs];
   unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[ordch];
   DivInstrumentFM::Operator op=chan[extChanOffs].state.op[ordch];
-  if (isOpMuted[ch-extChanOffs]) {
+  if (isOpMuted[ch-extChanOffs] || !op.enable) {
     rWrite(baseAddr+0x40,127);
     immWrite(baseAddr+0x40,127);
   } else if (KVS(2,ordch)) {
@@ -578,7 +578,7 @@ void DivPlatformYM2610BExt::forceIns() {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
       if (i==extChanOffs && extMode) { // extended channel
-        if (isOpMuted[orderedOps[j]]) {
+        if (isOpMuted[orderedOps[j]] || !op.enable) {
           rWrite(baseAddr+0x40,127);
         } else if (KVS(i,j)) {
           rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[orderedOps[j]].outVol&0x7f,127));
@@ -586,7 +586,7 @@ void DivPlatformYM2610BExt::forceIns() {
           rWrite(baseAddr+0x40,op.tl);
         }
       } else {
-        if (isMuted[i]) {
+        if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
           if (KVS(i,j)) {

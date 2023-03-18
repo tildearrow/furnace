@@ -25,6 +25,7 @@
 
 
 class DivYM2612Interface: public ymfm::ymfm_interface {
+  int setA, setB;
   int countA, countB;
 
   public:
@@ -32,8 +33,8 @@ class DivYM2612Interface: public ymfm::ymfm_interface {
     void ymfm_set_timer(uint32_t tnum, int32_t duration_in_clocks);
     DivYM2612Interface():
       ymfm::ymfm_interface(),
-      countA(-1),
-      countB(-1) {}
+      countA(0),
+      countB(0) {}
 };
 
 class DivPlatformGenesis: public DivPlatformOPN {
@@ -84,7 +85,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
     int softPCMTimer;
 
     bool extMode, softPCM, noExtMacros, useYMFM;
-    bool ladder;
+    unsigned char chipType;
   
     unsigned char dacVolTable[128];
   

@@ -22,7 +22,7 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) {if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(0x200+a,v);}}}
+#define rWrite(a,v) {if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);}}}
 
 const char* regCheatSheetSN[]={
   "DATA", "0",
@@ -43,6 +43,23 @@ float DivPlatformSMS::getPostAmp() {
   return 1.5f;
 }
 
+void DivPlatformSMS::poolWrite(unsigned short a, unsigned char v) {
+  if (a) {
+    regPool[9]=v;
+  } else {
+    if (v>=0x80) {
+      regPool[(v>>4)&7]&=~15;
+      regPool[(v>>4)&7]|=v&15;
+      chanLatch=(v>>5)&3;
+    } else {
+      regPool[chanLatch<<1]&=15;
+      regPool[chanLatch<<1]|=((v&15)<<4);
+      regPool[1+(chanLatch<<1)]&=15;
+      regPool[1+(chanLatch<<1)]|=v&0xf0;
+    }
+  }
+}
+
 void DivPlatformSMS::acquire_nuked(short** buf, size_t len) {
   int oL=0;
   int oR=0;
@@ -54,6 +71,9 @@ void DivPlatformSMS::acquire_nuked(short** buf, size_t len) {
       } else if (w.addr==1) {
         YMPSG_WriteStereo(&sn_nuked,w.val);
       }
+
+      poolWrite(w.addr,w.val);
+
       writes.pop();
     }
     YMPSG_Clock(&sn_nuked);
@@ -97,6 +117,9 @@ void DivPlatformSMS::acquire_mame(short** buf, size_t len) {
     else if (w.addr==0) {
       sn->write(w.val);
     }
+
+    poolWrite(w.addr,w.val);
+
     writes.pop();
   }
   for (size_t h=0; h<len; h++) {
@@ -428,7 +451,17 @@ DivDispatchOscBuffer* DivPlatformSMS::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
 
+unsigned char* DivPlatformSMS::getRegisterPool() {
+  return regPool;
+}
+
+int DivPlatformSMS::getRegisterPoolSize() {
+  return stereo?9:8;
+}
+
 void DivPlatformSMS::reset() {
+  memset(regPool,0,16);
+  chanLatch=0;
   while (!writes.empty()) writes.pop();
   for (int i=0; i<4; i++) {
     chan[i]=DivPlatformSMS::Channel();

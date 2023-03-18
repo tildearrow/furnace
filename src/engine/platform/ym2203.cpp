@@ -210,11 +210,12 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
     );
 
     os&=~3;
+    os=(os*fmVol)>>8;
 
     // ymfm part
     fm->generate(&fmout);
 
-    os+=((fmout.data[1]+fmout.data[2]+fmout.data[3])>>1);
+    os+=((fmout.data[1]+fmout.data[2]+fmout.data[3])*ssgVol)>>8;
     if (os<-32768) os=-32768;
     if (os>32767) os=32767;
   
@@ -255,7 +256,7 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
     
     fm->generate(&fmout);
 
-    os=fmout.data[0]+((fmout.data[1]+fmout.data[2]+fmout.data[3])>>1);
+    os=((fmout.data[0]*fmVol)>>8)+(((fmout.data[1]+fmout.data[2]+fmout.data[3])*ssgVol)>>8);
     if (os<-32768) os=-32768;
     if (os>32767) os=32767;
   
@@ -292,7 +293,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
       for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
-        if (isMuted[i]) {
+        if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
           if (KVS(i,j)) {
@@ -335,7 +336,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
       if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
-        if (isMuted[i]) {
+        if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
           if (KVS(i,j)) {
@@ -384,7 +385,7 @@ void DivPlatformYM2203::tick(bool sysTick) {
       }
       if (m.tl.had) {
         op.tl=127-m.tl.val;
-        if (isMuted[i]) {
+        if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
           if (KVS(i,j)) {
@@ -507,7 +508,7 @@ void DivPlatformYM2203::commitState(int ch, DivInstrument* ins) {
   for (int i=0; i<4; i++) {
     unsigned short baseAddr=chanOffs[ch]|opOffs[i];
     DivInstrumentFM::Operator& op=chan[ch].state.op[i];
-    if (isMuted[ch]) {
+    if (isMuted[ch] || !op.enable) {
       rWrite(baseAddr+ADDR_TL,127);
     } else {
       if (KVS(ch,i)) {
@@ -585,7 +586,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
-        if (isMuted[c.chan]) {
+        if (isMuted[c.chan] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
           if (KVS(c.chan,i)) {
@@ -675,7 +676,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.tl=c.value2;
-      if (isMuted[c.chan]) {
+      if (isMuted[c.chan] || !op.enable) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
         if (KVS(c.chan,c.value)) {
@@ -873,7 +874,7 @@ void DivPlatformYM2203::muteChannel(int ch, bool mute) {
   for (int j=0; j<4; j++) {
     unsigned short baseAddr=chanOffs[ch]|opOffs[j];
     DivInstrumentFM::Operator& op=chan[ch].state.op[j];
-    if (isMuted[ch]) {
+    if (isMuted[ch] || !op.enable) {
       rWrite(baseAddr+ADDR_TL,127);
     } else {
       if (KVS(ch,j)) {
@@ -890,7 +891,7 @@ void DivPlatformYM2203::forceIns() {
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
-      if (isMuted[i]) {
+      if (isMuted[i] || !op.enable) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
         if (KVS(i,j)) {
@@ -1074,6 +1075,8 @@ void DivPlatformYM2203::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   noExtMacros=flags.getBool("noExtMacros",false);
   fbAllOps=flags.getBool("fbAllOps",false);
+  ssgVol=flags.getInt("ssgVol",128);
+  fmVol=flags.getInt("fmVol",256);
   rate=fm->sample_rate(chipClock);
   for (int i=0; i<6; i++) {
     oscBuf[i]->rate=rate;

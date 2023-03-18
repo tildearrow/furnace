@@ -70,6 +70,7 @@ option(SUPPORT_XP "Build a Windows XP-compatible binary" OFF)
 option(WARNINGS_ARE_ERRORS "Whether warnings in furnace's C++ code should be treated as errors" OFF)
 option(WITH_DEMOS "Install demo songs" ON)
 option(WITH_INSTRUMENTS "Install instruments" ON)
+option(WITH_WAVETABLES "Install wavetables" ON)
 
 set(DEPENDENCIES_INCLUDE_DIRS "")
 
@@ -365,6 +366,7 @@ src/engine/platform/sound/sn76496.cpp
 src/engine/platform/sound/ay8910.cpp
 src/engine/platform/sound/saa1099.cpp
 src/engine/platform/sound/namco.cpp
+src/engine/platform/sound/segapcm.cpp
 src/engine/platform/sound/gb/apu.c
 src/engine/platform/sound/gb/timing.c
 src/engine/platform/sound/pce_psg.cpp
@@ -399,6 +401,7 @@ src/engine/platform/sound/c64/wave8580_PST.cc
 src/engine/platform/sound/c64/wave8580_P_T.cc
 src/engine/platform/sound/c64/wave8580__ST.cc
 
+src/engine/platform/sound/c64_fp/array.cpp
 src/engine/platform/sound/c64_fp/Dac.cpp
 src/engine/platform/sound/c64_fp/EnvelopeGenerator.cpp
 src/engine/platform/sound/c64_fp/ExternalFilter.cpp
@@ -454,6 +457,10 @@ src/engine/platform/sound/snes/SPC_DSP.cpp
 
 src/engine/platform/sound/ga20/iremga20.cpp
 
+src/engine/platform/sound/sm8521.c
+
+src/engine/platform/sound/d65010g031.c
+
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
@@ -466,6 +473,7 @@ src/engine/config.cpp
 src/engine/configEngine.cpp
 src/engine/dispatchContainer.cpp
 src/engine/engine.cpp
+src/engine/export.cpp
 src/engine/fileOps.cpp
 src/engine/fileOpsIns.cpp
 src/engine/filter.cpp
@@ -481,6 +489,7 @@ src/engine/waveSynth.cpp
 src/engine/vgmOps.cpp
 src/engine/zsmOps.cpp
 src/engine/zsm.cpp
+
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
 src/engine/platform/genesisext.cpp
@@ -523,6 +532,7 @@ src/engine/platform/t6w28.cpp
 src/engine/platform/vb.cpp
 src/engine/platform/vera.cpp
 src/engine/platform/zxbeeper.cpp
+src/engine/platform/zxbeeperquadtone.cpp
 src/engine/platform/bubsyswsg.cpp
 src/engine/platform/n163.cpp
 src/engine/platform/pet.cpp
@@ -530,6 +540,7 @@ src/engine/platform/pokemini.cpp
 src/engine/platform/pong.cpp
 src/engine/platform/vic20.cpp
 src/engine/platform/vrc6.cpp
+src/engine/platform/es5506.cpp
 src/engine/platform/scc.cpp
 src/engine/platform/ymz280b.cpp
 src/engine/platform/namcowsg.cpp
@@ -537,8 +548,13 @@ src/engine/platform/rf5c68.cpp
 src/engine/platform/snes.cpp
 src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
+src/engine/platform/sm8521.cpp
+src/engine/platform/pv1000.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
+
+src/engine/export/abstract.cpp
+src/engine/export/amigaValidation.cpp
 )
 
 if (USE_SNDFILE)
@@ -566,6 +582,7 @@ extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
 extern/igfd/ImGuiFileDialog.cpp
 
 src/gui/plot_nolerp.cpp
+
 src/gui/font_exo.cpp
 src/gui/font_liberationSans.cpp
 src/gui/font_mononoki.cpp
@@ -576,11 +593,23 @@ src/gui/font_ptMono.cpp
 src/gui/font_unifont.cpp
 src/gui/font_icon.cpp
 src/gui/fonts.cpp
+
+src/gui/image_icon.cpp
+src/gui/image_talogo.cpp
+src/gui/image_tachip.cpp
+src/gui/image_logo.cpp
+src/gui/image_wordmark.cpp
+src/gui/image_introbg.cpp
+src/gui/image_pat.cpp
+src/gui/image.cpp
+
 src/gui/debug.cpp
 src/gui/fileDialog.cpp
 
 src/gui/intConst.cpp
 src/gui/guiConst.cpp
+
+src/gui/introTune.cpp
 
 src/gui/about.cpp
 src/gui/channels.cpp
@@ -595,8 +624,11 @@ src/gui/editing.cpp
 src/gui/editControls.cpp
 src/gui/effectList.cpp
 src/gui/findReplace.cpp
+src/gui/fmPreview.cpp
 src/gui/gradient.cpp
+src/gui/grooves.cpp
 src/gui/insEdit.cpp
+src/gui/intro.cpp
 src/gui/log.cpp
 src/gui/mixer.cpp
 src/gui/midiMap.cpp
@@ -613,6 +645,7 @@ src/gui/scaling.cpp
 src/gui/settings.cpp
 src/gui/songInfo.cpp
 src/gui/songNotes.cpp
+src/gui/speed.cpp
 src/gui/spoiler.cpp
 src/gui/stats.cpp
 src/gui/subSongs.cpp
@@ -620,6 +653,7 @@ src/gui/sysConf.cpp
 src/gui/sysEx.cpp
 src/gui/sysManager.cpp
 src/gui/sysPicker.cpp
+src/gui/tutorial.cpp
 src/gui/util.cpp
 src/gui/waveEdit.cpp
 src/gui/volMeter.cpp
@@ -638,8 +672,6 @@ if (APPLE)
 endif()
 
 if (NOT WIN32 AND NOT APPLE)
-  list(APPEND GUI_SOURCES src/gui/icon.c)
-
   CHECK_INCLUDE_FILE(sys/io.h SYS_IO_FOUND)
   CHECK_INCLUDE_FILE(linux/input.h LINUX_INPUT_FOUND)
   CHECK_INCLUDE_FILE(linux/kd.h LINUX_KD_FOUND)
@@ -756,10 +788,10 @@ if (WARNINGS_ARE_ERRORS)
   )
 endif()
 
-if (WIN32)
-  add_executable(furnace WIN32 ${USED_SOURCES})
-elseif(ANDROID AND NOT TERMUX)
+if(ANDROID AND NOT TERMUX)
   add_library(furnace SHARED ${USED_SOURCES})
+elseif(WIN32)
+  add_executable(furnace WIN32 ${USED_SOURCES})
 else()
   add_executable(furnace ${USED_SOURCES})
 endif()
@@ -794,6 +826,9 @@ if (NOT ANDROID OR TERMUX)
     endif()
     if (WITH_INSTRUMENTS)
       install(DIRECTORY instruments DESTINATION ${CMAKE_INSTALL_DATADIR}/furnace)
+    endif()
+    if (WITH_WAVETABLES)
+      install(DIRECTORY wavetables DESTINATION ${CMAKE_INSTALL_DATADIR}/furnace)
     endif()
     foreach(num 16 32 64 128 256 512)
       set(res ${num}x${num})

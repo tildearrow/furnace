@@ -256,6 +256,16 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_POKEMINI, 0.5f, 0, "")
     }
   );
+  ENTRY(
+    "Tiger Game.com", {
+      CH(DIV_SYSTEM_SM8521, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Casio PV-1000", {
+      CH(DIV_SYSTEM_PV1000, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Computers","let's get to work on chiptune today.");
@@ -1101,7 +1111,7 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Commander X16", {
       CH(DIV_SYSTEM_VERA, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_YM2151, 0.5f, 0, "")
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "")
     }
   );
   ENTRY(
@@ -2013,6 +2023,11 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Sammy/Seta/Visco SSV", {
+      CH(DIV_SYSTEM_ES5506, 1.0f, 0, "channels=31")
+    }
+  );
+  ENTRY(
     "Cave 68000", {
       CH(DIV_SYSTEM_YMZ280B, 1.0f, 0, "")
     }
@@ -2145,27 +2160,27 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Yamaha YM2612 (OPN2)", {
-      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "ladderEffect=true")
+      CH(DIV_SYSTEM_YM2612, 1.0f, 0, "chipType=1")
     }
   );
   ENTRY(
     "Yamaha YM2612 (extended channel 3)", {
-      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "ladderEffect=true")
+      CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "chipType=1")
     }
   );
   ENTRY(
     "Yamaha YM2612 (OPN2) CSM", {
-      CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "ladderEffect=true")
+      CH(DIV_SYSTEM_YM2612_CSM, 1.0f, 0, "chipType=1")
     }
   );
   ENTRY(
     "Yamaha YM2612 (OPN2) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "ladderEffect=true")
+      CH(DIV_SYSTEM_YM2612_DUALPCM, 1.0f, 0, "chipType=1")
     }
   );
   ENTRY(
     "Yamaha YM2612 (extended channel 3) with DualPCM", {
-      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "ladderEffect=true")
+      CH(DIV_SYSTEM_YM2612_DUALPCM_EXT, 1.0f, 0, "chipType=1")
     }
   );
   ENTRY(
@@ -2360,6 +2375,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_PONG, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "NEC D65010G031", {
+      CH(DIV_SYSTEM_PV1000, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Sample","chips/systems which use PCM or ADPCM samples for sound synthesis.");
@@ -2424,6 +2444,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "Ensoniq ES5506 (OTTO)", {
+      CH(DIV_SYSTEM_ES5506, 1.0f, 0, "channels=31")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Wavetable","chips which use user-specified waveforms to generate sound.");
@@ -2431,12 +2456,6 @@ void FurnaceGUI::initSystemPresets() {
     "PC Engine", {
       CH(DIV_SYSTEM_PCE, 1.0f, 0, "")
     }
-  );
-  ENTRY(
-    "Commodore PET (pseudo-wavetable)", {
-      CH(DIV_SYSTEM_PET, 1.0f, 0, "")
-    },
-    "tickRate=50"
   );
   ENTRY(
     "Konami Bubble System WSG", {
@@ -2511,6 +2530,22 @@ void FurnaceGUI::initSystemPresets() {
     "tickRate=50.1245421"
   );
   ENTRY(
+    "Commodore PET (pseudo-wavetable)", {
+      CH(DIV_SYSTEM_PET, 1.0f, 0, "")
+    },
+    "tickRate=50"
+  );
+  ENTRY(
+    "Konami VRC6", {
+      CH(DIV_SYSTEM_VRC6, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "MMC5", {
+      CH(DIV_SYSTEM_MMC5, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
     "Microchip AY8930", {
       CH(DIV_SYSTEM_AY8930, 1.0f, 0, "")
     }
@@ -2549,6 +2584,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "ZX Spectrum (beeper only)", {
       CH(DIV_SYSTEM_SFX_BEEPER, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Sharp SM8521", {
+      CH(DIV_SYSTEM_SM8521, 1.0f, 0, "")
     }
   );
   if (settings.hiddenSystems) {

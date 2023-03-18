@@ -24,6 +24,7 @@
 #define DIV_MAX_CHIPS 32
 #define DIV_MAX_CHANS 128
 #define DIV_MAX_PATTERNS 256
+#define DIV_MAX_CHIP_DEFS 256
 
 // in-pattern
 #define DIV_MAX_ROWS 256

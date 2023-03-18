@@ -40,7 +40,7 @@ struct EndOfFileException {
 };
 
 class SafeReader {
-  unsigned char* buf;
+  const unsigned char* buf;
   size_t len;
 
   size_t curSeek;
@@ -71,8 +71,8 @@ class SafeReader {
     String readStringToken();
     inline bool isEOF() { return curSeek >= len; };
 
-    SafeReader(void* b, size_t l):
-      buf((unsigned char*)b),
+    SafeReader(const void* b, size_t l):
+      buf((const unsigned char*)b),
       len(l),
       curSeek(0) {}
 };

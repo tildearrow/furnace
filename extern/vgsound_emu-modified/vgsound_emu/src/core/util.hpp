@@ -19,6 +19,10 @@
 #include <string>
 #include <vector>
 
+#define VGS_MIN(a,b) (((a)<(b))?(a):(b))
+#define VGS_MAX(a,b) (((a)>(b))?(a):(b))
+#define VGS_CLAMP(x,xMin,xMax) (VGS_MIN(VGS_MAX((x),(xMin)),(xMax)))
+
 namespace vgsound_emu
 {
 	typedef unsigned char u8;
@@ -43,7 +47,7 @@ namespace vgsound_emu
 		return std::clamp(in, min, max);
 #else
 		// otherwise, use my own implementation of std::clamp
-		return std::min(std::max(in, min), max);
+		return VGS_CLAMP(in,min,max);
 #endif
 	}
 
@@ -58,7 +62,7 @@ namespace vgsound_emu
 	template<typename T>
 	static inline T sign_ext(T in, u8 len)
 	{
-		len = std::max<u8>(0, (8 * sizeof(T)) - len);
+		len = VGS_MAX(0, (8 * sizeof(T)) - len);
 		return T(T(in) << len) >> len;
 	}
 

@@ -38,7 +38,7 @@ void DivPlatformYM2203Ext::commitStateExt(int ch, DivInstrument* ins) {
   unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
   DivInstrumentFM::Operator& op=chan[2].state.op[ordch];
   // TODO: how does this work?!
-  if (isOpMuted[ch]) {
+  if (isOpMuted[ch] || !op.enable) {
     rWrite(baseAddr+0x40,127);
   } else {
     if (opChan[ch].insChanged) {
@@ -122,7 +122,7 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       }
       unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
       DivInstrumentFM::Operator& op=chan[2].state.op[ordch];
-      if (isOpMuted[ch]) {
+      if (isOpMuted[ch] || !op.enable) {
         rWrite(baseAddr+0x40,127);
       } else {
         rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].outVol&0x7f,127));
@@ -202,7 +202,7 @@ int DivPlatformYM2203Ext::dispatch(DivCommand c) {
       unsigned short baseAddr=chanOffs[2]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[2].state.op[orderedOps[c.value]];
       op.tl=c.value2;
-      if (isOpMuted[ch]) {
+      if (isOpMuted[ch] || !op.enable) {
         rWrite(baseAddr+0x40,127);
       } else if (KVS(2,c.value)) {
         rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch].outVol&0x7f,127));
@@ -540,7 +540,7 @@ void DivPlatformYM2203Ext::muteChannel(int ch, bool mute) {
   int ordch=orderedOps[ch-2];
   unsigned short baseAddr=chanOffs[2]|opOffs[ordch];
   DivInstrumentFM::Operator op=chan[2].state.op[ordch];
-  if (isOpMuted[ch-2]) {
+  if (isOpMuted[ch-2] || !op.enable) {
     rWrite(baseAddr+0x40,127);
     immWrite(baseAddr+0x40,127);
   } else if (KVS(2,ordch)) {
@@ -558,7 +558,7 @@ void DivPlatformYM2203Ext::forceIns() {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
       if (i==2 && extMode) { // extended channel
-        if (isOpMuted[orderedOps[j]]) {
+        if (isOpMuted[orderedOps[j]] || !op.enable) {
           rWrite(baseAddr+0x40,127);
         } else if (KVS(i,j)) {
           rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[orderedOps[j]].outVol&0x7f,127));

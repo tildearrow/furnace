@@ -30,17 +30,26 @@
 
 void DivYM2612Interface::ymfm_set_timer(uint32_t tnum, int32_t duration_in_clocks) {
   if (tnum==1) {
-    countB=duration_in_clocks;
+    setB=duration_in_clocks;
   } else if (tnum==0) {
-    countA=duration_in_clocks;
+    setA=duration_in_clocks;
   }
-  //logV("ymfm_set_timer(%d,%d)",tnum,duration_in_clocks);
 }
 
 void DivYM2612Interface::clock() {
-  if (countA>=0) {
+  if (setA>=0) {
     countA-=144;
-    if (countA<0) m_engine->engine_timer_expired(0);
+    if (countA<0) {
+      m_engine->engine_timer_expired(0);
+      countA+=setA;
+    }
+  }
+  if (setB>=0) {
+    countB-=144;
+    if (countB<0) {
+      m_engine->engine_timer_expired(1);
+      countB+=setB;
+    }
   }
 }
 
@@ -163,7 +172,14 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
         flushFirst=false;
       }
       
-      OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
+      OPN2_Clock(&fm,o);
+      if (chipType==2) {
+        os[0]+=CLAMP(o[0],-8192,8191);
+        os[1]+=CLAMP(o[1],-8192,8191);
+      } else {
+        os[0]+=o[0];
+        os[1]+=o[1];
+      }
       //OPN2_Write(&fm,0,0);
       if (i==5) {
         if (fm.dacen) {
@@ -174,18 +190,18 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
             oscBuf[i]->data[oscBuf[i]->needle++]=fm.dacdata<<7;
           }
         } else {
-          oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<7;
+          oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<(chipType==2?0:7);
         }
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<7;
+        oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<(chipType==2?0:7);
       }
     }
     
-    os[0]=(os[0]<<5);
+    if (chipType!=2) os[0]=(os[0]<<5);
     if (os[0]<-32768) os[0]=-32768;
     if (os[0]>32767) os[0]=32767;
 
-    os[1]=(os[1]<<5);
+    if (chipType!=2) os[1]=(os[1]<<5);
     if (os[1]<-32768) os[1]=-32768;
     if (os[1]>32767) os[1]=32767;
   
@@ -214,7 +230,7 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
       flushFirst=false;
     }
     
-    if (ladder) {
+    if (chipType==1) {
       fm_ymfm->generate(&out_ymfm);
     } else {
       ((ymfm::ym3438*)fm_ymfm)->generate(&out_ymfm);
@@ -225,6 +241,9 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
     //OPN2_Write(&fm,0,0);
 
     for (int i=0; i<6; i++) {
+      int chOut=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1))<<6;
+      if (chOut<-32768) chOut=-32768;
+      if (chOut>32767) chOut=32767;
       if (i==5) {
         if (fm_ymfm->debug_dac_enable()) {
           if (softPCM) {
@@ -234,10 +253,10 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
             oscBuf[i]->data[oscBuf[i]->needle++]=fm_ymfm->debug_dac_data()<<7;
           }
         } else {
-          oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1))<<6;
+          oscBuf[i]->data[oscBuf[i]->needle++]=chOut;
         }
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1))<<6;
+        oscBuf[i]->data[oscBuf[i]->needle++]=chOut;
       }
     }
     
@@ -288,7 +307,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
       if (i<6) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
-        if (isMuted[i]) {
+        if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
           if (KVS(i,j)) {
@@ -371,7 +390,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
       if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
         unsigned short baseAddr=chanOffs[i]|opOffs[j];
         DivInstrumentFM::Operator& op=chan[i].state.op[j];
-        if (isMuted[i]) {
+        if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
           if (KVS(i,j)) {
@@ -432,7 +451,7 @@ void DivPlatformGenesis::tick(bool sysTick) {
       }
       if (m.tl.had) {
         op.tl=127-m.tl.val;
-        if (isMuted[i]) {
+        if (isMuted[i] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
           if (KVS(i,j)) {
@@ -573,7 +592,7 @@ void DivPlatformGenesis::muteChannel(int ch, bool mute) {
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[ch]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[ch].state.op[j];
-      if (isMuted[ch]) {
+      if (isMuted[ch] || !op.enable) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
         if (KVS(ch,j)) {
@@ -602,7 +621,7 @@ void DivPlatformGenesis::commitState(int ch, DivInstrument* ins) {
   for (int i=0; i<4; i++) {
     unsigned short baseAddr=chanOffs[ch]|opOffs[i];
     DivInstrumentFM::Operator& op=chan[ch].state.op[i];
-    if (isMuted[ch]) {
+    if (isMuted[ch] || !op.enable) {
       rWrite(baseAddr+ADDR_TL,127);
     } else {
       if (KVS(ch,i)) {
@@ -669,7 +688,10 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
             break;
           } else {
             rWrite(0x2b,1<<7);
-            if (dumpWrites) addWrite(0xffff0000,chan[c.chan].dacSample);
+            if (dumpWrites) {
+              addWrite(0xffff0000,chan[c.chan].dacSample);
+              addWrite(0xffff0003,chan[c.chan].dacDirection);
+            }
           }
           chan[c.chan].dacPos=0;
           chan[c.chan].dacPeriod=0;
@@ -765,7 +787,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       for (int i=0; i<4; i++) {
         unsigned short baseAddr=chanOffs[c.chan]|opOffs[i];
         DivInstrumentFM::Operator& op=chan[c.chan].state.op[i];
-        if (isMuted[c.chan]) {
+        if (isMuted[c.chan] || !op.enable) {
           rWrite(baseAddr+ADDR_TL,127);
         } else {
           if (KVS(c.chan,i)) {
@@ -943,7 +965,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       unsigned short baseAddr=chanOffs[c.chan]|opOffs[orderedOps[c.value]];
       DivInstrumentFM::Operator& op=chan[c.chan].state.op[orderedOps[c.value]];
       op.tl=c.value2;
-      if (isMuted[c.chan]) {
+      if (isMuted[c.chan] || !op.enable) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
         if (KVS(c.chan,c.value)) {
@@ -1140,7 +1162,7 @@ void DivPlatformGenesis::forceIns() {
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[i]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[i].state.op[j];
-      if (isMuted[i]) {
+      if (isMuted[i] || !op.enable) {
         rWrite(baseAddr+ADDR_TL,127);
       } else {
         if (KVS(i,j)) {
@@ -1210,7 +1232,17 @@ void DivPlatformGenesis::reset() {
     fm_ymfm->reset();
   }
   OPN2_Reset(&fm);
-  OPN2_SetChipType(&fm,ladder?ym3438_mode_ym2612:0);
+  switch (chipType) {
+    case 1: // YM2612
+      OPN2_SetChipType(&fm,ym3438_mode_ym2612);
+      break;
+    case 2: // YMF276
+      OPN2_SetChipType(&fm,ym3438_mode_opn);
+      break;
+    default: // YM3438
+      OPN2_SetChipType(&fm,0);
+      break;
+  }
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
@@ -1310,14 +1342,28 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
       chipClock=COLOR_NTSC*15.0/7.0;
       break;
   }
-  ladder=flags.getBool("ladderEffect",false);
+  if (flags.has("chipType")) {
+    chipType=flags.getInt("chipType",0);
+  } else {
+    chipType=flags.getBool("ladderEffect",false)?1:0;
+  }
   noExtMacros=flags.getBool("noExtMacros",false);
   fbAllOps=flags.getBool("fbAllOps",false);
-  OPN2_SetChipType(&fm,ladder?ym3438_mode_ym2612:0);
+  switch (chipType) {
+    case 1: // YM2612
+      OPN2_SetChipType(&fm,ym3438_mode_ym2612);
+      break;
+    case 2: // YMF276
+      OPN2_SetChipType(&fm,ym3438_mode_opn);
+      break;
+    default: // YM3438
+      OPN2_SetChipType(&fm,0);
+      break;
+  }
   CHECK_CUSTOM_CLOCK;
   if (useYMFM) {
     if (fm_ymfm!=NULL) delete fm_ymfm;
-    if (ladder) {
+    if (chipType==1) {
       fm_ymfm=new ymfm::ym2612(iface);
     } else {
       fm_ymfm=new ymfm::ym3438(iface);
@@ -1334,7 +1380,7 @@ void DivPlatformGenesis::setFlags(const DivConfig& flags) {
 int DivPlatformGenesis::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
-  ladder=false;
+  chipType=0;
   skipRegisterWrites=false;
   flushFirst=false;
   for (int i=0; i<10; i++) {

@@ -185,6 +185,7 @@ TAParamResult pVersion(String) {
   printf("- MAME MSM6258 core by Barry Rodewald (BSD 3-clause)\n");
   printf("- MAME YMZ280B core by Aaron Giles (BSD 3-clause)\n");
   printf("- MAME GA20 core by Acho A. Tang and R. Belmont (BSD 3-clause)\n");
+  printf("- MAME SegaPCM core by Hiromitsu Shioya and Olivier Galibert (BSD 3-clause)\n");
   printf("- QSound core by superctr (BSD 3-clause)\n");
   printf("- VICE VIC-20 by Rami Rasanen and viznut (GPLv2)\n");
   printf("- VERA core by Frank van den Hoef (BSD 2-clause)\n");
@@ -341,6 +342,18 @@ void reportError(String what) {
 // TODO: CoInitializeEx on Windows?
 // TODO: add crash log
 int main(int argc, char** argv) {
+  // Windows console thing - thanks dj.tuBIG/MaliceX
+#ifdef _WIN32
+
+  if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+    freopen("CONIN$", "r", stdin);
+  }
+#endif
+
+  srand(time(NULL));
+
   initLog();
 #ifdef _WIN32
   // set DPI awareness
@@ -440,11 +453,9 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  logI("Furnace version " DIV_VERSION ".");
-
   e.preInit();
 
-  if (!fileName.empty()) {
+  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",false)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
     logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {

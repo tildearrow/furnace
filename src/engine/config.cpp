@@ -175,7 +175,7 @@ String DivConfig::getString(String key, String fallback) const {
   return fallback;
 }
 
-bool DivConfig::has(String key) {
+bool DivConfig::has(String key) const {
   try {
     String test=conf.at(key);
   } catch (std::out_of_range& e) {
