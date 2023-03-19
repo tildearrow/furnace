@@ -914,6 +914,9 @@ class DivEngine {
     // get macro interpreter
     DivMacroInt* getMacroInt(int chan);
 
+    // get sample position
+    DivSamplePos getSamplePos(int chan);
+
     // get osc buffer
     DivDispatchOscBuffer* getOscBuffer(int chan);
 

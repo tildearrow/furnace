@@ -2119,6 +2119,11 @@ DivMacroInt* DivEngine::getMacroInt(int chan) {
   return disCont[dispatchOfChan[chan]].dispatch->getChanMacroInt(dispatchChanOfChan[chan]);
 }
 
+DivSamplePos DivEngine::getSamplePos(int chan) {
+  if (chan<0 || chan>=chans) return DivSamplePos();
+  return disCont[dispatchOfChan[chan]].dispatch->getSamplePos(dispatchChanOfChan[chan]);
+}
+
 DivDispatchOscBuffer* DivEngine::getOscBuffer(int chan) {
   if (chan<0 || chan>=chans) return NULL;
   return disCont[dispatchOfChan[chan]].dispatch->getOscBuffer(dispatchChanOfChan[chan]);

@@ -293,6 +293,18 @@ struct DivDelayedWrite {
     write(a,v) {}
 };
 
+struct DivSamplePos {
+  int sample, pos, freq;
+  DivSamplePos(int s, int p, int f):
+    sample(s),
+    pos(p),
+    freq(f) {}
+  DivSamplePos():
+    sample(-1),
+    pos(0),
+    freq(0) {}
+};
+
 struct DivDispatchOscBuffer {
   bool follow;
   unsigned int rate;
@@ -371,18 +383,29 @@ class DivDispatch {
 
     /**
      * get the state of a channel.
+     * @param chan the channel.
      * @return a pointer, or NULL.
      */
     virtual void* getChanState(int chan);
 
     /**
-     * get the DivMacroInt of a chanmel.
+     * get the DivMacroInt of a channel.
+     * @param chan the channel.
      * @return a pointer, or NULL.
      */
     virtual DivMacroInt* getChanMacroInt(int chan);
 
     /**
+     * get currently playing sample (and its position).
+     * @param chan the channel.
+     * @return a DivSamplePos. if sample is -1 then nothing is playing or the
+     * channel doesn't play samples.
+     */
+    virtual DivSamplePos getSamplePos(int chan);
+
+    /**
      * get an oscilloscope buffer for a channel.
+     * @param chan the channel.
      * @return a pointer to a DivDispatchOscBuffer, or NULL if not supported.
      */
     virtual DivDispatchOscBuffer* getOscBuffer(int chan);

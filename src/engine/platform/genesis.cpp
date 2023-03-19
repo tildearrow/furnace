@@ -1209,6 +1209,16 @@ DivMacroInt* DivPlatformGenesis::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+DivSamplePos DivPlatformGenesis::getSamplePos(int ch) {
+  if (ch<5) return DivSamplePos();
+  if (ch>5 && !softPCM) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].dacSample,
+    chan[ch].dacPos,
+    chan[ch].dacRate
+  );
+}
+
 DivDispatchOscBuffer* DivPlatformGenesis::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
