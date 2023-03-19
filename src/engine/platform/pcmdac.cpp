@@ -441,6 +441,15 @@ DivMacroInt* DivPlatformPCMDAC::getChanMacroInt(int ch) {
   return &chan[0].std;
 }
 
+DivSamplePos DivPlatformPCMDAC::getSamplePos(int ch) {
+  if (ch>=1) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].sample,
+    chan[ch].audPos,
+    chan[ch].freq
+  );
+}
+
 void DivPlatformPCMDAC::notifyInsChange(int ins) {
   if (chan[0].ins==ins) {
     chan[0].insChanged=true;

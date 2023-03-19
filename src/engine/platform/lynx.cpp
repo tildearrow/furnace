@@ -415,6 +415,16 @@ DivMacroInt* DivPlatformLynx::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+DivSamplePos DivPlatformLynx::getSamplePos(int ch) {
+  if (ch>=4) return DivSamplePos();
+  if (!chan[ch].pcm) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].sample,
+    chan[ch].samplePos,
+    chan[ch].sampleFreq
+  );
+}
+
 DivDispatchOscBuffer* DivPlatformLynx::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

@@ -1210,6 +1210,7 @@ DivMacroInt* DivPlatformGenesis::getChanMacroInt(int ch) {
 }
 
 DivSamplePos DivPlatformGenesis::getSamplePos(int ch) {
+  if (!chan[5].dacMode) return DivSamplePos();
   if (ch<5) return DivSamplePos();
   if (ch>5 && !softPCM) return DivSamplePos();
   return DivSamplePos(

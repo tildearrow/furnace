@@ -765,6 +765,16 @@ DivMacroInt* DivPlatformAmiga::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+DivSamplePos DivPlatformAmiga::getSamplePos(int ch) {
+  if (ch>=4) return DivSamplePos();
+  if (chan[ch].sample<0 || chan[ch].sample>=parent->song.sampleLen) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].sample,
+    amiga.dmaLoc[ch]-sampleOff[chan[ch].sample],
+    chipClock/amiga.audPer[ch]
+  );
+}
+
 void DivPlatformAmiga::notifyInsChange(int ins) {
   for (int i=0; i<4; i++) {
     if (chan[i].ins==ins) {

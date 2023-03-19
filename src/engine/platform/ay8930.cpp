@@ -696,6 +696,15 @@ DivMacroInt* DivPlatformAY8930::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+DivSamplePos DivPlatformAY8930::getSamplePos(int ch) {
+  if (ch>=3) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].dac.sample,
+    chan[ch].dac.pos,
+    chan[ch].dac.rate
+  );
+}
+
 DivDispatchOscBuffer* DivPlatformAY8930::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
