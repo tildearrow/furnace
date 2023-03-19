@@ -681,6 +681,20 @@ DivMacroInt* DivPlatformSNES::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+DivSamplePos DivPlatformSNES::getSamplePos(int ch) {
+  if (ch>=8) return DivSamplePos();
+  if (!chan[ch].active) return DivSamplePos();
+  if (chan[ch].sample<0 || chan[ch].sample>=parent->song.sampleLen) return DivSamplePos();
+  const SPC_DSP::voice_t* v=dsp.get_voice(ch);
+  // TODO: fix?
+  if (sampleMem[v->brr_addr&0xffff]==0) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].sample,
+    ((v->brr_addr-sampleOff[chan[ch].sample])*16/9)+v->brr_offset,
+    (chan[ch].freq*125)/16
+  );
+}
+
 DivDispatchOscBuffer* DivPlatformSNES::getOscBuffer(int ch) {
   return oscBuf[ch];
 }
