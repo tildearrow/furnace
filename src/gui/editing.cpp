@@ -1005,6 +1005,13 @@ void FurnaceGUI::doUndo() {
       break;
   }
 
+  if (curOrder>=e->curSubSong->ordersLen) {
+    curOrder=e->curSubSong->ordersLen-1;
+    oldOrder=curOrder;
+    oldOrder1=curOrder;
+    e->setOrder(curOrder);
+  }
+
   undoHist.pop_back();
 }
 
@@ -1056,6 +1063,13 @@ void FurnaceGUI::doRedo() {
       }
 
       break;
+  }
+
+  if (curOrder>=e->curSubSong->ordersLen) {
+    curOrder=e->curSubSong->ordersLen-1;
+    oldOrder=curOrder;
+    oldOrder1=curOrder;
+    e->setOrder(curOrder);
   }
 
   redoHist.pop_back();
