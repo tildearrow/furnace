@@ -1367,6 +1367,7 @@ void FurnaceGUI::drawSampleEdit() {
           }
         }
 
+        dl->PushClipRect(rectMin,rectMax);
         if (e->isPreviewingSample()) {
           if (!statusBar2.empty()) {
             statusBar2+=" | ";
@@ -1380,7 +1381,6 @@ void FurnaceGUI::drawSampleEdit() {
             end^=start;
             start^=end;
           }
-          ImDrawList* dl=ImGui::GetWindowDrawList();
           ImVec2 p1=rectMin;
           p1.x+=(e->getSamplePreviewPos()-samplePos)/sampleZoom;     
           ImVec4 posColor=uiColors[GUI_COLOR_SAMPLE_NEEDLE];
@@ -1390,8 +1390,8 @@ void FurnaceGUI::drawSampleEdit() {
           posTrail2.w=0.0f;
           float trailDistance=(e->getSamplePreviewRate()/100.0f)/sampleZoom;
 
-          if (p1.x<rectMin.x) p1.x=rectMin.x;
-          if (p1.x>rectMax.x) p1.x=rectMax.x;
+          //if (p1.x<rectMin.x) p1.x=rectMin.x;
+          //if (p1.x>rectMax.x) p1.x=rectMax.x;
 
           ImVec2 p2=p1;
           p2.y=rectMax.y;
@@ -1419,7 +1419,6 @@ void FurnaceGUI::drawSampleEdit() {
               end^=start;
               start^=end;
             }
-            ImDrawList* dl=ImGui::GetWindowDrawList();
             ImVec2 p1=rectMin;
             p1.x+=(chanPos.pos-samplePos)/sampleZoom;     
             ImVec4 posColor=uiColors[GUI_COLOR_SAMPLE_NEEDLE_PLAYING];
@@ -1429,8 +1428,8 @@ void FurnaceGUI::drawSampleEdit() {
             posTrail2.w=0.0f;
             float trailDistance=((float)chanPos.freq/100.0f)/sampleZoom;
 
-            if (p1.x<rectMin.x) p1.x=rectMin.x;
-            if (p1.x>rectMax.x) p1.x=rectMax.x;
+            //if (p1.x<rectMin.x) p1.x=rectMin.x;
+            //if (p1.x>rectMax.x) p1.x=rectMax.x;
 
             ImVec2 p2=p1;
             p2.y=rectMax.y;
@@ -1446,6 +1445,7 @@ void FurnaceGUI::drawSampleEdit() {
             dl->AddLine(p1,p2,ImGui::GetColorU32(posColor));
           }
         }
+        dl->PopClipRect();
 
         if (drawSelection) {
           int start=sampleSelStart;
@@ -1455,7 +1455,6 @@ void FurnaceGUI::drawSampleEdit() {
             end^=start;
             start^=end;
           }
-          ImDrawList* dl=ImGui::GetWindowDrawList();
           ImVec2 p1=rectMin;
           p1.x+=(start-samplePos)/sampleZoom;
 
