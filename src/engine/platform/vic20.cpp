@@ -75,7 +75,6 @@ void DivPlatformVIC20::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformVIC20::calcAndWriteOutVol(int ch, int env) {
-  logV("calcAndWriteOutVol (%d, %d)",ch,env);
   chan[ch].outVol=MIN(chan[ch].vol*env/15,15);
   writeOutVol(ch);
 }
