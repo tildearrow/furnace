@@ -22,3 +22,5 @@ android/app/.cxx/
 CMakeSettings.json
 CMakePresets.json
 extern/imgui_patched/examples/
+src/asm/68k/amigatest/*.bin
+src/asm/68k/amigatest/player

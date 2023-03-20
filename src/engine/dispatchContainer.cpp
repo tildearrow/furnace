@@ -59,6 +59,7 @@
 #include "platform/lynx.h"
 #include "platform/pokey.h"
 #include "platform/zxbeeper.h"
+#include "platform/zxbeeperquadtone.h"
 #include "platform/bubsyswsg.h"
 #include "platform/n163.h"
 #include "platform/pet.h"
@@ -76,6 +77,7 @@
 #include "platform/k007232.h"
 #include "platform/ga20.h"
 #include "platform/sm8521.h"
+#include "platform/pv1000.h"
 #include "platform/pcmdac.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
@@ -388,6 +390,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
     case DIV_SYSTEM_SFX_BEEPER:
       dispatch=new DivPlatformZXBeeper;
       break;
+    case DIV_SYSTEM_SFX_BEEPER_QUADTONE:
+      dispatch=new DivPlatformZXBeeperQuadTone;
+      break;
     case DIV_SYSTEM_LYNX:
       dispatch=new DivPlatformLynx;
       break;
@@ -492,6 +497,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_SM8521:
       dispatch=new DivPlatformSM8521;
+      break;
+    case DIV_SYSTEM_PV1000:
+      dispatch=new DivPlatformPV1000;
       break;
     case DIV_SYSTEM_PCM_DAC:
       dispatch=new DivPlatformPCMDAC;

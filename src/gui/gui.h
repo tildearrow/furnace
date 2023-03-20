@@ -68,6 +68,8 @@
 
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
 
+#define FM_PREVIEW_SIZE 512
+
 // TODO:
 // - add colors for FM envelope and waveform
 // - maybe add "alternate" color for FM modulators/carriers (a bit difficult)
@@ -190,6 +192,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_GA20,
   GUI_COLOR_INSTR_POKEMINI,
   GUI_COLOR_INSTR_SM8521,
+  GUI_COLOR_INSTR_PV1000,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -1004,12 +1007,14 @@ struct FurnaceGUITutorialStep {
   const char* text;
   int waitForTrigger;
   TutorialFunc run;
+  TutorialFunc runBefore;
   TutorialFunc runAfter;
   
-  FurnaceGUITutorialStep(const char* t, int trigger=-1, TutorialFunc activeFunc=NULL, TutorialFunc endFunc=NULL):
+  FurnaceGUITutorialStep(const char* t, int trigger=-1, TutorialFunc activeFunc=NULL, TutorialFunc beginFunc=NULL, TutorialFunc endFunc=NULL):
     text(t),
     waitForTrigger(trigger),
     run(activeFunc),
+    runBefore(beginFunc),
     runAfter(endFunc) {}
 };
 
@@ -1189,6 +1194,9 @@ class FurnaceGUI {
   ImVec2 mobileEditButtonPos, mobileEditButtonSize;
   const int* curSysSection;
   DivInstrumentFM opllPreview;
+  short fmPreview[FM_PREVIEW_SIZE];
+  bool updateFMPreview, fmPreviewOn, fmPreviewPaused;
+  void* fmPreviewOPN;
 
   String pendingRawSample;
   int pendingRawSampleDepth, pendingRawSampleChannels;
@@ -1340,6 +1348,7 @@ class FurnaceGUI {
     int doubleClickColumn;
     int blankIns;
     int dragMovesSelection;
+    int cursorFollowsOrder;
     int unsignedDetune;
     int noThreadedInput;
     int saveWindowPos;
@@ -1365,6 +1374,7 @@ class FurnaceGUI {
     int oneDigitEffects;
     int disableFadeIn;
     int alwaysPlayIntro;
+    int iCannotWait;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1480,6 +1490,7 @@ class FurnaceGUI {
       doubleClickColumn(1),
       blankIns(0),
       dragMovesSelection(1),
+      cursorFollowsOrder(1),
       unsignedDetune(0),
       noThreadedInput(0),
       clampSamples(0),
@@ -1504,6 +1515,7 @@ class FurnaceGUI {
       oneDigitEffects(0),
       disableFadeIn(0),
       alwaysPlayIntro(0),
+      iCannotWait(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1880,6 +1892,8 @@ class FurnaceGUI {
   void drawGBEnv(unsigned char vol, unsigned char len, unsigned char sLen, bool dir, const ImVec2& size);
   bool drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange);
   void kvsConfig(DivInstrument* ins);
+  void drawFMPreview(const ImVec2& size);
+  void renderFMPreview(const DivInstrumentFM& params, int pos=0);
 
   // these ones offer ctrl-wheel fine value changes.
   bool CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format=NULL, ImGuiSliderFlags flags=0);
@@ -1921,6 +1935,8 @@ class FurnaceGUI {
 
   void pushToggleColors(bool status);
   void popToggleColors();
+
+  void highlightWindow(const char* winName);
 
   FurnaceGUIImage* getImage(FurnaceGUIImages image);
   SDL_Texture* getTexture(FurnaceGUIImages image, SDL_BlendMode blendMode=SDL_BLENDMODE_BLEND);

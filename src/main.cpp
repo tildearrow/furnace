@@ -352,6 +352,8 @@ int main(int argc, char** argv) {
   }
 #endif
 
+  srand(time(NULL));
+
   initLog();
 #ifdef _WIN32
   // set DPI awareness

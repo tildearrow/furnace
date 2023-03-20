@@ -519,6 +519,14 @@ void FurnaceGUI::drawDebug() {
       ImGui::InputFloat("maxRr",&maxRr);
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("FM Preview")) {
+      float asFloat[FM_PREVIEW_SIZE];
+      for (int i=0; i<FM_PREVIEW_SIZE; i++) {
+        asFloat[i]=(float)fmPreview[i]/8192.0f;
+      }
+      ImGui::PlotLines("##DebugFMPreview",asFloat,FM_PREVIEW_SIZE,0,"Preview",-1.0,1.0,ImVec2(300.0f*dpiScale,150.0f*dpiScale));
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("User Interface")) {
       if (ImGui::Button("Inspect")) {
         inspectorOpen=!inspectorOpen;

@@ -256,6 +256,16 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_POKEMINI, 0.5f, 0, "")
     }
   );
+  ENTRY(
+    "Tiger Game.com", {
+      CH(DIV_SYSTEM_SM8521, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Casio PV-1000", {
+      CH(DIV_SYSTEM_PV1000, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Computers","let's get to work on chiptune today.");
@@ -1101,7 +1111,7 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Commander X16", {
       CH(DIV_SYSTEM_VERA, 1.0f, 0, ""),
-      CH(DIV_SYSTEM_YM2151, 0.5f, 0, "")
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "")
     }
   );
   ENTRY(
@@ -2363,6 +2373,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Pong", {
       CH(DIV_SYSTEM_PONG, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "NEC D65010G031", {
+      CH(DIV_SYSTEM_PV1000, 1.0f, 0, "")
     }
   );
   CATEGORY_END;

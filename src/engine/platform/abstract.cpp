@@ -37,6 +37,10 @@ DivMacroInt* DivDispatch::getChanMacroInt(int chan) {
   return NULL;
 }
 
+DivSamplePos DivDispatch::getSamplePos(int chan) {
+  return DivSamplePos();
+}
+
 DivDispatchOscBuffer* DivDispatch::getOscBuffer(int chan) {
   return NULL;
 }

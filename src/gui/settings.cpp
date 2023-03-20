@@ -652,6 +652,14 @@ void FurnaceGUI::drawSettings() {
             settings.saveUnusedPatterns=saveUnusedPatternsB;
           }
 
+          bool cursorFollowsOrderB=settings.cursorFollowsOrder;
+          if (ImGui::Checkbox("Cursor follows current order when moving it",&cursorFollowsOrderB)) {
+            settings.cursorFollowsOrder=cursorFollowsOrderB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("applies when playback is stopped.");
+          }
+
           ImGui::Text("Audio export loop/fade out time:");
           if (ImGui::RadioButton("Set to these values on start-up:##fot0",settings.persistFadeOut==0)) {
             settings.persistFadeOut=0;
@@ -1929,6 +1937,7 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_GA20,"GA20");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_POKEMINI,"Pokémon Mini");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_SM8521,"SM8521");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_PV1000,"PV-1000");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
               ImGui::TreePop();
             }
@@ -2407,6 +2416,7 @@ void FurnaceGUI::drawSettings() {
         // "Debug" - toggles mobile UI
         // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/SoundUnit/Dummy)
         // "42 63" - enables all instrument types
+        // "????" - enables stuff
         if (ImGui::BeginTabItem("Cheat Codes")) {
           ImVec2 settingsViewSize=ImGui::GetContentRegionAvail();
           settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
@@ -2609,6 +2619,8 @@ void FurnaceGUI::syncSettings() {
   settings.oneDigitEffects=e->getConfInt("oneDigitEffects",0);
   settings.disableFadeIn=e->getConfInt("disableFadeIn",0);
   settings.alwaysPlayIntro=e->getConfInt("alwaysPlayIntro",0);
+  settings.cursorFollowsOrder=e->getConfInt("cursorFollowsOrder",1);
+  settings.iCannotWait=e->getConfInt("iCannotWait",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2723,6 +2735,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.oneDigitEffects,0,1);
   clampSetting(settings.disableFadeIn,0,1);
   clampSetting(settings.alwaysPlayIntro,0,3);
+  clampSetting(settings.cursorFollowsOrder,0,1);
+  clampSetting(settings.iCannotWait,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -2932,6 +2946,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("oneDigitEffects",settings.oneDigitEffects);
   e->setConf("disableFadeIn",settings.disableFadeIn);
   e->setConf("alwaysPlayIntro",settings.alwaysPlayIntro);
+  e->setConf("cursorFollowsOrder",settings.cursorFollowsOrder);
+  e->setConf("iCannotWait",settings.iCannotWait);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

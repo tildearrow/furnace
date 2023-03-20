@@ -27,10 +27,12 @@
 class DivPlatformVIC20: public DivDispatch {
   struct Channel: public SharedChannel<int> {
     int wave, waveWriteCycle;
+    bool onOff;
     Channel():
       SharedChannel<int>(15),
       wave(0),
-      waveWriteCycle(-1) {}
+      waveWriteCycle(-1),
+      onOff(true) {}
   };
   Channel chan[4];
   DivDispatchOscBuffer* oscBuf[4];

@@ -23,6 +23,7 @@
 #include "instrument.h"
 #include "song.h"
 #include "dispatch.h"
+#include "export.h"
 #include "dataErrors.h"
 #include "safeWriter.h"
 #include "../audio/taAudio.h"
@@ -47,11 +48,16 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
-#define DIV_VERSION "0.6pre4-hotfix"
-#define DIV_ENGINE_VERSION 144
+#define EXTERN_BUSY_BEGIN e->softLocked=false; e->isBusy.lock();
+#define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
+#define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
+
+#define DIV_VERSION "dev145"
+#define DIV_ENGINE_VERSION 145
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
+#define DIV_VERSION_S3M 0xff03
 
 // "Namco C163"
 #define DIV_C163_DEFAULT_NAME "Namco 163"
@@ -454,9 +460,12 @@ class DivEngine {
   void reset();
   void playSub(bool preserveDrift, int goalRow=0);
 
+  void testFunction();
+
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
   bool loadMod(unsigned char* file, size_t len);
+  bool loadS3M(unsigned char* file, size_t len);
   bool loadFTM(unsigned char* file, size_t len);
   bool loadFC(unsigned char* file, size_t len);
 
@@ -489,6 +498,13 @@ class DivEngine {
 
   // change song (UNSAFE)
   void changeSong(size_t songIndex);
+
+  // check whether an asset directory is complete
+  void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries);
+
+  // add every export method here
+  friend class DivROMExport;
+  friend class DivExportAmigaValidation;
 
   public:
     DivSong song;
@@ -526,7 +542,7 @@ class DivEngine {
     SafeWriter* saveFur(bool notPrimary=false);
     // build a ROM file (TODO).
     // specify system to build ROM for.
-    SafeWriter* buildROM(int sys);
+    std::vector<DivROMExportOutput> buildROM(DivROMExportOptions sys);
     // dump to VGM.
     // set trailingTicks to:
     // - 0 to add one tick of trailing
@@ -897,6 +913,9 @@ class DivEngine {
 
     // get macro interpreter
     DivMacroInt* getMacroInt(int chan);
+
+    // get sample position
+    DivSamplePos getSamplePos(int chan);
 
     // get osc buffer
     DivDispatchOscBuffer* getOscBuffer(int chan);

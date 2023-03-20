@@ -34,6 +34,8 @@ public:
 	void write(unsigned int offset, uint8_t data);
 	uint8_t read(unsigned int offset);
   uint8_t* get_ram();
+  unsigned int get_addr(int ch);
+  bool is_playing(int ch);
   void mute(int ch, bool doMute);
 
 	// device-level overrides

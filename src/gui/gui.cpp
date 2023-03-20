@@ -1175,6 +1175,7 @@ void FurnaceGUI::valueInput(int num, bool direct, int target) {
     if (settings.absorbInsInput) {
       curIns=pat->data[cursor.y][target];
       wavePreviewInit=true;
+      updateFMPreview=true;
     }
     makeUndo(GUI_UNDO_PATTERN_EDIT);
     if (direct) {
@@ -3404,6 +3405,7 @@ bool FurnaceGUI::loop() {
               curIns=msg.data[0];
               if (curIns>=(int)e->song.ins.size()) curIns=e->song.ins.size()-1;
               wavePreviewInit=true;
+              updateFMPreview=true;
             }
             break;
           case TA_MIDI_CONTROL:
@@ -3668,18 +3670,53 @@ bool FurnaceGUI::loop() {
         }
         if (numZSMCompat > 0) {
           if (ImGui::BeginMenu("export ZSM...")) {
-              ImGui::Text("Commander X16 Zsound Music File");
-              if (ImGui::InputInt("Tick Rate (Hz)",&zsmExportTickRate,1,2)) {
-                if (zsmExportTickRate<1) zsmExportTickRate=1;
-                if (zsmExportTickRate>44100) zsmExportTickRate=44100;
+            ImGui::Text("Commander X16 Zsound Music File");
+            if (ImGui::InputInt("Tick Rate (Hz)",&zsmExportTickRate,1,2)) {
+              if (zsmExportTickRate<1) zsmExportTickRate=1;
+              if (zsmExportTickRate>44100) zsmExportTickRate=44100;
+            }
+            ImGui::Checkbox("loop",&zsmExportLoop);
+            ImGui::SameLine();
+            if (ImGui::Button("Begin Export")) {
+              openFileDialog(GUI_FILE_EXPORT_ZSM);
+              ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndMenu();
+          }
+        }
+        int numAmiga=0;
+        for (int i=0; i<e->song.systemLen; i++) {
+          if (e->song.system[i]==DIV_SYSTEM_AMIGA) numAmiga++;
+        }
+        if (numAmiga && settings.iCannotWait) {
+          if (ImGui::BeginMenu("export Amiga validation data...")) {
+            ImGui::Text(
+              "this is NOT ROM export! only use for making sure the\n"
+              "Furnace Amiga emulator is working properly by\n"
+              "comparing it with real Amiga output."
+            );
+            ImGui::Text("Directory");
+            ImGui::SameLine();
+            ImGui::InputText("##AVDPath",&workingDirROMExport);
+            if (ImGui::Button("Bake Data")) {
+              std::vector<DivROMExportOutput> out=e->buildROM(DIV_ROM_AMIGA_VALIDATION);
+              if (workingDirROMExport.size()>0) {
+                if (workingDirROMExport[workingDirROMExport.size()-1]!=DIR_SEPARATOR) workingDirROMExport+=DIR_SEPARATOR_STR;
               }
-              ImGui::Checkbox("loop",&zsmExportLoop);
-              ImGui::SameLine();
-              if (ImGui::Button("Begin Export")) {
-                  openFileDialog(GUI_FILE_EXPORT_ZSM);
-                  ImGui::CloseCurrentPopup();
+              for (DivROMExportOutput& i: out) {
+                String path=workingDirROMExport+i.name;
+                FILE* outFile=ps_fopen(path.c_str(),"wb");
+                if (outFile!=NULL) {
+                  fwrite(i.data->getFinalBuf(),1,i.data->size(),outFile);
+                  fclose(outFile);
+                }
+                i.data->finish();
+                delete i.data;
               }
-              ImGui::EndMenu();
+              showError(fmt::sprintf("Done! Baked %d files.",(int)out.size()));
+              ImGui::CloseCurrentPopup();
+            }
+            ImGui::EndMenu();
           }
         }
         if (ImGui::BeginMenu("export command stream...")) {
@@ -4076,6 +4113,8 @@ bool FurnaceGUI::loop() {
       drawEffectList();
     }
 
+    activateTutorial(GUI_TUTORIAL_OVERVIEW);
+
     if (inspectorOpen) ImGui::ShowMetricsWindow(&inspectorOpen);
 
     if (firstFrame) {
@@ -4121,6 +4160,7 @@ bool FurnaceGUI::loop() {
         } else {
           curIns=prevIns;
           wavePreviewInit=true;
+          updateFMPreview=true;
         }
         prevIns=-3;
       }
@@ -4738,7 +4778,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    drawTutorial();
+    //drawTutorial();
 
     ImVec2 newSongMinSize=mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(400.0f*dpiScale,200.0f*dpiScale);
     ImVec2 newSongMaxSize=ImVec2(canvasW-((mobileUI && !portrait)?(60.0*dpiScale):0),canvasH-(mobileUI?(60.0*dpiScale):0));
@@ -5118,6 +5158,7 @@ bool FurnaceGUI::loop() {
               if (i!=DIV_INS_AMIGA) e->song.ins[curIns]->amiga.useSample=true;
               nextWindow=GUI_WINDOW_INS_EDIT;
               wavePreviewInit=true;
+              updateFMPreview=true;
             }
             MARK_MODIFIED;
           }
@@ -5433,6 +5474,7 @@ bool FurnaceGUI::init() {
   waveSigned=e->getConfBool("waveSigned",false);
   waveGenVisible=e->getConfBool("waveGenVisible",false);
   waveEditStyle=e->getConfInt("waveEditStyle",0);
+  extraChannelButtons=e->getConfInt("extraChannelButtons",0);
   lockLayout=e->getConfBool("lockLayout",false);
 #ifdef IS_MOBILE
   fullScreen=true;
@@ -5847,6 +5889,7 @@ void FurnaceGUI::commitState() {
   e->setConf("waveSigned",waveSigned);
   e->setConf("waveGenVisible",waveGenVisible);
   e->setConf("waveEditStyle",waveEditStyle);
+  e->setConf("extraChannelButtons",extraChannelButtons);
   e->setConf("lockLayout",lockLayout);
   e->setConf("fullScreen",fullScreen);
   e->setConf("mobileUI",mobileUI);
@@ -5977,6 +6020,10 @@ FurnaceGUI::FurnaceGUI():
   mobileEditButtonPos(0.7f,0.7f),
   mobileEditButtonSize(60.0f,60.0f),
   curSysSection(NULL),
+  updateFMPreview(true),
+  fmPreviewOn(false),
+  fmPreviewPaused(false),
+  fmPreviewOPN(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),
   pendingRawSampleUnsigned(false),

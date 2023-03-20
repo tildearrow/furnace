@@ -1830,7 +1830,29 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_NOISE},
     {DIV_INS_SM8521, DIV_INS_SM8521, DIV_INS_SM8521},
     {},
-    namcoEffectHandlerMap
+    waveOnlyEffectHandlerMap
+  );
+
+  sysDefs[DIV_SYSTEM_PV1000]=new DivSysDef(
+    "Casio PV-1000", NULL, 0xcb, 0, 3, false, true, 0, false, 0,
+    "a game console with 3 channels of square wave. it's what happens after fusing TIA and VIC together.",
+    {"Square 1", "Square 2", "Square 3"},
+    {"S1", "S2", "S3"},
+    {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
+    {DIV_INS_PV1000, DIV_INS_PV1000, DIV_INS_PV1000}
+  );
+
+  sysDefs[DIV_SYSTEM_SFX_BEEPER_QUADTONE]=new DivSysDef(
+    "ZX Spectrum Beeper (QuadTone Engine)", NULL, 0xca, 0, 5, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Another ZX Spectrum beeper system with full PWM pulses and 3-level volume per channel. It also has a pitchable overlay sample channel.",
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "PCM"},
+    {"CH1", "CH2", "CH3", "CH4", "PCM"},
+    {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM},
+    {DIV_INS_POKEMINI, DIV_INS_POKEMINI, DIV_INS_POKEMINI, DIV_INS_POKEMINI, DIV_INS_AMIGA},
+    {},
+    {
+      {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set pulse width"}}
+    }
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(

@@ -83,6 +83,7 @@ enum DivSystem {
   DIV_SYSTEM_VRC7,
   DIV_SYSTEM_YM2610B,
   DIV_SYSTEM_SFX_BEEPER,
+  DIV_SYSTEM_SFX_BEEPER_QUADTONE,
   DIV_SYSTEM_YM2612_EXT,
   DIV_SYSTEM_SCC,
   DIV_SYSTEM_OPL_DRUMS,
@@ -125,7 +126,8 @@ enum DivSystem {
   DIV_SYSTEM_YM2610B_CSM,
   DIV_SYSTEM_YM2203_CSM,
   DIV_SYSTEM_YM2608_CSM,
-  DIV_SYSTEM_SM8521
+  DIV_SYSTEM_SM8521,
+  DIV_SYSTEM_PV1000
 };
 
 struct DivGroovePattern {
@@ -177,6 +179,16 @@ struct DivSubSong {
       chanCollapse[i]=0;
     }
   }
+};
+
+struct DivAssetDir {
+  String name;
+  std::vector<int> entries;
+
+  DivAssetDir():
+    name("New Directory") {}
+  DivAssetDir(String n):
+    name(n) {}
 };
 
 struct DivSong {
@@ -348,6 +360,10 @@ struct DivSong {
   std::vector<DivSubSong*> subsong;
   std::vector<unsigned int> patchbay;
   std::vector<DivGroovePattern> grooves;
+
+  std::vector<DivAssetDir> insDir;
+  std::vector<DivAssetDir> waveDir;
+  std::vector<DivAssetDir> sampleDir;
 
   DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsOPLDrums, nullInsQSound;
   DivWavetable nullWave;

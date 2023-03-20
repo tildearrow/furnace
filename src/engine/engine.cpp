@@ -1567,6 +1567,49 @@ void DivEngine::changeSong(size_t songIndex) {
   prevRow=0;
 }
 
+void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
+  bool* inAssetDir=new bool[entries];
+  memset(inAssetDir,0,entries*sizeof(bool));
+
+  for (DivAssetDir& i: dir) {
+    for (size_t j=0; j<i.entries.size(); j++) {
+      // erase invalid entry
+      if (i.entries[j]<0 || i.entries[j]>=(int)entries) {
+        i.entries.erase(i.entries.begin()+j);
+        j--;
+        continue;
+      }
+      
+      // mark entry as present
+      inAssetDir[j]=true;
+    }
+  }
+
+  // get unsorted directory
+  DivAssetDir* unsortedDir=NULL;
+  for (DivAssetDir& i: dir) {
+    if (i.name.empty()) {
+      unsortedDir=&i;
+      break;
+    }
+  }
+
+  // create unsorted directory if it doesn't exist
+  if (unsortedDir==NULL) {
+    dir.push_back(DivAssetDir(""));
+    unsortedDir=&(*dir.rbegin());
+  }
+
+  // add missing items to unsorted directory
+  for (size_t i=0; i<entries; i++) {
+    if (!inAssetDir[i]) {
+      unsortedDir->entries.push_back(i);
+    }
+  }
+
+  delete[] inAssetDir;
+}
+
 void DivEngine::swapChannelsP(int src, int dest) {
   if (src<0 || src>=chans) return;
   if (dest<0 || dest>=chans) return;
@@ -2076,6 +2119,11 @@ DivMacroInt* DivEngine::getMacroInt(int chan) {
   return disCont[dispatchOfChan[chan]].dispatch->getChanMacroInt(dispatchChanOfChan[chan]);
 }
 
+DivSamplePos DivEngine::getSamplePos(int chan) {
+  if (chan<0 || chan>=chans) return DivSamplePos();
+  return disCont[dispatchOfChan[chan]].dispatch->getSamplePos(dispatchChanOfChan[chan]);
+}
+
 DivDispatchOscBuffer* DivEngine::getOscBuffer(int chan) {
   if (chan<0 || chan>=chans) return NULL;
   return disCont[dispatchOfChan[chan]].dispatch->getOscBuffer(dispatchChanOfChan[chan]);
@@ -2455,6 +2503,10 @@ void DivEngine::recalcChans() {
     if (isInsTypePossible[i]) possibleInsTypes.push_back((DivInstrumentType)i);
   }
 
+  checkAssetDir(song.insDir,song.ins.size());
+  checkAssetDir(song.waveDir,song.wave.size());
+  checkAssetDir(song.sampleDir,song.sample.size());
+
   hasLoadedSomething=true;
 }
 
@@ -2531,6 +2583,10 @@ int DivEngine::divToFileRate(int drate) {
     return 0;
   }
   return 4;
+}
+
+void DivEngine::testFunction() {
+  logI("it works!");
 }
 
 int DivEngine::getEffectiveSampleRate(int rate) {
@@ -3625,7 +3681,8 @@ void DivEngine::addOrder(int pos, bool duplicate, bool where) {
     }
     curSubSong->ordersLen++;
     saveLock.unlock();
-    if (pos<=curOrder) curOrder++;
+    curOrder=pos+1;
+    prevOrder=curOrder;
     if (playing && !freelance) {
       playSub(false);
     }

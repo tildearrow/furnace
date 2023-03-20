@@ -123,6 +123,9 @@ public:
 		uint8_t t_envx_out;
 		sample_t out[2];        // Furnace addition, for per-channel oscilloscope
 	};
+
+  // Furnace addition, gets a voice
+  const voice_t* get_voice(int n);
 private:
 	enum { brr_block_size = 9 };
 	
@@ -296,6 +299,10 @@ inline void SPC_DSP::get_voice_outputs( sample_t* outs )
 		outs [i * 2] = v->out [0];
 		outs [i * 2 + 1] = v->out [1];
 	}
+}
+
+inline const SPC_DSP::voice_t* SPC_DSP::get_voice(int n) {
+  return &m.voices[n];
 }
 
 #if !SPC_NO_COPY_STATE_FUNCS

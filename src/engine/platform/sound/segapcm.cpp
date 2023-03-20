@@ -134,6 +134,18 @@ uint8_t* segapcm_device::get_ram() {
   return m_ram;
 }
 
+unsigned int segapcm_device::get_addr(int ch) {
+  uint8_t *regs = &m_ram[8*ch];
+  int offset = (regs[0x86] & m_bankmask) << m_bankshift;
+  uint32_t addr = (regs[0x85] << 8) | (regs[0x84]) | offset;
+  return addr;
+}
+
+bool segapcm_device::is_playing(int ch) {
+  uint8_t *regs = &m_ram[8*ch];
+  return !(regs[0x86]&1);
+}
+
 void segapcm_device::mute(int ch, bool doMute) {
   m_muted[ch&15]=doMute;
 }

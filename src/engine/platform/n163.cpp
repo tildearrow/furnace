@@ -19,6 +19,7 @@
 
 #include "n163.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <math.h>
 
 #define rRead(a,v) n163.addr_w(a); n163.data_r(v);
@@ -166,6 +167,7 @@ void DivPlatformN163::updateWave(int ch, int wave, int pos, int len) {
 
 void DivPlatformN163::updateWaveCh(int ch) {
   if (ch<=chanMax) {
+    logV("updateWave with pos %d and len %d",chan[ch].wavePos,chan[ch].waveLen);
     updateWave(ch,-1,chan[ch].wavePos,chan[ch].waveLen);
     if (chan[ch].active && !isMuted[ch]) {
       chan[ch].volumeChanged=true;
@@ -337,15 +339,15 @@ int DivPlatformN163::dispatch(DivCommand c) {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_N163);
       if (chan[c.chan].insChanged) {
         chan[c.chan].wave=ins->n163.wave;
-        chan[c.chan].ws.changeWave1(chan[c.chan].wave);
         chan[c.chan].wavePos=ins->n163.wavePos;
         chan[c.chan].waveLen=ins->n163.waveLen;
         chan[c.chan].waveMode=ins->n163.waveMode;
+        chan[c.chan].ws.init(NULL,chan[c.chan].waveLen,15,false);
+        chan[c.chan].ws.changeWave1(chan[c.chan].wave);
         chan[c.chan].waveChanged=true;
         if (chan[c.chan].waveMode&0x3 || ins->ws.enabled) {
           chan[c.chan].waveUpdated=true;
         }
-        chan[c.chan].insChanged=false;
       }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
@@ -360,6 +362,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
       }
       chan[c.chan].macroInit(ins);
       chan[c.chan].ws.init(ins,chan[c.chan].waveLen,15,chan[c.chan].insChanged);
+      chan[c.chan].insChanged=false;
       break;
     }
     case DIV_CMD_NOTE_OFF:

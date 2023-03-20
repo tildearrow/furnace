@@ -5,6 +5,9 @@
 SM8521 sound emulator
 by cam900
 
+MODIFIED BY TILDEARROW
+THIS IS NOT THE ORIGINAL VERSION
+
 This file is licensed under zlib license.
 
 ============================================================================
