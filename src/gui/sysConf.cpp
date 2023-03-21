@@ -1791,6 +1791,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_GA20:
     case DIV_SYSTEM_PV1000:
     case DIV_SYSTEM_VERA:
+      break;
     case DIV_SYSTEM_YMU759:
       supportsCustomRate=false;
       ImGui::Text("nothing to configure");
