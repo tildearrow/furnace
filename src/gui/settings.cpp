@@ -1149,6 +1149,11 @@ void FurnaceGUI::drawSettings() {
               settings.midiOutClock=midiOutClockB;
             }
 
+            bool midiOutProgramChangeB=settings.midiOutProgramChange;
+            if (ImGui::Checkbox("Send Program Change",&midiOutProgramChangeB)) {
+              settings.midiOutProgramChange=midiOutProgramChangeB;
+            }
+
             ImGui::TreePop();
           }
         }
@@ -2608,6 +2613,7 @@ void FurnaceGUI::syncSettings() {
   settings.channelTextCenter=e->getConfInt("channelTextCenter",1);
   settings.maxRecentFile=e->getConfInt("maxRecentFile",10);
   settings.midiOutClock=e->getConfInt("midiOutClock",0);
+  settings.midiOutProgramChange=e->getConfInt("midiOutProgramChange",0);
   settings.midiOutMode=e->getConfInt("midiOutMode",1);
   settings.centerPattern=e->getConfInt("centerPattern",0);
   settings.ordersCursor=e->getConfInt("ordersCursor",1);
@@ -2726,6 +2732,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.channelTextCenter,0,1);
   clampSetting(settings.maxRecentFile,0,30);
   clampSetting(settings.midiOutClock,0,1);
+  clampSetting(settings.midiOutProgramChange,0,1);
   clampSetting(settings.midiOutMode,0,2);
   clampSetting(settings.centerPattern,0,1);
   clampSetting(settings.ordersCursor,0,1);
@@ -2935,6 +2942,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("channelTextCenter",settings.channelTextCenter);
   e->setConf("maxRecentFile",settings.maxRecentFile);
   e->setConf("midiOutClock",settings.midiOutClock);
+  e->setConf("midiOutProgramChange",settings.midiOutProgramChange);
   e->setConf("midiOutMode",settings.midiOutMode);
   e->setConf("centerPattern",settings.centerPattern);
   e->setConf("ordersCursor",settings.ordersCursor);

@@ -365,6 +365,7 @@ class DivEngine {
   bool systemsRegistered;
   bool hasLoadedSomething;
   bool midiOutClock;
+  bool midiOutProgramChange;
   int midiOutMode;
   int softLockCount;
   int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
@@ -1110,6 +1111,7 @@ class DivEngine {
       systemsRegistered(false),
       hasLoadedSomething(false),
       midiOutClock(false),
+      midiOutProgramChange(false),
       midiOutMode(DIV_MIDI_MODE_NOTE),
       softLockCount(0),
       subticks(0),
