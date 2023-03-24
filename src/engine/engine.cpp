@@ -4379,6 +4379,7 @@ bool DivEngine::initAudioBackend() {
   lowLatency=getConfInt("lowLatency",0);
   metroVol=(float)(getConfInt("metroVol",100))/100.0f;
   midiOutClock=getConfInt("midiOutClock",0);
+  midiOutProgramChange = getConfInt("midiOutProgramChange",0);
   midiOutMode=getConfInt("midiOutMode",DIV_MIDI_MODE_NOTE);
   if (metroVol<0.0f) metroVol=0.0f;
   if (metroVol>2.0f) metroVol=2.0f;
