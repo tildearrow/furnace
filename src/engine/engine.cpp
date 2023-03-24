@@ -2418,6 +2418,14 @@ void DivEngine::stepOne(int row) {
 void DivEngine::stop() {
   BUSY_BEGIN;
   freelance=false;
+  if(!playing){
+    //Send midi panic
+    if (output) if (output->midiOut!=NULL) {
+      output->midiOut->send(TAMidiMessage(TA_MIDI_ALL_NOTES_OFF,0,0));
+      output->midiOut->send(TAMidiMessage(TA_MIDI_ALL_SOUND_OFF,0,0));
+    }
+    logI("Midi panic sent");
+  }
   playing=false;
   extValuePresent=false;
   endOfSong=false; // what?
