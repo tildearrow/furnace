@@ -91,6 +91,13 @@ void FurnaceGUI::drawMobileOrderSel() {
   ImGui::End();
 }
 
+#define NEXT_BUTTON \
+  if (++buttonColumn>=buttonColumns) { \
+    buttonColumn=0; \
+  } else { \
+    ImGui::SameLine(); \
+  }
+
 void FurnaceGUI::drawOrders() {
   static char selID[4096];
   if (nextWindow==GUI_WINDOW_ORDERS) {
@@ -260,7 +267,16 @@ void FurnaceGUI::drawOrders() {
         ImGui::PopFont();
         ImGui::EndTable();
       }
+
       ImGui::TableNextColumn();
+
+      int buttonColumns=1;
+      int buttonColumn=0;
+
+      while (buttonColumns<8 && ((8/buttonColumns)*ImGui::GetFrameHeightWithSpacing())>ImGui::GetContentRegionAvail().y) {
+        buttonColumns++;
+      }
+
       if (ImGui::Button(ICON_FA_PLUS)) { handleUnimportant
         // add order row (new)
         doAction(GUI_ACTION_ORDERS_ADD);
@@ -268,6 +284,8 @@ void FurnaceGUI::drawOrders() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Add new order");
       }
+      NEXT_BUTTON;
+
       if (ImGui::Button(ICON_FA_MINUS)) { handleUnimportant
         // remove this order row
         doAction(GUI_ACTION_ORDERS_REMOVE);
@@ -275,6 +293,8 @@ void FurnaceGUI::drawOrders() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Remove order");
       } 
+      NEXT_BUTTON;
+
       if (ImGui::Button(ICON_FA_FILES_O)) { handleUnimportant
         // duplicate order row
         doAction(GUI_ACTION_ORDERS_DUPLICATE);
@@ -285,6 +305,8 @@ void FurnaceGUI::drawOrders() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Duplicate order (right-click to deep clone)");
       }
+      NEXT_BUTTON;
+
       if (ImGui::Button(ICON_FA_ANGLE_UP)) { handleUnimportant
         // move order row up
         doAction(GUI_ACTION_ORDERS_MOVE_UP);
@@ -292,6 +314,8 @@ void FurnaceGUI::drawOrders() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Move order up");
       }
+      NEXT_BUTTON;
+
       if (ImGui::Button(ICON_FA_ANGLE_DOWN)) { handleUnimportant
         // move order row down
         doAction(GUI_ACTION_ORDERS_MOVE_DOWN);
@@ -299,6 +323,8 @@ void FurnaceGUI::drawOrders() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Move order down");
       }
+      NEXT_BUTTON;
+
       if (ImGui::Button(ICON_FA_ANGLE_DOUBLE_DOWN)) { handleUnimportant
         // duplicate order row at end
         doAction(GUI_ACTION_ORDERS_DUPLICATE_END);
@@ -309,6 +335,8 @@ void FurnaceGUI::drawOrders() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Duplicate order at end of song (right-click to deep clone)");
       }
+      NEXT_BUTTON;
+
       if (ImGui::Button(changeAllOrders?ICON_FA_LINK"##ChangeAll":ICON_FA_CHAIN_BROKEN"##ChangeAll")) { handleUnimportant
         // whether to change one or all orders in a row
         changeAllOrders=!changeAllOrders;
@@ -320,6 +348,8 @@ void FurnaceGUI::drawOrders() {
           ImGui::SetTooltip("Order change mode: one");
         }
       }
+      NEXT_BUTTON;
+
       const char* orderEditModeLabel="?##OrderEditMode";
       if (orderEditMode==3) {
         orderEditModeLabel=ICON_FA_ARROWS_V "##OrderEditMode";
