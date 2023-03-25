@@ -236,10 +236,14 @@ String SafeReader::readString(size_t stlen) {
 #endif
   size_t curPos=0;
   if (isEOF()) throw EndOfFileException(this, len);
+  bool zero=false;
 
   while (!isEOF() && curPos<stlen) {
     unsigned char c=readC();
-    if (c!=0) ret.push_back(c);
+    if (c==0) {
+      zero=true;
+    }
+    if (!zero) ret.push_back(c);
     curPos++;
   }
   return ret;
