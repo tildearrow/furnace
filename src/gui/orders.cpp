@@ -98,6 +98,115 @@ void FurnaceGUI::drawMobileOrderSel() {
     ImGui::SameLine(); \
   }
 
+void FurnaceGUI::drawOrderButtons() {
+  int buttonColumns=(settings.orderButtonPos==0)?8:1;
+  int buttonColumn=0;
+
+  while (buttonColumns<8 && ((8/buttonColumns)*ImGui::GetFrameHeightWithSpacing())>ImGui::GetContentRegionAvail().y) {
+    buttonColumns++;
+  }
+
+  if (ImGui::Button(ICON_FA_PLUS)) { handleUnimportant
+    // add order row (new)
+    doAction(GUI_ACTION_ORDERS_ADD);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Add new order");
+  }
+  NEXT_BUTTON;
+
+  if (ImGui::Button(ICON_FA_MINUS)) { handleUnimportant
+    // remove this order row
+    doAction(GUI_ACTION_ORDERS_REMOVE);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Remove order");
+  } 
+  NEXT_BUTTON;
+
+  if (ImGui::Button(ICON_FA_FILES_O)) { handleUnimportant
+    // duplicate order row
+    doAction(GUI_ACTION_ORDERS_DUPLICATE);
+  }
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+    doAction(GUI_ACTION_ORDERS_DEEP_CLONE);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Duplicate order (right-click to deep clone)");
+  }
+  NEXT_BUTTON;
+
+  if (ImGui::Button(ICON_FA_ANGLE_UP)) { handleUnimportant
+    // move order row up
+    doAction(GUI_ACTION_ORDERS_MOVE_UP);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Move order up");
+  }
+  NEXT_BUTTON;
+
+  if (ImGui::Button(ICON_FA_ANGLE_DOWN)) { handleUnimportant
+    // move order row down
+    doAction(GUI_ACTION_ORDERS_MOVE_DOWN);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Move order down");
+  }
+  NEXT_BUTTON;
+
+  if (ImGui::Button(ICON_FA_ANGLE_DOUBLE_DOWN)) { handleUnimportant
+    // duplicate order row at end
+    doAction(GUI_ACTION_ORDERS_DUPLICATE_END);
+  }
+  if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+    doAction(GUI_ACTION_ORDERS_DEEP_CLONE_END);
+  }
+  if (ImGui::IsItemHovered()) {
+    ImGui::SetTooltip("Duplicate order at end of song (right-click to deep clone)");
+  }
+  NEXT_BUTTON;
+
+  if (ImGui::Button(changeAllOrders?ICON_FA_LINK"##ChangeAll":ICON_FA_CHAIN_BROKEN"##ChangeAll")) { handleUnimportant
+    // whether to change one or all orders in a row
+    changeAllOrders=!changeAllOrders;
+  }
+  if (ImGui::IsItemHovered()) {
+    if (changeAllOrders) {
+      ImGui::SetTooltip("Order change mode: entire row");
+    } else {
+      ImGui::SetTooltip("Order change mode: one");
+    }
+  }
+  NEXT_BUTTON;
+
+  const char* orderEditModeLabel="?##OrderEditMode";
+  if (orderEditMode==3) {
+    orderEditModeLabel=ICON_FA_ARROWS_V "##OrderEditMode";
+  } else if (orderEditMode==2) {
+    orderEditModeLabel=ICON_FA_ARROWS_H "##OrderEditMode";
+  } else if (orderEditMode==1) {
+    orderEditModeLabel=ICON_FA_I_CURSOR "##OrderEditMode";
+  } else {
+    orderEditModeLabel=ICON_FA_MOUSE_POINTER "##OrderEditMode";
+  }
+  if (ImGui::Button(orderEditModeLabel)) { handleUnimportant
+    orderEditMode++;
+    if (orderEditMode>3) orderEditMode=0;
+    curNibble=false;
+  }
+  if (ImGui::IsItemHovered()) {
+    if (orderEditMode==3) {
+      ImGui::SetTooltip("Order edit mode: Select and type (scroll vertically)");
+    } else if (orderEditMode==2) {
+      ImGui::SetTooltip("Order edit mode: Select and type (scroll horizontally)");
+    } else if (orderEditMode==1) {
+      ImGui::SetTooltip("Order edit mode: Select and type (don't scroll)");
+    } else {
+      ImGui::SetTooltip("Order edit mode: Click to change");
+    }
+  }
+}
+
 void FurnaceGUI::drawOrders() {
   static char selID[4096];
   if (nextWindow==GUI_WINDOW_ORDERS) {
@@ -115,15 +224,33 @@ void FurnaceGUI::drawOrders() {
     //ImGui::SetNextWindowSizeConstraints(ImVec2(440.0f*dpiScale,400.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Orders",&ordersOpen,globalWinFlags|ImGuiWindowFlags_NoScrollbar|ImGuiWindowFlags_NoScrollWithMouse)) {
-    if (ImGui::BeginTable("OrdColumn",2,ImGuiTableFlags_BordersInnerV)) {
-      ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
-      ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
-
-      ImGui::TableNextRow();
-      ImGui::TableNextColumn();
+    if (ImGui::BeginTable("OrdColumn",(settings.orderButtonPos==0)?1:2,ImGuiTableFlags_BordersInnerV)) {
+      if (settings.orderButtonPos==2) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+      } else if (settings.orderButtonPos==1) {
+        ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+        ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+      }
 
       ImVec2 prevSpacing=ImGui::GetStyle().ItemSpacing;
-      ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(1.0f*dpiScale,1.0f*dpiScale));
+      if (settings.orderButtonPos!=0) {
+        ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing,ImVec2(1.0f*dpiScale,1.0f*dpiScale));
+      }
+
+      ImGui::TableNextRow();
+
+      if (settings.orderButtonPos<2) {
+        ImGui::TableNextColumn();
+        drawOrderButtons();
+      }
+
+      if (settings.orderButtonPos==0) {
+        ImGui::TableNextRow();
+      }
+
+      ImGui::TableNextColumn();
+
       int displayChans=0;
       for (int i=0; i<e->getTotalChannelCount(); i++) {
         if (e->curSubSong->chanShow[i]) displayChans++;
@@ -268,115 +395,14 @@ void FurnaceGUI::drawOrders() {
         ImGui::EndTable();
       }
 
-      ImGui::TableNextColumn();
-
-      int buttonColumns=1;
-      int buttonColumn=0;
-
-      while (buttonColumns<8 && ((8/buttonColumns)*ImGui::GetFrameHeightWithSpacing())>ImGui::GetContentRegionAvail().y) {
-        buttonColumns++;
+      if (settings.orderButtonPos==2) {
+        ImGui::TableNextColumn();
+        drawOrderButtons();
       }
 
-      if (ImGui::Button(ICON_FA_PLUS)) { handleUnimportant
-        // add order row (new)
-        doAction(GUI_ACTION_ORDERS_ADD);
+      if (settings.orderButtonPos!=0) {
+        ImGui::PopStyleVar();
       }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Add new order");
-      }
-      NEXT_BUTTON;
-
-      if (ImGui::Button(ICON_FA_MINUS)) { handleUnimportant
-        // remove this order row
-        doAction(GUI_ACTION_ORDERS_REMOVE);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Remove order");
-      } 
-      NEXT_BUTTON;
-
-      if (ImGui::Button(ICON_FA_FILES_O)) { handleUnimportant
-        // duplicate order row
-        doAction(GUI_ACTION_ORDERS_DUPLICATE);
-      }
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        doAction(GUI_ACTION_ORDERS_DEEP_CLONE);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Duplicate order (right-click to deep clone)");
-      }
-      NEXT_BUTTON;
-
-      if (ImGui::Button(ICON_FA_ANGLE_UP)) { handleUnimportant
-        // move order row up
-        doAction(GUI_ACTION_ORDERS_MOVE_UP);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Move order up");
-      }
-      NEXT_BUTTON;
-
-      if (ImGui::Button(ICON_FA_ANGLE_DOWN)) { handleUnimportant
-        // move order row down
-        doAction(GUI_ACTION_ORDERS_MOVE_DOWN);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Move order down");
-      }
-      NEXT_BUTTON;
-
-      if (ImGui::Button(ICON_FA_ANGLE_DOUBLE_DOWN)) { handleUnimportant
-        // duplicate order row at end
-        doAction(GUI_ACTION_ORDERS_DUPLICATE_END);
-      }
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        doAction(GUI_ACTION_ORDERS_DEEP_CLONE_END);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Duplicate order at end of song (right-click to deep clone)");
-      }
-      NEXT_BUTTON;
-
-      if (ImGui::Button(changeAllOrders?ICON_FA_LINK"##ChangeAll":ICON_FA_CHAIN_BROKEN"##ChangeAll")) { handleUnimportant
-        // whether to change one or all orders in a row
-        changeAllOrders=!changeAllOrders;
-      }
-      if (ImGui::IsItemHovered()) {
-        if (changeAllOrders) {
-          ImGui::SetTooltip("Order change mode: entire row");
-        } else {
-          ImGui::SetTooltip("Order change mode: one");
-        }
-      }
-      NEXT_BUTTON;
-
-      const char* orderEditModeLabel="?##OrderEditMode";
-      if (orderEditMode==3) {
-        orderEditModeLabel=ICON_FA_ARROWS_V "##OrderEditMode";
-      } else if (orderEditMode==2) {
-        orderEditModeLabel=ICON_FA_ARROWS_H "##OrderEditMode";
-      } else if (orderEditMode==1) {
-        orderEditModeLabel=ICON_FA_I_CURSOR "##OrderEditMode";
-      } else {
-        orderEditModeLabel=ICON_FA_MOUSE_POINTER "##OrderEditMode";
-      }
-      if (ImGui::Button(orderEditModeLabel)) { handleUnimportant
-        orderEditMode++;
-        if (orderEditMode>3) orderEditMode=0;
-        curNibble=false;
-      }
-      if (ImGui::IsItemHovered()) {
-        if (orderEditMode==3) {
-          ImGui::SetTooltip("Order edit mode: Select and type (scroll vertically)");
-        } else if (orderEditMode==2) {
-          ImGui::SetTooltip("Order edit mode: Select and type (scroll horizontally)");
-        } else if (orderEditMode==1) {
-          ImGui::SetTooltip("Order edit mode: Select and type (don't scroll)");
-        } else {
-          ImGui::SetTooltip("Order edit mode: Click to change");
-        }
-      }
-      ImGui::PopStyleVar();
 
       ImGui::EndTable();
     }

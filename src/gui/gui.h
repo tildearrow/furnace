@@ -1376,6 +1376,7 @@ class FurnaceGUI {
     int disableFadeIn;
     int alwaysPlayIntro;
     int iCannotWait;
+    int orderButtonPos;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1518,6 +1519,7 @@ class FurnaceGUI {
       disableFadeIn(0),
       alwaysPlayIntro(0),
       iCannotWait(0),
+      orderButtonPos(2),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1929,6 +1931,8 @@ class FurnaceGUI {
 
   void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);
   void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state);
+
+  void drawOrderButtons();
 
   void actualWaveList();
   void actualSampleList();
