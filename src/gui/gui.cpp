@@ -1849,6 +1849,17 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_CMDSTREAM_OPEN:
+      if (!dirExists(workingDirROM)) workingDirROM=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        "Play Command Stream",
+        {"command stream", "*.bin",
+         "all files", "*"},
+        "command stream{.bin},.*",
+        workingDirROM,
+        dpiScale
+      );
+      break;
     case GUI_FILE_TEST_OPEN:
       if (!dirExists(workingDirTest)) workingDirTest=getHomeDir();
       hasOpened=fileDialog->openLoad(
@@ -2102,6 +2113,64 @@ void FurnaceGUI::pushRecentFile(String path) {
     recentFile.pop_back();
   }
 }
+
+int FurnaceGUI::loadStream(String path) {
+  if (!path.empty()) {
+    logI("loading stream...");
+    FILE* f=ps_fopen(path.c_str(),"rb");
+    if (f==NULL) {
+      perror("error");
+      lastError=strerror(errno);
+      return 1;
+    }
+    if (fseek(f,0,SEEK_END)<0) {
+      perror("size error");
+      lastError=fmt::sprintf("on seek: %s",strerror(errno));
+      fclose(f);
+      return 1;
+    }
+    ssize_t len=ftell(f);
+    if (len==(SIZE_MAX>>1)) {
+      perror("could not get file length");
+      lastError=fmt::sprintf("on pre tell: %s",strerror(errno));
+      fclose(f);
+      return 1;
+    }
+    if (len<1) {
+      if (len==0) {
+        logE("that file is empty!");
+        lastError="file is empty";
+      } else {
+        perror("tell error");
+        lastError=fmt::sprintf("on tell: %s",strerror(errno));
+      }
+      fclose(f);
+      return 1;
+    }
+    if (fseek(f,0,SEEK_SET)<0) {
+      perror("size error");
+      lastError=fmt::sprintf("on get size: %s",strerror(errno));
+      fclose(f);
+      return 1;
+    }
+    unsigned char* file=new unsigned char[len];
+    if (fread(file,1,(size_t)len,f)!=(size_t)len) {
+      perror("read error");
+      lastError=fmt::sprintf("on read: %s",strerror(errno));
+      fclose(f);
+      delete[] file;
+      return 1;
+    }
+    fclose(f);
+    if (!e->playStream(file,(size_t)len)) {
+      lastError=e->getLastError();
+      logE("could not open file!");
+      return 1;
+    }
+  }
+  return 0;
+}
+
 
 void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
   e->saveAudio(path.c_str(),exportLoops+1,mode,exportFadeOut);
@@ -4241,6 +4310,9 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_MU5_ROM_OPEN:
           workingDirROM=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+        case GUI_FILE_CMDSTREAM_OPEN:
+          workingDirROM=fileDialog->getPath()+DIR_SEPARATOR_STR;
+          break;
         case GUI_FILE_TEST_OPEN:
         case GUI_FILE_TEST_OPEN_MULTI:
         case GUI_FILE_TEST_SAVE:
@@ -4705,6 +4777,11 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_MU5_ROM_OPEN:
               settings.mu5Path=copyOfName;
+              break;
+            case GUI_FILE_CMDSTREAM_OPEN:
+              if (loadStream(copyOfName)>0) {
+                showError(fmt::sprintf("Error while loading file! (%s)",lastError));
+              }
               break;
             case GUI_FILE_TEST_OPEN:
               showWarning(fmt::sprintf("You opened: %s",copyOfName),GUI_WARN_GENERIC);

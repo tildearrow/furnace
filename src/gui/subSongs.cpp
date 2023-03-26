@@ -4,15 +4,18 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include "intConst.h"
 
-void FurnaceGUI::drawSubSongs() {
+void FurnaceGUI::drawSubSongs(bool asChild) {
   if (nextWindow==GUI_WINDOW_SUBSONGS) {
     subSongsOpen=true;
     ImGui::SetNextWindowFocus();
     nextWindow=GUI_WINDOW_NOTHING;
   }
-  if (!subSongsOpen) return;
-  ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(canvasW,canvasH));
-  if (ImGui::Begin("Subsongs",&subSongsOpen,globalWinFlags)) {
+  if (!subSongsOpen && !asChild) return;
+  if (!asChild) {
+    ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(canvasW,canvasH));
+  }
+  bool began=asChild?ImGui::BeginChild("Subsongs"):ImGui::Begin("Subsongs",&subSongsOpen,globalWinFlags);
+  if (began) {
     char id[1024];
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0f-ImGui::GetStyle().ItemSpacing.x);
     if (e->curSubSong->name.empty()) {
@@ -107,12 +110,16 @@ void FurnaceGUI::drawSubSongs() {
       MARK_MODIFIED;
     }
 
-    if (ImGui::GetContentRegionAvail().y>(10.0f*dpiScale)) {
+    if (!asChild && ImGui::GetContentRegionAvail().y>(10.0f*dpiScale)) {
       if (ImGui::InputTextMultiline("##SubSongNotes",&e->curSubSong->notes,ImGui::GetContentRegionAvail(),ImGuiInputTextFlags_UndoRedo)) {
         MARK_MODIFIED;
       }
     }
   }
-  if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SUBSONGS;
-  ImGui::End();
+  if (!asChild && ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SUBSONGS;
+  if (asChild) {
+    ImGui::EndChild();
+  } else {
+    ImGui::End();
+  }
 }

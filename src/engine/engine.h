@@ -26,6 +26,7 @@
 #include "export.h"
 #include "dataErrors.h"
 #include "safeWriter.h"
+#include "cmdStream.h"
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
 #include <atomic>
@@ -405,6 +406,8 @@ class DivEngine {
   static DivSystem sysFileMapFur[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapDMF[DIV_MAX_CHIP_DEFS];
 
+  DivCSPlayer* cmdStreamInt;
+
   struct SamplePreview {
     double rate;
     int sample;
@@ -449,7 +452,6 @@ class DivEngine {
   // MIDI stuff
   std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -2;};
 
-  int dispatchCmd(DivCommand c);
   void processRow(int i, bool afterDelay);
   void nextOrder();
   void nextRow();
@@ -537,6 +539,8 @@ class DivEngine {
     void createNewFromDefaults();
     // load a file.
     bool load(unsigned char* f, size_t length);
+    // play a binary command stream.
+    bool playStream(unsigned char* f, size_t length);
     // save as .dmf.
     SafeWriter* saveDMF(unsigned char version);
     // save as .fur.
@@ -566,6 +570,9 @@ class DivEngine {
     void notifyInsChange(int ins);
     // notify wavetable change
     void notifyWaveChange(int wave);
+
+    // dispatch a command
+    int dispatchCmd(DivCommand c);
 
     // get system IDs
     static DivSystem systemFromFileFur(unsigned char val);
@@ -1152,6 +1159,7 @@ class DivEngine {
       audioEngine(DIV_AUDIO_NULL),
       exportMode(DIV_EXPORT_MODE_ONE),
       exportFadeOut(0.0),
+      cmdStreamInt(NULL),
       midiBaseChan(0),
       midiPoly(true),
       midiAgeCounter(0),
