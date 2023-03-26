@@ -516,7 +516,13 @@ void FurnaceGUI::drawMobileControls() {
             openFileDialog(GUI_FILE_EXPORT_VGM);
           }
 
-          ImGui::Button("CmdStream");
+          if (ImGui::Button("CmdStream")) {
+            openFileDialog(GUI_FILE_EXPORT_CMDSTREAM_BINARY);
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("CmdStream Text")) {
+            openFileDialog(GUI_FILE_EXPORT_CMDSTREAM);
+          }
 
           ImGui::Separator();
 
