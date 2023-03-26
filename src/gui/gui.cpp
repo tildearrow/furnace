@@ -1737,9 +1737,18 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
       hasOpened=fileDialog->openSave(
         "Export Command Stream",
-        {"text file", "*.txt",
-         "binary file", "*.bin"},
-        "text file{.txt},binary file{.bin}",
+        {"text file", "*.txt"},
+        "text file{.txt}",
+        workingDirROMExport,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_EXPORT_CMDSTREAM_BINARY:
+      if (!dirExists(workingDirROMExport)) workingDirROMExport=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        "Export Command Stream",
+        {"binary file", "*.bin"},
+        "binary file{.bin}",
         workingDirROMExport,
         dpiScale
       );
@@ -3727,7 +3736,10 @@ bool FurnaceGUI::loop() {
 
             "technical/development use only!"
           );
-          if (ImGui::Button("export")) {
+          if (ImGui::Button("export (binary)")) {
+            openFileDialog(GUI_FILE_EXPORT_CMDSTREAM_BINARY);
+          }
+          if (ImGui::Button("export (text)")) {
             openFileDialog(GUI_FILE_EXPORT_CMDSTREAM);
           }
           ImGui::EndMenu();
@@ -4205,6 +4217,7 @@ bool FurnaceGUI::loop() {
           break;
         case GUI_FILE_EXPORT_ROM:
         case GUI_FILE_EXPORT_CMDSTREAM:
+        case GUI_FILE_EXPORT_CMDSTREAM_BINARY:
           workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_LOAD_MAIN_FONT:
@@ -4292,9 +4305,10 @@ bool FurnaceGUI::loop() {
             checkExtension(".zsm");
           }
           if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM) {
-            // we can't tell whether the user chose .txt or .bin in the system file picker
-            const char* fallbackExt=(settings.sysFileDialog || ImGuiFileDialog::Instance()->GetCurrentFilter()=="text file")?".txt":".bin";
-            checkExtensionDual(".txt",".bin",fallbackExt);
+            checkExtension(".txt");
+          }
+          if (curFileDialog==GUI_FILE_EXPORT_CMDSTREAM_BINARY) {
+            checkExtension(".bin");
           }
           if (curFileDialog==GUI_FILE_EXPORT_COLORS) {
             checkExtension(".cfgc");
@@ -4636,15 +4650,9 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_EXPORT_ROM:
               showError("Coming soon!");
               break;
-            case GUI_FILE_EXPORT_CMDSTREAM: {
-              String lowerCase=fileName;
-              for (char& i: lowerCase) {
-                if (i>='A' && i<='Z') i+='a'-'A';
-              }
-              bool isBinary=true;
-              if ((lowerCase.size()<4 || lowerCase.rfind(".bin")!=lowerCase.size()-4)) {
-                isBinary=false;
-              }
+            case GUI_FILE_EXPORT_CMDSTREAM:
+            case GUI_FILE_EXPORT_CMDSTREAM_BINARY: {
+              bool isBinary=(curFileDialog==GUI_FILE_EXPORT_CMDSTREAM_BINARY);
 
               SafeWriter* w=e->saveCommand(isBinary);
               if (w!=NULL) {

@@ -370,6 +370,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_VGM,
   GUI_FILE_EXPORT_ZSM,
   GUI_FILE_EXPORT_CMDSTREAM,
+  GUI_FILE_EXPORT_CMDSTREAM_BINARY,
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_LOAD_MAIN_FONT,
   GUI_FILE_LOAD_PAT_FONT,
@@ -1376,6 +1377,7 @@ class FurnaceGUI {
     int disableFadeIn;
     int alwaysPlayIntro;
     int iCannotWait;
+    int orderButtonPos;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1518,6 +1520,7 @@ class FurnaceGUI {
       disableFadeIn(0),
       alwaysPlayIntro(0),
       iCannotWait(0),
+      orderButtonPos(2),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1929,6 +1932,8 @@ class FurnaceGUI {
 
   void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);
   void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state);
+
+  void drawOrderButtons();
 
   void actualWaveList();
   void actualSampleList();

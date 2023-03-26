@@ -1452,6 +1452,17 @@ void FurnaceGUI::drawSettings() {
             settings.controlLayout=3;
           }
 
+          ImGui::Text("Position of buttons in Orders:");
+          if (ImGui::RadioButton("Top##obp0",settings.orderButtonPos==0)) {
+            settings.orderButtonPos=0;
+          }
+          if (ImGui::RadioButton("Left##obp1",settings.orderButtonPos==1)) {
+            settings.orderButtonPos=1;
+          }
+          if (ImGui::RadioButton("Right##obp2",settings.orderButtonPos==2)) {
+            settings.orderButtonPos=2;
+          }
+
           ImGui::Text("FM parameter editor layout:");
           if (ImGui::RadioButton("Modern##fml0",settings.fmLayout==0)) {
             settings.fmLayout=0;
@@ -2627,6 +2638,7 @@ void FurnaceGUI::syncSettings() {
   settings.alwaysPlayIntro=e->getConfInt("alwaysPlayIntro",0);
   settings.cursorFollowsOrder=e->getConfInt("cursorFollowsOrder",1);
   settings.iCannotWait=e->getConfInt("iCannotWait",0);
+  settings.orderButtonPos=e->getConfInt("orderButtonPos",2);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2744,6 +2756,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.alwaysPlayIntro,0,3);
   clampSetting(settings.cursorFollowsOrder,0,1);
   clampSetting(settings.iCannotWait,0,1);
+  clampSetting(settings.orderButtonPos,0,2);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -2956,6 +2969,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("alwaysPlayIntro",settings.alwaysPlayIntro);
   e->setConf("cursorFollowsOrder",settings.cursorFollowsOrder);
   e->setConf("iCannotWait",settings.iCannotWait);
+  e->setConf("orderButtonPos",settings.orderButtonPos);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

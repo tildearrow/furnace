@@ -58,6 +58,7 @@
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
 #define DIV_VERSION_S3M 0xff03
+#define DIV_VERSION_FTM 0xff04
 
 // "Namco C163"
 #define DIV_C163_DEFAULT_NAME "Namco 163"
