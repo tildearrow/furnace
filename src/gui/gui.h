@@ -383,6 +383,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_YRW801_ROM_OPEN,
   GUI_FILE_TG100_ROM_OPEN,
   GUI_FILE_MU5_ROM_OPEN,
+  GUI_FILE_CMDSTREAM_OPEN,
 
   GUI_FILE_TEST_OPEN,
   GUI_FILE_TEST_OPEN_MULTI,
@@ -1982,7 +1983,7 @@ class FurnaceGUI {
   void drawNewSong();
   void drawLog();
   void drawEffectList();
-  void drawSubSongs();
+  void drawSubSongs(bool asChild=false);
   void drawFindReplace();
   void drawSpoiler();
   void drawClock();
@@ -2074,6 +2075,7 @@ class FurnaceGUI {
   void openFileDialog(FurnaceGUIFileDialogs type);
   int save(String path, int dmfVersion);
   int load(String path);
+  int loadStream(String path);
   void pushRecentFile(String path);
   void exportAudio(String path, DivAudioExportModes mode);
 

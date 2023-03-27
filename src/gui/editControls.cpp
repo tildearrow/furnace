@@ -526,7 +526,21 @@ void FurnaceGUI::drawMobileControls() {
 
           ImGui::Separator();
 
-          drawSongInfo(true);
+          if (ImGui::BeginTabBar("MobileSong")) {
+            if (ImGui::BeginTabItem("Song Info")) {
+              drawSongInfo(true);
+              ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Subsongs")) {
+              drawSubSongs(true);
+              ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Speed")) {
+              drawSpeed(true);
+              ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+          }
           break;
         }
         case GUI_SCENE_CHANNELS:
