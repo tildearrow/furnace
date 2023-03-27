@@ -2020,8 +2020,8 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Seta 2", {
       CH(DIV_SYSTEM_X1_010, 1.0f, 0,
-        "clockSel=1\n"
-        "isBanked=true\n"
+         "clockSel=1\n"
+         "isBanked=true\n"
       )
     }
   );
