@@ -73,6 +73,7 @@ class DivCSPlayer {
   DivCSChannelState chan[DIV_MAX_CHANS];
   unsigned char fastDelays[16];
   unsigned char fastCmds[16];
+  unsigned char arpSpeed;
 
   short vibTable[64];
   public:

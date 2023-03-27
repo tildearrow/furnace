@@ -229,6 +229,8 @@ const char* cmdName[]={
   "ES5506_ENVELOPE_K2RAMP",
   "ES5506_PAUSE",
 
+  "HINT_ARP_TIME",
+
   "ALWAYS_SET_VOLUME"
 };
 
@@ -765,6 +767,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       case 0xe0: // arp speed
         if (effectVal>0) {
           curSubSong->arpLen=effectVal;
+          dispatchCmd(DivCommand(DIV_CMD_HINT_ARP_TIME,i,curSubSong->arpLen));
         }
         break;
       case 0xe1: // portamento up

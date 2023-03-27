@@ -18,6 +18,7 @@
  */
 
 #include "cmdStream.h"
+#include "dispatch.h"
 #include "engine.h"
 #include "../ta-log.h"
 
@@ -58,7 +59,7 @@ bool DivCSPlayer::tick() {
 
       if (next<0xb3) { // note
         e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,(int)next-60));
-        logV("%d: note on (%d)",i,(int)next-60);
+        chan[i].note=(int)next-60;
         chan[i].vibratoPos=0;
       } else if (next>=0xd0 && next<=0xdf) {
         command=fastCmds[next&15];
@@ -156,6 +157,7 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_HINT_VIBRATO_RANGE:
           case DIV_CMD_HINT_VIBRATO_SHAPE:
           case DIV_CMD_HINT_VOLUME:
+          case DIV_CMD_HINT_ARP_TIME:
             arg0=(unsigned char)stream.readC();
             break;
           case DIV_CMD_HINT_PITCH:
@@ -299,6 +301,12 @@ bool DivCSPlayer::tick() {
             chan[i].note=arg0;
             e->dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
             break;
+          case DIV_CMD_HINT_ARPEGGIO:
+            chan[i].arp=(((unsigned char)arg0)<<4)|(arg1&15);
+            break;
+          case DIV_CMD_HINT_ARP_TIME:
+            arpSpeed=arg0;
+            break;
           default: // dispatch it
             e->dispatchCmd(DivCommand((DivDispatchCmds)command,i,arg0,arg1));
             break;
@@ -330,6 +338,25 @@ bool DivCSPlayer::tick() {
 
     if (chan[i].portaSpeed) {
       e->dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(e->song.linearPitch==2?e->song.pitchSlideSpeed:1),chan[i].portaTarget));
+    }
+    if (chan[i].arp && !chan[i].portaSpeed) {
+      if (chan[i].arpTicks==0) {
+        switch (chan[i].arpStage) {
+          case 0:
+            e->dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+            break;
+          case 1:
+            e->dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp>>4)));
+            break;
+          case 2:
+            e->dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note+(chan[i].arp&15)));
+            break;
+        }
+        chan[i].arpStage++;
+        if (chan[i].arpStage>=3) chan[i].arpStage=0;
+        chan[i].arpTicks=arpSpeed;
+      }
+      chan[i].arpTicks--;
     }
   }
 
@@ -369,6 +396,8 @@ bool DivCSPlayer::init() {
   for (int i=0; i<64; i++) {
     vibTable[i]=127*sin(((double)i/64.0)*(2*M_PI));
   }
+
+  arpSpeed=1;
 
   return true;
 }
