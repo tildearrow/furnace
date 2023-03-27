@@ -21,6 +21,18 @@
 #include "engine.h"
 #include "../ta-log.h"
 
+bool DivCSChannelState::doCall(unsigned int addr) {
+  if (callStackPos>=8) {
+    readPos=0;
+    return false;
+  }
+
+  callStack[callStackPos++]=readPos;
+  readPos=addr;
+
+  return true;
+}
+
 void DivCSPlayer::cleanup() {
   delete b;
 }
@@ -29,18 +41,25 @@ bool DivCSPlayer::tick() {
   bool ticked=false;
   for (int i=0; i<e->getTotalChannelCount(); i++) {
     bool sendVolume=false;
+    bool sendPitch=false;
     if (chan[i].readPos==0) continue;
 
     ticked=true;
 
     chan[i].waitTicks--;
     while (chan[i].waitTicks<=0) {
-      stream.seek(chan[i].readPos,SEEK_SET);
+      if (!stream.seek(chan[i].readPos,SEEK_SET)) {
+        logE("%d: access violation! $%x",i,chan[i].readPos);
+        chan[i].readPos=0;
+        break;
+      }
       unsigned char next=stream.readC();
       unsigned char command=0;
 
       if (next<0xb3) { // note
-        e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,next-60));
+        e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,(int)next-60));
+        logV("%d: note on (%d)",i,(int)next-60);
+        chan[i].vibratoPos=0;
       } else if (next>=0xd0 && next<=0xdf) {
         command=fastCmds[next&15];
       } else if (next>=0xe0 && next<=0xef) { // preset delay
@@ -48,6 +67,7 @@ bool DivCSPlayer::tick() {
       } else switch (next) {
         case 0xb4: // note on null
           e->dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,DIV_NOTE_NULL));
+          chan[i].vibratoPos=0;
           break;
         case 0xb5: // note off
           e->dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,i));
@@ -66,17 +86,46 @@ bool DivCSPlayer::tick() {
         case 0xf7:
           command=stream.readC();
           break;
-        case 0xf8:
-          logE("TODO: CALL");
+        case 0xf8: {
+          unsigned int callAddr=chan[i].readPos+2+stream.readS();
+          if (!chan[i].doCall(callAddr)) {
+            logE("%d: (callb16) stack error!",i);
+          }
           break;
+        }
+        case 0xf6: {
+          unsigned int callAddr=chan[i].readPos+4+stream.readI();
+          if (!chan[i].doCall(callAddr)) {
+            logE("%d: (callb32) stack error!",i);
+          }
+          break;
+        }
+        case 0xf5: {
+          unsigned int callAddr=stream.readI();
+          if (!chan[i].doCall(callAddr)) {
+            logE("%d: (call) stack error!",i);
+          }
+          break;
+        }
+        case 0xf4: {
+          logE("%d: (callsym) not supported here!",i);
+          chan[i].readPos=0;
+          break;
+        }
         case 0xf9:
-          logE("TODO: RET");
+          if (!chan[i].callStackPos) {
+            logE("%d: (ret) stack error!",i);
+            chan[i].readPos=0;
+            break;
+          }
+          chan[i].readPos=chan[i].callStack[--chan[i].callStackPos];
           break;
         case 0xfa:
-          logE("TODO: JMP");
+          chan[i].readPos=stream.readI();
           break;
         case 0xfb:
           logE("TODO: RATE");
+          stream.readI();
           break;
         case 0xfc:
           chan[i].waitTicks=(unsigned short)stream.readS();
@@ -88,6 +137,11 @@ bool DivCSPlayer::tick() {
           chan[i].waitTicks=1;
           break;
         case 0xff:
+          chan[i].readPos=0;
+          logI("%d: stop",i);
+          break;
+        default:
+          logE("%d: illegal instruction $%.2x! $%.x",i,next,chan[i].readPos);
           chan[i].readPos=0;
           break;
       }
@@ -101,15 +155,17 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_INSTRUMENT:
           case DIV_CMD_HINT_VIBRATO_RANGE:
           case DIV_CMD_HINT_VIBRATO_SHAPE:
-          case DIV_CMD_HINT_PITCH:
           case DIV_CMD_HINT_VOLUME:
             arg0=(unsigned char)stream.readC();
+            break;
+          case DIV_CMD_HINT_PITCH:
+            arg0=(signed char)stream.readC();
             break;
           case DIV_CMD_PANNING:
           case DIV_CMD_HINT_VIBRATO:
           case DIV_CMD_HINT_ARPEGGIO:
           case DIV_CMD_HINT_PORTA:
-            arg0=(unsigned char)stream.readC();
+            arg0=(signed char)stream.readC();
             arg1=(unsigned char)stream.readC();
             break;
           case DIV_CMD_PRE_PORTA:
@@ -119,6 +175,14 @@ bool DivCSPlayer::tick() {
             break;
           case DIV_CMD_HINT_VOL_SLIDE:
             arg0=(short)stream.readS();
+            break;
+          case DIV_CMD_HINT_LEGATO:
+            arg0=(unsigned char)stream.readC();
+            if (arg0==0xff) {
+              arg0=DIV_NOTE_NULL;
+            } else {
+              arg0-=60;
+            }
             break;
           case DIV_CMD_SAMPLE_MODE:
           case DIV_CMD_SAMPLE_FREQ:
@@ -218,6 +282,23 @@ bool DivCSPlayer::tick() {
           case DIV_CMD_HINT_VOL_SLIDE:
             chan[i].volSpeed=arg0;
             break;
+          case DIV_CMD_HINT_PITCH:
+            chan[i].pitch=arg0;
+            sendPitch=true;
+            break;
+          case DIV_CMD_HINT_VIBRATO:
+            chan[i].vibratoDepth=arg0;
+            chan[i].vibratoRate=arg1;
+            sendPitch=true;
+            break;
+          case DIV_CMD_HINT_PORTA:
+            chan[i].portaTarget=arg0;
+            chan[i].portaSpeed=arg1;
+            break;
+          case DIV_CMD_HINT_LEGATO:
+            chan[i].note=arg0;
+            e->dispatchCmd(DivCommand(DIV_CMD_LEGATO,i,chan[i].note));
+            break;
           default: // dispatch it
             e->dispatchCmd(DivCommand((DivDispatchCmds)command,i,arg0,arg1));
             break;
@@ -237,6 +318,18 @@ bool DivCSPlayer::tick() {
       }
 
       e->dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+    }
+
+    if (sendPitch || chan[i].vibratoDepth!=0) {
+      if (chan[i].vibratoDepth>0) {
+        chan[i].vibratoPos+=chan[i].vibratoRate;
+        if (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
+      }
+      e->dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(vibTable[chan[i].vibratoPos&63]*chan[i].vibratoDepth)/15));
+    }
+
+    if (chan[i].portaSpeed) {
+      e->dispatchCmd(DivCommand(DIV_CMD_NOTE_PORTA,i,chan[i].portaSpeed*(e->song.linearPitch==2?e->song.pitchSlideSpeed:1),chan[i].portaTarget));
     }
   }
 
@@ -271,6 +364,10 @@ bool DivCSPlayer::init() {
   for (int i=0; i<e->getTotalChannelCount(); i++) {
     chan[i].volMax=(e->getDispatch(e->dispatchOfChan[i])->dispatch(DivCommand(DIV_CMD_GET_VOLMAX,e->dispatchChanOfChan[i]))<<8)|0xff;
     chan[i].volume=chan[i].volMax;
+  }
+
+  for (int i=0; i<64; i++) {
+    vibTable[i]=127*sin(((double)i/64.0)*(2*M_PI));
   }
 
   return true;
