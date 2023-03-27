@@ -307,6 +307,7 @@ void DivPlatformRF5C68::forceIns() {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
     chan[i].sample=-1;
+    chWrite(i,1,isMuted[i]?0:chan[i].panning);
   }
 }
 

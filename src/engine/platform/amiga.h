@@ -116,6 +116,7 @@ class DivPlatformAmiga: public DivDispatch {
 
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
+  friend class DivExportAmigaValidation;
 
   void irq(int ch);
   void rWrite(unsigned short addr, unsigned short val);
@@ -136,6 +137,7 @@ class DivPlatformAmiga: public DivDispatch {
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
     DivMacroInt* getChanMacroInt(int ch);
+    DivSamplePos getSamplePos(int ch);
     void setFlags(const DivConfig& flags);
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);

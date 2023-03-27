@@ -1588,7 +1588,7 @@ void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
   // get unsorted directory
   DivAssetDir* unsortedDir=NULL;
   for (DivAssetDir& i: dir) {
-    if (i.name=="Unsorted") {
+    if (i.name.empty()) {
       unsortedDir=&i;
       break;
     }
@@ -1596,7 +1596,7 @@ void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
 
   // create unsorted directory if it doesn't exist
   if (unsortedDir==NULL) {
-    dir.push_back(DivAssetDir("Unsorted"));
+    dir.push_back(DivAssetDir(""));
     unsortedDir=&(*dir.rbegin());
   }
 
@@ -2119,6 +2119,11 @@ DivMacroInt* DivEngine::getMacroInt(int chan) {
   return disCont[dispatchOfChan[chan]].dispatch->getChanMacroInt(dispatchChanOfChan[chan]);
 }
 
+DivSamplePos DivEngine::getSamplePos(int chan) {
+  if (chan<0 || chan>=chans) return DivSamplePos();
+  return disCont[dispatchOfChan[chan]].dispatch->getSamplePos(dispatchChanOfChan[chan]);
+}
+
 DivDispatchOscBuffer* DivEngine::getOscBuffer(int chan) {
   if (chan<0 || chan>=chans) return NULL;
   return disCont[dispatchOfChan[chan]].dispatch->getOscBuffer(dispatchChanOfChan[chan]);
@@ -2498,6 +2503,10 @@ void DivEngine::recalcChans() {
     if (isInsTypePossible[i]) possibleInsTypes.push_back((DivInstrumentType)i);
   }
 
+  checkAssetDir(song.insDir,song.ins.size());
+  checkAssetDir(song.waveDir,song.wave.size());
+  checkAssetDir(song.sampleDir,song.sample.size());
+
   hasLoadedSomething=true;
 }
 
@@ -2574,6 +2583,10 @@ int DivEngine::divToFileRate(int drate) {
     return 0;
   }
   return 4;
+}
+
+void DivEngine::testFunction() {
+  logI("it works!");
 }
 
 int DivEngine::getEffectiveSampleRate(int rate) {
@@ -4358,6 +4371,7 @@ bool DivEngine::initAudioBackend() {
   lowLatency=getConfInt("lowLatency",0);
   metroVol=(float)(getConfInt("metroVol",100))/100.0f;
   midiOutClock=getConfInt("midiOutClock",0);
+  midiOutProgramChange = getConfInt("midiOutProgramChange",0);
   midiOutMode=getConfInt("midiOutMode",DIV_MIDI_MODE_NOTE);
   if (metroVol<0.0f) metroVol=0.0f;
   if (metroVol>2.0f) metroVol=2.0f;

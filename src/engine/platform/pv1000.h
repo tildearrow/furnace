@@ -21,7 +21,7 @@
 #define _PV1000_H
 
 #include "../dispatch.h"
-#include "sound/d65010g031.h"
+#include "sound/d65modified.h"
 #include <queue>
 
 class DivPlatformPV1000: public DivDispatch {
@@ -55,6 +55,7 @@ class DivPlatformPV1000: public DivDispatch {
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
+    bool getDCOffRequired();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
     ~DivPlatformPV1000();

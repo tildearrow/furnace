@@ -278,7 +278,7 @@ int DivEngine::dispatchCmd(DivCommand c) {
     cmdStream.push_back(c);
   }
 
-  if (output) if (!skipping && output->midiOut!=NULL) {
+  if (output) if (!skipping && output->midiOut!=NULL && !isChannelMuted(c.chan)) {
     if (output->midiOut->isDeviceOpen()) {
       if (midiOutMode==DIV_MIDI_MODE_NOTE) {
         int scaledVol=(chan[c.chan].volume*127)/MAX(1,chan[c.chan].volMax);
@@ -305,7 +305,7 @@ int DivEngine::dispatchCmd(DivCommand c) {
             chan[c.chan].curMidiNote=-1;
             break;
           case DIV_CMD_INSTRUMENT:
-            if (chan[c.chan].lastIns!=c.value) {
+            if (chan[c.chan].lastIns!=c.value && midiOutProgramChange) {
               output->midiOut->send(TAMidiMessage(0xc0|(c.chan&15),c.value,0));
             }
             break;
@@ -1384,6 +1384,15 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       subticks=tickMult;
     }
   }
+
+  if (subticks==tickMult && cmdStreamInt) {
+    if (!cmdStreamInt->tick()) {
+      cmdStreamInt->cleanup();
+      delete cmdStreamInt;
+      cmdStreamInt=NULL;
+    }
+  }
+
 
   firstTick=false;
 

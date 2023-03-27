@@ -58,6 +58,8 @@ void FurnaceGUI::drawDebug() {
       ImGui::SameLine();
       if (ImGui::Button("Pattern Advance")) e->haltWhen(DIV_HALT_PATTERN);
 
+      if (ImGui::Button("Play Command Stream")) openFileDialog(GUI_FILE_CMDSTREAM_OPEN);
+
       if (ImGui::Button("Panic")) e->syncReset();
       ImGui::SameLine();
       if (ImGui::Button("Abort")) {
@@ -517,6 +519,14 @@ void FurnaceGUI::drawDebug() {
       ImGui::InputFloat("maxArDr",&maxArDr);
       ImGui::InputFloat("maxTl",&maxTl);
       ImGui::InputFloat("maxRr",&maxRr);
+      ImGui::TreePop();
+    }
+    if (ImGui::TreeNode("FM Preview")) {
+      float asFloat[FM_PREVIEW_SIZE];
+      for (int i=0; i<FM_PREVIEW_SIZE; i++) {
+        asFloat[i]=(float)fmPreview[i]/8192.0f;
+      }
+      ImGui::PlotLines("##DebugFMPreview",asFloat,FM_PREVIEW_SIZE,0,"Preview",-1.0,1.0,ImVec2(300.0f*dpiScale,150.0f*dpiScale));
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("User Interface")) {

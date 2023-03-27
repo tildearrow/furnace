@@ -382,6 +382,17 @@ DivMacroInt* DivPlatformSegaPCM::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+DivSamplePos DivPlatformSegaPCM::getSamplePos(int ch) {
+  if (ch>=16) return DivSamplePos();
+  if (chan[ch].pcm.sample<0 || chan[ch].pcm.sample>=parent->song.sampleLen) return DivSamplePos();
+  if (!pcm.is_playing(ch)) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].pcm.sample,
+    pcm.get_addr(ch)-sampleOffSegaPCM[chan[ch].pcm.sample],
+    122*(chan[ch].pcm.freq+1)
+  );
+}
+
 DivDispatchOscBuffer* DivPlatformSegaPCM::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

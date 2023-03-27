@@ -23,8 +23,10 @@
 #include "instrument.h"
 #include "song.h"
 #include "dispatch.h"
+#include "export.h"
 #include "dataErrors.h"
 #include "safeWriter.h"
+#include "cmdStream.h"
 #include "../audio/taAudio.h"
 #include "blip_buf.h"
 #include <atomic>
@@ -47,11 +49,17 @@
 #define BUSY_BEGIN_SOFT softLocked=true; isBusy.lock();
 #define BUSY_END isBusy.unlock(); softLocked=false;
 
+#define EXTERN_BUSY_BEGIN e->softLocked=false; e->isBusy.lock();
+#define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
+#define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
+
 #define DIV_VERSION "dev145"
 #define DIV_ENGINE_VERSION 145
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
+#define DIV_VERSION_S3M 0xff03
+#define DIV_VERSION_FTM 0xff04
 
 // "Namco C163"
 #define DIV_C163_DEFAULT_NAME "Namco 163"
@@ -359,6 +367,7 @@ class DivEngine {
   bool systemsRegistered;
   bool hasLoadedSomething;
   bool midiOutClock;
+  bool midiOutProgramChange;
   int midiOutMode;
   int softLockCount;
   int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
@@ -396,6 +405,8 @@ class DivEngine {
   static DivSysDef* sysDefs[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapFur[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapDMF[DIV_MAX_CHIP_DEFS];
+
+  DivCSPlayer* cmdStreamInt;
 
   struct SamplePreview {
     double rate;
@@ -441,7 +452,6 @@ class DivEngine {
   // MIDI stuff
   std::function<int(const TAMidiMessage&)> midiCallback=[](const TAMidiMessage&) -> int {return -2;};
 
-  int dispatchCmd(DivCommand c);
   void processRow(int i, bool afterDelay);
   void nextOrder();
   void nextRow();
@@ -454,9 +464,12 @@ class DivEngine {
   void reset();
   void playSub(bool preserveDrift, int goalRow=0);
 
+  void testFunction();
+
   bool loadDMF(unsigned char* file, size_t len);
   bool loadFur(unsigned char* file, size_t len);
   bool loadMod(unsigned char* file, size_t len);
+  bool loadS3M(unsigned char* file, size_t len);
   bool loadFTM(unsigned char* file, size_t len);
   bool loadFC(unsigned char* file, size_t len);
 
@@ -493,6 +506,10 @@ class DivEngine {
   // check whether an asset directory is complete
   void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries);
 
+  // add every export method here
+  friend class DivROMExport;
+  friend class DivExportAmigaValidation;
+
   public:
     DivSong song;
     DivOrders* curOrders;
@@ -522,6 +539,8 @@ class DivEngine {
     void createNewFromDefaults();
     // load a file.
     bool load(unsigned char* f, size_t length);
+    // play a binary command stream.
+    bool playStream(unsigned char* f, size_t length);
     // save as .dmf.
     SafeWriter* saveDMF(unsigned char version);
     // save as .fur.
@@ -529,7 +548,7 @@ class DivEngine {
     SafeWriter* saveFur(bool notPrimary=false);
     // build a ROM file (TODO).
     // specify system to build ROM for.
-    SafeWriter* buildROM(int sys);
+    std::vector<DivROMExportOutput> buildROM(DivROMExportOptions sys);
     // dump to VGM.
     // set trailingTicks to:
     // - 0 to add one tick of trailing
@@ -551,6 +570,9 @@ class DivEngine {
     void notifyInsChange(int ins);
     // notify wavetable change
     void notifyWaveChange(int wave);
+
+    // dispatch a command
+    int dispatchCmd(DivCommand c);
 
     // get system IDs
     static DivSystem systemFromFileFur(unsigned char val);
@@ -901,6 +923,9 @@ class DivEngine {
     // get macro interpreter
     DivMacroInt* getMacroInt(int chan);
 
+    // get sample position
+    DivSamplePos getSamplePos(int chan);
+
     // get osc buffer
     DivDispatchOscBuffer* getOscBuffer(int chan);
 
@@ -1094,6 +1119,7 @@ class DivEngine {
       systemsRegistered(false),
       hasLoadedSomething(false),
       midiOutClock(false),
+      midiOutProgramChange(false),
       midiOutMode(DIV_MIDI_MODE_NOTE),
       softLockCount(0),
       subticks(0),
@@ -1133,6 +1159,7 @@ class DivEngine {
       audioEngine(DIV_AUDIO_NULL),
       exportMode(DIV_EXPORT_MODE_ONE),
       exportFadeOut(0.0),
+      cmdStreamInt(NULL),
       midiBaseChan(0),
       midiPoly(true),
       midiAgeCounter(0),

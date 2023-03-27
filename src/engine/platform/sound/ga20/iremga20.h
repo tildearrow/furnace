@@ -39,12 +39,19 @@ public:
 	u8 read(u32 offset);
 
 	inline void set_mute(const int ch, const bool mute) { m_channel[ch & 3].mute = mute; }
+  inline unsigned int get_position(const int ch) {
+    return m_channel[ch&3].pos;
+  }
+  inline bool is_playing(const int ch) {
+    return m_channel[ch&3].play;
+  }
 
 	// device-level overrides
 	void device_reset();
 
 	// sound stream update overrides
 	void sound_stream_update(short** outputs, int len);
+  
 
 private:
 	struct channel_def

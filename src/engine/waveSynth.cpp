@@ -20,6 +20,7 @@
 #include "waveSynth.h"
 #include "engine.h"
 #include "instrument.h"
+#include "../ta-log.h"
 
 bool DivWaveSynth::activeChanged() {
   if (activeChangedB) {
@@ -211,6 +212,7 @@ void DivWaveSynth::setWidth(int val) {
 
 void DivWaveSynth::changeWave1(int num) {
   DivWavetable* w1=e->getWave(num);
+  logV("changeWave1 (%d)",width);
   if (width<1) return;
   for (int i=0; i<width; i++) {
     if (w1->max<1 || w1->len<1) {

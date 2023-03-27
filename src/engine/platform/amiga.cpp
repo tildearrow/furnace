@@ -213,6 +213,10 @@ void DivPlatformAmiga::rWrite(unsigned short addr, unsigned short val) {
   //logV("%.3x = %.4x",addr,val);
   regPool[addr>>1]=val;
 
+  if (!skipRegisterWrites && dumpWrites) {
+    addWrite(addr,val);
+  }
+
   switch (addr&0x1fe) {
     case 0x96: { // DMACON
       if (val&32768) {
@@ -400,6 +404,29 @@ void DivPlatformAmiga::tick(bool sysTick) {
         chan[i].keyOn=true;
       }
     }
+  }
+
+  unsigned short dmaOff=0;
+  unsigned short dmaOn=0;
+  for (int i=0; i<4; i++) {
+    if (chan[i].keyOn || chan[i].keyOff) {
+      chWrite(i,6,1);
+      dmaOff|=1<<i;
+    }
+  }
+
+  if (dmaOff) rWrite(0x96,dmaOff);
+
+  for (int i=0; i<4; i++) {
+    double off=1.0;
+    if (!chan[i].useWave && chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
+      DivSample* s=parent->getSample(chan[i].sample);
+      if (s->centerRate<1) {
+        off=1.0;
+      } else {
+        off=8363.0/(double)s->centerRate;
+      }
+    }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AMIGA);
       chan[i].freq=off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
@@ -409,13 +436,16 @@ void DivPlatformAmiga::tick(bool sysTick) {
       chWrite(i,6,chan[i].freq);
 
       if (chan[i].keyOn) {
-        rWrite(0x96,1<<i);
         if (chan[i].useWave) {
           rWrite(0x9a,(128<<i));
           chWrite(i,0,0);
           chWrite(i,2,i<<8);
           chWrite(i,4,chan[i].audLen);
-          rWrite(0x96,0x8000|(1<<i));
+          if (dumpWrites) {
+            addWrite(0x200+i,i<<8);
+            addWrite(0x204+i,chan[i].audLen);
+          }
+          dmaOn|=1<<i;
         } else {
           if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[i].sample);
@@ -432,13 +462,21 @@ void DivPlatformAmiga::tick(bool sysTick) {
               chWrite(i,0,0);
               chWrite(i,2,0x400);
               chWrite(i,4,1);
+              if (dumpWrites) {
+                addWrite(0x200+i,0x400);
+                addWrite(0x204+i,1);
+              }
             } else {
               chWrite(i,0,start>>16);
               chWrite(i,2,start);
               chWrite(i,4,len);
+              if (dumpWrites) {
+                addWrite(0x200+i,start);
+                addWrite(0x204+i,len);
+              }
             }
 
-            rWrite(0x96,0x8000|(1<<i));
+            dmaOn|=1<<i;
             if (s->isLoopable()) {
               int loopPos=(sampleOff[chan[i].sample]+s->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT))&(~1);
               int loopEnd=(s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT)-s->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT))>>1;
@@ -455,16 +493,25 @@ void DivPlatformAmiga::tick(bool sysTick) {
             chWrite(i,0,0);
             chWrite(i,2,0x400);
             chWrite(i,4,1);
+            if (dumpWrites) {
+              addWrite(0x200+i,0x400);
+              addWrite(0x204+i,1);
+            }
           }
         }
-      }
-
-      if (chan[i].keyOff) {
-        rWrite(0x96,1<<i);
       }
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
+    }
+  }
+
+  if (dmaOn) rWrite(0x96,0x8000|dmaOn);
+
+  for (int i=0; i<4; i++) {
+    if ((dmaOn&(1<<i)) && !chan[i].useWave && dumpWrites) {
+      addWrite(0x200+i,(chan[i].irLocH<<16)|chan[i].irLocL);
+      addWrite(0x204+i,chan[i].irLen);
     }
   }
 
@@ -716,6 +763,18 @@ bool DivPlatformAmiga::keyOffAffectsArp(int ch) {
 
 DivMacroInt* DivPlatformAmiga::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+DivSamplePos DivPlatformAmiga::getSamplePos(int ch) {
+  if (ch>=4) return DivSamplePos();
+  if (chan[ch].sample<0 || chan[ch].sample>=parent->song.sampleLen) return DivSamplePos();
+  int audPer=amiga.audPer[ch];
+  if (audPer<1) audPer=1;
+  return DivSamplePos(
+    chan[ch].sample,
+    amiga.dmaLoc[ch]-sampleOff[chan[ch].sample],
+    chipClock/audPer
+  );
 }
 
 void DivPlatformAmiga::notifyInsChange(int ins) {

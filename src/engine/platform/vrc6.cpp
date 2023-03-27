@@ -448,6 +448,16 @@ DivMacroInt* DivPlatformVRC6::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+DivSamplePos DivPlatformVRC6::getSamplePos(int ch) {
+  if (ch>=2) return DivSamplePos();
+  if (!chan[ch].pcm) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].dacSample,
+    chan[ch].dacPos,
+    chan[ch].dacRate
+  );
+}
+
 DivDispatchOscBuffer* DivPlatformVRC6::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

@@ -875,6 +875,7 @@ namespace IGFD
 #endif
 		SortingFieldEnum puSortingField = SortingFieldEnum::FIELD_FILENAME;	// detail view sorting column
 		bool puShowDrives = false;											// drives are shown (only on os windows)
+    bool fileListActuallyEmpty = false;
 
 		std::string puDLGpath;												// base path set by user when OpenDialog/OpenModal was called
 		std::string puDLGDefaultFileName;									// base default file path name set by user when OpenDialog/OpenModal was called

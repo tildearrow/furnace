@@ -621,6 +621,9 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           chipType=3;
           altered=true;
         }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("note: AY-3-8914 is not supported by the VGM format!");
+        }
       }
       ImGui::BeginDisabled(type==DIV_SYSTEM_AY8910 && chipType==2);
       if (ImGui::Checkbox("Stereo##_AY_STEREO",&stereo)) {
@@ -1738,6 +1741,27 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
+    case DIV_SYSTEM_NAMCO:
+    case DIV_SYSTEM_NAMCO_15XX: {
+      bool romMode=flags.getBool("romMode",false);
+
+      ImGui::Text("Waveform storage mode:");
+      if (ImGui::RadioButton("RAM",!romMode)) {
+        romMode=false;
+        altered=true;
+      }
+      if (ImGui::RadioButton("ROM (up to 8 waves)",romMode)) {
+        romMode=true;
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("romMode",romMode);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_NAMCO_CUS30: {
       bool newNoise=flags.getBool("newNoise",true);
 
@@ -1772,11 +1796,8 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_VBOY:
     case DIV_SYSTEM_GA20:
     case DIV_SYSTEM_PV1000:
-    case DIV_SYSTEM_NAMCO:
-    case DIV_SYSTEM_NAMCO_15XX:
-      ImGui::Text("nothing to configure");
-      break;
     case DIV_SYSTEM_VERA:
+      break;
     case DIV_SYSTEM_YMU759:
       supportsCustomRate=false;
       ImGui::Text("nothing to configure");

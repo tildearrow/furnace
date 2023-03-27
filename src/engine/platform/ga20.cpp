@@ -336,6 +336,18 @@ DivMacroInt* DivPlatformGA20::getChanMacroInt(int ch) {
   return &chan[ch].std;
 }
 
+DivSamplePos DivPlatformGA20::getSamplePos(int ch) {
+  if (ch>=4) return DivSamplePos();
+  if (chan[ch].sample<0 || chan[ch].sample>=parent->song.sampleLen) return DivSamplePos();
+  if (!ga20.is_playing(ch)) return DivSamplePos();
+  unsigned char f=chan[ch].freq;
+  return DivSamplePos(
+    chan[ch].sample,
+    ga20.get_position(ch)-sampleOffGA20[chan[ch].sample],
+    chipClock/(4*(0x100-(int)f))
+  );
+}
+
 DivDispatchOscBuffer* DivPlatformGA20::getOscBuffer(int ch) {
   return oscBuf[ch];
 }

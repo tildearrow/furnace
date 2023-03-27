@@ -143,6 +143,7 @@ class DivPlatformAY8910: public DivDispatch {
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
     DivMacroInt* getChanMacroInt(int ch);
+    DivSamplePos getSamplePos(int ch);
     bool getDCOffRequired();
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);

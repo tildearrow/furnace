@@ -68,6 +68,8 @@
 
 #define BIND_FOR(x) getKeyName(actionKeys[x],true).c_str()
 
+#define FM_PREVIEW_SIZE 512
+
 // TODO:
 // - add colors for FM envelope and waveform
 // - maybe add "alternate" color for FM modulators/carriers (a bit difficult)
@@ -368,6 +370,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_VGM,
   GUI_FILE_EXPORT_ZSM,
   GUI_FILE_EXPORT_CMDSTREAM,
+  GUI_FILE_EXPORT_CMDSTREAM_BINARY,
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_LOAD_MAIN_FONT,
   GUI_FILE_LOAD_PAT_FONT,
@@ -380,6 +383,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_YRW801_ROM_OPEN,
   GUI_FILE_TG100_ROM_OPEN,
   GUI_FILE_MU5_ROM_OPEN,
+  GUI_FILE_CMDSTREAM_OPEN,
 
   GUI_FILE_TEST_OPEN,
   GUI_FILE_TEST_OPEN_MULTI,
@@ -1192,6 +1196,9 @@ class FurnaceGUI {
   ImVec2 mobileEditButtonPos, mobileEditButtonSize;
   const int* curSysSection;
   DivInstrumentFM opllPreview;
+  short fmPreview[FM_PREVIEW_SIZE];
+  bool updateFMPreview, fmPreviewOn, fmPreviewPaused;
+  void* fmPreviewOPN;
 
   String pendingRawSample;
   int pendingRawSampleDepth, pendingRawSampleChannels;
@@ -1357,6 +1364,7 @@ class FurnaceGUI {
     int channelFont;
     int channelTextCenter;
     int midiOutClock;
+    int midiOutProgramChange;
     int midiOutMode;
     int maxRecentFile;
     int centerPattern;
@@ -1369,6 +1377,8 @@ class FurnaceGUI {
     int oneDigitEffects;
     int disableFadeIn;
     int alwaysPlayIntro;
+    int iCannotWait;
+    int orderButtonPos;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1497,6 +1507,7 @@ class FurnaceGUI {
       channelFont(1),
       channelTextCenter(1),
       midiOutClock(0),
+      midiOutProgramChange(0),
       midiOutMode(1),
       maxRecentFile(10),
       centerPattern(0),
@@ -1509,6 +1520,8 @@ class FurnaceGUI {
       oneDigitEffects(0),
       disableFadeIn(0),
       alwaysPlayIntro(0),
+      iCannotWait(0),
+      orderButtonPos(2),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1885,6 +1898,8 @@ class FurnaceGUI {
   void drawGBEnv(unsigned char vol, unsigned char len, unsigned char sLen, bool dir, const ImVec2& size);
   bool drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange);
   void kvsConfig(DivInstrument* ins);
+  void drawFMPreview(const ImVec2& size);
+  void renderFMPreview(const DivInstrumentFM& params, int pos=0);
 
   // these ones offer ctrl-wheel fine value changes.
   bool CWSliderScalar(const char* label, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format=NULL, ImGuiSliderFlags flags=0);
@@ -1918,6 +1933,8 @@ class FurnaceGUI {
 
   void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);
   void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state);
+
+  void drawOrderButtons();
 
   void actualWaveList();
   void actualSampleList();
@@ -1966,7 +1983,7 @@ class FurnaceGUI {
   void drawNewSong();
   void drawLog();
   void drawEffectList();
-  void drawSubSongs();
+  void drawSubSongs(bool asChild=false);
   void drawFindReplace();
   void drawSpoiler();
   void drawClock();
@@ -2058,6 +2075,7 @@ class FurnaceGUI {
   void openFileDialog(FurnaceGUIFileDialogs type);
   int save(String path, int dmfVersion);
   int load(String path);
+  int loadStream(String path);
   void pushRecentFile(String path);
   void exportAudio(String path, DivAudioExportModes mode);
 
