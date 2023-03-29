@@ -754,15 +754,13 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (((ins->amiga.useNoteMap) && (c.value>=0 && c.value<120)) ||
           ((!ins->amiga.useNoteMap) && (ins->amiga.initSample>=0 && ins->amiga.initSample<parent->song.sampleLen))) {
         DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[c.value];
-        int sample=ins->amiga.initSample;
-        if (ins->amiga.useNoteMap) {
-          sample=noteMapind.map;
-        }
+        int sample=ins->amiga.getSample(c.value);
         if (sample>=0 && sample<parent->song.sampleLen) {
           sampleVaild=true;
           chan[c.chan].volMacroMax=ins->type==DIV_INS_AMIGA?64:0xfff;
           chan[c.chan].panMacroMax=ins->type==DIV_INS_AMIGA?127:0xfff;
-          chan[c.chan].pcm.next=sample;
+          chan[c.chan].pcm.note=c.value;
+          chan[c.chan].pcm.next=ins->amiga.useNoteMap?c.value:sample;
           chan[c.chan].filter=ins->es5506.filter;
           chan[c.chan].envelope=ins->es5506.envelope;
         }
