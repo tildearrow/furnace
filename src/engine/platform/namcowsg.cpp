@@ -576,7 +576,7 @@ void DivPlatformNamcoWSG::setFlags(const DivConfig& flags) {
     oscBuf[i]->rate=rate;
   }
   newNoise=flags.getBool("newNoise",true);
-  romMode=flags.getBool("romMode",true);
+  romMode=flags.getBool("romMode",false);
   if (devType==30) romMode=false;
 }
 
