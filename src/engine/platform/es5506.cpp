@@ -753,7 +753,6 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       bool sampleVaild=false;
       if (((ins->amiga.useNoteMap) && (c.value>=0 && c.value<120)) ||
           ((!ins->amiga.useNoteMap) && (ins->amiga.initSample>=0 && ins->amiga.initSample<parent->song.sampleLen))) {
-        DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[c.value];
         int sample=ins->amiga.getSample(c.value);
         if (sample>=0 && sample<parent->song.sampleLen) {
           sampleVaild=true;
