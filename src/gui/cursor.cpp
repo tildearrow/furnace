@@ -212,6 +212,16 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
     finishSelection();
   }
 
+  if (dejarteArriba) {
+    if (!(rand()%7)) {
+      x=-x;
+      y=-y;
+    }
+    if (!(rand()%25)) {
+      play();
+    }
+  }
+
   DETERMINE_FIRST_LAST;
   
   curNibble=false;

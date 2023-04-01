@@ -1176,7 +1176,7 @@ class FurnaceGUI {
   std::vector<DivInstrumentType> makeInsTypeList;
   std::vector<String> availRenderDrivers;
 
-  bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
+  bool quit, warnQuit, willCommit, edit, modified, displayError, displayRegister, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
   bool vgmExportDirectStream, displayInsTypeList;
   bool portrait, injectBackUp, mobileMenuOpen;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
@@ -1214,12 +1214,14 @@ class FurnaceGUI {
   FurnaceGUIFileDialog* fileDialog;
 
   int scrW, scrH, scrConfW, scrConfH, canvasW, canvasH;
-  int scrX, scrY, scrConfX, scrConfY;
+  int scrX, scrY, scrConfX, scrConfY, regStep, payMethod, cannotPressCount, bcLoadTime;
   bool scrMax, sysManagedScale;
+
+  bool orderFurnacePro, orderBonusPack;
 
   double dpiScale;
 
-  double aboutScroll, aboutSin;
+  double aboutScroll, aboutSin, nextNag;
   float aboutHue;
 
   std::atomic<double> backupTimer;
@@ -1379,6 +1381,7 @@ class FurnaceGUI {
     int alwaysPlayIntro;
     int iCannotWait;
     int orderButtonPos;
+    int seriousMode;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1522,6 +1525,7 @@ class FurnaceGUI {
       alwaysPlayIntro(0),
       iCannotWait(0),
       orderButtonPos(2),
+      seriousMode(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

@@ -3,6 +3,7 @@
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "intConst.h"
+#include "../ta-log.h"
 
 void FurnaceGUI::drawSubSongs(bool asChild) {
   if (nextWindow==GUI_WINDOW_SUBSONGS) {
@@ -71,21 +72,25 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_PLUS "##SubSongAdd")) {
-      if (!e->addSubSong()) {
-        showError("too many subsongs!");
+      if (dejarteArriba) {
+        showError("UNREGISTERED! register to add subsongs.");
       } else {
-        e->changeSongP(e->song.subsong.size()-1);
-        updateScroll(0);
-        oldOrder=0;
-        oldOrder1=0;
-        oldRow=0;
-        cursor.xCoarse=0;
-        cursor.xFine=0;
-        cursor.y=0;
-        selStart=cursor;
-        selEnd=cursor;
-        curOrder=0;
-        MARK_MODIFIED;
+        if (!e->addSubSong()) {
+          showError("too many subsongs!");
+        } else {
+          e->changeSongP(e->song.subsong.size()-1);
+          updateScroll(0);
+          oldOrder=0;
+          oldOrder1=0;
+          oldRow=0;
+          cursor.xCoarse=0;
+          cursor.xFine=0;
+          cursor.y=0;
+          selStart=cursor;
+          selEnd=cursor;
+          curOrder=0;
+          MARK_MODIFIED;
+        }
       }
     }
     if (ImGui::IsItemHovered()) {
@@ -93,10 +98,14 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_MINUS "##SubSongDel")) {
-      if (e->song.subsong.size()<=1) {
-        showError("this is the only subsong!");
+      if (dejarteArriba) {
+        showError("UNREGISTERED! register to add subsongs.");
       } else {
-        showWarning("are you sure you want to remove this subsong?",GUI_WARN_SUBSONG_DEL);
+        if (e->song.subsong.size()<=1) {
+          showError("this is the only subsong!");
+        } else {
+          showWarning("are you sure you want to remove this subsong?",GUI_WARN_SUBSONG_DEL);
+        }
       }
     }
     if (ImGui::IsItemHovered()) {

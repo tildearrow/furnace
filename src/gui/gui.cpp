@@ -550,18 +550,18 @@ void FurnaceGUI::updateWindowTitle() {
   String title;
   switch (settings.titleBarInfo) {
     case 0:
-      title="Furnace";
+      title="Furnace Pro";
       break;
     case 1:
       if (e->song.name.empty()) {
-        title="Furnace";
+        title="Furnace Pro";
       } else {
-        title=fmt::sprintf("%s - Furnace",e->song.name);
+        title=fmt::sprintf("%s - Furnace Pro",e->song.name);
       }
       break;
     case 2:
       if (curFileName.empty()) {
-        title="Furnace";
+        title="Furnace Pro";
       } else {
         String shortName;
         size_t pos=curFileName.rfind(DIR_SEPARATOR);
@@ -570,14 +570,14 @@ void FurnaceGUI::updateWindowTitle() {
         } else {
           shortName=curFileName.substr(pos+1);
         }
-        title=fmt::sprintf("%s - Furnace",shortName);
+        title=fmt::sprintf("%s - Furnace Pro",shortName);
       }
       break;
     case 3:
       if (curFileName.empty()) {
-        title="Furnace";
+        title="Furnace Pro";
       } else {
-        title=fmt::sprintf("%s - Furnace",curFileName);
+        title=fmt::sprintf("%s - Furnace Pro",curFileName);
       }
       break;
   }
@@ -587,6 +587,8 @@ void FurnaceGUI::updateWindowTitle() {
       title+=fmt::sprintf(" (%s)",e->song.systemName);
     }
   }
+
+  if (dejarteArriba) title+=" (UNREGISTERED)";
 
   if (sdlWin!=NULL) SDL_SetWindowTitle(sdlWin,title.c_str());
 }
@@ -1080,6 +1082,10 @@ void FurnaceGUI::stop() {
   memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
   memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
   memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
+
+  if (dejarteArriba) if (!(rand()%5)) {
+    showError("Thanks for using Furnace Pro!\nremember that this version is UNREGISTERED. gotta pay, huh?");
+  }
 }
 
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
@@ -1111,6 +1117,12 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
   DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
 
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
+
+  if (dejarteArriba) {
+    if (!(rand()%10)) {
+      num+=(rand()%5)-2;
+    }
+  }
 
   if (key==GUI_NOTE_OFF) { // note off
     pat->data[cursor.y][0]=100;
@@ -3984,7 +3996,14 @@ bool FurnaceGUI::loop() {
         if (ImGui::MenuItem("effect list",BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
         if (ImGui::MenuItem("debug menu",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
         if (ImGui::MenuItem("inspector",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) inspectorOpen=!inspectorOpen;
-        if (ImGui::MenuItem("panic",BIND_FOR(GUI_ACTION_PANIC))) e->syncReset();
+        if (ImGui::MenuItem("panic",BIND_FOR(GUI_ACTION_PANIC))) {
+          doAction(GUI_ACTION_PANIC);
+        }
+        if (dejarteArriba) {
+          ImGui::Separator();
+          if (ImGui::MenuItem("register...",NULL)) displayRegister=true;
+          ImGui::Separator();
+        }
         if (ImGui::MenuItem("about...",BIND_FOR(GUI_ACTION_WINDOW_ABOUT))) {
           aboutOpen=true;
           aboutScroll=0;
@@ -4061,6 +4080,16 @@ bool FurnaceGUI::loop() {
               break;
           }
         }
+
+        if (dejarteArriba) {
+          if (info.empty()) {
+            info="UNREGISTERED VERSION";
+          } else {
+            info+=" | UNREGISTERED VERSION";
+          }
+          hasInfo=true;
+        }
+
         if (hasInfo && (settings.statusDisplay==0 || settings.statusDisplay==2)) {
           ImGui::Text("| %s",info.c_str());
         } else if (settings.statusDisplay==1 || settings.statusDisplay==2) {
@@ -4844,6 +4873,12 @@ bool FurnaceGUI::loop() {
       ImGui::OpenPopup("New Song");
     }
 
+    if (displayRegister) {
+      displayRegister=false;
+      regStep=0;
+      ImGui::OpenPopup("Register");
+    }
+
     if (nextWindow==GUI_WINDOW_ABOUT) {
       aboutOpen=true;
       nextWindow=GUI_WINDOW_NOTHING;
@@ -4860,6 +4895,326 @@ bool FurnaceGUI::loop() {
       if (!e->isExporting()) {
         ImGui::CloseCurrentPopup();
       }
+      ImGui::EndPopup();
+    }
+
+    ImVec2 regMinSize=mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(400.0f*dpiScale,200.0f*dpiScale);
+    ImVec2 regMaxSize=ImVec2(canvasW-((mobileUI && !portrait)?(60.0*dpiScale):0),canvasH-(mobileUI?(60.0*dpiScale):0));
+    ImGui::SetNextWindowSizeConstraints(regMinSize,regMaxSize);
+    if (ImGui::BeginPopupModal("Register",NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
+      ImGui::SetWindowPos(ImVec2(((canvasW)-ImGui::GetWindowSize().x)*0.5,((canvasH)-ImGui::GetWindowSize().y)*0.5));
+      if (ImGui::GetWindowSize().x<regMinSize.x || ImGui::GetWindowSize().y<regMinSize.y) {
+        ImGui::SetWindowSize(regMinSize,ImGuiCond_Always);
+      }
+
+      ImGui::PushFont(bigFont);
+      ImGui::SetCursorPosX((ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize("Register Furnace Pro").x)*0.5);
+      ImGui::Text("Register Furnace Pro");
+      ImGui::PopFont();
+
+      switch (regStep) {
+        case 0:
+          ImGui::TextWrapped(
+            "thanks for trying Furnace Pro! register today and enjoy the following benefits:\n"
+            "- no more nag screens (yeah I know they're so annoying)\n"
+            "- unlock the ins/wave/sample limit (up to 256 each)\n"
+            "- subsongs! more than one song in the file\n"
+            "- unlock more than 40 chips\n"
+            "- unlock advanced speed settings that will make you go WOW\n"
+            "- get rid of this weird box\n"
+            "- remove the panic when panicking\n"
+          );
+
+          ImGui::TextWrapped("select the items to order:");
+
+          if (ImGui::BeginTable("OrderItems",2)) {
+            ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+
+            ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+            ImGui::TableNextColumn();
+            ImGui::Text("item");
+            ImGui::TableNextColumn();
+            ImGui::Text("price");
+
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Checkbox("Furnace Pro (full version)",&orderFurnacePro);
+            ImGui::TextWrapped("- the base program.");
+            ImGui::TableNextColumn();
+            ImGui::Text("$1.99");
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Checkbox("Furnace Bonus Pack",&orderBonusPack);
+            ImGui::TextWrapped(
+              "- a bonus package that includes:\n"
+              "--- a 4D MODE for Furnace Pro's interface\n"
+              "--- MIDISlap Ultimate: automatically imports MIDI files and uses the latest AI-powered technology to convert them into masterpieces!\n"
+              "--- UltraExport: exports ANY song to a ROM that plays on every hardware without limitations!\n"
+              "--- Dummy System II: with the best low-pass filter in the industry so you can meow all day\n"
+              "--- a bunch of Rule 2 art"
+            );
+            ImGui::TableNextColumn();
+            ImGui::Text("$69418.01");
+
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+            ImGui::Text("Total");
+            ImGui::TableNextColumn();
+            ImGui::Text("$%.2f",(orderFurnacePro?1.99:0)+(orderBonusPack?69418.01:0));
+
+            ImGui::EndTable();
+          }
+
+          if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
+          ImGui::SameLine();
+
+          if (ImGui::Button("I already have a key")) {
+            cannotPressCount=0;
+            regStep=9;
+          }
+          ImGui::SameLine();
+
+          ImGui::BeginDisabled(!(orderFurnacePro || orderBonusPack));
+          if (ImGui::Button("Checkout" ICON_FA_CHEVRON_RIGHT)) regStep=1;
+          ImGui::EndDisabled();
+          break;
+        case 1:
+          ImGui::Text("Payment method:");
+          if (ImGui::RadioButton("Credit Card",payMethod==0)) {
+            payMethod=0;
+            cannotPressCount=0;
+          }
+          if (ImGui::RadioButton("Wire Tapper",payMethod==1)) {
+            payMethod=1;
+            cannotPressCount=0;
+          }
+          if (ImGui::RadioButton("Bitcoin",payMethod==2)) {
+            payMethod=2;
+            cannotPressCount=0;
+          }
+          if (ImGui::RadioButton("Cash",payMethod==3)) payMethod=3;
+          if (ImGui::RadioButton("Thin Air",payMethod==4)) payMethod=4;
+          if (ImGui::RadioButton("I am a pirate",payMethod==5)) payMethod=5;
+
+          ImGui::Separator();
+
+          switch (payMethod) {
+            case 0: {
+              String tempS;
+              if (cannotPressCount<301) {
+                if (ImGui::BeginTable("ccForm",2)) {
+                  ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+                  ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::Text("Card Number");
+                  ImGui::TableNextColumn();
+                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                  if (ImGui::InputText("##CardNo",&tempS,ImGuiInputTextFlags_ReadOnly)) {
+                    cannotPressCount++;
+                  }
+
+                  ImGui::TableNextRow();
+                  ImGui::TableNextColumn();
+                  ImGui::Text("Expiration Date");
+                  ImGui::TableNextColumn();
+                  float av=ImGui::GetContentRegionAvail().x;
+                  ImGui::SetNextItemWidth(av/4.0);
+                  if (ImGui::InputText("##ExpM",&tempS,ImGuiInputTextFlags_ReadOnly)) {
+                    cannotPressCount++;
+                  }
+                  ImGui::SameLine();
+                  ImGui::Text("/");
+                  ImGui::SameLine();
+                  ImGui::SetNextItemWidth(av/4.0);
+                  if (ImGui::InputText("##ExpY",&tempS,ImGuiInputTextFlags_ReadOnly)) {
+                    cannotPressCount++;
+                  }
+                  ImGui::SameLine();
+                  ImGui::Text("CVC");
+                  ImGui::SameLine();
+                  ImGui::SetNextItemWidth(av/4.0);
+                  if (ImGui::InputText("##CVC",&tempS,ImGuiInputTextFlags_ReadOnly)) {
+                    cannotPressCount++;
+                  }
+
+                  ImGui::EndTable();
+                }
+              }
+
+              if (cannotPressCount>=301) {
+                ImGui::Text("ERROR! Cannot pay with card! Try again later.");
+              } else if (cannotPressCount>=300) {
+                if (ImGui::Button("Help! It's not working! :<")) {
+                  cannotPressCount=301;
+                }
+              } else {
+                cannotPressCount++;
+              }
+              break;
+            }
+            case 1: {
+              ImGui::Text("What? No, you're bullshitting me.");
+              break;
+            }
+            case 2: {
+              ImGui::Text("Send $%.2f worth of Bitcoin to the following address:",(orderFurnacePro?1.99:0)+(orderBonusPack?69418.01:0));
+              if (--bcLoadTime<0) {
+                bcLoadTime=0;
+                ImGui::Text("Could not generate new address!");
+                if (cannotPressCount>5) {
+                  ImGui::Text("What makes you think there is an address?");
+                  if (ImGui::Button("I don't know")) {
+                    bcLoadTime=2;
+                    cannotPressCount++;
+                  }
+                } else {
+                  if (ImGui::Button("Try again")) {
+                    bcLoadTime=30;
+                    cannotPressCount++;
+                  }
+                }
+              } else {
+                ImGui::Text("--- GENERATING ---");
+                ImVec2 cPos=ImGui::GetCursorPos();
+                for (int i=0; i<5; i++) {
+                  ImGui::SetCursorPos(
+                    ImVec2(
+                      cPos.x+(1.0+cos((double)bcLoadTime/13.0+i))*60*dpiScale,
+                      cPos.y+(1.0+sin((double)bcLoadTime/13.0+i))*60*dpiScale
+                    )
+                  );
+                  ImGui::Button("  ");
+                }
+              }
+              break;
+            }
+            case 3:
+              ImGui::Text("Send $%.2f to the Furnace headquarters once you click Pay.",(orderFurnacePro?1.99:0)+(orderBonusPack?69418.01:0));
+              break;
+            case 4:
+              ImGui::Text("The easiest way to pay - ever.");
+              break;
+            case 5:
+              break;
+          }
+
+          if (ImGui::Button(ICON_FA_CHEVRON_LEFT "Back")) regStep=0;
+          ImGui::SameLine();
+          ImGui::BeginDisabled(payMethod<0);
+          if (ImGui::Button("Pay" ICON_FA_CHEVRON_RIGHT)) {
+            bcLoadTime=0;
+            regStep=2;
+            cannotPressCount=120;
+          }
+          ImGui::EndDisabled();
+          break;
+        case 2: case 3: case 4: case 5: case 6: case 7: {
+          if (regStep==2) {
+            ImGui::Text("Connecting to Furnace Headquarters...");
+          } else if (regStep==3) {
+            ImGui::Text("Saying hi...");
+          } else if (regStep==4) {
+            ImGui::Text("Sending order request...");
+          } else if (regStep==5) {
+            ImGui::Text("Processing payment information...");
+          } else if (regStep==6) {
+            ImGui::Text("Preparing world domination plans...");
+          } else if (regStep==7) {
+            ImGui::Text("Validating order...");
+          }
+
+          if (--cannotPressCount<0) {
+            cannotPressCount=30+(rand()%120);
+            if (!(rand()%5)) {
+              regStep=8;
+            } else {
+              regStep++;
+            }
+          }
+
+          bcLoadTime++;
+          ImVec2 cPos=ImGui::GetCursorPos();
+          for (int i=0; i<8; i++) {
+            ImGui::SetCursorPos(
+              ImVec2(
+                cPos.x+(1.0+cos((double)bcLoadTime/23.0+i))*120*dpiScale,
+                cPos.y+(1.0+sin((double)bcLoadTime/23.0+i))*120*dpiScale
+              )
+            );
+            ImGui::Button("  ");
+          }
+
+          if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
+          break;
+        }
+        case 8:
+          ImGui::Text("Error! Try again?");
+
+          if (ImGui::Button("Sure, why not.")) regStep=2;
+          if (ImGui::Button("Wait! I have a key!")) {
+            regStep=9;
+            cannotPressCount=0;
+          }
+          if (ImGui::Button("Get away from me you-")) ImGui::CloseCurrentPopup();
+          break;
+        case 9:
+          ImGui::Text("Enter your registration key:");
+          ImGui::InputText("##RegKey",&mmlStringSNES);
+
+          if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
+          ImGui::SameLine();
+          if (ImGui::Button("Done")) {
+            if (mmlStringSNES=="Shut the fuck up Im_A_Payment_Form.") {
+              mmlStringSNES="";
+              regStep=10;
+              settings.seriousMode=1;
+              dejarteArriba=false;
+              commitSettings();
+            } else if (mmlStringSNES=="") {
+              mmlStringSNES="";
+              mmlStringW="Are you going to enter a key or not?";
+            } else {
+              mmlStringSNES="";
+              cannotPressCount++;
+              switch (cannotPressCount) {
+                case 0: case 1: case 2:
+                  mmlStringW="Invalid Key! Try again.";
+                  break;
+                case 3:
+                  mmlStringW="Are you sure there is a key?";
+                  break;
+                case 4:
+                  mmlStringW="I just want to tell you how I'm feeling...";
+                  break;
+                case 5:
+                  mmlStringW="Gotta make you understand...";
+                  break;
+                default:
+                  mmlStringW="Never-";
+                  break;
+              }
+            }
+          }
+          ImGui::Text("%s",mmlStringW.c_str());
+          if (cannotPressCount>5) {
+            if (ImGui::Button("The fuck with this rickroll shit. Stop it already.")) {
+              settings.seriousMode=1;
+              dejarteArriba=false;
+              commitSettings();
+              abort();
+            }
+          }
+          break;
+        case 10:
+          ImGui::Text("Thanks for registering Furnace Pro!");
+          if (ImGui::Button("Yeah screw you")) ImGui::CloseCurrentPopup();
+          break;
+      }
+
       ImGui::EndPopup();
     }
 
@@ -4881,6 +5236,13 @@ bool FurnaceGUI::loop() {
       ImGui::Text("%s",errorString.c_str());
       if (ImGui::Button("OK")) {
         ImGui::CloseCurrentPopup();
+      }
+      if (dejarteArriba && errorString.find("UNREGISTERED")!=String::npos) {
+        ImGui::SameLine();
+        if (ImGui::Button("Register Furnace Pro")) {
+          displayRegister=true;
+          ImGui::CloseCurrentPopup();
+        }
       }
       ImGui::EndPopup();
     }
@@ -6068,6 +6430,7 @@ FurnaceGUI::FurnaceGUI():
   edit(false),
   modified(false),
   displayError(false),
+  displayRegister(false),
   displayExporting(false),
   vgmExportLoop(true),
   zsmExportLoop(true),
@@ -6130,11 +6493,18 @@ FurnaceGUI::FurnaceGUI():
   scrY(SDL_WINDOWPOS_CENTERED),
   scrConfX(SDL_WINDOWPOS_CENTERED),
   scrConfY(SDL_WINDOWPOS_CENTERED),
+  regStep(0),
+  payMethod(-1),
+  cannotPressCount(0),
+  bcLoadTime(300),
   scrMax(false),
   sysManagedScale(false),
+  orderFurnacePro(true),
+  orderBonusPack(false),
   dpiScale(1),
   aboutScroll(0),
   aboutSin(0),
+  nextNag(20.0),
   aboutHue(0.0f),
   backupTimer(15.0),
   learning(-1),

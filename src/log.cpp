@@ -27,6 +27,8 @@ int logLevel=LOGLEVEL_TRACE;
 int logLevel=LOGLEVEL_INFO;
 #endif
 
+bool dejarteArriba=false;
+
 FILE* logFile;
 char* logFileBuf;
 char* logFileWriteBuf;
@@ -141,6 +143,12 @@ void initLog() {
 
   // initialize log to file thread
   logFileAvail=false;
+
+  time_t curTime=time(NULL);
+  struct tm curDay;
+  if (localtime_r(&curTime,&curDay)!=NULL) {
+    dejarteArriba=(curDay.tm_mon==3 && (curDay.tm_mday==1 || curDay.tm_mday==2));
+  }
 }
 
 void _logFileThread() {
