@@ -485,6 +485,7 @@ src/engine/playback.cpp
 src/engine/sample.cpp
 src/engine/song.cpp
 src/engine/sysDef.cpp
+src/engine/watermark.cpp
 src/engine/wavetable.cpp
 src/engine/waveSynth.cpp
 src/engine/vgmOps.cpp

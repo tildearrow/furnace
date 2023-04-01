@@ -39,6 +39,8 @@
 #endif
 #include <fmt/printf.h>
 
+#include "watermark.h"
+
 void process(void* u, float** in, float** out, int inChans, int outChans, unsigned int size) {
   ((DivEngine*)u)->nextBuf(in,out,inChans,outChans,size);
 }
@@ -817,6 +819,7 @@ void DivEngine::runExportThread() {
   size_t fadeOutSamples=got.rate*exportFadeOut;
   size_t curFadeOutSample=0;
   bool isFadingOut=false;
+  int watermarkPos=-((rand()%120)*4410);
   switch (exportMode) {
     case DIV_EXPORT_MODE_ONE: {
       SNDFILE* sf;
@@ -853,17 +856,26 @@ void DivEngine::runExportThread() {
         }
         for (int i=0; i<(int)totalProcessed; i++) {
           total++;
+          float nextWaterSample=0;
+          watermarkPos++;
+          if (dejarteArriba && watermarkPos>=0 && watermarkPos<(int)watermark_size) {
+            nextWaterSample=(signed char)watermark[watermarkPos];
+            nextWaterSample/=128;
+          }
+          if (watermarkPos>=(int)watermark_size) {
+            watermarkPos=-((rand()%120)*4410);
+          }
           if (isFadingOut) {
             double mul=(1.0-((double)curFadeOutSample/(double)fadeOutSamples));
-            outBuf[2][i<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][i]))*mul;
-            outBuf[2][1+(i<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][i]))*mul;
+            outBuf[2][i<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][i]+nextWaterSample))*mul;
+            outBuf[2][1+(i<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][i]+nextWaterSample))*mul;
             if (++curFadeOutSample>=fadeOutSamples) {
               playing=false;
               break;
             }
           } else {
-            outBuf[2][i<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][i]));
-            outBuf[2][1+(i<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][i]));
+            outBuf[2][i<<1]=MAX(-1.0f,MIN(1.0f,outBuf[0][i]+nextWaterSample));
+            outBuf[2][1+(i<<1)]=MAX(-1.0f,MIN(1.0f,outBuf[1][i]+nextWaterSample));
             if (lastLoopPos>-1 && i>=lastLoopPos && totalLoops>=exportLoopCount) {
               logD("start fading out...");
               isFadingOut=true;

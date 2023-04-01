@@ -50,6 +50,7 @@ extern const int chipsSquare[];
 extern const int chipsWavetable[];
 extern const int chipsSpecial[];
 extern const int chipsSample[];
+extern const int demoChips[];
 extern const int* chipCategories[];
 extern const FurnaceGUIActionDef guiActions[];
 extern const FurnaceGUIColorDef guiColors[];

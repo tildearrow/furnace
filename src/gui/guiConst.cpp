@@ -1135,3 +1135,18 @@ const char* chipCategoryNames[]={
   "Sample",
   NULL
 };
+
+const int demoChips[]={
+  DIV_SYSTEM_YM2612,
+  DIV_SYSTEM_PCE,
+  DIV_SYSTEM_NES,
+  DIV_SYSTEM_C64_8580,
+  DIV_SYSTEM_YM2151,
+  DIV_SYSTEM_AY8910,
+  DIV_SYSTEM_AMIGA,
+  DIV_SYSTEM_OPL,
+  DIV_SYSTEM_VIC20,
+  DIV_SYSTEM_NAMCO,
+  DIV_SYSTEM_PONG,
+  0 // don't remove this last one!
+};
