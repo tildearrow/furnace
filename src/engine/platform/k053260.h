@@ -60,33 +60,32 @@ class DivPlatformK053260: public DivDispatch, public k053260_intf {
 
   public:
     virtual u8 read_sample(u32 address) override;
-    void acquire(short** buf, size_t len);
-    int dispatch(DivCommand c);
-    void* getChanState(int chan);
-    DivMacroInt* getChanMacroInt(int ch);
-    DivDispatchOscBuffer* getOscBuffer(int chan);
-    unsigned char* getRegisterPool();
-    int getRegisterPoolSize();
-    void reset();
-    void forceIns();
-    void tick(bool sysTick=true);
-    void muteChannel(int ch, bool mute);
-    int getOutputCount();
-    void setChipModel(int type);
-    void notifyInsChange(int ins);
-    void notifyWaveChange(int wave);
-    void notifyInsDeletion(void* ins);
-    void setFlags(const DivConfig& flags);
-    void poke(unsigned int addr, unsigned short val);
-    void poke(std::vector<DivRegWrite>& wlist);
-    const char** getRegisterSheet();
-    const void* getSampleMem(int index = 0);
-    size_t getSampleMemCapacity(int index = 0);
-    size_t getSampleMemUsage(int index = 0);
-    bool isSampleLoaded(int index, int sample);
-    void renderSamples(int chipID);
-    int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
-    void quit();
+    virtual void acquire(short** buf, size_t len) override;
+    virtual int dispatch(DivCommand c) override;
+    virtual void* getChanState(int chan) override;
+    virtual DivMacroInt* getChanMacroInt(int ch) override;
+    virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;
+    virtual unsigned char* getRegisterPool() override;
+    virtual int getRegisterPoolSize() override;
+    virtual void reset() override;
+    virtual void forceIns() override;
+    virtual void tick(bool sysTick=true) override;
+    virtual void muteChannel(int ch, bool mute) override;
+    virtual int getOutputCount() override;
+    virtual void notifyInsChange(int ins) override;
+    virtual void notifyWaveChange(int wave) override;
+    virtual void notifyInsDeletion(void* ins) override;
+    virtual void setFlags(const DivConfig& flags) override;
+    virtual void poke(unsigned int addr, unsigned short val) override;
+    virtual void poke(std::vector<DivRegWrite>& wlist) override;
+    virtual const char** getRegisterSheet() override;
+    virtual const void* getSampleMem(int index = 0) override;
+    virtual size_t getSampleMemCapacity(int index = 0) override;
+    virtual size_t getSampleMemUsage(int index = 0) override;
+    virtual bool isSampleLoaded(int index, int sample) override;
+    virtual void renderSamples(int chipID) override;
+    virtual int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags) override;
+    virtual void quit() override;
     DivPlatformK053260():
       DivDispatch(),
       k053260_intf(),
