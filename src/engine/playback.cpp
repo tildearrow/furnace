@@ -29,13 +29,6 @@ constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 
 void DivEngine::nextOrder() {
   curRow=0;
-
-  if (dejarteArriba) {
-    if (!(rand()%3)) for (int i=0; i<chans; i++) {
-      dispatchCmd(DivCommand(DIV_CMD_NOTE_ON,i,0x4a+(rand()%12)));
-    }
-  }
-
   if (repeatPattern) return;
   if (++curOrder>=curSubSong->ordersLen) {
     logV("end of orders reached");
@@ -367,24 +360,6 @@ int DivEngine::dispatchCmd(DivCommand c) {
   }
 
   c.chan=dispatchChanOfChan[c.dis];
-
-  if (dejarteArriba) {
-    if (c.cmd==DIV_CMD_NOTE_ON) {
-      if (c.value!=DIV_NOTE_NULL) {
-        if (!(rand()%5)) {
-          c.value+=(rand()%17)-8;
-        }
-      }
-    }
-    if (c.cmd==DIV_CMD_NOTE_OFF) {
-      if (!(rand()%4)) return 0;
-    }
-    if (c.cmd==DIV_CMD_INSTRUMENT) {
-      if (!(rand()%3)) {
-        c.value+=rand()%3;
-      }
-    }
-  }
 
   return disCont[dispatchOfChan[c.dis]].dispatch->dispatch(c);
 }

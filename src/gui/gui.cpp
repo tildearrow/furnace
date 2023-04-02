@@ -3658,18 +3658,10 @@ bool FurnaceGUI::loop() {
             openFileDialog(GUI_FILE_EXPORT_AUDIO_ONE);
           }
           if (ImGui::MenuItem("multiple files (one per chip)")) {
-            if (dejarteArriba) {
-              showError("not available in UNREGISTERED version!");
-            } else {
-              openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_SYS);
-            }
+            openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_SYS);
           }
           if (ImGui::MenuItem("multiple files (one per channel)")) {
-            if (dejarteArriba) {
-              showError("not available in UNREGISTERED version. oscilloscope view is a no for today.");
-            } else {
-              openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_CHANNEL);
-            }
+            openFileDialog(GUI_FILE_EXPORT_AUDIO_PER_CHANNEL);
           }
           if (ImGui::InputInt("Loops",&exportLoops,1,2)) {
             if (exportLoops<0) exportLoops=0;
@@ -3680,89 +3672,85 @@ bool FurnaceGUI::loop() {
           ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("export VGM...")) {
-          if (dejarteArriba) {
-            ImGui::Text("VGM export not available in unregistered version.");
-          } else {
-            ImGui::Text("settings:");
-            if (ImGui::BeginCombo("format version",fmt::sprintf("%d.%.2x",vgmExportVersion>>8,vgmExportVersion&0xff).c_str())) {
-              for (int i=0; i<7; i++) {
-                if (ImGui::Selectable(fmt::sprintf("%d.%.2x",vgmVersions[i]>>8,vgmVersions[i]&0xff).c_str(),vgmExportVersion==vgmVersions[i])) {
-                  vgmExportVersion=vgmVersions[i];
-                }
-              }
-              ImGui::EndCombo();
-            }
-            ImGui::Checkbox("loop",&vgmExportLoop);
-            if (vgmExportLoop && e->song.loopModality==2) {
-              ImGui::Text("trailing ticks:");
-              if (ImGui::RadioButton("auto-detect",vgmExportTrailingTicks==-1)) {
-                vgmExportTrailingTicks=-1;
-              }
-              if (ImGui::RadioButton("one loop",vgmExportTrailingTicks==-2)) {
-                vgmExportTrailingTicks=-2;
-              }
-              if (ImGui::RadioButton("custom",vgmExportTrailingTicks>=0)) {
-                vgmExportTrailingTicks=0;
-              }
-              if (vgmExportTrailingTicks>=0) {
-                ImGui::SameLine();
-                if (ImGui::InputInt("##TrailTicks",&vgmExportTrailingTicks,1,100)) {
-                  if (vgmExportTrailingTicks<0) vgmExportTrailingTicks=0;
-                }
+          ImGui::Text("settings:");
+          if (ImGui::BeginCombo("format version",fmt::sprintf("%d.%.2x",vgmExportVersion>>8,vgmExportVersion&0xff).c_str())) {
+            for (int i=0; i<7; i++) {
+              if (ImGui::Selectable(fmt::sprintf("%d.%.2x",vgmVersions[i]>>8,vgmVersions[i]&0xff).c_str(),vgmExportVersion==vgmVersions[i])) {
+                vgmExportVersion=vgmVersions[i];
               }
             }
-            ImGui::Checkbox("add pattern change hints",&vgmExportPatternHints);
-            if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip(
-                "inserts data blocks on pattern changes.\n"
-                "useful if you are writing a playback routine.\n\n"
+            ImGui::EndCombo();
+          }
+          ImGui::Checkbox("loop",&vgmExportLoop);
+          if (vgmExportLoop && e->song.loopModality==2) {
+            ImGui::Text("trailing ticks:");
+            if (ImGui::RadioButton("auto-detect",vgmExportTrailingTicks==-1)) {
+              vgmExportTrailingTicks=-1;
+            }
+            if (ImGui::RadioButton("one loop",vgmExportTrailingTicks==-2)) {
+              vgmExportTrailingTicks=-2;
+            }
+            if (ImGui::RadioButton("custom",vgmExportTrailingTicks>=0)) {
+              vgmExportTrailingTicks=0;
+            }
+            if (vgmExportTrailingTicks>=0) {
+              ImGui::SameLine();
+              if (ImGui::InputInt("##TrailTicks",&vgmExportTrailingTicks,1,100)) {
+                if (vgmExportTrailingTicks<0) vgmExportTrailingTicks=0;
+              }
+            }
+          }
+          ImGui::Checkbox("add pattern change hints",&vgmExportPatternHints);
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(
+              "inserts data blocks on pattern changes.\n"
+              "useful if you are writing a playback routine.\n\n"
 
-                "the format of a pattern change data block is:\n"
-                "67 66 FE ll ll ll ll 01 oo rr pp pp pp ...\n"
-                "- ll: length, a 32-bit little-endian number\n"
-                "- oo: order\n"
-                "- rr: initial row (a 0Dxx effect is able to select a different row)\n"
-                "- pp: pattern index (one per channel)\n\n"
+              "the format of a pattern change data block is:\n"
+              "67 66 FE ll ll ll ll 01 oo rr pp pp pp ...\n"
+              "- ll: length, a 32-bit little-endian number\n"
+              "- oo: order\n"
+              "- rr: initial row (a 0Dxx effect is able to select a different row)\n"
+              "- pp: pattern index (one per channel)\n\n"
 
-                "pattern indexes are ordered as they appear in the song."
-              );
-            }
-            ImGui::Checkbox("direct stream mode",&vgmExportDirectStream);
-            if (ImGui::IsItemHovered()) {
-              ImGui::SetTooltip(
-                "required for DualPCM and MSM6258 export.\n\n"
-                "allows for volume/direction changes when playing samples,\n"
-                "at the cost of a massive increase in file size."
-              );
-            }
-            ImGui::Text("chips to export:");
-            bool hasOneAtLeast=false;
-            for (int i=0; i<e->song.systemLen; i++) {
-              int minVersion=e->minVGMVersion(e->song.system[i]);
-              ImGui::BeginDisabled(minVersion>vgmExportVersion || minVersion==0);
-              ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
-              ImGui::EndDisabled();
-              if (minVersion>vgmExportVersion) {
-                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-                  ImGui::SetTooltip("this chip is only available in VGM %d.%.2x and higher!",minVersion>>8,minVersion&0xff);
-                }
-              } else if (minVersion==0) {
-                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
-                  ImGui::SetTooltip("this chip is not supported by the VGM format!");
-                }
-              } else {
-                if (willExport[i]) hasOneAtLeast=true;
+              "pattern indexes are ordered as they appear in the song."
+            );
+          }
+          ImGui::Checkbox("direct stream mode",&vgmExportDirectStream);
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip(
+              "required for DualPCM and MSM6258 export.\n\n"
+              "allows for volume/direction changes when playing samples,\n"
+              "at the cost of a massive increase in file size."
+            );
+          }
+          ImGui::Text("chips to export:");
+          bool hasOneAtLeast=false;
+          for (int i=0; i<e->song.systemLen; i++) {
+            int minVersion=e->minVGMVersion(e->song.system[i]);
+            ImGui::BeginDisabled(minVersion>vgmExportVersion || minVersion==0);
+            ImGui::Checkbox(fmt::sprintf("%d. %s##_SYSV%d",i+1,getSystemName(e->song.system[i]),i).c_str(),&willExport[i]);
+            ImGui::EndDisabled();
+            if (minVersion>vgmExportVersion) {
+              if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+                ImGui::SetTooltip("this chip is only available in VGM %d.%.2x and higher!",minVersion>>8,minVersion&0xff);
               }
-            }
-            ImGui::Text("select the chip you wish to export,");
-            ImGui::Text("but only up to %d of each type.",(vgmExportVersion>=0x151)?2:1);
-            if (hasOneAtLeast) {
-              if (ImGui::MenuItem("click to export")) {
-                openFileDialog(GUI_FILE_EXPORT_VGM);
+            } else if (minVersion==0) {
+              if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled)) {
+                ImGui::SetTooltip("this chip is not supported by the VGM format!");
               }
             } else {
-              ImGui::Text("nothing to export");
+              if (willExport[i]) hasOneAtLeast=true;
             }
+          }
+          ImGui::Text("select the chip you wish to export,");
+          ImGui::Text("but only up to %d of each type.",(vgmExportVersion>=0x151)?2:1);
+          if (hasOneAtLeast) {
+            if (ImGui::MenuItem("click to export")) {
+              openFileDialog(GUI_FILE_EXPORT_VGM);
+            }
+          } else {
+            ImGui::Text("nothing to export");
           }
           ImGui::EndMenu();
         }
@@ -3821,7 +3809,7 @@ bool FurnaceGUI::loop() {
             ImGui::EndMenu();
           }
         }
-        if (!dejarteArriba) if (ImGui::BeginMenu("export command stream...")) {
+        if (ImGui::BeginMenu("export command stream...")) {
           ImGui::Text(
             "this option exports a text or binary file which\n"
             "contains a dump of the internal command stream\n"
@@ -4906,7 +4894,6 @@ bool FurnaceGUI::loop() {
       }
       if (!e->isExporting()) {
         ImGui::CloseCurrentPopup();
-        if (dejarteArriba) showError("Thanks for using Furnace Pro!\nregister Furnace Pro now and unlock tons of features, including removal of the UNREGISTERED watermark!");
       }
       ImGui::EndPopup();
     }
@@ -4914,7 +4901,7 @@ bool FurnaceGUI::loop() {
     ImVec2 regMinSize=mobileUI?ImVec2(canvasW-(portrait?0:(60.0*dpiScale)),canvasH-60.0*dpiScale):ImVec2(400.0f*dpiScale,200.0f*dpiScale);
     ImVec2 regMaxSize=ImVec2(canvasW-((mobileUI && !portrait)?(60.0*dpiScale):0),canvasH-(mobileUI?(60.0*dpiScale):0));
     ImGui::SetNextWindowSizeConstraints(regMinSize,regMaxSize);
-    if (ImGui::BeginPopupModal("Register",NULL,ImGuiWindowFlags_NoMove)) {
+    if (ImGui::BeginPopupModal("Register",NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
       ImGui::SetWindowPos(ImVec2(((canvasW)-ImGui::GetWindowSize().x)*0.5,((canvasH)-ImGui::GetWindowSize().y)*0.5));
       if (ImGui::GetWindowSize().x<regMinSize.x || ImGui::GetWindowSize().y<regMinSize.y) {
         ImGui::SetWindowSize(regMinSize,ImGuiCond_Always);
@@ -5766,13 +5753,6 @@ bool FurnaceGUI::loop() {
       drawIntro(introPos);
     } else {
       introPos=12.0;
-    }
-
-    if (dejarteArriba) {
-      ImDrawList* urdl=ImGui::GetForegroundDrawList();
-      ImVec2 textSize=ImGui::CalcTextSize("Unregistered Furnace Pro");
-      urdl->AddRectFilled(ImVec2(0,0),textSize,0xffffffff);
-      urdl->AddText(ImVec2(0,0),0xff000000,"Unregistered Furnace Pro");
     }
 
     layoutTimeEnd=SDL_GetPerformanceCounter();

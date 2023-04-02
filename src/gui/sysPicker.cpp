@@ -22,7 +22,6 @@
 #include "IconsFontAwesome4.h"
 #include "guiConst.h"
 #include <imgui.h>
-#include "../ta-log.h"
 
 DivSystem FurnaceGUI::systemPicker() {
   DivSystem ret=DIV_SYSTEM_NULL;
@@ -34,21 +33,17 @@ DivSystem FurnaceGUI::systemPicker() {
 
   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
   if (ImGui::InputTextWithHint("##SysSearch","Search...",&sysSearchQuery)) reissueSearch=true;
-  if (dejarteArriba) {
-    curSysSection=demoChips;
-  } else {
-    if (ImGui::BeginTabBar("SysCats")) {
-      for (int i=0; chipCategories[i]; i++) {
-        if (ImGui::BeginTabItem(chipCategoryNames[i])) {
-          if (ImGui::IsItemActive()) {
-            reissueSearch=true;
-          }
-          curSysSection=chipCategories[i];
-          ImGui::EndTabItem();
+  if (ImGui::BeginTabBar("SysCats")) {
+    for (int i=0; chipCategories[i]; i++) {
+      if (ImGui::BeginTabItem(chipCategoryNames[i])) {
+        if (ImGui::IsItemActive()) {
+          reissueSearch=true;
         }
+        curSysSection=chipCategories[i];
+        ImGui::EndTabItem();
       }
-      ImGui::EndTabBar();
     }
+    ImGui::EndTabBar();
   }
   if (reissueSearch) {
     String lowerCase=sysSearchQuery;
@@ -95,8 +90,6 @@ DivSystem FurnaceGUI::systemPicker() {
     if (hoveredSys!=DIV_SYSTEM_NULL) {
       const DivSysDef* sysDef=e->getSystemDef(hoveredSys);
       ImGui::TextWrapped("%s",sysDef->description);
-    } else {
-      ImGui::TextWrapped("register NOW and unlock over 50 chips!");
     }
   }
   ImGui::EndChild();
