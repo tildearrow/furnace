@@ -22,7 +22,7 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) {if(!skipRegisterWrites && a<0x30) {k053260.write(a,v); regPool[a]=v; if(dumpWrites) addWrite(a,v);}}
+#define rWrite(a,v) {if((!skipRegisterWrites) && (a<0x30)) {k053260.write(a,v); regPool[a]=v; if(dumpWrites) addWrite(a,v);}}
 
 #define CHIP_DIVIDER 16
 #define TICK_DIVIDER 64 // for match to YM3012 output rate
