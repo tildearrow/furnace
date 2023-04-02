@@ -2092,6 +2092,7 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::TreeNode("Global hotkeys")) {
             KEYBIND_CONFIG_BEGIN("keysGlobal");
 
+            UI_KEYBIND_CONFIG(GUI_ACTION_NEW);
             UI_KEYBIND_CONFIG(GUI_ACTION_OPEN);
             UI_KEYBIND_CONFIG(GUI_ACTION_OPEN_BACKUP);
             UI_KEYBIND_CONFIG(GUI_ACTION_SAVE);
