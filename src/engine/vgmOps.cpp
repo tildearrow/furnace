@@ -1627,12 +1627,12 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       case DIV_SYSTEM_K053260:
         if (!hasK053260) {
           hasK053260=disCont[i].dispatch->chipClock;
-          CHIP_VOL(40,0.4);
+          CHIP_VOL(29,0.4);
           willExport[i]=true;
           writeK053260[0]=disCont[i].dispatch;
         } else if (!(hasK053260&0x40000000)) {
           isSecond[i]=true;
-          CHIP_VOL_SECOND(40,0.4);
+          CHIP_VOL_SECOND(29,0.4);
           willExport[i]=true;
           writeK053260[1]=disCont[i].dispatch;
           hasK053260|=0x40000000;
