@@ -70,7 +70,7 @@ u8 DivPlatformK053260::read_sample(u32 address) {
 }
 
 void DivPlatformK053260::acquire(short** buf, size_t len) {
-  for (int i=0; i<len; i++) {
+  for (size_t i=0; i<len; i++) {
     k053260.tick(TICK_DIVIDER);
     int lout=(k053260.output(0)); // scale to 16 bit
     int rout=(k053260.output(1)); // scale to 16 bit
