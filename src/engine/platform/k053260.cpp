@@ -22,7 +22,7 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) {if((!skipRegisterWrites) && (a<0x30)) {k053260.write(a,v); regPool[a]=v; if(dumpWrites) addWrite(a,v);}}
+#define rWrite(a,v) {if(!skipRegisterWrites) {k053260.write(a,v); regPool[a]=v; if(dumpWrites) addWrite(a,v);}}
 
 #define CHIP_DIVIDER 16
 #define TICK_DIVIDER 64 // for match to YM3012 output rate
@@ -374,7 +374,7 @@ DivDispatchOscBuffer* DivPlatformK053260::getOscBuffer(int ch) {
 }
 
 void DivPlatformK053260::reset() {
-  memset(regPool,0,48);
+  memset(regPool,0,64);
   k053260.reset();
   rWrite(0x28,0); // keyoff all channels
   for (int i=0; i<4; i++) {
@@ -434,7 +434,7 @@ unsigned char* DivPlatformK053260::getRegisterPool() {
 }
 
 int DivPlatformK053260::getRegisterPoolSize() {
-  return 48;
+  return 64;
 }
 
 const void* DivPlatformK053260::getSampleMem(int index) {

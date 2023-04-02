@@ -52,7 +52,7 @@ class DivPlatformK053260: public DivDispatch, public k053260_intf {
   unsigned char* sampleMem;
   size_t sampleMemLen;
   k053260_core k053260;
-  unsigned char regPool[48];
+  unsigned char regPool[64];
   void updatePanning(unsigned char mask);
 
   friend void putDispatchChip(void*,int);
