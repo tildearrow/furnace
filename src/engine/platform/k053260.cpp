@@ -22,20 +22,32 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) {if(!skipRegisterWrites) {k053260.write(a,v); regPool[a]=v; if(dumpWrites) addWrite(a,v);}}
+#define rWrite(a,v) {if(!skipRegisterWrites && a<0x30) {k053260.write(a,v); regPool[a]=v; if(dumpWrites) addWrite(a,v);}}
 
-#define CHIP_DIVIDER 64
-#define TICK_DIVIDER 4
+#define CHIP_DIVIDER 16
+#define TICK_DIVIDER 64 // for match to YM3012 output rate
 
 const char* regCheatSheetK053260[]={
-  "FreqL", "0",
-  "FreqH", "1",
-  "LengthL", "2",
-  "LengthH", "3",
-  "StartL", "4",
-  "StartM", "5",
-  "StartH", "6",
-  "Volume", "7",
+  "MainToSub0", "00",
+  "MainToSub1", "01",
+  "SubToMain0", "02",
+  "SubToMain1", "03",
+  "CHx_FreqL", "08+x*8",
+  "CHx_FreqH", "09+x*8",
+  "CHx_LengthL", "0A+x*8",
+  "CHx_LengthH", "0B+x*8",
+  "CHx_StartL", "0C+x*8",
+  "CHx_StartM", "0D+x*8",
+  "CHx_StartH", "0E+x*8",
+  "CHx_Volume", "0F+x*8",
+  "KeyOn", "28",
+  "Status", "29",
+  "LoopFormat", "2A",
+  "Test", "2B",
+  "CH01_Pan", "2C",
+  "CH23_Pan", "2D",
+  "ROMReadback", "2E",
+  "Control", "2F",
   NULL
 };
 
@@ -49,8 +61,14 @@ inline void DivPlatformK053260::chWrite(unsigned char ch, unsigned int addr, uns
   }
 }
 
-// TODO: this code is weird
-//       make sure newDispatch didn't break it up
+u8 DivPlatformK053260::read_sample(u32 address) {
+  if ((sampleMem!=NULL) && (address<getSampleMemCapacity())) {
+    address&=0x1fffff;
+    return sampleMem[address];
+  }
+  return 0;
+}
+
 void DivPlatformK053260::acquire(short** buf, size_t len) {
   for (int i=0; i<len; i++) {
     k053260.tick(TICK_DIVIDER);
@@ -387,14 +405,15 @@ void DivPlatformK053260::setFlags(const DivConfig& flags) {
 }
 
 void DivPlatformK053260::poke(unsigned int addr, unsigned short val) {
-  rWrite(addr&0x0f,val);
+  rWrite(addr&0x3f,val);
 }
 
 void DivPlatformK053260::poke(std::vector<DivRegWrite>& wlist) {
-  for (DivRegWrite& i: wlist) rWrite(i.addr&0x0f,i.val);
+  for (DivRegWrite& i: wlist) rWrite(i.addr&0x3f,i.val);
 }
 
 unsigned char* DivPlatformK053260::getRegisterPool() {
+  regPool[0x29]=k053260.read(0x29); // dynamically updated
   return regPool;
 }
 

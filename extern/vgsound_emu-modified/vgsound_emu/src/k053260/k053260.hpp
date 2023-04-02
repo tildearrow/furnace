@@ -70,7 +70,7 @@ class k053260_core : public vgsound_emu_core
 					, m_data(0)
 					, m_output(0)
 				{
-					m_out.fill(0);
+					std::fill_n(m_out, 2, 0);
 				}
 
 				// internal state
@@ -124,7 +124,7 @@ class k053260_core : public vgsound_emu_core
 				u8 m_bitpos	  = 4;	 // bit position for ADPCM decoding
 				u8 m_data	  = 0;	 // current data
 				s8 m_output   = 0;	 // ADPCM buffer
-				std::array<s32, 2> m_out;	 // current output
+				s32 m_out[2];	 // current output
 		};
 
 		class ctrl_t
@@ -232,10 +232,10 @@ class k053260_core : public vgsound_emu_core
 			//, m_ym3012(ym3012_t())
 			//, m_dac(dac_t())
 		{
-			m_host2snd.fill(0);
-			m_snd2host.fill(0);
-			m_reg.fill(0);
-			m_out.fill(0);
+			std::fill_n(m_host2snd, 2, 0);
+			std::fill_n(m_snd2host, 2, 0);
+			std::fill_n(m_reg, 64, 0);
+			std::fill_n(m_out, 2, 0);
 		}
 
 		// communications
@@ -267,19 +267,19 @@ class k053260_core : public vgsound_emu_core
 		inline s32 adpcm_lut(const u8 nibble) { return m_adpcm_lut[nibble]; }
 
 	private:
-		std::array<voice_t, 4> m_voice;
+		voice_t m_voice[4];
 		k053260_intf &m_intf;  // common memory interface
 
-		std::array<u8, 2> m_host2snd;
-		std::array<u8, 2> m_snd2host;
+		u8 m_host2snd[2];
+		u8 m_snd2host[2];
 
 		ctrl_t m_ctrl;	// chip control
 
 		//ym3012_t m_ym3012;	// YM3012 output
 		//dac_t m_dac;		// YM3012 interface
 
-		std::array<u8, 64> m_reg;	 // register pool
-		std::array<s32, 2> m_out;	 // stereo output
+		u8 m_reg[64];	 // register pool
+		s32 m_out[2];	 // stereo output
 };
 
 #endif

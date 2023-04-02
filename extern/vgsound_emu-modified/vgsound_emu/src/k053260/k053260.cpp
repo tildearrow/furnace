@@ -244,7 +244,7 @@ void k053260_core::voice_t::keyon()
 	m_bitpos		  = 4;
 	m_data			  = 0;
 	m_output		  = 0;
-	std::fill(m_out.begin(), m_out.end(), 0);
+	std::fill_n(m_out, 2, 0);
 }
 
 // key off trigger
@@ -260,13 +260,13 @@ void k053260_core::reset()
 
 	//m_intf.write_int(0);
 
-	std::fill(m_host2snd.begin(), m_host2snd.end(), 0);
-	std::fill(m_snd2host.begin(), m_snd2host.end(), 0);
+	std::fill_n(m_host2snd, 2, 0);
+	std::fill_n(m_snd2host, 2, 0);
 	m_ctrl.reset();
 	//m_dac.reset();
 
-	std::fill(m_reg.begin(), m_reg.end(), 0);
-	std::fill(m_out.begin(), m_out.end(), 0);
+	std::fill_n(m_reg, 64, 0);
+	std::fill_n(m_out, 2, 0);
 }
 
 // reset voice

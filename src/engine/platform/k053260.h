@@ -58,6 +58,7 @@ class DivPlatformK053260: public DivDispatch, public k053260_intf {
   friend void putDispatchChan(void*,int,int);
 
   public:
+    virtual u8 read_sample(u32 address) override;
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
     void* getChanState(int chan);
