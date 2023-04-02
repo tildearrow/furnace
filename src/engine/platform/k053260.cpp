@@ -63,8 +63,7 @@ inline void DivPlatformK053260::chWrite(unsigned char ch, unsigned int addr, uns
 
 u8 DivPlatformK053260::read_sample(u32 address) {
   if ((sampleMem!=NULL) && (address<getSampleMemCapacity())) {
-    address&=0x1fffff;
-    return sampleMem[address];
+    return sampleMem[address&0x1fffff];
   }
   return 0;
 }
