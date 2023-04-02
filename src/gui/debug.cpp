@@ -1101,6 +1101,7 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("- macroVolMul: %.2x",ch->macroVolMul);
       COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
+      ImGui::TextColored(ch->reverse?colorOn:colorOff,">> Reverse");
       break;
     }
     default:

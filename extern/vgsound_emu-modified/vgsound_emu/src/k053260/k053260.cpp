@@ -49,7 +49,7 @@ void k053260_core::voice_t::tick(u32 cycle)
 			if (m_bitpos < 8)
 			{
 				m_bitpos += 8;
-				m_addr	 = bitfield(m_addr + 1, 0, 21);
+				m_addr = m_reverse ? bitfield(m_addr - 1, 0, 21) : bitfield(m_addr + 1, 0, 21);
 				m_remain--;
 				if (m_remain < 0)  // check end flag
 				{
@@ -69,7 +69,7 @@ void k053260_core::voice_t::tick(u32 cycle)
 			if (m_adpcm)
 			{
 				m_bitpos		-= 4;
-				const u8 nibble = bitfield(m_data, m_bitpos & 4, 4);  // get nibble from ROM
+				const u8 nibble = bitfield(m_data, m_reverse ? (~m_bitpos & 4) : (m_bitpos & 4), 4);  // get nibble from ROM
 				if (nibble)
 				{
 					m_output += m_host.adpcm_lut(nibble);
@@ -169,6 +169,7 @@ void k053260_core::write(u8 address, u8 data)
 		case 0x28:	// keyon/off toggle
 			for (int i = 0; i < 4; i++)
 			{
+				m_voice[i].set_reverse(bitfield(data, 4 + i));
 				if (bitfield(data, i) && (!m_voice[i].enable()))
 				{  // rising edge (keyon)
 					m_voice[i].keyon();
@@ -276,6 +277,7 @@ void k053260_core::voice_t::reset()
 	m_loop	  = 0;
 	m_adpcm	  = 0;
 	m_pitch	  = 0;
+	m_reverse = 0;
 	m_start	  = 0;
 	m_length  = 0;
 	m_volume  = 0;

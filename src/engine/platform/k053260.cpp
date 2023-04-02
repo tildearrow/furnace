@@ -133,7 +133,7 @@ void DivPlatformK053260::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       unsigned char keyon=regPool[0x28]|(1<<i);
-      unsigned char keyoff=keyon&~(1<<i);
+      unsigned char keyoff=keyon&~(17<<i);
       unsigned char loopon=regPool[0x2a]|(1<<i);
       unsigned char loopoff=loopon&~(1<<i);
       double off=1.0;
@@ -155,10 +155,19 @@ void DivPlatformK053260::tick(bool sysTick) {
         unsigned int length=0;
         if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
           start=sampleOffK053260[chan[i].sample];
-          length=start+s->length8;
+          length=s->length8;
+          if (chan[i].reverse) {
+            start+=length;
+            keyon|=(16<<i);
+          }
         }
         if (chan[i].audPos>0) {
-          start=start+MIN(chan[i].audPos,s->length8);
+          if (chan[i].reverse) {
+            start=start-MIN(chan[i].audPos,s->length8);
+          }
+          else {
+            start=start+MIN(chan[i].audPos,s->length8);
+          }
           length=MAX(1,length-chan[i].audPos);
         }
         start=MIN(start,getSampleMemCapacity());
@@ -314,6 +323,12 @@ int DivPlatformK053260::dispatch(DivCommand c) {
       chan[c.chan].audPos=c.value;
       chan[c.chan].setPos=true;
       break;
+    case DIV_CMD_SAMPLE_DIR: {
+      if (chan[c.chan].reverse!=(bool)(c.value&1)) {
+        chan[c.chan].reverse=c.value&1;
+      }
+      break;
+    }
     case DIV_CMD_GET_VOLMAX:
       return 127;
       break;

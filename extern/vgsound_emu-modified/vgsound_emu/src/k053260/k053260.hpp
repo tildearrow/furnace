@@ -59,6 +59,7 @@ class k053260_core : public vgsound_emu_core
 					, m_loop(0)
 					, m_adpcm(0)
 					, m_pitch(0)
+					, m_reverse(0)
 					, m_start(0)
 					, m_length(0)
 					, m_volume(0)
@@ -91,6 +92,11 @@ class k053260_core : public vgsound_emu_core
 
 				inline void set_adpcm(bool adpcm) { m_adpcm = adpcm ? 1 : 0; }
 
+				inline void set_reverse(const bool reverse)
+				{
+					m_reverse = reverse ? 1 : 0;
+				}
+
 				inline void length_inc() { m_length = (m_length + 1) & 0xffff; }
 
 				inline void set_pan(u8 pan) { m_pan = pan & 7; }
@@ -114,10 +120,11 @@ class k053260_core : public vgsound_emu_core
 				u16 m_loop	  : 1;	 // loop flag
 				u16 m_adpcm	  : 1;	 // ADPCM flag
 				u16 m_pitch	  : 12;	 // pitch
+				u8 m_reverse  : 1;   // reverse playback
 				u32 m_start	  = 0;	 // start position
 				u16 m_length  = 0;	 // source length
 				u8 m_volume	  = 0;	 // master volume
-				int m_pan	  = -1;	 // master pan
+				s32 m_pan	  = 4;	 // master pan
 				u16 m_counter = 0;	 // frequency counter
 				u32 m_addr	  = 0;	 // current address
 				s32 m_remain  = 0;	 // remain for end sample
