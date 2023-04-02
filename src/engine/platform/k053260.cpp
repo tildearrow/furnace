@@ -161,8 +161,8 @@ void DivPlatformK053260::tick(bool sysTick) {
           start=start+MIN(chan[i].audPos,s->length8);
           length=MAX(1,length-chan[i].audPos);
         }
-        start=MIN(start,getSampleMemCapacity()-31);
-        length=MIN(length,getSampleMemCapacity()-31);
+        start=MIN(start,getSampleMemCapacity());
+        length=MIN(65535,MIN(length,getSampleMemCapacity()));
         rWrite(0x28,keyoff); // force keyoff first
         rWrite(0x2a,loopoff);
         chWrite(i,2,length&0xff);
