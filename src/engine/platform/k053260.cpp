@@ -159,6 +159,7 @@ void DivPlatformK053260::tick(bool sysTick) {
         }
         if (chan[i].audPos>0) {
           start=start+MIN(chan[i].audPos,s->length8);
+          length=MAX(1,length-chan[i].audPos);
         }
         start=MIN(start,getSampleMemCapacity()-31);
         length=MIN(length,getSampleMemCapacity()-31);
