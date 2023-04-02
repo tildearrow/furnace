@@ -25,7 +25,7 @@ class k053260_intf : public vgsound_emu_core
 
 		virtual u8 read_sample(u32 address) { return 0; }  // sample fetch
 
-		virtual void write_int(u8 out) {}  // timer interrupt
+		//virtual void write_int(u8 out) {}  // timer interrupt
 };
 
 class k053260_core : public vgsound_emu_core
@@ -33,7 +33,19 @@ class k053260_core : public vgsound_emu_core
 		friend class k053260_intf;	// k053260 specific interface
 
 	private:
-		const int pan_dir[8] = {-1, 0, 24, 35, 45, 55, 66, 90};	 // pan direction
+		const s32 m_pan_lut[8][2] = {
+			{0x00, 0x00},
+			{0x7f, 0x00},
+			{0x74, 0x34},
+			{0x68, 0x49},
+			{0x5a, 0x5a},
+			{0x49, 0x68},
+			{0x34, 0x74},
+			{0x00, 0x7f}
+			};  // pan LUT
+
+		const s8 m_adpcm_lut[16] =
+			{0, 1, 2, 4, 8, 16, 32, 64, -128, -64, -32, -16, -8, -4, -2, -1};	 // ADPCM LUT
 
 		class voice_t : public vgsound_emu_core
 		{
@@ -50,20 +62,20 @@ class k053260_core : public vgsound_emu_core
 					, m_start(0)
 					, m_length(0)
 					, m_volume(0)
-					, m_pan(-1)
+					, m_pan(4)
 					, m_counter(0)
 					, m_addr(0)
 					, m_remain(0)
 					, m_bitpos(4)
 					, m_data(0)
-					, m_adpcm_buf(0)
+					, m_output(0)
 				{
 					m_out.fill(0);
 				}
 
 				// internal state
 				void reset();
-				void tick();
+				void tick(u32 cycle);
 
 				// accessors
 				void write(u8 address, u8 data);
@@ -81,7 +93,7 @@ class k053260_core : public vgsound_emu_core
 
 				inline void length_inc() { m_length = (m_length + 1) & 0xffff; }
 
-				inline void set_pan(u8 pan) { m_pan = m_host.pan_dir[pan & 7]; }
+				inline void set_pan(u8 pan) { m_pan = pan & 7; }
 
 				// getters
 				inline bool enable() { return m_enable; }
@@ -97,21 +109,21 @@ class k053260_core : public vgsound_emu_core
 			private:
 				// registers
 				k053260_core &m_host;
-				u16 m_enable : 1;				 // enable flag
-				u16 m_busy	 : 1;				 // busy status
-				u16 m_loop	 : 1;				 // loop flag
-				u16 m_adpcm	 : 1;				 // ADPCM flag
-				u16 m_pitch	 : 12;				 // pitch
-				u32 m_start				 = 0;	 // start position
-				u16 m_length			 = 0;	 // source length
-				u8 m_volume				 = 0;	 // master volume
-				int m_pan				 = -1;	 // master pan
-				u16 m_counter			 = 0;	 // frequency counter
-				u32 m_addr				 = 0;	 // current address
-				s32 m_remain			 = 0;	 // remain for end sample
-				u8 m_bitpos				 = 4;	 // bit position for ADPCM decoding
-				u8 m_data				 = 0;	 // current data
-				s8 m_adpcm_buf			 = 0;	 // ADPCM buffer
+				u16 m_enable  : 1;	 // enable flag
+				u16 m_busy	  : 1;	 // busy status
+				u16 m_loop	  : 1;	 // loop flag
+				u16 m_adpcm	  : 1;	 // ADPCM flag
+				u16 m_pitch	  : 12;	 // pitch
+				u32 m_start	  = 0;	 // start position
+				u16 m_length  = 0;	 // source length
+				u8 m_volume	  = 0;	 // master volume
+				int m_pan	  = -1;	 // master pan
+				u16 m_counter = 0;	 // frequency counter
+				u32 m_addr	  = 0;	 // current address
+				s32 m_remain  = 0;	 // remain for end sample
+				u8 m_bitpos	  = 4;	 // bit position for ADPCM decoding
+				u8 m_data	  = 0;	 // current data
+				s8 m_output   = 0;	 // ADPCM buffer
 				std::array<s32, 2> m_out;	 // current output
 		};
 
@@ -152,6 +164,7 @@ class k053260_core : public vgsound_emu_core
 				u8 m_input_en : 2;	// Input enable
 		};
 
+		/*
 		class ym3012_t
 		{
 			public:
@@ -177,7 +190,9 @@ class k053260_core : public vgsound_emu_core
 				std::array<s32, 2> m_in;
 				std::array<s32, 2> m_out;
 		};
+		*/
 
+		/*
 		class dac_t
 		{
 			public:
@@ -205,6 +220,7 @@ class k053260_core : public vgsound_emu_core
 				u8 m_clock : 4;	 // DAC clock (16 clock)
 				u8 m_state : 2;	 // DAC state (4 state - SAM1, SAM2)
 		};
+		*/
 
 	public:
 		// constructor
@@ -213,8 +229,8 @@ class k053260_core : public vgsound_emu_core
 			, m_voice{*this, *this, *this, *this}
 			, m_intf(intf)
 			, m_ctrl(ctrl_t())
-			, m_ym3012(ym3012_t())
-			, m_dac(dac_t())
+			//, m_ym3012(ym3012_t())
+			//, m_dac(dac_t())
 		{
 			m_host2snd.fill(0);
 			m_snd2host.fill(0);
@@ -233,7 +249,7 @@ class k053260_core : public vgsound_emu_core
 
 		// internal state
 		void reset();
-		void tick();
+		void tick(u32 cycle);
 
 		// getters for debug, trackers, etc
 		inline s32 output(u8 ch) { return m_out[ch & 1]; }	// output for each channels
@@ -245,6 +261,11 @@ class k053260_core : public vgsound_emu_core
 			return (voice < 4) ? m_voice[voice].out(ch & 1) : 0;
 		}
 
+	protected:
+		inline s32 pan_lut(const u8 pan, const u8 out) { return m_pan_lut[pan][out]; }
+
+		inline s32 adpcm_lut(const u8 nibble) { return m_adpcm_lut[nibble]; }
+
 	private:
 		std::array<voice_t, 4> m_voice;
 		k053260_intf &m_intf;  // common memory interface
@@ -254,8 +275,8 @@ class k053260_core : public vgsound_emu_core
 
 		ctrl_t m_ctrl;	// chip control
 
-		ym3012_t m_ym3012;	// YM3012 output
-		dac_t m_dac;		// YM3012 interface
+		//ym3012_t m_ym3012;	// YM3012 output
+		//dac_t m_dac;		// YM3012 interface
 
 		std::array<u8, 64> m_reg;	 // register pool
 		std::array<s32, 2> m_out;	 // stereo output

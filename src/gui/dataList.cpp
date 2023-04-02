@@ -438,6 +438,10 @@ void FurnaceGUI::drawInsList(bool asChild) {
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_PV1000]);
               name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
               break;
+            case DIV_INS_K053260:
+              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_K053260]);
+              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+              break;
             default:
               ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
               name=fmt::sprintf(ICON_FA_QUESTION "##_INS%d",i);
