@@ -80,7 +80,7 @@ void k053260_core::voice_t::tick(u32 cycle)
 			{
 				m_bitpos -= 8;
 			}
-			m_counter = 0x1000 - bitfield(m_pitch, 0, 12);
+			m_counter = (m_counter - 0x1000) + bitfield(m_pitch, 0, 12);
 		}
 
 		// calculate output
