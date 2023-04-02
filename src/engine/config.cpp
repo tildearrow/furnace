@@ -175,6 +175,33 @@ String DivConfig::getString(String key, String fallback) const {
   return fallback;
 }
 
+std::vector<int> DivConfig::getIntList(String key, std::initializer_list<int> fallback) const {
+  String next;
+  std::vector<int> ret;
+  try {
+    String val=conf.at(key);
+
+    for (char i: val) {
+      if (i==',') {
+        int num=std::stoi(next);
+        ret.push_back(num);
+        next="";
+      } else {
+        next+=i;
+      }
+    }
+    if (!next.empty()) {
+      int num=std::stoi(next);
+      ret.push_back(num);
+    }
+
+    return ret;
+  } catch (std::out_of_range& e) {
+  } catch (std::invalid_argument& e) {
+  }
+  return fallback;
+}
+
 bool DivConfig::has(String key) const {
   try {
     String test=conf.at(key);
@@ -210,6 +237,17 @@ void DivConfig::set(String key, const char* value) {
 
 void DivConfig::set(String key, String value) {
   conf[key]=value;
+}
+
+void DivConfig::set(String key, const std::vector<int>& value) {
+  String val;
+  bool comma=false;
+  for (int i: value) {
+    if (comma) val+=',';
+    val+=fmt::sprintf("%d",i);
+    comma=true;
+  }
+  conf[key]=val;
 }
 
 bool DivConfig::remove(String key) {
