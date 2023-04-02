@@ -1642,13 +1642,6 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     ds.version=reader.readS();
     logI("module version %d (0x%.2x)",ds.version,ds.version);
 
-    if (ds.version==146 && dejarteArriba) {
-      logE("UNREGISTERED! register to open.");
-      lastError="this file was saved with an UNREGISTERED version of Furnace Pro. in order to open, you need to register.";
-      delete[] file;
-      return false;
-    }
-
     if (ds.version>DIV_ENGINE_VERSION) {
       logW("this module was created with a more recent version of Furnace!");
       addWarning("this module was created with a more recent version of Furnace!");
@@ -4839,7 +4832,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
 
   if (!notPrimary) {
     song.isDMF=false;
-    song.version=dejarteArriba?DIV_ENGINE_VERSION:145;
+    song.version=DIV_ENGINE_VERSION;
   }
 
   SafeWriter* w=new SafeWriter;
@@ -4849,7 +4842,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->write(DIV_FUR_MAGIC,16);
 
   // write version
-  w->writeS(dejarteArriba?DIV_ENGINE_VERSION:145);
+  w->writeS(DIV_ENGINE_VERSION);
 
   // reserved
   w->writeS(0);

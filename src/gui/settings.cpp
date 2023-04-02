@@ -2639,7 +2639,6 @@ void FurnaceGUI::syncSettings() {
   settings.cursorFollowsOrder=e->getConfInt("cursorFollowsOrder",1);
   settings.iCannotWait=e->getConfInt("iCannotWait",0);
   settings.orderButtonPos=e->getConfInt("orderButtonPos",2);
-  settings.seriousMode=e->getConfInt("seriousMode",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2758,9 +2757,6 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.cursorFollowsOrder,0,1);
   clampSetting(settings.iCannotWait,0,1);
   clampSetting(settings.orderButtonPos,0,2);
-  clampSetting(settings.seriousMode,0,1);
-
-  if (settings.seriousMode) dejarteArriba=false;
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -2974,9 +2970,6 @@ void FurnaceGUI::commitSettings() {
   e->setConf("cursorFollowsOrder",settings.cursorFollowsOrder);
   e->setConf("iCannotWait",settings.iCannotWait);
   e->setConf("orderButtonPos",settings.orderButtonPos);
-  e->setConf("seriousMode",settings.seriousMode);
-
-  if (settings.seriousMode) dejarteArriba=false;
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

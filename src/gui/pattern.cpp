@@ -741,11 +741,7 @@ void FurnaceGUI::drawPattern() {
           if (ImGui::IsItemHovered()) {
             if (CHECK_LONG_HOLD) {
               NOTIFY_LONG_HOLD;
-              if (dejarteArriba) {
-                showError("UNREGISTERED - register NOW to unlock solo!");
-              } else {
-                e->toggleSolo(i);
-              }
+              e->toggleSolo(i);
               soloChan=i;
             }
             if (ImGui::IsMouseReleased(ImGuiMouseButton_Left) && !ImGui::WasInertialScroll()) {
@@ -759,11 +755,7 @@ void FurnaceGUI::drawPattern() {
         } else {
           if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
             if (settings.soloAction!=1 && soloTimeout>0 && soloChan==i) {
-              if (dejarteArriba) {
-                showError("UNREGISTERED - register NOW to unlock solo!");
-              } else {
-                e->toggleSolo(i);
-              }
+              e->toggleSolo(i);
               soloTimeout=0;
             } else {
               e->toggleMute(i);
@@ -776,11 +768,7 @@ void FurnaceGUI::drawPattern() {
         ImGui::PopStyleColor(4);
         if (settings.soloAction!=2 && !mobileUI) if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
           inhibitMenu=true;
-          if (dejarteArriba) {
-            showError("UNREGISTERED - register NOW to unlock solo!");
-          } else {
-            e->toggleSolo(i);
-          }
+          e->toggleSolo(i);
         }
 
         if (settings.channelStyle==3) {

@@ -21,7 +21,6 @@
 #include "imgui.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include "intConst.h"
-#include "../ta-log.h"
 
 void FurnaceGUI::drawSongInfo(bool asChild) {
   if (nextWindow==GUI_WINDOW_SONG_INFO) {
@@ -115,17 +114,13 @@ void FurnaceGUI::drawSongInfo(bool asChild) {
       ImGui::TableNextColumn();
       ImGui::Text("Tuning (A-4)");
       ImGui::TableNextColumn();
-      if (dejarteArriba) {
-        ImGui::TextWrapped("not available in UNREGISTERED version! register now!");
-      } else {
-        float tune=e->song.tuning;
-        float avail=ImGui::GetContentRegionAvail().x;
-        ImGui::SetNextItemWidth(avail);
-        if (ImGui::InputFloat("##Tuning",&tune,1.0f,3.0f,"%g")) { MARK_MODIFIED
-          if (tune<220.0f) tune=220.0f;
-          if (tune>880.0f) tune=880.0f;
-          e->song.tuning=tune;
-        }
+      float tune=e->song.tuning;
+      float avail=ImGui::GetContentRegionAvail().x;
+      ImGui::SetNextItemWidth(avail);
+      if (ImGui::InputFloat("##Tuning",&tune,1.0f,3.0f,"%g")) { MARK_MODIFIED
+        if (tune<220.0f) tune=220.0f;
+        if (tune>880.0f) tune=880.0f;
+        e->song.tuning=tune;
       }
       ImGui::EndTable();
     }

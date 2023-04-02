@@ -39,7 +39,6 @@
 #define TA_LOGFILE_BUF_SIZE 65536
 
 extern int logLevel;
-extern bool dejarteArriba;
 
 extern std::atomic<unsigned short> logPosition;
 

@@ -4516,8 +4516,6 @@ void DivEngine::preInit() {
   logI("Furnace version " DIV_VERSION ".");
   
   loadConf();
-
-  if (getConfInt("seriousMode",0)) dejarteArriba=false;
 }
 
 bool DivEngine::init() {

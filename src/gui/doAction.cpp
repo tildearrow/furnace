@@ -40,10 +40,6 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     case GUI_ACTION_OPEN_BACKUP:
-      if (dejarteArriba) {
-        showError("UNREGISTERED - first register and then I'll let you restore backup.");
-        break;
-      }
       if (modified) {
         showWarning("Unsaved changes! Save changes before opening backup?",GUI_WARN_OPEN_BACKUP);
       } else {
@@ -178,13 +174,7 @@ void FurnaceGUI::doAction(int what) {
       break;
     }
     case GUI_ACTION_PANIC:
-      if (dejarteArriba) {
-        for (int i=0; i<e->getTotalChannelCount(); i++) {
-          e->noteOn(i,rand()%MAX(e->song.insLen,1),0x4a+(rand()%12));
-        }
-      } else {
-        e->syncReset();
-      }
+      e->syncReset();
       break;
     case GUI_ACTION_CLEAR:
       showWarning("Are you sure you want to clear... (cannot be undone!)",GUI_WARN_CLEAR);
@@ -587,10 +577,6 @@ void FurnaceGUI::doAction(int what) {
       break;
 
     case GUI_ACTION_INS_LIST_ADD:
-      if (dejarteArriba && e->song.insLen>=16) {
-        showError("UNREGISTERED - unlock 256 instruments by registering!");
-        break;
-      }
       curIns=e->addInstrument(cursor.xCoarse);
       if (curIns==-1) {
         showError("too many instruments!");
@@ -613,10 +599,6 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     case GUI_ACTION_INS_LIST_DUPLICATE:
-      if (dejarteArriba && e->song.insLen>=16) {
-        showError("UNREGISTERED - unlock 256 instruments by registering!");
-        break;
-      }
       if (curIns>=0 && curIns<(int)e->song.ins.size()) {
         int prevIns=curIns;
         curIns=e->addInstrument(cursor.xCoarse);
@@ -632,34 +614,18 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     case GUI_ACTION_INS_LIST_OPEN:
-      if (dejarteArriba && e->song.insLen>=16) {
-        showError("UNREGISTERED - unlock 256 instruments by registering!");
-        break;
-      }
       openFileDialog(GUI_FILE_INS_OPEN);
       break;
     case GUI_ACTION_INS_LIST_OPEN_REPLACE:
       openFileDialog(GUI_FILE_INS_OPEN_REPLACE);
       break;
     case GUI_ACTION_INS_LIST_SAVE:
-      if (dejarteArriba) {
-        showError("UNREGISTERED - register to save instruments.");
-        break;
-      }
       if (curIns>=0 && curIns<(int)e->song.ins.size()) openFileDialog(GUI_FILE_INS_SAVE);
       break;
     case GUI_ACTION_INS_LIST_SAVE_OLD:
-      if (dejarteArriba) {
-        showError("UNREGISTERED - register to save instruments.");
-        break;
-      }
       if (curIns>=0 && curIns<(int)e->song.ins.size()) openFileDialog(GUI_FILE_INS_SAVE_OLD);
       break;
     case GUI_ACTION_INS_LIST_SAVE_DMP:
-      if (dejarteArriba) {
-        showError("UNREGISTERED - register to save instruments.");
-        break;
-      }
       if (curIns>=0 && curIns<(int)e->song.ins.size()) openFileDialog(GUI_FILE_INS_SAVE_DMP);
       break;
     case GUI_ACTION_INS_LIST_MOVE_UP:
@@ -701,10 +667,6 @@ void FurnaceGUI::doAction(int what) {
       break;
     
     case GUI_ACTION_WAVE_LIST_ADD:
-      if (dejarteArriba && e->song.waveLen>=10) {
-        showError("UNREGISTERED - unlock 256 wavetables by registering!");
-        break;
-      }
       curWave=e->addWave();
       if (curWave==-1) {
         showError("too many wavetables!");
@@ -715,10 +677,6 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     case GUI_ACTION_WAVE_LIST_DUPLICATE:
-      if (dejarteArriba && e->song.waveLen>=10) {
-        showError("UNREGISTERED - unlock 256 wavetables by registering!");
-        break;
-      }
       if (curWave>=0 && curWave<(int)e->song.wave.size()) {
         int prevWave=curWave;
         curWave=e->addWave();
@@ -733,34 +691,18 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     case GUI_ACTION_WAVE_LIST_OPEN:
-      if (dejarteArriba && e->song.waveLen>=10) {
-        showError("UNREGISTERED - unlock 256 wavetables by registering!");
-        break;
-      }
       openFileDialog(GUI_FILE_WAVE_OPEN);
       break;
     case GUI_ACTION_WAVE_LIST_OPEN_REPLACE:
       openFileDialog(GUI_FILE_WAVE_OPEN_REPLACE);
       break;
     case GUI_ACTION_WAVE_LIST_SAVE:
-      if (dejarteArriba) {
-        showError("UNREGISTERED - register to save wavetables.");
-        break;
-      }
       if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE);
       break;
     case GUI_ACTION_WAVE_LIST_SAVE_DMW:
-      if (dejarteArriba) {
-        showError("UNREGISTERED - register to save wavetables.");
-        break;
-      }
       if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE_DMW);
       break;
     case GUI_ACTION_WAVE_LIST_SAVE_RAW:
-      if (dejarteArriba) {
-        showError("UNREGISTERED - register to save wavetables.");
-        break;
-      }
       if (curWave>=0 && curWave<(int)e->song.wave.size()) openFileDialog(GUI_FILE_WAVE_SAVE_RAW);
       break;
     case GUI_ACTION_WAVE_LIST_MOVE_UP:
@@ -798,10 +740,6 @@ void FurnaceGUI::doAction(int what) {
       break;
 
     case GUI_ACTION_SAMPLE_LIST_ADD:
-      if (dejarteArriba && e->song.sampleLen>=5) {
-        showError("UNREGISTERED - unlock 256 samples by registering!");
-        break;
-      }
       curSample=e->addSample();
       if (curSample==-1) {
         showError("too many samples!");
@@ -812,10 +750,6 @@ void FurnaceGUI::doAction(int what) {
       updateSampleTex=true;
       break;
     case GUI_ACTION_SAMPLE_LIST_DUPLICATE:
-      if (dejarteArriba && e->song.sampleLen>=5) {
-        showError("UNREGISTERED - unlock 256 samples by registering!");
-        break;
-      }
       if (curSample>=0 && curSample<(int)e->song.sample.size()) {
         DivSample* prevSample=e->getSample(curSample);
         curSample=e->addSample();
@@ -848,30 +782,18 @@ void FurnaceGUI::doAction(int what) {
       }
       break;
     case GUI_ACTION_SAMPLE_LIST_OPEN:
-      if (dejarteArriba && e->song.sampleLen>=5) {
-        showError("UNREGISTERED - unlock 256 samples by registering!");
-        break;
-      }
       openFileDialog(GUI_FILE_SAMPLE_OPEN);
       break;
     case GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE:
       openFileDialog(GUI_FILE_SAMPLE_OPEN_REPLACE);
       break;
     case GUI_ACTION_SAMPLE_LIST_OPEN_RAW:
-      if (dejarteArriba && e->song.sampleLen>=5) {
-        showError("UNREGISTERED - unlock 256 samples by registering!");
-        break;
-      }
       openFileDialog(GUI_FILE_SAMPLE_OPEN_RAW);
       break;
     case GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW:
       openFileDialog(GUI_FILE_SAMPLE_OPEN_REPLACE_RAW);
       break;
     case GUI_ACTION_SAMPLE_LIST_SAVE:
-      if (dejarteArriba) {
-        showError("UNREGISTERED - register to save samples.");
-        break;
-      }
       if (curSample>=0 && curSample<(int)e->song.sample.size()) openFileDialog(GUI_FILE_SAMPLE_SAVE);
       break;
     case GUI_ACTION_SAMPLE_LIST_MOVE_UP:
@@ -914,10 +836,6 @@ void FurnaceGUI::doAction(int what) {
       e->previewSample(curSample);
       break;
     case GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW:
-      if (dejarteArriba) {
-        showError("you can't stop the preview because Furnace is UNREGISTERED.");
-        break;
-      }
       e->stopSamplePreview();
       break;
 

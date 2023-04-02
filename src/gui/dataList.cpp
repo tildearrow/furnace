@@ -24,7 +24,6 @@
 #include "guiConst.h"
 #include <fmt/printf.h>
 #include <imgui.h>
-#include "../ta-log.h"
 
 const char* sampleNote[12]={
   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
@@ -514,7 +513,6 @@ void FurnaceGUI::drawInsList(bool asChild) {
         }
         ImGui::PopID();
       }
-      if (dejarteArriba) ImGui::TextWrapped("%d left - register to remove limit!",16-e->song.insLen);
 
       if (settings.unifiedDataView) {
         ImGui::Unindent();
@@ -775,7 +773,6 @@ void FurnaceGUI::actualWaveList() {
     ImGui::SameLine();
     PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,wave->max);
   }
-  if (dejarteArriba) ImGui::TextWrapped("%d left - register to remove limit!",10-e->song.waveLen);
 }
 
 void FurnaceGUI::actualSampleList() {
@@ -825,5 +822,4 @@ void FurnaceGUI::actualSampleList() {
     }
     if (wantScrollList && curSample==i) ImGui::SetScrollHereY();
   }
-  if (dejarteArriba) ImGui::TextWrapped("%d left - register to remove limit!",5-e->song.sampleLen);
 }
