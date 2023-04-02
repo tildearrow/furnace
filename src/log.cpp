@@ -145,18 +145,10 @@ void initLog() {
   logFileAvail=false;
 
   time_t curTime=time(NULL);
-#ifdef _WIN32
-  struct tm* curDay;
-  curDay=localtime(&curTime);
-  if (curDay!=NULL) {
-    dejarteArriba=(curDay->tm_mon==3 && (curDay->tm_mday==1 || curDay->tm_mday==2));
-  }
-#else
   struct tm curDay;
   if (localtime_r(&curTime,&curDay)!=NULL) {
     dejarteArriba=(curDay.tm_mon==3 && (curDay.tm_mday==1 || curDay.tm_mday==2));
   }
-#endif
 }
 
 void _logFileThread() {
