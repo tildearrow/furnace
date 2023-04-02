@@ -42,7 +42,6 @@ void k053260_core::voice_t::tick(u32 cycle)
 {
 	if (m_enable && m_busy)
 	{
-		bool update = false;
 		// update counter
 		m_counter += cycle;
 		if (m_counter >= 0x1000)
