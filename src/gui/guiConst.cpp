@@ -463,6 +463,7 @@ const FurnaceGUIColors fxColors[256]={
 // format: ("ACTION_ENUM", "Action name", defaultBind)
 const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("GLOBAL_MIN", "---Global", NOT_AN_ACTION),
+  D("NEW", "New", FURKMOD_CMD|SDLK_n),
   D("OPEN", "Open file", FURKMOD_CMD|SDLK_o),
   D("OPEN_BACKUP", "Restore backup", 0),
   D("SAVE", "Save file", FURKMOD_CMD|SDLK_s),

@@ -3581,7 +3581,7 @@ bool FurnaceGUI::loop() {
     if (!mobileUI) {
       ImGui::BeginMainMenuBar();
       if (ImGui::BeginMenu("file")) {
-        if (ImGui::MenuItem("new...")) {
+        if (ImGui::MenuItem("new...",BIND_FOR(GUI_ACTION_NEW))) {
           if (modified) {
             showWarning("Unsaved changes! Save changes before creating a new song?",GUI_WARN_NEW);
           } else {
