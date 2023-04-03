@@ -4840,6 +4840,7 @@ bool FurnaceGUI::loop() {
     }
 
     if (displayNew) {
+      newSongQuery = "";
       displayNew=false;
       ImGui::OpenPopup("New Song");
     }
