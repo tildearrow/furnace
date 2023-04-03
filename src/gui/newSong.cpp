@@ -23,9 +23,6 @@
 #include <algorithm>
 
 void FurnaceGUI::drawNewSong() {
-  // Be sure to reset this to true when the popup is closed
-  static bool firstFrame = true;
-
   bool accepted=false;
 
   ImGui::PushFont(bigFont);
@@ -37,10 +34,8 @@ void FurnaceGUI::drawNewSong() {
   avail.y-=ImGui::GetFrameHeightWithSpacing();
 
   if (ImGui::BeginChild("sysPickerC",avail,false,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
-    if (firstFrame) {
+    if (newSongFirstFrame)
       ImGui::SetKeyboardFocusHere();
-      firstFrame = false;
-    }
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     if (ImGui::InputTextWithHint("##SysSearch","Search...",&newSongQuery)) {
       String lowerCase=newSongQuery;
@@ -129,12 +124,10 @@ void FurnaceGUI::drawNewSong() {
 
   if (ImGui::Button("I'm feeling lucky")) {
     if (sysCategories.size()==0) {
-      firstFrame = true;
       ImGui::CloseCurrentPopup();
     } else {
       FurnaceGUISysCategory* newSystemCat=&sysCategories[rand()%sysCategories.size()];
       if (newSystemCat->systems.size()==0) {
-        firstFrame = true;
         ImGui::CloseCurrentPopup();
       } else {
         unsigned int selection=rand()%newSystemCat->systems.size();
@@ -148,7 +141,6 @@ void FurnaceGUI::drawNewSong() {
   ImGui::SameLine();
 
   if (ImGui::Button("Cancel")) {
-    firstFrame = true;
     ImGui::CloseCurrentPopup();
   }
 
@@ -167,7 +159,8 @@ void FurnaceGUI::drawNewSong() {
     selEnd=SelectionPoint();
     cursor=SelectionPoint();
     updateWindowTitle();
-    firstFrame = true;
     ImGui::CloseCurrentPopup();
   }
+
+  newSongFirstFrame=false;
 }
