@@ -92,10 +92,10 @@ bool DivConfig::loadFromFile(const char* path, bool createOnFail) {
     logD("config does not exist");
     if (createOnFail) {
       logI("creating default config.");
-      reportError(fmt::sprintf("Creating default config: %s",strerror(errno));
+      reportError(fmt::sprintf("Creating default config: %s",strerror(errno)));
       return save(path);
     } else {
-      reportError(fmt::sprintf("COULD NOT LOAD CONFIG %s",strerror(errno));
+      reportError(fmt::sprintf("COULD NOT LOAD CONFIG %s",strerror(errno)));
       return false;
     }
   }

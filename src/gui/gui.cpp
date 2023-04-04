@@ -2786,7 +2786,9 @@ void FurnaceGUI::editOptions(bool topMenu) {
 void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
   if (mobileUI!=enable || force) {
     if (!mobileUI && enable) {
-      ImGui::SaveIniSettingsToDisk(finalLayoutPath);
+      if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath)) {
+        reportError(fmt::sprintf("could NOT save layout! %s",strerror(errno)));
+      }
     }
     mobileUI=enable;
     if (mobileUI) {
@@ -2796,7 +2798,9 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
       fileDialog->mobileUI=true;
     } else {
       ImGui::GetIO().IniFilename=NULL;
-      ImGui::LoadIniSettingsFromDisk(finalLayoutPath);
+      if (!ImGui::LoadIniSettingsFromDisk(finalLayoutPath)) {
+        reportError(fmt::sprintf("could NOT load layout! %s",strerror(errno)));
+      }
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_InertialScrollEnable;
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NoHoverColors;
       fileDialog->mobileUI=false;
@@ -5025,7 +5029,9 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
             if (!mobileUI) {
               ImGui::LoadIniSettingsFromMemory(defaultLayout);
-              ImGui::SaveIniSettingsToDisk(finalLayoutPath);
+              if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath)) {
+                reportError(fmt::sprintf("could NOT save layout! %s",strerror(errno)));
+              }
             }
           }
           ImGui::SameLine();
@@ -5907,7 +5913,9 @@ bool FurnaceGUI::init() {
 
 void FurnaceGUI::commitState() {
   if (!mobileUI) {
-    ImGui::SaveIniSettingsToDisk(finalLayoutPath);
+    if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath)) {
+      reportError(fmt::sprintf("could NOT save layout! %s",strerror(errno)));
+    }
   }
 
   e->setConf("configVersion",(int)DIV_ENGINE_VERSION);

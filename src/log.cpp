@@ -24,7 +24,7 @@
 #ifdef IS_MOBILE
 int logLevel=LOGLEVEL_TRACE;
 #else
-int logLevel=LOGLEVEL_INFO;
+int logLevel=LOGLEVEL_TRACE; // until done
 #endif
 
 FILE* logFile;
