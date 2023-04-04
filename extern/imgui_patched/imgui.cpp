@@ -12457,14 +12457,15 @@ void ImGui::ClearIniSettings()
             g.SettingsHandlers[handler_n].ClearAllFn(&g, &g.SettingsHandlers[handler_n]);
 }
 
-void ImGui::LoadIniSettingsFromDisk(const char* ini_filename)
+bool ImGui::LoadIniSettingsFromDisk(const char* ini_filename)
 {
     size_t file_data_size = 0;
     char* file_data = (char*)ImFileLoadToMemory(ini_filename, "rb", &file_data_size);
     if (!file_data)
-        return;
+        return false;
     LoadIniSettingsFromMemory(file_data, (size_t)file_data_size);
     IM_FREE(file_data);
+    return true;
 }
 
 // Zero-tolerance, no error reporting, cheap .ini parsing
@@ -12538,20 +12539,22 @@ void ImGui::LoadIniSettingsFromMemory(const char* ini_data, size_t ini_size)
             g.SettingsHandlers[handler_n].ApplyAllFn(&g, &g.SettingsHandlers[handler_n]);
 }
 
-void ImGui::SaveIniSettingsToDisk(const char* ini_filename)
+bool ImGui::SaveIniSettingsToDisk(const char* ini_filename)
 {
     ImGuiContext& g = *GImGui;
     g.SettingsDirtyTimer = 0.0f;
     if (!ini_filename)
-        return;
+        return false;
 
     size_t ini_data_size = 0;
     const char* ini_data = SaveIniSettingsToMemory(&ini_data_size);
     ImFileHandle f = ImFileOpen(ini_filename, "wt");
     if (!f)
-        return;
-    ImFileWrite(ini_data, sizeof(char), ini_data_size, f);
+        return false;
+    bool areEqual=ImFileWrite(ini_data, sizeof(char), ini_data_size, f)==ini_data_size;
+    IM_ASSERT_USER_ERROR(areEqual, "ImFileWrite failed to write file!");
     ImFileClose(f);
+    return areEqual;
 }
 
 // Call registered handlers (e.g. SettingsHandlerWindow_WriteAll() + custom handlers) to write their stuff into a text buffer
