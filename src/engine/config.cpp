@@ -67,7 +67,8 @@ void DivConfig::parseLine(const char* line) {
   String value="";
   bool keyOrValue=false;
   for (const char* i=line; *i; i++) {
-    if (*i=='\n') continue;
+    if (*i=='\r') continue;
+    if (*i=='\n') break;
     if (keyOrValue) {
       value+=*i;
     } else {
@@ -91,10 +92,10 @@ bool DivConfig::loadFromFile(const char* path, bool createOnFail) {
     logD("config does not exist");
     if (createOnFail) {
       logI("creating default config.");
-      showWarning(fmt::sprintf("Creating default config: %s",strerror(errno));
+      reportError(fmt::sprintf("Creating default config: %s",strerror(errno));
       return save(path);
     } else {
-      showWarning(fmt::sprintf("COULD NOT LOAD CONFIG %s",strerror(errno));
+      reportError(fmt::sprintf("COULD NOT LOAD CONFIG %s",strerror(errno));
       return false;
     }
   }
@@ -105,6 +106,7 @@ bool DivConfig::loadFromFile(const char* path, bool createOnFail) {
     }
     parseLine(line);
   }
+  logD("end of file (%s)",strerror(errno));
   fclose(f);
   return true;
 }
