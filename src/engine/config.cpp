@@ -68,7 +68,7 @@ void DivConfig::parseLine(const char* line) {
   bool keyOrValue=false;
   for (const char* i=line; *i; i++) {
     if (*i=='\r') continue;
-    if (*i=='\n') break;
+    if (*i=='\n') continue;
     if (keyOrValue) {
       value+=*i;
     } else {
