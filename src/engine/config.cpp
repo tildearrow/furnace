@@ -24,20 +24,24 @@
 #include <fmt/printf.h>
 
 bool DivConfig::save(const char* path) {
+  logD("opening config for write: %s",path);
   FILE* f=ps_fopen(path,"wb");
   if (f==NULL) {
     logW("could not write config file! %s",strerror(errno));
+    reportError(fmt::sprintf("could not write config file! %s",strerror(errno)));
     return false;
   }
   for (auto& i: conf) {
     String toWrite=fmt::sprintf("%s=%s\n",i.first,i.second);
     if (fwrite(toWrite.c_str(),1,toWrite.size(),f)!=toWrite.size()) {
       logW("could not write config file! %s",strerror(errno));
+      reportError(fmt::sprintf("could not write config file! %s",strerror(errno)));
       fclose(f);
       return false;
     }
   }
   fclose(f);
+  logD("config file written successfully.");
   return true;
 }
 
@@ -81,12 +85,16 @@ void DivConfig::parseLine(const char* line) {
 
 bool DivConfig::loadFromFile(const char* path, bool createOnFail) {
   char line[4096];
+  logD("opening config for read: %s",path);
   FILE* f=ps_fopen(path,"rb");
   if (f==NULL) {
+    logD("config does not exist");
     if (createOnFail) {
       logI("creating default config.");
+      showWarning(fmt::sprintf("Creating default config: %s",strerror(errno));
       return save(path);
     } else {
+      showWarning(fmt::sprintf("COULD NOT LOAD CONFIG %s",strerror(errno));
       return false;
     }
   }
