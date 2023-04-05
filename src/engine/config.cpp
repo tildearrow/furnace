@@ -27,6 +27,30 @@
 #define CHECK_BUF_SIZE 8192
 
 bool DivConfig::save(const char* path, bool redundancy) {
+  if (redundancy) {
+    char oldPath[4096];
+    char newPath[4096];
+
+    if (fileExists(path)==1) {
+      logD("rotating config files...");
+      for (int i=4; i>=0; i--) {
+        if (i>0) {
+          snprintf(oldPath,4095,"%s.%d",path,i);
+        } else {
+          strncpy(oldPath,path,4095);
+        }
+        snprintf(newPath,4095,"%s.%d",path,i+1);
+
+        if (i>=4) {
+          logV("remove %s",oldPath);
+          deleteFile(oldPath);
+        } else {
+          logV("move %s to %s",oldPath,newPath);
+          moveFiles(oldPath,newPath);
+        }
+      }
+    }
+  }
   logD("opening config for write: %s",path);
   FILE* f=ps_fopen(path,"wb");
   if (f==NULL) {
@@ -39,7 +63,9 @@ bool DivConfig::save(const char* path, bool redundancy) {
     if (fwrite(toWrite.c_str(),1,toWrite.size(),f)!=toWrite.size()) {
       logW("could not write config file! %s",strerror(errno));
       reportError(fmt::sprintf("could not write config file! %s",strerror(errno)));
+      logV("removing config file");
       fclose(f);
+      deleteFile(path);
       return false;
     }
   }
