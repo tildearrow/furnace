@@ -23,7 +23,10 @@
 #include "../fileutils.h"
 #include <fmt/printf.h>
 
-bool DivConfig::save(const char* path) {
+#define REDUNDANCY_NUM_ATTEMPTS 5
+#define CHECK_BUF_SIZE 8192
+
+bool DivConfig::save(const char* path, bool redundancy) {
   logD("opening config for write: %s",path);
   FILE* f=ps_fopen(path,"wb");
   if (f==NULL) {
@@ -84,21 +87,94 @@ void DivConfig::parseLine(const char* line) {
   }
 }
 
-bool DivConfig::loadFromFile(const char* path, bool createOnFail) {
+bool DivConfig::loadFromFile(const char* path, bool createOnFail, bool redundancy) {
   char line[4096];
   logD("opening config for read: %s",path);
-  FILE* f=ps_fopen(path,"rb");
-  if (f==NULL) {
-    logD("config does not exist");
-    if (createOnFail) {
-      logI("creating default config.");
-      reportError(fmt::sprintf("Creating default config: %s",strerror(errno)));
-      return save(path);
-    } else {
-      reportError(fmt::sprintf("COULD NOT LOAD CONFIG %s",strerror(errno)));
-      return false;
+
+  FILE* f=NULL;
+
+  if (redundancy) {
+    unsigned char* readBuf=new unsigned char[CHECK_BUF_SIZE];
+    size_t readBufLen=0;
+    for (int i=0; i<REDUNDANCY_NUM_ATTEMPTS; i++) {
+      bool viable=false;
+      if (i>0) {
+        snprintf(line,4095,"%s.%d",path,i);
+      } else {
+        strncpy(line,path,4095);
+      }
+      logV("trying: %s",line);
+
+      // try to open config
+      f=ps_fopen(line,"rb");
+      // check whether we could open it
+      if (f==NULL) {
+        logV("fopen(): %s",strerror(errno));
+        continue;
+      }
+
+      // check whether there's something
+      while (!feof(f)) {
+        readBufLen=fread(readBuf,1,CHECK_BUF_SIZE,f);
+        if (ferror(f)) {
+          logV("fread(): %s",strerror(errno));
+          break;
+        }
+
+        for (size_t j=0; j<readBufLen; j++) {
+          if (readBuf[j]!='\r' && readBuf[j]!='\n' && readBuf[j]!=' ') {
+            viable=true;
+            break;
+          }
+        }
+
+        if (viable) break;
+      }
+
+      // there's something
+      if (viable) {
+        if (fseek(f,0,SEEK_SET)==-1) {
+          logV("fseek(): %s",strerror(errno));
+          viable=false;
+        } else {
+          break;
+        }
+      }
+      
+      // close it (because there's nothing)
+      fclose(f);
+      f=NULL;
+    }
+    delete[] readBuf;
+
+    // we couldn't read at all
+    if (f==NULL) {
+      logD("config does not exist");
+      if (createOnFail) {
+        logI("creating default config.");
+        reportError(fmt::sprintf("Creating default config: %s",strerror(errno)));
+        return save(path,redundancy);
+      } else {
+        reportError(fmt::sprintf("COULD NOT LOAD CONFIG %s",strerror(errno)));
+        return false;
+      }
+    }
+  } else {
+    f=ps_fopen(path,"rb");
+    if (f==NULL) {
+      logD("config does not exist");
+      if (createOnFail) {
+        logI("creating default config.");
+        reportError(fmt::sprintf("Creating default config: %s",strerror(errno)));
+        return save(path);
+      } else {
+        reportError(fmt::sprintf("COULD NOT LOAD CONFIG %s",strerror(errno)));
+        return false;
+      }
     }
   }
+
+
   logI("loading config.");
   while (!feof(f)) {
     if (fgets(line,4095,f)==NULL) {
