@@ -480,7 +480,11 @@ void DivPlatformSegaPCM::renderSamples(int sysID) {
     if (memPos>=16777216) break;
     sampleOffSegaPCM[i]=memPos;
     for (unsigned int j=0; j<alignedSize; j++) {
-      sampleMem[memPos++]=((unsigned char)sample->data8[j]+0x80);
+      if (j>=sample->samples) {
+        sampleMem[memPos++]=0;
+      } else {
+        sampleMem[memPos++]=((unsigned char)sample->data8[j]+0x80);
+      }
       sampleEndSegaPCM[i]=((memPos+0xff)>>8)-1;
       if (memPos>=16777216) break;
     }
