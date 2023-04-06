@@ -837,6 +837,8 @@ CODE
 #include <stdint.h>     // intptr_t
 #endif
 
+#include "../../src/fileutils.h"
+
 // [Windows] On non-Visual Studio compilers, we default to IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS unless explicitly enabled
 #if defined(_WIN32) && !defined(_MSC_VER) && !defined(IMGUI_ENABLE_WIN32_DEFAULT_IME_FUNCTIONS) && !defined(IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS)
 #define IMGUI_DISABLE_WIN32_DEFAULT_IME_FUNCTIONS
@@ -12457,10 +12459,42 @@ void ImGui::ClearIniSettings()
             g.SettingsHandlers[handler_n].ClearAllFn(&g, &g.SettingsHandlers[handler_n]);
 }
 
-bool ImGui::LoadIniSettingsFromDisk(const char* ini_filename)
+bool ImGui::LoadIniSettingsFromDisk(const char* ini_filename, bool redundancy)
 {
     size_t file_data_size = 0;
-    char* file_data = (char*)ImFileLoadToMemory(ini_filename, "rb", &file_data_size);
+    char* file_data = NULL;
+
+    if (redundancy) {
+      char fileName[4096];
+
+      for (int i=0; i<5; i++) {
+        bool viable=false;
+        if (i>0) {
+          snprintf(fileName,4095,"%s.%d",ini_filename,i);
+        } else {
+          strncpy(fileName,ini_filename,4095);
+        }
+        file_data=(char*)ImFileLoadToMemory(fileName, "rb", &file_data_size);
+        if (!file_data) continue;
+
+        for (size_t j=0; j<file_data_size; j++) {
+          if (file_data[j]!='\r' && file_data[j]!='\n' && file_data[j]!=' ') {
+            viable=true;
+            break;
+          }
+        }
+
+        if (!viable) {
+          IM_FREE(file_data);
+          file_data=NULL;
+          file_data_size=0;
+        } else {
+          break;
+        }
+      }
+    } else {
+      file_data=(char*)ImFileLoadToMemory(ini_filename, "rb", &file_data_size);
+    }
     if (!file_data)
         return false;
     LoadIniSettingsFromMemory(file_data, (size_t)file_data_size);
@@ -12539,12 +12573,34 @@ void ImGui::LoadIniSettingsFromMemory(const char* ini_data, size_t ini_size)
             g.SettingsHandlers[handler_n].ApplyAllFn(&g, &g.SettingsHandlers[handler_n]);
 }
 
-bool ImGui::SaveIniSettingsToDisk(const char* ini_filename)
+bool ImGui::SaveIniSettingsToDisk(const char* ini_filename, bool redundancy)
 {
     ImGuiContext& g = *GImGui;
     g.SettingsDirtyTimer = 0.0f;
     if (!ini_filename)
         return false;
+
+    if (redundancy) {
+      char oldPath[4096];
+      char newPath[4096];
+
+      if (fileExists(ini_filename)==1) {
+        for (int i=4; i>=0; i--) {
+          if (i>0) {
+            snprintf(oldPath,4095,"%s.%d",ini_filename,i);
+          } else {
+            strncpy(oldPath,ini_filename,4095);
+          }
+          snprintf(newPath,4095,"%s.%d",ini_filename,i+1);
+
+          if (i>=4) {
+            deleteFile(oldPath);
+          } else {
+            moveFiles(oldPath,newPath);
+          }
+        }
+      }
+    }
 
     size_t ini_data_size = 0;
     const char* ini_data = SaveIniSettingsToMemory(&ini_data_size);
@@ -12554,6 +12610,7 @@ bool ImGui::SaveIniSettingsToDisk(const char* ini_filename)
     bool areEqual=ImFileWrite(ini_data, sizeof(char), ini_data_size, f)==ini_data_size;
     IM_ASSERT_USER_ERROR(areEqual, "ImFileWrite failed to write file!");
     ImFileClose(f);
+    if (!areEqual && redundancy) deleteFile(ini_filename);
     return areEqual;
 }
 
