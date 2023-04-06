@@ -214,7 +214,6 @@ bool DivInstrumentSNES::operator==(const DivInstrumentSNES& other) {
 #undef _C
 
 #define FEATURE_BEGIN(x) \
-  logV("- %s",x); \
   w->write(x,2); \
   size_t featStartSeek=w->tell(); \
   w->writeS(0);
