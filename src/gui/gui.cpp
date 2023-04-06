@@ -2108,7 +2108,15 @@ void FurnaceGUI::pushRecentFile(String path) {
 void FurnaceGUI::delFirstBackup(String name) {
   std::vector<String> listOfFiles;
 #ifdef _WIN32
-  // TODO: Windows implementation
+  String findPath=backupPath+String(DIR_SEPARATOR_STR)+name+String("*.fur");
+  WIN32_FIND_DATAW next;
+  HANDLE backDir=FindFirstFileW(utf8To16(findPath.c_str()).c_str(),&next);
+  if (backDir!=INVALID_HANDLE_VALUE) {
+    do {
+      listOfFiles.push_back(utf16To8(next.cFileName));
+    } while (FindNextFile(backDir,&next)!=0);
+    FindClose(backDir);
+  }
 #else
   DIR* backDir=opendir(backupPath.c_str());
   if (backDir==NULL) {
