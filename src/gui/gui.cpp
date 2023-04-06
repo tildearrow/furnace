@@ -3578,8 +3578,10 @@ bool FurnaceGUI::loop() {
       e->synchronized([this]() {
         for (int i=0; i<e->getTotalChannelCount(); i++) {
           DivDispatchOscBuffer* buf=e->getOscBuffer(i);
-          buf->needle=0;
-          buf->readNeedle=0;
+          if (buf!=NULL) {
+            buf->needle=0;
+            buf->readNeedle=0;
+          }
         }
       });
     }
