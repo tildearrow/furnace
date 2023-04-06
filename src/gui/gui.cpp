@@ -5476,18 +5476,26 @@ bool FurnaceGUI::loop() {
 
             if (w!=NULL) {
               size_t sepPos=curFileName.rfind(DIR_SEPARATOR);
+              String backupPreBaseName;
               String backupBaseName;
               String backupFileName;
               if (sepPos==String::npos) {
-                backupBaseName=curFileName;
+                backupPreBaseName=curFileName;
               } else {
-                backupBaseName=curFileName.substr(sepPos+1);
+                backupPreBaseName=curFileName.substr(sepPos+1);
               }
 
-              size_t dotPos=backupBaseName.rfind('.');
+              size_t dotPos=backupPreBaseName.rfind('.');
               if (dotPos!=String::npos) {
-                backupBaseName=backupBaseName.substr(0,dotPos);
+                backupPreBaseName=backupPreBaseName.substr(0,dotPos);
               }
+
+              for (char i: backupPreBaseName) {
+                if (backupBaseName.size()>=48) break;
+                if ((i>='0' && i<='9') || (i>='A' && i<='Z') || (i>='a' && i<='z') || i=='_' || i=='-' || i==' ') backupBaseName+=i;
+              }
+
+              if (backupBaseName.empty()) backupBaseName="untitled";
 
               backupFileName=backupBaseName;
 
