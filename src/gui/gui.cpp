@@ -2114,7 +2114,7 @@ void FurnaceGUI::delFirstBackup(String name) {
   if (backDir!=INVALID_HANDLE_VALUE) {
     do {
       listOfFiles.push_back(utf16To8(next.cFileName));
-    } while (FindNextFile(backDir,&next)!=0);
+    } while (FindNextFileW(backDir,&next)!=0);
     FindClose(backDir);
   }
 #else
