@@ -134,7 +134,16 @@ int writeLog(int level, const char* msg, fmt::printf_args args) {
 }
 
 void initLog() {
-  // initalize log buffer
+  // initialize coloring on Windows
+#ifdef _WIN32
+  HANDLE winout=GetStdHandle(STD_OUTPUT_HANDLE);
+  int termprop=0;
+  GetConsoleMode(winout,(LPDWORD)&termprop);
+  termprop|=ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+  SetConsoleMode(winout,termprop);
+#endif
+
+  // initialize log buffer
   logPosition=0;
   for (int i=0; i<TA_LOG_SIZE; i++) {
     logEntries[i].text.reserve(128);
