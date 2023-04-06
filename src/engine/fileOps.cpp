@@ -874,6 +874,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         // what the hell man...
         cutStart=reader.readI();
         cutEnd=reader.readI();
+        logV("cutStart: %d cutEnd: %d",cutStart,cutEnd);
         if (cutStart<0 || cutStart>length) {
           logE("cutStart is out of range! (%d)",cutStart);
           lastError="file is corrupt or unreadable at samples";
