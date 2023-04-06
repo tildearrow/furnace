@@ -1474,6 +1474,19 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_OPEN_BACKUP:
+      if (!dirExists(backupPath)) {
+        showError("no backups made yet!");
+        break;
+      }
+      hasOpened=fileDialog->openLoad(
+        "Restore Backup",
+        {"Furnace song", "*.fur"},
+        "Furnace song{.fur}",
+        backupPath,
+        dpiScale
+      );
+      break;
     case GUI_FILE_SAVE:
       if (!dirExists(workingDirSong)) workingDirSong=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -4375,6 +4388,8 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_TEST_SAVE:
           workingDirTest=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+        case GUI_FILE_OPEN_BACKUP:
+          break;
       }
       if (fileDialog->isError()) {
 #if defined(_WIN32) || defined(__APPLE__)
@@ -4451,6 +4466,7 @@ bool FurnaceGUI::loop() {
           String copyOfName=fileName;
           switch (curFileDialog) {
             case GUI_FILE_OPEN:
+            case GUI_FILE_OPEN_BACKUP:
               if (load(copyOfName)>0) {
                 showError(fmt::sprintf("Error while loading file! (%s)",lastError));
               }
@@ -4479,9 +4495,7 @@ bool FurnaceGUI::loop() {
                     nextFile="";
                     break;
                   case GUI_WARN_OPEN_BACKUP:
-                    if (load(backupPath)>0) {
-                      showError("No backup available! (or unable to open it)");
-                    }
+                    openFileDialog(GUI_FILE_OPEN_BACKUP);
                     break;
                   default:
                     break;
@@ -5027,18 +5041,14 @@ bool FurnaceGUI::loop() {
               if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
                 showError(fmt::sprintf("Error while saving file! (%s)",lastError));
               } else {
-                if (load(backupPath)>0) {
-                  showError("No backup available! (or unable to open it)");
-                }
+                openFileDialog(GUI_FILE_OPEN_BACKUP);
               }
             }
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
             ImGui::CloseCurrentPopup();
-            if (load(backupPath)>0) {
-              showError("No backup available! (or unable to open it)");
-            }
+            openFileDialog(GUI_FILE_OPEN_BACKUP);
           }
           ImGui::SameLine();
           if (ImGui::Button("Cancel")) {

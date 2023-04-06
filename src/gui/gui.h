@@ -346,6 +346,7 @@ enum FurnaceGUIMobileScenes {
 
 enum FurnaceGUIFileDialogs {
   GUI_FILE_OPEN,
+  GUI_FILE_OPEN_BACKUP,
   GUI_FILE_SAVE,
   GUI_FILE_SAVE_DMF,
   GUI_FILE_SAVE_DMF_LEGACY,

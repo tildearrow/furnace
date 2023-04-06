@@ -50,9 +50,7 @@ void FurnaceGUI::doAction(int what) {
       if (modified) {
         showWarning("Unsaved changes! Save changes before opening backup?",GUI_WARN_OPEN_BACKUP);
       } else {
-        if (load(backupPath)>0) {
-          showError("No backup available! (or unable to open it)");
-        }
+        openFileDialog(GUI_FILE_OPEN_BACKUP);
       }
       break;
     case GUI_ACTION_SAVE:
