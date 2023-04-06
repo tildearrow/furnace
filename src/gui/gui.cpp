@@ -530,18 +530,22 @@ void FurnaceGUI::setFileName(String name) {
     if (index>=4095) break;
   }
   ret[index]=0;
+  backupLock.lock();
   if (GetFullPathNameW(ws.c_str(),4095,ret,NULL)==0) {
     curFileName=name;
   } else {
     curFileName=utf16To8(ret);
   }
+  backupLock.unlock();
 #else
   char ret[4096];
+  backupLock.lock();
   if (realpath(name.c_str(),ret)==NULL) {
     curFileName=name;
   } else {
     curFileName=ret;
   }
+  backupLock.unlock();
 #endif
   updateWindowTitle();
   pushRecentFile(curFileName);
@@ -2013,7 +2017,9 @@ int FurnaceGUI::save(String path, int dmfVersion) {
 #endif
   fclose(outFile);
   w->finish();
+  backupLock.lock();
   curFileName=path;
+  backupLock.unlock();
   modified=false;
   updateWindowTitle();
   if (!e->getWarnings().empty()) {
@@ -2078,7 +2084,9 @@ int FurnaceGUI::load(String path) {
       return 1;
     }
   }
+  backupLock.lock();
   curFileName=path;
+  backupLock.unlock();
   modified=false;
   curNibble=false;
   orderNibble=false;
@@ -5470,17 +5478,20 @@ bool FurnaceGUI::loop() {
         backupTimer=(backupTimer-ImGui::GetIO().DeltaTime);
         if (backupTimer<=0) {
           backupTask=std::async(std::launch::async,[this]() -> bool {
+            backupLock.lock();
             logV("backupPath: %s",backupPath);
             logV("curFileName: %s",curFileName);
             if (curFileName.find(backupPath)==0) {
               logD("backup file open. not saving backup.");
               backupTimer=30.0;
+              backupLock.unlock();
               return true;
             }
             if (!dirExists(backupPath.c_str())) {
               if (!makeDir(backupPath.c_str())) {
                 logW("could not create backup directory!");
                 backupTimer=30.0;
+                backupLock.unlock();
                 return false;
               }
             }
@@ -5550,6 +5561,7 @@ bool FurnaceGUI::loop() {
             }
             logD("backup saved.");
             backupTimer=30.0;
+            backupLock.unlock();
             return true;
           });
         }
