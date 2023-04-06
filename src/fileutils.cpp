@@ -56,7 +56,7 @@ bool deleteFile(const char* path) {
 
 int fileExists(const char* path) {
 #ifdef _WIN32
-  if (PathFileExistsW(utf8To16(path).c_str()) return 1;
+  if (PathFileExistsW(utf8To16(path).c_str())) return 1;
   // which errors could PathFileExists possibly throw?
   switch (GetLastError()) {
     case ERROR_FILE_EXISTS:
