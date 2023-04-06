@@ -26,5 +26,7 @@ bool moveFiles(const char* src, const char* dest);
 bool deleteFile(const char* path);
 // returns 1 if file exists, 0 if it doesn't and -1 on error.
 int fileExists(const char* path);
+bool dirExists(const char* what);
+bool makeDir(const char* path);
 
 #endif

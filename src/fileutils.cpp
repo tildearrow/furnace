@@ -21,10 +21,12 @@
 #ifdef _WIN32
 #include "utfutils.h"
 #include <windows.h>
+#include <shlobj.h>
 #include <shlwapi.h>
 #else
 #include <unistd.h>
 #include <errno.h>
+#include <sys/stat.h>
 #endif
 
 FILE* ps_fopen(const char* path, const char* mode) {
@@ -77,5 +79,24 @@ int fileExists(const char* path) {
   if (access(path,F_OK)==0) return 1;
   if (errno==ENOENT) return 0;
   return -1;
+#endif
+}
+
+bool dirExists(const char* what) {
+#ifdef _WIN32
+  WString ws=utf8To16(what);
+  return (PathIsDirectoryW(ws.c_str())!=FALSE);
+#else
+  struct stat st;
+  if (stat(what,&st)<0) return false;
+  return (st.st_mode&S_IFDIR);
+#endif
+}
+
+bool makeDir(const char* path) {
+#ifdef _WIN32
+  return (SHCreateDirectory(NULL,utf8To16(path).c_str())!=ERROR_SUCCESS);
+#else
+  return (mkdir(path,0755)==0);
 #endif
 }

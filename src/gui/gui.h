@@ -2079,6 +2079,7 @@ class FurnaceGUI {
   int loadStream(String path);
   void pushRecentFile(String path);
   void exportAudio(String path, DivAudioExportModes mode);
+  void delFirstBackup(String name);
 
   bool parseSysEx(unsigned char* data, size_t len);
 

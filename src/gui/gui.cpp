@@ -50,13 +50,15 @@
 #include <shlwapi.h>
 #include "../utfutils.h"
 #define LAYOUT_INI "\\layout.ini"
-#define BACKUP_FUR "\\backup.fur"
+#define BACKUPS_DIR "\\backups"
 #else
+#include <sys/types.h>
+#include <dirent.h>
 #include <unistd.h>
 #include <pwd.h>
 #include <sys/stat.h>
 #define LAYOUT_INI "/layout.ini"
-#define BACKUP_FUR "/backup.fur"
+#define BACKUPS_DIR "/backups"
 #endif
 
 #ifdef IS_MOBILE
@@ -1454,15 +1456,8 @@ void FurnaceGUI::keyUp(SDL_Event& ev) {
   // nothing for now
 }
 
-bool dirExists(String what) {
-#ifdef _WIN32
-  WString ws=utf8To16(what.c_str());
-  return (PathIsDirectoryW(ws.c_str())!=FALSE);
-#else
-  struct stat st;
-  if (stat(what.c_str(),&st)<0) return false;
-  return (st.st_mode&S_IFDIR);
-#endif
+bool dirExists(String s) {
+  return dirExists(s.c_str());
 }
 
 void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
@@ -2096,7 +2091,7 @@ int FurnaceGUI::load(String path) {
 
 void FurnaceGUI::pushRecentFile(String path) {
   if (path.empty()) return;
-  if (path==backupPath) return;
+  if (path.find(backupPath)==0) return;
   for (int i=0; i<(int)recentFile.size(); i++) {
     if (recentFile[i]==path) {
       recentFile.erase(recentFile.begin()+i);
@@ -2107,6 +2102,35 @@ void FurnaceGUI::pushRecentFile(String path) {
 
   while (!recentFile.empty() && (int)recentFile.size()>settings.maxRecentFile) {
     recentFile.pop_back();
+  }
+}
+
+void FurnaceGUI::delFirstBackup(String name) {
+  std::vector<String> listOfFiles;
+#ifdef _WIN32
+  // TODO: Windows implementation
+#else
+  DIR* backDir=opendir(backupPath.c_str());
+  if (backDir==NULL) {
+    logW("could not open backups dir!");
+    return;
+  }
+  while (true) {
+    struct dirent* next=readdir(backDir);
+    if (next==NULL) break;
+    if (strstr(next->d_name,name.c_str())!=next->d_name) continue;
+    listOfFiles.push_back(String(next->d_name));
+  }
+  closedir(backDir);
+#endif
+
+  std::sort(listOfFiles.begin(),listOfFiles.end(),[](const String& a, const String& b) -> bool {
+    return strcmp(a.c_str(),b.c_str())<0;
+  });
+
+  logV("prior backups of %s:",name);
+  for (String& i: listOfFiles) {
+    logV("- %s",i);
   }
 }
 
@@ -3641,7 +3665,7 @@ bool FurnaceGUI::loop() {
         }
         ImGui::Separator();
         if (ImGui::MenuItem("save",BIND_FOR(GUI_ACTION_SAVE))) {
-          if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+          if (curFileName=="" || (curFileName.find(backupPath)==0) || e->song.version>=0xff00) {
             openFileDialog(GUI_FILE_SAVE);
           } else {
             if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
@@ -4909,7 +4933,7 @@ bool FurnaceGUI::loop() {
         case GUI_WARN_QUIT:
           if (ImGui::Button("Yes")) {
             ImGui::CloseCurrentPopup();
-            if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+            if (curFileName=="" || curFileName.find(backupPath)==0 || e->song.version>=0xff00) {
               openFileDialog(GUI_FILE_SAVE);
               postWarnAction=GUI_WARN_QUIT;
             } else {
@@ -4933,7 +4957,7 @@ bool FurnaceGUI::loop() {
         case GUI_WARN_NEW:
           if (ImGui::Button("Yes")) {
             ImGui::CloseCurrentPopup();
-            if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+            if (curFileName=="" || curFileName.find(backupPath)==0 || e->song.version>=0xff00) {
               openFileDialog(GUI_FILE_SAVE);
               postWarnAction=GUI_WARN_NEW;
             } else {
@@ -4957,7 +4981,7 @@ bool FurnaceGUI::loop() {
         case GUI_WARN_OPEN:
           if (ImGui::Button("Yes")) {
             ImGui::CloseCurrentPopup();
-            if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+            if (curFileName=="" || curFileName.find(backupPath)==0 || e->song.version>=0xff00) {
               openFileDialog(GUI_FILE_SAVE);
               postWarnAction=GUI_WARN_OPEN;
             } else {
@@ -4981,7 +5005,7 @@ bool FurnaceGUI::loop() {
         case GUI_WARN_OPEN_BACKUP:
           if (ImGui::Button("Yes")) {
             ImGui::CloseCurrentPopup();
-            if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+            if (curFileName=="" || curFileName.find(backupPath)==0 || e->song.version>=0xff00) {
               openFileDialog(GUI_FILE_SAVE);
               postWarnAction=GUI_WARN_OPEN_BACKUP;
             } else {
@@ -5009,7 +5033,7 @@ bool FurnaceGUI::loop() {
         case GUI_WARN_OPEN_DROP:
           if (ImGui::Button("Yes")) {
             ImGui::CloseCurrentPopup();
-            if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+            if (curFileName=="" || curFileName.find(backupPath)==0 || e->song.version>=0xff00) {
               openFileDialog(GUI_FILE_SAVE);
               postWarnAction=GUI_WARN_OPEN_DROP;
             } else {
@@ -5421,16 +5445,59 @@ bool FurnaceGUI::loop() {
         backupTimer=(backupTimer-ImGui::GetIO().DeltaTime);
         if (backupTimer<=0) {
           backupTask=std::async(std::launch::async,[this]() -> bool {
-            if (backupPath==curFileName) {
+            // TODO: remember how many backups we have made so we don't flood the directory
+            if (curFileName.find(backupPath)==0) {
               logD("backup file open. not saving backup.");
               return true;
+            }
+            if (!dirExists(backupPath.c_str())) {
+              if (!makeDir(backupPath.c_str())) {
+                logW("could not create backup directory!");
+                return false;
+              }
             }
             logD("saving backup...");
             SafeWriter* w=e->saveFur(true);
             logV("writing file...");
 
             if (w!=NULL) {
-              FILE* outFile=ps_fopen(backupPath.c_str(),"wb");
+              size_t sepPos=curFileName.rfind(DIR_SEPARATOR);
+              String backupBaseName;
+              String backupFileName;
+              if (sepPos==String::npos) {
+                backupBaseName=curFileName;
+              } else {
+                backupBaseName=curFileName.substr(sepPos+1);
+              }
+
+              size_t dotPos=backupBaseName.rfind('.');
+              if (dotPos!=String::npos) {
+                backupBaseName=backupBaseName.substr(0,dotPos);
+              }
+
+              backupFileName=backupBaseName;
+
+              time_t curTime=time(NULL);
+              struct tm curTM;
+#ifdef _WIN32
+              struct tm* tempTM=localtime(&curTime);
+              if (tempTM==NULL) {
+                backupFileName+="-unknownTime.fur";
+              } else {
+                curTM=*tempTM;
+                backupFileName+=fmt::sprintf("-%d%.2d%.2d-%.2d%.2d%.2d.fur",curTM.tm_year+1900,curTM.tm_mon+1,curTM.tm_mday,curTM.tm_hour,curTM.tm_min,curTM.tm_sec);
+              }
+#else
+              if (localtime_r(&curTime,&curTM)==NULL) {
+                backupFileName+="-unknownTime.fur";
+              } else {
+                backupFileName+=fmt::sprintf("-%d%.2d%.2d-%.2d%.2d%.2d.fur",curTM.tm_year+1900,curTM.tm_mon+1,curTM.tm_mday,curTM.tm_hour,curTM.tm_min,curTM.tm_sec);
+              }
+#endif
+
+              String finalPath=backupPath+String(DIR_SEPARATOR_STR)+backupFileName;
+              
+              FILE* outFile=ps_fopen(finalPath.c_str(),"wb");
               if (outFile!=NULL) {
                 if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
                   logW("did not write backup entirely: %s!",strerror(errno));
@@ -5441,6 +5508,9 @@ bool FurnaceGUI::loop() {
                 logW("could not save backup: %s!",strerror(errno));
                 w->finish();
               }
+
+              // delete previous backup if there are too many
+              delFirstBackup(backupBaseName);
             }
             logD("backup saved.");
             backupTimer=30.0;
@@ -5857,7 +5927,7 @@ bool FurnaceGUI::init() {
   }
 
   strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
-  backupPath=e->getConfigPath()+String(BACKUP_FUR);
+  backupPath=e->getConfigPath()+String(BACKUPS_DIR);
   prepareLayout();
 
   ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
