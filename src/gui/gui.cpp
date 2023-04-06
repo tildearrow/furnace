@@ -1076,10 +1076,6 @@ void FurnaceGUI::stop() {
   e->stop();
   curNibble=false;
   orderNibble=false;
-  activeNotes.clear();
-  memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
-  memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
-  memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
 }
 
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
@@ -3571,6 +3567,21 @@ bool FurnaceGUI::loop() {
         memcpy(introTemp,intro_fur,intro_fur_len);
         e->load(introTemp,intro_fur_len);
       }
+    }
+
+    if (!e->isRunning()) {
+      activeNotes.clear();
+      memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
+      memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
+      memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
+
+      e->synchronized([this]() {
+        for (int i=0; i<e->getTotalChannelCount(); i++) {
+          DivDispatchOscBuffer* buf=e->getOscBuffer(i);
+          buf->needle=0;
+          buf->readNeedle=0;
+        }
+      });
     }
 
     layoutTimeBegin=SDL_GetPerformanceCounter();
