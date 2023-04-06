@@ -2132,6 +2132,13 @@ void FurnaceGUI::delFirstBackup(String name) {
   for (String& i: listOfFiles) {
     logV("- %s",i);
   }
+
+  int totalDelete=((int)listOfFiles.size())-5;
+  for (int i=0; i<totalDelete; i++) {
+    String toDelete=backupPath+String(DIR_SEPARATOR_STR)+listOfFiles[i];
+    logV("deleting %s",listOfFiles[i]);
+    deleteFile(toDelete.c_str());
+  }
 }
 
 int FurnaceGUI::loadStream(String path) {
@@ -5445,7 +5452,6 @@ bool FurnaceGUI::loop() {
         backupTimer=(backupTimer-ImGui::GetIO().DeltaTime);
         if (backupTimer<=0) {
           backupTask=std::async(std::launch::async,[this]() -> bool {
-            // TODO: remember how many backups we have made so we don't flood the directory
             if (curFileName.find(backupPath)==0) {
               logD("backup file open. not saving backup.");
               return true;
