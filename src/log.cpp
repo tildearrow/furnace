@@ -22,6 +22,10 @@
 #include <thread>
 #include <condition_variable>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #ifdef IS_MOBILE
 int logLevel=LOGLEVEL_TRACE;
 #else
