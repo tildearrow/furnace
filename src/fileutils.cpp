@@ -21,6 +21,7 @@
 #ifdef _WIN32
 #include "utfutils.h"
 #include <windows.h>
+#include <shlwapi.h>
 #else
 #include <unistd.h>
 #include <errno.h>
