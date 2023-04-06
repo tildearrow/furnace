@@ -1109,9 +1109,21 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "Commander X16", {
+    "Commander X16 (VERA only)", {
+      CH(DIV_SYSTEM_VERA, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Commander X16 (with OPM)", {
       CH(DIV_SYSTEM_VERA, 1.0f, 0, ""),
       CH(DIV_SYSTEM_YM2151, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Commander X16 (with Twin OPL3)", {
+      CH(DIV_SYSTEM_VERA, 1.0f, 0, ""),
+      CH(DIV_SYSTEM_OPL3, 1.0f, 0, ""),
+      CH(DIV_SYSTEM_OPL3, 1.0f, 0, "")
     }
   );
   ENTRY(
