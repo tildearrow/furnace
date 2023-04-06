@@ -18,6 +18,7 @@
  */
 
 #include "ta-log.h"
+#include "fileutils.h"
 #include <thread>
 #include <condition_variable>
 
@@ -169,9 +170,28 @@ bool startLogFile(const char* path) {
   if (logFileAvail) return true;
 
   // rotate log file if possible
+  char oldPath[4096];
+  char newPath[4096];
+
+  if (fileExists(path)==1) {
+    for (int i=4; i>=0; i--) {
+      if (i>0) {
+        snprintf(oldPath,4095,"%s.%d",path,i);
+      } else {
+        strncpy(oldPath,path,4095);
+      }
+      snprintf(newPath,4095,"%s.%d",path,i+1);
+
+      if (i>=4) {
+        deleteFile(oldPath);
+      } else {
+        moveFiles(oldPath,newPath);
+      }
+    }
+  }
   
   // open log file
-  if ((logFile=fopen(path,"w+"))==NULL) {
+  if ((logFile=ps_fopen(path,"w+"))==NULL) {
     logFileAvail=false;
     logW("could not open log file! (%s)",strerror(errno));
     return false;
