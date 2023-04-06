@@ -1483,7 +1483,7 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         "Restore Backup",
         {"Furnace song", "*.fur"},
         "Furnace song{.fur}",
-        backupPath,
+        backupPath+String(DIR_SEPARATOR_STR),
         dpiScale
       );
       break;
