@@ -5470,13 +5470,17 @@ bool FurnaceGUI::loop() {
         backupTimer=(backupTimer-ImGui::GetIO().DeltaTime);
         if (backupTimer<=0) {
           backupTask=std::async(std::launch::async,[this]() -> bool {
+            logV("backupPath: %s",backupPath);
+            logV("curFileName: %s",curFileName);
             if (curFileName.find(backupPath)==0) {
               logD("backup file open. not saving backup.");
+              backupTimer=30.0;
               return true;
             }
             if (!dirExists(backupPath.c_str())) {
               if (!makeDir(backupPath.c_str())) {
                 logW("could not create backup directory!");
+                backupTimer=30.0;
                 return false;
               }
             }
@@ -5959,7 +5963,11 @@ bool FurnaceGUI::init() {
   }
 
   strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
-  backupPath=e->getConfigPath()+String(BACKUPS_DIR);
+  backupPath=e->getConfigPath();
+  if (backupPath.size()>0) {
+    if (backupPath[backupPath.size()-1]==DIR_SEPARATOR) backupPath.resize(backupPath.size()-1);
+  }
+  backupPath+=String(BACKUPS_DIR);
   prepareLayout();
 
   ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
