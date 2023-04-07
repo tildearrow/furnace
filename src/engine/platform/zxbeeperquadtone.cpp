@@ -169,10 +169,11 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
       } else {
         DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
         if (c.value!=DIV_NOTE_NULL) {
+          curSample=ins->amiga.getSample(c.value);
+          c.value=ins->amiga.getFreq(c.value);
           chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
           chan[c.chan].freqChanged=true;
           chan[c.chan].note=c.value;
-          curSample=ins->amiga.getSample(c.value);
           // TODO support offset commands
           curSamplePos=0;
           curSamplePeriod=0;

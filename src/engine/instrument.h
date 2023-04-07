@@ -415,7 +415,7 @@ struct DivInstrumentAmiga {
       if (note>119) note=119;
       return noteMap[note].freq;
     }
-    return -1;
+    return note;
   }
 
   DivInstrumentAmiga():
@@ -424,8 +424,9 @@ struct DivInstrumentAmiga {
     useSample(false),
     useWave(false),
     waveLen(31) {
-    for (SampleMap& elem: noteMap) {
-      elem=SampleMap();
+    for (int i=0; i<120; i++) {
+      noteMap[i].map=-1;
+      noteMap[i].freq=i;
     }
   }
 };

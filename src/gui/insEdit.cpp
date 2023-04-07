@@ -4406,11 +4406,10 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::BeginDisabled(ins->amiga.useWave);
             P(ImGui::Checkbox("Use sample map",&ins->amiga.useNoteMap));
             if (ins->amiga.useNoteMap) {
-              // TODO: frequency map?
-              if (ImGui::BeginTable("NoteMap",2/*3*/,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
+              if (ImGui::BeginTable("NoteMap",3,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
                 ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
-                //ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
 
                 ImGui::TableSetupScrollFreeze(0,1);
 
@@ -4418,8 +4417,8 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::TableNextColumn();
                 ImGui::TableNextColumn();
                 ImGui::Text("Sample");
-                /*ImGui::TableNextColumn();
-                ImGui::Text("Frequency");*/
+                ImGui::TableNextColumn();
+                ImGui::Text("Note");
                 for (int i=0; i<120; i++) {
                   DivInstrumentAmiga::SampleMap& sampleMap=ins->amiga.noteMap[i];
                   ImGui::TableNextRow();
@@ -4443,17 +4442,28 @@ void FurnaceGUI::drawInsEdit() {
                       id=fmt::sprintf("%d: %s",j,e->song.sample[j]->name);
                       if (ImGui::Selectable(id.c_str(),sampleMap.map==j)) { PARAMETER
                         sampleMap.map=j;
-                        if (sampleMap.freq<=0) sampleMap.freq=(int)((double)e->song.sample[j]->centerRate*pow(2.0,((double)i-48.0)/12.0));
                       }
                     }
                     ImGui::EndCombo();
                   }
-                  /*ImGui::TableNextColumn();
+
+                  ImGui::TableNextColumn();
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::InputInt("##SF",&sampleMap.freq,50,500)) { PARAMETER
-                    if (sampleMap.freq<0) sampleMap.freq=0;
-                    if (sampleMap.freq>262144) sampleMap.freq=262144;
-                  }*/
+                  const char* nName="???";
+                  if ((sampleMap.freq+60)>0 && (sampleMap.freq+60)<180) {
+                    nName=noteNames[sampleMap.freq+60];
+                  }
+                  if (ImGui::BeginCombo("##SN",nName)) {
+                    for (int j=0; j<180; j++) {
+                      const char* nName2="???";
+                      nName2=noteNames[j];
+                      if (ImGui::Selectable(nName2,(sampleMap.freq+60)==j)) {
+                        sampleMap.freq=j-60;
+                      }
+                    }
+                    ImGui::EndCombo();
+                  }
+
                   ImGui::PopID();
                 }
                 ImGui::EndTable();

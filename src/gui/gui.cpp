@@ -50,13 +50,15 @@
 #include <shlwapi.h>
 #include "../utfutils.h"
 #define LAYOUT_INI "\\layout.ini"
-#define BACKUP_FUR "\\backup.fur"
+#define BACKUPS_DIR "\\backups"
 #else
+#include <sys/types.h>
+#include <dirent.h>
 #include <unistd.h>
 #include <pwd.h>
 #include <sys/stat.h>
 #define LAYOUT_INI "/layout.ini"
-#define BACKUP_FUR "/backup.fur"
+#define BACKUPS_DIR "/backups"
 #endif
 
 #ifdef IS_MOBILE
@@ -528,18 +530,22 @@ void FurnaceGUI::setFileName(String name) {
     if (index>=4095) break;
   }
   ret[index]=0;
+  backupLock.lock();
   if (GetFullPathNameW(ws.c_str(),4095,ret,NULL)==0) {
     curFileName=name;
   } else {
     curFileName=utf16To8(ret);
   }
+  backupLock.unlock();
 #else
   char ret[4096];
+  backupLock.lock();
   if (realpath(name.c_str(),ret)==NULL) {
     curFileName=name;
   } else {
     curFileName=ret;
   }
+  backupLock.unlock();
 #endif
   updateWindowTitle();
   pushRecentFile(curFileName);
@@ -1076,10 +1082,6 @@ void FurnaceGUI::stop() {
   e->stop();
   curNibble=false;
   orderNibble=false;
-  activeNotes.clear();
-  memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
-  memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
-  memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
 }
 
 void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
@@ -1458,15 +1460,8 @@ void FurnaceGUI::keyUp(SDL_Event& ev) {
   // nothing for now
 }
 
-bool dirExists(String what) {
-#ifdef _WIN32
-  WString ws=utf8To16(what.c_str());
-  return (PathIsDirectoryW(ws.c_str())!=FALSE);
-#else
-  struct stat st;
-  if (stat(what.c_str(),&st)<0) return false;
-  return (st.st_mode&S_IFDIR);
-#endif
+bool dirExists(String s) {
+  return dirExists(s.c_str());
 }
 
 void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
@@ -1480,6 +1475,19 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
          "all files", "*"},
         "compatible files{.fur,.dmf,.mod,.fc13,.fc14,.smod,.fc},.*",
         workingDirSong,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_OPEN_BACKUP:
+      if (!dirExists(backupPath)) {
+        showError("no backups made yet!");
+        break;
+      }
+      hasOpened=fileDialog->openLoad(
+        "Restore Backup",
+        {"Furnace song", "*.fur"},
+        "Furnace song{.fur}",
+        backupPath+String(DIR_SEPARATOR_STR),
         dpiScale
       );
       break;
@@ -2009,7 +2017,9 @@ int FurnaceGUI::save(String path, int dmfVersion) {
 #endif
   fclose(outFile);
   w->finish();
+  backupLock.lock();
   curFileName=path;
+  backupLock.unlock();
   modified=false;
   updateWindowTitle();
   if (!e->getWarnings().empty()) {
@@ -2074,7 +2084,9 @@ int FurnaceGUI::load(String path) {
       return 1;
     }
   }
+  backupLock.lock();
   curFileName=path;
+  backupLock.unlock();
   modified=false;
   curNibble=false;
   orderNibble=false;
@@ -2100,7 +2112,7 @@ int FurnaceGUI::load(String path) {
 
 void FurnaceGUI::pushRecentFile(String path) {
   if (path.empty()) return;
-  if (path==backupPath) return;
+  if (path.find(backupPath)==0) return;
   for (int i=0; i<(int)recentFile.size(); i++) {
     if (recentFile[i]==path) {
       recentFile.erase(recentFile.begin()+i);
@@ -2111,6 +2123,44 @@ void FurnaceGUI::pushRecentFile(String path) {
 
   while (!recentFile.empty() && (int)recentFile.size()>settings.maxRecentFile) {
     recentFile.pop_back();
+  }
+}
+
+void FurnaceGUI::delFirstBackup(String name) {
+  std::vector<String> listOfFiles;
+#ifdef _WIN32
+  String findPath=backupPath+String(DIR_SEPARATOR_STR)+name+String("*.fur");
+  WIN32_FIND_DATAW next;
+  HANDLE backDir=FindFirstFileW(utf8To16(findPath.c_str()).c_str(),&next);
+  if (backDir!=INVALID_HANDLE_VALUE) {
+    do {
+      listOfFiles.push_back(utf16To8(next.cFileName));
+    } while (FindNextFileW(backDir,&next)!=0);
+    FindClose(backDir);
+  }
+#else
+  DIR* backDir=opendir(backupPath.c_str());
+  if (backDir==NULL) {
+    logW("could not open backups dir!");
+    return;
+  }
+  while (true) {
+    struct dirent* next=readdir(backDir);
+    if (next==NULL) break;
+    if (strstr(next->d_name,name.c_str())!=next->d_name) continue;
+    listOfFiles.push_back(String(next->d_name));
+  }
+  closedir(backDir);
+#endif
+
+  std::sort(listOfFiles.begin(),listOfFiles.end(),[](const String& a, const String& b) -> bool {
+    return strcmp(a.c_str(),b.c_str())<0;
+  });
+
+  int totalDelete=((int)listOfFiles.size())-5;
+  for (int i=0; i<totalDelete; i++) {
+    String toDelete=backupPath+String(DIR_SEPARATOR_STR)+listOfFiles[i];
+    deleteFile(toDelete.c_str());
   }
 }
 
@@ -2786,7 +2836,9 @@ void FurnaceGUI::editOptions(bool topMenu) {
 void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
   if (mobileUI!=enable || force) {
     if (!mobileUI && enable) {
-      ImGui::SaveIniSettingsToDisk(finalLayoutPath);
+      if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
+        reportError(fmt::sprintf("could NOT save layout! %s",strerror(errno)));
+      }
     }
     mobileUI=enable;
     if (mobileUI) {
@@ -2796,7 +2848,10 @@ void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
       fileDialog->mobileUI=true;
     } else {
       ImGui::GetIO().IniFilename=NULL;
-      ImGui::LoadIniSettingsFromDisk(finalLayoutPath);
+      if (!ImGui::LoadIniSettingsFromDisk(finalLayoutPath,true)) {
+        reportError(fmt::sprintf("could NOT load layout! %s",strerror(errno)));
+        ImGui::LoadIniSettingsFromMemory(defaultLayout);
+      }
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_InertialScrollEnable;
       ImGui::GetIO().ConfigFlags&=~ImGuiConfigFlags_NoHoverColors;
       fileDialog->mobileUI=false;
@@ -3568,6 +3623,23 @@ bool FurnaceGUI::loop() {
       }
     }
 
+    if (!e->isRunning()) {
+      activeNotes.clear();
+      memset(chanOscVol,0,DIV_MAX_CHANS*sizeof(float));
+      memset(chanOscPitch,0,DIV_MAX_CHANS*sizeof(float));
+      memset(chanOscBright,0,DIV_MAX_CHANS*sizeof(float));
+
+      e->synchronized([this]() {
+        for (int i=0; i<e->getTotalChannelCount(); i++) {
+          DivDispatchOscBuffer* buf=e->getOscBuffer(i);
+          if (buf!=NULL) {
+            buf->needle=0;
+            buf->readNeedle=0;
+          }
+        }
+      });
+    }
+
     layoutTimeBegin=SDL_GetPerformanceCounter();
 
     ImGui_ImplSDLRenderer_NewFrame();
@@ -3623,7 +3695,7 @@ bool FurnaceGUI::loop() {
         }
         ImGui::Separator();
         if (ImGui::MenuItem("save",BIND_FOR(GUI_ACTION_SAVE))) {
-          if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+          if (curFileName=="" || (curFileName.find(backupPath)==0) || e->song.version>=0xff00) {
             openFileDialog(GUI_FILE_SAVE);
           } else {
             if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
@@ -4318,6 +4390,8 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_TEST_SAVE:
           workingDirTest=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
+        case GUI_FILE_OPEN_BACKUP:
+          break;
       }
       if (fileDialog->isError()) {
 #if defined(_WIN32) || defined(__APPLE__)
@@ -4394,6 +4468,7 @@ bool FurnaceGUI::loop() {
           String copyOfName=fileName;
           switch (curFileDialog) {
             case GUI_FILE_OPEN:
+            case GUI_FILE_OPEN_BACKUP:
               if (load(copyOfName)>0) {
                 showError(fmt::sprintf("Error while loading file! (%s)",lastError));
               }
@@ -4422,9 +4497,7 @@ bool FurnaceGUI::loop() {
                     nextFile="";
                     break;
                   case GUI_WARN_OPEN_BACKUP:
-                    if (load(backupPath)>0) {
-                      showError("No backup available! (or unable to open it)");
-                    }
+                    openFileDialog(GUI_FILE_OPEN_BACKUP);
                     break;
                   default:
                     break;
@@ -4891,7 +4964,7 @@ bool FurnaceGUI::loop() {
         case GUI_WARN_QUIT:
           if (ImGui::Button("Yes")) {
             ImGui::CloseCurrentPopup();
-            if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+            if (curFileName=="" || curFileName.find(backupPath)==0 || e->song.version>=0xff00) {
               openFileDialog(GUI_FILE_SAVE);
               postWarnAction=GUI_WARN_QUIT;
             } else {
@@ -4915,7 +4988,7 @@ bool FurnaceGUI::loop() {
         case GUI_WARN_NEW:
           if (ImGui::Button("Yes")) {
             ImGui::CloseCurrentPopup();
-            if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+            if (curFileName=="" || curFileName.find(backupPath)==0 || e->song.version>=0xff00) {
               openFileDialog(GUI_FILE_SAVE);
               postWarnAction=GUI_WARN_NEW;
             } else {
@@ -4939,7 +5012,7 @@ bool FurnaceGUI::loop() {
         case GUI_WARN_OPEN:
           if (ImGui::Button("Yes")) {
             ImGui::CloseCurrentPopup();
-            if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+            if (curFileName=="" || curFileName.find(backupPath)==0 || e->song.version>=0xff00) {
               openFileDialog(GUI_FILE_SAVE);
               postWarnAction=GUI_WARN_OPEN;
             } else {
@@ -4963,25 +5036,21 @@ bool FurnaceGUI::loop() {
         case GUI_WARN_OPEN_BACKUP:
           if (ImGui::Button("Yes")) {
             ImGui::CloseCurrentPopup();
-            if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+            if (curFileName=="" || curFileName.find(backupPath)==0 || e->song.version>=0xff00) {
               openFileDialog(GUI_FILE_SAVE);
               postWarnAction=GUI_WARN_OPEN_BACKUP;
             } else {
               if (save(curFileName,e->song.isDMF?e->song.version:0)>0) {
                 showError(fmt::sprintf("Error while saving file! (%s)",lastError));
               } else {
-                if (load(backupPath)>0) {
-                  showError("No backup available! (or unable to open it)");
-                }
+                openFileDialog(GUI_FILE_OPEN_BACKUP);
               }
             }
           }
           ImGui::SameLine();
           if (ImGui::Button("No")) {
             ImGui::CloseCurrentPopup();
-            if (load(backupPath)>0) {
-              showError("No backup available! (or unable to open it)");
-            }
+            openFileDialog(GUI_FILE_OPEN_BACKUP);
           }
           ImGui::SameLine();
           if (ImGui::Button("Cancel")) {
@@ -4991,7 +5060,7 @@ bool FurnaceGUI::loop() {
         case GUI_WARN_OPEN_DROP:
           if (ImGui::Button("Yes")) {
             ImGui::CloseCurrentPopup();
-            if (curFileName=="" || curFileName==backupPath || e->song.version>=0xff00) {
+            if (curFileName=="" || curFileName.find(backupPath)==0 || e->song.version>=0xff00) {
               openFileDialog(GUI_FILE_SAVE);
               postWarnAction=GUI_WARN_OPEN_DROP;
             } else {
@@ -5025,7 +5094,9 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
             if (!mobileUI) {
               ImGui::LoadIniSettingsFromMemory(defaultLayout);
-              ImGui::SaveIniSettingsToDisk(finalLayoutPath);
+              if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
+                reportError(fmt::sprintf("could NOT save layout! %s",strerror(errno)));
+              }
             }
           }
           ImGui::SameLine();
@@ -5401,16 +5472,73 @@ bool FurnaceGUI::loop() {
         backupTimer=(backupTimer-ImGui::GetIO().DeltaTime);
         if (backupTimer<=0) {
           backupTask=std::async(std::launch::async,[this]() -> bool {
-            if (backupPath==curFileName) {
+            backupLock.lock();
+            logV("backupPath: %s",backupPath);
+            logV("curFileName: %s",curFileName);
+            if (curFileName.find(backupPath)==0) {
               logD("backup file open. not saving backup.");
+              backupTimer=30.0;
+              backupLock.unlock();
               return true;
+            }
+            if (!dirExists(backupPath.c_str())) {
+              if (!makeDir(backupPath.c_str())) {
+                logW("could not create backup directory!");
+                backupTimer=30.0;
+                backupLock.unlock();
+                return false;
+              }
             }
             logD("saving backup...");
             SafeWriter* w=e->saveFur(true);
             logV("writing file...");
 
             if (w!=NULL) {
-              FILE* outFile=ps_fopen(backupPath.c_str(),"wb");
+              size_t sepPos=curFileName.rfind(DIR_SEPARATOR);
+              String backupPreBaseName;
+              String backupBaseName;
+              String backupFileName;
+              if (sepPos==String::npos) {
+                backupPreBaseName=curFileName;
+              } else {
+                backupPreBaseName=curFileName.substr(sepPos+1);
+              }
+
+              size_t dotPos=backupPreBaseName.rfind('.');
+              if (dotPos!=String::npos) {
+                backupPreBaseName=backupPreBaseName.substr(0,dotPos);
+              }
+
+              for (char i: backupPreBaseName) {
+                if (backupBaseName.size()>=48) break;
+                if ((i>='0' && i<='9') || (i>='A' && i<='Z') || (i>='a' && i<='z') || i=='_' || i=='-' || i==' ') backupBaseName+=i;
+              }
+
+              if (backupBaseName.empty()) backupBaseName="untitled";
+
+              backupFileName=backupBaseName;
+
+              time_t curTime=time(NULL);
+              struct tm curTM;
+#ifdef _WIN32
+              struct tm* tempTM=localtime(&curTime);
+              if (tempTM==NULL) {
+                backupFileName+="-unknownTime.fur";
+              } else {
+                curTM=*tempTM;
+                backupFileName+=fmt::sprintf("-%d%.2d%.2d-%.2d%.2d%.2d.fur",curTM.tm_year+1900,curTM.tm_mon+1,curTM.tm_mday,curTM.tm_hour,curTM.tm_min,curTM.tm_sec);
+              }
+#else
+              if (localtime_r(&curTime,&curTM)==NULL) {
+                backupFileName+="-unknownTime.fur";
+              } else {
+                backupFileName+=fmt::sprintf("-%d%.2d%.2d-%.2d%.2d%.2d.fur",curTM.tm_year+1900,curTM.tm_mon+1,curTM.tm_mday,curTM.tm_hour,curTM.tm_min,curTM.tm_sec);
+              }
+#endif
+
+              String finalPath=backupPath+String(DIR_SEPARATOR_STR)+backupFileName;
+              
+              FILE* outFile=ps_fopen(finalPath.c_str(),"wb");
               if (outFile!=NULL) {
                 if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
                   logW("did not write backup entirely: %s!",strerror(errno));
@@ -5421,9 +5549,13 @@ bool FurnaceGUI::loop() {
                 logW("could not save backup: %s!",strerror(errno));
                 w->finish();
               }
+
+              // delete previous backup if there are too many
+              delFirstBackup(backupBaseName);
             }
             logD("backup saved.");
             backupTimer=30.0;
+            backupLock.unlock();
             return true;
           });
         }
@@ -5837,7 +5969,11 @@ bool FurnaceGUI::init() {
   }
 
   strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
-  backupPath=e->getConfigPath()+String(BACKUP_FUR);
+  backupPath=e->getConfigPath();
+  if (backupPath.size()>0) {
+    if (backupPath[backupPath.size()-1]==DIR_SEPARATOR) backupPath.resize(backupPath.size()-1);
+  }
+  backupPath+=String(BACKUPS_DIR);
   prepareLayout();
 
   ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
@@ -5907,7 +6043,9 @@ bool FurnaceGUI::init() {
 
 void FurnaceGUI::commitState() {
   if (!mobileUI) {
-    ImGui::SaveIniSettingsToDisk(finalLayoutPath);
+    if (!ImGui::SaveIniSettingsToDisk(finalLayoutPath,true)) {
+      reportError(fmt::sprintf("could NOT save layout! %s",strerror(errno)));
+    }
   }
 
   e->setConf("configVersion",(int)DIV_ENGINE_VERSION);

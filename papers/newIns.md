@@ -389,7 +389,7 @@ the sample map format:
 ```
 size | description
 -----|------------------------------------
-  2  | note to play
+  2  | note to play (>=152) or reserved
   2  | sample to play
 ```
 

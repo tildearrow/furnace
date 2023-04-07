@@ -696,6 +696,13 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         }
         ds.wave.push_back(wave);
       }
+
+      // sometimes there's a single length 0 wavetable in the file. I don't know why.
+      if (ds.waveLen==1) {
+        if (ds.wave[0]->len==0) {
+          ds.clearWavetables();
+        }
+      }
     }
 
     logV("%x",reader.tell());
@@ -850,6 +857,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       sample->rate=22050;
       if (ds.version>=0x0b) {
         sample->rate=fileToDivRate(reader.readC());
+        sample->centerRate=sample->rate;
         pitch=reader.readC();
         vol=reader.readC();
       }
@@ -874,24 +882,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         // what the hell man...
         cutStart=reader.readI();
         cutEnd=reader.readI();
-        if (cutStart<0 || cutStart>length) {
-          logE("cutStart is out of range! (%d)",cutStart);
-          lastError="file is corrupt or unreadable at samples";
-          delete[] file;
-          return false;
-        }
-        if (cutEnd<0 || cutEnd>length) {
-          logE("cutEnd is out of range! (%d)",cutEnd);
-          lastError="file is corrupt or unreadable at samples";
-          delete[] file;
-          return false;
-        }
-        if (cutEnd<cutStart) {
-          logE("cutEnd %d is before cutStart %d. what's going on?",cutEnd,cutStart);
-          lastError="file is corrupt or unreadable at samples";
-          delete[] file;
-          return false;
-        }
+        logV("cutStart: %d cutEnd: %d",cutStart,cutEnd);
       }
       if (length>0) {
         if (ds.version>0x08) {
@@ -903,19 +894,6 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             data=new short[length];
             reader.read(data,length*2);
           }
-
-          if (ds.version>0x1b) {
-            if (cutStart!=0 || cutEnd!=length) {
-              // cut data
-              short* newData=new short[cutEnd-cutStart];
-              memcpy(newData,&data[cutStart],(cutEnd-cutStart)*sizeof(short));
-              delete[] data;
-              data=newData;
-              length=cutEnd-cutStart;
-              cutStart=0;
-              cutEnd=length;
-            }
-          }
           
 #ifdef TA_BIG_ENDIAN
           // convert to big-endian
@@ -924,27 +902,73 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           }
 #endif
 
-          if (pitch!=5) {
+          int scaledLen=(double)length/samplePitches[pitch];
+
+          if (scaledLen>0) {
+            // resample
             logD("%d: scaling from %d...",i,pitch);
-          }
-
-          // render data
-          if (!sample->init((double)length/samplePitches[pitch])) {
-            logE("%d: error while initializing sample!",i);
-          }
-
-          unsigned int k=0;
-          float mult=(float)(vol)/50.0f;
-          for (double j=0; j<length; j+=samplePitches[pitch]) {
-            if (k>=sample->samples) {
-              break;
+            
+            short* newData=new short[scaledLen];
+            int k=0;
+            float mult=(float)(vol)/50.0f;
+            for (double j=0; j<length; j+=samplePitches[pitch]) {
+              if (k>=scaledLen) {
+                break;
+              }
+              if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
+                float next=(float)(data[(unsigned int)j]-0x80)*mult;
+                newData[k++]=fmin(fmax(next,-128),127);
+              } else {
+                float next=(float)data[(unsigned int)j]*mult;
+                newData[k++]=fmin(fmax(next,-32768),32767);
+              }
             }
-            if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
-              float next=(float)(data[(unsigned int)j]-0x80)*mult;
-              sample->data8[k++]=fmin(fmax(next,-128),127);
-            } else {
-              float next=(float)data[(unsigned int)j]*mult;
-              sample->data16[k++]=fmin(fmax(next,-32768),32767);
+
+            delete[] data;
+            data=newData;
+          }
+
+          if (ds.version>=0x1b) {
+            if (cutStart<0 || cutStart>scaledLen) {
+              logE("cutStart is out of range! (%d)",cutStart);
+              lastError="file is corrupt or unreadable at samples";
+              delete[] file;
+              return false;
+            }
+            if (cutEnd<0 || cutEnd>scaledLen) {
+              logE("cutEnd is out of range! (%d)",cutEnd);
+              lastError="file is corrupt or unreadable at samples";
+              delete[] file;
+              return false;
+            }
+            if (cutEnd<cutStart) {
+              logE("cutEnd %d is before cutStart %d. what's going on?",cutEnd,cutStart);
+              lastError="file is corrupt or unreadable at samples";
+              delete[] file;
+              return false;
+            }
+            if (cutStart!=0 || cutEnd!=scaledLen) {
+              // cut data
+              short* newData=new short[cutEnd-cutStart];
+              memcpy(newData,&data[cutStart],(cutEnd-cutStart)*sizeof(short));
+              delete[] data;
+              data=newData;
+              scaledLen=cutEnd-cutStart;
+              cutStart=0;
+              cutEnd=scaledLen;
+            }
+          }
+
+          // copy data
+          if (!sample->init(scaledLen)) {
+            logE("%d: error while initializing sample!",i);
+          } else {
+            for (int i=0; i<scaledLen; i++) {
+              if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
+                sample->data8[i]=data[i];
+              } else {
+                sample->data16[i]=data[i];
+              }
             }
           }
 
@@ -5183,7 +5207,6 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   for (int i=0; i<song.insLen; i++) {
     DivInstrument* ins=song.ins[i];
     insPtr.push_back(w->tell());
-    logV("writing instrument %d...",i);
     ins->putInsData2(w,false);
   }
 

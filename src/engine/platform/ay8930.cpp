@@ -280,8 +280,6 @@ void DivPlatformAY8930::tick(bool sysTick) {
       if (chan[i].std.phaseReset.val==1) {
         if (chan[i].nextPSGMode.dac) {
           if (dumpWrites) addWrite(0xffff0002+(i<<8),0);
-          DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AY8930);
-          chan[i].dac.sample=ins->amiga.getSample(chan[i].note);
           if (chan[i].dac.sample<0 || chan[i].dac.sample>=parent->song.sampleLen) {
             if (dumpWrites) {
               rWrite(0x08+i,0);
@@ -406,7 +404,10 @@ int DivPlatformAY8930::dispatch(DivCommand c) {
       if (chan[c.chan].nextPSGMode.dac) {
         if (skipRegisterWrites) break;
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
-          if (c.value!=DIV_NOTE_NULL) chan[c.chan].dac.sample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].dac.sample=ins->amiga.getSample(c.value);
+            c.value=ins->amiga.getFreq(c.value);
+          }
           if (chan[c.chan].dac.sample<0 || chan[c.chan].dac.sample>=parent->song.sampleLen) {
             chan[c.chan].dac.sample=-1;
             if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
