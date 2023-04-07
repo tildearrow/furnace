@@ -2098,6 +2098,12 @@ void DivInstrument::readFeatureSM(SafeReader& reader, short version) {
       amiga.noteMap[note].freq=reader.readS();
       amiga.noteMap[note].map=reader.readS();
     }
+
+    if (version<152) {
+      for (int note=0; note<120; note++) {
+        amiga.noteMap[note].freq=note;
+      }
+    }
   }
 
   READ_FEAT_END;
@@ -2964,6 +2970,12 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
       }
       for (int note=0; note<120; note++) {
         amiga.noteMap[note].map=reader.readS();
+      }
+
+      if (version<152) {
+        for (int note=0; note<120; note++) {
+          amiga.noteMap[note].freq=note;
+        }
       }
     }
   }

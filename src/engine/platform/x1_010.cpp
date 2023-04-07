@@ -540,7 +540,10 @@ int DivPlatformX1_010::dispatch(DivCommand c) {
         if (chan[c.chan].furnacePCM) {
           chan[c.chan].pcm=true;
           chan[c.chan].macroInit(ins);
-          if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].sample=ins->amiga.getSample(c.value);
+            c.value=ins->amiga.getFreq(c.value);
+          }
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             if (isBanked) {
