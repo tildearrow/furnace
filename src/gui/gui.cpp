@@ -2157,15 +2157,9 @@ void FurnaceGUI::delFirstBackup(String name) {
     return strcmp(a.c_str(),b.c_str())<0;
   });
 
-  logV("prior backups of %s:",name);
-  for (String& i: listOfFiles) {
-    logV("- %s",i);
-  }
-
   int totalDelete=((int)listOfFiles.size())-5;
   for (int i=0; i<totalDelete; i++) {
     String toDelete=backupPath+String(DIR_SEPARATOR_STR)+listOfFiles[i];
-    logV("deleting %s",listOfFiles[i]);
     deleteFile(toDelete.c_str());
   }
 }
