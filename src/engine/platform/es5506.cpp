@@ -433,7 +433,6 @@ void DivPlatformES5506::tick(bool sysTick) {
               off=(double)center/8363.0;
             }
             if (ins->amiga.useNoteMap) {
-              off*=(double)noteMapind.freq/((double)MAX(1,center)*pow(2.0,((double)next-48.0)/12.0));
               chan[i].pcm.note=next;
             }
             // get loop mode
@@ -617,10 +616,6 @@ void DivPlatformES5506::tick(bool sysTick) {
             off=1.0;
           } else {
             off=(double)center/8363.0;
-          }
-          if (ins->amiga.useNoteMap) {
-            DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[chan[i].pcm.note];
-            off*=(double)noteMapind.freq/((double)MAX(1,center)*pow(2.0,((double)chan[i].pcm.note-48.0)/12.0));
           }
           chan[i].pcm.loopStart=(chan[i].pcm.start+(s->loopStart<<11))&0xfffff800;
           chan[i].pcm.loopEnd=(chan[i].pcm.start+((s->loopEnd-1)<<11))&0xffffff80;
