@@ -32,11 +32,11 @@ const char** DivPlatformZXBeeperQuadTone::getRegisterSheet() {
 void DivPlatformZXBeeperQuadTone::acquire(short** buf, size_t len) {
   bool o=false;
   for (size_t h=0; h<len; h++) {
-    if (curSample>=0 && curSample<parent->song.sampleLen) {
+    if (curSample>=0 && curSample<parent->song.sampleLen && !isMuted[4]) {
       while (curSamplePeriod>=chan[4].freq) {
         DivSample* s=parent->getSample(curSample);
         if (s->samples>0) {
-          o=(!isMuted[4]&&s->data8[curSamplePos++]>0);
+          if (!isMuted[4]) o=(s->data8[curSamplePos++]>0);
           if (curSamplePos>=s->samples) curSample=-1;
           // (theoretical) 32KiB limit
           if (curSamplePos>=32768*8) curSample=-1;
@@ -59,6 +59,7 @@ void DivPlatformZXBeeperQuadTone::acquire(short** buf, size_t len) {
       if ((outputClock&1)==0) {
         chan[ch].sPosition+=(regPool[1+b]<<8)|regPool[0+b];
         chan[ch].out=regPool[3+b]+((((chan[ch].sPosition>>8)&0xff)<regPool[2+b])?1:0);
+        if (isMuted[ch]) chan[ch].out=0;
       }
       if ((outputClock&3)==0) {
         oscBuf[4]->data[oscBuf[4]->needle++]=0;
@@ -66,6 +67,22 @@ void DivPlatformZXBeeperQuadTone::acquire(short** buf, size_t len) {
       o=chan[ch].out&0x10;
       oscBuf[ch]->data[oscBuf[ch]->needle++]=o?32767:0;
       chan[ch].out<<=1;
+
+      // if muted, ztill run sample
+      if (curSample>=0 && curSample<parent->song.sampleLen && isMuted[4]) {
+        while (curSamplePeriod>=chan[4].freq) {
+          DivSample* s=parent->getSample(curSample);
+          if (s->samples>0) {
+            if (curSamplePos>=s->samples) curSample=-1;
+            // (theoretical) 32KiB limit
+            if (curSamplePos>=32768*8) curSample=-1;
+          } else {
+            curSample=-1;
+          }
+          curSamplePeriod-=chan[4].freq;
+        }
+        curSamplePeriod+=40;
+      }
     }
     outputClock=(outputClock+1)&7;
     buf[0][h]=o?32767:0;
@@ -283,7 +300,7 @@ int DivPlatformZXBeeperQuadTone::dispatch(DivCommand c) {
 void DivPlatformZXBeeperQuadTone::writeOutVol(int ch) {
   if (ch>=4) return;
   unsigned char val=(chan[ch].outVol>=1)?((chan[ch].outVol>=2)?31:7):0;
-  rWrite(3+ch*4,(!isMuted[ch]&&chan[ch].active)?val:0);
+  rWrite(3+ch*4,(chan[ch].active)?val:0);
 }
 
 void DivPlatformZXBeeperQuadTone::muteChannel(int ch, bool mute) {
