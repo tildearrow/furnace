@@ -560,13 +560,8 @@ void DivPlatformYM2610BExt::muteChannel(int ch, bool mute) {
   DivInstrumentFM::Operator op=chan[extChanOffs].state.op[ordch];
   if (isOpMuted[ch-extChanOffs] || !op.enable) {
     rWrite(baseAddr+0x40,127);
-    immWrite(baseAddr+0x40,127);
-  } else if (KVS(2,ordch)) {
-    rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-extChanOffs].outVol&0x7f,127));
-    immWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-extChanOffs].outVol&0x7f,127));
   } else {
-    rWrite(baseAddr+0x40,op.tl);
-    immWrite(baseAddr+0x40,op.tl);
+    rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-extChanOffs].outVol&0x7f,127));
   }
 
   rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch-extChanOffs].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
