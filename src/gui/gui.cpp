@@ -5564,6 +5564,52 @@ bool FurnaceGUI::loop() {
     
     curWindowThreadSafe=curWindow;
 
+    if (curWindow!=curWindowLast) {
+      int curWindowCat=0;
+      int lastWindowCat=0;
+
+      switch (curWindow) {
+        case GUI_WINDOW_WAVE_LIST:
+        case GUI_WINDOW_WAVE_EDIT:
+          curWindowCat=1;
+          break;
+        case GUI_WINDOW_SAMPLE_LIST:
+        case GUI_WINDOW_SAMPLE_EDIT:
+          curWindowCat=2;
+          break;
+        default:
+          curWindowCat=0;
+          break;
+      }
+      switch (curWindowLast) {
+        case GUI_WINDOW_WAVE_LIST:
+        case GUI_WINDOW_WAVE_EDIT:
+          lastWindowCat=1;
+          break;
+        case GUI_WINDOW_SAMPLE_LIST:
+        case GUI_WINDOW_SAMPLE_EDIT:
+          lastWindowCat=2;
+          break;
+        default:
+          lastWindowCat=0;
+          break;
+      }
+
+      if (curWindowCat!=lastWindowCat) {
+        switch (lastWindowCat) {
+          case 0:
+            e->autoNoteOffAll();
+            break;
+          case 1:
+            e->stopWavePreview();
+            break;
+          case 2:
+            e->stopSamplePreview();
+            break;
+        }
+      }
+    }
+
     SDL_SetRenderDrawColor(sdlRend,uiColors[GUI_COLOR_BACKGROUND].x*255,
                                    uiColors[GUI_COLOR_BACKGROUND].y*255,
                                    uiColors[GUI_COLOR_BACKGROUND].z*255,
