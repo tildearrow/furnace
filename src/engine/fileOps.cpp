@@ -928,15 +928,17 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             data=newData;
           }
 
+          logV("length: %d. scaledLen: %d.",length,scaledLen);
+
           if (ds.version>=0x1b) {
             if (cutStart<0 || cutStart>scaledLen) {
-              logE("cutStart is out of range! (%d)",cutStart);
+              logE("cutStart is out of range! (%d, scaledLen: %d)",cutStart,scaledLen);
               lastError="file is corrupt or unreadable at samples";
               delete[] file;
               return false;
             }
             if (cutEnd<0 || cutEnd>scaledLen) {
-              logE("cutEnd is out of range! (%d)",cutEnd);
+              logE("cutEnd is out of range! (%d, scaledLen: %d)",cutEnd,scaledLen);
               lastError="file is corrupt or unreadable at samples";
               delete[] file;
               return false;
