@@ -4405,66 +4405,89 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::BeginDisabled(ins->amiga.useWave);
             P(ImGui::Checkbox("Use sample map",&ins->amiga.useNoteMap));
             if (ins->amiga.useNoteMap) {
-              if (ImGui::BeginTable("NoteMap",3,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
+              if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                sampleMapFocused=false;
+              }
+              if (ImGui::BeginTable("NoteMap",4,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
                 ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
-                ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
-                ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+                ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthFixed);
+                ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthStretch);
 
                 ImGui::TableSetupScrollFreeze(0,1);
 
                 ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
                 ImGui::TableNextColumn();
                 ImGui::TableNextColumn();
-                ImGui::Text("Sample");
+                ImGui::Text("#");
                 ImGui::TableNextColumn();
-                ImGui::Text("Note");
+                ImGui::Text("note");
+                ImGui::TableNextColumn();
+                if (sampleMapFocused) {
+                  ImGui::Text("FOCUSED");
+                } else {
+                  ImGui::Text("sample name");
+                }
+                int sampleMapMin=sampleMapSelStart;
+                int sampleMapMax=sampleMapSelEnd;
+                if (sampleMapMin>sampleMapMax) {
+                  sampleMapMin^=sampleMapMax;
+                  sampleMapMax^=sampleMapMin;
+                  sampleMapMin^=sampleMapMax;
+                }
+
                 for (int i=0; i<120; i++) {
                   DivInstrumentAmiga::SampleMap& sampleMap=ins->amiga.noteMap[i];
                   ImGui::TableNextRow();
-                  ImGui::PushID(fmt::sprintf("NM_%d",i).c_str());
                   ImGui::TableNextColumn();
                   ImGui::Text("%s",noteNames[60+i]);
                   ImGui::TableNextColumn();
-                  // TODO: new style sample map
                   if (sampleMap.map<0 || sampleMap.map>=e->song.sampleLen) {
-                    sName="-- empty --";
+                    sName=fmt::sprintf("---##SM%d",i);
                     sampleMap.map=-1;
                   } else {
-                    sName=e->song.sample[sampleMap.map]->name;
+                    sName=fmt::sprintf("%3d##SM%d",sampleMap.map,i);
                   }
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  if (ImGui::BeginCombo("##SM",sName.c_str())) {
-                    String id;
-                    if (ImGui::Selectable("-- empty --",sampleMap.map==-1)) { PARAMETER
-                      sampleMap.map=-1;
-                    }
-                    for (int j=0; j<e->song.sampleLen; j++) {
-                      id=fmt::sprintf("%d: %s",j,e->song.sample[j]->name);
-                      if (ImGui::Selectable(id.c_str(),sampleMap.map==j)) { PARAMETER
-                        sampleMap.map=j;
-                      }
-                    }
-                    ImGui::EndCombo();
+                  ImGui::PushFont(patFont);
+                  ImGui::SetNextItemWidth(ImGui::CalcTextSize("00000").x);
+                  ImGui::Selectable(sName.c_str(),(sampleMapFocused && sampleMapColumn==0 && i>=sampleMapMin && i<=sampleMapMax));
+                  if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+                    sampleMapFocused=true;
+                    sampleMapColumn=0;
+                    sampleMapSelStart=i;
+                    sampleMapSelEnd=i;
+                    ImGui::InhibitInertialScroll();
                   }
+                  if (sampleMapFocused && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+                    sampleMapSelEnd=i;
+                  }
+                  ImGui::PopFont();
 
                   ImGui::TableNextColumn();
-                  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-                  const char* nName="???";
+                  sName="???";
                   if ((sampleMap.freq+60)>0 && (sampleMap.freq+60)<180) {
-                    nName=noteNames[sampleMap.freq+60];
+                    sName=noteNames[sampleMap.freq+60];
                   }
-                  if (ImGui::BeginCombo("##SN",nName)) {
-                    for (int j=0; j<180; j++) {
-                      const char* nName2="???";
-                      nName2=noteNames[j];
-                      if (ImGui::Selectable(nName2,(sampleMap.freq+60)==j)) {
-                        sampleMap.freq=j-60;
-                      }
-                    }
-                    ImGui::EndCombo();
+                  sName+=fmt::sprintf("##SN%d",i);
+                  ImGui::PushFont(patFont);
+                  ImGui::SetNextItemWidth(ImGui::CalcTextSize("00000").x);
+                  ImGui::Selectable(sName.c_str(),(sampleMapFocused && sampleMapColumn==1 && i>=sampleMapMin && i<=sampleMapMax));
+                  if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
+                    sampleMapFocused=true;
+                    sampleMapColumn=1;
+                    sampleMapSelStart=i;
+                    sampleMapSelEnd=i;
+                    ImGui::InhibitInertialScroll();
                   }
+                  if (sampleMapFocused && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+                    sampleMapSelEnd=i;
+                  }
+                  ImGui::PopFont();
 
-                  ImGui::PopID();
+                  ImGui::TableNextColumn();
+                  if (sampleMap.map>=0 && sampleMap.map<e->song.sampleLen) {
+                    ImGui::TextUnformatted(e->song.sample[sampleMap.map]->name.c_str());
+                  }
                 }
                 ImGui::EndTable();
               }
