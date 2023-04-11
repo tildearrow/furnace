@@ -4425,6 +4425,7 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextColumn();
                   ImGui::Text("%s",noteNames[60+i]);
                   ImGui::TableNextColumn();
+                  // TODO: new style sample map
                   if (sampleMap.map<0 || sampleMap.map>=e->song.sampleLen) {
                     sName="-- empty --";
                     sampleMap.map=-1;

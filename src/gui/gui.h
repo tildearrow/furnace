@@ -1679,8 +1679,11 @@ class FurnaceGUI {
   std::vector<TouchPoint> pressedPoints;
   std::vector<TouchPoint> releasedPoints;
 
-  int arpMacroScroll;
-  int pitchMacroScroll;
+  int sampleMapSelStart;
+  int sampleMapSelEnd;
+  int sampleMapDigit;
+  int sampleMapColumn;
+  bool sampleMapFocused;
 
   ImVec2 macroDragStart;
   ImVec2 macroDragAreaSize;
