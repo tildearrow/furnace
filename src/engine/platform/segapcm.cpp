@@ -186,7 +186,10 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
       if (ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SEGAPCM) {
         chan[c.chan].macroVolMul=(ins->type==DIV_INS_AMIGA)?64:127;
         chan[c.chan].isNewSegaPCM=(ins->type==DIV_INS_SEGAPCM);
-        if (c.value!=DIV_NOTE_NULL) chan[c.chan].pcm.sample=ins->amiga.getSample(c.value);
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].pcm.sample=ins->amiga.getSample(c.value);
+          c.value=ins->amiga.getFreq(c.value);
+        }
         if (chan[c.chan].pcm.sample<0 || chan[c.chan].pcm.sample>=parent->song.sampleLen) {
           chan[c.chan].pcm.sample=-1;
           rWrite(0x86+(c.chan<<3),3);
@@ -480,7 +483,11 @@ void DivPlatformSegaPCM::renderSamples(int sysID) {
     if (memPos>=16777216) break;
     sampleOffSegaPCM[i]=memPos;
     for (unsigned int j=0; j<alignedSize; j++) {
-      sampleMem[memPos++]=((unsigned char)sample->data8[j]+0x80);
+      if (j>=sample->samples) {
+        sampleMem[memPos++]=0;
+      } else {
+        sampleMem[memPos++]=((unsigned char)sample->data8[j]+0x80);
+      }
       sampleEndSegaPCM[i]=((memPos+0xff)>>8)-1;
       if (memPos>=16777216) break;
     }

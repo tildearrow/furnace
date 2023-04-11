@@ -32,10 +32,10 @@ class DivConfig {
     // config loading/saving
     bool loadFromMemory(const char* buf);
     bool loadFromBase64(const char* buf);
-    bool loadFromFile(const char* path, bool createOnFail=true);
+    bool loadFromFile(const char* path, bool createOnFail=true, bool redundancy=false);
     String toString();
     String toBase64();
-    bool save(const char* path);
+    bool save(const char* path, bool redundancy=false);
 
     // get the map
     const std::map<String,String>& configMap();
