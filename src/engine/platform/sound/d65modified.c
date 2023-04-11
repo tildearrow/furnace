@@ -138,12 +138,12 @@ void d65010g031_write(struct d65010g031_t *d65010g031, const unsigned char a, co
 			d65010g031->ctrl = d;
 			break;
 		default:
-			unsigned char period = ~d & 0x3f;
-			if ((period == 0) && (d65010g031->square[a].period != 0))
+			unsigned char per = (unsigned char)(~d) & 0x3f;
+			if ((per == 0) && (d65010g031->square[a].period != 0))
 			{
 				d65010g031->square[a].out ^= 1;
 			}
-			d65010g031->square[a].period = period;
+			d65010g031->square[a].period = per;
 			break;
 	}
 }
