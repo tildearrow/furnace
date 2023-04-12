@@ -367,31 +367,44 @@ void FurnaceGUI::drawChanOsc() {
               fftw_execute(fft->plan);
               
               // find origin frequency
+              fftw_complex& f0=fft->outBuf[i];
               int point=1;
               double candAmp=0.0;
+              double candAmp1=0.0;
+              double candAmpm1=0.0;
               for (unsigned short i=1; i<512; i++) {
                 fftw_complex& f=fft->outBuf[i];
                 // AMPLITUDE
                 double amp=sqrt(pow(f[0],2.0)+pow(f[1],2.0))/pow((double)i,0.8);
                 if (amp>candAmp) {
                   point=i;
-                  candAmp=amp;
+                  candAmp=sqrt(pow(f[0],2.0)+pow(f[1],2.0));
+                  if (i>=1) {
+                    fftw_complex& f1=fft->outBuf[i-1];
+                    candAmpm1=sqrt(pow(f1[0],2.0)+pow(f1[1],2.0));
+                  }
+                  if (i<511) {
+                    fftw_complex& f1=fft->outBuf[i+1];
+                    candAmp1=sqrt(pow(f1[0],2.0)+pow(f1[1],2.0));
+                  }
                 }
               }
 
               // PHASE
               fftw_complex& candPoint=fft->outBuf[point];
-              double phase=((double)(displaySize*2)/(double)point)*(0.5+(atan2(candPoint[1],candPoint[0])/(M_PI*2)));
+              double phase=((double)(displaySize)/(double)point)*(((point&1)?2.0:1.0)+2.0*(atan2(candPoint[1],candPoint[0])/(M_PI*2.0)))/*+candAmp1*0.5*/;
 
               if (chanOscWaveCorr) {
                 needlePos-=phase;
               }
               chanOscPitch[ch]=(float)point/32.0f;
               
-              /*
-              String cPhase=fmt::sprintf("%d cphase: %f vol: %f",point,phase,chanOscVol[ch]);
-              dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
-              */
+              
+              String cPhase=fmt::sprintf("%d cphase: %f vol: %f\n%4.1f - %4.1f - %4.1f - %d - %4.0f %4.0f",point,phase,chanOscVol[ch],candAmpm1,candAmp,candAmp1,displaySize,f0[0],f0[1]);
+              dl->AddText(patFont,0.0f,inRect.Min,0xffffffff,cPhase.c_str());
+              dl->AddRectFilled(ImLerp(inRect.Min,inRect.Max,ImVec2(0.0,0.85)),ImLerp(inRect.Min,inRect.Max,ImVec2(candAmpm1/2048,0.9)),0xffffffff);
+              dl->AddRectFilled(ImLerp(inRect.Min,inRect.Max,ImVec2(0.0,0.9)),ImLerp(inRect.Min,inRect.Max,ImVec2(candAmp/2048,0.95)),0xffffffff);
+              dl->AddRectFilled(ImLerp(inRect.Min,inRect.Max,ImVec2(0.0,0.95)),ImLerp(inRect.Min,inRect.Max,ImVec2(candAmp1/2048,1.0)),0xffffffff);
 
               needlePos-=displaySize;
               for (unsigned short i=0; i<512; i++) {

@@ -1802,6 +1802,7 @@ class FurnaceGUI {
   ImVec4 chanOscColor;
   Gradient2D chanOscGrad;
   SDL_Texture* chanOscGradTex;
+  double chanOscPrevPhase[DIV_MAX_CHANS];
   float chanOscLP0[DIV_MAX_CHANS];
   float chanOscLP1[DIV_MAX_CHANS];
   float chanOscVol[DIV_MAX_CHANS];
