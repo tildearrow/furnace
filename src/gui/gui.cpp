@@ -1327,6 +1327,41 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     return;
   }
 
+  if (sampleMapWaitingInput) {
+    if (sampleMapColumn==1) {
+      // TODO: map?
+      if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+        alterSampleMap(true,-1);
+        return;
+      }
+      try {
+        int key=noteKeys.at(ev.key.keysym.scancode);
+        int num=12*curOctave+key;
+
+        if (num<-60) num=-60; // C-(-5)
+        if (num>119) num=119; // B-9
+
+        alterSampleMap(true,num);
+        return;
+      } catch (std::out_of_range& e) {
+      }
+    } else {
+      // TODO: map?
+      if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+        alterSampleMap(false,-1);
+        return;
+      }
+      try {
+        int num=valueKeys.at(ev.key.keysym.sym);
+        if (num<10) {
+          alterSampleMap(false,num);
+          return;
+        }
+      } catch (std::out_of_range& e) {
+      }
+    }
+  }
+
   // PER-WINDOW KEYS
   switch (curWindow) {
     case GUI_WINDOW_PATTERN:
