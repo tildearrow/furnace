@@ -2023,6 +2023,57 @@ void FurnaceGUI::drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUI
   }
 }
 
+void FurnaceGUI::alterSampleMap(bool isNote, int val) {
+  if (curIns<0 || curIns>=(int)e->song.ins.size()) return;
+  DivInstrument* ins=e->song.ins[curIns];
+  int sampleMapMin=sampleMapSelStart;
+  int sampleMapMax=sampleMapSelEnd;
+  if (sampleMapMin>sampleMapMax) {
+    sampleMapMin^=sampleMapMax;
+    sampleMapMax^=sampleMapMin;
+    sampleMapMin^=sampleMapMax;
+  }
+
+  for (int i=sampleMapMin; i<=sampleMapMax; i++) {
+    if (i<0 || i>=120) continue;
+
+    if (sampleMapColumn==1 && isNote) {
+      ins->amiga.noteMap[i].freq=val;
+    } else if (sampleMapColumn==0 && !isNote) {
+      if (val<0) {
+        ins->amiga.noteMap[i].map=-1;
+      } else if (sampleMapDigit>0) {
+        ins->amiga.noteMap[i].map*=10;
+        ins->amiga.noteMap[i].map+=val;
+      } else {
+        ins->amiga.noteMap[i].map=val;
+      }
+      if (ins->amiga.noteMap[i].map>=(int)e->song.sample.size()) {
+        ins->amiga.noteMap[i].map=((int)e->song.sample.size())-1;
+      }
+    }
+  }
+
+  bool advance=false;
+  if (sampleMapColumn==1 && isNote) {
+    advance=true;
+  } else if (sampleMapColumn==0 && !isNote) {
+    int digits=1;
+    if (e->song.sample.size()>=10) digits=2;
+    if (e->song.sample.size()>=100) digits=3;
+    if (++sampleMapDigit>=digits) {
+      sampleMapDigit=0;
+      advance=true;
+    }
+  }
+
+  if (advance && sampleMapMin==sampleMapMax) {
+    sampleMapSelStart++;
+    if (sampleMapSelStart>119) sampleMapSelStart=119;
+    sampleMapSelEnd=sampleMapSelStart;
+  }
+}
+
 #define DRUM_FREQ(name,db,df,prop) \
   ImGui::TableNextRow(); \
   ImGui::TableNextColumn(); \
@@ -4405,9 +4456,9 @@ void FurnaceGUI::drawInsEdit() {
             ImGui::BeginDisabled(ins->amiga.useWave);
             P(ImGui::Checkbox("Use sample map",&ins->amiga.useNoteMap));
             if (ins->amiga.useNoteMap) {
-              if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
-                sampleMapFocused=false;
-              }
+              if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsWindowHovered()) sampleMapFocused=false;
+              if (curWindowLast!=GUI_WINDOW_INS_EDIT) sampleMapFocused=false;
+              if (!sampleMapFocused) sampleMapDigit=0;
               if (ImGui::BeginTable("NoteMap",4,ImGuiTableFlags_ScrollY|ImGuiTableFlags_Borders|ImGuiTableFlags_SizingStretchSame)) {
                 ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
                 ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthFixed);
@@ -4454,6 +4505,7 @@ void FurnaceGUI::drawInsEdit() {
                   if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
                     sampleMapFocused=true;
                     sampleMapColumn=0;
+                    sampleMapDigit=0;
                     sampleMapSelStart=i;
                     sampleMapSelEnd=i;
                     ImGui::InhibitInertialScroll();
@@ -4475,6 +4527,7 @@ void FurnaceGUI::drawInsEdit() {
                   if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
                     sampleMapFocused=true;
                     sampleMapColumn=1;
+                    sampleMapDigit=0;
                     sampleMapSelStart=i;
                     sampleMapSelEnd=i;
                     ImGui::InhibitInertialScroll();

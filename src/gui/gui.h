@@ -1683,7 +1683,7 @@ class FurnaceGUI {
   int sampleMapSelEnd;
   int sampleMapDigit;
   int sampleMapColumn;
-  bool sampleMapFocused;
+  bool sampleMapFocused, sampleMapWaitingInput;
 
   ImVec2 macroDragStart;
   ImVec2 macroDragAreaSize;
@@ -1938,6 +1938,7 @@ class FurnaceGUI {
 
   void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);
   void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state);
+  void alterSampleMap(bool isNote, int val);
 
   void drawOrderButtons();
 
