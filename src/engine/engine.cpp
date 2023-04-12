@@ -2422,7 +2422,7 @@ void DivEngine::stop() {
   if(!playing){
     //Send midi panic
     if (output) if (output->midiOut!=NULL) {
-      output->midiOut->send(TAMidiMessage(TA_MIDI_CONTROL,TA_MIDI_ALL_NOTES_OFF,0));
+      output->midiOut->send(TAMidiMessage(TA_MIDI_CONTROL,0x7B,0));
       logI("Midi panic sent");
     }
   }

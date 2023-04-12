@@ -69,8 +69,6 @@ struct TAAudioDesc {
 
 
 enum TAMidiMessageTypes {
-  TA_MIDI_ALL_SOUNDS_OFF=0x78,
-  TA_MIDI_ALL_NOTES_OFF=0x7B,
   TA_MIDI_NOTE_OFF=0x80,
   TA_MIDI_NOTE_ON=0x90,
   TA_MIDI_AFTERTOUCH=0xa0,
