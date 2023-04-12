@@ -4394,6 +4394,7 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_GA20) {
           if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
             String sName;
+            bool wannaOpenSMPopup=false;
             if (ins->amiga.initSample<0 || ins->amiga.initSample>=e->song.sampleLen) {
               sName="none selected";
             } else {
@@ -4476,11 +4477,7 @@ void FurnaceGUI::drawInsEdit() {
                 ImGui::TableNextColumn();
                 ImGui::Text("note");
                 ImGui::TableNextColumn();
-                if (sampleMapFocused) {
-                  ImGui::Text("FOCUSED");
-                } else {
-                  ImGui::Text("sample name");
-                }
+                ImGui::Text("sample name");
                 int sampleMapMin=sampleMapSelStart;
                 int sampleMapMax=sampleMapSelEnd;
                 if (sampleMapMin>sampleMapMax) {
@@ -4526,6 +4523,26 @@ void FurnaceGUI::drawInsEdit() {
                   if (sampleMapFocused && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
                     sampleMapSelEnd=i;
                   }
+                  if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+                    if (sampleMapSelStart==sampleMapSelEnd) {
+                      sampleMapFocused=true;
+                      sampleMapColumn=0;
+                      sampleMapDigit=0;
+                      sampleMapSelStart=i;
+                      sampleMapSelEnd=i;
+
+                      sampleMapMin=sampleMapSelStart;
+                      sampleMapMax=sampleMapSelEnd;
+                      if (sampleMapMin>sampleMapMax) {
+                        sampleMapMin^=sampleMapMax;
+                        sampleMapMax^=sampleMapMin;
+                        sampleMapMin^=sampleMapMax;
+                      }
+                    }
+                    if (sampleMapFocused) {
+                      wannaOpenSMPopup=true;
+                    }
+                  }
                   ImGui::PopFont();
 
                   ImGui::TableNextColumn();
@@ -4556,6 +4573,26 @@ void FurnaceGUI::drawInsEdit() {
                   if (sampleMapFocused && ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenBlockedByActiveItem) && ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
                     sampleMapSelEnd=i;
                   }
+                  if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+                    if (sampleMapSelStart==sampleMapSelEnd) {
+                      sampleMapFocused=true;
+                      sampleMapColumn=1;
+                      sampleMapDigit=0;
+                      sampleMapSelStart=i;
+                      sampleMapSelEnd=i;
+
+                      sampleMapMin=sampleMapSelStart;
+                      sampleMapMax=sampleMapSelEnd;
+                      if (sampleMapMin>sampleMapMax) {
+                        sampleMapMin^=sampleMapMax;
+                        sampleMapMax^=sampleMapMin;
+                        sampleMapMin^=sampleMapMax;
+                      }
+                    }
+                    if (sampleMapFocused) {
+                      wannaOpenSMPopup=true;
+                    }
+                  }
                   ImGui::PopFont();
 
                   ImGui::TableNextColumn();
@@ -4570,6 +4607,40 @@ void FurnaceGUI::drawInsEdit() {
               sampleMapFocused=false;
             }
             ImGui::EndDisabled();
+            if (wannaOpenSMPopup) {
+              ImGui::OpenPopup("SampleMapUtils");
+            }
+            if (ImGui::BeginPopup("SampleMapUtils",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+              if (sampleMapSelStart==sampleMapSelEnd && sampleMapSelStart>=0 && sampleMapSelStart<120) {
+                if (ImGui::MenuItem("set entire map to this note")) {
+                  if (sampleMapSelStart>=0 && sampleMapSelStart<120) {
+                    for (int i=0; i<120; i++) {
+                      if (i==sampleMapSelStart) continue;
+                      ins->amiga.noteMap[i].freq=ins->amiga.noteMap[sampleMapSelStart].freq;
+                    }
+                  }
+                }
+                if (ImGui::MenuItem("set entire map to this sample")) {
+                  if (sampleMapSelStart>=0 && sampleMapSelStart<120) {
+                    for (int i=0; i<120; i++) {
+                      if (i==sampleMapSelStart) continue;
+                      ins->amiga.noteMap[i].map=ins->amiga.noteMap[sampleMapSelStart].map;
+                    }
+                  }
+                }
+              }
+              if (ImGui::MenuItem("reset notes")) {
+                for (int i=0; i<120; i++) {
+                  ins->amiga.noteMap[i].freq=i;
+                }
+              }
+              if (ImGui::MenuItem("clear map samples")) {
+                for (int i=0; i<120; i++) {
+                  ins->amiga.noteMap[i].map=-1;
+                }
+              }
+              ImGui::EndPopup();
+            }
             ImGui::EndTabItem();
           } else {
             sampleMapFocused=false;

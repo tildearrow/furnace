@@ -6514,6 +6514,7 @@ FurnaceGUI::FurnaceGUI():
   sampleMapDigit(0),
   sampleMapColumn(0),
   sampleMapFocused(false),
+  sampleMapWaitingInput(false),
   macroDragStart(0,0),
   macroDragAreaSize(0,0),
   macroDragCTarget(NULL),
