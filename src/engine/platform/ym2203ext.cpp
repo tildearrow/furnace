@@ -542,13 +542,8 @@ void DivPlatformYM2203Ext::muteChannel(int ch, bool mute) {
   DivInstrumentFM::Operator op=chan[2].state.op[ordch];
   if (isOpMuted[ch-2] || !op.enable) {
     rWrite(baseAddr+0x40,127);
-    immWrite(baseAddr+0x40,127);
-  } else if (KVS(2,ordch)) {
-    rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-2].outVol&0x7f,127));
-    immWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-2].outVol&0x7f,127));
   } else {
-    rWrite(baseAddr+0x40,op.tl);
-    immWrite(baseAddr+0x40,op.tl);
+    rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-2].outVol&0x7f,127));
   }
 }
 

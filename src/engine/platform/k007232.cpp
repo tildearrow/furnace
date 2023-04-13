@@ -34,7 +34,7 @@ const char* regCheatSheetK007232[]={
   "CHX_StartM", "X*6+3",
   "CHX_StartH", "X*6+4",
   "CHX_Keyon", "X*6+5",
-  "SLEV", "C", // external IO
+  "SLEV", "C", // external IO (Volume for Mono speaker)
   "Loop", "D",
   // off-chip
   "CHX_Volume", "X*2+10",
@@ -157,8 +157,7 @@ void DivPlatformK007232::tick(bool sysTick) {
           rWrite(0x10+i,(chan[i].lvol&0xf)|((chan[i].rvol&0xf)<<4));
           chan[i].prevPan=newPan;
         }
-      }
-      else {
+      } else {
         const unsigned char prevVolume=lastVolume;
         lastVolume=(lastVolume&~(0xf<<(i<<2)))|((chan[i].resVol&0xf)<<(i<<2));
         if (prevVolume!=lastVolume) {
@@ -480,6 +479,7 @@ void DivPlatformK007232::setFlags(const DivConfig& flags) {
   rate=chipClock/4;
   stereo=flags.getBool("stereo",false);
   for (int i=0; i<2; i++) {
+    chan[i].volumeChanged=true;
     oscBuf[i]->rate=rate;
   }
 }

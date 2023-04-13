@@ -902,13 +902,14 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           }
 #endif
 
-          int scaledLen=(double)length/samplePitches[pitch];
+          int scaledLen=ceil((double)length/samplePitches[pitch]);
 
           if (scaledLen>0) {
             // resample
             logD("%d: scaling from %d...",i,pitch);
             
             short* newData=new short[scaledLen];
+            memset(newData,0,scaledLen*sizeof(short));
             int k=0;
             float mult=(float)(vol)/50.0f;
             for (double j=0; j<length; j+=samplePitches[pitch]) {
@@ -928,15 +929,17 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             data=newData;
           }
 
+          logV("length: %d. scaledLen: %d.",length,scaledLen);
+
           if (ds.version>=0x1b) {
             if (cutStart<0 || cutStart>scaledLen) {
-              logE("cutStart is out of range! (%d)",cutStart);
+              logE("cutStart is out of range! (%d, scaledLen: %d)",cutStart,scaledLen);
               lastError="file is corrupt or unreadable at samples";
               delete[] file;
               return false;
             }
             if (cutEnd<0 || cutEnd>scaledLen) {
-              logE("cutEnd is out of range! (%d)",cutEnd);
+              logE("cutEnd is out of range! (%d, scaledLen: %d)",cutEnd,scaledLen);
               lastError="file is corrupt or unreadable at samples";
               delete[] file;
               return false;

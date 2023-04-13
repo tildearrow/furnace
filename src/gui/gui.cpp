@@ -1327,6 +1327,41 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
     return;
   }
 
+  if (sampleMapWaitingInput) {
+    if (sampleMapColumn==1) {
+      // TODO: map?
+      if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+        alterSampleMap(true,-1);
+        return;
+      }
+      try {
+        int key=noteKeys.at(ev.key.keysym.scancode);
+        int num=12*curOctave+key;
+
+        if (num<-60) num=-60; // C-(-5)
+        if (num>119) num=119; // B-9
+
+        alterSampleMap(true,num);
+        return;
+      } catch (std::out_of_range& e) {
+      }
+    } else {
+      // TODO: map?
+      if (ev.key.keysym.scancode==SDL_SCANCODE_DELETE) {
+        alterSampleMap(false,-1);
+        return;
+      }
+      try {
+        int num=valueKeys.at(ev.key.keysym.sym);
+        if (num<10) {
+          alterSampleMap(false,num);
+          return;
+        }
+      } catch (std::out_of_range& e) {
+      }
+    }
+  }
+
   // PER-WINDOW KEYS
   switch (curWindow) {
     case GUI_WINDOW_PATTERN:
@@ -2905,7 +2940,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
   }
 #endif
   if (ev->type==SDL_KEYDOWN) {
-    if (!ev->key.repeat && latchTarget==0 && !wantCaptureKeyboard && (ev->key.keysym.mod&(~(KMOD_NUM|KMOD_CAPS|KMOD_SCROLL)))==0) {
+    if (!ev->key.repeat && latchTarget==0 && !wantCaptureKeyboard && !sampleMapWaitingInput && (ev->key.keysym.mod&(~(KMOD_NUM|KMOD_CAPS|KMOD_SCROLL)))==0) {
       if (settings.notePreviewBehavior==0) return 1;
       switch (curWindow) {
         case GUI_WINDOW_SAMPLE_EDIT:
@@ -4913,6 +4948,8 @@ bool FurnaceGUI::loop() {
     }
 
     if (displayNew) {
+      newSongQuery="";
+      newSongFirstFrame=true;
       displayNew=false;
       ImGui::OpenPopup("New Song");
     }
@@ -5561,8 +5598,56 @@ bool FurnaceGUI::loop() {
         }
       }
     }
+
+    sampleMapWaitingInput=(curWindow==GUI_WINDOW_INS_EDIT && sampleMapFocused);
     
     curWindowThreadSafe=curWindow;
+
+    if (curWindow!=curWindowLast) {
+      int curWindowCat=0;
+      int lastWindowCat=0;
+
+      switch (curWindow) {
+        case GUI_WINDOW_WAVE_LIST:
+        case GUI_WINDOW_WAVE_EDIT:
+          curWindowCat=1;
+          break;
+        case GUI_WINDOW_SAMPLE_LIST:
+        case GUI_WINDOW_SAMPLE_EDIT:
+          curWindowCat=2;
+          break;
+        default:
+          curWindowCat=0;
+          break;
+      }
+      switch (curWindowLast) {
+        case GUI_WINDOW_WAVE_LIST:
+        case GUI_WINDOW_WAVE_EDIT:
+          lastWindowCat=1;
+          break;
+        case GUI_WINDOW_SAMPLE_LIST:
+        case GUI_WINDOW_SAMPLE_EDIT:
+          lastWindowCat=2;
+          break;
+        default:
+          lastWindowCat=0;
+          break;
+      }
+
+      if (curWindowCat!=lastWindowCat) {
+        switch (lastWindowCat) {
+          case 0:
+            e->autoNoteOffAll();
+            break;
+          case 1:
+            e->stopWavePreview();
+            break;
+          case 2:
+            e->stopSamplePreview();
+            break;
+        }
+      }
+    }
 
     SDL_SetRenderDrawColor(sdlRend,uiColors[GUI_COLOR_BACKGROUND].x*255,
                                    uiColors[GUI_COLOR_BACKGROUND].y*255,
@@ -6426,8 +6511,12 @@ FurnaceGUI::FurnaceGUI():
   samplePreviewOn(false),
   samplePreviewKey((SDL_Scancode)0),
   samplePreviewNote(0),
-  arpMacroScroll(-12),
-  pitchMacroScroll(-80),
+  sampleMapSelStart(-1),
+  sampleMapSelEnd(-1),
+  sampleMapDigit(0),
+  sampleMapColumn(0),
+  sampleMapFocused(false),
+  sampleMapWaitingInput(false),
   macroDragStart(0,0),
   macroDragAreaSize(0,0),
   macroDragCTarget(NULL),
