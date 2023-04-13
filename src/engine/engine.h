@@ -414,6 +414,7 @@ class DivEngine {
     int wave;
     int pos;
     int pBegin, pEnd;
+    int rateMul, posSub;
     bool dir;
     SamplePreview():
       rate(0.0),
@@ -422,6 +423,8 @@ class DivEngine {
       pos(0),
       pBegin(-1),
       pEnd(-1),
+      rateMul(1),
+      posSub(0),
       dir(false) {}
   } sPreview;
 
