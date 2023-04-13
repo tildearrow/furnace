@@ -82,9 +82,9 @@ int d65010g031_square_tick(struct d65010g031_square_t *square, const int cycle)
 // this is the bit I altered
 // THIS IS **NOT** THE ORIGINAL SOFTWARE! I am plainly marking it as such!
 const int d65Volumes[3]={
-  3840,
-  5120,
-  8192
+  3840, // -6dB
+  5120, // -3dB
+  8192 // 0dB
 };
 
 int d65010g031_sound_tick(struct d65010g031_t *d65010g031, const int cycle)
@@ -96,7 +96,7 @@ int d65010g031_sound_tick(struct d65010g031_t *d65010g031, const int cycle)
 	}
 	if (d65010g031->ctrl & 2)
 	{
-		if (d65010g031->ctrl & 1)
+		if (d65010g031->ctrl & 1) // ring modulation
 		{
 			int sout[3] = {
 				d65010g031_square_tick(&d65010g031->square[0], cycle),

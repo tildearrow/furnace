@@ -1842,7 +1842,7 @@ void DivEngine::registerSystems() {
     {DIV_INS_PV1000, DIV_INS_PV1000, DIV_INS_PV1000},
     {},
     {
-      {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}}
+      {0x10, {DIV_CMD_STD_NOISE_MODE, "10xx: Set ring modulation (0: disable, 1: enable)"}}
     }
   );
 

@@ -138,7 +138,7 @@ int DivPlatformPV1000::dispatch(DivCommand c) {
       chan[c.chan].pitch=c.value;
       chan[c.chan].freqChanged=true;
       break;
-    case DIV_CMD_WAVE:
+    case DIV_CMD_STD_NOISE_MODE: // ring modulation
       if (c.value&1) {
         rWrite(3,3);
       } else {
