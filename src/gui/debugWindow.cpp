@@ -540,9 +540,23 @@ void FurnaceGUI::drawDebug() {
     }
     if (ImGui::TreeNode("Performance")) {
       double perfFreq=SDL_GetPerformanceFrequency()/1000000.0;
+      int lastProcTime=(int)e->processTime/1000;
+      TAAudioDesc& audioGot=e->getAudioDescGot();
+
+      ImGui::Text("video frame: %.0fµs",ImGui::GetIO().DeltaTime*1000000.0);
+      ImGui::Text("audio frame: %.0fµs",1000000.0*(double)audioGot.bufsize/(double)audioGot.rate);
+      ImGui::Separator();
+
+      ImGui::Text("audio: %dµs",lastProcTime);
       ImGui::Text("render: %.0fµs",(double)renderTimeDelta/perfFreq);
       ImGui::Text("layout: %.0fµs",(double)layoutTimeDelta/perfFreq);
       ImGui::Text("event: %.0fµs",(double)eventTimeDelta/perfFreq);
+      ImGui::Separator();
+
+      ImGui::Text("details:");
+      for (int i=0; i<perfMetricsLastLen; i++) {
+        ImGui::Text("%s: %.0fµs",perfMetricsLast[i].name,(double)perfMetricsLast[i].elapsed/perfFreq);
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Settings")) {

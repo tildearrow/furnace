@@ -3271,7 +3271,62 @@ bool FurnaceGUI::detectOutOfBoundsWindow() {
   return false;
 }
 
+#define DECLARE_METRIC(_n) \
+  int __perfM##_n;
+
+#define MEASURE_BEGIN(_n) \
+  __perfM##_n=SDL_GetPerformanceCounter();
+
+#define MEASURE_END(_n) \
+  if (perfMetricsLen<64) { \
+    perfMetrics[perfMetricsLen++]=FurnaceGUIPerfMetric(#_n,SDL_GetPerformanceCounter()-__perfM##_n); \
+  }
+
+#define MEASURE(_n,_x) \
+  MEASURE_BEGIN(_n) \
+  _x; \
+  MEASURE_END(_n)
+
 bool FurnaceGUI::loop() {
+  DECLARE_METRIC(calcChanOsc)
+  DECLARE_METRIC(mobileControls)
+  DECLARE_METRIC(mobileOrderSel)
+  DECLARE_METRIC(subSongs)
+  DECLARE_METRIC(findReplace)
+  DECLARE_METRIC(spoiler)
+  DECLARE_METRIC(pattern)
+  DECLARE_METRIC(editControls)
+  DECLARE_METRIC(speed)
+  DECLARE_METRIC(grooves)
+  DECLARE_METRIC(songInfo)
+  DECLARE_METRIC(orders)
+  DECLARE_METRIC(intro)
+  DECLARE_METRIC(sampleList)
+  DECLARE_METRIC(sampleEdit)
+  DECLARE_METRIC(waveList)
+  DECLARE_METRIC(waveEdit)
+  DECLARE_METRIC(insList)
+  DECLARE_METRIC(insEdit)
+  DECLARE_METRIC(mixer)
+  DECLARE_METRIC(readOsc)
+  DECLARE_METRIC(osc)
+  DECLARE_METRIC(chanOsc)
+  DECLARE_METRIC(volMeter)
+  DECLARE_METRIC(settings)
+  DECLARE_METRIC(debug)
+  DECLARE_METRIC(stats)
+  DECLARE_METRIC(compatFlags)
+  DECLARE_METRIC(piano)
+  DECLARE_METRIC(notes)
+  DECLARE_METRIC(channels)
+  DECLARE_METRIC(patManager)
+  DECLARE_METRIC(sysManager)
+  DECLARE_METRIC(clock)
+  DECLARE_METRIC(regView)
+  DECLARE_METRIC(log)
+  DECLARE_METRIC(effectList)
+  DECLARE_METRIC(popup)
+
 #ifdef IS_MOBILE
   bool doThreadedInput=true;
 #else
@@ -3293,6 +3348,11 @@ bool FurnaceGUI::loop() {
       drawHalt=0;
       if (settings.powerSave) SDL_WaitEventTimeout(NULL,500);
     }
+
+    memcpy(perfMetricsLast,perfMetrics,64*sizeof(FurnaceGUIPerfMetric));
+    perfMetricsLastLen=perfMetricsLen;
+    perfMetricsLen=0;
+
     eventTimeBegin=SDL_GetPerformanceCounter();
     bool updateWindow=false;
     if (injectBackUp) {
@@ -4181,83 +4241,85 @@ bool FurnaceGUI::loop() {
       ImGui::EndMainMenuBar();
     }
 
-    calcChanOsc();
+    MEASURE(calcChanOsc,calcChanOsc());
 
     if (mobileUI) {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
       //globalWinFlags=ImGuiWindowFlags_NoTitleBar;
       // scene handling goes here!
-      drawMobileControls();
+      MEASURE(mobileControls,drawMobileControls());
       switch (mobScene) {
         case GUI_SCENE_ORDERS:
           ordersOpen=true;
           curWindow=GUI_WINDOW_ORDERS;
-          drawOrders();
+          MEASURE(orders,drawOrders());
           break;
         case GUI_SCENE_INSTRUMENT:
           insEditOpen=true;
           curWindow=GUI_WINDOW_INS_EDIT;
-          drawInsEdit();
-          drawPiano();
+          MEASURE(insEdit,drawInsEdit());
+          MEASURE(piano,drawPiano());
           break;
         case GUI_SCENE_WAVETABLE:
           waveEditOpen=true;
           curWindow=GUI_WINDOW_WAVE_EDIT;
-          drawWaveEdit();
-          drawPiano();
+          MEASURE(waveEdit,drawWaveEdit());
+          MEASURE(piano,drawPiano());
           break;
         case GUI_SCENE_SAMPLE:
           sampleEditOpen=true;
           curWindow=GUI_WINDOW_SAMPLE_EDIT;
-          drawSampleEdit();
-          drawPiano();
+          MEASURE(sampleEdit,drawSampleEdit());
+          MEASURE(piano,drawPiano());
           break;
         case GUI_SCENE_CHANNELS:
           channelsOpen=true;
           curWindow=GUI_WINDOW_CHANNELS;
-          drawChannels();
+          MEASURE(channels,drawChannels());
           break;
         case GUI_SCENE_CHIPS:
           sysManagerOpen=true;
           curWindow=GUI_WINDOW_SYS_MANAGER;
-          drawSysManager();
+          MEASURE(sysManager,drawSysManager());
           break;
         case GUI_SCENE_MIXER:
           mixerOpen=true;
           curWindow=GUI_WINDOW_MIXER;
-          drawMixer();
+          MEASURE(mixer,drawMixer());
           break;
         default:
           patternOpen=true;
           curWindow=GUI_WINDOW_PATTERN;
-          drawPattern();
-          drawPiano();
-          drawMobileOrderSel();
+          MEASURE(pattern,drawPattern());
+          MEASURE(piano,drawPiano());
+          MEASURE(mobileOrderSel,drawMobileOrderSel());
 
           globalWinFlags=0;
-          drawFindReplace();
+          MEASURE(findReplace,drawFindReplace());
           break;
       }
 
       globalWinFlags=0;
-      drawSettings();
-      drawDebug();
-      drawLog();
-      drawCompatFlags();
-      drawStats();
+      MEASURE(settings,drawSettings());
+      MEASURE(debug,drawDebug());
+      MEASURE(log,drawLog());
+      MEASURE(compatFlags,drawCompatFlags());
+      MEASURE(stats,drawStats());
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
 
-      drawSubSongs();
-      drawFindReplace();
-      drawSpoiler();
-      drawPattern();
-      drawEditControls();
-      drawSpeed();
-      if (!basicMode) drawGrooves();
-      drawSongInfo();
-      drawOrders();
+      MEASURE(subSongs,drawSubSongs());
+      MEASURE(findReplace,drawFindReplace());
+      MEASURE(spoiler,drawSpoiler());
+      MEASURE(pattern,drawPattern());
+      MEASURE(editControls,drawEditControls());
+      MEASURE(speed,drawSpeed());
+      if (!basicMode) {
+        MEASURE(grooves,drawGrooves());
+      }
+      MEASURE(songInfo,drawSongInfo());
+      MEASURE(orders,drawOrders());
       if (introMonOpen) {
         int totalTicks=e->getTotalTicks();
         int totalSeconds=e->getTotalSeconds();
@@ -4269,36 +4331,38 @@ bool FurnaceGUI::loop() {
 
         if (e->isPlaying()) monitorPos+=ImGui::GetIO().DeltaTime;
       }
-      drawSampleList();
-      drawSampleEdit();
-      drawWaveList();
-      drawWaveEdit();
-      drawInsList();
-      drawInsEdit();
-      drawMixer();
+      MEASURE(sampleList,drawSampleList());
+      MEASURE(sampleEdit,drawSampleEdit());
+      MEASURE(waveList,drawWaveList());
+      MEASURE(waveEdit,drawWaveEdit());
+      MEASURE(insList,drawInsList());
+      MEASURE(insEdit,drawInsEdit());
+      MEASURE(mixer,drawMixer());
 
-      readOsc();
+      MEASURE(readOsc,readOsc());
 
-      drawOsc();
-      drawChanOsc();
-      drawVolMeter();
-      drawSettings();
-      drawDebug();
-      drawStats();
-      if (!basicMode) drawCompatFlags();
-      drawPiano();
-      drawNotes();
+      MEASURE(osc,drawOsc());
+      MEASURE(chanOsc,drawChanOsc());
+      MEASURE(volMeter,drawVolMeter());
+      MEASURE(settings,drawSettings());
+      MEASURE(debug,drawDebug());
+      MEASURE(stats,drawStats());
       if (!basicMode) {
-        drawChannels();
+        MEASURE(compatFlags,drawCompatFlags());
       }
-      drawPatManager();
+      MEASURE(piano,drawPiano());
+      MEASURE(notes,drawNotes());
       if (!basicMode) {
-        drawSysManager();
+        MEASURE(channels,drawChannels());
       }
-      drawClock();
-      drawRegView();
-      drawLog();
-      drawEffectList();
+      MEASURE(patManager,drawPatManager());
+      if (!basicMode) {
+        MEASURE(sysManager,drawSysManager());
+      }
+      MEASURE(clock,drawClock());
+      MEASURE(regView,drawRegView());
+      MEASURE(log,drawLog());
+      MEASURE(effectList,drawEffectList());
     }
 
     activateTutorial(GUI_TUTORIAL_OVERVIEW);
@@ -4960,6 +5024,8 @@ bool FurnaceGUI::loop() {
     }
     if (aboutOpen) drawAbout();
 
+    MEASURE_BEGIN(popup);
+
     if (ImGui::BeginPopupModal("Rendering...",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("Please wait...");
       if (ImGui::Button("Abort")) {
@@ -5491,12 +5557,16 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    MEASURE_END(popup);
+
     if (!tutorial.introPlayed || settings.alwaysPlayIntro!=0) {
+      MEASURE_BEGIN(intro);
       initialScreenWipe=0;
       if (settings.alwaysPlayIntro==1) {
         shortIntro=true;
       }
       drawIntro(introPos);
+      MEASURE_END(intro);
     } else {
       introPos=12.0;
     }
@@ -6577,6 +6647,7 @@ FurnaceGUI::FurnaceGUI():
   eventTimeBegin(0),
   eventTimeEnd(0),
   eventTimeDelta(0),
+  perfMetricsLen(0),
   chanToMove(-1),
   sysToMove(-1),
   sysToDelete(-1),
