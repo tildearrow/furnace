@@ -2715,6 +2715,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
+    // SrgaPCM slide compat
+    if (ds.version<153) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_SEGAPCM || ds.system[i]==DIV_SYSTEM_SEGAPCM_COMPAT) {
+          ds.systemFlags[i].set("oldSlides",true);
+        }
+      }
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();

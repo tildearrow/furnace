@@ -1541,10 +1541,13 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           samp_temp=0;
         } else {
           samp_temp=s->data16[sPreview.pos];
-          if (sPreview.dir) {
-            sPreview.pos--;
-          } else {
-            sPreview.pos++;
+          if (--sPreview.posSub<=0) {
+            sPreview.posSub=sPreview.rateMul;
+            if (sPreview.dir) {
+              sPreview.pos--;
+            } else {
+              sPreview.pos++;
+            }
           }
         }
         blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
@@ -1649,8 +1652,11 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         } else {
           samp_temp=((MIN(wave->data[sPreview.pos],wave->max)<<14)/wave->max)-8192;
         }
-        if (++sPreview.pos>=wave->len) {
-          sPreview.pos=0;
+        if (--sPreview.posSub<=0) {
+          sPreview.posSub=sPreview.rateMul;
+          if (++sPreview.pos>=wave->len) {
+            sPreview.pos=0;
+          }
         }
         blip_add_delta(samp_bb,i,samp_temp-samp_prevSample);
         samp_prevSample=samp_temp;

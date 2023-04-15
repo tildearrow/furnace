@@ -1154,6 +1154,17 @@ struct FurnaceGUIImage {
    ch(0) {}
 };
 
+struct FurnaceGUIPerfMetric {
+  const char* name;
+  int elapsed;
+  FurnaceGUIPerfMetric(const char* n, int t):
+    name(n),
+    elapsed(t) {}
+  FurnaceGUIPerfMetric():
+    name(NULL),
+    elapsed(0) {}
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
@@ -1738,6 +1749,12 @@ class FurnaceGUI {
   int layoutTimeBegin, layoutTimeEnd, layoutTimeDelta;
   int renderTimeBegin, renderTimeEnd, renderTimeDelta;
   int eventTimeBegin, eventTimeEnd, eventTimeDelta;
+
+  FurnaceGUIPerfMetric perfMetrics[64];
+  int perfMetricsLen;
+
+  FurnaceGUIPerfMetric perfMetricsLast[64];
+  int perfMetricsLastLen;
 
   std::map<FurnaceGUIImages,FurnaceGUIImage*> images;
 
