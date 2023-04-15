@@ -3838,11 +3838,11 @@ bool FurnaceGUI::loop() {
           }
           ImGui::Checkbox("loop",&vgmExportLoop);
           if (vgmExportLoop && e->song.loopModality==2) {
-            ImGui::Text("trailing ticks:");
+            ImGui::Text("loop trail:");
             if (ImGui::RadioButton("auto-detect",vgmExportTrailingTicks==-1)) {
               vgmExportTrailingTicks=-1;
             }
-            if (ImGui::RadioButton("one loop",vgmExportTrailingTicks==-2)) {
+            if (ImGui::RadioButton("add one loop",vgmExportTrailingTicks==-2)) {
               vgmExportTrailingTicks=-2;
             }
             if (ImGui::RadioButton("custom",vgmExportTrailingTicks>=0)) {
