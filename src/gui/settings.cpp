@@ -276,6 +276,8 @@ void FurnaceGUI::drawSettings() {
     ImVec2 setWindowSize=ImVec2(canvasW,canvasH);
     ImGui::SetNextWindowPos(setWindowPos);
     ImGui::SetNextWindowSize(setWindowSize);
+  } else {
+    ImGui::SetNextWindowSizeConstraints(ImVec2(200.0f*dpiScale,100.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|globalWinFlags)) {
     if (!settingsOpen) {
