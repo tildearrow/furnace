@@ -201,32 +201,56 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
       prevSample[i]=bbIn[i][0];
     }
   }
-  if (lowQuality) {
-    for (int i=0; i<outs; i++) {
-      if (bbIn[i]==NULL) continue;
-      if (bb[i]==NULL) continue;
-      int s=0;
-      for (size_t j=fillSub; j<runtotal; j+=step) {
-        temp[i]=bbIn[i][s++];
-        blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
-        prevSample[i]=temp[i];
-      }
-    }
-  } else {
-    for (int i=0; i<outs; i++) {
-      if (bbIn[i]==NULL) continue;
-      if (bb[i]==NULL) continue;
-      int s=0;
-      for (size_t j=fillSub; j<runtotal; j+=step) {
-        temp[i]=bbIn[i][s++];
-        blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
-        prevSample[i]=temp[i];
-      }
-    }
-  }
 
+  // I know, code duplication, but optimization...
   if (rateMul) {
+    if (lowQuality) {
+      for (int i=0; i<outs; i++) {
+        if (bbIn[i]==NULL) continue;
+        if (bb[i]==NULL) continue;
+        int s=0;
+        for (size_t j=fillSub; j<runtotal; j+=step) {
+          temp[i]=bbIn[i][s++];
+          blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
+          prevSample[i]=temp[i];
+        }
+      }
+    } else {
+      for (int i=0; i<outs; i++) {
+        if (bbIn[i]==NULL) continue;
+        if (bb[i]==NULL) continue;
+        int s=0;
+        for (size_t j=fillSub; j<runtotal; j+=step) {
+          temp[i]=bbIn[i][s++];
+          blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
+          prevSample[i]=temp[i];
+        }
+      }
+    }
+
     fillSub=(fillSub+runtotal)&((1<<rateMul)-1);
+  } else {
+    if (lowQuality) {
+      for (int i=0; i<outs; i++) {
+        if (bbIn[i]==NULL) continue;
+        if (bb[i]==NULL) continue;
+        for (size_t j=0; j<runtotal; j++) {
+          temp[i]=bbIn[i][j];
+          blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
+          prevSample[i]=temp[i];
+        }
+      }
+    } else {
+      for (int i=0; i<outs; i++) {
+        if (bbIn[i]==NULL) continue;
+        if (bb[i]==NULL) continue;
+        for (size_t j=0; j<runtotal; j++) {
+          temp[i]=bbIn[i][j];
+          blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
+          prevSample[i]=temp[i];
+        }
+      }
+    }
   }
 
   for (int i=0; i<outs; i++) {
