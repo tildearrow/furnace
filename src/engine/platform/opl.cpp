@@ -1558,7 +1558,7 @@ DivMacroInt* DivPlatformOPL::getChanMacroInt(int ch) {
 }
 
 DivDispatchOscBuffer* DivPlatformOPL::getOscBuffer(int ch) {
-  if (oplType==759) {
+  if (oplType==759 || chipType==8950) {
     if (ch>=totalChans+1) return NULL;
   } else {
     if (ch>=totalChans) return NULL;
