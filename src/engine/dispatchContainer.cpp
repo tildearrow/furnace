@@ -86,9 +86,16 @@
 void DivDispatchContainer::setRates(double gotRate) {
   int outs=dispatch->getOutputCount();
 
+  int rate=dispatch->rate;
+  rateMul=0;
+  while (rateMul<8 && rate<gotRate) {
+    rate*=2;
+    rateMul++;
+  }
+
   for (int i=0; i<outs; i++) {
     if (bb[i]==NULL) continue;
-    blip_set_rates(bb[i],dispatch->rate,gotRate);
+    blip_set_rates(bb[i],rate,gotRate);
   }
   rateMemory=gotRate;
 }
@@ -120,7 +127,13 @@ void DivDispatchContainer::grow(size_t size) {
         logE("not enough memory!"); \
         return; \
       } \
-      blip_set_rates(bb[i],dispatch->rate,rateMemory); \
+      int rate=dispatch->rate; \
+      rateMul=0; \
+      while (rateMul<8 && rate<rateMemory) { \
+        rate*=2; \
+        rateMul++; \
+      } \
+      blip_set_rates(bb[i],rate,rateMemory); \
  \
       if (bbIn[i]==NULL) bbIn[i]=new short[bbInLen]; \
       if (bbOut[i]==NULL) bbOut[i]=new short[bbInLen]; \
@@ -133,6 +146,25 @@ void DivDispatchContainer::grow(size_t size) {
 
 void DivDispatchContainer::acquire(size_t offset, size_t count) {
   CHECK_MISSING_BUFS;
+
+  if (rateMul) {
+    //logV("req: from %d to %d",offset,offset+count-1);
+    offset+=runPosSub;
+    size_t oldCount=count;
+    runPosSub=(runPosSub+oldCount)&((1<<rateMul)-1);
+    count+=runPosSub;
+
+    offset>>=rateMul;
+    count>>=rateMul;
+
+    if (offset!=0 && offset!=lastCount) {
+      logW("Shit! %d %d",offset,lastCount);
+    }
+
+    lastCount=offset+count;
+
+    //logV("got: from %d to %d",offset,offset+count-1);
+  }
 
   for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
     if (i>=outs) {
@@ -160,6 +192,8 @@ void DivDispatchContainer::flush(size_t count) {
 void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) {
   CHECK_MISSING_BUFS;
 
+  int step=1<<rateMul;
+
   if (dcOffCompensation && runtotal>0) {
     dcOffCompensation=false;
     for (int i=0; i<outs; i++) {
@@ -167,24 +201,54 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
       prevSample[i]=bbIn[i][0];
     }
   }
-  if (lowQuality) {
-    for (int i=0; i<outs; i++) {
-      if (bbIn[i]==NULL) continue;
-      if (bb[i]==NULL) continue;
-      for (size_t j=0; j<runtotal; j++) {
-        temp[i]=bbIn[i][j];
-        blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
-        prevSample[i]=temp[i];
+
+  // I know, code duplication, but optimization...
+  if (rateMul) {
+    if (lowQuality) {
+      for (int i=0; i<outs; i++) {
+        if (bbIn[i]==NULL) continue;
+        if (bb[i]==NULL) continue;
+        int s=0;
+        for (size_t j=fillSub; j<runtotal; j+=step) {
+          temp[i]=bbIn[i][s++];
+          blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
+          prevSample[i]=temp[i];
+        }
+      }
+    } else {
+      for (int i=0; i<outs; i++) {
+        if (bbIn[i]==NULL) continue;
+        if (bb[i]==NULL) continue;
+        int s=0;
+        for (size_t j=fillSub; j<runtotal; j+=step) {
+          temp[i]=bbIn[i][s++];
+          blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
+          prevSample[i]=temp[i];
+        }
       }
     }
+
+    fillSub=(fillSub+runtotal)&((1<<rateMul)-1);
   } else {
-    for (int i=0; i<outs; i++) {
-      if (bbIn[i]==NULL) continue;
-      if (bb[i]==NULL) continue;
-      for (size_t j=0; j<runtotal; j++) {
-        temp[i]=bbIn[i][j];
-        blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
-        prevSample[i]=temp[i];
+    if (lowQuality) {
+      for (int i=0; i<outs; i++) {
+        if (bbIn[i]==NULL) continue;
+        if (bb[i]==NULL) continue;
+        for (size_t j=0; j<runtotal; j++) {
+          temp[i]=bbIn[i][j];
+          blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
+          prevSample[i]=temp[i];
+        }
+      }
+    } else {
+      for (int i=0; i<outs; i++) {
+        if (bbIn[i]==NULL) continue;
+        if (bb[i]==NULL) continue;
+        for (size_t j=0; j<runtotal; j++) {
+          temp[i]=bbIn[i][j];
+          blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
+          prevSample[i]=temp[i];
+        }
       }
     }
   }
@@ -208,6 +272,10 @@ void DivDispatchContainer::clear() {
     temp[i]=0;
     prevSample[i]=0;
   }
+
+  runPosSub=0;
+  fillSub=0;
+  lastCount=0;
 
   if (dispatch->getDCOffRequired()) {
     dcOffCompensation=true;

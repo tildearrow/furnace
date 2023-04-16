@@ -184,12 +184,13 @@ struct DivNoteEvent {
 struct DivDispatchContainer {
   DivDispatch* dispatch;
   blip_buffer_t* bb[DIV_MAX_OUTPUTS];
-  size_t bbInLen, runtotal, runLeft, runPos, lastAvail;
+  size_t bbInLen, runtotal, runLeft, runPos, lastAvail, lastCount;
   int temp[DIV_MAX_OUTPUTS], prevSample[DIV_MAX_OUTPUTS];
   short* bbInMapped[DIV_MAX_OUTPUTS];
   short* bbIn[DIV_MAX_OUTPUTS];
   short* bbOut[DIV_MAX_OUTPUTS];
   bool lowQuality, dcOffCompensation;
+  unsigned char rateMul, runPosSub, fillSub;
   double rateMemory;
 
   void setRates(double gotRate);
@@ -208,8 +209,12 @@ struct DivDispatchContainer {
     runLeft(0),
     runPos(0),
     lastAvail(0),
+    lastCount(0),
     lowQuality(false),
     dcOffCompensation(false),
+    rateMul(0),
+    runPosSub(0),
+    fillSub(0),
     rateMemory(0.0) {
     memset(bb,0,DIV_MAX_OUTPUTS*sizeof(blip_buffer_t*));
     memset(temp,0,DIV_MAX_OUTPUTS*sizeof(int));
