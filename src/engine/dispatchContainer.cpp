@@ -147,7 +147,24 @@ void DivDispatchContainer::grow(size_t size) {
 void DivDispatchContainer::acquire(size_t offset, size_t count) {
   CHECK_MISSING_BUFS;
 
-  
+  if (rateMul) {
+    //logV("req: from %d to %d",offset,offset+count-1);
+    offset+=runPosSub;
+    size_t oldCount=count;
+    runPosSub=(runPosSub+oldCount)&((1<<rateMul)-1);
+    count+=runPosSub;
+
+    offset>>=rateMul;
+    count>>=rateMul;
+
+    if (offset!=0 && offset!=lastCount) {
+      logW("Shit!");
+    }
+
+    lastCount=offset+count;
+
+    logV("got: from %d to %d",offset,offset+count-1);
+  }
 
   for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
     if (i>=outs) {
@@ -189,7 +206,7 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
       if (bbIn[i]==NULL) continue;
       if (bb[i]==NULL) continue;
       int s=0;
-      for (size_t j=0; j<runtotal; j+=step) {
+      for (size_t j=fillSub; j<runtotal; j+=step) {
         temp[i]=bbIn[i][s++];
         blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
         prevSample[i]=temp[i];
@@ -200,12 +217,16 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
       if (bbIn[i]==NULL) continue;
       if (bb[i]==NULL) continue;
       int s=0;
-      for (size_t j=0; j<runtotal; j+=step) {
+      for (size_t j=fillSub; j<runtotal; j+=step) {
         temp[i]=bbIn[i][s++];
         blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
         prevSample[i]=temp[i];
       }
     }
+  }
+
+  if (rateMul) {
+    fillSub=(fillSub+runtotal)&((1<<rateMul)-1);
   }
 
   for (int i=0; i<outs; i++) {
@@ -227,6 +248,10 @@ void DivDispatchContainer::clear() {
     temp[i]=0;
     prevSample[i]=0;
   }
+
+  runPosSub=0;
+  fillSub=0;
+  lastCount=0;
 
   if (dispatch->getDCOffRequired()) {
     dcOffCompensation=true;
