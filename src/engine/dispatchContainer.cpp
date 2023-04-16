@@ -158,12 +158,12 @@ void DivDispatchContainer::acquire(size_t offset, size_t count) {
     count>>=rateMul;
 
     if (offset!=0 && offset!=lastCount) {
-      logW("Shit!");
+      logW("Shit! %d %d",offset,lastCount);
     }
 
     lastCount=offset+count;
 
-    logV("got: from %d to %d",offset,offset+count-1);
+    //logV("got: from %d to %d",offset,offset+count-1);
   }
 
   for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
