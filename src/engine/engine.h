@@ -190,6 +190,7 @@ struct DivDispatchContainer {
   short* bbIn[DIV_MAX_OUTPUTS];
   short* bbOut[DIV_MAX_OUTPUTS];
   bool lowQuality, dcOffCompensation;
+  unsigned char rateMul, runPosSub;
   double rateMemory;
 
   void setRates(double gotRate);
@@ -210,6 +211,8 @@ struct DivDispatchContainer {
     lastAvail(0),
     lowQuality(false),
     dcOffCompensation(false),
+    rateMul(0),
+    runPosSub(0),
     rateMemory(0.0) {
     memset(bb,0,DIV_MAX_OUTPUTS*sizeof(blip_buffer_t*));
     memset(temp,0,DIV_MAX_OUTPUTS*sizeof(int));

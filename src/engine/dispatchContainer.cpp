@@ -86,9 +86,16 @@
 void DivDispatchContainer::setRates(double gotRate) {
   int outs=dispatch->getOutputCount();
 
+  int rate=dispatch->rate;
+  rateMul=0;
+  while (rateMul<8 && rate<gotRate) {
+    rate*=2;
+    rateMul++;
+  }
+
   for (int i=0; i<outs; i++) {
     if (bb[i]==NULL) continue;
-    blip_set_rates(bb[i],dispatch->rate,gotRate);
+    blip_set_rates(bb[i],rate,gotRate);
   }
   rateMemory=gotRate;
 }
@@ -120,7 +127,13 @@ void DivDispatchContainer::grow(size_t size) {
         logE("not enough memory!"); \
         return; \
       } \
-      blip_set_rates(bb[i],dispatch->rate,rateMemory); \
+      int rate=dispatch->rate; \
+      rateMul=0; \
+      while (rateMul<8 && rate<rateMemory) { \
+        rate*=2; \
+        rateMul++; \
+      } \
+      blip_set_rates(bb[i],rate,rateMemory); \
  \
       if (bbIn[i]==NULL) bbIn[i]=new short[bbInLen]; \
       if (bbOut[i]==NULL) bbOut[i]=new short[bbInLen]; \
@@ -133,6 +146,8 @@ void DivDispatchContainer::grow(size_t size) {
 
 void DivDispatchContainer::acquire(size_t offset, size_t count) {
   CHECK_MISSING_BUFS;
+
+  
 
   for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
     if (i>=outs) {
@@ -160,6 +175,8 @@ void DivDispatchContainer::flush(size_t count) {
 void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) {
   CHECK_MISSING_BUFS;
 
+  int step=1<<rateMul;
+
   if (dcOffCompensation && runtotal>0) {
     dcOffCompensation=false;
     for (int i=0; i<outs; i++) {
@@ -171,8 +188,9 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
     for (int i=0; i<outs; i++) {
       if (bbIn[i]==NULL) continue;
       if (bb[i]==NULL) continue;
-      for (size_t j=0; j<runtotal; j++) {
-        temp[i]=bbIn[i][j];
+      int s=0;
+      for (size_t j=0; j<runtotal; j+=step) {
+        temp[i]=bbIn[i][s++];
         blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
         prevSample[i]=temp[i];
       }
@@ -181,8 +199,9 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
     for (int i=0; i<outs; i++) {
       if (bbIn[i]==NULL) continue;
       if (bb[i]==NULL) continue;
-      for (size_t j=0; j<runtotal; j++) {
-        temp[i]=bbIn[i][j];
+      int s=0;
+      for (size_t j=0; j<runtotal; j+=step) {
+        temp[i]=bbIn[i][s++];
         blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
         prevSample[i]=temp[i];
       }
