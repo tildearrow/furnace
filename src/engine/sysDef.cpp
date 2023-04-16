@@ -789,7 +789,7 @@ void DivEngine::registerSystems() {
     {"S1", "S2", "S3"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
     {DIV_INS_AY, DIV_INS_AY, DIV_INS_AY},
-    {},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
     ayPostEffectHandlerMap
   );
@@ -870,7 +870,7 @@ void DivEngine::registerSystems() {
     {"S1", "S2", "S3"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
     {DIV_INS_AY8930, DIV_INS_AY8930, DIV_INS_AY8930},
-    {},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
     ay8930PostEffectHandlerMap
   );

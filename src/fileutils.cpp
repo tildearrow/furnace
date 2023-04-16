@@ -20,6 +20,13 @@
 #include "fileutils.h"
 #ifdef _WIN32
 #include "utfutils.h"
+#include <windows.h>
+#include <shlobj.h>
+#include <shlwapi.h>
+#else
+#include <unistd.h>
+#include <errno.h>
+#include <sys/stat.h>
 #endif
 
 FILE* ps_fopen(const char* path, const char* mode) {
@@ -27,5 +34,69 @@ FILE* ps_fopen(const char* path, const char* mode) {
   return _wfopen(utf8To16(path).c_str(),utf8To16(mode).c_str());
 #else
   return fopen(path,mode);
+#endif
+}
+
+// TODO: copy in case of failure
+bool moveFiles(const char* src, const char* dest) {
+#ifdef _WIN32
+  return MoveFileW(utf8To16(src).c_str(),utf8To16(dest).c_str());
+#else
+  if (rename(src,dest)==-1) {
+    return false;
+  }
+  return true;
+#endif
+}
+
+bool deleteFile(const char* path) {
+#ifdef _WIN32
+  return DeleteFileW(utf8To16(path).c_str());
+#else
+  return (unlink(path)==0);
+#endif
+}
+
+int fileExists(const char* path) {
+#ifdef _WIN32
+  if (PathFileExistsW(utf8To16(path).c_str())) return 1;
+  // which errors could PathFileExists possibly throw?
+  switch (GetLastError()) {
+    case ERROR_FILE_EXISTS:
+      return 1;
+      break;
+    case ERROR_FILE_NOT_FOUND:
+    case ERROR_PATH_NOT_FOUND:
+    case ERROR_INVALID_DRIVE:
+    case ERROR_DEV_NOT_EXIST:
+    case ERROR_NETNAME_DELETED:
+    case ERROR_BAD_NET_NAME:
+      return 0;
+      break;
+  }
+  return -1;
+#else
+  if (access(path,F_OK)==0) return 1;
+  if (errno==ENOENT) return 0;
+  return -1;
+#endif
+}
+
+bool dirExists(const char* what) {
+#ifdef _WIN32
+  WString ws=utf8To16(what);
+  return (PathIsDirectoryW(ws.c_str())!=FALSE);
+#else
+  struct stat st;
+  if (stat(what,&st)<0) return false;
+  return (st.st_mode&S_IFDIR);
+#endif
+}
+
+bool makeDir(const char* path) {
+#ifdef _WIN32
+  return (SHCreateDirectory(NULL,utf8To16(path).c_str())==ERROR_SUCCESS);
+#else
+  return (mkdir(path,0755)==0);
 #endif
 }

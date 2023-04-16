@@ -179,8 +179,6 @@ void DivPlatformVRC6::tick(bool sysTick) {
       if (chan[i].std.phaseReset.val && chan[i].active) {
         if ((i!=2) && (!chan[i].pcm)) {
           if (dumpWrites) addWrite(0xffff0002+(i<<8),0);
-          DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_VRC6);
-          chan[i].dacSample=ins->amiga.getSample(chan[i].note);
           if (chan[i].dacSample<0 || chan[i].dacSample>=parent->song.sampleLen) {
             if (dumpWrites) {
               chWrite(i,2,0x80);
@@ -242,7 +240,10 @@ int DivPlatformVRC6::dispatch(DivCommand c) {
         if (chan[c.chan].pcm) {
           if (skipRegisterWrites) break;
           if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
-            if (c.value!=DIV_NOTE_NULL) chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+            if (c.value!=DIV_NOTE_NULL) {
+              chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+              c.value=ins->amiga.getFreq(c.value);
+            }
             if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
               chan[c.chan].dacSample=-1;
               if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);

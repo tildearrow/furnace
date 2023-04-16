@@ -418,6 +418,7 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_AMIGA_PM:
     case DIV_CMD_MACRO_OFF:
     case DIV_CMD_MACRO_ON:
+    case DIV_CMD_HINT_ARP_TIME:
       w->writeC(1); // length
       w->writeC(c.value);
       break;
@@ -2440,6 +2441,16 @@ void DivEngine::stop() {
       }
     }
   }
+
+  // reset all chan oscs
+  for (int i=0; i<chans; i++) {
+    DivDispatchOscBuffer* buf=disCont[dispatchOfChan[i]].dispatch->getOscBuffer(dispatchChanOfChan[i]);
+    if (buf!=NULL) {
+      memset(buf->data,0,65536*sizeof(short));
+      buf->needle=0;
+      buf->readNeedle=0;
+    }
+  }
   BUSY_END;
 }
 
@@ -2657,10 +2668,17 @@ void DivEngine::previewSampleNoLock(int sample, int note, int pStart, int pEnd) 
     if (rate<=0) rate=song.sample[sample]->centerRate;
   }
   if (rate<100) rate=100;
+  double rateOrig=rate;
+  sPreview.rateMul=1;
+  while (sPreview.rateMul<0x40000000 && rate<got.rate) {
+    sPreview.rateMul<<=1;
+    rate*=2.0;
+  }
   blip_set_rates(samp_bb,rate,got.rate);
   samp_prevSample=0;
-  sPreview.rate=rate;
+  sPreview.rate=rateOrig;
   sPreview.pos=(sPreview.pBegin>=0)?sPreview.pBegin:0;
+  sPreview.posSub=0;
   sPreview.sample=sample;
   sPreview.wave=-1;
   sPreview.dir=false;
@@ -2685,10 +2703,17 @@ void DivEngine::previewWaveNoLock(int wave, int note) {
   blip_clear(samp_bb);
   double rate=song.wave[wave]->len*((song.tuning*0.0625)*pow(2.0,(double)(note+3)/12.0));
   if (rate<100) rate=100;
+  double rateOrig=rate;
+  sPreview.rateMul=1;
+  while (sPreview.rateMul<0x40000000 && rate<got.rate) {
+    sPreview.rateMul<<=1;
+    rate*=2.0;
+  }
   blip_set_rates(samp_bb,rate,got.rate);
   samp_prevSample=0;
-  sPreview.rate=rate;
+  sPreview.rate=rateOrig;
   sPreview.pos=0;
+  sPreview.posSub=0;
   sPreview.sample=-1;
   sPreview.wave=wave;
   sPreview.dir=false;
@@ -4371,6 +4396,7 @@ bool DivEngine::initAudioBackend() {
   lowLatency=getConfInt("lowLatency",0);
   metroVol=(float)(getConfInt("metroVol",100))/100.0f;
   midiOutClock=getConfInt("midiOutClock",0);
+  midiOutProgramChange = getConfInt("midiOutProgramChange",0);
   midiOutMode=getConfInt("midiOutMode",DIV_MIDI_MODE_NOTE);
   if (metroVol<0.0f) metroVol=0.0f;
   if (metroVol>2.0f) metroVol=2.0f;

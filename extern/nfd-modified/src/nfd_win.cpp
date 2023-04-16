@@ -204,7 +204,9 @@ static void CopyNFDCharToWChar( const nfdchar_t *inStr, wchar_t **outStr )
 
 #ifdef _DEBUG
     int inStrCharacterCount = static_cast<int>(NFDi_UTF8_Strlen(inStr));
-    assert( ret == inStrCharacterCount );
+    if (ret!=inStrCharacterCount) {
+      logW("length does not match! %d != %d",ret,inStrCharacterCount);
+    }
 #else
     _NFD_UNUSED(ret);
 #endif

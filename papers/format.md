@@ -32,6 +32,15 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 152: Furnace dev152
+- 151: Furnace dev151
+- 150: Furnace dev150
+- 149: Furnace dev149
+- 148: Furnace dev148
+- 147: Furnace dev147
+- 146: Furnace Pro (joke version)
+- 145: Furnace dev145
+- 144: Furnace dev144
 - 143: Furnace 0.6pre4
 - 142: Furnace dev142
 - 141: Furnace Tournament Edition (for intro tune contest)

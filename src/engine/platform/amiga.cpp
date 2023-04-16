@@ -560,7 +560,10 @@ int DivPlatformAmiga::dispatch(DivCommand c) {
           }
         }
       } else {
-        if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].sample=ins->amiga.getSample(c.value);
+          c.value=ins->amiga.getFreq(c.value);
+        }
         chan[c.chan].useWave=false;
       }
       if (c.value!=DIV_NOTE_NULL) {
@@ -768,10 +771,12 @@ DivMacroInt* DivPlatformAmiga::getChanMacroInt(int ch) {
 DivSamplePos DivPlatformAmiga::getSamplePos(int ch) {
   if (ch>=4) return DivSamplePos();
   if (chan[ch].sample<0 || chan[ch].sample>=parent->song.sampleLen) return DivSamplePos();
+  int audPer=amiga.audPer[ch];
+  if (audPer<1) audPer=1;
   return DivSamplePos(
     chan[ch].sample,
     amiga.dmaLoc[ch]-sampleOff[chan[ch].sample],
-    chipClock/amiga.audPer[ch]
+    chipClock/audPer
   );
 }
 

@@ -221,8 +221,9 @@ void FurnaceGUI::drawOsc() {
         waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
       }
       if (settings.oscEscapesBoundary) {
-        ImDrawList* dlf=ImGui::GetForegroundDrawList();
-        dlf->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
+        dl->PushClipRectFullScreen();
+        dl->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
+        dl->PopClipRect();
       } else {
         dl->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
       }

@@ -469,6 +469,7 @@ src/engine/blip_buf.c
 src/engine/brrUtils.c
 src/engine/safeReader.cpp
 src/engine/safeWriter.cpp
+src/engine/cmdStream.cpp
 src/engine/config.cpp
 src/engine/configEngine.cpp
 src/engine/dispatchContainer.cpp
@@ -791,7 +792,7 @@ endif()
 if(ANDROID AND NOT TERMUX)
   add_library(furnace SHARED ${USED_SOURCES})
 elseif(WIN32)
-  add_executable(furnace WIN32 ${USED_SOURCES})
+  add_executable(furnace ${USED_SOURCES})
 else()
   add_executable(furnace ${USED_SOURCES})
 endif()

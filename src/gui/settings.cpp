@@ -276,6 +276,8 @@ void FurnaceGUI::drawSettings() {
     ImVec2 setWindowSize=ImVec2(canvasW,canvasH);
     ImGui::SetNextWindowPos(setWindowPos);
     ImGui::SetNextWindowSize(setWindowSize);
+  } else {
+    ImGui::SetNextWindowSizeConstraints(ImVec2(200.0f*dpiScale,100.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|globalWinFlags)) {
     if (!settingsOpen) {
@@ -1149,6 +1151,11 @@ void FurnaceGUI::drawSettings() {
               settings.midiOutClock=midiOutClockB;
             }
 
+            bool midiOutProgramChangeB=settings.midiOutProgramChange;
+            if (ImGui::Checkbox("Send Program Change",&midiOutProgramChangeB)) {
+              settings.midiOutProgramChange=midiOutProgramChangeB;
+            }
+
             ImGui::TreePop();
           }
         }
@@ -1445,6 +1452,17 @@ void FurnaceGUI::drawSettings() {
           }
           if (ImGui::RadioButton("Split##ecl3",settings.controlLayout==3)) {
             settings.controlLayout=3;
+          }
+
+          ImGui::Text("Position of buttons in Orders:");
+          if (ImGui::RadioButton("Top##obp0",settings.orderButtonPos==0)) {
+            settings.orderButtonPos=0;
+          }
+          if (ImGui::RadioButton("Left##obp1",settings.orderButtonPos==1)) {
+            settings.orderButtonPos=1;
+          }
+          if (ImGui::RadioButton("Right##obp2",settings.orderButtonPos==2)) {
+            settings.orderButtonPos=2;
           }
 
           ImGui::Text("FM parameter editor layout:");
@@ -2076,6 +2094,7 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::TreeNode("Global hotkeys")) {
             KEYBIND_CONFIG_BEGIN("keysGlobal");
 
+            UI_KEYBIND_CONFIG(GUI_ACTION_NEW);
             UI_KEYBIND_CONFIG(GUI_ACTION_OPEN);
             UI_KEYBIND_CONFIG(GUI_ACTION_OPEN_BACKUP);
             UI_KEYBIND_CONFIG(GUI_ACTION_SAVE);
@@ -2608,6 +2627,7 @@ void FurnaceGUI::syncSettings() {
   settings.channelTextCenter=e->getConfInt("channelTextCenter",1);
   settings.maxRecentFile=e->getConfInt("maxRecentFile",10);
   settings.midiOutClock=e->getConfInt("midiOutClock",0);
+  settings.midiOutProgramChange=e->getConfInt("midiOutProgramChange",0);
   settings.midiOutMode=e->getConfInt("midiOutMode",1);
   settings.centerPattern=e->getConfInt("centerPattern",0);
   settings.ordersCursor=e->getConfInt("ordersCursor",1);
@@ -2621,6 +2641,7 @@ void FurnaceGUI::syncSettings() {
   settings.alwaysPlayIntro=e->getConfInt("alwaysPlayIntro",0);
   settings.cursorFollowsOrder=e->getConfInt("cursorFollowsOrder",1);
   settings.iCannotWait=e->getConfInt("iCannotWait",0);
+  settings.orderButtonPos=e->getConfInt("orderButtonPos",2);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2726,6 +2747,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.channelTextCenter,0,1);
   clampSetting(settings.maxRecentFile,0,30);
   clampSetting(settings.midiOutClock,0,1);
+  clampSetting(settings.midiOutProgramChange,0,1);
   clampSetting(settings.midiOutMode,0,2);
   clampSetting(settings.centerPattern,0,1);
   clampSetting(settings.ordersCursor,0,1);
@@ -2737,6 +2759,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.alwaysPlayIntro,0,3);
   clampSetting(settings.cursorFollowsOrder,0,1);
   clampSetting(settings.iCannotWait,0,1);
+  clampSetting(settings.orderButtonPos,0,2);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -2935,6 +2958,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("channelTextCenter",settings.channelTextCenter);
   e->setConf("maxRecentFile",settings.maxRecentFile);
   e->setConf("midiOutClock",settings.midiOutClock);
+  e->setConf("midiOutProgramChange",settings.midiOutProgramChange);
   e->setConf("midiOutMode",settings.midiOutMode);
   e->setConf("centerPattern",settings.centerPattern);
   e->setConf("ordersCursor",settings.ordersCursor);
@@ -2948,6 +2972,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("alwaysPlayIntro",settings.alwaysPlayIntro);
   e->setConf("cursorFollowsOrder",settings.cursorFollowsOrder);
   e->setConf("iCannotWait",settings.iCannotWait);
+  e->setConf("orderButtonPos",settings.orderButtonPos);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

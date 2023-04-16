@@ -516,11 +516,36 @@ void FurnaceGUI::drawMobileControls() {
             openFileDialog(GUI_FILE_EXPORT_VGM);
           }
 
-          ImGui::Button("CmdStream");
+          if (ImGui::Button("CmdStream")) {
+            openFileDialog(GUI_FILE_EXPORT_CMDSTREAM_BINARY);
+          }
+          ImGui::SameLine();
+          if (ImGui::Button("CmdStream Text")) {
+            openFileDialog(GUI_FILE_EXPORT_CMDSTREAM);
+          }
+
+          if (ImGui::Button("Restore Backup")) {
+            mobileMenuOpen=false;
+            doAction(GUI_ACTION_OPEN_BACKUP);
+          }
 
           ImGui::Separator();
 
-          drawSongInfo(true);
+          if (ImGui::BeginTabBar("MobileSong")) {
+            if (ImGui::BeginTabItem("Song Info")) {
+              drawSongInfo(true);
+              ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Subsongs")) {
+              drawSubSongs(true);
+              ImGui::EndTabItem();
+            }
+            if (ImGui::BeginTabItem("Speed")) {
+              drawSpeed(true);
+              ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
+          }
           break;
         }
         case GUI_SCENE_CHANNELS:

@@ -32,6 +32,13 @@ const unsigned char avRequest[15]={
 
 void FurnaceGUI::doAction(int what) {
   switch (what) {
+    case GUI_ACTION_NEW:
+      if (modified) {
+        showWarning("Unsaved changes! Save changes before creating a new song?",GUI_WARN_NEW);
+      } else {
+        displayNew=true;
+      }
+      break;
     case GUI_ACTION_OPEN:
       if (modified) {
         showWarning("Unsaved changes! Save changes before opening another file?",GUI_WARN_OPEN);
@@ -43,9 +50,7 @@ void FurnaceGUI::doAction(int what) {
       if (modified) {
         showWarning("Unsaved changes! Save changes before opening backup?",GUI_WARN_OPEN_BACKUP);
       } else {
-        if (load(backupPath)>0) {
-          showError("No backup available! (or unable to open it)");
-        }
+        openFileDialog(GUI_FILE_OPEN_BACKUP);
       }
       break;
     case GUI_ACTION_SAVE:

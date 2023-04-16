@@ -346,6 +346,7 @@ enum FurnaceGUIMobileScenes {
 
 enum FurnaceGUIFileDialogs {
   GUI_FILE_OPEN,
+  GUI_FILE_OPEN_BACKUP,
   GUI_FILE_SAVE,
   GUI_FILE_SAVE_DMF,
   GUI_FILE_SAVE_DMF_LEGACY,
@@ -370,6 +371,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_VGM,
   GUI_FILE_EXPORT_ZSM,
   GUI_FILE_EXPORT_CMDSTREAM,
+  GUI_FILE_EXPORT_CMDSTREAM_BINARY,
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_LOAD_MAIN_FONT,
   GUI_FILE_LOAD_PAT_FONT,
@@ -382,6 +384,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_YRW801_ROM_OPEN,
   GUI_FILE_TG100_ROM_OPEN,
   GUI_FILE_MU5_ROM_OPEN,
+  GUI_FILE_CMDSTREAM_OPEN,
 
   GUI_FILE_TEST_OPEN,
   GUI_FILE_TEST_OPEN_MULTI,
@@ -414,6 +417,7 @@ enum FurnaceGUIFMAlgs {
 
 enum FurnaceGUIActions {
   GUI_ACTION_GLOBAL_MIN=0,
+  GUI_ACTION_NEW,
   GUI_ACTION_OPEN,
   GUI_ACTION_OPEN_BACKUP,
   GUI_ACTION_SAVE,
@@ -1149,6 +1153,17 @@ struct FurnaceGUIImage {
    ch(0) {}
 };
 
+struct FurnaceGUIPerfMetric {
+  const char* name;
+  int elapsed;
+  FurnaceGUIPerfMetric(const char* n, int t):
+    name(n),
+    elapsed(t) {}
+  FurnaceGUIPerfMetric():
+    name(NULL),
+    elapsed(0) {}
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
@@ -1362,6 +1377,7 @@ class FurnaceGUI {
     int channelFont;
     int channelTextCenter;
     int midiOutClock;
+    int midiOutProgramChange;
     int midiOutMode;
     int maxRecentFile;
     int centerPattern;
@@ -1375,6 +1391,7 @@ class FurnaceGUI {
     int disableFadeIn;
     int alwaysPlayIntro;
     int iCannotWait;
+    int orderButtonPos;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1503,6 +1520,7 @@ class FurnaceGUI {
       channelFont(1),
       channelTextCenter(1),
       midiOutClock(0),
+      midiOutProgramChange(0),
       midiOutMode(1),
       maxRecentFile(10),
       centerPattern(0),
@@ -1516,6 +1534,7 @@ class FurnaceGUI {
       disableFadeIn(0),
       alwaysPlayIntro(0),
       iCannotWait(0),
+      orderButtonPos(2),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1557,6 +1576,7 @@ class FurnaceGUI {
 
   double exportFadeOut;
 
+  bool newSongFirstFrame;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
@@ -1671,8 +1691,11 @@ class FurnaceGUI {
   std::vector<TouchPoint> pressedPoints;
   std::vector<TouchPoint> releasedPoints;
 
-  int arpMacroScroll;
-  int pitchMacroScroll;
+  int sampleMapSelStart;
+  int sampleMapSelEnd;
+  int sampleMapDigit;
+  int sampleMapColumn;
+  bool sampleMapFocused, sampleMapWaitingInput;
 
   ImVec2 macroDragStart;
   ImVec2 macroDragAreaSize;
@@ -1725,6 +1748,12 @@ class FurnaceGUI {
   int layoutTimeBegin, layoutTimeEnd, layoutTimeDelta;
   int renderTimeBegin, renderTimeEnd, renderTimeDelta;
   int eventTimeBegin, eventTimeEnd, eventTimeDelta;
+
+  FurnaceGUIPerfMetric perfMetrics[64];
+  int perfMetricsLen;
+
+  FurnaceGUIPerfMetric perfMetricsLast[64];
+  int perfMetricsLastLen;
 
   std::map<FurnaceGUIImages,FurnaceGUIImage*> images;
 
@@ -1927,6 +1956,9 @@ class FurnaceGUI {
 
   void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);
   void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state);
+  void alterSampleMap(bool isNote, int val);
+
+  void drawOrderButtons();
 
   void actualWaveList();
   void actualSampleList();
@@ -1975,7 +2007,7 @@ class FurnaceGUI {
   void drawNewSong();
   void drawLog();
   void drawEffectList();
-  void drawSubSongs();
+  void drawSubSongs(bool asChild=false);
   void drawFindReplace();
   void drawSpoiler();
   void drawClock();
@@ -2067,8 +2099,10 @@ class FurnaceGUI {
   void openFileDialog(FurnaceGUIFileDialogs type);
   int save(String path, int dmfVersion);
   int load(String path);
+  int loadStream(String path);
   void pushRecentFile(String path);
   void exportAudio(String path, DivAudioExportModes mode);
+  void delFirstBackup(String name);
 
   bool parseSysEx(unsigned char* data, size_t len);
 

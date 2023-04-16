@@ -18,13 +18,18 @@
  */
 
 #include "ta-log.h"
+#include "fileutils.h"
 #include <thread>
 #include <condition_variable>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #ifdef IS_MOBILE
 int logLevel=LOGLEVEL_TRACE;
 #else
-int logLevel=LOGLEVEL_INFO;
+int logLevel=LOGLEVEL_TRACE; // until done
 #endif
 
 FILE* logFile;
@@ -133,7 +138,16 @@ int writeLog(int level, const char* msg, fmt::printf_args args) {
 }
 
 void initLog() {
-  // initalize log buffer
+  // initialize coloring on Windows
+#ifdef _WIN32
+  HANDLE winout=GetStdHandle(STD_OUTPUT_HANDLE);
+  int termprop=0;
+  GetConsoleMode(winout,(LPDWORD)&termprop);
+  termprop|=ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+  SetConsoleMode(winout,termprop);
+#endif
+
+  // initialize log buffer
   logPosition=0;
   for (int i=0; i<TA_LOG_SIZE; i++) {
     logEntries[i].text.reserve(128);
@@ -169,9 +183,28 @@ bool startLogFile(const char* path) {
   if (logFileAvail) return true;
 
   // rotate log file if possible
+  char oldPath[4096];
+  char newPath[4096];
+
+  if (fileExists(path)==1) {
+    for (int i=4; i>=0; i--) {
+      if (i>0) {
+        snprintf(oldPath,4095,"%s.%d",path,i);
+      } else {
+        strncpy(oldPath,path,4095);
+      }
+      snprintf(newPath,4095,"%s.%d",path,i+1);
+
+      if (i>=4) {
+        deleteFile(oldPath);
+      } else {
+        moveFiles(oldPath,newPath);
+      }
+    }
+  }
   
   // open log file
-  if ((logFile=fopen(path,"w+"))==NULL) {
+  if ((logFile=ps_fopen(path,"w+"))==NULL) {
     logFileAvail=false;
     logW("could not open log file! (%s)",strerror(errno));
     return false;
