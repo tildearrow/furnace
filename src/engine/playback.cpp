@@ -1125,11 +1125,23 @@ void DivEngine::nextRow() {
           bool wantPreNote=false;
           if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
             wantPreNote=disCont[dispatchOfChan[i]].dispatch->getWantPreNote();
-            if (wantPreNote) dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks));
+            if (wantPreNote) {
+              int addition=0;
+              for (int j=0; j<curPat[i].effectCols; j++) {
+                if (pat->data[curRow][4+(j<<1)]==0xed) {
+                  if (pat->data[curRow][5+(j<<1)]>0) {
+                    addition=pat->data[curRow][5+(j<<1)];
+                    break;
+                  }
+                }
+              }
+              dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks+addition));
+            }
           }
 
           if (song.oneTickCut) {
             bool doPrepareCut=true;
+            int addition=0;
 
             for (int j=0; j<curPat[i].effectCols; j++) {
               if (pat->data[curRow][4+(j<<1)]==0x03) {
@@ -1142,8 +1154,14 @@ void DivEngine::nextRow() {
                   break;
                 }
               }
+              if (pat->data[curRow][4+(j<<1)]==0xed) {
+                if (pat->data[curRow][5+(j<<1)]>0) {
+                  addition=pat->data[curRow][5+(j<<1)];
+                  break;
+                }
+              }
             }
-            if (doPrepareCut && !wantPreNote && chan[i].cut<=0) chan[i].cut=ticks;
+            if (doPrepareCut && !wantPreNote && chan[i].cut<=0) chan[i].cut=ticks+addition;
           }
         }
       }
