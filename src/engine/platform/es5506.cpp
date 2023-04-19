@@ -410,7 +410,7 @@ void DivPlatformES5506::tick(bool sysTick) {
     if (chan[i].pcmChanged.changed) {
       if (chan[i].pcmChanged.index) {
         const int next=chan[i].pcm.next;
-        bool sampleVaild=false;
+        bool sampleValid=false;
         if (((ins->amiga.useNoteMap) && (next>=0 && next<120)) ||
             ((!ins->amiga.useNoteMap) && (next>=0 && next<parent->song.sampleLen))) {
           DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[next];
@@ -420,7 +420,7 @@ void DivPlatformES5506::tick(bool sysTick) {
           }
           if (sample>=0 && sample<parent->song.sampleLen) {
             const unsigned int offES5506=sampleOffES5506[sample];
-            sampleVaild=true;
+            sampleValid=true;
             chan[i].pcm.index=sample;
             chan[i].pcm.isNoteMap=ins->amiga.useNoteMap;
             DivSample* s=parent->getSample(sample);
@@ -433,7 +433,6 @@ void DivPlatformES5506::tick(bool sysTick) {
               off=(double)center/8363.0;
             }
             if (ins->amiga.useNoteMap) {
-              off*=(double)noteMapind.freq/((double)MAX(1,center)*pow(2.0,((double)next-48.0)/12.0));
               chan[i].pcm.note=next;
             }
             // get loop mode
@@ -459,7 +458,7 @@ void DivPlatformES5506::tick(bool sysTick) {
             }
           }
         }
-        if (sampleVaild) {
+        if (sampleValid) {
           if (!chan[i].keyOn) {
             pageWrite(0x20|i,0x03,(chan[i].pcm.direction)?chan[i].pcm.end:chan[i].pcm.start);
           }
@@ -618,10 +617,6 @@ void DivPlatformES5506::tick(bool sysTick) {
           } else {
             off=(double)center/8363.0;
           }
-          if (ins->amiga.useNoteMap) {
-            DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[chan[i].pcm.note];
-            off*=(double)noteMapind.freq/((double)MAX(1,center)*pow(2.0,((double)chan[i].pcm.note-48.0)/12.0));
-          }
           chan[i].pcm.loopStart=(chan[i].pcm.start+(s->loopStart<<11))&0xfffff800;
           chan[i].pcm.loopEnd=(chan[i].pcm.start+((s->loopEnd-1)<<11))&0xffffff80;
           chan[i].pcm.freqOffs=PITCH_OFFSET*off;
@@ -750,24 +745,22 @@ int DivPlatformES5506::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_ES5506);
-      bool sampleVaild=false;
+      bool sampleValid=false;
       if (((ins->amiga.useNoteMap) && (c.value>=0 && c.value<120)) ||
           ((!ins->amiga.useNoteMap) && (ins->amiga.initSample>=0 && ins->amiga.initSample<parent->song.sampleLen))) {
-        DivInstrumentAmiga::SampleMap& noteMapind=ins->amiga.noteMap[c.value];
-        int sample=ins->amiga.initSample;
-        if (ins->amiga.useNoteMap) {
-          sample=noteMapind.map;
-        }
+        int sample=ins->amiga.getSample(c.value);
+        c.value=ins->amiga.getFreq(c.value);
         if (sample>=0 && sample<parent->song.sampleLen) {
-          sampleVaild=true;
+          sampleValid=true;
           chan[c.chan].volMacroMax=ins->type==DIV_INS_AMIGA?64:0xfff;
           chan[c.chan].panMacroMax=ins->type==DIV_INS_AMIGA?127:0xfff;
-          chan[c.chan].pcm.next=sample;
+          chan[c.chan].pcm.note=c.value;
+          chan[c.chan].pcm.next=ins->amiga.useNoteMap?c.value:sample;
           chan[c.chan].filter=ins->es5506.filter;
           chan[c.chan].envelope=ins->es5506.envelope;
         }
       }
-      if (!sampleVaild) {
+      if (!sampleValid) {
         chan[c.chan].pcm.index=chan[c.chan].pcm.next=-1;
         chan[c.chan].filter=DivInstrumentES5506::Filter();
         chan[c.chan].envelope=DivInstrumentES5506::Envelope();

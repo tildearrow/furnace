@@ -524,6 +524,11 @@ void FurnaceGUI::drawMobileControls() {
             openFileDialog(GUI_FILE_EXPORT_CMDSTREAM);
           }
 
+          if (ImGui::Button("Restore Backup")) {
+            mobileMenuOpen=false;
+            doAction(GUI_ACTION_OPEN_BACKUP);
+          }
+
           ImGui::Separator();
 
           if (ImGui::BeginTabBar("MobileSong")) {

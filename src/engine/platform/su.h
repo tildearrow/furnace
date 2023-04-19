@@ -26,7 +26,7 @@
 
 class DivPlatformSoundUnit: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
-    int cutoff, baseCutoff, res, control, hasOffset;
+    int cutoff, baseCutoff, res, control, hasOffset, sample;
     signed char pan;
     unsigned char duty;
     bool noise, pcm, phaseReset, filterPhaseReset, switchRoles;
@@ -43,6 +43,7 @@ class DivPlatformSoundUnit: public DivDispatch {
       res(0),
       control(0),
       hasOffset(0),
+      sample(-1),
       pan(0),
       duty(63),
       noise(false),

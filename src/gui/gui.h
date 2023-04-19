@@ -346,6 +346,7 @@ enum FurnaceGUIMobileScenes {
 
 enum FurnaceGUIFileDialogs {
   GUI_FILE_OPEN,
+  GUI_FILE_OPEN_BACKUP,
   GUI_FILE_SAVE,
   GUI_FILE_SAVE_DMF,
   GUI_FILE_SAVE_DMF_LEGACY,
@@ -416,6 +417,7 @@ enum FurnaceGUIFMAlgs {
 
 enum FurnaceGUIActions {
   GUI_ACTION_GLOBAL_MIN=0,
+  GUI_ACTION_NEW,
   GUI_ACTION_OPEN,
   GUI_ACTION_OPEN_BACKUP,
   GUI_ACTION_SAVE,
@@ -1151,6 +1153,17 @@ struct FurnaceGUIImage {
    ch(0) {}
 };
 
+struct FurnaceGUIPerfMetric {
+  const char* name;
+  int elapsed;
+  FurnaceGUIPerfMetric(const char* n, int t):
+    name(n),
+    elapsed(t) {}
+  FurnaceGUIPerfMetric():
+    name(NULL),
+    elapsed(0) {}
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
@@ -1563,6 +1576,7 @@ class FurnaceGUI {
 
   double exportFadeOut;
 
+  bool newSongFirstFrame;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
@@ -1677,8 +1691,11 @@ class FurnaceGUI {
   std::vector<TouchPoint> pressedPoints;
   std::vector<TouchPoint> releasedPoints;
 
-  int arpMacroScroll;
-  int pitchMacroScroll;
+  int sampleMapSelStart;
+  int sampleMapSelEnd;
+  int sampleMapDigit;
+  int sampleMapColumn;
+  bool sampleMapFocused, sampleMapWaitingInput;
 
   ImVec2 macroDragStart;
   ImVec2 macroDragAreaSize;
@@ -1731,6 +1748,12 @@ class FurnaceGUI {
   int layoutTimeBegin, layoutTimeEnd, layoutTimeDelta;
   int renderTimeBegin, renderTimeEnd, renderTimeDelta;
   int eventTimeBegin, eventTimeEnd, eventTimeDelta;
+
+  FurnaceGUIPerfMetric perfMetrics[64];
+  int perfMetricsLen;
+
+  FurnaceGUIPerfMetric perfMetricsLast[64];
+  int perfMetricsLastLen;
 
   std::map<FurnaceGUIImages,FurnaceGUIImage*> images;
 
@@ -1933,6 +1956,7 @@ class FurnaceGUI {
 
   void drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float availableWidth, int index);
   void drawMacros(std::vector<FurnaceGUIMacroDesc>& macros, FurnaceGUIMacroEditState& state);
+  void alterSampleMap(bool isNote, int val);
 
   void drawOrderButtons();
 
@@ -2078,6 +2102,7 @@ class FurnaceGUI {
   int loadStream(String path);
   void pushRecentFile(String path);
   void exportAudio(String path, DivAudioExportModes mode);
+  void delFirstBackup(String name);
 
   bool parseSysEx(unsigned char* data, size_t len);
 

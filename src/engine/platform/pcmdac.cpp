@@ -271,7 +271,10 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
           }
         }
       } else {
-        if (c.value!=DIV_NOTE_NULL) chan[0].sample=ins->amiga.getSample(c.value);
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[0].sample=ins->amiga.getSample(c.value);
+          c.value=ins->amiga.getFreq(c.value);
+        }
         chan[0].useWave=false;
       }
       if (c.value!=DIV_NOTE_NULL) {

@@ -69,10 +69,13 @@ hex | description
  .. | ...
  ef | preset delay 15
 ----|------------------------------------
+ f4 | call symbol (16-bit index follows; only used internally)
+ f5 | jump to sub-block (address follows)
+ f6 | go to sub-block (32-bit offset follows)
  f7 | full command (command and data follows)
- f8 | go to sub-block (offset follows)
+ f8 | go to sub-block (16-bit offset follows)
  f9 | return from sub-block
- fa | jump (offset follows)
+ fa | jump (address follows)
  fb | set tick rate (4 bytes)
  fc | wait (16-bit)
  fd | wait (8-bit)
