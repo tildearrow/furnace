@@ -2419,11 +2419,11 @@ void DivEngine::stepOne(int row) {
 void DivEngine::stop() {
   BUSY_BEGIN;
   freelance=false;
-  if(!playing){
+  if (!playing) {
     //Send midi panic
     if (output) if (output->midiOut!=NULL) {
       output->midiOut->send(TAMidiMessage(TA_MIDI_CONTROL,0x7B,0));
-      logI("Midi panic sent");
+      logV("Midi panic sent");
     }
   }
   playing=false;
