@@ -892,10 +892,10 @@ bool DivSample::resampleBlep(double r) {
       }
     }
     for (int i=0; i<finalCount; i++) {
-      float result=floatData[i]+data16[i];
+      float result=floatData[i]+data8[i];
       if (result<-128) result=-128;
       if (result>127) result=127;
-      data16[i]=round(result);
+      data8[i]=round(result);
     }
   }
   delete[] floatData;
