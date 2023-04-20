@@ -8,7 +8,7 @@ because the chip lacks sample interpolation, it is recommended that you try to p
 
 the QSound chip also has a small echo buffer, somewhat similar to the SNES, although with a very basic (and non-adjustable) filter. it is however possible to adjust the feedback and length of the echo buffer (the initial values can be set in the "configure chip" option in the file menu or the chip manager).
 
-there are also 3 ADPCM channels, however they cannot be used in Furnace yet. they have been reserved in case this feature is added later. ADPCM samples are limited to 8012 Hz.
+there are also 3 ADPCM channels. ADPCM samples are fixed to 8012 Hz.
 
 # effects
 
