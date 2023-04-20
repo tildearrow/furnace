@@ -944,7 +944,7 @@ void DivPlatformX1_010::setFlags(const DivConfig& flags) {
   stereo=flags.getBool("stereo",false);
   bool prevBanked=isBanked;
   isBanked=flags.getBool("isBanked",false);
-  if (prevBanked|=isBanked) {
+  if (prevBanked!=isBanked) {
     parent->renderSamples();
   }
   for (int i=0; i<16; i++) {
