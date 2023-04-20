@@ -1592,7 +1592,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MAAR",&i.macro->val[2],0,255)) { PARAMETER
           if (i.macro->val[2]<0) i.macro->val[2]=0;
           if (i.macro->val[2]>255) i.macro->val[2]=255;
-        }
+        } rightClickable
 
         ImGui::TableNextColumn();
         ImGui::Text("Sustain");
@@ -1601,7 +1601,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MASL",&i.macro->val[5],0,255)) { PARAMETER
           if (i.macro->val[5]<0) i.macro->val[5]=0;
           if (i.macro->val[5]>255) i.macro->val[5]=255;
-        }
+        } rightClickable
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -1611,7 +1611,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MAHT",&i.macro->val[3],0,255)) { PARAMETER
           if (i.macro->val[3]<0) i.macro->val[3]=0;
           if (i.macro->val[3]>255) i.macro->val[3]=255;
-        }
+        } rightClickable
 
         ImGui::TableNextColumn();
         ImGui::Text("SusTime");
@@ -1620,7 +1620,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MAST",&i.macro->val[6],0,255)) { PARAMETER
           if (i.macro->val[6]<0) i.macro->val[6]=0;
           if (i.macro->val[6]>255) i.macro->val[6]=255;
-        }
+        } rightClickable
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -1630,7 +1630,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MADR",&i.macro->val[4],0,255)) { PARAMETER
           if (i.macro->val[4]<0) i.macro->val[4]=0;
           if (i.macro->val[4]>255) i.macro->val[4]=255;
-        }
+        } rightClickable
 
         ImGui::TableNextColumn();
         ImGui::Text("SusDecay");
@@ -1639,7 +1639,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MASR",&i.macro->val[7],0,255)) { PARAMETER
           if (i.macro->val[7]<0) i.macro->val[7]=0;
           if (i.macro->val[7]>255) i.macro->val[7]=255;
-        }
+        } rightClickable
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -1652,7 +1652,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MARR",&i.macro->val[8],0,255)) { PARAMETER
           if (i.macro->val[8]<0) i.macro->val[8]=0;
           if (i.macro->val[8]>255) i.macro->val[8]=255;
-        }
+        } rightClickable
 
         ImGui::EndTable();
       }
@@ -1695,7 +1695,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MLSpeed",&i.macro->val[11],0,255)) { PARAMETER
           if (i.macro->val[11]<0) i.macro->val[11]=0;
           if (i.macro->val[11]>255) i.macro->val[11]=255;
-        }
+        } rightClickable
 
         ImGui::TableNextColumn();
         ImGui::Text("Phase");
@@ -1704,7 +1704,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MLPhase",&i.macro->val[13],0,1023)) { PARAMETER
           if (i.macro->val[13]<0) i.macro->val[13]=0;
           if (i.macro->val[13]>1023) i.macro->val[13]=1023;
-        }
+        } rightClickable
 
         ImGui::TableNextColumn();
         ImGui::Text("Shape");
@@ -1713,7 +1713,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MLShape",&i.macro->val[12],0,2,macroLFOShapes[i.macro->val[12]&3])) { PARAMETER
           if (i.macro->val[12]<0) i.macro->val[12]=0;
           if (i.macro->val[12]>2) i.macro->val[12]=2;
-        }
+        } rightClickable
 
         ImGui::EndTable();
       }
@@ -4799,7 +4799,7 @@ void FurnaceGUI::drawInsEdit() {
             // filter
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            P(CWSliderScalar("Filter 4,3 Mode",ImGuiDataType_U8,&ins->es5506.filter.mode,&_ZERO,&_THREE,es5506FilterModes[ins->es5506.filter.mode&3])); rightClickable
+            P(CWSliderScalar("Filter Mode",ImGuiDataType_U8,&ins->es5506.filter.mode,&_ZERO,&_THREE,es5506FilterModes[ins->es5506.filter.mode&3]));
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             P(CWSliderScalar("Filter K1",ImGuiDataType_U16,&ins->es5506.filter.k1,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
@@ -4883,17 +4883,17 @@ void FurnaceGUI::drawInsEdit() {
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Attack Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.ar,&_ZERO,&_FIFTEEN));
+              P(CWVSliderScalar("##Attack Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.ar,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Decay 1 Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.d1r,&_ZERO,&_FIFTEEN));
+              P(CWVSliderScalar("##Decay 1 Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.d1r,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Decay Level",sliderSize,ImGuiDataType_U8,&ins->multipcm.dl,&_ZERO,&_FIFTEEN));
+              P(CWVSliderScalar("##Decay Level",sliderSize,ImGuiDataType_U8,&ins->multipcm.dl,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Decay 2 Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.d2r,&_ZERO,&_FIFTEEN));
+              P(CWVSliderScalar("##Decay 2 Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.d2r,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Release Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.rr,&_ZERO,&_FIFTEEN));
+              P(CWVSliderScalar("##Release Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.rr,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Rate Correction",sliderSize,ImGuiDataType_U8,&ins->multipcm.rc,&_ZERO,&_FIFTEEN));
+              P(CWVSliderScalar("##Rate Correction",sliderSize,ImGuiDataType_U8,&ins->multipcm.rc,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
               drawFMEnv(0,ins->multipcm.ar,ins->multipcm.d1r,ins->multipcm.d2r,ins->multipcm.rr,ins->multipcm.dl,0,0,0,127,15,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
               ImGui::EndTable();
