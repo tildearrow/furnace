@@ -2517,7 +2517,7 @@ void FurnaceGUI::initSystemPresets() {
   );
   ENTRY(
     "Tiger Game.com", {
-      CH(DIV_SYSTEM_SM8521, 10f, 0, "")
+      CH(DIV_SYSTEM_SM8521, 1.0f, 0, "")
       }
     );
   ENTRY(
