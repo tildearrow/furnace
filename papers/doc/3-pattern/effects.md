@@ -121,8 +121,8 @@ ID | macro
 33 | KSR
 ---|-----------------------------
 40 | operator 2 macros
-60 | operator 2 macros
-80 | operator 2 macros
+60 | operator 3 macros
+80 | operator 4 macros
 
 the interpretation of duty, wave and extra macros depends on chip/instrument type:
 
