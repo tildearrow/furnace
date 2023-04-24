@@ -2516,6 +2516,11 @@ void FurnaceGUI::initSystemPresets() {
     "tickRate=75.47169811320754716981"
   );
   ENTRY(
+    "Tiger Game.com", {
+      CH(DIV_SYSTEM_SM8521, 10f, 0, "")
+      }
+    );
+  ENTRY(
     "Virtual Boy", {
       CH(DIV_SYSTEM_VBOY, 1.0f, 0, "")
     },
