@@ -687,6 +687,7 @@ void DivPlatformAY8910::muteChannel(int ch, bool mute) {
 void DivPlatformAY8910::forceIns() {
   for (int i=0; i<3; i++) {
     chan[i].insChanged=true;
+    chan[i].freqChanged=true;
   }
   immWrite(0x0b,ayEnvPeriod);
   immWrite(0x0c,ayEnvPeriod>>8);
