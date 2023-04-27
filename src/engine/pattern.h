@@ -25,6 +25,11 @@ struct DivPattern {
   short data[DIV_MAX_ROWS][DIV_MAX_COLS];
 
   /**
+   * clear the pattern.
+   */
+  void clear();
+
+  /**
    * copy this pattern to another.
    * @param dest the destination pattern.
    */
