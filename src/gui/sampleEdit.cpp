@@ -1164,6 +1164,7 @@ void FurnaceGUI::drawSampleEdit() {
               totalAdvance+=xAdvanceCoarse;
               if (xCoarse>=sample->samples) break;
               do {
+                if (xCoarse>=sample->samples) break;
                 if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
                   if (candMin>sample->data8[xCoarse]) candMin=sample->data8[xCoarse];
                   if (candMax<sample->data8[xCoarse]) candMax=sample->data8[xCoarse];
