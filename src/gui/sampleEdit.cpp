@@ -1171,8 +1171,12 @@ void FurnaceGUI::drawSampleEdit() {
                 if (y1>=availY) y1=availY-1;
                 if (y2<0) y2=0;
                 if (y2>=availY) y2=availY-1;
-                for (int j=y1; j<=y2; j++) {
-                  data[i+availX*(availY-j-1)]=lineColor;
+
+                const int s1=i+availX*(availY-y1-1);
+                const int s2=i+availX*(availY-y2-1);
+
+                for (int j=s2; j<=s1; j+=availX) {
+                  data[j]=lineColor;
                 }
                 if (totalAdvance>0) xCoarse++;
               } while ((totalAdvance--)>0);
