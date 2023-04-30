@@ -54,6 +54,8 @@ struct d65010g031_square_t
 struct d65010g031_t
 {
 	struct d65010g031_square_t square[3];
+	signed short out[3];
+	unsigned char ctrl;
 };
 
 int d65010g031_square_tick(struct d65010g031_square_t *square, const int cycle);
