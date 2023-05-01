@@ -3268,11 +3268,11 @@ bool FurnaceGUI::detectOutOfBoundsWindow(SDL_Rect& failing) {
     logD("bounds check: display %d is at %dx%dx%dx%d: %s%s",i,rect.x+OOB_PIXELS_SAFETY,rect.y+OOB_PIXELS_SAFETY,rect.x+rect.w-OOB_PIXELS_SAFETY,rect.y+rect.h-OOB_PIXELS_SAFETY,xbound?"x":"",ybound?"y":"");
 
     if (xbound && ybound) {
-      failing=rect;
       return true;
     }
   }
 
+  failing=rect;
   return false;
 }
 
@@ -6015,7 +6015,7 @@ bool FurnaceGUI::init() {
     scrY=scrConfY=SDL_WINDOWPOS_CENTERED;
 
     // make sure our window isn't big
-    if (bounds.w<scrW) {
+    /*if (bounds.w<scrW) {
       logD("resizing width because it does not fit");
       scrW=bounds.w-OOB_PIXELS_SAFETY*2;
       if (scrW<200) scrW=200;
@@ -6024,7 +6024,7 @@ bool FurnaceGUI::init() {
       logD("resizing height because it does not fit");
       scrH=bounds.h-OOB_PIXELS_SAFETY*2;
       if (scrH<100) scrH=100;
-    }
+    }*/
   }
 #endif
 
