@@ -5153,7 +5153,9 @@ void FurnaceGUI::drawInsEdit() {
                   wavePreview2[i]=wave2->data[i];
                 }
               }
-              if (ins->ws.enabled) wavePreview.tick(true);
+              if (ins->ws.enabled && (!wavePreviewPaused || wavePreviewInit)) {
+                wavePreview.tick(true);
+              }
               for (int i=0; i<wavePreviewLen; i++) {
                 if (wave2->data[i]>wavePreviewHeight) {
                   wavePreview3[i]=wavePreviewHeight;
@@ -5199,8 +5201,42 @@ void FurnaceGUI::drawInsEdit() {
                 }
               }
               ImGui::TableNextColumn();
+              if (ImGui::Button(wavePreviewPaused?(ICON_FA_PLAY "##WSPause"):(ICON_FA_PAUSE "##WSPause"))) {
+                wavePreviewPaused=!wavePreviewPaused;
+              }
+              if (ImGui::IsItemHovered()) {
+                if (wavePreviewPaused) {
+                  ImGui::SetTooltip("Resume preview");
+                } else {
+                  ImGui::SetTooltip("Pause preview");
+                }
+              }
+              ImGui::SameLine();
               if (ImGui::Button(ICON_FA_REPEAT "##WSRestart")) {
                 wavePreviewInit=true;
+              }
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Restart preview");
+              }
+              ImGui::SameLine();
+              if (ImGui::Button(ICON_FA_UPLOAD "##WSCopy")) {
+                curWave=e->addWave();
+                if (curWave==-1) {
+                  showError("too many wavetables!");
+                } else {
+                  wantScrollList=true;
+                  MARK_MODIFIED;
+                  RESET_WAVE_MACRO_ZOOM;
+                  nextWindow=GUI_WINDOW_WAVE_EDIT;
+
+                  DivWavetable* copyWave=e->song.wave[curWave];
+                  copyWave->len=wavePreviewLen;
+                  copyWave->max=wavePreviewHeight;
+                  memcpy(copyWave->data,wavePreview.output,256*sizeof(int));
+                }
+              }
+              if (ImGui::IsItemHovered()) {
+                ImGui::SetTooltip("Copy to new wavetable");
               }
               ImGui::SameLine();
               ImGui::Text("(%d×%d)",wavePreviewLen,wavePreviewHeight+1);

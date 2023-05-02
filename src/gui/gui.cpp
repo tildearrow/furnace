@@ -6573,6 +6573,7 @@ FurnaceGUI::FurnaceGUI():
   wavePreviewLen(32),
   wavePreviewHeight(255),
   wavePreviewInit(true),
+  wavePreviewPaused(false),
   pgSys(0),
   pgAddr(0),
   pgVal(0),
