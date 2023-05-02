@@ -456,8 +456,15 @@ bool DivSample::saveRaw(const char* path) {
     logE("could not save sample: %s!",strerror(errno));
     return false;
   }
-  if (depth==DIV_SAMPLE_DEPTH_BRR && getLoopStartPosition(DIV_SAMPLE_DEPTH_BRR)) {\
-    // TODO: BRR loop pos?
+  if (depth==DIV_SAMPLE_DEPTH_BRR) {
+    if (isLoopable()) {
+      unsigned short loopPos=getLoopStartPosition(DIV_SAMPLE_DEPTH_BRR);
+      fputc(loopPos&0xff,f);
+      fputc(loopPos>>8,f);
+    } else {
+      fputc(0,f);
+      fputc(0,f);
+    }
   }
 
   if (fwrite(getCurBuf(),1,getCurBufLen(),f)!=getCurBufLen()) {
