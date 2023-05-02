@@ -133,12 +133,23 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Open");
       }
+      if (ImGui::BeginPopupContextItem("SampleEOpenOpt")) {
+        if (ImGui::MenuItem("import raw...")) {
+          doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW:GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
+        }
+        ImGui::EndPopup();
+      }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_FLOPPY_O "##SESave")) {
         doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Save");
+      }
+      if (ImGui::BeginPopupContextItem("SampleESaveOpt")) {
+        if (ImGui::MenuItem("save raw...")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
+        }
       }
 
       ImGui::SameLine();

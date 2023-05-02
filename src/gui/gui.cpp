@@ -1726,6 +1726,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_SAMPLE_SAVE_RAW:
+      if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        "Load Raw Sample",
+        {"all files", "*"},
+        ".*",
+        workingDirSample,
+        dpiScale
+      );
+      break;
     case GUI_FILE_EXPORT_AUDIO_ONE:
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -4447,6 +4457,7 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_SAMPLE_OPEN_REPLACE:
         case GUI_FILE_SAMPLE_OPEN_REPLACE_RAW:
         case GUI_FILE_SAMPLE_SAVE:
+        case GUI_FILE_SAMPLE_SAVE_RAW:
           workingDirSample=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_AUDIO_ONE:
@@ -4714,7 +4725,16 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_SAMPLE_SAVE:
               if (curSample>=0 && curSample<(int)e->song.sample.size()) {
-                e->song.sample[curSample]->save(copyOfName.c_str());
+                if (!e->song.sample[curSample]->save(copyOfName.c_str())) {
+                  showError("could not save sample! open Log Viewer for more information.");
+                }
+              }
+              break;
+            case GUI_FILE_SAMPLE_SAVE_RAW:
+              if (curSample>=0 && curSample<(int)e->song.sample.size()) {
+                if (!e->song.sample[curSample]->saveRaw(copyOfName.c_str())) {
+                  showError("could not save sample! open Log Viewer for more information.");
+                }
               }
               break;
             case GUI_FILE_EXPORT_AUDIO_ONE:

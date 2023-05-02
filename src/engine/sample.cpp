@@ -19,6 +19,7 @@
 
 #include "sample.h"
 #include "../ta-log.h"
+#include "../fileutils.h"
 #include <math.h>
 #include <string.h>
 #ifdef HAVE_SNDFILE
@@ -442,6 +443,28 @@ bool DivSample::save(const char* path) {
 
   return true;
 #endif
+}
+
+bool DivSample::saveRaw(const char* path) {
+  if (samples<1) {
+    logE("sample is empty though!");
+    return false;
+  }
+
+  FILE* f=ps_fopen(path,"wb");
+  if (f==NULL) {
+    logE("could not save sample: %s!",strerror(errno));
+    return false;
+  }
+  if (depth==DIV_SAMPLE_DEPTH_BRR && getLoopStartPosition(DIV_SAMPLE_DEPTH_BRR)) {\
+    // TODO: BRR loop pos?
+  }
+
+  if (fwrite(getCurBuf(),1,getCurBufLen(),f)!=getCurBufLen()) {
+    logW("did not write entire instrument!");
+  }
+  fclose(f);
+  return true;
 }
 
 // 16-bit memory is padded to 512, to make things easier for ADPCM-A/B.

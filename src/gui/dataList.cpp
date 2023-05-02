@@ -700,6 +700,11 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Save");
     }
+    if (ImGui::BeginPopupContextItem("SampleSaveOpt")) {
+      if (ImGui::MenuItem("save raw...")) {
+        doAction(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
+      }
+    }
     ImGui::SameLine();
     if (ImGui::ArrowButton("SampleUp",ImGuiDir_Up)) {
       doAction(GUI_ACTION_SAMPLE_LIST_MOVE_UP);

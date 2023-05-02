@@ -636,6 +636,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_LIST_OPEN_RAW", "Import raw data", 0),
   D("SAMPLE_LIST_OPEN_REPLACE_RAW", "Import raw data (replace current)", 0),
   D("SAMPLE_LIST_SAVE", "Save", 0),
+  D("SAMPLE_LIST_SAVE_RAW", "Save (raw)", 0),
   D("SAMPLE_LIST_MOVE_UP", "Move up", FURKMOD_SHIFT|SDLK_UP),
   D("SAMPLE_LIST_MOVE_DOWN", "Move down", FURKMOD_SHIFT|SDLK_DOWN),
   D("SAMPLE_LIST_DELETE", "Delete", 0),
