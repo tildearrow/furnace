@@ -29,6 +29,7 @@ const char* regCheatSheetPV1000[]={
   "CH1_Pitch", "00",
   "CH2_Pitch", "01",
   "CH3_Pitch", "02",
+  "Control", "03",
   NULL
 };
 
@@ -38,11 +39,10 @@ const char** DivPlatformPV1000::getRegisterSheet() {
 
 void DivPlatformPV1000::acquire(short** buf, size_t len) {
   for (size_t h=0; h<len; h++) {
-    short samp;
-    samp=d65010g031_sound_tick(&d65010g031,1);
+    short samp=d65010g031_sound_tick(&d65010g031,1);
     buf[0][h]=samp;
     for (int i=0; i<3; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(d65010g031.square[i].out<<12);
+      oscBuf[i]->data[oscBuf[i]->needle++]=(d65010g031.out[i]);
     }
   }
 }
@@ -73,17 +73,17 @@ void DivPlatformPV1000::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       chan[i].freq=0x3f-parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
-      if (chan[i].freq<1) chan[i].freq=1;
+      if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>62) chan[i].freq=62;
       if (isMuted[i]) chan[i].keyOn=false;
       if (chan[i].keyOn) {
-        rWrite(i,(isMuted[i] || (chan[i].outVol<=0)) ? 0 : chan[i].freq);
+        rWrite(i,(isMuted[i] || (chan[i].outVol<=0)) ? 0x3f : chan[i].freq);
         chan[i].keyOn=false;
       } else if (chan[i].freqChanged && chan[i].active && !isMuted[i]) {
-        rWrite(i,(isMuted[i] || (chan[i].outVol<=0)) ? 0 : chan[i].freq);
+        rWrite(i,(isMuted[i] || (chan[i].outVol<=0)) ? 0x3f : chan[i].freq);
       }
       if (chan[i].keyOff) {
-        rWrite(i,0);
+        rWrite(i,0x3f);
         chan[i].keyOff=false;
       }
       chan[i].freqChanged=false;
@@ -136,6 +136,13 @@ int DivPlatformPV1000::dispatch(DivCommand c) {
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;
       chan[c.chan].freqChanged=true;
+      break;
+    case DIV_CMD_STD_NOISE_MODE: // ring modulation
+      if (c.value&1) {
+        rWrite(3,3);
+      } else {
+        rWrite(3,2);
+      }
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
@@ -224,16 +231,21 @@ unsigned char* DivPlatformPV1000::getRegisterPool() {
 }
 
 int DivPlatformPV1000::getRegisterPoolSize() {
-  return 3;
+  return 4;
 }
 
 void DivPlatformPV1000::reset() {
-  memset(regPool,0,3);
+  memset(regPool,0,4);
   for (int i=0; i<3; i++) {
     chan[i]=Channel();
     chan[i].std.setEngine(parent);
   }
   d65010g031_reset(&d65010g031);
+  // mute
+  rWrite(0,0x3f);
+  rWrite(1,0x3f);
+  rWrite(2,0x3f);
+  rWrite(3,2);
 }
 
 int DivPlatformPV1000::getOutputCount() {

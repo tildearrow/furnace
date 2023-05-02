@@ -67,7 +67,7 @@ int d65010g031_square_tick(struct d65010g031_square_t *square, const int cycle)
 {
 	if (square->period > 0)
 	{
-		int period = d65010g031_max(1, (0x3f - square->period));
+		const int period = square->period;
 		square->counter += cycle;
 		while (square->counter >= period)
 		{
@@ -82,9 +82,9 @@ int d65010g031_square_tick(struct d65010g031_square_t *square, const int cycle)
 // this is the bit I altered
 // THIS IS **NOT** THE ORIGINAL SOFTWARE! I am plainly marking it as such!
 const int d65Volumes[3]={
-  3840,
-  5120,
-  8192
+  3840, // -6dB
+  5120, // -3dB
+  8192 // 0dB
 };
 
 int d65010g031_sound_tick(struct d65010g031_t *d65010g031, const int cycle)
@@ -92,7 +92,29 @@ int d65010g031_sound_tick(struct d65010g031_t *d65010g031, const int cycle)
 	int out = 0;
 	for (int i = 0; i < 3; i++)
 	{
-		out += d65010g031_square_tick(&d65010g031->square[i], cycle)?d65Volumes[i]:-d65Volumes[i];
+		d65010g031->out[i] = 0;
+	}
+	if (d65010g031->ctrl & 2)
+	{
+		if (d65010g031->ctrl & 1) // ring modulation
+		{
+			int sout[3] = {
+				d65010g031_square_tick(&d65010g031->square[0], cycle),
+				d65010g031_square_tick(&d65010g031->square[1], cycle),
+				d65010g031_square_tick(&d65010g031->square[2], cycle),
+			};
+			d65010g031->out[0] = (sout[0] ^ sout[1]) ? d65Volumes[0] : -d65Volumes[0];
+			d65010g031->out[1] = (sout[1] ^ sout[2]) ? d65Volumes[1] : -d65Volumes[1];
+			d65010g031->out[2] = (sout[2] ? d65Volumes[2] : -d65Volumes[2]);
+		}
+		else
+		{
+			for (int i = 0; i < 3; i++)
+			{
+				d65010g031->out[i] = d65010g031_square_tick(&d65010g031->square[i], cycle)?d65Volumes[i]:-d65Volumes[i];
+			}
+		}
+		out = d65010g031->out[0] + d65010g031->out[1] + d65010g031->out[2];
 	}
 	return out;
 }
@@ -105,12 +127,25 @@ void d65010g031_reset(struct d65010g031_t *d65010g031)
 		d65010g031->square[i].counter = 0;
 		d65010g031->square[i].out = 0;
 	}
+	d65010g031->ctrl = 0;
 }
 
 void d65010g031_write(struct d65010g031_t *d65010g031, const unsigned char a, const unsigned char d)
 {
-	if (a < 3)
+	switch (a)
 	{
-		d65010g031->square[a].period = d & 0x3f;
+		case 3:
+			d65010g031->ctrl = d;
+			break;
+		default:
+		{
+			const unsigned char per = (unsigned char)(~d) & 0x3f;
+			if ((per == 0) && (d65010g031->square[a].period != 0))
+			{
+				d65010g031->square[a].out ^= 1;
+			}
+			d65010g031->square[a].period = per;
+			break;
+		}
 	}
 }

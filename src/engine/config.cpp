@@ -178,7 +178,7 @@ bool DivConfig::loadFromFile(const char* path, bool createOnFail, bool redundanc
       logD("config does not exist");
       if (createOnFail) {
         logI("creating default config.");
-        reportError(fmt::sprintf("Creating default config: %s",strerror(errno)));
+        //reportError(fmt::sprintf("Creating default config: %s",strerror(errno)));
         return save(path,redundancy);
       } else {
         reportError(fmt::sprintf("COULD NOT LOAD CONFIG %s",strerror(errno)));
@@ -191,7 +191,7 @@ bool DivConfig::loadFromFile(const char* path, bool createOnFail, bool redundanc
       logD("config does not exist");
       if (createOnFail) {
         logI("creating default config.");
-        reportError(fmt::sprintf("Creating default config: %s",strerror(errno)));
+        //reportError(fmt::sprintf("Creating default config: %s",strerror(errno)));
         return save(path);
       } else {
         reportError(fmt::sprintf("COULD NOT LOAD CONFIG %s",strerror(errno)));

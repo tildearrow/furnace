@@ -33,7 +33,7 @@ class DivPlatformPV1000: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[3];
   bool isMuted[3];
 
-  unsigned char regPool[3];
+  unsigned char regPool[4];
   d65010g031_t d65010g031;
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
