@@ -722,6 +722,8 @@ enum NoteCtrl {
 struct SelectionPoint {
   int xCoarse, xFine;
   int y;
+  SelectionPoint(int xc, int xf, int yp):
+    xCoarse(xc), xFine(xf), y(yp) {}
   SelectionPoint():
     xCoarse(0), xFine(0), y(0) {}
 };
@@ -743,8 +745,15 @@ enum ActionType {
   GUI_UNDO_PATTERN_FLIP,
   GUI_UNDO_PATTERN_COLLAPSE,
   GUI_UNDO_PATTERN_EXPAND,
+  GUI_UNDO_PATTERN_COLLAPSE_SONG,
+  GUI_UNDO_PATTERN_EXPAND_SONG,
   GUI_UNDO_PATTERN_DRAG,
   GUI_UNDO_REPLACE
+};
+
+enum UndoOtherTarget {
+  GUI_UNDO_TARGET_SONG,
+  GUI_UNDO_TARGET_SUBSONG
 };
 
 struct UndoPatternData {
@@ -771,6 +780,19 @@ struct UndoOrderData {
     newVal(v2) {}
 };
 
+struct UndoOtherData {
+  UndoOtherTarget target;
+  int subtarget;
+  size_t off;
+  unsigned char oldVal, newVal;
+  UndoOtherData(UndoOtherTarget t, int st, size_t o, unsigned char v1, unsigned char v2):
+    target(t),
+    subtarget(st),
+    off(o),
+    oldVal(v1),
+    newVal(v2) {}
+};
+
 struct UndoStep {
   ActionType type;
   SelectionPoint cursor, selStart, selEnd;
@@ -780,6 +802,7 @@ struct UndoStep {
   int oldPatLen, newPatLen;
   std::vector<UndoOrderData> ord;
   std::vector<UndoPatternData> pat;
+  std::vector<UndoOtherData> other;
 };
 
 // -1 = any
@@ -2065,8 +2088,10 @@ class FurnaceGUI {
   void doScale(float top);
   void doRandomize(int bottom, int top, bool mode);
   void doFlip();
-  void doCollapse(int divider);
-  void doExpand(int multiplier);
+  void doCollapse(int divider, const SelectionPoint& sStart, const SelectionPoint& sEnd);
+  void doExpand(int multiplier, const SelectionPoint& sStart, const SelectionPoint& sEnd);
+  void doCollapseSong(int divider);
+  void doExpandSong(int multiplier);
   void doUndo();
   void doRedo();
   void doFind();
@@ -2135,7 +2160,7 @@ class FurnaceGUI {
     void runBackupThread();
     void pushPartBlend();
     void popPartBlend();
-    bool detectOutOfBoundsWindow();
+    bool detectOutOfBoundsWindow(SDL_Rect& failing);
     int processEvent(SDL_Event* ev);
     bool loop();
     bool finish();

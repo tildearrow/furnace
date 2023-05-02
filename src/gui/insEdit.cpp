@@ -1464,7 +1464,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
       if (!i.isBitfield) {
         if (settings.oldMacroVSlider) {
           ImGui::SameLine(0.0f);
-          if (ImGui::VSliderInt("IMacroVScroll",ImVec2(20.0f*dpiScale,i.height*dpiScale),&i.macro->vScroll,0,(i.max-i.min)-i.macro->vZoom,"")) {
+          if (ImGui::VSliderInt("IMacroVScroll",ImVec2(20.0f*dpiScale,i.height*dpiScale),&i.macro->vScroll,0,(i.max-i.min)-i.macro->vZoom,"",ImGuiSliderFlags_NoInput)) {
             if (i.macro->vScroll<0) i.macro->vScroll=0;
             if (i.macro->vScroll>((i.max-i.min)-i.macro->vZoom)) i.macro->vScroll=(i.max-i.min)-i.macro->vZoom;
           }
@@ -1592,7 +1592,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MAAR",&i.macro->val[2],0,255)) { PARAMETER
           if (i.macro->val[2]<0) i.macro->val[2]=0;
           if (i.macro->val[2]>255) i.macro->val[2]=255;
-        }
+        } rightClickable
 
         ImGui::TableNextColumn();
         ImGui::Text("Sustain");
@@ -1601,7 +1601,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MASL",&i.macro->val[5],0,255)) { PARAMETER
           if (i.macro->val[5]<0) i.macro->val[5]=0;
           if (i.macro->val[5]>255) i.macro->val[5]=255;
-        }
+        } rightClickable
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -1611,7 +1611,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MAHT",&i.macro->val[3],0,255)) { PARAMETER
           if (i.macro->val[3]<0) i.macro->val[3]=0;
           if (i.macro->val[3]>255) i.macro->val[3]=255;
-        }
+        } rightClickable
 
         ImGui::TableNextColumn();
         ImGui::Text("SusTime");
@@ -1620,7 +1620,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MAST",&i.macro->val[6],0,255)) { PARAMETER
           if (i.macro->val[6]<0) i.macro->val[6]=0;
           if (i.macro->val[6]>255) i.macro->val[6]=255;
-        }
+        } rightClickable
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -1630,7 +1630,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MADR",&i.macro->val[4],0,255)) { PARAMETER
           if (i.macro->val[4]<0) i.macro->val[4]=0;
           if (i.macro->val[4]>255) i.macro->val[4]=255;
-        }
+        } rightClickable
 
         ImGui::TableNextColumn();
         ImGui::Text("SusDecay");
@@ -1639,7 +1639,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MASR",&i.macro->val[7],0,255)) { PARAMETER
           if (i.macro->val[7]<0) i.macro->val[7]=0;
           if (i.macro->val[7]>255) i.macro->val[7]=255;
-        }
+        } rightClickable
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -1652,7 +1652,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MARR",&i.macro->val[8],0,255)) { PARAMETER
           if (i.macro->val[8]<0) i.macro->val[8]=0;
           if (i.macro->val[8]>255) i.macro->val[8]=255;
-        }
+        } rightClickable
 
         ImGui::EndTable();
       }
@@ -1695,7 +1695,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MLSpeed",&i.macro->val[11],0,255)) { PARAMETER
           if (i.macro->val[11]<0) i.macro->val[11]=0;
           if (i.macro->val[11]>255) i.macro->val[11]=255;
-        }
+        } rightClickable
 
         ImGui::TableNextColumn();
         ImGui::Text("Phase");
@@ -1704,7 +1704,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MLPhase",&i.macro->val[13],0,1023)) { PARAMETER
           if (i.macro->val[13]<0) i.macro->val[13]=0;
           if (i.macro->val[13]>1023) i.macro->val[13]=1023;
-        }
+        } rightClickable
 
         ImGui::TableNextColumn();
         ImGui::Text("Shape");
@@ -1713,7 +1713,7 @@ void FurnaceGUI::drawMacroEdit(FurnaceGUIMacroDesc& i, int totalFit, float avail
         if (CWSliderInt("##MLShape",&i.macro->val[12],0,2,macroLFOShapes[i.macro->val[12]&3])) { PARAMETER
           if (i.macro->val[12]<0) i.macro->val[12]=0;
           if (i.macro->val[12]>2) i.macro->val[12]=2;
-        }
+        } rightClickable
 
         ImGui::EndTable();
       }
@@ -2839,37 +2839,37 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextColumn();
                   op.ar&=maxArDr;
                   CENTER_VSLIDER;
-                  P(CWVSliderScalar("##AR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO));
+                  P(CWVSliderScalar("##AR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO)); rightClickable
 
                   ImGui::TableNextColumn();
                   op.dr&=maxArDr;
                   CENTER_VSLIDER;
-                  P(CWVSliderScalar("##DR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dr,&maxArDr,&_ZERO));
+                  P(CWVSliderScalar("##DR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dr,&maxArDr,&_ZERO)); rightClickable
 
                   if (settings.susPosition==0) {
                     ImGui::TableNextColumn();
                     op.sl&=15;
                     CENTER_VSLIDER;
-                    P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO));
+                    P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO)); rightClickable
                   }
 
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
                     ImGui::TableNextColumn();
                     op.d2r&=31;
                     CENTER_VSLIDER;
-                    P(CWVSliderScalar("##D2R",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.d2r,&_THIRTY_ONE,&_ZERO));
+                    P(CWVSliderScalar("##D2R",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.d2r,&_THIRTY_ONE,&_ZERO)); rightClickable
                   }
 
                   ImGui::TableNextColumn();
                   op.rr&=15;
                   CENTER_VSLIDER;
-                  P(CWVSliderScalar("##RR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO));
+                  P(CWVSliderScalar("##RR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO)); rightClickable
 
                   if (settings.susPosition==1) {
                     ImGui::TableNextColumn();
                     op.sl&=15;
                     CENTER_VSLIDER;
-                    P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO));
+                    P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO)); rightClickable
                   }
 
                   ImGui::TableNextColumn();
@@ -2878,38 +2878,38 @@ void FurnaceGUI::drawInsEdit() {
                   ImGui::TableNextColumn();
                   op.tl&=maxTl;
                   CENTER_VSLIDER;
-                  P(CWVSliderScalar("##TL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO));
+                  P(CWVSliderScalar("##TL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
 
                   ImGui::TableNextColumn();
                   CENTER_VSLIDER;
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
-                    P(CWVSliderScalar("##RS",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE));
+                    P(CWVSliderScalar("##RS",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rs,&_ZERO,&_THREE)); rightClickable
                   } else {
                     int ksl=ins->type==DIV_INS_OPLL?op.ksl:kslMap[op.ksl&3];
                     if (CWVSliderInt("##KSL",ImVec2(20.0f*dpiScale,sliderHeight),&ksl,0,3)) {
                       op.ksl=(ins->type==DIV_INS_OPLL?ksl:kslMap[ksl&3]);
                       PARAMETER;
-                    }
+                    } rightClickable
                   }
 
                   if (ins->type==DIV_INS_OPZ) {
                     ImGui::TableNextColumn();
                     CENTER_VSLIDER;
-                    P(CWVSliderScalar("##EGS",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ksl,&_ZERO,&_THREE));
+                    P(CWVSliderScalar("##EGS",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ksl,&_ZERO,&_THREE)); rightClickable
 
                     ImGui::TableNextColumn();
                     CENTER_VSLIDER;
-                    P(CWVSliderScalar("##REV",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dam,&_ZERO,&_SEVEN));
+                    P(CWVSliderScalar("##REV",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dam,&_ZERO,&_SEVEN)); rightClickable
                   }
 
                   ImGui::TableNextColumn();
                   CENTER_VSLIDER;
-                  P(CWVSliderScalar("##MULT",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN));
+                  P(CWVSliderScalar("##MULT",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.mult,&_ZERO,&_FIFTEEN)); rightClickable
 
                   if (ins->type==DIV_INS_OPZ) {
                     ImGui::TableNextColumn();
                     CENTER_VSLIDER;
-                    P(CWVSliderScalar("##FINE",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dvb,&_ZERO,&_FIFTEEN));
+                    P(CWVSliderScalar("##FINE",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dvb,&_ZERO,&_FIFTEEN)); rightClickable
                   }
 
                   if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPZ || ins->type==DIV_INS_OPM) {
@@ -2920,7 +2920,7 @@ void FurnaceGUI::drawInsEdit() {
                       if (detune<-3) detune=-3;
                       if (detune>7) detune=7;
                       op.dt=detuneUnmap[settings.unsignedDetune?1:0][detune+3];
-                    }
+                    } rightClickable
 
                     if (ins->type!=DIV_INS_FM) {
                       ImGui::TableNextColumn();
@@ -3169,19 +3169,19 @@ void FurnaceGUI::drawInsEdit() {
                     ImGui::TableNextColumn();
 
                     op.ar&=maxArDr;
-                    P(CWVSliderScalar("##AR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO));
+                    P(CWVSliderScalar("##AR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.ar,&maxArDr,&_ZERO)); rightClickable
 
                     ImGui::SameLine();
                     op.dr&=maxArDr;
                     float textX_DR=ImGui::GetCursorPosX();
-                    P(CWVSliderScalar("##DR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dr,&maxArDr,&_ZERO));
+                    P(CWVSliderScalar("##DR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.dr,&maxArDr,&_ZERO)); rightClickable
 
                     float textX_SL=0.0f;
                     if (settings.susPosition==0) {
                       ImGui::SameLine();
                       op.sl&=15;
                       textX_SL=ImGui::GetCursorPosX();
-                      P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO));
+                      P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO)); rightClickable
                     }
 
                     float textX_D2R=0.0f;
@@ -3189,19 +3189,19 @@ void FurnaceGUI::drawInsEdit() {
                       ImGui::SameLine();
                       op.d2r&=31;
                       textX_D2R=ImGui::GetCursorPosX();
-                      P(CWVSliderScalar("##D2R",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.d2r,&_THIRTY_ONE,&_ZERO));
+                      P(CWVSliderScalar("##D2R",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.d2r,&_THIRTY_ONE,&_ZERO)); rightClickable
                     }
 
                     ImGui::SameLine();
                     op.rr&=15;
                     float textX_RR=ImGui::GetCursorPosX();
-                    P(CWVSliderScalar("##RR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO));
+                    P(CWVSliderScalar("##RR",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.rr,&_FIFTEEN,&_ZERO)); rightClickable
 
                     if (settings.susPosition==1) {
                       ImGui::SameLine();
                       op.sl&=15;
                       textX_SL=ImGui::GetCursorPosX();
-                      P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO));
+                      P(CWVSliderScalar("##SL",ImVec2(20.0f*dpiScale,sliderHeight),ImGuiDataType_U8,&op.sl,&_FIFTEEN,&_ZERO)); rightClickable
                     }
 
                     ImVec2 prevCurPos=ImGui::GetCursorPos();
@@ -3500,7 +3500,7 @@ void FurnaceGUI::drawInsEdit() {
 
                     ImGui::TableNextColumn();
                     op.tl&=maxTl;
-                    P(CWVSliderScalar("##TL",ImVec2(ImGui::GetFrameHeight(),sliderHeight-((ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM)?(ImGui::GetFrameHeightWithSpacing()+ImGui::CalcTextSize(FM_SHORT_NAME(FM_AM)).y+ImGui::GetStyle().ItemSpacing.y):0.0f)),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO));
+                    P(CWVSliderScalar("##TL",ImVec2(ImGui::GetFrameHeight(),sliderHeight-((ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM)?(ImGui::GetFrameHeightWithSpacing()+ImGui::CalcTextSize(FM_SHORT_NAME(FM_AM)).y+ImGui::GetStyle().ItemSpacing.y):0.0f)),ImGuiDataType_U8,&op.tl,&maxTl,&_ZERO)); rightClickable
 
                     if (ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM) {
                       CENTER_TEXT(FM_SHORT_NAME(FM_AM));
@@ -4299,13 +4299,13 @@ void FurnaceGUI::drawInsEdit() {
 
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            P(CWVSliderScalar("##Attack",sliderSize,ImGuiDataType_U8,&ins->c64.a,&_ZERO,&_FIFTEEN));
+            P(CWVSliderScalar("##Attack",sliderSize,ImGuiDataType_U8,&ins->c64.a,&_ZERO,&_FIFTEEN)); rightClickable
             ImGui::TableNextColumn();
-            P(CWVSliderScalar("##Decay",sliderSize,ImGuiDataType_U8,&ins->c64.d,&_ZERO,&_FIFTEEN));
+            P(CWVSliderScalar("##Decay",sliderSize,ImGuiDataType_U8,&ins->c64.d,&_ZERO,&_FIFTEEN)); rightClickable
             ImGui::TableNextColumn();
-            P(CWVSliderScalar("##Sustain",sliderSize,ImGuiDataType_U8,&ins->c64.s,&_ZERO,&_FIFTEEN));
+            P(CWVSliderScalar("##Sustain",sliderSize,ImGuiDataType_U8,&ins->c64.s,&_ZERO,&_FIFTEEN)); rightClickable
             ImGui::TableNextColumn();
-            P(CWVSliderScalar("##Release",sliderSize,ImGuiDataType_U8,&ins->c64.r,&_ZERO,&_FIFTEEN));
+            P(CWVSliderScalar("##Release",sliderSize,ImGuiDataType_U8,&ins->c64.r,&_ZERO,&_FIFTEEN)); rightClickable
             ImGui::TableNextColumn();
             drawFMEnv(0,16-ins->c64.a,16-ins->c64.d,15-ins->c64.r,15-ins->c64.r,15-ins->c64.s,0,0,0,15,16,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
 
@@ -4800,7 +4800,7 @@ void FurnaceGUI::drawInsEdit() {
             // filter
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
-            P(CWSliderScalar("Filter 4,3 Mode",ImGuiDataType_U8,&ins->es5506.filter.mode,&_ZERO,&_THREE,es5506FilterModes[ins->es5506.filter.mode&3])); rightClickable
+            P(CWSliderScalar("Filter Mode",ImGuiDataType_U8,&ins->es5506.filter.mode,&_ZERO,&_THREE,es5506FilterModes[ins->es5506.filter.mode&3]));
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             P(CWSliderScalar("Filter K1",ImGuiDataType_U16,&ins->es5506.filter.k1,&_ZERO,&_SIXTY_FIVE_THOUSAND_FIVE_HUNDRED_THIRTY_FIVE)); rightClickable
@@ -4884,17 +4884,17 @@ void FurnaceGUI::drawInsEdit() {
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Attack Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.ar,&_ZERO,&_FIFTEEN));
+              P(CWVSliderScalar("##Attack Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.ar,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Decay 1 Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.d1r,&_ZERO,&_FIFTEEN));
+              P(CWVSliderScalar("##Decay 1 Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.d1r,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Decay Level",sliderSize,ImGuiDataType_U8,&ins->multipcm.dl,&_ZERO,&_FIFTEEN));
+              P(CWVSliderScalar("##Decay Level",sliderSize,ImGuiDataType_U8,&ins->multipcm.dl,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Decay 2 Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.d2r,&_ZERO,&_FIFTEEN));
+              P(CWVSliderScalar("##Decay 2 Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.d2r,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Release Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.rr,&_ZERO,&_FIFTEEN));
+              P(CWVSliderScalar("##Release Rate",sliderSize,ImGuiDataType_U8,&ins->multipcm.rr,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Rate Correction",sliderSize,ImGuiDataType_U8,&ins->multipcm.rc,&_ZERO,&_FIFTEEN));
+              P(CWVSliderScalar("##Rate Correction",sliderSize,ImGuiDataType_U8,&ins->multipcm.rc,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
               drawFMEnv(0,ins->multipcm.ar,ins->multipcm.d1r,ins->multipcm.d2r,ins->multipcm.rr,ins->multipcm.dl,0,0,0,127,15,15,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
               ImGui::EndTable();
@@ -4952,17 +4952,17 @@ void FurnaceGUI::drawInsEdit() {
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Attack",sliderSize,ImGuiDataType_U8,&ins->snes.a,&_ZERO,&_FIFTEEN));
+              P(CWVSliderScalar("##Attack",sliderSize,ImGuiDataType_U8,&ins->snes.a,&_ZERO,&_FIFTEEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Decay",sliderSize,ImGuiDataType_U8,&ins->snes.d,&_ZERO,&_SEVEN));
+              P(CWVSliderScalar("##Decay",sliderSize,ImGuiDataType_U8,&ins->snes.d,&_ZERO,&_SEVEN)); rightClickable
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Sustain",sliderSize,ImGuiDataType_U8,&ins->snes.s,&_ZERO,&_SEVEN));
+              P(CWVSliderScalar("##Sustain",sliderSize,ImGuiDataType_U8,&ins->snes.s,&_ZERO,&_SEVEN)); rightClickable
               if (ins->snes.sus) {
                 ImGui::TableNextColumn();
-                P(CWVSliderScalar("##Decay2",sliderSize,ImGuiDataType_U8,&ins->snes.d2,&_ZERO,&_THIRTY_ONE));
+                P(CWVSliderScalar("##Decay2",sliderSize,ImGuiDataType_U8,&ins->snes.d2,&_ZERO,&_THIRTY_ONE)); rightClickable
               }
               ImGui::TableNextColumn();
-              P(CWVSliderScalar("##Release",sliderSize,ImGuiDataType_U8,&ins->snes.r,&_ZERO,&_THIRTY_ONE));
+              P(CWVSliderScalar("##Release",sliderSize,ImGuiDataType_U8,&ins->snes.r,&_ZERO,&_THIRTY_ONE)); rightClickable
               ImGui::TableNextColumn();
               drawFMEnv(0,ins->snes.a+1,1+ins->snes.d*2,ins->snes.sus?ins->snes.d2:ins->snes.r,ins->snes.sus?ins->snes.r:31,(14-ins->snes.s*2),(ins->snes.r==0 || (ins->snes.sus && ins->snes.d2==0)),0,0,7,16,31,ImVec2(ImGui::GetContentRegionAvail().x,sliderSize.y),ins->type);
 
@@ -5024,7 +5024,7 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::TableNextColumn();
               unsigned char gainMax=(ins->snes.gainMode==DivInstrumentSNES::GAIN_MODE_DIRECT)?127:31;
               if (ins->snes.gain>gainMax) ins->snes.gain=gainMax;
-              P(CWVSliderScalar("##Gain",sliderSize,ImGuiDataType_U8,&ins->snes.gain,&_ZERO,&gainMax));
+              P(CWVSliderScalar("##Gain",sliderSize,ImGuiDataType_U8,&ins->snes.gain,&_ZERO,&gainMax)); rightClickable
 
               ImGui::TableNextColumn();
               ImGui::Text("Envelope goes here...");

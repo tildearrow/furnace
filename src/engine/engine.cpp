@@ -55,6 +55,10 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "03xx: Portamento";
     case 0x04:
       return "04xy: Vibrato (x: speed; y: depth)";
+    case 0x05:
+      return "05xy: Volume slide + vibrato (compatibility only!)";
+    case 0x06:
+      return "06xy: Volume slide + portamento (compatibility only!)";
     case 0x07:
       return "07xy: Tremolo (x: speed; y: depth)";
     case 0x08:
@@ -2419,6 +2423,13 @@ void DivEngine::stepOne(int row) {
 void DivEngine::stop() {
   BUSY_BEGIN;
   freelance=false;
+  if (!playing) {
+    //Send midi panic
+    if (output) if (output->midiOut!=NULL) {
+      output->midiOut->send(TAMidiMessage(TA_MIDI_CONTROL,0x7B,0));
+      logV("Midi panic sent");
+    }
+  }
   playing=false;
   extValuePresent=false;
   endOfSong=false; // what?

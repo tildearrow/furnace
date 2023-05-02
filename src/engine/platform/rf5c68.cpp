@@ -151,8 +151,8 @@ void DivPlatformRF5C68::tick(bool sysTick) {
         if (s->isLoopable()) {
           loop=start+s->loopStart;
         }
-        start=MIN(start,getSampleMemCapacity()-31);
-        loop=MIN(loop,getSampleMemCapacity()-31);
+        start=MIN(start,getSampleMemCapacity()-32);
+        loop=MIN(loop,getSampleMemCapacity()-32);
         rWrite(8,keyoff); // force keyoff first
         chWrite(i,6,start>>8);
         chWrite(i,4,loop&0xff);
@@ -425,7 +425,7 @@ void DivPlatformRF5C68::renderSamples(int sysID) {
     }
 
     int length=s->getLoopEndPosition(DIV_SAMPLE_DEPTH_8BIT);
-    int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-31,length);
+    int actualLength=MIN((int)(getSampleMemCapacity()-memPos)-32,length);
     if (actualLength>0) {
       sampleOffRFC[i]=memPos;
       for (int j=0; j<actualLength; j++) {
@@ -435,8 +435,8 @@ void DivPlatformRF5C68::renderSamples(int sysID) {
         sampleMem[memPos++]=(val>0)?(val|0x80):(0-val);
       }
       // write end of sample marker
-      memset(&sampleMem[memPos],0xff,31);
-      memPos+=31;
+      memset(&sampleMem[memPos],0xff,32);
+      memPos+=32;
     }
     if (actualLength<length) {
       logW("out of RF5C68 PCM memory for sample %d!",i);

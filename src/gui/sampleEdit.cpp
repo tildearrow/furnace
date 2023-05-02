@@ -1111,23 +1111,26 @@ void FurnaceGUI::drawSampleEdit() {
 
       if (sampleTex!=NULL) {
         if (updateSampleTex) {
-          unsigned int* data=NULL;
+          unsigned int* dataT=NULL;
           int pitch=0;
           logD("updating sample texture.");
-          if (SDL_LockTexture(sampleTex,NULL,(void**)&data,&pitch)!=0) {
+          if (SDL_LockTexture(sampleTex,NULL,(void**)&dataT,&pitch)!=0) {
             logE("error while locking sample texture! %s",SDL_GetError());
           } else {
+            unsigned int* data=new unsigned int[sampleTexW*sampleTexH];
+
             ImU32 bgColor=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_BG]);
             ImU32 bgColorLoop=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP]);
             ImU32 lineColor=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_FG]);
             ImU32 centerLineColor=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_CENTER]);
+            int ij=0;
             for (int i=0; i<availY; i++) {
               for (int j=0; j<availX; j++) {
                 int scaledPos=samplePos+(j*sampleZoom);
                 if (sample->isLoopable() && (scaledPos>=sample->loopStart && scaledPos<=sample->loopEnd)) {
-                  data[i*availX+j]=bgColorLoop;
+                  data[ij++]=bgColorLoop;
                 } else {
-                  data[i*availX+j]=bgColor;
+                  data[ij++]=bgColor;
                 }
               }
             }
@@ -1143,11 +1146,15 @@ void FurnaceGUI::drawSampleEdit() {
             for (unsigned int i=0; i<(unsigned int)availX; i++) {
               if (xCoarse>=sample->samples) break;
               int y1, y2;
+              int candMin=INT_MAX;
+              int candMax=INT_MIN;
               int totalAdvance=0;
               if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
-                y1=((unsigned char)sample->data8[xCoarse]^0x80)*availY/256;
+                if (candMin>sample->data8[xCoarse]) candMin=sample->data8[xCoarse];
+                if (candMax<sample->data8[xCoarse]) candMax=sample->data8[xCoarse];
               } else {
-                y1=((unsigned short)sample->data16[xCoarse]^0x8000)*availY/65536;
+                if (candMin>sample->data16[xCoarse]) candMin=sample->data16[xCoarse];
+                if (candMax<sample->data16[xCoarse]) candMax=sample->data16[xCoarse];
               }
               xFine+=xAdvanceFine;
               if (xFine>=16777216) {
@@ -1157,27 +1164,44 @@ void FurnaceGUI::drawSampleEdit() {
               totalAdvance+=xAdvanceCoarse;
               if (xCoarse>=sample->samples) break;
               do {
+                if (xCoarse>=sample->samples) break;
                 if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
-                  y2=((unsigned char)sample->data8[xCoarse]^0x80)*availY/256;
+                  if (candMin>sample->data8[xCoarse]) candMin=sample->data8[xCoarse];
+                  if (candMax<sample->data8[xCoarse]) candMax=sample->data8[xCoarse];
                 } else {
-                  y2=((unsigned short)sample->data16[xCoarse]^0x8000)*availY/65536;
-                }
-                if (y1>y2) {
-                  y2^=y1;
-                  y1^=y2;
-                  y2^=y1;
-                }
-                if (y1<0) y1=0;
-                if (y1>=availY) y1=availY-1;
-                if (y2<0) y2=0;
-                if (y2>=availY) y2=availY-1;
-                for (int j=y1; j<=y2; j++) {
-                  data[i+availX*(availY-j-1)]=lineColor;
+                  if (candMin>sample->data16[xCoarse]) candMin=sample->data16[xCoarse];
+                  if (candMax<sample->data16[xCoarse]) candMax=sample->data16[xCoarse];
                 }
                 if (totalAdvance>0) xCoarse++;
               } while ((totalAdvance--)>0);
+              if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
+                y1=(((unsigned char)candMin^0x80)*availY)>>8;
+                y2=(((unsigned char)candMax^0x80)*availY)>>8;
+              } else {
+                y1=(((unsigned short)candMin^0x8000)*availY)>>16;
+                y2=(((unsigned short)candMax^0x8000)*availY)>>16;
+              }
+              if (y1>y2) {
+                y2^=y1;
+                y1^=y2;
+                y2^=y1;
+              }
+              if (y1<0) y1=0;
+              if (y1>=availY) y1=availY-1;
+              if (y2<0) y2=0;
+              if (y2>=availY) y2=availY-1;
+
+              const int s1=i+availX*(availY-y1-1);
+              const int s2=i+availX*(availY-y2-1);
+
+              for (int j=s2; j<=s1; j+=availX) {
+                data[j]=lineColor;
+              }
             }
+
+            memcpy(dataT,data,sampleTexW*sampleTexH*sizeof(unsigned int));
             SDL_UnlockTexture(sampleTex);
+            delete[] data;
           }
           updateSampleTex=false;
         }

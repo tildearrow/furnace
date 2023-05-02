@@ -680,6 +680,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
           chan[i].inPorta=false;
           dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
         } else {
+          chan[i].lastPorta=effectVal;
           calledPorta=true;
           if (chan[i].note==chan[i].oldNote && !chan[i].inPorta && song.buggyPortaAfterSlide) {
             chan[i].portaNote=chan[i].note;
@@ -700,10 +701,77 @@ void DivEngine::processRow(int i, bool afterDelay) {
         }
         break;
       case 0x04: // vibrato
+        if (effectVal) chan[i].lastVibrato=effectVal;
         chan[i].vibratoDepth=effectVal&15;
         chan[i].vibratoRate=effectVal>>4;
         dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,chan[i].vibratoDepth,chan[i].vibratoRate));
         dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+        break;
+      case 0x05: // vol slide + vibrato
+        if (effectVal==0) {
+          chan[i].vibratoDepth=0;
+          chan[i].vibratoRate=0;
+        } else {
+          chan[i].vibratoDepth=chan[i].lastVibrato&15;
+          chan[i].vibratoRate=chan[i].lastVibrato>>4;
+        }
+        dispatchCmd(DivCommand(DIV_CMD_HINT_VIBRATO,i,chan[i].vibratoDepth,chan[i].vibratoRate));
+        dispatchCmd(DivCommand(DIV_CMD_PITCH,i,chan[i].pitch+(((chan[i].vibratoDepth*vibTable[chan[i].vibratoPos]*chan[i].vibratoFine)>>4)/15)));
+        // TODO: non-0x-or-x0 value should be treated as 00
+        if (effectVal!=0) {
+          if ((effectVal&15)!=0) {
+            chan[i].volSpeed=-(effectVal&15)*64;
+          } else {
+            chan[i].volSpeed=(effectVal>>4)*64;
+          }
+          // tremolo and vol slides are incompatible
+          chan[i].tremoloDepth=0;
+          chan[i].tremoloRate=0;
+        } else {
+          chan[i].volSpeed=0;
+        }
+        dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
+        break;
+      case 0x06: // vol slide + porta
+        if (effectVal==0 || chan[i].lastPorta==0) {
+          chan[i].portaNote=-1;
+          chan[i].portaSpeed=-1;
+          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+          chan[i].inPorta=false;
+          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,false,0));
+        } else {
+          calledPorta=true;
+          if (chan[i].note==chan[i].oldNote && !chan[i].inPorta && song.buggyPortaAfterSlide) {
+            chan[i].portaNote=chan[i].note;
+            chan[i].portaSpeed=-1;
+          } else {
+            chan[i].portaNote=chan[i].note;
+            chan[i].portaSpeed=chan[i].lastPorta;
+            chan[i].inPorta=true;
+            chan[i].wasShorthandPorta=false;
+          }
+          dispatchCmd(DivCommand(DIV_CMD_HINT_PORTA,i,CLAMP(chan[i].portaNote,-128,127),MAX(chan[i].portaSpeed,0)));
+          chan[i].portaStop=true;
+          if (chan[i].keyOn) chan[i].doNote=false;
+          chan[i].stopOnOff=song.stopPortaOnNoteOff; // what?!
+          chan[i].scheduledSlideReset=false;
+          dispatchCmd(DivCommand(DIV_CMD_PRE_PORTA,i,true,1));
+          lastSlide=0x1337; // i hate this so much
+        }
+        // TODO: non-0x-or-x0 value should be treated as 00
+        if (effectVal!=0) {
+          if ((effectVal&15)!=0) {
+            chan[i].volSpeed=-(effectVal&15)*64;
+          } else {
+            chan[i].volSpeed=(effectVal>>4)*64;
+          }
+          // tremolo and vol slides are incompatible
+          chan[i].tremoloDepth=0;
+          chan[i].tremoloRate=0;
+        } else {
+          chan[i].volSpeed=0;
+        }
+        dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
       case 0x07: // tremolo
         // TODO
@@ -1125,14 +1193,30 @@ void DivEngine::nextRow() {
           bool wantPreNote=false;
           if (disCont[dispatchOfChan[i]].dispatch!=NULL) {
             wantPreNote=disCont[dispatchOfChan[i]].dispatch->getWantPreNote();
-            if (wantPreNote) dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks));
+            if (wantPreNote) {
+              int addition=0;
+              for (int j=0; j<curPat[i].effectCols; j++) {
+                if (pat->data[curRow][4+(j<<1)]==0xed) {
+                  if (pat->data[curRow][5+(j<<1)]>0) {
+                    addition=pat->data[curRow][5+(j<<1)];
+                    break;
+                  }
+                }
+              }
+              dispatchCmd(DivCommand(DIV_CMD_PRE_NOTE,i,ticks+addition));
+            }
           }
 
           if (song.oneTickCut) {
             bool doPrepareCut=true;
+            int addition=0;
 
             for (int j=0; j<curPat[i].effectCols; j++) {
               if (pat->data[curRow][4+(j<<1)]==0x03) {
+                doPrepareCut=false;
+                break;
+              }
+              if (pat->data[curRow][4+(j<<1)]==0x06) {
                 doPrepareCut=false;
                 break;
               }
@@ -1142,8 +1226,14 @@ void DivEngine::nextRow() {
                   break;
                 }
               }
+              if (pat->data[curRow][4+(j<<1)]==0xed) {
+                if (pat->data[curRow][5+(j<<1)]>0) {
+                  addition=pat->data[curRow][5+(j<<1)];
+                  break;
+                }
+              }
             }
-            if (doPrepareCut && !wantPreNote && chan[i].cut<=0) chan[i].cut=ticks;
+            if (doPrepareCut && !wantPreNote && chan[i].cut<=0) chan[i].cut=ticks+addition;
           }
         }
       }

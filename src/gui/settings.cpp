@@ -276,6 +276,8 @@ void FurnaceGUI::drawSettings() {
     ImVec2 setWindowSize=ImVec2(canvasW,canvasH);
     ImGui::SetNextWindowPos(setWindowPos);
     ImGui::SetNextWindowSize(setWindowSize);
+  } else {
+    ImGui::SetNextWindowSizeConstraints(ImVec2(200.0f*dpiScale,100.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|globalWinFlags)) {
     if (!settingsOpen) {
@@ -2303,9 +2305,11 @@ void FurnaceGUI::drawSettings() {
             UI_KEYBIND_CONFIG(GUI_ACTION_PAT_FLIP_SELECTION);
             UI_KEYBIND_CONFIG(GUI_ACTION_PAT_COLLAPSE_ROWS);
             UI_KEYBIND_CONFIG(GUI_ACTION_PAT_EXPAND_ROWS);
+            UI_KEYBIND_CONFIG(GUI_ACTION_PAT_COLLAPSE_PAT);
+            UI_KEYBIND_CONFIG(GUI_ACTION_PAT_EXPAND_PAT);
+            UI_KEYBIND_CONFIG(GUI_ACTION_PAT_COLLAPSE_SONG);
+            UI_KEYBIND_CONFIG(GUI_ACTION_PAT_EXPAND_SONG);
             UI_KEYBIND_CONFIG(GUI_ACTION_PAT_LATCH);
-
-            // TODO: collapse/expand pattern and song
 
             KEYBIND_CONFIG_END;
             ImGui::TreePop();

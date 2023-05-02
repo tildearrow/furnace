@@ -1083,6 +1083,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
 
   bool trailing=false;
   bool beenOneLoopAlready=false;
+  bool mayWriteRate=(fmod(curSubSong->hz,1.0)<0.00001 || fmod(curSubSong->hz,1.0)>0.99999);
   int countDown=MAX(0,trailingTicks)+1;
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
@@ -2398,6 +2399,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   } else {
     w->writeI(0);
     w->writeI(0);
+  }
+  if (mayWriteRate) {
+    w->writeI(round(curSubSong->hz));
   }
   w->seek(0x34,SEEK_SET);
   w->writeI(songOff-0x34);

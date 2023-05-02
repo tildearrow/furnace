@@ -2842,9 +2842,23 @@ void FurnaceGUI::editOptions(bool topMenu) {
     ImGui::Separator();
 
     if (ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION))) doFlip();
-    if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(2);
-    if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(2);
+    if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(2,selStart,selEnd);
+    if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(2,selStart,selEnd);
 
+    if (topMenu) {
+      ImGui::Separator();
+      if (ImGui::MenuItem("collapse pattern",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_PAT))) doAction(GUI_ACTION_PAT_COLLAPSE_PAT);
+      if (ImGui::MenuItem("expand pattern",BIND_FOR(GUI_ACTION_PAT_EXPAND_PAT))) doAction(GUI_ACTION_PAT_EXPAND_PAT);
+    }
+  }
+
+  if (topMenu) {
+    ImGui::Separator();
+    if (ImGui::MenuItem("collapse song",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_SONG))) doAction(GUI_ACTION_PAT_COLLAPSE_SONG);
+    if (ImGui::MenuItem("expand song",BIND_FOR(GUI_ACTION_PAT_EXPAND_SONG))) doAction(GUI_ACTION_PAT_EXPAND_SONG);
+  }
+
+  if (!basicMode) {
     if (topMenu) {
       ImGui::Separator();
       if (ImGui::MenuItem("find/replace",BIND_FOR(GUI_ACTION_WINDOW_FIND),findOpen)) {
@@ -2856,16 +2870,6 @@ void FurnaceGUI::editOptions(bool topMenu) {
       }
     }
   }
-
-  /*if (topMenu) {
-    ImGui::Separator();
-    ImGui::MenuItem("collapse pattern",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_PAT));
-    ImGui::MenuItem("expand pattern",BIND_FOR(GUI_ACTION_PAT_EXPAND_PAT));
-
-    ImGui::Separator();
-    ImGui::MenuItem("collapse song",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_SONG));
-    ImGui::MenuItem("expand song",BIND_FOR(GUI_ACTION_PAT_EXPAND_SONG));
-  }*/
 }
 
 void FurnaceGUI::toggleMobileUI(bool enable, bool force) {
@@ -3245,18 +3249,18 @@ void FurnaceGUI::pointMotion(int x, int y, int xrel, int yrel) {
 // how many pixels should be visible at least at x/y dir
 #define OOB_PIXELS_SAFETY 25
 
-bool FurnaceGUI::detectOutOfBoundsWindow() {
+bool FurnaceGUI::detectOutOfBoundsWindow(SDL_Rect& failing) {
   int count=SDL_GetNumVideoDisplays();
   if (count<1) {
-    logW("bounds check: error %s",SDL_GetError());
+    logW("bounds check: error: %s",SDL_GetError());
     return false;
   }
 
   SDL_Rect rect;
   for (int i=0; i<count; i++) {
     if (SDL_GetDisplayUsableBounds(i,&rect)!=0) {
-      logW("bounds check: error %s",SDL_GetError());
-      return false;
+      logW("bounds check: error in display %d: %s",i,SDL_GetError());
+      continue;
     }
 
     bool xbound=((rect.x+OOB_PIXELS_SAFETY)<=(scrX+scrW)) && ((rect.x+rect.w-OOB_PIXELS_SAFETY)>=scrX);
@@ -3268,6 +3272,7 @@ bool FurnaceGUI::detectOutOfBoundsWindow() {
     }
   }
 
+  failing=rect;
   return false;
 }
 
@@ -3838,11 +3843,11 @@ bool FurnaceGUI::loop() {
           }
           ImGui::Checkbox("loop",&vgmExportLoop);
           if (vgmExportLoop && e->song.loopModality==2) {
-            ImGui::Text("trailing ticks:");
+            ImGui::Text("loop trail:");
             if (ImGui::RadioButton("auto-detect",vgmExportTrailingTicks==-1)) {
               vgmExportTrailingTicks=-1;
             }
-            if (ImGui::RadioButton("one loop",vgmExportTrailingTicks==-2)) {
+            if (ImGui::RadioButton("add one loop",vgmExportTrailingTicks==-2)) {
               vgmExportTrailingTicks=-2;
             }
             if (ImGui::RadioButton("custom",vgmExportTrailingTicks>=0)) {
@@ -6003,10 +6008,23 @@ bool FurnaceGUI::init() {
 
 #ifndef IS_MOBILE
   // if window would spawn out of bounds, force it to be get default position
-  if (!detectOutOfBoundsWindow()) {
+  SDL_Rect bounds;
+  if (!detectOutOfBoundsWindow(bounds)) {
     scrMax=false;
     scrX=scrConfX=SDL_WINDOWPOS_CENTERED;
     scrY=scrConfY=SDL_WINDOWPOS_CENTERED;
+
+    // make sure our window isn't big
+    /*if (bounds.w<scrW) {
+      logD("resizing width because it does not fit");
+      scrW=bounds.w-OOB_PIXELS_SAFETY*2;
+      if (scrW<200) scrW=200;
+    }
+    if (bounds.h<scrH) {
+      logD("resizing height because it does not fit");
+      scrH=bounds.h-OOB_PIXELS_SAFETY*2;
+      if (scrH<100) scrH=100;
+    }*/
   }
 #endif
 

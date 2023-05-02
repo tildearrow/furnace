@@ -1839,7 +1839,11 @@ void DivEngine::registerSystems() {
     {"Square 1", "Square 2", "Square 3"},
     {"S1", "S2", "S3"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
-    {DIV_INS_PV1000, DIV_INS_PV1000, DIV_INS_PV1000}
+    {DIV_INS_PV1000, DIV_INS_PV1000, DIV_INS_PV1000},
+    {},
+    {
+      {0x10, {DIV_CMD_STD_NOISE_MODE, "10xx: Set ring modulation (0: disable, 1: enable)"}}
+    }
   );
 
   sysDefs[DIV_SYSTEM_SFX_BEEPER_QUADTONE]=new DivSysDef(

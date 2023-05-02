@@ -100,7 +100,7 @@ void FurnaceGUI::drawOsc() {
       if (ImGui::VSliderFloat("##OscZoom",ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y),&oscZoom,0.5,2.0)) {
         if (oscZoom<0.5) oscZoom=0.5;
         if (oscZoom>2.0) oscZoom=2.0;
-      }
+      } rightClickable
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("zoom: %.2fx (%.1fdB)",oscZoom,20.0*log10(oscZoom*2.0));
       }
@@ -111,7 +111,7 @@ void FurnaceGUI::drawOsc() {
       if (ImGui::VSliderFloat("##OscWinSize",ImVec2(20.0f*dpiScale,ImGui::GetContentRegionAvail().y),&oscWindowSize,5.0,100.0)) {
         if (oscWindowSize<5.0) oscWindowSize=5.0;
         if (oscWindowSize>100.0) oscWindowSize=100.0;
-      }
+      } rightClickable
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("window size: %.1fms",oscWindowSize);
       }
