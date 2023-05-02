@@ -704,6 +704,7 @@ void FurnaceGUI::drawSampleList(bool asChild) {
       if (ImGui::MenuItem("save raw...")) {
         doAction(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
       }
+      ImGui::EndPopup();
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("SampleUp",ImGuiDir_Up)) {
