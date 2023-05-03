@@ -838,8 +838,8 @@ void FurnaceGUI::doAction(int what) {
       MARK_MODIFIED;
       if (curSample>=(int)e->song.sample.size()) {
         curSample--;
-        updateSampleTex=true;
       }
+      updateSampleTex=true;
       break;
     case GUI_ACTION_SAMPLE_LIST_EDIT:
       sampleEditOpen=true;
