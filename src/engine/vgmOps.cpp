@@ -2206,7 +2206,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
             int delay=i.second.time-lastOne;
             if (delay>16) {
               w->writeC(0x61);
-              w->writeS(totalWait);
+              w->writeS(delay);
             } else if (delay>0) {
               w->writeC(0x70+delay-1);
             }
