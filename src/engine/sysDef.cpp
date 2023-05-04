@@ -911,6 +911,8 @@ void DivEngine::registerSystems() {
       {0x1a, {DIV_CMD_SNES_ECHO_VOL_LEFT, "1Axx: Set left echo volume"}},
       {0x1b, {DIV_CMD_SNES_ECHO_VOL_RIGHT, "1Bxx: Set right echo volume"}},
       {0x1c, {DIV_CMD_SNES_ECHO_FEEDBACK, "1Cxx: Set echo feedback"}},
+      {0x1e, {DIV_CMD_SNES_GLOBAL_VOL_LEFT, "1Exx: Set dry output volume (left)"}},
+      {0x1f, {DIV_CMD_SNES_GLOBAL_VOL_RIGHT, "1Fxx: Set dry output volume (right)"}},
       {0x30, {DIV_CMD_SNES_ECHO_FIR, "30xx: Set echo filter coefficient 0",constVal<0>,effectVal}},
       {0x31, {DIV_CMD_SNES_ECHO_FIR, "31xx: Set echo filter coefficient 1",constVal<1>,effectVal}},
       {0x32, {DIV_CMD_SNES_ECHO_FIR, "32xx: Set echo filter coefficient 2",constVal<2>,effectVal}},
