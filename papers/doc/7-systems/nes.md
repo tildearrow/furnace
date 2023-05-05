@@ -42,6 +42,9 @@ also known as Famicom. it is a five-channel sound generator: first two channels 
   - `00`: PCM (software).
   - `01`: DPCM (hardware).
   - when in DPCM mode, samples will sound muffled (due to its nature), availables pitches are limited and loop point is ignored.
+- `19xx`: set triangle linear counter.
+  - `00` to `7F` set the counter.
+  - `80` and higher halt it.
 - `20xx`: set DPCM frequency.
   - only works in DPCM mode.
   - see table below for possible values.
