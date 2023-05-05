@@ -211,7 +211,7 @@ void DivPlatformNES::tick(bool sysTick) {
       chan[i].outVol=VOL_SCALE_LINEAR_BROKEN(chan[i].vol&15,MIN(15,chan[i].std.vol.val),15);
       if (chan[i].outVol<0) chan[i].outVol=0;
       if (i==2) { // triangle
-        rWrite(0x4000+i*4,(chan[i].outVol==0)?0:255);
+        rWrite(0x4000+i*4,(chan[i].outVol==0)?0:linearCount);
         chan[i].freqChanged=true;
       } else {
         rWrite(0x4000+i*4,(chan[i].envMode<<4)|chan[i].outVol|((chan[i].duty&3)<<6));
@@ -262,7 +262,7 @@ void DivPlatformNES::tick(bool sysTick) {
         //rWrite(16+i*5,chan[i].sweep);
       }
     }
-    if (i<2) if (chan[i].std.phaseReset.had) {
+    if (i<3) if (chan[i].std.phaseReset.had) {
       if (chan[i].std.phaseReset.val==1) {
         chan[i].freqChanged=true;
         chan[i].prevFreq=-1;
@@ -449,7 +449,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
         chan[c.chan].outVol=chan[c.chan].vol;
       }
       if (c.chan==2) {
-        rWrite(0x4000+c.chan*4,0xff);
+        rWrite(0x4000+c.chan*4,linearCount);
       } else if (!parent->song.brokenOutVol2) {
         rWrite(0x4000+c.chan*4,(chan[c.chan].envMode<<4)|chan[c.chan].vol|((chan[c.chan].duty&3)<<6));
       }
@@ -481,7 +481,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
         }
         if (chan[c.chan].active) {
           if (c.chan==2) {
-            rWrite(0x4000+c.chan*4,0xff);
+            rWrite(0x4000+c.chan*4,linearCount);
           } else {
             rWrite(0x4000+c.chan*4,(chan[c.chan].envMode<<4)|chan[c.chan].vol|((chan[c.chan].duty&3)<<6));
           }
@@ -556,6 +556,16 @@ int DivPlatformNES::dispatch(DivCommand c) {
     case DIV_CMD_NES_COUNT_MODE:
       countMode=c.value;
       rWrite(0x4017,countMode?0x80:0);
+      break;
+    case DIV_CMD_NES_LINEAR_LENGTH:
+      if (c.chan==2) {
+        linearCount=c.value;
+        if (chan[c.chan].active) {
+          rWrite(0x4000+c.chan*4,(chan[c.chan].outVol==0)?0:linearCount);
+          chan[c.chan].freqChanged=true;
+          chan[c.chan].prevFreq=-1;
+        }
+      }
       break;
     case DIV_CMD_NES_DMC:
       rWrite(0x4011,c.value&0x7f);
@@ -682,6 +692,7 @@ void DivPlatformNES::reset() {
   goingToLoop=false;
   countMode=false;
   nextDPCMFreq=-1;
+  linearCount=255;
 
   if (useNP) {
     nes1_NP->Reset();

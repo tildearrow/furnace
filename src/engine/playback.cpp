@@ -234,6 +234,8 @@ const char* cmdName[]={
   "SNES_GLOBAL_VOL_LEFT",
   "SNES_GLOBAL_VOL_RIGHT",
 
+  "NES_LINEAR_LENGTH",
+
   "ALWAYS_SET_VOLUME"
 };
 
