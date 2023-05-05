@@ -169,6 +169,15 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
   static short ignored[2];
 
   for (size_t h=0; h<len; h++) {
+    // AY -> OPN
+    ay->runDAC();
+    ay->flushWrites();
+    for (DivRegWrite& i: ay->getRegisterWrites()) {
+      if (i.addr>15) continue;
+      immWrite(i.addr&15,i.val);
+    }
+    ay->getRegisterWrites().clear();
+
     os=0;
     // Nuked part
     for (unsigned int i=0; i<nukedMult; i++) {
@@ -242,6 +251,15 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
   }
 
   for (size_t h=0; h<len; h++) {
+    // AY -> OPN
+    ay->runDAC();
+    ay->flushWrites();
+    for (DivRegWrite& i: ay->getRegisterWrites()) {
+      if (i.addr>15) continue;
+      immWrite(i.addr&15,i.val);
+    }
+    ay->getRegisterWrites().clear();
+
     os=0;
     if (!writes.empty()) {
       if (--delay<1) {
