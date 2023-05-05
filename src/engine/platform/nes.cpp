@@ -337,14 +337,22 @@ void DivPlatformNES::tick(bool sysTick) {
           goingToLoop=parent->getSample(dacSample)->isLoopable();
           // write DPCM
           rWrite(0x4015,15);
-          rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
+          if (nextDPCMFreq>=0) {
+            rWrite(0x4010,nextDPCMFreq|(goingToLoop?0x40:0));
+            nextDPCMFreq=-1;
+          } else {
+            rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
+          }
           rWrite(0x4012,(dpcmAddr>>6)&0xff);
           rWrite(0x4013,dpcmLen&0xff);
           rWrite(0x4015,31);
           dpcmBank=dpcmAddr>>14;
         }
       } else {
-        if (dpcmMode) {
+        if (nextDPCMFreq>=0) {
+          rWrite(0x4010,nextDPCMFreq|(goingToLoop?0x40:0));
+          nextDPCMFreq=-1;
+        } else {
           rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
         }
       }
@@ -353,6 +361,8 @@ void DivPlatformNES::tick(bool sysTick) {
     if (chan[4].keyOn) chan[4].keyOn=false;
     chan[4].freqChanged=false;
   }
+
+  nextDPCMFreq=-1;
 }
 
 int DivPlatformNES::dispatch(DivCommand c) {
@@ -406,7 +416,12 @@ int DivPlatformNES::dispatch(DivCommand c) {
             goingToLoop=parent->getSample(dacSample)->isLoopable();
             // write DPCM
             rWrite(0x4015,15);
-            rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
+            if (nextDPCMFreq>=0) {
+              rWrite(0x4010,nextDPCMFreq|(goingToLoop?0x40:0));
+              nextDPCMFreq=-1;
+            } else {
+              rWrite(0x4010,calcDPCMRate(dacRate)|(goingToLoop?0x40:0));
+            }
             rWrite(0x4012,(dpcmAddr>>6)&0xff);
             rWrite(0x4013,dpcmLen&0xff);
             rWrite(0x4015,31);
@@ -555,6 +570,14 @@ int DivPlatformNES::dispatch(DivCommand c) {
       rWrite(0x4013,0);
       rWrite(0x4015,31);
       break;
+    case DIV_CMD_SAMPLE_FREQ: {
+      bool goingToLoop=parent->getSample(dacSample)->isLoopable();
+      if (dpcmMode) {
+        nextDPCMFreq=c.value&15;
+        rWrite(0x4010,(c.value&15)|(goingToLoop?0x40:0));
+      }
+      break;
+    }
     case DIV_CMD_SAMPLE_BANK:
       sampleBank=c.value;
       if (sampleBank>(parent->song.sample.size()/12)) {
@@ -658,6 +681,7 @@ void DivPlatformNES::reset() {
   dpcmMode=dpcmModeDefault;
   goingToLoop=false;
   countMode=false;
+  nextDPCMFreq=-1;
 
   if (useNP) {
     nes1_NP->Reset();
