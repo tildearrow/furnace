@@ -180,6 +180,10 @@ void FurnaceGUI::drawCompatFlags() {
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("behavior changed in 0.6pre4");
         }
+        ImGui::Checkbox("Broken macros in some FM chips after note off",&e->song.brokenFMOff);
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("behavior changed in 0.6pre5");
+        }
         ImGui::EndTabItem();
       }
       if (ImGui::BeginTabItem(".mod import")) {

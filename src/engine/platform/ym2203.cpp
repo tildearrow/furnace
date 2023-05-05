@@ -567,7 +567,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      chan[c.chan].macroInit(NULL);
+      if (parent->song.brokenFMOff) chan[c.chan].macroInit(NULL); 
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;
