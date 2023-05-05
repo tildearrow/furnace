@@ -3090,15 +3090,17 @@ DivWavetable* DivEngine::waveFromFile(const char* path, bool addRaw) {
         // read as .dmw
         reader.seek(0,SEEK_SET);
         int len=reader.readI();
+        logD("wave length %d",len);
         if (len<=0 || len>256) {
           throw EndOfFileException(&reader,reader.size());
         }
+        wave->len=len;
         wave->max=(unsigned char)reader.readC();
         if (wave->max==255) { // new wavetable format
           unsigned char waveVersion=reader.readC();
           logI("reading modern .dmw...");
           logD("wave version %d",waveVersion);
-          wave->max=reader.readC();
+          wave->max=(unsigned char)reader.readC();
           for (int i=0; i<len; i++) {
             wave->data[i]=reader.readI();
           }
