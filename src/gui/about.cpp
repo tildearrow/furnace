@@ -83,6 +83,7 @@ const char* aboutLine[]={
   "Forte",
   "Fragmare",
   "freq-mod",
+  "gtr3qq",
   "iyatemu",
   "JayBOB18",
   "Jimmy-DS",
