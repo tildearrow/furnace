@@ -401,7 +401,7 @@ int DivPlatformNES::dispatch(DivCommand c) {
           chan[c.chan].furnaceDac=false;
           if (dpcmMode && !skipRegisterWrites) {
             unsigned int dpcmAddr=sampleOffDPCM[dacSample];
-            unsigned int dpcmLen=(parent->getSample(dacSample)->lengthDPCM+15)>>4;
+            unsigned int dpcmLen=parent->getSample(dacSample)->lengthDPCM>>4;
             if (dpcmLen>255) dpcmLen=255;
             goingToLoop=parent->getSample(dacSample)->isLoopable();
             // write DPCM
@@ -655,7 +655,7 @@ void DivPlatformNES::reset() {
   dacSample=-1;
   sampleBank=0;
   dpcmBank=0;
-  dpcmMode=false;
+  dpcmMode=dpcmModeDefault;
   goingToLoop=false;
   countMode=false;
 
@@ -709,6 +709,8 @@ void DivPlatformNES::setFlags(const DivConfig& flags) {
   for (int i=0; i<5; i++) {
     oscBuf[i]->rate=rate/32;
   }
+  
+  dpcmModeDefault=flags.getBool("dpcmMode",true);
 }
 
 void DivPlatformNES::notifyInsDeletion(void* ins) {

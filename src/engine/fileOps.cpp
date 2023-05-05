@@ -1040,6 +1040,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemFlags[0].set("noEasyNoise",true);
     }
 
+    // NES PCM
+    if (ds.system[0]==DIV_SYSTEM_NES) {
+      ds.systemFlags[0].set("dpcmMode",false);
+    }
+
     ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
 
     if (active) quitDispatch();
@@ -2720,6 +2725,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       for (int i=0; i<ds.systemLen; i++) {
         if (ds.system[i]==DIV_SYSTEM_SEGAPCM || ds.system[i]==DIV_SYSTEM_SEGAPCM_COMPAT) {
           ds.systemFlags[i].set("oldSlides",true);
+        }
+      }
+    }
+
+    // NES PCM compat
+    if (ds.version<154) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_NES) {
+          ds.systemFlags[i].set("dpcmMode",false);
         }
       }
     }

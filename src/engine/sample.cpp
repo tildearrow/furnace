@@ -485,9 +485,9 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
       break;
     case DIV_SAMPLE_DEPTH_1BIT_DPCM: // DPCM
       if (dataDPCM!=NULL) delete[] dataDPCM;
-      lengthDPCM=(count+7)/8;
+      lengthDPCM=1+((((count+7)/8)+15)&(~15));
       dataDPCM=new unsigned char[lengthDPCM];
-      memset(dataDPCM,0,lengthDPCM);
+      memset(dataDPCM,0xaa,lengthDPCM);
       break;
     case DIV_SAMPLE_DEPTH_YMZ_ADPCM: // YMZ ADPCM
       if (dataZ!=NULL) delete[] dataZ;
@@ -1092,12 +1092,14 @@ void DivSample::render(unsigned int formatMask) {
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_1BIT_DPCM)) { // DPCM
     if (!initInternal(DIV_SAMPLE_DEPTH_1BIT_DPCM,samples)) return;
     int accum=63;
+    int next=63;
     for (unsigned int i=0; i<samples; i++) {
-      int next=((unsigned short)(data16[i]^0x8000))>>9;
+      next=((unsigned short)(data16[i]^0x8000))>>9;
       if (next>accum) {
         dataDPCM[i>>3]|=1<<(i&7);
         accum++;
       } else {
+        dataDPCM[i>>3]&=~(1<<(i&7));
         accum--;
       }
       if (accum<0) accum=0;

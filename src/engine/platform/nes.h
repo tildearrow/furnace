@@ -53,6 +53,7 @@ class DivPlatformNES: public DivDispatch {
   unsigned char writeOscBuf;
   unsigned char apuType;
   bool dpcmMode;
+  bool dpcmModeDefault;
   bool dacAntiClickOn;
   bool useNP;
   bool goingToLoop;

@@ -699,7 +699,7 @@ void DivEngine::registerSystems() {
   sysDefs[DIV_SYSTEM_NES]=new DivSysDef(
     "NES (Ricoh 2A03)", NULL, 0x06, 0x06, 5, false, true, 0x161, false, (1U<<DIV_SAMPLE_DEPTH_1BIT_DPCM)|(1U<<DIV_SAMPLE_DEPTH_8BIT),
     "also known as Famicom in Japan, it's the most well-known game console of the '80's.",
-    {"Pulse 1", "Pulse 2", "Triangle", "Noise", "PCM"},
+    {"Pulse 1", "Pulse 2", "Triangle", "Noise", "DPCM"},
     {"S1", "S2", "TR", "NO", "PCM"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_WAVE, DIV_CH_NOISE, DIV_CH_PCM},
     {DIV_INS_NES, DIV_INS_NES, DIV_INS_NES, DIV_INS_NES, DIV_INS_AMIGA},

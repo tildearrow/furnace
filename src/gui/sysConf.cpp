@@ -456,6 +456,9 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_FDS:
     case DIV_SYSTEM_MMC5: {
       int clockSel=flags.getInt("clockSel",0);
+      bool dpcmMode=flags.getBool("dpcmMode",true);
+
+      ImGui::Text("Clock rate:");
 
       if (ImGui::RadioButton("NTSC (1.79MHz)",clockSel==0)) {
         clockSel=0;
@@ -470,9 +473,21 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
+      ImGui::Text("DPCM channel mode:");
+
+      if (ImGui::RadioButton("DPCM (muffled samples; low CPU usage)",dpcmMode)) {
+        dpcmMode=true;
+        altered=true;
+      }
+      if (ImGui::RadioButton("PCM (crisp samples; high CPU usage)",!dpcmMode)) {
+        dpcmMode=false;
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
+          flags.set("dpcmMode",dpcmMode);
         });
       }
       break;
