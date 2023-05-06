@@ -300,6 +300,11 @@ void DivPlatformSNES::tick(bool sysTick) {
     rWrite(0x4d,echoBits);
     writeEcho=false;
   }
+  if (writeDryVol) {
+    rWrite(0x0c,dryVolL);
+    rWrite(0x1c,dryVolR);
+    writeDryVol=false;
+  }
   for (int i=0; i<8; i++) {
     if (chan[i].shallWriteEnv) {
       writeEnv(i);
@@ -563,6 +568,14 @@ int DivPlatformSNES::dispatch(DivCommand c) {
         rWrite(0x3c,echoVolR);
       }
       break;
+    case DIV_CMD_SNES_GLOBAL_VOL_LEFT:
+      dryVolL=c.value;
+      writeDryVol=true;
+      break;
+    case DIV_CMD_SNES_GLOBAL_VOL_RIGHT:
+      dryVolR=c.value;
+      writeDryVol=true;
+      break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
       break;
@@ -673,6 +686,7 @@ void DivPlatformSNES::forceIns() {
   writeNoise=true;
   writePitchMod=true;
   writeEcho=true;
+  writeDryVol=true;
   initEcho();
 }
 
@@ -761,6 +775,10 @@ void DivPlatformSNES::reset() {
   writeNoise=false;
   writePitchMod=false;
   writeEcho=true;
+  writeDryVol=false;
+
+  dryVolL=127;
+  dryVolR=127;
 
   echoDelay=initEchoDelay;
   echoFeedback=initEchoFeedback;

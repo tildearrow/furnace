@@ -1040,6 +1040,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.systemFlags[0].set("noEasyNoise",true);
     }
 
+    // NES PCM
+    if (ds.system[0]==DIV_SYSTEM_NES) {
+      ds.systemFlags[0].set("dpcmMode",false);
+    }
+
     ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
 
     if (active) quitDispatch();
@@ -1787,6 +1792,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     if (ds.version<138) {
       ds.brokenPortaLegato=true;
     }
+    if (ds.version<155) {
+      ds.brokenFMOff=true;
+    }
     ds.isDMF=false;
 
     reader.readS(); // reserved
@@ -2295,7 +2303,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     if (ds.version>=138) {
       ds.brokenPortaLegato=reader.readC();
-      for (int i=0; i<7; i++) {
+      if (ds.version>=155) {
+        ds.brokenFMOff=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<6; i++) {
         reader.readC();
       }
     }
@@ -2720,6 +2733,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       for (int i=0; i<ds.systemLen; i++) {
         if (ds.system[i]==DIV_SYSTEM_SEGAPCM || ds.system[i]==DIV_SYSTEM_SEGAPCM_COMPAT) {
           ds.systemFlags[i].set("oldSlides",true);
+        }
+      }
+    }
+
+    // NES PCM compat
+    if (ds.version<154) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_NES) {
+          ds.systemFlags[i].set("dpcmMode",false);
         }
       }
     }

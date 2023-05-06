@@ -32,6 +32,9 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 155: Furnace dev155
+- 154: Furnace dev154
+- 153: Furnace dev153
 - 152: Furnace dev152
 - 151: Furnace dev151
 - 150: Furnace dev150
@@ -422,7 +425,8 @@ size | description
   1  | automatic patchbay (>=136)
  --- | **a couple more compat flags** (>=138)
   1  | broken portamento during legato
-  7  | reserved
+  1  | broken macro during note off in some FM chips (>=155)
+  6  | reserved
  --- | **speed pattern of first song** (>=139)
   1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
  16  | speed pattern (this overrides speed 1 and speed 2 settings)

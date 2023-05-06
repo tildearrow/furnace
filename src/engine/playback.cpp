@@ -231,6 +231,11 @@ const char* cmdName[]={
 
   "HINT_ARP_TIME",
 
+  "SNES_GLOBAL_VOL_LEFT",
+  "SNES_GLOBAL_VOL_RIGHT",
+
+  "NES_LINEAR_LENGTH",
+
   "ALWAYS_SET_VOLUME"
 };
 

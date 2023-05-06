@@ -1726,6 +1726,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_SAMPLE_SAVE_RAW:
+      if (!dirExists(workingDirSample)) workingDirSample=getHomeDir();
+      hasOpened=fileDialog->openSave(
+        "Load Raw Sample",
+        {"all files", "*"},
+        ".*",
+        workingDirSample,
+        dpiScale
+      );
+      break;
     case GUI_FILE_EXPORT_AUDIO_ONE:
       if (!dirExists(workingDirAudioExport)) workingDirAudioExport=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -3268,11 +3278,11 @@ bool FurnaceGUI::detectOutOfBoundsWindow(SDL_Rect& failing) {
     logD("bounds check: display %d is at %dx%dx%dx%d: %s%s",i,rect.x+OOB_PIXELS_SAFETY,rect.y+OOB_PIXELS_SAFETY,rect.x+rect.w-OOB_PIXELS_SAFETY,rect.y+rect.h-OOB_PIXELS_SAFETY,xbound?"x":"",ybound?"y":"");
 
     if (xbound && ybound) {
-      failing=rect;
       return true;
     }
   }
 
+  failing=rect;
   return false;
 }
 
@@ -3740,9 +3750,13 @@ bool FurnaceGUI::loop() {
       });
     }
 
+    bool fontsFailed=false;
+
     layoutTimeBegin=SDL_GetPerformanceCounter();
 
-    ImGui_ImplSDLRenderer_NewFrame();
+    if (!ImGui_ImplSDLRenderer_NewFrame()) {
+      fontsFailed=true;
+    }
     ImGui_ImplSDL2_NewFrame(sdlWin);
     ImGui::NewFrame();
 
@@ -4447,6 +4461,7 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_SAMPLE_OPEN_REPLACE:
         case GUI_FILE_SAMPLE_OPEN_REPLACE_RAW:
         case GUI_FILE_SAMPLE_SAVE:
+        case GUI_FILE_SAMPLE_SAVE_RAW:
           workingDirSample=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_EXPORT_AUDIO_ONE:
@@ -4714,7 +4729,16 @@ bool FurnaceGUI::loop() {
               break;
             case GUI_FILE_SAMPLE_SAVE:
               if (curSample>=0 && curSample<(int)e->song.sample.size()) {
-                e->song.sample[curSample]->save(copyOfName.c_str());
+                if (!e->song.sample[curSample]->save(copyOfName.c_str())) {
+                  showError("could not save sample! open Log Viewer for more information.");
+                }
+              }
+              break;
+            case GUI_FILE_SAMPLE_SAVE_RAW:
+              if (curSample>=0 && curSample<(int)e->song.sample.size()) {
+                if (!e->song.sample[curSample]->saveRaw(copyOfName.c_str())) {
+                  showError("could not save sample! open Log Viewer for more information.");
+                }
               }
               break;
             case GUI_FILE_EXPORT_AUDIO_ONE:
@@ -5772,6 +5796,18 @@ bool FurnaceGUI::loop() {
       willCommit=false;
     }
 
+    if (fontsFailed) {
+      showError("it appears I couldn't load these fonts. any setting you can check?");
+      logE("couldn't load fonts");
+      ImGui::GetIO().Fonts->Clear();
+      mainFont=ImGui::GetIO().Fonts->AddFontDefault();
+      patFont=mainFont;
+      ImGui_ImplSDLRenderer_DestroyFontsTexture();
+      if (!ImGui::GetIO().Fonts->Build()) {
+        logE("error again while building font atlas!");
+      }
+    }
+
     if (!editOptsVisible) {
       latchTarget=0;
       latchNibble=false;
@@ -6015,7 +6051,7 @@ bool FurnaceGUI::init() {
     scrY=scrConfY=SDL_WINDOWPOS_CENTERED;
 
     // make sure our window isn't big
-    if (bounds.w<scrW) {
+    /*if (bounds.w<scrW) {
       logD("resizing width because it does not fit");
       scrW=bounds.w-OOB_PIXELS_SAFETY*2;
       if (scrW<200) scrW=200;
@@ -6024,7 +6060,7 @@ bool FurnaceGUI::init() {
       logD("resizing height because it does not fit");
       scrH=bounds.h-OOB_PIXELS_SAFETY*2;
       if (scrH<100) scrH=100;
-    }
+    }*/
   }
 #endif
 
@@ -6573,6 +6609,7 @@ FurnaceGUI::FurnaceGUI():
   wavePreviewLen(32),
   wavePreviewHeight(255),
   wavePreviewInit(true),
+  wavePreviewPaused(false),
   pgSys(0),
   pgAddr(0),
   pgVal(0),
@@ -6698,6 +6735,7 @@ FurnaceGUI::FurnaceGUI():
   sampleDragMode(false),
   sampleDrag16(false),
   sampleZoomAuto(true),
+  sampleSelTarget(0),
   sampleDragTarget(NULL),
   sampleDragStart(0,0),
   sampleDragAreaSize(0,0),

@@ -19,6 +19,7 @@
 
 #include "sample.h"
 #include "../ta-log.h"
+#include "../fileutils.h"
 #include <math.h>
 #include <string.h>
 #ifdef HAVE_SNDFILE
@@ -444,6 +445,35 @@ bool DivSample::save(const char* path) {
 #endif
 }
 
+bool DivSample::saveRaw(const char* path) {
+  if (samples<1) {
+    logE("sample is empty though!");
+    return false;
+  }
+
+  FILE* f=ps_fopen(path,"wb");
+  if (f==NULL) {
+    logE("could not save sample: %s!",strerror(errno));
+    return false;
+  }
+  if (depth==DIV_SAMPLE_DEPTH_BRR) {
+    if (isLoopable()) {
+      unsigned short loopPos=getLoopStartPosition(DIV_SAMPLE_DEPTH_BRR);
+      fputc(loopPos&0xff,f);
+      fputc(loopPos>>8,f);
+    } else {
+      fputc(0,f);
+      fputc(0,f);
+    }
+  }
+
+  if (fwrite(getCurBuf(),1,getCurBufLen(),f)!=getCurBufLen()) {
+    logW("did not write entire instrument!");
+  }
+  fclose(f);
+  return true;
+}
+
 // 16-bit memory is padded to 512, to make things easier for ADPCM-A/B.
 bool DivSample::initInternal(DivSampleDepth d, int count) {
   switch (d) {
@@ -455,9 +485,9 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
       break;
     case DIV_SAMPLE_DEPTH_1BIT_DPCM: // DPCM
       if (dataDPCM!=NULL) delete[] dataDPCM;
-      lengthDPCM=(count+7)/8;
+      lengthDPCM=1+((((count+7)/8)+15)&(~15));
       dataDPCM=new unsigned char[lengthDPCM];
-      memset(dataDPCM,0,lengthDPCM);
+      memset(dataDPCM,0xaa,lengthDPCM);
       break;
     case DIV_SAMPLE_DEPTH_YMZ_ADPCM: // YMZ ADPCM
       if (dataZ!=NULL) delete[] dataZ;
@@ -1062,12 +1092,14 @@ void DivSample::render(unsigned int formatMask) {
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_1BIT_DPCM)) { // DPCM
     if (!initInternal(DIV_SAMPLE_DEPTH_1BIT_DPCM,samples)) return;
     int accum=63;
+    int next=63;
     for (unsigned int i=0; i<samples; i++) {
-      int next=((unsigned short)(data16[i]^0x8000))>>9;
+      next=((unsigned short)(data16[i]^0x8000))>>9;
       if (next>accum) {
         dataDPCM[i>>3]|=1<<(i&7);
         accum++;
       } else {
+        dataDPCM[i>>3]&=~(1<<(i&7));
         accum--;
       }
       if (accum<0) accum=0;

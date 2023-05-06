@@ -310,6 +310,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_GB: {
       int chipType=flags.getInt("chipType",0);
       bool noAntiClick=flags.getBool("noAntiClick",false);
+      bool invertWave=flags.getBool("invertWave",true);
       bool enoughAlready=flags.getBool("enoughAlready",false);
 
       if (ImGui::Checkbox("Disable anti-click",&noAntiClick)) {
@@ -332,6 +333,26 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         chipType=3;
         altered=true;
       }
+      ImGui::Text("Wave channel orientation:");
+      if (chipType==3) {
+        if (ImGui::RadioButton("Normal",!invertWave)) {
+          invertWave=false;
+          altered=true;
+        }
+        if (ImGui::RadioButton("Inverted",invertWave)) {
+          invertWave=true;
+          altered=true;
+        }
+      } else {
+        if (ImGui::RadioButton("Exact data (inverted)",!invertWave)) {
+          invertWave=false;
+          altered=true;
+        }
+        if (ImGui::RadioButton("Exact output (normal)",invertWave)) {
+          invertWave=true;
+          altered=true;
+        }
+      }
       if (ImGui::Checkbox("Pretty please one more compat flag when I use arpeggio and my sound length",&enoughAlready)) {
         altered=true;
       }
@@ -340,6 +361,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         e->lockSave([&]() {
           flags.set("chipType",chipType);
           flags.set("noAntiClick",noAntiClick);
+          flags.set("invertWave",invertWave);
           flags.set("enoughAlready",enoughAlready);
         });
       }
@@ -434,6 +456,9 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_FDS:
     case DIV_SYSTEM_MMC5: {
       int clockSel=flags.getInt("clockSel",0);
+      bool dpcmMode=flags.getBool("dpcmMode",true);
+
+      ImGui::Text("Clock rate:");
 
       if (ImGui::RadioButton("NTSC (1.79MHz)",clockSel==0)) {
         clockSel=0;
@@ -448,9 +473,21 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
+      ImGui::Text("DPCM channel mode:");
+
+      if (ImGui::RadioButton("DPCM (muffled samples; low CPU usage)",dpcmMode)) {
+        dpcmMode=true;
+        altered=true;
+      }
+      if (ImGui::RadioButton("PCM (crisp samples; high CPU usage)",!dpcmMode)) {
+        dpcmMode=false;
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
+          flags.set("dpcmMode",dpcmMode);
         });
       }
       break;

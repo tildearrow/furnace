@@ -59,6 +59,7 @@ class DivPlatformSNES: public DivDispatch {
   unsigned char noiseFreq;
   signed char delay;
   signed char echoVolL, echoVolR, echoFeedback;
+  signed char dryVolL, dryVolR;
   signed char echoFIR[8];
   unsigned char echoDelay;
   size_t sampleTableBase;
@@ -66,6 +67,7 @@ class DivPlatformSNES: public DivDispatch {
   bool writeNoise;
   bool writePitchMod;
   bool writeEcho;
+  bool writeDryVol;
   bool echoOn;
 
   bool initEchoOn;

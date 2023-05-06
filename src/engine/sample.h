@@ -202,6 +202,13 @@ struct DivSample {
   bool save(const char* path);
 
   /**
+   * save this sample to a file (raw).
+   * @param path a path.
+   * @return whether saving succeeded or not.
+   */
+  bool saveRaw(const char* path);
+
+  /**
    * @warning DO NOT USE - internal function
    * initialize sample data.
    * @param d sample type.

@@ -352,6 +352,7 @@ struct DivSong {
   bool oldArpStrategy;
   bool patchbayAuto;
   bool brokenPortaLegato;
+  bool brokenFMOff;
 
   std::vector<DivInstrument*> ins;
   std::vector<DivWavetable*> wave;
@@ -467,7 +468,8 @@ struct DivSong {
     autoSystem(true),
     oldArpStrategy(false),
     patchbayAuto(true),
-    brokenPortaLegato(false) {
+    brokenPortaLegato(false),
+    brokenFMOff(false) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       system[i]=DIV_SYSTEM_NULL;
       systemVol[i]=1.0;

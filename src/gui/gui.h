@@ -365,6 +365,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_SAMPLE_OPEN_REPLACE,
   GUI_FILE_SAMPLE_OPEN_REPLACE_RAW,
   GUI_FILE_SAMPLE_SAVE,
+  GUI_FILE_SAMPLE_SAVE_RAW,
   GUI_FILE_EXPORT_AUDIO_ONE,
   GUI_FILE_EXPORT_AUDIO_PER_SYS,
   GUI_FILE_EXPORT_AUDIO_PER_CHANNEL,
@@ -591,6 +592,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_LIST_OPEN_RAW,
   GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW,
   GUI_ACTION_SAMPLE_LIST_SAVE,
+  GUI_ACTION_SAMPLE_LIST_SAVE_RAW,
   GUI_ACTION_SAMPLE_LIST_MOVE_UP,
   GUI_ACTION_SAMPLE_LIST_MOVE_DOWN,
   GUI_ACTION_SAMPLE_LIST_DELETE,
@@ -1633,7 +1635,7 @@ class FurnaceGUI {
 
   DivWaveSynth wavePreview;
   int wavePreviewLen, wavePreviewHeight;
-  bool wavePreviewInit;
+  bool wavePreviewInit, wavePreviewPaused;
 
   // bit 31: ctrl
   // bit 30: reserved for SDL scancode mask
@@ -1811,6 +1813,9 @@ class FurnaceGUI {
   int sampleSelStart, sampleSelEnd;
   bool sampleInfo, sampleCompatRate;
   bool sampleDragActive, sampleDragMode, sampleDrag16, sampleZoomAuto;
+  // 0: start
+  // 1: end
+  unsigned char sampleSelTarget;
   void* sampleDragTarget;
   ImVec2 sampleDragStart;
   ImVec2 sampleDragAreaSize;

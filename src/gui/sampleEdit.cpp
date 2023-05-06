@@ -133,12 +133,24 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Open");
       }
+      if (ImGui::BeginPopupContextItem("SampleEOpenOpt")) {
+        if (ImGui::MenuItem("import raw...")) {
+          doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW:GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
+        }
+        ImGui::EndPopup();
+      }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_FLOPPY_O "##SESave")) {
         doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Save");
+      }
+      if (ImGui::BeginPopupContextItem("SampleESaveOpt")) {
+        if (ImGui::MenuItem("save raw...")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
+        }
+        ImGui::EndPopup();
       }
 
       ImGui::SameLine();
@@ -1212,6 +1224,31 @@ void FurnaceGUI::drawSampleEdit() {
         ImVec2 rectMax=ImGui::GetItemRectMax();
         ImVec2 rectSize=ImGui::GetItemRectSize();
 
+        unsigned char selectTarget=255;
+
+        if (ImGui::IsItemHovered()) {
+          int start=sampleSelStart;
+          int end=sampleSelEnd;
+          if (start>end) {
+            start^=end;
+            end^=start;
+            start^=end;
+          }
+          ImVec2 p1=rectMin;
+          p1.x+=(start-samplePos)/sampleZoom;
+
+          ImVec2 p2=ImVec2(rectMin.x+(end-samplePos)/sampleZoom,rectMax.y);
+
+          ImVec2 mousePos=ImGui::GetMousePos();
+          if (p1.x>=rectMin.x && p1.x<=rectMax.x && fabs(mousePos.x-p1.x)<2.0*dpiScale) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+            selectTarget=0;
+          } else if (p2.x>=rectMin.x && p2.x<=rectMax.x && fabs(mousePos.x-p2.x)<2.0*dpiScale) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+            selectTarget=1;
+          }
+        }
+
         if (ImGui::IsItemClicked()) {
           nextWindow=GUI_WINDOW_SAMPLE_EDIT;
           if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
@@ -1238,9 +1275,23 @@ void FurnaceGUI::drawSampleEdit() {
               }
               sampleDragLen=sample->samples;
               sampleDragActive=true;
-              sampleSelStart=-1;
-              sampleSelEnd=-1;
-              if (sampleDragMode) sample->prepareUndo(true);
+              if (!sampleDragMode) {
+                switch (selectTarget) {
+                  case 0:
+                    sampleSelStart^=sampleSelEnd;
+                    sampleSelEnd^=sampleSelStart;
+                    sampleSelStart^=sampleSelEnd;
+                    break;
+                  case 1:
+                    break;
+                  default:
+                    sampleSelStart=-1;
+                    sampleSelEnd=-1;
+                    break;
+                }
+              } else {
+                sample->prepareUndo(true);
+              }
               processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
             }
           }

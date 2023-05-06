@@ -250,7 +250,7 @@ class DivPlatformYM2610Base: public DivPlatformOPN {
       fm->set_fidelity(ymfm::OPN_FIDELITY_MED);
       setFlags(flags);
       // YM2149, 2MHz
-      ay=new DivPlatformAY8910(true,chipClock,32);
+      ay=new DivPlatformAY8910(true,chipClock,32,144);
       ay->init(p,3,sugRate,ayFlags);
       ay->toggleRegisterDump(true);
       return 0;

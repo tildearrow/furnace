@@ -815,6 +815,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_LIST_SAVE:
       if (curSample>=0 && curSample<(int)e->song.sample.size()) openFileDialog(GUI_FILE_SAMPLE_SAVE);
       break;
+    case GUI_ACTION_SAMPLE_LIST_SAVE_RAW:
+      if (curSample>=0 && curSample<(int)e->song.sample.size()) openFileDialog(GUI_FILE_SAMPLE_SAVE_RAW);
+      break;
     case GUI_ACTION_SAMPLE_LIST_MOVE_UP:
       if (e->moveSampleUp(curSample)) {
         curSample--;
@@ -835,8 +838,8 @@ void FurnaceGUI::doAction(int what) {
       MARK_MODIFIED;
       if (curSample>=(int)e->song.sample.size()) {
         curSample--;
-        updateSampleTex=true;
       }
+      updateSampleTex=true;
       break;
     case GUI_ACTION_SAMPLE_LIST_EDIT:
       sampleEditOpen=true;
