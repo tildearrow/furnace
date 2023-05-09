@@ -121,7 +121,7 @@ void DivPlatformSegaPCM::tick(bool sysTick) {
           DivSample* s=parent->getSample(chan[i].pcm.sample);
           off=(double)s->centerRate/8363.0;
         }
-        chan[i].pcm.freq=MIN(255,(15625+(off*parent->song.tuning*pow(2.0,double(chan[i].freq+512)/(128.0*12.0)))*255)/31250)+(oldSlides?chan[i].pitch2:0);
+        chan[i].pcm.freq=MIN(255,((rate*0.5)+(off*parent->song.tuning*pow(2.0,double(chan[i].freq+512)/(128.0*12.0)))*255)/rate)+(oldSlides?chan[i].pitch2:0);
         rWrite(7+(i<<3),chan[i].pcm.freq);
       }
       chan[i].freqChanged=false;
@@ -220,7 +220,7 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
           rWrite(0x86+(c.chan<<3),3);
           break;
         }
-        chan[c.chan].pcm.freq=MIN(255,(parent->getSample(chan[c.chan].pcm.sample)->rate*255)/31250);
+        chan[c.chan].pcm.freq=MIN(255,(parent->getSample(chan[c.chan].pcm.sample)->rate*255)/rate);
         chan[c.chan].furnacePCM=false;
         chan[c.chan].active=true;
         chan[c.chan].keyOn=true;
