@@ -417,6 +417,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       short effectVal=pat->data[whatRow][5+(j<<1)];
 
       if (effectVal==-1) effectVal=0;
+      effectVal&=255;
 
       switch (effect) {
         case 0x09: // select groove pattern/speed 1
@@ -597,6 +598,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
     if (effectVal==-1) effectVal=0;
+    effectVal&=255;
 
     // per-system effect
     if (!perSystemEffect(i,effect,effectVal)) switch (effect) {
@@ -1064,6 +1066,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
     if (effectVal==-1) effectVal=0;
+    effectVal&=255;
     perSystemPostEffect(i,effect,effectVal);
   }
 }
@@ -1203,7 +1206,7 @@ void DivEngine::nextRow() {
               for (int j=0; j<curPat[i].effectCols; j++) {
                 if (pat->data[curRow][4+(j<<1)]==0xed) {
                   if (pat->data[curRow][5+(j<<1)]>0) {
-                    addition=pat->data[curRow][5+(j<<1)];
+                    addition=pat->data[curRow][5+(j<<1)]&255;
                     break;
                   }
                 }
@@ -1233,7 +1236,7 @@ void DivEngine::nextRow() {
               }
               if (pat->data[curRow][4+(j<<1)]==0xed) {
                 if (pat->data[curRow][5+(j<<1)]>0) {
-                  addition=pat->data[curRow][5+(j<<1)];
+                  addition=pat->data[curRow][5+(j<<1)]&255;
                   break;
                 }
               }
@@ -1388,10 +1391,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         }
         if (chan[i].vibratoDepth>0) {
           chan[i].vibratoPos+=chan[i].vibratoRate;
-          if (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
+          while (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
 
           chan[i].vibratoPosGiant+=chan[i].vibratoRate;
-          if (chan[i].vibratoPos>=512) chan[i].vibratoPos-=512;
+          while (chan[i].vibratoPos>=512) chan[i].vibratoPos-=512;
 
           switch (chan[i].vibratoDir) {
             case 1: // up
