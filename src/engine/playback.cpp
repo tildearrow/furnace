@@ -1831,7 +1831,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         }
       } else {
         // 3. run MIDI clock
-        for (int i=0; i<runLeftG; i++) {
+        int midiTotal=MIN(cycles,runLeftG);
+        for (int i=0; i<midiTotal; i++) {
           // TODO: TEMPO
           if (--midiClockCycles<=0) {
             if (output) if (!skipping && output->midiOut!=NULL && midiOutClock) {
@@ -1850,7 +1851,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
             if (timeBase<1.0) timeBase=1.0;
             if (speedSum<1.0) speedSum=1.0;
             if (vD<1) vD=1;
-            double bpm=10.0*((divider)/(timeBase*hl*speedSum))*(double)curSubSong->virtualTempoN/vD;
+            double bpm=((24.0*divider)/(timeBase*hl*speedSum))*(double)curSubSong->virtualTempoN/vD;
             logV("bpm: %f %f",bpm,divider);
 
             midiClockCycles=got.rate*pow(2,MASTER_CLOCK_PREC)/(bpm);
