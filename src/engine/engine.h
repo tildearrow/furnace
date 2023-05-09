@@ -378,6 +378,10 @@ class DivEngine {
   double divider;
   int cycles;
   double clockDrift;
+  int midiClockCycles;
+  double midiClockDrift;
+  int midiTimeCycles;
+  double midiTimeDrift;
   int stepPlay;
   int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
   unsigned char extValue, pendingMetroTick;
@@ -1146,6 +1150,10 @@ class DivEngine {
       divider(60),
       cycles(0),
       clockDrift(0),
+      midiClockCycles(0),
+      midiClockDrift(0),
+      midiTimeCycles(0),
+      midiTimeDrift(0),
       stepPlay(0),
       changeOrd(-1),
       changePos(0),

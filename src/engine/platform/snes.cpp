@@ -202,6 +202,7 @@ void DivPlatformSNES::tick(bool sysTick) {
     }
   }
   for (int i=0; i<8; i++) {
+    // TODO: if wavetable length is higher than 32, we lose precision!
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
       double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;

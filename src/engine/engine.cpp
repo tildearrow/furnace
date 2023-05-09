@@ -2034,6 +2034,10 @@ String DivEngine::getPlaybackDebugInfo() {
     "divider: %f\n"
     "cycles: %d\n"
     "clockDrift: %f\n"
+    "midiClockCycles: %d\n"
+    "midiClockDrift: %f\n"
+    "midiTimeCycles: %d\n"
+    "midiTimeDrift: %d\n"
     "changeOrd: %d\n"
     "changePos: %d\n"
     "totalSeconds: %d\n"
@@ -2048,8 +2052,9 @@ String DivEngine::getPlaybackDebugInfo() {
     "totalProcessed: %d\n"
     "bufferPos: %d\n",
     curOrder,prevOrder,curRow,prevRow,ticks,subticks,totalLoops,lastLoopPos,nextSpeed,divider,cycles,clockDrift,
-    changeOrd,changePos,totalSeconds,totalTicks,totalTicksR,totalCmds,lastCmds,cmdsPerSecond,globalPitch,
-    (int)extValue,(int)tempoAccum,(int)totalProcessed,(int)bufferPos
+    midiClockCycles,midiClockDrift,midiTimeCycles,midiTimeDrift,changeOrd,changePos,totalSeconds,totalTicks,
+    totalTicksR,totalCmds,lastCmds,cmdsPerSecond,globalPitch,(int)extValue,(int)tempoAccum,(int)totalProcessed,
+    (int)bufferPos
   );
 }
 
@@ -2165,10 +2170,16 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   prevOrder=0;
   prevRow=0;
   stepPlay=0;
-  int prevDrift;
+  int prevDrift, prevMidiClockDrift, prevMidiTimeDrift;
   prevDrift=clockDrift;
+  prevMidiClockDrift=midiClockDrift;
+  prevMidiTimeDrift=midiTimeDrift;
   clockDrift=0;
   cycles=0;
+  midiClockCycles=0;
+  midiClockDrift=0;
+  midiTimeCycles=0;
+  midiTimeDrift=0;
   if (!preserveDrift) {
     ticks=1;
     tempoAccum=0;
@@ -2211,9 +2222,15 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   repeatPattern=oldRepeatPattern;
   if (preserveDrift) {
     clockDrift=prevDrift;
+    midiClockDrift=prevMidiClockDrift;
+    midiTimeDrift=prevMidiTimeDrift;
   } else {
     clockDrift=0;
     cycles=0;
+    midiClockCycles=0;
+    midiClockDrift=0;
+    midiTimeCycles=0;
+    midiTimeDrift=0;
   }
   if (!preserveDrift) {
     ticks=1;
@@ -4367,6 +4384,10 @@ void DivEngine::quitDispatch() {
   }
   cycles=0;
   clockDrift=0;
+  midiClockCycles=0;
+  midiClockDrift=0;
+  midiTimeCycles=0;
+  midiTimeDrift=0;
   chans=0;
   playing=false;
   curSpeed=0;

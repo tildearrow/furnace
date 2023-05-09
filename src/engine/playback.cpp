@@ -1317,11 +1317,6 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     if (--subticks<=0) {
       subticks=tickMult;
 
-      // MIDI clock
-      if (output) if (!skipping && output->midiOut!=NULL && midiOutClock) {
-        output->midiOut->send(TAMidiMessage(TA_MIDI_CLOCK,0,0));
-      }
-
       if (stepPlay!=1) {
         tempoAccum+=curSubSong->virtualTempoN;
         while (tempoAccum>=curSubSong->virtualTempoD) {
@@ -1835,7 +1830,39 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           pendingMetroTick=0;
         }
       } else {
-        // 3. tick the clock and fill buffers as needed
+        // 3. run MIDI clock
+        for (int i=0; i<runLeftG; i++) {
+          // TODO: TEMPO
+          if (--midiClockCycles<=0) {
+            if (output) if (!skipping && output->midiOut!=NULL && midiOutClock) {
+              output->midiOut->send(TAMidiMessage(TA_MIDI_CLOCK,0,0));
+            }
+
+            double hl=curSubSong->hilightA;
+            if (hl<=0.0) hl=4.0;
+            double timeBase=curSubSong->timeBase+1;
+            double speedSum=0;
+            double vD=curSubSong->virtualTempoD;
+            for (int i=0; i<MIN(16,speeds.len); i++) {
+              speedSum+=speeds.val[i];
+            }
+            speedSum/=MAX(1,speeds.len);
+            if (timeBase<1.0) timeBase=1.0;
+            if (speedSum<1.0) speedSum=1.0;
+            if (vD<1) vD=1;
+            double bpm=10.0*((divider)/(timeBase*hl*speedSum))*(double)curSubSong->virtualTempoN/vD;
+            logV("bpm: %f %f",bpm,divider);
+
+            midiClockCycles=got.rate*pow(2,MASTER_CLOCK_PREC)/(bpm);
+            midiClockDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)(bpm));
+            if (midiClockDrift>=(bpm)) {
+              midiClockDrift-=(bpm);
+              midiClockCycles++;
+            }
+          }
+        }
+
+        // 4. tick the clock and fill buffers as needed
         if (cycles<runLeftG) {
           for (int i=0; i<song.systemLen; i++) {
             int total=(cycles*disCont[i].runtotal)/(size<<MASTER_CLOCK_PREC);
