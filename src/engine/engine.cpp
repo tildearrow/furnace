@@ -2208,12 +2208,20 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
       skipping=false;
       return;
     }
+    if (!preserveDrift) {
+      runMidiClock(cycles);
+      runMidiTime(cycles);
+    }
   }
   int oldOrder=curOrder;
   while (playing && (curRow<goalRow || ticks>1)) {
     if (nextTick(preserveDrift)) {
       skipping=false;
       return;
+    }
+    if (!preserveDrift) {
+      runMidiClock(cycles);
+      runMidiTime(cycles);
     }
     if (oldOrder!=curOrder) break;
     if (ticks-((tempoAccum+curSubSong->virtualTempoN)/MAX(1,curSubSong->virtualTempoD))<1 && curRow>=goalRow) break;
@@ -2237,6 +2245,13 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
     midiClockDrift=0;
     midiTimeCycles=0;
     midiTimeDrift=0;
+    if (curMidiTime>0) {
+      curMidiTime--;
+    }
+    if (curMidiClock>0) {
+      curMidiClock--;
+    }
+    curMidiTimePiece=0;
   }
   if (!preserveDrift) {
     ticks=1;
@@ -2448,7 +2463,7 @@ void DivEngine::play() {
           // drop
           drop=((actualTime/(30*60))-(actualTime/(30*600)))*2;
           actualTime+=drop;
-          
+
           msgData[5]=(actualTime/(60*60*30))%24;
           msgData[6]=(actualTime/(60*30))%60;
           msgData[7]=(actualTime/30)%60;

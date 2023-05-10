@@ -475,6 +475,8 @@ class DivEngine {
   void recalcChans();
   void reset();
   void playSub(bool preserveDrift, int goalRow=0);
+  void runMidiClock(int totalCycles=1);
+  void runMidiTime(int totalCycles=1);
 
   void testFunction();
 
