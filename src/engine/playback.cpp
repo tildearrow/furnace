@@ -1833,8 +1833,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         // 3. run MIDI clock
         int midiTotal=MIN(cycles,runLeftG);
         for (int i=0; i<midiTotal; i++) {
-          // TODO: TEMPO
           if (--midiClockCycles<=0) {
+            curMidiClock++;
             if (output) if (!skipping && output->midiOut!=NULL && midiOutClock) {
               output->midiOut->send(TAMidiMessage(TA_MIDI_CLOCK,0,0));
             }

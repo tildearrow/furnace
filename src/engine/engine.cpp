@@ -2043,6 +2043,8 @@ String DivEngine::getPlaybackDebugInfo() {
     "totalSeconds: %d\n"
     "totalTicks: %d\n"
     "totalTicksR: %d\n"
+    "curMidiClock: %d\n"
+    "curMidiTime: %d\n"
     "totalCmds: %d\n"
     "lastCmds: %d\n"
     "cmdsPerSecond: %d\n"
@@ -2053,8 +2055,8 @@ String DivEngine::getPlaybackDebugInfo() {
     "bufferPos: %d\n",
     curOrder,prevOrder,curRow,prevRow,ticks,subticks,totalLoops,lastLoopPos,nextSpeed,divider,cycles,clockDrift,
     midiClockCycles,midiClockDrift,midiTimeCycles,midiTimeDrift,changeOrd,changePos,totalSeconds,totalTicks,
-    totalTicksR,totalCmds,lastCmds,cmdsPerSecond,globalPitch,(int)extValue,(int)tempoAccum,(int)totalProcessed,
-    (int)bufferPos
+    totalTicksR,curMidiClock,curMidiTime,totalCmds,lastCmds,cmdsPerSecond,globalPitch,
+    (int)extValue,(int)tempoAccum,(int)totalProcessed,(int)bufferPos
   );
 }
 
@@ -2186,6 +2188,8 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
     totalTicks=0;
     totalSeconds=0;
     totalTicksR=0;
+    curMidiClock=0;
+    curMidiTime=0;
     totalLoops=0;
     lastLoopPos=-1;
   }
@@ -2400,7 +2404,7 @@ void DivEngine::play() {
     keyHit[i]=false;
   }
   if (output) if (!skipping && output->midiOut!=NULL) {
-    int pos=totalTicksR/6;
+    int pos=curMidiClock;
     output->midiOut->send(TAMidiMessage(TA_MIDI_POSITION,(pos>>7)&0x7f,pos&0x7f));
     output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_PLAY,0,0));
   }
@@ -4404,6 +4408,8 @@ void DivEngine::quitDispatch() {
   totalTicks=0;
   totalSeconds=0;
   totalTicksR=0;
+  curMidiClock=0;
+  curMidiTime=0;
   totalCmds=0;
   lastCmds=0;
   cmdsPerSecond=0;
