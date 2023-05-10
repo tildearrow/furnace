@@ -21,6 +21,42 @@
 #include <jack/weakjack.h>
 #include <jack/jack.h>
 
+class TAMidiInJACK: public TAMidiIn {
+  jack_client_t* ac;
+  jack_port_t* port;
+  bool isOpen;
+  public:
+    bool gather();
+    bool isDeviceOpen();
+    bool openDevice(String name);
+    bool closeDevice();
+    std::vector<String> listDevices();
+    bool quit();
+    bool init();
+    TAMidiInJACK(jack_client_t* client):
+      ac(client),
+      port(NULL),
+      isOpen(false) {}
+};
+
+class TAMidiOutJACK: public TAMidiOut {
+  jack_client_t* ac;
+  jack_port_t* port;
+  bool isOpen;
+  public:
+    bool send(const TAMidiMessage& what);
+    bool isDeviceOpen();
+    bool openDevice(String name);
+    bool closeDevice();
+    std::vector<String> listDevices();
+    bool quit();
+    bool init();
+    TAMidiOutJACK(jack_client_t* client):
+      ac(client),
+      port(NULL),
+      isOpen(false) {}
+};
+
 class TAAudioJACK: public TAAudio {
   jack_client_t* ac;
   jack_port_t** ai;
@@ -40,6 +76,7 @@ class TAAudioJACK: public TAAudio {
     bool quit();
     bool setRun(bool run);
     bool init(TAAudioDesc& request, TAAudioDesc& response);
+    unsigned char getID();
 
     TAAudioJACK():
       ac(NULL),

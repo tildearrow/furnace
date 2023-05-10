@@ -55,6 +55,10 @@ bool TAAudio::init(TAAudioDesc& request, TAAudioDesc& response) {
   return true;
 }
 
+unsigned char TAAudio::getID() {
+  return 0;
+}
+
 TAAudio::~TAAudio() {
 }
 
