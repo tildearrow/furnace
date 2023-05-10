@@ -369,8 +369,10 @@ class DivEngine {
   bool systemsRegistered;
   bool hasLoadedSomething;
   bool midiOutClock;
+  bool midiOutTime;
   bool midiOutProgramChange;
   int midiOutMode;
+  int midiOutTimeRate;
   int softLockCount;
   int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
   size_t curSubSongIndex;
@@ -384,6 +386,7 @@ class DivEngine {
   double midiTimeDrift;
   int stepPlay;
   int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, curMidiClock, curMidiTime, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
+  int curMidiTimePiece, curMidiTimeCode;
   unsigned char extValue, pendingMetroTick;
   DivGroovePattern speeds;
   short tempoAccum;
@@ -1128,8 +1131,10 @@ class DivEngine {
       systemsRegistered(false),
       hasLoadedSomething(false),
       midiOutClock(false),
+      midiOutTime(false),
       midiOutProgramChange(false),
       midiOutMode(DIV_MIDI_MODE_NOTE),
+      midiOutTimeRate(0),
       softLockCount(0),
       subticks(0),
       ticks(0),
@@ -1166,6 +1171,8 @@ class DivEngine {
       lastCmds(0),
       cmdsPerSecond(0),
       globalPitch(0),
+      curMidiTimePiece(0),
+      curMidiTimeCode(0),
       extValue(0),
       pendingMetroTick(0),
       tempoAccum(0),

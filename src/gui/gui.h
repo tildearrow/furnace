@@ -1402,8 +1402,10 @@ class FurnaceGUI {
     int channelFont;
     int channelTextCenter;
     int midiOutClock;
+    int midiOutTime;
     int midiOutProgramChange;
     int midiOutMode;
+    int midiOutTimeRate;
     int maxRecentFile;
     int centerPattern;
     int ordersCursor;
@@ -1545,8 +1547,10 @@ class FurnaceGUI {
       channelFont(1),
       channelTextCenter(1),
       midiOutClock(0),
+      midiOutTime(0),
       midiOutProgramChange(0),
       midiOutMode(1),
+      midiOutTimeRate(0),
       maxRecentFile(10),
       centerPattern(0),
       ordersCursor(1),

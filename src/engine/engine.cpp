@@ -2037,7 +2037,7 @@ String DivEngine::getPlaybackDebugInfo() {
     "midiClockCycles: %d\n"
     "midiClockDrift: %f\n"
     "midiTimeCycles: %d\n"
-    "midiTimeDrift: %d\n"
+    "midiTimeDrift: %f\n"
     "changeOrd: %d\n"
     "changePos: %d\n"
     "totalSeconds: %d\n"
@@ -2190,6 +2190,8 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
     totalTicksR=0;
     curMidiClock=0;
     curMidiTime=0;
+    curMidiTimeCode=0;
+    curMidiTimePiece=0;
     totalLoops=0;
     lastLoopPos=-1;
   }
@@ -2403,9 +2405,74 @@ void DivEngine::play() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     keyHit[i]=false;
   }
+  curMidiTimePiece=0;
   if (output) if (!skipping && output->midiOut!=NULL) {
-    int pos=curMidiClock;
-    output->midiOut->send(TAMidiMessage(TA_MIDI_POSITION,(pos>>7)&0x7f,pos&0x7f));
+    if (midiOutClock) {
+      output->midiOut->send(TAMidiMessage(TA_MIDI_POSITION,(curMidiClock>>7)&0x7f,curMidiClock&0x7f));
+    }
+    if (midiOutTime) {
+      TAMidiMessage msg;
+      msg.type=TA_MIDI_SYSEX;
+      msg.sysExData.reset(new unsigned char[10],std::default_delete<unsigned char[]>());
+      msg.sysExLen=10;
+      unsigned char* msgData=msg.sysExData.get();
+      int actualTime=curMidiTime;
+      int timeRate=midiOutTimeRate;
+      int drop=0;
+      if (timeRate<1 || timeRate>4) {
+        if (curSubSong->hz>=47.98 && curSubSong->hz<=48.02) {
+          timeRate=1;
+        } else if (curSubSong->hz>=49.98 && curSubSong->hz<=50.02) {
+          timeRate=2;
+        } else if (curSubSong->hz>=59.9 && curSubSong->hz<=60.11) {
+          timeRate=4;
+        } else {
+          timeRate=4;
+        }
+      }
+
+      switch (timeRate) {
+        case 1: // 24
+          msgData[5]=(actualTime/(60*60*24))%24;
+          msgData[6]=(actualTime/(60*24))%60;
+          msgData[7]=(actualTime/24)%60;
+          msgData[8]=actualTime%24;
+          break;
+        case 2: // 25
+          msgData[5]=(actualTime/(60*60*25))%24;
+          msgData[6]=(actualTime/(60*25))%60;
+          msgData[7]=(actualTime/25)%60;
+          msgData[8]=actualTime%25;
+          break;
+        case 3: // 29.97 (NTSC drop)
+          // drop
+          drop=((actualTime/(30*60))-(actualTime/(30*600)))*2;
+          actualTime+=drop;
+          
+          msgData[5]=(actualTime/(60*60*30))%24;
+          msgData[6]=(actualTime/(60*30))%60;
+          msgData[7]=(actualTime/30)%60;
+          msgData[8]=actualTime%30;
+          break;
+        case 4: // 30 (NTSC non-drop)
+        default:
+          msgData[5]=(actualTime/(60*60*30))%24;
+          msgData[6]=(actualTime/(60*30))%60;
+          msgData[7]=(actualTime/30)%60;
+          msgData[8]=actualTime%30;
+          break;
+      }
+
+      msgData[5]|=(timeRate-1)<<5;
+
+      msgData[0]=0xf0;
+      msgData[1]=0x7f;
+      msgData[2]=0x7f;
+      msgData[3]=0x01;
+      msgData[4]=0x01;
+      msgData[9]=0xf7;
+      output->midiOut->send(msg);
+    }
     output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_PLAY,0,0));
   }
   BUSY_END;
@@ -4410,6 +4477,8 @@ void DivEngine::quitDispatch() {
   totalTicksR=0;
   curMidiClock=0;
   curMidiTime=0;
+  curMidiTimeCode=0;
+  curMidiTimePiece=0;
   totalCmds=0;
   lastCmds=0;
   cmdsPerSecond=0;
@@ -4436,6 +4505,8 @@ bool DivEngine::initAudioBackend() {
   lowLatency=getConfInt("lowLatency",0);
   metroVol=(float)(getConfInt("metroVol",100))/100.0f;
   midiOutClock=getConfInt("midiOutClock",0);
+  midiOutTime=getConfInt("midiOutTime",0);
+  midiOutTimeRate=getConfInt("midiOutTimeRate",0);
   midiOutProgramChange = getConfInt("midiOutProgramChange",0);
   midiOutMode=getConfInt("midiOutMode",DIV_MIDI_MODE_NOTE);
   if (metroVol<0.0f) metroVol=0.0f;

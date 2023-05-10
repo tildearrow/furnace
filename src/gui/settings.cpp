@@ -1146,14 +1146,38 @@ void FurnaceGUI::drawSettings() {
               settings.midiOutMode=2;
             }*/
 
+            bool midiOutProgramChangeB=settings.midiOutProgramChange;
+            if (ImGui::Checkbox("Send Program Change",&midiOutProgramChangeB)) {
+              settings.midiOutProgramChange=midiOutProgramChangeB;
+            }
+
             bool midiOutClockB=settings.midiOutClock;
             if (ImGui::Checkbox("Send MIDI clock",&midiOutClockB)) {
               settings.midiOutClock=midiOutClockB;
             }
 
-            bool midiOutProgramChangeB=settings.midiOutProgramChange;
-            if (ImGui::Checkbox("Send Program Change",&midiOutProgramChangeB)) {
-              settings.midiOutProgramChange=midiOutProgramChangeB;
+            bool midiOutTimeB=settings.midiOutTime;
+            if (ImGui::Checkbox("Send MIDI timecode",&midiOutTimeB)) {
+              settings.midiOutTime=midiOutTimeB;
+            }
+
+            if (settings.midiOutTime) {
+              ImGui::Text("Timecode frame rate:");
+              if (ImGui::RadioButton("Closest to Tick Rate",settings.midiOutTimeRate==0)) {
+                settings.midiOutTimeRate=0;
+              }
+              if (ImGui::RadioButton("Film (24fps)",settings.midiOutTimeRate==1)) {
+                settings.midiOutTimeRate=1;
+              }
+              if (ImGui::RadioButton("PAL (25fps)",settings.midiOutTimeRate==2)) {
+                settings.midiOutTimeRate=2;
+              }
+              if (ImGui::RadioButton("NTSC drop (29.97fps)",settings.midiOutTimeRate==3)) {
+                settings.midiOutTimeRate=3;
+              }
+              if (ImGui::RadioButton("NTSC non-drop (30fps)",settings.midiOutTimeRate==4)) {
+                settings.midiOutTimeRate=4;
+              }
             }
 
             ImGui::TreePop();
@@ -2629,8 +2653,10 @@ void FurnaceGUI::syncSettings() {
   settings.channelTextCenter=e->getConfInt("channelTextCenter",1);
   settings.maxRecentFile=e->getConfInt("maxRecentFile",10);
   settings.midiOutClock=e->getConfInt("midiOutClock",0);
+  settings.midiOutTime=e->getConfInt("midiOutTime",0);
   settings.midiOutProgramChange=e->getConfInt("midiOutProgramChange",0);
   settings.midiOutMode=e->getConfInt("midiOutMode",1);
+  settings.midiOutTimeRate=e->getConfInt("midiOutTimeRate",0);
   settings.centerPattern=e->getConfInt("centerPattern",0);
   settings.ordersCursor=e->getConfInt("ordersCursor",1);
   settings.persistFadeOut=e->getConfInt("persistFadeOut",1);
@@ -2749,8 +2775,10 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.channelTextCenter,0,1);
   clampSetting(settings.maxRecentFile,0,30);
   clampSetting(settings.midiOutClock,0,1);
+  clampSetting(settings.midiOutTime,0,1);
   clampSetting(settings.midiOutProgramChange,0,1);
   clampSetting(settings.midiOutMode,0,2);
+  clampSetting(settings.midiOutTimeRate,0,4);
   clampSetting(settings.centerPattern,0,1);
   clampSetting(settings.ordersCursor,0,1);
   clampSetting(settings.persistFadeOut,0,1);
@@ -2960,8 +2988,10 @@ void FurnaceGUI::commitSettings() {
   e->setConf("channelTextCenter",settings.channelTextCenter);
   e->setConf("maxRecentFile",settings.maxRecentFile);
   e->setConf("midiOutClock",settings.midiOutClock);
+  e->setConf("midiOutTime",settings.midiOutTime);
   e->setConf("midiOutProgramChange",settings.midiOutProgramChange);
   e->setConf("midiOutMode",settings.midiOutMode);
+  e->setConf("midiOutTimeRate",settings.midiOutTimeRate);
   e->setConf("centerPattern",settings.centerPattern);
   e->setConf("ordersCursor",settings.ordersCursor);
   e->setConf("persistFadeOut",settings.persistFadeOut);
