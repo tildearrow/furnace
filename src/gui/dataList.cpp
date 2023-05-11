@@ -22,6 +22,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include "plot_nolerp.h"
 #include "guiConst.h"
+#include "../ta-log.h"
 #include <fmt/printf.h>
 #include <imgui.h>
 
@@ -680,6 +681,10 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Open");
     }
+    if (mobileUI && ImGui::IsItemActive() && CHECK_LONG_HOLD) {
+      ImGui::OpenPopup("SampleOpenOpt");
+      NOTIFY_LONG_HOLD;
+    }
     if (ImGui::BeginPopupContextItem("SampleOpenOpt")) {
       if (ImGui::MenuItem("replace...")) {
         doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE:GUI_ACTION_SAMPLE_LIST_OPEN);
@@ -699,6 +704,10 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Save");
+    }
+    if (mobileUI && ImGui::IsItemActive() && CHECK_LONG_HOLD) {
+      ImGui::OpenPopup("SampleSaveOpt");
+      NOTIFY_LONG_HOLD;
     }
     if (ImGui::BeginPopupContextItem("SampleSaveOpt")) {
       if (ImGui::MenuItem("save raw...")) {
