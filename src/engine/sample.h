@@ -188,11 +188,11 @@ struct DivSample {
   /**
    * @warning DO NOT USE - internal functions
    */
-  bool resampleNone(double rate);
-  bool resampleLinear(double rate);
-  bool resampleCubic(double rate);
-  bool resampleBlep(double rate);
-  bool resampleSinc(double rate);
+  bool resampleNone(double sRate, double tRate);
+  bool resampleLinear(double sRate, double tRate);
+  bool resampleCubic(double sRate, double tRate);
+  bool resampleBlep(double sRate, double tRate);
+  bool resampleSinc(double sRate, double tRate);
 
   /**
    * save this sample to a file.
@@ -262,11 +262,12 @@ struct DivSample {
   /**
    * change the sample rate.
    * @warning do not attempt to resample outside of a synchronized block!
-   * @param rate number of samples.
+   * @param sRate source rate.
+   * @param tRate target rate.
    * @param filter the interpolation filter.
    * @return whether it was successful.
    */
-  bool resample(double rate, int filter);
+  bool resample(double sRate, double tRate, int filter);
 
   /**
    * initialize the rest of sample formats for this sample.

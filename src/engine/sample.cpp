@@ -701,7 +701,7 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
 
 #define RESAMPLE_BEGIN \
   if (samples<1) return true; \
-  int finalCount=(double)samples*(r/(double)rate); \
+  int finalCount=(double)samples*(tRate/sRate); \
   signed char* oldData8=data8; \
   short* oldData16=data16; \
   if (depth==DIV_SAMPLE_DEPTH_16BIT) { \
@@ -719,10 +719,10 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
   }
 
 #define RESAMPLE_END \
-  if (loopStart>=0) loopStart=(double)loopStart*(r/(double)rate); \
-  if (loopEnd>=0) loopEnd=(double)loopEnd*(r/(double)rate); \
-  centerRate=(int)((double)centerRate*(r/(double)rate)); \
-  rate=r; \
+  if (loopStart>=0) loopStart=(double)loopStart*(tRate/sRate); \
+  if (loopEnd>=0) loopEnd=(double)loopEnd*(tRate/sRate); \
+  centerRate=(int)((double)centerRate*(tRate/sRate)); \
+  rate=(int)((double)rate*(tRate/sRate)); \
   samples=finalCount; \
   if (depth==DIV_SAMPLE_DEPTH_16BIT) { \
     delete[] oldData16; \
@@ -730,12 +730,12 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
     delete[] oldData8; \
   }
 
-bool DivSample::resampleNone(double r) {
+bool DivSample::resampleNone(double sRate, double tRate) {
   RESAMPLE_BEGIN;
 
   if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     for (int i=0; i<finalCount; i++) {
-      unsigned int pos=(unsigned int)((double)i*((double)rate/r));
+      unsigned int pos=(unsigned int)((double)i*(sRate/tRate));
       if (pos>=samples) {
         data16[i]=0;
       } else {
@@ -744,7 +744,7 @@ bool DivSample::resampleNone(double r) {
     }
   } else if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     for (int i=0; i<finalCount; i++) {
-      unsigned int pos=(unsigned int)((double)i*((double)rate/r));
+      unsigned int pos=(unsigned int)((double)i*(sRate/tRate));
       if (pos>=samples) {
         data8[i]=0;
       } else {
@@ -757,12 +757,12 @@ bool DivSample::resampleNone(double r) {
   return true;
 }
 
-bool DivSample::resampleLinear(double r) {
+bool DivSample::resampleLinear(double sRate, double tRate) {
   RESAMPLE_BEGIN;
 
   double posFrac=0;
   unsigned int posInt=0;
-  double factor=(double)rate/r;
+  double factor=sRate/tRate;
 
   if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     for (int i=0; i<finalCount; i++) {
@@ -796,12 +796,12 @@ bool DivSample::resampleLinear(double r) {
   return true;
 }
 
-bool DivSample::resampleCubic(double r) {
+bool DivSample::resampleCubic(double sRate, double tRate) {
   RESAMPLE_BEGIN;
 
   double posFrac=0;
   unsigned int posInt=0;
-  double factor=(double)rate/r;
+  double factor=sRate/tRate;
   float* cubicTable=DivFilterTables::getCubicTable();
 
   if (depth==DIV_SAMPLE_DEPTH_16BIT) {
@@ -850,12 +850,12 @@ bool DivSample::resampleCubic(double r) {
   return true;
 }
 
-bool DivSample::resampleBlep(double r) {
+bool DivSample::resampleBlep(double sRate, double tRate) {
   RESAMPLE_BEGIN;
 
   double posFrac=0;
   unsigned int posInt=0;
-  double factor=r/(double)rate;
+  double factor=tRate/sRate;
   float* sincITable=DivFilterTables::getSincIntegralTable();
 
   float* floatData=new float[finalCount];
@@ -934,12 +934,12 @@ bool DivSample::resampleBlep(double r) {
   return true;
 }
 
-bool DivSample::resampleSinc(double r) {
+bool DivSample::resampleSinc(double sRate, double tRate) {
   RESAMPLE_BEGIN;
 
   double posFrac=0;
   unsigned int posInt=0;
-  double factor=(double)rate/r;
+  double factor=sRate/tRate;
   float* sincTable=DivFilterTables::getSincTable();
   float s[16];
 
@@ -1001,29 +1001,29 @@ bool DivSample::resampleSinc(double r) {
   return true;
 }
 
-bool DivSample::resample(double r, int filter) {
+bool DivSample::resample(double sRate, double tRate, int filter) {
   if (depth!=DIV_SAMPLE_DEPTH_8BIT && depth!=DIV_SAMPLE_DEPTH_16BIT) return false;
   switch (filter) {
     case DIV_RESAMPLE_NONE:
-      return resampleNone(r);
+      return resampleNone(sRate,tRate);
       break;
     case DIV_RESAMPLE_LINEAR:
-      return resampleLinear(r);
+      return resampleLinear(sRate,tRate);
       break;
     case DIV_RESAMPLE_CUBIC:
-      return resampleCubic(r);
+      return resampleCubic(sRate,tRate);
       break;
     case DIV_RESAMPLE_BLEP:
-      return resampleBlep(r);
+      return resampleBlep(sRate,tRate);
       break;
     case DIV_RESAMPLE_SINC:
-      return resampleSinc(r);
+      return resampleSinc(sRate,tRate);
       break;
     case DIV_RESAMPLE_BEST:
-      if (r>rate) {
-        return resampleSinc(r);
+      if (tRate>sRate) {
+        return resampleSinc(sRate,tRate);
       } else {
-        return resampleBlep(r);
+        return resampleBlep(sRate,tRate);
       }
       break;
   }
