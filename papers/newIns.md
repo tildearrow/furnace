@@ -114,8 +114,9 @@ the following instrument types are available:
 - 44: T6W28
 - 45: K007232
 - 46: GA20
-- 47: Pokémon Mini
+- 47: Pokémon Mini/QuadTone
 - 48: SM8521
+- 49: PV-1000
 
 the following feature codes are recognized:
 
@@ -388,7 +389,7 @@ the sample map format:
 ```
 size | description
 -----|------------------------------------
-  2  | note to play
+  2  | note to play (>=152) or reserved
   2  | sample to play
 ```
 

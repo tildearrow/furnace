@@ -104,7 +104,9 @@ class DivPlatformAY8910: public DivDispatch {
 
     bool extMode;
     unsigned int extClock;
+    int dacRate;
     unsigned char extDiv;
+    unsigned char dacRateDiv;
 
     bool stereo, sunsoft, intellivision, clockSel;
     bool ioPortA, ioPortB;
@@ -119,7 +121,6 @@ class DivPlatformAY8910: public DivDispatch {
     short* ayBuf[3];
     size_t ayBufLen;
 
-    void runDAC();
     void checkWrites();
     void updateOutSel(bool immediate=false);
   
@@ -127,6 +128,7 @@ class DivPlatformAY8910: public DivDispatch {
     friend void putDispatchChan(void*,int,int);
   
   public:
+    void runDAC();
     void setExtClockDiv(unsigned int eclk=COLOR_NTSC, unsigned char ediv=8);
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
@@ -143,6 +145,7 @@ class DivPlatformAY8910: public DivDispatch {
     int getOutputCount();
     bool keyOffAffectsArp(int ch);
     DivMacroInt* getChanMacroInt(int ch);
+    DivSamplePos getSamplePos(int ch);
     bool getDCOffRequired();
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
@@ -150,10 +153,11 @@ class DivPlatformAY8910: public DivDispatch {
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
-    DivPlatformAY8910(bool useExtMode=false, unsigned int eclk=COLOR_NTSC, unsigned char ediv=8):
+    DivPlatformAY8910(bool useExtMode=false, unsigned int eclk=COLOR_NTSC, unsigned char ediv=8, unsigned char ddiv=24):
       DivDispatch(),
       extMode(useExtMode),
       extClock(eclk),
-      extDiv(ediv) {}
+      extDiv(ediv),
+      dacRateDiv(ddiv) {}
 };
 #endif

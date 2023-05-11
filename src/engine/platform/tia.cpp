@@ -121,10 +121,8 @@ void DivPlatformTIA::tick(bool sysTick) {
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       int bf=chan[i].baseFreq;
-      if (!parent->song.oldArpStrategy) {
-        if (!chan[i].fixedArp) {
-          bf+=chan[i].arpOff<<8;
-        }
+      if (!chan[i].fixedArp) {
+        bf+=chan[i].arpOff<<8;
       }
       if (chan[i].fixedArp) {
         chan[i].freq=chan[i].baseNoteOverride&31;

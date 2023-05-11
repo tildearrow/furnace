@@ -84,11 +84,13 @@ void DivPlatformSM8521::tick(bool sysTick) {
   unsigned char keyState=0x80;
   for (int i=0; i<3; i++) {
     // anti-click
+    /*
     if (antiClickEnabled && sysTick && chan[i].freq>0) {
       chan[i].antiClickPeriodCount+=(chipClock/MAX(parent->getCurHz(),1.0f));
       chan[i].antiClickWavePos+=chan[i].antiClickPeriodCount/chan[i].freq;
       chan[i].antiClickPeriodCount%=chan[i].freq;
     }
+    */
 
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -167,7 +169,7 @@ void DivPlatformSM8521::tick(bool sysTick) {
 int DivPlatformSM8521::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
-      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_PCE);
+      DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_SM8521);
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
         chan[c.chan].freqChanged=true;
@@ -261,7 +263,7 @@ int DivPlatformSM8521::dispatch(DivCommand c) {
       break;
     case DIV_CMD_PRE_PORTA:
       if (chan[c.chan].active && c.value2) {
-        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_PCE));
+        if (parent->song.resetMacroOnPorta) chan[c.chan].macroInit(parent->getIns(chan[c.chan].ins,DIV_INS_SM8521));
       }
       if (!chan[c.chan].inPorta && c.value && !parent->song.brokenPortaArp && chan[c.chan].std.arp.will && !NEW_ARP_STRAT) chan[c.chan].baseFreq=NOTE_PERIODIC(chan[c.chan].note);
       chan[c.chan].inPorta=c.value;
@@ -362,9 +364,9 @@ void DivPlatformSM8521::notifyInsDeletion(void* ins) {
 }
 
 void DivPlatformSM8521::setFlags(const DivConfig& flags) {
-  antiClickEnabled=!flags.getBool("noAntiClick",false);
   chipClock=11059200;
   CHECK_CUSTOM_CLOCK;
+  antiClickEnabled=!flags.getBool("noAntiClick",false);
   rate=chipClock/4/8; // CKIN -> fCLK(/2) -> Function blocks (/2)
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate;

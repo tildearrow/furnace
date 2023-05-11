@@ -30,7 +30,7 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
   const int depthScale=(15-outDepth);
   int output=0;
   for (size_t h=0; h<len; h++) {
-    if (!chan[0].active || isMuted) {
+    if (!chan[0].active) {
       buf[0][h]=0;
       buf[1][h]=0;
       oscBuf->data[oscBuf->needle++]=0;
@@ -171,7 +171,11 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
         }
       }
     }
-    output=output*chan[0].vol*chan[0].envVol/16384;
+    if (isMuted) {
+      output=0;
+    } else {
+      output=output*chan[0].vol*chan[0].envVol/16384;
+    }
     oscBuf->data[oscBuf->needle++]=output;
     if (outStereo) {
       buf[0][h]=((output*chan[0].panL)>>(depthScale+8))<<depthScale;
@@ -267,7 +271,10 @@ int DivPlatformPCMDAC::dispatch(DivCommand c) {
           }
         }
       } else {
-        if (c.value!=DIV_NOTE_NULL) chan[0].sample=ins->amiga.getSample(c.value);
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[0].sample=ins->amiga.getSample(c.value);
+          c.value=ins->amiga.getFreq(c.value);
+        }
         chan[0].useWave=false;
       }
       if (c.value!=DIV_NOTE_NULL) {
@@ -435,6 +442,15 @@ int DivPlatformPCMDAC::getOutputCount() {
 
 DivMacroInt* DivPlatformPCMDAC::getChanMacroInt(int ch) {
   return &chan[0].std;
+}
+
+DivSamplePos DivPlatformPCMDAC::getSamplePos(int ch) {
+  if (ch>=1) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].sample,
+    chan[ch].audPos,
+    chan[ch].freq
+  );
 }
 
 void DivPlatformPCMDAC::notifyInsChange(int ins) {

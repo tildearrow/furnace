@@ -20,6 +20,7 @@
 #define _USE_MATH_DEFINES
 #include "gui.h"
 #include "imgui_internal.h"
+#include <fmt/printf.h>
 
 void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2& pos, const ImVec2& scale, double rotate, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& imgColor) {
   FurnaceGUIImage* imgI=getImage(image);
@@ -73,23 +74,43 @@ void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2&
 
 void FurnaceGUI::endIntroTune() {
   stop();
-  e->createNewFromDefaults();
+  if (curFileName.empty()) {
+    e->createNewFromDefaults();
+  } else { // load pending song
+    if (load(curFileName)>0) {
+      showError(fmt::sprintf("Error while loading file! (%s)",lastError));
+      curFileName="";
+      e->createNewFromDefaults();
+    }
+  }
+  undoHist.clear();
+  redoHist.clear();
+  modified=false;
+  curNibble=false;
+  orderNibble=false;
+  orderCursor=-1;
+  samplePos=0;
+  updateSampleTex=true;
+  selStart=SelectionPoint();
+  selEnd=SelectionPoint();
+  cursor=SelectionPoint();
+  updateWindowTitle();
 }
 
 void FurnaceGUI::drawIntro(double introTime, bool monitor) {
   if (monitor) {
     if (introTime<0.0) introTime=0.0;
-    if (introTime>9.0) introTime=9.0;
+    if (introTime>11.0) introTime=11.0;
     if (!introMonOpen) return;
-    if (introPos<(shortIntro?1.0:9.0)) return;
+    if (introPos<(shortIntro?1.0:11.0)) return;
   }
-  if (introPos<(shortIntro?1.0:9.0) || monitor) {
+  if (introPos<(shortIntro?1.0:11.0) || monitor) {
     if (!monitor) {
       WAKE_UP;
       nextWindow=GUI_WINDOW_NOTHING;
       ImGui::SetNextWindowPos(ImVec2(0,0));
       ImGui::SetNextWindowSize(ImVec2(canvasW,canvasH));
-      ImGui::SetNextWindowFocus();
+      if (introPos<0.1) ImGui::SetNextWindowFocus();
     }
     if (ImGui::Begin(monitor?"IntroMon X":"Intro",monitor?(&introMonOpen):NULL,monitor?globalWinFlags:(ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoDocking|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground))) {
       if (monitor) {
@@ -104,10 +125,10 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
           play();
         }
         ImGui::SameLine();
-        ImGui::TextColored(ImVec4(1.0,introTime<8.0?1.0:0.0,introTime<8.0?1.0:0.0,1.0),"%.2f",introTime);
+        ImGui::TextColored(ImVec4(1.0,introTime<10.0?1.0:0.0,introTime<10.0?1.0:0.0,1.0),"%.2f",introTime);
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        ImGui::ProgressBar(introTime/9.0,ImVec2(-FLT_MIN,0),"##IntroP");
+        ImGui::ProgressBar(introTime/11.0,ImVec2(-FLT_MIN,0),"##IntroP");
       }
 
       ImDrawList* dl=monitor?ImGui::GetWindowDrawList():ImGui::GetForegroundDrawList();
@@ -152,7 +173,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
 
         if (introSkip<0.5 || monitor) {
           // background
-          float bgAlpha=CLAMP(9.0-introTime,0.0,1.0);
+          float bgAlpha=CLAMP(11.0-introTime,0.0,1.0);
           bgAlpha=3.0*pow(bgAlpha,2.0)-2.0*pow(bgAlpha,3.0);
           ImU32 bgColor=ImGui::GetColorU32(ImVec4(0.0f,0.0f,0.0f,bgAlpha));
 
@@ -177,9 +198,9 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
             float s1a=CLAMP((introTime-3.2)*1.3,0.0f,1.0f);
             float s2a=CLAMP((introTime-4.5)*1.0,0.0f,1.0f);
             float addition=(3*pow(s1a,2)-2*pow(s1a,3)+(3*pow(s2a,2)-2*pow(s2a,3))*1.5)*3.5;
-            drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.125,0.25-(introTime+addition)*0.05),ImVec2(18.0,18.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.4,0.1+0.7*s1a,1.0*s1a,0.5*bgAlpha));
-            drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.4,0.25-(introTime+addition)*0.08),ImVec2(18.0,18.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.5-0.4*s1a,0.8-0.6*s1a,1.0*s1a,0.6*bgAlpha));
-            drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.7,0.25-(introTime+addition)*0.03),ImVec2(20.0,20.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.4+0.3*s1a,1.0,0.7,(0.5-0.4*s1a)*bgAlpha));
+            drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.125,0.25-(introTime+addition)*0.05),ImVec2(18.0,18.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.2,0.1+0.7*s1a,1.0*s1a,0.5*bgAlpha));
+            drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.4,0.25-(introTime+addition)*0.08),ImVec2(18.0,18.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.1*s1a,0.2+0.4*s1a,1.0*s1a,0.6*bgAlpha));
+            drawImage(dl,GUI_IMAGE_INTROBG,ImVec2(0.7,0.25-(introTime+addition)*0.03),ImVec2(20.0,20.0),0.0,ImVec2(0.0,0.0),ImVec2(1.0,1.0),ImVec4(0.2+0.5*s1a,0.2,1.0,(0.5-0.4*s1a)*bgAlpha));
           }
 
           const double fallPatX[]={
@@ -271,7 +292,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
             if (introSkip>=0.5) {
               if (e->isPlaying()) endIntroTune();
               introPos=0.1;
-              if (introSkip>=0.75) introPos=9.1;
+              if (introSkip>=0.75) introPos=12.0;
             }
           } else {
             introSkip-=ImGui::GetIO().DeltaTime*4.0f;
@@ -296,10 +317,10 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
         e->setRepeatPattern(false);
         play();
       }
-      if (e->isPlaying() && introPos>=8.0 && !shortIntro) endIntroTune();
+      if (e->isPlaying() && introPos>=10.0 && !shortIntro) endIntroTune();
       introPos+=ImGui::GetIO().DeltaTime;
-      if (introPos>=(shortIntro?1.0:9.0)) {
-        introPos=10.0;
+      if (introPos>=(shortIntro?1.0:11.0)) {
+        introPos=12.0;
         tutorial.introPlayed=true;
         commitTutorial();
       }

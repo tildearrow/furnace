@@ -65,6 +65,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     segapcm_device pcm;
     int delay;
     int pcmL, pcmR, pcmCycles;
+    bool oldSlides;
     unsigned char sampleBank;
     unsigned char lastBusy;
 
@@ -76,7 +77,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     short pendingWrites[256];
 
     unsigned int sampleOffSegaPCM[256];
-    unsigned int sampleLoopOff[256];
+    unsigned char sampleEndSegaPCM[256];
     bool sampleLoaded[256];
   
     friend void putDispatchChip(void*,int);
@@ -87,6 +88,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     int dispatch(DivCommand c);
     void* getChanState(int chan);
     DivMacroInt* getChanMacroInt(int ch);
+    DivSamplePos getSamplePos(int ch);
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();

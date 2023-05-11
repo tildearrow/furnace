@@ -54,6 +54,10 @@ Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) i
   - 80 to FF for -128 to -1.
     - setting this to -128 is not recommended as it may cause echo output to overflow and therefore click.
 - `1Dxx`: set noise generator frequency (00 to 1F).
+- `1Exx`: set left dry/global volume.
+  - this does not affect echo.
+- `1Fxx`: set right dry/global volume.
+  - this does not affect echo.
 - `20xx`: set attack (0 to F).
   - only in ADSR envelope mode.
 - `21xx`: set decay (0 to 7).

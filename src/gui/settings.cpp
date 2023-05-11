@@ -276,6 +276,8 @@ void FurnaceGUI::drawSettings() {
     ImVec2 setWindowSize=ImVec2(canvasW,canvasH);
     ImGui::SetNextWindowPos(setWindowPos);
     ImGui::SetNextWindowSize(setWindowSize);
+  } else {
+    ImGui::SetNextWindowSizeConstraints(ImVec2(200.0f*dpiScale,100.0f*dpiScale),ImVec2(canvasW,canvasH));
   }
   if (ImGui::Begin("Settings",&settingsOpen,ImGuiWindowFlags_NoDocking|globalWinFlags)) {
     if (!settingsOpen) {
@@ -650,6 +652,14 @@ void FurnaceGUI::drawSettings() {
           bool saveUnusedPatternsB=settings.saveUnusedPatterns;
           if (ImGui::Checkbox("Save unused patterns",&saveUnusedPatternsB)) {
             settings.saveUnusedPatterns=saveUnusedPatternsB;
+          }
+
+          bool cursorFollowsOrderB=settings.cursorFollowsOrder;
+          if (ImGui::Checkbox("Cursor follows current order when moving it",&cursorFollowsOrderB)) {
+            settings.cursorFollowsOrder=cursorFollowsOrderB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("applies when playback is stopped.");
           }
 
           ImGui::Text("Audio export loop/fade out time:");
@@ -1136,9 +1146,38 @@ void FurnaceGUI::drawSettings() {
               settings.midiOutMode=2;
             }*/
 
+            bool midiOutProgramChangeB=settings.midiOutProgramChange;
+            if (ImGui::Checkbox("Send Program Change",&midiOutProgramChangeB)) {
+              settings.midiOutProgramChange=midiOutProgramChangeB;
+            }
+
             bool midiOutClockB=settings.midiOutClock;
             if (ImGui::Checkbox("Send MIDI clock",&midiOutClockB)) {
               settings.midiOutClock=midiOutClockB;
+            }
+
+            bool midiOutTimeB=settings.midiOutTime;
+            if (ImGui::Checkbox("Send MIDI timecode",&midiOutTimeB)) {
+              settings.midiOutTime=midiOutTimeB;
+            }
+
+            if (settings.midiOutTime) {
+              ImGui::Text("Timecode frame rate:");
+              if (ImGui::RadioButton("Closest to Tick Rate",settings.midiOutTimeRate==0)) {
+                settings.midiOutTimeRate=0;
+              }
+              if (ImGui::RadioButton("Film (24fps)",settings.midiOutTimeRate==1)) {
+                settings.midiOutTimeRate=1;
+              }
+              if (ImGui::RadioButton("PAL (25fps)",settings.midiOutTimeRate==2)) {
+                settings.midiOutTimeRate=2;
+              }
+              if (ImGui::RadioButton("NTSC drop (29.97fps)",settings.midiOutTimeRate==3)) {
+                settings.midiOutTimeRate=3;
+              }
+              if (ImGui::RadioButton("NTSC non-drop (30fps)",settings.midiOutTimeRate==4)) {
+                settings.midiOutTimeRate=4;
+              }
             }
 
             ImGui::TreePop();
@@ -1437,6 +1476,17 @@ void FurnaceGUI::drawSettings() {
           }
           if (ImGui::RadioButton("Split##ecl3",settings.controlLayout==3)) {
             settings.controlLayout=3;
+          }
+
+          ImGui::Text("Position of buttons in Orders:");
+          if (ImGui::RadioButton("Top##obp0",settings.orderButtonPos==0)) {
+            settings.orderButtonPos=0;
+          }
+          if (ImGui::RadioButton("Left##obp1",settings.orderButtonPos==1)) {
+            settings.orderButtonPos=1;
+          }
+          if (ImGui::RadioButton("Right##obp2",settings.orderButtonPos==2)) {
+            settings.orderButtonPos=2;
           }
 
           ImGui::Text("FM parameter editor layout:");
@@ -1929,6 +1979,7 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_GA20,"GA20");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_POKEMINI,"Pokémon Mini");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_SM8521,"SM8521");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_PV1000,"PV-1000");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
               ImGui::TreePop();
             }
@@ -2067,6 +2118,7 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::TreeNode("Global hotkeys")) {
             KEYBIND_CONFIG_BEGIN("keysGlobal");
 
+            UI_KEYBIND_CONFIG(GUI_ACTION_NEW);
             UI_KEYBIND_CONFIG(GUI_ACTION_OPEN);
             UI_KEYBIND_CONFIG(GUI_ACTION_OPEN_BACKUP);
             UI_KEYBIND_CONFIG(GUI_ACTION_SAVE);
@@ -2276,9 +2328,11 @@ void FurnaceGUI::drawSettings() {
             UI_KEYBIND_CONFIG(GUI_ACTION_PAT_FLIP_SELECTION);
             UI_KEYBIND_CONFIG(GUI_ACTION_PAT_COLLAPSE_ROWS);
             UI_KEYBIND_CONFIG(GUI_ACTION_PAT_EXPAND_ROWS);
+            UI_KEYBIND_CONFIG(GUI_ACTION_PAT_COLLAPSE_PAT);
+            UI_KEYBIND_CONFIG(GUI_ACTION_PAT_EXPAND_PAT);
+            UI_KEYBIND_CONFIG(GUI_ACTION_PAT_COLLAPSE_SONG);
+            UI_KEYBIND_CONFIG(GUI_ACTION_PAT_EXPAND_SONG);
             UI_KEYBIND_CONFIG(GUI_ACTION_PAT_LATCH);
-
-            // TODO: collapse/expand pattern and song
 
             KEYBIND_CONFIG_END;
             ImGui::TreePop();
@@ -2407,6 +2461,7 @@ void FurnaceGUI::drawSettings() {
         // "Debug" - toggles mobile UI
         // "Nice Amiga cover of the song!" - enables hidden systems (YMU759/SoundUnit/Dummy)
         // "42 63" - enables all instrument types
+        // "????" - enables stuff
         if (ImGui::BeginTabItem("Cheat Codes")) {
           ImVec2 settingsViewSize=ImGui::GetContentRegionAvail();
           settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
@@ -2598,7 +2653,10 @@ void FurnaceGUI::syncSettings() {
   settings.channelTextCenter=e->getConfInt("channelTextCenter",1);
   settings.maxRecentFile=e->getConfInt("maxRecentFile",10);
   settings.midiOutClock=e->getConfInt("midiOutClock",0);
+  settings.midiOutTime=e->getConfInt("midiOutTime",0);
+  settings.midiOutProgramChange=e->getConfInt("midiOutProgramChange",0);
   settings.midiOutMode=e->getConfInt("midiOutMode",1);
+  settings.midiOutTimeRate=e->getConfInt("midiOutTimeRate",0);
   settings.centerPattern=e->getConfInt("centerPattern",0);
   settings.ordersCursor=e->getConfInt("ordersCursor",1);
   settings.persistFadeOut=e->getConfInt("persistFadeOut",1);
@@ -2609,6 +2667,9 @@ void FurnaceGUI::syncSettings() {
   settings.oneDigitEffects=e->getConfInt("oneDigitEffects",0);
   settings.disableFadeIn=e->getConfInt("disableFadeIn",0);
   settings.alwaysPlayIntro=e->getConfInt("alwaysPlayIntro",0);
+  settings.cursorFollowsOrder=e->getConfInt("cursorFollowsOrder",1);
+  settings.iCannotWait=e->getConfInt("iCannotWait",0);
+  settings.orderButtonPos=e->getConfInt("orderButtonPos",2);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2714,7 +2775,10 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.channelTextCenter,0,1);
   clampSetting(settings.maxRecentFile,0,30);
   clampSetting(settings.midiOutClock,0,1);
+  clampSetting(settings.midiOutTime,0,1);
+  clampSetting(settings.midiOutProgramChange,0,1);
   clampSetting(settings.midiOutMode,0,2);
+  clampSetting(settings.midiOutTimeRate,0,4);
   clampSetting(settings.centerPattern,0,1);
   clampSetting(settings.ordersCursor,0,1);
   clampSetting(settings.persistFadeOut,0,1);
@@ -2723,6 +2787,9 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.oneDigitEffects,0,1);
   clampSetting(settings.disableFadeIn,0,1);
   clampSetting(settings.alwaysPlayIntro,0,3);
+  clampSetting(settings.cursorFollowsOrder,0,1);
+  clampSetting(settings.iCannotWait,0,1);
+  clampSetting(settings.orderButtonPos,0,2);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -2758,6 +2825,7 @@ void FurnaceGUI::syncSettings() {
         settings.initialSys.set(fmt::sprintf("pan%d",i),newPan);
       }
       e->setConf("initialSys2",settings.initialSys.toBase64());
+      e->setConf("configVersion",DIV_ENGINE_VERSION);
     }
   }
 
@@ -2920,7 +2988,10 @@ void FurnaceGUI::commitSettings() {
   e->setConf("channelTextCenter",settings.channelTextCenter);
   e->setConf("maxRecentFile",settings.maxRecentFile);
   e->setConf("midiOutClock",settings.midiOutClock);
+  e->setConf("midiOutTime",settings.midiOutTime);
+  e->setConf("midiOutProgramChange",settings.midiOutProgramChange);
   e->setConf("midiOutMode",settings.midiOutMode);
+  e->setConf("midiOutTimeRate",settings.midiOutTimeRate);
   e->setConf("centerPattern",settings.centerPattern);
   e->setConf("ordersCursor",settings.ordersCursor);
   e->setConf("persistFadeOut",settings.persistFadeOut);
@@ -2931,6 +3002,9 @@ void FurnaceGUI::commitSettings() {
   e->setConf("oneDigitEffects",settings.oneDigitEffects);
   e->setConf("disableFadeIn",settings.disableFadeIn);
   e->setConf("alwaysPlayIntro",settings.alwaysPlayIntro);
+  e->setConf("cursorFollowsOrder",settings.cursorFollowsOrder);
+  e->setConf("iCannotWait",settings.iCannotWait);
+  e->setConf("orderButtonPos",settings.orderButtonPos);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -3687,6 +3761,10 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ttc",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
 
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".mod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fc13",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fc14",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fc",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".smod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ftm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
 
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".tfi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);

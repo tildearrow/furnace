@@ -256,6 +256,15 @@ void DivPlatformYM2610::acquire_combo(short** buf, size_t len) {
   }
 
   for (size_t h=0; h<len; h++) {
+    // AY -> OPN
+    ay->runDAC();
+    ay->flushWrites();
+    for (DivRegWrite& i: ay->getRegisterWrites()) {
+      if (i.addr>15) continue;
+      immWrite(i.addr&15,i.val);
+    }
+    ay->getRegisterWrites().clear();
+
     os[0]=0; os[1]=0;
     // Nuked part
     for (int i=0; i<24; i++) {
@@ -360,6 +369,15 @@ void DivPlatformYM2610::acquire_ymfm(short** buf, size_t len) {
   }
 
   for (size_t h=0; h<len; h++) {
+    // AY -> OPN
+    ay->runDAC();
+    ay->flushWrites();
+    for (DivRegWrite& i: ay->getRegisterWrites()) {
+      if (i.addr>15) continue;
+      immWrite(i.addr&15,i.val);
+    }
+    ay->getRegisterWrites().clear();
+
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
       if (--delay<1 && !(fm->read(0)&0x80)) {
@@ -827,7 +845,10 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
             chan[c.chan].outVol=chan[c.chan].vol;
             immWrite(0x1b,chan[c.chan].outVol);
           }
-          if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].sample=ins->amiga.getSample(c.value);
+            c.value=ins->amiga.getFreq(c.value);
+          }
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(0x12,(sampleOffB[chan[c.chan].sample]>>8)&0xff);
@@ -976,7 +997,7 @@ int DivPlatformYM2610::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      chan[c.chan].macroInit(NULL);
+      if (parent->song.brokenFMOff) chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;

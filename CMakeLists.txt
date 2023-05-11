@@ -459,6 +459,8 @@ src/engine/platform/sound/ga20/iremga20.cpp
 
 src/engine/platform/sound/sm8521.c
 
+src/engine/platform/sound/d65modified.c
+
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
@@ -467,10 +469,12 @@ src/engine/blip_buf.c
 src/engine/brrUtils.c
 src/engine/safeReader.cpp
 src/engine/safeWriter.cpp
+src/engine/cmdStream.cpp
 src/engine/config.cpp
 src/engine/configEngine.cpp
 src/engine/dispatchContainer.cpp
 src/engine/engine.cpp
+src/engine/export.cpp
 src/engine/fileOps.cpp
 src/engine/fileOpsIns.cpp
 src/engine/filter.cpp
@@ -486,6 +490,7 @@ src/engine/waveSynth.cpp
 src/engine/vgmOps.cpp
 src/engine/zsmOps.cpp
 src/engine/zsm.cpp
+
 src/engine/platform/abstract.cpp
 src/engine/platform/genesis.cpp
 src/engine/platform/genesisext.cpp
@@ -528,6 +533,7 @@ src/engine/platform/t6w28.cpp
 src/engine/platform/vb.cpp
 src/engine/platform/vera.cpp
 src/engine/platform/zxbeeper.cpp
+src/engine/platform/zxbeeperquadtone.cpp
 src/engine/platform/bubsyswsg.cpp
 src/engine/platform/n163.cpp
 src/engine/platform/pet.cpp
@@ -544,8 +550,12 @@ src/engine/platform/snes.cpp
 src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
 src/engine/platform/sm8521.cpp
+src/engine/platform/pv1000.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
+
+src/engine/export/abstract.cpp
+src/engine/export/amigaValidation.cpp
 )
 
 if (USE_SNDFILE)
@@ -615,6 +625,7 @@ src/gui/editing.cpp
 src/gui/editControls.cpp
 src/gui/effectList.cpp
 src/gui/findReplace.cpp
+src/gui/fmPreview.cpp
 src/gui/gradient.cpp
 src/gui/grooves.cpp
 src/gui/insEdit.cpp
@@ -780,6 +791,8 @@ endif()
 
 if(ANDROID AND NOT TERMUX)
   add_library(furnace SHARED ${USED_SOURCES})
+elseif(WIN32)
+  add_executable(furnace WIN32 ${USED_SOURCES})
 else()
   add_executable(furnace ${USED_SOURCES})
 endif()

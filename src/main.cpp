@@ -28,7 +28,6 @@
 #include "engine/engine.h"
 
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #include <combaseapi.h>
 #include <shellapi.h>
@@ -342,13 +341,17 @@ void reportError(String what) {
 // TODO: CoInitializeEx on Windows?
 // TODO: add crash log
 int main(int argc, char** argv) {
-  // Windows console thing - thanks MarioKart7z!
+  // Windows console thing - thanks dj.tuBIG/MaliceX
 #ifdef _WIN32
-  DWORD winPID;
-  HWND winConsole=GetConsoleWindow();
-  GetWindowThreadProcessId(winConsole,&winPID);
-  if (GetCurrentProcessId()==winPID) FreeConsole();
+
+  if (AttachConsole(ATTACH_PARENT_PROCESS)) {
+    freopen("CONOUT$", "w", stdout);
+    freopen("CONOUT$", "w", stderr);
+    freopen("CONIN$", "r", stdin);
+  }
 #endif
+
+  srand(time(NULL));
 
   initLog();
 #ifdef _WIN32
@@ -451,7 +454,7 @@ int main(int argc, char** argv) {
 
   e.preInit();
 
-  if (!fileName.empty()) {
+  if (!fileName.empty() && ((!e.getConfBool("tutIntroPlayed",false)) || e.getConfInt("alwaysPlayIntro",0)!=3 || consoleMode || benchMode || outName!="" || vgmOutName!="" || cmdOutName!="")) {
     logI("loading module...");
     FILE* f=ps_fopen(fileName.c_str(),"rb");
     if (f==NULL) {

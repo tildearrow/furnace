@@ -865,7 +865,10 @@ int DivPlatformOPL::dispatch(DivCommand c) {
             chan[c.chan].outVol=chan[c.chan].vol;
             immWrite(18,chan[c.chan].outVol);
           }
-          if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].sample=ins->amiga.getSample(c.value);
+            c.value=ins->amiga.getFreq(c.value);
+          }
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(8,0);
@@ -1564,7 +1567,7 @@ DivMacroInt* DivPlatformOPL::getChanMacroInt(int ch) {
 }
 
 DivDispatchOscBuffer* DivPlatformOPL::getOscBuffer(int ch) {
-  if (oplType==759) {
+  if (oplType==759 || chipType==8950) {
     if (ch>=totalChans+1) return NULL;
   } else {
     if (ch>=totalChans) return NULL;

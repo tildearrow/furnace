@@ -32,6 +32,13 @@ const unsigned char avRequest[15]={
 
 void FurnaceGUI::doAction(int what) {
   switch (what) {
+    case GUI_ACTION_NEW:
+      if (modified) {
+        showWarning("Unsaved changes! Save changes before creating a new song?",GUI_WARN_NEW);
+      } else {
+        displayNew=true;
+      }
+      break;
     case GUI_ACTION_OPEN:
       if (modified) {
         showWarning("Unsaved changes! Save changes before opening another file?",GUI_WARN_OPEN);
@@ -43,9 +50,7 @@ void FurnaceGUI::doAction(int what) {
       if (modified) {
         showWarning("Unsaved changes! Save changes before opening backup?",GUI_WARN_OPEN_BACKUP);
       } else {
-        if (load(backupPath)>0) {
-          showError("No backup available! (or unable to open it)");
-        }
+        openFileDialog(GUI_FILE_OPEN_BACKUP);
       }
       break;
     case GUI_ACTION_SAVE:
@@ -127,6 +132,7 @@ void FurnaceGUI::doAction(int what) {
       }
       wavePreviewInit=true;
       wantScrollList=true;
+      updateFMPreview=true;
       break;
     case GUI_ACTION_INS_DOWN:
       if (++curIns>=(int)e->song.ins.size()) {
@@ -134,6 +140,7 @@ void FurnaceGUI::doAction(int what) {
       }
       wavePreviewInit=true;
       wantScrollList=true;
+      updateFMPreview=true;
       break;
     case GUI_ACTION_STEP_UP:
       if (++editStep>64) editStep=64;
@@ -554,18 +561,32 @@ void FurnaceGUI::doAction(int what) {
       doFlip();
       break;
     case GUI_ACTION_PAT_COLLAPSE_ROWS:
-      doCollapse(2);
+      doCollapse(2,selStart,selEnd);
       break;
     case GUI_ACTION_PAT_EXPAND_ROWS:
-      doExpand(2);
+      doExpand(2,selStart,selEnd);
       break;
-    case GUI_ACTION_PAT_COLLAPSE_PAT: // TODO
+    case GUI_ACTION_PAT_COLLAPSE_PAT: {
+      SelectionPoint selEndPat;
+      selEndPat.xCoarse=e->getTotalChannelCount()-1;
+      selEndPat.xFine=2+e->curPat[selEndPat.xCoarse].effectCols*2;
+      selEndPat.y=e->curSubSong->patLen-1;
+      doCollapse(2,SelectionPoint(0,0,0),selEndPat);
       break;
-    case GUI_ACTION_PAT_EXPAND_PAT: // TODO
+    }
+    case GUI_ACTION_PAT_EXPAND_PAT: {
+      SelectionPoint selEndPat;
+      selEndPat.xCoarse=e->getTotalChannelCount()-1;
+      selEndPat.xFine=2+e->curPat[selEndPat.xCoarse].effectCols*2;
+      selEndPat.y=e->curSubSong->patLen-1;
+      doExpand(2,SelectionPoint(0,0,0),selEndPat);
       break;
-    case GUI_ACTION_PAT_COLLAPSE_SONG: // TODO
+    }
+    case GUI_ACTION_PAT_COLLAPSE_SONG:
+      doCollapseSong(2);
       break;
-    case GUI_ACTION_PAT_EXPAND_SONG: // TODO
+    case GUI_ACTION_PAT_EXPAND_SONG:
+      doExpandSong(2);
       break;
     case GUI_ACTION_PAT_LATCH: // TODO
       break;
@@ -593,6 +614,7 @@ void FurnaceGUI::doAction(int what) {
         wantScrollList=true;
         MARK_MODIFIED;
         wavePreviewInit=true;
+        updateFMPreview=true;
       }
       break;
     case GUI_ACTION_INS_LIST_DUPLICATE:
@@ -606,6 +628,7 @@ void FurnaceGUI::doAction(int what) {
           wantScrollList=true;
           MARK_MODIFIED;
           wavePreviewInit=true;
+          updateFMPreview=true;
         }
       }
       break;
@@ -653,11 +676,13 @@ void FurnaceGUI::doAction(int what) {
       if (--curIns<0) curIns=0;
       wantScrollList=true;
       wavePreviewInit=true;
+      updateFMPreview=true;
       break;
     case GUI_ACTION_INS_LIST_DOWN:
       if (++curIns>=(int)e->song.ins.size()) curIns=((int)e->song.ins.size())-1;
       wantScrollList=true;
       wavePreviewInit=true;
+      updateFMPreview=true;
       break;
     
     case GUI_ACTION_WAVE_LIST_ADD:
@@ -790,6 +815,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_LIST_SAVE:
       if (curSample>=0 && curSample<(int)e->song.sample.size()) openFileDialog(GUI_FILE_SAMPLE_SAVE);
       break;
+    case GUI_ACTION_SAMPLE_LIST_SAVE_RAW:
+      if (curSample>=0 && curSample<(int)e->song.sample.size()) openFileDialog(GUI_FILE_SAMPLE_SAVE_RAW);
+      break;
     case GUI_ACTION_SAMPLE_LIST_MOVE_UP:
       if (e->moveSampleUp(curSample)) {
         curSample--;
@@ -810,8 +838,8 @@ void FurnaceGUI::doAction(int what) {
       MARK_MODIFIED;
       if (curSample>=(int)e->song.sample.size()) {
         curSample--;
-        updateSampleTex=true;
       }
+      updateSampleTex=true;
       break;
     case GUI_ACTION_SAMPLE_LIST_EDIT:
       sampleEditOpen=true;
@@ -1366,6 +1394,7 @@ void FurnaceGUI::doAction(int what) {
         nextWindow=GUI_WINDOW_INS_EDIT;
         MARK_MODIFIED;
         wavePreviewInit=true;
+        updateFMPreview=true;
       }
       break;
     }
@@ -1450,7 +1479,7 @@ void FurnaceGUI::doAction(int what) {
     }
     case GUI_ACTION_ORDERS_INCREASE: {
       if (orderCursor<0 || orderCursor>=e->getTotalChannelCount()) break;
-      if (e->curOrders->ord[orderCursor][curOrder]<0x7f) {
+      if (e->curOrders->ord[orderCursor][curOrder]<0xff) {
         e->curOrders->ord[orderCursor][curOrder]++;
       }
       break;
@@ -1472,6 +1501,7 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_ORDERS_ADD:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->addOrder(curOrder,false,false);
+      curOrder=e->getOrder();
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_DUPLICATE:
@@ -1514,11 +1544,17 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_ORDERS_MOVE_UP:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->moveOrderUp(curOrder);
+      if (settings.cursorFollowsOrder) {
+        e->setOrder(curOrder);
+      }
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_MOVE_DOWN:
       prepareUndo(GUI_UNDO_CHANGE_ORDER);
       e->moveOrderDown(curOrder);
+      if (settings.cursorFollowsOrder) {
+        e->setOrder(curOrder);
+      }
       makeUndo(GUI_UNDO_CHANGE_ORDER);
       break;
     case GUI_ACTION_ORDERS_REPLAY:

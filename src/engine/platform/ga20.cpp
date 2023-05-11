@@ -200,7 +200,10 @@ int DivPlatformGA20::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
-      if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
+      if (c.value!=DIV_NOTE_NULL) {
+        chan[c.chan].sample=ins->amiga.getSample(c.value);
+        c.value=ins->amiga.getFreq(c.value);
+      }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);
       }
@@ -334,6 +337,18 @@ void* DivPlatformGA20::getChanState(int ch) {
 
 DivMacroInt* DivPlatformGA20::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+DivSamplePos DivPlatformGA20::getSamplePos(int ch) {
+  if (ch>=4) return DivSamplePos();
+  if (chan[ch].sample<0 || chan[ch].sample>=parent->song.sampleLen) return DivSamplePos();
+  if (!ga20.is_playing(ch)) return DivSamplePos();
+  unsigned char f=chan[ch].freq;
+  return DivSamplePos(
+    chan[ch].sample,
+    ga20.get_position(ch)-sampleOffGA20[chan[ch].sample],
+    chipClock/(4*(0x100-(int)f))
+  );
 }
 
 DivDispatchOscBuffer* DivPlatformGA20::getOscBuffer(int ch) {

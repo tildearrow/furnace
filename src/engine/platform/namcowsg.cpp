@@ -183,6 +183,7 @@ void DivPlatformNamcoWSG::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformNamcoWSG::updateWave(int ch) {
+  if (romMode) return;
   if (devType==30) {
     for (int i=0; i<32; i++) {
       ((namco_cus30_device*)namco)->namcos1_cus30_w(i+ch*32,chan[ch].ws.output[i]);
@@ -291,9 +292,9 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
       rWrite(0x1d,(chan[2].freq>>12)&15);
       rWrite(0x1e,(chan[2].freq>>16)&15);
 
-      rWrite(0x05,0);
-      rWrite(0x0a,1);
-      rWrite(0x0f,2);
+      rWrite(0x05,romMode?(chan[0].wave&7):0);
+      rWrite(0x0a,romMode?(chan[1].wave&7):1);
+      rWrite(0x0f,romMode?(chan[2].wave&7):2);
       break;
     case 15:
       for (int i=0; i<8; i++) {
@@ -304,7 +305,7 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
         }
         rWrite((i<<3)+0x04,chan[i].freq&0xff);
         rWrite((i<<3)+0x05,(chan[i].freq>>8)&0xff);
-        rWrite((i<<3)+0x06,((chan[i].freq>>16)&15)|(i<<4));
+        rWrite((i<<3)+0x06,((chan[i].freq>>16)&15)|((romMode?(chan[i].wave&7):i)<<4));
       }
       break;
     case 30:
@@ -316,9 +317,16 @@ void DivPlatformNamcoWSG::tick(bool sysTick) {
           rWrite((i<<3)+0x100,0);
           rWrite((i<<3)+0x104,(chan[(i+1)&7].noise?0x80:0));
         }
-        rWrite((i<<3)+0x103,chan[i].freq&0xff);
-        rWrite((i<<3)+0x102,(chan[i].freq>>8)&0xff);
-        rWrite((i<<3)+0x101,((chan[i].freq>>16)&15)|(i<<4));
+        if (chan[i].noise && newNoise) {
+          int noiseFreq=chan[i].freq>>9;
+          if (noiseFreq<0) noiseFreq=0;
+          if (noiseFreq>255) noiseFreq=255;
+          rWrite((i<<3)+0x103,noiseFreq);
+        } else {
+          rWrite((i<<3)+0x103,chan[i].freq&0xff);
+          rWrite((i<<3)+0x102,(chan[i].freq>>8)&0xff);
+          rWrite((i<<3)+0x101,((chan[i].freq>>16)&15)|(i<<4));
+        }
       }
       break;
   }
@@ -489,10 +497,11 @@ void DivPlatformNamcoWSG::reset() {
   if (dumpWrites) {
     addWrite(0xffffffff,0);
   }
-  // TODO: wave memory
   namco->set_voices(chans);
   namco->set_stereo((devType==2 || devType==30));
   namco->device_start(NULL);
+
+  updateROMWaves();
 }
 
 int DivPlatformNamcoWSG::getOutputCount() {
@@ -503,6 +512,27 @@ bool DivPlatformNamcoWSG::keyOffAffectsArp(int ch) {
   return true;
 }
 
+void DivPlatformNamcoWSG::updateROMWaves() {
+  if (romMode) {
+    // copy wavetables
+    for (int i=0; i<8; i++) {
+      int data=0;
+      DivWavetable* w=parent->getWave(i);
+
+      for (int j=0; j<32; j++) {
+        if (w->max<1 || w->len<1) {
+          data=0;
+        } else {
+          data=w->data[j*w->len/32]*15/w->max;
+          if (data<0) data=0;
+          if (data>15) data=15;
+        }
+        namco->update_namco_waveform(i*32+j,data);
+      }
+    }
+  }
+}
+
 void DivPlatformNamcoWSG::notifyWaveChange(int wave) {
   for (int i=0; i<chans; i++) {
     if (chan[i].wave==wave) {
@@ -510,6 +540,7 @@ void DivPlatformNamcoWSG::notifyWaveChange(int wave) {
       updateWave(i);
     }
   }
+  updateROMWaves();
 }
 
 void DivPlatformNamcoWSG::notifyInsDeletion(void* ins) {
@@ -544,6 +575,9 @@ void DivPlatformNamcoWSG::setFlags(const DivConfig& flags) {
   for (int i=0; i<chans; i++) {
     oscBuf[i]->rate=rate;
   }
+  newNoise=flags.getBool("newNoise",true);
+  romMode=flags.getBool("romMode",false);
+  if (devType==30) romMode=false;
 }
 
 void DivPlatformNamcoWSG::poke(unsigned int addr, unsigned short val) {

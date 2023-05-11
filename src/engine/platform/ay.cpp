@@ -120,7 +120,7 @@ void DivPlatformAY8910::runDAC() {
       bool end=false;
       bool changed=false;
       int prevOut=chan[i].dac.out;
-      while (chan[i].dac.period>rate && !end) {
+      while (chan[i].dac.period>dacRate && !end) {
         DivSample* s=parent->getSample(chan[i].dac.sample);
         if (s->samples<=0) {
           chan[i].dac.sample=-1;
@@ -143,7 +143,7 @@ void DivPlatformAY8910::runDAC() {
           end=true;
           break;
         }
-        chan[i].dac.period-=rate;
+        chan[i].dac.period-=dacRate;
       }
       if (changed && !end) {
         if (!isMuted[i]) {
@@ -292,8 +292,6 @@ void DivPlatformAY8910::tick(bool sysTick) {
       if (chan[i].std.phaseReset.val==1) {
         if (chan[i].nextPSGMode.dac) {
           if (dumpWrites) addWrite(0xffff0002+(i<<8),0);
-          DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_AY);
-          chan[i].dac.sample=ins->amiga.getSample(chan[i].note);
           if (chan[i].dac.sample<0 || chan[i].dac.sample>=parent->song.sampleLen) {
             if (dumpWrites) {
               rWrite(0x08+i,0);
@@ -405,7 +403,10 @@ int DivPlatformAY8910::dispatch(DivCommand c) {
       if (chan[c.chan].nextPSGMode.dac) {
         if (skipRegisterWrites) break;
         if (!parent->song.disableSampleMacro && (ins->type==DIV_INS_AMIGA || ins->amiga.useSample)) {
-          if (c.value!=DIV_NOTE_NULL) chan[c.chan].dac.sample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].dac.sample=ins->amiga.getSample(c.value);
+            c.value=ins->amiga.getFreq(c.value);
+          }
           if (chan[c.chan].dac.sample<0 || chan[c.chan].dac.sample>=parent->song.sampleLen) {
             chan[c.chan].dac.sample=-1;
             if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
@@ -686,6 +687,7 @@ void DivPlatformAY8910::muteChannel(int ch, bool mute) {
 void DivPlatformAY8910::forceIns() {
   for (int i=0; i<3; i++) {
     chan[i].insChanged=true;
+    chan[i].freqChanged=true;
   }
   immWrite(0x0b,ayEnvPeriod);
   immWrite(0x0c,ayEnvPeriod>>8);
@@ -698,6 +700,15 @@ void* DivPlatformAY8910::getChanState(int ch) {
 
 DivMacroInt* DivPlatformAY8910::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+DivSamplePos DivPlatformAY8910::getSamplePos(int ch) {
+  if (ch>=3) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].dac.sample,
+    chan[ch].dac.pos,
+    chan[ch].dac.rate
+  );
 }
 
 DivDispatchOscBuffer* DivPlatformAY8910::getOscBuffer(int ch) {
@@ -786,6 +797,7 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
     chipClock=extClock;
     rate=chipClock/extDiv;
     clockSel=false;
+    dacRate=chipClock/dacRateDiv;
   } else {
     clockSel=flags.getBool("halfClock",false);
     switch (flags.getInt("clockSel",0)) {
@@ -840,6 +852,7 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
     }
     CHECK_CUSTOM_CLOCK;
     rate=chipClock/8;
+    dacRate=rate;
   }
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate;

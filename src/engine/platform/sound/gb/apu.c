@@ -178,7 +178,7 @@ static signed interference(GB_gameboy_t *gb)
         ret /= 4;
     }
     
-    ret += rand() % (MAX_CH_AMP / 12);
+    //ret += rand() % (MAX_CH_AMP / 12);
     
     return ret;
 }

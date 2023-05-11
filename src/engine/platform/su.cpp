@@ -138,9 +138,7 @@ void DivPlatformSoundUnit::tick(bool sysTick) {
       //DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,chan[i].switchRoles,2,chan[i].pitch2,chipClock,chan[i].switchRoles?CHIP_DIVIDER:CHIP_FREQBASE);
       if (chan[i].pcm) {
-        DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_SU);
-        // TODO: sample map?
-        DivSample* sample=parent->getSample(ins->amiga.getSample(chan[i].note));
+        DivSample* sample=parent->getSample(chan[i].sample);
         if (sample!=NULL) {
           double off=0.25;
           if (sample->centerRate<1) {
@@ -209,6 +207,12 @@ int DivPlatformSoundUnit::dispatch(DivCommand c) {
         writeControlUpper(c.chan);
       }
       chan[c.chan].pcm=(ins->type==DIV_INS_AMIGA || ins->amiga.useSample);
+      if (chan[c.chan].pcm) {
+        if (c.value!=DIV_NOTE_NULL) {
+          chan[c.chan].sample=ins->amiga.getSample(c.value);
+          c.value=ins->amiga.getFreq(c.value);
+        }
+      }
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].baseFreq=NOTE_SU(c.chan,c.value);
         chan[c.chan].freqChanged=true;

@@ -55,6 +55,10 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
       return "03xx: Portamento";
     case 0x04:
       return "04xy: Vibrato (x: speed; y: depth)";
+    case 0x05:
+      return "05xy: Volume slide + vibrato (compatibility only!)";
+    case 0x06:
+      return "06xy: Volume slide + portamento (compatibility only!)";
     case 0x07:
       return "07xy: Tremolo (x: speed; y: depth)";
     case 0x08:
@@ -418,6 +422,7 @@ void writePackedCommandValues(SafeWriter* w, const DivCommand& c) {
     case DIV_CMD_AMIGA_PM:
     case DIV_CMD_MACRO_OFF:
     case DIV_CMD_MACRO_ON:
+    case DIV_CMD_HINT_ARP_TIME:
       w->writeC(1); // length
       w->writeC(c.value);
       break;
@@ -1481,6 +1486,7 @@ void DivEngine::createNewFromDefaults() {
   bool oldVol=getConfInt("configVersion",DIV_ENGINE_VERSION)<135;
   if (preset.empty()) {
     // try loading old preset
+    logD("trying to load old preset");
     preset=decodeSysDesc(getConfString("initialSys",""));
     oldVol=false;
   }
@@ -1564,6 +1570,49 @@ void DivEngine::changeSong(size_t songIndex) {
   curRow=0;
   prevOrder=0;
   prevRow=0;
+}
+
+void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
+  bool* inAssetDir=new bool[entries];
+  memset(inAssetDir,0,entries*sizeof(bool));
+
+  for (DivAssetDir& i: dir) {
+    for (size_t j=0; j<i.entries.size(); j++) {
+      // erase invalid entry
+      if (i.entries[j]<0 || i.entries[j]>=(int)entries) {
+        i.entries.erase(i.entries.begin()+j);
+        j--;
+        continue;
+      }
+      
+      // mark entry as present
+      inAssetDir[j]=true;
+    }
+  }
+
+  // get unsorted directory
+  DivAssetDir* unsortedDir=NULL;
+  for (DivAssetDir& i: dir) {
+    if (i.name.empty()) {
+      unsortedDir=&i;
+      break;
+    }
+  }
+
+  // create unsorted directory if it doesn't exist
+  if (unsortedDir==NULL) {
+    dir.push_back(DivAssetDir(""));
+    unsortedDir=&(*dir.rbegin());
+  }
+
+  // add missing items to unsorted directory
+  for (size_t i=0; i<entries; i++) {
+    if (!inAssetDir[i]) {
+      unsortedDir->entries.push_back(i);
+    }
+  }
+
+  delete[] inAssetDir;
 }
 
 void DivEngine::swapChannelsP(int src, int dest) {
@@ -1985,11 +2034,17 @@ String DivEngine::getPlaybackDebugInfo() {
     "divider: %f\n"
     "cycles: %d\n"
     "clockDrift: %f\n"
+    "midiClockCycles: %d\n"
+    "midiClockDrift: %f\n"
+    "midiTimeCycles: %d\n"
+    "midiTimeDrift: %f\n"
     "changeOrd: %d\n"
     "changePos: %d\n"
     "totalSeconds: %d\n"
     "totalTicks: %d\n"
     "totalTicksR: %d\n"
+    "curMidiClock: %d\n"
+    "curMidiTime: %d\n"
     "totalCmds: %d\n"
     "lastCmds: %d\n"
     "cmdsPerSecond: %d\n"
@@ -1999,7 +2054,8 @@ String DivEngine::getPlaybackDebugInfo() {
     "totalProcessed: %d\n"
     "bufferPos: %d\n",
     curOrder,prevOrder,curRow,prevRow,ticks,subticks,totalLoops,lastLoopPos,nextSpeed,divider,cycles,clockDrift,
-    changeOrd,changePos,totalSeconds,totalTicks,totalTicksR,totalCmds,lastCmds,cmdsPerSecond,globalPitch,
+    midiClockCycles,midiClockDrift,midiTimeCycles,midiTimeDrift,changeOrd,changePos,totalSeconds,totalTicks,
+    totalTicksR,curMidiClock,curMidiTime,totalCmds,lastCmds,cmdsPerSecond,globalPitch,
     (int)extValue,(int)tempoAccum,(int)totalProcessed,(int)bufferPos
   );
 }
@@ -2075,6 +2131,11 @@ DivMacroInt* DivEngine::getMacroInt(int chan) {
   return disCont[dispatchOfChan[chan]].dispatch->getChanMacroInt(dispatchChanOfChan[chan]);
 }
 
+DivSamplePos DivEngine::getSamplePos(int chan) {
+  if (chan<0 || chan>=chans) return DivSamplePos();
+  return disCont[dispatchOfChan[chan]].dispatch->getSamplePos(dispatchChanOfChan[chan]);
+}
+
 DivDispatchOscBuffer* DivEngine::getOscBuffer(int chan) {
   if (chan<0 || chan>=chans) return NULL;
   return disCont[dispatchOfChan[chan]].dispatch->getOscBuffer(dispatchChanOfChan[chan]);
@@ -2111,16 +2172,26 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   prevOrder=0;
   prevRow=0;
   stepPlay=0;
-  int prevDrift;
+  int prevDrift, prevMidiClockDrift, prevMidiTimeDrift;
   prevDrift=clockDrift;
+  prevMidiClockDrift=midiClockDrift;
+  prevMidiTimeDrift=midiTimeDrift;
   clockDrift=0;
   cycles=0;
+  midiClockCycles=0;
+  midiClockDrift=0;
+  midiTimeCycles=0;
+  midiTimeDrift=0;
   if (!preserveDrift) {
     ticks=1;
     tempoAccum=0;
     totalTicks=0;
     totalSeconds=0;
     totalTicksR=0;
+    curMidiClock=0;
+    curMidiTime=0;
+    curMidiTimeCode=0;
+    curMidiTimePiece=0;
     totalLoops=0;
     lastLoopPos=-1;
   }
@@ -2137,12 +2208,20 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
       skipping=false;
       return;
     }
+    if (!preserveDrift) {
+      runMidiClock(cycles);
+      runMidiTime(cycles);
+    }
   }
   int oldOrder=curOrder;
   while (playing && (curRow<goalRow || ticks>1)) {
     if (nextTick(preserveDrift)) {
       skipping=false;
       return;
+    }
+    if (!preserveDrift) {
+      runMidiClock(cycles);
+      runMidiTime(cycles);
     }
     if (oldOrder!=curOrder) break;
     if (ticks-((tempoAccum+curSubSong->virtualTempoN)/MAX(1,curSubSong->virtualTempoD))<1 && curRow>=goalRow) break;
@@ -2157,9 +2236,22 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   repeatPattern=oldRepeatPattern;
   if (preserveDrift) {
     clockDrift=prevDrift;
+    midiClockDrift=prevMidiClockDrift;
+    midiTimeDrift=prevMidiTimeDrift;
   } else {
     clockDrift=0;
     cycles=0;
+    midiClockCycles=0;
+    midiClockDrift=0;
+    midiTimeCycles=0;
+    midiTimeDrift=0;
+    if (curMidiTime>0) {
+      curMidiTime--;
+    }
+    if (curMidiClock>0) {
+      curMidiClock--;
+    }
+    curMidiTimePiece=0;
   }
   if (!preserveDrift) {
     ticks=1;
@@ -2328,9 +2420,74 @@ void DivEngine::play() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     keyHit[i]=false;
   }
+  curMidiTimePiece=0;
   if (output) if (!skipping && output->midiOut!=NULL) {
-    int pos=totalTicksR/6;
-    output->midiOut->send(TAMidiMessage(TA_MIDI_POSITION,(pos>>7)&0x7f,pos&0x7f));
+    if (midiOutClock) {
+      output->midiOut->send(TAMidiMessage(TA_MIDI_POSITION,(curMidiClock>>7)&0x7f,curMidiClock&0x7f));
+    }
+    if (midiOutTime) {
+      TAMidiMessage msg;
+      msg.type=TA_MIDI_SYSEX;
+      msg.sysExData.reset(new unsigned char[10],std::default_delete<unsigned char[]>());
+      msg.sysExLen=10;
+      unsigned char* msgData=msg.sysExData.get();
+      int actualTime=curMidiTime;
+      int timeRate=midiOutTimeRate;
+      int drop=0;
+      if (timeRate<1 || timeRate>4) {
+        if (curSubSong->hz>=47.98 && curSubSong->hz<=48.02) {
+          timeRate=1;
+        } else if (curSubSong->hz>=49.98 && curSubSong->hz<=50.02) {
+          timeRate=2;
+        } else if (curSubSong->hz>=59.9 && curSubSong->hz<=60.11) {
+          timeRate=4;
+        } else {
+          timeRate=4;
+        }
+      }
+
+      switch (timeRate) {
+        case 1: // 24
+          msgData[5]=(actualTime/(60*60*24))%24;
+          msgData[6]=(actualTime/(60*24))%60;
+          msgData[7]=(actualTime/24)%60;
+          msgData[8]=actualTime%24;
+          break;
+        case 2: // 25
+          msgData[5]=(actualTime/(60*60*25))%24;
+          msgData[6]=(actualTime/(60*25))%60;
+          msgData[7]=(actualTime/25)%60;
+          msgData[8]=actualTime%25;
+          break;
+        case 3: // 29.97 (NTSC drop)
+          // drop
+          drop=((actualTime/(30*60))-(actualTime/(30*600)))*2;
+          actualTime+=drop;
+
+          msgData[5]=(actualTime/(60*60*30))%24;
+          msgData[6]=(actualTime/(60*30))%60;
+          msgData[7]=(actualTime/30)%60;
+          msgData[8]=actualTime%30;
+          break;
+        case 4: // 30 (NTSC non-drop)
+        default:
+          msgData[5]=(actualTime/(60*60*30))%24;
+          msgData[6]=(actualTime/(60*30))%60;
+          msgData[7]=(actualTime/30)%60;
+          msgData[8]=actualTime%30;
+          break;
+      }
+
+      msgData[5]|=(timeRate-1)<<5;
+
+      msgData[0]=0xf0;
+      msgData[1]=0x7f;
+      msgData[2]=0x7f;
+      msgData[3]=0x01;
+      msgData[4]=0x01;
+      msgData[9]=0xf7;
+      output->midiOut->send(msg);
+    }
     output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_PLAY,0,0));
   }
   BUSY_END;
@@ -2369,6 +2526,13 @@ void DivEngine::stepOne(int row) {
 void DivEngine::stop() {
   BUSY_BEGIN;
   freelance=false;
+  if (!playing) {
+    //Send midi panic
+    if (output) if (output->midiOut!=NULL) {
+      output->midiOut->send(TAMidiMessage(TA_MIDI_CONTROL,0x7B,0));
+      logV("Midi panic sent");
+    }
+  }
   playing=false;
   extValuePresent=false;
   endOfSong=false; // what?
@@ -2389,6 +2553,16 @@ void DivEngine::stop() {
       if (chan[i].curMidiNote>=0) {
         output->midiOut->send(TAMidiMessage(0x80|(i&15),chan[i].curMidiNote,0));
       }
+    }
+  }
+
+  // reset all chan oscs
+  for (int i=0; i<chans; i++) {
+    DivDispatchOscBuffer* buf=disCont[dispatchOfChan[i]].dispatch->getOscBuffer(dispatchChanOfChan[i]);
+    if (buf!=NULL) {
+      memset(buf->data,0,65536*sizeof(short));
+      buf->needle=0;
+      buf->readNeedle=0;
     }
   }
   BUSY_END;
@@ -2453,6 +2627,10 @@ void DivEngine::recalcChans() {
   for (int i=0; i<DIV_INS_MAX; i++) {
     if (isInsTypePossible[i]) possibleInsTypes.push_back((DivInstrumentType)i);
   }
+
+  checkAssetDir(song.insDir,song.ins.size());
+  checkAssetDir(song.waveDir,song.wave.size());
+  checkAssetDir(song.sampleDir,song.sample.size());
 
   hasLoadedSomething=true;
 }
@@ -2532,6 +2710,10 @@ int DivEngine::divToFileRate(int drate) {
   return 4;
 }
 
+void DivEngine::testFunction() {
+  logI("it works!");
+}
+
 int DivEngine::getEffectiveSampleRate(int rate) {
   if (rate<1) return 0;
   switch (song.system[0]) {
@@ -2600,10 +2782,17 @@ void DivEngine::previewSampleNoLock(int sample, int note, int pStart, int pEnd) 
     if (rate<=0) rate=song.sample[sample]->centerRate;
   }
   if (rate<100) rate=100;
+  double rateOrig=rate;
+  sPreview.rateMul=1;
+  while (sPreview.rateMul<0x40000000 && rate<got.rate) {
+    sPreview.rateMul<<=1;
+    rate*=2.0;
+  }
   blip_set_rates(samp_bb,rate,got.rate);
   samp_prevSample=0;
-  sPreview.rate=rate;
+  sPreview.rate=rateOrig;
   sPreview.pos=(sPreview.pBegin>=0)?sPreview.pBegin:0;
+  sPreview.posSub=0;
   sPreview.sample=sample;
   sPreview.wave=-1;
   sPreview.dir=false;
@@ -2628,10 +2817,17 @@ void DivEngine::previewWaveNoLock(int wave, int note) {
   blip_clear(samp_bb);
   double rate=song.wave[wave]->len*((song.tuning*0.0625)*pow(2.0,(double)(note+3)/12.0));
   if (rate<100) rate=100;
+  double rateOrig=rate;
+  sPreview.rateMul=1;
+  while (sPreview.rateMul<0x40000000 && rate<got.rate) {
+    sPreview.rateMul<<=1;
+    rate*=2.0;
+  }
   blip_set_rates(samp_bb,rate,got.rate);
   samp_prevSample=0;
-  sPreview.rate=rate;
+  sPreview.rate=rateOrig;
   sPreview.pos=0;
+  sPreview.posSub=0;
   sPreview.sample=-1;
   sPreview.wave=wave;
   sPreview.dir=false;
@@ -2997,15 +3193,17 @@ DivWavetable* DivEngine::waveFromFile(const char* path, bool addRaw) {
         // read as .dmw
         reader.seek(0,SEEK_SET);
         int len=reader.readI();
+        logD("wave length %d",len);
         if (len<=0 || len>256) {
           throw EndOfFileException(&reader,reader.size());
         }
+        wave->len=len;
         wave->max=(unsigned char)reader.readC();
         if (wave->max==255) { // new wavetable format
           unsigned char waveVersion=reader.readC();
           logI("reading modern .dmw...");
           logD("wave version %d",waveVersion);
-          wave->max=reader.readC();
+          wave->max=(unsigned char)reader.readC();
           for (int i=0; i<len; i++) {
             wave->data[i]=reader.readI();
           }
@@ -3624,7 +3822,8 @@ void DivEngine::addOrder(int pos, bool duplicate, bool where) {
     }
     curSubSong->ordersLen++;
     saveLock.unlock();
-    if (pos<=curOrder) curOrder++;
+    curOrder=pos+1;
+    prevOrder=curOrder;
     if (playing && !freelance) {
       playSub(false);
     }
@@ -4271,6 +4470,10 @@ void DivEngine::quitDispatch() {
   }
   cycles=0;
   clockDrift=0;
+  midiClockCycles=0;
+  midiClockDrift=0;
+  midiTimeCycles=0;
+  midiTimeDrift=0;
   chans=0;
   playing=false;
   curSpeed=0;
@@ -4287,6 +4490,10 @@ void DivEngine::quitDispatch() {
   totalTicks=0;
   totalSeconds=0;
   totalTicksR=0;
+  curMidiClock=0;
+  curMidiTime=0;
+  curMidiTimeCode=0;
+  curMidiTimePiece=0;
   totalCmds=0;
   lastCmds=0;
   cmdsPerSecond=0;
@@ -4313,6 +4520,9 @@ bool DivEngine::initAudioBackend() {
   lowLatency=getConfInt("lowLatency",0);
   metroVol=(float)(getConfInt("metroVol",100))/100.0f;
   midiOutClock=getConfInt("midiOutClock",0);
+  midiOutTime=getConfInt("midiOutTime",0);
+  midiOutTimeRate=getConfInt("midiOutTimeRate",0);
+  midiOutProgramChange = getConfInt("midiOutProgramChange",0);
   midiOutMode=getConfInt("midiOutMode",DIV_MIDI_MODE_NOTE);
   if (metroVol<0.0f) metroVol=0.0f;
   if (metroVol>2.0f) metroVol=2.0f;
@@ -4468,6 +4678,7 @@ bool DivEngine::init() {
     bool oldVol=getConfInt("configVersion",DIV_ENGINE_VERSION)<135;
     if (preset.empty()) {
       // try loading old preset
+      logD("trying to load old preset");
       preset=decodeSysDesc(getConfString("initialSys",""));
       oldVol=false;
     }

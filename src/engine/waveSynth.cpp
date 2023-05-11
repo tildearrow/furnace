@@ -20,6 +20,7 @@
 #include "waveSynth.h"
 #include "engine.h"
 #include "instrument.h"
+#include "../ta-log.h"
 
 bool DivWaveSynth::activeChanged() {
   if (activeChangedB) {

@@ -214,7 +214,6 @@ bool DivInstrumentSNES::operator==(const DivInstrumentSNES& other) {
 #undef _C
 
 #define FEATURE_BEGIN(x) \
-  logV("- %s",x); \
   w->write(x,2); \
   size_t featStartSeek=w->tell(); \
   w->writeS(0);
@@ -927,6 +926,8 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
       case DIV_INS_SM8521:
         checkForWL=true;
         if (ws.enabled) featureWS=true;
+        break;
+      case DIV_INS_PV1000:
         break;
       
       case DIV_INS_MAX:
@@ -2097,6 +2098,12 @@ void DivInstrument::readFeatureSM(SafeReader& reader, short version) {
       amiga.noteMap[note].freq=reader.readS();
       amiga.noteMap[note].map=reader.readS();
     }
+
+    if (version<152) {
+      for (int note=0; note<120; note++) {
+        amiga.noteMap[note].freq=note;
+      }
+    }
   }
 
   READ_FEAT_END;
@@ -2963,6 +2970,12 @@ DivDataErrors DivInstrument::readInsDataOld(SafeReader &reader, short version) {
       }
       for (int note=0; note<120; note++) {
         amiga.noteMap[note].map=reader.readS();
+      }
+
+      if (version<152) {
+        for (int note=0; note<120; note++) {
+          amiga.noteMap[note].freq=note;
+        }
       }
     }
   }

@@ -34,6 +34,8 @@ void FurnaceGUI::drawNewSong() {
   avail.y-=ImGui::GetFrameHeightWithSpacing();
 
   if (ImGui::BeginChild("sysPickerC",avail,false,ImGuiWindowFlags_NoScrollWithMouse|ImGuiWindowFlags_NoScrollbar)) {
+    if (newSongFirstFrame)
+      ImGui::SetKeyboardFocusHere();
     ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
     if (ImGui::InputTextWithHint("##SysSearch","Search...",&newSongQuery)) {
       String lowerCase=newSongQuery;
@@ -159,4 +161,6 @@ void FurnaceGUI::drawNewSong() {
     updateWindowTitle();
     ImGui::CloseCurrentPopup();
   }
+
+  newSongFirstFrame=false;
 }

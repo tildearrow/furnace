@@ -321,6 +321,15 @@ void DivPlatformYM2608::acquire_combo(short** buf, size_t len) {
   }
 
   for (size_t h=0; h<len; h++) {
+    // AY -> OPN
+    ay->runDAC();
+    ay->flushWrites();
+    for (DivRegWrite& i: ay->getRegisterWrites()) {
+      if (i.addr>15) continue;
+      immWrite(i.addr&15,i.val);
+    }
+    ay->getRegisterWrites().clear();
+
     os[0]=0; os[1]=0;
     // Nuked part
     for (int i=0; i<nukedMult; i++) {
@@ -427,6 +436,15 @@ void DivPlatformYM2608::acquire_ymfm(short** buf, size_t len) {
   }
 
   for (size_t h=0; h<len; h++) {
+    // AY -> OPN
+    ay->runDAC();
+    ay->flushWrites();
+    for (DivRegWrite& i: ay->getRegisterWrites()) {
+      if (i.addr>15) continue;
+      immWrite(i.addr&15,i.val);
+    }
+    ay->getRegisterWrites().clear();
+
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
       if (--delay<1) {
@@ -896,7 +914,10 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
             chan[c.chan].outVol=chan[c.chan].vol;
             immWrite(0x10b,chan[c.chan].outVol);
           }
-          if (c.value!=DIV_NOTE_NULL) chan[c.chan].sample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].sample=ins->amiga.getSample(c.value);
+            c.value=ins->amiga.getFreq(c.value);
+          }
           if (chan[c.chan].sample>=0 && chan[c.chan].sample<parent->song.sampleLen) {
             DivSample* s=parent->getSample(chan[c.chan].sample);
             immWrite(0x100,0x01); // reset
@@ -1004,7 +1025,7 @@ int DivPlatformYM2608::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      chan[c.chan].macroInit(NULL);
+      if (parent->song.brokenFMOff) chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;
@@ -1672,7 +1693,7 @@ int DivPlatformYM2608::init(DivEngine* p, int channels, int sugRate, const DivCo
   fm=new ymfm::ym2608(iface);
   fm->set_fidelity(ymfm::OPN_FIDELITY_MIN);
   // YM2149, 2MHz
-  ay=new DivPlatformAY8910(true,chipClock,ayDiv);
+  ay=new DivPlatformAY8910(true,chipClock,ayDiv,48);
   ay->init(p,3,sugRate,ayFlags);
   ay->toggleRegisterDump(true);
   setFlags(flags);

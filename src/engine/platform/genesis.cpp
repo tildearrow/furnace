@@ -172,7 +172,14 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
         flushFirst=false;
       }
       
-      OPN2_Clock(&fm,o); os[0]+=o[0]; os[1]+=o[1];
+      OPN2_Clock(&fm,o);
+      if (chipType==2) {
+        os[0]+=CLAMP(o[0],-8192,8191);
+        os[1]+=CLAMP(o[1],-8192,8191);
+      } else {
+        os[0]+=o[0];
+        os[1]+=o[1];
+      }
       //OPN2_Write(&fm,0,0);
       if (i==5) {
         if (fm.dacen) {
@@ -674,7 +681,10 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       if (c.chan>=5 && chan[c.chan].dacMode) {
         //if (skipRegisterWrites) break;
         if (ins->type==DIV_INS_AMIGA) { // Furnace mode
-          if (c.value!=DIV_NOTE_NULL) chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+            c.value=ins->amiga.getFreq(c.value);
+          }
           if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
             chan[c.chan].dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002,0);
@@ -1200,6 +1210,17 @@ void* DivPlatformGenesis::getChanState(int ch) {
 
 DivMacroInt* DivPlatformGenesis::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+DivSamplePos DivPlatformGenesis::getSamplePos(int ch) {
+  if (!chan[5].dacMode) return DivSamplePos();
+  if (ch<5) return DivSamplePos();
+  if (ch>5 && !softPCM) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].dacSample,
+    chan[ch].dacPos,
+    chan[ch].dacRate
+  );
 }
 
 DivDispatchOscBuffer* DivPlatformGenesis::getOscBuffer(int ch) {

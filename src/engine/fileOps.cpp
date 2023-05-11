@@ -30,6 +30,7 @@
 #define DIV_FTM_MAGIC "FamiTracker Module"
 #define DIV_FC13_MAGIC "SMOD"
 #define DIV_FC14_MAGIC "FC14"
+#define DIV_S3M_MAGIC "SCRM"
 
 struct InflateBlock {
   unsigned char* buf;
@@ -695,6 +696,13 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         }
         ds.wave.push_back(wave);
       }
+
+      // sometimes there's a single length 0 wavetable in the file. I don't know why.
+      if (ds.waveLen==1) {
+        if (ds.wave[0]->len==0) {
+          ds.clearWavetables();
+        }
+      }
     }
 
     logV("%x",reader.tell());
@@ -849,6 +857,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       sample->rate=22050;
       if (ds.version>=0x0b) {
         sample->rate=fileToDivRate(reader.readC());
+        sample->centerRate=sample->rate;
         pitch=reader.readC();
         vol=reader.readC();
       }
@@ -873,24 +882,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
         // what the hell man...
         cutStart=reader.readI();
         cutEnd=reader.readI();
-        if (cutStart<0 || cutStart>length) {
-          logE("cutStart is out of range! (%d)",cutStart);
-          lastError="file is corrupt or unreadable at samples";
-          delete[] file;
-          return false;
-        }
-        if (cutEnd<0 || cutEnd>length) {
-          logE("cutEnd is out of range! (%d)",cutEnd);
-          lastError="file is corrupt or unreadable at samples";
-          delete[] file;
-          return false;
-        }
-        if (cutEnd<cutStart) {
-          logE("cutEnd %d is before cutStart %d. what's going on?",cutEnd,cutStart);
-          lastError="file is corrupt or unreadable at samples";
-          delete[] file;
-          return false;
-        }
+        logV("cutStart: %d cutEnd: %d",cutStart,cutEnd);
       }
       if (length>0) {
         if (ds.version>0x08) {
@@ -902,19 +894,6 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
             data=new short[length];
             reader.read(data,length*2);
           }
-
-          if (ds.version>0x1b) {
-            if (cutStart!=0 || cutEnd!=length) {
-              // cut data
-              short* newData=new short[cutEnd-cutStart];
-              memcpy(newData,&data[cutStart],(cutEnd-cutStart)*sizeof(short));
-              delete[] data;
-              data=newData;
-              length=cutEnd-cutStart;
-              cutStart=0;
-              cutEnd=length;
-            }
-          }
           
 #ifdef TA_BIG_ENDIAN
           // convert to big-endian
@@ -923,27 +902,76 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           }
 #endif
 
-          if (pitch!=5) {
+          int scaledLen=ceil((double)length/samplePitches[pitch]);
+
+          if (scaledLen>0) {
+            // resample
             logD("%d: scaling from %d...",i,pitch);
-          }
-
-          // render data
-          if (!sample->init((double)length/samplePitches[pitch])) {
-            logE("%d: error while initializing sample!",i);
-          }
-
-          unsigned int k=0;
-          float mult=(float)(vol)/50.0f;
-          for (double j=0; j<length; j+=samplePitches[pitch]) {
-            if (k>=sample->samples) {
-              break;
+            
+            short* newData=new short[scaledLen];
+            memset(newData,0,scaledLen*sizeof(short));
+            int k=0;
+            float mult=(float)(vol)/50.0f;
+            for (double j=0; j<length; j+=samplePitches[pitch]) {
+              if (k>=scaledLen) {
+                break;
+              }
+              if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
+                float next=(float)(data[(unsigned int)j]-0x80)*mult;
+                newData[k++]=fmin(fmax(next,-128),127);
+              } else {
+                float next=(float)data[(unsigned int)j]*mult;
+                newData[k++]=fmin(fmax(next,-32768),32767);
+              }
             }
-            if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
-              float next=(float)(data[(unsigned int)j]-0x80)*mult;
-              sample->data8[k++]=fmin(fmax(next,-128),127);
-            } else {
-              float next=(float)data[(unsigned int)j]*mult;
-              sample->data16[k++]=fmin(fmax(next,-32768),32767);
+
+            delete[] data;
+            data=newData;
+          }
+
+          logV("length: %d. scaledLen: %d.",length,scaledLen);
+
+          if (ds.version>=0x1b) {
+            if (cutStart<0 || cutStart>scaledLen) {
+              logE("cutStart is out of range! (%d, scaledLen: %d)",cutStart,scaledLen);
+              lastError="file is corrupt or unreadable at samples";
+              delete[] file;
+              return false;
+            }
+            if (cutEnd<0 || cutEnd>scaledLen) {
+              logE("cutEnd is out of range! (%d, scaledLen: %d)",cutEnd,scaledLen);
+              lastError="file is corrupt or unreadable at samples";
+              delete[] file;
+              return false;
+            }
+            if (cutEnd<cutStart) {
+              logE("cutEnd %d is before cutStart %d. what's going on?",cutEnd,cutStart);
+              lastError="file is corrupt or unreadable at samples";
+              delete[] file;
+              return false;
+            }
+            if (cutStart!=0 || cutEnd!=scaledLen) {
+              // cut data
+              short* newData=new short[cutEnd-cutStart];
+              memcpy(newData,&data[cutStart],(cutEnd-cutStart)*sizeof(short));
+              delete[] data;
+              data=newData;
+              scaledLen=cutEnd-cutStart;
+              cutStart=0;
+              cutEnd=scaledLen;
+            }
+          }
+
+          // copy data
+          if (!sample->init(scaledLen)) {
+            logE("%d: error while initializing sample!",i);
+          } else {
+            for (int i=0; i<scaledLen; i++) {
+              if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
+                sample->data8[i]=data[i];
+              } else {
+                sample->data16[i]=data[i];
+              }
             }
           }
 
@@ -1010,6 +1038,11 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     // SMS noise freq
     if (ds.system[0]==DIV_SYSTEM_SMS) {
       ds.systemFlags[0].set("noEasyNoise",true);
+    }
+
+    // NES PCM
+    if (ds.system[0]==DIV_SYSTEM_NES) {
+      ds.systemFlags[0].set("dpcmMode",false);
     }
 
     ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
@@ -1479,6 +1512,7 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
       }
       break;
     case DIV_SYSTEM_SFX_BEEPER:
+    case DIV_SYSTEM_SFX_BEEPER_QUADTONE:
       newFlags.set("clockSel",(int)(oldFlags&1));
       break;
     case DIV_SYSTEM_SCC:
@@ -1757,6 +1791,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
     if (ds.version<138) {
       ds.brokenPortaLegato=true;
+    }
+    if (ds.version<155) {
+      ds.brokenFMOff=true;
     }
     ds.isDMF=false;
 
@@ -2266,7 +2303,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     if (ds.version>=138) {
       ds.brokenPortaLegato=reader.readC();
-      for (int i=0; i<7; i++) {
+      if (ds.version>=155) {
+        ds.brokenFMOff=reader.readC();
+      } else {
+        reader.readC();
+      }
+      for (int i=0; i<6; i++) {
         reader.readC();
       }
     }
@@ -2677,6 +2719,33 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
+    // Namco C30 noise compat
+    if (ds.version<145) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_NAMCO_CUS30) {
+          ds.systemFlags[i].set("newNoise",false);
+        }
+      }
+    }
+
+    // SrgaPCM slide compat
+    if (ds.version<153) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_SEGAPCM || ds.system[i]==DIV_SYSTEM_SEGAPCM_COMPAT) {
+          ds.systemFlags[i].set("oldSlides",true);
+        }
+      }
+    }
+
+    // NES PCM compat
+    if (ds.version<154) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_NES) {
+          ds.systemFlags[i].set("dpcmMode",false);
+        }
+      }
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
@@ -2925,6 +2994,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     size_t pos=reader.tell();
     logD("reading sample data...");
     for (int i=0; i<insCount; i++) {
+      logV("- %d: %d %d %d",i,pos,ds.sample[i]->samples,sampLens[i]);
       if (!reader.seek(pos,SEEK_SET)) {
         logD("%d: couldn't seek to %d",i,pos);
         throw EndOfFileException(&reader,reader.tell());
@@ -2934,6 +3004,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     }
 
     // convert effects
+    logD("converting module...");
     for (int ch=0; ch<=chCount; ch++) {
       unsigned char fxCols=1;
       for (int pat=0; pat<=patMax; pat++) {
@@ -3212,6 +3283,246 @@ void generateFCPresetWave(int index, DivWavetable* wave) {
       }
       break;
   }
+}
+
+bool DivEngine::loadS3M(unsigned char* file, size_t len) {
+  struct InvalidHeaderException {};
+  bool success=false;
+  char magic[4]={0,0,0,0};
+  SafeReader reader=SafeReader(file,len);
+  warnings="";
+
+  unsigned char chanSettings[32];
+  unsigned char ord[256];
+  unsigned short insPtr[256];
+  unsigned short patPtr[256];
+  unsigned char chanPan[16];
+  unsigned char defVol[256];
+
+  try {
+    DivSong ds;
+    ds.version=DIV_VERSION_S3M;
+    ds.linearPitch=0;
+    ds.pitchMacroIsLinear=false;
+    ds.noSlidesOnFirstTick=true;
+    ds.rowResetsArpPos=true;
+    ds.ignoreJumpAtEnd=false;
+
+    // load here
+    if (!reader.seek(0x2c,SEEK_SET)) {
+      logE("premature end of file!");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+    reader.read(magic,4);
+
+    if (memcmp(magic,DIV_S3M_MAGIC,4)!=0) {
+      logW("the magic isn't complete");
+      throw EndOfFileException(&reader,reader.tell());
+    }
+
+    if (!reader.seek(0,SEEK_SET)) {
+      logE("premature end of file!");
+      lastError="incomplete file";
+      delete[] file;
+      return false;
+    }
+
+    ds.name=reader.readString(28);
+    
+    reader.readC(); // 0x1a
+    if (reader.readC()!=16) {
+      logW("type is wrong!");
+    }
+    reader.readS(); // x
+
+    unsigned short ordersLen=reader.readS();
+    ds.insLen=reader.readS();
+
+    if (ds.insLen<0 || ds.insLen>256) {
+      logE("invalid instrument count!");
+      lastError="invalid instrument count!";
+      delete[] file;
+      return false;
+    }
+
+    unsigned short patCount=reader.readS();
+
+    unsigned short flags=reader.readS();
+    unsigned short version=reader.readS();
+    bool signedSamples=(reader.readS()==1);
+
+    if ((flags&64) || version==0x1300) {
+      ds.noSlidesOnFirstTick=false;
+    }
+
+    reader.readI(); // "SCRM"
+
+    unsigned char globalVol=reader.readC();
+
+    ds.subsong[0]->speeds.val[0]=(unsigned char)reader.readC();
+    ds.subsong[0]->hz=((double)reader.readC())/2.5;
+    ds.subsong[0]->customTempo=true;
+
+    unsigned char masterVol=reader.readC();
+
+    logV("masterVol: %d",masterVol);
+    logV("signedSamples: %d",signedSamples);
+    logV("globalVol: %d",globalVol);
+
+    reader.readC(); // UC
+    bool defaultPan=(((unsigned char)reader.readC())==252);
+
+    reader.readS(); // reserved
+    reader.readI();
+    reader.readI(); // the last 2 bytes is Special. we don't read that.
+
+    reader.read(chanSettings,32);
+
+    logD("reading orders...");
+    for (int i=0; i<ordersLen; i++) {
+      ord[i]=reader.readC();
+      logV("- %.2x",ord[i]);
+    }
+    // should be even
+    if (ordersLen&1) reader.readC();
+
+    logD("reading ins pointers...");
+    for (int i=0; i<ds.insLen; i++) {
+      insPtr[i]=reader.readS();
+      logV("- %.2x",insPtr[i]);
+    }
+
+    logD("reading pat pointers...");
+    for (int i=0; i<patCount; i++) {
+      patPtr[i]=reader.readS();
+      logV("- %.2x",patPtr[i]);
+    }
+
+    if (defaultPan) {
+      reader.read(chanPan,16);
+    } else {
+      memset(chanPan,0,16);
+    }
+
+    // determine chips to use
+    ds.systemLen=0;
+
+    bool hasPCM=false;
+    bool hasFM=false;
+
+    for (int i=0; i<32; i++) {
+      if (!(chanSettings[i]&128)) continue;
+      if ((chanSettings[i]&127)>=32) continue;
+      if ((chanSettings[i]&127)>=16) {
+        hasFM=true;
+      } else {
+        hasPCM=true;
+      }
+
+      if (hasFM && hasPCM) break;
+    }
+
+    ds.systemName="PC";
+    if (hasPCM) {
+      ds.system[ds.systemLen]=DIV_SYSTEM_ES5506;
+      ds.systemVol[ds.systemLen]=1.0f;
+      ds.systemPan[ds.systemLen]=0;
+      ds.systemLen++;
+    }
+    if (hasFM) {
+      ds.system[ds.systemLen]=DIV_SYSTEM_OPL2;
+      ds.systemVol[ds.systemLen]=1.0f;
+      ds.systemPan[ds.systemLen]=0;
+      ds.systemLen++;
+    }
+
+    // load instruments/samples
+    for (int i=0; i<ds.insLen; i++) {
+      DivInstrument* ins=new DivInstrument;
+      if (!reader.seek(0x4c+insPtr[i]*16,SEEK_SET)) {
+        logE("premature end of file!");
+        lastError="incomplete file";
+        delete ins;
+        delete[] file;
+        return false;
+      }
+
+      reader.read(magic,4);
+
+      if (memcmp(magic,"SCRS",4)==0) {
+        ins->type=DIV_INS_ES5506;
+      } else if (memcmp(magic,"SCRI",4)==0) {
+        ins->type=DIV_INS_OPL;
+      } else {
+        ins->type=DIV_INS_ES5506;
+        ds.ins.push_back(ins);
+        continue;
+      }
+
+      if (!reader.seek(insPtr[i]*16,SEEK_SET)) {
+        logE("premature end of file!");
+        lastError="incomplete file";
+        delete ins;
+        delete[] file;
+        return false;
+      }
+
+      String dosName=reader.readString(13);
+
+      if (ins->type==DIV_INS_ES5506) {
+        unsigned int memSeg=0;
+        memSeg=(unsigned char)reader.readC();
+        memSeg|=((unsigned short)reader.readS())<<8;
+
+        logV("memSeg: %d",memSeg);
+
+        unsigned int length=reader.readI();
+
+        DivSample* s=new DivSample;
+        s->depth=DIV_SAMPLE_DEPTH_8BIT;
+        s->init(length);
+
+        s->loopStart=reader.readI();
+        s->loopEnd=reader.readI();
+        defVol[i]=reader.readC();
+        
+        logV("defVol: %d",defVol[i]);
+
+        reader.readC(); // x
+      } else {
+        
+      }
+
+      ds.ins.push_back(ins);
+    }
+
+    if (active) quitDispatch();
+    BUSY_BEGIN_SOFT;
+    saveLock.lock();
+    song.unload();
+    song=ds;
+    changeSong(0);
+    recalcChans();
+    saveLock.unlock();
+    BUSY_END;
+    if (active) {
+      initDispatch();
+      BUSY_BEGIN;
+      renderSamples();
+      reset();
+      BUSY_END;
+    }
+    success=true;
+  } catch (EndOfFileException& e) {
+    //logE("premature end of file!");
+    lastError="incomplete file";
+  } catch (InvalidHeaderException& e) {
+    //logE("invalid header!");
+    lastError="invalid header!";
+  }
+  return success;
 }
 
 bool DivEngine::loadFC(unsigned char* file, size_t len) {
@@ -3808,11 +4119,57 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
 
 #define CHECK_BLOCK_VERSION(x) \
   if (blockVersion>x) { \
-    logE("incompatible block version %d for %s!",blockVersion,blockName); \
-    lastError="incompatible block version"; \
-    delete[] file; \
-    return false; \
+    logW("incompatible block version %d for %s!",blockVersion,blockName); \
   }
+
+const int ftEffectMap[]={
+  -1, // none
+  0x0f,
+  0x0b,
+  0x0d,
+  0xff,
+  -1, // volume? not supported in Furnace yet
+  0x03,
+  0x03, // unused?
+  0x13,
+  0x14,
+  0x00,
+  0x04,
+  0x07,
+  0xe5,
+  0xed,
+  0x11,
+  0x01, // porta up
+  0x02, // porta down
+  0x12,
+  0x90, // sample offset - not supported yet
+  0xe1,
+  0xe2,
+  0x0a,
+  0xec,
+  0x0c,
+  -1, // delayed volume - not supported yet
+  0x11, // FDS
+  0x12,
+  0x13,
+  0x20, // DPCM pitch
+  0x22, // 5B
+  0x24,
+  0x23,
+  0x21,
+  -1, // VRC7 "custom patch port" - not supported?
+  -1, // VRC7 "custom patch write"
+  -1, // release - not supported yet
+  0x09, // select groove
+  -1, // transpose - not supported
+  0x10, // Namco 163
+  -1, // FDS vol env - not supported
+  -1, // FDS auto FM - not supported yet
+  -1, // phase reset - not supported
+  -1, // harmonic - not supported
+};
+
+constexpr int ftEffectMapSize=sizeof(ftEffectMap)/sizeof(int);
 
 bool DivEngine::loadFTM(unsigned char* file, size_t len) {
   SafeReader reader=SafeReader(file,len);
@@ -3825,6 +4182,9 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
     unsigned int n163Chans=0;
     bool hasSequence[256][8];
     unsigned char sequenceIndex[256][8];
+    unsigned int hilightA=4;
+    unsigned int hilightB=16;
+    double customHz=60;
     
     memset(hasSequence,0,256*8*sizeof(bool));
     memset(sequenceIndex,0,256*8);
@@ -3845,6 +4205,14 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
       return false;
     }
 
+    for (DivSubSong* i: ds.subsong) {
+      i->clearData();
+      delete i;
+    }
+    ds.subsong.clear();
+
+    ds.linearPitch=0;
+
     while (true) {
       blockName=reader.readString(3);
       if (blockName=="END") {
@@ -3862,7 +4230,8 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
       
       logD("reading block %s (version %d, %d bytes)",blockName,blockVersion,blockSize);
       if (blockName=="PARAMS") {
-        CHECK_BLOCK_VERSION(6);
+        // versions 7-9 don't change anything?
+        CHECK_BLOCK_VERSION(9);
         unsigned int oldSpeedTempo=0;
         if (blockVersion<=1) {
           oldSpeedTempo=reader.readI();
@@ -3872,15 +4241,32 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
         }
         tchans=reader.readI();
         unsigned int pal=reader.readI();
-        unsigned int customHz=reader.readI();
+        if (blockVersion>=7) {
+          // advanced Hz control
+          int controlType=reader.readI();
+          switch (controlType) {
+            case 1:
+              customHz=1000000.0/(double)reader.readI();
+              break;
+            default:
+              reader.readI();
+              break;
+          }
+        } else {
+          customHz=reader.readI();
+        }
         unsigned int newVibrato=0;
+        bool sweepReset=false;
         unsigned int speedSplitPoint=0;
         if (blockVersion>=3) {
           newVibrato=reader.readI();
         }
-        if (blockVersion>=4) {
-          ds.subsong[0]->hilightA=reader.readI();
-          ds.subsong[0]->hilightB=reader.readI();
+        if (blockVersion>=9) {
+          sweepReset=reader.readI();
+        }
+        if (blockVersion>=4 && blockVersion<7) {
+          hilightA=reader.readI();
+          hilightB=reader.readI();
         }
         if (expansions&8) if (blockVersion>=5) { // N163 channels
           n163Chans=reader.readI();
@@ -3889,20 +4275,24 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
           speedSplitPoint=reader.readI();
         }
 
+        if (blockVersion>=8) {
+          int fineTuneCents=reader.readC()*100;
+          fineTuneCents+=reader.readC();
+
+          ds.tuning=440.0*pow(2.0,(double)fineTuneCents/1200.0);
+        }
+
         logV("old speed/tempo: %d",oldSpeedTempo);
         logV("expansions: %x",expansions);
         logV("channels: %d",tchans);
         logV("PAL: %d",pal);
-        logV("custom Hz: %d",customHz);
+        logV("custom Hz: %f",customHz);
         logV("new vibrato: %d",newVibrato);
         logV("N163 channels: %d",n163Chans);
-        logV("highlight 1: %d",ds.subsong[0]->hilightA);
-        logV("highlight 2: %d",ds.subsong[0]->hilightB);
+        logV("highlight 1: %d",hilightA);
+        logV("highlight 2: %d",hilightB);
         logV("split point: %d",speedSplitPoint);
-
-        if (customHz!=0) {
-          ds.subsong[0]->hz=customHz;
-        }
+        logV("sweep reset: %d",sweepReset);
 
         // initialize channels
         int systemID=0;
@@ -3947,28 +4337,46 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
         CHECK_BLOCK_VERSION(1);
         ds.name=reader.readString(32);
         ds.author=reader.readString(32);
-        ds.copyright=reader.readString(32);
+        ds.category=reader.readString(32);
+        ds.systemName="NES";
       } else if (blockName=="HEADER") {
-        CHECK_BLOCK_VERSION(3);
+        CHECK_BLOCK_VERSION(4);
         unsigned char totalSongs=reader.readC();
         logV("%d songs:",totalSongs+1);
         for (int i=0; i<=totalSongs; i++) {
           String subSongName=reader.readString();
+          ds.subsong.push_back(new DivSubSong);
+          ds.subsong[i]->name=subSongName;
+          ds.subsong[i]->hilightA=hilightA;
+          ds.subsong[i]->hilightB=hilightB;
+          if (customHz!=0) {
+            ds.subsong[i]->hz=customHz;
+          }
           logV("- %s",subSongName);
         }
         for (unsigned int i=0; i<tchans; i++) {
+          // TODO: obey channel ID
           unsigned char chID=reader.readC();
           logV("for channel ID %d",chID);
           for (int j=0; j<=totalSongs; j++) {
             unsigned char effectCols=reader.readC();
-            if (j==0) {
-              ds.subsong[0]->pat[i].effectCols=effectCols+1;
-            }
+            ds.subsong[j]->pat[i].effectCols=effectCols+1;
             logV("- song %d has %d effect columns",j,effectCols);
+          }
+        }
+
+        if (blockVersion>=4) {
+          for (int i=0; i<=totalSongs; i++) {
+            ds.subsong[i]->hilightA=(unsigned char)reader.readC();
+            ds.subsong[i]->hilightB=(unsigned char)reader.readC();
           }
         }
       } else if (blockName=="INSTRUMENTS") {
         CHECK_BLOCK_VERSION(6);
+
+        reader.seek(blockSize,SEEK_CUR);
+
+        /*
         ds.insLen=reader.readI();
         if (ds.insLen<0 || ds.insLen>256) {
           logE("too many instruments/out of range!");
@@ -4128,21 +4536,131 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
           ins->name=reader.readString((unsigned int)reader.readI());
           logV("- %d: %s",insIndex,ins->name);
         }
+        */
       } else if (blockName=="SEQUENCES") {
         CHECK_BLOCK_VERSION(6);
+        reader.seek(blockSize,SEEK_CUR);
       } else if (blockName=="FRAMES") {
         CHECK_BLOCK_VERSION(3);
+
+        for (size_t i=0; i<ds.subsong.size(); i++) {
+          DivSubSong* s=ds.subsong[i];
+
+          s->ordersLen=reader.readI();
+          if (blockVersion>=3) {
+            s->speeds.val[0]=reader.readI();
+          }
+          if (blockVersion>=2) {
+            s->virtualTempoN=reader.readI();
+            s->patLen=reader.readI();
+          }
+          int why=tchans;
+          if (blockVersion==1) {
+            why=reader.readI();
+          }
+          logV("reading %d and %d orders",tchans,s->ordersLen);
+
+          for (int j=0; j<s->ordersLen; j++) {
+            for (int k=0; k<why; k++) {
+              unsigned char o=reader.readC();
+              logV("%.2x",o);
+              s->orders.ord[k][j]=o;
+            }
+          }
+        }
       } else if (blockName=="PATTERNS") {
-        CHECK_BLOCK_VERSION(5);
+        CHECK_BLOCK_VERSION(6);
+
+        size_t blockEnd=reader.tell()+blockSize;
+
+        if (blockVersion==1) {
+          int patLenOld=reader.readI();
+          for (DivSubSong* i: ds.subsong) {
+            i->patLen=patLenOld;
+          }
+        }
+
+        // so it appears .ftm doesn't keep track of how many patterns are stored in the file....
+        while (reader.tell()<blockEnd) {
+          int subs=0;
+          if (blockVersion>=2) subs=reader.readI();
+          int ch=reader.readI();
+          int patNum=reader.readI();
+          int numRows=reader.readI();
+
+          DivPattern* pat=ds.subsong[subs]->pat[ch].getPattern(patNum,true);
+          for (int i=0; i<numRows; i++) {
+            unsigned int row=0;
+            if (blockVersion>=2 && blockVersion<6) { // row index
+              row=reader.readI();
+            } else {
+              row=reader.readC();
+            }
+
+            unsigned char nextNote=reader.readC();
+            unsigned char nextOctave=reader.readC();
+            if (nextNote==0x0d) {
+              pat->data[row][0]=100;
+            } else if (nextNote==0x0e) {
+              pat->data[row][0]=101;
+            } else if (nextNote==0x01) {
+              pat->data[row][0]=12;
+              pat->data[row][1]=nextOctave-1;
+            } else if (nextNote==0) {
+              pat->data[row][0]=0;
+            } else if (nextNote<0x0d) {
+              pat->data[row][0]=nextNote-1;
+              pat->data[row][1]=nextOctave;
+            }
+            
+            unsigned char nextIns=reader.readC();
+            if (nextIns<0x40) {
+              pat->data[row][2]=nextIns;
+            } else {
+              pat->data[row][2]=-1;
+            }
+
+            unsigned char nextVol=reader.readC();
+            if (nextVol<0x10) {
+              pat->data[row][3]=nextVol;
+            } else {
+              pat->data[row][3]=-1;
+            }
+
+            int effectCols=ds.subsong[subs]->pat[ch].effectCols;
+            if (blockVersion>=6) effectCols=4;
+
+            for (int j=0; j<effectCols; j++) {
+              unsigned char nextEffect=reader.readC();
+              unsigned char nextEffectVal=0;
+              if (nextEffect!=0 || blockVersion<6) nextEffectVal=reader.readC();
+              if (nextEffect==0 && nextEffectVal==0) {
+                pat->data[row][4+(j*2)]=-1;
+                pat->data[row][5+(j*2)]=-1;
+              } else {
+                if (nextEffect<ftEffectMapSize) {
+                  pat->data[row][4+(j*2)]=ftEffectMap[nextEffect];
+                } else {
+                  pat->data[row][4+(j*2)]=-1;
+                }
+                pat->data[row][5+(j*2)]=nextEffectVal;
+              }
+            }
+          }
+        }
       } else if (blockName=="DPCM SAMPLES") {
         CHECK_BLOCK_VERSION(1);
+        reader.seek(blockSize,SEEK_CUR);
       } else if (blockName=="SEQUENCES_VRC6") {
         // where are the 5B and FDS sequences?
         CHECK_BLOCK_VERSION(6);
+        reader.seek(blockSize,SEEK_CUR);
       } else if (blockName=="SEQUENCES_N163") {
         CHECK_BLOCK_VERSION(1);
+        reader.seek(blockSize,SEEK_CUR);
       } else if (blockName=="COMMENTS") {
         CHECK_BLOCK_VERSION(1);
+        reader.seek(blockSize,SEEK_CUR);
       } else {
         logE("block %s is unknown!",blockName);
         lastError="unknown block "+blockName;
@@ -4156,6 +4674,27 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
         delete[] file;
         return false;
       }
+    }
+
+    addWarning("FamiTracker import is experimental!");
+
+    ds.version=DIV_VERSION_FTM;
+
+    if (active) quitDispatch();
+    BUSY_BEGIN_SOFT;
+    saveLock.lock();
+    song.unload();
+    song=ds;
+    changeSong(0);
+    recalcChans();
+    saveLock.unlock();
+    BUSY_END;
+    if (active) {
+      initDispatch();
+      BUSY_BEGIN;
+      renderSamples();
+      reset();
+      BUSY_END;
     }
   } catch (EndOfFileException& e) {
     logE("premature end of file!");
@@ -4702,7 +5241,6 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   for (int i=0; i<song.insLen; i++) {
     DivInstrument* ins=song.ins[i];
     insPtr.push_back(w->tell());
-    logV("writing instrument %d...",i);
     ins->putInsData2(w,false);
   }
 

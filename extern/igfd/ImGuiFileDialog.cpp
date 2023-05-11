@@ -26,6 +26,7 @@ SOFTWARE.
 */
 
 #include "ImGuiFileDialog.h"
+#include "../../src/ta-log.h"
 
 #ifdef __cplusplus
 
@@ -132,8 +133,11 @@ namespace IGFD
 #define resetButtonString ICON_FA_REPEAT
 #endif // resetButtonString
 #ifndef drivesButtonString
-#define drivesButtonString "Drives"
+#define drivesButtonString ICON_FA_HDD_O
 #endif // drivesButtonString
+#ifndef parentDirString
+#define parentDirString ICON_FA_CHEVRON_UP
+#endif // parentDirString
 #ifndef editPathButtonString
 #define editPathButtonString ICON_FA_PENCIL
 #endif // editPathButtonString
@@ -167,6 +171,9 @@ namespace IGFD
 #ifndef buttonResetPathString
 #define buttonResetPathString "Reset to current directory"
 #endif // buttonResetPathString
+#ifndef buttonParentDirString
+#define buttonParentDirString "Go to parent directory"
+#endif
 #ifndef buttonCreateDirString
 #define buttonCreateDirString "Create Directory"
 #endif // buttonCreateDirString
@@ -602,6 +609,10 @@ namespace IGFD
 				res.ext = pfn.substr(lastPoint + 1);
 				IGFD::Utils::ReplaceString(res.name, "." + res.ext, "");
 			}
+      
+      if (res.path.empty()) {
+        res.path=separator;
+      }
 
 			if (!res.isOk)
 			{
@@ -1191,12 +1202,14 @@ namespace IGFD
 		if (puDLGDirectoryMode) // directory mode
 			SetDefaultFileName(".");
 		else
-			SetDefaultFileName(puDLGDefaultFileName);
+			SetDefaultFileName("");
+    logV("IGFD: OpenCurrentPath()");
 		ScanDir(vFileDialogInternal, GetCurrentPath());
 	}
 
 	void IGFD::FileManager::SortFields(const FileDialogInternal& vFileDialogInternal, const SortingFieldEnum& vSortingField, const bool vCanChangeOrder)
 	{
+    logV("IGFD: SortFields()");
 		if (vSortingField != SortingFieldEnum::FIELD_NONE)
 		{
 			puHeaderFileName = tableHeaderFileNameString;
@@ -1206,10 +1219,17 @@ namespace IGFD
 #ifdef USE_THUMBNAILS
 			puHeaderFileThumbnails = tableHeaderFileThumbnailsString;
 #endif // #ifdef USE_THUMBNAILS
-		}
+		} else {
+      logV("IGFD: sorting by NONE!");
+    }
+
+    if (prFileList.empty()) {
+      logV("IGFD: with an empty file list?");
+    }
 
 		if (vSortingField == SortingFieldEnum::FIELD_FILENAME)
 		{
+      logV("IGFD: sorting by name");
 			if (vCanChangeOrder && puSortingField == vSortingField) {
         //printf("Change the sorting\n");
 				puSortingDirection[0] = true;//!puSortingDirection[0];
@@ -1279,6 +1299,7 @@ namespace IGFD
 		}
 		else if (vSortingField == SortingFieldEnum::FIELD_TYPE)
 		{
+      logV("IGFD: sorting by type");
 			if (vCanChangeOrder && puSortingField == vSortingField)
 				puSortingDirection[1] = !puSortingDirection[1];
 
@@ -1317,6 +1338,7 @@ namespace IGFD
 		}
 		else if (vSortingField == SortingFieldEnum::FIELD_SIZE)
 		{
+      logV("IGFD: sorting by size");
 			if (vCanChangeOrder && puSortingField == vSortingField)
 				puSortingDirection[2] = !puSortingDirection[2];
 
@@ -1357,6 +1379,7 @@ namespace IGFD
 		}
 		else if (vSortingField == SortingFieldEnum::FIELD_DATE)
 		{
+      logV("IGFD: sorting by date");
 			if (vCanChangeOrder && puSortingField == vSortingField)
 				puSortingDirection[3] = !puSortingDirection[3];
 
@@ -1448,6 +1471,8 @@ namespace IGFD
 			puSortingField = vSortingField;
 		}
 
+    logV("IGFD: applying filtering on file list");
+
 		ApplyFilteringOnFileList(vFileDialogInternal);
 	}
 
@@ -1475,7 +1500,7 @@ namespace IGFD
 		infos->fileNameExt_optimized = prOptimizeFilenameForSearchOperations(infos->fileNameExt);
 		infos->fileType = vFileType;
 
-		if (infos->fileNameExt.empty() || (infos->fileNameExt == "." && !vFileDialogInternal.puFilterManager.puDLGFilters.empty())) return; // filename empty or filename is the current dir '.' //-V807
+		if (infos->fileNameExt.empty() || ((infos->fileNameExt == "." || infos->fileNameExt == "..") && !vFileDialogInternal.puFilterManager.puDLGFilters.empty())) return; // filename empty or filename is the current dir '.' //-V807
 		if (infos->fileNameExt != ".." && (vFileDialogInternal.puDLGflags & ImGuiFileDialogFlags_DontShowHiddenFiles) && infos->fileNameExt[0] == '.') // dont show hidden files
 			if (!vFileDialogInternal.puFilterManager.puDLGFilters.empty() || (vFileDialogInternal.puFilterManager.puDLGFilters.empty() && infos->fileNameExt != ".")) // except "." if in directory mode //-V728
 				return;
@@ -1508,14 +1533,17 @@ namespace IGFD
 	void IGFD::FileManager::ScanDir(const FileDialogInternal& vFileDialogInternal, const std::string& vPath)
 	{
 		std::string	path = vPath;
+    logV("IGFD: ScanDir(%s)",vPath);
 
 		if (prCurrentPathDecomposition.empty())
 		{
+      logV("IGFD: the current path decomposition is empty. setting.");
 			SetCurrentDir(path);
 		}
 
 		if (!prCurrentPathDecomposition.empty())
 		{
+      logV("IGFD: the current path decomposition is not empty. trying.");
 #ifdef WIN32
 			if (path == puFsRoot)
 				path += std::string(1u, PATH_SEP);
@@ -1543,6 +1571,7 @@ namespace IGFD
 #else // dirent
 			struct dirent** files = nullptr;
 			int n = scandir(path.c_str(), &files, nullptr, inAlphaSort);
+      logV("IGFD: %d entries in directory",n);
 			if (n>0)
 			{
 				int i;
@@ -1610,11 +1639,18 @@ namespace IGFD
 				}
 
 				free(files);
-			}
+			} else {
+        logV("IGFD: it's empty");
+      }
 #endif // USE_STD_FILESYSTEM
 
+      logV("IGFD: sorting fields...");
 			SortFields(vFileDialogInternal, puSortingField, false);
-		}
+		} else {
+      logE("IGFD: current path decomposition is empty!");
+    }
+
+    fileListActuallyEmpty=prFileList.empty();
 	}
 
 	bool IGFD::FileManager::GetDrives()
@@ -2217,6 +2253,16 @@ namespace IGFD
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(buttonResetPathString);
 
+    ImGui::SameLine();
+    if (IMGUI_BUTTON(parentDirString))
+		{
+			if (SetPathOnParentDirectoryIfAny()) {
+			  OpenCurrentPath(vFileDialogInternal);
+      }
+		}
+		if (ImGui::IsItemHovered())
+			ImGui::SetTooltip(buttonParentDirString);
+
 #ifdef WIN32
 		ImGui::SameLine();
 
@@ -2416,7 +2462,7 @@ namespace IGFD
 
 	void IGFD::FileDialogInternal::ResetForNewDialog()
 	{
-	
+	  puFileManager.fileListActuallyEmpty=false;
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////
@@ -3401,7 +3447,7 @@ namespace IGFD
 		if (ps.isOk)
 		{
 			prFileDialogInternal.puFileManager.puDLGpath = ps.path;
-			prFileDialogInternal.puFileManager.SetDefaultFileName(vFilePathName);
+			prFileDialogInternal.puFileManager.SetDefaultFileName("");
 			prFileDialogInternal.puFilterManager.puDLGdefaultExt = "." + ps.ext;
 		}
 		else
@@ -3717,16 +3763,17 @@ namespace IGFD
 				fdFilter.SetDefaultFilterIfNotDefined();
 
 				// init list of files
-				if (fdFile.IsFileListEmpty() && !fdFile.puShowDrives)
+				if (fdFile.IsFileListEmpty() && !fdFile.puShowDrives && !fdFile.fileListActuallyEmpty)
 				{
 					IGFD::Utils::ReplaceString(fdFile.puDLGDefaultFileName, fdFile.puDLGpath, ""); // local path
 					if (!fdFile.puDLGDefaultFileName.empty())
 					{
 						fdFile.SetDefaultFileName(fdFile.puDLGDefaultFileName);
 						fdFilter.SetSelectedFilterWithExt(fdFilter.puDLGdefaultExt);
-					}
-					else if (fdFile.puDLGDirectoryMode) // directory mode
+					} else if (fdFile.puDLGDirectoryMode) { // directory mode
 						fdFile.SetDefaultFileName(".");
+          }
+          logV("IGFD: fdFile.IsFileListEmpty() and !fdFile.puShowDrives");
 					fdFile.ScanDir(prFileDialogInternal, fdFile.puDLGpath);
 				}
 

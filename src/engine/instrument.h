@@ -79,6 +79,7 @@ enum DivInstrumentType: unsigned short {
   DIV_INS_GA20=46,
   DIV_INS_POKEMINI=47,
   DIV_INS_SM8521=48,
+  DIV_INS_PV1000=49,
   DIV_INS_MAX,
   DIV_INS_NULL
 };
@@ -413,7 +414,7 @@ struct DivInstrumentAmiga {
       if (note>119) note=119;
       return noteMap[note].freq;
     }
-    return -1;
+    return note;
   }
 
   DivInstrumentAmiga():
@@ -422,8 +423,9 @@ struct DivInstrumentAmiga {
     useSample(false),
     useWave(false),
     waveLen(31) {
-    for (SampleMap& elem: noteMap) {
-      elem=SampleMap();
+    for (int i=0; i<120; i++) {
+      noteMap[i].map=-1;
+      noteMap[i].freq=i;
     }
   }
 };

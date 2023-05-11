@@ -110,12 +110,12 @@ void DivEngine::initConfDir() {
 
 bool DivEngine::saveConf() {
   configFile=configPath+String(CONFIG_FILE);
-  return conf.save(configFile.c_str());
+  return conf.save(configFile.c_str(),true);
 }
 
 bool DivEngine::loadConf() {
   configFile=configPath+String(CONFIG_FILE);
-  return conf.loadFromFile(configFile.c_str());
+  return conf.loadFromFile(configFile.c_str(),true,true);
 }
 
 bool DivEngine::getConfBool(String key, bool fallback) {

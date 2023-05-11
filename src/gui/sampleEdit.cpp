@@ -133,12 +133,24 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Open");
       }
+      if (ImGui::BeginPopupContextItem("SampleEOpenOpt")) {
+        if (ImGui::MenuItem("import raw...")) {
+          doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW:GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
+        }
+        ImGui::EndPopup();
+      }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_FLOPPY_O "##SESave")) {
         doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Save");
+      }
+      if (ImGui::BeginPopupContextItem("SampleESaveOpt")) {
+        if (ImGui::MenuItem("save raw...")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
+        }
+        ImGui::EndPopup();
       }
 
       ImGui::SameLine();
@@ -1111,23 +1123,26 @@ void FurnaceGUI::drawSampleEdit() {
 
       if (sampleTex!=NULL) {
         if (updateSampleTex) {
-          unsigned int* data=NULL;
+          unsigned int* dataT=NULL;
           int pitch=0;
           logD("updating sample texture.");
-          if (SDL_LockTexture(sampleTex,NULL,(void**)&data,&pitch)!=0) {
+          if (SDL_LockTexture(sampleTex,NULL,(void**)&dataT,&pitch)!=0) {
             logE("error while locking sample texture! %s",SDL_GetError());
           } else {
+            unsigned int* data=new unsigned int[sampleTexW*sampleTexH];
+
             ImU32 bgColor=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_BG]);
             ImU32 bgColorLoop=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP]);
             ImU32 lineColor=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_FG]);
             ImU32 centerLineColor=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_CENTER]);
+            int ij=0;
             for (int i=0; i<availY; i++) {
               for (int j=0; j<availX; j++) {
                 int scaledPos=samplePos+(j*sampleZoom);
                 if (sample->isLoopable() && (scaledPos>=sample->loopStart && scaledPos<=sample->loopEnd)) {
-                  data[i*availX+j]=bgColorLoop;
+                  data[ij++]=bgColorLoop;
                 } else {
-                  data[i*availX+j]=bgColor;
+                  data[ij++]=bgColor;
                 }
               }
             }
@@ -1143,11 +1158,15 @@ void FurnaceGUI::drawSampleEdit() {
             for (unsigned int i=0; i<(unsigned int)availX; i++) {
               if (xCoarse>=sample->samples) break;
               int y1, y2;
+              int candMin=INT_MAX;
+              int candMax=INT_MIN;
               int totalAdvance=0;
               if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
-                y1=((unsigned char)sample->data8[xCoarse]^0x80)*availY/256;
+                if (candMin>sample->data8[xCoarse]) candMin=sample->data8[xCoarse];
+                if (candMax<sample->data8[xCoarse]) candMax=sample->data8[xCoarse];
               } else {
-                y1=((unsigned short)sample->data16[xCoarse]^0x8000)*availY/65536;
+                if (candMin>sample->data16[xCoarse]) candMin=sample->data16[xCoarse];
+                if (candMax<sample->data16[xCoarse]) candMax=sample->data16[xCoarse];
               }
               xFine+=xAdvanceFine;
               if (xFine>=16777216) {
@@ -1157,27 +1176,44 @@ void FurnaceGUI::drawSampleEdit() {
               totalAdvance+=xAdvanceCoarse;
               if (xCoarse>=sample->samples) break;
               do {
+                if (xCoarse>=sample->samples) break;
                 if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
-                  y2=((unsigned char)sample->data8[xCoarse]^0x80)*availY/256;
+                  if (candMin>sample->data8[xCoarse]) candMin=sample->data8[xCoarse];
+                  if (candMax<sample->data8[xCoarse]) candMax=sample->data8[xCoarse];
                 } else {
-                  y2=((unsigned short)sample->data16[xCoarse]^0x8000)*availY/65536;
-                }
-                if (y1>y2) {
-                  y2^=y1;
-                  y1^=y2;
-                  y2^=y1;
-                }
-                if (y1<0) y1=0;
-                if (y1>=availY) y1=availY-1;
-                if (y2<0) y2=0;
-                if (y2>=availY) y2=availY-1;
-                for (int j=y1; j<=y2; j++) {
-                  data[i+availX*(availY-j-1)]=lineColor;
+                  if (candMin>sample->data16[xCoarse]) candMin=sample->data16[xCoarse];
+                  if (candMax<sample->data16[xCoarse]) candMax=sample->data16[xCoarse];
                 }
                 if (totalAdvance>0) xCoarse++;
               } while ((totalAdvance--)>0);
+              if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
+                y1=(((unsigned char)candMin^0x80)*availY)>>8;
+                y2=(((unsigned char)candMax^0x80)*availY)>>8;
+              } else {
+                y1=(((unsigned short)candMin^0x8000)*availY)>>16;
+                y2=(((unsigned short)candMax^0x8000)*availY)>>16;
+              }
+              if (y1>y2) {
+                y2^=y1;
+                y1^=y2;
+                y2^=y1;
+              }
+              if (y1<0) y1=0;
+              if (y1>=availY) y1=availY-1;
+              if (y2<0) y2=0;
+              if (y2>=availY) y2=availY-1;
+
+              const int s1=i+availX*(availY-y1-1);
+              const int s2=i+availX*(availY-y2-1);
+
+              for (int j=s2; j<=s1; j+=availX) {
+                data[j]=lineColor;
+              }
             }
+
+            memcpy(dataT,data,sampleTexW*sampleTexH*sizeof(unsigned int));
             SDL_UnlockTexture(sampleTex);
+            delete[] data;
           }
           updateSampleTex=false;
         }
@@ -1187,6 +1223,31 @@ void FurnaceGUI::drawSampleEdit() {
         ImVec2 rectMin=ImGui::GetItemRectMin();
         ImVec2 rectMax=ImGui::GetItemRectMax();
         ImVec2 rectSize=ImGui::GetItemRectSize();
+
+        unsigned char selectTarget=255;
+
+        if (ImGui::IsItemHovered()) {
+          int start=sampleSelStart;
+          int end=sampleSelEnd;
+          if (start>end) {
+            start^=end;
+            end^=start;
+            start^=end;
+          }
+          ImVec2 p1=rectMin;
+          p1.x+=(start-samplePos)/sampleZoom;
+
+          ImVec2 p2=ImVec2(rectMin.x+(end-samplePos)/sampleZoom,rectMax.y);
+
+          ImVec2 mousePos=ImGui::GetMousePos();
+          if (p1.x>=rectMin.x && p1.x<=rectMax.x && fabs(mousePos.x-p1.x)<2.0*dpiScale) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+            selectTarget=0;
+          } else if (p2.x>=rectMin.x && p2.x<=rectMax.x && fabs(mousePos.x-p2.x)<2.0*dpiScale) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+            selectTarget=1;
+          }
+        }
 
         if (ImGui::IsItemClicked()) {
           nextWindow=GUI_WINDOW_SAMPLE_EDIT;
@@ -1214,9 +1275,23 @@ void FurnaceGUI::drawSampleEdit() {
               }
               sampleDragLen=sample->samples;
               sampleDragActive=true;
-              sampleSelStart=-1;
-              sampleSelEnd=-1;
-              if (sampleDragMode) sample->prepareUndo(true);
+              if (!sampleDragMode) {
+                switch (selectTarget) {
+                  case 0:
+                    sampleSelStart^=sampleSelEnd;
+                    sampleSelEnd^=sampleSelStart;
+                    sampleSelStart^=sampleSelEnd;
+                    break;
+                  case 1:
+                    break;
+                  default:
+                    sampleSelStart=-1;
+                    sampleSelEnd=-1;
+                    break;
+                }
+              } else {
+                sample->prepareUndo(true);
+              }
               processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
             }
           }
@@ -1367,6 +1442,7 @@ void FurnaceGUI::drawSampleEdit() {
           }
         }
 
+        dl->PushClipRect(rectMin,rectMax);
         if (e->isPreviewingSample()) {
           if (!statusBar2.empty()) {
             statusBar2+=" | ";
@@ -1380,7 +1456,6 @@ void FurnaceGUI::drawSampleEdit() {
             end^=start;
             start^=end;
           }
-          ImDrawList* dl=ImGui::GetWindowDrawList();
           ImVec2 p1=rectMin;
           p1.x+=(e->getSamplePreviewPos()-samplePos)/sampleZoom;     
           ImVec4 posColor=uiColors[GUI_COLOR_SAMPLE_NEEDLE];
@@ -1390,8 +1465,8 @@ void FurnaceGUI::drawSampleEdit() {
           posTrail2.w=0.0f;
           float trailDistance=(e->getSamplePreviewRate()/100.0f)/sampleZoom;
 
-          if (p1.x<rectMin.x) p1.x=rectMin.x;
-          if (p1.x>rectMax.x) p1.x=rectMax.x;
+          //if (p1.x<rectMin.x) p1.x=rectMin.x;
+          //if (p1.x>rectMax.x) p1.x=rectMax.x;
 
           ImVec2 p2=p1;
           p2.y=rectMax.y;
@@ -1407,6 +1482,46 @@ void FurnaceGUI::drawSampleEdit() {
           dl->AddLine(p1,p2,ImGui::GetColorU32(posColor));
         }
 
+        if (e->isRunning()) {
+          for (int i=0; i<e->getTotalChannelCount(); i++) {
+            DivSamplePos chanPos=e->getSamplePos(i);
+            if (chanPos.sample!=curSample) continue;
+
+            int start=sampleSelStart;
+            int end=sampleSelEnd;
+            if (start>end) {
+              start^=end;
+              end^=start;
+              start^=end;
+            }
+            ImVec2 p1=rectMin;
+            p1.x+=(chanPos.pos-samplePos)/sampleZoom;     
+            ImVec4 posColor=uiColors[GUI_COLOR_SAMPLE_NEEDLE_PLAYING];
+            ImVec4 posTrail1=posColor;
+            ImVec4 posTrail2=posColor;
+            posTrail1.w*=0.5f;
+            posTrail2.w=0.0f;
+            float trailDistance=((float)chanPos.freq/100.0f)/sampleZoom;
+
+            //if (p1.x<rectMin.x) p1.x=rectMin.x;
+            //if (p1.x>rectMax.x) p1.x=rectMax.x;
+
+            ImVec2 p2=p1;
+            p2.y=rectMax.y;
+
+            dl->AddRectFilledMultiColor(
+              ImVec2(p1.x-trailDistance,p1.y),
+              p2,
+              ImGui::GetColorU32(posTrail2),
+              ImGui::GetColorU32(posTrail1),
+              ImGui::GetColorU32(posTrail1),
+              ImGui::GetColorU32(posTrail2)
+            );
+            dl->AddLine(p1,p2,ImGui::GetColorU32(posColor));
+          }
+        }
+        dl->PopClipRect();
+
         if (drawSelection) {
           int start=sampleSelStart;
           int end=sampleSelEnd;
@@ -1415,7 +1530,6 @@ void FurnaceGUI::drawSampleEdit() {
             end^=start;
             start^=end;
           }
-          ImDrawList* dl=ImGui::GetWindowDrawList();
           ImVec2 p1=rectMin;
           p1.x+=(start-samplePos)/sampleZoom;
 

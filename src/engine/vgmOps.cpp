@@ -583,8 +583,8 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       logD("writing stream command %x:%x with stream ID %d",write.addr,write.val,streamID);
       switch (write.addr&0xff) {
         case 0: // play sample
-          if (write.val<song.sampleLen) {
-            if (playingSample[streamID]!=write.val) {
+          if (write.val<(unsigned int)song.sampleLen) {
+            if (playingSample[streamID]!=(int)write.val) {
               pendingFreq[streamID]=write.val;
             } else {
               DivSample* sample=song.sample[write.val];
@@ -1068,6 +1068,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
 
   bool trailing=false;
   bool beenOneLoopAlready=false;
+  bool mayWriteRate=(fmod(curSubSong->hz,1.0)<0.00001 || fmod(curSubSong->hz,1.0)>0.99999);
   int countDown=MAX(0,trailingTicks)+1;
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
@@ -2205,7 +2206,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
             int delay=i.second.time-lastOne;
             if (delay>16) {
               w->writeC(0x61);
-              w->writeS(totalWait);
+              w->writeS(delay);
             } else if (delay>0) {
               w->writeC(0x70+delay-1);
             }
@@ -2358,6 +2359,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   } else {
     w->writeI(0);
     w->writeI(0);
+  }
+  if (mayWriteRate) {
+    w->writeI(round(curSubSong->hz));
   }
   w->seek(0x34,SEEK_SET);
   w->writeI(songOff-0x34);

@@ -78,6 +78,7 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
     virtual int dispatch(DivCommand c) override;
     virtual void* getChanState(int chan) override;
     virtual DivMacroInt* getChanMacroInt(int ch) override;
+    virtual DivSamplePos getSamplePos(int ch) override;
     virtual DivDispatchOscBuffer* getOscBuffer(int chan) override;
     virtual unsigned char* getRegisterPool() override;
     virtual int getRegisterPoolSize() override;

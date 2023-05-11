@@ -22,6 +22,8 @@
 
 #include "../ta-utils.h"
 #include <map>
+#include <vector>
+#include <initializer_list>
 
 class DivConfig {
   std::map<String,String> conf;
@@ -30,10 +32,10 @@ class DivConfig {
     // config loading/saving
     bool loadFromMemory(const char* buf);
     bool loadFromBase64(const char* buf);
-    bool loadFromFile(const char* path, bool createOnFail=true);
+    bool loadFromFile(const char* path, bool createOnFail=true, bool redundancy=false);
     String toString();
     String toBase64();
-    bool save(const char* path);
+    bool save(const char* path, bool redundancy=false);
 
     // get the map
     const std::map<String,String>& configMap();
@@ -44,6 +46,7 @@ class DivConfig {
     float getFloat(String key, float fallback) const;
     double getDouble(String key, double fallback) const;
     String getString(String key, String fallback) const;
+    std::vector<int> getIntList(String key, std::initializer_list<int> fallback) const;
 
     // check for existence
     bool has(String key) const;
@@ -55,6 +58,7 @@ class DivConfig {
     void set(String key, double value);
     void set(String key, const char* value);
     void set(String key, String value);
+    void set(String key, const std::vector<int>& value);
 
     // remove a config value
     bool remove(String key);

@@ -47,6 +47,7 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
     - OKI MSM6258 and MSM6295
     - Konami K007232
     - Irem GA20
+    - Ensoniq ES5506
   - wavetable chips:
     - HuC6280 used in PC Engine
     - Konami Bubble System WSG
@@ -54,6 +55,7 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
     - Namco arcade chips (WSG/C15/C30)
     - WonderSwan
     - Seta/Allumer X1-010
+    - Sharp SM8521 used in Tiger Game.com
   - NES (Ricoh 2A03/2A07), with additional expansion sound support:
     - Konami VRC6
     - Konami VRC7
@@ -78,7 +80,7 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
   - over 200 ready to use presets from computers, game consoles and arcade boards...
   - ...or create your own - up to 32 of them or a total of 128 channels!
 - DefleMask compatibility
-  - loads .dmf modules from all versions (beta 1 to 1.1.5)
+  - loads .dmf modules from all versions (beta 1 to 1.1.7)
   - saves .dmf modules - both modern and legacy
     - Furnace doubles as a module downgrader
   - loads/saves .dmp instruments and .dmw wavetables as well

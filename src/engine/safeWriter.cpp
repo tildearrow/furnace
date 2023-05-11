@@ -144,6 +144,16 @@ int SafeWriter::writeI(int val) {
   return write(&val,4);
 }
 
+int SafeWriter::writeI_BE(int val) {
+  unsigned char bytes[4] {
+    (unsigned char)((val>>24)&0xff),
+    (unsigned char)((val>>16)&0xff),
+    (unsigned char)((val>>8)&0xff),
+    (unsigned char)(val&0xff)
+  };
+  return write(bytes,4);
+}
+
 int SafeWriter::writeL(int64_t val) {
   return write(&val,8);
 }

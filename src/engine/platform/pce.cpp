@@ -282,7 +282,10 @@ int DivPlatformPCE::dispatch(DivCommand c) {
         if (ins->type==DIV_INS_AMIGA || ins->amiga.useSample) {
           chan[c.chan].furnaceDac=true;
           if (skipRegisterWrites) break;
-          if (c.value!=DIV_NOTE_NULL) chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+          if (c.value!=DIV_NOTE_NULL) {
+            chan[c.chan].dacSample=ins->amiga.getSample(c.value);
+            c.value=ins->amiga.getFreq(c.value);
+          }
           if (chan[c.chan].dacSample<0 || chan[c.chan].dacSample>=parent->song.sampleLen) {
             chan[c.chan].dacSample=-1;
             if (dumpWrites) addWrite(0xffff0002+(c.chan<<8),0);
@@ -503,6 +506,16 @@ void* DivPlatformPCE::getChanState(int ch) {
 
 DivMacroInt* DivPlatformPCE::getChanMacroInt(int ch) {
   return &chan[ch].std;
+}
+
+DivSamplePos DivPlatformPCE::getSamplePos(int ch) {
+  if (ch>=6) return DivSamplePos();
+  if (!chan[ch].pcm) return DivSamplePos();
+  return DivSamplePos(
+    chan[ch].dacSample,
+    chan[ch].dacPos,
+    chan[ch].dacRate
+  );
 }
 
 DivDispatchOscBuffer* DivPlatformPCE::getOscBuffer(int ch) {
