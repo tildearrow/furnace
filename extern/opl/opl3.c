@@ -1362,6 +1362,11 @@ void OPL3_Reset(opl3_chip *chip, uint32_t samplerate)
 #endif
 }
 
+void OPL3_Resample(opl3_chip *chip, uint32_t samplerate)
+{
+    chip->rateratio = (samplerate << RSM_FRAC) / 49716;
+}
+
 void OPL3_WriteReg(opl3_chip *chip, uint16_t reg, uint8_t v)
 {
     uint8_t high = (reg >> 8) & 0x01;

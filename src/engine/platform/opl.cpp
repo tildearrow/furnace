@@ -1866,7 +1866,12 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
           totalOutputs=4;
           break;
       }
-      reset();
+      if (downsample) {
+        const unsigned int downsampledRate=(unsigned int)((double)rate*49716.0/(double)chipRateBase);
+        OPL3_Resample(&fm,downsampledRate);
+      } else {
+        OPL3_Resample(&fm,rate);
+      }
       break;
     case 4:
       switch (flags.getInt("clockSel",0)) {
