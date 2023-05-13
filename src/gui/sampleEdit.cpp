@@ -188,6 +188,8 @@ void FurnaceGUI::drawSampleEdit() {
       for (int i=0; i<DIV_MAX_CHIPS; i++) {
         if (isChipVisible[i]) selColumns++;
       }
+      
+      int targetRate=sampleCompatRate?sample->rate:sample->centerRate;
 
       if (ImGui::BeginTable("SampleProps",(selColumns>1)?4:3,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersV|ImGuiTableFlags_BordersOuterH)) {
         ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
@@ -286,7 +288,6 @@ void FurnaceGUI::drawSampleEdit() {
             }
           }
 
-          int targetRate=sampleCompatRate?sample->rate:sample->centerRate;
           int sampleNote=round(64.0+(128.0*12.0*log((double)targetRate/8363.0)/log(2.0)));
           int sampleNoteCoarse=60+(sampleNote>>7);
           int sampleNoteFine=(sampleNote&127)-64;
@@ -620,7 +621,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Button(ICON_FA_EXPAND "##SResample");
       if (ImGui::IsItemClicked()) {
-        resampleTarget=sample->rate;
+        resampleTarget=targetRate;
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Resample");
@@ -641,23 +642,23 @@ void FurnaceGUI::drawSampleEdit() {
         }
         ImGui::SameLine();
         if (ImGui::Button("==")) {
-          resampleTarget=sample->rate;
+          resampleTarget=targetRate;
         }
         ImGui::SameLine();
         if (ImGui::Button("2.0x")) {
           resampleTarget*=2.0;
         }
-        double factor=resampleTarget/(double)sample->rate;
+        double factor=resampleTarget/(double)targetRate;
         if (ImGui::InputDouble("Factor",&factor,0.125,0.5,"%g")) {
-          resampleTarget=(double)sample->rate*factor;
+          resampleTarget=(double)targetRate*factor;
           if (resampleTarget<0) resampleTarget=0;
           if (resampleTarget>96000) resampleTarget=96000;
         }
         ImGui::Combo("Filter",&resampleStrat,resampleStrats,6);
         if (ImGui::Button("Resample")) {
           sample->prepareUndo(true);
-          e->lockEngine([this,sample]() {
-            if (!sample->resample(resampleTarget,resampleStrat)) {
+          e->lockEngine([this,sample,targetRate]() {
+            if (!sample->resample(targetRate,resampleTarget,resampleStrat)) {
               showError("couldn't resample! make sure your sample is 8 or 16-bit.");
             }
             e->renderSamples();
@@ -670,7 +671,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
         ImGui::EndPopup();
       } else {
-        resampleTarget=sample->rate;
+        resampleTarget=targetRate;
       }
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
