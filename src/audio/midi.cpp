@@ -21,30 +21,62 @@
 #ifdef HAVE_RTMIDI
 #include "rtmidi.h"
 #endif
+#ifdef HAVE_JACK
+#include "jack.h"
+#endif
 
 bool TAAudio::initMidi(bool jack) {
-#ifndef HAVE_RTMIDI
-  return false;
+  if (jack) {
+#ifndef HAVE_JACK
+    return false;
 #else
-  midiIn=new TAMidiInRtMidi;
-  midiOut=new TAMidiOutRtMidi;
+    if (getID()!='J') {
+      return false;
+    }
+    
+    midiIn=new TAMidiInJACK((jack_client_t*)getContext());
+    midiOut=new TAMidiOutJACK((jack_client_t*)getContext());
 
-  if (!midiIn->init()) {
-    delete midiIn;
-    midiIn=NULL;
-    return false;
-  }
+    if (!midiIn->init()) {
+      delete midiIn;
+      midiIn=NULL;
+      return false;
+    }
 
-  if (!midiOut->init()) {
-    midiIn->quit();
-    delete midiOut;
-    delete midiIn;
-    midiOut=NULL;
-    midiIn=NULL;
-    return false;
-  }
-  return true;
+    if (!midiOut->init()) {
+      midiIn->quit();
+      delete midiOut;
+      delete midiIn;
+      midiOut=NULL;
+      midiIn=NULL;
+      return false;
+    }
+    return true;
 #endif
+  } else {
+#ifndef HAVE_RTMIDI
+    return false;
+#else
+    midiIn=new TAMidiInRtMidi;
+    midiOut=new TAMidiOutRtMidi;
+
+    if (!midiIn->init()) {
+      delete midiIn;
+      midiIn=NULL;
+      return false;
+    }
+
+    if (!midiOut->init()) {
+      midiIn->quit();
+      delete midiOut;
+      delete midiIn;
+      midiOut=NULL;
+      midiIn=NULL;
+      return false;
+    }
+    return true;
+#endif
+  }
 }
 
 void TAAudio::quitMidi() {

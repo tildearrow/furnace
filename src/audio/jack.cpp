@@ -255,3 +255,8 @@ bool TAAudioJACK::init(TAAudioDesc& request, TAAudioDesc& response) {
   initialized=true;
   return true;
 }
+
+
+unsigned char TAAudioJACK::getID() {
+  return 'J';
+}

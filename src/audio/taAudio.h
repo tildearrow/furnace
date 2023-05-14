@@ -176,6 +176,7 @@ class TAAudio {
     bool initMidi(bool jack);
     void quitMidi();
     virtual bool init(TAAudioDesc& request, TAAudioDesc& response);
+    virtual unsigned char getID();
 
     TAAudio():
       outFormat(TA_AUDIO_FORMAT_F32),

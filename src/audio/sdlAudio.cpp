@@ -152,3 +152,7 @@ bool TAAudioSDL::init(TAAudioDesc& request, TAAudioDesc& response) {
   initialized=true;
   return true;
 }
+
+unsigned char TAAudioSDL::getID() {
+  return 'S';
+}
