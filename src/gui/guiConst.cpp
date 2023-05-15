@@ -610,6 +610,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("INS_LIST_EDIT", "Edit", FURKMOD_SHIFT|SDLK_RETURN),
   D("INS_LIST_UP", "Cursor up", SDLK_UP),
   D("INS_LIST_DOWN", "Cursor down", SDLK_DOWN),
+  D("INS_LIST_DIR_VIEW", "Toggle folders/standard view", FURKMOD_CMD|SDLK_v),
   D("INS_LIST_MAX", "", NOT_AN_ACTION),
 
   D("WAVE_LIST_MIN", "---Wavetable list", NOT_AN_ACTION),
@@ -626,6 +627,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WAVE_LIST_EDIT", "Edit", FURKMOD_SHIFT|SDLK_RETURN),
   D("WAVE_LIST_UP", "Cursor up", SDLK_UP),
   D("WAVE_LIST_DOWN", "Cursor down", SDLK_DOWN),
+  D("WAVE_LIST_DIR_VIEW", "Toggle folders/standard view", FURKMOD_CMD|SDLK_v),
   D("WAVE_LIST_MAX", "", NOT_AN_ACTION),
 
   D("SAMPLE_LIST_MIN", "---Sample list", NOT_AN_ACTION),
@@ -645,6 +647,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_LIST_DOWN", "Cursor down", SDLK_DOWN),
   D("SAMPLE_LIST_PREVIEW", "Preview", 0),
   D("SAMPLE_LIST_STOP_PREVIEW", "Stop preview", 0),
+  D("SAMPLE_LIST_DIR_VIEW", "Toggle folders/standard view", FURKMOD_CMD|SDLK_v),
   D("SAMPLE_LIST_MAX", "", NOT_AN_ACTION),
 
   D("SAMPLE_MIN", "---Sample editor", NOT_AN_ACTION),

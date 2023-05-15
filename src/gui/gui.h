@@ -566,6 +566,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_INS_LIST_EDIT,
   GUI_ACTION_INS_LIST_UP,
   GUI_ACTION_INS_LIST_DOWN,
+  GUI_ACTION_INS_LIST_DIR_VIEW,
   GUI_ACTION_INS_LIST_MAX,
 
   GUI_ACTION_WAVE_LIST_MIN,
@@ -582,6 +583,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_WAVE_LIST_EDIT,
   GUI_ACTION_WAVE_LIST_UP,
   GUI_ACTION_WAVE_LIST_DOWN,
+  GUI_ACTION_WAVE_LIST_DIR_VIEW,
   GUI_ACTION_WAVE_LIST_MAX,
 
   GUI_ACTION_SAMPLE_LIST_MIN,
@@ -601,6 +603,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_SAMPLE_LIST_DOWN,
   GUI_ACTION_SAMPLE_LIST_PREVIEW,
   GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW,
+  GUI_ACTION_SAMPLE_LIST_DIR_VIEW,
   GUI_ACTION_SAMPLE_LIST_MAX,
 
   GUI_ACTION_SAMPLE_MIN,
@@ -1207,6 +1210,7 @@ class FurnaceGUI {
   String workingDirLayout, workingDirROM, workingDirTest;
   String mmlString[32];
   String mmlStringW, mmlStringSNES, grooveString, grooveListString, mmlStringModTable;
+  String folderString;
 
   std::vector<DivSystem> sysSearchResults;
   std::vector<FurnaceGUISysDef> newSongSearchResults;
@@ -1614,6 +1618,7 @@ class FurnaceGUI {
   bool groovesOpen, introMonOpen;
 
   bool basicMode, shortIntro;
+  bool insListDir, waveListDir, sampleListDir;
 
   bool clockShowReal, clockShowRow, clockShowBeat, clockShowMetro, clockShowTime;
   float clockMetroTick[16];
@@ -1994,6 +1999,10 @@ class FurnaceGUI {
 
   void actualWaveList();
   void actualSampleList();
+
+  void insListItem(int index);
+  void waveListItem(int index);
+  void sampleListItem(int index);
 
   void toggleMobileUI(bool enable, bool force=false);
 

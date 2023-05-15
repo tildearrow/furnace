@@ -5882,6 +5882,10 @@ bool FurnaceGUI::init() {
     basicMode=true;
   }
 
+  insListDir=e->getConfBool("insListDir",false);
+  waveListDir=e->getConfBool("waveListDir",false);
+  sampleListDir=e->getConfBool("sampleListDir",false);
+
   tempoView=e->getConfBool("tempoView",true);
   waveHex=e->getConfBool("waveHex",false);
   waveSigned=e->getConfBool("waveSigned",false);
@@ -6309,6 +6313,11 @@ void FurnaceGUI::commitState() {
   e->setConf("spoilerOpen",spoilerOpen);
   e->setConf("basicMode",basicMode);
 
+  // commit dir state
+  e->setConf("insListDir",insListDir);
+  e->setConf("waveListDir",waveListDir);
+  e->setConf("sampleListDir",sampleListDir);
+
   // commit last window size
   e->setConf("lastWindowWidth",scrConfW);
   e->setConf("lastWindowHeight",scrConfH);
@@ -6560,6 +6569,10 @@ FurnaceGUI::FurnaceGUI():
   groovesOpen(false),
   introMonOpen(false),
   basicMode(true),
+  shortIntro(false),
+  insListDir(false),
+  waveListDir(false),
+  sampleListDir(false),
   clockShowReal(true),
   clockShowRow(true),
   clockShowBeat(true),

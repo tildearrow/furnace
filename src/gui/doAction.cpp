@@ -684,6 +684,9 @@ void FurnaceGUI::doAction(int what) {
       wavePreviewInit=true;
       updateFMPreview=true;
       break;
+    case GUI_ACTION_INS_LIST_DIR_VIEW:
+      insListDir=!insListDir;
+      break;
     
     case GUI_ACTION_WAVE_LIST_ADD:
       curWave=e->addWave();
@@ -756,6 +759,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_WAVE_LIST_DOWN:
       if (++curWave>=(int)e->song.wave.size()) curWave=((int)e->song.wave.size())-1;
       wantScrollList=true;
+      break;
+    case GUI_ACTION_WAVE_LIST_DIR_VIEW:
+      waveListDir=!waveListDir;
       break;
 
     case GUI_ACTION_SAMPLE_LIST_ADD:
@@ -859,6 +865,9 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW:
       e->stopSamplePreview();
+      break;
+    case GUI_ACTION_SAMPLE_LIST_DIR_VIEW:
+      sampleListDir=!sampleListDir;
       break;
 
     case GUI_ACTION_SAMPLE_SELECT:

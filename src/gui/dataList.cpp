@@ -30,6 +30,282 @@ const char* sampleNote[12]={
   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
 };
 
+void FurnaceGUI::insListItem(int i) {
+  ImGui::PushID(i);
+  String name=ICON_FA_CIRCLE_O;
+  const char* insType="Bug!";
+  if (i>=0) {
+    DivInstrument* ins=e->song.ins[i];
+    insType=(ins->type>DIV_INS_MAX)?"Unknown":insTypes[ins->type];
+    if (ins->type==DIV_INS_N163) insType=settings.c163Name.c_str();
+    switch (ins->type) {
+      case DIV_INS_FM:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_FM]);
+        name=fmt::sprintf(ICON_FA_AREA_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_STD:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_STD]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_GB:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_GB]);
+        name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
+        break;
+      case DIV_INS_C64:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_C64]);
+        name=fmt::sprintf(ICON_FA_KEYBOARD_O "##_INS%d",i);
+        break;
+      case DIV_INS_AMIGA:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AMIGA]);
+        name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
+        break;
+      case DIV_INS_PCE:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_PCE]);
+        name=fmt::sprintf(ICON_FA_ID_BADGE "##_INS%d",i);
+        break;
+      case DIV_INS_AY:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AY]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_AY8930:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AY8930]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_TIA:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_TIA]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_SAA1099:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SAA1099]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_VIC:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VIC]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_PET:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_PET]);
+        name=fmt::sprintf(ICON_FA_SQUARE "##_INS%d",i);
+        break;
+      case DIV_INS_VRC6:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VRC6]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_VRC6_SAW:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VRC6_SAW]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_OPLL:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPLL]);
+        name=fmt::sprintf(ICON_FA_AREA_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_OPL:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPL]);
+        name=fmt::sprintf(ICON_FA_AREA_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_FDS:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_FDS]);
+        name=fmt::sprintf(ICON_FA_FLOPPY_O "##_INS%d",i);
+        break;
+      case DIV_INS_VBOY:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VBOY]);
+        name=fmt::sprintf(ICON_FA_BINOCULARS "##_INS%d",i);
+        break;
+      case DIV_INS_N163:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_N163]);
+        name=fmt::sprintf(ICON_FA_CALCULATOR "##_INS%d",i);
+        break;
+      case DIV_INS_SCC:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SCC]);
+        name=fmt::sprintf(ICON_FA_CALCULATOR "##_INS%d",i);
+        break;
+      case DIV_INS_OPZ:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPZ]);
+        name=fmt::sprintf(ICON_FA_AREA_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_POKEY:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_POKEY]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_BEEPER:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_BEEPER]);
+        name=fmt::sprintf(ICON_FA_SQUARE "##_INS%d",i);
+        break;
+      case DIV_INS_SWAN:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SWAN]);
+        name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
+        break;
+      case DIV_INS_MIKEY:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MIKEY]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_VERA:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VERA]);
+        name=fmt::sprintf(ICON_FA_KEYBOARD_O "##_INS%d",i);
+        break;
+      case DIV_INS_X1_010:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_X1_010]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_ES5506:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_ES5506]);
+        name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
+        break;
+      case DIV_INS_MULTIPCM:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MULTIPCM]);
+        name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
+        break;
+      case DIV_INS_SNES:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SNES]);
+        name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
+        break;
+      case DIV_INS_SU:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SU]);
+        name=fmt::sprintf(ICON_FA_MICROCHIP "##_INS%d",i);
+        break;
+      case DIV_INS_NAMCO:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_NAMCO]);
+        name=fmt::sprintf(ICON_FA_PIE_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_OPL_DRUMS:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPL_DRUMS]);
+        name=fmt::sprintf(ICON_FA_COFFEE "##_INS%d",i);
+        break;
+      case DIV_INS_OPM:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPM]);
+        name=fmt::sprintf(ICON_FA_AREA_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_NES:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_NES]);
+        name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
+        break;
+      case DIV_INS_MSM6258:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MSM6258]);
+        name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
+        break;
+      case DIV_INS_MSM6295:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MSM6295]);
+        name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
+        break;
+      case DIV_INS_ADPCMA:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_ADPCMA]);
+        name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
+        break;
+      case DIV_INS_ADPCMB:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_ADPCMB]);
+        name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
+        break;
+      case DIV_INS_SEGAPCM:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SEGAPCM]);
+        name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
+        break;
+      case DIV_INS_QSOUND:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_QSOUND]);
+        name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
+        break;
+      case DIV_INS_YMZ280B:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_YMZ280B]);
+        name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
+        break;
+      case DIV_INS_RF5C68:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_RF5C68]);
+        name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
+        break;
+      case DIV_INS_MSM5232:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MSM5232]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_T6W28:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_T6W28]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_K007232:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_K007232]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_GA20:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_GA20]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_POKEMINI:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_POKEMINI]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_SM8521:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SM8521]);
+        name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
+        break;
+      case DIV_INS_PV1000:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_PV1000]);
+        name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
+        break;
+      default:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
+        name=fmt::sprintf(ICON_FA_QUESTION "##_INS%d",i);
+        break;
+    }
+  } else {
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+  }
+  if (ImGui::Selectable(name.c_str(),(i==-1)?(curIns<0 || curIns>=e->song.insLen):(curIns==i))) {
+    curIns=i;
+    wavePreviewInit=true;
+    updateFMPreview=true;
+  }
+  if (wantScrollList && curIns==i) ImGui::SetScrollHereY();
+  if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
+    nextWindow=GUI_WINDOW_PATTERN;
+    curIns=i;
+    wavePreviewInit=true;
+    updateFMPreview=true;
+  }
+  if (ImGui::IsItemHovered() && i>=0 && !mobileUI) {
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+    ImGui::SetTooltip("%s",insType);
+    ImGui::PopStyleColor();
+    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+      insEditOpen=true;
+      nextWindow=GUI_WINDOW_INS_EDIT;
+    }
+  }
+  if (i>=0) {
+    if (ImGui::BeginPopupContextItem("InsRightMenu")) {
+      curIns=i;
+      updateFMPreview=true;
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+      if (ImGui::MenuItem("replace...")) {
+        doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
+      }
+      if (ImGui::MenuItem("save")) {
+        doAction(GUI_ACTION_INS_LIST_SAVE);
+      }
+      if (ImGui::MenuItem("save (legacy .fui)")) {
+        doAction(GUI_ACTION_INS_LIST_SAVE_OLD);
+      }
+      if (ImGui::MenuItem("save (.dmp)")) {
+        doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
+      }
+      if (ImGui::MenuItem("delete")) {
+        doAction(GUI_ACTION_INS_LIST_DELETE);
+      }
+      ImGui::PopStyleColor();
+      ImGui::EndPopup();
+    }
+  }
+  if (i>=0) {
+    if (i<(int)e->song.ins.size()) {
+      DivInstrument* ins=e->song.ins[i];
+      ImGui::SameLine();
+      ImGui::Text("%.2X: %s",i,ins->name.c_str());
+    }
+  } else {
+    ImGui::SameLine();
+    ImGui::Text("- None -");
+  }
+  ImGui::PopID();
+  ImGui::PopStyleColor();
+}
+
 void FurnaceGUI::drawInsList(bool asChild) {
   if (nextWindow==GUI_WINDOW_INS_LIST) {
     insListOpen=true;
@@ -176,18 +452,50 @@ void FurnaceGUI::drawInsList(bool asChild) {
         ImGui::EndPopup();
       }
       ImGui::SameLine();
-      if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
-        doAction(GUI_ACTION_INS_LIST_MOVE_UP);
+      pushToggleColors(insListDir);
+      if (ImGui::Button(ICON_FA_SITEMAP "##DirMode")) {
+        doAction(GUI_ACTION_INS_LIST_DIR_VIEW);
       }
+      popToggleColors();
       if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Move up");
+        ImGui::SetTooltip("Toggle folders/standard view");
       }
-      ImGui::SameLine();
-      if (ImGui::ArrowButton("InsDown",ImGuiDir_Down)) {
-        doAction(GUI_ACTION_INS_LIST_MOVE_DOWN);
-      }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Move down");
+      if (!insListDir) {
+        ImGui::SameLine();
+        if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
+          doAction(GUI_ACTION_INS_LIST_MOVE_UP);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Move up");
+        }
+        ImGui::SameLine();
+        if (ImGui::ArrowButton("InsDown",ImGuiDir_Down)) {
+          doAction(GUI_ACTION_INS_LIST_MOVE_DOWN);
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("Move down");
+        }
+      } else {
+        ImGui::SameLine();
+        if (ImGui::Button(ICON_FA_FOLDER "##InsFolder")) {
+          folderString="";
+        }
+        if (ImGui::BeginPopupContextItem("NewInsFolder",ImGuiMouseButton_Left)) {
+          ImGui::InputText("##FolderName",&folderString);
+          ImGui::SameLine();
+          ImGui::BeginDisabled(folderString.empty());
+          if (ImGui::Button("Create")) {
+            e->lockEngine([this]() {
+              e->song.insDir.push_back(DivAssetDir(folderString));
+            });
+            ImGui::CloseCurrentPopup();
+          }
+          ImGui::EndDisabled();
+          ImGui::EndPopup();
+        }
+        if (ImGui::IsItemHovered()) {
+          ImGui::SetTooltip("New folder");
+        }
       }
     }
     ImGui::SameLine();
@@ -217,6 +525,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
     int columns=settings.horizontalDataView?(int)(ceil((double)(e->song.ins.size()+1)/(double)availableRows)):1;
     if (columns<1) columns=1;
     if (columns>64) columns=64;
+    if (insListDir) columns=1;
     if (ImGui::BeginTable("InsListScroll",columns,(settings.horizontalDataView?ImGuiTableFlags_ScrollX:0)|ImGuiTableFlags_ScrollY)) {
       if (settings.unifiedDataView) {
         ImGui::TableNextRow();
@@ -225,294 +534,40 @@ void FurnaceGUI::drawInsList(bool asChild) {
         ImGui::Indent();
       }
 
-      if (settings.horizontalDataView) {
+      if (settings.horizontalDataView && !insListDir) {
         ImGui::TableNextRow();
       }
 
-      int curRow=0;
-      for (int i=-1; i<(int)e->song.ins.size(); i++) {
-        ImGui::PushID(i);
-        String name=ICON_FA_CIRCLE_O;
-        const char* insType="Bug!";
-        if (i>=0) {
-          DivInstrument* ins=e->song.ins[i];
-          insType=(ins->type>DIV_INS_MAX)?"Unknown":insTypes[ins->type];
-          if (ins->type==DIV_INS_N163) insType=settings.c163Name.c_str();
-          switch (ins->type) {
-            case DIV_INS_FM:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_FM]);
-              name=fmt::sprintf(ICON_FA_AREA_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_STD:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_STD]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_GB:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_GB]);
-              name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
-              break;
-            case DIV_INS_C64:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_C64]);
-              name=fmt::sprintf(ICON_FA_KEYBOARD_O "##_INS%d",i);
-              break;
-            case DIV_INS_AMIGA:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AMIGA]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
-              break;
-            case DIV_INS_PCE:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_PCE]);
-              name=fmt::sprintf(ICON_FA_ID_BADGE "##_INS%d",i);
-              break;
-            case DIV_INS_AY:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AY]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_AY8930:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_AY8930]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_TIA:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_TIA]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_SAA1099:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SAA1099]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_VIC:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VIC]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_PET:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_PET]);
-              name=fmt::sprintf(ICON_FA_SQUARE "##_INS%d",i);
-              break;
-            case DIV_INS_VRC6:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VRC6]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_VRC6_SAW:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VRC6_SAW]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_OPLL:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPLL]);
-              name=fmt::sprintf(ICON_FA_AREA_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_OPL:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPL]);
-              name=fmt::sprintf(ICON_FA_AREA_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_FDS:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_FDS]);
-              name=fmt::sprintf(ICON_FA_FLOPPY_O "##_INS%d",i);
-              break;
-            case DIV_INS_VBOY:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VBOY]);
-              name=fmt::sprintf(ICON_FA_BINOCULARS "##_INS%d",i);
-              break;
-            case DIV_INS_N163:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_N163]);
-              name=fmt::sprintf(ICON_FA_CALCULATOR "##_INS%d",i);
-              break;
-            case DIV_INS_SCC:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SCC]);
-              name=fmt::sprintf(ICON_FA_CALCULATOR "##_INS%d",i);
-              break;
-            case DIV_INS_OPZ:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPZ]);
-              name=fmt::sprintf(ICON_FA_AREA_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_POKEY:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_POKEY]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_BEEPER:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_BEEPER]);
-              name=fmt::sprintf(ICON_FA_SQUARE "##_INS%d",i);
-              break;
-            case DIV_INS_SWAN:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SWAN]);
-              name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
-              break;
-            case DIV_INS_MIKEY:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MIKEY]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_VERA:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_VERA]);
-              name=fmt::sprintf(ICON_FA_KEYBOARD_O "##_INS%d",i);
-              break;
-            case DIV_INS_X1_010:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_X1_010]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_ES5506:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_ES5506]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
-              break;
-            case DIV_INS_MULTIPCM:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MULTIPCM]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
-              break;
-            case DIV_INS_SNES:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SNES]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
-              break;
-            case DIV_INS_SU:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SU]);
-              name=fmt::sprintf(ICON_FA_MICROCHIP "##_INS%d",i);
-              break;
-            case DIV_INS_NAMCO:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_NAMCO]);
-              name=fmt::sprintf(ICON_FA_PIE_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_OPL_DRUMS:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPL_DRUMS]);
-              name=fmt::sprintf(ICON_FA_COFFEE "##_INS%d",i);
-              break;
-            case DIV_INS_OPM:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_OPM]);
-              name=fmt::sprintf(ICON_FA_AREA_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_NES:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_NES]);
-              name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
-              break;
-            case DIV_INS_MSM6258:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MSM6258]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
-              break;
-            case DIV_INS_MSM6295:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MSM6295]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
-              break;
-            case DIV_INS_ADPCMA:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_ADPCMA]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
-              break;
-            case DIV_INS_ADPCMB:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_ADPCMB]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
-              break;
-            case DIV_INS_SEGAPCM:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SEGAPCM]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
-              break;
-            case DIV_INS_QSOUND:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_QSOUND]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
-              break;
-            case DIV_INS_YMZ280B:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_YMZ280B]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
-              break;
-            case DIV_INS_RF5C68:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_RF5C68]);
-              name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
-              break;
-            case DIV_INS_MSM5232:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_MSM5232]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_T6W28:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_T6W28]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_K007232:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_K007232]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_GA20:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_GA20]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_POKEMINI:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_POKEMINI]);
-              name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
-              break;
-            case DIV_INS_SM8521:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_SM8521]);
-              name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
-              break;
-            case DIV_INS_PV1000:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_PV1000]);
-              name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
-              break;
-            default:
-              ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
-              name=fmt::sprintf(ICON_FA_QUESTION "##_INS%d",i);
-              break;
+      if (insListDir) {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        insListItem(-1);
+        for (DivAssetDir& i: e->song.insDir) {
+          if (!i.name.empty()) {
+            ImGui::Text(ICON_FA_FOLDER_OPEN " %s",i.name.c_str());
+            ImGui::Indent();
           }
-        } else {
-          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-        }
-        if (!settings.horizontalDataView) {
-          ImGui::TableNextRow();
-          ImGui::TableNextColumn();
-        } else if (curRow==0) {
-          ImGui::TableNextColumn();
-        }
-        if (ImGui::Selectable(name.c_str(),(i==-1)?(curIns<0 || curIns>=e->song.insLen):(curIns==i))) {
-          curIns=i;
-          wavePreviewInit=true;
-          updateFMPreview=true;
-        }
-        if (wantScrollList && curIns==i) ImGui::SetScrollHereY();
-        if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
-          nextWindow=GUI_WINDOW_PATTERN;
-          curIns=i;
-          wavePreviewInit=true;
-          updateFMPreview=true;
-        }
-        if (ImGui::IsItemHovered() && i>=0 && !mobileUI) {
-          ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-          ImGui::SetTooltip("%s",insType);
-          ImGui::PopStyleColor();
-          if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-            insEditOpen=true;
-            nextWindow=GUI_WINDOW_INS_EDIT;
+          for (int j: i.entries) {
+            insListItem(j);
+          }
+          if (!i.name.empty()) {
+            ImGui::Unindent();
           }
         }
-        if (i>=0) {
-          if (ImGui::BeginPopupContextItem("InsRightMenu")) {
-            curIns=i;
-            updateFMPreview=true;
-            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-            if (ImGui::MenuItem("replace...")) {
-              doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
-            }
-            if (ImGui::MenuItem("save")) {
-              doAction(GUI_ACTION_INS_LIST_SAVE);
-            }
-            if (ImGui::MenuItem("save (legacy .fui)")) {
-              doAction(GUI_ACTION_INS_LIST_SAVE_OLD);
-            }
-            if (ImGui::MenuItem("save (.dmp)")) {
-              doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
-            }
-            if (ImGui::MenuItem("delete")) {
-              doAction(GUI_ACTION_INS_LIST_DELETE);
-            }
-            ImGui::PopStyleColor();
-            ImGui::EndPopup();
+      } else {
+        int curRow=0;
+        for (int i=-1; i<(int)e->song.ins.size(); i++) {
+          if (!settings.horizontalDataView) {
+            ImGui::TableNextRow();
+            ImGui::TableNextColumn();
+          } else if (curRow==0) {
+            ImGui::TableNextColumn();
+          }
+          insListItem(i);
+          if (settings.horizontalDataView) {
+            if (++curRow>=availableRows) curRow=0;
           }
         }
-        if (i>=0) {
-          if (i<(int)e->song.ins.size()) {
-            DivInstrument* ins=e->song.ins[i];
-            ImGui::SameLine();
-            ImGui::Text("%.2X: %s",i,ins->name.c_str());
-          }
-        } else {
-          ImGui::SameLine();
-          ImGui::Text("- None -");
-        }
-        ImGui::PopStyleColor();
-        if (settings.horizontalDataView) {
-          if (++curRow>=availableRows) curRow=0;
-        }
-        ImGui::PopID();
       }
 
       if (settings.unifiedDataView) {
@@ -606,6 +661,15 @@ void FurnaceGUI::drawWaveList(bool asChild) {
         }
         ImGui::EndPopup();
       }
+    }
+    ImGui::SameLine();
+    pushToggleColors(waveListDir);
+    if (ImGui::Button(ICON_FA_SITEMAP "##WaveDirMode")) {
+      doAction(GUI_ACTION_WAVE_LIST_DIR_VIEW);
+    }
+    popToggleColors();
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Toggle folders/standard view");
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("WaveUp",ImGuiDir_Up)) {
@@ -714,6 +778,15 @@ void FurnaceGUI::drawSampleList(bool asChild) {
         doAction(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
       }
       ImGui::EndPopup();
+    }
+    ImGui::SameLine();
+    pushToggleColors(sampleListDir);
+    if (ImGui::Button(ICON_FA_SITEMAP "##SampleDirMode")) {
+      doAction(GUI_ACTION_SAMPLE_LIST_DIR_VIEW);
+    }
+    popToggleColors();
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Toggle folders/standard view");
     }
     ImGui::SameLine();
     if (ImGui::ArrowButton("SampleUp",ImGuiDir_Up)) {
