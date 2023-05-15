@@ -1792,6 +1792,7 @@ class FurnaceGUI {
   std::map<FurnaceGUIImages,FurnaceGUIImage*> images;
 
   int chanToMove, sysToMove, sysToDelete, opToMove;
+  int assetToMove, dirToMove;
 
   ImVec2 patWindowPos, patWindowSize;
 
@@ -1800,7 +1801,7 @@ class FurnaceGUI {
   ImVec2 noteCellSize, insCellSize, volCellSize, effectCellSize, effectValCellSize;
   SelectionPoint sel1, sel2;
   int dummyRows, demandX;
-  int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax;
+  int transposeAmount, randomizeMin, randomizeMax, fadeMin, fadeMax, collapseAmount;
   float scaleMax;
   bool fadeMode, randomMode, haveHitBounds, pendingStepUpdate;
 
@@ -2000,9 +2001,9 @@ class FurnaceGUI {
   void actualWaveList();
   void actualSampleList();
 
-  void insListItem(int index);
-  void waveListItem(int index);
-  void sampleListItem(int index);
+  void insListItem(int index, int dir, int asset);
+  void waveListItem(int index, int dir, int asset);
+  void sampleListItem(int index, int dir, int asset);
 
   void toggleMobileUI(bool enable, bool force=false);
 

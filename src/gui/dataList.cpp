@@ -30,7 +30,36 @@ const char* sampleNote[12]={
   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
 };
 
-void FurnaceGUI::insListItem(int i) {
+#define DRAG_SOURCE(_d,_a) \
+  if (ImGui::BeginDragDropSource()) { \
+    dirToMove=_d; \
+    assetToMove=_a; \
+    ImGui::SetDragDropPayload("FUR_DIR",NULL,0,ImGuiCond_Once); \
+    ImGui::Button(ICON_FA_ARROWS "##AssetDrag"); \
+    ImGui::EndDragDropSource(); \
+  }
+
+#define DRAG_TARGET(_d,_a,_type) \
+  if (ImGui::BeginDragDropTarget()) { \
+    const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_DIR"); \
+    if (dragItem!=NULL) { \
+      if (dragItem->IsDataType("FUR_DIR")) { \
+        if (dirToMove!=_d || assetToMove!=_a) { \
+          logV("%d/%d -> %d/%d",dirToMove,assetToMove,_d,_a); \
+          e->lockEngine([&]() { \
+            int val=e->song.insDir[dirToMove].entries[assetToMove]; \
+            e->song.insDir[dirToMove].entries.erase(e->song.insDir[dirToMove].entries.begin()+assetToMove); \
+            e->song.insDir[_d].entries.insert(e->song.insDir[_d].entries.begin()+_a,val); \
+          }); \
+        } \
+        dirToMove=-1; \
+        assetToMove=-1; \
+      } \
+    } \
+    ImGui::EndDragDropTarget(); \
+  }
+
+void FurnaceGUI::insListItem(int i, int dir, int asset) {
   ImGui::PushID(i);
   String name=ICON_FA_CIRCLE_O;
   const char* insType="Bug!";
@@ -270,24 +299,8 @@ void FurnaceGUI::insListItem(int i) {
   }
   if (i>=0) {
     if (insListDir) {
-      if (ImGui::BeginDragDropSource()) {
-        chanToMove=i;
-        ImGui::SetDragDropPayload("FUR_DIR",NULL,0,ImGuiCond_Once);
-        //ImGui::Button(ICON_FA_ARROWS "##ChanDrag");
-        ImGui::EndDragDropSource();
-      }
-      if (ImGui::BeginDragDropTarget()) {
-        const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_DIR");
-        if (dragItem!=NULL) {
-          if (dragItem->IsDataType("FUR_DIR")) {
-            if (chanToMove!=i && chanToMove>=0) {
-            }
-            logV("TO %d",i);
-            chanToMove=-1;
-          }
-        }
-        ImGui::EndDragDropTarget();
-      }
+      DRAG_SOURCE(dir,asset);
+      DRAG_TARGET(dir,asset,e->song.insDir);
     }
 
     if (ImGui::BeginPopupContextItem("InsRightMenu")) {
@@ -562,14 +575,20 @@ void FurnaceGUI::drawInsList(bool asChild) {
       if (insListDir) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        insListItem(-1);
+        insListItem(-1,-1,-1);
+        int dirIndex=0;
         for (DivAssetDir& i: e->song.insDir) {
           if (ImGui::TreeNode(i.name.empty()?"<uncategorized>":i.name.c_str())) {
+            int assetIndex=0;
             for (int j: i.entries) {
-              insListItem(j);
+              insListItem(j,dirIndex,assetIndex);
+              assetIndex++;
             }
             ImGui::TreePop();
           }
+          DRAG_SOURCE(dirIndex,-1);
+          DRAG_TARGET(dirIndex,-1,e->song.insDir);
+          dirIndex++;
         }
       } else {
         int curRow=0;
@@ -580,7 +599,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
           } else if (curRow==0) {
             ImGui::TableNextColumn();
           }
-          insListItem(i);
+          insListItem(i,-1,-1);
           if (settings.horizontalDataView) {
             if (++curRow>=availableRows) curRow=0;
           }

@@ -561,17 +561,17 @@ void FurnaceGUI::doAction(int what) {
       doFlip();
       break;
     case GUI_ACTION_PAT_COLLAPSE_ROWS:
-      doCollapse(2,selStart,selEnd);
+      doCollapse(collapseAmount,selStart,selEnd);
       break;
     case GUI_ACTION_PAT_EXPAND_ROWS:
-      doExpand(2,selStart,selEnd);
+      doExpand(collapseAmount,selStart,selEnd);
       break;
     case GUI_ACTION_PAT_COLLAPSE_PAT: {
       SelectionPoint selEndPat;
       selEndPat.xCoarse=e->getTotalChannelCount()-1;
       selEndPat.xFine=2+e->curPat[selEndPat.xCoarse].effectCols*2;
       selEndPat.y=e->curSubSong->patLen-1;
-      doCollapse(2,SelectionPoint(0,0,0),selEndPat);
+      doCollapse(collapseAmount,SelectionPoint(0,0,0),selEndPat);
       break;
     }
     case GUI_ACTION_PAT_EXPAND_PAT: {
@@ -579,14 +579,14 @@ void FurnaceGUI::doAction(int what) {
       selEndPat.xCoarse=e->getTotalChannelCount()-1;
       selEndPat.xFine=2+e->curPat[selEndPat.xCoarse].effectCols*2;
       selEndPat.y=e->curSubSong->patLen-1;
-      doExpand(2,SelectionPoint(0,0,0),selEndPat);
+      doExpand(collapseAmount,SelectionPoint(0,0,0),selEndPat);
       break;
     }
     case GUI_ACTION_PAT_COLLAPSE_SONG:
-      doCollapseSong(2);
+      doCollapseSong(collapseAmount);
       break;
     case GUI_ACTION_PAT_EXPAND_SONG:
-      doExpandSong(2);
+      doExpandSong(collapseAmount);
       break;
     case GUI_ACTION_PAT_LATCH: // TODO
       break;

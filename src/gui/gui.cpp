@@ -2852,8 +2852,14 @@ void FurnaceGUI::editOptions(bool topMenu) {
     ImGui::Separator();
 
     if (ImGui::MenuItem("flip selection",BIND_FOR(GUI_ACTION_PAT_FLIP_SELECTION))) doFlip();
-    if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(2,selStart,selEnd);
-    if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(2,selStart,selEnd);
+
+    ImGui::SetNextItemWidth(120.0f*dpiScale);
+    if (ImGui::InputInt("collapse/expand amount##CollapseAmount",&collapseAmount,1,1)) {
+      if (collapseAmount<2) collapseAmount=2;
+      if (collapseAmount>256) collapseAmount=256;
+    }
+    if (ImGui::MenuItem("collapse",BIND_FOR(GUI_ACTION_PAT_COLLAPSE_ROWS))) doCollapse(collapseAmount,selStart,selEnd);
+    if (ImGui::MenuItem("expand",BIND_FOR(GUI_ACTION_PAT_EXPAND_ROWS))) doExpand(collapseAmount,selStart,selEnd);
 
     if (topMenu) {
       ImGui::Separator();
@@ -6720,11 +6726,14 @@ FurnaceGUI::FurnaceGUI():
   sysToMove(-1),
   sysToDelete(-1),
   opToMove(-1),
+  assetToMove(-1),
+  dirToMove(-1),
   transposeAmount(0),
   randomizeMin(0),
   randomizeMax(255),
   fadeMin(0),
   fadeMax(255),
+  collapseAmount(2),
   scaleMax(100.0f),
   fadeMode(false),
   randomMode(false),
