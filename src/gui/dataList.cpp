@@ -254,7 +254,7 @@ void FurnaceGUI::insListItem(int i) {
   }
   if (wantScrollList && curIns==i) ImGui::SetScrollHereY();
   if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
-    nextWindow=GUI_WINDOW_PATTERN;
+    if (!insListDir) nextWindow=GUI_WINDOW_PATTERN;
     curIns=i;
     wavePreviewInit=true;
     updateFMPreview=true;
@@ -269,6 +269,27 @@ void FurnaceGUI::insListItem(int i) {
     }
   }
   if (i>=0) {
+    if (insListDir) {
+      if (ImGui::BeginDragDropSource()) {
+        chanToMove=i;
+        ImGui::SetDragDropPayload("FUR_DIR",NULL,0,ImGuiCond_Once);
+        //ImGui::Button(ICON_FA_ARROWS "##ChanDrag");
+        ImGui::EndDragDropSource();
+      }
+      if (ImGui::BeginDragDropTarget()) {
+        const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_DIR");
+        if (dragItem!=NULL) {
+          if (dragItem->IsDataType("FUR_DIR")) {
+            if (chanToMove!=i && chanToMove>=0) {
+            }
+            logV("TO %d",i);
+            chanToMove=-1;
+          }
+        }
+        ImGui::EndDragDropTarget();
+      }
+    }
+
     if (ImGui::BeginPopupContextItem("InsRightMenu")) {
       curIns=i;
       updateFMPreview=true;
@@ -543,15 +564,11 @@ void FurnaceGUI::drawInsList(bool asChild) {
         ImGui::TableNextColumn();
         insListItem(-1);
         for (DivAssetDir& i: e->song.insDir) {
-          if (!i.name.empty()) {
-            ImGui::Text(ICON_FA_FOLDER_OPEN " %s",i.name.c_str());
-            ImGui::Indent();
-          }
-          for (int j: i.entries) {
-            insListItem(j);
-          }
-          if (!i.name.empty()) {
-            ImGui::Unindent();
+          if (ImGui::TreeNode(i.name.empty()?"<uncategorized>":i.name.c_str())) {
+            for (int j: i.entries) {
+              insListItem(j);
+            }
+            ImGui::TreePop();
           }
         }
       } else {
