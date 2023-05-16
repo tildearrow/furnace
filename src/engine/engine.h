@@ -523,9 +523,6 @@ class DivEngine {
   // remove an asset
   void removeAsset(std::vector<DivAssetDir>& dir, int entry);
 
-  // check whether an asset directory is complete
-  void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries);
-
   // read/write asset dir
   void putAssetDirData(SafeWriter* w, std::vector<DivAssetDir>& dir);
   DivDataErrors readAssetDirData(SafeReader& reader, std::vector<DivAssetDir>& dir);
@@ -607,6 +604,8 @@ class DivEngine {
     // convert old flags
     static void convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivSystem sys);
 
+    // check whether an asset directory is complete (UNSAFE)
+    void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries);
 
     // benchmark (returns time in seconds)
     double benchmarkPlayback();

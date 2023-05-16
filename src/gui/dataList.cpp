@@ -591,11 +591,22 @@ void FurnaceGUI::drawInsList(bool asChild) {
         ImGui::TableNextColumn();
         insListItem(-1,-1,-1);
         int dirIndex=0;
+        int dirToDelete=-1;
         for (DivAssetDir& i: e->song.insDir) {
           String nodeName=fmt::sprintf("%s %s##_AD%d",i.name.empty()?ICON_FA_FOLDER_O:ICON_FA_FOLDER,i.name.empty()?"<uncategorized>":i.name,i.name.empty()?-1:dirIndex);
+          String popupID=fmt::sprintf("DirRightMenu%d",dirIndex);
           bool treeNode=ImGui::TreeNodeEx(nodeName.c_str(),ImGuiTreeNodeFlags_SpanAvailWidth|(i.name.empty()?ImGuiTreeNodeFlags_DefaultOpen:0));
           DRAG_SOURCE(dirIndex,-1);
           DRAG_TARGET(dirIndex,-1,e->song.insDir);
+          if (ImGui::BeginPopupContextItem(popupID.c_str())) {
+            if (ImGui::MenuItem("rename...")) {
+              ImGui::OpenPopup("NewInsFolder");
+            }
+            if (ImGui::MenuItem("delete")) {
+              dirToDelete=dirIndex;
+            }
+            ImGui::EndPopup();
+          }
           if (treeNode) {
             int assetIndex=0;
             for (int j: i.entries) {
@@ -605,6 +616,12 @@ void FurnaceGUI::drawInsList(bool asChild) {
             ImGui::TreePop();
           }
           dirIndex++;
+        }
+        if (dirToDelete!=-1) {
+          e->lockEngine([this,dirToDelete]() {
+            e->song.insDir.erase(e->song.insDir.begin()+dirToDelete);
+            e->checkAssetDir(e->song.insDir,e->song.ins.size());
+          });
         }
       } else {
         int curRow=0;
