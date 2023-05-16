@@ -1572,6 +1572,21 @@ void DivEngine::changeSong(size_t songIndex) {
   prevRow=0;
 }
 
+void DivEngine::removeAsset(std::vector<DivAssetDir>& dir, int entry) {
+  if (entry<0) return;
+  for (DivAssetDir& i: dir) {
+    for (size_t j=0; j<i.entries.size(); j++) {
+      // erase matching entry
+      if (i.entries[j]==entry) {
+        i.entries.erase(i.entries.begin()+j);
+        j--;
+      } else if (i.entries[j]>entry) {
+        i.entries[j]--;
+      }
+    }
+  }
+}
+
 void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
   bool* inAssetDir=new bool[entries];
   memset(inAssetDir,0,entries*sizeof(bool));
@@ -3032,6 +3047,7 @@ int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
   saveLock.lock();
   song.ins.push_back(ins);
   song.insLen=insCount+1;
+  checkAssetDir(song.insDir,song.ins.size());
   saveLock.unlock();
   BUSY_END;
   return insCount;
@@ -3046,6 +3062,7 @@ int DivEngine::addInstrumentPtr(DivInstrument* which) {
   saveLock.lock();
   song.ins.push_back(which);
   song.insLen=song.ins.size();
+  checkAssetDir(song.insDir,song.ins.size());
   saveLock.unlock();
   BUSY_END;
   return song.insLen;
@@ -3082,6 +3099,8 @@ void DivEngine::delInstrument(int index) {
         }
       }
     }
+    removeAsset(song.insDir,index);
+    checkAssetDir(song.insDir,song.ins.size());
   }
   saveLock.unlock();
   BUSY_END;
@@ -3098,6 +3117,7 @@ int DivEngine::addWave() {
   int waveCount=(int)song.wave.size();
   song.wave.push_back(wave);
   song.waveLen=waveCount+1;
+  checkAssetDir(song.waveDir,song.wave.size());
   saveLock.unlock();
   BUSY_END;
   return waveCount;
@@ -3114,6 +3134,7 @@ int DivEngine::addWavePtr(DivWavetable* which) {
   int waveCount=(int)song.wave.size();
   song.wave.push_back(which);
   song.waveLen=waveCount+1;
+  checkAssetDir(song.waveDir,song.wave.size());
   saveLock.unlock();
   BUSY_END;
   return song.waveLen;
@@ -3268,6 +3289,8 @@ void DivEngine::delWave(int index) {
     delete song.wave[index];
     song.wave.erase(song.wave.begin()+index);
     song.waveLen=song.wave.size();
+    removeAsset(song.waveDir,index);
+    checkAssetDir(song.waveDir,song.wave.size());
   }
   saveLock.unlock();
   BUSY_END;
@@ -3288,6 +3311,7 @@ int DivEngine::addSample() {
   sPreview.sample=-1;
   sPreview.pos=0;
   sPreview.dir=false;
+  checkAssetDir(song.sampleDir,song.sample.size());
   saveLock.unlock();
   renderSamples();
   BUSY_END;
@@ -3305,6 +3329,7 @@ int DivEngine::addSamplePtr(DivSample* which) {
   saveLock.lock();
   song.sample.push_back(which);
   song.sampleLen=sampleCount+1;
+  checkAssetDir(song.sampleDir,song.sample.size());
   saveLock.unlock();
   renderSamples();
   BUSY_END;
@@ -3774,6 +3799,8 @@ void DivEngine::delSample(int index) {
     delete song.sample[index];
     song.sample.erase(song.sample.begin()+index);
     song.sampleLen=song.sample.size();
+    removeAsset(song.sampleDir,index);
+    checkAssetDir(song.sampleDir,song.sample.size());
     renderSamples();
   }
   saveLock.unlock();

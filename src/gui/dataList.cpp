@@ -74,7 +74,7 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
   ImGui::PushID(i);
   String name=ICON_FA_CIRCLE_O;
   const char* insType="Bug!";
-  if (i>=0) {
+  if (i>=0 && i<e->song.insLen) {
     DivInstrument* ins=e->song.ins[i];
     insType=(ins->type>DIV_INS_MAX)?"Unknown":insTypes[ins->type];
     if (ins->type==DIV_INS_N163) insType=settings.c163Name.c_str();
@@ -342,6 +342,9 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
       DivInstrument* ins=e->song.ins[i];
       ImGui::SameLine();
       ImGui::Text("%.2X: %s",i,ins->name.c_str());
+    } else {
+      ImGui::SameLine();
+      ImGui::Text("%.2X: <INVALID>",i);
     }
   } else {
     ImGui::SameLine();
