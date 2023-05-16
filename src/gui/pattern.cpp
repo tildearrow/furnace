@@ -834,28 +834,9 @@ void FurnaceGUI::drawPattern() {
         if (extraChannelButtons==2) {
           DivPattern* pat=e->curPat[i].getPattern(e->curOrders->ord[i][ord],true);
           ImGui::PushFont(mainFont);
-          if (patNameTarget==i) {
-            snprintf(chanID,2048,"##PatNameI%d_%d",i,ord);
-            ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-(8.0f*dpiScale));
-            ImGui::SetCursorPosX(ImGui::GetCursorPosX()+4.0f*dpiScale);
-            ImGui::InputText(chanID,&pat->name);
-            if (wantPatName) {
-              wantPatName=false;
-              ImGui::SetItemDefaultFocus();
-              ImGui::SetKeyboardFocusHere(-1);
-            } else {
-              if (!ImGui::IsItemActive()) {
-                patNameTarget=-1;
-              }
-            }
-          } else {
-            snprintf(chanID,2048," %s##PatName%d",pat->name.c_str(),i);
-            if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
-              patNameTarget=i;
-              wantPatName=true;
-              snprintf(chanID,2048,"##PatNameI%d_%d",i,ord);
-              ImGui::SetActiveID(ImGui::GetID(chanID),ImGui::GetCurrentWindow());
-            }
+          snprintf(chanID,2048," %s##PatName%d",pat->name.c_str(),i);
+          if (ImGui::Selectable(chanID,true,ImGuiSelectableFlags_NoPadWithHalfSpacing,ImVec2(0.0f,lineHeight+1.0f*dpiScale))) {
+            editStr(&pat->name);
           }
           ImGui::PopFont();
         } else if (extraChannelButtons==1) {

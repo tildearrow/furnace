@@ -2272,6 +2272,11 @@ void FurnaceGUI::exportAudio(String path, DivAudioExportModes mode) {
   displayExporting=true;
 }
 
+void FurnaceGUI::editStr(String* which) {
+  editString=which;
+  displayEditString=true;
+}
+
 void FurnaceGUI::showWarning(String what, FurnaceGUIWarnings type) {
   warnString=what;
   warnAction=type;
@@ -5053,6 +5058,10 @@ bool FurnaceGUI::loop() {
       ImGui::OpenPopup("New Song");
     }
 
+    if (displayEditString) {
+      ImGui::OpenPopup("EditString");
+    }
+
     if (nextWindow==GUI_WINDOW_ABOUT) {
       aboutOpen=true;
       nextWindow=GUI_WINDOW_NOTHING;
@@ -5590,6 +5599,27 @@ bool FurnaceGUI::loop() {
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
+    }
+
+    if (ImGui::BeginPopup("EditString",ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      if (editString==NULL) {
+        ImGui::Text("Error! No string provided!");
+      } else {
+        if (displayEditString) {
+          ImGui::SetItemDefaultFocus();
+          ImGui::SetKeyboardFocusHere();
+        }
+        ImGui::InputText("##StringVal",editString);
+      }
+      displayEditString=false;
+      ImGui::SameLine();
+      if (ImGui::Button("OK") || ImGui::IsKeyPressed(ImGuiKey_Enter,false)) {
+        editString=NULL;
+        ImGui::CloseCurrentPopup();
+      }
+      ImGui::EndPopup();
+    } else {
+      editString=NULL;
     }
 
     MEASURE_END(popup);
@@ -6452,6 +6482,7 @@ FurnaceGUI::FurnaceGUI():
   displayPendingRawSample(false),
   snesFilterHex(false),
   modTableHex(false),
+  displayEditString(false),
   mobileEdit(false),
   vgmExportVersion(0x171),
   vgmExportTrailingTicks(-1),
@@ -6471,6 +6502,7 @@ FurnaceGUI::FurnaceGUI():
   fmPreviewOn(false),
   fmPreviewPaused(false),
   fmPreviewOPN(NULL),
+  editString(NULL),
   pendingRawSampleDepth(8),
   pendingRawSampleChannels(1),
   pendingRawSampleUnsigned(false),
@@ -6525,7 +6557,6 @@ FurnaceGUI::FurnaceGUI():
   loopEnd(-1),
   isClipping(0),
   extraChannelButtons(0),
-  patNameTarget(-1),
   newSongCategory(0),
   latchTarget(0),
   wheelX(0),
@@ -6596,7 +6627,6 @@ FurnaceGUI::FurnaceGUI():
   collapseWindow(false),
   demandScrollX(false),
   fancyPattern(false),
-  wantPatName(false),
   firstFrame(true),
   tempoView(true),
   waveHex(false),

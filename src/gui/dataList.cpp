@@ -354,6 +354,71 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
   ImGui::PopStyleColor();
 }
 
+void FurnaceGUI::waveListItem(int i, float* wavePreview, int dir, int asset) {
+  DivWavetable* wave=e->song.wave[i];
+  for (int i=0; i<wave->len; i++) {
+    wavePreview[i]=wave->data[i];
+  }
+  if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
+  if (ImGui::Selectable(fmt::sprintf("%d##_WAVE%d\n",i,i).c_str(),curWave==i)) {
+    curWave=i;
+  }
+  if (wantScrollList && curWave==i) ImGui::SetScrollHereY();
+  if (ImGui::IsItemHovered()) {
+    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+      waveEditOpen=true;
+      nextWindow=GUI_WINDOW_WAVE_EDIT;
+    }
+  }
+  ImGui::SameLine();
+  PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,wave->max);
+}
+
+void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
+  bool memWarning=false;
+
+  DivSample* sample=e->song.sample[i];
+  for (int j=0; j<e->song.systemLen; j++) {
+    DivDispatch* dispatch=e->getDispatch(j);
+    if (dispatch==NULL) continue;
+
+    for (int k=0; k<DIV_MAX_SAMPLE_TYPE; k++) {
+      if (dispatch->getSampleMemCapacity(k)==0) continue;
+      if (!dispatch->isSampleLoaded(k,i) && sample->renderOn[k][j]) {
+        memWarning=true;
+        break;
+      }
+    }
+    if (memWarning) break;
+  }
+  if (memWarning) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_SAMPLE_CHIP_WARNING]);
+  if (ImGui::Selectable(fmt::sprintf("%d: %s##_SAM%d",i,sample->name,i).c_str(),curSample==i)) {
+    curSample=i;
+    samplePos=0;
+    updateSampleTex=true;
+  }
+  if (ImGui::IsItemHovered() && !mobileUI) {
+    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+    ImGui::SetTooltip("Bank %d: %s",i/12,sampleNote[i%12]);
+    if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+      sampleEditOpen=true;
+      nextWindow=GUI_WINDOW_SAMPLE_EDIT;
+    }
+    ImGui::PopStyleColor();
+  }
+  if (memWarning) {
+    ImGui::SameLine();
+    ImGui::Text(ICON_FA_EXCLAMATION_TRIANGLE);
+    if (ImGui::IsItemHovered() && !mobileUI) {
+      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
+      ImGui::SetTooltip("out of memory for this sample!");
+      ImGui::PopStyleColor();
+    }
+    ImGui::PopStyleColor();
+  }
+  if (wantScrollList && curSample==i) ImGui::SetScrollHereY();
+}
+
 void FurnaceGUI::drawInsList(bool asChild) {
   if (nextWindow==GUI_WINDOW_INS_LIST) {
     insListOpen=true;
@@ -600,7 +665,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
           DRAG_TARGET(dirIndex,-1,e->song.insDir);
           if (ImGui::BeginPopupContextItem(popupID.c_str())) {
             if (ImGui::MenuItem("rename...")) {
-              ImGui::OpenPopup("NewInsFolder");
+              editStr(&i.name);
             }
             if (ImGui::MenuItem("delete")) {
               dirToDelete=dirIndex;
@@ -910,73 +975,16 @@ void FurnaceGUI::drawSampleList(bool asChild) {
 void FurnaceGUI::actualWaveList() {
   float wavePreview[257];
   for (int i=0; i<(int)e->song.wave.size(); i++) {
-    DivWavetable* wave=e->song.wave[i];
-    for (int i=0; i<wave->len; i++) {
-      wavePreview[i]=wave->data[i];
-    }
-    if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
-    if (ImGui::Selectable(fmt::sprintf("%d##_WAVE%d\n",i,i).c_str(),curWave==i)) {
-      curWave=i;
-    }
-    if (wantScrollList && curWave==i) ImGui::SetScrollHereY();
-    if (ImGui::IsItemHovered()) {
-      if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-        waveEditOpen=true;
-        nextWindow=GUI_WINDOW_WAVE_EDIT;
-      }
-    }
-    ImGui::SameLine();
-    PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,wave->max);
+    waveListItem(i,wavePreview,-1,-1);
   }
 }
 
 void FurnaceGUI::actualSampleList() {
   for (int i=0; i<(int)e->song.sample.size(); i++) {
-    bool memWarning=false;
-
-    DivSample* sample=e->song.sample[i];
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
-    for (int j=0; j<e->song.systemLen; j++) {
-      DivDispatch* dispatch=e->getDispatch(j);
-      if (dispatch==NULL) continue;
-
-      for (int k=0; k<DIV_MAX_SAMPLE_TYPE; k++) {
-        if (dispatch->getSampleMemCapacity(k)==0) continue;
-        if (!dispatch->isSampleLoaded(k,i) && sample->renderOn[k][j]) {
-          memWarning=true;
-          break;
-        }
-      }
-      if (memWarning) break;
-    }
-    if (memWarning) ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_SAMPLE_CHIP_WARNING]);
-    if (ImGui::Selectable(fmt::sprintf("%d: %s##_SAM%d",i,sample->name,i).c_str(),curSample==i)) {
-      curSample=i;
-      samplePos=0;
-      updateSampleTex=true;
-    }
-    if (ImGui::IsItemHovered() && !mobileUI) {
-      ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-      ImGui::SetTooltip("Bank %d: %s",i/12,sampleNote[i%12]);
-      if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
-        sampleEditOpen=true;
-        nextWindow=GUI_WINDOW_SAMPLE_EDIT;
-      }
-      ImGui::PopStyleColor();
-    }
-    if (memWarning) {
-      ImGui::SameLine();
-      ImGui::Text(ICON_FA_EXCLAMATION_TRIANGLE);
-      if (ImGui::IsItemHovered() && !mobileUI) {
-        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-        ImGui::SetTooltip("out of memory for this sample!");
-        ImGui::PopStyleColor();
-      }
-      ImGui::PopStyleColor();
-    }
-    if (wantScrollList && curSample==i) ImGui::SetScrollHereY();
+    sampleListItem(i,-1,-1);
   }
 }
