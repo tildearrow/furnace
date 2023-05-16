@@ -1572,6 +1572,20 @@ void DivEngine::changeSong(size_t songIndex) {
   prevRow=0;
 }
 
+void DivEngine::moveAsset(std::vector<DivAssetDir>& dir, int before, int after) {
+  if (before<0 || after<0) return;
+  for (DivAssetDir& i: dir) {
+    for (size_t j=0; j<i.entries.size(); j++) {
+      // erase matching entry
+      if (i.entries[j]==before) {
+        i.entries[j]=after;
+      } else if (i.entries[j]==after) {
+        i.entries[j]=before;
+      }
+    }
+  }
+}
+
 void DivEngine::removeAsset(std::vector<DivAssetDir>& dir, int entry) {
   if (entry<0) return;
   for (DivAssetDir& i: dir) {
@@ -4006,6 +4020,7 @@ bool DivEngine::moveInsUp(int which) {
   saveLock.lock();
   song.ins[which]=song.ins[which-1];
   song.ins[which-1]=prev;
+  moveAsset(song.insDir,which,which-1);
   exchangeIns(which,which-1);
   saveLock.unlock();
   BUSY_END;
@@ -4019,6 +4034,7 @@ bool DivEngine::moveWaveUp(int which) {
   saveLock.lock();
   song.wave[which]=song.wave[which-1];
   song.wave[which-1]=prev;
+  moveAsset(song.waveDir,which,which-1);
   saveLock.unlock();
   BUSY_END;
   return true;
@@ -4034,6 +4050,7 @@ bool DivEngine::moveSampleUp(int which) {
   saveLock.lock();
   song.sample[which]=song.sample[which-1];
   song.sample[which-1]=prev;
+  moveAsset(song.sampleDir,which,which-1);
   saveLock.unlock();
   renderSamples();
   BUSY_END;
@@ -4048,6 +4065,7 @@ bool DivEngine::moveInsDown(int which) {
   song.ins[which]=song.ins[which+1];
   song.ins[which+1]=prev;
   exchangeIns(which,which+1);
+  moveAsset(song.insDir,which,which+1);
   saveLock.unlock();
   BUSY_END;
   return true;
@@ -4060,6 +4078,7 @@ bool DivEngine::moveWaveDown(int which) {
   saveLock.lock();
   song.wave[which]=song.wave[which+1];
   song.wave[which+1]=prev;
+  moveAsset(song.waveDir,which,which+1);
   saveLock.unlock();
   BUSY_END;
   return true;
@@ -4075,6 +4094,7 @@ bool DivEngine::moveSampleDown(int which) {
   saveLock.lock();
   song.sample[which]=song.sample[which+1];
   song.sample[which+1]=prev;
+  moveAsset(song.sampleDir,which,which+1);
   saveLock.unlock();
   renderSamples();
   BUSY_END;

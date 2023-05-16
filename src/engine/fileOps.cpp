@@ -4928,9 +4928,6 @@ DivDataErrors DivEngine::readAssetDirData(SafeReader& reader, std::vector<DivAss
     logV("header is invalid: %c%c%c%c",magic[0],magic[1],magic[2],magic[3]);
     return DIV_DATA_INVALID_HEADER;
   }
-
-  logV("reading");
-
   reader.readI(); // reserved
 
   unsigned int numDirs=reader.readI();
@@ -4940,8 +4937,6 @@ DivDataErrors DivEngine::readAssetDirData(SafeReader& reader, std::vector<DivAss
 
     d.name=reader.readString();
     unsigned short numEntries=reader.readS();
-
-    logV("reading %d entries for %s",numEntries,d.name);
 
     for (unsigned short j=0; j<numEntries; j++) {
       d.entries.push_back(((unsigned char)reader.readC()));

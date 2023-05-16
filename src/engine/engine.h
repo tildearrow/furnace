@@ -517,6 +517,9 @@ class DivEngine {
   // change song (UNSAFE)
   void changeSong(size_t songIndex);
 
+  // move an asset
+  void moveAsset(std::vector<DivAssetDir>& dir, int before, int after);
+
   // remove an asset
   void removeAsset(std::vector<DivAssetDir>& dir, int entry);
 
