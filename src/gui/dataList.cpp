@@ -25,6 +25,7 @@
 #include "../ta-log.h"
 #include <fmt/printf.h>
 #include <imgui.h>
+#include <imgui_internal.h>
 
 const char* sampleNote[12]={
   "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"
@@ -44,13 +45,23 @@ const char* sampleNote[12]={
     const ImGuiPayload* dragItem=ImGui::AcceptDragDropPayload("FUR_DIR"); \
     if (dragItem!=NULL) { \
       if (dragItem->IsDataType("FUR_DIR")) { \
-        if (dirToMove!=_d || assetToMove!=_a) { \
-          logV("%d/%d -> %d/%d",dirToMove,assetToMove,_d,_a); \
-          e->lockEngine([&]() { \
-            int val=e->song.insDir[dirToMove].entries[assetToMove]; \
-            e->song.insDir[dirToMove].entries.erase(e->song.insDir[dirToMove].entries.begin()+assetToMove); \
-            e->song.insDir[_d].entries.insert(e->song.insDir[_d].entries.begin()+_a,val); \
-          }); \
+        if (assetToMove==-1) { \
+          if (dirToMove!=_d && _a==-1) { \
+            e->lockEngine([&]() { \
+              DivAssetDir val=_type[dirToMove]; \
+              _type.erase(_type.begin()+dirToMove); \
+              _type.insert(_type.begin()+_d,val); \
+            }); \
+          } \
+        } else { \
+          if (dirToMove!=_d || assetToMove!=_a) { \
+            logV("%d/%d -> %d/%d",dirToMove,assetToMove,_d,_a); \
+            e->lockEngine([&]() { \
+              int val=_type[dirToMove].entries[assetToMove]; \
+              _type[dirToMove].entries.erase(_type[dirToMove].entries.begin()+assetToMove); \
+              _type[_d].entries.insert(_type[_d].entries.begin()+MAX(_a,0),val); \
+            }); \
+          } \
         } \
         dirToMove=-1; \
         assetToMove=-1; \
@@ -578,7 +589,10 @@ void FurnaceGUI::drawInsList(bool asChild) {
         insListItem(-1,-1,-1);
         int dirIndex=0;
         for (DivAssetDir& i: e->song.insDir) {
-          if (ImGui::TreeNode(i.name.empty()?"<uncategorized>":i.name.c_str())) {
+          bool treeNode=ImGui::TreeNode(i.name.empty()?"<uncategorized>":i.name.c_str());
+          DRAG_SOURCE(dirIndex,-1);
+          DRAG_TARGET(dirIndex,-1,e->song.insDir);
+          if (treeNode) {
             int assetIndex=0;
             for (int j: i.entries) {
               insListItem(j,dirIndex,assetIndex);
@@ -586,8 +600,6 @@ void FurnaceGUI::drawInsList(bool asChild) {
             }
             ImGui::TreePop();
           }
-          DRAG_SOURCE(dirIndex,-1);
-          DRAG_TARGET(dirIndex,-1,e->song.insDir);
           dirIndex++;
         }
       } else {
