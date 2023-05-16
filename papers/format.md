@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 156: Furnace dev156
 - 155: Furnace dev155
 - 154: Furnace dev154
 - 153: Furnace dev153
@@ -435,6 +436,10 @@ size | description
  ??? | groove entries. the format is:
      | - 1 byte: length of groove
      | - 16 bytes: groove pattern
+ --- | **pointers to asset directories** (>=156)
+  4  | instrument directories
+  4  | wavetable directories
+  4  | sample directories
 ```
 
 # patchbay
@@ -524,6 +529,22 @@ flags are stored in text (`key=value`) format. for example:
 ```
 clock=4000000
 stereo=true
+```
+
+# asset directories (>=156)
+
+also known as "folder" in the user interface.
+
+```
+size | description
+-----|------------------------------------
+  4  | "ADIR" block ID
+  4  | size of this block
+  4  | number of directories
+ --- | **asset directory** (×numberOfDirs)
+ STR | name (if empty, this is the uncategorized directory)
+  2  | number of assets
+ 1?? | assets in this directory
 ```
 
 # instrument (>=127)

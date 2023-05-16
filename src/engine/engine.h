@@ -53,8 +53,8 @@
 #define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
 #define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
 
-#define DIV_VERSION "dev155"
-#define DIV_ENGINE_VERSION 155
+#define DIV_VERSION "dev156"
+#define DIV_ENGINE_VERSION 156
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -522,6 +522,10 @@ class DivEngine {
 
   // check whether an asset directory is complete
   void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries);
+
+  // read/write asset dir
+  void putAssetDirData(SafeWriter* w, std::vector<DivAssetDir>& dir);
+  DivDataErrors readAssetDirData(SafeReader& reader, std::vector<DivAssetDir>& dir);
 
   // add every export method here
   friend class DivROMExport;

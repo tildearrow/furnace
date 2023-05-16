@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "dataErrors.h"
 #include "engine.h"
 #include "../ta-log.h"
 #include "instrument.h"
@@ -1655,6 +1656,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
   unsigned int samplePtr[256];
   unsigned int subSongPtr[256];
   unsigned int sysFlagsPtr[DIV_MAX_CHIPS];
+  unsigned int assetDirPtr[3];
   std::vector<int> patPtr;
   int numberOfSubSongs=0;
   char magic[5];
@@ -2332,6 +2334,12 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
+    if (ds.version>=156) {
+      assetDirPtr[0]=reader.readI();
+      assetDirPtr[1]=reader.readI();
+      assetDirPtr[2]=reader.readI();
+    }
+
     // read system flags
     if (ds.version>=119) {
       logD("reading chip flags...");
@@ -2363,6 +2371,53 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       logD("reading old chip flags...");
       for (int i=0; i<ds.systemLen; i++) {
         convertOldFlags(sysFlagsPtr[i],ds.systemFlags[i],ds.system[i]);
+      }
+    }
+
+    // read asset directories
+    if (ds.version>=156) {
+      logD("reading asset directories...");
+
+      if (!reader.seek(assetDirPtr[0],SEEK_SET)) {
+        logE("couldn't seek to ins dir!");
+        lastError=fmt::sprintf("couldn't read instrument directory");
+        ds.unload();
+        delete[] file;
+        return false;
+      }
+      if (readAssetDirData(reader,ds.insDir)!=DIV_DATA_SUCCESS) {
+        lastError="invalid instrument directory data!";
+        ds.unload();
+        delete[] file;
+        return false;
+      }
+
+      if (!reader.seek(assetDirPtr[1],SEEK_SET)) {
+        logE("couldn't seek to wave dir!");
+        lastError=fmt::sprintf("couldn't read wavetable directory");
+        ds.unload();
+        delete[] file;
+        return false;
+      }
+      if (readAssetDirData(reader,ds.waveDir)!=DIV_DATA_SUCCESS) {
+        lastError="invalid wavetable directory data!";
+        ds.unload();
+        delete[] file;
+        return false;
+      }
+
+      if (!reader.seek(assetDirPtr[2],SEEK_SET)) {
+        logE("couldn't seek to sample dir!");
+        lastError=fmt::sprintf("couldn't read sample directory");
+        ds.unload();
+        delete[] file;
+        return false;
+      }
+      if (readAssetDirData(reader,ds.sampleDir)!=DIV_DATA_SUCCESS) {
+        lastError="invalid sample directory data!";
+        ds.unload();
+        delete[] file;
+        return false;
       }
     }
 
@@ -4843,6 +4898,61 @@ struct PatToWrite {
     pat(p) {}
 };
 
+void DivEngine::putAssetDirData(SafeWriter* w, std::vector<DivAssetDir>& dir) {
+  size_t blockStartSeek, blockEndSeek;
+
+  w->write("ADIR",4);
+  blockStartSeek=w->tell();
+  w->writeI(0);
+
+  w->writeI(dir.size());
+
+  for (DivAssetDir& i: dir) {
+    w->writeString(i.name,false);
+    w->writeS(i.entries.size());
+    for (int j: i.entries) {
+      w->writeC(j);
+    }
+  }
+
+  blockEndSeek=w->tell();
+  w->seek(blockStartSeek,SEEK_SET);
+  w->writeI(blockEndSeek-blockStartSeek-4);
+  w->seek(0,SEEK_END);
+}
+
+DivDataErrors DivEngine::readAssetDirData(SafeReader& reader, std::vector<DivAssetDir>& dir) {
+  char magic[4];
+  reader.read(magic,4);
+  if (memcmp(magic,"ADIR",4)!=0) {
+    logV("header is invalid: %c%c%c%c",magic[0],magic[1],magic[2],magic[3]);
+    return DIV_DATA_INVALID_HEADER;
+  }
+
+  logV("reading");
+
+  reader.readI(); // reserved
+
+  unsigned int numDirs=reader.readI();
+
+  for (unsigned int i=0; i<numDirs; i++) {
+    DivAssetDir d;
+
+    d.name=reader.readString();
+    unsigned short numEntries=reader.readS();
+
+    logV("reading %d entries for %s",numEntries,d.name);
+
+    for (unsigned short j=0; j<numEntries; j++) {
+      d.entries.push_back(((unsigned char)reader.readC()));
+    }
+
+    dir.push_back(d);
+  }
+
+  return DIV_DATA_SUCCESS;
+}
+
 SafeWriter* DivEngine::saveFur(bool notPrimary) {
   saveLock.lock();
   std::vector<int> subSongPtr;
@@ -4851,7 +4961,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   std::vector<int> wavePtr;
   std::vector<int> samplePtr;
   std::vector<int> patPtr;
-  size_t ptrSeek, subSongPtrSeek, sysFlagsPtrSeek, blockStartSeek, blockEndSeek;
+  int assetDirPtr[3];
+  size_t ptrSeek, subSongPtrSeek, sysFlagsPtrSeek, blockStartSeek, blockEndSeek, assetDirPtrSeek;
   size_t subSongIndex=0;
   DivSubSong* subSong=song.subsong[subSongIndex];
   warnings="";
@@ -5150,6 +5261,12 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     }
   }
 
+  // asset dir pointers (we'll seek here later)
+  assetDirPtrSeek=w->tell();
+  w->writeI(0);
+  w->writeI(0);
+  w->writeI(0);
+
   blockEndSeek=w->tell();
   w->seek(blockStartSeek,SEEK_SET);
   w->writeI(blockEndSeek-blockStartSeek-4);
@@ -5236,6 +5353,14 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     w->writeI(blockEndSeek-blockStartSeek-4);
     w->seek(0,SEEK_END);
   }
+
+  /// ASSET DIRECTORIES
+  assetDirPtr[0]=w->tell();
+  putAssetDirData(w,song.insDir);
+  assetDirPtr[1]=w->tell();
+  putAssetDirData(w,song.waveDir);
+  assetDirPtr[2]=w->tell();
+  putAssetDirData(w,song.sampleDir);
 
   /// INSTRUMENT
   for (int i=0; i<song.insLen; i++) {
@@ -5326,6 +5451,12 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   w->seek(sysFlagsPtrSeek,SEEK_SET);
   for (size_t i=0; i<sysFlagsPtr.size(); i++) {
     w->writeI(sysFlagsPtr[i]);
+  }
+
+  // asset dir pointers
+  w->seek(assetDirPtrSeek,SEEK_SET);
+  for (size_t i=0; i<3; i++) {
+    w->writeI(assetDirPtr[i]);
   }
 
   saveLock.unlock();
