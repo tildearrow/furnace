@@ -59,7 +59,7 @@ const char* sampleNote[12]={
             e->lockEngine([&]() { \
               int val=_type[dirToMove].entries[assetToMove]; \
               _type[dirToMove].entries.erase(_type[dirToMove].entries.begin()+assetToMove); \
-              _type[_d].entries.insert(_type[_d].entries.begin()+MAX(_a,0),val); \
+              _type[_d].entries.insert((_a<0)?(_type[_d].entries.end()):(_type[_d].entries.begin()+_a),val); \
             }); \
           } \
         } \
@@ -592,7 +592,8 @@ void FurnaceGUI::drawInsList(bool asChild) {
         insListItem(-1,-1,-1);
         int dirIndex=0;
         for (DivAssetDir& i: e->song.insDir) {
-          bool treeNode=ImGui::TreeNode(i.name.empty()?"<uncategorized>":i.name.c_str());
+          String nodeName=fmt::sprintf("%s %s##_AD%d",i.name.empty()?ICON_FA_FOLDER_O:ICON_FA_FOLDER,i.name.empty()?"<uncategorized>":i.name,i.name.empty()?-1:dirIndex);
+          bool treeNode=ImGui::TreeNodeEx(nodeName.c_str(),ImGuiTreeNodeFlags_SpanAvailWidth|(i.name.empty()?ImGuiTreeNodeFlags_DefaultOpen:0));
           DRAG_SOURCE(dirIndex,-1);
           DRAG_TARGET(dirIndex,-1,e->song.insDir);
           if (treeNode) {

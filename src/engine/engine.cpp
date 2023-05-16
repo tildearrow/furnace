@@ -1599,6 +1599,13 @@ void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
         j--;
         continue;
       }
+
+      // erase duplicate entry
+      if (inAssetDir[j]) {
+        i.entries.erase(i.entries.begin()+j);
+        j--;
+        continue;
+      }
       
       // mark entry as present
       inAssetDir[j]=true;
