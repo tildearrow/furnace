@@ -1635,15 +1635,14 @@ void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
     }
   }
 
-  // create unsorted directory if it doesn't exist
-  if (unsortedDir==NULL) {
-    dir.push_back(DivAssetDir(""));
-    unsortedDir=&(*dir.rbegin());
-  }
-
   // add missing items to unsorted directory
   for (size_t i=0; i<entries; i++) {
     if (!inAssetDir[i]) {
+      // create unsorted directory if it doesn't exist
+      if (unsortedDir==NULL) {
+        dir.push_back(DivAssetDir(""));
+        unsortedDir=&(*dir.rbegin());
+      }
       unsortedDir->entries.push_back(i);
     }
   }

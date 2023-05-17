@@ -6643,6 +6643,7 @@ FurnaceGUI::FurnaceGUI():
   dragMobileMenu(false),
   dragMobileEditButton(false),
   wantGrooveListFocus(false),
+  lastAssetType(0),
   curWindow(GUI_WINDOW_NOTHING),
   nextWindow(GUI_WINDOW_NOTHING),
   curWindowLast(GUI_WINDOW_NOTHING),

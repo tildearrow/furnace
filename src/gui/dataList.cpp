@@ -291,6 +291,8 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
     curIns=i;
     wavePreviewInit=true;
     updateFMPreview=true;
+    lastAssetType=0;
+    if (insListDir) nextWindow=GUI_WINDOW_PATTERN;
   }
   if (wantScrollList && curIns==i) ImGui::SetScrollHereY();
   if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
@@ -298,6 +300,7 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
     curIns=i;
     wavePreviewInit=true;
     updateFMPreview=true;
+    lastAssetType=0;
   }
   if (ImGui::IsItemHovered() && i>=0 && !mobileUI) {
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
@@ -362,6 +365,7 @@ void FurnaceGUI::waveListItem(int i, float* wavePreview, int dir, int asset) {
   if (wave->len>0) wavePreview[wave->len]=wave->data[wave->len-1];
   if (ImGui::Selectable(fmt::sprintf("%d##_WAVE%d\n",i,i).c_str(),curWave==i)) {
     curWave=i;
+    lastAssetType=1;
   }
   if (wantScrollList && curWave==i) ImGui::SetScrollHereY();
   if (ImGui::IsItemHovered()) {
@@ -369,6 +373,10 @@ void FurnaceGUI::waveListItem(int i, float* wavePreview, int dir, int asset) {
       waveEditOpen=true;
       nextWindow=GUI_WINDOW_WAVE_EDIT;
     }
+  }
+  if (waveListDir || (settings.unifiedDataView && insListDir)) {
+    DRAG_SOURCE(dir,asset);
+    DRAG_TARGET(dir,asset,e->song.waveDir);
   }
   ImGui::SameLine();
   PlotNoLerp(fmt::sprintf("##_WAVEP%d",i).c_str(),wavePreview,wave->len+1,0,NULL,0,wave->max);
@@ -396,15 +404,20 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     curSample=i;
     samplePos=0;
     updateSampleTex=true;
+    lastAssetType=2;
   }
   if (ImGui::IsItemHovered() && !mobileUI) {
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-    ImGui::SetTooltip("Bank %d: %s",i/12,sampleNote[i%12]);
+    ImGui::SetTooltip("(legacy bank %d: %s)",i/12,sampleNote[i%12]);
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
       sampleEditOpen=true;
       nextWindow=GUI_WINDOW_SAMPLE_EDIT;
     }
     ImGui::PopStyleColor();
+  }
+  if (sampleListDir || (settings.unifiedDataView && insListDir)) {
+    DRAG_SOURCE(dir,asset);
+    DRAG_TARGET(dir,asset,e->song.sampleDir);
   }
   if (memWarning) {
     ImGui::SameLine();
@@ -435,202 +448,225 @@ void FurnaceGUI::drawInsList(bool asChild) {
   if (began) {
     if (settings.unifiedDataView) settings.horizontalDataView=0;
     if (ImGui::Button(ICON_FA_PLUS "##InsAdd")) {
-      if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_ADD);
+      if (settings.unifiedDataView) {
+        switch (lastAssetType) {
+          case 0:
+            doAction(GUI_ACTION_INS_LIST_ADD);
+            break;
+          case 1:
+            doAction(GUI_ACTION_WAVE_LIST_ADD);
+            break;
+          case 2:
+            doAction(GUI_ACTION_SAMPLE_LIST_ADD);
+            break;
+        }
+      } else {
+        doAction(GUI_ACTION_INS_LIST_ADD);
+      }
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Add");
     }
-    if (settings.unifiedDataView) {
-      if (ImGui::BeginPopupContextItem("UnifiedAdd",ImGuiMouseButton_Left)) {
-        if (ImGui::MenuItem("instrument")) {
-          doAction(GUI_ACTION_INS_LIST_ADD);
-        }
-        if (ImGui::MenuItem("wavetable")) {
-          doAction(GUI_ACTION_WAVE_LIST_ADD);
-        }
-        if (ImGui::MenuItem("sample (create)")) {
-          doAction(GUI_ACTION_SAMPLE_LIST_ADD);
-        }
-        ImGui::EndPopup();
-      }
-    } else {
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        displayInsTypeList=true;
-        displayInsTypeListMakeInsSample=-1;
-      }
+    if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      displayInsTypeList=true;
+      displayInsTypeListMakeInsSample=-1;
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FILES_O "##InsClone")) {
-      if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_DUPLICATE);
+      if (settings.unifiedDataView) {
+        switch (lastAssetType) {
+          case 0:
+            doAction(GUI_ACTION_INS_LIST_DUPLICATE);
+            break;
+          case 1:
+            doAction(GUI_ACTION_WAVE_LIST_DUPLICATE);
+            break;
+          case 2:
+            doAction(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
+            break;
+        }
+      } else {
+        doAction(GUI_ACTION_INS_LIST_DUPLICATE);
+      }
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Duplicate");
     }
-    if (settings.unifiedDataView) {
-      if (ImGui::BeginPopupContextItem("UnifiedClone",ImGuiMouseButton_Left)) {
-        if (ImGui::MenuItem("instrument")) {
-          doAction(GUI_ACTION_INS_LIST_DUPLICATE);
-        }
-        if (ImGui::MenuItem("wavetable")) {
-          doAction(GUI_ACTION_WAVE_LIST_DUPLICATE);
-        }
-        if (ImGui::MenuItem("sample")) {
-          doAction(GUI_ACTION_SAMPLE_LIST_DUPLICATE);
-        }
-        ImGui::EndPopup();
-      }
-    }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FOLDER_OPEN "##InsLoad")) {
-      if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_OPEN);
+      if (settings.unifiedDataView) {
+        switch (lastAssetType) {
+          case 0:
+            doAction(GUI_ACTION_INS_LIST_OPEN);
+            break;
+          case 1:
+            doAction(GUI_ACTION_WAVE_LIST_OPEN);
+            break;
+          case 2:
+            doAction(GUI_ACTION_SAMPLE_LIST_OPEN);
+            break;
+        }
+      } else {
+        doAction(GUI_ACTION_INS_LIST_OPEN);
+      }
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Open");
     }
-    if (settings.unifiedDataView) {
-      if (ImGui::BeginPopupContextItem("UnifiedLoad",ImGuiMouseButton_Left)) {
-        if (ImGui::MenuItem("instrument")) {
-          doAction(GUI_ACTION_INS_LIST_OPEN);
-        }
-        if (ImGui::MenuItem("instrument (replace...)")) {
-          doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
-        }
-        if (ImGui::MenuItem("wavetable")) {
-          doAction(GUI_ACTION_WAVE_LIST_OPEN);
-        }
-        if (ImGui::MenuItem("sample")) {
-          doAction(GUI_ACTION_SAMPLE_LIST_OPEN);
-        }
-        ImGui::Separator();
-        if (ImGui::MenuItem("instrument from TX81Z")) {
-          doAction(GUI_ACTION_TX81Z_REQUEST);
-        }
-        ImGui::EndPopup();
+    if (ImGui::BeginPopupContextItem("InsOpenOpt")) {
+      if (ImGui::MenuItem("replace...")) {
+        doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
       }
-    } else {
-      if (ImGui::BeginPopupContextItem("InsOpenOpt")) {
-        if (ImGui::MenuItem("replace...")) {
-          doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
-        }
-        ImGui::Separator();
-        if (ImGui::MenuItem("load from TX81Z")) {
-          doAction(GUI_ACTION_TX81Z_REQUEST);
-        }
-        ImGui::EndPopup();
+      ImGui::Separator();
+      if (ImGui::MenuItem("load from TX81Z")) {
+        doAction(GUI_ACTION_TX81Z_REQUEST);
       }
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Open (insert; right-click to replace)");
-      }
+      ImGui::EndPopup();
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Open (insert; right-click to replace)");
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_FLOPPY_O "##InsSave")) {
-      if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_SAVE);
+      if (settings.unifiedDataView) {
+        switch (lastAssetType) {
+          case 0:
+            doAction(GUI_ACTION_INS_LIST_SAVE);
+            break;
+          case 1:
+            doAction(GUI_ACTION_WAVE_LIST_SAVE);
+            break;
+          case 2:
+            doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
+            break;
+        }
+      } else {
+        doAction(GUI_ACTION_INS_LIST_SAVE);
+      }
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Save");
     }
-    if (settings.unifiedDataView) {
-      if (ImGui::BeginPopupContextItem("UnifiedSave",ImGuiMouseButton_Left)) {
-        if (ImGui::MenuItem("instrument")) {
-          doAction(GUI_ACTION_INS_LIST_SAVE);
-        }
-        if (ImGui::MenuItem("instrument (legacy .fui)")) {
-          doAction(GUI_ACTION_INS_LIST_SAVE_OLD);
-        }
-        if (ImGui::MenuItem("instrument (.dmp)")) {
-          doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
-        }
-        if (ImGui::MenuItem("wavetable")) {
-          doAction(GUI_ACTION_WAVE_LIST_SAVE);
-        }
-        if (ImGui::MenuItem("wavetable (.dmw)")) {
-          doAction(GUI_ACTION_WAVE_LIST_SAVE_DMW);
-        }
-        if (ImGui::MenuItem("wavetable (raw)")) {
-          doAction(GUI_ACTION_WAVE_LIST_SAVE_RAW);
-        }
-        if (ImGui::MenuItem("sample")) {
-          doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
-        }
-        ImGui::EndPopup();
+    if (ImGui::BeginPopupContextItem("InsSaveFormats",ImGuiMouseButton_Right)) {
+      if (ImGui::MenuItem("save as .dmp...")) {
+        doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
       }
-    } else {
-      if (ImGui::BeginPopupContextItem("InsSaveFormats",ImGuiMouseButton_Right)) {
-        if (ImGui::MenuItem("save in legacy format...")) {
-          doAction(GUI_ACTION_INS_LIST_SAVE_OLD);
-        }
-        if (ImGui::MenuItem("save as .dmp...")) {
-          doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
-        }
-        ImGui::EndPopup();
-      }
+      ImGui::EndPopup();
+    }
+    ImGui::SameLine();
+    pushToggleColors(insListDir);
+    if (ImGui::Button(ICON_FA_SITEMAP "##DirMode")) {
+      doAction(GUI_ACTION_INS_LIST_DIR_VIEW);
+    }
+    popToggleColors();
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Toggle folders/standard view");
+    }
+    if (!insListDir) {
       ImGui::SameLine();
-      pushToggleColors(insListDir);
-      if (ImGui::Button(ICON_FA_SITEMAP "##DirMode")) {
-        doAction(GUI_ACTION_INS_LIST_DIR_VIEW);
-      }
-      popToggleColors();
-      if (ImGui::IsItemHovered()) {
-        ImGui::SetTooltip("Toggle folders/standard view");
-      }
-      if (!insListDir) {
-        ImGui::SameLine();
-        if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
+      if (ImGui::ArrowButton("InsUp",ImGuiDir_Up)) {
+        if (settings.unifiedDataView) {
+          switch (lastAssetType) {
+            case 0:
+              doAction(GUI_ACTION_INS_LIST_MOVE_UP);
+              break;
+            case 1:
+              doAction(GUI_ACTION_WAVE_LIST_MOVE_UP);
+              break;
+            case 2:
+              doAction(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
+              break;
+          }
+        } else {
           doAction(GUI_ACTION_INS_LIST_MOVE_UP);
         }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Move up");
-        }
-        ImGui::SameLine();
-        if (ImGui::ArrowButton("InsDown",ImGuiDir_Down)) {
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Move up");
+      }
+      ImGui::SameLine();
+      if (ImGui::ArrowButton("InsDown",ImGuiDir_Down)) {
+        if (settings.unifiedDataView) {
+          switch (lastAssetType) {
+            case 0:
+              doAction(GUI_ACTION_INS_LIST_MOVE_DOWN);
+              break;
+            case 1:
+              doAction(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
+              break;
+            case 2:
+              doAction(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
+              break;
+          }
+        } else {
           doAction(GUI_ACTION_INS_LIST_MOVE_DOWN);
         }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("Move down");
-        }
-      } else {
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Move down");
+      }
+    } else {
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_FOLDER "##InsFolder")) {
+        folderString="";
+      }
+      if (ImGui::BeginPopupContextItem("NewInsFolder",ImGuiMouseButton_Left)) {
+        ImGui::InputText("##FolderName",&folderString);
         ImGui::SameLine();
-        if (ImGui::Button(ICON_FA_FOLDER "##InsFolder")) {
-          folderString="";
-        }
-        if (ImGui::BeginPopupContextItem("NewInsFolder",ImGuiMouseButton_Left)) {
-          ImGui::InputText("##FolderName",&folderString);
-          ImGui::SameLine();
-          ImGui::BeginDisabled(folderString.empty());
-          if (ImGui::Button("Create")) {
+        ImGui::BeginDisabled(folderString.empty());
+        if (ImGui::Button("Create")) {
+          if (settings.unifiedDataView) {
+            switch (lastAssetType) {
+              case 0:
+                e->lockEngine([this]() {
+                  e->song.insDir.push_back(DivAssetDir(folderString));
+                });
+                break;
+              case 1:
+                e->lockEngine([this]() {
+                  e->song.waveDir.push_back(DivAssetDir(folderString));
+                });
+                break;
+              case 2:
+                e->lockEngine([this]() {
+                  e->song.sampleDir.push_back(DivAssetDir(folderString));
+                });
+                break;
+            }
+          } else {
             e->lockEngine([this]() {
               e->song.insDir.push_back(DivAssetDir(folderString));
             });
-            ImGui::CloseCurrentPopup();
           }
-          ImGui::EndDisabled();
-          ImGui::EndPopup();
+          ImGui::CloseCurrentPopup();
         }
-        if (ImGui::IsItemHovered()) {
-          ImGui::SetTooltip("New folder");
-        }
+        ImGui::EndDisabled();
+        ImGui::EndPopup();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("New folder");
       }
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##InsDelete")) {
-      if (!settings.unifiedDataView) doAction(GUI_ACTION_INS_LIST_DELETE);
+      if (settings.unifiedDataView) {
+        switch (lastAssetType) {
+          case 0:
+            doAction(GUI_ACTION_INS_LIST_DELETE);
+            break;
+          case 1:
+            doAction(GUI_ACTION_WAVE_LIST_DELETE);
+            break;
+          case 2:
+            doAction(GUI_ACTION_SAMPLE_LIST_DELETE);
+            break;
+        }
+      } else {
+        doAction(GUI_ACTION_INS_LIST_DELETE);
+      }
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Delete");
-    }
-    if (settings.unifiedDataView) {
-      if (ImGui::BeginPopupContextItem("UnifiedDelete",ImGuiMouseButton_Left)) {
-        if (ImGui::MenuItem("instrument")) {
-          doAction(GUI_ACTION_INS_LIST_DELETE);
-        }
-        if (ImGui::MenuItem("wavetable")) {
-          doAction(GUI_ACTION_WAVE_LIST_DELETE);
-        }
-        if (ImGui::MenuItem("sample")) {
-          doAction(GUI_ACTION_SAMPLE_LIST_DELETE);
-        }
-        ImGui::EndPopup();
-      }
     }
     ImGui::Separator();
     int availableRows=ImGui::GetContentRegionAvail().y/ImGui::GetFrameHeight();
@@ -643,7 +679,9 @@ void FurnaceGUI::drawInsList(bool asChild) {
       if (settings.unifiedDataView) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text(ICON_FA_TASKS " Instruments");
+        if (ImGui::Selectable(ICON_FA_TASKS " Instruments",lastAssetType==0)) {
+          lastAssetType=0;
+        }
         ImGui::Indent();
       }
 
@@ -658,7 +696,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
         int dirIndex=0;
         int dirToDelete=-1;
         for (DivAssetDir& i: e->song.insDir) {
-          String nodeName=fmt::sprintf("%s %s##_AD%d",i.name.empty()?ICON_FA_FOLDER_O:ICON_FA_FOLDER,i.name.empty()?"<uncategorized>":i.name,i.name.empty()?-1:dirIndex);
+          String nodeName=fmt::sprintf("%s %s##_ADI%d",i.name.empty()?ICON_FA_FOLDER_O:ICON_FA_FOLDER,i.name.empty()?"<uncategorized>":i.name,i.name.empty()?-1:dirIndex);
           String popupID=fmt::sprintf("DirRightMenu%d",dirIndex);
           bool treeNode=ImGui::TreeNodeEx(nodeName.c_str(),ImGuiTreeNodeFlags_SpanAvailWidth|(i.name.empty()?ImGuiTreeNodeFlags_DefaultOpen:0));
           DRAG_SOURCE(dirIndex,-1);
@@ -709,14 +747,18 @@ void FurnaceGUI::drawInsList(bool asChild) {
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text(ICON_FA_AREA_CHART " Wavetables");
+        if (ImGui::Selectable(ICON_FA_AREA_CHART " Wavetables",lastAssetType==1)) {
+          lastAssetType=1;
+        }
         ImGui::Indent();
         actualWaveList();
         ImGui::Unindent();
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
-        ImGui::Text(ICON_FA_VOLUME_UP " Samples");
+        if (ImGui::Selectable(ICON_FA_VOLUME_UP " Samples",lastAssetType==2)) {
+          lastAssetType=2;
+        }
         ImGui::Indent();
         actualSampleList();
         ImGui::Unindent();
@@ -805,19 +847,42 @@ void FurnaceGUI::drawWaveList(bool asChild) {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Toggle folders/standard view");
     }
-    ImGui::SameLine();
-    if (ImGui::ArrowButton("WaveUp",ImGuiDir_Up)) {
-      doAction(GUI_ACTION_WAVE_LIST_MOVE_UP);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Move up");
-    }
-    ImGui::SameLine();
-    if (ImGui::ArrowButton("WaveDown",ImGuiDir_Down)) {
-      doAction(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Move down");
+    if (!waveListDir) {
+      ImGui::SameLine();
+      if (ImGui::ArrowButton("WaveUp",ImGuiDir_Up)) {
+        doAction(GUI_ACTION_WAVE_LIST_MOVE_UP);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Move up");
+      }
+      ImGui::SameLine();
+      if (ImGui::ArrowButton("WaveDown",ImGuiDir_Down)) {
+        doAction(GUI_ACTION_WAVE_LIST_MOVE_DOWN);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Move down");
+      }
+    } else {
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_FOLDER "##WaveFolder")) {
+        folderString="";
+      }
+      if (ImGui::BeginPopupContextItem("NewWaveFolder",ImGuiMouseButton_Left)) {
+        ImGui::InputText("##FolderName",&folderString);
+        ImGui::SameLine();
+        ImGui::BeginDisabled(folderString.empty());
+        if (ImGui::Button("Create")) {
+          e->lockEngine([this]() {
+            e->song.waveDir.push_back(DivAssetDir(folderString));
+          });
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndDisabled();
+        ImGui::EndPopup();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("New folder");
+      }
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##WaveDelete")) {
@@ -922,19 +987,42 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Toggle folders/standard view");
     }
-    ImGui::SameLine();
-    if (ImGui::ArrowButton("SampleUp",ImGuiDir_Up)) {
-      doAction(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Move up");
-    }
-    ImGui::SameLine();
-    if (ImGui::ArrowButton("SampleDown",ImGuiDir_Down)) {
-      doAction(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Move down");
+    if (!sampleListDir) {
+      ImGui::SameLine();
+      if (ImGui::ArrowButton("SampleUp",ImGuiDir_Up)) {
+        doAction(GUI_ACTION_SAMPLE_LIST_MOVE_UP);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Move up");
+      }
+      ImGui::SameLine();
+      if (ImGui::ArrowButton("SampleDown",ImGuiDir_Down)) {
+        doAction(GUI_ACTION_SAMPLE_LIST_MOVE_DOWN);
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("Move down");
+      }
+    } else {
+      ImGui::SameLine();
+      if (ImGui::Button(ICON_FA_FOLDER "##SampleFolder")) {
+        folderString="";
+      }
+      if (ImGui::BeginPopupContextItem("NewSampleFolder",ImGuiMouseButton_Left)) {
+        ImGui::InputText("##FolderName",&folderString);
+        ImGui::SameLine();
+        ImGui::BeginDisabled(folderString.empty());
+        if (ImGui::Button("Create")) {
+          e->lockEngine([this]() {
+            e->song.sampleDir.push_back(DivAssetDir(folderString));
+          });
+          ImGui::CloseCurrentPopup();
+        }
+        ImGui::EndDisabled();
+        ImGui::EndPopup();
+      }
+      if (ImGui::IsItemHovered()) {
+        ImGui::SetTooltip("New folder");
+      }
     }
     ImGui::SameLine();
     if (ImGui::Button(ICON_FA_TIMES "##SampleDelete")) {
@@ -974,17 +1062,94 @@ void FurnaceGUI::drawSampleList(bool asChild) {
 
 void FurnaceGUI::actualWaveList() {
   float wavePreview[257];
-  for (int i=0; i<(int)e->song.wave.size(); i++) {
+
+  if (waveListDir || (settings.unifiedDataView && insListDir)) {
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
-    waveListItem(i,wavePreview,-1,-1);
+    int dirIndex=0;
+    int dirToDelete=-1;
+    for (DivAssetDir& i: e->song.waveDir) {
+      String nodeName=fmt::sprintf("%s %s##_ADW%d",i.name.empty()?ICON_FA_FOLDER_O:ICON_FA_FOLDER,i.name.empty()?"<uncategorized>":i.name,i.name.empty()?-1:dirIndex);
+      String popupID=fmt::sprintf("DirRightMenu%d",dirIndex);
+      bool treeNode=ImGui::TreeNodeEx(nodeName.c_str(),ImGuiTreeNodeFlags_SpanAvailWidth|(i.name.empty()?ImGuiTreeNodeFlags_DefaultOpen:0));
+      DRAG_SOURCE(dirIndex,-1);
+      DRAG_TARGET(dirIndex,-1,e->song.waveDir);
+      if (ImGui::BeginPopupContextItem(popupID.c_str())) {
+        if (ImGui::MenuItem("rename...")) {
+          editStr(&i.name);
+        }
+        if (ImGui::MenuItem("delete")) {
+          dirToDelete=dirIndex;
+        }
+        ImGui::EndPopup();
+      }
+      if (treeNode) {
+        int assetIndex=0;
+        for (int j: i.entries) {
+          waveListItem(j,wavePreview,dirIndex,assetIndex);
+          assetIndex++;
+        }
+        ImGui::TreePop();
+      }
+      dirIndex++;
+    }
+    if (dirToDelete!=-1) {
+      e->lockEngine([this,dirToDelete]() {
+        e->song.waveDir.erase(e->song.waveDir.begin()+dirToDelete);
+        e->checkAssetDir(e->song.waveDir,e->song.wave.size());
+      });
+    }
+  } else {
+    for (int i=0; i<(int)e->song.wave.size(); i++) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      waveListItem(i,wavePreview,-1,-1);
+    }
   }
 }
 
 void FurnaceGUI::actualSampleList() {
-  for (int i=0; i<(int)e->song.sample.size(); i++) {
+  if (sampleListDir || (settings.unifiedDataView && insListDir)) {
     ImGui::TableNextRow();
     ImGui::TableNextColumn();
-    sampleListItem(i,-1,-1);
+    int dirIndex=0;
+    int dirToDelete=-1;
+    for (DivAssetDir& i: e->song.sampleDir) {
+      String nodeName=fmt::sprintf("%s %s##_ADS%d",i.name.empty()?ICON_FA_FOLDER_O:ICON_FA_FOLDER,i.name.empty()?"<uncategorized>":i.name,i.name.empty()?-1:dirIndex);
+      String popupID=fmt::sprintf("DirRightMenu%d",dirIndex);
+      bool treeNode=ImGui::TreeNodeEx(nodeName.c_str(),ImGuiTreeNodeFlags_SpanAvailWidth|(i.name.empty()?ImGuiTreeNodeFlags_DefaultOpen:0));
+      DRAG_SOURCE(dirIndex,-1);
+      DRAG_TARGET(dirIndex,-1,e->song.sampleDir);
+      if (ImGui::BeginPopupContextItem(popupID.c_str())) {
+        if (ImGui::MenuItem("rename...")) {
+          editStr(&i.name);
+        }
+        if (ImGui::MenuItem("delete")) {
+          dirToDelete=dirIndex;
+        }
+        ImGui::EndPopup();
+      }
+      if (treeNode) {
+        int assetIndex=0;
+        for (int j: i.entries) {
+          sampleListItem(j,dirIndex,assetIndex);
+          assetIndex++;
+        }
+        ImGui::TreePop();
+      }
+      dirIndex++;
+    }
+    if (dirToDelete!=-1) {
+      e->lockEngine([this,dirToDelete]() {
+        e->song.sampleDir.erase(e->song.sampleDir.begin()+dirToDelete);
+        e->checkAssetDir(e->song.sampleDir,e->song.sample.size());
+      });
+    }
+  } else {
+    for (int i=0; i<(int)e->song.sample.size(); i++) {
+      ImGui::TableNextRow();
+      ImGui::TableNextColumn();
+      sampleListItem(i,-1,-1);
+    }
   }
 }
