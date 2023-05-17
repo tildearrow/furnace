@@ -468,6 +468,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
       ImGui::SetTooltip("Add");
     }
     if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+      makeInsTypeList=e->getPossibleInsTypes();
       displayInsTypeList=true;
       displayInsTypeListMakeInsSample=-1;
     }
@@ -514,12 +515,39 @@ void FurnaceGUI::drawInsList(bool asChild) {
       ImGui::SetTooltip("Open");
     }
     if (ImGui::BeginPopupContextItem("InsOpenOpt")) {
-      if (ImGui::MenuItem("replace...")) {
-        doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
-      }
-      ImGui::Separator();
-      if (ImGui::MenuItem("load from TX81Z")) {
-        doAction(GUI_ACTION_TX81Z_REQUEST);
+      if (settings.unifiedDataView) {
+        if (ImGui::MenuItem("replace instrument...")) {
+          doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
+        }
+        if (ImGui::MenuItem("load instrument from TX81Z")) {
+          doAction(GUI_ACTION_TX81Z_REQUEST);
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("replace wavetable...")) {
+          doAction((curWave>=0 && curWave<(int)e->song.wave.size())?GUI_ACTION_WAVE_LIST_OPEN_REPLACE:GUI_ACTION_WAVE_LIST_OPEN);
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("replace sample...")) {
+          doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE:GUI_ACTION_SAMPLE_LIST_OPEN);
+        }
+        if (ImGui::MenuItem("import raw sample...")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
+        }
+        if (ImGui::MenuItem("import raw sample (replace)...")) {
+          doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW:GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
+        }
+      } else {
+        if (ImGui::MenuItem("replace...")) {
+          doAction((curIns>=0 && curIns<(int)e->song.ins.size())?GUI_ACTION_INS_LIST_OPEN_REPLACE:GUI_ACTION_INS_LIST_OPEN);
+        }
+        ImGui::Separator();
+        if (ImGui::MenuItem("load from TX81Z")) {
+          doAction(GUI_ACTION_TX81Z_REQUEST);
+        }
       }
       ImGui::EndPopup();
     }
@@ -548,8 +576,29 @@ void FurnaceGUI::drawInsList(bool asChild) {
       ImGui::SetTooltip("Save");
     }
     if (ImGui::BeginPopupContextItem("InsSaveFormats",ImGuiMouseButton_Right)) {
-      if (ImGui::MenuItem("save as .dmp...")) {
-        doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
+      if (settings.unifiedDataView) {
+        if (ImGui::MenuItem("save instrument as .dmp...")) {
+          doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("save wavetable as .dmw...")) {
+          doAction(GUI_ACTION_WAVE_LIST_SAVE_DMW);
+        }
+        if (ImGui::MenuItem("save raw wavetable...")) {
+          doAction(GUI_ACTION_WAVE_LIST_SAVE_RAW);
+        }
+
+        ImGui::Separator();
+
+        if (ImGui::MenuItem("save raw sample...")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
+        }
+      } else {
+        if (ImGui::MenuItem("save as .dmp...")) {
+          doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
+        }
       }
       ImGui::EndPopup();
     }
