@@ -1663,6 +1663,9 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
   memset(magic,0,5);
   SafeReader reader=SafeReader(file,len);
   warnings="";
+  assetDirPtr[0]=0;
+  assetDirPtr[1]=0;
+  assetDirPtr[2]=0;
   try {
     DivSong ds;
     DivSubSong* subSong=ds.subsong[0];
