@@ -1968,8 +1968,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
   //ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_NavEnableKeyboard;
 }
 
-#define FURNACE_ZLIB_COMPRESS
-
 int FurnaceGUI::save(String path, int dmfVersion) {
   SafeWriter* w;
   logD("saving file...");
@@ -1992,35 +1990,56 @@ int FurnaceGUI::save(String path, int dmfVersion) {
     w->finish();
     return 1;
   }
-#ifdef FURNACE_ZLIB_COMPRESS
-  unsigned char zbuf[131072];
-  int ret;
-  z_stream zl;
-  memset(&zl,0,sizeof(z_stream));
-  ret=deflateInit(&zl,Z_DEFAULT_COMPRESSION);
-  if (ret!=Z_OK) {
-    logE("zlib error!");
-    lastError="compression error";
-    fclose(outFile);
-    w->finish();
-    return 2;
-  }
-  zl.avail_in=w->size();
-  zl.next_in=w->getFinalBuf();
-  while (zl.avail_in>0) {
+  if (settings.compress) {
+    unsigned char zbuf[131072];
+    int ret;
+    z_stream zl;
+    memset(&zl,0,sizeof(z_stream));
+    ret=deflateInit(&zl,Z_DEFAULT_COMPRESSION);
+    if (ret!=Z_OK) {
+      logE("zlib error!");
+      lastError="compression error";
+      fclose(outFile);
+      w->finish();
+      return 2;
+    }
+    zl.avail_in=w->size();
+    zl.next_in=w->getFinalBuf();
+    while (zl.avail_in>0) {
+      zl.avail_out=131072;
+      zl.next_out=zbuf;
+      if ((ret=deflate(&zl,Z_NO_FLUSH))==Z_STREAM_ERROR) {
+        logE("zlib stream error!");
+        lastError="zlib stream error";
+        deflateEnd(&zl);
+        fclose(outFile);
+        w->finish();
+        return 2;
+      }
+      size_t amount=131072-zl.avail_out;
+      if (amount>0) {
+        if (fwrite(zbuf,1,amount,outFile)!=amount) {
+          logE("did not write entirely: %s!",strerror(errno));
+          lastError=strerror(errno);
+          deflateEnd(&zl);
+          fclose(outFile);
+          w->finish();
+          return 1;
+        }
+      }
+    }
     zl.avail_out=131072;
     zl.next_out=zbuf;
-    if ((ret=deflate(&zl,Z_NO_FLUSH))==Z_STREAM_ERROR) {
-      logE("zlib stream error!");
-      lastError="zlib stream error";
+    if ((ret=deflate(&zl,Z_FINISH))==Z_STREAM_ERROR) {
+      logE("zlib finish stream error!");
+      lastError="zlib finish stream error";
       deflateEnd(&zl);
       fclose(outFile);
       w->finish();
       return 2;
     }
-    size_t amount=131072-zl.avail_out;
-    if (amount>0) {
-      if (fwrite(zbuf,1,amount,outFile)!=amount) {
+    if (131072-zl.avail_out>0) {
+      if (fwrite(zbuf,1,131072-zl.avail_out,outFile)!=(131072-zl.avail_out)) {
         logE("did not write entirely: %s!",strerror(errno));
         lastError=strerror(errno);
         deflateEnd(&zl);
@@ -2029,37 +2048,16 @@ int FurnaceGUI::save(String path, int dmfVersion) {
         return 1;
       }
     }
-  }
-  zl.avail_out=131072;
-  zl.next_out=zbuf;
-  if ((ret=deflate(&zl,Z_FINISH))==Z_STREAM_ERROR) {
-    logE("zlib finish stream error!");
-    lastError="zlib finish stream error";
     deflateEnd(&zl);
-    fclose(outFile);
-    w->finish();
-    return 2;
-  }
-  if (131072-zl.avail_out>0) {
-    if (fwrite(zbuf,1,131072-zl.avail_out,outFile)!=(131072-zl.avail_out)) {
+  } else {
+    if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
       logE("did not write entirely: %s!",strerror(errno));
       lastError=strerror(errno);
-      deflateEnd(&zl);
       fclose(outFile);
       w->finish();
       return 1;
     }
   }
-  deflateEnd(&zl);
-#else
-  if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
-    logE("did not write entirely: %s!",strerror(errno));
-    lastError=strerror(errno);
-    fclose(outFile);
-    w->finish();
-    return 1;
-  }
-#endif
   fclose(outFile);
   w->finish();
   backupLock.lock();
