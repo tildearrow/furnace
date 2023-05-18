@@ -1278,7 +1278,58 @@ size | description
      | - version>=58 size is length
 ```
 
-# pattern
+# pattern (>=157)
+
+```
+size | description
+-----|------------------------------------
+  4  | "PATN" block ID
+  4  | size of this block
+  1  | subsong
+  1  | channel
+  2  | pattern index
+ STR | pattern name (>=51)
+ ??? | pattern data
+     | read a byte per row.
+     | if bit 7 is set, then read bit 0-6 as "skip N rows".
+     | if it is 0xff, end of pattern.
+     | if bit 7 is clear, then:
+     | - bit 0: note present
+     | - bit 1: ins present
+     | - bit 2: volume present
+     | - bit 3: effect 0 present
+     | - bit 4: effect value 0 present
+     | - bit 5: other effects present
+     | - bit 6: other effect values present
+     | if bit 5 is set, read another byte:
+     | - bit 0: effect 0 present
+     | - bit 1: effect 1 present
+     | - bit 2: effect 2 present
+     | - bit 3: effect 3 present
+     | - bit 4: effect 4 present
+     | - bit 5: effect 5 present
+     | - bit 6: effect 6 present
+     | - bit 7: effect 7 present
+     | if bit 6 is set, read another byte:
+     | - bit 0: effect value 0 present
+     | - bit 1: effect value 1 present
+     | - bit 2: effect value 2 present
+     | - bit 3: effect value 3 present
+     | - bit 4: effect value 4 present
+     | - bit 5: effect value 5 present
+     | - bit 6: effect value 6 present
+     | - bit 7: effect value 7 present
+     | then read note, ins, volume, effects and effect values depending on what is present.
+     | for note:
+     | - 0 is C-(-5)
+     | - 179 is B-9
+     | - 180 is note off
+     | - 181 is note release
+     | - 182 is macro release
+```
+
+
+# old pattern (<157)
 
 ```
 size | description
@@ -1308,8 +1359,8 @@ size | description
      |     - 12: C (of next octave)
      |       - this is actually a leftover of the .dmf format.
      |     - 100: note off
-     |     - 100: note release
-     |     - 100: macro release
+     |     - 101: note release
+     |     - 102: macro release
      |   - octave
      |     - this is an signed char stored in a short.
      |     - therefore octave value 255 is actually octave -1.
