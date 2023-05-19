@@ -59,6 +59,7 @@ String zsmOutName;
 String cmdOutName;
 int loops=1;
 int benchMode=0;
+int subsong=-1;
 DivAudioExportModes outMode=DIV_EXPORT_MODE_ONE;
 
 #ifdef HAVE_GUI
@@ -237,6 +238,21 @@ TAParamResult pLoops(String val) {
   return TA_PARAM_SUCCESS;
 }
 
+TAParamResult pSubSong(String val) {
+  try {
+    int v=std::stoi(val);
+    if (v<0) {
+      logE("sub-song shall be 0 or higher.");
+      return TA_PARAM_ERROR;
+    }
+    subsong=v;
+  } catch (std::exception& e) {
+    logE("sub-song shall be a number.");
+    return TA_PARAM_ERROR;
+  }
+  return TA_PARAM_SUCCESS;
+}
+
 TAParamResult pOutMode(String val) {
   if (val=="one") {
     outMode=DIV_EXPORT_MODE_ONE;
@@ -312,6 +328,7 @@ void initParams() {
   params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
 
   params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops (-1 means loop forever)"));
+  params.push_back(TAParam("s","subsong",true,pSubSong,"<number>","set sub-song"));
   params.push_back(TAParam("o","outmode",true,pOutMode,"one|persys|perchan","set file output mode"));
 
   params.push_back(TAParam("B","benchmark",true,pBenchmark,"render|seek","run performance test"));
@@ -567,6 +584,10 @@ int main(int argc, char** argv) {
     }
     finishLogFile();
     return 0;
+  }
+
+  if (subsong!=-1) {
+    e.changeSongP(subsong);
   }
 
   if (consoleMode) {
