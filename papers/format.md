@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 157: Furnace dev157
 - 156: Furnace dev156
 - 155: Furnace dev155
 - 154: Furnace dev154
@@ -1290,42 +1291,42 @@ size | description
   2  | pattern index
  STR | pattern name (>=51)
  ??? | pattern data
-     | read a byte per row.
-     | if bit 7 is set, then read bit 0-6 as "skip N rows".
-     | if it is 0xff, end of pattern.
-     | if bit 7 is clear, then:
-     | - bit 0: note present
-     | - bit 1: ins present
-     | - bit 2: volume present
-     | - bit 3: effect 0 present
-     | - bit 4: effect value 0 present
-     | - bit 5: other effects present
-     | - bit 6: other effect values present
-     | if bit 5 is set, read another byte:
-     | - bit 0: effect 0 present
-     | - bit 1: effect 1 present
-     | - bit 2: effect 2 present
-     | - bit 3: effect 3 present
-     | - bit 4: effect 4 present
-     | - bit 5: effect 5 present
-     | - bit 6: effect 6 present
-     | - bit 7: effect 7 present
-     | if bit 6 is set, read another byte:
-     | - bit 0: effect value 0 present
-     | - bit 1: effect value 1 present
-     | - bit 2: effect value 2 present
-     | - bit 3: effect value 3 present
-     | - bit 4: effect value 4 present
-     | - bit 5: effect value 5 present
-     | - bit 6: effect value 6 present
-     | - bit 7: effect value 7 present
-     | then read note, ins, volume, effects and effect values depending on what is present.
-     | for note:
-     | - 0 is C-(-5)
-     | - 179 is B-9
-     | - 180 is note off
-     | - 181 is note release
-     | - 182 is macro release
+     | - read a byte per row.
+     | - if it is 0xff, end of pattern.
+     | - if bit 7 is set, then read bit 0-6 as "skip N+2 rows".
+     | - if bit 7 is clear, then:
+     |   - bit 0: note present
+     |   - bit 1: ins present
+     |   - bit 2: volume present
+     |   - bit 3: effect 0 present
+     |   - bit 4: effect value 0 present
+     |   - bit 5: other effects (0-3) present
+     |   - bit 6: other effects (4-7) present
+     | - if bit 5 is set, read another byte:
+     |   - bit 0: effect 0 present
+     |   - bit 1: effect value 0 present
+     |   - bit 2: effect 1 present
+     |   - bit 3: effect value 1 present
+     |   - bit 4: effect 2 present
+     |   - bit 5: effect value 2 present
+     |   - bit 6: effect 3 present
+     |   - bit 7: effect value 3 present
+     | - if bit 6 is set, read another byte:
+     |   - bit 0: effect 4 present
+     |   - bit 1: effect value 4 present
+     |   - bit 2: effect 5 present
+     |   - bit 3: effect value 5 present
+     |   - bit 4: effect 6 present
+     |   - bit 5: effect value 6 present
+     |   - bit 6: effect 7 present
+     |   - bit 7: effect value 7 present
+     | - then read note, ins, volume, effects and effect values depending on what is present.
+     | - for note:
+     |   - 0 is C-(-5)
+     |   - 179 is B-9
+     |   - 180 is note off
+     |   - 181 is note release
+     |   - 182 is macro release
 ```
 
 

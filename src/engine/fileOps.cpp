@@ -1650,6 +1650,42 @@ void DivEngine::convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivS
   }
 }
 
+short newFormatNotes[180]={
+  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, // -5
+  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, // -4
+  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, // -3
+  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, // -2
+  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, // -1
+  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  0
+  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  1
+  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  2
+  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  3
+  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  4
+  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  5
+  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  6
+  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  7
+  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, //  8
+  12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11  //  9
+};
+
+short newFormatOctaves[180]={
+  250, 251, 251, 251, 251, 251, 251, 251, 251, 251, 251, 251, // -5
+  251, 252, 252, 252, 252, 252, 252, 252, 252, 252, 252, 252, // -4
+  252, 253, 253, 253, 253, 253, 253, 253, 253, 253, 253, 253, // -3
+  253, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, 254, // -2
+  254, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, // -1
+  255,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, //  0
+    0,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1,   1, //  1
+    1,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2,   2, //  2
+    2,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3,   3, //  3
+    3,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4, //  4
+    4,   5,   5,   5,   5,   5,   5,   5,   5,   5,   5,   5, //  5
+    5,   6,   6,   6,   6,   6,   6,   6,   6,   6,   6,   6, //  6
+    6,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7,   7, //  7
+    7,   8,   8,   8,   8,   8,   8,   8,   8,   8,   8,   8, //  8
+    8,   9,   9,   9,   9,   9,   9,   9,   9,   9,   9,   9, //  9
+};
+
 bool DivEngine::loadFur(unsigned char* file, size_t len) {
   unsigned int insPtr[256];
   unsigned int wavePtr[256];
@@ -2582,6 +2618,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
 
     // read patterns
     for (int i: patPtr) {
+      bool isNewFormat=false;
       if (!reader.seek(i,SEEK_SET)) {
         logE("couldn't seek to pattern in %x!",i);
         lastError=fmt::sprintf("couldn't seek to pattern in %x!",i);
@@ -2592,62 +2629,151 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       reader.read(magic,4);
       logD("reading pattern in %x...",i);
       if (strcmp(magic,"PATR")!=0) {
-        logE("%x: invalid pattern header!",i);
-        lastError="invalid pattern header!";
-        ds.unload();
-        delete[] file;
-        return false;
+        if (strcmp(magic,"PATN")!=0 || ds.version<157) {
+          logE("%x: invalid pattern header!",i);
+          lastError="invalid pattern header!";
+          ds.unload();
+          delete[] file;
+          return false;
+        } else {
+          isNewFormat=true;
+        }
       }
       reader.readI();
 
-      int chan=reader.readS();
-      int index=reader.readS();
-      int subs=0;
-      if (ds.version>=95) {
-        subs=reader.readS();
-      } else {
-        reader.readS();
-      }
-      reader.readS();
+      if (isNewFormat) {
+        int subs=(unsigned char)reader.readC();
+        int chan=(unsigned char)reader.readC();
+        int index=reader.readS();
 
-      logD("- %d, %d, %d",subs,chan,index);
+        logD("- %d, %d, %d (new)",subs,chan,index);
 
-      if (chan<0 || chan>=tchans) {
-        logE("pattern channel out of range!",i);
-        lastError="pattern channel out of range!";
-        ds.unload();
-        delete[] file;
-        return false;
-      }
-      if (index<0 || index>(DIV_MAX_PATTERNS-1)) {
-        logE("pattern index out of range!",i);
-        lastError="pattern index out of range!";
-        ds.unload();
-        delete[] file;
-        return false;
-      }
-      if (subs<0 || subs>=(int)ds.subsong.size()) {
-        logE("pattern subsong out of range!",i);
-        lastError="pattern subsong out of range!";
-        ds.unload();
-        delete[] file;
-        return false;
-      }
-
-      DivPattern* pat=ds.subsong[subs]->pat[chan].getPattern(index,true);
-      for (int j=0; j<ds.subsong[subs]->patLen; j++) {
-        pat->data[j][0]=reader.readS();
-        pat->data[j][1]=reader.readS();
-        pat->data[j][2]=reader.readS();
-        pat->data[j][3]=reader.readS();
-        for (int k=0; k<ds.subsong[subs]->pat[chan].effectCols; k++) {
-          pat->data[j][4+(k<<1)]=reader.readS();
-          pat->data[j][5+(k<<1)]=reader.readS();
+        if (chan<0 || chan>=tchans) {
+          logE("pattern channel out of range!",i);
+          lastError="pattern channel out of range!";
+          ds.unload();
+          delete[] file;
+          return false;
         }
-      }
+        if (index<0 || index>(DIV_MAX_PATTERNS-1)) {
+          logE("pattern index out of range!",i);
+          lastError="pattern index out of range!";
+          ds.unload();
+          delete[] file;
+          return false;
+        }
+        if (subs<0 || subs>=(int)ds.subsong.size()) {
+          logE("pattern subsong out of range!",i);
+          lastError="pattern subsong out of range!";
+          ds.unload();
+          delete[] file;
+          return false;
+        }
 
-      if (ds.version>=51) {
+        DivPattern* pat=ds.subsong[subs]->pat[chan].getPattern(index,true);
         pat->name=reader.readString();
+
+        // read new pattern
+        for (int j=0; j<ds.subsong[subs]->patLen; j++) {
+          unsigned char mask=reader.readC();
+          unsigned short effectMask=0;
+
+          if (mask==0xff) break;
+          if (mask&128) {
+            j+=(mask&127)+1;
+            continue;
+          }
+
+          if (mask&32) {
+            effectMask|=(unsigned char)reader.readC();
+          }
+          if (mask&64) {
+            effectMask|=((unsigned short)reader.readC()&0xff)<<8;
+          }
+          if (mask&8) effectMask|=1;
+          if (mask&16) effectMask|=2;
+
+          if (mask&1) { // note
+            unsigned char note=reader.readC();
+            if (note==180) {
+              pat->data[j][0]=100;
+              pat->data[j][1]=0;
+            } else if (note==181) {
+              pat->data[j][0]=101;
+              pat->data[j][1]=0;
+            } else if (note==182) {
+              pat->data[j][0]=102;
+              pat->data[j][1]=0;
+            } else if (note<180) {
+              pat->data[j][0]=newFormatNotes[note];
+              pat->data[j][1]=newFormatOctaves[note];
+            } else {
+              pat->data[j][0]=0;
+              pat->data[j][1]=0;
+            }
+          }
+          if (mask&2) { // instrument
+            pat->data[j][2]=(unsigned char)reader.readC();
+          }
+          if (mask&4) { // volume
+            pat->data[j][3]=(unsigned char)reader.readC();
+          }
+          for (unsigned char k=0; k<16; k++) {
+            if (effectMask&(1<<k)) {
+              pat->data[j][4+k]=(unsigned char)reader.readC();
+            }
+          }
+        }
+      } else {
+        int chan=reader.readS();
+        int index=reader.readS();
+        int subs=0;
+        if (ds.version>=95) {
+          subs=reader.readS();
+        } else {
+          reader.readS();
+        }
+        reader.readS();
+
+        logD("- %d, %d, %d (old)",subs,chan,index);
+
+        if (chan<0 || chan>=tchans) {
+          logE("pattern channel out of range!",i);
+          lastError="pattern channel out of range!";
+          ds.unload();
+          delete[] file;
+          return false;
+        }
+        if (index<0 || index>(DIV_MAX_PATTERNS-1)) {
+          logE("pattern index out of range!",i);
+          lastError="pattern index out of range!";
+          ds.unload();
+          delete[] file;
+          return false;
+        }
+        if (subs<0 || subs>=(int)ds.subsong.size()) {
+          logE("pattern subsong out of range!",i);
+          lastError="pattern subsong out of range!";
+          ds.unload();
+          delete[] file;
+          return false;
+        }
+
+        DivPattern* pat=ds.subsong[subs]->pat[chan].getPattern(index,true);
+        for (int j=0; j<ds.subsong[subs]->patLen; j++) {
+          pat->data[j][0]=reader.readS();
+          pat->data[j][1]=reader.readS();
+          pat->data[j][2]=reader.readS();
+          pat->data[j][3]=reader.readS();
+          for (int k=0; k<ds.subsong[subs]->pat[chan].effectCols; k++) {
+            pat->data[j][4+(k<<1)]=reader.readS();
+            pat->data[j][5+(k<<1)]=reader.readS();
+          }
+        }
+
+        if (ds.version>=51) {
+          pat->name=reader.readString();
+        }
       }
     }
 
@@ -4951,6 +5077,8 @@ DivDataErrors DivEngine::readAssetDirData(SafeReader& reader, std::vector<DivAss
   return DIV_DATA_SUCCESS;
 }
 
+#define NEW_PATTERN_FORMAT
+
 SafeWriter* DivEngine::saveFur(bool notPrimary) {
   saveLock.lock();
   std::vector<int> subSongPtr;
@@ -5385,6 +5513,107 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
   for (PatToWrite& i: patsToWrite) {
     DivPattern* pat=song.subsong[i.subsong]->pat[i.chan].getPattern(i.pat,false);
     patPtr.push_back(w->tell());
+
+#ifdef NEW_PATTERN_FORMAT
+    w->write("PATN",4);
+    blockStartSeek=w->tell();
+    w->writeI(0);
+
+    w->writeC(i.subsong);
+    w->writeC(i.chan);
+    w->writeS(i.pat);
+    w->writeString(pat->name,false);
+
+    unsigned char emptyRows=0;
+
+    for (int j=0; j<song.subsong[i.subsong]->patLen; j++) {
+      unsigned char mask=0;
+      unsigned char finalNote=255;
+      unsigned short effectMask=0;
+
+      if (pat->data[j][0]==100) {
+        finalNote=180;
+      } else if (pat->data[j][0]==101) { // note release
+        finalNote=181;
+      } else if (pat->data[j][0]==102) { // macro release
+        finalNote=182;
+      } else if (pat->data[j][1]==0 && pat->data[j][0]==0) {
+        finalNote=255;
+      } else {
+        int seek=(pat->data[j][0]+(signed char)pat->data[j][1]*12)+60;
+        if (seek<0 || seek>=180) {
+          finalNote=255;
+        } else {
+          finalNote=seek;
+        }
+      }
+
+      if (finalNote!=255) mask|=1; // note
+      if (pat->data[j][2]!=-1) mask|=2; // instrument
+      if (pat->data[j][3]!=-1) mask|=4; // volume
+      for (int k=0; k<song.subsong[i.subsong]->pat[i.chan].effectCols*2; k+=2) {
+        if (k==0) {
+          if (pat->data[j][4+k]!=-1) mask|=8;
+          if (pat->data[j][5+k]!=-1) mask|=16;
+        } else if (k<8) {
+          if (pat->data[j][4+k]!=-1 || pat->data[j][5+k]!=-1) mask|=32;
+        } else {
+          if (pat->data[j][4+k]!=-1 || pat->data[j][5+k]!=-1) mask|=64;
+        }
+
+        if (pat->data[j][4+k]!=-1) effectMask|=(1<<k);
+        if (pat->data[j][5+k]!=-1) effectMask|=(2<<k);
+      }
+
+      if (mask==0) {
+        emptyRows++;
+        if (emptyRows>127) {
+          w->writeC(128|(emptyRows-2));
+          emptyRows=0;
+        }
+      } else {
+        if (emptyRows>1) {
+          w->writeC(128|(emptyRows-2));
+          emptyRows=0;
+        } else if (emptyRows) {
+          w->writeC(0);
+          emptyRows=0;
+        }
+
+        w->writeC(mask);
+
+        if (mask&32) w->writeC(effectMask&0xff);
+        if (mask&64) w->writeC((effectMask>>8)&0xff);
+
+        if (mask&1) w->writeC(finalNote);
+        if (mask&2) w->writeC(pat->data[j][2]);
+        if (mask&4) w->writeC(pat->data[j][3]);
+        if (mask&8) w->writeC(pat->data[j][4]);
+        if (mask&16) w->writeC(pat->data[j][5]);
+        if (mask&32) {
+          if (effectMask&4) w->writeC(pat->data[j][6]);
+          if (effectMask&8) w->writeC(pat->data[j][7]);
+          if (effectMask&16) w->writeC(pat->data[j][8]);
+          if (effectMask&32) w->writeC(pat->data[j][9]);
+          if (effectMask&64) w->writeC(pat->data[j][10]);
+          if (effectMask&128) w->writeC(pat->data[j][11]);
+        }
+        if (mask&64) {
+          if (effectMask&256) w->writeC(pat->data[j][12]);
+          if (effectMask&512) w->writeC(pat->data[j][13]);
+          if (effectMask&1024) w->writeC(pat->data[j][14]);
+          if (effectMask&2048) w->writeC(pat->data[j][15]);
+          if (effectMask&4096) w->writeC(pat->data[j][16]);
+          if (effectMask&8192) w->writeC(pat->data[j][17]);
+          if (effectMask&16384) w->writeC(pat->data[j][18]);
+          if (effectMask&32768) w->writeC(pat->data[j][19]);
+        }
+      }
+    }
+
+    // stop
+    w->writeC(0xff);
+#else
     w->write("PATR",4);
     blockStartSeek=w->tell();
     w->writeI(0);
@@ -5410,6 +5639,7 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     }
 
     w->writeString(pat->name,false);
+#endif
 
     blockEndSeek=w->tell();
     w->seek(blockStartSeek,SEEK_SET);
