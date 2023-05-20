@@ -64,4 +64,4 @@ In there, you can modify certain data pertaining to your sample, such as the:
  - what frequencies to filter, along with filter level/sweep and resonance options (much like the C64)
  - and many more.
 
-The changes you make will be applied as soon as you've committed them to your sample, but they can be undoed and redoed, just like text.
+The changes you make will be applied as soon as you've committed them to your sample, but they can be undone and redoed, just like text.
