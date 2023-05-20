@@ -1693,7 +1693,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
   unsigned int subSongPtr[256];
   unsigned int sysFlagsPtr[DIV_MAX_CHIPS];
   unsigned int assetDirPtr[3];
-  std::vector<int> patPtr;
+  std::vector<unsigned int> patPtr;
   int numberOfSubSongs=0;
   char magic[5];
   memset(magic,0,5);
@@ -2617,7 +2617,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
 
     // read patterns
-    for (int i: patPtr) {
+    for (unsigned int i: patPtr) {
       bool isNewFormat=false;
       if (!reader.seek(i,SEEK_SET)) {
         logE("couldn't seek to pattern in %x!",i);
