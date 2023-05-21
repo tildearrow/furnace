@@ -4138,6 +4138,10 @@ void DivEngine::autoPatchbayP() {
   BUSY_END;
 }
 
+void DivEngine::recalcPatchbay() {
+
+}
+
 bool DivEngine::patchConnect(unsigned int src, unsigned int dest) {
   unsigned int armed=(src<<16)|(dest&0xffff);
   for (unsigned int i: song.patchbay) {
