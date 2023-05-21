@@ -307,7 +307,7 @@ jobs:
         pushd furnace.AppDir
         cp -v usr/share/{icons/hicolor/1024x1024/apps/furnace.png,applications/furnace.desktop} ./
         ln -s furnace.png .DirIcon
-        mv -v usr/share/metainfo/org.tildearrow.furnace.metainfo.xml
+        mv -v usr/share/metainfo/{furnace.appdata,org.tildearrow.furnace.metainfo}.xml
         cp -v ../../res/AppRun ./
         popd
 
