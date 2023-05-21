@@ -450,7 +450,7 @@ size | description
 # patchbay
 
 Furnace dev135 adds a "patchbay" which allows for arbitrary connection of chip outputs to system outputs.
-it eventually will allow connecting outputs to effects and so on.
+it also allows connecting outputs to effects and so on.
 
 a connection is represented as an unsigned int in the following format:
 
@@ -565,11 +565,11 @@ size | description
      | - must be between 32 and 4092.
      | - the other slots are reserved for chip/system portsets.
   2  | effect ID
-     | - 0x00: dummy
-     | - 0x01: external (plugin bridge)
+     | - 0x01: dummy
+     | - 0x02: external (plugin bridge)
      |   - not implemented yet
-     | - 0x02: volume
-     | - 0x03: filter (circuit)
+     | - 0x03: volume
+     | - 0x04: filter (circuit)
   4f | dry/wet balance
   2  | reserved
   2  | storage version

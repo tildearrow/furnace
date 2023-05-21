@@ -556,6 +556,9 @@ src/engine/platform/dummy.cpp
 
 src/engine/export/abstract.cpp
 src/engine/export/amigaValidation.cpp
+
+src/engine/effect/abstract.cpp
+src/engine/effect/dummy.cpp
 )
 
 if (USE_SNDFILE)

@@ -23,6 +23,7 @@
 #include "instrument.h"
 #include "song.h"
 #include "dispatch.h"
+#include "effect.h"
 #include "export.h"
 #include "dataErrors.h"
 #include "safeWriter.h"
@@ -222,6 +223,25 @@ struct DivDispatchContainer {
   }
 };
 
+struct DivEffectContainer {
+  DivEffect* effect;
+  float* in[DIV_MAX_OUTPUTS];
+  float* out[DIV_MAX_OUTPUTS];
+  size_t inLen, outLen;
+
+  void preAcquire(size_t count);
+  void acquire(size_t count);
+  bool init(DivEffectType effectType, DivEngine* eng, double rate, unsigned short version, const unsigned char* data, size_t len);
+  void quit();
+  DivEffectContainer():
+    effect(NULL),
+    inLen(0),
+    outLen(0) {
+    memset(in,0,DIV_MAX_OUTPUTS*sizeof(float*));
+    memset(out,0,DIV_MAX_OUTPUTS*sizeof(float*));
+  }
+};
+
 typedef int EffectValConversion(unsigned char,unsigned char);
 
 struct EffectHandler {
@@ -411,6 +431,7 @@ class DivEngine {
   std::vector<String> midiOuts;
   std::vector<DivCommand> cmdStream;
   std::vector<DivInstrumentType> possibleInsTypes;
+  std::vector<DivEffectContainer> effectInst;
   static DivSysDef* sysDefs[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapFur[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapDMF[DIV_MAX_CHIP_DEFS];
@@ -441,6 +462,7 @@ class DivEngine {
   short tremTable[128];
   int reversePitchTable[4096];
   int pitchTable[4096];
+  short effectSlotMap[4096];
   char c163NameCS[1024];
   int midiBaseChan;
   bool midiPoly;
@@ -513,6 +535,9 @@ class DivEngine {
   void exchangeIns(int one, int two);
   void swapChannels(int src, int dest);
   void stompChannel(int ch);
+
+  // recalculate patchbay (UNSAFE)
+  void recalcPatchbay();
 
   // change song (UNSAFE)
   void changeSong(size_t songIndex);
@@ -1049,6 +1074,12 @@ class DivEngine {
     // move system
     bool swapSystem(int src, int dest, bool preserveOrder=true);
 
+    // add effect
+    bool addEffect(DivEffectType which);
+
+    // remove effect
+    bool removeEffect(int index);
+
     // write to register on system
     void poke(int sys, unsigned int addr, unsigned short val);
 
@@ -1231,6 +1262,7 @@ class DivEngine {
       memset(tremTable,0,128*sizeof(short));
       memset(reversePitchTable,0,4096*sizeof(int));
       memset(pitchTable,0,4096*sizeof(int));
+      memset(effectSlotMap,-1,4096*sizeof(short));
       memset(sysDefs,0,DIV_MAX_CHIP_DEFS*sizeof(void*));
       memset(walked,0,8192);
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));
