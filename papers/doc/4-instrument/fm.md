@@ -8,7 +8,7 @@ FM editor is divided into 7 tabs:
 - [Macros (OP2)] - for macros controlling FM paramets of operator 2
 - [Macros (OP3)] - for macros controlling FM paramets of operator 3
 - [Macros (OP4)] - for macros controlling FM paramets of operator 4
-- [Macros] - for miscellanous macros controlling volume, argeggio and YM2151 noise generator.
+- [Macros] - for miscellaneous macros controlling volume, argeggio and YM2151 noise generator.
 
 ## FM
 
@@ -21,7 +21,7 @@ FM synthesizers Furnace supports are for-operator, meaning it takes four oscilla
 - [Sustain Level(SL)] - Determines the point at which the sound ceases to decay and changes to a sound having a constant level. The sustain level is expressed as a fraction of the maximum level. (0-15 range)
 - [Total Level (TL)] - Represents the envelope’s highest amplitude, with 0 being the largest and 127 (decimal) the smallest. A change of one unit is about 0.75 dB.
 - [Envelope Scale (KSR)] - A parameter that determines the degree to which the envelope execution speed increases according to the pitch. (0-3 range)
-- [Frequency Multiplier (MULT)] - Determines the operator frequncy in relation to the pitch. (0-15 range)
+- [Frequency Multiplier (MULT)] - Determines the operator frequency in relation to the pitch. (0-15 range)
 - [Fine Detune (DT)] - Shifts the pitch a little (0-7 range)
 - [Coarse Detune (DT2)] - Shifts the pitch by tens of cents (0-3 range) WARNING: this parameter affects only YM2151 sound source!!!
 - [Hardware Envelope Generator (SSG-EG)] - Executes the built-in envelope, inherited from AY-3-8910 PSG. Speed of execution is controlled via Decay Rate. WARNING: this parameter affects only YM2610/YM2612 sound source!!!
@@ -33,14 +33,14 @@ FM synthesizers Furnace supports are for-operator, meaning it takes four oscilla
 
 ## Macros
 
-Macros define the squence of values passed to the given parameter. Via macro, aside previously mentioned parameters, the following can be controlled:
+Macros define the sequence of values passed to the given parameter. Via macro, aside previously mentioned parameters, the following can be controlled:
 
 - LFO Frequency
 - LFO waveform selection WARNING: this parameter affects only YM2151 sound source!!!
 - Amplitude Modulation Depth WARNING: this parameter affects only YM2151 sound source!!!
 - Frequency Modulation Depth WARNING: this parameter affects only YM2151 sound source!!!
 - Arpeggio Macro: pitch change sequence in semitones. Two modes are available:  
-Absolute (defult) - Executes the pitch with absolute change based on the pitch of the actual note.
+Absolute (default) - Executes the pitch with absolute change based on the pitch of the actual note.
 Fixed - Executes at the pitch specified in the sequence regardless of the note pitch.
 - Noise Frequency: specifies the noise frequency in noise mode of YM2151's Channel 8 Operator 4 special mode.
 
