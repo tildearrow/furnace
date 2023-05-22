@@ -550,6 +550,8 @@ class DivEngine {
   void swapChannels(int src, int dest);
   void stompChannel(int ch);
 
+  void patchWalkOver(bool* touched, bool* present, std::vector<unsigned int>& newPatchbay, unsigned short dest);
+
   // recalculate patchbay (UNSAFE)
   void recalcPatchbay();
 

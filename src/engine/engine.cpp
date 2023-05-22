@@ -4173,8 +4173,49 @@ void DivEngine::autoPatchbayP() {
   BUSY_END;
 }
 
-void DivEngine::recalcPatchbay() {
+void DivEngine::patchWalkOver(bool* touched, bool* present, std::vector<unsigned int>& newPatchbay, unsigned short dest) {
+  touched[dest]=true;
+  int index=0;
+  for (unsigned int i: song.patchbay) {
+    const unsigned short next=((i>>4)&0xfff);
+    const unsigned short nextSrc=((i>>20)&0xfff);
+    if (next==dest) {
+      if (nextSrc>=0x20 && !touched[nextSrc]) {
+        patchWalkOver(touched,present,newPatchbay,nextSrc);
+      }
+      present[index]=true;
+      newPatchbay.push_back(i);
+    }
+    index++;
+  }
+}
 
+void DivEngine::recalcPatchbay() {
+  if (song.patchbay.empty()) return;
+
+  // sort patchbay in process order
+  std::vector<unsigned int> newPatchbay;
+  bool touched[4096];
+  memset(touched,0,4096*sizeof(bool));
+
+  bool* present=new bool[song.patchbay.size()];
+  memset(present,0,song.patchbay.size()*sizeof(bool));
+
+  patchWalkOver(touched,present,newPatchbay,0);
+
+  logD("walkOver RESULTS:");
+
+  for (unsigned int i: newPatchbay) {
+    logV("%.4x -> %.4x",i>>16,i&0xffff);
+  }
+
+  for (size_t i=0; i<song.patchbay.size(); i++) {
+    if (!present[i]) newPatchbay.push_back(song.patchbay[i]);
+  }
+
+  song.patchbay=newPatchbay;
+
+  delete[] present;
 }
 
 bool DivEngine::patchConnect(unsigned int src, unsigned int dest) {
@@ -4186,6 +4227,7 @@ bool DivEngine::patchConnect(unsigned int src, unsigned int dest) {
   saveLock.lock();
   song.patchbay.push_back(armed);
   song.patchbayAuto=false;
+  recalcPatchbay();
   saveLock.unlock();
   BUSY_END;
   return true;
@@ -4199,6 +4241,7 @@ bool DivEngine::patchDisconnect(unsigned int src, unsigned int dest) {
       saveLock.lock();
       song.patchbay.erase(i);
       song.patchbayAuto=false;
+      recalcPatchbay();
       saveLock.unlock();
       BUSY_END;
       return true;
@@ -4211,7 +4254,15 @@ void DivEngine::patchDisconnectAll(unsigned int portSet) {
   BUSY_BEGIN;
   saveLock.lock();
 
-  if (portSet&0x1000) {
+  if ((portSet&0xfff)>=0x20 && (portSet&0xfff)<0xffd) {
+    portSet&=0xfff;
+    for (size_t i=0; i<song.patchbay.size(); i++) {
+      if ((song.patchbay[i]&0xfff0)==(portSet<<4) || (song.patchbay[i]&0xfff00000)==(portSet<<20)) {
+        song.patchbay.erase(song.patchbay.begin()+i);
+        i--;
+      }
+    }
+  } else if (portSet&0x1000) {
     portSet&=0xfff;
 
     for (size_t i=0; i<song.patchbay.size(); i++) {
@@ -4230,6 +4281,8 @@ void DivEngine::patchDisconnectAll(unsigned int portSet) {
       }
     }
   }
+
+  recalcPatchbay();
 
   saveLock.unlock();
   BUSY_END;
