@@ -473,6 +473,8 @@ src/engine/cmdStream.cpp
 src/engine/config.cpp
 src/engine/configEngine.cpp
 src/engine/dispatchContainer.cpp
+src/engine/effectContainer.cpp
+src/engine/effectDef.cpp
 src/engine/engine.cpp
 src/engine/export.cpp
 src/engine/fileOps.cpp

@@ -1049,6 +1049,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     ds.systemName=getSongSystemLegacyName(ds,!getConfInt("noMultiSystem",0));
 
     if (active) quitDispatch();
+    quitEffects();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
     song.unload();
@@ -1057,6 +1058,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     recalcChans();
     saveLock.unlock();
     BUSY_END;
+    initEffects();
     if (active) {
       initDispatch();
       BUSY_BEGIN;
@@ -2931,6 +2933,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     }
 
     if (active) quitDispatch();
+    quitEffects();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
     song.unload();
@@ -2939,6 +2942,7 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     recalcChans();
     saveLock.unlock();
     BUSY_END;
+    initEffects();
     if (active) {
       initDispatch();
       BUSY_BEGIN;
@@ -3354,6 +3358,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     ds.insLen=ds.ins.size();
     
     if (active) quitDispatch();
+    quitEffects();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
     song.unload();
@@ -3362,6 +3367,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
     recalcChans();
     saveLock.unlock();
     BUSY_END;
+    initEffects();
     if (active) {
       initDispatch();
       BUSY_BEGIN;
@@ -3683,6 +3689,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     }
 
     if (active) quitDispatch();
+    quitEffects();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
     song.unload();
@@ -3691,6 +3698,7 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
     recalcChans();
     saveLock.unlock();
     BUSY_END;
+    initEffects();
     if (active) {
       initDispatch();
       BUSY_BEGIN;
@@ -4275,6 +4283,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     ds.subsong[0]->rearrangePatterns();
 
     if (active) quitDispatch();
+    quitEffects();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
     song.unload();
@@ -4283,6 +4292,7 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     recalcChans();
     saveLock.unlock();
     BUSY_END;
+    initEffects();
     if (active) {
       initDispatch();
       BUSY_BEGIN;
@@ -4865,6 +4875,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
     ds.version=DIV_VERSION_FTM;
 
     if (active) quitDispatch();
+    quitEffects();
     BUSY_BEGIN_SOFT;
     saveLock.lock();
     song.unload();
@@ -4873,6 +4884,7 @@ bool DivEngine::loadFTM(unsigned char* file, size_t len) {
     recalcChans();
     saveLock.unlock();
     BUSY_END;
+    initEffects();
     if (active) {
       initDispatch();
       BUSY_BEGIN;

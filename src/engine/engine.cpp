@@ -1451,6 +1451,7 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
 
 void DivEngine::createNew(const char* description, String sysName, bool inBase64) {
   quitDispatch();
+  quitEffects();
   BUSY_BEGIN;
   saveLock.lock();
   song.unload();
@@ -1467,6 +1468,7 @@ void DivEngine::createNew(const char* description, String sysName, bool inBase64
   recalcChans();
   saveLock.unlock();
   BUSY_END;
+  initEffects();
   initDispatch();
   BUSY_BEGIN;
   renderSamples();
@@ -1476,6 +1478,7 @@ void DivEngine::createNew(const char* description, String sysName, bool inBase64
 
 void DivEngine::createNewFromDefaults() {
   quitDispatch();
+  quitEffects();
   BUSY_BEGIN;
   saveLock.lock();
   song.unload();
@@ -1504,6 +1507,7 @@ void DivEngine::createNewFromDefaults() {
   recalcChans();
   saveLock.unlock();
   BUSY_END;
+  initEffects();
   initDispatch();
   BUSY_BEGIN;
   renderSamples();
@@ -2031,6 +2035,37 @@ bool DivEngine::swapSystem(int src, int dest, bool preserveOrder) {
   reset();
   BUSY_END;
   return true;
+}
+
+int DivEngine::findFreePortSet() {
+  bool used[4096];
+  memset(used,0,4096*sizeof(bool));
+  for (DivEffectStorage& i: song.effects) {
+    used[i.slot&4095]=true;
+  }
+  for (int i=32; i<=4092; i++) {
+    if (!used[i]) return i;
+  }
+  return -1;
+}
+
+bool DivEngine::addEffect(DivEffectType which) {
+  if (song.effects.size()>4060) return false;
+  int freeSlot=findFreePortSet();
+  if (freeSlot<0) return false;
+  saveLock.lock();
+  DivEffectStorage es;
+  es.id=which;
+  es.slot=freeSlot;
+  song.effects.push_back(es);
+
+  initEffects();
+  saveLock.unlock();
+  return true;
+}
+
+bool DivEngine::removeEffect(int index) {
+  return false;
 }
 
 void DivEngine::poke(int sys, unsigned int addr, unsigned short val) {
@@ -4504,6 +4539,28 @@ void DivEngine::rescanAudioDevices() {
   }
 }
 
+void DivEngine::initEffects() {
+  BUSY_BEGIN;
+  for (size_t i=effectInst.size(); i<song.effects.size(); i++) {
+    DivEffectContainer ec;
+    DivEffectStorage& es=song.effects[i];
+
+    ec.init(es.id,this,got.rate,es.storageVer,es.storage,es.storageLen);
+
+    effectInst.push_back(ec);
+  }
+  BUSY_END;
+}
+
+void DivEngine::quitEffects() {
+  BUSY_BEGIN;
+  for (DivEffectContainer& i: effectInst) {
+    i.quit();
+  }
+  effectInst.clear();
+  BUSY_END;
+}
+
 void DivEngine::initDispatch() {
   BUSY_BEGIN;
   for (int i=0; i<song.systemLen; i++) {
@@ -4712,6 +4769,7 @@ bool DivEngine::deinitAudioBackend(bool dueToSwitchMaster) {
 void DivEngine::preInit() {
   // register systems
   if (!systemsRegistered) registerSystems();
+  if (!effectsRegistered) registerEffects();
 
   // init config
   initConfDir();
@@ -4792,6 +4850,7 @@ bool DivEngine::init() {
     keyHit[i]=false;
   }
 
+  initEffects();
   initDispatch();
   renderSamples();
   reset();
@@ -4815,6 +4874,7 @@ bool DivEngine::init() {
 bool DivEngine::quit() {
   deinitAudioBackend();
   quitDispatch();
+  quitEffects();
   logI("saving config.");
   saveConf();
   active=false;

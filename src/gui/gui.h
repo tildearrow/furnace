@@ -1978,7 +1978,7 @@ class FurnaceGUI {
 
   // mixer stuff
   ImVec2 calcPortSetSize(String label, int ins, int outs);
-  bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos);
+  bool portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos, bool& portIsOut);
 
   void updateWindowTitle();
   void autoDetectSystem();

@@ -39,6 +39,7 @@ void DivEffectContainer::preAcquire(size_t count) {
     if (in[i]==NULL) {
       in[i]=new float[count];
     }
+    memset(in[i],0,sizeof(float)*count);
   }
 }
 

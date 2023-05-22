@@ -135,7 +135,9 @@ enum DivEffectType: unsigned short {
   DIV_EFFECT_DUMMY,
   DIV_EFFECT_EXTERNAL,
   DIV_EFFECT_VOLUME,
-  DIV_EFFECT_FILTER
+  DIV_EFFECT_FILTER,
+
+  DIV_EFFECT_MAX
 };
 
 struct DivGroovePattern {

@@ -23,6 +23,7 @@
 #include <imgui.h>
 #include "../ta-log.h"
 #include "imgui_internal.h"
+#include "IconsFontAwesome4.h"
 
 const char* portNamesStereo[2]={
   "left",
@@ -46,7 +47,8 @@ ImVec2 FurnaceGUI::calcPortSetSize(String label, int ins, int outs) {
   return size;
 }
 
-bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos) {
+bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs, int activeIns, int activeOuts, int& clickedPort, std::map<unsigned int,ImVec2>& portPos, bool& portIsOut) {
+  bool middle=(ins>0 || outs>0);
   String portID=fmt::sprintf("portSet%.4x",portSetID);
 
   ImDrawList* dl=ImGui::GetWindowDrawList();
@@ -119,14 +121,15 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
 
     // label
     dl->AddRectFilled(minArea,maxArea,ImGui::GetColorU32(portSetColor),0.0f);
-    dl->AddRect(minArea,maxArea,ImGui::GetColorU32((selectedPortSet==portSetID)?uiColors[GUI_COLOR_TEXT]:portSetBorderColor),0.0f,0,dpiScale);
+    dl->AddRect(minArea,maxArea,ImGui::GetColorU32((middle?((selectedPortSet&0xfff)==(portSetID&0xfff)):(selectedPortSet==portSetID))?uiColors[GUI_COLOR_TEXT]:portSetBorderColor),0.0f,0,dpiScale);
     dl->AddText(ImGui::GetFont(),ImGui::GetFontSize(),textPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),label.c_str(),NULL,ImGui::GetWindowSize().x*0.6f);
   }
 
   // input ports
+  portSetID|=0x1000;
   for (int i=0; i<ins; i++) {
     String portLabel="input";
-    String subPortID=fmt::sprintf("subPort%.5x",(portSetID<<4)|i);
+    String subPortID=fmt::sprintf("subPortI%.5x",(portSetID<<4)|i);
     if (ins==2) {
       portLabel=portNamesStereo[i&1];
     } else if (ins>2) {
@@ -158,15 +161,17 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
 
       if (ImGui::IsMouseHoveringRect(portMin,portMax)) {
         hoveredSubPort=i;
+        portIsOut=false;
         if (active) clickedPort=i;
       }
     }
   }
 
   // output ports
+  portSetID&=0xfff;
   for (int i=0; i<outs; i++) {
     String portLabel="output";
-    String subPortID=fmt::sprintf("subPort%.5x",(portSetID<<4)|i);
+    String subPortID=fmt::sprintf("subPortO%.5x",(portSetID<<4)|i);
     if (outs==2) {
       portLabel=portNamesStereo[i&1];
     } else if (outs>2) {
@@ -198,8 +203,9 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
 
       if (ImGui::IsMouseHoveringRect(portMin,portMax)) {
         if (active) clickedPort=i;
+        portIsOut=true;
         hoveredSubPort=i;
-    }
+      }
     }
   }
 
@@ -298,7 +304,12 @@ void FurnaceGUI::drawMixer() {
       if (!basicMode) if (ImGui::BeginTabItem("Patchbay")) {
         std::map<unsigned int,ImVec2> portPos;
 
-        if (ImGui::BeginTable("PatchbayOptions",3)) {
+        if (ImGui::BeginTable("PatchbayOptions",4)) {
+          ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch);
+          ImGui::TableSetupColumn("c3",ImGuiTableColumnFlags_WidthFixed);
+
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           if (ImGui::Checkbox("Automatic patchbay",&e->song.patchbayAuto)) {
@@ -309,6 +320,12 @@ void FurnaceGUI::drawMixer() {
           ImGui::Checkbox("Display hidden ports",&displayHiddenPorts);
           ImGui::TableNextColumn();
           ImGui::Checkbox("Display internal",&displayInternalPorts);
+          ImGui::TableNextColumn();
+          if (ImGui::Button(ICON_FA_PLUS "##AddEffect")) {
+            if (!e->addEffect(DIV_EFFECT_DUMMY)) {
+              showError("too many effects!");
+            }
+          }
           ImGui::EndTable();
         }
 
@@ -318,8 +335,11 @@ void FurnaceGUI::drawMixer() {
         if (ImGui::BeginChild("Patchbay",ImVec2(0,0),true)) {
           ImDrawList* dl=ImGui::GetWindowDrawList();
           ImVec2 topPos=ImGui::GetCursorPos();
+          ImVec2 middlePos=ImGui::GetCursorPos();
           ImVec2 sysSize=calcPortSetSize("System",displayHiddenPorts?DIV_MAX_OUTPUTS:e->getAudioDescGot().outChans,0);
+          bool isOut=false;
           topPos.x+=ImGui::GetContentRegionAvail().x-sysSize.x;
+          middlePos.x+=ImGui::GetContentRegionAvail().x*0.5;
           if (ImGui::GetContentRegionAvail().y>sysSize.y) topPos.y+=(ImGui::GetContentRegionAvail().y-sysSize.y)*0.5+ImGui::GetScrollY();
 
           if (ImGui::IsWindowHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)) selectedPortSet=0x1fff;
@@ -328,11 +348,12 @@ void FurnaceGUI::drawMixer() {
             dl->AddLine(subPortPos,ImGui::GetMousePos(),ImGui::GetColorU32(uiColors[GUI_COLOR_PATCHBAY_CONNECTION]),2.0f*dpiScale);
           }
 
+          // input
           for (int i=0; i<e->song.systemLen; i++) {
             DivDispatch* dispatch=e->getDispatch(i);
             if (dispatch==NULL) continue;
             int outputs=dispatch->getOutputCount();
-            if (portSet(fmt::sprintf("%d. %s",i+1,getSystemName(e->song.system[i])),i,0,outputs,0,outputs,selectedSubPort,portPos)) {
+            if (portSet(fmt::sprintf("%d. %s",i+1,getSystemName(e->song.system[i])),i,0,outputs,0,outputs,selectedSubPort,portPos,isOut)) {
               selectedPortSet=i;
               if (selectedSubPort>=0) {
                 portDragActive=true;
@@ -348,7 +369,7 @@ void FurnaceGUI::drawMixer() {
 
           // metronome/sample preview
           if (displayInternalPorts) {
-            if (portSet("Sample Preview",0xffd,0,1,0,1,selectedSubPort,portPos)) {
+            if (portSet("Sample Preview",0xffd,0,1,0,1,selectedSubPort,portPos,isOut)) {
               selectedPortSet=0xffd;
               if (selectedSubPort>=0) {
                 portDragActive=true;
@@ -360,7 +381,7 @@ void FurnaceGUI::drawMixer() {
                 }
               }
             }
-            if (portSet("Metronome",0xffe,0,1,0,1,selectedSubPort,portPos)) {
+            if (portSet("Metronome",0xffe,0,1,0,1,selectedSubPort,portPos,isOut)) {
               selectedPortSet=0xffe;
               if (selectedSubPort>=0) {
                 portDragActive=true;
@@ -374,8 +395,30 @@ void FurnaceGUI::drawMixer() {
             }
           }
 
+          // effects
+          ImGui::SetCursorPos(middlePos);
+          for (size_t i=0; i<e->song.effects.size(); i++) {
+            DivEffectStorage& es=e->song.effects[i];
+            const DivEffectDef* def=e->getEffectDef(es.id);
+            ImVec2 effectSize=calcPortSetSize((def==NULL)?"???":def->name,displayHiddenPorts?DIV_MAX_OUTPUTS:1,displayHiddenPorts?DIV_MAX_OUTPUTS:1);
+            ImGui::SetCursorPosX(middlePos.x-effectSize.x*0.5);
+            if (portSet((def==NULL)?"???":def->name,es.slot<<4,displayHiddenPorts?DIV_MAX_OUTPUTS:1,displayHiddenPorts?DIV_MAX_OUTPUTS:1,1,1,selectedSubPort,portPos,isOut)) {
+              selectedPortSet=(isOut?0:0x1000)|es.slot<<4;
+              if (selectedSubPort>=0) {
+                portDragActive=true;
+                ImGui::InhibitInertialScroll();
+                try {
+                  subPortPos=portPos.at((selectedPortSet<<4)|selectedSubPort);
+                } catch (std::out_of_range& e) {
+                  portDragActive=false;
+                }
+              }
+            }
+          }
+
+          // output
           ImGui::SetCursorPos(topPos);
-          if (portSet("System",0x1000,displayHiddenPorts?DIV_MAX_OUTPUTS:e->getAudioDescGot().outChans,0,e->getAudioDescGot().outChans,0,selectedSubPort,portPos)) {
+          if (portSet("System",0x1000,displayHiddenPorts?DIV_MAX_OUTPUTS:e->getAudioDescGot().outChans,0,e->getAudioDescGot().outChans,0,selectedSubPort,portPos,isOut)) {
             selectedPortSet=0x1000;
             if (selectedSubPort>=0) {
               portDragActive=true;

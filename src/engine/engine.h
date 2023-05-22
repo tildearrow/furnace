@@ -228,6 +228,7 @@ struct DivEffectContainer {
   float* in[DIV_MAX_OUTPUTS];
   float* out[DIV_MAX_OUTPUTS];
   size_t inLen, outLen;
+  bool done;
 
   void preAcquire(size_t count);
   void acquire(size_t count);
@@ -236,7 +237,8 @@ struct DivEffectContainer {
   DivEffectContainer():
     effect(NULL),
     inLen(0),
-    outLen(0) {
+    outLen(0),
+    done(false) {
     memset(in,0,DIV_MAX_OUTPUTS*sizeof(float*));
     memset(out,0,DIV_MAX_OUTPUTS*sizeof(float*));
   }
@@ -347,6 +349,15 @@ struct DivSysDef {
   }
 };
 
+struct DivEffectDef {
+  const char* name;
+  const char* description;
+
+  DivEffectDef(const char* n, const char* d):
+    name(n),
+    description(d) {}
+};
+
 enum DivChanTypes {
   DIV_CH_FM=0,
   DIV_CH_PULSE=1,
@@ -387,6 +398,7 @@ class DivEngine {
   bool midiIsDirect;
   bool lowLatency;
   bool systemsRegistered;
+  bool effectsRegistered;
   bool hasLoadedSomething;
   bool midiOutClock;
   bool midiOutTime;
@@ -435,6 +447,7 @@ class DivEngine {
   static DivSysDef* sysDefs[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapFur[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapDMF[DIV_MAX_CHIP_DEFS];
+  static DivEffectDef* effectDefs[DIV_EFFECT_MAX];
 
   DivCSPlayer* cmdStreamInt;
 
@@ -530,6 +543,7 @@ class DivEngine {
   bool deinitAudioBackend(bool dueToSwitchMaster=false);
 
   void registerSystems();
+  void registerEffects();
   void initSongWithDesc(const char* description, bool inBase64=true, bool oldVol=false);
 
   void exchangeIns(int one, int two);
@@ -764,6 +778,9 @@ class DivEngine {
     // get sys definition
     const DivSysDef* getSystemDef(DivSystem sys);
 
+    // get effect definition
+    const DivEffectDef* getEffectDef(DivEffectType fx);
+
     // convert sample rate format
     int fileToDivRate(int frate);
     int divToFileRate(int drate);
@@ -933,6 +950,9 @@ class DivEngine {
 
     // disconnect all in patchbay
     void patchDisconnectAll(unsigned int portSet);
+
+    // find free portset
+    int findFreePortSet();
 
     // play note
     void noteOn(int chan, int ins, int note, int vol=-1);
@@ -1132,6 +1152,12 @@ class DivEngine {
     // quit dispatch
     void quitDispatch();
 
+    // init effects
+    void initEffects();
+
+    // quit effects
+    void quitEffects();
+
     // pre-initialize the engine.
     void preInit();
 
@@ -1171,6 +1197,7 @@ class DivEngine {
       midiIsDirect(false),
       lowLatency(false),
       systemsRegistered(false),
+      effectsRegistered(false),
       hasLoadedSomething(false),
       midiOutClock(false),
       midiOutTime(false),
