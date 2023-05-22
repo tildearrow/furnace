@@ -2111,8 +2111,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
         }
       } else if (srcPortSet>=0x20 && srcPortSet<0xffd) {
         // effect
-        short slot=effectSlotMap[destPortSet&0xfff];
-        if (slot>0 && slot<(short)effectInst.size()) {
+        short slot=effectSlotMap[srcPortSet&0xfff];
+        if (slot>=0 && slot<(short)effectInst.size()) {
           DivEffectContainer& ec=effectInst[slot];
           if (!ec.done) {
             ec.acquire(size);
@@ -2130,67 +2130,69 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       // nothing/invalid
     }
 
-    // try finding effect
-    short slot=effectSlotMap[destPortSet&0xfff];
-    if (slot>0 && slot<(short)effectInst.size()) {
-      DivEffectContainer& ic=effectInst[slot];
+    // effect
+    if (destPortSet>=0x20 && destPortSet<0xffd) {
+      short islot=effectSlotMap[destPortSet&0xfff];
+      if (islot>=0 && islot<(short)effectInst.size()) {
+        DivEffectContainer& ic=effectInst[islot];
 
-      if (destSubPort>=ic.effect->getInputCount()) continue;
+        if (destSubPort>=ic.effect->getInputCount()) continue;
 
-      // chip outputs
-      if (srcPortSet<song.systemLen && playing && !halted) {
-        if (srcSubPort<disCont[srcPortSet].dispatch->getOutputCount()) {
-          float vol=song.systemVol[srcPortSet]*disCont[srcPortSet].dispatch->getPostAmp()*song.masterVol;
+        // chip outputs
+        if (srcPortSet<song.systemLen && playing && !halted) {
+          if (srcSubPort<disCont[srcPortSet].dispatch->getOutputCount()) {
+            float vol=song.systemVol[srcPortSet]*disCont[srcPortSet].dispatch->getPostAmp()*song.masterVol;
 
-          switch (destSubPort&3) {
-            case 0:
-              vol*=MIN(1.0f,1.0f-song.systemPan[srcPortSet])*MIN(1.0f,1.0f+song.systemPanFR[srcPortSet]);
-              break;
-            case 1:
-              vol*=MIN(1.0f,1.0f+song.systemPan[srcPortSet])*MIN(1.0f,1.0f+song.systemPanFR[srcPortSet]);
-              break;
-            case 2:
-              vol*=MIN(1.0f,1.0f-song.systemPan[srcPortSet])*MIN(1.0f,1.0f-song.systemPanFR[srcPortSet]);
-              break;
-            case 3:
-              vol*=MIN(1.0f,1.0f+song.systemPan[srcPortSet])*MIN(1.0f,1.0f-song.systemPanFR[srcPortSet]);
-              break;
-          }
+            switch (destSubPort&3) {
+              case 0:
+                vol*=MIN(1.0f,1.0f-song.systemPan[srcPortSet])*MIN(1.0f,1.0f+song.systemPanFR[srcPortSet]);
+                break;
+              case 1:
+                vol*=MIN(1.0f,1.0f+song.systemPan[srcPortSet])*MIN(1.0f,1.0f+song.systemPanFR[srcPortSet]);
+                break;
+              case 2:
+                vol*=MIN(1.0f,1.0f-song.systemPan[srcPortSet])*MIN(1.0f,1.0f-song.systemPanFR[srcPortSet]);
+                break;
+              case 3:
+                vol*=MIN(1.0f,1.0f+song.systemPan[srcPortSet])*MIN(1.0f,1.0f-song.systemPanFR[srcPortSet]);
+                break;
+            }
 
-          for (size_t j=0; j<size; j++) {
-            ic.in[destSubPort][j]+=((float)disCont[srcPortSet].bbOut[srcSubPort][j]/32768.0)*vol;
-          }
-        }
-      } else if (srcPortSet==0xffd) {
-        // sample preview
-        for (size_t j=0; j<size; j++) {
-          ic.in[destSubPort][j]+=samp_bbOut[j]/32768.0;
-        }
-      } else if (srcPortSet==0xffe && playing && !halted) {
-        // metronome
-        for (size_t j=0; j<size; j++) {
-          ic.in[destSubPort][j]+=metroBuf[j];
-        }
-      } else if (srcPortSet>=0x20 && srcPortSet<0xffd) {
-        // effect
-        short slot=effectSlotMap[destPortSet&0xfff];
-        if (slot>0 && slot<(short)effectInst.size()) {
-          DivEffectContainer& ec=effectInst[slot];
-          if (!ec.done) {
-            ec.acquire(size);
-            ec.done=true;
-          }
-          if (srcSubPort<ec.effect->getOutputCount()) {
             for (size_t j=0; j<size; j++) {
-              if (j>=ec.outLen) break;
-              ic.in[destSubPort][j]+=ec.out[srcSubPort][j];
+              ic.in[destSubPort][j]+=((float)disCont[srcPortSet].bbOut[srcSubPort][j]/32768.0)*vol;
+            }
+          }
+        } else if (srcPortSet==0xffd) {
+          // sample preview
+          for (size_t j=0; j<size; j++) {
+            ic.in[destSubPort][j]+=samp_bbOut[j]/32768.0;
+          }
+        } else if (srcPortSet==0xffe && playing && !halted) {
+          // metronome
+          for (size_t j=0; j<size; j++) {
+            ic.in[destSubPort][j]+=metroBuf[j];
+          }
+        } else if (srcPortSet>=0x20 && srcPortSet<0xffd) {
+          // effect
+          short slot=effectSlotMap[destPortSet&0xfff];
+          if (slot>=0 && slot<(short)effectInst.size()) {
+            DivEffectContainer& ec=effectInst[slot];
+            if (!ec.done) {
+              ec.acquire(size);
+              ec.done=true;
+            }
+            if (srcSubPort<ec.effect->getOutputCount()) {
+              for (size_t j=0; j<size; j++) {
+                if (j>=ec.outLen) break;
+                ic.in[destSubPort][j]+=ec.out[srcSubPort][j];
+              }
             }
           }
         }
+
+        // nothing/invalid
+
       }
-
-      // nothing/invalid
-
     }
 
     // nothing/invalid

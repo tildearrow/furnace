@@ -4547,6 +4547,10 @@ void DivEngine::initEffects() {
 
     ec.init(es.id,this,got.rate,es.storageVer,es.storage,es.storageLen);
 
+    logV("slot %d",es.slot);
+
+    effectSlotMap[es.slot&0xfff]=i;
+
     effectInst.push_back(ec);
   }
   BUSY_END;

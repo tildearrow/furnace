@@ -402,8 +402,8 @@ void FurnaceGUI::drawMixer() {
             const DivEffectDef* def=e->getEffectDef(es.id);
             ImVec2 effectSize=calcPortSetSize((def==NULL)?"???":def->name,displayHiddenPorts?DIV_MAX_OUTPUTS:1,displayHiddenPorts?DIV_MAX_OUTPUTS:1);
             ImGui::SetCursorPosX(middlePos.x-effectSize.x*0.5);
-            if (portSet((def==NULL)?"???":def->name,es.slot<<4,displayHiddenPorts?DIV_MAX_OUTPUTS:1,displayHiddenPorts?DIV_MAX_OUTPUTS:1,1,1,selectedSubPort,portPos,isOut)) {
-              selectedPortSet=(isOut?0:0x1000)|es.slot<<4;
+            if (portSet((def==NULL)?"???":def->name,es.slot,displayHiddenPorts?DIV_MAX_OUTPUTS:1,displayHiddenPorts?DIV_MAX_OUTPUTS:1,1,1,selectedSubPort,portPos,isOut)) {
+              selectedPortSet=(isOut?0:0x1000)|es.slot;
               if (selectedSubPort>=0) {
                 portDragActive=true;
                 ImGui::InhibitInertialScroll();
@@ -485,6 +485,13 @@ void FurnaceGUI::drawMixer() {
           ImGui::EndPopup();
         }
         ImGui::EndChild();
+        ImGui::EndTabItem();
+      }
+      if (ImGui::BeginTabItem("Debug")) {
+        ImGui::Text("Connections:");
+        for (unsigned int i: e->song.patchbay) {
+          ImGui::Text("%.4x -> %.4x",(i>>16)&0xffff,i&0xffff);
+        }
         ImGui::EndTabItem();
       }
       ImGui::EndTabBar();
