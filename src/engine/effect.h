@@ -21,6 +21,7 @@
 #define _EFFECT_H
 
 #include <stdlib.h>
+#include <stdint.h>
 #include "../ta-utils.h"
 
 class DivEngine;

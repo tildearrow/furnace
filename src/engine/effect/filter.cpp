@@ -19,6 +19,7 @@
 
 #include "filter.h"
 #include "../engine.h"
+#include <stdexcept>
 
 void DivEffectFilter::acquire(float** in, float** out, size_t len) {
   for (size_t i=0; i<len; i++) {
