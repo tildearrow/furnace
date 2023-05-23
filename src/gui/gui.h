@@ -1850,6 +1850,7 @@ class FurnaceGUI {
   int hoveredSubPort;
   bool portDragActive, displayHiddenPorts, displayInternalPorts;
   ImVec2 subPortPos;
+  std::vector<size_t> effectEditOpen;
 
   // oscilloscope
   int oscTotal;
@@ -1971,6 +1972,7 @@ class FurnaceGUI {
   bool CWVSliderScalar(const char* label, const ImVec2& size, ImGuiDataType data_type, void* p_data, const void* p_min, const void* p_max, const char* format=NULL, ImGuiSliderFlags flags=0);
   bool CWSliderInt(const char* label, int* v, int v_min, int v_max, const char* format="%d", ImGuiSliderFlags flags=0);
   bool CWSliderFloat(const char* label, float* v, float v_min, float v_max, const char* format="%.3f", ImGuiSliderFlags flags=0);
+  bool CWSliderDouble(const char* label, double* v, double v_min, double v_max, const char* format="%.3f", ImGuiSliderFlags flags=0);
   bool CWVSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format="%d", ImGuiSliderFlags flags=0);
 
   // inverted checkbox
@@ -2010,6 +2012,8 @@ class FurnaceGUI {
   void sampleListItem(int index, int dir, int asset);
 
   void toggleMobileUI(bool enable, bool force=false);
+
+  void commitTokens(DivEffect* effect, std::vector<String>& tokens);
 
   void pushToggleColors(bool status);
   void popToggleColors();

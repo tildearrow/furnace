@@ -2174,6 +2174,11 @@ DivDispatch* DivEngine::getDispatch(int index) {
   return disCont[index].dispatch;
 }
 
+DivEffect* DivEngine::getEffectInst(int index) {
+  if (index<0 || index>=(int)effectInst.size()) return NULL;
+  return effectInst[index].effect;
+}
+
 void DivEngine::setLoops(int loops) {
   remainingLoops=loops;
 }

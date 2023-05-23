@@ -38,14 +38,14 @@ int DivEffect::getOutputCount() {
 void DivEffect::rateChanged(double rate) {
 }
 
-String DivEffect::getParam(size_t param) {
+DivEffectParam DivEffect::getParam(size_t param) {
   throw std::out_of_range("param");
 
   // unreachable
   return "";
 }
 
-bool DivEffect::setParam(size_t param, String value) {
+bool DivEffect::setParam(size_t param, DivEffectParam value) {
   return false;
 }
 

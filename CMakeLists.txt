@@ -561,6 +561,7 @@ src/engine/export/amigaValidation.cpp
 
 src/engine/effect/abstract.cpp
 src/engine/effect/dummy.cpp
+src/engine/effect/filter.cpp
 )
 
 if (USE_SNDFILE)

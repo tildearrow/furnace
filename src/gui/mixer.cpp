@@ -121,7 +121,7 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
 
     // label
     dl->AddRectFilled(minArea,maxArea,ImGui::GetColorU32(portSetColor),0.0f);
-    dl->AddRect(minArea,maxArea,ImGui::GetColorU32((middle?((selectedPortSet&0xfff)==(portSetID&0xfff)):(selectedPortSet==portSetID))?uiColors[GUI_COLOR_TEXT]:portSetBorderColor),0.0f,0,dpiScale);
+    dl->AddRect(minArea,maxArea,ImGui::GetColorU32((middle?((selectedPortSet&0xfff)==(portSetID&0xfff )):(selectedPortSet==portSetID))?uiColors[GUI_COLOR_TEXT]:portSetBorderColor),0.0f,0,dpiScale);
     dl->AddText(ImGui::GetFont(),ImGui::GetFontSize(),textPos,ImGui::GetColorU32(uiColors[GUI_COLOR_TEXT]),label.c_str(),NULL,ImGui::GetWindowSize().x*0.6f);
   }
 
@@ -214,7 +214,194 @@ bool FurnaceGUI::portSet(String label, unsigned int portSetID, int ins, int outs
   return false;
 }
 
+#define TOKEN_GET(x,y,_f) \
+  if (tokens.size()>x) { \
+    try { \
+      y=_f(tokens[x]); \
+    } catch (std::exception& e) { \
+    } \
+  }
+
+#define TOKEN_HOVER \
+  if (!desc.empty() && ImGui::IsItemHovered()) { \
+    ImGui::SetTooltip("%s",desc.c_str()); \
+  }
+
+void FurnaceGUI::commitTokens(DivEffect* effect, std::vector<String>& tokens) {
+  if (tokens.empty()) return;
+
+  int pos=-1;
+  int paramCount=effect->getParamCount();
+  try {
+    pos=std::stoi(tokens[0]);
+
+    if (tokens.size()>=4 && pos>=0 && pos<paramCount) {
+      signed char type=tokens[1].c_str()[0];
+      String name=tokens[2];
+      String desc=tokens[3];
+      DivEffectParam param=effect->getParam(pos);
+
+      if (name.empty()) {
+        name=fmt::sprintf("Parameter %d",pos);
+      }
+
+      switch (type) {
+        case 'i': {
+          int vMin=INT_MIN;
+          int vMax=INT_MAX;
+          int vStep=1;
+
+          TOKEN_GET(4,vMin,std::stoi);
+          TOKEN_GET(5,vMax,std::stoi);
+          TOKEN_GET(6,vStep,std::stoi);
+
+          if (ImGui::InputInt(name.c_str(),&param.val.s32,vStep)) {
+            if (param.val.s32<vMin) param.val.s32=vMin;
+            if (param.val.s32>vMax) param.val.s32=vMax;
+            effect->setParam(pos,param);
+          }
+          TOKEN_HOVER;
+          break;
+        }
+        case 'I': {
+          if (tokens.size()<6) break;
+          int vMin=INT_MIN;
+          int vMax=INT_MAX;
+          int vDefault=0;
+
+          TOKEN_GET(4,vMin,std::stoi);
+          TOKEN_GET(5,vMax,std::stoi);
+          TOKEN_GET(6,vDefault,std::stoi);
+
+          if (CWSliderInt(name.c_str(),&param.val.s32,vMin,vMax)) {
+            if (param.val.s32<vMin) param.val.s32=vMin;
+            if (param.val.s32>vMax) param.val.s32=vMax;
+            effect->setParam(pos,param);
+          }
+          TOKEN_HOVER;
+          if (tokens.size()>6) {
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
+              param.val.s32=vDefault;
+              effect->setParam(pos,param);
+            }
+          }
+          break;
+        }
+        case 'd': {
+          double vMin=-DBL_MAX;
+          double vMax=DBL_MAX;
+          double vStep=1.0;
+
+          TOKEN_GET(4,vMin,std::stod);
+          TOKEN_GET(5,vMax,std::stod);
+          TOKEN_GET(6,vStep,std::stod);
+
+          if (ImGui::InputDouble(name.c_str(),&param.val.d,vStep)) {
+            if (param.val.d<vMin) param.val.d=vMin;
+            if (param.val.d>vMax) param.val.d=vMax;
+            effect->setParam(pos,param);
+          }
+          TOKEN_HOVER;
+          break;
+        }
+        case 'D': {
+          if (tokens.size()<6) break;
+          double vMin=-DBL_MAX;
+          double vMax=DBL_MAX;
+          double vDefault=0.0;
+
+          TOKEN_GET(4,vMin,std::stod);
+          TOKEN_GET(5,vMax,std::stod);
+          TOKEN_GET(6,vDefault,std::stod);
+
+          if (CWSliderDouble(name.c_str(),&param.val.d,vMin,vMax)) {
+            if (param.val.d<vMin) param.val.d=vMin;
+            if (param.val.d>vMax) param.val.d=vMax;
+            effect->setParam(pos,param);
+          }
+          TOKEN_HOVER;
+          if (tokens.size()>6) {
+            if (ImGui::IsItemClicked(ImGuiMouseButton_Middle)) {
+              param.val.d=vDefault;
+              effect->setParam(pos,param);
+            }
+          }
+          break;
+        }
+        default:
+          ImGui::Text("unhandled param type %c",type);
+          break;
+      }
+    }
+  } catch (std::exception& e) {
+    // not a parameter
+    if (tokens[0]=="!s") {
+    } else if (tokens[0]=="---") {
+    } else if (tokens[0]==">") {
+    } else if (tokens[0]=="<") {
+    } else if (tokens[0]==">>") {
+    } else if (tokens[0]=="<<") {
+    } else if (tokens[0]=="TEXT") {
+    } else if (tokens[0]=="TEXTF") {
+    }
+  }
+}
+
 void FurnaceGUI::drawMixer() {
+  // draw effect editors
+  for (size_t i=0; i<effectEditOpen.size(); i++) {
+    if (effectEditOpen[i]>=e->song.effects.size()) continue;
+    bool toggle=true;
+    DivEffectStorage& es=e->song.effects[effectEditOpen[i]];
+    const DivEffectDef* def=e->getEffectDef(es.id);
+    DivEffect* ef=e->getEffectInst(i);
+    String id=fmt::sprintf("Effect Editor - %s##FXEdit%d",(def->name==NULL)?"???":def->name,effectEditOpen[i]);
+    if (ImGui::Begin(id.c_str(),&toggle,(settings.allowEditDocking?0:ImGuiWindowFlags_NoDocking)|ImGuiWindowFlags_NoSavedSettings)) {
+      ImGui::Text("inputs: %d - outputs: %d",ef->getInputCount(),ef->getOutputCount());
+      ImGui::Separator();
+
+      const char* params=ef->getParams();
+
+      if (params!=NULL) {
+        bool backslash=false;
+        std::vector<String> tokens;
+        String token;
+        for (const char* j=params; *j; j++) {
+          if (backslash) {
+            backslash=false;
+            token+=*j;
+          } else {
+            if (*j=='\\') {
+              backslash=true;
+            } else if (*j==':') {
+              tokens.push_back(token);
+              token="";
+            } else if (*j=='\n') {
+              tokens.push_back(token);
+              token="";
+              commitTokens(ef,tokens);
+              tokens.clear();
+            } else {
+              token+=*j;
+            }
+          }
+        }
+        tokens.push_back(token);
+        token="";
+        commitTokens(ef,tokens);
+      } else {
+        ImGui::Text("this effect does not have any parameters.");
+      }
+    }
+    ImGui::End();
+
+    if (!toggle) {
+      effectEditOpen.erase(effectEditOpen.begin()+i);
+      i--;
+    }
+  }
+
+  // draw mixer
   if (nextWindow==GUI_WINDOW_MIXER) {
     mixerOpen=true;
     ImGui::SetNextWindowFocus();
@@ -322,10 +509,22 @@ void FurnaceGUI::drawMixer() {
           ImGui::Checkbox("Display internal",&displayInternalPorts);
           ImGui::TableNextColumn();
           if (ImGui::Button(ICON_FA_PLUS "##AddEffect")) {
-            if (!e->addEffect(DIV_EFFECT_DUMMY)) {
-              showError("too many effects!");
-            }
+            ImGui::OpenPopup("EffectSelect");
           }
+
+          if (ImGui::BeginPopup("EffectSelect",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+            for (int i=0; i<DIV_EFFECT_MAX; i++) {
+              const DivEffectDef* effect=e->getEffectDef((DivEffectType)i);
+              if (effect==NULL) continue;
+              if (ImGui::MenuItem(effect->name)) {
+                if (!e->addEffect((DivEffectType)i)) {
+                  showError("too many effects!");
+                }
+              }
+            }
+            ImGui::EndPopup();
+          }
+
           ImGui::EndTable();
         }
 
@@ -400,9 +599,22 @@ void FurnaceGUI::drawMixer() {
           for (size_t i=0; i<e->song.effects.size(); i++) {
             DivEffectStorage& es=e->song.effects[i];
             const DivEffectDef* def=e->getEffectDef(es.id);
-            ImVec2 effectSize=calcPortSetSize((def==NULL)?"???":def->name,displayHiddenPorts?DIV_MAX_OUTPUTS:1,displayHiddenPorts?DIV_MAX_OUTPUTS:1);
+            DivEffect* ef=e->getEffectInst(i);
+            int ins=ef->getInputCount();
+            int outs=ef->getOutputCount();
+            ImVec2 effectSize=calcPortSetSize((def==NULL)?"???":def->name,displayHiddenPorts?DIV_MAX_OUTPUTS:ins,displayHiddenPorts?DIV_MAX_OUTPUTS:outs);
             ImGui::SetCursorPosX(middlePos.x-effectSize.x*0.5);
-            if (portSet((def==NULL)?"???":def->name,es.slot,displayHiddenPorts?DIV_MAX_OUTPUTS:1,displayHiddenPorts?DIV_MAX_OUTPUTS:1,1,1,selectedSubPort,portPos,isOut)) {
+            if (portSet((def==NULL)?"???":def->name,es.slot,displayHiddenPorts?DIV_MAX_OUTPUTS:ins,displayHiddenPorts?DIV_MAX_OUTPUTS:outs,ins,outs,selectedSubPort,portPos,isOut)) {
+              if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
+                bool found=false;
+                for (size_t j: effectEditOpen) {
+                  if (j==i) {
+                    found=true;
+                    break;
+                  }
+                }
+                if (!found) effectEditOpen.push_back(i);
+              }
               selectedPortSet=(isOut?0:0x1000)|es.slot;
               if (selectedSubPort>=0) {
                 portDragActive=true;

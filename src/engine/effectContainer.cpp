@@ -19,6 +19,7 @@
 
 #include "engine.h"
 #include "effect/dummy.h"
+#include "effect/filter.h"
 
 void DivEffectContainer::preAcquire(size_t count) {
   if (!count) return;
@@ -69,6 +70,9 @@ void DivEffectContainer::acquire(size_t count) {
 
 bool DivEffectContainer::init(DivEffectType effectType, DivEngine* eng, double rate, unsigned short version, const unsigned char* data, size_t len) {
   switch (effectType) {
+    case DIV_EFFECT_FILTER:
+      effect=new DivEffectFilter;
+      break;
     case DIV_EFFECT_DUMMY:
     default:
       effect=new DivEffectDummy;

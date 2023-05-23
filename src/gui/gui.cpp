@@ -486,6 +486,11 @@ bool FurnaceGUI::CWSliderFloat(const char* label, float* v, float v_min, float v
   return CWSliderScalar(label,ImGuiDataType_Float,v,&v_min,&v_max,format,flags);
 }
 
+bool FurnaceGUI::CWSliderDouble(const char* label, double* v, double v_min, double v_max, const char* format, ImGuiSliderFlags flags) {
+  return CWSliderScalar(label,ImGuiDataType_Double,v,&v_min,&v_max,format,flags);
+}
+
+
 bool FurnaceGUI::CWVSliderInt(const char* label, const ImVec2& size, int* v, int v_min, int v_max, const char* format, ImGuiSliderFlags flags) {
   return CWVSliderScalar(label,size,ImGuiDataType_S32,v,&v_min,&v_max,format,flags);
 }

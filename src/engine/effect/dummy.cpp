@@ -53,7 +53,7 @@ unsigned char* DivEffectDummy::save(unsigned short* version, size_t* len) {
 }
 
 bool DivEffectDummy::init(DivEngine* parent, double rate, unsigned short version, const unsigned char* data, size_t len) {
-  return false;
+  return true;
 }
 
 void DivEffectDummy::quit() {

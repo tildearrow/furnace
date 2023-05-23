@@ -17,39 +17,26 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#include "engine.h"
-#include "../ta-log.h"
+#include "../effect.h"
 
-DivEffectDef* DivEngine::effectDefs[DIV_EFFECT_MAX];
+class DivEffectFilter: public DivEffect {
+  double cutoff, cut;
+  bool stereo;
+  unsigned char type;
 
-const DivEffectDef* DivEngine::getEffectDef(DivEffectType fx) {
-  return effectDefs[fx];
-}
-
-void DivEngine::registerEffects() {
-  logD("registering effects...");
-
-  memset(effectDefs,0,DIV_EFFECT_MAX*sizeof(void*));
-
-  effectDefs[DIV_EFFECT_DUMMY]=new DivEffectDef(
-    "Dummy Effect",
-    "a pass-through effect which does nothing."
-  );
-  
-  /*effectDefs[DIV_EFFECT_EXTERNAL]=new DivEffectDef(
-    "External",
-    "allows you to load a plug-in. not implemented yet."
-  );*/
-  
-  effectDefs[DIV_EFFECT_VOLUME]=new DivEffectDef(
-    "Volume",
-    "a volume effect."
-  );
-  
-  effectDefs[DIV_EFFECT_FILTER]=new DivEffectDef(
-    "Filter",
-    "simulates a variety of analog filters."
-  );
-
-  effectsRegistered=true;
-}
+  float last[2];
+  public:
+    void acquire(float** in, float** out, size_t len);
+    void reset();
+    int getInputCount();
+    int getOutputCount();
+    void rateChanged(double rate);
+    DivEffectParam getParam(size_t param);
+    bool setParam(size_t param, DivEffectParam value);
+    const char* getParams();
+    size_t getParamCount();
+    bool load(unsigned short version, const unsigned char* data, size_t len);
+    unsigned char* save(unsigned short* version, size_t* len);
+    bool init(DivEngine* parent, double rate, unsigned short version, const unsigned char* data, size_t len);
+    void quit();
+};
