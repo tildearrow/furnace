@@ -656,6 +656,16 @@ bool DivSample::trim(unsigned int begin, unsigned int end) {
   int count=end-begin;
   if (count==0) return true;
   if (begin==0 && end==samples) return true;
+  if (((int)begin<loopStart && (int)end<loopStart) || ((int)begin>loopEnd && (int)end>loopEnd)) {
+    loopStart=-1;
+    loopEnd=-1;
+    loop=false;
+  } else {
+    loopStart-=begin;
+    loopEnd-=begin;
+    if (loopStart<0) loopStart=0;
+    if (loopEnd>count) loopEnd=count;
+  }
   if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     if (data8!=NULL) {
       signed char* oldData8=data8;
