@@ -219,12 +219,17 @@ void FurnaceGUI::drawSampleEdit() {
         if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
           if (doLoop) {
             sample->loop=true;
-            sample->loopStart=0;
-            sample->loopEnd=sample->samples;
+            if (sample->loopStart<0) {
+              sample->loopStart=0;
+            }
+            if (sample->loopEnd<0) {
+              sample->loopEnd=sample->samples;
+            }
           } else {
             sample->loop=false;
+            /*
             sample->loopStart=-1;
-            sample->loopEnd=sample->samples;
+            sample->loopEnd=sample->samples;*/
           }
           updateSampleTex=true;
           if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {

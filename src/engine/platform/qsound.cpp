@@ -319,7 +319,7 @@ void DivPlatformQSound::tick(bool sysTick) {
       if (length > 65536 - 16) {
         length = 65536 - 16;
       }
-      if (loopStart == -1 || loopStart >= length) {
+      if (!s->isLoopable()) {
         if (i<16) {
           qsound_end = offPCM[chan[i].sample] + length + 15;
         } else {
