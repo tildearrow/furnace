@@ -66,9 +66,12 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
     - Family Noraebang (OPLL)
   - SID (6581/8580) used in Commodore 64
   - Mikey used in Atari Lynx
-  - ZX Spectrum beeper (SFX-like engine)
+  - ZX Spectrum beeper
+    - SFX-like engine
+    - QuadTone engine
   - Pokémon Mini
   - Commodore PET
+  - Casio PV-1000
   - TIA used in Atari 2600
   - POKEY used in Atari 8-bit computers
   - Game Boy
@@ -124,8 +127,8 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
 [![Packaging status](https://repology.org/badge/tiny-repos/furnace.svg)](https://repology.org/project/furnace/versions)
 
 some people have provided packages for Unix/Unix-like distributions. here's a list.
- - **Arch Linux**: [furnace](https://archlinux.org/packages/community/x86_64/furnace/) is now in the community repo!
- - **FreeBSD**: [a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt.
+ - **Arch Linux**: [furnace](https://archlinux.org/packages/extra/x86_64/furnace/) is now in the official repositories!
+ - **FreeBSD**: [a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt (warning: 0.5.8!).
  - **Nix**: [package](https://search.nixos.org/packages?channel=unstable&show=furnace&from=0&size=50&sort=relevance&type=packages&query=furnace) thanks to OPNA2608.
  - **openSUSE**: [a package](https://software.opensuse.org/package/furnace) is available, courtesy of fpesari.
 
