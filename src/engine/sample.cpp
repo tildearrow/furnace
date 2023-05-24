@@ -1130,8 +1130,9 @@ void DivSample::render(unsigned int formatMask) {
     }
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_BRR)) { // BRR
-    if (!initInternal(DIV_SAMPLE_DEPTH_BRR,samples)) return;
-    brrEncode(data16,dataBRR,samples,loop?loopStart:-1,brrEmphasis);
+    int sampleCount=loop?loopEnd:samples;
+    if (!initInternal(DIV_SAMPLE_DEPTH_BRR,sampleCount)) return;
+    brrEncode(data16,dataBRR,sampleCount,loop?loopStart:-1,brrEmphasis);
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_VOX)) { // VOX
     if (!initInternal(DIV_SAMPLE_DEPTH_VOX,samples)) return;
