@@ -2247,6 +2247,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   prevOrder=0;
   prevRow=0;
   stepPlay=0;
+  if (curSubSong!=NULL) curSubSong->arpLen=1;
   int prevDrift, prevMidiClockDrift, prevMidiTimeDrift;
   prevDrift=clockDrift;
   prevMidiClockDrift=midiClockDrift;

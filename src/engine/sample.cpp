@@ -584,7 +584,34 @@ bool DivSample::strip(unsigned int begin, unsigned int end) {
   if (begin>samples) begin=samples;
   if (end>samples) end=samples;
   int count=samples-(end-begin);
-  if (count<=0) return resize(0);
+  if (count<=0) {
+    loopStart=-1;
+    loopEnd=-1;
+    loop=false;
+    return resize(0);
+  }
+  if (loopStart>(int)begin && loopEnd<(int)end) {
+    loopStart=-1;
+    loopEnd=-1;
+    loop=false;
+  } else {
+    if (loopStart<(int)end && loopStart>(int)begin) {
+      loopStart=end;
+    }
+    if (loopStart>(int)begin && loopEnd>(int)begin) {
+      loopStart-=end-begin;
+      loopEnd-=end-begin;
+      if (loopEnd<0) loopEnd=0;
+      if (loopStart<0) loopStart=0;
+    } else if (loopEnd>(int)begin) {
+      loopEnd=begin;
+    }
+  }
+  if (loopStart>loopEnd) {
+    loopStart=-1;
+    loopEnd=-1;
+    loop=false;
+  }
   if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     if (data8!=NULL) {
       signed char* oldData8=data8;
@@ -629,6 +656,16 @@ bool DivSample::trim(unsigned int begin, unsigned int end) {
   int count=end-begin;
   if (count==0) return true;
   if (begin==0 && end==samples) return true;
+  if (((int)begin<loopStart && (int)end<loopStart) || ((int)begin>loopEnd && (int)end>loopEnd)) {
+    loopStart=-1;
+    loopEnd=-1;
+    loop=false;
+  } else {
+    loopStart-=begin;
+    loopEnd-=begin;
+    if (loopStart<0) loopStart=0;
+    if (loopEnd>count) loopEnd=count;
+  }
   if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     if (data8!=NULL) {
       signed char* oldData8=data8;
@@ -697,6 +734,40 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
     return true;
   }
   return false;
+}
+
+void DivSample::convert(DivSampleDepth newDepth) {
+  render();
+  depth=newDepth;
+  switch (depth) {
+    case DIV_SAMPLE_DEPTH_1BIT:
+      setSampleCount((samples+7)&(~7));
+      break;
+    case DIV_SAMPLE_DEPTH_1BIT_DPCM:
+      setSampleCount((1+((((samples+7)/8)+15)&(~15)))<<3);
+      break;
+    case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
+      setSampleCount(((lengthZ+3)&(~0x03))*2);
+      break;
+    case DIV_SAMPLE_DEPTH_QSOUND_ADPCM: // QSound ADPCM
+      setSampleCount((samples+1)&(~1));
+      break;
+    case DIV_SAMPLE_DEPTH_ADPCM_A: // ADPCM-A
+      setSampleCount((samples+1)&(~1));
+      break;
+    case DIV_SAMPLE_DEPTH_ADPCM_B: // ADPCM-B
+      setSampleCount((samples+1)&(~1));
+      break;
+    case DIV_SAMPLE_DEPTH_BRR: // BRR
+      setSampleCount(16*(lengthBRR/9));
+      break;
+    case DIV_SAMPLE_DEPTH_VOX: // VOX
+      setSampleCount((samples+1)&(~1));
+      break;
+    default:
+      break;
+  }
+  render();
 }
 
 #define RESAMPLE_BEGIN \
@@ -1130,8 +1201,9 @@ void DivSample::render(unsigned int formatMask) {
     }
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_BRR)) { // BRR
-    if (!initInternal(DIV_SAMPLE_DEPTH_BRR,samples)) return;
-    brrEncode(data16,dataBRR,samples,loop?loopStart:-1,brrEmphasis);
+    int sampleCount=loop?loopEnd:samples;
+    if (!initInternal(DIV_SAMPLE_DEPTH_BRR,sampleCount)) return;
+    brrEncode(data16,dataBRR,sampleCount,loop?loopStart:-1,brrEmphasis);
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_VOX)) { // VOX
     if (!initInternal(DIV_SAMPLE_DEPTH_VOX,samples)) return;

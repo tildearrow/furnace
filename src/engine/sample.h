@@ -270,6 +270,13 @@ struct DivSample {
   bool resample(double sRate, double tRate, int filter);
 
   /**
+   * convert sample depth.
+   * @warning do not attempt to do this outside of a synchronized block!
+   * @param newDepth the new depth.
+   */
+  void convert(DivSampleDepth newDepth);
+
+  /**
    * initialize the rest of sample formats for this sample.
    */
   void render(unsigned int formatMask=0xffffffff);

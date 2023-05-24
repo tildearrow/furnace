@@ -11,7 +11,7 @@ the biggest multi-system chiptune tracker ever made!
 
 check out the [Releases](https://github.com/tildearrow/furnace/releases) page. available for Windows, macOS and Linux (AppImage).
 
-[see here](https://nightly.link/tildearrow/furnace/workflows/build/master) for unstable developer builds.
+[see here](https://nightly.link/tildearrow/furnace/workflows/build/master) for the latest unstable build.
 
 ## features
 

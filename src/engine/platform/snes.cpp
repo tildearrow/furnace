@@ -222,7 +222,7 @@ void DivPlatformSNES::tick(bool sysTick) {
           if (chan[i].audPos>0) {
             start=start+MIN(chan[i].audPos,s->lengthBRR-1)/16*9;
           }
-          if (s->loopStart>=0) {
+          if (s->isLoopable()) {
             loop=((s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0)+start+((s->loopStart/16)*9);
           }
         } else {

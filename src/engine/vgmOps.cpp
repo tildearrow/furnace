@@ -591,7 +591,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
               w->writeC(0x95);
               w->writeC(streamID);
               w->writeS(write.val); // sample number
-              w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0)|(sampleDir[streamID]?0x10:0)); // flags
+              w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0 && sample->isLoopable())|(sampleDir[streamID]?0x10:0)); // flags
               if (sample->isLoopable() && !sampleDir[streamID]) {
                 loopTimer[streamID]=sample->length8;
                 loopSample[streamID]=write.val;
@@ -610,7 +610,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
             w->writeC(0x95);
             w->writeC(streamID);
             w->writeS(pendingFreq[streamID]); // sample number
-            w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0)|(sampleDir[streamID]?0x10:0)); // flags
+            w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0 && sample->isLoopable())|(sampleDir[streamID]?0x10:0)); // flags
             if (sample->isLoopable() && !sampleDir[streamID]) {
               loopTimer[streamID]=sample->length8;
               loopSample[streamID]=pendingFreq[streamID];
@@ -1625,6 +1625,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       disCont[i].dispatch->toggleRegisterDump(true);
     }
   }
+
+  // variable set but not used?
+  logV("howManyChips: %d",howManyChips);
 
   // write chips and stuff
   w->writeI(hasSN);
