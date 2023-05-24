@@ -699,6 +699,40 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
   return false;
 }
 
+void DivSample::convert(DivSampleDepth newDepth) {
+  render();
+  depth=newDepth;
+  switch (depth) {
+    case DIV_SAMPLE_DEPTH_1BIT:
+      setSampleCount((samples+7)&(~7));
+      break;
+    case DIV_SAMPLE_DEPTH_1BIT_DPCM:
+      setSampleCount((1+((((samples+7)/8)+15)&(~15)))<<3);
+      break;
+    case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
+      setSampleCount(((lengthZ+3)&(~0x03))*2);
+      break;
+    case DIV_SAMPLE_DEPTH_QSOUND_ADPCM: // QSound ADPCM
+      setSampleCount((samples+1)&(~1));
+      break;
+    case DIV_SAMPLE_DEPTH_ADPCM_A: // ADPCM-A
+      setSampleCount((samples+1)&(~1));
+      break;
+    case DIV_SAMPLE_DEPTH_ADPCM_B: // ADPCM-B
+      setSampleCount((samples+1)&(~1));
+      break;
+    case DIV_SAMPLE_DEPTH_BRR: // BRR
+      setSampleCount(16*(lengthBRR/9));
+      break;
+    case DIV_SAMPLE_DEPTH_VOX: // VOX
+      setSampleCount((samples+1)&(~1));
+      break;
+    default:
+      break;
+  }
+  render();
+}
+
 #define RESAMPLE_BEGIN \
   if (samples<1) return true; \
   int finalCount=(double)samples*(tRate/sRate); \
