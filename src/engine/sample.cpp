@@ -584,7 +584,34 @@ bool DivSample::strip(unsigned int begin, unsigned int end) {
   if (begin>samples) begin=samples;
   if (end>samples) end=samples;
   int count=samples-(end-begin);
-  if (count<=0) return resize(0);
+  if (count<=0) {
+    loopStart=-1;
+    loopEnd=-1;
+    loop=false;
+    return resize(0);
+  }
+  if (loopStart>(int)begin && loopEnd<(int)end) {
+    loopStart=-1;
+    loopEnd=-1;
+    loop=false;
+  } else {
+    if (loopStart<(int)end && loopStart>(int)begin) {
+      loopStart=end;
+    }
+    if (loopStart>(int)begin && loopEnd>(int)begin) {
+      loopStart-=end-begin;
+      loopEnd-=end-begin;
+      if (loopEnd<0) loopEnd=0;
+      if (loopStart<0) loopStart=0;
+    } else if (loopEnd>(int)begin) {
+      loopEnd=begin;
+    }
+  }
+  if (loopStart>loopEnd) {
+    loopStart=-1;
+    loopEnd=-1;
+    loop=false;
+  }
   if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     if (data8!=NULL) {
       signed char* oldData8=data8;

@@ -215,7 +215,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
         popToggleColors();
         ImGui::TableNextColumn();
-        bool doLoop=(sample->isLoopable());
+        bool doLoop=(sample->loop);
         if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
           if (doLoop) {
             sample->loop=true;
