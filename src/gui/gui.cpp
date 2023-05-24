@@ -3791,6 +3791,7 @@ bool FurnaceGUI::loop() {
           }
         }
         if (ImGui::BeginMenu("open recent")) {
+          exitDisabledTimer=1;
           for (int i=0; i<(int)recentFile.size(); i++) {
             String item=recentFile[i];
             if (ImGui::MenuItem(item.c_str())) {
@@ -3837,6 +3838,7 @@ bool FurnaceGUI::loop() {
         }
         ImGui::Separator();
         if (ImGui::BeginMenu("export audio...")) {
+          exitDisabledTimer=1;
           if (ImGui::MenuItem("one file")) {
             openFileDialog(GUI_FILE_EXPORT_AUDIO_ONE);
           }
@@ -3855,6 +3857,7 @@ bool FurnaceGUI::loop() {
           ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("export VGM...")) {
+          exitDisabledTimer=1;
           ImGui::Text("settings:");
           if (ImGui::BeginCombo("format version",fmt::sprintf("%d.%.2x",vgmExportVersion>>8,vgmExportVersion&0xff).c_str())) {
             for (int i=0; i<7; i++) {
@@ -3943,6 +3946,7 @@ bool FurnaceGUI::loop() {
         }
         if (numZSMCompat > 0) {
           if (ImGui::BeginMenu("export ZSM...")) {
+            exitDisabledTimer=1;
             ImGui::Text("Commander X16 Zsound Music File");
             if (ImGui::InputInt("Tick Rate (Hz)",&zsmExportTickRate,1,2)) {
               if (zsmExportTickRate<1) zsmExportTickRate=1;
@@ -3963,6 +3967,7 @@ bool FurnaceGUI::loop() {
         }
         if (numAmiga && settings.iCannotWait) {
           if (ImGui::BeginMenu("export Amiga validation data...")) {
+            exitDisabledTimer=1;
             ImGui::Text(
               "this is NOT ROM export! only use for making sure the\n"
               "Furnace Amiga emulator is working properly by\n"
@@ -3993,6 +3998,7 @@ bool FurnaceGUI::loop() {
           }
         }
         if (ImGui::BeginMenu("export command stream...")) {
+          exitDisabledTimer=1;
           ImGui::Text(
             "this option exports a text or binary file which\n"
             "contains a dump of the internal command stream\n"
@@ -4010,6 +4016,7 @@ bool FurnaceGUI::loop() {
         }
         ImGui::Separator();
         if (ImGui::BeginMenu("add chip...")) {
+          exitDisabledTimer=1;
           DivSystem picked=systemPicker();
           if (picked!=DIV_SYSTEM_NULL) {
             if (!e->addSystem(picked)) {
@@ -4026,6 +4033,7 @@ bool FurnaceGUI::loop() {
           ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("configure chip...")) {
+          exitDisabledTimer=1;
           for (int i=0; i<e->song.systemLen; i++) {
             if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSP%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
               drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true);
@@ -4035,6 +4043,7 @@ bool FurnaceGUI::loop() {
           ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("change chip...")) {
+          exitDisabledTimer=1;
           ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
           for (int i=0; i<e->song.systemLen; i++) {
             if (ImGui::BeginMenu(fmt::sprintf("%d. %s##_SYSC%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
@@ -4054,6 +4063,7 @@ bool FurnaceGUI::loop() {
           ImGui::EndMenu();
         }
         if (ImGui::BeginMenu("remove chip...")) {
+          exitDisabledTimer=1;
           ImGui::Checkbox("Preserve channel positions",&preserveChanPos);
           for (int i=0; i<e->song.systemLen; i++) {
             if (ImGui::MenuItem(fmt::sprintf("%d. %s##_SYSR%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
@@ -4070,6 +4080,7 @@ bool FurnaceGUI::loop() {
           }
           ImGui::EndMenu();
         }
+        ImGui::BeginDisabled(exitDisabledTimer);
         ImGui::Separator();
         if (ImGui::MenuItem("restore backup",BIND_FOR(GUI_ACTION_OPEN_BACKUP))) {
           doAction(GUI_ACTION_OPEN_BACKUP);
@@ -4082,7 +4093,10 @@ bool FurnaceGUI::loop() {
             quit=true;
           }
         }
+        ImGui::EndDisabled();
         ImGui::EndMenu();
+      } else {
+        exitDisabledTimer=0;
       }
       if (ImGui::BeginMenu("edit")) {
         ImGui::Text("...");
@@ -5818,6 +5832,10 @@ bool FurnaceGUI::loop() {
       WAKE_UP;
     }
 
+    if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
+      exitDisabledTimer=0;
+    }
+
     wheelX=0;
     wheelY=0;
     wantScrollList=false;
@@ -6566,6 +6584,7 @@ FurnaceGUI::FurnaceGUI():
   oldBeat(-1),
   oldBar(-1),
   curGroove(-1),
+  exitDisabledTimer(0),
   soloTimeout(0.0f),
   exportFadeOut(5.0),
   editControlsOpen(true),
