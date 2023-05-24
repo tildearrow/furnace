@@ -1626,6 +1626,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     }
   }
 
+  // variable set but not used?
+  logV("howManyChips: %d",howManyChips);
+
   // write chips and stuff
   w->writeI(hasSN);
   w->writeI(hasOPLL);
