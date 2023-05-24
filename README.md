@@ -1,6 +1,4 @@
-# Don't star this project until I release 0.6pre5!
-
-the ISSUES count should be 20 before I release pre5 - if stars hit 1000 and I have not fixed bugs then what a shame!
+# Furnace (chiptune tracker)
 
 ![screenshot](papers/screenshot2.png)
 
