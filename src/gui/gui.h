@@ -1590,12 +1590,12 @@ class FurnaceGUI {
   struct Tutorial {
     int userComesFrom;
     bool introPlayed;
-    bool welcome;
+    bool protoWelcome;
     bool taken[GUI_TUTORIAL_MAX];
     Tutorial():
       userComesFrom(0),
       introPlayed(false),
-      welcome(false) {
+      protoWelcome(false) {
       memset(taken,0,GUI_TUTORIAL_MAX*sizeof(bool));
     }
   } tutorial;
