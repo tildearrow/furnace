@@ -2098,6 +2098,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     if (nextTick(false,true)) {
       if (trailing) beenOneLoopAlready=true;
       trailing=true;
+      if (!loop) countDown=0;
       for (int i=0; i<chans; i++) {
         if (!willExport[dispatchOfChan[i]]) continue;
         chan[i].wentThroughNote=false;
