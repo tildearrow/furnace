@@ -312,7 +312,6 @@ jobs:
         rm -r share/licenses
         rm -r share/metainfo
 
-        rmdir share/furnace
         rmdir share
 
         cd ..
