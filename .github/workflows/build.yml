@@ -82,7 +82,7 @@ jobs:
           package_ext=".dmg"
         else
           package_name="${package_name}-Linux-${{ matrix.config.arch }}"
-          package_ext=".AppImage"
+          package_ext=".tar.gz"
         fi
 
         echo "Package identifier: ${package_name}"
@@ -128,10 +128,7 @@ jobs:
           librtmidi-dev \
           libsndfile1-dev \
           zlib1g-dev \
-          libjack-jackd2-dev \
-          appstream
-        wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" || wget "https://tildearrow.org/storage/furnace/ci/appimagetool-x86_64.AppImage"
-        chmod +x appimagetool-x86_64.AppImage
+          libjack-jackd2-dev
 
     - name: Install Dependencies [Linux armhf]
       if: ${{ runner.os == 'Linux' && matrix.config.compiler != 'mingw' && matrix.config.arch == 'armhf' }}
@@ -151,9 +148,6 @@ jobs:
           libsndfile1-dev:armhf \
           zlib1g-dev:armhf \
           libjack-jackd2-dev:armhf
-        wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" || wget "https://tildearrow.org/storage/furnace/ci/appimagetool-x86_64.AppImage"
-        wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/runtime-armhf" || wget "https://tildearrow.org/storage/furnace/ci/runtime-armhf"
-        chmod +x appimagetool-x86_64.AppImage
         ls /usr/arm-linux-gnueabihf/lib
 
     - name: Configure (System Libraries)
@@ -300,23 +294,35 @@ jobs:
         #  strip -s build/furnace
         #fi
 
-        mkdir -p target/furnace.AppDir
-        make -C ${PWD}/build DESTDIR=${PWD}/target/furnace.AppDir install
-        pushd target
+        mkdir -p target/furnace
+        make -C ${PWD}/build DESTDIR=${PWD}/target/furnace install
+        pushd target/furnace
 
-        pushd furnace.AppDir
-        cp -v usr/share/{icons/hicolor/1024x1024/apps/furnace.png,applications/furnace.desktop} ./
-        ln -s furnace.png .DirIcon
-        mv -v usr/share/metainfo/{furnace.appdata,org.tildearrow.furnace.metainfo}.xml
-        cp -v ../../res/AppRun ./
-        popd
+        cp -v ../../res/logo.png .DirIcon
 
-        if [ '${{ matrix.config.arch }}' == 'armhf' ]; then
-          ../appimagetool-x86_64.AppImage --runtime-file=../runtime-armhf furnace.AppDir
-        else
-          ../appimagetool-x86_64.AppImage furnace.AppDir
-        fi
-        mv Furnace-*.AppImage ../${{ steps.package-identify.outputs.filename }}
+        cd usr
+
+        mv bin/furnace ..
+        rmdir bin
+
+        rm -r share/applications
+        rm -r share/doc
+        rm -r share/icons
+        rm -r share/licenses
+        rm -r share/metainfo
+
+        rmdir share/furnace
+        rmdir share
+
+        cd ..
+
+        cp ../../LICENSE .
+        cp ../../README.md .
+        cp -r ../../papers papers
+        rmdir usr
+
+        tar -zcv -f ../${{ steps.package-identify.outputs.filename }} furnace
+
         popd
 
     - name: Upload artifact
