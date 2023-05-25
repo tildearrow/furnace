@@ -12478,9 +12478,12 @@ bool ImGui::LoadIniSettingsFromDisk(const char* ini_filename, bool redundancy)
         if (!file_data) continue;
 
         for (size_t j=0; j<file_data_size; j++) {
+          if (file_data[j]==0) {
+            viable=false;
+            break;
+          }
           if (file_data[j]!='\r' && file_data[j]!='\n' && file_data[j]!=' ') {
             viable=true;
-            break;
           }
         }
 
