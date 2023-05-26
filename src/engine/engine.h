@@ -591,7 +591,7 @@ class DivEngine {
     SafeWriter* saveDMF(unsigned char version);
     // save as .fur.
     // if notPrimary is true then the song will not be altered
-    SafeWriter* saveFur(bool notPrimary=false);
+    SafeWriter* saveFur(bool notPrimary=false, bool newPatternFormat=true);
     // build a ROM file (TODO).
     // specify system to build ROM for.
     std::vector<DivROMExportOutput> buildROM(DivROMExportOptions sys);

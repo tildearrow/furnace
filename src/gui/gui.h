@@ -1425,6 +1425,7 @@ class FurnaceGUI {
     int iCannotWait;
     int orderButtonPos;
     int compress;
+    int newPatternFormat;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1571,6 +1572,7 @@ class FurnaceGUI {
       iCannotWait(0),
       orderButtonPos(2),
       compress(1),
+      newPatternFormat(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

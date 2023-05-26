@@ -5077,9 +5077,7 @@ DivDataErrors DivEngine::readAssetDirData(SafeReader& reader, std::vector<DivAss
   return DIV_DATA_SUCCESS;
 }
 
-#define NEW_PATTERN_FORMAT
-
-SafeWriter* DivEngine::saveFur(bool notPrimary) {
+SafeWriter* DivEngine::saveFur(bool notPrimary, bool newPatternFormat) {
   saveLock.lock();
   std::vector<int> subSongPtr;
   std::vector<int> sysFlagsPtr;
@@ -5514,132 +5512,132 @@ SafeWriter* DivEngine::saveFur(bool notPrimary) {
     DivPattern* pat=song.subsong[i.subsong]->pat[i.chan].getPattern(i.pat,false);
     patPtr.push_back(w->tell());
 
-#ifdef NEW_PATTERN_FORMAT
-    w->write("PATN",4);
-    blockStartSeek=w->tell();
-    w->writeI(0);
+    if (newPatternFormat) {
+      w->write("PATN",4);
+      blockStartSeek=w->tell();
+      w->writeI(0);
 
-    w->writeC(i.subsong);
-    w->writeC(i.chan);
-    w->writeS(i.pat);
-    w->writeString(pat->name,false);
+      w->writeC(i.subsong);
+      w->writeC(i.chan);
+      w->writeS(i.pat);
+      w->writeString(pat->name,false);
 
-    unsigned char emptyRows=0;
+      unsigned char emptyRows=0;
 
-    for (int j=0; j<song.subsong[i.subsong]->patLen; j++) {
-      unsigned char mask=0;
-      unsigned char finalNote=255;
-      unsigned short effectMask=0;
+      for (int j=0; j<song.subsong[i.subsong]->patLen; j++) {
+        unsigned char mask=0;
+        unsigned char finalNote=255;
+        unsigned short effectMask=0;
 
-      if (pat->data[j][0]==100) {
-        finalNote=180;
-      } else if (pat->data[j][0]==101) { // note release
-        finalNote=181;
-      } else if (pat->data[j][0]==102) { // macro release
-        finalNote=182;
-      } else if (pat->data[j][1]==0 && pat->data[j][0]==0) {
-        finalNote=255;
-      } else {
-        int seek=(pat->data[j][0]+(signed char)pat->data[j][1]*12)+60;
-        if (seek<0 || seek>=180) {
+        if (pat->data[j][0]==100) {
+          finalNote=180;
+        } else if (pat->data[j][0]==101) { // note release
+          finalNote=181;
+        } else if (pat->data[j][0]==102) { // macro release
+          finalNote=182;
+        } else if (pat->data[j][1]==0 && pat->data[j][0]==0) {
           finalNote=255;
         } else {
-          finalNote=seek;
+          int seek=(pat->data[j][0]+(signed char)pat->data[j][1]*12)+60;
+          if (seek<0 || seek>=180) {
+            finalNote=255;
+          } else {
+            finalNote=seek;
+          }
         }
-      }
 
-      if (finalNote!=255) mask|=1; // note
-      if (pat->data[j][2]!=-1) mask|=2; // instrument
-      if (pat->data[j][3]!=-1) mask|=4; // volume
-      for (int k=0; k<song.subsong[i.subsong]->pat[i.chan].effectCols*2; k+=2) {
-        if (k==0) {
-          if (pat->data[j][4+k]!=-1) mask|=8;
-          if (pat->data[j][5+k]!=-1) mask|=16;
-        } else if (k<8) {
-          if (pat->data[j][4+k]!=-1 || pat->data[j][5+k]!=-1) mask|=32;
+        if (finalNote!=255) mask|=1; // note
+        if (pat->data[j][2]!=-1) mask|=2; // instrument
+        if (pat->data[j][3]!=-1) mask|=4; // volume
+        for (int k=0; k<song.subsong[i.subsong]->pat[i.chan].effectCols*2; k+=2) {
+          if (k==0) {
+            if (pat->data[j][4+k]!=-1) mask|=8;
+            if (pat->data[j][5+k]!=-1) mask|=16;
+          } else if (k<8) {
+            if (pat->data[j][4+k]!=-1 || pat->data[j][5+k]!=-1) mask|=32;
+          } else {
+            if (pat->data[j][4+k]!=-1 || pat->data[j][5+k]!=-1) mask|=64;
+          }
+
+          if (pat->data[j][4+k]!=-1) effectMask|=(1<<k);
+          if (pat->data[j][5+k]!=-1) effectMask|=(2<<k);
+        }
+
+        if (mask==0) {
+          emptyRows++;
+          if (emptyRows>127) {
+            w->writeC(128|(emptyRows-2));
+            emptyRows=0;
+          }
         } else {
-          if (pat->data[j][4+k]!=-1 || pat->data[j][5+k]!=-1) mask|=64;
-        }
+          if (emptyRows>1) {
+            w->writeC(128|(emptyRows-2));
+            emptyRows=0;
+          } else if (emptyRows) {
+            w->writeC(0);
+            emptyRows=0;
+          }
 
-        if (pat->data[j][4+k]!=-1) effectMask|=(1<<k);
-        if (pat->data[j][5+k]!=-1) effectMask|=(2<<k);
-      }
+          w->writeC(mask);
 
-      if (mask==0) {
-        emptyRows++;
-        if (emptyRows>127) {
-          w->writeC(128|(emptyRows-2));
-          emptyRows=0;
-        }
-      } else {
-        if (emptyRows>1) {
-          w->writeC(128|(emptyRows-2));
-          emptyRows=0;
-        } else if (emptyRows) {
-          w->writeC(0);
-          emptyRows=0;
-        }
+          if (mask&32) w->writeC(effectMask&0xff);
+          if (mask&64) w->writeC((effectMask>>8)&0xff);
 
-        w->writeC(mask);
-
-        if (mask&32) w->writeC(effectMask&0xff);
-        if (mask&64) w->writeC((effectMask>>8)&0xff);
-
-        if (mask&1) w->writeC(finalNote);
-        if (mask&2) w->writeC(pat->data[j][2]);
-        if (mask&4) w->writeC(pat->data[j][3]);
-        if (mask&8) w->writeC(pat->data[j][4]);
-        if (mask&16) w->writeC(pat->data[j][5]);
-        if (mask&32) {
-          if (effectMask&4) w->writeC(pat->data[j][6]);
-          if (effectMask&8) w->writeC(pat->data[j][7]);
-          if (effectMask&16) w->writeC(pat->data[j][8]);
-          if (effectMask&32) w->writeC(pat->data[j][9]);
-          if (effectMask&64) w->writeC(pat->data[j][10]);
-          if (effectMask&128) w->writeC(pat->data[j][11]);
-        }
-        if (mask&64) {
-          if (effectMask&256) w->writeC(pat->data[j][12]);
-          if (effectMask&512) w->writeC(pat->data[j][13]);
-          if (effectMask&1024) w->writeC(pat->data[j][14]);
-          if (effectMask&2048) w->writeC(pat->data[j][15]);
-          if (effectMask&4096) w->writeC(pat->data[j][16]);
-          if (effectMask&8192) w->writeC(pat->data[j][17]);
-          if (effectMask&16384) w->writeC(pat->data[j][18]);
-          if (effectMask&32768) w->writeC(pat->data[j][19]);
+          if (mask&1) w->writeC(finalNote);
+          if (mask&2) w->writeC(pat->data[j][2]);
+          if (mask&4) w->writeC(pat->data[j][3]);
+          if (mask&8) w->writeC(pat->data[j][4]);
+          if (mask&16) w->writeC(pat->data[j][5]);
+          if (mask&32) {
+            if (effectMask&4) w->writeC(pat->data[j][6]);
+            if (effectMask&8) w->writeC(pat->data[j][7]);
+            if (effectMask&16) w->writeC(pat->data[j][8]);
+            if (effectMask&32) w->writeC(pat->data[j][9]);
+            if (effectMask&64) w->writeC(pat->data[j][10]);
+            if (effectMask&128) w->writeC(pat->data[j][11]);
+          }
+          if (mask&64) {
+            if (effectMask&256) w->writeC(pat->data[j][12]);
+            if (effectMask&512) w->writeC(pat->data[j][13]);
+            if (effectMask&1024) w->writeC(pat->data[j][14]);
+            if (effectMask&2048) w->writeC(pat->data[j][15]);
+            if (effectMask&4096) w->writeC(pat->data[j][16]);
+            if (effectMask&8192) w->writeC(pat->data[j][17]);
+            if (effectMask&16384) w->writeC(pat->data[j][18]);
+            if (effectMask&32768) w->writeC(pat->data[j][19]);
+          }
         }
       }
-    }
 
-    // stop
-    w->writeC(0xff);
-#else
-    w->write("PATR",4);
-    blockStartSeek=w->tell();
-    w->writeI(0);
+      // stop
+      w->writeC(0xff);
+    } else {
+      w->write("PATR",4);
+      blockStartSeek=w->tell();
+      w->writeI(0);
 
-    w->writeS(i.chan);
-    w->writeS(i.pat);
-    w->writeS(i.subsong);
+      w->writeS(i.chan);
+      w->writeS(i.pat);
+      w->writeS(i.subsong);
 
-    w->writeS(0); // reserved
+      w->writeS(0); // reserved
 
-    for (int j=0; j<song.subsong[i.subsong]->patLen; j++) {
-      w->writeS(pat->data[j][0]); // note
-      w->writeS(pat->data[j][1]); // octave
-      w->writeS(pat->data[j][2]); // instrument
-      w->writeS(pat->data[j][3]); // volume
+      for (int j=0; j<song.subsong[i.subsong]->patLen; j++) {
+        w->writeS(pat->data[j][0]); // note
+        w->writeS(pat->data[j][1]); // octave
+        w->writeS(pat->data[j][2]); // instrument
+        w->writeS(pat->data[j][3]); // volume
 #ifdef TA_BIG_ENDIAN
-      for (int k=0; k<song.subsong[i.subsong]->pat[i.chan].effectCols*2; k++) {
-        w->writeS(pat->data[j][4+k]);
-      }
+        for (int k=0; k<song.subsong[i.subsong]->pat[i.chan].effectCols*2; k++) {
+          w->writeS(pat->data[j][4+k]);
+        }
 #else
-      w->write(&pat->data[j][4],2*song.subsong[i.subsong]->pat[i.chan].effectCols*2); // effects
+        w->write(&pat->data[j][4],2*song.subsong[i.subsong]->pat[i.chan].effectCols*2); // effects
 #endif
-    }
+      }
 
-    w->writeString(pat->name,false);
-#endif
+      w->writeString(pat->name,false);
+    }
 
     blockEndSeek=w->tell();
     w->seek(blockStartSeek,SEEK_SET);

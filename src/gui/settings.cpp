@@ -662,6 +662,13 @@ void FurnaceGUI::drawSettings() {
             ImGui::SetTooltip("use zlib to compress saved songs.");
           }
 
+          bool newPatternFormatB=settings.newPatternFormat;
+          if (ImGui::Checkbox("Use new pattern format when saving",&newPatternFormatB)) {
+            settings.newPatternFormat=newPatternFormatB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("use a packed format which saves space when saving songs.\ndisable if you need compatibility with older Furnace and/or tools\nwhich do not support this format.");
+          }
 
           bool cursorFollowsOrderB=settings.cursorFollowsOrder;
           if (ImGui::Checkbox("Cursor follows current order when moving it",&cursorFollowsOrderB)) {
@@ -2683,6 +2690,7 @@ void FurnaceGUI::syncSettings() {
   settings.iCannotWait=e->getConfInt("iCannotWait",0);
   settings.orderButtonPos=e->getConfInt("orderButtonPos",2);
   settings.compress=e->getConfInt("compress",1);
+  settings.newPatternFormat=e->getConfInt("newPatternFormat",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2804,6 +2812,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.iCannotWait,0,1);
   clampSetting(settings.orderButtonPos,0,2);
   clampSetting(settings.compress,0,1);
+  clampSetting(settings.newPatternFormat,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3020,6 +3029,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("iCannotWait",settings.iCannotWait);
   e->setConf("orderButtonPos",settings.orderButtonPos);
   e->setConf("compress",settings.compress);
+  e->setConf("newPatternFormat",settings.newPatternFormat);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

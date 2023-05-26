@@ -1975,7 +1975,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
     if (dmfVersion<24) dmfVersion=24;
     w=e->saveDMF(dmfVersion);
   } else {
-    w=e->saveFur();
+    w=e->saveFur(false,settings.newPatternFormat);
   }
   if (w==NULL) {
     lastError=e->getLastError();
@@ -5674,7 +5674,7 @@ bool FurnaceGUI::loop() {
               }
             }
             logD("saving backup...");
-            SafeWriter* w=e->saveFur(true);
+            SafeWriter* w=e->saveFur(true,true);
             logV("writing file...");
 
             if (w!=NULL) {
