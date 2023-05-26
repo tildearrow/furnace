@@ -323,6 +323,8 @@ jobs:
 
         popd
 
+        cd target
+
         tar -zcv -f ../${{ steps.package-identify.outputs.filename }} furnace
 
     - name: Upload artifact
