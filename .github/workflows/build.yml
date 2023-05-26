@@ -321,9 +321,9 @@ jobs:
         cp -r ../../papers papers
         rmdir usr
 
-        tar -zcv -f ../${{ steps.package-identify.outputs.filename }} furnace
-
         popd
+
+        tar -zcv -f ../${{ steps.package-identify.outputs.filename }} furnace
 
     - name: Upload artifact
       if: ${{ github.repository == 'tildearrow/furnace' && github.ref_name == 'master' }}
