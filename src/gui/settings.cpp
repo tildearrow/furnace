@@ -1851,13 +1851,33 @@ void FurnaceGUI::drawSettings() {
               }
               UI_COLOR_CONFIG(GUI_COLOR_BACKGROUND,"Background");
               UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND,"Window background");
+              UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND_CHILD,"Sub-window background");
+              UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND_POPUP,"Pop-up background");
               UI_COLOR_CONFIG(GUI_COLOR_MODAL_BACKDROP,"Modal backdrop");
               UI_COLOR_CONFIG(GUI_COLOR_HEADER,"Header");
               UI_COLOR_CONFIG(GUI_COLOR_TEXT,"Text");
               UI_COLOR_CONFIG(GUI_COLOR_ACCENT_PRIMARY,"Primary");
               UI_COLOR_CONFIG(GUI_COLOR_ACCENT_SECONDARY,"Secondary");
+              UI_COLOR_CONFIG(GUI_COLOR_TITLE_INACTIVE,"Title bar (inactive)");
+              UI_COLOR_CONFIG(GUI_COLOR_TITLE_COLLAPSED,"Title bar (collapsed)");
+              UI_COLOR_CONFIG(GUI_COLOR_MENU_BAR,"Menu bar");
               UI_COLOR_CONFIG(GUI_COLOR_BORDER,"Border");
               UI_COLOR_CONFIG(GUI_COLOR_BORDER_SHADOW,"Border shadow");
+              UI_COLOR_CONFIG(GUI_COLOR_BORDER_SCROLL,"Scroll bar");
+              UI_COLOR_CONFIG(GUI_COLOR_BORDER_SCROLL_HOVER,"Scroll bar (hovered)");
+              UI_COLOR_CONFIG(GUI_COLOR_BORDER_SCROLL_ACTIVE,"Scroll bar (clicked)");
+              UI_COLOR_CONFIG(GUI_COLOR_BORDER_SCROLL_BACKGROUND,"Scroll bar background");
+              UI_COLOR_CONFIG(GUI_COLOR_BORDER_SEPARATOR,"Separator");
+              UI_COLOR_CONFIG(GUI_COLOR_BORDER_SEPARATOR_HOVER,"Separator (hover)");
+              UI_COLOR_CONFIG(GUI_COLOR_BORDER_SEPARATOR_ACTIVE,"Separator (active)");
+              UI_COLOR_CONFIG(GUI_COLOR_DOCKING_PREVIEW,"Docking preview");
+              UI_COLOR_CONFIG(GUI_COLOR_DOCKING_EMPTY,"Docking empty");
+              UI_COLOR_CONFIG(GUI_COLOR_TABLE_HEADER,"Table header");
+              UI_COLOR_CONFIG(GUI_COLOR_TABLE_BORDER_HARD,"Table border (hard)");
+              UI_COLOR_CONFIG(GUI_COLOR_TABLE_BORDER_SOFT,"Table border (soft)");
+              UI_COLOR_CONFIG(GUI_COLOR_DRAG_DROP_TARGET,"Drag and drop target");
+              UI_COLOR_CONFIG(GUI_COLOR_NAV_WIN_HIGHLIGHT,"Window switcher (highlight)");
+              UI_COLOR_CONFIG(GUI_COLOR_NAV_WIN_BACKDROP,"Window switcher backdrop");
               UI_COLOR_CONFIG(GUI_COLOR_TOGGLE_ON,"Toggle on");
               UI_COLOR_CONFIG(GUI_COLOR_TOGGLE_OFF,"Toggle off");
               UI_COLOR_CONFIG(GUI_COLOR_EDITING,"Editing");
@@ -3548,7 +3568,28 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   }
 
   sty.Colors[ImGuiCol_WindowBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND];
+  sty.Colors[ImGuiCol_ChildBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND_CHILD];
+  sty.Colors[ImGuiCol_PopupBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND_POPUP];
+  sty.Colors[ImGuiCol_TitleBg]=uiColors[GUI_COLOR_TITLE_INACTIVE];
+  sty.Colors[ImGuiCol_TitleBgCollapsed]=uiColors[GUI_COLOR_TITLE_COLLAPSED];
+  sty.Colors[ImGuiCol_MenuBarBg]=uiColors[GUI_COLOR_MENU_BAR];
   sty.Colors[ImGuiCol_ModalWindowDimBg]=uiColors[GUI_COLOR_MODAL_BACKDROP];
+  sty.Colors[ImGuiCol_ScrollbarBg]=uiColors[GUI_COLOR_SCROLL_BACKGROUND];
+  sty.Colors[ImGuiCol_ScrollbarGrab]=uiColors[GUI_COLOR_SCROLL];
+  sty.Colors[ImGuiCol_ScrollbarGrabHovered]=uiColors[GUI_COLOR_SCROLL_HOVER];
+  sty.Colors[ImGuiCol_ScrollbarGrabActive]=uiColors[GUI_COLOR_SCROLL_ACTIVE];
+  sty.Colors[ImGuiCol_Separator]=uiColors[GUI_COLOR_SEPARATOR];
+  sty.Colors[ImGuiCol_SeparatorHovered]=uiColors[GUI_COLOR_SEPARATOR_HOVER];
+  sty.Colors[ImGuiCol_SeparatorActive]=uiColors[GUI_COLOR_SEPARATOR_ACTIVE];
+  sty.Colors[ImGuiCol_DockingPreview]=uiColors[GUI_COLOR_DOCKING_PREVIEW];
+  sty.Colors[ImGuiCol_DockingEmptyBg]=uiColors[GUI_COLOR_DOCKING_EMPTY];
+  sty.Colors[ImGuiCol_TableHeaderBg]=uiColors[GUI_COLOR_TABLE_HEADER];
+  sty.Colors[ImGuiCol_TableBorderStrong]=uiColors[GUI_COLOR_TABLE_BORDER_HARD];
+  sty.Colors[ImGuiCol_TableBorderLight]=uiColors[GUI_COLOR_TABLE_BORDER_SOFT];
+  sty.Colors[ImGuiCol_DragDropTarget]=uiColors[GUI_COLOR_DRAG_DROP_TARGET];
+  sty.Colors[ImGuiCol_NavHighlight]=uiColors[GUI_COLOR_NAV_HIGHLIGHT];
+  sty.Colors[ImGuiCol_NavWindowingHighlight]=uiColors[GUI_COLOR_NAV_WIN_HIGHLIGHT];
+  sty.Colors[ImGuiCol_NavWindowingDimBg]=uiColors[GUI_COLOR_NAV_WIN_BACKDROP];
   sty.Colors[ImGuiCol_Text]=uiColors[GUI_COLOR_TEXT];
 
   sty.Colors[ImGuiCol_Button]=primary;
