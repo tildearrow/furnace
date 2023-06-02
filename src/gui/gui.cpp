@@ -6209,7 +6209,12 @@ bool FurnaceGUI::init() {
   // special consideration for Wayland
   if (settings.dpiScale<0.5f) {
     if (strcmp(videoBackend,"wayland")==0) {
-      dpiScale=(double)canvasW/(double)scrW;
+      if (scrW<1) {
+        logW("screen width is zero!\n");
+        dpiScale=1.0;
+      } else {
+        dpiScale=(double)canvasW/(double)scrW;
+      }
     }
   }
 
