@@ -188,11 +188,11 @@ struct DivSample {
   /**
    * @warning DO NOT USE - internal functions
    */
-  bool resampleNone(double rate);
-  bool resampleLinear(double rate);
-  bool resampleCubic(double rate);
-  bool resampleBlep(double rate);
-  bool resampleSinc(double rate);
+  bool resampleNone(double sRate, double tRate);
+  bool resampleLinear(double sRate, double tRate);
+  bool resampleCubic(double sRate, double tRate);
+  bool resampleBlep(double sRate, double tRate);
+  bool resampleSinc(double sRate, double tRate);
 
   /**
    * save this sample to a file.
@@ -200,6 +200,13 @@ struct DivSample {
    * @return whether saving succeeded or not.
    */
   bool save(const char* path);
+
+  /**
+   * save this sample to a file (raw).
+   * @param path a path.
+   * @return whether saving succeeded or not.
+   */
+  bool saveRaw(const char* path);
 
   /**
    * @warning DO NOT USE - internal function
@@ -255,11 +262,19 @@ struct DivSample {
   /**
    * change the sample rate.
    * @warning do not attempt to resample outside of a synchronized block!
-   * @param rate number of samples.
+   * @param sRate source rate.
+   * @param tRate target rate.
    * @param filter the interpolation filter.
    * @return whether it was successful.
    */
-  bool resample(double rate, int filter);
+  bool resample(double sRate, double tRate, int filter);
+
+  /**
+   * convert sample depth.
+   * @warning do not attempt to do this outside of a synchronized block!
+   * @param newDepth the new depth.
+   */
+  void convert(DivSampleDepth newDepth);
 
   /**
    * initialize the rest of sample formats for this sample.

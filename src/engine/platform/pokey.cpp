@@ -156,7 +156,7 @@ void DivPlatformPOKEY::tick(bool sysTick) {
 
   for (int i=0; i<4; i++) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
-      chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER);
+      chan[i].freq=parent->calcFreq(chan[i].baseFreq,parent->song.linearPitch?chan[i].pitch:0,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,parent->song.linearPitch?chan[i].pitch2:0,chipClock,CHIP_DIVIDER);
 
       if ((i==0 && !(audctl&64)) || (i==2 && !(audctl&32)) || i==1 || i==3) {
         chan[i].freq/=7;
@@ -192,6 +192,11 @@ void DivPlatformPOKEY::tick(bool sysTick) {
 
       if (audctl&1 && !((i==0 && audctl&64) || (i==2 && audctl&32))) {
         chan[i].freq>>=2;
+      }
+
+      // non-linear pitch
+      if (parent->song.linearPitch==0) {
+        chan[i].freq-=chan[i].pitch;
       }
 
       if (--chan[i].freq<0) chan[i].freq=0;

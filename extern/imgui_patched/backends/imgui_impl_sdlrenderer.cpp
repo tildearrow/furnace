@@ -94,13 +94,14 @@ static void ImGui_ImplSDLRenderer_SetupRenderState()
 	SDL_RenderSetClipRect(bd->SDLRenderer, NULL);
 }
 
-void ImGui_ImplSDLRenderer_NewFrame()
+bool ImGui_ImplSDLRenderer_NewFrame()
 {
     ImGui_ImplSDLRenderer_Data* bd = ImGui_ImplSDLRenderer_GetBackendData();
     IM_ASSERT(bd != NULL && "Did you call ImGui_ImplSDLRenderer_Init()?");
 
     if (!bd->FontTexture)
-        ImGui_ImplSDLRenderer_CreateDeviceObjects();
+        return ImGui_ImplSDLRenderer_CreateDeviceObjects();
+    return true;
 }
 
 void ImGui_ImplSDLRenderer_RenderDrawData(ImDrawData* draw_data)

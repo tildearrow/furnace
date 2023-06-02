@@ -556,6 +556,9 @@ src/engine/platform/dummy.cpp
 
 src/engine/export/abstract.cpp
 src/engine/export/amigaValidation.cpp
+
+src/engine/effect/abstract.cpp
+src/engine/effect/dummy.cpp
 )
 
 if (USE_SNDFILE)
@@ -792,7 +795,7 @@ endif()
 if(ANDROID AND NOT TERMUX)
   add_library(furnace SHARED ${USED_SOURCES})
 elseif(WIN32)
-  add_executable(furnace ${USED_SOURCES})
+  add_executable(furnace WIN32 ${USED_SOURCES})
 else()
   add_executable(furnace ${USED_SOURCES})
 endif()

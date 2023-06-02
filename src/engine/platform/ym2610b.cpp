@@ -320,7 +320,16 @@ void DivPlatformYM2610B::acquire_combo(short** buf, size_t len) {
   }
 
   for (size_t h=0; h<len; h++) {
+    // AY -> OPN
+    ay->runDAC();
+    ay->flushWrites();
+    for (DivRegWrite& i: ay->getRegisterWrites()) {
+      if (i.addr>15) continue;
+      immWrite(i.addr&15,i.val);
+    }
+    ay->getRegisterWrites().clear();
     os[0]=0; os[1]=0;
+
     // Nuked part
     for (int i=0; i<24; i++) {
       if (!writes.empty()) {
@@ -426,6 +435,15 @@ void DivPlatformYM2610B::acquire_ymfm(short** buf, size_t len) {
   }
 
   for (size_t h=0; h<len; h++) {
+    // AY -> OPN
+    ay->runDAC();
+    ay->flushWrites();
+    for (DivRegWrite& i: ay->getRegisterWrites()) {
+      if (i.addr>15) continue;
+      immWrite(i.addr&15,i.val);
+    }
+    ay->getRegisterWrites().clear();
+
     os[0]=0; os[1]=0;
     if (!writes.empty()) {
       if (--delay<1 && !(fm->read(0)&0x80)) {
@@ -1046,7 +1064,7 @@ int DivPlatformYM2610B::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      chan[c.chan].macroInit(NULL);
+      if (parent->song.brokenFMOff) chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;

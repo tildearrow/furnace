@@ -202,6 +202,7 @@ void DivPlatformSNES::tick(bool sysTick) {
     }
   }
   for (int i=0; i<8; i++) {
+    // TODO: if wavetable length is higher than 32, we lose precision!
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
       double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
@@ -221,7 +222,7 @@ void DivPlatformSNES::tick(bool sysTick) {
           if (chan[i].audPos>0) {
             start=start+MIN(chan[i].audPos,s->lengthBRR-1)/16*9;
           }
-          if (s->loopStart>=0) {
+          if (s->isLoopable()) {
             loop=((s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0)+start+((s->loopStart/16)*9);
           }
         } else {
@@ -299,6 +300,11 @@ void DivPlatformSNES::tick(bool sysTick) {
     );
     rWrite(0x4d,echoBits);
     writeEcho=false;
+  }
+  if (writeDryVol) {
+    rWrite(0x0c,dryVolL);
+    rWrite(0x1c,dryVolR);
+    writeDryVol=false;
   }
   for (int i=0; i<8; i++) {
     if (chan[i].shallWriteEnv) {
@@ -563,6 +569,14 @@ int DivPlatformSNES::dispatch(DivCommand c) {
         rWrite(0x3c,echoVolR);
       }
       break;
+    case DIV_CMD_SNES_GLOBAL_VOL_LEFT:
+      dryVolL=c.value;
+      writeDryVol=true;
+      break;
+    case DIV_CMD_SNES_GLOBAL_VOL_RIGHT:
+      dryVolR=c.value;
+      writeDryVol=true;
+      break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
       break;
@@ -673,6 +687,7 @@ void DivPlatformSNES::forceIns() {
   writeNoise=true;
   writePitchMod=true;
   writeEcho=true;
+  writeDryVol=true;
   initEcho();
 }
 
@@ -761,6 +776,10 @@ void DivPlatformSNES::reset() {
   writeNoise=false;
   writePitchMod=false;
   writeEcho=true;
+  writeDryVol=false;
+
+  dryVolL=127;
+  dryVolR=127;
 
   echoDelay=initEchoDelay;
   echoFeedback=initEchoFeedback;

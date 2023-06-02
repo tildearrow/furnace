@@ -105,6 +105,7 @@ void DivPlatformC64::updateFilter() {
 }
 
 void DivPlatformC64::tick(bool sysTick) {
+  bool willUpdateFilter=false;
   for (int i=0; i<3; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -117,10 +118,10 @@ void DivPlatformC64::tick(bool sysTick) {
           if (filtCut>2047) filtCut=2047;
           if (filtCut<0) filtCut=0;
         }
-        updateFilter();
+        willUpdateFilter=true;
       } else {
         vol=MIN(15,chan[i].std.vol.val);
-        updateFilter();
+        willUpdateFilter=true;
       }
     }
     if (NEW_ARP_STRAT) {
@@ -156,11 +157,11 @@ void DivPlatformC64::tick(bool sysTick) {
     }
     if (chan[i].std.ex1.had) {
       filtControl=chan[i].std.ex1.val&15;
-      updateFilter();
+      willUpdateFilter=true;
     }
     if (chan[i].std.ex2.had) {
       filtRes=chan[i].std.ex2.val&15;
-      updateFilter();
+      willUpdateFilter=true;
     }
     if (chan[i].std.ex3.had) {
       chan[i].sync=chan[i].std.ex3.val&1;
@@ -207,6 +208,7 @@ void DivPlatformC64::tick(bool sysTick) {
       chan[i].freqChanged=false;
     }
   }
+  if (willUpdateFilter) updateFilter();
 }
 
 int DivPlatformC64::dispatch(DivCommand c) {

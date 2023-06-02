@@ -133,12 +133,24 @@ void FurnaceGUI::drawSampleEdit() {
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Open");
       }
+      if (ImGui::BeginPopupContextItem("SampleEOpenOpt")) {
+        if (ImGui::MenuItem("import raw...")) {
+          doAction((curSample>=0 && curSample<(int)e->song.sample.size())?GUI_ACTION_SAMPLE_LIST_OPEN_REPLACE_RAW:GUI_ACTION_SAMPLE_LIST_OPEN_RAW);
+        }
+        ImGui::EndPopup();
+      }
       ImGui::SameLine();
       if (ImGui::Button(ICON_FA_FLOPPY_O "##SESave")) {
         doAction(GUI_ACTION_SAMPLE_LIST_SAVE);
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Save");
+      }
+      if (ImGui::BeginPopupContextItem("SampleESaveOpt")) {
+        if (ImGui::MenuItem("save raw...")) {
+          doAction(GUI_ACTION_SAMPLE_LIST_SAVE_RAW);
+        }
+        ImGui::EndPopup();
       }
 
       ImGui::SameLine();
@@ -176,6 +188,8 @@ void FurnaceGUI::drawSampleEdit() {
       for (int i=0; i<DIV_MAX_CHIPS; i++) {
         if (isChipVisible[i]) selColumns++;
       }
+      
+      int targetRate=sampleCompatRate?sample->rate:sample->centerRate;
 
       if (ImGui::BeginTable("SampleProps",(selColumns>1)?4:3,ImGuiTableFlags_SizingStretchSame|ImGuiTableFlags_BordersV|ImGuiTableFlags_BordersOuterH)) {
         ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
@@ -201,16 +215,21 @@ void FurnaceGUI::drawSampleEdit() {
         }
         popToggleColors();
         ImGui::TableNextColumn();
-        bool doLoop=(sample->isLoopable());
+        bool doLoop=(sample->loop);
         if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
           if (doLoop) {
             sample->loop=true;
-            sample->loopStart=0;
-            sample->loopEnd=sample->samples;
+            if (sample->loopStart<0) {
+              sample->loopStart=0;
+            }
+            if (sample->loopEnd<0) {
+              sample->loopEnd=sample->samples;
+            }
           } else {
             sample->loop=false;
+            /*
             sample->loopStart=-1;
-            sample->loopEnd=sample->samples;
+            sample->loopEnd=sample->samples;*/
           }
           updateSampleTex=true;
           if (e->getSampleFormatMask()&(1U<<DIV_SAMPLE_DEPTH_BRR)) {
@@ -238,8 +257,7 @@ void FurnaceGUI::drawSampleEdit() {
               if (ImGui::Selectable(sampleDepths[i])) {
                 sample->prepareUndo(true);
                 e->lockEngine([this,sample,i]() {
-                  sample->render();
-                  sample->depth=(DivSampleDepth)i;
+                  sample->convert((DivSampleDepth)i);
                   e->renderSamples();
                 });
                 updateSampleTex=true;
@@ -274,7 +292,6 @@ void FurnaceGUI::drawSampleEdit() {
             }
           }
 
-          int targetRate=sampleCompatRate?sample->rate:sample->centerRate;
           int sampleNote=round(64.0+(128.0*12.0*log((double)targetRate/8363.0)/log(2.0)));
           int sampleNoteCoarse=60+(sampleNote>>7);
           int sampleNoteFine=(sampleNote&127)-64;
@@ -608,7 +625,7 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::SameLine();
       ImGui::Button(ICON_FA_EXPAND "##SResample");
       if (ImGui::IsItemClicked()) {
-        resampleTarget=sample->rate;
+        resampleTarget=targetRate;
       }
       if (ImGui::IsItemHovered()) {
         ImGui::SetTooltip("Resample");
@@ -629,23 +646,23 @@ void FurnaceGUI::drawSampleEdit() {
         }
         ImGui::SameLine();
         if (ImGui::Button("==")) {
-          resampleTarget=sample->rate;
+          resampleTarget=targetRate;
         }
         ImGui::SameLine();
         if (ImGui::Button("2.0x")) {
           resampleTarget*=2.0;
         }
-        double factor=resampleTarget/(double)sample->rate;
+        double factor=resampleTarget/(double)targetRate;
         if (ImGui::InputDouble("Factor",&factor,0.125,0.5,"%g")) {
-          resampleTarget=(double)sample->rate*factor;
+          resampleTarget=(double)targetRate*factor;
           if (resampleTarget<0) resampleTarget=0;
           if (resampleTarget>96000) resampleTarget=96000;
         }
         ImGui::Combo("Filter",&resampleStrat,resampleStrats,6);
         if (ImGui::Button("Resample")) {
           sample->prepareUndo(true);
-          e->lockEngine([this,sample]() {
-            if (!sample->resample(resampleTarget,resampleStrat)) {
+          e->lockEngine([this,sample,targetRate]() {
+            if (!sample->resample(targetRate,resampleTarget,resampleStrat)) {
               showError("couldn't resample! make sure your sample is 8 or 16-bit.");
             }
             e->renderSamples();
@@ -658,7 +675,7 @@ void FurnaceGUI::drawSampleEdit() {
         }
         ImGui::EndPopup();
       } else {
-        resampleTarget=sample->rate;
+        resampleTarget=targetRate;
       }
       ImGui::SameLine();
       ImGui::Dummy(ImVec2(4.0*dpiScale,dpiScale));
@@ -1111,23 +1128,26 @@ void FurnaceGUI::drawSampleEdit() {
 
       if (sampleTex!=NULL) {
         if (updateSampleTex) {
-          unsigned int* data=NULL;
+          unsigned int* dataT=NULL;
           int pitch=0;
           logD("updating sample texture.");
-          if (SDL_LockTexture(sampleTex,NULL,(void**)&data,&pitch)!=0) {
+          if (SDL_LockTexture(sampleTex,NULL,(void**)&dataT,&pitch)!=0) {
             logE("error while locking sample texture! %s",SDL_GetError());
           } else {
+            unsigned int* data=new unsigned int[sampleTexW*sampleTexH];
+
             ImU32 bgColor=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_BG]);
             ImU32 bgColorLoop=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_LOOP]);
             ImU32 lineColor=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_FG]);
             ImU32 centerLineColor=ImGui::GetColorU32(uiColors[GUI_COLOR_SAMPLE_CENTER]);
+            int ij=0;
             for (int i=0; i<availY; i++) {
               for (int j=0; j<availX; j++) {
                 int scaledPos=samplePos+(j*sampleZoom);
                 if (sample->isLoopable() && (scaledPos>=sample->loopStart && scaledPos<=sample->loopEnd)) {
-                  data[i*availX+j]=bgColorLoop;
+                  data[ij++]=bgColorLoop;
                 } else {
-                  data[i*availX+j]=bgColor;
+                  data[ij++]=bgColor;
                 }
               }
             }
@@ -1143,11 +1163,15 @@ void FurnaceGUI::drawSampleEdit() {
             for (unsigned int i=0; i<(unsigned int)availX; i++) {
               if (xCoarse>=sample->samples) break;
               int y1, y2;
+              int candMin=INT_MAX;
+              int candMax=INT_MIN;
               int totalAdvance=0;
               if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
-                y1=((unsigned char)sample->data8[xCoarse]^0x80)*availY/256;
+                if (candMin>sample->data8[xCoarse]) candMin=sample->data8[xCoarse];
+                if (candMax<sample->data8[xCoarse]) candMax=sample->data8[xCoarse];
               } else {
-                y1=((unsigned short)sample->data16[xCoarse]^0x8000)*availY/65536;
+                if (candMin>sample->data16[xCoarse]) candMin=sample->data16[xCoarse];
+                if (candMax<sample->data16[xCoarse]) candMax=sample->data16[xCoarse];
               }
               xFine+=xAdvanceFine;
               if (xFine>=16777216) {
@@ -1157,27 +1181,44 @@ void FurnaceGUI::drawSampleEdit() {
               totalAdvance+=xAdvanceCoarse;
               if (xCoarse>=sample->samples) break;
               do {
+                if (xCoarse>=sample->samples) break;
                 if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
-                  y2=((unsigned char)sample->data8[xCoarse]^0x80)*availY/256;
+                  if (candMin>sample->data8[xCoarse]) candMin=sample->data8[xCoarse];
+                  if (candMax<sample->data8[xCoarse]) candMax=sample->data8[xCoarse];
                 } else {
-                  y2=((unsigned short)sample->data16[xCoarse]^0x8000)*availY/65536;
-                }
-                if (y1>y2) {
-                  y2^=y1;
-                  y1^=y2;
-                  y2^=y1;
-                }
-                if (y1<0) y1=0;
-                if (y1>=availY) y1=availY-1;
-                if (y2<0) y2=0;
-                if (y2>=availY) y2=availY-1;
-                for (int j=y1; j<=y2; j++) {
-                  data[i+availX*(availY-j-1)]=lineColor;
+                  if (candMin>sample->data16[xCoarse]) candMin=sample->data16[xCoarse];
+                  if (candMax<sample->data16[xCoarse]) candMax=sample->data16[xCoarse];
                 }
                 if (totalAdvance>0) xCoarse++;
               } while ((totalAdvance--)>0);
+              if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
+                y1=(((unsigned char)candMin^0x80)*availY)>>8;
+                y2=(((unsigned char)candMax^0x80)*availY)>>8;
+              } else {
+                y1=(((unsigned short)candMin^0x8000)*availY)>>16;
+                y2=(((unsigned short)candMax^0x8000)*availY)>>16;
+              }
+              if (y1>y2) {
+                y2^=y1;
+                y1^=y2;
+                y2^=y1;
+              }
+              if (y1<0) y1=0;
+              if (y1>=availY) y1=availY-1;
+              if (y2<0) y2=0;
+              if (y2>=availY) y2=availY-1;
+
+              const int s1=i+availX*(availY-y1-1);
+              const int s2=i+availX*(availY-y2-1);
+
+              for (int j=s2; j<=s1; j+=availX) {
+                data[j]=lineColor;
+              }
             }
+
+            memcpy(dataT,data,sampleTexW*sampleTexH*sizeof(unsigned int));
             SDL_UnlockTexture(sampleTex);
+            delete[] data;
           }
           updateSampleTex=false;
         }
@@ -1187,6 +1228,31 @@ void FurnaceGUI::drawSampleEdit() {
         ImVec2 rectMin=ImGui::GetItemRectMin();
         ImVec2 rectMax=ImGui::GetItemRectMax();
         ImVec2 rectSize=ImGui::GetItemRectSize();
+
+        unsigned char selectTarget=255;
+
+        if (ImGui::IsItemHovered()) {
+          int start=sampleSelStart;
+          int end=sampleSelEnd;
+          if (start>end) {
+            start^=end;
+            end^=start;
+            start^=end;
+          }
+          ImVec2 p1=rectMin;
+          p1.x+=(start-samplePos)/sampleZoom;
+
+          ImVec2 p2=ImVec2(rectMin.x+(end-samplePos)/sampleZoom,rectMax.y);
+
+          ImVec2 mousePos=ImGui::GetMousePos();
+          if (p1.x>=rectMin.x && p1.x<=rectMax.x && fabs(mousePos.x-p1.x)<2.0*dpiScale) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+            selectTarget=0;
+          } else if (p2.x>=rectMin.x && p2.x<=rectMax.x && fabs(mousePos.x-p2.x)<2.0*dpiScale) {
+            ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
+            selectTarget=1;
+          }
+        }
 
         if (ImGui::IsItemClicked()) {
           nextWindow=GUI_WINDOW_SAMPLE_EDIT;
@@ -1214,9 +1280,23 @@ void FurnaceGUI::drawSampleEdit() {
               }
               sampleDragLen=sample->samples;
               sampleDragActive=true;
-              sampleSelStart=-1;
-              sampleSelEnd=-1;
-              if (sampleDragMode) sample->prepareUndo(true);
+              if (!sampleDragMode) {
+                switch (selectTarget) {
+                  case 0:
+                    sampleSelStart^=sampleSelEnd;
+                    sampleSelEnd^=sampleSelStart;
+                    sampleSelStart^=sampleSelEnd;
+                    break;
+                  case 1:
+                    break;
+                  default:
+                    sampleSelStart=-1;
+                    sampleSelEnd=-1;
+                    break;
+                }
+              } else {
+                sample->prepareUndo(true);
+              }
               processDrags(ImGui::GetMousePos().x,ImGui::GetMousePos().y);
             }
           }

@@ -65,6 +65,7 @@ class DivPlatformSegaPCM: public DivDispatch {
     segapcm_device pcm;
     int delay;
     int pcmL, pcmR, pcmCycles;
+    bool oldSlides;
     unsigned char sampleBank;
     unsigned char lastBusy;
 

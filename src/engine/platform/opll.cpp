@@ -409,10 +409,6 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
               case 8: case 9:
                 chan[c.chan].fixedFreq=(chan[c.chan].state.tomTopFreq&511)<<(chan[c.chan].state.tomTopFreq>>9);
                 break;
-              default:
-                chan[c.chan].fixedFreq=0;
-                chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
-                break;
             }
           } else {
             chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);

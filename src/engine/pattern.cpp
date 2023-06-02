@@ -23,11 +23,7 @@
 static DivPattern emptyPat;
 
 DivPattern::DivPattern() {
-  memset(data,-1,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
-  for (int i=0; i<DIV_MAX_ROWS; i++) {
-    data[i][0]=0;
-    data[i][1]=0;
-  }
+  clear();
 }
 
 DivPattern* DivChannelData::getPattern(int index, bool create) {
@@ -91,6 +87,14 @@ void DivChannelData::wipePatterns() {
 void DivPattern::copyOn(DivPattern* dest) {
   dest->name=name;
   memcpy(dest->data,data,sizeof(data));
+}
+
+void DivPattern::clear() {
+  memset(data,-1,DIV_MAX_ROWS*DIV_MAX_COLS*sizeof(short));
+  for (int i=0; i<DIV_MAX_ROWS; i++) {
+    data[i][0]=0;
+    data[i][1]=0;
+  }
 }
 
 DivChannelData::DivChannelData():

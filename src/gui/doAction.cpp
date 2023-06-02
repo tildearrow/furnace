@@ -561,18 +561,32 @@ void FurnaceGUI::doAction(int what) {
       doFlip();
       break;
     case GUI_ACTION_PAT_COLLAPSE_ROWS:
-      doCollapse(2);
+      doCollapse(collapseAmount,selStart,selEnd);
       break;
     case GUI_ACTION_PAT_EXPAND_ROWS:
-      doExpand(2);
+      doExpand(collapseAmount,selStart,selEnd);
       break;
-    case GUI_ACTION_PAT_COLLAPSE_PAT: // TODO
+    case GUI_ACTION_PAT_COLLAPSE_PAT: {
+      SelectionPoint selEndPat;
+      selEndPat.xCoarse=e->getTotalChannelCount()-1;
+      selEndPat.xFine=2+e->curPat[selEndPat.xCoarse].effectCols*2;
+      selEndPat.y=e->curSubSong->patLen-1;
+      doCollapse(collapseAmount,SelectionPoint(0,0,0),selEndPat);
       break;
-    case GUI_ACTION_PAT_EXPAND_PAT: // TODO
+    }
+    case GUI_ACTION_PAT_EXPAND_PAT: {
+      SelectionPoint selEndPat;
+      selEndPat.xCoarse=e->getTotalChannelCount()-1;
+      selEndPat.xFine=2+e->curPat[selEndPat.xCoarse].effectCols*2;
+      selEndPat.y=e->curSubSong->patLen-1;
+      doExpand(collapseAmount,SelectionPoint(0,0,0),selEndPat);
       break;
-    case GUI_ACTION_PAT_COLLAPSE_SONG: // TODO
+    }
+    case GUI_ACTION_PAT_COLLAPSE_SONG:
+      doCollapseSong(collapseAmount);
       break;
-    case GUI_ACTION_PAT_EXPAND_SONG: // TODO
+    case GUI_ACTION_PAT_EXPAND_SONG:
+      doExpandSong(collapseAmount);
       break;
     case GUI_ACTION_PAT_LATCH: // TODO
       break;
@@ -670,6 +684,9 @@ void FurnaceGUI::doAction(int what) {
       wavePreviewInit=true;
       updateFMPreview=true;
       break;
+    case GUI_ACTION_INS_LIST_DIR_VIEW:
+      insListDir=!insListDir;
+      break;
     
     case GUI_ACTION_WAVE_LIST_ADD:
       curWave=e->addWave();
@@ -743,6 +760,9 @@ void FurnaceGUI::doAction(int what) {
       if (++curWave>=(int)e->song.wave.size()) curWave=((int)e->song.wave.size())-1;
       wantScrollList=true;
       break;
+    case GUI_ACTION_WAVE_LIST_DIR_VIEW:
+      waveListDir=!waveListDir;
+      break;
 
     case GUI_ACTION_SAMPLE_LIST_ADD:
       curSample=e->addSample();
@@ -801,6 +821,9 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_SAMPLE_LIST_SAVE:
       if (curSample>=0 && curSample<(int)e->song.sample.size()) openFileDialog(GUI_FILE_SAMPLE_SAVE);
       break;
+    case GUI_ACTION_SAMPLE_LIST_SAVE_RAW:
+      if (curSample>=0 && curSample<(int)e->song.sample.size()) openFileDialog(GUI_FILE_SAMPLE_SAVE_RAW);
+      break;
     case GUI_ACTION_SAMPLE_LIST_MOVE_UP:
       if (e->moveSampleUp(curSample)) {
         curSample--;
@@ -821,8 +844,8 @@ void FurnaceGUI::doAction(int what) {
       MARK_MODIFIED;
       if (curSample>=(int)e->song.sample.size()) {
         curSample--;
-        updateSampleTex=true;
       }
+      updateSampleTex=true;
       break;
     case GUI_ACTION_SAMPLE_LIST_EDIT:
       sampleEditOpen=true;
@@ -842,6 +865,9 @@ void FurnaceGUI::doAction(int what) {
       break;
     case GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW:
       e->stopSamplePreview();
+      break;
+    case GUI_ACTION_SAMPLE_LIST_DIR_VIEW:
+      sampleListDir=!sampleListDir;
       break;
 
     case GUI_ACTION_SAMPLE_SELECT:

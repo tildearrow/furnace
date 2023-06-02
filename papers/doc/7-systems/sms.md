@@ -2,7 +2,7 @@
 
 a relatively simple sound chip made by Texas Instruments. a derivative of it is used in Sega's Master System, the predecessor to Genesis.
 
-the original iteration of the SN76489 used in the TI-99/4A computers was clocked at 447 KHz, being able to play as low as 13.670 Hz (A -1). consequentially, pitch accuracy for higher notes is compromised.
+the original iteration of the SN76489 used in the TI-99/4A computers was clocked at 447 KHz, being able to play as low as 13.670 Hz (A -1). consequently, pitch accuracy for higher notes is compromised.
 
 on the other hand, the chip was clocked at a much higher speed on Master System and Genesis, which makes it rather poor in the bass range.
 

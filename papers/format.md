@@ -32,6 +32,12 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 158: Furnace 0.6pre5
+- 157: Furnace dev157
+- 156: Furnace dev156
+- 155: Furnace dev155
+- 154: Furnace dev154
+- 153: Furnace dev153
 - 152: Furnace dev152
 - 151: Furnace dev151
 - 150: Furnace dev150
@@ -422,7 +428,8 @@ size | description
   1  | automatic patchbay (>=136)
  --- | **a couple more compat flags** (>=138)
   1  | broken portamento during legato
-  7  | reserved
+  1  | broken macro during note off in some FM chips (>=155)
+  6  | reserved
  --- | **speed pattern of first song** (>=139)
   1  | length of speed pattern (fail if this is lower than 0 or higher than 16)
  16  | speed pattern (this overrides speed 1 and speed 2 settings)
@@ -431,12 +438,16 @@ size | description
  ??? | groove entries. the format is:
      | - 1 byte: length of groove
      | - 16 bytes: groove pattern
+ --- | **pointers to asset directories** (>=156)
+  4  | instrument directories
+  4  | wavetable directories
+  4  | sample directories
 ```
 
 # patchbay
 
 Furnace dev135 adds a "patchbay" which allows for arbitrary connection of chip outputs to system outputs.
-it eventually will allow connecting outputs to effects and so on.
+it also allows connecting outputs to effects and so on.
 
 a connection is represented as an unsigned int in the following format:
 
@@ -520,6 +531,22 @@ flags are stored in text (`key=value`) format. for example:
 ```
 clock=4000000
 stereo=true
+```
+
+# asset directories (>=156)
+
+also known as "folder" in the user interface.
+
+```
+size | description
+-----|------------------------------------
+  4  | "ADIR" block ID
+  4  | size of this block
+  4  | number of directories
+ --- | **asset directory** (×numberOfDirs)
+ STR | name (if empty, this is the uncategorized directory)
+  2  | number of assets
+ 1?? | assets in this directory
 ```
 
 # instrument (>=127)
@@ -1253,7 +1280,58 @@ size | description
      | - version>=58 size is length
 ```
 
-# pattern
+# pattern (>=157)
+
+```
+size | description
+-----|------------------------------------
+  4  | "PATN" block ID
+  4  | size of this block
+  1  | subsong
+  1  | channel
+  2  | pattern index
+ STR | pattern name (>=51)
+ ??? | pattern data
+     | - read a byte per row.
+     | - if it is 0xff, end of pattern.
+     | - if bit 7 is set, then read bit 0-6 as "skip N+2 rows".
+     | - if bit 7 is clear, then:
+     |   - bit 0: note present
+     |   - bit 1: ins present
+     |   - bit 2: volume present
+     |   - bit 3: effect 0 present
+     |   - bit 4: effect value 0 present
+     |   - bit 5: other effects (0-3) present
+     |   - bit 6: other effects (4-7) present
+     | - if bit 5 is set, read another byte:
+     |   - bit 0: effect 0 present
+     |   - bit 1: effect value 0 present
+     |   - bit 2: effect 1 present
+     |   - bit 3: effect value 1 present
+     |   - bit 4: effect 2 present
+     |   - bit 5: effect value 2 present
+     |   - bit 6: effect 3 present
+     |   - bit 7: effect value 3 present
+     | - if bit 6 is set, read another byte:
+     |   - bit 0: effect 4 present
+     |   - bit 1: effect value 4 present
+     |   - bit 2: effect 5 present
+     |   - bit 3: effect value 5 present
+     |   - bit 4: effect 6 present
+     |   - bit 5: effect value 6 present
+     |   - bit 6: effect 7 present
+     |   - bit 7: effect value 7 present
+     | - then read note, ins, volume, effects and effect values depending on what is present.
+     | - for note:
+     |   - 0 is C-(-5)
+     |   - 179 is B-9
+     |   - 180 is note off
+     |   - 181 is note release
+     |   - 182 is macro release
+```
+
+
+# old pattern (<157)
 
 ```
 size | description
@@ -1283,8 +1361,8 @@ size | description
      |     - 12: C (of next octave)
      |       - this is actually a leftover of the .dmf format.
      |     - 100: note off
-     |     - 100: note release
-     |     - 100: macro release
+     |     - 101: note release
+     |     - 102: macro release
      |   - octave
      |     - this is an signed char stored in a short.
      |     - therefore octave value 255 is actually octave -1.
