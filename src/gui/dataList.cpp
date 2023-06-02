@@ -292,11 +292,10 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
     wavePreviewInit=true;
     updateFMPreview=true;
     lastAssetType=0;
-    if (insListDir) nextWindow=GUI_WINDOW_PATTERN;
   }
   if (wantScrollList && curIns==i) ImGui::SetScrollHereY();
   if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
-    if (!insListDir) nextWindow=GUI_WINDOW_PATTERN;
+    nextWindow=GUI_WINDOW_PATTERN;
     curIns=i;
     wavePreviewInit=true;
     updateFMPreview=true;
