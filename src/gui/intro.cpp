@@ -24,7 +24,7 @@
 
 void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2& pos, const ImVec2& scale, double rotate, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& imgColor) {
   FurnaceGUIImage* imgI=getImage(image);
-  SDL_Texture* img=getTexture(image);
+  void* img=getTexture(image);
 
   float squareSize=MAX(introMax.x-introMin.x,introMax.y-introMin.y);
   float uDiff=uvMax.x-uvMin.x;
@@ -162,7 +162,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
         getTexture(GUI_IMAGE_TALOGO);
         getTexture(GUI_IMAGE_TACHIP);
         getTexture(GUI_IMAGE_LOGO);
-        getTexture(GUI_IMAGE_INTROBG,SDL_BLENDMODE_ADD);
+        getTexture(GUI_IMAGE_INTROBG,GUI_BLEND_MODE_ADD);
 
         if (monitor) {
           ImVec2 textPos=ImLerp(top,bottom,ImVec2(0.5,0.5));

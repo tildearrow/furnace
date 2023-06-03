@@ -49,11 +49,11 @@ void _popPartBlend(const ImDrawList* drawList, const ImDrawCmd* cmd) {
 }
 
 void FurnaceGUI::pushPartBlend() {
-  SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_ADD);
+  rend->setBlendMode(GUI_BLEND_MODE_ADD);
 }
 
 void FurnaceGUI::popPartBlend() {
-  SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_BLEND);
+  rend->setBlendMode(GUI_BLEND_MODE_BLEND);
 }
 
 // draw a pattern row

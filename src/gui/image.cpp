@@ -49,7 +49,7 @@ const unsigned int imageLen[GUI_IMAGE_MAX]={
   image_pat_size
 };
 
-SDL_Texture* FurnaceGUI::getTexture(FurnaceGUIImages image, SDL_BlendMode blendMode) {
+void* FurnaceGUI::getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode) {
   FurnaceGUIImage* img=getImage(image);
 
   if (img==NULL) return NULL;
@@ -57,14 +57,14 @@ SDL_Texture* FurnaceGUI::getTexture(FurnaceGUIImages image, SDL_BlendMode blendM
   if (img->width<=0 || img->height<=0) return NULL;
 
   if (img->tex==NULL) {
-    img->tex=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,SDL_TEXTUREACCESS_STATIC,img->width,img->height);
+    img->tex=rend->createTexture(false,img->width,img->height);
     if (img->tex==NULL) {
       logE("error while creating image %d texture! %s",(int)image,SDL_GetError());
       return NULL;
     }
-    SDL_SetTextureBlendMode(img->tex,blendMode);
+    rend->setTextureBlendMode(img->tex,blendMode);
 
-    if (SDL_UpdateTexture(img->tex,NULL,img->data,img->width*4)!=0) {
+    if (!rend->updateTexture(img->tex,img->data,img->width*4)) {
       logE("error while updating texture of image %d! %s",(int)image,SDL_GetError());
     }
   }

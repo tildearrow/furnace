@@ -3537,8 +3537,8 @@ bool FurnaceGUI::loop() {
       }
     }
     // update canvas size as well
-    if (SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH)!=0) {
-      logW("loop: error while getting output size! %s",SDL_GetError());
+    if (!rend->getOutputSize(canvasW,canvasH)) {
+      logW("loop: error while getting output size!");
     } else {
       //logV("updateWindow: canvas size %dx%d",canvasW,canvasH);
       // and therefore window size
@@ -4418,7 +4418,7 @@ bool FurnaceGUI::loop() {
       portrait=(scrW<scrH);
       logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
 
-      SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH);
+      rend->getOutputSize(canvasW,canvasH);
 #endif
       if (patternOpen) nextWindow=GUI_WINDOW_PATTERN;
 #ifdef __APPLE__
@@ -5796,30 +5796,24 @@ bool FurnaceGUI::loop() {
       }
     }
 
-    SDL_SetRenderDrawColor(sdlRend,uiColors[GUI_COLOR_BACKGROUND].x*255,
-                                   uiColors[GUI_COLOR_BACKGROUND].y*255,
-                                   uiColors[GUI_COLOR_BACKGROUND].z*255,
-                                   uiColors[GUI_COLOR_BACKGROUND].w*255);
-    SDL_RenderClear(sdlRend);
+    rend->clear(uiColors[GUI_COLOR_BACKGROUND]);
     renderTimeBegin=SDL_GetPerformanceCounter();
     ImGui::Render();
     renderTimeEnd=SDL_GetPerformanceCounter();
-    ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
+    rend->renderGUI();
     if (mustClear) {
-      SDL_RenderClear(sdlRend);
+      rend->clear(ImVec4(0,0,0,0));
       mustClear--;
     } else {
       if (initialScreenWipe>0.0f && !settings.disableFadeIn) {
         WAKE_UP;
         initialScreenWipe-=ImGui::GetIO().DeltaTime*5.0f;
         if (initialScreenWipe>0.0f) {
-          SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_BLEND);
-          SDL_SetRenderDrawColor(sdlRend,0,0,0,255*pow(initialScreenWipe,2.0f));
-          SDL_RenderFillRect(sdlRend,NULL);
+          rend->wipe(pow(initialScreenWipe,2.0f));
         }
       }
     }
-    SDL_RenderPresent(sdlRend);
+    rend->present();
 
     layoutTimeDelta=layoutTimeEnd-layoutTimeBegin;
     renderTimeDelta=renderTimeEnd-renderTimeBegin;
@@ -6186,22 +6180,27 @@ bool FurnaceGUI::init() {
     SDL_SetHint(SDL_HINT_RENDER_DRIVER,settings.renderDriver.c_str());
   }
 
-  sdlRend=SDL_CreateRenderer(sdlWin,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC|SDL_RENDERER_TARGETTEXTURE);
-
-  if (sdlRend==NULL) {
-    lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
-    if (!settings.renderDriver.empty()) {
-      settings.renderDriver="";
-      e->setConf("renderDriver","");
+  if (!initRender()) {
+    if (settings.renderBackend=="OpenGL") {
+      settings.renderBackend="";
+      e->setConf("renderBackend","");
       e->saveConf();
-      lastError=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
+      lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
+    } else {
+      lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
+      if (!settings.renderDriver.empty()) {
+        settings.renderDriver="";
+        e->setConf("renderDriver","");
+        e->saveConf();
+        lastError=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
+      }
     }
     return false;
   }
 
   // try acquiring the canvas size
-  if (SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH)!=0) {
-    logW("could not get renderer output size! %s",SDL_GetError());
+  if (!rend->getOutputSize(canvasW,canvasH)) {
+    logW("could not get renderer output size!");
   } else {
     logV("canvas size: %dx%d",canvasW,canvasH);
   }
@@ -6213,11 +6212,7 @@ bool FurnaceGUI::init() {
     }
   }
 
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-
-  ImGui_ImplSDL2_InitForSDLRenderer(sdlWin,sdlRend);
-  ImGui_ImplSDLRenderer_Init(sdlRend);
+  rend->initGUI(sdlWin);
 
   applyUISettings();
 
@@ -6439,10 +6434,10 @@ void FurnaceGUI::commitState() {
 
 bool FurnaceGUI::finish() {
   commitState();
-  ImGui_ImplSDLRenderer_Shutdown();
+  rend->quitGUI();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
-  SDL_DestroyRenderer(sdlRend);
+  quitRender();
   SDL_DestroyWindow(sdlWin);
 
   if (vibrator) {
@@ -6463,7 +6458,6 @@ bool FurnaceGUI::finish() {
 FurnaceGUI::FurnaceGUI():
   e(NULL),
   sdlWin(NULL),
-  sdlRend(NULL),
   vibrator(NULL),
   vibratorAvailable(false),
   sampleTex(NULL),

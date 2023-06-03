@@ -70,6 +70,11 @@
 
 #define FM_PREVIEW_SIZE 512
 
+enum FurnaceGUIRenderBackend {
+  GUI_BACKEND_SDL=0,
+  GUI_BACKEND_GL
+};
+
 // TODO:
 // - add colors for FM envelope and waveform
 // - maybe add "alternate" color for FM modulators/carriers (a bit difficult)
@@ -1191,7 +1196,7 @@ struct FurnaceGUIQueryResult {
 
 struct FurnaceGUIImage {
   unsigned char* data;
-  SDL_Texture* tex;
+  void* tex;
   int width, height, ch;
 
   FurnaceGUIImage():
@@ -1213,15 +1218,45 @@ struct FurnaceGUIPerfMetric {
     elapsed(0) {}
 };
 
+enum FurnaceGUIBlendMode {
+  GUI_BLEND_MODE_NONE=0,
+  GUI_BLEND_MODE_BLEND,
+  GUI_BLEND_MODE_ADD,
+  GUI_BLEND_MODE_MULTIPLY
+};
+
+class FurnaceGUIRender {
+  public:
+    virtual bool lockTexture(void* which, void** data, int* pitch);
+    virtual bool unlockTexture(void* which);
+    virtual bool updateTexture(void* which, void* data, int pitch);
+    virtual void* createTexture(bool dynamic, int width, int height);
+    virtual bool destroyTexture(void* which);
+    virtual void setTextureBlendMode(void* which, FurnaceGUIBlendMode mode);
+    virtual void setBlendMode(FurnaceGUIBlendMode mode);
+    virtual void clear(ImVec4 color);
+    virtual void renderGUI();
+    virtual void wipe(float alpha);
+    virtual void present();
+    virtual bool getOutputSize(int& w, int& h);
+    virtual bool init(SDL_Window* win);
+    virtual void initGUI(SDL_Window* win);
+    virtual void quitGUI();
+    virtual bool quit();
+    virtual ~FurnaceGUIRender();
+};
+
 class FurnaceGUI {
   DivEngine* e;
 
+  FurnaceGUIRenderBackend renderBackend;
+  FurnaceGUIRender* rend;
+
   SDL_Window* sdlWin;
-  SDL_Renderer* sdlRend;
   SDL_Haptic* vibrator;
   bool vibratorAvailable;
-
-  SDL_Texture* sampleTex;
+  
+  void* sampleTex;
   int sampleTexW, sampleTexH;
   bool updateSampleTex;
 
@@ -1454,6 +1489,7 @@ class FurnaceGUI {
     String midiInDevice;
     String midiOutDevice;
     String c163Name;
+    String renderBackend;
     String renderDriver;
     String initialSysName;
     String noteOffLabel;
@@ -1601,6 +1637,7 @@ class FurnaceGUI {
       midiInDevice(""),
       midiOutDevice(""),
       c163Name(""),
+      renderBackend(""),
       renderDriver(""),
       initialSysName("Sega Genesis/Mega Drive"),
       noteOffLabel("OFF"),
@@ -1887,7 +1924,7 @@ class FurnaceGUI {
   bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad;
   ImVec4 chanOscColor;
   Gradient2D chanOscGrad;
-  SDL_Texture* chanOscGradTex;
+  void* chanOscGradTex;
   float chanOscLP0[DIV_MAX_CHANS];
   float chanOscLP1[DIV_MAX_CHANS];
   float chanOscVol[DIV_MAX_CHANS];
@@ -2040,7 +2077,7 @@ class FurnaceGUI {
   void highlightWindow(const char* winName);
 
   FurnaceGUIImage* getImage(FurnaceGUIImages image);
-  SDL_Texture* getTexture(FurnaceGUIImages image, SDL_BlendMode blendMode=SDL_BLENDMODE_BLEND);
+  void* getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode=GUI_BLEND_MODE_BLEND);
   void drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2& pos, const ImVec2& scale, double rotate, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& imgColor);
 
   void drawMobileControls();
@@ -2188,6 +2225,9 @@ class FurnaceGUI {
 
   String encodeKeyMap(std::map<int,int>& map);
   void decodeKeyMap(std::map<int,int>& map, String source);
+
+  bool initRender();
+  bool quitRender();
 
   const char* getSystemName(DivSystem which);
 

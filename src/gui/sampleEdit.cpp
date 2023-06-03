@@ -1110,12 +1110,12 @@ void FurnaceGUI::drawSampleEdit() {
 
       if (sampleTex==NULL || sampleTexW!=avail.x || sampleTexH!=avail.y) {
         if (sampleTex!=NULL) {
-          SDL_DestroyTexture(sampleTex);
+          rend->destroyTexture(sampleTex);
           sampleTex=NULL;
         }
         if (avail.x>=1 && avail.y>=1) {
           logD("recreating sample texture.");
-          sampleTex=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,SDL_TEXTUREACCESS_STREAMING,avail.x,avail.y);
+          sampleTex=rend->createTexture(true,avail.x,avail.y);
           sampleTexW=avail.x;
           sampleTexH=avail.y;
           if (sampleTex==NULL) {
@@ -1131,7 +1131,7 @@ void FurnaceGUI::drawSampleEdit() {
           unsigned int* dataT=NULL;
           int pitch=0;
           logD("updating sample texture.");
-          if (SDL_LockTexture(sampleTex,NULL,(void**)&dataT,&pitch)!=0) {
+          if (!rend->lockTexture(sampleTex,(void**)&dataT,&pitch)) {
             logE("error while locking sample texture! %s",SDL_GetError());
           } else {
             unsigned int* data=new unsigned int[sampleTexW*sampleTexH];
@@ -1217,7 +1217,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
 
             memcpy(dataT,data,sampleTexW*sampleTexH*sizeof(unsigned int));
-            SDL_UnlockTexture(sampleTex);
+            rend->unlockTexture(sampleTex);
             delete[] data;
           }
           updateSampleTex=false;

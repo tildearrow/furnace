@@ -587,6 +587,10 @@ extern/igfd/ImGuiFileDialog.cpp
 
 src/gui/plot_nolerp.cpp
 
+src/gui/render.cpp
+src/gui/render/abstract.cpp
+src/gui/render/renderSDL.cpp
+
 src/gui/font_exo.cpp
 src/gui/font_liberationSans.cpp
 src/gui/font_mononoki.cpp
