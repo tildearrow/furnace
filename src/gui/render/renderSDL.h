@@ -22,6 +22,7 @@
 class FurnaceGUIRenderSDL: public FurnaceGUIRender {
   SDL_Renderer* sdlRend;
   public:
+    ImTextureID getTextureID(void* which);
     bool lockTexture(void* which, void** data, int* pitch);
     bool unlockTexture(void* which);
     bool updateTexture(void* which, void* data, int pitch);
@@ -30,10 +31,15 @@ class FurnaceGUIRenderSDL: public FurnaceGUIRender {
     void setTextureBlendMode(void* which, FurnaceGUIBlendMode mode);
     void setBlendMode(FurnaceGUIBlendMode mode);
     void clear(ImVec4 color);
+    bool newFrame();
+    void createFontsTexture();
+    void destroyFontsTexture();
     void renderGUI();
     void wipe(float alpha);
     void present();
     bool getOutputSize(int& w, int& h);
+    int getWindowFlags();
+    void preInit();
     bool init(SDL_Window* win);
     void initGUI(SDL_Window* win);
     void quitGUI();

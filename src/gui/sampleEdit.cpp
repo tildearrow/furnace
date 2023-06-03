@@ -1223,7 +1223,7 @@ void FurnaceGUI::drawSampleEdit() {
           updateSampleTex=false;
         }
 
-        ImGui::ImageButton(sampleTex,avail,ImVec2(0,0),ImVec2(1,1),0);
+        ImGui::ImageButton(rend->getTextureID(sampleTex),avail,ImVec2(0,0),ImVec2(1,1),0);
 
         ImVec2 rectMin=ImGui::GetItemRectMin();
         ImVec2 rectMax=ImGui::GetItemRectMax();

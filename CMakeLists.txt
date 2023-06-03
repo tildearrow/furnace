@@ -54,12 +54,21 @@ else()
   set(WITH_JACK_DEFAULT OFF)
 endif()
 
+set(WITH_RENDER_SDL_DEFAULT ON)
+if (APPLE)
+  set(WITH_RENDER_OPENGL_DEFAULT OFF)
+else()
+  set(WITH_RENDER_OPENGL_DEFAULT ON)
+endif()
+
 option(BUILD_GUI "Build the tracker (disable to build only a headless player)" ${BUILD_GUI_DEFAULT})
 option(USE_RTMIDI "Build with MIDI support using RtMidi." ${USE_RTMIDI_DEFAULT})
 option(USE_SDL2 "Build with SDL2. Required to build with GUI." ${USE_SDL2_DEFAULT})
 option(USE_SNDFILE "Build with libsndfile. Required in order to work with audio files." ${USE_SNDFILE_DEFAULT})
 option(USE_BACKWARD "Use backward-cpp to print a backtrace on crash/abort." ${USE_BACKWARD_DEFAULT})
 option(WITH_JACK "Whether to build with JACK support. Auto-detects if JACK is available" ${WITH_JACK_DEFAULT})
+option(WITH_RENDER_SDL "Whether to build with the SDL_Renderer render backend." ${WITH_RENDER_SDL_DEFAULT})
+option(WITH_RENDER_OPENGL "Whether to build with the OpenGL render backend." ${WITH_RENDER_OPENGL_DEFAULT})
 option(SYSTEM_FFTW "Use a system-installed version of FFTW instead of the vendored one" OFF)
 option(SYSTEM_FMT "Use a system-installed version of fmt instead of the vendored one" OFF)
 option(SYSTEM_LIBSNDFILE "Use a system-installed version of libsndfile instead of the vendored one" OFF)
@@ -92,7 +101,7 @@ set(DEPENDENCIES_LIBRARY_DIRS "")
 set(DEPENDENCIES_LINK_OPTIONS "")
 set(DEPENDENCIES_LEGACY_LDFLAGS "")
 
-if (BUILD_GUI)
+if (BUILD_GUI AND WITH_RENDER_SDL)
   set(SYSTEM_SDL_MIN_VER 2.0.18)
 else()
   set(SYSTEM_SDL_MIN_VER 2.0.0)
@@ -275,6 +284,12 @@ else()
   message(STATUS "Not using SDL2")
   if (BUILD_GUI)
     message(FATAL_ERROR "SDL2 is required in order to build with GUI! Disable BUILD_GUI otherwise.")
+  endif()
+endif()
+
+if (BUILD_GUI)
+  if (NOT WITH_RENDER_SDL AND NOT WITH_RENDER_OPENGL)
+    message(FATAL_ERROR "No render backends selected!")
   endif()
 endif()
 
@@ -580,7 +595,6 @@ extern/imgui_patched/imgui.cpp
 extern/imgui_patched/imgui_draw.cpp
 extern/imgui_patched/imgui_tables.cpp
 extern/imgui_patched/imgui_widgets.cpp
-extern/imgui_patched/backends/imgui_impl_sdlrenderer.cpp
 extern/imgui_patched/backends/imgui_impl_sdl.cpp
 extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
 extern/igfd/ImGuiFileDialog.cpp
@@ -677,6 +691,25 @@ if (APPLE)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.cpp)
   list(APPEND GUI_SOURCES src/gui/macstuff.m)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_cocoa.mm)
+endif()
+
+if (WITH_RENDER_SDL)
+  list(APPEND GUI_SOURCES src/gui/render/renderSDL.cpp)
+  list(APPEND GUI_SOURCES extern/imgui_patched/backends/imgui_impl_sdlrenderer.cpp)
+  list(APPEND DEPENDENCIES_DEFINES HAVE_RENDER_SDL)
+  message(STATUS "UI render backend: SDL_Renderer")
+endif()
+
+if (WITH_RENDER_OPENGL)
+  list(APPEND GUI_SOURCES src/gui/render/renderGL.cpp)
+  list(APPEND GUI_SOURCES extern/imgui_patched/backends/imgui_impl_opengl3.cpp)
+  list(APPEND DEPENDENCIES_DEFINES HAVE_RENDER_GL)
+  if (WIN32)
+    list(APPEND DEPENDENCIES_LIBRARIES opengl32)
+  else()
+    list(APPEND DEPENDENCIES_LIBRARIES GL)
+  endif()
+  message(STATUS "UI render backend: OpenGL")
 endif()
 
 if (NOT WIN32 AND NOT APPLE)

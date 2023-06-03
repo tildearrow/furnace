@@ -2711,6 +2711,7 @@ void FurnaceGUI::syncSettings() {
   settings.orderButtonPos=e->getConfInt("orderButtonPos",2);
   settings.compress=e->getConfInt("compress",1);
   settings.newPatternFormat=e->getConfInt("newPatternFormat",1);
+  settings.renderBackend=e->getConfString("renderBackend","SDL");
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -3050,6 +3051,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("orderButtonPos",settings.orderButtonPos);
   e->setConf("compress",settings.compress);
   e->setConf("newPatternFormat",settings.newPatternFormat);
+  e->setConf("renderBackend",settings.renderBackend);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -3089,17 +3091,21 @@ void FurnaceGUI::commitSettings() {
 
   applyUISettings();
 
-  ImGui_ImplSDLRenderer_DestroyFontsTexture();
+  if (rend) rend->destroyFontsTexture();
   if (!ImGui::GetIO().Fonts->Build()) {
     logE("error while building font atlas!");
     showError("error while loading fonts! please check your settings.");
     ImGui::GetIO().Fonts->Clear();
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
-    ImGui_ImplSDLRenderer_DestroyFontsTexture();
+    if (rend) rend->destroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
       logE("error again while building font atlas!");
+    } else {
+      rend->createFontsTexture();
     }
+  } else {
+    rend->createFontsTexture();
   }
 }
 

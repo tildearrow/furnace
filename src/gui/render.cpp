@@ -18,13 +18,51 @@
  */
 
 #include "gui.h"
+#include "../ta-log.h"
+#ifdef HAVE_RENDER_SDL
 #include "render/renderSDL.h"
+#endif
+#ifdef HAVE_RENDER_GL
+#include "render/renderGL.h"
+#endif
+
+#ifdef HAVE_RENDER_SDL
+#define GUI_BACKEND_DEFAULT GUI_BACKEND_SDL
+#else
+#define GUI_BACKEND_DEFAULT GUI_BACKEND_GL
+#endif
 
 bool FurnaceGUI::initRender() {
   if (rend!=NULL) return false;
+
+  if (settings.renderBackend=="OpenGL") {
+    renderBackend=GUI_BACKEND_GL;
+  } else if (settings.renderBackend=="SDL") {
+    renderBackend=GUI_BACKEND_SDL;
+  } else {
+    renderBackend=GUI_BACKEND_DEFAULT;
+  }
   
-  rend=new FurnaceGUIRenderSDL;
-  return rend->init(sdlWin);
+  switch (renderBackend) {
+#ifdef HAVE_RENDER_GL
+    case GUI_BACKEND_GL:
+      logI("render backend: OpenGL");
+      rend=new FurnaceGUIRenderGL;
+      break;
+#endif
+#ifdef HAVE_RENDER_SDL
+    case GUI_BACKEND_SDL:
+      logI("render backend: SDL_Renderer");
+      rend=new FurnaceGUIRenderSDL;
+      break;
+#endif
+    default:
+      logE("invalid render backend!");
+      return false;
+      break;
+  }
+  
+  return true;
 }
 
 bool FurnaceGUI::quitRender() {

@@ -69,7 +69,7 @@ void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2&
 
   ImU32 colorConverted=ImGui::GetColorU32(imgColor);
 
-  dl->AddImageQuad(img,quad0,quad1,quad2,quad3,uv0,uv1,uv2,uv3,colorConverted);
+  dl->AddImageQuad(rend->getTextureID(img),quad0,quad1,quad2,quad3,uv0,uv1,uv2,uv3,colorConverted);
 }
 
 void FurnaceGUI::endIntroTune() {

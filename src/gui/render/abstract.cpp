@@ -19,6 +19,10 @@
 
 #include "../gui.h"
 
+ImTextureID FurnaceGUIRender::getTextureID(void* which) {
+  return NULL;
+}
+
 bool FurnaceGUIRender::lockTexture(void* which, void** data, int* pitch) {
   return false;
 }
@@ -48,6 +52,16 @@ void FurnaceGUIRender::setBlendMode(FurnaceGUIBlendMode mode) {
 void FurnaceGUIRender::clear(ImVec4 color) {
 }
 
+bool FurnaceGUIRender::newFrame() {
+  return true;
+}
+
+void FurnaceGUIRender::createFontsTexture() {
+}
+
+void FurnaceGUIRender::destroyFontsTexture() {
+}
+
 void FurnaceGUIRender::renderGUI() {
 }
 
@@ -61,6 +75,13 @@ bool FurnaceGUIRender::getOutputSize(int& w, int& h) {
   return false;
 }
 
+int FurnaceGUIRender::getWindowFlags() {
+  return 0;
+}
+
+void FurnaceGUIRender::preInit() {
+}
+
 bool FurnaceGUIRender::init(SDL_Window* win) {
   return false;
 }
@@ -72,7 +93,7 @@ bool FurnaceGUIRender::quit() {
   return false;
 }
 
-void FurnaceGUIRender::quitGUI(){ 
+void FurnaceGUIRender::quitGUI() { 
 }
 
 FurnaceGUIRender::~FurnaceGUIRender() {

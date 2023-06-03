@@ -30,7 +30,6 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "imgui_impl_sdl.h"
-#include "imgui_impl_sdlrenderer.h"
 #include "ImGuiFileDialog.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -3763,7 +3762,7 @@ bool FurnaceGUI::loop() {
 
     layoutTimeBegin=SDL_GetPerformanceCounter();
 
-    if (!ImGui_ImplSDLRenderer_NewFrame()) {
+    if (!rend->newFrame()) {
       fontsFailed=true;
     }
     ImGui_ImplSDL2_NewFrame(sdlWin);
@@ -5848,9 +5847,11 @@ bool FurnaceGUI::loop() {
       ImGui::GetIO().Fonts->Clear();
       mainFont=ImGui::GetIO().Fonts->AddFontDefault();
       patFont=mainFont;
-      ImGui_ImplSDLRenderer_DestroyFontsTexture();
+      if (rend) rend->destroyFontsTexture();
       if (!ImGui::GetIO().Fonts->Build()) {
         logE("error again while building font atlas!");
+      } else {
+        rend->createFontsTexture();
       }
     }
 
@@ -6116,7 +6117,27 @@ bool FurnaceGUI::init() {
 
   logV("window size: %dx%d",scrW,scrH);
 
-  sdlWin=SDL_CreateWindow("Furnace",scrX,scrY,scrW,scrH,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(scrMax?SDL_WINDOW_MAXIMIZED:0)|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
+  if (!initRender()) {
+    if (settings.renderBackend=="OpenGL") {
+      settings.renderBackend="";
+      e->setConf("renderBackend","");
+      e->saveConf();
+      lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
+    } else {
+      lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
+      if (!settings.renderDriver.empty()) {
+        settings.renderDriver="";
+        e->setConf("renderDriver","");
+        e->saveConf();
+        lastError=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
+      }
+    }
+    return false;
+  }
+
+  rend->preInit();
+
+  sdlWin=SDL_CreateWindow("Furnace",scrX,scrY,scrW,scrH,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(scrMax?SDL_WINDOW_MAXIMIZED:0)|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0)|rend->getWindowFlags());
   if (sdlWin==NULL) {
     lastError=fmt::sprintf("could not open window! %s",SDL_GetError());
     return false;
@@ -6180,7 +6201,7 @@ bool FurnaceGUI::init() {
     SDL_SetHint(SDL_HINT_RENDER_DRIVER,settings.renderDriver.c_str());
   }
 
-  if (!initRender()) {
+  if (!rend->init(sdlWin)) {
     if (settings.renderBackend=="OpenGL") {
       settings.renderBackend="";
       e->setConf("renderBackend","");
@@ -6222,7 +6243,7 @@ bool FurnaceGUI::init() {
     ImGui::GetIO().Fonts->Clear();
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
-    ImGui_ImplSDLRenderer_DestroyFontsTexture();
+    if (rend) rend->destroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
       logE("error again while building font atlas!");
     }
@@ -6457,6 +6478,8 @@ bool FurnaceGUI::finish() {
 
 FurnaceGUI::FurnaceGUI():
   e(NULL),
+  renderBackend(GUI_BACKEND_SDL),
+  rend(NULL),
   sdlWin(NULL),
   vibrator(NULL),
   vibratorAvailable(false),

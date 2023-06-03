@@ -24,7 +24,6 @@
 #include "../engine/waveSynth.h"
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
-#include "imgui_impl_sdlrenderer.h"
 #include <SDL.h>
 #include <fftw3.h>
 #include <deque>
@@ -1227,6 +1226,7 @@ enum FurnaceGUIBlendMode {
 
 class FurnaceGUIRender {
   public:
+    virtual ImTextureID getTextureID(void* which);
     virtual bool lockTexture(void* which, void** data, int* pitch);
     virtual bool unlockTexture(void* which);
     virtual bool updateTexture(void* which, void* data, int pitch);
@@ -1235,10 +1235,15 @@ class FurnaceGUIRender {
     virtual void setTextureBlendMode(void* which, FurnaceGUIBlendMode mode);
     virtual void setBlendMode(FurnaceGUIBlendMode mode);
     virtual void clear(ImVec4 color);
+    virtual bool newFrame();
+    virtual void createFontsTexture();
+    virtual void destroyFontsTexture();
     virtual void renderGUI();
     virtual void wipe(float alpha);
     virtual void present();
     virtual bool getOutputSize(int& w, int& h);
+    virtual int getWindowFlags();
+    virtual void preInit();
     virtual bool init(SDL_Window* win);
     virtual void initGUI(SDL_Window* win);
     virtual void quitGUI();

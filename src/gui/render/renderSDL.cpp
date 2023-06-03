@@ -18,6 +18,11 @@
  */
 
 #include "renderSDL.h"
+#include "backends/imgui_impl_sdlrenderer.h"
+
+ImTextureID FurnaceGUIRenderSDL::getTextureID(void* which) {
+  return which;
+}
 
 bool FurnaceGUIRenderSDL::lockTexture(void* which, void** data, int* pitch) {
   return SDL_LockTexture((SDL_Texture*)which,NULL,data,pitch)==0;
@@ -80,6 +85,18 @@ void FurnaceGUIRenderSDL::clear(ImVec4 color) {
   SDL_RenderClear(sdlRend);
 }
 
+bool FurnaceGUIRenderSDL::newFrame() {
+  return ImGui_ImplSDLRenderer_NewFrame();
+}
+
+void FurnaceGUIRenderSDL::createFontsTexture() {
+  ImGui_ImplSDLRenderer_CreateFontsTexture();
+}
+
+void FurnaceGUIRenderSDL::destroyFontsTexture() {
+  ImGui_ImplSDLRenderer_DestroyFontsTexture();
+}
+
 void FurnaceGUIRenderSDL::renderGUI() {
   ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
 }
@@ -96,6 +113,13 @@ void FurnaceGUIRenderSDL::present() {
 
 bool FurnaceGUIRenderSDL::getOutputSize(int& w, int& h) {
   return SDL_GetRendererOutputSize(sdlRend,&w,&h)==0;
+}
+
+int FurnaceGUIRenderSDL::getWindowFlags() {
+  return 0;
+}
+
+void FurnaceGUIRenderSDL::preInit() {
 }
 
 bool FurnaceGUIRenderSDL::init(SDL_Window* win) {
