@@ -6016,7 +6016,14 @@ bool FurnaceGUI::init() {
 #endif
 
   // initialize SDL
-  SDL_Init(SDL_INIT_VIDEO|SDL_INIT_HAPTIC);
+  if (SDL_Init(SDL_INIT_VIDEO)!=0) {
+    logE("could not initialize video! %s",SDL_GetError());
+    return false;
+  }
+
+  if (SDL_Init(SDL_INIT_HAPTIC)!=0) {
+    logW("could not initialize haptic! %s",SDL_GetError());
+  }
 
   const char* videoBackend=SDL_GetCurrentVideoDriver();
   if (videoBackend!=NULL) {
@@ -6229,7 +6236,12 @@ bool FurnaceGUI::init() {
   // special consideration for Wayland
   if (settings.dpiScale<0.5f) {
     if (strcmp(videoBackend,"wayland")==0) {
-      dpiScale=(double)canvasW/(double)scrW;
+      if (scrW<1) {
+        logW("screen width is zero!\n");
+        dpiScale=1.0;
+      } else {
+        dpiScale=(double)canvasW/(double)scrW;
+      }
     }
   }
 
