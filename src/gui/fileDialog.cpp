@@ -149,6 +149,7 @@ bool FurnaceGUIFileDialog::openLoad(String header, std::vector<String> filter, c
     }
 #endif
 
+    ImGuiFileDialog::Instance()->DeserializeBookmarks(bookmarks);
     ImGuiFileDialog::Instance()->singleClickSel=mobileUI;
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;
     ImGuiFileDialog::Instance()->mobileMode=mobileUI;
@@ -232,6 +233,7 @@ bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, c
   } else {
     hasError=false;
 
+    ImGuiFileDialog::Instance()->DeserializeBookmarks(bookmarks);
     ImGuiFileDialog::Instance()->singleClickSel=false;
     ImGuiFileDialog::Instance()->DpiScale=dpiScale;
     ImGuiFileDialog::Instance()->mobileMode=mobileUI;
@@ -242,6 +244,7 @@ bool FurnaceGUIFileDialog::openSave(String header, std::vector<String> filter, c
 }
 
 bool FurnaceGUIFileDialog::accepted() {
+  bookmarks = ImGuiFileDialog::Instance()->SerializeBookmarks();
   if (sysDialog) {
     return (!fileName.empty());
   } else {

@@ -3847,9 +3847,17 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".opm",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
 
   if (updateFonts) {
-    if (fileDialog!=NULL) delete fileDialog;
+    String bookmarks;
+
+    if (fileDialog!=NULL) {
+      std::swap(bookmarks,fileDialog->bookmarks);
+      delete fileDialog;
+    } else {
+      bookmarks=fileDialogBookmarks;
+    }
     fileDialog=new FurnaceGUIFileDialog(settings.sysFileDialog);
 
     fileDialog->mobileUI=mobileUI;
+    fileDialog->bookmarks=bookmarks;
   }
 }

@@ -5891,6 +5891,8 @@ bool FurnaceGUI::init() {
   workingDirLayout=e->getConfString("lastDirLayout",workingDir);
   workingDirTest=e->getConfString("lastDirTest",workingDir);
 
+  fileDialogBookmarks=e->getConfString("fileDialogBookmarks","");
+
   editControlsOpen=e->getConfBool("editControlsOpen",true);
   ordersOpen=e->getConfBool("ordersOpen",true);
   insListOpen=e->getConfBool("insListOpen",true);
@@ -6329,6 +6331,11 @@ void FurnaceGUI::commitState() {
   e->setConf("lastDirKeybinds",workingDirKeybinds);
   e->setConf("lastDirLayout",workingDirLayout);
   e->setConf("lastDirTest",workingDirTest);
+
+  if (fileDialog!=NULL) {
+    fileDialogBookmarks=fileDialog->bookmarks;
+  }
+  e->setConf("fileDialogBookmarks",fileDialogBookmarks);
 
   // commit last open windows
   e->setConf("editControlsOpen",editControlsOpen);

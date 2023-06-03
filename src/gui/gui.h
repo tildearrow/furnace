@@ -1229,6 +1229,7 @@ class FurnaceGUI {
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
   String workingDirVGMExport, workingDirZSMExport, workingDirROMExport, workingDirFont, workingDirColors, workingDirKeybinds;
   String workingDirLayout, workingDirROM, workingDirTest;
+  String fileDialogBookmarks;
   String mmlString[32];
   String mmlStringW, mmlStringSNES, grooveString, grooveListString, mmlStringModTable;
   String folderString;

@@ -48,6 +48,7 @@ class FurnaceGUIFileDialog {
 #endif
   public:
     bool mobileUI;
+    String bookmarks;
     bool openLoad(String header, std::vector<String> filter, const char* noSysFilter, String path, double dpiScale, FileDialogSelectCallback clickCallback=NULL, bool allowMultiple=false);
     bool openSave(String header, std::vector<String> filter, const char* noSysFilter, String path, double dpiScale);
     bool accepted();
