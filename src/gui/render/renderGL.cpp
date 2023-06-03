@@ -19,7 +19,13 @@
 
 #include "renderGL.h"
 #include "../../ta-log.h"
+#ifdef USE_GLES
+#include "SDL_opengles2.h"
+#define PIXEL_FORMAT GL_RGBA
+#else
 #include "SDL_opengl.h"
+#define PIXEL_FORMAT GL_UNSIGNED_INT_8_8_8_8_REV
+#endif
 #include "backends/imgui_impl_opengl3.h"
 
 #define C(x) x; if (glGetError()!=GL_NO_ERROR) logW("OpenGL error in %s:%d: " #x,__FILE__,__LINE__);
@@ -138,7 +144,7 @@ bool FurnaceGUIRenderGL::unlockTexture(void* which) {
   if (t->lockedData==NULL) return false;
 
   C(glBindTexture(GL_TEXTURE_2D,t->id));
-  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,t->width,t->height,0,GL_RGBA,GL_UNSIGNED_INT_8_8_8_8_REV,t->lockedData));
+  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,t->width,t->height,0,GL_RGBA,PIXEL_FORMAT,t->lockedData));
   
   C(glFlush());
   delete[] t->lockedData;
@@ -153,7 +159,7 @@ bool FurnaceGUIRenderGL::updateTexture(void* which, void* data, int pitch) {
   if (t->width*4!=pitch) return false;
 
   C(glBindTexture(GL_TEXTURE_2D,t->id));
-  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,t->width,t->height,0,GL_RGBA,GL_UNSIGNED_INT_8_8_8_8_REV,data));
+  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,t->width,t->height,0,GL_RGBA,PIXEL_FORMAT,data));
   return true;
 }
 
@@ -163,7 +169,7 @@ void* FurnaceGUIRenderGL::createTexture(bool dynamic, int width, int height) {
   C(glBindTexture(GL_TEXTURE_2D,t->id));
   C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
   C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
-  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,width,height,0,GL_RGBA,GL_UNSIGNED_INT_8_8_8_8_REV,NULL));
+  C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,width,height,0,GL_RGBA,PIXEL_FORMAT,NULL));
   C(furActiveTexture(GL_TEXTURE0));
   t->width=width;
   t->height=height;
