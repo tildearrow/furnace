@@ -26,12 +26,6 @@
 #include "render/renderGL.h"
 #endif
 
-#ifdef HAVE_RENDER_SDL
-#define GUI_BACKEND_DEFAULT GUI_BACKEND_SDL
-#else
-#define GUI_BACKEND_DEFAULT GUI_BACKEND_GL
-#endif
-
 bool FurnaceGUI::initRender() {
   if (rend!=NULL) return false;
 

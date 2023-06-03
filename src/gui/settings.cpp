@@ -1278,16 +1278,32 @@ void FurnaceGUI::drawSettings() {
         ImVec2 settingsViewSize=ImGui::GetContentRegionAvail();
         settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
         if (ImGui::BeginChild("SettingsView",settingsViewSize)) {
-          if (ImGui::BeginCombo("Render driver",settings.renderDriver.empty()?"Automatic":settings.renderDriver.c_str())) {
-            if (ImGui::Selectable("Automatic",settings.renderDriver.empty())) {
-              settings.renderDriver="";
+          String curRenderBackend=settings.renderBackend.empty()?GUI_BACKEND_DEFAULT_NAME:settings.renderBackend;
+          if (ImGui::BeginCombo("Render backend",curRenderBackend.c_str())) {
+#ifdef HAVE_RENDER_SDL
+            if (ImGui::Selectable("SDL Renderer",curRenderBackend=="SDL")) {
+              settings.renderBackend="SDL";
             }
-            for (String& i: availRenderDrivers) {
-              if (ImGui::Selectable(i.c_str(),i==settings.renderDriver)) {
-                settings.renderDriver=i;
-              }
+#endif
+#ifdef HAVE_RENDER_GL
+            if (ImGui::Selectable("OpenGL",curRenderBackend=="OpenGL")) {
+              settings.renderBackend="OpenGL";
             }
+#endif
             ImGui::EndCombo();
+          }
+          if (curRenderBackend=="SDL") {
+            if (ImGui::BeginCombo("Render driver",settings.renderDriver.empty()?"Automatic":settings.renderDriver.c_str())) {
+              if (ImGui::Selectable("Automatic",settings.renderDriver.empty())) {
+                settings.renderDriver="";
+              }
+              for (String& i: availRenderDrivers) {
+                if (ImGui::Selectable(i.c_str(),i==settings.renderDriver)) {
+                  settings.renderDriver=i;
+                }
+              }
+              ImGui::EndCombo();
+            }
           }
 
           bool dpiScaleAuto=(settings.dpiScale<0.5f);

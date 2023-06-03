@@ -21,7 +21,7 @@
 #include "../../ta-log.h"
 #ifdef USE_GLES
 #include "SDL_opengles2.h"
-#define PIXEL_FORMAT GL_RGBA
+#define PIXEL_FORMAT GL_UNSIGNED_BYTE
 #else
 #include "SDL_opengl.h"
 #define PIXEL_FORMAT GL_UNSIGNED_INT_8_8_8_8_REV
@@ -62,6 +62,19 @@ struct FurnaceGLTexture {
     lockedData(NULL) {}
 };
 
+#ifdef USE_GLES
+const char* sh_wipe_srcV=
+  "attribute vec4 fur_position;\n"
+  "void main() {\n"
+  " gl_Position=fur_position;\n"
+  "}\n";
+
+const char* sh_wipe_srcF=
+  "uniform float uAlpha;\n"
+  "void main() {\n"
+  "  gl_FragColor=vec4(0.0,0.0,0.0,uAlpha);\n"
+  "}\n";
+#else
 const char* sh_wipe_srcV=
   "#version 130\n"
   "in vec4 fur_position;\n"
@@ -76,6 +89,7 @@ const char* sh_wipe_srcF=
   "void main() {\n"
   "  fur_FragColor=vec4(0.0,0.0,0.0,uAlpha);\n"
   "}\n";
+#endif
 
 bool FurnaceGUIRenderGL::createShader(const char* vertexS, const char* fragmentS, int& vertex, int& fragment, int& program) {
   int status;

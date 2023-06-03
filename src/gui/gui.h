@@ -74,6 +74,14 @@ enum FurnaceGUIRenderBackend {
   GUI_BACKEND_GL
 };
 
+#ifdef HAVE_RENDER_SDL
+#define GUI_BACKEND_DEFAULT GUI_BACKEND_SDL
+#define GUI_BACKEND_DEFAULT_NAME "SDL"
+#else
+#define GUI_BACKEND_DEFAULT GUI_BACKEND_GL
+#define GUI_BACKEND_DEFAULT_NAME "OpenGL"
+#endif
+
 // TODO:
 // - add colors for FM envelope and waveform
 // - maybe add "alternate" color for FM modulators/carriers (a bit difficult)
