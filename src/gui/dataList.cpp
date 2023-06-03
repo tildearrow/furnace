@@ -287,7 +287,9 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
   } else {
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
   }
-  if (ImGui::Selectable(name.c_str(),(i==-1)?(curIns<0 || curIns>=e->song.insLen):(curIns==i))) {
+  bool insReleased=ImGui::Selectable(name.c_str(),(i==-1)?(curIns<0 || curIns>=e->song.insLen):(curIns==i));
+  bool insPressed=ImGui::IsItemActivated();
+  if (insReleased || (!insListDir && insPressed)) {
     curIns=i;
     wavePreviewInit=true;
     updateFMPreview=true;
