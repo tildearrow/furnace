@@ -29,6 +29,7 @@ PFNGLBINDBUFFERPROC furBindBuffer=NULL;
 PFNGLBUFFERDATAPROC furBufferData=NULL;
 PFNGLVERTEXATTRIBPOINTERPROC furVertexAttribPointer=NULL;
 PFNGLENABLEVERTEXATTRIBARRAYPROC furEnableVertexAttribArray=NULL;
+PFNGLACTIVETEXTUREPROC furActiveTexture=NULL;
 
 PFNGLCREATESHADERPROC furCreateShader=NULL;
 PFNGLSHADERSOURCEPROC furShaderSource=NULL;
@@ -163,7 +164,7 @@ void* FurnaceGUIRenderGL::createTexture(bool dynamic, int width, int height) {
   C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR));
   C(glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR));
   C(glTexImage2D(GL_TEXTURE_2D,0,GL_RGBA,width,height,0,GL_RGBA,GL_UNSIGNED_INT_8_8_8_8_REV,NULL));
-  C(glActiveTexture(GL_TEXTURE0));
+  C(furActiveTexture(GL_TEXTURE0));
   t->width=width;
   t->height=height;
   return t;
@@ -321,6 +322,7 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
   LOAD_PROC_MANDATORY(furBufferData,PFNGLBUFFERDATAPROC,"glBufferData");
   LOAD_PROC_MANDATORY(furVertexAttribPointer,PFNGLVERTEXATTRIBPOINTERPROC,"glVertexAttribPointer");
   LOAD_PROC_MANDATORY(furEnableVertexAttribArray,PFNGLENABLEVERTEXATTRIBARRAYPROC,"glEnableVertexAttribArray");
+  LOAD_PROC_MANDATORY(furActiveTexture,PFNGLACTIVETEXTUREPROC,"glActiveTexture");
 
   LOAD_PROC_OPTIONAL(furCreateShader,PFNGLCREATESHADERPROC,"glCreateShader");
   LOAD_PROC_OPTIONAL(furShaderSource,PFNGLSHADERSOURCEPROC,"glShaderSource");
