@@ -245,7 +245,7 @@ void FurnaceGUIRenderGL::wipe(float alpha) {
   C(furBufferData(GL_ARRAY_BUFFER,sizeof(quadVertex),quadVertex,GL_STATIC_DRAW));
   C(furVertexAttribPointer(0,3,GL_FLOAT,GL_FALSE,0,NULL));
   C(furEnableVertexAttribArray(0));
-  C(glActiveTexture(GL_TEXTURE0));
+  C(furActiveTexture(GL_TEXTURE0));
   C(glBindTexture(GL_TEXTURE_2D,0));
   if (furUseProgram && furUniform1f) {
     C(furUseProgram(sh_wipe_program));
