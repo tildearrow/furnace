@@ -58,8 +58,6 @@ to undock a window, drag its tab away from where it is docked. then it will be f
 
 ## text fields
 
-TODO: image
-
 text fields are able to hold... text.
 
 click on a text field to start editing, and click away to stop editing.
@@ -69,23 +67,17 @@ the following keyboard shortcuts work while on a text field:
 - `Ctrl-X`: cut
 - `Ctrl-C`: copy
 - `Ctrl-V`: paste
-- `Ctrl-Z`: undo
-- `Ctrl-Y`: redo
 - `Ctrl-A`: select all
 
 (replace Ctrl with Command on macOS)
 
 ## number input fields
 
-TODO: image
-
 these work similar to text fields, but you may only input numbers.
 
 they also usually have two buttons which allow you to increase/decrease the amount when clicked (and rapidly do so when click-holding).
 
 ## sliders
-
-TODO: image
 
 sliders are used for controlling values in a quick manner by being dragged.
 
