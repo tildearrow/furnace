@@ -16,7 +16,7 @@ See [2-interface](https://github.com/tildearrow/furnace/tree/master/papers/doc/2
 
 ## Hexadecimal
 
-Furnace uses hexadecimal (abbreviated as "hex") numbers frequently. see [hex.md](this guide) for a crash course.
+Furnace uses hexadecimal (abbreviated as "hex") numbers frequently. see [this guide](hex.md) for a crash course.
 
 ## Sound generation
 
