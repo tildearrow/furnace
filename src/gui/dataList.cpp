@@ -287,21 +287,17 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
   } else {
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
   }
-  if (ImGui::Selectable(name.c_str(),(i==-1)?(curIns<0 || curIns>=e->song.insLen):(curIns==i))) {
+  bool insReleased=ImGui::Selectable(name.c_str(),(i==-1)?(curIns<0 || curIns>=e->song.insLen):(curIns==i));
+  bool insPressed=ImGui::IsItemActivated();
+  if (insReleased || (!insListDir && insPressed)) {
     curIns=i;
     wavePreviewInit=true;
     updateFMPreview=true;
     lastAssetType=0;
-    if (insListDir) nextWindow=GUI_WINDOW_PATTERN;
+    if (settings.insFocusesPattern && patternOpen)
+      nextWindow=GUI_WINDOW_PATTERN;
   }
   if (wantScrollList && curIns==i) ImGui::SetScrollHereY();
-  if (settings.insFocusesPattern && patternOpen && ImGui::IsItemActivated()) {
-    if (!insListDir) nextWindow=GUI_WINDOW_PATTERN;
-    curIns=i;
-    wavePreviewInit=true;
-    updateFMPreview=true;
-    lastAssetType=0;
-  }
   if (ImGui::IsItemHovered() && i>=0 && !mobileUI) {
     ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
     ImGui::SetTooltip("%s",insType);
