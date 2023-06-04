@@ -5,22 +5,22 @@ the hexadecimal numeral system differs from the decimal system by having 16 digi
 ```
 hex| decimal
 ---|---------
-`0`| 0
-`1`| 1
-`2`| 2
-`3`| 3
-`4`| 4
-`5`| 5
-`6`| 6
-`7`| 7
-`8`| 8
-`9`| 9
-`A`| 10
-`B`| 11
-`C`| 12
-`D`| 13
-`E`| 14
-`F`| 15
+ 0 | 0
+ 1 | 1
+ 2 | 2
+ 3 | 3
+ 4 | 4
+ 5 | 5
+ 6 | 6
+ 7 | 7
+ 8 | 8
+ 9 | 9
+ A | 10
+ B | 11
+ C | 12
+ D | 13
+ E | 14
+ F | 15
 ```
 
 when there is more than one digit, these are multiplied by 16, 256, 4096 and so on rather than 10, 100, 1000:
@@ -28,17 +28,17 @@ when there is more than one digit, these are multiplied by 16, 256, 4096 and so 
 ```
 hex | decimal
 ----|---------
-`00`| 0
-`04`| 4
-`08`| 8
-`0F`| 15
-`10`| 16
-`11`| 17
-`12`| 18
-`13`| 19
-`20`| 32
-`30`| 48
-`40`| 64
+ 00 | 0
+ 04 | 4
+ 08 | 8
+ 0F | 15
+ 10 | 16
+ 11 | 17
+ 12 | 18
+ 13 | 19
+ 20 | 32
+ 30 | 48
+ 40 | 64
 ```
 
 # hex to decimal
