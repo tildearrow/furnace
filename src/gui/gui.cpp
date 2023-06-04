@@ -2951,6 +2951,12 @@ int _processEvent(void* instance, SDL_Event* event) {
   return ((FurnaceGUI*)instance)->processEvent(event);
 }
 
+#if SDL_VERSION_ATLEAST(2,0,17)
+#define VALID_MODS KMOD_NUM|KMOD_CAPS|KMOD_SCROLL
+#else
+#define VALID_MODS KMOD_NUM|KMOD_CAPS
+#endif
+
 int FurnaceGUI::processEvent(SDL_Event* ev) {
   if (introPos<11.0 && !shortIntro) return 1;
 #ifdef IS_MOBILE
@@ -2962,7 +2968,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
   }
 #endif
   if (ev->type==SDL_KEYDOWN) {
-    if (!ev->key.repeat && latchTarget==0 && !wantCaptureKeyboard && !sampleMapWaitingInput && (ev->key.keysym.mod&(~(KMOD_NUM|KMOD_CAPS|KMOD_SCROLL)))==0) {
+    if (!ev->key.repeat && latchTarget==0 && !wantCaptureKeyboard && !sampleMapWaitingInput && (ev->key.keysym.mod&(~(VALID_MODS)))==0) {
       if (settings.notePreviewBehavior==0) return 1;
       switch (curWindow) {
         case GUI_WINDOW_SAMPLE_EDIT:
@@ -3449,6 +3455,7 @@ bool FurnaceGUI::loop() {
               break;
           }
           break;
+#if SDL_VERSION_ATLEAST(2,0,17)
         case SDL_DISPLAYEVENT: {
           switch (ev.display.event) {
             case SDL_DISPLAYEVENT_CONNECTED:
@@ -3466,6 +3473,7 @@ bool FurnaceGUI::loop() {
           }
           break;
         }
+#endif
         case SDL_KEYDOWN:
           if (!ImGui::GetIO().WantCaptureKeyboard) {
             keyDown(ev);
@@ -6007,7 +6015,9 @@ bool FurnaceGUI::init() {
   e->setAutoNotePoly(noteInputPoly);
 
   SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER,"1");
+#if SDL_VERSION_ATLEAST(2,0,17)
   SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS,"0");
+#endif
   SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS,"0");
   // don't disable compositing on KWin
 #if SDL_VERSION_ATLEAST(2,0,22)
