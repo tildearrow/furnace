@@ -4,14 +4,14 @@ the user interface consists of several components. this paper describes some of 
 
 ## windows
 
-TODO: image
+![window](window.png)
 
 windows may be moved, collapsed, closed or even docked around the workspace.
 
 to move a window, press and hold the mouse button while on title bar or any empty space on it.
 then drag your mouse, and release it to stop moving.
 
-to resize a window, drag any of the bottom corners (marked by triangular tabs).
+to resize a window, drag the bottom right corner (marked by a triangular tab) or the borders.
 
 to collapse a window, click on the triangle in the title bar.
 clicking again expands it.
@@ -24,25 +24,34 @@ windows may be docked, which comes in handy.
 
 to dock a window, drag it from its title bar to another location in the workspace or to the location of another window.
 
-while dragging, an overlay with five options will appear, allowing you to select where and how to dock that window.
+while dragging, an overlay with some options will appear, allowing you to select where and how to dock that window.
 the options are:
 
-```
-        UP
- LEFT CENTER RIGHT
-       DOWN
-```
+![docking options](docking.png)
 
 drag your mouse cursor to any of the options to dock the window.
 
-if you drag the window to `CENTER`, the window will be maximized to cover the workspace (if you do this on the workspace), or it will appear as another tab (if you do this on a window).
+if you drag to the sides (marked with blue text), the window will cover that side of the workspace.
+
+if you drag it to a window or empty space (marked with yellow text), five docking positions will appear.
+
+if you drag the window to the center of another window, it will appear as another tab.
+
+if you drag the window to the center of empty space, the window will cover aforementioned empty space.
 
 otherwise the window will be split in two, with the first half covered by the window you docked and the second half covered by the other window.
 
+![tab1](tab1.png)
+
 when a window is docked, its title bar turns into a tab bar, and the function provided by the "collapse" triangle at the top left changes.
 
-if this triangle is clicked, a menu will appear with a single option: "Hide tab bar".
+![tab2](tab2.png)
+
+if this triangle is clicked, a menu will appear with a list of tabs, or a single option if there's only one tab: "Hide tab bar".
 selecting this option will hide the tab bar of that window.
+
+![tab3](tab3.png)
+
 to bring it back, click on the top left corner.
 
 to undock a window, drag its tab away from where it is docked. then it will be floating again.
