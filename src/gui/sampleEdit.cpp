@@ -291,6 +291,19 @@ void FurnaceGUI::drawSampleEdit() {
               }
             }
           }
+          if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && e->getSampleFormatMask()&(1L<<DIV_SAMPLE_DEPTH_8BIT)) {
+            bool di=sample->dither;
+            if (ImGui::Checkbox("8-bit dither",&di)) {
+              sample->prepareUndo(true);
+              sample->dither=di;
+              e->renderSamplesP();
+              updateSampleTex=true;
+              MARK_MODIFIED;
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("dither the sample when used on a chip that only supports 8-bit samples.");
+            }
+          }
 
           int sampleNote=round(64.0+(128.0*12.0*log((double)targetRate/8363.0)/log(2.0)));
           int sampleNoteCoarse=60+(sampleNote>>7);
