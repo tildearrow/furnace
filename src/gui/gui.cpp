@@ -6158,6 +6158,7 @@ bool FurnaceGUI::init() {
 
   rend->preInit();
 
+  logD("creating window...");
   sdlWin=SDL_CreateWindow("Furnace",scrX,scrY,scrW,scrH,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(scrMax?SDL_WINDOW_MAXIMIZED:0)|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0)|rend->getWindowFlags());
   if (sdlWin==NULL) {
     lastError=fmt::sprintf("could not open window! %s",SDL_GetError());
@@ -6222,6 +6223,7 @@ bool FurnaceGUI::init() {
     SDL_SetHint(SDL_HINT_RENDER_DRIVER,settings.renderDriver.c_str());
   }
 
+  logD("starting render backend...");
   if (!rend->init(sdlWin)) {
     if (settings.renderBackend=="OpenGL") {
       settings.renderBackend="";
@@ -6259,10 +6261,17 @@ bool FurnaceGUI::init() {
     }
   }
 
+  updateWindowTitle();
+
+  rend->clear(ImVec4(0.0,0.0,0.0,1.0));
+  rend->present();
+
+  logD("preparing user interface...");
   rend->initGUI(sdlWin);
 
   applyUISettings();
 
+  logD("building font...");
   if (!ImGui::GetIO().Fonts->Build()) {
     logE("error while building font atlas!");
     showError("error while loading fonts! please check your settings.");
@@ -6275,6 +6284,7 @@ bool FurnaceGUI::init() {
     }
   }
 
+  logD("preparing layout...");
   strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
   backupPath=e->getConfigPath();
   if (backupPath.size()>0) {
@@ -6285,8 +6295,6 @@ bool FurnaceGUI::init() {
 
   ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
   toggleMobileUI(mobileUI,true);
-
-  updateWindowTitle();
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     oldPat[i]=new DivPattern;
@@ -6334,6 +6342,7 @@ bool FurnaceGUI::init() {
     return curIns;
   });
 
+#ifdef IS_MOBILE
   vibrator=SDL_HapticOpen(0);
   if (vibrator==NULL) {
     logD("could not open vibration device: %s",SDL_GetError());
@@ -6344,7 +6353,9 @@ bool FurnaceGUI::init() {
       logD("vibration not available: %s",SDL_GetError());
     }
   }
+#endif
 
+  logI("done!");
   return true;
 }
 
