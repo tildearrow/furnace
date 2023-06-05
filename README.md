@@ -120,7 +120,7 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
 # quick references
 
 - **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, or the [official Discord server](https://discord.gg/EfrwT2wq7z).
-- **help**: check out the [documentation](papers/doc/README.md). it's incomplete, but has details on effects.
+- **help**: check out the [documentation](doc/README.md). it's incomplete though.
 
 ## packages
 
@@ -301,7 +301,7 @@ you may need to log out and/or reboot after doing this.
 
 > where's the manual?
 
-see [papers/](papers/doc/README.md). it's kind of incomplete, but at least the sound chips section is there.
+see [doc/](doc/README.md). it's kind of incomplete though.
 
 > is there a tutorial?
 

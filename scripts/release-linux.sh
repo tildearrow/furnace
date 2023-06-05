@@ -51,6 +51,7 @@ cd ..
 cp ../../../LICENSE . || exit 1
 cp ../../../README.md . || exit 1
 cp -r ../../../papers papers || exit 1
+cp -r ../../../doc doc || exit 1
 rmdir usr || exit 1
 
 strip -s furnace
