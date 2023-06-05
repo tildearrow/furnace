@@ -6026,14 +6026,18 @@ bool FurnaceGUI::init() {
 #endif
 
   // initialize SDL
+  logD("initializing video...");
   if (SDL_Init(SDL_INIT_VIDEO)!=0) {
     logE("could not initialize video! %s",SDL_GetError());
     return false;
   }
 
+#ifdef IS_MOBILE
+  logD("initializing haptic...");
   if (SDL_Init(SDL_INIT_HAPTIC)!=0) {
     logW("could not initialize haptic! %s",SDL_GetError());
   }
+#endif
 
   const char* videoBackend=SDL_GetCurrentVideoDriver();
   if (videoBackend!=NULL) {
