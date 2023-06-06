@@ -190,10 +190,10 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
             oscBuf[i]->data[oscBuf[i]->needle++]=fm.dacdata<<7;
           }
         } else {
-          oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<(chipType==2?0:7);
+          oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm.ch_out[i]<<(chipType==2?2:7),-32768,32767);
         }
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<(chipType==2?0:7);
+        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm.ch_out[i]<<(chipType==2?2:7),-32768,32767);
       }
     }
     
