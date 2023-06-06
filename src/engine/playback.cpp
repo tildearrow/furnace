@@ -781,23 +781,17 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
       case 0x07: // tremolo
-        // TODO
-        // this effect is really weird. i thought it would alter the tremolo depth but turns out it's completely different
-        // this is how it works:
-        // - 07xy enables tremolo
-        // - when enabled, a "low" boundary is calculated based on the current volume
-        // - then a volume slide down starts to the low boundary, and then when this is reached a volume slide up begins
-        // - this process repeats until 0700 or 0Axy are found
-        // - note that a volume value does not stop tremolo - instead it glitches this whole thing up
         if (chan[i].tremoloDepth==0) {
           chan[i].tremoloPos=0;
-          dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
-          dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
         }
         chan[i].tremoloDepth=effectVal&15;
         chan[i].tremoloRate=effectVal>>4;
-        // tremolo and vol slides are incompatiblw
-        chan[i].volSpeed=0;
+        if (chan[i].tremoloDepth!=0) {
+          chan[i].volSpeed=0;
+        } else {
+          dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+          dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
+        }
         break;
       case 0x0a: // volume ramp
         // TODO: non-0x-or-x0 value should be treated as 00
