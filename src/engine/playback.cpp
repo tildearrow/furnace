@@ -791,6 +791,8 @@ void DivEngine::processRow(int i, bool afterDelay) {
         // - note that a volume value does not stop tremolo - instead it glitches this whole thing up
         if (chan[i].tremoloDepth==0) {
           chan[i].tremoloPos=0;
+          dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+          dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
         }
         chan[i].tremoloDepth=effectVal&15;
         chan[i].tremoloRate=effectVal>>4;
