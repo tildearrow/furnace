@@ -95,7 +95,6 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   //size_t tickCount=0;
   bool done=false;
   int loopPos=-1;
-  int writeCount=0;
   int fracWait=0; // accumulates fractional ticks
   if (VERA>=0) disCont[VERA].dispatch->toggleRegisterDump(true);
   if (YM>=0) {
@@ -152,7 +151,6 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
       for (DivRegWrite& write: writes) {
         if (i==YM) zsm.writeYM(write.addr&0xff,write.val);
         if (i==VERA) zsm.writePSG(write.addr&0xff,write.val);
-        writeCount++;
       }
       writes.clear();
     }
