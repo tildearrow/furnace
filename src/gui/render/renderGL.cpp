@@ -276,7 +276,7 @@ void FurnaceGUIRenderGL::wipe(float alpha) {
 
 void FurnaceGUIRenderGL::present() {
   SDL_GL_SwapWindow(sdlWin);
-  C(glFinish());
+  C(glFlush());
 }
 
 bool FurnaceGUIRenderGL::getOutputSize(int& w, int& h) {
