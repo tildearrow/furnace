@@ -403,9 +403,10 @@ void FurnaceGUI::drawChanOsc() {
               for (unsigned short i=0; i<512; i++) {
                 float x=(float)i/512.0f;
                 float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;
+                y-=dcOff;
                 if (y<-0.5f) y=-0.5f;
                 if (y>0.5f) y=0.5f;
-                waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-(y-dcOff)));
+                waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
               }
             }
             ImU32 color=ImGui::GetColorU32(chanOscColor);
