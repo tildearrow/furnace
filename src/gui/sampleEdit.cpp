@@ -291,6 +291,19 @@ void FurnaceGUI::drawSampleEdit() {
               }
             }
           }
+          if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && e->getSampleFormatMask()&(1L<<DIV_SAMPLE_DEPTH_8BIT)) {
+            bool di=sample->dither;
+            if (ImGui::Checkbox("8-bit dither",&di)) {
+              sample->prepareUndo(true);
+              sample->dither=di;
+              e->renderSamplesP();
+              updateSampleTex=true;
+              MARK_MODIFIED;
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("dither the sample when used on a chip that only supports 8-bit samples.");
+            }
+          }
 
           int sampleNote=round(64.0+(128.0*12.0*log((double)targetRate/8363.0)/log(2.0)));
           int sampleNoteCoarse=60+(sampleNote>>7);
@@ -1110,12 +1123,12 @@ void FurnaceGUI::drawSampleEdit() {
 
       if (sampleTex==NULL || sampleTexW!=avail.x || sampleTexH!=avail.y) {
         if (sampleTex!=NULL) {
-          SDL_DestroyTexture(sampleTex);
+          rend->destroyTexture(sampleTex);
           sampleTex=NULL;
         }
         if (avail.x>=1 && avail.y>=1) {
           logD("recreating sample texture.");
-          sampleTex=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,SDL_TEXTUREACCESS_STREAMING,avail.x,avail.y);
+          sampleTex=rend->createTexture(true,avail.x,avail.y);
           sampleTexW=avail.x;
           sampleTexH=avail.y;
           if (sampleTex==NULL) {
@@ -1131,7 +1144,7 @@ void FurnaceGUI::drawSampleEdit() {
           unsigned int* dataT=NULL;
           int pitch=0;
           logD("updating sample texture.");
-          if (SDL_LockTexture(sampleTex,NULL,(void**)&dataT,&pitch)!=0) {
+          if (!rend->lockTexture(sampleTex,(void**)&dataT,&pitch)) {
             logE("error while locking sample texture! %s",SDL_GetError());
           } else {
             unsigned int* data=new unsigned int[sampleTexW*sampleTexH];
@@ -1217,13 +1230,13 @@ void FurnaceGUI::drawSampleEdit() {
             }
 
             memcpy(dataT,data,sampleTexW*sampleTexH*sizeof(unsigned int));
-            SDL_UnlockTexture(sampleTex);
+            rend->unlockTexture(sampleTex);
             delete[] data;
           }
           updateSampleTex=false;
         }
 
-        ImGui::ImageButton(sampleTex,avail,ImVec2(0,0),ImVec2(1,1),0);
+        ImGui::ImageButton(rend->getTextureID(sampleTex),avail,ImVec2(0,0),ImVec2(1,1),0);
 
         ImVec2 rectMin=ImGui::GetItemRectMin();
         ImVec2 rectMax=ImGui::GetItemRectMax();

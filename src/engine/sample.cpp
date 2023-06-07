@@ -54,7 +54,7 @@ void DivSample::putSampleData(SafeWriter* w) {
   w->writeC(depth);
   w->writeC(loopMode);
   w->writeC(brrEmphasis);
-  w->writeC(0); // reserved
+  w->writeC(dither);
   w->writeI(loop?loopStart:-1);
   w->writeI(loop?loopEnd:-1);
 
@@ -131,8 +131,11 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
     } else {
       reader.readC();
     }
-    // reserved
-    reader.readC();
+    if (version>=159) {
+      dither=reader.readC()&1;
+    } else {
+      reader.readC();
+    }
 
     loopStart=reader.readI();
     loopEnd=reader.readI();
@@ -1196,8 +1199,23 @@ void DivSample::render(unsigned int formatMask) {
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_8BIT)) { // 8-bit PCM
     if (!initInternal(DIV_SAMPLE_DEPTH_8BIT,samples)) return;
-    for (unsigned int i=0; i<samples; i++) {
-      data8[i]=data16[i]>>8;
+    if (dither) {
+      unsigned short lfsr=0x6438;
+      unsigned short lfsr1=0x1283;
+      signed char errorLast=0;
+      signed char errorCur=0;
+      for (unsigned int i=0; i<samples; i++) {
+        signed char val=CLAMP(data16[i]+128,-32768,32767)>>8;
+        errorLast=errorCur;
+        errorCur=(val<<8)-data16[i];
+        data8[i]=CLAMP(val-((((errorLast+errorCur)>>1)+(lfsr&0xff))>>8),-128,127);
+        lfsr=(lfsr<<1)|(((lfsr>>1)^(lfsr>>2)^(lfsr>>4)^(lfsr>>15))&1);
+        lfsr1=(lfsr1<<1)|(((lfsr1>>1)^(lfsr1>>2)^(lfsr1>>4)^(lfsr1>>15))&1);
+      }
+    } else {
+      for (unsigned int i=0; i<samples; i++) {
+        data8[i]=data16[i]>>8;
+      }
     }
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_BRR)) { // BRR
@@ -1277,9 +1295,9 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       duplicate=new unsigned char[getCurBufLen()];
       memcpy(duplicate,getCurBuf(),getCurBufLen());
     }
-    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,loopMode);
+    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,dither,loopMode);
   } else {
-    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,loopMode);
+    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,dither,loopMode);
   }
   if (!doNotPush) {
     while (!redoHist.empty()) {
@@ -1312,6 +1330,8 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
   loopStart=h->loopStart; \
   loopEnd=h->loopEnd; \
   loop=h->loop; \
+  brrEmphasis=h->brrEmphasis; \
+  dither=h->dither; \
   loopMode=h->loopMode;
 
 

@@ -14,7 +14,7 @@ fi
 
 cd linuxbuild
 
-cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O2" -DCMAKE_CXX_FLAGS="-O2 -Wall -Wextra -Wno-unused-parameter -Werror" .. || exit 1
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O3" -DCMAKE_CXX_FLAGS="-O3 -Wall -Wextra -Wno-unused-parameter -Werror" .. || exit 1
 make -j4 || exit 1
 
 cd ..
@@ -51,6 +51,7 @@ cd ..
 cp ../../../LICENSE . || exit 1
 cp ../../../README.md . || exit 1
 cp -r ../../../papers papers || exit 1
+cp -r ../../../doc doc || exit 1
 rmdir usr || exit 1
 
 strip -s furnace

@@ -14,7 +14,7 @@ fi
 
 cd linuxbuild
 
-cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O2" -DCMAKE_CXX_FLAGS="-O2 -Wall -Wextra -Wno-unused-parameter -Werror" .. || exit 1
+cmake -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-O2" -DCMAKE_CXX_FLAGS="-O2 -Wall -Wextra -Wno-unused-parameter -Werror" -DWITH_DEMOS=OFF -DWITH_INSTRUMENTS=OFF -DWITH_WAVETABLES=OFF .. || exit 1
 make -j4 || exit 1
 
 cd ..
@@ -47,5 +47,3 @@ cd ../../..
 [ -e appimagetool-x86_64.AppImage ] || { wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" && chmod 755 appimagetool-x86_64.AppImage; }
 ./appimagetool-x86_64.AppImage --appimage-extract
 ARCH=$(uname -m) ./squashfs-root/AppRun furnace.AppDir
-
-#zip -r furnace.zip LICENSE.txt Furnace*.dmg README.txt papers

@@ -30,7 +30,6 @@
 #include "imgui.h"
 #include "imgui_internal.h"
 #include "imgui_impl_sdl.h"
-#include "imgui_impl_sdlrenderer.h"
 #include "ImGuiFileDialog.h"
 #include "IconsFontAwesome4.h"
 #include "misc/cpp/imgui_stdlib.h"
@@ -1980,7 +1979,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
     if (dmfVersion<24) dmfVersion=24;
     w=e->saveDMF(dmfVersion);
   } else {
-    w=e->saveFur();
+    w=e->saveFur(false,settings.newPatternFormat);
   }
   if (w==NULL) {
     lastError=e->getLastError();
@@ -2957,6 +2956,12 @@ int _processEvent(void* instance, SDL_Event* event) {
   return ((FurnaceGUI*)instance)->processEvent(event);
 }
 
+#if SDL_VERSION_ATLEAST(2,0,17)
+#define VALID_MODS KMOD_NUM|KMOD_CAPS|KMOD_SCROLL
+#else
+#define VALID_MODS KMOD_NUM|KMOD_CAPS
+#endif
+
 int FurnaceGUI::processEvent(SDL_Event* ev) {
   if (introPos<11.0 && !shortIntro) return 1;
 #ifdef IS_MOBILE
@@ -2968,7 +2973,7 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
   }
 #endif
   if (ev->type==SDL_KEYDOWN) {
-    if (!ev->key.repeat && latchTarget==0 && !wantCaptureKeyboard && !sampleMapWaitingInput && (ev->key.keysym.mod&(~(KMOD_NUM|KMOD_CAPS|KMOD_SCROLL)))==0) {
+    if (!ev->key.repeat && latchTarget==0 && !wantCaptureKeyboard && !sampleMapWaitingInput && (ev->key.keysym.mod&(~(VALID_MODS)))==0) {
       if (settings.notePreviewBehavior==0) return 1;
       switch (curWindow) {
         case GUI_WINDOW_SAMPLE_EDIT:
@@ -3455,6 +3460,7 @@ bool FurnaceGUI::loop() {
               break;
           }
           break;
+#if SDL_VERSION_ATLEAST(2,0,17)
         case SDL_DISPLAYEVENT: {
           switch (ev.display.event) {
             case SDL_DISPLAYEVENT_CONNECTED:
@@ -3472,6 +3478,7 @@ bool FurnaceGUI::loop() {
           }
           break;
         }
+#endif
         case SDL_KEYDOWN:
           if (!ImGui::GetIO().WantCaptureKeyboard) {
             keyDown(ev);
@@ -3542,8 +3549,8 @@ bool FurnaceGUI::loop() {
       }
     }
     // update canvas size as well
-    if (SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH)!=0) {
-      logW("loop: error while getting output size! %s",SDL_GetError());
+    if (!rend->getOutputSize(canvasW,canvasH)) {
+      logW("loop: error while getting output size!");
     } else {
       //logV("updateWindow: canvas size %dx%d",canvasW,canvasH);
       // and therefore window size
@@ -3768,7 +3775,7 @@ bool FurnaceGUI::loop() {
 
     layoutTimeBegin=SDL_GetPerformanceCounter();
 
-    if (!ImGui_ImplSDLRenderer_NewFrame()) {
+    if (!rend->newFrame()) {
       fontsFailed=true;
     }
     ImGui_ImplSDL2_NewFrame(sdlWin);
@@ -4352,6 +4359,7 @@ bool FurnaceGUI::loop() {
       MEASURE(log,drawLog());
       MEASURE(compatFlags,drawCompatFlags());
       MEASURE(stats,drawStats());
+      MEASURE(chanOsc,drawChanOsc());
     } else {
       globalWinFlags=0;
       ImGui::DockSpaceOverViewport(NULL,lockLayout?(ImGuiDockNodeFlags_NoWindowMenuButton|ImGuiDockNodeFlags_NoMove|ImGuiDockNodeFlags_NoResize|ImGuiDockNodeFlags_NoCloseButton|ImGuiDockNodeFlags_NoDocking|ImGuiDockNodeFlags_NoDockingSplitMe|ImGuiDockNodeFlags_NoDockingSplitOther):0);
@@ -4423,7 +4431,7 @@ bool FurnaceGUI::loop() {
       portrait=(scrW<scrH);
       logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
 
-      SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH);
+      rend->getOutputSize(canvasW,canvasH);
 #endif
       if (patternOpen) nextWindow=GUI_WINDOW_PATTERN;
 #ifdef __APPLE__
@@ -5679,7 +5687,7 @@ bool FurnaceGUI::loop() {
               }
             }
             logD("saving backup...");
-            SafeWriter* w=e->saveFur(true);
+            SafeWriter* w=e->saveFur(true,true);
             logV("writing file...");
 
             if (w!=NULL) {
@@ -5801,30 +5809,24 @@ bool FurnaceGUI::loop() {
       }
     }
 
-    SDL_SetRenderDrawColor(sdlRend,uiColors[GUI_COLOR_BACKGROUND].x*255,
-                                   uiColors[GUI_COLOR_BACKGROUND].y*255,
-                                   uiColors[GUI_COLOR_BACKGROUND].z*255,
-                                   uiColors[GUI_COLOR_BACKGROUND].w*255);
-    SDL_RenderClear(sdlRend);
+    rend->clear(uiColors[GUI_COLOR_BACKGROUND]);
     renderTimeBegin=SDL_GetPerformanceCounter();
     ImGui::Render();
     renderTimeEnd=SDL_GetPerformanceCounter();
-    ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
+    rend->renderGUI();
     if (mustClear) {
-      SDL_RenderClear(sdlRend);
+      rend->clear(ImVec4(0,0,0,0));
       mustClear--;
     } else {
       if (initialScreenWipe>0.0f && !settings.disableFadeIn) {
         WAKE_UP;
         initialScreenWipe-=ImGui::GetIO().DeltaTime*5.0f;
         if (initialScreenWipe>0.0f) {
-          SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_BLEND);
-          SDL_SetRenderDrawColor(sdlRend,0,0,0,255*pow(initialScreenWipe,2.0f));
-          SDL_RenderFillRect(sdlRend,NULL);
+          rend->wipe(pow(initialScreenWipe,2.0f));
         }
       }
     }
-    SDL_RenderPresent(sdlRend);
+    rend->present();
 
     layoutTimeDelta=layoutTimeEnd-layoutTimeBegin;
     renderTimeDelta=renderTimeEnd-renderTimeBegin;
@@ -5859,9 +5861,11 @@ bool FurnaceGUI::loop() {
       ImGui::GetIO().Fonts->Clear();
       mainFont=ImGui::GetIO().Fonts->AddFontDefault();
       patFont=mainFont;
-      ImGui_ImplSDLRenderer_DestroyFontsTexture();
+      if (rend) rend->destroyFontsTexture();
       if (!ImGui::GetIO().Fonts->Build()) {
         logE("error again while building font atlas!");
+      } else {
+        rend->createFontsTexture();
       }
     }
 
@@ -6017,7 +6021,9 @@ bool FurnaceGUI::init() {
   e->setAutoNotePoly(noteInputPoly);
 
   SDL_SetHint(SDL_HINT_VIDEO_ALLOW_SCREENSAVER,"1");
+#if SDL_VERSION_ATLEAST(2,0,17)
   SDL_SetHint(SDL_HINT_MOUSE_TOUCH_EVENTS,"0");
+#endif
   SDL_SetHint(SDL_HINT_TOUCH_MOUSE_EVENTS,"0");
   // don't disable compositing on KWin
 #if SDL_VERSION_ATLEAST(2,0,22)
@@ -6026,7 +6032,18 @@ bool FurnaceGUI::init() {
 #endif
 
   // initialize SDL
-  SDL_Init(SDL_INIT_VIDEO|SDL_INIT_HAPTIC);
+  logD("initializing video...");
+  if (SDL_Init(SDL_INIT_VIDEO)!=0) {
+    logE("could not initialize video! %s",SDL_GetError());
+    return false;
+  }
+
+#ifdef IS_MOBILE
+  logD("initializing haptic...");
+  if (SDL_Init(SDL_INIT_HAPTIC)!=0) {
+    logW("could not initialize haptic! %s",SDL_GetError());
+  }
+#endif
 
   const char* videoBackend=SDL_GetCurrentVideoDriver();
   if (videoBackend!=NULL) {
@@ -6127,7 +6144,28 @@ bool FurnaceGUI::init() {
 
   logV("window size: %dx%d",scrW,scrH);
 
-  sdlWin=SDL_CreateWindow("Furnace",scrX,scrY,scrW,scrH,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(scrMax?SDL_WINDOW_MAXIMIZED:0)|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0));
+  if (!initRender()) {
+    if (settings.renderBackend=="OpenGL") {
+      settings.renderBackend="";
+      e->setConf("renderBackend","");
+      e->saveConf();
+      lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
+    } else {
+      lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
+      if (!settings.renderDriver.empty()) {
+        settings.renderDriver="";
+        e->setConf("renderDriver","");
+        e->saveConf();
+        lastError=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
+      }
+    }
+    return false;
+  }
+
+  rend->preInit();
+
+  logD("creating window...");
+  sdlWin=SDL_CreateWindow("Furnace",scrX,scrY,scrW,scrH,SDL_WINDOW_RESIZABLE|SDL_WINDOW_ALLOW_HIGHDPI|(scrMax?SDL_WINDOW_MAXIMIZED:0)|(fullScreen?SDL_WINDOW_FULLSCREEN_DESKTOP:0)|rend->getWindowFlags());
   if (sdlWin==NULL) {
     lastError=fmt::sprintf("could not open window! %s",SDL_GetError());
     return false;
@@ -6191,22 +6229,28 @@ bool FurnaceGUI::init() {
     SDL_SetHint(SDL_HINT_RENDER_DRIVER,settings.renderDriver.c_str());
   }
 
-  sdlRend=SDL_CreateRenderer(sdlWin,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC|SDL_RENDERER_TARGETTEXTURE);
-
-  if (sdlRend==NULL) {
-    lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
-    if (!settings.renderDriver.empty()) {
-      settings.renderDriver="";
-      e->setConf("renderDriver","");
+  logD("starting render backend...");
+  if (!rend->init(sdlWin)) {
+    if (settings.renderBackend=="OpenGL") {
+      settings.renderBackend="";
+      e->setConf("renderBackend","");
       e->saveConf();
-      lastError=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
+      lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
+    } else {
+      lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
+      if (!settings.renderDriver.empty()) {
+        settings.renderDriver="";
+        e->setConf("renderDriver","");
+        e->saveConf();
+        lastError=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
+      }
     }
     return false;
   }
 
   // try acquiring the canvas size
-  if (SDL_GetRendererOutputSize(sdlRend,&canvasW,&canvasH)!=0) {
-    logW("could not get renderer output size! %s",SDL_GetError());
+  if (!rend->getOutputSize(canvasW,canvasH)) {
+    logW("could not get renderer output size!");
   } else {
     logV("canvas size: %dx%d",canvasW,canvasH);
   }
@@ -6214,30 +6258,39 @@ bool FurnaceGUI::init() {
   // special consideration for Wayland
   if (settings.dpiScale<0.5f) {
     if (strcmp(videoBackend,"wayland")==0) {
-      dpiScale=(double)canvasW/(double)scrW;
+      if (scrW<1) {
+        logW("screen width is zero!\n");
+        dpiScale=1.0;
+      } else {
+        dpiScale=(double)canvasW/(double)scrW;
+      }
     }
   }
 
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
+  updateWindowTitle();
 
-  ImGui_ImplSDL2_InitForSDLRenderer(sdlWin,sdlRend);
-  ImGui_ImplSDLRenderer_Init(sdlRend);
+  rend->clear(ImVec4(0.0,0.0,0.0,1.0));
+  rend->present();
+
+  logD("preparing user interface...");
+  rend->initGUI(sdlWin);
 
   applyUISettings();
 
+  logD("building font...");
   if (!ImGui::GetIO().Fonts->Build()) {
     logE("error while building font atlas!");
     showError("error while loading fonts! please check your settings.");
     ImGui::GetIO().Fonts->Clear();
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
-    ImGui_ImplSDLRenderer_DestroyFontsTexture();
+    if (rend) rend->destroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
       logE("error again while building font atlas!");
     }
   }
 
+  logD("preparing layout...");
   strncpy(finalLayoutPath,(e->getConfigPath()+String(LAYOUT_INI)).c_str(),4095);
   backupPath=e->getConfigPath();
   if (backupPath.size()>0) {
@@ -6248,8 +6301,6 @@ bool FurnaceGUI::init() {
 
   ImGui::GetIO().ConfigFlags|=ImGuiConfigFlags_DockingEnable;
   toggleMobileUI(mobileUI,true);
-
-  updateWindowTitle();
 
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     oldPat[i]=new DivPattern;
@@ -6297,6 +6348,7 @@ bool FurnaceGUI::init() {
     return curIns;
   });
 
+#ifdef IS_MOBILE
   vibrator=SDL_HapticOpen(0);
   if (vibrator==NULL) {
     logD("could not open vibration device: %s",SDL_GetError());
@@ -6307,7 +6359,9 @@ bool FurnaceGUI::init() {
       logD("vibration not available: %s",SDL_GetError());
     }
   }
+#endif
 
+  logI("done!");
   return true;
 }
 
@@ -6444,10 +6498,10 @@ void FurnaceGUI::commitState() {
 
 bool FurnaceGUI::finish() {
   commitState();
-  ImGui_ImplSDLRenderer_Shutdown();
+  rend->quitGUI();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
-  SDL_DestroyRenderer(sdlRend);
+  quitRender();
   SDL_DestroyWindow(sdlWin);
 
   if (vibrator) {
@@ -6467,8 +6521,9 @@ bool FurnaceGUI::finish() {
 
 FurnaceGUI::FurnaceGUI():
   e(NULL),
+  renderBackend(GUI_BACKEND_SDL),
+  rend(NULL),
   sdlWin(NULL),
-  sdlRend(NULL),
   vibrator(NULL),
   vibratorAvailable(false),
   sampleTex(NULL),

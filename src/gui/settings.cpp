@@ -662,6 +662,13 @@ void FurnaceGUI::drawSettings() {
             ImGui::SetTooltip("use zlib to compress saved songs.");
           }
 
+          bool newPatternFormatB=settings.newPatternFormat;
+          if (ImGui::Checkbox("Use new pattern format when saving",&newPatternFormatB)) {
+            settings.newPatternFormat=newPatternFormatB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("use a packed format which saves space when saving songs.\ndisable if you need compatibility with older Furnace and/or tools\nwhich do not support this format.");
+          }
 
           bool cursorFollowsOrderB=settings.cursorFollowsOrder;
           if (ImGui::Checkbox("Cursor follows current order when moving it",&cursorFollowsOrderB)) {
@@ -1271,16 +1278,32 @@ void FurnaceGUI::drawSettings() {
         ImVec2 settingsViewSize=ImGui::GetContentRegionAvail();
         settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
         if (ImGui::BeginChild("SettingsView",settingsViewSize)) {
-          if (ImGui::BeginCombo("Render driver",settings.renderDriver.empty()?"Automatic":settings.renderDriver.c_str())) {
-            if (ImGui::Selectable("Automatic",settings.renderDriver.empty())) {
-              settings.renderDriver="";
+          String curRenderBackend=settings.renderBackend.empty()?GUI_BACKEND_DEFAULT_NAME:settings.renderBackend;
+          if (ImGui::BeginCombo("Render backend",curRenderBackend.c_str())) {
+#ifdef HAVE_RENDER_SDL
+            if (ImGui::Selectable("SDL Renderer",curRenderBackend=="SDL")) {
+              settings.renderBackend="SDL";
             }
-            for (String& i: availRenderDrivers) {
-              if (ImGui::Selectable(i.c_str(),i==settings.renderDriver)) {
-                settings.renderDriver=i;
-              }
+#endif
+#ifdef HAVE_RENDER_GL
+            if (ImGui::Selectable("OpenGL",curRenderBackend=="OpenGL")) {
+              settings.renderBackend="OpenGL";
             }
+#endif
             ImGui::EndCombo();
+          }
+          if (curRenderBackend=="SDL") {
+            if (ImGui::BeginCombo("Render driver",settings.renderDriver.empty()?"Automatic":settings.renderDriver.c_str())) {
+              if (ImGui::Selectable("Automatic",settings.renderDriver.empty())) {
+                settings.renderDriver="";
+              }
+              for (String& i: availRenderDrivers) {
+                if (ImGui::Selectable(i.c_str(),i==settings.renderDriver)) {
+                  settings.renderDriver=i;
+                }
+              }
+              ImGui::EndCombo();
+            }
           }
 
           bool dpiScaleAuto=(settings.dpiScale<0.5f);
@@ -1844,13 +1867,33 @@ void FurnaceGUI::drawSettings() {
               }
               UI_COLOR_CONFIG(GUI_COLOR_BACKGROUND,"Background");
               UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND,"Window background");
+              UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND_CHILD,"Sub-window background");
+              UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND_POPUP,"Pop-up background");
               UI_COLOR_CONFIG(GUI_COLOR_MODAL_BACKDROP,"Modal backdrop");
               UI_COLOR_CONFIG(GUI_COLOR_HEADER,"Header");
               UI_COLOR_CONFIG(GUI_COLOR_TEXT,"Text");
               UI_COLOR_CONFIG(GUI_COLOR_ACCENT_PRIMARY,"Primary");
               UI_COLOR_CONFIG(GUI_COLOR_ACCENT_SECONDARY,"Secondary");
+              UI_COLOR_CONFIG(GUI_COLOR_TITLE_INACTIVE,"Title bar (inactive)");
+              UI_COLOR_CONFIG(GUI_COLOR_TITLE_COLLAPSED,"Title bar (collapsed)");
+              UI_COLOR_CONFIG(GUI_COLOR_MENU_BAR,"Menu bar");
               UI_COLOR_CONFIG(GUI_COLOR_BORDER,"Border");
               UI_COLOR_CONFIG(GUI_COLOR_BORDER_SHADOW,"Border shadow");
+              UI_COLOR_CONFIG(GUI_COLOR_SCROLL,"Scroll bar");
+              UI_COLOR_CONFIG(GUI_COLOR_SCROLL_HOVER,"Scroll bar (hovered)");
+              UI_COLOR_CONFIG(GUI_COLOR_SCROLL_ACTIVE,"Scroll bar (clicked)");
+              UI_COLOR_CONFIG(GUI_COLOR_SCROLL_BACKGROUND,"Scroll bar background");
+              UI_COLOR_CONFIG(GUI_COLOR_SEPARATOR,"Separator");
+              UI_COLOR_CONFIG(GUI_COLOR_SEPARATOR_HOVER,"Separator (hover)");
+              UI_COLOR_CONFIG(GUI_COLOR_SEPARATOR_ACTIVE,"Separator (active)");
+              UI_COLOR_CONFIG(GUI_COLOR_DOCKING_PREVIEW,"Docking preview");
+              UI_COLOR_CONFIG(GUI_COLOR_DOCKING_EMPTY,"Docking empty");
+              UI_COLOR_CONFIG(GUI_COLOR_TABLE_HEADER,"Table header");
+              UI_COLOR_CONFIG(GUI_COLOR_TABLE_BORDER_HARD,"Table border (hard)");
+              UI_COLOR_CONFIG(GUI_COLOR_TABLE_BORDER_SOFT,"Table border (soft)");
+              UI_COLOR_CONFIG(GUI_COLOR_DRAG_DROP_TARGET,"Drag and drop target");
+              UI_COLOR_CONFIG(GUI_COLOR_NAV_WIN_HIGHLIGHT,"Window switcher (highlight)");
+              UI_COLOR_CONFIG(GUI_COLOR_NAV_WIN_BACKDROP,"Window switcher backdrop");
               UI_COLOR_CONFIG(GUI_COLOR_TOGGLE_ON,"Toggle on");
               UI_COLOR_CONFIG(GUI_COLOR_TOGGLE_OFF,"Toggle off");
               UI_COLOR_CONFIG(GUI_COLOR_EDITING,"Editing");
@@ -2683,6 +2726,8 @@ void FurnaceGUI::syncSettings() {
   settings.iCannotWait=e->getConfInt("iCannotWait",0);
   settings.orderButtonPos=e->getConfInt("orderButtonPos",2);
   settings.compress=e->getConfInt("compress",1);
+  settings.newPatternFormat=e->getConfInt("newPatternFormat",1);
+  settings.renderBackend=e->getConfString("renderBackend","SDL");
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2804,6 +2849,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.iCannotWait,0,1);
   clampSetting(settings.orderButtonPos,0,2);
   clampSetting(settings.compress,0,1);
+  clampSetting(settings.newPatternFormat,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3020,6 +3066,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("iCannotWait",settings.iCannotWait);
   e->setConf("orderButtonPos",settings.orderButtonPos);
   e->setConf("compress",settings.compress);
+  e->setConf("newPatternFormat",settings.newPatternFormat);
+  e->setConf("renderBackend",settings.renderBackend);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -3059,17 +3107,21 @@ void FurnaceGUI::commitSettings() {
 
   applyUISettings();
 
-  ImGui_ImplSDLRenderer_DestroyFontsTexture();
+  if (rend) rend->destroyFontsTexture();
   if (!ImGui::GetIO().Fonts->Build()) {
     logE("error while building font atlas!");
     showError("error while loading fonts! please check your settings.");
     ImGui::GetIO().Fonts->Clear();
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
-    ImGui_ImplSDLRenderer_DestroyFontsTexture();
+    if (rend) rend->destroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
       logE("error again while building font atlas!");
+    } else {
+      rend->createFontsTexture();
     }
+  } else {
+    rend->createFontsTexture();
   }
 }
 
@@ -3538,7 +3590,28 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   }
 
   sty.Colors[ImGuiCol_WindowBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND];
+  sty.Colors[ImGuiCol_ChildBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND_CHILD];
+  sty.Colors[ImGuiCol_PopupBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND_POPUP];
+  sty.Colors[ImGuiCol_TitleBg]=uiColors[GUI_COLOR_TITLE_INACTIVE];
+  sty.Colors[ImGuiCol_TitleBgCollapsed]=uiColors[GUI_COLOR_TITLE_COLLAPSED];
+  sty.Colors[ImGuiCol_MenuBarBg]=uiColors[GUI_COLOR_MENU_BAR];
   sty.Colors[ImGuiCol_ModalWindowDimBg]=uiColors[GUI_COLOR_MODAL_BACKDROP];
+  sty.Colors[ImGuiCol_ScrollbarBg]=uiColors[GUI_COLOR_SCROLL_BACKGROUND];
+  sty.Colors[ImGuiCol_ScrollbarGrab]=uiColors[GUI_COLOR_SCROLL];
+  sty.Colors[ImGuiCol_ScrollbarGrabHovered]=uiColors[GUI_COLOR_SCROLL_HOVER];
+  sty.Colors[ImGuiCol_ScrollbarGrabActive]=uiColors[GUI_COLOR_SCROLL_ACTIVE];
+  sty.Colors[ImGuiCol_Separator]=uiColors[GUI_COLOR_SEPARATOR];
+  sty.Colors[ImGuiCol_SeparatorHovered]=uiColors[GUI_COLOR_SEPARATOR_HOVER];
+  sty.Colors[ImGuiCol_SeparatorActive]=uiColors[GUI_COLOR_SEPARATOR_ACTIVE];
+  sty.Colors[ImGuiCol_DockingPreview]=uiColors[GUI_COLOR_DOCKING_PREVIEW];
+  sty.Colors[ImGuiCol_DockingEmptyBg]=uiColors[GUI_COLOR_DOCKING_EMPTY];
+  sty.Colors[ImGuiCol_TableHeaderBg]=uiColors[GUI_COLOR_TABLE_HEADER];
+  sty.Colors[ImGuiCol_TableBorderStrong]=uiColors[GUI_COLOR_TABLE_BORDER_HARD];
+  sty.Colors[ImGuiCol_TableBorderLight]=uiColors[GUI_COLOR_TABLE_BORDER_SOFT];
+  sty.Colors[ImGuiCol_DragDropTarget]=uiColors[GUI_COLOR_DRAG_DROP_TARGET];
+  sty.Colors[ImGuiCol_NavHighlight]=uiColors[GUI_COLOR_NAV_HIGHLIGHT];
+  sty.Colors[ImGuiCol_NavWindowingHighlight]=uiColors[GUI_COLOR_NAV_WIN_HIGHLIGHT];
+  sty.Colors[ImGuiCol_NavWindowingDimBg]=uiColors[GUI_COLOR_NAV_WIN_BACKDROP];
   sty.Colors[ImGuiCol_Text]=uiColors[GUI_COLOR_TEXT];
 
   sty.Colors[ImGuiCol_Button]=primary;

@@ -279,7 +279,7 @@ void FurnaceGUI::drawTutorial() {
 
     ImGui::TextWrapped(
       "if you need help, you may:\n"
-      "- read the (incomplete) manual: https://github.com/tildearrow/furnace/blob/master/papers/doc/README.md\n"
+      "- read the (incomplete) manual: https://github.com/tildearrow/furnace/blob/master/doc/README.md\n"
       "- ask for help in Discussions (https://github.com/tildearrow/furnace/discussions) or the Furnace Discord (https://discord.gg/EfrwT2wq7z)"
     );
 

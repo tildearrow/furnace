@@ -152,10 +152,10 @@ void FurnaceGUI::drawChanOsc() {
 
       if (chanOscUseGrad) {
         if (chanOscGradTex==NULL) {
-          chanOscGradTex=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,SDL_TEXTUREACCESS_STREAMING,chanOscGrad.width,chanOscGrad.height);
+          chanOscGradTex=rend->createTexture(true,chanOscGrad.width,chanOscGrad.height);
 
           if (chanOscGradTex==NULL) {
-            logE("error while creating gradient texture! %s",SDL_GetError());
+            logE("error while creating gradient texture!");
           } else {
             updateChanOscGradTex=true;
           }
@@ -170,16 +170,16 @@ void FurnaceGUI::drawChanOsc() {
           if (chanOscGradTex!=NULL) {
             if (updateChanOscGradTex) {
               chanOscGrad.render();
-              if (SDL_UpdateTexture(chanOscGradTex,NULL,chanOscGrad.grad.get(),chanOscGrad.width*4)==0) {
+              if (rend->updateTexture(chanOscGradTex,chanOscGrad.grad.get(),chanOscGrad.width*4)) {
                 updateChanOscGradTex=false;
               } else {
-                logE("error while updating gradient texture! %s",SDL_GetError());
+                logE("error while updating gradient texture!");
               }
             }
 
             ImVec2 gradLeft=ImGui::GetCursorPos();
             ImVec2 gradSize=ImVec2(400.0f*dpiScale,400.0f*dpiScale);
-            ImGui::Image(chanOscGradTex,gradSize);
+            ImGui::Image(rend->getTextureID(chanOscGradTex),gradSize);
             ImVec2 gradLeftAbs=ImGui::GetItemRectMin();
             if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
               if (chanOscGrad.points.size()<32) {

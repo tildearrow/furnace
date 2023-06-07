@@ -863,7 +863,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         if (echoBufSize1<0) echoBufSize1=0;
         if (echoBufSize1>2725) echoBufSize1=2725;
         echoDelay=2725-echoBufSize1;
-        altered=true;;
+        altered=true;
       } rightClickable
       ImGui::Text("Echo feedback:");
       if (CWSliderInt("##EchoFeedback",&echoFeedback,0,255)) {

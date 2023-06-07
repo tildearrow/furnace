@@ -32,7 +32,8 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
-- 158: Furnace dev158
+- 159: Furnace dev159
+- 158: Furnace 0.6pre5
 - 157: Furnace dev157
 - 156: Furnace dev156
 - 155: Furnace dev155
@@ -442,9 +443,6 @@ size | description
   4  | instrument directories
   4  | wavetable directories
   4  | sample directories
- --- | **patchbay effects** (>=158)
-  2  | number of effects
- 4?? | pointers to effects
 ```
 
 # patchbay
@@ -550,31 +548,6 @@ size | description
  STR | name (if empty, this is the uncategorized directory)
   2  | number of assets
  1?? | assets in this directory
-```
-
-# patchbay effect (>=158)
-
-these effects sit on the patchbay.
-
-```
-size | description
------|------------------------------------
-  4  | "EFFE" block ID
-  4  | size of this block
-  2  | slot
-     | - must be between 32 and 4092.
-     | - the other slots are reserved for chip/system portsets.
-  2  | effect ID
-     | - 0x01: dummy
-     | - 0x02: external (plugin bridge)
-     |   - not implemented yet
-     | - 0x03: volume
-     | - 0x04: filter (circuit)
-  4f | dry/wet balance
-  2  | reserved
-  2  | storage version
-  4  | storage length
- ??? | storage data
 ```
 
 # instrument (>=127)
@@ -1260,7 +1233,8 @@ size | description
      | - 2: ping-pong
   1  | flags (>=129) or reserved
      | - 0: BRR emphasis
-  1  | reserved
+  1  | flags 2 (>=159) or reserved
+     | - 0: dither
   4  | loop start
      | - -1 means no loop
   4  | loop end
