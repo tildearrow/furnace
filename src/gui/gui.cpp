@@ -5803,7 +5803,9 @@ bool FurnaceGUI::loop() {
       }
     }
 
-    rend->clear(uiColors[GUI_COLOR_BACKGROUND]);
+    if (!settings.renderClearPos) {
+      rend->clear(uiColors[GUI_COLOR_BACKGROUND]);
+    }
     renderTimeBegin=SDL_GetPerformanceCounter();
     ImGui::Render();
     renderTimeEnd=SDL_GetPerformanceCounter();
@@ -5821,6 +5823,9 @@ bool FurnaceGUI::loop() {
       }
     }
     rend->present();
+    if (settings.renderClearPos) {
+      rend->clear(uiColors[GUI_COLOR_BACKGROUND]);
+    }
 
     layoutTimeDelta=layoutTimeEnd-layoutTimeBegin;
     renderTimeDelta=renderTimeEnd-renderTimeBegin;
