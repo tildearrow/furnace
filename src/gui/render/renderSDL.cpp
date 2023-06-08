@@ -18,7 +18,7 @@
  */
 
 #include "renderSDL.h"
-#include "backends/imgui_impl_sdlrenderer.h"
+#include "backends/imgui_impl_sdlrenderer2.h"
 
 ImTextureID FurnaceGUIRenderSDL::getTextureID(void* which) {
   return which;
@@ -86,19 +86,19 @@ void FurnaceGUIRenderSDL::clear(ImVec4 color) {
 }
 
 bool FurnaceGUIRenderSDL::newFrame() {
-  return ImGui_ImplSDLRenderer_NewFrame();
+  return ImGui_ImplSDLRenderer2_NewFrame();
 }
 
 void FurnaceGUIRenderSDL::createFontsTexture() {
-  ImGui_ImplSDLRenderer_CreateFontsTexture();
+  ImGui_ImplSDLRenderer2_CreateFontsTexture();
 }
 
 void FurnaceGUIRenderSDL::destroyFontsTexture() {
-  ImGui_ImplSDLRenderer_DestroyFontsTexture();
+  ImGui_ImplSDLRenderer2_DestroyFontsTexture();
 }
 
 void FurnaceGUIRenderSDL::renderGUI() {
-  ImGui_ImplSDLRenderer_RenderDrawData(ImGui::GetDrawData());
+  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
 }
 
 void FurnaceGUIRenderSDL::wipe(float alpha) {
@@ -132,11 +132,11 @@ void FurnaceGUIRenderSDL::initGUI(SDL_Window* win) {
   ImGui::CreateContext();
 
   ImGui_ImplSDL2_InitForSDLRenderer(win,sdlRend);
-  ImGui_ImplSDLRenderer_Init(sdlRend);
+  ImGui_ImplSDLRenderer2_Init(sdlRend);
 }
 
 void FurnaceGUIRenderSDL::quitGUI() {
-  ImGui_ImplSDLRenderer_Shutdown();
+  ImGui_ImplSDLRenderer2_Shutdown();
 }
 
 bool FurnaceGUIRenderSDL::quit() {

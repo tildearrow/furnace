@@ -23,7 +23,7 @@
 #include "../engine/engine.h"
 #include "../engine/waveSynth.h"
 #include "imgui.h"
-#include "imgui_impl_sdl.h"
+#include "imgui_impl_sdl2.h"
 #include <SDL.h>
 #include <fftw3.h>
 #include <deque>

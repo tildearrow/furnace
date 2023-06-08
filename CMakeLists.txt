@@ -602,7 +602,7 @@ extern/imgui_patched/imgui.cpp
 extern/imgui_patched/imgui_draw.cpp
 extern/imgui_patched/imgui_tables.cpp
 extern/imgui_patched/imgui_widgets.cpp
-extern/imgui_patched/backends/imgui_impl_sdl.cpp
+extern/imgui_patched/backends/imgui_impl_sdl2.cpp
 extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
 extern/igfd/ImGuiFileDialog.cpp
 
@@ -701,7 +701,7 @@ endif()
 
 if (WITH_RENDER_SDL)
   list(APPEND GUI_SOURCES src/gui/render/renderSDL.cpp)
-  list(APPEND GUI_SOURCES extern/imgui_patched/backends/imgui_impl_sdlrenderer.cpp)
+  list(APPEND GUI_SOURCES extern/imgui_patched/backends/imgui_impl_sdlrenderer2.cpp)
   list(APPEND DEPENDENCIES_DEFINES HAVE_RENDER_SDL)
   message(STATUS "UI render backend: SDL_Renderer")
 endif()

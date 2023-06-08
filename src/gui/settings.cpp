@@ -3827,7 +3827,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     }
 
     mainFont->FallbackChar='?';
-    mainFont->DotChar='.';
+    mainFont->EllipsisChar='.';
   }
 
   // TODO: allow changing these colors.
