@@ -2120,7 +2120,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     for (size_t i=0; i<size; i++) {
       float chanSum=out[0][i];
       for (int j=1; j<outChans; j++) {
-        chanSum=out[j][i];
+        chanSum+=out[j][i];
       }
       out[0][i]=chanSum/outChans;
       for (int j=1; j<outChans; j++) {
