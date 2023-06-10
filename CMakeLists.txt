@@ -114,6 +114,13 @@ else()
   set(SYSTEM_SDL_MIN_VER 2.0.0)
 endif()
 
+if (WIN32)
+  # support Windows XP
+  if (SUPPORT_XP)
+    add_compile_definitions("_WIN32_WINNT=0x0501")
+  endif()
+endif()
+
 list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/SAASound/include")
 list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/vgsound_emu-modified")
 
@@ -794,10 +801,6 @@ if (WIN32)
   list(APPEND DEPENDENCIES_LIBRARIES shlwapi)
   if (NOT MSVC)
     list(APPEND DEPENDENCIES_LIBRARIES -static)
-  endif()
-  # support Windows XP
-  if (SUPPORT_XP)
-    list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0501")
   endif()
 elseif (APPLE)
   find_library(COCOA Cocoa REQUIRED)
