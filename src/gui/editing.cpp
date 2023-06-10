@@ -245,14 +245,22 @@ void FurnaceGUI::doPullDelete() {
     updateScroll(cursor.y);
   }
 
-  int iCoarse=selStart.xCoarse;
-  int iFine=selStart.xFine;
-  for (; iCoarse<=selEnd.xCoarse; iCoarse++) {
+  SelectionPoint sStart=selStart;
+  SelectionPoint sEnd=selEnd;
+
+  if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && settings.pullDeleteRow) {
+    sStart.xFine=0;
+    sEnd.xFine=2+e->curPat[sEnd.xCoarse].effectCols*2;
+  }
+
+  int iCoarse=sStart.xCoarse;
+  int iFine=sStart.xFine;
+  for (; iCoarse<=sEnd.xCoarse; iCoarse++) {
     if (!e->curSubSong->chanShow[iCoarse]) continue;
     DivPattern* pat=e->curPat[iCoarse].getPattern(e->curOrders->ord[iCoarse][curOrder],true);
-    for (; iFine<3+e->curPat[iCoarse].effectCols*2 && (iCoarse<selEnd.xCoarse || iFine<=selEnd.xFine); iFine++) {
+    for (; iFine<3+e->curPat[iCoarse].effectCols*2 && (iCoarse<sEnd.xCoarse || iFine<=sEnd.xFine); iFine++) {
       maskOut(opMaskPullDelete,iFine);
-      for (int j=selStart.y; j<e->curSubSong->patLen; j++) {
+      for (int j=sStart.y; j<e->curSubSong->patLen; j++) {
         if (j<e->curSubSong->patLen-1) {
           if (iFine==0) {
             pat->data[j][iFine]=pat->data[j+1][iFine];
@@ -280,7 +288,7 @@ void FurnaceGUI::doInsert() {
   SelectionPoint sStart=selStart;
   SelectionPoint sEnd=selEnd;
 
-  if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y) {
+  if (selStart.xCoarse==selEnd.xCoarse && selStart.xFine==selEnd.xFine && selStart.y==selEnd.y && settings.insertBehavior) {
     sStart.xFine=0;
     sEnd.xFine=2+e->curPat[sEnd.xCoarse].effectCols*2;
   }
