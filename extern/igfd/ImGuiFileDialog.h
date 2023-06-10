@@ -869,7 +869,7 @@ namespace IGFD
 		std::string puHeaderFileDate;										// detail view name of column date + time
 #ifdef USE_THUMBNAILS
 		std::string puHeaderFileThumbnails;									// detail view name of column thumbnails
-		bool puSortingDirection[5] = { true, true, true, true, true };		// detail view // true => Descending, false => Ascending
+		bool puSortingDirection[5];		// detail view // true => Descending, false => Ascending
 #else
 		bool puSortingDirection[4];			// detail view // true => Descending, false => Ascending
 #endif

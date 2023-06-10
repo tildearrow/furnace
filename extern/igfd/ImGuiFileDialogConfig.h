@@ -80,9 +80,9 @@
 //#define DateTimeFormat "%Y/%m/%d %i:%M%p"
 
 // theses icons will appear in table headers
-//#define USE_CUSTOM_SORTING_ICON
-//#define tableHeaderAscendingIcon "A|"
-//#define tableHeaderDescendingIcon "D|"
+#define USE_CUSTOM_SORTING_ICON
+#define tableHeaderAscendingIcon ICON_FA_CHEVRON_UP " "
+#define tableHeaderDescendingIcon ICON_FA_CHEVRON_DOWN " "
 //#define tableHeaderFileNameString " File name"
 //#define tableHeaderFileTypeString " Type"
 //#define tableHeaderFileSizeString " Size"
