@@ -35,7 +35,7 @@ extern "C" {
 #define rWritePCMCtrl(d) {regPool[64]=(d); pcm_write_ctrl(pcm,d);}
 #define rWritePCMRate(d) {regPool[65]=(d); pcm_write_rate(pcm,d);}
 #define rWritePCMData(d) {regPool[66]=(d); pcm_write_fifo(pcm,d);}
-#define rWritePCMVol(d) rWritePCMCtrl((regPool[64]&(~0x3f))|((d)&0x3f))
+#define rWritePCMVol(d) rWritePCMCtrl((regPool[64]&(~0x8f))|((d)&15))
 
 const char* regCheatSheetVERA[]={
   "CHxFreq",    "00+x*4",
