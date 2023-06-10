@@ -1496,6 +1496,7 @@ class FurnaceGUI {
     int compress;
     int newPatternFormat;
     int renderClearPos;
+    int insertBehavior;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1645,6 +1646,7 @@ class FurnaceGUI {
       compress(1),
       newPatternFormat(1),
       renderClearPos(0),
+      insertBehavior(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),

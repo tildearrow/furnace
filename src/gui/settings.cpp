@@ -543,6 +543,11 @@ void FurnaceGUI::drawSettings() {
             settings.stepOnDelete=stepOnDeleteB;
           }
 
+          bool insertBehaviorB=settings.insertBehavior;
+          if (ImGui::Checkbox("Insert pushes entire channel row",&insertBehaviorB)) {
+            settings.insertBehavior=insertBehaviorB;
+          }
+
           bool absorbInsInputB=settings.absorbInsInput;
           if (ImGui::Checkbox("Change current instrument when changing instrument column (absorb)",&absorbInsInputB)) {
             settings.absorbInsInput=absorbInsInputB;
@@ -2737,6 +2742,7 @@ void FurnaceGUI::syncSettings() {
   settings.newPatternFormat=e->getConfInt("newPatternFormat",1);
   settings.renderBackend=e->getConfString("renderBackend","SDL");
   settings.renderClearPos=e->getConfInt("renderClearPos",0);
+  settings.insertBehavior=e->getConfInt("insertBehavior",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2860,6 +2866,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.compress,0,1);
   clampSetting(settings.newPatternFormat,0,1);
   clampSetting(settings.renderClearPos,0,1);
+  clampSetting(settings.insertBehavior,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3079,6 +3086,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("newPatternFormat",settings.newPatternFormat);
   e->setConf("renderBackend",settings.renderBackend);
   e->setConf("renderClearPos",settings.renderClearPos);
+  e->setConf("insertBehavior",settings.insertBehavior);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
