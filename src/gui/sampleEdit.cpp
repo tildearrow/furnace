@@ -158,9 +158,11 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::Text("Name");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      ImGui::PushID(2+curSample);
       if (ImGui::InputText("##SampleName",&sample->name)) {
         MARK_MODIFIED;
       }
+      ImGui::PopID();
 
       ImGui::Separator();
 

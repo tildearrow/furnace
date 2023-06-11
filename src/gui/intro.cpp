@@ -95,6 +95,7 @@ void FurnaceGUI::endIntroTune() {
   selEnd=SelectionPoint();
   cursor=SelectionPoint();
   updateWindowTitle();
+  updateScroll(0);
 }
 
 void FurnaceGUI::drawIntro(double introTime, bool monitor) {
