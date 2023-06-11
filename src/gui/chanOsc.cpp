@@ -346,14 +346,18 @@ void FurnaceGUI::drawChanOsc() {
           ImRect rect=ImRect(minArea,maxArea);
           ImRect inRect=rect;
           inRect.Min.x+=dpiScale;
-          inRect.Min.y+=dpiScale;
+          inRect.Min.y+=3.0*dpiScale;
           inRect.Max.x-=dpiScale;
-          inRect.Max.y-=dpiScale;
+          inRect.Max.y-=3.0*dpiScale;
+
+          int precision=inRect.Max.x-inRect.Min.x;
+          if (precision>512) precision=512;
+
           ImGui::ItemSize(size,style.FramePadding.y);
           if (ImGui::ItemAdd(rect,ImGui::GetID("chOscDisplay"))) {
             if (!e->isRunning()) {
-              for (unsigned short i=0; i<512; i++) {
-                float x=(float)i/512.0f;
+              for (unsigned short i=0; i<precision; i++) {
+                float x=(float)i/(float)precision;
                 waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f));
               }
             } else {
@@ -394,15 +398,15 @@ void FurnaceGUI::drawChanOsc() {
               */
 
               needlePos-=displaySize;
-              for (unsigned short i=0; i<512; i++) {
-                float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;
+              for (unsigned short i=0; i<precision; i++) {
+                float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/precision))]/65536.0f;
                 if (minLevel>y) minLevel=y;
                 if (maxLevel<y) maxLevel=y;
               }
               dcOff=(minLevel+maxLevel)*0.5f;
-              for (unsigned short i=0; i<512; i++) {
-                float x=(float)i/512.0f;
-                float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;
+              for (unsigned short i=0; i<precision; i++) {
+                float x=(float)i/(float)precision;
+                float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/precision))]/65536.0f;
                 y-=dcOff;
                 if (y<-0.5f) y=-0.5f;
                 if (y>0.5f) y=0.5f;
@@ -419,7 +423,7 @@ void FurnaceGUI::drawChanOsc() {
 
               color=chanOscGrad.get(xVal,1.0f-yVal);
             }
-            dl->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
+            dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale);
           }
         }
       }
