@@ -366,8 +366,10 @@ void DivPlatformPCSpeaker::tick(bool sysTick) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER)-1;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
-      if (chan[i].keyOn) {
-        on=true;
+      if (!chan[i].std.vol.had) {
+        if (chan[i].keyOn) {
+          on=true;
+        }
       }
       if (chan[i].keyOff) {
         on=false;
