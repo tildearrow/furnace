@@ -1,7 +1,10 @@
 # Standard instrument editor
 
-SMS and NES instrument editor consists of only three macros:
+The instrument editor for NES and PSG (SMS, MSX, and such) consists of these macros:
 
-- [Volume] - volume sequence
-- [Arpeggio] - pitch sequencr
-- [Duty cycle] - spicifies duty cycle and noise mode for NES channels NOTE: it obviously has no effect on Sega Master System
+- [Volume] - volume
+- [Arpeggio] - pitch in half-steps
+- [Duty] - duty cycle and noise mode for NES channels. _Note:_ This has no effect on Sega Master System.
+- [Panning] - output for left and right channels
+- [Pitch] - fine pitch
+- [Phase Reset] - trigger restart of waveform

@@ -12,7 +12,7 @@ FM editor is divided into 7 tabs:
 
 ## FM
 
-FM synthesizers Furnace supports are for-operator, meaning it takes four oscillators to produce a single sound. Each operator is controlled by a dozen of sliders:
+FM synthesizers Furnace supports are four-operator, meaning it takes four oscillators to produce a single sound. Each operator is controlled by a dozen sliders:
 
 - [Attack Rate (AR)] - determines the rising time for the sound. The bigger the value, the faster the attack. (0-31 range)
 - [Decay Rate (DR)]- Determines the diminishing time for the sound. The higher the value, the shorter the decay. It's the initial amplitude decay rate. (0-31 range)

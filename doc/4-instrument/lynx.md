@@ -1,15 +1,18 @@
 # Atari Lynx instrument editor
 
-Atari Lynx instrument editor consists of only three macros:
+Atari Lynx instrument editor consists of these macros:
 
 - [Volume] - volume sequence
-- [Arpeggio] - pitch sequencer
-- [Duty/Int] - bit pattern for LFSR taps and integration.
+- [Arpeggio] - pitch in half-steps
+- [Duty/Int] - bit pattern for LFSR taps and integration
+- [Panning (left)] - output level for left channel
+- [Panning (right)] - output level for right channel
+- [Pitch] - fine pitch
+- [Phase Reset] - trigger restart of waveform
 
 ## Audio generation description
 
-Atari Lynx to generate sound uses 12-bit linear feedback shift register with configurable tap. Nine separate bits can be enable to be the source of feedback.
-Namely bits 0, 1, 2, 3, 4, 5, 7, 10 and 11. To generate ANY sound at least one bit MUST be enable.
+Atari Lynx generates sound using a 12-bit linear feedback shift register with configurable tap. Nine separate bits can be enabled to be the source of feedback: 0, 1, 2, 3, 4, 5, 7, 10 and 11. To generate _any_ sound at least one bit _must_ be enabled.
 
 ### Square wave
 
