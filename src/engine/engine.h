@@ -954,7 +954,7 @@ class DivEngine {
     void updateSysFlags(int system, bool restart);
 
     // set Hz
-    void setSongRate(float hz, bool pal);
+    void setSongRate(float hz);
 
     // set remaining loops. -1 means loop forever.
     void setLoops(int loops);

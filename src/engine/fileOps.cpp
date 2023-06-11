@@ -220,20 +220,22 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       ds.subsong[0]->hilightB=reader.readC();
     }
 
+    bool customTempo=false;
+
     ds.subsong[0]->timeBase=reader.readC();
     ds.subsong[0]->speeds.len=2;
     ds.subsong[0]->speeds.val[0]=reader.readC();
     if (ds.version>0x07) {
       ds.subsong[0]->speeds.val[1]=reader.readC();
-      ds.subsong[0]->pal=reader.readC();
-      ds.subsong[0]->hz=(ds.subsong[0]->pal)?60:50;
-      ds.subsong[0]->customTempo=reader.readC();
+      bool pal=reader.readC();
+      ds.subsong[0]->hz=pal?60:50;
+      customTempo=reader.readC();
     } else {
       ds.subsong[0]->speeds.len=1;
     }
     if (ds.version>0x0a) {
       String hz=reader.readString(3);
-      if (ds.subsong[0]->customTempo) {
+      if (customTempo) {
         try {
           ds.subsong[0]->hz=std::stoi(hz);
         } catch (std::exception& e) {
@@ -304,7 +306,6 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
           ds.subsong[0]->hz=248;
           break;
       }
-      ds.subsong[0]->customTempo=true;
       ds.subsong[0]->timeBase=0;
       addWarning("Yamaha YMU759 emulation is incomplete! please migrate your song to the OPL3 system.");
     }
@@ -1864,8 +1865,6 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
     subSong->speeds.val[1]=reader.readC();
     subSong->arpLen=reader.readC();
     subSong->hz=reader.readF();
-    subSong->pal=(subSong->hz>=53);
-    subSong->customTempo=true;
 
     subSong->patLen=reader.readS();
     subSong->ordersLen=reader.readS();
@@ -2489,8 +2488,6 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
         subSong->speeds.val[1]=reader.readC();
         subSong->arpLen=reader.readC();
         subSong->hz=reader.readF();
-        subSong->pal=(subSong->hz>=53);
-        subSong->customTempo=true;
 
         subSong->patLen=reader.readS();
         subSong->ordersLen=reader.readS();
@@ -3322,9 +3319,7 @@ bool DivEngine::loadMod(unsigned char* file, size_t len) {
       ds.subsong[0]->pat[ch].effectCols=fxCols;
     }
 
-    ds.subsong[0]->pal=false;
     ds.subsong[0]->hz=50;
-    ds.subsong[0]->customTempo=false;
     ds.systemLen=(chCount+3)/4;
     for(int i=0; i<ds.systemLen; i++) {
       ds.system[i]=DIV_SYSTEM_AMIGA;
@@ -3547,7 +3542,6 @@ bool DivEngine::loadS3M(unsigned char* file, size_t len) {
 
     ds.subsong[0]->speeds.val[0]=(unsigned char)reader.readC();
     ds.subsong[0]->hz=((double)reader.readC())/2.5;
-    ds.subsong[0]->customTempo=true;
 
     unsigned char masterVol=reader.readC();
 
@@ -3993,8 +3987,6 @@ bool DivEngine::loadFC(unsigned char* file, size_t len) {
     ds.subsong[0]->ordersLen=seqLen;
     ds.subsong[0]->patLen=32;
     ds.subsong[0]->hz=50;
-    ds.subsong[0]->pal=true;
-    ds.subsong[0]->customTempo=true;
     ds.subsong[0]->pat[3].effectCols=3;
     ds.subsong[0]->speeds.val[0]=3;
     ds.subsong[0]->speeds.len=1;
@@ -5819,12 +5811,14 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   w->writeString(song.author,true);
   w->writeC(curSubSong->hilightA);
   w->writeC(curSubSong->hilightB);
+
+  int intHz=curSubSong->hz;
   
   w->writeC(curSubSong->timeBase);
   w->writeC(curSubSong->speeds.val[0]);
   w->writeC((curSubSong->speeds.len>=2)?curSubSong->speeds.val[1]:curSubSong->speeds.val[0]);
-  w->writeC(curSubSong->pal);
-  w->writeC(curSubSong->customTempo);
+  w->writeC((intHz<=53)?1:0);
+  w->writeC((intHz!=60 && intHz!=50));
   char customHz[4];
   memset(customHz,0,4);
   snprintf(customHz,4,"%d",(int)curSubSong->hz);
