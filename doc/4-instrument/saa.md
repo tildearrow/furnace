@@ -1,6 +1,6 @@
 # Philips SAA1099 instrument editor
 
-SAA1099 instrument editor consists of these macros:
+The SAA1099 instrument editor consists of these macros:
 
 - [Volume] - volume sequence
 - [Arpeggio] - pitch sequence

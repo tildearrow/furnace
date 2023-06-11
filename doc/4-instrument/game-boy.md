@@ -10,7 +10,7 @@ GB instrument editor consists of two tabs: one controlling envelope of sound cha
 - [Length] - envelope decay/attack duration (range 0-7)
 - [Sound Length] - cuts off sound after specified length, overriding the Length value
 
-- [Up and Down radio buttons] - Up makes the envelope an attack, down makes it decay. _Note:_ For envelope attack to have any effect, volume should start at a lower value!
+- [Up and Down radio buttons] - Up makes the envelope an attack, down makes it decay. _Note:_ For envelope attack to have any effect, start at a lower volume!
 
 - [Hardware Sequence] - (document this)
 

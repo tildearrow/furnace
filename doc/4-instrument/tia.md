@@ -1,6 +1,6 @@
 # Atari TIA instrument editor
 
-TIA instrument editor consists of these macros:
+The TIA instrument editor consists of these macros:
 
 - [Volume] - volume sequence
 - [Arpeggio] - pitch sequencr

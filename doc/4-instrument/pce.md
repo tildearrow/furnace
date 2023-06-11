@@ -1,6 +1,6 @@
 # NEC PC Engine instrument editor
 
-PCE instrument editor consists of these macros:
+The PCE instrument editor consists of these macros:
 
 - [Volume] - volume sequence
 - [Arpeggio] - pitch in half-steps

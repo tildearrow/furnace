@@ -1,6 +1,6 @@
 # Amiga/PCM sound sourceinstrument editor
 
-PCM instrument editor consists of a sample selector and several macros:
+The PCM instrument editor consists of a sample selector and several macros:
 
 # Amiga/sample
 
