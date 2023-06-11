@@ -351,6 +351,7 @@ void FurnaceGUI::drawChanOsc() {
           inRect.Max.y-=3.0*dpiScale;
 
           int precision=inRect.Max.x-inRect.Min.x;
+          if (precision<1) precision=1;
           if (precision>512) precision=512;
 
           ImGui::ItemSize(size,style.FramePadding.y);
