@@ -346,9 +346,9 @@ void FurnaceGUI::drawChanOsc() {
           ImRect rect=ImRect(minArea,maxArea);
           ImRect inRect=rect;
           inRect.Min.x+=dpiScale;
-          inRect.Min.y+=3.0*dpiScale;
+          inRect.Min.y+=2.0*dpiScale;
           inRect.Max.x-=dpiScale;
-          inRect.Max.y-=3.0*dpiScale;
+          inRect.Max.y-=2.0*dpiScale;
 
           int precision=inRect.Max.x-inRect.Min.x;
           if (precision<1) precision=1;
@@ -424,7 +424,9 @@ void FurnaceGUI::drawChanOsc() {
 
               color=chanOscGrad.get(xVal,1.0f-yVal);
             }
+            ImGui::PushClipRect(inRect.Min,inRect.Max,false);
             dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale);
+            ImGui::PopClipRect();
           }
         }
       }
