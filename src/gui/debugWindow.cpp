@@ -380,7 +380,7 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
-    if (ImGui::TreeNode("Window Debug")) {
+    if (ImGui::TreeNodeEx("Window Debug",ImGuiTreeNodeFlags_DefaultOpen)) {
       ImGui::Text("Screen: %dx%d+%d+%d",scrW,scrH,scrX,scrY);
       ImGui::Text("Screen (Conf): %dx%d+%d+%d",scrConfW,scrConfH,scrConfX,scrConfY);
       ImGui::Text("Canvas: %dx%d",canvasW,canvasH);
