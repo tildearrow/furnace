@@ -1864,6 +1864,7 @@ class FurnaceGUI {
 
   int layoutTimeBegin, layoutTimeEnd, layoutTimeDelta;
   int renderTimeBegin, renderTimeEnd, renderTimeDelta;
+  int drawTimeBegin, drawTimeEnd, drawTimeDelta;
   int eventTimeBegin, eventTimeEnd, eventTimeDelta;
 
   FurnaceGUIPerfMetric perfMetrics[64];
