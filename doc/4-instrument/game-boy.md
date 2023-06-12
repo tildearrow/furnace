@@ -1,17 +1,25 @@
 # Game Boy instrument editor
 
-GB instrument editor consists of two tabs: one controlling envelope of sound channels and macro tab containing only four macros:
+GB instrument editor consists of two tabs: one controlling envelope of sound channels and macro tab containing several macros.
 
 ## Game Boy
 
-- [Volume] - this slider affect the channel volume (range 0-15)
-- [Envelope length] - this slider specifies the envelope decay/attack (range 0-7)
-- [Sound length] - this slider cuts off the sound after specified length, overriding the previous slider's value
+- [Use software envelope] - switch to volume macro instead of envelope
+- [Initialize envelope on every note] - forces a volume reset on each new note
+- [Volume] - initial channel volume (range 0-15)
+- [Length] - envelope decay/attack duration (range 0-7)
+- [Sound Length] - cuts off sound after specified length, overriding the Length value
 
-- [UP an DOWN radio buttons] - these buttons alter the behaviour of a second slider. Up makes it specify the envelope attack, down the decay. WARNING: for envelope attack to have any effect, volume should be at the lower rates!
+- [Up and Down radio buttons] - Up makes the envelope an attack, down makes it decay. _Note:_ For envelope attack to have any effect, start at a lower volume!
+
+- [Hardware Sequence] - (document this)
 
 ## Macros
-- [Volume] - volume sequence
-- [Arpeggio] - pitch sequence
-- [Duty cycle] - pulse wave channels duty cycle sequence
+
+- [Volume] - volume sequence. _Note:_ This only appears if "Use software envelope" is checked.
+- [Arpeggio] - pitch in half-steps
+- [Duty/Noise] - pulse wave duty cycle or noise mode sequence
 - [Waveform] - ch3 wavetable sequence
+- [Panning] - output for left and right channels
+- [Pitch] - fine pitch
+- [Phase Reset] - trigger restart of waveform

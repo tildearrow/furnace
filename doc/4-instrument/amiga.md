@@ -1,6 +1,6 @@
 # Amiga/PCM sound sourceinstrument editor
 
-PCM instrument editor consists of four macros and sample selector:
+The PCM instrument editor consists of a sample selector and several macros:
 
 # Amiga/sample
 
@@ -11,3 +11,7 @@ PCM instrument editor consists of four macros and sample selector:
 - [Volume] - volume sequence WARNING: it works only on Amiga system, as of version 0.5.5!!
 - [Arpeggio] - pitch sequence
 - [Waveform] - sample sequence
+- [Panning (left)] - output level for left channel
+- [Panning (right)] - output level for right channel
+- [Pitch] - fine pitch
+- [Phase Reset] - trigger restart of waveform
