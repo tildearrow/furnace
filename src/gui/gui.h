@@ -2029,7 +2029,7 @@ class FurnaceGUI {
   double monitorPos;
   int mustClear;
   float initialScreenWipe;
-  bool introSkipDo;
+  bool introSkipDo, introStopped;
   ImVec2 introMin, introMax;
 
   // tutorial

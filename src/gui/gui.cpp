@@ -6953,6 +6953,7 @@ FurnaceGUI::FurnaceGUI():
   mustClear(2),
   initialScreenWipe(1.0f),
   introSkipDo(false),
+  introStopped(false),
   curTutorial(-1),
   curTutorialStep(0) {
   // value keys
