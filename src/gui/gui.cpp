@@ -3535,7 +3535,8 @@ bool FurnaceGUI::loop() {
     // update config x/y/w/h values based on scrMax state
     if (updateWindow) {
       logV("updateWindow is true");
-      if (!scrMax) {
+      if (!scrMax && !fullScreen) {
+        logV("updating scrConf");
         scrConfX=scrX;
         scrConfY=scrY;
         scrConfW=scrW;
@@ -6257,11 +6258,17 @@ bool FurnaceGUI::init() {
   // special consideration for Wayland
   if (settings.dpiScale<0.5f) {
     if (strcmp(videoBackend,"wayland")==0) {
-      if (scrW<1) {
+      int realW=scrW;
+      int realH=scrH;
+
+      SDL_GetWindowSize(sdlWin,&realW,&realH);
+
+      if (realW<1) {
         logW("screen width is zero!\n");
         dpiScale=1.0;
       } else {
-        dpiScale=(double)canvasW/(double)scrW;
+        dpiScale=(double)canvasW/(double)realW;
+        logV("we're on Wayland... scaling factor: %f",dpiScale);
       }
     }
   }
