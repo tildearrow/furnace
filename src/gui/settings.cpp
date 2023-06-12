@@ -1303,6 +1303,11 @@ void FurnaceGUI::drawSettings() {
               settings.renderBackend="SDL";
             }
 #endif
+#ifdef HAVE_RENDER_DX11
+            if (ImGui::Selectable("DirectX 11",curRenderBackend=="DirectX 11")) {
+              settings.renderBackend="DirectX 11";
+            }
+#endif
 #ifdef HAVE_RENDER_GL
             if (ImGui::Selectable("OpenGL",curRenderBackend=="OpenGL")) {
               settings.renderBackend="OpenGL";

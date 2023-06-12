@@ -25,12 +25,17 @@
 #ifdef HAVE_RENDER_GL
 #include "render/renderGL.h"
 #endif
+#ifdef HAVE_RENDER_DX11
+#include "render/renderDX11.h"
+#endif
 
 bool FurnaceGUI::initRender() {
   if (rend!=NULL) return false;
 
   if (settings.renderBackend=="OpenGL") {
     renderBackend=GUI_BACKEND_GL;
+  } else if (settings.renderBackend=="DirectX 11") {
+    renderBackend=GUI_BACKEND_DX11;
   } else if (settings.renderBackend=="SDL") {
     renderBackend=GUI_BACKEND_SDL;
   } else {
@@ -42,6 +47,12 @@ bool FurnaceGUI::initRender() {
     case GUI_BACKEND_GL:
       logI("render backend: OpenGL");
       rend=new FurnaceGUIRenderGL;
+      break;
+#endif
+#ifdef HAVE_RENDER_DX11
+    case GUI_BACKEND_DX11:
+      logI("render backend: DirectX 11");
+      rend=new FurnaceGUIRenderDX11;
       break;
 #endif
 #ifdef HAVE_RENDER_SDL

@@ -6148,7 +6148,7 @@ bool FurnaceGUI::init() {
   logV("window size: %dx%d",scrW,scrH);
 
   if (!initRender()) {
-    if (settings.renderBackend=="OpenGL") {
+    if (settings.renderBackend!="SDL" && !settings.renderBackend.empty()) {
       settings.renderBackend="";
       e->setConf("renderBackend","");
       e->saveConf();
@@ -6234,7 +6234,7 @@ bool FurnaceGUI::init() {
 
   logD("starting render backend...");
   if (!rend->init(sdlWin)) {
-    if (settings.renderBackend=="OpenGL") {
+    if (settings.renderBackend!="SDL" && !settings.renderBackend.empty()) {
       settings.renderBackend="";
       e->setConf("renderBackend","");
       e->saveConf();
