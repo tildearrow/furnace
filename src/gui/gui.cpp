@@ -5984,6 +5984,7 @@ bool FurnaceGUI::init() {
   pianoOptions=e->getConfBool("pianoOptions",pianoOptions);
   pianoSharePosition=e->getConfBool("pianoSharePosition",pianoSharePosition);
   pianoOptionsSet=e->getConfBool("pianoOptionsSet",pianoOptionsSet);
+  pianoReadonly=e->getConfBool("pianoReadonly",false);
   pianoOffset=e->getConfInt("pianoOffset",pianoOffset);
   pianoOffsetEdit=e->getConfInt("pianoOffsetEdit",pianoOffsetEdit);
   pianoView=e->getConfInt("pianoView",pianoView);
@@ -6475,6 +6476,7 @@ void FurnaceGUI::commitState() {
   e->setConf("pianoOptions",pianoOptions);
   e->setConf("pianoSharePosition",pianoSharePosition);
   e->setConf("pianoOptionsSet",pianoOptionsSet);
+  e->setConf("pianoReadonly",pianoReadonly);
   e->setConf("pianoOffset",pianoOffset);
   e->setConf("pianoOffsetEdit",pianoOffsetEdit);
   e->setConf("pianoView",pianoView);
@@ -6926,6 +6928,7 @@ FurnaceGUI::FurnaceGUI():
   pianoOptions(true),
   pianoSharePosition(false),
   pianoOptionsSet(false),
+  pianoReadonly(false),
   pianoOffset(6),
   pianoOffsetEdit(9),
   pianoView(PIANO_LAYOUT_AUTOMATIC),
@@ -6935,6 +6938,7 @@ FurnaceGUI::FurnaceGUI():
   pianoOctavesEdit(4),
   pianoOptions(false),
   pianoSharePosition(true),
+  pianoReadonly(false),
   pianoOffset(6),
   pianoOffsetEdit(6),
   pianoView(PIANO_LAYOUT_STANDARD),

@@ -1996,6 +1996,7 @@ class FurnaceGUI {
   bool pianoOptions, pianoSharePosition, pianoOptionsSet;
   float pianoKeyHit[180];
   bool pianoKeyPressed[180];
+  bool pianoReadonly;
   int pianoOffset, pianoOffsetEdit;
   int pianoView, pianoInputPadMode;
 
