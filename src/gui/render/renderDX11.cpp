@@ -245,7 +245,7 @@ void FurnaceGUIRenderDX11::setBlendMode(FurnaceGUIBlendMode mode) {
 
 void FurnaceGUIRenderDX11::resized(const SDL_Event& ev) {
   destroyRenderTarget();
-  swapchain->ResizeBuffers(0,0,0,DXGI_FORMAT_UNKNOWN,0);
+  swapchain->ResizeBuffers(0,(unsigned int)ev.window.data1,(unsigned int)ev.window.data2,DXGI_FORMAT_UNKNOWN,DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
   createRenderTarget();
 }
 
