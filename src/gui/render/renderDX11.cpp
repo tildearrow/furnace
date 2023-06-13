@@ -109,6 +109,7 @@ bool FurnaceGUIRenderDX11::createRenderTarget() {
   } else {
     outW=chainDesc.BufferDesc.Width;
     outH=chainDesc.BufferDesc.Height;
+    logI("DX11: buffer desc sizes: %d, %d",chainDesc.BufferDesc.Width,chainDesc.BufferDesc.Height);
   }
 
   result=swapchain->GetBuffer(0,IID_PPV_ARGS(&screen));
@@ -133,6 +134,7 @@ bool FurnaceGUIRenderDX11::createRenderTarget() {
     return false;
   }
 
+  screen->Release();
   return true;
 }
 
@@ -245,7 +247,11 @@ void FurnaceGUIRenderDX11::setBlendMode(FurnaceGUIBlendMode mode) {
 
 void FurnaceGUIRenderDX11::resized(const SDL_Event& ev) {
   destroyRenderTarget();
-  swapchain->ResizeBuffers(0,(unsigned int)ev.window.data1,(unsigned int)ev.window.data2,DXGI_FORMAT_UNKNOWN,DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+  logI("DX11: resizing buffers");
+  HRESULT result=swapchain->ResizeBuffers(0,(unsigned int)ev.window.data1,(unsigned int)ev.window.data2,DXGI_FORMAT_UNKNOWN,DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
+  if (result!=S_OK) {
+    logW("error while resizing swapchain buffers! %.8x",result);
+  }
   createRenderTarget();
 }
 
