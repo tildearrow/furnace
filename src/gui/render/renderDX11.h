@@ -18,17 +18,24 @@
  */
 
 #include "../gui.h"
+#ifdef INCLUDE_D3D11
+#include <d3d11.h>
+#else
+typedef void ID3D11DeviceContext;
+typedef void ID3D11RenderTargetView;
+typedef void IDXGISwapChain;
+#endif
 
 class FurnaceGUIRenderDX11: public FurnaceGUIRender {
   ID3D11Device* device;
   ID3D11DeviceContext* context;
   ID3D11RenderTargetView* renderTarget;
-  SDL_Window* sdlWin;
   IDXGISwapChain* swapchain;
   float quadVertex[4][3];
   unsigned int quadBuf;
 
-  void createRenderTarget();
+  bool destroyRenderTarget();
+  bool createRenderTarget();
 
   public:
     ImTextureID getTextureID(void* which);
@@ -57,7 +64,6 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
       device(NULL),
       context(NULL),
       renderTarget(NULL),
-      sdlWin(NULL),
       swapchain(NULL) {
       memset(quadVertex,0,4*3*sizeof(float));
     }

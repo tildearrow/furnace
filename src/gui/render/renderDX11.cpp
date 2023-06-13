@@ -17,7 +17,61 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#define INCLUDE_D3D11
 #include "renderDX11.h"
+#include <SDL_syswm.h>
+#include "backends/imgui_impl_dx11.h"
+#include "../../ta-log.h"
+
+const D3D_FEATURE_LEVEL possibleFeatureLevels[2]={
+  D3D_FEATURE_LEVEL_11_0,
+  D3D_FEATURE_LEVEL_10_0
+};
+
+bool FurnaceGUIRenderDX11::destroyRenderTarget() {
+  if (renderTarget!=NULL) {
+    renderTarget->Release();
+    renderTarget=NULL;
+    return true;
+  }
+  return false;
+}
+
+bool FurnaceGUIRenderDX11::createRenderTarget() {
+  ID3D11Texture2D* screen=NULL;
+  HRESULT result;
+
+  destroyRenderTarget();
+
+  if (swapchain==NULL || device==NULL) {
+    logW("createRenderTarget: swapchain or device are NULL!");
+    return false;
+  }
+
+  result=swapchain->GetBuffer(0,IID_PPV_ARGS(&screen));
+  if (result!=S_OK) {
+    logW("createRenderTarget: could not get buffer! %.8x",result);
+    return false;
+  }
+  if (screen==NULL) {
+    logW("createRenderTarget: screen is null!");
+    return false;
+  }
+
+  result=device->CreateRenderTargetView(screen,NULL,&renderTarget);
+  if (result!=S_OK) {
+    logW("createRenderTarget: could not create render target view! %.8x",result);
+    screen->Release();
+    return false;
+  }
+  if (renderTarget==NULL) {
+    logW("createRenderTarget: what the hell the render target is null?");
+    screen->Release();
+    return false;
+  }
+
+  return true;
+}
 
 ImTextureID FurnaceGUIRenderDX11::getTextureID(void* which) {
   return NULL;
@@ -50,25 +104,40 @@ void FurnaceGUIRenderDX11::setBlendMode(FurnaceGUIBlendMode mode) {
 }
 
 void FurnaceGUIRenderDX11::clear(ImVec4 color) {
+  float floatColor[4]={
+    color.x*color.w,
+    color.y*color.w,
+    color.z*color.w,
+    color.w,
+  };
+
+  context->OMSetRenderTargets(1,&renderTarget,NULL);
+  context->ClearRenderTargetView(renderTarget,floatColor);
 }
 
 bool FurnaceGUIRenderDX11::newFrame() {
+  ImGui_ImplDX11_NewFrame();
   return true;
 }
 
 void FurnaceGUIRenderDX11::createFontsTexture() {
+  ImGui_ImplDX11_CreateDeviceObjects();
 }
 
 void FurnaceGUIRenderDX11::destroyFontsTexture() {
+  ImGui_ImplDX11_InvalidateDeviceObjects();
 }
 
 void FurnaceGUIRenderDX11::renderGUI() {
+  ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
 void FurnaceGUIRenderDX11::wipe(float alpha) {
+  // TODO
 }
 
 void FurnaceGUIRenderDX11::present() {
+  swapchain->Present(1,0);
 }
 
 bool FurnaceGUIRenderDX11::getOutputSize(int& w, int& h) {
@@ -83,18 +152,68 @@ void FurnaceGUIRenderDX11::preInit() {
 }
 
 bool FurnaceGUIRenderDX11::init(SDL_Window* win) {
-  return false;
+  SDL_SysWMinfo sysWindow;
+  D3D_FEATURE_LEVEL featureLevel;
+
+  SDL_VERSION(&sysWindow.version);
+  if (SDL_GetWindowWMInfo(win,&sysWindow)==SDL_FALSE) {
+    logE("could not get window WM info! %s",SDL_GetError());
+    return false;
+  }
+  HWND window=(HWND)sysWindow.info.win.window;
+
+  DXGI_SWAP_CHAIN_DESC chainDesc;
+  memset(&chainDesc,0,sizeof(chainDesc));
+  chainDesc.BufferDesc.Width=0;
+  chainDesc.BufferDesc.Height=0;
+  chainDesc.BufferDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM;
+  chainDesc.BufferDesc.RefreshRate.Numerator=60;
+  chainDesc.BufferDesc.RefreshRate.Denominator=1;
+  chainDesc.SampleDesc.Count=1;
+  chainDesc.SampleDesc.Quality=0;
+  chainDesc.BufferUsage=DXGI_USAGE_RENDER_TARGET_OUTPUT;
+  chainDesc.BufferCount=2;
+  chainDesc.OutputWindow=window;
+  chainDesc.Windowed=TRUE; // TODO: what if we're in full screen mode?
+  chainDesc.SwapEffect=DXGI_SWAP_EFFECT_DISCARD;
+  chainDesc.Flags=DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+
+  HRESULT result=D3D11CreateDeviceAndSwapChain(NULL,D3D_DRIVER_TYPE_HARDWARE,NULL,0,possibleFeatureLevels,2,D3D11_SDK_VERSION,&chainDesc,&swapchain,&device,&featureLevel,&context);
+  if (result!=S_OK) {
+    logE("could not create device and/or swap chain! %.8x",result);
+    return false;
+  }
+
+  createRenderTarget();
+  return true;
 }
 
 void FurnaceGUIRenderDX11::initGUI(SDL_Window* win) {
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+
+  ImGui_ImplSDL2_InitForD3D(win);
+  ImGui_ImplDX11_Init(device,context);
 }
 
 bool FurnaceGUIRenderDX11::quit() {
-  return false;
+  destroyRenderTarget();
+
+  if (swapchain!=NULL) {
+    swapchain->Release();
+    swapchain=NULL;
+  }
+  if (context!=NULL) {
+    context->Release();
+    context=NULL;
+  }
+  if (device!=NULL) {
+    device->Release();
+    device=NULL;
+  }
+  return true;
 }
 
 void FurnaceGUIRenderDX11::quitGUI() { 
-}
-
-FurnaceGUIRenderDX11::~FurnaceGUIRenderDX11() {
+  ImGui_ImplDX11_Shutdown();
 }
