@@ -1248,6 +1248,7 @@ class FurnaceGUIRender {
     virtual bool destroyTexture(void* which);
     virtual void setTextureBlendMode(void* which, FurnaceGUIBlendMode mode);
     virtual void setBlendMode(FurnaceGUIBlendMode mode);
+    virtual void resized(const SDL_Event& ev);
     virtual void clear(ImVec4 color);
     virtual bool newFrame();
     virtual void createFontsTexture();

@@ -48,6 +48,15 @@ bool FurnaceGUIRenderDX11::createRenderTarget() {
     return false;
   }
 
+  DXGI_SWAP_CHAIN_DESC chainDesc;
+  memset(&chainDesc,0,sizeof(chainDesc));
+  if (swapchain->GetDesc(&chainDesc)!=S_OK) {
+    logW("createRenderTarget: could not get swapchain desc!");
+  } else {
+    outW=chainDesc.BufferDesc.Width;
+    outH=chainDesc.BufferDesc.Height;
+  }
+
   result=swapchain->GetBuffer(0,IID_PPV_ARGS(&screen));
   if (result!=S_OK) {
     logW("createRenderTarget: could not get buffer! %.8x",result);
@@ -103,6 +112,15 @@ void FurnaceGUIRenderDX11::setTextureBlendMode(void* which, FurnaceGUIBlendMode 
 void FurnaceGUIRenderDX11::setBlendMode(FurnaceGUIBlendMode mode) {
 }
 
+void FurnaceGUIRenderDX11::resized(const SDL_Event& ev) {
+  destroyRenderTarget();
+  swapchain->ResizeBuffers(0,0,0,DXGI_FORMAT_UNKNOWN,0);
+
+  
+
+  createRenderTarget();
+}
+
 void FurnaceGUIRenderDX11::clear(ImVec4 color) {
   float floatColor[4]={
     color.x*color.w,
@@ -141,7 +159,9 @@ void FurnaceGUIRenderDX11::present() {
 }
 
 bool FurnaceGUIRenderDX11::getOutputSize(int& w, int& h) {
-  return false;
+  w=outW;
+  h=outH;
+  return true;
 }
 
 int FurnaceGUIRenderDX11::getWindowFlags() {

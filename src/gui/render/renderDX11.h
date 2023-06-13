@@ -31,8 +31,8 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
   ID3D11DeviceContext* context;
   ID3D11RenderTargetView* renderTarget;
   IDXGISwapChain* swapchain;
+  int outW, outH;
   float quadVertex[4][3];
-  unsigned int quadBuf;
 
   bool destroyRenderTarget();
   bool createRenderTarget();
@@ -46,6 +46,7 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
     bool destroyTexture(void* which);
     void setTextureBlendMode(void* which, FurnaceGUIBlendMode mode);
     void setBlendMode(FurnaceGUIBlendMode mode);
+    void resized(const SDL_Event& ev);
     void clear(ImVec4 color);
     bool newFrame();
     void createFontsTexture();
@@ -64,7 +65,9 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
       device(NULL),
       context(NULL),
       renderTarget(NULL),
-      swapchain(NULL) {
+      swapchain(NULL),
+      outW(0),
+      outH(0) {
       memset(quadVertex,0,4*3*sizeof(float));
     }
 };

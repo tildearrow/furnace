@@ -3420,6 +3420,7 @@ bool FurnaceGUI::loop() {
               logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
               logD("window resized to %dx%d",scrW,scrH);
               updateWindow=true;
+              rend->resized(ev);
               break;
             case SDL_WINDOWEVENT_MOVED:
               scrX=ev.window.data1;
@@ -5824,8 +5825,8 @@ bool FurnaceGUI::loop() {
         }
       }
     }
-    rend->present();
     drawTimeEnd=SDL_GetPerformanceCounter();
+    rend->present();
     if (settings.renderClearPos) {
       rend->clear(uiColors[GUI_COLOR_BACKGROUND]);
     }
