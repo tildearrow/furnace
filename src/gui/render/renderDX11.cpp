@@ -152,7 +152,7 @@ bool FurnaceGUIRenderDX11::lockTexture(void* which, void** data, int* pitch) {
 
   HRESULT result=context->Map(t->tex,D3D11CalcSubresource(0,0,1),D3D11_MAP_WRITE,0,&mappedRes);
   if (result!=S_OK) {
-    logW("could not map texture!");
+    logW("could not map texture! %.8x",result);
     return false;
   }
   t->lockedData=(unsigned char*)mappedRes.pData;
