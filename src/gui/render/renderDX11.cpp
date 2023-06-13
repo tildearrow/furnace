@@ -158,6 +158,8 @@ bool FurnaceGUIRenderDX11::lockTexture(void* which, void** data, int* pitch) {
   t->lockedData=(unsigned char*)mappedRes.pData;
   *data=mappedRes.pData;
   *pitch=mappedRes.RowPitch;
+
+  logV("texture locked... pitch: %d",mappedRes.RowPitch);
   return true;
 }
 
