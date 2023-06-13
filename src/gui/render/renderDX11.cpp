@@ -28,6 +28,19 @@ const D3D_FEATURE_LEVEL possibleFeatureLevels[2]={
   D3D_FEATURE_LEVEL_10_0
 };
 
+struct FurnaceDXTexture {
+  ID3D11Texture2D* tex;
+  ID3D11ShaderResourceView* view;
+  int width, height;
+  unsigned char* lockedData;
+  FurnaceDXTexture():
+    tex(NULL),
+    view(NULL),
+    width(0),
+    height(0),
+    lockedData(NULL) {}
+};
+
 bool FurnaceGUIRenderDX11::destroyRenderTarget() {
   if (renderTarget!=NULL) {
     renderTarget->Release();
@@ -83,27 +96,104 @@ bool FurnaceGUIRenderDX11::createRenderTarget() {
 }
 
 ImTextureID FurnaceGUIRenderDX11::getTextureID(void* which) {
-  return NULL;
+  FurnaceDXTexture* t=(FurnaceDXTexture*)which;
+  return (ImTextureID)t->view;
 }
 
 bool FurnaceGUIRenderDX11::lockTexture(void* which, void** data, int* pitch) {
-  return false;
+  FurnaceDXTexture* t=(FurnaceDXTexture*)which;
+  if (t->lockedData!=NULL) return false;
+
+  D3D11_MAPPED_SUBRESOURCE mappedRes;
+  memset(&mappedRes,0,sizeof(mappedRes));
+
+  HRESULT result=context->Map(t->tex,D3D11CalcSubresource(0,0,1),D3D11_MAP_WRITE,0,&mappedRes);
+  if (result!=S_OK) {
+    logW("could not map texture!");
+    return false;
+  }
+  t->lockedData=(unsigned char*)mappedRes.pData;
+  *data=mappedRes.pData;
+  *pitch=mappedRes.RowPitch;
+  return true;
 }
 
 bool FurnaceGUIRenderDX11::unlockTexture(void* which) {
-  return false;
+  FurnaceDXTexture* t=(FurnaceDXTexture*)which;
+  if (t->lockedData==NULL) return false;
+  context->Unmap(t->tex,D3D11CalcSubresource(0,0,1));
+  t->lockedData=NULL;
+  return true;
 }
 
 bool FurnaceGUIRenderDX11::updateTexture(void* which, void* data, int pitch) {
-  return false;
+  FurnaceDXTexture* t=(FurnaceDXTexture*)which;
+  context->UpdateSubresource(t->tex,D3D11CalcSubresource(0,0,1),NULL,data,pitch,pitch*t->height);
+  return true;
 }
 
 void* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, int height) {
-  return NULL;
+  D3D11_TEXTURE2D_DESC texDesc;
+  D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
+  ID3D11Texture2D* tex=NULL;
+  ID3D11ShaderResourceView* view=NULL;
+  HRESULT result;
+
+  memset(&texDesc,0,sizeof(texDesc));
+  memset(&viewDesc,0,sizeof(viewDesc));
+
+  texDesc.Width=width;
+  texDesc.Height=height;
+  texDesc.MipLevels=1;
+  texDesc.ArraySize=1;
+  texDesc.Format=DXGI_FORMAT_R8G8B8A8_UNORM; // ???
+  texDesc.SampleDesc.Count=1;
+  texDesc.SampleDesc.Quality=0;
+  texDesc.Usage=dynamic?D3D11_USAGE_DYNAMIC:D3D11_USAGE_DEFAULT;
+  texDesc.BindFlags=D3D11_BIND_SHADER_RESOURCE;
+  texDesc.CPUAccessFlags=dynamic?D3D11_CPU_ACCESS_WRITE:0;
+  texDesc.MiscFlags=0;
+
+  result=device->CreateTexture2D(&texDesc,NULL,&tex);
+  if (result!=S_OK) {
+    logW("could not create texture! %.8x",result);
+    return NULL;
+  }
+
+  viewDesc.Format=texDesc.Format=texDesc.Format;
+  viewDesc.ViewDimension=D3D11_SRV_DIMENSION_TEXTURE2D;
+  viewDesc.Texture2D.MostDetailedMip=0;
+  viewDesc.Texture2D.MipLevels=texDesc.MipLevels;
+
+  result=device->CreateShaderResourceView(tex,&viewDesc,&view);
+  if (result!=S_OK) {
+    logW("could not create texture view! %.8x",result);
+    tex->Release();
+    return NULL;
+  }
+
+  FurnaceDXTexture* ret=new FurnaceDXTexture;
+  ret->width=width;
+  ret->height=height;
+  ret->tex=tex;
+  ret->view=view;
+  textures.push_back(ret);
+  return ret;
 }
 
 bool FurnaceGUIRenderDX11::destroyTexture(void* which) {
-  return false;
+  FurnaceDXTexture* t=(FurnaceDXTexture*)which;
+  t->view->Release();
+  t->tex->Release();
+  delete t;
+
+  for (size_t i=0; i<textures.size(); i++) {
+    if (textures[i]==t) {
+      textures.erase(textures.begin()+i);
+      break;
+    }
+  }
+  return true;
 }
 
 void FurnaceGUIRenderDX11::setTextureBlendMode(void* which, FurnaceGUIBlendMode mode) {
@@ -115,9 +205,6 @@ void FurnaceGUIRenderDX11::setBlendMode(FurnaceGUIBlendMode mode) {
 void FurnaceGUIRenderDX11::resized(const SDL_Event& ev) {
   destroyRenderTarget();
   swapchain->ResizeBuffers(0,0,0,DXGI_FORMAT_UNKNOWN,0);
-
-  
-
   createRenderTarget();
 }
 
@@ -218,6 +305,13 @@ void FurnaceGUIRenderDX11::initGUI(SDL_Window* win) {
 
 bool FurnaceGUIRenderDX11::quit() {
   destroyRenderTarget();
+
+  for (FurnaceDXTexture* i: textures) {
+    i->view->Release();
+    i->tex->Release();
+    delete i;
+  }
+  textures.clear();
 
   if (swapchain!=NULL) {
     swapchain->Release();

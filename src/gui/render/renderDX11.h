@@ -26,6 +26,8 @@ typedef void ID3D11RenderTargetView;
 typedef void IDXGISwapChain;
 #endif
 
+struct FurnaceDXTexture;
+
 class FurnaceGUIRenderDX11: public FurnaceGUIRender {
   ID3D11Device* device;
   ID3D11DeviceContext* context;
@@ -36,6 +38,8 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
 
   bool destroyRenderTarget();
   bool createRenderTarget();
+
+  std::vector<FurnaceDXTexture*> textures;
 
   public:
     ImTextureID getTextureID(void* which);
