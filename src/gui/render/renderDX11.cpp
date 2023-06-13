@@ -23,6 +23,47 @@
 #include "backends/imgui_impl_dx11.h"
 #include "../../ta-log.h"
 
+typedef HRESULT (__stdcall *D3DCompile_t)(LPCVOID,SIZE_T,LPCSTR,D3D_SHADER_MACRO*,ID3DInclude*,LPCSTR,LPCSTR,UINT,UINT,ID3DBlob**,ID3DBlob*);
+
+const char* shD3D11_wipe_srcV=
+  "cbuffer WipeUniform: register(b0) {\n"
+  "  float alpha;\n"
+  "  float padding1;\n"
+  "  float padding2;\n"
+  "  float padding3;\n"
+  "  float4 padding4;\n"
+  "};\n"
+  "\n"
+  "struct vsInput {\n"
+  "  float4 pos: POSITION;\n"
+  "};\n"
+  "\n"
+  "struct fsInput {\n"
+  "  float4 pos: SV_POSITION;\n"
+  "  float4 color: COLOR0;\n"
+  "};\n"
+  "\n"
+  "fsInput main(vsInput input) {\n"
+  "  fsInput output;\n"
+  "  output.pos=input.pos;\n"
+  "  output.color=float4(0.0f,0.0f,0.0f,alpha);\n"
+  "  return output;\n"
+  "}";
+
+const char* shD3D11_wipe_srcF=
+  "struct fsInput {\n"
+  "  float4 pos: SV_POSITION;\n"
+  "  float4 color: COLOR0;\n"
+  "};\n"
+  "\n"
+  "float4 main(fsInput input): SV_Target {\n"
+  "  return input.color;\n"
+  "}";
+
+const D3D11_INPUT_ELEMENT_DESC shD3D11_wipe_inputLayout={
+  "POSITION", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 0, D3D11_INPUT_PER_VERTEX_DATA, 0
+};
+
 const D3D_FEATURE_LEVEL possibleFeatureLevels[2]={
   D3D_FEATURE_LEVEL_11_0,
   D3D_FEATURE_LEVEL_10_0
@@ -237,8 +278,43 @@ void FurnaceGUIRenderDX11::renderGUI() {
   ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
 }
 
+const float blendFactor[4]={
+  1.0f, 1.0f, 1.0f, 1.0f
+};
+
 void FurnaceGUIRenderDX11::wipe(float alpha) {
-  // TODO
+  D3D11_VIEWPORT viewPort;
+  unsigned int strides=4*sizeof(float);
+  unsigned int offsets=0;
+
+  memset(&viewPort,0,sizeof(viewPort));
+  viewPort.TopLeftX=0.0f;
+  viewPort.TopLeftY=0.0f;
+  viewPort.Width=outW;
+  viewPort.Height=outH;
+  viewPort.MinDepth=0.0f;
+  viewPort.MaxDepth=1.0f;
+
+  D3D11_MAPPED_SUBRESOURCE mappedUniform;
+  if (context->Map(sh_wipe_uniform,0,D3D11_MAP_WRITE_DISCARD,0,&mappedUniform)!=S_OK) {
+    logW("could not map constant");
+  }
+  WipeUniform* sh_wipe_uniformState=(WipeUniform*)mappedUniform.pData;
+  sh_wipe_uniformState->alpha=alpha;
+  context->Unmap(sh_wipe_uniform,0);
+
+  context->RSSetViewports(1,&viewPort);
+  context->RSSetState(rsState);
+
+  context->OMSetBlendState(omBlendState,blendFactor,0xffffffff);
+  context->IASetInputLayout(sh_wipe_inputLayout);
+  context->IASetVertexBuffers(0,1,&quadVertex,&strides,&offsets);
+  context->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+  context->VSSetShader(sh_wipe_vertex,NULL,0);
+  context->VSSetConstantBuffers(0,1,&sh_wipe_uniform);
+  context->PSSetShader(sh_wipe_fragment,NULL,0);
+
+  context->Draw(4,0);
 }
 
 void FurnaceGUIRenderDX11::present() {
@@ -257,6 +333,13 @@ int FurnaceGUIRenderDX11::getWindowFlags() {
 
 void FurnaceGUIRenderDX11::preInit() {
 }
+
+const float wipeVertices[4][4]={
+  -1.0, -1.0, 0.0, 1.0,
+   1.0, -1.0, 0.0, 1.0,
+  -1.0,  1.0, 0.0, 1.0,
+   1.0,  1.0, 0.0, 1.0
+};
 
 bool FurnaceGUIRenderDX11::init(SDL_Window* win) {
   SDL_SysWMinfo sysWindow;
@@ -288,6 +371,131 @@ bool FurnaceGUIRenderDX11::init(SDL_Window* win) {
   HRESULT result=D3D11CreateDeviceAndSwapChain(NULL,D3D_DRIVER_TYPE_HARDWARE,NULL,0,possibleFeatureLevels,2,D3D11_SDK_VERSION,&chainDesc,&swapchain,&device,&featureLevel,&context);
   if (result!=S_OK) {
     logE("could not create device and/or swap chain! %.8x",result);
+    return false;
+  }
+
+  // https://github.com/ocornut/imgui/pull/638
+  D3DCompile_t D3DCompile=NULL;
+  char dllBuffer[20];
+  for (int i=47; (i>30 && !D3DCompile); i--) {
+    snprintf(dllBuffer,20,"d3dcompiler_%d.dll",i);
+    HMODULE hDll=LoadLibraryA(dllBuffer);
+    if (hDll) {
+      D3DCompile=(D3DCompile_t)GetProcAddress(hDll,"D3DCompile");
+    }
+  }
+  if (!D3DCompile) {
+    logE("could not find D3DCompile!");
+    return false;
+  }
+
+  // create wipe shader
+  ID3DBlob* wipeBlobV=NULL;
+  ID3DBlob* wipeBlobF=NULL;
+  D3D11_BUFFER_DESC wipeConstantDesc;
+
+  result=D3DCompile(shD3D11_wipe_srcV,strlen(shD3D11_wipe_srcV),NULL,NULL,NULL,"main","vs_4_0",0,0,&wipeBlobV,NULL);
+  if (result!=S_OK) {
+    logE("could not compile vertex shader! %.8x",result);
+    return false;
+  }
+  result=D3DCompile(shD3D11_wipe_srcF,strlen(shD3D11_wipe_srcF),NULL,NULL,NULL,"main","ps_4_0",0,0,&wipeBlobF,NULL);
+  if (result!=S_OK) {
+    logE("could not compile pixel shader! %.8x",result);
+    return false;
+  }
+
+  result=device->CreateVertexShader(wipeBlobV->GetBufferPointer(),wipeBlobV->GetBufferSize(),NULL,&sh_wipe_vertex);
+  if (result!=S_OK) {
+    logE("could not create vertex shader! %.8x",result);
+    return false;
+  }
+  result=device->CreatePixelShader(wipeBlobF->GetBufferPointer(),wipeBlobF->GetBufferSize(),NULL,&sh_wipe_fragment);
+  if (result!=S_OK) {
+    logE("could not create pixel shader! %.8x",result);
+    return false;
+  }
+
+  result=device->CreateInputLayout(&shD3D11_wipe_inputLayout,1,wipeBlobV->GetBufferPointer(),wipeBlobV->GetBufferSize(),&sh_wipe_inputLayout);
+  if (result!=S_OK) {
+    logE("could not create input layout! %.8x",result);
+    return false;
+  }
+
+  memset(&wipeConstantDesc,0,sizeof(wipeConstantDesc));
+  wipeConstantDesc.ByteWidth=sizeof(WipeUniform);
+  wipeConstantDesc.Usage=D3D11_USAGE_DYNAMIC;
+  wipeConstantDesc.BindFlags=D3D11_BIND_CONSTANT_BUFFER;
+  wipeConstantDesc.CPUAccessFlags=D3D11_CPU_ACCESS_WRITE;
+  wipeConstantDesc.MiscFlags=0;
+  wipeConstantDesc.StructureByteStride=0;
+
+  result=device->CreateBuffer(&wipeConstantDesc,NULL,&sh_wipe_uniform);
+  if (result!=S_OK) {
+    logE("could not create constant buffer! %.8x",result);
+    return false;
+  }
+
+  // create wipe vertices
+  D3D11_BUFFER_DESC vertexDesc;
+  D3D11_SUBRESOURCE_DATA vertexRes;
+
+  memset(&vertexDesc,0,sizeof(vertexDesc));
+  memset(&vertexRes,0,sizeof(vertexRes));
+
+  vertexDesc.ByteWidth=4*4*sizeof(float);
+  vertexDesc.Usage=D3D11_USAGE_DEFAULT;
+  vertexDesc.BindFlags=D3D11_BIND_VERTEX_BUFFER;
+  vertexDesc.CPUAccessFlags=0;
+  vertexDesc.MiscFlags=0;
+  vertexDesc.StructureByteStride=0;
+
+  vertexRes.pSysMem=wipeVertices;
+  vertexRes.SysMemPitch=0;
+  vertexRes.SysMemSlicePitch=0;
+
+  result=device->CreateBuffer(&vertexDesc,&vertexRes,&quadVertex);
+  if (result!=S_OK) {
+    logE("could not create vertex buffer! %.8x",result);
+    return false;
+  }
+
+  // initialize the rest
+  D3D11_RASTERIZER_DESC rasterDesc;
+  D3D11_BLEND_DESC blendDesc;
+
+  memset(&rasterDesc,0,sizeof(rasterDesc));
+  memset(&blendDesc,0,sizeof(blendDesc));
+
+  rasterDesc.FillMode=D3D11_FILL_SOLID;
+  rasterDesc.CullMode=D3D11_CULL_NONE;
+  rasterDesc.FrontCounterClockwise=false;
+  rasterDesc.DepthBias=0;
+  rasterDesc.DepthBiasClamp=0.0f;
+  rasterDesc.SlopeScaledDepthBias=0.0f;
+  rasterDesc.DepthClipEnable=false;
+  rasterDesc.ScissorEnable=false;
+  rasterDesc.MultisampleEnable=false;
+  rasterDesc.AntialiasedLineEnable=false;
+  result=device->CreateRasterizerState(&rasterDesc,&rsState);
+  if (result!=S_OK) {
+    logE("could not create rasterizer state! %.8x",result);
+    return false;
+  }
+
+  blendDesc.AlphaToCoverageEnable=false;
+  blendDesc.IndependentBlendEnable=false;
+  blendDesc.RenderTarget[0].BlendEnable=true;
+  blendDesc.RenderTarget[0].SrcBlend=D3D11_BLEND_SRC_ALPHA;
+  blendDesc.RenderTarget[0].DestBlend=D3D11_BLEND_INV_SRC_ALPHA;
+  blendDesc.RenderTarget[0].BlendOp=D3D11_BLEND_OP_ADD;
+  blendDesc.RenderTarget[0].SrcBlendAlpha=D3D11_BLEND_ONE;
+  blendDesc.RenderTarget[0].DestBlendAlpha=D3D11_BLEND_INV_SRC_ALPHA;
+  blendDesc.RenderTarget[0].BlendOpAlpha=D3D11_BLEND_OP_ADD;
+  blendDesc.RenderTarget[0].RenderTargetWriteMask=D3D11_COLOR_WRITE_ENABLE_ALL;
+  result=device->CreateBlendState(&blendDesc,&omBlendState);
+  if (result!=S_OK) {
+    logE("could not create blend state! %.8x",result);
     return false;
   }
 

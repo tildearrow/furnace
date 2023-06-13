@@ -23,6 +23,12 @@
 #else
 typedef void ID3D11DeviceContext;
 typedef void ID3D11RenderTargetView;
+typedef void ID3D11Buffer;
+typedef void ID3D11RasterizerState;
+typedef void ID3D11BlendState;
+typedef void ID3D11VertexShader;
+typedef void ID3D11PixelShader;
+typedef void ID3D11InputLayout;
 typedef void IDXGISwapChain;
 #endif
 
@@ -33,8 +39,22 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
   ID3D11DeviceContext* context;
   ID3D11RenderTargetView* renderTarget;
   IDXGISwapChain* swapchain;
+  ID3D11RasterizerState* rsState;
+  ID3D11BlendState* omBlendState;
+
+  ID3D11Buffer* quadVertex;
   int outW, outH;
-  float quadVertex[4][3];
+
+  // SHADERS //
+  // -> wipe
+  ID3D11VertexShader* sh_wipe_vertex;
+  ID3D11PixelShader* sh_wipe_fragment;
+  ID3D11InputLayout* sh_wipe_inputLayout;
+  ID3D11Buffer* sh_wipe_uniform;
+  struct WipeUniform {
+    float alpha;
+    float padding[7];
+  };
 
   bool destroyRenderTarget();
   bool createRenderTarget();
@@ -70,8 +90,14 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
       context(NULL),
       renderTarget(NULL),
       swapchain(NULL),
+      rsState(NULL),
+      omBlendState(NULL),
+      quadVertex(NULL),
       outW(0),
-      outH(0) {
-      memset(quadVertex,0,4*3*sizeof(float));
+      outH(0),
+      sh_wipe_vertex(NULL),
+      sh_wipe_fragment(NULL),
+      sh_wipe_inputLayout(NULL),
+      sh_wipe_uniform(NULL) {
     }
 };
