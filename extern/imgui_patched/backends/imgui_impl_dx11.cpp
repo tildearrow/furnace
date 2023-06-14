@@ -32,16 +32,16 @@
 //  2018-02-06: Misc: Removed call to ImGui::Shutdown() which is not available from 1.60 WIP, user needs to call CreateContext/DestroyContext themselves.
 //  2016-05-07: DirectX11: Disabling depth-write.
 
+// DISCLAIMER: modified with d3dcompiler patch (see https://github.com/ocornut/imgui/pull/638).
+
 #include "imgui.h"
 #include "imgui_impl_dx11.h"
 
 // DirectX
 #include <stdio.h>
 #include <d3d11.h>
-#include <d3dcompiler.h>
-#ifdef _MSC_VER
-#pragma comment(lib, "d3dcompiler") // Automatically link with d3dcompiler.lib as we are using D3DCompile() below.
-#endif
+
+typedef HRESULT (__stdcall *D3DCompile_t)(LPCVOID, SIZE_T, LPCSTR, D3D_SHADER_MACRO*, ID3DInclude*, LPCSTR, LPCSTR, UINT, UINT, ID3DBlob**, ID3DBlob*);
 
 // DirectX11 data
 struct ImGui_ImplDX11_Data
@@ -380,11 +380,22 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
     if (bd->pFontSampler)
         ImGui_ImplDX11_InvalidateDeviceObjects();
 
-    // By using D3DCompile() from <d3dcompiler.h> / d3dcompiler.lib, we introduce a dependency to a given version of d3dcompiler_XX.dll (see D3DCOMPILER_DLL_A)
-    // If you would like to use this DX11 sample code but remove this dependency you can:
-    //  1) compile once, save the compiled shader blobs into a file or source code and pass them to CreateVertexShader()/CreatePixelShader() [preferred solution]
-    //  2) use code to detect any version of the DLL and grab a pointer to D3DCompile from the DLL.
     // See https://github.com/ocornut/imgui/pull/638 for sources and details.
+    // Detect which d3dcompiler_XX.dll is present in the system and grab a pointer to D3DCompile.
+    // Without this, you must link d3dcompiler.lib with the project.
+    D3DCompile_t D3DCompile = NULL;
+    {
+        char dllBuffer[20];
+        for (int i = 47; i > 30 && !D3DCompile; i--)
+        {
+            sprintf(dllBuffer, "d3dcompiler_%d.dll", i);
+            HMODULE hDll = LoadLibraryA(dllBuffer);
+            if (hDll)
+                D3DCompile = (D3DCompile_t)GetProcAddress(hDll, "D3DCompile");
+        }
+        if (!D3DCompile)
+            return false;
+    }
 
     // Create the vertex shader
     {

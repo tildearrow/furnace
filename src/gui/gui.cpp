@@ -3420,6 +3420,7 @@ bool FurnaceGUI::loop() {
               logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
               logD("window resized to %dx%d",scrW,scrH);
               updateWindow=true;
+              rend->resized(ev);
               break;
             case SDL_WINDOWEVENT_MOVED:
               scrX=ev.window.data1;
@@ -5824,8 +5825,8 @@ bool FurnaceGUI::loop() {
         }
       }
     }
-    rend->present();
     drawTimeEnd=SDL_GetPerformanceCounter();
+    rend->present();
     if (settings.renderClearPos) {
       rend->clear(uiColors[GUI_COLOR_BACKGROUND]);
     }
@@ -6149,7 +6150,7 @@ bool FurnaceGUI::init() {
   logV("window size: %dx%d",scrW,scrH);
 
   if (!initRender()) {
-    if (settings.renderBackend=="OpenGL") {
+    if (settings.renderBackend!="SDL" && !settings.renderBackend.empty()) {
       settings.renderBackend="";
       e->setConf("renderBackend","");
       e->saveConf();
@@ -6235,11 +6236,11 @@ bool FurnaceGUI::init() {
 
   logD("starting render backend...");
   if (!rend->init(sdlWin)) {
-    if (settings.renderBackend=="OpenGL") {
+    if (settings.renderBackend!="SDL" && !settings.renderBackend.empty()) {
       settings.renderBackend="";
-      e->setConf("renderBackend","");
-      e->saveConf();
-      lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
+      //e->setConf("renderBackend","");
+      //e->saveConf();
+      //lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
     } else {
       lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
       if (!settings.renderDriver.empty()) {

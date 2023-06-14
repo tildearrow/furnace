@@ -71,15 +71,21 @@
 
 enum FurnaceGUIRenderBackend {
   GUI_BACKEND_SDL=0,
-  GUI_BACKEND_GL
+  GUI_BACKEND_GL,
+  GUI_BACKEND_DX11
 };
 
 #ifdef HAVE_RENDER_SDL
 #define GUI_BACKEND_DEFAULT GUI_BACKEND_SDL
 #define GUI_BACKEND_DEFAULT_NAME "SDL"
 #else
+#ifdef HAVE_RENDER_DX11
+#define GUI_BACKEND_DEFAULT GUI_BACKEND_DX11
+#define GUI_BACKEND_DEFAULT_NAME "DirectX 11"
+#else
 #define GUI_BACKEND_DEFAULT GUI_BACKEND_GL
 #define GUI_BACKEND_DEFAULT_NAME "OpenGL"
+#endif
 #endif
 
 // TODO:
@@ -1242,6 +1248,7 @@ class FurnaceGUIRender {
     virtual bool destroyTexture(void* which);
     virtual void setTextureBlendMode(void* which, FurnaceGUIBlendMode mode);
     virtual void setBlendMode(FurnaceGUIBlendMode mode);
+    virtual void resized(const SDL_Event& ev);
     virtual void clear(ImVec4 color);
     virtual bool newFrame();
     virtual void createFontsTexture();
