@@ -12,7 +12,11 @@ OPLL also spawned a few derivative chips, the best known of these is:
 the YM2413 is equipped with the following features:
 
 - 9 channels of 2 operator FM synthesis
-- A drum/percussion mode, replacing the last 3 voices with 5 rhythm channels
+- A drum/percussion mode, replacing the last 3 voices with 5 rhythm channels, with drum mode tones hard-defined in the chip itself, like FM instruments. Only pitch might be altered.
+
+  - Drum mode works like following: FM channel 7 is for Kick Drum, which is a normal FM channel but routed through mxier twice for 2x volume, like all drum sounds. FM channel 8 splits to Snare Drum and Hi-Hat. Snare Drum is the carrier and it works with a special 1 bit noise generator combined with a square wave, all possible by overriding phase-generator with some different synthesis method. Hi-Hat is the modulator and it works with the noise generator and also the special synthesis. CH9 splits to Top-Cymbal and Tom-Tom, Top-Cymbal is the carrier and only has the special synthesis, while Tom-Tom is basically a 1op wave. 
+  - Special syntheis mentioned already is: 5 square waves are gathered from 4x, 64x and 128x the pitch of channel 8 and 16x and 64x the pitch of channel 9 and they go through a process where 2 HH bits OR'd together, then 1 HH and 1 TC bit OR'd, then the two TC bits OR'd together, and those 3 results get XOR'd.
+ 
 - 1 user-definable patch (this patch can be changed throughout the course of the song)
 - 15 pre-defined patches which can all be used at the same time
 - Support for ADSR on both the modulator and the carrier
