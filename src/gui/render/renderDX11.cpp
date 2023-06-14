@@ -74,12 +74,14 @@ struct FurnaceDXTexture {
   ID3D11ShaderResourceView* view;
   int width, height;
   unsigned char* lockedData;
+  bool dynamic;
   FurnaceDXTexture():
     tex(NULL),
     view(NULL),
     width(0),
     height(0),
-    lockedData(NULL) {}
+    lockedData(NULL),
+    dynamic(false) {}
 };
 
 bool FurnaceGUIRenderDX11::destroyRenderTarget() {
@@ -173,7 +175,26 @@ bool FurnaceGUIRenderDX11::unlockTexture(void* which) {
 
 bool FurnaceGUIRenderDX11::updateTexture(void* which, void* data, int pitch) {
   FurnaceDXTexture* t=(FurnaceDXTexture*)which;
-  context->UpdateSubresource(t->tex,D3D11CalcSubresource(0,0,1),NULL,data,pitch,pitch*t->height);
+  if (t->dynamic) {
+    unsigned char* d=NULL;
+    int p=0;
+    if (!lockTexture(t,&d,&p)) return false;
+    if (p==pitch) {
+      memcpy(d,data,p*t->height);
+    } else {
+      unsigned char* ucData=(unsigned char*)data;
+      int srcPos=0;
+      int destPos=0;
+      for (int i=0; i<t->height; i++) {
+        memcpy(&d[destPos],&ucData[srcPos],pitch);
+        srcPos+=pitch;
+        destPos+=p;
+      }
+    }
+    unlockTexture(t);
+  } else {
+    context->UpdateSubresource(t->tex,D3D11CalcSubresource(0,0,1),NULL,data,pitch,pitch*t->height);
+  }
   return true;
 }
 
@@ -222,6 +243,7 @@ void* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, int height) {
   ret->height=height;
   ret->tex=tex;
   ret->view=view;
+  ret->dynamic=dynamic;
   textures.push_back(ret);
   return ret;
 }
