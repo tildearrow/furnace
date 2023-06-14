@@ -178,7 +178,7 @@ bool FurnaceGUIRenderDX11::updateTexture(void* which, void* data, int pitch) {
   if (t->dynamic) {
     unsigned char* d=NULL;
     int p=0;
-    if (!lockTexture(t,&d,&p)) return false;
+    if (!lockTexture(t,(void**)&d,&p)) return false;
     if (p==pitch) {
       memcpy(d,data,p*t->height);
     } else {
