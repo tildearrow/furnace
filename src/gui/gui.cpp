@@ -4156,6 +4156,8 @@ bool FurnaceGUI::loop() {
         ImGui::EndMenu();
       }
       if (ImGui::BeginMenu("window")) {
+        if (ImGui::MenuItem("command palette",BIND_FOR(GUI_ACTION_COMMAND_PALETTE)))
+          displayPalette=true;
         if (ImGui::MenuItem("song information",BIND_FOR(GUI_ACTION_WINDOW_SONG_INFO),songInfoOpen)) songInfoOpen=!songInfoOpen;
         if (ImGui::MenuItem("subsongs",BIND_FOR(GUI_ACTION_WINDOW_SUBSONGS),subSongsOpen)) subSongsOpen=!subSongsOpen;
         if (ImGui::MenuItem("speed",BIND_FOR(GUI_ACTION_WINDOW_SPEED),speedOpen)) speedOpen=!speedOpen;
@@ -5079,6 +5081,14 @@ bool FurnaceGUI::loop() {
       ImGui::OpenPopup("New Song");
     }
 
+    if (displayPalette) {
+      paletteQuery="";
+      paletteFirstFrame=true;
+      curPaletteChoice=0;
+      displayPalette=false;
+      ImGui::OpenPopup("Command Palette");
+    }
+
     if (displayEditString) {
       ImGui::OpenPopup("EditString");
     }
@@ -5115,6 +5125,11 @@ bool FurnaceGUI::loop() {
         ImGui::SetWindowSize(newSongMinSize,ImGuiCond_Always);
       }
       drawNewSong();
+      ImGui::EndPopup();
+    }
+
+    if (ImGui::BeginPopup("Command Palette",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoSavedSettings)) {
+      drawPalette();
       ImGui::EndPopup();
     }
 
@@ -6561,6 +6576,7 @@ FurnaceGUI::FurnaceGUI():
   oldWantCaptureKeyboard(false),
   displayMacroMenu(false),
   displayNew(false),
+  displayPalette(false),
   fullScreen(false),
   preserveChanPos(false),
   wantScrollList(false),
@@ -6657,6 +6673,7 @@ FurnaceGUI::FurnaceGUI():
   oldBar(-1),
   curGroove(-1),
   exitDisabledTimer(0),
+  curPaletteChoice(0),
   soloTimeout(0.0f),
   exportFadeOut(5.0),
   editControlsOpen(true),

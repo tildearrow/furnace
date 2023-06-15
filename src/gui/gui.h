@@ -487,6 +487,7 @@ enum FurnaceGUIActions {
   GUI_ACTION_PANIC,
   GUI_ACTION_CLEAR,
 
+  GUI_ACTION_COMMAND_PALETTE,
   GUI_ACTION_WINDOW_EDIT_CONTROLS,
   GUI_ACTION_WINDOW_ORDERS,
   GUI_ACTION_WINDOW_INS_LIST,
@@ -1280,7 +1281,7 @@ class FurnaceGUI {
   int sampleTexW, sampleTexH;
   bool updateSampleTex;
 
-  String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile, sysSearchQuery, newSongQuery;
+  String workingDir, fileName, clipboard, warnString, errorString, lastError, curFileName, nextFile, sysSearchQuery, newSongQuery, paletteQuery;
   String workingDirSong, workingDirIns, workingDirWave, workingDirSample, workingDirAudioExport;
   String workingDirVGMExport, workingDirZSMExport, workingDirROMExport, workingDirFont, workingDirColors, workingDirKeybinds;
   String workingDirLayout, workingDirROM, workingDirTest;
@@ -1290,6 +1291,7 @@ class FurnaceGUI {
 
   std::vector<DivSystem> sysSearchResults;
   std::vector<FurnaceGUISysDef> newSongSearchResults;
+  std::vector<int> paletteSearchResults;
   std::deque<String> recentFile;
   std::vector<DivInstrumentType> makeInsTypeList;
   std::vector<String> availRenderDrivers;
@@ -1298,7 +1300,7 @@ class FurnaceGUI {
   bool vgmExportDirectStream, displayInsTypeList;
   bool portrait, injectBackUp, mobileMenuOpen;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
-  bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
+  bool displayNew, displayPalette, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool mobileEdit;
   bool willExport[DIV_MAX_CHIPS];
@@ -1694,11 +1696,12 @@ class FurnaceGUI {
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, newSongCategory, latchTarget;
   int wheelX, wheelY, dragSourceX, dragSourceXFine, dragSourceY, dragDestinationX, dragDestinationXFine, dragDestinationY, oldBeat, oldBar;
   int curGroove, exitDisabledTimer;
+  size_t curPaletteChoice;
   float soloTimeout;
 
   double exportFadeOut;
 
-  bool newSongFirstFrame;
+  bool newSongFirstFrame, paletteFirstFrame;
   bool editControlsOpen, ordersOpen, insListOpen, songInfoOpen, patternOpen, insEditOpen;
   bool waveListOpen, waveEditOpen, sampleListOpen, sampleEditOpen, aboutOpen, settingsOpen;
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
@@ -2139,6 +2142,7 @@ class FurnaceGUI {
   void drawSettings();
   void drawDebug();
   void drawNewSong();
+  void drawPalette();
   void drawLog();
   void drawEffectList();
   void drawSubSongs(bool asChild=false);

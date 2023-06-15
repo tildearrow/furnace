@@ -2227,6 +2227,7 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::TreeNode("Window activation")) {
             KEYBIND_CONFIG_BEGIN("keysWindow");
 
+            UI_KEYBIND_CONFIG(GUI_ACTION_COMMAND_PALETTE);
             UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_EDIT_CONTROLS);
             UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_ORDERS);
             UI_KEYBIND_CONFIG(GUI_ACTION_WINDOW_INS_LIST);

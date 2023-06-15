@@ -492,6 +492,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("PANIC", "Panic", SDLK_F12),
   D("CLEAR", "Clear song data", 0),
 
+  D("COMMAND_PALETTE", "Command Palette", FURKMOD_CMD|SDLK_p),
   D("WINDOW_EDIT_CONTROLS", "Edit Controls", 0),
   D("WINDOW_ORDERS", "Orders", 0),
   D("WINDOW_INS_LIST", "Instrument List", 0),

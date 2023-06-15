@@ -674,6 +674,7 @@ src/gui/log.cpp
 src/gui/mixer.cpp
 src/gui/midiMap.cpp
 src/gui/newSong.cpp
+src/gui/commandPalette.cpp
 src/gui/orders.cpp
 src/gui/osc.cpp
 src/gui/patManager.cpp
