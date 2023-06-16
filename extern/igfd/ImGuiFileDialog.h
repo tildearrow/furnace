@@ -878,6 +878,7 @@ namespace IGFD
     bool fileListActuallyEmpty = false;
 
 		std::string puDLGpath;												// base path set by user when OpenDialog/OpenModal was called
+                std::string puError;                                                 // last error
 		std::string puDLGDefaultFileName;									// base default file path name set by user when OpenDialog/OpenModal was called
 		size_t puDLGcountSelectionMax = 1U; // 0 for infinite				// base max selection count set by user when OpenDialog/OpenModal was called
 		bool puDLGDirectoryMode = false;									// is directory mode (defiend like : puDLGDirectoryMode = (filters.empty()))
@@ -1145,6 +1146,7 @@ namespace IGFD
     double DpiScale;
     bool singleClickSel;
     bool mobileMode;
+    std::string homePath;
 
 	public:
 		static FileDialog* Instance()								// Singleton for easier accces form anywhere but only one dialog at a time

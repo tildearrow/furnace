@@ -133,6 +133,9 @@ namespace IGFD
 #ifndef resetButtonString
 #define resetButtonString ICON_FA_REPEAT
 #endif // resetButtonString
+#ifndef homeButtonString
+#define homeButtonString ICON_FA_HOME
+#endif // bomeButtonString
 #ifndef drivesButtonString
 #define drivesButtonString ICON_FA_HDD_O
 #endif // drivesButtonString
@@ -170,7 +173,7 @@ namespace IGFD
 #define buttonEditPathString "Edit path\nYou can also right click on path buttons"
 #endif // buttonEditPathString
 #ifndef buttonResetPathString
-#define buttonResetPathString "Reset to current directory"
+#define buttonResetPathString "Go to home directory"
 #endif // buttonResetPathString
 #ifndef buttonParentDirString
 #define buttonParentDirString "Go to parent directory"
@@ -700,10 +703,8 @@ namespace IGFD
 		if (ImGui::IsItemHovered())
 			ImGui::SetTooltip(buttonResetSearchString);
 		ImGui::SameLine();
-		ImGui::Text(searchString);
-		ImGui::SameLine();
 		ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-		bool edited = ImGui::InputText("##InputImGuiFileDialogSearchField", puSearchBuffer, MAX_FILE_DIALOG_NAME_BUFFER);
+		bool edited = ImGui::InputTextWithHint("##InputImGuiFileDialogSearchField", searchString, puSearchBuffer, MAX_FILE_DIALOG_NAME_BUFFER);
 		if (ImGui::GetItemID() == ImGui::GetActiveID())
 			puSearchInputIsActive = true;
 		ImGui::PopItemWidth();
@@ -2245,9 +2246,9 @@ namespace IGFD
 
 	void IGFD::FileManager::DrawPathComposer(const FileDialogInternal& vFileDialogInternal)
 	{
-		if (IMGUI_BUTTON(resetButtonString))
+		if (IMGUI_BUTTON(homeButtonString))
 		{
-			SetCurrentPath(".");
+			SetCurrentPath(FileDialog::Instance()->homePath);
 			OpenCurrentPath(vFileDialogInternal);
 		}
 		if (ImGui::IsItemHovered())
