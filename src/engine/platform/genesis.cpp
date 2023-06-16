@@ -188,9 +188,11 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
             oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<7;
           } else {
             oscBuf[i]->data[oscBuf[i]->needle++]=fm.dacdata<<7;
+            oscBuf[6]->data[oscBuf[6]->needle++]=0;
           }
         } else {
           oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm.ch_out[i]<<(chipType==2?2:7),-32768,32767);
+          oscBuf[6]->data[oscBuf[6]->needle++]=0;
         }
       } else {
         oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm.ch_out[i]<<(chipType==2?2:7),-32768,32767);
@@ -251,9 +253,11 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
             oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<7;
           } else {
             oscBuf[i]->data[oscBuf[i]->needle++]=fm_ymfm->debug_dac_data()<<7;
+            oscBuf[6]->data[oscBuf[6]->needle++]=0;
           }
         } else {
           oscBuf[i]->data[oscBuf[i]->needle++]=chOut;
+          oscBuf[6]->data[oscBuf[6]->needle++]=0;
         }
       } else {
         oscBuf[i]->data[oscBuf[i]->needle++]=chOut;
