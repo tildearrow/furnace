@@ -42,10 +42,6 @@ SOFTWARE.
 #include <ctime>
 #include <sys/stat.h>
 #include <cstdio>
-// this option need c++17
-#ifdef USE_STD_FILESYSTEM
-	#include <filesystem>
-#endif
 #if defined (__EMSCRIPTEN__) // EMSCRIPTEN
 	#include <emscripten.h>
 #endif // EMSCRIPTEN
@@ -53,12 +49,7 @@ SOFTWARE.
 	#define stat _stat
 	#define stricmp _stricmp
 	#include <cctype>
-	// this option need c++17
-	#ifdef USE_STD_FILESYSTEM
-		#include <Windows.h>
-	#else
-		#include "dirent/dirent.h" // directly open the dirent file attached to this lib
-	#endif // USE_STD_FILESYSTEM
+	#include "dirent/dirent.h" // directly open the dirent file attached to this lib
 	#define PATH_SEP '\\'
 	#ifndef PATH_MAX
 		#define PATH_MAX 260
@@ -67,10 +58,7 @@ SOFTWARE.
 	#define UNIX
 	#define stricmp strcasecmp
 	#include <sys/types.h>
-	// this option need c++17
-	#ifndef USE_STD_FILESYSTEM
-		#include <dirent.h>
-	#endif // USE_STD_FILESYSTEM
+	#include <dirent.h>
 	#define PATH_SEP '/'
 #endif // defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__)
 
@@ -320,12 +308,10 @@ namespace IGFD
 	//// INLINE FUNCTIONS ///////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////////
 
-#ifndef USE_STD_FILESYSTEM
 	inline int inAlphaSort(const struct dirent** a, const struct dirent** b)
 	{
 		return strcoll((*a)->d_name, (*b)->d_name);
 	}
-#endif
 
 	/////////////////////////////////////////////////////////////////////////////////////
 	//// FILE EXTENTIONS INFOS //////////////////////////////////////////////////////////
@@ -497,16 +483,6 @@ namespace IGFD
 
 		if (!name.empty())
 		{
-#ifdef USE_STD_FILESYSTEM
-			namespace fs = std::filesystem;
-#ifdef WIN32
-			std::wstring wname = IGFD::Utils::string_to_wstring(name.c_str());
-			fs::path pathName = fs::path(wname);
-#else
-			fs::path pathName = fs::path(name);
-#endif
-			bExists = fs::is_directory(pathName);
-#else
 			DIR* pDir = nullptr;
 			pDir = opendir(name.c_str());
 			if (pDir != nullptr)
@@ -514,7 +490,6 @@ namespace IGFD
 				bExists = true;
 				(void)closedir(pDir);
 			}
-#endif // USE_STD_FILESYSTEM
 		}
 
 		return bExists;    // this is not a directory!
@@ -529,18 +504,11 @@ namespace IGFD
 			if (!IsDirectoryExist(name))
 			{
 #ifdef WIN32
-#ifdef USE_STD_FILESYSTEM
-				namespace fs = std::filesystem;
-				std::wstring wname = IGFD::Utils::string_to_wstring(name.c_str());
-				fs::path pathName = fs::path(wname);
-				res = fs::create_directory(pathName);
-#else
 				std::wstring wname = IGFD::Utils::string_to_wstring(name);
 				if (CreateDirectoryW(wname.c_str(), nullptr))
 				{
 					res = true;
 				}
-#endif // USE_STD_FILESYSTEM
 #elif defined(__EMSCRIPTEN__)
 				std::string str = std::string("FS.mkdir('") + name + "');";
 				emscripten_run_script(str.c_str());
@@ -563,26 +531,6 @@ namespace IGFD
 		return res;
 	}
 
-#ifdef USE_STD_FILESYSTEM
-	// https://github.com/aiekick/ImGuiFileDialog/issues/54
-	IGFD::Utils::PathStruct IGFD::Utils::ParsePathFileName(const std::string& vPathFileName)
-	{
-		namespace fs = std::filesystem;
-		PathStruct res;
-		if (vPathFileName.empty())
-			return res;
-
-		auto fsPath = fs::path(vPathFileName);
-
-		if (fs::is_regular_file(fsPath)) {
-			res.name = fsPath.string();
-			res.path = fsPath.parent_path().string();
-			res.isOk = true;
-		}
-
-		return res;
-	}
-#else
 	IGFD::Utils::PathStruct IGFD::Utils::ParsePathFileName(const std::string& vPathFileName)
 	{
 		PathStruct res;
@@ -627,7 +575,6 @@ namespace IGFD
 
 		return res;
 	}
-#endif // USE_STD_FILESYSTEM
 	void IGFD::Utils::AppendToBuffer(char* vBuffer, size_t vBufferLen, const std::string& vStr)
 	{
 		std::string st = vStr;
@@ -1552,24 +1499,6 @@ namespace IGFD
 
 			ClearFileLists();
 
-#ifdef USE_STD_FILESYSTEM
-			//const auto wpath = IGFD::Utils::WGetString(path.c_str());
-			const std::filesystem::path fspath(path);
-			const auto dir_iter = std::filesystem::directory_iterator(fspath);
-			AddFile(vFileDialogInternal, path, "..", 'd');
-			for (const auto& file : dir_iter)
-			{
-				char fileType = 0;
-				if (file.is_symlink())
-					fileType = 'l';
-				else if (file.is_directory())
-					fileType = 'd';
-				else
-					fileType = 'f';
-				auto fileNameExt = file.path().filename().string();
-				AddFile(vFileDialogInternal, path, fileNameExt, fileType);
-			}
-#else // dirent
 			struct dirent** files = nullptr;
 			int n = scandir(path.c_str(), &files, nullptr, inAlphaSort);
       logV("IGFD: %d entries in directory",n);
@@ -1643,7 +1572,6 @@ namespace IGFD
 			} else {
         logV("IGFD: it's empty");
       }
-#endif // USE_STD_FILESYSTEM
 
       logV("IGFD: sorting fields...");
 			SortFields(vFileDialogInternal, puSortingField, false);
@@ -1891,16 +1819,6 @@ namespace IGFD
 			path += std::string(1u, PATH_SEP);
 #endif // WIN32
 		
-#ifdef USE_STD_FILESYSTEM
-		namespace fs = std::filesystem;
-		bool dir_opened = fs::is_directory(vPath);
-		if (!dir_opened)
-		{
-			path = ".";
-			dir_opened = fs::is_directory(vPath);
-		}
-		if (dir_opened)
-#else
 		DIR* dir = opendir(path.c_str());
 		if (dir == nullptr)
 		{
@@ -1909,7 +1827,6 @@ namespace IGFD
 		}
 
 		if (dir != nullptr)
-#endif // USE_STD_FILESYSTEM
 		{
 #ifdef WIN32
 			DWORD numchar = 0;
@@ -1945,9 +1862,7 @@ namespace IGFD
 #endif // WIN32
 				}
 			}
-#ifndef USE_STD_FILESYSTEM
 			closedir(dir);
-#endif
 		}
 	}
 

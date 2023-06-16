@@ -535,22 +535,12 @@ if (IGFD_DisplayDialog(cfiledialog, "filedlg", ImGuiWindowFlags_NoCollapse, minS
 IGFD_Destroy(cfiledialog);
 
 -----------------------------------------------------------------------------------------------------------------
-## Std::filesystem (c++17) can be used instead of dirent.h
------------------------------------------------------------------------------------------------------------------
-
-you just need to uncomment that in the config file
-
-#define USE_STD_FILESYSTEM
-
-in this mode dirent is not more required
-
------------------------------------------------------------------------------------------------------------------
 ## How to Integrate ImGuiFileDialog in your project
 -----------------------------------------------------------------------------------------------------------------
 
 ### ImGuiFileDialog require :
 
-* dirent v1.23 (only when USE_STD_FILESYSTEM is not defined) (https://github.com/tronkko/dirent/tree/v1.23) lib, only for windows. Successfully tested with version v1.23 only
+* dirent v1.23 (https://github.com/tronkko/dirent/tree/v1.23) lib, only for windows. Successfully tested with version v1.23 only
 * Dear ImGui (https://github.com/ocornut/imgui/tree/master) (with/without tables widgets)
 
 ### Customize ImGuiFileDialog :
