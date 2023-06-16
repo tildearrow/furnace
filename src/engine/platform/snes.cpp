@@ -91,7 +91,7 @@ void DivPlatformSNES::acquire(short** buf, size_t len) {
       next=(next*254)/MAX(1,globalVolL+globalVolR);
       if (next<-32768) next=-32768;
       if (next>32767) next=32767;
-      oscBuf[i]->data[oscBuf[i]->needle++]=next;
+      oscBuf[i]->data[oscBuf[i]->needle++]=next>>1;
     }
   }
 }

@@ -55,7 +55,7 @@ void DivPlatformBubSysWSG::acquire(short** buf, size_t len) {
         chanOut=chan[i].waveROM[k005289.addr(i)]*(regPool[2+i]&0xf);
         out+=chanOut;
         if (writeOscBuf==0) {
-          oscBuf[i]->data[oscBuf[i]->needle++]=chanOut<<7;
+          oscBuf[i]->data[oscBuf[i]->needle++]=chanOut<<6;
         }
       }
     }

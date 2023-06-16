@@ -87,7 +87,7 @@ void DivPlatformSwan::acquire(short** buf, size_t len) {
     buf[0][h]=samp[0];
     buf[1][h]=samp[1];
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(ws->sample_cache[i][0]+ws->sample_cache[i][1])<<6;
+      oscBuf[i]->data[oscBuf[i]->needle++]=(ws->sample_cache[i][0]+ws->sample_cache[i][1])<<5;
     }
   }
 }

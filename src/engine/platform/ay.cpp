@@ -187,9 +187,9 @@ void DivPlatformAY8910::acquire(short** buf, size_t len) {
       buf[0][i]=ayBuf[0][0];
       buf[1][i]=buf[0][i];
 
-      oscBuf[0]->data[oscBuf[0]->needle++]=sunsoftVolTable[31-(ay->lastIndx&31)]<<3;
-      oscBuf[1]->data[oscBuf[1]->needle++]=sunsoftVolTable[31-((ay->lastIndx>>5)&31)]<<3;
-      oscBuf[2]->data[oscBuf[2]->needle++]=sunsoftVolTable[31-((ay->lastIndx>>10)&31)]<<3;
+      oscBuf[0]->data[oscBuf[0]->needle++]=sunsoftVolTable[31-(ay->lastIndx&31)]<<2;
+      oscBuf[1]->data[oscBuf[1]->needle++]=sunsoftVolTable[31-((ay->lastIndx>>5)&31)]<<2;
+      oscBuf[2]->data[oscBuf[2]->needle++]=sunsoftVolTable[31-((ay->lastIndx>>10)&31)]<<2;
     }
   } else {
     for (size_t i=0; i<len; i++) {
@@ -205,9 +205,9 @@ void DivPlatformAY8910::acquire(short** buf, size_t len) {
         buf[1][i]=buf[0][i];
       }
 
-      oscBuf[0]->data[oscBuf[0]->needle++]=ayBuf[0][0]<<2;
-      oscBuf[1]->data[oscBuf[1]->needle++]=ayBuf[1][0]<<2;
-      oscBuf[2]->data[oscBuf[2]->needle++]=ayBuf[2][0]<<2;
+      oscBuf[0]->data[oscBuf[0]->needle++]=ayBuf[0][0]<<1;
+      oscBuf[1]->data[oscBuf[1]->needle++]=ayBuf[1][0]<<1;
+      oscBuf[2]->data[oscBuf[2]->needle++]=ayBuf[2][0]<<1;
     }
   }
 }
