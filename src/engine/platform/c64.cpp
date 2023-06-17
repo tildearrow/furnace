@@ -80,18 +80,18 @@ void DivPlatformC64::acquire(short** buf, size_t len) {
       sid_fp.clock(4,&buf[0][i]);
       if (++writeOscBuf>=4) {
         writeOscBuf=0;
-        oscBuf[0]->data[oscBuf[0]->needle++]=(sid_fp.lastChanOut[0]-dcOff)>>5;
-        oscBuf[1]->data[oscBuf[1]->needle++]=(sid_fp.lastChanOut[1]-dcOff)>>5;
-        oscBuf[2]->data[oscBuf[2]->needle++]=(sid_fp.lastChanOut[2]-dcOff)>>5;
+        oscBuf[0]->data[oscBuf[0]->needle++]=(sid_fp.lastChanOut[0]-dcOff)>>6;
+        oscBuf[1]->data[oscBuf[1]->needle++]=(sid_fp.lastChanOut[1]-dcOff)>>6;
+        oscBuf[2]->data[oscBuf[2]->needle++]=(sid_fp.lastChanOut[2]-dcOff)>>6;
       }
     } else {
       sid.clock();
       buf[0][i]=sid.output();
       if (++writeOscBuf>=16) {
         writeOscBuf=0;
-        oscBuf[0]->data[oscBuf[0]->needle++]=(sid.last_chan_out[0]-dcOff)>>5;
-        oscBuf[1]->data[oscBuf[1]->needle++]=(sid.last_chan_out[1]-dcOff)>>5;
-        oscBuf[2]->data[oscBuf[2]->needle++]=(sid.last_chan_out[2]-dcOff)>>5;
+        oscBuf[0]->data[oscBuf[0]->needle++]=(sid.last_chan_out[0]-dcOff)>>6;
+        oscBuf[1]->data[oscBuf[1]->needle++]=(sid.last_chan_out[1]-dcOff)>>6;
+        oscBuf[2]->data[oscBuf[2]->needle++]=(sid.last_chan_out[2]-dcOff)>>6;
       }
     }
   }
@@ -105,6 +105,7 @@ void DivPlatformC64::updateFilter() {
 }
 
 void DivPlatformC64::tick(bool sysTick) {
+  bool willUpdateFilter=false;
   for (int i=0; i<3; i++) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
@@ -117,10 +118,10 @@ void DivPlatformC64::tick(bool sysTick) {
           if (filtCut>2047) filtCut=2047;
           if (filtCut<0) filtCut=0;
         }
-        updateFilter();
+        willUpdateFilter=true;
       } else {
         vol=MIN(15,chan[i].std.vol.val);
-        updateFilter();
+        willUpdateFilter=true;
       }
     }
     if (NEW_ARP_STRAT) {
@@ -156,11 +157,11 @@ void DivPlatformC64::tick(bool sysTick) {
     }
     if (chan[i].std.ex1.had) {
       filtControl=chan[i].std.ex1.val&15;
-      updateFilter();
+      willUpdateFilter=true;
     }
     if (chan[i].std.ex2.had) {
       filtRes=chan[i].std.ex2.val&15;
-      updateFilter();
+      willUpdateFilter=true;
     }
     if (chan[i].std.ex3.had) {
       chan[i].sync=chan[i].std.ex3.val&1;
@@ -207,6 +208,7 @@ void DivPlatformC64::tick(bool sysTick) {
       chan[i].freqChanged=false;
     }
   }
+  if (willUpdateFilter) updateFilter();
 }
 
 int DivPlatformC64::dispatch(DivCommand c) {

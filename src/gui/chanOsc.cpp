@@ -93,7 +93,7 @@ void FurnaceGUI::calcChanOsc() {
         unsigned short needlePos=buf->needle;
         needlePos-=displaySize;
         for (unsigned short i=0; i<512; i++) {
-          float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;
+          float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/32768.0f;
           if (minLevel>y) minLevel=y;
           if (maxLevel<y) maxLevel=y;
         }
@@ -116,7 +116,7 @@ void FurnaceGUI::drawChanOsc() {
   }
   if (!chanOscOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(64.0f*dpiScale,32.0f*dpiScale),ImVec2(canvasW,canvasH));
-  if (ImGui::Begin("Oscilloscope (per-channel)",&chanOscOpen,globalWinFlags|((chanOscOptions)?0:ImGuiWindowFlags_NoTitleBar))) {
+  if (ImGui::Begin("Oscilloscope (per-channel)",&chanOscOpen,globalWinFlags)) {
     bool centerSettingReset=false;
     ImDrawList* dl=ImGui::GetWindowDrawList();
     if (chanOscOptions) {
@@ -152,10 +152,10 @@ void FurnaceGUI::drawChanOsc() {
 
       if (chanOscUseGrad) {
         if (chanOscGradTex==NULL) {
-          chanOscGradTex=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,SDL_TEXTUREACCESS_STREAMING,chanOscGrad.width,chanOscGrad.height);
+          chanOscGradTex=rend->createTexture(true,chanOscGrad.width,chanOscGrad.height);
 
           if (chanOscGradTex==NULL) {
-            logE("error while creating gradient texture! %s",SDL_GetError());
+            logE("error while creating gradient texture!");
           } else {
             updateChanOscGradTex=true;
           }
@@ -170,16 +170,16 @@ void FurnaceGUI::drawChanOsc() {
           if (chanOscGradTex!=NULL) {
             if (updateChanOscGradTex) {
               chanOscGrad.render();
-              if (SDL_UpdateTexture(chanOscGradTex,NULL,chanOscGrad.grad.get(),chanOscGrad.width*4)==0) {
+              if (rend->updateTexture(chanOscGradTex,chanOscGrad.grad.get(),chanOscGrad.width*4)) {
                 updateChanOscGradTex=false;
               } else {
-                logE("error while updating gradient texture! %s",SDL_GetError());
+                logE("error while updating gradient texture!");
               }
             }
 
             ImVec2 gradLeft=ImGui::GetCursorPos();
             ImVec2 gradSize=ImVec2(400.0f*dpiScale,400.0f*dpiScale);
-            ImGui::Image(chanOscGradTex,gradSize);
+            ImGui::Image(rend->getTextureID(chanOscGradTex),gradSize);
             ImVec2 gradLeftAbs=ImGui::GetItemRectMin();
             if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
               if (chanOscGrad.points.size()<32) {
@@ -346,14 +346,19 @@ void FurnaceGUI::drawChanOsc() {
           ImRect rect=ImRect(minArea,maxArea);
           ImRect inRect=rect;
           inRect.Min.x+=dpiScale;
-          inRect.Min.y+=dpiScale;
+          inRect.Min.y+=2.0*dpiScale;
           inRect.Max.x-=dpiScale;
-          inRect.Max.y-=dpiScale;
+          inRect.Max.y-=2.0*dpiScale;
+
+          int precision=inRect.Max.x-inRect.Min.x;
+          if (precision<1) precision=1;
+          if (precision>512) precision=512;
+
           ImGui::ItemSize(size,style.FramePadding.y);
           if (ImGui::ItemAdd(rect,ImGui::GetID("chOscDisplay"))) {
             if (!e->isRunning()) {
-              for (unsigned short i=0; i<512; i++) {
-                float x=(float)i/512.0f;
+              for (unsigned short i=0; i<precision; i++) {
+                float x=(float)i/(float)precision;
                 waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f));
               }
             } else {
@@ -394,18 +399,19 @@ void FurnaceGUI::drawChanOsc() {
               */
 
               needlePos-=displaySize;
-              for (unsigned short i=0; i<512; i++) {
-                float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;
+              for (unsigned short i=0; i<precision; i++) {
+                float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/precision))]/32768.0f;
                 if (minLevel>y) minLevel=y;
                 if (maxLevel<y) maxLevel=y;
               }
               dcOff=(minLevel+maxLevel)*0.5f;
-              for (unsigned short i=0; i<512; i++) {
-                float x=(float)i/512.0f;
-                float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;
+              for (unsigned short i=0; i<precision; i++) {
+                float x=(float)i/(float)precision;
+                float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/precision))]/32768.0f;
+                y-=dcOff;
                 if (y<-0.5f) y=-0.5f;
                 if (y>0.5f) y=0.5f;
-                waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-(y-dcOff)));
+                waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
               }
             }
             ImU32 color=ImGui::GetColorU32(chanOscColor);
@@ -418,7 +424,9 @@ void FurnaceGUI::drawChanOsc() {
 
               color=chanOscGrad.get(xVal,1.0f-yVal);
             }
-            dl->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
+            ImGui::PushClipRect(inRect.Min,inRect.Max,false);
+            dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale);
+            ImGui::PopClipRect();
           }
         }
       }

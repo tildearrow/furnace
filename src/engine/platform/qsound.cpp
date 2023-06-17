@@ -272,7 +272,7 @@ void DivPlatformQSound::acquire(short** buf, size_t len) {
     buf[1][h]=chip.out[1];
 
     for (int i=0; i<19; i++) {
-      int data=chip.voice_output[i]<<2;
+      int data=chip.voice_output[i]<<1;
       if (data<-32768) data=-32768;
       if (data>32767) data=32767;
       oscBuf[i]->data[oscBuf[i]->needle++]=data;
@@ -319,7 +319,7 @@ void DivPlatformQSound::tick(bool sysTick) {
       if (length > 65536 - 16) {
         length = 65536 - 16;
       }
-      if (loopStart == -1 || loopStart >= length) {
+      if (!s->isLoopable()) {
         if (i<16) {
           qsound_end = offPCM[chan[i].sample] + length + 15;
         } else {
@@ -466,6 +466,7 @@ int DivPlatformQSound::dispatch(DivCommand c) {
       }
       chan[c.chan].active=true;
       chan[c.chan].keyOn=true;
+      chan[c.chan].keyOff=false;
       chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
@@ -609,6 +610,7 @@ void DivPlatformQSound::forceIns() {
   for (int i=0; i<19; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
+    chan[i].keyOff=true;
     //chan[i].sample=-1;
   }
 }

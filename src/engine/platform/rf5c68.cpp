@@ -74,7 +74,7 @@ void DivPlatformRF5C68::acquire(short** buf, size_t len) {
     rf5c68.sound_stream_update(bufPtrs,chBufPtrs,blockLen);
     for (int i=0; i<8; i++) {
       for (size_t j=0; j<blockLen; j++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=bufC[i*2][j]+bufC[i*2+1][j];
+        oscBuf[i]->data[oscBuf[i]->needle++]=(bufC[i*2][j]+bufC[i*2+1][j])>>1;
       }
     }
     pos+=blockLen;

@@ -509,7 +509,7 @@ public:
       }
 
       if (oscb!=NULL) {
-        oscb[i]->data[oscb[i]->needle++]=oscbWrite;
+        oscb[i]->data[oscb[i]->needle++]=oscbWrite>>1;
       }
     }
 

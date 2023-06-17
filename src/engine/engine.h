@@ -23,6 +23,7 @@
 #include "instrument.h"
 #include "song.h"
 #include "dispatch.h"
+#include "effect.h"
 #include "export.h"
 #include "dataErrors.h"
 #include "safeWriter.h"
@@ -53,8 +54,8 @@
 #define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
 #define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
 
-#define DIV_VERSION "dev153"
-#define DIV_ENGINE_VERSION 153
+#define DIV_VERSION "dev159"
+#define DIV_ENGINE_VERSION 159
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -222,6 +223,25 @@ struct DivDispatchContainer {
   }
 };
 
+struct DivEffectContainer {
+  DivEffect* effect;
+  float* in[DIV_MAX_OUTPUTS];
+  float* out[DIV_MAX_OUTPUTS];
+  size_t inLen, outLen;
+
+  void preAcquire(size_t count);
+  void acquire(size_t count);
+  bool init(DivEffectType effectType, DivEngine* eng, double rate, unsigned short version, const unsigned char* data, size_t len);
+  void quit();
+  DivEffectContainer():
+    effect(NULL),
+    inLen(0),
+    outLen(0) {
+    memset(in,0,DIV_MAX_OUTPUTS*sizeof(float*));
+    memset(out,0,DIV_MAX_OUTPUTS*sizeof(float*));
+  }
+};
+
 typedef int EffectValConversion(unsigned char,unsigned char);
 
 struct EffectHandler {
@@ -369,8 +389,10 @@ class DivEngine {
   bool systemsRegistered;
   bool hasLoadedSomething;
   bool midiOutClock;
+  bool midiOutTime;
   bool midiOutProgramChange;
   int midiOutMode;
+  int midiOutTimeRate;
   int softLockCount;
   int subticks, ticks, curRow, curOrder, prevRow, prevOrder, remainingLoops, totalLoops, lastLoopPos, exportLoopCount, nextSpeed, elapsedBars, elapsedBeats, curSpeed;
   size_t curSubSongIndex;
@@ -378,8 +400,13 @@ class DivEngine {
   double divider;
   int cycles;
   double clockDrift;
+  int midiClockCycles;
+  double midiClockDrift;
+  int midiTimeCycles;
+  double midiTimeDrift;
   int stepPlay;
-  int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
+  int changeOrd, changePos, totalSeconds, totalTicks, totalTicksR, curMidiClock, curMidiTime, totalCmds, lastCmds, cmdsPerSecond, globalPitch;
+  int curMidiTimePiece, curMidiTimeCode;
   unsigned char extValue, pendingMetroTick;
   DivGroovePattern speeds;
   short tempoAccum;
@@ -404,6 +431,7 @@ class DivEngine {
   std::vector<String> midiOuts;
   std::vector<DivCommand> cmdStream;
   std::vector<DivInstrumentType> possibleInsTypes;
+  std::vector<DivEffectContainer> effectInst;
   static DivSysDef* sysDefs[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapFur[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapDMF[DIV_MAX_CHIP_DEFS];
@@ -434,6 +462,7 @@ class DivEngine {
   short tremTable[128];
   int reversePitchTable[4096];
   int pitchTable[4096];
+  short effectSlotMap[4096];
   char c163NameCS[1024];
   int midiBaseChan;
   bool midiPoly;
@@ -468,6 +497,8 @@ class DivEngine {
   void recalcChans();
   void reset();
   void playSub(bool preserveDrift, int goalRow=0);
+  void runMidiClock(int totalCycles=1);
+  void runMidiTime(int totalCycles=1);
 
   void testFunction();
 
@@ -505,11 +536,21 @@ class DivEngine {
   void swapChannels(int src, int dest);
   void stompChannel(int ch);
 
+  // recalculate patchbay (UNSAFE)
+  void recalcPatchbay();
+
   // change song (UNSAFE)
   void changeSong(size_t songIndex);
 
-  // check whether an asset directory is complete
-  void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries);
+  // move an asset
+  void moveAsset(std::vector<DivAssetDir>& dir, int before, int after);
+
+  // remove an asset
+  void removeAsset(std::vector<DivAssetDir>& dir, int entry);
+
+  // read/write asset dir
+  void putAssetDirData(SafeWriter* w, std::vector<DivAssetDir>& dir);
+  DivDataErrors readAssetDirData(SafeReader& reader, std::vector<DivAssetDir>& dir);
 
   // add every export method here
   friend class DivROMExport;
@@ -550,7 +591,7 @@ class DivEngine {
     SafeWriter* saveDMF(unsigned char version);
     // save as .fur.
     // if notPrimary is true then the song will not be altered
-    SafeWriter* saveFur(bool notPrimary=false);
+    SafeWriter* saveFur(bool notPrimary=false, bool newPatternFormat=true);
     // build a ROM file (TODO).
     // specify system to build ROM for.
     std::vector<DivROMExportOutput> buildROM(DivROMExportOptions sys);
@@ -588,6 +629,8 @@ class DivEngine {
     // convert old flags
     static void convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivSystem sys);
 
+    // check whether an asset directory is complete (UNSAFE)
+    void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries);
 
     // benchmark (returns time in seconds)
     double benchmarkPlayback();
@@ -911,7 +954,7 @@ class DivEngine {
     void updateSysFlags(int system, bool restart);
 
     // set Hz
-    void setSongRate(float hz, bool pal);
+    void setSongRate(float hz);
 
     // set remaining loops. -1 means loop forever.
     void setLoops(int loops);
@@ -1031,6 +1074,12 @@ class DivEngine {
     // move system
     bool swapSystem(int src, int dest, bool preserveOrder=true);
 
+    // add effect
+    bool addEffect(DivEffectType which);
+
+    // remove effect
+    bool removeEffect(int index);
+
     // write to register on system
     void poke(int sys, unsigned int addr, unsigned short val);
 
@@ -1124,8 +1173,10 @@ class DivEngine {
       systemsRegistered(false),
       hasLoadedSomething(false),
       midiOutClock(false),
+      midiOutTime(false),
       midiOutProgramChange(false),
       midiOutMode(DIV_MIDI_MODE_NOTE),
+      midiOutTimeRate(0),
       softLockCount(0),
       subticks(0),
       ticks(0),
@@ -1146,16 +1197,24 @@ class DivEngine {
       divider(60),
       cycles(0),
       clockDrift(0),
+      midiClockCycles(0),
+      midiClockDrift(0),
+      midiTimeCycles(0),
+      midiTimeDrift(0),
       stepPlay(0),
       changeOrd(-1),
       changePos(0),
       totalSeconds(0),
       totalTicks(0),
       totalTicksR(0),
+      curMidiClock(0),
+      curMidiTime(0),
       totalCmds(0),
       lastCmds(0),
       cmdsPerSecond(0),
       globalPitch(0),
+      curMidiTimePiece(0),
+      curMidiTimeCode(0),
       extValue(0),
       pendingMetroTick(0),
       tempoAccum(0),
@@ -1203,6 +1262,7 @@ class DivEngine {
       memset(tremTable,0,128*sizeof(short));
       memset(reversePitchTable,0,4096*sizeof(int));
       memset(pitchTable,0,4096*sizeof(int));
+      memset(effectSlotMap,-1,4096*sizeof(short));
       memset(sysDefs,0,DIV_MAX_CHIP_DEFS*sizeof(void*));
       memset(walked,0,8192);
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));

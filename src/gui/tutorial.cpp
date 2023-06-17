@@ -223,26 +223,28 @@ void FurnaceGUI::initTutorial() {
 void FurnaceGUI::syncTutorial() {
 //  tutorial.userComesFrom=e->getConfInt("tutUserComesFrom",0);
   tutorial.introPlayed=e->getConfBool("tutIntroPlayed",false);
-//  tutorial.welcome=e->getConfBool("tutWelcome",false);
+  tutorial.protoWelcome=e->getConfBool("tutProtoWelcome2",false);
 }
 
 void FurnaceGUI::commitTutorial() {
 //  e->setConf("tutUserComesFrom",tutorial.userComesFrom);
   e->setConf("tutIntroPlayed",tutorial.introPlayed);
-//  e->setConf("tutWelcome",tutorial.welcome);
+  e->setConf("tutProtoWelcome2",tutorial.protoWelcome);
 }
 
 void FurnaceGUI::activateTutorial(FurnaceGUITutorials which) {
-  if (tutorial.welcome && !tutorial.taken[which] && !ImGui::IsPopupOpen((const char*)NULL,ImGuiPopupFlags_AnyPopupId|ImGuiPopupFlags_AnyPopupLevel) && curTutorial==-1 && introPos>=10.0) {
+  /*
+  if (tutorial.protoWelcome && !tutorial.taken[which] && !ImGui::IsPopupOpen((const char*)NULL,ImGuiPopupFlags_AnyPopupId|ImGuiPopupFlags_AnyPopupLevel) && curTutorial==-1 && introPos>=10.0) {
     logV("activating tutorial %d.",which);
     curTutorial=which;
     curTutorialStep=0;
   }
+  */
 }
 
 void FurnaceGUI::drawTutorial() {
   // welcome
-  if (!tutorial.welcome) {
+  if (!tutorial.protoWelcome) {
     ImGui::OpenPopup("Welcome");
   }
   if (ImGui::BeginPopupModal("Welcome",NULL,ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoTitleBar)) {
@@ -253,7 +255,35 @@ void FurnaceGUI::drawTutorial() {
 
     ImGui::Text("welcome to Furnace, the biggest open-source chiptune tracker!");
 
-    ImGui::TextWrapped("get ready for the tutorial, which will teach you how to use it.");
+    ImGui::TextWrapped(
+      "did I say that 0.6pre5 will have a tutorial? well, it doesn't...\n"
+      "the reason is because 0.6pre5 fixes a critical bug which may cause config loss in some machines.\n"
+      "furthermore, it dramatically improves the backup system. couldn't put this version on hold anymore."
+    );
+
+    ImGui::Separator();
+
+    ImGui::TextWrapped("here are some tips to get you started:");
+    
+    ImGui::TextWrapped(
+      "- add an instrument by clicking on + in Instruments\n"
+      "- click on the pattern view to focus it\n"
+      "- channel columns have the following, in this order: note, instrument, volume and effects\n"
+      "- hit space bar while on the pattern to toggle Edit Mode\n"
+      "- click on the pattern or use arrow keys to move the cursor\n"
+      "- values (instrument, volume, effects and effect values) are in hexadecimal\n"
+      "- hit enter to play/stop the song\n"
+      "- extend the song by adding more orders in the Orders window\n"
+      "- click on the Orders matrix to change the patterns of a channel (left click increases; right click decreases)"
+    );
+
+    ImGui::TextWrapped(
+      "if you need help, you may:\n"
+      "- read the (incomplete) manual: https://github.com/tildearrow/furnace/blob/master/doc/README.md\n"
+      "- ask for help in Discussions (https://github.com/tildearrow/furnace/discussions) or the Furnace Discord (https://discord.gg/EfrwT2wq7z)"
+    );
+
+    ImGui::Separator();
 
     ImGui::TextWrapped(
       "there are two interface modes: Basic, and Advanced.\n"
@@ -265,13 +295,13 @@ void FurnaceGUI::drawTutorial() {
 
     if (ImGui::Button("Start in Basic Mode")) {
       basicMode=true;
-      tutorial.welcome=true;
+      tutorial.protoWelcome=true;
       commitTutorial();
       ImGui::CloseCurrentPopup();
     }
     if (ImGui::Button("Start in Advanced Mode")) {
       basicMode=false;
-      tutorial.welcome=true;
+      tutorial.protoWelcome=true;
       commitTutorial();
       ImGui::CloseCurrentPopup();
     }

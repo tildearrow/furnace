@@ -169,6 +169,15 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
   static short ignored[2];
 
   for (size_t h=0; h<len; h++) {
+    // AY -> OPN
+    ay->runDAC();
+    ay->flushWrites();
+    for (DivRegWrite& i: ay->getRegisterWrites()) {
+      if (i.addr>15) continue;
+      immWrite(i.addr&15,i.val);
+    }
+    ay->getRegisterWrites().clear();
+
     os=0;
     // Nuked part
     for (unsigned int i=0; i<nukedMult; i++) {
@@ -222,11 +231,11 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
     buf[0][h]=os;
     
     for (int i=0; i<3; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=fm_nuked.ch_out[i];
+      oscBuf[i]->data[oscBuf[i]->needle++]=fm_nuked.ch_out[i]>>1;
     }
 
     for (int i=3; i<6; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=fmout.data[i-2];
+      oscBuf[i]->data[oscBuf[i]->needle++]=fmout.data[i-2]>>1;
     }
   }
 }
@@ -242,6 +251,15 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
   }
 
   for (size_t h=0; h<len; h++) {
+    // AY -> OPN
+    ay->runDAC();
+    ay->flushWrites();
+    for (DivRegWrite& i: ay->getRegisterWrites()) {
+      if (i.addr>15) continue;
+      immWrite(i.addr&15,i.val);
+    }
+    ay->getRegisterWrites().clear();
+
     os=0;
     if (!writes.empty()) {
       if (--delay<1) {
@@ -264,11 +282,11 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
 
     
     for (int i=0; i<3; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1));
+      oscBuf[i]->data[oscBuf[i]->needle++]=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1))>>1;
     }
 
     for (int i=3; i<6; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=fmout.data[i-2];
+      oscBuf[i]->data[oscBuf[i]->needle++]=fmout.data[i-2]>>1;
     }
   }
 }
@@ -567,7 +585,7 @@ int DivPlatformYM2203::dispatch(DivCommand c) {
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
       chan[c.chan].active=false;
-      chan[c.chan].macroInit(NULL);
+      if (parent->song.brokenFMOff) chan[c.chan].macroInit(NULL); 
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].keyOff=true;

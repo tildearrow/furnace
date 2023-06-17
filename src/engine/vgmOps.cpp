@@ -601,7 +601,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
               w->writeC(0x95);
               w->writeC(streamID);
               w->writeS(write.val); // sample number
-              w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0)|(sampleDir[streamID]?0x10:0)); // flags
+              w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0 && sample->isLoopable())|(sampleDir[streamID]?0x10:0)); // flags
               if (sample->isLoopable() && !sampleDir[streamID]) {
                 loopTimer[streamID]=sample->length8;
                 loopSample[streamID]=write.val;
@@ -620,7 +620,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
             w->writeC(0x95);
             w->writeC(streamID);
             w->writeS(pendingFreq[streamID]); // sample number
-            w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0)|(sampleDir[streamID]?0x10:0)); // flags
+            w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0 && sample->isLoopable())|(sampleDir[streamID]?0x10:0)); // flags
             if (sample->isLoopable() && !sampleDir[streamID]) {
               loopTimer[streamID]=sample->length8;
               loopSample[streamID]=pendingFreq[streamID];
@@ -1657,6 +1657,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     }
   }
 
+  // variable set but not used?
+  logV("howManyChips: %d",howManyChips);
+
   // write chips and stuff
   w->writeI(hasSN);
   w->writeI(hasOPLL);
@@ -2135,6 +2138,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     if (nextTick(false,true)) {
       if (trailing) beenOneLoopAlready=true;
       trailing=true;
+      if (!loop) countDown=0;
       for (int i=0; i<chans; i++) {
         if (!willExport[dispatchOfChan[i]]) continue;
         chan[i].wentThroughNote=false;
@@ -2246,7 +2250,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
             int delay=i.second.time-lastOne;
             if (delay>16) {
               w->writeC(0x61);
-              w->writeS(totalWait);
+              w->writeS(delay);
             } else if (delay>0) {
               w->writeC(0x70+delay-1);
             }

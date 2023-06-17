@@ -543,6 +543,16 @@ void FurnaceGUI::drawSettings() {
             settings.stepOnDelete=stepOnDeleteB;
           }
 
+          bool insertBehaviorB=settings.insertBehavior;
+          if (ImGui::Checkbox("Insert pushes entire channel row",&insertBehaviorB)) {
+            settings.insertBehavior=insertBehaviorB;
+          }
+
+          bool pullDeleteRowB=settings.pullDeleteRow;
+          if (ImGui::Checkbox("Pull delete affects entire channel row",&pullDeleteRowB)) {
+            settings.pullDeleteRow=pullDeleteRowB;
+          }
+
           bool absorbInsInputB=settings.absorbInsInput;
           if (ImGui::Checkbox("Change current instrument when changing instrument column (absorb)",&absorbInsInputB)) {
             settings.absorbInsInput=absorbInsInputB;
@@ -626,6 +636,14 @@ void FurnaceGUI::drawSettings() {
             ImGui::SetTooltip("saves power by lowering the frame rate to 2fps when idle.\nmay cause issues under Mesa drivers!");
           }
 
+          bool renderClearPosB=settings.renderClearPos;
+          if (ImGui::Checkbox("Late render clear",&renderClearPosB)) {
+            settings.renderClearPos=renderClearPosB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("calls rend->clear() after rend->present(). might reduce UI latency by one frame in some drivers.");
+          }
+
 #ifndef IS_MOBILE
           bool noThreadedInputB=settings.noThreadedInput;
           if (ImGui::Checkbox("Disable threaded input (restart after changing!)",&noThreadedInputB)) {
@@ -652,6 +670,22 @@ void FurnaceGUI::drawSettings() {
           bool saveUnusedPatternsB=settings.saveUnusedPatterns;
           if (ImGui::Checkbox("Save unused patterns",&saveUnusedPatternsB)) {
             settings.saveUnusedPatterns=saveUnusedPatternsB;
+          }
+
+          bool compressB=settings.compress;
+          if (ImGui::Checkbox("Compress when saving",&compressB)) {
+            settings.compress=compressB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("use zlib to compress saved songs.");
+          }
+
+          bool newPatternFormatB=settings.newPatternFormat;
+          if (ImGui::Checkbox("Use new pattern format when saving",&newPatternFormatB)) {
+            settings.newPatternFormat=newPatternFormatB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("use a packed format which saves space when saving songs.\ndisable if you need compatibility with older Furnace and/or tools\nwhich do not support this format.");
           }
 
           bool cursorFollowsOrderB=settings.cursorFollowsOrder;
@@ -1146,14 +1180,38 @@ void FurnaceGUI::drawSettings() {
               settings.midiOutMode=2;
             }*/
 
+            bool midiOutProgramChangeB=settings.midiOutProgramChange;
+            if (ImGui::Checkbox("Send Program Change",&midiOutProgramChangeB)) {
+              settings.midiOutProgramChange=midiOutProgramChangeB;
+            }
+
             bool midiOutClockB=settings.midiOutClock;
             if (ImGui::Checkbox("Send MIDI clock",&midiOutClockB)) {
               settings.midiOutClock=midiOutClockB;
             }
 
-            bool midiOutProgramChangeB=settings.midiOutProgramChange;
-            if (ImGui::Checkbox("Send Program Change",&midiOutProgramChangeB)) {
-              settings.midiOutProgramChange=midiOutProgramChangeB;
+            bool midiOutTimeB=settings.midiOutTime;
+            if (ImGui::Checkbox("Send MIDI timecode",&midiOutTimeB)) {
+              settings.midiOutTime=midiOutTimeB;
+            }
+
+            if (settings.midiOutTime) {
+              ImGui::Text("Timecode frame rate:");
+              if (ImGui::RadioButton("Closest to Tick Rate",settings.midiOutTimeRate==0)) {
+                settings.midiOutTimeRate=0;
+              }
+              if (ImGui::RadioButton("Film (24fps)",settings.midiOutTimeRate==1)) {
+                settings.midiOutTimeRate=1;
+              }
+              if (ImGui::RadioButton("PAL (25fps)",settings.midiOutTimeRate==2)) {
+                settings.midiOutTimeRate=2;
+              }
+              if (ImGui::RadioButton("NTSC drop (29.97fps)",settings.midiOutTimeRate==3)) {
+                settings.midiOutTimeRate=3;
+              }
+              if (ImGui::RadioButton("NTSC non-drop (30fps)",settings.midiOutTimeRate==4)) {
+                settings.midiOutTimeRate=4;
+              }
             }
 
             ImGui::TreePop();
@@ -1238,16 +1296,37 @@ void FurnaceGUI::drawSettings() {
         ImVec2 settingsViewSize=ImGui::GetContentRegionAvail();
         settingsViewSize.y-=ImGui::GetFrameHeight()+ImGui::GetStyle().WindowPadding.y;
         if (ImGui::BeginChild("SettingsView",settingsViewSize)) {
-          if (ImGui::BeginCombo("Render driver",settings.renderDriver.empty()?"Automatic":settings.renderDriver.c_str())) {
-            if (ImGui::Selectable("Automatic",settings.renderDriver.empty())) {
-              settings.renderDriver="";
+          String curRenderBackend=settings.renderBackend.empty()?GUI_BACKEND_DEFAULT_NAME:settings.renderBackend;
+          if (ImGui::BeginCombo("Render backend",curRenderBackend.c_str())) {
+#ifdef HAVE_RENDER_SDL
+            if (ImGui::Selectable("SDL Renderer",curRenderBackend=="SDL")) {
+              settings.renderBackend="SDL";
             }
-            for (String& i: availRenderDrivers) {
-              if (ImGui::Selectable(i.c_str(),i==settings.renderDriver)) {
-                settings.renderDriver=i;
-              }
+#endif
+#ifdef HAVE_RENDER_DX11
+            if (ImGui::Selectable("DirectX 11",curRenderBackend=="DirectX 11")) {
+              settings.renderBackend="DirectX 11";
             }
+#endif
+#ifdef HAVE_RENDER_GL
+            if (ImGui::Selectable("OpenGL",curRenderBackend=="OpenGL")) {
+              settings.renderBackend="OpenGL";
+            }
+#endif
             ImGui::EndCombo();
+          }
+          if (curRenderBackend=="SDL") {
+            if (ImGui::BeginCombo("Render driver",settings.renderDriver.empty()?"Automatic":settings.renderDriver.c_str())) {
+              if (ImGui::Selectable("Automatic",settings.renderDriver.empty())) {
+                settings.renderDriver="";
+              }
+              for (String& i: availRenderDrivers) {
+                if (ImGui::Selectable(i.c_str(),i==settings.renderDriver)) {
+                  settings.renderDriver=i;
+                }
+              }
+              ImGui::EndCombo();
+            }
           }
 
           bool dpiScaleAuto=(settings.dpiScale<0.5f);
@@ -1811,13 +1890,33 @@ void FurnaceGUI::drawSettings() {
               }
               UI_COLOR_CONFIG(GUI_COLOR_BACKGROUND,"Background");
               UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND,"Window background");
+              UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND_CHILD,"Sub-window background");
+              UI_COLOR_CONFIG(GUI_COLOR_FRAME_BACKGROUND_POPUP,"Pop-up background");
               UI_COLOR_CONFIG(GUI_COLOR_MODAL_BACKDROP,"Modal backdrop");
               UI_COLOR_CONFIG(GUI_COLOR_HEADER,"Header");
               UI_COLOR_CONFIG(GUI_COLOR_TEXT,"Text");
               UI_COLOR_CONFIG(GUI_COLOR_ACCENT_PRIMARY,"Primary");
               UI_COLOR_CONFIG(GUI_COLOR_ACCENT_SECONDARY,"Secondary");
+              UI_COLOR_CONFIG(GUI_COLOR_TITLE_INACTIVE,"Title bar (inactive)");
+              UI_COLOR_CONFIG(GUI_COLOR_TITLE_COLLAPSED,"Title bar (collapsed)");
+              UI_COLOR_CONFIG(GUI_COLOR_MENU_BAR,"Menu bar");
               UI_COLOR_CONFIG(GUI_COLOR_BORDER,"Border");
               UI_COLOR_CONFIG(GUI_COLOR_BORDER_SHADOW,"Border shadow");
+              UI_COLOR_CONFIG(GUI_COLOR_SCROLL,"Scroll bar");
+              UI_COLOR_CONFIG(GUI_COLOR_SCROLL_HOVER,"Scroll bar (hovered)");
+              UI_COLOR_CONFIG(GUI_COLOR_SCROLL_ACTIVE,"Scroll bar (clicked)");
+              UI_COLOR_CONFIG(GUI_COLOR_SCROLL_BACKGROUND,"Scroll bar background");
+              UI_COLOR_CONFIG(GUI_COLOR_SEPARATOR,"Separator");
+              UI_COLOR_CONFIG(GUI_COLOR_SEPARATOR_HOVER,"Separator (hover)");
+              UI_COLOR_CONFIG(GUI_COLOR_SEPARATOR_ACTIVE,"Separator (active)");
+              UI_COLOR_CONFIG(GUI_COLOR_DOCKING_PREVIEW,"Docking preview");
+              UI_COLOR_CONFIG(GUI_COLOR_DOCKING_EMPTY,"Docking empty");
+              UI_COLOR_CONFIG(GUI_COLOR_TABLE_HEADER,"Table header");
+              UI_COLOR_CONFIG(GUI_COLOR_TABLE_BORDER_HARD,"Table border (hard)");
+              UI_COLOR_CONFIG(GUI_COLOR_TABLE_BORDER_SOFT,"Table border (soft)");
+              UI_COLOR_CONFIG(GUI_COLOR_DRAG_DROP_TARGET,"Drag and drop target");
+              UI_COLOR_CONFIG(GUI_COLOR_NAV_WIN_HIGHLIGHT,"Window switcher (highlight)");
+              UI_COLOR_CONFIG(GUI_COLOR_NAV_WIN_BACKDROP,"Window switcher backdrop");
               UI_COLOR_CONFIG(GUI_COLOR_TOGGLE_ON,"Toggle on");
               UI_COLOR_CONFIG(GUI_COLOR_TOGGLE_OFF,"Toggle off");
               UI_COLOR_CONFIG(GUI_COLOR_EDITING,"Editing");
@@ -2328,6 +2427,7 @@ void FurnaceGUI::drawSettings() {
             UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_EDIT);
             UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_UP);
             UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_DOWN);
+            UI_KEYBIND_CONFIG(GUI_ACTION_INS_LIST_DIR_VIEW);
 
             KEYBIND_CONFIG_END;
             ImGui::TreePop();
@@ -2345,6 +2445,7 @@ void FurnaceGUI::drawSettings() {
             UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_EDIT);
             UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_UP);
             UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_DOWN);
+            UI_KEYBIND_CONFIG(GUI_ACTION_WAVE_LIST_DIR_VIEW);
 
             KEYBIND_CONFIG_END;
             ImGui::TreePop();
@@ -2364,6 +2465,7 @@ void FurnaceGUI::drawSettings() {
             UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_DOWN);
             UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_PREVIEW);
             UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_STOP_PREVIEW);
+            UI_KEYBIND_CONFIG(GUI_ACTION_SAMPLE_LIST_DIR_VIEW);
 
             KEYBIND_CONFIG_END;
             ImGui::TreePop();
@@ -2630,8 +2732,10 @@ void FurnaceGUI::syncSettings() {
   settings.channelTextCenter=e->getConfInt("channelTextCenter",1);
   settings.maxRecentFile=e->getConfInt("maxRecentFile",10);
   settings.midiOutClock=e->getConfInt("midiOutClock",0);
+  settings.midiOutTime=e->getConfInt("midiOutTime",0);
   settings.midiOutProgramChange=e->getConfInt("midiOutProgramChange",0);
   settings.midiOutMode=e->getConfInt("midiOutMode",1);
+  settings.midiOutTimeRate=e->getConfInt("midiOutTimeRate",0);
   settings.centerPattern=e->getConfInt("centerPattern",0);
   settings.ordersCursor=e->getConfInt("ordersCursor",1);
   settings.persistFadeOut=e->getConfInt("persistFadeOut",1);
@@ -2645,6 +2749,12 @@ void FurnaceGUI::syncSettings() {
   settings.cursorFollowsOrder=e->getConfInt("cursorFollowsOrder",1);
   settings.iCannotWait=e->getConfInt("iCannotWait",0);
   settings.orderButtonPos=e->getConfInt("orderButtonPos",2);
+  settings.compress=e->getConfInt("compress",1);
+  settings.newPatternFormat=e->getConfInt("newPatternFormat",1);
+  settings.renderBackend=e->getConfString("renderBackend","SDL");
+  settings.renderClearPos=e->getConfInt("renderClearPos",0);
+  settings.insertBehavior=e->getConfInt("insertBehavior",1);
+  settings.pullDeleteRow=e->getConfInt("pullDeleteRow",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2750,8 +2860,10 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.channelTextCenter,0,1);
   clampSetting(settings.maxRecentFile,0,30);
   clampSetting(settings.midiOutClock,0,1);
+  clampSetting(settings.midiOutTime,0,1);
   clampSetting(settings.midiOutProgramChange,0,1);
   clampSetting(settings.midiOutMode,0,2);
+  clampSetting(settings.midiOutTimeRate,0,4);
   clampSetting(settings.centerPattern,0,1);
   clampSetting(settings.ordersCursor,0,1);
   clampSetting(settings.persistFadeOut,0,1);
@@ -2763,6 +2875,11 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.cursorFollowsOrder,0,1);
   clampSetting(settings.iCannotWait,0,1);
   clampSetting(settings.orderButtonPos,0,2);
+  clampSetting(settings.compress,0,1);
+  clampSetting(settings.newPatternFormat,0,1);
+  clampSetting(settings.renderClearPos,0,1);
+  clampSetting(settings.insertBehavior,0,1);
+  clampSetting(settings.pullDeleteRow,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -2961,8 +3078,10 @@ void FurnaceGUI::commitSettings() {
   e->setConf("channelTextCenter",settings.channelTextCenter);
   e->setConf("maxRecentFile",settings.maxRecentFile);
   e->setConf("midiOutClock",settings.midiOutClock);
+  e->setConf("midiOutTime",settings.midiOutTime);
   e->setConf("midiOutProgramChange",settings.midiOutProgramChange);
   e->setConf("midiOutMode",settings.midiOutMode);
+  e->setConf("midiOutTimeRate",settings.midiOutTimeRate);
   e->setConf("centerPattern",settings.centerPattern);
   e->setConf("ordersCursor",settings.ordersCursor);
   e->setConf("persistFadeOut",settings.persistFadeOut);
@@ -2976,6 +3095,12 @@ void FurnaceGUI::commitSettings() {
   e->setConf("cursorFollowsOrder",settings.cursorFollowsOrder);
   e->setConf("iCannotWait",settings.iCannotWait);
   e->setConf("orderButtonPos",settings.orderButtonPos);
+  e->setConf("compress",settings.compress);
+  e->setConf("newPatternFormat",settings.newPatternFormat);
+  e->setConf("renderBackend",settings.renderBackend);
+  e->setConf("renderClearPos",settings.renderClearPos);
+  e->setConf("insertBehavior",settings.insertBehavior);
+  e->setConf("pullDeleteRow",settings.pullDeleteRow);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -3015,17 +3140,21 @@ void FurnaceGUI::commitSettings() {
 
   applyUISettings();
 
-  ImGui_ImplSDLRenderer_DestroyFontsTexture();
+  if (rend) rend->destroyFontsTexture();
   if (!ImGui::GetIO().Fonts->Build()) {
     logE("error while building font atlas!");
     showError("error while loading fonts! please check your settings.");
     ImGui::GetIO().Fonts->Clear();
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
-    ImGui_ImplSDLRenderer_DestroyFontsTexture();
+    if (rend) rend->destroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
       logE("error again while building font atlas!");
+    } else {
+      rend->createFontsTexture();
     }
+  } else {
+    rend->createFontsTexture();
   }
 }
 
@@ -3494,7 +3623,28 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   }
 
   sty.Colors[ImGuiCol_WindowBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND];
+  sty.Colors[ImGuiCol_ChildBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND_CHILD];
+  sty.Colors[ImGuiCol_PopupBg]=uiColors[GUI_COLOR_FRAME_BACKGROUND_POPUP];
+  sty.Colors[ImGuiCol_TitleBg]=uiColors[GUI_COLOR_TITLE_INACTIVE];
+  sty.Colors[ImGuiCol_TitleBgCollapsed]=uiColors[GUI_COLOR_TITLE_COLLAPSED];
+  sty.Colors[ImGuiCol_MenuBarBg]=uiColors[GUI_COLOR_MENU_BAR];
   sty.Colors[ImGuiCol_ModalWindowDimBg]=uiColors[GUI_COLOR_MODAL_BACKDROP];
+  sty.Colors[ImGuiCol_ScrollbarBg]=uiColors[GUI_COLOR_SCROLL_BACKGROUND];
+  sty.Colors[ImGuiCol_ScrollbarGrab]=uiColors[GUI_COLOR_SCROLL];
+  sty.Colors[ImGuiCol_ScrollbarGrabHovered]=uiColors[GUI_COLOR_SCROLL_HOVER];
+  sty.Colors[ImGuiCol_ScrollbarGrabActive]=uiColors[GUI_COLOR_SCROLL_ACTIVE];
+  sty.Colors[ImGuiCol_Separator]=uiColors[GUI_COLOR_SEPARATOR];
+  sty.Colors[ImGuiCol_SeparatorHovered]=uiColors[GUI_COLOR_SEPARATOR_HOVER];
+  sty.Colors[ImGuiCol_SeparatorActive]=uiColors[GUI_COLOR_SEPARATOR_ACTIVE];
+  sty.Colors[ImGuiCol_DockingPreview]=uiColors[GUI_COLOR_DOCKING_PREVIEW];
+  sty.Colors[ImGuiCol_DockingEmptyBg]=uiColors[GUI_COLOR_DOCKING_EMPTY];
+  sty.Colors[ImGuiCol_TableHeaderBg]=uiColors[GUI_COLOR_TABLE_HEADER];
+  sty.Colors[ImGuiCol_TableBorderStrong]=uiColors[GUI_COLOR_TABLE_BORDER_HARD];
+  sty.Colors[ImGuiCol_TableBorderLight]=uiColors[GUI_COLOR_TABLE_BORDER_SOFT];
+  sty.Colors[ImGuiCol_DragDropTarget]=uiColors[GUI_COLOR_DRAG_DROP_TARGET];
+  sty.Colors[ImGuiCol_NavHighlight]=uiColors[GUI_COLOR_NAV_HIGHLIGHT];
+  sty.Colors[ImGuiCol_NavWindowingHighlight]=uiColors[GUI_COLOR_NAV_WIN_HIGHLIGHT];
+  sty.Colors[ImGuiCol_NavWindowingDimBg]=uiColors[GUI_COLOR_NAV_WIN_BACKDROP];
   sty.Colors[ImGuiCol_Text]=uiColors[GUI_COLOR_TEXT];
 
   sty.Colors[ImGuiCol_Button]=primary;
@@ -3710,7 +3860,8 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     }
 
     mainFont->FallbackChar='?';
-    mainFont->DotChar='.';
+    mainFont->EllipsisChar='.';
+    mainFont->EllipsisCharCount=3;
   }
 
   // TODO: allow changing these colors.
@@ -3732,6 +3883,10 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ttc",uiColors[GUI_COLOR_FILE_FONT],ICON_FA_FONT);
 
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".mod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fc13",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fc14",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fc",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
+  ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".smod",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".ftm",uiColors[GUI_COLOR_FILE_SONG_IMPORT],ICON_FA_FILE);
 
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".tfi",uiColors[GUI_COLOR_FILE_INSTR],ICON_FA_FILE);
