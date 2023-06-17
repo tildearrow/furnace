@@ -272,7 +272,7 @@ void DivPlatformQSound::acquire(short** buf, size_t len) {
     buf[1][h]=chip.out[1];
 
     for (int i=0; i<19; i++) {
-      int data=chip.voice_output[i]<<2;
+      int data=chip.voice_output[i]<<1;
       if (data<-32768) data=-32768;
       if (data>32767) data=32767;
       oscBuf[i]->data[oscBuf[i]->needle++]=data;

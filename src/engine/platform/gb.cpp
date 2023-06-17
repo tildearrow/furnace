@@ -74,7 +74,7 @@ void DivPlatformGB::acquire(short** buf, size_t len) {
     buf[1][i]=gb->apu_output.final_sample.right;
 
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(gb->apu_output.current_sample[i].left+gb->apu_output.current_sample[i].right)<<6;
+      oscBuf[i]->data[oscBuf[i]->needle++]=(gb->apu_output.current_sample[i].left+gb->apu_output.current_sample[i].right)<<5;
     }
   }
 }

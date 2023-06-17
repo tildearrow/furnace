@@ -3,7 +3,7 @@
 a series of FM sound chips which were very popular in DOS land. it was so popular that even Yamaha made a logo for it!
 
 essentially a downgraded version of Yamaha's other FM chips, with only 2 operators per channel.
-however, it also had a drums mode, and later chips in the series added more waveforms (than just the typical sine) and even a 4-operator mode.
+however, it also had a [drums mode](opll.md), and later chips in the series added more waveforms (than just the typical sine) and even a 4-operator mode.
 
 the original OPL (Yamaha YM3526) was present as an expansion for the Commodore 64 and MSX computers (erm, a variant of it). it only had 9 two-operator channels and drums mode.
 

@@ -93,7 +93,7 @@ void FurnaceGUI::calcChanOsc() {
         unsigned short needlePos=buf->needle;
         needlePos-=displaySize;
         for (unsigned short i=0; i<512; i++) {
-          float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/65536.0f;
+          float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/512))]/32768.0f;
           if (minLevel>y) minLevel=y;
           if (maxLevel<y) maxLevel=y;
         }
@@ -400,14 +400,14 @@ void FurnaceGUI::drawChanOsc() {
 
               needlePos-=displaySize;
               for (unsigned short i=0; i<precision; i++) {
-                float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/precision))]/65536.0f;
+                float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/precision))]/32768.0f;
                 if (minLevel>y) minLevel=y;
                 if (maxLevel<y) maxLevel=y;
               }
               dcOff=(minLevel+maxLevel)*0.5f;
               for (unsigned short i=0; i<precision; i++) {
                 float x=(float)i/(float)precision;
-                float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/precision))]/65536.0f;
+                float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/precision))]/32768.0f;
                 y-=dcOff;
                 if (y<-0.5f) y=-0.5f;
                 if (y>0.5f) y=0.5f;
