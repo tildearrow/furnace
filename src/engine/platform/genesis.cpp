@@ -252,7 +252,7 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
             oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<6;
             oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<6;
           } else {
-            oscBuf[i]->data[oscBuf[i]->needle++]=fm_ymfm->debug_dac_data()<<6;
+            oscBuf[i]->data[oscBuf[i]->needle++]=(fm_ymfm->debug_dac_data()^0x100)<<6;
             oscBuf[6]->data[oscBuf[6]->needle++]=0;
           }
         } else {
