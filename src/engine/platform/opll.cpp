@@ -107,7 +107,6 @@ void DivPlatformOPLL::tick(bool sysTick) {
         rWrite(0x36,drumVol[0]);
         rWrite(0x37,drumVol[1]|(drumVol[4]<<4));
         rWrite(0x38,drumVol[3]|(drumVol[2]<<4));
-        break;
       } else if (i<6 || !drums) {
         if (i<9) {
           rWrite(0x30+i,((15-VOL_SCALE_LOG_BROKEN(chan[i].outVol,15-chan[i].state.op[1].tl,15))&15)|(chan[i].state.opllPreset<<4));
