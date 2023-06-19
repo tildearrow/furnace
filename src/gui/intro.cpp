@@ -19,6 +19,7 @@
 
 #define _USE_MATH_DEFINES
 #include "gui.h"
+#include "../ta-log.h"
 #include "imgui_internal.h"
 #include <fmt/printf.h>
 
@@ -73,6 +74,8 @@ void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2&
 }
 
 void FurnaceGUI::endIntroTune() {
+  if (introStopped) return;
+  logV("ending intro");
   stop();
   if (curFileName.empty()) {
     e->createNewFromDefaults();
@@ -95,6 +98,8 @@ void FurnaceGUI::endIntroTune() {
   selEnd=SelectionPoint();
   cursor=SelectionPoint();
   updateWindowTitle();
+  updateScroll(0);
+  introStopped=true;
 }
 
 void FurnaceGUI::drawIntro(double introTime, bool monitor) {
@@ -290,7 +295,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
           if (introSkipDo) {
             introSkip+=ImGui::GetIO().DeltaTime;
             if (introSkip>=0.5) {
-              if (e->isPlaying()) endIntroTune();
+              if (!shortIntro) endIntroTune();
               introPos=0.1;
               if (introSkip>=0.75) introPos=12.0;
             }
@@ -317,7 +322,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
         e->setRepeatPattern(false);
         play();
       }
-      if (e->isPlaying() && introPos>=10.0 && !shortIntro) endIntroTune();
+      if (introPos>=10.0 && !shortIntro) endIntroTune();
       introPos+=ImGui::GetIO().DeltaTime;
       if (introPos>=(shortIntro?1.0:11.0)) {
         introPos=12.0;
@@ -325,5 +330,7 @@ void FurnaceGUI::drawIntro(double introTime, bool monitor) {
         commitTutorial();
       }
     }
+  } else if (!shortIntro) {
+    endIntroTune();
   }
 }

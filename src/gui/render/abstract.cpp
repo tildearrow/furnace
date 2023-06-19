@@ -49,6 +49,9 @@ void FurnaceGUIRender::setTextureBlendMode(void* which, FurnaceGUIBlendMode mode
 void FurnaceGUIRender::setBlendMode(FurnaceGUIBlendMode mode) {
 }
 
+void FurnaceGUIRender::resized(const SDL_Event& ev) {
+}
+
 void FurnaceGUIRender::clear(ImVec4 color) {
 }
 

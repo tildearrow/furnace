@@ -87,7 +87,7 @@ void DivPlatformVRC6::acquire(short** buf, size_t len) {
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
       for (int i=0; i<2; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=vrc6.pulse_out(i)<<10;
+        oscBuf[i]->data[oscBuf[i]->needle++]=vrc6.pulse_out(i)<<11;
       }
       oscBuf[2]->data[oscBuf[2]->needle++]=vrc6.sawtooth_out()<<10;
     }

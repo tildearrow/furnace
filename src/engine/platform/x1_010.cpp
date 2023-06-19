@@ -222,7 +222,7 @@ void DivPlatformX1_010::acquire(short** buf, size_t len) {
     if (stereo) buf[1][h]=tempR;
 
     for (int i=0; i<16; i++) {
-      int vo=(x1_010.voice_out(i,0)+x1_010.voice_out(i,1))<<3;
+      int vo=(x1_010.voice_out(i,0)+x1_010.voice_out(i,1))<<2;
       oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(vo,-32768,32767);
     }
   }

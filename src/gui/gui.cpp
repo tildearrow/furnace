@@ -3420,6 +3420,7 @@ bool FurnaceGUI::loop() {
               logV("portrait: %d (%dx%d)",portrait,scrW,scrH);
               logD("window resized to %dx%d",scrW,scrH);
               updateWindow=true;
+              rend->resized(ev);
               break;
             case SDL_WINDOWEVENT_MOVED:
               scrX=ev.window.data1;
@@ -3535,7 +3536,8 @@ bool FurnaceGUI::loop() {
     // update config x/y/w/h values based on scrMax state
     if (updateWindow) {
       logV("updateWindow is true");
-      if (!scrMax) {
+      if (!scrMax && !fullScreen) {
+        logV("updating scrConf");
         scrConfX=scrX;
         scrConfY=scrY;
         scrConfW=scrW;
@@ -5809,6 +5811,7 @@ bool FurnaceGUI::loop() {
     renderTimeBegin=SDL_GetPerformanceCounter();
     ImGui::Render();
     renderTimeEnd=SDL_GetPerformanceCounter();
+    drawTimeBegin=SDL_GetPerformanceCounter();
     rend->renderGUI();
     if (mustClear) {
       rend->clear(ImVec4(0,0,0,0));
@@ -5822,6 +5825,7 @@ bool FurnaceGUI::loop() {
         }
       }
     }
+    drawTimeEnd=SDL_GetPerformanceCounter();
     rend->present();
     if (settings.renderClearPos) {
       rend->clear(uiColors[GUI_COLOR_BACKGROUND]);
@@ -5829,6 +5833,7 @@ bool FurnaceGUI::loop() {
 
     layoutTimeDelta=layoutTimeEnd-layoutTimeBegin;
     renderTimeDelta=renderTimeEnd-renderTimeBegin;
+    drawTimeDelta=drawTimeEnd-drawTimeBegin;
     eventTimeDelta=eventTimeEnd-eventTimeBegin;
 
     soloTimeout-=ImGui::GetIO().DeltaTime;
@@ -5980,6 +5985,7 @@ bool FurnaceGUI::init() {
   pianoOptions=e->getConfBool("pianoOptions",pianoOptions);
   pianoSharePosition=e->getConfBool("pianoSharePosition",pianoSharePosition);
   pianoOptionsSet=e->getConfBool("pianoOptionsSet",pianoOptionsSet);
+  pianoReadonly=e->getConfBool("pianoReadonly",false);
   pianoOffset=e->getConfInt("pianoOffset",pianoOffset);
   pianoOffsetEdit=e->getConfInt("pianoOffsetEdit",pianoOffsetEdit);
   pianoView=e->getConfInt("pianoView",pianoView);
@@ -5988,13 +5994,22 @@ bool FurnaceGUI::init() {
   chanOscCols=e->getConfInt("chanOscCols",3);
   chanOscColorX=e->getConfInt("chanOscColorX",GUI_OSCREF_CENTER);
   chanOscColorY=e->getConfInt("chanOscColorY",GUI_OSCREF_CENTER);
+  chanOscTextX=e->getConfFloat("chanOscTextX",0.0f);
+  chanOscTextY=e->getConfFloat("chanOscTextY",0.0f);
+  chanOscAmplify=e->getConfFloat("chanOscAmplify",0.95f);
   chanOscWindowSize=e->getConfFloat("chanOscWindowSize",20.0f);
   chanOscWaveCorr=e->getConfBool("chanOscWaveCorr",true);
   chanOscOptions=e->getConfBool("chanOscOptions",false);
+  chanOscNormalize=e->getConfBool("chanOscNormalize",false);
+  chanOscTextFormat=e->getConfString("chanOscTextFormat","%c");
   chanOscColor.x=e->getConfFloat("chanOscColorR",1.0f);
   chanOscColor.y=e->getConfFloat("chanOscColorG",1.0f);
   chanOscColor.z=e->getConfFloat("chanOscColorB",1.0f);
   chanOscColor.w=e->getConfFloat("chanOscColorA",1.0f);
+  chanOscTextColor.x=e->getConfFloat("chanOscTextColorR",1.0f);
+  chanOscTextColor.y=e->getConfFloat("chanOscTextColorG",1.0f);
+  chanOscTextColor.z=e->getConfFloat("chanOscTextColorB",1.0f);
+  chanOscTextColor.w=e->getConfFloat("chanOscTextColorA",0.75f);
   chanOscUseGrad=e->getConfBool("chanOscUseGrad",false);
   chanOscGrad.fromString(e->getConfString("chanOscGrad",""));
   chanOscGrad.render();
@@ -6144,7 +6159,7 @@ bool FurnaceGUI::init() {
   logV("window size: %dx%d",scrW,scrH);
 
   if (!initRender()) {
-    if (settings.renderBackend=="OpenGL") {
+    if (settings.renderBackend!="SDL" && !settings.renderBackend.empty()) {
       settings.renderBackend="";
       e->setConf("renderBackend","");
       e->saveConf();
@@ -6230,11 +6245,11 @@ bool FurnaceGUI::init() {
 
   logD("starting render backend...");
   if (!rend->init(sdlWin)) {
-    if (settings.renderBackend=="OpenGL") {
+    if (settings.renderBackend!="SDL" && !settings.renderBackend.empty()) {
       settings.renderBackend="";
-      e->setConf("renderBackend","");
-      e->saveConf();
-      lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
+      //e->setConf("renderBackend","");
+      //e->saveConf();
+      //lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
     } else {
       lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
       if (!settings.renderDriver.empty()) {
@@ -6257,11 +6272,17 @@ bool FurnaceGUI::init() {
   // special consideration for Wayland
   if (settings.dpiScale<0.5f) {
     if (strcmp(videoBackend,"wayland")==0) {
-      if (scrW<1) {
+      int realW=scrW;
+      int realH=scrH;
+
+      SDL_GetWindowSize(sdlWin,&realW,&realH);
+
+      if (realW<1) {
         logW("screen width is zero!\n");
         dpiScale=1.0;
       } else {
-        dpiScale=(double)canvasW/(double)scrW;
+        dpiScale=(double)canvasW/(double)realW;
+        logV("we're on Wayland... scaling factor: %f",dpiScale);
       }
     }
   }
@@ -6465,6 +6486,7 @@ void FurnaceGUI::commitState() {
   e->setConf("pianoOptions",pianoOptions);
   e->setConf("pianoSharePosition",pianoSharePosition);
   e->setConf("pianoOptionsSet",pianoOptionsSet);
+  e->setConf("pianoReadonly",pianoReadonly);
   e->setConf("pianoOffset",pianoOffset);
   e->setConf("pianoOffsetEdit",pianoOffsetEdit);
   e->setConf("pianoView",pianoView);
@@ -6474,13 +6496,22 @@ void FurnaceGUI::commitState() {
   e->setConf("chanOscCols",chanOscCols);
   e->setConf("chanOscColorX",chanOscColorX);
   e->setConf("chanOscColorY",chanOscColorY);
+  e->setConf("chanOscTextX",chanOscTextX);
+  e->setConf("chanOscTextY",chanOscTextY);
+  e->setConf("chanOscAmplify",chanOscAmplify);
   e->setConf("chanOscWindowSize",chanOscWindowSize);
   e->setConf("chanOscWaveCorr",chanOscWaveCorr);
   e->setConf("chanOscOptions",chanOscOptions);
+  e->setConf("chanOscNormalize",chanOscNormalize);
+  e->setConf("chanOscTextFormat",chanOscTextFormat);
   e->setConf("chanOscColorR",chanOscColor.x);
   e->setConf("chanOscColorG",chanOscColor.y);
   e->setConf("chanOscColorB",chanOscColor.z);
   e->setConf("chanOscColorA",chanOscColor.w);
+  e->setConf("chanOscTextColorR",chanOscTextColor.x);
+  e->setConf("chanOscTextColorG",chanOscTextColor.y);
+  e->setConf("chanOscTextColorB",chanOscTextColor.z);
+  e->setConf("chanOscTextColorA",chanOscTextColor.w);
   e->setConf("chanOscUseGrad",chanOscUseGrad);
   e->setConf("chanOscGrad",chanOscGrad.toString());
 
@@ -6825,6 +6856,9 @@ FurnaceGUI::FurnaceGUI():
   renderTimeBegin(0),
   renderTimeEnd(0),
   renderTimeDelta(0),
+  drawTimeBegin(0),
+  drawTimeEnd(0),
+  drawTimeDelta(0),
   eventTimeBegin(0),
   eventTimeEnd(0),
   eventTimeDelta(0),
@@ -6899,11 +6933,17 @@ FurnaceGUI::FurnaceGUI():
   chanOscColorX(GUI_OSCREF_CENTER),
   chanOscColorY(GUI_OSCREF_CENTER),
   chanOscWindowSize(20.0f),
+  chanOscTextX(0.0f),
+  chanOscTextY(0.0f),
+  chanOscAmplify(0.95f),
   chanOscWaveCorr(true),
   chanOscOptions(false),
   updateChanOscGradTex(true),
   chanOscUseGrad(false),
+  chanOscNormalize(false),
+  chanOscTextFormat("%c"),
   chanOscColor(1.0f,1.0f,1.0f,1.0f),
+  chanOscTextColor(1.0f,1.0f,1.0f,0.75f),
   chanOscGrad(64,64),
   chanOscGradTex(NULL),
   followLog(true),
@@ -6913,6 +6953,7 @@ FurnaceGUI::FurnaceGUI():
   pianoOptions(true),
   pianoSharePosition(false),
   pianoOptionsSet(false),
+  pianoReadonly(false),
   pianoOffset(6),
   pianoOffsetEdit(9),
   pianoView(PIANO_LAYOUT_AUTOMATIC),
@@ -6922,6 +6963,7 @@ FurnaceGUI::FurnaceGUI():
   pianoOctavesEdit(4),
   pianoOptions(false),
   pianoSharePosition(true),
+  pianoReadonly(false),
   pianoOffset(6),
   pianoOffsetEdit(6),
   pianoView(PIANO_LAYOUT_STANDARD),
@@ -6946,6 +6988,7 @@ FurnaceGUI::FurnaceGUI():
   mustClear(2),
   initialScreenWipe(1.0f),
   introSkipDo(false),
+  introStopped(false),
   curTutorial(-1),
   curTutorialStep(0) {
   // value keys

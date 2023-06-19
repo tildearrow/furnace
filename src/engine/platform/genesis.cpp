@@ -184,16 +184,18 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
       if (i==5) {
         if (fm.dacen) {
           if (softPCM) {
-            oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<7;
-            oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<7;
+            oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<6;
+            oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<6;
           } else {
-            oscBuf[i]->data[oscBuf[i]->needle++]=fm.dacdata<<7;
+            oscBuf[i]->data[oscBuf[i]->needle++]=(fm.dacdata^0x100)<<6;
+            oscBuf[6]->data[oscBuf[6]->needle++]=0;
           }
         } else {
-          oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm.ch_out[i]<<(chipType==2?2:7),-32768,32767);
+          oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm.ch_out[i]<<(chipType==2?1:6),-32768,32767);
+          oscBuf[6]->data[oscBuf[6]->needle++]=0;
         }
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm.ch_out[i]<<(chipType==2?2:7),-32768,32767);
+        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm.ch_out[i]<<(chipType==2?1:6),-32768,32767);
       }
     }
     
@@ -241,19 +243,21 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
     //OPN2_Write(&fm,0,0);
 
     for (int i=0; i<6; i++) {
-      int chOut=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1))<<6;
+      int chOut=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1))<<5;
       if (chOut<-32768) chOut=-32768;
       if (chOut>32767) chOut=32767;
       if (i==5) {
         if (fm_ymfm->debug_dac_enable()) {
           if (softPCM) {
-            oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<7;
-            oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<7;
+            oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<6;
+            oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<6;
           } else {
-            oscBuf[i]->data[oscBuf[i]->needle++]=fm_ymfm->debug_dac_data()<<7;
+            oscBuf[i]->data[oscBuf[i]->needle++]=(fm_ymfm->debug_dac_data()^0x100)<<6;
+            oscBuf[6]->data[oscBuf[6]->needle++]=0;
           }
         } else {
           oscBuf[i]->data[oscBuf[i]->needle++]=chOut;
+          oscBuf[6]->data[oscBuf[6]->needle++]=0;
         }
       } else {
         oscBuf[i]->data[oscBuf[i]->needle++]=chOut;

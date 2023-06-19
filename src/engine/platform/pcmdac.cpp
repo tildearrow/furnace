@@ -229,7 +229,7 @@ void DivPlatformPCMDAC::acquire(short** buf, size_t len) {
     } else {
       output=output*chan[0].vol*chan[0].envVol/16384;
     }
-    oscBuf->data[oscBuf->needle++]=output;
+    oscBuf->data[oscBuf->needle++]=output>>1;
     if (outStereo) {
       buf[0][h]=((output*chan[0].panL)>>(depthScale+8))<<depthScale;
       buf[1][h]=((output*chan[0].panR)>>(depthScale+8))<<depthScale;

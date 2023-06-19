@@ -168,7 +168,7 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
       buf[(o<<1)|1][h]=es5506.rout(o);
     }
     for (int i=chanMax; i>=0; i--) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(es5506.voice_lout(i)+es5506.voice_rout(i))>>5;
+      oscBuf[i]->data[oscBuf[i]->needle++]=(es5506.voice_lout(i)+es5506.voice_rout(i))>>6;
     }
   }
 }

@@ -85,10 +85,10 @@ void DivPlatformPOKEY::acquireMZ(short* buf, size_t len) {
 
     if (++oscBufDelay>=14) {
       oscBufDelay=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=pokey.outvol_0<<11;
-      oscBuf[1]->data[oscBuf[1]->needle++]=pokey.outvol_1<<11;
-      oscBuf[2]->data[oscBuf[2]->needle++]=pokey.outvol_2<<11;
-      oscBuf[3]->data[oscBuf[3]->needle++]=pokey.outvol_3<<11;
+      oscBuf[0]->data[oscBuf[0]->needle++]=pokey.outvol_0<<10;
+      oscBuf[1]->data[oscBuf[1]->needle++]=pokey.outvol_1<<10;
+      oscBuf[2]->data[oscBuf[2]->needle++]=pokey.outvol_2<<10;
+      oscBuf[3]->data[oscBuf[3]->needle++]=pokey.outvol_3<<10;
     }
   }
 }

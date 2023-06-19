@@ -60,7 +60,7 @@ void DivPlatformMSM5232::acquire(short** buf, size_t len) {
         ((regPool[12+(i>>4)]&2)?((msm->vo8[i]*partVolume[2+(i&4)])>>8):0)+
         ((regPool[12+(i>>4)]&4)?((msm->vo4[i]*partVolume[1+(i&4)])>>8):0)+
         ((regPool[12+(i>>4)]&8)?((msm->vo2[i]*partVolume[i&4])>>8):0)
-      )<<3;
+      )<<2;
       oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(o,-32768,32767);
     }
 

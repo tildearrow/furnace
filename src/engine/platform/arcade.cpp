@@ -76,7 +76,8 @@ void DivPlatformArcade::acquire_nuked(short** buf, size_t len) {
     }
 
     for (int i=0; i<8; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i];
+      int chOut=(int16_t)fm.ch_out[i];
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut<<1,-32768,32767);
     }
 
     if (o[0]<-32768) o[0]=-32768;
@@ -111,7 +112,8 @@ void DivPlatformArcade::acquire_ymfm(short** buf, size_t len) {
     fm_ymfm->generate(&out_ymfm);
 
     for (int i=0; i<8; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1));
+      int chOut=fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1);
+      oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut,-32768,32767);
     }
 
     os[0]=out_ymfm.data[0];

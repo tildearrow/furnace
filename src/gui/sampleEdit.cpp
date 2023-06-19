@@ -158,9 +158,11 @@ void FurnaceGUI::drawSampleEdit() {
       ImGui::Text("Name");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      ImGui::PushID(2+curSample);
       if (ImGui::InputText("##SampleName",&sample->name)) {
         MARK_MODIFIED;
       }
+      ImGui::PopID();
 
       ImGui::Separator();
 
@@ -1229,7 +1231,17 @@ void FurnaceGUI::drawSampleEdit() {
               }
             }
 
-            memcpy(dataT,data,sampleTexW*sampleTexH*sizeof(unsigned int));
+            if ((pitch>>2)==sampleTexW) {
+              memcpy(dataT,data,sampleTexW*sampleTexH*sizeof(unsigned int));
+            } else {
+              int srcY=0;
+              int destY=0;
+              for (int i=0; i<sampleTexH; i++) {
+                memcpy(&dataT[destY],&data[srcY],sampleTexW*sizeof(unsigned int));
+                srcY+=sampleTexW;
+                destY+=pitch>>2;
+              }
+            }
             rend->unlockTexture(sampleTex);
             delete[] data;
           }

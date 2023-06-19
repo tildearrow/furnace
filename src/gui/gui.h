@@ -71,15 +71,21 @@
 
 enum FurnaceGUIRenderBackend {
   GUI_BACKEND_SDL=0,
-  GUI_BACKEND_GL
+  GUI_BACKEND_GL,
+  GUI_BACKEND_DX11
 };
 
 #ifdef HAVE_RENDER_SDL
 #define GUI_BACKEND_DEFAULT GUI_BACKEND_SDL
 #define GUI_BACKEND_DEFAULT_NAME "SDL"
 #else
+#ifdef HAVE_RENDER_DX11
+#define GUI_BACKEND_DEFAULT GUI_BACKEND_DX11
+#define GUI_BACKEND_DEFAULT_NAME "DirectX 11"
+#else
 #define GUI_BACKEND_DEFAULT GUI_BACKEND_GL
 #define GUI_BACKEND_DEFAULT_NAME "OpenGL"
+#endif
 #endif
 
 // TODO:
@@ -1242,6 +1248,7 @@ class FurnaceGUIRender {
     virtual bool destroyTexture(void* which);
     virtual void setTextureBlendMode(void* which, FurnaceGUIBlendMode mode);
     virtual void setBlendMode(FurnaceGUIBlendMode mode);
+    virtual void resized(const SDL_Event& ev);
     virtual void clear(ImVec4 color);
     virtual bool newFrame();
     virtual void createFontsTexture();
@@ -1864,6 +1871,7 @@ class FurnaceGUI {
 
   int layoutTimeBegin, layoutTimeEnd, layoutTimeDelta;
   int renderTimeBegin, renderTimeEnd, renderTimeDelta;
+  int drawTimeBegin, drawTimeEnd, drawTimeDelta;
   int eventTimeBegin, eventTimeEnd, eventTimeDelta;
 
   FurnaceGUIPerfMetric perfMetrics[64];
@@ -1939,9 +1947,10 @@ class FurnaceGUI {
 
   // per-channel oscilloscope
   int chanOscCols, chanOscColorX, chanOscColorY;
-  float chanOscWindowSize;
-  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad;
-  ImVec4 chanOscColor;
+  float chanOscWindowSize, chanOscTextX, chanOscTextY, chanOscAmplify;
+  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize;
+  String chanOscTextFormat;
+  ImVec4 chanOscColor, chanOscTextColor;
   Gradient2D chanOscGrad;
   void* chanOscGradTex;
   float chanOscLP0[DIV_MAX_CHANS];
@@ -1995,6 +2004,7 @@ class FurnaceGUI {
   bool pianoOptions, pianoSharePosition, pianoOptionsSet;
   float pianoKeyHit[180];
   bool pianoKeyPressed[180];
+  bool pianoReadonly;
   int pianoOffset, pianoOffsetEdit;
   int pianoView, pianoInputPadMode;
 
@@ -2029,7 +2039,7 @@ class FurnaceGUI {
   double monitorPos;
   int mustClear;
   float initialScreenWipe;
-  bool introSkipDo;
+  bool introSkipDo, introStopped;
   ImVec2 introMin, introMax;
 
   // tutorial

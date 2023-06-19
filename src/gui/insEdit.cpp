@@ -2262,9 +2262,11 @@ void FurnaceGUI::drawInsEdit() {
 
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::PushID(2+curIns);
         if (ImGui::InputText("##Name",&ins->name)) {
           MARK_MODIFIED;
         }
+        ImGui::PopID();
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();

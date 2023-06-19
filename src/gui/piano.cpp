@@ -123,6 +123,7 @@ void FurnaceGUI::drawPiano() {
             pianoInputPadMode=PIANO_INPUT_PAD_SPLIT_VISIBLE;
           }
           ImGui::Checkbox("Share play/edit offset/range",&pianoSharePosition);
+          ImGui::Checkbox("Read-only (can't input notes)",&pianoReadonly);
           ImGui::EndPopup();
         }
 
@@ -223,7 +224,7 @@ void FurnaceGUI::drawPiano() {
         //ImGui::ItemSize(size,ImGui::GetStyle().FramePadding.y);
         if (ImGui::ItemAdd(rect,ImGui::GetID("pianoDisplay"))) {
           bool canInput=false;
-          if (ImGui::ItemHoverable(rect,ImGui::GetID("pianoDisplay"))) {
+          if (!pianoReadonly && ImGui::ItemHoverable(rect,ImGui::GetID("pianoDisplay"))) {
             canInput=true;
             ImGui::InhibitInertialScroll();
           }

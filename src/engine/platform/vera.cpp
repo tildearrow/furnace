@@ -107,9 +107,9 @@ void DivPlatformVERA::acquire(short** buf, size_t len) {
       pos++;
 
       for (int i=0; i<16; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=psg->channels[i].lastOut<<4;
+        oscBuf[i]->data[oscBuf[i]->needle++]=psg->channels[i].lastOut<<3;
       }
-      int pcmOut=whyCallItBuf[2][i]+whyCallItBuf[3][i];
+      int pcmOut=(whyCallItBuf[2][i]+whyCallItBuf[3][i])>>1;
       if (pcmOut<-32768) pcmOut=-32768;
       if (pcmOut>32767) pcmOut=32767;
       oscBuf[16]->data[oscBuf[16]->needle++]=pcmOut;

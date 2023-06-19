@@ -153,8 +153,6 @@ struct DivSubSong {
   unsigned char timeBase, arpLen;
   DivGroovePattern speeds;
   short virtualTempoN, virtualTempoD;
-  bool pal;
-  bool customTempo;
   float hz;
   int patLen, ordersLen;
 
@@ -177,8 +175,6 @@ struct DivSubSong {
     arpLen(1),
     virtualTempoN(150),
     virtualTempoD(150),
-    pal(true),
-    customTempo(false),
     hz(60.0),
     patLen(64),
     ordersLen(1) {
