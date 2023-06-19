@@ -25,10 +25,31 @@
 #include <cctype>
 #include "../ta-log.h"
 
-static std::vector<int> paletteItems;
+enum CommandPaletteType {
+  CMDPAL_TYPE_MAIN = 0,
+  CMDPAL_TYPE_RECENT,
+  // TODO
+};
 
-static inline bool matchFuzzy(const char* haystack, const char* needle) {
-  // TODO: case insensitivity
+enum CommandPaletteExtraAction {
+  CMDPAL_EXTRA_RECENT = 0,
+  CMDPAL_EXTRA_MAX,
+};
+
+struct CommandPaletteExtraDef {
+  const char* name;
+  const char* friendlyName;
+  CommandPaletteExtraDef(const char* n, const char* fn):
+    name(n), friendlyName(fn) {}
+};
+
+#define D CommandPaletteExtraDef
+const CommandPaletteExtraDef commandPaletteExtras[CMDPAL_EXTRA_MAX] = {
+  D("CMDPAL_EXTRA_RECENT", "Recent files"),
+};
+#undef D
+
+static inline bool matchFuzzy(const char* haystack,const char* needle) {
   size_t h_i=0; // haystack idx
   size_t n_i=0; // needle idx
   while (needle[n_i]!='\0') {
@@ -44,13 +65,6 @@ static inline bool matchFuzzy(const char* haystack, const char* needle) {
 void FurnaceGUI::drawPalette() {
   bool accepted=false;
 
-  if (paletteFirstFrame) {
-    paletteItems.clear();
-    for (int i=0; i<GUI_ACTION_MAX; i++) {
-      paletteItems.push_back(i);
-    }
-  }
-
   if (paletteFirstFrame)
     ImGui::SetKeyboardFocusHere();
 
@@ -58,13 +72,34 @@ void FurnaceGUI::drawPalette() {
 
   if (ImGui::InputTextWithHint("##CommandPaletteSearch","Search...",&paletteQuery) || paletteFirstFrame) {
     paletteSearchResults.clear();
-    paletteSearchResults.reserve(paletteItems.size());
-    for (int entry: paletteItems) {
-      if (guiActions[entry].defaultBind==-1) continue;
-      if (matchFuzzy(guiActions[entry].friendlyName, paletteQuery.c_str())) {
-        paletteSearchResults.push_back(entry);
+
+    switch (curPaletteType) {
+    case CMDPAL_TYPE_MAIN:
+      for (int i=0; i<GUI_ACTION_MAX; i++) {
+        if (guiActions[i].defaultBind==-1) continue;
+        if (matchFuzzy(guiActions[i].friendlyName,paletteQuery.c_str())) {
+          paletteSearchResults.push_back(i);
+        }
       }
-    }
+      for (int i=0; i<CMDPAL_EXTRA_MAX; i++) {
+        if (matchFuzzy(commandPaletteExtras[i].friendlyName,paletteQuery.c_str())) {
+          paletteSearchResults.push_back(GUI_ACTION_MAX+i);
+        }
+      }
+      break;
+
+    case CMDPAL_TYPE_RECENT:
+      for (int i=0; i<(int)recentFile.size(); i++) {
+        if (matchFuzzy(recentFile[i].c_str(),paletteQuery.c_str())) {
+          paletteSearchResults.push_back(i);
+        }
+      }
+      break;
+
+    default:
+      // TODO: PANIC! DIE! PERISH!
+      break;
+    };
   }
 
   if (ImGui::BeginChild("CommandPaletteList",ImVec2(312,216),false,0)) {
@@ -78,11 +113,24 @@ void FurnaceGUI::drawPalette() {
       navigated=true;
     }
 
-    for (size_t i=0; i<paletteSearchResults.size(); i++) {
+    for (int i=0; i<(int)paletteSearchResults.size(); i++) {
       bool current=(i==curPaletteChoice);
       int id=paletteSearchResults[i];
 
-      if (ImGui::Selectable(guiActions[id].friendlyName, current)) {
+      const char *s="???";
+      switch (curPaletteType) {
+      case CMDPAL_TYPE_MAIN:
+        s=(id<GUI_ACTION_MAX)?(guiActions[id].friendlyName):(commandPaletteExtras[id-GUI_ACTION_MAX].friendlyName);
+        break;
+      case CMDPAL_TYPE_RECENT:
+        s=recentFile[id].c_str();
+        break;
+      default:
+        // TODO: DIE
+        break;
+      };
+
+      if (ImGui::Selectable(s, current)) {
         curPaletteChoice=i;
         accepted=true;
       }
@@ -92,10 +140,11 @@ void FurnaceGUI::drawPalette() {
   ImGui::EndChild();
 
   if (!accepted) {
-    if (curPaletteChoice>=paletteSearchResults.size()) {
+    if (curPaletteChoice>=(int)paletteSearchResults.size()) {
       curPaletteChoice=paletteSearchResults.size()-1;
     }
     if (ImGui::IsKeyPressed(ImGuiKey_Enter)) {
+      // TODO: properly test this - what happens when enter is pressed and the list is empty?
       accepted=true;
     }
   }
@@ -105,11 +154,48 @@ void FurnaceGUI::drawPalette() {
   }
 
   if (accepted) {
-    int action=paletteSearchResults[curPaletteChoice];
-    logD("Chose: %s", guiActions[action].friendlyName);
-    doAction(action);
-    ImGui::CloseCurrentPopup();
-  }
+    int i=paletteSearchResults[curPaletteChoice];
 
-  paletteFirstFrame=false;
+    switch (curPaletteType) {
+    case CMDPAL_TYPE_MAIN:
+      if (i<GUI_ACTION_MAX) {
+        doAction(i);
+        ImGui::CloseCurrentPopup();
+      } else {
+        switch (i-GUI_ACTION_MAX) {
+        case CMDPAL_EXTRA_RECENT:
+          paletteFirstFrame=true;
+          paletteQuery="";
+          curPaletteChoice=0;
+          curPaletteType=CMDPAL_TYPE_RECENT;
+          break;
+        default:
+          // TODO: PANIC! DIE! PERISH!
+          break;
+        };
+      }
+      break;
+
+    case CMDPAL_TYPE_RECENT:
+      if (modified) {
+        nextFile=recentFile[i];
+        showWarning("Unsaved changes! Save changes before opening file?",GUI_WARN_OPEN_DROP);
+      } else {
+        String item=recentFile[i];
+        recentFile.erase(recentFile.begin()+i);
+        i--;
+        if (load(item)>0) {
+          showError(fmt::sprintf("Error while loading file! (%s)",lastError));
+        }
+      }
+      ImGui::CloseCurrentPopup();
+      break;
+
+    default:
+      // TODO: PANIC! DIE! PERISH!
+      break;
+    };
+  } else {
+    paletteFirstFrame=false;
+  }
 }

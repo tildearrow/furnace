@@ -1696,7 +1696,7 @@ class FurnaceGUI {
   int loopOrder, loopRow, loopEnd, isClipping, extraChannelButtons, newSongCategory, latchTarget;
   int wheelX, wheelY, dragSourceX, dragSourceXFine, dragSourceY, dragDestinationX, dragDestinationXFine, dragDestinationY, oldBeat, oldBar;
   int curGroove, exitDisabledTimer;
-  size_t curPaletteChoice;
+  int curPaletteChoice, curPaletteType;
   float soloTimeout;
 
   double exportFadeOut;

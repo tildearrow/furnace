@@ -5085,6 +5085,7 @@ bool FurnaceGUI::loop() {
       paletteQuery="";
       paletteFirstFrame=true;
       curPaletteChoice=0;
+      curPaletteType=0;
       displayPalette=false;
       ImGui::OpenPopup("Command Palette");
     }
@@ -6674,6 +6675,7 @@ FurnaceGUI::FurnaceGUI():
   curGroove(-1),
   exitDisabledTimer(0),
   curPaletteChoice(0),
+  curPaletteType(0),
   soloTimeout(0.0f),
   exportFadeOut(5.0),
   editControlsOpen(true),
