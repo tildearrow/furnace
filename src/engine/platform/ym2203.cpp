@@ -231,11 +231,11 @@ void DivPlatformYM2203::acquire_combo(short** buf, size_t len) {
     buf[0][h]=os;
     
     for (int i=0; i<3; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=fm_nuked.ch_out[i]>>1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=fm_nuked.ch_out[i]<<1;
     }
 
     for (int i=3; i<6; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=fmout.data[i-2]>>1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=fmout.data[i-2]<<1;
     }
   }
 }
@@ -282,11 +282,11 @@ void DivPlatformYM2203::acquire_ymfm(short** buf, size_t len) {
 
     
     for (int i=0; i<3; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1))>>1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=(fmChan[i]->debug_output(0)+fmChan[i]->debug_output(1))<<1;
     }
 
     for (int i=3; i<6; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=fmout.data[i-2]>>1;
+      oscBuf[i]->data[oscBuf[i]->needle++]=fmout.data[i-2]<<1;
     }
   }
 }
