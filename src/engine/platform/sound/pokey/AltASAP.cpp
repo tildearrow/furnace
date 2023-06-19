@@ -39,7 +39,7 @@ static constexpr int MuteInit = 2;
 static constexpr int MuteSerialInput = 8;
 //just some magick value to match the audio level of mzpokeysnd
 static constexpr int16_t MAGICK_VOLUME_BOOSTER = 160;
-static constexpr int16_t MAGICK_OSC_VOLUME_BOOSTER = 2;
+static constexpr int16_t MAGICK_OSC_VOLUME_BOOSTER = 6;
 
 struct PokeyBase
 {

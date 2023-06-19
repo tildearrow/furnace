@@ -118,7 +118,7 @@ void DivPlatformN163::acquire(short** buf, size_t len) {
     buf[0][i]=out;
 
     if (n163.voice_cycle()==0x78) for (int i=0; i<8; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=n163.voice_out(i)<<6;
+      oscBuf[i]->data[oscBuf[i]->needle++]=n163.voice_out(i)<<7;
     }
 
     // command queue
