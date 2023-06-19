@@ -2240,6 +2240,7 @@ class FurnaceGUI {
   int save(String path, int dmfVersion);
   int load(String path);
   int loadStream(String path);
+  void openRecentFile(String path);
   void pushRecentFile(String path);
   void exportAudio(String path, DivAudioExportModes mode);
   void delFirstBackup(String name);

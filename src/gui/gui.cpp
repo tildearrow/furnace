@@ -2151,6 +2151,17 @@ int FurnaceGUI::load(String path) {
   return 0;
 }
 
+void FurnaceGUI::openRecentFile(String path) {
+  if (modified) {
+    nextFile=path;
+    showWarning("Unsaved changes! Save changes before opening file?",GUI_WARN_OPEN_DROP);
+  } else {
+    if (load(path)>0) {
+      showError(fmt::sprintf("Error while loading file! (%s)",lastError));
+    }
+  }
+}
+
 void FurnaceGUI::pushRecentFile(String path) {
   if (path.empty()) return;
   if (path.find(backupPath)==0) return;
@@ -3802,17 +3813,13 @@ bool FurnaceGUI::loop() {
           exitDisabledTimer=1;
           for (int i=0; i<(int)recentFile.size(); i++) {
             String item=recentFile[i];
-            if (ImGui::MenuItem(item.c_str())) {
-              if (modified) {
-                nextFile=item;
-                showWarning("Unsaved changes! Save changes before opening file?",GUI_WARN_OPEN_DROP);
-              } else {
+            if (ImGui::MenuItem(recentFile[i].c_str())) {
+              String item=recentFile[i];
+              if (!modified) {
                 recentFile.erase(recentFile.begin()+i);
                 i--;
-                if (load(item)>0) {
-                  showError(fmt::sprintf("Error while loading file! (%s)",lastError));
-                }
               }
+              openRecentFile(item);
             }
           }
           if (recentFile.empty()) {

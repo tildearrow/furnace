@@ -28,11 +28,14 @@
 enum CommandPaletteType {
   CMDPAL_TYPE_MAIN = 0,
   CMDPAL_TYPE_RECENT,
-  // TODO
+  // TODO: are there more?
+
+  CMDPAL_TYPE_MAX,
 };
 
 enum CommandPaletteExtraAction {
   CMDPAL_EXTRA_RECENT = 0,
+
   CMDPAL_EXTRA_MAX,
 };
 
@@ -63,6 +66,12 @@ static inline bool matchFuzzy(const char* haystack,const char* needle) {
 }
 
 void FurnaceGUI::drawPalette() {
+  auto resetPalette = [](FurnaceGUI* g){
+    g->paletteFirstFrame=true;
+    g->paletteQuery="";
+    g->curPaletteChoice=0;
+  };
+
   bool accepted=false;
 
   if (paletteFirstFrame)
@@ -164,9 +173,7 @@ void FurnaceGUI::drawPalette() {
       } else {
         switch (i-GUI_ACTION_MAX) {
         case CMDPAL_EXTRA_RECENT:
-          paletteFirstFrame=true;
-          paletteQuery="";
-          curPaletteChoice=0;
+          resetPalette(this);
           curPaletteType=CMDPAL_TYPE_RECENT;
           break;
         default:
@@ -177,17 +184,7 @@ void FurnaceGUI::drawPalette() {
       break;
 
     case CMDPAL_TYPE_RECENT:
-      if (modified) {
-        nextFile=recentFile[i];
-        showWarning("Unsaved changes! Save changes before opening file?",GUI_WARN_OPEN_DROP);
-      } else {
-        String item=recentFile[i];
-        recentFile.erase(recentFile.begin()+i);
-        i--;
-        if (load(item)>0) {
-          showError(fmt::sprintf("Error while loading file! (%s)",lastError));
-        }
-      }
+      openRecentFile(recentFile[i]);
       ImGui::CloseCurrentPopup();
       break;
 
