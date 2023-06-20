@@ -5683,7 +5683,8 @@ SafeWriter* DivEngine::saveFur(bool notPrimary, bool newPatternFormat) {
 
 SafeWriter* DivEngine::saveDMF(unsigned char version) {
   // fail if version is not supported
-  if (version<24 || version>26) {
+  if (version>26) version=26;
+  if (version<24) {
     logE("cannot save in this version!");
     lastError="invalid version to save in! this is a bug!";
     return NULL;
