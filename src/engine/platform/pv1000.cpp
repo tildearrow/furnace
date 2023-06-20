@@ -42,7 +42,7 @@ void DivPlatformPV1000::acquire(short** buf, size_t len) {
     short samp=d65010g031_sound_tick(&d65010g031,1);
     buf[0][h]=samp;
     for (int i=0; i<3; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(d65010g031.out[i]);
+      oscBuf[i]->data[oscBuf[i]->needle++]=d65010g031.out[i]<<1;
     }
   }
 }

@@ -1188,6 +1188,11 @@ void DivEngine::nextRow() {
     nextSpeed=speeds.val[curSpeed];
   }
 
+  /*
+  if (skipping) {
+    ticks=1;
+  }*/
+
   // post row details
   for (int i=0; i<chans; i++) {
     DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][curOrder],false);
@@ -1314,7 +1319,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       subticks=tickMult;
 
       if (stepPlay!=1) {
-        tempoAccum+=curSubSong->virtualTempoN;
+        tempoAccum+=(skipping && curSubSong->virtualTempoN<curSubSong->virtualTempoD)?curSubSong->virtualTempoD:curSubSong->virtualTempoN;
         while (tempoAccum>=curSubSong->virtualTempoD) {
           tempoAccum-=curSubSong->virtualTempoD;
           if (--ticks<=0) {
@@ -1564,8 +1569,10 @@ void DivEngine::runMidiClock(int totalCycles) {
     if (speedSum<1.0) speedSum=1.0;
     if (vD<1) vD=1;
     double bpm=((24.0*divider)/(timeBase*hl*speedSum))*(double)curSubSong->virtualTempoN/vD;
+    if (bpm<1.0) bpm=1.0;
+    int increment=got.rate*pow(2,MASTER_CLOCK_PREC)/(bpm);
 
-    midiClockCycles+=got.rate*pow(2,MASTER_CLOCK_PREC)/(bpm);
+    midiClockCycles+=increment;
     midiClockDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)(bpm));
     if (midiClockDrift>=(bpm)) {
       midiClockDrift-=(bpm);

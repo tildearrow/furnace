@@ -71,8 +71,13 @@ void DivPlatformGA20::acquire(short** buf, size_t len) {
         delay=w.delay;
       }
     }
-    short *buffer[4] = {&ga20Buf[0][h],&ga20Buf[1][h],&ga20Buf[2][h],&ga20Buf[3][h]};
-    ga20.sound_stream_update(buffer, 1);
+    short *buffer[4]={
+      &ga20Buf[0][h],
+      &ga20Buf[1][h],
+      &ga20Buf[2][h],
+      &ga20Buf[3][h]
+    };
+    ga20.sound_stream_update(buffer,1);
     buf[0][h]=(signed int)(ga20Buf[0][h]+ga20Buf[1][h]+ga20Buf[2][h]+ga20Buf[3][h])>>2;
     for (int i=0; i<4; i++) {
       oscBuf[i]->data[oscBuf[i]->needle++]=ga20Buf[i][h]>>1;

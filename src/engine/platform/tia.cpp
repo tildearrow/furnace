@@ -51,8 +51,8 @@ void DivPlatformTIA::acquire(short** buf, size_t len) {
     }
     if (++chanOscCounter>=114) {
       chanOscCounter=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=tia.myChannelOut[0]>>1;
-      oscBuf[1]->data[oscBuf[1]->needle++]=tia.myChannelOut[1]>>1;
+      oscBuf[0]->data[oscBuf[0]->needle++]=tia.myChannelOut[0];
+      oscBuf[1]->data[oscBuf[1]->needle++]=tia.myChannelOut[1];
     }
   }
 }

@@ -107,7 +107,7 @@ void DivPlatformVB::acquire(short** buf, size_t len) {
     tempL=0;
     tempR=0;
     for (int i=0; i<6; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(vb->last_output[i][0]+vb->last_output[i][1])*4;
+      oscBuf[i]->data[oscBuf[i]->needle++]=(vb->last_output[i][0]+vb->last_output[i][1])*8;
       tempL+=vb->last_output[i][0];
       tempR+=vb->last_output[i][1];
     }

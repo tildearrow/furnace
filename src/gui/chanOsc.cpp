@@ -22,6 +22,7 @@
 #include "../ta-log.h"
 #include "imgui.h"
 #include "imgui_internal.h"
+#include "misc/cpp/imgui_stdlib.h"
 
 #define FURNACE_FFT_SIZE 4096
 #define FURNACE_FFT_RATE 80.0
@@ -284,159 +285,266 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::ColorPicker4("Color",(float*)&chanOscColor);
       }
 
+      ImGui::Text("Text format:");
+      ImGui::SameLine();
+      ImGui::InputText("##TextFormat",&chanOscTextFormat);
+      if (ImGui::IsItemHovered()) {
+        if (ImGui::BeginTooltip()) {
+          ImGui::TextUnformatted(
+            "format guide:\n"
+            "- %c: channel name\n"
+            "- %C: channel short name\n"
+            "- %d: channel number (starting from 0)\n"
+            "- %D: channel number (starting from 1)\n"
+            "- %i: instrument name\n"
+            "- %I: instrument number (decimal)\n"
+            "- %x: instrument number (hex)\n"
+            "- %s: chip name\n"
+            "- %S: chip ID\n"
+            "- %v: volume (decimal)\n"
+            "- %V: volume (percentage)\n"
+            "- %b: volume (hex)\n"
+            "- %%: percent sign"
+          );
+          ImGui::EndTooltip();
+        }
+      }
+
+      ImGui::ColorEdit4("Text color",(float*)&chanOscTextColor);
+
       if (ImGui::Button("OK")) {
         chanOscOptions=false;
       }
-    }
+    } else {
+      ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
+      float availY=ImGui::GetContentRegionAvail().y;
+      if (ImGui::BeginTable("ChanOsc",chanOscCols,ImGuiTableFlags_Borders)) {
+        std::vector<DivDispatchOscBuffer*> oscBufs;
+        std::vector<ChanOscStatus*> oscFFTs;
+        std::vector<int> oscChans;
+        int chans=e->getTotalChannelCount();
+        ImGuiWindow* window=ImGui::GetCurrentWindow();
+        ImVec2 waveform[512];
 
-    ImGui::PushStyleVar(ImGuiStyleVar_CellPadding,ImVec2(0.0f,0.0f));
-    float availY=ImGui::GetContentRegionAvail().y;
-    if (ImGui::BeginTable("ChanOsc",chanOscCols,ImGuiTableFlags_Borders)) {
-      std::vector<DivDispatchOscBuffer*> oscBufs;
-      std::vector<ChanOscStatus*> oscFFTs;
-      std::vector<int> oscChans;
-      int chans=e->getTotalChannelCount();
-      ImGuiWindow* window=ImGui::GetCurrentWindow();
-      ImVec2 waveform[512];
+        ImGuiStyle& style=ImGui::GetStyle();
 
-      ImGuiStyle& style=ImGui::GetStyle();
-
-      for (int i=0; i<chans; i++) {
-        DivDispatchOscBuffer* buf=e->getOscBuffer(i);
-        if (buf!=NULL && e->curSubSong->chanShow[i]) {
-          oscBufs.push_back(buf);
-          oscFFTs.push_back(&chanOscChan[i]);
-          oscChans.push_back(i);
+        for (int i=0; i<chans; i++) {
+          DivDispatchOscBuffer* buf=e->getOscBuffer(i);
+          if (buf!=NULL && e->curSubSong->chanShow[i]) {
+            oscBufs.push_back(buf);
+            oscFFTs.push_back(&chanOscChan[i]);
+            oscChans.push_back(i);
+          }
         }
-      }
-      int rows=(oscBufs.size()+(chanOscCols-1))/chanOscCols;
+        int rows=(oscBufs.size()+(chanOscCols-1))/chanOscCols;
 
-      for (size_t i=0; i<oscBufs.size(); i++) {
-        if (i%chanOscCols==0) ImGui::TableNextRow();
-        ImGui::TableNextColumn();
+        for (size_t i=0; i<oscBufs.size(); i++) {
+          if (i%chanOscCols==0) ImGui::TableNextRow();
+          ImGui::TableNextColumn();
 
-        DivDispatchOscBuffer* buf=oscBufs[i];
-        ChanOscStatus* fft=oscFFTs[i];
-        int ch=oscChans[i];
-        if (buf==NULL) {
-          ImGui::Text("Error!");
-        } else {
-          ImVec2 size=ImGui::GetContentRegionAvail();
-          size.y=availY/rows;
+          DivDispatchOscBuffer* buf=oscBufs[i];
+          ChanOscStatus* fft=oscFFTs[i];
+          int ch=oscChans[i];
+          if (buf==NULL) {
+            ImGui::Text("Error!");
+          } else {
+            ImVec2 size=ImGui::GetContentRegionAvail();
+            size.y=availY/rows;
 
-          if (centerSettingReset) {
-            buf->readNeedle=buf->needle;
-          }
+            if (centerSettingReset) {
+              buf->readNeedle=buf->needle;
+            }
 
-          // check FFT status existence
-          if (fft->plan==NULL) {
-            logD("creating FFT plan for channel %d",ch);
-            fft->inBuf=(double*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(double));
-            fft->outBuf=(fftw_complex*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(fftw_complex));
-            fft->plan=fftw_plan_dft_r2c_1d(FURNACE_FFT_SIZE,fft->inBuf,fft->outBuf,FFTW_ESTIMATE);
-          }
+            // check FFT status existence
+            if (fft->plan==NULL) {
+              logD("creating FFT plan for channel %d",ch);
+              fft->inBuf=(double*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(double));
+              fft->outBuf=(fftw_complex*)fftw_malloc(FURNACE_FFT_SIZE*sizeof(fftw_complex));
+              fft->plan=fftw_plan_dft_r2c_1d(FURNACE_FFT_SIZE,fft->inBuf,fft->outBuf,FFTW_ESTIMATE);
+            }
 
-          int displaySize=(float)(buf->rate)*(chanOscWindowSize/1000.0f);
+            int displaySize=(float)(buf->rate)*(chanOscWindowSize/1000.0f);
 
-          ImVec2 minArea=window->DC.CursorPos;
-          ImVec2 maxArea=ImVec2(
-            minArea.x+size.x,
-            minArea.y+size.y
-          );
-          ImRect rect=ImRect(minArea,maxArea);
-          ImRect inRect=rect;
-          inRect.Min.x+=dpiScale;
-          inRect.Min.y+=2.0*dpiScale;
-          inRect.Max.x-=dpiScale;
-          inRect.Max.y-=2.0*dpiScale;
+            ImVec2 minArea=window->DC.CursorPos;
+            ImVec2 maxArea=ImVec2(
+              minArea.x+size.x,
+              minArea.y+size.y
+            );
+            ImRect rect=ImRect(minArea,maxArea);
+            ImRect inRect=rect;
+            inRect.Min.x+=dpiScale;
+            inRect.Min.y+=2.0*dpiScale;
+            inRect.Max.x-=dpiScale;
+            inRect.Max.y-=2.0*dpiScale;
 
-          int precision=inRect.Max.x-inRect.Min.x;
-          if (precision<1) precision=1;
-          if (precision>512) precision=512;
+            int precision=inRect.Max.x-inRect.Min.x;
+            if (precision<1) precision=1;
+            if (precision>512) precision=512;
 
-          ImGui::ItemSize(size,style.FramePadding.y);
-          if (ImGui::ItemAdd(rect,ImGui::GetID("chOscDisplay"))) {
-            if (!e->isRunning()) {
-              for (unsigned short i=0; i<precision; i++) {
-                float x=(float)i/(float)precision;
-                waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f));
-              }
-            } else {
-              float minLevel=1.0f;
-              float maxLevel=-1.0f;
-              float dcOff=0.0f;
-              unsigned short needlePos=buf->needle;
-              for (int i=0; i<FURNACE_FFT_SIZE; i++) {
-                fft->inBuf[i]=(double)buf->data[(unsigned short)(needlePos-displaySize*2+((i*displaySize*2)/FURNACE_FFT_SIZE))]/32768.0;
-              }
-              fftw_execute(fft->plan);
-              
-              // find origin frequency
-              int point=1;
-              double candAmp=0.0;
-              for (unsigned short i=1; i<512; i++) {
-                fftw_complex& f=fft->outBuf[i];
-                // AMPLITUDE
-                double amp=sqrt(pow(f[0],2.0)+pow(f[1],2.0))/pow((double)i,0.8);
-                if (amp>candAmp) {
-                  point=i;
-                  candAmp=amp;
+            ImGui::ItemSize(size,style.FramePadding.y);
+            if (ImGui::ItemAdd(rect,ImGui::GetID("chOscDisplay"))) {
+              if (!e->isRunning()) {
+                for (unsigned short i=0; i<precision; i++) {
+                  float x=(float)i/(float)precision;
+                  waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f));
+                }
+              } else {
+                float minLevel=1.0f;
+                float maxLevel=-1.0f;
+                float dcOff=0.0f;
+                unsigned short needlePos=buf->needle;
+                for (int i=0; i<FURNACE_FFT_SIZE; i++) {
+                  fft->inBuf[i]=(double)buf->data[(unsigned short)(needlePos-displaySize*2+((i*displaySize*2)/FURNACE_FFT_SIZE))]/32768.0;
+                }
+                fftw_execute(fft->plan);
+                
+                // find origin frequency
+                int point=1;
+                double candAmp=0.0;
+                for (unsigned short i=1; i<512; i++) {
+                  fftw_complex& f=fft->outBuf[i];
+                  // AMPLITUDE
+                  double amp=sqrt(pow(f[0],2.0)+pow(f[1],2.0))/pow((double)i,0.8);
+                  if (amp>candAmp) {
+                    point=i;
+                    candAmp=amp;
+                  }
+                }
+
+                // PHASE
+                fftw_complex& candPoint=fft->outBuf[point];
+                double phase=((double)(displaySize*2)/(double)point)*(0.5+(atan2(candPoint[1],candPoint[0])/(M_PI*2)));
+
+                if (chanOscWaveCorr) {
+                  needlePos-=phase;
+                }
+                chanOscPitch[ch]=(float)point/32.0f;
+                
+                /*
+                String cPhase=fmt::sprintf("%d cphase: %f vol: %f",point,phase,chanOscVol[ch]);
+                dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
+                */
+
+                needlePos-=displaySize;
+                for (unsigned short i=0; i<precision; i++) {
+                  float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/precision))]/32768.0f;
+                  if (minLevel>y) minLevel=y;
+                  if (maxLevel<y) maxLevel=y;
+                }
+                dcOff=(minLevel+maxLevel)*0.5f;
+                for (unsigned short i=0; i<precision; i++) {
+                  float x=(float)i/(float)precision;
+                  float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/precision))]/32768.0f;
+                  y-=dcOff;
+                  if (y<-0.5f) y=-0.5f;
+                  if (y>0.5f) y=0.5f;
+                  y*=chanOscAmplify;
+                  waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
                 }
               }
+              ImU32 color=ImGui::GetColorU32(chanOscColor);
+              if (chanOscUseGrad) {
+                float xVal=computeGradPos(chanOscColorX,ch);
+                float yVal=computeGradPos(chanOscColorY,ch);
 
-              // PHASE
-              fftw_complex& candPoint=fft->outBuf[point];
-              double phase=((double)(displaySize*2)/(double)point)*(0.5+(atan2(candPoint[1],candPoint[0])/(M_PI*2)));
+                xVal=CLAMP(xVal,0.0f,1.0f);
+                yVal=CLAMP(yVal,0.0f,1.0f);
 
-              if (chanOscWaveCorr) {
-                needlePos-=phase;
+                color=chanOscGrad.get(xVal,1.0f-yVal);
               }
-              chanOscPitch[ch]=(float)point/32.0f;
-              
-              /*
-              String cPhase=fmt::sprintf("%d cphase: %f vol: %f",point,phase,chanOscVol[ch]);
-              dl->AddText(inRect.Min,0xffffffff,cPhase.c_str());
-              */
+              ImGui::PushClipRect(inRect.Min,inRect.Max,false);
 
-              needlePos-=displaySize;
-              for (unsigned short i=0; i<precision; i++) {
-                float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/precision))]/32768.0f;
-                if (minLevel>y) minLevel=y;
-                if (maxLevel<y) maxLevel=y;
+              dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale);
+
+              if (!chanOscTextFormat.empty()) {
+                String text;
+                bool inFormat=false;
+
+                for (char i: chanOscTextFormat) {
+                  if (inFormat) {
+                    switch (i) {
+                      case 'c':
+                        text+=e->getChannelName(ch);
+                        break;
+                      case 'C':
+                        text+=e->getChannelShortName(ch);
+                        break;
+                      case 'd':
+                        text+=fmt::sprintf("%d",ch);
+                        break;
+                      case 'D':
+                        text+=fmt::sprintf("%d",ch+1);
+                        break;
+                      case 'i': {
+                        DivChannelState* chanState=e->getChanState(ch);
+                        if (chanState==NULL) break;
+                        DivInstrument* ins=e->getIns(chanState->lastIns);
+                        text+=ins->name;
+                        break;
+                      }
+                      case 'I': {
+                        DivChannelState* chanState=e->getChanState(ch);
+                        if (chanState==NULL) break;
+                        text+=fmt::sprintf("%d",chanState->lastIns);
+                        break;
+                      }
+                      case 'x': {
+                        DivChannelState* chanState=e->getChanState(ch);
+                        if (chanState==NULL) break;
+                        if (chanState->lastIns<0) {
+                          text+="??";
+                        } else {
+                          text+=fmt::sprintf("%.2X",chanState->lastIns);
+                        }
+                        break;
+                      }
+                      case 's': {
+                        text+=e->getSystemName(e->sysOfChan[ch]);
+                        break;
+                      }
+                      case 'S': {
+                        text+=fmt::sprintf("%d",e->dispatchOfChan[ch]);
+                        break;
+                      }
+                      case 'v':
+                        break;
+                      case 'V':
+                        break;
+                      case 'b':
+                        break;
+                      case '%':
+                        text+='%';
+                        break;
+                      default:
+                        text+='%';
+                        text+=i;
+                        break;
+                    }
+                    inFormat=false;
+                  } else {
+                    if (i=='%') {
+                      inFormat=true;
+                    } else {
+                      text+=i;
+                    }
+                  }
+                }
+
+                dl->AddText(ImLerp(inRect.Min,inRect.Max,ImVec2(0.0f,0.0f)),ImGui::GetColorU32(chanOscTextColor),text.c_str());
               }
-              dcOff=(minLevel+maxLevel)*0.5f;
-              for (unsigned short i=0; i<precision; i++) {
-                float x=(float)i/(float)precision;
-                float y=(float)buf->data[(unsigned short)(needlePos+(i*displaySize/precision))]/32768.0f;
-                y-=dcOff;
-                if (y<-0.5f) y=-0.5f;
-                if (y>0.5f) y=0.5f;
-                waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
-              }
+
+              ImGui::PopClipRect();
             }
-            ImU32 color=ImGui::GetColorU32(chanOscColor);
-            if (chanOscUseGrad) {
-              float xVal=computeGradPos(chanOscColorX,ch);
-              float yVal=computeGradPos(chanOscColorY,ch);
-
-              xVal=CLAMP(xVal,0.0f,1.0f);
-              yVal=CLAMP(yVal,0.0f,1.0f);
-
-              color=chanOscGrad.get(xVal,1.0f-yVal);
-            }
-            ImGui::PushClipRect(inRect.Min,inRect.Max,false);
-            dl->AddPolyline(waveform,precision,color,ImDrawFlags_None,dpiScale);
-            ImGui::PopClipRect();
           }
         }
-      }
-      ImGui::EndTable();
+        ImGui::EndTable();
 
-      if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-        chanOscOptions=!chanOscOptions;
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+          chanOscOptions=!chanOscOptions;
+        }
       }
+      ImGui::PopStyleVar();
     }
-    ImGui::PopStyleVar();
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_CHAN_OSC;
   ImGui::End();
