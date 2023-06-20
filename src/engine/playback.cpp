@@ -1564,8 +1564,10 @@ void DivEngine::runMidiClock(int totalCycles) {
     if (speedSum<1.0) speedSum=1.0;
     if (vD<1) vD=1;
     double bpm=((24.0*divider)/(timeBase*hl*speedSum))*(double)curSubSong->virtualTempoN/vD;
+    if (bpm<1.0) bpm=1.0;
+    int increment=got.rate*pow(2,MASTER_CLOCK_PREC)/(bpm);
 
-    midiClockCycles+=got.rate*pow(2,MASTER_CLOCK_PREC)/(bpm);
+    midiClockCycles+=increment;
     midiClockDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)(bpm));
     if (midiClockDrift>=(bpm)) {
       midiClockDrift-=(bpm);
