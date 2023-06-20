@@ -1314,7 +1314,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       subticks=tickMult;
 
       if (stepPlay!=1) {
-        tempoAccum+=curSubSong->virtualTempoN;
+        tempoAccum+=(skipping && curSubSong->virtualTempoN<curSubSong->virtualTempoD)?curSubSong->virtualTempoD:curSubSong->virtualTempoN;
         while (tempoAccum>=curSubSong->virtualTempoD) {
           tempoAccum-=curSubSong->virtualTempoD;
           if (--ticks<=0) {
