@@ -5818,7 +5818,7 @@ SafeWriter* DivEngine::saveDMF(unsigned char version) {
   w->writeC(curSubSong->timeBase);
   w->writeC(curSubSong->speeds.val[0]);
   w->writeC((curSubSong->speeds.len>=2)?curSubSong->speeds.val[1]:curSubSong->speeds.val[0]);
-  w->writeC((intHz<=53)?1:0);
+  w->writeC((intHz<=53)?0:1);
   w->writeC((intHz!=60 && intHz!=50));
   char customHz[4];
   memset(customHz,0,4);
