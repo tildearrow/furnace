@@ -1169,6 +1169,7 @@ void DivEngine::registerSystems() {
     {
       {0x10, {DIV_CMD_WAVE, "10xx: Set waveform (0 to 7)"}},
       {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set AUDCTL"}},
+      {0x12, {DIV_CMD_STD_NOISE_FREQ, "12xx: Toggle two-tone mode"}},
     }
   );
 
