@@ -122,6 +122,8 @@ void DivPlatformGenesis::processDAC(int iRate) {
               urgentWrite(0x2a,(unsigned char)sample+0x80);
               chan[5].dacReady=false;
             }
+          } else {
+            urgentWrite(0x2a,0x80);
           }
           chan[5].dacPos++;
           if (!chan[5].dacDirection && (s->isLoopable() && chan[5].dacPos>=(unsigned int)s->loopEnd)) {
@@ -187,7 +189,7 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
             oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<6;
             oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<6;
           } else {
-            oscBuf[i]->data[oscBuf[i]->needle++]=(fm.dacdata^0x100)<<6;
+            oscBuf[i]->data[oscBuf[i]->needle++]=((fm.dacdata^0x100)-0x100)<<6;
             oscBuf[6]->data[oscBuf[6]->needle++]=0;
           }
         } else {
@@ -252,7 +254,7 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
             oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<6;
             oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<6;
           } else {
-            oscBuf[i]->data[oscBuf[i]->needle++]=(fm_ymfm->debug_dac_data()^0x100)<<6;
+            oscBuf[i]->data[oscBuf[i]->needle++]=((fm_ymfm->debug_dac_data()^0x100)-0x100)<<6;
             oscBuf[6]->data[oscBuf[6]->needle++]=0;
           }
         } else {
