@@ -1188,6 +1188,11 @@ void DivEngine::nextRow() {
     nextSpeed=speeds.val[curSpeed];
   }
 
+  /*
+  if (skipping) {
+    ticks=1;
+  }*/
+
   // post row details
   for (int i=0; i<chans; i++) {
     DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][curOrder],false);
