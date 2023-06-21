@@ -48,8 +48,8 @@ class DivPlatformPOKEY: public DivDispatch {
       QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   std::queue<QueuedWrite> writes;
-  unsigned char audctl;
-  bool audctlChanged;
+  unsigned char audctl, skctl;
+  bool audctlChanged, skctlChanged;
   unsigned char oscBufDelay;
   PokeyState pokey;
   AltASAP::Pokey altASAP;

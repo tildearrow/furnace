@@ -32,7 +32,7 @@ void DivPlatformDummy::acquire(short** buf, size_t len) {
       if (chan[j].active) {
         if (!isMuted[j]) {
           chanOut=(((signed short)chan[j].pos)*chan[j].amp*chan[j].vol)>>12;
-          oscBuf[j]->data[oscBuf[j]->needle++]=chanOut>>1;
+          oscBuf[j]->data[oscBuf[j]->needle++]=chanOut<<1;
           out+=chanOut;
         } else {
           oscBuf[j]->data[oscBuf[j]->needle++]=0;

@@ -64,7 +64,7 @@ void DivPlatformFDS::acquire_puNES(short* buf, size_t len) {
     buf[i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
-      oscBuf->data[oscBuf->needle++]=sample;
+      oscBuf->data[oscBuf->needle++]=sample*3;
     }
   }
 }
@@ -80,7 +80,7 @@ void DivPlatformFDS::acquire_NSFPlay(short* buf, size_t len) {
     buf[i]=sample;
     if (++writeOscBuf>=32) {
       writeOscBuf=0;
-      oscBuf->data[oscBuf->needle++]=sample;
+      oscBuf->data[oscBuf->needle++]=sample*3;
     }
   }
 }
