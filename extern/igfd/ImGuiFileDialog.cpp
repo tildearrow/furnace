@@ -1137,8 +1137,9 @@ namespace IGFD
   IGFD::FileManager::FileManager()
   {
     puFsRoot = std::string(1u, PATH_SEP);
-                for (int i=0; i<4; i++) {
-                  puSortingDirection[i]=true;
+    puSortingDirection[0]=true;
+                for (int i=1; i<4; i++) {
+                  puSortingDirection[i]=false;
                 }
   }
 
