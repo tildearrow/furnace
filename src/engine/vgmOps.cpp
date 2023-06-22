@@ -2014,6 +2014,19 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       bankOffsetNES[i]=bankOffsetNESCurrent;
       bankOffset[writeNESIndex[i]]=bankOffsetNES[i];
       bankOffsetNESCurrent+=howMuchWillBeWritten;
+      // force the first bank
+      w->writeC(0x68);
+      w->writeC(0x6c);
+      w->writeC(0x07);
+      w->writeC(bankOffsetNES[i]&0xff);
+      w->writeC((bankOffsetNES[i]>>8)&0xff);
+      w->writeC((bankOffsetNES[i]>>16)&0xff);
+      w->writeC(0x00);
+      w->writeC(0xc0);
+      w->writeC(0x00);
+      w->writeC(0x00);
+      w->writeC(0x40);
+      w->writeC(0x00);
     }
   }
 
