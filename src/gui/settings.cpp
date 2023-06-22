@@ -1922,6 +1922,9 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_EDITING,"Editing");
               UI_COLOR_CONFIG(GUI_COLOR_SONG_LOOP,"Song loop");
               UI_COLOR_CONFIG(GUI_COLOR_PLAYBACK_STAT,"Playback status");
+              UI_COLOR_CONFIG(GUI_COLOR_DESTRUCTIVE,"Destructive hint");
+              UI_COLOR_CONFIG(GUI_COLOR_WARNING,"Warning hint");
+              UI_COLOR_CONFIG(GUI_COLOR_ERROR,"Error hint");
               ImGui::TreePop();
             }
             if (ImGui::TreeNode("File Picker (built-in)")) {
