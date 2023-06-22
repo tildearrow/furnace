@@ -622,11 +622,14 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
             }
           }
           break;
-        case 1: // set sample freq
+        case 1: { // set sample freq
+          int realFreq=write.val;
+          if (realFreq<0) realFreq=0;
+          if (realFreq>44100) realFreq=44100;
           w->writeC(0x92);
           w->writeC(streamID);
-          w->writeI(write.val);
-          loopFreq[streamID]=write.val;
+          w->writeI(realFreq);
+          loopFreq[streamID]=realFreq;
           if (pendingFreq[streamID]!=-1) {
             DivSample* sample=song.sample[pendingFreq[streamID]];
             w->writeC(0x95);
@@ -641,6 +644,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
             pendingFreq[streamID]=-1;
           }
           break;
+        }
         case 2: // stop sample
           w->writeC(0x94);
           w->writeC(streamID);
