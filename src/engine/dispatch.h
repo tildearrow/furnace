@@ -284,6 +284,8 @@ struct DivRegWrite {
    *   - xx is the instance ID
    * - 0xffffxx03: set sample playback direction
    *   - x is the instance ID
+   * - 0xffffxx04: switch sample bank
+   *   - for use in VGM export
    * - 0xffffffff: reset
    */
   unsigned int addr;

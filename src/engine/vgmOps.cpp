@@ -1094,6 +1094,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   DivDispatch* writeRF5C68[2]={NULL,NULL};
   DivDispatch* writeMSM6295[2]={NULL,NULL};
   DivDispatch* writeGA20[2]={NULL,NULL};
+  DivDispatch* writeNES[2]={NULL,NULL};
 
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
@@ -1164,11 +1165,13 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           CHIP_VOL(20,1.7);
           willExport[i]=true;
           writeNESSamples=true;
+          writeNES[0]=disCont[i].dispatch;
         } else if (!(hasNES&0x40000000)) {
           isSecond[i]=true;
           CHIP_VOL_SECOND(20,1.7);
           willExport[i]=true;
           hasNES|=0x40000000;
+          writeNES[1]=disCont[i].dispatch;
           howManyChips++;
         }
         break;
@@ -1967,6 +1970,16 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->writeI(writeGA20[i]->getSampleMemCapacity());
       w->writeI(0);
       w->write(writeGA20[i]->getSampleMem(),writeGA20[i]->getSampleMemUsage());
+    }
+    // TODO
+    if (writeNES[i]!=NULL && writeNES[i]->getSampleMemUsage()>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x07);
+      w->writeI((writeNES[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(writeNES[i]->getSampleMemCapacity());
+      w->writeI(0);
+      w->write(writeNES[i]->getSampleMem(),writeNES[i]->getSampleMemUsage());
     }
   }
 
