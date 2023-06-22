@@ -583,7 +583,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         unsigned int bankAddr=bankOffset+(write.val<<14);
         w->writeC(0x68);
         w->writeC(0x6c);
-        w->writeC(0x07);
+        w->writeC(0x07|(isSecond?0x80:0x00));
         w->writeC(bankAddr&0xff);
         w->writeC((bankAddr>>8)&0xff);
         w->writeC((bankAddr>>16)&0xff);
@@ -2017,7 +2017,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       // force the first bank
       w->writeC(0x68);
       w->writeC(0x6c);
-      w->writeC(0x07);
+      w->writeC(0x07|(i?0x80:0x00));
       w->writeC(bankOffsetNES[i]&0xff);
       w->writeC((bankOffsetNES[i]>>8)&0xff);
       w->writeC((bankOffsetNES[i]>>16)&0xff);
