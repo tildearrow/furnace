@@ -1054,6 +1054,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   bool willExport[DIV_MAX_CHIPS];
   bool isSecond[DIV_MAX_CHIPS];
   int streamIDs[DIV_MAX_CHIPS];
+  
   double loopTimer[DIV_MAX_CHANS];
   double loopFreq[DIV_MAX_CHANS];
   int loopSample[DIV_MAX_CHANS];
@@ -1095,6 +1096,9 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   DivDispatch* writeMSM6295[2]={NULL,NULL};
   DivDispatch* writeGA20[2]={NULL,NULL};
   DivDispatch* writeNES[2]={NULL,NULL};
+
+  size_t bankOffsetNESCurrent=0;
+  size_t bankOffsetNES[2]={0,0};
 
   for (int i=0; i<song.systemLen; i++) {
     willExport[i]=false;
@@ -1837,6 +1841,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     for (unsigned int j=0; j<sample->length8; j++) {
       w->writeC(((unsigned char)sample->data8[j]+0x80)>>1);
     }
+    bankOffsetNESCurrent+=sample->length8;
   }
 
   if (writePCESamples && !directStream) for (int i=0; i<song.sampleLen; i++) {
@@ -1973,13 +1978,14 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     }
     // TODO
     if (writeNES[i]!=NULL && writeNES[i]->getSampleMemUsage()>0) {
+      size_t howMuchWillBeWritten=writeNES[i]->getSampleMemUsage();
       w->writeC(0x67);
       w->writeC(0x66);
-      w->writeC(0x07);
-      w->writeI((writeNES[i]->getSampleMemUsage()+8)|(i*0x80000000));
-      w->writeI(writeNES[i]->getSampleMemCapacity());
-      w->writeI(0);
-      w->write(writeNES[i]->getSampleMem(),writeNES[i]->getSampleMemUsage());
+      w->writeC(7);
+      w->writeI(howMuchWillBeWritten);
+      w->write(writeNES[i]->getSampleMem(),howMuchWillBeWritten);
+      bankOffsetNES[i]=bankOffsetNESCurrent;
+      bankOffsetNESCurrent+=howMuchWillBeWritten;
     }
   }
 
@@ -2231,6 +2237,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           }
           // write write
           performVGMWrite(w,song.system[i.first],i.second.write,streamIDs[i.first],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i.first],pendingFreq,playingSample,directStream);
+          // handle global Furnace commands
+
           writeCount++;
         }
         sortedWrites.clear();
