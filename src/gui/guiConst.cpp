@@ -743,7 +743,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_EDITING,"",ImVec4(0.2f,0.1f,0.1f,1.0f)),
   D(GUI_COLOR_SONG_LOOP,"",ImVec4(0.3f,0.5f,0.8f,0.4f)),
   D(GUI_COLOR_DESTRUCTIVE,"",ImVec4(0.2f,0.2f,0.8f,1.0f)),
-  D(GUI_COLOR_WARNING,"",ImVec4(0.98f,0.87f,0.06f,1.0f))
+  D(GUI_COLOR_WARNING,"",ImVec4(0.98f,0.87f,0.06f,1.0f)),
   D(GUI_COLOR_ERROR,"",ImVec4(0.98f,0.06f,0.11f,1.0f)),
 
   D(GUI_COLOR_FILE_DIR,"",ImVec4(0.0f,1.0f,1.0f,1.0f)),
