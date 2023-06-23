@@ -166,6 +166,10 @@ void FurnaceGUI::drawSampleEdit() {
 
       ImGui::Separator();
 
+      // TODO
+      String warnLoop, warnLoopType, warnLoopPos;
+      String warnLength;
+
       bool isChipVisible[DIV_MAX_CHIPS];
       bool isTypeVisible[DIV_MAX_SAMPLE_TYPE];
       bool isMemVisible[DIV_MAX_SAMPLE_TYPE][DIV_MAX_CHIPS];
