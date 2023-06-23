@@ -6575,6 +6575,7 @@ FurnaceGUI::FurnaceGUI():
   portrait(false),
   injectBackUp(false),
   mobileMenuOpen(false),
+  warnColorPushed(false),
   wantCaptureKeyboard(false),
   oldWantCaptureKeyboard(false),
   displayMacroMenu(false),

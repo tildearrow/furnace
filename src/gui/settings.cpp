@@ -3495,6 +3495,35 @@ void FurnaceGUI::popAccentColors() {
   ImGui::PopStyleColor(24);
 }
 
+void FurnaceGUI::pushDestColor() {
+  pushAccentColors(uiColors[GUI_COLOR_DESTRUCTIVE],uiColors[GUI_COLOR_DESTRUCTIVE],uiColors[GUI_COLOR_DESTRUCTIVE],ImVec4(0.0f,0.0f,0.0f,0.0f));
+}
+
+void FurnaceGUI::popDestColor() {
+  popAccentColors();
+}
+
+void FurnaceGUI::pushWarningColor(bool warnCond, bool errorCond) {
+  if (warnColorPushed) {
+    logE("warnColorPushed");
+    abort();
+  }
+  if (errorCond) {
+    pushAccentColors(uiColors[GUI_COLOR_ERROR],uiColors[GUI_COLOR_ERROR],uiColors[GUI_COLOR_ERROR],ImVec4(0.0f,0.0f,0.0f,0.0f));
+    warnColorPushed=true;
+  } else if (warnCond) {
+    pushAccentColors(uiColors[GUI_COLOR_WARNING],uiColors[GUI_COLOR_WARNING],uiColors[GUI_COLOR_WARNING],ImVec4(0.0f,0.0f,0.0f,0.0f));
+    warnColorPushed=true;
+  }
+}
+
+void FurnaceGUI::popWarningColor() {
+  if (warnColorPushed) {
+    popAccentColors();
+    warnColorPushed=false;
+  }
+}
+
 #define IGFD_FileStyleByExtension IGFD_FileStyleByExtention
 
 #ifdef _WIN32

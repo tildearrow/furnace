@@ -1299,7 +1299,7 @@ class FurnaceGUI {
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
   bool vgmExportDirectStream, displayInsTypeList;
-  bool portrait, injectBackUp, mobileMenuOpen;
+  bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
@@ -2083,6 +2083,11 @@ class FurnaceGUI {
 
   void pushAccentColors(const ImVec4& one, const ImVec4& two, const ImVec4& border, const ImVec4& borderShadow);
   void popAccentColors();
+
+  void pushDestColor();
+  void popDestColor();
+  void pushWarningColor(bool warnCond, bool errorCond=false);
+  void popWarningColor();
 
   float calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD);
 
