@@ -1074,15 +1074,6 @@ void FurnaceGUI::drawSampleList(bool asChild) {
       }
     }
     ImGui::SameLine();
-    pushDestColor();
-    if (ImGui::Button(ICON_FA_TIMES "##SampleDelete")) {
-      doAction(GUI_ACTION_SAMPLE_LIST_DELETE);
-    }
-    popDestColor();
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Delete");
-    }
-    ImGui::SameLine();
     if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSampleL")) {
       doAction(GUI_ACTION_SAMPLE_LIST_PREVIEW);
     }
@@ -1095,6 +1086,15 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Stop preview");
+    }
+    ImGui::SameLine();
+    pushDestColor();
+    if (ImGui::Button(ICON_FA_TIMES "##SampleDelete")) {
+      doAction(GUI_ACTION_SAMPLE_LIST_DELETE);
+    }
+    popDestColor();
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Delete");
     }
     ImGui::Separator();
     if (ImGui::BeginTable("SampleListScroll",1,ImGuiTableFlags_ScrollY)) {
