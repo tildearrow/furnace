@@ -17,7 +17,7 @@ Buttons from left to right:
 ![instruments window in folder view](instruments-folder.png)
 
 In folder view, the "Move up" and "Move down buttons disappear and a new one appears:
-- **New Folder**: Creates a new folder.
+- **New folder**: Creates a new folder.
 
 Instruments may be dragged from folder to folder and even rearranged within folders without changing their associated numbers.
 
