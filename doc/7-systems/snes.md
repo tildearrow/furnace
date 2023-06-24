@@ -22,58 +22,58 @@ Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) i
 
 # effects
 
-- `10xx`: set waveform.
-- `11xx`: toggle noise mode.
-- `12xx`: toggle echo on this channel.
-- `13xx`: toggle pitch modulation.
-- `14xy`: toggle inverting the left or right channels (x: left, y: right).
-- `15xx`: set envelope mode.
+- **`10xx`**: set waveform.
+- **`11xx`**: toggle noise mode.
+- **`12xx`**: toggle echo on this channel.
+- **`13xx`**: toggle pitch modulation.
+- **`14xy`**: toggle inverting the left or right channels (x: left, y: right).
+- **`15xx`**: set envelope mode.
   - 0: ADSR.
   - 1: gain (direct).
   - 2: linear decrement.
   - 3: exponential decrement.
   - 4: linear increment.
   - 5: bent line (inverse log) increment.
-- `16xx`: set gain (00 to 7F if direct, 00 to 1F otherwise).
-- `18xx`: enable echo buffer.
-- `19xx`: set echo delay
+- **`16xx`**: set gain (00 to 7F if direct, 00 to 1F otherwise).
+- **`18xx`**: enable echo buffer.
+- **`19xx`**: set echo delay
   - goes from 0 to F.
-- `1Axx`: set left echo channel volume.
+- **`1Axx`**: set left echo channel volume.
   - this is a signed number.
   - 00 to 7F for 0 to 127.
   - 80 to FF for -128 to -1.
     - setting this to -128 is not recommended as it may cause echo output to overflow and therefore click.
-- `1Bxx`: set right echo channel volume.
+- **`1Bxx`**: set right echo channel volume.
   - this is a signed number.
   - 00 to 7F for 0 to 127.
   - 80 to FF for -128 to -1.
     - setting this to -128 is not recommended as it may cause echo output to overflow and therefore click.
-- `1Cxx`: set echo feedback.
+- **`1Cxx`**: set echo feedback.
   - this is a signed number.
   - 00 to 7F for 0 to 127.
   - 80 to FF for -128 to -1.
     - setting this to -128 is not recommended as it may cause echo output to overflow and therefore click.
-- `1Dxx`: set noise generator frequency (00 to 1F).
-- `1Exx`: set left dry/global volume.
+- **`1Dxx`**: set noise generator frequency (00 to 1F).
+- **`1Exx`**: set left dry/global volume.
   - this does not affect echo.
-- `1Fxx`: set right dry/global volume.
+- **`1Fxx`**: set right dry/global volume.
   - this does not affect echo.
-- `20xx`: set attack (0 to F).
+- **`20xx`**: set attack (0 to F).
   - only in ADSR envelope mode.
-- `21xx`: set decay (0 to 7).
+- **`21xx`**: set decay (0 to 7).
   - only in ADSR envelope mode.
-- `22xx`: set sustain (0 to 7).
+- **`22xx`**: set sustain (0 to 7).
   - only in ADSR envelope mode.
-- `23xx`: set release (00 to 1F).
+- **`23xx`**: set release (00 to 1F).
   - only in ADSR envelope mode.
-- `30xx`: set echo filter coefficient 0.
-- `31xx`: set echo filter coefficient 1.
-- `32xx`: set echo filter coefficient 2.
-- `33xx`: set echo filter coefficient 3.
-- `34xx`: set echo filter coefficient 4.
-- `35xx`: set echo filter coefficient 5.
-- `36xx`: set echo filter coefficient 6.
-- `37xx`: set echo filter coefficient 7.
+- **`30xx`**: set echo filter coefficient 0.
+- **`31xx`**: set echo filter coefficient 1.
+- **`32xx`**: set echo filter coefficient 2.
+- **`33xx`**: set echo filter coefficient 3.
+- **`34xx`**: set echo filter coefficient 4.
+- **`35xx`**: set echo filter coefficient 5.
+- **`36xx`**: set echo filter coefficient 6.
+- **`37xx`**: set echo filter coefficient 7.
   - all of these are signed numbers.
   - 00 to 7F for 0 to 127.
   - 80 to FF for -128 to -1.

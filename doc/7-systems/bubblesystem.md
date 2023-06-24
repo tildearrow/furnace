@@ -10,4 +10,4 @@ Furnace emulates this configuration as a "chip" with 32x16 wavetables.
 
 # effects
 
-- `10xx`: change wave.
+- **`10xx`**: change wave.
