@@ -249,6 +249,15 @@ void FurnaceGUI::drawSampleEdit() {
           default:
             break;
         }
+        if (e->song.system[i]!=DIV_SYSTEM_PCM_DAC) {
+          if (e->song.system[i]==DIV_SYSTEM_ES5506) {
+            if (sample->loopMode==DIV_SAMPLE_LOOP_BACKWARD) {
+              SAMPLE_WARN(warnLoopMode,"ES5506: backward loop mode isn't supported");
+            }
+          } else if (sample->loopMode!=DIV_SAMPLE_LOOP_FORWARD) {
+            SAMPLE_WARN(warnLoopMode,"backward/ping-pong only supported in Generic PCM DAC\nping-pong also on ES5506");
+          }
+        }
 
         // chips grid
         DivDispatch* dispatch=e->getDispatch(i);
@@ -513,6 +522,9 @@ void FurnaceGUI::drawSampleEdit() {
               }
             }
             ImGui::EndCombo();
+          }
+          if (ImGui::IsItemHovered() && !warnLoopMode.empty()) {
+            ImGui::SetTooltip("%s",warnLoopMode.c_str());
           }
           popWarningColor();
 
