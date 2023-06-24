@@ -508,6 +508,14 @@ void FurnaceGUI::drawSettings() {
             settings.alwaysPlayIntro=3;
           }
 
+          ImGui::Text("When creating new song:");
+          if (ImGui::RadioButton("Display system preset selector##NSB0",settings.newSongBehavior==0)) {
+            settings.newSongBehavior=0;
+          }
+          if (ImGui::RadioButton("Start with initial system##NSB1",settings.newSongBehavior==1)) {
+            settings.newSongBehavior=1;
+          }
+
           ImGui::Separator();
 
           if (CWSliderFloat("Double-click time (seconds)",&settings.doubleClickTime,0.02,1.0,"%.2f")) {
@@ -2757,6 +2765,7 @@ void FurnaceGUI::syncSettings() {
   settings.renderClearPos=e->getConfInt("renderClearPos",0);
   settings.insertBehavior=e->getConfInt("insertBehavior",1);
   settings.pullDeleteRow=e->getConfInt("pullDeleteRow",1);
+  settings.newSongBehavior=e->getConfInt("newSongBehavior",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2882,6 +2891,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.renderClearPos,0,1);
   clampSetting(settings.insertBehavior,0,1);
   clampSetting(settings.pullDeleteRow,0,1);
+  clampSetting(settings.newSongBehavior,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3103,6 +3113,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("renderClearPos",settings.renderClearPos);
   e->setConf("insertBehavior",settings.insertBehavior);
   e->setConf("pullDeleteRow",settings.pullDeleteRow);
+  e->setConf("newSongBehavior",settings.newSongBehavior);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

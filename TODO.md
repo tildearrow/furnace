@@ -3,7 +3,6 @@
 - tutorial?
 - ease-of-use improvements... ideas:
   - preset compat flags
-  - setting to toggle the Choose a System screen on new project
   - maybe reduced set of presets for the sake of simplicity
   - a more preferable highlight/drag system
   - some speed/intuitive workflow improvements that go a long way 

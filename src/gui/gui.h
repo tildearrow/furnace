@@ -1508,6 +1508,7 @@ class FurnaceGUI {
     int renderClearPos;
     int insertBehavior;
     int pullDeleteRow;
+    int newSongBehavior;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1659,6 +1660,7 @@ class FurnaceGUI {
       renderClearPos(0),
       insertBehavior(1),
       pullDeleteRow(1),
+      newSongBehavior(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
