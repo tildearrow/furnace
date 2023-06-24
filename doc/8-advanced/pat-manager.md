@@ -4,9 +4,9 @@ The pattern manager is useful for cleaning up stray patterns and as an overview 
 
 ![pattern manager dialog](pattern-manager.png)
 
-"De-duplicate patterns" looks for matching patterns, eliminates all but the first instance, and changes all references in the order list to match.
+**De-duplicate patterns** looks for matching patterns, eliminates all but the first instance, and changes all references in the order list to match.
 
-"Re-arrange patterns" renumbers patterns to be in sequence, along with changing all references in the order list to match.
+**Re-arrange patterns** renumbers patterns to be in sequence, along with changing all references in the order list to match.
 
 The pattern grid shows each channel and all its patterns. These are color-coded to show how much they're used in the song; these colors can be changed in Settings.
 

@@ -4,7 +4,7 @@ The **chip manager** window does exactly what it says.
 
 ![chip manager](chip-manager.png)
 
-"Preserve channel order" will make existing pattern data stay in place even when chips are rearranged. If turned off, pattern data will rearrange to match (the default, and usually the desired behavior).
+**Preserve channel order**: Make existing pattern data stay in place even when chips are rearranged. If turned off, pattern data will rearrange to match (the default, and usually the desired behavior).
 
 To move a chip around, click and drag the ![crossed-arrows](chip-manager-move.png) button to its left.
 
