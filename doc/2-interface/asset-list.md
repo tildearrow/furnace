@@ -3,21 +3,20 @@
 ![instruments window](instruments.png)
 
 Buttons from left to right:
-- **Add:** Creates a new, default instrument.
-- **Duplicate:** Duplicates the currently selected instrument.
-- **Open:** Brings up a file dialog to load a file as a new instrument at the end of the list.
-- **Save:** Brings up a file dialog to save the currently selected instrument.
-- **Toggle folders/standard view:** Enables (and disables) folder view, explained below.
-- **Move up:** Moves the currently selected instrument up in the list. Pattern data will automatically be adjusted to match.
-- **Move down:** Same, but downward.
-- **Delete:** Deletes the currently selected instrument. Pattern data will be adjusted to use the next available instrument in the list.
+- ![](asset-add.png) **Add:** Creates a new, default instrument.
+- ![](asset-duplicate.png) **Duplicate:** Duplicates the currently selected instrument.
+- ![](asset-open.png) **Open:** Brings up a file dialog to load a file as a new instrument at the end of the list.
+- ![](asset-save.png) **Save:** Brings up a file dialog to save the currently selected instrument.
+- ![](asset-folderview.png) **Toggle folders/standard view:** Enables (and disables) folder view, explained below.
+- ![](asset-move.png) **Move up** and **Move down:** Moves the currently selected instrument in the list. Pattern data will automatically be adjusted to match.
+- ![](asset-delete.png) **Delete:** Deletes the currently selected instrument. Pattern data will be adjusted to use the next available instrument in the list.
 
 ## folder view
 
 ![instruments window in folder view](instruments-folder.png)
 
-In folder view, the "Move up" and "Move down buttons disappear and a new one appears:
-- **New Folder:** Creates a new folder.
+In folder view, the "Move up" and "Move down" buttons disappear and a new one appears:
+- ![](asset-newfolder.png) **New Folder:** Creates a new folder.
 
 Instruments may be dragged from folder to folder and even rearranged within folders without changing their associated numbers.
 
@@ -34,5 +33,5 @@ Everything from the instrument list applies here also, with one major difference
 ![samples window](samples.png)
 
 Everything from the wavetables list applies here also, with the addition of two buttons:
-- **Preview:** Plays the selected sample at its default note.
-- **Stop preview:** Stops the sample playback.
+- ![](asset-preview.png) **Preview:** Plays the selected sample at its default note.
+- ![](asset-previewstop.png) **Stop preview:** Stops the sample playback.
