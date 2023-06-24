@@ -43,6 +43,12 @@ const double timeMultipliers[13]={
 #define CENTER_TEXT(text) \
   ImGui::SetCursorPosX(ImGui::GetCursorPosX()+0.5*(ImGui::GetContentRegionAvail().x-ImGui::CalcTextSize(text).x));
 
+#define SAMPLE_WARN(_x,_text) \
+  if (_x.find(_text)==String::npos) { \
+    if (!_x.empty()) _x+='\n'; \
+    _x+=_text; \
+  }
+
 void FurnaceGUI::drawSampleEdit() {
   if (nextWindow==GUI_WINDOW_SAMPLE_EDIT) {
     sampleEditOpen=true;
@@ -166,8 +172,7 @@ void FurnaceGUI::drawSampleEdit() {
 
       ImGui::Separator();
 
-      // TODO
-      String warnLoop, warnLoopType, warnLoopPos;
+      String warnLoop, warnLoopMode, warnLoopPos;
       String warnLength;
 
       bool isChipVisible[DIV_MAX_CHIPS];
@@ -178,7 +183,74 @@ void FurnaceGUI::drawSampleEdit() {
       memset(isTypeVisible,0,DIV_MAX_SAMPLE_TYPE*sizeof(bool));
       memset(isMemVisible,0,DIV_MAX_CHIPS*DIV_MAX_SAMPLE_TYPE*sizeof(bool));
       memset(isMemWarning,0,DIV_MAX_CHIPS*DIV_MAX_SAMPLE_TYPE*sizeof(bool));
+
       for (int i=0; i<e->song.systemLen; i++) {
+        // warnings
+        switch (e->song.system[i]) {
+          case DIV_SYSTEM_SNES:
+            if (sample->loop) {
+              if (sample->loopStart&15 || sample->loopEnd&15) {
+                SAMPLE_WARN(warnLoopPos,"SNES: loop must be a multiple of 16");
+              }
+            }
+            break;
+          case DIV_SYSTEM_QSOUND:
+            if (sample->loop) {
+              if (sample->loopEnd-sample->loopStart>32767) {
+                SAMPLE_WARN(warnLoopPos,"QSound: loop cannot be longer than 32767 samples");
+              }
+            }
+            break;
+          case DIV_SYSTEM_NES:
+            if (sample->loop) {
+              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples-1)) {
+                SAMPLE_WARN(warnLoopPos,"NES: loop point ignored on DPCM (may only loop entire sample)");
+              }
+            }
+            break;
+          case DIV_SYSTEM_X1_010:
+            if (sample->loop) {
+              SAMPLE_WARN(warnLoop,"X1-010: samples can't loop");
+            }
+            break;
+          case DIV_SYSTEM_GA20:
+            if (sample->loop) {
+              SAMPLE_WARN(warnLoop,"GA20: samples can't loop");
+            }
+            break;
+          case DIV_SYSTEM_YM2608:
+          case DIV_SYSTEM_YM2608_EXT:
+          case DIV_SYSTEM_YM2608_CSM:
+            if (sample->loop) {
+              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples-1)) {
+                SAMPLE_WARN(warnLoopPos,"YM2608: loop point ignored on ADPCM-B (may only loop entire sample)");
+              }
+            }
+            break;
+          case DIV_SYSTEM_YM2610_FULL:
+          case DIV_SYSTEM_YM2610_FULL_EXT:
+          case DIV_SYSTEM_YM2610_CSM:
+          case DIV_SYSTEM_YM2610B:
+          case DIV_SYSTEM_YM2610B_EXT:
+            if (sample->loop) {
+              SAMPLE_WARN(warnLoop,"YM2610: ADPCM-A samples can't loop");
+              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples-1)) {
+                SAMPLE_WARN(warnLoopPos,"YM2608: loop point ignored on ADPCM-B (may only loop entire sample)");
+              }
+            }
+            break;
+          case DIV_SYSTEM_AMIGA:
+            if (sample->loop) {
+              if (sample->loopStart&1 || sample->loopEnd&1) {
+                SAMPLE_WARN(warnLoopPos,"Amiga: loop must be a multiple of 2");
+              }
+            }
+            break;
+          default:
+            break;
+        }
+
+        // chips grid
         DivDispatch* dispatch=e->getDispatch(i);
         if (dispatch==NULL) continue;
 
@@ -190,6 +262,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (!dispatch->isSampleLoaded(j,curSample)) isMemWarning[j][i]=true;
         }
       }
+
       int selColumns=1;
       for (int i=0; i<DIV_MAX_CHIPS; i++) {
         if (isChipVisible[i]) selColumns++;
@@ -222,6 +295,7 @@ void FurnaceGUI::drawSampleEdit() {
         popToggleColors();
         ImGui::TableNextColumn();
         bool doLoop=(sample->loop);
+        pushWarningColor(!warnLoop.empty());
         if (ImGui::Checkbox("Loop",&doLoop)) { MARK_MODIFIED
           if (doLoop) {
             sample->loop=true;
@@ -242,8 +316,12 @@ void FurnaceGUI::drawSampleEdit() {
             e->renderSamplesP();
           }
         }
-        if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
-          ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
+        popWarningColor();
+        if (ImGui::IsItemHovered() && (!warnLoop.empty() || sample->depth==DIV_SAMPLE_DEPTH_BRR)) {
+          if (sample->depth==DIV_SAMPLE_DEPTH_BRR) {
+            SAMPLE_WARN(warnLoop,"changing the loop in a BRR sample may result in glitches!");
+          }
+          ImGui::SetTooltip("%s",warnLoop.c_str());
         }
 
         if (selColumns>1) {
@@ -421,6 +499,7 @@ void FurnaceGUI::drawSampleEdit() {
           keepLoopAlive=false;
           ImGui::Text("Mode");
           ImGui::SameLine();
+          pushWarningColor(!warnLoopMode.empty());
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
           if (ImGui::BeginCombo("##SampleLoopMode",loopType.c_str())) {
             for (int i=0; i<DIV_SAMPLE_LOOP_MAX; i++) {
@@ -435,7 +514,9 @@ void FurnaceGUI::drawSampleEdit() {
             }
             ImGui::EndCombo();
           }
+          popWarningColor();
 
+          pushWarningColor(!warnLoopPos.empty());
           ImGui::Text("Start");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -454,8 +535,11 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::IsItemActive()) {
             keepLoopAlive=true;
           }
-          if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
-            ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
+          if (ImGui::IsItemHovered() && (!warnLoopPos.empty() || sample->depth==DIV_SAMPLE_DEPTH_BRR)) {
+            if (sample->depth==DIV_SAMPLE_DEPTH_BRR) {
+              SAMPLE_WARN(warnLoopPos,"changing the loop in a BRR sample may result in glitches!");
+            }
+            ImGui::SetTooltip("%s",warnLoopPos.c_str());
           }
 
           ImGui::Text("End");
@@ -476,9 +560,13 @@ void FurnaceGUI::drawSampleEdit() {
           if (ImGui::IsItemActive()) {
             keepLoopAlive=true;
           }
-          if (ImGui::IsItemHovered() && sample->depth==DIV_SAMPLE_DEPTH_BRR) {
-            ImGui::SetTooltip("changing the loop in a BRR sample may result in glitches!");
+          if (ImGui::IsItemHovered() && (!warnLoopPos.empty() || sample->depth==DIV_SAMPLE_DEPTH_BRR)) {
+            if (sample->depth==DIV_SAMPLE_DEPTH_BRR) {
+              SAMPLE_WARN(warnLoopPos,"changing the loop in a BRR sample may result in glitches!");
+            }
+            ImGui::SetTooltip("%s",warnLoopPos.c_str());
           }
+          popWarningColor();
           ImGui::EndDisabled();
 
           if (selColumns>1) {
