@@ -203,7 +203,7 @@ void FurnaceGUI::drawSampleEdit() {
             break;
           case DIV_SYSTEM_NES:
             if (sample->loop) {
-              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples-1)) {
+              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
                 SAMPLE_WARN(warnLoopPos,"NES: loop point ignored on DPCM (may only loop entire sample)");
               }
             }
@@ -222,7 +222,7 @@ void FurnaceGUI::drawSampleEdit() {
           case DIV_SYSTEM_YM2608_EXT:
           case DIV_SYSTEM_YM2608_CSM:
             if (sample->loop) {
-              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples-1)) {
+              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
                 SAMPLE_WARN(warnLoopPos,"YM2608: loop point ignored on ADPCM-B (may only loop entire sample)");
               }
             }
@@ -234,7 +234,7 @@ void FurnaceGUI::drawSampleEdit() {
           case DIV_SYSTEM_YM2610B_EXT:
             if (sample->loop) {
               SAMPLE_WARN(warnLoop,"YM2610: ADPCM-A samples can't loop");
-              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples-1)) {
+              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
                 SAMPLE_WARN(warnLoopPos,"YM2608: loop point ignored on ADPCM-B (may only loop entire sample)");
               }
             }
