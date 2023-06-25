@@ -1,8 +1,8 @@
 # effect list
 
-Most of the effect numbers are from ProTracker / FastTracker 2.
+most of the effect numbers are from ProTracker / FastTracker 2.
 
-However, effects are continuous, which means you only need to type it once and then stop it with an effect value of `00` or no effect value at all.
+however, effects are continuous, which means you only need to type it once and then stop it with an effect value of `00` or no effect value at all.
 
 ## volume
 
@@ -18,11 +18,12 @@ However, effects are continuous, which means you only need to type it once and t
   - If `y` is 0 then this is a slide up.
 
 - `07xy`: **Tremolo.** changes volume to be "wavy" with a sine LFO. `x` is the speed, while `y` is the depth.
+  - Tremolo is downward only.
   - Maximum tremolo depth is -60 volume steps.
 
 ## pitch
 
-- `E5xx`: **Set pitch.** `00 is -1 semitone, `80` is base pitch, `FF` is nearly +1 semitone.
+- `E5xx`: **Set pitch.** `00` is -1 semitone, `80` is base pitch, `FF` is nearly +1 semitone.
 - `01xx`: **Pitch slide up.**
 - `02xx`: **Pitch slide down.**
 - `F1xx`: **Single tick pitch slide up.**
@@ -46,7 +47,7 @@ However, effects are continuous, which means you only need to type it once and t
 
 ## panning
 
-Not all chips support these effects.
+not all chips support these effects.
 
 - `08xy`: **Set panning.** changes stereo volumes independently. `x` is the left channel and `y` is the right one.
 - `88xy`: **Set rear panning.** changes rear channel volumes independently. `x` is the rear left channel and `y` is the rear right one.
@@ -91,7 +92,7 @@ Not all chips support these effects.
 - `F5xx`: **Disable macro.** see macro table at the end of this document for possible values.
 - `F6xx`: **Enable macro.**
 
-Additionally, [each chip has its own effects](../7-systems/README.md).
+additionally, [each chip has its own effects](../7-systems/README.md).
 
 ## macro table
 
