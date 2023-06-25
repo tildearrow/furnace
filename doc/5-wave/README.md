@@ -11,7 +11,7 @@ Furnace's wavetable editor features multiple ways of creating desired waveform s
   - **Exponent**: Powers the waveform in the mathematical sense of the word (^2, ^3 and so on)
   - **XOR Point**: Determines the point where the waveform gets negated.
   - _TODO:_ amplitude/phase part
-- **FM** For creating the waveform with frequency modulation synthesis principles: One can set carrier/modulation levels, frquency multiplier, connection between operators and FM waveforms of these operators.
+- **FM** for creating the waveform with frequency modulation synthesis principles: One can set carrier/modulation levels, frquency multiplier, connection between operators and FM waveforms of these operators.
 - **WaveTools**: Allows user to fine-tune the waveform: scale said waveform in both X and Y axes, smoothen, amplify, normalize, convert to signed/unisgned, invert or even randomize the wavetable.
 
 ## wavetable synthesizer

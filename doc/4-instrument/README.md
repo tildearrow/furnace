@@ -52,9 +52,9 @@ Each macro has two buttons on the left.
 
 Every macro can be defined though one of three methods, selectable with the leftmost button under the macro type label:
 
-- ![](macro-button-seq.png) **Sequence:** Displayed as a bar graph, this is a sequence of numeric values.
-- ![](macro-button-ADSR.png) **ADSR:** This is a traditional ADSR envelope, defined by the rate of increase and decrease of value over time.
-- ![](macro-button-LFO.png) **LFO:** The Low Frequency Oscillator generates a repeating wave of values.
+- ![](macro-button-seq.png) **Sequence:** displayed as a bar graph, this is a sequence of numeric values.
+- ![](macro-button-ADSR.png) **ADSR:** this is a traditional ADSR envelope, defined by the rate of increase and decrease of value over time.
+- ![](macro-button-LFO.png) **LFO:** the Low Frequency Oscillator generates a repeating wave of values.
 
 Some macros are "bitmap" style. They represent a number of "bits" that can be toggled individually, and the values listed represent the sum of which bits are turned on.
 

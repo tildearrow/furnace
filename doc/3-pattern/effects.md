@@ -12,12 +12,12 @@ However, effects are continuous, which means you only need to type it once and t
 - `F8xx`: **Single tick volume slide up.**
 - `F9xx`: **Single tick volume slide down.**
 - `F3xx`: **Fine volume slide up.** 64× slower than `0Axy`.
-- `F4xx`: **Fine volume slide down.** 64x slower than `0Axy`.
+- `F4xx`: **Fine volume slide down.** 64× slower than `0Axy`.
 - `FAxy`: **Fast volume slide.** 4× faster than `0Axy`.
   - If `x` is 0 then this is a slide down.
   - If `y` is 0 then this is a slide up.
 
-- `07xy`: **Tremolo.** Changes volume to be "wavy" with a sine LFO. `x` is the speed, while `y` is the depth.
+- `07xy`: **Tremolo.** changes volume to be "wavy" with a sine LFO. `x` is the speed, while `y` is the depth.
   - Maximum tremolo depth is -60 volume steps.
 
 ## pitch
@@ -28,15 +28,15 @@ However, effects are continuous, which means you only need to type it once and t
 - `F1xx`: **Single tick pitch slide up.**
 - `F2xx`: **Single tick pitch slide down.**
 
-- `03xx`: **Portamento.** Slides the current note's pitch to the specified note.
+- `03xx`: **Portamento.** slides the current note's pitch to the specified note.
   - A note _must_ be present for this effect to work.
 - `E1xy`: **Note slide up.** `x` is the speed, while `y` is how many semitones to slide up.
 - `E2xy`: **Note slide down.** `x` is the speed, while `y` is how many semitones to slide down.
-- `EAxx`: **Toggle legato.** While on, notes instantly change the pitch of the currrently playing sound instead of starting it over.
-- `00xy`: **Arpeggio.** After using this effect the channel will rapidly switch between semitone values of `note`, `note + x` and `note + y`.
-- `E0xx`: **Set arpeggio speed.** This sets the number of ticks between arpeggio values.
+- `EAxx`: **Toggle legato.** while on, notes instantly change the pitch of the currrently playing sound instead of starting it over.
+- `00xy`: **Arpeggio.** after using this effect the channel will rapidly switch between semitone values of `note`, `note + x` and `note + y`.
+- `E0xx`: **Set arpeggio speed.** this sets the number of ticks between arpeggio values.
 
-- `04xy`: **Vibrato.** Changes pitch to be "wavy" with a sine LFO. `x` is the speed, while `y` is the depth.
+- `04xy`: **Vibrato.** changes pitch to be "wavy" with a sine LFO. `x` is the speed, while `y` is the depth.
   - Maximum vibrato depth is ±1 semitone.
 - `E3xx`: **Set vibrato direction.** `xx` may be one of the following:
   - `00`: Up and down.
@@ -48,10 +48,10 @@ However, effects are continuous, which means you only need to type it once and t
 
 Not all chips support these effects.
 
-- `08xy`: **Set panning.** Changes stereo volumes independently. `x` is the left channel and `y` is the right one.
-- `88xy`: **Set rear panning.** Changes rear channel volumes independently. `x` is the rear left channel and `y` is the rear right one.
+- `08xy`: **Set panning.** changes stereo volumes independently. `x` is the left channel and `y` is the right one.
+- `88xy`: **Set rear panning.** changes rear channel volumes independently. `x` is the rear left channel and `y` is the rear right one.
 
-- `80xx`: **Set panning (linear).** This effect behaves more like other trackers:
+- `80xx`: **Set panning (linear).** this effect behaves more like other trackers:
   - `00` is left.
   - `80` is center.
   - `FF` is right.
@@ -62,33 +62,33 @@ Not all chips support these effects.
 
 ## time
 
-- `09xx`: **Set speed/groove.** If no grooves are defined, this sets speed. If alternating speeds are active, this sets the first speed.
-- `0Fxx`: **Set speed 2.** During alternating speeds or a groove, this sets the second speed.
+- `09xx`: **Set speed/groove.** if no grooves are defined, this sets speed. If alternating speeds are active, this sets the first speed.
+- `0Fxx`: **Set speed 2.** during alternating speeds or a groove, this sets the second speed.
 
-- `Cxxx`: **Set tick rate.** Changes tick rate to `xxx` Hz (ticks per second).
+- `Cxxx`: **Set tick rate.** changes tick rate to `xxx` Hz (ticks per second).
   - `xxx` may be from `000` to `3ff`.
-- `F0xx`: **Set BPM.** Changes tick rate according to beats per minute.
+- `F0xx`: **Set BPM.** changes tick rate according to beats per minute.
 
-- `0Bxx`: **Jump to order.** This can be used to loop a song.
-- `0Dxx`: **Jump to next pattern.** This can be used to shorten the current order.
-- `FFxx`: **Stop song.** Stops playback and ends the song.
+- `0Bxx`: **Jump to order.** this can be used to loop a song.
+- `0Dxx`: **Jump to next pattern.** this can be used to shorten the current order.
+- `FFxx`: **Stop song.** stops playback and ends the song.
 
 ## note
 
-- `0Cxx`: **Retrigger.** Repeats current note every `xx` ticks.
+- `0Cxx`: **Retrigger.** repeats current note every `xx` ticks.
   - This effect is not continuous; it must be entered on every row.
-- `ECxx`: **Note cut.** Ends current note after `xx` ticks. For FM instruments, it's equivalent to a "key off".
-- `EDxx`: **Note delay.** Delays note by `x` ticks.
+- `ECxx`: **Note cut.** ends current note after `xx` ticks. For FM instruments, it's equivalent to a "key off".
+- `EDxx`: **Note delay.** delays note by `x` ticks.
 
 ## other
 
-- `9xxx`: **Set sample position.** Jumps current sample to position `xxx \* 0x100`.
+- `9xxx`: **Set sample position.** jumps current sample to position `xxx \* 0x100`.
   - Not all chips support this effect.
 - `EBxx`: **Set sample bank.**
   - Does not apply on Amiga.
 - `EExx`: **Send external command.**
   - This effect is currently incomplete.
-- `F5xx`: **Disable macro.** See macro table at the end of this document for possible values.
+- `F5xx`: **Disable macro.** see macro table at the end of this document for possible values.
 - `F6xx`: **Enable macro.**
 
 Additionally, [each chip has its own effects](../7-systems/README.md).
