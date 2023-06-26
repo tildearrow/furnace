@@ -25,14 +25,14 @@ Right-clicking on the piano keys will make the buttons disappear; right-clicking
 ## options
 
 Key layout:
-- [Automatic]
-- [Standard]: Black keys are 2/3 length.
-- [Continuous]: Black keys are full length.
+- **Automatic**
+- **Standard**: Black keys are 2/3 length.
+- **Continuous**: Black keys are full length.
 
 Value input pad: (document this)
-- [Disabled]
-- [Replace piano]
-- [Split (automatic)]
-- [Split (always visible)]
+- **Disabled**
+- **Replace piano**
+- **Split (automatic)**
+- **Split (always visible)**
 
-[Share play/edit offset/range]: (document this)
+**Share play/edit offset/range**: (document this)

@@ -346,7 +346,11 @@ void DivPlatformNES::tick(bool sysTick) {
           rWrite(0x4012,(dpcmAddr>>6)&0xff);
           rWrite(0x4013,dpcmLen&0xff);
           rWrite(0x4015,31);
-          dpcmBank=dpcmAddr>>14;
+          if (dpcmBank!=(dpcmAddr>>14)) {
+            dpcmBank=dpcmAddr>>14;
+            logV("switching bank to %d",dpcmBank);
+            if (dumpWrites) addWrite(0xffff0004,dpcmBank);
+          }
         }
       } else {
         if (nextDPCMFreq>=0) {
@@ -425,7 +429,11 @@ int DivPlatformNES::dispatch(DivCommand c) {
             rWrite(0x4012,(dpcmAddr>>6)&0xff);
             rWrite(0x4013,dpcmLen&0xff);
             rWrite(0x4015,31);
-            dpcmBank=dpcmAddr>>14;
+            if (dpcmBank!=(dpcmAddr>>14)) {
+              dpcmBank=dpcmAddr>>14;
+              logV("switching bank to %d",dpcmBank);
+              if (dumpWrites) addWrite(0xffff0004,dpcmBank);
+            }
           }
         }
         break;
@@ -854,6 +862,7 @@ int DivPlatformNES::init(DivEngine* p, int channels, int sugRate, const DivConfi
   dpcmMem=new unsigned char[262144];
   dpcmMemLen=0;
   dpcmBank=0;
+  if (dumpWrites) addWrite(0xffff0004,dpcmBank);
 
   init_nla_table(500,500);
   reset();

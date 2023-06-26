@@ -508,6 +508,14 @@ void FurnaceGUI::drawSettings() {
             settings.alwaysPlayIntro=3;
           }
 
+          ImGui::Text("When creating new song:");
+          if (ImGui::RadioButton("Display system preset selector##NSB0",settings.newSongBehavior==0)) {
+            settings.newSongBehavior=0;
+          }
+          if (ImGui::RadioButton("Start with initial system##NSB1",settings.newSongBehavior==1)) {
+            settings.newSongBehavior=1;
+          }
+
           ImGui::Separator();
 
           if (CWSliderFloat("Double-click time (seconds)",&settings.doubleClickTime,0.02,1.0,"%.2f")) {
@@ -1922,6 +1930,9 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_EDITING,"Editing");
               UI_COLOR_CONFIG(GUI_COLOR_SONG_LOOP,"Song loop");
               UI_COLOR_CONFIG(GUI_COLOR_PLAYBACK_STAT,"Playback status");
+              UI_COLOR_CONFIG(GUI_COLOR_DESTRUCTIVE,"Destructive hint");
+              UI_COLOR_CONFIG(GUI_COLOR_WARNING,"Warning hint");
+              UI_COLOR_CONFIG(GUI_COLOR_ERROR,"Error hint");
               ImGui::TreePop();
             }
             if (ImGui::TreeNode("File Picker (built-in)")) {
@@ -2755,6 +2766,7 @@ void FurnaceGUI::syncSettings() {
   settings.renderClearPos=e->getConfInt("renderClearPos",0);
   settings.insertBehavior=e->getConfInt("insertBehavior",1);
   settings.pullDeleteRow=e->getConfInt("pullDeleteRow",1);
+  settings.newSongBehavior=e->getConfInt("newSongBehavior",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2880,6 +2892,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.renderClearPos,0,1);
   clampSetting(settings.insertBehavior,0,1);
   clampSetting(settings.pullDeleteRow,0,1);
+  clampSetting(settings.newSongBehavior,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3101,6 +3114,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("renderClearPos",settings.renderClearPos);
   e->setConf("insertBehavior",settings.insertBehavior);
   e->setConf("pullDeleteRow",settings.pullDeleteRow);
+  e->setConf("newSongBehavior",settings.newSongBehavior);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -3491,6 +3505,35 @@ void FurnaceGUI::pushAccentColors(const ImVec4& one, const ImVec4& two, const Im
 
 void FurnaceGUI::popAccentColors() {
   ImGui::PopStyleColor(24);
+}
+
+void FurnaceGUI::pushDestColor() {
+  pushAccentColors(uiColors[GUI_COLOR_DESTRUCTIVE],uiColors[GUI_COLOR_DESTRUCTIVE],uiColors[GUI_COLOR_DESTRUCTIVE],ImVec4(0.0f,0.0f,0.0f,0.0f));
+}
+
+void FurnaceGUI::popDestColor() {
+  popAccentColors();
+}
+
+void FurnaceGUI::pushWarningColor(bool warnCond, bool errorCond) {
+  if (warnColorPushed) {
+    logE("warnColorPushed");
+    abort();
+  }
+  if (errorCond) {
+    pushAccentColors(uiColors[GUI_COLOR_ERROR],uiColors[GUI_COLOR_ERROR],uiColors[GUI_COLOR_ERROR],ImVec4(0.0f,0.0f,0.0f,0.0f));
+    warnColorPushed=true;
+  } else if (warnCond) {
+    pushAccentColors(uiColors[GUI_COLOR_WARNING],uiColors[GUI_COLOR_WARNING],uiColors[GUI_COLOR_WARNING],ImVec4(0.0f,0.0f,0.0f,0.0f));
+    warnColorPushed=true;
+  }
+}
+
+void FurnaceGUI::popWarningColor() {
+  if (warnColorPushed) {
+    popAccentColors();
+    warnColorPushed=false;
+  }
 }
 
 #define IGFD_FileStyleByExtension IGFD_FileStyleByExtention

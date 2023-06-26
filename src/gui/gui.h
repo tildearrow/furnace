@@ -126,6 +126,9 @@ enum FurnaceGUIColors {
   GUI_COLOR_TOGGLE_ON,
   GUI_COLOR_EDITING,
   GUI_COLOR_SONG_LOOP,
+  GUI_COLOR_DESTRUCTIVE,
+  GUI_COLOR_WARNING,
+  GUI_COLOR_ERROR,
 
   GUI_COLOR_FILE_DIR,
   GUI_COLOR_FILE_SONG_NATIVE,
@@ -1297,7 +1300,7 @@ class FurnaceGUI {
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
   bool vgmExportDirectStream, displayInsTypeList;
-  bool portrait, injectBackUp, mobileMenuOpen;
+  bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
@@ -1506,6 +1509,7 @@ class FurnaceGUI {
     int renderClearPos;
     int insertBehavior;
     int pullDeleteRow;
+    int newSongBehavior;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1657,6 +1661,7 @@ class FurnaceGUI {
       renderClearPos(0),
       insertBehavior(1),
       pullDeleteRow(1),
+      newSongBehavior(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -2081,6 +2086,11 @@ class FurnaceGUI {
 
   void pushAccentColors(const ImVec4& one, const ImVec4& two, const ImVec4& border, const ImVec4& borderShadow);
   void popAccentColors();
+
+  void pushDestColor();
+  void popDestColor();
+  void pushWarningColor(bool warnCond, bool errorCond=false);
+  void popWarningColor();
 
   float calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD);
 

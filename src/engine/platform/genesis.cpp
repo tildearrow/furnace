@@ -1166,6 +1166,11 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
   return 1;
 }
 
+#define DRSLD2R(x) \
+  if (chan[i].state.op[x].dr<dr) dr=chan[i].state.op[x].dr; \
+  if (chan[i].state.op[x].sl<sl) sl=chan[i].state.op[x].sl; \
+  if (chan[i].state.op[x].d2r<d2r) d2r=chan[i].state.op[x].d2r;
+
 void DivPlatformGenesis::forceIns() {
   for (int i=0; i<6; i++) {
     for (int j=0; j<4; j++) {
@@ -1190,7 +1195,29 @@ void DivPlatformGenesis::forceIns() {
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     if (chan[i].active) {
-      if (i<5 || !chan[i].dacMode) {
+      bool sustained=false;
+      unsigned char dr=chan[i].state.op[3].dr;
+      unsigned char sl=chan[i].state.op[3].sl;
+      unsigned char d2r=chan[i].state.op[3].d2r;
+
+      switch (chan[i].state.alg&7) {
+        case 4:
+          DRSLD2R(2);
+          break;
+        case 5:
+        case 6:
+          DRSLD2R(2);
+          DRSLD2R(1);
+          break;
+        case 7:
+          DRSLD2R(2);
+          DRSLD2R(1);
+          DRSLD2R(3);
+          break;
+      }
+
+      if (dr<2 || (sl<15 && d2r<2)) sustained=true;
+      if ((i<5 || !chan[i].dacMode) && sustained) {
         chan[i].keyOn=true;
         chan[i].freqChanged=true;
       }

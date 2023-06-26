@@ -2,13 +2,13 @@
 
 Atari Lynx instrument editor consists of these macros:
 
-- [Volume] - volume sequence
-- [Arpeggio] - pitch in half-steps
-- [Duty/Int] - bit pattern for LFSR taps and integration
-- [Panning (left)] - output level for left channel
-- [Panning (right)] - output level for right channel
-- [Pitch] - fine pitch
-- [Phase Reset] - trigger restart of waveform
+- **Volume**: volume sequence
+- **Arpeggio**: pitch in half-steps
+- **Duty/Int**: bit pattern for LFSR taps and integration
+- **Panning (left)**: output level for left channel
+- **Panning (right)**: output level for right channel
+- **Pitch**: fine pitch
+- **Phase Reset**: trigger restart of waveform
 
 ## Audio generation description
 

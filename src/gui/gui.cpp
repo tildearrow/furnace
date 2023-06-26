@@ -5076,7 +5076,24 @@ bool FurnaceGUI::loop() {
       newSongQuery="";
       newSongFirstFrame=true;
       displayNew=false;
-      ImGui::OpenPopup("New Song");
+      if (settings.newSongBehavior==1) {
+        e->createNewFromDefaults();
+        undoHist.clear();
+        redoHist.clear();
+        curFileName="";
+        modified=false;
+        curNibble=false;
+        orderNibble=false;
+        orderCursor=-1;
+        samplePos=0;
+        updateSampleTex=true;
+        selStart=SelectionPoint();
+        selEnd=SelectionPoint();
+        cursor=SelectionPoint();
+        updateWindowTitle();
+      } else {
+        ImGui::OpenPopup("New Song");
+      }
     }
 
     if (displayEditString) {
@@ -6575,6 +6592,7 @@ FurnaceGUI::FurnaceGUI():
   portrait(false),
   injectBackUp(false),
   mobileMenuOpen(false),
+  warnColorPushed(false),
   wantCaptureKeyboard(false),
   oldWantCaptureKeyboard(false),
   displayMacroMenu(false),

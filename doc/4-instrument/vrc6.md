@@ -2,10 +2,10 @@
 
 The VRC6 (regular) instrument editor consists of these macros:
 
-- [Volume] - volume sequence
-- [Arpeggio] - pitch sequence
-- [Duty] - specifies duty cycle for pulse wave channels
-- [Pitch] - fine pitch
+- **Volume**: volume sequence
+- **Arpeggio**: pitch sequence
+- **Duty**: specifies duty cycle for pulse wave channels
+- **Pitch**: fine pitch
 
 ## VRC6 (saw) instrument editor
 

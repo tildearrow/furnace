@@ -92,6 +92,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
       ImGui::SetTooltip("Add");
     }
     ImGui::SameLine();
+    pushDestColor();
     if (ImGui::Button(ICON_FA_MINUS "##SubSongDel")) {
       if (e->song.subsong.size()<=1) {
         showError("this is the only subsong!");
@@ -99,6 +100,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
         showWarning("are you sure you want to remove this subsong?",GUI_WARN_SUBSONG_DEL);
       }
     }
+    popDestColor();
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Remove");
     }

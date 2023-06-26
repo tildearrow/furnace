@@ -9,7 +9,7 @@ Furnace isn't complete without this one...
 
 # effects
 
-- `10xx` select shape. `xx` may be one of:
+- **`10xx`**: select shape. `xx` may be one of:
   - 0: nothing
   - 1: buzzy
   - 2: low buzzy
