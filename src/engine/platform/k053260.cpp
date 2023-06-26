@@ -471,7 +471,7 @@ void DivPlatformK053260::renderSamples(int sysID) {
     }
 
     int length=MIN(65535,s->getEndPosition(DIV_SAMPLE_DEPTH_8BIT));
-    int actualLength=MIN((int)(getSampleMemCapacity()-memPos),length);
+    int actualLength=MIN((int)(getSampleMemCapacity()-memPos-1),length);
     if (actualLength>0) {
       sampleOffK053260[i]=memPos-1;
       for (int j=0; j<actualLength; j++) {
