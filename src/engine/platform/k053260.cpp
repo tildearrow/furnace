@@ -477,6 +477,7 @@ void DivPlatformK053260::renderSamples(int sysID) {
       for (int j=0; j<actualLength; j++) {
         sampleMem[memPos++]=s->data8[j];
       }
+      sampleMem[memPos++]=0; // Silence for avoid popping noise
     }
     if (actualLength<length) {
       logW("out of K053260 PCM memory for sample %d!",i);
