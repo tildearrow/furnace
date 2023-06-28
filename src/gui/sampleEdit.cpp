@@ -246,6 +246,13 @@ void FurnaceGUI::drawSampleEdit() {
               }
             }
             break;
+          case DIV_SYSTEM_K053260:
+            if (sample->loop) {
+              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
+                SAMPLE_WARN(warnLoopPos,"K053260: loop point ignored (may only loop entire sample)");
+              }
+            }
+            break;
           default:
             break;
         }
