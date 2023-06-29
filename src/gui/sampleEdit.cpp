@@ -200,6 +200,9 @@ void FurnaceGUI::drawSampleEdit() {
                 SAMPLE_WARN(warnLoopPos,"QSound: loop cannot be longer than 32767 samples");
               }
             }
+            if (sample->samples>65535) {
+              SAMPLE_WARN(warnLength,"QSound: maximum sample length is 65535");
+            }
             break;
           case DIV_SYSTEM_NES:
             if (sample->loop) {
@@ -207,10 +210,16 @@ void FurnaceGUI::drawSampleEdit() {
                 SAMPLE_WARN(warnLoopPos,"NES: loop point ignored on DPCM (may only loop entire sample)");
               }
             }
+            if (sample->samples>32648) {
+              SAMPLE_WARN(warnLength,"NES: maximum DPCM sample length is 32648");
+            }
             break;
           case DIV_SYSTEM_X1_010:
             if (sample->loop) {
               SAMPLE_WARN(warnLoop,"X1-010: samples can't loop");
+            }
+            if (sample->samples>131072) {
+              SAMPLE_WARN(warnLength,"X1-010: maximum sample length is 131072");
             }
             break;
           case DIV_SYSTEM_GA20:
@@ -235,8 +244,11 @@ void FurnaceGUI::drawSampleEdit() {
             if (sample->loop) {
               SAMPLE_WARN(warnLoop,"YM2610: ADPCM-A samples can't loop");
               if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
-                SAMPLE_WARN(warnLoopPos,"YM2608: loop point ignored on ADPCM-B (may only loop entire sample)");
+                SAMPLE_WARN(warnLoopPos,"YM2610: loop point ignored on ADPCM-B (may only loop entire sample)");
               }
+            }
+            if (sample->samples>2097152) {
+              SAMPLE_WARN(warnLength,"YM2610: maximum ADPCM-A sample length is 2097152");
             }
             break;
           case DIV_SYSTEM_AMIGA:
@@ -244,6 +256,15 @@ void FurnaceGUI::drawSampleEdit() {
               if (sample->loopStart&1 || sample->loopEnd&1) {
                 SAMPLE_WARN(warnLoopPos,"Amiga: loop must be a multiple of 2");
               }
+            }
+            if (sample->samples>131070) {
+              SAMPLE_WARN(warnLength,"Amiga: maximum sample length is 131070");
+            }
+            break;
+          case DIV_SYSTEM_SEGAPCM:
+          case DIV_SYSTEM_SEGAPCM_COMPAT:
+            if (sample->samples>65280) {
+              SAMPLE_WARN(warnLength,"SegaPCM: maximum sample length is 65280");
             }
             break;
           case DIV_SYSTEM_K053260:
@@ -1721,7 +1742,16 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::TableNextColumn();
           ImGui::TextUnformatted(statusBar2.c_str());
           ImGui::TableNextColumn();
-          ImGui::TextUnformatted(statusBar3.c_str());
+          if (!warnLength.empty()) {
+            ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_WARNING]);
+            ImGui::TextUnformatted(statusBar3.c_str());
+            ImGui::PopStyleColor();
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("%s",warnLength.c_str());
+            }
+          } else {
+            ImGui::TextUnformatted(statusBar3.c_str());
+          }
 
           ImGui::EndTable();
         }
