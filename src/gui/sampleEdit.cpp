@@ -273,6 +273,9 @@ void FurnaceGUI::drawSampleEdit() {
                 SAMPLE_WARN(warnLoopPos,"K053260: loop point ignored (may only loop entire sample)");
               }
             }
+            if (sample->samples>65535) {
+              SAMPLE_WARN(warnLength,"K053260: maximum sample length is 65535");
+            }
             break;
           default:
             break;
