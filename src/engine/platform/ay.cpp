@@ -120,7 +120,7 @@ void DivPlatformAY8910::runDAC() {
       bool end=false;
       bool changed=false;
       int prevOut=chan[i].dac.out;
-      while (chan[i].dac.period>rate && !end) {
+      while (chan[i].dac.period>dacRate && !end) {
         DivSample* s=parent->getSample(chan[i].dac.sample);
         if (s->samples<=0) {
           chan[i].dac.sample=-1;
@@ -143,7 +143,7 @@ void DivPlatformAY8910::runDAC() {
           end=true;
           break;
         }
-        chan[i].dac.period-=rate;
+        chan[i].dac.period-=dacRate;
       }
       if (changed && !end) {
         if (!isMuted[i]) {
@@ -187,9 +187,9 @@ void DivPlatformAY8910::acquire(short** buf, size_t len) {
       buf[0][i]=ayBuf[0][0];
       buf[1][i]=buf[0][i];
 
-      oscBuf[0]->data[oscBuf[0]->needle++]=sunsoftVolTable[31-(ay->lastIndx&31)]>>3;
-      oscBuf[1]->data[oscBuf[1]->needle++]=sunsoftVolTable[31-((ay->lastIndx>>5)&31)]>>3;
-      oscBuf[2]->data[oscBuf[2]->needle++]=sunsoftVolTable[31-((ay->lastIndx>>10)&31)]>>3;
+      oscBuf[0]->data[oscBuf[0]->needle++]=CLAMP(sunsoftVolTable[31-(ay->lastIndx&31)]<<3,-32768,32767);
+      oscBuf[1]->data[oscBuf[1]->needle++]=CLAMP(sunsoftVolTable[31-((ay->lastIndx>>5)&31)]<<3,-32768,32767);
+      oscBuf[2]->data[oscBuf[2]->needle++]=CLAMP(sunsoftVolTable[31-((ay->lastIndx>>10)&31)]<<3,-32768,32767);
     }
   } else {
     for (size_t i=0; i<len; i++) {
@@ -797,6 +797,7 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
     chipClock=extClock;
     rate=chipClock/extDiv;
     clockSel=false;
+    dacRate=chipClock/dacRateDiv;
   } else {
     clockSel=flags.getBool("halfClock",false);
     switch (flags.getInt("clockSel",0)) {
@@ -851,6 +852,7 @@ void DivPlatformAY8910::setFlags(const DivConfig& flags) {
     }
     CHECK_CUSTOM_CLOCK;
     rate=chipClock/8;
+    dacRate=rate;
   }
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate;

@@ -57,6 +57,7 @@ class DivPlatformGB: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   bool antiClickEnabled;
+  bool invertWave;
   bool enoughAlready;
   unsigned char lastPan;
   DivWaveSynth ws;

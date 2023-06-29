@@ -2,9 +2,6 @@
 
 // uncomment and modify defines under for customize ImGuiFileDialog
 
-//this options need c++17
-//#define USE_STD_FILESYSTEM
-
 //#define MAX_FILE_DIALOG_NAME_BUFFER 1024
 //#define MAX_PATH_BUFFER_SIZE 1024
 
@@ -80,9 +77,9 @@
 //#define DateTimeFormat "%Y/%m/%d %i:%M%p"
 
 // theses icons will appear in table headers
-//#define USE_CUSTOM_SORTING_ICON
-//#define tableHeaderAscendingIcon "A|"
-//#define tableHeaderDescendingIcon "D|"
+#define USE_CUSTOM_SORTING_ICON
+#define tableHeaderAscendingIcon ICON_FA_CHEVRON_UP " "
+#define tableHeaderDescendingIcon ICON_FA_CHEVRON_DOWN " "
 //#define tableHeaderFileNameString " File name"
 //#define tableHeaderFileTypeString " Type"
 //#define tableHeaderFileSizeString " Size"

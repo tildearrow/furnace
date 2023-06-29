@@ -58,9 +58,9 @@ void DivPlatformSM8521::acquire(short** buf, size_t len) {
     sm8521_sound_tick(&sm8521,8);
     buf[0][h]=sm8521.out<<6;
     for (int i=0; i<2; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=sm8521.sg[i].base.out<<6;
+      oscBuf[i]->data[oscBuf[i]->needle++]=sm8521.sg[i].base.out<<7;
     }
-    oscBuf[2]->data[oscBuf[2]->needle++]=sm8521.noise.base.out<<6;
+    oscBuf[2]->data[oscBuf[2]->needle++]=sm8521.noise.base.out<<7;
   }
 }
 

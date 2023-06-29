@@ -1444,9 +1444,6 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
   
   // extra attributes
   song.subsong[0]->hz=c.getDouble("tickRate",60.0);
-  if (song.subsong[0]->hz!=60.0) {
-    song.subsong[0]->customTempo=true;
-  }
 }
 
 void DivEngine::createNew(const char* description, String sysName, bool inBase64) {
@@ -1572,6 +1569,35 @@ void DivEngine::changeSong(size_t songIndex) {
   prevRow=0;
 }
 
+void DivEngine::moveAsset(std::vector<DivAssetDir>& dir, int before, int after) {
+  if (before<0 || after<0) return;
+  for (DivAssetDir& i: dir) {
+    for (size_t j=0; j<i.entries.size(); j++) {
+      // erase matching entry
+      if (i.entries[j]==before) {
+        i.entries[j]=after;
+      } else if (i.entries[j]==after) {
+        i.entries[j]=before;
+      }
+    }
+  }
+}
+
+void DivEngine::removeAsset(std::vector<DivAssetDir>& dir, int entry) {
+  if (entry<0) return;
+  for (DivAssetDir& i: dir) {
+    for (size_t j=0; j<i.entries.size(); j++) {
+      // erase matching entry
+      if (i.entries[j]==entry) {
+        i.entries.erase(i.entries.begin()+j);
+        j--;
+      } else if (i.entries[j]>entry) {
+        i.entries[j]--;
+      }
+    }
+  }
+}
+
 void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
   bool* inAssetDir=new bool[entries];
   memset(inAssetDir,0,entries*sizeof(bool));
@@ -1584,9 +1610,16 @@ void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
         j--;
         continue;
       }
+
+      // erase duplicate entry
+      if (inAssetDir[i.entries[j]]) {
+        i.entries.erase(i.entries.begin()+j);
+        j--;
+        continue;
+      }
       
       // mark entry as present
-      inAssetDir[j]=true;
+      inAssetDir[i.entries[j]]=true;
     }
   }
 
@@ -1599,15 +1632,14 @@ void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
     }
   }
 
-  // create unsorted directory if it doesn't exist
-  if (unsortedDir==NULL) {
-    dir.push_back(DivAssetDir(""));
-    unsortedDir=&(*dir.rbegin());
-  }
-
   // add missing items to unsorted directory
   for (size_t i=0; i<entries; i++) {
     if (!inAssetDir[i]) {
+      // create unsorted directory if it doesn't exist
+      if (unsortedDir==NULL) {
+        dir.push_back(DivAssetDir(""));
+        unsortedDir=&(*dir.rbegin());
+      }
       unsortedDir->entries.push_back(i);
     }
   }
@@ -2034,11 +2066,17 @@ String DivEngine::getPlaybackDebugInfo() {
     "divider: %f\n"
     "cycles: %d\n"
     "clockDrift: %f\n"
+    "midiClockCycles: %d\n"
+    "midiClockDrift: %f\n"
+    "midiTimeCycles: %d\n"
+    "midiTimeDrift: %f\n"
     "changeOrd: %d\n"
     "changePos: %d\n"
     "totalSeconds: %d\n"
     "totalTicks: %d\n"
     "totalTicksR: %d\n"
+    "curMidiClock: %d\n"
+    "curMidiTime: %d\n"
     "totalCmds: %d\n"
     "lastCmds: %d\n"
     "cmdsPerSecond: %d\n"
@@ -2048,7 +2086,8 @@ String DivEngine::getPlaybackDebugInfo() {
     "totalProcessed: %d\n"
     "bufferPos: %d\n",
     curOrder,prevOrder,curRow,prevRow,ticks,subticks,totalLoops,lastLoopPos,nextSpeed,divider,cycles,clockDrift,
-    changeOrd,changePos,totalSeconds,totalTicks,totalTicksR,totalCmds,lastCmds,cmdsPerSecond,globalPitch,
+    midiClockCycles,midiClockDrift,midiTimeCycles,midiTimeDrift,changeOrd,changePos,totalSeconds,totalTicks,
+    totalTicksR,curMidiClock,curMidiTime,totalCmds,lastCmds,cmdsPerSecond,globalPitch,
     (int)extValue,(int)tempoAccum,(int)totalProcessed,(int)bufferPos
   );
 }
@@ -2165,16 +2204,27 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   prevOrder=0;
   prevRow=0;
   stepPlay=0;
-  int prevDrift;
+  if (curSubSong!=NULL) curSubSong->arpLen=1;
+  int prevDrift, prevMidiClockDrift, prevMidiTimeDrift;
   prevDrift=clockDrift;
+  prevMidiClockDrift=midiClockDrift;
+  prevMidiTimeDrift=midiTimeDrift;
   clockDrift=0;
   cycles=0;
+  midiClockCycles=0;
+  midiClockDrift=0;
+  midiTimeCycles=0;
+  midiTimeDrift=0;
   if (!preserveDrift) {
     ticks=1;
     tempoAccum=0;
     totalTicks=0;
     totalSeconds=0;
     totalTicksR=0;
+    curMidiClock=0;
+    curMidiTime=0;
+    curMidiTimeCode=0;
+    curMidiTimePiece=0;
     totalLoops=0;
     lastLoopPos=-1;
   }
@@ -2191,12 +2241,20 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
       skipping=false;
       return;
     }
+    if (!preserveDrift) {
+      runMidiClock(cycles);
+      runMidiTime(cycles);
+    }
   }
   int oldOrder=curOrder;
   while (playing && (curRow<goalRow || ticks>1)) {
     if (nextTick(preserveDrift)) {
       skipping=false;
       return;
+    }
+    if (!preserveDrift) {
+      runMidiClock(cycles);
+      runMidiTime(cycles);
     }
     if (oldOrder!=curOrder) break;
     if (ticks-((tempoAccum+curSubSong->virtualTempoN)/MAX(1,curSubSong->virtualTempoD))<1 && curRow>=goalRow) break;
@@ -2211,9 +2269,22 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   repeatPattern=oldRepeatPattern;
   if (preserveDrift) {
     clockDrift=prevDrift;
+    midiClockDrift=prevMidiClockDrift;
+    midiTimeDrift=prevMidiTimeDrift;
   } else {
     clockDrift=0;
     cycles=0;
+    midiClockCycles=0;
+    midiClockDrift=0;
+    midiTimeCycles=0;
+    midiTimeDrift=0;
+    if (curMidiTime>0) {
+      curMidiTime--;
+    }
+    if (curMidiClock>0) {
+      curMidiClock--;
+    }
+    curMidiTimePiece=0;
   }
   if (!preserveDrift) {
     ticks=1;
@@ -2382,9 +2453,74 @@ void DivEngine::play() {
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     keyHit[i]=false;
   }
+  curMidiTimePiece=0;
   if (output) if (!skipping && output->midiOut!=NULL) {
-    int pos=totalTicksR/6;
-    output->midiOut->send(TAMidiMessage(TA_MIDI_POSITION,(pos>>7)&0x7f,pos&0x7f));
+    if (midiOutClock) {
+      output->midiOut->send(TAMidiMessage(TA_MIDI_POSITION,(curMidiClock>>7)&0x7f,curMidiClock&0x7f));
+    }
+    if (midiOutTime) {
+      TAMidiMessage msg;
+      msg.type=TA_MIDI_SYSEX;
+      msg.sysExData.reset(new unsigned char[10],std::default_delete<unsigned char[]>());
+      msg.sysExLen=10;
+      unsigned char* msgData=msg.sysExData.get();
+      int actualTime=curMidiTime;
+      int timeRate=midiOutTimeRate;
+      int drop=0;
+      if (timeRate<1 || timeRate>4) {
+        if (curSubSong->hz>=47.98 && curSubSong->hz<=48.02) {
+          timeRate=1;
+        } else if (curSubSong->hz>=49.98 && curSubSong->hz<=50.02) {
+          timeRate=2;
+        } else if (curSubSong->hz>=59.9 && curSubSong->hz<=60.11) {
+          timeRate=4;
+        } else {
+          timeRate=4;
+        }
+      }
+
+      switch (timeRate) {
+        case 1: // 24
+          msgData[5]=(actualTime/(60*60*24))%24;
+          msgData[6]=(actualTime/(60*24))%60;
+          msgData[7]=(actualTime/24)%60;
+          msgData[8]=actualTime%24;
+          break;
+        case 2: // 25
+          msgData[5]=(actualTime/(60*60*25))%24;
+          msgData[6]=(actualTime/(60*25))%60;
+          msgData[7]=(actualTime/25)%60;
+          msgData[8]=actualTime%25;
+          break;
+        case 3: // 29.97 (NTSC drop)
+          // drop
+          drop=((actualTime/(30*60))-(actualTime/(30*600)))*2;
+          actualTime+=drop;
+
+          msgData[5]=(actualTime/(60*60*30))%24;
+          msgData[6]=(actualTime/(60*30))%60;
+          msgData[7]=(actualTime/30)%60;
+          msgData[8]=actualTime%30;
+          break;
+        case 4: // 30 (NTSC non-drop)
+        default:
+          msgData[5]=(actualTime/(60*60*30))%24;
+          msgData[6]=(actualTime/(60*30))%60;
+          msgData[7]=(actualTime/30)%60;
+          msgData[8]=actualTime%30;
+          break;
+      }
+
+      msgData[5]|=(timeRate-1)<<5;
+
+      msgData[0]=0xf0;
+      msgData[1]=0x7f;
+      msgData[2]=0x7f;
+      msgData[3]=0x01;
+      msgData[4]=0x01;
+      msgData[9]=0xf7;
+      output->midiOut->send(msg);
+    }
     output->midiOut->send(TAMidiMessage(TA_MIDI_MACHINE_PLAY,0,0));
   }
   BUSY_END;
@@ -2557,16 +2693,7 @@ void DivEngine::reset() {
   elapsedBars=0;
   elapsedBeats=0;
   nextSpeed=speeds.val[0];
-  divider=60;
-  if (curSubSong->customTempo) {
-    divider=curSubSong->hz;
-  } else {
-    if (curSubSong->pal) {
-      divider=60;
-    } else {
-      divider=50;
-    }
-  }
+  divider=curSubSong->hz;
   globalPitch=0;
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->reset();
@@ -2781,14 +2908,7 @@ const DivGroovePattern& DivEngine::getSpeeds() {
 }
 
 float DivEngine::getHz() {
-  if (curSubSong->customTempo) {
-    return curSubSong->hz;
-  } else if (curSubSong->pal) {
-    return 60.0;
-  } else {
-    return 50.0;
-  }
-  return 60.0;
+  return curSubSong->hz;
 }
 
 float DivEngine::getCurHz() {
@@ -2929,6 +3049,7 @@ int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
   saveLock.lock();
   song.ins.push_back(ins);
   song.insLen=insCount+1;
+  checkAssetDir(song.insDir,song.ins.size());
   saveLock.unlock();
   BUSY_END;
   return insCount;
@@ -2943,6 +3064,7 @@ int DivEngine::addInstrumentPtr(DivInstrument* which) {
   saveLock.lock();
   song.ins.push_back(which);
   song.insLen=song.ins.size();
+  checkAssetDir(song.insDir,song.ins.size());
   saveLock.unlock();
   BUSY_END;
   return song.insLen;
@@ -2979,6 +3101,8 @@ void DivEngine::delInstrument(int index) {
         }
       }
     }
+    removeAsset(song.insDir,index);
+    checkAssetDir(song.insDir,song.ins.size());
   }
   saveLock.unlock();
   BUSY_END;
@@ -2995,6 +3119,7 @@ int DivEngine::addWave() {
   int waveCount=(int)song.wave.size();
   song.wave.push_back(wave);
   song.waveLen=waveCount+1;
+  checkAssetDir(song.waveDir,song.wave.size());
   saveLock.unlock();
   BUSY_END;
   return waveCount;
@@ -3011,6 +3136,7 @@ int DivEngine::addWavePtr(DivWavetable* which) {
   int waveCount=(int)song.wave.size();
   song.wave.push_back(which);
   song.waveLen=waveCount+1;
+  checkAssetDir(song.waveDir,song.wave.size());
   saveLock.unlock();
   BUSY_END;
   return song.waveLen;
@@ -3090,15 +3216,17 @@ DivWavetable* DivEngine::waveFromFile(const char* path, bool addRaw) {
         // read as .dmw
         reader.seek(0,SEEK_SET);
         int len=reader.readI();
+        logD("wave length %d",len);
         if (len<=0 || len>256) {
           throw EndOfFileException(&reader,reader.size());
         }
+        wave->len=len;
         wave->max=(unsigned char)reader.readC();
         if (wave->max==255) { // new wavetable format
           unsigned char waveVersion=reader.readC();
           logI("reading modern .dmw...");
           logD("wave version %d",waveVersion);
-          wave->max=reader.readC();
+          wave->max=(unsigned char)reader.readC();
           for (int i=0; i<len; i++) {
             wave->data[i]=reader.readI();
           }
@@ -3163,6 +3291,8 @@ void DivEngine::delWave(int index) {
     delete song.wave[index];
     song.wave.erase(song.wave.begin()+index);
     song.waveLen=song.wave.size();
+    removeAsset(song.waveDir,index);
+    checkAssetDir(song.waveDir,song.wave.size());
   }
   saveLock.unlock();
   BUSY_END;
@@ -3183,6 +3313,7 @@ int DivEngine::addSample() {
   sPreview.sample=-1;
   sPreview.pos=0;
   sPreview.dir=false;
+  checkAssetDir(song.sampleDir,song.sample.size());
   saveLock.unlock();
   renderSamples();
   BUSY_END;
@@ -3200,6 +3331,7 @@ int DivEngine::addSamplePtr(DivSample* which) {
   saveLock.lock();
   song.sample.push_back(which);
   song.sampleLen=sampleCount+1;
+  checkAssetDir(song.sampleDir,song.sample.size());
   saveLock.unlock();
   renderSamples();
   BUSY_END;
@@ -3669,6 +3801,8 @@ void DivEngine::delSample(int index) {
     delete song.sample[index];
     song.sample.erase(song.sample.begin()+index);
     song.sampleLen=song.sample.size();
+    removeAsset(song.sampleDir,index);
+    checkAssetDir(song.sampleDir,song.sample.size());
     renderSamples();
   }
   saveLock.unlock();
@@ -3867,6 +4001,7 @@ bool DivEngine::moveInsUp(int which) {
   saveLock.lock();
   song.ins[which]=song.ins[which-1];
   song.ins[which-1]=prev;
+  moveAsset(song.insDir,which,which-1);
   exchangeIns(which,which-1);
   saveLock.unlock();
   BUSY_END;
@@ -3880,6 +4015,7 @@ bool DivEngine::moveWaveUp(int which) {
   saveLock.lock();
   song.wave[which]=song.wave[which-1];
   song.wave[which-1]=prev;
+  moveAsset(song.waveDir,which,which-1);
   saveLock.unlock();
   BUSY_END;
   return true;
@@ -3895,6 +4031,7 @@ bool DivEngine::moveSampleUp(int which) {
   saveLock.lock();
   song.sample[which]=song.sample[which-1];
   song.sample[which-1]=prev;
+  moveAsset(song.sampleDir,which,which-1);
   saveLock.unlock();
   renderSamples();
   BUSY_END;
@@ -3909,6 +4046,7 @@ bool DivEngine::moveInsDown(int which) {
   song.ins[which]=song.ins[which+1];
   song.ins[which+1]=prev;
   exchangeIns(which,which+1);
+  moveAsset(song.insDir,which,which+1);
   saveLock.unlock();
   BUSY_END;
   return true;
@@ -3921,6 +4059,7 @@ bool DivEngine::moveWaveDown(int which) {
   saveLock.lock();
   song.wave[which]=song.wave[which+1];
   song.wave[which+1]=prev;
+  moveAsset(song.waveDir,which,which+1);
   saveLock.unlock();
   BUSY_END;
   return true;
@@ -3936,6 +4075,7 @@ bool DivEngine::moveSampleDown(int which) {
   saveLock.lock();
   song.sample[which]=song.sample[which+1];
   song.sample[which+1]=prev;
+  moveAsset(song.sampleDir,which,which+1);
   saveLock.unlock();
   renderSamples();
   BUSY_END;
@@ -3978,6 +4118,10 @@ void DivEngine::autoPatchbayP() {
   autoPatchbay();
   saveLock.unlock();
   BUSY_END;
+}
+
+void DivEngine::recalcPatchbay() {
+
 }
 
 bool DivEngine::patchConnect(unsigned int src, unsigned int dest) {
@@ -4191,23 +4335,11 @@ void DivEngine::updateSysFlags(int system, bool restart) {
   BUSY_END;
 }
 
-void DivEngine::setSongRate(float hz, bool pal) {
+void DivEngine::setSongRate(float hz) {
   BUSY_BEGIN;
   saveLock.lock();
-  curSubSong->pal=!pal;
   curSubSong->hz=hz;
-  // what?
-  curSubSong->customTempo=true;
-  divider=60;
-  if (curSubSong->customTempo) {
-    divider=curSubSong->hz;
-  } else {
-    if (curSubSong->pal) {
-      divider=60;
-    } else {
-      divider=50;
-    }
-  }
+  divider=curSubSong->hz;
   saveLock.unlock();
   BUSY_END;
 }
@@ -4365,6 +4497,10 @@ void DivEngine::quitDispatch() {
   }
   cycles=0;
   clockDrift=0;
+  midiClockCycles=0;
+  midiClockDrift=0;
+  midiTimeCycles=0;
+  midiTimeDrift=0;
   chans=0;
   playing=false;
   curSpeed=0;
@@ -4381,6 +4517,10 @@ void DivEngine::quitDispatch() {
   totalTicks=0;
   totalSeconds=0;
   totalTicksR=0;
+  curMidiClock=0;
+  curMidiTime=0;
+  curMidiTimeCode=0;
+  curMidiTimePiece=0;
   totalCmds=0;
   lastCmds=0;
   cmdsPerSecond=0;
@@ -4407,6 +4547,8 @@ bool DivEngine::initAudioBackend() {
   lowLatency=getConfInt("lowLatency",0);
   metroVol=(float)(getConfInt("metroVol",100))/100.0f;
   midiOutClock=getConfInt("midiOutClock",0);
+  midiOutTime=getConfInt("midiOutTime",0);
+  midiOutTimeRate=getConfInt("midiOutTimeRate",0);
   midiOutProgramChange = getConfInt("midiOutProgramChange",0);
   midiOutMode=getConfInt("midiOutMode",DIV_MIDI_MODE_NOTE);
   if (metroVol<0.0f) metroVol=0.0f;

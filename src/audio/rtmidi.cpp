@@ -160,6 +160,7 @@ bool TAMidiInRtMidi::quit() {
 
 bool TAMidiOutRtMidi::send(const TAMidiMessage& what) {
   if (!isOpen) return false;
+  if (!isWorking) return false;
   if (what.type<0x80) return false;
   size_t len=0;
   switch (what.type&0xf0) {
@@ -190,6 +191,7 @@ bool TAMidiOutRtMidi::send(const TAMidiMessage& what) {
         port->sendMessage(what.sysExData.get(),len);
       } catch (RtMidiError& e) {
         logE("MIDI output error! %s",e.what());
+        isWorking=false;
         return false;
       }
       return true;
@@ -209,6 +211,7 @@ bool TAMidiOutRtMidi::send(const TAMidiMessage& what) {
     port->sendMessage((const unsigned char*)&what.type,len);
   } catch (RtMidiError& e) {
     logE("MIDI output error! %s",e.what());
+    isWorking=false;
     return false;
   }
   return true;
@@ -237,17 +240,20 @@ bool TAMidiOutRtMidi::openDevice(String name) {
     }
     isOpen=portOpen;
     if (!portOpen) logW("could not find MIDI out device...");
+    isWorking=true;
     return portOpen;
   } catch (RtMidiError& e) {
     logW("could not open MIDI out device! %s",e.what());
     return false;
   }
+  isWorking=true;
   return true;
 }
 
 bool TAMidiOutRtMidi::closeDevice() {
   if (port==NULL) return false;
   if (!isOpen) return false;
+  isWorking=false;
   try {
     port->closePort();
   } catch (RtMidiError& e) {

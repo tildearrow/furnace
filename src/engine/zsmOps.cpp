@@ -27,36 +27,42 @@ constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 constexpr int MASTER_CLOCK_MASK=(sizeof(void*)==8)?0xff:0;
 
 SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
+  int VERA=-1;
+  int YM=-1;
+  int IGNORED=0;
 
-  int VERA = -1;
-  int YM = -1;
-  int IGNORED = 0;
-
-  //loop = false;
   // find indexes for YM and VERA. Ignore other systems.
   for (int i=0; i<song.systemLen; i++) {
     switch (song.system[i]) {
       case DIV_SYSTEM_VERA:
-        if (VERA >= 0) { IGNORED++;break; }
-        VERA = i;
+        if (VERA>=0) {
+          IGNORED++;
+          break;
+        }
+        VERA=i;
         logD("VERA detected as chip id %d",i);
         break;
       case DIV_SYSTEM_YM2151:
-        if (YM >= 0) { IGNORED++;break; }
-        YM = i;
+        if (YM>=0) {
+          IGNORED++;
+          break;
+        }
+        YM=i;
         logD("YM detected as chip id %d",i);
         break;
       default:
         IGNORED++;
         logD("Ignoring chip %d systemID %d",i,song.system[i]);
+        break;
     }
   }
-  if (VERA < 0 && YM < 0) {
-  logE("No supported systems for ZSM");
-  return NULL;
+  if (VERA<0 && YM<0) {
+    logE("No supported systems for ZSM");
+    return NULL;
   }
-  if (IGNORED > 0)
+  if (IGNORED>0) {
     logW("ZSM export ignoring %d unsupported system%c",IGNORED,IGNORED>1?'s':' ');
+  }
 
   stop();
   repeatPattern=false;
@@ -64,7 +70,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   BUSY_BEGIN_SOFT;
 
   double origRate=got.rate;
-  got.rate=zsmrate & 0xffff;
+  got.rate=zsmrate&0xffff;
 
   // determine loop point
   int loopOrder=0;
@@ -89,15 +95,14 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   //size_t tickCount=0;
   bool done=false;
   int loopPos=-1;
-  int writeCount=0;
   int fracWait=0; // accumulates fractional ticks
-  if (VERA >= 0) disCont[VERA].dispatch->toggleRegisterDump(true);
-  if (YM >= 0) {
+  if (VERA>=0) disCont[VERA].dispatch->toggleRegisterDump(true);
+  if (YM>=0) {
     disCont[YM].dispatch->toggleRegisterDump(true);
     // emit LFO initialization commands
-    zsm.writeYM(0x18,0);    // freq = 0
-    zsm.writeYM(0x19,0x7F); // AMD  = 7F
-    zsm.writeYM(0x19,0xFF); // PMD  = 7F
+    zsm.writeYM(0x18,0);    // freq=0
+    zsm.writeYM(0x19,0x7F); // AMD =7F
+    zsm.writeYM(0x19,0xFF); // PMD =7F
     // TODO: incorporate the Furnace meta-command for init data and filter
     //       out writes to otherwise-unused channels.
   }
@@ -126,35 +131,35 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
       int i=0;
       // dump YM writes first
       if (j==0) {
-        if (YM < 0)
+        if (YM<0) {
           continue;
-        else
+        } else {
           i=YM;
+        }
       }
       // dump VERA writes second
       if (j==1) {
-        if (VERA < 0)
+        if (VERA<0) {
           continue;
-        else {
+        } else {
           i=VERA;
         }
       }
       std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
-      if (writes.size() > 0)
-        logD("zsmOps: Writing %d messages to chip %d",writes.size(), i);
+      if (writes.size()>0)
+        logD("zsmOps: Writing %d messages to chip %d",writes.size(),i);
       for (DivRegWrite& write: writes) {
-        if (i==YM) zsm.writeYM(write.addr&0xff, write.val);
-        if (i==VERA) zsm.writePSG(write.addr&0xff, write.val);
-        writeCount++;
+        if (i==YM) zsm.writeYM(write.addr&0xff,write.val);
+        if (i==VERA) zsm.writePSG(write.addr&0xff,write.val);
       }
       writes.clear();
     }
 
     // write wait
     int totalWait=cycles>>MASTER_CLOCK_PREC;
-    fracWait += cycles & MASTER_CLOCK_MASK;
-    totalWait += fracWait>>MASTER_CLOCK_PREC;
-    fracWait &= MASTER_CLOCK_MASK;
+    fracWait+=cycles&MASTER_CLOCK_MASK;
+    totalWait+=fracWait>>MASTER_CLOCK_PREC;
+    fracWait&=MASTER_CLOCK_MASK;
     if (totalWait>0) {
       zsm.tick(totalWait);
       //tickCount+=totalWait;
@@ -163,9 +168,9 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   // end of song
 
   // done - close out.
-  got.rate = origRate;
-  if (VERA >= 0) disCont[VERA].dispatch->toggleRegisterDump(false);
-  if (YM >= 0) disCont[YM].dispatch->toggleRegisterDump(false);
+  got.rate=origRate;
+  if (VERA>=0) disCont[VERA].dispatch->toggleRegisterDump(false);
+  if (YM>=0) disCont[YM].dispatch->toggleRegisterDump(false);
 
   remainingLoops=-1;
   playing=false;

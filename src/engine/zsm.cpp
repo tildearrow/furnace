@@ -23,7 +23,7 @@
 #include "song.h"
 
 DivZSM::DivZSM() {
-  w = NULL;
+  w=NULL;
   init();
 }
 
@@ -31,8 +31,8 @@ DivZSM::~DivZSM() {
 }
 
 void DivZSM::init(unsigned int rate) {
-  if (w != NULL) delete w;
-  w = new SafeWriter;
+  if (w!=NULL) delete w;
+  w=new SafeWriter;
   w->init();
   // write default ZSM data header
   w->write("zm",2); // magic header
@@ -50,7 +50,7 @@ void DivZSM::init(unsigned int rate) {
   w->writeS((unsigned short)rate);
   // 2 reserved bytes (set to zero)
   w->writeS(0x00);
-  tickRate = rate;
+  tickRate=rate;
   loopOffset=-1;
   numWrites=0;
   memset(&ymState,-1,sizeof(ymState));
@@ -63,44 +63,43 @@ int DivZSM::getoffset() {
 }
 
 void DivZSM::writeYM(unsigned char a, unsigned char v) {
-  int lastMask = ymMask;
+  int lastMask=ymMask;
   if (a==0x19 && v>=0x80) a=0x1a; // AMD/PSD use same reg addr. store PMD as 0x1a
-  if (a==0x08 && (v&0xf8)) ymMask |= (1 << (v & 0x07)); // mark chan as in-use if keyDN
-  if (a!=0x08) ymState[ym_NEW][a] = v; // cache the newly-written value
+  if (a==0x08 && (v&0xf8)) ymMask|=(1<<(v&0x07)); // mark chan as in-use if keyDN
+  if (a!=0x08) ymState[ym_NEW][a]=v; // cache the newly-written value
   bool writeit=false; // used to suppress spurious writes to unused channels
-  if (a < 0x20) {
-    if (a == 0x08) {
+  if (a<0x20) {
+    if (a==0x08) {
       // write keyUPDN messages if channel is active.
-      writeit = (ymMask & (1 << (v & 0x07))) > 0;
-    }
-    else {
+      writeit=(ymMask&(1<<(v&0x07)))>0;
+    } else {
       // do not suppress global registers
-      writeit = true;
+      writeit=true;
     }
   } else {
-    writeit = (ymMask & (1 << (a & 0x07))) > 0; // a&0x07 = chan ID for regs >=0x20
+    writeit=(ymMask&(1<<(a&0x07)))>0; // a&0x07 = chan ID for regs >=0x20
   }
-  if (lastMask != ymMask) {
+  if (lastMask!=ymMask) {
     // if the ymMask just changed, then the channel has become active.
-    // This can only happen on a KeyDN event, so voice = v & 0x07
+    // This can only happen on a KeyDN event, so voice=v&0x07
     // insert a keyUP just to be safe.
     ymwrites.push_back(DivRegWrite(0x08,v&0x07));
     numWrites++;
     // flush the ym_NEW cached states for this channel into the ZSM....
-    for ( int i=0x20 + (v&0x07); i <= 0xff ; i+=8) {
-      if (ymState[ym_NEW][i] != ymState[ym_PREV][i]) {
+    for (int i=0x20+(v&0x07); i<=0xff; i+=8) {
+      if (ymState[ym_NEW][i]!=ymState[ym_PREV][i]) {
         ymwrites.push_back(DivRegWrite(i,ymState[ym_NEW][i]));
         numWrites++;
         // ...and update the shadow
-        ymState[ym_PREV][i] = ymState[ym_NEW][i];
+        ymState[ym_PREV][i]=ymState[ym_NEW][i];
       }
     }
   }
   // Handle the current write if channel is active
-  if (writeit && ((ymState[ym_NEW][a] != ymState[ym_PREV][a])||a==0x08) ) {
+  if (writeit && ((ymState[ym_NEW][a]!=ymState[ym_PREV][a]) || a==0x08)) {
     // update YM shadow if not the KeyUPDN register.
-    if (a!=0x008) ymState[ym_PREV][a] = ymState[ym_NEW][a];
-    // if reg = PMD, then change back to real register 0x19
+    if (a!=8) ymState[ym_PREV][a]=ymState[ym_NEW][a];
+    // if reg=PMD, then change back to real register 0x19
     if (a==0x1a) a=0x19;
     ymwrites.push_back(DivRegWrite(a,v));
     numWrites++;
@@ -109,24 +108,26 @@ void DivZSM::writeYM(unsigned char a, unsigned char v) {
 
 void DivZSM::writePSG(unsigned char a, unsigned char v) {
   // TODO: suppress writes to PSG voice that is not audible (volume=0)
-  if (a  >= 64) {
+  if (a>=64) {
     logD ("ZSM: ignoring VERA PSG write a=%02x v=%02x",a,v);
     return;
   }
-  if(psgState[psg_PREV][a] == v) {
-    if (psgState[psg_NEW][a] != v)
+  if (psgState[psg_PREV][a]==v) {
+    if (psgState[psg_NEW][a]!=v) {
       // NEW value is being reset to the same as PREV value
       // so it is no longer a new write.
       numWrites--;
+    }
   } else {
-    if (psgState[psg_PREV][a] == psgState[psg_NEW][a])
+    if (psgState[psg_PREV][a]==psgState[psg_NEW][a]) {
       // if this write changes the NEW cached value to something other
       // than the PREV value, then this is a new write.
       numWrites++;
+    }
   }
-  psgState[psg_NEW][a] = v;
-  // mark channel as used in the psgMask if volume is set > 0.
-  if ((a % 4 == 2) && (v & 0x3f)) psgMask |= (1 << (a>>2));
+  psgState[psg_NEW][a]=v;
+  // mark channel as used in the psgMask if volume is set>0.
+  if ((a%4==2) && (v&0x3f)) psgMask|=(1<<(a>>2));
 }
 
 void DivZSM::writePCM(unsigned char a, unsigned char v) {
@@ -135,7 +136,7 @@ void DivZSM::writePCM(unsigned char a, unsigned char v) {
 
 void DivZSM::tick(int numticks) {
   flushWrites();
-  ticks += numticks;
+  ticks+=numticks;
 }
 
 void DivZSM::setLoopPoint() {
@@ -154,12 +155,14 @@ void DivZSM::setLoopPoint() {
   memset(&ymState[ym_PREV],-1,sizeof(ymState[ym_PREV]));
   // ... and cache (except for unused channels)
   memset(&ymState[ym_NEW],-1,0x20);
-  for (int chan=0; chan<8 ; chan++) {
+  for (int chan=0; chan<8; chan++) {
     // do not clear state for as-yet-unused channels
-    if (!(ymMask & (1<<chan))) continue;
+    if (!(ymMask&(1<<chan))) continue;
     // clear the state for channels in use so they match the unknown state
     // of the YM shadow.
-    for (int i=0x20+chan; i<=0xff; i+= 8) ymState[ym_NEW][i] = -1;
+    for (int i=0x20+chan; i<=0xff; i+=8) {
+      ymState[ym_NEW][i]=-1;
+    }
   }
 }
 
@@ -169,8 +172,8 @@ SafeWriter* DivZSM::finish() {
   w->writeC(ZSM_EOF);
   // update channel use masks.
   w->seek(0x09,SEEK_SET);
-  w->writeC((unsigned char)(ymMask & 0xff));
-  w->writeS((short)(psgMask & 0xffff));
+  w->writeC((unsigned char)(ymMask&0xff));
+  w->writeS((short)(psgMask&0xffff));
   // todo: put PCM offset/data writes here once defined in ZSM standard.
   return w;
 }
@@ -179,16 +182,16 @@ void DivZSM::flushWrites() {
   logD("ZSM: flushWrites.... numwrites=%d ticks=%d ymwrites=%d",numWrites,ticks,ymwrites.size());
   if (numWrites==0) return;
   flushTicks(); // only flush ticks if there are writes pending.
-  for (unsigned char i=0;i<64;i++) {
-    if (psgState[psg_NEW][i] == psgState[psg_PREV][i]) continue;
+  for (unsigned char i=0; i<64; i++) {
+    if (psgState[psg_NEW][i]==psgState[psg_PREV][i]) continue;
     psgState[psg_PREV][i]=psgState[psg_NEW][i];
     w->writeC(i);
     w->writeC(psgState[psg_NEW][i]);
   }
-  int n=0; // n = completed YM writes. used to determine when to write the CMD byte...
+  int n=0; // n=completed YM writes. used to determine when to write the CMD byte...
   for (DivRegWrite& write: ymwrites) {
-    if (n%ZSM_YM_MAX_WRITES == 0) {
-      if(ymwrites.size()-n > ZSM_YM_MAX_WRITES) {
+    if (n%ZSM_YM_MAX_WRITES==0) {
+      if (ymwrites.size()-n>ZSM_YM_MAX_WRITES) {
         w->writeC((unsigned char)(ZSM_YM_CMD+ZSM_YM_MAX_WRITES));
         logD("ZSM: YM-write: %d (%02x) [max]",ZSM_YM_MAX_WRITES,ZSM_YM_MAX_WRITES+ZSM_YM_CMD);
       } else {
@@ -205,10 +208,10 @@ void DivZSM::flushWrites() {
 }
 
 void DivZSM::flushTicks() {
-  while (ticks > ZSM_DELAY_MAX) {
+  while (ticks>ZSM_DELAY_MAX) {
     logD("ZSM: write delay %d (max)",ZSM_DELAY_MAX);
     w->writeC((unsigned char)(ZSM_DELAY_CMD+ZSM_DELAY_MAX));
-    ticks -= ZSM_DELAY_MAX;
+    ticks-=ZSM_DELAY_MAX;
   }
   if (ticks>0) {
     logD("ZSM: write delay %d",ticks);

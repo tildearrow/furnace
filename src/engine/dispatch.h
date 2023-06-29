@@ -231,6 +231,11 @@ enum DivDispatchCmds {
 
   DIV_CMD_HINT_ARP_TIME, // (value)
 
+  DIV_CMD_SNES_GLOBAL_VOL_LEFT,
+  DIV_CMD_SNES_GLOBAL_VOL_RIGHT,
+
+  DIV_CMD_NES_LINEAR_LENGTH,
+
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
   DIV_CMD_MAX
@@ -279,6 +284,8 @@ struct DivRegWrite {
    *   - xx is the instance ID
    * - 0xffffxx03: set sample playback direction
    *   - x is the instance ID
+   * - 0xffffxx04: switch sample bank
+   *   - for use in VGM export
    * - 0xffffffff: reset
    */
   unsigned int addr;

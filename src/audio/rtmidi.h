@@ -38,7 +38,7 @@ class TAMidiInRtMidi: public TAMidiIn {
 
 class TAMidiOutRtMidi: public TAMidiOut {
   RtMidiOut* port;
-  bool isOpen;
+  bool isOpen, isWorking;
   public:
     bool send(const TAMidiMessage& what);
     bool isDeviceOpen();
@@ -49,5 +49,6 @@ class TAMidiOutRtMidi: public TAMidiOut {
     bool init();
     TAMidiOutRtMidi():
       port(NULL),
-      isOpen(false) {}
+      isOpen(false),
+      isWorking(false) {}
 };

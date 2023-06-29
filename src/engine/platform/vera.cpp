@@ -35,7 +35,7 @@ extern "C" {
 #define rWritePCMCtrl(d) {regPool[64]=(d); pcm_write_ctrl(pcm,d);}
 #define rWritePCMRate(d) {regPool[65]=(d); pcm_write_rate(pcm,d);}
 #define rWritePCMData(d) {regPool[66]=(d); pcm_write_fifo(pcm,d);}
-#define rWritePCMVol(d) rWritePCMCtrl((regPool[64]&(~0x3f))|((d)&0x3f))
+#define rWritePCMVol(d) rWritePCMCtrl((regPool[64]&(~0x8f))|((d)&15))
 
 const char* regCheatSheetVERA[]={
   "CHxFreq",    "00+x*4",
@@ -107,9 +107,9 @@ void DivPlatformVERA::acquire(short** buf, size_t len) {
       pos++;
 
       for (int i=0; i<16; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=psg->channels[i].lastOut<<4;
+        oscBuf[i]->data[oscBuf[i]->needle++]=psg->channels[i].lastOut<<3;
       }
-      int pcmOut=whyCallItBuf[2][i]+whyCallItBuf[3][i];
+      int pcmOut=(whyCallItBuf[2][i]+whyCallItBuf[3][i])>>1;
       if (pcmOut<-32768) pcmOut=-32768;
       if (pcmOut>32767) pcmOut=32767;
       oscBuf[16]->data[oscBuf[16]->needle++]=pcmOut;
