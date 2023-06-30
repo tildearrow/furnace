@@ -1,6 +1,6 @@
 # basic mode
 
-Furnace comes with a "basic mode" that can be toggled through the "settings" menu. it disables certain features in Furnace that may look intimidating or confusing for newcomers. if you find that a certain feature of furnace is missing, see if this setting is enabled or not.
+Furnace comes with a "basic mode" that can be toggled through the "settings" menu. it disables certain features in Furnace that may look intimidating or confusing for newcomers. if you find that a certain feature of Furnace is missing, see if this setting is enabled or not.
 
 among the features that cannot be accessed in this mode are:
 * file menu:
