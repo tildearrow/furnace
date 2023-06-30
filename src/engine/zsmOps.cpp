@@ -160,7 +160,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
     fracWait+=cycles&MASTER_CLOCK_MASK;
     totalWait+=fracWait>>MASTER_CLOCK_PREC;
     fracWait&=MASTER_CLOCK_MASK;
-    if (totalWait>0) {
+    if (totalWait>0 && !done) {
       zsm.tick(totalWait);
       //tickCount+=totalWait;
     }
