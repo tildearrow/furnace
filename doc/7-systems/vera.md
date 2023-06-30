@@ -7,9 +7,9 @@ currently Furnace does not support the PCM channel's stereo mode, though (except
 
 # effects
 
-- **`20xx`**: set waveform. the following values are accepted:
-  - 0: pulse
-  - 1: saw
-  - 2: triangle
-  - 3: noise
-- **`22xx`**: set duty cycle. `xx` may go from 0 to 3F.
+- `20xx`: **set waveform.**
+  - `0`: pulse
+  - `1`: saw
+  - `2`: triangle
+  - `3`: noise
+- `22xx`: **set duty cycle.** range is `0` to `3F`.

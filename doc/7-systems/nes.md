@@ -6,30 +6,29 @@ also known as Famicom. it is a five-channel sound generator: first two channels 
 
 # effects
 
-- **`11xx`**: write to delta modulation counter.
-  - this may be used to attenuate the triangle and noise channels.
+- `11xx`: **write to delta modulation counter.** this may be used to attenuate the triangle and noise channels.
   - will not work if a sample is playing.
-- **`12xx`**: set duty cycle or noise mode of channel.
-  - may be 0-3 for the pulse channels and 0-1 for the noise channel.
-- **`13xy`**: setup sweep up.
+- `12xx`: **set duty cycle or noise mode of channel.**
+  - may be `0` to `3` for the pulse channels and `0` or `1` for the noise channel.
+- `13xy`: **setup sweep up.**
   - `x` is the time.
   - `y` is the shift.
-  - set to 0 to disable it.
-- **`14xy`**: setup sweep down.
+  - set to `0` to disable it.
+- `14xy`: **setup sweep down.**
   - `x` is the time.
   - `y` is the shift.
-  - set to 0 to disable it.
-- **`15xx`**: set envelope mode.
-  - `0`: envelope + length counter (volume represents envelope duration).
-  - `1`: length counter (volume represents output volume).
-  - `2`: looping envelope (volume represents envelope duration).
-  - `3`: constant volume (default; volume represents output volume).
-  - pulse and noise channels only.
+  - set to `0` to disable it.
+- `15xx`: **set envelope mode.**
+  - `0`: envelope + length counter. volume represents envelope duration.
+  - `1`: length counter. volume represents output volume.
+  - `2`: looping envelope. volume represents envelope duration.
+  - `3`: constant volume. default value. volume represents output volume.
+  - Pulse and noise channels only.
   - you may need to apply a phase reset (using the macro) to make the envelope effective.
-- **`16xx`**: set length counter.
+- `16xx`: **set length counter.**
   - see table below for possible values.
   - this will trigger phase reset.
-- **`17xx`**: set frame counter mode.
+- `17xx`: **set frame counter mode.**
   - `0`: 4-step.
     - NTSC: 120Hz sweeps and lengths; 240Hz envelope.
     - PAL: 100Hz sweeps and lengths; 200Hz envelope.
@@ -38,21 +37,21 @@ also known as Famicom. it is a five-channel sound generator: first two channels 
     - NTSC: 96Hz sweeps and lengths; 192Hz envelope.
     - PAL: 80Hz sweeps and lengths; 160Hz envelope.
     - Dendy: 95.1Hz sweeps and lengths; 190.2Hz envelope.
-- **`18xx`**: set PCM channel mode.
+- `18xx`: **set PCM channel mode.**
   - `00`: PCM (software).
   - `01`: DPCM (hardware).
-  - when in DPCM mode, samples will sound muffled (due to its nature), availables pitches are limited and loop point is ignored.
-- **`19xx`**: set triangle linear counter.
+  - when in DPCM mode, samples will sound muffled (due to its nature), availables pitches are limited, and loop point is ignored.
+- `19xx`: **set triangle linear counter.**
   - `00` to `7F` set the counter.
   - `80` and higher halt it.
-- **`20xx`**: set DPCM frequency.
+- `20xx`: **set DPCM frequency.**
   - only works in DPCM mode.
   - see table below for possible values.
 
 # DPCM frequency table
 
 val | NTSC      | PAL
-----|-----------|-----------
+----|----------:|----------:
  00 | 4181.7Hz  | 4177.4Hz
  01 | 4709.9Hz  | 4696.6Hz
  02 | 5264.0Hz  | 5261.4Hz
@@ -73,7 +72,7 @@ val | NTSC      | PAL
 # length counter table
 
 val | raw | NTSC  | PAL   | Dendy | NTSC 5-step | PAL 5-step | Dendy 5-step
-----|-----|-------|-------|-------|-------------|------------|--------------
+----|----:|------:|------:|------:|------------:|-----------:|-------------:
  00 |  10 | 83ms  | 100ms | 84ms  | 104ms       | 125ms      | 105ms
  01 | 254 | 2.1s  | 2.5s  | 2.1s  | 2.6s        | 3.2s       | 2.7s
  02 |  20 | 166ms | 200ms | 168ms | 208ms       | 250ms      | 210ms
