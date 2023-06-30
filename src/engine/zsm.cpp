@@ -108,9 +108,13 @@ void DivZSM::writeYM(unsigned char a, unsigned char v) {
 
 void DivZSM::writePSG(unsigned char a, unsigned char v) {
   // TODO: suppress writes to PSG voice that is not audible (volume=0)
-  if (a>=64) {
+  // ^ Let's leave these alone, ZSMKit has a feature that can benefit
+  // from silent channels.
+  if (a>=67) {
     logD ("ZSM: ignoring VERA PSG write a=%02x v=%02x",a,v);
     return;
+  } else if (a>=64) {
+    return writePCM(a-64,v);
   }
   if (psgState[psg_PREV][a]==v) {
     if (psgState[psg_NEW][a]!=v) {
@@ -131,7 +135,26 @@ void DivZSM::writePSG(unsigned char a, unsigned char v) {
 }
 
 void DivZSM::writePCM(unsigned char a, unsigned char v) {
-  // ZSM standard for PCM playback has not been established yet.
+  if (a==0) { // PCM Ctrl
+    // cache the depth and channels but don't write it to the
+    // register queue
+    pcmCtrlDCCache=v&0x30;
+    // save only the reset bit and volume (if it isn't a dupe)
+    if (pcmCtrlRVCache!=(v&0x8f)) {
+      pcmMeta.push_back(DivRegWrite(a,(v&0x8f)));
+      pcmCtrlRVCache=v&0x8f;
+      numWrites++;
+    }
+  } else if (a==1) { // PCM Rate
+    if (pcmRateCache!=v) {
+      pcmMeta.push_back(DivRegWrite(a,v));
+      pcmRateCache=v;
+      numWrites++;
+    }
+  } else if (a==2) { // PCM data
+    pcmCache.push_back(v);
+    numWrites++;
+  }
 }
 
 void DivZSM::tick(int numticks) {
@@ -151,6 +174,9 @@ void DivZSM::setLoopPoint() {
   w->seek(loopOffset,SEEK_SET);
   // reset the PSG shadow and write cache
   memset(&psgState,-1,sizeof(psgState));
+  // reset the PCM caches that would inhibit dupes
+  pcmRateCache=-1;
+  pcmCtrlRVCache=-1;
   // reset the YM shadow....
   memset(&ymState[ym_PREV],-1,sizeof(ymState[ym_PREV]));
   // ... and cache (except for unused channels)
@@ -170,16 +196,62 @@ SafeWriter* DivZSM::finish() {
   tick(0); // flush any pending writes / ticks
   flushTicks(); // flush ticks in case there were no writes pending
   w->writeC(ZSM_EOF);
+  if (pcmInsts.size()>256) {
+    logE("ZSM: more than the maximum number of PCM instruments exist. Skipping PCM export entirely.");
+    pcmData.clear();
+    pcmInsts.clear();
+  } else if (pcmData.size()) { // if exists, write PCM instruments and blob to the end of file
+    int pcmOff=w->tell();
+    w->writeC('P');
+    w->writeC('C');
+    w->writeC('M');
+    w->writeC((unsigned char)pcmInsts.size()-1);
+    int i=0;
+    for (S_pcmInst& inst: pcmInsts) {
+      // write out the instruments
+      // PCM playback location follows:
+      //   <instrument number>
+      //   <geometry (depth and channel)>
+      //   <l m h> of PCM data offset
+      //   <l m h> of length
+      w->writeC((unsigned char)i&0xff);
+      w->writeC((unsigned char)inst.geometry&0x30);
+      w->writeC((unsigned char)inst.offset&0xff);
+      w->writeC((unsigned char)(inst.offset>>8)&0xff);
+      w->writeC((unsigned char)(inst.offset>>16)&0xff);
+      w->writeC((unsigned char)inst.length&0xff);
+      w->writeC((unsigned char)(inst.length>>8)&0xff);
+      w->writeC((unsigned char)(inst.length>>16)&0xff);
+      // Feature mask: Lxxxxxxx
+      //   L = Loop enabled
+      w->writeC(0);
+      // Loop point (not yet implemented)
+      w->writeC(0);
+      w->writeS(0);
+      // Reserved for future use
+      w->writeS(0);
+      w->writeS(0);
+      i++;
+    }
+    for (unsigned char& c: pcmData) {
+      w->writeC(c);
+    }
+    pcmData.clear();
+    // update PCM offset in file
+    w->seek(0x06,SEEK_SET);
+    w->writeC((unsigned char)pcmOff&0xff);
+    w->writeC((unsigned char)(pcmOff>>8)&0xff);
+    w->writeC((unsigned char)(pcmOff>>16)&0xff);
+  }
   // update channel use masks.
   w->seek(0x09,SEEK_SET);
   w->writeC((unsigned char)(ymMask&0xff));
   w->writeS((short)(psgMask&0xffff));
-  // todo: put PCM offset/data writes here once defined in ZSM standard.
   return w;
 }
 
 void DivZSM::flushWrites() {
-  logD("ZSM: flushWrites.... numwrites=%d ticks=%d ymwrites=%d",numWrites,ticks,ymwrites.size());
+  logD("ZSM: flushWrites.... numwrites=%d ticks=%d ymwrites=%d pcmMeta=%d pcmCache=%d pcmData=%d",numWrites,ticks,ymwrites.size(),pcmMeta.size(),pcmCache.size(),pcmData.size());
   if (numWrites==0) return;
   flushTicks(); // only flush ticks if there are writes pending.
   for (unsigned char i=0; i<64; i++) {
@@ -204,6 +276,95 @@ void DivZSM::flushWrites() {
     w->writeC(write.val);
   }
   ymwrites.clear();
+  unsigned int pcmInst=0;
+  int pcmOff=0;
+  int pcmLen=0;
+  int extCmdLen=pcmMeta.size()*2;
+  if (pcmCache.size()) {
+    // collapse stereo data to mono if both channels are fully identical
+    // which cuts PCM data size in half for center-panned PCM events
+    if (pcmCtrlDCCache & 0x10) { // stereo bit is on
+      unsigned int e;
+      if (pcmCtrlDCCache & 0x20) { // 16-bit
+        // for 16-bit PCM data, the size must be a multiple of 4
+        if (pcmCache.size()%4==0) {
+          // check for identical L+R channels
+          for (e=0;e<pcmCache.size();e+=4) {
+            if (pcmCache[e]!=pcmCache[e+2] || pcmCache[e+1]!=pcmCache[e+3]) break;
+          }
+          if (e==pcmCache.size()) { // did not find a mismatch
+            // collapse the data to mono 16-bit
+            for (e=0;e<pcmCache.size()>>1;e+=2) {
+              pcmCache[e]=pcmCache[e<<1];
+              pcmCache[e+1]=pcmCache[(e<<1)+1];
+            }
+            pcmCache.resize(pcmCache.size()>>1);
+            pcmCtrlDCCache &= ~0x10; // clear stereo bit
+          }
+        }
+      } else { // 8-bit
+        // for 8-bit PCM data, the size must be a multiple of 2
+        if (pcmCache.size()%2==0) {
+          // check for identical L+R channels
+          for (e=0;e<pcmCache.size();e+=2) {
+            if (pcmCache[e]!=pcmCache[e+1]) break;
+          }
+          if (e==pcmCache.size()) { // did not find a mismatch
+            // collapse the data to mono 8-bit
+            for (e=0;e<pcmCache.size()>>1;e++) {
+              pcmCache[e]=pcmCache[e<<1];
+            }
+            pcmCache.resize(pcmCache.size()>>1);
+            pcmCtrlDCCache &= ~0x10; // clear stereo bit
+          }
+        }
+      }
+    }
+    // check to see if the most recent received blob matches any of the previous data
+    // and reuse it if there is a match, otherwise append the cache to the rest of
+    // the PCM data
+    std::vector<unsigned char>::iterator it;
+    it=std::search(pcmData.begin(),pcmData.end(),pcmCache.begin(),pcmCache.end());
+    pcmOff=std::distance(pcmData.begin(),it);
+    pcmLen=pcmCache.size();
+    logD("ZSM: pcmOff: %d pcmLen: %d",pcmOff,pcmLen);
+    if (it==pcmData.end()) {
+      pcmData.insert(pcmData.end(),pcmCache.begin(),pcmCache.end());
+    }
+    pcmCache.clear();
+    extCmdLen+=2;
+    // search for a matching PCM instrument definition
+    for (S_pcmInst& inst: pcmInsts) {
+      if (inst.offset==pcmOff && inst.length==pcmLen && inst.geometry==pcmCtrlDCCache)
+        break;
+      pcmInst++;
+    }
+    if (pcmInst==pcmInsts.size()) {
+      S_pcmInst inst;
+      inst.geometry=pcmCtrlDCCache;
+      inst.offset=pcmOff;
+      inst.length=pcmLen;
+      pcmInsts.push_back(inst);
+    }
+  }
+  if (extCmdLen>63) { // this would be bad, but will almost certainly never happen
+    logE("ZSM: extCmd exceeded maximum length of 63: %d",extCmdLen);
+    extCmdLen=0;
+    pcmMeta.clear();
+  }
+  if (extCmdLen) { // we have some PCM events to write
+    w->writeC(0x40);
+    w->writeC((unsigned char)extCmdLen); // the high two bits are guaranteed to be zero, meaning this is a PCM command
+    for (DivRegWrite& write: pcmMeta) {
+      w->writeC(write.addr);
+      w->writeC(write.val);
+    }
+    pcmMeta.clear();
+    if (pcmLen) {
+      w->writeC(0x02); // 0x02 = Instrument trigger
+      w->writeC((unsigned char)pcmInst&0xff);
+    }
+  }
   numWrites=0;
 }
 
