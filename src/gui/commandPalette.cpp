@@ -121,10 +121,7 @@ void FurnaceGUI::drawPalette() {
     if (curPaletteChoice>=(int)paletteSearchResults.size()) {
       curPaletteChoice=paletteSearchResults.size()-1;
     }
-    if (ImGui::IsKeyPressed(ImGuiKey_Enter)) {
-      // TODO: properly test this - what happens when enter is pressed and the list is empty?
-      accepted=true;
-    }
+    accepted=ImGui::IsKeyPressed(ImGuiKey_Enter);
   }
 
   if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
@@ -132,28 +129,31 @@ void FurnaceGUI::drawPalette() {
   }
 
   if (accepted) {
-    int i=paletteSearchResults[curPaletteChoice];
-
-    switch (curPaletteType) {
-    case CMDPAL_TYPE_MAIN:
-      resetPalette(this);
-      doAction(i);
-      if (i<GUI_ACTION_CMDPAL_MIN || GUI_ACTION_CMDPAL_MAX<i) {
+    if (paletteSearchResults.size()==0) {
         ImGui::CloseCurrentPopup();
-      }
-      break;
+    } else {
+      int i=paletteSearchResults[curPaletteChoice];
+      switch (curPaletteType) {
+      case CMDPAL_TYPE_MAIN:
+        resetPalette(this);
+        doAction(i);
+        if (i<GUI_ACTION_CMDPAL_MIN || GUI_ACTION_CMDPAL_MAX<i) {
+          ImGui::CloseCurrentPopup();
+        }
+        break;
 
-    case CMDPAL_TYPE_RECENT:
-      resetPalette(this);
-      openRecentFile(recentFile[i]);
-      ImGui::CloseCurrentPopup();
-      break;
+      case CMDPAL_TYPE_RECENT:
+        resetPalette(this);
+        openRecentFile(recentFile[i]);
+        ImGui::CloseCurrentPopup();
+        break;
 
-    default:
-      // TODO: PANIC! DIE! PERISH!
-      break;
-    };
-  } else {
-    paletteFirstFrame=false;
+      default:
+        // TODO: PANIC! DIE! PERISH!
+        break;
+      };
+    }
   }
+
+  paletteFirstFrame=false;
 }
