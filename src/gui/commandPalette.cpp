@@ -75,7 +75,8 @@ void FurnaceGUI::drawPalette() {
       break;
 
     default:
-      // TODO: PANIC! DIE! PERISH!
+      logE("invalid command palette type");
+      ImGui::CloseCurrentPopup();
       break;
     };
   }
@@ -104,7 +105,7 @@ void FurnaceGUI::drawPalette() {
         s=recentFile[id].c_str();
         break;
       default:
-        // TODO: DIE
+        logE("invalid command palette type");
         break;
       };
 
@@ -130,7 +131,7 @@ void FurnaceGUI::drawPalette() {
 
   if (accepted) {
     if (paletteSearchResults.size()==0) {
-        ImGui::CloseCurrentPopup();
+      ImGui::CloseCurrentPopup();
     } else {
       int i=paletteSearchResults[curPaletteChoice];
       switch (curPaletteType) {
@@ -149,7 +150,8 @@ void FurnaceGUI::drawPalette() {
         break;
 
       default:
-        // TODO: PANIC! DIE! PERISH!
+        logE("invalid command palette type");
+        ImGui::CloseCurrentPopup();
         break;
       };
     }
