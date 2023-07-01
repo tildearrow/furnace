@@ -1052,6 +1052,9 @@ class DivEngine {
     // add subsong
     int addSubSong();
 
+    // duplicate subsong
+    int duplicateSubSong(int index);
+
     // remove subsong
     bool removeSubSong(int index);
 
