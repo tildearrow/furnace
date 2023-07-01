@@ -10,7 +10,7 @@ double-click to open the instrument editor.
 
 every instrument can be renamed and have its type changed.
 
-depending on the instrument type, there are currently 13 different types of an instrument editor:
+depending on the instrument type, there are many different types of instrument editor:
 
 - [FM synthesis](fm.md) - for use with YM2612, YM2151 and FM block portion of YM2610.
 - [Standard](standard.md) - for use with NES and Sega Master System's PSG sound source and its derivatives. 
@@ -29,7 +29,7 @@ depending on the instrument type, there are currently 13 different types of an i
 - [Konami SCC / Bubble System WSG](scc.md) - for use with Konami SCC and Wavetable portion in Bubble System's sound hardware.
 - [Namco 163](n163.md) - for use with Namco 163.
 - [Konami VRC6](vrc6.md) - for use with VRC6's PSG sound source.
-
+- [SNES](snes.md) - for use with SNES S-APU.
 
 
 # macros
