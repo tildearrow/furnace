@@ -13,7 +13,7 @@ also known as Famicom. it is a five-channel sound generator: first two channels 
     - `0`: 12.5%
     - `1`: 25%
     - `2`: 50%
-    - `3`: 75% (inverted)
+    - `3`: 75%
   - may be `0` or `1` for the noise channel:
     - `0`: long (15-bit LFSR, 32767-step)
     - `1`: short (9-bit LFSR, 93-step)

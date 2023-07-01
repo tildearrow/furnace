@@ -11,7 +11,7 @@ All of this metadata will be included in a VGM export. This isn't the case for a
 
 # subsongs
 
-This window allows one to create **subsongs** – multiple individual songs within a single file. Each song has its own order list and patterns, but all songs within a file share the same chips, samples, and so forth.
+This window allows one to create **subsongs** - multiple individual songs within a single file. Each song has its own order list and patterns, but all songs within a file share the same chips, samples, and so forth.
 
 - The drop-down box selects the current subsong.
 - The **`+`** button adds a new subsong.

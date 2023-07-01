@@ -39,8 +39,8 @@ if envelope is off, select gain mode as described below.
   - echo: enables echo.
   - noise: enables noise generator.
 - **Gain**: sets mode and value of gain.
-  - 0 – 127: direct gain from 0 to 127
-  - 128 – 159: linear gain from -0 to -31
-  - 160 – 191: exponential gain from -0 to -31
-  - 192 – 223: linear gain from +0 to +31
-  - 224 – 255: exponential gain from +0 to +31
+  - 0 - 127: direct gain from 0 to 127
+  - 128 - 159: linear gain from -0 to -31
+  - 160 - 191: exponential gain from -0 to -31
+  - 192 - 223: linear gain from +0 to +31
+  - 224 - 255: exponential gain from +0 to +31

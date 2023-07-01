@@ -32,5 +32,5 @@ The **order list** is a smaller spreadsheet showing the overall song structure.
 Different chips have different capabilities. Even within the same chip, each channel may have its own ways of making sound.
 - Some channels use one or more waveform **generators** (sine, square, noise...) to build up a sound.
 - Of special note are **[FM (frequency modulation)](../4-instrument/fm.md)** channels, which use a number of generators called **operators** that can interact to make very complex sounds.
-- Some channels use **[samples](../6-sample/README.md)** – recordings of sounds, often with defined loop points to allow a note to sustain.
+- Some channels use **[samples](../6-sample/README.md)** - recordings of sounds, often with defined loop points to allow a note to sustain.
 - Some channels use **[wavetables](../5-wave/README.md)**, which are like very short samples of fixed length that automatically loop.
