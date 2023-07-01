@@ -19,38 +19,12 @@
 
 #include "gui.h"
 #include "guiConst.h"
+#include "commandPalette.h"
 #include "misc/cpp/imgui_stdlib.h"
 #include <fmt/printf.h>
 #include <algorithm>
 #include <cctype>
 #include "../ta-log.h"
-
-enum CommandPaletteType {
-  CMDPAL_TYPE_MAIN = 0,
-  CMDPAL_TYPE_RECENT,
-  // TODO: are there more?
-
-  CMDPAL_TYPE_MAX,
-};
-
-enum CommandPaletteExtraAction {
-  CMDPAL_EXTRA_RECENT = 0,
-
-  CMDPAL_EXTRA_MAX,
-};
-
-struct CommandPaletteExtraDef {
-  const char* name;
-  const char* friendlyName;
-  CommandPaletteExtraDef(const char* n, const char* fn):
-    name(n), friendlyName(fn) {}
-};
-
-#define D CommandPaletteExtraDef
-const CommandPaletteExtraDef commandPaletteExtras[CMDPAL_EXTRA_MAX] = {
-  D("CMDPAL_EXTRA_RECENT", "Recent files"),
-};
-#undef D
 
 static inline bool matchFuzzy(const char* haystack,const char* needle) {
   size_t h_i=0; // haystack idx
@@ -90,11 +64,6 @@ void FurnaceGUI::drawPalette() {
           paletteSearchResults.push_back(i);
         }
       }
-      for (int i=0; i<CMDPAL_EXTRA_MAX; i++) {
-        if (matchFuzzy(commandPaletteExtras[i].friendlyName,paletteQuery.c_str())) {
-          paletteSearchResults.push_back(GUI_ACTION_MAX+i);
-        }
-      }
       break;
 
     case CMDPAL_TYPE_RECENT:
@@ -129,7 +98,7 @@ void FurnaceGUI::drawPalette() {
       const char *s="???";
       switch (curPaletteType) {
       case CMDPAL_TYPE_MAIN:
-        s=(id<GUI_ACTION_MAX)?(guiActions[id].friendlyName):(commandPaletteExtras[id-GUI_ACTION_MAX].friendlyName);
+        s=guiActions[id].friendlyName;
         break;
       case CMDPAL_TYPE_RECENT:
         s=recentFile[id].c_str();
@@ -139,7 +108,7 @@ void FurnaceGUI::drawPalette() {
         break;
       };
 
-      if (ImGui::Selectable(s, current)) {
+      if (ImGui::Selectable(s,current)) {
         curPaletteChoice=i;
         accepted=true;
       }
@@ -167,23 +136,15 @@ void FurnaceGUI::drawPalette() {
 
     switch (curPaletteType) {
     case CMDPAL_TYPE_MAIN:
-      if (i<GUI_ACTION_MAX) {
-        doAction(i);
+      resetPalette(this);
+      doAction(i);
+      if (i<GUI_ACTION_CMDPAL_MIN || GUI_ACTION_CMDPAL_MAX<i) {
         ImGui::CloseCurrentPopup();
-      } else {
-        switch (i-GUI_ACTION_MAX) {
-        case CMDPAL_EXTRA_RECENT:
-          resetPalette(this);
-          curPaletteType=CMDPAL_TYPE_RECENT;
-          break;
-        default:
-          // TODO: PANIC! DIE! PERISH!
-          break;
-        };
       }
       break;
 
     case CMDPAL_TYPE_RECENT:
+      resetPalette(this);
       openRecentFile(recentFile[i]);
       ImGui::CloseCurrentPopup();
       break;

@@ -493,6 +493,10 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("CLEAR", "Clear song data", 0),
 
   D("COMMAND_PALETTE", "Command Palette", FURKMOD_CMD|SDLK_p),
+  D("CMDPAL_MIN", "", NOT_AN_ACTION),
+  D("CMDPAL_RECENT", "Recent files (Palette)", 0),
+  D("CMDPAL_MAX", "", NOT_AN_ACTION),
+
   D("WINDOW_EDIT_CONTROLS", "Edit Controls", 0),
   D("WINDOW_ORDERS", "Orders", 0),
   D("WINDOW_INS_LIST", "Instrument List", 0),
