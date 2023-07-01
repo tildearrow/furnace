@@ -73,38 +73,38 @@ Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) i
 
 | attack | 0→1 time | decay | 1→S time | sustain | ratio | release | S→0 time
 | -----: | -------: | ----: | -------: | ------: | :---: | ------: | -------:
-|   `00` | 4.1 sec  |  `00` | 1.2 sec  |    `00` |  1/8  |    `00` |        ∞
-|   `01` | 2.5 sec  |  `01` | 740 msec |    `01` |  2/8  |    `01` |   38 sec
-|   `02` | 1.5 sec  |  `02` | 440 msec |    `02` |  3/8  |    `02` |   28 sec
-|   `03` | 1.0 sec  |  `03` | 290 msec |    `03` |  4/8  |    `03` |   24 sec
-|   `04` | 640 msec |  `04` | 180 msec |    `04` |  5/8  |    `04` |   19 sec
-|   `05` | 380 msec |  `05` | 110 msec |    `05` |  6/8  |    `05` |   14 sec
-|   `06` | 260 msec |  `06` |  74 msec |    `06` |  7/8  |    `06` |   12 sec
-|   `07` | 160 msec |  `07` |  37 msec |    `07` |   1   |    `07` |  9.4 sec
-|   `08` |  96 msec |       |          |         |       |    `08` |  7.1 sec
-|   `09` |  64 msec |       |          |         |       |    `09` |  5.9 sec
-|   `0A` |  40 msec |       |          |         |       |    `0A` |  4.7 sec
-|   `0B` |  24 msec |       |          |         |       |    `0B` |  3.5 sec
-|   `0C` |  16 msec |       |          |         |       |    `0C` |  2.9 sec
-|   `0D` |  10 msec |       |          |         |       |    `0D` |  2.4 sec
-|   `0E` |   6 msec |       |          |         |       |    `0E` |  1.8 sec
-|   `0F` |   0 msec |       |          |         |       |    `0F` |  1.5 sec
-|        |          |       |          |         |       |    `10` |  1.2 sec
-|        |          |       |          |         |       |    `11` | 880 msec
-|        |          |       |          |         |       |    `12` | 740 msec
-|        |          |       |          |         |       |    `13` | 590 msec
-|        |          |       |          |         |       |    `14` | 440 msec
-|        |          |       |          |         |       |    `15` | 370 msec
-|        |          |       |          |         |       |    `16` | 290 msec
-|        |          |       |          |         |       |    `17` | 220 msec
-|        |          |       |          |         |       |    `18` | 180 msec
-|        |          |       |          |         |       |    `19` | 150 msec
-|        |          |       |          |         |       |    `1A` | 110 msec
-|        |          |       |          |         |       |    `1B` |  92 msec
-|        |          |       |          |         |       |    `1C` |  74 msec
-|        |          |       |          |         |       |    `1D` |  55 msec
-|        |          |       |          |         |       |    `1E` |  37 msec
-|        |          |       |          |         |       |    `1F` |  18 msec
+|   `00` |   4.1 s  |  `00` |   1.2 s  |    `00` |  1/8  |    `00` |        ∞
+|   `01` |   2.5 s  |  `01` |   740 ms |    `01` |  2/8  |    `01` |     38 s
+|   `02` |   1.5 s  |  `02` |   440 ms |    `02` |  3/8  |    `02` |     28 s
+|   `03` |   1.0 s  |  `03` |   290 ms |    `03` |  4/8  |    `03` |     24 s
+|   `04` |   640 ms |  `04` |   180 ms |    `04` |  5/8  |    `04` |     19 s
+|   `05` |   380 ms |  `05` |   110 ms |    `05` |  6/8  |    `05` |     14 s
+|   `06` |   260 ms |  `06` |    74 ms |    `06` |  7/8  |    `06` |     12 s
+|   `07` |   160 ms |  `07` |    37 ms |    `07` |   1   |    `07` |    9.4 s
+|   `08` |    96 ms |       |          |         |       |    `08` |    7.1 s
+|   `09` |    64 ms |       |          |         |       |    `09` |    5.9 s
+|   `0A` |    40 ms |       |          |         |       |    `0A` |    4.7 s
+|   `0B` |    24 ms |       |          |         |       |    `0B` |    3.5 s
+|   `0C` |    16 ms |       |          |         |       |    `0C` |    2.9 s
+|   `0D` |    10 ms |       |          |         |       |    `0D` |    2.4 s
+|   `0E` |     6 ms |       |          |         |       |    `0E` |    1.8 s
+|   `0F` |     0 ms |       |          |         |       |    `0F` |    1.5 s
+|        |          |       |          |         |       |    `10` |    1.2 s
+|        |          |       |          |         |       |    `11` |   880 ms
+|        |          |       |          |         |       |    `12` |   740 ms
+|        |          |       |          |         |       |    `13` |   590 ms
+|        |          |       |          |         |       |    `14` |   440 ms
+|        |          |       |          |         |       |    `15` |   370 ms
+|        |          |       |          |         |       |    `16` |   290 ms
+|        |          |       |          |         |       |    `17` |   220 ms
+|        |          |       |          |         |       |    `18` |   180 ms
+|        |          |       |          |         |       |    `19` |   150 ms
+|        |          |       |          |         |       |    `1A` |   110 ms
+|        |          |       |          |         |       |    `1B` |    92 ms
+|        |          |       |          |         |       |    `1C` |    74 ms
+|        |          |       |          |         |       |    `1D` |    55 ms
+|        |          |       |          |         |       |    `1E` |    37 ms
+|        |          |       |          |         |       |    `1F` |    18 ms
 
 reference: [Super Famicom Development Wiki](https://wiki.superfamicom.org/spc700-reference#dsp-voice-register:-adsr-1097)
 
@@ -113,37 +113,37 @@ reference: [Super Famicom Development Wiki](https://wiki.superfamicom.org/spc700
 value | linear inc. | bent line inc. | linear dec. | exponent dec.
 ----: | ----------: | -------------: | ----------: | ------------:
  `00` |           ∞ |              ∞ |           ∞ |             ∞
- `01` |     4.1 sec |        7.2 sec |     4.1 sec |        38 sec
- `02` |     3.1 sec |        5.4 sec |     3.1 sec |        28 sec
- `03` |     2.6 sec |        4.6 sec |     2.6 sec |        24 sec
- `04` |     2.0 sec |        3.5 sec |     2.0 sec |        19 sec
- `05` |     1.5 sec |        2.6 sec |     1.5 sec |        14 sec
- `06` |     1.3 sec |        2.3 sec |     1.3 sec |        12 sec
- `07` |     1.0 sec |        1.8 sec |     1.0 sec |       9.4 sec
- `08` |    770 msec |        1.3 sec |    770 msec |       7.1 sec
- `09` |    640 msec |        1.1 sec |    640 msec |       5.9 sec
- `0A` |    510 msec |       900 msec |    510 msec |       4.7 sec
- `0B` |    380 msec |       670 msec |    380 msec |       3.5 sec
- `0C` |    320 msec |       560 msec |    320 msec |       2.9 sec
- `0D` |    260 msec |       450 msec |    260 msec |       2.4 sec
- `0E` |    190 msec |       340 msec |    190 msec |       1.8 sec
- `0F` |    160 msec |       280 msec |    160 msec |       1.5 sec
- `10` |    130 msec |       220 msec |    130 msec |       1.2 sec
- `11` |     96 msec |       170 msec |     96 msec |      880 msec
- `12` |     80 msec |       140 msec |     80 msec |      740 msec
- `13` |     64 msec |       110 msec |     64 msec |      590 msec
- `14` |     48 msec |        84 msec |     48 msec |      440 msec
- `15` |     40 msec |        70 msec |     40 msec |      370 msec
- `16` |     32 msec |        56 msec |     32 msec |      290 msec
- `17` |     24 msec |        42 msec |     24 msec |      220 msec
- `18` |     20 msec |        35 msec |     20 msec |      180 msec
- `19` |     16 msec |        28 msec |     16 msec |      150 msec
- `1A` |     12 msec |        21 msec |     12 msec |      110 msec
- `1B` |     10 msec |        18 msec |     10 msec |       92 msec
- `1C` |      8 msec |        14 msec |      8 msec |       74 msec
- `1D` |      6 msec |        11 msec |      6 msec |       55 msec
- `1E` |      4 msec |         7 msec |      4 msec |       37 msec
- `1F` |      2 msec |       3.5 msec |      2 msec |       18 msec
+ `01` |       4.1 s |          7.2 s |       4.1 s |          38 s
+ `02` |       3.1 s |          5.4 s |       3.1 s |          28 s
+ `03` |       2.6 s |          4.6 s |       2.6 s |          24 s
+ `04` |       2.0 s |          3.5 s |       2.0 s |          19 s
+ `05` |       1.5 s |          2.6 s |       1.5 s |          14 s
+ `06` |       1.3 s |          2.3 s |       1.3 s |          12 s
+ `07` |       1.0 s |          1.8 s |       1.0 s |         9.4 s
+ `08` |      770 ms |          1.3 s |      770 ms |         7.1 s
+ `09` |      640 ms |          1.1 s |      640 ms |         5.9 s
+ `0A` |      510 ms |         900 ms |      510 ms |         4.7 s
+ `0B` |      380 ms |         670 ms |      380 ms |         3.5 s
+ `0C` |      320 ms |         560 ms |      320 ms |         2.9 s
+ `0D` |      260 ms |         450 ms |      260 ms |         2.4 s
+ `0E` |      190 ms |         340 ms |      190 ms |         1.8 s
+ `0F` |      160 ms |         280 ms |      160 ms |         1.5 s
+ `10` |      130 ms |         220 ms |      130 ms |         1.2 s
+ `11` |       96 ms |         170 ms |       96 ms |        880 ms
+ `12` |       80 ms |         140 ms |       80 ms |        740 ms
+ `13` |       64 ms |         110 ms |       64 ms |        590 ms
+ `14` |       48 ms |          84 ms |       48 ms |        440 ms
+ `15` |       40 ms |          70 ms |       40 ms |        370 ms
+ `16` |       32 ms |          56 ms |       32 ms |        290 ms
+ `17` |       24 ms |          42 ms |       24 ms |        220 ms
+ `18` |       20 ms |          35 ms |       20 ms |        180 ms
+ `19` |       16 ms |          28 ms |       16 ms |        150 ms
+ `1A` |       12 ms |          21 ms |       12 ms |        110 ms
+ `1B` |       10 ms |          18 ms |       10 ms |         92 ms
+ `1C` |        8 ms |          14 ms |        8 ms |         74 ms
+ `1D` |        6 ms |          11 ms |        6 ms |         55 ms
+ `1E` |        4 ms |           7 ms |        4 ms |         37 ms
+ `1F` |        2 ms |         3.5 ms |        2 ms |         18 ms
 
 reference: [Super Famicom Development Wiki](https://wiki.superfamicom.org/spc700-reference#dsp-voice-register:-gain-1156)
 
@@ -174,4 +174,4 @@ reference: [Super Famicom Development Wiki](https://wiki.superfamicom.org/spc700
 
 # resources
 
-- [SNES-format BRR samples](https://www.smwcentral.net/?p=section&s=brrsamples) at SMW Central
+- [SNES-format BRR samples](https://www.smwcentral.net/?p=stion&s=brrsamples) at SMW Central
