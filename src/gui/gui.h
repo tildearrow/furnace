@@ -1508,6 +1508,7 @@ class FurnaceGUI {
     int renderClearPos;
     int insertBehavior;
     int pullDeleteRow;
+    int newSongBehavior;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1659,6 +1660,7 @@ class FurnaceGUI {
       renderClearPos(0),
       insertBehavior(1),
       pullDeleteRow(1),
+      newSongBehavior(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -2088,6 +2090,8 @@ class FurnaceGUI {
   void popDestColor();
   void pushWarningColor(bool warnCond, bool errorCond=false);
   void popWarningColor();
+
+  void sameLineMaybe(float width=-1.0f);
 
   float calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD);
 
