@@ -99,5 +99,9 @@ bool FurnaceGUIRender::quit() {
 void FurnaceGUIRender::quitGUI() { 
 }
 
+bool FurnaceGUIRender::isDead() {
+  return false;
+}
+
 FurnaceGUIRender::~FurnaceGUIRender() {
 }

@@ -1266,6 +1266,7 @@ class FurnaceGUIRender {
     virtual void initGUI(SDL_Window* win);
     virtual void quitGUI();
     virtual bool quit();
+    virtual bool isDead();
     virtual ~FurnaceGUIRender();
 };
 
