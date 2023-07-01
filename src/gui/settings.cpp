@@ -1602,6 +1602,16 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::Separator();
 
+          ImGui::Text("Chip memory usage unit:");
+          if (ImGui::RadioButton("Bytes##MUU0",settings.memUsageUnit==0)) {
+            settings.memUsageUnit=0;
+          }
+          if (ImGui::RadioButton("Kilobytes##MUU1",settings.memUsageUnit==1)) {
+            settings.memUsageUnit=1;
+          }
+
+          ImGui::Separator();
+
           ImGui::Text("Namco 163 chip name");
           ImGui::SameLine();
           ImGui::InputTextWithHint("##C163Name",DIV_C163_DEFAULT_NAME,&settings.c163Name);
@@ -2766,6 +2776,7 @@ void FurnaceGUI::syncSettings() {
   settings.insertBehavior=e->getConfInt("insertBehavior",1);
   settings.pullDeleteRow=e->getConfInt("pullDeleteRow",1);
   settings.newSongBehavior=e->getConfInt("newSongBehavior",0);
+  settings.memUsageUnit=e->getConfInt("memUsageUnit",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2892,6 +2903,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.insertBehavior,0,1);
   clampSetting(settings.pullDeleteRow,0,1);
   clampSetting(settings.newSongBehavior,0,1);
+  clampSetting(settings.memUsageUnit,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3114,6 +3126,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("insertBehavior",settings.insertBehavior);
   e->setConf("pullDeleteRow",settings.pullDeleteRow);
   e->setConf("newSongBehavior",settings.newSongBehavior);
+  e->setConf("memUsageUnit",settings.memUsageUnit);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
