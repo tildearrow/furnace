@@ -3462,6 +3462,11 @@ bool FurnaceGUI::loop() {
               break;
           }
           break;
+#if SDL_VERSION_ATLEAST(2,0,4)
+        case SDL_RENDER_DEVICE_RESET:
+          killGraphics=true;
+          break;
+#endif
 #if SDL_VERSION_ATLEAST(2,0,17)
         case SDL_DISPLAYEVENT: {
           switch (ev.display.event) {
