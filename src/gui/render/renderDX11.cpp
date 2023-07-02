@@ -565,6 +565,6 @@ void FurnaceGUIRenderDX11::quitGUI() {
   ImGui_ImplDX11_Shutdown();
 }
 
-void FurnaceGUIRenderDX11::isDead() {
+bool FurnaceGUIRenderDX11::isDead() {
   return dead;
 }
