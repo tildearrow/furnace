@@ -57,6 +57,7 @@ class FurnaceGUIRenderGL: public FurnaceGUIRender {
     void initGUI(SDL_Window* win);
     void quitGUI();
     bool quit();
+    bool isDead();
     FurnaceGUIRenderGL():
       context(NULL),
       sdlWin(NULL) {

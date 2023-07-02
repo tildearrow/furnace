@@ -51,6 +51,10 @@ PFNGLGETUNIFORMLOCATIONPROC furGetUniformLocation=NULL;
 PFNGLUNIFORM1FPROC furUniform1f=NULL;
 PFNGLGETSHADERINFOLOGPROC furGetShaderInfoLog=NULL;
 
+#ifndef USE_GLES
+PFNGLGETGRAPHICSRESETSTATUSARBPROC furGetGraphicsResetStatusARB=NULL;
+#endif
+
 class FurnaceGLTexture: public FurnaceGUITexture {
   public:
   GLuint id;
@@ -359,6 +363,9 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
   LOAD_PROC_OPTIONAL(furUniform1f,PFNGLUNIFORM1FPROC,"glUniform1f");
   LOAD_PROC_OPTIONAL(furGetShaderInfoLog,PFNGLGETSHADERINFOLOGPROC,"glGetShaderInfoLog");
 
+#ifndef USE_GLES
+  LOAD_PROC_OPTIONAL(furGetGraphicsResetStatusARB,PFNGLGETGRAPHICSRESETSTATUSARBPROC,"glGetGraphicsResetStatusARB");
+#endif
 
   if (createShader(sh_wipe_srcV,sh_wipe_srcF,sh_wipe_vertex,sh_wipe_fragment,sh_wipe_program)) {
     sh_wipe_uAlpha=furGetUniformLocation(sh_wipe_program,"uAlpha");
@@ -382,4 +389,14 @@ bool FurnaceGUIRenderGL::quit() {
 
 void FurnaceGUIRenderGL::quitGUI() { 
   ImGui_ImplOpenGL3_Shutdown();
+}
+
+bool FurnaceGUIRenderGL::isDead() {
+#ifndef USE_GLES
+   if (furGetGraphicsResetStatusARB==NULL) return false;
+   return (furGetGraphicsResetStatusARB()!=GL_NO_ERROR);
+#else
+   // handled by SDL... I think
+   return false;
+#endif
 }
