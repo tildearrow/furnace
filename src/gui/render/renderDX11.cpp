@@ -349,8 +349,8 @@ void FurnaceGUIRenderDX11::present() {
   HRESULT result=swapchain->Present(1,0);
   if (result==DXGI_ERROR_DEVICE_REMOVED || result==DXGI_ERROR_DEVICE_RESET) {
     dead=true;
-  } else {
-    logE("DX11: present failed! %.8x",result)
+  } else if (result!=S_OK) {
+    logE("DX11: present failed! %.8x",result);
   }
 }
 
@@ -368,10 +368,10 @@ void FurnaceGUIRenderDX11::preInit() {
 }
 
 const float wipeVertices[4][4]={
-  -1.0, -1.0, 0.0, 1.0,
-   1.0, -1.0, 0.0, 1.0,
-  -1.0,  1.0, 0.0, 1.0,
-   1.0,  1.0, 0.0, 1.0
+  {-1.0, -1.0, 0.0, 1.0},
+  { 1.0, -1.0, 0.0, 1.0},
+  {-1.0,  1.0, 0.0, 1.0},
+  { 1.0,  1.0, 0.0, 1.0}
 };
 
 bool FurnaceGUIRenderDX11::init(SDL_Window* win) {
