@@ -51,7 +51,8 @@ PFNGLGETUNIFORMLOCATIONPROC furGetUniformLocation=NULL;
 PFNGLUNIFORM1FPROC furUniform1f=NULL;
 PFNGLGETSHADERINFOLOGPROC furGetShaderInfoLog=NULL;
 
-struct FurnaceGLTexture {
+class FurnaceGLTexture: public FurnaceGUITexture {
+  public:
   GLuint id;
   int width, height;
   unsigned char* lockedData;
@@ -138,12 +139,12 @@ bool FurnaceGUIRenderGL::createShader(const char* vertexS, const char* fragmentS
   return true;
 }
 
-ImTextureID FurnaceGUIRenderGL::getTextureID(void* which) {
+ImTextureID FurnaceGUIRenderGL::getTextureID(FurnaceGUITexture* which) {
   intptr_t ret=((FurnaceGLTexture*)which)->id;
   return (ImTextureID)ret;
 }
 
-bool FurnaceGUIRenderGL::lockTexture(void* which, void** data, int* pitch) {
+bool FurnaceGUIRenderGL::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
   FurnaceGLTexture* t=(FurnaceGLTexture*)which;
   if (t->lockedData!=NULL) return false;
   t->lockedData=new unsigned char[t->width*t->height*4];
@@ -153,7 +154,7 @@ bool FurnaceGUIRenderGL::lockTexture(void* which, void** data, int* pitch) {
   return true;
 }
 
-bool FurnaceGUIRenderGL::unlockTexture(void* which) {
+bool FurnaceGUIRenderGL::unlockTexture(FurnaceGUITexture* which) {
   FurnaceGLTexture* t=(FurnaceGLTexture*)which;
   if (t->lockedData==NULL) return false;
 
@@ -167,7 +168,7 @@ bool FurnaceGUIRenderGL::unlockTexture(void* which) {
   return true;
 }
 
-bool FurnaceGUIRenderGL::updateTexture(void* which, void* data, int pitch) {
+bool FurnaceGUIRenderGL::updateTexture(FurnaceGUITexture* which, void* data, int pitch) {
   FurnaceGLTexture* t=(FurnaceGLTexture*)which;
 
   if (t->width*4!=pitch) return false;
@@ -177,7 +178,7 @@ bool FurnaceGUIRenderGL::updateTexture(void* which, void* data, int pitch) {
   return true;
 }
 
-void* FurnaceGUIRenderGL::createTexture(bool dynamic, int width, int height) {
+FurnaceGUITexture* FurnaceGUIRenderGL::createTexture(bool dynamic, int width, int height) {
   FurnaceGLTexture* t=new FurnaceGLTexture;
   C(glGenTextures(1,&t->id));
   C(glBindTexture(GL_TEXTURE_2D,t->id));
@@ -190,14 +191,14 @@ void* FurnaceGUIRenderGL::createTexture(bool dynamic, int width, int height) {
   return t;
 }
 
-bool FurnaceGUIRenderGL::destroyTexture(void* which) {
+bool FurnaceGUIRenderGL::destroyTexture(FurnaceGUITexture* which) {
   FurnaceGLTexture* t=(FurnaceGLTexture*)which;
   C(glDeleteTextures(1,&t->id));
   delete t;
   return true;
 }
 
-void FurnaceGUIRenderGL::setTextureBlendMode(void* which, FurnaceGUIBlendMode mode) {
+void FurnaceGUIRenderGL::setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode) {
 }
 
 void FurnaceGUIRenderGL::setBlendMode(FurnaceGUIBlendMode mode) {
@@ -368,9 +369,6 @@ bool FurnaceGUIRenderGL::init(SDL_Window* win) {
 }
 
 void FurnaceGUIRenderGL::initGUI(SDL_Window* win) {
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-
   ImGui_ImplSDL2_InitForOpenGL(win,context);
   ImGui_ImplOpenGL3_Init();
 }

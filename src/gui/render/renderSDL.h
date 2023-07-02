@@ -22,13 +22,13 @@
 class FurnaceGUIRenderSDL: public FurnaceGUIRender {
   SDL_Renderer* sdlRend;
   public:
-    ImTextureID getTextureID(void* which);
-    bool lockTexture(void* which, void** data, int* pitch);
-    bool unlockTexture(void* which);
-    bool updateTexture(void* which, void* data, int pitch);
-    void* createTexture(bool dynamic, int width, int height);
-    bool destroyTexture(void* which);
-    void setTextureBlendMode(void* which, FurnaceGUIBlendMode mode);
+    ImTextureID getTextureID(FurnaceGUITexture* which);
+    bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
+    bool unlockTexture(FurnaceGUITexture* which);
+    bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);
+    FurnaceGUITexture* createTexture(bool dynamic, int width, int height);
+    bool destroyTexture(FurnaceGUITexture* which);
+    void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     void setBlendMode(FurnaceGUIBlendMode mode);
     void clear(ImVec4 color);
     bool newFrame();

@@ -25,7 +25,7 @@
 
 void FurnaceGUI::drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2& pos, const ImVec2& scale, double rotate, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& imgColor) {
   FurnaceGUIImage* imgI=getImage(image);
-  void* img=getTexture(image);
+  FurnaceGUITexture* img=getTexture(image);
 
   float squareSize=MAX(introMax.x-introMin.x,introMax.y-introMin.y);
   float uDiff=uvMax.x-uvMin.x;

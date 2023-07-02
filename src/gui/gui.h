@@ -1210,9 +1210,12 @@ struct FurnaceGUIQueryResult {
   }
 };
 
+class FurnaceGUITexture {
+};
+
 struct FurnaceGUIImage {
   unsigned char* data;
-  void* tex;
+  FurnaceGUITexture* tex;
   int width, height, ch;
 
   FurnaceGUIImage():
@@ -1243,13 +1246,13 @@ enum FurnaceGUIBlendMode {
 
 class FurnaceGUIRender {
   public:
-    virtual ImTextureID getTextureID(void* which);
-    virtual bool lockTexture(void* which, void** data, int* pitch);
-    virtual bool unlockTexture(void* which);
-    virtual bool updateTexture(void* which, void* data, int pitch);
-    virtual void* createTexture(bool dynamic, int width, int height);
-    virtual bool destroyTexture(void* which);
-    virtual void setTextureBlendMode(void* which, FurnaceGUIBlendMode mode);
+    virtual ImTextureID getTextureID(FurnaceGUITexture* which);
+    virtual bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
+    virtual bool unlockTexture(FurnaceGUITexture* which);
+    virtual bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);
+    virtual FurnaceGUITexture* createTexture(bool dynamic, int width, int height);
+    virtual bool destroyTexture(FurnaceGUITexture* which);
+    virtual void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     virtual void setBlendMode(FurnaceGUIBlendMode mode);
     virtual void resized(const SDL_Event& ev);
     virtual void clear(ImVec4 color);
@@ -1280,7 +1283,7 @@ class FurnaceGUI {
   SDL_Haptic* vibrator;
   bool vibratorAvailable;
   
-  void* sampleTex;
+  FurnaceGUITexture* sampleTex;
   int sampleTexW, sampleTexH;
   bool updateSampleTex;
 
@@ -1305,6 +1308,7 @@ class FurnaceGUI {
   bool displayNew, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool mobileEdit;
+  bool killGraphics;
   bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;
   int vgmExportTrailingTicks;
@@ -1960,7 +1964,7 @@ class FurnaceGUI {
   String chanOscTextFormat;
   ImVec4 chanOscColor, chanOscTextColor;
   Gradient2D chanOscGrad;
-  void* chanOscGradTex;
+  FurnaceGUITexture* chanOscGradTex;
   float chanOscLP0[DIV_MAX_CHANS];
   float chanOscLP1[DIV_MAX_CHANS];
   float chanOscVol[DIV_MAX_CHANS];
@@ -2121,7 +2125,7 @@ class FurnaceGUI {
   void highlightWindow(const char* winName);
 
   FurnaceGUIImage* getImage(FurnaceGUIImages image);
-  void* getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode=GUI_BLEND_MODE_BLEND);
+  FurnaceGUITexture* getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode=GUI_BLEND_MODE_BLEND);
   void drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2& pos, const ImVec2& scale, double rotate, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& imgColor);
 
   void drawMobileControls();
