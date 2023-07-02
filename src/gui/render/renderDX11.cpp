@@ -141,12 +141,12 @@ bool FurnaceGUIRenderDX11::createRenderTarget() {
   return true;
 }
 
-ImTextureID FurnaceGUIRenderDX11::getTextureID(void* which) {
+ImTextureID FurnaceGUIRenderDX11::getTextureID(FurnaceGUITexture* which) {
   FurnaceDXTexture* t=(FurnaceDXTexture*)which;
   return (ImTextureID)t->view;
 }
 
-bool FurnaceGUIRenderDX11::lockTexture(void* which, void** data, int* pitch) {
+bool FurnaceGUIRenderDX11::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
   FurnaceDXTexture* t=(FurnaceDXTexture*)which;
   if (t->lockedData!=NULL) return false;
 
@@ -166,7 +166,7 @@ bool FurnaceGUIRenderDX11::lockTexture(void* which, void** data, int* pitch) {
   return true;
 }
 
-bool FurnaceGUIRenderDX11::unlockTexture(void* which) {
+bool FurnaceGUIRenderDX11::unlockTexture(FurnaceGUITexture* which) {
   FurnaceDXTexture* t=(FurnaceDXTexture*)which;
   if (t->lockedData==NULL) return false;
   context->Unmap(t->tex,D3D11CalcSubresource(0,0,1));
@@ -174,7 +174,7 @@ bool FurnaceGUIRenderDX11::unlockTexture(void* which) {
   return true;
 }
 
-bool FurnaceGUIRenderDX11::updateTexture(void* which, void* data, int pitch) {
+bool FurnaceGUIRenderDX11::updateTexture(FurnaceGUITexture* which, void* data, int pitch) {
   FurnaceDXTexture* t=(FurnaceDXTexture*)which;
   if (t->dynamic) {
     unsigned char* d=NULL;
@@ -199,7 +199,7 @@ bool FurnaceGUIRenderDX11::updateTexture(void* which, void* data, int pitch) {
   return true;
 }
 
-void* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, int height) {
+FurnaceGUITexture* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, int height) {
   D3D11_TEXTURE2D_DESC texDesc;
   D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
   ID3D11Texture2D* tex=NULL;
@@ -248,7 +248,7 @@ void* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, int height) {
   return ret;
 }
 
-bool FurnaceGUIRenderDX11::destroyTexture(void* which) {
+bool FurnaceGUIRenderDX11::destroyTexture(FurnaceGUITexture* which) {
   FurnaceDXTexture* t=(FurnaceDXTexture*)which;
   t->view->Release();
   t->tex->Release();
@@ -256,7 +256,7 @@ bool FurnaceGUIRenderDX11::destroyTexture(void* which) {
   return true;
 }
 
-void FurnaceGUIRenderDX11::setTextureBlendMode(void* which, FurnaceGUIBlendMode mode) {
+void FurnaceGUIRenderDX11::setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode) {
 }
 
 void FurnaceGUIRenderDX11::setBlendMode(FurnaceGUIBlendMode mode) {
