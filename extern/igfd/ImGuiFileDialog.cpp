@@ -1445,7 +1445,9 @@ namespace IGFD
   {
     auto infos = std::make_shared<FileInfos>();
 
+#ifdef _WIN32
     struct dirent* dent=(struct dirent*)ent;
+#endif
 
     infos->filePath = vPath;
     infos->fileNameExt = vFileName;
