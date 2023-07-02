@@ -664,9 +664,7 @@ void DivPlatformGB::setFlags(const DivConfig& flags) {
   }
   invertWave=flags.getBool("invertWave",true);
   enoughAlready=flags.getBool("enoughAlready",false);
-}
 
-int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   chipClock=4194304;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/16;
@@ -675,6 +673,9 @@ int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig
     oscBuf[i]=new DivDispatchOscBuffer;
     oscBuf[i]->rate=rate;
   }
+}
+
+int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
