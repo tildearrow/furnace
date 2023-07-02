@@ -349,7 +349,7 @@ void FurnaceGUIRenderDX11::present() {
   HRESULT result=swapchain->Present(1,0);
   if (result==DXGI_ERROR_DEVICE_REMOVED || result==DXGI_ERROR_DEVICE_RESET) {
     dead=true;
-  } else if (result!=S_OK) {
+  } else if (result!=S_OK && result!=DXGI_STATUS_OCCLUDED) {
     logE("DX11: present failed! %.8x",result);
   }
 }
