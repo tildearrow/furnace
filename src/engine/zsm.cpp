@@ -53,9 +53,17 @@ void DivZSM::init(unsigned int rate) {
   tickRate=rate;
   loopOffset=-1;
   numWrites=0;
+  ticks=0;
+  // Initialize YM/PSG states
   memset(&ymState,-1,sizeof(ymState));
   memset(&psgState,-1,sizeof(psgState));
-  ticks=0;
+  // Initialize PCM states
+  pcmRateCache=-1;
+  pcmCtrlRVCache=-1;
+  pcmCtrlDCCache=-1;
+  // Channel masks
+  ymMask=0;
+  psgMask=0;
 }
 
 int DivZSM::getoffset() {
