@@ -500,8 +500,6 @@ bool FurnaceGUI::InvCheckbox(const char* label, bool* value) {
 void FurnaceGUI::sameLineMaybe(float width) {
   if (width<0.0f) width=ImGui::GetFrameHeight();
 
-  logV("sameLineMaybe: %f %f",ImGui::GetContentRegionAvail().x,width);
-
   ImGui::SameLine();
   if (ImGui::GetContentRegionAvail().x<width) ImGui::NewLine();
 }
