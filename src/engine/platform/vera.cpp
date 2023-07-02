@@ -441,6 +441,15 @@ void DivPlatformVERA::poke(std::vector<DivRegWrite>& wlist) {
   for (auto &i: wlist) poke(i.addr,i.val);
 }
 
+void DivPlatformVERA::setFlags(const DivConfig& flags) {
+  chipClock=25000000;
+  CHECK_CUSTOM_CLOCK;
+  rate=chipClock/512;
+  for (int i=0; i<17; i++) {
+    oscBuf[i]->rate=rate;
+  }
+}
+
 int DivPlatformVERA::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   for (int i=0; i<17; i++) {
     isMuted[i]=false;
@@ -451,12 +460,7 @@ int DivPlatformVERA::init(DivEngine* p, int channels, int sugRate, const DivConf
   pcm=new struct VERA_PCM;
   dumpWrites=false;
   skipRegisterWrites=false;
-  chipClock=25000000;
-  CHECK_CUSTOM_CLOCK;
-  rate=chipClock/512;
-  for (int i=0; i<17; i++) {
-    oscBuf[i]->rate=rate;
-  }
+  setFlags(flags);
   reset();
   return 17;
 }
