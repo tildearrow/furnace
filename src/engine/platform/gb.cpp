@@ -19,6 +19,7 @@
 
 #include "gb.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <math.h>
 
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
@@ -80,6 +81,7 @@ void DivPlatformGB::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformGB::updateWave() {
+  logV("WAVE UPDATE");
   rWrite(0x1a,0);
   for (int i=0; i<16; i++) {
     int nibble1=ws.output[((i<<1)+antiClickWavePos)&31];
@@ -299,6 +301,7 @@ void DivPlatformGB::tick(bool sysTick) {
       }
       if (chan[i].keyOn) {
         if (i==2) { // wave
+          rWrite(16+i*5,0x00);
           rWrite(16+i*5,0x80);
           rWrite(16+i*5+2,gbVolMap[chan[i].outVol]);
         } else {
@@ -664,9 +667,7 @@ void DivPlatformGB::setFlags(const DivConfig& flags) {
   }
   invertWave=flags.getBool("invertWave",true);
   enoughAlready=flags.getBool("enoughAlready",false);
-}
 
-int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   chipClock=4194304;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/16;
@@ -675,6 +676,9 @@ int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig
     oscBuf[i]=new DivDispatchOscBuffer;
     oscBuf[i]->rate=rate;
   }
+}
+
+int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;

@@ -122,6 +122,8 @@ void DivPlatformGenesis::processDAC(int iRate) {
               urgentWrite(0x2a,(unsigned char)sample+0x80);
               chan[5].dacReady=false;
             }
+          } else {
+            urgentWrite(0x2a,0x80);
           }
           chan[5].dacPos++;
           if (!chan[5].dacDirection && (s->isLoopable() && chan[5].dacPos>=(unsigned int)s->loopEnd)) {
@@ -184,16 +186,18 @@ void DivPlatformGenesis::acquire_nuked(short** buf, size_t len) {
       if (i==5) {
         if (fm.dacen) {
           if (softPCM) {
-            oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<7;
-            oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<7;
+            oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<6;
+            oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<6;
           } else {
-            oscBuf[i]->data[oscBuf[i]->needle++]=fm.dacdata<<7;
+            oscBuf[i]->data[oscBuf[i]->needle++]=((fm.dacdata^0x100)-0x100)<<6;
+            oscBuf[6]->data[oscBuf[6]->needle++]=0;
           }
         } else {
-          oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<(chipType==2?0:7);
+          oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm.ch_out[i]<<(chipType==2?1:6),-32768,32767);
+          oscBuf[6]->data[oscBuf[6]->needle++]=0;
         }
       } else {
-        oscBuf[i]->data[oscBuf[i]->needle++]=fm.ch_out[i]<<(chipType==2?0:7);
+        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(fm.ch_out[i]<<(chipType==2?1:6),-32768,32767);
       }
     }
     
@@ -241,19 +245,21 @@ void DivPlatformGenesis::acquire_ymfm(short** buf, size_t len) {
     //OPN2_Write(&fm,0,0);
 
     for (int i=0; i<6; i++) {
-      int chOut=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1))<<6;
+      int chOut=(fme->debug_channel(i)->debug_output(0)+fme->debug_channel(i)->debug_output(1))<<5;
       if (chOut<-32768) chOut=-32768;
       if (chOut>32767) chOut=32767;
       if (i==5) {
         if (fm_ymfm->debug_dac_enable()) {
           if (softPCM) {
-            oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<7;
-            oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<7;
+            oscBuf[5]->data[oscBuf[5]->needle++]=chan[5].dacOutput<<6;
+            oscBuf[6]->data[oscBuf[6]->needle++]=chan[6].dacOutput<<6;
           } else {
-            oscBuf[i]->data[oscBuf[i]->needle++]=fm_ymfm->debug_dac_data()<<7;
+            oscBuf[i]->data[oscBuf[i]->needle++]=((fm_ymfm->debug_dac_data()^0x100)-0x100)<<6;
+            oscBuf[6]->data[oscBuf[6]->needle++]=0;
           }
         } else {
           oscBuf[i]->data[oscBuf[i]->needle++]=chOut;
+          oscBuf[6]->data[oscBuf[6]->needle++]=0;
         }
       } else {
         oscBuf[i]->data[oscBuf[i]->needle++]=chOut;
@@ -1160,6 +1166,11 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
   return 1;
 }
 
+#define DRSLD2R(x) \
+  if (chan[i].state.op[x].dr<dr) dr=chan[i].state.op[x].dr; \
+  if (chan[i].state.op[x].sl<sl) sl=chan[i].state.op[x].sl; \
+  if (chan[i].state.op[x].d2r<d2r) d2r=chan[i].state.op[x].d2r;
+
 void DivPlatformGenesis::forceIns() {
   for (int i=0; i<6; i++) {
     for (int j=0; j<4; j++) {
@@ -1184,7 +1195,29 @@ void DivPlatformGenesis::forceIns() {
     rWrite(chanOffs[i]+ADDR_FB_ALG,(chan[i].state.alg&7)|(chan[i].state.fb<<3));
     rWrite(chanOffs[i]+ADDR_LRAF,(IS_REALLY_MUTED(i)?0:(chan[i].pan<<6))|(chan[i].state.fms&7)|((chan[i].state.ams&3)<<4));
     if (chan[i].active) {
-      if (i<5 || !chan[i].dacMode) {
+      bool sustained=false;
+      unsigned char dr=chan[i].state.op[3].dr;
+      unsigned char sl=chan[i].state.op[3].sl;
+      unsigned char d2r=chan[i].state.op[3].d2r;
+
+      switch (chan[i].state.alg&7) {
+        case 4:
+          DRSLD2R(2);
+          break;
+        case 5:
+        case 6:
+          DRSLD2R(2);
+          DRSLD2R(1);
+          break;
+        case 7:
+          DRSLD2R(2);
+          DRSLD2R(1);
+          DRSLD2R(3);
+          break;
+      }
+
+      if (dr<2 || (sl<15 && d2r<2)) sustained=true;
+      if ((i<5 || !chan[i].dacMode) && sustained) {
         chan[i].keyOn=true;
         chan[i].freqChanged=true;
       }

@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 159: Furnace dev159
 - 158: Furnace 0.6pre5
 - 157: Furnace dev157
 - 156: Furnace dev156
@@ -1232,7 +1233,8 @@ size | description
      | - 2: ping-pong
   1  | flags (>=129) or reserved
      | - 0: BRR emphasis
-  1  | reserved
+  1  | flags 2 (>=159) or reserved
+     | - 0: dither
   4  | loop start
      | - -1 means no loop
   4  | loop end

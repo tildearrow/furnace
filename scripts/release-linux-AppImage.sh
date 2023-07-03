@@ -47,5 +47,3 @@ cd ../../..
 [ -e appimagetool-x86_64.AppImage ] || { wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage" && chmod 755 appimagetool-x86_64.AppImage; }
 ./appimagetool-x86_64.AppImage --appimage-extract
 ARCH=$(uname -m) ./squashfs-root/AppRun furnace.AppDir
-
-#zip -r furnace.zip LICENSE.txt Furnace*.dmg README.txt papers

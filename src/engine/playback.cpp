@@ -781,21 +781,17 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
       case 0x07: // tremolo
-        // TODO
-        // this effect is really weird. i thought it would alter the tremolo depth but turns out it's completely different
-        // this is how it works:
-        // - 07xy enables tremolo
-        // - when enabled, a "low" boundary is calculated based on the current volume
-        // - then a volume slide down starts to the low boundary, and then when this is reached a volume slide up begins
-        // - this process repeats until 0700 or 0Axy are found
-        // - note that a volume value does not stop tremolo - instead it glitches this whole thing up
         if (chan[i].tremoloDepth==0) {
           chan[i].tremoloPos=0;
         }
         chan[i].tremoloDepth=effectVal&15;
         chan[i].tremoloRate=effectVal>>4;
-        // tremolo and vol slides are incompatiblw
-        chan[i].volSpeed=0;
+        if (chan[i].tremoloDepth!=0) {
+          chan[i].volSpeed=0;
+        } else {
+          dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+          dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
+        }
         break;
       case 0x0a: // volume ramp
         // TODO: non-0x-or-x0 value should be treated as 00
@@ -1192,6 +1188,11 @@ void DivEngine::nextRow() {
     nextSpeed=speeds.val[curSpeed];
   }
 
+  /*
+  if (skipping) {
+    ticks=1;
+  }*/
+
   // post row details
   for (int i=0; i<chans; i++) {
     DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][curOrder],false);
@@ -1318,7 +1319,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
       subticks=tickMult;
 
       if (stepPlay!=1) {
-        tempoAccum+=curSubSong->virtualTempoN;
+        tempoAccum+=(skipping && curSubSong->virtualTempoN<curSubSong->virtualTempoD)?curSubSong->virtualTempoD:curSubSong->virtualTempoN;
         while (tempoAccum>=curSubSong->virtualTempoD) {
           tempoAccum-=curSubSong->virtualTempoD;
           if (--ticks<=0) {
@@ -1568,8 +1569,10 @@ void DivEngine::runMidiClock(int totalCycles) {
     if (speedSum<1.0) speedSum=1.0;
     if (vD<1) vD=1;
     double bpm=((24.0*divider)/(timeBase*hl*speedSum))*(double)curSubSong->virtualTempoN/vD;
+    if (bpm<1.0) bpm=1.0;
+    int increment=got.rate*pow(2,MASTER_CLOCK_PREC)/(bpm);
 
-    midiClockCycles+=got.rate*pow(2,MASTER_CLOCK_PREC)/(bpm);
+    midiClockCycles+=increment;
     midiClockDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)(bpm));
     if (midiClockDrift>=(bpm)) {
       midiClockDrift-=(bpm);
@@ -1688,6 +1691,10 @@ void DivEngine::runMidiTime(int totalCycles) {
 }
 
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
+  if (!size) {
+    logW("nextBuf called with size 0!");
+    return;
+  }
   lastLoopPos=-1;
 
   if (out!=NULL) {
@@ -2124,7 +2131,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     for (size_t i=0; i<size; i++) {
       float chanSum=out[0][i];
       for (int j=1; j<outChans; j++) {
-        chanSum=out[j][i];
+        chanSum+=out[j][i];
       }
       out[0][i]=chanSum/outChans;
       for (int j=1; j<outChans; j++) {

@@ -506,7 +506,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_ABOUT", "About", 0),
   D("WINDOW_SETTINGS", "Settings", 0),
   D("WINDOW_MIXER", "Mixer", 0),
-  D("WINDOW_DEBUG", "Debug Menu", 0),
+  D("WINDOW_DEBUG", "Debug Menu", FURKMOD_CMD|FURKMOD_SHIFT|SDLK_d),
   D("WINDOW_OSCILLOSCOPE", "Oscilloscope (master)", 0),
   D("WINDOW_VOL_METER", "Volume Meter", 0),
   D("WINDOW_STATS", "Statistics", 0),
@@ -742,6 +742,9 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_TOGGLE_ON,"",ImVec4(0.2f,0.6f,0.2f,1.0f)),
   D(GUI_COLOR_EDITING,"",ImVec4(0.2f,0.1f,0.1f,1.0f)),
   D(GUI_COLOR_SONG_LOOP,"",ImVec4(0.3f,0.5f,0.8f,0.4f)),
+  D(GUI_COLOR_DESTRUCTIVE,"",ImVec4(1.0f,0.2f,0.2f,1.0f)),
+  D(GUI_COLOR_WARNING,"",ImVec4(0.98f,0.98f,0.06f,1.0f)),
+  D(GUI_COLOR_ERROR,"",ImVec4(0.98f,0.06f,0.11f,1.0f)),
 
   D(GUI_COLOR_FILE_DIR,"",ImVec4(0.0f,1.0f,1.0f,1.0f)),
   D(GUI_COLOR_FILE_SONG_NATIVE,"",ImVec4(0.5f,1.0f,0.5f,1.0f)),

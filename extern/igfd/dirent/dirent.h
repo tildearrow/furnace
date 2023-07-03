@@ -237,6 +237,10 @@ struct _wdirent {
 
     /* File name */
     wchar_t d_name[PATH_MAX+1];
+
+    /* Windows extensions */
+    size_t dwin_size;
+    FILETIME dwin_mtime;
 };
 typedef struct _wdirent _wdirent;
 
@@ -277,6 +281,10 @@ struct dirent {
 
     /* File name */
     char d_name[PATH_MAX+1];
+
+    /* Windows extensions */
+    size_t dwin_size;
+    FILETIME dwin_mtime;
 };
 typedef struct dirent dirent;
 
@@ -515,6 +523,9 @@ _wreaddir_r(
         entry->d_ino = 0;
         entry->d_off = 0;
         entry->d_reclen = sizeof (struct _wdirent);
+
+        entry->dwin_size = ((size_t)datap->nFileSizeHigh<<32) | datap->nFileSizeLow;
+        entry->dwin_mtime = datap->ftLastWriteTime;
 
         /* Set result address */
         *result = entry;
@@ -806,6 +817,9 @@ readdir_r(
             entry->d_off = 0;
             entry->d_reclen = sizeof (struct dirent);
 
+            entry->dwin_size = ((size_t)datap->nFileSizeHigh<<32) | datap->nFileSizeLow;
+            entry->dwin_mtime = datap->ftLastWriteTime;
+
         } else {
 
             /*
@@ -821,6 +835,9 @@ readdir_r(
             entry->d_ino = 0;
             entry->d_off = -1;
             entry->d_reclen = 0;
+            entry->dwin_size = 0;
+            entry->dwin_mtime.dwHighDateTime = 0;
+            entry->dwin_mtime.dwLowDateTime = 0;
 
         }
 

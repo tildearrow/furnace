@@ -79,9 +79,8 @@ void DivPlatformMSM6295::acquire(short** buf, size_t len) {
 
     if (++updateOsc>=22) {
       updateOsc=0;
-      // TODO: per-channel osc
       for (int i=0; i<4; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=msm.voice_out(i)<<6;
+        oscBuf[i]->data[oscBuf[i]->needle++]=msm.voice_out(i)<<5;
       }
     }
   }

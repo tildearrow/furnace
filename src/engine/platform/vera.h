@@ -70,6 +70,7 @@ class DivPlatformVERA: public DivDispatch {
     void reset();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
+    void setFlags(const DivConfig& flags);
     void notifyInsDeletion(void* ins);
     float getPostAmp();
     int getOutputCount();

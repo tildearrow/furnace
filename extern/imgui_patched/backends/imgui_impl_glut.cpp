@@ -9,6 +9,7 @@
 //  [X] Platform: Partial keyboard support. Since 1.87 we are using the io.AddKeyEvent() function. Pass ImGuiKey values to all key functions e.g. ImGui::IsKeyPressed(ImGuiKey_Space). [Legacy GLUT values will also be supported unless IMGUI_DISABLE_OBSOLETE_KEYIO is set]
 // Issues:
 //  [ ] Platform: GLUT is unable to distinguish e.g. Backspace from CTRL+H or TAB from CTRL+I
+//  [ ] Platform: Missing horizontal mouse wheel support.
 //  [ ] Platform: Missing mouse cursor shape/visibility support.
 //  [ ] Platform: Missing clipboard support (not supported by Glut).
 //  [ ] Platform: Missing gamepad support.
@@ -20,6 +21,8 @@
 
 // CHANGELOG
 // (minor and older changes stripped away, please see git history for details)
+//  2023-04-17: BREAKING: Removed call to ImGui::NewFrame() from ImGui_ImplGLUT_NewFrame(). Needs to be called from the main application loop, like with every other backends.
+//  2022-09-26: Inputs: Renamed ImGuiKey_ModXXX introduced in 1.87 to ImGuiMod_XXX (old names still supported).
 //  2022-01-26: Inputs: replaced short-lived io.AddKeyModsEvent() (added two weeks ago) with io.AddKeyEvent() using ImGuiKey_ModXXX flags. Sorry for the confusion.
 //  2022-01-17: Inputs: calling new io.AddMousePosEvent(), io.AddMouseButtonEvent(), io.AddMouseWheelEvent() API (1.87+).
 //  2022-01-10: Inputs: calling new io.AddKeyEvent(), io.AddKeyModsEvent() + io.SetKeyEventNativeData() API (1.87+). Support for full ImGuiKey range.
@@ -30,6 +33,7 @@
 
 #include "imgui.h"
 #include "imgui_impl_glut.h"
+#define GL_SILENCE_DEPRECATION
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else
@@ -187,6 +191,8 @@ void ImGui_ImplGLUT_InstallFuncs()
 
 void ImGui_ImplGLUT_Shutdown()
 {
+    ImGuiIO& io = ImGui::GetIO();
+    io.BackendPlatformName = nullptr;
 }
 
 void ImGui_ImplGLUT_NewFrame()
@@ -199,18 +205,15 @@ void ImGui_ImplGLUT_NewFrame()
         delta_time_ms = 1;
     io.DeltaTime = delta_time_ms / 1000.0f;
     g_Time = current_time;
-
-    // Start the frame
-    ImGui::NewFrame();
 }
 
 static void ImGui_ImplGLUT_UpdateKeyModifiers()
 {
     ImGuiIO& io = ImGui::GetIO();
     int glut_key_mods = glutGetModifiers();
-    io.AddKeyEvent(ImGuiKey_ModCtrl, (glut_key_mods & GLUT_ACTIVE_CTRL) != 0);
-    io.AddKeyEvent(ImGuiKey_ModShift, (glut_key_mods & GLUT_ACTIVE_SHIFT) != 0);
-    io.AddKeyEvent(ImGuiKey_ModAlt, (glut_key_mods & GLUT_ACTIVE_ALT) != 0);
+    io.AddKeyEvent(ImGuiMod_Ctrl, (glut_key_mods & GLUT_ACTIVE_CTRL) != 0);
+    io.AddKeyEvent(ImGuiMod_Shift, (glut_key_mods & GLUT_ACTIVE_SHIFT) != 0);
+    io.AddKeyEvent(ImGuiMod_Alt, (glut_key_mods & GLUT_ACTIVE_ALT) != 0);
 }
 
 static void ImGui_ImplGLUT_AddKeyEvent(ImGuiKey key, bool down, int native_keycode)

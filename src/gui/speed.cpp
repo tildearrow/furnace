@@ -56,7 +56,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
         if (tempoView) setHz/=2.5;
         if (setHz<1) setHz=1;
         if (setHz>999) setHz=999;
-        e->setSongRate(setHz,setHz<52);
+        e->setSongRate(setHz);
       }
       if (tempoView) {
         ImGui::SameLine();

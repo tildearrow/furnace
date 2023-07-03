@@ -54,8 +54,8 @@
 #define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
 #define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
 
-#define DIV_VERSION "0.6pre5"
-#define DIV_ENGINE_VERSION 158
+#define DIV_VERSION "dev159"
+#define DIV_ENGINE_VERSION 159
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -489,7 +489,7 @@ class DivEngine {
   void processRow(int i, bool afterDelay);
   void nextOrder();
   void nextRow();
-  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, bool directStream);
+  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, size_t bankOffset, bool directStream);
   // returns true if end of song.
   bool nextTick(bool noAccum=false, bool inhibitLowLat=false);
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
@@ -954,7 +954,7 @@ class DivEngine {
     void updateSysFlags(int system, bool restart);
 
     // set Hz
-    void setSongRate(float hz, bool pal);
+    void setSongRate(float hz);
 
     // set remaining loops. -1 means loop forever.
     void setLoops(int loops);
@@ -1051,6 +1051,9 @@ class DivEngine {
 
     // add subsong
     int addSubSong();
+
+    // duplicate subsong
+    int duplicateSubSong(int index);
 
     // remove subsong
     bool removeSubSong(int index);

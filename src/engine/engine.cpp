@@ -1444,9 +1444,6 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
   
   // extra attributes
   song.subsong[0]->hz=c.getDouble("tickRate",60.0);
-  if (song.subsong[0]->hz!=60.0) {
-    song.subsong[0]->customTempo=true;
-  }
 }
 
 void DivEngine::createNew(const char* description, String sysName, bool inBase64) {
@@ -1676,6 +1673,51 @@ int DivEngine::addSubSong() {
   BUSY_BEGIN;
   saveLock.lock();
   song.subsong.push_back(new DivSubSong);
+  saveLock.unlock();
+  BUSY_END;
+  return song.subsong.size()-1;
+}
+
+int DivEngine::duplicateSubSong(int index) {
+  if (song.subsong.size()>=127) return -1;
+  BUSY_BEGIN;
+  saveLock.lock();
+  DivSubSong* theCopy=new DivSubSong;
+  DivSubSong* theOrig=song.subsong[index];
+
+  theCopy->name=theOrig->name;
+  theCopy->notes=theOrig->notes;
+  theCopy->hilightA=theOrig->hilightA;
+  theCopy->hilightB=theOrig->hilightB;
+  theCopy->timeBase=theOrig->timeBase;
+  theCopy->arpLen=theOrig->arpLen;
+  theCopy->speeds=theOrig->speeds;
+  theCopy->virtualTempoN=theOrig->virtualTempoN;
+  theCopy->virtualTempoD=theOrig->virtualTempoD;
+  theCopy->hz=theOrig->hz;
+  theCopy->patLen=theOrig->patLen;
+  theCopy->ordersLen=theOrig->ordersLen;
+  theCopy->orders=theOrig->orders;
+  
+  memcpy(theCopy->chanShow,theOrig->chanShow,DIV_MAX_CHANS*sizeof(bool));
+  memcpy(theCopy->chanCollapse,theOrig->chanCollapse,DIV_MAX_CHANS);
+
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    theCopy->chanName[i]=theOrig->chanName[i];
+    theCopy->chanShortName[i]=theOrig->chanShortName[i];
+
+    theCopy->pat[i].effectCols=theOrig->pat[i].effectCols;
+
+    for (int j=0; j<DIV_MAX_PATTERNS; j++) {
+      if (theOrig->pat[i].data[j]==NULL) continue;
+      DivPattern* origPat=theOrig->pat[i].getPattern(j,false);
+      DivPattern* copyPat=theCopy->pat[i].getPattern(j,true);
+      origPat->copyOn(copyPat);
+    }
+  }
+
+  song.subsong.push_back(theCopy);
+  
   saveLock.unlock();
   BUSY_END;
   return song.subsong.size()-1;
@@ -2696,16 +2738,7 @@ void DivEngine::reset() {
   elapsedBars=0;
   elapsedBeats=0;
   nextSpeed=speeds.val[0];
-  divider=60;
-  if (curSubSong->customTempo) {
-    divider=curSubSong->hz;
-  } else {
-    if (curSubSong->pal) {
-      divider=60;
-    } else {
-      divider=50;
-    }
-  }
+  divider=curSubSong->hz;
   globalPitch=0;
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->reset();
@@ -2920,14 +2953,7 @@ const DivGroovePattern& DivEngine::getSpeeds() {
 }
 
 float DivEngine::getHz() {
-  if (curSubSong->customTempo) {
-    return curSubSong->hz;
-  } else if (curSubSong->pal) {
-    return 60.0;
-  } else {
-    return 50.0;
-  }
-  return 60.0;
+  return curSubSong->hz;
 }
 
 float DivEngine::getCurHz() {
@@ -4354,23 +4380,11 @@ void DivEngine::updateSysFlags(int system, bool restart) {
   BUSY_END;
 }
 
-void DivEngine::setSongRate(float hz, bool pal) {
+void DivEngine::setSongRate(float hz) {
   BUSY_BEGIN;
   saveLock.lock();
-  curSubSong->pal=!pal;
   curSubSong->hz=hz;
-  // what?
-  curSubSong->customTempo=true;
-  divider=60;
-  if (curSubSong->customTempo) {
-    divider=curSubSong->hz;
-  } else {
-    if (curSubSong->pal) {
-      divider=60;
-    } else {
-      divider=50;
-    }
-  }
+  divider=curSubSong->hz;
   saveLock.unlock();
   BUSY_END;
 }

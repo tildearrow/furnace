@@ -380,7 +380,7 @@ void FurnaceGUI::drawDebug() {
       }
       ImGui::TreePop();
     }
-    if (ImGui::TreeNode("Window Debug")) {
+    if (ImGui::TreeNodeEx("Window Debug",ImGuiTreeNodeFlags_DefaultOpen)) {
       ImGui::Text("Screen: %dx%d+%d+%d",scrW,scrH,scrX,scrY);
       ImGui::Text("Screen (Conf): %dx%d+%d+%d",scrConfW,scrConfH,scrConfX,scrConfY);
       ImGui::Text("Canvas: %dx%d",canvasW,canvasH);
@@ -536,6 +536,9 @@ void FurnaceGUI::drawDebug() {
       if (ImGui::Button("Spoiler")) {
         spoilerOpen=!spoilerOpen;
       }
+      if (ImGui::Button("Kill Graphics")) {
+        killGraphics=true;
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Performance")) {
@@ -549,6 +552,7 @@ void FurnaceGUI::drawDebug() {
 
       ImGui::Text("audio: %dµs",lastProcTime);
       ImGui::Text("render: %.0fµs",(double)renderTimeDelta/perfFreq);
+      ImGui::Text("draw: %.0fµs",(double)drawTimeDelta/perfFreq);
       ImGui::Text("layout: %.0fµs",(double)layoutTimeDelta/perfFreq);
       ImGui::Text("event: %.0fµs",(double)eventTimeDelta/perfFreq);
       ImGui::Separator();

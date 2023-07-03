@@ -35,6 +35,7 @@ const char* regCheatSheetPOKEY[]={
   "AUDF4", "6",
   "AUDC4", "7",
   "AUDCTL", "8",
+  "SKCTL", "F",
   NULL
 };
 
@@ -85,10 +86,10 @@ void DivPlatformPOKEY::acquireMZ(short* buf, size_t len) {
 
     if (++oscBufDelay>=14) {
       oscBufDelay=0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=pokey.outvol_0<<11;
-      oscBuf[1]->data[oscBuf[1]->needle++]=pokey.outvol_1<<11;
-      oscBuf[2]->data[oscBuf[2]->needle++]=pokey.outvol_2<<11;
-      oscBuf[3]->data[oscBuf[3]->needle++]=pokey.outvol_3<<11;
+      oscBuf[0]->data[oscBuf[0]->needle++]=pokey.outvol_0<<10;
+      oscBuf[1]->data[oscBuf[1]->needle++]=pokey.outvol_1<<10;
+      oscBuf[2]->data[oscBuf[2]->needle++]=pokey.outvol_2<<10;
+      oscBuf[3]->data[oscBuf[3]->needle++]=pokey.outvol_3<<10;
     }
   }
 }
@@ -152,6 +153,11 @@ void DivPlatformPOKEY::tick(bool sysTick) {
       chan[i].freqChanged=true;
       chan[i].ctlChanged=true;
     }
+  }
+
+  if (skctlChanged) {
+    skctlChanged=false;
+    rWrite(15,skctl);
   }
 
   for (int i=0; i<4; i++) {
@@ -320,6 +326,10 @@ int DivPlatformPOKEY::dispatch(DivCommand c) {
       audctl=c.value&0xff;
       audctlChanged=true;
       break;
+    case DIV_CMD_STD_NOISE_FREQ:
+      skctl=c.value?0x8b:0x03;
+      skctlChanged=true;
+      break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
       bool return2=false;
@@ -385,6 +395,7 @@ void DivPlatformPOKEY::forceIns() {
     chan[i].freqChanged=true;
   }
   audctlChanged=true;
+  skctlChanged=true;
 }
 
 void* DivPlatformPOKEY::getChanState(int ch) {
@@ -408,7 +419,7 @@ unsigned char* DivPlatformPOKEY::getRegisterPool() {
 }
 
 int DivPlatformPOKEY::getRegisterPoolSize() {
-  return 9;
+  return 16;
 }
 
 void DivPlatformPOKEY::reset() {
@@ -430,6 +441,8 @@ void DivPlatformPOKEY::reset() {
 
   audctl=0;
   audctlChanged=true;
+  skctl=3;
+  skctlChanged=true;
 }
 
 bool DivPlatformPOKEY::keyOffAffectsArp(int ch) {
