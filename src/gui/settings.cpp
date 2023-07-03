@@ -1316,6 +1316,11 @@ void FurnaceGUI::drawSettings() {
               settings.renderBackend="DirectX 11";
             }
 #endif
+#ifdef HAVE_RENDER_METAL
+            if (ImGui::Selectable("Metal",curRenderBackend=="Metal")) {
+              settings.renderBackend="Metal";
+            }
+#endif
 #ifdef HAVE_RENDER_GL
             if (ImGui::Selectable("OpenGL",curRenderBackend=="OpenGL")) {
               settings.renderBackend="OpenGL";
