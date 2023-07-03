@@ -5136,10 +5136,10 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    if (ImGui::BeginPopupModal("Command Palette",NULL,ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings)) {
-      ImVec2 wsize=ImVec2(canvasW*0.9,canvasH*0.4);
-      ImGui::SetWindowPos(ImVec2((canvasW-wsize.x)*0.5,50*dpiScale));
-      ImGui::SetWindowSize(wsize,ImGuiCond_Always);
+    ImVec2 wsize=ImVec2(canvasW*0.9,canvasH*0.4);
+    ImGui::SetNextWindowPos(ImVec2((canvasW-wsize.x)*0.5,50*dpiScale));
+    ImGui::SetNextWindowSize(wsize,ImGuiCond_Always);
+    if (ImGui::BeginPopup("Command Palette",ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoSavedSettings)) {
       drawPalette();
       ImGui::EndPopup();
     }
