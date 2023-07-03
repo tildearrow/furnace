@@ -21,8 +21,15 @@
 
 #include "renderMetal.h"
 #include "backends/imgui_impl_metal.h"
+
 #include <Metal/Metal.h>
 #include <QuartzCore/QuartzCore.h>
+
+struct FurnaceGUIRenderMetalPrivate {
+  CAMetalLayer* context;
+  id<MTLCommandQueue> cmdQueue;
+  MTLRenderPassDescriptor* renderPass;
+};
 
 class FurnaceMetalTexture: public FurnaceGUITexture {
   public:
@@ -70,69 +77,32 @@ bool FurnaceGUIRenderMetal::destroyTexture(FurnaceGUITexture* which) {
 }
 
 void FurnaceGUIRenderMetal::setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode) {
-  FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
-  switch (mode) {
-    case GUI_BLEND_MODE_NONE:
-      SDL_SetTextureBlendMode(t->tex,SDL_BLENDMODE_NONE);
-      break;
-    case GUI_BLEND_MODE_BLEND:
-      SDL_SetTextureBlendMode(t->tex,SDL_BLENDMODE_BLEND);
-      break;
-    case GUI_BLEND_MODE_ADD:
-      SDL_SetTextureBlendMode(t->tex,SDL_BLENDMODE_ADD);
-      break;
-    case GUI_BLEND_MODE_MULTIPLY:
-      SDL_SetTextureBlendMode(t->tex,SDL_BLENDMODE_MOD);
-      break;
-  }
 }
 
 void FurnaceGUIRenderMetal::setBlendMode(FurnaceGUIBlendMode mode) {
-  switch (mode) {
-    case GUI_BLEND_MODE_NONE:
-      SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_NONE);
-      break;
-    case GUI_BLEND_MODE_BLEND:
-      SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_BLEND);
-      break;
-    case GUI_BLEND_MODE_ADD:
-      SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_ADD);
-      break;
-    case GUI_BLEND_MODE_MULTIPLY:
-      SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_MOD);
-      break;
-  }
 }
 
 void FurnaceGUIRenderMetal::clear(ImVec4 color) {
-  SDL_SetRenderDrawColor(sdlRend,color.x*255,color.y*255,color.z*255,color.w*255);
-  SDL_RenderClear(sdlRend);
 }
 
 bool FurnaceGUIRenderMetal::newFrame() {
-  return ImGui_ImplSDLRenderer2_NewFrame();
+  ImGui_ImplMetal_NewFrame(priv->renderPass);
 }
 
 void FurnaceGUIRenderMetal::createFontsTexture() {
-  ImGui_ImplSDLRenderer2_CreateFontsTexture();
 }
 
 void FurnaceGUIRenderMetal::destroyFontsTexture() {
-  ImGui_ImplSDLRenderer2_DestroyFontsTexture();
 }
 
 void FurnaceGUIRenderMetal::renderGUI() {
-  ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
+  ImGui_ImplMetal_RenderDrawData(ImGui::GetDrawData());
 }
 
 void FurnaceGUIRenderMetal::wipe(float alpha) {
-  SDL_SetRenderDrawBlendMode(sdlRend,SDL_BLENDMODE_BLEND);
-  SDL_SetRenderDrawColor(sdlRend,0,0,0,255*alpha);
-  SDL_RenderFillRect(sdlRend,NULL);
 }
 
 void FurnaceGUIRenderMetal::present() {
-  SDL_RenderPresent(sdlRend);
 }
 
 bool FurnaceGUIRenderMetal::getOutputSize(int& w, int& h) {
@@ -145,22 +115,33 @@ int FurnaceGUIRenderMetal::getWindowFlags() {
 
 void FurnaceGUIRenderMetal::preInit() {
   SDL_SetHint(SDL_HINT_RENDER_DRIVER,"metal");
+  priv=new FurnaceGUIRenderMetalPrivate;
 }
 
 bool FurnaceGUIRenderMetal::init(SDL_Window* win) {
   SDL_SetHint(SDL_HINT_RENDER_DRIVER,"metal");
 
   sdlRend=SDL_CreateRenderer(win,-1,SDL_RENDERER_ACCELERATED|SDL_RENDERER_PRESENTVSYNC|SDL_RENDERER_TARGETTEXTURE);
-  return (sdlRend!=NULL);
+
+  if (sdlRend==NULL) return NULL;
+
+  priv->context=(__bridge CAMetalLayer*)SDL_RenderGetMetalLayer(sdlRend);
+  priv->context.pixelFormat=MTLPixelFormatBGRA8Unorm;
+  return true;
 }
 
 void FurnaceGUIRenderMetal::initGUI(SDL_Window* win) {
-  ImGui_ImplSDL2_InitForSDLRenderer(win,sdlRend);
-  ImGui_ImplSDLRenderer2_Init(sdlRend);
+  ImGui_ImplMetal_Init(context.device);
+  ImGui_ImplSDL2_InitForMetal(win);
+
+  priv->cmdQueue=[priv->context.device newCommandQueue];
+  priv->renderPass=[MTLRenderPassDescriptor new];
 }
 
 void FurnaceGUIRenderMetal::quitGUI() {
   ImGui_ImplSDLRenderer2_Shutdown();
+  [priv->renderPass release];
+  [priv->cmdQueue release];
 }
 
 bool FurnaceGUIRenderMetal::quit() {

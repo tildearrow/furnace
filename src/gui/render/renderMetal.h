@@ -19,8 +19,11 @@
 
 #include "../gui.h"
 
-class FurnaceGUIRenderSDL: public FurnaceGUIRender {
+struct FurnaceGUIRenderMetalPrivate;
+
+class FurnaceGUIRenderMetal: public FurnaceGUIRender {
   SDL_Renderer* sdlRend;
+  FurnaceGUIRenderMetalPrivate* priv;
   public:
     ImTextureID getTextureID(FurnaceGUITexture* which);
     bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
@@ -44,6 +47,7 @@ class FurnaceGUIRenderSDL: public FurnaceGUIRender {
     void initGUI(SDL_Window* win);
     void quitGUI();
     bool quit();
-    FurnaceGUIRenderSDL():
-      sdlRend(NULL) {}
+    FurnaceGUIRenderMetal():
+      sdlRend(NULL),
+      priv(NULL) {}
 };
