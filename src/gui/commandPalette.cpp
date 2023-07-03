@@ -51,7 +51,9 @@ void FurnaceGUI::drawPalette() {
   if (paletteFirstFrame)
     ImGui::SetKeyboardFocusHere();
 
-  ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+  int width=ImGui::GetContentRegionAvail().x;
+
+  ImGui::SetNextItemWidth(width);
 
   if (ImGui::InputTextWithHint("##CommandPaletteSearch","Search...",&paletteQuery) || paletteFirstFrame) {
     paletteSearchResults.clear();
@@ -81,7 +83,7 @@ void FurnaceGUI::drawPalette() {
     };
   }
 
-  if (ImGui::BeginChild("CommandPaletteList",ImVec2(312,216),false,0)) {
+  if (ImGui::BeginChild("CommandPaletteList",ImVec2(width,canvasH*0.3),false,0)) {
     bool navigated=false;
     if (ImGui::IsKeyPressed(ImGuiKey_UpArrow) && curPaletteChoice>0) {
       curPaletteChoice-=1;
