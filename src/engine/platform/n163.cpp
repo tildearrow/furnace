@@ -207,7 +207,7 @@ void DivPlatformN163::tick(bool sysTick) {
       }
     }
     if (chan[i].std.wave.had) {
-      if (chan[i].wave!=chan[i].std.wave.val) {
+      if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
         chan[i].wave=chan[i].std.wave.val;
         chan[i].ws.changeWave1(chan[i].wave);
         if (chan[i].waveMode&0x2) {
