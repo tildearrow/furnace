@@ -106,7 +106,9 @@ void DivPlatformC64::updateFilter() {
 
 void DivPlatformC64::tick(bool sysTick) {
   bool willUpdateFilter=false;
-  for (int i=0; i<3; i++) {
+  for (int _i=0; _i<3; _i++) {
+    int i=chanOrder[_i];
+
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);
@@ -179,8 +181,8 @@ void DivPlatformC64::tick(bool sysTick) {
         if (--chan[i].testWhen<1) {
           if (!chan[i].resetMask && !chan[i].inPorta) {
             DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);
-            rWrite(i*7+5,0);
-            rWrite(i*7+6,0);
+            rWrite(i*7+5,testAD);
+            rWrite(i*7+6,testSR);
             rWrite(i*7+4,(chan[i].wave<<4)|(ins->c64.noTest?0:8)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1));
           }
         }
@@ -212,6 +214,7 @@ void DivPlatformC64::tick(bool sysTick) {
 }
 
 int DivPlatformC64::dispatch(DivCommand c) {
+  if (c.chan>2) return 0;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_C64);
@@ -248,6 +251,16 @@ int DivPlatformC64::dispatch(DivCommand c) {
       }
       if (chan[c.chan].insChanged) {
         chan[c.chan].insChanged=false;
+      }
+      if (keyPriority) {
+        if (chanOrder[1]==c.chan) {
+          chanOrder[1]=chanOrder[2];
+          chanOrder[2]=c.chan;
+        } else if (chanOrder[0]==c.chan) {
+          chanOrder[0]=chanOrder[1];
+          chanOrder[1]=chanOrder[2];
+          chanOrder[2]=c.chan;
+        }
       }
       chan[c.chan].macroInit(ins);
       break;
@@ -524,6 +537,10 @@ void DivPlatformC64::reset() {
   filtCut=2047;
   resetTime=1;
   vol=15;
+
+  chanOrder[0]=0;
+  chanOrder[1]=1;
+  chanOrder[2]=2;
 }
 
 void DivPlatformC64::poke(unsigned int addr, unsigned short val) {
@@ -576,6 +593,9 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
     rate/=4;
     sid_fp.setSamplingParameters(chipClock,reSIDfp::DECIMATE,rate,0);
   }
+  keyPriority=flags.getBool("keyPriority",true);
+  testAD=((flags.getInt("testAttack",0)&15)<<4)|(flags.getInt("testDecay",0)&15);
+  testSR=((flags.getInt("testSustain",0)&15)<<4)|(flags.getInt("testRelease",0)&15);
 }
 
 int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
