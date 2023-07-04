@@ -38,16 +38,26 @@ enum PSG_STATE { psg_PREV, psg_NEW, psg_STATES };
 
 class DivZSM {
   private:
+    struct S_pcmInst {
+      int geometry, offset, length;
+    };
     SafeWriter* w;
     int ymState[ym_STATES][256];
     int psgState[psg_STATES][64];
+    int pcmRateCache;
+    int pcmCtrlRVCache;
+    int pcmCtrlDCCache;
     std::vector<DivRegWrite> ymwrites;
+    std::vector<DivRegWrite> pcmMeta;
+    std::vector<unsigned char> pcmData;
+    std::vector<unsigned char> pcmCache;
+    std::vector<S_pcmInst> pcmInsts;
     int loopOffset;
     int numWrites;
     int ticks;
     int tickRate;
-  int ymMask = 0;
-  int psgMask = 0;
+    int ymMask;
+    int psgMask;
   public:
     DivZSM();
     ~DivZSM();
