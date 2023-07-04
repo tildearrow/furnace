@@ -21,6 +21,7 @@
 #include "../engine.h"
 #include "sound/c64_fp/siddefs-fp.h"
 #include <math.h>
+#include "../../ta-log.h"
 
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
@@ -525,6 +526,7 @@ void DivPlatformC64::reset() {
 
   if (isFP) {
     sid_fp.reset();
+    sid_fp.clockSilent(16000);
   } else {
     sid.reset();
   }
