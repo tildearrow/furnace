@@ -6,6 +6,7 @@ this is a list of sound chips that Furnace supports, including effects.
 - [AY-3-8910](ay8910.md)
 - [Microchip AY8930](ay8930.md)
 - [Bubble System WSG](bubblesystem.md)
+- [Casio PV-1000](pv1000.md)
 - [Commodore 64](c64.md)
 - [Commodore PET](pet.md)
 - [Commodore VIC-20](vic20.md)

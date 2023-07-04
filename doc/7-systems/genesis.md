@@ -30,8 +30,32 @@ this console is powered by two sound chips: the [Yamaha YM2612](ym2612.md) and [
 - `1Dxx`: **set attack of operator 4.**
 - `20xy`: **set PSG noise mode.**
   - `x` controls whether to inherit frequency from PSG channel 3.
-    - `0`: use one of 3 preset frequencies (C: A-2; C#: A-3; D: A-4).
+    - `0`: use one of 3 preset frequencies (`C`: A-2; `C#`: A-3; `D`: A-4).
     - `1`: use frequency of PSG channel 3.
   - `y` controls whether to select noise or thin pulse.
     - `0`: thin pulse.
     - `1`: noise.
+
+
+
+# system modes
+
+## extended channel 3
+
+in ExtCh mode, channel 3 is split into one column for each of its four operators. feedback and LFO levels are shared. the frequency of each operator may be controlled independently with notes and effects. this can be used for more polyphony or more complex sounds.
+
+all four operators are still combined according to the algorithm in use. for example, algorithm 7 acts as four independent sine waves. algorithm 4 acts as two independent 2op sounds. even with algorithm 0, placing a note in any operator triggers that operator alone.
+
+## CSM
+
+CSM is short for "Composite Sinusoidal Modeling". CSM works by sending key-on and key-off commands to channel 3 at a specific frequency, controlled by the added "CSM Timer" channel. this can be used to create vocal formants (speech synthesis!) or other complex effects.
+
+CSM is beyond the scope of this documentation. for more information, see this [brief SSG-EG and CSM video tutorial](https://www.youtube.com/watch?v=IKOR0TUlnWU).
+
+## DualPCM
+
+DualPCM splits channel 6 into two individual PCM channels. using the console's Z80 processor, these are mixed together in software and streamed to channel 6 in PCM mode. because this generates a stream of data, exported VGM files will be very large.
+
+## Sega CD
+
+this isn't a mode so much as a chip configuration. it adds the [Ricoh RF5C68](ricoh.md) found in the Sega CD add-on, providing 8 channels of PCM.
