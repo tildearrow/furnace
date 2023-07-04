@@ -106,7 +106,7 @@ This tab appears for Generic PCM, SNES, Amiga, and other sample-based instrument
 ![](sample-map.png)
 
 - **Initial Sample**: the sample that the instrument will use.
-- **Use wavetable**: instead of samples, use wavetables. this causes the [Wavetables](..\5-wave\README.md) tab to appear next to Sample.
+- **Use wavetable**: instead of samples, use wavetables. this causes the [Wavetables](../5-wave/README.md) tab to appear next to Sample.
   - depending on the system and use of the wavetable synthesizer, this may or may not be reproducible on hardware.
 - **Use sample map**: assigns a sample to each note.
   - samples will be played at their default pitch.
