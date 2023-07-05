@@ -80,7 +80,8 @@ void DivPlatformC64::acquire(short** buf, size_t len) {
       writes.pop();
     }
     if (sidCore==2) {
-      buf[0][i]=32767.0*dSID_render(sid_d);
+      double o=dSID_render(sid_d);
+      buf[0][i]=32767*CLAMP(o,-1.0,1.0);
       if (++writeOscBuf>=4) {
         writeOscBuf=0;
         oscBuf[0]->data[oscBuf[0]->needle++]=sid_d->lastOut[0];
@@ -465,9 +466,9 @@ void DivPlatformC64::muteChannel(int ch, bool mute) {
   if (sidCore==2) {
     dSID_setMuteMask(
       sid_d,
-      (isMuted[0]?1:0)|
-      (isMuted[1]?2:0)|
-      (isMuted[2]?4:0)
+      (isMuted[0]?0:1)|
+      (isMuted[1]?0:2)|
+      (isMuted[2]?0:4)
     );
   } else if (sidCore==1) {
     sid_fp.mute(ch,mute);
@@ -543,6 +544,12 @@ void DivPlatformC64::reset() {
 
   if (sidCore==2) {
     dSID_init(sid_d,chipClock,rate,sidIs6581?6581:8580,1);
+    dSID_setMuteMask(
+      sid_d,
+      (isMuted[0]?0:1)|
+      (isMuted[1]?0:2)|
+      (isMuted[2]?0:4)
+    );
   } else if (sidCore==1) {
     sid_fp.reset();
     sid_fp.clockSilent(16000);
