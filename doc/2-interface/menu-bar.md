@@ -8,7 +8,6 @@ the menu bar allows you to select five menus: file, edit, settings, window and h
 - **open...**: opens the file picker, allowing you to select a song to open.
 - **open recent**: contains a list of the songs you've opened before.
   - **clear history**: this option erases the file history.
-  <hr>
 
 - **save**: saves the current song.
   - opens the file picker if this is a new song, or a backup.
@@ -31,7 +30,6 @@ the menu bar allows you to select five menus: file, edit, settings, window and h
     - Arcade (YM2151 + SegaPCM 5-channel compatibility)
     - Neo Geo CD (DefleMask 1.0+)
   - only use this option if you really need it. there are features which DefleMask does not support, like some effects and FM macros, so these will be lost.
-  <hr>
 
 - **export audio...**: export your song to a .wav file. see next section for more details.
 - **export VGM...**: export your song to a .vgm file. see next section for more details.
@@ -39,7 +37,6 @@ the menu bar allows you to select five menus: file, edit, settings, window and h
   - only available when there's a YM2151 and/or VERA.
 - **export command stream...**: export song data to a command stream file. see next section for more details.
   - this option is for developers.
-  <hr>
   
 - **add chip...**: add a chip to the current song.
 - **configure chip...**: set a chip's parameters.
@@ -48,7 +45,6 @@ the menu bar allows you to select five menus: file, edit, settings, window and h
   - **Preserve channel positions**: enable this option to make sure Furnace does not auto-arrange/delete channels to compensate for differing channel counts. this can be useful for doing ports, e.g. from Genesis to PC-98.
 - **remove chip...**: remove a chip.
   - **Preserve channel positions**: same thing as above.
-  <hr>
 
 - **restore backup**: restore a previously saved backup.
   - Furnace keeps up to 5 backups of a song.
@@ -57,7 +53,6 @@ the menu bar allows you to select five menus: file, edit, settings, window and h
     - macOS: `~/Library/Application Support/Furnace/backups`
     - Linux/other: `~/.config/furnace/backups`
   - this directory grows in size as you use Furnace. remember to delete old backups periodically to save space.
-  <hr>
 
 - **exit**: I think you know what this does.
 
@@ -140,7 +135,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 # edit
 
 - **undo**: reverts the last action.
-- **redo**: repeats what you undid previously.<hr>
+- **redo**: repeats what you undid previously.
 
 - **cut**: moves the current selection in the pattern view to clipboard.
 - **copy**: copies the current selection in the pattern view to clipboard.
@@ -158,16 +153,15 @@ it's not really useful, unless you're a developer and want to use a command stre
   - if the selection is tall, it will select the entire column.
   - if a column is already selected, it will select the entire channel.
   - if a channel is already selected, it will select the entire pattern.
-  <hr>
 
 - **operation mask**: this is an advanced feature. see [this page](../3-pattern/opmask.md) for more information.
-- **input latch**: this is an advanced feature. see [this page](../3-pattern/inputlatch.md) for more information.<hr>
+- **input latch**: this is an advanced feature. see [this page](../3-pattern/inputlatch.md) for more information.
 
-- **note/octave up/down**: transposes notes in the current selection.<hr>
+- **note/octave up/down**: transposes notes in the current selection.
 
-- **values up/down**: changes values in the current selection by ±1 or ±16.<hr>
+- **values up/down**: changes values in the current selection by ±1 or ±16.
 
-- **transpose**: transpose notes or change values by a specific amount.<hr>
+- **transpose**: transpose notes or change values by a specific amount.
 
 - **interpolate**: fills in gaps in the selection by interpolation between values.
 - **change instrument**: changes the instrument number in a selection.
@@ -179,23 +173,22 @@ it's not really useful, unless you're a developer and want to use a command stre
   - use to change volume in a selection for example.
 - **randomize**: replaces the selection with random values.
   - does not affect the note column.
-- **invert values**: `00` becomes `FF`, `01` becomes `FE`, `02` becomes `FD` and so on.<hr>
+- **invert values**: `00` becomes `FF`, `01` becomes `FE`, `02` becomes `FD` and so on.
 
 - **flip selection**: flips the selection so it is backwards.
 - **collapse/expand amount**: allows you to specify how much to collapse/expand in the next options.
 - **collapse**: shrinks the selected contents.
-- **expand**: expands the selected contents.<hr>
+- **expand**: expands the selected contents.
 
 - **collapse pattern**: same as collapse, but affects the entire pattern.
-- **expand pattern**: same as expand, but affects the entire pattern.<hr>
+- **expand pattern**: same as expand, but affects the entire pattern.
 
 - **collapse song**: same as collapse, but affects the entire song.
   - it also changes speeds and pattern length to compensate.
 - **expand song**: same as expand, but affects the entire song.
   - it also changes speeds and pattern length to compensate.
-  <hr>
 
-- **find/replace**: opens the Find/Replace window. see [this page](../3-pattern/find-replace.md) for more information.<hr>
+- **find/replace**: opens the Find/Replace window. see [this page](../3-pattern/find-replace.md) for more information.
 
 - **clear**: allows you to mass-delete things like songs, instruments and the like.
 
@@ -224,11 +217,11 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **pattern manager**: shows/hides the Pattern Manager window.
 - **chip manager**: shows/hides the Chip Manager window.
 - **compatibility flags**: shows/hides the Compatibility Flags window.
-- **song comments**: shows/hides the Song Comments window.<hr>
+- **song comments**: shows/hides the Song Comments window.
 
 - **instrument editor**: shows/hides the Instrument Editor
 - **wavetable editor**: shows/hides the Wavetable Editor.
-- **sample editor**: shows/hides the Sample Editor.<hr>
+- **sample editor**: shows/hides the Sample Editor.
 
 - **play/edit controls**: shows/hides the Play/Edit Controls.
 - **piano/input pad**: shows/hides the Piano/Input Pad window.

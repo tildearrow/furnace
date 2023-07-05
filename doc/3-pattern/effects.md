@@ -13,7 +13,7 @@ however, effects are continuous, which means you only need to type it once and t
 - `F3xx`: **Fine volume slide up.** same as `0Ax0` but 64× slower.
 - `F4xx`: **Fine volume slide down.** same as `0A0x` but 64× slower.
 - `F8xx`: **Single tick volume slide up.** adds `x` to volume on first tick only.
-- `F9xx`: **Single tick volume slide down.** subtracts `x` from volume on first tick only.<hr>
+- `F9xx`: **Single tick volume slide down.** subtracts `x` from volume on first tick only.
 
 - `07xy`: **Tremolo.** changes volume to be "wavy" with a sine LFO. `x` is the speed. `y` is the depth.
   - Tremolo is downward only.
@@ -25,16 +25,16 @@ however, effects are continuous, which means you only need to type it once and t
 - `01xx`: **Pitch slide up.**
 - `02xx`: **Pitch slide down.**
 - `F1xx`: **Single tick pitch slide up.**
-- `F2xx`: **Single tick pitch slide down.**<hr>
+- `F2xx`: **Single tick pitch slide down.**
 
 - `03xx`: **Portamento.** slides the current note's pitch to the specified note.  `x` is the slide speed.
   - A note _must_ be present for this effect to work.
 - `E1xy`: **Note slide up.** `x` is the speed, while `y` is how many semitones to slide up.
-- `E2xy`: **Note slide down.** `x` is the speed, while `y` is how many semitones to slide down.<hr>
+- `E2xy`: **Note slide down.** `x` is the speed, while `y` is how many semitones to slide down.
 
 - `EAxx`: **Toggle legato.** while on, notes instantly change the pitch of the currrently playing sound instead of starting it over.
 - `00xy`: **Arpeggio.** after using this effect the channel will rapidly switch between semitone values of `note`, `note + x` and `note + y`.
-- `E0xx`: **Set arpeggio speed.** this sets the number of ticks between arpeggio values. default is 1.<hr>
+- `E0xx`: **Set arpeggio speed.** this sets the number of ticks between arpeggio values. default is 1.
 
 - `04xy`: **Vibrato.** changes pitch to be "wavy" with a sine LFO. `x` is the speed, while `y` is the depth.
   - Maximum vibrato depth is ±1 semitone.
@@ -53,7 +53,7 @@ not all chips support these effects.
 - `81xx`: **Set volume of left channel** (from `00` to `FF`).
 - `82xx`: **Set volume of right channel** (from `00` to `FF`).
 - `89xx`: **Set volume of rear left channel** (from `00` to `FF`).
-- `8Axx`: **Set volume of rear right channel** (from `00` to `FF`).<hr>
+- `8Axx`: **Set volume of rear right channel** (from `00` to `FF`).
 
 - `80xx`: **Set panning (linear).** this effect behaves more like other trackers:
   - `00` is left.
@@ -63,11 +63,11 @@ not all chips support these effects.
 ## time
 
 - `09xx`: **Set speed/groove.** if no grooves are defined, this sets speed. If alternating speeds are active, this sets the first speed.
-- `0Fxx`: **Set speed 2.** during alternating speeds or a groove, this sets the second speed.<hr>
+- `0Fxx`: **Set speed 2.** during alternating speeds or a groove, this sets the second speed.
 
 - `Cxxx`: **Set tick rate.** changes tick rate to `xxx` Hz (ticks per second).
   - `xxx` may be from `000` to `3FF`.
-- `F0xx`: **Set BPM.** changes tick rate according to beats per minute. range is `01` to `FF`.<hr>
+- `F0xx`: **Set BPM.** changes tick rate according to beats per minute. range is `01` to `FF`.
 
 - `0Bxx`: **Jump to order.** `x` is the order to play after the current row.
   - this marks the end of a loop with order `x` as the loop start.
