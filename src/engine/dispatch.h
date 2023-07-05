@@ -236,7 +236,7 @@ enum DivDispatchCmds {
 
   DIV_CMD_NES_LINEAR_LENGTH,
 
-  DIV_CMD_SYNC_MESSAGE, // (value)
+  DIV_CMD_EXTERNAL, // (value)
 
   DIV_ALWAYS_SET_VOLUME, // () -> alwaysSetVol
 
