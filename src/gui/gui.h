@@ -1544,7 +1544,7 @@ class FurnaceGUI {
       snCore(0),
       nesCore(0),
       fdsCore(0),
-      c64Core(1),
+      c64Core(0),
       pokeyCore(1),
       opnCore(1),
       pcSpeakerOutMethod(0),

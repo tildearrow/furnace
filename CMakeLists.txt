@@ -455,6 +455,8 @@ src/engine/platform/sound/c64_fp/WaveformCalculator.cpp
 src/engine/platform/sound/c64_fp/WaveformGenerator.cpp
 src/engine/platform/sound/c64_fp/resample/SincResampler.cpp
 
+src/engine/platform/sound/c64_d/dsid.c
+
 src/engine/platform/sound/tia/AudioChannel.cpp
 src/engine/platform/sound/tia/Audio.cpp
 

@@ -1,35 +1,11 @@
-#pragma once
+#ifndef DSID_H
+#define DSID_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <stdint.h>
-
-#define SID_CLK 985248
-#define SID_CHA 3
-#define SID_OUT_SCALE (0x10000 * SID_CHA * 16)
-
-// TODO: prefix SID_
-
-// CONTROL
-#define GAT 0x01
-#define SYN 0x02
-#define RNG 0x04
-#define TST 0x08
-#define TRI 0x10
-#define SAW 0x20
-#define PUL 0x40
-#define NOI 0x80
-
-#define _HZ 0x10
-#define DECSUS 0x40
-#define ATK 0x80
-
-// TODO: change
-// filter mode (high)
-#define LP 0x10
-#define BP 0x20
-#define HP 0x40
-#define OFF3 0x80
-
-extern const int Aexp[256];
 
 struct SID_ctx_chan {
     double rcnt;
@@ -67,7 +43,7 @@ struct SIDVOICE {
 };
 
 struct SIDMEM {
-    struct SIDVOICE v[SID_CHA];
+    struct SIDVOICE v[3];
     uint8_t UNUSED : 4;
     uint8_t cutoff_low : 4;
     uint8_t cutoff_high;
@@ -101,12 +77,19 @@ struct SID_chip {
     struct SID_globals g;
     struct SID_ctx SIDct[3];
     uint8_t M[MemLen];
+    int16_t lastOut[3];
     int mute_mask;
 };
 
-extern struct SID_chip sid;
+double dSID_render(struct SID_chip* sid);
+void dSID_init(struct SID_chip* sid, double clockRate, double samplingRate, int model, unsigned char init_wf);
+float dSID_getVolume(struct SID_chip* sid, int channel);
+void dSID_setMuteMask(struct SID_chip* sid, int mute_mask);
 
-double dSID_render();
-void dSID_init(double samplingRate, int model);
-float dSID_getVolume(int channel);
-void dSID_setMuteMask(int mute_mask);
+void dSID_write(struct SID_chip* sid, unsigned char addr, unsigned char val);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
