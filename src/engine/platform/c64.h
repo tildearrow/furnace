@@ -67,6 +67,10 @@ class DivPlatformC64: public DivDispatch {
   int filtCut, resetTime;
   bool isFP;
 
+  bool keyPriority;
+  unsigned char chanOrder[3];
+  unsigned char testAD, testSR;
+
   SID sid;
   reSIDfp::SID sid_fp;
   unsigned char regPool[32];
