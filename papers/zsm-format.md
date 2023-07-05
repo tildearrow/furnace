@@ -99,7 +99,7 @@ Any offset values contained in the PCM data header block are relative to the beg
 
 ### PCM Sample Data
 
-This is blob of PCM data with no internal formatting. Offsets into this blob are provided via the PCM header. The end of this blob will be the end of the ZSM file.
+This is a blob of PCM data with no internal formatting. Offsets into this blob are provided via the PCM header. The end of this blob will be the end of the ZSM file.
 
 ## EXTCMD Channel Scifications
 
@@ -149,7 +149,7 @@ Players implementing this channel should implement detection routines during ini
 
 An expansion HW write will contain the following data:
 
-Chip ID|Nuber of writes (`N`)| `N` tuples of data
+Chip ID|Number of writes (`N`)| `N` tuples of data
 --|--|--
 one byte|one byte|N * tuple_size bytes
 
@@ -162,7 +162,14 @@ There are currently no supported expansion HW IDs assigned.
 
 The purpose of this channel is to provide for music synchronization cues that applications may use to perform operations in sync with the music (such as when the Goombas jump in New Super Mario Bros in time with the BOP! BOP! notes in the music). It is intended for the reference player to provide a sync channel callback, passing the data bytes to the callback function, and then to proceed with playback.
 
-The data structure within this channel is not yet defined. It is our intention to work with the community in order to collaborate on a useful structure.
+The synchronization format currently defines this one event type:
+
+Event Type|Description|Message Format
+--|--|--
+`0x00`|Generic sync message|`xx` (any value from `0x00`-`0xff`)
+
+An example of an EXTCMD containing one sync event might look as follows: `0x40 0x82 0x00 0x05`
+
 
 #### 3: Custom
 

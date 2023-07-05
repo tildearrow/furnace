@@ -236,6 +236,8 @@ const char* cmdName[]={
 
   "NES_LINEAR_LENGTH",
 
+  "SYNC_MESSAGE",
+
   "ALWAYS_SET_VOLUME"
 };
 

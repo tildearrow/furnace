@@ -1460,6 +1460,7 @@ void DivEngine::registerSystems() {
     {
       {0x20, {DIV_CMD_WAVE, "20xx: Set waveform"}},
       {0x22, {DIV_CMD_STD_NOISE_MODE, "22xx: Set duty cycle (0 to 3F)"}},
+      {0xEF, {DIV_CMD_SYNC_MESSAGE, "EFxx: ZSM sync event"}},
     }
   );
 

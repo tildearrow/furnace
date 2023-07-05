@@ -37,6 +37,7 @@ extern "C" {
 #define rWritePCMRate(d) {regPool[65]=(d); pcm_write_rate(pcm,d);if (dumpWrites) addWrite(65,(d));}
 #define rWritePCMData(d) {regPool[66]=(d); pcm_write_fifo(pcm,d);}
 #define rWritePCMVol(d) rWritePCMCtrl((regPool[64]&(~0x8f))|((d)&15))
+#define rWriteZSMSync(d) {if (dumpWrites) addWrite(68,(d));}
 
 const char* regCheatSheetVERA[]={
   "CHxFreq",    "00+x*4",
@@ -46,6 +47,7 @@ const char* regCheatSheetVERA[]={
   "AUDIO_CTRL", "40",
   "AUDIO_RATE", "41",
   "AUDIO_DATA", "42",
+  "ZSM_SYNC",   "44",
 
   NULL
 };
@@ -413,6 +415,9 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       break;
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
+      break;
+    case DIV_CMD_SYNC_MESSAGE:
+      rWriteZSMSync(c.value);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
