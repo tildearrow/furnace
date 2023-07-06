@@ -46,7 +46,7 @@ const unsigned int imageLen[GUI_IMAGE_MAX]={
   image_pat_size
 };
 
-void* FurnaceGUI::getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode) {
+FurnaceGUITexture* FurnaceGUI::getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode) {
   FurnaceGUIImage* img=getImage(image);
 
   if (img==NULL) return NULL;

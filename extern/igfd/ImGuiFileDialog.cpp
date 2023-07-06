@@ -46,11 +46,11 @@ SOFTWARE.
   #include <emscripten.h>
 #endif // EMSCRIPTEN
 #ifdef WIN32
-  #define stat _stat
   #define stricmp _stricmp
   #include <cctype>
   #include "dirent/dirent.h" // directly open the dirent file attached to this lib
   #define PATH_SEP '\\'
+  #define PATH_SEP_STR "\\"
   #ifndef PATH_MAX
     #define PATH_MAX 260
   #endif // PATH_MAX
@@ -60,6 +60,7 @@ SOFTWARE.
   #include <sys/types.h>
   #include <dirent.h>
   #define PATH_SEP '/'
+  #define PATH_SEP_STR "/"
 #endif // defined(__linux__) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__)
 
 #include "imgui.h"
@@ -1440,9 +1441,13 @@ namespace IGFD
     return fileNameExt;
   }
 
-  void IGFD::FileManager::AddFile(const FileDialogInternal& vFileDialogInternal, const std::string& vPath, const std::string& vFileName, const char& vFileType)
+  void IGFD::FileManager::AddFile(const FileDialogInternal& vFileDialogInternal, const std::string& vPath, const std::string& vFileName, const char& vFileType, void* ent)
   {
     auto infos = std::make_shared<FileInfos>();
+
+#ifdef _WIN32
+    struct dirent* dent=(struct dirent*)ent;
+#endif
 
     infos->filePath = vPath;
     infos->fileNameExt = vFileName;
@@ -1472,6 +1477,24 @@ namespace IGFD
         return;
       }
     }
+
+#ifdef _WIN32
+    SYSTEMTIME systemTime;
+    SYSTEMTIME localTime;
+    char timebuf[100];
+
+    infos->fileSize=dent->dwin_size;
+    if (FileTimeToSystemTime(&dent->dwin_mtime,&systemTime)==TRUE) {
+      if (SystemTimeToTzSpecificLocalTime(NULL,&systemTime,&localTime)==TRUE) {
+        snprintf(timebuf,99,"%d/%.2d/%.2d %.2d:%.2d",localTime.wYear,localTime.wMonth,localTime.wDay,localTime.wHour,localTime.wMinute);
+      } else {
+        snprintf(timebuf,99,"%d/%.2d/%.2d %.2d:%.2d",systemTime.wYear,systemTime.wMonth,systemTime.wDay,systemTime.wHour,systemTime.wMinute);
+      }
+      infos->fileModifDate=timebuf;
+    } else {
+      infos->fileModifDate="???";
+    }
+#endif
 
     vFileDialogInternal.puFilterManager.prFillFileStyle(infos);
 
@@ -1510,9 +1533,9 @@ namespace IGFD
         for (i = 0; i < n; i++)
         {
           struct dirent* ent = files[i];
-          std::string where = path + std::string("/") + std::string(ent->d_name);
+          std::string where = path + std::string(PATH_SEP_STR) + std::string(ent->d_name);
           char fileType = 0;
-#ifdef HAVE_DIRENT_TYPE
+#if defined(HAVE_DIRENT_TYPE) || defined(_WIN32)
           if (ent->d_type != DT_UNKNOWN)
           {
             switch (ent->d_type)
@@ -1522,6 +1545,9 @@ namespace IGFD
             case DT_DIR:
               fileType = 'd'; break;
             case DT_LNK:
+#ifdef _WIN32
+              fileType = 'f';
+#else
               DIR* dirTest = opendir(where.c_str());
               if (dirTest == NULL)
               {
@@ -1539,12 +1565,14 @@ namespace IGFD
                 fileType = 'd';
                 closedir(dirTest);
               }
+#endif
               break;
             }
           }
           else
 #endif // HAVE_DIRENT_TYPE
           {
+#ifndef _WIN32
             struct stat filestat;
             if (stat(where.c_str(), &filestat) == 0)
             {
@@ -1557,11 +1585,12 @@ namespace IGFD
                 fileType = 'f';
               }
             }
+#endif
           }
 
           auto fileNameExt = ent->d_name;
 
-          AddFile(vFileDialogInternal, path, fileNameExt, fileType);
+          AddFile(vFileDialogInternal, path, fileNameExt, fileType, ent);
         }
 
         for (i = 0; i < n; i++)
@@ -1744,6 +1773,12 @@ namespace IGFD
       //time_t    st_mtime;   /* time of last modification - not sure out of ntfs */
       //time_t    st_ctime;   /* time of last status change - not sure out of ntfs */
 
+#ifdef _WIN32
+      if (vInfos->fileType != 'd')
+      {
+        vInfos->formatedFileSize = prFormatFileSize(vInfos->fileSize);
+      }
+#else
       std::string fpn;
 
       if (vInfos->fileType == 'f' || vInfos->fileType == 'l' || vInfos->fileType == 'd') // file
@@ -1778,6 +1813,7 @@ namespace IGFD
         vInfos->formatedFileSize = prFormatFileSize(vInfos->fileSize);
         vInfos->fileModifDate="???";
       }
+#endif
     }
   }
 

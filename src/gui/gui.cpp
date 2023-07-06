@@ -497,6 +497,13 @@ bool FurnaceGUI::InvCheckbox(const char* label, bool* value) {
   return false;
 }
 
+void FurnaceGUI::sameLineMaybe(float width) {
+  if (width<0.0f) width=ImGui::GetFrameHeight();
+
+  ImGui::SameLine();
+  if (ImGui::GetContentRegionAvail().x<width) ImGui::NewLine();
+}
+
 const char* FurnaceGUI::getSystemName(DivSystem which) {
   /*
   if (settings.chipNames) {
@@ -3455,6 +3462,11 @@ bool FurnaceGUI::loop() {
               break;
           }
           break;
+#if SDL_VERSION_ATLEAST(2,0,4)
+        case SDL_RENDER_DEVICE_RESET:
+          killGraphics=true;
+          break;
+#endif
 #if SDL_VERSION_ATLEAST(2,0,17)
         case SDL_DISPLAYEVENT: {
           switch (ev.display.event) {
@@ -3765,6 +3777,79 @@ bool FurnaceGUI::loop() {
           }
         }
       });
+    }
+
+    // recover from dead graphics
+    if (rend->isDead() || killGraphics) {
+      killGraphics=false;
+
+      logW("graphics are dead! restarting...");
+      
+      if (sampleTex!=NULL) {
+        rend->destroyTexture(sampleTex);
+        sampleTex=NULL;
+      }
+
+      if (chanOscGradTex!=NULL) {
+        rend->destroyTexture(chanOscGradTex);
+        chanOscGradTex=NULL;
+      }
+
+      for (auto& i: images) {
+        if (i.second->tex!=NULL) {
+          rend->destroyTexture(i.second->tex);
+          i.second->tex=NULL;
+        }
+      }
+
+      commitState();
+      rend->quitGUI();
+      rend->quit();
+      ImGui_ImplSDL2_Shutdown();
+
+      int initAttempts=0;
+
+      SDL_Delay(500);
+
+      logD("starting render backend...");
+      while (++initAttempts<=5) {
+        if (rend->init(sdlWin)) {
+          break;
+        }
+        SDL_Delay(1000);
+        logV("trying again...");
+      }
+
+      if (initAttempts>5) {
+        reportError("can't keep going without graphics! Furnace will quit now.");
+        quit=true;
+        break;
+      }
+
+      rend->clear(ImVec4(0.0,0.0,0.0,1.0));
+      rend->present();
+
+      logD("preparing user interface...");
+      rend->initGUI(sdlWin);
+
+      logD("building font...");
+      if (!ImGui::GetIO().Fonts->Build()) {
+        logE("error while building font atlas!");
+        showError("error while loading fonts! please check your settings.");
+        ImGui::GetIO().Fonts->Clear();
+        mainFont=ImGui::GetIO().Fonts->AddFontDefault();
+        patFont=mainFont;
+        if (rend) rend->destroyFontsTexture();
+        if (!ImGui::GetIO().Fonts->Build()) {
+          logE("error again while building font atlas!");
+        }
+      }
+
+      firstFrame=true;
+      mustClear=2;
+      initialScreenWipe=1.0f;
+
+      continue;
     }
 
     bool fontsFailed=false;
@@ -6262,8 +6347,8 @@ bool FurnaceGUI::init() {
 
   logD("starting render backend...");
   if (!rend->init(sdlWin)) {
-    if (settings.renderBackend!="SDL" && !settings.renderBackend.empty()) {
-      settings.renderBackend="";
+    if (settings.renderBackend!="SDL") {
+      settings.renderBackend="SDL";
       //e->setConf("renderBackend","");
       //e->saveConf();
       //lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
@@ -6310,6 +6395,8 @@ bool FurnaceGUI::init() {
   rend->present();
 
   logD("preparing user interface...");
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
   rend->initGUI(sdlWin);
 
   applyUISettings();
@@ -6547,8 +6634,8 @@ bool FurnaceGUI::finish() {
   commitState();
   rend->quitGUI();
   ImGui_ImplSDL2_Shutdown();
-  ImGui::DestroyContext();
   quitRender();
+  ImGui::DestroyContext();
   SDL_DestroyWindow(sdlWin);
 
   if (vibrator) {
@@ -6608,6 +6695,7 @@ FurnaceGUI::FurnaceGUI():
   modTableHex(false),
   displayEditString(false),
   mobileEdit(false),
+  killGraphics(false),
   vgmExportVersion(0x171),
   vgmExportTrailingTicks(-1),
   drawHalt(10),

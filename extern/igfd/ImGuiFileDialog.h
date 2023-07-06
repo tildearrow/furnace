@@ -883,7 +883,7 @@ namespace IGFD
     void prRemoveFileNameInSelection(const std::string& vFileName);                  // selection : remove a file name
     void prAddFileNameInSelection(const std::string& vFileName, bool vSetLastSelectionFileName);  // selection : add a file name
     void AddFile(const FileDialogInternal& vFileDialogInternal, 
-      const std::string& vPath, const std::string& vFileName, const char& vFileType);        // add file called by scandir
+      const std::string& vPath, const std::string& vFileName, const char& vFileType, void* ent);        // add file called by scandir
 
   public:
     FileManager();

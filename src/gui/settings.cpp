@@ -116,7 +116,8 @@ const char* nesCores[]={
 
 const char* c64Cores[]={
   "reSID",
-  "reSIDfp"
+  "reSIDfp",
+  "dSID"
 };
 
 const char* pokeyCores[]={
@@ -1254,7 +1255,7 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::Text("SID core");
           ImGui::SameLine();
-          ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,2);
+          ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,3);
 
           ImGui::Text("POKEY core");
           ImGui::SameLine();
@@ -1598,6 +1599,16 @@ void FurnaceGUI::drawSettings() {
           }
           if (ImGui::RadioButton("Single (combo box)##mel4",settings.macroLayout==4)) {
             settings.macroLayout=4;
+          }
+
+          ImGui::Separator();
+
+          ImGui::Text("Chip memory usage unit:");
+          if (ImGui::RadioButton("Bytes##MUU0",settings.memUsageUnit==0)) {
+            settings.memUsageUnit=0;
+          }
+          if (ImGui::RadioButton("Kilobytes##MUU1",settings.memUsageUnit==1)) {
+            settings.memUsageUnit=1;
           }
 
           ImGui::Separator();
@@ -2636,7 +2647,7 @@ void FurnaceGUI::syncSettings() {
   settings.snCore=e->getConfInt("snCore",0);
   settings.nesCore=e->getConfInt("nesCore",0);
   settings.fdsCore=e->getConfInt("fdsCore",0);
-  settings.c64Core=e->getConfInt("c64Core",1);
+  settings.c64Core=e->getConfInt("c64Core",0);
   settings.pokeyCore=e->getConfInt("pokeyCore",1);
   settings.opnCore=e->getConfInt("opnCore",1);
   settings.pcSpeakerOutMethod=e->getConfInt("pcSpeakerOutMethod",0);
@@ -2762,11 +2773,12 @@ void FurnaceGUI::syncSettings() {
   settings.orderButtonPos=e->getConfInt("orderButtonPos",2);
   settings.compress=e->getConfInt("compress",1);
   settings.newPatternFormat=e->getConfInt("newPatternFormat",1);
-  settings.renderBackend=e->getConfString("renderBackend","SDL");
+  settings.renderBackend=e->getConfString("renderBackend",GUI_BACKEND_DEFAULT_NAME);
   settings.renderClearPos=e->getConfInt("renderClearPos",0);
   settings.insertBehavior=e->getConfInt("insertBehavior",1);
   settings.pullDeleteRow=e->getConfInt("pullDeleteRow",1);
   settings.newSongBehavior=e->getConfInt("newSongBehavior",0);
+  settings.memUsageUnit=e->getConfInt("memUsageUnit",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2781,7 +2793,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.snCore,0,1);
   clampSetting(settings.nesCore,0,1);
   clampSetting(settings.fdsCore,0,1);
-  clampSetting(settings.c64Core,0,1);
+  clampSetting(settings.c64Core,0,2);
   clampSetting(settings.pokeyCore,0,1);
   clampSetting(settings.opnCore,0,1);
   clampSetting(settings.pcSpeakerOutMethod,0,4);
@@ -2893,6 +2905,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.insertBehavior,0,1);
   clampSetting(settings.pullDeleteRow,0,1);
   clampSetting(settings.newSongBehavior,0,1);
+  clampSetting(settings.memUsageUnit,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -2960,7 +2973,7 @@ void FurnaceGUI::commitSettings() {
     settings.snCore!=e->getConfInt("snCore",0) ||
     settings.nesCore!=e->getConfInt("nesCore",0) ||
     settings.fdsCore!=e->getConfInt("fdsCore",0) ||
-    settings.c64Core!=e->getConfInt("c64Core",1) ||
+    settings.c64Core!=e->getConfInt("c64Core",0) ||
     settings.pokeyCore!=e->getConfInt("pokeyCore",1) ||
     settings.opnCore!=e->getConfInt("opnCore",1)
   );
@@ -3115,6 +3128,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("insertBehavior",settings.insertBehavior);
   e->setConf("pullDeleteRow",settings.pullDeleteRow);
   e->setConf("newSongBehavior",settings.newSongBehavior);
+  e->setConf("memUsageUnit",settings.memUsageUnit);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

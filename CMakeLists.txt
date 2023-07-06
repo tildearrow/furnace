@@ -455,6 +455,8 @@ src/engine/platform/sound/c64_fp/WaveformCalculator.cpp
 src/engine/platform/sound/c64_fp/WaveformGenerator.cpp
 src/engine/platform/sound/c64_fp/resample/SincResampler.cpp
 
+src/engine/platform/sound/c64_d/dsid.c
+
 src/engine/platform/sound/tia/AudioChannel.cpp
 src/engine/platform/sound/tia/Audio.cpp
 
@@ -861,7 +863,7 @@ endif()
 string(REPLACE ";" " " WARNING_FLAGS_STRING "${WARNING_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNING_FLAGS_STRING}")
 if (WARNINGS_ARE_ERRORS)
-  message(WARNING
+  message(STATUS
     "Treating all warnings in furnace's C++ code as errors! "
     "Please report any errors you encounter on the bug tracker."
   )

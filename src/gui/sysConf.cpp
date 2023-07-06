@@ -495,6 +495,13 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
     case DIV_SYSTEM_C64_8580:
     case DIV_SYSTEM_C64_6581: {
       int clockSel=flags.getInt("clockSel",0);
+      bool keyPriority=flags.getBool("keyPriority",true);
+      int testAttack=flags.getInt("testAttack",0);
+      int testDecay=flags.getInt("testDecay",0);
+      int testSustain=flags.getInt("testSustain",0);
+      int testRelease=flags.getInt("testRelease",0);
+
+      ImGui::Text("Clock rate:");
 
       if (ImGui::RadioButton("NTSC (1.02MHz)",clockSel==0)) {
         clockSel=0;
@@ -509,9 +516,48 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         altered=true;
       }
 
+      ImGui::Text("Global parameter priority:");
+
+      if (ImGui::RadioButton("Left to right",!keyPriority)) {
+        keyPriority=false;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Last used channel",keyPriority)) {
+        keyPriority=true;
+        altered=true;
+      }
+
+      ImGui::Text("Hard reset envelope:");
+
+      if (CWSliderInt("Attack",&testAttack,0,15)) {
+        if (testAttack<0) testAttack=0;
+        if (testAttack>15) testAttack=15;
+        altered=true;
+      }
+      if (CWSliderInt("Decay",&testDecay,0,15)) {
+        if (testDecay<0) testDecay=0;
+        if (testDecay>15) testDecay=15;
+        altered=true;
+      }
+      if (CWSliderInt("Sustain",&testSustain,0,15)) {
+        if (testSustain<0) testSustain=0;
+        if (testSustain>15) testSustain=15;
+        altered=true;
+      }
+      if (CWSliderInt("Release",&testRelease,0,15)) {
+        if (testRelease<0) testRelease=0;
+        if (testRelease>15) testRelease=15;
+        altered=true;
+      }
+
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
+          flags.set("keyPriority",keyPriority);
+          flags.set("testAttack",testAttack);
+          flags.set("testDecay",testDecay);
+          flags.set("testSustain",testSustain);
+          flags.set("testRelease",testRelease);
         });
       }
       break;

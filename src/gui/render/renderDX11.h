@@ -32,8 +32,6 @@ typedef void ID3D11InputLayout;
 typedef void IDXGISwapChain;
 #endif
 
-struct FurnaceDXTexture;
-
 class FurnaceGUIRenderDX11: public FurnaceGUIRender {
   ID3D11Device* device;
   ID3D11DeviceContext* context;
@@ -44,6 +42,8 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
 
   ID3D11Buffer* quadVertex;
   int outW, outH;
+
+  bool dead;
 
   // SHADERS //
   // -> wipe
@@ -59,16 +59,14 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
   bool destroyRenderTarget();
   bool createRenderTarget();
 
-  std::vector<FurnaceDXTexture*> textures;
-
   public:
-    ImTextureID getTextureID(void* which);
-    bool lockTexture(void* which, void** data, int* pitch);
-    bool unlockTexture(void* which);
-    bool updateTexture(void* which, void* data, int pitch);
-    void* createTexture(bool dynamic, int width, int height);
-    bool destroyTexture(void* which);
-    void setTextureBlendMode(void* which, FurnaceGUIBlendMode mode);
+    ImTextureID getTextureID(FurnaceGUITexture* which);
+    bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
+    bool unlockTexture(FurnaceGUITexture* which);
+    bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);
+    FurnaceGUITexture* createTexture(bool dynamic, int width, int height);
+    bool destroyTexture(FurnaceGUITexture* which);
+    void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     void setBlendMode(FurnaceGUIBlendMode mode);
     void resized(const SDL_Event& ev);
     void clear(ImVec4 color);
@@ -85,6 +83,7 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
     void initGUI(SDL_Window* win);
     void quitGUI();
     bool quit();
+    bool isDead();
     FurnaceGUIRenderDX11():
       device(NULL),
       context(NULL),
@@ -95,6 +94,7 @@ class FurnaceGUIRenderDX11: public FurnaceGUIRender {
       quadVertex(NULL),
       outW(0),
       outH(0),
+      dead(false),
       sh_wipe_vertex(NULL),
       sh_wipe_fragment(NULL),
       sh_wipe_inputLayout(NULL),

@@ -24,6 +24,7 @@
 #include <queue>
 #include "sound/c64/sid.h"
 #include "sound/c64_fp/SID.h"
+#include "sound/c64_d/dsid.h"
 
 class DivPlatformC64: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
@@ -64,11 +65,16 @@ class DivPlatformC64: public DivDispatch {
 
   unsigned char filtControl, filtRes, vol;
   unsigned char writeOscBuf;
+  unsigned char sidCore;
   int filtCut, resetTime;
-  bool isFP;
 
-  SID sid;
-  reSIDfp::SID sid_fp;
+  bool keyPriority, sidIs6581, needInitTables;
+  unsigned char chanOrder[3];
+  unsigned char testAD, testSR;
+
+  SID* sid;
+  reSIDfp::SID* sid_fp;
+  struct SID_chip* sid_d;
   unsigned char regPool[32];
   
   friend void putDispatchChip(void*,int);
@@ -101,7 +107,7 @@ class DivPlatformC64: public DivDispatch {
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void setChipModel(bool is6581);
-    void setFP(bool fp);
+    void setCore(unsigned char which);
     void quit();
     ~DivPlatformC64();
 };

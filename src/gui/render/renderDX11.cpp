@@ -69,7 +69,8 @@ const D3D_FEATURE_LEVEL possibleFeatureLevels[2]={
   D3D_FEATURE_LEVEL_10_0
 };
 
-struct FurnaceDXTexture {
+class FurnaceDXTexture: public FurnaceGUITexture {
+  public:
   ID3D11Texture2D* tex;
   ID3D11ShaderResourceView* view;
   int width, height;
@@ -140,12 +141,12 @@ bool FurnaceGUIRenderDX11::createRenderTarget() {
   return true;
 }
 
-ImTextureID FurnaceGUIRenderDX11::getTextureID(void* which) {
+ImTextureID FurnaceGUIRenderDX11::getTextureID(FurnaceGUITexture* which) {
   FurnaceDXTexture* t=(FurnaceDXTexture*)which;
   return (ImTextureID)t->view;
 }
 
-bool FurnaceGUIRenderDX11::lockTexture(void* which, void** data, int* pitch) {
+bool FurnaceGUIRenderDX11::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
   FurnaceDXTexture* t=(FurnaceDXTexture*)which;
   if (t->lockedData!=NULL) return false;
 
@@ -165,7 +166,7 @@ bool FurnaceGUIRenderDX11::lockTexture(void* which, void** data, int* pitch) {
   return true;
 }
 
-bool FurnaceGUIRenderDX11::unlockTexture(void* which) {
+bool FurnaceGUIRenderDX11::unlockTexture(FurnaceGUITexture* which) {
   FurnaceDXTexture* t=(FurnaceDXTexture*)which;
   if (t->lockedData==NULL) return false;
   context->Unmap(t->tex,D3D11CalcSubresource(0,0,1));
@@ -173,7 +174,7 @@ bool FurnaceGUIRenderDX11::unlockTexture(void* which) {
   return true;
 }
 
-bool FurnaceGUIRenderDX11::updateTexture(void* which, void* data, int pitch) {
+bool FurnaceGUIRenderDX11::updateTexture(FurnaceGUITexture* which, void* data, int pitch) {
   FurnaceDXTexture* t=(FurnaceDXTexture*)which;
   if (t->dynamic) {
     unsigned char* d=NULL;
@@ -198,7 +199,7 @@ bool FurnaceGUIRenderDX11::updateTexture(void* which, void* data, int pitch) {
   return true;
 }
 
-void* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, int height) {
+FurnaceGUITexture* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, int height) {
   D3D11_TEXTURE2D_DESC texDesc;
   D3D11_SHADER_RESOURCE_VIEW_DESC viewDesc;
   ID3D11Texture2D* tex=NULL;
@@ -244,26 +245,18 @@ void* FurnaceGUIRenderDX11::createTexture(bool dynamic, int width, int height) {
   ret->tex=tex;
   ret->view=view;
   ret->dynamic=dynamic;
-  textures.push_back(ret);
   return ret;
 }
 
-bool FurnaceGUIRenderDX11::destroyTexture(void* which) {
+bool FurnaceGUIRenderDX11::destroyTexture(FurnaceGUITexture* which) {
   FurnaceDXTexture* t=(FurnaceDXTexture*)which;
   t->view->Release();
   t->tex->Release();
   delete t;
-
-  for (size_t i=0; i<textures.size(); i++) {
-    if (textures[i]==t) {
-      textures.erase(textures.begin()+i);
-      break;
-    }
-  }
   return true;
 }
 
-void FurnaceGUIRenderDX11::setTextureBlendMode(void* which, FurnaceGUIBlendMode mode) {
+void FurnaceGUIRenderDX11::setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode) {
 }
 
 void FurnaceGUIRenderDX11::setBlendMode(FurnaceGUIBlendMode mode) {
@@ -274,9 +267,14 @@ void FurnaceGUIRenderDX11::resized(const SDL_Event& ev) {
   logI("DX11: resizing buffers");
   HRESULT result=swapchain->ResizeBuffers(0,(unsigned int)ev.window.data1,(unsigned int)ev.window.data2,DXGI_FORMAT_UNKNOWN,DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH);
   if (result!=S_OK) {
+    if (result==DXGI_ERROR_DEVICE_REMOVED || result==DXGI_ERROR_DEVICE_RESET) {
+      dead=true;
+    }
     logW("error while resizing swapchain buffers! %.8x",result);
   }
-  createRenderTarget();
+  if (!dead) {
+    createRenderTarget();
+  }
 }
 
 void FurnaceGUIRenderDX11::clear(ImVec4 color) {
@@ -348,7 +346,12 @@ void FurnaceGUIRenderDX11::wipe(float alpha) {
 }
 
 void FurnaceGUIRenderDX11::present() {
-  swapchain->Present(1,0);
+  HRESULT result=swapchain->Present(1,0);
+  if (result==DXGI_ERROR_DEVICE_REMOVED || result==DXGI_ERROR_DEVICE_RESET) {
+    dead=true;
+  } else if (result!=S_OK && result!=DXGI_STATUS_OCCLUDED) {
+    logE("DX11: present failed! %.8x",result);
+  }
 }
 
 bool FurnaceGUIRenderDX11::getOutputSize(int& w, int& h) {
@@ -365,10 +368,10 @@ void FurnaceGUIRenderDX11::preInit() {
 }
 
 const float wipeVertices[4][4]={
-  -1.0, -1.0, 0.0, 1.0,
-   1.0, -1.0, 0.0, 1.0,
-  -1.0,  1.0, 0.0, 1.0,
-   1.0,  1.0, 0.0, 1.0
+  {-1.0, -1.0, 0.0, 1.0},
+  { 1.0, -1.0, 0.0, 1.0},
+  {-1.0,  1.0, 0.0, 1.0},
+  { 1.0,  1.0, 0.0, 1.0}
 };
 
 bool FurnaceGUIRenderDX11::init(SDL_Window* win) {
@@ -534,22 +537,12 @@ bool FurnaceGUIRenderDX11::init(SDL_Window* win) {
 }
 
 void FurnaceGUIRenderDX11::initGUI(SDL_Window* win) {
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-
   ImGui_ImplSDL2_InitForD3D(win);
   ImGui_ImplDX11_Init(device,context);
 }
 
 bool FurnaceGUIRenderDX11::quit() {
   destroyRenderTarget();
-
-  for (FurnaceDXTexture* i: textures) {
-    i->view->Release();
-    i->tex->Release();
-    delete i;
-  }
-  textures.clear();
 
   if (swapchain!=NULL) {
     swapchain->Release();
@@ -563,9 +556,15 @@ bool FurnaceGUIRenderDX11::quit() {
     device->Release();
     device=NULL;
   }
+
+  dead=false;
   return true;
 }
 
 void FurnaceGUIRenderDX11::quitGUI() { 
   ImGui_ImplDX11_Shutdown();
+}
+
+bool FurnaceGUIRenderDX11::isDead() {
+  return dead;
 }

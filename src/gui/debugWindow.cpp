@@ -536,6 +536,9 @@ void FurnaceGUI::drawDebug() {
       if (ImGui::Button("Spoiler")) {
         spoilerOpen=!spoilerOpen;
       }
+      if (ImGui::Button("Kill Graphics")) {
+        killGraphics=true;
+      }
       ImGui::TreePop();
     }
     if (ImGui::TreeNode("Performance")) {

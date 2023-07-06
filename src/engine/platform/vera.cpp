@@ -19,6 +19,7 @@
 
 #include "vera.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <string.h>
 #include <math.h>
 
@@ -32,10 +33,11 @@ extern "C" {
 #define rWrite(c,a,d) {regPool[(c)*4+(a)]=(d); psg_writereg(psg,((c)*4+(a)),(d));if (dumpWrites) {addWrite(((c)*4+(a)),(d));}}
 #define rWriteLo(c,a,d) rWrite(c,a,(regPool[(c)*4+(a)]&(~0x3f))|((d)&0x3f))
 #define rWriteHi(c,a,d) rWrite(c,a,(regPool[(c)*4+(a)]&(~0xc0))|(((d)<<6)&0xc0))
-#define rWritePCMCtrl(d) {regPool[64]=(d); pcm_write_ctrl(pcm,d);}
-#define rWritePCMRate(d) {regPool[65]=(d); pcm_write_rate(pcm,d);}
+#define rWritePCMCtrl(d) {regPool[64]=(d); pcm_write_ctrl(pcm,d);if (dumpWrites) addWrite(64,(d));}
+#define rWritePCMRate(d) {regPool[65]=(d); pcm_write_rate(pcm,d);if (dumpWrites) addWrite(65,(d));}
 #define rWritePCMData(d) {regPool[66]=(d); pcm_write_fifo(pcm,d);}
 #define rWritePCMVol(d) rWritePCMCtrl((regPool[64]&(~0x8f))|((d)&15))
+#define rWriteZSMSync(d) {if (dumpWrites) addWrite(68,(d));}
 
 const char* regCheatSheetVERA[]={
   "CHxFreq",    "00+x*4",
@@ -45,6 +47,7 @@ const char* regCheatSheetVERA[]={
   "AUDIO_CTRL", "40",
   "AUDIO_RATE", "41",
   "AUDIO_DATA", "42",
+  "ZSM_SYNC",   "44",
 
   NULL
 };
@@ -226,6 +229,49 @@ void DivPlatformVERA::tick(bool sysTick) {
     rWritePCMRate(chan[16].freq&0xff);
     chan[16].freqChanged=false;
   }
+
+  if (dumpWrites) {
+    DivSample* s=parent->getSample(chan[16].pcm.sample);
+    if (s->samples>0) {
+      while (true) {
+        short tmp_l=0;
+        short tmp_r=0;
+        if (!isMuted[16]) {
+          if (chan[16].pcm.depth16) {
+            tmp_l=s->data16[chan[16].pcm.pos];
+            tmp_r=tmp_l;
+          } else {
+            tmp_l=s->data8[chan[16].pcm.pos];
+            tmp_r=tmp_l;
+          }
+          if (!(chan[16].pan&1)) tmp_l=0;
+          if (!(chan[16].pan&2)) tmp_r=0;
+        }
+        if (chan[16].pcm.depth16) {
+          addWrite(66,tmp_l&0xff);
+          addWrite(66,(tmp_l>>8)&0xff);
+          addWrite(66,tmp_r&0xff);
+          addWrite(66,(tmp_r>>8)&0xff);
+        } else {
+          addWrite(66,tmp_l&0xff);
+          addWrite(66,tmp_r&0xff);
+        }
+        chan[16].pcm.pos++;
+        if (s->isLoopable() && chan[16].pcm.pos>=(unsigned int)s->loopEnd) {
+          //chan[16].pcm.pos=s->loopStart;
+          logI("VERA PCM export: treating looped sample as non-looped");
+          chan[16].pcm.sample=-1;
+          break;
+        }
+        if (chan[16].pcm.pos>=s->samples) {
+          chan[16].pcm.sample=-1;
+          break;
+        }
+      }
+    } else {
+      chan[16].pcm.sample=-1;
+    }
+  }
 }
 
 int DivPlatformVERA::dispatch(DivCommand c) {
@@ -370,6 +416,9 @@ int DivPlatformVERA::dispatch(DivCommand c) {
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
       break;
+    case DIV_CMD_EXTERNAL:
+      rWriteZSMSync(c.value);
+      break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;
       break;
@@ -441,6 +490,15 @@ void DivPlatformVERA::poke(std::vector<DivRegWrite>& wlist) {
   for (auto &i: wlist) poke(i.addr,i.val);
 }
 
+void DivPlatformVERA::setFlags(const DivConfig& flags) {
+  chipClock=25000000;
+  CHECK_CUSTOM_CLOCK;
+  rate=chipClock/512;
+  for (int i=0; i<17; i++) {
+    oscBuf[i]->rate=rate;
+  }
+}
+
 int DivPlatformVERA::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   for (int i=0; i<17; i++) {
     isMuted[i]=false;
@@ -451,12 +509,7 @@ int DivPlatformVERA::init(DivEngine* p, int channels, int sugRate, const DivConf
   pcm=new struct VERA_PCM;
   dumpWrites=false;
   skipRegisterWrites=false;
-  chipClock=25000000;
-  CHECK_CUSTOM_CLOCK;
-  rate=chipClock/512;
-  for (int i=0; i<17; i++) {
-    oscBuf[i]->rate=rate;
-  }
+  setFlags(flags);
   reset();
   return 17;
 }
