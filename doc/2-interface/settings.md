@@ -24,6 +24,9 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   - **Short**: shows silent title screen briefly.
   - **Full (short when loading song)**: shows animated musical intro unless started with a song (command line, double-clicking a .fur file, etc.)
   - **Full (always)**: always shows animated musical intro.
+- **When creating new song**:
+  - **Display system preset selector**
+  - **Start with initial system**
 
 - **Double-click time (seconds)**: maximum time between mouse clicks to recognize them as a double-click.
 - **Toggle channel solo on:** select which interactions with a channel header will toggle solo for that channel.
@@ -32,7 +35,8 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   - if on: with the cursor on the value `A5` and typing a "B" results in `5B`.
 - **Move cursor up on backspace-delete**
 - **Move cursor by edit step on delete**
-<!--
+<!-- coming up in 0.6pre6! -->
+<!-- 
 - **Insert pushes entire channel row**
 - **Pull delete affects entire channel row**
 -->
@@ -56,6 +60,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Power-saving mode**
   - saves power by lowering the frame rate to 2fps when idle.
   - may cause issues under Mesa drivers!
+<!-- coming up in 0.6pre6! -->
 <!--
 - **Late render clear**
   - calls `rend->clear()` after `rend->present()`. might reduce UI latency by one frame in some drivers.
@@ -69,6 +74,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Save unused patterns**
 - **Compress when saving**
   - use zlib to compress saved songs.
+<!-- coming up in 0.6pre6! -->
 <!--
 - **Use new pattern format when saving**
   - use a packed format which saves space when saving songs.
@@ -110,14 +116,12 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 # Audio/MIDI
 
-<!--
-- **Backend** {{document this}}
--->
+- **Backend**: select SDL or JACK for audio output.
+  - only appears on Linux, or MacOS compiled with JACK support
 - **Device**: audio device for playback.
 - **Sample rate**
-<!--
-- **Outputs**: {{document this}}
--->
+- **Outputs**: select number of audio outputs created, up to 16.
+  - only appears when Backend is JACK.
 - **Channels**: number of output channels to use.
 - **Buffer size**: size of buffer in both samples and milliseconds.
 - **Quality**: selects quality of resampling. low quality reduces CPU load.
@@ -125,13 +129,13 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Low-latency mode (experimental!)**: reduces latency by running the engine faster than the tick rate. useful for live playback/jam mode.
   - _warning:_ experimental! may produce glitches. only enable if your buffer size is small (10ms or less).
 - **Force mono audio**
-- **Software clipping**: clips output to nominal range (-1.0 to 1.0) before passing it to the sound device.
+- **Software clipping**: clips output to nominal range (-1.0 to 1.0) before passing it to the audio device.
   - this avoids activating Windows' built-in limiter.
-- **want:** requested audio configuration.
-- **got:** actual audio configuration returned by audio backend.
+- **want:** displays requested audio configuration.
+- **got:** displays actual audio configuration returned by audio backend.
+
 - **MIDI input**
 - **MIDI output**
-
 - **MIDI input settings**
   - **Note input**
   - **Velocity input**
@@ -211,6 +215,10 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **SID core**
   - **reSID**
   - **reSIDfp**
+<!-- uncomment upon 0.6pre6! -->
+<!--
+  - **dSID**
+-->
 - **POKEY core**
   - **Atari800 (mzpokeysnd)**
   - **ASAP (C++ port)**
@@ -234,11 +242,12 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 # Appearance
 
-<!--
-- **Render backend**: {{document this}}
+<!-- coming up in 0.6pre6! -->
+<!-- 
+- **Render backend**
 -->
-- **Render driver**
-- **Automatic UI scaling factor**
+- **Render driver** <!-- goes away in 0.6pre6! -->
+- **Automatic UI scaling factor**: automatically match the OS's UI scaling.
 - **UI scaling factor**: only if "Automatic UI scaling factor" is off.
 - **Main font**: if "Custom...", a file path selector will appear beneath.
 - **Size**
@@ -249,7 +258,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   **Display Chinese (Simplified) characters**\
   **Display Chinese (Traditional) characters**\
   **Display Korean characters**
-  - only toggle this option if you have enough graphics memory.
+  - only toggle these options if you have enough graphics memory.
   - these are a temporary solution until dynamic font atlas is implemented in Dear ImGui.
 
 - **Number of recent files**
@@ -310,6 +319,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   - **Grid**
   - **Single (with list)**
   - **Single (combo box)**
+<!-- coming up in 0.6pre6! -->
 <!--
 - **Chip memory usage unit:**
   - **Bytes**
@@ -360,9 +370,6 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Single-digit effects for 00-0F**
 - **Center pattern view**: centers pattern horizontally in view.
 - **Unsigned FM detune values**
-<!--
-- **Add separators between systems in Orders**
--->
 - **Highlight channel at cursor in Orders**
 - **About screen party time**
   - _warning:_ may cause epileptic seizures.
@@ -405,4 +412,6 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Import**
 - **Export**
 - **Reset defaults**
-- several categories...
+- several categories of keybinds...
+  - click on a keybind then enter a key or key combination to change it
+  - right-click to clear the keybind
