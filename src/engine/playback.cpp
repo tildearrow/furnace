@@ -1694,6 +1694,10 @@ void DivEngine::runMidiTime(int totalCycles) {
 }
 
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
+  lastNBIns=inChans;
+  lastNBOuts=outChans;
+  lastNBSize=size;
+
   if (!size) {
     logW("nextBuf called with size 0!");
     return;
