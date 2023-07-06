@@ -72,8 +72,8 @@ class DivPlatformC64: public DivDispatch {
   unsigned char chanOrder[3];
   unsigned char testAD, testSR;
 
-  SID sid;
-  reSIDfp::SID sid_fp;
+  SID* sid;
+  reSIDfp::SID* sid_fp;
   struct SID_chip* sid_d;
   unsigned char regPool[32];
   
