@@ -862,7 +862,7 @@ endif()
 string(REPLACE ";" " " WARNING_FLAGS_STRING "${WARNING_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNING_FLAGS_STRING}")
 if (WARNINGS_ARE_ERRORS)
-  message(WARNING
+  message(STATUS
     "Treating all warnings in furnace's C++ code as errors! "
     "Please report any errors you encounter on the bug tracker."
   )
