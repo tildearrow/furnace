@@ -543,13 +543,14 @@ void DivPlatformC64::reset() {
   }
 
   if (sidCore==2) {
-    dSID_init(sid_d,chipClock,rate,sidIs6581?6581:8580,1);
+    dSID_init(sid_d,chipClock,rate,sidIs6581?6581:8580,needInitTables);
     dSID_setMuteMask(
       sid_d,
       (isMuted[0]?0:1)|
       (isMuted[1]?0:2)|
       (isMuted[2]?0:4)
     );
+    needInitTables=false;
   } else if (sidCore==1) {
     sid_fp.reset();
     sid_fp.clockSilent(16000);
@@ -635,6 +636,7 @@ int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, const DivConfi
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  needInitTables=true;
   writeOscBuf=0;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
