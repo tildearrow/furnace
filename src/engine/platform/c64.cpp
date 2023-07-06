@@ -377,7 +377,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       break;
     case DIV_CMD_C64_CUTOFF:
       if (c.value>100) c.value=100;
-      filtCut=c.value*2047/100;
+      filtCut=(c.value+2)*2047/102;
       updateFilter();
       break;
     case DIV_CMD_C64_FINE_CUTOFF:
