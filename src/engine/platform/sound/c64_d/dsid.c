@@ -303,16 +303,16 @@ double dSID_render(struct SID_chip* sid) {
                     fakeflout += tmp;
 
                 double wf_out = (fakeflout / SID_OUT_SCALE) * (sid->M[0x18] & 0xF) * 65535;
-                waveforms_add_sample(1 + chn, wf_out);
+                waveforms_add_sample(chn, wf_out);
             } else if ((chn % 3) != 2 || !(sid->M[0x18] & OFF3)) {
                 double chnout = (wfout - 0x8000) * (sid->SIDct->ch[chn].envcnt / 256);
                 output += chnout;
 
                 double wf_out = (chnout / SID_OUT_SCALE) * (sid->M[0x18] & 0xF) * 65535;
-                waveforms_add_sample(1 + chn, wf_out);
+                waveforms_add_sample(chn, wf_out);
             }
         } else {
-            waveforms_add_sample(1 + chn, 0);
+            waveforms_add_sample(chn, 0);
         }
     }
     int M1 = 0;
