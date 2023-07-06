@@ -183,7 +183,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **basic mode**: toggles [Basic Mode](basic-mode.md).
 - **visualizer**: toggles pattern view particle effects when the song plays.
 - **reset layout**: resets the workspace to its defaults.
-- **settings...**: opens the Settings window.
+- **settings...**: opens the Settings window. these are detailed in [settings.md].
 
 # window
 
