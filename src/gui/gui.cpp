@@ -6347,8 +6347,8 @@ bool FurnaceGUI::init() {
 
   logD("starting render backend...");
   if (!rend->init(sdlWin)) {
-    if (settings.renderBackend!="SDL" && !settings.renderBackend.empty()) {
-      settings.renderBackend="";
+    if (settings.renderBackend!="SDL") {
+      settings.renderBackend="SDL";
       //e->setConf("renderBackend","");
       //e->saveConf();
       //lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
