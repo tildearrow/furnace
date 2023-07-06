@@ -62,6 +62,8 @@ struct SID_globals {
     double ctfr;
     double ctf_ratio_6581;
 
+    double ctf_table[2048];
+
     int trsaw[4096];
     int pusaw[4096];
     int Pulsetrsaw[4096];

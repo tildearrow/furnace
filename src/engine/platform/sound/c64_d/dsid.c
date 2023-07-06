@@ -1,4 +1,5 @@
 #include "dsid.h"
+#include <stdio.h>
 #include <math.h> // INFINITY
 #include <stdlib.h>
 #include <string.h> // memset, memcpy
@@ -82,7 +83,7 @@ void dSID_init(struct SID_chip* sid, double clockRate, double samplingRate, int 
     }
 
     sid->g.ctfr = -2.0 * 3.14 * (12500.0 / 256.0) / samplingRate,
-    sid->g.ctf_ratio_6581 = -2.0 * 3.14 * (20000.0 / 256.0) / samplingRate;
+    sid->g.ctf_ratio_6581 = -2.0 * 3.14 * (samplingRate / 44100.0) * (20000.0 / 256.0) / samplingRate;
     sid->g.ckr = clockRate / samplingRate;
 
     const double bAprd[16] = {9,        32 * 1,    63 * 1,    95 * 1,   149 * 1,  220 * 1,
@@ -92,9 +93,23 @@ void dSID_init(struct SID_chip* sid, double clockRate, double samplingRate, int 
     memcpy(&sid->g.Aprd, &bAprd, sizeof(bAprd));
     memcpy(&sid->g.Astp, &bAstp, sizeof(bAstp));
     if (init_wf) {
-        cCmbWF(sid->g.trsaw, 0.8, 2.4, 0.64);
-        cCmbWF(sid->g.pusaw, 1.4, 1.9, 0.68);
-        cCmbWF(sid->g.Pulsetrsaw, 0.8, 2.5, 0.64);
+      cCmbWF(sid->g.trsaw, 0.8, 2.4, 0.64);
+      cCmbWF(sid->g.pusaw, 1.4, 1.9, 0.68);
+      cCmbWF(sid->g.Pulsetrsaw, 0.8, 2.5, 0.64);
+
+      for (int i = 0; i < 2048; i++) {
+        double ctf = (double) i / 8.0 + 0.2;
+        if (model == 8580) {
+          ctf = 1 - exp(ctf * sid->g.ctfr);
+        } else {
+          if (ctf < 24) {
+            ctf = 2.0 * sin(771.78 / samplingRate);
+          } else {
+            ctf = (44100.0 / samplingRate) - 1.263 * (44100.0 / samplingRate) * exp(ctf * sid->g.ctf_ratio_6581);
+          }
+        }
+        sid->g.ctf_table[i] = ctf;
+      }
     }
 
     double prd0 = sid->g.ckr > 9 ? sid->g.ckr : 9;
@@ -278,16 +293,11 @@ double dSID_render(struct SID_chip* sid) {
                 double fakeflout = 0;
                 static double fakeplp[3] = {0};
                 static double fakepbp[3] = {0};
-                double ctf = ((double) (sid->M[0x15] & 7)) / 8 + sid->M[0x16] + 0.2;
+                double ctf = sid->g.ctf_table[((sid->M[0x15]&7)|(sid->M[0x16]<<3))&0x7ff];
                 double reso;
                 if (sid->g.model == 8580) {
-                    ctf = 1 - exp(ctf * sid->g.ctfr);
                     reso = pow(2, ((double) (4 - (double) (sid->M[0x17] >> 4)) / 8));
                 } else {
-                    if (ctf < 24)
-                        ctf = 0.035;
-                    else
-                        ctf = 1 - 1.263 * exp(ctf * sid->g.ctf_ratio_6581);
                     reso = (sid->M[0x17] > 0x5F) ? 8.0 / (double) (sid->M[0x17] >> 4) : 1.41;
                 }
                 double tmp = fakeflin + fakepbp[chn] * reso + fakeplp[chn];
@@ -320,16 +330,11 @@ double dSID_render(struct SID_chip* sid) {
         sid->M[0x1B] = (int) wfout >> 8;
     sid->M[0x1C] = sid->SIDct->ch[2].envcnt;
 
-    double ctf = ((double) (sid->M[0x15] & 7)) / 8 + sid->M[0x16] + 0.2;
+    double ctf = sid->g.ctf_table[((sid->M[0x15]&7)|(sid->M[0x16]<<3))&0x7ff];
     double reso;
     if (sid->g.model == 8580) {
-        ctf = 1 - exp(ctf * sid->g.ctfr);
         reso = pow(2, ((double) (4 - (double) (sid->M[0x17] >> 4)) / 8));
     } else {
-        if (ctf < 24)
-            ctf = 0.035;
-        else
-            ctf = 1 - 1.263 * exp(ctf * sid->g.ctf_ratio_6581);
         reso = (sid->M[0x17] > 0x5F) ? 8.0 / (double) (sid->M[0x17] >> 4) : 1.41;
     }
 
