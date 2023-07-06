@@ -35,11 +35,6 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   - if on: with the cursor on the value `A5` and typing a "B" results in `5B`.
 - **Move cursor up on backspace-delete**
 - **Move cursor by edit step on delete**
-<!-- coming up in 0.6pre6! -->
-<!-- 
-- **Insert pushes entire channel row**
-- **Pull delete affects entire channel row**
--->
 - **Change current instrument when changing instrument column (absorb)**
 - **Delete effect value when deleting effect**
 - **Change order when scrolling outside of pattern bounds**:
@@ -60,11 +55,6 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Power-saving mode**
   - saves power by lowering the frame rate to 2fps when idle.
   - may cause issues under Mesa drivers!
-<!-- coming up in 0.6pre6! -->
-<!--
-- **Late render clear**
-  - calls `rend->clear()` after `rend->present()`. might reduce UI latency by one frame in some drivers.
--->
 - **Disable threaded input (restart after changing!)**
   - threaded input processes key presses for note preview on a separate thread (on supported platforms), which reduces latency.
   - however, crashes have been reported when threaded input is on. enable this option if that is the case.
@@ -74,12 +64,6 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Save unused patterns**
 - **Compress when saving**
   - use zlib to compress saved songs.
-<!-- coming up in 0.6pre6! -->
-<!--
-- **Use new pattern format when saving**
-  - use a packed format which saves space when saving songs.
-  - disable if you need compatibility with older Furnace and/or tools which do not support this format.
--->
 - **Cursor follows current order when moving it**
   - applies when playback is stopped.
 - **Audio export loop/fade out time:**
@@ -215,10 +199,6 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **SID core**
   - **reSID**
   - **reSIDfp**
-<!-- uncomment upon 0.6pre6! -->
-<!--
-  - **dSID**
--->
 - **POKEY core**
   - **Atari800 (mzpokeysnd)**
   - **ASAP (C++ port)**
@@ -242,11 +222,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 # Appearance
 
-<!-- coming up in 0.6pre6! -->
-<!-- 
-- **Render backend**
--->
-- **Render driver** <!-- goes away in 0.6pre6! -->
+- **Render driver**
 - **Automatic UI scaling factor**: automatically match the OS's UI scaling.
 - **UI scaling factor**: only if "Automatic UI scaling factor" is off.
 - **Main font**: if "Custom...", a file path selector will appear beneath.
@@ -319,12 +295,6 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   - **Grid**
   - **Single (with list)**
   - **Single (combo box)**
-<!-- coming up in 0.6pre6! -->
-<!--
-- **Chip memory usage unit:**
-  - **Bytes**
-  - **Kilobytes**
--->
 
 - **Namco 163 chip name**
 
