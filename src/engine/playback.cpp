@@ -1980,14 +1980,10 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       } else {
         // 3. run MIDI clock
         int midiTotal=MIN(cycles,runLeftG);
-        for (int i=0; i<midiTotal; i++) {
-          runMidiClock();
-        }
+        runMidiClock(midiTotal);
 
         // 4. run MIDI timecode
-        for (int i=0; i<midiTotal; i++) {
-          runMidiTime();
-        }
+        runMidiTime(midiTotal);
 
         // 5. tick the clock and fill buffers as needed
         if (cycles<runLeftG) {
