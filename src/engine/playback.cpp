@@ -236,6 +236,8 @@ const char* cmdName[]={
 
   "NES_LINEAR_LENGTH",
 
+  "EXTERNAL",
+
   "ALWAYS_SET_VOLUME"
 };
 
@@ -913,6 +915,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         //printf("\x1b[1;36m%d: extern command %d\x1b[m\n",i,effectVal);
         extValue=effectVal;
         extValuePresent=true;
+        dispatchCmd(DivCommand(DIV_CMD_EXTERNAL,effectVal));
         break;
       case 0xef: // global pitch
         globalPitch+=(signed char)(effectVal-0x80);
