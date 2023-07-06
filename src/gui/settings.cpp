@@ -2772,7 +2772,7 @@ void FurnaceGUI::syncSettings() {
   settings.orderButtonPos=e->getConfInt("orderButtonPos",2);
   settings.compress=e->getConfInt("compress",1);
   settings.newPatternFormat=e->getConfInt("newPatternFormat",1);
-  settings.renderBackend=e->getConfString("renderBackend","SDL");
+  settings.renderBackend=e->getConfString("renderBackend",GUI_BACKEND_DEFAULT_NAME);
   settings.renderClearPos=e->getConfInt("renderClearPos",0);
   settings.insertBehavior=e->getConfInt("insertBehavior",1);
   settings.pullDeleteRow=e->getConfInt("pullDeleteRow",1);

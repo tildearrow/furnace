@@ -75,16 +75,20 @@ enum FurnaceGUIRenderBackend {
   GUI_BACKEND_DX11
 };
 
-#ifdef HAVE_RENDER_SDL
-#define GUI_BACKEND_DEFAULT GUI_BACKEND_SDL
-#define GUI_BACKEND_DEFAULT_NAME "SDL"
-#else
 #ifdef HAVE_RENDER_DX11
 #define GUI_BACKEND_DEFAULT GUI_BACKEND_DX11
 #define GUI_BACKEND_DEFAULT_NAME "DirectX 11"
 #else
+#ifdef HAVE_RENDER_GL
 #define GUI_BACKEND_DEFAULT GUI_BACKEND_GL
 #define GUI_BACKEND_DEFAULT_NAME "OpenGL"
+#else
+#ifdef HAVE_RENDER_SDL
+#define GUI_BACKEND_DEFAULT GUI_BACKEND_SDL
+#define GUI_BACKEND_DEFAULT_NAME "SDL"
+#else
+#error how did you manage to do that?
+#endif
 #endif
 #endif
 
