@@ -36,6 +36,7 @@ advanced topics:
 
 other topics:
 
+- [settings](../2-interface/settings.md)
 - [UI components](components.md)
 - [global keyboard shortcuts](keyboard.md)
 - [basic mode](basic-mode.md)

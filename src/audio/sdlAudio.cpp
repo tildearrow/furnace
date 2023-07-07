@@ -127,14 +127,20 @@ bool TAAudioSDL::init(TAAudioDesc& request, TAAudioDesc& response) {
   ac.callback=taSDLProcess;
   ac.userdata=this;
 
-  ai=SDL_OpenAudioDevice(request.deviceName.empty()?NULL:request.deviceName.c_str(),0,&ac,&ar,SDL_AUDIO_ALLOW_FREQUENCY_CHANGE);
+  ai=SDL_OpenAudioDevice(request.deviceName.empty()?NULL:request.deviceName.c_str(),0,&ac,&ar,0);
   if (ai==0) {
     logE("could not open audio device: %s",SDL_GetError());
     return false;
   }
 
+  const char* backendName=SDL_GetCurrentAudioDriver();
+
   desc.deviceName=request.deviceName;
-  desc.name="";
+  if (backendName==NULL) {
+    desc.name="";
+  } else {
+    desc.name=backendName;
+  }
   desc.rate=ar.freq;
   desc.inChans=0;
   desc.outChans=ar.channels;
