@@ -807,6 +807,25 @@ void FurnaceGUI::drawSettings() {
           }
 #endif
 
+          if (settings.audioEngine==DIV_AUDIO_SDL) {
+            ImGui::Text("Driver");
+            ImGui::SameLine();
+            if (ImGui::BeginCombo("##SDLADriver",settings.sdlAudioDriver.empty()?"Automatic":settings.sdlAudioDriver.c_str())) {
+              if (ImGui::Selectable("Automatic",settings.sdlAudioDriver.empty())) {
+                settings.sdlAudioDriver="";
+              }
+              for (String& i: availAudioDrivers) {
+                if (ImGui::Selectable(i.c_str(),i==settings.sdlAudioDriver)) {
+                  settings.sdlAudioDriver=i;
+                }
+              }
+              ImGui::EndCombo();
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
+            }
+          }
+
           ImGui::Text("Device");
           ImGui::SameLine();
           String audioDevName=settings.audioDevice.empty()?"<System default>":settings.audioDevice;
@@ -1324,6 +1343,9 @@ void FurnaceGUI::drawSettings() {
 #endif
             ImGui::EndCombo();
           }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
+          }
           if (curRenderBackend=="SDL") {
             if (ImGui::BeginCombo("Render driver",settings.renderDriver.empty()?"Automatic":settings.renderDriver.c_str())) {
               if (ImGui::Selectable("Automatic",settings.renderDriver.empty())) {
@@ -1335,6 +1357,9 @@ void FurnaceGUI::drawSettings() {
                 }
               }
               ImGui::EndCombo();
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
             }
           }
 
@@ -2639,6 +2664,7 @@ void FurnaceGUI::syncSettings() {
   settings.midiOutDevice=e->getConfString("midiOutDevice","");
   settings.c163Name=e->getConfString("c163Name",DIV_C163_DEFAULT_NAME);
   settings.renderDriver=e->getConfString("renderDriver","");
+  settings.sdlAudioDriver=e->getConfString("sdlAudioDriver","");
   settings.audioQuality=e->getConfInt("audioQuality",0);
   settings.audioBufSize=e->getConfInt("audioBufSize",1024);
   settings.audioRate=e->getConfInt("audioRate",44100);
@@ -2987,6 +3013,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("midiOutDevice",settings.midiOutDevice);
   e->setConf("c163Name",settings.c163Name);
   e->setConf("renderDriver",settings.renderDriver);
+  e->setConf("sdlAudioDriver",settings.sdlAudioDriver);
   e->setConf("audioQuality",settings.audioQuality);
   e->setConf("audioBufSize",settings.audioBufSize);
   e->setConf("audioRate",settings.audioRate);

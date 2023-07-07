@@ -1305,6 +1305,7 @@ class FurnaceGUI {
   std::deque<String> recentFile;
   std::vector<DivInstrumentType> makeInsTypeList;
   std::vector<String> availRenderDrivers;
+  std::vector<String> availAudioDrivers;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
   bool vgmExportDirectStream, displayInsTypeList;
@@ -1535,6 +1536,7 @@ class FurnaceGUI {
     String macroRelLabel;
     String emptyLabel;
     String emptyLabel2;
+    String sdlAudioDriver;
     DivConfig initialSys;
 
     Settings():
@@ -1687,7 +1689,8 @@ class FurnaceGUI {
       noteRelLabel("==="),
       macroRelLabel("REL"),
       emptyLabel("..."),
-      emptyLabel2("..") {}
+      emptyLabel2(".."),
+      sdlAudioDriver("") {}
   } settings;
 
   struct Tutorial {

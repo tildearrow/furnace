@@ -570,6 +570,7 @@ class DivEngine {
     float oscSize;
     int oscReadPos, oscWritePos;
     int tickMult;
+    int lastNBIns, lastNBOuts, lastNBSize;
     std::atomic<size_t> processTime;
 
     void runExportThread();
@@ -1252,6 +1253,9 @@ class DivEngine {
       oscReadPos(0),
       oscWritePos(0),
       tickMult(1),
+      lastNBIns(0),
+      lastNBOuts(0),
+      lastNBSize(0),
       processTime(0),
       yrw801ROM(NULL),
       tg100ROM(NULL),

@@ -322,7 +322,7 @@ void DivPlatformGB::tick(bool sysTick) {
         rWrite(16+i*5+4,((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((chan[i].soundLen<64)<<6));
       } else {
         rWrite(16+i*5+3,(2048-chan[i].freq)&0xff);
-        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((chan[i].soundLen<63)<<6));
+        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||(chan[i].keyOff && i!=2))?0x80:0x00)|((chan[i].soundLen<63)<<6));
       }
       if (enoughAlready) { // more compat garbage
         rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
@@ -466,7 +466,9 @@ int DivPlatformGB::dispatch(DivCommand c) {
       if (c.chan!=2) break;
       chan[c.chan].wave=c.value;
       ws.changeWave1(chan[c.chan].wave);
-      chan[c.chan].keyOn=true;
+      if (chan[c.chan].active) {
+        chan[c.chan].keyOn=true;
+      }
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
