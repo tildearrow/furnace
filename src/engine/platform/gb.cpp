@@ -466,7 +466,9 @@ int DivPlatformGB::dispatch(DivCommand c) {
       if (c.chan!=2) break;
       chan[c.chan].wave=c.value;
       ws.changeWave1(chan[c.chan].wave);
-      chan[c.chan].keyOn=true;
+      if (chan[c.chan].active) {
+        chan[c.chan].keyOn=true;
+      }
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
