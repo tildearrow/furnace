@@ -151,7 +151,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
       for (DivRegWrite& write: writes) {
         if (i==YM) zsm.writeYM(write.addr&0xff,write.val);
         if (i==VERA) {
-          if (done && write.addr >= 64) continue; // don't process any PCM events on the loop lookahead
+          if (done && write.addr>=64) continue; // don't process any PCM or sync events on the loop lookahead
           zsm.writePSG(write.addr&0xff,write.val);
         }
       }

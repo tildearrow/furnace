@@ -75,16 +75,20 @@ enum FurnaceGUIRenderBackend {
   GUI_BACKEND_DX11
 };
 
-#ifdef HAVE_RENDER_SDL
-#define GUI_BACKEND_DEFAULT GUI_BACKEND_SDL
-#define GUI_BACKEND_DEFAULT_NAME "SDL"
-#else
 #ifdef HAVE_RENDER_DX11
 #define GUI_BACKEND_DEFAULT GUI_BACKEND_DX11
 #define GUI_BACKEND_DEFAULT_NAME "DirectX 11"
 #else
+#ifdef HAVE_RENDER_GL
 #define GUI_BACKEND_DEFAULT GUI_BACKEND_GL
 #define GUI_BACKEND_DEFAULT_NAME "OpenGL"
+#else
+#ifdef HAVE_RENDER_SDL
+#define GUI_BACKEND_DEFAULT GUI_BACKEND_SDL
+#define GUI_BACKEND_DEFAULT_NAME "SDL"
+#else
+#error how did you manage to do that?
+#endif
 #endif
 #endif
 
@@ -1300,6 +1304,7 @@ class FurnaceGUI {
   std::deque<String> recentFile;
   std::vector<DivInstrumentType> makeInsTypeList;
   std::vector<String> availRenderDrivers;
+  std::vector<String> availAudioDrivers;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
   bool vgmExportDirectStream, displayInsTypeList;
@@ -1530,6 +1535,7 @@ class FurnaceGUI {
     String macroRelLabel;
     String emptyLabel;
     String emptyLabel2;
+    String sdlAudioDriver;
     DivConfig initialSys;
 
     Settings():
@@ -1544,7 +1550,7 @@ class FurnaceGUI {
       snCore(0),
       nesCore(0),
       fdsCore(0),
-      c64Core(1),
+      c64Core(0),
       pokeyCore(1),
       opnCore(1),
       pcSpeakerOutMethod(0),
@@ -1682,7 +1688,8 @@ class FurnaceGUI {
       noteRelLabel("==="),
       macroRelLabel("REL"),
       emptyLabel("..."),
-      emptyLabel2("..") {}
+      emptyLabel2(".."),
+      sdlAudioDriver("") {}
   } settings;
 
   struct Tutorial {

@@ -116,7 +116,8 @@ const char* nesCores[]={
 
 const char* c64Cores[]={
   "reSID",
-  "reSIDfp"
+  "reSIDfp",
+  "dSID"
 };
 
 const char* pokeyCores[]={
@@ -806,6 +807,25 @@ void FurnaceGUI::drawSettings() {
           }
 #endif
 
+          if (settings.audioEngine==DIV_AUDIO_SDL) {
+            ImGui::Text("Driver");
+            ImGui::SameLine();
+            if (ImGui::BeginCombo("##SDLADriver",settings.sdlAudioDriver.empty()?"Automatic":settings.sdlAudioDriver.c_str())) {
+              if (ImGui::Selectable("Automatic",settings.sdlAudioDriver.empty())) {
+                settings.sdlAudioDriver="";
+              }
+              for (String& i: availAudioDrivers) {
+                if (ImGui::Selectable(i.c_str(),i==settings.sdlAudioDriver)) {
+                  settings.sdlAudioDriver=i;
+                }
+              }
+              ImGui::EndCombo();
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
+            }
+          }
+
           ImGui::Text("Device");
           ImGui::SameLine();
           String audioDevName=settings.audioDevice.empty()?"<System default>":settings.audioDevice;
@@ -1254,7 +1274,7 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::Text("SID core");
           ImGui::SameLine();
-          ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,2);
+          ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,3);
 
           ImGui::Text("POKEY core");
           ImGui::SameLine();
@@ -1323,6 +1343,9 @@ void FurnaceGUI::drawSettings() {
 #endif
             ImGui::EndCombo();
           }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
+          }
           if (curRenderBackend=="SDL") {
             if (ImGui::BeginCombo("Render driver",settings.renderDriver.empty()?"Automatic":settings.renderDriver.c_str())) {
               if (ImGui::Selectable("Automatic",settings.renderDriver.empty())) {
@@ -1334,6 +1357,9 @@ void FurnaceGUI::drawSettings() {
                 }
               }
               ImGui::EndCombo();
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
             }
           }
 
@@ -2637,6 +2663,7 @@ void FurnaceGUI::syncSettings() {
   settings.midiOutDevice=e->getConfString("midiOutDevice","");
   settings.c163Name=e->getConfString("c163Name",DIV_C163_DEFAULT_NAME);
   settings.renderDriver=e->getConfString("renderDriver","");
+  settings.sdlAudioDriver=e->getConfString("sdlAudioDriver","");
   settings.audioQuality=e->getConfInt("audioQuality",0);
   settings.audioBufSize=e->getConfInt("audioBufSize",1024);
   settings.audioRate=e->getConfInt("audioRate",44100);
@@ -2645,7 +2672,7 @@ void FurnaceGUI::syncSettings() {
   settings.snCore=e->getConfInt("snCore",0);
   settings.nesCore=e->getConfInt("nesCore",0);
   settings.fdsCore=e->getConfInt("fdsCore",0);
-  settings.c64Core=e->getConfInt("c64Core",1);
+  settings.c64Core=e->getConfInt("c64Core",0);
   settings.pokeyCore=e->getConfInt("pokeyCore",1);
   settings.opnCore=e->getConfInt("opnCore",1);
   settings.pcSpeakerOutMethod=e->getConfInt("pcSpeakerOutMethod",0);
@@ -2771,7 +2798,7 @@ void FurnaceGUI::syncSettings() {
   settings.orderButtonPos=e->getConfInt("orderButtonPos",2);
   settings.compress=e->getConfInt("compress",1);
   settings.newPatternFormat=e->getConfInt("newPatternFormat",1);
-  settings.renderBackend=e->getConfString("renderBackend","SDL");
+  settings.renderBackend=e->getConfString("renderBackend",GUI_BACKEND_DEFAULT_NAME);
   settings.renderClearPos=e->getConfInt("renderClearPos",0);
   settings.insertBehavior=e->getConfInt("insertBehavior",1);
   settings.pullDeleteRow=e->getConfInt("pullDeleteRow",1);
@@ -2791,7 +2818,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.snCore,0,1);
   clampSetting(settings.nesCore,0,1);
   clampSetting(settings.fdsCore,0,1);
-  clampSetting(settings.c64Core,0,1);
+  clampSetting(settings.c64Core,0,2);
   clampSetting(settings.pokeyCore,0,1);
   clampSetting(settings.opnCore,0,1);
   clampSetting(settings.pcSpeakerOutMethod,0,4);
@@ -2971,7 +2998,7 @@ void FurnaceGUI::commitSettings() {
     settings.snCore!=e->getConfInt("snCore",0) ||
     settings.nesCore!=e->getConfInt("nesCore",0) ||
     settings.fdsCore!=e->getConfInt("fdsCore",0) ||
-    settings.c64Core!=e->getConfInt("c64Core",1) ||
+    settings.c64Core!=e->getConfInt("c64Core",0) ||
     settings.pokeyCore!=e->getConfInt("pokeyCore",1) ||
     settings.opnCore!=e->getConfInt("opnCore",1)
   );
@@ -2985,6 +3012,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("midiOutDevice",settings.midiOutDevice);
   e->setConf("c163Name",settings.c163Name);
   e->setConf("renderDriver",settings.renderDriver);
+  e->setConf("sdlAudioDriver",settings.sdlAudioDriver);
   e->setConf("audioQuality",settings.audioQuality);
   e->setConf("audioBufSize",settings.audioBufSize);
   e->setConf("audioRate",settings.audioRate);
