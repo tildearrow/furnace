@@ -376,7 +376,6 @@ void FurnaceGUI::drawPattern() {
   if (!patternOpen) return;
 
   bool inhibitMenu=false;
-  float scrollX=0;
 
   if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) {
     cursor.y=oldRow+((pendingStepUpdate)?1:0);
@@ -951,7 +950,6 @@ void FurnaceGUI::drawPattern() {
         }
         demandScrollX=false;
       }
-      scrollX=ImGui::GetScrollX();
 
       // overflow changes order
       // TODO: this is very unreliable and sometimes it can warp you out of the song
@@ -1182,8 +1180,8 @@ void FurnaceGUI::drawPattern() {
           }
 
           if (width>0.1) for (float j=-patChanSlideY[i]; j<ImGui::GetWindowHeight(); j+=width*0.7) {
-            ImVec2 tMin=ImVec2(off.x+patChanX[i]-scrollX,off.y+j);
-            ImVec2 tMax=ImVec2(off.x+patChanX[i+1]-scrollX,off.y+j+width*0.6);
+            ImVec2 tMin=ImVec2(off.x+patChanX[i],off.y+j);
+            ImVec2 tMax=ImVec2(off.x+patChanX[i+1],off.y+j+width*0.6);
             if (ch->portaNote<=ch->note) {
               arrowPoints[0]=ImLerp(tMin,tMax,ImVec2(0.1,1.0-0.8));
               arrowPoints[1]=ImLerp(tMin,tMax,ImVec2(0.5,1.0-0.0));
