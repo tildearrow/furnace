@@ -4586,6 +4586,15 @@ bool DivEngine::initAudioBackend() {
     }
   }
 
+#ifdef HAVE_SDL2
+  if (audioEngine==DIV_AUDIO_SDL) {
+    String audioDriver=getConfString("sdlAudioDriver","");
+    if (!audioDriver.empty()) {
+      SDL_SetHint("SDL_HINT_AUDIODRIVER",audioDriver.c_str());
+    }
+  }
+#endif
+
   lowQuality=getConfInt("audioQuality",0);
   forceMono=getConfInt("forceMono",0);
   clampSamples=getConfInt("clampSamples",0);
@@ -4594,7 +4603,7 @@ bool DivEngine::initAudioBackend() {
   midiOutClock=getConfInt("midiOutClock",0);
   midiOutTime=getConfInt("midiOutTime",0);
   midiOutTimeRate=getConfInt("midiOutTimeRate",0);
-  midiOutProgramChange = getConfInt("midiOutProgramChange",0);
+  midiOutProgramChange=getConfInt("midiOutProgramChange",0);
   midiOutMode=getConfInt("midiOutMode",DIV_MIDI_MODE_NOTE);
   if (metroVol<0.0f) metroVol=0.0f;
   if (metroVol>2.0f) metroVol=2.0f;

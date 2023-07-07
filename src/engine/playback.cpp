@@ -915,7 +915,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         //printf("\x1b[1;36m%d: extern command %d\x1b[m\n",i,effectVal);
         extValue=effectVal;
         extValuePresent=true;
-        dispatchCmd(DivCommand(DIV_CMD_EXTERNAL,effectVal));
+        dispatchCmd(DivCommand(DIV_CMD_EXTERNAL,i,effectVal));
         break;
       case 0xef: // global pitch
         globalPitch+=(signed char)(effectVal-0x80);
@@ -1694,6 +1694,10 @@ void DivEngine::runMidiTime(int totalCycles) {
 }
 
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
+  lastNBIns=inChans;
+  lastNBOuts=outChans;
+  lastNBSize=size;
+
   if (!size) {
     logW("nextBuf called with size 0!");
     return;
