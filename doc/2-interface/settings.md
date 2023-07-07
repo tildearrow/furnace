@@ -336,7 +336,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Use standard OPL waveform names**
 - **Overflow pattern highlights**
 - **Display previous/next pattern**
-- **Use German notation**: display `B` notes as `H`, and `Bb` notes as `B`.
+- **Use German notation**: display `B` notes as `H`, and `A#` notes as `B`.
 - **Single-digit effects for 00-0F**
 - **Center pattern view**: centers pattern horizontally in view.
 - **Unsigned FM detune values**
