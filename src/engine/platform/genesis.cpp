@@ -123,7 +123,9 @@ void DivPlatformGenesis::processDAC(int iRate) {
               chan[5].dacReady=false;
             }
           } else {
-            urgentWrite(0x2a,0x80);
+            if (chan[5].dacReady && writes.size()<16) {
+              urgentWrite(0x2a,0x80);
+            }
           }
           chan[5].dacPos++;
           if (!chan[5].dacDirection && (s->isLoopable() && chan[5].dacPos>=(unsigned int)s->loopEnd)) {
