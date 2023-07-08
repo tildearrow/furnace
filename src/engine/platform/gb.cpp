@@ -674,8 +674,6 @@ void DivPlatformGB::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/16;
   for (int i=0; i<4; i++) {
-    isMuted[i]=false;
-    oscBuf[i]=new DivDispatchOscBuffer;
     oscBuf[i]->rate=rate;
   }
 }
@@ -686,6 +684,12 @@ int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig
   skipRegisterWrites=false;
   model=GB_MODEL_DMG_B;
   gb=new GB_gameboy_t;
+
+  for (int i=0; i<4; i++) {
+    isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
+  }
+
   setFlags(flags);
   reset();
   return 4;
