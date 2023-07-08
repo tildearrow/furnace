@@ -397,6 +397,14 @@ int DivPlatformGB::dispatch(DivCommand c) {
           chan[c.chan].vol=chan[c.chan].envVol;
           chan[c.chan].outVol=chan[c.chan].envVol;
         }
+      } else if (chan[c.chan].softEnv && c.chan!=2) {
+        if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+          chan[c.chan].outVol=chan[c.chan].vol;
+          chan[c.chan].envVol=chan[c.chan].outVol;
+        }
+        chan[c.chan].envLen=0;
+        chan[c.chan].envDir=1;
+        chan[c.chan].soundLen=64;
       }
       if (c.chan==2 && chan[c.chan].softEnv) {
         chan[c.chan].soundLen=64;
