@@ -82,6 +82,7 @@ const char* aboutLine[]={
   "Dippy",
   "djtuBIG-MaliceX",
   "dumbut",
+  "Eknous-P",
   "ElectricKeet",
   "EpicTyphlosion",
   "FΛDE",
