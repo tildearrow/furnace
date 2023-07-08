@@ -61,6 +61,8 @@ void DivZSM::init(unsigned int rate) {
   pcmRateCache=-1;
   pcmCtrlRVCache=-1;
   pcmCtrlDCCache=-1;
+  pcmIsLooped=false;
+  pcmLoopPointCache=0;
   // Channel masks
   ymMask=0;
   psgMask=0;
@@ -166,6 +168,9 @@ void DivZSM::writePCM(unsigned char a, unsigned char v) {
   } else if (a==2) { // PCM data
     pcmCache.push_back(v);
     numWrites++;
+  } else if (a==3) { // PCM loop point
+    pcmLoopPointCache=(pcmLoopPointCache>>8)|(v<<16);
+    pcmIsLooped=true;
   }
 }
 
@@ -213,7 +218,7 @@ SafeWriter* DivZSM::finish() {
     pcmData.clear();
     pcmInsts.clear();
   } else if (pcmData.size()) { // if exists, write PCM instruments and blob to the end of file
-    int pcmOff=w->tell();
+    unsigned int pcmOff=w->tell();
     w->writeC('P');
     w->writeC('C');
     w->writeC('M');
@@ -236,10 +241,11 @@ SafeWriter* DivZSM::finish() {
       w->writeC((unsigned char)(inst.length>>16)&0xff);
       // Feature mask: Lxxxxxxx
       //   L = Loop enabled
-      w->writeC(0);
-      // Loop point (not yet implemented)
-      w->writeC(0);
-      w->writeS(0);
+      w->writeC((unsigned char)inst.isLooped<<7);
+      // Sample loop point <l m h>
+      w->writeC((unsigned char)inst.loopPoint&0xff);
+      w->writeC((unsigned char)(inst.loopPoint>>8)&0xff);
+      w->writeC((unsigned char)(inst.loopPoint>>16)&0xff);
       // Reserved for future use
       w->writeS(0);
       w->writeS(0);
@@ -289,8 +295,8 @@ void DivZSM::flushWrites() {
   }
   ymwrites.clear();
   unsigned int pcmInst=0;
-  int pcmOff=0;
-  int pcmLen=0;
+  unsigned int pcmOff=0;
+  unsigned int pcmLen=0;
   int extCmd0Len=pcmMeta.size()*2;
   if (pcmCache.size()) {
     // collapse stereo data to mono if both channels are fully identical
@@ -347,7 +353,7 @@ void DivZSM::flushWrites() {
     extCmd0Len+=2;
     // search for a matching PCM instrument definition
     for (S_pcmInst& inst: pcmInsts) {
-      if (inst.offset==pcmOff && inst.length==pcmLen && inst.geometry==pcmCtrlDCCache)
+      if (inst.offset==pcmOff && inst.length==pcmLen && inst.geometry==pcmCtrlDCCache && inst.isLooped==pcmIsLooped && inst.loopPoint==pcmLoopPointCache)
         break;
       pcmInst++;
     }
@@ -356,7 +362,11 @@ void DivZSM::flushWrites() {
       inst.geometry=pcmCtrlDCCache;
       inst.offset=pcmOff;
       inst.length=pcmLen;
+      inst.loopPoint=pcmLoopPointCache;
+      inst.isLooped=pcmIsLooped;
       pcmInsts.push_back(inst);
+      pcmIsLooped=false;
+      pcmLoopPointCache=0;
     }
   }
   if (extCmd0Len>63) { // this would be bad, but will almost certainly never happen
