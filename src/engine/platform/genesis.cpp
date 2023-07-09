@@ -932,6 +932,7 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       if (c.chan<5) c.chan=5;
       chan[c.chan].dacPos=c.value;
       chan[c.chan].setPos=true;
+      if (dumpWrites) addWrite(0xffff0005,chan[c.chan].dacPos);
       break;
     case DIV_CMD_LEGATO: {
       if (c.chan==csmChan) {
