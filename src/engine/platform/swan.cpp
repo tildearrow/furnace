@@ -548,19 +548,25 @@ void DivPlatformSwan::poke(std::vector<DivRegWrite>& wlist) {
   for (DivRegWrite& i: wlist) rWrite(i.addr,i.val);
 }
 
-int DivPlatformSwan::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
-  parent=p;
-  dumpWrites=false;
-  skipRegisterWrites=false;
+void DivPlatformSwan::setFlags(const DivConfig& flags) {
   chipClock=3072000;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/16; // = 192000kHz, should be enough
   for (int i=0; i<4; i++) {
-    isMuted[i]=false;
-    oscBuf[i]=new DivDispatchOscBuffer;
     oscBuf[i]->rate=rate;
   }
+}
+
+int DivPlatformSwan::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
+  parent=p;
+  dumpWrites=false;
+  skipRegisterWrites=false;
+  for (int i=0; i<4; i++) {
+    isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
+  }
   ws=new WSwan();
+  setFlags(flags);
   reset();
   return 4;
 }

@@ -506,12 +506,26 @@ void FurnaceGUI::drawChanOsc() {
                         text+=fmt::sprintf("%d",e->dispatchOfChan[ch]);
                         break;
                       }
-                      case 'v':
+                      case 'v': {
+                        DivChannelState* chanState=e->getChanState(ch);
+                        if (chanState==NULL) break;
+                        text+=fmt::sprintf("%d",chanState->volume>>8);
                         break;
-                      case 'V':
+                      }
+                      case 'V': {
+                        DivChannelState* chanState=e->getChanState(ch);
+                        if (chanState==NULL) break;
+                        int volMax=chanState->volMax>>8;
+                        if (volMax<1) volMax=1;
+                        text+=fmt::sprintf("%d%%",(chanState->volume>>8)/volMax);
                         break;
-                      case 'b':
+                      }
+                      case 'b': {
+                        DivChannelState* chanState=e->getChanState(ch);
+                        if (chanState==NULL) break;
+                        text+=fmt::sprintf("%.2X",chanState->volume>>8);
                         break;
+                      }
                       case '%':
                         text+='%';
                         break;

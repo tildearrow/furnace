@@ -397,6 +397,14 @@ int DivPlatformGB::dispatch(DivCommand c) {
           chan[c.chan].vol=chan[c.chan].envVol;
           chan[c.chan].outVol=chan[c.chan].envVol;
         }
+      } else if (chan[c.chan].softEnv && c.chan!=2) {
+        if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+          chan[c.chan].outVol=chan[c.chan].vol;
+          chan[c.chan].envVol=chan[c.chan].outVol;
+        }
+        chan[c.chan].envLen=0;
+        chan[c.chan].envDir=1;
+        chan[c.chan].soundLen=64;
       }
       if (c.chan==2 && chan[c.chan].softEnv) {
         chan[c.chan].soundLen=64;
@@ -674,8 +682,6 @@ void DivPlatformGB::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/16;
   for (int i=0; i<4; i++) {
-    isMuted[i]=false;
-    oscBuf[i]=new DivDispatchOscBuffer;
     oscBuf[i]->rate=rate;
   }
 }
@@ -686,6 +692,12 @@ int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig
   skipRegisterWrites=false;
   model=GB_MODEL_DMG_B;
   gb=new GB_gameboy_t;
+
+  for (int i=0; i<4; i++) {
+    isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
+  }
+
   setFlags(flags);
   reset();
   return 4;

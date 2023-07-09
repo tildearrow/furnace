@@ -524,7 +524,15 @@ _wreaddir_r(
         entry->d_off = 0;
         entry->d_reclen = sizeof (struct _wdirent);
 
+#ifdef _WIN64
         entry->dwin_size = ((size_t)datap->nFileSizeHigh<<32) | datap->nFileSizeLow;
+#else
+        if (datap->nFileSizeHigh) {
+          entry->dwin_size = 0xffffffff;
+        } else {
+          entry->dwin_size = datap->nFileSizeLow;
+        }
+#endif
         entry->dwin_mtime = datap->ftLastWriteTime;
 
         /* Set result address */
@@ -817,7 +825,15 @@ readdir_r(
             entry->d_off = 0;
             entry->d_reclen = sizeof (struct dirent);
 
+#ifdef _WIN64
             entry->dwin_size = ((size_t)datap->nFileSizeHigh<<32) | datap->nFileSizeLow;
+#else
+            if (datap->nFileSizeHigh) {
+              entry->dwin_size = 0xffffffff;
+            } else {
+              entry->dwin_size = datap->nFileSizeLow;
+            }
+#endif
             entry->dwin_mtime = datap->ftLastWriteTime;
 
         } else {

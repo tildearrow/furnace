@@ -396,6 +396,9 @@ int DivPlatformGenesisExt::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_FM_HARD_RESET:
+      opChan[ch].hardReset=c.value;
+      break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
       break;

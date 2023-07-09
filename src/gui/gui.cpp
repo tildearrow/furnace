@@ -6261,9 +6261,9 @@ bool FurnaceGUI::init() {
   logV("window size: %dx%d",scrW,scrH);
 
   if (!initRender()) {
-    if (settings.renderBackend!="SDL" && !settings.renderBackend.empty()) {
-      settings.renderBackend="";
-      e->setConf("renderBackend","");
+    if (settings.renderBackend!="SDL") {
+      settings.renderBackend="SDL";
+      e->setConf("renderBackend","SDL");
       e->saveConf();
       lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
     } else {
@@ -6362,9 +6362,9 @@ bool FurnaceGUI::init() {
   if (!rend->init(sdlWin)) {
     if (settings.renderBackend!="SDL") {
       settings.renderBackend="SDL";
-      //e->setConf("renderBackend","");
-      //e->saveConf();
-      //lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
+      e->setConf("renderBackend","");
+      e->saveConf();
+      lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
     } else {
       lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
       if (!settings.renderDriver.empty()) {
