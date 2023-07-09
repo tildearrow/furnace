@@ -236,9 +236,12 @@ void DivPlatformVERA::tick(bool sysTick) {
     if (s->samples>0) {
       if (s->isLoopable()) {
         // Inform the export process of the loop point for this sample
-        addWrite(67,s->loopStart&0xff);
-        addWrite(67,(s->loopStart>>8)&0xff);
-        addWrite(67,(s->loopStart>>16)&0xff);
+        int tmp_ls=(s->loopStart<<1); // for stereo
+        if (chan[16].pcm.depth16)
+          tmp_ls<<=1; // for 16 bit
+        addWrite(67,tmp_ls&0xff);
+        addWrite(67,(tmp_ls>>8)&0xff);
+        addWrite(67,(tmp_ls>>16)&0xff);
       }
       while (true) {
         short tmp_l=0;
