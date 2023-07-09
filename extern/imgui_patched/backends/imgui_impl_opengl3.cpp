@@ -208,6 +208,8 @@
 #define GL_CALL(_CALL)      _CALL   // Call without error check
 #endif
 
+#define GL_CALL_FALSE(_CALL)  _CALL; { GLenum gl_err = glGetError(); if (gl_err != 0) return false; }
+
 // OpenGL Data
 struct ImGui_ImplOpenGL3_Data
 {
@@ -389,13 +391,14 @@ void    ImGui_ImplOpenGL3_Shutdown()
     IM_DELETE(bd);
 }
 
-void    ImGui_ImplOpenGL3_NewFrame()
+bool    ImGui_ImplOpenGL3_NewFrame()
 {
     ImGui_ImplOpenGL3_Data* bd = ImGui_ImplOpenGL3_GetBackendData();
     IM_ASSERT(bd != nullptr && "Did you call ImGui_ImplOpenGL3_Init()?");
 
     if (!bd->ShaderHandle)
-        ImGui_ImplOpenGL3_CreateDeviceObjects();
+        return ImGui_ImplOpenGL3_CreateDeviceObjects();
+    return true;
 }
 
 static void ImGui_ImplOpenGL3_SetupRenderState(ImDrawData* draw_data, int fb_width, int fb_height, GLuint vertex_array_object)
@@ -674,14 +677,14 @@ bool ImGui_ImplOpenGL3_CreateFontsTexture()
     // (Bilinear sampling is required by default. Set 'io.Fonts->Flags |= ImFontAtlasFlags_NoBakedLines' or 'style.AntiAliasedLinesUseTex = false' to allow point/nearest sampling)
     GLint last_texture;
     GL_CALL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
-    GL_CALL(glGenTextures(1, &bd->FontTexture));
-    GL_CALL(glBindTexture(GL_TEXTURE_2D, bd->FontTexture));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    GL_CALL_FALSE(glGenTextures(1, &bd->FontTexture));
+    GL_CALL_FALSE(glBindTexture(GL_TEXTURE_2D, bd->FontTexture));
+    GL_CALL_FALSE(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    GL_CALL_FALSE(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 #ifdef GL_UNPACK_ROW_LENGTH // Not on WebGL/ES
-    GL_CALL(glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
+    GL_CALL_FALSE(glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
 #endif
-    GL_CALL(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
+    GL_CALL_FALSE(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
 
     // Store our identifier
     io.Fonts->SetTexID((ImTextureID)(intptr_t)bd->FontTexture);
@@ -918,7 +921,9 @@ bool    ImGui_ImplOpenGL3_CreateDeviceObjects()
     glGenBuffers(1, &bd->VboHandle);
     glGenBuffers(1, &bd->ElementsHandle);
 
-    ImGui_ImplOpenGL3_CreateFontsTexture();
+    bool whatReturn=true;
+
+    if (!ImGui_ImplOpenGL3_CreateFontsTexture()) whatReturn=false;
 
     // Restore modified GL state
     glBindTexture(GL_TEXTURE_2D, last_texture);
@@ -927,7 +932,7 @@ bool    ImGui_ImplOpenGL3_CreateDeviceObjects()
     glBindVertexArray(last_vertex_array);
 #endif
 
-    return true;
+    return whatReturn;
 }
 
 void    ImGui_ImplOpenGL3_DestroyDeviceObjects()
