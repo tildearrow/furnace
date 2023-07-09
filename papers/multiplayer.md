@@ -1,5 +1,7 @@
 # multiplayer protocol
 
+this is a concept! it has not been implemented yet!
+
 the Furnace protocol is described here.
 
 # information

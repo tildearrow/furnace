@@ -2378,10 +2378,13 @@ void FurnaceGUI::drawInsEdit() {
           bool opsAreMutable=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM);
 
           if (ImGui::BeginTabItem("FM")) {
+            DivInstrumentFM& fmOrigin=(ins->type==DIV_INS_OPLL && ins->fm.opllPreset>0 && ins->fm.opllPreset<16)?opllPreview:ins->fm;
+
             if (ImGui::BeginTable("fmDetails",3,ImGuiTableFlags_SizingStretchSame)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
               ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
               ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
+
               ImGui::TableNextRow();
               switch (ins->type) {
                 case DIV_INS_FM:
@@ -2453,14 +2456,14 @@ void FurnaceGUI::drawInsEdit() {
                   break;
                 }
                 case DIV_INS_OPLL: {
-                  bool dc=ins->fm.fms;
-                  bool dm=ins->fm.ams;
+                  bool dc=fmOrigin.fms;
+                  bool dm=fmOrigin.ams;
                   bool sus=ins->fm.alg;
                   ImGui::TableNextColumn();
                   ImGui::BeginDisabled(ins->fm.opllPreset!=0);
-                  P(CWSliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN)); rightClickable
+                  P(CWSliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&fmOrigin.fb,&_ZERO,&_SEVEN)); rightClickable
                   if (ImGui::Checkbox(FM_NAME(FM_DC),&dc)) { PARAMETER
-                    ins->fm.fms=dc;
+                    fmOrigin.fms=dc;
                   }
                   ImGui::EndDisabled();
                   ImGui::TableNextColumn();
@@ -2469,7 +2472,7 @@ void FurnaceGUI::drawInsEdit() {
                   }
                   ImGui::BeginDisabled(ins->fm.opllPreset!=0);
                   if (ImGui::Checkbox(FM_NAME(FM_DM),&dm)) { PARAMETER
-                    ins->fm.ams=dm;
+                    fmOrigin.ams=dm;
                   }
                   ImGui::EndDisabled();
                   ImGui::TableNextColumn();
@@ -2582,7 +2585,7 @@ void FurnaceGUI::drawInsEdit() {
 
                 const opll_patch_t* patch=&patchROM[ins->fm.opllPreset-1];
 
-                opllPreview.alg=0;
+                opllPreview.alg=ins->fm.alg;
                 opllPreview.fb=patch->fb;
                 opllPreview.fms=patch->dm;
                 opllPreview.ams=patch->dc;
@@ -2603,8 +2606,6 @@ void FurnaceGUI::drawInsEdit() {
                 }
               }
             }
-
-            DivInstrumentFM& fmOrigin=(ins->type==DIV_INS_OPLL && ins->fm.opllPreset>0 && ins->fm.opllPreset<16)?opllPreview:ins->fm;
 
             ImGui::BeginDisabled(!willDisplayOps);
             if (settings.fmLayout==0) {
