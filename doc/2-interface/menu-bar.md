@@ -8,6 +8,7 @@ the menu bar allows you to select five menus: file, edit, settings, window and h
 - **open...**: opens the file picker, allowing you to select a song to open.
 - **open recent**: contains a list of the songs you've opened before.
   - **clear history**: this option erases the file history.
+
 - **save**: saves the current song.
   - opens the file picker if this is a new song, or a backup.
 - **save as...**: opens the file picker, allowing you to save the song under a different name.
@@ -29,12 +30,14 @@ the menu bar allows you to select five menus: file, edit, settings, window and h
     - Arcade (YM2151 + SegaPCM 5-channel compatibility)
     - Neo Geo CD (DefleMask 1.0+)
   - only use this option if you really need it. there are features which DefleMask does not support, like some effects and FM macros, so these will be lost.
+
 - **export audio...**: export your song to a .wav file. see next section for more details.
 - **export VGM...**: export your song to a .vgm file. see next section for more details.
 - **export ZSM...**: export your song to a .zsm file. see next section for more details.
   - only available when there's a YM2151 and/or VERA.
 - **export command stream...**: export song data to a command stream file. see next section for more details.
   - this option is for developers.
+  
 - **add chip...**: add a chip to the current song.
 - **configure chip...**: set a chip's parameters.
   - for a list of parameters, see [7-systems](../7-systems/README.md).
@@ -42,6 +45,7 @@ the menu bar allows you to select five menus: file, edit, settings, window and h
   - **Preserve channel positions**: enable this option to make sure Furnace does not auto-arrange/delete channels to compensate for differing channel counts. this can be useful for doing ports, e.g. from Genesis to PC-98.
 - **remove chip...**: remove a chip.
   - **Preserve channel positions**: same thing as above.
+
 - **restore backup**: restore a previously saved backup.
   - Furnace keeps up to 5 backups of a song.
   - the backup directory is located in:
@@ -49,6 +53,7 @@ the menu bar allows you to select five menus: file, edit, settings, window and h
     - macOS: `~/Library/Application Support/Furnace/backups`
     - Linux/other: `~/.config/furnace/backups`
   - this directory grows in size as you use Furnace. remember to delete old backups periodically to save space.
+
 - **exit**: I think you know what this does.
 
 ## export audio
@@ -131,6 +136,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 
 - **undo**: reverts the last action.
 - **redo**: repeats what you undid previously.
+
 - **cut**: moves the current selection in the pattern view to clipboard.
 - **copy**: copies the current selection in the pattern view to clipboard.
 - **paste**: inserts the clipboard's contents in the cursor position.
@@ -147,11 +153,16 @@ it's not really useful, unless you're a developer and want to use a command stre
   - if the selection is tall, it will select the entire column.
   - if a column is already selected, it will select the entire channel.
   - if a channel is already selected, it will select the entire pattern.
+
 - **operation mask**: this is an advanced feature. see [this page](../3-pattern/opmask.md) for more information.
 - **input latch**: this is an advanced feature. see [this page](../3-pattern/inputlatch.md) for more information.
+
 - **note/octave up/down**: transposes notes in the current selection.
+
 - **values up/down**: changes values in the current selection by ±1 or ±16.
+
 - **transpose**: transpose notes or change values by a specific amount.
+
 - **interpolate**: fills in gaps in the selection by interpolation between values.
 - **change instrument**: changes the instrument number in a selection.
 - **gradient/fade**: replace the selection with a "gradient" that goes from the beginning of the selection to the end.
@@ -163,17 +174,22 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **randomize**: replaces the selection with random values.
   - does not affect the note column.
 - **invert values**: `00` becomes `FF`, `01` becomes `FE`, `02` becomes `FD` and so on.
+
 - **flip selection**: flips the selection so it is backwards.
 - **collapse/expand amount**: allows you to specify how much to collapse/expand in the next options.
 - **collapse**: shrinks the selected contents.
 - **expand**: expands the selected contents.
+
 - **collapse pattern**: same as collapse, but affects the entire pattern.
 - **expand pattern**: same as expand, but affects the entire pattern.
+
 - **collapse song**: same as collapse, but affects the entire song.
   - it also changes speeds and pattern length to compensate.
 - **expand song**: same as expand, but affects the entire song.
   - it also changes speeds and pattern length to compensate.
+
 - **find/replace**: opens the Find/Replace window. see [this page](../3-pattern/find-replace.md) for more information.
+
 - **clear**: allows you to mass-delete things like songs, instruments and the like.
 
 # settings
@@ -202,9 +218,11 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **chip manager**: shows/hides the Chip Manager window.
 - **compatibility flags**: shows/hides the Compatibility Flags window.
 - **song comments**: shows/hides the Song Comments window.
-- **instrument editor**: shows/hides the Instrument Editor.
+
+- **instrument editor**: shows/hides the Instrument Editor
 - **wavetable editor**: shows/hides the Wavetable Editor.
 - **sample editor**: shows/hides the Sample Editor.
+
 - **play/edit controls**: shows/hides the Play/Edit Controls.
 - **piano/input pad**: shows/hides the Piano/Input Pad window.
 - **oscilloscope (master)**: shows/hides the oscilloscope.
