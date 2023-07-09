@@ -1,4 +1,4 @@
-# to-do for 0.6pre6
+# to-do for 0.6pre7
 
 - tutorial?
 - ease-of-use improvements... ideas:
