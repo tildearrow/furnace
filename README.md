@@ -17,8 +17,12 @@ for other operating systems, you may [build the source](#developer-info).
 
 ## features
 
-- over 50 sound chips - and counting:
-  - Yamaha FM chips:
+<details>
+  <summary>over 50 sound chips - and counting</summary>
+
+  <details>
+    <summary>Yamaha FM chips</summary>
+
     - YM2151 (OPM)
     - YM2203 (OPN)
     - YM2413 (OPLL)
@@ -31,7 +35,11 @@ for other operating systems, you may [build the source](#developer-info).
     - YM3812 (OPL2)
     - YMF262 (OPL3) with full 4-op support!
     - Y8950 (OPL with ADPCM)
-  - square wave chips:
+  </details>
+
+  <details>
+    <summary>square wave chips</summary>
+
     - AY-3-8910/YM2149(F) used in several computers and game consoles
     - Commodore VIC used in the VIC-20
     - Microchip AY8930
@@ -39,7 +47,11 @@ for other operating systems, you may [build the source](#developer-info).
     - PC Speaker
     - Philips SAA1099 used in SAM Coupé
     - OKI MSM5232 used in some arcade boards
-  - sample chips:
+  </details>
+
+  <details>
+    <summary>sample chips</summary>
+
     - SNES
     - Amiga
     - SegaPCM - all 16 channels
@@ -50,7 +62,11 @@ for other operating systems, you may [build the source](#developer-info).
     - Konami K007232
     - Irem GA20
     - Ensoniq ES5506
-  - wavetable chips:
+  </details>
+
+  <details>
+    <summary>wavetable chips</summary>
+
     - HuC6280 used in PC Engine
     - Konami Bubble System WSG
     - Konami SCC/SCC+
@@ -58,7 +74,11 @@ for other operating systems, you may [build the source](#developer-info).
     - WonderSwan
     - Seta/Allumer X1-010
     - Sharp SM8521 used in Tiger Game.com
-  - NES (Ricoh 2A03/2A07), with additional expansion sound support:
+  </details>
+
+  <details>
+    <summary>NES (Ricoh 2A03/2A07), with additional expansion sound support</summary>
+
     - Konami VRC6
     - Konami VRC7
     - MMC5
@@ -66,11 +86,17 @@ for other operating systems, you may [build the source](#developer-info).
     - Sunsoft 5B
     - Namco 163
     - Family Noraebang (OPLL)
+  </details>
+
   - SID (6581/8580) used in Commodore 64
   - Mikey used in Atari Lynx
-  - ZX Spectrum beeper
+  <details>
+    <summary>ZX Spectrum beeper</summary>
+
     - SFX-like engine
     - QuadTone engine
+  </details>
+
   - Pokémon Mini
   - Commodore PET
   - Casio PV-1000
@@ -78,10 +104,15 @@ for other operating systems, you may [build the source](#developer-info).
   - POKEY used in Atari 8-bit computers
   - Game Boy
   - Virtual Boy
-  - modern/fantasy:
+  <details>
+    <summary>modern/fantasy</summary>
+
     - Commander X16 VERA
     - tildearrow Sound Unit
     - Generic PCM DAC
+  </details>
+</details>
+
 - mix and match sound chips!
   - over 200 ready to use presets from computers, game consoles and arcade boards...
   - ...or create your own - up to 32 of them or a total of 128 channels!
