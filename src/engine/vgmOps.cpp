@@ -2064,9 +2064,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0xc0+i);
-      w->writeI(writeRF5C68[i]->getSampleMemUsage()+8);
-      w->writeI(writeRF5C68[i]->getSampleMemCapacity());
-      w->writeI(0);
+      w->writeI(writeRF5C68[i]->getSampleMemUsage()+2);
+      w->writeS(0);
       w->write(writeRF5C68[i]->getSampleMem(),writeRF5C68[i]->getSampleMemUsage());
     }
     if (writeMSM6295[i]!=NULL && writeMSM6295[i]->getSampleMemUsage()>0) {
