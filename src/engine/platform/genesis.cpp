@@ -122,10 +122,6 @@ void DivPlatformGenesis::processDAC(int iRate) {
               urgentWrite(0x2a,(unsigned char)sample+0x80);
               chan[5].dacReady=false;
             }
-          } else {
-            if (chan[5].dacReady && writes.size()<16) {
-              urgentWrite(0x2a,0x80);
-            }
           }
           chan[5].dacPos++;
           if (!chan[5].dacDirection && (s->isLoopable() && chan[5].dacPos>=(unsigned int)s->loopEnd)) {
@@ -597,6 +593,7 @@ void DivPlatformGenesis::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (ch>6) return;
   if (ch<6) {
+    if (ch==5) immWrite(0x2a,0x80);
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[ch]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[ch].state.op[j];
