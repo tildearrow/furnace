@@ -5762,7 +5762,7 @@ bool FurnaceGUI::loop() {
 #ifdef DIV_UNSTABLE
     {
       ImDrawList* dl=ImGui::GetForegroundDrawList();
-      ImVec2 markPos=ImVec2(canvasW-ImGui::CalcTextSize(DIV_VERSION).x-6.0*dpiScale,6.0*dpiScale);
+      ImVec2 markPos=ImVec2(canvasW-ImGui::CalcTextSize(DIV_VERSION).x-6.0*dpiScale,4.0*dpiScale);
       ImVec4 markColor=uiColors[GUI_COLOR_TEXT];
       markColor.w=0.67f;
 
