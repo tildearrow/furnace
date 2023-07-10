@@ -199,16 +199,17 @@
 #define IMGUI_IMPL_OPENGL_MAY_HAVE_EXTENSIONS
 #endif
 
+#include "../../../src/ta-log.h"
+
 // [Debugging]
-//#define IMGUI_IMPL_OPENGL_DEBUG
+#define IMGUI_IMPL_OPENGL_DEBUG
 #ifdef IMGUI_IMPL_OPENGL_DEBUG
-#include <stdio.h>
-#define GL_CALL(_CALL)      do { _CALL; GLenum gl_err = glGetError(); if (gl_err != 0) fprintf(stderr, "GL error 0x%x returned from '%s'.\n", gl_err, #_CALL); } while (0)  // Call with error check
+#define GL_CALL(_CALL)      do { _CALL; GLenum gl_err = glGetError(); if (gl_err != 0) logE("GL error 0x%x returned from '%s'.\n", gl_err, #_CALL); } while (0)  // Call with error check
 #else
 #define GL_CALL(_CALL)      _CALL   // Call without error check
 #endif
 
-#define GL_CALL_FALSE(_CALL)  _CALL; { GLenum gl_err = glGetError(); if (gl_err != 0) return false; }
+#define GL_CALL_FALSE(_CALL)  _CALL; { GLenum gl_err = glGetError(); if (gl_err != 0) { logW("GL error 0x%x returned from '%s'.\n", gl_err, #_CALL); return false; } }
 
 // OpenGL Data
 struct ImGui_ImplOpenGL3_Data
@@ -326,7 +327,7 @@ bool    ImGui_ImplOpenGL3_Init(const char* glsl_version)
 #endif
 
 #ifdef IMGUI_IMPL_OPENGL_DEBUG
-    printf("GL_MAJOR_VERSION = %d\nGL_MINOR_VERSION = %d\nGL_VENDOR = '%s'\nGL_RENDERER = '%s'\n", major, minor, (const char*)glGetString(GL_VENDOR), (const char*)glGetString(GL_RENDERER)); // [DEBUG]
+    logD("\nGL_VENDOR = '%s'\nGL_RENDERER = '%s'\n", (const char*)glGetString(GL_VENDOR), (const char*)glGetString(GL_RENDERER)); // [DEBUG]
 #endif
 
 #ifdef IMGUI_IMPL_OPENGL_MAY_HAVE_VTX_OFFSET
