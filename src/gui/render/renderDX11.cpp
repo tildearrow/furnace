@@ -290,8 +290,7 @@ void FurnaceGUIRenderDX11::clear(ImVec4 color) {
 }
 
 bool FurnaceGUIRenderDX11::newFrame() {
-  ImGui_ImplDX11_NewFrame();
-  return true;
+  return ImGui_ImplDX11_NewFrame();
 }
 
 void FurnaceGUIRenderDX11::createFontsTexture() {

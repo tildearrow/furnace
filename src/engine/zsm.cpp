@@ -318,6 +318,7 @@ void DivZSM::flushWrites() {
             }
             pcmCache.resize(pcmCache.size()>>1);
             pcmCtrlDCCache&=(unsigned char)~0x10; // clear stereo bit
+            pcmLoopPointCache>>=1; // halve the loop point
           }
         }
       } else { // 8-bit
@@ -334,6 +335,7 @@ void DivZSM::flushWrites() {
             }
             pcmCache.resize(pcmCache.size()>>1);
             pcmCtrlDCCache&=(unsigned char)~0x10; // clear stereo bit
+            pcmLoopPointCache>>=1; // halve the loop point
           }
         }
       }
@@ -365,9 +367,9 @@ void DivZSM::flushWrites() {
       inst.loopPoint=pcmLoopPointCache;
       inst.isLooped=pcmIsLooped;
       pcmInsts.push_back(inst);
-      pcmIsLooped=false;
-      pcmLoopPointCache=0;
     }
+    pcmIsLooped=false;
+    pcmLoopPointCache=0;
   }
   if (extCmd0Len>63) { // this would be bad, but will almost certainly never happen
     logE("ZSM: extCmd 0 exceeded maximum length of 63: %d",extCmd0Len);

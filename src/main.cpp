@@ -36,7 +36,10 @@
 
 typedef HRESULT (WINAPI *SPDA)(PROCESS_DPI_AWARENESS);
 #else
+#include <signal.h>
 #include <unistd.h>
+
+struct sigaction termsa;
 #endif
 
 #include "cli/cli.h"
@@ -356,6 +359,14 @@ void reportError(String what) {
 }
 #endif
 
+#ifndef _WIN32
+#ifdef HAVE_GUI
+static void handleTermGUI(int) {
+  g.requestQuit();
+}
+#endif
+#endif
+
 // TODO: CoInitializeEx on Windows?
 // TODO: add crash log
 int main(int argc, char** argv) {
@@ -645,6 +656,13 @@ int main(int argc, char** argv) {
   if (!fileName.empty()) {
     g.setFileName(fileName);
   }
+
+#ifndef _WIN32
+  sigemptyset(&termsa.sa_mask);
+  termsa.sa_flags=0;
+  termsa.sa_handler=handleTermGUI;
+  sigaction(SIGTERM,&termsa,NULL);
+#endif
 
   g.loop();
   logI("closing GUI.");

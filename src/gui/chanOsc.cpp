@@ -149,6 +149,14 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::EndTable();
       }
 
+      ImGui::Text("Amplitude");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      if (CWSliderFloat("##COSAmp",&chanOscAmplify,0.0f,2.0f)) {
+        if (chanOscAmplify<0.0f) chanOscAmplify=0.0f;
+        if (chanOscAmplify>2.0f) chanOscAmplify=2.0f;
+      }
+
       ImGui::Checkbox("Gradient",&chanOscUseGrad);
 
       if (chanOscUseGrad) {

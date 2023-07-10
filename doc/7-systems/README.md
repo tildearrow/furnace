@@ -27,6 +27,7 @@ this is a list of sound chips that Furnace supports, including effects.
 - [PC Engine/TurboGrafx-16](pce.md)
 - [PC Speaker](pcspkr.md)
 - [Philips SAA1099](saa1099.md)
+- [Pokémon mini](pokemini.md)
 - [Capcom QSound](qsound.md)
 - [Ricoh RF5C68](ricoh.md)
 - [SegaPCM](segapcm.md)

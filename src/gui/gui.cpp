@@ -5759,6 +5759,17 @@ bool FurnaceGUI::loop() {
       introPos=12.0;
     }
 
+#ifdef DIV_UNSTABLE
+    {
+      ImDrawList* dl=ImGui::GetForegroundDrawList();
+      ImVec2 markPos=ImVec2(canvasW-ImGui::CalcTextSize(DIV_VERSION).x-6.0*dpiScale,4.0*dpiScale);
+      ImVec4 markColor=uiColors[GUI_COLOR_TEXT];
+      markColor.w=0.67f;
+
+      dl->AddText(markPos,ImGui::ColorConvertFloat4ToU32(markColor),DIV_VERSION);
+    }
+#endif
+
     layoutTimeEnd=SDL_GetPerformanceCounter();
 
     // backup trigger
@@ -6265,14 +6276,14 @@ bool FurnaceGUI::init() {
       settings.renderBackend="SDL";
       e->setConf("renderBackend","SDL");
       e->saveConf();
-      lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
+      lastError=fmt::sprintf("could not init renderer!\r\nthe render backend has been set to a safe value. please restart Furnace.");
     } else {
       lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
       if (!settings.renderDriver.empty()) {
         settings.renderDriver="";
         e->setConf("renderDriver","");
         e->saveConf();
-        lastError=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
+        lastError+=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
       }
     }
     return false;
@@ -6362,16 +6373,16 @@ bool FurnaceGUI::init() {
   if (!rend->init(sdlWin)) {
     if (settings.renderBackend!="SDL") {
       settings.renderBackend="SDL";
-      e->setConf("renderBackend","");
+      e->setConf("renderBackend","SDL");
       e->saveConf();
-      lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
+      lastError=fmt::sprintf("could not init renderer!\r\nthe render backend has been set to a safe value. please restart Furnace.");
     } else {
       lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
       if (!settings.renderDriver.empty()) {
         settings.renderDriver="";
         e->setConf("renderDriver","");
         e->saveConf();
-        lastError=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
+        lastError+=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
       }
     }
     return false;
@@ -6664,6 +6675,10 @@ bool FurnaceGUI::finish() {
   }
 
   return true;
+}
+
+void FurnaceGUI::requestQuit() {
+  quit=true;
 }
 
 FurnaceGUI::FurnaceGUI():

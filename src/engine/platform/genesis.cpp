@@ -63,7 +63,7 @@ void DivPlatformGenesis::processDAC(int iRate) {
       for (int i=5; i<7; i++) {
         if (chan[i].dacSample!=-1) {
           DivSample* s=parent->getSample(chan[i].dacSample);
-          if (!isMuted[i] && s->samples>0) {
+          if (!isMuted[i] && s->samples>0 && chan[i].dacPos<s->samples) {
             if (parent->song.noOPN2Vol) {
               chan[i].dacOutput=s->data8[chan[i].dacDirection?(s->samples-chan[i].dacPos-1):chan[i].dacPos];
             } else {
@@ -110,7 +110,7 @@ void DivPlatformGenesis::processDAC(int iRate) {
       chan[5].dacPeriod+=chan[5].dacRate;
       if (chan[5].dacPeriod>=iRate) {
         DivSample* s=parent->getSample(chan[5].dacSample);
-        if (s->samples>0) {
+        if (s->samples>0 && chan[5].dacPos<s->samples) {
           if (!isMuted[5]) {
             if (chan[5].dacReady && writes.size()<16) {
               int sample;
@@ -121,10 +121,6 @@ void DivPlatformGenesis::processDAC(int iRate) {
               }
               urgentWrite(0x2a,(unsigned char)sample+0x80);
               chan[5].dacReady=false;
-            }
-          } else {
-            if (chan[5].dacReady && writes.size()<16) {
-              urgentWrite(0x2a,0x80);
             }
           }
           chan[5].dacPos++;
@@ -597,6 +593,7 @@ void DivPlatformGenesis::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
   if (ch>6) return;
   if (ch<6) {
+    if (ch==5) immWrite(0x2a,0x80);
     for (int j=0; j<4; j++) {
       unsigned short baseAddr=chanOffs[ch]|opOffs[j];
       DivInstrumentFM::Operator& op=chan[ch].state.op[j];
@@ -704,7 +701,11 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
               addWrite(0xffff0003,chan[c.chan].dacDirection);
             }
           }
-          chan[c.chan].dacPos=0;
+          if (chan[c.chan].setPos) {
+            chan[c.chan].setPos=false;
+          } else {
+            chan[c.chan].dacPos=0;
+          }
           chan[c.chan].dacPeriod=0;
           if (c.value!=DIV_NOTE_NULL) {
             chan[c.chan].baseFreq=parent->calcBaseFreq(1,1,c.value,false);
@@ -927,6 +928,12 @@ int DivPlatformGenesis::dispatch(DivCommand c) {
       if (dumpWrites) addWrite(0xffff0003,chan[c.chan].dacDirection);
       break;
     }
+    case DIV_CMD_SAMPLE_POS:
+      if (c.chan<5) c.chan=5;
+      chan[c.chan].dacPos=c.value;
+      chan[c.chan].setPos=true;
+      if (dumpWrites) addWrite(0xffff0005,chan[c.chan].dacPos);
+      break;
     case DIV_CMD_LEGATO: {
       if (c.chan==csmChan) {
         chan[c.chan].baseFreq=NOTE_PERIODIC(c.value);

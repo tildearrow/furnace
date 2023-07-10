@@ -32,6 +32,7 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
+- 162: Furnace 0.6pre7
 - 161: Furnace 0.6pre6
 - 160: Furnace dev160
 - 159: Furnace dev159
@@ -309,6 +310,7 @@ size | description
      |   - 0xc9: M114S - 16 channels
      |   - 0xca: ZX Spectrum (beeper, QuadTone engine) - 5 channels
      |   - 0xcb: Casio PV-1000 - 3 channels
+     |   - 0xcc: K053260 - 4 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfc: Pong - 1 channel

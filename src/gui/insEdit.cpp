@@ -2378,10 +2378,37 @@ void FurnaceGUI::drawInsEdit() {
           bool opsAreMutable=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM);
 
           if (ImGui::BeginTabItem("FM")) {
+            DivInstrumentFM& fmOrigin=(ins->type==DIV_INS_OPLL && ins->fm.opllPreset>0 && ins->fm.opllPreset<16)?opllPreview:ins->fm;
+
+            bool isPresent[4];
+            int isPresentCount=0;
+            memset(isPresent,0,4*sizeof(bool));
+            for (int i=0; i<e->song.systemLen; i++) {
+              if (e->song.system[i]==DIV_SYSTEM_VRC7) {
+                isPresent[3]=true;
+              } else if (e->song.system[i]==DIV_SYSTEM_OPLL || e->song.system[i]==DIV_SYSTEM_OPLL_DRUMS) {
+                isPresent[(e->song.systemFlags[i].getInt("patchSet",0))&3]=true;
+              }
+            }
+            if (!isPresent[0] && !isPresent[1] && !isPresent[2] && !isPresent[3]) {
+              isPresent[0]=true;
+            }
+            for (int i=0; i<4; i++) {
+              if (isPresent[i]) isPresentCount++;
+            }
+            int presentWhich=0;
+            for (int i=0; i<4; i++) {
+              if (isPresent[i]) {
+                presentWhich=i;
+                break;
+              }
+            }
+
             if (ImGui::BeginTable("fmDetails",3,ImGuiTableFlags_SizingStretchSame)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
               ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
               ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
+
               ImGui::TableNextRow();
               switch (ins->type) {
                 case DIV_INS_FM:
@@ -2453,14 +2480,14 @@ void FurnaceGUI::drawInsEdit() {
                   break;
                 }
                 case DIV_INS_OPLL: {
-                  bool dc=ins->fm.fms;
-                  bool dm=ins->fm.ams;
+                  bool dc=fmOrigin.fms;
+                  bool dm=fmOrigin.ams;
                   bool sus=ins->fm.alg;
                   ImGui::TableNextColumn();
                   ImGui::BeginDisabled(ins->fm.opllPreset!=0);
-                  P(CWSliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN)); rightClickable
+                  P(CWSliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&fmOrigin.fb,&_ZERO,&_SEVEN)); rightClickable
                   if (ImGui::Checkbox(FM_NAME(FM_DC),&dc)) { PARAMETER
-                    ins->fm.fms=dc;
+                    fmOrigin.fms=dc;
                   }
                   ImGui::EndDisabled();
                   ImGui::TableNextColumn();
@@ -2469,37 +2496,13 @@ void FurnaceGUI::drawInsEdit() {
                   }
                   ImGui::BeginDisabled(ins->fm.opllPreset!=0);
                   if (ImGui::Checkbox(FM_NAME(FM_DM),&dm)) { PARAMETER
-                    ins->fm.ams=dm;
+                    fmOrigin.ams=dm;
                   }
                   ImGui::EndDisabled();
                   ImGui::TableNextColumn();
                   drawAlgorithm(0,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
 
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-
-                  bool isPresent[4];
-                  int isPresentCount=0;
-                  memset(isPresent,0,4*sizeof(bool));
-                  for (int i=0; i<e->song.systemLen; i++) {
-                    if (e->song.system[i]==DIV_SYSTEM_VRC7) {
-                      isPresent[3]=true;
-                    } else if (e->song.system[i]==DIV_SYSTEM_OPLL || e->song.system[i]==DIV_SYSTEM_OPLL_DRUMS) {
-                      isPresent[(e->song.systemFlags[i].getInt("patchSet",0))&3]=true;
-                    }
-                  }
-                  if (!isPresent[0] && !isPresent[1] && !isPresent[2] && !isPresent[3]) {
-                    isPresent[0]=true;
-                  }
-                  for (int i=0; i<4; i++) {
-                    if (isPresent[i]) isPresentCount++;
-                  }
-                  int presentWhich=0;
-                  for (int i=0; i<4; i++) {
-                    if (isPresent[i]) {
-                      presentWhich=i;
-                      break;
-                    }
-                  }
 
                   if (ImGui::BeginCombo("##LLPreset",opllInsNames[presentWhich][ins->fm.opllPreset])) {
                     if (isPresentCount>1) {
@@ -2578,11 +2581,26 @@ void FurnaceGUI::drawInsEdit() {
 
               // update OPLL preset preview
               if (ins->fm.opllPreset>0 && ins->fm.opllPreset<16) {
-                const opll_patch_t* patchROM=OPLL_GetPatchROM(opll_type_ym2413);
+                const opll_patch_t* patchROM=NULL;
+
+                switch (presentWhich) {
+                  case 1:
+                    patchROM=OPLL_GetPatchROM(opll_type_ymf281);
+                    break;
+                  case 2:
+                    patchROM=OPLL_GetPatchROM(opll_type_ym2423);
+                    break;
+                  case 3:
+                    patchROM=OPLL_GetPatchROM(opll_type_ds1001);
+                    break;
+                  default:
+                    patchROM=OPLL_GetPatchROM(opll_type_ym2413);
+                    break;
+                }
 
                 const opll_patch_t* patch=&patchROM[ins->fm.opllPreset-1];
 
-                opllPreview.alg=0;
+                opllPreview.alg=ins->fm.alg;
                 opllPreview.fb=patch->fb;
                 opllPreview.fms=patch->dm;
                 opllPreview.ams=patch->dc;
@@ -2603,8 +2621,6 @@ void FurnaceGUI::drawInsEdit() {
                 }
               }
             }
-
-            DivInstrumentFM& fmOrigin=(ins->type==DIV_INS_OPLL && ins->fm.opllPreset>0 && ins->fm.opllPreset<16)?opllPreview:ins->fm;
 
             ImGui::BeginDisabled(!willDisplayOps);
             if (settings.fmLayout==0) {
