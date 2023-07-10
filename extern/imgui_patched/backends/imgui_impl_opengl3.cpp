@@ -202,7 +202,7 @@
 #include "../../../src/ta-log.h"
 
 // [Debugging]
-#define IMGUI_IMPL_OPENGL_DEBUG
+//#define IMGUI_IMPL_OPENGL_DEBUG
 #ifdef IMGUI_IMPL_OPENGL_DEBUG
 #define GL_CALL(_CALL)      do { _CALL; GLenum gl_err = glGetError(); if (gl_err != 0) logE("GL error 0x%x returned from '%s'.\n", gl_err, #_CALL); } while (0)  // Call with error check
 #else
@@ -678,13 +678,19 @@ bool ImGui_ImplOpenGL3_CreateFontsTexture()
     // (Bilinear sampling is required by default. Set 'io.Fonts->Flags |= ImFontAtlasFlags_NoBakedLines' or 'style.AntiAliasedLinesUseTex = false' to allow point/nearest sampling)
     GLint last_texture;
     GL_CALL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
+    // clear errors
+    while (glGetError()!=GL_NO_ERROR) {}
+
     GL_CALL_FALSE(glGenTextures(1, &bd->FontTexture));
     GL_CALL_FALSE(glBindTexture(GL_TEXTURE_2D, bd->FontTexture));
-    GL_CALL_FALSE(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
-    GL_CALL_FALSE(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR));
+    GL_CALL(glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR));
 #ifdef GL_UNPACK_ROW_LENGTH // Not on WebGL/ES
-    GL_CALL_FALSE(glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
+    GL_CALL(glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
 #endif
+
+    while (glGetError()!=GL_NO_ERROR) {}
+
     GL_CALL_FALSE(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
 
     // Store our identifier
