@@ -3839,6 +3839,7 @@ bool FurnaceGUI::loop() {
         ImGui::GetIO().Fonts->Clear();
         mainFont=ImGui::GetIO().Fonts->AddFontDefault();
         patFont=mainFont;
+        bigFont=mainFont;
         if (rend) rend->destroyFontsTexture();
         if (!ImGui::GetIO().Fonts->Build()) {
           logE("error again while building font atlas!");
@@ -6433,6 +6434,7 @@ bool FurnaceGUI::init() {
     ImGui::GetIO().Fonts->Clear();
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
+    bigFont=mainFont;
     if (rend) rend->destroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
       logE("error again while building font atlas!");
