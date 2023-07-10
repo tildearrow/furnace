@@ -657,10 +657,12 @@ int main(int argc, char** argv) {
     g.setFileName(fileName);
   }
 
+#ifndef _WIN32
   sigemptyset(&termsa.sa_mask);
   termsa.sa_flags=0;
   termsa.sa_handler=handleTermGUI;
   sigaction(SIGTERM,&termsa,NULL);
+#endif
 
   g.loop();
   logI("closing GUI.");
