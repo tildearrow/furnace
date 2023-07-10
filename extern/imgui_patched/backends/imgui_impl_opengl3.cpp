@@ -679,7 +679,7 @@ bool ImGui_ImplOpenGL3_CreateFontsTexture()
     GLint last_texture;
     GL_CALL(glGetIntegerv(GL_TEXTURE_BINDING_2D, &last_texture));
     // clear errors
-    while (glGetError()!=GL_NO_ERROR) {}
+    glGetError();
 
     GL_CALL_FALSE(glGenTextures(1, &bd->FontTexture));
     GL_CALL_FALSE(glBindTexture(GL_TEXTURE_2D, bd->FontTexture));
@@ -689,7 +689,7 @@ bool ImGui_ImplOpenGL3_CreateFontsTexture()
     GL_CALL(glPixelStorei(GL_UNPACK_ROW_LENGTH, 0));
 #endif
 
-    while (glGetError()!=GL_NO_ERROR) {}
+    glGetError();
 
     GL_CALL_FALSE(glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, pixels));
 
