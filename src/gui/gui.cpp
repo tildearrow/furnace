@@ -6666,6 +6666,10 @@ bool FurnaceGUI::finish() {
   return true;
 }
 
+void FurnaceGUI::requestQuit() {
+  quit=true;
+}
+
 FurnaceGUI::FurnaceGUI():
   e(NULL),
   renderBackend(GUI_BACKEND_SDL),

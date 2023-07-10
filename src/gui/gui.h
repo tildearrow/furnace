@@ -2306,6 +2306,7 @@ class FurnaceGUI {
     bool loop();
     bool finish();
     bool init();
+    void requestQuit();
     FurnaceGUI();
 };
 
