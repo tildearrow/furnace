@@ -220,7 +220,7 @@ size | description
   1  | status
      | - 0: denied
      | - 1: allowed
-
+```
 ## 0x13: message
 ```
 size | description
