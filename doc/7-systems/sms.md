@@ -16,7 +16,7 @@ the original iteration of the SN76489 used in the TI-99/4A computer, the SN94624
 
 # chip flags
 ## SN7 versions
-SN7 was extremely popular due to low-cost. Therefore, it was cloned and copied to no end, often with minor differences between each other. Furnace supports several of these:
+SN7 was extremely popular due to low cost. Therefore, it was cloned and copied to no end, often with minor differences between each other. Furnace supports several of these:
 - SN94624, can only produce tones as low as 100Hz, and is clocked at 447 KHz.
 - SN76494, which can play notes as low as 13.670 Hz (A -1). It has a different noise feedback and invert masks.
 - SN76489, identical to SN94624, just without a clock divider
@@ -26,6 +26,6 @@ SN7 was extremely popular due to low-cost. Therefore, it was cloned and copied t
 - Sega Master System VDP version has a different, characteristic noise LFSR.
 - Game Gear SN7, identical to the above, but with stereo
 - NCR8496, different noise invert masks
-- PSSJ3, literally identical to the former, it justs swaps "high" and "low" signals in the output, which results in no audible difference
+- PSSJ3, literally identical to the former, it just swaps "high" and "low" signals in the output, which results in no audible difference
 
 TODO: all these checkboxes
