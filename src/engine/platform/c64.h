@@ -56,6 +56,7 @@ class DivPlatformC64: public DivDispatch {
   Channel chan[3];
   DivDispatchOscBuffer* oscBuf[3];
   bool isMuted[3];
+  float fakeCutTable[2048];
   struct QueuedWrite {
       unsigned char addr;
       unsigned char val;

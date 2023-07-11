@@ -115,11 +115,17 @@ void dSID_init(struct SID_chip* sid, double clockRate, double samplingRate, int 
     double prd0 = sid->g.ckr > 9 ? sid->g.ckr : 9;
     sid->g.Aprd[0] = prd0;
     sid->g.Astp[0] = ceil(prd0 / 9);
+
+    for (int i=0; i<3; i++) {
+      sid->fakeplp[i]=0;
+      sid->fakepbp[i]=0;
+    }
 }
 
 double dSID_render(struct SID_chip* sid) {
     double flin = 0, output = 0;
     double wfout = 0;
+    double step = 0;
     for (int chn = 0; chn < 3; chn++) {
         struct SIDVOICE *voic = &((struct SIDMEM *) (sid->M))->v[chn];
         double pgt = (sid->SIDct->ch[chn].Ast & GAT);
@@ -142,7 +148,6 @@ double dSID_render(struct SID_chip* sid) {
         if (sid->SIDct->ch[chn].rcnt >= 0x8000)
             sid->SIDct->ch[chn].rcnt -= 0x8000;
 
-        static double step;
         double prd;
 
         if (sid->SIDct->ch[chn].Ast & ATK) {
@@ -291,8 +296,6 @@ double dSID_render(struct SID_chip* sid) {
                 // mostly copypasted from below
                 double fakeflin = chnout;
                 double fakeflout = 0;
-                static double fakeplp[3] = {0};
-                static double fakepbp[3] = {0};
                 double ctf = sid->g.ctf_table[((sid->M[0x15]&7)|(sid->M[0x16]<<3))&0x7ff];
                 double reso;
                 if (sid->g.model == 8580) {
@@ -300,15 +303,15 @@ double dSID_render(struct SID_chip* sid) {
                 } else {
                     reso = (sid->M[0x17] > 0x5F) ? 8.0 / (double) (sid->M[0x17] >> 4) : 1.41;
                 }
-                double tmp = fakeflin + fakepbp[chn] * reso + fakeplp[chn];
+                double tmp = fakeflin + sid->fakepbp[chn] * reso + sid->fakeplp[chn];
                 if (sid->M[0x18] & HP)
                     fakeflout -= tmp;
-                tmp = fakepbp[chn] - tmp * ctf;
-                fakepbp[chn] = tmp;
+                tmp = sid->fakepbp[chn] - tmp * ctf;
+                sid->fakepbp[chn] = tmp;
                 if (sid->M[0x18] & BP)
                     fakeflout -= tmp;
-                tmp = fakeplp[chn] + tmp * ctf;
-                fakeplp[chn] = tmp;
+                tmp = sid->fakeplp[chn] + tmp * ctf;
+                sid->fakeplp[chn] = tmp;
                 if (sid->M[0x18] & LP)
                     fakeflout += tmp;
 

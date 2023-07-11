@@ -613,6 +613,24 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
   keyPriority=flags.getBool("keyPriority",true);
   testAD=((flags.getInt("testAttack",0)&15)<<4)|(flags.getInt("testDecay",0)&15);
   testSR=((flags.getInt("testSustain",0)&15)<<4)|(flags.getInt("testRelease",0)&15);
+
+  // init fake filter table
+  // taken from dSID
+  double cutRatio=-2.0*3.14*(sidIs6581?(((double)oscBuf[0]->rate/44100.0)*(20000.0/256.0)):(12500.0/256.0))/(double)oscBuf[0]->rate;
+
+  for (int i=0; i<2048; i++) {
+    double c=(double)i/8.0+0.2;
+    if (sidIs6581) {
+      if (c<24) {
+        c=2.0*sin(771.78/(double)oscBuf[0]->rate);
+      } else {
+        c=(44100.0/(double)oscBuf[0]->rate)-1.263*(44100.0/(double)oscBuf[0]->rate)*exp(c*cutRatio);
+      }
+    } else {
+      c=1-exp(c*cutRatio);
+    }
+    fakeCutTable[i]=c;
+  }
 }
 
 int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
