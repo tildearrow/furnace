@@ -370,6 +370,13 @@ static void handleTermGUI(int) {
 // TODO: CoInitializeEx on Windows?
 // TODO: add crash log
 int main(int argc, char** argv) {
+  // uncomment these if you want Furnace to play in the background on Android.
+  // not recommended. it lags.
+#if defined(HAVE_SDL2) && defined(ANDROID)
+  //SDL_SetHint(SDL_HINT_ANDROID_BLOCK_ON_PAUSE,"0");
+  //SDL_SetHint(SDL_HINT_ANDROID_BLOCK_ON_PAUSE_PAUSEAUDIO,"0");
+#endif
+
   // Windows console thing - thanks dj.tuBIG/MaliceX
 #ifdef _WIN32
 
