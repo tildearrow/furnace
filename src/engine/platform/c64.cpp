@@ -64,6 +64,41 @@ const char** DivPlatformC64::getRegisterSheet() {
   return regCheatSheetSID;
 }
 
+short DivPlatformC64::runFakeFilter(unsigned char ch, int in) {
+  if (!(regPool[0x17]&(1<<ch))) {
+    if (regPool[0x18]&0x80 && ch==2) return 0;
+    float fin=in;
+    fin*=(float)(regPool[0x18]&15)/20.0f;
+    return CLAMP(fin,-32768,32767);
+  }
+
+  // taken from dSID
+  float fin=in;
+  float fout=0;
+  float ctf=fakeCutTable[((regPool[0x15]&7)|(regPool[0x16]<<3))&0x7ff];
+  float reso=(sidIs6581?
+    ((regPool[0x17]>0x5F)?8.0/(float)(regPool[0x17]>>4):1.41):
+    (pow(2,((float)(4-(float)(regPool[0x17]>>4))/8)))
+  );
+  float tmp=fin+fakeBand[ch]*reso+fakeLow[ch];
+  if (regPool[0x18]&0x40) {
+    fout-=tmp;
+  }
+  tmp=fakeBand[ch]-tmp*ctf;
+  fakeBand[ch]=tmp;
+  if (regPool[0x18]&0x20) {
+    fout-=tmp;
+  }
+  tmp=fakeLow[ch]+tmp*ctf;
+  fakeLow[ch]=tmp;
+  if (regPool[0x18]&0x10) {
+    fout+=tmp;
+  }
+
+  fout*=(float)(regPool[0x18]&15)/20.0f;
+  return CLAMP(fout,-32768,32767);
+}
+
 void DivPlatformC64::acquire(short** buf, size_t len) {
   int dcOff=(sidCore)?0:sid->get_dc(0);
   for (size_t i=0; i<len; i++) {
@@ -92,18 +127,18 @@ void DivPlatformC64::acquire(short** buf, size_t len) {
       sid_fp->clock(4,&buf[0][i]);
       if (++writeOscBuf>=4) {
         writeOscBuf=0;
-        oscBuf[0]->data[oscBuf[0]->needle++]=(sid_fp->lastChanOut[0]-dcOff)>>5;
-        oscBuf[1]->data[oscBuf[1]->needle++]=(sid_fp->lastChanOut[1]-dcOff)>>5;
-        oscBuf[2]->data[oscBuf[2]->needle++]=(sid_fp->lastChanOut[2]-dcOff)>>5;
+        oscBuf[0]->data[oscBuf[0]->needle++]=runFakeFilter(0,(sid_fp->lastChanOut[0]-dcOff)>>5);
+        oscBuf[1]->data[oscBuf[1]->needle++]=runFakeFilter(1,(sid_fp->lastChanOut[1]-dcOff)>>5);
+        oscBuf[2]->data[oscBuf[2]->needle++]=runFakeFilter(2,(sid_fp->lastChanOut[2]-dcOff)>>5);
       }
     } else {
       sid->clock();
       buf[0][i]=sid->output();
       if (++writeOscBuf>=16) {
         writeOscBuf=0;
-        oscBuf[0]->data[oscBuf[0]->needle++]=(sid->last_chan_out[0]-dcOff)>>5;
-        oscBuf[1]->data[oscBuf[1]->needle++]=(sid->last_chan_out[1]-dcOff)>>5;
-        oscBuf[2]->data[oscBuf[2]->needle++]=(sid->last_chan_out[2]-dcOff)>>5;
+        oscBuf[0]->data[oscBuf[0]->needle++]=runFakeFilter(0,(sid->last_chan_out[0]-dcOff)>>5);
+        oscBuf[1]->data[oscBuf[1]->needle++]=runFakeFilter(1,(sid->last_chan_out[1]-dcOff)>>5);
+        oscBuf[2]->data[oscBuf[2]->needle++]=runFakeFilter(2,(sid->last_chan_out[2]-dcOff)>>5);
       }
     }
   }
@@ -540,6 +575,8 @@ void DivPlatformC64::reset() {
   for (int i=0; i<3; i++) {
     chan[i]=DivPlatformC64::Channel();
     chan[i].std.setEngine(parent);
+    fakeLow[i]=0;
+    fakeBand[i]=0;
   }
 
   if (sidCore==2) {
