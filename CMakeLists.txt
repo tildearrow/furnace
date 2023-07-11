@@ -806,7 +806,6 @@ if (BUILD_GUI)
   list(APPEND USED_SOURCES ${GUI_SOURCES})
   list(APPEND DEPENDENCIES_INCLUDE_DIRS
     extern/imgui_patched
-    extern/imgui_conf
     extern/imgui_patched/backends
     extern/IconFontCppHeaders
     extern/igfd
@@ -878,7 +877,7 @@ else()
 endif()
 
 target_include_directories(furnace SYSTEM PRIVATE ${DEPENDENCIES_INCLUDE_DIRS})
-target_compile_definitions(furnace PRIVATE ${DEPENDENCIES_DEFINES} IMGUI_USER_CONFIG="imconfig_fur.h")
+target_compile_definitions(furnace PRIVATE ${DEPENDENCIES_DEFINES})
 target_compile_options(furnace PRIVATE ${DEPENDENCIES_COMPILE_OPTIONS})
 target_link_libraries(furnace PRIVATE ${DEPENDENCIES_LIBRARIES})
 if (PKG_CONFIG_FOUND AND (SYSTEM_FMT OR SYSTEM_LIBSNDFILE OR SYSTEM_ZLIB OR SYSTEM_SDL2 OR SYSTEM_RTMIDI OR WITH_JACK))
