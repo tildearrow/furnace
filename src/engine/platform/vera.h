@@ -51,7 +51,7 @@ class DivPlatformVERA: public DivDispatch {
     Channel chan[17];
     DivDispatchOscBuffer* oscBuf[17];
     bool isMuted[17];
-    unsigned char regPool[67];
+    unsigned char regPool[69];
     struct VERA_PSG* psg;
     struct VERA_PCM* pcm;
   

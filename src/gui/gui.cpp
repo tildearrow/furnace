@@ -3839,6 +3839,7 @@ bool FurnaceGUI::loop() {
         ImGui::GetIO().Fonts->Clear();
         mainFont=ImGui::GetIO().Fonts->AddFontDefault();
         patFont=mainFont;
+        bigFont=mainFont;
         if (rend) rend->destroyFontsTexture();
         if (!ImGui::GetIO().Fonts->Build()) {
           logE("error again while building font atlas!");
@@ -5759,6 +5760,17 @@ bool FurnaceGUI::loop() {
       introPos=12.0;
     }
 
+#ifdef DIV_UNSTABLE
+    {
+      ImDrawList* dl=ImGui::GetForegroundDrawList();
+      ImVec2 markPos=ImVec2(canvasW-ImGui::CalcTextSize(DIV_VERSION).x-6.0*dpiScale,4.0*dpiScale);
+      ImVec4 markColor=uiColors[GUI_COLOR_TEXT];
+      markColor.w=0.67f;
+
+      dl->AddText(markPos,ImGui::ColorConvertFloat4ToU32(markColor),DIV_VERSION);
+    }
+#endif
+
     layoutTimeEnd=SDL_GetPerformanceCounter();
 
     // backup trigger
@@ -5967,6 +5979,7 @@ bool FurnaceGUI::loop() {
       ImGui::GetIO().Fonts->Clear();
       mainFont=ImGui::GetIO().Fonts->AddFontDefault();
       patFont=mainFont;
+      bigFont=mainFont;
       if (rend) rend->destroyFontsTexture();
       if (!ImGui::GetIO().Fonts->Build()) {
         logE("error again while building font atlas!");
@@ -6261,18 +6274,18 @@ bool FurnaceGUI::init() {
   logV("window size: %dx%d",scrW,scrH);
 
   if (!initRender()) {
-    if (settings.renderBackend!="SDL" && !settings.renderBackend.empty()) {
-      settings.renderBackend="";
-      e->setConf("renderBackend","");
+    if (settings.renderBackend!="SDL") {
+      settings.renderBackend="SDL";
+      e->setConf("renderBackend","SDL");
       e->saveConf();
-      lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
+      lastError=fmt::sprintf("could not init renderer!\r\nthe render backend has been set to a safe value. please restart Furnace.");
     } else {
       lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
       if (!settings.renderDriver.empty()) {
         settings.renderDriver="";
         e->setConf("renderDriver","");
         e->saveConf();
-        lastError=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
+        lastError+=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
       }
     }
     return false;
@@ -6329,6 +6342,19 @@ bool FurnaceGUI::init() {
   }
 #endif
 
+  int numDriversA=SDL_GetNumAudioDrivers();
+  if (numDriversA<0) {
+    logW("could not list audio drivers! %s",SDL_GetError());
+  } else {
+    for (int i=0; i<numDriversA; i++) {
+      const char* r=SDL_GetAudioDriver(i);
+      if (r==NULL) continue;
+      if (strcmp(r,"disk")==0) continue;
+      if (strcmp(r,"dummy")==0) continue;
+      availAudioDrivers.push_back(String(r));
+    }
+  }
+
   int numDrivers=SDL_GetNumRenderDrivers();
   if (numDrivers<0) {
     logW("could not list render drivers! %s",SDL_GetError());
@@ -6347,18 +6373,18 @@ bool FurnaceGUI::init() {
 
   logD("starting render backend...");
   if (!rend->init(sdlWin)) {
-    if (settings.renderBackend!="SDL" && !settings.renderBackend.empty()) {
-      settings.renderBackend="";
-      //e->setConf("renderBackend","");
-      //e->saveConf();
-      //lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
+    if (settings.renderBackend!="SDL") {
+      settings.renderBackend="SDL";
+      e->setConf("renderBackend","SDL");
+      e->saveConf();
+      lastError=fmt::sprintf("could not init renderer!\r\nthe render backend has been set to a safe value. please restart Furnace.");
     } else {
       lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
       if (!settings.renderDriver.empty()) {
         settings.renderDriver="";
         e->setConf("renderDriver","");
         e->saveConf();
-        lastError=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
+        lastError+=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
       }
     }
     return false;
@@ -6408,6 +6434,7 @@ bool FurnaceGUI::init() {
     ImGui::GetIO().Fonts->Clear();
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
+    bigFont=mainFont;
     if (rend) rend->destroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
       logE("error again while building font atlas!");
@@ -6651,6 +6678,10 @@ bool FurnaceGUI::finish() {
   }
 
   return true;
+}
+
+void FurnaceGUI::requestQuit() {
+  quit=true;
 }
 
 FurnaceGUI::FurnaceGUI():

@@ -30,6 +30,7 @@ depending on the instrument type, there are many different types of instrument e
 - [Namco 163](n163.md) - for use with Namco 163.
 - [Konami VRC6](vrc6.md) - for use with VRC6's PSG sound source.
 - [SNES](snes.md) - for use with SNES S-APU.
+- [Casio PV-1000](pv1000.md) - for use with Casio PV-1000.
 
 
 # macros
@@ -97,3 +98,16 @@ Finally, the sequence of values can be directly edited in the text box at the bo
 - **Speed** is how quickly the values change - the frequency of the oscillator.
 - **Phase** is which part of the waveform the macro will start at, measured in 1/1024 increments.
 - **Shape** is the waveform used. Triangle is the default, and Saw and Square are exactly as they say.
+
+# samples
+
+This tab appears for Generic PCM, SNES, Amiga, and other sample-based instruments.
+
+![](sample-map.png)
+
+- **Initial Sample**: the sample that the instrument will use.
+- **Use wavetable**: instead of samples, use wavetables. this causes the [Wavetables](../5-wave/README.md) tab to appear next to Sample.
+  - depending on the system and use of the wavetable synthesizer, this may or may not be reproducible on hardware.
+- **Use sample map**: assigns a sample to each note.
+  - samples will be played at their default pitch.
+  - to set a note's sample, click the list entry in the `#` column then type the number of the sample.

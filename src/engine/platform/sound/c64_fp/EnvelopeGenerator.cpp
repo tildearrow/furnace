@@ -61,7 +61,6 @@ const unsigned int EnvelopeGenerator::adsrtable[16] =
 
 void EnvelopeGenerator::reset()
 {
-    // counter is not changed on reset
     envelope_pipeline = 0;
 
     state_pipeline = 0;
@@ -73,7 +72,7 @@ void EnvelopeGenerator::reset()
 
     gate = false;
 
-    resetLfsr = true;
+    resetLfsr = false;
 
     exponential_counter = 0;
     exponential_counter_period = 1;
@@ -81,7 +80,11 @@ void EnvelopeGenerator::reset()
 
     state = RELEASE;
     counter_enabled = true;
-    rate = adsrtable[release];
+    rate = 0;
+
+    envelope_counter = 0;
+    env3 = 0;
+    lfsr = 0x7fff;
 }
 
 void EnvelopeGenerator::writeCONTROL_REG(unsigned char control)

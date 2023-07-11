@@ -339,17 +339,22 @@ static void ImGui_ImplDX11_CreateFontsTexture()
         subResource.SysMemPitch = desc.Width * 4;
         subResource.SysMemSlicePitch = 0;
         bd->pd3dDevice->CreateTexture2D(&desc, &subResource, &pTexture);
-        IM_ASSERT(pTexture != nullptr);
 
-        // Create texture view
-        D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
-        ZeroMemory(&srvDesc, sizeof(srvDesc));
-        srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-        srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
-        srvDesc.Texture2D.MipLevels = desc.MipLevels;
-        srvDesc.Texture2D.MostDetailedMip = 0;
-        bd->pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &bd->pFontTextureView);
-        pTexture->Release();
+        if (pTexture != nullptr) {
+          // Create texture view
+          D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+          ZeroMemory(&srvDesc, sizeof(srvDesc));
+          srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+          srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+          srvDesc.Texture2D.MipLevels = desc.MipLevels;
+          srvDesc.Texture2D.MostDetailedMip = 0;
+          bd->pd3dDevice->CreateShaderResourceView(pTexture, &srvDesc, &bd->pFontTextureView);
+          pTexture->Release();
+        } else {
+          bd->pFontTextureView=NULL;
+          bd->pFontSampler=NULL;
+          return;
+        }
     }
 
     // Store our identifier
@@ -361,9 +366,9 @@ static void ImGui_ImplDX11_CreateFontsTexture()
         D3D11_SAMPLER_DESC desc;
         ZeroMemory(&desc, sizeof(desc));
         desc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-        desc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-        desc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-        desc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
+        desc.AddressU = D3D11_TEXTURE_ADDRESS_CLAMP;
+        desc.AddressV = D3D11_TEXTURE_ADDRESS_CLAMP;
+        desc.AddressW = D3D11_TEXTURE_ADDRESS_CLAMP;
         desc.MipLODBias = 0.f;
         desc.ComparisonFunc = D3D11_COMPARISON_ALWAYS;
         desc.MinLOD = 0.f;
@@ -609,13 +614,15 @@ void ImGui_ImplDX11_Shutdown()
     IM_DELETE(bd);
 }
 
-void ImGui_ImplDX11_NewFrame()
+bool ImGui_ImplDX11_NewFrame()
 {
     ImGui_ImplDX11_Data* bd = ImGui_ImplDX11_GetBackendData();
     IM_ASSERT(bd != nullptr && "Did you call ImGui_ImplDX11_Init()?");
 
     if (!bd->pFontSampler)
         ImGui_ImplDX11_CreateDeviceObjects();
+    
+    return bd->pFontSampler!=NULL;
 }
 
 //--------------------------------------------------------------------------------------------------------

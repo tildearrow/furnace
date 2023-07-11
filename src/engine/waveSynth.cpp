@@ -27,6 +27,7 @@ bool DivWaveSynth::activeChanged() {
     activeChangedB=false;
     return true;
   }
+  if (first) return true;
   return false;
 }
 

@@ -236,6 +236,8 @@ const char* cmdName[]={
 
   "NES_LINEAR_LENGTH",
 
+  "EXTERNAL",
+
   "ALWAYS_SET_VOLUME"
 };
 
@@ -913,6 +915,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         //printf("\x1b[1;36m%d: extern command %d\x1b[m\n",i,effectVal);
         extValue=effectVal;
         extValuePresent=true;
+        dispatchCmd(DivCommand(DIV_CMD_EXTERNAL,i,effectVal));
         break;
       case 0xef: // global pitch
         globalPitch+=(signed char)(effectVal-0x80);
@@ -1691,6 +1694,10 @@ void DivEngine::runMidiTime(int totalCycles) {
 }
 
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
+  lastNBIns=inChans;
+  lastNBOuts=outChans;
+  lastNBSize=size;
+
   if (!size) {
     logW("nextBuf called with size 0!");
     return;
@@ -1980,14 +1987,10 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       } else {
         // 3. run MIDI clock
         int midiTotal=MIN(cycles,runLeftG);
-        for (int i=0; i<midiTotal; i++) {
-          runMidiClock();
-        }
+        runMidiClock(midiTotal);
 
         // 4. run MIDI timecode
-        for (int i=0; i<midiTotal; i++) {
-          runMidiTime();
-        }
+        runMidiTime(midiTotal);
 
         // 5. tick the clock and fill buffers as needed
         if (cycles<runLeftG) {

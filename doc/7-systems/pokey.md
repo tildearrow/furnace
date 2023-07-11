@@ -4,7 +4,7 @@ a sound and input chip developed by Atari for their 8-bit computers (Atari 400, 
 
 # effects
 
-- **`10xx`**: set waveform.**
+- `10xx`: **set waveform.**
   - 0: harsh noise (poly5+17)
   - 1: square buzz (poly5)
   - 2: weird noise (poly4+5)
@@ -13,7 +13,7 @@ a sound and input chip developed by Atari for their 8-bit computers (Atari 400, 
   - 5: square
   - 6: bass (poly4)
   - 7: buzz (poly4)
-- **`11xx`**: set AUDCTL.** `xx` is a bitmask.
+- `11xx`: **set AUDCTL.** `xx` is a bitmask.
   - bit 7: 9-bit poly mode. shortens noise.
   - bit 6: high channel 1 clock (~1.79MHz on NTSC).
     - overrides 15KHz mode.
@@ -32,6 +32,6 @@ a sound and input chip developed by Atari for their 8-bit computers (Atari 400, 
     - filtered output on channel 2 (I suggest you to set channel 4 volume to 0).
     - use for PWM effects (not automatic!).
   - bit 0: 15KHz mode.
-- **`12xx`**: toggle two-tone mode.**
+- `12xx`: **toggle two-tone mode.**
   - when enabled, channel 2 modulates channel 1. I don't know how, but it does.
   - only on ASAP core.

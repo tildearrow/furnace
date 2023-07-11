@@ -994,11 +994,11 @@ void FurnaceGUI::drawSampleEdit() {
         float highP=sampleFilterH*100.0f;
         float resP=sampleFilterRes*100.0f;
         ImGui::Text("Cutoff:");
-        if (ImGui::SliderFloat("From",&sampleFilterCutStart,0.0f,sample->rate*0.5,"%.0fHz")) {
+        if (ImGui::InputFloat("From",&sampleFilterCutStart,1.0f,100.0f,"%.0f")) {
           if (sampleFilterCutStart<0.0) sampleFilterCutStart=0.0;
           if (sampleFilterCutStart>sample->rate*0.5) sampleFilterCutStart=sample->rate*0.5;
         }
-        if (ImGui::SliderFloat("To",&sampleFilterCutEnd,0.0f,sample->rate*0.5,"%.0fHz")) {
+        if (ImGui::InputFloat("To",&sampleFilterCutEnd,1.0f,100.0f,"%.0f")) {
           if (sampleFilterCutEnd<0.0) sampleFilterCutEnd=0.0;
           if (sampleFilterCutEnd>sample->rate*0.5) sampleFilterCutEnd=sample->rate*0.5;
         }

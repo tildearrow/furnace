@@ -149,6 +149,14 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::EndTable();
       }
 
+      ImGui::Text("Amplitude");
+      ImGui::SameLine();
+      ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+      if (CWSliderFloat("##COSAmp",&chanOscAmplify,0.0f,2.0f)) {
+        if (chanOscAmplify<0.0f) chanOscAmplify=0.0f;
+        if (chanOscAmplify>2.0f) chanOscAmplify=2.0f;
+      }
+
       ImGui::Checkbox("Gradient",&chanOscUseGrad);
 
       if (chanOscUseGrad) {
@@ -506,12 +514,26 @@ void FurnaceGUI::drawChanOsc() {
                         text+=fmt::sprintf("%d",e->dispatchOfChan[ch]);
                         break;
                       }
-                      case 'v':
+                      case 'v': {
+                        DivChannelState* chanState=e->getChanState(ch);
+                        if (chanState==NULL) break;
+                        text+=fmt::sprintf("%d",chanState->volume>>8);
                         break;
-                      case 'V':
+                      }
+                      case 'V': {
+                        DivChannelState* chanState=e->getChanState(ch);
+                        if (chanState==NULL) break;
+                        int volMax=chanState->volMax>>8;
+                        if (volMax<1) volMax=1;
+                        text+=fmt::sprintf("%d%%",(chanState->volume>>8)/volMax);
                         break;
-                      case 'b':
+                      }
+                      case 'b': {
+                        DivChannelState* chanState=e->getChanState(ch);
+                        if (chanState==NULL) break;
+                        text+=fmt::sprintf("%.2X",chanState->volume>>8);
                         break;
+                      }
                       case '%':
                         text+='%';
                         break;

@@ -32,19 +32,22 @@ extern "C" {
 #define rWrite(c,a,d) {regPool[(c)*4+(a)]=(d); psg_writereg(psg,((c)*4+(a)),(d));if (dumpWrites) {addWrite(((c)*4+(a)),(d));}}
 #define rWriteLo(c,a,d) rWrite(c,a,(regPool[(c)*4+(a)]&(~0x3f))|((d)&0x3f))
 #define rWriteHi(c,a,d) rWrite(c,a,(regPool[(c)*4+(a)]&(~0xc0))|(((d)<<6)&0xc0))
-#define rWritePCMCtrl(d) {regPool[64]=(d); pcm_write_ctrl(pcm,d);}
-#define rWritePCMRate(d) {regPool[65]=(d); pcm_write_rate(pcm,d);}
+#define rWritePCMCtrl(d) {regPool[64]=(d); pcm_write_ctrl(pcm,d);if (dumpWrites) addWrite(64,(d));}
+#define rWritePCMRate(d) {regPool[65]=(d); pcm_write_rate(pcm,d);if (dumpWrites) addWrite(65,(d));}
 #define rWritePCMData(d) {regPool[66]=(d); pcm_write_fifo(pcm,d);}
 #define rWritePCMVol(d) rWritePCMCtrl((regPool[64]&(~0x8f))|((d)&15))
+#define rWriteZSMSync(d) {if (dumpWrites) addWrite(68,(d));}
 
 const char* regCheatSheetVERA[]={
-  "CHxFreq",    "00+x*4",
-  "CHxVol",     "02+x*4",
-  "CHxWave",    "03+x*4",
+  "CHxFreq",            "00+x*4",
+  "CHxVol",             "02+x*4",
+  "CHxWave",            "03+x*4",
 
-  "AUDIO_CTRL", "40",
-  "AUDIO_RATE", "41",
-  "AUDIO_DATA", "42",
+  "AUDIO_CTRL",         "40",
+  "AUDIO_RATE",         "41",
+  "AUDIO_DATA",         "42",
+  "ZSM_PCM_LOOP_POINT", "43",
+  "ZSM_SYNC",           "44",
 
   NULL
 };
@@ -226,6 +229,57 @@ void DivPlatformVERA::tick(bool sysTick) {
     rWritePCMRate(chan[16].freq&0xff);
     chan[16].freqChanged=false;
   }
+
+  // For export, output the entire sample that starts on this tick
+  if (dumpWrites) {
+    DivSample* s=parent->getSample(chan[16].pcm.sample);
+    if (s->samples>0) {
+      if (s->isLoopable()) {
+        // Inform the export process of the loop point for this sample
+        int tmp_ls=(s->loopStart<<1); // for stereo
+        if (chan[16].pcm.depth16)
+          tmp_ls<<=1; // for 16 bit
+        addWrite(67,tmp_ls&0xff);
+        addWrite(67,(tmp_ls>>8)&0xff);
+        addWrite(67,(tmp_ls>>16)&0xff);
+      }
+      while (true) {
+        short tmp_l=0;
+        short tmp_r=0;
+        if (!isMuted[16]) {
+          if (chan[16].pcm.depth16) {
+            tmp_l=s->data16[chan[16].pcm.pos];
+            tmp_r=tmp_l;
+          } else {
+            tmp_l=s->data8[chan[16].pcm.pos];
+            tmp_r=tmp_l;
+          }
+          if (!(chan[16].pan&1)) tmp_l=0;
+          if (!(chan[16].pan&2)) tmp_r=0;
+        }
+        if (chan[16].pcm.depth16) {
+          addWrite(66,tmp_l&0xff);
+          addWrite(66,(tmp_l>>8)&0xff);
+          addWrite(66,tmp_r&0xff);
+          addWrite(66,(tmp_r>>8)&0xff);
+        } else {
+          addWrite(66,tmp_l&0xff);
+          addWrite(66,tmp_r&0xff);
+        }
+        chan[16].pcm.pos++;
+        if (s->isLoopable() && chan[16].pcm.pos>=(unsigned int)s->loopEnd) {
+          chan[16].pcm.sample=-1;
+          break;
+        }
+        if (chan[16].pcm.pos>=s->samples) {
+          chan[16].pcm.sample=-1;
+          break;
+        }
+      }
+    } else {
+      chan[16].pcm.sample=-1;
+    }
+  }
 }
 
 int DivPlatformVERA::dispatch(DivCommand c) {
@@ -369,6 +423,9 @@ int DivPlatformVERA::dispatch(DivCommand c) {
       break;
     case DIV_CMD_MACRO_ON:
       chan[c.chan].std.mask(c.value,false);
+      break;
+    case DIV_CMD_EXTERNAL:
+      rWriteZSMSync(c.value);
       break;
     case DIV_ALWAYS_SET_VOLUME:
       return 0;

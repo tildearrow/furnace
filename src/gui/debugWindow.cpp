@@ -388,6 +388,34 @@ void FurnaceGUI::drawDebug() {
       ImGui::Text("System Managed Scale: %d",sysManagedScale);
       ImGui::TreePop();
     }
+    if (ImGui::TreeNode("Audio Debug")) {
+      TAAudioDesc& audioWant=e->getAudioDescWant();
+      TAAudioDesc& audioGot=e->getAudioDescGot();
+
+      ImGui::Text("want:");
+      ImGui::Text("- name: %s",audioWant.name.c_str());
+      ImGui::Text("- device name: %s",audioWant.deviceName.c_str());
+      ImGui::Text("- rate: %f",audioWant.rate);
+      ImGui::Text("- buffer size: %d",audioWant.bufsize);
+      ImGui::Text("- fragments: %d",audioWant.fragments);
+      ImGui::Text("- inputs: %d",audioWant.inChans);
+      ImGui::Text("- outputs: %d",audioWant.outChans);
+      ImGui::Text("- format: %d",audioWant.outFormat);
+
+      ImGui::Text("got:");
+      ImGui::Text("- name: %s",audioGot.name.c_str());
+      ImGui::Text("- device name: %s",audioGot.deviceName.c_str());
+      ImGui::Text("- rate: %f",audioGot.rate);
+      ImGui::Text("- buffer size: %d",audioGot.bufsize);
+      ImGui::Text("- fragments: %d",audioGot.fragments);
+      ImGui::Text("- inputs: %d",audioGot.inChans);
+      ImGui::Text("- outputs: %d",audioGot.outChans);
+      ImGui::Text("- format: %d",audioGot.outFormat);
+
+      ImGui::Text("last call to nextBuf(): in %d, out %d, size %d",e->lastNBIns,e->lastNBOuts,e->lastNBSize);
+
+      ImGui::TreePop();
+    }
     if (ImGui::TreeNode("Visualizer Debug")) {
       if (ImGui::BeginTable("visX",3,ImGuiTableFlags_Borders)) {
         ImGui::TableNextRow(ImGuiTableRowFlags_Headers);

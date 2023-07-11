@@ -21,6 +21,7 @@
 #include "../engine.h"
 #include "sound/c64_fp/siddefs-fp.h"
 #include <math.h>
+#include "../../ta-log.h"
 
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
 
@@ -64,34 +65,45 @@ const char** DivPlatformC64::getRegisterSheet() {
 }
 
 void DivPlatformC64::acquire(short** buf, size_t len) {
-  int dcOff=isFP?0:sid.get_dc(0);
+  int dcOff=(sidCore)?0:sid->get_dc(0);
   for (size_t i=0; i<len; i++) {
     if (!writes.empty()) {
       QueuedWrite w=writes.front();
-      if (isFP) {
-        sid_fp.write(w.addr,w.val);
+      if (sidCore==2) {
+        dSID_write(sid_d,w.addr,w.val);
+      } else if (sidCore==1) {
+        sid_fp->write(w.addr,w.val);
       } else {
-        sid.write(w.addr,w.val);
-      };
+        sid->write(w.addr,w.val);
+      }
       regPool[w.addr&0x1f]=w.val;
       writes.pop();
     }
-    if (isFP) {
-      sid_fp.clock(4,&buf[0][i]);
+    if (sidCore==2) {
+      double o=dSID_render(sid_d);
+      buf[0][i]=32767*CLAMP(o,-1.0,1.0);
       if (++writeOscBuf>=4) {
         writeOscBuf=0;
-        oscBuf[0]->data[oscBuf[0]->needle++]=(sid_fp.lastChanOut[0]-dcOff)>>5;
-        oscBuf[1]->data[oscBuf[1]->needle++]=(sid_fp.lastChanOut[1]-dcOff)>>5;
-        oscBuf[2]->data[oscBuf[2]->needle++]=(sid_fp.lastChanOut[2]-dcOff)>>5;
+        oscBuf[0]->data[oscBuf[0]->needle++]=sid_d->lastOut[0];
+        oscBuf[1]->data[oscBuf[1]->needle++]=sid_d->lastOut[1];
+        oscBuf[2]->data[oscBuf[2]->needle++]=sid_d->lastOut[2];
+      }
+    } else if (sidCore==1) {
+      sid_fp->clock(4,&buf[0][i]);
+      if (++writeOscBuf>=4) {
+        writeOscBuf=0;
+        oscBuf[0]->data[oscBuf[0]->needle++]=(sid_fp->lastChanOut[0]-dcOff)>>5;
+        oscBuf[1]->data[oscBuf[1]->needle++]=(sid_fp->lastChanOut[1]-dcOff)>>5;
+        oscBuf[2]->data[oscBuf[2]->needle++]=(sid_fp->lastChanOut[2]-dcOff)>>5;
       }
     } else {
-      sid.clock();
-      buf[0][i]=sid.output();
+      sid->clock();
+      buf[0][i]=sid->output();
       if (++writeOscBuf>=16) {
         writeOscBuf=0;
-        oscBuf[0]->data[oscBuf[0]->needle++]=(sid.last_chan_out[0]-dcOff)>>5;
-        oscBuf[1]->data[oscBuf[1]->needle++]=(sid.last_chan_out[1]-dcOff)>>5;
-        oscBuf[2]->data[oscBuf[2]->needle++]=(sid.last_chan_out[2]-dcOff)>>5;
+        oscBuf[0]->data[oscBuf[0]->needle++]=(sid->last_chan_out[0]-dcOff)>>5;
+        oscBuf[1]->data[oscBuf[1]->needle++]=(sid->last_chan_out[1]-dcOff)>>5;
+        oscBuf[2]->data[oscBuf[2]->needle++]=(sid->last_chan_out[2]-dcOff)>>5;
       }
     }
   }
@@ -106,7 +118,9 @@ void DivPlatformC64::updateFilter() {
 
 void DivPlatformC64::tick(bool sysTick) {
   bool willUpdateFilter=false;
-  for (int i=0; i<3; i++) {
+  for (int _i=0; _i<3; _i++) {
+    int i=chanOrder[_i];
+
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);
@@ -179,8 +193,8 @@ void DivPlatformC64::tick(bool sysTick) {
         if (--chan[i].testWhen<1) {
           if (!chan[i].resetMask && !chan[i].inPorta) {
             DivInstrument* ins=parent->getIns(chan[i].ins,DIV_INS_C64);
-            rWrite(i*7+5,0);
-            rWrite(i*7+6,0);
+            rWrite(i*7+5,testAD);
+            rWrite(i*7+6,testSR);
             rWrite(i*7+4,(chan[i].wave<<4)|(ins->c64.noTest?0:8)|(chan[i].test<<3)|(chan[i].ring<<2)|(chan[i].sync<<1));
           }
         }
@@ -212,6 +226,7 @@ void DivPlatformC64::tick(bool sysTick) {
 }
 
 int DivPlatformC64::dispatch(DivCommand c) {
+  if (c.chan>2) return 0;
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_C64);
@@ -248,6 +263,16 @@ int DivPlatformC64::dispatch(DivCommand c) {
       }
       if (chan[c.chan].insChanged) {
         chan[c.chan].insChanged=false;
+      }
+      if (keyPriority) {
+        if (chanOrder[1]==c.chan) {
+          chanOrder[1]=chanOrder[2];
+          chanOrder[2]=c.chan;
+        } else if (chanOrder[0]==c.chan) {
+          chanOrder[0]=chanOrder[1];
+          chanOrder[1]=chanOrder[2];
+          chanOrder[2]=c.chan;
+        }
       }
       chan[c.chan].macroInit(ins);
       break;
@@ -352,7 +377,7 @@ int DivPlatformC64::dispatch(DivCommand c) {
       break;
     case DIV_CMD_C64_CUTOFF:
       if (c.value>100) c.value=100;
-      filtCut=c.value*2047/100;
+      filtCut=(c.value+2)*2047/102;
       updateFilter();
       break;
     case DIV_CMD_C64_FINE_CUTOFF:
@@ -438,10 +463,17 @@ int DivPlatformC64::dispatch(DivCommand c) {
 
 void DivPlatformC64::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  if (isFP) {
-    sid_fp.mute(ch,mute);
+  if (sidCore==2) {
+    dSID_setMuteMask(
+      sid_d,
+      (isMuted[0]?0:1)|
+      (isMuted[1]?0:2)|
+      (isMuted[2]?0:4)
+    );
+  } else if (sidCore==1) {
+    sid_fp->mute(ch,mute);
   } else {
-    sid.set_is_muted(ch,mute);
+    sid->set_is_muted(ch,mute);
   }
 }
 
@@ -500,7 +532,7 @@ bool DivPlatformC64::getWantPreNote() {
 }
 
 float DivPlatformC64::getPostAmp() {
-  return isFP?3.0f:1.0f;
+  return (sidCore==1)?3.0f:1.0f;
 }
 
 void DivPlatformC64::reset() {
@@ -510,10 +542,20 @@ void DivPlatformC64::reset() {
     chan[i].std.setEngine(parent);
   }
 
-  if (isFP) {
-    sid_fp.reset();
+  if (sidCore==2) {
+    dSID_init(sid_d,chipClock,rate,sidIs6581?6581:8580,needInitTables);
+    dSID_setMuteMask(
+      sid_d,
+      (isMuted[0]?0:1)|
+      (isMuted[1]?0:2)|
+      (isMuted[2]?0:4)
+    );
+    needInitTables=false;
+  } else if (sidCore==1) {
+    sid_fp->reset();
+    sid_fp->clockSilent(16000);
   } else {
-    sid.reset();
+    sid->reset();
   }
   memset(regPool,0,32);
 
@@ -524,6 +566,10 @@ void DivPlatformC64::reset() {
   filtCut=2047;
   resetTime=1;
   vol=15;
+
+  chanOrder[0]=0;
+  chanOrder[1]=1;
+  chanOrder[2]=2;
 }
 
 void DivPlatformC64::poke(unsigned int addr, unsigned short val) {
@@ -535,23 +581,11 @@ void DivPlatformC64::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformC64::setChipModel(bool is6581) {
-  if (is6581) {
-    if (isFP) {
-      sid_fp.setChipModel(reSIDfp::MOS6581);
-    } else {
-      sid.set_chip_model(MOS6581);
-    }
-  } else {
-    if (isFP) {
-      sid_fp.setChipModel(reSIDfp::MOS8580);
-    } else {
-      sid.set_chip_model(MOS8580);
-    }
-  }
+  sidIs6581=is6581;
 }
 
-void DivPlatformC64::setFP(bool fp) {
-  isFP=fp;
+void DivPlatformC64::setCore(unsigned char which) {
+  sidCore=which;
 }
 
 void DivPlatformC64::setFlags(const DivConfig& flags) {
@@ -572,21 +606,58 @@ void DivPlatformC64::setFlags(const DivConfig& flags) {
   for (int i=0; i<3; i++) {
     oscBuf[i]->rate=rate/16;
   }
-  if (isFP) {
+  if (sidCore>0) {
     rate/=4;
-    sid_fp.setSamplingParameters(chipClock,reSIDfp::DECIMATE,rate,0);
+    if (sidCore==1) sid_fp->setSamplingParameters(chipClock,reSIDfp::DECIMATE,rate,0);
   }
+  keyPriority=flags.getBool("keyPriority",true);
+  testAD=((flags.getInt("testAttack",0)&15)<<4)|(flags.getInt("testDecay",0)&15);
+  testSR=((flags.getInt("testSustain",0)&15)<<4)|(flags.getInt("testRelease",0)&15);
 }
 
 int DivPlatformC64::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
   skipRegisterWrites=false;
+  needInitTables=true;
   writeOscBuf=0;
   for (int i=0; i<3; i++) {
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
+
+  if (sidCore==2) {
+    sid=NULL;
+    sid_fp=NULL;
+    sid_d=new struct SID_chip;
+  } else if (sidCore==1) {
+    sid=NULL;
+    sid_fp=new reSIDfp::SID;
+    sid_d=NULL;
+  } else {
+    sid=new SID;
+    sid_fp=NULL;
+    sid_d=NULL;
+  }
+
+  if (sidIs6581) {
+    if (sidCore==2) {
+      // do nothing
+    } else if (sidCore==1) {
+      sid_fp->setChipModel(reSIDfp::MOS6581);
+    } else {
+      sid->set_chip_model(MOS6581);
+    }
+  } else {
+    if (sidCore==2) {
+      // do nothing
+    } else if (sidCore==1) {
+      sid_fp->setChipModel(reSIDfp::MOS8580);
+    } else {
+      sid->set_chip_model(MOS8580);
+    }
+  }
+
   setFlags(flags);
 
   reset();
@@ -598,6 +669,9 @@ void DivPlatformC64::quit() {
   for (int i=0; i<3; i++) {
     delete oscBuf[i];
   }
+  if (sid!=NULL) delete sid;
+  if (sid_fp!=NULL) delete sid_fp;
+  if (sid_d!=NULL) delete sid_d;
 }
 
 DivPlatformC64::~DivPlatformC64() {

@@ -322,7 +322,7 @@ void DivPlatformGB::tick(bool sysTick) {
         rWrite(16+i*5+4,((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((chan[i].soundLen<64)<<6));
       } else {
         rWrite(16+i*5+3,(2048-chan[i].freq)&0xff);
-        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||chan[i].keyOff)?0x80:0x00)|((chan[i].soundLen<63)<<6));
+        rWrite(16+i*5+4,(((2048-chan[i].freq)>>8)&7)|((chan[i].keyOn||(chan[i].keyOff && i!=2))?0x80:0x00)|((chan[i].soundLen<63)<<6));
       }
       if (enoughAlready) { // more compat garbage
         rWrite(16+i*5+1,((chan[i].duty&3)<<6)|(63-(chan[i].soundLen&63)));
@@ -397,6 +397,14 @@ int DivPlatformGB::dispatch(DivCommand c) {
           chan[c.chan].vol=chan[c.chan].envVol;
           chan[c.chan].outVol=chan[c.chan].envVol;
         }
+      } else if (chan[c.chan].softEnv && c.chan!=2) {
+        if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+          chan[c.chan].outVol=chan[c.chan].vol;
+          chan[c.chan].envVol=chan[c.chan].outVol;
+        }
+        chan[c.chan].envLen=0;
+        chan[c.chan].envDir=1;
+        chan[c.chan].soundLen=64;
       }
       if (c.chan==2 && chan[c.chan].softEnv) {
         chan[c.chan].soundLen=64;
@@ -466,7 +474,9 @@ int DivPlatformGB::dispatch(DivCommand c) {
       if (c.chan!=2) break;
       chan[c.chan].wave=c.value;
       ws.changeWave1(chan[c.chan].wave);
-      chan[c.chan].keyOn=true;
+      if (chan[c.chan].active) {
+        chan[c.chan].keyOn=true;
+      }
       break;
     case DIV_CMD_NOTE_PORTA: {
       int destFreq=NOTE_PERIODIC(c.value2);
@@ -672,8 +682,6 @@ void DivPlatformGB::setFlags(const DivConfig& flags) {
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/16;
   for (int i=0; i<4; i++) {
-    isMuted[i]=false;
-    oscBuf[i]=new DivDispatchOscBuffer;
     oscBuf[i]->rate=rate;
   }
 }
@@ -684,6 +692,12 @@ int DivPlatformGB::init(DivEngine* p, int channels, int sugRate, const DivConfig
   skipRegisterWrites=false;
   model=GB_MODEL_DMG_B;
   gb=new GB_gameboy_t;
+
+  for (int i=0; i<4; i++) {
+    isMuted[i]=false;
+    oscBuf[i]=new DivDispatchOscBuffer;
+  }
+
   setFlags(flags);
   reset();
   return 4;

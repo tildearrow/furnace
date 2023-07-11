@@ -15,7 +15,7 @@ fi
 cd win32build
 
 # TODO: potential Arch-ism?
-i686-w64-mingw32-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_FLAGS="-O2" -DCMAKE_CXX_FLAGS="-O2 -Wall -Wextra -Wno-unused-parameter -Wno-cast-function-type -Werror" -DBUILD_SHARED_LIBS=OFF -DSUPPORT_XP=ON .. || exit 1
+i686-w64-mingw32-cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_FLAGS="-O2" -DCMAKE_CXX_FLAGS="-O2 -Wall -Wextra -Wno-unused-parameter -Wno-cast-function-type -Werror" -DBUILD_SHARED_LIBS=OFF -DSUPPORT_XP=ON -DWITH_RENDER_DX11=OFF .. || exit 1
 make -j8 || exit 1
 
 cd ..
