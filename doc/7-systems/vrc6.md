@@ -14,5 +14,5 @@ Furnace supports this routine for PCM playback, but it consumes a lot of CPU tim
 
 these effects only are effective in the pulse channels.
 
-- `12xx`: set duty cycle (0 to 7).
-- `17xx`: toggle PCM mode.
+- `12xx`: **set duty cycle.** range is `0` to `7`.
+- `17xx`: **toggle PCM mode.**

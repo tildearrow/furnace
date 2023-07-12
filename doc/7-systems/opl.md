@@ -16,65 +16,65 @@ afterwards everyone moved to Windows and software mixed PCM streaming...
 
 # effects
 
-- 10xx: set AM depth. the following values are accepted:
-  - 0: 1dB (shallow)
-  - 1: 4.8dB (deep)
+- `10xx`: **set AM depth.** the following values are accepted:
+  - `0`: 1dB (shallow)
+  - `1`: 4.8dB (deep)
   - this effect applies to all channels.
-- `11xx`: set feedback of channel.
-- `12xx`: set operator 1 level.
-- `13xx`: set operator 2 level.
-- `14xx`: set operator 3 level.
+- `11xx`: **set feedback of channel.**
+- `12xx`: **set operator 1 level.**
+- `13xx`: **set operator 2 level.**
+- `14xx`: **set operator 3 level.**
   - only in 4-op mode (OPL3).
-- `15xx`: set operator 4 level.
+- `15xx`: **set operator 4 level.**
   - only in 4-op mode (OPL3).
-- `16xy`: set multiplier of operator.
+- `16xy`: **sSet multiplier of operator.**
   - `x` is the operator (1-4; last 2 operators only in 4-op mode).
   - `y` is the multiplier.
-- 17xx: set vibrato depth. the following values are accepted:
-  - 0: normal
-  - 1: double
+- `17xx`: **set vibrato depth.**
+  - `0`: normal
+  - `1`: double
   - this effect applies to all channels.
-- `18xx`: toggle drums mode.
-  - 0 disables it and 1 enables it.
+- `18xx`: **toggle drums mode.**
+  - `0` disables it and `1` enables it.
   - only in drums chip.
-- `19xx`: set attack of all operators.
-- `1Axx`: set attack of operator 1.
-- `1Bxx`: set attack of operator 2.
-- `1Cxx`: set attack of operator 3.
+- `19xx`: **set attack of all operators.**
+- `1Axx`: **set attack of operator 1.**
+- `1Bxx`: **set attack of operator 2.**
+- `1Cxx`: **set attack of operator 3.**
   - only in 4-op mode (OPL3).
-- `1Dxx`: set attack of operator 4.
+- `1Dxx`: **set attack of operator 4.**
   - only in 4-op mode (OPL3).
-- `2Axy`: set waveform of operator.
-  - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".
+- `2Axy`: **set waveform of operator.**
+  - `x` is the operator from 1 to 4; the last 2 operators only work in 4-op mode. a value of `0` means "all operators".
   - `y` is the value.
   - only in OPL2 or higher.
-- `30xx`: enable envelope hard reset.
+- `30xx`: **enable envelope hard reset.**
   - this works by inserting a quick release and tiny delay before a new note.
-- `50xy`: set AM of operator.
-  - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".
+- `50xy`: **set AM of operator.**
+  - `x` is the operator from 1 to 4; the last 2 operators only work in 4-op mode. a value of `0` means "all operators".
   - `y` determines whether AM is on.
-- `51xy` set SL of operator.
-  - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".
+- `51xy`: **set SL of operator.**
+  - `x` is the operator from 1 to 4; the last 2 operators only work in 4-op mode. a value of `0` means "all operators".
   - `y` is the value.
-- `52xy` set RR of operator.
-  - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".
+- `52xy`: **set RR of operator.**
+  - `x` is the operator from 1 to 4; the last 2 operators only work in 4-op mode. a value of `0` means "all operators".
   - `y` is the value.
-- `53xy`: set VIB of operator.
-  - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".
+- `53xy`: **set VIB of operator.**
+  - `x` is the operator from 1 to 4; the last 2 operators only work in 4-op mode. a value of `0` means "all operators".
   - `y` determines whether VIB is on.
-- `54xy` set KSL of operator.
-  - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".
+- `54xy`: **set KSL of operator.**
+  - `x` is the operator from 1 to 4; the last 2 operators only work in 4-op mode. a value of `0` means "all operators".
   - `y` is the value.
-- `55xy` set SUS of operator.
-  - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".
+- `55xy`: **set SUS of operator.**
+  - `x` is the operator from 1 to 4; the last 2 operators only work in 4-op mode. a value of `0` means "all operators".
   - `y` determines whether SUS is on.
-- `56xx`: set DR of all operators.
-- `57xx`: set DR of operator 1.
-- `58xx`: set DR of operator 2.
-- `59xx`: set DR of operator 3.
+- `56xx`: **set DR of all operators.**
+- `57xx`: **set DR of operator 1.**
+- `58xx`: **set DR of operator 2.**
+- `59xx`: **set DR of operator 3.**
   - only in 4-op mode (OPL3).
-- `5Axx`: set DR of operator 4.
+- `5Axx`: **set DR of operator 4.**
   - only in 4-op mode (OPL3).
-- `5Bxy`: set KSR of operator.
-  - `x` is the operator (1-4; last 2 operators only in 4-op mode). a value of 0 means "all operators".
+- `5Bxy`: **set KSR of operator.**
+  - `x` is the operator from 1 to 4; the last 2 operators only work in 4-op mode. a value of `0` means "all operators".
   - `y` determines whether KSR is on.

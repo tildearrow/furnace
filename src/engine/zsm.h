@@ -30,24 +30,46 @@
 #define ZSM_YM_CMD 0x40
 #define ZSM_DELAY_CMD 0x80
 #define ZSM_YM_MAX_WRITES 63
+#define ZSM_SYNC_MAX_WRITES 31
 #define ZSM_DELAY_MAX 127
 #define ZSM_EOF ZSM_DELAY_CMD
+
+#define ZSM_EXT ZSM_YM_CMD
+#define ZSM_EXT_PCM 0x00
+#define ZSM_EXT_CHIP 0x40
+#define ZSM_EXT_SYNC 0x80
+#define ZSM_EXT_CUSTOM 0xC0
 
 enum YM_STATE { ym_PREV, ym_NEW, ym_STATES };
 enum PSG_STATE { psg_PREV, psg_NEW, psg_STATES };
 
 class DivZSM {
   private:
+    struct S_pcmInst {
+      int geometry;
+      unsigned int offset, length, loopPoint;
+      bool isLooped;
+    };
     SafeWriter* w;
     int ymState[ym_STATES][256];
     int psgState[psg_STATES][64];
+    int pcmRateCache;
+    int pcmCtrlRVCache;
+    int pcmCtrlDCCache;
+    unsigned int pcmLoopPointCache;
+    bool pcmIsLooped;
     std::vector<DivRegWrite> ymwrites;
+    std::vector<DivRegWrite> pcmMeta;
+    std::vector<unsigned char> pcmData;
+    std::vector<unsigned char> pcmCache;
+    std::vector<S_pcmInst> pcmInsts;
+    std::vector<unsigned char> syncCache;
     int loopOffset;
     int numWrites;
     int ticks;
     int tickRate;
-  int ymMask = 0;
-  int psgMask = 0;
+    int ymMask;
+    int psgMask;
   public:
     DivZSM();
     ~DivZSM();

@@ -6,5 +6,5 @@ everything starts with Namco WSG, which is a simple 3-channel wavetable with no 
 
 # effects
 
-- `10xx`: change waveform.
-- `11xx`: toggle noise mode (WARNING: only on C30).
+- `10xx`: **change waveform.**
+- `11xx`: **toggle noise mode.** _warning:_ only on C30.

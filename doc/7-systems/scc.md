@@ -8,4 +8,4 @@ the SCC+ fixes this issue though (while being compatible with SCC games).
 
 # effects
 
-- `10xx`: change wave.
+- `10xx`: **change wave.**

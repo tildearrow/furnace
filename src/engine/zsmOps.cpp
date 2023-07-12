@@ -150,7 +150,10 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
         logD("zsmOps: Writing %d messages to chip %d",writes.size(),i);
       for (DivRegWrite& write: writes) {
         if (i==YM) zsm.writeYM(write.addr&0xff,write.val);
-        if (i==VERA) zsm.writePSG(write.addr&0xff,write.val);
+        if (i==VERA) {
+          if (done && write.addr>=64) continue; // don't process any PCM or sync events on the loop lookahead
+          zsm.writePSG(write.addr&0xff,write.val);
+        }
       }
       writes.clear();
     }
@@ -160,7 +163,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
     fracWait+=cycles&MASTER_CLOCK_MASK;
     totalWait+=fracWait>>MASTER_CLOCK_PREC;
     fracWait&=MASTER_CLOCK_MASK;
-    if (totalWait>0) {
+    if (totalWait>0 && !done) {
       zsm.tick(totalWait);
       //tickCount+=totalWait;
     }

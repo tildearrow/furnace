@@ -693,6 +693,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
       }
     }
     ImGui::SameLine();
+    pushDestColor();
     if (ImGui::Button(ICON_FA_TIMES "##InsDelete")) {
       if (settings.unifiedDataView) {
         switch (lastAssetType) {
@@ -710,6 +711,7 @@ void FurnaceGUI::drawInsList(bool asChild) {
         doAction(GUI_ACTION_INS_LIST_DELETE);
       }
     }
+    popDestColor();
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Delete");
     }
@@ -930,9 +932,11 @@ void FurnaceGUI::drawWaveList(bool asChild) {
       }
     }
     ImGui::SameLine();
+    pushDestColor();
     if (ImGui::Button(ICON_FA_TIMES "##WaveDelete")) {
       doAction(GUI_ACTION_WAVE_LIST_DELETE);
     }
+    popDestColor();
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Delete");
     }
@@ -1070,13 +1074,6 @@ void FurnaceGUI::drawSampleList(bool asChild) {
       }
     }
     ImGui::SameLine();
-    if (ImGui::Button(ICON_FA_TIMES "##SampleDelete")) {
-      doAction(GUI_ACTION_SAMPLE_LIST_DELETE);
-    }
-    if (ImGui::IsItemHovered()) {
-      ImGui::SetTooltip("Delete");
-    }
-    ImGui::SameLine();
     if (ImGui::Button(ICON_FA_VOLUME_UP "##PreviewSampleL")) {
       doAction(GUI_ACTION_SAMPLE_LIST_PREVIEW);
     }
@@ -1089,6 +1086,15 @@ void FurnaceGUI::drawSampleList(bool asChild) {
     }
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Stop preview");
+    }
+    ImGui::SameLine();
+    pushDestColor();
+    if (ImGui::Button(ICON_FA_TIMES "##SampleDelete")) {
+      doAction(GUI_ACTION_SAMPLE_LIST_DELETE);
+    }
+    popDestColor();
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Delete");
     }
     ImGui::Separator();
     if (ImGui::BeginTable("SampleListScroll",1,ImGuiTableFlags_ScrollY)) {

@@ -116,7 +116,8 @@ const char* nesCores[]={
 
 const char* c64Cores[]={
   "reSID",
-  "reSIDfp"
+  "reSIDfp",
+  "dSID"
 };
 
 const char* pokeyCores[]={
@@ -508,6 +509,14 @@ void FurnaceGUI::drawSettings() {
             settings.alwaysPlayIntro=3;
           }
 
+          ImGui::Text("When creating new song:");
+          if (ImGui::RadioButton("Display system preset selector##NSB0",settings.newSongBehavior==0)) {
+            settings.newSongBehavior=0;
+          }
+          if (ImGui::RadioButton("Start with initial system##NSB1",settings.newSongBehavior==1)) {
+            settings.newSongBehavior=1;
+          }
+
           ImGui::Separator();
 
           if (CWSliderFloat("Double-click time (seconds)",&settings.doubleClickTime,0.02,1.0,"%.2f")) {
@@ -797,6 +806,25 @@ void FurnaceGUI::drawSettings() {
             }
           }
 #endif
+
+          if (settings.audioEngine==DIV_AUDIO_SDL) {
+            ImGui::Text("Driver");
+            ImGui::SameLine();
+            if (ImGui::BeginCombo("##SDLADriver",settings.sdlAudioDriver.empty()?"Automatic":settings.sdlAudioDriver.c_str())) {
+              if (ImGui::Selectable("Automatic",settings.sdlAudioDriver.empty())) {
+                settings.sdlAudioDriver="";
+              }
+              for (String& i: availAudioDrivers) {
+                if (ImGui::Selectable(i.c_str(),i==settings.sdlAudioDriver)) {
+                  settings.sdlAudioDriver=i;
+                }
+              }
+              ImGui::EndCombo();
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
+            }
+          }
 
           ImGui::Text("Device");
           ImGui::SameLine();
@@ -1246,7 +1274,7 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::Text("SID core");
           ImGui::SameLine();
-          ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,2);
+          ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,3);
 
           ImGui::Text("POKEY core");
           ImGui::SameLine();
@@ -1315,6 +1343,9 @@ void FurnaceGUI::drawSettings() {
 #endif
             ImGui::EndCombo();
           }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
+          }
           if (curRenderBackend=="SDL") {
             if (ImGui::BeginCombo("Render driver",settings.renderDriver.empty()?"Automatic":settings.renderDriver.c_str())) {
               if (ImGui::Selectable("Automatic",settings.renderDriver.empty())) {
@@ -1326,6 +1357,9 @@ void FurnaceGUI::drawSettings() {
                 }
               }
               ImGui::EndCombo();
+            }
+            if (ImGui::IsItemHovered()) {
+              ImGui::SetTooltip("you may need to restart Furnace for this setting to take effect.");
             }
           }
 
@@ -1590,6 +1624,16 @@ void FurnaceGUI::drawSettings() {
           }
           if (ImGui::RadioButton("Single (combo box)##mel4",settings.macroLayout==4)) {
             settings.macroLayout=4;
+          }
+
+          ImGui::Separator();
+
+          ImGui::Text("Chip memory usage unit:");
+          if (ImGui::RadioButton("Bytes##MUU0",settings.memUsageUnit==0)) {
+            settings.memUsageUnit=0;
+          }
+          if (ImGui::RadioButton("Kilobytes##MUU1",settings.memUsageUnit==1)) {
+            settings.memUsageUnit=1;
           }
 
           ImGui::Separator();
@@ -1922,6 +1966,9 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_EDITING,"Editing");
               UI_COLOR_CONFIG(GUI_COLOR_SONG_LOOP,"Song loop");
               UI_COLOR_CONFIG(GUI_COLOR_PLAYBACK_STAT,"Playback status");
+              UI_COLOR_CONFIG(GUI_COLOR_DESTRUCTIVE,"Destructive hint");
+              UI_COLOR_CONFIG(GUI_COLOR_WARNING,"Warning hint");
+              UI_COLOR_CONFIG(GUI_COLOR_ERROR,"Error hint");
               ImGui::TreePop();
             }
             if (ImGui::TreeNode("File Picker (built-in)")) {
@@ -2617,6 +2664,7 @@ void FurnaceGUI::syncSettings() {
   settings.midiOutDevice=e->getConfString("midiOutDevice","");
   settings.c163Name=e->getConfString("c163Name",DIV_C163_DEFAULT_NAME);
   settings.renderDriver=e->getConfString("renderDriver","");
+  settings.sdlAudioDriver=e->getConfString("sdlAudioDriver","");
   settings.audioQuality=e->getConfInt("audioQuality",0);
   settings.audioBufSize=e->getConfInt("audioBufSize",1024);
   settings.audioRate=e->getConfInt("audioRate",44100);
@@ -2625,7 +2673,7 @@ void FurnaceGUI::syncSettings() {
   settings.snCore=e->getConfInt("snCore",0);
   settings.nesCore=e->getConfInt("nesCore",0);
   settings.fdsCore=e->getConfInt("fdsCore",0);
-  settings.c64Core=e->getConfInt("c64Core",1);
+  settings.c64Core=e->getConfInt("c64Core",0);
   settings.pokeyCore=e->getConfInt("pokeyCore",1);
   settings.opnCore=e->getConfInt("opnCore",1);
   settings.pcSpeakerOutMethod=e->getConfInt("pcSpeakerOutMethod",0);
@@ -2751,10 +2799,12 @@ void FurnaceGUI::syncSettings() {
   settings.orderButtonPos=e->getConfInt("orderButtonPos",2);
   settings.compress=e->getConfInt("compress",1);
   settings.newPatternFormat=e->getConfInt("newPatternFormat",1);
-  settings.renderBackend=e->getConfString("renderBackend","SDL");
+  settings.renderBackend=e->getConfString("renderBackend",GUI_BACKEND_DEFAULT_NAME);
   settings.renderClearPos=e->getConfInt("renderClearPos",0);
   settings.insertBehavior=e->getConfInt("insertBehavior",1);
   settings.pullDeleteRow=e->getConfInt("pullDeleteRow",1);
+  settings.newSongBehavior=e->getConfInt("newSongBehavior",0);
+  settings.memUsageUnit=e->getConfInt("memUsageUnit",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2769,7 +2819,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.snCore,0,1);
   clampSetting(settings.nesCore,0,1);
   clampSetting(settings.fdsCore,0,1);
-  clampSetting(settings.c64Core,0,1);
+  clampSetting(settings.c64Core,0,2);
   clampSetting(settings.pokeyCore,0,1);
   clampSetting(settings.opnCore,0,1);
   clampSetting(settings.pcSpeakerOutMethod,0,4);
@@ -2880,6 +2930,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.renderClearPos,0,1);
   clampSetting(settings.insertBehavior,0,1);
   clampSetting(settings.pullDeleteRow,0,1);
+  clampSetting(settings.newSongBehavior,0,1);
+  clampSetting(settings.memUsageUnit,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -2947,7 +2999,7 @@ void FurnaceGUI::commitSettings() {
     settings.snCore!=e->getConfInt("snCore",0) ||
     settings.nesCore!=e->getConfInt("nesCore",0) ||
     settings.fdsCore!=e->getConfInt("fdsCore",0) ||
-    settings.c64Core!=e->getConfInt("c64Core",1) ||
+    settings.c64Core!=e->getConfInt("c64Core",0) ||
     settings.pokeyCore!=e->getConfInt("pokeyCore",1) ||
     settings.opnCore!=e->getConfInt("opnCore",1)
   );
@@ -2961,6 +3013,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("midiOutDevice",settings.midiOutDevice);
   e->setConf("c163Name",settings.c163Name);
   e->setConf("renderDriver",settings.renderDriver);
+  e->setConf("sdlAudioDriver",settings.sdlAudioDriver);
   e->setConf("audioQuality",settings.audioQuality);
   e->setConf("audioBufSize",settings.audioBufSize);
   e->setConf("audioRate",settings.audioRate);
@@ -3101,6 +3154,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("renderClearPos",settings.renderClearPos);
   e->setConf("insertBehavior",settings.insertBehavior);
   e->setConf("pullDeleteRow",settings.pullDeleteRow);
+  e->setConf("newSongBehavior",settings.newSongBehavior);
+  e->setConf("memUsageUnit",settings.memUsageUnit);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
@@ -3147,6 +3202,7 @@ void FurnaceGUI::commitSettings() {
     ImGui::GetIO().Fonts->Clear();
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
+    bigFont=mainFont;
     if (rend) rend->destroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
       logE("error again while building font atlas!");
@@ -3491,6 +3547,35 @@ void FurnaceGUI::pushAccentColors(const ImVec4& one, const ImVec4& two, const Im
 
 void FurnaceGUI::popAccentColors() {
   ImGui::PopStyleColor(24);
+}
+
+void FurnaceGUI::pushDestColor() {
+  pushAccentColors(uiColors[GUI_COLOR_DESTRUCTIVE],uiColors[GUI_COLOR_DESTRUCTIVE],uiColors[GUI_COLOR_DESTRUCTIVE],ImVec4(0.0f,0.0f,0.0f,0.0f));
+}
+
+void FurnaceGUI::popDestColor() {
+  popAccentColors();
+}
+
+void FurnaceGUI::pushWarningColor(bool warnCond, bool errorCond) {
+  if (warnColorPushed) {
+    logE("warnColorPushed");
+    abort();
+  }
+  if (errorCond) {
+    pushAccentColors(uiColors[GUI_COLOR_ERROR],uiColors[GUI_COLOR_ERROR],uiColors[GUI_COLOR_ERROR],ImVec4(0.0f,0.0f,0.0f,0.0f));
+    warnColorPushed=true;
+  } else if (warnCond) {
+    pushAccentColors(uiColors[GUI_COLOR_WARNING],uiColors[GUI_COLOR_WARNING],uiColors[GUI_COLOR_WARNING],ImVec4(0.0f,0.0f,0.0f,0.0f));
+    warnColorPushed=true;
+  }
+}
+
+void FurnaceGUI::popWarningColor() {
+  if (warnColorPushed) {
+    popAccentColors();
+    warnColorPushed=false;
+  }
 }
 
 #define IGFD_FileStyleByExtension IGFD_FileStyleByExtention

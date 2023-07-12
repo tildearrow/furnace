@@ -54,8 +54,10 @@
 #define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
 #define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
 
-#define DIV_VERSION "dev159"
-#define DIV_ENGINE_VERSION 159
+#define DIV_UNSTABLE
+
+#define DIV_VERSION "dev163"
+#define DIV_ENGINE_VERSION 163
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -489,7 +491,7 @@ class DivEngine {
   void processRow(int i, bool afterDelay);
   void nextOrder();
   void nextRow();
-  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, bool directStream);
+  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, int* setPos, unsigned int* sampleOff8, unsigned int* sampleLen8, size_t bankOffset, bool directStream);
   // returns true if end of song.
   bool nextTick(bool noAccum=false, bool inhibitLowLat=false);
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
@@ -570,6 +572,7 @@ class DivEngine {
     float oscSize;
     int oscReadPos, oscWritePos;
     int tickMult;
+    int lastNBIns, lastNBOuts, lastNBSize;
     std::atomic<size_t> processTime;
 
     void runExportThread();
@@ -1052,6 +1055,9 @@ class DivEngine {
     // add subsong
     int addSubSong();
 
+    // duplicate subsong
+    int duplicateSubSong(int index);
+
     // remove subsong
     bool removeSubSong(int index);
 
@@ -1249,6 +1255,9 @@ class DivEngine {
       oscReadPos(0),
       oscWritePos(0),
       tickMult(1),
+      lastNBIns(0),
+      lastNBOuts(0),
+      lastNBSize(0),
       processTime(0),
       yrw801ROM(NULL),
       tg100ROM(NULL),

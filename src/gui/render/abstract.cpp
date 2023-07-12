@@ -19,31 +19,31 @@
 
 #include "../gui.h"
 
-ImTextureID FurnaceGUIRender::getTextureID(void* which) {
+ImTextureID FurnaceGUIRender::getTextureID(FurnaceGUITexture* which) {
   return NULL;
 }
 
-bool FurnaceGUIRender::lockTexture(void* which, void** data, int* pitch) {
+bool FurnaceGUIRender::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
   return false;
 }
 
-bool FurnaceGUIRender::unlockTexture(void* which) {
+bool FurnaceGUIRender::unlockTexture(FurnaceGUITexture* which) {
   return false;
 }
 
-bool FurnaceGUIRender::updateTexture(void* which, void* data, int pitch) {
+bool FurnaceGUIRender::updateTexture(FurnaceGUITexture* which, void* data, int pitch) {
   return false;
 }
 
-void* FurnaceGUIRender::createTexture(bool dynamic, int width, int height) {
+FurnaceGUITexture* FurnaceGUIRender::createTexture(bool dynamic, int width, int height) {
   return NULL;
 }
 
-bool FurnaceGUIRender::destroyTexture(void* which) {
+bool FurnaceGUIRender::destroyTexture(FurnaceGUITexture* which) {
   return false;
 }
 
-void FurnaceGUIRender::setTextureBlendMode(void* which, FurnaceGUIBlendMode mode) {
+void FurnaceGUIRender::setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode) {
 }
 
 void FurnaceGUIRender::setBlendMode(FurnaceGUIBlendMode mode) {
@@ -97,6 +97,10 @@ bool FurnaceGUIRender::quit() {
 }
 
 void FurnaceGUIRender::quitGUI() { 
+}
+
+bool FurnaceGUIRender::isDead() {
+  return false;
 }
 
 FurnaceGUIRender::~FurnaceGUIRender() {

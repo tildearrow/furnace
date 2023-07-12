@@ -15,4 +15,4 @@ these channels are not referred as "square" wave channels since a technique to p
 
 ## effect commands
 
- - `10xx` Switch waveform (`xx` from `00` to `0F`)
+- `10xx`: **switch waveform.** range is `00` to `0F`.

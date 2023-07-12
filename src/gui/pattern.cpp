@@ -133,17 +133,20 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
   }
   ImGui::PopStyleColor();
   // for each column
+  int mustSetXOf=0;
   for (int j=0; j<chans; j++) {
     // check if channel is not hidden
     if (!e->curSubSong->chanShow[j]) {
-      patChanX[j]=ImGui::GetCursorScreenPos().x;
       continue;
     }
     int chanVolMax=e->getMaxVolumeChan(j);
     if (chanVolMax<1) chanVolMax=1;
     const DivPattern* pat=patCache[j];
     ImGui::TableNextColumn();
-    patChanX[j]=ImGui::GetCursorScreenPos().x;
+    for (int k=mustSetXOf; k<=j; k++)  {
+      patChanX[k]=ImGui::GetCursorScreenPos().x;
+    }
+    mustSetXOf=j+1;
 
     // selection highlight flags
     int sel1XSum=sel1.xCoarse*32+sel1.xFine;
@@ -358,7 +361,9 @@ inline void FurnaceGUI::patternRow(int i, bool isPlaying, float lineHeight, int 
     ImGui::PopStyleColor();
   }
   ImGui::TableNextColumn();
-  patChanX[chans]=ImGui::GetCursorScreenPos().x;
+  for (int k=mustSetXOf; k<=chans; k++)  {
+    patChanX[k]=ImGui::GetCursorScreenPos().x;
+  }
 }
 
 void FurnaceGUI::drawPattern() {
@@ -371,7 +376,6 @@ void FurnaceGUI::drawPattern() {
   if (!patternOpen) return;
 
   bool inhibitMenu=false;
-  float scrollX=0;
 
   if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) {
     cursor.y=oldRow+((pendingStepUpdate)?1:0);
@@ -946,7 +950,6 @@ void FurnaceGUI::drawPattern() {
         }
         demandScrollX=false;
       }
-      scrollX=ImGui::GetScrollX();
 
       // overflow changes order
       // TODO: this is very unreliable and sometimes it can warp you out of the song
@@ -1119,6 +1122,8 @@ void FurnaceGUI::drawPattern() {
             break;
         }
 
+        if (!e->curSubSong->chanShow[i.chan]) continue;
+
         for (int j=0; j<num; j++) {
           ImVec2 partPos=ImVec2(
             off.x+patChanX[i.chan]+fmod(rand(),width),
@@ -1175,8 +1180,8 @@ void FurnaceGUI::drawPattern() {
           }
 
           if (width>0.1) for (float j=-patChanSlideY[i]; j<ImGui::GetWindowHeight(); j+=width*0.7) {
-            ImVec2 tMin=ImVec2(off.x+patChanX[i]-scrollX,off.y+j);
-            ImVec2 tMax=ImVec2(off.x+patChanX[i+1]-scrollX,off.y+j+width*0.6);
+            ImVec2 tMin=ImVec2(off.x+patChanX[i],off.y+j);
+            ImVec2 tMax=ImVec2(off.x+patChanX[i+1],off.y+j+width*0.6);
             if (ch->portaNote<=ch->note) {
               arrowPoints[0]=ImLerp(tMin,tMax,ImVec2(0.1,1.0-0.8));
               arrowPoints[1]=ImLerp(tMin,tMax,ImVec2(0.5,1.0-0.0));

@@ -12,8 +12,8 @@ there are also 3 ADPCM channels. ADPCM samples are fixed to 8012 Hz.
 
 # effects
 
-- `10xx`: set echo feedback level.
+- `10xx`: **set echo feedback level.**
   - this effect will apply to all channels.
-- `11xx`: set echo level.
-- `12xx`: toggle QSound algorithm (on by default).
-- `3xxx`: set the length of the echo delay buffer.
+- `11xx`: **set echo level.**
+- `12xx`: **toggle QSound algorithm.** on by default.
+- `3xxx`: **set echo delay buffer length.**

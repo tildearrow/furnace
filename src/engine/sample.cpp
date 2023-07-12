@@ -392,7 +392,7 @@ bool DivSample::save(const char* path) {
   if (length16<1) return false;
 
   si.channels=1;
-  si.samplerate=rate;
+  si.samplerate=centerRate;
   switch (depth) {
     case DIV_SAMPLE_DEPTH_8BIT: // 8-bit
       si.format=SF_FORMAT_PCM_U8|SF_FORMAT_WAV;
@@ -412,7 +412,8 @@ bool DivSample::save(const char* path) {
   SF_INSTRUMENT inst;
   memset(&inst, 0, sizeof(inst));
   inst.gain = 1;
-  short pitch = (0x3c * 100) + 50 - (log2((double)centerRate/rate) * 12.0 * 100.0);
+  // TODO: fix
+  short pitch = (0x3c * 100) + 50 - (log2((double)centerRate/8363.0) * 12.0 * 100.0);
   inst.basenote = pitch / 100;
   inst.detune = 50 - (pitch % 100);
   inst.velocity_hi = 0x7f;

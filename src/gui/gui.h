@@ -75,16 +75,20 @@ enum FurnaceGUIRenderBackend {
   GUI_BACKEND_DX11
 };
 
-#ifdef HAVE_RENDER_SDL
-#define GUI_BACKEND_DEFAULT GUI_BACKEND_SDL
-#define GUI_BACKEND_DEFAULT_NAME "SDL"
-#else
 #ifdef HAVE_RENDER_DX11
 #define GUI_BACKEND_DEFAULT GUI_BACKEND_DX11
 #define GUI_BACKEND_DEFAULT_NAME "DirectX 11"
 #else
+#ifdef HAVE_RENDER_GL
 #define GUI_BACKEND_DEFAULT GUI_BACKEND_GL
 #define GUI_BACKEND_DEFAULT_NAME "OpenGL"
+#else
+#ifdef HAVE_RENDER_SDL
+#define GUI_BACKEND_DEFAULT GUI_BACKEND_SDL
+#define GUI_BACKEND_DEFAULT_NAME "SDL"
+#else
+#error how did you manage to do that?
+#endif
 #endif
 #endif
 
@@ -126,6 +130,9 @@ enum FurnaceGUIColors {
   GUI_COLOR_TOGGLE_ON,
   GUI_COLOR_EDITING,
   GUI_COLOR_SONG_LOOP,
+  GUI_COLOR_DESTRUCTIVE,
+  GUI_COLOR_WARNING,
+  GUI_COLOR_ERROR,
 
   GUI_COLOR_FILE_DIR,
   GUI_COLOR_FILE_SONG_NATIVE,
@@ -1212,9 +1219,12 @@ struct FurnaceGUIQueryResult {
   }
 };
 
+class FurnaceGUITexture {
+};
+
 struct FurnaceGUIImage {
   unsigned char* data;
-  void* tex;
+  FurnaceGUITexture* tex;
   int width, height, ch;
 
   FurnaceGUIImage():
@@ -1245,13 +1255,13 @@ enum FurnaceGUIBlendMode {
 
 class FurnaceGUIRender {
   public:
-    virtual ImTextureID getTextureID(void* which);
-    virtual bool lockTexture(void* which, void** data, int* pitch);
-    virtual bool unlockTexture(void* which);
-    virtual bool updateTexture(void* which, void* data, int pitch);
-    virtual void* createTexture(bool dynamic, int width, int height);
-    virtual bool destroyTexture(void* which);
-    virtual void setTextureBlendMode(void* which, FurnaceGUIBlendMode mode);
+    virtual ImTextureID getTextureID(FurnaceGUITexture* which);
+    virtual bool lockTexture(FurnaceGUITexture* which, void** data, int* pitch);
+    virtual bool unlockTexture(FurnaceGUITexture* which);
+    virtual bool updateTexture(FurnaceGUITexture* which, void* data, int pitch);
+    virtual FurnaceGUITexture* createTexture(bool dynamic, int width, int height);
+    virtual bool destroyTexture(FurnaceGUITexture* which);
+    virtual void setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode);
     virtual void setBlendMode(FurnaceGUIBlendMode mode);
     virtual void resized(const SDL_Event& ev);
     virtual void clear(ImVec4 color);
@@ -1268,6 +1278,7 @@ class FurnaceGUIRender {
     virtual void initGUI(SDL_Window* win);
     virtual void quitGUI();
     virtual bool quit();
+    virtual bool isDead();
     virtual ~FurnaceGUIRender();
 };
 
@@ -1281,7 +1292,7 @@ class FurnaceGUI {
   SDL_Haptic* vibrator;
   bool vibratorAvailable;
   
-  void* sampleTex;
+  FurnaceGUITexture* sampleTex;
   int sampleTexW, sampleTexH;
   bool updateSampleTex;
 
@@ -1299,14 +1310,16 @@ class FurnaceGUI {
   std::deque<String> recentFile;
   std::vector<DivInstrumentType> makeInsTypeList;
   std::vector<String> availRenderDrivers;
+  std::vector<String> availAudioDrivers;
 
   bool quit, warnQuit, willCommit, edit, modified, displayError, displayExporting, vgmExportLoop, zsmExportLoop, vgmExportPatternHints;
   bool vgmExportDirectStream, displayInsTypeList;
-  bool portrait, injectBackUp, mobileMenuOpen;
+  bool portrait, injectBackUp, mobileMenuOpen, warnColorPushed;
   bool wantCaptureKeyboard, oldWantCaptureKeyboard, displayMacroMenu;
   bool displayNew, displayPalette, fullScreen, preserveChanPos, wantScrollList, noteInputPoly;
   bool displayPendingIns, pendingInsSingle, displayPendingRawSample, snesFilterHex, modTableHex, displayEditString;
   bool mobileEdit;
+  bool killGraphics;
   bool willExport[DIV_MAX_CHIPS];
   int vgmExportVersion;
   int vgmExportTrailingTicks;
@@ -1511,6 +1524,8 @@ class FurnaceGUI {
     int renderClearPos;
     int insertBehavior;
     int pullDeleteRow;
+    int newSongBehavior;
+    int memUsageUnit;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1526,6 +1541,7 @@ class FurnaceGUI {
     String macroRelLabel;
     String emptyLabel;
     String emptyLabel2;
+    String sdlAudioDriver;
     DivConfig initialSys;
 
     Settings():
@@ -1540,7 +1556,7 @@ class FurnaceGUI {
       snCore(0),
       nesCore(0),
       fdsCore(0),
-      c64Core(1),
+      c64Core(0),
       pokeyCore(1),
       opnCore(1),
       pcSpeakerOutMethod(0),
@@ -1662,6 +1678,8 @@ class FurnaceGUI {
       renderClearPos(0),
       insertBehavior(1),
       pullDeleteRow(1),
+      newSongBehavior(0),
+      memUsageUnit(1),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -1676,7 +1694,8 @@ class FurnaceGUI {
       noteRelLabel("==="),
       macroRelLabel("REL"),
       emptyLabel("..."),
-      emptyLabel2("..") {}
+      emptyLabel2(".."),
+      sdlAudioDriver("") {}
   } settings;
 
   struct Tutorial {
@@ -1959,7 +1978,7 @@ class FurnaceGUI {
   String chanOscTextFormat;
   ImVec4 chanOscColor, chanOscTextColor;
   Gradient2D chanOscGrad;
-  void* chanOscGradTex;
+  FurnaceGUITexture* chanOscGradTex;
   float chanOscLP0[DIV_MAX_CHANS];
   float chanOscLP1[DIV_MAX_CHANS];
   float chanOscVol[DIV_MAX_CHANS];
@@ -2088,6 +2107,13 @@ class FurnaceGUI {
   void pushAccentColors(const ImVec4& one, const ImVec4& two, const ImVec4& border, const ImVec4& borderShadow);
   void popAccentColors();
 
+  void pushDestColor();
+  void popDestColor();
+  void pushWarningColor(bool warnCond, bool errorCond=false);
+  void popWarningColor();
+
+  void sameLineMaybe(float width=-1.0f);
+
   float calcBPM(const DivGroovePattern& speeds, float hz, int vN, int vD);
 
   void patternRow(int i, bool isPlaying, float lineHeight, int chans, int ord, const DivPattern** patCache, bool inhibitSel);
@@ -2113,7 +2139,7 @@ class FurnaceGUI {
   void highlightWindow(const char* winName);
 
   FurnaceGUIImage* getImage(FurnaceGUIImages image);
-  void* getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode=GUI_BLEND_MODE_BLEND);
+  FurnaceGUITexture* getTexture(FurnaceGUIImages image, FurnaceGUIBlendMode blendMode=GUI_BLEND_MODE_BLEND);
   void drawImage(ImDrawList* dl, FurnaceGUIImages image, const ImVec2& pos, const ImVec2& scale, double rotate, const ImVec2& uvMin, const ImVec2& uvMax, const ImVec4& imgColor);
 
   void drawMobileControls();
@@ -2289,6 +2315,7 @@ class FurnaceGUI {
     bool loop();
     bool finish();
     bool init();
+    void requestQuit();
     FurnaceGUI();
 };
 

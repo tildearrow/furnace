@@ -1678,6 +1678,51 @@ int DivEngine::addSubSong() {
   return song.subsong.size()-1;
 }
 
+int DivEngine::duplicateSubSong(int index) {
+  if (song.subsong.size()>=127) return -1;
+  BUSY_BEGIN;
+  saveLock.lock();
+  DivSubSong* theCopy=new DivSubSong;
+  DivSubSong* theOrig=song.subsong[index];
+
+  theCopy->name=theOrig->name;
+  theCopy->notes=theOrig->notes;
+  theCopy->hilightA=theOrig->hilightA;
+  theCopy->hilightB=theOrig->hilightB;
+  theCopy->timeBase=theOrig->timeBase;
+  theCopy->arpLen=theOrig->arpLen;
+  theCopy->speeds=theOrig->speeds;
+  theCopy->virtualTempoN=theOrig->virtualTempoN;
+  theCopy->virtualTempoD=theOrig->virtualTempoD;
+  theCopy->hz=theOrig->hz;
+  theCopy->patLen=theOrig->patLen;
+  theCopy->ordersLen=theOrig->ordersLen;
+  theCopy->orders=theOrig->orders;
+  
+  memcpy(theCopy->chanShow,theOrig->chanShow,DIV_MAX_CHANS*sizeof(bool));
+  memcpy(theCopy->chanCollapse,theOrig->chanCollapse,DIV_MAX_CHANS);
+
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    theCopy->chanName[i]=theOrig->chanName[i];
+    theCopy->chanShortName[i]=theOrig->chanShortName[i];
+
+    theCopy->pat[i].effectCols=theOrig->pat[i].effectCols;
+
+    for (int j=0; j<DIV_MAX_PATTERNS; j++) {
+      if (theOrig->pat[i].data[j]==NULL) continue;
+      DivPattern* origPat=theOrig->pat[i].getPattern(j,false);
+      DivPattern* copyPat=theCopy->pat[i].getPattern(j,true);
+      origPat->copyOn(copyPat);
+    }
+  }
+
+  song.subsong.push_back(theCopy);
+  
+  saveLock.unlock();
+  BUSY_END;
+  return song.subsong.size()-1;
+}
+
 bool DivEngine::removeSubSong(int index) {
   if (song.subsong.size()<=1) return false;
   stop();
@@ -4541,6 +4586,15 @@ bool DivEngine::initAudioBackend() {
     }
   }
 
+#ifdef HAVE_SDL2
+  if (audioEngine==DIV_AUDIO_SDL) {
+    String audioDriver=getConfString("sdlAudioDriver","");
+    if (!audioDriver.empty()) {
+      SDL_SetHint("SDL_HINT_AUDIODRIVER",audioDriver.c_str());
+    }
+  }
+#endif
+
   lowQuality=getConfInt("audioQuality",0);
   forceMono=getConfInt("forceMono",0);
   clampSamples=getConfInt("clampSamples",0);
@@ -4549,7 +4603,7 @@ bool DivEngine::initAudioBackend() {
   midiOutClock=getConfInt("midiOutClock",0);
   midiOutTime=getConfInt("midiOutTime",0);
   midiOutTimeRate=getConfInt("midiOutTimeRate",0);
-  midiOutProgramChange = getConfInt("midiOutProgramChange",0);
+  midiOutProgramChange=getConfInt("midiOutProgramChange",0);
   midiOutMode=getConfInt("midiOutMode",DIV_MIDI_MODE_NOTE);
   if (metroVol<0.0f) metroVol=0.0f;
   if (metroVol>2.0f) metroVol=2.0f;

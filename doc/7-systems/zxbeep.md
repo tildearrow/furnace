@@ -6,8 +6,8 @@ not really - very soon talented programmers found out ways to output much more t
 
 # effects
 
-- `12xx`: set pulse width.
-- `17xx`: trigger overlay drum.
+- **`12xx`**: set pulse width.
+- **`17xx`**: trigger overlay drum.
   - `xx` is the sample number.
   - overlay drums are 1-bit and always play at 55930Hz (NTSC) or 55420Hz (PAL).
   - the maximum length is 2048!

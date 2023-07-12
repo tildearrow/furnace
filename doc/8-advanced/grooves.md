@@ -2,7 +2,7 @@
 
 Grooves are macros for speed.
 
-A groove is the equivalent of repeating `0Fxx` commands on each row to get a cycle of speeds. For example, a groove of "6 4 5 3" makes the first row 6 ticks long, the next row 4 ticks, then 5, 3, 6, 4, 5, 3...
+A **groove** is the equivalent of repeating `0Fxx` commands on each row to get a cycle of speeds. For example, a groove of "6 4 5 3" makes the first row 6 ticks long, the next row 4 ticks, then 5, 3, 6, 4, 5, 3...
 
 
 ![groove](groove.png)
@@ -17,7 +17,7 @@ To set the song's groove:
 ![groove patterns](grooves.png)
 
 The "Grooves" window is for entering preset groove patterns.
-- The `+` button adds a new groove pattern; click in the pattern to edit it.
-- The `×` buttons remove them.
+- The **`+`** button adds a new groove pattern; click in the pattern to edit it.
+- The **`×`** buttons remove them.
 
 A single `09xx` command will switch to the matching numbered groove pattern.

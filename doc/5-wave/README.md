@@ -6,13 +6,13 @@ Furnace's wavetable editor is rather simple, you can draw the waveform using mou
 
 Furnace's wavetable editor features multiple ways of creating desired waveform shape:
 
-- Shape tab allows you to select a few predefined basic shapes and indirectly edit it via "Duty", "Exponent" and "XOR Point" sliders:
-  - `Duty` slider affects mainly pulse waves, determining its wisth, like on C64/VRC6
-  - `Exponent` powers the waveform in the mathematical sense of the word (^2, ^3 and so on)
-  - `XOR Point` determines the point where the waveform gets negated.
-  - TODO: amplitude/phase part
-- FM is for creating the waveform with frequency modulation synthesis principles: One can set carrier/modulation levels, frquency multiplier, connection between operators and FM waveforms of these operators.
-- WaveTools allows user to fine-tune the waveform: scale said waveform in both X and Y axes, smoothen, amplify, normalize, convert to signed/unisgned, invert or even randomize the wavetable.
+- **Shape** tab allows you to select a few predefined basic shapes and indirectly edit it via "Duty", "Exponent" and "XOR Point" sliders:
+  - **Duty**: Affects mainly pulse waves, determining its wisth, like on C64/VRC6
+  - **Exponent**: Powers the waveform in the mathematical sense of the word (^2, ^3 and so on)
+  - **XOR Point**: Determines the point where the waveform gets negated.
+  - _TODO:_ amplitude/phase part
+- **FM** for creating the waveform with frequency modulation synthesis principles: One can set carrier/modulation levels, frquency multiplier, connection between operators and FM waveforms of these operators.
+- **WaveTools**: Allows user to fine-tune the waveform: scale said waveform in both X and Y axes, smoothen, amplify, normalize, convert to signed/unisgned, invert or even randomize the wavetable.
 
 ## wavetable synthesizer
 

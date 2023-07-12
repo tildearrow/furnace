@@ -10,34 +10,34 @@ additionally, channel 5 offers a modulation/sweep unit. the former is similar to
 
 # effects
 
-- `10xx`: set waveform.
-- `11xx`: set noise length (0 to 7).
+- `10xx`: **set waveform.**
+- `11xx`: **set noise length.** range is `0` to `7`.
   - only in the noise channel.
-- `12xy`: setup envelope.
+- `12xy`: **setup envelope.**
   - `x` determines whether envelope is enabled or not.
-    - 0: disabled
-    - 1: enabled
-    - 3: enabled and loop
-    - yeah, the value 2 isn't useful.
+    - `0`: disabled
+    - `1`: enabled
+    - `3`: enabled and loop
+    - yeah, the value `2` isn't useful.
   - `y` sets the speed and direction.
-    - 0-7: down
-    - 8-F: up
-- `13xy`: setup sweep.
+    - `0-7`: down
+    - `8-F`: up
+- `13xy`: **setup sweep.**
   - `x` sets the speed.
-    - 0 and 8 are "speed 0" - sweep is ineffective.
-  - `y` sets the shift (0 to 7).
-    - 8 and higher will mute the channel.
+    - `0` and `8` are "speed 0" - sweep is ineffective.
+  - `y` sets the shift (`0` to `7`).
+    - `8` and higher will mute the channel.
   - only in channel 5.
-- `14xy`: setup modulation.
+- `14xy`: **setup modulation.**
   - `x` determines whether it's enabled or not.
     - 0: disabled
     - 1: enabled
     - 3: enabled and loop
     - 2 isn't useful here either.
   - `y` sets the speed.
-    - 0 and 8 are "speed 0" - modulation is ineffective.
+    - `0` and `8` are "speed 0" - modulation is ineffective.
     - no, you can't really do Yamaha FM using this.
   - only in channel 5.
-- `15xx`: set modulation wave.
-  - `xx` points to a wavetable. it should have a height of 255.
+- `15xx`: **set modulation wave.**
+  - `xx` points to a wavetable. range is `0` to `FF`.
   - this is an alternative to setting the modulation wave through the instrument.

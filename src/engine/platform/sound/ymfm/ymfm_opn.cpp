@@ -141,6 +141,7 @@ template<bool IsOpnA>
 bool opn_registers_base<IsOpnA>::write(uint16_t index, uint8_t data, uint32_t &channel, uint32_t &opmask)
 {
 	assert(index < REGISTERS);
+  if (index >= REGISTERS) return false;
 
 	// writes in the 0xa0-af/0x1a0-af region are handled as latched pairs
 	// borrow unused registers 0xb8-bf/0x1b8-bf as temporary holding locations

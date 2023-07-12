@@ -8,4 +8,4 @@ some of these didn't even have sound...
 
 # effects
 
-- 10xx: set waveform. `xx` is a bitmask.
+- `10xx`: **set waveform.** `xx` is a bitmask.

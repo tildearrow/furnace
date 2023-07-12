@@ -36,7 +36,10 @@
 
 typedef HRESULT (WINAPI *SPDA)(PROCESS_DPI_AWARENESS);
 #else
+#include <signal.h>
 #include <unistd.h>
+
+struct sigaction termsa;
 #endif
 
 #include "cli/cli.h"
@@ -198,6 +201,7 @@ TAParamResult pVersion(String) {
   printf("- NSFPlay by Brad Smith and Brezza (unknown open-source license)\n");
   printf("- reSID by Dag Lem (GPLv2)\n");
   printf("- reSIDfp by Dag Lem, Antti Lankila and Leandro Nini (GPLv2)\n");
+  printf("- dSID by DefleMask Team (based on jsSID by Hermit) (MIT)\n");
   printf("- Stella by Stella Team (GPLv2)\n");
   printf("- vgsound_emu (second version, modified version) by cam900 (zlib license)\n");
   printf("- MAME GA20 core by Acho A. Tang, R. Belmont, Valley Bell (BSD 3-clause)\n");
@@ -355,9 +359,24 @@ void reportError(String what) {
 }
 #endif
 
+#ifndef _WIN32
+#ifdef HAVE_GUI
+static void handleTermGUI(int) {
+  g.requestQuit();
+}
+#endif
+#endif
+
 // TODO: CoInitializeEx on Windows?
 // TODO: add crash log
 int main(int argc, char** argv) {
+  // uncomment these if you want Furnace to play in the background on Android.
+  // not recommended. it lags.
+#if defined(HAVE_SDL2) && defined(ANDROID)
+  //SDL_SetHint(SDL_HINT_ANDROID_BLOCK_ON_PAUSE,"0");
+  //SDL_SetHint(SDL_HINT_ANDROID_BLOCK_ON_PAUSE_PAUSEAUDIO,"0");
+#endif
+
   // Windows console thing - thanks dj.tuBIG/MaliceX
 #ifdef _WIN32
 
@@ -644,6 +663,13 @@ int main(int argc, char** argv) {
   if (!fileName.empty()) {
     g.setFileName(fileName);
   }
+
+#ifndef _WIN32
+  sigemptyset(&termsa.sa_mask);
+  termsa.sa_flags=0;
+  termsa.sa_handler=handleTermGUI;
+  sigaction(SIGTERM,&termsa,NULL);
+#endif
 
   g.loop();
   logI("closing GUI.");

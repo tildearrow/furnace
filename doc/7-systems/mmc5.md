@@ -8,5 +8,5 @@ additionally, it offers an 8-bit DAC which can be used to play samples. only one
 
 # effects
 
-- `12xx`: set duty cycle or noise mode of channel.
-  - may be 0-3 for the pulse channels.
+- `12xx`: **set duty cycle or noise mode of channel.**
+  - may be `0` through `3` for the pulse channels.
