@@ -798,7 +798,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_AMIGA]=new DivSysDef(
     "Amiga", NULL, 0x81, 0, 4, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
-    "a computer from the '80's with full sampling capabilities, giving it a sound ahead of its time.\n\n- the maximum rate for sample playback is technically 31,469Hz but anything higher than 28,867Hz will sound glitchy on hardware.\n- sample lengths and loop will be set to an even number.\n- samples can't be longer than 131070.",
+    "a computer from the '80's with full sampling capabilities, giving it a sound ahead of its time.\n\n- the maximum rate for sample playback is technically 31469Hz but anything higher than 28867Hz will sound glitchy on hardware.\n- sample lengths and loop will be set to an even number.\n- samples can't be longer than 131070.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
     {"CH1", "CH2", "CH3", "CH4"},
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
