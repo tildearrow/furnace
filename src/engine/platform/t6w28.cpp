@@ -54,7 +54,7 @@ void DivPlatformT6W28::acquire(short** buf, size_t len) {
     tempL=0;
     tempR=0;
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(out[i][1].curValue+out[i][2].curValue)<<6;
+      oscBuf[i]->data[oscBuf[i]->needle++]=(out[i][1].curValue+out[i][2].curValue)<<7;
       tempL+=out[i][1].curValue<<7;
       tempR+=out[i][2].curValue<<7;
     }

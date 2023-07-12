@@ -356,7 +356,6 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text("- filtCut: %d",ch->filtCut);
       ImGui::Text("- resetTime: %d",ch->resetTime);
       COMMON_CHIP_DEBUG_BOOL;
-      ImGui::TextColored(ch->isFP?colorOn:colorOff,">> IsFP");
       break;
     }
     case DIV_SYSTEM_ARCADE:

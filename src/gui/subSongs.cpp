@@ -17,7 +17,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
   bool began=asChild?ImGui::BeginChild("Subsongs"):ImGui::Begin("Subsongs",&subSongsOpen,globalWinFlags);
   if (began) {
     char id[1024];
-    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*2.0f-ImGui::GetStyle().ItemSpacing.x);
+    ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing()*3.0f-ImGui::GetStyle().ItemSpacing.x*2.0f);
     if (e->curSubSong->name.empty()) {
       snprintf(id,1023,"%d. <no name>",(int)e->getCurrentSubSong()+1);
     } else {
@@ -92,6 +92,29 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
       ImGui::SetTooltip("Add");
     }
     ImGui::SameLine();
+    if (ImGui::Button(ICON_FA_FILES_O "##SubSongDuplicate")) {
+      if (!e->duplicateSubSong(e->getCurrentSubSong())) {
+        showError("too many subsongs!");
+      } else {
+        e->changeSongP(e->song.subsong.size()-1);
+        updateScroll(0);
+        oldOrder=0;
+        oldOrder1=0;
+        oldRow=0;
+        cursor.xCoarse=0;
+        cursor.xFine=0;
+        cursor.y=0;
+        selStart=cursor;
+        selEnd=cursor;
+        curOrder=0;
+        MARK_MODIFIED;
+      }
+    }
+    if (ImGui::IsItemHovered()) {
+      ImGui::SetTooltip("Duplicate");
+    }
+    ImGui::SameLine();
+    pushDestColor();
     if (ImGui::Button(ICON_FA_MINUS "##SubSongDel")) {
       if (e->song.subsong.size()<=1) {
         showError("this is the only subsong!");
@@ -99,6 +122,7 @@ void FurnaceGUI::drawSubSongs(bool asChild) {
         showWarning("are you sure you want to remove this subsong?",GUI_WARN_SUBSONG_DEL);
       }
     }
+    popDestColor();
     if (ImGui::IsItemHovered()) {
       ImGui::SetTooltip("Remove");
     }

@@ -236,6 +236,8 @@ const char* cmdName[]={
 
   "NES_LINEAR_LENGTH",
 
+  "EXTERNAL",
+
   "ALWAYS_SET_VOLUME"
 };
 
@@ -417,6 +419,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
       short effectVal=pat->data[whatRow][5+(j<<1)];
 
       if (effectVal==-1) effectVal=0;
+      effectVal&=255;
 
       switch (effect) {
         case 0x09: // select groove pattern/speed 1
@@ -597,6 +600,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
     if (effectVal==-1) effectVal=0;
+    effectVal&=255;
 
     // per-system effect
     if (!perSystemEffect(i,effect,effectVal)) switch (effect) {
@@ -779,21 +783,17 @@ void DivEngine::processRow(int i, bool afterDelay) {
         dispatchCmd(DivCommand(DIV_CMD_HINT_VOL_SLIDE,i,chan[i].volSpeed));
         break;
       case 0x07: // tremolo
-        // TODO
-        // this effect is really weird. i thought it would alter the tremolo depth but turns out it's completely different
-        // this is how it works:
-        // - 07xy enables tremolo
-        // - when enabled, a "low" boundary is calculated based on the current volume
-        // - then a volume slide down starts to the low boundary, and then when this is reached a volume slide up begins
-        // - this process repeats until 0700 or 0Axy are found
-        // - note that a volume value does not stop tremolo - instead it glitches this whole thing up
         if (chan[i].tremoloDepth==0) {
           chan[i].tremoloPos=0;
         }
         chan[i].tremoloDepth=effectVal&15;
         chan[i].tremoloRate=effectVal>>4;
-        // tremolo and vol slides are incompatiblw
-        chan[i].volSpeed=0;
+        if (chan[i].tremoloDepth!=0) {
+          chan[i].volSpeed=0;
+        } else {
+          dispatchCmd(DivCommand(DIV_CMD_VOLUME,i,chan[i].volume>>8));
+          dispatchCmd(DivCommand(DIV_CMD_HINT_VOLUME,i,chan[i].volume>>8));
+        }
         break;
       case 0x0a: // volume ramp
         // TODO: non-0x-or-x0 value should be treated as 00
@@ -915,6 +915,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
         //printf("\x1b[1;36m%d: extern command %d\x1b[m\n",i,effectVal);
         extValue=effectVal;
         extValuePresent=true;
+        dispatchCmd(DivCommand(DIV_CMD_EXTERNAL,i,effectVal));
         break;
       case 0xef: // global pitch
         globalPitch+=(signed char)(effectVal-0x80);
@@ -1064,6 +1065,7 @@ void DivEngine::processRow(int i, bool afterDelay) {
     short effectVal=pat->data[whatRow][5+(j<<1)];
 
     if (effectVal==-1) effectVal=0;
+    effectVal&=255;
     perSystemPostEffect(i,effect,effectVal);
   }
 }
@@ -1189,6 +1191,11 @@ void DivEngine::nextRow() {
     nextSpeed=speeds.val[curSpeed];
   }
 
+  /*
+  if (skipping) {
+    ticks=1;
+  }*/
+
   // post row details
   for (int i=0; i<chans; i++) {
     DivPattern* pat=curPat[i].getPattern(curOrders->ord[i][curOrder],false);
@@ -1203,7 +1210,7 @@ void DivEngine::nextRow() {
               for (int j=0; j<curPat[i].effectCols; j++) {
                 if (pat->data[curRow][4+(j<<1)]==0xed) {
                   if (pat->data[curRow][5+(j<<1)]>0) {
-                    addition=pat->data[curRow][5+(j<<1)];
+                    addition=pat->data[curRow][5+(j<<1)]&255;
                     break;
                   }
                 }
@@ -1233,7 +1240,7 @@ void DivEngine::nextRow() {
               }
               if (pat->data[curRow][4+(j<<1)]==0xed) {
                 if (pat->data[curRow][5+(j<<1)]>0) {
-                  addition=pat->data[curRow][5+(j<<1)];
+                  addition=pat->data[curRow][5+(j<<1)]&255;
                   break;
                 }
               }
@@ -1314,13 +1321,8 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     if (--subticks<=0) {
       subticks=tickMult;
 
-      // MIDI clock
-      if (output) if (!skipping && output->midiOut!=NULL && midiOutClock) {
-        output->midiOut->send(TAMidiMessage(TA_MIDI_CLOCK,0,0));
-      }
-
       if (stepPlay!=1) {
-        tempoAccum+=curSubSong->virtualTempoN;
+        tempoAccum+=(skipping && curSubSong->virtualTempoN<curSubSong->virtualTempoD)?curSubSong->virtualTempoD:curSubSong->virtualTempoN;
         while (tempoAccum>=curSubSong->virtualTempoD) {
           tempoAccum-=curSubSong->virtualTempoD;
           if (--ticks<=0) {
@@ -1388,10 +1390,10 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
         }
         if (chan[i].vibratoDepth>0) {
           chan[i].vibratoPos+=chan[i].vibratoRate;
-          if (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
+          while (chan[i].vibratoPos>=64) chan[i].vibratoPos-=64;
 
           chan[i].vibratoPosGiant+=chan[i].vibratoRate;
-          if (chan[i].vibratoPos>=512) chan[i].vibratoPos-=512;
+          while (chan[i].vibratoPos>=512) chan[i].vibratoPos-=512;
 
           switch (chan[i].vibratoDir) {
             case 1: // up
@@ -1548,7 +1550,158 @@ int DivEngine::getBufferPos() {
   return bufferPos>>MASTER_CLOCK_PREC;
 }
 
+void DivEngine::runMidiClock(int totalCycles) {
+  if (freelance) return;
+  midiClockCycles-=totalCycles;
+  while (midiClockCycles<=0) {
+    curMidiClock++;
+    if (output) if (!skipping && output->midiOut!=NULL && midiOutClock) {
+      output->midiOut->send(TAMidiMessage(TA_MIDI_CLOCK,0,0));
+    }
+
+    double hl=curSubSong->hilightA;
+    if (hl<=0.0) hl=4.0;
+    double timeBase=curSubSong->timeBase+1;
+    double speedSum=0;
+    double vD=curSubSong->virtualTempoD;
+    for (int i=0; i<MIN(16,speeds.len); i++) {
+      speedSum+=speeds.val[i];
+    }
+    speedSum/=MAX(1,speeds.len);
+    if (timeBase<1.0) timeBase=1.0;
+    if (speedSum<1.0) speedSum=1.0;
+    if (vD<1) vD=1;
+    double bpm=((24.0*divider)/(timeBase*hl*speedSum))*(double)curSubSong->virtualTempoN/vD;
+    if (bpm<1.0) bpm=1.0;
+    int increment=got.rate*pow(2,MASTER_CLOCK_PREC)/(bpm);
+
+    midiClockCycles+=increment;
+    midiClockDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)(bpm));
+    if (midiClockDrift>=(bpm)) {
+      midiClockDrift-=(bpm);
+      midiClockCycles++;
+    }
+  }
+}
+
+void DivEngine::runMidiTime(int totalCycles) {
+  if (freelance) return;
+  midiTimeCycles-=totalCycles;
+  while (midiTimeCycles<=0) {
+    if (curMidiTimePiece==0) {
+      curMidiTimeCode=curMidiTime;
+    }
+    if (!(curMidiTimePiece&3)) curMidiTime++;
+
+    double frameRate=96.0;
+    int timeRate=midiOutTimeRate;
+    if (timeRate<1 || timeRate>4) {
+      if (curSubSong->hz>=47.98 && curSubSong->hz<=48.02) {
+        timeRate=1;
+      } else if (curSubSong->hz>=49.98 && curSubSong->hz<=50.02) {
+        timeRate=2;
+      } else if (curSubSong->hz>=59.9 && curSubSong->hz<=60.11) {
+        timeRate=4;
+      } else {
+        timeRate=4;
+      }
+    }
+
+    int hour=0;
+    int minute=0;
+    int second=0;
+    int frame=0;
+    int drop=0;
+    int actualTime=curMidiTimeCode;
+    
+    switch (timeRate) {
+      case 1: // 24
+        frameRate=96.0;
+        hour=(actualTime/(60*60*24))%24;
+        minute=(actualTime/(60*24))%60;
+        second=(actualTime/24)%60;
+        frame=actualTime%24;
+        break;
+      case 2: // 25
+        frameRate=100.0;
+        hour=(actualTime/(60*60*25))%24;
+        minute=(actualTime/(60*25))%60;
+        second=(actualTime/25)%60;
+        frame=actualTime%25;
+        break;
+      case 3: // 29.97 (NTSC drop)
+        frameRate=120.0*(1000.0/1001.0);
+
+        // drop
+        drop=((actualTime/(30*60))-(actualTime/(30*600)))*2;
+        actualTime+=drop;
+
+        hour=(actualTime/(60*60*30))%24;
+        minute=(actualTime/(60*30))%60;
+        second=(actualTime/30)%60;
+        frame=actualTime%30;
+        break;
+      case 4: // 30 (NTSC non-drop)
+      default:
+        frameRate=120.0;
+        hour=(actualTime/(60*60*30))%24;
+        minute=(actualTime/(60*30))%60;
+        second=(actualTime/30)%60;
+        frame=actualTime%30;
+        break;
+    }
+
+    if (output) if (!skipping && output->midiOut!=NULL && midiOutTime) {
+      unsigned char val=0;
+      switch (curMidiTimePiece) {
+        case 0:
+          val=frame&15;
+          break;
+        case 1:
+          val=frame>>4;
+          break;
+        case 2:
+          val=second&15;
+          break;
+        case 3:
+          val=second>>4;
+          break;
+        case 4:
+          val=minute&15;
+          break;
+        case 5:
+          val=minute>>4;
+          break;
+        case 6:
+          val=hour&15;
+          break;
+        case 7:
+          val=(hour>>4)|((timeRate-1)<<1);
+          break;
+      }
+      val|=curMidiTimePiece<<4;
+      output->midiOut->send(TAMidiMessage(TA_MIDI_MTC_FRAME,val,0));
+    }
+    curMidiTimePiece=(curMidiTimePiece+1)&7;
+
+    midiTimeCycles+=got.rate*pow(2,MASTER_CLOCK_PREC)/(frameRate);
+    midiTimeDrift+=fmod(got.rate*pow(2,MASTER_CLOCK_PREC),(double)(frameRate));
+    if (midiTimeDrift>=(frameRate)) {
+      midiTimeDrift-=(frameRate);
+      midiTimeCycles++;
+    }
+  }
+}
+
 void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsigned int size) {
+  lastNBIns=inChans;
+  lastNBOuts=outChans;
+  lastNBSize=size;
+
+  if (!size) {
+    logW("nextBuf called with size 0!");
+    return;
+  }
   lastLoopPos=-1;
 
   if (out!=NULL) {
@@ -1832,7 +1985,14 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
           pendingMetroTick=0;
         }
       } else {
-        // 3. tick the clock and fill buffers as needed
+        // 3. run MIDI clock
+        int midiTotal=MIN(cycles,runLeftG);
+        runMidiClock(midiTotal);
+
+        // 4. run MIDI timecode
+        runMidiTime(midiTotal);
+
+        // 5. tick the clock and fill buffers as needed
         if (cycles<runLeftG) {
           for (int i=0; i<song.systemLen; i++) {
             int total=(cycles*disCont[i].runtotal)/(size<<MASTER_CLOCK_PREC);
@@ -1974,7 +2134,7 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
     for (size_t i=0; i<size; i++) {
       float chanSum=out[0][i];
       for (int j=1; j<outChans; j++) {
-        chanSum=out[j][i];
+        chanSum+=out[j][i];
       }
       out[0][i]=chanSum/outChans;
       for (int j=1; j<outChans; j++) {

@@ -1169,6 +1169,7 @@ void DivEngine::registerSystems() {
     {
       {0x10, {DIV_CMD_WAVE, "10xx: Set waveform (0 to 7)"}},
       {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set AUDCTL"}},
+      {0x12, {DIV_CMD_STD_NOISE_FREQ, "12xx: Toggle two-tone mode"}},
     }
   );
 
@@ -1852,7 +1853,7 @@ void DivEngine::registerSystems() {
 
   sysDefs[DIV_SYSTEM_SFX_BEEPER_QUADTONE]=new DivSysDef(
     "ZX Spectrum Beeper (QuadTone Engine)", NULL, 0xca, 0, 5, false, true, 0, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
-    "Another ZX Spectrum beeper system with full PWM pulses and 3-level volume per channel. It also has a pitchable overlay sample channel.",
+    "another ZX Spectrum beeper system with full PWM pulses and 3-level volume per channel. it also has a pitchable overlay sample channel.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "PCM"},
     {"CH1", "CH2", "CH3", "CH4", "PCM"},
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM},

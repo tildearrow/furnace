@@ -36,7 +36,10 @@
 
 typedef HRESULT (WINAPI *SPDA)(PROCESS_DPI_AWARENESS);
 #else
+#include <signal.h>
 #include <unistd.h>
+
+struct sigaction termsa;
 #endif
 
 #include "cli/cli.h"
@@ -59,6 +62,7 @@ String zsmOutName;
 String cmdOutName;
 int loops=1;
 int benchMode=0;
+int subsong=-1;
 DivAudioExportModes outMode=DIV_EXPORT_MODE_ONE;
 
 #ifdef HAVE_GUI
@@ -197,6 +201,7 @@ TAParamResult pVersion(String) {
   printf("- NSFPlay by Brad Smith and Brezza (unknown open-source license)\n");
   printf("- reSID by Dag Lem (GPLv2)\n");
   printf("- reSIDfp by Dag Lem, Antti Lankila and Leandro Nini (GPLv2)\n");
+  printf("- dSID by DefleMask Team (based on jsSID by Hermit) (MIT)\n");
   printf("- Stella by Stella Team (GPLv2)\n");
   printf("- vgsound_emu (second version, modified version) by cam900 (zlib license)\n");
   printf("- MAME GA20 core by Acho A. Tang, R. Belmont, Valley Bell (BSD 3-clause)\n");
@@ -232,6 +237,21 @@ TAParamResult pLoops(String val) {
     }
   } catch (std::exception& e) {
     logE("loop count shall be a number.");
+    return TA_PARAM_ERROR;
+  }
+  return TA_PARAM_SUCCESS;
+}
+
+TAParamResult pSubSong(String val) {
+  try {
+    int v=std::stoi(val);
+    if (v<0) {
+      logE("sub-song shall be 0 or higher.");
+      return TA_PARAM_ERROR;
+    }
+    subsong=v;
+  } catch (std::exception& e) {
+    logE("sub-song shall be a number.");
     return TA_PARAM_ERROR;
   }
   return TA_PARAM_SUCCESS;
@@ -312,6 +332,7 @@ void initParams() {
   params.push_back(TAParam("c","console",false,pConsole,"","enable console mode"));
 
   params.push_back(TAParam("l","loops",true,pLoops,"<count>","set number of loops (-1 means loop forever)"));
+  params.push_back(TAParam("s","subsong",true,pSubSong,"<number>","set sub-song"));
   params.push_back(TAParam("o","outmode",true,pOutMode,"one|persys|perchan","set file output mode"));
 
   params.push_back(TAParam("B","benchmark",true,pBenchmark,"render|seek","run performance test"));
@@ -338,9 +359,24 @@ void reportError(String what) {
 }
 #endif
 
+#ifndef _WIN32
+#ifdef HAVE_GUI
+static void handleTermGUI(int) {
+  g.requestQuit();
+}
+#endif
+#endif
+
 // TODO: CoInitializeEx on Windows?
 // TODO: add crash log
 int main(int argc, char** argv) {
+  // uncomment these if you want Furnace to play in the background on Android.
+  // not recommended. it lags.
+#if defined(HAVE_SDL2) && defined(ANDROID)
+  //SDL_SetHint(SDL_HINT_ANDROID_BLOCK_ON_PAUSE,"0");
+  //SDL_SetHint(SDL_HINT_ANDROID_BLOCK_ON_PAUSE_PAUSEAUDIO,"0");
+#endif
+
   // Windows console thing - thanks dj.tuBIG/MaliceX
 #ifdef _WIN32
 
@@ -569,6 +605,10 @@ int main(int argc, char** argv) {
     return 0;
   }
 
+  if (subsong!=-1) {
+    e.changeSongP(subsong);
+  }
+
   if (consoleMode) {
     bool cliSuccess=false;
     cli.bindEngine(&e);
@@ -623,6 +663,13 @@ int main(int argc, char** argv) {
   if (!fileName.empty()) {
     g.setFileName(fileName);
   }
+
+#ifndef _WIN32
+  sigemptyset(&termsa.sa_mask);
+  termsa.sa_flags=0;
+  termsa.sa_handler=handleTermGUI;
+  sigaction(SIGTERM,&termsa,NULL);
+#endif
 
   g.loop();
   logI("closing GUI.");

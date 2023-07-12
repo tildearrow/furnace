@@ -2,9 +2,11 @@
 
 #### Zsound Repo
 
-ZSM is part of the Zsound suite of Commander X16 audio tools found at:</br>
+ZSM is part of the Zsound suite of Commander X16 audio tools found at:  
 https://github.com/ZeroByteOrg/zsound/
 
+An alternative library with PCM support, ZSMKit, is avalable at:  
+https://github.com/mooinglemur/ZSMKit
 
 #### Current ZSM Revision: 1
 
@@ -69,14 +71,35 @@ The EXTCMD byte is formatted as `ccnnnnnn` where `c`=channel and `n`=number of b
 
 ### PCM Header
 
-The size and contents of the PCM header table is not yet decided. This will depend largely on the strucure of EXTCMD channel 0, and be covered in detail in that specification.
+If the PCM header exists in the ZSM file, it will immediately follow the 0x80 end-of-data marker. The PCM header exists only if at least one PCM instrument exists.
 
-Any offset values contained in the PCM data header block will be relative to the beginning of the PCM header, not the ZSM header. The intention is to present the digital audio portion as a set of digi clips ("samples" in tracker terminology) whose playback can be triggered by EXTCMD channel zero.
+Since each instrument defined is 16 bytes, the size of the PCM header can be calculated
+as 4+(16*(last_instrument_index+1)).
+
+Offset|Type|Value
+--|--|--
+0x00-0x02|String|"PCM"
+0x03|Byte|The last PCM instrument index
+0x04-0x13|Mixed|Instrument definition for instrument 0x00
+0x14-0x23|Mixed|(optional) Instrument definition for instrument 0x01
+...
+
+### Instrument definition
+Offset|Type|Value
+--|--|--
+0x00|Byte|This instrument's index
+0x01|Bitmask|AUDIO_CTRL: 00**DC**0000: D is set for 16-bit, and clear for 8-bit. C is set for stereo and clear for mono
+0x02-0x04|24-bit int|Little-endian offset into the PCM data block
+0x05-0x07|24-bit int|Little-endian length of PCM data
+0x08|Bitmask|Features: **L**xxxxxxx: L is set if the sample is looped
+0x09-0x0b|24-bit int|Little-endian loop point offset (relative, 0 is the beginning of this instrument's sample)
+0x0c-0x0f|...|Reserved for expansion
+
+Any offset values contained in the PCM data header block are relative to the beginning of the PCM sample data section, not to the PCM header or ZSM header. The intention is to present the digital audio portion as a set of digi clips ("samples" in tracker terminology) whose playback can be triggered by EXTCMD channel zero.
 
 ### PCM Sample Data
 
-This will be a blob of PCM data with no internal formatting. Indeces / format information / loop points / etc regarding this blob will be provided via the PCM header. The end of this blob will be the end of the ZSM file.
-
+This is a blob of PCM data with no internal formatting. Offsets into this blob are provided via the PCM header. The end of this blob will be the end of the ZSM file.
 
 ## EXTCMD Channel Scifications
 
@@ -108,7 +131,13 @@ The Custom channel data may take whatever format is desired for any particular p
 ### EXTCMD Channel:
 #### 0: PCM audio
 
-The structure of data within this channel is not yet defined.
+This EXTCMD stream can contain one or more command + argument pairs.
+
+command|meaning|argument|description
+---|---|---|---
+0x00|AUDIO_CTRL byte|byte|This byte sets PCM channel volume and/or clears the FIFO
+0x01|AUDIO_RATE byte|byte|A value from 0x00-0x80 to set the sample rate (playback speed)
+0x02|Instrument trigger|byte|Triggers the PCM instrument specified by this byte index
 
 #### 1: Expansion Sound Devices
 
@@ -120,7 +149,7 @@ Players implementing this channel should implement detection routines during ini
 
 An expansion HW write will contain the following data:
 
-Chip ID|Nuber of writes (`N`)| `N` tuples of data
+Chip ID|Number of writes (`N`)| `N` tuples of data
 --|--|--
 one byte|one byte|N * tuple_size bytes
 
@@ -133,7 +162,14 @@ There are currently no supported expansion HW IDs assigned.
 
 The purpose of this channel is to provide for music synchronization cues that applications may use to perform operations in sync with the music (such as when the Goombas jump in New Super Mario Bros in time with the BOP! BOP! notes in the music). It is intended for the reference player to provide a sync channel callback, passing the data bytes to the callback function, and then to proceed with playback.
 
-The data structure within this channel is not yet defined. It is our intention to work with the community in order to collaborate on a useful structure.
+The synchronization format currently defines this one event type:
+
+Event Type|Description|Message Format
+--|--|--
+`0x00`|Generic sync message|`xx` (any value from `0x00`-`0xff`)
+
+An example of an EXTCMD containing one sync event might look as follows: `0x40 0x82 0x00 0x05`
+
 
 #### 3: Custom
 

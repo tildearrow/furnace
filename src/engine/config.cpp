@@ -148,9 +148,13 @@ bool DivConfig::loadFromFile(const char* path, bool createOnFail, bool redundanc
         }
 
         for (size_t j=0; j<readBufLen; j++) {
+          if (readBuf[j]==0) {
+            viable=false;
+            logW("a zero?");
+            break;
+          }
           if (readBuf[j]!='\r' && readBuf[j]!='\n' && readBuf[j]!=' ') {
             viable=true;
-            break;
           }
         }
 

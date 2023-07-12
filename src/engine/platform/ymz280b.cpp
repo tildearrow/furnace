@@ -76,7 +76,7 @@ void DivPlatformYMZ280B::acquire(short** buf, size_t len) {
       for (int j=0; j<8; j++) {
         dataL+=why[j*2][i];
         dataR+=why[j*2+1][i];
-        oscBuf[j]->data[oscBuf[j]->needle++]=(short)(((int)why[j*2][i]+why[j*2+1][i])/2);
+        oscBuf[j]->data[oscBuf[j]->needle++]=(short)(((int)why[j*2][i]+why[j*2+1][i])/4);
       }
       buf[0][pos]=(short)(dataL/8);
       buf[1][pos]=(short)(dataR/8);

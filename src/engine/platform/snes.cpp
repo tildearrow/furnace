@@ -91,7 +91,7 @@ void DivPlatformSNES::acquire(short** buf, size_t len) {
       next=(next*254)/MAX(1,globalVolL+globalVolR);
       if (next<-32768) next=-32768;
       if (next>32767) next=32767;
-      oscBuf[i]->data[oscBuf[i]->needle++]=next;
+      oscBuf[i]->data[oscBuf[i]->needle++]=next>>1;
     }
   }
 }
@@ -202,6 +202,7 @@ void DivPlatformSNES::tick(bool sysTick) {
     }
   }
   for (int i=0; i<8; i++) {
+    // TODO: if wavetable length is higher than 32, we lose precision!
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       DivSample* s=parent->getSample(chan[i].sample);
       double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
@@ -221,7 +222,7 @@ void DivPlatformSNES::tick(bool sysTick) {
           if (chan[i].audPos>0) {
             start=start+MIN(chan[i].audPos,s->lengthBRR-1)/16*9;
           }
-          if (s->loopStart>=0) {
+          if (s->isLoopable()) {
             loop=((s->depth!=DIV_SAMPLE_DEPTH_BRR)?9:0)+start+((s->loopStart/16)*9);
           }
         } else {

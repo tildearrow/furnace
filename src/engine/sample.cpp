@@ -54,7 +54,7 @@ void DivSample::putSampleData(SafeWriter* w) {
   w->writeC(depth);
   w->writeC(loopMode);
   w->writeC(brrEmphasis);
-  w->writeC(0); // reserved
+  w->writeC(dither);
   w->writeI(loop?loopStart:-1);
   w->writeI(loop?loopEnd:-1);
 
@@ -131,8 +131,11 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
     } else {
       reader.readC();
     }
-    // reserved
-    reader.readC();
+    if (version>=159) {
+      dither=reader.readC()&1;
+    } else {
+      reader.readC();
+    }
 
     loopStart=reader.readI();
     loopEnd=reader.readI();
@@ -389,7 +392,7 @@ bool DivSample::save(const char* path) {
   if (length16<1) return false;
 
   si.channels=1;
-  si.samplerate=rate;
+  si.samplerate=centerRate;
   switch (depth) {
     case DIV_SAMPLE_DEPTH_8BIT: // 8-bit
       si.format=SF_FORMAT_PCM_U8|SF_FORMAT_WAV;
@@ -409,7 +412,8 @@ bool DivSample::save(const char* path) {
   SF_INSTRUMENT inst;
   memset(&inst, 0, sizeof(inst));
   inst.gain = 1;
-  short pitch = (0x3c * 100) + 50 - (log2((double)centerRate/rate) * 12.0 * 100.0);
+  // TODO: fix
+  short pitch = (0x3c * 100) + 50 - (log2((double)centerRate/8363.0) * 12.0 * 100.0);
   inst.basenote = pitch / 100;
   inst.detune = 50 - (pitch % 100);
   inst.velocity_hi = 0x7f;
@@ -584,7 +588,34 @@ bool DivSample::strip(unsigned int begin, unsigned int end) {
   if (begin>samples) begin=samples;
   if (end>samples) end=samples;
   int count=samples-(end-begin);
-  if (count<=0) return resize(0);
+  if (count<=0) {
+    loopStart=-1;
+    loopEnd=-1;
+    loop=false;
+    return resize(0);
+  }
+  if (loopStart>(int)begin && loopEnd<(int)end) {
+    loopStart=-1;
+    loopEnd=-1;
+    loop=false;
+  } else {
+    if (loopStart<(int)end && loopStart>(int)begin) {
+      loopStart=end;
+    }
+    if (loopStart>(int)begin && loopEnd>(int)begin) {
+      loopStart-=end-begin;
+      loopEnd-=end-begin;
+      if (loopEnd<0) loopEnd=0;
+      if (loopStart<0) loopStart=0;
+    } else if (loopEnd>(int)begin) {
+      loopEnd=begin;
+    }
+  }
+  if (loopStart>loopEnd) {
+    loopStart=-1;
+    loopEnd=-1;
+    loop=false;
+  }
   if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     if (data8!=NULL) {
       signed char* oldData8=data8;
@@ -629,6 +660,16 @@ bool DivSample::trim(unsigned int begin, unsigned int end) {
   int count=end-begin;
   if (count==0) return true;
   if (begin==0 && end==samples) return true;
+  if (((int)begin<loopStart && (int)end<loopStart) || ((int)begin>loopEnd && (int)end>loopEnd)) {
+    loopStart=-1;
+    loopEnd=-1;
+    loop=false;
+  } else {
+    loopStart-=begin;
+    loopEnd-=begin;
+    if (loopStart<0) loopStart=0;
+    if (loopEnd>count) loopEnd=count;
+  }
   if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     if (data8!=NULL) {
       signed char* oldData8=data8;
@@ -699,9 +740,43 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
   return false;
 }
 
+void DivSample::convert(DivSampleDepth newDepth) {
+  render();
+  depth=newDepth;
+  switch (depth) {
+    case DIV_SAMPLE_DEPTH_1BIT:
+      setSampleCount((samples+7)&(~7));
+      break;
+    case DIV_SAMPLE_DEPTH_1BIT_DPCM:
+      setSampleCount((1+((((samples+7)/8)+15)&(~15)))<<3);
+      break;
+    case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
+      setSampleCount(((lengthZ+3)&(~0x03))*2);
+      break;
+    case DIV_SAMPLE_DEPTH_QSOUND_ADPCM: // QSound ADPCM
+      setSampleCount((samples+1)&(~1));
+      break;
+    case DIV_SAMPLE_DEPTH_ADPCM_A: // ADPCM-A
+      setSampleCount((samples+1)&(~1));
+      break;
+    case DIV_SAMPLE_DEPTH_ADPCM_B: // ADPCM-B
+      setSampleCount((samples+1)&(~1));
+      break;
+    case DIV_SAMPLE_DEPTH_BRR: // BRR
+      setSampleCount(16*(lengthBRR/9));
+      break;
+    case DIV_SAMPLE_DEPTH_VOX: // VOX
+      setSampleCount((samples+1)&(~1));
+      break;
+    default:
+      break;
+  }
+  render();
+}
+
 #define RESAMPLE_BEGIN \
   if (samples<1) return true; \
-  int finalCount=(double)samples*(r/(double)rate); \
+  int finalCount=(double)samples*(tRate/sRate); \
   signed char* oldData8=data8; \
   short* oldData16=data16; \
   if (depth==DIV_SAMPLE_DEPTH_16BIT) { \
@@ -719,10 +794,10 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
   }
 
 #define RESAMPLE_END \
-  if (loopStart>=0) loopStart=(double)loopStart*(r/(double)rate); \
-  if (loopEnd>=0) loopEnd=(double)loopEnd*(r/(double)rate); \
-  centerRate=(int)((double)centerRate*(r/(double)rate)); \
-  rate=r; \
+  if (loopStart>=0) loopStart=(double)loopStart*(tRate/sRate); \
+  if (loopEnd>=0) loopEnd=(double)loopEnd*(tRate/sRate); \
+  centerRate=(int)((double)centerRate*(tRate/sRate)); \
+  rate=(int)((double)rate*(tRate/sRate)); \
   samples=finalCount; \
   if (depth==DIV_SAMPLE_DEPTH_16BIT) { \
     delete[] oldData16; \
@@ -730,12 +805,12 @@ bool DivSample::insert(unsigned int pos, unsigned int length) {
     delete[] oldData8; \
   }
 
-bool DivSample::resampleNone(double r) {
+bool DivSample::resampleNone(double sRate, double tRate) {
   RESAMPLE_BEGIN;
 
   if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     for (int i=0; i<finalCount; i++) {
-      unsigned int pos=(unsigned int)((double)i*((double)rate/r));
+      unsigned int pos=(unsigned int)((double)i*(sRate/tRate));
       if (pos>=samples) {
         data16[i]=0;
       } else {
@@ -744,7 +819,7 @@ bool DivSample::resampleNone(double r) {
     }
   } else if (depth==DIV_SAMPLE_DEPTH_8BIT) {
     for (int i=0; i<finalCount; i++) {
-      unsigned int pos=(unsigned int)((double)i*((double)rate/r));
+      unsigned int pos=(unsigned int)((double)i*(sRate/tRate));
       if (pos>=samples) {
         data8[i]=0;
       } else {
@@ -757,12 +832,12 @@ bool DivSample::resampleNone(double r) {
   return true;
 }
 
-bool DivSample::resampleLinear(double r) {
+bool DivSample::resampleLinear(double sRate, double tRate) {
   RESAMPLE_BEGIN;
 
   double posFrac=0;
   unsigned int posInt=0;
-  double factor=(double)rate/r;
+  double factor=sRate/tRate;
 
   if (depth==DIV_SAMPLE_DEPTH_16BIT) {
     for (int i=0; i<finalCount; i++) {
@@ -796,12 +871,12 @@ bool DivSample::resampleLinear(double r) {
   return true;
 }
 
-bool DivSample::resampleCubic(double r) {
+bool DivSample::resampleCubic(double sRate, double tRate) {
   RESAMPLE_BEGIN;
 
   double posFrac=0;
   unsigned int posInt=0;
-  double factor=(double)rate/r;
+  double factor=sRate/tRate;
   float* cubicTable=DivFilterTables::getCubicTable();
 
   if (depth==DIV_SAMPLE_DEPTH_16BIT) {
@@ -850,12 +925,12 @@ bool DivSample::resampleCubic(double r) {
   return true;
 }
 
-bool DivSample::resampleBlep(double r) {
+bool DivSample::resampleBlep(double sRate, double tRate) {
   RESAMPLE_BEGIN;
 
   double posFrac=0;
   unsigned int posInt=0;
-  double factor=r/(double)rate;
+  double factor=tRate/sRate;
   float* sincITable=DivFilterTables::getSincIntegralTable();
 
   float* floatData=new float[finalCount];
@@ -934,12 +1009,12 @@ bool DivSample::resampleBlep(double r) {
   return true;
 }
 
-bool DivSample::resampleSinc(double r) {
+bool DivSample::resampleSinc(double sRate, double tRate) {
   RESAMPLE_BEGIN;
 
   double posFrac=0;
   unsigned int posInt=0;
-  double factor=(double)rate/r;
+  double factor=sRate/tRate;
   float* sincTable=DivFilterTables::getSincTable();
   float s[16];
 
@@ -1001,29 +1076,29 @@ bool DivSample::resampleSinc(double r) {
   return true;
 }
 
-bool DivSample::resample(double r, int filter) {
+bool DivSample::resample(double sRate, double tRate, int filter) {
   if (depth!=DIV_SAMPLE_DEPTH_8BIT && depth!=DIV_SAMPLE_DEPTH_16BIT) return false;
   switch (filter) {
     case DIV_RESAMPLE_NONE:
-      return resampleNone(r);
+      return resampleNone(sRate,tRate);
       break;
     case DIV_RESAMPLE_LINEAR:
-      return resampleLinear(r);
+      return resampleLinear(sRate,tRate);
       break;
     case DIV_RESAMPLE_CUBIC:
-      return resampleCubic(r);
+      return resampleCubic(sRate,tRate);
       break;
     case DIV_RESAMPLE_BLEP:
-      return resampleBlep(r);
+      return resampleBlep(sRate,tRate);
       break;
     case DIV_RESAMPLE_SINC:
-      return resampleSinc(r);
+      return resampleSinc(sRate,tRate);
       break;
     case DIV_RESAMPLE_BEST:
-      if (r>rate) {
-        return resampleSinc(r);
+      if (tRate>sRate) {
+        return resampleSinc(sRate,tRate);
       } else {
-        return resampleBlep(r);
+        return resampleBlep(sRate,tRate);
       }
       break;
   }
@@ -1125,13 +1200,29 @@ void DivSample::render(unsigned int formatMask) {
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_8BIT)) { // 8-bit PCM
     if (!initInternal(DIV_SAMPLE_DEPTH_8BIT,samples)) return;
-    for (unsigned int i=0; i<samples; i++) {
-      data8[i]=data16[i]>>8;
+    if (dither) {
+      unsigned short lfsr=0x6438;
+      unsigned short lfsr1=0x1283;
+      signed char errorLast=0;
+      signed char errorCur=0;
+      for (unsigned int i=0; i<samples; i++) {
+        signed char val=CLAMP(data16[i]+128,-32768,32767)>>8;
+        errorLast=errorCur;
+        errorCur=(val<<8)-data16[i];
+        data8[i]=CLAMP(val-((((errorLast+errorCur)>>1)+(lfsr&0xff))>>8),-128,127);
+        lfsr=(lfsr<<1)|(((lfsr>>1)^(lfsr>>2)^(lfsr>>4)^(lfsr>>15))&1);
+        lfsr1=(lfsr1<<1)|(((lfsr1>>1)^(lfsr1>>2)^(lfsr1>>4)^(lfsr1>>15))&1);
+      }
+    } else {
+      for (unsigned int i=0; i<samples; i++) {
+        data8[i]=data16[i]>>8;
+      }
     }
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_BRR)) { // BRR
-    if (!initInternal(DIV_SAMPLE_DEPTH_BRR,samples)) return;
-    brrEncode(data16,dataBRR,samples,loop?loopStart:-1,brrEmphasis);
+    int sampleCount=loop?loopEnd:samples;
+    if (!initInternal(DIV_SAMPLE_DEPTH_BRR,sampleCount)) return;
+    brrEncode(data16,dataBRR,sampleCount,loop?loopStart:-1,brrEmphasis);
   }
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_VOX)) { // VOX
     if (!initInternal(DIV_SAMPLE_DEPTH_VOX,samples)) return;
@@ -1205,9 +1296,9 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
       duplicate=new unsigned char[getCurBufLen()];
       memcpy(duplicate,getCurBuf(),getCurBufLen());
     }
-    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,loopMode);
+    h=new DivSampleHistory(duplicate,getCurBufLen(),samples,depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,dither,loopMode);
   } else {
-    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,loopMode);
+    h=new DivSampleHistory(depth,rate,centerRate,loopStart,loopEnd,loop,brrEmphasis,dither,loopMode);
   }
   if (!doNotPush) {
     while (!redoHist.empty()) {
@@ -1240,6 +1331,8 @@ DivSampleHistory* DivSample::prepareUndo(bool data, bool doNotPush) {
   loopStart=h->loopStart; \
   loopEnd=h->loopEnd; \
   loop=h->loop; \
+  brrEmphasis=h->brrEmphasis; \
+  dither=h->dither; \
   loopMode=h->loopMode;
 
 

@@ -61,10 +61,10 @@ struct DivSampleHistory {
   unsigned int length, samples;
   DivSampleDepth depth;
   int rate, centerRate, loopStart, loopEnd;
-  bool loop, brrEmphasis;
+  bool loop, brrEmphasis, dither;
   DivSampleLoopMode loopMode;
   bool hasSample;
-  DivSampleHistory(void* d, unsigned int l, unsigned int s, DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, DivSampleLoopMode lm):
+  DivSampleHistory(void* d, unsigned int l, unsigned int s, DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, bool di, DivSampleLoopMode lm):
     data((unsigned char*)d),
     length(l),
     samples(s),
@@ -75,9 +75,10 @@ struct DivSampleHistory {
     loopEnd(le),
     loop(lp),
     brrEmphasis(be),
+    dither(di),
     loopMode(lm),
     hasSample(true) {}
-  DivSampleHistory(DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, DivSampleLoopMode lm):
+  DivSampleHistory(DivSampleDepth de, int r, int cr, int ls, int le, bool lp, bool be, bool di, DivSampleLoopMode lm):
     data(NULL),
     length(0),
     samples(0),
@@ -88,6 +89,7 @@ struct DivSampleHistory {
     loopEnd(le),
     loop(lp),
     brrEmphasis(be),
+    dither(di),
     loopMode(lm),
     hasSample(false) {}
   ~DivSampleHistory();
@@ -108,7 +110,7 @@ struct DivSample {
   // - 10: VOX ADPCM
   // - 16: 16-bit PCM
   DivSampleDepth depth;
-  bool loop, brrEmphasis;
+  bool loop, brrEmphasis, dither;
   // valid values are:
   // - 0: Forward loop
   // - 1: Backward loop
@@ -188,11 +190,11 @@ struct DivSample {
   /**
    * @warning DO NOT USE - internal functions
    */
-  bool resampleNone(double rate);
-  bool resampleLinear(double rate);
-  bool resampleCubic(double rate);
-  bool resampleBlep(double rate);
-  bool resampleSinc(double rate);
+  bool resampleNone(double sRate, double tRate);
+  bool resampleLinear(double sRate, double tRate);
+  bool resampleCubic(double sRate, double tRate);
+  bool resampleBlep(double sRate, double tRate);
+  bool resampleSinc(double sRate, double tRate);
 
   /**
    * save this sample to a file.
@@ -262,11 +264,19 @@ struct DivSample {
   /**
    * change the sample rate.
    * @warning do not attempt to resample outside of a synchronized block!
-   * @param rate number of samples.
+   * @param sRate source rate.
+   * @param tRate target rate.
    * @param filter the interpolation filter.
    * @return whether it was successful.
    */
-  bool resample(double rate, int filter);
+  bool resample(double sRate, double tRate, int filter);
+
+  /**
+   * convert sample depth.
+   * @warning do not attempt to do this outside of a synchronized block!
+   * @param newDepth the new depth.
+   */
+  void convert(DivSampleDepth newDepth);
 
   /**
    * initialize the rest of sample formats for this sample.
@@ -315,6 +325,7 @@ struct DivSample {
     depth(DIV_SAMPLE_DEPTH_16BIT),
     loop(false),
     brrEmphasis(true),
+    dither(false),
     loopMode(DIV_SAMPLE_LOOP_FORWARD),
     data8(NULL),
     data16(NULL),
