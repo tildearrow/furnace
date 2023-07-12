@@ -9574,7 +9574,9 @@ void ImGui::UpdateInputEvents(bool trickle_fast_inputs)
         }
         else if (e->Type == ImGuiInputEventType_Text)
         {
-            bool trickle_fast_inputs = true; // forcing trickle for Text event
+            // forcing trickle for Text event, but only when interacting with keydown or mouse button
+            if ((key_changed && trickle_interleaved_keys_and_text) || mouse_button_changed != 0)
+                break;
 
             // Trickling Rule: Stop processing queued events if keys/mouse have been interacted with
             if (trickle_fast_inputs && ((key_changed && trickle_interleaved_keys_and_text) || mouse_button_changed != 0 || mouse_moved || mouse_wheeled))
