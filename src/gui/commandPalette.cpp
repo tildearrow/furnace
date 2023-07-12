@@ -117,7 +117,7 @@ void FurnaceGUI::drawPalette() {
         curPaletteChoice=i;
         accepted=true;
       }
-      if (navigated && current) ImGui::SetScrollHereY();
+      if ((navigated || paletteFirstFrame) && current) ImGui::SetScrollHereY();
     }
   }
   ImGui::EndChild();
