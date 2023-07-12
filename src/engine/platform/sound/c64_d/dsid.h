@@ -81,6 +81,8 @@ struct SID_chip {
     uint8_t M[MemLen];
     int16_t lastOut[3];
     int mute_mask;
+    double fakeplp[3];
+    double fakepbp[3];
 };
 
 double dSID_render(struct SID_chip* sid);
