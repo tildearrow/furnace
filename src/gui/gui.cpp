@@ -5849,13 +5849,12 @@ bool FurnaceGUI::loop() {
               if (outFile!=NULL) {
                 if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
                   logW("did not write backup entirely: %s!",strerror(errno));
-                  w->finish();
                 }
                 fclose(outFile);
               } else {
                 logW("could not save backup: %s!",strerror(errno));
-                w->finish();
               }
+              w->finish();
 
               // delete previous backup if there are too many
               delFirstBackup(backupBaseName);
