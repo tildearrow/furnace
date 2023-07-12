@@ -46,7 +46,9 @@ enum PSG_STATE { psg_PREV, psg_NEW, psg_STATES };
 class DivZSM {
   private:
     struct S_pcmInst {
-      int geometry, offset, length;
+      int geometry;
+      unsigned int offset, length, loopPoint;
+      bool isLooped;
     };
     SafeWriter* w;
     int ymState[ym_STATES][256];
@@ -54,6 +56,8 @@ class DivZSM {
     int pcmRateCache;
     int pcmCtrlRVCache;
     int pcmCtrlDCCache;
+    unsigned int pcmLoopPointCache;
+    bool pcmIsLooped;
     std::vector<DivRegWrite> ymwrites;
     std::vector<DivRegWrite> pcmMeta;
     std::vector<unsigned char> pcmData;

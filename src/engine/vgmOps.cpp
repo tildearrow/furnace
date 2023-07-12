@@ -24,7 +24,7 @@
 
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 
-void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, size_t bankOffset, bool directStream) {
+void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, int* setPos, unsigned int* sampleOff8, unsigned int* sampleLen8, size_t bankOffset, bool directStream) {
   unsigned char baseAddr1=isSecond?0xa0:0x50;
   unsigned char baseAddr2=isSecond?0x80:0;
   unsigned short baseAddr2S=isSecond?0x8000:0;
@@ -610,15 +610,35 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
               pendingFreq[streamID]=write.val;
             } else {
               DivSample* sample=song.sample[write.val];
-              w->writeC(0x95);
-              w->writeC(streamID);
-              w->writeS(write.val); // sample number
-              w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0 && sample->isLoopable())|(sampleDir[streamID]?0x10:0)); // flags
+              int pos=sampleOff8[write.val&0xff]+setPos[streamID];
+              int len=(int)sampleLen8[write.val&0xff]-setPos[streamID];
+
+              if (len<0) len=0;
+
+              if (setPos[streamID]!=0) {
+                if (len<=0) {
+                  w->writeC(0x94);
+                  w->writeC(streamID);
+                } else {
+                  w->writeC(0x93);
+                  w->writeC(streamID);
+                  w->writeI(pos);
+                  w->writeC(1|((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0 && sample->isLoopable())?0x80:0)|(sampleDir[streamID]?0x10:0)); // flags
+                  w->writeI(len);
+                }
+              } else {
+                w->writeC(0x95);
+                w->writeC(streamID);
+                w->writeS(write.val); // sample number
+                w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0 && sample->isLoopable())|(sampleDir[streamID]?0x10:0)); // flags
+              }
+
               if (sample->isLoopable() && !sampleDir[streamID]) {
-                loopTimer[streamID]=sample->length8;
+                loopTimer[streamID]=len;
                 loopSample[streamID]=write.val;
               }
               playingSample[streamID]=write.val;
+              setPos[streamID]=0;
             }
           }
           break;
@@ -632,16 +652,36 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           loopFreq[streamID]=realFreq;
           if (pendingFreq[streamID]!=-1) {
             DivSample* sample=song.sample[pendingFreq[streamID]];
-            w->writeC(0x95);
-            w->writeC(streamID);
-            w->writeS(pendingFreq[streamID]); // sample number
-            w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0 && sample->isLoopable())|(sampleDir[streamID]?0x10:0)); // flags
+            int pos=sampleOff8[pendingFreq[streamID]&0xff]+setPos[streamID];
+            int len=(int)sampleLen8[pendingFreq[streamID]&0xff]-setPos[streamID];
+
+            if (len<0) len=0;
+
+            if (setPos[streamID]!=0) {
+              if (len<=0) {
+                w->writeC(0x94);
+                w->writeC(streamID);
+              } else {
+                w->writeC(0x93);
+                w->writeC(streamID);
+                w->writeI(pos);
+                w->writeC(1|((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0 && sample->isLoopable())?0x80:0)|(sampleDir[streamID]?0x10:0)); // flags
+                w->writeI(len);
+              }
+            } else {
+              w->writeC(0x95);
+              w->writeC(streamID);
+              w->writeS(pendingFreq[streamID]); // sample number
+              w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0 && sample->isLoopable())|(sampleDir[streamID]?0x10:0)); // flags
+            }
+
             if (sample->isLoopable() && !sampleDir[streamID]) {
-              loopTimer[streamID]=sample->length8;
+              loopTimer[streamID]=len;
               loopSample[streamID]=pendingFreq[streamID];
             }
             playingSample[streamID]=pendingFreq[streamID];
             pendingFreq[streamID]=-1;
+            setPos[streamID]=0;
           }
           break;
         }
@@ -654,6 +694,41 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
           break;
         case 3: // set sample direction
           sampleDir[streamID]=write.val;
+          break;
+        case 5: // set sample pos
+          setPos[streamID]=write.val;
+
+          if (playingSample[streamID]!=-1 && pendingFreq[streamID]==-1) {
+            // play the sample again
+            DivSample* sample=song.sample[playingSample[streamID]];
+            int pos=sampleOff8[playingSample[streamID]&0xff]+setPos[streamID];
+            int len=(int)sampleLen8[playingSample[streamID]&0xff]-setPos[streamID];
+
+            if (len<0) len=0;
+
+            if (setPos[streamID]!=0) {
+              if (len<=0) {
+                w->writeC(0x94);
+                w->writeC(streamID);
+              } else {
+                w->writeC(0x93);
+                w->writeC(streamID);
+                w->writeI(pos);
+                w->writeC(1|((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0 && sample->isLoopable())?0x80:0)|(sampleDir[streamID]?0x10:0)); // flags
+                w->writeI(len);
+              }
+            } else {
+              w->writeC(0x95);
+              w->writeC(streamID);
+              w->writeS(playingSample[streamID]); // sample number
+              w->writeC((sample->getLoopStartPosition(DIV_SAMPLE_DEPTH_8BIT)==0 && sample->isLoopable())|(sampleDir[streamID]?0x10:0)); // flags
+            }
+
+            if (sample->isLoopable() && !sampleDir[streamID]) {
+              loopTimer[streamID]=len;
+              loopSample[streamID]=playingSample[streamID];
+            }
+          }
           break;
       }
     }
@@ -1067,6 +1142,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   int songTick=0;
 
   unsigned int sampleOff8[256];
+  unsigned int sampleLen8[256];
   unsigned int sampleOffSegaPCM[256];
 
   SafeWriter* w=new SafeWriter;
@@ -1087,6 +1163,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   bool sampleDir[DIV_MAX_CHANS];
   int pendingFreq[DIV_MAX_CHANS];
   int playingSample[DIV_MAX_CHANS];
+  int setPos[DIV_MAX_CHANS];
   std::vector<unsigned int> chipVol;
   std::vector<DivDelayedWrite> delayedWrites[DIV_MAX_CHIPS];
   std::vector<std::pair<int,DivDelayedWrite>> sortedWrites;
@@ -1106,6 +1183,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     loopSample[i]=-1;
     pendingFreq[i]=-1;
     playingSample[i]=-1;
+    setPos[i]=0;
     sampleDir[i]=false;
   }
 
@@ -1363,7 +1441,6 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           willExport[i]=true;
           CHIP_VOL(6,1.0);
           CHIP_VOL(0x86,1.7);
-          writeDACSamples=true;
         } else if (!(hasOPN&0x40000000)) {
           isSecond[i]=true;
           willExport[i]=true;
@@ -1842,6 +1919,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
 
   // initialize sample offsets
   memset(sampleOff8,0,256*sizeof(unsigned int));
+  memset(sampleLen8,0,256*sizeof(unsigned int));
   memset(sampleOffSegaPCM,0,256*sizeof(unsigned int));
 
   // write samples
@@ -1850,6 +1928,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     DivSample* sample=song.sample[i];
     logI("setting seek to %d",sampleSeek);
     sampleOff8[i]=sampleSeek;
+    sampleLen8[i]=sample->length8;
     sampleSeek+=sample->length8;
   }
 
@@ -1985,9 +2064,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0xc0+i);
-      w->writeI(writeRF5C68[i]->getSampleMemUsage()+8);
-      w->writeI(writeRF5C68[i]->getSampleMemCapacity());
-      w->writeI(0);
+      w->writeI(writeRF5C68[i]->getSampleMemUsage()+2);
+      w->writeS(0);
       w->write(writeRF5C68[i]->getSampleMem(),writeRF5C68[i]->getSampleMemUsage());
     }
     if (writeMSM6295[i]!=NULL && writeMSM6295[i]->getSampleMemUsage()>0) {
@@ -2241,7 +2319,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
     for (int i=0; i<song.systemLen; i++) {
       std::vector<DivRegWrite>& writes=disCont[i].dispatch->getRegisterWrites();
       for (DivRegWrite& j: writes) {
-        performVGMWrite(w,song.system[i],j,streamIDs[i],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i],pendingFreq,playingSample,bankOffset[i],directStream);
+        performVGMWrite(w,song.system[i],j,streamIDs[i],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i],pendingFreq,playingSample,setPos,sampleOff8,sampleLen8,bankOffset[i],directStream);
         writeCount++;
       }
       writes.clear();
@@ -2281,7 +2359,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
             lastOne=i.second.time;
           }
           // write write
-          performVGMWrite(w,song.system[i.first],i.second.write,streamIDs[i.first],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i.first],pendingFreq,playingSample,bankOffset[i.first],directStream);
+          performVGMWrite(w,song.system[i.first],i.second.write,streamIDs[i.first],loopTimer,loopFreq,loopSample,sampleDir,isSecond[i.first],pendingFreq,playingSample,setPos,sampleOff8,sampleLen8,bankOffset[i.first],directStream);
           // handle global Furnace commands
 
           writeCount++;

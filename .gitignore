@@ -15,6 +15,8 @@ test/songs/
 test/delta/
 test/result/
 test/assert_delta
+android/local.properties
+android/.idea/
 android/.gradle/
 android/app/build/
 android/app/.cxx/

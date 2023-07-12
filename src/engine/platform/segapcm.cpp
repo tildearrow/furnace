@@ -195,9 +195,6 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
           chan[c.chan].pcm.sample=-1;
           rWrite(0x86+(c.chan<<3),3);
           chan[c.chan].macroInit(NULL);
-          if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
-            chan[c.chan].outVol=chan[c.chan].vol;
-          }
           break;
         }
         if (c.value!=DIV_NOTE_NULL) {
@@ -207,6 +204,16 @@ int DivPlatformSegaPCM::dispatch(DivCommand c) {
         }
         chan[c.chan].furnacePCM=true;
         chan[c.chan].macroInit(ins);
+        if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
+          chan[c.chan].outVol=chan[c.chan].vol;
+
+          if (parent->song.newSegaPCM) {
+            chan[c.chan].chVolL=(chan[c.chan].outVol*chan[c.chan].chPanL)/127;
+            chan[c.chan].chVolR=(chan[c.chan].outVol*chan[c.chan].chPanR)/127;
+            rWrite(2+(c.chan<<3),chan[c.chan].chVolL);
+            rWrite(3+(c.chan<<3),chan[c.chan].chVolR);
+          }
+        }
         chan[c.chan].active=true;
         chan[c.chan].keyOn=true;
       } else {

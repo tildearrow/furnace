@@ -52,9 +52,7 @@ Index of this file:
 
 // Configuration file with compile-time options
 // (edit imconfig.h or '#define IMGUI_USER_CONFIG "myfilename.h" from your build system')
-#ifdef IMGUI_USER_CONFIG
-#include IMGUI_USER_CONFIG
-#endif
+#include "imconfig_fur.h"
 #include "imconfig.h"
 
 #ifndef IMGUI_DISABLE

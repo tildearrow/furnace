@@ -233,8 +233,7 @@ void FurnaceGUIRenderGL::clear(ImVec4 color) {
 }
 
 bool FurnaceGUIRenderGL::newFrame() {
-  ImGui_ImplOpenGL3_NewFrame();
-  return true;
+  return ImGui_ImplOpenGL3_NewFrame();
 }
 
 void FurnaceGUIRenderGL::createFontsTexture() {

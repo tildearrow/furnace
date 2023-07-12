@@ -19,7 +19,6 @@
 
 #include "vera.h"
 #include "../engine.h"
-#include "../../ta-log.h"
 #include <string.h>
 #include <math.h>
 
@@ -40,14 +39,15 @@ extern "C" {
 #define rWriteZSMSync(d) {if (dumpWrites) addWrite(68,(d));}
 
 const char* regCheatSheetVERA[]={
-  "CHxFreq",    "00+x*4",
-  "CHxVol",     "02+x*4",
-  "CHxWave",    "03+x*4",
+  "CHxFreq",            "00+x*4",
+  "CHxVol",             "02+x*4",
+  "CHxWave",            "03+x*4",
 
-  "AUDIO_CTRL", "40",
-  "AUDIO_RATE", "41",
-  "AUDIO_DATA", "42",
-  "ZSM_SYNC",   "44",
+  "AUDIO_CTRL",         "40",
+  "AUDIO_RATE",         "41",
+  "AUDIO_DATA",         "42",
+  "ZSM_PCM_LOOP_POINT", "43",
+  "ZSM_SYNC",           "44",
 
   NULL
 };
@@ -230,9 +230,19 @@ void DivPlatformVERA::tick(bool sysTick) {
     chan[16].freqChanged=false;
   }
 
+  // For export, output the entire sample that starts on this tick
   if (dumpWrites) {
     DivSample* s=parent->getSample(chan[16].pcm.sample);
     if (s->samples>0) {
+      if (s->isLoopable()) {
+        // Inform the export process of the loop point for this sample
+        int tmp_ls=(s->loopStart<<1); // for stereo
+        if (chan[16].pcm.depth16)
+          tmp_ls<<=1; // for 16 bit
+        addWrite(67,tmp_ls&0xff);
+        addWrite(67,(tmp_ls>>8)&0xff);
+        addWrite(67,(tmp_ls>>16)&0xff);
+      }
       while (true) {
         short tmp_l=0;
         short tmp_r=0;
@@ -258,8 +268,6 @@ void DivPlatformVERA::tick(bool sysTick) {
         }
         chan[16].pcm.pos++;
         if (s->isLoopable() && chan[16].pcm.pos>=(unsigned int)s->loopEnd) {
-          //chan[16].pcm.pos=s->loopStart;
-          logI("VERA PCM export: treating looped sample as non-looped");
           chan[16].pcm.sample=-1;
           break;
         }
