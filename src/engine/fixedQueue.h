@@ -112,12 +112,12 @@ template <typename T, size_t items> bool FixedQueue<T,items>::push_front(const T
     logW("stack overflow!");
     return false;
   }
-  data[readPos]=item;
   if (readPos>0) {
     readPos--;
   } else {
     readPos=items-1;
   }
+  data[readPos]=item;
   return true;
 }
 
