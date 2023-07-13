@@ -21,7 +21,6 @@
 #define _QSOUND_H
 
 #include "../dispatch.h"
-#include <queue>
 #include "sound/qsound.h"
 
 class DivPlatformQSound: public DivDispatch {
