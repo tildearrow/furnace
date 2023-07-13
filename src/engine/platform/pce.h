@@ -60,10 +60,10 @@ class DivPlatformPCE: public DivDispatch {
   bool antiClickEnabled;
   bool updateLFO;
   struct QueuedWrite {
-      unsigned char addr;
-      unsigned char val;
-      QueuedWrite(): addr(0), val(9) {}
-      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+    unsigned char addr;
+    unsigned char val;
+    QueuedWrite(): addr(0), val(9) {}
+    QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
   FixedQueue<QueuedWrite,512> writes;
   unsigned char lastPan;

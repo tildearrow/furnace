@@ -28,8 +28,14 @@ template<typename T, size_t items> struct FixedQueue {
   T data[items];
 
   T& front();
+  T& back();
   bool pop();
   bool push(const T& item);
+
+  bool pop_front();
+  bool pop_back();
+  bool push_front(const T& item);
+  bool push_back(const T& item);
   void clear();
   bool empty();
   size_t size();
@@ -40,6 +46,11 @@ template<typename T, size_t items> struct FixedQueue {
 
 template <typename T, size_t items> T& FixedQueue<T,items>::front() {
   return data[readPos];
+}
+
+template <typename T, size_t items> T& FixedQueue<T,items>::back() {
+  if (writePos==0) return data[items-1];
+  return data[writePos-1];
 }
 
 template <typename T, size_t items> bool FixedQueue<T,items>::pop() {
@@ -53,12 +64,60 @@ template <typename T, size_t items> bool FixedQueue<T,items>::push(const T& item
     logW("queue overflow!");
     return false;
   }
-  if (writePos==0 && readPos==items-1) {
+  if (writePos==items-1 && readPos==0) {
     logW("queue overflow!");
     return false;
   }
   data[writePos]=item;
   if (++writePos>=items) writePos=0;
+  return true;
+}
+
+template <typename T, size_t items> bool FixedQueue<T,items>::pop_front() {
+  if (readPos==writePos) return false;
+  if (++readPos>=items) readPos=0;
+  return true;
+}
+
+template <typename T, size_t items> bool FixedQueue<T,items>::push_back(const T& item) {
+  if (writePos==(readPos-1)) {
+    logW("queue overflow!");
+    return false;
+  }
+  if (writePos==items-1 && readPos==0) {
+    logW("queue overflow!");
+    return false;
+  }
+  data[writePos]=item;
+  if (++writePos>=items) writePos=0;
+  return true;
+}
+
+template <typename T, size_t items> bool FixedQueue<T,items>::pop_back() {
+  if (readPos==writePos) return false;
+  if (writePos>0) {
+    writePos--;
+  } else {
+    writePos=items-1;
+  }
+  return true;
+}
+
+template <typename T, size_t items> bool FixedQueue<T,items>::push_front(const T& item) {
+  if (readPos==(writePos+1)) {
+    logW("stack overflow!");
+    return false;
+  }
+  if (readPos==0 && writePos==items-1) {
+    logW("stack overflow!");
+    return false;
+  }
+  data[readPos]=item;
+  if (readPos>0) {
+    readPos--;
+  } else {
+    readPos=items-1;
+  }
   return true;
 }
 

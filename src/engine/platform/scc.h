@@ -21,7 +21,6 @@
 #define _SCC_H
 
 #include "../dispatch.h"
-#include <queue>
 #include "../waveSynth.h"
 #include "vgsound_emu/src/scc/scc.hpp"
 

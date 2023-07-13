@@ -22,7 +22,6 @@
 
 #include "../dispatch.h"
 #include "sound/vic20sound.h"
-#include <queue>
 
 class DivPlatformVIC20: public DivDispatch {
   struct Channel: public SharedChannel<int> {

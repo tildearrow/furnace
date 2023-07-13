@@ -25,7 +25,7 @@
 extern "C" {
   #include "../../../extern/Nuked-PSG/ympsg.h"
 }
-#include <queue>
+#include "../fixedQueue.h"
 
 class DivPlatformSMS: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
@@ -59,9 +59,10 @@ class DivPlatformSMS: public DivDispatch {
     unsigned short addr;
     unsigned char val;
     bool addrOrVal;
+    QueuedWrite(): addr(0), val(0), addrOrVal(false) {}
     QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,128> writes;
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
 

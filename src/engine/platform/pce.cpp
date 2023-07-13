@@ -531,7 +531,7 @@ int DivPlatformPCE::getRegisterPoolSize() {
 }
 
 void DivPlatformPCE::reset() {
-  while (!writes.empty()) writes.pop();
+  writes.clear();
   memset(regPool,0,128);
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformPCE::Channel();

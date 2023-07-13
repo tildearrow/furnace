@@ -23,7 +23,7 @@
 #include "../dispatch.h"
 #include "../instrument.h"
 #include "sound/segapcm.h"
-#include <queue>
+#include "../fixedQueue.h"
 
 class DivPlatformSegaPCM: public DivDispatch {
   protected:
@@ -59,9 +59,10 @@ class DivPlatformSegaPCM: public DivDispatch {
       unsigned short addr;
       unsigned char val;
       bool addrOrVal;
+      QueuedWrite(): addr(0), val(0), addrOrVal(false) {}
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
-    std::queue<QueuedWrite> writes;
+    FixedQueue<QueuedWrite,1024> writes;
     segapcm_device pcm;
     int delay;
     int pcmL, pcmR, pcmCycles;

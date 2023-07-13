@@ -21,7 +21,7 @@
 #define _PCSPKR_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../fixedQueue.h"
 #include <thread>
 #include <mutex>
 #include <condition_variable>
@@ -40,12 +40,16 @@ class DivPlatformPCSpeaker: public DivDispatch {
   struct RealQueueVal {
     int tv_sec, tv_nsec;
     unsigned short val;
+    RealQueueVal():
+      tv_sec(0),
+      tv_nsec(0),
+      val(0) {}
     RealQueueVal(int sec, int nsec, unsigned short v):
       tv_sec(sec),
       tv_nsec(nsec),
       val(v) {}
   };
-  std::queue<RealQueueVal> realQueue;
+  FixedQueue<RealQueueVal,2048> realQueue;
   std::mutex realQueueLock;
   bool isMuted[1];
   bool on, flip, lastOn, realOutEnabled;
