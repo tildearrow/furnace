@@ -295,6 +295,8 @@ struct DivRegWrite {
    */
   unsigned int addr;
   unsigned int val;
+  DivRegWrite():
+    addr(0), val(0) {}
   DivRegWrite(unsigned int a, unsigned int v):
     addr(a), val(v) {}
 };

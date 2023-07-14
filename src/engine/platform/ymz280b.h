@@ -21,7 +21,6 @@
 #define _YMZ280B_H
 
 #include "../dispatch.h"
-#include <queue>
 #include "sound/ymz280b.h"
 
 class DivPlatformYMZ280B: public DivDispatch {

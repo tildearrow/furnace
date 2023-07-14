@@ -23,7 +23,7 @@
 #include "../dispatch.h"
 #include "../waveSynth.h"
 #include "sound/gb/gb.h"
-#include <queue>
+#include "../fixedQueue.h"
 
 class DivPlatformGB: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
@@ -62,11 +62,12 @@ class DivPlatformGB: public DivDispatch {
   unsigned char lastPan;
   DivWaveSynth ws;
   struct QueuedWrite {
-      unsigned char addr;
-      unsigned char val;
-      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+    unsigned char addr;
+    unsigned char val;
+    QueuedWrite(): addr(0), val(0) {}
+    QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,256> writes;
 
   int antiClickPeriodCount, antiClickWavePos;
 

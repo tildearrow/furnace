@@ -21,7 +21,7 @@
 #define _POKEY_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../fixedQueue.h"
 
 extern "C" {
 #include "sound/pokey/mzpokeysnd.h"
@@ -43,11 +43,12 @@ class DivPlatformPOKEY: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   struct QueuedWrite {
-      unsigned char addr;
-      unsigned char val;
-      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+    unsigned char addr;
+    unsigned char val;
+    QueuedWrite(): addr(0), val(0) {}
+    QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,128> writes;
   unsigned char audctl, skctl;
   bool audctlChanged, skctlChanged;
   unsigned char oscBufDelay;

@@ -137,7 +137,7 @@ void okim6258_device::device_reset()
 
 void okim6258_device::sound_stream_update(short** outputs, int len)
 {
-	auto &buffer = outputs[0];
+	short* buffer = outputs[0];
 
 	if (m_status & STATUS_PLAYING)
 	{

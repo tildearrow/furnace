@@ -21,7 +21,7 @@
 #define _C64_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../fixedQueue.h"
 #include "sound/c64/sid.h"
 #include "sound/c64_fp/SID.h"
 #include "sound/c64_d/dsid.h"
@@ -62,9 +62,10 @@ class DivPlatformC64: public DivDispatch {
   struct QueuedWrite {
       unsigned char addr;
       unsigned char val;
+      QueuedWrite(): addr(0), val(0) {}
       QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,128> writes;
 
   unsigned char filtControl, filtRes, vol;
   unsigned char writeOscBuf;

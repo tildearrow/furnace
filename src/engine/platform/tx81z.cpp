@@ -986,7 +986,7 @@ void DivPlatformTX81Z::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformTX81Z::reset() {
-  while (!writes.empty()) writes.pop_front();
+  writes.clear();
   memset(regPool,0,330);
   fm_ymfm->reset();
   if (dumpWrites) {

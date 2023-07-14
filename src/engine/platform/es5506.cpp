@@ -26,9 +26,8 @@
 #define PITCH_OFFSET ((double)(16*2048*(chanMax+1)))
 #define NOTE_ES5506(c,note) (parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
 
-#define rWrite(a,...) {if(!skipRegisterWrites) {hostIntf32.emplace(4,(a),__VA_ARGS__); }}
-//#define rRead(a,st,...) {hostIntf32.emplace(st,4,(a),__VA_ARGS__);}
-#define immWrite(a,...) {hostIntf32.emplace(4,(a),__VA_ARGS__);}
+#define rWrite(a,...) {if(!skipRegisterWrites) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__)); }}
+#define immWrite(a,...) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__));}
 #define pageWrite(p,a,...) \
   if (!skipRegisterWrites) { \
     if (curPage!=(p)) { \
@@ -118,15 +117,15 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
     while (!hostIntf32.empty()) {
       QueuedHostIntf w=hostIntf32.front();
       if (w.isRead && (w.read!=NULL)) {
-        hostIntf8.emplace(w.state,0,w.addr,w.read,w.mask);
-        hostIntf8.emplace(w.state,1,w.addr,w.read,w.mask);
-        hostIntf8.emplace(w.state,2,w.addr,w.read,w.mask);
-        hostIntf8.emplace(w.state,3,w.addr,w.read,w.mask,w.delay);
+        hostIntf8.push(QueuedHostIntf(w.state,0,w.addr,w.read,w.mask));
+        hostIntf8.push(QueuedHostIntf(w.state,1,w.addr,w.read,w.mask));
+        hostIntf8.push(QueuedHostIntf(w.state,2,w.addr,w.read,w.mask));
+        hostIntf8.push(QueuedHostIntf(w.state,3,w.addr,w.read,w.mask,w.delay));
       } else {
-        hostIntf8.emplace(0,w.addr,w.val,w.mask);
-        hostIntf8.emplace(1,w.addr,w.val,w.mask);
-        hostIntf8.emplace(2,w.addr,w.val,w.mask);
-        hostIntf8.emplace(3,w.addr,w.val,w.mask,w.delay);
+        hostIntf8.push(QueuedHostIntf(0,w.addr,w.val,w.mask));
+        hostIntf8.push(QueuedHostIntf(1,w.addr,w.val,w.mask));
+        hostIntf8.push(QueuedHostIntf(2,w.addr,w.val,w.mask));
+        hostIntf8.push(QueuedHostIntf(3,w.addr,w.val,w.mask,w.delay));
       }
       hostIntf32.pop();
     }
@@ -1095,8 +1094,6 @@ DivMacroInt* DivPlatformES5506::getChanMacroInt(int ch) {
 void DivPlatformES5506::reset() {
   while (!hostIntf32.empty()) hostIntf32.pop();
   while (!hostIntf8.empty()) hostIntf8.pop();
-  while (!queuedRead.empty()) queuedRead.pop();
-  while (!queuedReadState.empty()) queuedReadState.pop();
   for (int i=0; i<32; i++) {
     chan[i]=DivPlatformES5506::Channel();
     chan[i].std.setEngine(parent);

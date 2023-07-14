@@ -21,7 +21,7 @@
 #define _TX81Z_H
 
 #include "fmshared_OPM.h"
-#include <queue>
+#include "../fixedQueue.h"
 #include "sound/ymfm/ymfm_opz.h"
 
 class DivTXInterface: public ymfm::ymfm_interface {

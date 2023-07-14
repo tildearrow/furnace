@@ -284,7 +284,7 @@ void DivPlatformGenesis::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformGenesis::fillStream(std::vector<DivDelayedWrite>& stream, int sRate, size_t len) {
-  while (!writes.empty()) writes.pop_front();
+  writes.clear();
   for (size_t i=0; i<len; i++) {
     processDAC(sRate);
 
@@ -1282,7 +1282,7 @@ float DivPlatformGenesis::getPostAmp() {
 }
 
 void DivPlatformGenesis::reset() {
-  while (!writes.empty()) writes.pop_front();
+  writes.clear();
   memset(regPool,0,512);
   if (useYMFM) {
     fm_ymfm->reset();

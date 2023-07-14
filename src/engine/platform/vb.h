@@ -21,7 +21,7 @@
 #define _PLATFORM_VB_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../fixedQueue.h"
 #include "../waveSynth.h"
 #include "sound/vsu.h"
 
@@ -44,11 +44,12 @@ class DivPlatformVB: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[6];
   bool isMuted[6];
   struct QueuedWrite {
-      unsigned short addr;
-      unsigned char val;
-      QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
+    unsigned short addr;
+    unsigned char val;
+    QueuedWrite(): addr(0), val(0) {}
+    QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,2048> writes;
   unsigned char lastPan;
 
   int cycles, curChan, delay;

@@ -21,7 +21,6 @@
 #define _TIA_H
 
 #include "../dispatch.h"
-#include <queue>
 #include "sound/tia/Audio.h"
 
 class DivPlatformTIA: public DivDispatch {
