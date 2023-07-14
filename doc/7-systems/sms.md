@@ -14,7 +14,7 @@ the original iteration of the SN76489 used in the TI-99/4A computer, the SN94624
     - `0`: thin pulse.
     - `1`: noise.
 
-# chip flags
+# chip config
 ## SN7 versions
 SN7 was extremely popular due to low cost. Therefore, it was cloned and copied to no end, often with minor differences between each other. Furnace supports several of these:
 - SN94624, can only produce tones as low as 100Hz, and is clocked at 447 KHz.
