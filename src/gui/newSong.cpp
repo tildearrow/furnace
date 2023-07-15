@@ -113,7 +113,33 @@ void FurnaceGUI::drawNewSong() {
             nextDescName=i.name;
             accepted=true;
           }
+          if (ImGui::IsItemHovered() && ImGui::BeginTooltip()) {
+            std::map<DivSystem, int> chipCounts;
+            std::vector<DivSystem> chips;
+            for (FurnaceGUISysDefChip chip: i.orig) {
+              if (chipCounts.find(chip.sys) == chipCounts.end()) {
+                chipCounts[chip.sys] = 1;
+                chips.push_back(chip.sys);
+              }
+              else {
+                chipCounts[chip.sys] += 1;
+              }
+            }
+            int num_chips = chips.size();
+            for (int chipIndex = 0; chipIndex < num_chips; chipIndex++) {
+              DivSystem chip = chips[chipIndex];
+              const DivSysDef* sysDef = e->getSystemDef(chip);
+              ImGui::Text("%s (x%d): ", sysDef->name, chipCounts[chip]);
+              ImGui::TextWrapped("%s", sysDef->description);
+              if (chipIndex + 1 < num_chips) {
+                ImGui::Separator();
+              }
+            }
+            
+            ImGui::EndTooltip();
+          }
         }
+
         ImGui::EndTable();
       }
 
