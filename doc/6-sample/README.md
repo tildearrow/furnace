@@ -47,7 +47,7 @@ use of this mode is discouraged in favor of Sample type instruments.
 
 due to limitations in some of those sound chips, some restrictions exist:
 
-- Amiga: sample lengths and loop will be set to an even number, and your sample can't be longer than 131070.
+- Amiga: maximum frequency is 31,469Hz, but anything over 28,867 will sound glitchy on hardware. sample lengths and loop will be set to an even number, and your sample can't be longer than 131070.
 - NES: if on DPCM mode, only a limited selection of frequencies is available, and loop position isn't supported (only entire sample).
 - SegaPCM: your sample can't be longer than 65535, and the maximum frequency is 31.25KHz.
 - QSound: your sample can't be longer than 65535, and the loop length shall not be greater than 32767.
