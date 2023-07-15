@@ -2598,6 +2598,8 @@ void DivEngine::stepOne(int row) {
   }
   stepPlay=2;
   ticks=1;
+  prevOrder=curOrder;
+  prevRow=curRow;
   BUSY_END;
 }
 
