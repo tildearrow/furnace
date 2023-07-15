@@ -4322,9 +4322,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
 
 void DivEngine::autoNoteOff(int ch, int note, int vol) {
   if (!playing) {
-    reset();
-    freelance=true;
-    playing=true;
+    return;
   }
   //if (ch<0 || ch>=chans) return;
   for (int i=0; i<chans; i++) {
@@ -4337,9 +4335,7 @@ void DivEngine::autoNoteOff(int ch, int note, int vol) {
 
 void DivEngine::autoNoteOffAll() {
   if (!playing) {
-    reset();
-    freelance=true;
-    playing=true;
+    return;
   }
   for (int i=0; i<chans; i++) {
     if (chan[i].midiNote!=-1) {
