@@ -81,6 +81,10 @@ additional guidelines:
 - on a switch block, **always** put `default` last and not in any other position.
   - I have fear of some C/C++ compilers ignoring the rest of cases upon hitting default.
 
+## Do NOT Force-Push after submitting Pull Request
+
+if you do so, your pull request will be closed.
+
 ## Demo Songs
 
 just put your demo song in `demos/`! be noted there are some guidelines:

@@ -452,6 +452,9 @@ static int opChanOffsH[4]={
 };
 
 void DivPlatformGenesisExt::tick(bool sysTick) {
+  int hardResetElapsed=0;
+  bool mustHardReset=false;
+
   if (extMode) {
     bool writeSomething=false;
     unsigned char writeMask=2;
@@ -461,6 +464,12 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
         writeSomething=true;
         writeMask&=~(1<<(4+i));
         opChan[i].keyOff=false;
+      }
+      if (opChan[i].hardReset && opChan[i].keyOn) {
+        mustHardReset=true;
+        unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[i];
+        immWrite(baseAddr+ADDR_SL_RR,0x0f);
+        hardResetElapsed++;
       }
     }
     if (writeSomething) {
@@ -630,6 +639,22 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
         (writeMask&0x80)?'4':'-'
       );*/
     immWrite(0x28,writeMask);
+
+    // hard reset handling
+    if (mustHardReset) {
+      for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
+        immWrite(0xf0,i&0xff);
+      }
+      for (int i=0; i<4; i++) {
+        if (opChan[i].keyOn && opChan[i].hardReset) {
+          // restore SL/RR
+          unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[i];
+          DivInstrumentFM::Operator& op=chan[extChanOffs].state.op[i];
+          immWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+        }
+      }
+      immWrite(0x28,writeMask);
+    }
   }
 
   if (extMode) {
