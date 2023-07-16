@@ -1,6 +1,6 @@
 # menu bar
 
-the menu bar allows you to select five menus: file, edit, settings, window and help.
+the menu bar allows you to select from five menus: file, edit, settings, window and help.
 
 # file
 
@@ -238,3 +238,13 @@ all these commands show or hide their associated windows.
   - unless you are working with the Furnace codebase, it's not useful.
 - **panic**: this resets all chips while the song is playing, effectively silencing everything.
 - **about...**: displays the About screen.
+
+at the end of the menu bar, more information may be shown:
+- during editing, information about the data under the cursor will be shown here:
+  - note or note modifier.
+  - instrument number and name.
+  - volume in decimal, hex, and percentage.
+  - effect type and description.
+- during playback, the current values of the following will be listed:\
+  speed/groove @ tick rate (BPM) | order | row | elapsed time.
+- if any changes or edits have been made but not yet saved, "modified" will appear.
