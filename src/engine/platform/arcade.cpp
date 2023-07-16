@@ -878,7 +878,7 @@ void DivPlatformArcade::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformArcade::reset() {
-  while (!writes.empty()) writes.pop_front();
+  writes.clear();
   memset(regPool,0,256);
   if (useYMFM) {
     fm_ymfm->reset();

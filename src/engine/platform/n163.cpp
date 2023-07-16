@@ -23,8 +23,8 @@
 #include <math.h>
 
 #define rRead(a,v) n163.addr_w(a); n163.data_r(v);
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
-#define rWriteMask(a,v,m) if (!skipRegisterWrites) {writes.emplace(a,v,m); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
+#define rWriteMask(a,v,m) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v,m)); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) \
   if (c<=chanMax) { \
     rWrite(0x78-(c<<3)+(a&7),v) \

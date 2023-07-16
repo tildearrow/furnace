@@ -2419,7 +2419,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
       if (y>waveDragMax) y=waveDragMax;
       if (y<waveDragMin) y=waveDragMin;
       waveDragTarget[x]=y;
-      e->notifyWaveChange(curWave);
+      notifyWaveChange=true;
       MARK_MODIFIED;
     }
   }
@@ -3744,6 +3744,11 @@ bool FurnaceGUI::loop() {
       midiLock.lock();
       midiQueue.pop();
       midiLock.unlock();
+    }
+
+    if (notifyWaveChange) {
+      notifyWaveChange=false;
+      e->notifyWaveChange(curWave);
     }
 
     eventTimeEnd=SDL_GetPerformanceCounter();
@@ -6718,6 +6723,7 @@ FurnaceGUI::FurnaceGUI():
   preserveChanPos(false),
   wantScrollList(false),
   noteInputPoly(true),
+  notifyWaveChange(false),
   displayPendingIns(false),
   pendingInsSingle(false),
   displayPendingRawSample(false),
@@ -7015,7 +7021,7 @@ FurnaceGUI::FurnaceGUI():
   fadeMode(false),
   randomMode(false),
   haveHitBounds(false),
-  pendingStepUpdate(false),
+  pendingStepUpdate(0),
   oldOrdersLen(0),
   sampleZoom(1.0),
   prevSampleZoom(1.0),

@@ -22,7 +22,6 @@
 
 #include "../dispatch.h"
 #include "sound/d65modified.h"
-#include <queue>
 
 class DivPlatformPV1000: public DivDispatch {
   struct Channel: public SharedChannel<int> {

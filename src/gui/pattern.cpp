@@ -446,7 +446,7 @@ void FurnaceGUI::drawPattern() {
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
       int curRow=e->getRow();
       if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) updateScroll(curRow);
-      pendingStepUpdate=false;
+      if (--pendingStepUpdate<0) pendingStepUpdate=0;
       if (nextScroll>-0.5f) {
         ImGui::SetScrollY(nextScroll);
         nextScroll=-1.0f;

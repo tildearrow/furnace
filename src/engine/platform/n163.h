@@ -21,7 +21,7 @@
 #define _N163_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../fixedQueue.h"
 #include "../waveSynth.h"
 #include "vgsound_emu/src/n163/n163.hpp"
 
@@ -54,12 +54,13 @@ class DivPlatformN163: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
   struct QueuedWrite {
-      unsigned char addr;
-      unsigned char val;
-      unsigned char mask;
-      QueuedWrite(unsigned char a, unsigned char v, unsigned char m=~0): addr(a), val(v), mask(m) {}
+    unsigned char addr;
+    unsigned char val;
+    unsigned char mask;
+    QueuedWrite(): addr(0), val(0), mask(~0) {}
+    QueuedWrite(unsigned char a, unsigned char v, unsigned char m=~0): addr(a), val(v), mask(m) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,2048> writes;
   unsigned char initChanMax;
   unsigned char chanMax;
   short loadWave, loadPos, loadLen;

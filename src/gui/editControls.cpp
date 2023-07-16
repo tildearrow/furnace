@@ -374,7 +374,7 @@ void FurnaceGUI::drawMobileControls() {
     if (portrait) ImGui::SameLine();
     if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne",buttonSize)) {
       e->stepOne(cursor.y);
-      pendingStepUpdate=true;
+      pendingStepUpdate=1;
     }
 
     bool repeatPattern=e->getRepeatPattern();
@@ -730,7 +730,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
-          pendingStepUpdate=true;
+          pendingStepUpdate=1;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Step one row");
@@ -770,7 +770,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
-          pendingStepUpdate=true;
+          pendingStepUpdate=1;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Step one row");
@@ -875,7 +875,7 @@ void FurnaceGUI::drawEditControls() {
         }
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne",buttonSize)) {
           e->stepOne(cursor.y);
-          pendingStepUpdate=true;
+          pendingStepUpdate=1;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Step one row");
@@ -1009,7 +1009,7 @@ void FurnaceGUI::drawEditControls() {
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_ARROW_DOWN "##StepOne")) {
           e->stepOne(cursor.y);
-          pendingStepUpdate=true;
+          pendingStepUpdate=1;
         }
         if (ImGui::IsItemHovered()) {
           ImGui::SetTooltip("Step one row");

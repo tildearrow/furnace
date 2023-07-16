@@ -21,7 +21,7 @@
 #define _MSM6295_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../fixedQueue.h"
 #include "vgsound_emu/src/msm6295/msm6295.hpp"
 
 class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
@@ -41,12 +41,13 @@ class DivPlatformMSM6295: public DivDispatch, public vgsound_emu_mem_intf {
       unsigned short addr;
       unsigned char val;
       unsigned short delay;
+      QueuedWrite(): addr(0), val(0), delay(96) {}
       QueuedWrite(unsigned short a, unsigned char v, unsigned short d=96):
         addr(a),
         val(v),
         delay(d) {}
     };
-    std::queue<QueuedWrite> writes;
+    FixedQueue<QueuedWrite,256> writes;
     msm6295_core msm;
     unsigned char lastBusy;
 
