@@ -154,7 +154,7 @@ it's not really useful, unless you're a developer and want to use a command stre
   - if a column is already selected, it will select the entire channel.
   - if a channel is already selected, it will select the entire pattern.
 
-- **operation mask**: toggles which columns will be affected by the listed commands. [more information here.](../8-advanced/opmask.md)
+- **operation mask**: toggles which columns will be affected by the listed operations. [more information here.](../8-advanced/opmask.md)
 - **input latch**: determines which data are placed along with a note. [more information here.](../8-advanced/inputlatch.md)
 
 - **note/octave up/down**: transposes notes in the current selection.
@@ -176,7 +176,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **invert values**: `00` becomes `FF`, `01` becomes `FE`, `02` becomes `FD` and so on.
 
 - **flip selection**: flips the selection so it is backwards.
-- **collapse/expand amount**: allows you to specify how much to collapse/expand in the next commands.
+- **collapse/expand amount**: allows you to specify how much to collapse/expand in the next two menu items.
 - **collapse**: shrinks the selected contents.
 - **expand**: expands the selected contents.
 
@@ -203,7 +203,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 
 # window
 
-all these commands show or hide their associated windows.
+all these menu items show or hide their associated windows.
 
 - [song information](song-info.md)
 - [subsongs](song-info.md)
