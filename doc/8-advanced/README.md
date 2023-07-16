@@ -1,6 +1,12 @@
 # advanced
 
-advanced Furnace features, as listed in the `Window` menu.
+advanced Furnace features.
+
+as listed in the "Edit" menu:
+
+- [find/replace](find-replace.md)
+
+as listed in the "Window" menu:
 
 - [mixer](mixer.md)
 - [grooves](grooves.md)
@@ -9,8 +15,6 @@ advanced Furnace features, as listed in the `Window` menu.
 - [chip manager](chip-manager.md)
 - [compatibility flags](compat-flags.md)
 - [song comments](comments.md)
-
-<hr>
 
 - [piano](piano.md)
 - [oscilloscope](osc.md)
