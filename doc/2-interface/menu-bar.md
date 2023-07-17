@@ -1,6 +1,6 @@
 # menu bar
 
-the menu bar allows you to select five menus: file, edit, settings, window and help.
+the menu bar allows you to select from five menus: file, edit, settings, window and help.
 
 # file
 
@@ -154,8 +154,8 @@ it's not really useful, unless you're a developer and want to use a command stre
   - if a column is already selected, it will select the entire channel.
   - if a channel is already selected, it will select the entire pattern.
 
-- **operation mask**: this is an advanced feature. see [this page](../3-pattern/opmask.md) for more information.
-- **input latch**: this is an advanced feature. see [this page](../3-pattern/inputlatch.md) for more information.
+- **operation mask**: toggles which columns will be affected by the listed operations. [more information here.](../8-advanced/opmask.md)
+- **input latch**: determines which data are placed along with a note. [more information here.](../8-advanced/inputlatch.md)
 
 - **note/octave up/down**: transposes notes in the current selection.
 
@@ -176,7 +176,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **invert values**: `00` becomes `FF`, `01` becomes `FE`, `02` becomes `FD` and so on.
 
 - **flip selection**: flips the selection so it is backwards.
-- **collapse/expand amount**: allows you to specify how much to collapse/expand in the next options.
+- **collapse/expand amount**: allows you to specify how much to collapse/expand in the next two menu items.
 - **collapse**: shrinks the selected contents.
 - **expand**: expands the selected contents.
 
@@ -188,7 +188,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **expand song**: same as expand, but affects the entire song.
   - it also changes speeds and pattern length to compensate.
 
-- **find/replace**: opens the Find/Replace window. see [this page](../3-pattern/find-replace.md) for more information.
+- **find/replace**: shows [the Find/Replace window](../8-advanced/find-replace.md).
 
 - **clear**: allows you to mass-delete things like songs, instruments and the like.
 
@@ -199,46 +199,52 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **basic mode**: toggles [Basic Mode](basic-mode.md).
 - **visualizer**: toggles pattern view particle effects when the song plays.
 - **reset layout**: resets the workspace to its defaults.
-- **settings...**: opens the Settings window. these are detailed in [settings.md].
+- **settings...**: shows the Settings window. these are detailed in [settings.md].
 
 # window
 
-- **song information**: shows/hides the Song Information window.
-- **subsongs**: shows/hides the Subsongs window.
-- **speed**: shows/hides the Speed window.
-- **instruments**: shows/hides the instrument list.
-- **wavetables**: shows/hides the wavetable list.
-- **samples**: shows/hides the sample list.
-- **orders**: shows/hides the Orders window.
-- **pattern**: shows/hides the pattern view.
-- **mixer**: shows/hides the Mixer window.
-- **grooves**: shows/hides the Grooves window.
-- **channels**: shows/hides the Channels window.
-- **pattern manager**: shows/hides the Pattern Manager window.
-- **chip manager**: shows/hides the Chip Manager window.
-- **compatibility flags**: shows/hides the Compatibility Flags window.
-- **song comments**: shows/hides the Song Comments window.
+all these menu items show or hide their associated windows.
 
-- **instrument editor**: shows/hides the Instrument Editor
-- **wavetable editor**: shows/hides the Wavetable Editor.
-- **sample editor**: shows/hides the Sample Editor.
+- [song information](song-info.md)
+- [subsongs](song-info.md)
+- [speed](song-info.md)
+- [instruments](../4-instrument/README.md)
+- [wavetables](../5-wave/README.md)
+- [samples](../6-sample/README.md)
+- [orders](order-list.md)
+- [pattern](../3-pattern/README.md)
+- [mixer](mixer.md)
+- [grooves](grooves.md)
+- [channels](channels.md)
+- [pattern manager](pat-manager.md)
+- [chip manager](chip-manager.md)
+- [compatibility flags](compat-flags.md)
+- [song comments](comments.md)
 
-- **play/edit controls**: shows/hides the Play/Edit Controls.
-- **piano/input pad**: shows/hides the Piano/Input Pad window.
-- **oscilloscope (master)**: shows/hides the oscilloscope.
-- **oscilloscope (per-channel)**: shows/hides the per-channel oscilloscope.
-- **volume meter**: shows/hides the volume meter.
-- **clock**: shows/hides the clock.
-- **register view**: shows/hides the Register View window.
-- **log viewer**: shows/hides the log Viewer.
-- **statistics**: shows/hides the Statistics window.
+- [piano](piano.md)
+- [oscilloscope](osc.md)
+- [oscilloscopes (per-channel)](chanosc.md)
+- [clock](clock.md)
+- [register view](regview.md)
+- [log viewer](log-viewer.md)
+- [stats](stats.md)
 
 # help
 
 - **effect list**: displays the effect list.
 - **debug menu**: this menu contains various debug utilities.
   - unless you are working with the Furnace codebase, it's not useful.
-- **inspector**: this options opens the Dear ImGui Metrics/Debugger window.
+- **inspector**: this option shows the Dear ImGui Metrics/Debugger window.
   - unless you are working with the Furnace codebase, it's not useful.
 - **panic**: this resets all chips while the song is playing, effectively silencing everything.
 - **about...**: displays the About screen.
+
+at the end of the menu bar, more information may be shown:
+- during editing, information about the data under the cursor will be shown here:
+  - note or note modifier.
+  - instrument number and name.
+  - volume in decimal, hex, and percentage.
+  - effect type and description.
+- during playback, the current values of the following will be listed:\
+  speed/groove @ tick rate (BPM) | order | row | elapsed time.
+- if any changes or edits have been made but not yet saved, "modified" will appear.
