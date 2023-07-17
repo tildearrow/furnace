@@ -4409,7 +4409,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_SNES ||
             ins->type==DIV_INS_ES5506 ||
             ins->type==DIV_INS_K007232 ||
-            ins->type==DIV_INS_GA20) {
+            ins->type==DIV_INS_GA20 ||
+            ins->type==DIV_INS_K053260) {
           if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
             String sName;
             bool wannaOpenSMPopup=false;
@@ -5316,7 +5317,8 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_SEGAPCM || ins->type==DIV_INS_MIKEY ||
               ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_SU || ins->type==DIV_INS_OPZ ||
-              ins->type==DIV_INS_OPM || ins->type==DIV_INS_SNES || ins->type==DIV_INS_MSM5232) {
+              ins->type==DIV_INS_OPM || ins->type==DIV_INS_SNES || ins->type==DIV_INS_MSM5232 ||
+              ins->type==DIV_INS_K053260) {
             volMax=127;
           }
           if (ins->type==DIV_INS_GB) {
@@ -5405,7 +5407,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC ||
               ins->type==DIV_INS_PET || ins->type==DIV_INS_SEGAPCM ||
               ins->type==DIV_INS_FM || ins->type==DIV_INS_K007232 || ins->type==DIV_INS_GA20 ||
-              ins->type==DIV_INS_SM8521 || ins->type==DIV_INS_PV1000) {
+              ins->type==DIV_INS_SM8521 || ins->type==DIV_INS_PV1000 || ins->type==DIV_INS_K053260) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VBOY) {
@@ -5505,6 +5507,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_SEGAPCM) waveMax=0;
           if (ins->type==DIV_INS_K007232) waveMax=0;
           if (ins->type==DIV_INS_GA20) waveMax=0;
+          if (ins->type==DIV_INS_K053260) waveMax=0;
           if (ins->type==DIV_INS_POKEMINI) waveMax=0;
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
           if (ins->type==DIV_INS_PET) {
@@ -5623,6 +5626,11 @@ void FurnaceGUI::drawInsEdit() {
             panMax=7;
             panSingleNoBit=true;
           }
+          if (ins->type==DIV_INS_K053260) {
+            panMin=-3;
+            panMax=3;
+            panSingleNoBit=true;
+          }
           if (ins->type==DIV_INS_SU) {
             panMin=-127;
             panMax=127;
@@ -5713,7 +5721,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_VBOY ||
               (ins->type==DIV_INS_X1_010 && ins->amiga.useSample) ||
               ins->type==DIV_INS_K007232 ||
-              ins->type==DIV_INS_GA20) {
+              ins->type==DIV_INS_GA20 ||
+              ins->type==DIV_INS_K053260) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {

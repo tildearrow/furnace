@@ -564,12 +564,22 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
         w->writeC(0xff);
         break;
       case DIV_SYSTEM_GA20:
-        for (int i=0; i<3; i++) {
+        for (int i=0; i<4; i++) {
           w->writeC(0xbf); // mute
           w->writeC((baseAddr2|5)+(i*8));
           w->writeC(0);
           w->writeC(0xbf); // keyoff
           w->writeC((baseAddr2|6)+(i*8));
+          w->writeC(0);
+        }
+        break;
+      case DIV_SYSTEM_K053260:
+        for (int i=0; i<4; i++) {
+          w->writeC(0xba); // mute
+          w->writeC(baseAddr2|0x2f);
+          w->writeC(0);
+          w->writeC(0xba); // keyoff
+          w->writeC(baseAddr2|0x28);
           w->writeC(0);
         }
         break;
@@ -1029,6 +1039,11 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       w->writeC(baseAddr2|(write.addr&0x7f));
       w->writeC(write.val);
       break;
+    case DIV_SYSTEM_K053260:
+      w->writeC(0xba);
+      w->writeC(baseAddr2|(write.addr&0x3f));
+      w->writeC(write.val&0xff);
+      break;
     default:
       logW("write not handled!");
       break;
@@ -1201,6 +1216,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   DivDispatch* writeRF5C68[2]={NULL,NULL};
   DivDispatch* writeMSM6295[2]={NULL,NULL};
   DivDispatch* writeGA20[2]={NULL,NULL};
+  DivDispatch* writeK053260[2]={NULL,NULL};
   DivDispatch* writeNES[2]={NULL,NULL};
   
   int writeNESIndex[2]={0,0};
@@ -1725,6 +1741,21 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
           howManyChips++;
         }
         break;
+      case DIV_SYSTEM_K053260:
+        if (!hasK053260) {
+          hasK053260=disCont[i].dispatch->chipClock;
+          CHIP_VOL(29,0.4);
+          willExport[i]=true;
+          writeK053260[0]=disCont[i].dispatch;
+        } else if (!(hasK053260&0x40000000)) {
+          isSecond[i]=true;
+          CHIP_VOL_SECOND(29,0.4);
+          willExport[i]=true;
+          writeK053260[1]=disCont[i].dispatch;
+          hasK053260|=0x40000000;
+          howManyChips++;
+        }
+        break;
       case DIV_SYSTEM_T6W28:
         if (!hasSN) {
           hasSN=0xc0000000|disCont[i].dispatch->chipClock;
@@ -2085,6 +2116,15 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->writeI(writeGA20[i]->getSampleMemCapacity());
       w->writeI(0);
       w->write(writeGA20[i]->getSampleMem(),writeGA20[i]->getSampleMemUsage());
+    }
+    if (writeK053260[i]!=NULL && writeK053260[i]->getSampleMemUsage()>0) {
+      w->writeC(0x67);
+      w->writeC(0x66);
+      w->writeC(0x8e);
+      w->writeI((writeK053260[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      w->writeI(writeK053260[i]->getSampleMemCapacity());
+      w->writeI(0);
+      w->write(writeK053260[i]->getSampleMem(),writeK053260[i]->getSampleMemUsage());
     }
     if (writeNES[i]!=NULL && writeNES[i]->getSampleMemUsage()>0) {
       size_t howMuchWillBeWritten=writeNES[i]->getSampleMemUsage();

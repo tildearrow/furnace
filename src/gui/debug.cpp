@@ -53,6 +53,7 @@
 #include "../engine/platform/ga20.h"
 #include "../engine/platform/sm8521.h"
 #include "../engine/platform/pv1000.h"
+#include "../engine/platform/k053260.h"
 #include "../engine/platform/dummy.h"
 
 #define COMMON_CHIP_DEBUG \
@@ -540,6 +541,13 @@ void putDispatchChip(void* data, int type) {
     case DIV_SYSTEM_PV1000: {
       DivPlatformPV1000* ch=(DivPlatformPV1000*)data;
       ImGui::Text("> PV1000");
+      COMMON_CHIP_DEBUG;
+      COMMON_CHIP_DEBUG_BOOL;
+      break;
+    }
+    case DIV_SYSTEM_K053260: {
+      DivPlatformK053260* ch=(DivPlatformK053260*)data;
+      ImGui::Text("> K053260");
       COMMON_CHIP_DEBUG;
       COMMON_CHIP_DEBUG_BOOL;
       break;
@@ -1080,6 +1088,19 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("> PV1000");
       COMMON_CHAN_DEBUG;
       COMMON_CHAN_DEBUG_BOOL;
+      break;
+    }
+    case DIV_SYSTEM_K053260: {
+      DivPlatformK053260::Channel* ch=(DivPlatformK053260::Channel*)data;
+      ImGui::Text("> K053260");
+      COMMON_CHAN_DEBUG;
+      ImGui::Text("* Sample: %d",ch->sample);
+      ImGui::Text(" - pos: %d",ch->audPos);
+      ImGui::Text("- panning: %d",ch->panning);
+      ImGui::Text("- macroVolMul: %.2x",ch->macroVolMul);
+      COMMON_CHAN_DEBUG_BOOL;
+      ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
+      ImGui::TextColored(ch->reverse?colorOn:colorOff,">> Reverse");
       break;
     }
     default:

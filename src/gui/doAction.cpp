@@ -1378,7 +1378,8 @@ void FurnaceGUI::doAction(int what) {
             i==DIV_INS_SNES ||
             i==DIV_INS_ES5506 ||
             i==DIV_INS_K007232 ||
-            i==DIV_INS_GA20) {
+            i==DIV_INS_GA20 ||
+            i==DIV_INS_K053260) {
           makeInsTypeList.push_back(i);
         }
       }
