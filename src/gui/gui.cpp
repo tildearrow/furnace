@@ -1418,6 +1418,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         try {
           int num=valueKeys.at(ev.key.keysym.sym);
           if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
+            prepareUndo(GUI_UNDO_CHANGE_ORDER);
             e->lockSave([this,num]() {
               e->curOrders->ord[orderCursor][curOrder]=((e->curOrders->ord[orderCursor][curOrder]<<4)|num);
             });
@@ -1436,6 +1437,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
               }
             }
             e->walkSong(loopOrder,loopRow,loopEnd);
+            makeUndo(GUI_UNDO_CHANGE_ORDER);
           }
         } catch (std::out_of_range& e) {
         }
