@@ -19,14 +19,38 @@
  
 #include "gui.h"
 
-const char* FurnaceGUI::getSystemPartNumber(DivSystem sys) {
+const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
   switch (sys) {
     case DIV_SYSTEM_YMU759:
       return "YMU759";
       break;
-    case DIV_SYSTEM_SMS:
-      return "SN76489";
+    case DIV_SYSTEM_SMS:{
+      int chipType=flags.getInt("chipType",0);
+      if (chipType==4) {
+        return "SN76489A";
+      } else if (chipType==5) {
+        return "SN76496";
+      } else if (chipType==6) {
+        return "8496";
+      } else if (chipType==7) {
+        return "PSSJ";//not part number
+      } else if (chipType==8) {
+        return "SN94624";
+      } else if (chipType==9) {
+        return "SN76494";
+      } else {
+        return "SN76489";
+      }
       break;
+    }
+    case DIV_SYSTEM_PCE:{
+      int chipType=flags.getInt("chipType",0);
+      if (chipType==1) {
+        return "HuC6280A";
+      } else {
+        return "HuC6280";
+      }
+    }
     case DIV_SYSTEM_NES:
       return "2A03";
       break;
@@ -40,9 +64,19 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys) {
     case DIV_SYSTEM_Y8950_DRUMS:
       return "Y8950";
       break;
-    case DIV_SYSTEM_AY8910:
-      return "AY8910";
+    case DIV_SYSTEM_AY8910:{
+      int chipType=flags.getInt("chipType",0);
+        if (chipType==1) {
+          return "YM2149(F)";
+        } else if (chipType==2) {
+          return "5B";
+        } else if (chipType==3) {
+          return "AY-3-8914";
+        } else {
+          return "AY-3-8910";
+        }
       break;
+    }
     case DIV_SYSTEM_AMIGA:
       return "Amiga";
       break;
@@ -53,9 +87,22 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys) {
     case DIV_SYSTEM_YM2612_CSM:
     case DIV_SYSTEM_YM2612_DUALPCM:
     case DIV_SYSTEM_YM2612_DUALPCM_EXT:
-    case DIV_SYSTEM_YM2612_EXT:
-      return "YM2612";
+    case DIV_SYSTEM_YM2612_EXT:{
+      int chipType=0;
+      if (flags.has("chipType")) {
+        chipType=flags.getInt("chipType",0);
+      } else {
+        chipType=flags.getBool("ladderEffect",0)?1:0;
+      }
+      if (chipType==0) {
+        return "YM3438";
+      } else if (chipType==2) {
+        return "YMF276";
+      } else {
+        return "YM2612";
+      }
       break;
+    }
     case DIV_SYSTEM_TIA:
       return "TIA";
       break;
@@ -94,9 +141,19 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys) {
       return "YM2608";
       break;
     case DIV_SYSTEM_OPL:
-    case DIV_SYSTEM_OPL_DRUMS:
-      return "YM3526";
+    case DIV_SYSTEM_OPL_DRUMS:{
+      int patchSet=flags.getInt("patchSet",0);
+        if (patchSet==1) {
+          return "YMF281";
+        } else if (patchSet==2) {
+          return "YM2423";
+        } else if (patchSet==3) {
+          return "VRC7";
+        } else {
+          return "YM2413";
+        }
       break;
+    }
     case DIV_SYSTEM_OPL2:
     case DIV_SYSTEM_OPL2_DRUMS:
       return "YM3812";
@@ -112,9 +169,15 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys) {
     case DIV_SYSTEM_MULTIPCM:
       return "MultiPCM";
       break;
-    case DIV_SYSTEM_RF5C68:
-      return "RF5C68";
+    case DIV_SYSTEM_RF5C68:{
+      int chipType=flags.getInt("chipType",0);
+      if (chipType==1) {
+        return "RF5C164";
+      } else {
+        return "RF5C68";
+      }
       break;
+    }
     case DIV_SYSTEM_OPZ:
       return "YM2414";
       break;
