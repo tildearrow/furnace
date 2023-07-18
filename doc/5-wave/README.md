@@ -10,15 +10,15 @@ system              | width | height | synth?
 --------------------|------:|:-------|:-----:
 Game Boy            |    32 | 16     | 
 Game.com            |    32 | 16     | 
-SCC / Bubble System |    32 | 16     | 
 Namco WSG           |    32 | 16     | 
 WonderSwan          |    32 | 16     | 
 Namco N163          |  ≤128 | 16     | 
-Seta X1-010         |   128 | 16     | 
 Super Nintendo      |  ≤256 | 16     | 
 PC Engine           |    32 | 32     | 
-Virtual Boy         |    32 | 64     | 
+Virtual Boy         |    32 | 64     | no
 Famicom Disk System |    64 | 64     | 
+SCC / Bubble System |    32 | 256    | 
+Seta X1-010         |   128 | 256    | 
 
 
 # wavetable editor
@@ -33,7 +33,7 @@ controls across the top line:
 - **Lines**: view waveform as a continuous line.
 - **Width**: length of the waveform data. maximum is 256.
 - **Height**: depth of the waveform. maximum is 256.
-- arrow button: toggle tabs (described below).
+- `<` / `>`: toggle tabs (described below).
 
 waveform display:
 - the waveform is directly editable with the mouse.
@@ -42,7 +42,7 @@ waveform display:
 controls across the bottom line:
 - **Dec**: view MML stream as decimal.
 - **Hex**: view MML stream as hexadecimal.
-- `+`/`±`: toggle MML stream as unsigned/signed. also adjusts waveform display.
+- `+` / `±`: toggle MML stream as unsigned/signed. also adjusts waveform display.
 - MML stream: waveform data as an editable numeric sequence.
 
 ## tabs
