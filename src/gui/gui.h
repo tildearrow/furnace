@@ -239,6 +239,7 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_POKEMINI,
   GUI_COLOR_INSTR_SM8521,
   GUI_COLOR_INSTR_PV1000,
+  GUI_COLOR_INSTR_K053260,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -1334,7 +1335,7 @@ class FurnaceGUI {
 
   String pendingRawSample;
   int pendingRawSampleDepth, pendingRawSampleChannels;
-  bool pendingRawSampleUnsigned, pendingRawSampleBigEndian, pendingRawSampleSwapNibbles;
+  bool pendingRawSampleUnsigned, pendingRawSampleBigEndian, pendingRawSampleSwapNibbles, pendingRawSampleReplace;
 
   ImGuiWindowFlags globalWinFlags;
 

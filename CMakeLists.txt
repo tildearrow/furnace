@@ -588,6 +588,7 @@ src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
 src/engine/platform/sm8521.cpp
 src/engine/platform/pv1000.cpp
+src/engine/platform/k053260.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
