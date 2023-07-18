@@ -20,7 +20,7 @@
 #ifndef _AY_H
 #define _AY_H
 #include "../dispatch.h"
-#include <queue>
+#include "../fixedQueue.h"
 #include "sound/ay8910.h"
 
 class DivPlatformAY8910: public DivDispatch {
@@ -89,9 +89,10 @@ class DivPlatformAY8910: public DivDispatch {
       unsigned short addr;
       unsigned char val;
       bool addrOrVal;
+      QueuedWrite(): addr(0), val(0), addrOrVal(false) {}
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
-    std::queue<QueuedWrite> writes;
+    FixedQueue<QueuedWrite,128> writes;
     ay8910_device* ay;
     DivDispatchOscBuffer* oscBuf[3];
     unsigned char regPool[16];

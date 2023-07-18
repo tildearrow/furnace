@@ -1508,7 +1508,7 @@ void DivPlatformYM2610B::poke(std::vector<DivRegWrite>& wlist) {
 }
 
 void DivPlatformYM2610B::reset() {
-  while (!writes.empty()) writes.pop_front();
+  writes.clear();
   memset(regPool,0,512);
   if (dumpWrites) {
     addWrite(0xffffffff,0);

@@ -9,6 +9,7 @@ the default layout of Furnace is depicted below.
 primary topics:
 
 - [menu bar](menu-bar.md)
+- [order list](order-list.md)
 - [play/edit controls](play-edit-controls.md)
 - [instrument/wavetable/sample list](asset-list.md)
 - [song information](song-info.md)
@@ -36,6 +37,7 @@ advanced topics:
 
 other topics:
 
+- [settings](../2-interface/settings.md)
 - [UI components](components.md)
 - [global keyboard shortcuts](keyboard.md)
 - [basic mode](basic-mode.md)

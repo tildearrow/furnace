@@ -455,6 +455,8 @@ src/engine/platform/sound/c64_fp/WaveformCalculator.cpp
 src/engine/platform/sound/c64_fp/WaveformGenerator.cpp
 src/engine/platform/sound/c64_fp/resample/SincResampler.cpp
 
+src/engine/platform/sound/c64_d/dsid.c
+
 src/engine/platform/sound/tia/AudioChannel.cpp
 src/engine/platform/sound/tia/Audio.cpp
 
@@ -586,6 +588,7 @@ src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
 src/engine/platform/sm8521.cpp
 src/engine/platform/pv1000.cpp
+src/engine/platform/k053260.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
@@ -803,7 +806,6 @@ if (BUILD_GUI)
   list(APPEND USED_SOURCES ${GUI_SOURCES})
   list(APPEND DEPENDENCIES_INCLUDE_DIRS
     extern/imgui_patched
-    extern/imgui_conf
     extern/imgui_patched/backends
     extern/IconFontCppHeaders
     extern/igfd
@@ -860,7 +862,7 @@ endif()
 string(REPLACE ";" " " WARNING_FLAGS_STRING "${WARNING_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNING_FLAGS_STRING}")
 if (WARNINGS_ARE_ERRORS)
-  message(WARNING
+  message(STATUS
     "Treating all warnings in furnace's C++ code as errors! "
     "Please report any errors you encounter on the bug tracker."
   )
@@ -875,7 +877,7 @@ else()
 endif()
 
 target_include_directories(furnace SYSTEM PRIVATE ${DEPENDENCIES_INCLUDE_DIRS})
-target_compile_definitions(furnace PRIVATE ${DEPENDENCIES_DEFINES} IMGUI_USER_CONFIG="imconfig_fur.h")
+target_compile_definitions(furnace PRIVATE ${DEPENDENCIES_DEFINES})
 target_compile_options(furnace PRIVATE ${DEPENDENCIES_COMPILE_OPTIONS})
 target_link_libraries(furnace PRIVATE ${DEPENDENCIES_LIBRARIES})
 if (PKG_CONFIG_FOUND AND (SYSTEM_FMT OR SYSTEM_LIBSNDFILE OR SYSTEM_ZLIB OR SYSTEM_SDL2 OR SYSTEM_RTMIDI OR WITH_JACK))

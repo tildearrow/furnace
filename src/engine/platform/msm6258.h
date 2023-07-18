@@ -21,7 +21,7 @@
 #define _MSM6258_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../fixedQueue.h"
 #include "sound/oki/okim6258.h"
 
 class DivPlatformMSM6258: public DivDispatch {
@@ -42,9 +42,10 @@ class DivPlatformMSM6258: public DivDispatch {
     struct QueuedWrite {
       unsigned short addr;
       unsigned char val;
+      QueuedWrite(): addr(0), val(0) {}
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v) {}
     };
-    std::queue<QueuedWrite> writes;
+    FixedQueue<QueuedWrite,256> writes;
     okim6258_device* msm;
     unsigned char lastBusy;
 

@@ -9,7 +9,9 @@ the biggest multi-system chiptune tracker ever made!
 ---
 ## downloads
 
-check out the [Releases](https://github.com/tildearrow/furnace/releases) page. available for Windows, macOS and Linux (AppImage).
+check out the [Releases](https://github.com/tildearrow/furnace/releases) page. available for Windows, macOS and Linux.
+
+for other operating systems, you may [build the source](#developer-info).
 
 [see here](https://nightly.link/tildearrow/furnace/workflows/build/master) for the latest unstable build.
 
@@ -79,6 +81,7 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
   - modern/fantasy:
     - Commander X16 VERA
     - tildearrow Sound Unit
+    - Generic PCM DAC
 - mix and match sound chips!
   - over 200 ready to use presets from computers, game consoles and arcade boards...
   - ...or create your own - up to 32 of them or a total of 128 channels!
@@ -90,6 +93,7 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
   - clean-room design (guesswork and ABX tests only, no decompilation involved)
   - some bug/quirk implementation for increased playback accuracy through compatibility flags
 - VGM export
+- ZSM export for Commander X16
 - modular layout that you may adapt to your needs
 - audio file export - entire song, per chip or per channel
 - quality emulation cores (Nuked, MAME, SameBoy, Mednafen PCE, NSFplay, puNES, reSID, Stella, SAASound, vgsound_emu and ymfm)
@@ -120,11 +124,11 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
 # quick references
 
 - **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, the [official Revolt](https://rvlt.gg/GRPS6tmc) or the [official Discord server](https://discord.gg/EfrwT2wq7z).
-- **help**: check out the [documentation](doc/README.md). it's incomplete though.
+- **help**: check out the [documentation](doc/README.md). it's about 80% complete.
 
 ## packages
 
-[![Packaging status](https://repology.org/badge/tiny-repos/furnace.svg)](https://repology.org/project/furnace/versions)
+[![Packaging status](https://repology.org/badge/vertical-allrepos/furnace.svg)](https://repology.org/project/furnace/versions)
 
 some people have provided packages for Unix/Unix-like distributions. here's a list.
 
@@ -156,6 +160,7 @@ otherwise, you may also need the following:
 - libx11
 - libasound
 - libGL
+- any other libraries which may be used by SDL
 
 some Linux distributions (e.g. Ubuntu or openSUSE) will require you to install the `-dev` versions of these.
 
@@ -255,6 +260,17 @@ Available options:
 | `WITH_INSTRUMENTS` | `ON` | Install demo instruments on `make install` |
 | `WITH_WAVETABLES` | `ON` | Install wavetables on `make install` |
 
+## CMake Error
+
+if it says something about a missing subdirectory in `extern`, then either:
+
+1. you didn't set up submodules, or
+2. you downloaded the source as a .zip or .tar.gz. don't do this.
+
+if 1, you may run `git submodule update --init --recursive`. this will initialize submodules.
+
+if 2, clone this repo.
+
 ## console usage
 
 (note: if on Windows, type `furnace.exe` instead, or `Debug\furnace.exe` on MSVC)
@@ -289,7 +305,7 @@ this is due to Apple's application signing policy. a workaround is to right clic
 > it says "Furnace" is damaged and can't be opened!
 
 **as of Monterey, this workaround no longer works (especially on ARM).** yeah, Apple has decided to be strict on the matter.
-if you happen to be on that version, use this workaround instead (on a Terminal):
+if you happen to be on that version (or later), use this workaround instead (on a Terminal):
 
 ```
 xattr -d com.apple.quarantine /path/to/Furnace.app
@@ -301,7 +317,7 @@ you may need to log out and/or reboot after doing this.
 
 > where's the manual?
 
-see [doc/](doc/README.md). it's kind of incomplete though.
+it is in [doc/](doc/README.md).
 
 > is there a tutorial?
 

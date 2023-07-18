@@ -497,6 +497,13 @@ bool FurnaceGUI::InvCheckbox(const char* label, bool* value) {
   return false;
 }
 
+void FurnaceGUI::sameLineMaybe(float width) {
+  if (width<0.0f) width=ImGui::GetFrameHeight();
+
+  ImGui::SameLine();
+  if (ImGui::GetContentRegionAvail().x<width) ImGui::NewLine();
+}
+
 const char* FurnaceGUI::getSystemName(DivSystem which) {
   /*
   if (settings.chipNames) {
@@ -1411,6 +1418,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         try {
           int num=valueKeys.at(ev.key.keysym.sym);
           if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
+            prepareUndo(GUI_UNDO_CHANGE_ORDER);
             e->lockSave([this,num]() {
               e->curOrders->ord[orderCursor][curOrder]=((e->curOrders->ord[orderCursor][curOrder]<<4)|num);
             });
@@ -1429,6 +1437,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
               }
             }
             e->walkSong(loopOrder,loopRow,loopEnd);
+            makeUndo(GUI_UNDO_CHANGE_ORDER);
           }
         } catch (std::out_of_range& e) {
         }
@@ -2412,7 +2421,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
       if (y>waveDragMax) y=waveDragMax;
       if (y<waveDragMin) y=waveDragMin;
       waveDragTarget[x]=y;
-      e->notifyWaveChange(curWave);
+      notifyWaveChange=true;
       MARK_MODIFIED;
     }
   }
@@ -3455,6 +3464,11 @@ bool FurnaceGUI::loop() {
               break;
           }
           break;
+#if SDL_VERSION_ATLEAST(2,0,4)
+        case SDL_RENDER_DEVICE_RESET:
+          killGraphics=true;
+          break;
+#endif
 #if SDL_VERSION_ATLEAST(2,0,17)
         case SDL_DISPLAYEVENT: {
           switch (ev.display.event) {
@@ -3734,6 +3748,11 @@ bool FurnaceGUI::loop() {
       midiLock.unlock();
     }
 
+    if (notifyWaveChange) {
+      notifyWaveChange=false;
+      e->notifyWaveChange(curWave);
+    }
+
     eventTimeEnd=SDL_GetPerformanceCounter();
 
     if (SDL_GetWindowFlags(sdlWin)&SDL_WINDOW_MINIMIZED) {
@@ -3765,6 +3784,80 @@ bool FurnaceGUI::loop() {
           }
         }
       });
+    }
+
+    // recover from dead graphics
+    if (rend->isDead() || killGraphics) {
+      killGraphics=false;
+
+      logW("graphics are dead! restarting...");
+      
+      if (sampleTex!=NULL) {
+        rend->destroyTexture(sampleTex);
+        sampleTex=NULL;
+      }
+
+      if (chanOscGradTex!=NULL) {
+        rend->destroyTexture(chanOscGradTex);
+        chanOscGradTex=NULL;
+      }
+
+      for (auto& i: images) {
+        if (i.second->tex!=NULL) {
+          rend->destroyTexture(i.second->tex);
+          i.second->tex=NULL;
+        }
+      }
+
+      commitState();
+      rend->quitGUI();
+      rend->quit();
+      ImGui_ImplSDL2_Shutdown();
+
+      int initAttempts=0;
+
+      SDL_Delay(500);
+
+      logD("starting render backend...");
+      while (++initAttempts<=5) {
+        if (rend->init(sdlWin)) {
+          break;
+        }
+        SDL_Delay(1000);
+        logV("trying again...");
+      }
+
+      if (initAttempts>5) {
+        reportError("can't keep going without graphics! Furnace will quit now.");
+        quit=true;
+        break;
+      }
+
+      rend->clear(ImVec4(0.0,0.0,0.0,1.0));
+      rend->present();
+
+      logD("preparing user interface...");
+      rend->initGUI(sdlWin);
+
+      logD("building font...");
+      if (!ImGui::GetIO().Fonts->Build()) {
+        logE("error while building font atlas!");
+        showError("error while loading fonts! please check your settings.");
+        ImGui::GetIO().Fonts->Clear();
+        mainFont=ImGui::GetIO().Fonts->AddFontDefault();
+        patFont=mainFont;
+        bigFont=mainFont;
+        if (rend) rend->destroyFontsTexture();
+        if (!ImGui::GetIO().Fonts->Build()) {
+          logE("error again while building font atlas!");
+        }
+      }
+
+      firstFrame=true;
+      mustClear=2;
+      initialScreenWipe=1.0f;
+
+      continue;
     }
 
     bool fontsFailed=false;
@@ -4757,6 +4850,7 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_SAMPLE_OPEN_RAW:
             case GUI_FILE_SAMPLE_OPEN_REPLACE_RAW:
               pendingRawSample=copyOfName;
+              pendingRawSampleReplace=(curFileDialog==GUI_FILE_SAMPLE_OPEN_REPLACE_RAW);
               displayPendingRawSample=true;
               break;
             case GUI_FILE_SAMPLE_SAVE:
@@ -5166,7 +5260,7 @@ bool FurnaceGUI::loop() {
             quit=true;
           }
           ImGui::SameLine();
-          if (ImGui::Button("Cancel")) {
+          if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             ImGui::CloseCurrentPopup();
           }
           break;
@@ -5190,7 +5284,7 @@ bool FurnaceGUI::loop() {
             displayNew=true;
           }
           ImGui::SameLine();
-          if (ImGui::Button("Cancel")) {
+          if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             ImGui::CloseCurrentPopup();
           }
           break;
@@ -5214,7 +5308,7 @@ bool FurnaceGUI::loop() {
             openFileDialog(GUI_FILE_OPEN);
           }
           ImGui::SameLine();
-          if (ImGui::Button("Cancel")) {
+          if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             ImGui::CloseCurrentPopup();
           }
           break;
@@ -5238,7 +5332,7 @@ bool FurnaceGUI::loop() {
             openFileDialog(GUI_FILE_OPEN_BACKUP);
           }
           ImGui::SameLine();
-          if (ImGui::Button("Cancel")) {
+          if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             ImGui::CloseCurrentPopup();
           }
           break;
@@ -5269,7 +5363,7 @@ bool FurnaceGUI::loop() {
             nextFile="";
           }
           ImGui::SameLine();
-          if (ImGui::Button("Cancel")) {
+          if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             ImGui::CloseCurrentPopup();
             nextFile="";
           }
@@ -5323,7 +5417,7 @@ bool FurnaceGUI::loop() {
             syncSettings();
           }
           ImGui::SameLine();
-          if (ImGui::Button("Cancel")) {
+          if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             ImGui::CloseCurrentPopup();
           }
           break;
@@ -5410,7 +5504,7 @@ bool FurnaceGUI::loop() {
             ImGui::CloseCurrentPopup();
           }
 
-          if (ImGui::Button("Wait! What am I doing? Cancel!")) {
+          if (ImGui::Button("Wait! What am I doing? Cancel!") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
             ImGui::CloseCurrentPopup();
           }
           break;
@@ -5561,7 +5655,7 @@ bool FurnaceGUI::loop() {
         ImGui::EndDisabled();
         ImGui::SameLine();
       }
-      if (ImGui::Button("Cancel")) {
+      if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
         for (std::pair<DivInstrument*,bool>& i: pendingIns) {
           i.second=false;
         }
@@ -5624,16 +5718,32 @@ bool FurnaceGUI::loop() {
         if (s==NULL) {
           showError(e->getLastError());
         } else {
-          if (e->addSamplePtr(s)==-1) {
-            showError(e->getLastError());
+          if (pendingRawSampleReplace) {
+            if (curSample>=0 && curSample<(int)e->song.sample.size()) {
+              e->lockEngine([this,s]() {
+                // if it crashes here please tell me...
+                DivSample* oldSample=e->song.sample[curSample];
+                e->song.sample[curSample]=s;
+                delete oldSample;
+                e->renderSamples();
+                MARK_MODIFIED;
+              });
+            } else {
+              showError("...but you haven't selected a sample!");
+              delete s;
+            }
           } else {
-            MARK_MODIFIED;
+            if (e->addSamplePtr(s)==-1) {
+              showError(e->getLastError());
+            } else {
+              MARK_MODIFIED;
+            }
           }
         }
         ImGui::CloseCurrentPopup();
       }
       ImGui::SameLine();
-      if (ImGui::Button("Cancel")) {
+      if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
         ImGui::CloseCurrentPopup();
       }
       ImGui::EndPopup();
@@ -5673,6 +5783,17 @@ bool FurnaceGUI::loop() {
     } else {
       introPos=12.0;
     }
+
+#ifdef DIV_UNSTABLE
+    {
+      ImDrawList* dl=ImGui::GetForegroundDrawList();
+      ImVec2 markPos=ImVec2(canvasW-ImGui::CalcTextSize(DIV_VERSION).x-6.0*dpiScale,4.0*dpiScale);
+      ImVec4 markColor=uiColors[GUI_COLOR_TEXT];
+      markColor.w=0.67f;
+
+      dl->AddText(markPos,ImGui::ColorConvertFloat4ToU32(markColor),DIV_VERSION);
+    }
+#endif
 
     layoutTimeEnd=SDL_GetPerformanceCounter();
 
@@ -5752,13 +5873,12 @@ bool FurnaceGUI::loop() {
               if (outFile!=NULL) {
                 if (fwrite(w->getFinalBuf(),1,w->size(),outFile)!=w->size()) {
                   logW("did not write backup entirely: %s!",strerror(errno));
-                  w->finish();
                 }
                 fclose(outFile);
               } else {
                 logW("could not save backup: %s!",strerror(errno));
-                w->finish();
               }
+              w->finish();
 
               // delete previous backup if there are too many
               delFirstBackup(backupBaseName);
@@ -5882,6 +6002,7 @@ bool FurnaceGUI::loop() {
       ImGui::GetIO().Fonts->Clear();
       mainFont=ImGui::GetIO().Fonts->AddFontDefault();
       patFont=mainFont;
+      bigFont=mainFont;
       if (rend) rend->destroyFontsTexture();
       if (!ImGui::GetIO().Fonts->Build()) {
         logE("error again while building font atlas!");
@@ -6176,18 +6297,18 @@ bool FurnaceGUI::init() {
   logV("window size: %dx%d",scrW,scrH);
 
   if (!initRender()) {
-    if (settings.renderBackend!="SDL" && !settings.renderBackend.empty()) {
-      settings.renderBackend="";
-      e->setConf("renderBackend","");
+    if (settings.renderBackend!="SDL") {
+      settings.renderBackend="SDL";
+      e->setConf("renderBackend","SDL");
       e->saveConf();
-      lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
+      lastError=fmt::sprintf("could not init renderer!\r\nthe render backend has been set to a safe value. please restart Furnace.");
     } else {
       lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
       if (!settings.renderDriver.empty()) {
         settings.renderDriver="";
         e->setConf("renderDriver","");
         e->saveConf();
-        lastError=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
+        lastError+=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
       }
     }
     return false;
@@ -6244,6 +6365,19 @@ bool FurnaceGUI::init() {
   }
 #endif
 
+  int numDriversA=SDL_GetNumAudioDrivers();
+  if (numDriversA<0) {
+    logW("could not list audio drivers! %s",SDL_GetError());
+  } else {
+    for (int i=0; i<numDriversA; i++) {
+      const char* r=SDL_GetAudioDriver(i);
+      if (r==NULL) continue;
+      if (strcmp(r,"disk")==0) continue;
+      if (strcmp(r,"dummy")==0) continue;
+      availAudioDrivers.push_back(String(r));
+    }
+  }
+
   int numDrivers=SDL_GetNumRenderDrivers();
   if (numDrivers<0) {
     logW("could not list render drivers! %s",SDL_GetError());
@@ -6262,18 +6396,18 @@ bool FurnaceGUI::init() {
 
   logD("starting render backend...");
   if (!rend->init(sdlWin)) {
-    if (settings.renderBackend!="SDL" && !settings.renderBackend.empty()) {
-      settings.renderBackend="";
-      //e->setConf("renderBackend","");
-      //e->saveConf();
-      //lastError=fmt::sprintf("\r\nthe render backend has been set to a safe value. please restart Furnace.");
+    if (settings.renderBackend!="SDL") {
+      settings.renderBackend="SDL";
+      e->setConf("renderBackend","SDL");
+      e->saveConf();
+      lastError=fmt::sprintf("could not init renderer!\r\nthe render backend has been set to a safe value. please restart Furnace.");
     } else {
       lastError=fmt::sprintf("could not init renderer! %s",SDL_GetError());
       if (!settings.renderDriver.empty()) {
         settings.renderDriver="";
         e->setConf("renderDriver","");
         e->saveConf();
-        lastError=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
+        lastError+=fmt::sprintf("\r\nthe render driver has been set to a safe value. please restart Furnace.");
       }
     }
     return false;
@@ -6310,6 +6444,8 @@ bool FurnaceGUI::init() {
   rend->present();
 
   logD("preparing user interface...");
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
   rend->initGUI(sdlWin);
 
   applyUISettings();
@@ -6321,6 +6457,7 @@ bool FurnaceGUI::init() {
     ImGui::GetIO().Fonts->Clear();
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
+    bigFont=mainFont;
     if (rend) rend->destroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
       logE("error again while building font atlas!");
@@ -6547,8 +6684,8 @@ bool FurnaceGUI::finish() {
   commitState();
   rend->quitGUI();
   ImGui_ImplSDL2_Shutdown();
-  ImGui::DestroyContext();
   quitRender();
+  ImGui::DestroyContext();
   SDL_DestroyWindow(sdlWin);
 
   if (vibrator) {
@@ -6564,6 +6701,10 @@ bool FurnaceGUI::finish() {
   }
 
   return true;
+}
+
+void FurnaceGUI::requestQuit() {
+  quit=true;
 }
 
 FurnaceGUI::FurnaceGUI():
@@ -6601,6 +6742,7 @@ FurnaceGUI::FurnaceGUI():
   preserveChanPos(false),
   wantScrollList(false),
   noteInputPoly(true),
+  notifyWaveChange(false),
   displayPendingIns(false),
   pendingInsSingle(false),
   displayPendingRawSample(false),
@@ -6608,6 +6750,7 @@ FurnaceGUI::FurnaceGUI():
   modTableHex(false),
   displayEditString(false),
   mobileEdit(false),
+  killGraphics(false),
   vgmExportVersion(0x171),
   vgmExportTrailingTicks(-1),
   drawHalt(10),
@@ -6632,6 +6775,7 @@ FurnaceGUI::FurnaceGUI():
   pendingRawSampleUnsigned(false),
   pendingRawSampleBigEndian(false),
   pendingRawSampleSwapNibbles(false),
+  pendingRawSampleReplace(false),
   globalWinFlags(0),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
@@ -6897,7 +7041,7 @@ FurnaceGUI::FurnaceGUI():
   fadeMode(false),
   randomMode(false),
   haveHitBounds(false),
-  pendingStepUpdate(false),
+  pendingStepUpdate(0),
   oldOrdersLen(0),
   sampleZoom(1.0),
   prevSampleZoom(1.0),

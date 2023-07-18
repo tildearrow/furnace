@@ -57,6 +57,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
       int dacDelay;
       bool dacReady;
       bool dacDirection;
+      bool setPos;
       unsigned char sampleBank;
       signed char dacOutput;
       Channel():
@@ -70,6 +71,7 @@ class DivPlatformGenesis: public DivPlatformOPN {
         dacDelay(0),
         dacReady(true),
         dacDirection(false),
+        setPos(false),
         sampleBank(0),
         dacOutput(0) {}
     };

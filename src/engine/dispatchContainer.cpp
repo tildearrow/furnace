@@ -78,6 +78,7 @@
 #include "platform/ga20.h"
 #include "platform/sm8521.h"
 #include "platform/pv1000.h"
+#include "platform/k053260.h"
 #include "platform/pcmdac.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
@@ -172,6 +173,7 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
       if (bbIn[i]==NULL) continue;
       if (bb[i]==NULL) continue;
       for (size_t j=0; j<runtotal; j++) {
+        if (bbIn[i][j]==temp[i]) continue;
         temp[i]=bbIn[i][j];
         blip_add_delta_fast(bb[i],j,temp[i]-prevSample[i]);
         prevSample[i]=temp[i];
@@ -182,6 +184,7 @@ void DivDispatchContainer::fillBuf(size_t runtotal, size_t offset, size_t size) 
       if (bbIn[i]==NULL) continue;
       if (bb[i]==NULL) continue;
       for (size_t j=0; j<runtotal; j++) {
+        if (bbIn[i][j]==temp[i]) continue;
         temp[i]=bbIn[i][j];
         blip_add_delta(bb[i],j,temp[i]-prevSample[i]);
         prevSample[i]=temp[i];
@@ -273,12 +276,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_C64_6581:
       dispatch=new DivPlatformC64;
-      ((DivPlatformC64*)dispatch)->setFP(eng->getConfInt("c64Core",1)==1);
+      ((DivPlatformC64*)dispatch)->setCore(eng->getConfInt("c64Core",0));
       ((DivPlatformC64*)dispatch)->setChipModel(true);
       break;
     case DIV_SYSTEM_C64_8580:
       dispatch=new DivPlatformC64;
-      ((DivPlatformC64*)dispatch)->setFP(eng->getConfInt("c64Core",1)==1);
+      ((DivPlatformC64*)dispatch)->setCore(eng->getConfInt("c64Core",0));
       ((DivPlatformC64*)dispatch)->setChipModel(false);
       break;
     case DIV_SYSTEM_YM2151:
@@ -500,6 +503,9 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_PV1000:
       dispatch=new DivPlatformPV1000;
+      break;
+    case DIV_SYSTEM_K053260:
+      dispatch=new DivPlatformK053260;
       break;
     case DIV_SYSTEM_PCM_DAC:
       dispatch=new DivPlatformPCMDAC;

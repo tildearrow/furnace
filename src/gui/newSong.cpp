@@ -113,7 +113,33 @@ void FurnaceGUI::drawNewSong() {
             nextDescName=i.name;
             accepted=true;
           }
+          if (ImGui::IsItemHovered()) {
+            if (ImGui::BeginTooltip()) {
+              std::map<DivSystem,int> chipCounts;
+              std::vector<DivSystem> chips;
+              for (FurnaceGUISysDefChip chip: i.orig) {
+                if (chipCounts.find(chip.sys)==chipCounts.end()) {
+                  chipCounts[chip.sys]=1;
+                  chips.push_back(chip.sys);
+                } else {
+                  chipCounts[chip.sys]+=1;
+                }
+              }
+              for (size_t chipIndex=0; chipIndex<chips.size(); chipIndex++) {
+                DivSystem chip=chips[chipIndex];
+                const DivSysDef* sysDef=e->getSystemDef(chip);
+                ImGui::Text("%s (x%d): ",sysDef->name,chipCounts[chip]);
+                ImGui::TextWrapped("%s",sysDef->description);
+                if (chipIndex+1<chips.size()) {
+                  ImGui::Separator();
+                }
+              }
+
+              ImGui::EndTooltip();
+            }
+          }
         }
+
         ImGui::EndTable();
       }
 
@@ -140,7 +166,7 @@ void FurnaceGUI::drawNewSong() {
 
   ImGui::SameLine();
 
-  if (ImGui::Button("Cancel")) {
+  if (ImGui::Button("Cancel") || ImGui::IsKeyPressed(ImGuiKey_Escape)) {
     ImGui::CloseCurrentPopup();
   }
 

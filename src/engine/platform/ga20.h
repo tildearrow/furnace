@@ -21,7 +21,7 @@
 #define _GA20_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../fixedQueue.h"
 #include "../macroInt.h"
 #include "sound/ga20/iremga20.h"
 
@@ -47,15 +47,14 @@ class DivPlatformGA20: public DivDispatch, public iremga20_intf {
   DivDispatchOscBuffer* oscBuf[4];
   bool isMuted[4];
   struct QueuedWrite {
-    unsigned short addr;
+    unsigned char addr;
     unsigned char val;
-    unsigned short delay;
-    QueuedWrite(unsigned short a, unsigned char v, unsigned short d=1):
+    QueuedWrite(): addr(0), val(0) {}
+    QueuedWrite(unsigned char a, unsigned char v):
       addr(a),
-      val(v),
-      delay(d) {}
+      val(v) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,256> writes;
   unsigned int sampleOffGA20[256];
   bool sampleLoaded[256];
 

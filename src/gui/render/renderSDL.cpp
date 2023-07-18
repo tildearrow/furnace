@@ -20,45 +20,65 @@
 #include "renderSDL.h"
 #include "backends/imgui_impl_sdlrenderer2.h"
 
-ImTextureID FurnaceGUIRenderSDL::getTextureID(void* which) {
-  return which;
+class FurnaceSDLTexture: public FurnaceGUITexture {
+  public:
+  SDL_Texture* tex;
+  FurnaceSDLTexture():
+    tex(NULL) {}
+};
+
+ImTextureID FurnaceGUIRenderSDL::getTextureID(FurnaceGUITexture* which) {
+  FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
+  return t->tex;
 }
 
-bool FurnaceGUIRenderSDL::lockTexture(void* which, void** data, int* pitch) {
-  return SDL_LockTexture((SDL_Texture*)which,NULL,data,pitch)==0;
+bool FurnaceGUIRenderSDL::lockTexture(FurnaceGUITexture* which, void** data, int* pitch) {
+  FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
+  return SDL_LockTexture(t->tex,NULL,data,pitch)==0;
 }
 
-bool FurnaceGUIRenderSDL::unlockTexture(void* which) {
-  SDL_UnlockTexture((SDL_Texture*)which);
+bool FurnaceGUIRenderSDL::unlockTexture(FurnaceGUITexture* which) {
+  FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
+  SDL_UnlockTexture(t->tex);
   return true;
 }
 
-bool FurnaceGUIRenderSDL::updateTexture(void* which, void* data, int pitch) {
-  return SDL_UpdateTexture((SDL_Texture*)which,NULL,data,pitch)==0;
+bool FurnaceGUIRenderSDL::updateTexture(FurnaceGUITexture* which, void* data, int pitch) {
+  FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
+  return SDL_UpdateTexture(t->tex,NULL,data,pitch)==0;
 }
 
-void* FurnaceGUIRenderSDL::createTexture(bool dynamic, int width, int height) {
-  return SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,dynamic?SDL_TEXTUREACCESS_STREAMING:SDL_TEXTUREACCESS_STATIC,width,height);
+FurnaceGUITexture* FurnaceGUIRenderSDL::createTexture(bool dynamic, int width, int height) {
+  SDL_Texture* t=SDL_CreateTexture(sdlRend,SDL_PIXELFORMAT_ABGR8888,dynamic?SDL_TEXTUREACCESS_STREAMING:SDL_TEXTUREACCESS_STATIC,width,height);
+
+  if (t==NULL) return NULL;
+  FurnaceSDLTexture* ret=new FurnaceSDLTexture;
+  ret->tex=t;
+  return ret;
 }
 
-bool FurnaceGUIRenderSDL::destroyTexture(void* which) {
-  SDL_DestroyTexture((SDL_Texture*)which);
+bool FurnaceGUIRenderSDL::destroyTexture(FurnaceGUITexture* which) {
+  FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
+
+  SDL_DestroyTexture(t->tex);
+  delete t;
   return true;
 }
 
-void FurnaceGUIRenderSDL::setTextureBlendMode(void* which, FurnaceGUIBlendMode mode) {
+void FurnaceGUIRenderSDL::setTextureBlendMode(FurnaceGUITexture* which, FurnaceGUIBlendMode mode) {
+  FurnaceSDLTexture* t=(FurnaceSDLTexture*)which;
   switch (mode) {
     case GUI_BLEND_MODE_NONE:
-      SDL_SetTextureBlendMode((SDL_Texture*)which,SDL_BLENDMODE_NONE);
+      SDL_SetTextureBlendMode(t->tex,SDL_BLENDMODE_NONE);
       break;
     case GUI_BLEND_MODE_BLEND:
-      SDL_SetTextureBlendMode((SDL_Texture*)which,SDL_BLENDMODE_BLEND);
+      SDL_SetTextureBlendMode(t->tex,SDL_BLENDMODE_BLEND);
       break;
     case GUI_BLEND_MODE_ADD:
-      SDL_SetTextureBlendMode((SDL_Texture*)which,SDL_BLENDMODE_ADD);
+      SDL_SetTextureBlendMode(t->tex,SDL_BLENDMODE_ADD);
       break;
     case GUI_BLEND_MODE_MULTIPLY:
-      SDL_SetTextureBlendMode((SDL_Texture*)which,SDL_BLENDMODE_MOD);
+      SDL_SetTextureBlendMode(t->tex,SDL_BLENDMODE_MOD);
       break;
   }
 }
@@ -128,9 +148,6 @@ bool FurnaceGUIRenderSDL::init(SDL_Window* win) {
 }
 
 void FurnaceGUIRenderSDL::initGUI(SDL_Window* win) {
-  IMGUI_CHECKVERSION();
-  ImGui::CreateContext();
-
   ImGui_ImplSDL2_InitForSDLRenderer(win,sdlRend);
   ImGui_ImplSDLRenderer2_Init(sdlRend);
 }

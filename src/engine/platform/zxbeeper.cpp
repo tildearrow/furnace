@@ -260,7 +260,6 @@ int DivPlatformZXBeeper::getRegisterPoolSize() {
 }
 
 void DivPlatformZXBeeper::reset() {
-  while (!writes.empty()) writes.pop();
   memset(regPool,0,128);
   for (int i=0; i<6; i++) {
     chan[i]=DivPlatformZXBeeper::Channel();

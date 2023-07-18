@@ -320,11 +320,11 @@ int SID::output()
     const int v2 = voice[1]->output(voice[0]->wave());
     const int v3 = voice[2]->output(voice[1]->wave());
 
-    lastChanOut[0]=v1;
-    lastChanOut[1]=v2;
-    lastChanOut[2]=v3;
+    lastChanOut[0]=muted[0]?0:v1;
+    lastChanOut[1]=muted[1]?0:v2;
+    lastChanOut[2]=muted[2]?0:v3;
 
-    return externalFilter->clock(filter->clock(v1, v2, v3));
+    return externalFilter->clock(filter->clock(muted[0]?0:v1, muted[1]?0:v2, muted[2]?0:v3));
 }
 
 
