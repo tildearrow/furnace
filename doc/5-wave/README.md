@@ -8,6 +8,7 @@ Each chip has its own maximum size, shown in the following table. If a larger wa
 
 system              | width | height | synth?
 --------------------|------:|:-------|:-----:
+Bubble System       |    32 | 16     | 
 Game Boy            |    32 | 16     | 
 Game.com            |    32 | 16     | 
 Namco WSG           |    32 | 16     | 
@@ -17,7 +18,7 @@ Super Nintendo      |  ≤256 | 16     |
 PC Engine           |    32 | 32     | 
 Virtual Boy         |    32 | 64     | no
 Famicom Disk System |    64 | 64     | 
-SCC / Bubble System |    32 | 256    | 
+Konami SCC          |    32 | 256    | 
 Seta X1-010         |   128 | 256    | 
 
 
