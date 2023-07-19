@@ -249,35 +249,6 @@ void DivPlatformN163::tick(bool sysTick) {
         }
       }
     }
-    if (chan[i].std.ex3.had) {
-      if (chan[i].loadWave!=chan[i].std.ex3.val) {
-        chan[i].loadWave=chan[i].std.ex3.val;
-        if (chan[i].loadMode&0x2) {
-          updateWave(i,chan[i].loadWave,chan[i].loadPos,chan[i].loadLen&0xfc);
-        }
-      }
-    }
-    if (chan[i].std.alg.had) {
-      if (chan[i].loadPos!=chan[i].std.alg.val) {
-        chan[i].loadPos=chan[i].std.alg.val;
-      }
-    }
-    if (chan[i].std.fb.had) {
-      if (chan[i].loadLen!=(chan[i].std.fb.val&0xfc)) {
-        chan[i].loadLen=chan[i].std.fb.val&0xfc;
-      }
-    }
-    if (chan[i].std.fms.had) {
-      if ((chan[i].loadMode&0x2)!=(chan[i].std.fms.val&0x2)) { // load when every waveform changes
-        chan[i].loadMode=(chan[i].loadMode&~0x2)|(chan[i].std.fms.val&0x2);
-      }
-      if ((chan[i].loadMode&0x1)!=(chan[i].std.fms.val&0x1)) { // load now
-        chan[i].loadMode=(chan[i].loadMode&~0x1)|(chan[i].std.fms.val&0x1);
-        if (chan[i].loadMode&0x1) { // rising edge
-          updateWave(i,chan[i].loadWave,chan[i].loadPos,chan[i].loadLen&0xfc);
-        }
-      }
-    }
     if (chan[i].volumeChanged) {
       if (chan[i].active && !isMuted[i]) {
         chWriteMask(i,0x7,chan[i].resVol&0xf,0xf);
@@ -457,24 +428,6 @@ int DivPlatformN163::dispatch(DivCommand c) {
       if (chan[c.chan].waveMode&0x3) { // update now
         chan[c.chan].waveUpdated=true;
         chan[c.chan].waveChanged=true;
-      }
-      break;
-    case DIV_CMD_N163_WAVE_LOAD:
-      chan[c.chan].loadWave=c.value;
-      if (chan[c.chan].loadMode&0x2) { // load when every waveform changes
-        updateWave(c.chan,chan[c.chan].loadWave,chan[c.chan].loadPos,chan[c.chan].loadLen);
-      }
-      break;
-    case DIV_CMD_N163_WAVE_LOADPOS:
-      chan[c.chan].loadPos=c.value;
-      break;
-    case DIV_CMD_N163_WAVE_LOADLEN:
-      chan[c.chan].loadLen=c.value&0xfc;
-      break;
-    case DIV_CMD_N163_WAVE_LOADMODE:
-      chan[c.chan].loadMode=c.value&0x3;
-      if (chan[c.chan].loadMode&0x1) { // load now
-        updateWave(c.chan,chan[c.chan].loadWave,chan[c.chan].loadPos,chan[c.chan].loadLen);
       }
       break;
     case DIV_CMD_N163_GLOBAL_WAVE_LOAD:

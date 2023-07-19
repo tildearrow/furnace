@@ -31,8 +31,6 @@ class DivPlatformN163: public DivDispatch {
     short wave, wavePos, waveLen;
     short curWavePos, curWaveLen;
     unsigned char waveMode;
-    short loadWave, loadPos, loadLen;
-    unsigned char loadMode;
     bool volumeChanged;
     bool waveChanged, waveUpdated;
     DivWaveSynth ws;
@@ -45,10 +43,6 @@ class DivPlatformN163: public DivDispatch {
       curWavePos(0),
       curWaveLen(0),
       waveMode(0),
-      loadWave(-1),
-      loadPos(0),
-      loadLen(0),
-      loadMode(0),
       volumeChanged(false),
       waveChanged(false),
       waveUpdated(false) {}
