@@ -343,7 +343,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
         chan[c.chan].waveMode=ins->n163.waveMode;
         chan[c.chan].curWavePos=chan[c.chan].wavePos;
         chan[c.chan].curWaveLen=chan[c.chan].waveLen;
-        chan[c.chan].ws.init(NULL,chan[c.chan].waveLen,15,false);
+        chan[c.chan].ws.init(NULL,chan[c.chan].waveLen,15,true);
         chan[c.chan].ws.changeWave1(chan[c.chan].wave);
         chan[c.chan].waveChanged=true;
         if (chan[c.chan].waveMode&0x3 || ins->ws.enabled) {

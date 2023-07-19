@@ -5442,10 +5442,10 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Duty";
             dutyMax=63;
           }
-          /*if (ins->type==DIV_INS_N163) {
-            dutyLabel="Waveform pos.";
+          if (ins->type==DIV_INS_N163) {
+            dutyLabel="Wave Pos";
             dutyMax=255;
-          }*/
+          }
           if (ins->type==DIV_INS_VRC6) {
             dutyLabel="Duty";
             dutyMax=ins->amiga.useSample?0:7;
