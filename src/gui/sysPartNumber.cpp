@@ -271,6 +271,9 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
     case DIV_SYSTEM_PV1000:
       return "PV-1000";
       break;
+    case DIV_SYSTEM_K053260:
+      return "K053260";
+      break;
     default:
       return FurnaceGUI::getSystemName(sys);
       break;
