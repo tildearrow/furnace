@@ -22,7 +22,6 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rRead(a,v) n163.addr_w(a); n163.data_r(v);
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 #define rWriteMask(a,v,m) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v,m)); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) \
@@ -198,8 +197,8 @@ void DivPlatformN163::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.duty.had) {
-      if (chan[i].wavePos!=chan[i].std.duty.val) {
-        chan[i].wavePos=chan[i].std.duty.val;
+      if (chan[i].curWavePos!=chan[i].std.duty.val) {
+        chan[i].curWavePos=chan[i].std.duty.val;
         if (chan[i].waveMode&0x2) {
           chan[i].waveUpdated=true;
         }
@@ -225,8 +224,8 @@ void DivPlatformN163::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.ex1.had) {
-      if (chan[i].waveLen!=(chan[i].std.ex1.val&0xfc)) {
-        chan[i].waveLen=chan[i].std.ex1.val&0xfc;
+      if (chan[i].curWaveLen!=(chan[i].std.ex1.val&0xfc)) {
+        chan[i].curWaveLen=chan[i].std.ex1.val&0xfc;
         chan[i].ws.setWidth(chan[i].waveLen);
         if (chan[i].waveMode&0x2) {
           chan[i].waveUpdated=true;
@@ -288,7 +287,7 @@ void DivPlatformN163::tick(bool sysTick) {
       chan[i].volumeChanged=false;
     }
     if (chan[i].waveChanged) {
-      chWrite(i,0x6,chan[i].wavePos);
+      chWrite(i,0x6,chan[i].curWavePos);
       if (chan[i].active) {
         chan[i].freqChanged=true;
       }
@@ -309,7 +308,7 @@ void DivPlatformN163::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       // TODO: what is this mess?
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
-      chan[i].freq=(((chan[i].freq*chan[i].waveLen)*(chanMax+1))/16);
+      chan[i].freq=(((chan[i].freq*chan[i].curWaveLen)*(chanMax+1))/16);
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0x3ffff) chan[i].freq=0x3ffff;
       if (chan[i].keyOn) {
@@ -325,7 +324,7 @@ void DivPlatformN163::tick(bool sysTick) {
       }
       chWrite(i,0x0,chan[i].freq&0xff);
       chWrite(i,0x2,chan[i].freq>>8);
-      chWrite(i,0x4,((256-chan[i].waveLen)&0xfc)|((chan[i].freq>>16)&3));
+      chWrite(i,0x4,((256-chan[i].curWaveLen)&0xfc)|((chan[i].freq>>16)&3));
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
@@ -342,6 +341,8 @@ int DivPlatformN163::dispatch(DivCommand c) {
         chan[c.chan].wavePos=ins->n163.wavePos;
         chan[c.chan].waveLen=ins->n163.waveLen;
         chan[c.chan].waveMode=ins->n163.waveMode;
+        chan[c.chan].curWavePos=chan[c.chan].wavePos;
+        chan[c.chan].curWaveLen=chan[c.chan].waveLen;
         chan[c.chan].ws.init(NULL,chan[c.chan].waveLen,15,false);
         chan[c.chan].ws.changeWave1(chan[c.chan].wave);
         chan[c.chan].waveChanged=true;
@@ -438,14 +439,14 @@ int DivPlatformN163::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_N163_WAVE_POSITION:
-      chan[c.chan].wavePos=c.value;
+      chan[c.chan].curWavePos=c.value;
       if (chan[c.chan].waveMode&0x2) {
         chan[c.chan].waveUpdated=true;
       }
       chan[c.chan].waveChanged=true;
       break;
     case DIV_CMD_N163_WAVE_LENGTH:
-      chan[c.chan].waveLen=c.value&0xfc;
+      chan[c.chan].curWaveLen=c.value&0xfc;
       if (chan[c.chan].waveMode&0x2) {
         chan[c.chan].waveUpdated=true;
       }
