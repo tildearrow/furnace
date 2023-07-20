@@ -200,9 +200,7 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
         return "Famicom Disk System";
       }
       if (ds.system[0]==DIV_SYSTEM_NES && ds.system[1]==DIV_SYSTEM_N163) {
-        String ret="Famicom + ";
-        ret+=getConfString("c163Name",DIV_C163_DEFAULT_NAME);
-        return ret;
+        return "Famicom + Namco 163";
       }
       if (ds.system[0]==DIV_SYSTEM_NES && ds.system[1]==DIV_SYSTEM_MMC5) {
         return "Famicom + MMC5";
@@ -230,11 +228,7 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
   String ret="";
   for (int i=0; i<ds.systemLen; i++) {
     if (i>0) ret+=" + ";
-    if (ds.system[i]==DIV_SYSTEM_N163) {
-      ret+=getConfString("c163Name",DIV_C163_DEFAULT_NAME);
-    } else {
-      ret+=getSystemName(ds.system[i]);
-    }
+    ret+=getSystemName(ds.system[i]);
   }
 
   return ret;
@@ -242,11 +236,6 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
 
 const char* DivEngine::getSystemName(DivSystem sys) {
   if (sysDefs[sys]==NULL) return "Unknown";
-  if (sys==DIV_SYSTEM_N163) {
-    String c1=getConfString("c163Name",DIV_C163_DEFAULT_NAME);
-    strncpy(c163NameCS,c1.c_str(),1023);
-    return c163NameCS;
-  }
   return sysDefs[sys]->name;
 }
 
@@ -998,7 +987,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_N163]=new DivSysDef(
-    "Namco 163/C163/129/160/106/whatever", NULL, 0x8c, 0, 8, false, true, 0, false, 0,
+    "Namco 163", NULL, 0x8c, 0, 8, false, true, 0, false, 0,
     "an expansion chip for the Famicom, with full wavetable.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},

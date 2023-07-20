@@ -166,7 +166,7 @@ void DivPlatformN163::updateWave(int ch, int wave, int pos, int len) {
 
 void DivPlatformN163::updateWaveCh(int ch) {
   if (ch<=chanMax) {
-    logV("updateWave with pos %d and len %d",chan[ch].wavePos,chan[ch].waveLen);
+    //logV("updateWave with pos %d and len %d",chan[ch].wavePos,chan[ch].waveLen);
     updateWave(ch,-1,chan[ch].wavePos,chan[ch].waveLen);
     if (chan[ch].active && !isMuted[ch]) {
       chan[ch].volumeChanged=true;

@@ -64,9 +64,6 @@
 #define DIV_VERSION_S3M 0xff03
 #define DIV_VERSION_FTM 0xff04
 
-// "Namco C163"
-#define DIV_C163_DEFAULT_NAME "Namco 163"
-
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
   DIV_STATUS_PATTERN,
@@ -465,7 +462,6 @@ class DivEngine {
   int reversePitchTable[4096];
   int pitchTable[4096];
   short effectSlotMap[4096];
-  char c163NameCS[1024];
   int midiBaseChan;
   bool midiPoly;
   size_t midiAgeCounter;

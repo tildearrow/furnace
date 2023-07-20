@@ -682,11 +682,7 @@ void FurnaceGUI::autoDetectSystem() {
       if (k.second>1) {
         e->song.systemName+=fmt::sprintf("%d×",k.second);
       }
-      if (k.first==DIV_SYSTEM_N163) {
-        e->song.systemName+=settings.c163Name;
-      } else {
-        e->song.systemName+=e->getSystemName(k.first);
-      }
+      e->song.systemName+=e->getSystemName(k.first);
       isFirst=false;
     }
   }

@@ -77,7 +77,6 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
   if (i>=0 && i<e->song.insLen) {
     DivInstrument* ins=e->song.ins[i];
     insType=(ins->type>DIV_INS_MAX)?"Unknown":insTypes[ins->type];
-    if (ins->type==DIV_INS_N163) insType=settings.c163Name.c_str();
     switch (ins->type) {
       case DIV_INS_FM:
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_FM]);

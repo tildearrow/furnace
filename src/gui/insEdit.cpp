@@ -2305,7 +2305,7 @@ void FurnaceGUI::drawInsEdit() {
           ins->type=(DivInstrumentType)insType;
         }
         */
-        if (ImGui::BeginCombo("##Type",insType==DIV_INS_N163?settings.c163Name.c_str():insTypes[insType])) {
+        if (ImGui::BeginCombo("##Type",insTypes[insType])) {
           std::vector<DivInstrumentType> insTypeList;
           if (settings.displayAllInsTypes) {
             for (int i=0; insTypes[i]; i++) {
@@ -2315,7 +2315,7 @@ void FurnaceGUI::drawInsEdit() {
             insTypeList=e->getPossibleInsTypes();
           }
           for (DivInstrumentType i: insTypeList) {
-            if (ImGui::Selectable(i==DIV_INS_N163?settings.c163Name.c_str():insTypes[i],insType==i)) {
+            if (ImGui::Selectable(insTypes[i],insType==i)) {
               ins->type=i;
 
               // reset macro zoom
@@ -4665,7 +4665,7 @@ void FurnaceGUI::drawInsEdit() {
             sampleMapFocused=false;
           }
         }
-        if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem(settings.c163Name.c_str())) {
+        if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("Namco 163")) {
           if (ImGui::InputInt("Waveform##WAVE",&ins->n163.wave,1,10)) { PARAMETER
             if (ins->n163.wave<0) ins->n163.wave=0;
             if (ins->n163.wave>=e->song.waveLen) ins->n163.wave=e->song.waveLen-1;

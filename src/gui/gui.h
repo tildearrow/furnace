@@ -1527,7 +1527,6 @@ class FurnaceGUI {
     String audioDevice;
     String midiInDevice;
     String midiOutDevice;
-    String c163Name;
     String renderBackend;
     String renderDriver;
     String initialSysName;
@@ -1681,7 +1680,6 @@ class FurnaceGUI {
       audioDevice(""),
       midiInDevice(""),
       midiOutDevice(""),
-      c163Name(""),
       renderBackend(""),
       renderDriver(""),
       initialSysName("Sega Genesis/Mega Drive"),

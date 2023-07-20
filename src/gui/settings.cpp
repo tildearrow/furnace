@@ -1638,12 +1638,6 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::Separator();
 
-          ImGui::Text("Namco 163 chip name");
-          ImGui::SameLine();
-          ImGui::InputTextWithHint("##C163Name",DIV_C163_DEFAULT_NAME,&settings.c163Name);
-
-          ImGui::Separator();
-
           ImGui::Text("Channel colors:");
           if (ImGui::RadioButton("Single##CHC0",settings.channelColors==0)) {
             settings.channelColors=0;
@@ -2067,11 +2061,7 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPL,"FM (OPL)");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_FDS,"FDS");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_VBOY,"Virtual Boy");
-              // special case
-              String c163Label=fmt::sprintf("%s##CC_GUI_COLOR_INSTR_N163",settings.c163Name);
-              if (ImGui::ColorEdit4(c163Label.c_str(),(float*)&uiColors[GUI_COLOR_INSTR_N163])) {
-                applyUISettings(false);
-              }
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_N163,"Namco 163");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_SCC,"Konami SCC");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPZ,"FM (OPZ)");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_POKEY,"POKEY");
@@ -2662,7 +2652,6 @@ void FurnaceGUI::syncSettings() {
   settings.audioChans=e->getConfInt("audioChans",2);
   settings.midiInDevice=e->getConfString("midiInDevice","");
   settings.midiOutDevice=e->getConfString("midiOutDevice","");
-  settings.c163Name=e->getConfString("c163Name",DIV_C163_DEFAULT_NAME);
   settings.renderDriver=e->getConfString("renderDriver","");
   settings.sdlAudioDriver=e->getConfString("sdlAudioDriver","");
   settings.audioQuality=e->getConfInt("audioQuality",0);
@@ -3011,7 +3000,6 @@ void FurnaceGUI::commitSettings() {
   e->setConf("audioDevice",settings.audioDevice);
   e->setConf("midiInDevice",settings.midiInDevice);
   e->setConf("midiOutDevice",settings.midiOutDevice);
-  e->setConf("c163Name",settings.c163Name);
   e->setConf("renderDriver",settings.renderDriver);
   e->setConf("sdlAudioDriver",settings.sdlAudioDriver);
   e->setConf("audioQuality",settings.audioQuality);
