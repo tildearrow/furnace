@@ -23,6 +23,7 @@ right-clicking within the view will change it to the configuration view shown ab
   - `%I`: instrument number (decimal)
   - `%x`: instrument number (hex)
   - `%s`: chip name
+  - `%p`: chip part number
   - `%S`: chip ID
   - `%v`: volume (decimal)
   - `%V`: volume (percentage)
