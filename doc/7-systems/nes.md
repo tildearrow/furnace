@@ -83,45 +83,6 @@ reference: [NESdev](https://www.nesdev.org/wiki/APU_Noise)
 
 ## length counter table
 
-<!-- organized by input value... of little use -->
-<!--
-value | raw | NTSC  | PAL   | Dendy | NTSC 5-step | PAL 5-step | Dendy 5-step
------:|----:|------:|------:|------:|------------:|-----------:|-------------:
- `00` |  10 | 83ms  | 100ms | 84ms  | 104ms       | 125ms      | 105ms
- `01` | 254 | 2.1s  | 2.5s  | 2.1s  | 2.6s        | 3.2s       | 2.7s
- `02` |  20 | 166ms | 200ms | 168ms | 208ms       | 250ms      | 210ms
- `03` |   2 | 17ms  | 20ms  | 17ms  | 21ms        | 25ms       | 21ms
- `04` |  40 | 333ms | 400ms | 336ms | 417ms       | 500ms      | 421ms
- `05` |   4 | 33ms  | 40ms  | 34ms  | 42ms        | 50ms       | 42ms
- `06` |  80 | 667ms | 800ms | 673ms | 833ms       | 1.0s       | 841ms
- `07` |   6 | 50ms  | 60ms  | 50ms  | 63ms        | 75ms       | 63ms
- `08` | 160 | 1.3s  | 1.6s  | 1.3s  | 1.7s        | 2.0s       | 1.7s
- `09` |   8 | 67ms  | 80ms  | 67ms  | 83ms        | 100ms      | 84ms
- `0A` |  60 | 500ms | 600ms | 505ms | 625ms       | 750ms      | 631ms
- `0B` |  10 | 83ms  | 100ms | 84ms  | 104ms       | 125ms      | 105ms
- `0C` |  14 | 117ms | 140ms | 118ms | 146ms       | 175ms      | 147ms
- `0D` |  12 | 100ms | 120ms | 101ms | 125ms       | 150ms      | 126ms
- `0E` |  26 | 217ms | 260ms | 219ms | 271ms       | 325ms      | 273ms
- `0F` |  14 | 117ms | 140ms | 118ms | 145ms       | 175ms      | 147ms
- `10` |  12 | 100ms | 120ms | 101ms | 125ms       | 150ms      | 126ms
- `11` |  16 | 133ms | 160ms | 135ms | 167ms       | 200ms      | 168ms
- `12` |  24 | 200ms | 240ms | 202ms | 250ms       | 300ms      | 252ms
- `13` |  18 | 150ms | 180ms | 151ms | 188ms       | 225ms      | 189ms
- `14` |  48 | 400ms | 480ms | 404ms | 500ms       | 600ms      | 505ms
- `15` |  20 | 167ms | 200ms | 168ms | 208ms       | 250ms      | 210ms
- `16` |  96 | 800ms | 960ms | 807ms | 1.0s        | 1.2s       | 1.0s
- `17` |  22 | 183ms | 220ms | 185ms | 229ms       | 275ms      | 231ms
- `18` | 192 | 1.6s  | 1.9s  | 1.6s  | 2.0s        | 2.4s       | 2.0s
- `19` |  24 | 200ms | 240ms | 202ms | 250ms       | 300ms      | 252ms
- `1A` |  72 | 600ms | 720ms | 606ms | 750ms       | 900ms      | 757ms
- `1B` |  26 | 217ms | 260ms | 219ms | 271ms       | 325ms      | 273ms
- `1C` |  16 | 133ms | 160ms | 135ms | 167ms       | 200ms      | 168ms
- `1D` |  28 | 233ms | 280ms | 235ms | 292ms       | 350ms      | 294ms
- `1E` |  32 | 267ms | 320ms | 269ms | 333ms       | 400ms      | 336ms
- `1F` |  30 | 250ms | 300ms | 252ms | 313ms       | 375ms      | 315ms
--->
-
-<!-- organized by resulting times... more useful! -->
 value | raw | NTSC  | PAL   | Dendy | NTSC 5-step | PAL 5-step | Dendy 5-step
 -----:|----:|------:|------:|------:|------------:|-----------:|-------------:
  `03` |   2 | 17ms  | 20ms  | 17ms  | 21ms        | 25ms       | 21ms
@@ -161,21 +122,25 @@ reference: [NESdev](https://www.nesdev.org/wiki/APU_Length_Counter)
 
 ## DPCM frequency table
 
-value | NTSC      | PAL
-------|----------:|----------:
- `00` | 4181.7Hz  | 4177.4Hz
- `01` | 4709.9Hz  | 4696.6Hz
- `02` | 5264.0Hz  | 5261.4Hz
- `03` | 5593.0Hz  | 5579.2Hz
- `04` | 6257.9Hz  | 6023.9Hz
- `05` | 7046.3Hz  | 7044.9Hz
- `06` | 7919.3Hz  | 7917.2Hz
- `07` | 8363.4Hz  | 8397.0Hz
- `08` | 9419.9Hz  | 9446.6Hz
- `09` | 11186.1Hz | 11233.8Hz
- `0A` | 12604.0Hz | 12595.5Hz
- `0B` | 13982.6Hz | 14089.9Hz
- `0C` | 16884.6Hz | 16965.4Hz
- `0D` | 21306.8Hz | 21315.5Hz
- `0E` | 24858.0Hz | 25191.0Hz
- `0F` | 33143.9Hz | 33252.1Hz
+"value" is for DefleMask compatability.
+
+value | tracker | NTSC freq | NTSC pitch |  PAL freq | PAL pitch  
+-----:|:-------:|----------:|:----------:|----------:|:----------:
+ `00` |  `C-3`  |  4181.7Hz | C-8  -  2¢ |  4177.4Hz | C-8  -  4¢
+ `01` |  `D-3`  |  4709.9Hz | D-8  +  4¢ |  4696.6Hz | D-8  -  1¢
+ `02` |  `E-3`  |  5264.0Hz | E-8  -  3¢ |  5261.4Hz | E-8  -  4¢
+ `03` |  `F-3`  |  5593.0Hz | F-8  +  2¢ |  5579.2Hz | F-8  -  3¢
+ `04` |  `G-3`  |  6258.0Hz | G-8  -  4¢ |  6023.9Hz | G-8  - 70¢
+ `05` |  `A-3`  |  7046.4Hz | A-8  +  2¢ |  7044.9Hz | A-8  +  1¢
+ `06` |  `B-3`  |  7919.4Hz | B-8  +  4¢ |  7917.2Hz | B-8  +  3¢
+ `07` |  `C-4`  |  8363.4Hz | C-9  -  2¢ |  8397.0Hz | C-9  +  5¢
+ `08` |  `D-4`  |  9419.9Hz | D-9  +  4¢ |  9446.6Hz | D-9  +  9¢
+ `09` |  `F-4`  | 11186.1Hz | F-9  +  2¢ | 11233.8Hz | F-9  +  9¢
+ `0A` |  `G-4`  | 12604.0Hz | G-9  +  8¢ | 12595.5Hz | G-9  +  7¢
+ `0B` |  `A-4`  | 13982.6Hz | A-9  - 12¢ | 14089.9Hz | A-9  +  1¢
+ `0C` |  `C-5`  | 16884.6Hz | C-10 + 15¢ | 16965.4Hz | C-10 + 23¢
+ `0D` |  `E-5`  | 21306.8Hz | E-10 + 17¢ | 21315.5Hz | E-10 + 18¢
+ `0E` |  `G-5`  | 24858.0Hz | G-10 - 16¢ | 25191.0Hz | G-10 +  7¢
+ `0F` |  `C-6`  | 33143.9Hz | C-11 - 18¢ | 33252.1Hz | C-11 - 12¢
+
+reference: [NESdev](https://www.nesdev.org/wiki/APU_DMC#Pitch_table)
