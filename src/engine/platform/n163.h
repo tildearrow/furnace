@@ -30,7 +30,7 @@ class DivPlatformN163: public DivDispatch {
     signed char resVol;
     short wave, wavePos, waveLen;
     short curWavePos, curWaveLen;
-    unsigned char waveMode;
+    bool waveMode;
     bool volumeChanged;
     bool waveChanged, waveUpdated;
     DivWaveSynth ws;

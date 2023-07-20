@@ -4666,9 +4666,20 @@ void FurnaceGUI::drawInsEdit() {
           }
         }
         if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("Namco 163")) {
-          if (ImGui::InputInt("Waveform##WAVE",&ins->n163.wave,1,10)) { PARAMETER
-            if (ins->n163.wave<0) ins->n163.wave=0;
-            if (ins->n163.wave>=e->song.waveLen) ins->n163.wave=e->song.waveLen-1;
+          bool preLoad=ins->n163.waveMode&0x1;
+          if (ImGui::Checkbox("Load waveform",&preLoad)) { PARAMETER
+            ins->n163.waveMode=(ins->n163.waveMode&~0x1)|(preLoad?0x1:0);
+          }
+
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("when enabled, a waveform will be loaded into RAM.\nwhen disabled, only the offset and length change.");
+          }
+
+          if (preLoad) {
+            if (ImGui::InputInt("Waveform##WAVE",&ins->n163.wave,1,10)) { PARAMETER
+              if (ins->n163.wave<0) ins->n163.wave=0;
+              if (ins->n163.wave>=e->song.waveLen) ins->n163.wave=e->song.waveLen-1;
+            }
           }
           if (ImGui::InputInt("Offset##WAVEPOS",&ins->n163.wavePos,1,16)) { PARAMETER
             if (ins->n163.wavePos<0) ins->n163.wavePos=0;
@@ -4679,16 +4690,6 @@ void FurnaceGUI::drawInsEdit() {
             if (ins->n163.waveLen>252) ins->n163.waveLen=252;
             ins->n163.waveLen&=0xfc;
           }
-
-          bool preLoad=ins->n163.waveMode&0x1;
-          if (ImGui::Checkbox("Load waveform before playback",&preLoad)) { PARAMETER
-            ins->n163.waveMode=(ins->n163.waveMode&~0x1)|(preLoad?0x1:0);
-          }
-          bool waveMode=ins->n163.waveMode&0x2;
-          if (ImGui::Checkbox("Update waveforms into RAM when every waveform changes",&waveMode)) { PARAMETER
-            ins->n163.waveMode=(ins->n163.waveMode&~0x2)|(waveMode?0x2:0);
-          }
-
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_FDS) if (ImGui::BeginTabItem("FDS")) {

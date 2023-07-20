@@ -199,9 +199,6 @@ void DivPlatformN163::tick(bool sysTick) {
     if (chan[i].std.duty.had) {
       if (chan[i].curWavePos!=chan[i].std.duty.val) {
         chan[i].curWavePos=chan[i].std.duty.val;
-        if (chan[i].waveMode&0x2) {
-          chan[i].waveUpdated=true;
-        }
         chan[i].waveChanged=true;
       }
     }
@@ -209,7 +206,7 @@ void DivPlatformN163::tick(bool sysTick) {
       if (chan[i].wave!=chan[i].std.wave.val || chan[i].ws.activeChanged()) {
         chan[i].wave=chan[i].std.wave.val;
         chan[i].ws.changeWave1(chan[i].wave);
-        if (chan[i].waveMode&0x2) {
+        if (chan[i].waveMode) {
           chan[i].waveUpdated=true;
         }
       }
@@ -226,27 +223,7 @@ void DivPlatformN163::tick(bool sysTick) {
     if (chan[i].std.ex1.had) {
       if (chan[i].curWaveLen!=(chan[i].std.ex1.val&0xfc)) {
         chan[i].curWaveLen=chan[i].std.ex1.val&0xfc;
-        chan[i].ws.setWidth(chan[i].waveLen);
-        if (chan[i].waveMode&0x2) {
-          chan[i].waveUpdated=true;
-        }
         chan[i].freqChanged=true;
-      }
-    }
-    if (chan[i].std.ex2.had) {
-      if ((chan[i].waveMode&0x2)!=(chan[i].std.ex2.val&0x2)) { // update when every waveform changed
-        chan[i].waveMode=(chan[i].waveMode&~0x2)|(chan[i].std.ex2.val&0x2);
-        if (chan[i].waveMode&0x2) {
-          chan[i].waveUpdated=true;
-          chan[i].waveChanged=true;
-        }
-      }
-      if ((chan[i].waveMode&0x1)!=(chan[i].std.ex2.val&0x1)) { // update waveform now
-        chan[i].waveMode=(chan[i].waveMode&~0x1)|(chan[i].std.ex2.val&0x1);
-        if (chan[i].waveMode&0x1) { // rising edge
-          chan[i].waveUpdated=true;
-          chan[i].waveChanged=true;
-        }
       }
     }
     if (chan[i].volumeChanged) {
@@ -283,12 +260,6 @@ void DivPlatformN163::tick(bool sysTick) {
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0x3ffff) chan[i].freq=0x3ffff;
       if (chan[i].keyOn) {
-        if (chan[i].wave<0) {
-          chan[i].wave=0;
-          if (chan[i].waveMode&0x2) {
-            updateWaveCh(i);
-          }
-        }
       }
       if (chan[i].keyOff && !isMuted[i]) {
         chWriteMask(i,0x7,0,0xf);
@@ -308,16 +279,21 @@ int DivPlatformN163::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_N163);
       if (chan[c.chan].insChanged) {
-        chan[c.chan].wave=ins->n163.wave;
+        if (ins->n163.wave>=0) {
+          chan[c.chan].wave=ins->n163.wave;
+        }
         chan[c.chan].wavePos=ins->n163.wavePos;
         chan[c.chan].waveLen=ins->n163.waveLen;
         chan[c.chan].waveMode=ins->n163.waveMode;
         chan[c.chan].curWavePos=chan[c.chan].wavePos;
         chan[c.chan].curWaveLen=chan[c.chan].waveLen;
         chan[c.chan].ws.init(NULL,chan[c.chan].waveLen,15,true);
+        if (chan[c.chan].wave<0) {
+          chan[c.chan].wave=0;
+        }
         chan[c.chan].ws.changeWave1(chan[c.chan].wave);
         chan[c.chan].waveChanged=true;
-        if (chan[c.chan].waveMode&0x3 || ins->ws.enabled) {
+        if (chan[c.chan].waveMode) {
           chan[c.chan].waveUpdated=true;
         }
       }
@@ -341,7 +317,7 @@ int DivPlatformN163::dispatch(DivCommand c) {
       chan[c.chan].active=false;
       chan[c.chan].keyOff=true;
       chan[c.chan].keyOn=false;
-      //chan[c.chan].macroInit(NULL);
+      chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:
       chan[c.chan].active=false;
@@ -404,31 +380,18 @@ int DivPlatformN163::dispatch(DivCommand c) {
     }
     case DIV_CMD_WAVE:
       chan[c.chan].wave=c.value;
-      if (chan[c.chan].waveMode&0x2) {
+      if (chan[c.chan].waveMode) {
         chan[c.chan].waveUpdated=true;
       }
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_N163_WAVE_POSITION:
       chan[c.chan].curWavePos=c.value;
-      if (chan[c.chan].waveMode&0x2) {
-        chan[c.chan].waveUpdated=true;
-      }
       chan[c.chan].waveChanged=true;
       break;
     case DIV_CMD_N163_WAVE_LENGTH:
       chan[c.chan].curWaveLen=c.value&0xfc;
-      if (chan[c.chan].waveMode&0x2) {
-        chan[c.chan].waveUpdated=true;
-      }
       chan[c.chan].freqChanged=true;
-      break;
-    case DIV_CMD_N163_WAVE_MODE:
-      chan[c.chan].waveMode=c.value&0x3;
-      if (chan[c.chan].waveMode&0x3) { // update now
-        chan[c.chan].waveUpdated=true;
-        chan[c.chan].waveChanged=true;
-      }
       break;
     case DIV_CMD_N163_GLOBAL_WAVE_LOAD:
       loadWave=c.value;
@@ -490,9 +453,6 @@ void DivPlatformN163::forceIns() {
       chan[i].freqChanged=true;
       chan[i].volumeChanged=true;
       chan[i].waveChanged=true;
-      if (chan[i].waveMode&0x2) {
-        chan[i].waveUpdated=true;
-      }
     }
   }
 }
@@ -500,7 +460,7 @@ void DivPlatformN163::forceIns() {
 void DivPlatformN163::notifyWaveChange(int wave) {
   for (int i=0; i<8; i++) {
     if (chan[i].wave==wave) {
-      if (chan[i].waveMode&0x2) {
+      if (chan[i].waveMode) {
         chan[i].ws.changeWave1(wave);
         chan[i].waveUpdated=true;
       }
