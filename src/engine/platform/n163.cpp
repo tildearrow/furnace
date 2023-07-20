@@ -432,21 +432,10 @@ int DivPlatformN163::dispatch(DivCommand c) {
       break;
     case DIV_CMD_N163_GLOBAL_WAVE_LOAD:
       loadWave=c.value;
-      if (loadMode&0x2) { // load when every waveform changes
-        updateWave(c.chan,loadWave,loadPos,loadLen);
-      }
+      // TODO: load wave here
       break;
     case DIV_CMD_N163_GLOBAL_WAVE_LOADPOS:
       loadPos=c.value;
-      break;
-    case DIV_CMD_N163_GLOBAL_WAVE_LOADLEN:
-      loadLen=c.value&0xfc;
-      break;
-    case DIV_CMD_N163_GLOBAL_WAVE_LOADMODE:
-      loadMode=c.value&0x3;
-      if (loadMode&0x3) { // load now
-        updateWave(c.chan,loadWave,loadPos,loadLen);
-      }
       break;
     case DIV_CMD_N163_CHANNEL_LIMIT:
       if (chanMax!=(c.value&0x7)) {
@@ -573,8 +562,6 @@ void DivPlatformN163::reset() {
   chanMax=initChanMax;
   loadWave=-1;
   loadPos=0;
-  loadLen=0;
-  loadMode=0;
   rWrite(0x7f,initChanMax<<4);
 }
 

@@ -60,8 +60,7 @@ class DivPlatformN163: public DivDispatch {
   FixedQueue<QueuedWrite,2048> writes;
   unsigned char initChanMax;
   unsigned char chanMax;
-  short loadWave, loadPos, loadLen;
-  unsigned char loadMode;
+  short loadWave, loadPos;
   bool multiplex;
 
   n163_core n163;

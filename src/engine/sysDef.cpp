@@ -1013,10 +1013,8 @@ void DivEngine::registerSystems() {
       {0x11, {DIV_CMD_N163_WAVE_POSITION, "11xx: Set waveform position in RAM (single nibble unit)"}},
       {0x12, {DIV_CMD_N163_WAVE_LENGTH, "12xx: Set waveform length in RAM (04 to FC, 4 nibble unit)"}},
       {0x13, {DIV_CMD_N163_WAVE_MODE, "130x: Change waveform update mode (0: off; bit 0: update now; bit 1: update when every waveform changes)"}},
-      {0x20, {DIV_CMD_N163_GLOBAL_WAVE_LOAD, "20xx: (Global) Select waveform for load to RAM"}},
-      {0x21, {DIV_CMD_N163_GLOBAL_WAVE_LOADPOS, "21xx: (Global) Set waveform position for load to RAM (single nibble unit)"}},
-      {0x22, {DIV_CMD_N163_GLOBAL_WAVE_LOADLEN, "22xx: (Global) Set waveform length for load to RAM (04 to FC, 4 nibble unit)"}},
-      {0x23, {DIV_CMD_N163_GLOBAL_WAVE_LOADMODE, "230x: (Global) Change waveform load mode (0: off; bit 0: load now; bit 1: load when every waveform changes)"}},
+      {0x20, {DIV_CMD_N163_GLOBAL_WAVE_LOAD, "20xx: Load a waveform into memory"}},
+      {0x21, {DIV_CMD_N163_GLOBAL_WAVE_LOADPOS, "21xx: Set position for wave load"}},
     }
   );
 

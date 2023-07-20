@@ -462,8 +462,6 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text("- chanMax: %d",ch->chanMax);
       ImGui::Text("- loadWave: %d",ch->loadWave);
       ImGui::Text("- loadPos: %d",ch->loadPos);
-      ImGui::Text("- loadLen: %d",ch->loadLen);
-      ImGui::Text("- loadMode: %d",ch->loadMode);
       COMMON_CHIP_DEBUG_BOOL;
       ImGui::TextColored(ch->multiplex?colorOn:colorOff,">> Multiplex");
       break;
@@ -876,10 +874,6 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("- wavepos: %d",ch->wavePos);
       ImGui::Text("- wavelen: %d",ch->waveLen);
       ImGui::Text("- wavemode: %d",ch->waveMode);
-      ImGui::Text("- loadwave: %d",ch->loadWave);
-      ImGui::Text("- loadpos: %d",ch->loadPos);
-      ImGui::Text("- loadlen: %d",ch->loadLen);
-      ImGui::Text("- loadmode: %d",ch->loadMode);
       ImGui::Text("- resVol: %.2x",ch->resVol);
       COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->volumeChanged?colorOn:colorOff,">> VolumeChanged");
