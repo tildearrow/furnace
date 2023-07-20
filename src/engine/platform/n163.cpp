@@ -22,7 +22,6 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rRead(a,v) n163.addr_w(a); n163.data_r(v);
 #define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 #define rWriteMask(a,v,m) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v,m)); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) \
@@ -198,8 +197,8 @@ void DivPlatformN163::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.duty.had) {
-      if (chan[i].wavePos!=chan[i].std.duty.val) {
-        chan[i].wavePos=chan[i].std.duty.val;
+      if (chan[i].curWavePos!=chan[i].std.duty.val) {
+        chan[i].curWavePos=chan[i].std.duty.val;
         if (chan[i].waveMode&0x2) {
           chan[i].waveUpdated=true;
         }
@@ -225,8 +224,8 @@ void DivPlatformN163::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.ex1.had) {
-      if (chan[i].waveLen!=(chan[i].std.ex1.val&0xfc)) {
-        chan[i].waveLen=chan[i].std.ex1.val&0xfc;
+      if (chan[i].curWaveLen!=(chan[i].std.ex1.val&0xfc)) {
+        chan[i].curWaveLen=chan[i].std.ex1.val&0xfc;
         chan[i].ws.setWidth(chan[i].waveLen);
         if (chan[i].waveMode&0x2) {
           chan[i].waveUpdated=true;
@@ -250,35 +249,6 @@ void DivPlatformN163::tick(bool sysTick) {
         }
       }
     }
-    if (chan[i].std.ex3.had) {
-      if (chan[i].loadWave!=chan[i].std.ex3.val) {
-        chan[i].loadWave=chan[i].std.ex3.val;
-        if (chan[i].loadMode&0x2) {
-          updateWave(i,chan[i].loadWave,chan[i].loadPos,chan[i].loadLen&0xfc);
-        }
-      }
-    }
-    if (chan[i].std.alg.had) {
-      if (chan[i].loadPos!=chan[i].std.alg.val) {
-        chan[i].loadPos=chan[i].std.alg.val;
-      }
-    }
-    if (chan[i].std.fb.had) {
-      if (chan[i].loadLen!=(chan[i].std.fb.val&0xfc)) {
-        chan[i].loadLen=chan[i].std.fb.val&0xfc;
-      }
-    }
-    if (chan[i].std.fms.had) {
-      if ((chan[i].loadMode&0x2)!=(chan[i].std.fms.val&0x2)) { // load when every waveform changes
-        chan[i].loadMode=(chan[i].loadMode&~0x2)|(chan[i].std.fms.val&0x2);
-      }
-      if ((chan[i].loadMode&0x1)!=(chan[i].std.fms.val&0x1)) { // load now
-        chan[i].loadMode=(chan[i].loadMode&~0x1)|(chan[i].std.fms.val&0x1);
-        if (chan[i].loadMode&0x1) { // rising edge
-          updateWave(i,chan[i].loadWave,chan[i].loadPos,chan[i].loadLen&0xfc);
-        }
-      }
-    }
     if (chan[i].volumeChanged) {
       if (chan[i].active && !isMuted[i]) {
         chWriteMask(i,0x7,chan[i].resVol&0xf,0xf);
@@ -288,7 +258,7 @@ void DivPlatformN163::tick(bool sysTick) {
       chan[i].volumeChanged=false;
     }
     if (chan[i].waveChanged) {
-      chWrite(i,0x6,chan[i].wavePos);
+      chWrite(i,0x6,chan[i].curWavePos);
       if (chan[i].active) {
         chan[i].freqChanged=true;
       }
@@ -309,7 +279,7 @@ void DivPlatformN163::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       // TODO: what is this mess?
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
-      chan[i].freq=(((chan[i].freq*chan[i].waveLen)*(chanMax+1))/16);
+      chan[i].freq=(((chan[i].freq*chan[i].curWaveLen)*(chanMax+1))/16);
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0x3ffff) chan[i].freq=0x3ffff;
       if (chan[i].keyOn) {
@@ -325,7 +295,7 @@ void DivPlatformN163::tick(bool sysTick) {
       }
       chWrite(i,0x0,chan[i].freq&0xff);
       chWrite(i,0x2,chan[i].freq>>8);
-      chWrite(i,0x4,((256-chan[i].waveLen)&0xfc)|((chan[i].freq>>16)&3));
+      chWrite(i,0x4,((256-chan[i].curWaveLen)&0xfc)|((chan[i].freq>>16)&3));
       if (chan[i].keyOn) chan[i].keyOn=false;
       if (chan[i].keyOff) chan[i].keyOff=false;
       chan[i].freqChanged=false;
@@ -342,7 +312,9 @@ int DivPlatformN163::dispatch(DivCommand c) {
         chan[c.chan].wavePos=ins->n163.wavePos;
         chan[c.chan].waveLen=ins->n163.waveLen;
         chan[c.chan].waveMode=ins->n163.waveMode;
-        chan[c.chan].ws.init(NULL,chan[c.chan].waveLen,15,false);
+        chan[c.chan].curWavePos=chan[c.chan].wavePos;
+        chan[c.chan].curWaveLen=chan[c.chan].waveLen;
+        chan[c.chan].ws.init(NULL,chan[c.chan].waveLen,15,true);
         chan[c.chan].ws.changeWave1(chan[c.chan].wave);
         chan[c.chan].waveChanged=true;
         if (chan[c.chan].waveMode&0x3 || ins->ws.enabled) {
@@ -438,14 +410,14 @@ int DivPlatformN163::dispatch(DivCommand c) {
       chan[c.chan].keyOn=true;
       break;
     case DIV_CMD_N163_WAVE_POSITION:
-      chan[c.chan].wavePos=c.value;
+      chan[c.chan].curWavePos=c.value;
       if (chan[c.chan].waveMode&0x2) {
         chan[c.chan].waveUpdated=true;
       }
       chan[c.chan].waveChanged=true;
       break;
     case DIV_CMD_N163_WAVE_LENGTH:
-      chan[c.chan].waveLen=c.value&0xfc;
+      chan[c.chan].curWaveLen=c.value&0xfc;
       if (chan[c.chan].waveMode&0x2) {
         chan[c.chan].waveUpdated=true;
       }
@@ -458,41 +430,12 @@ int DivPlatformN163::dispatch(DivCommand c) {
         chan[c.chan].waveChanged=true;
       }
       break;
-    case DIV_CMD_N163_WAVE_LOAD:
-      chan[c.chan].loadWave=c.value;
-      if (chan[c.chan].loadMode&0x2) { // load when every waveform changes
-        updateWave(c.chan,chan[c.chan].loadWave,chan[c.chan].loadPos,chan[c.chan].loadLen);
-      }
-      break;
-    case DIV_CMD_N163_WAVE_LOADPOS:
-      chan[c.chan].loadPos=c.value;
-      break;
-    case DIV_CMD_N163_WAVE_LOADLEN:
-      chan[c.chan].loadLen=c.value&0xfc;
-      break;
-    case DIV_CMD_N163_WAVE_LOADMODE:
-      chan[c.chan].loadMode=c.value&0x3;
-      if (chan[c.chan].loadMode&0x1) { // load now
-        updateWave(c.chan,chan[c.chan].loadWave,chan[c.chan].loadPos,chan[c.chan].loadLen);
-      }
-      break;
     case DIV_CMD_N163_GLOBAL_WAVE_LOAD:
       loadWave=c.value;
-      if (loadMode&0x2) { // load when every waveform changes
-        updateWave(c.chan,loadWave,loadPos,loadLen);
-      }
+      // TODO: load wave here
       break;
     case DIV_CMD_N163_GLOBAL_WAVE_LOADPOS:
       loadPos=c.value;
-      break;
-    case DIV_CMD_N163_GLOBAL_WAVE_LOADLEN:
-      loadLen=c.value&0xfc;
-      break;
-    case DIV_CMD_N163_GLOBAL_WAVE_LOADMODE:
-      loadMode=c.value&0x3;
-      if (loadMode&0x3) { // load now
-        updateWave(c.chan,loadWave,loadPos,loadLen);
-      }
       break;
     case DIV_CMD_N163_CHANNEL_LIMIT:
       if (chanMax!=(c.value&0x7)) {
@@ -619,8 +562,6 @@ void DivPlatformN163::reset() {
   chanMax=initChanMax;
   loadWave=-1;
   loadPos=0;
-  loadLen=0;
-  loadMode=0;
   rWrite(0x7f,initChanMax<<4);
 }
 

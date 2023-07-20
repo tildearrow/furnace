@@ -128,8 +128,10 @@ void FurnaceGUI::drawNewSong() {
               for (size_t chipIndex=0; chipIndex<chips.size(); chipIndex++) {
                 DivSystem chip=chips[chipIndex];
                 const DivSysDef* sysDef=e->getSystemDef(chip);
+                ImGui::PushTextWrapPos(MIN(scrW*dpiScale,400.0f*dpiScale));
                 ImGui::Text("%s (x%d): ",sysDef->name,chipCounts[chip]);
-                ImGui::TextWrapped("%s",sysDef->description);
+                ImGui::Text("%s",sysDef->description);
+                ImGui::PopTextWrapPos();
                 if (chipIndex+1<chips.size()) {
                   ImGui::Separator();
                 }
