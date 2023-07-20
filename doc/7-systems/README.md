@@ -14,6 +14,7 @@ this is a list of sound chips that Furnace supports, including effects.
 - [Famicom Disk System](fds.md)
 - [Game Boy](game-boy.md)
 - [Konami K007232](k007232.md)
+- [Konami K056320](k056320.md)
 - [Konami SCC](scc.md)
 - [Konami VRC6](vrc6.md)
 - [Atari Lynx](lynx.md)
