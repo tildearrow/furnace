@@ -5442,10 +5442,10 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Duty";
             dutyMax=63;
           }
-          /*if (ins->type==DIV_INS_N163) {
-            dutyLabel="Waveform pos.";
+          if (ins->type==DIV_INS_N163) {
+            dutyLabel="Wave Pos";
             dutyMax=255;
-          }*/
+          }
           if (ins->type==DIV_INS_VRC6) {
             dutyLabel="Duty";
             dutyMax=ins->amiga.useSample?0:7;
@@ -5755,8 +5755,6 @@ void FurnaceGUI::drawInsEdit() {
           if (ex2Max>0) {
             if (ins->type==DIV_INS_C64) {
               macroList.push_back(FurnaceGUIMacroDesc("Resonance",&ins->std.ex2Macro,0,ex2Max,64,uiColors[GUI_COLOR_MACRO_OTHER]));
-            /*} else if (ins->type==DIV_INS_N163) {
-              macroList.push_back(FurnaceGUIMacroDesc("Wave Update",&ins->std.ex2Macro,0,ex2Max,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,n163UpdateBits));*/
             } else if (ins->type==DIV_INS_FDS) {
               macroList.push_back(FurnaceGUIMacroDesc("Mod Speed",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_SU) {
@@ -5785,12 +5783,6 @@ void FurnaceGUI::drawInsEdit() {
             // oh my i am running out of macros
             macroList.push_back(FurnaceGUIMacroDesc("Noise AND Mask",&ins->std.fbMacro,0,8,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
             macroList.push_back(FurnaceGUIMacroDesc("Noise OR Mask",&ins->std.fmsMacro,0,8,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-          }
-          if (ins->type==DIV_INS_N163) {
-            /*macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Wave",&ins->std.ex3Macro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Pos",&ins->std.algMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Len",&ins->std.fbMacro,0,252,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Trigger",&ins->std.fmsMacro,0,2,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,n163UpdateBits));*/
           }
           if (ins->type==DIV_INS_FDS) {
             macroList.push_back(FurnaceGUIMacroDesc("Mod Position",&ins->std.ex3Macro,0,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));
