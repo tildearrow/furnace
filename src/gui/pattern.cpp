@@ -953,13 +953,17 @@ void FurnaceGUI::drawPattern() {
 
       // overflow changes order
       // TODO: this is very unreliable and sometimes it can warp you out of the song
-      if (settings.scrollChangesOrder && !e->isPlaying() && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+      if (settings.scrollChangesOrder && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
         if (wheelY!=0) {
           if (wheelY>0) {
             if (ImGui::GetScrollY()<=0) {
               if (haveHitBounds) {
                 if (curOrder>0) {
                   setOrder(curOrder-1);
+                  ImGui::SetScrollY(ImGui::GetScrollMaxY());
+                  updateScroll(e->curSubSong->patLen);
+                } else if (settings.scrollChangesOrder==2) {
+                  setOrder(e->curSubSong->ordersLen-1);
                   ImGui::SetScrollY(ImGui::GetScrollMaxY());
                   updateScroll(e->curSubSong->patLen);
                 }
@@ -975,6 +979,10 @@ void FurnaceGUI::drawPattern() {
               if (haveHitBounds) {
                 if (curOrder<(e->curSubSong->ordersLen-1)) {
                   setOrder(curOrder+1);
+                  ImGui::SetScrollY(0);
+                  updateScroll(0);
+                } else if (settings.scrollChangesOrder==2) {
+                  setOrder(0);
                   ImGui::SetScrollY(0);
                   updateScroll(0);
                 }
