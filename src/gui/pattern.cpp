@@ -412,7 +412,7 @@ void FurnaceGUI::drawPattern() {
     ImGui::SetNextWindowPos(patWindowPos);
     ImGui::SetNextWindowSize(patWindowSize);
   }
-  if (ImGui::Begin("Pattern",&patternOpen,globalWinFlags|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0))) {
+  if (ImGui::Begin("Pattern",&patternOpen,globalWinFlags|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0)|(settings.cursorFollowsWheel?ImGuiWindowFlags_NoScrollWithMouse:0))) {
     if (!mobileUI) {
       patWindowPos=ImGui::GetWindowPos();
       patWindowSize=ImGui::GetWindowSize();
@@ -951,9 +951,16 @@ void FurnaceGUI::drawPattern() {
         demandScrollX=false;
       }
 
+      // cursor follows wheel
+      if (settings.cursorFollowsWheel && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+        if (wheelX!=0 || wheelY!=0) {
+          moveCursor(wheelX,wheelY,false);
+        }
+      }
+
       // overflow changes order
       // TODO: this is very unreliable and sometimes it can warp you out of the song
-      if (settings.scrollChangesOrder && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+      if (settings.scrollChangesOrder && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && !settings.cursorFollowsWheel) {
         if (wheelY!=0) {
           if (wheelY>0) {
             if (ImGui::GetScrollY()<=0) {
