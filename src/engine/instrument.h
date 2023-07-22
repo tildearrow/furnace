@@ -446,6 +446,9 @@ struct DivInstrumentX1_010 {
 struct DivInstrumentN163 {
   int wave, wavePos, waveLen;
   unsigned char waveMode;
+  bool perChanPos;
+  int wavePosCh[8];
+  int waveLenCh[8];
 
   bool operator==(const DivInstrumentN163& other);
   bool operator!=(const DivInstrumentN163& other) {
@@ -456,7 +459,13 @@ struct DivInstrumentN163 {
     wave(-1),
     wavePos(0),
     waveLen(32),
-    waveMode(3) {}
+    waveMode(3),
+    perChanPos(false) {
+    for (int i=0; i<8; i++) {
+      wavePosCh[i]=(i&3)<<5;
+      waveLenCh[i]=32;
+    }
+  }
 };
 
 struct DivInstrumentFDS {

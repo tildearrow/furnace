@@ -4681,14 +4681,62 @@ void FurnaceGUI::drawInsEdit() {
               if (ins->n163.wave>=e->song.waveLen) ins->n163.wave=e->song.waveLen-1;
             }
           }
-          if (ImGui::InputInt("Offset##WAVEPOS",&ins->n163.wavePos,1,16)) { PARAMETER
-            if (ins->n163.wavePos<0) ins->n163.wavePos=0;
-            if (ins->n163.wavePos>255) ins->n163.wavePos=255;
-          }
-          if (ImGui::InputInt("Length##WAVELEN",&ins->n163.waveLen,4,16)) { PARAMETER
-            if (ins->n163.waveLen<0) ins->n163.waveLen=0;
-            if (ins->n163.waveLen>252) ins->n163.waveLen=252;
-            ins->n163.waveLen&=0xfc;
+
+          ImGui::Separator();
+
+          P(ImGui::Checkbox("Per-channel wave offset/length",&ins->n163.perChanPos));
+
+          if (ins->n163.perChanPos) {
+            if (ImGui::BeginTable("N1PerChPos",3)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.5f);
+              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5f);
+
+              ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+              ImGui::TableNextColumn();
+              ImGui::Text("Ch");
+              ImGui::TableNextColumn();
+              ImGui::Text("Offset");
+              ImGui::TableNextColumn();
+              ImGui::Text("Length");
+
+              for (int i=0; i<8; i++) {
+                ImGui::PushID(64+i);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Dummy(ImVec2(dpiScale,ImGui::GetFrameHeightWithSpacing()));
+                ImGui::SameLine();
+                ImGui::Text("%d",i+1);
+
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##pcOff",&ins->n163.wavePosCh[i],1,16)) { PARAMETER
+                  if (ins->n163.wavePosCh[i]<0) ins->n163.wavePosCh[i]=0;
+                  if (ins->n163.wavePosCh[i]>255) ins->n163.wavePosCh[i]=255;
+                }
+
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##pcLen",&ins->n163.waveLenCh[i],4,16)) { PARAMETER
+                  if (ins->n163.waveLenCh[i]<0) ins->n163.waveLenCh[i]=0;
+                  if (ins->n163.waveLenCh[i]>252) ins->n163.waveLenCh[i]=252;
+                  ins->n163.waveLenCh[i]&=0xfc;
+                }
+                ImGui::PopID();
+              }
+
+              ImGui::EndTable();
+            }
+          } else {
+            if (ImGui::InputInt("Offset##WAVEPOS",&ins->n163.wavePos,1,16)) { PARAMETER
+              if (ins->n163.wavePos<0) ins->n163.wavePos=0;
+              if (ins->n163.wavePos>255) ins->n163.wavePos=255;
+            }
+            if (ImGui::InputInt("Length##WAVELEN",&ins->n163.waveLen,4,16)) { PARAMETER
+              if (ins->n163.waveLen<0) ins->n163.waveLen=0;
+              if (ins->n163.waveLen>252) ins->n163.waveLen=252;
+              ins->n163.waveLen&=0xfc;
+            }
           }
           ImGui::EndTabItem();
         }
