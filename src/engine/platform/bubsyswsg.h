@@ -21,7 +21,6 @@
 #define _K005289_H
 
 #include "../dispatch.h"
-#include <queue>
 #include "../waveSynth.h"
 #include "vgsound_emu/src/k005289/k005289.hpp"
 

@@ -1444,9 +1444,6 @@ void DivEngine::initSongWithDesc(const char* description, bool inBase64, bool ol
   
   // extra attributes
   song.subsong[0]->hz=c.getDouble("tickRate",60.0);
-  if (song.subsong[0]->hz!=60.0) {
-    song.subsong[0]->customTempo=true;
-  }
 }
 
 void DivEngine::createNew(const char* description, String sysName, bool inBase64) {
@@ -1572,6 +1569,35 @@ void DivEngine::changeSong(size_t songIndex) {
   prevRow=0;
 }
 
+void DivEngine::moveAsset(std::vector<DivAssetDir>& dir, int before, int after) {
+  if (before<0 || after<0) return;
+  for (DivAssetDir& i: dir) {
+    for (size_t j=0; j<i.entries.size(); j++) {
+      // erase matching entry
+      if (i.entries[j]==before) {
+        i.entries[j]=after;
+      } else if (i.entries[j]==after) {
+        i.entries[j]=before;
+      }
+    }
+  }
+}
+
+void DivEngine::removeAsset(std::vector<DivAssetDir>& dir, int entry) {
+  if (entry<0) return;
+  for (DivAssetDir& i: dir) {
+    for (size_t j=0; j<i.entries.size(); j++) {
+      // erase matching entry
+      if (i.entries[j]==entry) {
+        i.entries.erase(i.entries.begin()+j);
+        j--;
+      } else if (i.entries[j]>entry) {
+        i.entries[j]--;
+      }
+    }
+  }
+}
+
 void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
   bool* inAssetDir=new bool[entries];
   memset(inAssetDir,0,entries*sizeof(bool));
@@ -1584,9 +1610,16 @@ void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
         j--;
         continue;
       }
+
+      // erase duplicate entry
+      if (inAssetDir[i.entries[j]]) {
+        i.entries.erase(i.entries.begin()+j);
+        j--;
+        continue;
+      }
       
       // mark entry as present
-      inAssetDir[j]=true;
+      inAssetDir[i.entries[j]]=true;
     }
   }
 
@@ -1599,15 +1632,14 @@ void DivEngine::checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries) {
     }
   }
 
-  // create unsorted directory if it doesn't exist
-  if (unsortedDir==NULL) {
-    dir.push_back(DivAssetDir(""));
-    unsortedDir=&(*dir.rbegin());
-  }
-
   // add missing items to unsorted directory
   for (size_t i=0; i<entries; i++) {
     if (!inAssetDir[i]) {
+      // create unsorted directory if it doesn't exist
+      if (unsortedDir==NULL) {
+        dir.push_back(DivAssetDir(""));
+        unsortedDir=&(*dir.rbegin());
+      }
       unsortedDir->entries.push_back(i);
     }
   }
@@ -1641,6 +1673,51 @@ int DivEngine::addSubSong() {
   BUSY_BEGIN;
   saveLock.lock();
   song.subsong.push_back(new DivSubSong);
+  saveLock.unlock();
+  BUSY_END;
+  return song.subsong.size()-1;
+}
+
+int DivEngine::duplicateSubSong(int index) {
+  if (song.subsong.size()>=127) return -1;
+  BUSY_BEGIN;
+  saveLock.lock();
+  DivSubSong* theCopy=new DivSubSong;
+  DivSubSong* theOrig=song.subsong[index];
+
+  theCopy->name=theOrig->name;
+  theCopy->notes=theOrig->notes;
+  theCopy->hilightA=theOrig->hilightA;
+  theCopy->hilightB=theOrig->hilightB;
+  theCopy->timeBase=theOrig->timeBase;
+  theCopy->arpLen=theOrig->arpLen;
+  theCopy->speeds=theOrig->speeds;
+  theCopy->virtualTempoN=theOrig->virtualTempoN;
+  theCopy->virtualTempoD=theOrig->virtualTempoD;
+  theCopy->hz=theOrig->hz;
+  theCopy->patLen=theOrig->patLen;
+  theCopy->ordersLen=theOrig->ordersLen;
+  theCopy->orders=theOrig->orders;
+  
+  memcpy(theCopy->chanShow,theOrig->chanShow,DIV_MAX_CHANS*sizeof(bool));
+  memcpy(theCopy->chanCollapse,theOrig->chanCollapse,DIV_MAX_CHANS);
+
+  for (int i=0; i<DIV_MAX_CHANS; i++) {
+    theCopy->chanName[i]=theOrig->chanName[i];
+    theCopy->chanShortName[i]=theOrig->chanShortName[i];
+
+    theCopy->pat[i].effectCols=theOrig->pat[i].effectCols;
+
+    for (int j=0; j<DIV_MAX_PATTERNS; j++) {
+      if (theOrig->pat[i].data[j]==NULL) continue;
+      DivPattern* origPat=theOrig->pat[i].getPattern(j,false);
+      DivPattern* copyPat=theCopy->pat[i].getPattern(j,true);
+      origPat->copyOn(copyPat);
+    }
+  }
+
+  song.subsong.push_back(theCopy);
+  
   saveLock.unlock();
   BUSY_END;
   return song.subsong.size()-1;
@@ -2172,6 +2249,7 @@ void DivEngine::playSub(bool preserveDrift, int goalRow) {
   prevOrder=0;
   prevRow=0;
   stepPlay=0;
+  if (curSubSong!=NULL) curSubSong->arpLen=1;
   int prevDrift, prevMidiClockDrift, prevMidiTimeDrift;
   prevDrift=clockDrift;
   prevMidiClockDrift=midiClockDrift;
@@ -2520,6 +2598,8 @@ void DivEngine::stepOne(int row) {
   }
   stepPlay=2;
   ticks=1;
+  prevOrder=curOrder;
+  prevRow=curRow;
   BUSY_END;
 }
 
@@ -2660,16 +2740,7 @@ void DivEngine::reset() {
   elapsedBars=0;
   elapsedBeats=0;
   nextSpeed=speeds.val[0];
-  divider=60;
-  if (curSubSong->customTempo) {
-    divider=curSubSong->hz;
-  } else {
-    if (curSubSong->pal) {
-      divider=60;
-    } else {
-      divider=50;
-    }
-  }
+  divider=curSubSong->hz;
   globalPitch=0;
   for (int i=0; i<song.systemLen; i++) {
     disCont[i].dispatch->reset();
@@ -2884,14 +2955,7 @@ const DivGroovePattern& DivEngine::getSpeeds() {
 }
 
 float DivEngine::getHz() {
-  if (curSubSong->customTempo) {
-    return curSubSong->hz;
-  } else if (curSubSong->pal) {
-    return 60.0;
-  } else {
-    return 50.0;
-  }
-  return 60.0;
+  return curSubSong->hz;
 }
 
 float DivEngine::getCurHz() {
@@ -3032,6 +3096,7 @@ int DivEngine::addInstrument(int refChan, DivInstrumentType fallbackType) {
   saveLock.lock();
   song.ins.push_back(ins);
   song.insLen=insCount+1;
+  checkAssetDir(song.insDir,song.ins.size());
   saveLock.unlock();
   BUSY_END;
   return insCount;
@@ -3046,6 +3111,7 @@ int DivEngine::addInstrumentPtr(DivInstrument* which) {
   saveLock.lock();
   song.ins.push_back(which);
   song.insLen=song.ins.size();
+  checkAssetDir(song.insDir,song.ins.size());
   saveLock.unlock();
   BUSY_END;
   return song.insLen;
@@ -3082,6 +3148,8 @@ void DivEngine::delInstrument(int index) {
         }
       }
     }
+    removeAsset(song.insDir,index);
+    checkAssetDir(song.insDir,song.ins.size());
   }
   saveLock.unlock();
   BUSY_END;
@@ -3098,6 +3166,7 @@ int DivEngine::addWave() {
   int waveCount=(int)song.wave.size();
   song.wave.push_back(wave);
   song.waveLen=waveCount+1;
+  checkAssetDir(song.waveDir,song.wave.size());
   saveLock.unlock();
   BUSY_END;
   return waveCount;
@@ -3114,6 +3183,7 @@ int DivEngine::addWavePtr(DivWavetable* which) {
   int waveCount=(int)song.wave.size();
   song.wave.push_back(which);
   song.waveLen=waveCount+1;
+  checkAssetDir(song.waveDir,song.wave.size());
   saveLock.unlock();
   BUSY_END;
   return song.waveLen;
@@ -3268,6 +3338,8 @@ void DivEngine::delWave(int index) {
     delete song.wave[index];
     song.wave.erase(song.wave.begin()+index);
     song.waveLen=song.wave.size();
+    removeAsset(song.waveDir,index);
+    checkAssetDir(song.waveDir,song.wave.size());
   }
   saveLock.unlock();
   BUSY_END;
@@ -3288,6 +3360,7 @@ int DivEngine::addSample() {
   sPreview.sample=-1;
   sPreview.pos=0;
   sPreview.dir=false;
+  checkAssetDir(song.sampleDir,song.sample.size());
   saveLock.unlock();
   renderSamples();
   BUSY_END;
@@ -3305,6 +3378,7 @@ int DivEngine::addSamplePtr(DivSample* which) {
   saveLock.lock();
   song.sample.push_back(which);
   song.sampleLen=sampleCount+1;
+  checkAssetDir(song.sampleDir,song.sample.size());
   saveLock.unlock();
   renderSamples();
   BUSY_END;
@@ -3774,6 +3848,8 @@ void DivEngine::delSample(int index) {
     delete song.sample[index];
     song.sample.erase(song.sample.begin()+index);
     song.sampleLen=song.sample.size();
+    removeAsset(song.sampleDir,index);
+    checkAssetDir(song.sampleDir,song.sample.size());
     renderSamples();
   }
   saveLock.unlock();
@@ -3972,6 +4048,7 @@ bool DivEngine::moveInsUp(int which) {
   saveLock.lock();
   song.ins[which]=song.ins[which-1];
   song.ins[which-1]=prev;
+  moveAsset(song.insDir,which,which-1);
   exchangeIns(which,which-1);
   saveLock.unlock();
   BUSY_END;
@@ -3985,6 +4062,7 @@ bool DivEngine::moveWaveUp(int which) {
   saveLock.lock();
   song.wave[which]=song.wave[which-1];
   song.wave[which-1]=prev;
+  moveAsset(song.waveDir,which,which-1);
   saveLock.unlock();
   BUSY_END;
   return true;
@@ -4000,6 +4078,7 @@ bool DivEngine::moveSampleUp(int which) {
   saveLock.lock();
   song.sample[which]=song.sample[which-1];
   song.sample[which-1]=prev;
+  moveAsset(song.sampleDir,which,which-1);
   saveLock.unlock();
   renderSamples();
   BUSY_END;
@@ -4014,6 +4093,7 @@ bool DivEngine::moveInsDown(int which) {
   song.ins[which]=song.ins[which+1];
   song.ins[which+1]=prev;
   exchangeIns(which,which+1);
+  moveAsset(song.insDir,which,which+1);
   saveLock.unlock();
   BUSY_END;
   return true;
@@ -4026,6 +4106,7 @@ bool DivEngine::moveWaveDown(int which) {
   saveLock.lock();
   song.wave[which]=song.wave[which+1];
   song.wave[which+1]=prev;
+  moveAsset(song.waveDir,which,which+1);
   saveLock.unlock();
   BUSY_END;
   return true;
@@ -4041,6 +4122,7 @@ bool DivEngine::moveSampleDown(int which) {
   saveLock.lock();
   song.sample[which]=song.sample[which+1];
   song.sample[which+1]=prev;
+  moveAsset(song.sampleDir,which,which+1);
   saveLock.unlock();
   renderSamples();
   BUSY_END;
@@ -4083,6 +4165,10 @@ void DivEngine::autoPatchbayP() {
   autoPatchbay();
   saveLock.unlock();
   BUSY_END;
+}
+
+void DivEngine::recalcPatchbay() {
+
 }
 
 bool DivEngine::patchConnect(unsigned int src, unsigned int dest) {
@@ -4236,9 +4322,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
 
 void DivEngine::autoNoteOff(int ch, int note, int vol) {
   if (!playing) {
-    reset();
-    freelance=true;
-    playing=true;
+    return;
   }
   //if (ch<0 || ch>=chans) return;
   for (int i=0; i<chans; i++) {
@@ -4251,9 +4335,7 @@ void DivEngine::autoNoteOff(int ch, int note, int vol) {
 
 void DivEngine::autoNoteOffAll() {
   if (!playing) {
-    reset();
-    freelance=true;
-    playing=true;
+    return;
   }
   for (int i=0; i<chans; i++) {
     if (chan[i].midiNote!=-1) {
@@ -4296,23 +4378,11 @@ void DivEngine::updateSysFlags(int system, bool restart) {
   BUSY_END;
 }
 
-void DivEngine::setSongRate(float hz, bool pal) {
+void DivEngine::setSongRate(float hz) {
   BUSY_BEGIN;
   saveLock.lock();
-  curSubSong->pal=!pal;
   curSubSong->hz=hz;
-  // what?
-  curSubSong->customTempo=true;
-  divider=60;
-  if (curSubSong->customTempo) {
-    divider=curSubSong->hz;
-  } else {
-    if (curSubSong->pal) {
-      divider=60;
-    } else {
-      divider=50;
-    }
-  }
+  divider=curSubSong->hz;
   saveLock.unlock();
   BUSY_END;
 }
@@ -4514,6 +4584,15 @@ bool DivEngine::initAudioBackend() {
     }
   }
 
+#ifdef HAVE_SDL2
+  if (audioEngine==DIV_AUDIO_SDL) {
+    String audioDriver=getConfString("sdlAudioDriver","");
+    if (!audioDriver.empty()) {
+      SDL_SetHint("SDL_HINT_AUDIODRIVER",audioDriver.c_str());
+    }
+  }
+#endif
+
   lowQuality=getConfInt("audioQuality",0);
   forceMono=getConfInt("forceMono",0);
   clampSamples=getConfInt("clampSamples",0);
@@ -4522,7 +4601,7 @@ bool DivEngine::initAudioBackend() {
   midiOutClock=getConfInt("midiOutClock",0);
   midiOutTime=getConfInt("midiOutTime",0);
   midiOutTimeRate=getConfInt("midiOutTimeRate",0);
-  midiOutProgramChange = getConfInt("midiOutProgramChange",0);
+  midiOutProgramChange=getConfInt("midiOutProgramChange",0);
   midiOutMode=getConfInt("midiOutMode",DIV_MIDI_MODE_NOTE);
   if (metroVol<0.0f) metroVol=0.0f;
   if (metroVol>2.0f) metroVol=2.0f;

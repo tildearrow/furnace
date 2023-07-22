@@ -131,6 +131,7 @@ const char* insTypes[DIV_INS_MAX+1]={
   "Pokémon Mini/QuadTone",
   "SM8521",
   "PV-1000",
+  "K053260",
   NULL
 };
 
@@ -506,7 +507,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WINDOW_ABOUT", "About", 0),
   D("WINDOW_SETTINGS", "Settings", 0),
   D("WINDOW_MIXER", "Mixer", 0),
-  D("WINDOW_DEBUG", "Debug Menu", 0),
+  D("WINDOW_DEBUG", "Debug Menu", FURKMOD_CMD|FURKMOD_SHIFT|SDLK_d),
   D("WINDOW_OSCILLOSCOPE", "Oscilloscope (master)", 0),
   D("WINDOW_VOL_METER", "Volume Meter", 0),
   D("WINDOW_STATS", "Statistics", 0),
@@ -610,6 +611,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("INS_LIST_EDIT", "Edit", FURKMOD_SHIFT|SDLK_RETURN),
   D("INS_LIST_UP", "Cursor up", SDLK_UP),
   D("INS_LIST_DOWN", "Cursor down", SDLK_DOWN),
+  D("INS_LIST_DIR_VIEW", "Toggle folders/standard view", FURKMOD_CMD|SDLK_v),
   D("INS_LIST_MAX", "", NOT_AN_ACTION),
 
   D("WAVE_LIST_MIN", "---Wavetable list", NOT_AN_ACTION),
@@ -626,6 +628,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("WAVE_LIST_EDIT", "Edit", FURKMOD_SHIFT|SDLK_RETURN),
   D("WAVE_LIST_UP", "Cursor up", SDLK_UP),
   D("WAVE_LIST_DOWN", "Cursor down", SDLK_DOWN),
+  D("WAVE_LIST_DIR_VIEW", "Toggle folders/standard view", FURKMOD_CMD|SDLK_v),
   D("WAVE_LIST_MAX", "", NOT_AN_ACTION),
 
   D("SAMPLE_LIST_MIN", "---Sample list", NOT_AN_ACTION),
@@ -645,6 +648,7 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("SAMPLE_LIST_DOWN", "Cursor down", SDLK_DOWN),
   D("SAMPLE_LIST_PREVIEW", "Preview", 0),
   D("SAMPLE_LIST_STOP_PREVIEW", "Stop preview", 0),
+  D("SAMPLE_LIST_DIR_VIEW", "Toggle folders/standard view", FURKMOD_CMD|SDLK_v),
   D("SAMPLE_LIST_MAX", "", NOT_AN_ACTION),
 
   D("SAMPLE_MIN", "---Sample editor", NOT_AN_ACTION),
@@ -707,17 +711,41 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
 const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_BACKGROUND,"Background",ImVec4(0.1f,0.1f,0.1f,1.0f)),
   D(GUI_COLOR_FRAME_BACKGROUND,"",ImVec4(0.0f,0.0f,0.0f,0.85f)),
+  D(GUI_COLOR_FRAME_BACKGROUND_CHILD,"",ImVec4(0.0f,0.0f,0.0f,0.0f)),
+  D(GUI_COLOR_FRAME_BACKGROUND_POPUP,"",ImVec4(0.08f,0.08f,0.08f,0.94f)),
   D(GUI_COLOR_MODAL_BACKDROP,"",ImVec4(0.0f,0.0f,0.0f,0.55f)),
   D(GUI_COLOR_HEADER,"",ImVec4(0.2f,0.2f,0.2f,1.0f)),
   D(GUI_COLOR_TEXT,"",ImVec4(1.0f,1.0f,1.0f,1.0f)),
   D(GUI_COLOR_ACCENT_PRIMARY,"",ImVec4(0.06f,0.53f,0.98f,1.0f)),
   D(GUI_COLOR_ACCENT_SECONDARY,"",ImVec4(0.26f,0.59f,0.98f,1.0f)),
+  D(GUI_COLOR_TITLE_INACTIVE,"",ImVec4(0.04f,0.04f,0.04f,1.0f)),
+  D(GUI_COLOR_TITLE_COLLAPSED,"",ImVec4(0.0f,0.0f,0.0f,0.51f)),
+  D(GUI_COLOR_MENU_BAR,"",ImVec4(0.14f,0.14f,0.14f,1.0f)),
   D(GUI_COLOR_BORDER,"",ImVec4(0.43f,0.43f,0.5f,0.5f)),
   D(GUI_COLOR_BORDER_SHADOW,"",ImVec4(0.0f,0.0f,0.0f,0.0f)),
+  D(GUI_COLOR_SCROLL_BACKGROUND,"",ImVec4(0.02f,0.02f,0.02f,0.33f)),
+  D(GUI_COLOR_SCROLL,"",ImVec4(0.31f,0.31f,0.31f,1.0f)),
+  D(GUI_COLOR_SCROLL_HOVER,"",ImVec4(0.41f,0.41f,0.41f,1.0f)),
+  D(GUI_COLOR_SCROLL_ACTIVE,"",ImVec4(0.51f,0.51f,0.51f,1.0f)),
+  D(GUI_COLOR_SEPARATOR,"",ImVec4(0.43f,0.43f,0.5f,0.5f)),
+  D(GUI_COLOR_SEPARATOR_HOVER,"",ImVec4(0.1f,0.4f,0.75f,0.78f)),
+  D(GUI_COLOR_SEPARATOR_ACTIVE,"",ImVec4(0.1f,0.4f,0.75f,1.0f)),
+  D(GUI_COLOR_DOCKING_PREVIEW,"",ImVec4(0.26f,0.59f,0.98f,0.7f)),
+  D(GUI_COLOR_DOCKING_EMPTY,"",ImVec4(0.2f,0.2f,0.2f,1.0f)),
+  D(GUI_COLOR_TABLE_HEADER,"",ImVec4(0.19f,0.19f,0.2f,1.0f)),
+  D(GUI_COLOR_TABLE_BORDER_HARD,"",ImVec4(0.31f,0.31f,0.35f,1.0f)),
+  D(GUI_COLOR_TABLE_BORDER_SOFT,"",ImVec4(0.23f,0.23f,0.25f,1.0f)),
+  D(GUI_COLOR_DRAG_DROP_TARGET,"",ImVec4(1.0f,1.0f,0.0f,0.9f)),
+  D(GUI_COLOR_NAV_HIGHLIGHT,"",ImVec4(0.26f,0.59f,0.98f,1.0f)),
+  D(GUI_COLOR_NAV_WIN_HIGHLIGHT,"",ImVec4(1.0f,1.0f,1.0f,0.7f)),
+  D(GUI_COLOR_NAV_WIN_BACKDROP,"",ImVec4(0.8f,0.8f,0.8f,0.2f)),
   D(GUI_COLOR_TOGGLE_OFF,"",ImVec4(0.2f,0.2f,0.2f,1.0f)),
   D(GUI_COLOR_TOGGLE_ON,"",ImVec4(0.2f,0.6f,0.2f,1.0f)),
   D(GUI_COLOR_EDITING,"",ImVec4(0.2f,0.1f,0.1f,1.0f)),
   D(GUI_COLOR_SONG_LOOP,"",ImVec4(0.3f,0.5f,0.8f,0.4f)),
+  D(GUI_COLOR_DESTRUCTIVE,"",ImVec4(1.0f,0.2f,0.2f,1.0f)),
+  D(GUI_COLOR_WARNING,"",ImVec4(0.98f,0.98f,0.06f,1.0f)),
+  D(GUI_COLOR_ERROR,"",ImVec4(0.98f,0.06f,0.11f,1.0f)),
 
   D(GUI_COLOR_FILE_DIR,"",ImVec4(0.0f,1.0f,1.0f,1.0f)),
   D(GUI_COLOR_FILE_SONG_NATIVE,"",ImVec4(0.5f,1.0f,0.5f,1.0f)),
@@ -824,6 +852,7 @@ const FurnaceGUIColorDef guiColors[GUI_COLOR_MAX]={
   D(GUI_COLOR_INSTR_POKEMINI,"",ImVec4(1.0f,1.0f,0.3f,1.0f)),
   D(GUI_COLOR_INSTR_SM8521,"",ImVec4(0.5f,0.55f,0.6f,1.0f)),
   D(GUI_COLOR_INSTR_PV1000,"",ImVec4(0.4f,0.6f,0.7f,1.0f)),
+  D(GUI_COLOR_INSTR_K053260,"",ImVec4(1.0f,0.8f,0.1f,1.0f)),
   D(GUI_COLOR_INSTR_UNKNOWN,"",ImVec4(0.3f,0.3f,0.3f,1.0f)),
 
   D(GUI_COLOR_CHANNEL_BG,"",ImVec4(0.4f,0.6f,0.8f,1.0f)),
@@ -1007,6 +1036,7 @@ const int availableSystems[]={
   DIV_SYSTEM_GA20,
   DIV_SYSTEM_SM8521,
   DIV_SYSTEM_PV1000,
+  DIV_SYSTEM_K053260,
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_PONG,
   0 // don't remove this last one!
@@ -1115,6 +1145,7 @@ const int chipsSample[]={
   DIV_SYSTEM_GA20,
   DIV_SYSTEM_PCM_DAC,
   DIV_SYSTEM_ES5506,
+  DIV_SYSTEM_K053260,
   0 // don't remove this last one!
 };
 

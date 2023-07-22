@@ -32,105 +32,17 @@ these fields are 0 in format versions prior to 100 (0.6pre1).
 
 the format versions are:
 
-- 155: Furnace dev155
-- 154: Furnace dev154
-- 153: Furnace dev153
-- 152: Furnace dev152
-- 151: Furnace dev151
-- 150: Furnace dev150
-- 149: Furnace dev149
-- 148: Furnace dev148
-- 147: Furnace dev147
+- 162: Furnace 0.6pre7
+- 161: Furnace 0.6pre6
+- 158: Furnace 0.6pre5
 - 146: Furnace Pro (joke version)
-- 145: Furnace dev145
-- 144: Furnace dev144
 - 143: Furnace 0.6pre4
-- 142: Furnace dev142
 - 141: Furnace Tournament Edition (for intro tune contest)
-- 140: Furnace dev140
-- 139: Furnace dev139
-- 138: Furnace dev138
-- 137: Furnace dev137
-- 136: Furnace dev136
-- 135: Furnace dev135
-- 134: Furnace dev134
 - 133: Furnace 0.6pre3
 - 132: Furnace 0.6pre2
-- 131: Furnace dev131
-- 130: Furnace dev130
-- 129: Furnace dev129
-- 128: Furnace dev128
-- 127: Furnace dev127
-- 126: Furnace dev126
-- 125: Furnace dev125
-- 124: Furnace dev124
-- 123: Furnace dev123
-- 122: Furnace dev122
-- 121: Furnace dev121
-- 120: Furnace dev120
-- 119: Furnace dev119
-- 118: Furnace dev118
-- 117: Furnace dev117
 - 116: Furnace 0.6pre1.5
-- 115: Furnace dev115
-- 114: Furnace dev114
-- 113: Furnace dev113
-- 112: Furnace dev112
-- 111: Furnace dev111
-- 110: Furnace dev110
-- 109: Furnace dev109
-- 108: Furnace dev108
-- 107: Furnace dev107
-- 106: Furnace dev106
-- 105: Furnace dev105
-- 104: Furnace dev104
-- 103: Furnace dev103
-- 102: Furnace 0.6pre1 (dev102)
-- 101: Furnace 0.6pre1 (dev101)
 - 100: Furnace 0.6pre1
-- 99: Furnace dev99
-- 98: Furnace dev98
-- 97: Furnace dev97
-- 96: Furnace dev96
-- 95: Furnace dev95
-- 94: Furnace dev94
-- 93: Furnace dev93
-- 92: Furnace dev92
-- 91: Furnace dev91
-- 90: Furnace dev90
-- 89: Furnace dev89
-- 88: Furnace dev88
-- 87: Furnace dev87
-- 86: Furnace dev86
-- 85: Furnace dev85
-- 84: Furnace dev84
-- 83: Furnace dev83
-- 82: Furnace dev82
-- 81: Furnace dev81
-- 80: Furnace dev80
-- 79: Furnace dev79
-- 78: Furnace dev78
-- 77: Furnace dev77
-- 76: Furnace dev76
 - 75: Furnace dev75/April Fools' 0.6pre0
-- 74: Furnace dev74
-- 73: Furnace dev73
-- 72: Furnace dev72
-- 71: Furnace dev71
-- 70: Furnace dev70
-- 69: Furnace dev69
-- 68: Furnace dev68
-- 67: Furnace dev67
-- 66: Furnace dev66
-- 65: Furnace dev65
-- 64: Furnace dev64
-- 63: Furnace dev63
-- 62: Furnace dev62
-- 61: Furnace dev61
-- 60: Furnace dev60
-- 59: Furnace dev59
-- 58: Furnace dev58
-- 57: Furnace dev57
 
 - 54: Furnace 0.5.8
 - 53: Furnace 0.5.7
@@ -168,6 +80,8 @@ the format versions are:
 - 14: Furnace 0.2.2
 - 13: Furnace 0.2.1
 - 12: Furnace 0.2
+
+versions that do not appear in this list are `dev???` ones.
 
 # header
 
@@ -303,6 +217,7 @@ size | description
      |   - 0xc9: M114S - 16 channels
      |   - 0xca: ZX Spectrum (beeper, QuadTone engine) - 5 channels
      |   - 0xcb: Casio PV-1000 - 3 channels
+     |   - 0xcc: K053260 - 4 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfc: Pong - 1 channel
@@ -435,12 +350,16 @@ size | description
  ??? | groove entries. the format is:
      | - 1 byte: length of groove
      | - 16 bytes: groove pattern
+ --- | **pointers to asset directories** (>=156)
+  4  | instrument directories
+  4  | wavetable directories
+  4  | sample directories
 ```
 
 # patchbay
 
 Furnace dev135 adds a "patchbay" which allows for arbitrary connection of chip outputs to system outputs.
-it eventually will allow connecting outputs to effects and so on.
+it also allows connecting outputs to effects and so on.
 
 a connection is represented as an unsigned int in the following format:
 
@@ -524,6 +443,22 @@ flags are stored in text (`key=value`) format. for example:
 ```
 clock=4000000
 stereo=true
+```
+
+# asset directories (>=156)
+
+also known as "folder" in the user interface.
+
+```
+size | description
+-----|------------------------------------
+  4  | "ADIR" block ID
+  4  | size of this block
+  4  | number of directories
+ --- | **asset directory** (×numberOfDirs)
+ STR | name (if empty, this is the uncategorized directory)
+  2  | number of assets
+ 1?? | assets in this directory
 ```
 
 # instrument (>=127)
@@ -1209,7 +1144,8 @@ size | description
      | - 2: ping-pong
   1  | flags (>=129) or reserved
      | - 0: BRR emphasis
-  1  | reserved
+  1  | flags 2 (>=159) or reserved
+     | - 0: dither
   4  | loop start
      | - -1 means no loop
   4  | loop end
@@ -1257,7 +1193,58 @@ size | description
      | - version>=58 size is length
 ```
 
-# pattern
+# pattern (>=157)
+
+```
+size | description
+-----|------------------------------------
+  4  | "PATN" block ID
+  4  | size of this block
+  1  | subsong
+  1  | channel
+  2  | pattern index
+ STR | pattern name (>=51)
+ ??? | pattern data
+     | - read a byte per row.
+     | - if it is 0xff, end of pattern.
+     | - if bit 7 is set, then read bit 0-6 as "skip N+2 rows".
+     | - if bit 7 is clear, then:
+     |   - bit 0: note present
+     |   - bit 1: ins present
+     |   - bit 2: volume present
+     |   - bit 3: effect 0 present
+     |   - bit 4: effect value 0 present
+     |   - bit 5: other effects (0-3) present
+     |   - bit 6: other effects (4-7) present
+     | - if bit 5 is set, read another byte:
+     |   - bit 0: effect 0 present
+     |   - bit 1: effect value 0 present
+     |   - bit 2: effect 1 present
+     |   - bit 3: effect value 1 present
+     |   - bit 4: effect 2 present
+     |   - bit 5: effect value 2 present
+     |   - bit 6: effect 3 present
+     |   - bit 7: effect value 3 present
+     | - if bit 6 is set, read another byte:
+     |   - bit 0: effect 4 present
+     |   - bit 1: effect value 4 present
+     |   - bit 2: effect 5 present
+     |   - bit 3: effect value 5 present
+     |   - bit 4: effect 6 present
+     |   - bit 5: effect value 6 present
+     |   - bit 6: effect 7 present
+     |   - bit 7: effect value 7 present
+     | - then read note, ins, volume, effects and effect values depending on what is present.
+     | - for note:
+     |   - 0 is C-(-5)
+     |   - 179 is B-9
+     |   - 180 is note off
+     |   - 181 is note release
+     |   - 182 is macro release
+```
+
+
+# old pattern (<157)
 
 ```
 size | description
@@ -1287,8 +1274,8 @@ size | description
      |     - 12: C (of next octave)
      |       - this is actually a leftover of the .dmf format.
      |     - 100: note off
-     |     - 100: note release
-     |     - 100: macro release
+     |     - 101: note release
+     |     - 102: macro release
      |   - octave
      |     - this is an signed char stored in a short.
      |     - therefore octave value 255 is actually octave -1.

@@ -127,7 +127,16 @@ enum DivSystem {
   DIV_SYSTEM_YM2203_CSM,
   DIV_SYSTEM_YM2608_CSM,
   DIV_SYSTEM_SM8521,
-  DIV_SYSTEM_PV1000
+  DIV_SYSTEM_PV1000,
+  DIV_SYSTEM_K053260
+};
+
+enum DivEffectType: unsigned short {
+  DIV_EFFECT_NULL=0,
+  DIV_EFFECT_DUMMY,
+  DIV_EFFECT_EXTERNAL,
+  DIV_EFFECT_VOLUME,
+  DIV_EFFECT_FILTER
 };
 
 struct DivGroovePattern {
@@ -145,8 +154,6 @@ struct DivSubSong {
   unsigned char timeBase, arpLen;
   DivGroovePattern speeds;
   short virtualTempoN, virtualTempoD;
-  bool pal;
-  bool customTempo;
   float hz;
   int patLen, ordersLen;
 
@@ -169,8 +176,6 @@ struct DivSubSong {
     arpLen(1),
     virtualTempoN(150),
     virtualTempoD(150),
-    pal(true),
-    customTempo(false),
     hz(60.0),
     patLen(64),
     ordersLen(1) {
@@ -189,6 +194,21 @@ struct DivAssetDir {
     name("New Directory") {}
   DivAssetDir(String n):
     name(n) {}
+};
+
+struct DivEffectStorage {
+  DivEffectType id;
+  unsigned short slot, storageVer;
+  float dryWet;
+  unsigned char* storage;
+  size_t storageLen;
+  DivEffectStorage():
+    id(DIV_EFFECT_NULL),
+    slot(0),
+    storageVer(0),
+    dryWet(1.0f),
+    storage(NULL),
+    storageLen(0) {}
 };
 
 struct DivSong {
@@ -365,6 +385,8 @@ struct DivSong {
   std::vector<DivAssetDir> insDir;
   std::vector<DivAssetDir> waveDir;
   std::vector<DivAssetDir> sampleDir;
+
+  std::vector<DivEffectStorage> effects;
 
   DivInstrument nullIns, nullInsOPLL, nullInsOPL, nullInsOPLDrums, nullInsQSound;
   DivWavetable nullWave;

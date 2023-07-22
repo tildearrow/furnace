@@ -21,7 +21,7 @@
 #define _OPLL_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../fixedQueue.h"
 
 extern "C" {
 #include "../../../extern/Nuked-OPLL/opll.h"
@@ -50,9 +50,10 @@ class DivPlatformOPLL: public DivDispatch {
       unsigned short addr;
       unsigned char val;
       bool addrOrVal;
+      QueuedWrite(): addr(0), val(0), addrOrVal(false) {}
       QueuedWrite(unsigned short a, unsigned char v): addr(a), val(v), addrOrVal(false) {}
     };
-    std::queue<QueuedWrite> writes;
+    FixedQueue<QueuedWrite,512> writes;
     opll_t fm;
     int delay, lastCustomMemory;
     unsigned char lastBusy;

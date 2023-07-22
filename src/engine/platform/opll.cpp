@@ -24,7 +24,7 @@
 #include <math.h>
 
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
-#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define immWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_FREQBASE 1180068
 
@@ -101,8 +101,16 @@ void DivPlatformOPLL::tick(bool sysTick) {
 
     if (chan[i].std.vol.had) {
       chan[i].outVol=VOL_SCALE_LOG_BROKEN(chan[i].vol,MIN(15,chan[i].std.vol.val),15);
-      if (i<9) {
-        rWrite(0x30+i,((15-VOL_SCALE_LOG_BROKEN(chan[i].outVol,15-chan[i].state.op[1].tl,15))&15)|(chan[i].state.opllPreset<<4));
+
+      if (i>=6 && properDrums) {
+        drumVol[i-6]=15-chan[i].outVol;
+        rWrite(0x36,drumVol[0]);
+        rWrite(0x37,drumVol[1]|(drumVol[4]<<4));
+        rWrite(0x38,drumVol[3]|(drumVol[2]<<4));
+      } else if (i<6 || !drums) {
+        if (i<9) {
+          rWrite(0x30+i,((15-VOL_SCALE_LOG_BROKEN(chan[i].outVol,15-chan[i].state.op[1].tl,15))&15)|(chan[i].state.opllPreset<<4));
+        }
       }
     }
 
@@ -408,10 +416,6 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
                 break;
               case 8: case 9:
                 chan[c.chan].fixedFreq=(chan[c.chan].state.tomTopFreq&511)<<(chan[c.chan].state.tomTopFreq>>9);
-                break;
-              default:
-                chan[c.chan].fixedFreq=0;
-                chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
                 break;
             }
           } else {

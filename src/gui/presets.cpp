@@ -822,8 +822,13 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "ZX Spectrum (48K)", {
+    "ZX Spectrum (48K, SFX-like engine)", {
       CH(DIV_SYSTEM_SFX_BEEPER, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "ZX Spectrum (48K, QuadTone engine)", {
+      CH(DIV_SYSTEM_SFX_BEEPER_QUADTONE, 1.0f, 0, "")
     }
   );
   ENTRY(
@@ -1255,6 +1260,42 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""), // 3.58MHz
       CH(DIV_SYSTEM_K007232, 1.0f, 0, ""), // ""
       CH(DIV_SYSTEM_K007232, 1.0f, 0, "")  // ""
+    }
+  );
+  ENTRY(
+    "Konami Rollergames", {
+      CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""),  // ""
+    }
+  );
+  ENTRY(
+    "Konami Rollergames (drums mode)", {
+      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
+    }
+  );
+  ENTRY(
+    "Konami Golfing Greats", {
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // 3.58MHz
+    }
+  );
+  ENTRY(
+    "Konami Lightning Fighters", {
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
+    }
+  );
+  ENTRY(
+    "Konami Over Drive", {
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
+    }
+  );
+  ENTRY(
+    "Konami Asterix", {
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, "clockSel=1"), // ""
     }
   );
   ENTRY(
@@ -2477,6 +2518,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_ES5506, 1.0f, 0, "channels=31")
     }
   );
+  ENTRY(
+    "Konami K053260", {
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, "")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Wavetable","chips which use user-specified waveforms to generate sound.");
@@ -2610,8 +2656,13 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "ZX Spectrum (beeper only)", {
+    "ZX Spectrum (beeper only, SFX-like engine)", {
       CH(DIV_SYSTEM_SFX_BEEPER, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "ZX Spectrum (beeper only, QuadTone engine)", {
+      CH(DIV_SYSTEM_SFX_BEEPER_QUADTONE, 1.0f, 0, "")
     }
   );
   ENTRY(

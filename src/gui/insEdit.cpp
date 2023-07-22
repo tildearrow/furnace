@@ -59,79 +59,79 @@ const char* opllVariants[4]={
 const char* opllInsNames[4][17]={
   /* YM2413 */ {
     "User",
-    "Violin",
-    "Guitar",
-    "Piano",
-    "Flute",
-    "Clarinet",
-    "Oboe",
-    "Trumpet",
-    "Organ",
-    "Horn",
-    "Synth",
-    "Harpsichord",
-    "Vibraphone",
-    "Synth Bass",
-    "Acoustic Bass",
-    "Electric Guitar",
+    "1. Violin",
+    "2. Guitar",
+    "3. Piano",
+    "4. Flute",
+    "5. Clarinet",
+    "6. Oboe",
+    "7. Trumpet",
+    "8. Organ",
+    "9. Horn",
+    "10. Synth",
+    "11. Harpsichord",
+    "12. Vibraphone",
+    "13. Synth Bass",
+    "14. Acoustic Bass",
+    "15. Electric Guitar",
     "Drums"
   },
   /* YMF281 */ {
     "User",
-    "Electric String",
-    "Bow wow",
-    "Electric Guitar",
-    "Organ",
-    "Clarinet",
-    "Saxophone",
-    "Trumpet",
-    "Street Organ",
-    "Synth Brass",
-    "Electric Piano",
-    "Bass",
-    "Vibraphone",
-    "Chime",
-    "Tom Tom II",
-    "Noise",
+    "1. Electric String",
+    "2. Bow wow",
+    "3. Electric Guitar",
+    "4. Organ",
+    "5. Clarinet",
+    "6. Saxophone",
+    "7. Trumpet",
+    "8. Street Organ",
+    "9. Synth Brass",
+    "10. Electric Piano",
+    "11. Bass",
+    "12. Vibraphone",
+    "13. Chime",
+    "14. Tom Tom II",
+    "15. Noise",
     "Drums"
   },
   /* YM2423 */ {
     "User",
-    "Strings",
-    "Guitar",
-    "Electric Guitar",
-    "Electric Piano",
-    "Flute",
-    "Marimba",
-    "Trumpet",
-    "Harmonica",
-    "Tuba",
-    "Synth Brass",
-    "Short Saw",
-    "Vibraphone",
-    "Electric Guitar 2",
-    "Synth Bass",
-    "Sitar",
+    "1. Strings",
+    "2. Guitar",
+    "3. Electric Guitar",
+    "4. Electric Piano",
+    "5. Flute",
+    "6. Marimba",
+    "7. Trumpet",
+    "8. Harmonica",
+    "9. Tuba",
+    "10. Synth Brass",
+    "11. Short Saw",
+    "12. Vibraphone",
+    "13. Electric Guitar 2",
+    "14. Synth Bass",
+    "15. Sitar",
     "Drums"
   },
   // stolen from FamiTracker
   /* VRC7 */ {
     "User",
-    "Bell",
-    "Guitar",
-    "Piano",
-    "Flute",
-    "Clarinet",
-    "Rattling Bell",
-    "Trumpet",
-    "Reed Organ",
-    "Soft Bell",
-    "Xylophone",
-    "Vibraphone",
-    "Brass",
-    "Bass Guitar",
-    "Synth",
-    "Chorus",
+    "1. Bell",
+    "2. Guitar",
+    "3. Piano",
+    "4. Flute",
+    "5. Clarinet",
+    "6. Rattling Bell",
+    "7. Trumpet",
+    "8. Reed Organ",
+    "9. Soft Bell",
+    "10. Xylophone",
+    "11. Vibraphone",
+    "12. Brass",
+    "13. Bass Guitar",
+    "14. Synth",
+    "15. Chorus",
     "Drums"
   }
 };
@@ -2262,9 +2262,11 @@ void FurnaceGUI::drawInsEdit() {
 
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        ImGui::PushID(2+curIns);
         if (ImGui::InputText("##Name",&ins->name)) {
           MARK_MODIFIED;
         }
+        ImGui::PopID();
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
@@ -2303,7 +2305,7 @@ void FurnaceGUI::drawInsEdit() {
           ins->type=(DivInstrumentType)insType;
         }
         */
-        if (ImGui::BeginCombo("##Type",insType==DIV_INS_N163?settings.c163Name.c_str():insTypes[insType])) {
+        if (ImGui::BeginCombo("##Type",insTypes[insType])) {
           std::vector<DivInstrumentType> insTypeList;
           if (settings.displayAllInsTypes) {
             for (int i=0; insTypes[i]; i++) {
@@ -2313,7 +2315,7 @@ void FurnaceGUI::drawInsEdit() {
             insTypeList=e->getPossibleInsTypes();
           }
           for (DivInstrumentType i: insTypeList) {
-            if (ImGui::Selectable(i==DIV_INS_N163?settings.c163Name.c_str():insTypes[i],insType==i)) {
+            if (ImGui::Selectable(insTypes[i],insType==i)) {
               ins->type=i;
 
               // reset macro zoom
@@ -2376,10 +2378,37 @@ void FurnaceGUI::drawInsEdit() {
           bool opsAreMutable=(ins->type==DIV_INS_FM || ins->type==DIV_INS_OPM);
 
           if (ImGui::BeginTabItem("FM")) {
+            DivInstrumentFM& fmOrigin=(ins->type==DIV_INS_OPLL && ins->fm.opllPreset>0 && ins->fm.opllPreset<16)?opllPreview:ins->fm;
+
+            bool isPresent[4];
+            int isPresentCount=0;
+            memset(isPresent,0,4*sizeof(bool));
+            for (int i=0; i<e->song.systemLen; i++) {
+              if (e->song.system[i]==DIV_SYSTEM_VRC7) {
+                isPresent[3]=true;
+              } else if (e->song.system[i]==DIV_SYSTEM_OPLL || e->song.system[i]==DIV_SYSTEM_OPLL_DRUMS) {
+                isPresent[(e->song.systemFlags[i].getInt("patchSet",0))&3]=true;
+              }
+            }
+            if (!isPresent[0] && !isPresent[1] && !isPresent[2] && !isPresent[3]) {
+              isPresent[0]=true;
+            }
+            for (int i=0; i<4; i++) {
+              if (isPresent[i]) isPresentCount++;
+            }
+            int presentWhich=0;
+            for (int i=0; i<4; i++) {
+              if (isPresent[i]) {
+                presentWhich=i;
+                break;
+              }
+            }
+
             if (ImGui::BeginTable("fmDetails",3,ImGuiTableFlags_SizingStretchSame)) {
               ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthStretch,0.0);
               ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.0);
               ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
+
               ImGui::TableNextRow();
               switch (ins->type) {
                 case DIV_INS_FM:
@@ -2451,14 +2480,14 @@ void FurnaceGUI::drawInsEdit() {
                   break;
                 }
                 case DIV_INS_OPLL: {
-                  bool dc=ins->fm.fms;
-                  bool dm=ins->fm.ams;
+                  bool dc=fmOrigin.fms;
+                  bool dm=fmOrigin.ams;
                   bool sus=ins->fm.alg;
                   ImGui::TableNextColumn();
                   ImGui::BeginDisabled(ins->fm.opllPreset!=0);
-                  P(CWSliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&ins->fm.fb,&_ZERO,&_SEVEN)); rightClickable
+                  P(CWSliderScalar(FM_NAME(FM_FB),ImGuiDataType_U8,&fmOrigin.fb,&_ZERO,&_SEVEN)); rightClickable
                   if (ImGui::Checkbox(FM_NAME(FM_DC),&dc)) { PARAMETER
-                    ins->fm.fms=dc;
+                    fmOrigin.fms=dc;
                   }
                   ImGui::EndDisabled();
                   ImGui::TableNextColumn();
@@ -2467,37 +2496,13 @@ void FurnaceGUI::drawInsEdit() {
                   }
                   ImGui::BeginDisabled(ins->fm.opllPreset!=0);
                   if (ImGui::Checkbox(FM_NAME(FM_DM),&dm)) { PARAMETER
-                    ins->fm.ams=dm;
+                    fmOrigin.ams=dm;
                   }
                   ImGui::EndDisabled();
                   ImGui::TableNextColumn();
                   drawAlgorithm(0,FM_ALGS_2OP_OPL,ImVec2(ImGui::GetContentRegionAvail().x,24.0*dpiScale));
 
                   ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-
-                  bool isPresent[4];
-                  int isPresentCount=0;
-                  memset(isPresent,0,4*sizeof(bool));
-                  for (int i=0; i<e->song.systemLen; i++) {
-                    if (e->song.system[i]==DIV_SYSTEM_VRC7) {
-                      isPresent[3]=true;
-                    } else if (e->song.system[i]==DIV_SYSTEM_OPLL || e->song.system[i]==DIV_SYSTEM_OPLL_DRUMS) {
-                      isPresent[(e->song.systemFlags[i].getInt("patchSet",0))&3]=true;
-                    }
-                  }
-                  if (!isPresent[0] && !isPresent[1] && !isPresent[2] && !isPresent[3]) {
-                    isPresent[0]=true;
-                  }
-                  for (int i=0; i<4; i++) {
-                    if (isPresent[i]) isPresentCount++;
-                  }
-                  int presentWhich=0;
-                  for (int i=0; i<4; i++) {
-                    if (isPresent[i]) {
-                      presentWhich=i;
-                      break;
-                    }
-                  }
 
                   if (ImGui::BeginCombo("##LLPreset",opllInsNames[presentWhich][ins->fm.opllPreset])) {
                     if (isPresentCount>1) {
@@ -2576,11 +2581,26 @@ void FurnaceGUI::drawInsEdit() {
 
               // update OPLL preset preview
               if (ins->fm.opllPreset>0 && ins->fm.opllPreset<16) {
-                const opll_patch_t* patchROM=OPLL_GetPatchROM(opll_type_ym2413);
+                const opll_patch_t* patchROM=NULL;
+
+                switch (presentWhich) {
+                  case 1:
+                    patchROM=OPLL_GetPatchROM(opll_type_ymf281);
+                    break;
+                  case 2:
+                    patchROM=OPLL_GetPatchROM(opll_type_ym2423);
+                    break;
+                  case 3:
+                    patchROM=OPLL_GetPatchROM(opll_type_ds1001);
+                    break;
+                  default:
+                    patchROM=OPLL_GetPatchROM(opll_type_ym2413);
+                    break;
+                }
 
                 const opll_patch_t* patch=&patchROM[ins->fm.opllPreset-1];
 
-                opllPreview.alg=0;
+                opllPreview.alg=ins->fm.alg;
                 opllPreview.fb=patch->fb;
                 opllPreview.fms=patch->dm;
                 opllPreview.ams=patch->dc;
@@ -2601,8 +2621,6 @@ void FurnaceGUI::drawInsEdit() {
                 }
               }
             }
-
-            DivInstrumentFM& fmOrigin=(ins->type==DIV_INS_OPLL && ins->fm.opllPreset>0 && ins->fm.opllPreset<16)?opllPreview:ins->fm;
 
             ImGui::BeginDisabled(!willDisplayOps);
             if (settings.fmLayout==0) {
@@ -4391,7 +4409,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_SNES ||
             ins->type==DIV_INS_ES5506 ||
             ins->type==DIV_INS_K007232 ||
-            ins->type==DIV_INS_GA20) {
+            ins->type==DIV_INS_GA20 ||
+            ins->type==DIV_INS_K053260) {
           if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
             String sName;
             bool wannaOpenSMPopup=false;
@@ -4646,30 +4665,79 @@ void FurnaceGUI::drawInsEdit() {
             sampleMapFocused=false;
           }
         }
-        if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem(settings.c163Name.c_str())) {
-          if (ImGui::InputInt("Waveform##WAVE",&ins->n163.wave,1,10)) { PARAMETER
-            if (ins->n163.wave<0) ins->n163.wave=0;
-            if (ins->n163.wave>=e->song.waveLen) ins->n163.wave=e->song.waveLen-1;
-          }
-          if (ImGui::InputInt("Offset##WAVEPOS",&ins->n163.wavePos,1,16)) { PARAMETER
-            if (ins->n163.wavePos<0) ins->n163.wavePos=0;
-            if (ins->n163.wavePos>255) ins->n163.wavePos=255;
-          }
-          if (ImGui::InputInt("Length##WAVELEN",&ins->n163.waveLen,4,16)) { PARAMETER
-            if (ins->n163.waveLen<0) ins->n163.waveLen=0;
-            if (ins->n163.waveLen>252) ins->n163.waveLen=252;
-            ins->n163.waveLen&=0xfc;
-          }
-
+        if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("Namco 163")) {
           bool preLoad=ins->n163.waveMode&0x1;
-          if (ImGui::Checkbox("Load waveform before playback",&preLoad)) { PARAMETER
+          if (ImGui::Checkbox("Load waveform",&preLoad)) { PARAMETER
             ins->n163.waveMode=(ins->n163.waveMode&~0x1)|(preLoad?0x1:0);
           }
-          bool waveMode=ins->n163.waveMode&0x2;
-          if (ImGui::Checkbox("Update waveforms into RAM when every waveform changes",&waveMode)) { PARAMETER
-            ins->n163.waveMode=(ins->n163.waveMode&~0x2)|(waveMode?0x2:0);
+
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("when enabled, a waveform will be loaded into RAM.\nwhen disabled, only the offset and length change.");
           }
 
+          if (preLoad) {
+            if (ImGui::InputInt("Waveform##WAVE",&ins->n163.wave,1,10)) { PARAMETER
+              if (ins->n163.wave<0) ins->n163.wave=0;
+              if (ins->n163.wave>=e->song.waveLen) ins->n163.wave=e->song.waveLen-1;
+            }
+          }
+
+          ImGui::Separator();
+
+          P(ImGui::Checkbox("Per-channel wave offset/length",&ins->n163.perChanPos));
+
+          if (ins->n163.perChanPos) {
+            if (ImGui::BeginTable("N1PerChPos",3)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.5f);
+              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5f);
+
+              ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+              ImGui::TableNextColumn();
+              ImGui::Text("Ch");
+              ImGui::TableNextColumn();
+              ImGui::Text("Offset");
+              ImGui::TableNextColumn();
+              ImGui::Text("Length");
+
+              for (int i=0; i<8; i++) {
+                ImGui::PushID(64+i);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Dummy(ImVec2(dpiScale,ImGui::GetFrameHeightWithSpacing()));
+                ImGui::SameLine();
+                ImGui::Text("%d",i+1);
+
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##pcOff",&ins->n163.wavePosCh[i],1,16)) { PARAMETER
+                  if (ins->n163.wavePosCh[i]<0) ins->n163.wavePosCh[i]=0;
+                  if (ins->n163.wavePosCh[i]>255) ins->n163.wavePosCh[i]=255;
+                }
+
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##pcLen",&ins->n163.waveLenCh[i],4,16)) { PARAMETER
+                  if (ins->n163.waveLenCh[i]<0) ins->n163.waveLenCh[i]=0;
+                  if (ins->n163.waveLenCh[i]>252) ins->n163.waveLenCh[i]=252;
+                  ins->n163.waveLenCh[i]&=0xfc;
+                }
+                ImGui::PopID();
+              }
+
+              ImGui::EndTable();
+            }
+          } else {
+            if (ImGui::InputInt("Offset##WAVEPOS",&ins->n163.wavePos,1,16)) { PARAMETER
+              if (ins->n163.wavePos<0) ins->n163.wavePos=0;
+              if (ins->n163.wavePos>255) ins->n163.wavePos=255;
+            }
+            if (ImGui::InputInt("Length##WAVELEN",&ins->n163.waveLen,4,16)) { PARAMETER
+              if (ins->n163.waveLen<0) ins->n163.waveLen=0;
+              if (ins->n163.waveLen>252) ins->n163.waveLen=252;
+              ins->n163.waveLen&=0xfc;
+            }
+          }
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_FDS) if (ImGui::BeginTabItem("FDS")) {
@@ -5298,7 +5366,8 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_SEGAPCM || ins->type==DIV_INS_MIKEY ||
               ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_SU || ins->type==DIV_INS_OPZ ||
-              ins->type==DIV_INS_OPM || ins->type==DIV_INS_SNES || ins->type==DIV_INS_MSM5232) {
+              ins->type==DIV_INS_OPM || ins->type==DIV_INS_SNES || ins->type==DIV_INS_MSM5232 ||
+              ins->type==DIV_INS_K053260) {
             volMax=127;
           }
           if (ins->type==DIV_INS_GB) {
@@ -5387,7 +5456,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC ||
               ins->type==DIV_INS_PET || ins->type==DIV_INS_SEGAPCM ||
               ins->type==DIV_INS_FM || ins->type==DIV_INS_K007232 || ins->type==DIV_INS_GA20 ||
-              ins->type==DIV_INS_SM8521 || ins->type==DIV_INS_PV1000) {
+              ins->type==DIV_INS_SM8521 || ins->type==DIV_INS_PV1000 || ins->type==DIV_INS_K053260) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VBOY) {
@@ -5422,10 +5491,10 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Duty";
             dutyMax=63;
           }
-          /*if (ins->type==DIV_INS_N163) {
-            dutyLabel="Waveform pos.";
+          if (ins->type==DIV_INS_N163) {
+            dutyLabel="Wave Pos";
             dutyMax=255;
-          }*/
+          }
           if (ins->type==DIV_INS_VRC6) {
             dutyLabel="Duty";
             dutyMax=ins->amiga.useSample?0:7;
@@ -5487,6 +5556,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_SEGAPCM) waveMax=0;
           if (ins->type==DIV_INS_K007232) waveMax=0;
           if (ins->type==DIV_INS_GA20) waveMax=0;
+          if (ins->type==DIV_INS_K053260) waveMax=0;
           if (ins->type==DIV_INS_POKEMINI) waveMax=0;
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
           if (ins->type==DIV_INS_PET) {
@@ -5526,7 +5596,6 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_N163) {
             ex1Max=252;
-            ex2Max=2;
           }
           if (ins->type==DIV_INS_FDS) {
             ex1Max=63;
@@ -5603,6 +5672,11 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_YMZ280B) {
             panMin=-7;
             panMax=7;
+            panSingleNoBit=true;
+          }
+          if (ins->type==DIV_INS_K053260) {
+            panMin=-3;
+            panMax=3;
             panSingleNoBit=true;
           }
           if (ins->type==DIV_INS_SU) {
@@ -5695,7 +5769,8 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_VBOY ||
               (ins->type==DIV_INS_X1_010 && ins->amiga.useSample) ||
               ins->type==DIV_INS_K007232 ||
-              ins->type==DIV_INS_GA20) {
+              ins->type==DIV_INS_GA20 ||
+              ins->type==DIV_INS_K053260) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {
@@ -5705,8 +5780,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,saaEnvBits));
             } else if (ins->type==DIV_INS_X1_010 && !ins->amiga.useSample) {
               macroList.push_back(FurnaceGUIMacroDesc("Envelope Mode",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,x1_010EnvBits));
-            /*} else if (ins->type==DIV_INS_N163) {
-              macroList.push_back(FurnaceGUIMacroDesc("Wave Length",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));*/
+            } else if (ins->type==DIV_INS_N163) {
+              macroList.push_back(FurnaceGUIMacroDesc("Wave Length",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_FDS) {
               macroList.push_back(FurnaceGUIMacroDesc("Mod Depth",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_SU) {
@@ -5728,8 +5803,6 @@ void FurnaceGUI::drawInsEdit() {
           if (ex2Max>0) {
             if (ins->type==DIV_INS_C64) {
               macroList.push_back(FurnaceGUIMacroDesc("Resonance",&ins->std.ex2Macro,0,ex2Max,64,uiColors[GUI_COLOR_MACRO_OTHER]));
-            /*} else if (ins->type==DIV_INS_N163) {
-              macroList.push_back(FurnaceGUIMacroDesc("Wave Update",&ins->std.ex2Macro,0,ex2Max,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,n163UpdateBits));*/
             } else if (ins->type==DIV_INS_FDS) {
               macroList.push_back(FurnaceGUIMacroDesc("Mod Speed",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_SU) {
@@ -5758,12 +5831,6 @@ void FurnaceGUI::drawInsEdit() {
             // oh my i am running out of macros
             macroList.push_back(FurnaceGUIMacroDesc("Noise AND Mask",&ins->std.fbMacro,0,8,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
             macroList.push_back(FurnaceGUIMacroDesc("Noise OR Mask",&ins->std.fmsMacro,0,8,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-          }
-          if (ins->type==DIV_INS_N163) {
-            /*macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Wave",&ins->std.ex3Macro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Pos",&ins->std.algMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Len",&ins->std.fbMacro,0,252,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Trigger",&ins->std.fmsMacro,0,2,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,n163UpdateBits));*/
           }
           if (ins->type==DIV_INS_FDS) {
             macroList.push_back(FurnaceGUIMacroDesc("Mod Position",&ins->std.ex3Macro,0,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));

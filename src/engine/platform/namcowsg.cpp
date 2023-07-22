@@ -22,7 +22,7 @@
 #include <math.h>
 
 //#define rWrite(a,v) pendingWrites[a]=v;
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_FREQBASE 4194304
 
@@ -177,7 +177,7 @@ void DivPlatformNamcoWSG::acquire(short** buf, size_t len) {
     };
     namco->sound_stream_update(bufC,1);
     for (int i=0; i<chans; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=namco->m_channel_list[i].last_out*chans;
+      oscBuf[i]->data[oscBuf[i]->needle++]=(namco->m_channel_list[i].last_out*chans)>>1;
     }
   }
 }

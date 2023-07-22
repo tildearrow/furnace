@@ -22,7 +22,7 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) {if(!skipRegisterWrites) {writes.emplace(a,v); if(dumpWrites) addWrite(a,v);}}
+#define rWrite(a,v) {if(!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if(dumpWrites) addWrite(a,v);}}
 
 #define CHIP_DIVIDER 64
 
@@ -68,14 +68,19 @@ void DivPlatformGA20::acquire(short** buf, size_t len) {
         ga20.write(w.addr,w.val);
         regPool[w.addr]=w.val;
         writes.pop();
-        delay=w.delay;
+        delay=1;
       }
     }
-    short *buffer[4] = {&ga20Buf[0][h],&ga20Buf[1][h],&ga20Buf[2][h],&ga20Buf[3][h]};
-    ga20.sound_stream_update(buffer, 1);
+    short *buffer[4]={
+      &ga20Buf[0][h],
+      &ga20Buf[1][h],
+      &ga20Buf[2][h],
+      &ga20Buf[3][h]
+    };
+    ga20.sound_stream_update(buffer,1);
     buf[0][h]=(signed int)(ga20Buf[0][h]+ga20Buf[1][h]+ga20Buf[2][h]+ga20Buf[3][h])>>2;
     for (int i=0; i<4; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=ga20Buf[i][h];
+      oscBuf[i]->data[oscBuf[i]->needle++]=ga20Buf[i][h]>>1;
     }
   }
 }
@@ -356,9 +361,7 @@ DivDispatchOscBuffer* DivPlatformGA20::getOscBuffer(int ch) {
 }
 
 void DivPlatformGA20::reset() {
-  while (!writes.empty()) {
-    writes.pop();
-  }
+  writes.clear();
   memset(regPool,0,32);
   ga20.device_reset();
   delay=0;

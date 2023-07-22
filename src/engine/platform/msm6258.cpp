@@ -24,7 +24,7 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 const char** DivPlatformMSM6258::getRegisterSheet() {
   return NULL;
@@ -84,7 +84,7 @@ void DivPlatformMSM6258::acquire(short** buf, size_t len) {
     } else {
       buf[0][h]=(msmPan&2)?msmOut:0;
       buf[1][h]=(msmPan&1)?msmOut:0;
-      oscBuf[0]->data[oscBuf[0]->needle++]=msmPan?msmOut:0;
+      oscBuf[0]->data[oscBuf[0]->needle++]=msmPan?(msmOut>>1):0;
     }
   }
 }

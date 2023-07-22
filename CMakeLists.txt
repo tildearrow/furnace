@@ -54,12 +54,34 @@ else()
   set(WITH_JACK_DEFAULT OFF)
 endif()
 
+set(WITH_RENDER_SDL_DEFAULT ON)
+if (APPLE)
+  set(WITH_RENDER_OPENGL_DEFAULT OFF)
+else()
+  set(WITH_RENDER_OPENGL_DEFAULT ON)
+endif()
+if (WIN32)
+  set(WITH_RENDER_DX11_DEFAULT ON)
+else()
+  set(WITH_RENDER_DX11_DEFAULT OFF)
+endif()
+
+if (ANDROID)
+  set(USE_GLES_DEFAULT ON)
+else()
+  set(USE_GLES_DEFAULT OFF)
+endif()
+
 option(BUILD_GUI "Build the tracker (disable to build only a headless player)" ${BUILD_GUI_DEFAULT})
 option(USE_RTMIDI "Build with MIDI support using RtMidi." ${USE_RTMIDI_DEFAULT})
 option(USE_SDL2 "Build with SDL2. Required to build with GUI." ${USE_SDL2_DEFAULT})
 option(USE_SNDFILE "Build with libsndfile. Required in order to work with audio files." ${USE_SNDFILE_DEFAULT})
 option(USE_BACKWARD "Use backward-cpp to print a backtrace on crash/abort." ${USE_BACKWARD_DEFAULT})
 option(WITH_JACK "Whether to build with JACK support. Auto-detects if JACK is available" ${WITH_JACK_DEFAULT})
+option(WITH_RENDER_SDL "Whether to build with the SDL_Renderer render backend." ${WITH_RENDER_SDL_DEFAULT})
+option(WITH_RENDER_OPENGL "Whether to build with the OpenGL render backend." ${WITH_RENDER_OPENGL_DEFAULT})
+option(WITH_RENDER_DX11 "Whether to build with the DirectX 11 render backend." ${WITH_RENDER_DX11_DEFAULT})
+option(USE_GLES "Use OpenGL ES for the OpenGL render backend." ${USE_GLES_DEFAULT})
 option(SYSTEM_FFTW "Use a system-installed version of FFTW instead of the vendored one" OFF)
 option(SYSTEM_FMT "Use a system-installed version of fmt instead of the vendored one" OFF)
 option(SYSTEM_LIBSNDFILE "Use a system-installed version of libsndfile instead of the vendored one" OFF)
@@ -92,10 +114,17 @@ set(DEPENDENCIES_LIBRARY_DIRS "")
 set(DEPENDENCIES_LINK_OPTIONS "")
 set(DEPENDENCIES_LEGACY_LDFLAGS "")
 
-if (BUILD_GUI)
+if (BUILD_GUI AND WITH_RENDER_SDL)
   set(SYSTEM_SDL_MIN_VER 2.0.18)
 else()
   set(SYSTEM_SDL_MIN_VER 2.0.0)
+endif()
+
+if (WIN32)
+  # support Windows XP
+  if (SUPPORT_XP)
+    add_compile_definitions("_WIN32_WINNT=0x0501")
+  endif()
 endif()
 
 list(APPEND DEPENDENCIES_INCLUDE_DIRS "extern/SAASound/include")
@@ -278,6 +307,12 @@ else()
   endif()
 endif()
 
+if (BUILD_GUI)
+  if (NOT WITH_RENDER_SDL AND NOT WITH_RENDER_OPENGL AND NOT WITH_RENDER_DX11)
+    message(FATAL_ERROR "No render backends selected!")
+  endif()
+endif()
+
 set(AUDIO_SOURCES
 src/audio/abstract.cpp
 src/audio/midi.cpp
@@ -420,6 +455,8 @@ src/engine/platform/sound/c64_fp/WaveformCalculator.cpp
 src/engine/platform/sound/c64_fp/WaveformGenerator.cpp
 src/engine/platform/sound/c64_fp/resample/SincResampler.cpp
 
+src/engine/platform/sound/c64_d/dsid.c
+
 src/engine/platform/sound/tia/AudioChannel.cpp
 src/engine/platform/sound/tia/Audio.cpp
 
@@ -551,11 +588,15 @@ src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
 src/engine/platform/sm8521.cpp
 src/engine/platform/pv1000.cpp
+src/engine/platform/k053260.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
 src/engine/export/abstract.cpp
 src/engine/export/amigaValidation.cpp
+
+src/engine/effect/abstract.cpp
+src/engine/effect/dummy.cpp
 )
 
 if (USE_SNDFILE)
@@ -577,12 +618,14 @@ extern/imgui_patched/imgui.cpp
 extern/imgui_patched/imgui_draw.cpp
 extern/imgui_patched/imgui_tables.cpp
 extern/imgui_patched/imgui_widgets.cpp
-extern/imgui_patched/backends/imgui_impl_sdlrenderer.cpp
-extern/imgui_patched/backends/imgui_impl_sdl.cpp
+extern/imgui_patched/backends/imgui_impl_sdl2.cpp
 extern/imgui_patched/misc/cpp/imgui_stdlib.cpp
 extern/igfd/ImGuiFileDialog.cpp
 
 src/gui/plot_nolerp.cpp
+
+src/gui/render.cpp
+src/gui/render/abstract.cpp
 
 src/gui/font_exo.cpp
 src/gui/font_liberationSans.cpp
@@ -653,6 +696,7 @@ src/gui/subSongs.cpp
 src/gui/sysConf.cpp
 src/gui/sysEx.cpp
 src/gui/sysManager.cpp
+src/gui/sysPartNumber.cpp
 src/gui/sysPicker.cpp
 src/gui/tutorial.cpp
 src/gui/util.cpp
@@ -670,6 +714,47 @@ if (APPLE)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_common.cpp)
   list(APPEND GUI_SOURCES src/gui/macstuff.m)
   list(APPEND GUI_SOURCES extern/nfd-modified/src/nfd_cocoa.mm)
+endif()
+
+if (WITH_RENDER_SDL)
+  list(APPEND GUI_SOURCES src/gui/render/renderSDL.cpp)
+  list(APPEND GUI_SOURCES extern/imgui_patched/backends/imgui_impl_sdlrenderer2.cpp)
+  list(APPEND DEPENDENCIES_DEFINES HAVE_RENDER_SDL)
+  message(STATUS "UI render backend: SDL_Renderer")
+endif()
+
+if (WITH_RENDER_OPENGL)
+  list(APPEND GUI_SOURCES src/gui/render/renderGL.cpp)
+  list(APPEND GUI_SOURCES extern/imgui_patched/backends/imgui_impl_opengl3.cpp)
+  list(APPEND DEPENDENCIES_DEFINES HAVE_RENDER_GL)
+  if (USE_GLES)
+    list(APPEND DEPENDENCIES_DEFINES USE_GLES)
+    list(APPEND DEPENDENCIES_DEFINES IMGUI_IMPL_OPENGL_ES2)
+  endif()
+  if (WIN32)
+    list(APPEND DEPENDENCIES_LIBRARIES opengl32)
+  elseif(USE_GLES)
+    list(APPEND DEPENDENCIES_LIBRARIES GLESv2)
+  else()
+    list(APPEND DEPENDENCIES_LIBRARIES GL)
+  endif()
+  message(STATUS "UI render backend: OpenGL")
+endif()
+
+if (WITH_RENDER_DX11)
+  if (WIN32)
+    if (SUPPORT_XP)
+      message(FATAL_ERROR "SUPPORT_XP is on. cannot enable DirectX 11 backend.")
+    else()
+      list(APPEND GUI_SOURCES src/gui/render/renderDX11.cpp)
+      list(APPEND GUI_SOURCES extern/imgui_patched/backends/imgui_impl_dx11.cpp)
+      list(APPEND DEPENDENCIES_DEFINES HAVE_RENDER_DX11)
+      list(APPEND DEPENDENCIES_LIBRARIES d3d11)
+      message(STATUS "UI render backend: DirectX 11")
+    endif()
+  else()
+    message(FATAL_ERROR "DirectX 11 render backend only for Windows!")
+  endif()
 endif()
 
 if (NOT WIN32 AND NOT APPLE)
@@ -722,7 +807,6 @@ if (BUILD_GUI)
   list(APPEND USED_SOURCES ${GUI_SOURCES})
   list(APPEND DEPENDENCIES_INCLUDE_DIRS
     extern/imgui_patched
-    extern/imgui_conf
     extern/imgui_patched/backends
     extern/IconFontCppHeaders
     extern/igfd
@@ -742,10 +826,6 @@ if (WIN32)
   list(APPEND DEPENDENCIES_LIBRARIES shlwapi)
   if (NOT MSVC)
     list(APPEND DEPENDENCIES_LIBRARIES -static)
-  endif()
-  # support Windows XP
-  if (SUPPORT_XP)
-    list(APPEND DEPENDENCIES_DEFINES "_WIN32_WINNT=0x0501")
   endif()
 elseif (APPLE)
   find_library(COCOA Cocoa REQUIRED)
@@ -783,7 +863,7 @@ endif()
 string(REPLACE ";" " " WARNING_FLAGS_STRING "${WARNING_FLAGS}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${WARNING_FLAGS_STRING}")
 if (WARNINGS_ARE_ERRORS)
-  message(WARNING
+  message(STATUS
     "Treating all warnings in furnace's C++ code as errors! "
     "Please report any errors you encounter on the bug tracker."
   )
@@ -798,7 +878,7 @@ else()
 endif()
 
 target_include_directories(furnace SYSTEM PRIVATE ${DEPENDENCIES_INCLUDE_DIRS})
-target_compile_definitions(furnace PRIVATE ${DEPENDENCIES_DEFINES} IMGUI_USER_CONFIG="imconfig_fur.h")
+target_compile_definitions(furnace PRIVATE ${DEPENDENCIES_DEFINES})
 target_compile_options(furnace PRIVATE ${DEPENDENCIES_COMPILE_OPTIONS})
 target_link_libraries(furnace PRIVATE ${DEPENDENCIES_LIBRARIES})
 if (PKG_CONFIG_FOUND AND (SYSTEM_FMT OR SYSTEM_LIBSNDFILE OR SYSTEM_ZLIB OR SYSTEM_SDL2 OR SYSTEM_RTMIDI OR WITH_JACK))
@@ -820,7 +900,8 @@ if (NOT ANDROID OR TERMUX)
     install(TARGETS furnace RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR})
     install(FILES res/furnace.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
     install(FILES res/furnace.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/metainfo)
-    install(DIRECTORY papers DESTINATION ${CMAKE_INSTALL_DOCDIR})
+    install(DIRECTORY doc DESTINATION ${CMAKE_INSTALL_DOCDIR})
+    install(DIRECTORY papers DESTINATION ${CMAKE_INSTALL_DOCDIR}/other)
     install(FILES LICENSE DESTINATION ${CMAKE_INSTALL_DATADIR}/licenses/furnace)
     if (WITH_DEMOS)
       install(DIRECTORY demos DESTINATION ${CMAKE_INSTALL_DATADIR}/furnace)

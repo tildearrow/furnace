@@ -1,17 +1,19 @@
 # Furnace (chiptune tracker)
 
-![screenshot](papers/screenshot2.png)
+![screenshot](papers/screenshot3.png)
 
 the biggest multi-system chiptune tracker ever made!
 
-[downloads](#downloads) | [discussion/help](#quick-references) | [developer info](#developer-info) | [unofficial packages](#unofficial-packages) | [FAQ](#frequently-asked-questions)
+[downloads](#downloads) | [discussion/help](#quick-references) | [developer info](#developer-info) | [Unix/Linux packages](#packages) | [FAQ](#frequently-asked-questions)
 
 ---
 ## downloads
 
-check out the [Releases](https://github.com/tildearrow/furnace/releases) page. available for Windows, macOS and Linux (AppImage).
+check out the [Releases](https://github.com/tildearrow/furnace/releases) page. available for Windows, macOS and Linux.
 
-[see here](https://nightly.link/tildearrow/furnace/workflows/build/master) for unstable developer builds.
+for other operating systems, you may [build the source](#developer-info).
+
+[see here](https://nightly.link/tildearrow/furnace/workflows/build/master) for the latest unstable build.
 
 ## features
 
@@ -66,9 +68,12 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
     - Family Noraebang (OPLL)
   - SID (6581/8580) used in Commodore 64
   - Mikey used in Atari Lynx
-  - ZX Spectrum beeper (SFX-like engine)
+  - ZX Spectrum beeper
+    - SFX-like engine
+    - QuadTone engine
   - Pokémon Mini
   - Commodore PET
+  - Casio PV-1000
   - TIA used in Atari 2600
   - POKEY used in Atari 8-bit computers
   - Game Boy
@@ -76,17 +81,19 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
   - modern/fantasy:
     - Commander X16 VERA
     - tildearrow Sound Unit
+    - Generic PCM DAC
 - mix and match sound chips!
   - over 200 ready to use presets from computers, game consoles and arcade boards...
   - ...or create your own - up to 32 of them or a total of 128 channels!
 - DefleMask compatibility
-  - loads .dmf modules from all versions (beta 1 to 1.1.7)
+  - loads .dmf modules from all versions (beta 1 to 1.1.9)
   - saves .dmf modules - both modern and legacy
     - Furnace doubles as a module downgrader
   - loads/saves .dmp instruments and .dmw wavetables as well
   - clean-room design (guesswork and ABX tests only, no decompilation involved)
   - some bug/quirk implementation for increased playback accuracy through compatibility flags
 - VGM export
+- ZSM export for Commander X16
 - modular layout that you may adapt to your needs
 - audio file export - entire song, per chip or per channel
 - quality emulation cores (Nuked, MAME, SameBoy, Mednafen PCE, NSFplay, puNES, reSID, Stella, SAASound, vgsound_emu and ymfm)
@@ -116,18 +123,19 @@ check out the [Releases](https://github.com/tildearrow/furnace/releases) page. a
 ---
 # quick references
 
- - **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, or (preferably) the [official Discord server](https://discord.gg/EfrwT2wq7z).
- - **help**: check out the [documentation](papers/doc/README.md). it's mostly incomplete, but has details on effects.
+- **discussion**: see the [Discussions](https://github.com/tildearrow/furnace/discussions) section, the [official Revolt](https://rvlt.gg/GRPS6tmc) or the [official Discord server](https://discord.gg/EfrwT2wq7z).
+- **help**: check out the [documentation](doc/README.md). it's about 80% complete.
 
-## unofficial packages
+## packages
 
-[![Packaging status](https://repology.org/badge/tiny-repos/furnace.svg)](https://repology.org/project/furnace/versions)
+[![Packaging status](https://repology.org/badge/vertical-allrepos/furnace.svg)](https://repology.org/project/furnace/versions)
 
 some people have provided packages for Unix/Unix-like distributions. here's a list.
- - **Arch Linux**: [furnace](https://archlinux.org/packages/community/x86_64/furnace/) is now in the community repo!
- - **FreeBSD**: [a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt.
- - **Nix**: [package](https://search.nixos.org/packages?channel=unstable&show=furnace&from=0&size=50&sort=relevance&type=packages&query=furnace) thanks to OPNA2608.
- - **openSUSE**: [a package](https://software.opensuse.org/package/furnace) is available, courtesy of fpesari.
+
+- **Arch Linux**: [furnace](https://archlinux.org/packages/extra/x86_64/furnace/) is in the official repositories.
+- **FreeBSD**: [a package in ports](https://www.freshports.org/audio/furnace/) is available courtesy of ehaupt (warning: 0.5.8!).
+- **Nix**: [package](https://search.nixos.org/packages?channel=unstable&show=furnace&from=0&size=50&sort=relevance&type=packages&query=furnace) thanks to OPNA2608.
+- **openSUSE**: [a package](https://software.opensuse.org/package/furnace) is available, courtesy of fpesari.
 
 ---
 # developer info
@@ -141,7 +149,9 @@ if you can't download these artifacts (because GitHub requires you to be logged 
 ## dependencies
 
 - CMake
+- Git (for cloning the repository)
 - JACK (optional, macOS/Linux only)
+- a C/C++ compiler (e.g. Visual Studio or MinGW on Windows, Xcode (the command-line tools are enough) on macOS or GCC on Linux)
 
 if building under Windows or macOS, no additional dependencies are required.
 otherwise, you may also need the following:
@@ -150,6 +160,7 @@ otherwise, you may also need the following:
 - libx11
 - libasound
 - libGL
+- any other libraries which may be used by SDL
 
 some Linux distributions (e.g. Ubuntu or openSUSE) will require you to install the `-dev` versions of these.
 
@@ -178,10 +189,32 @@ from the developer tools command prompt:
 mkdir build
 cd build
 cmake ..
+```
+
+then open the solution file in Visual Studio and build.
+
+alternatively, do:
+
+```
 msbuild ALL_BUILD.vcxproj
 ```
 
-### macOS and Linux
+### Windows using MinGW
+
+setting up MinGW is a bit more complicated. two benefits are a faster, hotter Furnace, and Windows XP support.
+
+however, one huge drawback is lack of backtrace support, so you'll have to use gdb when diagnosing a crash.
+
+```
+mkdir build
+cd build
+cmake -G "MinGW Makefiles" ..
+mingw32-make
+```
+
+you may use "MSYS Makefiles" instead, depending on how you installed MinGW.
+
+### macOS, Linux and other Unix/Unix-like
 
 ```
 mkdir build
@@ -189,7 +222,16 @@ cd build
 cmake ..
 make
 ```
-Alternatively, build scripts are provided in the `scripts/` folder in the root of the repository.
+
+on macOS you may do the following instead:
+
+```
+mkdir build
+cd build
+cmake -G Xcode ..
+```
+
+...and then load the project on Xcode or type `xcodebuild`.
 
 ### CMake options
 
@@ -218,7 +260,20 @@ Available options:
 | `WITH_INSTRUMENTS` | `ON` | Install demo instruments on `make install` |
 | `WITH_WAVETABLES` | `ON` | Install wavetables on `make install` |
 
+## CMake Error
+
+if it says something about a missing subdirectory in `extern`, then either:
+
+1. you didn't set up submodules, or
+2. you downloaded the source as a .zip or .tar.gz. don't do this.
+
+if 1, you may run `git submodule update --init --recursive`. this will initialize submodules.
+
+if 2, clone this repo.
+
 ## console usage
+
+(note: if on Windows, type `furnace.exe` instead, or `Debug\furnace.exe` on MSVC)
 
 ```
 ./furnace
@@ -238,25 +293,19 @@ this will play a compatible file.
 
 this will play a compatible file and enable the commands view.
 
-**note that these commands only actually work in Linux environments. on other command lines, such as Windows' Command Prompt, or MacOS Terminal, it may not work correctly.**
+**note that console mode may not work correctly on Windows. you may have to quit using the Task Manager.**
 
 ---
 # frequently asked questions
-
-> woah! 50 sound chips?! I can't believe it!
-
-yup, it's real.
-
-> where's the manual?
-
-see [papers/](papers/doc/README.md). it's kind of incomplete, but at least the sound chips section is there.
 
 > it doesn't open under macOS!
 
 this is due to Apple's application signing policy. a workaround is to right click on the Furnace app icon and select Open.
 
+> it says "Furnace" is damaged and can't be opened!
+
 **as of Monterey, this workaround no longer works (especially on ARM).** yeah, Apple has decided to be strict on the matter.
-if you happen to be on that version, use this workaround instead (on a Terminal):
+if you happen to be on that version (or later), use this workaround instead (on a Terminal):
 
 ```
 xattr -d com.apple.quarantine /path/to/Furnace.app
@@ -266,24 +315,25 @@ xattr -d com.apple.quarantine /path/to/Furnace.app
 
 you may need to log out and/or reboot after doing this.
 
+> where's the manual?
+
+it is in [doc/](doc/README.md).
+
+> is there a tutorial?
+
+sadly, the in-program tutorial isn't ready yet. however, [a video tutorial is available on YouTube](https://youtube.com/playlist?list=PLCELB6AsTZUnwv0PC5AAGHjvg47F44YQ1), made by Spinning Square Waves.
+
+> I've lost my song!
+
+Furnace keeps backups of the songs you've worked on before. go to **file > restore backup**.
+
 > .spc export?
 
 **not yet!** coming in 0.7 though, eventually...
 
-> how do I use C64 absolute filter/duty?
+> ROM export?
 
-on Instrument Editor in the C64 tab there are two options to toggle these.
-also provided are two effects:
-
-- `3xxx`: set fine duty.
-- `4xxx`: set fine cutoff. `xxx` range is 000-7ff.
-additionally, you can change the cutoff and/or duty as a macro inside an instrument by clicking the `absolute cutoff macro` and/or `absolute duty macro` checkbox at the bottom of the instrument. (for the filter, you also need to click the checkbox that says `volume macro is cutoff macro`.)
-
-> how do I use PCM on a PCM-capable chip?
-
-two possibilities:
-- the recommended way is by creating the "Sample" type instrument and assigning a sample to it.
-- otherwise you may employ the DefleMask-compatible method, using `17xx` effect.
+**not yet!** coming in 0.7 though, eventually...
 
 > my .dmf song sounds odd at a certain point
 
@@ -292,10 +342,6 @@ Furnace's .dmf compatibility isn't perfect and it's mostly because DefleMask doe
 > my song sounds terrible after saving as .dmf!
 
 you should only save as .dmf if you're really sure, because the DefleMask format has several limitations. save in Furnace song format instead (.fur).
-
-> how do I solo channels?
-
-right click on the channel name.
 
 ---
 # footnotes
@@ -309,4 +355,5 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-despite the fact this program works with the .dmf, .dmp and .dmw file formats (besides its native .fur format), it is NOT affiliated with Delek or DefleMask in any way, nor it is a replacement for the original program.
+Furnace is NOT affiliated with Delek or DefleMask in any form, regardless of its ability to load and save the .dmf, .dmp and .dmw file formats.
+additionally, Furnace does not intend to replace DefleMask, nor any other program.

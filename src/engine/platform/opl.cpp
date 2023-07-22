@@ -24,7 +24,7 @@
 #include <math.h>
 
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
-#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define immWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 #define KVSL(x,y) ((chan[x].state.op[orderedOpsL1[ops==4][y]].kvs==2 && isOutputL[ops==4][chan[x].state.alg][y]) || chan[x].state.op[orderedOpsL1[ops==4][y]].kvs==1)
 
@@ -211,7 +211,7 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
       if (!isMuted[adpcmChan]) {
         os[0]-=aOut.data[0]>>3;
         os[1]-=aOut.data[0]>>3;
-        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=aOut.data[0];
+        oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=aOut.data[0]>>1;
       } else {
         oscBuf[adpcmChan]->data[oscBuf[adpcmChan]->needle++]=0;
       }
@@ -220,47 +220,45 @@ void DivPlatformOPL::acquire_nuked(short** buf, size_t len) {
     if (fm.rhy&0x20) {
       for (int i=0; i<melodicChans+1; i++) {
         unsigned char ch=outChanMap[i];
+        int chOut=0;
         if (ch==255) continue;
-        oscBuf[i]->data[oscBuf[i]->needle]=0;
         if (fm.channel[i].out[0]!=NULL) {
-          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
+          chOut+=*fm.channel[ch].out[0];
         }
         if (fm.channel[i].out[1]!=NULL) {
-          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
+          chOut+=*fm.channel[ch].out[1];
         }
         if (fm.channel[i].out[2]!=NULL) {
-          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[2];
+          chOut+=*fm.channel[ch].out[2];
         }
         if (fm.channel[i].out[3]!=NULL) {
-          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[3];
+          chOut+=*fm.channel[ch].out[3];
         }
-        oscBuf[i]->data[oscBuf[i]->needle]<<=1;
-        oscBuf[i]->needle++;
+        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut<<(i==melodicChans?1:2),-32768,32767);
       }
       // special
-      oscBuf[melodicChans+1]->data[oscBuf[melodicChans+1]->needle++]=fm.slot[16].out*6;
-      oscBuf[melodicChans+2]->data[oscBuf[melodicChans+2]->needle++]=fm.slot[14].out*6;
-      oscBuf[melodicChans+3]->data[oscBuf[melodicChans+3]->needle++]=fm.slot[17].out*6;
-      oscBuf[melodicChans+4]->data[oscBuf[melodicChans+4]->needle++]=fm.slot[13].out*6;
+      oscBuf[melodicChans+1]->data[oscBuf[melodicChans+1]->needle++]=fm.slot[16].out*4;
+      oscBuf[melodicChans+2]->data[oscBuf[melodicChans+2]->needle++]=fm.slot[14].out*4;
+      oscBuf[melodicChans+3]->data[oscBuf[melodicChans+3]->needle++]=fm.slot[17].out*4;
+      oscBuf[melodicChans+4]->data[oscBuf[melodicChans+4]->needle++]=fm.slot[13].out*4;
     } else {
       for (int i=0; i<chans; i++) {
         unsigned char ch=outChanMap[i];
+        int chOut=0;
         if (ch==255) continue;
-        oscBuf[i]->data[oscBuf[i]->needle]=0;
         if (fm.channel[i].out[0]!=NULL) {
-          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[0];
+          chOut+=*fm.channel[ch].out[0];
         }
         if (fm.channel[i].out[1]!=NULL) {
-          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[1];
+          chOut+=*fm.channel[ch].out[1];
         }
         if (fm.channel[i].out[2]!=NULL) {
-          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[2];
+          chOut+=*fm.channel[ch].out[2];
         }
         if (fm.channel[i].out[3]!=NULL) {
-          oscBuf[i]->data[oscBuf[i]->needle]+=*fm.channel[ch].out[3];
+          chOut+=*fm.channel[ch].out[3];
         }
-        oscBuf[i]->data[oscBuf[i]->needle]<<=1;
-        oscBuf[i]->needle++;
+        oscBuf[i]->data[oscBuf[i]->needle++]=CLAMP(chOut<<2,-32768,32767);
       }
     }
     

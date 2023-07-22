@@ -271,9 +271,15 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
         if (cursor.y>=e->curSubSong->patLen) {
           if (settings.wrapVertical!=0 && !select) {
             cursor.y=0;
-            if (settings.wrapVertical==2) {
-              if ((!e->isPlaying() || !followPattern) && curOrder<(e->curSubSong->ordersLen-1)) {
-                setOrder(curOrder+1);
+            if (settings.wrapVertical>1) {
+              if (!e->isPlaying() || !followPattern) {
+                if (curOrder<(e->curSubSong->ordersLen-1)) {
+                  setOrder(curOrder+1);
+                } else if (settings.wrapVertical==3) {
+                  setOrder(0);
+                } else {
+                  cursor.y=e->curSubSong->patLen-1;
+                }
               } else {
                 cursor.y=e->curSubSong->patLen-1;
               }
@@ -289,9 +295,15 @@ void FurnaceGUI::moveCursor(int x, int y, bool select) {
         if (cursor.y<0) {
           if (settings.wrapVertical!=0 && !select) {
             cursor.y=e->curSubSong->patLen-1;
-            if (settings.wrapVertical==2) {
-              if ((!e->isPlaying() || !followPattern) && curOrder>0) {
-                setOrder(curOrder-1);
+            if (settings.wrapVertical>1) {
+              if (!e->isPlaying() || !followPattern) {
+                if (curOrder>0) {
+                  setOrder(curOrder-1);
+                } else if (settings.wrapVertical==3) {
+                  setOrder(e->curSubSong->ordersLen-1);
+                } else {
+                  cursor.y=0;
+                }
               } else {
                 cursor.y=0;
               }

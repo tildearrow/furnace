@@ -23,6 +23,7 @@
 #include "instrument.h"
 #include "song.h"
 #include "dispatch.h"
+#include "effect.h"
 #include "export.h"
 #include "dataErrors.h"
 #include "safeWriter.h"
@@ -53,16 +54,15 @@
 #define EXTERN_BUSY_BEGIN_SOFT e->softLocked=true; e->isBusy.lock();
 #define EXTERN_BUSY_END e->isBusy.unlock(); e->softLocked=false;
 
-#define DIV_VERSION "dev155"
-#define DIV_ENGINE_VERSION 155
+#define DIV_UNSTABLE
+
+#define DIV_VERSION "dev164"
+#define DIV_ENGINE_VERSION 164
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
 #define DIV_VERSION_S3M 0xff03
 #define DIV_VERSION_FTM 0xff04
-
-// "Namco C163"
-#define DIV_C163_DEFAULT_NAME "Namco 163"
 
 enum DivStatusView {
   DIV_STATUS_NOTHING=0,
@@ -219,6 +219,25 @@ struct DivDispatchContainer {
     memset(bbIn,0,DIV_MAX_OUTPUTS*sizeof(short*));
     memset(bbInMapped,0,DIV_MAX_OUTPUTS*sizeof(short*));
     memset(bbOut,0,DIV_MAX_OUTPUTS*sizeof(short*));
+  }
+};
+
+struct DivEffectContainer {
+  DivEffect* effect;
+  float* in[DIV_MAX_OUTPUTS];
+  float* out[DIV_MAX_OUTPUTS];
+  size_t inLen, outLen;
+
+  void preAcquire(size_t count);
+  void acquire(size_t count);
+  bool init(DivEffectType effectType, DivEngine* eng, double rate, unsigned short version, const unsigned char* data, size_t len);
+  void quit();
+  DivEffectContainer():
+    effect(NULL),
+    inLen(0),
+    outLen(0) {
+    memset(in,0,DIV_MAX_OUTPUTS*sizeof(float*));
+    memset(out,0,DIV_MAX_OUTPUTS*sizeof(float*));
   }
 };
 
@@ -411,6 +430,7 @@ class DivEngine {
   std::vector<String> midiOuts;
   std::vector<DivCommand> cmdStream;
   std::vector<DivInstrumentType> possibleInsTypes;
+  std::vector<DivEffectContainer> effectInst;
   static DivSysDef* sysDefs[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapFur[DIV_MAX_CHIP_DEFS];
   static DivSystem sysFileMapDMF[DIV_MAX_CHIP_DEFS];
@@ -441,7 +461,7 @@ class DivEngine {
   short tremTable[128];
   int reversePitchTable[4096];
   int pitchTable[4096];
-  char c163NameCS[1024];
+  short effectSlotMap[4096];
   int midiBaseChan;
   bool midiPoly;
   size_t midiAgeCounter;
@@ -467,7 +487,7 @@ class DivEngine {
   void processRow(int i, bool afterDelay);
   void nextOrder();
   void nextRow();
-  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, bool directStream);
+  void performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write, int streamOff, double* loopTimer, double* loopFreq, int* loopSample, bool* sampleDir, bool isSecond, int* pendingFreq, int* playingSample, int* setPos, unsigned int* sampleOff8, unsigned int* sampleLen8, size_t bankOffset, bool directStream);
   // returns true if end of song.
   bool nextTick(bool noAccum=false, bool inhibitLowLat=false);
   bool perSystemEffect(int ch, unsigned char effect, unsigned char effectVal);
@@ -514,11 +534,21 @@ class DivEngine {
   void swapChannels(int src, int dest);
   void stompChannel(int ch);
 
+  // recalculate patchbay (UNSAFE)
+  void recalcPatchbay();
+
   // change song (UNSAFE)
   void changeSong(size_t songIndex);
 
-  // check whether an asset directory is complete
-  void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries);
+  // move an asset
+  void moveAsset(std::vector<DivAssetDir>& dir, int before, int after);
+
+  // remove an asset
+  void removeAsset(std::vector<DivAssetDir>& dir, int entry);
+
+  // read/write asset dir
+  void putAssetDirData(SafeWriter* w, std::vector<DivAssetDir>& dir);
+  DivDataErrors readAssetDirData(SafeReader& reader, std::vector<DivAssetDir>& dir);
 
   // add every export method here
   friend class DivROMExport;
@@ -538,6 +568,7 @@ class DivEngine {
     float oscSize;
     int oscReadPos, oscWritePos;
     int tickMult;
+    int lastNBIns, lastNBOuts, lastNBSize;
     std::atomic<size_t> processTime;
 
     void runExportThread();
@@ -559,7 +590,7 @@ class DivEngine {
     SafeWriter* saveDMF(unsigned char version);
     // save as .fur.
     // if notPrimary is true then the song will not be altered
-    SafeWriter* saveFur(bool notPrimary=false);
+    SafeWriter* saveFur(bool notPrimary=false, bool newPatternFormat=true);
     // build a ROM file (TODO).
     // specify system to build ROM for.
     std::vector<DivROMExportOutput> buildROM(DivROMExportOptions sys);
@@ -597,6 +628,8 @@ class DivEngine {
     // convert old flags
     static void convertOldFlags(unsigned int oldFlags, DivConfig& newFlags, DivSystem sys);
 
+    // check whether an asset directory is complete (UNSAFE)
+    void checkAssetDir(std::vector<DivAssetDir>& dir, size_t entries);
 
     // benchmark (returns time in seconds)
     double benchmarkPlayback();
@@ -920,7 +953,7 @@ class DivEngine {
     void updateSysFlags(int system, bool restart);
 
     // set Hz
-    void setSongRate(float hz, bool pal);
+    void setSongRate(float hz);
 
     // set remaining loops. -1 means loop forever.
     void setLoops(int loops);
@@ -1018,6 +1051,9 @@ class DivEngine {
     // add subsong
     int addSubSong();
 
+    // duplicate subsong
+    int duplicateSubSong(int index);
+
     // remove subsong
     bool removeSubSong(int index);
 
@@ -1039,6 +1075,12 @@ class DivEngine {
 
     // move system
     bool swapSystem(int src, int dest, bool preserveOrder=true);
+
+    // add effect
+    bool addEffect(DivEffectType which);
+
+    // remove effect
+    bool removeEffect(int index);
 
     // write to register on system
     void poke(int sys, unsigned int addr, unsigned short val);
@@ -1209,6 +1251,9 @@ class DivEngine {
       oscReadPos(0),
       oscWritePos(0),
       tickMult(1),
+      lastNBIns(0),
+      lastNBOuts(0),
+      lastNBSize(0),
       processTime(0),
       yrw801ROM(NULL),
       tg100ROM(NULL),
@@ -1222,6 +1267,7 @@ class DivEngine {
       memset(tremTable,0,128*sizeof(short));
       memset(reversePitchTable,0,4096*sizeof(int));
       memset(pitchTable,0,4096*sizeof(int));
+      memset(effectSlotMap,-1,4096*sizeof(short));
       memset(sysDefs,0,DIV_MAX_CHIP_DEFS*sizeof(void*));
       memset(walked,0,8192);
       memset(oscBuf,0,DIV_MAX_OUTPUTS*(sizeof(float*)));

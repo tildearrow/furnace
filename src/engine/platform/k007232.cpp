@@ -22,7 +22,7 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) {if(!skipRegisterWrites) {writes.emplace(a,v); if(dumpWrites) addWrite(a,v);}}
+#define rWrite(a,v) {if(!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if(dumpWrites) addWrite(a,v);}}
 
 #define CHIP_DIVIDER 64
 
@@ -79,14 +79,14 @@ void DivPlatformK007232::acquire(short** buf, size_t len) {
       buf[0][h]=(lout[0]+lout[1])<<4;
       buf[1][h]=(rout[0]+rout[1])<<4;
       for (int i=0; i<2; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=(lout[i]+rout[i])<<4;
+        oscBuf[i]->data[oscBuf[i]->needle++]=(lout[i]+rout[i])<<3;
       }
     } else {
       const unsigned char vol=regPool[0xc];
       const signed int out[2]={(k007232.output(0)*(vol&0xf)),(k007232.output(1)*((vol>>4)&0xf))};
       buf[0][h]=(out[0]+out[1])<<4;
       for (int i=0; i<2; i++) {
-        oscBuf[i]->data[oscBuf[i]->needle++]=out[i]<<5;
+        oscBuf[i]->data[oscBuf[i]->needle++]=out[i]<<4;
       }
     }
   }
