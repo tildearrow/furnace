@@ -212,9 +212,6 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
     case DIV_SYSTEM_QSOUND:
       return "DSP16A";
       break;
-    case DIV_SYSTEM_VERA:
-      return "VERA";
-      break;
     case DIV_SYSTEM_X1_010:
       return "X1-010";
       break;
@@ -239,9 +236,6 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
     case DIV_SYSTEM_YMZ280B:
       return "YMZ280B";
       break;
-    case DIV_SYSTEM_NAMCO:
-      return "Namco WSG";
-      break;
     case DIV_SYSTEM_NAMCO_15XX:
       return "C15";
       break;
@@ -250,9 +244,6 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       break;
     case DIV_SYSTEM_MSM5232:
       return "MSM5232";
-      break;
-    case DIV_SYSTEM_T6W28:
-      return "T6W28";
       break;
     case DIV_SYSTEM_K007232:
       return "K007232";
