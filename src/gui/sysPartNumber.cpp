@@ -198,7 +198,7 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       return "ZXS Beeper";
       break;
     case DIV_SYSTEM_SCC:
-      return "SCC";
+      return "2212P003";
       break;
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_CSM:
@@ -212,7 +212,7 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       return "YM2413";
       break;
     case DIV_SYSTEM_QSOUND:
-      return "QSound";
+      return "DSP16A";
       break;
     case DIV_SYSTEM_VERA:
       return "VERA";
@@ -227,7 +227,7 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       return "ES5506";
       break;
     case DIV_SYSTEM_SCC_PLUS:
-      return "SCC+";
+      return "2312P001";
       break;
     case DIV_SYSTEM_SOUND_UNIT:
       return "TSU";
