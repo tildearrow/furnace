@@ -1419,6 +1419,7 @@ class FurnaceGUI {
     int chipNames;
     int overflowHighlight;
     int partyTime;
+    int flatNotes;
     int germanNotation;
     int stepOnDelete;
     int scrollStep;
