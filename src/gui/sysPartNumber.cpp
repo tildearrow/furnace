@@ -77,9 +77,7 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
         }
       break;
     }
-    case DIV_SYSTEM_AMIGA:
-      return "Amiga";
-      break;
+    //Amiga -> Paula?
     case DIV_SYSTEM_YM2151:
       return "YM2151";
       break;
@@ -164,10 +162,10 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       break;
     case DIV_SYSTEM_OPL4:
     case DIV_SYSTEM_OPL4_DRUMS:
-      return "OPL4";
+      return "YMF278";
       break;
     case DIV_SYSTEM_MULTIPCM:
-      return "MultiPCM";
+      return "YMW258-F";
       break;
     case DIV_SYSTEM_RF5C68:{
       int chipType=flags.getInt("chipType",0);
@@ -182,8 +180,8 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       return "YM2414";
       break;
     case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT:
-      return "SegaPCM";
+    case DIV_SYSTEM_SEGAPCM_COMPAT:// the closest thing to a part number i found is "315-5218",
+      return "SegaPCM";//             which is a sega part number. not sure if i shold change it.
       break;
     case DIV_SYSTEM_VRC7:
       return "VRC7";
