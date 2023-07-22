@@ -159,9 +159,15 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       return "YM3812";
       break;
     case DIV_SYSTEM_OPL3:
-    case DIV_SYSTEM_OPL3_DRUMS:
-      return "YMF262";
+    case DIV_SYSTEM_OPL3_DRUMS:{
+      int chipType=flags.getInt("chipType",0);
+      if (chipType==1) {
+        return "YMF289B";
+      } else {
+        return "YMF262";
+      }
       break;
+    }
     case DIV_SYSTEM_OPL4:
     case DIV_SYSTEM_OPL4_DRUMS:
       return "OPL4";
