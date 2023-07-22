@@ -882,7 +882,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         speakerType=1;
         altered=true;
       }
-      if (ImGui::RadioButton("Piezo",speakerType==2)) {
+      if (ImGui::RadioButton("Moving iron",speakerType==2)) {
         speakerType=2;
         altered=true;
       }
