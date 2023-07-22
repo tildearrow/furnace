@@ -1521,6 +1521,7 @@ class FurnaceGUI {
     int pullDeleteRow;
     int newSongBehavior;
     int memUsageUnit;
+    int cursorFollowsWheel;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1674,6 +1675,7 @@ class FurnaceGUI {
       pullDeleteRow(1),
       newSongBehavior(0),
       memUsageUnit(1),
+      cursorFollowsWheel(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -2285,6 +2287,7 @@ class FurnaceGUI {
   bool quitRender();
 
   const char* getSystemName(DivSystem which);
+  const char* getSystemPartNumber(DivSystem sys, DivConfig& flags);
 
   public:
     void editStr(String* which);

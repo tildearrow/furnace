@@ -572,11 +572,6 @@ void FurnaceGUI::drawSettings() {
             settings.effectDeletionAltersValue=effectDeletionAltersValueB;
           }
 
-          bool scrollChangesOrderB=settings.scrollChangesOrder;
-          if (ImGui::Checkbox("Change order when scrolling outside of pattern bounds",&scrollChangesOrderB)) {
-            settings.scrollChangesOrder=scrollChangesOrderB;
-          }
-
           bool stepOnInsertB=settings.stepOnInsert;
           if (ImGui::Checkbox("Move cursor by edit step on insert (push)",&stepOnInsertB)) {
             settings.stepOnInsert=stepOnInsertB;
@@ -590,6 +585,11 @@ void FurnaceGUI::drawSettings() {
           bool cursorMoveNoScrollB=settings.cursorMoveNoScroll;
           if (ImGui::Checkbox("Don't scroll when moving cursor",&cursorMoveNoScrollB)) {
             settings.cursorMoveNoScroll=cursorMoveNoScrollB;
+          }
+
+          bool cursorFollowsWheelB=settings.cursorFollowsWheel;
+          if (ImGui::Checkbox("Move cursor with scroll wheel",&cursorFollowsWheelB)) {
+            settings.cursorFollowsWheel=cursorFollowsWheelB;
           }
 
           bool doubleClickColumnB=settings.doubleClickColumn;
@@ -758,6 +758,21 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::RadioButton("Yes, and move to next/prev pattern##wrapV2",settings.wrapVertical==2)) {
             settings.wrapVertical=2;
           }
+          if (ImGui::RadioButton("Yes, and move to next/prev pattern (wrap around)##wrapV2",settings.wrapVertical==3)) {
+            settings.wrapVertical=3;
+          }
+
+          ImGui::Text("Change order when scrolling outside of pattern bounds:");
+          if (ImGui::RadioButton("No##pscroll0",settings.scrollChangesOrder==0)) {
+            settings.scrollChangesOrder=0;
+          }
+          if (ImGui::RadioButton("Yes##pscroll1",settings.scrollChangesOrder==1)) {
+            settings.scrollChangesOrder=1;
+          }
+          if (ImGui::RadioButton("Yes, and wrap around song##pscroll2",settings.scrollChangesOrder==2)) {
+            settings.scrollChangesOrder=2;
+          }
+
 
           ImGui::Text("Cursor movement keys behavior:");
           if (ImGui::RadioButton("Move by one##cmk0",settings.scrollStep==0)) {
@@ -2794,6 +2809,7 @@ void FurnaceGUI::syncSettings() {
   settings.pullDeleteRow=e->getConfInt("pullDeleteRow",1);
   settings.newSongBehavior=e->getConfInt("newSongBehavior",0);
   settings.memUsageUnit=e->getConfInt("memUsageUnit",1);
+  settings.cursorFollowsWheel=e->getConfInt("cursorFollowsWheel",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2819,7 +2835,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.soloAction,0,2);
   clampSetting(settings.pullDeleteBehavior,0,1);
   clampSetting(settings.wrapHorizontal,0,2);
-  clampSetting(settings.wrapVertical,0,2);
+  clampSetting(settings.wrapVertical,0,3);
   clampSetting(settings.macroView,0,1);
   clampSetting(settings.fmNames,0,2);
   clampSetting(settings.allowEditDocking,0,1);
@@ -2863,7 +2879,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.insEditColorize,0,1);
   clampSetting(settings.metroVol,0,200);
   clampSetting(settings.pushNibble,0,1);
-  clampSetting(settings.scrollChangesOrder,0,1);
+  clampSetting(settings.scrollChangesOrder,0,2);
   clampSetting(settings.oplStandardWaveNames,0,1);
   clampSetting(settings.cursorMoveNoScroll,0,1);
   clampSetting(settings.lowLatency,0,1);
@@ -2921,6 +2937,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.pullDeleteRow,0,1);
   clampSetting(settings.newSongBehavior,0,1);
   clampSetting(settings.memUsageUnit,0,1);
+  clampSetting(settings.cursorFollowsWheel,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3144,6 +3161,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("pullDeleteRow",settings.pullDeleteRow);
   e->setConf("newSongBehavior",settings.newSongBehavior);
   e->setConf("memUsageUnit",settings.memUsageUnit);
+  e->setConf("cursorFollowsWheel",settings.cursorFollowsWheel);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

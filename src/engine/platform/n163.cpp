@@ -146,7 +146,7 @@ void DivPlatformN163::updateWave(int ch, int wave, int pos, int len) {
   } else {
     // load from custom
     DivWavetable* wt=parent->getWave(wave);
-    for (int i=0; i<len; i++) {
+    for (int i=0; i<wt->len; i++) {
       unsigned char addr=(pos+i); // address (nibble each)
       if (addr>=((0x78-(chanMax<<3))<<1)) { // avoid conflict with channel register area
         break;
@@ -155,7 +155,7 @@ void DivPlatformN163::updateWave(int ch, int wave, int pos, int len) {
       if (wt->max<1 || wt->len<1) {
         rWriteMask(addr>>1,0,mask);
       } else {
-        int data=wt->data[i*wt->len/len]*15/wt->max;
+        int data=wt->data[i]*15/wt->max;
         if (data<0) data=0;
         if (data>15) data=15;
         rWriteMask(addr>>1,(addr&1)?(data<<4):(data&0xf),mask);
@@ -282,8 +282,8 @@ int DivPlatformN163::dispatch(DivCommand c) {
         if (ins->n163.wave>=0) {
           chan[c.chan].wave=ins->n163.wave;
         }
-        chan[c.chan].wavePos=ins->n163.wavePos;
-        chan[c.chan].waveLen=ins->n163.waveLen;
+        chan[c.chan].wavePos=ins->n163.perChanPos?ins->n163.wavePosCh[c.chan&7]:ins->n163.wavePos;
+        chan[c.chan].waveLen=ins->n163.perChanPos?ins->n163.waveLenCh[c.chan&7]:ins->n163.waveLen;
         chan[c.chan].waveMode=ins->n163.waveMode;
         chan[c.chan].curWavePos=chan[c.chan].wavePos;
         chan[c.chan].curWaveLen=chan[c.chan].waveLen;
@@ -393,9 +393,23 @@ int DivPlatformN163::dispatch(DivCommand c) {
       chan[c.chan].curWaveLen=c.value&0xfc;
       chan[c.chan].freqChanged=true;
       break;
+    case DIV_CMD_N163_WAVE_LOADPOS:
+      chan[c.chan].wavePos=c.value;
+      if (chan[c.chan].waveMode) {
+        chan[c.chan].waveUpdated=true;
+      }
+      break;
+    case DIV_CMD_N163_WAVE_LOADLEN:
+      chan[c.chan].waveLen=c.value&0xfc;
+      if (chan[c.chan].waveMode) {
+        chan[c.chan].waveUpdated=true;
+      }
+      break;
     case DIV_CMD_N163_GLOBAL_WAVE_LOAD:
       loadWave=c.value;
-      // TODO: load wave here
+      if (loadWave>=0 && loadWave<parent->song.waveLen) {
+        updateWave(-1,loadWave,loadPos,-1);
+      }
       break;
     case DIV_CMD_N163_GLOBAL_WAVE_LOADPOS:
       loadPos=c.value;
