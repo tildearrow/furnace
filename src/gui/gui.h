@@ -2287,6 +2287,7 @@ class FurnaceGUI {
   bool quitRender();
 
   const char* getSystemName(DivSystem which);
+  const char* getSystemPartNumber(DivSystem sys, DivConfig& flags);
 
   public:
     void editStr(String* which);

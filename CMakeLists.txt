@@ -696,6 +696,7 @@ src/gui/subSongs.cpp
 src/gui/sysConf.cpp
 src/gui/sysEx.cpp
 src/gui/sysManager.cpp
+src/gui/sysPartNumber.cpp
 src/gui/sysPicker.cpp
 src/gui/tutorial.cpp
 src/gui/util.cpp

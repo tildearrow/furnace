@@ -308,6 +308,7 @@ void FurnaceGUI::drawChanOsc() {
             "- %I: instrument number (decimal)\n"
             "- %x: instrument number (hex)\n"
             "- %s: chip name\n"
+            "- %p: chip part number\n"
             "- %S: chip ID\n"
             "- %v: volume (decimal)\n"
             "- %V: volume (percentage)\n"
@@ -508,6 +509,10 @@ void FurnaceGUI::drawChanOsc() {
                       }
                       case 's': {
                         text+=e->getSystemName(e->sysOfChan[ch]);
+                        break;
+                      }
+                      case 'p': {
+                        text+=FurnaceGUI::getSystemPartNumber(e->sysOfChan[ch], e->song.systemFlags[e->dispatchOfChan[ch]]);
                         break;
                       }
                       case 'S': {
