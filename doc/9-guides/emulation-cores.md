@@ -1,13 +1,13 @@
 # choosing emulation cores
 
-Furnace achieves the authentic sound of videogame hardware by emulating sound chips accurately as possible, using the best **emulator cores** available. in some cases there are multiple cores to choose from, each with different strengths and weaknesses. here are the major differences between them all.
+Furnace achieves the authentic sound of videogame hardware by emulating sound chips accurately as possible, using **emulator cores**. in some cases there are multiple cores to choose from, each with different strengths and weaknesses. here are the major differences between them all.
 
 - **Arcade/YM2151 core**:
   - **ymfm**: default. much less CPU usage than Nuked-OPM, but less accurate. recommended for users with last-gen or earlier hardware.
   - **Nuked-OPM**: much more accurate than ymfm, due to the emulator being based on an image of the die map taken from a real YM2151. very CPU heavy, only recommended for users with recent hardware.
 
 - **Genesis/YM2612 core**:
-  - **Nuked-OPN2**: default. same as Nuked-OPM above.
+  - **Nuked-OPN2**: default. a little lighter on the CPU than Nuked-OPM.
   - **ymfm**: same as ymfm above.
 
 - **SN76489 core**:
