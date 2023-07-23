@@ -1902,6 +1902,40 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
+    case DIV_SYSTEM_TED: {
+      int clockSel=flags.getInt("clockSel",0);
+      bool keyPriority=flags.getBool("keyPriority",true);
+
+      ImGui::Text("Clock rate:");
+
+      if (ImGui::RadioButton("NTSC (1.79MHz)",clockSel==0)) {
+        clockSel=0;
+        altered=true;
+      }
+      if (ImGui::RadioButton("PAL (1.77MHz)",clockSel==1)) {
+        clockSel=1;
+        altered=true;
+      }
+
+      ImGui::Text("Global parameter priority:");
+
+      if (ImGui::RadioButton("Left to right",!keyPriority)) {
+        keyPriority=false;
+        altered=true;
+      }
+      if (ImGui::RadioButton("Last used channel",keyPriority)) {
+        keyPriority=true;
+        altered=true;
+      }
+
+      if (altered) {
+        e->lockSave([&]() {
+          flags.set("clockSel",clockSel);
+          flags.set("keyPriority",keyPriority);
+        });
+      }
+      break;
+    }
     case DIV_SYSTEM_SWAN:
     case DIV_SYSTEM_BUBSYS_WSG:
     case DIV_SYSTEM_PET:
