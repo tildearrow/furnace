@@ -1420,6 +1420,7 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
             prepareUndo(GUI_UNDO_CHANGE_ORDER);
             e->lockSave([this,num]() {
+              if (!curNibble && !settings.pushNibble) e->curOrders->ord[orderCursor][curOrder]=0;
               e->curOrders->ord[orderCursor][curOrder]=((e->curOrders->ord[orderCursor][curOrder]<<4)|num);
             });
             MARK_MODIFIED;

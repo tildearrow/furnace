@@ -182,6 +182,8 @@ const char* aboutLine[]={
   "Stella by Stella Team",
   "QSound emulator by superctr and Valley Bell",
   "VICE VIC-20 sound core by Rami Rasanen and viznut",
+  "VICE TED sound core by Andreas Boose, Tibor Biczo",
+  "and Marco van den Heuvel",
   "VERA sound core by Frank van den Hoef",
   "mzpokeysnd POKEY emulator by Michael Borisov",
   "ASAP POKEY emulator by Piotr Fusik",

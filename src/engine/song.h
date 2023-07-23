@@ -128,7 +128,8 @@ enum DivSystem {
   DIV_SYSTEM_YM2608_CSM,
   DIV_SYSTEM_SM8521,
   DIV_SYSTEM_PV1000,
-  DIV_SYSTEM_K053260
+  DIV_SYSTEM_K053260,
+  DIV_SYSTEM_TED
 };
 
 enum DivEffectType: unsigned short {
