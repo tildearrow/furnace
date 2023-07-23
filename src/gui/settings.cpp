@@ -2650,6 +2650,11 @@ void FurnaceGUI::drawSettings() {
       settingsOpen=false;
       syncSettings();
     }
+    ImGui::SameLine();
+    if (ImGui::Button("Apply##SettingsApply")) {
+      settingsOpen=true;
+      willCommit=true;
+    }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SETTINGS;
   ImGui::End();
