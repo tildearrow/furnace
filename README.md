@@ -39,6 +39,7 @@ for other operating systems, you may [build the source](#developer-info).
     - PC Speaker
     - Philips SAA1099 used in SAM Coupé
     - OKI MSM5232 used in some arcade boards
+    - TED chip used in Commodore Plus/4, 16, and 116
   - sample chips:
     - SNES
     - Amiga
