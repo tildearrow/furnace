@@ -1599,7 +1599,7 @@ void DivPlatformOPL::reset() {
   }
   */
   if (downsample) {
-    const unsigned int downsampledRate=(unsigned int)((double)rate*49716.0/(double)chipRateBase);
+    const unsigned int downsampledRate=(unsigned int)((double)rate*round(COLOR_NTSC/72.0)/(double)chipRateBase);
     OPL3_Reset(&fm,downsampledRate);
   } else {
     OPL3_Reset(&fm,rate);
@@ -1865,7 +1865,7 @@ void DivPlatformOPL::setFlags(const DivConfig& flags) {
           break;
       }
       if (downsample) {
-        const unsigned int downsampledRate=(unsigned int)((double)rate*49716.0/(double)chipRateBase);
+        const unsigned int downsampledRate=(unsigned int)((double)rate*round(COLOR_NTSC/72.0)/(double)chipRateBase);
         OPL3_Resample(&fm,downsampledRate);
       } else {
         OPL3_Resample(&fm,rate);
