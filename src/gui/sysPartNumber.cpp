@@ -77,9 +77,6 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
         }
       break;
     }
-    case DIV_SYSTEM_AMIGA:
-      return "Amiga";
-      break;
     case DIV_SYSTEM_YM2151:
       return "YM2151";
       break;
@@ -164,10 +161,10 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       break;
     case DIV_SYSTEM_OPL4:
     case DIV_SYSTEM_OPL4_DRUMS:
-      return "OPL4";
+      return "YMF278";
       break;
     case DIV_SYSTEM_MULTIPCM:
-      return "MultiPCM";
+      return "YMW258-F";
       break;
     case DIV_SYSTEM_RF5C68:{
       int chipType=flags.getInt("chipType",0);
@@ -214,9 +211,6 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
     case DIV_SYSTEM_QSOUND:
       return "QSound";
       break;
-    case DIV_SYSTEM_VERA:
-      return "VERA";
-      break;
     case DIV_SYSTEM_X1_010:
       return "X1-010";
       break;
@@ -241,9 +235,6 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
     case DIV_SYSTEM_YMZ280B:
       return "YMZ280B";
       break;
-    case DIV_SYSTEM_NAMCO:
-      return "Namco WSG";
-      break;
     case DIV_SYSTEM_NAMCO_15XX:
       return "C15";
       break;
@@ -252,9 +243,6 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       break;
     case DIV_SYSTEM_MSM5232:
       return "MSM5232";
-      break;
-    case DIV_SYSTEM_T6W28:
-      return "T6W28";
       break;
     case DIV_SYSTEM_K007232:
       return "K007232";
@@ -273,6 +261,9 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       break;
     case DIV_SYSTEM_K053260:
       return "K053260";
+      break;
+    case DIV_SYSTEM_TED:
+      return "TED";
       break;
     default:
       return FurnaceGUI::getSystemName(sys);

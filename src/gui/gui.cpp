@@ -98,6 +98,10 @@ const char* FurnaceGUI::noteName(short note, short octave) {
   if (seek<0 || seek>=180) {
     return "???";
   }
+  if (settings.flatNotes){
+    if (settings.germanNotation) return noteNamesGF[seek];
+    return noteNamesF[seek];
+  }
   if (settings.germanNotation) return noteNamesG[seek];
   return noteNames[seek];
 }
