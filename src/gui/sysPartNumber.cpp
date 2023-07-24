@@ -77,7 +77,6 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
         }
       break;
     }
-    //Amiga -> Paula?
     case DIV_SYSTEM_YM2151:
       return "YM2151";
       break;
@@ -180,8 +179,8 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       return "YM2414";
       break;
     case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT:// the closest thing to a part number i found is "315-5218",
-      return "SegaPCM";//             which is a sega part number. not sure if i shold change it.
+    case DIV_SYSTEM_SEGAPCM_COMPAT:
+      return "SegaPCM";
       break;
     case DIV_SYSTEM_VRC7:
       return "VRC7";
@@ -196,7 +195,7 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       return "ZXS Beeper";
       break;
     case DIV_SYSTEM_SCC:
-      return "2212P003";
+      return "SCC";
       break;
     case DIV_SYSTEM_YM2610:
     case DIV_SYSTEM_YM2610_CSM:
@@ -210,7 +209,7 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       return "YM2413";
       break;
     case DIV_SYSTEM_QSOUND:
-      return "DSP16A";
+      return "QSound";
       break;
     case DIV_SYSTEM_X1_010:
       return "X1-010";
@@ -222,7 +221,7 @@ const char* FurnaceGUI::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
       return "ES5506";
       break;
     case DIV_SYSTEM_SCC_PLUS:
-      return "2312P001";
+      return "SCC+";
       break;
     case DIV_SYSTEM_SOUND_UNIT:
       return "TSU";
