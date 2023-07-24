@@ -74,7 +74,7 @@ Space       | toggle note input (edit)
 ![keyboard](keyboard.png)
 
 - pressing any of the respective keys will insert a note at the cursor's location, and then advance it by the Edit Step.
-- note off turns off the last played note in that channel (key off on FM; note cut otherwise).
+- note off turns off the last played note in that channel (key off for FM; note cut otherwise).
 - note release triggers macro release (and in FM channels it also triggers key off).
 - macro release does the same as above, but does not trigger key off in FM channels.
 
@@ -91,4 +91,8 @@ if the effect value is not present, it is treated as `00`.
 
 most effects run until canceled using an effect of the same type with effect value `00`, with some exceptions.
 
-for a list of effects [click here](effects.md).
+here's [a list of effects](effects.md).
+
+# pop-up menu
+
+right-clicking within the pattern view brings up a pop-up menu with everything in the [edit menu](../2-interface/menu-bar.md) that makes sense for entering data or altering a selected area.
