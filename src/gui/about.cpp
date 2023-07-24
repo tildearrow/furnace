@@ -115,6 +115,7 @@ const char* aboutLine[]={
   "potatoTeto",
   "psxdominator",
   "Raijin",
+  "railzen7",
   "SnugglyBun",
   "SuperJet Spade",
   "SwapXFO",
