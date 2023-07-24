@@ -962,6 +962,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int clockSel=flags.getInt("clockSel",0);
       int channels=flags.getInt("channels",0)+1;
       bool multiplex=flags.getBool("multiplex",false);
+      bool lenCompensate=flags.getBool("lenCompensate",false);
 
       ImGui::Text("Clock rate:");
       if (ImGui::RadioButton("NTSC (1.79MHz)",clockSel==0)) {
@@ -985,12 +986,16 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       if (ImGui::Checkbox("Disable hissing",&multiplex)) {
         altered=true;
       }
+      if (ImGui::Checkbox("Scale frequency to wave length",&lenCompensate)) {
+        altered=true;
+      }
 
       if (altered) {
         e->lockSave([&]() {
           flags.set("clockSel",clockSel);
           flags.set("channels",channels-1);
           flags.set("multiplex",multiplex);
+          flags.set("lenCompensate",lenCompensate);
         });
       }
       break;
