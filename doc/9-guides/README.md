@@ -4,4 +4,3 @@ here is a small collection of useful tricks and techniques to really make Furnac
 
 - [using samples with limited playback rates](limited-samples.md)
 - [choosing emulation cores](emulation-cores.md)
-- [clipboard format](clipboard-format.md)
