@@ -218,6 +218,7 @@ size | description
      |   - 0xca: ZX Spectrum (beeper, QuadTone engine) - 5 channels
      |   - 0xcb: Casio PV-1000 - 3 channels
      |   - 0xcc: K053260 - 4 channels
+     |   - 0xcd: TED - 2 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfc: Pong - 1 channel

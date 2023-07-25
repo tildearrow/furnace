@@ -2941,6 +2941,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       }
     }
 
+    // Namco 163 pitch compensation compat
+    if (ds.version<165) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_N163) {
+          ds.systemFlags[i].set("lenCompensate",true);
+        }
+      }
+    }
+
     if (active) quitDispatch();
     BUSY_BEGIN_SOFT;
     saveLock.lock();

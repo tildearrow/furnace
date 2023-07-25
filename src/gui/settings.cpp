@@ -1783,6 +1783,11 @@ void FurnaceGUI::drawSettings() {
             settings.viewPrevPattern=viewPrevPatternB;
           }
 
+          bool flatNotesB=settings.flatNotes;
+          if (ImGui::Checkbox("Use flats instead of sharps",&flatNotesB)) {
+            settings.flatNotes=flatNotesB;
+          }
+
           bool germanNotationB=settings.germanNotation;
           if (ImGui::Checkbox("Use German notation",&germanNotationB)) {
             settings.germanNotation=germanNotationB;
@@ -2645,6 +2650,11 @@ void FurnaceGUI::drawSettings() {
       settingsOpen=false;
       syncSettings();
     }
+    ImGui::SameLine();
+    if (ImGui::Button("Apply##SettingsApply")) {
+      settingsOpen=true;
+      willCommit=true;
+    }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SETTINGS;
   ImGui::End();
@@ -2700,6 +2710,7 @@ void FurnaceGUI::syncSettings() {
   settings.chipNames=e->getConfInt("chipNames",0);
   settings.overflowHighlight=e->getConfInt("overflowHighlight",0);
   settings.partyTime=e->getConfInt("partyTime",0);
+  settings.flatNotes=e->getConfInt("flatNotes",0);
   settings.germanNotation=e->getConfInt("germanNotation",0);
   settings.stepOnDelete=e->getConfInt("stepOnDelete",0);
   settings.scrollStep=e->getConfInt("scrollStep",0);
@@ -2842,6 +2853,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.chipNames,0,1);
   clampSetting(settings.overflowHighlight,0,1);
   clampSetting(settings.partyTime,0,1);
+  clampSetting(settings.flatNotes,0,1);
   clampSetting(settings.germanNotation,0,1);
   clampSetting(settings.stepOnDelete,0,1);
   clampSetting(settings.scrollStep,0,1);
@@ -3051,6 +3063,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("chipNames",settings.chipNames);
   e->setConf("overflowHighlight",settings.overflowHighlight);
   e->setConf("partyTime",settings.partyTime);
+  e->setConf("flatNotes",settings.flatNotes);
   e->setConf("germanNotation",settings.germanNotation);
   e->setConf("stepOnDelete",settings.stepOnDelete);
   e->setConf("scrollStep",settings.scrollStep);

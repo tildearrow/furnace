@@ -1863,6 +1863,16 @@ void DivEngine::registerSystems() {
     }
   );
 
+  sysDefs[DIV_SYSTEM_TED]=new DivSysDef(
+    "MOS Technology TED", NULL, 0xcd, 0, 2, false, true, 0, false, 0,
+    "two square waves (one may be turned into noise). used in the Commodore Plus/4, 16 and 116.",
+    {"Channel 1", "Channel 2"},
+    {"CH1", "CH2"},
+    {DIV_CH_PULSE, DIV_CH_PULSE},
+    {DIV_INS_TED, DIV_INS_TED},
+    {}
+  );
+
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
     "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false, 0,
     "this is a system designed for testing purposes.",

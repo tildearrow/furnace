@@ -626,7 +626,7 @@ void DivPlatformSoundUnit::quit() {
     delete oscBuf[i];
   }
   delete su;
-  delete sampleMem;
+  delete[] sampleMem;
 }
 
 DivPlatformSoundUnit::~DivPlatformSoundUnit() {

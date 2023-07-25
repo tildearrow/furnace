@@ -17,59 +17,40 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef _N163_H
-#define _N163_H
+#ifndef _TED_H
+#define _TED_H
 
 #include "../dispatch.h"
 #include "../fixedQueue.h"
-#include "../waveSynth.h"
-#include "vgsound_emu/src/n163/n163.hpp"
+#include "sound/ted-sound.h"
 
-class DivPlatformN163: public DivDispatch {
+class DivPlatformTED: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
-    signed char resVol;
-    short wave, wavePos, waveLen;
-    short curWavePos, curWaveLen;
-    bool waveMode;
-    bool volumeChanged;
-    bool waveChanged, waveUpdated;
-    DivWaveSynth ws;
+    bool noise, square;
     Channel():
-      SharedChannel<signed char>(15),
-      resVol(15),
-      wave(-1),
-      wavePos(0),
-      waveLen(0),
-      curWavePos(0),
-      curWaveLen(0),
-      waveMode(0),
-      volumeChanged(false),
-      waveChanged(false),
-      waveUpdated(false) {}
+      SharedChannel<signed char>(8),
+      noise(false),
+      square(true) {}
   };
-  Channel chan[8];
-  DivDispatchOscBuffer* oscBuf[8];
-  bool isMuted[8];
+  Channel chan[2];
+  DivDispatchOscBuffer* oscBuf[2];
+  bool isMuted[2];
   struct QueuedWrite {
     unsigned char addr;
     unsigned char val;
-    unsigned char mask;
-    QueuedWrite(): addr(0), val(0), mask(~0) {}
-    QueuedWrite(unsigned char a, unsigned char v, unsigned char m=~0): addr(a), val(v), mask(m) {}
+    QueuedWrite(): addr(0), val(0) {}
+    QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
-  FixedQueue<QueuedWrite,2048> writes;
-  unsigned char initChanMax;
-  unsigned char chanMax;
-  short loadWave, loadPos;
-  bool multiplex, lenCompensate;
+  FixedQueue<QueuedWrite,64> writes;
 
-  n163_core n163;
-  unsigned char regPool[128];
-  void updateWave(int ch, int wave, int pos, int len);
-  void updateWaveCh(int ch);
+  struct plus4_sound_s ted;
+  unsigned char vol;
+  bool updateCtrl, keyPriority;
+
+  unsigned char chanOrder[2];
+  unsigned char regPool[8];
   friend void putDispatchChip(void*,int);
   friend void putDispatchChan(void*,int,int);
-
   public:
     void acquire(short** buf, size_t len);
     int dispatch(DivCommand c);
@@ -82,16 +63,16 @@ class DivPlatformN163: public DivDispatch {
     void forceIns();
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
+    int getOutputCount();
+    bool keyOffAffectsArp(int ch);
     void setFlags(const DivConfig& flags);
-    void notifyWaveChange(int wave);
-    void notifyInsChange(int ins);
     void notifyInsDeletion(void* ins);
     void poke(unsigned int addr, unsigned short val);
     void poke(std::vector<DivRegWrite>& wlist);
     const char** getRegisterSheet();
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
-    ~DivPlatformN163();
+    ~DivPlatformTED();
 };
 
 #endif

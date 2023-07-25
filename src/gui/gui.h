@@ -240,6 +240,8 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_SM8521,
   GUI_COLOR_INSTR_PV1000,
   GUI_COLOR_INSTR_K053260,
+  GUI_COLOR_INSTR_SCSP,
+  GUI_COLOR_INSTR_TED,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -1419,6 +1421,7 @@ class FurnaceGUI {
     int chipNames;
     int overflowHighlight;
     int partyTime;
+    int flatNotes;
     int germanNotation;
     int stepOnDelete;
     int scrollStep;
