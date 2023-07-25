@@ -927,12 +927,13 @@ void DivEngine::runExportThread() {
         }
       }
 
-      float* outBuf[2];
+      float* outBuf[DIV_MAX_OUTPUTS];
+      memset(outBuf,0,sizeof(void*)*DIV_MAX_OUTPUTS);
       outBuf[0]=new float[EXPORT_BUFSIZE];
       outBuf[1]=new float[EXPORT_BUFSIZE];
       short* sysBuf[DIV_MAX_CHIPS];
       for (int i=0; i<song.systemLen; i++) {
-        sysBuf[i]=new short[EXPORT_BUFSIZE*2];
+        sysBuf[i]=new short[EXPORT_BUFSIZE*disCont[i].dispatch->getOutputCount()];
       }
 
       // take control of audio output
