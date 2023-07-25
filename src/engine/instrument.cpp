@@ -134,7 +134,24 @@ bool DivInstrumentN163::operator==(const DivInstrumentN163& other) {
     _C(wave) &&
     _C(wavePos) &&
     _C(waveLen) &&
-    _C(waveMode)
+    _C(waveMode) &&
+    _C(perChanPos) &&
+    _C(wavePosCh[0]) &&
+    _C(wavePosCh[1]) &&
+    _C(wavePosCh[2]) &&
+    _C(wavePosCh[3]) &&
+    _C(wavePosCh[4]) &&
+    _C(wavePosCh[5]) &&
+    _C(wavePosCh[6]) &&
+    _C(wavePosCh[7]) &&
+    _C(waveLenCh[0]) &&
+    _C(waveLenCh[1]) &&
+    _C(waveLenCh[2]) &&
+    _C(waveLenCh[3]) &&
+    _C(waveLenCh[4]) &&
+    _C(waveLenCh[5]) &&
+    _C(waveLenCh[6]) &&
+    _C(waveLenCh[7])
   );
 }
 
@@ -518,6 +535,17 @@ void DivInstrument::writeFeatureN1(SafeWriter* w) {
   w->writeC(n163.wavePos);
   w->writeC(n163.waveLen);
   w->writeC(n163.waveMode);
+
+  w->writeC(n163.perChanPos);
+
+  if (n163.perChanPos) {
+    for (int i=0; i<8; i++) {
+      w->writeC(n163.wavePosCh[i]);
+    }
+    for (int i=0; i<8; i++) {
+      w->writeC(n163.waveLenCh[i]);
+    }
+  }
 
   FEATURE_END;
 }
@@ -928,6 +956,12 @@ void DivInstrument::putInsData2(SafeWriter* w, bool fui, const DivSong* song) {
         if (ws.enabled) featureWS=true;
         break;
       case DIV_INS_PV1000:
+        break;
+      case DIV_INS_K053260:
+        featureSM=true;
+        featureSL=true;
+        break;
+      case DIV_INS_TED:
         break;
       
       case DIV_INS_MAX:
@@ -2275,6 +2309,18 @@ void DivInstrument::readFeatureN1(SafeReader& reader, short version) {
   n163.wavePos=(unsigned char)reader.readC();
   n163.waveLen=(unsigned char)reader.readC();
   n163.waveMode=(unsigned char)reader.readC();
+
+  if (version>=164) {
+    n163.perChanPos=reader.readC();
+    if (n163.perChanPos) {
+      for (int i=0; i<8; i++) {
+        n163.wavePosCh[i]=(unsigned char)reader.readC();
+      }
+      for (int i=0; i<8; i++) {
+        n163.waveLenCh[i]=(unsigned char)reader.readC();
+      }
+    }
+  }
 
   READ_FEAT_END;
 }

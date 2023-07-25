@@ -267,6 +267,16 @@ void FurnaceGUI::drawSampleEdit() {
               SAMPLE_WARN(warnLength,"SegaPCM: maximum sample length is 65280");
             }
             break;
+          case DIV_SYSTEM_K053260:
+            if (sample->loop) {
+              if (sample->loopStart!=0 || sample->loopEnd!=(int)(sample->samples)) {
+                SAMPLE_WARN(warnLoopPos,"K053260: loop point ignored (may only loop entire sample)");
+              }
+            }
+            if (sample->samples>65535) {
+              SAMPLE_WARN(warnLength,"K053260: maximum sample length is 65535");
+            }
+            break;
           default:
             break;
         }

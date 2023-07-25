@@ -1130,8 +1130,10 @@ void DivEngine::nextRow() {
     }
   }
 
-  prevOrder=curOrder;
-  prevRow=curRow;
+  if (!stepPlay) {
+    prevOrder=curOrder;
+    prevRow=curRow;
+  }
 
   for (int i=0; i<chans; i++) {
     if (song.delayBehavior!=2) {
@@ -1337,7 +1339,11 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
               }
             }
             endOfSong=false;
-            if (stepPlay==2) stepPlay=1;
+            if (stepPlay==2) {
+              stepPlay=1;
+              prevOrder=curOrder;
+              prevRow=curRow;
+            }
             nextRow();
             break;
           }

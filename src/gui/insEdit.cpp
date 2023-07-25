@@ -267,6 +267,10 @@ const char* msm5232ControlBits[7]={
   "16'", "8'", "4'", "2'", "sustain", NULL
 };
 
+const char* tedControlBits[3]={
+  "square", "noise", NULL
+};
+
 const char* x1_010EnvBits[8]={
   "enable", "oneshot", "split L/R", "HinvR", "VinvR", "HinvL", "VinvL", NULL
 };
@@ -2305,7 +2309,7 @@ void FurnaceGUI::drawInsEdit() {
           ins->type=(DivInstrumentType)insType;
         }
         */
-        if (ImGui::BeginCombo("##Type",insType==DIV_INS_N163?settings.c163Name.c_str():insTypes[insType])) {
+        if (ImGui::BeginCombo("##Type",insTypes[insType])) {
           std::vector<DivInstrumentType> insTypeList;
           if (settings.displayAllInsTypes) {
             for (int i=0; insTypes[i]; i++) {
@@ -2315,7 +2319,7 @@ void FurnaceGUI::drawInsEdit() {
             insTypeList=e->getPossibleInsTypes();
           }
           for (DivInstrumentType i: insTypeList) {
-            if (ImGui::Selectable(i==DIV_INS_N163?settings.c163Name.c_str():insTypes[i],insType==i)) {
+            if (ImGui::Selectable(insTypes[i],insType==i)) {
               ins->type=i;
 
               // reset macro zoom
@@ -4409,7 +4413,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_SNES ||
             ins->type==DIV_INS_ES5506 ||
             ins->type==DIV_INS_K007232 ||
-            ins->type==DIV_INS_GA20) {
+            ins->type==DIV_INS_GA20 ||
+            ins->type==DIV_INS_K053260) {
           if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
             String sName;
             bool wannaOpenSMPopup=false;
@@ -4664,30 +4669,79 @@ void FurnaceGUI::drawInsEdit() {
             sampleMapFocused=false;
           }
         }
-        if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem(settings.c163Name.c_str())) {
-          if (ImGui::InputInt("Waveform##WAVE",&ins->n163.wave,1,10)) { PARAMETER
-            if (ins->n163.wave<0) ins->n163.wave=0;
-            if (ins->n163.wave>=e->song.waveLen) ins->n163.wave=e->song.waveLen-1;
-          }
-          if (ImGui::InputInt("Offset##WAVEPOS",&ins->n163.wavePos,1,16)) { PARAMETER
-            if (ins->n163.wavePos<0) ins->n163.wavePos=0;
-            if (ins->n163.wavePos>255) ins->n163.wavePos=255;
-          }
-          if (ImGui::InputInt("Length##WAVELEN",&ins->n163.waveLen,4,16)) { PARAMETER
-            if (ins->n163.waveLen<0) ins->n163.waveLen=0;
-            if (ins->n163.waveLen>252) ins->n163.waveLen=252;
-            ins->n163.waveLen&=0xfc;
-          }
-
+        if (ins->type==DIV_INS_N163) if (ImGui::BeginTabItem("Namco 163")) {
           bool preLoad=ins->n163.waveMode&0x1;
-          if (ImGui::Checkbox("Load waveform before playback",&preLoad)) { PARAMETER
+          if (ImGui::Checkbox("Load waveform",&preLoad)) { PARAMETER
             ins->n163.waveMode=(ins->n163.waveMode&~0x1)|(preLoad?0x1:0);
           }
-          bool waveMode=ins->n163.waveMode&0x2;
-          if (ImGui::Checkbox("Update waveforms into RAM when every waveform changes",&waveMode)) { PARAMETER
-            ins->n163.waveMode=(ins->n163.waveMode&~0x2)|(waveMode?0x2:0);
+
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("when enabled, a waveform will be loaded into RAM.\nwhen disabled, only the offset and length change.");
           }
 
+          if (preLoad) {
+            if (ImGui::InputInt("Waveform##WAVE",&ins->n163.wave,1,10)) { PARAMETER
+              if (ins->n163.wave<0) ins->n163.wave=0;
+              if (ins->n163.wave>=e->song.waveLen) ins->n163.wave=e->song.waveLen-1;
+            }
+          }
+
+          ImGui::Separator();
+
+          P(ImGui::Checkbox("Per-channel wave offset/length",&ins->n163.perChanPos));
+
+          if (ins->n163.perChanPos) {
+            if (ImGui::BeginTable("N1PerChPos",3)) {
+              ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
+              ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch,0.5f);
+              ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.5f);
+
+              ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
+              ImGui::TableNextColumn();
+              ImGui::Text("Ch");
+              ImGui::TableNextColumn();
+              ImGui::Text("Offset");
+              ImGui::TableNextColumn();
+              ImGui::Text("Length");
+
+              for (int i=0; i<8; i++) {
+                ImGui::PushID(64+i);
+                ImGui::TableNextRow();
+                ImGui::TableNextColumn();
+                ImGui::Dummy(ImVec2(dpiScale,ImGui::GetFrameHeightWithSpacing()));
+                ImGui::SameLine();
+                ImGui::Text("%d",i+1);
+
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##pcOff",&ins->n163.wavePosCh[i],1,16)) { PARAMETER
+                  if (ins->n163.wavePosCh[i]<0) ins->n163.wavePosCh[i]=0;
+                  if (ins->n163.wavePosCh[i]>255) ins->n163.wavePosCh[i]=255;
+                }
+
+                ImGui::TableNextColumn();
+                ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+                if (ImGui::InputInt("##pcLen",&ins->n163.waveLenCh[i],4,16)) { PARAMETER
+                  if (ins->n163.waveLenCh[i]<0) ins->n163.waveLenCh[i]=0;
+                  if (ins->n163.waveLenCh[i]>252) ins->n163.waveLenCh[i]=252;
+                  ins->n163.waveLenCh[i]&=0xfc;
+                }
+                ImGui::PopID();
+              }
+
+              ImGui::EndTable();
+            }
+          } else {
+            if (ImGui::InputInt("Offset##WAVEPOS",&ins->n163.wavePos,1,16)) { PARAMETER
+              if (ins->n163.wavePos<0) ins->n163.wavePos=0;
+              if (ins->n163.wavePos>255) ins->n163.wavePos=255;
+            }
+            if (ImGui::InputInt("Length##WAVELEN",&ins->n163.waveLen,4,16)) { PARAMETER
+              if (ins->n163.waveLen<0) ins->n163.waveLen=0;
+              if (ins->n163.waveLen>252) ins->n163.waveLen=252;
+              ins->n163.waveLen&=0xfc;
+            }
+          }
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_FDS) if (ImGui::BeginTabItem("FDS")) {
@@ -5316,7 +5370,8 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_FM || ins->type==DIV_INS_SEGAPCM || ins->type==DIV_INS_MIKEY ||
               ins->type==DIV_INS_MULTIPCM || ins->type==DIV_INS_SU || ins->type==DIV_INS_OPZ ||
-              ins->type==DIV_INS_OPM || ins->type==DIV_INS_SNES || ins->type==DIV_INS_MSM5232) {
+              ins->type==DIV_INS_OPM || ins->type==DIV_INS_SNES || ins->type==DIV_INS_MSM5232 ||
+              ins->type==DIV_INS_K053260) {
             volMax=127;
           }
           if (ins->type==DIV_INS_GB) {
@@ -5338,7 +5393,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_MSM6258) {
             volMax=0;
           }
-          if (ins->type==DIV_INS_MSM6295) {
+          if (ins->type==DIV_INS_MSM6295 || ins->type==DIV_INS_TED) {
             volMax=8;
           }
           if (ins->type==DIV_INS_ADPCMA) {
@@ -5405,7 +5460,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC ||
               ins->type==DIV_INS_PET || ins->type==DIV_INS_SEGAPCM ||
               ins->type==DIV_INS_FM || ins->type==DIV_INS_K007232 || ins->type==DIV_INS_GA20 ||
-              ins->type==DIV_INS_SM8521 || ins->type==DIV_INS_PV1000) {
+              ins->type==DIV_INS_SM8521 || ins->type==DIV_INS_PV1000 || ins->type==DIV_INS_K053260) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VBOY) {
@@ -5424,6 +5479,10 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="On/Off";
             dutyMax=1;
           }
+          if (ins->type==DIV_INS_TED) {
+            dutyLabel="Square/Noise";
+            dutyMax=2;
+          }
           if (ins->type==DIV_INS_SWAN) {
             dutyLabel="Noise";
             dutyMax=ins->amiga.useSample?0:8;
@@ -5440,10 +5499,10 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="Duty";
             dutyMax=63;
           }
-          /*if (ins->type==DIV_INS_N163) {
-            dutyLabel="Waveform pos.";
+          if (ins->type==DIV_INS_N163) {
+            dutyLabel="Wave Pos";
             dutyMax=255;
-          }*/
+          }
           if (ins->type==DIV_INS_VRC6) {
             dutyLabel="Duty";
             dutyMax=ins->amiga.useSample?0:7;
@@ -5505,7 +5564,9 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_SEGAPCM) waveMax=0;
           if (ins->type==DIV_INS_K007232) waveMax=0;
           if (ins->type==DIV_INS_GA20) waveMax=0;
+          if (ins->type==DIV_INS_K053260) waveMax=0;
           if (ins->type==DIV_INS_POKEMINI) waveMax=0;
+          if (ins->type==DIV_INS_TED) waveMax=0;
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
@@ -5544,7 +5605,6 @@ void FurnaceGUI::drawInsEdit() {
           }
           if (ins->type==DIV_INS_N163) {
             ex1Max=252;
-            ex2Max=2;
           }
           if (ins->type==DIV_INS_FDS) {
             ex1Max=63;
@@ -5623,6 +5683,11 @@ void FurnaceGUI::drawInsEdit() {
             panMax=7;
             panSingleNoBit=true;
           }
+          if (ins->type==DIV_INS_K053260) {
+            panMin=-3;
+            panMax=3;
+            panSingleNoBit=true;
+          }
           if (ins->type==DIV_INS_SU) {
             panMin=-127;
             panMax=127;
@@ -5647,6 +5712,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,mikeyFeedbackBits));
             } else if (ins->type==DIV_INS_POKEY) {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,pokeyCtlBits));
+            } else if (ins->type==DIV_INS_TED) {
+              macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,80,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,tedControlBits));
             } else if (ins->type==DIV_INS_MSM5232) {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,msm5232ControlBits));
             } else if (ins->type==DIV_INS_ES5506) {
@@ -5713,7 +5780,9 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_VBOY ||
               (ins->type==DIV_INS_X1_010 && ins->amiga.useSample) ||
               ins->type==DIV_INS_K007232 ||
-              ins->type==DIV_INS_GA20) {
+              ins->type==DIV_INS_GA20 ||
+              ins->type==DIV_INS_K053260 ||
+              ins->type==DIV_INS_TED) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {
@@ -5723,8 +5792,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc("Envelope",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,saaEnvBits));
             } else if (ins->type==DIV_INS_X1_010 && !ins->amiga.useSample) {
               macroList.push_back(FurnaceGUIMacroDesc("Envelope Mode",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,x1_010EnvBits));
-            /*} else if (ins->type==DIV_INS_N163) {
-              macroList.push_back(FurnaceGUIMacroDesc("Wave Length",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));*/
+            } else if (ins->type==DIV_INS_N163) {
+              macroList.push_back(FurnaceGUIMacroDesc("Wave Length",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_FDS) {
               macroList.push_back(FurnaceGUIMacroDesc("Mod Depth",&ins->std.ex1Macro,0,ex1Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_SU) {
@@ -5746,8 +5815,6 @@ void FurnaceGUI::drawInsEdit() {
           if (ex2Max>0) {
             if (ins->type==DIV_INS_C64) {
               macroList.push_back(FurnaceGUIMacroDesc("Resonance",&ins->std.ex2Macro,0,ex2Max,64,uiColors[GUI_COLOR_MACRO_OTHER]));
-            /*} else if (ins->type==DIV_INS_N163) {
-              macroList.push_back(FurnaceGUIMacroDesc("Wave Update",&ins->std.ex2Macro,0,ex2Max,64,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,n163UpdateBits));*/
             } else if (ins->type==DIV_INS_FDS) {
               macroList.push_back(FurnaceGUIMacroDesc("Mod Speed",&ins->std.ex2Macro,0,ex2Max,160,uiColors[GUI_COLOR_MACRO_OTHER]));
             } else if (ins->type==DIV_INS_SU) {
@@ -5776,12 +5843,6 @@ void FurnaceGUI::drawInsEdit() {
             // oh my i am running out of macros
             macroList.push_back(FurnaceGUIMacroDesc("Noise AND Mask",&ins->std.fbMacro,0,8,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
             macroList.push_back(FurnaceGUIMacroDesc("Noise OR Mask",&ins->std.fmsMacro,0,8,96,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
-          }
-          if (ins->type==DIV_INS_N163) {
-            /*macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Wave",&ins->std.ex3Macro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Pos",&ins->std.algMacro,0,255,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Len",&ins->std.fbMacro,0,252,160,uiColors[GUI_COLOR_MACRO_OTHER]));
-            macroList.push_back(FurnaceGUIMacroDesc("WaveLoad Trigger",&ins->std.fmsMacro,0,2,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,n163UpdateBits));*/
           }
           if (ins->type==DIV_INS_FDS) {
             macroList.push_back(FurnaceGUIMacroDesc("Mod Position",&ins->std.ex3Macro,0,127,160,uiColors[GUI_COLOR_MACRO_OTHER]));

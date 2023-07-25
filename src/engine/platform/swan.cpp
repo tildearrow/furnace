@@ -21,8 +21,8 @@
 #include "../engine.h"
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);}}
-#define postWrite(a,v) postDACWrites.emplace(a,v);
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);}}
+#define postWrite(a,v) postDACWrites.push(DivRegWrite(a,v));
 
 #define CHIP_DIVIDER 32
 

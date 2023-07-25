@@ -43,7 +43,7 @@ public:
 	void device_clock_changed();
 
 	// sound stream updates
-	void sound_stream_update(short** outputs, int len);
+	void sound_stream_update(short* output, int len);
 
 private:
 	int16_t clock_adpcm(uint8_t nibble);

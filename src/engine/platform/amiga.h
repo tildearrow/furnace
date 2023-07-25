@@ -21,7 +21,6 @@
 #define _AMIGA_H
 
 #include "../dispatch.h"
-#include <queue>
 #include "../waveSynth.h"
 
 class DivPlatformAmiga: public DivDispatch {

@@ -278,6 +278,12 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Commodore VIC-20", {
       CH(DIV_SYSTEM_VIC20, 1.0f, 0, "clockSel=1")
+    },
+    "tickRate=50"
+  );
+  ENTRY(
+    "Commodore Plus/4", {
+      CH(DIV_SYSTEM_TED, 1.0f, 0, "")
     }
   );
   ENTRY(
@@ -1260,6 +1266,42 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""), // 3.58MHz
       CH(DIV_SYSTEM_K007232, 1.0f, 0, ""), // ""
       CH(DIV_SYSTEM_K007232, 1.0f, 0, "")  // ""
+    }
+  );
+  ENTRY(
+    "Konami Rollergames", {
+      CH(DIV_SYSTEM_OPL2, 1.0f, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""),  // ""
+    }
+  );
+  ENTRY(
+    "Konami Rollergames (drums mode)", {
+      CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
+    }
+  );
+  ENTRY(
+    "Konami Golfing Greats", {
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // 3.58MHz
+    }
+  );
+  ENTRY(
+    "Konami Lightning Fighters", {
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
+    }
+  );
+  ENTRY(
+    "Konami Over Drive", {
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""), // 3.58MHz
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, ""), // ""
+    }
+  );
+  ENTRY(
+    "Konami Asterix", {
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, "clockSel=2"), // 4MHz
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, "clockSel=1"), // ""
     }
   );
   ENTRY(
@@ -2397,6 +2439,11 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_PV1000, 1.0f, 0, "")
     }
   );
+  ENTRY(
+    "MOS Technology TED", {
+      CH(DIV_SYSTEM_TED, 1.0f, 0, "clockSel=1")
+    }
+  );
   CATEGORY_END;
 
   CATEGORY_BEGIN("Sample","chips/systems which use PCM or ADPCM samples for sound synthesis.");
@@ -2464,6 +2511,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Ensoniq ES5506 (OTTO)", {
       CH(DIV_SYSTEM_ES5506, 1.0f, 0, "channels=31")
+    }
+  );
+  ENTRY(
+    "Konami K053260", {
+      CH(DIV_SYSTEM_K053260, 1.0f, 0, "")
     }
   );
   CATEGORY_END;

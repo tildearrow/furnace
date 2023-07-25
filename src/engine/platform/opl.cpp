@@ -24,7 +24,7 @@
 #include <math.h>
 
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
-#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define immWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 #define KVSL(x,y) ((chan[x].state.op[orderedOpsL1[ops==4][y]].kvs==2 && isOutputL[ops==4][chan[x].state.alg][y]) || chan[x].state.op[orderedOpsL1[ops==4][y]].kvs==1)
 

@@ -200,9 +200,7 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
         return "Famicom Disk System";
       }
       if (ds.system[0]==DIV_SYSTEM_NES && ds.system[1]==DIV_SYSTEM_N163) {
-        String ret="Famicom + ";
-        ret+=getConfString("c163Name",DIV_C163_DEFAULT_NAME);
-        return ret;
+        return "Famicom + Namco 163";
       }
       if (ds.system[0]==DIV_SYSTEM_NES && ds.system[1]==DIV_SYSTEM_MMC5) {
         return "Famicom + MMC5";
@@ -230,11 +228,7 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
   String ret="";
   for (int i=0; i<ds.systemLen; i++) {
     if (i>0) ret+=" + ";
-    if (ds.system[i]==DIV_SYSTEM_N163) {
-      ret+=getConfString("c163Name",DIV_C163_DEFAULT_NAME);
-    } else {
-      ret+=getSystemName(ds.system[i]);
-    }
+    ret+=getSystemName(ds.system[i]);
   }
 
   return ret;
@@ -242,11 +236,6 @@ String DivEngine::getSongSystemLegacyName(DivSong& ds, bool isMultiSystemAccepta
 
 const char* DivEngine::getSystemName(DivSystem sys) {
   if (sysDefs[sys]==NULL) return "Unknown";
-  if (sys==DIV_SYSTEM_N163) {
-    String c1=getConfString("c163Name",DIV_C163_DEFAULT_NAME);
-    strncpy(c163NameCS,c1.c_str(),1023);
-    return c163NameCS;
-  }
   return sysDefs[sys]->name;
 }
 
@@ -998,7 +987,7 @@ void DivEngine::registerSystems() {
   );
 
   sysDefs[DIV_SYSTEM_N163]=new DivSysDef(
-    "Namco 163/C163/129/160/106/whatever", NULL, 0x8c, 0, 8, false, true, 0, false, 0,
+    "Namco 163", NULL, 0x8c, 0, 8, false, true, 0, false, 0,
     "an expansion chip for the Famicom, with full wavetable.",
     {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8"},
     {"CH1", "CH2", "CH3", "CH4", "CH5", "CH6", "CH7", "CH8"},
@@ -1006,19 +995,16 @@ void DivEngine::registerSystems() {
     {DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163, DIV_INS_N163},
     {},
     {
+      {0x18, {DIV_CMD_N163_CHANNEL_LIMIT, "18xx: Change channel limits (0 to 7, x + 1)"}},
+      {0x20, {DIV_CMD_N163_GLOBAL_WAVE_LOAD, "20xx: Load a waveform into memory"}},
+      {0x21, {DIV_CMD_N163_GLOBAL_WAVE_LOADPOS, "21xx: Set position for wave load"}}
+    },
+    {
       {0x10, {DIV_CMD_WAVE, "10xx: Select waveform"}},
-      {0x11, {DIV_CMD_N163_WAVE_POSITION, "11xx: Set waveform position in RAM (single nibble unit)"}},
-      {0x12, {DIV_CMD_N163_WAVE_LENGTH, "12xx: Set waveform length in RAM (04 to FC, 4 nibble unit)"}},
-      {0x13, {DIV_CMD_N163_WAVE_MODE, "130x: Change waveform update mode (0: off; bit 0: update now; bit 1: update when every waveform changes)"}},
-      {0x14, {DIV_CMD_N163_WAVE_LOAD, "14xx: Select waveform for load to RAM"}},
-      {0x15, {DIV_CMD_N163_WAVE_LOADPOS, "15xx: Set waveform position for load to RAM (single nibble unit)"}},
-      {0x16, {DIV_CMD_N163_WAVE_LOADLEN, "16xx: Set waveform length for load to RAM (04 to FC, 4 nibble unit)"}},
-      {0x17, {DIV_CMD_N163_WAVE_LOADMODE, "170x: Change waveform load mode (0: off; bit 0: load now; bit 1: load when every waveform changes)"}},
-      {0x18, {DIV_CMD_N163_CHANNEL_LIMIT, "180x: Change channel limits (0 to 7, x + 1)"}},
-      {0x20, {DIV_CMD_N163_GLOBAL_WAVE_LOAD, "20xx: (Global) Select waveform for load to RAM"}},
-      {0x21, {DIV_CMD_N163_GLOBAL_WAVE_LOADPOS, "21xx: (Global) Set waveform position for load to RAM (single nibble unit)"}},
-      {0x22, {DIV_CMD_N163_GLOBAL_WAVE_LOADLEN, "22xx: (Global) Set waveform length for load to RAM (04 to FC, 4 nibble unit)"}},
-      {0x23, {DIV_CMD_N163_GLOBAL_WAVE_LOADMODE, "230x: (Global) Change waveform load mode (0: off; bit 0: load now; bit 1: load when every waveform changes)"}},
+      {0x11, {DIV_CMD_N163_WAVE_POSITION, "11xx: Set waveform position in RAM"}},
+      {0x12, {DIV_CMD_N163_WAVE_LENGTH, "12xx: Set waveform length in RAM (04 to FC in steps of 4)"}},
+      {0x15, {DIV_CMD_N163_WAVE_LOADPOS, "15xx: Set waveform load position"}},
+      {0x16, {DIV_CMD_N163_WAVE_LOADLEN, "16xx: Set waveform load length (04 to FC in steps of 4)"}},
     }
   );
 
@@ -1862,6 +1848,29 @@ void DivEngine::registerSystems() {
     {
       {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set pulse width"}}
     }
+  );
+
+  sysDefs[DIV_SYSTEM_K053260]=new DivSysDef(
+    "Konami K053260", NULL, 0xcc, 0, 4, false, true, 0x161, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "this PCM chip was widely used at Konami arcade boards in 1990-1992.",
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4"},
+    {"CH1", "CH2", "CH3", "CH4"},
+    {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_K053260, DIV_INS_K053260, DIV_INS_K053260, DIV_INS_K053260},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {
+      {0xdf, {DIV_CMD_SAMPLE_DIR, "DFxx: Set sample playback direction (0: normal; 1: reverse)"}}
+    }
+  );
+
+  sysDefs[DIV_SYSTEM_TED]=new DivSysDef(
+    "MOS Technology TED", NULL, 0xcd, 0, 2, false, true, 0, false, 0,
+    "two square waves (one may be turned into noise). used in the Commodore Plus/4, 16 and 116.",
+    {"Channel 1", "Channel 2"},
+    {"CH1", "CH2"},
+    {DIV_CH_PULSE, DIV_CH_PULSE},
+    {DIV_INS_TED, DIV_INS_TED},
+    {}
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(

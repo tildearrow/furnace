@@ -21,7 +21,7 @@
 #define _MSM5232_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../fixedQueue.h"
 #include "sound/oki/msm5232.h"
 
 class DivPlatformMSM5232: public DivDispatch {
@@ -46,11 +46,12 @@ class DivPlatformMSM5232: public DivDispatch {
   unsigned char groupAR[2];
   unsigned char groupDR[2];
   struct QueuedWrite {
-      unsigned char addr;
-      unsigned char val;
-      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+    unsigned char addr;
+    unsigned char val;
+    QueuedWrite(): addr(0), val(0) {}
+    QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,256> writes;
 
   int cycles, curChan, delay, detune, clockDriftAccum;
   unsigned int clockDriftLFOPos, clockDriftLFOSpeed;

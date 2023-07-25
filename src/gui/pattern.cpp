@@ -412,7 +412,7 @@ void FurnaceGUI::drawPattern() {
     ImGui::SetNextWindowPos(patWindowPos);
     ImGui::SetNextWindowSize(patWindowSize);
   }
-  if (ImGui::Begin("Pattern",&patternOpen,globalWinFlags|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0))) {
+  if (ImGui::Begin("Pattern",&patternOpen,globalWinFlags|(settings.avoidRaisingPattern?ImGuiWindowFlags_NoBringToFrontOnFocus:0)|(settings.cursorFollowsWheel?ImGuiWindowFlags_NoScrollWithMouse:0))) {
     if (!mobileUI) {
       patWindowPos=ImGui::GetWindowPos();
       patWindowSize=ImGui::GetWindowSize();
@@ -440,13 +440,13 @@ void FurnaceGUI::drawPattern() {
         ImGui::SetCursorPosX(ImGui::GetCursorPosX()+centerOff);
       }
     }
-    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea)) {
+    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|(settings.cursorFollowsWheel?ImGuiTableFlags_NoScrollWithMouse:0))) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[2048];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
       int curRow=e->getRow();
       if (e->isPlaying() && followPattern && (!e->isStepping() || pendingStepUpdate)) updateScroll(curRow);
-      pendingStepUpdate=false;
+      if (--pendingStepUpdate<0) pendingStepUpdate=0;
       if (nextScroll>-0.5f) {
         ImGui::SetScrollY(nextScroll);
         nextScroll=-1.0f;
@@ -951,15 +951,26 @@ void FurnaceGUI::drawPattern() {
         demandScrollX=false;
       }
 
+      // cursor follows wheel
+      if (settings.cursorFollowsWheel && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+        if (wheelX!=0 || wheelY!=0) {
+          moveCursor(wheelX,wheelY,false);
+        }
+      }
+
       // overflow changes order
       // TODO: this is very unreliable and sometimes it can warp you out of the song
-      if (settings.scrollChangesOrder && !e->isPlaying() && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows)) {
+      if (settings.scrollChangesOrder && (!e->isPlaying() || !followPattern) && ImGui::IsWindowHovered(ImGuiHoveredFlags_ChildWindows) && !settings.cursorFollowsWheel) {
         if (wheelY!=0) {
           if (wheelY>0) {
             if (ImGui::GetScrollY()<=0) {
               if (haveHitBounds) {
                 if (curOrder>0) {
                   setOrder(curOrder-1);
+                  ImGui::SetScrollY(ImGui::GetScrollMaxY());
+                  updateScroll(e->curSubSong->patLen);
+                } else if (settings.scrollChangesOrder==2) {
+                  setOrder(e->curSubSong->ordersLen-1);
                   ImGui::SetScrollY(ImGui::GetScrollMaxY());
                   updateScroll(e->curSubSong->patLen);
                 }
@@ -975,6 +986,10 @@ void FurnaceGUI::drawPattern() {
               if (haveHitBounds) {
                 if (curOrder<(e->curSubSong->ordersLen-1)) {
                   setOrder(curOrder+1);
+                  ImGui::SetScrollY(0);
+                  updateScroll(0);
+                } else if (settings.scrollChangesOrder==2) {
+                  setOrder(0);
                   ImGui::SetScrollY(0);
                   updateScroll(0);
                 }

@@ -22,7 +22,7 @@
 
 #include "../dispatch.h"
 #include "../engine.h"
-#include <queue>
+#include "../fixedQueue.h"
 #include "../macroInt.h"
 #include "../sample.h"
 #include "vgsound_emu/src/es550x/es5506.hpp"
@@ -238,6 +238,15 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
       unsigned int* read;
       unsigned short delay;
       bool isRead;
+      QueuedHostIntf():
+        state(0),
+        step(0),
+        addr(0),
+        val(0),
+        mask(0),
+        read(NULL),
+        delay(0),
+        isRead(false) {}
       QueuedHostIntf(unsigned char s, unsigned char a, unsigned int v, unsigned int m=(unsigned int)(~0), unsigned short d=0):
         state(0),
         step(s),
@@ -257,17 +266,8 @@ class DivPlatformES5506: public DivDispatch, public es550x_intf {
         delay(d),
         isRead(true) {}
   };
-  struct QueuedReadState {
-      unsigned int* read;
-      unsigned char state;
-      QueuedReadState(unsigned int* r, unsigned char s):
-        read(r),
-        state(s) {}
-  };
-  std::queue<QueuedHostIntf> hostIntf32;
-  std::queue<QueuedHostIntf> hostIntf8;
-  std::queue<unsigned char> queuedRead;
-  std::queue<QueuedReadState> queuedReadState;
+  FixedQueue<QueuedHostIntf,2048> hostIntf32;
+  FixedQueue<QueuedHostIntf,2048> hostIntf8;
   int cycle, curPage, volScale;
   unsigned char maskedVal;
   unsigned int irqv;

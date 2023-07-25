@@ -20,7 +20,6 @@
 #ifndef _ARCADE_H
 #define _ARCADE_H
 #include "fmshared_OPM.h"
-#include <queue>
 #include "../../../extern/opm/opm.h"
 #include "sound/ymfm/ymfm_opm.h"
 

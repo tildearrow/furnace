@@ -283,6 +283,13 @@ if (USE_SDL2)
     #   If you link SDL statically, you also need to define HAVE_LIBC so it builds with the C runtime that your application uses.
     #   This should probably go in a FAQ.
     set(SDL_LIBC ON CACHE BOOL "Tell SDL that we want it to use our C runtime (required for proper static linking)" FORCE)
+
+    # https://github.com/tildearrow/furnace/issues/1237
+    # enabling this will result in SDL finding the Direct3D headers, forcing _WIN32_WINNT to an undesirable value (which makes the Wine headers define GetTickCount64)
+    if (SUPPORT_XP)
+      set(SDL_RENDER_D3D OFF CACHE BOOL "Enable the Direct3D render driver" FORCE)
+    endif()
+
     add_subdirectory(extern/SDL EXCLUDE_FROM_ALL)
     list(APPEND DEPENDENCIES_DEFINES HAVE_SDL2)
     list(APPEND DEPENDENCIES_INCLUDE_DIRS extern/SDL/include)
@@ -498,6 +505,8 @@ src/engine/platform/sound/sm8521.c
 
 src/engine/platform/sound/d65modified.c
 
+src/engine/platform/sound/ted-sound.c
+
 src/engine/platform/oplAInterface.cpp
 src/engine/platform/ym2608Interface.cpp
 src/engine/platform/ym2610Interface.cpp
@@ -588,6 +597,8 @@ src/engine/platform/k007232.cpp
 src/engine/platform/ga20.cpp
 src/engine/platform/sm8521.cpp
 src/engine/platform/pv1000.cpp
+src/engine/platform/k053260.cpp
+src/engine/platform/ted.cpp
 src/engine/platform/pcmdac.cpp
 src/engine/platform/dummy.cpp
 
@@ -696,6 +707,7 @@ src/gui/subSongs.cpp
 src/gui/sysConf.cpp
 src/gui/sysEx.cpp
 src/gui/sysManager.cpp
+src/gui/sysPartNumber.cpp
 src/gui/sysPicker.cpp
 src/gui/tutorial.cpp
 src/gui/util.cpp

@@ -23,7 +23,7 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 #define chWrite(c,a,v) rWrite(((c)<<3)+(a),v)
 
 void DivPlatformSegaPCM::acquire(short** buf, size_t len) {

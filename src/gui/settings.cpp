@@ -572,11 +572,6 @@ void FurnaceGUI::drawSettings() {
             settings.effectDeletionAltersValue=effectDeletionAltersValueB;
           }
 
-          bool scrollChangesOrderB=settings.scrollChangesOrder;
-          if (ImGui::Checkbox("Change order when scrolling outside of pattern bounds",&scrollChangesOrderB)) {
-            settings.scrollChangesOrder=scrollChangesOrderB;
-          }
-
           bool stepOnInsertB=settings.stepOnInsert;
           if (ImGui::Checkbox("Move cursor by edit step on insert (push)",&stepOnInsertB)) {
             settings.stepOnInsert=stepOnInsertB;
@@ -590,6 +585,11 @@ void FurnaceGUI::drawSettings() {
           bool cursorMoveNoScrollB=settings.cursorMoveNoScroll;
           if (ImGui::Checkbox("Don't scroll when moving cursor",&cursorMoveNoScrollB)) {
             settings.cursorMoveNoScroll=cursorMoveNoScrollB;
+          }
+
+          bool cursorFollowsWheelB=settings.cursorFollowsWheel;
+          if (ImGui::Checkbox("Move cursor with scroll wheel",&cursorFollowsWheelB)) {
+            settings.cursorFollowsWheel=cursorFollowsWheelB;
           }
 
           bool doubleClickColumnB=settings.doubleClickColumn;
@@ -758,6 +758,21 @@ void FurnaceGUI::drawSettings() {
           if (ImGui::RadioButton("Yes, and move to next/prev pattern##wrapV2",settings.wrapVertical==2)) {
             settings.wrapVertical=2;
           }
+          if (ImGui::RadioButton("Yes, and move to next/prev pattern (wrap around)##wrapV2",settings.wrapVertical==3)) {
+            settings.wrapVertical=3;
+          }
+
+          ImGui::Text("Change order when scrolling outside of pattern bounds:");
+          if (ImGui::RadioButton("No##pscroll0",settings.scrollChangesOrder==0)) {
+            settings.scrollChangesOrder=0;
+          }
+          if (ImGui::RadioButton("Yes##pscroll1",settings.scrollChangesOrder==1)) {
+            settings.scrollChangesOrder=1;
+          }
+          if (ImGui::RadioButton("Yes, and wrap around song##pscroll2",settings.scrollChangesOrder==2)) {
+            settings.scrollChangesOrder=2;
+          }
+
 
           ImGui::Text("Cursor movement keys behavior:");
           if (ImGui::RadioButton("Move by one##cmk0",settings.scrollStep==0)) {
@@ -1638,12 +1653,6 @@ void FurnaceGUI::drawSettings() {
 
           ImGui::Separator();
 
-          ImGui::Text("Namco 163 chip name");
-          ImGui::SameLine();
-          ImGui::InputTextWithHint("##C163Name",DIV_C163_DEFAULT_NAME,&settings.c163Name);
-
-          ImGui::Separator();
-
           ImGui::Text("Channel colors:");
           if (ImGui::RadioButton("Single##CHC0",settings.channelColors==0)) {
             settings.channelColors=0;
@@ -1772,6 +1781,11 @@ void FurnaceGUI::drawSettings() {
           bool viewPrevPatternB=settings.viewPrevPattern;
           if (ImGui::Checkbox("Display previous/next pattern",&viewPrevPatternB)) {
             settings.viewPrevPattern=viewPrevPatternB;
+          }
+
+          bool flatNotesB=settings.flatNotes;
+          if (ImGui::Checkbox("Use flats instead of sharps",&flatNotesB)) {
+            settings.flatNotes=flatNotesB;
           }
 
           bool germanNotationB=settings.germanNotation;
@@ -2067,11 +2081,7 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPL,"FM (OPL)");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_FDS,"FDS");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_VBOY,"Virtual Boy");
-              // special case
-              String c163Label=fmt::sprintf("%s##CC_GUI_COLOR_INSTR_N163",settings.c163Name);
-              if (ImGui::ColorEdit4(c163Label.c_str(),(float*)&uiColors[GUI_COLOR_INSTR_N163])) {
-                applyUISettings(false);
-              }
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_N163,"Namco 163");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_SCC,"Konami SCC");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_OPZ,"FM (OPZ)");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_POKEY,"POKEY");
@@ -2102,6 +2112,7 @@ void FurnaceGUI::drawSettings() {
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_POKEMINI,"Pokémon Mini");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_SM8521,"SM8521");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_PV1000,"PV-1000");
+              UI_COLOR_CONFIG(GUI_COLOR_INSTR_K053260,"K053260");
               UI_COLOR_CONFIG(GUI_COLOR_INSTR_UNKNOWN,"Other/Unknown");
               ImGui::TreePop();
             }
@@ -2640,6 +2651,11 @@ void FurnaceGUI::drawSettings() {
       settingsOpen=false;
       syncSettings();
     }
+    ImGui::SameLine();
+    if (ImGui::Button("Apply##SettingsApply")) {
+      settingsOpen=true;
+      willCommit=true;
+    }
   }
   if (ImGui::IsWindowFocused(ImGuiFocusedFlags_ChildWindows)) curWindow=GUI_WINDOW_SETTINGS;
   ImGui::End();
@@ -2662,7 +2678,6 @@ void FurnaceGUI::syncSettings() {
   settings.audioChans=e->getConfInt("audioChans",2);
   settings.midiInDevice=e->getConfString("midiInDevice","");
   settings.midiOutDevice=e->getConfString("midiOutDevice","");
-  settings.c163Name=e->getConfString("c163Name",DIV_C163_DEFAULT_NAME);
   settings.renderDriver=e->getConfString("renderDriver","");
   settings.sdlAudioDriver=e->getConfString("sdlAudioDriver","");
   settings.audioQuality=e->getConfInt("audioQuality",0);
@@ -2696,6 +2711,7 @@ void FurnaceGUI::syncSettings() {
   settings.chipNames=e->getConfInt("chipNames",0);
   settings.overflowHighlight=e->getConfInt("overflowHighlight",0);
   settings.partyTime=e->getConfInt("partyTime",0);
+  settings.flatNotes=e->getConfInt("flatNotes",0);
   settings.germanNotation=e->getConfInt("germanNotation",0);
   settings.stepOnDelete=e->getConfInt("stepOnDelete",0);
   settings.scrollStep=e->getConfInt("scrollStep",0);
@@ -2805,6 +2821,7 @@ void FurnaceGUI::syncSettings() {
   settings.pullDeleteRow=e->getConfInt("pullDeleteRow",1);
   settings.newSongBehavior=e->getConfInt("newSongBehavior",0);
   settings.memUsageUnit=e->getConfInt("memUsageUnit",1);
+  settings.cursorFollowsWheel=e->getConfInt("cursorFollowsWheel",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2830,13 +2847,14 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.soloAction,0,2);
   clampSetting(settings.pullDeleteBehavior,0,1);
   clampSetting(settings.wrapHorizontal,0,2);
-  clampSetting(settings.wrapVertical,0,2);
+  clampSetting(settings.wrapVertical,0,3);
   clampSetting(settings.macroView,0,1);
   clampSetting(settings.fmNames,0,2);
   clampSetting(settings.allowEditDocking,0,1);
   clampSetting(settings.chipNames,0,1);
   clampSetting(settings.overflowHighlight,0,1);
   clampSetting(settings.partyTime,0,1);
+  clampSetting(settings.flatNotes,0,1);
   clampSetting(settings.germanNotation,0,1);
   clampSetting(settings.stepOnDelete,0,1);
   clampSetting(settings.scrollStep,0,1);
@@ -2874,7 +2892,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.insEditColorize,0,1);
   clampSetting(settings.metroVol,0,200);
   clampSetting(settings.pushNibble,0,1);
-  clampSetting(settings.scrollChangesOrder,0,1);
+  clampSetting(settings.scrollChangesOrder,0,2);
   clampSetting(settings.oplStandardWaveNames,0,1);
   clampSetting(settings.cursorMoveNoScroll,0,1);
   clampSetting(settings.lowLatency,0,1);
@@ -2932,6 +2950,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.pullDeleteRow,0,1);
   clampSetting(settings.newSongBehavior,0,1);
   clampSetting(settings.memUsageUnit,0,1);
+  clampSetting(settings.cursorFollowsWheel,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3011,7 +3030,6 @@ void FurnaceGUI::commitSettings() {
   e->setConf("audioDevice",settings.audioDevice);
   e->setConf("midiInDevice",settings.midiInDevice);
   e->setConf("midiOutDevice",settings.midiOutDevice);
-  e->setConf("c163Name",settings.c163Name);
   e->setConf("renderDriver",settings.renderDriver);
   e->setConf("sdlAudioDriver",settings.sdlAudioDriver);
   e->setConf("audioQuality",settings.audioQuality);
@@ -3046,6 +3064,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("chipNames",settings.chipNames);
   e->setConf("overflowHighlight",settings.overflowHighlight);
   e->setConf("partyTime",settings.partyTime);
+  e->setConf("flatNotes",settings.flatNotes);
   e->setConf("germanNotation",settings.germanNotation);
   e->setConf("stepOnDelete",settings.stepOnDelete);
   e->setConf("scrollStep",settings.scrollStep);
@@ -3156,6 +3175,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("pullDeleteRow",settings.pullDeleteRow);
   e->setConf("newSongBehavior",settings.newSongBehavior);
   e->setConf("memUsageUnit",settings.memUsageUnit);
+  e->setConf("cursorFollowsWheel",settings.cursorFollowsWheel);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

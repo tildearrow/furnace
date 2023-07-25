@@ -24,7 +24,7 @@
 #include <math.h>
 
 #define rWrite(a,v) if (!skipRegisterWrites) {pendingWrites[a]=v;}
-#define immWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define immWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_FREQBASE 1180068
 
@@ -230,13 +230,16 @@ void DivPlatformOPLL::tick(bool sysTick) {
       if (i>=6 && properDrums) {
         drumState&=~(0x10>>(i-6));
         immWrite(0x0e,0x20|drumState);
+        logV("properDrums %d",i);
       } else if (i>=6 && drums) {
         drumState&=~(0x10>>(chan[i].note%12));
         immWrite(0x0e,0x20|drumState);
+        logV("drums %d",i);
       } else {
         if (i<9) {
           immWrite(0x20+i,(chan[i].freqH)|(chan[i].state.alg?0x20:0));
         }
+        logV("normal %d",i);
       }
       //chan[i].keyOn=false;
       chan[i].keyOff=false;
@@ -253,7 +256,7 @@ void DivPlatformOPLL::tick(bool sysTick) {
   for (int i=0; i<11; i++) {
     if (chan[i].freqChanged) {
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,octave(chan[i].baseFreq)*2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
-      if (chan[i].fixedFreq>0) chan[i].freq=chan[i].fixedFreq;
+      if (chan[i].fixedFreq>0 && properDrums) chan[i].freq=chan[i].fixedFreq;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
       int freqt=toFreq(chan[i].freq);
@@ -771,11 +774,17 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       if (c.value) {
         properDrums=true;
         immWrite(0x0e,0x20);
+        drumState=0;
       } else {
         properDrums=false;
         immWrite(0x0e,0x00);
         drumState=0;
       }
+      chan[6].freqChanged=true;
+      chan[7].freqChanged=true;
+      chan[8].freqChanged=true;
+      chan[9].freqChanged=true;
+      chan[10].freqChanged=true;
       break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);

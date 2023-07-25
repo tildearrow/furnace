@@ -24,17 +24,13 @@
 #include <string.h>
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if (dumpWrites) {addWrite(a,v);} }
 
 const char** DivPlatformMSM6258::getRegisterSheet() {
   return NULL;
 }
 
 void DivPlatformMSM6258::acquire(short** buf, size_t len) {
-  short* outs[2]={
-    &msmOut,
-    NULL
-  };
   for (size_t h=0; h<len; h++) {
     if (--msmClockCount<0) {
       if (--msmDividerCount<=0) {
@@ -71,7 +67,7 @@ void DivPlatformMSM6258::acquire(short** buf, size_t len) {
           }
         }
         
-        msm->sound_stream_update(outs,1);
+        msm->sound_stream_update(&msmOut,1);
         msmDividerCount=msmDivider;
       }
       msmClockCount=msmClock;

@@ -10,6 +10,7 @@ this documentation is a work in progress! expect several sections to be incomple
 6. [samples](6-sample/README.md)
 7. [list of sound chips](7-systems/README.md)
 8. [advanced topics](8-advanced/README.md)
+9. [guides](9-guides/README.md)
 
 # attribution
 
