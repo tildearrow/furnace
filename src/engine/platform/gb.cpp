@@ -255,7 +255,7 @@ void DivPlatformGB::tick(bool sysTick) {
               chan[i].sweepChanged=true;
               break;
             case DivInstrumentGB::DIV_GB_HWCMD_WAIT:
-              chan[i].hwSeqDelay=data+1;
+              chan[i].hwSeqDelay=(data+1)*parent->tickMult;
               leave=true;
               break;
             case DivInstrumentGB::DIV_GB_HWCMD_WAIT_REL:
