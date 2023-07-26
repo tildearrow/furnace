@@ -7153,6 +7153,17 @@ FurnaceGUI::FurnaceGUI():
   pianoView(PIANO_LAYOUT_STANDARD),
   pianoInputPadMode(PIANO_INPUT_PAD_DISABLE),
 #endif
+  //effect sorting
+  effectShowAll(true),
+  effectShowPitch(true),
+  effectShowVolume(true),
+  effectShowPanning(true),
+  effectShowSong(true),
+  effectShowTime(true),
+  effectShowSpeed(true),
+  effectShowSysPrimary(true),
+  effectShowSysSecondary(true),
+  effectShowMisc(true),
   hasACED(false),
   waveGenBaseShape(0),
   waveInterpolation(0),

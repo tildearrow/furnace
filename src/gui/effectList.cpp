@@ -12,6 +12,40 @@ void FurnaceGUI::drawEffectList() {
   ImGui::SetNextWindowSizeConstraints(ImVec2(60.0f*dpiScale,20.0f*dpiScale),ImVec2(canvasW,canvasH));
   if (ImGui::Begin("Effect List",&effectListOpen,globalWinFlags)) {
     ImGui::Text("Chip at cursor: %s",e->getSystemName(e->sysOfChan[cursor.xCoarse]));
+    ImGui::Text("Sort Effects:");
+    ImGui::Checkbox("All",&effectShowAll);
+    if (effectShowAll) {
+      effectShowMisc = true;
+      effectShowPanning = true;
+      effectShowPitch = true;
+      effectShowVolume = true;
+      effectShowSong = true;
+      effectShowTime = true;
+      effectShowSpeed = true;
+      effectShowSysPrimary = true;
+      effectShowSysSecondary = true;
+    }
+    ImGui::SameLine();
+    ImGui::Checkbox("Pitch",&effectShowPitch);
+    ImGui::SameLine();
+    ImGui::Checkbox("Song",&effectShowSong);
+    ImGui::SameLine();
+    ImGui::Checkbox("Time",&effectShowTime);
+    ImGui::SameLine();
+    ImGui::Checkbox("Speed",&effectShowSpeed);
+    ImGui::SameLine();
+    ImGui::Checkbox("Panning",&effectShowPanning);
+    // ImGui::SameLine();
+    ImGui::Checkbox("Volume",&effectShowVolume);
+    ImGui::SameLine();
+    ImGui::Checkbox("System (primary)",&effectShowSysPrimary);
+    ImGui::SameLine();
+    ImGui::Checkbox("System (secondary)",&effectShowSysSecondary);
+    ImGui::SameLine();
+    ImGui::Checkbox("Miscellanious",&effectShowMisc);
+
+    effectShowAll = effectShowMisc && effectShowPanning && effectShowPitch && effectShowVolume && effectShowSong && effectShowTime && effectShowSpeed && effectShowSysPrimary && effectShowSysSecondary;
+    
     if (ImGui::BeginTable("effectList",2)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
       ImGui::TableSetupColumn("c1",ImGuiTableColumnFlags_WidthStretch);
@@ -25,11 +59,25 @@ void FurnaceGUI::drawEffectList() {
       const char* prevName=NULL;
       for (int i=0; i<256; i++) {
         const char* name=e->getEffectDesc(i,cursor.xCoarse);
+        bool effectShow = true;
+        switch (fxColors[i]) {
+          case GUI_COLOR_PATTERN_EFFECT_MISC: effectShow = effectShowMisc; break;
+          case GUI_COLOR_PATTERN_EFFECT_SONG: effectShow = effectShowSong; break;
+          case GUI_COLOR_PATTERN_EFFECT_SPEED: effectShow = effectShowSpeed; break;
+          case GUI_COLOR_PATTERN_EFFECT_TIME: effectShow = effectShowTime; break;
+          case GUI_COLOR_PATTERN_EFFECT_PITCH: effectShow = effectShowPitch; break;
+          case GUI_COLOR_PATTERN_EFFECT_PANNING: effectShow = effectShowPanning; break;
+          case GUI_COLOR_PATTERN_EFFECT_VOLUME: effectShow = effectShowVolume; break;
+          case GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY: effectShow = effectShowSysPrimary; break;
+          case GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY: effectShow = effectShowSysSecondary; break;
+          default: effectShow = true; break;
+        }
+        // effectShow = effectShow && effectShowAll;
         if (name==prevName) {
           continue;
         }
         prevName=name;
-        if (name!=NULL) {
+        if (name!=NULL && effectShow) {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
           ImGui::PushFont(patFont);
