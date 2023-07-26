@@ -4,41 +4,85 @@ the pattern view allows you to edit the song.
 
 ![pattern view](pattern.png)
 
-a pattern consists of columns ("channels") and rows.
+a pattern consists of columns ("channels") and numbered rows.
 each column has several subcolumns in this order:
 
 1. note
 2. instrument
 3. volume
-4. effect and effect value (several)
+4. effects, split into effect type and effect value
 
 all columns are represented in hexadecimal, except for the note column.
 
-# managing channels
+row highlights show beats and measures, and are configured in the [the Speed window](../2-interface/song-info.md).
 
-you may mute channels, toggle solo mode, collapse channels or even hide them.
 
-clicking on a channel name mutes that channel.
 
-double-clicking or right-clicking it enables solo mode, in where only that channel will be audible.
-
-clicking the `++` at the top left corner of the pattern view displays additional buttons for channel configuration:
-
-![channel bar](channelbar.png)
-
-to rename and/or hide channels, see the Channels window (window > channels).
-
-![channels](channels.png)
-
-# cursor and selection
+## cursor and selection
 
 you may change the cursor position by clicking anywhere on the pattern.
 
-to select, press and hold the left mouse button. then drag the mouse and release the button to finish selection.
+to select an area, press and hold the left mouse button. then drag the mouse and release the button to finish selection.
 
-# keyboard layout
+right-clicking within the pattern view brings up a pop-up menu with everything in the [edit menu](../2-interface/menu-bar.md) that makes sense for entering data or altering a selected area.
 
-## shortcuts
+
+
+## channel bar
+
+using the channel bar, you may adjust several aspects of the channel display.
+
+![channel bar](channelbar.png)
+
+clicking on a channel name mutes that channel.
+
+double-clicking or right-clicking it enables solo mode, in which only that channel will be audible.
+
+clicking the `++` at the top left corner of the pattern view cycles through three channel bar view modes:
+- **Compact**: shows only channel names.
+- **Expanded**: as shown above. adds buttons:
+  - **-**: collapse visible columns. changes to **+** when columns are hidden; click to expand them.
+  - **<**: disables the last effect column and hides it. effects are not deleted...
+  - **>**: adds an effects column. if one previously existed, its contents will be preserved.
+- **Pattern names**: adds a text field with which one can name the current pattern. pattern names are also visible when hovering over a pattern in the order list.
+
+right-clicking the `++` toggles the visualizer, which is active only during playback.
+
+to rename and/or hide channels, open [the Channels window](../8-advanced/channels.md) via the window menu.
+
+
+# input
+
+## note input
+
+![keyboard](keyboard.png)
+
+- pressing any of the respective keys will insert a note at the cursor's location, then advance to the next row (or otherwise according to the Edit Step.)
+- **note off** turns off the last played note in that channel (key off for FM; note cut otherwise).
+- **note release** triggers macro release (and in FM channels it also triggers key off).
+- **macro release** does the same as above, but does not trigger key off in FM channels.
+- **toggle edit** enables and disables editing. when editing is enabled, the cursor's row will be shaded red.
+
+## instrument/volume input
+
+type any hexadecimal number (0-9 and A-F). the cursor will move by the Edit Step when a suitable value is entered.
+
+## effect input
+
+works like the instrument/volume input.
+
+each effect column has two subcolumns: effect and effect value.
+if the effect value is not present, it is treated as `00`.
+
+most effects run until canceled using an effect of the same type with effect value `00`, with some exceptions.
+
+here's [a list of effect types](effects.md).
+
+
+
+# keyboard shortcuts
+
+these are the default key functions. all keys are configurable in the Keyboard tab of the Settings window.
 
 key         | action
 ------------|-----------------------------------------------------------------
@@ -68,31 +112,3 @@ Ctrl-F2     | transpose selection (+1 semitone)
 Ctrl-F3     | transpose selection (-1 octave)
 Ctrl-F4     | transpose selection (+1 octave)
 Space       | toggle note input (edit)
-
-## note input
-
-![keyboard](keyboard.png)
-
-- pressing any of the respective keys will insert a note at the cursor's location, and then advance it by the Edit Step.
-- note off turns off the last played note in that channel (key off for FM; note cut otherwise).
-- note release triggers macro release (and in FM channels it also triggers key off).
-- macro release does the same as above, but does not trigger key off in FM channels.
-
-## instrument/volume input
-
-type any hexadecimal number (0-9 and A-F). the cursor will move by the Edit Step when a suitable value is entered.
-
-## effect input
-
-works like the instrument/volume input.
-
-each effect column has two subcolumns: effect and effect value.
-if the effect value is not present, it is treated as `00`.
-
-most effects run until canceled using an effect of the same type with effect value `00`, with some exceptions.
-
-here's [a list of effects](effects.md).
-
-# pop-up menu
-
-right-clicking within the pattern view brings up a pop-up menu with everything in the [edit menu](../2-interface/menu-bar.md) that makes sense for entering data or altering a selected area.
