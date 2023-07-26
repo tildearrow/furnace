@@ -43,7 +43,7 @@ void FurnaceGUI::drawEffectList() {
       // ImGui::SameLine();
       ImGui::Checkbox("System (secondary)",&effectShowSysSecondary);
       // ImGui::SameLine();
-      ImGui::Checkbox("Miscellanious",&effectShowMisc);
+      ImGui::Checkbox("Miscellaneous",&effectShowMisc);
       ImGui::TreePop();
     }
     effectShowAll = effectShowMisc && effectShowPanning && effectShowPitch && effectShowVolume && effectShowSong && effectShowTime && effectShowSpeed && effectShowSysPrimary && effectShowSysSecondary;
