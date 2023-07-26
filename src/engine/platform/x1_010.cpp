@@ -1018,10 +1018,6 @@ void DivPlatformX1_010::renderSamples(int sysID) {
   sampleMemLen=memPos+256;
 }
 
-void DivPlatformX1_010::setBanked(bool banked) {
-  isBanked=banked;
-}
-
 int DivPlatformX1_010::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
   parent=p;
   dumpWrites=false;
