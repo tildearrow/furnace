@@ -278,6 +278,12 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Commodore VIC-20", {
       CH(DIV_SYSTEM_VIC20, 1.0f, 0, "clockSel=1")
+    },
+    "tickRate=50"
+  );
+  ENTRY(
+    "Commodore Plus/4", {
+      CH(DIV_SYSTEM_TED, 1.0f, 0, "")
     }
   );
   ENTRY(
@@ -2434,6 +2440,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "NEC D65010G031", {
       CH(DIV_SYSTEM_PV1000, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "MOS Technology TED", {
+      CH(DIV_SYSTEM_TED, 1.0f, 0, "clockSel=1")
     }
   );
   CATEGORY_END;

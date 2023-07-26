@@ -84,7 +84,7 @@ not all chips support these effects.
 
 ## other
 
-- `9xxx`: **Set sample position.** jumps current sample to position `xxx \* 0x100`.
+- `9xxx`: **Set sample position.** jumps current sample to position `xxx * 0x100`.
   - Not all chips support this effect.
 - `EBxx`: **Set sample bank.**
   - Does not apply on Amiga.
@@ -97,52 +97,52 @@ additionally, [each chip has its own effects](../7-systems/README.md).
 
 ## macro table
 
-ID | macro
----|-----------------------------
-00 | volume
-01 | arpeggio
-02 | duty/noise
-03 | waveform
-04 | pitch
-05 | extra 1
-06 | extra 2
-07 | extra 3
-08 | extra A (ALG)
-09 | extra B (FM)
-0A | extra C (FMS)
-0B | extra D (AMS)
-0C | panning left
-0D | panning right
-0E | phase reset
-0F | extra 4
-10 | extra 5
-11 | extra 6
-12 | extra 7
-13 | extra 8
-|   | **operator 1 macros**
-20 | AM
-21 | AR
-22 | DR
-23 | MULT
-24 | RR
-25 | SL
-26 | TL
-27 | DT2
-28 | RS
-29 | DT
-2A | D2R
-2B | SSG-EG
-2C | DAM
-2D | DVB
-2E | EGT
-2F | KSL
-30 | SUS
-31 | VIB
-32 | WS
-33 | KSR
-40 | **operator 2 macros**
-60 | **operator 3 macros**
-80 | **operator 4 macros**
+ ID  | macro
+-----|-----------------------------
+`00` | volume
+`01` | arpeggio
+`02` | duty/noise
+`03` | waveform
+`04` | pitch
+`05` | extra 1
+`06` | extra 2
+`07` | extra 3
+`08` | extra A (ALG)
+`09` | extra B (FM)
+`0A` | extra C (FMS)
+`0B` | extra D (AMS)
+`0C` | panning left
+`0D` | panning right
+`0E` | phase reset
+`0F` | extra 4
+`10` | extra 5
+`11` | extra 6
+`12` | extra 7
+`13` | extra 8
+|    | **operator 1 macros**
+`20` | AM
+`21` | AR
+`22` | DR
+`23` | MULT
+`24` | RR
+`25` | SL
+`26` | TL
+`27` | DT2
+`28` | RS
+`29` | DT
+`2A` | D2R
+`2B` | SSG-EG
+`2C` | DAM
+`2D` | DVB
+`2E` | EGT
+`2F` | KSL
+`30` | SUS
+`31` | VIB
+`32` | WS
+`33` | KSR
+`40` | **operator 2 macros**
+`60` | **operator 3 macros**
+`80` | **operator 4 macros**
 
 the interpretation of duty, wave and extra macros depends on chip/instrument type:
 

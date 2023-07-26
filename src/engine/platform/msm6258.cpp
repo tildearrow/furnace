@@ -31,10 +31,6 @@ const char** DivPlatformMSM6258::getRegisterSheet() {
 }
 
 void DivPlatformMSM6258::acquire(short** buf, size_t len) {
-  short* outs[2]={
-    &msmOut,
-    NULL
-  };
   for (size_t h=0; h<len; h++) {
     if (--msmClockCount<0) {
       if (--msmDividerCount<=0) {
@@ -71,7 +67,7 @@ void DivPlatformMSM6258::acquire(short** buf, size_t len) {
           }
         }
         
-        msm->sound_stream_update(outs,1);
+        msm->sound_stream_update(&msmOut,1);
         msmDividerCount=msmDivider;
       }
       msmClockCount=msmClock;

@@ -240,6 +240,8 @@ enum FurnaceGUIColors {
   GUI_COLOR_INSTR_SM8521,
   GUI_COLOR_INSTR_PV1000,
   GUI_COLOR_INSTR_K053260,
+  GUI_COLOR_INSTR_SCSP,
+  GUI_COLOR_INSTR_TED,
   GUI_COLOR_INSTR_UNKNOWN,
 
   GUI_COLOR_CHANNEL_BG,
@@ -1419,6 +1421,7 @@ class FurnaceGUI {
     int chipNames;
     int overflowHighlight;
     int partyTime;
+    int flatNotes;
     int germanNotation;
     int stepOnDelete;
     int scrollStep;
@@ -1521,13 +1524,13 @@ class FurnaceGUI {
     int pullDeleteRow;
     int newSongBehavior;
     int memUsageUnit;
+    int cursorFollowsWheel;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
     String audioDevice;
     String midiInDevice;
     String midiOutDevice;
-    String c163Name;
     String renderBackend;
     String renderDriver;
     String initialSysName;
@@ -1675,13 +1678,13 @@ class FurnaceGUI {
       pullDeleteRow(1),
       newSongBehavior(0),
       memUsageUnit(1),
+      cursorFollowsWheel(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
       audioDevice(""),
       midiInDevice(""),
       midiOutDevice(""),
-      c163Name(""),
       renderBackend(""),
       renderDriver(""),
       initialSysName("Sega Genesis/Mega Drive"),
@@ -2287,6 +2290,7 @@ class FurnaceGUI {
   bool quitRender();
 
   const char* getSystemName(DivSystem which);
+  const char* getSystemPartNumber(DivSystem sys, DivConfig& flags);
 
   public:
     void editStr(String* which);

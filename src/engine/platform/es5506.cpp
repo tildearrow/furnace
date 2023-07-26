@@ -1253,6 +1253,7 @@ int DivPlatformES5506::init(DivEngine* p, int channels, int sugRate, const DivCo
   dumpWrites=false;
   skipRegisterWrites=false;
   volScale=0;
+  curPage=0;
 
   for (int i=0; i<32; i++) {
     isMuted[i]=false;

@@ -283,6 +283,7 @@ void DivPlatformPET::reset() {
   memset(regPool,0,16);
   chan[0]=Channel();
   chan[0].std.setEngine(parent);
+  rWrite(10,chan[0].wave);
 }
 
 int DivPlatformPET::getOutputCount() {

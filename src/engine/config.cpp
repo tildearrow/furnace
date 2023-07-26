@@ -237,56 +237,60 @@ bool DivConfig::loadFromBase64(const char* buf) {
 }
 
 bool DivConfig::getBool(String key, bool fallback) const {
-  try {
-    String val=conf.at(key);
-    if (val=="true") {
+  auto val=conf.find(key);
+  if (val!=conf.cend()) {
+    if (val->second=="true") {
       return true;
-    } else if (val=="false") {
+    } else if (val->second=="false") {
       return false;
     }
-  } catch (std::out_of_range& e) {
   }
   return fallback;
 }
 
 int DivConfig::getInt(String key, int fallback) const {
-  try {
-    String val=conf.at(key);
-    int ret=std::stoi(val);
-    return ret;
-  } catch (std::out_of_range& e) {
-  } catch (std::invalid_argument& e) {
+  auto val=conf.find(key);
+  if (val!=conf.cend()) {
+    try {
+      int ret=std::stoi(val->second);
+      return ret;
+    } catch (std::out_of_range& e) {
+    } catch (std::invalid_argument& e) {
+    }
   }
   return fallback;
 }
 
 float DivConfig::getFloat(String key, float fallback) const {
-  try {
-    String val=conf.at(key);
-    float ret=std::stof(val);
-    return ret;
-  } catch (std::out_of_range& e) {
-  } catch (std::invalid_argument& e) {
+  auto val=conf.find(key);
+  if (val!=conf.cend()) {
+    try {
+      float ret=std::stof(val->second);
+      return ret;
+    } catch (std::out_of_range& e) {
+    } catch (std::invalid_argument& e) {
+    }
   }
   return fallback;
 }
 
 double DivConfig::getDouble(String key, double fallback) const {
-  try {
-    String val=conf.at(key);
-    double ret=std::stod(val);
-    return ret;
-  } catch (std::out_of_range& e) {
-  } catch (std::invalid_argument& e) {
+  auto val=conf.find(key);
+  if (val!=conf.cend()) {
+    try {
+      double ret=std::stod(val->second);
+      return ret;
+    } catch (std::out_of_range& e) {
+    } catch (std::invalid_argument& e) {
+    }
   }
   return fallback;
 }
 
 String DivConfig::getString(String key, String fallback) const {
-  try {
-    String val=conf.at(key);
-    return val;
-  } catch (std::out_of_range& e) {
+  auto val=conf.find(key);
+  if (val!=conf.cend()) {
+    return val->second;
   }
   return fallback;
 }
@@ -294,37 +298,34 @@ String DivConfig::getString(String key, String fallback) const {
 std::vector<int> DivConfig::getIntList(String key, std::initializer_list<int> fallback) const {
   String next;
   std::vector<int> ret;
-  try {
-    String val=conf.at(key);
-
-    for (char i: val) {
-      if (i==',') {
+  auto val=conf.find(key);
+  if (val!=conf.cend()) {
+    try {
+      for (char i: val->second) {
+        if (i==',') {
+          int num=std::stoi(next);
+          ret.push_back(num);
+          next="";
+        } else {
+          next+=i;
+        }
+      }
+      if (!next.empty()) {
         int num=std::stoi(next);
         ret.push_back(num);
-        next="";
-      } else {
-        next+=i;
       }
-    }
-    if (!next.empty()) {
-      int num=std::stoi(next);
-      ret.push_back(num);
-    }
 
-    return ret;
-  } catch (std::out_of_range& e) {
-  } catch (std::invalid_argument& e) {
+      return ret;
+    } catch (std::out_of_range& e) {
+    } catch (std::invalid_argument& e) {
+    }
   }
   return fallback;
 }
 
 bool DivConfig::has(String key) const {
-  try {
-    String test=conf.at(key);
-  } catch (std::out_of_range& e) {
-    return false;
-  }
-  return true;
+  auto val=conf.find(key);
+  return (val!=conf.cend());
 }
 
 void DivConfig::set(String key, bool value) {

@@ -2,6 +2,8 @@
 
 the menu bar allows you to select from five menus: file, edit, settings, window and help.
 
+items in _italics_ don't appear in basic mode and are only available in advanced mode.
+
 # file
 
 - **new...**: create a new song.
@@ -38,12 +40,12 @@ the menu bar allows you to select from five menus: file, edit, settings, window 
 - **export command stream...**: export song data to a command stream file. see next section for more details.
   - this option is for developers.
   
-- **add chip...**: add a chip to the current song.
-- **configure chip...**: set a chip's parameters.
+- _**add chip...**:_ add a chip to the current song.
+- _**configure chip...**:_ set a chip's parameters.
   - for a list of parameters, see [7-systems](../7-systems/README.md).
-- **change chip...**: change a chip to another.
+- _**change chip...**:_ change a chip to another.
   - **Preserve channel positions**: enable this option to make sure Furnace does not auto-arrange/delete channels to compensate for differing channel counts. this can be useful for doing ports, e.g. from Genesis to PC-98.
-- **remove chip...**: remove a chip.
+- _**remove chip...**_: remove a chip.
   - **Preserve channel positions**: same thing as above.
 
 - **restore backup**: restore a previously saved backup.
@@ -99,10 +101,10 @@ the following settings exist:
   - some chips will not be available, either because VGM doesn't support these yet, or because you selected an old format version.
 - **add pattern change hints**: this option adds a "hint" when a pattern change occurs. only useful if you're a developer.
   - the format of the "hint" data block that gets written is: `67 66 FE ll ll ll ll 01 oo rr pp pp pp ...`
-    - ll: length, a 32-bit little-endian number
-    - oo: order
-    - rr: initial row (a 0Dxx effect is able to select a different row)
-    - pp: pattern index (one per channel)
+    - `ll`: length, a 32-bit little-endian number
+    - `oo`: order
+    - `rr`: initial row (a 0Dxx effect is able to select a different row)
+    - `pp`: pattern index (one per channel)
 - **direct stream mode**: this option allows DualPCM to work. don't use this for other chips.
   - may or may not play well with hardware VGM players.
 
@@ -140,7 +142,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **cut**: moves the current selection in the pattern view to clipboard.
 - **copy**: copies the current selection in the pattern view to clipboard.
 - **paste**: inserts the clipboard's contents in the cursor position.
-- **paste special...**: variants of the paste feature.
+- _**paste special...**:_ variants of the paste feature.
   - **paste mix**: inserts the clipboard's contents in the cursor position, but does not erase the occupied region.
   - **paste mix (background)**: does the same thing as paste mix, but doesn't alter content which is already there.
   - **paste with ins (foreground)**: same thing as paste mix, but changes the instrument.
@@ -154,8 +156,8 @@ it's not really useful, unless you're a developer and want to use a command stre
   - if a column is already selected, it will select the entire channel.
   - if a channel is already selected, it will select the entire pattern.
 
-- **operation mask**: toggles which columns will be affected by the listed operations. [more information here.](../8-advanced/opmask.md)
-- **input latch**: determines which data are placed along with a note. [more information here.](../8-advanced/inputlatch.md)
+- _**operation mask**:_ toggles which columns will be affected by the listed operations. [more information here.](../8-advanced/opmask.md)
+- _**input latch**:_ determines which data are placed along with a note. [more information here.](../8-advanced/inputlatch.md)
 
 - **note/octave up/down**: transposes notes in the current selection.
 
@@ -188,7 +190,7 @@ it's not really useful, unless you're a developer and want to use a command stre
 - **expand song**: same as expand, but affects the entire song.
   - it also changes speeds and pattern length to compensate.
 
-- **find/replace**: shows [the Find/Replace window](../8-advanced/find-replace.md).
+- _**find/replace**:_ shows [the Find/Replace window](../8-advanced/find-replace.md).
 
 - **clear**: allows you to mass-delete things like songs, instruments and the like.
 
@@ -213,12 +215,12 @@ all these menu items show or hide their associated windows.
 - [samples](../6-sample/README.md)
 - [orders](order-list.md)
 - [pattern](../3-pattern/README.md)
-- [mixer](mixer.md)
-- [grooves](grooves.md)
-- [channels](channels.md)
-- [pattern manager](pat-manager.md)
-- [chip manager](chip-manager.md)
-- [compatibility flags](compat-flags.md)
+- _[mixer](mixer.md)_
+- _[grooves](grooves.md)_
+- _[channels](channels.md)_
+- _[pattern manager](pat-manager.md)_
+- _[chip manager](chip-manager.md)_
+- _[compatibility flags](compat-flags.md)_
 - [song comments](comments.md)
 
 - [piano](piano.md)
@@ -246,5 +248,5 @@ at the end of the menu bar, more information may be shown:
   - volume in decimal, hex, and percentage.
   - effect type and description.
 - during playback, the current values of the following will be listed:\
-  speed/groove @ tick rate (BPM) | order | row | elapsed time.
+  > speed/groove @ tick rate (BPM) | order | row | elapsed time.
 - if any changes or edits have been made but not yet saved, "modified" will appear.

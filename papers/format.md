@@ -34,110 +34,15 @@ the format versions are:
 
 - 162: Furnace 0.6pre7
 - 161: Furnace 0.6pre6
-- 160: Furnace dev160
-- 159: Furnace dev159
 - 158: Furnace 0.6pre5
-- 157: Furnace dev157
-- 156: Furnace dev156
-- 155: Furnace dev155
-- 154: Furnace dev154
-- 153: Furnace dev153
-- 152: Furnace dev152
-- 151: Furnace dev151
-- 150: Furnace dev150
-- 149: Furnace dev149
-- 148: Furnace dev148
-- 147: Furnace dev147
 - 146: Furnace Pro (joke version)
-- 145: Furnace dev145
-- 144: Furnace dev144
 - 143: Furnace 0.6pre4
-- 142: Furnace dev142
 - 141: Furnace Tournament Edition (for intro tune contest)
-- 140: Furnace dev140
-- 139: Furnace dev139
-- 138: Furnace dev138
-- 137: Furnace dev137
-- 136: Furnace dev136
-- 135: Furnace dev135
-- 134: Furnace dev134
 - 133: Furnace 0.6pre3
 - 132: Furnace 0.6pre2
-- 131: Furnace dev131
-- 130: Furnace dev130
-- 129: Furnace dev129
-- 128: Furnace dev128
-- 127: Furnace dev127
-- 126: Furnace dev126
-- 125: Furnace dev125
-- 124: Furnace dev124
-- 123: Furnace dev123
-- 122: Furnace dev122
-- 121: Furnace dev121
-- 120: Furnace dev120
-- 119: Furnace dev119
-- 118: Furnace dev118
-- 117: Furnace dev117
 - 116: Furnace 0.6pre1.5
-- 115: Furnace dev115
-- 114: Furnace dev114
-- 113: Furnace dev113
-- 112: Furnace dev112
-- 111: Furnace dev111
-- 110: Furnace dev110
-- 109: Furnace dev109
-- 108: Furnace dev108
-- 107: Furnace dev107
-- 106: Furnace dev106
-- 105: Furnace dev105
-- 104: Furnace dev104
-- 103: Furnace dev103
-- 102: Furnace 0.6pre1 (dev102)
-- 101: Furnace 0.6pre1 (dev101)
 - 100: Furnace 0.6pre1
-- 99: Furnace dev99
-- 98: Furnace dev98
-- 97: Furnace dev97
-- 96: Furnace dev96
-- 95: Furnace dev95
-- 94: Furnace dev94
-- 93: Furnace dev93
-- 92: Furnace dev92
-- 91: Furnace dev91
-- 90: Furnace dev90
-- 89: Furnace dev89
-- 88: Furnace dev88
-- 87: Furnace dev87
-- 86: Furnace dev86
-- 85: Furnace dev85
-- 84: Furnace dev84
-- 83: Furnace dev83
-- 82: Furnace dev82
-- 81: Furnace dev81
-- 80: Furnace dev80
-- 79: Furnace dev79
-- 78: Furnace dev78
-- 77: Furnace dev77
-- 76: Furnace dev76
 - 75: Furnace dev75/April Fools' 0.6pre0
-- 74: Furnace dev74
-- 73: Furnace dev73
-- 72: Furnace dev72
-- 71: Furnace dev71
-- 70: Furnace dev70
-- 69: Furnace dev69
-- 68: Furnace dev68
-- 67: Furnace dev67
-- 66: Furnace dev66
-- 65: Furnace dev65
-- 64: Furnace dev64
-- 63: Furnace dev63
-- 62: Furnace dev62
-- 61: Furnace dev61
-- 60: Furnace dev60
-- 59: Furnace dev59
-- 58: Furnace dev58
-- 57: Furnace dev57
 
 - 54: Furnace 0.5.8
 - 53: Furnace 0.5.7
@@ -175,6 +80,8 @@ the format versions are:
 - 14: Furnace 0.2.2
 - 13: Furnace 0.2.1
 - 12: Furnace 0.2
+
+versions that do not appear in this list are `dev???` ones.
 
 # header
 
@@ -311,6 +218,7 @@ size | description
      |   - 0xca: ZX Spectrum (beeper, QuadTone engine) - 5 channels
      |   - 0xcb: Casio PV-1000 - 3 channels
      |   - 0xcc: K053260 - 4 channels
+     |   - 0xcd: TED - 2 channels
      |   - 0xde: YM2610B extended - 19 channels
      |   - 0xe0: QSound - 19 channels
      |   - 0xfc: Pong - 1 channel
