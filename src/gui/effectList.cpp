@@ -12,38 +12,40 @@ void FurnaceGUI::drawEffectList() {
   ImGui::SetNextWindowSizeConstraints(ImVec2(60.0f*dpiScale,20.0f*dpiScale),ImVec2(canvasW,canvasH));
   if (ImGui::Begin("Effect List",&effectListOpen,globalWinFlags)) {
     ImGui::Text("Chip at cursor: %s",e->getSystemName(e->sysOfChan[cursor.xCoarse]));
-    ImGui::Text("Sort Effects:");
-    ImGui::Checkbox("All",&effectShowAll);
-    if (effectShowAll) {
-      effectShowMisc = true;
-      effectShowPanning = true;
-      effectShowPitch = true;
-      effectShowVolume = true;
-      effectShowSong = true;
-      effectShowTime = true;
-      effectShowSpeed = true;
-      effectShowSysPrimary = true;
-      effectShowSysSecondary = true;
+    // ImGui::Text("Sort Effects:");
+    if (ImGui::TreeNode("Sort Effects")) {
+      ImGui::Checkbox("All",&effectShowAll);
+      if (effectShowAll) {
+        effectShowMisc = true;
+        effectShowPanning = true;
+        effectShowPitch = true;
+        effectShowVolume = true;
+        effectShowSong = true;
+        effectShowTime = true;
+        effectShowSpeed = true;
+        effectShowSysPrimary = true;
+        effectShowSysSecondary = true;
+      }
+      // ImGui::SameLine();
+      ImGui::Checkbox("Pitch",&effectShowPitch);
+      // ImGui::SameLine();
+      ImGui::Checkbox("Song",&effectShowSong);
+      // ImGui::SameLine();
+      ImGui::Checkbox("Time",&effectShowTime);
+      // ImGui::SameLine();
+      ImGui::Checkbox("Speed",&effectShowSpeed);
+      // ImGui::SameLine();
+      ImGui::Checkbox("Panning",&effectShowPanning);
+      // ImGui::SameLine();
+      ImGui::Checkbox("Volume",&effectShowVolume);
+      // ImGui::SameLine();
+      ImGui::Checkbox("System (primary)",&effectShowSysPrimary);
+      // ImGui::SameLine();
+      ImGui::Checkbox("System (secondary)",&effectShowSysSecondary);
+      // ImGui::SameLine();
+      ImGui::Checkbox("Miscellanious",&effectShowMisc);
+      ImGui::TreePop();
     }
-    ImGui::SameLine();
-    ImGui::Checkbox("Pitch",&effectShowPitch);
-    ImGui::SameLine();
-    ImGui::Checkbox("Song",&effectShowSong);
-    ImGui::SameLine();
-    ImGui::Checkbox("Time",&effectShowTime);
-    ImGui::SameLine();
-    ImGui::Checkbox("Speed",&effectShowSpeed);
-    ImGui::SameLine();
-    ImGui::Checkbox("Panning",&effectShowPanning);
-    // ImGui::SameLine();
-    ImGui::Checkbox("Volume",&effectShowVolume);
-    ImGui::SameLine();
-    ImGui::Checkbox("System (primary)",&effectShowSysPrimary);
-    ImGui::SameLine();
-    ImGui::Checkbox("System (secondary)",&effectShowSysSecondary);
-    ImGui::SameLine();
-    ImGui::Checkbox("Miscellanious",&effectShowMisc);
-
     effectShowAll = effectShowMisc && effectShowPanning && effectShowPitch && effectShowVolume && effectShowSong && effectShowTime && effectShowSpeed && effectShowSysPrimary && effectShowSysSecondary;
     
     if (ImGui::BeginTable("effectList",2)) {
