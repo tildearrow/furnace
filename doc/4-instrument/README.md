@@ -67,7 +67,7 @@ Just beneath the box is a shorter bar that controls looping.
 Finally, the sequence of values can be directly edited in the text box at the bottom.
 - The loop start is entered as a `|`.
 - The release point is entered as a `/`.
-- In arpeggio macros, a value starting with a `@` is an absolute note (instead of a relative shift). No matter the note enteres in the pattern, `@` values will be played at that exact note. This is especially useful for noise instruments with preset periods.
+- In arpeggio macros, a value starting with a `@` is an absolute note (instead of a relative shift). No matter the note entered in the pattern, `@` values will be played at that exact note. This is especially useful for noise instruments with preset periods.
 
 ### ADSR
 
