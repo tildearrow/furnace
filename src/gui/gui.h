@@ -1729,8 +1729,6 @@ class FurnaceGUI {
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
   bool groovesOpen, introMonOpen;
 
-  //effect sorting
-  bool effectShowAll, effectShowPitch, effectShowVolume, effectShowPanning, effectShowSong, effectShowTime, effectShowSpeed, effectShowSysPrimary, effectShowSysSecondary, effectShowMisc;
 
   bool basicMode, shortIntro;
   bool insListDir, waveListDir, sampleListDir;
@@ -2034,6 +2032,9 @@ class FurnaceGUI {
   bool pianoReadonly;
   int pianoOffset, pianoOffsetEdit;
   int pianoView, pianoInputPadMode;
+  
+  //effect sorting
+  bool effectShowAll, effectShowPitch, effectShowVolume, effectShowPanning, effectShowSong, effectShowTime, effectShowSpeed, effectShowSysPrimary, effectShowSysSecondary, effectShowMisc;
 
   // TX81Z
   bool hasACED;
