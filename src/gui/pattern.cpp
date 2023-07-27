@@ -938,6 +938,7 @@ void FurnaceGUI::drawPattern() {
           ImGui::TableNextColumn();
         }
       }
+
       ImGui::EndDisabled();
       ImGui::PopStyleVar();
       oldRow=curRow;
