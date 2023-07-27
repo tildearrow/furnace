@@ -121,6 +121,7 @@ const char* aboutLine[]={
   "SwapXFO",
   "TakuikaNinja",
   "TCORPStudios",
+  "Teuthida",
   "The Blender Fiddler",
   "TheDuccinator",
   "theloredev",
