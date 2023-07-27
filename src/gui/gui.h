@@ -1729,7 +1729,6 @@ class FurnaceGUI {
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
   bool groovesOpen, introMonOpen;
 
-
   bool basicMode, shortIntro;
   bool insListDir, waveListDir, sampleListDir;
 
