@@ -21,7 +21,6 @@
 #define _PCM_DAC_H
 
 #include "../dispatch.h"
-#include <queue>
 #include "../waveSynth.h"
 
 class DivPlatformPCMDAC: public DivDispatch {

@@ -927,12 +927,13 @@ void DivEngine::runExportThread() {
         }
       }
 
-      float* outBuf[2];
+      float* outBuf[DIV_MAX_OUTPUTS];
+      memset(outBuf,0,sizeof(void*)*DIV_MAX_OUTPUTS);
       outBuf[0]=new float[EXPORT_BUFSIZE];
       outBuf[1]=new float[EXPORT_BUFSIZE];
       short* sysBuf[DIV_MAX_CHIPS];
       for (int i=0; i<song.systemLen; i++) {
-        sysBuf[i]=new short[EXPORT_BUFSIZE*2];
+        sysBuf[i]=new short[EXPORT_BUFSIZE*disCont[i].dispatch->getOutputCount()];
       }
 
       // take control of audio output
@@ -2598,6 +2599,8 @@ void DivEngine::stepOne(int row) {
   }
   stepPlay=2;
   ticks=1;
+  prevOrder=curOrder;
+  prevRow=curRow;
   BUSY_END;
 }
 
@@ -3848,6 +3851,23 @@ void DivEngine::delSample(int index) {
     song.sampleLen=song.sample.size();
     removeAsset(song.sampleDir,index);
     checkAssetDir(song.sampleDir,song.sample.size());
+
+    // compensate
+    for (DivInstrument* i: song.ins) {
+      if (i->amiga.initSample==index) {
+        i->amiga.initSample=-1;
+      } else if (i->amiga.initSample>index) {
+        i->amiga.initSample--;
+      }
+      for (int j=0; j<120; j++) {
+        if (i->amiga.noteMap[j].map==index) {
+          i->amiga.noteMap[j].map=-1;
+        } else if (i->amiga.noteMap[j].map>index) {
+          i->amiga.noteMap[j].map--;
+        }
+      }
+    }
+
     renderSamples();
   }
   saveLock.unlock();
@@ -4039,6 +4059,27 @@ void DivEngine::exchangeIns(int one, int two) {
   }
 }
 
+void DivEngine::exchangeWave(int one, int two) {
+  // TODO
+}
+
+void DivEngine::exchangeSample(int one, int two) {
+  for (DivInstrument* i: song.ins) {
+    if (i->amiga.initSample==one) {
+      i->amiga.initSample=two;
+    } else if (i->amiga.initSample==two) {
+      i->amiga.initSample=one;
+    }
+    for (int j=0; j<120; j++) {
+      if (i->amiga.noteMap[j].map==one) {
+        i->amiga.noteMap[j].map=two;
+      } else if (i->amiga.noteMap[j].map==two) {
+        i->amiga.noteMap[j].map=one;
+      }
+    }
+  }
+}
+
 bool DivEngine::moveInsUp(int which) {
   if (which<1 || which>=(int)song.ins.size()) return false;
   BUSY_BEGIN;
@@ -4061,6 +4102,7 @@ bool DivEngine::moveWaveUp(int which) {
   song.wave[which]=song.wave[which-1];
   song.wave[which-1]=prev;
   moveAsset(song.waveDir,which,which-1);
+  exchangeWave(which,which-1);
   saveLock.unlock();
   BUSY_END;
   return true;
@@ -4077,6 +4119,7 @@ bool DivEngine::moveSampleUp(int which) {
   song.sample[which]=song.sample[which-1];
   song.sample[which-1]=prev;
   moveAsset(song.sampleDir,which,which-1);
+  exchangeSample(which,which-1);
   saveLock.unlock();
   renderSamples();
   BUSY_END;
@@ -4104,6 +4147,7 @@ bool DivEngine::moveWaveDown(int which) {
   saveLock.lock();
   song.wave[which]=song.wave[which+1];
   song.wave[which+1]=prev;
+  exchangeWave(which,which+1);
   moveAsset(song.waveDir,which,which+1);
   saveLock.unlock();
   BUSY_END;
@@ -4120,6 +4164,7 @@ bool DivEngine::moveSampleDown(int which) {
   saveLock.lock();
   song.sample[which]=song.sample[which+1];
   song.sample[which+1]=prev;
+  exchangeSample(which,which+1);
   moveAsset(song.sampleDir,which,which+1);
   saveLock.unlock();
   renderSamples();
@@ -4320,9 +4365,7 @@ void DivEngine::autoNoteOn(int ch, int ins, int note, int vol) {
 
 void DivEngine::autoNoteOff(int ch, int note, int vol) {
   if (!playing) {
-    reset();
-    freelance=true;
-    playing=true;
+    return;
   }
   //if (ch<0 || ch>=chans) return;
   for (int i=0; i<chans; i++) {
@@ -4335,9 +4378,7 @@ void DivEngine::autoNoteOff(int ch, int note, int vol) {
 
 void DivEngine::autoNoteOffAll() {
   if (!playing) {
-    reset();
-    freelance=true;
-    playing=true;
+    return;
   }
   for (int i=0; i<chans; i++) {
     if (chan[i].midiNote!=-1) {

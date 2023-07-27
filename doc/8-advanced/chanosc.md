@@ -1,6 +1,6 @@
-# oscilloscope (per channel)
+# oscilloscope (per-channel)
 
-the "Oscilloscope (per channel)" dialog shows an individual oscilloscope for each channel during playback.
+the "Oscilloscope (per-channel)" dialog shows an individual oscilloscope for each channel during playback.
 
 ![oscilloscope per-channel configuration view](chanosc.png)
 
@@ -8,8 +8,9 @@ right-clicking within the view will change it to the configuration view shown ab
 - **Columns**: arranges oscilloscopes into this many columns.
 - **Size (ms)**: sets what length of audio is visible in each oscilloscope.
 - **Center waveform**: does its best to latch the waveform to the channel's note frequency and centers the display.
+- **Amplitude**: scales amplitude for all oscilloscopes.
 - **Gradient**: see below.
-- the color selector sets the waveform color. right-clicking on it pops up an option dialog:
+- the color selector sets the color for all waveforms. right-clicking on it pops up an option dialog:
   - select between the square selector and the color wheel selector.
   - **Alpha bar**: adds a transparency selector.
 - the boxes below that are for selecting colors numerically by red-green-blue-alpha, hue-saturation-value-alpha, and HTML-style RGBA in hex.
@@ -22,6 +23,7 @@ right-clicking within the view will change it to the configuration view shown ab
   - `%I`: instrument number (decimal)
   - `%x`: instrument number (hex)
   - `%s`: chip name
+  - `%p`: chip part number
   - `%S`: chip ID
   - `%v`: volume (decimal)
   - `%V`: volume (percentage)

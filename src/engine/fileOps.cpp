@@ -1937,8 +1937,8 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.system[i]=systemFromFileFur(sysID);
       logD("- %d: %.2x (%s)",i,sysID,getSystemName(ds.system[i]));
       if (sysID!=0 && systemToFileFur(ds.system[i])==0) {
-        logE("unrecognized system ID %.2x",ds.system[i]);
-        lastError=fmt::sprintf("unrecognized system ID %.2x!",ds.system[i]);
+        logE("unrecognized system ID %.2x",sysID);
+        lastError=fmt::sprintf("unrecognized system ID %.2x!",sysID);
         delete[] file;
         return false;
       }
@@ -2937,6 +2937,15 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       for (int i=0; i<ds.systemLen; i++) {
         if (ds.system[i]==DIV_SYSTEM_C64_8580 || ds.system[i]==DIV_SYSTEM_C64_6581) {
           ds.systemFlags[i].set("keyPriority",false);
+        }
+      }
+    }
+
+    // Namco 163 pitch compensation compat
+    if (ds.version<165) {
+      for (int i=0; i<ds.systemLen; i++) {
+        if (ds.system[i]==DIV_SYSTEM_N163) {
+          ds.systemFlags[i].set("lenCompensate",true);
         }
       }
     }

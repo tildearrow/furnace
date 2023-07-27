@@ -22,8 +22,8 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) if (!skipRegisterWrites) {writes.emplace(a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
-#define immWrite(a,v) {writes.emplace(a,v); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define rWrite(a,v) if (!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
+#define immWrite(a,v) {writes.push(QueuedWrite(a,v)); regPool[(a)&0x7f]=v; if (dumpWrites) {addWrite(a,v);} }
 
 #define CHIP_DIVIDER 16
 
@@ -255,7 +255,7 @@ void DivPlatformGB::tick(bool sysTick) {
               chan[i].sweepChanged=true;
               break;
             case DivInstrumentGB::DIV_GB_HWCMD_WAIT:
-              chan[i].hwSeqDelay=data+1;
+              chan[i].hwSeqDelay=(data+1)*parent->tickMult;
               leave=true;
               break;
             case DivInstrumentGB::DIV_GB_HWCMD_WAIT_REL:

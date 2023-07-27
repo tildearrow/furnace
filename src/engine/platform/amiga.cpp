@@ -809,6 +809,8 @@ void DivPlatformAmiga::setFlags(const DivConfig& flags) {
   } else {
     chipClock=COLOR_NTSC;
   }
+  CHECK_CUSTOM_CLOCK;
+  
   rate=chipClock/AMIGA_DIVIDER;
   for (int i=0; i<4; i++) {
     oscBuf[i]->rate=rate;

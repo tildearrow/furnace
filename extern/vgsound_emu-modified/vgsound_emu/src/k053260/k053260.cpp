@@ -8,18 +8,19 @@
 
 #include "k053260.hpp"
 
-void k053260_core::tick()
+void k053260_core::tick(u32 cycle)
 {
 	m_out[0] = m_out[1] = 0;
 	if (m_ctrl.sound_en())
 	{
 		for (int i = 0; i < 4; i++)
 		{
-			m_voice[i].tick();
+			m_voice[i].tick(cycle);
 			m_out[0] += m_voice[i].out(0);
 			m_out[1] += m_voice[i].out(1);
 		}
 	}
+	/*
 	// dac clock (YM3012 format)
 	u8 dac_clock = m_dac.clock();
 	if (bitfield(++dac_clock, 0, 4) == 0)
@@ -34,62 +35,58 @@ void k053260_core::tick()
 		m_dac.set_state(bitfield(dac_state, 0, 2));
 	}
 	m_dac.set_clock(bitfield(dac_clock, 0, 4));
+	*/
 }
 
-void k053260_core::voice_t::tick()
+void k053260_core::voice_t::tick(u32 cycle)
 {
 	if (m_enable && m_busy)
 	{
-		bool update = false;
 		// update counter
-		if (bitfield(++m_counter, 0, 12) == 0)
+		m_counter += cycle;
+		if (m_counter >= 0x1000)
 		{
 			if (m_bitpos < 8)
 			{
 				m_bitpos += 8;
-				m_addr	 = bitfield(m_addr + 1, 0, 21);
+				m_addr = m_reverse ? bitfield(m_addr - 1, 0, 21) : bitfield(m_addr + 1, 0, 21);
 				m_remain--;
+				if (m_remain < 0)  // check end flag
+				{
+					if (m_loop)
+					{
+						m_addr		= m_start;
+						m_remain	= m_length;
+						m_output = 0;
+					}
+					else
+					{
+						m_busy = false;
+					}
+				}
 			}
+			m_data = m_host.m_intf.read_sample(bitfield(m_addr, 0, 21));  // fetch ROM
 			if (m_adpcm)
 			{
-				m_bitpos -= 4;
-				update	 = true;
+				m_bitpos		-= 4;
+				const u8 nibble = bitfield(m_data, m_reverse ? (~m_bitpos & 4) : (m_bitpos & 4), 4);  // get nibble from ROM
+				if (nibble)
+				{
+					m_output += m_host.adpcm_lut(nibble);
+				}
 			}
 			else
 			{
 				m_bitpos -= 8;
 			}
-			m_counter = bitfield(m_pitch, 0, 12);
-		}
-		m_data = m_host.m_intf.read_sample(bitfield(m_addr, 0, 21));  // fetch ROM
-		if (update)
-		{
-			const u8 nibble = bitfield(m_data, m_bitpos & 4, 4);  // get nibble from ROM
-			if (nibble)
-			{
-				m_adpcm_buf += bitfield(nibble, 3) ? s8(0x80 >> bitfield(nibble, 0, 3))
-												   : (1 << bitfield(nibble - 1, 0, 3));
-			}
+			m_counter = (m_counter - 0x1000) + bitfield(m_pitch, 0, 12);
 		}
 
-		if (m_remain < 0)  // check end flag
-		{
-			if (m_loop)
-			{
-				m_addr		= m_start;
-				m_remain	= m_length;
-				m_adpcm_buf = 0;
-			}
-			else
-			{
-				m_busy = false;
-			}
-		}
 		// calculate output
-		s32 output = m_adpcm ? m_adpcm_buf : sign_ext<s32>(m_data, 8) * s32(m_volume);
+		s32 output = (m_adpcm ? m_output : sign_ext<s32>(m_data, 8)) * s32(m_volume);
 		// use math for now; actually fomula unknown
-		m_out[0] = (m_pan >= 0) ? s32(output * cos(f64(m_pan) * PI / 180)) : 0;
-		m_out[1] = (m_pan >= 0) ? s32(output * sin(f64(m_pan) * PI / 180)) : 0;
+		m_out[0] = (output * m_host.pan_lut(m_pan, 0)) >> 7;
+		m_out[1] = (output * m_host.pan_lut(m_pan, 1)) >> 7;
 	}
 	else
 	{
@@ -172,6 +169,7 @@ void k053260_core::write(u8 address, u8 data)
 		case 0x28:	// keyon/off toggle
 			for (int i = 0; i < 4; i++)
 			{
+				m_voice[i].set_reverse(bitfield(data, 4 + i));
 				if (bitfield(data, i) && (!m_voice[i].enable()))
 				{  // rising edge (keyon)
 					m_voice[i].keyon();
@@ -244,8 +242,9 @@ void k053260_core::voice_t::keyon()
 	m_addr			  = m_start;
 	m_remain		  = m_length;
 	m_bitpos		  = 4;
-	m_adpcm_buf		  = 0;
-	std::fill(m_out.begin(), m_out.end(), 0);
+	m_data			  = 0;
+	m_output		  = 0;
+	std::fill_n(m_out, 2, 0);
 }
 
 // key off trigger
@@ -259,34 +258,35 @@ void k053260_core::reset()
 		elem.reset();
 	}
 
-	m_intf.write_int(0);
+	//m_intf.write_int(0);
 
-	std::fill(m_host2snd.begin(), m_host2snd.end(), 0);
-	std::fill(m_snd2host.begin(), m_snd2host.end(), 0);
+	std::fill_n(m_host2snd, 2, 0);
+	std::fill_n(m_snd2host, 2, 0);
 	m_ctrl.reset();
-	m_dac.reset();
+	//m_dac.reset();
 
-	std::fill(m_reg.begin(), m_reg.end(), 0);
-	std::fill(m_out.begin(), m_out.end(), 0);
+	std::fill_n(m_reg, 64, 0);
+	std::fill_n(m_out, 2, 0);
 }
 
 // reset voice
 void k053260_core::voice_t::reset()
 {
-	m_enable	= 0;
-	m_busy		= 0;
-	m_loop		= 0;
-	m_adpcm		= 0;
-	m_pitch		= 0;
-	m_start		= 0;
-	m_length	= 0;
-	m_volume	= 0;
-	m_pan		= -1;
-	m_counter	= 0;
-	m_addr		= 0;
-	m_remain	= 0;
-	m_bitpos	= 4;
-	m_data		= 0;
-	m_adpcm_buf = 0;
+	m_enable  = 0;
+	m_busy	  = 0;
+	m_loop	  = 0;
+	m_adpcm	  = 0;
+	m_pitch	  = 0;
+	m_reverse = 0;
+	m_start	  = 0;
+	m_length  = 0;
+	m_volume  = 0;
+	m_pan	  = 4;
+	m_counter = 0;
+	m_addr	  = 0;
+	m_remain  = 0;
+	m_bitpos  = 4;
+	m_data	  = 0;
+	m_output  = 0;
 	m_out[0] = m_out[1] = 0;
 }

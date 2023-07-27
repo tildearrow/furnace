@@ -77,7 +77,6 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
   if (i>=0 && i<e->song.insLen) {
     DivInstrument* ins=e->song.ins[i];
     insType=(ins->type>DIV_INS_MAX)?"Unknown":insTypes[ins->type];
-    if (ins->type==DIV_INS_N163) insType=settings.c163Name.c_str();
     switch (ins->type) {
       case DIV_INS_FM:
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_FM]);
@@ -278,6 +277,14 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
       case DIV_INS_PV1000:
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_PV1000]);
         name=fmt::sprintf(ICON_FA_GAMEPAD "##_INS%d",i);
+        break;
+      case DIV_INS_K053260:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_K053260]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
+      case DIV_INS_TED:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_TED]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
         break;
       default:
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);

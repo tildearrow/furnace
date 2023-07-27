@@ -26,9 +26,8 @@
 #define PITCH_OFFSET ((double)(16*2048*(chanMax+1)))
 #define NOTE_ES5506(c,note) (parent->calcBaseFreq(chipClock,chan[c].pcm.freqOffs,note,false))
 
-#define rWrite(a,...) {if(!skipRegisterWrites) {hostIntf32.emplace(4,(a),__VA_ARGS__); }}
-//#define rRead(a,st,...) {hostIntf32.emplace(st,4,(a),__VA_ARGS__);}
-#define immWrite(a,...) {hostIntf32.emplace(4,(a),__VA_ARGS__);}
+#define rWrite(a,...) {if(!skipRegisterWrites) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__)); }}
+#define immWrite(a,...) {hostIntf32.push_back(QueuedHostIntf(4,(a),__VA_ARGS__));}
 #define pageWrite(p,a,...) \
   if (!skipRegisterWrites) { \
     if (curPage!=(p)) { \
@@ -118,15 +117,15 @@ void DivPlatformES5506::acquire(short** buf, size_t len) {
     while (!hostIntf32.empty()) {
       QueuedHostIntf w=hostIntf32.front();
       if (w.isRead && (w.read!=NULL)) {
-        hostIntf8.emplace(w.state,0,w.addr,w.read,w.mask);
-        hostIntf8.emplace(w.state,1,w.addr,w.read,w.mask);
-        hostIntf8.emplace(w.state,2,w.addr,w.read,w.mask);
-        hostIntf8.emplace(w.state,3,w.addr,w.read,w.mask,w.delay);
+        hostIntf8.push(QueuedHostIntf(w.state,0,w.addr,w.read,w.mask));
+        hostIntf8.push(QueuedHostIntf(w.state,1,w.addr,w.read,w.mask));
+        hostIntf8.push(QueuedHostIntf(w.state,2,w.addr,w.read,w.mask));
+        hostIntf8.push(QueuedHostIntf(w.state,3,w.addr,w.read,w.mask,w.delay));
       } else {
-        hostIntf8.emplace(0,w.addr,w.val,w.mask);
-        hostIntf8.emplace(1,w.addr,w.val,w.mask);
-        hostIntf8.emplace(2,w.addr,w.val,w.mask);
-        hostIntf8.emplace(3,w.addr,w.val,w.mask,w.delay);
+        hostIntf8.push(QueuedHostIntf(0,w.addr,w.val,w.mask));
+        hostIntf8.push(QueuedHostIntf(1,w.addr,w.val,w.mask));
+        hostIntf8.push(QueuedHostIntf(2,w.addr,w.val,w.mask));
+        hostIntf8.push(QueuedHostIntf(3,w.addr,w.val,w.mask,w.delay));
       }
       hostIntf32.pop();
     }
@@ -361,26 +360,6 @@ void DivPlatformES5506::tick(bool sysTick) {
         }
       }
     }
-    if (chan[i].pcm.isNoteMap) {
-    // note map macros
-      if (chan[i].std.wave.had) {
-        if (chan[i].std.wave.val>=0 && chan[i].std.wave.val<120) {
-          if (chan[i].pcm.next!=chan[i].std.wave.val) {
-            chan[i].pcm.next=chan[i].std.wave.val;
-            chan[i].pcmChanged.index=1;
-          }
-        }
-      }
-    } else if (!chan[i].pcm.isNoteMap) {
-      if (chan[i].std.wave.had) {
-        if (chan[i].std.wave.val>=0 && chan[i].std.wave.val<parent->song.sampleLen) {
-          if (chan[i].pcm.next!=chan[i].std.wave.val) {
-            chan[i].pcm.next=chan[i].std.wave.val;
-            chan[i].pcmChanged.index=1;
-          }
-        }
-      }
-    }
     // update registers
     if (chan[i].volChanged.changed) {
       // calculate volume (16 bit)
@@ -433,7 +412,7 @@ void DivPlatformES5506::tick(bool sysTick) {
               off=(double)center/8363.0;
             }
             if (ins->amiga.useNoteMap) {
-              chan[i].pcm.note=next;
+              //chan[i].pcm.note=next;
             }
             // get loop mode
             DivSampleLoopMode loopMode=s->isLoopable()?s->loopMode:DIV_SAMPLE_LOOP_MAX;
@@ -749,13 +728,13 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (((ins->amiga.useNoteMap) && (c.value>=0 && c.value<120)) ||
           ((!ins->amiga.useNoteMap) && (ins->amiga.initSample>=0 && ins->amiga.initSample<parent->song.sampleLen))) {
         int sample=ins->amiga.getSample(c.value);
-        c.value=ins->amiga.getFreq(c.value);
         if (sample>=0 && sample<parent->song.sampleLen) {
           sampleValid=true;
           chan[c.chan].volMacroMax=ins->type==DIV_INS_AMIGA?64:0xfff;
           chan[c.chan].panMacroMax=ins->type==DIV_INS_AMIGA?127:0xfff;
-          chan[c.chan].pcm.note=c.value;
           chan[c.chan].pcm.next=ins->amiga.useNoteMap?c.value:sample;
+          c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].pcm.note=c.value;
           chan[c.chan].filter=ins->es5506.filter;
           chan[c.chan].envelope=ins->es5506.envelope;
         }
@@ -870,20 +849,6 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;
       chan[c.chan].freqChanged=true;
-      break;
-    // sample commands
-    case DIV_CMD_WAVE:
-      if (!chan[c.chan].useWave) {
-        if (chan[c.chan].active) {
-          DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_ES5506);
-          if (((ins->amiga.useNoteMap) && (c.value>=0 && c.value<120)) ||
-              ((!ins->amiga.useNoteMap) && (c.value>=0 && c.value<parent->song.sampleLen))) {
-            chan[c.chan].pcm.next=c.value;
-            chan[c.chan].pcmChanged.index=1;
-          }
-        }
-      }
-      // reserved for useWave
       break;
     // Filter commands
     case DIV_CMD_ES5506_FILTER_MODE:
@@ -1095,8 +1060,6 @@ DivMacroInt* DivPlatformES5506::getChanMacroInt(int ch) {
 void DivPlatformES5506::reset() {
   while (!hostIntf32.empty()) hostIntf32.pop();
   while (!hostIntf8.empty()) hostIntf8.pop();
-  while (!queuedRead.empty()) queuedRead.pop();
-  while (!queuedReadState.empty()) queuedReadState.pop();
   for (int i=0; i<32; i++) {
     chan[i]=DivPlatformES5506::Channel();
     chan[i].std.setEngine(parent);
@@ -1256,6 +1219,7 @@ int DivPlatformES5506::init(DivEngine* p, int channels, int sugRate, const DivCo
   dumpWrites=false;
   skipRegisterWrites=false;
   volScale=0;
+  curPage=0;
 
   for (int i=0; i<32; i++) {
     isMuted[i]=false;

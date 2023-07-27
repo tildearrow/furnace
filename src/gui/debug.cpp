@@ -53,6 +53,7 @@
 #include "../engine/platform/ga20.h"
 #include "../engine/platform/sm8521.h"
 #include "../engine/platform/pv1000.h"
+#include "../engine/platform/k053260.h"
 #include "../engine/platform/dummy.h"
 
 #define COMMON_CHIP_DEBUG \
@@ -461,8 +462,6 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text("- chanMax: %d",ch->chanMax);
       ImGui::Text("- loadWave: %d",ch->loadWave);
       ImGui::Text("- loadPos: %d",ch->loadPos);
-      ImGui::Text("- loadLen: %d",ch->loadLen);
-      ImGui::Text("- loadMode: %d",ch->loadMode);
       COMMON_CHIP_DEBUG_BOOL;
       ImGui::TextColored(ch->multiplex?colorOn:colorOff,">> Multiplex");
       break;
@@ -540,6 +539,13 @@ void putDispatchChip(void* data, int type) {
     case DIV_SYSTEM_PV1000: {
       DivPlatformPV1000* ch=(DivPlatformPV1000*)data;
       ImGui::Text("> PV1000");
+      COMMON_CHIP_DEBUG;
+      COMMON_CHIP_DEBUG_BOOL;
+      break;
+    }
+    case DIV_SYSTEM_K053260: {
+      DivPlatformK053260* ch=(DivPlatformK053260*)data;
+      ImGui::Text("> K053260");
       COMMON_CHIP_DEBUG;
       COMMON_CHIP_DEBUG_BOOL;
       break;
@@ -868,10 +874,6 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("- wavepos: %d",ch->wavePos);
       ImGui::Text("- wavelen: %d",ch->waveLen);
       ImGui::Text("- wavemode: %d",ch->waveMode);
-      ImGui::Text("- loadwave: %d",ch->loadWave);
-      ImGui::Text("- loadpos: %d",ch->loadPos);
-      ImGui::Text("- loadlen: %d",ch->loadLen);
-      ImGui::Text("- loadmode: %d",ch->loadMode);
       ImGui::Text("- resVol: %.2x",ch->resVol);
       COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->volumeChanged?colorOn:colorOff,">> VolumeChanged");
@@ -1080,6 +1082,19 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("> PV1000");
       COMMON_CHAN_DEBUG;
       COMMON_CHAN_DEBUG_BOOL;
+      break;
+    }
+    case DIV_SYSTEM_K053260: {
+      DivPlatformK053260::Channel* ch=(DivPlatformK053260::Channel*)data;
+      ImGui::Text("> K053260");
+      COMMON_CHAN_DEBUG;
+      ImGui::Text("* Sample: %d",ch->sample);
+      ImGui::Text(" - pos: %d",ch->audPos);
+      ImGui::Text("- panning: %d",ch->panning);
+      ImGui::Text("- macroVolMul: %.2x",ch->macroVolMul);
+      COMMON_CHAN_DEBUG_BOOL;
+      ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
+      ImGui::TextColored(ch->reverse?colorOn:colorOff,">> Reverse");
       break;
     }
     default:

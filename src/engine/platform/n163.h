@@ -21,7 +21,7 @@
 #define _N163_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../fixedQueue.h"
 #include "../waveSynth.h"
 #include "vgsound_emu/src/n163/n163.hpp"
 
@@ -29,9 +29,8 @@ class DivPlatformN163: public DivDispatch {
   struct Channel: public SharedChannel<signed char> {
     signed char resVol;
     short wave, wavePos, waveLen;
-    unsigned char waveMode;
-    short loadWave, loadPos, loadLen;
-    unsigned char loadMode;
+    short curWavePos, curWaveLen;
+    bool waveMode;
     bool volumeChanged;
     bool waveChanged, waveUpdated;
     DivWaveSynth ws;
@@ -41,11 +40,9 @@ class DivPlatformN163: public DivDispatch {
       wave(-1),
       wavePos(0),
       waveLen(0),
+      curWavePos(0),
+      curWaveLen(0),
       waveMode(0),
-      loadWave(-1),
-      loadPos(0),
-      loadLen(0),
-      loadMode(0),
       volumeChanged(false),
       waveChanged(false),
       waveUpdated(false) {}
@@ -54,17 +51,17 @@ class DivPlatformN163: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
   struct QueuedWrite {
-      unsigned char addr;
-      unsigned char val;
-      unsigned char mask;
-      QueuedWrite(unsigned char a, unsigned char v, unsigned char m=~0): addr(a), val(v), mask(m) {}
+    unsigned char addr;
+    unsigned char val;
+    unsigned char mask;
+    QueuedWrite(): addr(0), val(0), mask(~0) {}
+    QueuedWrite(unsigned char a, unsigned char v, unsigned char m=~0): addr(a), val(v), mask(m) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,2048> writes;
   unsigned char initChanMax;
   unsigned char chanMax;
-  short loadWave, loadPos, loadLen;
-  unsigned char loadMode;
-  bool multiplex;
+  short loadWave, loadPos;
+  bool multiplex, lenCompensate;
 
   n163_core n163;
   unsigned char regPool[128];

@@ -54,7 +54,7 @@ CSM is beyond the scope of this documentation. for more information, see this [b
 
 ## DualPCM
 
-DualPCM splits channel 6 into two individual PCM channels. using the console's Z80 processor, these are mixed together in software and streamed to channel 6 in PCM mode. because this generates a stream of data, exported VGM files will be very large.
+[info here.](ym2612.md)
 
 ## Sega CD
 

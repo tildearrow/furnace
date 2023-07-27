@@ -38,6 +38,8 @@ struct FurnaceGUIColorDef {
 extern const int opOrder[4];
 extern const char* noteNames[180];
 extern const char* noteNamesG[180];
+extern const char* noteNamesF[180];
+extern const char* noteNamesGF[180];
 extern const char* pitchLabel[11];
 extern const char* insTypes[];
 extern const char* sampleLoopModes[];

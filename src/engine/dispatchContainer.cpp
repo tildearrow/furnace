@@ -78,6 +78,8 @@
 #include "platform/ga20.h"
 #include "platform/sm8521.h"
 #include "platform/pv1000.h"
+#include "platform/k053260.h"
+#include "platform/ted.h"
 #include "platform/pcmdac.h"
 #include "platform/dummy.h"
 #include "../ta-log.h"
@@ -502,6 +504,12 @@ void DivDispatchContainer::init(DivSystem sys, DivEngine* eng, int chanCount, do
       break;
     case DIV_SYSTEM_PV1000:
       dispatch=new DivPlatformPV1000;
+      break;
+    case DIV_SYSTEM_K053260:
+      dispatch=new DivPlatformK053260;
+      break;
+    case DIV_SYSTEM_TED:
+      dispatch=new DivPlatformTED;
       break;
     case DIV_SYSTEM_PCM_DAC:
       dispatch=new DivPlatformPCMDAC;

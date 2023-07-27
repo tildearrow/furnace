@@ -39,7 +39,7 @@ const char* queryReplaceModes[GUI_QUERY_REPLACE_MAX]={
   "set",
   "add",
   "add (overflow)",
-  "scale",
+  "scale %",
   "clear"
 };
 

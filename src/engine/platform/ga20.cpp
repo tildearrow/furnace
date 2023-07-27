@@ -22,7 +22,7 @@
 #include "../../ta-log.h"
 #include <math.h>
 
-#define rWrite(a,v) {if(!skipRegisterWrites) {writes.emplace(a,v); if(dumpWrites) addWrite(a,v);}}
+#define rWrite(a,v) {if(!skipRegisterWrites) {writes.push(QueuedWrite(a,v)); if(dumpWrites) addWrite(a,v);}}
 
 #define CHIP_DIVIDER 64
 
@@ -68,7 +68,7 @@ void DivPlatformGA20::acquire(short** buf, size_t len) {
         ga20.write(w.addr,w.val);
         regPool[w.addr]=w.val;
         writes.pop();
-        delay=w.delay;
+        delay=1;
       }
     }
     short *buffer[4]={
@@ -361,9 +361,7 @@ DivDispatchOscBuffer* DivPlatformGA20::getOscBuffer(int ch) {
 }
 
 void DivPlatformGA20::reset() {
-  while (!writes.empty()) {
-    writes.pop();
-  }
+  writes.clear();
   memset(regPool,0,32);
   ga20.device_reset();
   delay=0;

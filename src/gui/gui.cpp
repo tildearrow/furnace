@@ -98,6 +98,10 @@ const char* FurnaceGUI::noteName(short note, short octave) {
   if (seek<0 || seek>=180) {
     return "???";
   }
+  if (settings.flatNotes) {
+    if (settings.germanNotation) return noteNamesGF[seek];
+    return noteNamesF[seek];
+  }
   if (settings.germanNotation) return noteNamesG[seek];
   return noteNames[seek];
 }
@@ -606,10 +610,11 @@ void FurnaceGUI::autoDetectSystem() {
   std::map<DivSystem,int> sysCountMap;
   std::map<DivSystem,DivConfig> sysConfMap;
   for (int i=0; i<e->song.systemLen; i++) {
-    try {
-      sysCountMap.at(e->song.system[i])++;
-    } catch (std::exception& ex) {
+    auto it=sysCountMap.find(e->song.system[i]);
+    if (it==sysCountMap.cend()) {
       sysCountMap[e->song.system[i]]=1;
+    } else {
+      it->second++;
     }
     sysConfMap[e->song.system[i]]=e->song.systemFlags[i];
   }
@@ -627,10 +632,11 @@ void FurnaceGUI::autoDetectSystem() {
       defCountMap.clear();
       defConfMap.clear();
       for (FurnaceGUISysDefChip& k: j.orig) {
-        try {
-          defCountMap.at(k.sys)++;
-        } catch (std::exception& ex) {
+        auto it=defCountMap.find(k.sys);
+        if (it==defCountMap.cend()) {
           defCountMap[k.sys]=1;
+        } else {
+          it->second++;
         }
         DivConfig dc;
         dc.loadFromMemory(k.flags);
@@ -643,27 +649,37 @@ void FurnaceGUI::autoDetectSystem() {
         logV("- %s: %d",e->getSystemName(k.first),k.second);
       }*/
       for (std::pair<DivSystem,int> k: defCountMap) {
-        try {
-          if (sysCountMap.at(k.first)!=k.second) {
-            isMatch=false;
-            break;
-          }
-          DivConfig& sysDC=sysConfMap.at(k.first);
-          for (std::pair<String,String> l: defConfMap.at(k.first).configMap()) {
-            if (!sysDC.has(l.first)) {
-              isMatch=false;
-              break;
-            }
-            if (sysDC.getString(l.first,"")!=l.second) {
-              isMatch=false;
-              break;
-            }
-          }
-          if (!isMatch) break;
-        } catch (std::exception& ex) {
+        auto countI=sysCountMap.find(k.first);
+        if (countI==sysCountMap.cend()) {
+          isMatch=false;
+          break;
+        } else if (countI->second!=k.second) {
           isMatch=false;
           break;
         }
+
+        auto confI=sysConfMap.find(k.first);
+        if (confI==sysConfMap.cend()) {
+          isMatch=false;
+          break;
+        }
+        DivConfig& sysDC=confI->second;
+        auto defConfI=defConfMap.find(k.first);
+        if (defConfI==defConfMap.cend()) {
+          isMatch=false;
+          break;
+        }
+        for (std::pair<String,String> l: defConfI->second.configMap()) {
+          if (!sysDC.has(l.first)) {
+            isMatch=false;
+            break;
+          }
+          if (sysDC.getString(l.first,"")!=l.second) {
+            isMatch=false;
+            break;
+          }
+        }
+        if (!isMatch) break;
       }
       if (isMatch) {
         logV("match found!");
@@ -682,11 +698,7 @@ void FurnaceGUI::autoDetectSystem() {
       if (k.second>1) {
         e->song.systemName+=fmt::sprintf("%d×",k.second);
       }
-      if (k.first==DIV_SYSTEM_N163) {
-        e->song.systemName+=settings.c163Name;
-      } else {
-        e->song.systemName+=e->getSystemName(k.first);
-      }
+      e->song.systemName+=e->getSystemName(k.first);
       isFirst=false;
     }
   }
@@ -1097,8 +1109,9 @@ void FurnaceGUI::previewNote(int refChan, int note, bool autoNote) {
 }
 
 void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
-  try {
-    int key=noteKeys.at(scancode);
+  auto it=noteKeys.find(scancode);
+  if (it!=noteKeys.cend()) {
+    int key=it->second;
     int num=12*curOctave+key;
     if (num<-60) num=-60; // C-(-5)
     if (num>119) num=119; // B-9
@@ -1110,7 +1123,6 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
     e->synchronized([this,num]() {
       e->autoNoteOff(-1,num);
     });
-  } catch (std::out_of_range& e) {
   }
 }
 
@@ -1310,8 +1322,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
           break;
       }
     } else {
-      try {
-        int num=valueKeys.at(ev.key.keysym.sym);
+      auto it=valueKeys.find(ev.key.keysym.sym);
+      if (it!=valueKeys.cend()) {
+        int num=it->second;
         switch (latchTarget) {
           case 1: // instrument
             changeLatch(latchIns);
@@ -1326,7 +1339,6 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             changeLatch(latchEffectVal);
             break;
         }
-      } catch (std::out_of_range& e) {
       }
     }
     return;
@@ -1339,8 +1351,9 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         alterSampleMap(true,-1);
         return;
       }
-      try {
-        int key=noteKeys.at(ev.key.keysym.scancode);
+      auto it=noteKeys.find(ev.key.keysym.scancode);
+      if (it!=noteKeys.cend()) {
+        int key=it->second;
         int num=12*curOctave+key;
 
         if (num<-60) num=-60; // C-(-5)
@@ -1348,7 +1361,6 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
 
         alterSampleMap(true,num);
         return;
-      } catch (std::out_of_range& e) {
       }
     } else {
       // TODO: map?
@@ -1356,34 +1368,35 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
         alterSampleMap(false,-1);
         return;
       }
-      try {
-        int num=valueKeys.at(ev.key.keysym.sym);
+      auto it=valueKeys.find(ev.key.keysym.sym);
+      if (it!=valueKeys.cend()) {
+        int num=it->second;
         if (num<10) {
           alterSampleMap(false,num);
           return;
         }
-      } catch (std::out_of_range& e) {
       }
     }
   }
 
   // PER-WINDOW KEYS
   switch (curWindow) {
-    case GUI_WINDOW_PATTERN:
-      try {
-        int action=actionMapPat.at(mapped);
+    case GUI_WINDOW_PATTERN: {
+      auto actionI=actionMapPat.find(mapped);
+      if (actionI!=actionMapPat.cend()) {
+        int action=actionI->second;
         if (action>0) {
           doAction(action);
           return;
         }
-      } catch (std::out_of_range& e) {
       }
       // pattern input otherwise
       if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
       if (!ev.key.repeat) {
         if (cursor.xFine==0) { // note
-          try {
-            int key=noteKeys.at(ev.key.keysym.scancode);
+          auto it=noteKeys.find(ev.key.keysym.scancode);
+          if (it!=noteKeys.cend()) {
+            int key=it->second;
             int num=12*curOctave+key;
 
             if (num<-60) num=-60; // C-(-5)
@@ -1392,33 +1405,36 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
             if (edit) {
               noteInput(num,key);
             }
-          } catch (std::out_of_range& e) {
           }
         } else if (edit) { // value
-          try {
-            int num=valueKeys.at(ev.key.keysym.sym);
+          auto it=valueKeys.find(ev.key.keysym.sym);
+          if (it!=valueKeys.cend()) {
+            int num=it->second;
             valueInput(num);
-          } catch (std::out_of_range& e) {
           }
         }
       }
       break;
-    case GUI_WINDOW_ORDERS:
-      try {
-        int action=actionMapOrders.at(mapped);
+    }
+    case GUI_WINDOW_ORDERS: {
+      auto actionI=actionMapOrders.find(mapped);
+      if (actionI!=actionMapOrders.cend()) {
+        int action=actionI->second;
         if (action>0) {
           doAction(action);
           return;
         }
-      } catch (std::out_of_range& e) {
       }
       // order input otherwise
       if (mapped&(FURKMOD_ALT|FURKMOD_CTRL|FURKMOD_META|FURKMOD_SHIFT)) break;
       if (orderEditMode!=0) {
-        try {
-          int num=valueKeys.at(ev.key.keysym.sym);
+        auto it=valueKeys.find(ev.key.keysym.sym);
+        if (it!=valueKeys.cend()) {
+          int num=it->second;
           if (orderCursor>=0 && orderCursor<e->getTotalChannelCount()) {
+            prepareUndo(GUI_UNDO_CHANGE_ORDER);
             e->lockSave([this,num]() {
+              if (!curNibble && !settings.pushNibble) e->curOrders->ord[orderCursor][curOrder]=0;
               e->curOrders->ord[orderCursor][curOrder]=((e->curOrders->ord[orderCursor][curOrder]<<4)|num);
             });
             MARK_MODIFIED;
@@ -1436,63 +1452,68 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
               }
             }
             e->walkSong(loopOrder,loopRow,loopEnd);
+            makeUndo(GUI_UNDO_CHANGE_ORDER);
           }
-        } catch (std::out_of_range& e) {
         }
       }
       break;
-    case GUI_WINDOW_SAMPLE_EDIT:
-      try {
-        int action=actionMapSample.at(mapped);
+    }
+    case GUI_WINDOW_SAMPLE_EDIT: {
+      auto actionI=actionMapSample.find(mapped);
+      if (actionI!=actionMapSample.cend()) {
+        int action=actionI->second;
         if (action>0) {
           doAction(action);
           return;
         }
-      } catch (std::out_of_range& e) {
       }
       break;
-    case GUI_WINDOW_INS_LIST:
-      try {
-        int action=actionMapInsList.at(mapped);
+    }
+    case GUI_WINDOW_INS_LIST: {
+      auto actionI=actionMapInsList.find(mapped);
+      if (actionI!=actionMapInsList.cend()) {
+        int action=actionI->second;
         if (action>0) {
           doAction(action);
           return;
         }
-      } catch (std::out_of_range& e) {
       }
       break;
-    case GUI_WINDOW_WAVE_LIST:
-      try {
-        int action=actionMapWaveList.at(mapped);
+    }
+    case GUI_WINDOW_WAVE_LIST: {
+      auto actionI=actionMapWaveList.find(mapped);
+      if (actionI!=actionMapWaveList.cend()) {
+        int action=actionI->second;
         if (action>0) {
           doAction(action);
           return;
         }
-      } catch (std::out_of_range& e) {
       }
       break;
-    case GUI_WINDOW_SAMPLE_LIST:
-      try {
-        int action=actionMapSampleList.at(mapped);
+    }
+    case GUI_WINDOW_SAMPLE_LIST: {
+      auto actionI=actionMapSampleList.find(mapped);
+      if (actionI!=actionMapSampleList.cend()) {
+        int action=actionI->second;
         if (action>0) {
           doAction(action);
           return;
         }
-      } catch (std::out_of_range& e) {
       }
       break;
+    }
     default:
       break;
   }
 
   // GLOBAL KEYS
-  try {
-    int action=actionMapGlobal.at(mapped);
+  auto actionI=actionMapGlobal.find(mapped);
+  if (actionI!=actionMapGlobal.cend()) {
+    int action=actionI->second;
     if (action>0) {
       doAction(action);
       return;
     }
-  } catch (std::out_of_range& e) {
   }
 }
 
@@ -2419,7 +2440,7 @@ void FurnaceGUI::processDrags(int dragX, int dragY) {
       if (y>waveDragMax) y=waveDragMax;
       if (y<waveDragMin) y=waveDragMin;
       waveDragTarget[x]=y;
-      e->notifyWaveChange(curWave);
+      notifyWaveChange=true;
       MARK_MODIFIED;
     }
   }
@@ -2978,9 +2999,10 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
       if (settings.notePreviewBehavior==0) return 1;
       switch (curWindow) {
         case GUI_WINDOW_SAMPLE_EDIT:
-        case GUI_WINDOW_SAMPLE_LIST:
-          try {
-            int key=noteKeys.at(ev->key.keysym.scancode);
+        case GUI_WINDOW_SAMPLE_LIST: {
+          auto it=noteKeys.find(ev->key.keysym.scancode);
+          if (it!=noteKeys.cend()) {
+            int key=it->second;
             int num=12*curOctave+key;
             if (key!=100 && key!=101 && key!=102) {
               int pStart=-1;
@@ -3001,13 +3023,14 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
               samplePreviewKey=ev->key.keysym.scancode;
               samplePreviewNote=num;
             }
-          } catch (std::out_of_range& e) {
           }
           break;
+        }
         case GUI_WINDOW_WAVE_LIST:
-        case GUI_WINDOW_WAVE_EDIT:
-          try {
-            int key=noteKeys.at(ev->key.keysym.scancode);
+        case GUI_WINDOW_WAVE_EDIT: {
+          auto it=noteKeys.find(ev->key.keysym.scancode);
+          if (it!=noteKeys.cend()) {
+            int key=it->second;
             int num=12*curOctave+key;
             if (key!=100 && key!=101 && key!=102) {
               e->previewWave(curWave,num);
@@ -3015,9 +3038,9 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
               wavePreviewKey=ev->key.keysym.scancode;
               wavePreviewNote=num;
             }
-          } catch (std::out_of_range& e) {
           }
           break;
+        }
         case GUI_WINDOW_ORDERS: // ignore here
           break;
         case GUI_WINDOW_PATTERN:
@@ -3027,9 +3050,10 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
             if (edit && cursor.xFine!=0) break;
           }
           // fall-through
-        default:
-          try {
-            int key=noteKeys.at(ev->key.keysym.scancode);
+        default: {
+          auto it=noteKeys.find(ev->key.keysym.scancode);
+          if (it!=noteKeys.cend()) {
+            int key=it->second;
             int num=12*curOctave+key;
 
             if (num<-60) num=-60; // C-(-5)
@@ -3038,9 +3062,9 @@ int FurnaceGUI::processEvent(SDL_Event* ev) {
             if (key!=100 && key!=101 && key!=102) {
               previewNote(cursor.xCoarse,num);
             }
-          } catch (std::out_of_range& e) {
           }
           break;
+        }
       }
     }
   } else if (ev->type==SDL_KEYUP) {
@@ -3731,6 +3755,11 @@ bool FurnaceGUI::loop() {
       midiLock.lock();
       midiQueue.pop();
       midiLock.unlock();
+    }
+
+    if (notifyWaveChange) {
+      notifyWaveChange=false;
+      e->notifyWaveChange(curWave);
     }
 
     eventTimeEnd=SDL_GetPerformanceCounter();
@@ -4845,6 +4874,7 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_SAMPLE_OPEN_RAW:
             case GUI_FILE_SAMPLE_OPEN_REPLACE_RAW:
               pendingRawSample=copyOfName;
+              pendingRawSampleReplace=(curFileDialog==GUI_FILE_SAMPLE_OPEN_REPLACE_RAW);
               displayPendingRawSample=true;
               break;
             case GUI_FILE_SAMPLE_SAVE:
@@ -5712,10 +5742,26 @@ bool FurnaceGUI::loop() {
         if (s==NULL) {
           showError(e->getLastError());
         } else {
-          if (e->addSamplePtr(s)==-1) {
-            showError(e->getLastError());
+          if (pendingRawSampleReplace) {
+            if (curSample>=0 && curSample<(int)e->song.sample.size()) {
+              e->lockEngine([this,s]() {
+                // if it crashes here please tell me...
+                DivSample* oldSample=e->song.sample[curSample];
+                e->song.sample[curSample]=s;
+                delete oldSample;
+                e->renderSamples();
+                MARK_MODIFIED;
+              });
+            } else {
+              showError("...but you haven't selected a sample!");
+              delete s;
+            }
           } else {
-            MARK_MODIFIED;
+            if (e->addSamplePtr(s)==-1) {
+              showError(e->getLastError());
+            } else {
+              MARK_MODIFIED;
+            }
           }
         }
         ImGui::CloseCurrentPopup();
@@ -6720,6 +6766,7 @@ FurnaceGUI::FurnaceGUI():
   preserveChanPos(false),
   wantScrollList(false),
   noteInputPoly(true),
+  notifyWaveChange(false),
   displayPendingIns(false),
   pendingInsSingle(false),
   displayPendingRawSample(false),
@@ -6752,6 +6799,7 @@ FurnaceGUI::FurnaceGUI():
   pendingRawSampleUnsigned(false),
   pendingRawSampleBigEndian(false),
   pendingRawSampleSwapNibbles(false),
+  pendingRawSampleReplace(false),
   globalWinFlags(0),
   curFileDialog(GUI_FILE_OPEN),
   warnAction(GUI_WARN_OPEN),
@@ -7017,7 +7065,7 @@ FurnaceGUI::FurnaceGUI():
   fadeMode(false),
   randomMode(false),
   haveHitBounds(false),
-  pendingStepUpdate(false),
+  pendingStepUpdate(0),
   oldOrdersLen(0),
   sampleZoom(1.0),
   prevSampleZoom(1.0),

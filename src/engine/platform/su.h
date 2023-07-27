@@ -21,7 +21,7 @@
 #define _SU_H
 
 #include "../dispatch.h"
-#include <queue>
+#include "../fixedQueue.h"
 #include "sound/su.h"
 
 class DivPlatformSoundUnit: public DivDispatch {
@@ -72,11 +72,12 @@ class DivPlatformSoundUnit: public DivDispatch {
   DivDispatchOscBuffer* oscBuf[8];
   bool isMuted[8];
   struct QueuedWrite {
-      unsigned char addr;
-      unsigned char val;
-      QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
+    unsigned char addr;
+    unsigned char val;
+    QueuedWrite(): addr(0), val(0) {}
+    QueuedWrite(unsigned char a, unsigned char v): addr(a), val(v) {}
   };
-  std::queue<QueuedWrite> writes;
+  FixedQueue<QueuedWrite,512> writes;
   unsigned char lastPan;
   bool sampleMemSize;
   unsigned char ilCtrl, ilSize, fil1;

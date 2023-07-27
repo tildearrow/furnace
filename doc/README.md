@@ -10,6 +10,7 @@ this documentation is a work in progress! expect several sections to be incomple
 6. [samples](6-sample/README.md)
 7. [list of sound chips](7-systems/README.md)
 8. [advanced topics](8-advanced/README.md)
+9. [guides](9-guides/README.md)
 
 # attribution
 
@@ -24,8 +25,3 @@ writers:
 - WindowxDeveloper
 - polluks
 - Electric Keet
-
-other:
-
-- [3-pattern/keyboard.png](3-pattern/keyboard.png) licensed under CC-BY-SA 3.0.
-  - this is a derivative of [KB United States.svg](https://en.wikipedia.org/wiki/File:KB_United_States.svg) by Denelson83 under the same license.

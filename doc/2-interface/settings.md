@@ -181,37 +181,19 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
       - **NTSC non-drop (30fps)**
 
 # Emulation
-- **Arcade/YM2151 core**
-  - **ymfm**
-  - **Nuked-OPM**
-- **Genesis/YM2612 core**
-  - **Nuked-OPN2**
-  - **ymfm**
-- **SN76489 core**
-  - **MAME**
-  - **Nuked-PSG Mod**
-- **NES core**
-  - **puNES**
-  - **NSFplay**
-- **FDS core**
-  - **puNES**
-  - **NSFplay**
-- **SID core**
-  - **reSID**
-  - **reSIDfp**
-- **POKEY core**
-  - **Atari800 (mzpokeysnd)**
-  - **ASAP (C++ port)**
-- **OPN/OPNA/OPNB cores**
-  - **ymfm only**
-  - **Nuked-OPN2 (FM) + ymfm (SSG/ADPCM)**
 
-- **PC Speaker strategy:**
-  - **evdev SND_TONE**
-  - **KIOCSOUND on /dev/tty1**
-  - **/dev/port**
-  - **KIOCSOUND on standard output**
-  - **outb()**
+
+
+- **Arcade/YM2151 core**\
+  **Genesis/YM2612 core**\
+  **SN76489 core**\
+  **NES core**\
+  **FDS core**\
+  **SID core**\
+  **POKEY core**\
+  **OPN/OPNA/OPNB cores**: all of these are covered in the [guide to choosing emulation cores](../9-guides/emulation-cores.md).
+
+- **PC Speaker strategy**: this is covered in the [PC speaker system doc](../7-systems/pcspkr.md).
 
 - **Sample ROMs:**
   - **OPL4 YRW801 path**
