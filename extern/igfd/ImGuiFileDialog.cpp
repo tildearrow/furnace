@@ -1730,9 +1730,9 @@ namespace IGFD
       //time_t    st_ctime;   /* time of last status change - not sure out of ntfs */
 
 #ifdef _WIN32
-      if (vInfos->fileType != 'd')
+      if (vInfos.fileType != 'd')
       {
-        vInfos->formatedFileSize = prFormatFileSize(vInfos->fileSize);
+        vInfos.formatedFileSize = prFormatFileSize(vInfos.fileSize);
       }
 #else
       std::string fpn;
