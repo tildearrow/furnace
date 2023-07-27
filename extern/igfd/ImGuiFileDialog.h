@@ -766,7 +766,7 @@ namespace IGFD
     void ParseFilters(const char* vFilters);                              // Parse filter syntax, detect and parse filter collection
     void SetSelectedFilterWithExt(const std::string& vFilter);                      // Select filter
     
-    bool prFillFileStyle(std::shared_ptr<FileInfos> vFileInfos)  const;                  // fill with the good style
+    bool prFillFileStyle(FileInfos& vFileInfos)  const;                  // fill with the good style
     
     void SetFileStyle(
       const IGFD_FileStyleFlags& vFlags,
@@ -812,6 +812,7 @@ namespace IGFD
 #ifdef USE_THUMBNAILS
     IGFD_Thumbnail_Info thumbnailInfo;    // structre for the display for image file tetxure
 #endif // USE_THUMBNAILS
+    bool isValid = true;
 
   public:
     bool IsTagFound(const std::string& vTag) const;
@@ -824,6 +825,7 @@ namespace IGFD
   class FileManager
   {
   public: // types
+    FileInfos invalidFile;
     enum class SortingFieldEnum    // sorting for filetering of the file lsit
     {
       FIELD_NONE = 0,        // no sorting preference, result indetermined haha..
@@ -839,8 +841,8 @@ namespace IGFD
   private:
     std::string prCurrentPath;                      // current path (to be decomposed in prCurrentPathDecomposition
     std::vector<std::string> prCurrentPathDecomposition;        // part words
-    std::vector<std::shared_ptr<FileInfos>> prFileList;          // base container
-    std::vector<std::shared_ptr<FileInfos>> prFilteredFileList;      // filtered container (search, sorting, etc..)
+    std::vector<FileInfos> prFileList;          // base container
+    std::vector<FileInfos> prFilteredFileList;      // filtered container (search, sorting, etc..)
     std::string prLastSelectedFileName;                  // for shift multi selection
     std::set<std::string> prSelectedFileNames;              // the user selection of FilePathNames
     bool prCreateDirectoryMode = false;                  // for create directory widget
@@ -879,11 +881,11 @@ namespace IGFD
     static std::string prRoundNumber(double vvalue, int n);                      // custom rounding number
     static std::string prFormatFileSize(size_t vByteSize);                      // format file size field
     static std::string prOptimizeFilenameForSearchOperations(const std::string& vFileNameExt);    // turn all text in lower case for search facilitie
-    static void prCompleteFileInfos(const std::shared_ptr<FileInfos>& FileInfos);          // set time and date infos of a file (detail view mode)
+    static void prCompleteFileInfos(FileInfos& FileInfos);          // set time and date infos of a file (detail view mode)
     void prRemoveFileNameInSelection(const std::string& vFileName);                  // selection : remove a file name
     void prAddFileNameInSelection(const std::string& vFileName, bool vSetLastSelectionFileName);  // selection : add a file name
     void AddFile(const FileDialogInternal& vFileDialogInternal, 
-      const std::string& vPath, const std::string& vFileName, const char& vFileType, void* ent);        // add file called by scandir
+      const std::string& vPath, const std::string& vFileName, char vFileType, void* ent);        // add file called by scandir
 
   public:
     FileManager();
@@ -892,9 +894,9 @@ namespace IGFD
     bool IsFileListEmpty();
     bool IsFilteredListEmpty();
     size_t GetFullFileListSize();
-    std::shared_ptr<FileInfos> GetFullFileAt(size_t vIdx);
+    const FileInfos& GetFullFileAt(size_t vIdx);
     size_t GetFilteredListSize();
-    std::shared_ptr<FileInfos> GetFilteredFileAt(size_t vIdx);
+    const FileInfos& GetFilteredFileAt(size_t vIdx);
     bool IsFileNameSelected(const std::string& vFileName);
     std::string GetBack();
     void ClearComposer();
@@ -912,9 +914,9 @@ namespace IGFD
     void SetCurrentPath(const std::string& vCurrentPath);                      // set the current path
     static bool IsFileExist(const std::string& vFile);
     void SetDefaultFileName(const std::string& vFileName);
-    bool SelectDirectory(const std::shared_ptr<FileInfos>& vInfos);                    // enter directory
+    bool SelectDirectory(const FileInfos& vInfos);                    // enter directory
     void SelectFileName(const FileDialogInternal& vFileDialogInternal, 
-      const std::shared_ptr<FileInfos>& vInfos);                              // select filename
+      const FileInfos& vInfos);                              // select filename
     
     //depend of dirent.h
     void SetCurrentDir(const std::string& vPath);                          // define current directory for scan
@@ -1311,7 +1313,7 @@ namespace IGFD
     // widgets components
     virtual void prDrawSidePane(float vHeight);          // draw side pane
     virtual int prSelectableItem(int vidx, 
-      std::shared_ptr<FileInfos> vInfos, 
+      const FileInfos& vInfos, 
       bool vSelected, const char* vFmt, ...);          // draw a custom selectable behavior item
     virtual bool prDrawFileListView(ImVec2 vSize);        // draw file list view (default mode)
 
@@ -1325,7 +1327,7 @@ namespace IGFD
     // - prDrawThumbnailsListView
     // - prDrawThumbnailsGridView
     void prBeginFileColorIconStyle(
-      std::shared_ptr<FileInfos> vFileInfos, 
+      const FileInfos& vFileInfos, 
       bool& vOutShowColor, 
       std::string& vOutStr, 
       ImFont** vOutFont);                    // begin style apply of filter with color an icon if any
