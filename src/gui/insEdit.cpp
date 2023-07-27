@@ -5563,6 +5563,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_MSM6295) waveMax=0;
           if (ins->type==DIV_INS_SEGAPCM) waveMax=0;
           if (ins->type==DIV_INS_K007232) waveMax=0;
+          if (ins->type==DIV_INS_ES5506) waveMax=0;
           if (ins->type==DIV_INS_GA20) waveMax=0;
           if (ins->type==DIV_INS_K053260) waveMax=0;
           if (ins->type==DIV_INS_POKEMINI) waveMax=0;
