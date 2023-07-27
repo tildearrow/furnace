@@ -7154,7 +7154,6 @@ FurnaceGUI::FurnaceGUI():
   pianoInputPadMode(PIANO_INPUT_PAD_DISABLE),
 #endif
   //effect sorting
-  effectShowAll(true),
   effectShowPitch(true),
   effectShowVolume(true),
   effectShowPanning(true),

@@ -12,10 +12,17 @@ void FurnaceGUI::drawEffectList() {
   ImGui::SetNextWindowSizeConstraints(ImVec2(60.0f*dpiScale,20.0f*dpiScale),ImVec2(canvasW,canvasH));
   if (ImGui::Begin("Effect List",&effectListOpen,globalWinFlags)) {
     ImGui::Text("Chip at cursor: %s",e->getSystemName(e->sysOfChan[cursor.xCoarse]));
-    // ImGui::Text("Sort Effects:");
     if (ImGui::TreeNode("Sort Effects")) {
-      ImGui::Checkbox("All",&effectShowAll);
-      if (effectShowAll) {
+      ImGui::Checkbox("Pitch",&effectShowPitch);
+      ImGui::Checkbox("Song",&effectShowSong);
+      ImGui::Checkbox("Time",&effectShowTime);
+      ImGui::Checkbox("Speed",&effectShowSpeed);
+      ImGui::Checkbox("Panning",&effectShowPanning);
+      ImGui::Checkbox("Volume",&effectShowVolume);
+      ImGui::Checkbox("System (primary)",&effectShowSysPrimary);
+      ImGui::Checkbox("System (secondary)",&effectShowSysSecondary);
+      ImGui::Checkbox("Miscellaneous",&effectShowMisc);
+      if (ImGui::Button("All")) {
         effectShowMisc = true;
         effectShowPanning = true;
         effectShowPitch = true;
@@ -26,27 +33,20 @@ void FurnaceGUI::drawEffectList() {
         effectShowSysPrimary = true;
         effectShowSysSecondary = true;
       }
-      // ImGui::SameLine();
-      ImGui::Checkbox("Pitch",&effectShowPitch);
-      // ImGui::SameLine();
-      ImGui::Checkbox("Song",&effectShowSong);
-      // ImGui::SameLine();
-      ImGui::Checkbox("Time",&effectShowTime);
-      // ImGui::SameLine();
-      ImGui::Checkbox("Speed",&effectShowSpeed);
-      // ImGui::SameLine();
-      ImGui::Checkbox("Panning",&effectShowPanning);
-      // ImGui::SameLine();
-      ImGui::Checkbox("Volume",&effectShowVolume);
-      // ImGui::SameLine();
-      ImGui::Checkbox("System (primary)",&effectShowSysPrimary);
-      // ImGui::SameLine();
-      ImGui::Checkbox("System (secondary)",&effectShowSysSecondary);
-      // ImGui::SameLine();
-      ImGui::Checkbox("Miscellaneous",&effectShowMisc);
+      ImGui::SameLine();
+      if (ImGui::Button("None")) {
+        effectShowMisc = false;
+        effectShowPanning = false;
+        effectShowPitch = false;
+        effectShowVolume = false;
+        effectShowSong = false;
+        effectShowTime = false;
+        effectShowSpeed = false;
+        effectShowSysPrimary = false;
+        effectShowSysSecondary = false;
+      }
       ImGui::TreePop();
     }
-    effectShowAll = effectShowMisc && effectShowPanning && effectShowPitch && effectShowVolume && effectShowSong && effectShowTime && effectShowSpeed && effectShowSysPrimary && effectShowSysSecondary;
     
     if (ImGui::BeginTable("effectList",2)) {
       ImGui::TableSetupColumn("c0",ImGuiTableColumnFlags_WidthFixed);
@@ -74,7 +74,6 @@ void FurnaceGUI::drawEffectList() {
           case GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY: effectShow = effectShowSysSecondary; break;
           default: effectShow = true; break;
         }
-        // effectShow = effectShow && effectShowAll;
         if (name==prevName) {
           continue;
         }

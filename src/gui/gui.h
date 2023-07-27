@@ -2034,7 +2034,7 @@ class FurnaceGUI {
   int pianoView, pianoInputPadMode;
   
   //effect sorting
-  bool effectShowAll, effectShowPitch, effectShowVolume, effectShowPanning, effectShowSong, effectShowTime, effectShowSpeed, effectShowSysPrimary, effectShowSysSecondary, effectShowMisc;
+  bool effectShowPitch, effectShowVolume, effectShowPanning, effectShowSong, effectShowTime, effectShowSpeed, effectShowSysPrimary, effectShowSysSecondary, effectShowMisc;
 
   // TX81Z
   bool hasACED;
