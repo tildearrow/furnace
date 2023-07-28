@@ -13,7 +13,7 @@ void FurnaceGUI::drawEffectList() {
   if (ImGui::Begin("Effect List",&effectListOpen,globalWinFlags)) {
     ImGui::Text("Chip at cursor: %s",e->getSystemName(e->sysOfChan[cursor.xCoarse]));
     if (ImGui::Button("Sort Effects")) ImGui::OpenPopup("effectSort");
-    if (ImGui::BeginPopup("effectSort")) {
+    if (ImGui::BeginPopupContextItem("effectSort")) {
       ImGui::Checkbox("Pitch",&effectShowPitch);
       ImGui::Checkbox("Song",&effectShowSong);
       ImGui::Checkbox("Time",&effectShowTime);
