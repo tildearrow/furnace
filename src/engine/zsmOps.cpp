@@ -94,6 +94,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   playSub(false);
   //size_t tickCount=0;
   bool done=false;
+  bool loopNow=false;
   int loopPos=-1;
   int fracWait=0; // accumulates fractional ticks
   if (VERA>=0) disCont[VERA].dispatch->toggleRegisterDump(true);
@@ -109,9 +110,17 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
 
   while (!done) {
     if (loopPos==-1) {
-      if (loopOrder==curOrder && loopRow==curRow && ticks==1 && loop) {
-        loopPos=zsm.getoffset();
-        zsm.setLoopPoint();
+      if (loopOrder==curOrder && loopRow==curRow && loop)
+        loopNow=true;
+      if (loopNow) {
+        // If Virtual Tempo is in use, our exact loop point
+        // might be skipped due to quantization error.
+        // If this happens, the tick immediately following is our loop point.
+        if (ticks==1 || !(loopOrder==curOrder && loopRow==curRow)) {
+          loopPos=zsm.getoffset();
+          zsm.setLoopPoint();
+          loopNow=false;
+        }
       }
     }
     if (nextTick() || !playing) {
