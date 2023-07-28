@@ -114,7 +114,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
         loopNow=true;
       if (loopNow) {
         // If Virtual Tempo is in use, our exact loop point
-        // might be skipped to quantization error.
+        // might be skipped due to quantization error.
         // If this happens, the tick immediately following is our loop point.
         if (ticks==1 || !(loopOrder==curOrder && loopRow==curRow)) {
           loopPos=zsm.getoffset();
