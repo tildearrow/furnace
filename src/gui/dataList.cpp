@@ -330,9 +330,6 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
       if (ImGui::MenuItem("save")) {
         doAction(GUI_ACTION_INS_LIST_SAVE);
       }
-      if (ImGui::MenuItem("save (legacy .fui)")) {
-        doAction(GUI_ACTION_INS_LIST_SAVE_OLD);
-      }
       if (ImGui::MenuItem("save (.dmp)")) {
         doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
       }

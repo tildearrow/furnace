@@ -356,12 +356,12 @@ void DivPlatformTIA::poke(std::vector<DivRegWrite>& wlist) {
 
 void DivPlatformTIA::setFlags(const DivConfig& flags) {
   if (flags.getInt("clockSel",0)) {
-    rate=COLOR_PAL*4.0/5.0;
+    chipClock=COLOR_PAL*4.0/5.0;
   } else {
-    rate=COLOR_NTSC;
+    chipClock=COLOR_NTSC;
   }
   CHECK_CUSTOM_CLOCK;
-  chipClock=rate;
+  rate=chipClock;
   mixingType=flags.getInt("mixingType",0)&3;
   for (int i=0; i<2; i++) {
     oscBuf[i]->rate=rate/114;

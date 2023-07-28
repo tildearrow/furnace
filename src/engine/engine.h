@@ -531,6 +531,9 @@ class DivEngine {
   void initSongWithDesc(const char* description, bool inBase64=true, bool oldVol=false);
 
   void exchangeIns(int one, int two);
+  void exchangeWave(int one, int two);
+  void exchangeSample(int one, int two);
+
   void swapChannels(int src, int dest);
   void stompChannel(int ch);
 

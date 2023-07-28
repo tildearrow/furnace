@@ -130,9 +130,9 @@ void DivPlatformNES::acquire_NSFPlay(short** buf, size_t len) {
   for (size_t i=0; i<len; i++) {
     doPCM;
   
-    nes1_NP->Tick(1);
-    nes2_NP->TickFrameSequence(1);
-    nes2_NP->Tick(1);
+    nes1_NP->Tick(8);
+    nes2_NP->TickFrameSequence(8);
+    nes2_NP->Tick(8);
     nes1_NP->Render(out1);
     nes2_NP->Render(out2);
 
@@ -140,7 +140,7 @@ void DivPlatformNES::acquire_NSFPlay(short** buf, size_t len) {
     if (sample>32767) sample=32767;
     if (sample<-32768) sample=-32768;
     buf[0][i]=sample;
-    if (++writeOscBuf>=32) {
+    if (++writeOscBuf>=4) {
       writeOscBuf=0;
       oscBuf[0]->data[oscBuf[0]->needle++]=nes1_NP->out[0]<<11;
       oscBuf[1]->data[oscBuf[1]->needle++]=nes1_NP->out[1]<<11;
@@ -749,8 +749,11 @@ void DivPlatformNES::setFlags(const DivConfig& flags) {
   }
   CHECK_CUSTOM_CLOCK;
   rate=chipClock;
+  if (useNP) {
+    rate/=8;
+  }
   for (int i=0; i<5; i++) {
-    oscBuf[i]->rate=rate/32;
+    oscBuf[i]->rate=rate/(useNP?4:32);
   }
   
   dpcmModeDefault=flags.getBool("dpcmMode",true);

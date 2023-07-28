@@ -1937,8 +1937,8 @@ bool DivEngine::loadFur(unsigned char* file, size_t len) {
       ds.system[i]=systemFromFileFur(sysID);
       logD("- %d: %.2x (%s)",i,sysID,getSystemName(ds.system[i]));
       if (sysID!=0 && systemToFileFur(ds.system[i])==0) {
-        logE("unrecognized system ID %.2x",ds.system[i]);
-        lastError=fmt::sprintf("unrecognized system ID %.2x!",ds.system[i]);
+        logE("unrecognized system ID %.2x",sysID);
+        lastError=fmt::sprintf("unrecognized system ID %.2x!",sysID);
         delete[] file;
         return false;
       }
