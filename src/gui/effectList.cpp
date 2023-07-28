@@ -23,6 +23,7 @@ void FurnaceGUI::drawEffectList() {
       ImGui::Checkbox("System (primary)",&effectShowSysPrimary);
       ImGui::Checkbox("System (secondary)",&effectShowSysSecondary);
       ImGui::Checkbox("Miscellaneous",&effectShowMisc);
+
       if (ImGui::Button("All")) {
         effectShowMisc = true;
         effectShowPanning = true;
@@ -46,6 +47,7 @@ void FurnaceGUI::drawEffectList() {
         effectShowSysPrimary = false;
         effectShowSysSecondary = false;
       }
+
       ImGui::EndPopup();
     }
     
@@ -63,6 +65,10 @@ void FurnaceGUI::drawEffectList() {
       for (int i=0; i<256; i++) {
         const char* name=e->getEffectDesc(i,cursor.xCoarse);
         bool effectShow = true;
+        if (name==prevName) {
+          continue;
+        }
+        prevName=name;
         switch (fxColors[i]) {
           case GUI_COLOR_PATTERN_EFFECT_MISC: effectShow = effectShowMisc; break;
           case GUI_COLOR_PATTERN_EFFECT_SONG: effectShow = effectShowSong; break;
@@ -75,10 +81,6 @@ void FurnaceGUI::drawEffectList() {
           case GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY: effectShow = effectShowSysSecondary; break;
           default: effectShow = true; break;
         }
-        if (name==prevName) {
-          continue;
-        }
-        prevName=name;
         if (name!=NULL && effectShow) {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
