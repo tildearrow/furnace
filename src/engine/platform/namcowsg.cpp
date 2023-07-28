@@ -571,7 +571,7 @@ void DivPlatformNamcoWSG::setFlags(const DivConfig& flags) {
   chipClock=3072000;
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/32;
-  namco->device_clock_changed(rate);
+  namco->device_clock_changed(96000);
   for (int i=0; i<chans; i++) {
     oscBuf[i]->rate=rate;
   }
