@@ -7134,16 +7134,6 @@ FurnaceGUI::FurnaceGUI():
   pianoView(PIANO_LAYOUT_STANDARD),
   pianoInputPadMode(PIANO_INPUT_PAD_DISABLE),
 #endif
-  //effect sorting
-  effectShowPitch(true),
-  effectShowVolume(true),
-  effectShowPanning(true),
-  effectShowSong(true),
-  effectShowTime(true),
-  effectShowSpeed(true),
-  effectShowSysPrimary(true),
-  effectShowSysSecondary(true),
-  effectShowMisc(true),
   hasACED(false),
   waveGenBaseShape(0),
   waveInterpolation(0),
@@ -7279,6 +7269,8 @@ FurnaceGUI::FurnaceGUI():
   memset(macroRelLabel,0,32);
   memset(emptyLabel,0,32);
   memset(emptyLabel2,0,32);
+  //effect sorting
+  memset(effectsShow,1,sizeof(bool)*10);
 
   strncpy(noteOffLabel,"OFF",32);
   strncpy(noteRelLabel,"===",32);

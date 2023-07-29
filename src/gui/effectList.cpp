@@ -14,39 +14,15 @@ void FurnaceGUI::drawEffectList() {
     ImGui::Text("Chip at cursor: %s",e->getSystemName(e->sysOfChan[cursor.xCoarse]));
     if (ImGui::Button("Sort Effects")) ImGui::OpenPopup("effectSort");
     if (ImGui::BeginPopupContextItem("effectSort")) {
-      ImGui::Checkbox("Pitch",&effectShowPitch);
-      ImGui::Checkbox("Song",&effectShowSong);
-      ImGui::Checkbox("Time",&effectShowTime);
-      ImGui::Checkbox("Speed",&effectShowSpeed);
-      ImGui::Checkbox("Panning",&effectShowPanning);
-      ImGui::Checkbox("Volume",&effectShowVolume);
-      ImGui::Checkbox("System (primary)",&effectShowSysPrimary);
-      ImGui::Checkbox("System (secondary)",&effectShowSysSecondary);
-      ImGui::Checkbox("Miscellaneous",&effectShowMisc);
+      for (int i=0; i<9; i++) {
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColorsSort[i]]);
+        ImGui::Checkbox(fxColorsNames[i],&effectsShow[i]);
+        ImGui::PopStyleColor();
+      }
 
-      if (ImGui::Button("All")) {
-        effectShowMisc = true;
-        effectShowPanning = true;
-        effectShowPitch = true;
-        effectShowVolume = true;
-        effectShowSong = true;
-        effectShowTime = true;
-        effectShowSpeed = true;
-        effectShowSysPrimary = true;
-        effectShowSysSecondary = true;
-      }
+      if (ImGui::Button("All")) memset(effectsShow,1,sizeof(bool)*10);
       ImGui::SameLine();
-      if (ImGui::Button("None")) {
-        effectShowMisc = false;
-        effectShowPanning = false;
-        effectShowPitch = false;
-        effectShowVolume = false;
-        effectShowSong = false;
-        effectShowTime = false;
-        effectShowSpeed = false;
-        effectShowSysPrimary = false;
-        effectShowSysSecondary = false;
-      }
+      if (ImGui::Button("None")) memset(effectsShow,0,sizeof(bool)*10);
 
       ImGui::EndPopup();
     }
@@ -70,15 +46,15 @@ void FurnaceGUI::drawEffectList() {
         }
         prevName=name;
         switch (fxColors[i]) {
-          case GUI_COLOR_PATTERN_EFFECT_MISC: effectShow = effectShowMisc; break;
-          case GUI_COLOR_PATTERN_EFFECT_SONG: effectShow = effectShowSong; break;
-          case GUI_COLOR_PATTERN_EFFECT_SPEED: effectShow = effectShowSpeed; break;
-          case GUI_COLOR_PATTERN_EFFECT_TIME: effectShow = effectShowTime; break;
-          case GUI_COLOR_PATTERN_EFFECT_PITCH: effectShow = effectShowPitch; break;
-          case GUI_COLOR_PATTERN_EFFECT_PANNING: effectShow = effectShowPanning; break;
-          case GUI_COLOR_PATTERN_EFFECT_VOLUME: effectShow = effectShowVolume; break;
-          case GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY: effectShow = effectShowSysPrimary; break;
-          case GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY: effectShow = effectShowSysSecondary; break;
+          case GUI_COLOR_PATTERN_EFFECT_MISC: effectShow = effectsShow[8]; break;
+          case GUI_COLOR_PATTERN_EFFECT_SONG: effectShow = effectsShow[1]; break;
+          case GUI_COLOR_PATTERN_EFFECT_SPEED: effectShow = effectsShow[3]; break;
+          case GUI_COLOR_PATTERN_EFFECT_TIME: effectShow = effectsShow[2]; break;
+          case GUI_COLOR_PATTERN_EFFECT_PITCH: effectShow = effectsShow[0]; break;
+          case GUI_COLOR_PATTERN_EFFECT_PANNING: effectShow = effectsShow[4]; break;
+          case GUI_COLOR_PATTERN_EFFECT_VOLUME: effectShow = effectsShow[5]; break;
+          case GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY: effectShow = effectsShow[6]; break;
+          case GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY: effectShow = effectsShow[7]; break;
           default: effectShow = true; break;
         }
         if (name!=NULL && effectShow) {
