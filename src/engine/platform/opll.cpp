@@ -392,6 +392,15 @@ void DivPlatformOPLL::commitState(int ch, DivInstrument* ins) {
   }
 }
 
+void DivPlatformOPLL::switchMode(bool mode) {
+  if (mode==properDrums) return;
+  if (mode) {
+
+  } else {
+
+  }
+}
+
 int DivPlatformOPLL::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
