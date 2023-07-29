@@ -869,7 +869,7 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
       if (ds.version>0x15) {
         sample->depth=(DivSampleDepth)reader.readC();
         if (sample->depth!=DIV_SAMPLE_DEPTH_8BIT && sample->depth!=DIV_SAMPLE_DEPTH_16BIT) {
-          logW("%d: sample depth is wrong! (%d)",i,sample->depth);
+          logW("%d: sample depth is wrong! (%d)",i,(int)sample->depth);
           sample->depth=DIV_SAMPLE_DEPTH_16BIT;
         }
       } else {
