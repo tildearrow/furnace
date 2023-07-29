@@ -477,13 +477,6 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
       if (chan[csmChan].active) { // CSM
         writeMask^=0xf0;
       }
-      /*printf(
-        "Mask: %c %c %c %c\n",
-        (writeMask&0x10)?'1':'-',
-        (writeMask&0x20)?'2':'-',
-        (writeMask&0x40)?'3':'-',
-        (writeMask&0x80)?'4':'-'
-      );*/
       immWrite(0x28,writeMask);
     }
   }
@@ -638,13 +631,6 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
     if (chan[csmChan].active) { // CSM
       writeMask^=0xf0;
     }
-    /*printf(
-        "Mask: %c %c %c %c\n",
-        (writeMask&0x10)?'1':'-',
-        (writeMask&0x20)?'2':'-',
-        (writeMask&0x40)?'3':'-',
-        (writeMask&0x80)?'4':'-'
-      );*/
     writeMask^=hardResetMask;
     immWrite(0x28,writeMask);
     writeMask^=hardResetMask;
@@ -657,7 +643,6 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
       for (int i=0; i<4; i++) {
         if (opChan[i].keyOn && opChan[i].hardReset) {
           // restore SL/RR
-          logV("eco: %d",extChanOffs);
           unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[i];
           DivInstrumentFM::Operator& op=chan[extChanOffs].state.op[i];
           immWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
