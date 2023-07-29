@@ -20,7 +20,7 @@ void FurnaceGUI::drawEffectList() {
       ImGui::SameLine();
     }
     ImGui::Button(ICON_FA_BARS "##SortEffects");
-    if (ImGui::BeginPopupContextItem("effectSort")) {
+    if (ImGui::BeginPopupContextItem("effectSort",ImGuiPopupFlags_MouseButtonLeft)) {
       for (int i=0; i<9; i++) {
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColorsSort[i]]);
         ImGui::Checkbox(fxColorsNames[i],&effectsShow[i]);
