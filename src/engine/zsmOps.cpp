@@ -52,7 +52,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
         break;
       default:
         IGNORED++;
-        logD("Ignoring chip %d systemID %d",i,song.system[i]);
+        logD("Ignoring chip %d systemID %d",i,(int)song.system[i]);
         break;
     }
   }
