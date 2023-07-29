@@ -142,76 +142,78 @@ bool DivEngine::loadDMF(unsigned char* file, size_t len) {
     }
 
     // compatibility flags
-    ds.limitSlides=true;
-    ds.linearPitch=1;
-    ds.loopModality=0;
-    ds.properNoiseLayout=false;
-    ds.waveDutyIsVol=false;
-    // TODO: WHAT?! geodude.dmf fails when this is true
-    // but isn't that how Defle behaves???
-    ds.resetMacroOnPorta=false;
-    ds.legacyVolumeSlides=true;
-    ds.compatibleArpeggio=true;
-    ds.noteOffResetsSlides=true;
-    ds.targetResetsSlides=true;
-    ds.arpNonPorta=false;
-    ds.algMacroBehavior=false;
-    ds.brokenShortcutSlides=false;
-    ds.ignoreDuplicateSlides=true;
-    ds.brokenDACMode=true;
-    ds.oneTickCut=false;
-    ds.newInsTriggersInPorta=true;
-    ds.arp0Reset=true;
-    ds.brokenSpeedSel=true;
-    ds.noSlidesOnFirstTick=false;
-    ds.rowResetsArpPos=false;
-    ds.ignoreJumpAtEnd=true;
-    ds.buggyPortaAfterSlide=true;
-    ds.gbInsAffectsEnvelope=true;
-    ds.ignoreDACModeOutsideIntendedChannel=false;
-    ds.e1e2AlsoTakePriority=true;
-    ds.fbPortaPause=true;
-    ds.snDutyReset=true;
-    ds.oldOctaveBoundary=false;
-    ds.noOPN2Vol=true;
-    ds.newVolumeScaling=false;
-    ds.volMacroLinger=false;
-    ds.brokenOutVol=true;
-    ds.brokenOutVol2=true;
-    ds.e1e2StopOnSameNote=true;
-    ds.brokenPortaArp=false;
-    ds.snNoLowPeriods=true;
-    ds.disableSampleMacro=true;
-    ds.delayBehavior=0;
-    ds.jumpTreatment=2;
+    if (!getConfInt("noDMFCompat",0)) {
+      ds.limitSlides=true;
+      ds.linearPitch=1;
+      ds.loopModality=0;
+      ds.properNoiseLayout=false;
+      ds.waveDutyIsVol=false;
+      // TODO: WHAT?! geodude.dmf fails when this is true
+      // but isn't that how Defle behaves???
+      ds.resetMacroOnPorta=false;
+      ds.legacyVolumeSlides=true;
+      ds.compatibleArpeggio=true;
+      ds.noteOffResetsSlides=true;
+      ds.targetResetsSlides=true;
+      ds.arpNonPorta=false;
+      ds.algMacroBehavior=false;
+      ds.brokenShortcutSlides=false;
+      ds.ignoreDuplicateSlides=true;
+      ds.brokenDACMode=true;
+      ds.oneTickCut=false;
+      ds.newInsTriggersInPorta=true;
+      ds.arp0Reset=true;
+      ds.brokenSpeedSel=true;
+      ds.noSlidesOnFirstTick=false;
+      ds.rowResetsArpPos=false;
+      ds.ignoreJumpAtEnd=true;
+      ds.buggyPortaAfterSlide=true;
+      ds.gbInsAffectsEnvelope=true;
+      ds.ignoreDACModeOutsideIntendedChannel=false;
+      ds.e1e2AlsoTakePriority=true;
+      ds.fbPortaPause=true;
+      ds.snDutyReset=true;
+      ds.oldOctaveBoundary=false;
+      ds.noOPN2Vol=true;
+      ds.newVolumeScaling=false;
+      ds.volMacroLinger=false;
+      ds.brokenOutVol=true;
+      ds.brokenOutVol2=true;
+      ds.e1e2StopOnSameNote=true;
+      ds.brokenPortaArp=false;
+      ds.snNoLowPeriods=true;
+      ds.disableSampleMacro=true;
+      ds.delayBehavior=0;
+      ds.jumpTreatment=2;
 
-    // 1.1 compat flags
-    if (ds.version>24) {
-      ds.waveDutyIsVol=true;
-      ds.legacyVolumeSlides=false;
-    }
+      // 1.1 compat flags
+      if (ds.version>24) {
+        ds.waveDutyIsVol=true;
+        ds.legacyVolumeSlides=false;
+      }
 
-    // Neo Geo detune is caused by Defle running Neo Geo at the wrong clock.
-    /*
-    if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT
-     || ds.system[0]==DIV_SYSTEM_YM2610_FULL || ds.system[0]==DIV_SYSTEM_YM2610_FULL_EXT
-     || ds.system[0]==DIV_SYSTEM_YM2610B || ds.system[0]==DIV_SYSTEM_YM2610B_EXT) {
-      ds.tuning=443.23;
-    }
-    */
+      // Neo Geo detune is caused by Defle running Neo Geo at the wrong clock.
+      /*
+      if (ds.system[0]==DIV_SYSTEM_YM2610 || ds.system[0]==DIV_SYSTEM_YM2610_EXT
+      || ds.system[0]==DIV_SYSTEM_YM2610_FULL || ds.system[0]==DIV_SYSTEM_YM2610_FULL_EXT
+      || ds.system[0]==DIV_SYSTEM_YM2610B || ds.system[0]==DIV_SYSTEM_YM2610B_EXT) {
+        ds.tuning=443.23;
+      }
+      */
 
-    // Genesis detuned on Defle v10 and earlier
-    /*if (ds.version<19 && ds.system[0]==DIV_SYSTEM_GENESIS) {
-      ds.tuning=443.23;
-    }*/
-    // C64 detuned on Defle v11 and earlier
-    /*if (ds.version<21 && (ds.system[0]==DIV_SYSTEM_C64_6581 || ds.system[0]==DIV_SYSTEM_C64_8580)) {
-      ds.tuning=433.2;
-    }*/
+      // Genesis detuned on Defle v10 and earlier
+      /*if (ds.version<19 && ds.system[0]==DIV_SYSTEM_GENESIS) {
+        ds.tuning=443.23;
+      }*/
+      // C64 detuned on Defle v11 and earlier
+      /*if (ds.version<21 && (ds.system[0]==DIV_SYSTEM_C64_6581 || ds.system[0]==DIV_SYSTEM_C64_8580)) {
+        ds.tuning=433.2;
+      }*/
 
-    // Game Boy arp+soundLen screwery
-    if (ds.system[0]==DIV_SYSTEM_GB) {
-      ds.systemFlags[0].set("enoughAlready",true);
+      // Game Boy arp+soundLen screwery
+      if (ds.system[0]==DIV_SYSTEM_GB) {
+        ds.systemFlags[0].set("enoughAlready",true);
+      }
     }
 
     logI("reading module data...");
