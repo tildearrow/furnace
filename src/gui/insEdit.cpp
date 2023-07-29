@@ -4685,7 +4685,7 @@ void FurnaceGUI::drawInsEdit() {
 
           ImGui::Separator();
 
-          P(ImGui::Checkbox("Per-channel wave offset/length",&ins->n163.perChanPos));
+          P(ImGui::Checkbox("Per-channel wave position/length",&ins->n163.perChanPos));
 
           if (ins->n163.perChanPos) {
             if (ImGui::BeginTable("N1PerChPos",3)) {
@@ -4697,7 +4697,7 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::TableNextColumn();
               ImGui::Text("Ch");
               ImGui::TableNextColumn();
-              ImGui::Text("Offset");
+              ImGui::Text("Position");
               ImGui::TableNextColumn();
               ImGui::Text("Length");
 
@@ -4729,7 +4729,7 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::EndTable();
             }
           } else {
-            if (ImGui::InputInt("Offset##WAVEPOS",&ins->n163.wavePos,1,16)) { PARAMETER
+            if (ImGui::InputInt("Position##WAVEPOS",&ins->n163.wavePos,1,16)) { PARAMETER
               if (ins->n163.wavePos<0) ins->n163.wavePos=0;
               if (ins->n163.wavePos>255) ins->n163.wavePos=255;
             }
