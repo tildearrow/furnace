@@ -12,6 +12,7 @@ void FurnaceGUI::drawEffectList() {
   ImGui::SetNextWindowSizeConstraints(ImVec2(60.0f*dpiScale,20.0f*dpiScale),ImVec2(canvasW,canvasH));
   if (ImGui::Begin("Effect List",&effectListOpen,globalWinFlags)) {
     ImGui::Text("Chip at cursor: %s",e->getSystemName(e->sysOfChan[cursor.xCoarse]));
+    ImGui::SameLine();
     if (ImGui::Button("Sort Effects")) ImGui::OpenPopup("effectSort");
     if (ImGui::BeginPopupContextItem("effectSort")) {
       for (int i=0; i<9; i++) {
