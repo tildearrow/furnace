@@ -19,6 +19,7 @@
 
 #include "genesisext.h"
 #include "../engine.h"
+#include "../../ta-log.h"
 #include <math.h>
 
 #define CHIP_FREQBASE fmFreqBase
@@ -576,6 +577,7 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
 
   bool writeNoteOn=false;
   unsigned char writeMask=2;
+  unsigned char hardResetMask=0;
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
@@ -603,8 +605,13 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
       writeNoteOn=true;
       if (opChan[i].mask) {
         writeMask|=1<<(4+i);
+        if (opChan[i].hardReset) {
+          hardResetMask|=1<<(4+i);
+        }
       }
-      opChan[i].keyOn=false;
+      if (!opChan[i].hardReset) {
+        opChan[i].keyOn=false;
+      }
     }
   }
 
@@ -638,7 +645,9 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
         (writeMask&0x40)?'3':'-',
         (writeMask&0x80)?'4':'-'
       );*/
+    writeMask^=hardResetMask;
     immWrite(0x28,writeMask);
+    writeMask^=hardResetMask;
 
     // hard reset handling
     if (mustHardReset) {
@@ -648,9 +657,11 @@ void DivPlatformGenesisExt::tick(bool sysTick) {
       for (int i=0; i<4; i++) {
         if (opChan[i].keyOn && opChan[i].hardReset) {
           // restore SL/RR
+          logV("eco: %d",extChanOffs);
           unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[i];
           DivInstrumentFM::Operator& op=chan[extChanOffs].state.op[i];
           immWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+          opChan[i].keyOn=false;
         }
       }
       immWrite(0x28,writeMask);
