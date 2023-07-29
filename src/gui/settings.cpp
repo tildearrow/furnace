@@ -676,6 +676,14 @@ void FurnaceGUI::drawSettings() {
             settings.blankIns=blankInsB;
           }
 
+          bool noDMFCompatB=settings.noDMFCompat;
+          if (ImGui::Checkbox("Don't apply compatibility flags when loading .dmf",&noDMFCompatB)) {
+            settings.noDMFCompat=noDMFCompatB;
+          }
+          if (ImGui::IsItemHovered()) {
+            ImGui::SetTooltip("do not report any issues arising from the use of this option!");
+          }
+
           bool saveUnusedPatternsB=settings.saveUnusedPatterns;
           if (ImGui::Checkbox("Save unused patterns",&saveUnusedPatternsB)) {
             settings.saveUnusedPatterns=saveUnusedPatternsB;
@@ -2821,6 +2829,7 @@ void FurnaceGUI::syncSettings() {
   settings.newSongBehavior=e->getConfInt("newSongBehavior",0);
   settings.memUsageUnit=e->getConfInt("memUsageUnit",1);
   settings.cursorFollowsWheel=e->getConfInt("cursorFollowsWheel",0);
+  settings.noDMFCompat=e->getConfInt("noDMFCompat",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
@@ -2950,6 +2959,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.newSongBehavior,0,1);
   clampSetting(settings.memUsageUnit,0,1);
   clampSetting(settings.cursorFollowsWheel,0,1);
+  clampSetting(settings.noDMFCompat,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3175,6 +3185,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("newSongBehavior",settings.newSongBehavior);
   e->setConf("memUsageUnit",settings.memUsageUnit);
   e->setConf("cursorFollowsWheel",settings.cursorFollowsWheel);
+  e->setConf("noDMFCompat",settings.noDMFCompat);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
