@@ -19,7 +19,7 @@ void FurnaceGUI::drawEffectList() {
       ImGui::PopTextWrapPos();
       ImGui::SameLine();
     }
-    ImGui::Button(ICON_FA_BARS "##SortEffects");
+    if (ImGui::Button(ICON_FA_BARS "##SortEffects")) ImGui::OpenPopup("effectSort");
     if (ImGui::BeginPopupContextItem("effectSort")) {
       for (int i=0; i<9; i++) {
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColorsSort[i]]);
