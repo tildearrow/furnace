@@ -7269,6 +7269,8 @@ FurnaceGUI::FurnaceGUI():
   memset(macroRelLabel,0,32);
   memset(emptyLabel,0,32);
   memset(emptyLabel2,0,32);
+  //effect sorting
+  memset(effectsShow,1,sizeof(bool)*10);
 
   strncpy(noteOffLabel,"OFF",32);
   strncpy(noteRelLabel,"===",32);
