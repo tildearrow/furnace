@@ -207,7 +207,7 @@ DivDataErrors DivSample::readSampleData(SafeReader& reader, short version) {
 
     // render data
     if (depth!=DIV_SAMPLE_DEPTH_8BIT && depth!=DIV_SAMPLE_DEPTH_16BIT) {
-      logW("sample depth is wrong! (%d)",depth);
+      logW("sample depth is wrong! (%d)",(int)depth);
       depth=DIV_SAMPLE_DEPTH_16BIT;
     }
     samples=(double)samples/samplePitchesSD[pitch];
