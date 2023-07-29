@@ -1,6 +1,7 @@
 #include "gui.h"
 #include "guiConst.h"
 #include <imgui.h>
+#include "IconsFontAwesome4.h"
 
 void FurnaceGUI::drawEffectList() {
   if (nextWindow==GUI_WINDOW_EFFECT_LIST) {
@@ -11,9 +12,14 @@ void FurnaceGUI::drawEffectList() {
   if (!effectListOpen) return;
   ImGui::SetNextWindowSizeConstraints(ImVec2(60.0f*dpiScale,20.0f*dpiScale),ImVec2(canvasW,canvasH));
   if (ImGui::Begin("Effect List",&effectListOpen,globalWinFlags)) {
-    ImGui::Text("Chip at cursor: %s",e->getSystemName(e->sysOfChan[cursor.xCoarse]));
-    ImGui::SameLine();
-    if (ImGui::Button("Sort Effects")) ImGui::OpenPopup("effectSort");
+    float availB=ImGui::GetContentRegionAvail().x-ImGui::GetFrameHeightWithSpacing();
+    if (availB>0) {
+      ImGui::PushTextWrapPos(availB);
+      ImGui::TextWrapped("Chip at cursor: %s",e->getSystemName(e->sysOfChan[cursor.xCoarse]));
+      ImGui::PopTextWrapPos();
+      ImGui::SameLine();
+    }
+    ImGui::Button(ICON_FA_BARS "##SortEffects");
     if (ImGui::BeginPopupContextItem("effectSort")) {
       for (int i=0; i<9; i++) {
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[fxColorsSort[i]]);
