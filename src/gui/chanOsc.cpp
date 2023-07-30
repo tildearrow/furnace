@@ -304,6 +304,7 @@ void FurnaceGUI::drawChanOsc() {
             "- %C: channel short name\n"
             "- %d: channel number (starting from 0)\n"
             "- %D: channel number (starting from 1)\n"
+            "- %n: channel note\n"
             "- %i: instrument name\n"
             "- %I: instrument number (decimal)\n"
             "- %x: instrument number (hex)\n"
@@ -537,6 +538,12 @@ void FurnaceGUI::drawChanOsc() {
                         DivChannelState* chanState=e->getChanState(ch);
                         if (chanState==NULL) break;
                         text+=fmt::sprintf("%.2X",chanState->volume>>8);
+                        break;
+                      }
+                      case 'n': {
+                        DivChannelState* chanState=e->getChanState(ch);
+                        if (chanState==NULL || !(chanState->keyOn)) break;
+                        text+=fmt::sprintf("%s",noteName(short (chanState->note),0));
                         break;
                       }
                       case '%':
