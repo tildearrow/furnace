@@ -15,5 +15,5 @@ In short, noise portion of drums (as in hi-hats), can be created of the very hig
 
 ## examples
 
-[Lman-Clubster cover by Mahbod](https://www.youtube.com/watch?v=jfHs7tSyjXI)
-[OPLL Nation by Mahbod](https://www.youtube.com/watch?v=ou6pEfxByeE)
+- [Lman-Clubster cover by Mahbod](https://www.youtube.com/watch?v=jfHs7tSyjXI)
+- [OPLL Nation by Mahbod](https://www.youtube.com/watch?v=ou6pEfxByeE)
