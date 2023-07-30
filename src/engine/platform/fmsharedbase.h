@@ -109,7 +109,8 @@ class DivPlatformFMBase: public DivDispatch {
       if (!skipRegisterWrites && !flushFirst) {
         if (writes.empty()) {
           writes.push_back(QueuedWrite(a,v));
-        } else if (writes.size()>16 || writes.front().addrOrVal) {
+        } else if ((writes.size()>16 && writes.front().addr!=0xf0) || writes.front().addrOrVal) {
+          // $f0 is used by OPN hard reset
           writes.push_back(QueuedWrite(a,v));
         } else {
           writes.push_front(QueuedWrite(a,v));
