@@ -4,7 +4,10 @@ this is a list of systems that Furnace supports, as listed in the new file dialo
 
 some systems have alternate chips, such as the Sega Genesis having a YM2612, a YM3438, or YMF276 depending on the model. this list shows the default configuration.
 
+
+
 ## Game consoles
+
 - **Sega Genesis**,\
   Sega Genesis (extended channel 3),\
   Sega Genesis (CSM),\
@@ -42,7 +45,7 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Famicom Disk System**: [2A03](nes.md), [FDS](fds.md)
 
-- **SNES**: [SPC700](snes.md)
+- **SNES**: [SNES](snes.md)
 
 - **Mattel Intellivision**: [AY-3-8914](ay8910.md)
 
@@ -69,7 +72,10 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Casio PV-1000**: [PV-1000](pv1000.md)
 
+
+
 ## Computers
+
 - **Commodore PET**: [PET](pet.md)
 
 - **Commodore VIC-20**: [VIC](vic20.md)
@@ -261,8 +267,12 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **TI-99/4A**: [SN94624](sms.md)
 
+
+
 ## Arcade systems
+
 - **Pong**: Pong
+
 - **Bally Midway MCR**: [AY-3-8910](ay8910.md) × 2
 
 - **Williams/Midway Y/T unit w/ADPCM sound board**: [YM2151](ym2152.md), [MSM6295](msm6295.md)
@@ -489,7 +499,10 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Irem M92/M107**: [YM2151](ym2152.md), GA20
 
+
+
 ## FM
+
 - **Yamaha YM2151 (OPM)**: [YM2151](ym2152.md)
 
 - **Yamaha YM2203 (OPN)**,\
@@ -535,7 +548,10 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Yamaha YMU759 (MA-2)**: [YMU759](ymu759.md)
 
+
+
 ## Square
+
 - **TI SN76489**: [SN76489](sms.md)
 
 - **TI SN76489A**: [SN76489A](sms.md)
@@ -572,11 +588,15 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 - **OKI MSM5232**: [MSM5232](msm5232.md)
 
 - **Pong**: Pong
+
 - **NEC D65010G031**: [PV-1000](pv1000.md)
 
 - **MOS Technology TED**: [TED](ted.md)
 
+
+
 ## Sample
+
 - **Amiga**: [Amiga](amiga.md)
 
 - **SegaPCM**: [SegaPCM](segapcm.md)
@@ -593,17 +613,22 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **OKI MSM6295**: [MSM6295](msm6295.md)
 
-- **SNES**: [SPC700](snes.md)
+- **SNES**: [SNES](snes.md)
 
 - **Konami K007232**: [K007232](k007232.md)
 
 - **Irem GA20**: GA20
+
 - **Generic PCM DAC**: DAC
+
 - **Ensoniq ES5506 (OTTO)**: [ES5506](es5506.md)
 
 - **Konami K053260**: [K053260](k056320.md)
 
+
+
 ## Wavetable
+
 - **PC Engine**: [HuC6280](pce.md)
 
 - **Konami Bubble System WSG**: [Konami WSG](bubblesystem.md)
@@ -659,9 +684,13 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 - **Sharp SM8521**: [SM8521](sm8521.md)
 
 - **Dummy System**: Dummy
+
 - **tildearrow Sound Unit**: [TSU](soundunit.md)
 
+
+
 ## DefleMask-compatible
+
 - **Sega Genesis**,\
   Sega Genesis (extended channel 3): [YM3438](ym2612.md), [SN76489](sms.md)
 
