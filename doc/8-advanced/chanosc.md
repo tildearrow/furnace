@@ -19,6 +19,7 @@ right-clicking within the view will change it to the configuration view shown ab
   - `%C`: channel short name
   - `%d`: channel number (starting from 0)
   - `%D`: channel number (starting from 1)
+  - `%n`: channel note
   - `%i`: instrument name
   - `%I`: instrument number (decimal)
   - `%x`: instrument number (hex)
