@@ -1,11 +1,3 @@
-# instrument list
-
-![instrument list](list.png)
-
-click on an instrument to select it.
-
-double-click to open the instrument editor.
-
 # instrument editor
 
 every instrument can be renamed and have its type changed.
@@ -66,14 +58,16 @@ Some macros are "bitmap" style. They represent a number of "bits" that can be to
 
 The number between the macro type label and the macro type button is the macro length in steps. The `-` and `+` buttons change the length of the macro. Start out by adding at least a few steps.
 
-The values of the macro can be drawn in the "bar graph box". Just beneath the box is shorter bar graph.
-- Click to set the start point of a loop; the end point is the last value or release point. Right-click to remove the loop.
-- Shift-click to set the release point. When played, the macro will hold here until the note is released. Right-click to remove the release point.
+The values of the macro can be drawn in the "bar graph" box.
+
+Just beneath the box is a shorter bar that controls looping.
+- Click to set the start point of a loop; the end point is the last value or release point. It appears as half-height bars. Right-click to remove the loop.
+- Shift-click to set the release point. When played, the macro will hold here until the note is released. It appears as a full-height bar. Right-click to remove the release point.
 
 Finally, the sequence of values can be directly edited in the text box at the bottom.
 - The loop start is entered as a `|`.
 - The release point is entered as a `/`.
-- In arpeggio macros, a value starting with a `@` is an absolute note (instead of a relative shift). No matter the note played, `@` values will be played at that exact note. This is especially useful for noise instruments with preset periods.
+- In arpeggio macros, a value starting with a `@` is an absolute note (instead of a relative shift). No matter the note entered in the pattern, `@` values will be played at that exact note. This is especially useful for noise instruments with preset periods.
 
 ### ADSR
 
@@ -100,15 +94,29 @@ Finally, the sequence of values can be directly edited in the text box at the bo
 - **Phase** is which part of the waveform the macro will start at, measured in 1/1024 increments.
 - **Shape** is the waveform used. Triangle is the default, and Saw and Square are exactly as they say.
 
-# samples
+
+
+# wavetable
+
+This tab appears for PC Engine, FDS, Namco WSG, and other wavetable-based instruments.
+
+![wavetable tab](wavetable.png)
+
+When **Enable synthesizer** is off, the only option is to select a wavetable entry with the text entry box beneath the **Wave 1** preview.
+
+To use the wavetable synthesizer, refer to the bottom part of [the wavetable documentation](../5-wave/README.md).
+
+
+# sample
 
 This tab appears for Generic PCM, SNES, Amiga, and other sample-based instruments.
 
-![](sample-map.png)
+![sample tab](sample-map.png)
 
 - **Initial Sample**: the sample that the instrument will use.
 - **Use wavetable**: instead of samples, use wavetables. this causes the [Wavetables](../5-wave/README.md) tab to appear next to Sample.
   - depending on the system and use of the wavetable synthesizer, this may or may not be reproducible on hardware.
 - **Use sample map**: assigns a sample to each note.
-  - samples will be played at their default pitch.
-  - to set a note's sample, click the list entry in the `#` column then type the number of the sample.
+  - to set a note's sample, click the list entry in the "#" column then type the number of the sample.
+  - to set the pitch at which a sample is played, click the list entry in the "note" column and press the key for the new note.
+

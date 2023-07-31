@@ -226,7 +226,7 @@ void k053260_core::voice_t::write(u8 address, u8 data)
 			m_start = (m_start & ~0x00ff00) | (u32(data) << 8);
 			break;
 		case 6:	 // start address bit 16-20
-			m_start = (m_start & ~0x1f0000) | (u32(bitfield(data, 16, 5)) << 16);
+			m_start = (m_start & ~0x1f0000) | (u32(bitfield(data, 0, 5)) << 16);
 			break;
 		case 7:	 // volume
 			m_volume = bitfield(data, 0, 7);

@@ -402,7 +402,6 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_INS_OPEN,
   GUI_FILE_INS_OPEN_REPLACE,
   GUI_FILE_INS_SAVE,
-  GUI_FILE_INS_SAVE_OLD,
   GUI_FILE_INS_SAVE_DMP,
   GUI_FILE_WAVE_OPEN,
   GUI_FILE_WAVE_OPEN_REPLACE,
@@ -612,7 +611,6 @@ enum FurnaceGUIActions {
   GUI_ACTION_INS_LIST_OPEN,
   GUI_ACTION_INS_LIST_OPEN_REPLACE,
   GUI_ACTION_INS_LIST_SAVE,
-  GUI_ACTION_INS_LIST_SAVE_OLD,
   GUI_ACTION_INS_LIST_SAVE_DMP,
   GUI_ACTION_INS_LIST_MOVE_UP,
   GUI_ACTION_INS_LIST_MOVE_DOWN,
@@ -1531,6 +1529,7 @@ class FurnaceGUI {
     int newSongBehavior;
     int memUsageUnit;
     int cursorFollowsWheel;
+    int noDMFCompat;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String patFontPath;
@@ -1685,6 +1684,7 @@ class FurnaceGUI {
       newSongBehavior(0),
       memUsageUnit(1),
       cursorFollowsWheel(0),
+      noDMFCompat(0),
       maxUndoSteps(100),
       mainFontPath(""),
       patFontPath(""),
@@ -2038,6 +2038,9 @@ class FurnaceGUI {
   bool pianoReadonly;
   int pianoOffset, pianoOffsetEdit;
   int pianoView, pianoInputPadMode;
+  
+  //effect sorting
+  bool effectsShow[10];
 
   // TX81Z
   bool hasACED;

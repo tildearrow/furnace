@@ -145,15 +145,15 @@ void DivPlatformK053260::tick(bool sysTick) {
           off=8363.0/s->centerRate;
         }
       }
-      DivSample* s=parent->getSample(chan[i].sample);
+      DivSample* s=parent->getSample(sample);
       chan[i].freq=0x1000-(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,true,0,chan[i].pitch2,chipClock,CHIP_DIVIDER));
       if (chan[i].freq>4095) chan[i].freq=4095;
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].keyOn) {
         unsigned int start=0;
         unsigned int length=0;
-        if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
-          start=sampleOffK053260[chan[i].sample];
+        if (sample>=0 && sample<parent->song.sampleLen) {
+          start=sampleOffK053260[sample];
           length=s->length8;
           if (chan[i].reverse) {
             start+=length;
@@ -163,8 +163,7 @@ void DivPlatformK053260::tick(bool sysTick) {
         if (chan[i].audPos>0) {
           if (chan[i].reverse) {
             start=start-MIN(chan[i].audPos,s->length8);
-          }
-          else {
+          } else {
             start=start+MIN(chan[i].audPos,s->length8);
           }
           length=MAX(1,length-chan[i].audPos);

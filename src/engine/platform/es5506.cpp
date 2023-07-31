@@ -360,26 +360,6 @@ void DivPlatformES5506::tick(bool sysTick) {
         }
       }
     }
-    if (chan[i].pcm.isNoteMap) {
-    // note map macros
-      if (chan[i].std.wave.had) {
-        if (chan[i].std.wave.val>=0 && chan[i].std.wave.val<120) {
-          if (chan[i].pcm.next!=chan[i].std.wave.val) {
-            chan[i].pcm.next=chan[i].std.wave.val;
-            chan[i].pcmChanged.index=1;
-          }
-        }
-      }
-    } else if (!chan[i].pcm.isNoteMap) {
-      if (chan[i].std.wave.had) {
-        if (chan[i].std.wave.val>=0 && chan[i].std.wave.val<parent->song.sampleLen) {
-          if (chan[i].pcm.next!=chan[i].std.wave.val) {
-            chan[i].pcm.next=chan[i].std.wave.val;
-            chan[i].pcmChanged.index=1;
-          }
-        }
-      }
-    }
     // update registers
     if (chan[i].volChanged.changed) {
       // calculate volume (16 bit)
@@ -432,7 +412,7 @@ void DivPlatformES5506::tick(bool sysTick) {
               off=(double)center/8363.0;
             }
             if (ins->amiga.useNoteMap) {
-              chan[i].pcm.note=next;
+              //chan[i].pcm.note=next;
             }
             // get loop mode
             DivSampleLoopMode loopMode=s->isLoopable()?s->loopMode:DIV_SAMPLE_LOOP_MAX;
@@ -748,13 +728,13 @@ int DivPlatformES5506::dispatch(DivCommand c) {
       if (((ins->amiga.useNoteMap) && (c.value>=0 && c.value<120)) ||
           ((!ins->amiga.useNoteMap) && (ins->amiga.initSample>=0 && ins->amiga.initSample<parent->song.sampleLen))) {
         int sample=ins->amiga.getSample(c.value);
-        c.value=ins->amiga.getFreq(c.value);
         if (sample>=0 && sample<parent->song.sampleLen) {
           sampleValid=true;
           chan[c.chan].volMacroMax=ins->type==DIV_INS_AMIGA?64:0xfff;
           chan[c.chan].panMacroMax=ins->type==DIV_INS_AMIGA?127:0xfff;
-          chan[c.chan].pcm.note=c.value;
           chan[c.chan].pcm.next=ins->amiga.useNoteMap?c.value:sample;
+          c.value=ins->amiga.getFreq(c.value);
+          chan[c.chan].pcm.note=c.value;
           chan[c.chan].filter=ins->es5506.filter;
           chan[c.chan].envelope=ins->es5506.envelope;
         }
@@ -869,20 +849,6 @@ int DivPlatformES5506::dispatch(DivCommand c) {
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;
       chan[c.chan].freqChanged=true;
-      break;
-    // sample commands
-    case DIV_CMD_WAVE:
-      if (!chan[c.chan].useWave) {
-        if (chan[c.chan].active) {
-          DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_ES5506);
-          if (((ins->amiga.useNoteMap) && (c.value>=0 && c.value<120)) ||
-              ((!ins->amiga.useNoteMap) && (c.value>=0 && c.value<parent->song.sampleLen))) {
-            chan[c.chan].pcm.next=c.value;
-            chan[c.chan].pcmChanged.index=1;
-          }
-        }
-      }
-      // reserved for useWave
       break;
     // Filter commands
     case DIV_CMD_ES5506_FILTER_MODE:
@@ -1253,6 +1219,7 @@ int DivPlatformES5506::init(DivEngine* p, int channels, int sugRate, const DivCo
   dumpWrites=false;
   skipRegisterWrites=false;
   volScale=0;
+  curPage=0;
 
   for (int i=0; i<32; i++) {
     isMuted[i]=false;

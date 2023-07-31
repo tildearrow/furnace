@@ -374,6 +374,9 @@ int DivPlatformYM2610BExt::dispatch(DivCommand c) {
       }
       break;
     }
+    case DIV_CMD_FM_HARD_RESET:
+      opChan[ch].hardReset=c.value;
+      break;
     case DIV_CMD_GET_VOLMAX:
       return 127;
       break;
@@ -404,6 +407,9 @@ static int opChanOffsH[4]={
 };
 
 void DivPlatformYM2610BExt::tick(bool sysTick) {
+  int hardResetElapsed=0;
+  bool mustHardReset=false;
+
   if (extMode) {
     bool writeSomething=false;
     unsigned char writeMask=2;
@@ -413,6 +419,12 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
         writeSomething=true;
         writeMask&=~(1<<(4+i));
         opChan[i].keyOff=false;
+      }
+      if (opChan[i].hardReset && opChan[i].keyOn) {
+        mustHardReset=true;
+        unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[i];
+        immWrite(baseAddr+ADDR_SL_RR,0x0f);
+        hardResetElapsed++;
       }
     }
     if (writeSomething) {
@@ -509,6 +521,7 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
 
   bool writeNoteOn=false;
   unsigned char writeMask=2;
+  unsigned char hardResetMask=0;
   if (extMode) for (int i=0; i<4; i++) {
     if (opChan[i].freqChanged) {
       if (parent->song.linearPitch==2) {
@@ -535,12 +548,36 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
       writeNoteOn=true;
       if (opChan[i].mask) {
         writeMask|=1<<(4+i);
+        if (opChan[i].hardReset) {
+          hardResetMask|=1<<(4+i);
+        }
       }
-      opChan[i].keyOn=false;
+      if (!opChan[i].hardReset) {
+        opChan[i].keyOn=false;
+      }
     }
   }
   if (writeNoteOn) {
+    writeMask^=hardResetMask;
     immWrite(0x28,writeMask);
+    writeMask^=hardResetMask;
+
+    // hard reset handling
+    if (mustHardReset) {
+      for (unsigned int i=hardResetElapsed; i<hardResetCycles; i++) {
+        immWrite(0xf0,i&0xff);
+      }
+      for (int i=0; i<4; i++) {
+        if (opChan[i].keyOn && opChan[i].hardReset) {
+          // restore SL/RR
+          unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[i];
+          DivInstrumentFM::Operator& op=chan[extChanOffs].state.op[i];
+          immWrite(baseAddr+ADDR_SL_RR,(op.rr&15)|(op.sl<<4));
+          opChan[i].keyOn=false;
+        }
+      }
+      immWrite(0x28,writeMask);
+    }
   }
 }
 

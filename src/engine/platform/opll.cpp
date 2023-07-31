@@ -392,6 +392,15 @@ void DivPlatformOPLL::commitState(int ch, DivInstrument* ins) {
   }
 }
 
+void DivPlatformOPLL::switchMode(bool mode) {
+  if (mode==properDrums) return;
+  if (mode) {
+
+  } else {
+
+  }
+}
+
 int DivPlatformOPLL::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
@@ -773,18 +782,10 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       if ((int)properDrums==c.value) break;
       if (c.value) {
         properDrums=true;
-        immWrite(0x0e,0x20);
-        drumState=0;
       } else {
         properDrums=false;
-        immWrite(0x0e,0x00);
-        drumState=0;
       }
-      chan[6].freqChanged=true;
-      chan[7].freqChanged=true;
-      chan[8].freqChanged=true;
-      chan[9].freqChanged=true;
-      chan[10].freqChanged=true;
+      switchMode(properDrums);
       break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);

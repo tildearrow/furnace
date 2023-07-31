@@ -648,9 +648,6 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_INS_LIST_SAVE:
       if (curIns>=0 && curIns<(int)e->song.ins.size()) openFileDialog(GUI_FILE_INS_SAVE);
       break;
-    case GUI_ACTION_INS_LIST_SAVE_OLD:
-      if (curIns>=0 && curIns<(int)e->song.ins.size()) openFileDialog(GUI_FILE_INS_SAVE_OLD);
-      break;
     case GUI_ACTION_INS_LIST_SAVE_DMP:
       if (curIns>=0 && curIns<(int)e->song.ins.size()) openFileDialog(GUI_FILE_INS_SAVE_DMP);
       break;
