@@ -1970,9 +1970,9 @@ class FurnaceGUI {
   bool oscZoomSlider;
 
   // per-channel oscilloscope
-  int chanOscCols, chanOscColorX, chanOscColorY;
+  int chanOscCols, chanOscColorX, chanOscColorY, chanOscAutoColsType;
   float chanOscWindowSize, chanOscTextX, chanOscTextY, chanOscAmplify;
-  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize;
+  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize, chanOscAutoCols;
   String chanOscTextFormat;
   ImVec4 chanOscColor, chanOscTextColor;
   Gradient2D chanOscGrad;

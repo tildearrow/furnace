@@ -6133,6 +6133,8 @@ bool FurnaceGUI::init() {
   pianoInputPadMode=e->getConfInt("pianoInputPadMode",pianoInputPadMode);
 
   chanOscCols=e->getConfInt("chanOscCols",3);
+  chanOscAutoCols=e->getConfBool("chanOscAutoCols",false);
+  chanOscAutoColsType=e->getConfInt("chanOscAutoColsType",0);
   chanOscColorX=e->getConfInt("chanOscColorX",GUI_OSCREF_CENTER);
   chanOscColorY=e->getConfInt("chanOscColorY",GUI_OSCREF_CENTER);
   chanOscTextX=e->getConfFloat("chanOscTextX",0.0f);
@@ -6651,6 +6653,8 @@ void FurnaceGUI::commitState() {
 
   // commit per-chan osc state
   e->setConf("chanOscCols",chanOscCols);
+  e->setConf("chanOscAutoCols",chanOscAutoCols);
+  e->setConf("chanOscAutoColsType",chanOscAutoColsType);
   e->setConf("chanOscColorX",chanOscColorX);
   e->setConf("chanOscColorY",chanOscColorY);
   e->setConf("chanOscTextX",chanOscTextX);
