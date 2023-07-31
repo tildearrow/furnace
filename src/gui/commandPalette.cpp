@@ -44,6 +44,7 @@ void FurnaceGUI::drawPalette() {
     g->paletteFirstFrame=true;
     g->paletteQuery="";
     g->curPaletteChoice=0;
+    g->paletteSearchResults.clear();
   };
 
   bool accepted=false;
@@ -69,7 +70,7 @@ void FurnaceGUI::drawPalette() {
 
     case CMDPAL_TYPE_RECENT:
       for (int i=0; i<(int)recentFile.size(); i++) {
-        if (matchFuzzy(recentFile[i].c_str(),paletteQuery.c_str())) {
+        if (matchFuzzy(recentFile.at(i).c_str(),paletteQuery.c_str())) {
           paletteSearchResults.push_back(i);
         }
       }
@@ -106,12 +107,14 @@ void FurnaceGUI::drawPalette() {
         s=guiActions[id].friendlyName;
         break;
       case CMDPAL_TYPE_RECENT:
-        s=recentFile[id].c_str();
+        s=recentFile.at(id).c_str();
         break;
       default:
         logE("invalid command palette type");
         break;
       };
+
+      logD("~ %d, %d", curPaletteType, s == nullptr);
 
       if (ImGui::Selectable(s,current)) {
         curPaletteChoice=i;
@@ -133,6 +136,10 @@ void FurnaceGUI::drawPalette() {
     ImGui::CloseCurrentPopup();
   }
 
+  // do not move this to after the resetPalette() calls!
+  // if they are called before and we're jumping from one palette to the next, the paletteFirstFrame won't be true at the start and the setup will not happen.
+  paletteFirstFrame=false;
+
   if (accepted) {
     if (paletteSearchResults.size()==0) {
       ImGui::CloseCurrentPopup();
@@ -149,7 +156,7 @@ void FurnaceGUI::drawPalette() {
 
       case CMDPAL_TYPE_RECENT:
         resetPalette(this);
-        openRecentFile(recentFile[i]);
+        openRecentFile(recentFile.at(i));
         ImGui::CloseCurrentPopup();
         break;
 
@@ -160,6 +167,4 @@ void FurnaceGUI::drawPalette() {
       };
     }
   }
-
-  paletteFirstFrame=false;
 }
