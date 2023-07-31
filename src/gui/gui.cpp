@@ -5203,10 +5203,10 @@ bool FurnaceGUI::loop() {
     }
 
     if (displayPalette) {
+      paletteSearchResults.clear();
       paletteQuery="";
       paletteFirstFrame=true;
       curPaletteChoice=0;
-      curPaletteType=0;
       displayPalette=false;
       ImGui::OpenPopup("Command Palette");
     }

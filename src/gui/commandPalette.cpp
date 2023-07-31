@@ -40,13 +40,6 @@ static inline bool matchFuzzy(const char* haystack,const char* needle) {
 }
 
 void FurnaceGUI::drawPalette() {
-  auto resetPalette = [](FurnaceGUI* g){
-    g->paletteFirstFrame=true;
-    g->paletteQuery="";
-    g->curPaletteChoice=0;
-    g->paletteSearchResults.clear();
-  };
-
   bool accepted=false;
 
   if (paletteFirstFrame)
@@ -55,7 +48,20 @@ void FurnaceGUI::drawPalette() {
   int width=ImGui::GetContentRegionAvail().x;
   ImGui::SetNextItemWidth(width);
 
-  if (ImGui::InputTextWithHint("##CommandPaletteSearch","Search...",&paletteQuery) || paletteFirstFrame) {
+  const char* hint="Search...";
+  switch (curPaletteType) {
+  case CMDPAL_TYPE_RECENT:
+    hint="Search recent files...";
+    break;
+  case CMDPAL_TYPE_INSTRUMENTS:
+    hint="Search instruments...";
+    break;
+  case CMDPAL_TYPE_SAMPLES:
+    hint="Search samples...";
+    break;
+  }
+
+  if (ImGui::InputTextWithHint("##CommandPaletteSearch",hint,&paletteQuery) || paletteFirstFrame) {
     paletteSearchResults.clear();
 
     switch (curPaletteType) {
@@ -121,7 +127,7 @@ void FurnaceGUI::drawPalette() {
       bool current=(i==curPaletteChoice);
       int id=paletteSearchResults[i];
 
-      const char *s="???";
+      const char* s="???";
       switch (curPaletteType) {
       case CMDPAL_TYPE_MAIN:
         s=guiActions[id].friendlyName;
@@ -169,40 +175,30 @@ void FurnaceGUI::drawPalette() {
   paletteFirstFrame=false;
 
   if (accepted) {
-    if (paletteSearchResults.size()==0) {
-      ImGui::CloseCurrentPopup();
-    } else {
+    if (paletteSearchResults.size()>0) {
       int i=paletteSearchResults[curPaletteChoice];
       switch (curPaletteType) {
       case CMDPAL_TYPE_MAIN:
         doAction(i);
-        if (i<GUI_ACTION_CMDPAL_MIN || GUI_ACTION_CMDPAL_MAX<i) {
-          // TODO: maybe instead of this, just re-open the dialog from the doAction code. it'll be much simpler than this corny mess I made
-          ImGui::CloseCurrentPopup();
-        }
         break;
 
       case CMDPAL_TYPE_RECENT:
         openRecentFile(recentFile.at(i));
-        ImGui::CloseCurrentPopup();
         break;
 
       case CMDPAL_TYPE_INSTRUMENTS:
         curIns=i-1;
-        ImGui::CloseCurrentPopup();
         break;
 
       case CMDPAL_TYPE_SAMPLES:
         curSample=i;
-        ImGui::CloseCurrentPopup();
         break;
 
       default:
         logE("invalid command palette type");
-        ImGui::CloseCurrentPopup();
         break;
       };
-      resetPalette(this);
     }
+    ImGui::CloseCurrentPopup();
   }
 }
