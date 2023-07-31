@@ -42,9 +42,10 @@ const char* chanOscRefs[]={
 };
 
 const char* autoColsTypes[]={
-  "sqrt (chan)",
-  "sqrt (chan+1)",
-  "sqrt (chan)+1"
+  "Off",
+  "Mode 1",
+  "Mode 2",
+  "Mode 3"
 };
 
 float FurnaceGUI::computeGradPos(int type, int chan) {
@@ -151,25 +152,22 @@ void FurnaceGUI::drawChanOsc() {
         if (ImGui::Checkbox("Center waveform",&chanOscWaveCorr)) {
           centerSettingReset=true;
         }
-        ImGui::SameLine();
-        ImGui::Checkbox("Automatic columns", &chanOscAutoCols);
-
-        ImGui::EndTable();
-      }
-      if (chanOscAutoCols) {
-        ImGui::Text("Calculation method");
+        ImGui::TableNextColumn();
+        ImGui::Text("Automatic columns");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         const char* previewColType = autoColsTypes[chanOscAutoColsType];
         if (ImGui::BeginCombo(" ", previewColType,0)) {
-          for (int j=0; j<3; j++) {
+          for (int j=0; j<4; j++) {
             const bool isSelected=(chanOscAutoColsType==j);
             if (ImGui::Selectable(autoColsTypes[j], isSelected)) chanOscAutoColsType=j;
             if (isSelected) ImGui::SetItemDefaultFocus();
           }
           ImGui::EndCombo();
         }
+        ImGui::EndTable();
       }
+        
       ImGui::Text("Amplitude");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -359,15 +357,15 @@ void FurnaceGUI::drawChanOsc() {
 
         ImGuiStyle& style=ImGui::GetStyle();
 
-        if (chanOscAutoCols) {
-          switch (chanOscAutoColsType) {
-            case 1: chanOscCols = sqrt(chans+1); break;
-            case 2: chanOscCols = sqrt(chans)+1; break;
-            default: chanOscCols = sqrt(chans); break;
-          }
-          if (chanOscCols<1) chanOscCols=1;
-          if (chanOscCols>64) chanOscCols=64;
+        switch (chanOscAutoColsType) {
+          case 1: chanOscCols = sqrt(chans); break;
+          case 2: chanOscCols = sqrt(chans+1); break;
+          case 3: chanOscCols = sqrt(chans)+1; break;
+          default: break;
         }
+        if (chanOscCols<1) chanOscCols=1;
+        if (chanOscCols>64) chanOscCols=64;
+        
 
         for (int i=0; i<chans; i++) {
           DivDispatchOscBuffer* buf=e->getOscBuffer(i);

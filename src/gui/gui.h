@@ -1972,7 +1972,7 @@ class FurnaceGUI {
   // per-channel oscilloscope
   int chanOscCols, chanOscColorX, chanOscColorY, chanOscAutoColsType;
   float chanOscWindowSize, chanOscTextX, chanOscTextY, chanOscAmplify;
-  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize, chanOscAutoCols;
+  bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize;
   String chanOscTextFormat;
   ImVec4 chanOscColor, chanOscTextColor;
   Gradient2D chanOscGrad;
