@@ -152,7 +152,7 @@ void FurnaceGUI::drawChanOsc() {
           centerSettingReset=true;
         }
         ImGui::SameLine();
-        ImGui::Checkbox("Automatic Columns", &chanOscAutoCols);
+        ImGui::Checkbox("Automatic columns", &chanOscAutoCols);
 
         ImGui::EndTable();
       }
