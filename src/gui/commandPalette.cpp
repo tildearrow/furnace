@@ -76,6 +76,26 @@ void FurnaceGUI::drawPalette() {
       }
       break;
 
+    case CMDPAL_TYPE_INSTRUMENTS:
+      if (matchFuzzy("- None -",paletteQuery.c_str())) {
+        paletteSearchResults.push_back(0);
+      }
+      for (int i=0; i<e->song.insLen; i++) {
+        if (matchFuzzy(e->song.ins[i]->name.c_str(),paletteQuery.c_str())) {
+          paletteSearchResults.push_back(i+1); // because over here ins=0 is 'None'
+        }
+      }
+      break;
+
+    case CMDPAL_TYPE_SAMPLES:
+      for (int i=0; i<e->song.sampleLen; i++) {
+        logD("ins #%x: %s", i, e->song.sample[i]->name.c_str());
+        if (matchFuzzy(e->song.sample[i]->name.c_str(),paletteQuery.c_str())) {
+          paletteSearchResults.push_back(i);
+        }
+      }
+      break;
+
     default:
       logE("invalid command palette type");
       ImGui::CloseCurrentPopup();
@@ -109,12 +129,20 @@ void FurnaceGUI::drawPalette() {
       case CMDPAL_TYPE_RECENT:
         s=recentFile.at(id).c_str();
         break;
+      case CMDPAL_TYPE_INSTRUMENTS:
+        if (id==0) {
+          s="- None -";
+        } else {
+          s=e->song.ins[id-1]->name.c_str();
+        }
+        break;
+      case CMDPAL_TYPE_SAMPLES:
+        s=e->song.sample[id]->name.c_str();
+        break;
       default:
         logE("invalid command palette type");
         break;
       };
-
-      logD("~ %d, %d", curPaletteType, s == nullptr);
 
       if (ImGui::Selectable(s,current)) {
         curPaletteChoice=i;
@@ -147,16 +175,25 @@ void FurnaceGUI::drawPalette() {
       int i=paletteSearchResults[curPaletteChoice];
       switch (curPaletteType) {
       case CMDPAL_TYPE_MAIN:
-        resetPalette(this);
         doAction(i);
         if (i<GUI_ACTION_CMDPAL_MIN || GUI_ACTION_CMDPAL_MAX<i) {
+          // TODO: maybe instead of this, just re-open the dialog from the doAction code. it'll be much simpler than this corny mess I made
           ImGui::CloseCurrentPopup();
         }
         break;
 
       case CMDPAL_TYPE_RECENT:
-        resetPalette(this);
         openRecentFile(recentFile.at(i));
+        ImGui::CloseCurrentPopup();
+        break;
+
+      case CMDPAL_TYPE_INSTRUMENTS:
+        curIns=i-1;
+        ImGui::CloseCurrentPopup();
+        break;
+
+      case CMDPAL_TYPE_SAMPLES:
+        curSample=i;
         ImGui::CloseCurrentPopup();
         break;
 
@@ -165,6 +202,7 @@ void FurnaceGUI::drawPalette() {
         ImGui::CloseCurrentPopup();
         break;
       };
+      resetPalette(this);
     }
   }
 }

@@ -20,6 +20,9 @@
 enum CommandPaletteType {
   CMDPAL_TYPE_MAIN = 0,
   CMDPAL_TYPE_RECENT,
+  CMDPAL_TYPE_INSTRUMENTS,
+  CMDPAL_TYPE_SAMPLES,
+  // a menu to select wavetables is beyond scope (they can't be put as strings)
   // TODO: are there more?
 
   CMDPAL_TYPE_MAX,

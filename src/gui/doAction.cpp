@@ -192,6 +192,12 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_CMDPAL_RECENT:
       curPaletteType=CMDPAL_TYPE_RECENT;
       break;
+    case GUI_ACTION_CMDPAL_INSTRUMENTS:
+      curPaletteType=CMDPAL_TYPE_INSTRUMENTS;
+      break;
+    case GUI_ACTION_CMDPAL_SAMPLES:
+      curPaletteType=CMDPAL_TYPE_SAMPLES;
+      break;
     case GUI_ACTION_WINDOW_EDIT_CONTROLS:
       nextWindow=GUI_WINDOW_EDIT_CONTROLS;
       break;

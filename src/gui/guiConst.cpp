@@ -560,6 +560,8 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("COMMAND_PALETTE", "Command Palette", FURKMOD_CMD|SDLK_p),
   D("CMDPAL_MIN", "", NOT_AN_ACTION),
   D("CMDPAL_RECENT", "Recent files (Palette)", 0),
+  D("CMDPAL_INSTRUMENTS", "Instruments (Palette)", 0),
+  D("CMDPAL_SAMPLES", "Samples (Palette)", 0),
   D("CMDPAL_MAX", "", NOT_AN_ACTION),
 
   D("WINDOW_EDIT_CONTROLS", "Edit Controls", 0),
