@@ -357,16 +357,6 @@ void FurnaceGUI::drawChanOsc() {
 
         ImGuiStyle& style=ImGui::GetStyle();
 
-        switch (chanOscAutoColsType) {
-          case 1: chanOscCols = sqrt(chans); break;
-          case 2: chanOscCols = sqrt(chans+1); break;
-          case 3: chanOscCols = sqrt(chans)+1; break;
-          default: break;
-        }
-        if (chanOscCols<1) chanOscCols=1;
-        if (chanOscCols>64) chanOscCols=64;
-        
-
         for (int i=0; i<chans; i++) {
           DivDispatchOscBuffer* buf=e->getOscBuffer(i);
           if (buf!=NULL && e->curSubSong->chanShow[i]) {
@@ -375,6 +365,16 @@ void FurnaceGUI::drawChanOsc() {
             oscChans.push_back(i);
           }
         }
+
+        switch (chanOscAutoColsType) {
+          case 1: chanOscCols = sqrt(oscChans.size()); break;
+          case 2: chanOscCols = sqrt(oscChans.size()+1); break;
+          case 3: chanOscCols = sqrt(oscChans.size())+1; break;
+          default: break;
+        }
+        if (chanOscCols<1) chanOscCols=1;
+        if (chanOscCols>64) chanOscCols=64;
+        
         int rows=(oscBufs.size()+(chanOscCols-1))/chanOscCols;
 
         for (size_t i=0; i<oscBufs.size(); i++) {
