@@ -152,6 +152,7 @@ void FurnaceGUI::drawChanOsc() {
         if (ImGui::Checkbox("Center waveform",&chanOscWaveCorr)) {
           centerSettingReset=true;
         }
+
         ImGui::TableNextColumn();
         ImGui::Text("Automatic columns");
         ImGui::SameLine();
@@ -167,7 +168,7 @@ void FurnaceGUI::drawChanOsc() {
         }
         ImGui::EndTable();
       }
-        
+
       ImGui::Text("Amplitude");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
