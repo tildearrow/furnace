@@ -2762,6 +2762,7 @@ void FurnaceGUI::syncSettings() {
   settings.tg100Path=e->getConfString("tg100Path","");
   settings.mu5Path=e->getConfString("mu5Path","");
   settings.mainFont=e->getConfInt("mainFont",0);
+  settings.bigFont=e->getConfInt("bigFont",0);
   settings.patFont=e->getConfInt("patFont",0);
   settings.mainFontPath=e->getConfString("mainFontPath","");
   settings.bigFontPath=e->getConfString("bigFontPath","");
