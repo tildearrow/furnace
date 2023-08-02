@@ -17,11 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#define _USE_MATH_DEFINES
 #include "pcspkr.h"
 #include "../engine.h"
 #include "../../ta-log.h"
 
-#define _USE_MATH_DEFINES
 #include <math.h>
 
 #ifdef __linux__
