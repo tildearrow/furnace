@@ -20,6 +20,8 @@
 #include "pcspkr.h"
 #include "../engine.h"
 #include "../../ta-log.h"
+
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 #ifdef __linux__
