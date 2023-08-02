@@ -157,8 +157,8 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::Text("Automatic columns");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        const char* previewColType = autoColsTypes[chanOscAutoColsType];
-        if (ImGui::BeginCombo(" ", previewColType,0)) {
+        const char* previewColType = autoColsTypes[chanOscAutoColsType&3];
+        if (ImGui::BeginCombo(" ", previewColType)) {
           for (int j=0; j<4; j++) {
             const bool isSelected=(chanOscAutoColsType==j);
             if (ImGui::Selectable(autoColsTypes[j], isSelected)) chanOscAutoColsType=j;
@@ -573,8 +573,8 @@ void FurnaceGUI::drawChanOsc() {
                       case 'n': {
                         DivChannelState* chanState=e->getChanState(ch);
                         if (chanState==NULL || !(chanState->keyOn)) break;
-                        short tempNote=chanState->note;//all of this conversion is necessary because notes 100-102 are special chars
-                        short noteMod=tempNote%12+12;//also note 0 is a BUG, hence +12 on the note and -1 on the octave
+                        short tempNote=chanState->note; //all of this conversion is necessary because notes 100-102 are special chars
+                        short noteMod=tempNote%12+12; //also note 0 is a BUG, hence +12 on the note and -1 on the octave
                         short oct=tempNote/12-1; 
                         text+=fmt::sprintf("%s",noteName(noteMod,oct));
                         break;

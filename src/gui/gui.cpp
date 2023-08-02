@@ -7102,6 +7102,7 @@ FurnaceGUI::FurnaceGUI():
   oscWindowSize(20.0f),
   oscZoomSlider(false),
   chanOscCols(3),
+  chanOscAutoColsType(0),
   chanOscColorX(GUI_OSCREF_CENTER),
   chanOscColorY(GUI_OSCREF_CENTER),
   chanOscWindowSize(20.0f),
