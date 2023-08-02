@@ -4521,6 +4521,11 @@ bool FurnaceGUI::loop() {
       MEASURE(effectList,drawEffectList());
     }
 
+    for (int i=0; i<e->getTotalChannelCount(); i++) {
+      keyHit1[i]-=0.2f;
+      if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
+    }
+
     activateTutorial(GUI_TUTORIAL_OVERVIEW);
 
     if (inspectorOpen) ImGui::ShowMetricsWindow(&inspectorOpen);
