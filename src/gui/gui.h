@@ -423,6 +423,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_CMDSTREAM_BINARY,
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_LOAD_MAIN_FONT,
+  GUI_FILE_LOAD_BIG_FONT,
   GUI_FILE_LOAD_PAT_FONT,
   GUI_FILE_IMPORT_COLORS,
   GUI_FILE_IMPORT_KEYBINDS,
@@ -1387,7 +1388,7 @@ class FurnaceGUI {
   char emptyLabel2[32];
 
   struct Settings {
-    int mainFontSize, patFontSize, iconSize;
+    int mainFontSize, bigFontSize, patFontSize, iconSize;
     int audioEngine;
     int audioQuality;
     int audioChans;
@@ -1404,6 +1405,7 @@ class FurnaceGUI {
     String tg100Path;
     String mu5Path;
     int mainFont;
+    int bigFont;
     int patFont;
     int audioRate;
     int audioBufSize;
@@ -1526,6 +1528,7 @@ class FurnaceGUI {
     int noDMFCompat;
     unsigned int maxUndoSteps;
     String mainFontPath;
+    String bigFontPath;
     String patFontPath;
     String audioDevice;
     String midiInDevice;
@@ -1681,6 +1684,7 @@ class FurnaceGUI {
       noDMFCompat(0),
       maxUndoSteps(100),
       mainFontPath(""),
+      bigFontPath(""),
       patFontPath(""),
       audioDevice(""),
       midiInDevice(""),

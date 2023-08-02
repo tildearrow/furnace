@@ -1835,6 +1835,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_LOAD_BIG_FONT:
+      if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        "Select Font",
+        {"compatible files", "*.ttf *.otf *.ttc"},
+        "compatible files{.ttf,.otf,.ttc}",
+        workingDirFont,
+        dpiScale
+      );
+      break;
     case GUI_FILE_LOAD_PAT_FONT:
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
@@ -4622,6 +4632,7 @@ bool FurnaceGUI::loop() {
           workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_LOAD_MAIN_FONT:
+        case GUI_FILE_LOAD_BIG_FONT:
         case GUI_FILE_LOAD_PAT_FONT:
           workingDirFont=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
@@ -5082,6 +5093,9 @@ bool FurnaceGUI::loop() {
             }
             case GUI_FILE_LOAD_MAIN_FONT:
               settings.mainFontPath=copyOfName;
+              break;
+            case GUI_FILE_LOAD_BIG_FONT:
+              settings.bigFontPath=copyOfName;
               break;
             case GUI_FILE_LOAD_PAT_FONT:
               settings.patFontPath=copyOfName;
