@@ -158,10 +158,10 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         const char* previewColType = autoColsTypes[chanOscAutoColsType&3];
-        if (ImGui::BeginCombo(" ", previewColType)) {
+        if (ImGui::BeginCombo(" ",previewColType)) {
           for (int j=0; j<4; j++) {
             const bool isSelected=(chanOscAutoColsType==j);
-            if (ImGui::Selectable(autoColsTypes[j], isSelected)) chanOscAutoColsType=j;
+            if (ImGui::Selectable(autoColsTypes[j],isSelected)) chanOscAutoColsType=j;
             if (isSelected) ImGui::SetItemDefaultFocus();
           }
           ImGui::EndCombo();
@@ -368,9 +368,9 @@ void FurnaceGUI::drawChanOsc() {
         }
 
         switch (chanOscAutoColsType) {
-          case 1: chanOscCols = sqrt(oscChans.size()); break;
-          case 2: chanOscCols = sqrt(oscChans.size()+1); break;
-          case 3: chanOscCols = sqrt(oscChans.size())+1; break;
+          case 1: chanOscCols=sqrt(oscChans.size()); break;
+          case 2: chanOscCols=sqrt(oscChans.size()+1); break;
+          case 3: chanOscCols=sqrt(oscChans.size())+1; break;
           default: break;
         }
         if (chanOscCols<1) chanOscCols=1;
