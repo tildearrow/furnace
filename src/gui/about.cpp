@@ -285,7 +285,7 @@ void FurnaceGUI::drawAbout() {
 
     for (size_t i=0; i<aboutCount; i++) {
       double posX=(canvasW/2.0)+(sin(double(i)*0.5+double(aboutScroll)/(90.0*dpiScale))*120*dpiScale)-(ImGui::CalcTextSize(aboutLine[i]).x*0.5);
-      double posY=(canvasH-aboutScroll+42*i*dpiScale);
+      double posY=(canvasH-aboutScroll+settings.bigFontSize*7/6*i*dpiScale);
       if (posY<-80*dpiScale || posY>canvasH) continue;
       dl->AddText(bigFont,bigFont->FontSize,
                   ImVec2(posX+dpiScale,posY+dpiScale),
