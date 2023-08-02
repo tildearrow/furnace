@@ -1438,8 +1438,8 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
               e->curOrders->ord[orderCursor][curOrder]=((e->curOrders->ord[orderCursor][curOrder]<<4)|num);
             });
             MARK_MODIFIED;
+            curNibble=!curNibble;
             if (orderEditMode==2 || orderEditMode==3) {
-              curNibble=!curNibble;
               if (!curNibble) {
                 if (orderEditMode==2) {
                   orderCursor++;
@@ -4519,6 +4519,11 @@ bool FurnaceGUI::loop() {
       MEASURE(regView,drawRegView());
       MEASURE(log,drawLog());
       MEASURE(effectList,drawEffectList());
+    }
+
+    for (int i=0; i<e->getTotalChannelCount(); i++) {
+      keyHit1[i]-=0.2f;
+      if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
     }
 
     activateTutorial(GUI_TUTORIAL_OVERVIEW);
