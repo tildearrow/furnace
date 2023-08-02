@@ -21,3 +21,9 @@ it also has a flexible windowing system which you may move around and organize.
 see [2-interface](../2-interface/README.md) and [3-pattern](../3-pattern/README.md) for more information.
 
 once familiar with the tracker, look to [9-guides](../9-guides/README.md) for useful techniques.
+
+
+
+# links
+
+[Furnace Tutorials](https://youtube.com/playlist?list=PLCELB6AsTZUnwv0PC5AAGHjvg47F44YQ1): video tutorials created by Spinning Square Waves.
