@@ -81,7 +81,6 @@ void DivPlatformGB::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformGB::updateWave() {
-  logV("WAVE UPDATE");
   rWrite(0x1a,0);
   for (int i=0; i<16; i++) {
     int nibble1=ws.output[((i<<1)+antiClickWavePos)&31];
