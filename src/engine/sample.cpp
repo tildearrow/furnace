@@ -480,6 +480,7 @@ bool DivSample::saveRaw(const char* path) {
 
 // 16-bit memory is padded to 512, to make things easier for ADPCM-A/B.
 bool DivSample::initInternal(DivSampleDepth d, int count) {
+  logV("initInternal(%d,%d)",(int)d,count);
   switch (d) {
     case DIV_SAMPLE_DEPTH_1BIT: // 1-bit
       if (data1!=NULL) delete[] data1;
@@ -489,7 +490,7 @@ bool DivSample::initInternal(DivSampleDepth d, int count) {
       break;
     case DIV_SAMPLE_DEPTH_1BIT_DPCM: // DPCM
       if (dataDPCM!=NULL) delete[] dataDPCM;
-      lengthDPCM=1+((((count+7)/8)+15)&(~15));
+      lengthDPCM=1+((((count-1)/8)+15)&(~15));
       dataDPCM=new unsigned char[lengthDPCM];
       memset(dataDPCM,0xaa,lengthDPCM);
       break;
@@ -748,7 +749,11 @@ void DivSample::convert(DivSampleDepth newDepth) {
       setSampleCount((samples+7)&(~7));
       break;
     case DIV_SAMPLE_DEPTH_1BIT_DPCM:
-      setSampleCount((1+((((samples+7)/8)+15)&(~15)))<<3);
+      if (samples) {
+        setSampleCount((1+((((samples-1)/8)+15)&(~15)))<<3);
+      } else {
+        setSampleCount(8);
+      }
       break;
     case DIV_SAMPLE_DEPTH_YMZ_ADPCM:
       setSampleCount(((lengthZ+3)&(~0x03))*2);
@@ -1168,7 +1173,7 @@ void DivSample::render(unsigned int formatMask) {
     if (!initInternal(DIV_SAMPLE_DEPTH_1BIT_DPCM,samples)) return;
     int accum=63;
     int next=63;
-    for (unsigned int i=0; i<samples; i++) {
+    for (unsigned int i=0; (i<samples && (i>>3)<lengthDPCM); i++) {
       next=((unsigned short)(data16[i]^0x8000))>>9;
       if (next>accum) {
         dataDPCM[i>>3]|=1<<(i&7);
