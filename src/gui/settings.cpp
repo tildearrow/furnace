@@ -1867,7 +1867,7 @@ void FurnaceGUI::drawSettings() {
           if (settings.mainFontSize<3) settings.mainFontSize=3;
           if (settings.mainFontSize>96) settings.mainFontSize=96;
         }
-        ImGui::Text("Head font");
+        ImGui::Text("Header font");
         ImGui::SameLine();
         ImGui::Combo("##HeadFont",&settings.headFont,headFonts,7);
         if (settings.headFont==6) {
@@ -4060,7 +4060,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       logE("could not load big UI font!");
     }
 
-    if (settings.mainFontSize==settings.headFontSize && settings.headFont<5 && builtinFontM[settings.headFont]==builtinFont[settings.mainFont]) {
+    if (settings.mainFontSize==settings.headFontSize && settings.headFont<5 && builtinFont[settings.headFont]==builtinFont[settings.mainFont]) {
       logD("using main font for header font.");
       headFont=mainFont;
     } else {
