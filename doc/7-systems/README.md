@@ -1,26 +1,29 @@
 # systems
 
-this is a list of systems that Furnace supports, as listed in the new file dialog. each chip links to a page with information and a list of supported effects.
+this is a list of some of the systems that Furnace supports, as shown in the new file dialog. each chip links to a page with information and a list of supported effects.
 
 some systems have alternate chips, such as the Sega Genesis having a YM2612, a YM3438, or YMF276 depending on the model. this list shows the default configuration.
 
-
-
-## DefleMask-compatible
-
 - **Sega Genesis**: [YM3438](ym2612.md), [SN76489](sms.md)
 - **Sega Genesis (extended channel 3)**: [YM3438](ym2612.md), [SN76489](sms.md)
+- **Sega Genesis (with Sega CD)**: [YM3438](ym2612.md), [SN76489](sms.md), [RF5C164](ricoh.md)
 <!-- -->
 - **Sega Master System**: [SN76489](sms.md)
 - **Sega Master System (with FM expansion)**: [SN76489](sms.md), [YM2413](opll.md)
 <!-- -->
+- **NES**: [2A03](nes.md)
+- **Famicom with Konami VRC6**: [2A03](nes.md), [VRC6](vrc6.md)
+- **Famicom with Konami VRC7**: [2A03](nes.md), [VRC7](opl.md)
+- **Famicom with MMC5**: [2A03](nes.md), [MMC5](mmc5.md)
+- **Famicom with Sunsoft 5B**: [2A03](nes.md), [5B](ay8910.md)
+- **Famicom with Namco 163**: [2A03](nes.md), [N163](n163.md)
+- **Famicom Disk System**: [2A03](nes.md), [FDS](fds.md)
+<!-- -->
 - **Game Boy**: [Game Boy](game-boy.md)
 <!-- -->
-- **NEC PC Engine/TurboGrafx-16**: [HuC6280](pce.md)
+- **SNES**: [SNES](snes.md)
 <!-- -->
-- **NES**: [2A03](nes.md)
-- **Famicom with Konami VRC7**: [2A03](nes.md), [VRC7](opl.md)
-- **Famicom Disk System**: [2A03](nes.md), [FDS](fds.md)
+- **NEC PC Engine/TurboGrafx-16**: [HuC6280](pce.md)
 <!-- -->
 - **Commodore 64 (6581 SID)**: [MOS 6581](c64.md)
 - **Commodore 64 (8580 SID)**: [MOS 8580](c64.md)
@@ -30,24 +33,7 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 - **Neo Geo CD**: [YM2610](ym2610.md)
 - **Neo Geo CD (extended channel 2)**: [YM2610](ym2610.md)
 <!-- -->
-- **Yamaha YMU759 (MA-2)**: [YMU759](ymu759.md)
-
-
-
-## additional systems
-
-- **Sega Genesis (with Sega CD)**: [YM3438](ym2612.md), [SN76489](sms.md), [RF5C164](ricoh.md)
-<!-- -->
 - **Neo Geo Pocket**: [T6W28](t6w28.md), DAC
-<!-- -->
-- **Famicom with Konami VRC6**: [2A03](nes.md), [VRC6](vrc6.md)
-- **Famicom with MMC5**: [2A03](nes.md), [MMC5](mmc5.md)
-- **Famicom with Sunsoft 5B**: [2A03](nes.md), [5B](ay8910.md)
-- **Famicom with Namco 163**: [2A03](nes.md), [N163](n163.md)
-<!-- -->
-- **SNES**: [SNES](snes.md)
-<!-- -->
-- **Mattel Intellivision**: [AY-3-8914](ay8910.md)
 <!-- -->
 - **Atari 2600/7800**: [TIA](tia.md)
 <!-- -->
@@ -56,15 +42,91 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 - **Capcom CPS-1**: [YM2151](ym2152.md), [MSM6295](msm6295.md)
 - **Capcom CPS-2 (QSound)**: [QSound](qsound.md)
 <!-- -->
+- **Konami Bubble System**: [AY-3-8910](ay8910.md) × 2, [Konami WSG](bubblesystem.md)
+<!-- -->
 - **Sharp X68000**: [YM2151](ym2152.md), [MSM6258](msm6258.md)
 <!-- -->
 - **PC + Sound Blaster Pro**: [YM3812](opl.md) × 2, DAC, [PC Speaker](pcspkr.md)
+<!-- -->
+- **Amiga**: [Amiga](amiga.md)
+<!-- -->
+- **MSX**: [AY-3-8910](ay8910.md)
+- **MSX + SCC**: [YM2149(F)](ay8910.md), [SCC](scc.md)
 <!-- -->
 - **Commander X16 (VERA only)**: [VERA](vera.md)
 <!-- -->
 - and many, many more!
 
+
+
+# chips
+
+this is the full list of chips that Furnace supports.
+
+- [2A03](nes.md)
+- [Amiga](amiga.md)
+- [AY-3-8910, AY-3-8914, YM2149(F), 5B](ay8910.md)
+- [AY8930](ay8930.md)
+- [MOS 6581, MOS 8580](c64.md)
+- [ES5506](es5506.md)
+- [SCC](scc.md)
+- [FDS](fds.md)
+- [Game Boy](game-boy.md)
+- [Generic PCM DAC](dac.md)
+- Irem GA20
+- [Konami WSG](bubblesystem.md)
+- [K007232](k007232.md)
+- [K053260](k056320.md)
+- [Lynx](lynx.md)
+- [MMC5](mmc5.md)
+- [MSM5232](msm5232.md)
+- [MSM6258](msm6258.md)
+- [MSM6295](msm6295.md)
+- [N163](n163.md)
+- [Namco WSG, C15, C30](namco.md)
+- [HuC6280](pce.md)
+- [PC Speaker](pcspkr.md)
+- [PET](pet.md)
+- [Pokémon Mini](pokemini.md)
+- [POKEY](pokey.md)
+- Pong
+- [PV-1000](pv1000.md)
+- [QSound](qsound.md)
+- [RF5C68, RF5C164](ricoh.md)
+- [SAA1099](saa1099.md)
+- [SCC, SCC+](scc.md)
+- [SegaPCM](segapcm.md)
+- [SM8521](sm8521.md)
+- [SN76489, SN76489A, SN76494, SN76496, SN94624, 8496, PSSJ](sms.md)
+- [SNES](snes.md)
+- [tildearrow Sound Unit](soundunit.md)
+- [T6W28](t6w28.md)
+- [TED](ted.md)
+- [TIA](tia.md)
+- [VERA](vera.md)
+- [VIC](vic20.md)
+- [Virtual Boy](virtual-boy.md)
+- [VRC6](vrc6.md)
+- [WonderSwan](wonderswan.md)
+- [X1-010](x1-010.md)
+- [(OPL) VRC7, Y8950, YM3526, YM3812, YMF262](opl.md)
+- [(OPLL) YM2413](opll.md)
+- [(OPZ) YM2414](opz.md)
+- [(OPM) YM2151](ym2152.md)
+- [(OPN) YM2203](ym2203.md)
+- [(OPNA) YM2608](ym2608.md)
+- [(OPNB) YM2610](ym2610.md)
+- [(OPNB) YM2610B](ym2610b.md)
+- [(OPN2) YM2612, YM3438](ym2612.md)
+- [YMU759 (MA-2)](ymu759.md)
+- [YMZ280B](ymz280b.md)
+- [ZXS Beeper](zxbeep.md)
+
+
+
 <!--
+# full system list
+
 ## Game consoles
 
 - **Sega Genesis**: [YM3438](ym2612.md), [SN76489](sms.md)
@@ -173,7 +235,7 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **MSX + Playsoniq**: [YM2149(F)](ay8910.md), [SN76489](sms.md), [MOS 8580](c64.md), [SCC+](scc.md)
 
-- **MSX + SCC**: [YM2149(F)](ay8910.md), [SCC](ess.md)
+- **MSX + SCC**: [YM2149(F)](ay8910.md), [SCC](scc.md)
 
 - **MSX + SCC+**: [YM2149(F)](ay8910.md), [SCC+](scc.md)
 
@@ -748,67 +810,4 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 - **Dummy System**: Dummy
 
 - **tildearrow Sound Unit**: [TSU](soundunit.md)
--->
-
-# chips
-
-- [Amiga](amiga.md)
-- [AY-3-8910, AY-3-8914, YM2149(F), 5B](ay8910.md)
-- [AY8930](ay8930.md)
-- [Konami WSG](bubblesystem.md)
-- [MOS 6581, MOS 8580](c64.md)
-- [ES5506](es5506.md)
-- [SCC](scc.md)
-- [FDS](fds.md)
-- [Game Boy](game-boy.md)
-- [Generic PCM DAC](dac.md)
-- [K007232](k007232.md)
-- [K053260](k056320.md)
-- [Lynx](lynx.md)
-- [MMC5](mmc5.md)
-- [MSM5232](msm5232.md)
-- [MSM6258](msm6258.md)
-- [MSM6295](msm6295.md)
-- [N163](n163.md)
-- [Namco WSG, C15, C30](namco.md)
-- [2A03](nes.md)
-- [HuC6280](pce.md)
-- [PC Speaker](pcspkr.md)
-- [PET](pet.md)
-- [Pokémon Mini](pokemini.md)
-- [POKEY](pokey.md)
-- [PV-1000](pv1000.md)
-- [QSound](qsound.md)
-- [RF5C164, RF5C68](ricoh.md)
-- [SAA1099](saa1099.md)
-- [SCC, SCC+](scc.md)
-- [SegaPCM](segapcm.md)
-- [SM8521](sm8521.md)
-- [SN76489, SN76489A, SN76494, SN76496, SN94624, 8496, PSSJ](sms.md)
-- [SNES](snes.md)
-- [tildearrow Sound Unit](soundunit.md)
-- [T6W28](t6w28.md)
-- [TED](ted.md)
-- [TIA](tia.md)
-- [VERA](vera.md)
-- [VIC](vic20.md)
-- [Virtual Boy](virtual-boy.md)
-- [VRC6](vrc6.md)
-- [WonderSwan](wonderswan.md)
-- [X1-010](x1-010.md)
-- [(OPL) VRC7, Y8950, YM3526, YM3812, YMF262](opl.md)
-- [(OPLL) YM2413](opll.md)
-- [(OPZ) YM2414](opz.md)
-- [YM2151](ym2152.md)
-- [YM2203](ym2203.md)
-- [YM2608](ym2608.md)
-- [YM2610](ym2610.md)
-- [YM2610B](ym2610b.md)
-- [(OPN2) YM2612, YM3438](ym2612.md)
-- [YMU759](ymu759.md)
-- [YMZ280B](ymz280b.md)
-- [ZXS Beeper](zxbeep.md)
-<!--
-- GA20
-- Pong
 -->
