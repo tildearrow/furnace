@@ -3297,6 +3297,7 @@ void FurnaceGUI::commitSettings() {
     ImGui::GetIO().Fonts->Clear();
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
+    bigFont=mainFont;
     headFont=mainFont;
     if (rend) rend->destroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
