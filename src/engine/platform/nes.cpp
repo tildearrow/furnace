@@ -332,7 +332,7 @@ void DivPlatformNES::tick(bool sysTick) {
       if (chan[4].keyOn) {
         if (dpcmMode && !skipRegisterWrites && dacSample>=0 && dacSample<parent->song.sampleLen) {
           unsigned int dpcmAddr=sampleOffDPCM[dacSample];
-          unsigned int dpcmLen=(parent->getSample(dacSample)->lengthDPCM+15)>>4;
+          unsigned int dpcmLen=parent->getSample(dacSample)->lengthDPCM>>4;
           if (dpcmLen>255) dpcmLen=255;
           goingToLoop=parent->getSample(dacSample)->isLoopable();
           // write DPCM
