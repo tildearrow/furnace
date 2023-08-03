@@ -1835,6 +1835,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_LOAD_HEAD_FONT:
+      if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        "Select Font",
+        {"compatible files", "*.ttf *.otf *.ttc"},
+        "compatible files{.ttf,.otf,.ttc}",
+        workingDirFont,
+        dpiScale
+      );
+      break;
     case GUI_FILE_LOAD_PAT_FONT:
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
@@ -3859,6 +3869,7 @@ bool FurnaceGUI::loop() {
         mainFont=ImGui::GetIO().Fonts->AddFontDefault();
         patFont=mainFont;
         bigFont=mainFont;
+        headFont=mainFont;
         if (rend) rend->destroyFontsTexture();
         if (!ImGui::GetIO().Fonts->Build()) {
           logE("error again while building font atlas!");
@@ -4611,6 +4622,7 @@ bool FurnaceGUI::loop() {
           workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_LOAD_MAIN_FONT:
+        case GUI_FILE_LOAD_HEAD_FONT:
         case GUI_FILE_LOAD_PAT_FONT:
           workingDirFont=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
@@ -5071,6 +5083,9 @@ bool FurnaceGUI::loop() {
             }
             case GUI_FILE_LOAD_MAIN_FONT:
               settings.mainFontPath=copyOfName;
+              break;
+            case GUI_FILE_LOAD_HEAD_FONT:
+              settings.headFontPath=copyOfName;
               break;
             case GUI_FILE_LOAD_PAT_FONT:
               settings.patFontPath=copyOfName;
@@ -6000,6 +6015,7 @@ bool FurnaceGUI::loop() {
       mainFont=ImGui::GetIO().Fonts->AddFontDefault();
       patFont=mainFont;
       bigFont=mainFont;
+      headFont=mainFont;
       if (rend) rend->destroyFontsTexture();
       if (!ImGui::GetIO().Fonts->Build()) {
         logE("error again while building font atlas!");
@@ -6455,6 +6471,7 @@ bool FurnaceGUI::init() {
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
     bigFont=mainFont;
+    headFont=mainFont;
     if (rend) rend->destroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
       logE("error again while building font atlas!");
@@ -6801,6 +6818,7 @@ FurnaceGUI::FurnaceGUI():
   iconFont(NULL),
   patFont(NULL),
   bigFont(NULL),
+  headFont(NULL),
   fontRange(NULL),
   prevInsData(NULL),
   curIns(0),

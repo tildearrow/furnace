@@ -58,6 +58,16 @@ const char* mainFonts[]={
   "<Custom...>"
 };
 
+const char* headFonts[]={
+  "IBM Plex Sans",
+  "Liberation Sans",
+  "Exo",
+  "Proggy Clean",
+  "GNU Unifont",
+  "<Use system font>",
+  "<Custom...>"
+};
+
 const char* patFonts[]={
   "IBM Plex Mono",
   "Mononoki",
@@ -242,7 +252,7 @@ const char* specificControls[18]={
   } else { \
     _subInit=true; \
   } \
-  ImGui::PushFont(bigFont); \
+  ImGui::PushFont(headFont); \
   ImGui::TextUnformatted(what); \
   ImGui::PopFont();
 
@@ -1857,6 +1867,20 @@ void FurnaceGUI::drawSettings() {
           if (settings.mainFontSize<3) settings.mainFontSize=3;
           if (settings.mainFontSize>96) settings.mainFontSize=96;
         }
+        ImGui::Text("Header font");
+        ImGui::SameLine();
+        ImGui::Combo("##HeadFont",&settings.headFont,headFonts,7);
+        if (settings.headFont==6) {
+          ImGui::InputText("##HeadFontPath",&settings.headFontPath);
+          ImGui::SameLine();
+          if (ImGui::Button(ICON_FA_FOLDER "##HeadFontLoad")) {
+            openFileDialog(GUI_FILE_LOAD_HEAD_FONT);
+          }
+        }
+        if (ImGui::InputInt("Size##HeadFontSize",&settings.headFontSize)) {
+          if (settings.headFontSize<3) settings.headFontSize=3;
+          if (settings.headFontSize>96) settings.headFontSize=96;
+        }
         ImGui::Text("Pattern font");
         ImGui::SameLine();
         ImGui::Combo("##PatFont",&settings.patFont,patFonts,7);
@@ -2712,6 +2736,7 @@ void FurnaceGUI::drawSettings() {
 
 void FurnaceGUI::syncSettings() {
   settings.mainFontSize=e->getConfInt("mainFontSize",18);
+  settings.headFontSize=e->getConfInt("headFontSize",27);
   settings.patFontSize=e->getConfInt("patFontSize",18);
   settings.iconSize=e->getConfInt("iconSize",16);
   settings.audioEngine=(e->getConfString("audioEngine","SDL")=="SDL")?1:0;
@@ -2737,8 +2762,10 @@ void FurnaceGUI::syncSettings() {
   settings.tg100Path=e->getConfString("tg100Path","");
   settings.mu5Path=e->getConfString("mu5Path","");
   settings.mainFont=e->getConfInt("mainFont",0);
+  settings.headFont=e->getConfInt("headFont",0);
   settings.patFont=e->getConfInt("patFont",0);
   settings.mainFontPath=e->getConfString("mainFontPath","");
+  settings.headFontPath=e->getConfString("headFontPath","");
   settings.patFontPath=e->getConfString("patFontPath","");
   settings.patRowsBase=e->getConfInt("patRowsBase",0);
   settings.orderRowsBase=e->getConfInt("orderRowsBase",1);
@@ -2866,6 +2893,7 @@ void FurnaceGUI::syncSettings() {
   settings.noDMFCompat=e->getConfInt("noDMFCompat",0);
 
   clampSetting(settings.mainFontSize,2,96);
+  clampSetting(settings.headFontSize,2,96);
   clampSetting(settings.patFontSize,2,96);
   clampSetting(settings.iconSize,2,48);
   clampSetting(settings.audioEngine,0,1);
@@ -3067,6 +3095,7 @@ void FurnaceGUI::commitSettings() {
   );
 
   e->setConf("mainFontSize",settings.mainFontSize);
+  e->setConf("headFontSize",settings.headFontSize);
   e->setConf("patFontSize",settings.patFontSize);
   e->setConf("iconSize",settings.iconSize);
   e->setConf("audioEngine",String(audioBackends[settings.audioEngine]));
@@ -3092,8 +3121,10 @@ void FurnaceGUI::commitSettings() {
   e->setConf("tg100Path",settings.tg100Path);
   e->setConf("mu5Path",settings.mu5Path);
   e->setConf("mainFont",settings.mainFont);
+  e->setConf("headFont",settings.mainFont);
   e->setConf("patFont",settings.patFont);
   e->setConf("mainFontPath",settings.mainFontPath);
+  e->setConf("headFontPath",settings.headFontPath);
   e->setConf("patFontPath",settings.patFontPath);
   e->setConf("patRowsBase",settings.patRowsBase);
   e->setConf("orderRowsBase",settings.orderRowsBase);
@@ -3267,6 +3298,7 @@ void FurnaceGUI::commitSettings() {
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
     bigFont=mainFont;
+    headFont=mainFont;
     if (rend) rend->destroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
       logE("error again while building font atlas!");
@@ -3650,6 +3682,11 @@ void FurnaceGUI::popWarningColor() {
 // TODO!
 #define SYSTEM_FONT_PATH_3 "C:\\Windows\\Fonts\\tahoma.ttf"
 // TODO!
+#define SYSTEM_HEAD_FONT_PATH_1 "C:\\Windows\\Fonts\\segoeui.ttf"
+#define SYSTEM_HEAD_FONT_PATH_2 "C:\\Windows\\Fonts\\tahoma.ttf"
+// TODO!
+#define SYSTEM_HEAD_FONT_PATH_3 "C:\\Windows\\Fonts\\tahoma.ttf"
+// TODO!
 #define SYSTEM_PAT_FONT_PATH_1 "C:\\Windows\\Fonts\\consola.ttf"
 #define SYSTEM_PAT_FONT_PATH_2 "C:\\Windows\\Fonts\\cour.ttf"
 // GOOD LUCK WITH THIS ONE - UNTESTED
@@ -3658,6 +3695,9 @@ void FurnaceGUI::popWarningColor() {
 #define SYSTEM_FONT_PATH_1 "/System/Library/Fonts/SFAANS.ttf"
 #define SYSTEM_FONT_PATH_2 "/System/Library/Fonts/Helvetica.ttc"
 #define SYSTEM_FONT_PATH_3 "/System/Library/Fonts/Helvetica.dfont"
+#define SYSTEM_HEAD_FONT_PATH_1 "/System/Library/Fonts/SFAANS.ttf"
+#define SYSTEM_HEAD_FONT_PATH_2 "/System/Library/Fonts/Helvetica.ttc"
+#define SYSTEM_HEAD_FONT_PATH_3 "/System/Library/Fonts/Helvetica.dfont"
 #define SYSTEM_PAT_FONT_PATH_1 "/System/Library/Fonts/SFNSMono.ttf"
 #define SYSTEM_PAT_FONT_PATH_2 "/System/Library/Fonts/Courier New.ttf"
 #define SYSTEM_PAT_FONT_PATH_3 "/System/Library/Fonts/Courier New.ttf"
@@ -3666,6 +3706,9 @@ void FurnaceGUI::popWarningColor() {
 #define SYSTEM_FONT_PATH_2 "/system/fonts/DroidSans.ttf"
 #define SYSTEM_FONT_PATH_3 "/system/fonts/DroidSans.ttf"
 // ???
+#define SYSTEM_HEAD_FONT_PATH_1 "/system/fonts/Roboto-Regular.ttf"
+#define SYSTEM_HEAD_FONT_PATH_2 "/system/fonts/DroidSans.ttf"
+#define SYSTEM_HEAD_FONT_PATH_3 "/system/fonts/DroidSans.ttf"
 #define SYSTEM_PAT_FONT_PATH_1 "/system/fonts/RobotoMono-Regular.ttf"
 #define SYSTEM_PAT_FONT_PATH_2 "/system/fonts/DroidSansMono.ttf"
 #define SYSTEM_PAT_FONT_PATH_3 "/system/fonts/CutiveMono.ttf"
@@ -3673,6 +3716,9 @@ void FurnaceGUI::popWarningColor() {
 #define SYSTEM_FONT_PATH_1 "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
 #define SYSTEM_FONT_PATH_2 "/usr/share/fonts/TTF/DejaVuSans.ttf"
 #define SYSTEM_FONT_PATH_3 "/usr/share/fonts/ubuntu/Ubuntu-R.ttf"
+#define SYSTEM_HEAD_FONT_PATH_1 "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"
+#define SYSTEM_HEAD_FONT_PATH_2 "/usr/share/fonts/TTF/DejaVuSans.ttf"
+#define SYSTEM_HEAD_FONT_PATH_3 "/usr/share/fonts/ubuntu/Ubuntu-R.ttf"
 #define SYSTEM_PAT_FONT_PATH_1 "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf"
 #define SYSTEM_PAT_FONT_PATH_2 "/usr/share/fonts/TTF/DejaVuSansMono.ttf"
 #define SYSTEM_PAT_FONT_PATH_3 "/usr/share/fonts/ubuntu/UbuntuMono-R.ttf"
@@ -3913,11 +3959,16 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     }
 
     if (settings.mainFont<0 || settings.mainFont>6) settings.mainFont=0;
+    if (settings.headFont<0 || settings.headFont>6) settings.headFont=0;
     if (settings.patFont<0 || settings.patFont>6) settings.patFont=0;
 
     if (settings.mainFont==6 && settings.mainFontPath.empty()) {
       logW("UI font path is empty! reverting to default font");
       settings.mainFont=0;
+    }
+    if (settings.headFont==6 && settings.headFontPath.empty()) {
+      logW("UI font path is empty! reverting to default font");
+      settings.headFont=0;
     }
     if (settings.patFont==6 && settings.patFontPath.empty()) {
       logW("pattern font path is empty! reverting to default font");
@@ -4004,9 +4055,45 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
 
     // 0x39B = Λ
     static const ImWchar bigFontRange[]={0x20,0xFF,0x39b,0x39b,0};
+
     if ((bigFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(font_plexSans_compressed_data,font_plexSans_compressed_size,MAX(1,40*dpiScale),NULL,bigFontRange))==NULL) {
       logE("could not load big UI font!");
     }
+
+    if (settings.mainFontSize==settings.headFontSize && settings.headFont<5 && builtinFont[settings.headFont]==builtinFont[settings.mainFont]) {
+      logD("using main font for header font.");
+      headFont=mainFont;
+    } else {
+      if (settings.headFont==6) { // custom font
+        if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(settings.headFontPath.c_str(),MAX(1,e->getConfInt("headFontSize",27)*dpiScale),NULL,upTo800))==NULL) {
+          logW("could not load header font! reverting to default font");
+          settings.headFont=0;
+          if ((headFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),NULL,upTo800))==NULL) {
+            logE("could not load header font! falling back to IBM Plex Sans.");
+            headFont=ImGui::GetIO().Fonts->AddFontDefault();
+          }
+        }
+      } else if (settings.headFont==5) { // system font
+        if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_HEAD_FONT_PATH_1,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),NULL,upTo800))==NULL) {
+          if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_HEAD_FONT_PATH_2,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),NULL,upTo800))==NULL) {
+            if ((headFont=ImGui::GetIO().Fonts->AddFontFromFileTTF(SYSTEM_HEAD_FONT_PATH_3,MAX(1,e->getConfInt("headFontSize",27)*dpiScale),NULL,upTo800))==NULL) {
+              logW("could not load header font! reverting to default font");
+              settings.headFont=0;
+              if ((headFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),NULL,upTo800))==NULL) {
+                logE("could not load header font! falling back to IBM Plex Sans.");
+                headFont=ImGui::GetIO().Fonts->AddFontDefault();
+              }
+            }
+          }
+        }
+      } else {
+        if ((headFont=ImGui::GetIO().Fonts->AddFontFromMemoryCompressedTTF(builtinFont[settings.headFont],builtinFontLen[settings.headFont],MAX(1,e->getConfInt("headFontSize",27)*dpiScale),NULL,upTo800))==NULL) {
+          logE("could not load header font!");
+          headFont=ImGui::GetIO().Fonts->AddFontDefault();
+        }
+      }
+    }
+
 
     mainFont->FallbackChar='?';
     mainFont->EllipsisChar='.';
