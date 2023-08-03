@@ -71,8 +71,8 @@ not all chips support these effects.
 
 - `0Bxx`: **Jump to order.** `x` is the order to play after the current row.
   - this marks the end of a loop with order `x` as the loop start.
-- `0Dxx`: **Jump to next pattern.** skips the current row and remainder of current order.
-  - this can be used to shorten the current order.
+- `0Dxx`: **Jump to next pattern.** skips the current row and remainder of current order. `x` is the row at which to start playing the next pattern.
+  - this can be used to shorten the current order as though it had a different pattern length.
 - `FFxx`: **Stop song.** stops playback and ends the song. `x` is ignored.
 
 ## note
