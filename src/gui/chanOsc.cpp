@@ -158,7 +158,7 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
         const char* previewColType = autoColsTypes[chanOscAutoColsType&3];
-        if (ImGui::BeginCombo(" ",previewColType)) {
+        if (ImGui::BeginCombo("##AutoCols",previewColType)) {
           for (int j=0; j<4; j++) {
             const bool isSelected=(chanOscAutoColsType==j);
             if (ImGui::Selectable(autoColsTypes[j],isSelected)) chanOscAutoColsType=j;
