@@ -4476,17 +4476,6 @@ bool FurnaceGUI::loop() {
       }
       MEASURE(songInfo,drawSongInfo());
       MEASURE(orders,drawOrders());
-      if (introMonOpen) {
-        int totalTicks=e->getTotalTicks();
-        int totalSeconds=e->getTotalSeconds();
-        double newMonitorPos=totalSeconds+((double)totalTicks/1000000.0);
-
-        if (fabs(newMonitorPos-monitorPos)>0.08) monitorPos=newMonitorPos;
-
-        drawIntro(monitorPos,true);
-
-        if (e->isPlaying()) monitorPos+=ImGui::GetIO().DeltaTime;
-      }
       MEASURE(sampleList,drawSampleList());
       MEASURE(sampleEdit,drawSampleEdit());
       MEASURE(waveList,drawWaveList());
@@ -6079,7 +6068,6 @@ bool FurnaceGUI::init() {
   clockOpen=e->getConfBool("clockOpen",false);
   speedOpen=e->getConfBool("speedOpen",true);
   groovesOpen=e->getConfBool("groovesOpen",false);
-  introMonOpen=e->getConfBool("introMonOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",true);
@@ -6597,7 +6585,6 @@ void FurnaceGUI::commitState() {
   e->setConf("clockOpen",clockOpen);
   e->setConf("speedOpen",speedOpen);
   e->setConf("groovesOpen",groovesOpen);
-  e->setConf("introMonOpen",introMonOpen);
   e->setConf("regViewOpen",regViewOpen);
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
@@ -6881,7 +6868,6 @@ FurnaceGUI::FurnaceGUI():
   clockOpen(false),
   speedOpen(true),
   groovesOpen(false),
-  introMonOpen(false),
   basicMode(true),
   shortIntro(false),
   insListDir(false),
