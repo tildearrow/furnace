@@ -6,22 +6,81 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 
 
+## DefleMask-compatible
+
+- **Sega Genesis**: [YM3438](ym2612.md), [SN76489](sms.md)
+- **Sega Genesis (extended channel 3)**: [YM3438](ym2612.md), [SN76489](sms.md)
+<!-- -->
+- **Sega Master System**: [SN76489](sms.md)
+- **Sega Master System (with FM expansion)**: [SN76489](sms.md), [YM2413](opll.md)
+<!-- -->
+- **Game Boy**: [Game Boy](game-boy.md)
+<!-- -->
+- **NEC PC Engine/TurboGrafx-16**: [HuC6280](pce.md)
+<!-- -->
+- **NES**: [2A03](nes.md)
+- **Famicom with Konami VRC7**: [2A03](nes.md), [VRC7](opl.md)
+- **Famicom Disk System**: [2A03](nes.md), [FDS](fds.md)
+<!-- -->
+- **Commodore 64 (6581 SID)**: [MOS 6581](c64.md)
+- **Commodore 64 (8580 SID)**: [MOS 8580](c64.md)
+<!-- -->
+- **Arcade (YM2151 and SegaPCM)**: [YM2151](ym2152.md), [SegaPCM](segapcm.md)
+<!-- -->
+- **Neo Geo CD**: [YM2610](ym2610.md)
+- **Neo Geo CD (extended channel 2)**: [YM2610](ym2610.md)
+<!-- -->
+- **Yamaha YMU759 (MA-2)**: [YMU759](ymu759.md)
+
+
+
+## additional systems
+
+- **Sega Genesis (with Sega CD)**: [YM3438](ym2612.md), [SN76489](sms.md), [RF5C164](ricoh.md)
+<!-- -->
+- **Neo Geo Pocket**: [T6W28](t6w28.md), DAC
+<!-- -->
+- **Famicom with Konami VRC6**: [2A03](nes.md), [VRC6](vrc6.md)
+- **Famicom with MMC5**: [2A03](nes.md), [MMC5](mmc5.md)
+- **Famicom with Sunsoft 5B**: [2A03](nes.md), [5B](ay8910.md)
+- **Famicom with Namco 163**: [2A03](nes.md), [N163](n163.md)
+<!-- -->
+- **SNES**: [SNES](snes.md)
+<!-- -->
+- **Mattel Intellivision**: [AY-3-8914](ay8910.md)
+<!-- -->
+- **Atari 2600/7800**: [TIA](tia.md)
+<!-- -->
+- **Atari 800**: [POKEY](pokey.md)
+<!-- -->
+- **Capcom CPS-1**: [YM2151](ym2152.md), [MSM6295](msm6295.md)
+- **Capcom CPS-2 (QSound)**: [QSound](qsound.md)
+<!-- -->
+- **Sharp X68000**: [YM2151](ym2152.md), [MSM6258](msm6258.md)
+<!-- -->
+- **PC + Sound Blaster Pro**: [YM3812](opl.md) × 2, DAC, [PC Speaker](pcspkr.md)
+<!-- -->
+- **Commander X16 (VERA only)**: [VERA](vera.md)
+<!-- -->
+- and many, many more!
+
+<!--
 ## Game consoles
 
-- **Sega Genesis**,\
-  Sega Genesis (extended channel 3),\
-  Sega Genesis (CSM),\
-  Sega Genesis (DualPCM),\
-  Sega Genesis (DualPCM, extended channel 3): [YM3438](ym2612.md), [SN76489](sms.md)
+- **Sega Genesis**: [YM3438](ym2612.md), [SN76489](sms.md)
+- **Sega Genesis (extended channel 3)**: [YM3438](ym2612.md), [SN76489](sms.md)
+- **Sega Genesis (CSM)**: [YM3438](ym2612.md), [SN76489](sms.md)
+- **Sega Genesis (DualPCM)**: [YM3438](ym2612.md), [SN76489](sms.md)
+- **Sega Genesis (DualPCM, extended channel 3)**: [YM3438](ym2612.md), [SN76489](sms.md)
 
-- **Sega Genesis (with Sega CD)**,\
-  Sega Genesis (extended channel 3 with Sega CD),\
-  Sega Genesis (CSM with Sega CD): [YM3438](ym2612.md), [SN76489](sms.md), [RF5C164](ricoh.md)
+- **Sega Genesis (with Sega CD)**: [YM3438](ym2612.md), [SN76489](sms.md), [RF5C164](ricoh.md)
+- **Sega Genesis (extended channel 3 with Sega CD)**: [YM3438](ym2612.md), [SN76489](sms.md), [RF5C164](ricoh.md)
+- **Sega Genesis (CSM with Sega CD)**: [YM3438](ym2612.md), [SN76489](sms.md), [RF5C164](ricoh.md)
 
 - **Sega Master System**: [SN76489](sms.md)
 
-- **Sega Master System (with FM expansion)**,\
-  Sega Master System (with FM expansion in drums mode): [SN76489](sms.md), [YM2413](opll.md)
+- **Sega Master System (with FM expansion)**: [SN76489](sms.md), [YM2413](opll.md)
+- **Sega Master System (with FM expansion in drums mode)**: [SN76489](sms.md), [YM2413](opll.md)
 
 - **Sega Game Gear**: [SN76489](sms.md)
 
@@ -51,8 +110,8 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Vectrex**: [AY-3-8910](ay8910.md)
 
-- **Neo Geo AES**,\
-  Neo Geo AES (extended channel 2): [YM2610](ym2610.md)
+- **Neo Geo AES**: [YM2610](ym2610.md)
+- **Neo Geo AES (extended channel 2)**: [YM2610](ym2610.md)
 
 - **Atari 2600/7800**: [TIA](tia.md)
 
@@ -86,17 +145,17 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Commodore 64 (8580 SID)**: [MOS 8580](c64.md)
 
-- **Commodore 64 (6581 SID + Sound Expander)**,\
-  Commodore 64 (6581 SID + Sound Expander in drums mode): [MOS 6581](c64.md), [YM3526](opl.md)
+- **Commodore 64 (6581 SID + Sound Expander)**: [MOS 6581](c64.md), [YM3526](opl.md)
+- **Commodore 64 (6581 SID + Sound Expander in drums mode)**: [MOS 6581](c64.md), [YM3526](opl.md)
 
-- **Commodore 64 (8580 SID + Sound Expander)**,\
-  Commodore 64 (8580 SID + Sound Expander in drums mode): [MOS 8580](c64.md), [YM3526](opl.md)
+- **Commodore 64 (8580 SID + Sound Expander)**: [MOS 8580](c64.md), [YM3526](opl.md)
+- **Commodore 64 (8580 SID + Sound Expander in drums mode)**: [MOS 8580](c64.md), [YM3526](opl.md)
 
-- **Commodore 64 (6581 SID + FM-YAM)**,\
-  Commodore 64 (6581 SID + FM-YAM in drums mode): [MOS 6581](c64.md), [YM3812](opl.md)
+- **Commodore 64 (6581 SID + FM-YAM)**: [MOS 6581](c64.md), [YM3812](opl.md)
+- **Commodore 64 (6581 SID + FM-YAM in drums mode)**: [MOS 6581](c64.md), [YM3812](opl.md)
 
-- **Commodore 64 (8580 SID + FM-YAM)**,\
-  Commodore 64 (8580 SID + FM-YAM in drums mode): [MOS 8580](c64.md), [YM3812](opl.md)
+- **Commodore 64 (8580 SID + FM-YAM)**: [MOS 8580](c64.md), [YM3812](opl.md)
+- **Commodore 64 (8580 SID + FM-YAM in drums mode)**: [MOS 8580](c64.md), [YM3812](opl.md)
 
 - **Amiga**: [Amiga](amiga.md)
 
@@ -104,11 +163,11 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **MSX + SFG-01**: [YM2149(F)](ay8910.md), [YM2151](ym2152.md)
 
-- **MSX + MSX-AUDIO**,\
-  MSX + MSX-AUDIO (drums mode): [YM2149(F)](ay8910.md), [Y8950](opl.md)
+- **MSX + MSX-AUDIO**: [YM2149(F)](ay8910.md), [Y8950](opl.md)
+- **MSX + MSX-AUDIO (drums mode)**: [YM2149(F)](ay8910.md), [Y8950](opl.md)
 
-- **MSX + MSX-MUSIC**,\
-  MSX + MSX-MUSIC (drums mode): [YM2149(F)](ay8910.md), [YM2413](opll.md)
+- **MSX + MSX-MUSIC**: [YM2149(F)](ay8910.md), [YM2413](opll.md)
+- **MSX + MSX-MUSIC (drums mode)**: [YM2149(F)](ay8910.md), [YM2413](opll.md)
 
 - **MSX + Darky**: [YM2149(F)](ay8910.md), [AY8930](ay8930.md) × 2
 
@@ -118,89 +177,89 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **MSX + SCC+**: [YM2149(F)](ay8910.md), [SCC+](scc.md)
 
-- **MSX + Neotron**,\
-  MSX + Neotron (extended channel 2): [YM2149(F)](ay8910.md), [YM2610](ym2610.md)
+- **MSX + Neotron**: [YM2149(F)](ay8910.md), [YM2610](ym2610.md)
+- **MSX + Neotron (extended channel 2)**: [YM2149(F)](ay8910.md), [YM2610](ym2610.md)
 
-- **MSX + Neotron (with YM2610B)**,\
-  MSX + Neotron (with YM2610B; extended channel 3): [YM2149(F)](ay8910.md), [YM2610B](ym2610b.md)
+- **MSX + Neotron (with YM2610B)**: [YM2149(F)](ay8910.md), [YM2610B](ym2610b.md)
+- **MSX + Neotron (with YM2610B; extended channel 3)**: [YM2149(F)](ay8910.md), [YM2610B](ym2610b.md)
 
 - **MSX + SIMPL**: [YM2149(F)](ay8910.md), DAC
 
 - **NEC PC-88 (with PC-8801-10)**: [PC Speaker](pcspkr.md), [AY-3-8910](ay8910.md) × 2
 
-- **NEC PC-88 (with PC-8801-11)**,\
-  NEC PC-88 (with PC-8801-11; extended channel 3): [PC Speaker](pcspkr.md), [YM2203](ym2203.md)
+- **NEC PC-88 (with PC-8801-11)**: [PC Speaker](pcspkr.md), [YM2203](ym2203.md)
+- **NEC PC-88 (with PC-8801-11; extended channel 3)**: [PC Speaker](pcspkr.md), [YM2203](ym2203.md)
 
-- **NEC PC-88 (with PC-8801-23)**,\
-  NEC PC-88 (with PC-8801-23; extended channel 3): [PC Speaker](pcspkr.md), [YM2608](ym2608.md)
+- **NEC PC-88 (with PC-8801-23)**: [PC Speaker](pcspkr.md), [YM2608](ym2608.md)
+- **NEC PC-88 (with PC-8801-23; extended channel 3)**: [PC Speaker](pcspkr.md), [YM2608](ym2608.md)
 
 - **NEC PC-88 (with HMB-20 HIBIKI-8800)**: [PC Speaker](pcspkr.md), [YM2151](ym2152.md)
 
-- **NEC PC-8801mk2SR (with PC-8801-10)**,\
-  NEC PC-8801mk2SR (with PC-8801-10; extended channel 3): [PC Speaker](pcspkr.md), [YM2203](ym2203.md), [AY-3-8910](ay8910.md) × 2
+- **NEC PC-8801mk2SR (with PC-8801-10)**: [PC Speaker](pcspkr.md), [YM2203](ym2203.md), [AY-3-8910](ay8910.md) × 2
+- **NEC PC-8801mk2SR (with PC-8801-10; extended channel 3)**: [PC Speaker](pcspkr.md), [YM2203](ym2203.md), [AY-3-8910](ay8910.md) × 2
 
-- **NEC PC-8801mk2SR (with PC-8801-11)**,\
-  NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on internal OPN),\
-  NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on external OPN),\
-  NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on both OPNs): [PC Speaker](pcspkr.md), [YM2203](ym2203.md) × 2
+- **NEC PC-8801mk2SR (with PC-8801-11)**: [PC Speaker](pcspkr.md), [YM2203](ym2203.md) × 2
+- **NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on internal OPN)**: [PC Speaker](pcspkr.md), [YM2203](ym2203.md) × 2
+- **NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on external OPN)**: [PC Speaker](pcspkr.md), [YM2203](ym2203.md) × 2
+- **NEC PC-8801mk2SR (with PC-8801-11; extended channel 3 on both OPNs)**: [PC Speaker](pcspkr.md), [YM2203](ym2203.md) × 2
 
-- **NEC PC-8801mk2SR (with PC-8801-23)**,\
-  NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on internal OPN),\
-  NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on external OPN),\
-  NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on both OPNs): [PC Speaker](pcspkr.md), [YM2203](ym2203.md), [YM2608](ym2608.md)
+- **NEC PC-8801mk2SR (with PC-8801-23)**: [PC Speaker](pcspkr.md), [YM2203](ym2203.md), [YM2608](ym2608.md)
+- **NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on internal OPN)**: [PC Speaker](pcspkr.md), [YM2203](ym2203.md), [YM2608](ym2608.md)
+- **NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on external OPN)**: [PC Speaker](pcspkr.md), [YM2203](ym2203.md), [YM2608](ym2608.md)
+- **NEC PC-8801mk2SR (with PC-8801-23; extended channel 3 on both OPNs)**: [PC Speaker](pcspkr.md), [YM2203](ym2203.md), [YM2608](ym2608.md)
 
-- **NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800)**,\
-  NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800; extended channel 3): [PC Speaker](pcspkr.md), [YM2203](ym2203.md), [YM2151](ym2152.md)
+- **NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800)**: [PC Speaker](pcspkr.md), [YM2203](ym2203.md), [YM2151](ym2152.md)
+- **NEC PC-8801mk2SR (with HMB-20 HIBIKI-8800; extended channel 3)**: [PC Speaker](pcspkr.md), [YM2203](ym2203.md), [YM2151](ym2152.md)
 
-- **NEC PC-8801FA (with PC-8801-10)**,\
-  NEC PC-8801FA (with PC-8801-10; extended channel 3): [PC Speaker](pcspkr.md), [YM2608](ym2608.md), [AY-3-8910](ay8910.md) × 2
+- **NEC PC-8801FA (with PC-8801-10)**: [PC Speaker](pcspkr.md), [YM2608](ym2608.md), [AY-3-8910](ay8910.md) × 2
+- **NEC PC-8801FA (with PC-8801-10; extended channel 3)**: [PC Speaker](pcspkr.md), [YM2608](ym2608.md), [AY-3-8910](ay8910.md) × 2
 
-- **NEC PC-8801FA (with PC-8801-11)**,\
-  NEC PC-8801FA (with PC-8801-11; extended channel 3 on internal OPN),\
-  NEC PC-8801FA (with PC-8801-11; extended channel 3 on external OPN),\
-  NEC PC-8801FA (with PC-8801-11; extended channel 3 on both OPNs): [PC Speaker](pcspkr.md), [YM2608](ym2608.md), [YM2203](ym2203.md)
+- **NEC PC-8801FA (with PC-8801-11)**: [PC Speaker](pcspkr.md), [YM2608](ym2608.md), [YM2203](ym2203.md)
+- **NEC PC-8801FA (with PC-8801-11; extended channel 3 on internal OPN)**: [PC Speaker](pcspkr.md), [YM2608](ym2608.md), [YM2203](ym2203.md)
+- **NEC PC-8801FA (with PC-8801-11; extended channel 3 on external OPN)**: [PC Speaker](pcspkr.md), [YM2608](ym2608.md), [YM2203](ym2203.md)
+- **NEC PC-8801FA (with PC-8801-11; extended channel 3 on both OPNs)**: [PC Speaker](pcspkr.md), [YM2608](ym2608.md), [YM2203](ym2203.md)
 
-- **NEC PC-8801FA (with PC-8801-23)**,\
-  NEC PC-8801FA (with PC-8801-23; extended channel 3 on internal OPN),\
-  NEC PC-8801FA (with PC-8801-23; extended channel 3 on external OPN),\
-  NEC PC-8801FA (with PC-8801-23; extended channel 3 on both OPNs): [PC Speaker](pcspkr.md), [YM2608](ym2608.md) × 2
+- **NEC PC-8801FA (with PC-8801-23)**: [PC Speaker](pcspkr.md), [YM2608](ym2608.md) × 2
+- **NEC PC-8801FA (with PC-8801-23; extended channel 3 on internal OPN)**: [PC Speaker](pcspkr.md), [YM2608](ym2608.md) × 2
+- **NEC PC-8801FA (with PC-8801-23; extended channel 3 on external OPN)**: [PC Speaker](pcspkr.md), [YM2608](ym2608.md) × 2
+- **NEC PC-8801FA (with PC-8801-23; extended channel 3 on both OPNs)**: [PC Speaker](pcspkr.md), [YM2608](ym2608.md) × 2
 
-- **NEC PC-8801FA (with HMB-20 HIBIKI-8800)**,\
-  NEC PC-8801FA (with HMB-20 HIBIKI-8800; extended channel 3): [PC Speaker](pcspkr.md), [YM2608](ym2608.md), [YM2151](ym2152.md)
+- **NEC PC-8801FA (with HMB-20 HIBIKI-8800)**: [PC Speaker](pcspkr.md), [YM2608](ym2608.md), [YM2151](ym2152.md)
+- **NEC PC-8801FA (with HMB-20 HIBIKI-8800; extended channel 3)**: [PC Speaker](pcspkr.md), [YM2608](ym2608.md), [YM2151](ym2152.md)
 
-- **NEC PC-98 (with PC-9801-26/K)**,\
-  NEC PC-98 (with PC-9801-26/K; extended channel 3): [YM2203](ym2203.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with PC-9801-26/K)**: [YM2203](ym2203.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with PC-9801-26/K; extended channel 3)**: [YM2203](ym2203.md), [PC Speaker](pcspkr.md)
 
-- **NEC PC-98 (with Sound Orchestra)**,\
-  NEC PC-98 (with Sound Orchestra; extended channel 3),\
-  NEC PC-98 (with Sound Orchestra in drums mode),\
-  NEC PC-98 (with Sound Orchestra in drums mode; extended channel 3): [YM2203](ym2203.md), [YM3812](opl.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with Sound Orchestra)**: [YM2203](ym2203.md), [YM3812](opl.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with Sound Orchestra; extended channel 3)**: [YM2203](ym2203.md), [YM3812](opl.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with Sound Orchestra in drums mode)**: [YM2203](ym2203.md), [YM3812](opl.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with Sound Orchestra in drums mode; extended channel 3)**: [YM2203](ym2203.md), [YM3812](opl.md), [PC Speaker](pcspkr.md)
 
-- **NEC PC-98 (with Sound Orchestra V)**,\
-  NEC PC-98 (with Sound Orchestra V; extended channel 3),\
-  NEC PC-98 (with Sound Orchestra V in drums mode),\
-  NEC PC-98 (with Sound Orchestra V in drums mode; extended channel 3): [YM2203](ym2203.md), [Y8950](opl.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with Sound Orchestra V)**: [YM2203](ym2203.md), [Y8950](opl.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with Sound Orchestra V; extended channel 3)**: [YM2203](ym2203.md), [Y8950](opl.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with Sound Orchestra V in drums mode)**: [YM2203](ym2203.md), [Y8950](opl.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with Sound Orchestra V in drums mode; extended channel 3)**: [YM2203](ym2203.md), [Y8950](opl.md), [PC Speaker](pcspkr.md)
 
-- **NEC PC-98 (with PC-9801-86)**,\
-  NEC PC-98 (with PC-9801-86; extended channel 3): [YM2608](ym2608.md), [DAC](pcspkr.md)
+- **NEC PC-98 (with PC-9801-86)**: [YM2608](ym2608.md), [DAC](pcspkr.md)
+- **NEC PC-98 (with PC-9801-86; extended channel 3)**: [YM2608](ym2608.md), [DAC](pcspkr.md)
 
-- **NEC PC-98 (with PC-9801-73)**,\
-  NEC PC-98 (with PC-9801-73; extended channel 3): [YM2608](ym2608.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with PC-9801-73)**: [YM2608](ym2608.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with PC-9801-73; extended channel 3)**: [YM2608](ym2608.md), [PC Speaker](pcspkr.md)
 
-- **NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible)**,\
-  NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible; extended channel 3),\
-  NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode),\
-  NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode; extended channel 3): [YM2203](ym2203.md), [YMF262](opl.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible)**: [YM2203](ym2203.md), [YMF262](opl.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible; extended channel 3)**: [YM2203](ym2203.md), [YMF262](opl.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode)**: [YM2203](ym2203.md), [YMF262](opl.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with Sound Blaster 16 for PC-9800 w/PC-9801-26/K compatible in drums mode; extended channel 3)**: [YM2203](ym2203.md), [YMF262](opl.md), [PC Speaker](pcspkr.md)
 
-- **ZX Spectrum (48K, SFX-like engine)**,\
-  ZX Spectrum (48K, QuadTone engine): [ZXS Beeper](zxbeep.md)
+- **ZX Spectrum (48K, SFX-like engine)**: [ZXS Beeper](zxbeep.md)
+- **ZX Spectrum (48K, QuadTone engine)**: [ZXS Beeper](zxbeep.md)
 
 - **ZX Spectrum (128K)**: [AY-3-8910](ay8910.md)
 
-- **ZX Spectrum (128K) with TurboSound FM**,\
-  ZX Spectrum (128K) with TurboSound FM (extended channel 3 on first OPN),\
-  ZX Spectrum (128K) with TurboSound FM (extended channel 3 on second OPN),\
-  ZX Spectrum (128K) with TurboSound FM (extended channel 3 on both OPNs): [AY-3-8910](ay8910.md), [YM2203](ym2203.md) × 2
+- **ZX Spectrum (128K) with TurboSound FM**: [AY-3-8910](ay8910.md), [YM2203](ym2203.md) × 2
+- **ZX Spectrum (128K) with TurboSound FM (extended channel 3 on first OPN)**: [AY-3-8910](ay8910.md), [YM2203](ym2203.md) × 2
+- **ZX Spectrum (128K) with TurboSound FM (extended channel 3 on second OPN)**: [AY-3-8910](ay8910.md), [YM2203](ym2203.md) × 2
+- **ZX Spectrum (128K) with TurboSound FM (extended channel 3 on both OPNs)**: [AY-3-8910](ay8910.md), [YM2203](ym2203.md) × 2
 
 - **ZX Spectrum (128K) with TurboSound**: [AY-3-8910](ay8910.md) × 3
 
@@ -230,20 +289,20 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **PC + Game Blaster**: [SAA1099](saa1099.md) × 2, [PC Speaker](pcspkr.md)
 
-- **PC + AdLib**,\
-  PC + AdLib (drums mode): [YM3812](opl.md), [PC Speaker](pcspkr.md)
+- **PC + AdLib**: [YM3812](opl.md), [PC Speaker](pcspkr.md)
+- **PC + AdLib (drums mode)**: [YM3812](opl.md), [PC Speaker](pcspkr.md)
 
-- **PC + Sound Blaster**,\
-  PC + AdLib/Sound Blaster (drums mode): [YM3812](opl.md), [PC Speaker](pcspkr.md), DAC
+- **PC + Sound Blaster**: [YM3812](opl.md), [PC Speaker](pcspkr.md), DAC
+- **PC + AdLib/Sound Blaster (drums mode)**: [YM3812](opl.md), [PC Speaker](pcspkr.md), DAC
 
-- **PC + Sound Blaster w/Game Blaster Compatible**,\
-  PC + Sound Blaster w/Game Blaster Compatible (drums mode): [YM3812](opl.md), [SAA1099](saa1099.md) × 2, DAC, [PC Speaker](pcspkr.md)
+- **PC + Sound Blaster w/Game Blaster Compatible**: [YM3812](opl.md), [SAA1099](saa1099.md) × 2, DAC, [PC Speaker](pcspkr.md)
+- **PC + Sound Blaster w/Game Blaster Compatible (drums mode)**: [YM3812](opl.md), [SAA1099](saa1099.md) × 2, DAC, [PC Speaker](pcspkr.md)
 
-- **PC + Sound Blaster Pro**,\
-  PC + Sound Blaster Pro (drums mode): [YM3812](opl.md) × 2, DAC, [PC Speaker](pcspkr.md)
+- **PC + Sound Blaster Pro**: [YM3812](opl.md) × 2, DAC, [PC Speaker](pcspkr.md)
+- **PC + Sound Blaster Pro (drums mode)**: [YM3812](opl.md) × 2, DAC, [PC Speaker](pcspkr.md)
 
-- **PC + Sound Blaster Pro 2**,\
-  PC + Sound Blaster Pro 2 (drums mode): [YMF262](opl.md), DAC, [PC Speaker](pcspkr.md)
+- **PC + Sound Blaster Pro 2**: [YMF262](opl.md), DAC, [PC Speaker](pcspkr.md)
+- **PC + Sound Blaster Pro 2 (drums mode)**: [YMF262](opl.md), DAC, [PC Speaker](pcspkr.md)
 
 - **PC + PC-FXGA**: [HuC6280](pce.md), [PC Speaker](pcspkr.md)
 
@@ -255,9 +314,9 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Sharp X68000**: [YM2151](ym2152.md), [MSM6258](msm6258.md)
 
-- **FM Towns**,\
-  FM Towns (extended channel 3),\
-  FM Towns (CSM): [YM3438](ym2612.md), [RF5C68](ricoh.md)
+- **FM Towns**: [YM3438](ym2612.md), [RF5C68](ricoh.md)
+- **FM Towns (extended channel 3)**: [YM3438](ym2612.md), [RF5C68](ricoh.md)
+- **FM Towns (CSM)**: [YM3438](ym2612.md), [RF5C68](ricoh.md)
 
 - **Commander X16 (VERA only)**: [VERA](vera.md)
 
@@ -283,25 +342,25 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Konami MX5000**: [YM2151](ym2152.md), [K007232](k007232.md)
 
-- **Konami Battlantis**,\
-  Konami Battlantis (drums mode on first OPL2),\
-  Konami Battlantis (drums mode on second OPL2),\
-  Konami Battlantis (drums mode on both OPL2s): [YM3812](opl.md) × 2
+- **Konami Battlantis**: [YM3812](opl.md) × 2
+- **Konami Battlantis (drums mode on first OPL2)**: [YM3812](opl.md) × 2
+- **Konami Battlantis (drums mode on second OPL2)**: [YM3812](opl.md) × 2
+- **Konami Battlantis (drums mode on both OPL2s)**: [YM3812](opl.md) × 2
 
 - **Konami Fast Lane**: [K007232](k007232.md) × 2
 
 - **Konami Chequered Flag**: [YM2151](ym2152.md), [K007232](k007232.md) × 2
 
-- **Konami Haunted Castle**,\
-  Konami Haunted Castle (drums mode): [YM3812](opl.md), [SCC](ess.md), [K007232](k007232.md)
+- **Konami Haunted Castle**: [YM3812](opl.md), [SCC](ess.md), [K007232](k007232.md)
+- **Konami Haunted Castle (drums mode)**: [YM3812](opl.md), [SCC](ess.md), [K007232](k007232.md)
 
 - **Konami Hot Chase**: [K007232](k007232.md) × 3
 
-- **Konami S.P.Y.**,\
-  Konami S.P.Y. (drums mode): [YM3812](opl.md), [K007232](k007232.md) × 2
+- **Konami S.P.Y.**: [YM3812](opl.md), [K007232](k007232.md) × 2
+- **Konami S.P.Y. (drums mode)**: [YM3812](opl.md), [K007232](k007232.md) × 2
 
-- **Konami Rollergames**,\
-  Konami Rollergames (drums mode): [YM3812](opl.md), [K053260](k056320.md)
+- **Konami Rollergames**: [YM3812](opl.md), [K053260](k056320.md)
+- **Konami Rollergames (drums mode)**: [YM3812](opl.md), [K053260](k056320.md)
 
 - **Konami Golfing Greats**: [K053260](k056320.md)
 
@@ -319,74 +378,74 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Sega System E**: [SN76489](sms.md) × 2
 
-- **Sega System E (with FM expansion)**,\
-  Sega System E (with FM expansion in drums mode): [SN76489](sms.md) × 2, [YM2413](opll.md)
+- **Sega System E (with FM expansion)**: [SN76489](sms.md) × 2, [YM2413](opll.md)
+- **Sega System E (with FM expansion in drums mode)**: [SN76489](sms.md) × 2, [YM2413](opll.md)
 
-- **Sega Hang-On**,\
-  Sega Hang-On (extended channel 3): [YM2203](ym2203.md), [SegaPCM](segapcm.md)
+- **Sega Hang-On**: [YM2203](ym2203.md), [SegaPCM](segapcm.md)
+- **Sega Hang-On (extended channel 3)**: [YM2203](ym2203.md), [SegaPCM](segapcm.md)
 
 - **Sega OutRun/X Board**: [YM2151](ym2152.md), [SegaPCM](segapcm.md)
 
 - **Sega System 24**: [YM2151](ym2152.md), DAC
 
-- **Sega System 18**,\
-  Sega System 18 (extended channel 3 on first OPN2C),\
-  Sega System 18 (extended channel 3 on second OPN2C),\
-  Sega System 18 (extended channel 3 on both OPN2Cs),\
-  Sega System 32,\
-  Sega System 32 (extended channel 3 on first OPN2C),\
-  Sega System 32 (extended channel 3 on second OPN2C),\
-  Sega System 32 (extended channel 3 on both OPN2Cs): [YM3438](ym2612.md) × 2, [RF5C68](ricoh.md)
+- **Sega System 18**: [YM3438](ym2612.md) × 2, [RF5C68](ricoh.md)
+- **Sega System 18 (extended channel 3 on first OPN2C)**: [YM3438](ym2612.md) × 2, [RF5C68](ricoh.md)
+- **Sega System 18 (extended channel 3 on second OPN2C)**: [YM3438](ym2612.md) × 2, [RF5C68](ricoh.md)
+- **Sega System 18 (extended channel 3 on both OPN2Cs)**: [YM3438](ym2612.md) × 2, [RF5C68](ricoh.md)
+- **Sega System 32**: [YM3438](ym2612.md) × 2, [RF5C68](ricoh.md)
+- **Sega System 32 (extended channel 3 on first OPN2C)**: [YM3438](ym2612.md) × 2, [RF5C68](ricoh.md)
+- **Sega System 32 (extended channel 3 on second OPN2C)**: [YM3438](ym2612.md) × 2, [RF5C68](ricoh.md)
+- **Sega System 32 (extended channel 3 on both OPN2Cs)**: [YM3438](ym2612.md) × 2, [RF5C68](ricoh.md)
 
 - **Capcom Exed Eyes**: [AY-3-8910](ay8910.md), [SN76489](sms.md) × 2
 
-- **Capcom Arcade**,\
-  Capcom Arcade (extended channel 3 on first OPN),\
-  Capcom Arcade (extended channel 3 on second OPN),\
-  Capcom Arcade (extended channel 3 on both OPNs): [YM2203](ym2203.md) × 2
+- **Capcom Arcade**: [YM2203](ym2203.md) × 2
+- **Capcom Arcade (extended channel 3 on first OPN)**: [YM2203](ym2203.md) × 2
+- **Capcom Arcade (extended channel 3 on second OPN)**: [YM2203](ym2203.md) × 2
+- **Capcom Arcade (extended channel 3 on both OPNs)**: [YM2203](ym2203.md) × 2
 
 - **Capcom CPS-1**: [YM2151](ym2152.md), [MSM6295](msm6295.md)
 
 - **Capcom CPS-2 (QSound)**: [QSound](qsound.md)
 
-- **Jaleco Ginga NinkyouDen**,\
-  Jaleco Ginga NinkyouDen (drums mode): [YM2149(F)](ay8910.md), [Y8950](opl.md)
+- **Jaleco Ginga NinkyouDen**: [YM2149(F)](ay8910.md), [Y8950](opl.md)
+- **Jaleco Ginga NinkyouDen (drums mode)**: [YM2149(F)](ay8910.md), [Y8950](opl.md)
 
 - **Jaleco Mega System 1**: [YM2151](ym2152.md), [MSM6295](msm6295.md) × 2
 
-- **NMK 16-bit Arcade**,\
-  NMK 16-bit Arcade (extended channel 3),\
-  Kaneko DJ Boy,\
-  Kaneko DJ Boy (extended channel 3): [YM2203](ym2203.md), [MSM6295](msm6295.md) × 2
+- **NMK 16-bit Arcade**: [YM2203](ym2203.md), [MSM6295](msm6295.md) × 2
+- **NMK 16-bit Arcade (extended channel 3)**: [YM2203](ym2203.md), [MSM6295](msm6295.md) × 2
+- **Kaneko DJ Boy**: [YM2203](ym2203.md), [MSM6295](msm6295.md) × 2
+- **Kaneko DJ Boy (extended channel 3)**: [YM2203](ym2203.md), [MSM6295](msm6295.md) × 2
 
-- **Kaneko Air Buster**,\
-  Kaneko Air Buster (extended channel 3): [YM2203](ym2203.md), [MSM6295](msm6295.md)
+- **Kaneko Air Buster**: [YM2203](ym2203.md), [MSM6295](msm6295.md)
+- **Kaneko Air Buster (extended channel 3)**: [YM2203](ym2203.md), [MSM6295](msm6295.md)
 
 - **Kaneko Toybox System**: [YM2149(F)](ay8910.md) × 2, [MSM6295](msm6295.md)
 
-- **Kaneko Jackie Chan**,\
-  Super Kaneko Nova System: [YMZ280B](ymz280b.md)
+- **Kaneko Jackie Chan**: [YMZ280B](ymz280b.md)
+- **Super Kaneko Nova System**: [YMZ280B](ymz280b.md)
 
-- **Tecmo Ninja Gaiden**,\
-  Tecmo Ninja Gaiden (extended channel 3 on first OPN),\
-  Tecmo Ninja Gaiden (extended channel 3 on second OPN),\
-  Tecmo Ninja Gaiden (extended channel 3 on both OPNs): [YM2203](ym2203.md) × 2, [MSM6295](msm6295.md)
+- **Tecmo Ninja Gaiden**: [YM2203](ym2203.md) × 2, [MSM6295](msm6295.md)
+- **Tecmo Ninja Gaiden (extended channel 3 on first OPN)**: [YM2203](ym2203.md) × 2, [MSM6295](msm6295.md)
+- **Tecmo Ninja Gaiden (extended channel 3 on second OPN)**: [YM2203](ym2203.md) × 2, [MSM6295](msm6295.md)
+- **Tecmo Ninja Gaiden (extended channel 3 on both OPNs)**: [YM2203](ym2203.md) × 2, [MSM6295](msm6295.md)
 
-- **Tecmo System**,\
-  Tecmo System (drums mode): [YMF262](opl.md), [YMZ280B](ymz280b.md), [MSM6295](msm6295.md)
+- **Tecmo System**: [YMF262](opl.md), [YMZ280B](ymz280b.md), [MSM6295](msm6295.md)
+- **Tecmo System (drums mode)**: [YMF262](opl.md), [YMZ280B](ymz280b.md), [MSM6295](msm6295.md)
 
-- **Seibu Kaihatsu Raiden**,\
-  Seibu Kaihatsu Raiden (drums mode): [YM3812](opl.md), [MSM6295](msm6295.md)
+- **Seibu Kaihatsu Raiden**: [YM3812](opl.md), [MSM6295](msm6295.md)
+- **Seibu Kaihatsu Raiden (drums mode)**: [YM3812](opl.md), [MSM6295](msm6295.md)
 
 - **Sunsoft Shanghai 3**: [YM2149(F)](ay8910.md), [MSM6295](msm6295.md)
 
-- **Sunsoft Arcade**,\
-  Sunsoft Arcade (extended channel 3): [YM3438](ym2612.md), [MSM6295](msm6295.md)
+- **Sunsoft Arcade**: [YM3438](ym2612.md), [MSM6295](msm6295.md)
+- **Sunsoft Arcade (extended channel 3)**: [YM3438](ym2612.md), [MSM6295](msm6295.md)
 
 - **Atari Klax**: [MSM6295](msm6295.md)
 
-- **Atari Rampart**,\
-  Atari Rampart (drums mode): [YM2413](opll.md), [MSM6295](msm6295.md)
+- **Atari Rampart**: [YM2413](opll.md), [MSM6295](msm6295.md)
+- **Atari Rampart (drums mode)**: [YM2413](opll.md), [MSM6295](msm6295.md)
 
 - **Atari JSA IIIs**: [YM2151](ym2152.md), [MSM6295](msm6295.md) × 2
 
@@ -398,55 +457,55 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Atari I, Robot**: [POKEY](pokey.md) × 4
 
-- **Data East Karnov**,\
-  Data East Karnov (extended channel 3),\
-  Data East Karnov (drums mode),\
-  Data East Karnov (extended channel 3; drums mode): [YM2203](ym2203.md), [YM3526](opl.md)
+- **Data East Karnov**: [YM2203](ym2203.md), [YM3526](opl.md)
+- **Data East Karnov (extended channel 3)**: [YM2203](ym2203.md), [YM3526](opl.md)
+- **Data East Karnov (drums mode)**: [YM2203](ym2203.md), [YM3526](opl.md)
+- **Data East Karnov (extended channel 3; drums mode)**: [YM2203](ym2203.md), [YM3526](opl.md)
 
-- **Data East Arcade**,\
-  Data East Arcade (extended channel 3),\
-  Data East Arcade (drums mode),\
-  Data East Arcade (extended channel 3; drums mode): [YM2203](ym2203.md), [YM3812](opl.md), [MSM6295](msm6295.md)
+- **Data East Arcade**: [YM2203](ym2203.md), [YM3812](opl.md), [MSM6295](msm6295.md)
+- **Data East Arcade (extended channel 3)**: [YM2203](ym2203.md), [YM3812](opl.md), [MSM6295](msm6295.md)
+- **Data East Arcade (drums mode)**: [YM2203](ym2203.md), [YM3812](opl.md), [MSM6295](msm6295.md)
+- **Data East Arcade (extended channel 3; drums mode)**: [YM2203](ym2203.md), [YM3812](opl.md), [MSM6295](msm6295.md)
 
-- **Data East PCX**,\
-  Data East PCX (extended channel 3): [YM2203](ym2203.md), [HuC6280](pce.md)
+- **Data East PCX**: [YM2203](ym2203.md), [HuC6280](pce.md)
+- **Data East PCX (extended channel 3)**: [YM2203](ym2203.md), [HuC6280](pce.md)
 
-- **Data East Dark Seal**,\
-  Data East Dark Seal (extended channel 3): [YM2151](ym2152.md), [YM2203](ym2203.md), [MSM6295](msm6295.md) × 2
+- **Data East Dark Seal**: [YM2151](ym2152.md), [YM2203](ym2203.md), [MSM6295](msm6295.md) × 2
+- **Data East Dark Seal (extended channel 3)**: [YM2151](ym2152.md), [YM2203](ym2203.md), [MSM6295](msm6295.md) × 2
 
 - **Data East Deco 156**: [MSM6295](msm6295.md) × 2
 
 - **Data East MLC**: [YMZ280B](ymz280b.md)
 
-- **SNK Ikari Warriors**,\
-  SNK Ikari Warriors (drums mode on first OPL),\
-  SNK Ikari Warriors (drums mode on second OPL),\
-  SNK Ikari Warriors (drums mode on both OPLs): [YM3526](opl.md) × 2
+- **SNK Ikari Warriors**: [YM3526](opl.md) × 2
+- **SNK Ikari Warriors (drums mode on first OPL)**: [YM3526](opl.md) × 2
+- **SNK Ikari Warriors (drums mode on second OPL)**: [YM3526](opl.md) × 2
+- **SNK Ikari Warriors (drums mode on both OPLs)**: [YM3526](opl.md) × 2
 
-- **SNK Triple Z80**,\
-  SNK Triple Z80 (drums mode on Y8950),\
-  SNK Triple Z80 (drums mode on OPL),\
-  SNK Triple Z80 (drums mode on Y8950 and OPL): [Y8950](opl.md), [YM3526](opl.md)
+- **SNK Triple Z80**: [Y8950](opl.md), [YM3526](opl.md)
+- **SNK Triple Z80 (drums mode on Y8950)**: [Y8950](opl.md), [YM3526](opl.md)
+- **SNK Triple Z80 (drums mode on OPL)**: [Y8950](opl.md), [YM3526](opl.md)
+- **SNK Triple Z80 (drums mode on Y8950 and OPL)**: [Y8950](opl.md), [YM3526](opl.md)
 
-- **SNK Chopper I**,\
-  SNK Chopper I (drums mode on Y8950),\
-  SNK Chopper I (drums mode on OPL2),\
-  SNK Chopper I (drums mode on Y8950 and OPL2): [Y8950](opl.md), [YM3812](opl.md)
+- **SNK Chopper I**: [Y8950](opl.md), [YM3812](opl.md)
+- **SNK Chopper I (drums mode on Y8950)**: [Y8950](opl.md), [YM3812](opl.md)
+- **SNK Chopper I (drums mode on OPL2)**: [Y8950](opl.md), [YM3812](opl.md)
+- **SNK Chopper I (drums mode on Y8950 and OPL2)**: [Y8950](opl.md), [YM3812](opl.md)
 
-- **SNK Touchdown Fever**,\
-  SNK Touchdown Fever (drums mode on OPL),\
-  SNK Touchdown Fever (drums mode on Y8950),\
-  SNK Touchdown Fever (drums mode on OPL and Y8950): [YM3526](opl.md), [Y8950](opl.md)
+- **SNK Touchdown Fever**: [YM3526](opl.md), [Y8950](opl.md)
+- **SNK Touchdown Fever (drums mode on OPL)**: [YM3526](opl.md), [Y8950](opl.md)
+- **SNK Touchdown Fever (drums mode on Y8950)**: [YM3526](opl.md), [Y8950](opl.md)
+- **SNK Touchdown Fever (drums mode on OPL and Y8950)**: [YM3526](opl.md), [Y8950](opl.md)
 
-- **Alpha denshi Alpha-68K**,\
-  Alpha denshi Alpha-68K (extended channel 3),\
-  Alpha denshi Alpha-68K (drums mode),\
-  Alpha denshi Alpha-68K (extended channel 3; drums mode): [YM2203](ym2203.md), [YM2413](opll.md), DAC
+- **Alpha denshi Alpha-68K**: [YM2203](ym2203.md), [YM2413](opll.md), DAC
+- **Alpha denshi Alpha-68K (extended channel 3)**: [YM2203](ym2203.md), [YM2413](opll.md), DAC
+- **Alpha denshi Alpha-68K (drums mode)**: [YM2203](ym2203.md), [YM2413](opll.md), DAC
+- **Alpha denshi Alpha-68K (extended channel 3; drums mode)**: [YM2203](ym2203.md), [YM2413](opll.md), DAC
 
 - **Alpha denshi Equites**: [MSM5232](msm5232.md), [AY-3-8910](ay8910.md), DAC
 
-- **Neo Geo MVS**,\
-  Neo Geo MVS (extended channel 2): [YM2610](ym2610.md)
+- **Neo Geo MVS**: [YM2610](ym2610.md)
+- **Neo Geo MVS (extended channel 2)**: [YM2610](ym2610.md)
 
 - **Nichibutsu Mag Max**: [AY-3-8910](ay8910.md) × 3
 
@@ -458,11 +517,11 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Namco System 86**: [YM2151](ym2152.md), [C30](namco.md)
 
-- **Namco Thunder Ceptor**,\
-  Namco System 1: [YM2151](ym2152.md), [C30](namco.md), DAC
+- **Namco Thunder Ceptor**: [YM2151](ym2152.md), [C30](namco.md), DAC
+- **Namco System 1**: [YM2151](ym2152.md), [C30](namco.md), DAC
 
-- **Taito Arcade**,\
-  Taito Arcade (extended channel 3): [YM2610B](ym2610b.md)
+- **Taito Arcade**: [YM2610B](ym2610b.md)
+- **Taito Arcade (extended channel 3)**: [YM2610B](ym2610b.md)
 
 - **Taito Metal Soldier Isaac II**: [MSM5232](msm5232.md), [AY-3-8910](ay8910.md) × 2
 
@@ -472,8 +531,8 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Seta 1**: [X1-010](x1-010.md)
 
-- **Seta 1 + FM addon**,\
-  Seta 1 + FM addon (extended channel 3): [X1-010](x1-010.md), [YM3438](ym2612.md)
+- **Seta 1 + FM addon**: [X1-010](x1-010.md), [YM3438](ym2612.md)
+- **Seta 1 + FM addon (extended channel 3)**: [X1-010](x1-010.md), [YM3438](ym2612.md)
 
 - **Seta 2**: [X1-010](x1-010.md)
 
@@ -481,19 +540,19 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Cave 68000**: [YMZ280B](ymz280b.md)
 
-- **Coreland Cyber Tank**,\
-  Coreland Cyber Tank (drums mode): [Y8950](opl.md) × 2
+- **Coreland Cyber Tank**: [Y8950](opl.md) × 2
+- **Coreland Cyber Tank (drums mode)**: [Y8950](opl.md) × 2
 
 - **ICE Skimaxx**: [MSM6295](msm6295.md) × 4
 
-- **Toaplan 1**,\
-  Toaplan 1 (drums mode): [YM3812](opl.md)
+- **Toaplan 1**: [YM3812](opl.md)
+- **Toaplan 1 (drums mode)**: [YM3812](opl.md)
 
-- **Dynax/Nakanihon 3rd generation hardware**,\
-  Dynax/Nakanihon 3rd generation hardware (drums mode): [AY-3-8910](ay8910.md), [YM2413](opll.md), [MSM6295](msm6295.md)
+- **Dynax/Nakanihon 3rd generation hardware**: [AY-3-8910](ay8910.md), [YM2413](opll.md), [MSM6295](msm6295.md)
+- **Dynax/Nakanihon 3rd generation hardware (drums mode)**: [AY-3-8910](ay8910.md), [YM2413](opll.md), [MSM6295](msm6295.md)
 
-- **Dynax/Nakanihon Real Break**,\
-  Dynax/Nakanihon Real Break (drums mode): [YM2413](opll.md), [YMZ280B](ymz280b.md)
+- **Dynax/Nakanihon Real Break**: [YM2413](opll.md), [YMZ280B](ymz280b.md)
+- **Dynax/Nakanihon Real Break (drums mode)**: [YM2413](opll.md), [YMZ280B](ymz280b.md)
 
 - **Irem M72**: [YM2151](ym2152.md), DAC
 
@@ -505,46 +564,46 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Yamaha YM2151 (OPM)**: [YM2151](ym2152.md)
 
-- **Yamaha YM2203 (OPN)**,\
-  Yamaha YM2203 (extended channel 3): [YM2203](ym2203.md)
+- **Yamaha YM2203 (OPN)**: [YM2203](ym2203.md)
+- **Yamaha YM2203 (extended channel 3)**: [YM2203](ym2203.md)
 
-- **Yamaha YM2608 (OPNA)**,\
-  Yamaha YM2608 (extended channel 3): [YM2608](ym2608.md)
+- **Yamaha YM2608 (OPNA)**: [YM2608](ym2608.md)
+- **Yamaha YM2608 (extended channel 3)**: [YM2608](ym2608.md)
 
-- **Yamaha YM2610 (OPNB)**,\
-  Yamaha YM2610 (extended channel 2): [YM2610](ym2610.md)
+- **Yamaha YM2610 (OPNB)**: [YM2610](ym2610.md)
+- **Yamaha YM2610 (extended channel 2)**: [YM2610](ym2610.md)
 
-- **Yamaha YM2610B (OPNB2)**,\
-  Yamaha YM2610B (extended channel 3): [YM2610B](ym2610b.md)
+- **Yamaha YM2610B (OPNB2)**: [YM2610B](ym2610b.md)
+- **Yamaha YM2610B (extended channel 3)**: [YM2610B](ym2610b.md)
 
-- **Yamaha YM2612 (OPN2)**,\
-  Yamaha YM2612 (extended channel 3),\
-  Yamaha YM2612 (OPN2) CSM,\
-  Yamaha YM2612 (OPN2) with DualPCM,\
-  Yamaha YM2612 (extended channel 3) with DualPCM: [YM2612](ym2612.md)
+- **Yamaha YM2612 (OPN2)**: [YM2612](ym2612.md)
+- **Yamaha YM2612 (extended channel 3)**: [YM2612](ym2612.md)
+- **Yamaha YM2612 (OPN2) CSM**: [YM2612](ym2612.md)
+- **Yamaha YM2612 (OPN2) with DualPCM**: [YM2612](ym2612.md)
+- **Yamaha YM2612 (extended channel 3) with DualPCM**: [YM2612](ym2612.md)
 
-- **Yamaha YM2413 (OPLL)**,\
-  Yamaha YM2413 (drums mode): [YM2413](opll.md)
+- **Yamaha YM2413 (OPLL)**: [YM2413](opll.md)
+- **Yamaha YM2413 (drums mode)**: [YM2413](opll.md)
 
 - **Yamaha YM2414 (OPZ)**: [YM2414](opz.md)
 
-- **Yamaha YM3438 (OPN2C)**,\
-  Yamaha YM3438 (extended channel 3),\
-  Yamaha YM3438 (OPN2C) CSM,\
-  Yamaha YM3438 (OPN2C) with DualPCM,\
-  Yamaha YM3438 (extended channel 3) with DualPCM: [YM3438](ym2612.md)
+- **Yamaha YM3438 (OPN2C)**: [YM3438](ym2612.md)
+- **Yamaha YM3438 (extended channel 3)**: [YM3438](ym2612.md)
+- **Yamaha YM3438 (OPN2C) CSM**: [YM3438](ym2612.md)
+- **Yamaha YM3438 (OPN2C) with DualPCM**: [YM3438](ym2612.md)
+- **Yamaha YM3438 (extended channel 3) with DualPCM**: [YM3438](ym2612.md)
 
-- **Yamaha YM3526 (OPL)**,\
-  Yamaha YM3526 (drums mode): [YM3526](opl.md)
+- **Yamaha YM3526 (OPL)**: [YM3526](opl.md)
+- **Yamaha YM3526 (drums mode)**: [YM3526](opl.md)
 
-- **Yamaha Y8950**,\
-  Yamaha Y8950 (drums mode): [Y8950](opl.md)
+- **Yamaha Y8950**: [Y8950](opl.md)
+- **Yamaha Y8950 (drums mode)**: [Y8950](opl.md)
 
-- **Yamaha YM3812 (OPL2)**,\
-  Yamaha YM3812 (drums mode): [YM3812](opl.md)
+- **Yamaha YM3812 (OPL2)**: [YM3812](opl.md)
+- **Yamaha YM3812 (drums mode)**: [YM3812](opl.md)
 
-- **Yamaha YMF262 (OPL3)**,\
-  Yamaha YMF262 (drums mode): [YMF262](opl.md)
+- **Yamaha YMF262 (OPL3)**: [YMF262](opl.md)
+- **Yamaha YMF262 (drums mode)**: [YMF262](opl.md)
 
 - **Yamaha YMU759 (MA-2)**: [YMU759](ymu759.md)
 
@@ -562,8 +621,8 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Tandy PSSJ 3-voice sound**: [PSSJ](sms.md)
 
-- **Sega PSG (SN76489-like)**,\
-  Sega PSG (SN76489-like, Stereo): [SN76489](sms.md)
+- **Sega PSG (SN76489-like)**: [SN76489](sms.md)
+- **Sega PSG (SN76489-like, Stereo)**: [SN76489](sms.md)
 
 - **TI SN94624**: [SN94624](sms.md)
 
@@ -653,7 +712,10 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Seta/Allumer X1-010**: [X1-010](x1-010.md)
 
+
+
 ## Specialized
+
 - **MOS Technology SID (6581)**: [MOS 6581](c64.md)
 
 - **MOS Technology SID (8580)**: [MOS 8580](c64.md)
@@ -678,43 +740,75 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 
 - **Commander X16 (VERA only)**: [VERA](vera.md)
 
-- **ZX Spectrum (beeper only, SFX-like engine)**,\
-  ZX Spectrum (beeper only, QuadTone engine): [ZXS Beeper](zxbeep.md)
+- **ZX Spectrum (beeper only, SFX-like engine)**: [ZXS Beeper](zxbeep.md)
+- **ZX Spectrum (beeper only, QuadTone engine)**: [ZXS Beeper](zxbeep.md)
 
 - **Sharp SM8521**: [SM8521](sm8521.md)
 
 - **Dummy System**: Dummy
 
 - **tildearrow Sound Unit**: [TSU](soundunit.md)
+-->
 
+# chips
 
-
-## DefleMask-compatible
-
-- **Sega Genesis**,\
-  Sega Genesis (extended channel 3): [YM3438](ym2612.md), [SN76489](sms.md)
-
-- **Sega Master System**: [SN76489](sms.md)
-
-- **Sega Master System (with FM expansion)**: [SN76489](sms.md), [YM2413](opll.md)
-
-- **Game Boy**: [Game Boy](game-boy.md)
-
-- **NEC PC Engine/TurboGrafx-16**: [HuC6280](pce.md)
-
-- **NES**: [2A03](nes.md)
-
-- **Famicom with Konami VRC7**: [2A03](nes.md), [VRC7](opl.md)
-
-- **Famicom Disk System**: [2A03](nes.md), [FDS](fds.md)
-
-- **Commodore 64 (6581 SID)**: [MOS 6581](c64.md)
-
-- **Commodore 64 (8580 SID)**: [MOS 8580](c64.md)
-
-- **Arcade (YM2151 and SegaPCM)**: [YM2151](ym2152.md), [SegaPCM](segapcm.md)
-
-- **Neo Geo CD**,\
-  Neo Geo CD (extended channel 2): [YM2610](ym2610.md)
-
-- **Yamaha YMU759 (MA-2)**: [YMU759](ymu759.md)
+- [Amiga](amiga.md)
+- [AY-3-8910, AY-3-8914, YM2149(F), 5B](ay8910.md)
+- [AY8930](ay8930.md)
+- [Konami WSG](bubblesystem.md)
+- [MOS 6581, MOS 8580](c64.md)
+- [ES5506](es5506.md)
+- [SCC](scc.md)
+- [FDS](fds.md)
+- [Game Boy](game-boy.md)
+- [Generic PCM DAC](dac.md)
+- [K007232](k007232.md)
+- [K053260](k056320.md)
+- [Lynx](lynx.md)
+- [MMC5](mmc5.md)
+- [MSM5232](msm5232.md)
+- [MSM6258](msm6258.md)
+- [MSM6295](msm6295.md)
+- [N163](n163.md)
+- [Namco WSG, C15, C30](namco.md)
+- [2A03](nes.md)
+- [HuC6280](pce.md)
+- [PC Speaker](pcspkr.md)
+- [PET](pet.md)
+- [Pokémon Mini](pokemini.md)
+- [POKEY](pokey.md)
+- [PV-1000](pv1000.md)
+- [QSound](qsound.md)
+- [RF5C164, RF5C68](ricoh.md)
+- [SAA1099](saa1099.md)
+- [SCC, SCC+](scc.md)
+- [SegaPCM](segapcm.md)
+- [SM8521](sm8521.md)
+- [SN76489, SN76489A, SN76494, SN76496, SN94624, 8496, PSSJ](sms.md)
+- [SNES](snes.md)
+- [tildearrow Sound Unit](soundunit.md)
+- [T6W28](t6w28.md)
+- [TED](ted.md)
+- [TIA](tia.md)
+- [VERA](vera.md)
+- [VIC](vic20.md)
+- [Virtual Boy](virtual-boy.md)
+- [VRC6](vrc6.md)
+- [WonderSwan](wonderswan.md)
+- [X1-010](x1-010.md)
+- [(OPL) VRC7, Y8950, YM3526, YM3812, YMF262](opl.md)
+- [(OPLL) YM2413](opll.md)
+- [(OPZ) YM2414](opz.md)
+- [YM2151](ym2152.md)
+- [YM2203](ym2203.md)
+- [YM2608](ym2608.md)
+- [YM2610](ym2610.md)
+- [YM2610B](ym2610b.md)
+- [(OPN2) YM2612, YM3438](ym2612.md)
+- [YMU759](ymu759.md)
+- [YMZ280B](ymz280b.md)
+- [ZXS Beeper](zxbeep.md)
+<!--
+- GA20
+- Pong
+-->
