@@ -41,6 +41,13 @@ const char* chanOscRefs[]={
   "Note Trigger"
 };
 
+const char* autoColsTypes[]={
+  "Off",
+  "Mode 1",
+  "Mode 2",
+  "Mode 3"
+};
+
 float FurnaceGUI::computeGradPos(int type, int chan) {
   switch (type) {
     case GUI_OSCREF_NONE:
@@ -146,6 +153,19 @@ void FurnaceGUI::drawChanOsc() {
           centerSettingReset=true;
         }
 
+        ImGui::TableNextColumn();
+        ImGui::Text("Automatic columns");
+        ImGui::SameLine();
+        ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
+        const char* previewColType = autoColsTypes[chanOscAutoColsType&3];
+        if (ImGui::BeginCombo("##AutoCols",previewColType)) {
+          for (int j=0; j<4; j++) {
+            const bool isSelected=(chanOscAutoColsType==j);
+            if (ImGui::Selectable(autoColsTypes[j],isSelected)) chanOscAutoColsType=j;
+            if (isSelected) ImGui::SetItemDefaultFocus();
+          }
+          ImGui::EndCombo();
+        }
         ImGui::EndTable();
       }
 
@@ -346,6 +366,16 @@ void FurnaceGUI::drawChanOsc() {
             oscChans.push_back(i);
           }
         }
+
+        switch (chanOscAutoColsType) {
+          case 1: chanOscCols=sqrt(oscChans.size()); break;
+          case 2: chanOscCols=sqrt(oscChans.size()+1); break;
+          case 3: chanOscCols=sqrt(oscChans.size())+1; break;
+          default: break;
+        }
+        if (chanOscCols<1) chanOscCols=1;
+        if (chanOscCols>64) chanOscCols=64;
+        
         int rows=(oscBufs.size()+(chanOscCols-1))/chanOscCols;
 
         for (size_t i=0; i<oscBufs.size(); i++) {
@@ -543,7 +573,10 @@ void FurnaceGUI::drawChanOsc() {
                       case 'n': {
                         DivChannelState* chanState=e->getChanState(ch);
                         if (chanState==NULL || !(chanState->keyOn)) break;
-                        text+=fmt::sprintf("%s",noteName(short (chanState->note),0));
+                        short tempNote=chanState->note; //all of this conversion is necessary because notes 100-102 are special chars
+                        short noteMod=tempNote%12+12; //also note 0 is a BUG, hence +12 on the note and -1 on the octave
+                        short oct=tempNote/12-1; 
+                        text+=fmt::sprintf("%s",noteName(noteMod,oct));
                         break;
                       }
                       case '%':
