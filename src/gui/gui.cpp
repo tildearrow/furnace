@@ -1835,6 +1835,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
+    case GUI_FILE_LOAD_HEAD_FONT:
+      if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        "Select Font",
+        {"compatible files", "*.ttf *.otf *.ttc"},
+        "compatible files{.ttf,.otf,.ttc}",
+        workingDirFont,
+        dpiScale
+      );
+      break;
     case GUI_FILE_LOAD_PAT_FONT:
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
@@ -3859,6 +3869,7 @@ bool FurnaceGUI::loop() {
         mainFont=ImGui::GetIO().Fonts->AddFontDefault();
         patFont=mainFont;
         bigFont=mainFont;
+        headFont=mainFont;
         if (rend) rend->destroyFontsTexture();
         if (!ImGui::GetIO().Fonts->Build()) {
           logE("error again while building font atlas!");
@@ -4476,17 +4487,6 @@ bool FurnaceGUI::loop() {
       }
       MEASURE(songInfo,drawSongInfo());
       MEASURE(orders,drawOrders());
-      if (introMonOpen) {
-        int totalTicks=e->getTotalTicks();
-        int totalSeconds=e->getTotalSeconds();
-        double newMonitorPos=totalSeconds+((double)totalTicks/1000000.0);
-
-        if (fabs(newMonitorPos-monitorPos)>0.08) monitorPos=newMonitorPos;
-
-        drawIntro(monitorPos,true);
-
-        if (e->isPlaying()) monitorPos+=ImGui::GetIO().DeltaTime;
-      }
       MEASURE(sampleList,drawSampleList());
       MEASURE(sampleEdit,drawSampleEdit());
       MEASURE(waveList,drawWaveList());
@@ -4622,6 +4622,7 @@ bool FurnaceGUI::loop() {
           workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_LOAD_MAIN_FONT:
+        case GUI_FILE_LOAD_HEAD_FONT:
         case GUI_FILE_LOAD_PAT_FONT:
           workingDirFont=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
@@ -5082,6 +5083,9 @@ bool FurnaceGUI::loop() {
             }
             case GUI_FILE_LOAD_MAIN_FONT:
               settings.mainFontPath=copyOfName;
+              break;
+            case GUI_FILE_LOAD_HEAD_FONT:
+              settings.headFontPath=copyOfName;
               break;
             case GUI_FILE_LOAD_PAT_FONT:
               settings.patFontPath=copyOfName;
@@ -6011,6 +6015,7 @@ bool FurnaceGUI::loop() {
       mainFont=ImGui::GetIO().Fonts->AddFontDefault();
       patFont=mainFont;
       bigFont=mainFont;
+      headFont=mainFont;
       if (rend) rend->destroyFontsTexture();
       if (!ImGui::GetIO().Fonts->Build()) {
         logE("error again while building font atlas!");
@@ -6079,7 +6084,6 @@ bool FurnaceGUI::init() {
   clockOpen=e->getConfBool("clockOpen",false);
   speedOpen=e->getConfBool("speedOpen",true);
   groovesOpen=e->getConfBool("groovesOpen",false);
-  introMonOpen=e->getConfBool("introMonOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",true);
@@ -6467,6 +6471,7 @@ bool FurnaceGUI::init() {
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
     bigFont=mainFont;
+    headFont=mainFont;
     if (rend) rend->destroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
       logE("error again while building font atlas!");
@@ -6598,7 +6603,6 @@ void FurnaceGUI::commitState() {
   e->setConf("clockOpen",clockOpen);
   e->setConf("speedOpen",speedOpen);
   e->setConf("groovesOpen",groovesOpen);
-  e->setConf("introMonOpen",introMonOpen);
   e->setConf("regViewOpen",regViewOpen);
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
@@ -6814,6 +6818,7 @@ FurnaceGUI::FurnaceGUI():
   iconFont(NULL),
   patFont(NULL),
   bigFont(NULL),
+  headFont(NULL),
   fontRange(NULL),
   prevInsData(NULL),
   curIns(0),
@@ -6883,7 +6888,6 @@ FurnaceGUI::FurnaceGUI():
   clockOpen(false),
   speedOpen(true),
   groovesOpen(false),
-  introMonOpen(false),
   basicMode(true),
   shortIntro(false),
   insListDir(false),
