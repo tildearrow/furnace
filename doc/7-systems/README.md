@@ -73,7 +73,7 @@ this is the full list of chips that Furnace supports.
 - [FDS](fds.md)
 - [Game Boy](game-boy.md)
 - [Generic PCM DAC](dac.md)
-- Irem GA20
+- [Irem GA20](ga20.md)
 - [Bubble System WSG](bubblesystem.md)
 - [K007232](k007232.md)
 - [K053260](k056320.md)
