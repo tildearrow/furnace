@@ -117,7 +117,6 @@ this is the full list of chips that Furnace supports.
 - [(OPNB) YM2610](ym2610.md)
 - [(OPNB) YM2610B](ym2610b.md)
 - [(OPN2) YM2612, YM3438](ym2612.md)
-- [YMU759 (MA-2)](ymu759.md)
 - [YMZ280B](ymz280b.md)
 - [ZXS Beeper](zxbeep.md)
 
