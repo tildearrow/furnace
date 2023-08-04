@@ -50,8 +50,6 @@ Macros define the sequence of values passed to the given parameter. Via macro, a
 
 ## FM Macros
 
-- **AM Depth**: amplitude modulation depth. YM2151 sound source only.
-- **PM Depth**: pitch modulation depth. YM2151 sound source only.
 - **LFO Speed**: LFO frequency.
 - **LFO Shape**: LFO shape. Choose between saw, square, triangle, and random.
 - **OpMask**: toggles each operator.
@@ -63,7 +61,6 @@ All parameters are listed above.
 ## Macros
 
 - **Arpeggio**: Pitch change sequence in semitones.
-- **Noise Frequency**: specifies the noise frequency in noise mode of YM2151's Channel 8 Operator 4 special mode.
 - **Panning**: toggles output on left and right channels.
 - **Pitch**: fine pitch.
   - **Relative**: pitch changes are relative to the current pitch, not the note's base pitch.
