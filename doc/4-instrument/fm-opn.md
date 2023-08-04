@@ -43,8 +43,6 @@ These apply to each operator:
 - **Envelope Scale (KSR)**: Also known as "Key Scale". Determines the degree to which the envelope execution speed increases according to the pitch. (0-3 range)
 - **Frequency Multiplier (MULT)**: Determines the operator frequency in relation to the pitch. (0-15 range)
 - **Fine Detune (DT)**: Shifts the pitch a little. (0-7 range)
-- **Coarse Detune (DT2)**: Shifts the pitch by tens of cents. (0-3 range) YM2151 sound source only.
-
 
 ## macros
 
