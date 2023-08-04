@@ -1408,7 +1408,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // ^^
       CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
-        "clockSel=2\n", 
+        "clockSel=2\n" 
         "chipType=1\n"
       ) // 12.5MHz
     }
@@ -1418,7 +1418,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // ^^
       CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
-        "clockSel=2\n", 
+        "clockSel=2\n" 
         "chipType=1\n"
       ) // 12.5MHz
     }
@@ -1428,7 +1428,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
       CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // ^^
       CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
-        "clockSel=2\n", 
+        "clockSel=2\n" 
         "chipType=1\n"
       ) // 12.5MHz
     }
@@ -1438,7 +1438,7 @@ void FurnaceGUI::initSystemPresets() {
       CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
       CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // ^^
       CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
-        "clockSel=2\n", 
+        "clockSel=2\n" 
         "chipType=1\n"
       ) // 12.5MHz
     }
