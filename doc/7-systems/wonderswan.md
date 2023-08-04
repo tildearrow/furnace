@@ -22,4 +22,4 @@ it has 4 wavetable channels. some of them have additional capabilities:
 
 # info
 
-- this chip uses the [WonderSwan](../4-instrument/wonderswan.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.
+this chip uses the [WonderSwan](../4-instrument/wonderswan.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.

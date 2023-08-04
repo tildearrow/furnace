@@ -11,4 +11,4 @@ everything starts with Namco WSG, which is a simple 3-channel wavetable with no 
 
 # info
 
-- this chip uses the [Namco WSG](../4-instrument/namco.md) instrument editor.
+this chip uses the [Namco WSG](../4-instrument/namco.md) instrument editor.

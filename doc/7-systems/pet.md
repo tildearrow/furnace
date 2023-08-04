@@ -12,4 +12,4 @@ some of these didn't even have sound...
 
 # info
 
-- this chip uses the [PET](../4-instrument/pet.md) instrument editor.
+this chip uses the [PET](../4-instrument/pet.md) instrument editor.

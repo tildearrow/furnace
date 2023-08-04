@@ -81,4 +81,4 @@ afterwards everyone moved to Windows and software mixed PCM streaming...
 
 # info
 
-- this chip uses the [FM (OPL)](../4-instrument/fm-opl.md) instrument editor.
+this chip uses the [FM (OPL)](../4-instrument/fm-opl.md) instrument editor.

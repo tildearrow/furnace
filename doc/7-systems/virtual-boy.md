@@ -44,4 +44,4 @@ additionally, channel 5 offers a modulation/sweep unit. the former is similar to
 
 # info
 
-- this chip uses the [Virtual Boy](../4-instrument/virtual-boy.md) instrument editor.
+this chip uses the [Virtual Boy](../4-instrument/virtual-boy.md) instrument editor.

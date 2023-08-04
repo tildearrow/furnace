@@ -19,4 +19,4 @@ these effects only are effective in the pulse channels.
 
 # info
 
-- this chip uses the [VRC](../4-instrument/vrc6.md), [VRC (saw)](../4-instrument/vrc6.md), and [Generic Sample](../4-instrument/amiga.md) instrument editors.
+this chip uses the [VRC](../4-instrument/vrc6.md), [VRC (saw)](../4-instrument/vrc6.md), and [Generic Sample](../4-instrument/amiga.md) instrument editors.

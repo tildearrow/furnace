@@ -69,7 +69,8 @@ Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) i
 
 # info
 
-- this chip uses the [SNES](../4-instrument/snes.md) instrument editor.
+this chip uses the [SNES](../4-instrument/snes.md) instrument editor.
+
 
 ## ADSR
 

@@ -11,4 +11,4 @@ none so far.
 
 # info
 
-- this chip uses the [TED](../4-instrument/ted.md) instrument editor.
+this chip uses the [TED](../4-instrument/ted.md) instrument editor.

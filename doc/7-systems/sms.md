@@ -17,7 +17,8 @@ the original iteration of the SN76489 used in the TI-99/4A computer, the SN94624
 
 # info
 
-- this chip uses the [SN76489/Sega PSG](../4-instrument/psg.md) instrument editor.
+this chip uses the [SN76489/Sega PSG](../4-instrument/psg.md) instrument editor.
+
 
 ## SN7 versions
 SN7 was extremely popular due to low cost. Therefore, it was cloned and copied to no end, often with minor differences between each other. Furnace supports several of these:

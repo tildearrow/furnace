@@ -12,4 +12,4 @@ the SCC+ fixes this issue though (while being compatible with SCC games).
 
 # info
 
-- this chip uses the [Konami SCC/Bubble System WSG](../4-instrument/scc.md) instrument editor.
+this chip uses the [Konami SCC/Bubble System WSG](../4-instrument/scc.md) instrument editor.
