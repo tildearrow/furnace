@@ -50,8 +50,11 @@ Macros define the sequence of values passed to the given parameter. Via macro, a
 
 ## FM Macros
 
+- **Algorithm**: Defined above
+- **Feedback**: Defined above
+- **LFO > Freq**: Same as OPM.
+- **LFO > Amp**: Same as OPM.
 - **LFO Speed**: LFO frequency.
-- **LFO Shape**: LFO shape. Choose between saw, square, triangle, and random.
 - **OpMask**: toggles each operator.
 
 ## OP1-OP4 Macros
