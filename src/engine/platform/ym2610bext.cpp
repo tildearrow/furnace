@@ -463,6 +463,39 @@ void DivPlatformYM2610BExt::tick(bool sysTick) {
       opChan[i].freqChanged=true;
     }
 
+    // channel macros
+    if (opChan[i].std.alg.had) {
+      chan[extChanOffs].state.alg=opChan[i].std.alg.val;
+      rWrite(chanOffs[extChanOffs]+ADDR_FB_ALG,(chan[extChanOffs].state.alg&7)|(chan[extChanOffs].state.fb<<3));
+      if (!parent->song.algMacroBehavior) for (int j=0; j<4; j++) {
+        unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[j];
+        DivInstrumentFM::Operator& op=chan[extChanOffs].state.op[j];
+        if (isOpMuted[j] || !op.enable) {
+          rWrite(baseAddr+0x40,127);
+        } else {
+          rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[j].outVol&0x7f,127));
+        }
+      }
+    }
+    if (i==0 || fbAllOps) {
+      if (opChan[i].std.fb.had) {
+        chan[extChanOffs].state.fb=opChan[i].std.fb.val;
+        rWrite(chanOffs[extChanOffs]+ADDR_FB_ALG,(chan[extChanOffs].state.alg&7)|(chan[extChanOffs].state.fb<<3));
+      }
+    }
+    if (opChan[i].std.fms.had) {
+      chan[extChanOffs].state.fms=opChan[i].std.fms.val;
+      rWrite(chanOffs[extChanOffs]+ADDR_LRAF,(IS_EXTCH_MUTED?0:(opChan[i].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
+    }
+    if (opChan[i].std.ams.had) {
+      chan[extChanOffs].state.ams=opChan[i].std.ams.val;
+      rWrite(chanOffs[extChanOffs]+ADDR_LRAF,(IS_EXTCH_MUTED?0:(opChan[i].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
+    }
+    if (opChan[i].std.ex3.had) {
+      lfoValue=(opChan[i].std.ex3.val>7)?0:(8|(opChan[i].std.ex3.val&7));
+      rWrite(0x22,lfoValue);
+    }
+
     // param macros
     unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[orderedOps[i]];
     DivInstrumentFM::Operator& op=chan[extChanOffs].state.op[orderedOps[i]];
