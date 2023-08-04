@@ -302,6 +302,11 @@ void DivPlatformGenesis::fillStream(std::vector<DivDelayedWrite>& stream, int sR
   for (size_t i=0; i<len; i++) {
     processDAC(sRate);
 
+    if (dacWrite>=0) {
+      urgentWrite(0x2a,dacWrite);
+      dacWrite=-1;
+    }
+
     while (!writes.empty()) {
       QueuedWrite& w=writes.front();
       stream.push_back(DivDelayedWrite(i,w.addr,w.val));
