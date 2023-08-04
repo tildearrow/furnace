@@ -1407,28 +1407,40 @@ void FurnaceGUI::initSystemPresets() {
     "Sega System 32", {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=2") // 12.5MHz
+      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
+        "clockSel=2\n", 
+        "chipType=1\n"
+      ) // 12.5MHz
     }
   );
   ENTRY(
     "Sega System 32 (extended channel 3 on first OPN2C)", {
       CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=2") // 12.5MHz
+      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
+        "clockSel=2\n", 
+        "chipType=1\n"
+      ) // 12.5MHz
     }
   );
   ENTRY(
     "Sega System 32 (extended channel 3 on second OPN2C)", {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
       CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=2") // 12.5MHz
+      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
+        "clockSel=2\n", 
+        "chipType=1\n"
+      ) // 12.5MHz
     }
   );
   ENTRY(
     "Sega System 32 (extended channel 3 on both OPN2Cs)", {
       CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
       CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=2") // 12.5MHz
+      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
+        "clockSel=2\n", 
+        "chipType=1\n"
+      ) // 12.5MHz
     }
   );
   ENTRY(
