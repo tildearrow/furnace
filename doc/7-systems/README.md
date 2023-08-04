@@ -72,9 +72,9 @@ this is the full list of chips that Furnace supports.
 - [SCC](scc.md)
 - [FDS](fds.md)
 - [Game Boy](game-boy.md)
-- [Generic PCM [DAC](dac.md)](dac.md)
+- [Generic PCM DAC](dac.md)
 - Irem GA20
-- [Konami WSG](bubblesystem.md)
+- [Bubble System WSG](bubblesystem.md)
 - [K007232](k007232.md)
 - [K053260](k056320.md)
 - [Lynx](lynx.md)
@@ -89,15 +89,14 @@ this is the full list of chips that Furnace supports.
 - [PET](pet.md)
 - [Pokémon Mini](pokemini.md)
 - [POKEY](pokey.md)
-- Pong
 - [PV-1000](pv1000.md)
 - [QSound](qsound.md)
 - [RF5C68, RF5C164](ricoh.md)
 - [SAA1099](saa1099.md)
-- [SCC, SCC+](scc.md)
+- [SCC](scc.md)
 - [SegaPCM](segapcm.md)
 - [SM8521](sm8521.md)
-- [SN76489, SN76489A, SN76494, SN76496, SN94624, 8496, PSSJ](sms.md)
+- [SN76489 / Sega PSG](sms.md)
 - [SNES](snes.md)
 - [tildearrow Sound Unit](soundunit.md)
 - [T6W28](t6w28.md)
@@ -122,6 +121,7 @@ this is the full list of chips that Furnace supports.
 - [YMZ280B](ymz280b.md)
 - [ZXS Beeper](zxbeep.md)
 
+Furnace also reads .dmf files with the [Yamaha YMU759](ymu759.md) system, but...
 
 
 <!--
@@ -391,8 +391,6 @@ this is the full list of chips that Furnace supports.
 
 
 ## Arcade systems
-
-- **Pong**: Pong
 
 - **Bally Midway MCR**: [AY-3-8910](ay8910.md) × 2
 
