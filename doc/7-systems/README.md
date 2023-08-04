@@ -5,7 +5,6 @@ this is a list of some of the systems that Furnace supports, as shown in the new
 some systems have alternate chips, such as the Sega Genesis having a YM2612, a YM3438, or YMF276 depending on the model. this list shows the default configuration.
 
 - **Sega Genesis**: [YM3438](ym2612.md), [SN76489](sms.md)
-- **Sega Genesis (extended channel 3)**: [YM3438](ym2612.md), [SN76489](sms.md)
 - **Sega Genesis (with Sega CD)**: [YM3438](ym2612.md), [SN76489](sms.md), [RF5C164](ricoh.md)
 <!-- -->
 - **Sega Master System**: [SN76489](sms.md)
@@ -25,30 +24,31 @@ some systems have alternate chips, such as the Sega Genesis having a YM2612, a Y
 <!-- -->
 - **NEC PC Engine/TurboGrafx-16**: [HuC6280](pce.md)
 <!-- -->
+- **Commodore VIC-20**: [VIC](vic20.md)
+<!-- -->
 - **Commodore 64 (6581 SID)**: [MOS 6581](c64.md)
 - **Commodore 64 (8580 SID)**: [MOS 8580](c64.md)
 <!-- -->
+- **Amiga**: [Amiga](amiga.md)
+<!-- -->
 - **Arcade (YM2151 and SegaPCM)**: [YM2151](ym2152.md), [SegaPCM](segapcm.md)
+<!-- -->
+- **Capcom CPS-1**: [YM2151](ym2152.md), [MSM6295](msm6295.md)
+- **Capcom CPS-2 (QSound)**: [QSound](qsound.md)
 <!-- -->
 - **Neo Geo CD**: [YM2610](ym2610.md)
 - **Neo Geo CD (extended channel 2)**: [YM2610](ym2610.md)
 <!-- -->
-- **Neo Geo Pocket**: [T6W28](t6w28.md), DAC
+- **Neo Geo Pocket**: [T6W28](t6w28.md), [DAC](dac.md)
 <!-- -->
 - **Atari 2600/7800**: [TIA](tia.md)
-<!-- -->
 - **Atari 800**: [POKEY](pokey.md)
-<!-- -->
-- **Capcom CPS-1**: [YM2151](ym2152.md), [MSM6295](msm6295.md)
-- **Capcom CPS-2 (QSound)**: [QSound](qsound.md)
 <!-- -->
 - **Konami Bubble System**: [AY-3-8910](ay8910.md) × 2, [Konami WSG](bubblesystem.md)
 <!-- -->
 - **Sharp X68000**: [YM2151](ym2152.md), [MSM6258](msm6258.md)
 <!-- -->
-- **PC + Sound Blaster Pro**: [YM3812](opl.md) × 2, DAC, [PC Speaker](pcspkr.md)
-<!-- -->
-- **Amiga**: [Amiga](amiga.md)
+- **PC + Sound Blaster Pro**: [YM3812](opl.md) × 2, [DAC](dac.md), [PC Speaker](pcspkr.md)
 <!-- -->
 - **MSX**: [AY-3-8910](ay8910.md)
 - **MSX + SCC**: [YM2149(F)](ay8910.md), [SCC](scc.md)
@@ -72,7 +72,7 @@ this is the full list of chips that Furnace supports.
 - [SCC](scc.md)
 - [FDS](fds.md)
 - [Game Boy](game-boy.md)
-- [Generic PCM DAC](dac.md)
+- [Generic PCM [DAC](dac.md)](dac.md)
 - Irem GA20
 - [Konami WSG](bubblesystem.md)
 - [K007232](k007232.md)
@@ -148,7 +148,7 @@ this is the full list of chips that Furnace supports.
 
 - **Game Boy**: [Game Boy](game-boy.md)
 
-- **Neo Geo Pocket**: [T6W28](t6w28.md), DAC
+- **Neo Geo Pocket**: [T6W28](t6w28.md), [DAC](dac.md)
 
 - **NEC PC Engine/TurboGrafx-16**: [HuC6280](pce.md)
 
@@ -245,7 +245,7 @@ this is the full list of chips that Furnace supports.
 - **MSX + Neotron (with YM2610B)**: [YM2149(F)](ay8910.md), [YM2610B](ym2610b.md)
 - **MSX + Neotron (with YM2610B; extended channel 3)**: [YM2149(F)](ay8910.md), [YM2610B](ym2610b.md)
 
-- **MSX + SIMPL**: [YM2149(F)](ay8910.md), DAC
+- **MSX + SIMPL**: [YM2149(F)](ay8910.md), [DAC](dac.md)
 
 - **NEC PC-88 (with PC-8801-10)**: [PC Speaker](pcspkr.md), [AY-3-8910](ay8910.md) × 2
 
@@ -302,8 +302,8 @@ this is the full list of chips that Furnace supports.
 - **NEC PC-98 (with Sound Orchestra V in drums mode)**: [YM2203](ym2203.md), [Y8950](opl.md), [PC Speaker](pcspkr.md)
 - **NEC PC-98 (with Sound Orchestra V in drums mode; extended channel 3)**: [YM2203](ym2203.md), [Y8950](opl.md), [PC Speaker](pcspkr.md)
 
-- **NEC PC-98 (with PC-9801-86)**: [YM2608](ym2608.md), [DAC](pcspkr.md)
-- **NEC PC-98 (with PC-9801-86; extended channel 3)**: [YM2608](ym2608.md), [DAC](pcspkr.md)
+- **NEC PC-98 (with PC-9801-86)**: [YM2608](ym2608.md), [PC Speaker](pcspkr.md)
+- **NEC PC-98 (with PC-9801-86; extended channel 3)**: [YM2608](ym2608.md), [PC Speaker](pcspkr.md)
 
 - **NEC PC-98 (with PC-9801-73)**: [YM2608](ym2608.md), [PC Speaker](pcspkr.md)
 - **NEC PC-98 (with PC-9801-73; extended channel 3)**: [YM2608](ym2608.md), [PC Speaker](pcspkr.md)
@@ -333,7 +333,7 @@ this is the full list of chips that Furnace supports.
 
 - **Atari ST**: [YM2149(F)](ay8910.md)
 
-- **Atari STE**: [YM2149(F)](ay8910.md), DAC
+- **Atari STE**: [YM2149(F)](ay8910.md), [DAC](dac.md)
 
 - **SAM Coupé**: [SAA1099](saa1099.md)
 
@@ -354,17 +354,17 @@ this is the full list of chips that Furnace supports.
 - **PC + AdLib**: [YM3812](opl.md), [PC Speaker](pcspkr.md)
 - **PC + AdLib (drums mode)**: [YM3812](opl.md), [PC Speaker](pcspkr.md)
 
-- **PC + Sound Blaster**: [YM3812](opl.md), [PC Speaker](pcspkr.md), DAC
-- **PC + AdLib/Sound Blaster (drums mode)**: [YM3812](opl.md), [PC Speaker](pcspkr.md), DAC
+- **PC + Sound Blaster**: [YM3812](opl.md), [PC Speaker](pcspkr.md), [DAC](dac.md)
+- **PC + AdLib/Sound Blaster (drums mode)**: [YM3812](opl.md), [PC Speaker](pcspkr.md), [DAC](dac.md)
 
-- **PC + Sound Blaster w/Game Blaster Compatible**: [YM3812](opl.md), [SAA1099](saa1099.md) × 2, DAC, [PC Speaker](pcspkr.md)
-- **PC + Sound Blaster w/Game Blaster Compatible (drums mode)**: [YM3812](opl.md), [SAA1099](saa1099.md) × 2, DAC, [PC Speaker](pcspkr.md)
+- **PC + Sound Blaster w/Game Blaster Compatible**: [YM3812](opl.md), [SAA1099](saa1099.md) × 2, [DAC](dac.md), [PC Speaker](pcspkr.md)
+- **PC + Sound Blaster w/Game Blaster Compatible (drums mode)**: [YM3812](opl.md), [SAA1099](saa1099.md) × 2, [DAC](dac.md), [PC Speaker](pcspkr.md)
 
-- **PC + Sound Blaster Pro**: [YM3812](opl.md) × 2, DAC, [PC Speaker](pcspkr.md)
-- **PC + Sound Blaster Pro (drums mode)**: [YM3812](opl.md) × 2, DAC, [PC Speaker](pcspkr.md)
+- **PC + Sound Blaster Pro**: [YM3812](opl.md) × 2, [DAC](dac.md), [PC Speaker](pcspkr.md)
+- **PC + Sound Blaster Pro (drums mode)**: [YM3812](opl.md) × 2, [DAC](dac.md), [PC Speaker](pcspkr.md)
 
-- **PC + Sound Blaster Pro 2**: [YMF262](opl.md), DAC, [PC Speaker](pcspkr.md)
-- **PC + Sound Blaster Pro 2 (drums mode)**: [YMF262](opl.md), DAC, [PC Speaker](pcspkr.md)
+- **PC + Sound Blaster Pro 2**: [YMF262](opl.md), [DAC](dac.md), [PC Speaker](pcspkr.md)
+- **PC + Sound Blaster Pro 2 (drums mode)**: [YMF262](opl.md), [DAC](dac.md), [PC Speaker](pcspkr.md)
 
 - **PC + PC-FXGA**: [HuC6280](pce.md), [PC Speaker](pcspkr.md)
 
@@ -448,7 +448,7 @@ this is the full list of chips that Furnace supports.
 
 - **Sega OutRun/X Board**: [YM2151](ym2152.md), [SegaPCM](segapcm.md)
 
-- **Sega System 24**: [YM2151](ym2152.md), DAC
+- **Sega System 24**: [YM2151](ym2152.md), [DAC](dac.md)
 
 - **Sega System 18**: [YM3438](ym2612.md) × 2, [RF5C68](ricoh.md)
 - **Sega System 18 (extended channel 3 on first OPN2C)**: [YM3438](ym2612.md) × 2, [RF5C68](ricoh.md)
@@ -559,12 +559,12 @@ this is the full list of chips that Furnace supports.
 - **SNK Touchdown Fever (drums mode on Y8950)**: [YM3526](opl.md), [Y8950](opl.md)
 - **SNK Touchdown Fever (drums mode on OPL and Y8950)**: [YM3526](opl.md), [Y8950](opl.md)
 
-- **Alpha denshi Alpha-68K**: [YM2203](ym2203.md), [YM2413](opll.md), DAC
-- **Alpha denshi Alpha-68K (extended channel 3)**: [YM2203](ym2203.md), [YM2413](opll.md), DAC
-- **Alpha denshi Alpha-68K (drums mode)**: [YM2203](ym2203.md), [YM2413](opll.md), DAC
-- **Alpha denshi Alpha-68K (extended channel 3; drums mode)**: [YM2203](ym2203.md), [YM2413](opll.md), DAC
+- **Alpha denshi Alpha-68K**: [YM2203](ym2203.md), [YM2413](opll.md), [DAC](dac.md)
+- **Alpha denshi Alpha-68K (extended channel 3)**: [YM2203](ym2203.md), [YM2413](opll.md), [DAC](dac.md)
+- **Alpha denshi Alpha-68K (drums mode)**: [YM2203](ym2203.md), [YM2413](opll.md), [DAC](dac.md)
+- **Alpha denshi Alpha-68K (extended channel 3; drums mode)**: [YM2203](ym2203.md), [YM2413](opll.md), [DAC](dac.md)
 
-- **Alpha denshi Equites**: [MSM5232](msm5232.md), [AY-3-8910](ay8910.md), DAC
+- **Alpha denshi Equites**: [MSM5232](msm5232.md), [AY-3-8910](ay8910.md), [DAC](dac.md)
 
 - **Neo Geo MVS**: [YM2610](ym2610.md)
 - **Neo Geo MVS (extended channel 2)**: [YM2610](ym2610.md)
@@ -579,17 +579,17 @@ this is the full list of chips that Furnace supports.
 
 - **Namco System 86**: [YM2151](ym2152.md), [C30](namco.md)
 
-- **Namco Thunder Ceptor**: [YM2151](ym2152.md), [C30](namco.md), DAC
-- **Namco System 1**: [YM2151](ym2152.md), [C30](namco.md), DAC
+- **Namco Thunder Ceptor**: [YM2151](ym2152.md), [C30](namco.md), [DAC](dac.md)
+- **Namco System 1**: [YM2151](ym2152.md), [C30](namco.md), [DAC](dac.md)
 
 - **Taito Arcade**: [YM2610B](ym2610b.md)
 - **Taito Arcade (extended channel 3)**: [YM2610B](ym2610b.md)
 
 - **Taito Metal Soldier Isaac II**: [MSM5232](msm5232.md), [AY-3-8910](ay8910.md) × 2
 
-- **Taito The Fairyland Story**: [MSM5232](msm5232.md), [YM2149(F)](ay8910.md), DAC
+- **Taito The Fairyland Story**: [MSM5232](msm5232.md), [YM2149(F)](ay8910.md), [DAC](dac.md)
 
-- **Taito Wyvern F-0**: [MSM5232](msm5232.md), [YM2149(F)](ay8910.md) × 2, DAC
+- **Taito Wyvern F-0**: [MSM5232](msm5232.md), [YM2149(F)](ay8910.md) × 2, [DAC](dac.md)
 
 - **Seta 1**: [X1-010](x1-010.md)
 
@@ -616,7 +616,7 @@ this is the full list of chips that Furnace supports.
 - **Dynax/Nakanihon Real Break**: [YM2413](opll.md), [YMZ280B](ymz280b.md)
 - **Dynax/Nakanihon Real Break (drums mode)**: [YM2413](opll.md), [YMZ280B](ymz280b.md)
 
-- **Irem M72**: [YM2151](ym2152.md), DAC
+- **Irem M72**: [YM2151](ym2152.md), [DAC](dac.md)
 
 - **Irem M92/M107**: [YM2151](ym2152.md), GA20
 
@@ -740,7 +740,7 @@ this is the full list of chips that Furnace supports.
 
 - **Irem GA20**: GA20
 
-- **Generic PCM DAC**: DAC
+- **Generic PCM [DAC](dac.md)**: [DAC](dac.md)
 
 - **Ensoniq ES5506 (OTTO)**: [ES5506](es5506.md)
 
