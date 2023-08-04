@@ -1,4 +1,4 @@
-# FM synthesis instrument editor
+# Yamaha OPN FM synthesis instrument editor
 
 The FM editor is divided into 7 tabs:
 
