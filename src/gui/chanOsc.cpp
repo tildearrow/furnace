@@ -157,7 +157,7 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::Text("Automatic columns");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
-        const char* previewColType = autoColsTypes[chanOscAutoColsType&3];
+        const char* previewColType=autoColsTypes[chanOscAutoColsType&3];
         if (ImGui::BeginCombo("##AutoCols",previewColType)) {
           for (int j=0; j<4; j++) {
             const bool isSelected=(chanOscAutoColsType==j);
@@ -367,11 +367,20 @@ void FurnaceGUI::drawChanOsc() {
           }
         }
 
+        // 0: none
+        // 1: sqrt(chans)
+        // 2: sqrt(chans+1)
+        // 3: sqrt(chans)+1
         switch (chanOscAutoColsType) {
-          case 1: chanOscCols=sqrt(oscChans.size()); break;
-          case 2: chanOscCols=sqrt(oscChans.size()+1); break;
-          case 3: chanOscCols=sqrt(oscChans.size())+1; break;
-          default: break;
+          case 1:
+            chanOscCols=sqrt(oscChans.size());
+            break;
+          case 2:
+            chanOscCols=sqrt(oscChans.size()+1);
+            break;
+          case 3:
+            chanOscCols=sqrt(oscChans.size())+1;
+            break;
         }
         if (chanOscCols<1) chanOscCols=1;
         if (chanOscCols>64) chanOscCols=64;
