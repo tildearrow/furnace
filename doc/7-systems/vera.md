@@ -18,4 +18,4 @@ currently Furnace does not support the PCM channel's stereo mode, though (except
 
 # info
 
-- this chip uses the [VERA](../4-instrument/vera.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.
+this chip uses the [VERA](../4-instrument/vera.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.

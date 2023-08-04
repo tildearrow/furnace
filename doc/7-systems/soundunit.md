@@ -57,4 +57,4 @@ it has the following capabilities:
 
 # info
 
-- this chip uses the [Sound Unit](../4-instrument/soundunit.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.
+this chip uses the [Sound Unit](../4-instrument/soundunit.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.

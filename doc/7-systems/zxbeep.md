@@ -17,4 +17,4 @@ not really - very soon talented programmers found out ways to output much more t
 
 # info
 
-- this chip uses the [Beeper](../4-instrument/beeper.md), [Generic Sample](../4-instrument/amiga.md), and [Pokémon Mini/QuadTone](../4-instrument/quadtone.md) instrument editors.
+this chip uses the [Beeper](../4-instrument/beeper.md), [Generic Sample](../4-instrument/amiga.md), and [Pokémon Mini/QuadTone](../4-instrument/quadtone.md) instrument editors.

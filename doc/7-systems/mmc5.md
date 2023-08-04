@@ -13,4 +13,4 @@ additionally, it offers an 8-bit DAC which can be used to play samples. only one
 
 # info
 
-- this chip uses the [NES](../4-instrument/nes.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.
+this chip uses the [NES](../4-instrument/nes.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.

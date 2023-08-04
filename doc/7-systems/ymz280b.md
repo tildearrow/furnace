@@ -10,4 +10,4 @@ none so far.
 
 # info
 
-- this chip uses the [YMZ280B](../4-instrument/ymz280b.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.
+this chip uses the [YMZ280B](../4-instrument/ymz280b.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.

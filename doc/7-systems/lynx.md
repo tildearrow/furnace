@@ -20,4 +20,4 @@ the Atari Lynx has a 6502-based CPU with a sound part (this chip is known as MIK
 
 # info
 
-- this chip uses the [Atari Lynx](../4-instrument/lynx.md) instrument editor.
+this chip uses the [Atari Lynx](../4-instrument/lynx.md) instrument editor.

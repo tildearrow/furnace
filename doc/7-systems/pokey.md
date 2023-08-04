@@ -38,4 +38,4 @@ a sound and input chip developed by Atari for their 8-bit computers (Atari 400, 
 
 # info
 
-- this chip uses the [POKEY](../4-instrument/pokey.md) instrument editor.
+this chip uses the [POKEY](../4-instrument/pokey.md) instrument editor.

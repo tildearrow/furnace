@@ -23,7 +23,8 @@ with stereo sound, two pulse channels, a wave channel and a noise channel, it pa
 
 # info
 
-- this chip uses the [Game Boy](../4-instrument/game-boy.md) instrument editor.
+this chip uses the [Game Boy](../4-instrument/game-boy.md) instrument editor.
+
 
 # links
 

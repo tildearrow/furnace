@@ -32,4 +32,4 @@ ha! effects...
 
 # info
 
-- this chip uses the [Beeper](../4-instrument/beeper.md) instrument editor.
+this chip uses the [Beeper](../4-instrument/beeper.md) instrument editor.

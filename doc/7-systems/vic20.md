@@ -19,4 +19,4 @@ these channels are not referred as "square" wave channels since a technique to p
 
 # info
 
-- this chip uses the [VIC](../4-instrument/vic.md) instrument editor.
+this chip uses the [VIC](../4-instrument/vic.md) instrument editor.
