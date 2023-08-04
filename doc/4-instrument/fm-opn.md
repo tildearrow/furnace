@@ -8,7 +8,7 @@ The FM editor is divided into 7 tabs:
 - **Macros (OP2)**: for macros controlling FM parameters of operator 2
 - **Macros (OP3)**: for macros controlling FM parameters of operator 3
 - **Macros (OP4)**: for macros controlling FM parameters of operator 4
-- **Macros**: for miscellaneous macros controlling volume, arpeggio, and YM2151 noise generator.
+- **Macros**: for miscellaneous macros controlling volume and arpeggio.
 
 ## FM
 
