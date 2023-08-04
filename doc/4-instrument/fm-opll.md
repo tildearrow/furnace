@@ -42,7 +42,10 @@ Macros define the sequence of values passed to the given parameter. Via macro, a
 
 ## FM Macros
 
+- **Sustain**: defined above.
 - **Feedback**: defined above.
+- **OP2 Half Sine**: defined above.
+- **OP1 Half Sine**: defined above.
 
 ## OP1-OP4 Macros
 
