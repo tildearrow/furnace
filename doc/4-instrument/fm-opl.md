@@ -8,11 +8,11 @@ The FM editor is divided into 7 tabs:
 - **Macros (OP2)**: for macros controlling FM parameters of operator 2
 - **Macros (OP3)**: for macros controlling FM parameters of operator 3
 - **Macros (OP4)**: for macros controlling FM parameters of operator 4
-- **Macros**: for miscellaneous macros controlling volume, arpeggio, and YM2151 noise generator.
+- **Macros**: for miscellaneous macros controlling volume and arpeggio
 
 ## FM
 
-The FM synthesizers Furnace supports are four-operator, meaning it takes four oscillators to produce a single sound.
+The OPL FM synth family only has two operators (with the exception of the OPL3). This means that the carrier operator can only be modulated once before being output.
 
 These apply to the instrument as a whole:
 - **Feedback (FB)**: Determines how many times operator 1 returns its output to itself. (0-7 range)
