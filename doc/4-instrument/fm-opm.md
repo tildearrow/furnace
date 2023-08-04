@@ -1,4 +1,4 @@
-# Yamaha YM2151 instrument editor
+# Yamaha OPM FM synthesis instrument editor
 
 The FM editor is divided into 7 tabs:
 
