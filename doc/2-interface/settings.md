@@ -41,7 +41,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
     - this will not choose a random system at each start.
   - **Reset to defaults**: set default to "Sega Genesis/Mega Drive".
   - **Name**: name for the default system. may be set to any text.
-  - system configuration: same as in the [chip manager](../8-advanced/chip-manager.md) and [mixer](../8-advanced/mixer.md).
+  - **Configure:**: same as in the [chip manager](../8-advanced/chip-manager.md) and [mixer](../8-advanced/mixer.md).
 - **When creating new song**:
   - **Display system preset selector**
   - **Start with initial system**
@@ -298,12 +298,11 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 ### Text
 
-- **Main font**: if "Custom...", a file path selector will appear beneath.
-- **Size**
-- **Header font**: if "Custom...", a file path selector will appear beneath.
-- **Size**
-- **Pattern font**: if "Custom...", a file path selector will appear beneath.
-- **Size**
+- **Main font**: overall interface font.\
+  **Header font**: font for section headers.\
+  **Pattern font** font for the pattern view, the order list, and related.
+  - if "Custom...", a file path selector will appear.
+  - **Size**: font size.
 - **Display Japanese characters**\
   **Display Chinese (Simplified) characters**\
   **Display Chinese (Traditional) characters**\
