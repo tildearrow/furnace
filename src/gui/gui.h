@@ -402,7 +402,6 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_INS_OPEN,
   GUI_FILE_INS_OPEN_REPLACE,
   GUI_FILE_INS_SAVE,
-  GUI_FILE_INS_SAVE_OLD,
   GUI_FILE_INS_SAVE_DMP,
   GUI_FILE_WAVE_OPEN,
   GUI_FILE_WAVE_OPEN_REPLACE,
@@ -424,6 +423,7 @@ enum FurnaceGUIFileDialogs {
   GUI_FILE_EXPORT_CMDSTREAM_BINARY,
   GUI_FILE_EXPORT_ROM,
   GUI_FILE_LOAD_MAIN_FONT,
+  GUI_FILE_LOAD_HEAD_FONT,
   GUI_FILE_LOAD_PAT_FONT,
   GUI_FILE_IMPORT_COLORS,
   GUI_FILE_IMPORT_KEYBINDS,
@@ -607,7 +607,6 @@ enum FurnaceGUIActions {
   GUI_ACTION_INS_LIST_OPEN,
   GUI_ACTION_INS_LIST_OPEN_REPLACE,
   GUI_ACTION_INS_LIST_SAVE,
-  GUI_ACTION_INS_LIST_SAVE_OLD,
   GUI_ACTION_INS_LIST_SAVE_DMP,
   GUI_ACTION_INS_LIST_MOVE_UP,
   GUI_ACTION_INS_LIST_MOVE_DOWN,
@@ -1371,6 +1370,7 @@ class FurnaceGUI {
   ImFont* iconFont;
   ImFont* patFont;
   ImFont* bigFont;
+  ImFont* headFont;
   ImWchar* fontRange;
   ImVec4 uiColors[GUI_COLOR_MAX];
   ImVec4 volColors[128];
@@ -1389,7 +1389,7 @@ class FurnaceGUI {
   char emptyLabel2[32];
 
   struct Settings {
-    int mainFontSize, patFontSize, iconSize;
+    int mainFontSize, patFontSize, headFontSize, iconSize;
     int audioEngine;
     int audioQuality;
     int audioChans;
@@ -1406,6 +1406,7 @@ class FurnaceGUI {
     String tg100Path;
     String mu5Path;
     int mainFont;
+    int headFont;
     int patFont;
     int audioRate;
     int audioBufSize;
@@ -1525,8 +1526,10 @@ class FurnaceGUI {
     int newSongBehavior;
     int memUsageUnit;
     int cursorFollowsWheel;
+    int noDMFCompat;
     unsigned int maxUndoSteps;
     String mainFontPath;
+    String headFontPath;
     String patFontPath;
     String audioDevice;
     String midiInDevice;
@@ -1545,6 +1548,7 @@ class FurnaceGUI {
     Settings():
       mainFontSize(18),
       patFontSize(18),
+      headFontSize(27),
       iconSize(16),
       audioEngine(DIV_AUDIO_SDL),
       audioQuality(0),
@@ -1679,8 +1683,10 @@ class FurnaceGUI {
       newSongBehavior(0),
       memUsageUnit(1),
       cursorFollowsWheel(0),
+      noDMFCompat(0),
       maxUndoSteps(100),
       mainFontPath(""),
+      headFontPath(""),
       patFontPath(""),
       audioDevice(""),
       midiInDevice(""),
@@ -1727,7 +1733,7 @@ class FurnaceGUI {
   bool mixerOpen, debugOpen, inspectorOpen, oscOpen, volMeterOpen, statsOpen, compatFlagsOpen;
   bool pianoOpen, notesOpen, channelsOpen, regViewOpen, logOpen, effectListOpen, chanOscOpen;
   bool subSongsOpen, findOpen, spoilerOpen, patManagerOpen, sysManagerOpen, clockOpen, speedOpen;
-  bool groovesOpen, introMonOpen;
+  bool groovesOpen;
 
   bool basicMode, shortIntro;
   bool insListDir, waveListDir, sampleListDir;
@@ -1970,7 +1976,7 @@ class FurnaceGUI {
   bool oscZoomSlider;
 
   // per-channel oscilloscope
-  int chanOscCols, chanOscColorX, chanOscColorY;
+  int chanOscCols, chanOscAutoColsType, chanOscColorX, chanOscColorY;
   float chanOscWindowSize, chanOscTextX, chanOscTextY, chanOscAmplify;
   bool chanOscWaveCorr, chanOscOptions, updateChanOscGradTex, chanOscUseGrad, chanOscNormalize;
   String chanOscTextFormat;
@@ -2031,6 +2037,9 @@ class FurnaceGUI {
   bool pianoReadonly;
   int pianoOffset, pianoOffsetEdit;
   int pianoView, pianoInputPadMode;
+  
+  //effect sorting
+  bool effectsShow[10];
 
   // TX81Z
   bool hasACED;
@@ -2074,7 +2083,7 @@ class FurnaceGUI {
   void drawAlgorithm(unsigned char alg, FurnaceGUIFMAlgs algType, const ImVec2& size);
   void drawFMEnv(unsigned char tl, unsigned char ar, unsigned char dr, unsigned char d2r, unsigned char rr, unsigned char sl, unsigned char sus, unsigned char egt, unsigned char algOrGlobalSus, float maxTl, float maxArDr, float maxRr, const ImVec2& size, unsigned short instType);
   void drawGBEnv(unsigned char vol, unsigned char len, unsigned char sLen, bool dir, const ImVec2& size);
-  bool drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange);
+  bool drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu=false);
   void kvsConfig(DivInstrument* ins);
   void drawFMPreview(const ImVec2& size);
   void renderFMPreview(const DivInstrumentFM& params, int pos=0);

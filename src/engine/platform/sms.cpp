@@ -296,6 +296,10 @@ void DivPlatformSMS::tick(bool sysTick) {
       rWrite(0,0x90|(i<<5)|(isMuted[i]?15:(15-(chan[i].outVol&15))));
       chan[i].writeVol=false;
     }
+    if (chan[i].keyOff) {
+      rWrite(0,0x9f|i<<5);
+      chan[i].keyOff=false;
+    }
   }
 }
 
@@ -309,6 +313,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
         chan[c.chan].actualNote=c.value;
       }
       chan[c.chan].active=true;
+      chan[c.chan].keyOff=false;
       //if (!parent->song.brokenOutVol2) {
         chan[c.chan].writeVol=true;
         chan[c.chan].outVol=chan[c.chan].vol;
@@ -321,7 +326,7 @@ int DivPlatformSMS::dispatch(DivCommand c) {
       break;
     case DIV_CMD_NOTE_OFF:
       chan[c.chan].active=false;
-      rWrite(0,0x9f|c.chan<<5);
+      chan[c.chan].keyOff=true;
       chan[c.chan].macroInit(NULL);
       break;
     case DIV_CMD_NOTE_OFF_ENV:

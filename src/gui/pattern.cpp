@@ -829,8 +829,6 @@ void FurnaceGUI::drawPattern() {
                 ImGui::GetColorU32(chanHeadBase)
               );
             }
-            keyHit1[i]-=0.2f;
-            if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
           }
         }
         

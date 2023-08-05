@@ -1542,7 +1542,6 @@ void DivEngine::registerSystems() {
   );
 
   EffectHandlerMap es5506PreEffectHandlerMap={
-      {0x10, {DIV_CMD_WAVE, "10xx: Change waveform (00 to FF)",effectVal}},
       {0x11, {DIV_CMD_ES5506_FILTER_MODE, "11xx: Set filter mode (00 to 03)",effectValAnd<3>}},
       {0x14, {DIV_CMD_ES5506_FILTER_K1, "14xx: Set filter coefficient K1 low byte (00 to FF)",effectValShift<0>,constVal<0x00ff>}},
       {0x15, {DIV_CMD_ES5506_FILTER_K1, "15xx: Set filter coefficient K1 high byte (00 to FF)",effectValShift<8>,constVal<0xff00>}},

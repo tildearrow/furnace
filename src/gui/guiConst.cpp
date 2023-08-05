@@ -208,6 +208,32 @@ const char* resampleStrats[]={
   "best possible"
 };
 
+const FurnaceGUIColors fxColorsSort[]={//used for sorting
+  GUI_COLOR_PATTERN_EFFECT_PITCH,
+  GUI_COLOR_PATTERN_EFFECT_SONG,
+  GUI_COLOR_PATTERN_EFFECT_TIME,
+  GUI_COLOR_PATTERN_EFFECT_SPEED,
+  GUI_COLOR_PATTERN_EFFECT_PANNING,
+  GUI_COLOR_PATTERN_EFFECT_VOLUME,
+  GUI_COLOR_PATTERN_EFFECT_SYS_PRIMARY,
+  GUI_COLOR_PATTERN_EFFECT_SYS_SECONDARY,
+  GUI_COLOR_PATTERN_EFFECT_MISC,
+  GUI_COLOR_PATTERN_EFFECT_INVALID
+};
+
+const char* fxColorsNames[]={
+  "Pitch",
+  "Song",
+  "Time",
+  "Speed",
+  "Panning",
+  "Volume",
+  "System Primary",
+  "System Secondary",
+  "Miscellaneous",
+  "Invalid"
+};
+
 const FurnaceGUIColors fxColors[256]={
   GUI_COLOR_PATTERN_EFFECT_MISC, // 00
   GUI_COLOR_PATTERN_EFFECT_PITCH, // 01
@@ -641,7 +667,6 @@ const FurnaceGUIActionDef guiActions[GUI_ACTION_MAX]={
   D("INS_LIST_OPEN", "Open", 0),
   D("INS_LIST_OPEN_REPLACE", "Open (replace current)", 0),
   D("INS_LIST_SAVE", "Save", 0),
-  D("INS_LIST_SAVE_OLD", "Save (legacy .fui)", 0),
   D("INS_LIST_SAVE_DMP", "Save (.dmp)", 0),
   D("INS_LIST_MOVE_UP", "Move up", FURKMOD_SHIFT|SDLK_UP),
   D("INS_LIST_MOVE_DOWN", "Move down", FURKMOD_SHIFT|SDLK_DOWN),

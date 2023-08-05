@@ -1967,8 +1967,8 @@ void DivEngine::nextBuf(float** in, float** out, int inChans, int outChans, unsi
       if (cycles<=0) {
         // we have to tick
         if (nextTick()) {
-          totalTicks=0;
-          totalSeconds=0;
+          /*totalTicks=0;
+          totalSeconds=0;*/
           lastLoopPos=size-(runLeftG>>MASTER_CLOCK_PREC);
           logD("last loop pos: %d for a size of %d and runLeftG of %d",lastLoopPos,size,runLeftG);
           totalLoops++;

@@ -62,7 +62,6 @@
 
 #define FM_CHIP_DEBUG \
   COMMON_CHIP_DEBUG; \
-  ImGui::Text("- lastBusy: %d",ch->lastBusy); \
   ImGui::Text("- delay: %d",ch->delay);
 
 #define FM_OPN_CHIP_DEBUG \
@@ -167,7 +166,6 @@
   ImGui::TextColored(ch->hardReset?colorOn:colorOff,">> hardReset"); \
   ImGui::TextColored(ch->opMaskChanged?colorOn:colorOff,">> opMaskChanged"); \
   ImGui::TextColored(ch->dacMode?colorOn:colorOff,">> DACMode"); \
-  ImGui::TextColored(ch->dacReady?colorOn:colorOff,">> DACReady"); \
   ImGui::TextColored(ch->dacDirection?colorOn:colorOff,">> DACDirection");
 
 #define GENESIS_OPCHAN_DEBUG \
@@ -381,7 +379,6 @@ void putDispatchChip(void* data, int type) {
       ImGui::Text("- pcmR: %d",ch->pcmR);
       ImGui::Text("- pcmCycles: %d",ch->pcmCycles);
       ImGui::Text("- sampleBank: %d",ch->sampleBank);
-      ImGui::Text("- lastBusy: %d",ch->lastBusy);
       COMMON_CHIP_DEBUG_BOOL;
       break;
     }
@@ -389,7 +386,6 @@ void putDispatchChip(void* data, int type) {
       DivPlatformAY8910* ch=(DivPlatformAY8910*)data;
       ImGui::Text("> AY-3-8910");
       COMMON_CHIP_DEBUG;
-      ImGui::Text("- lastBusy: %d",ch->lastBusy);
       ImGui::Text("- sampleBank: %d",ch->sampleBank);
       ImGui::Text("- stereoSep: %d",ch->stereoSep);
       ImGui::Text("- delay: %d",ch->delay);

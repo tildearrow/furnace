@@ -22,7 +22,7 @@
 #include "misc/cpp/imgui_stdlib.h"
 #include <imgui.h>
 
-bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange) {
+bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool modifyOnChange, bool fromMenu) {
   bool altered=false;
   bool restart=settings.restartOnFlagChange && modifyOnChange;
   bool supportsCustomRate=true;
@@ -1564,7 +1564,13 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
           }
           altered=true;
         }
-        if (i<7) ImGui::SameLine();
+        if (i<7) {
+          if (fromMenu) {
+            ImGui::SameLine();
+          } else {
+            sameLineMaybe();
+          }
+        }
       }
 
       if (CWSliderInt("Delay##EchoDelay",&echoDelay,0,15)) {

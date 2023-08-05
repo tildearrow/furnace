@@ -32,7 +32,6 @@ the following sound chips have sample support:
 - Ensoniq OTTO/ES5506
 - Yamaha PCMD8/YMZ280B
 - MMC5 (last channel only)
-- SNES/S-DSP
 
 ## compatible sample mode
 

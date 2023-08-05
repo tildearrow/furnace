@@ -991,7 +991,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "PC + AdLib/Sound Blaster (drums mode)", {
+    "PC + Sound Blaster (drums mode)", {
       CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""),
       CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, ""),
       CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 

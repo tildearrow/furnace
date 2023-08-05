@@ -57,6 +57,9 @@ class DivPlatformPCSpeaker: public DivDispatch {
   float low, band;
   float low2, high2, band2;
   float low3, band3;
+  float cut;
+  float reso;
+
   unsigned short freq, lastFreq;
   unsigned char regPool[2];
 

@@ -17,9 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#define _USE_MATH_DEFINES
 #include "pcspkr.h"
 #include "../engine.h"
 #include "../../ta-log.h"
+
 #include <math.h>
 
 #ifdef __linux__
@@ -190,9 +192,6 @@ const char** DivPlatformPCSpeaker::getRegisterSheet() {
   return regCheatSheetPCSpeaker;
 }
 
-const float cut=0.05;
-const float reso=0.06;
-
 void DivPlatformPCSpeaker::acquire_unfilt(short** buf, size_t len) {
   int out=0;
   for (size_t i=0; i<len; i++) {
@@ -229,8 +228,8 @@ void DivPlatformPCSpeaker::acquire_cone(short** buf, size_t len) {
         }
       }
       float next=(pos>((freq+16)>>1) && !isMuted[0])?1:0;
-      low+=0.04*band;
-      band+=0.04*(next-low-band);
+      low+=cut*band;
+      band+=cut*(next-low-band);
       float out=(low+band)*0.75;
       if (out>1.0) out=1.0;
       if (out<-1.0) out=-1.0;
@@ -612,6 +611,17 @@ void DivPlatformPCSpeaker::setFlags(const DivConfig& flags) {
   rate=chipClock/PCSPKR_DIVIDER;
   speakerType=flags.getInt("speakerType",0)&3;
   oscBuf->rate=rate;
+
+  switch (speakerType) {
+    case 1:
+      cut=2.0*sin(M_PI*1900.0/rate);
+      reso=0.0;
+      break;
+    default:
+      cut=2.0*sin(M_PI*2375.0/rate);
+      reso=0.06;
+      break;
+  }
 }
 
 void DivPlatformPCSpeaker::notifyInsDeletion(void* ins) {

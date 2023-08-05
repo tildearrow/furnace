@@ -1438,8 +1438,8 @@ void FurnaceGUI::keyDown(SDL_Event& ev) {
               e->curOrders->ord[orderCursor][curOrder]=((e->curOrders->ord[orderCursor][curOrder]<<4)|num);
             });
             MARK_MODIFIED;
+            curNibble=!curNibble;
             if (orderEditMode==2 || orderEditMode==3) {
-              curNibble=!curNibble;
               if (!curNibble) {
                 if (orderEditMode==2) {
                   orderCursor++;
@@ -1653,16 +1653,6 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
         dpiScale
       );
       break;
-    case GUI_FILE_INS_SAVE_OLD:
-      if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
-      hasOpened=fileDialog->openSave(
-        "Save Instrument",
-        {"Furnace instrument", "*.fui"},
-        "Furnace instrument{.fui}",
-        workingDirIns,
-        dpiScale
-      );
-      break;
     case GUI_FILE_INS_SAVE_DMP:
       if (!dirExists(workingDirIns)) workingDirIns=getHomeDir();
       hasOpened=fileDialog->openSave(
@@ -1836,6 +1826,16 @@ void FurnaceGUI::openFileDialog(FurnaceGUIFileDialogs type) {
       showError("Coming soon!");
       break;
     case GUI_FILE_LOAD_MAIN_FONT:
+      if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
+      hasOpened=fileDialog->openLoad(
+        "Select Font",
+        {"compatible files", "*.ttf *.otf *.ttc"},
+        "compatible files{.ttf,.otf,.ttc}",
+        workingDirFont,
+        dpiScale
+      );
+      break;
+    case GUI_FILE_LOAD_HEAD_FONT:
       if (!dirExists(workingDirFont)) workingDirFont=getHomeDir();
       hasOpened=fileDialog->openLoad(
         "Select Font",
@@ -3869,6 +3869,7 @@ bool FurnaceGUI::loop() {
         mainFont=ImGui::GetIO().Fonts->AddFontDefault();
         patFont=mainFont;
         bigFont=mainFont;
+        headFont=mainFont;
         if (rend) rend->destroyFontsTexture();
         if (!ImGui::GetIO().Fonts->Build()) {
           logE("error again while building font atlas!");
@@ -4159,7 +4160,7 @@ bool FurnaceGUI::loop() {
           exitDisabledTimer=1;
           for (int i=0; i<e->song.systemLen; i++) {
             if (ImGui::TreeNode(fmt::sprintf("%d. %s##_SYSP%d",i+1,getSystemName(e->song.system[i]),i).c_str())) {
-              drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true);
+              drawSysConf(i,e->song.system[i],e->song.systemFlags[i],true,true);
               ImGui::TreePop();
             }
           }
@@ -4486,17 +4487,6 @@ bool FurnaceGUI::loop() {
       }
       MEASURE(songInfo,drawSongInfo());
       MEASURE(orders,drawOrders());
-      if (introMonOpen) {
-        int totalTicks=e->getTotalTicks();
-        int totalSeconds=e->getTotalSeconds();
-        double newMonitorPos=totalSeconds+((double)totalTicks/1000000.0);
-
-        if (fabs(newMonitorPos-monitorPos)>0.08) monitorPos=newMonitorPos;
-
-        drawIntro(monitorPos,true);
-
-        if (e->isPlaying()) monitorPos+=ImGui::GetIO().DeltaTime;
-      }
       MEASURE(sampleList,drawSampleList());
       MEASURE(sampleEdit,drawSampleEdit());
       MEASURE(waveList,drawWaveList());
@@ -4529,6 +4519,11 @@ bool FurnaceGUI::loop() {
       MEASURE(regView,drawRegView());
       MEASURE(log,drawLog());
       MEASURE(effectList,drawEffectList());
+    }
+
+    for (int i=0; i<e->getTotalChannelCount(); i++) {
+      keyHit1[i]-=0.2f;
+      if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
     }
 
     activateTutorial(GUI_TUTORIAL_OVERVIEW);
@@ -4592,7 +4587,6 @@ bool FurnaceGUI::loop() {
         case GUI_FILE_INS_OPEN:
         case GUI_FILE_INS_OPEN_REPLACE:
         case GUI_FILE_INS_SAVE:
-        case GUI_FILE_INS_SAVE_OLD:
         case GUI_FILE_INS_SAVE_DMP:
           workingDirIns=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
@@ -4628,6 +4622,7 @@ bool FurnaceGUI::loop() {
           workingDirROMExport=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
         case GUI_FILE_LOAD_MAIN_FONT:
+        case GUI_FILE_LOAD_HEAD_FONT:
         case GUI_FILE_LOAD_PAT_FONT:
           workingDirFont=fileDialog->getPath()+DIR_SEPARATOR_STR;
           break;
@@ -4693,9 +4688,6 @@ bool FurnaceGUI::loop() {
             checkExtension(".wav");
           }
           if (curFileDialog==GUI_FILE_INS_SAVE) {
-            checkExtension(".fui");
-          }
-          if (curFileDialog==GUI_FILE_INS_SAVE_OLD) {
             checkExtension(".fui");
           }
           if (curFileDialog==GUI_FILE_INS_SAVE_DMP) {
@@ -4789,11 +4781,6 @@ bool FurnaceGUI::loop() {
             case GUI_FILE_INS_SAVE:
               if (curIns>=0 && curIns<(int)e->song.ins.size()) {
                 e->song.ins[curIns]->save(copyOfName.c_str(),false,&e->song);
-              }
-              break;
-            case GUI_FILE_INS_SAVE_OLD:
-              if (curIns>=0 && curIns<(int)e->song.ins.size()) {
-                e->song.ins[curIns]->save(copyOfName.c_str(),true);
               }
               break;
             case GUI_FILE_INS_SAVE_DMP:
@@ -5096,6 +5083,9 @@ bool FurnaceGUI::loop() {
             }
             case GUI_FILE_LOAD_MAIN_FONT:
               settings.mainFontPath=copyOfName;
+              break;
+            case GUI_FILE_LOAD_HEAD_FONT:
+              settings.headFontPath=copyOfName;
               break;
             case GUI_FILE_LOAD_PAT_FONT:
               settings.patFontPath=copyOfName;
@@ -6025,6 +6015,7 @@ bool FurnaceGUI::loop() {
       mainFont=ImGui::GetIO().Fonts->AddFontDefault();
       patFont=mainFont;
       bigFont=mainFont;
+      headFont=mainFont;
       if (rend) rend->destroyFontsTexture();
       if (!ImGui::GetIO().Fonts->Build()) {
         logE("error again while building font atlas!");
@@ -6093,7 +6084,6 @@ bool FurnaceGUI::init() {
   clockOpen=e->getConfBool("clockOpen",false);
   speedOpen=e->getConfBool("speedOpen",true);
   groovesOpen=e->getConfBool("groovesOpen",false);
-  introMonOpen=e->getConfBool("introMonOpen",false);
   regViewOpen=e->getConfBool("regViewOpen",false);
   logOpen=e->getConfBool("logOpen",false);
   effectListOpen=e->getConfBool("effectListOpen",true);
@@ -6152,6 +6142,7 @@ bool FurnaceGUI::init() {
   pianoInputPadMode=e->getConfInt("pianoInputPadMode",pianoInputPadMode);
 
   chanOscCols=e->getConfInt("chanOscCols",3);
+  chanOscAutoColsType=e->getConfInt("chanOscAutoColsType",0);
   chanOscColorX=e->getConfInt("chanOscColorX",GUI_OSCREF_CENTER);
   chanOscColorY=e->getConfInt("chanOscColorY",GUI_OSCREF_CENTER);
   chanOscTextX=e->getConfFloat("chanOscTextX",0.0f);
@@ -6480,6 +6471,7 @@ bool FurnaceGUI::init() {
     mainFont=ImGui::GetIO().Fonts->AddFontDefault();
     patFont=mainFont;
     bigFont=mainFont;
+    headFont=mainFont;
     if (rend) rend->destroyFontsTexture();
     if (!ImGui::GetIO().Fonts->Build()) {
       logE("error again while building font atlas!");
@@ -6611,7 +6603,6 @@ void FurnaceGUI::commitState() {
   e->setConf("clockOpen",clockOpen);
   e->setConf("speedOpen",speedOpen);
   e->setConf("groovesOpen",groovesOpen);
-  e->setConf("introMonOpen",introMonOpen);
   e->setConf("regViewOpen",regViewOpen);
   e->setConf("logOpen",logOpen);
   e->setConf("effectListOpen",effectListOpen);
@@ -6670,6 +6661,7 @@ void FurnaceGUI::commitState() {
 
   // commit per-chan osc state
   e->setConf("chanOscCols",chanOscCols);
+  e->setConf("chanOscAutoColsType",chanOscAutoColsType);
   e->setConf("chanOscColorX",chanOscColorX);
   e->setConf("chanOscColorY",chanOscColorY);
   e->setConf("chanOscTextX",chanOscTextX);
@@ -6826,6 +6818,7 @@ FurnaceGUI::FurnaceGUI():
   iconFont(NULL),
   patFont(NULL),
   bigFont(NULL),
+  headFont(NULL),
   fontRange(NULL),
   prevInsData(NULL),
   curIns(0),
@@ -6895,7 +6888,6 @@ FurnaceGUI::FurnaceGUI():
   clockOpen(false),
   speedOpen(true),
   groovesOpen(false),
-  introMonOpen(false),
   basicMode(true),
   shortIntro(false),
   insListDir(false),
@@ -7114,6 +7106,7 @@ FurnaceGUI::FurnaceGUI():
   oscWindowSize(20.0f),
   oscZoomSlider(false),
   chanOscCols(3),
+  chanOscAutoColsType(0),
   chanOscColorX(GUI_OSCREF_CENTER),
   chanOscColorY(GUI_OSCREF_CENTER),
   chanOscWindowSize(20.0f),
@@ -7288,6 +7281,8 @@ FurnaceGUI::FurnaceGUI():
   memset(macroRelLabel,0,32);
   memset(emptyLabel,0,32);
   memset(emptyLabel2,0,32);
+  //effect sorting
+  memset(effectsShow,1,sizeof(bool)*10);
 
   strncpy(noteOffLabel,"OFF",32);
   strncpy(noteRelLabel,"===",32);
