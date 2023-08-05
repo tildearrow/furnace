@@ -6706,6 +6706,13 @@ bool FurnaceGUI::finish() {
     SDL_HapticClose(vibrator);
   }
 
+  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+    if (oscValues[i]) {
+      delete[] oscValues[i];
+      oscValues[i]=NULL;
+    }
+  }
+
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
   }
@@ -7102,8 +7109,11 @@ FurnaceGUI::FurnaceGUI():
   displayInternalPorts(false),
   subPortPos(0.0f,0.0f),
   oscTotal(0),
+  oscWidth(512),
   oscZoom(0.5f),
   oscWindowSize(20.0f),
+  oscInput(0.0f),
+  oscInput1(0.0f),
   oscZoomSlider(false),
   chanOscCols(3),
   chanOscAutoColsType(0),
@@ -7217,7 +7227,7 @@ FurnaceGUI::FurnaceGUI():
   memset(patChanX,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(patChanSlideY,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
-  memset(oscValues,0,sizeof(float)*512);
+  memset(oscValues,0,sizeof(void*)*DIV_MAX_OUTPUTS);
 
   memset(chanOscLP0,0,sizeof(float)*DIV_MAX_CHANS);
   memset(chanOscLP1,0,sizeof(float)*DIV_MAX_CHANS);

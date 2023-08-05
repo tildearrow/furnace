@@ -152,6 +152,22 @@ enum FurnaceGUIColors {
   GUI_COLOR_OSC_BORDER,
   GUI_COLOR_OSC_WAVE,
   GUI_COLOR_OSC_WAVE_PEAK,
+  GUI_COLOR_OSC_WAVE_CH0,
+  GUI_COLOR_OSC_WAVE_CH1,
+  GUI_COLOR_OSC_WAVE_CH2,
+  GUI_COLOR_OSC_WAVE_CH3,
+  GUI_COLOR_OSC_WAVE_CH4,
+  GUI_COLOR_OSC_WAVE_CH5,
+  GUI_COLOR_OSC_WAVE_CH6,
+  GUI_COLOR_OSC_WAVE_CH7,
+  GUI_COLOR_OSC_WAVE_CH8,
+  GUI_COLOR_OSC_WAVE_CH9,
+  GUI_COLOR_OSC_WAVE_CH10,
+  GUI_COLOR_OSC_WAVE_CH11,
+  GUI_COLOR_OSC_WAVE_CH12,
+  GUI_COLOR_OSC_WAVE_CH13,
+  GUI_COLOR_OSC_WAVE_CH14,
+  GUI_COLOR_OSC_WAVE_CH15,
   GUI_COLOR_OSC_REF,
   GUI_COLOR_OSC_GUIDE,
 
@@ -1461,6 +1477,8 @@ class FurnaceGUI {
     int oscTakesEntireWindow;
     int oscBorder;
     int oscEscapesBoundary;
+    int oscMono;
+    int oscAntiAlias;
     int separateFMColors;
     int insEditColorize;
     int metroVol;
@@ -1619,6 +1637,8 @@ class FurnaceGUI {
       oscTakesEntireWindow(0),
       oscBorder(1),
       oscEscapesBoundary(0),
+      oscMono(1),
+      oscAntiAlias(1),
       separateFMColors(0),
       insEditColorize(0),
       metroVol(100),
@@ -1969,10 +1989,11 @@ class FurnaceGUI {
   ImVec2 subPortPos;
 
   // oscilloscope
-  int oscTotal;
-  float oscValues[512];
+  int oscTotal, oscWidth;
+  float* oscValues[DIV_MAX_OUTPUTS];
   float oscZoom;
   float oscWindowSize;
+  float oscInput, oscInput1;
   bool oscZoomSlider;
 
   // per-channel oscilloscope
