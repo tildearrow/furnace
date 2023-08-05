@@ -451,7 +451,7 @@ void DivEngine::registerSystems() {
 
   EffectHandlerMap fmOPN2EffectHandlerMap(fmEffectHandlerMap);
   fmOPN2EffectHandlerMap.insert({
-    {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}},
+    {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}},
     {0xdf, {DIV_CMD_SAMPLE_DIR, "DFxx: Set sample playback direction (0: normal; 1: reverse)"}},
   });
 
@@ -681,7 +681,7 @@ void DivEngine::registerSystems() {
       {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Toggle noise mode"}},
       {0x12, {DIV_CMD_PCE_LFO_MODE, "12xx: Setup LFO (0: disabled; 1: 1x depth; 2: 16x depth; 3: 256x depth)"}},
       {0x13, {DIV_CMD_PCE_LFO_SPEED, "13xx: Set LFO speed"}},
-      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}}
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}}
     }
   );
 
@@ -939,7 +939,7 @@ void DivEngine::registerSystems() {
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_NULL},
     {
       {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set duty cycle (pulse: 0 to 7)"}},
-      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (pulse channel)"}},
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}},
     }
   );
 
@@ -1182,7 +1182,7 @@ void DivEngine::registerSystems() {
       {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Setup noise mode (0: disabled; 1-8: enabled/tap)"}},
       {0x12, {DIV_CMD_WS_SWEEP_TIME, "12xx: Setup sweep period (0: disabled; 1-20: enabled/period)"}},
       {0x13, {DIV_CMD_WS_SWEEP_AMOUNT, "13xx: Set sweep amount"}},
-      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}},
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}},
     }
   );
 
@@ -1497,7 +1497,7 @@ void DivEngine::registerSystems() {
       {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
       {0x11, {DIV_CMD_X1_010_ENVELOPE_SHAPE, "11xx: Set envelope shape"}},
       {0x12, {DIV_CMD_X1_010_SAMPLE_BANK_SLOT, "12xx: Set sample bank slot (0 to 7)"}},
-      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}},
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}},
     },
     {
       {0x20, {DIV_CMD_SAMPLE_FREQ, "20xx: Set PCM frequency (1 to FF)"}},
