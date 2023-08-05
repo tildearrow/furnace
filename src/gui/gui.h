@@ -1547,6 +1547,7 @@ class FurnaceGUI {
     int noDMFCompat;
     int removeInsOff;
     int removeVolOff;
+    int playOnLoad;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1708,6 +1709,7 @@ class FurnaceGUI {
       noDMFCompat(0),
       removeInsOff(0),
       removeVolOff(0),
+      playOnLoad(0),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),

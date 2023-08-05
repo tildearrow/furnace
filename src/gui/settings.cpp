@@ -437,6 +437,17 @@ void FurnaceGUI::drawSettings() {
           ImGui::SetTooltip("do not report any issues arising from the use of this option!");
         }
 
+        ImGui::Text("Play after opening song:");
+        if (ImGui::RadioButton("No##pol0",settings.playOnLoad==0)) {
+          settings.playOnLoad=0;
+        }
+        if (ImGui::RadioButton("Only if already playing##pol1",settings.playOnLoad==1)) {
+          settings.playOnLoad=1;
+        }
+        if (ImGui::RadioButton("Yes##pol0",settings.playOnLoad==2)) {
+          settings.playOnLoad=2;
+        }
+
         ImGui::Text("Audio export loop/fade out time:");
         if (ImGui::RadioButton("Set to these values on start-up:##fot0",settings.persistFadeOut==0)) {
           settings.persistFadeOut=0;
@@ -2935,6 +2946,7 @@ void FurnaceGUI::syncSettings() {
   settings.noDMFCompat=e->getConfInt("noDMFCompat",0);
   settings.removeInsOff=e->getConfInt("removeInsOff",0);
   settings.removeVolOff=e->getConfInt("removeVolOff",0);
+  settings.playOnLoad=e->getConfInt("playOnLoad",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3068,6 +3080,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.noDMFCompat,0,1);
   clampSetting(settings.removeInsOff,0,1);
   clampSetting(settings.removeVolOff,0,1);
+  clampSetting(settings.playOnLoad,0,2);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3301,6 +3314,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("noDMFCompat",settings.noDMFCompat);
   e->setConf("removeInsOff",settings.removeInsOff);
   e->setConf("removeVolOff",settings.removeVolOff);
+  e->setConf("playOnLoad",settings.playOnLoad);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

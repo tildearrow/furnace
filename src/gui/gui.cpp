@@ -2112,6 +2112,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
 }
 
 int FurnaceGUI::load(String path) {
+  bool wasPlaying=e->isPlaying();
   if (!path.empty()) {
     logI("loading module...");
     FILE* f=ps_fopen(path.c_str(),"rb");
@@ -2188,6 +2189,12 @@ int FurnaceGUI::load(String path) {
     showWarning(e->getWarnings(),GUI_WARN_GENERIC);
   }
   pushRecentFile(path);
+  // do not auto-play a backup
+  if (path.find(backupPath)!=0) {
+    if (settings.playOnLoad==2 || (settings.playOnLoad==1 && wasPlaying)) {
+      play();
+    }
+  }
   return 0;
 }
 
