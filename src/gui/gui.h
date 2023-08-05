@@ -1545,6 +1545,8 @@ class FurnaceGUI {
     int memUsageUnit;
     int cursorFollowsWheel;
     int noDMFCompat;
+    int removeInsOff;
+    int removeVolOff;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1704,6 +1706,8 @@ class FurnaceGUI {
       memUsageUnit(1),
       cursorFollowsWheel(0),
       noDMFCompat(0),
+      removeInsOff(0),
+      removeVolOff(0),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),

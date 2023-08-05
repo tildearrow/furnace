@@ -1738,6 +1738,16 @@ void FurnaceGUI::drawSettings() {
           settings.absorbInsInput=absorbInsInputB;
         }
 
+        bool removeInsOffB=settings.removeInsOff;
+        if (ImGui::Checkbox("Remove instrument value when inserting note off/release",&removeInsOffB)) {
+          settings.removeInsOff=removeInsOffB;
+        }
+
+        bool removeVolOffB=settings.removeVolOff;
+        if (ImGui::Checkbox("Remove volume value when inserting note off/release",&removeVolOffB)) {
+          settings.removeVolOff=removeVolOffB;
+        }
+
         // SUBSECTION CURSOR MOVEMENT
         CONFIG_SUBSECTION("Cursor movement");
 
@@ -2923,6 +2933,8 @@ void FurnaceGUI::syncSettings() {
   settings.memUsageUnit=e->getConfInt("memUsageUnit",1);
   settings.cursorFollowsWheel=e->getConfInt("cursorFollowsWheel",0);
   settings.noDMFCompat=e->getConfInt("noDMFCompat",0);
+  settings.removeInsOff=e->getConfInt("removeInsOff",0);
+  settings.removeVolOff=e->getConfInt("removeVolOff",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3054,6 +3066,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.memUsageUnit,0,1);
   clampSetting(settings.cursorFollowsWheel,0,1);
   clampSetting(settings.noDMFCompat,0,1);
+  clampSetting(settings.removeInsOff,0,1);
+  clampSetting(settings.removeVolOff,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3285,6 +3299,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("memUsageUnit",settings.memUsageUnit);
   e->setConf("cursorFollowsWheel",settings.cursorFollowsWheel);
   e->setConf("noDMFCompat",settings.noDMFCompat);
+  e->setConf("removeInsOff",settings.removeInsOff);
+  e->setConf("removeVolOff",settings.removeVolOff);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

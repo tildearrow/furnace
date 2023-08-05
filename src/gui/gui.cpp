@@ -1128,18 +1128,22 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
 
 void FurnaceGUI::noteInput(int num, int key, int vol) {
   DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
+  bool removeIns=false;
 
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
 
   if (key==GUI_NOTE_OFF) { // note off
     pat->data[cursor.y][0]=100;
     pat->data[cursor.y][1]=0;
+    removeIns=true;
   } else if (key==GUI_NOTE_OFF_RELEASE) { // note off + env release
     pat->data[cursor.y][0]=101;
     pat->data[cursor.y][1]=0;
+    removeIns=true;
   } else if (key==GUI_NOTE_RELEASE) { // env release only
     pat->data[cursor.y][0]=102;
     pat->data[cursor.y][1]=0;
+    removeIns=true;
   } else {
     pat->data[cursor.y][0]=num%12;
     pat->data[cursor.y][1]=num/12;
@@ -1164,6 +1168,14 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
     }
     if (latchEffect!=-1) pat->data[cursor.y][4]=latchEffect;
     if (latchEffectVal!=-1) pat->data[cursor.y][5]=latchEffectVal;
+  }
+  if (removeIns) {
+    if (settings.removeInsOff) {
+      pat->data[cursor.y][2]=-1;
+    }
+    if (settings.removeVolOff) {
+      pat->data[cursor.y][3]=-1;
+    }
   }
   makeUndo(GUI_UNDO_PATTERN_EDIT);
   editAdvance();
