@@ -1128,18 +1128,22 @@ void FurnaceGUI::stopPreviewNote(SDL_Scancode scancode, bool autoNote) {
 
 void FurnaceGUI::noteInput(int num, int key, int vol) {
   DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
+  bool removeIns=false;
 
   prepareUndo(GUI_UNDO_PATTERN_EDIT);
 
   if (key==GUI_NOTE_OFF) { // note off
     pat->data[cursor.y][0]=100;
     pat->data[cursor.y][1]=0;
+    removeIns=true;
   } else if (key==GUI_NOTE_OFF_RELEASE) { // note off + env release
     pat->data[cursor.y][0]=101;
     pat->data[cursor.y][1]=0;
+    removeIns=true;
   } else if (key==GUI_NOTE_RELEASE) { // env release only
     pat->data[cursor.y][0]=102;
     pat->data[cursor.y][1]=0;
+    removeIns=true;
   } else {
     pat->data[cursor.y][0]=num%12;
     pat->data[cursor.y][1]=num/12;
@@ -1164,6 +1168,14 @@ void FurnaceGUI::noteInput(int num, int key, int vol) {
     }
     if (latchEffect!=-1) pat->data[cursor.y][4]=latchEffect;
     if (latchEffectVal!=-1) pat->data[cursor.y][5]=latchEffectVal;
+  }
+  if (removeIns) {
+    if (settings.removeInsOff) {
+      pat->data[cursor.y][2]=-1;
+    }
+    if (settings.removeVolOff) {
+      pat->data[cursor.y][3]=-1;
+    }
   }
   makeUndo(GUI_UNDO_PATTERN_EDIT);
   editAdvance();
@@ -2100,6 +2112,7 @@ int FurnaceGUI::save(String path, int dmfVersion) {
 }
 
 int FurnaceGUI::load(String path) {
+  bool wasPlaying=e->isPlaying();
   if (!path.empty()) {
     logI("loading module...");
     FILE* f=ps_fopen(path.c_str(),"rb");
@@ -2176,6 +2189,12 @@ int FurnaceGUI::load(String path) {
     showWarning(e->getWarnings(),GUI_WARN_GENERIC);
   }
   pushRecentFile(path);
+  // do not auto-play a backup
+  if (path.find(backupPath)!=0) {
+    if (settings.playOnLoad==2 || (settings.playOnLoad==1 && wasPlaying)) {
+      play();
+    }
+  }
   return 0;
 }
 
@@ -6706,6 +6725,13 @@ bool FurnaceGUI::finish() {
     SDL_HapticClose(vibrator);
   }
 
+  for (int i=0; i<DIV_MAX_OUTPUTS; i++) {
+    if (oscValues[i]) {
+      delete[] oscValues[i];
+      oscValues[i]=NULL;
+    }
+  }
+
   for (int i=0; i<DIV_MAX_CHANS; i++) {
     delete oldPat[i];
   }
@@ -7102,8 +7128,11 @@ FurnaceGUI::FurnaceGUI():
   displayInternalPorts(false),
   subPortPos(0.0f,0.0f),
   oscTotal(0),
+  oscWidth(512),
   oscZoom(0.5f),
   oscWindowSize(20.0f),
+  oscInput(0.0f),
+  oscInput1(0.0f),
   oscZoomSlider(false),
   chanOscCols(3),
   chanOscAutoColsType(0),
@@ -7217,7 +7246,7 @@ FurnaceGUI::FurnaceGUI():
   memset(patChanX,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(patChanSlideY,0,sizeof(float)*(DIV_MAX_CHANS+1));
   memset(lastIns,-1,sizeof(int)*DIV_MAX_CHANS);
-  memset(oscValues,0,sizeof(float)*512);
+  memset(oscValues,0,sizeof(void*)*DIV_MAX_OUTPUTS);
 
   memset(chanOscLP0,0,sizeof(float)*DIV_MAX_CHANS);
   memset(chanOscLP1,0,sizeof(float)*DIV_MAX_CHANS);

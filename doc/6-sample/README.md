@@ -33,14 +33,14 @@ the following sound chips have sample support:
 - Yamaha PCMD8/YMZ280B
 - MMC5 (last channel only)
 
-## compatible sample mode
+## compatible sample mode (LEGACY)
 
-effect `17xx` enables/disables compatible sample mode whether supported (e.g. on Sega Genesis or PC Engine).
+**use of this mode is discouraged in favor of Sample type instruments.**
+
+effect `17xx` enables/disables compatible sample mode where supported (e.g. on Sega Genesis or PC Engine).
 
 in this mode, samples are mapped to notes in an octave from C to B, allowing you to use up to 12 samples.
 if you need to use more samples, you may change the sample bank using effect `EBxx`.
-
-use of this mode is discouraged in favor of Sample type instruments.
 
 ## notes
 

@@ -407,13 +407,10 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     lastAssetType=2;
   }
   if (ImGui::IsItemHovered() && !mobileUI) {
-    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-    ImGui::SetTooltip("(legacy bank %d: %s)",i/12,sampleNote[i%12]);
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
       sampleEditOpen=true;
       nextWindow=GUI_WINDOW_SAMPLE_EDIT;
     }
-    ImGui::PopStyleColor();
   }
   if (sampleListDir || (settings.unifiedDataView && insListDir)) {
     DRAG_SOURCE(dir,asset,"FUR_SDIR");

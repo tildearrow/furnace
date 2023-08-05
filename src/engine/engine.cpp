@@ -107,7 +107,7 @@ const char* DivEngine::getEffectDesc(unsigned char effect, int chan, bool notNul
     case 0xea:
       return "EAxx: Legato";
     case 0xeb:
-      return "EBxx: Set sample bank";
+      return "EBxx: Set LEGACY sample mode bank";
     case 0xec:
       return "ECxx: Note cut";
     case 0xed:

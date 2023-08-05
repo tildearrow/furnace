@@ -20,6 +20,8 @@
 #include "gui.h"
 #include "imgui_internal.h"
 #include <imgui.h>
+#include "../ta-log.h"
+#include "../engine/filter.h"
 
 void FurnaceGUI::readOsc() {
   int writePos=e->oscWritePos;
@@ -47,18 +49,51 @@ void FurnaceGUI::readOsc() {
 
   int winSize=e->getAudioDescGot().rate*(oscWindowSize/1000.0);
   int oscReadPos=(writePos-winSize)&0x7fff;
-  for (int i=0; i<512; i++) {
-    int pos=(oscReadPos+(i*winSize/512))&0x7fff;
-    oscValues[i]=0;
-    for (int j=0; j<e->getAudioDescGot().outChans; j++) {
-      oscValues[i]+=e->oscBuf[j][pos];
-    }
-    oscValues[i]/=e->getAudioDescGot().outChans;
 
-    if (oscValues[i]>0.001f || oscValues[i]<-0.001f) {
-      WAKE_UP;
+  for (int ch=0; ch<e->getAudioDescGot().outChans; ch++) {
+    if (oscValues[ch]==NULL) {
+      oscValues[ch]=new float[1024];
+    }
+    memset(oscValues[ch],0,1024*sizeof(float));
+    float* sincITable=DivFilterTables::getSincIntegralTable();
+
+    float posFrac=0.0;
+    int posInt=oscReadPos;
+    float factor=(float)oscWidth/(float)winSize;
+    for (int i=0; i<oscWidth; i++) {
+      oscValues[ch][i]+=e->oscBuf[ch][posInt&0x7fff];
+
+      posFrac+=1.0;
+      while (posFrac>=1.0) {
+        unsigned int n=((unsigned int)(posFrac*8192.0))&8191;
+        posFrac-=factor;
+        posInt++;
+
+        float* t1=&sincITable[(8191-n)<<3];
+        float* t2=&sincITable[n<<3];
+        float delta=e->oscBuf[ch][posInt&0x7fff]-e->oscBuf[ch][(posInt-1)&0x7fff];
+
+        for (int j=0; j<8; j++) {
+          if (i-j>0) {
+            oscValues[ch][i-j]+=t1[j]*-delta;
+          }
+          if (i+j+1<oscWidth) {
+            oscValues[ch][i+j+1]+=t2[j]*delta;
+          }
+        }
+      }
+    }
+
+    for (int i=0; i<oscWidth; i++) {
+      if (oscValues[ch][i]>0.001f || oscValues[ch][i]<-0.001f) {
+        WAKE_UP;
+      }
     }
   }
+
+  /*for (int i=0; i<oscWidth; i++) {
+    oscValues[i]=(i&1)?0.3:0;
+  }*/
 
   float peakDecay=0.05f*60.0f*ImGui::GetIO().DeltaTime;
   for (int i=0; i<e->getAudioDescGot().outChans; i++) {
@@ -124,7 +159,7 @@ void FurnaceGUI::drawOsc() {
     ImDrawList* dl=ImGui::GetWindowDrawList();
     ImGuiWindow* window=ImGui::GetCurrentWindow();
 
-    ImVec2 waveform[512];
+    ImVec2 waveform[1024];
     ImVec2 size=ImGui::GetContentRegionAvail();
 
     ImVec2 minArea=window->DC.CursorPos;
@@ -211,22 +246,67 @@ void FurnaceGUI::drawOsc() {
         dpiScale
       );
 
-      for (size_t i=0; i<512; i++) {
-        float x=(float)i/512.0f;
-        float y=oscValues[i]*oscZoom;
-        if (!settings.oscEscapesBoundary) {
-          if (y<-0.5f) y=-0.5f;
-          if (y>0.5f) y=0.5f;
+      oscWidth=round(inRect.Max.x-inRect.Min.x);
+      if (oscWidth<1) oscWidth=1;
+      if (oscWidth>1024) oscWidth=1024;
+
+      ImDrawListFlags prevFlags=dl->Flags;
+      if (!settings.oscAntiAlias) {
+        dl->Flags&=~(ImDrawListFlags_AntiAliasedLines|ImDrawListFlags_AntiAliasedLinesUseTex);
+      }
+
+      if (settings.oscMono) {
+        for (int i=0; i<oscWidth; i++) {
+          float x=(float)i/(float)oscWidth;
+          float avg=0;
+          for (int j=0; j<e->getAudioDescGot().outChans; j++) {
+            avg+=oscValues[j][i];
+          }
+          avg/=e->getAudioDescGot().outChans;
+
+          float y=avg*oscZoom;
+          if (!settings.oscEscapesBoundary) {
+            if (y<-0.5f) y=-0.5f;
+            if (y>0.5f) y=0.5f;
+          }
+          waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
         }
-        waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
-      }
-      if (settings.oscEscapesBoundary) {
-        dl->PushClipRectFullScreen();
-        dl->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
-        dl->PopClipRect();
+        
+        if (settings.oscEscapesBoundary) {
+          dl->PushClipRectFullScreen();
+          dl->AddPolyline(waveform,oscWidth,color,ImDrawFlags_None,dpiScale);
+          dl->PopClipRect();
+        } else {
+          dl->AddPolyline(waveform,oscWidth,color,ImDrawFlags_None,dpiScale);
+        }
       } else {
-        dl->AddPolyline(waveform,512,color,ImDrawFlags_None,dpiScale);
+        for (int ch=0; ch<e->getAudioDescGot().outChans; ch++) {
+          for (int i=0; i<oscWidth; i++) {
+            float x=(float)i/(float)oscWidth;
+            float y=oscValues[ch][i]*oscZoom;
+            if (!settings.oscEscapesBoundary) {
+              if (y<-0.5f) y=-0.5f;
+              if (y>0.5f) y=0.5f;
+            }
+            waveform[i]=ImLerp(inRect.Min,inRect.Max,ImVec2(x,0.5f-y));
+          }
+
+          if (!isClipping) {
+            color=ImGui::GetColorU32(uiColors[GUI_COLOR_OSC_WAVE_CH0+ch]);
+          }
+          
+          if (settings.oscEscapesBoundary) {
+            dl->PushClipRectFullScreen();
+            dl->AddPolyline(waveform,oscWidth,color,ImDrawFlags_None,dpiScale);
+            dl->PopClipRect();
+          } else {
+            dl->AddPolyline(waveform,oscWidth,color,ImDrawFlags_None,dpiScale);
+          }
+        }
       }
+
+      dl->Flags=prevFlags;
+      
       if (settings.oscBorder) {
         dl->AddRect(inRect.Min,inRect.Max,borderColor,settings.oscRoundedCorners?(8.0f*dpiScale):0.0f,0,1.5f*dpiScale);
       }
