@@ -438,6 +438,7 @@ void FurnaceGUI::drawSettings() {
         }
 
         ImGui::Text("Play after opening song:");
+        ImGui::Indent();
         if (ImGui::RadioButton("No##pol0",settings.playOnLoad==0)) {
           settings.playOnLoad=0;
         }
@@ -447,6 +448,7 @@ void FurnaceGUI::drawSettings() {
         if (ImGui::RadioButton("Yes##pol0",settings.playOnLoad==2)) {
           settings.playOnLoad=2;
         }
+        ImGui::Unindent();
 
         ImGui::Text("Audio export loop/fade out time:");
         ImGui::Indent();
