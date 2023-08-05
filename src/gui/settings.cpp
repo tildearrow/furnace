@@ -2314,6 +2314,16 @@ void FurnaceGUI::drawSettings() {
           settings.oscBorder=oscBorderB;
         }
 
+        bool oscMonoB=settings.oscMono;
+        if (ImGui::Checkbox("Mono",&oscMonoB)) {
+          settings.oscMono=oscMonoB;
+        }
+
+        bool oscAntiAliasB=settings.oscAntiAlias;
+        if (ImGui::Checkbox("Anti-aliased",&oscAntiAliasB)) {
+          settings.oscAntiAlias=oscAntiAliasB;
+        }
+
         bool oscTakesEntireWindowB=settings.oscTakesEntireWindow;
         if (ImGui::Checkbox("Fill entire window",&oscTakesEntireWindowB)) {
           settings.oscTakesEntireWindow=oscTakesEntireWindowB;
@@ -2439,6 +2449,26 @@ void FurnaceGUI::drawSettings() {
           UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_PEAK,"Waveform (clip)");
           UI_COLOR_CONFIG(GUI_COLOR_OSC_REF,"Reference");
           UI_COLOR_CONFIG(GUI_COLOR_OSC_GUIDE,"Guide");
+
+          if (ImGui::TreeNode("Wave (non-mono)")) {
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH0,"Waveform (1)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH1,"Waveform (2)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH2,"Waveform (3)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH3,"Waveform (4)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH4,"Waveform (5)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH5,"Waveform (6)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH6,"Waveform (7)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH7,"Waveform (8)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH8,"Waveform (9)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH9,"Waveform (10)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH10,"Waveform (11)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH11,"Waveform (12)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH12,"Waveform (13)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH13,"Waveform (14)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH14,"Waveform (15)");
+            UI_COLOR_CONFIG(GUI_COLOR_OSC_WAVE_CH15,"Waveform (16)");
+            ImGui::TreePop();
+          }
           ImGui::TreePop();
         }
         if (ImGui::TreeNode("Volume Meter")) {
@@ -2818,6 +2848,8 @@ void FurnaceGUI::syncSettings() {
   settings.oscTakesEntireWindow=e->getConfInt("oscTakesEntireWindow",0);
   settings.oscBorder=e->getConfInt("oscBorder",1);
   settings.oscEscapesBoundary=e->getConfInt("oscEscapesBoundary",0);
+  settings.oscMono=e->getConfInt("oscMono",1);
+  settings.oscAntiAlias=e->getConfInt("oscAntiAlias",1);
   settings.separateFMColors=e->getConfInt("separateFMColors",0);
   settings.insEditColorize=e->getConfInt("insEditColorize",0);
   settings.metroVol=e->getConfInt("metroVol",100);
@@ -3177,6 +3209,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("oscTakesEntireWindow",settings.oscTakesEntireWindow);
   e->setConf("oscBorder",settings.oscBorder);
   e->setConf("oscEscapesBoundary",settings.oscEscapesBoundary);
+  e->setConf("oscMono",settings.oscMono);
+  e->setConf("oscAntiAlias",settings.oscAntiAlias);
   e->setConf("separateFMColors",settings.separateFMColors);
   e->setConf("insEditColorize",settings.insEditColorize);
   e->setConf("metroVol",settings.metroVol);
