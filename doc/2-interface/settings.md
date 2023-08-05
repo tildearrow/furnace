@@ -359,7 +359,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 ### Channel
 
-- **Channel style:**
+- **Channel style:** set the appearance of channel headers in pattern view.
   - **Classic**
   - **Line**
   - **Round**
@@ -444,6 +444,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Mono**: display a single monaural waveform of all sound mixed together.
   - if turned off, waves will be drawn on top of each other for each output channel. their colors are configurable via _Settings > Color > Color scheme > Oscilloscope > Wave (non-mono)._
 - **Anti-aliased**: smooth the lines of the waveform.
+  - slight performance cost and slightly buggy.
 - **Fill entire window**: remove the gap between the waveform and the edge of the window.
 - **Waveform goes out of bounds**: allow the waveform to draw past the top and bottom of the oscilloscope.
 
