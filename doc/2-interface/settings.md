@@ -11,11 +11,9 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Render backend**
   - changing this may help with performace issues.
 - **Late render clear**
-- **Power-saving mode**
-  - saves power by lowering the frame rate to 2fps when idle.
+- **Power-saving mode**: save power by lowering the frame rate to 2fps when idle.
   - may cause issues under Mesa drivers!
-- **Disable threaded input (restart after changing!)**
-  - threaded input processes key presses for note preview on a separate thread (on supported platforms), which reduces latency.
+- **Disable threaded input (restart after changing!)**: process key presses for note preview on a separate thread (on supported platforms), which reduces latency.
   - however, crashes have been reported when threaded input is on. enable this option if that is the case.
 - **Enable event delay**
   - may cause issues with high-polling-rate mice when previewing notes.
@@ -23,7 +21,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 ### File
 
 - **Use system file picker**: use native OS file dialog instead of Furnace's.
-- **Number of recent files**
+- **Number of recent files**: number of files to show in the _open recent..._ menu.
 - **Compress when saving**
   - use zlib to compress saved songs.
 - **Save unused patterns**
@@ -38,10 +36,10 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 ### Chip
 
 - **Initial system**: the system of chips loaded on starting Furnace.
-  - **Current system**: sets current chips as default.
+  - **Current system**: set current chips as default.
   - **Randomize**: set default to a random system.
     - this will not choose a random system at each start.
-  - **Reset to defaults**: sets default to "Sega Genesis/Mega Drive".
+  - **Reset to defaults**: set default to "Sega Genesis/Mega Drive".
   - **Name**: name for the default system. may be set to any text.
   - system configuration: same as in the [chip manager](../8-advanced/chip-manager.md) and [mixer](../8-advanced/mixer.md).
 - **When creating new song**:
@@ -79,7 +77,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   - only appears when Backend is JACK.
 - **Channels**: number of output channels to use.
 - **Buffer size**: size of buffer in both samples and milliseconds.
-- **Low-latency mode (experimental!)**: reduces latency by running the engine faster than the tick rate. useful for live playback/jam mode.
+- **Low-latency mode (experimental!)**: reduce latency by running the engine faster than the tick rate. useful for live playback/jam mode.
   - _warning:_ experimental! may produce glitches. only enable if your buffer size is small (10ms or less).
 - **Force mono audio**
 - **want:** displays requested audio configuration.
@@ -87,8 +85,8 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 ### Mixing
 
-- **Quality**: selects quality of resampling. low quality reduces CPU load.
-- **Software clipping**: clips output to nominal range (-1.0 to 1.0) before passing it to the audio device.
+- **Quality**: select quality of resampling. low quality reduces CPU load.
+- **Software clipping**: clip output to nominal range (-1.0 to 1.0) before passing it to the audio device.
   - this avoids activating Windows' built-in limiter.
 
 ### Metronome
@@ -136,7 +134,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
       - **Control**
 - **Volume curve**
 - **Actions:**
-  - **`+`** button: adds a new action.
+  - **`+`** button: add a new action.
   - window-with-arrow button: new action with learning! press a button or move a slider/knob/something on your device.
   - each action has the following:
     - **Type**
@@ -209,8 +207,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   - **Export**: writes current layout to a .ini file.
   - **Reset**: resets layout to default.
 - **Allow docking editors**
-- **Remember window position**
-  - remembers the window's last position on start-up.
+- **Remember window position**: remember the window's last position on start-up.
 - **Only allow window movement when clicking on title bar**
 - **Play/edit controls layout:**
   - **Classic**
@@ -248,13 +245,15 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 - **Pull delete affects entire channel row**
 - **Push value when overwriting instead of clearing it**: in the order list and pattern editors, typing into an already-filled value will shift digits instead of starting fresh.
   - if off: moving the cursor onto the value `A5` and typing a "B" results in `0B`.
-  - if on: with the cursor on the value `A5` and typing a "B" results in `5B`.
+  - if on: moving the cursor onto the value `A5` and typing a "B" results in `5B`.
 - **Effect input behavior:**
   - **Move down**
   - **Move to effect value (otherwise move down)**
   - **Move to effect value/next effect and wrap around**
 - **Delete effect value when deleting effect**
 - **Change current instrument when changing instrument column (absorb)**
+- **Remove instrument value when inserting note off/release**
+- **Remove volume value when inserting note off/release**
 
 
 ### Cursor movement
@@ -294,12 +293,14 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 ### Scaling
 
 - **Automatic UI scaling factor**: automatically match the OS's UI scaling.
-- **UI scaling factor**: only if "Automatic UI scaling factor" is off.
+- **UI scaling factor**: only appears if "Automatic UI scaling factor" is off.
 - **Icon size**
 
 ### Text
 
 - **Main font**: if "Custom...", a file path selector will appear beneath.
+- **Size**
+- **Header font**: if "Custom...", a file path selector will appear beneath.
 - **Size**
 - **Pattern font**: if "Custom...", a file path selector will appear beneath.
 - **Size**
@@ -334,7 +335,7 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 ### Pattern
 
-- **Center pattern view**: centers pattern horizontally in view.
+- **Center pattern view**: center pattern horizontally in view.
 - **Overflow pattern highlights**
 - **Display previous/next pattern**
 - **Pattern row number format:**
@@ -428,11 +429,11 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   - **Between Decay and Sustain Rate**
   - **After Release Rate**
 - **Use separate colors for carriers/modulators in FM editor**
-- **Unsigned FM detune values**
+- **Unsigned FM detune values**: use internal representation of detune values, such that detune amounts of -1, -2, and -3 are shown as 5, 6, and 7.
 
 ### Statistics
 
-- **Chip memory usage unit:**
+- **Chip memory usage unit:** unit for displaying memory usage in the Statistics window.
   - **Bytes**
   - **Kilobytes**
 
@@ -440,15 +441,18 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 - **Rounded corners**
 - **Border**
-- **Fill entire window**
-- **Waveform goes out of bounds**
+- **Mono**: display a single monaural waveform of all sound mixed together.
+  - if turned off, waves will be drawn on top of each other for each output channel. their colors are configurable via _Settings > Color > Color scheme > Oscilloscope > Wave (non-mono)._
+- **Anti-aliased**: smooth the lines of the waveform.
+- **Fill entire window**: remove the gap between the waveform and the edge of the window.
+- **Waveform goes out of bounds**: allow the waveform to draw past the top and bottom of the oscilloscope.
 
 ### Windows
 
 - **Rounded window corners**
 - **Rounded buttons**
 - **Rounded menu corners**
-- **Borders around widgets**
+- **Borders around widgets**: draw thin borders on buttons, checkboxes, text widgets, and the like.
 
 
 
@@ -463,5 +467,5 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
   - **Color scheme type:**
     - **Dark**
     - **Light**
-  - **Frame shading**: applies a gradient effect to buttons and input boxes.
+  - **Frame shading**: apply a gradient effect to buttons and input boxes.
 - several more categories...
