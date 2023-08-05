@@ -1,4 +1,4 @@
-# TI SN76489 (e.g. sega Master System)
+# TI SN76489 (e.g. Sega Master System)
 
 a relatively simple sound chip made by Texas Instruments. a derivative of it is used in Sega's Master System, the predecessor to Genesis.
 
@@ -14,7 +14,12 @@ the original iteration of the SN76489 used in the TI-99/4A computer, the SN94624
     - `0`: thin pulse.
     - `1`: noise.
 
-# chip config
+
+# info
+
+this chip uses the [SN76489/Sega PSG](../4-instrument/psg.md) instrument editor.
+
+
 ## SN7 versions
 SN7 was extremely popular due to low cost. Therefore, it was cloned and copied to no end, often with minor differences between each other. Furnace supports several of these:
 - SN94624, can only produce tones as low as 100Hz, and is clocked at 447 KHz.

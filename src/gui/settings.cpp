@@ -3121,7 +3121,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("tg100Path",settings.tg100Path);
   e->setConf("mu5Path",settings.mu5Path);
   e->setConf("mainFont",settings.mainFont);
-  e->setConf("headFont",settings.mainFont);
+  e->setConf("headFont",settings.headFont);
   e->setConf("patFont",settings.patFont);
   e->setConf("mainFontPath",settings.mainFontPath);
   e->setConf("headFontPath",settings.headFontPath);
@@ -3967,7 +3967,7 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
       settings.mainFont=0;
     }
     if (settings.headFont==6 && settings.headFontPath.empty()) {
-      logW("UI font path is empty! reverting to default font");
+      logW("header font path is empty! reverting to default font");
       settings.headFont=0;
     }
     if (settings.patFont==6 && settings.patFontPath.empty()) {

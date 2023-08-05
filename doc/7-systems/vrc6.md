@@ -16,3 +16,7 @@ these effects only are effective in the pulse channels.
 
 - `12xx`: **set duty cycle.** range is `0` to `7`.
 - `17xx`: **toggle PCM mode.**
+
+# info
+
+this chip uses the [VRC](../4-instrument/vrc6.md), [VRC (saw)](../4-instrument/vrc6.md), and [Generic Sample](../4-instrument/amiga.md) instrument editors.

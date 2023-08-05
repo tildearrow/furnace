@@ -65,3 +65,7 @@ the YM2413 is equipped with the following features:
 - `5Bxy`: **set KSR of operator.**
   - `x` is the operator, either 1 or 2. a value of `0` means "all operators".
   - `y` determines whether KSR is on.
+
+# info
+
+this chip uses the [FM (OPLL)](../4-instrument/fm-opll.md) instrument editor.

@@ -14,3 +14,7 @@ not really - very soon talented programmers found out ways to output much more t
   - `xx` is the sample number.
   - overlay drums are 1-bit and always play at 55930Hz (NTSC) or 55420Hz (PAL).
   - the maximum length is 2048!
+
+# info
+
+this chip uses the [Beeper](../4-instrument/beeper.md), [Generic Sample](../4-instrument/amiga.md), and [Pokémon Mini/QuadTone](../4-instrument/quadtone.md) instrument editors.

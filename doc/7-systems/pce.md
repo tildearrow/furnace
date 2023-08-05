@@ -20,3 +20,7 @@ furthermore, it has some PCM and LFO!
 - `13xx`: **set LFO speed.**
 - `17xx`: **toggle PCM mode.**
   - _this effect is here for compatibility reasons_; it is otherwise recommended to use Sample type instruments (which automatically enable PCM mode when used).
+
+# info
+
+this chip uses the [PC Engine](../4-instrument/pce.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.

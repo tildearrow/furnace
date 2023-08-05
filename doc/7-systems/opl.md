@@ -78,3 +78,7 @@ afterwards everyone moved to Windows and software mixed PCM streaming...
 - `5Bxy`: **set KSR of operator.**
   - `x` is the operator from 1 to 4; the last 2 operators only work in 4-op mode. a value of `0` means "all operators".
   - `y` determines whether KSR is on.
+
+# info
+
+this chip uses the [FM (OPL)](../4-instrument/fm-opl.md) instrument editor.

@@ -67,7 +67,10 @@ Furnace also allows the SNES to use wavetables (and the wavetable synthesizer) i
   - _Note:_ Be sure the sum of all coefficients is between -128 and 127. sums outside that may result in overflow and therefore clicking.
   - see [SnesLab](https://sneslab.net/wiki/FIR_Filter) for a full explanation and examples.
 
-# tables
+# info
+
+this chip uses the [SNES](../4-instrument/snes.md) instrument editor.
+
 
 ## ADSR
 
