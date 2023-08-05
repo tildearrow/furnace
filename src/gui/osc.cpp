@@ -94,29 +94,11 @@ void FurnaceGUI::readOsc() {
     }
   }
 
-  /*
-  for (int i=0; i<winSize; i++) {
-    int pos=(oscReadPos+i)&0x7fff;
-    float avg=0.0f;
-    for (int j=0; j<e->getAudioDescGot().outChans; j++) {
-      avg+=e->oscBuf[j][pos];
-    }
-    avg/=e->getAudioDescGot().outChans;
-
-    //oscInput+=(avg-oscInput)*cut;
-    //oscInput1+=(oscInput1-oscInput)*cut;
-
-    oscInput=avg;
-
-    for (int j=(i*oscWidth)/winSize; j<((i+1)*oscWidth)/winSize; j++) {
-      if (j>=oscWidth) break;
-      oscValues[j]=oscInput;
-    }
-
-    if (avg>0.001f || avg<-0.001f) {
+  for (int i=0; i<oscWidth; i++) {
+    if (oscValues[i]>0.001f || oscValues[i]<-0.001f) {
       WAKE_UP;
     }
-  }*/
+  }
 
   /*for (int i=0; i<oscWidth; i++) {
     oscValues[i]=(i&1)?0.3:0;
