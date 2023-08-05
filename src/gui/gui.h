@@ -1969,10 +1969,11 @@ class FurnaceGUI {
   ImVec2 subPortPos;
 
   // oscilloscope
-  int oscTotal;
-  float oscValues[512];
+  int oscTotal, oscWidth;
+  float oscValues[1024];
   float oscZoom;
   float oscWindowSize;
+  float oscInput, oscInput1;
   bool oscZoomSlider;
 
   // per-channel oscilloscope
