@@ -3814,14 +3814,10 @@ void FurnaceGUI::popWarningColor() {
 #ifdef _WIN32
 #define SYSTEM_FONT_PATH_1 "C:\\Windows\\Fonts\\segoeui.ttf"
 #define SYSTEM_FONT_PATH_2 "C:\\Windows\\Fonts\\tahoma.ttf"
-// TODO!
-#define SYSTEM_FONT_PATH_3 "C:\\Windows\\Fonts\\tahoma.ttf"
-// TODO!
+#define SYSTEM_FONT_PATH_3 "C:\\Windows\\Fonts\\micross.ttf"
 #define SYSTEM_HEAD_FONT_PATH_1 "C:\\Windows\\Fonts\\segoeui.ttf"
 #define SYSTEM_HEAD_FONT_PATH_2 "C:\\Windows\\Fonts\\tahoma.ttf"
-// TODO!
-#define SYSTEM_HEAD_FONT_PATH_3 "C:\\Windows\\Fonts\\tahoma.ttf"
-// TODO!
+#define SYSTEM_HEAD_FONT_PATH_3 "C:\\Windows\\Fonts\\micross.ttf"
 #define SYSTEM_PAT_FONT_PATH_1 "C:\\Windows\\Fonts\\consola.ttf"
 #define SYSTEM_PAT_FONT_PATH_2 "C:\\Windows\\Fonts\\cour.ttf"
 // GOOD LUCK WITH THIS ONE - UNTESTED
@@ -4235,7 +4231,6 @@ void FurnaceGUI::applyUISettings(bool updateFonts) {
     mainFont->EllipsisCharCount=3;
   }
 
-  // TODO: allow changing these colors.
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeDir,"",uiColors[GUI_COLOR_FILE_DIR],ICON_FA_FOLDER_O);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByTypeFile,"",uiColors[GUI_COLOR_FILE_OTHER],ICON_FA_FILE_O);
   ImGuiFileDialog::Instance()->SetFileStyle(IGFD_FileStyleByExtension,".fur",uiColors[GUI_COLOR_FILE_SONG_NATIVE],ICON_FA_FILE);

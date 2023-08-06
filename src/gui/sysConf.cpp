@@ -1602,7 +1602,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
-    case DIV_SYSTEM_SNES: { // TODO: echo
+    case DIV_SYSTEM_SNES: {
       char temp[64];
       int vsL=127-(flags.getInt("volScaleL",0)&127);
       int vsR=127-(flags.getInt("volScaleR",0)&127);
