@@ -100,6 +100,7 @@ void FurnaceGUI::drawPiano() {
         }
         if (ImGui::BeginPopupContextItem("PianoOptions",ImGuiPopupFlags_MouseButtonLeft)) {
           ImGui::Text("Key layout:");
+          ImGui::Indent();
           if (ImGui::RadioButton("Automatic",pianoView==PIANO_LAYOUT_AUTOMATIC)) {
             pianoView=PIANO_LAYOUT_AUTOMATIC;
           }
@@ -109,7 +110,9 @@ void FurnaceGUI::drawPiano() {
           if (ImGui::RadioButton("Continuous",pianoView==PIANO_LAYOUT_CONTINUOUS)) {
             pianoView=PIANO_LAYOUT_CONTINUOUS;
           }
+          ImGui::Unindent();
           ImGui::Text("Value input pad:");
+          ImGui::Indent();
           if (ImGui::RadioButton("Disabled",pianoInputPadMode==PIANO_INPUT_PAD_DISABLE)) {
             pianoInputPadMode=PIANO_INPUT_PAD_DISABLE;
           }
@@ -122,6 +125,7 @@ void FurnaceGUI::drawPiano() {
           if (ImGui::RadioButton("Split (always visible)",pianoInputPadMode==PIANO_INPUT_PAD_SPLIT_VISIBLE)) {
             pianoInputPadMode=PIANO_INPUT_PAD_SPLIT_VISIBLE;
           }
+          ImGui::Unindent();
           ImGui::Checkbox("Share play/edit offset/range",&pianoSharePosition);
           ImGui::Checkbox("Read-only (can't input notes)",&pianoReadonly);
           ImGui::EndPopup();

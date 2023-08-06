@@ -4013,6 +4013,7 @@ bool FurnaceGUI::loop() {
           ImGui::Checkbox("loop",&vgmExportLoop);
           if (vgmExportLoop && e->song.loopModality==2) {
             ImGui::Text("loop trail:");
+            ImGui::Indent();
             if (ImGui::RadioButton("auto-detect",vgmExportTrailingTicks==-1)) {
               vgmExportTrailingTicks=-1;
             }
@@ -4028,6 +4029,7 @@ bool FurnaceGUI::loop() {
                 if (vgmExportTrailingTicks<0) vgmExportTrailingTicks=0;
               }
             }
+            ImGui::Unindent();
           }
           ImGui::Checkbox("add pattern change hints",&vgmExportPatternHints);
           if (ImGui::IsItemHovered()) {
