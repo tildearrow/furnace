@@ -86,6 +86,10 @@ bool DivDispatch::keyOffAffectsPorta(int ch) {
   return false;
 }
 
+bool DivDispatch::isVolGlobal() {
+  return false;
+}
+
 int DivDispatch::getPortaFloor(int ch) {
   return 0x00;
 }
