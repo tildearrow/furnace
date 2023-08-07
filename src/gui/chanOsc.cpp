@@ -131,6 +131,7 @@ void FurnaceGUI::drawChanOsc() {
       if (ImGui::BeginTable("ChanOscSettings",3)) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Columns");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -154,6 +155,7 @@ void FurnaceGUI::drawChanOsc() {
         }
 
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Automatic columns");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -169,6 +171,7 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::EndTable();
       }
 
+      ImGui::AlignTextToFramePadding();
       ImGui::Text("Amplitude");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -261,6 +264,7 @@ void FurnaceGUI::drawChanOsc() {
                 if (ImGui::ColorPicker4("Color",(float*)&i.color)) {
                   updateChanOscGradTex=true;
                 }
+                ImGui::AlignTextToFramePadding();
                 ImGui::Text("Distance");
                 ImGui::SameLine();
                 float pDist=i.distance*100.0f;
@@ -269,6 +273,7 @@ void FurnaceGUI::drawChanOsc() {
                   updateChanOscGradTex=true;
                 }
 
+                ImGui::AlignTextToFramePadding();
                 ImGui::Text("Spread");
                 ImGui::SameLine();
                 float pSpread=i.spread*100.0f;
@@ -313,6 +318,7 @@ void FurnaceGUI::drawChanOsc() {
         ImGui::ColorPicker4("Color",(float*)&chanOscColor);
       }
 
+      ImGui::AlignTextToFramePadding();
       ImGui::Text("Text format:");
       ImGui::SameLine();
       ImGui::InputText("##TextFormat",&chanOscTextFormat);
