@@ -37,6 +37,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
       if (ImGui::SmallButton(tempoView?"Base Tempo##TempoOrHz":"Tick Rate##TempoOrHz")) {
         tempoView=!tempoView;
       }
@@ -74,6 +75,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
       if (keepGrooveAlive || e->curSubSong->speeds.len>2) {
         if (ImGui::SmallButton("Groove")) {
           e->lockEngine([this]() {
@@ -163,6 +165,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
       if (!basicMode) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Virtual Tempo");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(halfAvail);
@@ -185,6 +188,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
 
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Divider");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(halfAvail);
@@ -200,6 +204,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
 
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
       ImGui::Text("Highlight");
       ImGui::TableNextColumn();
       ImGui::SetNextItemWidth(halfAvail);
@@ -222,6 +227,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
       ImGui::TableSetupColumn("c2",ImGuiTableColumnFlags_WidthStretch,0.0);
       ImGui::TableNextRow();
       ImGui::TableNextColumn();
+      ImGui::AlignTextToFramePadding();
       ImGui::Text("Pattern Length");
       ImGui::TableNextColumn();
       float avail=ImGui::GetContentRegionAvail().x;
@@ -236,6 +242,7 @@ void FurnaceGUI::drawSpeed(bool asChild) {
       if (!basicMode) {
         ImGui::TableNextRow();
         ImGui::TableNextColumn();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Song Length");
         ImGui::TableNextColumn();
         ImGui::SetNextItemWidth(avail);
