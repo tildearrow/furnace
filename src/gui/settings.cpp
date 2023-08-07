@@ -239,6 +239,7 @@ const char* specificControls[18]={
 #define UI_KEYBIND_CONFIG(what) \
   ImGui::TableNextRow(); \
   ImGui::TableNextColumn(); \
+  ImGui::AlignTextToFramePadding();\
   ImGui::TextUnformatted(guiActions[what].friendlyName); \
   ImGui::TableNextColumn(); \
   if (ImGui::Button(fmt::sprintf("%s##KC_" #what,(bindSetPending && bindSetTarget==what)?"Press key...":getKeyName(actionKeys[what])).c_str())) { \
@@ -474,6 +475,7 @@ void FurnaceGUI::drawSettings() {
 
         // SUBSECTION CHIP
         CONFIG_SUBSECTION("Chip");
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Initial system:");
         ImGui::SameLine();
         if (ImGui::Button("Current system")) {
@@ -552,6 +554,7 @@ void FurnaceGUI::drawSettings() {
           settings.initialSysName="Sega Genesis/Mega Drive";
         }
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Name");
         ImGui::SameLine();
         ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -720,6 +723,7 @@ void FurnaceGUI::drawSettings() {
         // SUBSECTION OUTPUT
         CONFIG_SUBSECTION("Output");
 #ifdef HAVE_JACK
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Backend");
         ImGui::SameLine();
         int prevAudioEngine=settings.audioEngine;
@@ -731,6 +735,7 @@ void FurnaceGUI::drawSettings() {
 #endif
 
         if (settings.audioEngine==DIV_AUDIO_SDL) {
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Driver");
           ImGui::SameLine();
           if (ImGui::BeginCombo("##SDLADriver",settings.sdlAudioDriver.empty()?"Automatic":settings.sdlAudioDriver.c_str())) {
@@ -749,6 +754,7 @@ void FurnaceGUI::drawSettings() {
           }
         }
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Device");
         ImGui::SameLine();
         String audioDevName=settings.audioDevice.empty()?"<System default>":settings.audioDevice;
@@ -764,6 +770,7 @@ void FurnaceGUI::drawSettings() {
           ImGui::EndCombo();
         }
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Sample rate");
         ImGui::SameLine();
         String sr=fmt::sprintf("%d",settings.audioRate);
@@ -788,6 +795,7 @@ void FurnaceGUI::drawSettings() {
             if (settings.audioChans>16) settings.audioChans=16;
           }
         } else {
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Channels");
           ImGui::SameLine();
           String chStr=(settings.audioChans<1 || settings.audioChans>8)?"What?":nonProAudioOuts[settings.audioChans-1];
@@ -801,6 +809,7 @@ void FurnaceGUI::drawSettings() {
           }
         }
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Buffer size");
         ImGui::SameLine();
         String bs=fmt::sprintf("%d (latency: ~%.1fms)",settings.audioBufSize,2000.0*(double)settings.audioBufSize/(double)MAX(1,settings.audioRate));
@@ -835,6 +844,7 @@ void FurnaceGUI::drawSettings() {
 
         // SUBSECTION MIXING
         CONFIG_SUBSECTION("Mixing");
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Quality");
         ImGui::SameLine();
         ImGui::Combo("##Quality",&settings.audioQuality,audioQualities,2);
@@ -846,6 +856,7 @@ void FurnaceGUI::drawSettings() {
 
         // SUBSECTION METRONOME
         CONFIG_SUBSECTION("Metronome");
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Metronome volume");
         ImGui::SameLine();
         if (ImGui::SliderInt("##MetroVol",&settings.metroVol,0,200,"%d%%")) {
@@ -859,6 +870,7 @@ void FurnaceGUI::drawSettings() {
       CONFIG_SECTION("MIDI") {
         // SUBSECTION MIDI INPUT
         CONFIG_SUBSECTION("MIDI input");
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("MIDI input");
         ImGui::SameLine();
         String midiInName=settings.midiInDevice.empty()?"<disabled>":settings.midiInDevice;
@@ -947,6 +959,7 @@ void FurnaceGUI::drawSettings() {
         }
         ImGui::PlotLines("##VolCurveDisplay",curve,128,0,"Volume curve",0.0,127.0,ImVec2(200.0f*dpiScale,200.0f*dpiScale));
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Actions:");
         ImGui::SameLine();
         if (ImGui::Button(ICON_FA_PLUS "##AddAction")) {
@@ -1109,6 +1122,7 @@ void FurnaceGUI::drawSettings() {
 
         // SUBSECTION MIDI OUTPUT
         CONFIG_SUBSECTION("MIDI output");
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("MIDI output");
         ImGui::SameLine();
         String midiOutName=settings.midiOutDevice.empty()?"<disabled>":settings.midiOutDevice;
@@ -1179,40 +1193,49 @@ void FurnaceGUI::drawSettings() {
       CONFIG_SECTION("Emulation") {
         // SUBSECTION LAYOUT
         CONFIG_SUBSECTION("Cores");
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Arcade/YM2151 core");
         ImGui::SameLine();
         ImGui::Combo("##ArcadeCore",&settings.arcadeCore,arcadeCores,2);
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Genesis/YM2612 core");
         ImGui::SameLine();
         ImGui::Combo("##YM2612Core",&settings.ym2612Core,ym2612Cores,2);
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("SN76489 core");
         ImGui::SameLine();
         ImGui::Combo("##SNCore",&settings.snCore,snCores,2);
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("NES core");
         ImGui::SameLine();
         ImGui::Combo("##NESCore",&settings.nesCore,nesCores,2);
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("FDS core");
         ImGui::SameLine();
         ImGui::Combo("##FDSCore",&settings.fdsCore,nesCores,2);
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("SID core");
         ImGui::SameLine();
         ImGui::Combo("##C64Core",&settings.c64Core,c64Cores,3);
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("POKEY core");
         ImGui::SameLine();
         ImGui::Combo("##POKEYCore",&settings.pokeyCore,pokeyCores,2);
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("OPN/OPNA/OPNB cores");
         ImGui::SameLine();
         ImGui::Combo("##OPNCore",&settings.opnCore,opnCores,2);
 
         ImGui::Separator();
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("PC Speaker strategy");
         ImGui::SameLine();
         ImGui::Combo("##PCSOutMethod",&settings.pcSpeakerOutMethod,pcspkrOutMethods,5);
@@ -1220,6 +1243,7 @@ void FurnaceGUI::drawSettings() {
         ImGui::Separator();
         ImGui::Text("Sample ROMs:");
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("OPL4 YRW801 path");
         ImGui::SameLine();
         ImGui::InputText("##YRW801Path",&settings.yrw801Path);
@@ -1228,6 +1252,7 @@ void FurnaceGUI::drawSettings() {
           openFileDialog(GUI_FILE_YRW801_ROM_OPEN);
         }
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("MultiPCM TG100 path");
         ImGui::SameLine();
         ImGui::InputText("##TG100Path",&settings.tg100Path);
@@ -1236,6 +1261,7 @@ void FurnaceGUI::drawSettings() {
           openFileDialog(GUI_FILE_TG100_ROM_OPEN);
         }
 
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("MultiPCM MU5 path");
         ImGui::SameLine();
         ImGui::InputText("##MU5Path",&settings.mu5Path);
@@ -1605,6 +1631,7 @@ void FurnaceGUI::drawSettings() {
       CONFIG_SECTION("Interface") {
         // SUBSECTION LAYOUT
         CONFIG_SUBSECTION("Layout");
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Workspace layout:");
         ImGui::SameLine();
         if (ImGui::Button("Import")) {
@@ -1909,6 +1936,7 @@ void FurnaceGUI::drawSettings() {
 
         // SUBSECTION TEXT
         CONFIG_SUBSECTION("Text");
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Main font");
         ImGui::SameLine();
         ImGui::Combo("##MainFont",&settings.mainFont,mainFonts,7);
@@ -1925,6 +1953,7 @@ void FurnaceGUI::drawSettings() {
           if (settings.mainFontSize>96) settings.mainFontSize=96;
         }
         ImGui::Unindent();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Header font");
         ImGui::SameLine();
         ImGui::Combo("##HeadFont",&settings.headFont,headFonts,7);
@@ -1941,6 +1970,7 @@ void FurnaceGUI::drawSettings() {
           if (settings.headFontSize>96) settings.headFontSize=96;
         }
         ImGui::Unindent();
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Pattern font");
         ImGui::SameLine();
         ImGui::Combo("##PatFont",&settings.patFont,patFonts,7);
