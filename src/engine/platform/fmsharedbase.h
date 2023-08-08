@@ -105,16 +105,17 @@ class DivPlatformFMBase: public DivDispatch {
         }
       }
     }
+    // only used by OPN2 for DAC writes
     inline void urgentWrite(unsigned short a, unsigned char v) {
       if (!skipRegisterWrites && !flushFirst) {
-        if (writes.empty()) {
-          writes.push_back(QueuedWrite(a,v));
-        } else if ((writes.size()>16 && writes.front().addr!=0xf0) || writes.front().addrOrVal) {
-          // $f0 is used by OPN hard reset
-          writes.push_back(QueuedWrite(a,v));
-        } else {
-          writes.push_front(QueuedWrite(a,v));
+        if (!writes.empty()) {
+          // check for hard reset
+          if (writes.front().addr==0xf0) {
+            // replace hard reset with DAC write
+            writes.pop_front();
+          }
         }
+        writes.push_front(QueuedWrite(a,v));
         if (dumpWrites) {
           addWrite(a,v);
         }

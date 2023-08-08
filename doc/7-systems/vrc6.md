@@ -15,4 +15,9 @@ Furnace supports this routine for PCM playback, but it consumes a lot of CPU tim
 these effects only are effective in the pulse channels.
 
 - `12xx`: **set duty cycle.** range is `0` to `7`.
-- `17xx`: **toggle PCM mode.**
+- `17xx`: **toggle LEGACY sample mode.**
+  - **this effect exists only for compatibility reasons! its use is NOT recommented. use Sample type instruments instead.**
+
+# info
+
+this chip uses the [VRC](../4-instrument/vrc6.md), [VRC (saw)](../4-instrument/vrc6.md), and [Generic Sample](../4-instrument/amiga.md) instrument editors.

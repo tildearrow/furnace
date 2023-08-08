@@ -25,3 +25,7 @@ it also offers an additional 6-bit, 64-byte wavetable sound channel with (somewh
     - 6: -2
     - 7: -1
   - why is this mapping so unnatural? because that's how DefleMask does it (yeah, as you may have guessed this effect is mostly for compatibility reasons)...
+
+# info
+
+this chip uses the [FDS](../4-instrument/fds.md) instrument editor.

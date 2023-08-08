@@ -7,3 +7,7 @@ with it, you can emulate PCM DACs found in Williams arcade boards, Sound Blaster
 # effects
 
 none yet.
+
+# info
+
+this chip uses the [Generic Sample](../4-instrument/amiga.md) instrument editor.

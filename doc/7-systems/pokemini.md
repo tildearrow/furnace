@@ -5,3 +5,7 @@ the Pokémon Mini is a ridiculously small handheld system from 2001. its single 
 # effects
 
 none.
+
+# info
+
+this chip uses the [Pokémon Mini/QuadTone](../4-instrument/quadtone.md) instrument editor.

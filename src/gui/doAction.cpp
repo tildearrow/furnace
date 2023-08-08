@@ -589,11 +589,23 @@ void FurnaceGUI::doAction(int what) {
     case GUI_ACTION_PAT_EXPAND_SONG:
       doExpandSong(collapseAmount);
       break;
-    case GUI_ACTION_PAT_LATCH: // TODO
+    case GUI_ACTION_PAT_LATCH: {
+      DivPattern* pat=e->curPat[cursor.xCoarse].getPattern(e->curOrders->ord[cursor.xCoarse][curOrder],true);
+      latchIns=pat->data[cursor.y][2];
+      latchVol=pat->data[cursor.y][3];
+      latchEffect=pat->data[cursor.y][4];
+      latchEffectVal=pat->data[cursor.y][5];
+      latchTarget=0;
+      latchNibble=false;
       break;
-    case GUI_ACTION_PAT_SCROLL_MODE: // TODO
-      break;
-    case GUI_ACTION_PAT_CLEAR_LATCH: // TODO
+    }
+    case GUI_ACTION_PAT_CLEAR_LATCH:
+      latchIns=-2;
+      latchVol=-1;
+      latchEffect=-1;
+      latchEffectVal=-1;
+      latchTarget=0;
+      latchNibble=false;
       break;
 
     case GUI_ACTION_INS_LIST_ADD:
