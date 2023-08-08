@@ -283,6 +283,7 @@ struct DivSysDef {
   DivInstrumentType chanInsType[DIV_MAX_CHANS][2];
   const EffectHandlerMap effectHandlers;
   const EffectHandlerMap postEffectHandlers;
+  const char* partNumbers[8]; // is 8 enough?
   DivSysDef(
     const char* sysName, const char* sysNameJ, unsigned char fileID, unsigned char fileID_DMF, int chans,
     bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound, unsigned int formatMask, const char* desc,
@@ -291,6 +292,7 @@ struct DivSysDef {
     std::initializer_list<int> chTypes,
     std::initializer_list<DivInstrumentType> chInsType1,
     std::initializer_list<DivInstrumentType> chInsType2={},
+    std::initializer_list<const char*> sysPartNumbers={},
     const EffectHandlerMap fxHandlers_={},
     const EffectHandlerMap postFxHandlers_={}):
     name(sysName),
@@ -308,6 +310,7 @@ struct DivSysDef {
     postEffectHandlers(postFxHandlers_) {
     memset(chanNames,0,DIV_MAX_CHANS*sizeof(void*));
     memset(chanShortNames,0,DIV_MAX_CHANS*sizeof(void*));
+    memset(partNumbers,0,8*sizeof(void*));
     memset(chanTypes,0,DIV_MAX_CHANS*sizeof(int));
     for (int i=0; i<DIV_MAX_CHANS; i++) {
       chanInsType[i][0]=DIV_INS_NULL;
@@ -324,6 +327,12 @@ struct DivSysDef {
     for (const char* i: chShortNames) {
       chanShortNames[index++]=i;
       if (index>=DIV_MAX_CHANS) break;
+    }
+
+    index=0;
+    for (const char* i: sysPartNumbers) {
+      partNumbers[index++]=i;
+      if (index>=8) break;
     }
 
     index=0;
