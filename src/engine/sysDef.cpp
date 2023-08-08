@@ -298,10 +298,10 @@ const char* DivEngine::getSystemNameJ(DivSystem sys) {
 
 const char* DivEngine::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
   if (sysDefs[sys]==NULL) return "Unknown";
-  if (strcmp("",sysDefs[sys]->partNumbers[0])==0) return DivEngine::getSystemName(sys);//if 1st PN is blank it uses regular name
+  if (strcmp("",sysDefs[sys]->partNumbers[0])==0) return DivEngine::getSystemName(sys); // if 1st PN is blank it uses regular name
   switch (sys) {
     case DIV_SYSTEM_OPLL:
-    case DIV_SYSTEM_OPLL_DRUMS: {
+    case DIV_SYSTEM_OPLL_DRUMS: { // OPLL PNs are determined by it's patch set
       return sysDefs[sys]->partNumbers[flags.getInt("patchSet",0)];
       break;
     }
@@ -392,7 +392,7 @@ int DivEngine::minVGMVersion(DivSystem which) {
 //   {chanTypes, ...},
 //   {chanPreferInsType, ...},
 //   {chanPreferInsType2, ...}, (optional)
-//   {"Part Number", ...} TESING!!!!!!!!!
+//   {"Part Number", ...}
 //   {{effect, {DIV_CMD_xx, "Description"}}, ...}, (effect handler, optional)
 //   {{effect, {DIV_CMD_xx, "Description"}}, ...} (post effect handler, optional)
 // );
@@ -636,7 +636,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,   DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_FM,    DIV_CH_PCM   }, // type
     {DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL, DIV_INS_OPL,  DIV_INS_OPL,  DIV_INS_OPL,  DIV_INS_OPL,  DIV_INS_OPL,  DIV_INS_OPL,  DIV_INS_OPL,  DIV_INS_AMIGA}, // ins
     {},
-    {"YMU759"}
+    {"YMU759"} // part number(s)
   );
 
   sysDefs[DIV_SYSTEM_GENESIS]=new DivSysDef(
