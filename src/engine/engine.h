@@ -763,6 +763,9 @@ class DivEngine {
     // get japanese system name
     const char* getSystemNameJ(DivSystem sys);
 
+    // get sys part number
+    const char* getSystemPartNumber(DivSystem sys, DivConfig& flags);
+
     // get sys definition
     const DivSysDef* getSystemDef(DivSystem sys);
 

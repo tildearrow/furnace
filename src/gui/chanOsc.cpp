@@ -552,7 +552,7 @@ void FurnaceGUI::drawChanOsc() {
                         break;
                       }
                       case 'p': {
-                        text+=FurnaceGUI::getSystemPartNumber(e->sysOfChan[ch], e->song.systemFlags[e->dispatchOfChan[ch]]);
+                        text+=e->getSystemPartNumber(e->sysOfChan[ch], e->song.systemFlags[e->dispatchOfChan[ch]]);
                         break;
                       }
                       case 'S': {
