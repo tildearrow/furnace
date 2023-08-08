@@ -283,7 +283,7 @@ struct DivSysDef {
   DivInstrumentType chanInsType[DIV_MAX_CHANS][2];
   const EffectHandlerMap effectHandlers;
   const EffectHandlerMap postEffectHandlers;
-  const char* partNumbers[8]; // is 8 enough?
+  const char* partNumbers[10]; // no, sn76xx has 10 types!
   DivSysDef(
     const char* sysName, const char* sysNameJ, unsigned char fileID, unsigned char fileID_DMF, int chans,
     bool isFMChip, bool isSTDChip, unsigned int vgmVer, bool compound, unsigned int formatMask, const char* desc,
@@ -310,7 +310,7 @@ struct DivSysDef {
     postEffectHandlers(postFxHandlers_) {
     memset(chanNames,0,DIV_MAX_CHANS*sizeof(void*));
     memset(chanShortNames,0,DIV_MAX_CHANS*sizeof(void*));
-    memset(partNumbers,0,8*sizeof(void*));
+    memset(partNumbers,0,10*sizeof(void*));
     memset(chanTypes,0,DIV_MAX_CHANS*sizeof(int));
     for (int i=0; i<DIV_MAX_CHANS; i++) {
       chanInsType[i][0]=DIV_INS_NULL;
@@ -332,7 +332,7 @@ struct DivSysDef {
     index=0;
     for (const char* i: sysPartNumbers) {
       partNumbers[index++]=i;
-      if (index>=8) break;
+      if (index>=10) break;
     }
 
     index=0;
