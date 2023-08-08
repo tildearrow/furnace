@@ -298,256 +298,17 @@ const char* DivEngine::getSystemNameJ(DivSystem sys) {
 
 const char* DivEngine::getSystemPartNumber(DivSystem sys, DivConfig& flags) {
   if (sysDefs[sys]==NULL) return "Unknown";
-  if (1) return sysDefs[sys]->partNumbers[0];
-  
+  if (strcmp("",sysDefs[sys]->partNumbers[0])==0) return DivEngine::getSystemName(sys);//if 1st PN is blank it uses regular name
   switch (sys) {
-    case DIV_SYSTEM_YMU759:
-      return "YMU759";
-      break;
-    case DIV_SYSTEM_SMS:{
-      int chipType=flags.getInt("chipType",0);
-      if (chipType==4) {
-        return "SN76489A";
-      } else if (chipType==5) {
-        return "SN76496";
-      } else if (chipType==6) {
-        return "8496";
-      } else if (chipType==7) {
-        return "PSSJ";//not part number
-      } else if (chipType==8) {
-        return "SN94624";
-      } else if (chipType==9) {
-        return "SN76494";
-      } else {
-        return "SN76489";
-      }
-      break;
-    }
-    case DIV_SYSTEM_PCE:{
-      int chipType=flags.getInt("chipType",0);
-      if (chipType==1) {
-        return "HuC6280A";
-      } else {
-        return "HuC6280";
-      }
-    }
-    case DIV_SYSTEM_NES:
-      return "2A03";
-      break;
-    case DIV_SYSTEM_C64_6581:
-      return "MOS 6581";
-      break;
-    case DIV_SYSTEM_C64_8580:
-      return "MOS 8580";
-      break;
-    case DIV_SYSTEM_Y8950:
-    case DIV_SYSTEM_Y8950_DRUMS:
-      return "Y8950";
-      break;
-    case DIV_SYSTEM_AY8910:{
-      int chipType=flags.getInt("chipType",0);
-        if (chipType==1) {
-          return "YM2149(F)";
-        } else if (chipType==2) {
-          return "5B";
-        } else if (chipType==3) {
-          return "AY-3-8914";
-        } else {
-          return "AY-3-8910";
-        }
-      break;
-    }
-    case DIV_SYSTEM_YM2151:
-      return "YM2151";
-      break;
-    case DIV_SYSTEM_YM2612:
-    case DIV_SYSTEM_YM2612_CSM:
-    case DIV_SYSTEM_YM2612_DUALPCM:
-    case DIV_SYSTEM_YM2612_DUALPCM_EXT:
-    case DIV_SYSTEM_YM2612_EXT:{
-      int chipType=0;
-      if (flags.has("chipType")) {
-        chipType=flags.getInt("chipType",0);
-      } else {
-        chipType=flags.getBool("ladderEffect",0)?1:0;
-      }
-      if (chipType==0) {
-        return "YM3438";
-      } else if (chipType==2) {
-        return "YMF276";
-      } else {
-        return "YM2612";
-      }
-      break;
-    }
-    case DIV_SYSTEM_TIA:
-      return "TIA";
-      break;
-    case DIV_SYSTEM_SAA1099:
-      return "SAA1099";
-      break;
-    case DIV_SYSTEM_AY8930:
-      return "AY8930";
-      break;
-    case DIV_SYSTEM_VIC20:
-      return "VIC";
-      break;
-    case DIV_SYSTEM_PET:
-      return "PET";
-      break;
-    case DIV_SYSTEM_VRC6:
-      return "VRC6";
-      break;
-    case DIV_SYSTEM_FDS:
-      return "FDS";
-      break;
-    case DIV_SYSTEM_MMC5:
-      return "MMC5";
-      break;
-    case DIV_SYSTEM_N163:
-      return "N163";
-      break;
-    case DIV_SYSTEM_YM2203:
-    case DIV_SYSTEM_YM2203_EXT:
-    case DIV_SYSTEM_YM2203_CSM:
-      return "YM2203";
-      break;
-    case DIV_SYSTEM_YM2608:
-    case DIV_SYSTEM_YM2608_CSM:
-    case DIV_SYSTEM_YM2608_EXT:
-      return "YM2608";
-      break;
-    case DIV_SYSTEM_OPL:
-    case DIV_SYSTEM_OPL_DRUMS:{
-      int patchSet=flags.getInt("patchSet",0);
-        if (patchSet==1) {
-          return "YMF281";
-        } else if (patchSet==2) {
-          return "YM2423";
-        } else if (patchSet==3) {
-          return "VRC7";
-        } else {
-          return "YM2413";
-        }
-      break;
-    }
-    case DIV_SYSTEM_OPL2:
-    case DIV_SYSTEM_OPL2_DRUMS:
-      return "YM3812";
-      break;
-    case DIV_SYSTEM_OPL3:
-    case DIV_SYSTEM_OPL3_DRUMS:
-      return "YMF262";
-      break;
-    case DIV_SYSTEM_OPL4:
-    case DIV_SYSTEM_OPL4_DRUMS:
-      return "YMF278";
-      break;
-    case DIV_SYSTEM_MULTIPCM:
-      return "YMW258-F";
-      break;
-    case DIV_SYSTEM_RF5C68:{
-      int chipType=flags.getInt("chipType",0);
-      if (chipType==1) {
-        return "RF5C164";
-      } else {
-        return "RF5C68";
-      }
-      break;
-    }
-    case DIV_SYSTEM_OPZ:
-      return "YM2414";
-      break;
-    case DIV_SYSTEM_SEGAPCM:
-    case DIV_SYSTEM_SEGAPCM_COMPAT:
-      return "SegaPCM";
-      break;
-    case DIV_SYSTEM_VRC7:
-      return "VRC7";
-      break;
-    case DIV_SYSTEM_YM2610B:
-    case DIV_SYSTEM_YM2610B_CSM:
-    case DIV_SYSTEM_YM2610B_EXT:
-      return "YM2610B";
-      break;
-    case DIV_SYSTEM_SFX_BEEPER:
-    case DIV_SYSTEM_SFX_BEEPER_QUADTONE:
-      return "ZXS Beeper";
-      break;
-    case DIV_SYSTEM_SCC:
-      return "SCC";
-      break;
-    case DIV_SYSTEM_YM2610:
-    case DIV_SYSTEM_YM2610_CSM:
-    case DIV_SYSTEM_YM2610_EXT:
-    case DIV_SYSTEM_YM2610_FULL:
-    case DIV_SYSTEM_YM2610_FULL_EXT:
-      return "YM2610";
-      break;
     case DIV_SYSTEM_OPLL:
-    case DIV_SYSTEM_OPLL_DRUMS:
-      return "YM2413";
+    case DIV_SYSTEM_OPLL_DRUMS: {
+      return sysDefs[sys]->partNumbers[flags.getInt("patchSet",0)];
       break;
-    case DIV_SYSTEM_QSOUND:
-      return "QSound";
+    }
+    default: {
+      return sysDefs[sys]->partNumbers[flags.getInt("chipType",0)];
       break;
-    case DIV_SYSTEM_X1_010:
-      return "X1-010";
-      break;
-    case DIV_SYSTEM_BUBSYS_WSG:
-      return "Konami WSG";
-      break;
-    case DIV_SYSTEM_ES5506:
-      return "ES5506";
-      break;
-    case DIV_SYSTEM_SCC_PLUS:
-      return "SCC+";
-      break;
-    case DIV_SYSTEM_SOUND_UNIT:
-      return "TSU";
-      break;
-    case DIV_SYSTEM_MSM6295:
-      return "MSM6295";
-      break;
-    case DIV_SYSTEM_MSM6258:
-      return "MSM6258";
-      break;
-    case DIV_SYSTEM_YMZ280B:
-      return "YMZ280B";
-      break;
-    case DIV_SYSTEM_NAMCO_15XX:
-      return "C15";
-      break;
-    case DIV_SYSTEM_NAMCO_CUS30:
-      return "C30";
-      break;
-    case DIV_SYSTEM_MSM5232:
-      return "MSM5232";
-      break;
-    case DIV_SYSTEM_K007232:
-      return "K007232";
-      break;
-    case DIV_SYSTEM_GA20:
-      return "GA20";
-      break;
-    case DIV_SYSTEM_PCM_DAC:
-      return "DAC";
-      break;
-    case DIV_SYSTEM_SM8521:
-      return "SM8521";
-      break;
-    case DIV_SYSTEM_PV1000:
-      return "PV-1000";
-      break;
-    case DIV_SYSTEM_K053260:
-      return "K053260";
-      break;
-    case DIV_SYSTEM_TED:
-      return "TED";
-      break;
-    default:
-      return DivEngine::getSystemName(sys);
-      break;
+    }
   }
 }
 
@@ -918,7 +679,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_WAVE, DIV_CH_NOISE},
     {DIV_INS_GB, DIV_INS_GB, DIV_INS_GB, DIV_INS_GB},
     {},
-    {},
+    {""},
     {
       {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
       {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set noise length (0: long; 1: short)"}},
@@ -1060,7 +821,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
     {},
-    {},
+    {""},
     {},
     {
       {0x10, {DIV_CMD_AMIGA_FILTER, "10xx: Toggle filter (0 disables; 1 enables)"}},
@@ -1091,7 +852,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA},
-    {"YM2612","YM3438","YMF276"},
+    {"YM3438","YM2612","YMF276"},
     fmOPN2EffectHandlerMap,
     fmOPN2PostEffectHandlerMap
   );
@@ -1171,7 +932,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES, DIV_INS_SNES},
     {},
-    {},
+    {""},
     {
       {0x18, {DIV_CMD_SNES_ECHO_ENABLE, "18xx: Enable echo buffer"}},
       {0x19, {DIV_CMD_SNES_ECHO_DELAY, "19xx: Set echo delay (0 to F)"}},
@@ -1426,7 +1187,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE},
     {DIV_INS_BEEPER},
     {},
-    {}
+    {""}
   );
 
   sysDefs[DIV_SYSTEM_PONG]=new DivSysDef(
@@ -1437,7 +1198,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE},
     {DIV_INS_BEEPER},
     {},
-    {}
+    {""}
   );
 
   sysDefs[DIV_SYSTEM_POKEY]=new DivSysDef(
@@ -1448,7 +1209,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_POKEY, DIV_INS_POKEY, DIV_INS_POKEY, DIV_INS_POKEY},
     {},
-    {},
+    {""},
     {
       {0x10, {DIV_CMD_WAVE, "10xx: Set waveform (0 to 7)"}},
       {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set AUDCTL"}},
@@ -1475,7 +1236,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_PCM, DIV_CH_WAVE, DIV_CH_NOISE},
     {DIV_INS_SWAN, DIV_INS_SWAN, DIV_INS_SWAN, DIV_INS_SWAN},
     {DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_NULL, DIV_INS_NULL},
-    {},
+    {""},
     {
       {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
       {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Setup noise mode (0: disabled; 1-8: enabled/tap)"}},
@@ -1508,7 +1269,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE},
     {DIV_INS_POKEMINI},
     {},
-    {}
+    {""}
   );
 
   sysDefs[DIV_SYSTEM_SEGAPCM]=new DivSysDef(
@@ -1519,7 +1280,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM, DIV_INS_SEGAPCM},
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
-    {},
+    {""},
     {},
     segaPCMPostEffectHandlerMap
   );
@@ -1532,7 +1293,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_NOISE},
     {DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY, DIV_INS_VBOY},
     {},
-    {},
+    {""},
     {
       {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
       {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Set noise length (0 to 7)"}},
@@ -1577,7 +1338,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER},
     {},
-    {},
+    {""},
     {
       {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set pulse width"}},
       {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Trigger overlay drum"}},
@@ -1592,7 +1353,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA},
-    {"YM2612","YM3438","YMF276"},
+    {"YM3438","YM2612","YMF276"},
     fmOPN2EffectHandlerMap,
     fmOPN2PostEffectHandlerMap
   );
@@ -1605,7 +1366,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_NOISE},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_NULL},
-    {"YM2612","YM3438","YMF276"},
+    {"YM3438","YM2612","YMF276"},
     fmOPN2EffectHandlerMap,
     fmOPN2PostEffectHandlerMap
   );
@@ -1727,7 +1488,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_MIKEY, DIV_INS_MIKEY, DIV_INS_MIKEY, DIV_INS_MIKEY},
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
-    {},
+    {""},
     {},
     lynxEffectHandlerMap
   );
@@ -1762,7 +1523,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM},
     {DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_VERA, DIV_INS_AMIGA},
     {},
-    {},
+    {""},
     {
       {0x20, {DIV_CMD_WAVE, "20xx: Set waveform"}},
       {0x22, {DIV_CMD_STD_NOISE_MODE, "22xx: Set duty cycle (0 to 3F)"}},
@@ -2095,7 +1856,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_FM, DIV_CH_PCM, DIV_CH_PCM},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AMIGA},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_NULL},
-    {"YM2612","YM3438","YMF276"},
+    {"YM3438","YM2612","YMF276"},
     fmOPN2EffectHandlerMap,
     fmOPN2PostEffectHandlerMap
   );
@@ -2108,7 +1869,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_FM, DIV_CH_FM, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_OP, DIV_CH_FM, DIV_CH_FM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_NOISE},
     {DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_FM, DIV_INS_AMIGA, DIV_INS_FM},
     {DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_NULL, DIV_INS_AMIGA, DIV_INS_NULL, DIV_INS_NULL},
-    {"YM2612","YM3438","YMF276"},
+    {"YM3438","YM2612","YMF276"},
     fmOPN2EffectHandlerMap,
     fmOPN2PostEffectHandlerMap
   );
@@ -2194,7 +1955,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM},
     {DIV_INS_POKEMINI, DIV_INS_POKEMINI, DIV_INS_POKEMINI, DIV_INS_POKEMINI, DIV_INS_AMIGA},
     {},
-    {},
+    {""},
     {
       {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set pulse width"}}
     }
@@ -2233,7 +1994,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE, DIV_CH_NOISE},
     {DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD, DIV_INS_STD},
     {},
-    {}
+    {""}
   );
 
   for (int i=0; i<DIV_MAX_CHIP_DEFS; i++) {
