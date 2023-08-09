@@ -392,7 +392,7 @@ int DivEngine::minVGMVersion(DivSystem which) {
 //   {chanTypes, ...},
 //   {chanPreferInsType, ...},
 //   {chanPreferInsType2, ...}, (optional)
-//   {"Part Number", ...}
+//   {"Part Number", ...} (set 1st blank to falback to normal name)
 //   {{effect, {DIV_CMD_xx, "Description"}}, ...}, (effect handler, optional)
 //   {{effect, {DIV_CMD_xx, "Description"}}, ...} (post effect handler, optional)
 // );
@@ -1338,7 +1338,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER, DIV_INS_BEEPER},
     {},
-    {""},
+    {"ZXS Beeper"},
     {
       {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set pulse width"}},
       {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Trigger overlay drum"}},
@@ -1488,7 +1488,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE, DIV_CH_WAVE},
     {DIV_INS_MIKEY, DIV_INS_MIKEY, DIV_INS_MIKEY, DIV_INS_MIKEY},
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
-    {""},
+    {"Lynx"},
     {},
     lynxEffectHandlerMap
   );
@@ -1941,7 +1941,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE},
     {DIV_INS_PV1000, DIV_INS_PV1000, DIV_INS_PV1000},
     {},
-    {"PV-1000"},
+    {"D65010G031"},
     {
       {0x10, {DIV_CMD_STD_NOISE_MODE, "10xx: Set ring modulation (0: disable, 1: enable)"}}
     }
@@ -1955,7 +1955,7 @@ void DivEngine::registerSystems() {
     {DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PULSE, DIV_CH_PCM},
     {DIV_INS_POKEMINI, DIV_INS_POKEMINI, DIV_INS_POKEMINI, DIV_INS_POKEMINI, DIV_INS_AMIGA},
     {},
-    {""},
+    {"ZXS Beeper"},
     {
       {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set pulse width"}}
     }
