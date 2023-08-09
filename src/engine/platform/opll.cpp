@@ -398,9 +398,16 @@ void DivPlatformOPLL::switchMode(bool mode) {
   if (mode==properDrums) return;
   if (mode) {
     logV("mode switch to DRUMS");
+    immWrite(0x26,0);
+    immWrite(0x27,0);
+    immWrite(0x28,0);
     immWrite(0x0e,0x20);
+    immWrite(0x36,drumVol[0]);
+    immWrite(0x37,drumVol[1]|(drumVol[4]<<4));
+    immWrite(0x38,drumVol[3]|(drumVol[2]<<4));
   } else {
     logV("mode switch to NORMAL");
+    immWrite(0x0e,0x20);
     immWrite(0x0e,0x00);
   }
   properDrums=mode;
