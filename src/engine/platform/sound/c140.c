@@ -43,6 +43,7 @@ static int c140_max(int a, int b) { return (a > b) ? a : b; }
 static int c140_min(int a, int b) { return (a < b) ? a : b; }
 static int c140_clamp(int v, int min, int max) { return c140_min(c140_max(v,min),max); }
 static int c140_bit(int val, int bit) { return (val >> bit) & 1; }
+static int c140_bitfield(int val, int bit, int len) { return (val >> bit) & ((1 << len) - 1);}
 
 void c140_tick(struct c140_t *c140, const int cycle)
 {
@@ -117,15 +118,18 @@ void c140_init(struct c140_t *c140)
 	// u-law table verified from Wii Virtual Console Arcade Starblade
 	for (int i = 0; i < 256; i++)
 	{
-		int j = (signed char)i;
-		signed char s1 = j & 7;
-		signed char s2 = abs(j >> 3) & 31;
-
-		c140->mulaw[i] = 0x80 << s1 & 0xff00;
-		c140->mulaw[i] += s2 << (s1 ? s1 + 3 : 4);
-
-		if (j < 0)
-			c140->mulaw[i] = -c140->mulaw[i];
+		const unsigned char exponent = c140_bitfield(i, 0, 3);
+		const unsigned char mantissa = c140_bitfield(i, 3, 4);
+		if (c140_bit(i, 7))
+		{
+			c140->mulaw[i] = (signed short)(((exponent ? 0xfe00 : 0xff00) | (mantissa << 4))
+										<< (exponent ? exponent - 1 : 0));
+		}
+		else
+		{
+			c140->mulaw[i] = (signed short)(((exponent ? 0x100 : 0) | (mantissa << 4))
+										<< (exponent ? exponent - 1 : 0));
+		}
 	}
 }
 
