@@ -1872,6 +1872,18 @@ void DivEngine::registerSystems() {
     {}
   );
 
+  // TODO: Custom sample format
+  sysDefs[DIV_SYSTEM_C140]=new DivSysDef(
+    "Namco C140", NULL, 0xfe/*Placeholder*/, 0, 24, false, true, 0x161, false, 1U<<DIV_SAMPLE_DEPTH_8BIT,
+    "Namco's first PCM chip arrived from 1987.",
+    {"Channel 1", "Channel 2", "Channel 3", "Channel 4", "Channel 5", "Channel 6", "Channel 7", "Channel 8", "Channel 9", "Channel 10", "Channel 11", "Channel 12", "Channel 13", "Channel 14", "Channel 15", "Channel 16", "Channel 17", "Channel 18", "Channel 19", "Channel 20", "Channel 21", "Channel 22", "Channel 23", "Channel 24"},
+    {"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21", "22", "23", "24"},
+    {DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM, DIV_CH_PCM},
+    {DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140, DIV_INS_C140},
+    {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_AMIGA},
+    {}
+  );
+
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(
     "Dummy System", NULL, 0xfd, 0, 8, false, true, 0, false, 0,
     "this is a system designed for testing purposes.",

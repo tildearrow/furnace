@@ -69,7 +69,7 @@ struct c140_t
    struct c140_voice_t voice[24];
    signed int lout, rout;
    signed short mulaw[256];
-   unsigned short (*read_sample)(unsigned char bank, unsigned short addr);
+   signed short *sample_mem;
 };
 
 void c140_tick(struct c140_t *c140, const int cycle);

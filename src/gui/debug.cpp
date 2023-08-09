@@ -54,6 +54,7 @@
 #include "../engine/platform/sm8521.h"
 #include "../engine/platform/pv1000.h"
 #include "../engine/platform/k053260.h"
+#include "../engine/platform/c140.h"
 #include "../engine/platform/dummy.h"
 
 #define COMMON_CHIP_DEBUG \
@@ -1091,6 +1092,23 @@ void putDispatchChan(void* data, int chanNum, int type) {
       COMMON_CHAN_DEBUG_BOOL;
       ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
       ImGui::TextColored(ch->reverse?colorOn:colorOff,">> Reverse");
+      break;
+    }
+    case DIV_SYSTEM_C140: {
+      DivPlatformC140::Channel* ch=(DivPlatformC140::Channel*)data;
+      ImGui::Text("> C140");
+      COMMON_CHAN_DEBUG;
+      ImGui::Text("* Sample: %d",ch->sample);
+      ImGui::Text(" - pos: %d",ch->audPos);
+      ImGui::Text("- chPanL: %.2x",ch->chPanL);
+      ImGui::Text("- chPanR: %.2x",ch->chPanR);
+      ImGui::Text("- chVolL: %.2x",ch->chVolL);
+      ImGui::Text("- chVolR: %.2x",ch->chVolR);
+      ImGui::Text("- macroVolMul: %.2x",ch->macroVolMul);
+      COMMON_CHAN_DEBUG_BOOL;
+      ImGui::TextColored(ch->volumeChanged.left?colorOn:colorOff,">> VolumeChangedLeft");
+      ImGui::TextColored(ch->volumeChanged.right?colorOn:colorOff,">> VolumeChangedRight");
+      ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
       break;
     }
     default:

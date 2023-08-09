@@ -46,6 +46,8 @@ static int c140_bit(int val, int bit) { return (val >> bit) & 1; }
 
 void c140_tick(struct c140_t *c140, const int cycle)
 {
+	c140->lout = 0;
+	c140->rout = 0;
 	for (int i = 0; i < 24; i++)
 	{
 		c140_voice_tick(c140, i, cycle);
@@ -53,8 +55,8 @@ void c140_tick(struct c140_t *c140, const int cycle)
 		c140->rout += c140->voice[i].rout;
 	}
 	// scale as 16bit
-	c140->lout >>= 5;
-	c140->rout >>= 5;
+	c140->lout >>= 8;
+	c140->rout >>= 8;
 }
 
 void c140_voice_tick(struct c140_t *c140, const unsigned char voice, const int cycle)
@@ -82,8 +84,8 @@ void c140_voice_tick(struct c140_t *c140, const unsigned char voice, const int c
 				c140_voice->frac &= 0xffff;
 			}
 			// fetch 12 bit sample
-			signed short s1 = c140->read_sample(c140_voice->bank, c140_voice->addr) & ~0xf;
-			signed short s2 = c140->read_sample(c140_voice->bank, c140_voice->addr + 1) & ~0xf;
+			signed short s1 = c140->sample_mem[((unsigned int)(c140_voice->bank) << 16) | c140_voice->addr] & ~0xf;
+			signed short s2 = c140->sample_mem[((unsigned int)(c140_voice->bank) << 16) | ((c140_voice->addr + 1) & 0xffff)] & ~0xf;
 			if (c140_voice->compressed)
 			{
 				s1 = c140->mulaw[(s1 >> 8) & 0xff];

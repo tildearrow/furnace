@@ -26,21 +26,33 @@
 
 class DivPlatformC140: public DivDispatch {
   struct Channel: public SharedChannel<int> {
+    struct VolumeUpdate {
+      union { // pack flag bits in single byte
+        struct { // flag bits
+          unsigned char left : 1;  // left volume
+          unsigned char right : 1; // right volume
+          unsigned char reserved : 6;
+        };
+        unsigned char changed = 0; // Packed flags are stored here
+      };
+
+      VolumeUpdate():
+        changed(0) {}
+    } volumeChanged;
+
     unsigned int audPos;
     int sample, wave;
-    int panning;
-    bool setPos, isNewYMZ;
+    bool setPos;
     int chPanL, chPanR;
     int chVolL, chVolR;
     int macroVolMul;
     Channel():
       SharedChannel<int>(255),
+      volumeChanged(VolumeUpdate()),
       audPos(0),
       sample(-1),
       wave(-1),
-      panning(8),
       setPos(false),
-      isNewYMZ(false),
       chPanL(255),
       chPanR(255),
       chVolL(255),
@@ -54,7 +66,7 @@ class DivPlatformC140: public DivDispatch {
   unsigned int sampleOff[256];
   bool sampleLoaded[256];
 
-  unsigned char* sampleMem;
+  signed short* sampleMem;
   size_t sampleMemLen;
   struct QueuedWrite {
     unsigned short addr;
@@ -97,6 +109,7 @@ class DivPlatformC140: public DivDispatch {
     void setFlags(const DivConfig& flags);
     int init(DivEngine* parent, int channels, int sugRate, const DivConfig& flags);
     void quit();
+  private:
 };
 
 #endif

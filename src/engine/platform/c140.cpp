@@ -80,10 +80,9 @@ void DivPlatformC140::tick(bool sysTick) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=(chan[i].vol*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/chan[i].macroVolMul;
-      chan[i].chVolL=(chan[i].outVol*chan[i].chPanL)/255;
-      chan[i].chVolR=(chan[i].outVol*chan[i].chPanR)/255;
-      rWrite(1+(i<<4),chan[i].chVolL);
-      rWrite(0+(i<<4),chan[i].chVolR);
+      if (!isMuted[i]) {
+        chan[i].volumeChanged.changed=0xff;
+      }
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
@@ -104,14 +103,16 @@ void DivPlatformC140::tick(bool sysTick) {
     }
     if (chan[i].std.panL.had) {
       chan[i].chPanL=chan[i].std.panL.val&255;
-      chan[i].chVolL=(chan[i].outVol*chan[i].chPanL)/255;
-      rWrite(1+(i<<4),chan[i].chVolL);
+      if (!isMuted[i]) {
+        chan[i].volumeChanged.left=1;
+      }
     }
 
     if (chan[i].std.panR.had) {
       chan[i].chPanR=chan[i].std.panR.val&255;
-      chan[i].chVolR=(chan[i].outVol*chan[i].chPanR)/255;
-      rWrite(0+(i<<4),chan[i].chVolR);
+      if (!isMuted[i]) {
+        chan[i].volumeChanged.right=1;
+      }
     }
     
     if (chan[i].std.phaseReset.had) {
@@ -119,6 +120,25 @@ void DivPlatformC140::tick(bool sysTick) {
         chan[i].audPos=0;
         chan[i].setPos=true;
       }
+    }
+    if (chan[i].volumeChanged.changed) {
+      if (chan[i].volumeChanged.left) {
+        if (isMuted[i]) {
+          chan[i].chVolL=0;
+        } else {
+          chan[i].chVolL=(chan[i].outVol*chan[i].chPanL)/255;
+        }
+        rWrite(1+(i<<4),chan[i].chVolL);
+      }
+      if (chan[i].volumeChanged.right) {
+        if (isMuted[i]) {
+          chan[i].chVolR=0;
+        } else {
+          chan[i].chVolR=(chan[i].outVol*chan[i].chPanR)/255;
+        }
+        rWrite(0+(i<<4),chan[i].chVolR);
+      }
+      chan[i].volumeChanged.changed=0;
     }
     if (chan[i].setPos) {
       // force keyon
@@ -141,7 +161,7 @@ void DivPlatformC140::tick(bool sysTick) {
         unsigned int end=0;
         if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
           start=sampleOff[chan[i].sample];
-          end=MIN(start+s->getCurBufLen(),getSampleMemCapacity()-1);
+          end=MIN(start+s->length8,getSampleMemCapacity()-1);
         }
         if (chan[i].audPos>0) {
           start=start+MIN(chan[i].audPos,s->length8);
@@ -149,19 +169,18 @@ void DivPlatformC140::tick(bool sysTick) {
         if (s->isLoopable()) {
           loop=start+s->loopStart;
         }
-        rWrite(0x05+i*16,ctrl&~0x80); // force keyoff first
-        rWrite(0x06+i*16,(start>>8)&0xff);
-        rWrite(0x07+i*16,start&0xff);
-        rWrite(0x08+i*16,(end>>8)&0xff);
-        rWrite(0x09+i*16,end&0xff);
-        rWrite(0x0a+i*16,(loop>>8)&0xff);
-        rWrite(0x0b+i*16,loop&0xff);
+        rWrite(0x05+(i<<4),0); // force keyoff first
+        rWrite(0x06+(i<<4),(start>>8)&0xff);
+        rWrite(0x07+(i<<4),start&0xff);
+        rWrite(0x08+(i<<4),(end>>8)&0xff);
+        rWrite(0x09+(i<<4),end&0xff);
+        rWrite(0x0a+(i<<4),(loop>>8)&0xff);
+        rWrite(0x0b+(i<<4),loop&0xff);
         if (!chan[i].std.vol.had) {
           chan[i].outVol=chan[i].vol;
-          chan[i].chVolL=(chan[i].outVol*chan[i].chPanL)/255;
-          chan[i].chVolR=(chan[i].outVol*chan[i].chPanR)/255;
-          rWrite(1+(i<<4),chan[i].chVolL);
-          rWrite(0+(i<<4),chan[i].chVolR);
+          if (!isMuted[i]) {
+            chan[i].volumeChanged.changed=0xff;
+          }
         }
         chan[i].keyOn=false;
       }
@@ -169,11 +188,11 @@ void DivPlatformC140::tick(bool sysTick) {
         chan[i].keyOff=false;
       }
       if (chan[i].freqChanged) {
-        rWrite(0x02+i*16,chan[i].freq&0xff);
-        rWrite(0x03+i*16,chan[i].freq>>8);
+        rWrite(0x02+(i<<4),chan[i].freq>>8);
+        rWrite(0x03+(i<<4),chan[i].freq&0xff);
         chan[i].freqChanged=false;
       }
-      rWrite(0x05+i*16,ctrl);
+      rWrite(0x05+(i<<4),ctrl);
     }
   }
 }
@@ -182,7 +201,6 @@ int DivPlatformC140::dispatch(DivCommand c) {
   switch (c.cmd) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
-      chan[c.chan].isNewYMZ=ins->type==DIV_INS_YMZ280B;
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].sample=ins->amiga.getSample(c.value);
@@ -203,11 +221,9 @@ int DivPlatformC140::dispatch(DivCommand c) {
       chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
-
-        chan[c.chan].chVolL=(chan[c.chan].outVol*chan[c.chan].chPanL)/255;
-        chan[c.chan].chVolR=(chan[c.chan].outVol*chan[c.chan].chPanR)/255;
-        rWrite(1+(c.chan<<4),chan[c.chan].chVolL);
-        rWrite(0+(c.chan<<4),chan[c.chan].chVolR);
+        if (!isMuted[c.chan]) {
+          chan[c.chan].volumeChanged.changed=0xff;
+        }
       }
       break;
     }
@@ -231,10 +247,9 @@ int DivPlatformC140::dispatch(DivCommand c) {
       if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
-      chan[c.chan].chVolL=(c.value*chan[c.chan].chPanL)/255;
-      chan[c.chan].chVolR=(c.value*chan[c.chan].chPanR)/255;
-      rWrite(1+(c.chan<<4),chan[c.chan].chVolL);
-      rWrite(0+(c.chan<<4),chan[c.chan].chVolR);
+      if (!isMuted[c.chan]) {
+        chan[c.chan].volumeChanged.changed=0xff;
+      }
       break;
     case DIV_CMD_GET_VOLUME:
       if (chan[c.chan].std.vol.has) {
@@ -245,10 +260,9 @@ int DivPlatformC140::dispatch(DivCommand c) {
     case DIV_CMD_PANNING:
       chan[c.chan].chPanL=c.value;
       chan[c.chan].chPanR=c.value2;
-      chan[c.chan].chVolL=(chan[c.chan].outVol*chan[c.chan].chPanL)/255;
-      chan[c.chan].chVolR=(chan[c.chan].outVol*chan[c.chan].chPanR)/255;
-      rWrite(1+(c.chan<<4),chan[c.chan].chVolL);
-      rWrite(0+(c.chan<<4),chan[c.chan].chVolR);
+      if (!isMuted[c.chan]) {
+        chan[c.chan].volumeChanged.changed=0xff;
+      }
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;
@@ -314,12 +328,14 @@ int DivPlatformC140::dispatch(DivCommand c) {
 
 void DivPlatformC140::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
+  chan[ch].volumeChanged.changed=0xff;
 }
 
 void DivPlatformC140::forceIns() {
   for (int i=0; i<24; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
+    chan[i].volumeChanged.changed=0xff;
     chan[i].sample=-1;
   }
 }
@@ -343,7 +359,7 @@ void DivPlatformC140::reset() {
   for (int i=0; i<24; i++) {
     chan[i]=DivPlatformC140::Channel();
     chan[i].std.setEngine(parent);
-    rWrite(0x05+i*16,0);
+    rWrite(0x05+(i<<4),0);
   }
 }
 
@@ -435,7 +451,7 @@ void DivPlatformC140::renderSamples(int sysID) {
     } else {
       memcpy(sampleMem+(memPos/sizeof(short)),s->data16,length);
     }
-    sampleOff[i]=memPos;
+    sampleOff[i]=memPos>>1;
     sampleLoaded[i]=true;
     memPos+=length;
   }
@@ -447,7 +463,7 @@ void DivPlatformC140::setChipModel(int type) {
 }
 
 void DivPlatformC140::setFlags(const DivConfig& flags) {
-  chipClock = 8192000;
+  chipClock=32000*256; // 8.192MHz and 12.288MHz input, verified from Assault Schematics
   CHECK_CUSTOM_CLOCK;
   rate=chipClock/192;
   for (int i=0; i<24; i++) {
@@ -464,9 +480,10 @@ int DivPlatformC140::init(DivEngine* p, int channels, int sugRate, const DivConf
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  sampleMem=new unsigned char[getSampleMemCapacity()];
+  sampleMem=new signed short[getSampleMemCapacity()/sizeof(short)];
   sampleMemLen=0;
   c140_init(&c140);
+  c140.sample_mem=sampleMem;
   setFlags(flags);
   reset();
 

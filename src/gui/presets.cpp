@@ -2025,6 +2025,12 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
+    "Namco System 2", {
+      CH(DIV_SYSTEM_YM2151, 1.0f, 0, ""),
+      CH(DIV_SYSTEM_C140, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
     "Taito Arcade", {
       CH(DIV_SYSTEM_YM2610B, 1.0f, 0, "")
     }
@@ -2528,6 +2534,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Konami K053260", {
       CH(DIV_SYSTEM_K053260, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "Namco C140", {
+      CH(DIV_SYSTEM_C140, 1.0f, 0, "")
     }
   );
   CATEGORY_END;

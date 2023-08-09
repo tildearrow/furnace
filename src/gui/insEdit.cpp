@@ -4411,7 +4411,8 @@ void FurnaceGUI::drawInsEdit() {
             ins->type==DIV_INS_ES5506 ||
             ins->type==DIV_INS_K007232 ||
             ins->type==DIV_INS_GA20 ||
-            ins->type==DIV_INS_K053260) {
+            ins->type==DIV_INS_K053260 ||
+            ins->type==DIV_INS_C140) {
           if (ImGui::BeginTabItem((ins->type==DIV_INS_SU)?"Sound Unit":"Sample")) {
             String sName;
             bool wannaOpenSMPopup=false;
@@ -5397,7 +5398,7 @@ void FurnaceGUI::drawInsEdit() {
             volMax=31;
           }
           if (ins->type==DIV_INS_ADPCMB || ins->type==DIV_INS_YMZ280B || ins->type==DIV_INS_RF5C68 ||
-              ins->type==DIV_INS_GA20) {
+              ins->type==DIV_INS_GA20 || ins->type==DIV_INS_C140) {
             volMax=255;
           }
           if (ins->type==DIV_INS_QSOUND) {
@@ -5457,7 +5458,8 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_TIA || ins->type==DIV_INS_AMIGA || ins->type==DIV_INS_SCC ||
               ins->type==DIV_INS_PET || ins->type==DIV_INS_SEGAPCM ||
               ins->type==DIV_INS_FM || ins->type==DIV_INS_K007232 || ins->type==DIV_INS_GA20 ||
-              ins->type==DIV_INS_SM8521 || ins->type==DIV_INS_PV1000 || ins->type==DIV_INS_K053260) {
+              ins->type==DIV_INS_SM8521 || ins->type==DIV_INS_PV1000 || ins->type==DIV_INS_K053260 ||
+              ins->type==DIV_INS_C140) {
             dutyMax=0;
           }
           if (ins->type==DIV_INS_VBOY) {
@@ -5565,6 +5567,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_K053260) waveMax=0;
           if (ins->type==DIV_INS_POKEMINI) waveMax=0;
           if (ins->type==DIV_INS_TED) waveMax=0;
+          if (ins->type==DIV_INS_C140) waveMax=0;
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
@@ -5695,6 +5698,10 @@ void FurnaceGUI::drawInsEdit() {
             panMin=0;
             panMax=127;
           }
+          if (ins->type==DIV_INS_C140) {
+            panMin=0;
+            panMax=255;
+          }
           if (ins->type==DIV_INS_ES5506) {
             panMax=4095;
           }
@@ -5780,6 +5787,7 @@ void FurnaceGUI::drawInsEdit() {
               ins->type==DIV_INS_K007232 ||
               ins->type==DIV_INS_GA20 ||
               ins->type==DIV_INS_K053260 ||
+              ins->type==DIV_INS_C140 ||
               ins->type==DIV_INS_TED) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
