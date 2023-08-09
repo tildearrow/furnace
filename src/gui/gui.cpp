@@ -5628,6 +5628,19 @@ bool FurnaceGUI::loop() {
               wavePreviewInit=true;
               updateFMPreview=true;
             }
+
+            if (settings.blankIns) {
+              e->song.ins[curIns]->fm.fb=0;
+              for (int i=0; i<4; i++) {
+                e->song.ins[curIns]->fm.op[i]=DivInstrumentFM::Operator();
+                e->song.ins[curIns]->fm.op[i].ar=31;
+                e->song.ins[curIns]->fm.op[i].dr=31;
+                e->song.ins[curIns]->fm.op[i].rr=15;
+                e->song.ins[curIns]->fm.op[i].tl=127;
+                e->song.ins[curIns]->fm.op[i].dt=3;
+              }
+            }
+
             MARK_MODIFIED;
           }
         }
