@@ -52,7 +52,7 @@ void DivPlatformOPLL::acquire_nuked(short** buf, size_t len) {
         QueuedWrite& w=writes.front();
         if (w.addrOrVal) {
           OPLL_Write(&fm,1,w.val);
-          //printf("write: %x = %.2x\n",w.addr,w.val);
+          logV("write: %x = %.2x",w.addr,w.val);
           regPool[w.addr&0xff]=w.val;
           writes.pop();
           delay=21;
@@ -401,6 +401,9 @@ void DivPlatformOPLL::switchMode(bool mode) {
     immWrite(0x26,0);
     immWrite(0x27,0);
     immWrite(0x28,0);
+    immWrite(0x16,0);
+    immWrite(0x17,0);
+    immWrite(0x18,0);
     immWrite(0x0e,0x20);
     immWrite(0x36,drumVol[0]);
     immWrite(0x37,drumVol[1]|(drumVol[4]<<4));
@@ -409,6 +412,9 @@ void DivPlatformOPLL::switchMode(bool mode) {
     logV("mode switch to NORMAL");
     immWrite(0x0e,0x20);
     immWrite(0x0e,0x00);
+    if (chan[6].active) chan[6].freqChanged=true;
+    if (chan[7].active) chan[7].freqChanged=true;
+    if (chan[8].active) chan[8].freqChanged=true;
   }
   properDrums=mode;
   drumState=0;
