@@ -1059,7 +1059,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       break;
     case DIV_SYSTEM_C140:
       w->writeC(0xd4);
-      w->writeC(baseAddr2S|(write.addr&0x1ff));
+      w->writeS(baseAddr2S|(write.addr&0x1ff));
       w->writeC(write.val&0xff);
       break;
     default:
