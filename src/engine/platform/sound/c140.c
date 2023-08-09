@@ -56,8 +56,8 @@ void c140_tick(struct c140_t *c140, const int cycle)
 		c140->rout += c140->voice[i].rout;
 	}
 	// scale as 16bit
-	c140->lout >>= 8;
-	c140->rout >>= 8;
+	c140->lout >>= 13;
+	c140->rout >>= 13;
 }
 
 void c140_voice_tick(struct c140_t *c140, const unsigned char voice, const int cycle)
