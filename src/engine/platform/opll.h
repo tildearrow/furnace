@@ -63,7 +63,7 @@ class DivPlatformOPLL: public DivDispatch {
     unsigned char regPool[256];
 
     bool useYMFM;
-    bool drums;
+    bool crapDrums;
     bool properDrums, properDrumsSys, noTopHatFreq;
     bool vrc7;
 

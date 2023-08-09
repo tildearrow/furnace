@@ -107,7 +107,7 @@ void DivPlatformOPLL::tick(bool sysTick) {
         rWrite(0x36,drumVol[0]);
         rWrite(0x37,drumVol[1]|(drumVol[4]<<4));
         rWrite(0x38,drumVol[3]|(drumVol[2]<<4));
-      } else if (i<6 || !drums) {
+      } else if (i<6 || !crapDrums) {
         if (i<9) {
           rWrite(0x30+i,((15-VOL_SCALE_LOG_BROKEN(chan[i].outVol,15-chan[i].state.op[1].tl,15))&15)|(chan[i].state.opllPreset<<4));
         }
@@ -231,7 +231,7 @@ void DivPlatformOPLL::tick(bool sysTick) {
         drumState&=~(0x10>>(i-6));
         immWrite(0x0e,0x20|drumState);
         logV("properDrums %d",i);
-      } else if (i>=6 && drums) {
+      } else if (i>=6 && crapDrums) {
         drumState&=~(0x10>>(chan[i].note%12));
         immWrite(0x0e,0x20|drumState);
         logV("drums %d",i);
@@ -265,7 +265,7 @@ void DivPlatformOPLL::tick(bool sysTick) {
       if (i>=6 && properDrums && (i<9 || !noTopHatFreq)) {
         immWrite(0x10+drumSlot[i],freqt&0xff);
         immWrite(0x20+drumSlot[i],freqt>>8);
-      } else if (i<6 || !drums) {
+      } else if (i<6 || !crapDrums) {
         if (i<9) {
           immWrite(0x10+i,freqt&0xff);
         }
@@ -278,7 +278,7 @@ void DivPlatformOPLL::tick(bool sysTick) {
         immWrite(0x0e,0x20|drumState);
       }
       chan[i].keyOn=false;
-    } else if (chan[i].keyOn && i>=6 && drums) {
+    } else if (chan[i].keyOn && i>=6 && crapDrums) {
       //printf("%d\n",chan[i].note%12);
       drumState|=(0x10>>(chan[i].note%12));
       immWrite(0x0e,0x20|drumState);
@@ -365,22 +365,24 @@ void DivPlatformOPLL::commitState(int ch, DivInstrument* ins) {
     }
     if (chan[ch].state.opllPreset==16) { // compatible drums mode
       if (ch>=6) {
-        drums=true;
-        immWrite(0x16,0x20);
-        immWrite(0x26,0x05);
-        immWrite(0x16,0x20);
-        immWrite(0x26,0x05);
-        immWrite(0x17,0x50);
-        immWrite(0x27,0x05);
-        immWrite(0x17,0x50);
-        immWrite(0x27,0x05);
-        immWrite(0x18,0xC0);
-        immWrite(0x28,0x01);
+        if (!properDrumsSys) {
+          crapDrums=true;
+          immWrite(0x16,0x20);
+          immWrite(0x26,0x05);
+          immWrite(0x16,0x20);
+          immWrite(0x26,0x05);
+          immWrite(0x17,0x50);
+          immWrite(0x27,0x05);
+          immWrite(0x17,0x50);
+          immWrite(0x27,0x05);
+          immWrite(0x18,0xC0);
+          immWrite(0x28,0x01);
+        }
       }
     } else {
       if (ch>=6) {
-        if (drums) {
-          drums=false;
+        if (crapDrums) {
+          crapDrums=false;
           immWrite(0x0e,0);
           drumState=0;
         }
@@ -395,10 +397,14 @@ void DivPlatformOPLL::commitState(int ch, DivInstrument* ins) {
 void DivPlatformOPLL::switchMode(bool mode) {
   if (mode==properDrums) return;
   if (mode) {
-
+    logV("mode switch to DRUMS");
+    immWrite(0x0e,0x20);
   } else {
-
+    logV("mode switch to NORMAL");
+    immWrite(0x0e,0x00);
   }
+  properDrums=mode;
+  drumState=0;
 }
 
 int DivPlatformOPLL::dispatch(DivCommand c) {
@@ -448,7 +454,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
         chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
         chan[c.chan].note=c.value;
 
-        if (c.chan>=6 && drums) {
+        if (c.chan>=6 && crapDrums) {
           switch (chan[c.chan].note%12) {
             case 0: // kick
               drumVol[0]=(15-(chan[c.chan].outVol*(15-chan[c.chan].state.op[1].tl))/15);
@@ -507,7 +513,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
         rWrite(0x37,drumVol[1]|(drumVol[4]<<4));
         rWrite(0x38,drumVol[3]|(drumVol[2]<<4));
         break;
-      } else if (c.chan<6 || !drums) {
+      } else if (c.chan<6 || !crapDrums) {
         if (c.chan<9) {
           rWrite(0x30+c.chan,((15-VOL_SCALE_LOG_BROKEN(chan[c.chan].outVol,15-chan[c.chan].state.op[1].tl,15))&15)|(chan[c.chan].state.opllPreset<<4));
         }
@@ -565,7 +571,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
     }
     case DIV_CMD_LEGATO: {
       if (c.chan>=9 && !properDrums) return 0;
-      if (c.chan<6 || (!drums && !properDrums)) {
+      if (c.chan<6 || (!crapDrums && !properDrums)) {
         if (chan[c.chan].insChanged) {
           DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_OPLL);
           commitState(c.chan,ins);
@@ -780,12 +786,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
     case DIV_CMD_FM_EXTCH:
       if (!properDrumsSys) break;
       if ((int)properDrums==c.value) break;
-      if (c.value) {
-        properDrums=true;
-      } else {
-        properDrums=false;
-      }
-      switchMode(properDrums);
+      switchMode(c.value);
       break;
     case DIV_CMD_MACRO_OFF:
       chan[c.chan].std.mask(c.value,true);
@@ -840,7 +841,7 @@ void DivPlatformOPLL::forceIns() {
       }
     }
   }
-  if (drums) { // WHAT?! FIX THIS!
+  if (crapDrums) { // WHAT?! FIX THIS!
     immWrite(0x16,0x20);
     immWrite(0x26,0x05);
     immWrite(0x16,0x20);
@@ -944,7 +945,7 @@ void DivPlatformOPLL::reset() {
   drumVol[4]=0;
   
   delay=0;
-  drums=false;
+  crapDrums=false;
   properDrums=properDrumsSys;
 
   if (properDrums) {
