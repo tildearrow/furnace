@@ -2783,6 +2783,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
   if (ImGui::MenuItem("values up (+16)",BIND_FOR(GUI_ACTION_PAT_VALUE_UP_COARSE))) doTranspose(16,opMaskTransposeValue);
   if (ImGui::MenuItem("values down (-16)",BIND_FOR(GUI_ACTION_PAT_VALUE_DOWN_COARSE)))  doTranspose(-16,opMaskTransposeValue);
   ImGui::Separator();
+  ImGui::AlignTextToFramePadding();
   ImGui::Text("transpose");
   ImGui::SameLine();
   ImGui::SetNextItemWidth(120.0f*dpiScale);
@@ -4118,6 +4119,7 @@ bool FurnaceGUI::loop() {
               "Furnace Amiga emulator is working properly by\n"
               "comparing it with real Amiga output."
             );
+            ImGui::AlignTextToFramePadding();
             ImGui::Text("Directory");
             ImGui::SameLine();
             ImGui::InputText("##AVDPath",&workingDirROMExport);
@@ -5656,6 +5658,7 @@ bool FurnaceGUI::loop() {
       if (pendingInsSingle) {
         ImGui::Text("this is an instrument bank! select which one to use:");
       } else {
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("this is an instrument bank! select which ones to load:");
         ImGui::SameLine();
         if (ImGui::Button("All")) {
@@ -5743,6 +5746,7 @@ bool FurnaceGUI::loop() {
       }
 
       ImGui::BeginDisabled(pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_8BIT && pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT);
+      ImGui::AlignTextToFramePadding();
       ImGui::Text("Channels");
       ImGui::SameLine();
       if (ImGui::InputInt("##RSChans",&pendingRawSampleChannels)) {
