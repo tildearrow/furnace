@@ -446,10 +446,6 @@ void DivPlatformC140::renderSamples(int sysID) {
   sampleMemLen=memPos+256;
 }
 
-void DivPlatformC140::setChipModel(int type) {
-  chipType=type;
-}
-
 void DivPlatformC140::setFlags(const DivConfig& flags) {
   chipClock=32000*256; // 8.192MHz and 12.288MHz input, verified from Assault Schematics
   CHECK_CUSTOM_CLOCK;

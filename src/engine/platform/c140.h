@@ -51,7 +51,6 @@ class DivPlatformC140: public DivDispatch {
   Channel chan[24];
   DivDispatchOscBuffer* oscBuf[24];
   bool isMuted[24];
-  int chipType;
   unsigned int sampleOff[256];
   bool sampleLoaded[256];
 
@@ -83,7 +82,6 @@ class DivPlatformC140: public DivDispatch {
     void tick(bool sysTick=true);
     void muteChannel(int ch, bool mute);
     int getOutputCount();
-    void setChipModel(int type);
     void notifyInsChange(int ins);
     void notifyWaveChange(int wave);
     void notifyInsDeletion(void* ins);
