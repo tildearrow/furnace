@@ -27,12 +27,13 @@ however, effects are continuous, which means you only need to type it once and t
 - `F1xx`: **Single tick pitch slide up.**
 - `F2xx`: **Single tick pitch slide down.**
 
-- `03xx`: **Portamento.** slides the current note's pitch to the specified note.  `x` is the slide speed.
-  - A note _must_ be present for this effect to work.
+- `03xx`: **Portamento.** slides the currently playing note's pitch toward the new note. `x` is the slide speed.
+  - a note _must_ be present with this effect for it to work.
+  - the effect stops automatically when it reaches the new note.
 - `E1xy`: **Note slide up.** `x` is the speed, while `y` is how many semitones to slide up.
 - `E2xy`: **Note slide down.** `x` is the speed, while `y` is how many semitones to slide down.
 
-- `EAxx`: **Toggle legato.** while on, notes instantly change the pitch of the currrently playing sound instead of starting it over.
+- `EAxx`: **Toggle legato.** while on, new notes instantly change the pitch of the currently playing sound instead of starting it over.
 - `00xy`: **Arpeggio.** after using this effect the channel will rapidly switch between semitone values of `note`, `note + x` and `note + y`.
 - `E0xx`: **Set arpeggio speed.** this sets the number of ticks between arpeggio values. default is 1.
 
@@ -86,12 +87,12 @@ not all chips support these effects.
 
 - `9xxx`: **Set sample position.** jumps current sample to position `xxx * 0x100`.
   - Not all chips support this effect.
-- `EBxx`: **Set sample bank.**
-  - Does not apply on Amiga.
+- `EBxx`: **Set LEGACY sample mode bank.** selects sample bank. used only for compatibility.
+  - does not apply on Amiga.
 - `EExx`: **Send external command.**
-  - This effect is currently incomplete.
-- `F5xx`: **Disable macro.** see macro table at the end of this document for possible values.
-- `F6xx`: **Enable macro.**
+  - this effect is currently incomplete.
+- `F5xx`: **Disable macro.**\
+  `F6xx`: **Enable macro.** see macro table at the end of this document for possible values.
 
 additionally, [each chip has its own effects](../7-systems/README.md).
 
