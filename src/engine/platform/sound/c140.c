@@ -2,8 +2,12 @@
 
 ============================================================================
 
-Namco C140 sound emulator
+MODIFIED Namco C140 sound emulator - MODIFIED VERSION
 by cam900
+
+MODIFICATION by tildearrow - adds muting function
+THIS IS NOT THE ORIGINAL VERSION - you can find the original one in
+commit 72d04777c013988ed8cf6da27c62a9d784a59dff
 
 This file is licensed under zlib license.
 
@@ -52,58 +56,64 @@ void c140_tick(struct c140_t *c140, const int cycle)
 	for (int i = 0; i < 24; i++)
 	{
 		c140_voice_tick(c140, i, cycle);
-		if (!c140->voice[i].muted) {
-			c140->lout += c140->voice[i].lout;
-			c140->rout += c140->voice[i].rout;
-		}
+		c140->lout += c140->voice[i].lout;
+		c140->rout += c140->voice[i].rout;
 	}
-	// scale as 16bit
-	c140->lout >>= 10;
-	c140->rout >>= 10;
 }
 
-void c140_voice_tick(struct c140_t *c140, const unsigned char voice, const int cycle)
+void c140_voice_tick(struct c140_t *c140, const unsigned char v, const int cycle)
 {
-	struct c140_voice_t *c140_voice = &c140->voice[voice];
-	if (c140_voice->busy && c140_voice->keyon)
+	struct c140_voice_t *voice = &c140->voice[v];
+	if (voice->busy && voice->keyon)
 	{
 		for (int c = 0; c < cycle; c++)
 		{
-			c140_voice->frac += c140_voice->freq;
-			if (c140_voice->frac > 0xffff)
+			voice->frac += voice->freq;
+			if (voice->frac > 0xffff)
 			{
-				c140_voice->addr += c140_voice->frac >> 16;
-				if (c140_voice->addr > c140_voice->end_addr)
+				voice->addr += voice->frac >> 16;
+				if (voice->addr > voice->end_addr)
 				{
-					if (c140_voice->loop)
+					if (voice->loop)
 					{
-						c140_voice->addr = (c140_voice->addr + c140_voice->end_addr) - c140_voice->loop_addr;
+						voice->addr = (voice->addr + voice->loop_addr) - voice->end_addr;
 					}
 					else
 					{
-						c140_voice->keyon = false;
+						voice->keyon = false;
+						voice->lout = 0;
+						voice->rout = 0;
+						return;
 					}
 				}
-				c140_voice->frac &= 0xffff;
+				voice->frac &= 0xffff;
 			}
+		}
+		if (!voice->muted)
+		{
 			// fetch 12 bit sample
-			signed short s1 = c140->sample_mem[((unsigned int)(c140_voice->bank) << 16) | c140_voice->addr] & ~0xf;
-			signed short s2 = c140->sample_mem[((unsigned int)(c140_voice->bank) << 16) | ((c140_voice->addr + 1) & 0xffff)] & ~0xf;
-			if (c140_voice->compressed)
+			signed short s1 = c140->sample_mem[((unsigned int)(voice->bank) << 16) | voice->addr] & ~0xf;
+			signed short s2 = c140->sample_mem[((unsigned int)(voice->bank) << 16) | ((voice->addr + 1) & 0xffff)] & ~0xf;
+			if (voice->compressed)
 			{
 				s1 = c140->mulaw[(s1 >> 8) & 0xff];
 				s2 = c140->mulaw[(s2 >> 8) & 0xff];
 			}
 			// interpolate
-			signed int sample = s1 + (((c140_voice->frac) * (s2 - s1)) >> 16);
-			c140_voice->lout = sample * c140_voice->lvol;
-			c140_voice->rout = sample * c140_voice->rvol;
+			signed int sample = s1 + (((voice->frac) * (s2 - s1)) >> 16);
+			voice->lout = sample * voice->lvol;
+			voice->rout = sample * voice->rvol;
+		}
+		else
+		{
+			voice->lout = 0;
+			voice->rout = 0;
 		}
 	}
 	else
 	{
-		c140_voice->lout = 0;
-		c140_voice->rout = 0;
+		voice->lout = 0;
+		voice->rout = 0;
 	}
 }
 

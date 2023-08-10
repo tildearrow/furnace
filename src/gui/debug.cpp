@@ -1105,7 +1105,10 @@ void putDispatchChan(void* data, int chanNum, int type) {
       ImGui::Text("- chVolL: %.2x",ch->chVolL);
       ImGui::Text("- chVolR: %.2x",ch->chVolR);
       ImGui::Text("- macroVolMul: %.2x",ch->macroVolMul);
+      ImGui::Text("- macroPanMul: %.2x",ch->macroPanMul);
       COMMON_CHAN_DEBUG_BOOL;
+      ImGui::TextColored(ch->volChangedL?colorOn:colorOff,">> VolChangedL");
+      ImGui::TextColored(ch->volChangedR?colorOn:colorOff,">> VolChangedR");
       ImGui::TextColored(ch->setPos?colorOn:colorOff,">> SetPos");
       break;
     }

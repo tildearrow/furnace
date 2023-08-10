@@ -32,6 +32,7 @@ class DivPlatformC140: public DivDispatch {
     int chPanL, chPanR;
     int chVolL, chVolR;
     int macroVolMul;
+    int macroPanMul;
     Channel():
       SharedChannel<int>(255),
       audPos(0),
@@ -44,7 +45,8 @@ class DivPlatformC140: public DivDispatch {
       chPanR(255),
       chVolL(255),
       chVolR(255),
-      macroVolMul(64) {}
+      macroVolMul(64),
+      macroPanMul(127) {}
   };
   Channel chan[24];
   DivDispatchOscBuffer* oscBuf[24];

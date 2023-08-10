@@ -79,7 +79,7 @@ struct c140_t
 
 void c140_tick(struct c140_t *c140, const int cycle);
 
-void c140_voice_tick(struct c140_t *c140, const unsigned char voice, const int cycle);
+void c140_voice_tick(struct c140_t *c140, const unsigned char v, const int cycle);
 
 void c140_keyon(struct c140_voice_t *c140_voice);
 

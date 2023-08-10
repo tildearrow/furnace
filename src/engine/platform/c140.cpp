@@ -59,6 +59,9 @@ void DivPlatformC140::acquire(short** buf, size_t len) {
     }
 
     c140_tick(&c140, 1);
+    // scale as 16bit
+    c140.lout >>= 10;
+    c140.rout >>= 10;
 
     if (c140.lout<-32768) c140.lout=-32768;
     if (c140.lout>32767) c140.lout=32767;
@@ -101,12 +104,12 @@ void DivPlatformC140::tick(bool sysTick) {
       chan[i].freqChanged=true;
     }
     if (chan[i].std.panL.had) {
-      chan[i].chPanL=chan[i].std.panL.val&255;
+      chan[i].chPanL=(255*(chan[i].std.panL.val&255))/chan[i].macroPanMul;
       chan[i].volChangedL=true;
     }
 
     if (chan[i].std.panR.had) {
-      chan[i].chPanR=chan[i].std.panR.val&255;
+      chan[i].chPanR=(255*(chan[i].std.panR.val&255))/chan[i].macroPanMul;
       chan[i].volChangedR=true;
     }
     
@@ -147,13 +150,14 @@ void DivPlatformC140::tick(bool sysTick) {
         unsigned int end=0;
         if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
           start=sampleOff[chan[i].sample];
-          end=MIN(start+s->length8,getSampleMemCapacity()-1);
+          end=MIN(start+s->length8-1,65535);
         }
         if (chan[i].audPos>0) {
           start=start+MIN(chan[i].audPos,s->length8);
         }
         if (s->isLoopable()) {
-          loop=start+s->loopStart;
+          loop=MIN(start+s->loopStart,65535);
+          end=MIN(start+s->loopEnd-1,65535);
         }
         rWrite(0x05+(i<<4),0); // force keyoff first
         rWrite(0x06+(i<<4),(start>>8)&0xff);
@@ -187,6 +191,7 @@ int DivPlatformC140::dispatch(DivCommand c) {
     case DIV_CMD_NOTE_ON: {
       DivInstrument* ins=parent->getIns(chan[c.chan].ins,DIV_INS_AMIGA);
       chan[c.chan].macroVolMul=ins->type==DIV_INS_AMIGA?64:255;
+      chan[c.chan].macroPanMul=ins->type==DIV_INS_AMIGA?127:255;
       if (c.value!=DIV_NOTE_NULL) {
         chan[c.chan].sample=ins->amiga.getSample(c.value);
         c.value=ins->amiga.getFreq(c.value);
