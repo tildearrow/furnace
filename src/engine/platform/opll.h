@@ -59,6 +59,7 @@ class DivPlatformOPLL: public DivDispatch {
     unsigned char lastBusy;
     unsigned char drumState;
     unsigned char drumVol[5];
+    bool drumActivated[5];
 
     unsigned char regPool[256];
 

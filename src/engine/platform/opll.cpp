@@ -28,6 +28,8 @@
 
 #define CHIP_FREQBASE 1180068
 
+#define DRUM_VOL(_x) (drumActivated[_x]?drumVol[_x]:15)
+
 const unsigned char cycleMapOPLL[18]={
   8, 7, 6, 7, 8, 7, 8, 6, 0, 1, 2, 7, 8, 9, 3, 4, 5, 9
 };
@@ -104,9 +106,9 @@ void DivPlatformOPLL::tick(bool sysTick) {
 
       if (i>=6 && properDrums) {
         drumVol[i-6]=15-chan[i].outVol;
-        rWrite(0x36,drumVol[0]);
-        rWrite(0x37,drumVol[1]|(drumVol[4]<<4));
-        rWrite(0x38,drumVol[3]|(drumVol[2]<<4));
+        rWrite(0x36,DRUM_VOL(0));
+        rWrite(0x37,DRUM_VOL(1)|(DRUM_VOL(4)<<4));
+        rWrite(0x38,DRUM_VOL(3)|(DRUM_VOL(2)<<4));
       } else if (i<6 || !crapDrums) {
         if (i<9) {
           rWrite(0x30+i,((15-VOL_SCALE_LOG_BROKEN(chan[i].outVol,15-chan[i].state.op[1].tl,15))&15)|(chan[i].state.opllPreset<<4));
@@ -398,6 +400,10 @@ void DivPlatformOPLL::switchMode(bool mode) {
   if (mode==properDrums) return;
   if (mode) {
     logV("mode switch to DRUMS");
+    for (int i=0; i<5; i++) {
+      drumActivated[i]=chan[6+i].keyOn;
+    }
+
     immWrite(0x26,0);
     immWrite(0x27,0);
     immWrite(0x28,0);
@@ -405,16 +411,25 @@ void DivPlatformOPLL::switchMode(bool mode) {
     immWrite(0x17,0);
     immWrite(0x18,0);
     immWrite(0x0e,0x20);
-    immWrite(0x36,drumVol[0]);
-    immWrite(0x37,drumVol[1]|(drumVol[4]<<4));
-    immWrite(0x38,drumVol[3]|(drumVol[2]<<4));
+    rWrite(0x36,DRUM_VOL(0));
+    rWrite(0x37,DRUM_VOL(1)|(DRUM_VOL(4)<<4));
+    rWrite(0x38,DRUM_VOL(3)|(DRUM_VOL(2)<<4));
+    oldWrites[0x36]=-1;
+    oldWrites[0x37]=-1;
+    oldWrites[0x38]=-1;
   } else {
     logV("mode switch to NORMAL");
     immWrite(0x0e,0x20);
     immWrite(0x0e,0x00);
-    if (chan[6].active) chan[6].freqChanged=true;
-    if (chan[7].active) chan[7].freqChanged=true;
-    if (chan[8].active) chan[8].freqChanged=true;
+    for (int i=6; i<9; i++) {
+      if (chan[i].active) {
+        chan[i].freqChanged=true;
+        chan[i].keyOff=false;
+        chan[i].keyOn=true;
+        oldWrites[0x30+i]=-1;
+      }
+      chan[i].insChanged=true;
+    }
   }
   properDrums=mode;
   drumState=0;
@@ -436,6 +451,7 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
 
       if (c.chan>=6 && properDrums) { // drums mode
         chan[c.chan].insChanged=false;
+        drumActivated[c.chan-6]=true;
         if (c.value!=DIV_NOTE_NULL) {
           if (chan[c.chan].state.opllPreset==16 && chan[c.chan].state.fixedDrums) {
             switch (c.chan) {
@@ -457,6 +473,10 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
         }
         chan[c.chan].keyOn=true;
         chan[c.chan].active=true;
+
+        rWrite(0x36,DRUM_VOL(0));
+        rWrite(0x37,DRUM_VOL(1)|(DRUM_VOL(4)<<4));
+        rWrite(0x38,DRUM_VOL(3)|(DRUM_VOL(2)<<4));
         break;
       }
       
@@ -485,9 +505,9 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
               drumVol[4]=(15-(chan[c.chan].outVol*(15-chan[c.chan].state.op[1].tl))/15);
               break;
           }
-          rWrite(0x36,drumVol[0]);
-          rWrite(0x37,drumVol[1]|(drumVol[4]<<4));
-          rWrite(0x38,drumVol[3]|(drumVol[2]<<4));
+          rWrite(0x36,DRUM_VOL(0));
+          rWrite(0x37,DRUM_VOL(1)|(DRUM_VOL(4)<<4));
+          rWrite(0x38,DRUM_VOL(3)|(DRUM_VOL(2)<<4));
         }
         chan[c.chan].freqChanged=true;
       }
@@ -522,9 +542,9 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
       }
       if (c.chan>=6 && properDrums) {
         drumVol[c.chan-6]=15-chan[c.chan].outVol;
-        rWrite(0x36,drumVol[0]);
-        rWrite(0x37,drumVol[1]|(drumVol[4]<<4));
-        rWrite(0x38,drumVol[3]|(drumVol[2]<<4));
+        rWrite(0x36,DRUM_VOL(0));
+        rWrite(0x37,DRUM_VOL(1)|(DRUM_VOL(4)<<4));
+        rWrite(0x38,DRUM_VOL(3)|(DRUM_VOL(2)<<4));
         break;
       } else if (c.chan<6 || !crapDrums) {
         if (c.chan<9) {
@@ -868,9 +888,9 @@ void DivPlatformOPLL::forceIns() {
   }
   // restore drum volumes
   if (properDrums) {
-    rWrite(0x36,drumVol[0]);
-    rWrite(0x37,drumVol[1]|(drumVol[4]<<4));
-    rWrite(0x38,drumVol[3]|(drumVol[2]<<4));
+    rWrite(0x36,DRUM_VOL(0));
+    rWrite(0x37,DRUM_VOL(1)|(DRUM_VOL(4)<<4));
+    rWrite(0x38,DRUM_VOL(3)|(DRUM_VOL(2)<<4));
   }
   drumState=0;
 }
@@ -951,11 +971,10 @@ void DivPlatformOPLL::reset() {
   drumState=0;
   lastCustomMemory=-1;
 
-  drumVol[0]=0;
-  drumVol[1]=0;
-  drumVol[2]=0;
-  drumVol[3]=0;
-  drumVol[4]=0;
+  for (int i=0; i<5; i++) {
+    drumVol[i]=0;
+    drumActivated[i]=true;
+  }
   
   delay=0;
   crapDrums=false;
