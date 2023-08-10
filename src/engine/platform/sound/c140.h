@@ -2,8 +2,12 @@
 
 ============================================================================
 
-Namco C140 sound emulator
+MODIFIED Namco C140 sound emulator - MODIFIED VERSION
 by cam900
+
+MODIFICATION by tildearrow - adds muting function
+THIS IS NOT THE ORIGINAL VERSION - you can find the original one in
+commit 72d04777c013988ed8cf6da27c62a9d784a59dff
 
 This file is licensed under zlib license.
 
@@ -49,6 +53,7 @@ extern "C"
 
 struct c140_voice_t
 {
+   bool muted;                // muted - can be set by user
    bool busy;                 // busy flag
    bool keyon;                // key on flag
    unsigned short freq;       // sample frequency

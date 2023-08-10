@@ -80,9 +80,8 @@ void DivPlatformC140::tick(bool sysTick) {
     chan[i].std.next();
     if (chan[i].std.vol.had) {
       chan[i].outVol=(chan[i].vol*MIN(chan[i].macroVolMul,chan[i].std.vol.val))/chan[i].macroVolMul;
-      if (!isMuted[i]) {
-        chan[i].volumeChanged.changed=0xff;
-      }
+      chan[i].volChangedL=true;
+      chan[i].volChangedR=true;
     }
     if (NEW_ARP_STRAT) {
       chan[i].handleArp();
@@ -103,16 +102,12 @@ void DivPlatformC140::tick(bool sysTick) {
     }
     if (chan[i].std.panL.had) {
       chan[i].chPanL=chan[i].std.panL.val&255;
-      if (!isMuted[i]) {
-        chan[i].volumeChanged.left=1;
-      }
+      chan[i].volChangedL=true;
     }
 
     if (chan[i].std.panR.had) {
       chan[i].chPanR=chan[i].std.panR.val&255;
-      if (!isMuted[i]) {
-        chan[i].volumeChanged.right=1;
-      }
+      chan[i].volChangedR=true;
     }
     
     if (chan[i].std.phaseReset.had) {
@@ -121,24 +116,15 @@ void DivPlatformC140::tick(bool sysTick) {
         chan[i].setPos=true;
       }
     }
-    if (chan[i].volumeChanged.changed) {
-      if (chan[i].volumeChanged.left) {
-        if (isMuted[i]) {
-          chan[i].chVolL=0;
-        } else {
-          chan[i].chVolL=(chan[i].outVol*chan[i].chPanL)/255;
-        }
-        rWrite(1+(i<<4),chan[i].chVolL);
-      }
-      if (chan[i].volumeChanged.right) {
-        if (isMuted[i]) {
-          chan[i].chVolR=0;
-        } else {
-          chan[i].chVolR=(chan[i].outVol*chan[i].chPanR)/255;
-        }
-        rWrite(0+(i<<4),chan[i].chVolR);
-      }
-      chan[i].volumeChanged.changed=0;
+    if (chan[i].volChangedL) {
+      chan[i].chVolL=(chan[i].outVol*chan[i].chPanL)/255;
+      rWrite(1+(i<<4),chan[i].chVolL);
+      chan[i].volChangedL=false;
+    }
+    if (chan[i].volChangedR) {
+      chan[i].chVolR=(chan[i].outVol*chan[i].chPanR)/255;
+      rWrite(0+(i<<4),chan[i].chVolR);
+      chan[i].volChangedR=false;
     }
     if (chan[i].setPos) {
       // force keyon
@@ -178,9 +164,8 @@ void DivPlatformC140::tick(bool sysTick) {
         rWrite(0x0b+(i<<4),loop&0xff);
         if (!chan[i].std.vol.had) {
           chan[i].outVol=chan[i].vol;
-          if (!isMuted[i]) {
-            chan[i].volumeChanged.changed=0xff;
-          }
+          chan[i].volChangedL=true;
+          chan[i].volChangedR=true;
         }
         chan[i].keyOn=false;
       }
@@ -221,9 +206,8 @@ int DivPlatformC140::dispatch(DivCommand c) {
       chan[c.chan].macroInit(ins);
       if (!parent->song.brokenOutVol && !chan[c.chan].std.vol.will) {
         chan[c.chan].outVol=chan[c.chan].vol;
-        if (!isMuted[c.chan]) {
-          chan[c.chan].volumeChanged.changed=0xff;
-        }
+        chan[c.chan].volChangedL=true;
+        chan[c.chan].volChangedR=true;
       }
       break;
     }
@@ -247,9 +231,8 @@ int DivPlatformC140::dispatch(DivCommand c) {
       if (!chan[c.chan].std.vol.has) {
         chan[c.chan].outVol=c.value;
       }
-      if (!isMuted[c.chan]) {
-        chan[c.chan].volumeChanged.changed=0xff;
-      }
+      chan[c.chan].volChangedL=true;
+      chan[c.chan].volChangedR=true;
       break;
     case DIV_CMD_GET_VOLUME:
       if (chan[c.chan].std.vol.has) {
@@ -260,9 +243,8 @@ int DivPlatformC140::dispatch(DivCommand c) {
     case DIV_CMD_PANNING:
       chan[c.chan].chPanL=c.value;
       chan[c.chan].chPanR=c.value2;
-      if (!isMuted[c.chan]) {
-        chan[c.chan].volumeChanged.changed=0xff;
-      }
+      chan[c.chan].volChangedL=true;
+      chan[c.chan].volChangedR=true;
       break;
     case DIV_CMD_PITCH:
       chan[c.chan].pitch=c.value;
@@ -328,14 +310,15 @@ int DivPlatformC140::dispatch(DivCommand c) {
 
 void DivPlatformC140::muteChannel(int ch, bool mute) {
   isMuted[ch]=mute;
-  chan[ch].volumeChanged.changed=0xff;
+  c140.voice[ch].muted=mute;
 }
 
 void DivPlatformC140::forceIns() {
   for (int i=0; i<24; i++) {
     chan[i].insChanged=true;
     chan[i].freqChanged=true;
-    chan[i].volumeChanged.changed=0xff;
+    chan[i].volChangedL=true;
+    chan[i].volChangedR=true;
     chan[i].sample=-1;
   }
 }
@@ -480,7 +463,7 @@ int DivPlatformC140::init(DivEngine* p, int channels, int sugRate, const DivConf
     isMuted[i]=false;
     oscBuf[i]=new DivDispatchOscBuffer;
   }
-  sampleMem=new signed short[getSampleMemCapacity()/sizeof(short)];
+  sampleMem=new short[getSampleMemCapacity()>>1];
   sampleMemLen=0;
   c140_init(&c140);
   c140.sample_mem=sampleMem;

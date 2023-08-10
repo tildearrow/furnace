@@ -26,33 +26,20 @@
 
 class DivPlatformC140: public DivDispatch {
   struct Channel: public SharedChannel<int> {
-    struct VolumeUpdate {
-      union { // pack flag bits in single byte
-        struct { // flag bits
-          unsigned char left : 1;  // left volume
-          unsigned char right : 1; // right volume
-          unsigned char reserved : 6;
-        };
-        unsigned char changed = 0; // Packed flags are stored here
-      };
-
-      VolumeUpdate():
-        changed(0) {}
-    } volumeChanged;
-
     unsigned int audPos;
     int sample, wave;
-    bool setPos;
+    bool setPos, volChangedL, volChangedR;
     int chPanL, chPanR;
     int chVolL, chVolR;
     int macroVolMul;
     Channel():
       SharedChannel<int>(255),
-      volumeChanged(VolumeUpdate()),
       audPos(0),
       sample(-1),
       wave(-1),
       setPos(false),
+      volChangedL(false),
+      volChangedR(false),
       chPanL(255),
       chPanR(255),
       chVolL(255),

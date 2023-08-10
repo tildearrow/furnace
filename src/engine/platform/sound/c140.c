@@ -52,8 +52,10 @@ void c140_tick(struct c140_t *c140, const int cycle)
 	for (int i = 0; i < 24; i++)
 	{
 		c140_voice_tick(c140, i, cycle);
-		c140->lout += c140->voice[i].lout;
-		c140->rout += c140->voice[i].rout;
+		if (!c140->voice[i].muted) {
+			c140->lout += c140->voice[i].lout;
+			c140->rout += c140->voice[i].rout;
+		}
 	}
 	// scale as 16bit
 	c140->lout >>= 10;
@@ -130,6 +132,10 @@ void c140_init(struct c140_t *c140)
 			c140->mulaw[i] = (signed short)(((exponent ? 0x100 : 0) | (mantissa << 4))
 										<< (exponent ? exponent - 1 : 0));
 		}
+	}
+	for (int i = 0; i < 24; i++)
+	{
+		c140->voice[i].muted = false;
 	}
 }
 
