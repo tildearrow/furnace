@@ -547,6 +547,13 @@ void putDispatchChip(void* data, int type) {
       COMMON_CHIP_DEBUG_BOOL;
       break;
     }
+    case DIV_SYSTEM_C140: {
+      DivPlatformC140* ch=(DivPlatformC140*)data;
+      ImGui::Text("> C140");
+      COMMON_CHIP_DEBUG;
+      COMMON_CHIP_DEBUG_BOOL;
+      break;
+    }
     default:
       ImGui::Text("Unimplemented chip! Help!");
       break;
