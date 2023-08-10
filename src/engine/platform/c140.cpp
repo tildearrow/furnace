@@ -145,22 +145,24 @@ void DivPlatformC140::tick(bool sysTick) {
       if (chan[i].freq>65535) chan[i].freq=65535;
       ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0);
       if (chan[i].keyOn) {
+        unsigned int bank=0;
         unsigned int start=0;
         unsigned int loop=0;
         unsigned int end=0;
         if (chan[i].sample>=0 && chan[i].sample<parent->song.sampleLen) {
-          start=sampleOff[chan[i].sample];
+          bank=(sampleOff[chan[i].sample]>>16)&0xff;
+          start=sampleOff[chan[i].sample]&0xffff;
           end=MIN(start+s->length8-1,65535);
         }
         if (chan[i].audPos>0) {
-          start=start+MIN(chan[i].audPos,s->length8);
+          start=MIN(start+MIN(chan[i].audPos,s->length8),65535);
         }
         if (s->isLoopable()) {
           loop=MIN(start+s->loopStart,65535);
           end=MIN(start+s->loopEnd-1,65535);
         }
-        rWrite(0x04+(i<<4),(start>>16)&0xff);
         rWrite(0x05+(i<<4),0); // force keyoff first
+        rWrite(0x04+(i<<4),bank);
         rWrite(0x06+(i<<4),(start>>8)&0xff);
         rWrite(0x07+(i<<4),start&0xff);
         rWrite(0x08+(i<<4),(end>>8)&0xff);
