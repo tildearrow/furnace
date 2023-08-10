@@ -60,6 +60,11 @@ class DivPlatformOPLL: public DivDispatch {
     unsigned char drumState;
     unsigned char drumVol[5];
     bool drumActivated[5];
+    
+    // -1: undefined
+    // 0: snare/tom
+    // 1: hi-hat/top
+    signed char lastFreqSH, lastFreqTT;
 
     unsigned char regPool[256];
 

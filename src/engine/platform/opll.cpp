@@ -267,6 +267,20 @@ void DivPlatformOPLL::tick(bool sysTick) {
       if (i>=6 && properDrums && (i<9 || !noTopHatFreq)) {
         immWrite(0x10+drumSlot[i],freqt&0xff);
         immWrite(0x20+drumSlot[i],freqt>>8);
+        switch (i) {
+          case 7:
+            lastFreqSH=0;
+            break;
+          case 8:
+            lastFreqTT=0;
+            break;
+          case 9:
+            lastFreqTT=1;
+            break;
+          case 19:
+            lastFreqSH=1;
+            break;
+        }
       } else if (i<6 || !crapDrums) {
         if (i<9) {
           immWrite(0x10+i,freqt&0xff);
@@ -892,11 +906,19 @@ void DivPlatformOPLL::forceIns() {
     rWrite(0x37,DRUM_VOL(1)|(DRUM_VOL(4)<<4));
     rWrite(0x38,DRUM_VOL(3)|(DRUM_VOL(2)<<4));
 
+    if (lastFreqSH==0) {
+      chan[7].freqChanged=true;
+    } else if (lastFreqSH==1) {
+      chan[10].freqChanged=true;
+    }
+
+    if (lastFreqTT==0) {
+      chan[8].freqChanged=true;
+    } else if (lastFreqTT==1) {
+      chan[9].freqChanged=true;
+    }
+
     chan[6].freqChanged=true;
-    chan[7].freqChanged=true;
-    chan[8].freqChanged=true;
-    chan[9].freqChanged=true;
-    chan[10].freqChanged=true;
   }
   drumState=0;
 }
@@ -985,6 +1007,9 @@ void DivPlatformOPLL::reset() {
   delay=0;
   crapDrums=false;
   properDrums=properDrumsSys;
+
+  lastFreqSH=-1;
+  lastFreqTT=-1;
 
   if (properDrums) {
     immWrite(0x0e,0x20);
