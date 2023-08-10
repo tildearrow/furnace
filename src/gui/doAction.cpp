@@ -1285,7 +1285,7 @@ void FurnaceGUI::doAction(int what) {
         } else if (sample->depth==DIV_SAMPLE_DEPTH_8BIT) {
           for (unsigned int i=start; i<end; i++) {
             sample->data8[i]=-sample->data8[i];
-            if (sample->data16[i]==-128) sample->data16[i]=127;
+            if (sample->data8[i]==-128) sample->data8[i]=127;
           }
         }
 
