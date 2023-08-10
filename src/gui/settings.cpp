@@ -2060,6 +2060,11 @@ void FurnaceGUI::drawSettings() {
         }
         ImGui::Unindent();
 
+        bool capitalMenuBarB=settings.capitalMenuBar;
+        if (ImGui::Checkbox("Capitalize menu bar",&capitalMenuBarB)) {
+          settings.capitalMenuBar=capitalMenuBarB;
+        }
+
         // SUBSECTION ORDERS
         CONFIG_SUBSECTION("Orders");
         // sorry. temporarily disabled until ImGui has a way to add separators in tables arbitrarily.
@@ -3024,6 +3029,7 @@ void FurnaceGUI::syncSettings() {
   settings.removeVolOff=e->getConfInt("removeVolOff",0);
   settings.playOnLoad=e->getConfInt("playOnLoad",0);
   settings.insTypeMenu=e->getConfInt("insTypeMenu",1);
+  settings.capitalMenuBar=e->getConfInt("capitalMenuBar",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3159,6 +3165,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.removeVolOff,0,1);
   clampSetting(settings.playOnLoad,0,2);
   clampSetting(settings.insTypeMenu,0,1);
+  clampSetting(settings.capitalMenuBar,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3394,6 +3401,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("removeVolOff",settings.removeVolOff);
   e->setConf("playOnLoad",settings.playOnLoad);
   e->setConf("insTypeMenu",settings.insTypeMenu);
+  e->setConf("capitalMenuBar",settings.capitalMenuBar);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {
