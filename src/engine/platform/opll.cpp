@@ -54,7 +54,7 @@ void DivPlatformOPLL::acquire_nuked(short** buf, size_t len) {
         QueuedWrite& w=writes.front();
         if (w.addrOrVal) {
           OPLL_Write(&fm,1,w.val);
-          logV("write: %x = %.2x",w.addr,w.val);
+          //logV("write: %x = %.2x",w.addr,w.val);
           regPool[w.addr&0xff]=w.val;
           writes.pop();
           delay=21;
@@ -232,16 +232,16 @@ void DivPlatformOPLL::tick(bool sysTick) {
       if (i>=6 && properDrums) {
         drumState&=~(0x10>>(i-6));
         immWrite(0x0e,0x20|drumState);
-        logV("properDrums %d",i);
+        //logV("properDrums %d",i);
       } else if (i>=6 && crapDrums) {
         drumState&=~(0x10>>(chan[i].note%12));
         immWrite(0x0e,0x20|drumState);
-        logV("drums %d",i);
+        //logV("drums %d",i);
       } else {
         if (i<9) {
           immWrite(0x20+i,(chan[i].freqH)|(chan[i].state.alg?0x20:0));
         }
-        logV("normal %d",i);
+        //logV("normal %d",i);
       }
       //chan[i].keyOn=false;
       chan[i].keyOff=false;
@@ -399,7 +399,7 @@ void DivPlatformOPLL::commitState(int ch, DivInstrument* ins) {
 void DivPlatformOPLL::switchMode(bool mode) {
   if (mode==properDrums) return;
   if (mode) {
-    logV("mode switch to DRUMS");
+    //logV("mode switch to DRUMS");
     for (int i=0; i<5; i++) {
       drumActivated[i]=chan[6+i].keyOn;
     }
@@ -418,7 +418,7 @@ void DivPlatformOPLL::switchMode(bool mode) {
     oldWrites[0x37]=-1;
     oldWrites[0x38]=-1;
   } else {
-    logV("mode switch to NORMAL");
+    //logV("mode switch to NORMAL");
     immWrite(0x0e,0x20);
     immWrite(0x0e,0x00);
     for (int i=6; i<9; i++) {
