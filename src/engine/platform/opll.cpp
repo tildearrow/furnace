@@ -886,11 +886,17 @@ void DivPlatformOPLL::forceIns() {
     immWrite(0x18,0xC0);
     immWrite(0x28,0x01);
   }
-  // restore drum volumes
+  // restore drum volumes and state
   if (properDrums) {
     rWrite(0x36,DRUM_VOL(0));
     rWrite(0x37,DRUM_VOL(1)|(DRUM_VOL(4)<<4));
     rWrite(0x38,DRUM_VOL(3)|(DRUM_VOL(2)<<4));
+
+    chan[6].freqChanged=true;
+    chan[7].freqChanged=true;
+    chan[8].freqChanged=true;
+    chan[9].freqChanged=true;
+    chan[10].freqChanged=true;
   }
   drumState=0;
 }
