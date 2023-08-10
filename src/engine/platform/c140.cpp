@@ -159,6 +159,7 @@ void DivPlatformC140::tick(bool sysTick) {
           loop=MIN(start+s->loopStart,65535);
           end=MIN(start+s->loopEnd-1,65535);
         }
+        rWrite(0x04+(i<<4),(start>>16)&0xff);
         rWrite(0x05+(i<<4),0); // force keyoff first
         rWrite(0x06+(i<<4),(start>>8)&0xff);
         rWrite(0x07+(i<<4),start&0xff);
