@@ -77,8 +77,12 @@ bool Particle::update(float frameTime) {
   return (life>0);
 }
 
-void centerNextWindow(float w, float h) {
-  ImGui::SetNextWindowPos(ImVec2(w*0.5,h*0.5),ImGuiCond_Always,ImVec2(0.5,0.5));
+void FurnaceGUI::centerNextWindow(const char* name, float w, float h) {
+  if (ImGui::IsPopupOpen(name)) {
+    if (settings.centerPopup) {
+      ImGui::SetNextWindowPos(ImVec2(w*0.5,h*0.5),ImGuiCond_Always,ImVec2(0.5,0.5));
+    }
+  }
 }
 
 void FurnaceGUI::bindEngine(DivEngine* eng) {
@@ -4577,7 +4581,6 @@ bool FurnaceGUI::loop() {
       ImGui::OpenPopup("System File Dialog Pending");
     }
 
-    centerNextWindow(canvasW,canvasH);
     if (ImGui::BeginPopupModal("System File Dialog Pending",NULL,ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoBackground|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoMove)) {
       if (!fileDialog->isOpen()) {
         ImGui::CloseCurrentPopup();
@@ -5242,7 +5245,7 @@ bool FurnaceGUI::loop() {
 
     MEASURE_BEGIN(popup);
 
-    centerNextWindow(canvasW,canvasH);
+    centerNextWindow("Rendering...",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Rendering...",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("Please wait...");
       if (ImGui::Button("Abort")) {
@@ -5270,7 +5273,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    centerNextWindow(canvasW,canvasH);
+    centerNextWindow("Error",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Error",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("%s",errorString.c_str());
       if (ImGui::Button("OK")) {
@@ -5279,7 +5282,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    centerNextWindow(canvasW,canvasH);
+    centerNextWindow("Warning",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Warning",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("%s",warnString.c_str());
       switch (warnAction) {
@@ -5661,7 +5664,7 @@ bool FurnaceGUI::loop() {
     // TODO:
     // - multiple selection
     // - replace instrument
-    centerNextWindow(canvasW,canvasH);
+    centerNextWindow("Select Instrument",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Select Instrument",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       bool quitPlease=false;
       if (pendingInsSingle) {
@@ -5740,7 +5743,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
-    centerNextWindow(canvasW,canvasH);
+    centerNextWindow("Import Raw Sample",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Import Raw Sample",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("Data type:");
       for (int i=0; i<DIV_SAMPLE_DEPTH_MAX; i++) {

@@ -1667,6 +1667,11 @@ void FurnaceGUI::drawSettings() {
           applyUISettings(false);
         }
 
+        bool centerPopupB=settings.centerPopup;
+        if (ImGui::Checkbox("Center pop-up windows",&centerPopupB)) {
+          settings.centerPopup=centerPopupB;
+        }
+
         ImGui::Text("Play/edit controls layout:");
         ImGui::Indent();
         if (ImGui::RadioButton("Classic##ecl0",settings.controlLayout==0)) {
@@ -3060,6 +3065,7 @@ void FurnaceGUI::syncSettings() {
   settings.playOnLoad=e->getConfInt("playOnLoad",0);
   settings.insTypeMenu=e->getConfInt("insTypeMenu",1);
   settings.capitalMenuBar=e->getConfInt("capitalMenuBar",0);
+  settings.centerPopup=e->getConfInt("centerPopup",1);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3196,6 +3202,7 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.playOnLoad,0,2);
   clampSetting(settings.insTypeMenu,0,1);
   clampSetting(settings.capitalMenuBar,0,1);
+  clampSetting(settings.centerPopup,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3432,6 +3439,7 @@ void FurnaceGUI::commitSettings() {
   e->setConf("playOnLoad",settings.playOnLoad);
   e->setConf("insTypeMenu",settings.insTypeMenu);
   e->setConf("capitalMenuBar",settings.capitalMenuBar);
+  e->setConf("centerPopup",settings.centerPopup);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

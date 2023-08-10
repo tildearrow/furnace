@@ -1550,6 +1550,7 @@ class FurnaceGUI {
     int playOnLoad;
     int insTypeMenu;
     int capitalMenuBar;
+    int centerPopup;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1714,6 +1715,7 @@ class FurnaceGUI {
       playOnLoad(0),
       insTypeMenu(1),
       capitalMenuBar(0),
+      centerPopup(1),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),
@@ -2138,6 +2140,8 @@ class FurnaceGUI {
   void prepareLayout();
   ImVec4 channelColor(int ch);
   ImVec4 channelTextColor(int ch);
+
+  void centerNextWindow(const char* name, float w, float h);
 
   void readOsc();
   void calcChanOsc();
