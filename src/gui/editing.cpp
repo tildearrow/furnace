@@ -68,7 +68,7 @@ void FurnaceGUI::prepareUndo(ActionType action) {
       }
       break;
     case GUI_UNDO_PATTERN_COLLAPSE_SONG:
-    case GUI_UNDO_PATTERN_EXPAND_SONG: // TODO
+    case GUI_UNDO_PATTERN_EXPAND_SONG: // this is handled by doCollapseSong/doExpandSong
       break;
     case GUI_UNDO_REPLACE: // this is handled by doReplace()
       break;
@@ -134,7 +134,7 @@ void FurnaceGUI::makeUndo(ActionType action) {
       }
       break;
     case GUI_UNDO_PATTERN_COLLAPSE_SONG:
-    case GUI_UNDO_PATTERN_EXPAND_SONG: // TODO
+    case GUI_UNDO_PATTERN_EXPAND_SONG: // this is handled by doCollapseSong/doExpandSong
       break;
     case GUI_UNDO_REPLACE: // this is handled by doReplace()
       break;

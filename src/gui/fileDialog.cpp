@@ -28,7 +28,6 @@ struct NFDState {
   }
 };
 
-// TODO: filter
 void _nfdThread(const NFDState state, std::atomic<bool>* ok, std::vector<String>* result, bool* errorOutput) {
   nfdchar_t* out=NULL;
   nfdresult_t ret=NFD_CANCEL;

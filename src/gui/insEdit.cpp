@@ -4264,6 +4264,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_C64) if (ImGui::BeginTabItem("C64")) {
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Waveform");
           ImGui::SameLine();
           pushToggleColors(ins->c64.triOn);
@@ -4348,6 +4349,7 @@ void FurnaceGUI::drawInsEdit() {
           P(CWSliderScalar("Cutoff",ImGuiDataType_U16,&ins->c64.cut,&_ZERO,&_TWO_THOUSAND_FORTY_SEVEN)); rightClickable
           P(CWSliderScalar("Resonance",ImGuiDataType_U8,&ins->c64.res,&_ZERO,&_FIFTEEN)); rightClickable
 
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Filter Mode");
           ImGui::SameLine();
           pushToggleColors(ins->c64.lp);
@@ -5250,6 +5252,7 @@ void FurnaceGUI::drawInsEdit() {
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
+              ImGui::AlignTextToFramePadding();
               ImGui::Text("Wave 1");
               ImGui::SameLine();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -5260,6 +5263,7 @@ void FurnaceGUI::drawInsEdit() {
               }
               if (isSingleWaveFX) {
                 ImGui::TableNextColumn();
+                ImGui::AlignTextToFramePadding();
                 ImGui::Text("Wave 2");
                 ImGui::SameLine();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);

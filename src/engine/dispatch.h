@@ -486,6 +486,12 @@ class DivDispatch {
     virtual bool keyOffAffectsPorta(int ch);
 
     /**
+     * test whether volume is global.
+     * @return whether it is.
+     */
+    virtual bool isVolGlobal();
+
+    /**
      * get the lowest note in a portamento.
      * @param ch the channel in question.
      * @return the lowest note.

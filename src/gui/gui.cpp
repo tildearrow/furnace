@@ -77,6 +77,14 @@ bool Particle::update(float frameTime) {
   return (life>0);
 }
 
+void FurnaceGUI::centerNextWindow(const char* name, float w, float h) {
+  if (ImGui::IsPopupOpen(name)) {
+    if (settings.centerPopup) {
+      ImGui::SetNextWindowPos(ImVec2(w*0.5,h*0.5),ImGuiCond_Always,ImVec2(0.5,0.5));
+    }
+  }
+}
+
 void FurnaceGUI::bindEngine(DivEngine* eng) {
   e=eng;
   wavePreview.setEngine(e);
@@ -2783,6 +2791,7 @@ void FurnaceGUI::editOptions(bool topMenu) {
   if (ImGui::MenuItem("values up (+16)",BIND_FOR(GUI_ACTION_PAT_VALUE_UP_COARSE))) doTranspose(16,opMaskTransposeValue);
   if (ImGui::MenuItem("values down (-16)",BIND_FOR(GUI_ACTION_PAT_VALUE_DOWN_COARSE)))  doTranspose(-16,opMaskTransposeValue);
   ImGui::Separator();
+  ImGui::AlignTextToFramePadding();
   ImGui::Text("transpose");
   ImGui::SameLine();
   ImGui::SetNextItemWidth(120.0f*dpiScale);
@@ -3918,7 +3927,7 @@ bool FurnaceGUI::loop() {
 
     if (!mobileUI) {
       ImGui::BeginMainMenuBar();
-      if (ImGui::BeginMenu("file")) {
+      if (ImGui::BeginMenu(settings.capitalMenuBar?"File":"file")) {
         if (ImGui::MenuItem("new...",BIND_FOR(GUI_ACTION_NEW))) {
           if (modified) {
             showWarning("Unsaved changes! Save changes before creating a new song?",GUI_WARN_NEW);
@@ -4013,6 +4022,7 @@ bool FurnaceGUI::loop() {
           ImGui::Checkbox("loop",&vgmExportLoop);
           if (vgmExportLoop && e->song.loopModality==2) {
             ImGui::Text("loop trail:");
+            ImGui::Indent();
             if (ImGui::RadioButton("auto-detect",vgmExportTrailingTicks==-1)) {
               vgmExportTrailingTicks=-1;
             }
@@ -4028,6 +4038,7 @@ bool FurnaceGUI::loop() {
                 if (vgmExportTrailingTicks<0) vgmExportTrailingTicks=0;
               }
             }
+            ImGui::Unindent();
           }
           ImGui::Checkbox("add pattern change hints",&vgmExportPatternHints);
           if (ImGui::IsItemHovered()) {
@@ -4116,6 +4127,7 @@ bool FurnaceGUI::loop() {
               "Furnace Amiga emulator is working properly by\n"
               "comparing it with real Amiga output."
             );
+            ImGui::AlignTextToFramePadding();
             ImGui::Text("Directory");
             ImGui::SameLine();
             ImGui::InputText("##AVDPath",&workingDirROMExport);
@@ -4241,7 +4253,7 @@ bool FurnaceGUI::loop() {
       } else {
         exitDisabledTimer=0;
       }
-      if (ImGui::BeginMenu("edit")) {
+      if (ImGui::BeginMenu(settings.capitalMenuBar?"Edit":"edit")) {
         ImGui::Text("...");
         ImGui::Separator();
         if (ImGui::MenuItem("undo",BIND_FOR(GUI_ACTION_UNDO))) doUndo();
@@ -4254,7 +4266,7 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
-      if (ImGui::BeginMenu("settings")) {
+      if (ImGui::BeginMenu(settings.capitalMenuBar?"Settings":"settings")) {
   #ifndef IS_MOBILE
         if (ImGui::MenuItem("full screen",BIND_FOR(GUI_ACTION_FULLSCREEN),fullScreen)) {
           doAction(GUI_ACTION_FULLSCREEN);
@@ -4290,7 +4302,7 @@ bool FurnaceGUI::loop() {
         }
         ImGui::EndMenu();
       }
-      if (ImGui::BeginMenu("window")) {
+      if (ImGui::BeginMenu(settings.capitalMenuBar?"Window":"window")) {
         if (ImGui::MenuItem("song information",BIND_FOR(GUI_ACTION_WINDOW_SONG_INFO),songInfoOpen)) songInfoOpen=!songInfoOpen;
         if (ImGui::MenuItem("subsongs",BIND_FOR(GUI_ACTION_WINDOW_SUBSONGS),subSongsOpen)) subSongsOpen=!subSongsOpen;
         if (ImGui::MenuItem("speed",BIND_FOR(GUI_ACTION_WINDOW_SPEED),speedOpen)) speedOpen=!speedOpen;
@@ -4332,7 +4344,7 @@ bool FurnaceGUI::loop() {
 
         ImGui::EndMenu();
       }
-      if (ImGui::BeginMenu("help")) {
+      if (ImGui::BeginMenu(settings.capitalMenuBar?"Help":"help")) {
         if (ImGui::MenuItem("effect list",BIND_FOR(GUI_ACTION_WINDOW_EFFECT_LIST),effectListOpen)) effectListOpen=!effectListOpen;
         if (ImGui::MenuItem("debug menu",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) debugOpen=!debugOpen;
         if (ImGui::MenuItem("inspector",BIND_FOR(GUI_ACTION_WINDOW_DEBUG))) inspectorOpen=!inspectorOpen;
@@ -5233,6 +5245,7 @@ bool FurnaceGUI::loop() {
 
     MEASURE_BEGIN(popup);
 
+    centerNextWindow("Rendering...",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Rendering...",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("Please wait...");
       if (ImGui::Button("Abort")) {
@@ -5260,6 +5273,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    centerNextWindow("Error",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Error",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("%s",errorString.c_str());
       if (ImGui::Button("OK")) {
@@ -5268,6 +5282,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    centerNextWindow("Warning",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Warning",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("%s",warnString.c_str());
       switch (warnAction) {
@@ -5626,6 +5641,19 @@ bool FurnaceGUI::loop() {
               wavePreviewInit=true;
               updateFMPreview=true;
             }
+
+            if (settings.blankIns) {
+              e->song.ins[curIns]->fm.fb=0;
+              for (int i=0; i<4; i++) {
+                e->song.ins[curIns]->fm.op[i]=DivInstrumentFM::Operator();
+                e->song.ins[curIns]->fm.op[i].ar=31;
+                e->song.ins[curIns]->fm.op[i].dr=31;
+                e->song.ins[curIns]->fm.op[i].rr=15;
+                e->song.ins[curIns]->fm.op[i].tl=127;
+                e->song.ins[curIns]->fm.op[i].dt=3;
+              }
+            }
+
             MARK_MODIFIED;
           }
         }
@@ -5636,11 +5664,13 @@ bool FurnaceGUI::loop() {
     // TODO:
     // - multiple selection
     // - replace instrument
+    centerNextWindow("Select Instrument",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Select Instrument",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       bool quitPlease=false;
       if (pendingInsSingle) {
         ImGui::Text("this is an instrument bank! select which one to use:");
       } else {
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("this is an instrument bank! select which ones to load:");
         ImGui::SameLine();
         if (ImGui::Button("All")) {
@@ -5713,6 +5743,7 @@ bool FurnaceGUI::loop() {
       ImGui::EndPopup();
     }
 
+    centerNextWindow("Import Raw Sample",canvasW,canvasH);
     if (ImGui::BeginPopupModal("Import Raw Sample",NULL,ImGuiWindowFlags_AlwaysAutoResize)) {
       ImGui::Text("Data type:");
       for (int i=0; i<DIV_SAMPLE_DEPTH_MAX; i++) {
@@ -5728,6 +5759,7 @@ bool FurnaceGUI::loop() {
       }
 
       ImGui::BeginDisabled(pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_8BIT && pendingRawSampleDepth!=DIV_SAMPLE_DEPTH_16BIT);
+      ImGui::AlignTextToFramePadding();
       ImGui::Text("Channels");
       ImGui::SameLine();
       if (ImGui::InputInt("##RSChans",&pendingRawSampleChannels)) {

@@ -486,6 +486,7 @@ void FurnaceGUI::drawDebug() {
         pgProgram.clear();
       }
       
+      ImGui::AlignTextToFramePadding();
       ImGui::Text("Address");
       ImGui::SameLine();
       ImGui::SetNextItemWidth(100.0f*dpiScale);

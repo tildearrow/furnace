@@ -372,6 +372,7 @@ void FurnaceGUI::drawSampleEdit() {
         if (sampleInfo) {
           ImGui::TableNextRow();
           ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Type");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -445,6 +446,7 @@ void FurnaceGUI::drawSampleEdit() {
           bool coarseChanged=false;
 
           ImGui::TableNextColumn();
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Hz");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -459,6 +461,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
           }
           
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Note");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -501,6 +504,7 @@ void FurnaceGUI::drawSampleEdit() {
             }
           }
 
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Fine");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -537,6 +541,7 @@ void FurnaceGUI::drawSampleEdit() {
           ImGui::TableNextColumn();
           ImGui::BeginDisabled(!(doLoop || keepLoopAlive));
           keepLoopAlive=false;
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Mode");
           ImGui::SameLine();
           pushWarningColor(!warnLoopMode.empty());
@@ -560,6 +565,7 @@ void FurnaceGUI::drawSampleEdit() {
           popWarningColor();
 
           pushWarningColor(!warnLoopPos.empty());
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Start");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -585,6 +591,7 @@ void FurnaceGUI::drawSampleEdit() {
             ImGui::SetTooltip("%s",warnLoopPos.c_str());
           }
 
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("End");
           ImGui::SameLine();
           ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -1018,6 +1025,7 @@ void FurnaceGUI::drawSampleEdit() {
           if (sampleFilterRes<0.0f) sampleFilterRes=0.0f;
           if (sampleFilterRes>0.99f) sampleFilterRes=0.99f;
         }
+        ImGui::AlignTextToFramePadding();
         ImGui::Text("Power");
         ImGui::SameLine();
         if (ImGui::RadioButton("1x",sampleFilterPower==1)) {
@@ -1601,7 +1609,7 @@ void FurnaceGUI::drawSampleEdit() {
             posX=samplePos+pos.x*sampleZoom;
             if (posX>(int)sample->samples) posX=-1;
           }
-          posY=(0.5-pos.y/rectSize.y)*((sample->depth==DIV_SAMPLE_DEPTH_8BIT)?255:32767);
+          posY=(0.5-pos.y/rectSize.y)*((sample->depth==DIV_SAMPLE_DEPTH_8BIT)?255:65535);
           if (posX>=0) {
             statusBar2=fmt::sprintf("(%d, %d)",posX,posY);
           }

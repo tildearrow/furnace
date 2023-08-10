@@ -395,6 +395,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       int clockSel=flags.getInt("clockSel",0);
       int patchSet=flags.getInt("patchSet",0);
       bool noTopHatFreq=flags.getBool("noTopHatFreq",false);
+      bool fixedAll=flags.getBool("fixedAll",false);
 
       ImGui::Text("Clock rate:");
       ImGui::Indent();
@@ -441,6 +442,9 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
         if (ImGui::Checkbox("Ignore top/hi-hat frequency changes",&noTopHatFreq)) {
           altered=true;
         }
+        if (ImGui::Checkbox("Apply fixed frequency to all drums at once",&fixedAll)) {
+          altered=true;
+        }
       }
 
       if (altered) {
@@ -450,6 +454,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
             flags.set("patchSet",patchSet);
           }
           flags.set("noTopHatFreq",noTopHatFreq);
+          flags.set("fixedAll",fixedAll);
         });
       }
       break;
@@ -1602,7 +1607,7 @@ bool FurnaceGUI::drawSysConf(int chan, DivSystem type, DivConfig& flags, bool mo
       }
       break;
     }
-    case DIV_SYSTEM_SNES: { // TODO: echo
+    case DIV_SYSTEM_SNES: {
       char temp[64];
       int vsL=127-(flags.getInt("volScaleL",0)&127);
       int vsR=127-(flags.getInt("volScaleR",0)&127);
