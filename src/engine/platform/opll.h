@@ -70,7 +70,7 @@ class DivPlatformOPLL: public DivDispatch {
 
     bool useYMFM;
     bool crapDrums;
-    bool properDrums, properDrumsSys, noTopHatFreq;
+    bool properDrums, properDrumsSys, noTopHatFreq, fixedAll;
     bool vrc7;
 
     unsigned char patchSet;

@@ -468,16 +468,28 @@ int DivPlatformOPLL::dispatch(DivCommand c) {
         drumActivated[c.chan-6]=true;
         if (c.value!=DIV_NOTE_NULL) {
           if (chan[c.chan].state.opllPreset==16 && chan[c.chan].state.fixedDrums) {
-            switch (c.chan) {
-              case 6:
-                chan[c.chan].fixedFreq=(chan[c.chan].state.kickFreq&511)<<(chan[c.chan].state.kickFreq>>9);
-                break;
-              case 7: case 10:
-                chan[c.chan].fixedFreq=(chan[c.chan].state.snareHatFreq&511)<<(chan[c.chan].state.snareHatFreq>>9);
-                break;
-              case 8: case 9:
-                chan[c.chan].fixedFreq=(chan[c.chan].state.tomTopFreq&511)<<(chan[c.chan].state.tomTopFreq>>9);
-                break;
+            if (fixedAll) {
+              chan[6].fixedFreq=(chan[c.chan].state.kickFreq&511)<<(chan[c.chan].state.kickFreq>>9);
+              chan[7].fixedFreq=(chan[c.chan].state.snareHatFreq&511)<<(chan[c.chan].state.snareHatFreq>>9);
+              chan[8].fixedFreq=(chan[c.chan].state.tomTopFreq&511)<<(chan[c.chan].state.tomTopFreq>>9);
+              chan[9].fixedFreq=(chan[c.chan].state.tomTopFreq&511)<<(chan[c.chan].state.tomTopFreq>>9);
+              chan[10].fixedFreq=(chan[c.chan].state.snareHatFreq&511)<<(chan[c.chan].state.snareHatFreq>>9);              
+
+              chan[7].freqChanged=true;
+              chan[8].freqChanged=true;
+              chan[9].freqChanged=true;
+            } else {
+              switch (c.chan) {
+                case 6:
+                  chan[c.chan].fixedFreq=(chan[c.chan].state.kickFreq&511)<<(chan[c.chan].state.kickFreq>>9);
+                  break;
+                case 7: case 10:
+                  chan[c.chan].fixedFreq=(chan[c.chan].state.snareHatFreq&511)<<(chan[c.chan].state.snareHatFreq>>9);
+                  break;
+                case 8: case 9:
+                  chan[c.chan].fixedFreq=(chan[c.chan].state.tomTopFreq&511)<<(chan[c.chan].state.tomTopFreq>>9);
+                  break;
+              }
             }
           } else {
             chan[c.chan].baseFreq=NOTE_FREQUENCY(c.value);
@@ -1076,6 +1088,7 @@ void DivPlatformOPLL::setFlags(const DivConfig& flags) {
     oscBuf[i]->rate=rate/2;
   }
   noTopHatFreq=flags.getBool("noTopHatFreq",false);
+  fixedAll=flags.getBool("fixedAll",false);
 }
 
 int DivPlatformOPLL::init(DivEngine* p, int channels, int sugRate, const DivConfig& flags) {
