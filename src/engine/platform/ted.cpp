@@ -257,6 +257,10 @@ void DivPlatformTED::forceIns() {
   updateCtrl=true;
 }
 
+bool DivPlatformTED::isVolGlobal() {
+  return true;
+}
+
 void* DivPlatformTED::getChanState(int ch) {
   return &chan[ch];
 }

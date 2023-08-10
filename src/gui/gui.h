@@ -1548,6 +1548,8 @@ class FurnaceGUI {
     int removeInsOff;
     int removeVolOff;
     int playOnLoad;
+    int insTypeMenu;
+    int capitalMenuBar;
     unsigned int maxUndoSteps;
     String mainFontPath;
     String headFontPath;
@@ -1710,6 +1712,8 @@ class FurnaceGUI {
       removeInsOff(0),
       removeVolOff(0),
       playOnLoad(0),
+      insTypeMenu(1),
+      capitalMenuBar(0),
       maxUndoSteps(100),
       mainFontPath(""),
       headFontPath(""),

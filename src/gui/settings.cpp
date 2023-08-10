@@ -2090,6 +2090,11 @@ void FurnaceGUI::drawSettings() {
         }
         ImGui::Unindent();
 
+        bool capitalMenuBarB=settings.capitalMenuBar;
+        if (ImGui::Checkbox("Capitalize menu bar",&capitalMenuBarB)) {
+          settings.capitalMenuBar=capitalMenuBarB;
+        }
+
         // SUBSECTION ORDERS
         CONFIG_SUBSECTION("Orders");
         // sorry. temporarily disabled until ImGui has a way to add separators in tables arbitrarily.
@@ -2310,6 +2315,11 @@ void FurnaceGUI::drawSettings() {
         bool insEditColorizeB=settings.insEditColorize;
         if (ImGui::Checkbox("Colorize instrument editor using instrument type",&insEditColorizeB)) {
           settings.insEditColorize=insEditColorizeB;
+        }
+
+        bool insTypeMenuB=settings.insTypeMenu;
+        if (ImGui::Checkbox("Display instrument type menu when adding instrument",&insTypeMenuB)) {
+          settings.insTypeMenu=insTypeMenuB;
         }
 
         // SUBSECTION MACRO EDITOR
@@ -3048,6 +3058,8 @@ void FurnaceGUI::syncSettings() {
   settings.removeInsOff=e->getConfInt("removeInsOff",0);
   settings.removeVolOff=e->getConfInt("removeVolOff",0);
   settings.playOnLoad=e->getConfInt("playOnLoad",0);
+  settings.insTypeMenu=e->getConfInt("insTypeMenu",1);
+  settings.capitalMenuBar=e->getConfInt("capitalMenuBar",0);
 
   clampSetting(settings.mainFontSize,2,96);
   clampSetting(settings.headFontSize,2,96);
@@ -3182,6 +3194,8 @@ void FurnaceGUI::syncSettings() {
   clampSetting(settings.removeInsOff,0,1);
   clampSetting(settings.removeVolOff,0,1);
   clampSetting(settings.playOnLoad,0,2);
+  clampSetting(settings.insTypeMenu,0,1);
+  clampSetting(settings.capitalMenuBar,0,1);
 
   if (settings.exportLoops<0.0) settings.exportLoops=0.0;
   if (settings.exportFadeOut<0.0) settings.exportFadeOut=0.0;
@@ -3416,6 +3430,8 @@ void FurnaceGUI::commitSettings() {
   e->setConf("removeInsOff",settings.removeInsOff);
   e->setConf("removeVolOff",settings.removeVolOff);
   e->setConf("playOnLoad",settings.playOnLoad);
+  e->setConf("insTypeMenu",settings.insTypeMenu);
+  e->setConf("capitalMenuBar",settings.capitalMenuBar);
 
   // colors
   for (int i=0; i<GUI_COLOR_MAX; i++) {

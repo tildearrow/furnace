@@ -1307,7 +1307,7 @@ bool DivEngine::nextTick(bool noAccum, bool inhibitLowLat) {
     } else {
       DivMacroInt* macroInt=disCont[dispatchOfChan[note.channel]].dispatch->getChanMacroInt(dispatchChanOfChan[note.channel]);
       if (macroInt!=NULL) {
-        if (macroInt->hasRelease) {
+        if (macroInt->hasRelease && !disCont[dispatchOfChan[note.channel]].dispatch->isVolGlobal()) {
           dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF_ENV,note.channel));
         } else {
           dispatchCmd(DivCommand(DIV_CMD_NOTE_OFF,note.channel));
