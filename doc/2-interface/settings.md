@@ -391,9 +391,14 @@ settings are saved when clicking the **OK** button at the bottom of the dialog.
 
 ### Assets
 
-- **Unified instrument/wavetable/sample list**
-- **Horizontal instrument list**
+- **Unified instrument/wavetable/sample list**: combines all three types of assets into one list.
+  - the buttons act as appropriate to the currently selected asset or header.
+- **Horizontal instrument list**: when there are more instruments than there is room to display them...
+  - if on, scroll horizontally through multiple columns.
+  - if off, scroll vertically in one long column.
 - **Colorize instrument editor using instrument type**
+- **Display instrument type menu when adding instrument**
+  - if turned off, the menu can still be opened by right-clicking the add button.
 
 ### Macro Editor
 
