@@ -162,11 +162,12 @@ There are currently no supported expansion HW IDs assigned.
 
 The purpose of this channel is to provide for music synchronization cues that applications may use to perform operations in sync with the music (such as when the Goombas jump in New Super Mario Bros in time with the BOP! BOP! notes in the music). It is intended for the reference player to provide a sync channel callback, passing the data bytes to the callback function, and then to proceed with playback.
 
-The synchronization format currently defines this one event type:
+The synchronization format currently defines these event types:
 
 Event Type|Description|Message Format
 --|--|--
 `0x00`|Generic sync message|`xx` (any value from `0x00`-`0xff`)
+`0x01`|Song tuning|a signed byte indicating an offset from A-440 tuning represented in 256ths of a semitone
 
 An example of an EXTCMD containing one sync event might look as follows: `0x40 0x82 0x00 0x05`
 
