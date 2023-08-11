@@ -66,6 +66,8 @@ void DivZSM::init(unsigned int rate) {
   // Channel masks
   ymMask=0;
   psgMask=0;
+  // Optimize writes
+  optimize=false;
 }
 
 int DivZSM::getoffset() {
@@ -121,9 +123,6 @@ void DivZSM::writeSync(unsigned char a, unsigned char v) {
 }
 
 void DivZSM::writePSG(unsigned char a, unsigned char v) {
-  // TODO: suppress writes to PSG voice that is not audible (volume=0)
-  // ^ Let's leave these alone, ZSMKit has a feature that can benefit
-  // from silent channels.
   if (a>=69) {
     logD("ZSM: ignoring VERA PSG write a=%02x v=%02x",a,v);
     return;
@@ -213,6 +212,10 @@ void DivZSM::setLoopPoint() {
   }
 }
 
+void DivZSM::setOptimize(bool o) {
+  optimize = o;
+}
+
 SafeWriter* DivZSM::finish() {
   tick(0); // flush any pending writes / ticks
   flushTicks(); // flush ticks in case there were no writes pending
@@ -278,6 +281,11 @@ void DivZSM::flushWrites() {
   flushTicks(); // only flush ticks if there are writes pending.
   for (unsigned char i=0; i<64; i++) {
     if (psgState[psg_NEW][i]==psgState[psg_PREV][i]) continue;
+    // if optimize=true, suppress writes to PSG voices that are not audible (volume=0 or R+L=0)
+    // ZSMKit has a feature that can benefit from having silent channels
+    // updated, so this is something that can be toggled off or on for export
+    if (optimize && i%4!=2 && (psgState[psg_NEW][(i&0x3c)+2]&0x3f)==0) continue; // vol
+    if (optimize && i%4!=2 && (psgState[psg_NEW][(i&0x3c)+2]&0xc0)==0) continue; // R+L
     psgState[psg_PREV][i]=psgState[psg_NEW][i];
     w->writeC(i);
     w->writeC(psgState[psg_NEW][i]);

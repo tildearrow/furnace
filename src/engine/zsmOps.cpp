@@ -26,7 +26,7 @@
 constexpr int MASTER_CLOCK_PREC=(sizeof(void*)==8)?8:0;
 constexpr int MASTER_CLOCK_MASK=(sizeof(void*)==8)?0xff:0;
 
-SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
+SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop, bool optimize) {
   int VERA=-1;
   int YM=-1;
   int IGNORED=0;
@@ -118,6 +118,9 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   // by nature of overflowing the signed char value
   signed char tuningoffset=(signed char)(round(3072*(log(song.tuning/440.0)/log(2))))&0xff;
   zsm.writeSync(0x01,tuningoffset);
+  // Set optimize flag, which mainly buffers PSG writes
+  // whenever the channel is silent
+  zsm.setOptimize(optimize);
 
   while (!done) {
     if (loopPos==-1) {

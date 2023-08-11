@@ -70,6 +70,7 @@ class DivZSM {
     int tickRate;
     int ymMask;
     int psgMask;
+    bool optimize;
   public:
     DivZSM();
     ~DivZSM();
@@ -79,6 +80,7 @@ class DivZSM {
     void writePSG(unsigned char a, unsigned char v);
     void writePCM(unsigned char a, unsigned char v);
     void writeSync(unsigned char a, unsigned char v);
+    void setOptimize(bool o);
     void tick(int numticks = 1);
     void setLoopPoint();
     SafeWriter* finish();
