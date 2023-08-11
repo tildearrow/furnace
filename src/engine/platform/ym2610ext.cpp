@@ -633,16 +633,20 @@ void DivPlatformYM2610Ext::muteChannel(int ch, bool mute) {
   }
   isOpMuted[ch-extChanOffs]=mute;
   
-  int ordch=orderedOps[ch-extChanOffs];
-  unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[ordch];
-  DivInstrumentFM::Operator op=chan[extChanOffs].state.op[ordch];
-  if (isOpMuted[ch-extChanOffs] || !op.enable) {
-    rWrite(baseAddr+0x40,127);
-  } else {
-    rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-extChanOffs].outVol&0x7f,127));
-  }
+  DivPlatformYM2610::muteChannel(extChanOffs,IS_EXTCH_MUTED);
+  
+  if (extMode) {
+    int ordch=orderedOps[ch-extChanOffs];
+    unsigned short baseAddr=chanOffs[extChanOffs]|opOffs[ordch];
+    DivInstrumentFM::Operator op=chan[extChanOffs].state.op[ordch];
+    if (isOpMuted[ch-extChanOffs] || !op.enable) {
+      rWrite(baseAddr+0x40,127);
+    } else {
+      rWrite(baseAddr+0x40,127-VOL_SCALE_LOG_BROKEN(127-op.tl,opChan[ch-extChanOffs].outVol&0x7f,127));
+    }
 
-  rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch-extChanOffs].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
+    rWrite(chanOffs[extChanOffs]+0xb4,(IS_EXTCH_MUTED?0:(opChan[ch-extChanOffs].pan<<6))|(chan[extChanOffs].state.fms&7)|((chan[extChanOffs].state.ams&3)<<4));
+  }
 }
 
 void DivPlatformYM2610Ext::forceIns() {
