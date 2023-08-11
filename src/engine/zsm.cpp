@@ -116,6 +116,10 @@ void DivZSM::writeYM(unsigned char a, unsigned char v) {
   }
 }
 
+void DivZSM::writeSync(unsigned char a, unsigned char v) {
+  return syncCache.push_back(DivRegWrite(a,v));
+}
+
 void DivZSM::writePSG(unsigned char a, unsigned char v) {
   // TODO: suppress writes to PSG voice that is not audible (volume=0)
   // ^ Let's leave these alone, ZSMKit has a feature that can benefit
@@ -126,7 +130,7 @@ void DivZSM::writePSG(unsigned char a, unsigned char v) {
   } else if (a==68) {
     // Sync event
     numWrites++;
-    return syncCache.push_back(v);
+    return writeSync(0x00,v);
   } else if (a>=64) {
     return writePCM(a-64,v);
   }
@@ -390,15 +394,18 @@ void DivZSM::flushWrites() {
     }
   }
   n=0;
-  while (n<(long)syncCache.size()) { // we have one or more sync events to write
-    int writes=syncCache.size()-n;
-    w->writeC(ZSM_EXT);
-    if (writes>ZSM_SYNC_MAX_WRITES) writes=ZSM_SYNC_MAX_WRITES;
-    w->writeC(ZSM_EXT_SYNC|(writes<<1));
-    for (; writes>0; writes--) {
-      w->writeC(0x00); // 0x00 = Arbitrary sync message
-      w->writeC(syncCache[n++]);
+  for (DivRegWrite& write: syncCache) {
+    if (n%ZSM_SYNC_MAX_WRITES==0) {
+      w->writeC(ZSM_EXT);
+      if (syncCache.size()-n>ZSM_SYNC_MAX_WRITES) {
+        w->writeC((unsigned char)(ZSM_EXT_SYNC|(ZSM_SYNC_MAX_WRITES<<1)));
+      } else {
+        w->writeC((unsigned char)(ZSM_EXT_SYNC|((syncCache.size()-n)<<1)));
+      }
     }
+    n++;
+    w->writeC(write.addr);
+    w->writeC(write.val);
   }
   syncCache.clear();
   numWrites=0;

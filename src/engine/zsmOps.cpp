@@ -107,6 +107,17 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
     // TODO: incorporate the Furnace meta-command for init data and filter
     //       out writes to otherwise-unused channels.
   }
+  // Indicate the song's tuning as a sync meta-event
+  // specified in terms of how many 1/256th semitones
+  // the song is offset from standard A-440 tuning.
+  // This is mainly to benefit visualizations in players
+  // for non-standard tunings so that they can avoid
+  // displaying the entire song held in pitch bend.
+  // Tunings offsets that exceed a half semitone
+  // will simply be represented in a different key
+  // by nature of overflowing the signed char value
+  signed char tuningoffset=(signed char)(round(3072*(log(song.tuning/440.0)/log(2))))&0xff;
+  zsm.writeSync(0x01,tuningoffset);
 
   while (!done) {
     if (loopPos==-1) {
