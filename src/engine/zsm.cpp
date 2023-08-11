@@ -398,9 +398,9 @@ void DivZSM::flushWrites() {
     if (n%ZSM_SYNC_MAX_WRITES==0) {
       w->writeC(ZSM_EXT);
       if (syncCache.size()-n>ZSM_SYNC_MAX_WRITES) {
-        w->writeC((unsigned char)ZSM_EXT_SYNC|(ZSM_SYNC_MAX_WRITES<<1));
+        w->writeC((unsigned char)(ZSM_EXT_SYNC|(ZSM_SYNC_MAX_WRITES<<1)));
       } else {
-        w->writeC((unsigned char)ZSM_EXT_SYNC|((syncCache.size()-n)<<1));
+        w->writeC((unsigned char)(ZSM_EXT_SYNC|((syncCache.size()-n)<<1)));
       }
     }
     n++;
