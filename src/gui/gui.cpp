@@ -771,7 +771,7 @@ Size=345,217\n\
 Collapsed=0\n\
 DockId=0x00000007,0\n\
 \n\
-[Window][Instruments]\n\
+[Window][###Instruments]\n\
 Pos=653,24\n\
 Size=323,217\n\
 Collapsed=0\n\
@@ -788,12 +788,6 @@ Pos=653,24\n\
 Size=323,217\n\
 Collapsed=0\n\
 DockId=0x00000006,2\n\
-\n\
-[Window][Assets]\n\
-Pos=653,24\n\
-Size=323,217\n\
-Collapsed=0\n\
-DockId=0x00000006,0\n\
 \n\
 [Window][Pattern]\n\
 Pos=0,243\n\

@@ -438,9 +438,9 @@ void FurnaceGUI::drawInsList(bool asChild) {
   if (!insListOpen && !asChild) return;
   const char* label;
   if (settings.unifiedDataView) { 
-      label="Assets";
+      label="Assets###Instruments";
   } else {
-      label="Instruments";
+      label="Instruments###Instruments";
   }
   bool began=false;
   if (asChild) {
