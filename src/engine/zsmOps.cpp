@@ -115,7 +115,7 @@ SafeWriter* DivEngine::saveZSM(unsigned int zsmrate, bool loop) {
   // displaying the entire song held in pitch bend.
   // Tunings offsets that exceed a half semitone
   // will simply be represented in a different key
-  signed char tuningoffset=(signed char)round(3072*(log(song.tuning/440.0)/log(2)));
+  signed char tuningoffset=(signed char)(round(3072*(log(song.tuning/440.0)/log(2))))&0xff;
   zsm.writeSync(0x01,tuningoffset);
 
   while (!done) {
