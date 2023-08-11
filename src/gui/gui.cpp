@@ -789,6 +789,12 @@ Size=323,217\n\
 Collapsed=0\n\
 DockId=0x00000006,2\n\
 \n\
+[Window][Assets]\n\
+Pos=653,24\n\
+Size=323,217\n\
+Collapsed=0\n\
+DockId=0x00000006,0\n\
+\n\
 [Window][Pattern]\n\
 Pos=0,243\n\
 Size=939,557\n\

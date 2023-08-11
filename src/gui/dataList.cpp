@@ -436,11 +436,17 @@ void FurnaceGUI::drawInsList(bool asChild) {
     nextWindow=GUI_WINDOW_NOTHING;
   }
   if (!insListOpen && !asChild) return;
+  const char* label;
+  if (settings.unifiedDataView) { 
+      label="Assets";
+  } else {
+      label="Instruments";
+  }
   bool began=false;
   if (asChild) {
-    began=ImGui::BeginChild("Instruments");
+    began=ImGui::BeginChild(label);
   } else {
-    began=ImGui::Begin("Instruments",&insListOpen,globalWinFlags);
+    began=ImGui::Begin(label,&insListOpen,globalWinFlags);
   }
   if (began) {
     if (settings.unifiedDataView) settings.horizontalDataView=0;
