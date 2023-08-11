@@ -14,7 +14,7 @@ however, effects are continuous, which means you only need to type it once and t
 - `F4xx`: **Fine volume slide down.** same as `0A0x` but 64× slower.
 - `F8xx`: **Single tick volume slide up.** adds `x` to volume on first tick only.
 - `F9xx`: **Single tick volume slide down.** subtracts `x` from volume on first tick only.
-
+  - ---
 - `07xy`: **Tremolo.** changes volume to be "wavy" with a sine LFO. `x` is the speed. `y` is the depth.
   - Tremolo is downward only.
   - Maximum tremolo depth is -60 volume steps.
@@ -26,16 +26,17 @@ however, effects are continuous, which means you only need to type it once and t
 - `02xx`: **Pitch slide down.**
 - `F1xx`: **Single tick pitch slide up.**
 - `F2xx`: **Single tick pitch slide down.**
-
-- `03xx`: **Portamento.** slides the current note's pitch to the specified note.  `x` is the slide speed.
-  - A note _must_ be present for this effect to work.
+  - ---
+- `03xx`: **Portamento.** slides the currently playing note's pitch toward the new note. `x` is the slide speed.
+  - a note _must_ be present with this effect for it to work.
+  - the effect stops automatically when it reaches the new note.
 - `E1xy`: **Note slide up.** `x` is the speed, while `y` is how many semitones to slide up.
 - `E2xy`: **Note slide down.** `x` is the speed, while `y` is how many semitones to slide down.
-
-- `EAxx`: **Toggle legato.** while on, notes instantly change the pitch of the currrently playing sound instead of starting it over.
+  - ---
+- `EAxx`: **Toggle legato.** while on, new notes instantly change the pitch of the currently playing sound instead of starting it over.
 - `00xy`: **Arpeggio.** after using this effect the channel will rapidly switch between semitone values of `note`, `note + x` and `note + y`.
 - `E0xx`: **Set arpeggio speed.** this sets the number of ticks between arpeggio values. default is 1.
-
+  - ---
 - `04xy`: **Vibrato.** changes pitch to be "wavy" with a sine LFO. `x` is the speed, while `y` is the depth.
   - Maximum vibrato depth is ±1 semitone.
 - `E3xx`: **Set vibrato direction.** `xx` may be one of the following:
@@ -54,7 +55,7 @@ not all chips support these effects.
 - `82xx`: **Set volume of right channel** (from `00` to `FF`).
 - `89xx`: **Set volume of rear left channel** (from `00` to `FF`).
 - `8Axx`: **Set volume of rear right channel** (from `00` to `FF`).
-
+  - ---
 - `80xx`: **Set panning (linear).** this effect behaves more like other trackers:
   - `00` is left.
   - `80` is center.
@@ -64,11 +65,11 @@ not all chips support these effects.
 
 - `09xx`: **Set speed/groove.** if no grooves are defined, this sets speed. If alternating speeds are active, this sets the first speed.
 - `0Fxx`: **Set speed 2.** during alternating speeds or a groove, this sets the second speed.
-
+  - ---
 - `Cxxx`: **Set tick rate.** changes tick rate to `xxx` Hz (ticks per second).
   - `xxx` may be from `000` to `3FF`.
 - `F0xx`: **Set BPM.** changes tick rate according to beats per minute. range is `01` to `FF`.
-
+  - ---
 - `0Bxx`: **Jump to order.** `x` is the order to play after the current row.
   - this marks the end of a loop with order `x` as the loop start.
 - `0Dxx`: **Jump to next pattern.** skips the current row and remainder of current order. `x` is the row at which to start playing the next pattern.
@@ -86,12 +87,12 @@ not all chips support these effects.
 
 - `9xxx`: **Set sample position.** jumps current sample to position `xxx * 0x100`.
   - Not all chips support this effect.
-- `EBxx`: **Set sample bank.**
-  - Does not apply on Amiga.
+- `EBxx`: **Set LEGACY sample mode bank.** selects sample bank. used only for compatibility.
+  - does not apply on Amiga.
 - `EExx`: **Send external command.**
-  - This effect is currently incomplete.
-- `F5xx`: **Disable macro.** see macro table at the end of this document for possible values.
-- `F6xx`: **Enable macro.**
+  - this effect is currently incomplete.
+- `F5xx`: **Disable macro.**\
+  `F6xx`: **Enable macro.** see macro table at the end of this document for possible values.
 
 additionally, [each chip has its own effects](../7-systems/README.md).
 
