@@ -288,7 +288,7 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
         break;
       case DIV_INS_C140:
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_C140]);
-        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        name=fmt::sprintf(ICON_FA_VOLUME_UP "##_INS%d",i);
         break;
       default:
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
