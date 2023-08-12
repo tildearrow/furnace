@@ -2202,10 +2202,14 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
       w->writeC(0x67);
       w->writeC(0x66);
       w->writeC(0x8d);
-      w->writeI((writeC140[i]->getSampleMemUsage()+8)|(i*0x80000000));
+      unsigned short* mem=(unsigned short*)writeC140[i]->getSampleMem();
+      size_t memLen=writeC140[i]->getSampleMemUsage()>>1;
+      w->writeI((memLen+8)|(i*0x80000000));
       w->writeI(writeC140[i]->getSampleMemCapacity());
       w->writeI(0);
-      w->write(writeC140[i]->getSampleMem(),writeC140[i]->getSampleMemUsage());
+      for (size_t i=0; i<memLen; i++) {
+        w->writeC(mem[i]>>8);
+      }
     }
   }
 
