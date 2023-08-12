@@ -43,6 +43,7 @@ enum DivSampleDepth: unsigned char {
   DIV_SAMPLE_DEPTH_8BIT=8,
   DIV_SAMPLE_DEPTH_BRR=9,
   DIV_SAMPLE_DEPTH_VOX=10,
+  DIV_SAMPLE_DEPTH_MULAW=11,
   DIV_SAMPLE_DEPTH_16BIT=16,
   DIV_SAMPLE_DEPTH_MAX // boundary for sample depth
 };
@@ -108,6 +109,7 @@ struct DivSample {
   // - 8: 8-bit PCM
   // - 9: BRR (SNES)
   // - 10: VOX ADPCM
+  // - 11: 8-bit µ-law PCM
   // - 16: 16-bit PCM
   DivSampleDepth depth;
   bool loop, brrEmphasis, dither;
@@ -130,8 +132,9 @@ struct DivSample {
   unsigned char* dataB; // 6
   unsigned char* dataBRR; // 9
   unsigned char* dataVOX; // 10
+  unsigned char* dataMuLaw; // 11
 
-  unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthBRR, lengthVOX;
+  unsigned int length8, length16, length1, lengthDPCM, lengthZ, lengthQSoundA, lengthA, lengthB, lengthBRR, lengthVOX, lengthMuLaw;
 
   unsigned int samples;
 
@@ -337,6 +340,7 @@ struct DivSample {
     dataB(NULL),
     dataBRR(NULL),
     dataVOX(NULL),
+    dataMuLaw(NULL),
     length8(0),
     length16(0),
     length1(0),
@@ -347,6 +351,7 @@ struct DivSample {
     lengthB(0),
     lengthBRR(0),
     lengthVOX(0),
+    lengthMuLaw(0),
     samples(0) {
     for (int i=0; i<DIV_MAX_CHIPS; i++) {
       for (int j=0; j<DIV_MAX_SAMPLE_TYPE; j++) {
