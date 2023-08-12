@@ -73,7 +73,7 @@ void DivPlatformC140::acquire(short** buf, size_t len) {
     buf[1][h]=c140.rout;
 
     for (int i=0; i<24; i++) {
-      oscBuf[i]->data[oscBuf[i]->needle++]=(c140.voice[i].lout+c140.voice[i].rout)>>9;
+      oscBuf[i]->data[oscBuf[i]->needle++]=(c140.voice[i].lout+c140.voice[i].rout)>>10;
     }
   }
 }
