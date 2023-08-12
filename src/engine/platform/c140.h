@@ -77,6 +77,7 @@ class DivPlatformC140: public DivDispatch {
     DivDispatchOscBuffer* getOscBuffer(int chan);
     unsigned char* getRegisterPool();
     int getRegisterPoolSize();
+    float getPostAmp();
     void reset();
     void forceIns();
     void tick(bool sysTick=true);

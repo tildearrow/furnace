@@ -398,6 +398,10 @@ int DivPlatformC140::getRegisterPoolSize() {
   return 512;
 }
 
+float DivPlatformC140::getPostAmp() {
+  return 3.0f;
+}
+
 const void* DivPlatformC140::getSampleMem(int index) {
   return index == 0 ? sampleMem : NULL;
 }
