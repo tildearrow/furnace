@@ -143,7 +143,7 @@ void DivPlatformC140::tick(bool sysTick) {
       chan[i].freq=(int)(off*parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE));
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>65535) chan[i].freq=65535;
-      ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0);
+      ctrl|=(chan[i].active?0x80:0)|((s->isLoopable())?0x10:0)|((s->depth==DIV_SAMPLE_DEPTH_MULAW)?0x08:0);
       if (chan[i].keyOn) {
         unsigned int bank=0;
         unsigned int start=0;
@@ -174,7 +174,6 @@ void DivPlatformC140::tick(bool sysTick) {
           chan[i].volChangedL=true;
           chan[i].volChangedR=true;
         }
-        chan[i].keyOn=false;
       }
       if (chan[i].keyOff) {
         chan[i].keyOff=false;
@@ -184,7 +183,10 @@ void DivPlatformC140::tick(bool sysTick) {
         rWrite(0x03+(i<<4),chan[i].freq&0xff);
         chan[i].freqChanged=false;
       }
-      rWrite(0x05+(i<<4),ctrl);
+      if (chan[i].keyOn) {
+        rWrite(0x05+(i<<4),ctrl);
+        chan[i].keyOn=false;
+      }
     }
   }
 }
@@ -437,10 +439,20 @@ void DivPlatformC140::renderSamples(int sysID) {
       break;
     }
     if (memPos+length>=(getSampleMemCapacity())) {
-      memcpy(sampleMem+(memPos/sizeof(short)),s->data16,(getSampleMemCapacity())-memPos);
+      if (s->depth==DIV_SAMPLE_DEPTH_MULAW) {
+
+      } else {
+        memcpy(sampleMem+(memPos/sizeof(short)),s->data16,(getSampleMemCapacity())-memPos);
+      }
       logW("out of C140 memory for sample %d!",i);
     } else {
-      memcpy(sampleMem+(memPos/sizeof(short)),s->data16,length);
+      if (s->depth==DIV_SAMPLE_DEPTH_MULAW) {
+        for (unsigned int i=0; i<length; i++) {
+          sampleMem[i+(memPos/sizeof(short))]=(s->dataMuLaw[i]<<8)^0xff00;
+        }
+      } else {
+        memcpy(sampleMem+(memPos/sizeof(short)),s->data16,length);
+      }
     }
     sampleOff[i]=memPos>>1;
     sampleLoaded[i]=true;
