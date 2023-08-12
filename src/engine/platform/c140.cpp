@@ -441,9 +441,15 @@ void DivPlatformC140::renderSamples(int sysID) {
       logW("out of C140 memory for sample %d!",i);
       break;
     }
+    // why is C140 not G.711-compliant? this weird bit mangling had me puzzled for 3 hours...
     if (memPos+length>=(getSampleMemCapacity())) {
       if (s->depth==DIV_SAMPLE_DEPTH_MULAW) {
-
+        for (unsigned int i=0; i<(getSampleMemCapacity())-memPos; i++) {
+          unsigned char x=s->dataMuLaw[i]^0xff;
+          if (x&0x80) x^=15;
+          unsigned char c140Mu=(x&0x80)|((x&15)<<3)|((x&0x70)>>4);
+          sampleMem[i+(memPos/sizeof(short))]=((c140Mu)<<8);
+        }
       } else {
         memcpy(sampleMem+(memPos/sizeof(short)),s->data16,(getSampleMemCapacity())-memPos);
       }
