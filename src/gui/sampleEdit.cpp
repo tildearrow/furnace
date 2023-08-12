@@ -1608,7 +1608,7 @@ void FurnaceGUI::drawSampleEdit() {
           }
           posY=(0.5-pos.y/rectSize.y)*((sample->depth==DIV_SAMPLE_DEPTH_8BIT)?255:32767);
           if (posX>=0) {
-            statusBar2=fmt::sprintf("(%d, %d) $%.2x",posX,posY,((unsigned char*)sample->getCurBuf())[posX]);
+            statusBar2=fmt::sprintf("(%d, %d)",posX,posY);
           }
         }
 
