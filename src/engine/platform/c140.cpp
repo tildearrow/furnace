@@ -448,7 +448,7 @@ void DivPlatformC140::renderSamples(int sysID) {
     } else {
       if (s->depth==DIV_SAMPLE_DEPTH_MULAW) {
         for (unsigned int i=0; i<length; i++) {
-          sampleMem[i+(memPos/sizeof(short))]=((s->dataMuLaw[i]^0xff)<<8);
+          sampleMem[i+(memPos/sizeof(short))]=(s->dataMuLaw[i]<<8);
         }
       } else {
         memcpy(sampleMem+(memPos/sizeof(short)),s->data16,length);
