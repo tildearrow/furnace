@@ -56,7 +56,11 @@ also known as Famicom. it is a five-channel sound generator: first two channels 
   - only works in DPCM mode.
   - see table below for possible values.
 
-# tables
+
+# info
+
+this chip uses the [NES](../4-instrument/nes.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.
+
 
 ## short noise frequencies (NTSC)
 

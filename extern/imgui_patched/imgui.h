@@ -1236,6 +1236,7 @@ enum ImGuiTableFlags_
     ImGuiTableFlags_SortTristate               = 1 << 27,  // Allow no sorting, disable default sorting. TableGetSortSpecs() may return specs where (SpecsCount == 0).
     // tildearrow
     ImGuiTableFlags_NoBordersInFrozenArea      = 1 << 28,  // Disable vertical borders in frozen area.
+    ImGuiTableFlags_NoScrollWithMouse          = 1 << 29,   // Disable user scrolling with mouse wheel. On child window, mouse wheel will be forwarded to the parent unless NoScrollbar is also set.
 
     // [Internal] Combinations and masks
     ImGuiTableFlags_SizingMask_                = ImGuiTableFlags_SizingFixedFit | ImGuiTableFlags_SizingFixedSame | ImGuiTableFlags_SizingStretchProp | ImGuiTableFlags_SizingStretchSame,

@@ -278,6 +278,12 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "Commodore VIC-20", {
       CH(DIV_SYSTEM_VIC20, 1.0f, 0, "clockSel=1")
+    },
+    "tickRate=50"
+  );
+  ENTRY(
+    "Commodore Plus/4", {
+      CH(DIV_SYSTEM_TED, 1.0f, 0, "")
     }
   );
   ENTRY(
@@ -985,7 +991,7 @@ void FurnaceGUI::initSystemPresets() {
     }
   );
   ENTRY(
-    "PC + AdLib/Sound Blaster (drums mode)", {
+    "PC + Sound Blaster (drums mode)", {
       CH(DIV_SYSTEM_OPL2_DRUMS, 1.0f, 0, ""),
       CH(DIV_SYSTEM_PCSPKR, 1.0f, 0, ""),
       CH(DIV_SYSTEM_PCM_DAC, 1.0f, 0, 
@@ -1401,28 +1407,40 @@ void FurnaceGUI::initSystemPresets() {
     "Sega System 32", {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=2") // 12.5MHz
+      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
+        "clockSel=2\n" 
+        "chipType=1\n"
+      ) // 12.5MHz
     }
   );
   ENTRY(
     "Sega System 32 (extended channel 3 on first OPN2C)", {
       CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=2") // 12.5MHz
+      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
+        "clockSel=2\n" 
+        "chipType=1\n"
+      ) // 12.5MHz
     }
   );
   ENTRY(
     "Sega System 32 (extended channel 3 on second OPN2C)", {
       CH(DIV_SYSTEM_YM2612, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
       CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=2") // 12.5MHz
+      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
+        "clockSel=2\n" 
+        "chipType=1\n"
+      ) // 12.5MHz
     }
   );
   ENTRY(
     "Sega System 32 (extended channel 3 on both OPN2Cs)", {
       CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // discrete 8.05MHz YM3438
       CH(DIV_SYSTEM_YM2612_EXT, 1.0f, 0, "clockSel=4"), // ^^
-      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, "clockSel=2") // 12.5MHz
+      CH(DIV_SYSTEM_RF5C68, 1.0f, 0, 
+        "clockSel=2\n" 
+        "chipType=1\n"
+      ) // 12.5MHz
     }
   );
   ENTRY(
@@ -2447,6 +2465,11 @@ void FurnaceGUI::initSystemPresets() {
   ENTRY(
     "NEC D65010G031", {
       CH(DIV_SYSTEM_PV1000, 1.0f, 0, "")
+    }
+  );
+  ENTRY(
+    "MOS Technology TED", {
+      CH(DIV_SYSTEM_TED, 1.0f, 0, "clockSel=1")
     }
   );
   CATEGORY_END;

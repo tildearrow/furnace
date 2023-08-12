@@ -8,6 +8,11 @@ right-clicking within the view will change it to the configuration view shown ab
 - **Columns**: arranges oscilloscopes into this many columns.
 - **Size (ms)**: sets what length of audio is visible in each oscilloscope.
 - **Center waveform**: does its best to latch the waveform to the channel's note frequency and centers the display.
+- **Automatic columns**: sets the number of columns based on the number of channels.
+  - **Off**: use the Columns setting.
+  - **Mode 1**: always fewer columns than rows.
+  - **Mode 2**: bias slightly toward more columns.
+  - **Mode 3**: always more columns than rows.
 - **Amplitude**: scales amplitude for all oscilloscopes.
 - **Gradient**: see below.
 - the color selector sets the color for all waveforms. right-clicking on it pops up an option dialog:
@@ -19,6 +24,7 @@ right-clicking within the view will change it to the configuration view shown ab
   - `%C`: channel short name
   - `%d`: channel number (starting from 0)
   - `%D`: channel number (starting from 1)
+  - `%n`: channel note
   - `%i`: instrument name
   - `%I`: instrument number (decimal)
   - `%x`: instrument number (hex)

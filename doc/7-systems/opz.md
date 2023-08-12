@@ -113,3 +113,7 @@ no plans have been made for TX81Z MIDI passthrough, because:
 - `5Dxx`: **set D2R/SR of operator 2.**
 - `5Exx`: **set D2R/SR of operator 3.**
 - `5Fxx`: **set D2R/SR of operator 4.**
+
+# info
+
+this chip uses the [FM (OPZ)](../4-instrument/opz.md) instrument editor.

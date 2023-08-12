@@ -56,8 +56,8 @@
 
 #define DIV_UNSTABLE
 
-#define DIV_VERSION "dev164"
-#define DIV_ENGINE_VERSION 164
+#define DIV_VERSION "dev165"
+#define DIV_ENGINE_VERSION 165
 // for imports
 #define DIV_VERSION_MOD 0xff01
 #define DIV_VERSION_FC 0xff02
@@ -531,6 +531,9 @@ class DivEngine {
   void initSongWithDesc(const char* description, bool inBase64=true, bool oldVol=false);
 
   void exchangeIns(int one, int two);
+  void exchangeWave(int one, int two);
+  void exchangeSample(int one, int two);
+
   void swapChannels(int src, int dest);
   void stompChannel(int ch);
 
@@ -602,7 +605,7 @@ class DivEngine {
     // - -2 to add a whole loop of trailing
     SafeWriter* saveVGM(bool* sysToExport=NULL, bool loop=true, int version=0x171, bool patternHints=false, bool directStream=false, int trailingTicks=-1);
     // dump to ZSM.
-    SafeWriter* saveZSM(unsigned int zsmrate=60, bool loop=true);
+    SafeWriter* saveZSM(unsigned int zsmrate=60, bool loop=true, bool optimize=true);
     // dump command stream.
     SafeWriter* saveCommand(bool binary=false);
     // export to an audio file

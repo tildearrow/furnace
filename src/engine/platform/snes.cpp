@@ -733,6 +733,7 @@ int DivPlatformSNES::getRegisterPoolSize() {
 
 void DivPlatformSNES::initEcho() {
   unsigned char esa=0xf8-(echoDelay<<3);
+  unsigned char control=(noiseFreq&0x1f)|(echoOn?0:0x20);
   if (echoOn) {
     rWrite(0x6d,esa);
     rWrite(0x7d,echoDelay);
@@ -742,13 +743,14 @@ void DivPlatformSNES::initEcho() {
     for (int i=0; i<8; i++) {
       rWrite(0x0f+(i<<4),echoFIR[i]);
     }
+    rWrite(0x6c,control);
   } else {
-    rWrite(0x6d,0);
-    rWrite(0x7d,0);
     rWrite(0x2c,0);
     rWrite(0x3c,0);
+    rWrite(0x6c,control);
+    rWrite(0x7d,0);
+    rWrite(0x6d,0xff);
   }
-  writeControl=true;
 }
 
 void DivPlatformSNES::reset() {

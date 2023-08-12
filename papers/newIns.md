@@ -117,6 +117,8 @@ the following instrument types are available:
 - 47: Pokémon Mini/QuadTone
 - 48: SM8521
 - 49: PV-1000
+- 50: K053260
+- 52: TED
 
 the following feature codes are recognized:
 

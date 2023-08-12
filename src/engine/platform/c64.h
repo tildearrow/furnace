@@ -105,6 +105,7 @@ class DivPlatformC64: public DivDispatch {
     void notifyInsChange(int ins);
     bool getDCOffRequired();
     bool getWantPreNote();
+    bool isVolGlobal();
     float getPostAmp();
     DivMacroInt* getChanMacroInt(int ch);
     void notifyInsDeletion(void* ins);

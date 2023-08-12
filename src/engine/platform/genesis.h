@@ -55,7 +55,6 @@ class DivPlatformGenesis: public DivPlatformOPN {
       unsigned int dacPos;
       int dacSample;
       int dacDelay;
-      bool dacReady;
       bool dacDirection;
       bool setPos;
       unsigned char sampleBank;
@@ -69,7 +68,6 @@ class DivPlatformGenesis: public DivPlatformOPN {
         dacPos(0),
         dacSample(-1),
         dacDelay(0),
-        dacReady(true),
         dacDirection(false),
         setPos(false),
         sampleBank(0),
@@ -86,8 +84,9 @@ class DivPlatformGenesis: public DivPlatformOPN {
 
     int softPCMTimer;
 
-    bool extMode, softPCM, noExtMacros, useYMFM;
+    bool extMode, softPCM, noExtMacros, useYMFM, canWriteDAC;
     unsigned char chipType;
+    short dacWrite;
   
     unsigned char dacVolTable[128];
   

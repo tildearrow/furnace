@@ -267,6 +267,10 @@ const char* msm5232ControlBits[7]={
   "16'", "8'", "4'", "2'", "sustain", NULL
 };
 
+const char* tedControlBits[3]={
+  "square", "noise", NULL
+};
+
 const char* x1_010EnvBits[8]={
   "enable", "oneshot", "split L/R", "HinvR", "VinvR", "HinvL", "VinvL", NULL
 };
@@ -2284,9 +2288,6 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::SetTooltip("Save");
         }
         if (ImGui::BeginPopupContextItem("InsSaveFormats",ImGuiMouseButton_Right)) {
-          if (ImGui::MenuItem("save in legacy format...")) {
-            doAction(GUI_ACTION_INS_LIST_SAVE_OLD);
-          }
           if (ImGui::MenuItem("save as .dmp...")) {
             doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
           }
@@ -4263,6 +4264,7 @@ void FurnaceGUI::drawInsEdit() {
           ImGui::EndTabItem();
         }
         if (ins->type==DIV_INS_C64) if (ImGui::BeginTabItem("C64")) {
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Waveform");
           ImGui::SameLine();
           pushToggleColors(ins->c64.triOn);
@@ -4347,6 +4349,7 @@ void FurnaceGUI::drawInsEdit() {
           P(CWSliderScalar("Cutoff",ImGuiDataType_U16,&ins->c64.cut,&_ZERO,&_TWO_THOUSAND_FORTY_SEVEN)); rightClickable
           P(CWSliderScalar("Resonance",ImGuiDataType_U8,&ins->c64.res,&_ZERO,&_FIFTEEN)); rightClickable
 
+          ImGui::AlignTextToFramePadding();
           ImGui::Text("Filter Mode");
           ImGui::SameLine();
           pushToggleColors(ins->c64.lp);
@@ -4684,7 +4687,7 @@ void FurnaceGUI::drawInsEdit() {
 
           ImGui::Separator();
 
-          P(ImGui::Checkbox("Per-channel wave offset/length",&ins->n163.perChanPos));
+          P(ImGui::Checkbox("Per-channel wave position/length",&ins->n163.perChanPos));
 
           if (ins->n163.perChanPos) {
             if (ImGui::BeginTable("N1PerChPos",3)) {
@@ -4696,7 +4699,7 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::TableNextColumn();
               ImGui::Text("Ch");
               ImGui::TableNextColumn();
-              ImGui::Text("Offset");
+              ImGui::Text("Position");
               ImGui::TableNextColumn();
               ImGui::Text("Length");
 
@@ -4728,7 +4731,7 @@ void FurnaceGUI::drawInsEdit() {
               ImGui::EndTable();
             }
           } else {
-            if (ImGui::InputInt("Offset##WAVEPOS",&ins->n163.wavePos,1,16)) { PARAMETER
+            if (ImGui::InputInt("Position##WAVEPOS",&ins->n163.wavePos,1,16)) { PARAMETER
               if (ins->n163.wavePos<0) ins->n163.wavePos=0;
               if (ins->n163.wavePos>255) ins->n163.wavePos=255;
             }
@@ -5249,6 +5252,7 @@ void FurnaceGUI::drawInsEdit() {
 
               ImGui::TableNextRow();
               ImGui::TableNextColumn();
+              ImGui::AlignTextToFramePadding();
               ImGui::Text("Wave 1");
               ImGui::SameLine();
               ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -5259,6 +5263,7 @@ void FurnaceGUI::drawInsEdit() {
               }
               if (isSingleWaveFX) {
                 ImGui::TableNextColumn();
+                ImGui::AlignTextToFramePadding();
                 ImGui::Text("Wave 2");
                 ImGui::SameLine();
                 ImGui::SetNextItemWidth(ImGui::GetContentRegionAvail().x);
@@ -5389,7 +5394,7 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_MSM6258) {
             volMax=0;
           }
-          if (ins->type==DIV_INS_MSM6295) {
+          if (ins->type==DIV_INS_MSM6295 || ins->type==DIV_INS_TED) {
             volMax=8;
           }
           if (ins->type==DIV_INS_ADPCMA) {
@@ -5475,6 +5480,10 @@ void FurnaceGUI::drawInsEdit() {
             dutyLabel="On/Off";
             dutyMax=1;
           }
+          if (ins->type==DIV_INS_TED) {
+            dutyLabel="Square/Noise";
+            dutyMax=2;
+          }
           if (ins->type==DIV_INS_SWAN) {
             dutyLabel="Noise";
             dutyMax=ins->amiga.useSample?0:8;
@@ -5555,9 +5564,11 @@ void FurnaceGUI::drawInsEdit() {
           if (ins->type==DIV_INS_MSM6295) waveMax=0;
           if (ins->type==DIV_INS_SEGAPCM) waveMax=0;
           if (ins->type==DIV_INS_K007232) waveMax=0;
+          if (ins->type==DIV_INS_ES5506) waveMax=0;
           if (ins->type==DIV_INS_GA20) waveMax=0;
           if (ins->type==DIV_INS_K053260) waveMax=0;
           if (ins->type==DIV_INS_POKEMINI) waveMax=0;
+          if (ins->type==DIV_INS_TED) waveMax=0;
           if (ins->type==DIV_INS_SU || ins->type==DIV_INS_POKEY) waveMax=7;
           if (ins->type==DIV_INS_PET) {
             waveMax=8;
@@ -5703,6 +5714,8 @@ void FurnaceGUI::drawInsEdit() {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,mikeyFeedbackBits));
             } else if (ins->type==DIV_INS_POKEY) {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,pokeyCtlBits));
+            } else if (ins->type==DIV_INS_TED) {
+              macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,80,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,tedControlBits));
             } else if (ins->type==DIV_INS_MSM5232) {
               macroList.push_back(FurnaceGUIMacroDesc(dutyLabel,&ins->std.dutyMacro,0,dutyMax,160,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true,msm5232ControlBits));
             } else if (ins->type==DIV_INS_ES5506) {
@@ -5770,7 +5783,8 @@ void FurnaceGUI::drawInsEdit() {
               (ins->type==DIV_INS_X1_010 && ins->amiga.useSample) ||
               ins->type==DIV_INS_K007232 ||
               ins->type==DIV_INS_GA20 ||
-              ins->type==DIV_INS_K053260) {
+              ins->type==DIV_INS_K053260 ||
+              ins->type==DIV_INS_TED) {
             macroList.push_back(FurnaceGUIMacroDesc("Phase Reset",&ins->std.phaseResetMacro,0,1,32,uiColors[GUI_COLOR_MACRO_OTHER],false,NULL,NULL,true));
           }
           if (ex1Max>0) {

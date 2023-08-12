@@ -81,7 +81,6 @@ void DivPlatformGB::acquire(short** buf, size_t len) {
 }
 
 void DivPlatformGB::updateWave() {
-  logV("WAVE UPDATE");
   rWrite(0x1a,0);
   for (int i=0; i<16; i++) {
     int nibble1=ws.output[((i<<1)+antiClickWavePos)&31];
@@ -255,7 +254,7 @@ void DivPlatformGB::tick(bool sysTick) {
               chan[i].sweepChanged=true;
               break;
             case DivInstrumentGB::DIV_GB_HWCMD_WAIT:
-              chan[i].hwSeqDelay=data+1;
+              chan[i].hwSeqDelay=(data+1)*parent->tickMult;
               leave=true;
               break;
             case DivInstrumentGB::DIV_GB_HWCMD_WAIT_REL:

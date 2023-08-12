@@ -35,3 +35,7 @@ a sound and input chip developed by Atari for their 8-bit computers (Atari 400, 
 - `12xx`: **toggle two-tone mode.**
   - when enabled, channel 2 modulates channel 1. I don't know how, but it does.
   - only on ASAP core.
+
+# info
+
+this chip uses the [POKEY](../4-instrument/pokey.md) instrument editor.

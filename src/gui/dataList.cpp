@@ -282,6 +282,10 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_K053260]);
         name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
         break;
+      case DIV_INS_TED:
+        ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_TED]);
+        name=fmt::sprintf(ICON_FA_BAR_CHART "##_INS%d",i);
+        break;
       default:
         ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_INSTR_UNKNOWN]);
         name=fmt::sprintf(ICON_FA_QUESTION "##_INS%d",i);
@@ -325,9 +329,6 @@ void FurnaceGUI::insListItem(int i, int dir, int asset) {
       }
       if (ImGui::MenuItem("save")) {
         doAction(GUI_ACTION_INS_LIST_SAVE);
-      }
-      if (ImGui::MenuItem("save (legacy .fui)")) {
-        doAction(GUI_ACTION_INS_LIST_SAVE_OLD);
       }
       if (ImGui::MenuItem("save (.dmp)")) {
         doAction(GUI_ACTION_INS_LIST_SAVE_DMP);
@@ -406,13 +407,10 @@ void FurnaceGUI::sampleListItem(int i, int dir, int asset) {
     lastAssetType=2;
   }
   if (ImGui::IsItemHovered() && !mobileUI) {
-    ImGui::PushStyleColor(ImGuiCol_Text,uiColors[GUI_COLOR_TEXT]);
-    ImGui::SetTooltip("(legacy bank %d: %s)",i/12,sampleNote[i%12]);
     if (ImGui::IsMouseDoubleClicked(ImGuiMouseButton_Left)) {
       sampleEditOpen=true;
       nextWindow=GUI_WINDOW_SAMPLE_EDIT;
     }
-    ImGui::PopStyleColor();
   }
   if (sampleListDir || (settings.unifiedDataView && insListDir)) {
     DRAG_SOURCE(dir,asset,"FUR_SDIR");

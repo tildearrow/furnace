@@ -451,7 +451,7 @@ void DivEngine::registerSystems() {
 
   EffectHandlerMap fmOPN2EffectHandlerMap(fmEffectHandlerMap);
   fmOPN2EffectHandlerMap.insert({
-    {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}},
+    {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}},
     {0xdf, {DIV_CMD_SAMPLE_DIR, "DFxx: Set sample playback direction (0: normal; 1: reverse)"}},
   });
 
@@ -681,7 +681,7 @@ void DivEngine::registerSystems() {
       {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Toggle noise mode"}},
       {0x12, {DIV_CMD_PCE_LFO_MODE, "12xx: Setup LFO (0: disabled; 1: 1x depth; 2: 16x depth; 3: 256x depth)"}},
       {0x13, {DIV_CMD_PCE_LFO_SPEED, "13xx: Set LFO speed"}},
-      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}}
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}}
     }
   );
 
@@ -939,7 +939,7 @@ void DivEngine::registerSystems() {
     {DIV_INS_AMIGA, DIV_INS_AMIGA, DIV_INS_NULL},
     {
       {0x12, {DIV_CMD_STD_NOISE_MODE, "12xx: Set duty cycle (pulse: 0 to 7)"}},
-      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (pulse channel)"}},
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}},
     }
   );
 
@@ -1182,7 +1182,7 @@ void DivEngine::registerSystems() {
       {0x11, {DIV_CMD_STD_NOISE_MODE, "11xx: Setup noise mode (0: disabled; 1-8: enabled/tap)"}},
       {0x12, {DIV_CMD_WS_SWEEP_TIME, "12xx: Setup sweep period (0: disabled; 1-20: enabled/period)"}},
       {0x13, {DIV_CMD_WS_SWEEP_AMOUNT, "13xx: Set sweep amount"}},
-      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}},
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}},
     }
   );
 
@@ -1497,7 +1497,7 @@ void DivEngine::registerSystems() {
       {0x10, {DIV_CMD_WAVE, "10xx: Set waveform"}},
       {0x11, {DIV_CMD_X1_010_ENVELOPE_SHAPE, "11xx: Set envelope shape"}},
       {0x12, {DIV_CMD_X1_010_SAMPLE_BANK_SLOT, "12xx: Set sample bank slot (0 to 7)"}},
-      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode"}},
+      {0x17, {DIV_CMD_SAMPLE_MODE, "17xx: Toggle PCM mode (LEGACY)"}},
     },
     {
       {0x20, {DIV_CMD_SAMPLE_FREQ, "20xx: Set PCM frequency (1 to FF)"}},
@@ -1542,7 +1542,6 @@ void DivEngine::registerSystems() {
   );
 
   EffectHandlerMap es5506PreEffectHandlerMap={
-      {0x10, {DIV_CMD_WAVE, "10xx: Change waveform (00 to FF)",effectVal}},
       {0x11, {DIV_CMD_ES5506_FILTER_MODE, "11xx: Set filter mode (00 to 03)",effectValAnd<3>}},
       {0x14, {DIV_CMD_ES5506_FILTER_K1, "14xx: Set filter coefficient K1 low byte (00 to FF)",effectValShift<0>,constVal<0x00ff>}},
       {0x15, {DIV_CMD_ES5506_FILTER_K1, "15xx: Set filter coefficient K1 high byte (00 to FF)",effectValShift<8>,constVal<0xff00>}},
@@ -1861,6 +1860,16 @@ void DivEngine::registerSystems() {
     {
       {0xdf, {DIV_CMD_SAMPLE_DIR, "DFxx: Set sample playback direction (0: normal; 1: reverse)"}}
     }
+  );
+
+  sysDefs[DIV_SYSTEM_TED]=new DivSysDef(
+    "MOS Technology TED", NULL, 0xcd, 0, 2, false, true, 0, false, 0,
+    "two square waves (one may be turned into noise). used in the Commodore Plus/4, 16 and 116.",
+    {"Channel 1", "Channel 2"},
+    {"CH1", "CH2"},
+    {DIV_CH_PULSE, DIV_CH_PULSE},
+    {DIV_INS_TED, DIV_INS_TED},
+    {}
   );
 
   sysDefs[DIV_SYSTEM_DUMMY]=new DivSysDef(

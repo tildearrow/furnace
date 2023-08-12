@@ -17,3 +17,7 @@ there are also 3 ADPCM channels. ADPCM samples are fixed to 8012 Hz.
 - `11xx`: **set echo level.**
 - `12xx`: **toggle QSound algorithm.** on by default.
 - `3xxx`: **set echo delay buffer length.**
+
+# info
+
+this chip uses the [QSound](../4-instrument/qsound.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.

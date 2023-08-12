@@ -17,3 +17,7 @@ the Atari Lynx has a 6502-based CPU with a sound part (this chip is known as MIK
 
 - `3xxx`: **load LFSR.** this is a bitmask with values ranging from `000` to `FFF`.
   - for it to work, duty macro in instrument editor must be set to some value. without it LFSR will not be fed with any bits.
+
+# info
+
+this chip uses the [Atari Lynx](../4-instrument/lynx.md) instrument editor.

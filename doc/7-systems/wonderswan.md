@@ -19,3 +19,7 @@ it has 4 wavetable channels. some of them have additional capabilities:
   - 1-32: enable and set period.
 - `13xx`: **setup sweep amount.** channel 3 only.
 - `17xx`: **toggle PCM mode.** channel 2 only.
+
+# info
+
+this chip uses the [WonderSwan](../4-instrument/wonderswan.md) and [Generic Sample](../4-instrument/amiga.md) instrument editors.

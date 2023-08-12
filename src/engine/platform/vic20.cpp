@@ -278,6 +278,10 @@ void DivPlatformVIC20::forceIns() {
   }
 }
 
+bool DivPlatformVIC20::isVolGlobal() {
+  return true;
+}
+
 void* DivPlatformVIC20::getChanState(int ch) {
   return &chan[ch];
 }

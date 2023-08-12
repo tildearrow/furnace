@@ -532,6 +532,9 @@ nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
                                     nfdselcallback_t selCallback )
 {
     nfdresult_t nfdResult = NFD_ERROR;
+    NFDWinEvents* winEvents;
+    bool hasEvents=true;
+    DWORD eventID=0;
 
 
     HRESULT coResult = COMInit();
@@ -564,6 +567,16 @@ nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
     if ( !SetDefaultPath( fileOpenDialog, defaultPath ) )
     {
         goto end;
+    }
+
+    // Pass the callback
+    winEvents=new NFDWinEvents(selCallback);
+    if ( !SUCCEEDED(fileOpenDialog->Advise(winEvents,&eventID)) ) {
+      // error... ignore
+      hasEvents=false;
+      winEvents->Release();
+    } else {
+      winEvents->Release();
     }
 
     // Set a flag for multiple options
@@ -613,8 +626,12 @@ nfdresult_t NFD_OpenDialogMultiple( const std::vector<std::string>& filterList,
     }
 
 end:
-    if ( fileOpenDialog )
+    if (fileOpenDialog) {
+        if (hasEvents) {
+          fileOpenDialog->Unadvise(eventID);
+        }
         fileOpenDialog->Release();
+    }
 
     COMUninit(coResult);
     

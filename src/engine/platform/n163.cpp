@@ -34,7 +34,7 @@
     rWriteMask(0x78-(c<<3)+(a&7),v,m) \
   }
 
-#define CHIP_FREQBASE (15*32768)
+#define CHIP_FREQBASE (15*524288)
 
 const char* regCheatSheetN163[]={
   "FreqL7", "40",
@@ -256,7 +256,12 @@ void DivPlatformN163::tick(bool sysTick) {
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
       // TODO: what is this mess?
       chan[i].freq=parent->calcFreq(chan[i].baseFreq,chan[i].pitch,chan[i].fixedArp?chan[i].baseNoteOverride:chan[i].arpOff,chan[i].fixedArp,false,2,chan[i].pitch2,chipClock,CHIP_FREQBASE);
-      chan[i].freq=(((chan[i].freq*chan[i].curWaveLen)*(chanMax+1))/16);
+      if (lenCompensate) {
+        chan[i].freq=(((chan[i].freq*chan[i].curWaveLen)*(chanMax+1))/256);
+      } else {
+        chan[i].freq*=(chanMax+1);
+        chan[i].freq>>=3;
+      }
       if (chan[i].freq<0) chan[i].freq=0;
       if (chan[i].freq>0x3ffff) chan[i].freq=0x3ffff;
       if (chan[i].keyOn) {
@@ -359,13 +364,13 @@ int DivPlatformN163::dispatch(DivCommand c) {
       int destFreq=NOTE_FREQUENCY(c.value2);
       bool return2=false;
       if (destFreq>chan[c.chan].baseFreq) {
-        chan[c.chan].baseFreq+=c.value;
+        chan[c.chan].baseFreq+=c.value*((parent->song.linearPitch==2)?1:16);
         if (chan[c.chan].baseFreq>=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
         }
       } else {
-        chan[c.chan].baseFreq-=c.value;
+        chan[c.chan].baseFreq-=c.value*((parent->song.linearPitch==2)?1:16);
         if (chan[c.chan].baseFreq<=destFreq) {
           chan[c.chan].baseFreq=destFreq;
           return2=true;
@@ -569,6 +574,8 @@ void DivPlatformN163::setFlags(const DivConfig& flags) {
   for (int i=0; i<8; i++) {
     oscBuf[i]->rate=rate/(initChanMax+1);
   }
+
+  lenCompensate=flags.getBool("lenCompensate",false);
 
   // needed to make sure changing channel count won't trigger glitches
   reset();

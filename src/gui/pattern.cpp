@@ -420,9 +420,6 @@ void FurnaceGUI::drawPattern() {
     //char id[32];
     ImGui::PushFont(patFont);
     int ord=oldOrder;
-    if (followPattern) {
-      curOrder=e->getOrder();
-    }
     oldOrder=curOrder;
     int chans=e->getTotalChannelCount();
     int displayChans=0;
@@ -440,7 +437,7 @@ void FurnaceGUI::drawPattern() {
         ImGui::SetCursorPosX(ImGui::GetCursorPosX()+centerOff);
       }
     }
-    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea)) {
+    if (ImGui::BeginTable("PatternView",displayChans+2,ImGuiTableFlags_BordersInnerV|ImGuiTableFlags_ScrollX|ImGuiTableFlags_ScrollY|ImGuiTableFlags_NoPadInnerX|ImGuiTableFlags_NoBordersInFrozenArea|(settings.cursorFollowsWheel?ImGuiTableFlags_NoScrollWithMouse:0))) {
       ImGui::TableSetupColumn("pos",ImGuiTableColumnFlags_WidthFixed);
       char chanID[2048];
       float lineHeight=(ImGui::GetTextLineHeight()+2*dpiScale);
@@ -829,8 +826,6 @@ void FurnaceGUI::drawPattern() {
                 ImGui::GetColorU32(chanHeadBase)
               );
             }
-            keyHit1[i]-=0.2f;
-            if (keyHit1[i]<0.0f) keyHit1[i]=0.0f;
           }
         }
         
