@@ -2562,7 +2562,7 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
   ws=utf8To16(song.authorJ.c_str());
   w->writeWString(ws,false); // japanese author name
   w->writeS(0); // date
-  w->writeWString(L"Furnace Tracker",false); // ripper
+  w->writeWString(L"Furnace (chiptune tracker)",false); // ripper
   w->writeS(0); // notes
 
   int gd3Len=w->tell()-gd3Off-12;
