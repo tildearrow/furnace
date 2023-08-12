@@ -4440,6 +4440,10 @@ bool FurnaceGUI::loop() {
 
     MEASURE(calcChanOsc,calcChanOsc());
 
+    if (followPattern) {
+      curOrder=e->getOrder();
+    }
+
     if (mobileUI) {
       globalWinFlags=ImGuiWindowFlags_NoTitleBar|ImGuiWindowFlags_NoMove|ImGuiWindowFlags_NoResize|ImGuiWindowFlags_NoBringToFrontOnFocus;
       //globalWinFlags=ImGuiWindowFlags_NoTitleBar;

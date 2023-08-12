@@ -420,9 +420,6 @@ void FurnaceGUI::drawPattern() {
     //char id[32];
     ImGui::PushFont(patFont);
     int ord=oldOrder;
-    if (followPattern) {
-      curOrder=e->getOrder();
-    }
     oldOrder=curOrder;
     int chans=e->getTotalChannelCount();
     int displayChans=0;
