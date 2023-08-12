@@ -1059,7 +1059,7 @@ void DivEngine::performVGMWrite(SafeWriter* w, DivSystem sys, DivRegWrite& write
       break;
     case DIV_SYSTEM_C140:
       w->writeC(0xd4);
-      w->writeS(baseAddr2S|(write.addr&0x1ff));
+      w->writeS_BE(baseAddr2S|(write.addr&0x1ff));
       w->writeC(write.val&0xff);
       break;
     default:
@@ -1786,7 +1786,8 @@ SafeWriter* DivEngine::saveVGM(bool* sysToExport, bool loop, int version, bool p
         break;
       case DIV_SYSTEM_C140:
         if (!hasNamco) {
-          hasNamco=disCont[i].dispatch->chipClock;
+          // ?!?!?!
+          hasNamco=disCont[i].dispatch->rate/2;
           CHIP_VOL(40,0.4);
           willExport[i]=true;
           writeC140[0]=disCont[i].dispatch;
