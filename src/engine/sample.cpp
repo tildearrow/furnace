@@ -1266,10 +1266,11 @@ void DivSample::render(unsigned int formatMask) {
     if (!initInternal(DIV_SAMPLE_DEPTH_MULAW,samples)) return;
     for (unsigned int i=0; i<samples; i++) {
       IntFloat s;
-      s.f=(float)-data16[i];
-      s.f/=32768.0f;
+      s.f=fabs(data16[i]);
+      s.f/=128.0f;
+      s.f+=1.0f;
       s.i-=0x3f800000;
-      dataMuLaw[i]=(((s.i&0x80000000)>>24)|((s.i&0x03f80000)>>19))^0xff;
+      dataMuLaw[i]=(((data16[i]<0)?0x80:0)|(s.i&0x03f80000)>>19)^0xff;
     }
   }
 }
