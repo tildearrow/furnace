@@ -1128,6 +1128,11 @@ bool DivSample::resample(double sRate, double tRate, int filter) {
 
 #define NOT_IN_FORMAT(x) (depth!=x && formatMask&(1U<<(unsigned int)x))
 
+union IntFloat {
+  unsigned int i;
+  float f;
+};
+
 void DivSample::render(unsigned int formatMask) {
   // step 1: convert to 16-bit if needed
   if (depth!=DIV_SAMPLE_DEPTH_16BIT) {
@@ -1173,9 +1178,10 @@ void DivSample::render(unsigned int formatMask) {
         break;
       case DIV_SAMPLE_DEPTH_MULAW: // 8-bit µ-law PCM
         for (unsigned int i=0; i<samples; i++) {
-          unsigned int s=(dataMuLaw[i]^0xff);
-          s=0x3f800000+(((s<<24)&0x80000000)|((s&0x7f)<<19));
-          data16[i]=(short)((*(float*)&s)*128.0f);
+          IntFloat s;
+          s.i=(dataMuLaw[i]^0xff);
+          s.i=0x3f800000+(((s.i<<24)&0x80000000)|((s.i&0x7f)<<19));
+          data16[i]=(short)(s.f*128.0f);
         }
         break;
       default:
@@ -1259,11 +1265,11 @@ void DivSample::render(unsigned int formatMask) {
   if (NOT_IN_FORMAT(DIV_SAMPLE_DEPTH_MULAW)) { // µ-law
     if (!initInternal(DIV_SAMPLE_DEPTH_MULAW,samples)) return;
     for (unsigned int i=0; i<samples; i++) {
-      float s=(float)-data16[i];
-      s/=32768.0f;
-      unsigned int si=*(unsigned int*)&s;
-      si-=0x3f800000;
-      dataMuLaw[i]=(((si&0x80000000)>>24)|((si&0x03f80000)>>19))^0xff;
+      IntFloat s;
+      s.f=(float)-data16[i];
+      s.f/=32768.0f;
+      s.i-=0x3f800000;
+      dataMuLaw[i]=(((s.i&0x80000000)>>24)|((s.i&0x03f80000)>>19))^0xff;
     }
   }
 }
