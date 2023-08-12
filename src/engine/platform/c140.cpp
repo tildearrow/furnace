@@ -137,6 +137,7 @@ void DivPlatformC140::tick(bool sysTick) {
       chan[i].audPos=0;
     }
     if (chan[i].freqChanged || chan[i].keyOn || chan[i].keyOff) {
+      bool writeCtrl=false;
       DivSample* s=parent->getSample(chan[i].sample);
       unsigned char ctrl=0;
       double off=(s->centerRate>=1)?((double)s->centerRate/8363.0):1.0;
@@ -174,8 +175,11 @@ void DivPlatformC140::tick(bool sysTick) {
           chan[i].volChangedL=true;
           chan[i].volChangedR=true;
         }
+        writeCtrl=true;
+        chan[i].keyOn=false;
       }
       if (chan[i].keyOff) {
+        writeCtrl=true;
         chan[i].keyOff=false;
       }
       if (chan[i].freqChanged) {
@@ -183,9 +187,8 @@ void DivPlatformC140::tick(bool sysTick) {
         rWrite(0x03+(i<<4),chan[i].freq&0xff);
         chan[i].freqChanged=false;
       }
-      if (chan[i].keyOn) {
+      if (writeCtrl) {
         rWrite(0x05+(i<<4),ctrl);
-        chan[i].keyOn=false;
       }
     }
   }
